@@ -1,0 +1,90 @@
+/* ------- FLIGHT STATUS EZ ----------*/
+.flightStatusEZ-flightNumber {
+    color: #333333;
+    font-size: 18px;
+    line-height: 1.3em;
+    overflow: hidden;
+}
+
+.flightStatusEZ-flightStatus {
+    color: #C9C9C9;
+    font-size: 12px;
+}
+
+.flightStatusEZ-plane-position {
+    position: relative;
+    height: 38px
+}
+
+.flightStatusEZ-plane-position-plane-img {
+    position: relative;
+    top: -15px;
+    float: left;
+    width: 30px;
+    margin-top: 7px;
+    margin-right: 5px;
+}
+
+.flightStatusEZ-plane-position-bar {
+    overflow: hidden;
+    max-width: 338px;
+    height: 10px;
+    margin-top: 15px;
+    padding-right: 10px
+}
+
+.flightStatusEZ-plane-position-dot {
+    position: relative;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #74d463;
+    z-index: 2;
+}
+
+.flightStatusEZ-plane-position-dot::after,
+.flightStatusEZ-plane-position-dot::before {
+    content: "";
+    width: 99999px;
+    height: 2px;
+    background: #C9C9C9;
+    display: block;
+    position: absolute;
+    top: 4px;
+    z-index: 1;
+}
+
+.flightStatusEZ-plane-position-dot::before {
+    right: 0;
+    background-color: inherit;
+    z-index: 3;
+}
+
+.flightStatusEZ-depart-arrival {
+    color: #999999;
+    clear: left;
+    font-size: 14px;
+    max-width: 420px;
+}
+
+.flightStatusEZ-depart-arrival-name {
+    color: #333333
+}
+
+.flightStatusEZ-depart, .flightStatusEZ-arrival {
+    float: left;
+    width: auto;
+    max-width: calc(50% - 5px);
+    overflow: hidden
+}
+
+.flightStatusEZ-arrival {
+    float: right
+}
+
+.flightStatusEZ-depart-arrival-name {
+    color: #333333
+}
+
+/* ------- END FLIGHT STATUS EZ -------*/

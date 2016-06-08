@@ -1,0 +1,10 @@
+{
+  "bower_components": [
+    "mocha/mocha.js",
+    "mocha/mocha.css",
+    "chai/chai.js",
+    "jquery/dist/jquery.js",
+    "core.js/client/core.js",
+    "httpd/index.js"
+  ]
+}

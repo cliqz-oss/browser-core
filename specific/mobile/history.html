@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+   <head>
+       <title>History</title>
+       <link href="skin/css/style.css" rel="stylesheet" type="text/css">
+
+       <script src="bower_components/handlebars/handlebars.js"></script>
+       <script src="js/libs/system-polyfill.js"></script>
+       <script src="js/osAPI.js"></script>
+       <script src="js/jsAPI.js"></script>
+       <script src="js/libs.js"></script>
+       <script src="js/CLIQZEnvironment.js"></script>
+       <script src="js/global.js"></script>
+       <script>
+
+        CliqzUtils.initPlatform(System);
+        System.import("core/startup").then(function (startupModule) {
+          return startupModule.default(window, [
+            "core",
+            "mobile-dev", //only available in mobile-dev config
+            "mobile-history",
+            "mobile-touch",
+            "static"
+          ]);
+        }).then(function () {
+          CliqzUtils.init(window);
+          osAPI.init();
+          History.init();
+        });
+
+       </script>
+       <meta name="viewport" content="initial-scale=1.0001, user-scalable=no" />
+   </head>
+   <body class="noselect">
+   </body>
+</html>

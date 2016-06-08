@@ -1,0 +1,1 @@
+python ./release.py -c release-creds.txt -u balrogadmin --api-root http://localhost:8080/api --release-channel browser_beta --addon-id cliqz@cliqz.com --addon-version 1.5.0 --addon-url http://cdn2.cliqz.com/update/browser_beta/Cliqz.1.5.0.1b21.xpi

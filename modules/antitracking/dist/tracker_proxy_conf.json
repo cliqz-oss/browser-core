@@ -1,0 +1,13 @@
+{
+  "proxy": {
+    "type": "http",
+    "host": "cliqz-unblock-1768720863.us-east-1.elb.amazonaws.com",
+    "port": 31280
+  },
+  "domains": [
+    "beacon.krxd.net",
+    "b.scorecardresearch.net",
+    "www.google-analytics.com",
+    "ssl.google-analytics.com"
+  ]
+}

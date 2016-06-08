@@ -1,0 +1,113 @@
+.gallery .control-button {
+	color: #ccc;
+	color: rgba(255, 255, 255, 0.4);
+}
+.gallery .control-button:hover {
+	color: white;
+	color: rgba(255, 255, 255, 0.8);
+}
+/*
+Theme controls how everything looks in Gallery CSS.
+*/
+.gallery {
+	position: relative;
+}
+.gallery .item {
+	height: 750px;
+	overflow: hidden;
+	text-align: center;
+	background: #fff;
+}
+.gallery .controls {
+	position: absolute;
+	bottom: 16px;
+	width: 100%;
+	text-align: center;
+}
+.gallery .control-button {
+	display: inline-block;
+	margin: 0 .02em;
+	font-size: 1em;
+	text-align: center;
+	text-decoration: none;
+	transition: color .1s;
+}
+
+.superfluous {
+  display: table;
+  height: 100%;
+  width: 100%; }
+
+.introduction header {
+  display: table-cell;
+  vertical-align: middle; }
+.introduction h1 {
+  margin: 0;
+  font-size: 3em;
+  letter-spacing: 3px; }
+.introduction h2 {
+  margin: 0;
+  font-size: 1em;
+  color: rgba(255, 255, 255, 0.75); }
+
+.gallery .custom-controls header {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  padding: 0 25%;
+  font-size: .7em; }
+
+.gallery .control-operator:nth-of-type(2):target ~ .secondary-controls {
+  display: block; }
+
+.gallery .secondary-controls {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  z-index: 2;
+  pointer-events: none; }
+  .gallery .secondary-controls nav {
+	display: table-cell;
+	vertical-align: middle; }
+  .gallery .secondary-controls a {
+	pointer-events: auto;
+	height: 60px;
+	width: 60px;
+	border-radius: 60px;
+	line-height: 60px;
+	color: rgba(0,0,0,0.5);
+	font-size: 3em;
+	font-weight: bold;
+	text-decoration: none;
+	text-align: center;
+	background: rgba(255, 255, 255, 0.5); 
+	transition: all .25s; }
+	.gallery .secondary-controls a:hover {
+	  background: rgba(255, 255, 255, 0.8); 
+	  color: rgba(0,0,0,0.8);
+	 }
+  .gallery .secondary-controls a.left {
+	float: left;
+	margin-left: .2em; }
+  .gallery .secondary-controls a.left i {
+	line-height: 60px;
+	width: 60px;
+	text-align: center;
+	font-size: 30px; 
+	position: relative;
+	top: -8px;
+	left: -2px;
+	}
+  .gallery .secondary-controls a.right {
+	float: right;
+	margin-right: .2em; }
+  .gallery .secondary-controls a.right i {
+	line-height: 40px;
+	position: relative;
+	top: -8px;
+	right: -2px;
+	width: 60px;
+	text-align: center;
+	font-size: 30px; 
+	}

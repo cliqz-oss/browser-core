@@ -1,0 +1,47 @@
+{
+  "name": "navigation-extension",
+  "version": "1.5.3",
+  "description": "",
+  "main": "",
+  "scripts": {
+    "package-beta": "cd build/firefox; fab package:beta=True; cp latest.xpi ../../; cd ../..",
+    "publish-beta": "cd build/firefox; fab publish:beta=True; cp latest.xpi ../../; cd ../..",
+    "publish-pre-release": "cd build/firefox; fab publish:beta=False,pre=True; cp latest.xpi ../../; cd ../..",
+    "publish-release": "cd build/firefox; fab publish:beta=False,pre=False; cp latest.xpi ../../; cd ../..",
+    "deploy-mobile-release": "export CLIQZ_BUILD_ENV=production && ./fern.js build configs/mobile.json && python specific/mobile/deploy-mobile.py -b build/mobile/search -k mobile/extension",
+    "deploy-mobile-beta": "export CLIQZ_BUILD_ENV=production && ./fern.js build configs/mobile.json && python specific/mobile/deploy-mobile.py -b build/mobile/search -k mobile/beta"
+  },
+  "author": "Cliqz GmbH",
+  "dependencies": {
+    "es6-micro-loader": "cliqz-oss/es6-micro-loader#firefox-2"
+  },
+  "devDependencies": {
+    "amd-name-resolver": "0.0.2",
+    "broccoli": "cliqz-oss/broccoli#building-server",
+    "broccoli-asset-rev": "^2.3.0",
+    "broccoli-babel-transpiler": "^5.4.5",
+    "broccoli-config-replace": "cliqz-oss/broccoli-config-replace#nested-paths",
+    "broccoli-file-creator": "^1.0.1",
+    "broccoli-funnel": "^0.2.10",
+    "broccoli-jade": "^1.1.0",
+    "broccoli-jshint": "^1.1.1",
+    "broccoli-merge-trees": "^0.2.3",
+    "broccoli-sane-watcher": "^1.1.4",
+    "broccoli-sass-source-maps": "^1.3.0",
+    "broccoli-source-map": "^0.2.3",
+    "broccoli-sourcemap-concat": "cliqz-oss/broccoli-sourcemap-concat#processing-files",
+    "broccoli-uglify-sourcemap": "^1.1.0",
+    "colors": "^1.1.2",
+    "commander": "^2.9.0",
+    "cross-spawn": "^2.1.0",
+    "grunt-connect-proxy": "^0.1.10",
+    "jade": "^1.9.2",
+    "mocha": "^2.4.5",
+    "source-map-support": "^0.4.0",
+    "systemjs": "^0.19.23",
+    "testem": "^1.6.0",
+    "walk": "^2.3.9",
+    "walk-sync": "0.2.5",
+    "wrench": "^1.5.8"
+  }
+}

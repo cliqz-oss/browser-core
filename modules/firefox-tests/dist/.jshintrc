@@ -1,0 +1,16 @@
+{
+  "predef": [
+    "TESTS",
+    "describe",
+    "it",
+    "chai",
+    "context",
+    "fillIn",
+    "afterEach",
+    "beforeEach",
+    "waitForResult"
+  ],
+
+  // to allow expressions like chai.expect(false).to.be.false
+  "expr": true
+}

@@ -1,0 +1,6 @@
+{
+  "transpile": true,
+  "bower_components": [
+    "handlebars/handlebars.js"
+  ]
+}

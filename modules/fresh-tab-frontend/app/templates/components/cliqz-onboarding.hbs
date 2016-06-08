@@ -1,0 +1,78 @@
+<div id="optinContainer">
+  <div class="optinBackground bgImage"></div>
+  <div class="optinContent">
+    <div id="header">
+      <h1>{{t 'onboarding.title'}}</h1>
+    </div>
+
+    <div id="screen1" class="screen">
+      <h2>{{t 'onboarding.hdr-privacy'}}</h2>
+      <div class="imgContainer">
+        <img src="./assets/images/shield.png" />
+      </div>
+
+      <p>
+        {{t 'onboarding.txt-privacy1'}}
+        <a class="privacy" target="_blank" {{action 'openLink' 'https://cliqz.com/whycliqz/privacy' 'privacy' }} href="#">{{t 'onboarding.txt-privacy2'}}</a>
+        {{t 'onboarding.txt-privacy3'}}
+      </p>
+
+      <div class="onboardingNav clearfix">
+        {{pagination-dots navigateToAction="navigateTo" activeDotNum=1}}
+      </div>
+
+      <div class="optin-cta-con">
+        <div class="cqz-optin-btn" {{action "navigateTo" 2}}>
+          {{t 'onboarding.cta1'}}
+        </div>
+      </div>
+    </div>
+
+    <div id="screen2" class="screen hidden">
+      <h2>{{t 'onboarding.hdr-search'}}</h2>
+      <div class="imgContainer">
+        <img src="./assets/images/type-cliqz.gif" />
+      </div>
+
+      <p>
+        {{t 'onboarding.txt-search1'}}
+        <a target="_blank" {{action 'openLink' 'https://cliqz.com/products/tips' 'suggestions' }} href="#" class="search">{{t 'onboarding.txt-search2'}}</a>
+        {{t 'onboarding.txt-search3'}}
+      </p>
+
+      <div class="onboardingNav clearfix">
+        {{pagination-dots navigateToAction="navigateTo" activeDotNum=2}}
+      </div>
+
+      <div class="optin-cta-con">
+        <div class="cqz-optin-btn" {{action "navigateTo" 3}}>
+          {{t 'onboarding.cta2'}}
+        </div>
+      </div>
+    </div>
+
+    <div id="screen3" class="screen hidden">
+      <h2>{{t 'onboarding.hdr-homescreen'}}</h2>
+      <div class="imgContainer">
+        <img src="./assets/images/house.png" />
+      </div>
+
+      <p>
+        {{t 'onboarding.txt-homescreen1'}}
+        <a href="#" {{action 'openLink' 'https://cliqz.com/aboutus/blog/new-startpage' 'homescreen'}} class="homescreen">{{t 'onboarding.txt-homescreen2'}}</a>
+        {{t 'onboarding.txt-homescreen3'}}
+      </p>
+
+      <div class="onboardingNav clearfix">
+        {{pagination-dots navigateToAction="navigateTo" activeDotNum=3}}
+      </div>
+
+      <div class="optin-cta-con">
+        <div class="cqz-optin-btn" {{action "close"}}>
+          {{t 'onboarding.cta3'}}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

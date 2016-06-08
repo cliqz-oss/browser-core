@@ -1,0 +1,20 @@
+{
+  "name": "navigation-extension",
+  "description": "",
+  "authors": [],
+  "homepage": "https://github.com/cliqz/navigation-extension",
+  "moduleType": [],
+  "private": true,
+  "dependencies": {
+    "handlebars": "~4.0.5",
+    "loader.js": "ember-cli/loader.js#3.2.1"
+  },
+  "devDependencies": {
+    "mocha": "cliqz-oss/mocha#2.5.0",
+    "chai": "~3.0.0",
+    "jquery": "~2.1.4",
+    "core.js": "~0.9.18",
+    "httpd": "http://mxr.mozilla.org/mozilla-central/source/netwerk/test/httpserver/httpd.js?raw=1",
+    "sinonjs": "~1.17.1"
+  }
+}

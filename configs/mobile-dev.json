@@ -1,0 +1,13 @@
+{
+  "platform": "mobile",
+  "settings": {},
+  "modules": [
+    "core",
+    "mobile-ui",
+    "mobile-dev",
+    "mobile-freshtab",
+    "mobile-history",
+    "mobile-touch",
+    "static"
+  ]
+}

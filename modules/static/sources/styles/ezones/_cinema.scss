@@ -1,0 +1,236 @@
+/***** LOCAL MOVIE EZ ******/
+.cqz-movie-container,
+.cqz-cinema-container {
+    width: calc(100% - 35px);
+    max-width: 700px;
+    margin-bottom: 15px;
+}
+
+.movie_poster,
+.cqz-cinema-image {
+    float: left;
+    margin-right: 20px;
+}
+
+.movie_poster,
+.movie_poster_img {
+    max-width: 80px;
+    max-height: 120px;
+    height: auto;
+    border-radius: 3px;
+}
+
+.local-cinema-result .cinema-showtimes-container {
+    position: relative;
+    padding-top: 3px;
+    margin-bottom: 13px;
+}
+
+.cinema-showtimes-container .cqz-movie-playing {
+    width: 140px;
+    padding: 4px 0 6px;
+    position: absolute;
+    left: 22px;
+    bottom: 0;
+    color: #fff;
+    font-size: 12px;
+    line-height: 1em;
+    text-align: center;
+    text-transform: uppercase;
+    transform-origin: left bottom 0px;
+    transform: rotate(-90deg);
+    word-spacing: 5px;
+    background: #ccc;
+}
+
+.cinema-image {
+    float: left;
+    max-width: 125px;
+    max-height: 125px;
+    height: auto;
+    cursor: pointer;
+    margin-right: 20px;
+}
+
+.cinema-image img {
+    width: 124px;
+    height: 124px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.cinema-data {
+    overflow: hidden;
+}
+
+.cinema-showtimes-container .cqz-movie-playing + .cinema-showtimes-table { margin-left: 40px; }
+
+.movie_data {
+    padding-right: 60px;
+}
+
+.movie_url {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.cqz-ez-title.movie_title {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.movie_description {
+    text-align: left;
+}
+
+
+.cqz-rating-holder { margin-right: 10px; }
+.cqz-rating-star-on {
+    color: #FDDD32;
+}
+
+.cqz-rating-star-off {
+    color: #CDCDCD;
+}
+
+.movie_desc {
+    white-space: normal;
+}
+
+.cinema-showtimes-container .location_permission_prompt { height: 100%; }
+.local-sc-data-container {
+    width: 80%;
+    max-width: 650px;
+}
+.cinema-showtimes-container { height: 140px; margin-bottom: 5px; }
+.cqz-cinema-program-btn { background: #333; }
+
+.cinema-showtimes-table {
+    table-layout: fixed;
+    max-width: 650px;
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+
+.cinema-showtimes-table td  {
+    @extend .cqz-ellipsis;
+
+    max-width: 100px;
+    padding: 8px 10px;
+    border-top: 1px solid #eaeaea;
+}
+
+.cinema-name {
+    font-size: 16px;
+}
+
+.cinema-showtimes-table .cinema-row {
+    height: 15px;
+}
+
+.cinema-showtimes-table .cinema-showtime-td  {
+    text-align: center;
+}
+
+.cinema-showtimes-table .cinema-name-td {
+    max-width: 200px;
+    padding-left: 0;
+    padding-right: 35px;
+}
+
+.cinema-showtimes-table .showtimes-date {
+    padding-left: 0;
+    padding-bottom: 10px;
+    text-align: left;
+    color: #CECECE;
+    font-weight: normal;
+    font-size: 16px;
+}
+
+.cinema-showtimes-table span.cinema-showtime  { color: #999; font-size: 14px; }
+
+.cinema-name {
+    font-size: 16px;
+}
+
+.movie-trailer-btn {
+    position: relative;
+    bottom: -10px;
+}
+
+.location_permission_prompt {
+    color: #FFF;
+    padding: 16px 20px 10px;
+    background-color: rgb(255, 83, 73);
+}
+
+.location_permission_prompt.loading { position: relative; padding: 0; }
+.location_permission_prompt.loading:before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border-radius: 100%;
+    background-color: #fff;
+    -webkit-animation: cqz-loading-circle-animation 1.0s infinite ease-in-out;
+    animation: cqz-loading-circle-animation 1.0s infinite ease-in-out;
+}
+
+@-webkit-keyframes cqz-loading-circle-animation {
+  0% { -webkit-transform: scale(0) }
+  100% {
+    -webkit-transform: scale(1.0);
+    opacity: 0;
+  }
+}
+
+@keyframes cqz-loading-circle-animation {
+  0% {
+    -webkit-transform: scale(0);
+    transform: scale(0);
+  } 100% {
+    -webkit-transform: scale(1.0);
+    transform: scale(1.0);
+    opacity: 0;
+  }
+}
+
+.location_permission_prompt.loading > * { opacity: 0 !important; }
+
+.loc_permission_prompt_message {
+    min-height: calc(100% - 80px);
+    font-size: 16px;
+    white-space: normal;
+    margin-bottom: 15px;
+}
+
+.cqz_location_once,
+.cqz_location_never {
+    color: #fff;
+}
+
+.loc_permission_prompt_buttons > span {
+    position: relative;
+    display: inline-block;
+    height: 28px;
+    //padding: 5px 10px 7px;
+    margin-bottom: 10px;
+    margin-right: 10px;
+    border-radius: 3px;
+    border: 1px solid white;
+    background: transparent none repeat scroll 0% 0%;
+}
+
+.loc_permission_prompt_buttons>span#cqz_location_yes,
+.loc_permission_prompt_buttons>span#cqz_location_yes_confirm,
+.loc_permission_prompt_buttons>span.cqz_location_once {
+    width: auto;
+    text-align: center;
+    border: none;
+    background-color: #5498f8;
+}
+
+/*** END LOCAL MOVIE EZ ****/

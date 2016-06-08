@@ -1,0 +1,27 @@
+*.xpi
+*.pyc
+*~
+*#
+tmp
+tests.tap
+
+# ignore invisible files
+.Trashes
+.Spotlight-V100
+.DS_Store
+.vagrant
+
+# build folders
+build/
+.idea/
+
+# external components
+node_modules
+bower_components
+
+*.scssc
+generic/static/styles/css/
+npm.err
+
+/certs
+/xpi-sign

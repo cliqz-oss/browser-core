@@ -1,0 +1,24 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Anti-tracking Cross domain XHR test</title>
+        <script src="/bower_components/jquery/dist/jquery.js"></script>
+    </head>
+    <body>
+        <script>
+            // local get
+            $.getJSON('/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134', function(data) {
+                console.log(data);
+            });
+            // third party get
+            $.ajax('http://127.0.0.1:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134', {
+                    crossDomain: true,
+                    xhrFields: {
+                      withCredentials: true
+                    }
+                }).done(function(data) {
+                    console.log(data);
+                });
+        </script>
+    </body>
+</html>

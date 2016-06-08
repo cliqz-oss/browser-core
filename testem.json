@@ -1,0 +1,12 @@
+{
+    "__COMMENT__": "https://github.com/drewzboto/grunt-connect-proxy/issues/70 npm install grunt-connect-proxy@0.1.10",
+    "launchers": {
+      "Mocha": {
+        "command": "node tests/mocha-node.js",
+        "protocol": "tap"
+      }
+    },
+    "launch_in_dev": ["Chrome", "Mocha"],
+    "launch_in_ci": ["Chrome", "Mocha"],
+    "test_page": "tests/index.mustache"
+}
