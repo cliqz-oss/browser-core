@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>developer tool</title>
+
+      <link href="skin/css/style.css" rel="stylesheet" type="text/css">
+
+      <script src="bower_components/core.js/client/core.min.js"></script>
+      <script src="js/libs/system-polyfill.js"></script>
+      <script src="js/libs/ios-orientationchange-fix.js"></script>
+      <script src="js/osAPI.js"></script>
+      <script src="js/jsAPI.js"></script>
+      <script src="js/CLIQZEnvironment.js"></script>
+      <script src="bower_components/handlebars/handlebars.js"></script>
+      <script src="js/libs.js"></script>
+      <script src="js/libs/viewpager.js"></script>
+      <meta id="viewport-tag" name="viewport" content="height=device-height, width=device-width,minimum-scale=1.0001, user-scalable=no"/>
+      <script src="js/global.js"></script>
+   </head>
+
+   <body>
+
+      <div style="width:0px;height:1px;background:darkblue" id="progress" style="display:none"></div>
+
+      <div id="reconnecting" class="reconnecting-layer">
+      </div>
+
+      <!-- Starting Stuff -->
+      <div id="startingpoint">
+
+          <div id="topSites">
+          </div>
+
+          <div id="resetState" style="display:none">
+            
+            <div id="resetStateContent"></div>
+          </div>
+
+          <div id="topNews">
+          </div>
+
+      </div>
+      <!-- End Starting Stuff -->
+
+      <div id="results"></div>
+      <script src="js/start.js"></script>
+   </body>
+
+</html>

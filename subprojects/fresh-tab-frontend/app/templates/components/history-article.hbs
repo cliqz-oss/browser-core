@@ -1,0 +1,16 @@
+<div class="item">
+  <h2>{{model.title}}</h2>
+  <p>
+    {{moment-from-now model.publishedAt interval=1000}}
+    {{#if model.isRead}}
+      - seen
+    {{/if}}
+  </p>
+</div>
+
+<div class="item item-body">
+  <img class="full-image" src="{{model.imageUrl}}">
+  <p>
+    {{model.description}}
+  </p>
+</div>

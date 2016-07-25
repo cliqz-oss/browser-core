@@ -1,0 +1,9 @@
+{
+  "api_url": "http://www.youtube.com/get_video_info?video_id={video_id}&hl=en_US",
+  "api_check": {
+    "not_blocked_if": ["restricted+from+playback+on+certain+sites"],
+    "blocked_if": ["errorcode=150", "not+available+in+your+country"]
+  },
+  "locale_element_selector": "#logo-container .content-region",
+  "blocked_video_element": "#unavailable-message"
+}

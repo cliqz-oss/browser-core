@@ -1,0 +1,61 @@
+/*======== EZ Delivery ==========*/
+
+/*==== Delivery Image Boxes*/
+.cqz-ez-delivery .cqz-result-title {
+    text-transform: uppercase;
+}
+
+.cqz-delivery-status-boxes-holder {
+    overflow: hidden;
+    margin: 20px 0 17px;
+}
+
+.cqz-delivery-status-boxes-holder .cqz-status-box {
+    float: left;
+    display: block;
+    width: 56px;
+    height: 56px;
+    overflow: hidden;
+    text-indent: -7777px;
+    margin: 0 10px 0 0;
+    border-radius: 3px;
+    background-size: 65%;
+    background-color: #eee;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+}
+
+.cqz-delivery-status-boxes-holder .cqz-status-box-active-true.cqz-status-box-name-received {
+    background-color: #a5c8e2;
+}
+
+.cqz-delivery-status-boxes-holder .cqz-status-box-active-true.cqz-status-box-name-transported {
+    background-color: #4ba4f6;
+}
+
+.cqz-delivery-status-boxes-holder .cqz-status-box-active-true.cqz-status-box-name-delivery {
+    background-color: #00c5fa;
+}
+
+.cqz-delivery-status-boxes-holder .cqz-status-box-active-true.cqz-status-box-name-delivered {
+    background-color: #32ebc7;
+}
+
+/* ==== Delivery Short Info */
+.cqz-delivery-info-status {
+    color: #333;
+    margin-right: 10px;
+}
+
+.cqz-delivery-info-date {
+    color: #ccc;
+}
+
+.cqz-delivery-info-msg {
+    max-width: 600px;
+    max-height: 38px;
+    line-height: 1.4;
+    margin-top: 7px;
+    color: #999;
+    white-space: normal;
+}

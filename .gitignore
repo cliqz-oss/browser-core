@@ -1,12 +1,31 @@
 *.xpi
-.DS_Store
 *.pyc
-mozilla-release
-.vagrant
 *~
 *#
+tmp
+tests.tap
+tests.xml
+
+# ignore invisible files
+.Trashes
+.Spotlight-V100
+.DS_Store
+.vagrant
+
+# build folders
+build/
 .idea/
-cliqz@cliqz.com/tests/screenshots/lambda/node_modules
+
+# external components
+node_modules
 bower_components
-cliqz@cliqz.com/modules/*_bck.jsm
-cliqz@cliqz.com/node_modules
+
+*.scssc
+generic/static/styles/css/
+npm.err
+
+/certs
+/xpi-sign
+
+subprojects/**/dist
+/docs

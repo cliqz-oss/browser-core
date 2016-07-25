@@ -1,0 +1,264 @@
+/* ------- Bundesliga EZ ----------*/
+.ez-liga-genSM {
+    width: -moz-calc(100% - 45px);
+    width: calc(100% - 45px);
+    max-width: 1000px;
+}
+
+.ez-liga-genSM-1line {
+    line-height: 20px
+}
+
+.ez-liga-genSM-Loc {
+    color: #999999
+}
+
+.ez-liga-genSM .ez-liga-teamName {
+    color: #506bb8;
+}
+
+.ez-liga-genSM-game-box {
+    position: relative;
+    width: 100%;
+    height: 147px;
+    max-width: 500px;
+    margin: 20px 0 0 0;
+    padding: 20px;
+}
+
+.ez-liga-genSM-game-box .ez-liga-oneGameScore {
+    position: absolute;
+    top: 85px;
+    width: -moz-calc(100% - 10px);
+    width: calc(100% - 10px);
+}
+
+.ez-liga-genSM-vs {
+    font-size: 18px;
+    line-height: 1.3em;
+}
+
+.ez-liga-genSM .ez-liga-teamName {
+    max-width: -moz-calc(40% - 20px);
+    max-width: calc(40% - 20px);
+}
+
+.cqz-liga-genSM-des {
+    max-width: 600px;
+}
+
+.rotate90 {
+    -moz-transform: rotate(-90deg);
+    transform: rotate(-90deg);
+    -moz-transform-origin: left bottom;
+    transform-origin: left bottom;
+}
+
+/*MAGIC numbers */
+#cliqz-results .ez-liga-genSM-gamestt-holder {
+    position: relative;
+    padding-left: 20px;
+    min-width: 400px;
+}
+
+#cliqz-results .ez-liga-genSM-gamestt {
+    position: absolute;
+    bottom: 0;
+    left: 20px;
+    width: 147px;
+    line-height: 20px;
+    color: #ffffff;
+    text-align: center;
+    background-color: #CCCCCC;
+}
+
+.ez-liga-genSM-gamestt_live {
+    background-color: #56EAC6
+}
+
+.ez-liga .cqz-ez-title::after {
+    background-image: url(https://cdn.cliqz.com/extension/EZ/generic/EZ-soccer.svg);
+    margin-bottom: 0px;
+}
+
+.ez-liga-rank {
+    color: #999999;
+    font-size: 12px;
+    margin: -2px 0px 10px;
+}
+
+.ez-liga-spieltag {
+    color: #ccc;
+    margin: 0 0 4px;
+}
+
+.ez-liga-gameTimeLoc {
+    color: #999999;
+    margin: 00px 0px 5px
+}
+
+.ez-liga-oneGameScore {
+    margin: 18px 0;
+}
+
+.ez-liga-teamName {
+    overflow: hidden;
+    float: left;
+    max-width: 40%;
+    text-align: left;
+    color: #333333;
+    font-size: 18px;
+    line-height: 1.3em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ez-liga-score {
+    color: #74d463;
+    font-size: 18px;
+}
+
+.ez-liga-vs {
+    color: #999999;
+    font-size: 18px;
+}
+
+.ez-liga-live {
+    text-align: center;
+    color: #999999;
+    font-size: 12px;
+    margin-top: 3px
+}
+
+.ez-liga-connector {
+    text-align: center;
+    float: left;
+    width: 20%;
+}
+
+.ez-liga-timezone {
+    position: absolute;
+    bottom: 20px;
+    left: 22px;
+    color: #cccccc;
+    font-size: 12px
+}
+
+.ez-liga-sponsor {
+    position: absolute;
+    bottom: 20px;
+    right: 22px;
+    color: #cccccc;
+    font-size: 12px
+}
+
+.ez-liga-spieltag-ucg {
+    color: #cccccc;
+    margin: -3px 0px 5px;
+}
+
+.ez-liga-upcominggames {
+    display: table;
+    width: 100%;
+    max-width: 650px;
+    padding-top: 5px;
+    border-style: none
+}
+
+.ez-liga-1upcominggame {
+    float: left;
+    width: 50%;
+    padding: 03px 0px 5px;
+}
+
+.ez-liga-ucg-teamName {
+    float: left;
+    text-align: left;
+    color: #333333;
+    width: 60%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ez-liga-ucg-gameTime {
+    float: left;
+    color: #999999;
+    padding-left: 15px;
+    max-width: 30%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ez-liga-button {
+    position: absolute;
+    bottom: 12px;
+    left: 22px;
+    background-color: #1B4AA3
+}
+
+.ez-liga-ucg-timezone {
+    position: absolute;
+    bottom: 14px;
+    left: 150px;
+    color: #cccccc;
+    font-size: 12px
+}
+
+.ez-liga-timezone-short {
+    max-width: calc(100% - 350px);
+}
+
+.ez-liga {
+    max-width: 700px;
+    padding-right: 100px;
+
+    table {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+        margin-top: 20px;
+        text-align: center;
+
+        th, td {
+            color: #999;
+            padding: 10px 0;
+            border-bottom: 1px solid #ccc;
+        }
+
+        td:nth-child(1) {
+            color: #999;
+            width: 10px;
+            padding-right: 15px;
+        }
+
+        td:nth-child(2),
+        th:nth-child(2) {
+            overflow: hidden;
+            width: 130px;
+            white-space: nowrap;
+            text-align: left;
+            text-overflow: ellipsis;
+        }
+
+        td:nth-child(2) {
+            color: #506bb8;
+        }
+
+        td:nth-child(10) {
+            color: #333;
+            font-weight: bold;
+        }
+
+        tr:nth-child(5) * {
+            border-bottom: none;
+        }
+    }
+}
+
+
+
+
+
+/* ------- END Bundesliga EZ ----------*/

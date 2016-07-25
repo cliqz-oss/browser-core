@@ -1,0 +1,11 @@
+<div class="padding">
+  {{#unless isLoading}}
+    <button class="button button-block button-positive button-outline" {{action loadMore}}>
+      Load more
+    </button>
+  {{else}}
+    <button class="button button-block">
+      <i class="icon ion-loading-c"></i> Loading...
+    </button>
+  {{/unless}}
+</div>

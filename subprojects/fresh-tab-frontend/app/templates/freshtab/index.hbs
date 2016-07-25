@@ -1,0 +1,19 @@
+<div id="topVisited" class="center">
+  {{speed-dials model=model.speedDials}}
+</div>
+
+<div class="wrap">
+
+  <div id="searchContainer" class="center">
+  {{url-bar}}
+  </div>
+
+  <div id="newsContainer" class="clearfix">
+    {{#unless model.news.yourNews}}
+      {{all-news model=model.news.topNews type="yournews"}}
+    {{else}}
+      {{all-news model=model.news.yourNews type="topnews"}}
+    {{/unless}}
+  </div>
+</div>
+<br /><br /><br />

@@ -1,0 +1,48 @@
+<div class="status"></div>
+{{#unless hideQuery}}
+  {{#if model.query}}
+    <div class="item item-divider">
+      Query: {{link-to model.query 'history-sidebar.domain.query' model.query}}
+    </div>
+  {{/if}}
+{{/unless}}
+{{#if showDomain}}
+  <div class="item" {{action "open"}}>
+    <span class="logo" style="{{{model.contact.logo.style}}}">
+      {{model.contact.logo.text}}
+    </span>
+    <h2>{{model.contact.domain}}</h2>
+    <p>{{model.contact.title}}</p>
+  </div>
+{{/if}}
+<div class="item item-text-wrap" {{action "open"}}>
+  {{#if title}}
+    <h2 class="title">{{title}}</h2>
+  {{/if}}
+  <p>
+    <span class="url">
+      {{model.shortUrl}}
+    </span>
+    -
+    {{moment-from-now model.lastVisitedAt interval=1000}}
+  </p>
+</div>
+{{#if image}}
+  <div class="item item-body" {{action "open"}}>
+    {{#if image}}
+      <img class="message-image" src="{{image}}">
+    {{/if}}
+
+    {{#if description}}
+      <p>
+        {{description}}
+      </p>
+    {{/if}}
+  </div>
+{{else}}
+  {{#if description}}
+    <div class="item item-text-wrap" {{action "open"}}>
+      {{description}}
+    </div>
+  {{/if}}
+{{/if}}

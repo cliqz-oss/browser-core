@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.5.1 (25234) - http://www.bohemiancoding.com/sketch -->
+    <title>cliqz-icon</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="new-layout" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="Artboard-10" sketch:type="MSArtboardGroup" transform="translate(-819.000000, -635.000000)" fill="#999999">
+            <g id="cliqz-icon" sketch:type="MSLayerGroup" transform="translate(819.000000, 635.000000)">
+                <path d="M23.3234782,13.9876959 C23.4792282,13.2240411 23.5595842,12.4379214 23.5595842,11.6406745 C23.5595842,5.17720604 18.6513375,-1.77635684e-15 11.8114582,-1.77635684e-15 C4.97157892,-1.77635684e-15 0,5.24151918 0,11.6406745 C0,18.1041429 4.90824672,23.281349 11.748126,23.281349 C12.1934686,23.281349 12.6316051,23.2583503 13.0616074,23.213484 C12.5708762,21.7460872 12.0500484,20.188695 11.5557189,18.7105387 C7.76441565,18.5742859 5.09824336,15.4151468 5.09824336,11.6406745 L5.09824336,11.5763614 C5.09824336,7.71757423 7.82152863,4.56623142 11.748126,4.56623142 C15.6504622,4.56623142 18.4268621,7.74227313 18.4610221,11.5692222 C20.0818408,12.3753801 21.7026595,13.181538 23.3234782,13.9876959 L23.3234782,13.9876959 Z" id="Path" sketch:type="MSShapeGroup"></path>
+                <path d="M15.6460755,23.8433524 L17.8402339,19.3184019 L22.516462,23.9462085 C22.516462,23.9462085 24.0979711,22.5785197 23.803392,22.2436398 C22.4126612,20.6626464 19.1271639,17.6158332 19.1271639,17.6158332 L23.0159714,16.2560703 L11.0896552,10.4055944 L15.6460755,23.8433524 L15.6460755,23.8433524 Z" id="Default-2" sketch:type="MSShapeGroup"></path>
+            </g>
+        </g>
+    </g>
+</svg>

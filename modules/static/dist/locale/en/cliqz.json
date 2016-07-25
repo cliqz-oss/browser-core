@@ -1,0 +1,1230 @@
+{
+    "more_on": {
+        "message": "More on"
+    },
+    "calculator": {
+        "message": "Calculator"
+    },
+    "time": {
+        "message": "Time"
+    },
+    "open": {
+        "message": "Open"
+    },
+    "close_soon": {
+        "message": "Closing soon"
+    },
+    "open_soon": {
+        "message": "Opening soon"
+    },
+    "closed": {
+        "message": "Closed"
+    },
+    "open_hour": {
+        "message": "Opening hours"
+    },
+    "from_lcase":{
+        "message": "from"
+    },
+    "Trailer":{
+        "message": "Watch trailer"
+    },
+    "Stream_now":{
+        "message": "Stream now"
+    },
+    "Cast":{
+        "message": "Cast"
+    },
+    "Movie_Length":{
+        "message": "$1 minutes"
+    },
+    "Creator":{
+        "message": "Creator"
+    },
+    "Director":{
+        "message": "Director"
+    },
+    "Review":{
+        "message": "Review"
+    },
+    "Reviews":{
+        "message": "Reviews"
+    },
+    "Tips":{
+        "message": "Tips"
+    },
+    "Photos":{
+        "message": "Photos"
+    },
+    "locale_lang_code":{
+        "message": "en-US"
+    },
+    "GameCategory":{
+        "message": "Game Category"
+    },
+    "Turkish Calendar":{
+        "message": "Turkish Calendar"
+    },
+    "MWL":{
+        "message": "Muslim World League"
+    },
+    "CookingIntruct":{
+        "message": "Direction"
+    },
+    "Ingredients":{
+        "message": "Ingredients"
+    },
+    "Votes":{
+        "message": "reviews"
+    },
+    "Serves":{
+        "message": "Serves"
+    },
+    "CookTime":{
+        "message": "Total time: $1 minutes"
+    },
+    "KickerSponsor":{
+        "message": "powered by kicker online"
+    },
+    "vs":{
+        "message": "vs."
+    },
+    "NEXT GAME" : {
+        "message": "NEXT GAME"
+    },
+    "LAST GAME" : {
+        "message": "LAST GAME"
+    },
+    "AllGames":{
+        "message": "All Games"
+    },
+    "GoToTable":{
+        "message": "Full Table"
+    },
+    "LocalTimeGermany":{
+        "message": "All times: Central European (Summer) Time"
+    },
+    "Terminal":{
+        "message": "Terminal"
+    },
+    "Gate":{
+        "message": "Gate"
+    },
+    "openInNewTab":{
+        "message": "$1 (open in new tab)"
+    },
+    "whatIsCliqz":{
+        "message": "What is CLIQZ?"
+    },
+    "whatIsCliqzTry":{
+        "message": "What is CLIQZ? <-- try it yourself, eg: 'weather new york'"
+    },
+    "btnPrivacyDashboard": {
+        "message": "Transparency Dashboard"
+    },
+    "btnFeedbackFaq":{
+        "message": "Support and contact"
+    },
+    "btnTipsTricks":{
+        "message": "Tips and tricks"
+    },
+    "btnPrivacy":{
+        "message": "Privacy Policy"
+    },
+    "btnShowCliqzNewTabEnabled":{
+        "message": "Disable Newtab"
+    },
+    "btnShowCliqzNewTabDisabled":{
+        "message": "Enable Newtab"
+    },
+    "btnDefaultSearchEngine":{
+        "message": "Complementary Search Engine"
+    },
+    "btnRegion":{
+        "message": "Local Results"
+    },
+    "btnSafeSearch":{
+        "message": "Take part"
+    },
+    "anti-phishing": {
+        "message": "Phishing Protection"
+    },
+    "anti-phishing-enabled": {
+        "message": "Enabled"
+    },
+    "anti-phishing-txt0": {
+        "message": "Warning: deceptive website!"
+    },
+    "anti-phishing-txt1": {
+        "message": "CLIQZ has blocked access to ("
+    },
+    "anti-phishing-txt2": {
+        "message": ") because it has been reported as a phishing website. Phishing websites disguise as other sites you may trust in order to trick you into disclosing your login, password or other sensitive information."
+    },
+    "anti-phishing-txt3": {
+        "message": "Learn more"
+    },
+    "anti-phishing-txt4": {
+        "message": "Back to safe website"
+    },
+    "anti-phishing-txt5": {
+        "message": "Report this page as safe"
+    },
+    "anti-phishing-txt6": {
+        "message": "Proceed despite risks"
+    },
+    "btnSafeSearchDesc":{
+        "message": "What is this?"
+    },
+    "btnSecureChannel":{
+        "message": "Search via Proxy-Network"
+    },
+    "btnStats":{
+        "message": "Stats"
+    },
+    "adblockbild":{
+        "message": "Deactivate AdBlock Plus on BILD.de"
+    },
+    "adblockbildWarning":{
+        "message": "Would you like CLIQZ to deactivate AdBlock Plus on BILD.de? (AdBlock Plus remains active on all other sites) "
+    },
+    "urlBarLastSearch":{
+        "message":"↵  "
+    },
+    "noResultTitle":{
+        "message": "We don't have great results this time."
+    },
+    "noResultMessage":{
+        "message":"press enter to search on $1, or try one of these:"
+    },
+    "noResults": {
+        "message":"No results"
+    },
+    "numResults": {
+        "message":"Top $1 Results"
+    },
+    "moreResults":{
+        "message":"more ..."
+    },
+    "search":{
+        "message":"search"
+    },
+    "searchUsing":{
+        "message":"search using"
+    },
+    "on":{
+        "message":"on"
+    },
+    "peoplePositionAt":{
+        "message":"at"
+    },
+    "peoplePositionSince":{
+        "message":"since"
+    },
+    "videoBy":{
+        "message":"by"
+    },
+    "weatherCurrent":{
+        "message":"current"
+    },
+    "ago1Minute":{
+        "message":"one minute ago"
+    },
+    "agoXMinutes":{
+        "message":"$1 minutes ago"
+    },
+    "ago1Hour":{
+        "message":"one hour ago"
+    },
+    "agoXHours":{
+        "message":"$1 hours ago"
+    },
+    "agoYesterday":{
+        "message":"yesterday"
+    },
+    "agoXDays":{
+        "message":"$1 days ago"
+    },
+    "ago1Month":{
+        "message":"one month ago"
+    },
+    "agoXMonths":{
+        "message":"$1 months ago"
+    },
+    "ago1year":{
+        "message":"one year ago"
+    },
+    "agoXYears":{
+        "message":"$1 years ago"
+    },
+    "onCalloutSameResult":{
+        "message":"Sorry about interrupting. You can get to the same result here using CLIQZ."
+    },
+    "onCalloutSameResultBtnOk":{
+        "message":"Got it!"
+    },
+    "onCalloutSameResultBtnCancel":{
+        "message":"Don't show again."
+    },
+    "onCalloutSmartCliqz":{
+        "message":"Sorry about interrupting. You can get to the same result here using CLIQZ."
+    },
+    "onCalloutSmartCliqzBtnOk":{
+        "message":"Got it!"
+    },
+    "onCalloutSmartCliqzBtnCancel":{
+        "message":"Don't show again."
+    },
+    "onCalloutTypedUrl":{
+        "message":"Sorry about interrupting. You don't have to type the full address. Just press ENTER as soon as the address appears!"
+    },
+    "onCalloutTypedUrlBtnOk":{
+        "message":"Got it!"
+    },
+    "onCalloutTypedUrlBtnCancel":{
+        "message":"Don't show again."
+    },
+    "onCalloutIntro":{
+        "message":"This is your new CLIQZ bar"
+    },
+    "onCalloutIntroBtnStart":{
+        "message":"Take tour"
+    },
+    "onCalloutIntroBtnCancel":{
+        "message":"Close"
+    },
+    "onButtonTryOut":{
+       "message":"Take tour"
+    },
+    "onButtonCancel":{
+       "message":"Cancel tour"
+    },
+    "onButtonTryOutAgain":{
+       "message":"Show me again"
+    },
+    "onCalloutTypeHere":{
+       "message":"All the CLIQZ action happens in your URL bar. Simply enter your search or a webaddress here."
+    },
+    "onCalloutCliqzResults":{
+       "message":"Website suggestions appear in the CLIQZ Menu as you type."
+    },
+    "onCalloutLandingPage":{
+       "message":"More time where you want to be—stop searching & go surfing"
+    },
+    "onCalloutClickHere":{
+       "message":"Click to select a CLIQZ result"
+    },
+    "onCalloutNowYou":{
+       "message":"Start surfing!"
+    },
+    "onUrlBarNowYou":{
+       "message":"Enter search or webaddress here"
+    },
+    "onMsgInstalled":{
+       "message":"Installation successful! You can now surf the web with CLIQZ!"
+    },
+    "onMsgDemoDone":{
+        "message":"Try it out!"
+    },
+    "onMsgThankYou":{
+       "message":"Thank you for installing CLIQZ!"
+    },
+    "onMsgExplanation":{
+       "message":"CLIQZ lets you search and navigate directly from your browser bar."
+    },
+    "offRes_Cliqz":{
+        "message":"CLIQZ"
+    },
+    "offRes_AboutCliqz":{
+        "message":"CLIQZ - About us"
+    },
+    "offRes_Privacy":{
+        "message":"CLIQZ - Privacy"
+    },
+    "offRes_Support":{
+        "message":"CLIQZ - Support"
+    },
+    "offRes_Team":{
+        "message":"CLIQZ - Team"
+    },
+    "offTitle":{
+        "message":"the new way to navigate the web"
+    },
+    "offBtn":{
+        "message":"Try out now!"
+    },
+    "offMessage":{
+        "message":"Insert your search query in the address bar – receive results instantly"
+    },
+    "Sitemap_Summary": {
+        "message":"My sitemap for $1"
+    },
+    "Sitemap_Youtube_Popular": {
+        "message":"Popular on YouTube"
+    },
+    "Sitemap_Youtube_Subscriptions": {
+        "message":"My Subscriptions"
+    },
+    "Sitemap_Youtube_History": {
+        "message":"History"
+    },
+    "Sitemap_Youtube_WatchLater": {
+        "message":"Watch Later"
+    },
+    "Sitemap_Youtube_Channels": {
+        "message":"Channels"
+    },
+    "Sitemap_Youtube_Playlists": {
+        "message":"Playlists"
+    },
+    "Sitemap_Facebook_Newsfeed": {
+        "message":"News Feed"
+    },
+    "Sitemap_Facebook_Messages": {
+        "message":"Messages"
+    },
+    "Sitemap_Facebook_Events": {
+        "message":"Events"
+    },
+    "Sitemap_Facebook_Help": {
+        "message":"Help"
+    },
+    "Sitemap_Facebook_Pages": {
+        "message":"Pages"
+    },
+    "Sitemap_Facebook_Groups": {
+        "message":"Groups"
+    },
+    "Sitemap_Facebook_Lists": {
+        "message":"Lists"
+    },
+    "Sitemap_Amazon_MyAmazon": {
+        "message":"Your Amazon"
+    },
+    "Sitemap_Amazon_MyAccount": {
+        "message":"Your Account"
+    },
+    "Sitemap_Amazon_Wishlist": {
+        "message":"Wish List"
+    },
+    "Sitemap_Amazon_Categories": {
+        "message":"Categories"
+    },
+    "Sitemap_Amazon_Shops": {
+        "message":"Shops"
+    },
+    "Sitemap_Ebay_MyEbay": {
+        "message":"My eBay"
+    },
+    "Sitemap_Ebay_Deals": {
+        "message":"Daily Deals"
+    },
+    "Sitemap_Ebay_Shops": {
+        "message":"Shops"
+    },
+    "Sitemap_Chefkoch_Magazin": {
+        "message":"Magazine"
+    },
+    "Sitemap_Chefkoch_Rezepte": {
+        "message":"Recipes"
+    },
+    "Sitemap_Chefkoch_Community": {
+        "message":"Community"
+    },
+    "Sitemap_Chefkoch_Blog": {
+        "message":"Blog"
+    },
+    "Sitemap_Chefkoch_Articles": {
+        "message":"Articles"
+    },
+    "Sitemap_Bild_Shop": {
+        "message":"Bild Shop"
+    },
+    "Sitemap_Bild_Community": {
+        "message":"Community"
+    },
+    "Sitemap_Bild_Login": {
+        "message":"Login"
+    },
+    "Sitemap_Bild_Topics": {
+        "message":"Topics"
+    },
+    "Sitemap_Bild_Bundesliga": {
+        "message":"Bundesliga"
+    },
+    "Sitemap_Wikipedia_Articles": {
+      "message":"Articles"
+    },
+    "Sitemap_People": {
+      "message":"People"
+    },
+    "Sitemap_Search": {
+      "message":"Search"
+    },
+    "Sitemap_Projects": {
+      "message":"Projects"
+    },
+    "Sitemap_Twitter_Discover": {
+      "message":"Discover"
+    },
+    "country_code_": {
+      "message":"Automatic"
+    },
+    "country_code_AT": {
+      "message":"Österreich - Austria"
+    },
+    "country_code_BR": {
+      "message":"Brazil - Brasil"
+    },
+    "country_code_CA": {
+      "message":"Canada - Canada"
+    },
+    "country_code_HR": {
+      "message":"Hrvatska - Croatia"
+    },
+    "country_code_EE": {
+      "message":"Eesti - Estonia"
+    },
+    "country_code_FR": {
+      "message":"France - France"
+    },
+    "country_code_DE": {
+      "message":"Deutschland - Germany"
+    },
+    "country_code_GR": {
+      "message":"Ελλάδα - Greece"
+    },
+    "country_code_HU": {
+      "message":"Magyarország - Hungary"
+    },
+    "country_code_ID": {
+      "message":"Indonesia"
+    },
+    "country_code_IT": {
+      "message":"Italia - Italy"
+    },
+    "country_code_PS": {
+      "message":"Palestine"
+    },
+    "country_code_RO": {
+      "message":"România - Romania"
+    },
+    "country_code_RU": {
+      "message":"Россия - Russia"
+    },
+    "country_code_RS": {
+      "message":"Србија - Serbia"
+    },
+    "country_code_SG": {
+      "message":"Singapore - Singapore"
+    },
+    "country_code_ES": {
+      "message":"España - Spain"
+    },
+    "country_code_CH": {
+      "message":"Schweiz - Switzerland"
+    },
+    "country_code_TH": {
+      "message":"ประเทศไทย - Thailand"
+    },
+    "country_code_TR": {
+      "message":"Türkiye - Turkey"
+    },
+    "country_code_GB": {
+      "message":"United Kingdom"
+    },
+    "country_code_US": {
+      "message":"United States"
+    },
+    "country_code_VN": {
+      "message":"Việt Nam - Vietnam"
+    },
+    "statsShareMsg": {
+        "message": "@cliqz saved me $1 minutes over the last 7 days"
+    },
+    "statsShareAction": {
+        "message": "Share this statistic on  $1"
+    },
+    "spell_correction": {
+      "message":"Did you really mean"
+    },
+    "result_filter": {
+      "message":"Block explicit content"
+    },
+    "age": {
+        "message": "Age"
+    },
+    "nationality": {
+        "message": "Nationality"
+    },
+    "history": {
+      "message":"History"
+    },
+    "history_results": {
+      "message":"Visited Sites"
+    },
+    "history_results_cluster": {
+      "message":"My Top Hits"
+    },
+    "adultInfo": {
+        "message": "Explicit content has been blocked automatically. Continue blocking?"
+    },
+    "show_once": {
+      "message":"Show Once"
+    },
+    "yes": {
+        "message": "Yes"
+    },
+    "always": {
+        "message": "Always"
+    },
+    "no": {
+        "message": "No"
+    },
+    "never": {
+        "message": "Never"
+    },
+    "options": {
+        "message": "Options"
+    },
+    "views": {
+        "message": "views"
+    },
+    "cliqz_slogan_H1": {
+        "message": "STOP SEARCHING. START SURFING."
+    },
+    "cliqz_slogan_H2": {
+        "message": "Fast, private, direct. See results as you type."
+    },
+    "cliqz_common_questions":{
+        "message": "Common Questions"
+    },
+    "cliqz_give_feedback":{
+        "message": "Give Feedback"
+    },
+    "cliqz_about_us":{
+        "message": "About Us"
+    },
+    "cliqz_jobs":{
+        "message": "Jobs"
+    },
+    "cliqz_privacy":{
+        "message": "Privacy"
+    },
+    "cliqz_blog": {
+        "message": "Blog"
+    },
+    "cliqz_stock_open": {
+        "message": "Open"
+    },
+    "cliqz_stock_high": {
+        "message": "High"
+    },
+    "cliqz_stock_low": {
+        "message": "Low"
+    },
+    "cliqz_stock_market_cap": {
+        "message": "Market Cap."
+    },
+    "cliqz_stock_pe_ratio": {
+        "message": "P/E ratio(ttm)"
+    },
+    "OutOfCoverageWarning": {
+       "message": "CLIQZ’s results for your country are not so \"gut\" yet. We will get better outside of Germany soon."
+    },
+    "keep-cliqz": {
+      "message": "OK"
+    },
+    "disable-cliqz": {
+      "message": "Disable Cliqz"
+    },
+    "btnActivateCliqz": {
+      "message": "Activate Cliqz"
+    },
+    "btnFreshTab": {
+      "message": "Enable CLIQZ Start Page and New Tabs"
+    },
+    "publish_date": {
+        "message": "Publish date"
+    },
+    "Click anywhere to copy":{
+        "message": "Click anywhere to copy"
+    },
+    "Copied":{
+        "message": "Copied"
+    },
+    "updateMessage":{
+        "message": "CLIQZ has just updated to the latest, greatest version."
+    },
+    "updatePage":{
+        "message": "See What’s New"
+    },
+    "updateDismiss":{
+        "message": "Dismiss"
+    },
+    "topSitesMessage":{
+        "message": "Choose a shortcut to one of your favorite sites, or"
+    },
+    "topSitesMessage1":{
+        "message": "begin typing in the bar to find what you're looking for!"
+    },
+    "topSitesTitle":{
+        "message": "Your Sites"
+    },
+    "ez_video-popular": {
+      "message": "Popular"
+    },
+    "ez_video-dashboard": {
+      "message": "Dashboard"
+    },
+    "ez_video-upload": {
+      "message": "Uploads"
+    },
+    "ez_video-categories": {
+      "message": "Categories"
+    },
+    "ez_video-my_subscriptions": {
+      "message": "My Subscriptions"
+    },
+    "ez_video-most_watched": {
+      "message": "Most Watched"
+    },
+    "ez_video-music": {
+      "message": "Music"
+    },
+    "ez_video-newest": {
+      "message": "Newest"
+    },
+    "ez_video-on_demand": {
+      "message": "On Demand"
+    },
+    "ez_video-series": {
+      "message": "Series"
+    },
+    "ez_video-staff_picks": {
+      "message": "Staff Picks"
+    },
+    "ez_video-tv": {
+      "message": "TV"
+    },
+    "ez_video-tv_and_series": {
+      "message": "TV & Series"
+    },
+    "ez_video-top_100": {
+      "message": "Top 100"
+    },
+    "ez_video-recently_watched": {
+      "message": "Recently Watched"
+    },
+    "ez_video-funny": {
+      "message": "Funny"
+    },
+    "ez_video-ingenious": {
+      "message": "Ingenious"
+    },
+    "ez_video-fascinating": {
+      "message": "Fascinating"
+    },
+    "ez_video-courageous": {
+      "message": "Courageous"
+    },
+    "ez_video-recommended": {
+      "message": "Recommended"
+    },
+    "ez_video-most_commented":  {
+        "message": "Most Commented"
+    },
+    "ez_video-ranking": {
+        "message": "Popular"
+    },
+    "ez_video-trending": {
+        "message":"Trending"
+    },
+    "plane": {
+        "message":"Plane"
+    },
+    "train": {
+        "message": "Train"
+    },
+    "bus": {
+        "message": "Bus"
+    },
+    "from": {
+        "message": "From"
+    },
+    "from_price": {
+        "message": "from"
+    },
+    "to": {
+        "message": "to"
+    },
+    "today": {
+        "message": "Today"
+    },
+    "cMenuOpenInNewTab": {
+      "message": "Open Link in New Tab"
+    },
+    "cMenuOpenInNewWindow": {
+      "message": "Open Link in New Window"
+    },
+    "cMenuOpenInPrivateWindow": {
+      "message": "Open Link in New Private Window"
+    },
+    "cMenuFeedback": {
+      "message": "Feedback for CLIQZ"
+    },
+    "cMenuRemoveFromHistory": {
+      "message": "Remove from History"
+    },
+    "cMenuRemoveFromBookmarksAndHistory": {
+      "message": "Remove from Bookmarks and History"
+    },
+    "cMenuRemoveFromHistoryAndCloseTab": {
+      "message": "Remove from History and close open tab"
+    },
+    "cMenuRemoveFromHistoryAndBookmarksAndCloseTab": {
+      "message": "Remove from Bookmarks and History and close open tab"
+    },
+    "myQuery": {
+        "message": "query"
+    },
+    "ytDynamicSearch": {
+        "message": "Did you know? You can type \"yt + query\" to get a preview of Youtube results for your search query"
+    },
+    "dismiss": {
+        "message": "Dismiss"
+    },
+    "cqz_watch_trailer": {
+      "message": "Watch trailer"
+    },
+    "Monday": {
+      "message": "Monday"
+    },
+    "Tuesday": {
+      "message": "Tuesday"
+    },
+    "Wednesday": {
+      "message": "Wednesday"
+    },
+    "Thursday": {
+      "message": "Thursday"
+    },
+    "Friday": {
+      "message": "Friday"
+    },
+    "Saturday": {
+      "message": "Saturday"
+    },
+    "Sunday": {
+      "message": "Sunday"
+    },
+    "January": {
+      "message": "January"
+    },
+    "February": {
+      "message": "February"
+    },
+    "March": {
+      "message": "March"
+    },
+    "April": {
+      "message": "April"
+    },
+    "May": {
+      "message": "May"
+    },
+    "June": {
+      "message": "June"
+    },
+    "July": {
+      "message": "July"
+    },
+    "August": {
+      "message": "August"
+    },
+    "September": {
+      "message": "September"
+    },
+    "October": {
+      "message": "October"
+    },
+    "November": {
+      "message": "November"
+    },
+    "December": {
+      "message": "December"
+    },
+    "location_permission_prompt": {
+      "message": "We'd love to enhance this result with some local info. Share your location with us?"
+    },
+    "location_never": {
+      "message": "Never"
+    },
+    "no_local_data_msg": {
+      "message": "Oh no, something went wrong. Always share your location with us to avoid this in the future?"
+    },
+    "location_sorry_msg": {
+      "message": "Oh no, something went wrong. Shouldn't happen again!"
+    },
+    "location_thank_you_msg": {
+      "message": "Thank you so much!"
+    },
+    "location_not_share_msg": {
+      "message": "Too bad, you are missing out on some cool stuff. You can always change your location settings in the CLIQZ menu."
+    },
+    "movies_confirm_no": {
+      "message": "Are you sure you don't want to see in which cinemas this movie is playing?"
+    },
+    "cinemas_confirm_no": {
+      "message": "Are you sure you don’t want to see what movies are playing in this cinema?"
+    },
+    "show_local_movies": {
+      "message": "No. Show me where I can watch it."
+    },
+    "show_local_cinemas": {
+      "message": "No, show me what movies I can watch."
+    },
+    "location_just_once": {
+      "message": "Just this once"
+    },
+    "location_not_now": {
+      "message": "Not now"
+    },
+    "always_ask": {
+      "message": "Always Ask"
+    },
+    "share_location": {
+      "message": "Share Location"
+    },
+    "location_confirm_no": {
+      "message": "Are you sure you don't want to see relevant information about places around you?"
+    },
+    "show_local_results": {
+      "message": "No, show me local info"
+    },
+    "local_result_vertical_title": {
+      "message": "NEAR BY"
+    },
+    "extended_forecast": {
+        "message": "Extended Forecast"
+    },
+    "cinema_program_btn": {
+        "message": "Cinema Program"
+    },
+    "now_playing_in_cinema": {
+        "message": "Now Playing"
+    },
+    "no_legal_disclaimer": {
+      "message": "without guarantee"
+    },
+    "slow_connection_header_1": {
+      "message": "You’re not you when you're without internet. "
+    },
+    "slow_connection_text_1": {
+      "message": "Please check your connection."
+    },
+    "slow_connection_header_2": {
+      "message": "Time to load remaining: 45266436 hours"
+    },
+    "slow_connection_text_2": {
+      "message": "Please check your connection."
+    },
+    "slow_connection_header_3": {
+      "message": "Hmpf."
+    },
+    "slow_connection_text_3": {
+      "message": "Please check your connection."
+    },
+    "slow_connection_header_4": {
+      "message": "Not our fault!"
+    },
+    "slow_connection_text_4": {
+      "message": "Please check your connection."
+    },
+    "dataCollection": {
+      "message": "To improve the search and browsing experience, CLIQZ for Firefox sends data about web searches and website visits to Cliqz’s servers in a completely anonymous, privacy-safe way."
+    },
+    "learnMore": {
+      "message": "Learn More"
+    },
+    "humanWeb1": {
+      "message": "Human Web"
+    },
+    "humanWeb2": {
+      "message": "Privacy Statement"
+    },
+    "humanWeb3": {
+      "message": "Human Web collects CLIQZ usage data in a completely anonymous, privacy-safe way."
+    },
+    "humanWeb4": {
+      "message": "One for all. All for one. Together for a better web."
+    },
+    "humanWeb5": {
+      "message": "By using CLIQZ, you benefit from the wisdom of the crowd.  The community of users contributes – totally anonymously – to statistical web data. Our search technology uses this data to rate the relevance, trustworthiness and security of websites. We call this technology that indexes the Internet  with the help oft he users \"Human Web\"."
+    },
+    "humanWeb6": {
+      "message": "CLIQZ's Human Web technology calculates web traffic statistics for websites that are visited by all users who participate in the Human Web, e.g. the sites’ addresses (URLs) and the amount of time people spend there. This is carried out entirely anonymously, without reference to any personal data or user identity. IP addresses are removed automatically from the Human Web data."
+    },
+    "humanWeb7": {
+      "message": "Also completely anonymously, and separately from its web traffic data, CLIQZ for Firefox records what the community of users search the web for and what they enter into the CLIQZ universal browser bar (the combined search box and address bar at the top of your browser window). Each of such entries and site visits are evaluated only as a single event. We never combine data from multiple entries or multiple visits and do not attempt to draw even theoretically possible conclusions about our users. We also never associate any personal data (such as your IP or email address) with any events."
+    },
+    "humanWeb8": {
+      "message": "Participating in HumanWeb is optional"
+    },
+    "humanWeb9": {
+      "message": "You can choose If you want CLIQZ to submit anonymous statistical data to improve relevance and safety via the Human Web."
+    },
+    "humanWeb10": {
+      "message": "I participate in the Human Web"
+    },
+    "attrack-headline-general-title": {
+      "message": "Privacy Protection"
+    },
+    "attrack-headline-general-title-protection-off": {
+      "message": "Your Privacy is not protected !"
+    },
+    "attrack-score-text": {
+      "message": "Privacy Score:"
+    },
+    "attrack-headline-general-trackers": {
+      "message": "Data points neutralized"
+    },
+    "attrack-headline-general-whitelisted": {
+      "message": "As long as the checkbox is checked Privacy Protection for this site will be turned off"
+    },
+    "attrack-headline-deactivate": {
+      "message": "Privacy Protection is OFF. Your data is exposed to trackers !"
+    },
+    "attrack-headline-reload": {
+      "message": "Please reload to browse safely!"
+    },
+    "attrack-headline-no-trackers": {
+      "message": "This page does not contain any trackers."
+    },
+    "attrack-headline-no-bad-trackers": {
+      "message": "This site does not send any personal data."
+    },
+    "attrack-btn-power-on": {
+      "message": "Activate privacy protection"
+    },
+    "attrack-btn-power-off": {
+      "message": "Deactivate"
+    },
+    "attrack-btn-white-list": {
+      "message": "Turn off Protection for this site!"
+    },
+    "attrack-btn-white-list-off": {
+      "message": "Turn off Protection for this site!"
+    },
+    "attrack-btn-details-more": {
+      "message": "See More"
+    },
+    "attrack-btn-details-less": {
+      "message": "See Less"
+    },
+    "attrack-help": {
+      "message": "Learn more"
+    },
+    "attrack-force-block-setting": {
+      "message": "Anti-Tracking Behaviour"
+    },
+    "attrack-force-block-off": {
+      "message": "Default"
+    },
+    "attrack-force-block-on": {
+      "message": "Strict"
+    },
+    "attrack-trackers-info-msg": {
+        "message": "List of tracking companies"
+    },
+    "attrack-trackers-count-info-msg": {
+        "message": "Data Protected"
+    },
+    "adb-menu-option": {
+      "message": "Block Advertisements (BETA)"
+    },
+    "adb-menu-disable-domain": {
+      "message": "Disable for this domain"
+    },
+    "adb-menu-disable-url": {
+      "message": "Disable only for this site"
+    },
+    "adb-menu-option-optimized": {
+      "message": "Optimized"
+    },
+    "adb-menu-option-enabled": {
+      "message": "All"
+    },
+    "adb-menu-option-disabled": {
+      "message": "None"
+    },
+    "adb-menu-more": {
+      "message": "Learn More"
+    },
+    "freshtab_learn_more": {
+      "message": "Learn more"
+    },
+    "freshtab_back_to_old": {
+      "message": "Go back to old start page"
+    },
+    "freshtab_top_news": {
+      "message": "Top News"
+    },
+    "freshtab_your_news": {
+      "message": "Your News Sources"
+    },
+    "freshtab_top_sites": {
+      "message": "Top Sites"
+    },
+    "freshtab_abTest_hdr_news_email": {
+      "message": "Get YOUR NEWS sent directly to your inbox"
+    },
+    "freshtab_abTest_btn_subscribe": {
+      "message": "Subscribe NOW"
+    },
+    "mobile_freshtab_edit_done": {
+      "message": "Done"
+    },
+    "mobile_freshtab_edit_cancel": {
+      "message": "Cancel"
+    },
+    "mobile_freshtab_no_topsites": {
+      "message": "You will see your topsites here."
+    },
+    "mobile_history_card_title": {
+      "message": "History Results"
+    },
+    "mobile_share_card": {
+      "message": "Share this card"
+    },
+    "mobile_reconnecting_msg": {
+      "message": "Re-establishing lost internet connection"
+    },
+    "mobile_no_history": {
+      "message": "Here you will find your history.<br />You still haven't searched or navigated to websites."
+    },
+    "mobile_no_favorites": {
+      "message": "Here you will find your favorites.<br />Long tap on history items to create favorites."
+    },
+    "mobile_history_title": {
+      "message": "History"
+    },
+    "mobile_favorites_title": {
+      "message": "Favorites"
+    },
+    "mobile_history_remove": {
+      "message": "Remove"
+    },
+    "mobile_history_unstar": {
+      "message": "Unfavorite"
+    },
+    "mobile_history_star": {
+      "message": "Favorite"
+    },
+    "mobile_history_cancel": {
+      "message": "Cancel"
+    },
+    "mobile_no_result_title": {
+      "message": "We don't have great results this time."
+    },
+    "mobile_no_result_action": {
+      "message": "Tap here for results from $1..."
+    },
+    "mobile_more_results_title": {
+      "message": "No result you liked?"
+    },
+    "mobile_more_results_action": {
+      "message": "Tap here for results from $1..."
+    },
+    "mobile_calc_more": {
+      "message": "More on"
+    },
+    "mobile_calc_copy_ans":{
+        "message": "Tap anywhere to copy"
+    },
+    "unblock_menu_option": {
+      "message": "Unblock YouTube Videos"
+    },
+    "unblock_prompt": {
+      "message": "Would you like CLIQZ to try to unblock Youtube Videos?"
+    },
+    "unblock_always": {
+      "message": "Yes, always"
+    },
+    "unblock_once": {
+      "message": "Just this once"
+    },
+    "unblock_never": {
+      "message": "No, never"
+    },
+    "unblock_youtube_fail": {
+      "message": "OK, we tried, but it seems we cannot unblock this video for you at this time"
+    },
+    "cliqz-onboarding-title": {
+      "message": "Woohoo! CLIQZ was successfully installed."
+    },
+    "cliqz-onboarding-hdr-privacy": {
+      "message": "You are safe with CLIQZ."
+    },
+    "cliqz-onboarding-txt-privacy1": {
+      "message": "Our innovative"
+    },
+    "cliqz-onboarding-txt-privacy2": {
+      "message": "Anti-Tracking & -Phising"
+    },
+    "cliqz-onboarding-txt-privacy3": {
+      "message": "technologies protect you and your privacy."
+    },
+    "cliqz-onboarding-cta1": {
+      "message": "Cool, what else?"
+    },
+    "cliqz-onboarding-hdr-search": {
+      "message": "Quick search"
+    },
+    "cliqz-onboarding-txt-search1": {
+      "message": "See"
+    },
+    "cliqz-onboarding-txt-search2": {
+      "message": "search results"
+    },
+    "cliqz-onboarding-txt-search3": {
+      "message": "as you type and click to go there directly."
+    },
+    "cliqz-onboarding-cta2": {
+      "message": "Got it..."
+    },
+    "cliqz-onboarding-hdr-homescreen": {
+      "message": "Your top sites and news"
+    },
+    "cliqz-onboarding-txt-homescreen1": {
+      "message": "We populate your"
+    },
+    "cliqz-onboarding-txt-homescreen2": {
+      "message": "Homescreen"
+    },
+    "cliqz-onboarding-txt-homescreen3": {
+      "message": "with your favorite websites and trending news."
+    },
+    "cliqz-onboarding-cta3": {
+      "message": "OK, let's go!"
+    },
+    "cliqz-onboarding-learn-more": {
+      "message": "Learn more about CLIQZ"
+    },
+    "cliqz-onboarding-full-tour": {
+      "message": "take the full tour"
+    },
+    "cliqz-onboarding-or": {
+      "message": "or"
+    },
+    "context-menu-search-item": {
+      "message": "Search CLIQZ for \"$1\""
+    },
+    "streaming": {
+      "message": "Stream Now: "
+    },
+    "lyrics": {
+      "message": "Lyrics: "
+    },
+    "TEST": "OK"
+}

@@ -1,0 +1,36 @@
+{
+  "platform": "firefox",
+  "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
+  "testem_launchers": ["Mocha"],
+  "settings": {
+    "freshTabButton": false,
+    "freshTabABtest" : false,
+    "unblockUI": true,
+    "showDataCollectionMessage": true,
+    "cliqzOnboarding": false,
+    "channel": "99",
+    "antitrackingButton": true
+  },
+  "modules": [
+    "static",
+    "core",
+    "ui",
+    "context-menu",
+    "freshtab",
+    "unblock",
+    "theme",
+    "firefox-tests",
+    "telemetry-categories",
+    "human-web",
+    "offers",
+    "antitracking",
+    "anti-phishing",
+    "privacy-dashboard",
+    "performance",
+    "hpn",
+    "adblocker"
+  ],
+  "subprojects": [
+    "fresh-tab-frontend"
+  ]
+}

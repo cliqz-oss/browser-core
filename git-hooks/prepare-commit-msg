@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+# A hook script to prepare the commit log message.
+#
+# Called by "git commit" with the name of the file that has the
+# commit message, followed by the description of the commit
+# message's source. The hook's purpose is to edit the commit
+# message file.  If the hook fails with a non-zero status,
+# the commit is aborted.
+#
+# To enable this hook, rename this file to "prepare-commit-msg".
+
+if [ x != x${2} ]; then
+  exit 0
+fi
+
+ruler="# Limit your messages to 80 characters:----------------------------------------v"
+
+msg_file=$1
+# Make a backup for the case of cancelled edit.
+cp $msg_file $msg_file.bak
+
+prepend_msg_line () {
+   if [ -z "$1" ]; then
+     return 1
+   fi
+   echo $1 | cat - $msg_file > $msg_file.tmp && mv $msg_file.tmp $msg_file
+   return 0
+}
+
+if current=$(git symbolic-ref --short -q HEAD); then
+  # It's not a detached head. Extract ticket ID if any.
+  # Before modifying RE, make sure it works on all platfrorms!
+  ticket_id=`echo "$current" | grep -E '^EX-[0-9]+' -o`
+fi
+if [ -z $ticket_id ]; then
+  ticket_id="EX-XXX"
+fi
+
+prepend_msg_line "$ticket_id: "
+prepend_msg_line "$ruler"
