@@ -1,0 +1,22 @@
+{
+  "name": "cliqz@cliqz.com",
+  "version": "1.0.19",
+  "homepage": "https://github.com/giota-cliqz/navigation-extension",
+  "authors": [
+    "giota-cliqz <panagiota@cliqz.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "mocha": "~2.2.5",
+    "chai": "~3.0.0",
+    "jquery": "~2.1.4",
+    "core.js": "~0.9.18"
+  }
+}

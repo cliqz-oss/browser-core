@@ -1,0 +1,178 @@
+# To Do:
+# * handle different languages effectively. Currently done by looking up title/category label in
+#   the internationalization database in the extension. This does not scale. Need to find a
+#   backend-based solution.
+
+brands:
+    # Google: # this entry is a test of the domain matching - not intended for deployment
+    #     summary: Sitemap_Summary
+    #     match_domains:
+    #     -
+    #         '.*\.google.com'
+    #     rules:
+    #     -
+    #         # base entry is required and used to specify info for the cluster as a whole
+    #         category: base
+    #         title: Google
+    #         url: https://www.google.com/
+    #         always_show: true
+    #         match:  # group all urls that match this condition with the base URL
+    #             domain: www.google.com
+    #             path: ^/$
+    #     -
+    #         category: Services
+    #         title:
+    #             var: domain
+    #             pattern: (.+)\.google\.com
+    #         match:
+    #             domain: .+\.google\.com
+    #         url:
+    #             scheme: "https:"
+    #             domain: (.+)\.google\.com
+    #             path: /
+    #             query: ""
+    #             fragment: ""
+
+    Youtube:
+        summary: Sitemap_Summary
+        match_domains: # purposely simple matching to make backend indexable
+        -
+            "www.youtube.com"
+        -
+            "youtube.com"
+        rules:
+        -
+            # base entry is required and used to specify info for the cluster as a whole
+            category: base
+            title: YouTube
+            url: https://www.youtube.com/
+            always_show: true
+            match:  # group all urls that match this condition with the base URL
+                domain: (?:www.)*youtube.com
+                path: ^/$
+        -
+            category: control # control is special category (it is shown first in a different format)
+            title: Sitemap_Youtube_Subscriptions
+            always_show: true
+            url: https://www.youtube.com/feed/subscriptions
+            match:
+                domain: www.youtube.com
+                path: /feed/subscriptions
+                query: ''
+                fragment: ''
+        -
+            category: control
+            title: Sitemap_Youtube_History
+            always_show: true
+            url: https://www.youtube.com/feed/history
+            match:
+                domain: www.youtube.com
+                path: /feed/history
+                query: ''
+                fragment: ''
+        -
+            category: control
+            title: Sitemap_Youtube_WatchLater
+            always_show: true
+            url: https://www.youtube.com/playlist?list=WL
+            match:
+                domain: www.youtube.com
+                path: /playlist
+                query: list=WL
+                fragment: ''
+        -
+            category: exclude # 'exclude' is another special category. These entries will be ignored.
+            match:
+                domain: accounts.youtube.com # administrative stuff
+        -
+            category: exclude
+            match:
+                path: /signin # signin
+        -
+            category: exclude
+            match:
+                path: /ads/.* # any clicks on ads
+        -
+            category: exclude
+            match:
+                path: /results # search result pages
+        -
+            category: exclude
+            match:
+                path: '/(channel|user)/[A-Za-z0-9]+/search' # SERP from within user/channel
+        -
+            category: exclude
+            match:
+                path: /redirect # redirects from links in descriptions
+        -
+            category: exclude
+            match:
+                path: /watchvideos # redirect
+        -
+            category: Sitemap_Youtube_Channels
+            title:
+                var: title
+                pattern: '(.+) - YouTube\s*'
+            match:
+                path: /(channel|user)/[A-Za-z0-9]+
+            url:
+                scheme: 'https:'
+                path: '(/(channel|user)/[A-Za-z0-9]+)'
+        -
+            category: Sitemap_Youtube_Playlists
+            title:
+                var: title
+                pattern: '(.+) - YouTube\s*'
+            match:
+                path: /playlist
+                query: list=[A-Za-z0-9]+
+            url:
+                scheme: 'https:'
+                query: list=[A-Za-z0-9]+
+        -
+            category: Videos
+            title:
+                var: title
+                pattern: '\u25B6* *(.+) - YouTube\s*'
+            match:
+                path: /watch
+                query: v=[^&]+
+            url:
+                scheme: 'https:'
+                query: v=[^&]+
+                fragment: ''
+    GitHub:
+        summary: Sitemap_Summary
+        match_domains:
+        -
+            "github.com"
+        rules:
+        -
+            category: base
+            title: GitHub
+            url: https://github.com/
+            always_show: true
+            match:  # group all urls that match this condition with the base URL
+                domain: github.com
+                path: ^/$
+        -
+            category: control
+            title: settings
+            url: https://github.com/settings/
+            match:
+                path: ^/settings
+            always_show: true
+        -
+            category:
+                var: path
+                pattern: '^/([A-Za-z0-9\-\._~]+)/'
+            title:
+                var: path
+                pattern: '^/([A-Za-z0-9\-\._~]+/[A-Za-z0-9\-\._~]+)'
+            match:
+                path: '^/[A-Za-z0-9\-\._~]+/[A-Za-z0-9\-\._~]+'
+            url:
+                scheme: 'https:'
+                path: '^/[A-Za-z0-9\-\._~]+/[A-Za-z0-9\-\._~]+'
+                query: ''
+                fragment: ''

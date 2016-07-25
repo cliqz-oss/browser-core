@@ -1,0 +1,5 @@
+- template: dest=/etc/init/{{ service_name }}.conf
+        src=cliqz-backend.conf
+        mode=0644
+
+- service: name={{ service_name }} enabled=yes state=started

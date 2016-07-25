@@ -1,0 +1,6 @@
+content cliqz chrome/content/
+content cliqzres chrome/
+content cliqzmodules modules/
+# !!IMPORTANT!!! all the lines folowing this comment will be deleted by fab package
+content cliqztests tests/
+content cliqz_bower_components bower_components/

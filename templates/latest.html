@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Cliqz</title>
+    <noscript>
+	   <meta http-equiv="refresh" content="0; url={{ download_link }}" />
+    </noscript>
+
+    <!--http://mdn.beonex.com/en/Installing_Extensions_and_Themes_From_Web_Pages-->
+    <script type="text/javascript">
+        function install() {
+            var params = {
+                install: {
+                    URL: "{{ download_link }}",
+                    IconURL: "{{ icon_url }}"
+                }
+            };
+
+            InstallTrigger.install(params);
+
+            return false;
+        }
+
+        if ("InstallTrigger" in window)
+        {
+          // Gecko platform, InstallTrigger available
+          install();
+        } else {
+          location.href = "{{ download_link }}";
+        }
+
+    </script>
+</head>
+<body>
+
+</body>
+</html>

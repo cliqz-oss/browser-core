@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<bindings id="cliqzBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:html="http://www.w3.org/1999/xhtml"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="autocomplete-rich-result-popup-cliqz" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete-rich-result-popup" >
+    <content ignorekeys="true" level="top" consumeoutsideclicks="false">
+      <div xmlns="http://www.w3.org/1999/xhtml" anonid="cliqz-html-container"></div>
+    </content>
+
+    <implementation >
+        <constructor>
+        <![CDATA[
+                this.cliqzBox = document.getAnonymousElementByAttribute(this, "anonid", "cliqz-html-container");
+                this.setAttribute("onpopuphiding", "CLIQZ.UI.closeResults(event)");
+                CLIQZ.UI.main(this.cliqzBox);
+                // adds "title" attribute support
+                this.cliqzBox.setAttribute('tooltip', 'aHTMLTooltip');
+            ]]>
+      </constructor>
+      <property name="selectedIndex"
+                onget="return -1;">
+        <setter>
+          <![CDATA[
+            //mask default FF
+          ]]>
+        </setter>
+      </property>
+      <method name="_invalidate">
+        <body>
+          <![CDATA[
+            this._appendCurrentResult();
+          ]]>
+        </body>
+      </method>
+      <method name="_openAutocompletePopup">
+        <parameter name="aInput"/>
+        <parameter name="aElement"/>
+        <body>
+          <![CDATA[
+            //this method should be patched in UI.js
+          ]]>
+        </body>
+      </method>
+
+      <method name="_appendCurrentResult">
+        <body>
+          <![CDATA[
+            //this method should be patched in UI.js
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+</bindings>

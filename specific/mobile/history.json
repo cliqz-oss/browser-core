@@ -1,8 +1,0 @@
-{
-  "name": "CLIQZ History",
-  "xwalk_version": "0.0.1",
-  "start_url": "file:///android_asset/search/history.html",
-  "xwalk_hosts": [
-    "https://*.cliqz.com/"
-  ]
-}

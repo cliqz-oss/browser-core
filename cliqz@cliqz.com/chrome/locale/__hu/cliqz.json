@@ -1,0 +1,101 @@
+{
+    "urlBarLastSearch":{
+        "message":"↵  "
+    },
+    "Sitemap_Summary": {
+        "message":"Korábban megtekintett oldalak itt: {}"
+    },
+    "Sitemap_Youtube_Popular": {
+        "message":"Népszerű a Youtebe-on"
+    },
+    "Sitemap_Youtube_Subscriptions": {
+        "message":"Feliratkozásaim"
+    },
+    "Sitemap_Youtube_History": {
+        "message":"Előzmények"
+    },
+    "Sitemap_Youtube_WatchLater": {
+        "message":"Megnézendő videók"
+    },
+    "Sitemap_Youtube_Channels": {
+        "message":"Csatornák"
+    },
+    "Sitemap_Youtube_Playlists": {
+        "message":"Lejátszási listák"
+    },
+    "Sitemap_Facebook_Newsfeed": {
+        "message":"Hírek"
+    },
+    "Sitemap_Facebook_Messages": {
+        "message":"Üzenetek"
+    },
+    "Sitemap_Facebook_Events": {
+        "message":"Események"
+    },
+    "Sitemap_Facebook_Help": {
+        "message":"Súgó"
+    },
+    "Sitemap_Facebook_Pages": {
+        "message":"Oldalak"
+    },
+    "Sitemap_Facebook_Groups": {
+        "message":"Csoportok"
+    },
+    "Sitemap_Facebook_Lists": {
+        "message":"Listák"
+    },
+    "Sitemap_Amazon_MyAmazon": {
+        "message":"Saját Amazon"
+    },
+    "Sitemap_Amazon_MyAccount": {
+        "message":"Számlám"
+    },
+    "Sitemap_Amazon_Wishlist": {
+        "message":"Kívánságlista"
+    },
+    "Sitemap_Amazon_Categories": {
+        "message":"Kategóriák"
+    },
+    "Sitemap_Amazon_Shops": {
+        "message":"Eladók"
+    },
+    "Sitemap_Ebay_MyEbay": {
+        "message":"Saját eBay"
+    },
+    "Sitemap_Ebay_Deals": {
+        "message":"Ajánlatok"
+    },
+    "Sitemap_Ebay_Shops": {
+        "message":"Eladók"
+    },
+    "Sitemap_Chefkoch_Magazin": {
+        "message":"Magazin"
+    },
+    "Sitemap_Chefkoch_Rezepte": {
+        "message":"Receptek"
+    },
+    "Sitemap_Chefkoch_Community": {
+        "message":"Fórum"
+    },
+    "Sitemap_Chefkoch_Blog": {
+        "message":"Blog"
+    },
+    "Sitemap_Chefkoch_Articles": {
+        "message":"Cikkek"
+    },
+    "Sitemap_Bild_Shop": {
+        "message":"Bild bolt"
+    },
+    "Sitemap_Bild_Community": {
+        "message":"Fórum"
+    },
+    "Sitemap_Bild_Login": {
+        "message":"Bejelentkezés"
+    },
+    "Sitemap_Bild_Topics": {
+        "message":"Rovat"
+    },
+    "Sitemap_Bild_Bundesliga": {
+        "message":"Bundesliga"
+    }
+}

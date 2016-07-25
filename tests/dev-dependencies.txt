@@ -1,0 +1,5 @@
+ansible
+commandr
+paramiko
+requests
+termcolor

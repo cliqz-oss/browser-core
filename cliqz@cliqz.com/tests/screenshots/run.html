@@ -1,0 +1,9 @@
+<script>
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+	window.open("chrome://cliqztests/content/screenshots/index.html?closeOnFinish=1","_blank", "toolbar=yes,location=yes, resizable=yes,width="+ getParameterByName('width') +", height=500");
+</script>

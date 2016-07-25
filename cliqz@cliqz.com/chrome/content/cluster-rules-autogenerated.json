@@ -1,0 +1,192 @@
+{
+    "brands": {
+        "GitHub": {
+            "match_domains": [
+                "github.com"
+            ], 
+            "rules": [
+                {
+                    "category": "base", 
+                    "url": "https://github.com/", 
+                    "always_show": true, 
+                    "match": {
+                        "path": "^/$", 
+                        "domain": "github.com"
+                    }, 
+                    "title": "GitHub"
+                }, 
+                {
+                    "category": "control", 
+                    "url": "https://github.com/settings/", 
+                    "always_show": true, 
+                    "match": {
+                        "path": "^/settings"
+                    }, 
+                    "title": "settings"
+                }, 
+                {
+                    "category": {
+                        "var": "path", 
+                        "pattern": "^/([A-Za-z0-9\\-\\._~]+)/"
+                    }, 
+                    "url": {
+                        "fragment": "", 
+                        "path": "^/[A-Za-z0-9\\-\\._~]+/[A-Za-z0-9\\-\\._~]+", 
+                        "scheme": "https:", 
+                        "query": ""
+                    }, 
+                    "match": {
+                        "path": "^/[A-Za-z0-9\\-\\._~]+/[A-Za-z0-9\\-\\._~]+"
+                    }, 
+                    "title": {
+                        "var": "path", 
+                        "pattern": "^/([A-Za-z0-9\\-\\._~]+/[A-Za-z0-9\\-\\._~]+)"
+                    }
+                }
+            ], 
+            "summary": "Sitemap_Summary"
+        }, 
+        "Youtube": {
+            "match_domains": [
+                "www.youtube.com", 
+                "youtube.com"
+            ], 
+            "rules": [
+                {
+                    "category": "base", 
+                    "url": "https://www.youtube.com/", 
+                    "always_show": true, 
+                    "match": {
+                        "path": "^/$", 
+                        "domain": "(?:www.)*youtube.com"
+                    }, 
+                    "title": "YouTube"
+                }, 
+                {
+                    "category": "control", 
+                    "url": "https://www.youtube.com/feed/subscriptions", 
+                    "always_show": true, 
+                    "match": {
+                        "fragment": "", 
+                        "path": "/feed/subscriptions", 
+                        "domain": "www.youtube.com", 
+                        "query": ""
+                    }, 
+                    "title": "Sitemap_Youtube_Subscriptions"
+                }, 
+                {
+                    "category": "control", 
+                    "url": "https://www.youtube.com/feed/history", 
+                    "always_show": true, 
+                    "match": {
+                        "fragment": "", 
+                        "path": "/feed/history", 
+                        "domain": "www.youtube.com", 
+                        "query": ""
+                    }, 
+                    "title": "Sitemap_Youtube_History"
+                }, 
+                {
+                    "category": "control", 
+                    "url": "https://www.youtube.com/playlist?list=WL", 
+                    "always_show": true, 
+                    "match": {
+                        "fragment": "", 
+                        "path": "/playlist", 
+                        "domain": "www.youtube.com", 
+                        "query": "list=WL"
+                    }, 
+                    "title": "Sitemap_Youtube_WatchLater"
+                }, 
+                {
+                    "category": "exclude", 
+                    "match": {
+                        "domain": "accounts.youtube.com"
+                    }
+                }, 
+                {
+                    "category": "exclude", 
+                    "match": {
+                        "path": "/signin"
+                    }
+                }, 
+                {
+                    "category": "exclude", 
+                    "match": {
+                        "path": "/ads/.*"
+                    }
+                }, 
+                {
+                    "category": "exclude", 
+                    "match": {
+                        "path": "/results"
+                    }
+                }, 
+                {
+                    "category": "exclude", 
+                    "match": {
+                        "path": "/(channel|user)/[A-Za-z0-9]+/search"
+                    }
+                }, 
+                {
+                    "category": "exclude", 
+                    "match": {
+                        "path": "/redirect"
+                    }
+                }, 
+                {
+                    "category": "exclude", 
+                    "match": {
+                        "path": "/watchvideos"
+                    }
+                }, 
+                {
+                    "category": "Sitemap_Youtube_Channels", 
+                    "url": {
+                        "path": "(/(channel|user)/[A-Za-z0-9]+)", 
+                        "scheme": "https:"
+                    }, 
+                    "match": {
+                        "path": "/(channel|user)/[A-Za-z0-9]+"
+                    }, 
+                    "title": {
+                        "var": "title", 
+                        "pattern": "(.+) - YouTube\\s*"
+                    }
+                }, 
+                {
+                    "category": "Sitemap_Youtube_Playlists", 
+                    "url": {
+                        "query": "list=[A-Za-z0-9]+", 
+                        "scheme": "https:"
+                    }, 
+                    "match": {
+                        "path": "/playlist", 
+                        "query": "list=[A-Za-z0-9]+"
+                    }, 
+                    "title": {
+                        "var": "title", 
+                        "pattern": "(.+) - YouTube\\s*"
+                    }
+                }, 
+                {
+                    "category": "Videos", 
+                    "url": {
+                        "fragment": "", 
+                        "query": "v=[^&]+", 
+                        "scheme": "https:"
+                    }, 
+                    "match": {
+                        "path": "/watch", 
+                        "query": "v=[^&]+"
+                    }, 
+                    "title": {
+                        "var": "title", 
+                        "pattern": "\\u25B6* *(.+) - YouTube\\s*"
+                    }
+                }
+            ], 
+            "summary": "Sitemap_Summary"
+        }
+    }
+}

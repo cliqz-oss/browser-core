@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+    <!-- Basic Page Needs
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta charset="utf-8">
+    <title>CLIQZ</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+    
+    <!-- Mobile Specific Metas
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>CLIQZ | onboarding</title>
+    <meta name="description" content="Mit CLIQZ for Firefox erlebst du ein völlig neues Web: direkt, schnell, sicher. Hier kannst du die kostenlose Browser-Erweiterung herunterladen.">
+    <meta name="keywords" content="Firefox,Add on,Erweiterung,Browser,Suche,Suchmaschine,Google,Alternative,Internet,web,Navigation,suchen,navigieren,finden">
+    
+    <!-- Favicon
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="icon" type="image/png" href="https://cliqz.com/home/images/favicon.png">
+    
+    <!-- CSS
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" href="css/normalize.css">    
+    <link rel="stylesheet" href="css/skeleton.css">    
+    <link rel="stylesheet" href="css/index.css">    
+
+    <script type="text/javascript" src="chrome://cliqz/content/onboarding/scripts/onboarding.js"></script>
+
+</head>
+<body class="onboarding onboarding " onbeforeunload='unload();' onload='init();'>
+
+<div id="landing-page-background">
+    <div id="landing-page-content">
+    </div>    
+    <div id="landing-page-callout" class="cliqz-locale" key="onCalloutLandingPage">        
+    </div>
+</div>
+
+<div class="gallery items-3" id="main-page">	
+	<figure class="item green">
+		<h1 style="margin-top: 50px;">
+            <!-- <div class="arrow-top">Arrow Top</div>  -->
+            <div style="display: inline; padding: 0px;" class="cliqz-locale" key="onMsgInstalled" id="message-installed"></div>			
+		</h1>
+		<h3>
+            <span class="cliqz-locale" key="onMsgExplanation">
+            </span>
+        </h3>
+        
+        <div class="onboarding-cliqz-logo">
+		  <a class="button button-primary enabled cliqz-locale" style="visibility: collapse;" id='tour-btn' key="onButtonTryOut">(start)</a>		  
+        </div> 
+	</figure>
+
+    <div class="q">
+        <span>Q</span>
+    </div>
+</div>
+
+<div>
+    <a class="button button-primary button-cancel enabled cliqz-locale" id='tour-btn-cancel' key="onButtonCancel">(cancel)</a>
+</div>
+
+</body></html>

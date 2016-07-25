@@ -1,3 +1,0 @@
-balrog_credentials = dict({
-        "balrogadmin": "balrogadmin",
-        })

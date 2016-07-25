@@ -1,0 +1,165 @@
+{
+    "cached": false,
+    "choice": "mixed",
+    "country": "de",
+    "duration": 76,
+    "extra": {
+        "vertical_name": "extra",
+        "results": []
+    },
+    "navigational": false,
+    "q": "gmx.de",
+    "result": [
+        {
+            "q": "gmx",
+            "url": "http://www.gmx.de/",
+            "score": 0,
+            "source": "bm",
+            "snippet": {
+                "alternatives": [
+                    "http://www.gmx.net/"
+                ],
+                "desc": "Portal des FreeMail-Pioniers mit Nachrichten und vielen Services. Kostenlos mit GMX FreeMail: E-Mail-Adresse, 1 GB Mail Speicher, Free SMS.",
+                "language": {
+                    "de": 1
+                },
+                "og": {},
+                "title": "GMX: Email-Adresse, FreeMail, De-Mail \u0026 Nachrichten"
+            },
+            "extra": {
+                "ts": 1437568920,
+                "data": {
+                    "categories": [
+                        {
+                            "title": "Email",
+                            "url": "http://www.gmx.net/free_ssl"
+                        },
+                        {
+                            "title": "News",
+                            "url": "http://www.gmx.net/magazine/news/"
+                        },
+                        {
+                            "title": "Panorama",
+                            "url": "http://www.gmx.net/magazine/panorama/"
+                        }
+                    ],
+                    "domain": "gmx.de",
+                    "friendly_url": "gmx.de",
+                    "name": "GMX",
+                    "news": [
+                        {
+                            "created_at": "2015-07-22 12:26:00",
+                            "description": "Der ukrainische Präsident Petro Poroschenko hat der Schaffung einer 30 Kilometer breiten entmilitarisierten Zone im Kriegsgebiet Donbass zugestimmt. Aus dieser Pufferzone sollten alle...",
+                            "hash_url": "4a252a9d4d3a9d523bda8599bcfc99b20d959f15",
+                            "media": "",
+                            "thumbnail": "http://cdn.cliqz.com/extension/EZ/news/no-image.svg",
+                            "time": "vor 16 Minuten",
+                            "title": "Ukraine unterzeichnet Abkommen für entmilitarisierte Zone im Donbass",
+                            "tweet_count": 1,
+                            "url": "http://www.gmx.net/magazine/news/schlaglichter/ukraine-unterzeichnet-abkommen-entmilitarisierte-zone-donbass-30781340"
+                        },
+                        {
+                            "created_at": "2015-07-22 12:22:00",
+                            "description": "Trotz eines vereinbarten Waffenabzugs in der Ostukraine geht im Kriegsgebiet Donbass der Beschuss mit schwerem Kriegsgerät weiter....",
+                            "hash_url": "45d52ac6da2ad4ec65c7749b7a0d22911482945d",
+                            "media": "http://i2.gmx.net/image/434/30780434,pd=1/donezk.jpg",
+                            "thumbnail": "http://cdn2.cliqz.com/news-fetcher/208c03d48bc38e440b88924ffe069f13ea6b3bb8.png",
+                            "time": "vor 20 Minuten",
+                            "title": "Waffenabzug lässt in der Ostukraine auf sich warten",
+                            "tweet_count": 1,
+                            "url": "http://www.gmx.net/magazine/politik/waffenabzug-laesst-ostukraine-warten-30780432"
+                        },
+                        {
+                            "created_at": "2015-07-22 12:22:00",
+                            "description": "Entweder es werden extreme Reform- und Sparanstrengungen unternommen - oder die Verhandlungen über ein drittes Hilfsprogramm scheitern: Mit dieser Ansage sieht sich die griechische...",
+                            "hash_url": "470a3c6db782ca01f2d2026590fcba17e859041e",
+                            "media": "",
+                            "thumbnail": "http://cdn.cliqz.com/extension/EZ/news/no-image.svg",
+                            "time": "vor 20 Minuten",
+                            "title": "Vorgaben an Athen: Was ist erledigt, was noch offen?",
+                            "tweet_count": 1,
+                            "url": "http://www.gmx.net/magazine/politik/vorgaben-athen-erledigt-offen-30781328"
+                        }
+                    ],
+                    "template": "entity-portal"
+                },
+                "url": "http://www.gmx.de",
+                "subType": "{\"ez\": \"-3288035892634213924\"}",
+                "trigger_urls": [
+                    "gmx.de"
+                ]
+            }
+        },
+        {
+            "q": "gmx",
+            "url": "http://www.gmx.at/",
+            "score": 0,
+            "source": "bm",
+            "snippet": {
+                "alternatives": [],
+                "desc": "Portal des FreeMail-Pioniers mit Nachrichten und vielen Services. Kostenlos mit GMX FreeMail: E-Mail-Adresse, 1 GB Mail Speicher, Free SMS.",
+                "language": {
+                    "at": 1
+                },
+                "og": {},
+                "title": "GMX - E-Mail, FreeMail, Themen- \u0026 Shopping-Portal"
+            }
+        },
+        {
+            "q": "gmx",
+            "url": "http://www.gmx.net/produkte/mail",
+            "score": 0,
+            "source": "bm",
+            "snippet": {
+                "alternatives": [
+                    "http://www.gmx.net/produkte/mail/"
+                ],
+                "desc": "Millionen Menschen mailen mit GMX: Kostenlose Mailadresse, viel Speicherplatz, gratis E-Mail-Postfach, top Spam- \u0026 Virenschutz, Mail-App uvm. Jetzt informie",
+                "language": {
+                    "de": 1
+                },
+                "og": {
+                    "description": "Millionen Menschen mailen mit GMX: Kostenlose Mailadresse, viel Speicherplatz, gratis E-Mail-Postfach, top Spam- \u0026 Virenschutz, Mail-App uvm. Jetzt informie",
+                    "title": "E-Mail von GMX - Mail-Produkte",
+                    "type": "website"
+                },
+                "title": "E-Mail von GMX - Mail-Produkte"
+            }
+        },
+        {
+            "q": "gmx",
+            "url": "http://www.gmx.net/produkte/sicherheit/postfach",
+            "score": 0,
+            "source": "bm",
+            "snippet": {
+                "alternatives": [
+                    "http://www.gmx.net/produkte/sicherheit/postfach/"
+                ],
+                "desc": "GMX zeigt Ihnen, wie Sie erfolgreich Spam in Ihrem Postfach reduzieren, sich vor Phishing schützen und sicher elektronisch kommunizieren.",
+                "language": {
+                    "de": 1
+                },
+                "og": {
+                    "description": "GMX zeigt Ihnen, wie Sie erfolgreich Spam in Ihrem Postfach reduzieren, sich vor Phishing schützen und sicher elektronisch kommunizieren.",
+                    "title": "Tipps für sichere Kommunikation in Ihrem GMX Postfach",
+                    "type": "website"
+                },
+                "title": "Tipps für sichere Kommunikation in Ihrem GMX Postfach"
+            }
+        },
+        {
+            "q": "gmx",
+            "url": "http://www.gmx.ch/",
+            "score": 0,
+            "source": "bm",
+            "snippet": {
+                "alternatives": [],
+                "desc": "Athen hat Bogen überspannt \"Bedeutende Differenzen\": IWF stoppt Griechenland-Verhandlungen. Andreas Lubitz war flugunfähig Staatsanwalt will jetzt gegen Lufthansa und Germanwings ermitteln. Alter Schwede, was für Skandale Affären und Magersucht: Bei den skandinavischen Royals geht's rund.",
+                "language": {
+                    "de": 1
+                },
+                "title": "GMX - E-Mail, FreeMail, Themen- \u0026 Shopping-Portal"
+            }
+        }
+    ]
+}
