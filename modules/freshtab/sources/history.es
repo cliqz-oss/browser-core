@@ -11,7 +11,8 @@ var CliqzFreshTabHistory = {
 
       CliqzHistoryManager.PlacesInterestsStorage._execute(
         [
-          "select mzh.url as url, mzh.title as title, sum(mzh.days_count) as total_count",
+          "select distinct rev_host as rev_host, title as title, url as url, max(total_count)  as total_count from (",
+          "select mzh.url as url, mzh.title as title, sum(mzh.days_count) as total_count, mzh.rev_host as rev_host",
           "from (",
             "select moz_places.url, moz_places.title, moz_places.rev_host, moz_places.visit_count,",
                    "moz_places.last_visit_date, moz_historyvisits.*,",
@@ -26,10 +27,11 @@ var CliqzFreshTabHistory = {
           ") as mzh",
           "group by mzh.place_id",
           "order by total_count desc, mzh.visit_count desc, mzh.last_visit_date desc",
-          "limit 15",
+          ") group by rev_host order by total_count desc limit 15"
         ].join(' '),
-        ["url", "title", "total_count"],
+        ["rev_host", "url", "title", "total_count"],
         function(row) {
+
           var key = CliqzUtils.getDetailsFromUrl(row.url).cleanHost;
           if (!(key in domains)){
             result.push(row);

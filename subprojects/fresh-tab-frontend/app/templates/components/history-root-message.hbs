@@ -1,0 +1,30 @@
+<div class="status"></div>
+<div class="item" {{action "open"}}>
+  <span class="logo" style="{{{contact.logo.style}}}">
+    {{contact.logo.text}}
+  </span>
+  <h2>
+    {{contact.domain}}
+    {{#if showTime}}
+    - {{moment-from-now message.lastVisitedAt interval=1000}}
+    {{/if}}
+  </h2>
+  <p>{{title}}</p>
+</div>
+
+{{#if message.image}}
+  <div class="item item-body" {{action "open"}}>
+    <img class="domain-image" src="{{message.image}}"/>
+    {{#if description}}
+      <p>
+        {{description}}
+      </p>
+    {{/if}}
+   </div>
+{{else}}
+  {{#if description}}
+    <div class="item item-text-wrap" {{action "open"}}>
+      {{description}}
+    </div>
+  {{/if}}
+{{/if}}

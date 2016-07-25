@@ -1,20 +1,22 @@
-import getDbConn from 'antitracking/sqlite';
+import getDbConn from 'platform/sqlite';
 
 /** Sqlite table for collecting tracking information locally.
  */
 export default class {
   constructor() {
-    this.dbConn = getDbConn();
-    let tracking_table = "create table if not exists 'attrack_tracking' (\
-            'tp' VARCHAR(16) NOT NULL,\
-            'fp' VARCHAR(16) NOT NULL,\
-            'key' VARCHAR(32) NOT NULL,\
-            'value' VARCHAR(32) NOT NULL,\
-            'count' INTEGER DEFAULT 1,\
-            'lastTime' INTEGER DEFAULT 0,\
-            CONSTRAINT pkey PRIMARY KEY ('tp', 'fp', 'key', 'value')\
-        )";
-    (this.dbConn.executeSimpleSQLAsync || this.dbConn.executeSimpleSQL)(tracking_table);
+    this.dbConn = getDbConn("cliqz.dbattrack");
+    if (this.dbConn && this.isEnabled() ) {
+      let tracking_table = "create table if not exists 'attrack_tracking' (\
+              'tp' VARCHAR(16) NOT NULL,\
+              'fp' VARCHAR(16) NOT NULL,\
+              'key' VARCHAR(32) NOT NULL,\
+              'value' VARCHAR(32) NOT NULL,\
+              'count' INTEGER DEFAULT 1,\
+              'lastTime' INTEGER DEFAULT 0,\
+              CONSTRAINT pkey PRIMARY KEY ('tp', 'fp', 'key', 'value')\
+          )";
+      (this.dbConn.executeSimpleSQLAsync || this.dbConn.executeSimpleSQL)(tracking_table);
+    }
   }
 
   loadTokens(tokens) {

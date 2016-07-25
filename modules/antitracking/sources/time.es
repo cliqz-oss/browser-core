@@ -1,4 +1,3 @@
-import CliqzHumanWeb from "human-web/human-web";
 /** Get datetime string of the current hour in the format YYYYMMDDHH
  */
 export function getTime() {
@@ -44,5 +43,5 @@ export function dateString(date) {
 };
 
 export function getHourTimestamp() {
-  return CliqzHumanWeb.getTime().slice(0, 10);
+  return getTime().slice(0, 10);
 }

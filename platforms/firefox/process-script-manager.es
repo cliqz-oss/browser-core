@@ -26,8 +26,11 @@ class ProcessScriptManager extends BaseProcessScriptLoader {
     this.mm = Cc["@mozilla.org/parentprocessmessagemanager;1"]
         .getService(Ci.nsIProcessScriptLoader);
 
-    this.processScriptUrl = PROCESS_SCRIPT_URL + "?" + Date.now();
-    this.mm.loadProcessScript(this.processScriptUrl, true);
+    this.processScriptUrl = PROCESS_SCRIPT_URL + "?t=" + Date.now();
+
+    // on extension update or downgrade there might be a race condition
+    // and we might end up having no process script
+    utils.setTimeout(this.mm.loadProcessScript.bind(this.mm, this.processScriptUrl, true), 0);
 
     super.init();
   }

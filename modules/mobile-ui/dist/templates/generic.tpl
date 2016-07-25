@@ -10,7 +10,11 @@
 			{{#if data.richData.full_name}}
 				{{data.richData.full_name}}
 			{{else}}
-				{{data.title}}
+				{{#if data.title}}
+					{{data.title}}
+				{{else}}
+					{{title}}
+				{{/if}}
 			{{/if}}
 			{{#if data.richData.under_name}}<span>{{data.richData.under_name}}</span>{{/if}}
 		</h1>
@@ -27,30 +31,37 @@
 		<!-- main images -->
 
 		<div class="card__gallery">
-		{{#if data.richData.image}}
-            <div class="image big" data-style="background-image: url({{ data.richData.image }});">
-                Image
-            </div>
-        {{else}}
+			
+			{{#each data.richData.images}}
+				{{#if (limit @index 3)}}
+					<div class="image" data-style="background-image: url({{this}})">Image</div>
+				{{/if}}
+			{{/each}}
 
-			{{#if data.media}}
-				<div class="image big" data-style="background-image: url({{ data.media }});">
-					Image
-				</div>
-			{{else}}
-				{{#if image.src}}
-					<div class="image big" data-style="background-image: url({{ image.src }})">
+			{{#if data.richData.image}}
+	            <div class="image big" data-style="background-image: url({{ data.richData.image }});">
+	                Image
+	            </div>
+	        {{else}}
+
+				{{#if data.media}}
+					<div class="image big" data-style="background-image: url({{ data.media }});">
 						Image
 					</div>
+				{{else}}
+					{{#if data.image.src}}
+						<div class="image big" data-style="background-image: url({{ data.image.src }})">
+							Image
+						</div>
+					{{/if}}
+					{{#if data.i}}
+						<div class="image big" data-style="background-image: url({{ data.i }})">
+							Image
+						</div>
+					{{/if}}
 				{{/if}}
-				{{#if data.i}}
-					<div class="image big" data-style="background-image: url({{ data.i }})">
-						Image
-					</div>
-				{{/if}}
+
 			{{/if}}
-
-		{{/if}}
 		</div>
 
         <!-- end main images -->
@@ -72,14 +83,6 @@
 			</div>
 		{{/if}}
 		<!--end for videos -->
-
-		<div class="card__gallery">
-			{{#each data.richData.images}}
-				{{#if (limit @index 3)}}
-					<div class="image" data-style="background-image: url({{this}})">Image</div>
-				{{/if}}
-			{{/each}}
-		</div>
 
 		<div extra="des" class="card__description">
 

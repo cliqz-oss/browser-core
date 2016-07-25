@@ -1,6 +1,6 @@
 {
   "platform": "firefox",
-  "testsBasePath": "./build/firefox/cliqz@cliqz.com/chrome/content",
+  "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
   "settings": {
     "freshTabButton": false,
     "freshTabABtest" : false,
@@ -20,7 +20,6 @@
     "context-menu",
     "onboarding",
     "freshtab",
-    "fresh-tab-frontend",
     "unblock",
     "theme",
     "telemetry-categories",
@@ -29,5 +28,8 @@
     "hpn",
     "smart-cliqz-cache",
     "privacy-dashboard"
+  ],
+  "subprojects": [
+    "fresh-tab-frontend"
   ]
 }

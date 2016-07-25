@@ -62,9 +62,17 @@ var locationListener = {
 
 var tabsProgressListener = {
   QueryInterface: XPCOMUtils.generateQI(["nsIWebProgressListener", "nsISupportsWeakReference"]),
+  wplFlag: { //nsIWebProgressListener state transition flags
+    STATE_START: Components.interfaces.nsIWebProgressListener.STATE_START,
+    STATE_IS_DOCUMENT: Components.interfaces.nsIWebProgressListener.STATE_IS_DOCUMENT,
+  },
 
   onLocationChange: function (aBrowser, aProgress, aRequest, aURI) {
-    CliqzEvents.pub("core.tab_location_change", { url: aURI && aURI.spec });
+    CliqzEvents.pub("core.tab_location_change", {
+      url: aURI && aURI.spec,
+      isLoadingDocument: aProgress.isLoadingDocument,
+      document: aProgress.document
+    });
   },
 
   onStateChange: function (aBrowser, aWebProgress, aRequest, aStateFlag, aStatus) {
@@ -72,7 +80,10 @@ var tabsProgressListener = {
       try {
         CliqzEvents.pub("core.tab_state_change", {
           url: aRequest && aRequest.name,
-          isValid: (aStateFlag & Components.interfaces.nsIWebProgressListener.STATE_START) && !aStatus
+          urlSpec: aRequest && aRequest.URI && aRequest.URI.spec,
+          isValid: (aStateFlag & this.wplFlag.STATE_START) && !aStatus,
+          isNewPage: (this.wplFlag.STATE_START & aStateFlag) && (this.wplFlag.STATE_IS_DOCUMENT & aStateFlag),
+          windowID: aWebProgress.DOMWindowID
         });
       } catch (e) {
       }
@@ -126,7 +137,6 @@ window.CLIQZ.Core = {
           urlBarGo.setAttribute('onclick', "CLIQZ.Core.urlbarGoClick(); " + this._urlbarGoButtonClick);
 
           if ('gBrowser' in window) {
-              CliqzLanguage.init(window);
               CliqzDemo.init(window);
 
               // CliqzEvents listeners
@@ -347,18 +357,11 @@ window.CLIQZ.Core = {
 
         // Detect autocomplete
         var autocomplete = CliqzHistoryCluster.autocompleteTerm(urlBar.value, results[0], true);
-        if(!autocomplete.autocomplete && results.length > 1 &&
-          CliqzUtils.generalizeUrl(results[0].url) != CliqzUtils.generalizeUrl(urlBar.value)) {
-          autocomplete = CliqzHistoryCluster.autocompleteTerm(urlBar.value, results[1], true);
-          CLIQZ.UI.autocompleteEl = 1;
-        } else {
-          CLIQZ.UI.autocompleteEl = 0;
-        }
 
         // No autocomplete
         if(!autocomplete.autocomplete ||
            !CliqzUtils.getPref("browser.urlbar.autoFill", false, '') || // user has disabled autocomplete
-           (CLIQZ.UI.autocompleteEl == 1 && autocomplete.autocomplete && JSON.stringify(data).indexOf(autocomplete.full_url) == -1)){
+           (autocomplete.autocomplete && JSON.stringify(data).indexOf(autocomplete.full_url) == -1)){
             CLIQZ.UI.clearAutocomplete();
             CliqzAutocomplete.lastAutocomplete = null;
             CliqzAutocomplete.lastAutocompleteType = null;

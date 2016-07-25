@@ -390,6 +390,7 @@ var CliqzAutocomplete = {
                     }
                 }
             },
+
             // handles fetched results from the cache
             cliqzResultFetcher: function(req, q) {
 
@@ -401,11 +402,24 @@ var CliqzAutocomplete = {
                     var results = [];
                     var json = JSON.parse(req.response);
 
+                    // apply rerankers
+                    for (var i = 0; i < CLIQZEnvironment.RERANKERS.length; i++){
+                        var reranker = CLIQZEnvironment.RERANKERS[i];
+                        if (reranker != null){
+                            var rerankerResults = reranker.doRerank(json.result);
+                            json.result = rerankerResults.response;
+                            if (Object.keys(rerankerResults.telemetrySignal).length > 0){
+                                this.userRerankers[reranker.name] = rerankerResults.telemetrySignal;
+                            }
+                        }
+
+                    }
+
                     CliqzUtils.log(json.result ? json.result.length : 0,"CliqzAutocomplete.cliqzResultFetcher");
 
                     results = json.result || [];
 
-                    this.cliqzResultsExtra = []
+                    this.cliqzResultsExtra = [];
 
                     if(json.images && json.images.results && json.images.results.length >0){
                         var imgs = json.images.results.filter(function(r){
@@ -421,10 +435,10 @@ var CliqzAutocomplete = {
                         el.results = el.results.filter(function(r){
                             //ignore empty results
                             return r.hasOwnProperty('url');
-                        })
+                        });
 
                         return el.results.length != 0;
-                    }
+                    };
 
                     if(hasExtra(json.extra)) {
                         this.cliqzResultsExtra = json.extra.results.map(Result.cliqzExtra);
@@ -490,6 +504,7 @@ var CliqzAutocomplete = {
                     mixed: null,
                     all: null
                 };
+                this.userRerankers = {};
 
                 CliqzUtils.log('search: ' + searchString, CliqzAutocomplete.LOG_KEY);
 
@@ -640,6 +655,7 @@ var CliqzAutocomplete = {
                     latency_mixed: obj.latency.mixed,
                     latency_all: obj.startTime? Date.now() - obj.startTime : null,
                     discarded: obj.discardedResults,
+                    user_rerankers: obj.userRerankers,
                     v: 1
                 };
 
@@ -690,7 +706,7 @@ var CliqzAutocomplete = {
             }
         }
     }
-}
+};
 
 CliqzAutocomplete.initProvider();
 CliqzAutocomplete.initResults();

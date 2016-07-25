@@ -10,6 +10,19 @@ function waitIfNotReady(fn) {
         return fn();
     });
 }
+// wait till server is set up
+var wait_until_server_up = function (testUrl, count, callback) {
+  if ( count <= 0 ) {
+    callback("Failed to start server");
+    return;
+  }
+  CliqzUtils.httpGet(testUrl, callback, function() {
+    console.log("level "+ count);
+    setTimeout( function(testUrl) {
+      wait_until_server_up(testUrl, count - 1, callback);
+    }, 100);
+  })
+};
 
 TESTS.AttrackTest = function (CliqzUtils) {
     var System = CliqzUtils.getWindow().CLIQZ.System,
@@ -53,14 +66,20 @@ TESTS.AttrackTest = function (CliqzUtils) {
                     tab_id;
 
                 beforeEach(function(done) {
+                    testServer.registerPathHandler('/', function(req, res) {
+                        res.write('<html><body><p>Hello world</p></body></html');
+                    });
                     CliqzAttrack.tp_events._active = {};
-                    tabs.push(gBrowser.addTab("https://cliqz.com"));
+
                     // get tab id from tp_events (assumption that this is correct)
-                    waitIfNotReady(function() {
+                    wait_until_server_up('http://cliqztest.com:60508/', 5, function() {
+                      tabs.push(gBrowser.addTab("http://cliqztest.com:60508"));
+                      waitIfNotReady(function() {
                         return Object.keys(CliqzAttrack.tp_events._active).length > 0;
-                    }).then(function() {
+                      }).then(function() {
                         tab_id = Object.keys(CliqzAttrack.tp_events._active)[0];
                         done();
+                      });
                     });
                 });
 
@@ -72,9 +91,9 @@ TESTS.AttrackTest = function (CliqzUtils) {
                 });
 
                 it('returns true for open tab id', function() {
-                    return waitFor(function() {
-                        return CliqzAttrack.tab_listener.isWindowActive(tab_id) === true;
-                    });
+                  waitIfNotReady(function() {
+                    return CliqzAttrack.tab_listener.isWindowActive(tab_id) === true;
+                  });
                 });
 
                 describe('when tab is closed', function() {
@@ -109,9 +128,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
             });
 
             afterEach(function() {
-                tabs.forEach(function(t) {
-                    gBrowser.removeTab(t);
-                });
+                closeAllTabs(gBrowser);
                 tabs = [];
             });
 
@@ -124,15 +141,23 @@ TESTS.AttrackTest = function (CliqzUtils) {
                 var tab_id = 0,
                     page_load;
 
-                beforeEach(function() {
+                beforeEach(function(done) {
                     testServer.registerPathHandler('/', function(req, res) {
                         res.write('<html><body><p>Hello world</p></body></html');
                     });
                     testServer.registerPathHandler('/privacy', function(req, res) {
                         res.write('<html><body><p>Hello private world</p></body></html');
                     });
-                    tabs.push(gBrowser.addTab("http://cliqztest.com"));
-                    tabs.push(gBrowser.addTab("http://cliqztest.com/privacy#saferWeb"));
+
+
+                    wait_until_server_up('http://localhost:60508/', 5, function() {
+                      tabs.push(gBrowser.addTab("http://localhost:60508"));
+                      tabs.push(gBrowser.addTab("http://localhost:60508/privacy#saferWeb"));
+                      done();
+                    });
+                });
+
+                it('skip first', function() {
                 });
 
                 it('should add tabs to _active', function(done) {
@@ -146,8 +171,8 @@ TESTS.AttrackTest = function (CliqzUtils) {
                         tab_id = Object.keys(CliqzAttrack.tp_events._active)[0];
                         page_load = CliqzAttrack.tp_events._active[tab_id];
                         chai.expect(page_load).to.include.keys('hostname', 'url', 'path');
-                        chai.expect(page_load.url).to.equal('http://cliqztest.com/');
-                        chai.expect(page_load.hostname).to.equal('cliqztest.com');
+                        chai.expect(page_load.url).to.equal('http://localhost:60508/');
+                        chai.expect(page_load.hostname).to.equal('localhost');
                         // md5('/')
                         chai.expect(page_load.path).to.equal('6666cd76f96956469e7be39d750cc7d9'.substring(0, 16));
                         chai.expect(page_load.tps).to.be.empty;
@@ -173,11 +198,11 @@ TESTS.AttrackTest = function (CliqzUtils) {
                             chai.expect(Object.keys(CliqzAttrack.tp_events._active)).to.have.length(1);
                             // check staged tab
                             chai.expect(CliqzAttrack.tp_events._staged).to.have.length(1);
-                            chai.expect(CliqzAttrack.tp_events._staged[0].url).to.equal('http://cliqztest.com/');
+                            chai.expect(CliqzAttrack.tp_events._staged[0].url).to.equal('http://localhost:60508/');
 
                             // check active tab
                             tab_id = Object.keys(CliqzAttrack.tp_events._active)[0];
-                            chai.expect(CliqzAttrack.tp_events._active[tab_id].url).to.equal("http://cliqztest.com/privacy#saferWeb");
+                            chai.expect(CliqzAttrack.tp_events._active[tab_id].url).to.equal("http://localhost:60508/privacy#saferWeb");
                         });
                     });
 
@@ -187,9 +212,9 @@ TESTS.AttrackTest = function (CliqzUtils) {
 
                     beforeEach(function() {
                         var wait = waitFor( function() {
-                          return gBrowser.getBrowserForTab(tabs[0]).currentURI.spec === "http://cliqztest.de/"
+                          return gBrowser.getBrowserForTab(tabs[0]).currentURI.spec === "http://cliqztest.de:60508/"
                         });
-                        gBrowser.getBrowserForTab(tabs[0]).loadURI("http://cliqztest.de/");
+                        gBrowser.getBrowserForTab(tabs[0]).loadURI("http://cliqztest.de:60508/");
                         return wait;
                     });
 
@@ -203,14 +228,14 @@ TESTS.AttrackTest = function (CliqzUtils) {
                             chai.expect(Object.keys(CliqzAttrack.tp_events._active)).to.have.length(2);
                             // check staged tab
                             chai.expect(CliqzAttrack.tp_events._staged).to.have.length(1);
-                            chai.expect(CliqzAttrack.tp_events._staged[0].url).to.equal('http://cliqztest.com/');
+                            chai.expect(CliqzAttrack.tp_events._staged[0].url).to.equal('http://localhost:60508/');
 
                             // check active tabs
                             var tabUrls = Object.keys(CliqzAttrack.tp_events._active).map(function(tab_id) {
                               return CliqzAttrack.tp_events._active[tab_id].url;
                             });
-                            chai.expect(tabUrls).to.contain("http://cliqztest.de/");
-                            chai.expect(tabUrls).to.contain("http://cliqztest.com/privacy#saferWeb");
+                            chai.expect(tabUrls).to.contain("http://cliqztest.de:60508/");
+                            chai.expect(tabUrls).to.contain("http://localhost:60508/privacy#saferWeb");
                         });
                     });
 
@@ -222,7 +247,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
               var server_port, hit_target = false, proxy_type = null;
               var prefs = Components.classes['@mozilla.org/preferences-service;1'].getService(Components.interfaces.nsIPrefBranch);
 
-              beforeEach(function() {
+              beforeEach(function(done) {
                 server_port = testServer.port;
                 // 302 redirect case
                 testServer.registerPathHandler('/302', function(request, response) {
@@ -243,6 +268,9 @@ TESTS.AttrackTest = function (CliqzUtils) {
                 testServer.registerPathHandler('/target', function(request, response) {
                   hit_target = true;
                   response.write("<html><body></body></html>");
+                });
+                wait_until_server_up("http://localhost:"+ server_port +"/js", 5, () => {
+                  done();
                 });
               });
 

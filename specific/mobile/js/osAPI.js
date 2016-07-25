@@ -31,13 +31,43 @@ var osAPI = {
     osAPI.OS.postMessage(message);
   },
   /**
+    function: getHistoryItems
+    description: requests user history from OS
+    message callback data: [{url, title, id, timestamp}]
+  */
+  getHistoryItems: function(callback, start, count) {
+    var message = {
+      action: "getHistoryItems",
+      callback: callback
+    };
+    if (start && count) {
+      message.data = {
+        start: start,
+        count: count
+      };
+    }
+    osAPI.OS.postMessage(message);
+  },
+  /**
+    function: getFavorites
+    description: requests user favorites from OS
+    message callback data: [{url, title, timestamp}]
+  */
+  getFavorites: function(callback) {
+    var message = {
+      action: "getFavorites",
+      callback: callback
+    };
+    osAPI.OS.postMessage(message);
+  },
+  /**
     function: isReady
     description: informs OS that everything is loaded
   */
   isReady: function() {
     var message = {
       action: "isReady"
-    }
+    };
     osAPI.OS.postMessage(message);
   },
   /**
@@ -50,7 +80,7 @@ var osAPI = {
     var message = {
       action: "openLink",
       data: url
-    }
+    };
     osAPI.OS.postMessage(message);
   },
   /**
@@ -67,7 +97,7 @@ var osAPI = {
         data: data,
         type: type
       }
-    }
+    };
     osAPI.OS.postMessage(message);
   },
   /**
@@ -82,7 +112,7 @@ var osAPI = {
       action: "getTopSites",
       data: limit,
       callback: callback
-    }
+    };
     osAPI.OS.postMessage(message);
   },
   /**
@@ -95,7 +125,7 @@ var osAPI = {
     var message = {
       action: "autocomplete",
       data: query
-    }
+    };
     osAPI.OS.postMessage(message);
   },
   /**
@@ -110,7 +140,7 @@ var osAPI = {
       data: {
         "q": query,
       }
-    }
+    };
     osAPI.OS.postMessage(message);
   },
   /**
@@ -123,7 +153,7 @@ var osAPI = {
     var message = {
       action: "pushTelemetry",
       data: msg
-    }
+    };
     osAPI.OS.postMessage(message);
   },
   /**
@@ -136,37 +166,37 @@ var osAPI = {
     var message = {
       action: "copyResult",
       data: val
-    }
+    };
     osAPI.OS.postMessage(message);
   },
   /**
-    function: removeHistory
+    function: removeHistoryItems
     description: removes history records from native history
     params: ids as list
     message data: ids as list
   */
-  removeHistory: function(ids) {
+  removeHistoryItems: function(ids) {
     var message = {
-      action: "removeHistory",
+      action: "removeHistoryItems",
       data: ids
-    }
+    };
     osAPI.OS.postMessage(message);
   },
   /**
-    function: setHistoryFavorite
+    function: setFavorites
     description: sets history records' favorite property
-    params: ids as list
+    params: favorites as list
     params: value as boolean
-    message data: ids as list, value as boolean
+    message data: favorites as list, value as boolean
   */
-  setHistoryFavorite: function(ids, value) {
+  setFavorites: function(favorites, value) {
     var message = {
-      action: "setHistoryFavorite",
+      action: "setFavorites",
       data: {
-        ids: ids,
+        favorites: favorites,
         value: value
       }
-    }
+    };
     osAPI.OS.postMessage(message);
   },
   /**
@@ -179,7 +209,21 @@ var osAPI = {
     var message = {
       action: "shareCard",
       data: cardUrl
-    }
+    };
+    osAPI.OS.postMessage(message);
+  },
+
+  /**
+    function: notifyYoutubeVideoUrls
+    description: sends the video urls fetched via ytdownloader
+    params: an array of objects
+    message data: an array of objects
+  */
+  notifyYoutubeVideoUrls: function(urls) {
+    var message = {
+      action: "notifyYoutubeVideoUrls",
+      data: urls
+    };
     osAPI.OS.postMessage(message);
   }
 };

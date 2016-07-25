@@ -20,16 +20,11 @@ XPCOMUtils.defineLazyModuleGetter(this, 'Result',
 XPCOMUtils.defineLazyModuleGetter(this, 'CliqzAutocomplete',
   'chrome://cliqzmodules/content/CliqzAutocomplete.jsm');
 
+XPCOMUtils.defineLazyModuleGetter(this, 'CliqzWikipediaDeduplication',
+    'chrome://cliqzmodules/content/CliqzWikipediaDeduplication.jsm');
+
 XPCOMUtils.defineLazyModuleGetter(this, 'CliqzResultProviders',
   'chrome://cliqzmodules/content/CliqzResultProviders.jsm');
-
-function prefixPref(pref, prefix) {
-    if ( !(typeof prefix === 'string') ) {
-      prefix = 'extensions.cliqz.';
-    }
-    return prefix + pref;
-}
-
 
 var _log = Cc['@mozilla.org/consoleservice;1'].getService(Ci.nsIConsoleService),
     // references to all the timers to avoid garbage collection before firing
@@ -82,6 +77,8 @@ var CLIQZEnvironment = {
     LAST_GEOLOCATION_UPDATE: 0,
     GEOLOCATION_UPDATE_MIN_WAIT: 3600 * 1000, // If the computer wakes up from a sleep that was longer than this many milliseconds, we update geolocation.
     LOCATION_ACCURACY: 3, // Number of decimal digits to keep in user's location
+    RERANKERS: [CliqzWikipediaDeduplication],
+    SHARE_LOCATION_ONCE: false,
     OBSERVERS: [
       {
         notifications: ['wake_notification', 'sleep_notification'],
@@ -134,9 +131,8 @@ var CLIQZEnvironment = {
       'onboarding-callout',
       'onboarding-callout-extended',
       'slow_connection',
-      'partials/missing_location_2',
-      'partials/location/no-locale-data',
-      'partials/no-locale-data'
+      'partials/location/missing_location_2',
+      'partials/location/no-locale-data'
     ],
     PARTIALS: [
         'url',
@@ -151,7 +147,7 @@ var CLIQZEnvironment = {
         'rd-h3-w-rating',
         'pcgame_movie_side_snippet',
         'partials/location/local-data',
-        'partials/missing_location_1',
+        'partials/location/missing_location_1',
         'partials/timetable-cinema',
         'partials/timetable-movie',
         'partials/music-data-sc',
@@ -191,8 +187,14 @@ var CLIQZEnvironment = {
           (typeof msg == 'object'? JSON.stringify(msg): msg)
         );
     },
+    __prefixPref: function (pref, prefix) {
+        if ( !(typeof prefix === 'string') ) {
+          prefix = 'extensions.cliqz.';
+        }
+        return prefix + pref;
+    },
     getPref: function(pref, defaultValue, prefix) {
-        pref = prefixPref(pref, prefix);
+        pref = CLIQZEnvironment.__prefixPref(pref, prefix);
 
         var prefs = CLIQZEnvironment.prefs;
 
@@ -208,7 +210,7 @@ var CLIQZEnvironment = {
         }
     },
     setPref: function(pref, value, prefix){
-        pref = prefixPref(pref, prefix);
+        pref = CLIQZEnvironment.__prefixPref(pref, prefix);
 
         var prefs = CLIQZEnvironment.prefs;
 
@@ -219,12 +221,12 @@ var CLIQZEnvironment = {
         }
     },
     hasPref: function (pref, prefix) {
-        pref = prefixPref(pref, prefix);
+        pref = CLIQZEnvironment.__prefixPref(pref, prefix);
 
         return CLIQZEnvironment.prefs.getPrefType(pref) !== 0;
     },
     clearPref: function (pref, prefix) {
-        pref = prefixPref(pref, prefix);
+        pref = CLIQZEnvironment.__prefixPref(pref, prefix);
 
         CLIQZEnvironment.prefs.clearUserPref(pref);
     },
@@ -356,7 +358,7 @@ var CLIQZEnvironment = {
 
         win.CLIQZ.Core.triggerLastQ = true;
         if(newTab) {
-            win.gBrowser.addTab(url);
+           return win.gBrowser.addTab(url);
         } else if(newWindow) {
             win.open(url, '_blank');
         } else if(newPrivateWindow) {
@@ -434,9 +436,9 @@ var CLIQZEnvironment = {
         var util = win.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils);
         return util.outerWindowID;
     },
-    openTabInWindow: function(win, url){
+    openTabInWindow: function(win, url, relatedToCurrent = false){
         var tBrowser = win.document.getElementById('content');
-        var tab = tBrowser.addTab(url);
+        var tab = tBrowser.addTab(url, {relatedToCurrent: relatedToCurrent});
         tBrowser.selectedTab = tab;
     },
     // TODO: move this
@@ -648,7 +650,7 @@ var CLIQZEnvironment = {
     updateGeoLocation: function() {
       var geoService = Components.classes["@mozilla.org/geolocation;1"].getService(Components.interfaces.nsISupports);
 
-      if (CLIQZEnvironment.getPref('share_location') == 'yes') {
+      if (CLIQZEnvironment.getPref('share_location') == 'yes' || CLIQZEnvironment.SHARE_LOCATION_ONCE) {
         // Get current position
         geoService.getCurrentPosition(function(p) {
           // the callback might come late if the extension gets disabled very fast

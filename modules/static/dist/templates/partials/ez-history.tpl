@@ -1,5 +1,5 @@
-<div class="cqz-history">
-    <span class="cqz-history-title">{{local 'history'}}</span>
+<div class="cqz-history cqz-vertical-title-holder">
+    <span class="cqz-vertical-title">{{local 'history'}}</span>
     <ul class="cqz-history-list">
         {{#each data.urls }}
             <li class="cqz-ellipsis"

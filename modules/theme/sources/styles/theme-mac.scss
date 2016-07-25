@@ -164,7 +164,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
     -moz-border-start: 1px solid #5ea3f9 !important;
 }
 #urlbar .urlbar-input::-moz-selection {
-  background: #7bebf5;
+  background: #b1d6ff;
 }
 /*==== FF Color */
 
@@ -223,7 +223,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
 
 /*=== Bookmarks */
 #PersonalToolbar {
-    padding-top: 7px;
+    padding-top: 5px;
     border-top: none;
 }
 
@@ -233,10 +233,11 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
     background: #fff !important;
 }
 
+
 #back-button {
-    width: auto !important;;
-    height: auto !important;;
-    padding: 5px 0 !important;
+    /*width: auto !important;
+    height: auto !important;
+    padding: 5px 0 !important;*/
 }
 #forward-button > .toolbarbutton-icon { margin: 0; }
 
@@ -350,4 +351,250 @@ notification[type="warning"] > button {
 notification[type="warning"] .messageText {
     font-weight: normal;
     color: black;
+}
+
+/****** NEW THEME ******/
+
+/* BEGIN URL BAR */
+
+#urlbar {
+    /*margin-left: 3em !important;
+    margin-right: 2.3em;*/
+    margin: 4px 2.5em !important;
+    border: 1px solid #ddd !important;
+
+	box-shadow: 0 1px 0.05em rgba(0,0,0, 0.1) inset !important;
+	border-color: #d1d1d1 !important;
+    -moz-border-start: 1px solid #d8d8d8 !important;
+
+    padding: 1px 0px;
+}
+
+#urlbar, .searchbar-textbox {
+    font-size: 1.27em;
+}
+
+.urlbar-input {
+    padding-bottom: 1px !important;
+}
+
+#urlbar[focused="true"] {
+    box-shadow: 0 0 0.2em #3B99FC inset !important;
+}
+
+#nav-bar {
+    border-top-color: #d1d0d3 !important;
+    padding: 0;
+    background: #f6f6f6 !important;
+    box-shadow: inset 0 1px 0 hsla(0,0%,100%,.01);
+	box-shadow: 0px 1px 0.13em 0px rgba(0, 0, 0, 0.24);
+}
+
+
+#navigator-toolbox::after {
+    background-image: none;
+}
+
+#main-window:not([chromehidden~="toolbar"]) {
+    min-width: 425px;
+}
+
+#urlbar-container {
+    min-width: 300px;
+}
+
+#forward-button:hover:not(:-moz-lwtheme):not([disabled="true"]), #back-button:hover:not(:-moz-lwtheme):not([disabled="true"]) {
+    background-color: #e6e6e6 !important;
+    border-radius: 3px;
+    margin: 0px 0px 0px 32px;
+}
+
+#PanelUI-button {
+    border-image-slice: 0;
+}
+
+#forward-button {
+    margin-left: -1px !important;
+}
+
+#forward-button:not(:-moz-lwtheme) {
+    height: 32px;
+}
+
+#forward-button, #back-button {
+    padding: 0 2px !important;
+}
+
+#TabsToolbar .toolbarbutton-1 {
+    padding-top: 5px !important;
+}
+
+#nav-bar .toolbarbutton-1:not(#back-button):not(#forward-button) {
+    margin-top: 2px; /*Remove space (padding) inside nav-bar*/
+    margin-bottom: 2px;
+}
+
+#notification-popup-box {
+	background-color: rgba(255, 255, 255, 0);
+}
+
+#navigator-toolbox[on_private_tab="true"] {
+    #notification-popup-box {
+        border-image: url("../images/browser/mac/urlbar-arrow.png") 0 8 0 0 fill;
+    }
+
+    @media (min-resolution: 1.1dppx) {
+        #notification-popup-box {
+            border-image: url("../images/browser/mac/urlbar-arrow@2x.png") 0 16 0 0 fill;
+        }
+    }
+
+    #identity-box:hover {
+        background-color: rgba(255, 255, 255, 0);
+    }
+
+    #identity-box:hover:active, #identity-box[open="true"] {
+        background-color: rgba(255, 255, 255, 0);
+    }
+}
+
+/* END URL BAR */
+
+/* BEGIN TOOLBAR */
+
+#PersonalToolbar {
+	border-top: 1px solid #fcfcfc !important;
+    box-shadow: 0px 1px 0.13em 0px rgba(0, 0, 0, 0.24);
+    z-index: 1;
+    -moz-box-ordinal-group: 101;
+    content: "";
+    display: -moz-box;
+    position: relative;
+	background-color: #f6f6f6 !important;
+}
+
+/* END TOOLBAR */
+
+/* BEGIN TAB */
+
+#titlebar {
+    margin-bottom: -43px !important;
+}
+
+#titlebar, #tab-view-deck, #titlebar-content {
+    background-color: #ddd;
+}
+
+#main-window[tabsintitlebar] > #titlebar > #titlebar-content > #titlebar-buttonbox-container, #main-window[tabsintitlebar] > #titlebar > #titlebar-content > #titlebar-secondary-buttonbox > #titlebar-fullscreen-button {
+    margin-top: 11px;
+}
+
+.titlebar-placeholder[type="caption-buttons"], #titlebar-buttonbox {
+    margin-right: -6px;
+    margin-top: -5px;
+    margin-left: 10px;
+}
+
+#PanelUI-button {
+    margin-inline-start: 0;
+}
+
+#nav-bar #PanelUI-menu-button {
+    -moz-margin-start: 0;
+}
+
+#navigator-toolbox[inFullscreen] > #TabsToolbar {
+    padding-top: 0;
+    margin-top: -2px;
+}
+
+#TabsToolbar {
+    padding-right: 80px; /*Reserve some space for dragging the window*/
+}
+
+.tabbrowser-tab[visuallyselected="true"] .tab-content {
+    border-color: #d1d0d3;
+    border-top: none;
+    margin-top: 1px; /*Prevent tab jumping up when active*/
+	background: -moz-linear-gradient(top, #ffffff 0%, #f6f6f6 100%) !important;
+}
+
+.tab-label {
+    margin-top: 3px;
+    font-size: 1.05em;
+    text-align: left;
+}
+
+.tab-content {
+    border-radius: 0;
+    border-color: #C8C8C8;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.tabbrowser-tab:hover:not([visuallyselected="true"]) .tab-content, .tabs-newtab-button:hover {
+    background-color: #f6f6f6 !important;
+}
+
+#navigator-toolbox:not([inFullscreen]) #tabbrowser-tabs {
+    -moz-margin-start: 6px; /*Move the tabs a bit right to have a clear space from the close-min-max buttons*/
+}
+
+.tabbrowser-tab:not([pinned]) {
+    max-width: 250px;
+}
+
+.tabs-newtab-button > .toolbarbutton-icon {
+    padding-top: 8px;
+    padding-bottom: 3px;
+}
+
+.tab-close-button > .toolbarbutton-icon {
+    padding-top: 5px;
+    padding-bottom: 4px;
+}
+
+.tabbrowser-tab .tab-stack {
+    margin: 0 -1px 0 0;
+}
+
+.tab-label:not([selected="true"]) {
+    color: #808080;
+}
+
+.tab-throbber, .tab-icon-image, .tab-icon-sound, .tab-close-button {
+    margin-top: 3px;
+}
+
+.tabbrowser-arrowscrollbox > .scrollbutton-up, .tabbrowser-arrowscrollbox > .scrollbutton-down {
+    padding-top: 5px;
+}
+
+#navigator-toolbox:not([inFullscreen="true"]) #tabbrowser-tabs .tabbrowser-arrowscrollbox {
+    margin-inline-start: 64px;
+}
+/* END TAB */
+
+/* BEGIN CUSTOMIZE UI */
+
+#customization-panelHolder #PanelUI-customize {
+    background-color: rgb(70, 87, 183);
+}
+
+#customization-panelHolder #PanelUI-customize:hover, #customization-panelHolder #PanelUI-customize:hover:active {
+    background-color: rgb(54, 71, 167);
+}
+
+#main-window #customization-panel-container, #main-window[customize-entered] #customization-panel-container {
+    background-image: none;
+    background-color: #838383;
+}
+
+vbox[sidebarcommand=historybroadcaster] {
+  #sidebar {
+    background-color: white;
+  }
+
+  sidebarheader {
+    display: none;
+  }
 }

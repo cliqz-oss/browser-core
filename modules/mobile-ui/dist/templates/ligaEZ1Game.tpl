@@ -22,10 +22,12 @@
         </div>
 
         <div class="card__logo__secondary bg" 
-        data-style="background-size: 75%;margin-top: 28px;background-image:url(https://cdn.cliqz.com/brands-database/database/1452759183853/logos/kicker/$.svg);background-color:#FF1D1D;top:inherit;" 
-        style="background-size: 75%;margin-top: 28px;background-image:url(https://cdn.cliqz.com/brands-database/database/1452759183853/logos/kicker/$.svg);background-color: #FF1D1D;top:inherit;">Ki</div>
+            data-style="background-size: 75%;margin-top: 28px;background-image:url(https://cdn.cliqz.com/brands-database/database/1452759183853/logos/kicker/$.svg);background-color:#FF1D1D;top:inherit;" 
+            style="background-size: 75%;margin-top: 28px;background-image:url(https://cdn.cliqz.com/brands-database/database/1452759183853/logos/kicker/$.svg);background-color: #FF1D1D;top:inherit;">
+                Ki
+        </div>
 
-        <div class="soccer__result" onclick="osBridge.openLink('{{live_url}}')">
+        <div class="soccer__result" cliqz-action="stop-click-event-propagation" onclick="osAPI.openLink('{{live_url}}')">
            <h5>{{spielTag}}</h5>
            <span class="meta__legend">{{gameTime}} - {{location}}</span>
            <table cellspacing="0" cellpadding="0">
@@ -54,46 +56,45 @@
             </div>
     </section>
 
-
-    
-    <section class="secondary">
-
-       {{#each btns}}
-            <div url="{{url}}" extra="link-{{@index}}" class="cards__item links">
-                <h2 class="cards__title__secondary">
-                    {{title}}
-                </h2>
-            </div>
-        {{/each}}
-
-
-    </section>
-
     
     {{#if news}}
-      <section class="secondary">
-        <div class="main mulitple">
-          {{#each news}}
-                <div url="{{url}}" extra="entry-{{@index}}" class="item">
-                  {{#with logo}}
-                  <div class="card__logo__secondary" data-style="{{style}}">.</div>
-                  {{/with}}
-                  <h1 class="main__headline">
-                    {{ title }}
-                    <span>
-                      {{#if tweet_count}}
-                        <span class="tweet_count">
-                          <img data-src="http://cdn.cliqz.com/extension/EZ/cliqz/EZ-social-twitter.svg"> {{tweet_count}}
-                        </span>
-                      {{/if}}
-                      {{ agoline discovery_timestamp }}
-                    </span>  
-                  </h1>
-                </div>
-              {{/each}}
-        </div>
-      </section>
+        <section class="secondary" cliqz-action="stop-click-event-propagation">
+            <div class="main mulitple">
+                {{#each news}}
+                    <div url="{{url}}" extra="entry-{{@index}}" class="item">
+                        {{#with logo}}
+                            <div class="card__logo__secondary" data-style="{{style}}">.</div>
+                        {{/with}}
+                        <h1 class="main__headline">
+                            {{ title }}
+                            <span>
+                                {{#if tweet_count}}
+                                    <span class="tweet_count">
+                                        <img data-src="http://cdn.cliqz.com/extension/EZ/cliqz/EZ-social-twitter.svg"> {{tweet_count}}
+                                    </span>
+                                {{/if}}
+                              {{ agoline discovery_timestamp }}
+                            </span>  
+                        </h1>
+                    </div>
+                {{/each}}
+            </div>
+        </section>
     {{/if}}
+
+    <section class="secondary" cliqz-action="stop-click-event-propagation">
+
+        {{#each static.links}}
+            {{#if (limit @index 10)}}
+                <div url="{{url}}" extra="link-{{@index}}" class="cards__item additional_sources">
+                    <h2 class="cards__title__secondary">
+                        {{title}}
+                    </h2>
+                </div>
+            {{/if}}
+        {{/each}}
+
+    </section>
 
 {{/with}}
 

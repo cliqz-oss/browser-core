@@ -116,7 +116,8 @@ function onDOMWindowCreated(ev) {
       target: "cliqz",
       type: "response",
       response: msg.data.response,
-      action: msg.data.action
+      action: msg.data.action,
+      requestId: msg.data.requestId,
     }), "*");
   }
 
@@ -244,21 +245,45 @@ function onDOMWindowCreated(ev) {
   };
 
   var onReady = function () {
+    // ReportLang
     var lang = window.document.getElementsByTagName('html')
       .item(0).getAttribute('lang');
 
-    if (!lang) {
-      return;
+    if (lang) {
+      send({
+        windowId: windowId,
+        payload: {
+          module: "core",
+          action: "recordLang",
+          args: [
+            currentURL(),
+            lang
+          ]
+        }
+      });
     }
+
+    // ReportMeta
+    var title = window.document.querySelector("title"),
+        description = window.document.querySelector("meta[name=description]"),
+        ogTitle = window.document.querySelector("meta[property='og:title']"),
+        ogDescription = window.document.querySelector("meta[property='og:description']"),
+        ogImage = window.document.querySelector("meta[property='og:image']");
 
     send({
       windowId: windowId,
       payload: {
         module: "core",
-        action: "recordLang",
+        action: "recordMeta",
         args: [
           currentURL(),
-          lang
+          {
+            title: title && title.innerHTML,
+            description: description && description.content,
+            ogTitle: ogTitle && ogTitle.content,
+            ogDescription: ogDescription && ogDescription.content,
+            ogImage: ogImage && ogImage.content
+          }
         ]
       }
     });

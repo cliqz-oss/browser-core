@@ -24,6 +24,9 @@ export function HashProb() {
 }
 
 HashProb.prototype.isHashProb = function(str) {
+    if (!this.probHashLogM || !this.probHashThreshold) {
+      return 0;
+    }
     var logProb = 0.0;
     var transC = 0;
     str = str.toLowerCase().replace(/[^a-z0-9\.\- ]/g,'');

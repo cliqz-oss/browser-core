@@ -1,0 +1,14 @@
+<div class="list">
+  {{#each sortedQueries as |query|}}
+    {{#link-to "history-sidebar.queries.query" query._id class="item" }}
+      <h2>
+        {{query._id}}
+      </h2>
+      {{#if query.lastQueriedAt}}
+        <p>
+          {{moment-from-now query.lastQueriedAt interval=1000}}
+        </p>
+      {{/if}}
+    {{/link-to}}
+  {{/each}}
+</div>

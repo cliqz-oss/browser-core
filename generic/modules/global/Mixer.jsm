@@ -267,13 +267,12 @@ var Mixer = {
 
     // slice creates a shallow copy, so we don't reverse existing array.
     extraResults.slice().reverse().forEach(function(r) {
-      var ezId = Mixer._getSmartCliqzId(r);
       var trigger_urls = r.data.trigger_urls || [];
       var wasCacheUpdated = false;
 
       trigger_urls.forEach(function(url) {
-        if (SmartCliqzTriggerUrlCache.retrieve(url) != ezId) {
-          SmartCliqzTriggerUrlCache.store(url, ezId);
+        if (!SmartCliqzTriggerUrlCache.isCached(url)) {
+          SmartCliqzTriggerUrlCache.store(url, true);
           wasCacheUpdated = true;
         }
       });
@@ -309,7 +308,7 @@ var Mixer = {
         SmartCliqzTriggerUrlCache.delete(url);
         return undefined;
       }
-      ez = CliqzSmartCliqzCache.retrieve(ezId);
+      ez = CliqzSmartCliqzCache.retrieve(url);
       if (ez) {
         // Cached EZ is available
         ez = Result.clone(ez);
@@ -324,7 +323,7 @@ var Mixer = {
         resultKindEnricher({trigger_method: 'history_url'}, ez);
       } else {
         // Not available: start fetching now so it is available soon
-        CliqzSmartCliqzCache.fetchAndStore(ezId);
+        CliqzSmartCliqzCache.fetchAndStore(url);
       }
 
       if (SmartCliqzTriggerUrlCache.isStale(url)) {

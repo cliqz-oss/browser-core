@@ -16,8 +16,8 @@
     </div>
 
     <div class="cqz-ez-generic">
-        <div class="cqz-history" style="margin-top: 0;">
-            <span class="cqz-history-title">{{local 'history'}}</span>
+        <div class="cqz-history cqz-vertical-title-holder" style="margin-top: 0;">
+            <span class="cqz-vertical-title">{{local 'history'}}</span>
             <ul class="cqz-history-list cqz-list-restricted">
                 {{#each data.urls }}
                     <li class="cqz-ellipsis"

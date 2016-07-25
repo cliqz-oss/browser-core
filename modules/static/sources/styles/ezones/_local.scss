@@ -1,72 +1,72 @@
 /*--------------- Local EZ ----------- */
 
-.cqz-local-result {
-    .cqz-zone-holder { width: calc(100% - 90px); max-width: $zones-max-width; }
-    .cqz-local-top-blk { height: auto; margin-bottom: 0; }
-    .cqz-local-top-blk .cqz-rd-h3img-div { height: 100%; margin-bottom: 5px; }
+.cqz-local-data-holder {
+    .cqz-zone-holder {
+        & > .cqz-generic-desc:first-child {
+            display: none;
+        }
+    }
+ }
 
-    .cqz-local-hr {
-        width: 100%;
-        height: 1px;
-        padding: 0;
-        margin: 10px 0 0;
-        border: none;
-        background-color: #cccccc;
+.cqz-local-data {
+    height: auto;
+    margin-bottom: 0;
+    width: 75%;
+
+    .local-img-holder {
+        max-width: 135px;
     }
 
-    .cqz-local-des-blk { width: 100%; max-width: 100%; }
-
-    .cqz-local-info-box {
-        float: left;
-        width: calc(50% - 20px);
-        margin-right: 39px;
-
-        * { @extend .cqz-ellipsis; }
-        &:last-child { margin: 0; }
+    img.cqz-local-data-img {
+        width: 100%;
+        cursor: pointer;
+        border-radius: 3px;
     }
 
     .cqz-local-info {
-        margin-top: 18px;
-        line-height: 1.3em;
 
-        p { margin: 0; }
-        .cqz-local-address { margin-bottom: 10px; color: #506bb8; cursor:pointer; }
-        .cqz-local-time {
-            padding-left: 24px;
-            color: #506bb8;
+        float: left;
 
-            .cqz-local-time-title {
-                margin-left: -24px;
+        ul.cqz-local-info-box {
+            margin: 0;
+            padding: 0;
+            list-style-type: none;
+        }
+
+        ul.cqz-local-info-box > li {
+            margin: 10px 0;
+            white-space: nowrap;
+
+			& div {
+				display: inline-block;
+				margin-right: 20px;
+			}
+
+            & span {
+                vertical-align: middle;
             }
-            .cqz-local-icon {
-                float: left;
-                width: 14px;
-                height: 14px;
-                margin-right: 10px;
-                transform: translateY(1px);
+
+            & img {
+                margin-right: 5px;
+            }
+
+            &:first_child {
+                margin-top: 0;
+            }
+            &:last_child {
+                margin-bottom: 0;
             }
         }
     }
-
-    .local-data-img { cursor:pointer; }
-
-    .cqz-local-img-container {
-         cursor: pointer;
-         float: left;
-         height: 80px;
-         width: 80px;
-         margin-right: 10px;
-    }
-
-    .local-sc-data-container { overflow: hidden; }
-    .cqz-local-result-descr {
-        @extend .cqz-ellipsis;
-
-        clear: both;
-        margin: 18px 0 0;
-    }
 }
 
+.cqz-local-desc {
+    margin-top: 16px;
+
+    p {
+        margin-bottom: 0;
+    }
+}
 
 .location_permission_prompt {
     color: #FFF;
@@ -74,7 +74,11 @@
     background-color: rgb(255, 83, 73);
 }
 
-.location_permission_prompt.loading { position: relative; padding: 0; }
+.location_permission_prompt.loading {
+    position: relative;
+    padding: 0;
+}
+
 .location_permission_prompt.loading:before {
     content: '';
     position: absolute;
@@ -112,25 +116,30 @@
 }
 
 @-webkit-keyframes cqz-loading-circle-animation {
-  0% { -webkit-transform: scale(0) }
-  100% {
-    -webkit-transform: scale(1.0);
-    opacity: 0;
-  }
+    0% {
+        -webkit-transform: scale(0)
+    }
+    100% {
+        -webkit-transform: scale(1.0);
+        opacity: 0;
+    }
 }
 
 @keyframes cqz-loading-circle-animation {
-  0% {
-    -webkit-transform: scale(0);
-    transform: scale(0);
-  } 100% {
-    -webkit-transform: scale(1.0);
-    transform: scale(1.0);
-    opacity: 0;
-  }
+    0% {
+        -webkit-transform: scale(0);
+        transform: scale(0);
+    }
+    100% {
+        -webkit-transform: scale(1.0);
+        transform: scale(1.0);
+        opacity: 0;
+    }
 }
 
-.location_permission_prompt.loading > * { opacity: 0 !important; }
+.location_permission_prompt.loading > * {
+    opacity: 0 !important;
+}
 
 .loc_permission_prompt_message {
     min-height: calc(100% - 80px);

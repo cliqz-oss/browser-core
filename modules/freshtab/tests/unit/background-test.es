@@ -38,6 +38,14 @@ export default describeModule("freshtab/background",
       beforeEach(function() {
         prefs = {};
 
+        this.deps("core/cliqz").utils.tryDecodeURIComponent = function(s) {
+          try {
+            return decodeURIComponent(s);
+          } catch(e) {
+            return s;
+          }
+        }
+
         this.deps("core/cliqz").utils.getPref = function(key, def) {
           return prefs[key] || def;
         }
@@ -171,14 +179,22 @@ export default describeModule("freshtab/background",
             return Promise.resolve({ speedDials: [] });
           };
 
-          this.deps("core/cliqz").utils.stripTrailingSlash = function(url) { return url; }
+          this.module().default.actions.getVisibleDials = function(historyLimit) {
+            return Promise.resolve([]);
+          }
+
+          this.deps("core/cliqz").utils.stripTrailingSlash = url => url;
+          this.deps("core/cliqz").utils.tryEncodeURIComponent = url => url;
+
         });
 
-        context("no other custom speed dials", function () {
-          it("add new custom speed dial", function () {
+        context("with no other custom speed dials", function () {
+          it("adds new custom speed dial", function () {
+
             const url = "http://cliqz.com";
 
             return this.module().default.actions.addSpeedDial(url).then((newSpeedDial) => {
+              //throw new Error(JSON.stringify(newSpeedDial))
               const speedDials = JSON.parse(this.deps("core/cliqz").utils.getPref("extensions.cliqzLocal.freshtab.speedDials"));
 
               chai.expect(speedDials.custom).to.deep.equal([
@@ -208,6 +224,12 @@ export default describeModule("freshtab/background",
                 ]
               });
             };
+
+            this.module().default.actions.getVisibleDials = function(historyLimit) {
+              return Promise.resolve([
+                { url: 'https://www.cliqz.com' }
+              ]);
+            }
 
             return this.module().default.actions.addSpeedDial(url).then((result) => {
               chai.expect(result).to.deep.equal({ error: true, reason: 'duplicate'});

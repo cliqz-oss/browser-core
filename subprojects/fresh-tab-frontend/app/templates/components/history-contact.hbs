@@ -1,0 +1,13 @@
+<div class="status"></div>
+<span class="logo" style="{{{model.logo.style}}}">
+  {{model.logo.text}}
+</span>
+<h2>{{model.domain}}</h2>
+<p>
+  {{moment-from-now model.lastVisitedAt interval=1000}}
+</p>
+{{#if unreadNews}}
+  <span class="badge badge-assertive">
+    {{unreadNews.length}}
+  </span>
+{{/if}}

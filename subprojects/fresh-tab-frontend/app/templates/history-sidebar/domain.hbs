@@ -1,0 +1,21 @@
+{{#unless model.hideHeader}}
+  <div class="bar bar-header bar-light">
+    {{link-to "back" "history-sidebar.index" class="button button-positive"}}
+    <h1 class="title">{{model.domain}}</h1>
+  </div>
+{{/unless}}
+
+{{liquid-outlet}}
+
+{{#if model.news}}
+  <div class="tabs-striped tabs-color-assertive bar-footer">
+     <div class="tabs">
+       {{#link-to "history-sidebar.domain.index" class="tab-item"}}
+         <i class="icon ion-home"></i>
+       {{/link-to}}
+       {{#link-to "history-sidebar.domain.news" class="tab-item"}}
+         <i class="icon ion-ios-paper"></i>
+       {{/link-to}}
+     </div>
+  </div>
+{{/if}}

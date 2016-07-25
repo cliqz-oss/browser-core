@@ -31,7 +31,8 @@
                   <div class="cf local__head">
                     {{#if map_img}}
                     <div class="main__image"/>
-                        <img data-src="{{map_img}}" extra="map-image" url="{{mu}}" class="cqz-rd-img local-data-img" onerror="this.style.display='none';"/>
+                        <img data-src="{{map_img}}" extra="map-image" class="cqz-rd-img local-data-img" onerror="this.style.display='none';"
+                         cliqz-action="stop-click-event-propagation" onclick="osAPI.browserAction('{{mu}}','map')"/>
                     </div>
                     {{/if}}
                     <h1 class="main__headline {{#if no_location}}no__loc__headline{{/if}}"><a url="{{../url}}" extra="title">{{title}}</a></h1>
@@ -58,7 +59,8 @@
                       {{#if phone_address}}
                         <div class="cqz-local-info-left cqz-local-info-box" >
                           {{#if address}}
-                            <div class="cqz-local-address" extra="address" show-status='true' url="{{mu}}">
+                            <div class="cqz-local-address" extra="address" show-status='true'
+                                cliqz-action="stop-click-event-propagation" onclick="osAPI.browserAction('{{mu}}','map')">
                               <div class="icon" data-style="background-image: url(http://cdn.cliqz.com/extension/EZ/local/map-pin.svg)">
                                 Icon
                               </div> {{address}}
@@ -106,6 +108,15 @@
           {{>rd-h3-w-rating}}
         {{/if}}
       </div>
+  </section>
+  <section class="secondary">
+      {{#each data.deepLinks}}
+          <div url="{{url}}" extra="link-{{@index}}" class="cards__item links">
+              <h2 class="cards__title__secondary">
+                  {{title}}
+              </h2>
+          </div>
+      {{/each}}
   </section>
 
 <!-- end local-data-sc.tpl -->

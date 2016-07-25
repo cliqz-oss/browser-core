@@ -2,26 +2,26 @@ Components.utils.import('chrome://cliqzmodules/content/Result.jsm');
 
 import { utils } from 'core/cliqz';
 
-export function getSmartCliqz(id) {
-  utils.log('getSmartCliqz: start fetching for id ' + id);
+export function getSmartCliqz(url) {
+  utils.log('getSmartCliqz: start fetching for ' + url);
 
   return new Promise((resolve, reject) => {
-    const endpointUrl = 'http://newbeta.cliqz.com/api/v1/rich-header?path=/id_to_snippet&q=' + id;
+    const endpointUrl = 'https://newbeta.cliqz.com/api/v1/rich-header?path=/map&bmresult=' + url;
 
     utils.httpGet(endpointUrl, (function success(req) {
       try {
-        const smartCliqzData = JSON.parse(req.response).extra.results[0];
-        const smartCliqzIdExists = (typeof smartCliqzData !== 'undefined');
+        const smartCliqzData = JSON.parse(req.response).results[0];
+        const smartCliqzExists = (typeof smartCliqzData !== 'undefined');
         let smartCliqz;
 
-        if (!smartCliqzIdExists) {
+        if (!smartCliqzExists) {
           reject({
-            type: 'ID_NOT_FOUND',
-            message: id + ' not found on server'
+            type: 'URL_NOT_FOUND',
+            message: url + ' not found on server'
           });
         } else {
           smartCliqz = Result.cliqzExtra(smartCliqzData);
-          utils.log('getSmartCliqz: done fetching for id ' + id);
+          utils.log('getSmartCliqz: done fetching for ' + url);
           resolve(smartCliqz);
         }
       } catch (e) {

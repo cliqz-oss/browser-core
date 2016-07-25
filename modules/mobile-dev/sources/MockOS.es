@@ -3,79 +3,91 @@ var MockOS = {
     CliqzUtils.log(message, 'Mock');
     var dataBack;
     switch (message.action) {
-      case "searchHistory":
+      case 'searchHistory':
         dataBack = searchHistory(message.data);
         break;
-      case "isReady":
+      case 'getHistoryItems':
+        dataBack = getHistoryItems(message.data);
+        break;
+      case 'getFavorites':
+        dataBack = getFavorites(message.data);
+        break;
+      case 'isReady':
         dataBack = isReady();
         break;
-      case "openLink":
+      case 'openLink':
         openLink(message.data);
         break;
-      case "browserAction":
+      case 'browserAction':
         browserAction(message.data);
         break;
-      case "getTopSites":
+      case 'getTopSites':
         dataBack = getTopSites(message.data);
         break;
-      case "autocomplete":
+      case 'autocomplete':
         autocomplete(message.data);
         break;
-      case "notifyQuery":
+      case 'notifyQuery':
         notifyQuery(message.data);
         break;
-      case "pushTelemetry":
+      case 'pushTelemetry':
         pushTelemetry(message.data);
         break;
-      case "copyResult":
+      case 'copyResult':
         copyResult(message.data);
         break;
-      case "removeHistory":
-        removeHistory(message.data);
+      case 'removeHistoryItems':
+        removeHistoryItems(message.data);
         break;
-      case "setHistoryFavorite":
-        setHistoryFavorite(message.data);
+      case 'setFavorites':
+        setFavorites(message.data);
         break;
-      case "shareCard":
+      case 'shareCard':
         shareCard(message.data);
         break;
 
     }
     clbk(message.callback, dataBack, window.self !== window.top);
   }
-}
+};
 
-var mockedHistory = [];
+var mockedFavorites = []; // JSON.parse('[{\"title\":\"T-Online Navigationshilfe\",\"timestamp\":1465203184868,\"url\":\"http://navigationshilfe1.t-online.de/dnserror?url=http://goo.om/\"},{\"title\":\"HELLO! Online: celebrity & royal news, magazine, babies, weddings, style\",\"timestamp\":1465203192872,\"url\":\"http://www.hellomagazine.com/\"}]').reverse();
+var mockedHistory = []; // JSON.parse('[{\"title\":\"HELLO! Online: celebrity & royal news, magazine, babies, weddings, style\",\"timestamp\":1465203194431.158,\"id\":3,\"favorite\":false,\"url\":\"http://www.hellomagazine.com/\"},{\"title\":\"T-Online Navigationshilfe\",\"timestamp\":1465203182810.896,\"id\":2,\"favorite\":false,\"url\":\"http://navigationshilfe1.t-online.de/dnserror?url=http://goo.om/\"},{\"title\":\"Spekulationen um Rückzug: Gauck kündigt Erklärung für 12 Uhr an - SPIEGEL ONLINE - Nachrichten - Politik\",\"timestamp\":1465203157183.131,\"id\":1,\"favorite\":false,\"url\":\"http://m.spiegel.de/politik/deutschland/a-1096014.html#spRedirectedFrom=www&referrrer=\"}]').reverse();
 
 function clbk(f, args, test){
   if(test && !window.sinonLoaded){
     console.log('in test');
     setTimeout(clbk, 100, f, args, test);
   } else {
-    f && eval(f + "(" + JSON.stringify(args) + ")");
+    f && eval(f + '(' + JSON.stringify(args) + ')');
   }
 };
 function searchHistory(q) {
   return {results:mockedHistory, query:q};
-
+};
+function getHistoryItems() {
+  return mockedHistory;
+};
+function getFavorites() {
+  return mockedFavorites;
 };
 function isReady() {
-  CLIQZ.UI && jsAPI.setDefaultSearchEngine({name: "google", url: "http://www.google.com/search?q="});
+  CLIQZ.UI && jsAPI.setDefaultSearchEngine({name: 'google', url: 'http://www.google.com/search?q='});
   jsAPI.setClientPreferences({
     incognito: false,
     showConsoleLogs: true
   });
+  jsAPI.restoreBlockedTopSites();
   return -1;
 };
 function openLink(url) {
   var id = parseInt(6 + 100 * Math.random());
   mockedHistory.unshift({
-          "id": id,
-          "title": "History item " + id,
-          "mainDomain": url,
-          "url": url,
-          "timestamp": Date.now(),
-          "favorite": false
+          'id': id,
+          'title': 'History item ' + id,
+          'mainDomain': url,
+          'url': url,
+          'timestamp': Date.now()
       })
 };
 function getTopSites(limit) {
@@ -86,25 +98,22 @@ function autocomplete(data) {};
 function notifyQuery(data) {};
 function pushTelemetry(data) {};
 function copyResult(data) {};
-function removeHistory(data) {
-  if(data.length == 0 || mockedHistory.length === 0) {
+function removeHistoryItems(data) {
+  if(!data.length || mockedHistory.length === 0) {
     return;
   }
-
-  var index = 0;
-  mockedHistory = mockedHistory.filter(function(record) {
-    return index >= data.length || data[index] !== record.id || (index++ && false);
-  });
+  mockedHistory = mockedHistory.filter(record => data.indexOf(record.id) === -1);
 };
-function setHistoryFavorite(data) {
-
-  var index = 0;
-  mockedHistory.forEach(function(record) {
-    if(index >= data.ids) {
-      return;
-    } else if(data.ids[index] === record.id) {
-      record.favorite = data.value;
-      index++;
+function setFavorites(data) {
+  data.favorites.forEach((item) => {
+    for (let i = 0; i < mockedFavorites.length; i++) {
+      if (item.url === mockedFavorites[i].url) {
+        mockedFavorites.splice(i, 1);
+        break;
+      }
+    }
+    if (data.value) {
+      mockedFavorites.push({url: item.url, timestamp: item.timestamp, title: item.title});
     }
   });
 };

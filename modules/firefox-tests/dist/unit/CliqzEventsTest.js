@@ -29,6 +29,50 @@ TESTS.CliqzEventsTest = function (CliqzEvents) {
         });
       });
     });
+
+    describe("Two functions subscribed", function() {
+      var fn1Called = 0;
+      var fn1 = function() {
+        fn1Called++;
+      };
+      var fn2Called = 0;
+      var fn2 = function() {
+        fn2Called++;
+      };
+      beforeEach(function() {
+        fn1Called = 0;
+        fn2Called = 0;
+        CliqzEvents.sub(eventID, fn1);
+        CliqzEvents.sub(eventID, fn2);
+      });
+
+      afterEach(function() {
+        CliqzEvents.un_sub(eventID);
+      });
+
+      it("calls all functions", function() {
+        CliqzEvents.pub(eventID);
+        return waitFor(function() {
+          return fn1Called === 1 && fn2Called === 1;
+        });
+      });
+
+      describe("Test function un_sub", function() {
+
+        beforeEach(function() {
+          CliqzEvents.un_sub(eventID, fn2);
+        });
+
+        it("Only calls one function", function() {
+          CliqzEvents.pub(eventID);
+          return waitFor(function() {
+            return fn1Called === 1;
+          }).then(function() {
+            chai.expect(fn2Called).to.equal(0);
+          });
+        });
+      });
+    });
   });
 };
 

@@ -1,0 +1,16 @@
+<div class="list">
+  <div class="item">
+    <p>
+      You was looking for: <strong> {{model.query}} </strong>
+    </p>
+  </div>
+  <div class="item item-button-right">
+    Redo the query
+    <button class="button button-positive" {{action "redoQuery"}}>
+      <i class="icon ion-search"></i>
+    </button>
+  </div>
+  {{#each model.messages as |message|}}
+    {{history-message model=message hideQuery=true showDomain=true}}
+  {{/each}}
+</div>

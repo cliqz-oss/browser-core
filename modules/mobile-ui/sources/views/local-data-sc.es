@@ -96,5 +96,7 @@ export default class {
                         data.lat,
                       CLIQZEnvironment.USER_LNG,
                       CLIQZEnvironment.USER_LAT)*1000;
+
+    data.deepLinks = ((data.deepResults || []).find(res => res.type === 'buttons') || {}).links
   }
 };

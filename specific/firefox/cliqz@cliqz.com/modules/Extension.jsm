@@ -56,6 +56,7 @@ var Extension = {
         Extension.setDefaultPrefs();
         CliqzUtils.init();
         CLIQZEnvironment.init();
+        CliqzLanguage.init();
         if(Services.search.init != null){
           Services.search.init(function(){
             CliqzResultProviders.init();
@@ -141,6 +142,7 @@ var Extension = {
 
         CLIQZEnvironment.unload();
         CliqzABTests.unload();
+        CliqzLanguage.unload();
 
         Extension.unloadJSMs();
     },
@@ -198,6 +200,7 @@ var Extension = {
         Cu.unload('chrome://cliqzmodules/content/CliqzABTests.jsm');
         Cu.unload('chrome://cliqzmodules/content/CliqzAutocomplete.jsm');
         Cu.unload('chrome://cliqzmodules/content/CliqzHistoryManager.jsm');
+        Cu.unload('chrome://cliqzmodules/content/CliqzWikipediaDeduplication.jsm');
         Cu.unload('chrome://cliqzmodules/content/CliqzLanguage.jsm');
         Cu.unload('chrome://cliqzmodules/content/CliqzSearchHistory.jsm');
         Cu.unload('chrome://cliqzmodules/content/CliqzUtils.jsm');

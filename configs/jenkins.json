@@ -15,18 +15,19 @@
     "ui",
     "context-menu",
     "freshtab",
-    "fresh-tab-frontend",
     "unblock",
     "theme",
     "firefox-tests",
     "telemetry-categories",
-    "antitracking",
-    "fresh-tab-frontend",
     "human-web",
+    "antitracking",
     "anti-phishing",
     "privacy-dashboard",
     "performance",
     "hpn",
     "smart-cliqz-cache"
+  ],
+  "subprojects": [
+    "fresh-tab-frontend"
   ]
 }

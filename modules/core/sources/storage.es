@@ -1,7 +1,12 @@
-import { notImplemented } from "core/platform";
 import storage from "platform/storage";
-
+/**
+* @namespace core
+*/
 export default class {
+  /**
+  * @class Storage
+  * @constructor
+  */
 	constructor() {
 		this.storage = storage;
 		this.getItem = this.storage.getItem.bind(this.storage);
@@ -9,11 +14,19 @@ export default class {
 		this.removeItem = this.storage.removeItem.bind(this.storage);
 		this.clear = this.storage.clear.bind(this.storage);
 	}
-
+  /**
+  * @method setObject
+  * @param key {string}
+  * @param object
+  */
 	setObject(key, object) {
 		this.storage.setItem(key, JSON.stringify(object));
 	}
-
+  /**
+  * @method getObject
+  * @param key {string}
+  * @param notFound {Boolean}
+  */
 	getObject(key, notFound = false) {
 	  const o = storage.getItem(key);
 	  if (o) {

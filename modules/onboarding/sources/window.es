@@ -1,6 +1,12 @@
-//opens tutorial page on first install or at reinstall if reinstall is done through onboarding
+/**
+* @namespace onboarding
+*/
 export default class {
-
+  /**
+  * opens tutorial page on first install or at reinstall if reinstall is done through onboarding
+  * @class Window
+  * @constructor
+  */
   constructor(settings) {
     this.onInstall = settings.onInstall;
     this.window = settings.window;
@@ -9,7 +15,9 @@ export default class {
   }
 
   get version() { return  "1.1"; }
-
+  /**
+  * @method init
+  */
   init() {
     if(this.cliqzOnboarding || !this.onInstall){
       return;
@@ -17,7 +25,9 @@ export default class {
       this.fullTour();
     }
   }
-
+  /**
+  * @method fullTour
+  */
   fullTour() {
     var tutorialUrl, tutorialVersion;
     var showNewOnboarding = isVersionHigherThan("36.0");

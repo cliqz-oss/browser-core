@@ -1,6 +1,31 @@
 import md5 from 'antitracking/md5';
 import MapCache from 'antitracking/fixed-size-cache';
-import CliqzHumanWeb from 'human-web/human-web';
+
+function parseHostname(hostname) {
+  var o = {'hostname': null, 'username': '', 'password': '', 'port': null};
+
+  var h = hostname;
+  var v = hostname.split('@');
+  if (v.length > 1) {
+    var w = v[0].split(':');
+    o['username'] = w[0];
+    o['password'] = w[1];
+    h = v[1];
+  }
+
+  v = h.split(':');
+  if (v.length > 1) {
+    o['hostname'] = v[0];
+    o['port'] = parseInt(v[1]);
+  }
+  else {
+    o['hostname'] = v[0];
+    o['port'] = 80;
+  }
+
+  return o;
+}
+
 
 function parseURL(url) {
   /*  Parse a URL string into a set of sub-components, namely:
@@ -66,7 +91,7 @@ function parseURL(url) {
 
     if (o['host'] == '') return null;
 
-    var oh = CliqzHumanWeb.parseHostname(o['host']);
+    var oh = parseHostname(o['host']);
     ['hostname', 'port', 'username', 'password'].forEach(function(k) {
       o[k] = oh[k];
     });
@@ -306,7 +331,7 @@ function findOauth(url, url_parts) {
         else {
           if ((qso[k[i]].indexOf('http')==0) && (qso[k[i]].indexOf('/oauth')!=-1)) {
 
-            var url_parts2 = CliqzHumanWeb.parseURL(qso[k[i]]);
+            var url_parts2 = parseURL(qso[k[i]]);
             if (url_parts2 && url_parts2.path && url_parts2.path.indexOf('oauth')) {
               if (url_parts.query_string) {
                 var qso2 = parseQuery(url_parts2.query_string);

@@ -2,7 +2,7 @@
 
 {{#if data.urls}}
     <section class="primary">
-        <h1 class="card__title">History results</h1>
+        <h1 class="card__title">{{local 'mobile_history_card_title'}}</h1>
     </section>
 
     <section class="secondary">

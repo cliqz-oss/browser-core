@@ -88,7 +88,7 @@ describe('Search View', function() {
     this.timeout(10000);
     testBox = document.createElement("iframe");
     testBox.setAttribute("class", "testFrame")
-    testBox.src = 	"/build/mobile/search/index.html";
+    testBox.src = 	"/build/index.html";
     document.body.appendChild(testBox);
 
 
@@ -490,6 +490,205 @@ describe('Search View', function() {
     it("should have the latest results smart card", function () {
       expect($('.soccer__result')).to.have.length(1);
       expect($('.meta__legend')).to.have.length(1);
+    });
+  });
+});
+
+describe("Freshtab", function () {
+  var testBox, getTopSites;
+
+  beforeEach(function () {
+    // startup can be quite slow for the first time. Maybe there is better way
+    // to warm it up.
+    this.timeout(10000);
+    testBox = document.createElement("iframe");
+    testBox.setAttribute("class", "testFrame");
+    testBox.src =   "/build/index.html";
+    document.body.appendChild(testBox);
+
+
+    contentWindow = testBox.contentWindow;
+
+    function waitForWindow(win) {
+      return new Promise(function (res) {
+        win.addEventListener('newsLoadingDone', function () { res(); });
+      });
+    }
+
+    return new Promise(function (resolve) {
+      contentWindow.onload = resolve;
+    }).then(function () {
+      return Promise.all([
+        injectSinon(contentWindow)
+      ])
+    }).then(function () {
+      fakeServer = sinon.fakeServer.create({
+        autoRespond: true,
+        respondImmediately: true
+      });
+      newsResponse([]);
+
+      contentWindow.sinonLoaded = true;
+      return waitForWindow(contentWindow);
+    });
+  });
+
+  afterEach(function () {
+    contentWindow.CLIQZEnvironment.getLocalStorage().clear();
+    fakeServer.restore();
+    document.body.removeChild(testBox);
+  });
+
+  context("display topsites", function () {
+    beforeEach(function () {
+      contentWindow.osAPI.openLink("http://www.tagesschau.de/eilmeldung/eilmeldung-1203.html");
+      contentWindow.osAPI.openLink('http://www.manager-magazin.de/unternehmen/artikel/bayer-uebernahmepoker-mit-monsanto-geht-weiter-a-1094026.html');
+      contentWindow.jsAPI.search();
+    });
+
+    it("display 2 top sites from history", function () {
+      const topsites = $('.topSitesLink');
+      expect(topsites).to.have.length(2);
+      expect(topsites[0].getAttribute('url')).to.equal('http://www.manager-magazin.de/unternehmen/artikel/bayer-uebernahmepoker-mit-monsanto-geht-weiter-a-1094026.html');
+      expect(topsites[1].getAttribute('url')).to.equal('http://www.tagesschau.de/eilmeldung/eilmeldung-1203.html');
+    });
+  });
+
+  context("block 1 of to topsites", function () {
+    beforeEach(function () {
+      contentWindow.osAPI.openLink("http://www.tagesschau.de/eilmeldung/eilmeldung-1203.html");
+      contentWindow.osAPI.openLink('http://www.manager-magazin.de/unternehmen/artikel/bayer-uebernahmepoker-mit-monsanto-geht-weiter-a-1094026.html');
+      contentWindow.jsAPI.search();
+      $('.blockTopsite')[0].click();
+      $('#doneEditTopsites')[0].click();
+      contentWindow.jsAPI.search();
+    });
+
+    it("should display 1 website", function () {
+      const topsites = $('.topSitesLink');
+      expect(topsites).to.have.length(1);
+      expect(topsites[0].getAttribute('url')).to.equal('http://www.tagesschau.de/eilmeldung/eilmeldung-1203.html');
+    });
+  });
+
+  context("Hide blocked topsites forever", function () {
+    beforeEach(function () {
+      contentWindow.osAPI.openLink("http://www.tagesschau.de/eilmeldung/eilmeldung-1203.html");
+      contentWindow.osAPI.openLink('http://www.manager-magazin.de/unternehmen/artikel/bayer-uebernahmepoker-mit-monsanto-geht-weiter-a-1094026.html');
+      contentWindow.jsAPI.search();
+      $('.blockTopsite')[0].click();
+      $('#doneEditTopsites')[0].click();
+      contentWindow.osAPI.openLink('http://www.manager-magazin.de/unternehmen/artikel/bayer-uebernahmepoker-mit-monsanto-geht-weiter-a-1094026.html');
+      contentWindow.jsAPI.search();
+    });
+
+    it("should not display the blocked topsite again", function () {
+      const topsites = $('.topSitesLink');
+      expect(topsites).to.have.length(1);
+      expect(topsites[0].getAttribute('url')).to.equal('http://www.tagesschau.de/eilmeldung/eilmeldung-1203.html');
+    });
+  });
+
+  context("Cancel blocking topsites", function () {
+    beforeEach(function () {
+      contentWindow.osAPI.openLink("http://www.tagesschau.de/eilmeldung/eilmeldung-1203.html");
+      contentWindow.osAPI.openLink('http://www.manager-magazin.de/unternehmen/artikel/bayer-uebernahmepoker-mit-monsanto-geht-weiter-a-1094026.html');
+      contentWindow.jsAPI.search();
+      $('.blockTopsite')[0].click();
+      $('.blockTopsite')[0].click();
+      $('#cancelEditTopsites')[0].click();
+      contentWindow.jsAPI.search();
+    });
+
+    it("should not deleted the blocked topsite again", function () {
+      const topsites = $('.topSitesLink');
+      expect(topsites).to.have.length(2);
+      expect(topsites[0].getAttribute('url')).to.equal('http://www.manager-magazin.de/unternehmen/artikel/bayer-uebernahmepoker-mit-monsanto-geht-weiter-a-1094026.html');
+      expect(topsites[1].getAttribute('url')).to.equal('http://www.tagesschau.de/eilmeldung/eilmeldung-1203.html');
+    });
+  });
+
+  context("restore blocked topsites", function () {
+    beforeEach(function () {
+      contentWindow.osAPI.openLink("http://www.tagesschau.de/eilmeldung/eilmeldung-1203.html");
+      contentWindow.osAPI.openLink('http://www.manager-magazin.de/unternehmen/artikel/bayer-uebernahmepoker-mit-monsanto-geht-weiter-a-1094026.html');
+      contentWindow.jsAPI.search();
+      $('.blockTopsite')[1].click();
+      $('#doneEditTopsites')[0].click();
+      contentWindow.jsAPI.restoreBlockedTopSites();
+      contentWindow.jsAPI.search();
+    });
+
+    it("should display the restored topsites", function () {
+      const topsites = $('.topSitesLink');
+      expect(topsites).to.have.length(2);
+      expect(topsites[0].getAttribute('url')).to.equal('http://www.manager-magazin.de/unternehmen/artikel/bayer-uebernahmepoker-mit-monsanto-geht-weiter-a-1094026.html');
+      expect(topsites[1].getAttribute('url')).to.equal('http://www.tagesschau.de/eilmeldung/eilmeldung-1203.html');
+    });
+  });
+});
+
+
+
+describe("Startup", function () {
+  var testBox;
+
+  beforeEach(function () {
+    // startup can be quite slow for the first time. Maybe there is better way
+    // to warm it up.
+    this.timeout(10000);
+    testBox = document.createElement("iframe");
+    testBox.setAttribute("class", "testFrame");
+    testBox.src =   "/build/index.html";
+    document.body.appendChild(testBox);
+
+
+    contentWindow = testBox.contentWindow;
+
+    function waitForWindow(win) {
+      return new Promise(function (res) {
+        win.addEventListener('newsLoadingDone', function () { res(); });
+      });
+    }
+
+    return new Promise(function (resolve) {
+      contentWindow.onload = resolve;
+    }).then(function () {
+      return Promise.all([
+        injectSinon(contentWindow)
+      ])
+    }).then(function () {
+      fakeServer = sinon.fakeServer.create({
+        autoRespond: true,
+        respondImmediately: true
+      });
+      newsResponse([]);
+
+      contentWindow.sinonLoaded = true;
+      return waitForWindow(contentWindow);
+    });
+  });
+
+  afterEach(function () {
+    contentWindow.CLIQZEnvironment.getLocalStorage().clear();
+    fakeServer.restore();
+    document.body.removeChild(testBox);
+  });
+
+  context("Language loading", function () {
+
+    beforeEach(function () {
+      contentWindow.sinon.FakeXMLHttpRequest.addFilter(function (method, url) {return url.indexOf('/static/locale/') !== -1;});
+      contentWindow.sinon.FakeXMLHttpRequest.useFilters = true;
+      contentWindow.CliqzUtils.locale = {};
+    });
+
+    it("should load default language if locale is not recognized", function (done) {
+      contentWindow.CliqzUtils.loadLocale('it-IT').then(function () {
+        expect(contentWindow.CliqzUtils.locale['it-IT']).to.be.not.ok;
+        expect(contentWindow.CliqzUtils.locale.default).to.be.ok;
+        done();
+      });
     });
   });
 });

@@ -42,7 +42,7 @@
 						<div id="googleThisAnim">
 							<!-- <img data-src="skin/img/icon-google.svg"><br> -->
 							<h3>{{ title }}</h3>
-							<div id="moreResults">{{ action }}</div>
+							
 						</div>
 
 					{{#with logo}}

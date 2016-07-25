@@ -1,4 +1,12 @@
+/**
+* @namespace ui.views
+* @class LocalDataSc
+*/
 export default class {
+  /**
+  * @method enhanceResults
+  * @param data
+  */
   enhanceResults(data) {
 
     function parseTime(timeStr) {  // e.g. timeStr: 10.30
@@ -40,16 +48,25 @@ export default class {
         timeInfos.push(el.open.time + " - " + el.close.time);
         if(open_stt && open_stt !== "closed") { return; }
 
-
         var openTime  = parseTime(el.open.time),
         closeTime = parseTime(el.close.time),
         closesNextDay = el.close.day !== el.open.day,
         /** Difference in minutes from opening/closing times to current time **/
-        minutesFrom = {
-          opening:  60 * (t.getHours() - openTime.hours) + (t.getMinutes() - openTime.minutes),
-          /* If it closes the next day, we need to subtract 24 hours from the hour difference */
-          closing: 60 * (t.getHours() - closeTime.hours - ( closesNextDay ? 24 : 0) ) + (t.getMinutes() - closeTime.minutes)
-        };
+        minutesFrom;
+        if (el.open.timestamp && el.close.timestamp) {
+          minutesFrom = {
+            opening: ((t.getTime()/1000) - el.open.timestamp)/60,
+            /* If it closes the next day, we need to subtract 24 hours from the hour difference */
+            closing: ((t.getTime()/1000) - el.close.timestamp)/60,
+          };
+        }
+        else {
+          minutesFrom = {
+            opening: 60 * (t.getHours() - openTime.hours) + (t.getMinutes() - openTime.minutes),
+            /* If it closes the next day, we need to subtract 24 hours from the hour difference */
+            closing: 60 * (t.getHours() - closeTime.hours - ( closesNextDay ? 24 : 0) ) + (t.getMinutes() - closeTime.minutes)
+          };
+        }
 
         if (minutesFrom.opening > 0 && minutesFrom.closing < 0) {
           open_stt = "open";

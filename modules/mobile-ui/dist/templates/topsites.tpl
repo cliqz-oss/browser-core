@@ -2,14 +2,14 @@
 
 {{#if list}}
 
-<div class="main noselect" style="margin-bottom: 20px;">
+<div class="main noselect">
   <table>
     <tr>
       {{#each list}}
           <td align="center" valign="top">
             {{#if this}}
               <div class="blockTopsite" mainDomain="{{mainDomain}}" {{#unless ../isEditMode}} style="display: none;" {{/unless}}>X</div>
-              <div class="topSitesLink" url="{{baseDomain}}">
+              <div class="topSitesLink" url="{{url}}">
                   <div class="topsites__item"
                    style="{{style}}"
                    show-status=""
@@ -25,7 +25,8 @@
      </tr>
     </table>
 
-    <div id="doneEditTopsites" {{#unless isEditMode}} style="display: none;" {{/unless}}>{{local 'mobile_freshtab_edit_done'}}</div>
+    <div id="doneEditTopsites" class="topSitesOption" {{#unless isEditMode}} style="display: none;" {{/unless}}>{{local 'mobile_freshtab_edit_done'}}</div>
+    <div id="cancelEditTopsites" class="topSitesOption" {{#unless isEditMode}} style="display: none;" {{/unless}}>{{local 'mobile_freshtab_edit_cancel'}}</div>
   </ul>
 </div>
 {{/if}}

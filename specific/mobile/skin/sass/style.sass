@@ -547,9 +547,13 @@ body, html
 .cqz-result-box, .rr
   padding: 16px 16px 16px
   margin: 32px 0px 32px 16px
-  background-color: #fff
+  background-color: #E6F0FA 
   overflow: auto
   border-radius: 4px
+
+#defaultEngine
+  background-color: #245c92
+  margin-bottom: 0
 
 .cqz-result-box::after, .rr::after
   clear: both
@@ -1731,6 +1735,13 @@ ul.recipe_ingredients
     /* font-size: 12px */
 
 
+.no-results-title
+  color: #fff
+  font-size: 1rem
+  line-height: 1.5rem
+  padding: 2.5rem 0 0 0
+  margin: 0
+
 #topSites td
   position: relative
   .topsites__item 
@@ -1773,7 +1784,7 @@ ul.recipe_ingredients
 
 #topSites table
     width: 100%
-    padding: 25px 0 10px
+    padding-top: 25px
 
 
 .topSitesLink
@@ -1794,19 +1805,24 @@ ul.recipe_ingredients
   font-size: 12px
   color: white
 
-#doneEditTopsites
+.topSitesOption
   position: absolute
+  width: 46%
   top: 0
-  left: 0
-  right: 0
   background-color: #eee
-  padding: 0.25rem 2rem
+  padding: 0.25rem
   font-size: 0.75rem
   line-height: 1rem
   text-align: center
   color: #999
   border-bottom-left-radius: 0.5rem
   border-bottom-right-radius: 0.5rem
+
+#doneEditTopsites
+  left: 0
+
+#cancelEditTopsites
+  right: 0
 
 .noTopsites
   position: absolute
@@ -1893,24 +1909,22 @@ body
  
 .card  
   position: relative 
-  background-color: #E6F0FA 
   top: 2.5rem 
   bottom: 1.5rem 
   left: 2rem 
-  width: 90% 
+  width: 88% 
   box-sizing: border-box 
   padding: 0 
-  margin-bottom: 1.5rem
+  margin-bottom: 4rem
   box-shadow: 0 0 0.25rem rgba(0, 0, 0, 0.12) 
   border-radius: 0.25rem   
   &.last-card
-    background-color: #245C92
     #googleThisAnim
       h3
         color: #fff
         font-size: 1rem
         line-height: 1.5rem
-        padding: 2rem 0
+        padding: 4rem 0 0 0
         margin: 0
       #moreResults
         display: block
@@ -2114,7 +2128,6 @@ body
   .cqz-result-box, .rr  
     padding: inherit 
     margin: inherit 
-    background-color: inherit 
     overflow: inherit 
     border-radius: inherit 
   
@@ -2259,7 +2272,7 @@ body
   background-size: 62%
   background-position: center
   background-repeat: no-repeat
-  margin: 24px auto
+  margin: 24px auto 54px
 
 .cqz-delivery-status-boxes-holder 
   overflow: hidden

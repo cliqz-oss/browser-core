@@ -3,10 +3,10 @@
 <div class="main">
     <div class='cqz-result-title overflow' arrow-override=''>
         <h1 class="main__headline">
-       		<div id="historysub">
-       				<span id="show_favorites_only" style="float: left" onclick="History.getHistory(true)">Favoriten</span>
-       				<span class="active" id="show_history" style="float: right" onclick="History.getHistory(false)">Besuchte Seiten</span>
-			</div>
+            <div id="historysub">
+                    <span class="{{#unless isFavorite}}active{{/unless}}" id="show_history" style="float: left" onclick="History.init(false)">{{local 'mobile_history_title'}}</span>
+                    <span class="{{#if isFavorite}}active{{/if}}" id="show_favorites_only" style="float: right" onclick="History.init(true)">{{local 'mobile_favorites_title'}}</span>
+            </div>
             <!-- <a extra="title">THE PAST</a> -->
         </h1>
     </div>
@@ -15,7 +15,7 @@
 
             {{#if url}}
 
-            <table cellspacing="0" cellpadding="0" class="answer" data="{{url}}"
+            <table cellspacing="0" cellpadding="0" class="answer" data="{{url}}" data-title="{{title}}"
                    data-id="{{id}}" data-timestamp={{ timestamp }} data-index="{{@index}}">
                 <tr>
 	                <td class="edit__delete"><input name="delete" type="checkbox" disabled></td>
@@ -56,22 +56,36 @@
             {{/if}}
         {{/each}}
         <div id="control" style="display:none;background-color: #862701;position:fixed">
-			<table>
-				<td onclick="History.removeSelected()">
-					{{local 'mobile_history_remove'}}
-				</td>
-				<td id='control_star' onclick="History.favoriteSelected()">
-					{{local 'mobile_history_star'}}
-				</td>
-				<td onclick="History.endEditMode()">
-					{{local 'mobile_history_cancel'}}
-				</td>
-
-			</table>
+            {{#if isFavorite}}
+                <table>
+                    <td id='control_star' onclick="History.favoriteSelected()">
+                        {{local 'mobile_history_unstar'}}
+                    </td>
+                    <td onclick="History.endEditMode()">
+                        {{local 'mobile_history_cancel'}}
+                    </td>
+                </table>
+            {{else}}
+                <table>
+                    <td onclick="History.removeSelected()">
+                        {{local 'mobile_history_remove'}}
+                    </td>
+                    <td id='control_star' onclick="History.favoriteSelected()">
+                        {{local 'mobile_history_star'}}
+                    </td>
+                    <td onclick="History.endEditMode()">
+                        {{local 'mobile_history_cancel'}}
+                    </td>
+                </table>
+            {{/if}}
         </div>
         {{#unless data}}
 			<div class="nohistoryyet">
-                <p>{{{emptyMsg}}}</p>
+                {{#if isFavorite}}
+                    <p>{{{local 'mobile_no_favorites'}}}</p>
+                {{else}}
+                    <p>{{{local 'mobile_no_history'}}}</p>
+                {{/if}}
 			</div>
 		{{/unless}}
 

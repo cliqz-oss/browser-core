@@ -1,9 +1,6 @@
 <!-- Resize to include history -->
 <div class="{{ data.genericZone.class }} cqz-ez-holder cqz-ez-generic">
     <div class="cqz-zone-holder">
-        {{! Debug }}
-        {{#if debug}} <div class='cqz-result-debug'>{{ debug }}</div> {{/if}}
-        {{! /Debug }}
 
         {{#each data.genericZone.partials as |partial| }}
             {{!Last argument .. send the correct data to the partial }}

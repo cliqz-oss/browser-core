@@ -1,6 +1,14 @@
 import { utils } from "core/cliqz";
 
+/**
+  @namespace ui
+*/
 export default class {
+
+  /**
+  * @class Window
+  * @constructor
+  */
   constructor(settings) {
     this.window = settings.window;
     this.urlbarGoClick = this.urlbarGoClick.bind(this);
@@ -22,6 +30,9 @@ export default class {
     })
   }
 
+  /**
+  * @method init
+  */
   init() {
     // do not initialize the UI if the user decided to turn off search
     if(CliqzUtils.getPref("cliqz_core_disabled", false)) return;
@@ -83,8 +94,10 @@ export default class {
 
     this.initialzied = true;
   }
-
-  // trigger component reload at install/uninstall
+  /**
+  * triggers component reload at install/uninstall
+  * @method reloadUrlbar
+  */
   reloadUrlbar (el) {
     var oldVal = el.value;
     if(el && el.parentNode) {
@@ -93,6 +106,9 @@ export default class {
     }
   }
 
+  /**
+  * @method urlbarGoClick
+  */
   urlbarGoClick (){
     //we somehow break default FF -> on goclick the autocomplete doesnt get considered
     this.urlbar.value = this.urlbar.mInputField.value;
@@ -169,6 +185,10 @@ export default class {
 
 
 const urlbarEventHandlers = {
+  /**
+  * Urlbar focus event
+  * @event focus
+  */
   focus: function(ev) {
     //try to 'heat up' the connection
     CliqzUtils.pingCliqzResults();
@@ -192,7 +212,11 @@ const urlbarEventHandlers = {
       this.urlbar.mInputField.value = urlbar;
     }
   },
-
+  /**
+  * Urlbar blur event
+  * @event blur
+  * @param ev
+  */
   blur: function(ev) {
     CliqzAutocomplete.resetSpellCorr();
 
@@ -205,7 +229,11 @@ const urlbarEventHandlers = {
     CliqzAutocomplete.resetSpellCorr();
     this.window.CLIQZ.UI.sessionEnd();
   },
-
+  /**
+  * Urlbar keypress event
+  * @event keypress
+  * @param ev
+  */
   keypress: function(ev) {
     if (!ev.ctrlKey && !ev.altKey && !ev.metaKey) {
       var urlbar = this.urlbar;
@@ -223,7 +251,11 @@ const urlbarEventHandlers = {
       }
     }
   },
-
+  /**
+  * Urlbar drop event
+  * @event drop
+  * @param ev
+  */
   drop: function(ev){
   var dTypes = ev.dataTransfer.types;
     if (dTypes.indexOf && dTypes.indexOf("text/plain") !== -1 ||
@@ -239,7 +271,11 @@ const urlbarEventHandlers = {
       });
     }
   },
-
+  /**
+  * Urlbar paste event
+  * @event paste
+  * @param ev
+  */
   paste: function(ev){
     //wait for the value to change
     this.window.setTimeout(function(){
@@ -255,12 +291,18 @@ const urlbarEventHandlers = {
 };
 
 const popupEventHandlers = {
+  /**
+  * @event popupOpen
+  */
   popupOpen: function(){
     CliqzAutocomplete.isPopupOpen = true;
     this.popupEvent(true);
     this.window.CLIQZ.UI.popupClosed = false;
   },
-
+  /**
+  * @event popupClose
+  * @param e
+  */
   popupClose: function(e){
     CliqzAutocomplete.isPopupOpen = false;
     CliqzAutocomplete.markResultsDone(null);

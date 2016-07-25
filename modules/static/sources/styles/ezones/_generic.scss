@@ -12,14 +12,13 @@
         display: table-footer-group;
     }
 
-    .cqz-history {
+    .cqz-vertical-title-holder {
         overflow: hidden;
         position: relative;
         min-height: 90px;
-        padding-left: 40px;
-        margin: 20px 0;
+        padding-left: 20px;
 
-        .cqz-history-title {
+        .cqz-vertical-title {
             position: absolute;
             top: calc(50% - 10px);
             left: calc(-50% + 10px);
@@ -32,12 +31,17 @@
             background: #ccc;
             z-index: 1;
         }
+    }
+
+    .cqz-history {
+        margin: 20px 0;
+        padding-left: 30px;
 
         ul.cqz-history-list {
             list-style: none;
             padding: 0;
             margin: 0;
-            
+
             &.cqz-list-restricted {
                 overflow: hidden;
                 width: calc(100% - 100px);
@@ -49,7 +53,9 @@
                 font-size: 17px;
                 line-height: 1.6em;
                 color: #8c275f;
-                .cqz-history-item-link { color: #ccc; }
+                .cqz-history-item-link {
+                    color: #ccc;
+                }
             }
         }
 

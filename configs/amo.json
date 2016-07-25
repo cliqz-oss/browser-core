@@ -17,11 +17,13 @@
     "anti-phishing",
     "onboarding",
     "freshtab",
-    "fresh-tab-frontend",
     "telemetry-categories",
     "antitracking",
     "performance",
     "hpn",
     "smart-cliqz-cache"
+  ],
+  "subprojects": [
+    "fresh-tab-frontend"
   ]
 }

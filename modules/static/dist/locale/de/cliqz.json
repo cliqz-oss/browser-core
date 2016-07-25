@@ -752,6 +752,12 @@
     "cMenuRemoveFromBookmarksAndHistory": {
       "message": "Aus Bookmarks und Lesezeichen entfernen"
     },
+    "cMenuRemoveFromHistoryAndCloseTab": {
+      "message": "Aus Chronik entfernen und offenen Tab schließen"
+    },
+    "cMenuRemoveFromHistoryAndBookmarksAndCloseTab": {
+      "message": "Aus Bookmarks und Chronik entfernen und offenen Tab schließen"
+    },
     "myQuery": {
         "message": "Suchbegriff"
     },
@@ -828,7 +834,7 @@
       "message": "Nein"
     },
     "no_local_data_msg": {
-      "message": "Tut uns leid, aber für dieses Ergebnis haben wir leider keine örtlichen Informationen in Deiner Nähe."
+      "message": "Tut uns leid, aber für dieses Ergebnis haben wir leider keine örtlichen Informationen in Deiner Nähe. Können wir in Zukunft deinen Standort benutzten?"
     },
     "location_sorry_msg": {
       "message": "Oh nein, leider ist etwas schief gegangen. Passiert nicht noch einmal!"
@@ -868,6 +874,9 @@
     },
     "show_local_results": {
       "message": "Nein, zeige mir lokale Informationen."
+    },
+    "local_result_vertical_title": {
+      "message": "IN DEINER NÄHE"
     },
     "extended_forecast": {
         "message": "Detailiertere Vorhersage"
@@ -942,16 +951,22 @@
       "message": "Ich nehme am Human Web teil"
     },
     "attrack-headline-general-title": {
-      "message": "Schutz der Privatsphäre"
+      "message": "Privatsphäre geschützt"
+    },
+    "attrack-headline-general-title-protection-off": {
+      "message": "Privatsphäre nicht geschützt"
+    },
+    "attrack-score-text": {
+      "message": "Privatsphären-Punkte:"
     },
     "attrack-headline-general-trackers": {
-      "message": "unsichere Daten entfernt"
+      "message": "Unsichere Daten entfernt"
     },
     "attrack-headline-general-whitelisted": {
-      "message": "Gegenwärtig sind auf dieser Seite deine persönlichen Daten Dritten zugänglich"
+      "message": "Gegenwärtig sind auf dieser Seite deine persönlichen Daten Dritten zugänglich."
     },
     "attrack-headline-deactivate": {
-      "message": "Der CLIQZ Privatsphärenschutz ist deaktiviert. Private Daten sind nun Dritten zugänglich."
+      "message": "Der CLIQZ Privatsphären-Schutz ist ausgeschaltet. Private Daten sind nun Dritten zugänglich."
     },
     "attrack-headline-reload": {
       "message": "Für sicheres Browsen bitte Seite neu laden"
@@ -966,13 +981,13 @@
       "message": "Schutz der Privatsphäre einschalten"
     },
     "attrack-btn-power-off": {
-      "message": "Schutz der Privatsphäre ausschalten"
+      "message": "Ausschalten"
     },
     "attrack-btn-white-list": {
-      "message": "Privatsphärenschutz für diese Seite ausschalten."
+      "message": "Schutz der Privatsphäre für diese Seite ausschalten"
     },
     "attrack-btn-white-list-off": {
-      "message": "Privatsphärenschutz für diese Seite ausschalten."
+      "message": "Schutz der Privatsphäre für diese Seite ausschalten"
     },
     "attrack-btn-details-more": {
       "message": "Mehr sehen"
@@ -993,7 +1008,7 @@
       "message": "Strikt"
     },
     "attrack-trackers-info-msg": {
-      "message": "Liste der Tracking Firmen"
+      "message": "Liste der Tracking-Firmen"
     },
     "attrack-trackers-count-info-msg": {
       "message": "Private Daten"
@@ -1022,8 +1037,14 @@
     "mobile_freshtab_edit_done": {
       "message": "Fertig"
     },
+    "mobile_freshtab_edit_cancel": {
+      "message": "Abbrechen"
+    },
     "mobile_freshtab_no_topsites": {
       "message": "Hier werden Deine Topseiten erscheinen."
+    },
+    "mobile_history_card_title": {
+      "message": "Verlauf-Ergebnisse"
     },
     "mobile_share_card": {
       "message": "Diese Karte teilen"
@@ -1087,6 +1108,9 @@
     },
     "unblock_never": {
       "message": "Nein, niemals"
+    },
+    "unblock_youtube_fail": {
+      "message": "OK, wir haben es versucht, leider können wir das Video im Moment nicht zugänglich machen"
     },
     "cliqz-onboarding-title": {
       "message": "Juhuuu! CLIQZ wurde erfolgreich installiert."
@@ -1153,5 +1177,6 @@
     },
     "lyrics": {
       "message": "Lyrics: "
-    }
+    },
+    "TEST": "OK"
 }

@@ -1,0 +1,9 @@
+<div class="list">
+  {{history-root-message message=model.rootMessage contact=model}}
+
+  {{#each sortedMessages as |message|}}
+    {{history-message model=message}}
+  {{/each}}
+
+  {{loading-button loadMore=(action "loadMore") isLoading=isLoading}}
+</div>

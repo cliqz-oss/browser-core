@@ -6,6 +6,11 @@ export default function (background) {
         bgEvents = background.events;
   let enabled;
 
+  // bind actions to background object
+  Object.keys(background.actions || {}).forEach( action => {
+    background.actions[action] = background.actions[action].bind(background);
+  });
+
   background.init = function init() {
     enabled = background.enabled.apply(background, arguments);
 
@@ -15,7 +20,7 @@ export default function (background) {
 
     bgInit.apply(background, arguments);
 
-    Object.keys(bgEvents).forEach( event => {
+    Object.keys(bgEvents || {}).forEach( event => {
 
       bgEvents[event] = bgEvents[event].bind(background);
       events.sub(event, bgEvents[event]);
@@ -27,7 +32,7 @@ export default function (background) {
       return;
     }
 
-    Object.keys(bgEvents).forEach( event => {
+    Object.keys(bgEvents || {}).forEach( event => {
       events.un_sub(event, bgEvents[event]);
     });
 

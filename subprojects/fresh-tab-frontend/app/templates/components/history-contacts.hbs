@@ -1,0 +1,11 @@
+<div class="list">
+  {{#link-to "history-sidebar.queries.index" class="item item-icon-left"}}
+    <i class="icon ion-search"></i>
+    Favorite queries
+  {{/link-to}}
+  {{#each list as |contact|}}
+    {{component contact.componentName model=contact}}
+  {{/each}}
+
+  {{loading-button loadMore=(action "loadMore") isLoading=isLoading}}
+</div>

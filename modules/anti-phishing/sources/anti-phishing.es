@@ -1,11 +1,6 @@
 import CliqzHumanWeb from "human-web/human-web";
 import core from "core/background";
 
-/*
- * This module injects warning message when user visit a phishing site
- *
- */
-
 var BW_URL = "http://antiphishing.clyqz.com/api/bwlist?md5=";
 
 var domSerializer = Components.classes["@mozilla.org/xmlextras/xmlserializer;1"]
@@ -210,9 +205,18 @@ function checkStatus(url, md5Prefix, md5Surfix) {
     }
 }
 
+/**
+ * This module injects warning message when user visits a phishing site
+ * @class AntiPhising
+ * @namespace anti-phising
+ */
 var CliqzAntiPhishing = {
     forceWhiteList: {},
     blackWhiteList: {},
+    /**
+    * @method auxOnPageLoad
+    * @param url {string}
+    */
     auxOnPageLoad: function(url) {
         var [md5Prefix, md5Surfix] = getSplitDomainMd5(url);
         if (md5Prefix in CliqzAntiPhishing.blackWhiteList)
@@ -229,6 +233,10 @@ var CliqzAntiPhishing = {
                 3000
             );
     },
+    /**
+    * @method getDomainStatus
+    * @param url {string}
+    */
     getDomainStatus: function(url) {
         var [md5Prefix, md5Surfix] = getSplitDomainMd5(url);
         if (!(md5Prefix in CliqzAntiPhishing.blackWhiteList) ||

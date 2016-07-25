@@ -4,7 +4,7 @@ import md5 from 'antitracking/md5';
 import { utils, events } from 'core/cliqz';
 import * as datetime from 'antitracking/time';
 import CliqzAttrack from 'antitracking/attrack';
-import CliqzHumanWeb from 'human-web/human-web';
+import telemetry from 'antitracking/telemetry';
 
 const DAYS_EXPIRE = 7;
 
@@ -181,7 +181,7 @@ class BlockLog {
   sendTelemetry() {
     if (Object.keys(this.blocked.value).length > 0) {
       var payl = CliqzAttrack.generateAttrackPayload(this.blocked.value);
-      CliqzHumanWeb.telemetry({'type': CliqzHumanWeb.msgType, 'action': 'attrack.blocked', 'payload': payl});
+      telemetry.telemetry({'type': telemetry.msgType, 'action': 'attrack.blocked', 'payload': payl});
       // reset the state
       this.blocked.clear();
     }
@@ -324,7 +324,7 @@ export default class {
       'loadedPage': countLoadedPage
     };
     var payl = CliqzAttrack.generateAttrackPayload(data, wrongTokenLastSent);
-    CliqzHumanWeb.telemetry({'type': CliqzHumanWeb.msgType, 'action': 'attrack.FP', 'payload': payl});
+    telemetry.telemetry({'type': telemetry.msgType, 'action': 'attrack.FP', 'payload': payl});
     persist.setValue('wrongTokenLastSent', day);
     this._updated = {};
   }

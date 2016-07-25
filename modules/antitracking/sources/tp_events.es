@@ -1,8 +1,9 @@
 import background from 'antitracking/background';
 import CliqzAttrack from 'antitracking/attrack';
-import CliqzHumanWeb from 'human-web/human-web';
 import md5 from 'antitracking/md5';
 import { sameGeneralDomain } from 'antitracking/domain';
+import telemetry from 'antitracking/telemetry';
+import * as browser from 'platform/browser';
 
 // Class to hold a page load and third party urls loaded by this page.
 function PageLoadData(url) {
@@ -16,6 +17,7 @@ function PageLoadData(url) {
     this.url = url.toString();
     this.hostname = url.hostname;
     this.path = this._shortHash(url.path);
+    this.scheme = url.protocol
     this.c = 1;
     this.s = (new Date()).getTime();
     this.e = null;
@@ -60,6 +62,7 @@ function PageLoadData(url) {
             obj = {
                 hostname: this._shortHash(this.hostname),
                 path: this.path,
+                scheme: this.scheme,
                 c: this.c,
                 t: this.e - this.s,
                 ra: this.ra || 0,
@@ -198,7 +201,7 @@ var tp_events = {
         var now = (new Date()).getTime();
         if(now - this._last_clean > this._clean_interval || force_clean == true) {
             for(let k in this._active) {
-                var active = CliqzAttrack.tab_listener.isWindowActive(k);
+                var active = browser.isWindowActive(k);
                 if(!active || force_stage == true) {
                     if (CliqzAttrack.debug) CliqzUtils.log('Stage tab '+k, 'tp_events');
                     this.stage(k);
@@ -239,7 +242,7 @@ var tp_events = {
                         'addons': CliqzAttrack.similarAddon,
                         'updateInTime': CliqzAttrack.qs_whitelist.isUpToDate()
                     };
-                    CliqzHumanWeb.telemetry({'type': CliqzHumanWeb.msgType, 'action': 'attrack.tp_events', 'payload': payl});
+                    telemetry.telemetry({'type': telemetry.msgType, 'action': 'attrack.tp_events', 'payload': payl});
                 }
             }
             this._staged = [];

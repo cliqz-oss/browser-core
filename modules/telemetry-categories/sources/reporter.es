@@ -1,10 +1,5 @@
-/*
-*
-*  Gets an idea of the categories a user is interested in.
-*  Categories are lists of domains and we should never aggregate very specifically to avoid privacy issues
-*  eg:  - one category can be shopping and the domains: amazon, ebay, zalando, ...
-*       - we will only send to the backend information related with the category and not with any particular domain
-*
+/**
+* @namespace telemetry-categories
 */
 
 
@@ -22,14 +17,24 @@ const ONE_DAY = 24 * 60 * 60 * 1000,
       SEND_INTERVAL = 20 * 60 * 1000; //20 minutes
 
 export default class {
-
+  /**
+  * Gets an idea of the categories a user is interested in.
+  * Categories are lists of domains and we should never aggregate very specifically to avoid privacy issues
+  * eg:  One category can be shopping and the domains: amazon, ebay, zalando.
+  *      We will only send to the backend information related with the category and not with any particular domain
+  * @class Reporter
+  * @constructor
+  * @param categories
+  */
   constructor(categories) {
     // timers
     this.t0 = this.tH = this.tD = null;
     this.isRunning = false;
     this.categories = categories;
   }
-
+  /**
+  * @method start
+  */
   start() {
     this.sendData();
     //wait 5 minutes to do this operation
@@ -37,7 +42,9 @@ export default class {
 
     log('init');
   }
-
+  /**
+  * @method stop
+  */
   stop() {
 		this.sendData();
 		utils.clearTimeout(this.t0);
@@ -46,13 +53,19 @@ export default class {
 
 		log('unloaded');
   }
-
+  /**
+  * @method updateCategories
+  * @param categories
+  */
   updateCategories( categories ) {
     this.sendData();
 
     this.categories = categories;
   }
-
+  /**
+  * @method assess
+  * @param url {string}
+  */
   assess(url) {
     var u = utils.getDetailsFromUrl(url), tests = {};
     tests[u.host] = true;
@@ -75,7 +88,9 @@ export default class {
         }
     }
   }
-
+  /**
+  * @method sendData
+  */
   sendData(){
     utils.clearInterval( this.tD );
 
@@ -95,7 +110,9 @@ export default class {
 
     this.tD = utils.setTimeout(this.sendData.bind(this), SEND_INTERVAL)
   }
-
+  /**
+  * @method sendHistoricalData
+  */
   sendHistoricalData(){
     utils.clearInterval( this.tH );
 

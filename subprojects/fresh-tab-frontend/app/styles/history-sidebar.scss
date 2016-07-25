@@ -1,0 +1,76 @@
+#history-sidebar {
+
+  .liquid-container {
+    background-color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+  }
+
+  .liquid-child {
+    height: 100%;
+  }
+
+  .logo {
+    float: left;
+    display: inline-block;
+    width: 2em;
+    height: 2em;
+    font-size: 20px;
+    padding: 0.3em;
+    line-height: 1.25em;
+    margin-right: 10px;
+    font-weight: bold;
+    color: #ffffff;
+    text-align: center;
+    overflow: hidden;
+    background-origin: content-box;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    border-radius: 50%;
+    box-sizing: border-box;
+    font-family: sans;
+  }
+
+  .history-contact, .history-message {
+    position: relative;
+
+    .title {
+      color: #1a0dab;
+    }
+
+    .url {
+      color: #006621;
+    }
+
+    .status {
+      z-index: 100;
+      display: inline-block;
+      float: left;
+      width: 4px;
+      height: 100%;
+      position: absolute;
+      left: 0px;
+      top: 0px;
+    }
+
+    &.is-active-tab .status {
+      background-color: #5DC1FF;
+    }
+
+    &.is-current-tab .status {
+      background-color: #FF6103;
+    }
+
+  }
+
+  .domain-image, .message-image {
+    width: 100%;
+    max-width: 200px;
+    display: block;
+    margin: 0 auto;
+  }
+}

@@ -1,7 +1,19 @@
+/**
+* @namespace ui.views
+*/
 export default class {
+  /**
+  * @class Currency
+  * @constructor
+  * @param win
+  */
   constructor(win) {
     this.window = win;
   }
+  /**
+  * @method enhanceResults
+  * @param data
+  */
   enhanceResults(data) {
     if (typeof Intl != "undefined" && Intl.NumberFormat) {
       data.CurrencyFormatSuport = true;

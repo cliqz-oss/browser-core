@@ -15,8 +15,6 @@ function injectTestHelpers(CliqzUtils) {
       rejecter = rej;
     });
 
-    chai.expect(fn()).to.equal(false);
-
     function check() {
       CliqzUtils.log("!!", fn());
       if(fn()) {
@@ -95,4 +93,16 @@ function injectTestHelpers(CliqzUtils) {
   window.getLocaliseString = function(targets) {
     return lang === "de-DE" ? targets.de : targets.default;
   };
+
+  window.closeAllTabs = function(gBrowser) {
+    var nonChromeTabs = Array.prototype.filter.call(gBrowser.tabContainer.childNodes, function(tab) {
+      var currentBrowser = gBrowser.getBrowserForTab(tab);
+      console.log(currentBrowser);
+      return currentBrowser && currentBrowser.currentURI && ! currentBrowser.currentURI.spec.startsWith('chrome://')
+    });
+    nonChromeTabs.forEach( function(tab) {
+      gBrowser.removeTab(tab);
+    });
+    return nonChromeTabs.length
+  }
 }

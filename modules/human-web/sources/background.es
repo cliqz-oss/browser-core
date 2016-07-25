@@ -4,11 +4,23 @@ import HumanWeb from "human-web/human-web";
 import hs from "core/history-service";
 import Attrack from "antitracking/attrack";
 
+
+/**
+* @namespace human-web
+* @class Background
+*/
 export default background({
+  /**
+  * @method enabled
+  * @return pref
+  */
   enabled(settings) {
     return utils.getPref("humanWeb", false);
   },
 
+  /**
+  * @method init
+  */
   init(settings) {
     HumanWeb.initAtBrowser();
     utils.bindObjectFunctions(this.actions, this);
@@ -27,6 +39,9 @@ export default background({
   },
 
   events: {
+    /**
+    * @event ui:click-on-url
+    */
     "ui:click-on-url": function (data) {
       HumanWeb.queryCache[data.url] = {
         d: 1,
@@ -38,19 +53,34 @@ export default background({
   },
 
   actions: {
+    /**
+    * @method actions.recordKeyPress
+    */
     recordKeyPress() {
       HumanWeb.captureKeyPressPage.apply(HumanWeb, arguments);
     },
+    /**
+    * @method actions.recordMouseMove
+    */
     recordMouseMove() {
       HumanWeb.captureMouseMovePage.apply(HumanWeb, arguments);
     },
+    /**
+    * @method actions.recordMouseDown
+    */
     recordMouseDown() {
       HumanWeb.captureMouseClickPage.apply(HumanWeb, arguments);
       Attrack.cChecker.setContextFromEvent.apply(Attrack.cChecker, arguments);
     },
+    /**
+    * @method actions.recordScroll
+    */
     recordScroll() {
       HumanWeb.captureScrollPage.apply(HumanWeb, arguments);
     },
+    /**
+    * @method actions.recordCopy
+    */
     recordCopy() {
       HumanWeb.captureCopyPage.apply(HumanWeb, arguments);
     }
