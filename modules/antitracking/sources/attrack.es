@@ -211,7 +211,7 @@ var CliqzAttrack = {
             var url_parts = URLInfo.get(url);
 
             if (requestContext.isFullPage()) {
-                CliqzAttrack.tp_events.onFullPage(url_parts, requestContext.getOuterWindowID(), requestContext.isChannelPrivate());
+                CliqzAttrack.tp_events.onFullPage(url_parts, requestContext.getOuterWindowID());
                 if (CliqzAttrack.isTrackerTxtEnabled()) {
                     TrackerTXT.get(url_parts).update();
                 }
@@ -479,7 +479,7 @@ var CliqzAttrack = {
                         redirect_url_parts.hostname = url_parts.hostname;
                         redirect_url_parts.path = redirect_url;
                     }
-                    CliqzAttrack.tp_events.onRedirect(redirect_url_parts, requestContext.getOuterWindowID(), requestContext.isChannelPrivate());
+                    CliqzAttrack.tp_events.onRedirect(redirect_url_parts, requestContext.getOuterWindowID());
                 }
                 return;
             }
@@ -1405,9 +1405,6 @@ var CliqzAttrack = {
     extractKeyTokens: function(url_parts, refstr, isPrivate, callback) {
         // keys, value of query strings will be sent in md5
         // url, refstr will be sent in half of md5
-        if (isPrivate) {
-          return;
-        }
         var keyTokens = url_parts.getKeyValuesMD5();
         if (keyTokens.length > 0) {
             var s = md5(url_parts.hostname).substr(0, 16);
@@ -1416,9 +1413,6 @@ var CliqzAttrack = {
         }
     },
     saveKeyTokens: function(s, keyTokens, r, isPrivate) {
-        if (isPrivate) {
-          return;
-        }
         // anything here should already be hash
         if (CliqzAttrack.tokens[s] == null) CliqzAttrack.tokens[s] = {lastSent: datetime.getTime()};
         if (CliqzAttrack.tokens[s][r] == null) CliqzAttrack.tokens[s][r] = {'c': 0, 'kv': {}};
@@ -1431,7 +1425,8 @@ var CliqzAttrack = {
                 CliqzAttrack.tokens[s][r]['kv'][k][tok] = {
                     c: 0,
                     k_len: kv.k_len,
-                    v_len: kv.v_len
+                    v_len: kv.v_len,
+                    isPrivate: isPrivate
                 };
             }
             CliqzAttrack.tokens[s][r]['kv'][k][tok].c += 1;
@@ -1625,8 +1620,8 @@ var CliqzAttrack = {
       try {
         var gBrowser = CliqzUtils.getWindow().gBrowser,
             selectedBrowser = gBrowser.selectedBrowser;
-
-        tabId = selectedBrowser.outerWindowID;
+        // on FF < 38 selectBrowser.outerWindowID is undefined, so we get the windowID from _loadContext
+        tabId = selectedBrowser.outerWindowID || selectedBrowser._loadContext.DOMWindowID;
         urlForTab = selectedBrowser.currentURI.spec;
       } catch (e) {
       }

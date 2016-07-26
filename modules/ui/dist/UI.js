@@ -1467,11 +1467,8 @@ function urlIndexInHistory(url, urlList) {
 
 
 function logUIEvent(el, historyLogType, extraData, query) {
-  if (!el)
-    return;
+  if(!query) query = urlbar.value;
 
-  if(!query)
-    query = urlbar.value;
   var queryAutocompleted = null;
   if (urlbar.selectionEnd !== urlbar.selectionStart) {
       var first = gCliqzBox.resultsBox && gCliqzBox.resultsBox.children[0];
@@ -1481,63 +1478,48 @@ function logUIEvent(el, historyLogType, extraData, query) {
         var autocompleteUrl = urlbar.mInputField.value;
       query = query.substr(0, urlbar.selectionStart);
   }
-  if(typeof el.getAttribute != 'function')
-    el.getAttribute = function(k) { return this[k]; };
+  if(el && !el.getAttribute) el.getAttribute = function(k) { return this[k]; };
 
-  let url = CliqzUtils.cleanMozillaActions(el.getAttribute('url') || '')[1];
-  if (!url)
-    return;
+  if(el && el.getAttribute('url')){
+      var url = CliqzUtils.cleanMozillaActions(el.getAttribute('url'))[1],
+          lr = CliqzAutocomplete.lastResult,
+          extra = extraData['extra'] || el.getAttribute('extra'), //extra data about the link. Note: resultCliqz passes extra in extraData, but not other events, e.g. enter (8Jul2015)
+          result_order = currentResults && CliqzAutocomplete.prepareResultOrder(currentResults.results),
+          action = {
+              type: 'activity',
+              current_position: getResultPosition(el),
+              query_length: CliqzAutocomplete.lastSearch.length,
+              inner_link: el.className ? el.className != IC : false, //link inside the result or the actual result
+              position_type: getResultKind(el),
+              extra: extra,
+              search: CliqzUtils.isSearch(url),
+              has_image: el.getAttribute('hasimage') || false,
+              clustering_override: lr && lr._results[0] && lr._results[0].override ? true : false,
+              reaction_time: (new Date()).getTime() - CliqzAutocomplete.lastQueryTime,
+              display_time: CliqzAutocomplete.lastDisplayTime ? (new Date()).getTime() - CliqzAutocomplete.lastDisplayTime : null,
+              result_order: result_order,
+              v: 2.1
+          };
+      for(var key in extraData) {
+        action[key] = extraData[key];
+      }
+      CliqzUtils.telemetry(action);
 
-  let lr = CliqzAutocomplete.lastResult;
-  let result_order = currentResults &&
-      CliqzAutocomplete.prepareResultOrder(currentResults.results);
-  // Extra data about the link. Note: resultCliqz passes extra in extraData,
-  // but not other events, e.g. enter (8Jul2015)
-  let action = {
-    type: 'activity',
-    current_position: getResultPosition(el),
-    query_length: CliqzAutocomplete.lastSearch.length,
-    // Link inside the result or the actual result
-    inner_link: el.className ? el.className != IC : false,
-    position_type: getResultKind(el),
-    extra: extraData['extra'] || el.getAttribute('extra'),
-    search: CliqzUtils.isSearch(url),
-    has_image: el.getAttribute('hasimage') || false,
-    clustering_override: !!(lr && lr._results[0] && lr._results[0].override),
-    reaction_time: (new Date()).getTime() - CliqzAutocomplete.lastQueryTime,
-    display_time: CliqzAutocomplete.lastDisplayTime ?
-        (new Date()).getTime() - CliqzAutocomplete.lastDisplayTime : null,
-    result_order: result_order,
-    v: 2.1
-  };
-  for (let key in extraData) {
-    action[key] = extraData[key];
-  }
-  CliqzUtils.telemetry(action);
-
-  if (CLIQZEnvironment.isOnPrivateTab(window))
-    return;
-
-  CliqzUtils.resultTelemetry(
-      query,
-      queryAutocompleted,
-      getResultPosition(el),
-      CliqzUtils.isPrivateResultType(action.position_type) ? '' : url,
-      result_order,
-      action.extra
-  );
-
-  if (isValidURL(url)) {
-    CliqzEvents.pub("ui:click-on-url",
-        {
-          url: decodeURIComponent(url),
-          query: CliqzAutocomplete.lastSearch,
-          type: CliqzUtils.isPrivateResultType(action.position_type) ?
-              'othr' : 'cl',
-          positionType: action.position_type
+      // no resultTelemetry on private windows
+      if(!CLIQZEnvironment.isPrivate(window)){
+        CliqzUtils.resultTelemetry(query, queryAutocompleted, getResultPosition(el),
+            CliqzUtils.isPrivateResultType(action.position_type) ? '' : url, result_order, extra);
+        if (isValidURL(url)) {
+          CliqzEvents.pub("ui:click-on-url", {
+            url: decodeURIComponent(url),
+            query: CliqzAutocomplete.lastSearch,
+            type: CliqzUtils.isPrivateResultType(action.position_type) ? 'othr' : 'cl',
+            positionType: action.position_type
+          });
         }
-    );
-  }
+      }
+    }
+    if(!window.gBrowser)return;
 }
 
 // user scroll event

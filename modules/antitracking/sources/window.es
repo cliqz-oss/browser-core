@@ -2,7 +2,6 @@ import background from 'antitracking/background';
 import CliqzAttrack from 'antitracking/attrack';
 import { utils, events } from 'core/cliqz';
 
-
 function onLocationChange(ev) {
   if(this.interval) { CliqzUtils.clearInterval(this.interval); }
 
@@ -86,13 +85,15 @@ export default class {
     this.popup.setBadge(this.window, count);
   }
 
-  createAttrackButton() {
-    let win = this.window,
-        doc = win.document,
-        attrackBtn = doc.createElement('menu'),
-        attrackPopup = doc.createElement('menupopup');
+  createButtonItem() {
+    if (!background.buttonEnabled) return;
 
-    attrackBtn.setAttribute('label', utils.getLocalizedString('attrack-force-block-setting'));
+    var win = this.window,
+        doc = win.document,
+        menu = doc.createElement('menu'),
+        menupopup = doc.createElement('menupopup');
+
+    menu.setAttribute('label', utils.getLocalizedString('attrack-force-block-setting'));
 
     var filter_levels = {
       false: {
@@ -127,7 +128,7 @@ export default class {
         utils.setTimeout(win.CLIQZ.Core.refreshButtons, 0);
       }, false);
 
-      attrackPopup.appendChild(item);
+      menupopup.appendChild(item);
     };
 
     var learnMore = this.window.CLIQZ.Core.createSimpleBtn(
@@ -139,19 +140,12 @@ export default class {
         'attrack_learn_more'
     );
     learnMore.setAttribute('class', 'menuitem-iconic');
-    attrackPopup.appendChild(doc.createElement('menuseparator'));
-    attrackPopup.appendChild(learnMore);
+    menupopup.appendChild(doc.createElement('menuseparator'));
+    menupopup.appendChild(learnMore);
 
-    attrackBtn.appendChild(attrackPopup);
+    menu.appendChild(menupopup);
+    return menu;
 
-    return attrackBtn;
   }
 
-  createButtonItem() {
-    if (!background.buttonEnabled) return [];
-
-    return [
-      this.createAttrackButton()
-    ];
-  }
 };

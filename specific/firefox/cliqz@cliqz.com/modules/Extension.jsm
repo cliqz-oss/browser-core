@@ -367,18 +367,12 @@ var Extension = {
           delete win.CLIQZ.Core;
           delete win.CLIQZ.UI;
           delete win.CLIQZ.ContextMenu;
-          delete win.CLIQZ;
 
-          // count the number of opened windows here and send it to events
-          // if the last window was closed then remaining == 0.
-          var enumerator = Services.wm.getEnumerator('navigator:browser');
-          var remainingWin = 0;
-          while (enumerator.hasMoreElements()) {
-            var dummyWin = enumerator.getNext();
-            remainingWin += 1;
+          try {
+              delete win.CLIQZ;
+          } catch(e) {
+              //fails at updating from version < 0.6.11
           }
-          CliqzEvents.pub('core.window_closed', {remaining: remainingWin});
-
         } catch(e) {
             Cu.reportError(e);
         }

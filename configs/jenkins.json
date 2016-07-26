@@ -22,13 +22,12 @@
     "firefox-tests",
     "telemetry-categories",
     "human-web",
-    "offers",
     "antitracking",
     "anti-phishing",
     "privacy-dashboard",
     "performance",
     "hpn",
-    "adblocker"
+    "smart-cliqz-cache"
   ],
   "subprojects": [
     "fresh-tab-frontend"

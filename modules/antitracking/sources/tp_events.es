@@ -6,7 +6,7 @@ import telemetry from 'antitracking/telemetry';
 import * as browser from 'platform/browser';
 
 // Class to hold a page load and third party urls loaded by this page.
-function PageLoadData(url, isPrivate) {
+function PageLoadData(url) {
 
     // Create a short md5 hash of the input string s
     this._shortHash = function(s) {
@@ -17,8 +17,7 @@ function PageLoadData(url, isPrivate) {
     this.url = url.toString();
     this.hostname = url.hostname;
     this.path = this._shortHash(url.path);
-    this.scheme = url.protocol;
-    this.private = isPrivate;
+    this.scheme = url.protocol
     this.c = 1;
     this.s = (new Date()).getTime();
     this.e = null;
@@ -129,25 +128,25 @@ var tp_events = {
     // Called when a url is loaded on windowID source.
     // Returns the PageLoadData object for this url.
     //  or returns null if the url is malformed or null.
-    onFullPage: function(url, tab_id, isPrivate) {
+    onFullPage: function(url, tab_id) {
         // previous request finished. Move to staged
         this.stage(tab_id);
         // create new page load entry for tab
         if(url && url.hostname && tab_id > 0 && !this.ignore.has(url.hostname)) {
-            this._active[tab_id] = new PageLoadData(url, isPrivate || false);
+            this._active[tab_id] = new PageLoadData(url);
             return this._active[tab_id];
         } else {
             return null;
         }
     },
-    onRedirect: function(url_parts, tab_id, isPrivate) {
+    onRedirect: function(url_parts, tab_id) {
         if(tab_id in this._active) {
             let prev = this._active[tab_id];
-            this._active[tab_id] = new PageLoadData(url_parts, isPrivate);
+            this._active[tab_id] = new PageLoadData(url_parts);
             this._active[tab_id].redirects = prev.redirects;
             this._active[tab_id].redirects.push(prev.hostname);
         } else {
-            this.onFullPage(url_parts, tab_id, isPrivate);
+            this.onFullPage(url_parts, tab_id);
         }
     },
     // Get a stats object for the request to url, referred from ref, on tab source.
@@ -218,10 +217,7 @@ var tp_events = {
         if(this._staged.length > 0 && (now - this._last_push > this._push_interval || force_push == true)) {
             // convert staged objects into simple objects, and aggregate.
             // then filter out ones with bad data (undefined hostname or no third parties)
-            var payload_data = this._staged.filter(function(pl) {
-              // remove private tabs
-              return !pl.private;
-            }).map(function(item) {
+            var payload_data = this._staged.map(function(item) {
                 return item.asPlainObject();
             }).filter(function(item) {
                 return item['hostname'].length > 0 && Object.keys(item['tps']).length > 0;

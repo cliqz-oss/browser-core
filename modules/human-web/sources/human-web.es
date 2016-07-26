@@ -573,8 +573,6 @@ var CliqzHumanWeb = {
 
             try {
                 var aChannel = aHttpChannel.QueryInterface(nsIHttpChannel);
-                // Return if it's a private tab.
-                if(aChannel.isChannelPrivate != undefined && aChannel.isChannelPrivate) return;
                 var url = decodeURIComponent(aChannel.URI.spec);
                 var ho = CliqzHumanWeb.getHeaders(aExtraStringData);
                 var status = ho['status'];
@@ -1591,10 +1589,6 @@ var CliqzHumanWeb = {
 
         onLocationChange: function(aProgress, aRequest, aURI) {
             // New location, means a page loaded on the top window, visible tab
-            // Return if it's a private tab.
-            if(aRequest && aRequest.isChannelPrivate !== undefined && aRequest.isChannelPrivate) {
-                return;
-            }
 
             if(aProgress.isLoadingDocument){
                 CliqzHumanWeb.captureJSRefresh(aRequest, aURI);
@@ -1699,6 +1693,8 @@ var CliqzHumanWeb = {
 
                 if (CliqzHumanWeb.state['v'][activeURL] == null) {
                     //if ((requery.test(activeURL) || yrequery.test(activeURL) || brequery.test(activeURL) ) && !reref.test(activeURL)) {
+
+                    AntiPhishing.auxOnPageLoad(activeURL, currwin, true);
 
                     var se = CliqzHumanWeb.checkSearchURL(activeURL);
                     if (se > -1) {
@@ -1856,7 +1852,7 @@ var CliqzHumanWeb = {
                     // wops, it exists on the active page, probably it comes from a back button or back
                     // from tab navigation
                     CliqzHumanWeb.state['v'][activeURL]['tend'] = null;
-                    AntiPhishing.auxOnPageLoad(activeURL, currwin, true, true);
+                    AntiPhishing.auxOnPageLoad(activeURL, currwin, false);
                 }
             }
         },
