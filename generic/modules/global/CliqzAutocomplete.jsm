@@ -292,14 +292,7 @@ var CliqzAutocomplete = {
             historyTimeoutCallback: function(params) {
                 CliqzUtils.log('history timeout', CliqzAutocomplete.LOG_KEY);
                 this.historyTimeout = true;
-                // History timed out but maybe we have some results already
-                // So show what you have - AB 1073
-                if (this.historyResults && CliqzUtils.getPref("history.timeouts", false)) {
-                    CliqzHistoryCluster.addFirefoxHistory(this.historyResults);
-                    CliqzUtils.log('historyTimeoutCallback: push collected results:' + this.historyResults.results.length, CliqzAutocomplete.LOG_KEY);
-                } else {
-                    this.pushResults(this.searchString);
-                }
+                this.pushResults(this.searchString);
             },
             onHistoryDone: function(result, resultExtra) {
                 if(!this.startTime) {
@@ -314,6 +307,7 @@ var CliqzAutocomplete = {
 
                 //CliqzUtils.log("history results: " + (result ? result.matchCount : "null") + "; done: " + this.isHistoryReady() +
                 //               "; time: " + (now - this.startTime), CliqzAutocomplete.LOG_KEY)
+
                 // Choose an instant result if we have all history results (timeout)
                 // and we haven't already chosen one
                 if(result && (this.isHistoryReady() || this.historyTimeout) && this.mixedResults.matchCount == 0) {
@@ -347,7 +341,7 @@ var CliqzAutocomplete = {
                 this.pushResults(this.searchString);
             },
             pushTimeoutCallback: function(params) {
-                CliqzUtils.log("pushTimeoutCallback", CliqzAutocomplete.LOG_KEY);
+                CliqzUtils.log("pushResults timeout", CliqzAutocomplete.LOG_KEY);
                 this.pushResults(params);
             },
             // checks if all the results are ready or if the timeout is exceeded
@@ -359,8 +353,10 @@ var CliqzAutocomplete = {
                        (this.isHistoryReady() || this.historyTimeout) && // history is ready or timed out
                        this.cliqzResults) { // all results are ready
                         /// Push full result
+
                         CliqzUtils.clearTimeout(this.resultsTimer);
                         CliqzUtils.clearTimeout(this.historyTimer);
+
                         this.mixResults(false);
 
                         this.latency.mixed = Date.now() - this.startTime;
@@ -376,6 +372,7 @@ var CliqzAutocomplete = {
                         return;
                     } else if(this.isHistoryReady()) {
                         /// Push instant result
+
                         this.latency.mixed = Date.now() - this.startTime;
 
                         this.mixResults(true);
@@ -393,7 +390,6 @@ var CliqzAutocomplete = {
                     }
                 }
             },
-
             // handles fetched results from the cache
             cliqzResultFetcher: function(req, q) {
 
@@ -405,24 +401,11 @@ var CliqzAutocomplete = {
                     var results = [];
                     var json = JSON.parse(req.response);
 
-                    // apply rerankers
-                    for (var i = 0; i < CLIQZEnvironment.RERANKERS.length; i++){
-                        var reranker = CLIQZEnvironment.RERANKERS[i];
-                        if (reranker != null){
-                            var rerankerResults = reranker.doRerank(json.result);
-                            json.result = rerankerResults.response;
-                            if (Object.keys(rerankerResults.telemetrySignal).length > 0){
-                                this.userRerankers[reranker.name] = rerankerResults.telemetrySignal;
-                            }
-                        }
-
-                    }
-
                     CliqzUtils.log(json.result ? json.result.length : 0,"CliqzAutocomplete.cliqzResultFetcher");
 
                     results = json.result || [];
 
-                    this.cliqzResultsExtra = [];
+                    this.cliqzResultsExtra = []
 
                     if(json.images && json.images.results && json.images.results.length >0){
                         var imgs = json.images.results.filter(function(r){
@@ -438,10 +421,10 @@ var CliqzAutocomplete = {
                         el.results = el.results.filter(function(r){
                             //ignore empty results
                             return r.hasOwnProperty('url');
-                        });
+                        })
 
                         return el.results.length != 0;
-                    };
+                    }
 
                     if(hasExtra(json.extra)) {
                         this.cliqzResultsExtra = json.extra.results.map(Result.cliqzExtra);
@@ -464,7 +447,7 @@ var CliqzAutocomplete = {
 
                 // set first history entry as autocompleted if it was
                 if(this.instant.length > 0 &&
-                   CliqzAutocomplete.lastAutocompleteActive && !only_instant) {
+                   CliqzAutocomplete.lastAutocompleteType && !only_instant) {
                   this.instant[0].autocompleted = true;
                 }
 
@@ -494,7 +477,6 @@ var CliqzAutocomplete = {
                 })
             },
             search: function(searchString, callback) {
-
                 CliqzAutocomplete.lastQueryTime = Date.now();
                 CliqzAutocomplete.lastDisplayTime = null;
                 CliqzAutocomplete.lastResult = null;
@@ -508,7 +490,6 @@ var CliqzAutocomplete = {
                     mixed: null,
                     all: null
                 };
-                this.userRerankers = {};
 
                 CliqzUtils.log('search: ' + searchString, CliqzAutocomplete.LOG_KEY);
 
@@ -653,21 +634,20 @@ var CliqzAutocomplete = {
                     instant: instant,
                     popup: CliqzAutocomplete.isPopupOpen ? true : false,
                     latency_cliqz: obj.latency.cliqz,
-                    latency_history: obj.historyTimeout ? null : obj.latency.history,
+                    latency_history: obj.latency.history,
                     latency_patterns: obj.latency.patterns,
                     latency_backend: obj.latency.backend,
                     latency_mixed: obj.latency.mixed,
                     latency_all: obj.startTime? Date.now() - obj.startTime : null,
                     discarded: obj.discardedResults,
-                    user_rerankers: obj.userRerankers,
                     v: 1
                 };
 
                 // reset count of discarded backend results
                 obj.discardedResults = 0;
 
-                if (CliqzAutocomplete.lastAutocompleteActive) {
-                  action.autocompleted = CliqzAutocomplete.lastAutocompleteActive;
+                if (CliqzAutocomplete.lastAutocompleteType) {
+                  action.autocompleted = CliqzAutocomplete.lastAutocompleteType;
                   action.autocompleted_length = CliqzAutocomplete.lastAutocompleteLength;
                 }
 
@@ -710,7 +690,7 @@ var CliqzAutocomplete = {
             }
         }
     }
-};
+}
 
 CliqzAutocomplete.initProvider();
 CliqzAutocomplete.initResults();

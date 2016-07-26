@@ -520,10 +520,6 @@ TESTS.Mixer = function(Mixer, CliqzUtils) {
         return smartCliqz.data.__subType__.id;
       }
 
-      function getUrlfunction(smartCliqz) {
-        return CliqzUtils.generalizeUrl(smartCliqz.val, true);
-      }
-
       var saved = false,
           results = {},
           urls = {},
@@ -579,7 +575,7 @@ TESTS.Mixer = function(Mixer, CliqzUtils) {
         };
 
         smartCliqzCache.store = function(ezData) {
-          ezs[getUrlfunction(ezData)] = ezData;
+          ezs[getIdfunction(ezData)] = ezData;
         };
       });
 
@@ -597,8 +593,8 @@ TESTS.Mixer = function(Mixer, CliqzUtils) {
 
         expect(saved).to.be.true;
         expect(Object.keys(urls)).length.to.be(1);
-        expect(urls[results[0].data.trigger_urls[0]]).to.be.true;
-        expect(ezs[getUrlfunction(results[0])]).to.equal(results[0]);
+        expect(urls[results[0].data.trigger_urls[0]]).to.equal(getIdfunction(results[0]));
+        expect(ezs[getIdfunction(results[0])]).to.equal(results[0]);
       });
 
       it('should cache 1 entry given 2 with same URL', function() {
@@ -608,15 +604,14 @@ TESTS.Mixer = function(Mixer, CliqzUtils) {
 
         expect(saved).to.be.true;
         expect(Object.keys(urls)).length.to.be(1);
-        expect(urls[results[0].data.trigger_urls[0]]).to.be.true;
+        expect(urls[results[0].data.trigger_urls[0]]).to.equal(getIdfunction(results[0]));
 
         // require first entry to have priority over the second
-        expect(ezs[getUrlfunction(results[0])]).to.equal(results[0]);
+        expect(ezs[getIdfunction(results[0])]).to.equal(results[0]);
       });
 
       it('should cache 2 entries given 2', function() {
         results.push(JSON.parse(JSON.stringify(results[0])));
-        results[1].val = 'http://test.com';
         results[1].data.trigger_urls[0] = 'test.com';
         results[1].data.__subType__ = { id: "1111111111" };
 
@@ -625,8 +620,8 @@ TESTS.Mixer = function(Mixer, CliqzUtils) {
         expect(saved).to.be.true;
         expect(Object.keys(urls)).length.to.be(2);
         results.forEach(function(result) {
-          expect(urls[result.data.trigger_urls[0]]).to.be.true;
-          // expect(ezs[getUrlfunction(result)]).to.equal(result);
+          expect(urls[result.data.trigger_urls[0]]).to.equal(getIdfunction(result));
+          expect(ezs[getIdfunction(result)]).to.equal(result);
         });
       });
     });
@@ -682,7 +677,7 @@ TESTS.Mixer = function(Mixer, CliqzUtils) {
         };
 
         urls = {
-          'cliqz.com': true,
+          'cliqz.com': -7290289273393613729,
         };
 
         fetching = undefined;
@@ -699,12 +694,12 @@ TESTS.Mixer = function(Mixer, CliqzUtils) {
           return false;
         };
 
-        smartCliqzCache.fetchAndStore = function(url) {
-          fetching = url;
+        smartCliqzCache.fetchAndStore = function(ezId) {
+          fetching = ezId;
         };
 
-        smartCliqzCache.retrieve = function(url) {
-          return ezs[url];
+        smartCliqzCache.retrieve = function(ezId) {
+          return ezs[ezId];
         };
       });
 
@@ -727,7 +722,7 @@ TESTS.Mixer = function(Mixer, CliqzUtils) {
         ezs = {};
         var ez = Mixer._historyTriggerEZ(result);
         expect(ez).to.be.undefined;
-        expect(fetching).to.equal('cliqz.com');
+        expect(fetching).to.equal(urls['cliqz.com']);
       });
 
       it('should trigger ez because no cluster', function() {

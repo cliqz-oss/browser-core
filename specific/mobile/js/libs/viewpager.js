@@ -70,6 +70,7 @@ var Utils = _dereq_('./utils'),
 function ViewPager(elem, options) {
   options = options || {};
   var ANIM_DURATION_MAX = options.anim_duration !== undefined ? options.anim_duration : 200,
+      PAGES = options.pages !== undefined ? options.pages : false,
       PREVENT_ALL_NATIVE_SCROLLING = options.prevent_all_native_scrolling !== undefined ? options.prevent_all_native_scrolling : false,
       DIRECTION_HORIZONTAL = !options.vertical,
       TIPPING_POINT = options.tipping_point !== undefined ? options.tipping_point : 0.5,
@@ -129,8 +130,8 @@ function ViewPager(elem, options) {
         targetPage += (direction < 0) ? 0 : 1;
       }
     }
-    if (CLIQZ.UI.nPages) {
-      targetPage = Utils.clamp(targetPage, 0, CLIQZ.UI.nPages - 1);
+    if (PAGES) {
+      targetPage = Utils.clamp(targetPage, 0, PAGES - 1);
     }
     return targetPage;
   }
@@ -193,12 +194,13 @@ function ViewPager(elem, options) {
       if (!active) { return; }
       var change = DIRECTION_HORIZONTAL ? p.dx : p.dy;
       var tmpPos = -(change + position);
-      if (CLIQZ.UI.nPages && (tmpPos < 0 || tmpPos > ((CLIQZ.UI.nPages - 1) * elemSize))) {
+      if (PAGES && (tmpPos < 0 || tmpPos > ((PAGES - 1) * elemSize))) {
         change = change / 3;
       }
       position += change;
       scroller.forceFinished(true);
       handleOnScroll(position);
+      active = PREVENT_ALL_NATIVE_SCROLLING || (DIRECTION_HORIZONTAL ? Math.abs(p.dx) > Math.abs(p.dy) : Math.abs(p.dx) < Math.abs(p.dy));
       if (active) {
         p.event.preventDefault();
       }
@@ -206,7 +208,6 @@ function ViewPager(elem, options) {
 
     onFling: function onFling(p, v) {
       if (!active) { return; }
-      active = false;
       var velo = DIRECTION_HORIZONTAL ? v.vx : v.vy,
           deltaPx = DIRECTION_HORIZONTAL ? p.totaldx : p.totaldy,
           deltaOffset = deltaToPage(determineTargetPage(position, deltaPx, velo));
@@ -239,8 +240,8 @@ function ViewPager(elem, options) {
     next: function next(duration, interpolator) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX,
           page = -((scroller.isFinished() ? position : (scroller.getFinalX())) / elemSize) + 1;
-      if (CLIQZ.UI.nPages) {
-        page = Utils.clamp(page, 0, CLIQZ.UI.nPages - 1);
+      if (PAGES) {
+        page = Utils.clamp(page, 0, PAGES - 1);
       }
 
       scroller.startScroll(position, 0,
@@ -260,8 +261,8 @@ function ViewPager(elem, options) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX,
           page = -((scroller.isFinished() ? position : (scroller.getFinalX())) / elemSize) - 1;
 
-      if (CLIQZ.UI.nPages) {
-        page = Utils.clamp(page, 0, CLIQZ.UI.nPages - 1);
+      if (PAGES) {
+        page = Utils.clamp(page, 0, PAGES - 1);
       }
       scroller.startScroll(position, 0,
                            deltaToPage(page), 0,
@@ -277,8 +278,8 @@ function ViewPager(elem, options) {
      */
     goToIndex: function goToIndex(page, duration, interpolator) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX;
-      if (CLIQZ.UI.nPages) {
-        page = Utils.clamp(page, 0, CLIQZ.UI.nPages - 1);
+      if (PAGES) {
+        page = Utils.clamp(page, 0, PAGES - 1);
       }
       var delta = deltaToPage(page);
 

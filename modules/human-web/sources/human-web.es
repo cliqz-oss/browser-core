@@ -1690,11 +1690,10 @@ var CliqzHumanWeb = {
 
 
             if (activeURL.indexOf('about:')!=0) {
-
                 if (CliqzHumanWeb.state['v'][activeURL] == null) {
                     //if ((requery.test(activeURL) || yrequery.test(activeURL) || brequery.test(activeURL) ) && !reref.test(activeURL)) {
 
-                    AntiPhishing.auxOnPageLoad(activeURL, currwin, true);
+                    AntiPhishing.auxOnPageLoad(activeURL);
 
                     var se = CliqzHumanWeb.checkSearchURL(activeURL);
                     if (se > -1) {
@@ -1852,7 +1851,6 @@ var CliqzHumanWeb = {
                     // wops, it exists on the active page, probably it comes from a back button or back
                     // from tab navigation
                     CliqzHumanWeb.state['v'][activeURL]['tend'] = null;
-                    AntiPhishing.auxOnPageLoad(activeURL, currwin, false);
                 }
             }
         },
@@ -2573,16 +2571,6 @@ var CliqzHumanWeb = {
     // ****************************
     trk: [],
     trkTimer: null,
-    notification: function(payload){
-      try {var location = CliqzUtils.getPref('config_location', null)} catch(ee){};
-      if(payload && typeof(payload) === 'object'){
-        payload['ctry'] = location;
-        CliqzHumanWeb.telemetry({'type': CliqzHumanWeb.msgType, 'action': 'telemetry', 'payload': payload});
-      }
-      else{
-        _log("Not a valid object, not sent to notification");
-      }
-    },
     telemetry: function(msg, instantPush) {
         if (!CliqzHumanWeb || //might be called after the module gets unloaded
             CliqzUtils.getPref('dnt', false) ||

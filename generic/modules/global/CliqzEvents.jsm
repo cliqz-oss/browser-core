@@ -33,7 +33,7 @@ var CliqzEvents = CliqzEvents || {
         try {
           ev.apply(null, args);
         } catch(e) {
-          CliqzUtils.log(e.toString()+" -- "+e.stack, "CliqzEvents error: "+id);
+          CliqzUtils.log(e.toString(), "CliqzEvents error: "+id);
         }
       }, 0);
     });
@@ -58,7 +58,7 @@ var CliqzEvents = CliqzEvents || {
     } else {
       index = CliqzEvents.cache[id].indexOf(fn);
       if (index > -1) {
-        CliqzEvents.cache[id].splice(index, 1);
+        CliqzEvents.cache[id].splice(index);
       }
     }
   },

@@ -4,7 +4,6 @@
 *#
 tmp
 tests.tap
-tests.xml
 
 # ignore invisible files
 .Trashes
@@ -26,6 +25,3 @@ npm.err
 
 /certs
 /xpi-sign
-
-subprojects/**/dist
-/docs

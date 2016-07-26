@@ -1,15 +1,7 @@
 /* global CLIQZEnvironment */
-/**
-* @namespace mobile-touch
-*/
+
 export default class {
-  /**
-  * @class Longpress
-  * @constructor
-  * @param settings
-  * @param longpressCallback
-  * @param tapCallback
-  */
+
 	constructor(elements, longpressCallback, tapCallback) {
 		const self = this;
 		this.touchTimer = undefined;
@@ -20,8 +12,8 @@ export default class {
 		  self.touchTimer = null;
 		}
 
-
-
+		
+		
 		CLIQZEnvironment.addEventListenerToElements(elements, 'touchstart', function () {
 			self.touchTimer = setTimeout(function(context) {
 			  clearTimer();

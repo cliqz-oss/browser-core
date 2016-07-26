@@ -18,12 +18,11 @@ Cu.import("resource://gre/modules/FileUtils.jsm");
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 
 // Import them in alphabetical order.
-
-Services.scriptloader.loadSubScript('chrome://cliqz/content/bower_components/bigint/index.js');
-Services.scriptloader.loadSubScript('chrome://cliqz/content/bower_components/crypto/index.js');
+Services.scriptloader.loadSubScript('chrome://cliqz/content/hpn/content/extern/bigint.js');
+Services.scriptloader.loadSubScript('chrome://cliqz/content/hpn/content/extern/crypto.js');
 Services.scriptloader.loadSubScript('chrome://cliqz/content/hpn/content/extern/helperFunctions.js');
-Services.scriptloader.loadSubScript('chrome://cliqz/content/bower_components/jsencrypt/index.js');
-Services.scriptloader.loadSubScript('chrome://cliqz/content/bower_components/sha256/index.js');
+Services.scriptloader.loadSubScript('chrome://cliqz/content/hpn/content/extern/jsencrypt.js');
+Services.scriptloader.loadSubScript('chrome://cliqz/content/hpn/content/extern/sha256.js');
 
 /* Global variables
 */
@@ -217,7 +216,7 @@ var CliqzSecureMessage = {
       }
     },
     initAtWindow: function(window){
-    	Services.scriptloader.loadSubScript('chrome://cliqz/content/bower_components/crypto-kjur/index.js', window);
+    	Services.scriptloader.loadSubScript('chrome://cliqz/content/hpn/content/extern/crypto-kjur.js', window);
     	CliqzSecureMessage.RSAKey = window.RSAKey;
     	CliqzSecureMessage.sha1 = window.CryptoJS.SHA1;
     	overRideCliqzResults();

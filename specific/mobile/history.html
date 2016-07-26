@@ -4,7 +4,6 @@
        <title>History</title>
        <link href="skin/css/style.css" rel="stylesheet" type="text/css">
 
-       <script src="bower_components/core.js/client/core.min.js"></script>
        <script src="bower_components/handlebars/handlebars.js"></script>
        <script src="js/libs/system-polyfill.js"></script>
        <script src="js/osAPI.js"></script>
@@ -24,8 +23,7 @@
             "static"
           ]);
         }).then(function () {
-          return CliqzUtils.init(window);
-        }).then(function () {
+          CliqzUtils.init(window);
           osAPI.init();
           History.init();
         });

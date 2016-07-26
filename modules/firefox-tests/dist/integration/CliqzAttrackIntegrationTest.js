@@ -20,8 +20,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
       md5 = CliqzHumanWeb._md5,
       module_enabled = CliqzUtils.getPref('antiTrackTest', false),
       window = CliqzUtils.getWindow(),
-      hour = datetime.hourString(datetime.newUTCDate()),
-      versionUnderTest = parseInt(getBrowserVersion().substring(0, 2));
+      hour = datetime.hourString(datetime.newUTCDate());
 
     /** Collects metadata from the request and pushes it into the
       echoed array. Also sets cookie and access control headers.
@@ -52,14 +51,13 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
       echoed.push(r_obj);
       console.log(r_obj);
 
-      // prevent caching
-      response.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      response.setHeader('Pragma', 'no-cache');
-      response.setHeader('Expires', '0');
-
       // send an appropriate response
       if (request.path.indexOf('.gif') > 0) {
         var imgFile = ['firefox-tests', 'mockserver', 'Transparent.gif'];
+        // prevent img caching
+        response.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        response.setHeader('Pragma', 'no-cache');
+        response.setHeader('Expires', '0');
         console.log('send image');
         // send actual gif file
         testServer.writeFileResponse(request, imgFile, response);
@@ -78,9 +76,9 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
               gBrowser = win.gBrowser,
               tabs = [];
 
-    var openTestPage = function(testpage, domainname = 'localhost', requestId = '') {
+    var openTestPage = function(testpage, domainname = 'localhost') {
       // open page in a new tab
-      var url = "http://"+ domainname +":" + testServer.port + "/" + testpage + '?' + requestId;
+      var url = "http://"+ domainname +":" + testServer.port + "/" + testpage;
       echoed = [];
       tabs.push(gBrowser.addTab(url));
     };
@@ -94,7 +92,6 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
       testServer.registerPathHandler('/test.gif', collect_request_parameters);
 
       var redirect302 = function(request, response) {
-        console.log(request.path);
         response.setStatusLine('1.1', 302);
         response.setHeader('Access-Control-Allow-Origin', '*');
         response.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -118,6 +115,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
       CliqzUtils.setPref('attrackAlterPostdataTracking', false);
       CliqzUtils.setPref('attrackCanvasFingerprintTracking', false);
       CliqzUtils.setPref('attrackRefererTracking', false);
+      CliqzAttrack.initialiseAntiRefererTracking();
       // clean tp_events
       CliqzAttrack.tp_events.commit(true);
       CliqzAttrack.tp_events._active = {};
@@ -150,17 +148,16 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
 
     /** Helper function for testing each request to the /test endpoint after the expected
      *  number of requests have arrived. */
-    var expectNRequests = function(n_requests, referrerId = '') {
+    var expectNRequests = function(n_requests) {
       return {
         assertEach: function(test, done) {
           var _this = this;
           // wait for n_requests requests to be made to test path, then do tests on metadata
           this.then(function() {
             try {
-              var e = _this._echoedFromTarget();
-              chai.expect(e.length).to.equal(n_requests, "Number of requests exceeded.");
-              for(var i=0; i<e.length; i++) {
-                test(e[i]);
+              chai.expect(echoed.length).to.equal(n_requests, "Number of requests exceeded.");
+              for(var i=0; i<echoed.length; i++) {
+                test(echoed[i]);
               }
               done();
             } catch(e) {
@@ -170,21 +167,12 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
         },
         then: function(done) {
           waitFor(function() {
-            return this._echoedFromTarget().length >= n_requests;
-          }.bind(this)).then(function() {
+            return echoed.length >= n_requests;
+          }).then(function() {
             setTimeout(function() {
               done();
             }, 50);
           });
-        },
-        _echoedFromTarget: function() {
-          if (!referrerId) {
-            return echoed;
-          } else {
-            return echoed.filter( function(m) {
-              return m.host != 'localhost' || m.headers.referer.indexOf(referrerId) > -1;
-            });
-          }
         }
       }
     };
@@ -212,9 +200,8 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
       chai.expect(Object.keys(CliqzAttrack.tp_events._active)).has.length(1);
       var tab_id = Object.keys(CliqzAttrack.tp_events._active)[0],
         evnt = CliqzAttrack.tp_events._active[tab_id];
-      console.log(evnt, "xxx");
       // check first party is correct, and collected third parties match expectations
-      chai.expect(evnt.url.split('?')[0]).to.eql(spec.url);
+      chai.expect(evnt.url).to.eql(spec.url);
       chai.expect(evnt.tps).to.include.keys(Object.keys(spec.tps));
       // check expected third party contents
       for (var tp_domain in spec.tps) {
@@ -227,8 +214,6 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
           //chai.expect(actual_stats).to.include.keys(Object.keys(expected_stats));
           for (var stat_key in actual_stats) {
             if (stat_key == 'paths' || stat_key == 'resp_ob' || stat_key == 'not_cached' || stat_key == 'cached') { continue; }
-            // skip window_depth test for old FF versions
-            if (stat_key.startsWith('window_depth') && versionUnderTest <= 38) { continue; }
             // stat should be 0 unless otherwise specified
             var expected = 0;
             if (stat_key in expected_stats) {
@@ -288,9 +273,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                 'has_qs': 1,
                 'type_2': 1,
                 'content_length': 2,
-                'status_200': 1,
-                'scheme_http': 1,
-                'window_depth_0': 1
+                'status_200': 1
               }
             }
           }
@@ -306,9 +289,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                 'has_qs': 1,
                 'type_2': 1,
                 'content_length': 2,
-                'status_200': 1,
-                'scheme_http': 1,
-                'window_depth_0': 1
+                'status_200': 1
               }
             }
           }
@@ -324,9 +305,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                 'has_qs': 1,
                 'type_3': 1,
                 'content_length': 42,
-                'status_200': 1,
-                'scheme_http': 1,
-                'window_depth_0': 1
+                'status_200': 1
               }
             }
           }
@@ -342,9 +321,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                 'has_qs': 1,
                 'type_11': 1,
                 'content_length': 2,
-                'status_200': 1,
-                'scheme_http': 1,
-                'window_depth_0': 1
+                'status_200': 1
               }
             }
           }
@@ -358,9 +335,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                 'c': 1,
                 'cookie_set': 1,
                 'type_7': 1,
-                'status_200': 1,
-                'scheme_http': 1,
-                'window_depth_1': 1
+                'status_200': 1
               },
               '/test': {
                 'c': 1,
@@ -368,17 +343,13 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                 'has_qs': 1,
                 'type_11': 1,
                 'content_length': 2,
-                'status_200': 1,
-                'scheme_http': 1,
-                'window_depth_1': 1
+                'status_200': 1
               },
               '/bower_components/jquery/dist/jquery.js': {
                 'c': 1,
                 'type_2': 1,
                 'cookie_set': 1,
-                'status_200': 1,
-                'scheme_http': 1,
-                'window_depth_1': 1
+                'status_200': 1
               }
             }
           }
@@ -394,9 +365,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                 'has_qs': 1,
                 'type_3': 1,
                 'content_length': 42,
-                'status_200': 1,
-                'scheme_http': 1,
-                'window_depth_0': 1
+                'status_200': 1
               }
             }
           }
@@ -406,13 +375,11 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
         base_tps: function() {
           return {
             '127.0.0.1': {
-              '/iframe2.html': {
+              '/iframe.html': {
                 'c': 1,
                 'cookie_set': 1,
                 'type_7': 1,
-                'status_200': 1,
-                'scheme_http': 1,
-                'window_depth_2': 1
+                'status_200': 1
               },
               '/test': {
                 'c': 1,
@@ -420,26 +387,20 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                 'has_qs': 1,
                 'type_11': 1,
                 'content_length': 2,
-                'status_200': 1,
-                'scheme_http': 1,
-                'window_depth_2': 1
+                'status_200': 1
               },
               '/bower_components/jquery/dist/jquery.js': {
                 'c': 1,
                 'type_2': 1,
                 'cookie_set': 1,
-                'status_200': 1,
-                'scheme_http': 1,
-                'window_depth_2': 1
+                'status_200': 1
               }
             },
             'cliqztest.de': {
               '/proxyiframe.html': {
                 'c': 1,
                 'type_7': 1,
-                'status_200': 1,
-                'scheme_http': 1,
-                'window_depth_1': 1
+                'status_200': 1
               }
             }
           }
@@ -466,7 +427,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
               tmp_tabs.forEach(function(t) {
                 gBrowser.removeTab(t);
               });
-              setTimeout(done, 100);
+              done();
             }, 1500);
           });
 
@@ -659,7 +620,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                 // with an img tag we fallback to redirect, otherwise we just rewrite the channel URI.
                 // with redirect we also see the cookie twice!
                 if(testpage == "imgtest.html") {
-                  tp_event_expectation.if('has_qs', 1).set('token_blocked_replace', 1).set('cookie_set', 2).set('bad_cookie_sent', 2);
+                  tp_event_expectation.if('has_qs', 1).set('token_red_replace', 1).set('cookie_set', 2).set('bad_cookie_sent', 2);
                 } else {
                   tp_event_expectation.if('has_qs', 1).set('token_blocked_replace', 1);
                 }
@@ -738,7 +699,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                 var tp_event_expectation = new tp_events_expectations(testpage);
                 tp_event_expectation.if('cookie_set', 1).set('bad_cookie_sent', 1);
                 if(testpage == "imgtest.html") {
-                  tp_event_expectation.if('has_qs', 1).set('bad_qs', 1).set('bad_tokens', 1).set('token_blocked_replace', 1).set('cookie_set', 2).set('bad_cookie_sent', 2);
+                  tp_event_expectation.if('has_qs', 1).set('bad_qs', 1).set('bad_tokens', 1).set('token_red_replace', 1).set('cookie_set', 2).set('bad_cookie_sent', 2);
                 }
                 else {
                   tp_event_expectation.if('has_qs', 1).set('bad_qs', 1).set('bad_tokens', 1).set('token_blocked_replace', 1);
@@ -782,9 +743,9 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                 tp_event_expectation.if('cookie_set', 1).set('bad_cookie_sent', 1);
                 tp_event_expectation.if('has_qs', 1).set('token.whitelisted', 1).set('token.has_whitelisted', 1);
 
-                openTestPage(testpage, 'localhost', 'allowWhiteListedToken');
+                openTestPage(testpage);
 
-                expectNRequests(2, 'allowWhiteListedToken').assertEach(function(m) {
+                expectNRequests(2).assertEach(function(m) {
                   chai.expect(m.qs).to.contain('uid=' + uid);
                 }, function(e) {
                   if(e) {
@@ -814,14 +775,13 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
 
                 it('allows all tokens on whitelisted site', function(done) {
                   this.timeout(5000);
-                  var rid = 'xxa';
-                  openTestPage(testpage, 'localhost', rid);
+                  openTestPage(testpage);
 
                   var tp_event_expectation = new tp_events_expectations(testpage);
                   tp_event_expectation.if('cookie_set', 1).set('bad_cookie_sent', 1);
                   tp_event_expectation.if('has_qs', 1).set('bad_qs', 1).set('bad_tokens', 1).set('source_whitelisted', 1);
 
-                  expectNRequests(2, rid).assertEach(function(m) {
+                  expectNRequests(2).assertEach(function(m) {
                     chai.expect(m.qs).to.contain('uid=' + uid);
                     chai.expect(m.qs).to.contain('callback=func');
                   }, function(e) {

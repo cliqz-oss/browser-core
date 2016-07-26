@@ -10,7 +10,6 @@ const {
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/NewTabUtils.jsm');
-Cu.import('chrome://cliqzmodules/content/CliqzPlacesAutoComplete.jsm');
 
 XPCOMUtils.defineLazyModuleGetter(this, 'CliqzUtils',
   'chrome://cliqzmodules/content/CliqzUtils.jsm');
@@ -21,11 +20,16 @@ XPCOMUtils.defineLazyModuleGetter(this, 'Result',
 XPCOMUtils.defineLazyModuleGetter(this, 'CliqzAutocomplete',
   'chrome://cliqzmodules/content/CliqzAutocomplete.jsm');
 
-XPCOMUtils.defineLazyModuleGetter(this, 'CliqzWikipediaDeduplication',
-    'chrome://cliqzmodules/content/CliqzWikipediaDeduplication.jsm');
-
 XPCOMUtils.defineLazyModuleGetter(this, 'CliqzResultProviders',
   'chrome://cliqzmodules/content/CliqzResultProviders.jsm');
+
+function prefixPref(pref, prefix) {
+    if ( !(typeof prefix === 'string') ) {
+      prefix = 'extensions.cliqz.';
+    }
+    return prefix + pref;
+}
+
 
 var _log = Cc['@mozilla.org/consoleservice;1'].getService(Ci.nsIConsoleService),
     // references to all the timers to avoid garbage collection before firing
@@ -66,8 +70,6 @@ var _log = Cc['@mozilla.org/consoleservice;1'].getService(Ci.nsIConsoleService),
         QueryInterface: XPCOMUtils.generateQI([ Ci.nsIAutoCompleteSearch ])
     };
 
-
-
 var CLIQZEnvironment = {
     LOCALE_PATH: 'chrome://cliqz/content/static/locale/',
     TEMPLATES_PATH: 'chrome://cliqz/content/static/templates/',
@@ -80,9 +82,6 @@ var CLIQZEnvironment = {
     LAST_GEOLOCATION_UPDATE: 0,
     GEOLOCATION_UPDATE_MIN_WAIT: 3600 * 1000, // If the computer wakes up from a sleep that was longer than this many milliseconds, we update geolocation.
     LOCATION_ACCURACY: 3, // Number of decimal digits to keep in user's location
-    RERANKERS: [CliqzWikipediaDeduplication],
-    SHARE_LOCATION_ONCE: false,
-    AB_1073_ACTIVE: false,
     OBSERVERS: [
       {
         notifications: ['wake_notification', 'sleep_notification'],
@@ -135,8 +134,9 @@ var CLIQZEnvironment = {
       'onboarding-callout',
       'onboarding-callout-extended',
       'slow_connection',
-      'partials/location/missing_location_2',
-      'partials/location/no-locale-data'
+      'partials/missing_location_2',
+      'partials/location/no-locale-data',
+      'partials/no-locale-data'
     ],
     PARTIALS: [
         'url',
@@ -151,7 +151,7 @@ var CLIQZEnvironment = {
         'rd-h3-w-rating',
         'pcgame_movie_side_snippet',
         'partials/location/local-data',
-        'partials/location/missing_location_1',
+        'partials/missing_location_1',
         'partials/timetable-cinema',
         'partials/timetable-movie',
         'partials/music-data-sc',
@@ -191,34 +191,15 @@ var CLIQZEnvironment = {
           (typeof msg == 'object'? JSON.stringify(msg): msg)
         );
     },
-    __prefixPref: function (pref, prefix) {
-        if ( !(typeof prefix === 'string') ) {
-          prefix = 'extensions.cliqz.';
-        }
-        return prefix + pref;
-    },
     getPref: function(pref, defaultValue, prefix) {
-        pref = CLIQZEnvironment.__prefixPref(pref, prefix);
+        pref = prefixPref(pref, prefix);
 
         var prefs = CLIQZEnvironment.prefs;
 
         try {
             switch(prefs.getPrefType(pref)) {
                 case 128: return prefs.getBoolPref(pref);
-                case 32:  {
-                  var charVal = prefs.getCharPref(pref);
-
-                  // it might be a complex value
-                  if(charVal === "chrome://global/locale/intl.properties"){
-                    try {
-                      charVal = prefs.getComplexValue(pref, Components.interfaces.nsIPrefLocalizedString).data;
-                    } catch (e) {
-                      CliqzUtils.log("Error fetching pref: "  + pref);
-                    }
-                  }
-
-                  return charVal;
-                }
+                case 32:  return prefs.getCharPref(pref);
                 case 64:  return prefs.getIntPref(pref);
                 default:  return defaultValue;
             }
@@ -227,7 +208,7 @@ var CLIQZEnvironment = {
         }
     },
     setPref: function(pref, value, prefix){
-        pref = CLIQZEnvironment.__prefixPref(pref, prefix);
+        pref = prefixPref(pref, prefix);
 
         var prefs = CLIQZEnvironment.prefs;
 
@@ -238,12 +219,12 @@ var CLIQZEnvironment = {
         }
     },
     hasPref: function (pref, prefix) {
-        pref = CLIQZEnvironment.__prefixPref(pref, prefix);
+        pref = prefixPref(pref, prefix);
 
         return CLIQZEnvironment.prefs.getPrefType(pref) !== 0;
     },
     clearPref: function (pref, prefix) {
-        pref = CLIQZEnvironment.__prefixPref(pref, prefix);
+        pref = prefixPref(pref, prefix);
 
         CLIQZEnvironment.prefs.clearUserPref(pref);
     },
@@ -375,7 +356,7 @@ var CLIQZEnvironment = {
 
         win.CLIQZ.Core.triggerLastQ = true;
         if(newTab) {
-           return win.gBrowser.addTab(url);
+            win.gBrowser.addTab(url);
         } else if(newWindow) {
             win.open(url, '_blank');
         } else if(newPrivateWindow) {
@@ -408,11 +389,7 @@ var CLIQZEnvironment = {
       return 'https://cdn.cliqz.com/brands-database/database/' + version + '/data/database.json'
     },
     isPrivate: function(win) {
-        // try to get the current active window
-        if(!win) win = CLIQZEnvironment.getWindow();
-
-        // return false if we still do not have a window
-        if(!win) return false;
+        if(typeof win == "undefined") win = CLIQZEnvironment.getWindow();
 
         if(win && win.cliqzIsPrivate === undefined){
             try {
@@ -457,9 +434,9 @@ var CLIQZEnvironment = {
         var util = win.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils);
         return util.outerWindowID;
     },
-    openTabInWindow: function(win, url, relatedToCurrent = false){
+    openTabInWindow: function(win, url){
         var tBrowser = win.document.getElementById('content');
-        var tab = tBrowser.addTab(url, {relatedToCurrent: relatedToCurrent});
+        var tab = tBrowser.addTab(url);
         tBrowser.selectedTab = tab;
     },
     // TODO: move this
@@ -558,33 +535,10 @@ var CLIQZEnvironment = {
 
         //extend prototype
         for(var k in FFcontract) CliqzAutocomplete.CliqzResults.prototype[k] = FFcontract[k];
-        
 
         var cp = CliqzAutocomplete.CliqzResults.prototype;
         var factory = XPCOMUtils.generateNSGetFactory([CliqzAutocomplete.CliqzResults])(cp.classID);
         reg.registerFactory(cp.classID, cp.classDescription, cp.contractID, factory);
-
-
-        var appInfo = Cc["@mozilla.org/xre/app-info;1"]
-          .getService(Components.interfaces.nsIXULAppInfo);
-        var versionChecker = Cc["@mozilla.org/xpcom/version-comparator;1"]
-          .getService(Components.interfaces.nsIVersionComparator);
-
-        CLIQZEnvironment.AB_1073_ACTIVE = versionChecker.compare(appInfo.version, "47.0") > 0  && versionChecker.compare(appInfo.version, "50.0") < 0 && CliqzUtils.getPref("history.timeouts", false);
-
-        if (CLIQZEnvironment.AB_1073_ACTIVE){
-          CliqzUtils.log('AB - 1073: Active', 'CliqzAutocomplete');
-          var FFHistorycontract = {
-                classID: Components.ID('{59a99d57-b4ad-fa7e-aead-da9d4f4e77c9}'),
-                classDescription : 'Cliqz',
-                contractID : '@mozilla.org/autocomplete/search;1?name=cliqz-history-results',
-                QueryInterface: XPCOMUtils.generateQI([ Ci.nsIAutoCompleteSearch ])
-              }
-          for(var k in FFHistorycontract) CliqzPlacesAutoComplete.prototype[k] = FFHistorycontract[k];
-          var cpCliqzPlacesAutoComplete = CliqzPlacesAutoComplete.prototype;
-          var factory = XPCOMUtils.generateNSGetFactory([CliqzPlacesAutoComplete])(cpCliqzPlacesAutoComplete.classID);
-          reg.registerFactory(cpCliqzPlacesAutoComplete.classID, cpCliqzPlacesAutoComplete.classDescription, cpCliqzPlacesAutoComplete.contractID, factory);
-        }
 
     },
     unloadSearch: function(){
@@ -694,7 +648,7 @@ var CLIQZEnvironment = {
     updateGeoLocation: function() {
       var geoService = Components.classes["@mozilla.org/geolocation;1"].getService(Components.interfaces.nsISupports);
 
-      if (CLIQZEnvironment.getPref('share_location') == 'yes' || CLIQZEnvironment.SHARE_LOCATION_ONCE) {
+      if (CLIQZEnvironment.getPref('share_location') == 'yes') {
         // Get current position
         geoService.getCurrentPosition(function(p) {
           // the callback might come late if the extension gets disabled very fast
@@ -760,25 +714,15 @@ var CLIQZEnvironment = {
     // lazy init
     // callback called multiple times
     historySearch: (function(){
-        var hist = null;
+        var hist = {};
+
+        XPCOMUtils.defineLazyServiceGetter(
+            hist,
+            'search',
+            '@mozilla.org/autocomplete/search;1?name=history',
+            'nsIAutoCompleteSearch');
 
         return function(q, callback, sessionStart){
-            if(hist === null) { //lazy
-              // history autocomplete provider is removed
-              // https://hg.mozilla.org/mozilla-central/rev/44a989cf6c16
-
-              if (CLIQZEnvironment.AB_1073_ACTIVE){
-                // If AB 1073 is not in B or firefox version less than 49 it will fall back to firefox history
-                var provider = Cc["@mozilla.org/autocomplete/search;1?name=cliqz-history-results"] ||
-                               Cc["@mozilla.org/autocomplete/search;1?name=history"] ||
-                               Cc["@mozilla.org/autocomplete/search;1?name=unifiedcomplete"];
-                hist = provider.getService(Ci["nsIAutoCompleteSearch"]);
-              } else{
-                var provider = Cc["@mozilla.org/autocomplete/search;1?name=history"] ||
-                               Cc["@mozilla.org/autocomplete/search;1?name=unifiedcomplete"];
-                hist = provider.getService(Ci["nsIAutoCompleteSearch"]);
-              }
-            }
             // special case: user has deleted text from urlbar
             if(q.length != 0 && urlbar().value.length == 0)
               return;
@@ -789,7 +733,7 @@ var CLIQZEnvironment = {
                 })
             }
             else {
-                hist.startSearch(q, 'enable-actions', null, {
+                hist.search.startSearch(q, 'enable-actions', null, {
                     onSearchResult: function(ctx, result) {
                         var res = [];
                         for (var i = 0; result && i < result.matchCount; i++) {

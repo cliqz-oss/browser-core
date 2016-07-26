@@ -10,14 +10,8 @@ function trim(text) {
   }
 }
 
-/**
-* @namespace context-menu
-*/
 export default class {
-  /**
-  * @class ContextMenu
-  * @constructor
-  */
+
   constructor(settings) {
     this.window = settings.window;
     this.contextMenu = this.window.document.getElementById(
@@ -29,10 +23,6 @@ export default class {
     this.menuItem = null;
   }
 
-  /**
-  * Adds listeners to the context menu
-  * @method init
-  */
   init() {
     this.contextMenu.addEventListener(
         'popupshowing', this.onPopupShowing, false);
@@ -40,10 +30,6 @@ export default class {
         'popuphiding', this.onPopupHiding, false);
   }
 
-  /**
-  * Unloads context menu
-  * @method unload
-  */
   unload() {
     this.removeMenuItem();
     this.contextMenu.removeEventListener('popupshowing', this.onPopupShowing);
@@ -51,10 +37,6 @@ export default class {
     this._builtInSearchItem.removeAttribute('hidden');
   }
 
-  /**
-  * @event onPopupShowing
-  * @param ev
-  */
   onPopupShowing(ev) {
     utils.telemetry({
       "type": "context_menu",
@@ -65,13 +47,7 @@ export default class {
       return;
     }
 
-    let isLink = CliqzUtils.getWindow().gContextMenu.onLink;
-    let selection;
-    if (isLink) {
-      selection = CliqzUtils.getWindow().gContextMenu.target.textContent;
-    } else {
-      selection = this.getSelection();
-    }
+    let selection = this.getSelection();
 
     if (selection) {
       this.menuItem = this.window.document.createElement('menuitem');
@@ -79,12 +55,8 @@ export default class {
       this.menuItem.setAttribute('label',
         CliqzUtils.getLocalizedString('context-menu-search-item',
           trim(selection)));
-
-      const isFreshtab = CliqzUtils.getWindow().gBrowser.currentURI.spec === 'about:cliqz';
       this.menuItem.addEventListener(
-          'click', this.clickHandler.bind(this, selection, {
-            openInNewTab: !isFreshtab
-          }));
+          'click', this.clickHandler.bind(this, selection));
 
       this.contextMenu.insertBefore(this.menuItem, this._builtInSearchItem);
       // Can't do once in constructor, because it's dynamic.
@@ -92,13 +64,8 @@ export default class {
     } else {
       this.menuItem = null;
     }
-
   }
 
-  /**
-  * @event onPopupHiding
-  * @param ev
-  */
   onPopupHiding(ev) {
     if (ev.target !== this.contextMenu) {
       return;
@@ -113,16 +80,14 @@ export default class {
     }
   }
 
-  clickHandler(query, options) {
+  clickHandler(query) {
     utils.telemetry({
       "type": "context_menu",
       "action": "search",
       "query_length": query.length
     });
     // opens a new empty tab
-    if(options.openInNewTab) {
-      CLIQZEnvironment.openTabInWindow(this.window, '', true)
-    }
+    CLIQZEnvironment.openTabInWindow(this.window, '')
 
     var urlbar = this.window.document.getElementById('urlbar');
 

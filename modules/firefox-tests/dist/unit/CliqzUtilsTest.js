@@ -135,10 +135,9 @@ TESTS.CliqzUtilsTest = function (CliqzUtils, CliqzRequestMonitor, CliqzLanguage,
     });
 
     describe("Locale", function () {
-      it("Locale file should be loaded", function () {
-        var locale = CliqzUtils.locale['default'] || CliqzUtils.locale[window.navigator.language];
-        chai.expect(locale).to.be.ok;
-        chai.expect(locale.TEST).to.equal('OK');
+      it("de locale are complete when compared to en", function () {
+        chai.expect(Object.keys(CliqzUtils.locale['default'])).to.eql(
+               Object.keys(CliqzUtils.locale[window.navigator.language]));
       });
     });
 
@@ -253,7 +252,7 @@ TESTS.CliqzUtilsTest = function (CliqzUtils, CliqzRequestMonitor, CliqzLanguage,
               chai.expect(hitCtr).to.eql(1);
               chai.expect(resp.response).to.eql(responseTest);
               chai.expect(contentEncodingHeader).to.eql('gzip');
-              var postData = gzip.decompress(binaryStringToUint8Array(requestData));
+              let postData = gzip.decompress(binaryStringToUint8Array(requestData));
               chai.expect(postData).to.eql(postDataSent);
             });
           });

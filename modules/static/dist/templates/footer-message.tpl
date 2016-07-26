@@ -22,8 +22,8 @@
         {{#each options}}
             <span class="cqz-msg-btn cqz-msg-btn-{{ state }} cqz-msg-btn-action-{{ action }}  border-box"
                 state="{{ action }}"
-                {{#if this.pref }} pref="{{ this.pref }}" {{/if}}
-                {{#if prefVal }} prefVal="{{ prefVal }}" {{/if}} >
+                {{#if pref }} pref="{{../pref}}" {{/if}}
+                {{#if prefVal }} prefVal="{{prefVal}}" {{/if}} >
                 {{ text }}
             </span>
         {{/each}}

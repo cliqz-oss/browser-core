@@ -29,50 +29,48 @@ var latestUrl;
 ////
 
 // END TEMP
-const TEMPLATES = Object.freeze(Object.assign(Object.create(null), {
-  "Cliqz": true,
-  "EZ-category": true,
-  "EZ-history": true,
-  "calculator": true,
-  "celebrities": true,
-  "conversations": true,
-  "currency": true,
-  "emphasis": true,
-  "empty": true,
-  "entity-news-1": true,
-  "entity-search-1": true,
-  "flightStatusEZ-2": true,
-  "generic": true,
-  "history": true,
-  "ligaEZ1Game": true,
-  "ligaEZTable": true,
-  "ligaEZUpcomingGames": true,
-  "local-cinema-sc": true,
-  "local-data-sc": true,
-  "local-movie-sc": true,
-  "logo": true,
-  "main": true,
-  "noResult": true,
-  "rd-h3-w-rating": true,
-  "results": true,
-  "stocks": true,
-  "topnews": true,
-  "topsites": true,
-  "url": true,
-  "weatherAlert": true,
-  "weatherEZ": true
-}));
 
 CLIQZEnvironment = {
   BRANDS_DATA_URL: 'static/brands_database.json',
-  TEMPLATES_PATH: 'mobile-ui/templates/',
-  LOCALE_PATH: 'static/locale/',
-  SYSTEM_BASE_URL: './',
+  TEMPLATES_PATH: 'modules/mobile-ui/templates/',
+  LOCALE_PATH: 'modules/static/locale/',
+  SYSTEM_BASE_URL: 'modules/',
   RESULTS_LIMIT: 3,
   MIN_QUERY_LENGHT_FOR_EZ: 0,
   storeQueryTimeout: null,
-  RERANKERS: [],
-  TEMPLATES: TEMPLATES,
+  TEMPLATES: {
+        "Cliqz": true,
+        "EZ-category": true,
+        "EZ-history": true,
+        "calculator": true,
+        "celebrities": true,
+        "conversations": true,
+        "currency": true,
+        "emphasis": true,
+        "empty": true,
+        "entity-news-1": true,
+        "entity-search-1": true,
+        "flightStatusEZ-2": true,
+        "generic": true,
+        "history": true,
+        "ligaEZ1Game": true,
+        "ligaEZTable": true,
+        "ligaEZUpcomingGames": true,
+        "local-cinema-sc": true,
+        "local-data-sc": true,
+        "local-movie-sc": true,
+        "logo": true,
+        "main": true,
+        "noResult": true,
+        "rd-h3-w-rating": true,
+        "results": true,
+        "stocks": true,
+        "topnews": true,
+        "topsites": true,
+        "url": true,
+        "weatherAlert": true,
+        "weatherEZ": true
+  },
   KNOWN_TEMPLATES: {
       'entity-portal': true,
       'entity-generic': true,
@@ -86,8 +84,7 @@ CLIQZEnvironment = {
       'logo',
       'EZ-category',
       'EZ-history',
-      'rd-h3-w-rating',
-      'pattern-h1'
+      'rd-h3-w-rating'
   ],
   GOOGLE_ENGINE: {name:'Google', url: 'http://www.google.com/search?q='},
   log: function(msg, key){
@@ -101,8 +98,8 @@ CLIQZEnvironment = {
   isUnknownTemplate: function(template){
      // in case an unknown template is required
      return template &&
-            !CLIQZEnvironment.TEMPLATES[template] &&
-            !CLIQZEnvironment.KNOWN_TEMPLATES.hasOwnProperty(template);
+            CLIQZEnvironment.TEMPLATES.hasOwnProperty(template) == false &&
+            CLIQZEnvironment.KNOWN_TEMPLATES.hasOwnProperty(template) == false;
   },
   getBrandsDBUrl: function(version){
     //TODO - consider the version !!
@@ -131,9 +128,6 @@ CLIQZEnvironment = {
     }
   },
   renderResults: function(r) {
-
-    CLIQZEnvironment.currentPage = 0;
-    CLIQZEnvironment.vp && CLIQZEnvironment.vp.goToIndex(CLIQZEnvironment.currentPage);
     var renderedResults = CLIQZ.UI.results(r);
 
     CLIQZ.UI.stopProgressBar();
@@ -142,15 +136,13 @@ CLIQZEnvironment = {
   },
   // TODO - SHOUD BE MOVED TO A LOGIC MODULE
   putHistoryFirst: function(r) {
-    var history = [], backend = [];
-    r._results.forEach(function (res) {
-      if(res.style === 'cliqz-pattern' || res.style === 'favicon') {
-        history.push(res);
-      } else {
-        backend.push(res);
+    for(var i = 0; i < r._results.length; i++) {
+      if(r._results[i].style === 'cliqz-pattern' || r._results[i].style === 'favicon') {
+        r._results.unshift(r._results.splice(i, 1)[0]);
+        return 1;
       }
-    });
-    r._results = history.concat(backend);
+    }
+    return 0;
   },
   resultsHandler: function (r) {
 
@@ -159,15 +151,17 @@ CLIQZEnvironment = {
       return;
     }
 
-    CLIQZEnvironment.putHistoryFirst(r);
+    var historyCount = CLIQZEnvironment.putHistoryFirst(r);
 
-    r._results.splice(CLIQZEnvironment.RESULTS_LIMIT);
+    r._results.splice(CLIQZEnvironment.RESULTS_LIMIT + historyCount);
 
-    renderedResults = CLIQZEnvironment.renderResults(r);
+    renderedResults = CLIQZEnvironment.renderResults(r, historyCount);
 
     CLIQZEnvironment.lastResults = renderedResults.results;
 
-    renderedResults.results[0] && CLIQZEnvironment.autoComplete(renderedResults.results[0].url, r._searchString);
+    if(renderedResults.results.length > historyCount) {
+      CLIQZEnvironment.autoComplete(renderedResults.results[historyCount].val,r._searchString);
+    }
   },
   search: function(e, location_enabled, latitude, longitude) {
     if(!e || e === '') {

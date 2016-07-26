@@ -26,7 +26,10 @@ var jsAPI = {
     CLIQZEnvironment.initHomepage();
     var start = document.getElementById("resetState");
     var resetStateContent = document.getElementById("resetStateContent");
-    CLIQZ.UI.hideResultsBox();
+    var resultsBox = document.getElementById("results");
+    if(resultsBox) {
+      resultsBox.style.display = 'none';
+    }
     if(cfg.url && cfg.url.length > 0) {
       start.style.display = "block";
       window.document.getElementById("startingpoint").style.display = 'block';
@@ -54,26 +57,11 @@ var jsAPI = {
       }
     }
   },
-  clearHistory: function() {
-    History.clearHistory();
-  },
-  clearFavorites: function() {
-    History.clearFavorites();
+  clearQueries: function(includeFavs) {
+    History.clearQueries(includeFavs);
   },
   setDefaultSearchEngine: function(engine) {
     CLIQZEnvironment.setDefaultSearchEngine(engine);
     CLIQZ.UI.updateSearchCard(engine);
-  },
-  restoreBlockedTopSites: function () {
-    CLIQZEnvironment.getLocalStorage().setObject('blockedTopSites', []);
-  },
-  onShow: function () {
-    if (CLIQZ.UI) { // search view
-      if (!CLIQZ.UI.isSearch()) { // freshtab
-        CLIQZEnvironment.initHomepage();
-      }
-    } else { // history view
-      History.init();
-    }
   }
 }

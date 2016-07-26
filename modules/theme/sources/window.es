@@ -1,19 +1,9 @@
-/**
-* @namespace theme
-*/
 export default class {
-  /**
-  * @class Theme
-  * @constructor
-  */
 
   constructor(settings) {
     this.window = settings.window;
   }
 
-  /**
-  * @method init
-  */
   init() {
     var CLIQZ = this.window.CLIQZ,
         document = this.window.document,

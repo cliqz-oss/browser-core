@@ -1,7 +1,3 @@
-/**
-* @namespace ui.views
-* @class LocalCinemaSc
-*/
 export default class {
   enhanceMovieSC(data) {
     var rating = data.ratingStars.rating ? Math.round(data.ratingStars.rating) : 0,
@@ -21,10 +17,7 @@ export default class {
       });
     }
   }
-  /**
-  * @method enhanceResults
-  * @param data
-  */
+
   enhanceResults(data) {
     data.ratingStars = data.cinema;
     data.emptyColumns = data.movies;

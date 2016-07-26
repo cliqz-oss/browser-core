@@ -1,7 +1,5 @@
 {
   "platform": "mobile",
-  "testsBasePath": "./build",
-  "testem_launchers": ["Mocha", "Chrome"],
   "settings": {},
   "modules": [
     "core",
@@ -10,7 +8,6 @@
     "mobile-freshtab",
     "mobile-history",
     "mobile-touch",
-    "yt-downloader",
     "static"
   ]
 }

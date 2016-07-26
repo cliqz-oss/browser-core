@@ -2,8 +2,8 @@ import * as persist from 'antitracking/persistent-state';
 import * as datetime from 'antitracking/time';
 import { events } from 'core/cliqz';
 import CliqzAttrack from 'antitracking/attrack';
+import CliqzHumanWeb from 'human-web/human-web';
 import pacemaker from 'antitracking/pacemaker';
-import telemetry  from 'antitracking/telemetry';
 
 const safeKeyExpire = 7;
 
@@ -103,8 +103,7 @@ export default class {
 
   _sendSafeKeys() {
     // get only keys from local key
-    var hour = datetime.getTime(),
-      day = hour.substring(0, 8);
+    var day = datetime.getTime();
     var dts = {}, local = {}, localE = 0, s, k;
     var safeKey = this.safeKeys.value;
     for (s in safeKey) {
@@ -125,8 +124,8 @@ export default class {
       }
     }
     if(Object.keys(dts).length > 0) {
-      var payl = CliqzAttrack.generateAttrackPayload(dts, hour, false, true);
-      telemetry.telemetry({'type': telemetry.msgType, 'action': 'attrack.safekey', 'payload': payl});
+      var payl = CliqzAttrack.generatePayload(dts, day, false, true);
+      CliqzHumanWeb.telemetry({'type': CliqzHumanWeb.msgType, 'action': 'attrack.safekey', 'payload': payl});
     }
   }
 }

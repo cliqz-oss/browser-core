@@ -1,18 +1,15 @@
+/*
+ * This module bypasses Youtube region blocks
+ */
 import ProxyService from 'unblock/proxy';
-import RequestListener from 'unblock/request-listener';
-import ProxyManager from 'unblock/proxy-manager';
-import { utils, events } from 'core/cliqz';
+import RequestListener from 'unblock/request-listener'
+import ProxyManager from 'unblock/proxy-manager'
 
 const MODE_ASK = "ask";
 const MODE_ALWAYS = "always";
 const MODE_NEVER = "never";
 const MODES = [MODE_ASK, MODE_ALWAYS, MODE_NEVER];
 
-/**
-* This module bypasses Youtube region blocks
-* @class Main
-* @namespace unblock
-*/
 export default {
   proxy_manager: null,
   proxy_service: null,
@@ -26,7 +23,7 @@ export default {
       return;
     }
     this.prev_mode = this.getMode();
-    utils.setPref(this.PREF_MODE, mode);
+    CliqzUtils.setPref(this.PREF_MODE, mode);
   },
   onModeChanged: function() {
     let mode = this.getMode();
@@ -48,11 +45,11 @@ export default {
         });
       }
       this.prev_mode = mode;
-      utils.setTimeout(utils.getWindow().CLIQZ.Core.refreshButtons, 0)
+      CliqzUtils.setTimeout(CliqzUtils.getWindow().CLIQZ.Core.refreshButtons, 0)
     }
   },
   getMode: function() {
-    return utils.getPref(this.PREF_MODE, MODE_NEVER);
+    return CliqzUtils.getPref(this.PREF_MODE, MODE_NEVER);
   },
   isEnabled: function() {
     return this.getMode() != MODE_NEVER;
@@ -62,7 +59,7 @@ export default {
     this.prev_mode = this.getMode();
 
     if (this.isEnabled()) {
-      utils.log('init', 'unblock');
+      CliqzUtils.log('init', 'unblock');
 
       this.proxy_service = new ProxyService();
       this.proxy_manager = new ProxyManager(this.proxy_service);
@@ -71,8 +68,14 @@ export default {
       this.request_listener = new RequestListener();
 
       this.unblockers.forEach(function(b) {
-        b.init(this.proxy_manager, this.proxy_service, this.request_listener, this.handleBlock.bind(this), this.handleUnblockNotification.bind(this));
+        b.init(this.proxy_manager, this.proxy_service, this.request_listener, this.handleBlock.bind(this));
       }.bind(this));
+
+      this.boundPageObserver = this.pageObserver.bind(this);
+      CliqzEvents.sub("core:page_load", this.boundPageObserver);
+
+      this.boundTabSelectListener = this.tabSelectListener.bind(this);
+      CliqzEvents.sub("core:tab_select", this.boundTabSelectListener);
     }
   },
   unload: function() {
@@ -92,15 +95,20 @@ export default {
     this.unblockers.forEach(function(b) {
       b.unload && b.initialized && b.unload();
     });
+
+    CliqzEvents.un_sub("core:page_load", this.boundPageObserver);
+    CliqzEvents.un_sub("core:tab_select", this.boundTabSelectListener);
   },
-  pageObserver: function(url) {
+  pageObserver: function(event) {
     if (this.isEnabled()) {
       try {
+        var doc = event.originalTarget,
+          url = doc.defaultView.location.href;
         // run page observers for unblockers which work on this domain
         this.unblockers.filter(function(b) {
           return b.canFilter && b.canFilter(url);
         }).forEach(function(b) {
-          b.pageObserver && b.pageObserver(url);
+          b.pageObserver && b.pageObserver(doc);
         });
       } catch(e) {}
     }
@@ -114,11 +122,6 @@ export default {
     }
     // else never
   },
-  handleUnblockNotification: function(url, message) {
-    if (this.ui_enabled) {
-      this.unblockNotification(url, message);
-    }
-  },
   waiting_prompts: [],
   tabSelectListener: function(event) {
     // filter old entries - older than 5 minutes
@@ -127,30 +130,26 @@ export default {
       return prompt.timestamp > now - 300000;
     });
     // check if this tab should trigger a prompt
-    var url = utils.getWindow().gBrowser.currentURI.spec,
+    var url = CliqzUtils.getWindow().gBrowser.currentURI.spec,
       ind = this.waiting_prompts.findIndex(function(prompt) {
         return prompt.url.indexOf(url) == 0;
       });
     if (ind >= 0) {
       // if found, remove from waiting list and prompt
       let prompt = this.waiting_prompts.splice(ind, 1)[0];
-      prompt.callback();
+      this.unblockPrompt(prompt.url, prompt.callback);
     }
   },
   unblockPrompt: function(url, cb) {
-    var gBrowser = utils.getWindow().gBrowser,
-      message = utils.getLocalizedString("unblock_prompt"),
+    var gBrowser = CliqzUtils.getWindow().gBrowser,
+      message = CliqzUtils.getLocalizedString("unblock_prompt"),
       box = gBrowser.getNotificationBox(),
       notification = box.getNotificationWithValue('geo-blocking-prevented'),
       on_active_tab = url.indexOf(gBrowser.currentURI.spec) == 0;
 
     if (!on_active_tab) {
       // wait until tab is activated
-      this.waiting_prompts.push({
-        url: url,
-        callback: () => { this.unblockPrompt(url, cb) }.bind(this),
-        timestamp: (new Date()).getTime()
-      });
+      this.waiting_prompts.push({url: url, callback: cb, timestamp: (new Date()).getTime()});
       return;
     }
 
@@ -158,24 +157,24 @@ export default {
       notification.label = message;
     } else {
       var buttons = [{
-        label: utils.getLocalizedString("unblock_always"),
+        label: CliqzUtils.getLocalizedString("unblock_always"),
         accessKey: 'B',
         callback: function() {
           box.removeNotification(notification);
           this.setMode(MODE_ALWAYS);
           cb();
-          utils.telemetry({
+          CliqzUtils.telemetry({
             'type': 'unblock',
             'action': 'allow_always'
           });
         }.bind(this)
       },
       {
-        label: utils.getLocalizedString("unblock_once"),
+        label: CliqzUtils.getLocalizedString("unblock_once"),
         callback: function() {
           box.removeNotification(notification);
           cb();
-          utils.telemetry({
+          CliqzUtils.telemetry({
             'type': 'unblock',
             'action': 'allow_once'
           });
@@ -183,11 +182,11 @@ export default {
         }.bind(this)
       },
       {
-        label: utils.getLocalizedString("unblock_never"),
+        label: CliqzUtils.getLocalizedString("unblock_never"),
         callback: function() {
           this.setMode(MODE_NEVER);
           box.removeNotification(notification);
-          utils.telemetry({
+          CliqzUtils.telemetry({
             'type': 'unblock',
             'action': 'allow_never'
           });
@@ -196,31 +195,6 @@ export default {
       notification = box.appendNotification(message, 'geo-blocking-prevented',
                       'chrome://cliqz/content/static/skin/cliqz_btn.png',
                        box.PRIORITY_WARNING_MEDIUM, buttons);
-    }
-  },
-  unblockNotification: function(url, label) {
-    var gBrowser = utils.getWindow().gBrowser,
-      message = label,
-      box = gBrowser.getNotificationBox(),
-      notification = box.getNotificationWithValue('geo-blocking-notification'),
-      on_active_tab = url.indexOf(gBrowser.currentURI.spec) == 0;
-
-    if (!on_active_tab) {
-      // wait until tab is activated
-      this.waiting_prompts.push({
-        url: url,
-        callback: () => { this.unblockNotification(url, label) }.bind(this),
-        timestamp: (new Date()).getTime()
-      });
-      return;
-    }
-
-    if (notification) {
-      notification.label = message;
-    } else {
-      notification = box.appendNotification(message, 'geo-blocking-notification',
-                      'chrome://cliqz/content/static/skin/cliqz_btn.png',
-                       box.PRIORITY_WARNING_MEDIUM);
     }
   }
 };

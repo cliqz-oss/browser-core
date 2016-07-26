@@ -37,13 +37,11 @@ export default class {
     let tabs = Array.prototype.slice.apply(this.window.gBrowser.tabContainer.childNodes);
     tabs.forEach( tab => {
       const currentBrowser = this.window.gBrowser.getBrowserForTab(tab);
-      try {
-        currentBrowser.contentDocument.removeEventListener("keypress",  HumanWeb.captureKeyPressPage,true);
-        currentBrowser.contentDocument.removeEventListener("mousemove", HumanWeb.captureMouseMovePage,true);
-        currentBrowser.contentDocument.removeEventListener("mousedown", HumanWeb.captureMouseClickPage,true);
-        currentBrowser.contentDocument.removeEventListener("scroll",    HumanWeb.captureScrollPage,true);
-        currentBrowser.contentDocument.removeEventListener("copy",      HumanWeb.captureCopyPage,true);
-      } catch(e) {}
+      currentBrowser.contentDocument.removeEventListener("keypress",  HumanWeb.captureKeyPressPage,true);
+      currentBrowser.contentDocument.removeEventListener("mousemove", HumanWeb.captureMouseMovePage,true);
+      currentBrowser.contentDocument.removeEventListener("mousedown", HumanWeb.captureMouseClickPage,true);
+      currentBrowser.contentDocument.removeEventListener("scroll",    HumanWeb.captureScrollPage,true);
+      currentBrowser.contentDocument.removeEventListener("copy",      HumanWeb.captureCopyPage,true);
     }.bind(this));
   }
 

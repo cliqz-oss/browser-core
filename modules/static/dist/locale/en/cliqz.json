@@ -146,33 +146,6 @@
     "btnSafeSearch":{
         "message": "Take part"
     },
-    "anti-phishing": {
-        "message": "Phishing Protection"
-    },
-    "anti-phishing-enabled": {
-        "message": "Enabled"
-    },
-    "anti-phishing-txt0": {
-        "message": "Warning: deceptive website!"
-    },
-    "anti-phishing-txt1": {
-        "message": "CLIQZ has blocked access to ("
-    },
-    "anti-phishing-txt2": {
-        "message": ") because it has been reported as a phishing website. Phishing websites disguise as other sites you may trust in order to trick you into disclosing your login, password or other sensitive information."
-    },
-    "anti-phishing-txt3": {
-        "message": "Learn more"
-    },
-    "anti-phishing-txt4": {
-        "message": "Back to safe website"
-    },
-    "anti-phishing-txt5": {
-        "message": "Report this page as safe"
-    },
-    "anti-phishing-txt6": {
-        "message": "Proceed despite risks"
-    },
     "btnSafeSearchDesc":{
         "message": "What is this?"
     },
@@ -779,12 +752,6 @@
     "cMenuRemoveFromBookmarksAndHistory": {
       "message": "Remove from Bookmarks and History"
     },
-    "cMenuRemoveFromHistoryAndCloseTab": {
-      "message": "Remove from History and close open tab"
-    },
-    "cMenuRemoveFromHistoryAndBookmarksAndCloseTab": {
-      "message": "Remove from Bookmarks and History and close open tab"
-    },
     "myQuery": {
         "message": "query"
     },
@@ -902,9 +869,6 @@
     "show_local_results": {
       "message": "No, show me local info"
     },
-    "local_result_vertical_title": {
-      "message": "NEAR BY"
-    },
     "extended_forecast": {
         "message": "Extended Forecast"
     },
@@ -980,12 +944,6 @@
     "attrack-headline-general-title": {
       "message": "Privacy Protection"
     },
-    "attrack-headline-general-title-protection-off": {
-      "message": "Your Privacy is not protected !"
-    },
-    "attrack-score-text": {
-      "message": "Privacy Score:"
-    },
     "attrack-headline-general-trackers": {
       "message": "Data points neutralized"
     },
@@ -1008,7 +966,7 @@
       "message": "Activate privacy protection"
     },
     "attrack-btn-power-off": {
-      "message": "Deactivate"
+      "message": "Turn off Privacy Protection"
     },
     "attrack-btn-white-list": {
       "message": "Turn off Protection for this site!"
@@ -1023,7 +981,7 @@
       "message": "See Less"
     },
     "attrack-help": {
-      "message": "Learn more"
+      "message": "Help"
     },
     "attrack-force-block-setting": {
       "message": "Anti-Tracking Behaviour"
@@ -1035,10 +993,10 @@
       "message": "Strict"
     },
     "attrack-trackers-info-msg": {
-        "message": "List of tracking companies"
+      "message": "List of tracking companies"
     },
     "attrack-trackers-count-info-msg": {
-        "message": "Data Protected"
+      "message": "Private data points"
     },
     "freshtab_learn_more": {
       "message": "Learn more"
@@ -1064,14 +1022,8 @@
     "mobile_freshtab_edit_done": {
       "message": "Done"
     },
-    "mobile_freshtab_edit_cancel": {
-      "message": "Cancel"
-    },
     "mobile_freshtab_no_topsites": {
       "message": "You will see your topsites here."
-    },
-    "mobile_history_card_title": {
-      "message": "History Results"
     },
     "mobile_share_card": {
       "message": "Share this card"
@@ -1135,9 +1087,6 @@
     },
     "unblock_never": {
       "message": "No, never"
-    },
-    "unblock_youtube_fail": {
-      "message": "OK, we tried, but it seems we cannot unblock this video for you at this time"
     },
     "cliqz-onboarding-title": {
       "message": "Woohoo! CLIQZ was successfully installed."
@@ -1204,6 +1153,5 @@
     },
     "lyrics": {
       "message": "Lyrics: "
-    },
-    "TEST": "OK"
+    }
 }

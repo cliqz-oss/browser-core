@@ -1,7 +1,5 @@
 {
   "platform": "firefox",
-  "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
-  "testem_launchers": ["Mocha"],
   "settings": {
     "freshTabButton": true,
     "freshTabABtest" : true,
@@ -19,13 +17,11 @@
     "anti-phishing",
     "onboarding",
     "freshtab",
+    "fresh-tab-frontend",
     "telemetry-categories",
     "antitracking",
     "performance",
     "hpn",
     "smart-cliqz-cache"
-  ],
-  "subprojects": [
-    "fresh-tab-frontend"
   ]
 }

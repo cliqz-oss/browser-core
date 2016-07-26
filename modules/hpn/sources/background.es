@@ -1,13 +1,6 @@
 import { utils } from 'core/cliqz';
 
-/**
-* @namespace hpn
-* @class Background
-*/
 export default {
-  /**
-  * @method init
-  */
 	init() {
 		var FF41_OR_ABOVE = false;
 
@@ -29,9 +22,7 @@ export default {
 			})
 		}
 	},
-  /**
-  * @method unload
-  */
+
 	unload() {
 		if(this.CliqzSecureMessage)
 			this.CliqzSecureMessage.unload();

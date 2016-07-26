@@ -20,7 +20,6 @@ class Pacemaker {
   stop() {
     CliqzUtils.clearTimeout(this._id);
     this._id = null;
-    this._tasks = new Set();
   }
 
   _tick() {

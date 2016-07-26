@@ -1,4 +1,4 @@
-import { language, utils, events } from "core/cliqz";
+import { language, utils } from "core/cliqz";
 import config from "core/config";
 import ProcessScriptManager from "platform/process-script-manager";
 
@@ -102,7 +102,7 @@ export default {
   },
 
   handleRequest(msg) {
-    const { action, module, args, requestId } = msg.data.payload,
+    const { action, module, args } = msg.data.payload,
           windowId = msg.data.windowId;
 
     utils.importModule(`${module}/background`).then( module => {
@@ -111,10 +111,9 @@ export default {
     }).then( response => {
       this.mm.broadcast(`window-${windowId}`, {
         response,
-        action: msg.data.payload.action,
-        requestId,
+        action: msg.data.payload.action
       });
-    }).catch( e => utils.log(`${e.toString()}--${e.stack}`, "Problem with frameScript") );
+    }).catch( e => utils.log(`${module}/${action}`+e.toString()+'---'+e.stack, "Problem with frameScript") );
   },
 
   handleResponse(msg) {
@@ -126,24 +125,18 @@ export default {
       utils.telemetry(msg);
       return Promise.resolve();
     },
-    queryCliqz(query) {
+    getUrlbar(value) {
       let urlBar = utils.getWindow().document.getElementById("urlbar")
       urlBar.focus();
       urlBar.mInputField.focus();
-      urlBar.mInputField.setUserInput(query);
+      urlBar.mInputField.setUserInput(value);
       //utils.getWindow().CLIQZ.Core.urlbar.focus("ss");
-    },
-    getUrlbar(value) {
-      return this.actions.queryCliqz(value);
     },
     recordLang(url, lang) {
       if (lang) {
         language.addLocale(url, lang);
       }
       return Promise.resolve();
-    },
-    recordMeta(url, meta) {
-      events.pub("core:url-meta", url, meta);
     }
   }
 };

@@ -1,11 +1,6 @@
 import CliqzUnblock from 'unblock/main';
 
 export default class {
-  /**
-  * @class Window
-  * @namespace unblock
-  * @constructor
-  */
   constructor(settings) {
     this.window = settings.window;
   }
@@ -15,10 +10,7 @@ export default class {
 
   unload() {
   }
-  /**
-  * @method createButtonItem
-  * @param win {Object} Window
-  */
+
   createButtonItem(win) {
     if (!CliqzUnblock.ui_enabled) return;
     var doc = win.document,

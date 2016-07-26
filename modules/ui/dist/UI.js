@@ -7,11 +7,6 @@
 
 function load(ctx) {
 
-function isValidURL(str) {
-  var pattern = /(http|https):\/\/(\w+:{0,1}\w*)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/;
-  return pattern.test(str);
-}
-
 var TEMPLATES = CLIQZEnvironment.TEMPLATES,
     VERTICALS = CliqzUtils.VERTICAL_TEMPLATES,
     urlbar = null,
@@ -47,6 +42,7 @@ function lg(msg){
 var UI = {
     showDebug: false,
     preventAutocompleteHighlight: false,
+    autocompleteEl: 0,
     lastInputTime: 0,
     lastInput: "",
     lastSelectedUrl: null,
@@ -175,7 +171,7 @@ var UI = {
           firstResult.url = firstResult.data.urls[0].href;
 
         if(firstResult.url){
-          setTimeout(CLIQZ.Core.autocompleteQuery, 0, urlbar, CliqzUtils.cleanMozillaActions(firstResult.url)[1], firstResult.title);
+          CLIQZ.Core.autocompleteQuery(CliqzUtils.cleanMozillaActions(firstResult.url), firstResult.title, firstResult.data);
         }
 
         snippetQualityTelemetry(curResAll);
@@ -511,7 +507,7 @@ var UI = {
           // Remove autocomplete from urlbar
           urlbar.mInputField.value = urlbar.mInputField.value.substr(0, urlbar.selectionStart);
           CliqzAutocomplete.lastAutocomplete = null;
-          CliqzAutocomplete.lastAutocompleteActive = null;
+          CliqzAutocomplete.lastAutocompleteType = null;
           CliqzAutocomplete.selectAutocomplete = false;
           return null;
         }
@@ -650,7 +646,7 @@ var UI = {
         // Indicate that this is a RH result.
         r.type = "cliqz-extra";
       }
-      if(r.data.superTemplate && CLIQZEnvironment.TEMPLATES.hasOwnProperty(r.data.superTemplate) && r.data["__subType__"]["class"] != "EntityLocal") {
+      if(r.data.superTemplate && CLIQZEnvironment.TEMPLATES.hasOwnProperty(r.data.superTemplate)) {
         r.data.template = r.data.superTemplate;
       }
 
@@ -708,11 +704,6 @@ function selectWord(input, direction) {
 //called on urlbarBlur
 function sessionEnd(){
     adultMessage = 0; //show message in the next session
-    if (CLIQZEnvironment.SHARE_LOCATION_ONCE) {
-      CLIQZEnvironment.USER_LAT = null;
-      CLIQZEnvironment.USER_LNG = null;
-      CLIQZEnvironment.SHARE_LOCATION_ONCE = false;
-    }
 }
 
 var allowDDtoClose = false;
@@ -971,20 +962,10 @@ function setPartialTemplates(data) {
   if (data.actions && data.actions.length > 0) {
     partials.push('buttons');
   }
-  else if (data.deepResults) {
-    data.deepResults.forEach(function (item) {
-      if (item.type == 'buttons') {
-        data.btns = item.links;
-        delete item.links;
-        partials.push('buttons');
-      }
-    })
-  }
 
   // Music
   if (data["__subType__"] && data["__subType__"]["class"] == "EntityMusic") {
     partials.push('music-data-sc');
-
   }
 
   return partials;
@@ -1481,7 +1462,7 @@ function logUIEvent(el, historyLogType, extraData, query) {
   if(el && !el.getAttribute) el.getAttribute = function(k) { return this[k]; };
 
   if(el && el.getAttribute('url')){
-      var url = CliqzUtils.cleanMozillaActions(el.getAttribute('url'))[1],
+      var url = CliqzUtils.cleanMozillaActions(el.getAttribute('url')),
           lr = CliqzAutocomplete.lastResult,
           extra = extraData['extra'] || el.getAttribute('extra'), //extra data about the link. Note: resultCliqz passes extra in extraData, but not other events, e.g. enter (8Jul2015)
           result_order = currentResults && CliqzAutocomplete.prepareResultOrder(currentResults.results),
@@ -1504,20 +1485,15 @@ function logUIEvent(el, historyLogType, extraData, query) {
         action[key] = extraData[key];
       }
       CliqzUtils.telemetry(action);
+      CliqzUtils.resultTelemetry(query, queryAutocompleted, getResultPosition(el),
+          CliqzUtils.isPrivateResultType(action.position_type) ? '' : url, result_order, extra);
 
-      // no resultTelemetry on private windows
-      if(!CLIQZEnvironment.isPrivate(window)){
-        CliqzUtils.resultTelemetry(query, queryAutocompleted, getResultPosition(el),
-            CliqzUtils.isPrivateResultType(action.position_type) ? '' : url, result_order, extra);
-        if (isValidURL(url)) {
-          CliqzEvents.pub("ui:click-on-url", {
-            url: decodeURIComponent(url),
-            query: CliqzAutocomplete.lastSearch,
-            type: CliqzUtils.isPrivateResultType(action.position_type) ? 'othr' : 'cl',
-            positionType: action.position_type
-          });
-        }
-      }
+      CliqzEvents.pub("ui:click-on-url", {
+        url: decodeURIComponent(url),
+        query: CliqzAutocomplete.lastSearch,
+        type: CliqzUtils.isPrivateResultType(action.position_type) ? 'othr' : 'cl',
+        positionType: action.position_type
+      });
     }
     if(!window.gBrowser)return;
 }
@@ -1560,7 +1536,7 @@ function resultClick(ev) {
             //publish result_click
             CliqzEvents.pub("result_click", signal, {});
 
-            var url = CliqzUtils.cleanMozillaActions(url)[1];
+            var url = CliqzUtils.cleanMozillaActions(url);
             CLIQZEnvironment.openLink(window, url, newTab);
 
             //decouple!
@@ -1848,7 +1824,7 @@ function onEnter(ev, item){
     logUIEvent(UI.keyboardSelection, "autocomplete", {
       action: "result_enter",
       urlbar_time: urlbar_time,
-      autocompleted: CliqzAutocomplete.lastAutocompleteActive,
+      autocompleted: CliqzAutocomplete.lastAutocompleteType,
       autocompleted_length: CliqzAutocomplete.lastAutocompleteLength,
       position_type: ['inbar_url'],
       source: getResultKind(item),
@@ -1857,7 +1833,7 @@ function onEnter(ev, item){
     });
 
     //publish autocomplete event
-    CliqzEvents.pub('autocomplete', {"autocompleted": CliqzAutocomplete.lastAutocompleteActive});
+    CliqzEvents.pub('autocomplete', {"autocompleted": CliqzAutocomplete.lastAutocompleteType});
   }
   // Google
   else if (!CliqzUtils.isUrl(input) && !CliqzUtils.isUrl(cleanInput)) {

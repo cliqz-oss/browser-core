@@ -96,7 +96,7 @@ Object.keys(window.TESTS).forEach(function (testName) {
 
 beforeEach(function () {
   return CliqzUtils.extensionRestart().then(function () {
-    window.closeAllTabs(chrome.gBrowser);
+    chrome.gBrowser.removeAllTabsBut(chrome.gBrowser.selectedTab);
 
     getCliqzResults = CliqzUtils.getCliqzResults;
 

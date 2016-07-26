@@ -15,7 +15,7 @@ from jinja2 import Environment, FileSystemLoader
 import jsstrip
 
 import sys
-sys.path.append("..")
+sys.path.append("../..")
 from fern.submitter import Submitter
 
 NAME = "Cliqz"
@@ -41,7 +41,7 @@ def get_version(beta='True'):
     # full_version = 'images'
     version_parts = full_version.split("-")
 
-    with open('../package.json') as package_json_file:
+    with open('../../package.json') as package_json_file:
         package_json = json.load(package_json_file)
         version = package_json['version']
 
@@ -103,10 +103,10 @@ def package(beta='True', version=None, sign='False', channel='browser'):
         # signs the XPI with the CLIQZ certificate
 
         # look for xpi-sign report on the same level as navigation-extension
-        local( ("python ../xpi-sign/xpisign.py "
-                "-k ../certs/CliqzFrontend/xpisign-cliqz\@cliqz.com "
+        local( ("python ../../xpi-sign/xpisign.py "
+                "-k ../../certs/CliqzFrontend/xpisign-cliqz\@cliqz.com "
                 "--signer openssl "
-                "--passin file:../certs/pass "
+                "--passin file:../../certs/pass "
                 "UNSIGNED_%s %s ") % (output_file_name, output_file_name))
 
     # creates a copy to the current build in case we need to upload it to S3
@@ -150,9 +150,8 @@ def publish(beta='True', version=None, channel='browser', pre='True'):
     icon_url = "http://cdn2.cliqz.com/update/%s" % icon_name
 
     folder = get_folder_name(beta=='True', channel)
-    upload_folder = folder + ('_pre' if pre == 'True' else '')
 
-    path_to_s3 = PATH_TO_S3_BUCKET + upload_folder + '/'
+    path_to_s3 = PATH_TO_S3_BUCKET + folder + ('_pre' if pre == 'True' else '') + '/'
 
     local("aws s3 cp %s %s --acl public-read" % (output_file_name, path_to_s3))
 
@@ -163,7 +162,6 @@ def publish(beta='True', version=None, channel='browser', pre='True'):
         version = get_version(beta)
 
     download_link = "https://s3.amazonaws.com/cdncliqz/update/%s/%s" % (folder, output_file_name)
-    upload_folder_link = "https://s3.amazonaws.com/cdncliqz/update/%s/%s" % (upload_folder, output_file_name)
     download_link_latest_html = "http://cdn2.cliqz.com/update/%s/%s" % (folder, output_file_name)
 
     output_from_parsed_template = manifest_template.render(version=version,
@@ -189,19 +187,19 @@ def publish(beta='True', version=None, channel='browser', pre='True'):
     local("rm  %s" % latest_html_file_name)
 
     credentials = {}
-    execfile("../fern/release-creds.txt", credentials)
+    execfile("../../fern/release-creds.txt", credentials)
     auth = (
         'balrogadmin',
         credentials['balrog_credentials']['balrogadmin']
     )
 
     submitter = Submitter(
-        release_name="SystemAddons-"+upload_folder,
+        release_name="SystemAddons-"+folder,
         auth=auth,
         api_root="http://balrog-admin.10e99.net/api",
         addon_id="cliqz@cliqz.com",
         addon_version=version,
-        addon_url=upload_folder_link
+        addon_url=download_link
     )
     submitter.submit()
 

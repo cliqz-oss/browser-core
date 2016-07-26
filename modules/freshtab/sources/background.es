@@ -5,34 +5,13 @@ import { utils } from 'core/cliqz';
 import SpeedDial from 'freshtab/speed-dial';
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
-const ONE_DAY = 24 * 60 * 60 * 1000;
-const FIVE_DAYS = 5 * ONE_DAY;
-const PREF_ONBOARDING = 'freshtabOnboarding';
-
-const getInstallationDate = function() {
-  return parseInt(utils.getPref(PREF_ONBOARDING, '0'));
-}
-
-const isWithinNDaysAfterInstallation = function(days) {
-  return getInstallationDate() + ONE_DAY * days > Date.now();
-}
-
-/**
-* @namespace freshtab
-* @class Background
-*/
 
 export default {
-  /**
-  * @method init
-  */
   init(settings) {
     utils.bindObjectFunctions(this.actions, this);
     FreshTab.startup(settings.freshTabABtest, settings.freshTabButton, settings.cliqzOnboarding, settings.channel);
   },
-  /**
-  * @method unload
-  */
+
   unload() {
     News.unload();
     FreshTab.shutdown();
@@ -48,30 +27,35 @@ export default {
         return showOnboarding;
     },
 
-    _showHelp: isWithinNDaysAfterInstallation.bind(null, 5),
-
     _showMiniOnboarding() {
+       var miniOnboarding = false,
+           now = Date.now(),
+           ONE_DAY = 24 * 60 * 60 * 1000,
+           PREF_ONBOARDING = 'freshtabOnboarding',
+           isUserFirstTimeAtFreshTab = parseInt(utils.getPref(PREF_ONBOARDING, '0')) === 0;
 
-      if (getInstallationDate() === 0) {
-        utils.setPref(PREF_ONBOARDING, '' + Date.now());
+      if (isUserFirstTimeAtFreshTab){
+        utils.setPref(PREF_ONBOARDING, '' + now);
       }
 
-      return isWithinNDaysAfterInstallation(1);
+      var isFirstDayAfterInstallation = parseInt(utils.getPref(PREF_ONBOARDING, '0')) +  ONE_DAY > now;
+      if (isFirstDayAfterInstallation) {
+        miniOnboarding = true;
+      }
+
+      return miniOnboarding;
     },
 
     _isBrowser() {
       return FreshTab.isBrowser;
     },
-    /**
-    * Get history based & user defined speedDials
-    * @method getSpeedDials
-    */
+
     getSpeedDials() {
       var dialUps = utils.hasPref(DIALUPS, '') ? JSON.parse(utils.getPref(DIALUPS, '', '')) : [],
           historyDialups = [],
           customDialups = dialUps.custom ? dialUps.custom : [];
 
-      historyDialups = History.getTopUrls().then(function(results){
+      historyDialups = History.getTopUrls(5).then(function(results){
         utils.log("History", JSON.stringify(results));
         //hash history urls
         results = results.map(function(r) {
@@ -79,8 +63,7 @@ export default {
             title: r.title,
             url: r.url,
             hashedUrl: utils.hash(r.url),
-            total_count: r.total_count,
-            custom: false
+            total_count: r.total_count
           }
         });
 
@@ -131,10 +114,12 @@ export default {
     },
 
     /**
-     * Remove a speedDial
-     * @method removeSpeedDial
-     * @param {item}  The item to be removed.
-     */
+    * @param Object item
+    * {
+    *   custom: true,
+    *   url: https://www.cliqz.com
+    *  }
+    */
     removeSpeedDial(item) {
       var isCustom = item.custom,
           url = isCustom ? item.url : utils.hash(item.url),
@@ -155,28 +140,15 @@ export default {
 
       utils.setPref(DIALUPS, JSON.stringify(dialUps), '');
     },
-
     /**
-    * @return all visible speedDials
-    */
-    getVisibleDials(historyLimit) {
-      return this.actions.getSpeedDials().then((results) => {
-        return results.speedDials.filter(function(item, index) {
-          return (!item.custom && index < historyLimit) || item.custom;
-        });
-      })
-    },
-    /**
-    * Add a new speedDial to be appeared in the 2nd row
-    * @method addSpeedDial
-    * @param url {string}
-    */
+     * @param String url
+     */
     addSpeedDial(url) {
       const urlToAdd = utils.stripTrailingSlash(url);
-      //history returns most frequest 15 results, but we display up to 5
-      //so we need to validate only against visible results
-      return this.actions.getVisibleDials(5).then((result) => {
-        const isDuplicate = result.some(function(dialup) {
+      //validate existing urls
+      return this.actions.getSpeedDials().then((result) => {
+        utils.log(result, "!!getSpeedDials")
+        const isDuplicate = result.speedDials.some(function(dialup) {
           return urlToAdd === utils.stripTrailingSlash(dialup.url);
         });
 
@@ -194,8 +166,6 @@ export default {
         /* before adding new dialup make sure it is not there already
         ** looks like concurrency issues of messaging framework could lead to race conditions
         */
-
-
         const isPresent = dialUps.custom.some(function(dialup) {
           return utils.tryEncodeURIComponent(urlToAdd) === utils.stripTrailingSlash(dialup.url);
         });
@@ -209,13 +179,9 @@ export default {
           utils.setPref(DIALUPS, JSON.stringify(dialUps), '');
           return new SpeedDial(urlToAdd, true);
         }
-      }).catch(reason => ({ error: true, reason: typeof reason === 'object' ? reason.toString() : reason }));
+      }).catch(reason => ({ error: true, reason }));
     },
 
-    /**
-    * Get list with top & personalized news
-    * @method getNews
-    */
     getNews() {
 
       return News.getNews().then(function(news) {
@@ -248,10 +214,7 @@ export default {
       });
 
     },
-    /**
-    * Get configuration regarding locale, onBoarding and browser
-    * @method getConfig
-    */
+
     getConfig() {
       var self = this;
 
@@ -259,14 +222,12 @@ export default {
         locale: utils.PREFERRED_LANGUAGE,
         showOnboarding: self.actions._showOnboarding(),
         miniOnboarding: self.actions._showMiniOnboarding(),
-        showHelp: self.actions._showHelp(),
-        isBrowser: self.actions._isBrowser()
+        isBrowser: self.actions._isBrowser(),
+        distribution: utils.getPref('distribution', '')
       };
       return Promise.resolve(config);
     },
-    /**
-    * @method takeFullTour
-    */
+
     takeFullTour() {
       var onboardingWindow = utils.getWindow().CLIQZ.System.get("onboarding/window").default;
       new onboardingWindow({settings: {}, window: utils.getWindow()}).fullTour();
@@ -279,10 +240,7 @@ export default {
         "version": 1.0
       });
     },
-    /**
-    * revert back to old "new tab"
-    * @method revertBack
-    */
+
     revertBack() {
       FreshTab.toggleState();
       utils.getWindow().CLIQZ.Core.refreshButtons();

@@ -1,5 +1,8 @@
 {{#if data.richData.full_name}}
   <div class='cqz-result-h3'>
+    {{#if debug}}
+        <span class='cqz-result-debug'>{{ debug }}</span>
+    {{/if}}
     {{#if image.src}}
         <div class="cqz-image cqz-image-round" style="
                     position:relative;

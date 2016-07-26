@@ -1,18 +1,9 @@
 var attPopUp = document.querySelector(".cqz-antitracking-popup"),
     enableButton = document.querySelector("#cqz-antrc-power-btn"),
     whitelistButton = document.querySelector("#cqz-whitelist-btn"),
-    privacyScore = document.querySelector(".cqz-dog-score-holder"),
-    privacyScoreLink = document.querySelector(".cqz-watchdog-score a"),
+    seeDetailsButton = document.querySelector("#cqz-see-details"),
     trackersListElement = document.querySelector(".cqz-trackers-blocked"),
-    stylesLoader = document.querySelector("#styles"),
     hostname;
-new Date;
-
-//Refresh the CSS of popup
-// !!!!!!!!!!!!!!!!!!!!!  DEV ONLY  !!!!!!!!!!!!!!!!!!!!!!!!
-//stylesLoader.setAttribute("href", stylesLoader.getAttribute("href") + "?" + Math.floor(Date.now() /1000));
-// !!!!!!!!!!!!!!!!!!!!!  Comment Me PLEASE  !!!!!!!!!!!!!!!!!!!!!!!!
-
 
 var trackersListTemplate = Handlebars.compile(document.querySelector("#trackersListTemplate").innerHTML);
 
@@ -46,14 +37,14 @@ function setBodyClass(options) {
   }
 
   //If thare are ANY tracker
-  if (!options.have_trackers || (options.have_trackers && !options.have_bad_trackers)) {
+  if (!options.have_trackers) {
     document.body.classList.add("cqz-have-no-trackers");
   } else {
     document.body.classList.remove("cqz-have-no-trackers");
   }
 
   //If thare are BAD tracker
-  if (options.have_bad_trackers) {
+  if (options.have_bad_trackers || options.have_trackers) {
     document.body.classList.add("cqz-have-bad-trackers");
   } else {
     document.body.classList.remove("cqz-have-bad-trackers");
@@ -82,56 +73,25 @@ function populateDOM() {
     var general_msg_trnsl = document.querySelector(".cqz-general-trackers-msg");
     var general_trackers_count = data.cookiesCount + data.requestsCount;
     var have_bad_trackers_bool = general_trackers_count > 0;
-    var have_any_trackers_bool = Object.keys(data.trakersList.trackers).length > 0 || 0;
+    var have_any_trackers_bool = Object.keys(data.trakersList.trackers).length > 0;
 
-    // Whatch Dog SCORE and LINK
-    if(data.ps && data.ps.score ) {
-      if(data.ps.score >= 0 ) {
-        var wdScore = Math.round(data.ps.score / 20);
-        privacyScore.classList.add("cqz-score-" + wdScore);
-        privacyScoreLink.setAttribute("data-href",privacyScoreLink.getAttribute("data-href") + hostname);
-      } else {
-        document.querySelector(".cqz-watchdog-score").style = "display: none;";
-      }
-    }
-
-    //Display Trackers list
+    ////Display Trackers list
     var counterTrackers = 0;
 
     // Check if we have trackers && if domain is not whitelisted
-    if(have_bad_trackers_bool > 0 && data.trakersList && data.trakersList.trackers && !data.isWhitelisted) {
+    if(have_any_trackers_bool > 0 && data.trakersList && data.trakersList.trackers && !data.isWhitelisted) {
       //Populate Tracking List
-      var companies = [];
-
+      var companies = []
 
       // aggregate data by company
       for (var company in data.trakersList.companies) {
-        var companyBadTracker = [];
-        var companyTrackers = data.trakersList.companies[company];
-        var trackerCount = companyTrackers .reduce( function (sum, domain) {
+        var trackerCount = data.trakersList.companies[company].reduce( function (sum, domain) {
           var domainData = data.trakersList.trackers[domain];
           return sum + (domainData.cookie_blocked || 0) + (domainData.bad_qs || 0)
         }, 0);
 
-        //Get the Bad Trackers
-        for(var ii = 0; ii < companyTrackers.length; ii++) {
-          var trackerName = companyTrackers[ii];
-
-          //Add the tracker if there are bad requests or cookie
-          if(data.trakersList.trackers[trackerName].bad_qs > 0 || data.trakersList.trackers[trackerName].cookie_blocked > 0){
-            var trackerObj = {};
-
-            trackerObj["name"] = trackerName;
-            trackerObj["domain_name"] = CliqzUtils.getDetailsFromUrl(trackerName).domain;
-            trackerObj["count"] = data.trakersList.trackers[trackerName].bad_qs + data.trakersList.trackers[trackerName].cookie_blocked;
-            companyBadTracker.push(trackerObj);
-          }
-        }
-
-        if (trackerCount > 0)
-          companies.push({name: company, count: trackerCount, trackers: companyBadTracker, watchDogName: company.replace(/ /g,"-")});
+        companies.push({name: company, count: trackerCount});
       };
-
 
       // sort companies by tracking
       counterTrackers = companies.length;
@@ -142,20 +102,19 @@ function populateDOM() {
       // create html company list
       trackersListElement.innerHTML = trackersListTemplate(companies);
 
-
-      trackersListElement.addEventListener('click', function (e) {
-        var el = closest(e.target, ".cqz-company-holder");
-        if(e) {
-          //el.parentElement.classList.toggle('active');
-        }
-      });
-
       expandPopUp('big');
     } else {
       expandPopUp('small');
     }
 
     document.querySelector(".cqz-count").textContent = general_trackers_count;
+
+    //general_msg_trnsl.dataset.i18n = [
+    //  general_msg_trnsl.dataset.i18n,
+    //  data.url,
+    //  counterTrackers,
+    //  general_trackers_count
+    //].join(',');
 
     var whiteListOn = document.querySelector(".cqz-whitelisted-msg");
     var domainName = document.querySelector(".cqz-domain-name");
@@ -170,6 +129,11 @@ function populateDOM() {
       data.url,
     ].join(',');
 
+    //Check if site is in the whitelist
+    //if(data.isWhitelisted) {
+    //  whitelistButton.style.display = "block"
+    //}
+
     setBodyClass({
       enabled: data.enabled,
       whitelisted: data.isWhitelisted,
@@ -178,7 +142,6 @@ function populateDOM() {
       have_bad_trackers: have_bad_trackers_bool,
       have_trackers: have_any_trackers_bool
     });
-
 
     localizeDocument();
   });
@@ -214,28 +177,4 @@ function expandPopUp (command) {
 }
 
 populateDOM();
-
 chrome.runtime.sendMessage({ functionName: "telemetry", args: { action: "click", target: "popup", includeUnsafeCount: true } });
-
-function closest(elem, selector) {
-  while (elem) {
-    if (matches(elem, selector)) {
-      return elem;
-    } else {
-      elem = elem.parentElement;
-    }
-  }
-  return false;
-}
-
-// returns true if the selector matches the element
-function matches(elem, selector) {
-    var f = elem.matches || elem.webkitMatchesSelector || elem.mozMatchesSelector || elem.msMatchesSelector;
-    if(f){
-        return f.bind(elem)(selector);
-    }
-    else {
-        //older FF doest have mathes - create our own
-        return elem.parentNode && Array.prototype.indexOf.call(elem.parentNode.querySelectorAll(selector), elem) != -1;
-    }
-}

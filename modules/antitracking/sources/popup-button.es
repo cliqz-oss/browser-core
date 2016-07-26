@@ -40,9 +40,6 @@ function CliqzPopupButton(options) {
 
       iframe.style.height = toPx(clientHeight);
       panel.style.height = toPx(clientHeight + panel.boxObject.height - panel.clientHeight );
-
-      // triggered when popup is opened
-      options.actions.telemetry({ action: 'click', target: 'popup', includeUnsafeCount: true });
     }
     iframe.addEventListener('load', onPopupReady, true);
   }

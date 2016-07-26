@@ -52,39 +52,10 @@ XPCOMUtils.defineLazyModuleGetter(this, 'CliqzHistoryManager',
     telemetry('open_private_window');
   }
 
-  function isTabOpen(url, cb) {
-    var chrome = CliqzUtils.getWindow(),
-        tabs = chrome.gBrowser.tabs,
-        isOpen = false;
-
-    Array.from(tabs).some(function(tab) {
-      var browser = gBrowser.getBrowserForTab(tab);
-      if(browser.currentURI && browser.currentURI.spec === url) {
-        isOpen = true;
-        return isOpen;
-      }
-    });
-    if(isOpen) {
-      cb && cb();
-    }
-    return isOpen;
-  }
-
   function removeEntry(e) {
     var item,
         url = e.target.getAttribute('data-url'),
-        uri = CliqzUtils.makeUri(url, '', null),
-        chrome = CliqzUtils.getWindow();
-
-    isTabOpen(url, function() {
-      var tabs = chrome.gBrowser.tabs;
-      Array.from(tabs).forEach(function(tab) {
-        var browser = gBrowser.getBrowserForTab(tab);
-        if(browser.currentURI && browser.currentURI.spec === url) {
-          chrome.gBrowser.removeTab(tab);
-        }
-      });
-    })
+        uri = CliqzUtils.makeUri(url, '', null);
 
     if(CliqzHistoryManager.isBookmarked(uri)){
       removeFromBookmarks(uri);
@@ -200,19 +171,11 @@ XPCOMUtils.defineLazyModuleGetter(this, 'CliqzHistoryManager',
 
           } else {
             showRemoveEntry(menu);
-            var label = CliqzUtils.getLocalizedString('cMenuRemoveFromBookmarksAndHistory');
             if(CliqzHistoryManager.isBookmarked(uri)){
               //TODO check if history is disabled, in this case we should display Remove from Bookmarks
-              if(isTabOpen(url)) {
-                label = CliqzUtils.getLocalizedString('cMenuRemoveFromHistoryAndBookmarksAndCloseTab');
-              }
-              replaceRemoveEntry(children, label);
+              replaceRemoveEntry(children, CliqzUtils.getLocalizedString('cMenuRemoveFromBookmarksAndHistory'));
             } else {
-              var label = CliqzUtils.getLocalizedString('cMenuRemoveFromHistory');
-              if(isTabOpen(url)) {
-                label = CliqzUtils.getLocalizedString('cMenuRemoveFromHistoryAndCloseTab');
-              }
-              replaceRemoveEntry(children, label);
+              replaceRemoveEntry(children, CliqzUtils.getLocalizedString('cMenuRemoveFromHistory'));
             }
           }
 

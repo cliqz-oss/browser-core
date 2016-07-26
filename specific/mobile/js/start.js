@@ -9,12 +9,10 @@ System.import("core/startup").then(function (startupModule) {
     "mobile-dev",
     "mobile-freshtab",
     "mobile-touch",
-    "static",
-    "yt-downloader"
+    "static"
   ]);
 }).then(function () {
-  return CliqzUtils.init(window);
-}).then(function () {
+  CliqzUtils.init(window);
   osAPI.init();
   CLIQZEnvironment.initHomepage(true);
 });

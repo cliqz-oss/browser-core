@@ -21,6 +21,11 @@
          style='padding-bottom: 0px;' extra="title">
       {{ title }}
     </div>
+    {{#if debug}}
+      <span class='cliqz-result-debug overflow'>
+        <span>{{ debug }}</span>
+      </span>
+    {{/if}}
     <div class='cliqz-result-url-box overflow'>
       <span class='cliqz-result-url-host
         {{#if urlDetails.ssl }}

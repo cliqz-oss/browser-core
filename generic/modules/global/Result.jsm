@@ -144,7 +144,6 @@ var Result = {
     },
     // check if a result should be kept in final result list
     isValid: function (url, urlparts) {
-
         // Google Filters
         if(urlparts.name.toLowerCase() == "google" &&
            urlparts.subdomains.length > 0 && urlparts.subdomains[0].toLowerCase() == "www" &&
