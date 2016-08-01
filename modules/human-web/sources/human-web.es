@@ -826,12 +826,13 @@ var CliqzHumanWeb = {
                     }
                 }
 
-                var document = Services.appShell.hiddenDOMWindow.document;
-                var doc = document.implementation.createHTMLDocument("example");
-                doc.documentElement.innerHTML = req.responseText;
+                var hiddenWindow = Services.appShell.hiddenDOMWindow;
+                var parser = new hiddenWindow.DOMParser();
+                var doc  = parser.parseFromString(req.responseText, "text/html");
+
+                var x = CliqzHumanWeb.getPageData(url, doc);
 
                 CliqzHumanWeb.docCache[url] = {'time': CliqzHumanWeb.counter, 'doc': doc};
-                var x = CliqzHumanWeb.getPageData(url, doc);
 
                 onsuccess(url, page_data, original_url, x);
 
@@ -3225,7 +3226,37 @@ var CliqzHumanWeb = {
                 }
                 else {
                     _log("Going for double fetch: " + url);
-                    CliqzHumanWeb.doubleFetch(url, url_pagedocPair[url]);
+
+                    // only do doubleFetch for the same url 3 times in a row
+                    // (set up as CliqzHumanWeb.MAX_NUMBER_DOUBLEFETCH_ATTEMPS).
+                    // If more attemps are tried then the url is marked as private.
+                    // Prevent infinite loop if the doubleFetch causes the browser
+                    // to crash (issue #2213)
+                    //
+                    CliqzHumanWeb.loadRecord('last-double-fetch', function(data) {
+                      var obj = null;
+                      if (data==null) obj = {'url': url, 'count': 1};
+                      else {
+                        obj = JSON.parse(data);
+                        if (obj.url!=url) obj = {'url': url, 'count': 1};
+                        else {
+                          try {
+                            obj['count'] += 1;
+                          } catch(err) {
+                            obj['count'] = 1;
+                          }
+                        }
+                      }
+                      CliqzHumanWeb.saveRecord('last-double-fetch', JSON.stringify(obj));
+
+                      if (obj.count > CliqzHumanWeb.MAX_NUMBER_DOUBLEFETCH_ATTEMPS) {
+                        CliqzHumanWeb.setAsPrivate(url);
+                      }
+                      else {
+                        CliqzHumanWeb.doubleFetch(url, url_pagedocPair[url]);
+                      }
+                    });
+
                 }
             });
         }
