@@ -452,6 +452,10 @@ var CliqzAutocomplete = {
                         // filter results with no or empty url
                         return r.url != undefined && r.url != '';
                     });
+
+                    this.cliqzResultsParams = {
+                      choice: json.choice,
+                    };
                 }
                 this.pushResults(q);
             },
@@ -568,6 +572,7 @@ var CliqzAutocomplete = {
 
                 this.cliqzResults = null;
                 this.cliqzResultsExtra = null;
+                this.cliqzResultsParams = { };
                 this.cliqzCache = null;
                 this.historyResults = null;
                 this.instant = [];
@@ -660,6 +665,7 @@ var CliqzAutocomplete = {
                     latency_all: obj.startTime? Date.now() - obj.startTime : null,
                     discarded: obj.discardedResults,
                     user_rerankers: obj.userRerankers,
+                    backend_params: obj.cliqzResultsParams,
                     v: 1
                 };
 

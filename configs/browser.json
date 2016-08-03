@@ -10,7 +10,8 @@
     "showDataCollectionMessage": false,
     "cliqzOnboarding": true,
     "channel": "40",
-    "antitrackingButton": true
+    "antitrackingButton": true,
+    "helpMenus": true
   },
   "modules": [
     "static",
@@ -28,7 +29,9 @@
     "performance",
     "hpn",
     "smart-cliqz-cache",
-    "privacy-dashboard"
+    "privacy-dashboard",
+    "offers",
+    "adblocker"
   ],
   "subprojects": [
     "fresh-tab-frontend"

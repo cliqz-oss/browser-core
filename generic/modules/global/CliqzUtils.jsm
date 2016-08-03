@@ -311,8 +311,9 @@ var CliqzUtils = {
   },
   cleanMozillaActions: function(url){
     if(url.indexOf("moz-action:") == 0) {
-        var [, action, url] = url.match(/^moz-action:([^,]+),(.*)$/);
-        //url = url.match(/^moz-action:([^,]+),(.*)$/)[2];
+        var match = url.match(/^moz-action:([^,]+),(.*)$/);
+        var action = match[1];
+        url = match[2];
     }
     return [action, url];
   },
@@ -332,7 +333,9 @@ var CliqzUtils = {
     return url;
   },
   getDetailsFromUrl: function(originalUrl){
-    var [action, originalUrl] = CliqzUtils.cleanMozillaActions(originalUrl);
+    var result = CliqzUtils.cleanMozillaActions(originalUrl);
+    var action = result[0];
+    var originalUrl = result[1];
     // exclude protocol
     var url = originalUrl,
         name = '',

@@ -1,4 +1,5 @@
-const { classes: Cc, interfaces: Ci, utils: Cu, manager: Cm } = Components;
+const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu, manager: Cm } =
+    Components;
 
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import("resource://gre/modules/Services.jsm");
@@ -21,6 +22,14 @@ var CLIQZ_NEW_TAB = "about:cliqz",
     HAS_BUTTON = true,
     FF41_OR_ABOVE = false;
 
+const StringInputStream = CC(
+  '@mozilla.org/io/string-input-stream;1',
+  'nsIStringInputStream',
+  'setData');
+const InputStreamChannel = Cc["@mozilla.org/network/input-stream-channel;1"];
+const securityManager = Cc["@mozilla.org/scriptsecuritymanager;1"].getService(
+    Ci.nsIScriptSecurityManager);
+
 try{
   var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
       .getService(Components.interfaces.nsIXULAppInfo);
@@ -39,8 +48,40 @@ try{
 
 
 Cm.QueryInterface(Ci.nsIComponentRegistrar);
+
 function AboutURL() {}
-var AboutURLFactory;
+AboutURL.prototype = {
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIAboutModule]),
+  classDescription: CLIQZ_NEW_TAB,
+  classID: Components.ID("{D5889F72-0F01-4aee-9B88-FEACC5038C34}"),
+  contractID: "@mozilla.org/network/protocol/about;1?what=cliqz",
+
+  newChannel: function(uri) {
+    var src = CLIQZ_NEW_TAB_URL + "?cliqzOnboarding=" + FreshTab.cliqzOnboarding;
+    var html =  [
+        '<!DOCTYPE html><html><head><meta charset="UTF-8">',
+        '<style>* {margin:0;padding:0;width:100%;height:100%;overflow:hidden;border: 0}</style>',
+        `</head><body><iframe src="${src}">`,
+        '</iframe></body></html>'
+    ].join("");
+
+    let channel = InputStreamChannel.createInstance(Ci.nsIInputStreamChannel).
+        QueryInterface(Ci.nsIChannel);
+    channel.setURI(uri);
+    channel.originalURI = uri;
+    channel.contentStream = new StringInputStream(html, html.length);
+    channel.owner = securityManager.getSystemPrincipal();
+
+    return channel;
+  },
+
+  getURIFlags: function(uri) {
+    return Ci.nsIAboutModule.ALLOW_SCRIPT;
+  }
+};
+
+const AboutURLFactory =
+    XPCOMUtils.generateNSGetFactory([AboutURL])(AboutURL.prototype.classID);
 
 var FreshTab = {
     signalType: "home",
@@ -88,30 +129,6 @@ var FreshTab = {
         if(HAS_BUTTON && !CliqzUtils.hasPref(FRESH_TAB_STATE)){
           CliqzUtils.setPref(FRESH_TAB_STATE,  false); //opt-in
         }
-        AboutURL.prototype = {
-            QueryInterface: XPCOMUtils.generateQI([Ci.nsIAboutModule]),
-            classDescription: CLIQZ_NEW_TAB,
-            classID: Components.ID("{D5889F72-0F01-4aee-9B88-FEACC5038C34}"),
-            contractID: "@mozilla.org/network/protocol/about;1?what=cliqz",
-
-            newChannel: function(uri) {
-                var ioService = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
-                var html =  ["data:text/html,<!DOCTYPE html><html><head><meta charset=\"UTF-8\">",
-                            "<style>* {margin:0;padding:0;width:100%;height:100%;overflow:hidden;border: 0}</style>",
-                            "</head><body><iframe src=\"" + CLIQZ_NEW_TAB_URL + "?cliqzOnboarding=" + FreshTab.cliqzOnboarding + "\"></iframe></body></html>"].join('')
-
-                var securityManager = Cc["@mozilla.org/scriptsecuritymanager;1"].getService(Ci.nsIScriptSecurityManager);
-                var channel = ioService.newChannel(html, null, null);
-                channel.originalURI = uri;
-                channel.owner = securityManager.getSystemPrincipal();
-
-                return channel;
-            },
-
-            getURIFlags: function(uri) { return Ci.nsIAboutModule.ALLOW_SCRIPT; }
-        }
-
-        AboutURLFactory = XPCOMUtils.generateNSGetFactory([AboutURL])(AboutURL.prototype.classID);
 
         Cm.registerFactory(
             AboutURL.prototype.classID,

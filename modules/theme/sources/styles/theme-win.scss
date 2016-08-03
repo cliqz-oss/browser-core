@@ -587,6 +587,10 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper > #urlbar > #identity-box 
     }
 }
 
+#main-window[sizemode="fullscreen"] #browser-panel {
+    margin-top: 0;
+}
+
 #main-window:not([sizemode="maximized"]):not([tabsintitlebar="true"]) {
 	#browser-panel {
         margin-top: 0;
@@ -618,7 +622,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper > #urlbar > #identity-box 
 		.tab-content, .tabs-newtab-button {
 		    background-color: rgba(255, 255, 255, 0.8) !important;
 		}
-		
+
 		.tab-close-button:-moz-lwtheme-brighttext,
 		#TabsToolbar[brighttext] .tab-close-button:not([visuallyselected="true"]) {
 		    list-style-image: url("../images/browser/win/close.png");
@@ -677,7 +681,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper > #urlbar > #identity-box 
                 margin-top: -15px !important; /*Move the window up to remove space above tabs*/
             }
         }
-		
+
 		&:not([tabsintitlebar="true"]) {
 	        :-moz-system-metric(windows-classic) {
 				#browser-panel {

@@ -2,6 +2,9 @@
 import CliqzAttrack from 'antitracking/attrack';
 import HeaderInfoVisitor from 'platform/antitracking/header-info-visitor';
 import * as browser from 'platform/browser';
+import md5 from 'antitracking/md5';
+import {parseURL, dURIC, getHeaderMD5, URLInfo} from 'antitracking/url';
+import {getGeneralDomain, sameGeneralDomain} from 'antitracking/domain';
 
 // An abstraction layer for extracting contextual information
 // from the HttpChannel on various Firefox versions.
@@ -16,9 +19,25 @@ function HttpRequestContext(subject) {
   this.method = this.channel.requestMethod;
   this._parsedURL = undefined;
   this._legacy_source = undefined;
+  this.source = this.getSourceURL();
+  if (this.url) {
+    this.urlParts = URLInfo.get(this.url);
+    this.hostname = this.urlParts.hostname;
+    this.hostGD = getGeneralDomain(this.hostname);
+  }
+  if (this.source && this.source !== 'null') {
+    this.sourceParts = URLInfo.get(this.source);
+    this.sourceHostname = this.sourceParts.hostname;
+    if (this.sourceHostname) {
+      this.sourceGD = getGeneralDomain(this.sourceHostname);
+    }
+  }
 
-  let tabId = this.getOuterWindowID();
-  let parentId = this.getParentWindowID();
+  this.oriWin = this.getOriginWindowID();
+  this.cpt = this.getContentPolicyType();
+  let tabId = this.getOuterWindowID(),
+      parentId = this.getParentWindowID();
+
   // tab tracking
   if(this.isFullPage()) {
     // fullpage - add tracked tab
@@ -72,7 +91,6 @@ HttpRequestContext.deleteTab = function(tabId) {
 };
 
 HttpRequestContext.prototype = {
-
   getInnerWindowID: function() {
     return this.loadInfo ? this.loadInfo.innerWindowID : 0;
   },
@@ -98,7 +116,7 @@ HttpRequestContext.prototype = {
       }
       return HttpRequestContext._tabs[parentWindow].url;
     } else if (this.loadInfo != null) {
-      return this.loadInfo.loadingDocument != null && 'location' in this.loadInfo.loadingDocument && this.loadInfo.loadingDocument.location ? this.loadInfo.loadingDocument.location.href : ""
+      return this.loadInfo.loadingDocument != null && 'location' in this.loadInfo.loadingDocument && this.loadInfo.loadingDocument.location ? this.loadInfo.loadingDocument.location.href : "";
     } else {
       return this._legacyGetSource().url;
     }
@@ -156,13 +174,22 @@ HttpRequestContext.prototype = {
       return this.getOuterWindowID();
     }
   },
-  isChannelPrivate() {
+  isChannelPrivate: function() {
     return this.channel.QueryInterface(Ci.nsIPrivateBrowsingChannel).isChannelPrivate;
   },
   getPostData() {
     let visitor = new HeaderInfoVisitor(this.channel);
     let requestHeaders = visitor.visitRequest();
     return visitor.getPostData();
+  },
+  getSourceURL: function() {
+    return this.getLoadingDocument() || this.getReferrer();
+  },
+  isTracker: function() {
+    if (this.hostGD === this.sourceGD) {
+      return false;
+    }
+    return CliqzAttrack.qs_whitelist.isTrackerDomain(md5(this.hostGD).substr(0, 16));
   },
   _legacyGetSource: function() {
     if (this._legacy_source === undefined) {
@@ -272,7 +299,7 @@ function getLoadContext( aRequest ) {
     try {
       if( !aRequest.loadGroup ) return null;
 
-      var loadContext = aRequest.loadGroup.notificationCallbacks
+      let loadContext = aRequest.loadGroup.notificationCallbacks
                       .getInterface(Components.interfaces.nsILoadContext);
       return loadContext;
     } catch (ex) {

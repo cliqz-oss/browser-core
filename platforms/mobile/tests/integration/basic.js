@@ -626,6 +626,20 @@ describe("Freshtab", function () {
       expect(topsites[1].getAttribute('url')).to.equal('http://www.tagesschau.de/eilmeldung/eilmeldung-1203.html');
     });
   });
+
+  context("Deduplicate sites with common domain", function () {
+    beforeEach(function () {
+      contentWindow.osAPI.openLink("http://www.tagesschau.de/eilmeldung/eilmeldung-1203.html");
+      contentWindow.osAPI.openLink("http://www.tagesschau.com/eilmeldung/eilmeldung-1204.html");
+      contentWindow.osAPI.openLink("http://m.tagesschau.de/eilmeldung/eilmeldung-1205.html");
+      contentWindow.jsAPI.search();
+    });
+
+    it("should display one topsite", function () {
+      const topsites = $('.topSitesLink');
+      expect(topsites).to.have.length(1);
+    });
+  });
 });
 
 

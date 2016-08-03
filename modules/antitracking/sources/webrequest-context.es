@@ -16,7 +16,7 @@ export default class {
   }
 
   getOuterWindowID() {
-    return this.details.tabId;
+    return this.details.getOuterWindowID();
   }
 
   getParentWindowID() {
@@ -43,6 +43,10 @@ export default class {
     return this.getRequestHeader('Referer');
   }
 
+  getSourceURL() {
+    return this.details.getSourceURL();
+  }
+
   getRequestHeader(header) {
     return this.details.getRequestHeader(header);
   }
@@ -52,7 +56,7 @@ export default class {
   }
 
   getOriginWindowID() {
-    return this.details.tabId;
+    return this.details.getOriginWindowID();
   }
 
   isChannelPrivate() {
@@ -62,5 +66,4 @@ export default class {
   getPostData() {
     return this.details.getPostData();
   }
-
 }

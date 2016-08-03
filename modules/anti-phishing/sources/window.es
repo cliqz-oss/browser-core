@@ -7,15 +7,11 @@ export default class {
   }
 
   init() {
-    if (utils.isPrivate(this.window)) {
-      this.window.gBrowser.addProgressListener(CliqzAntiPhishing.listener);
-    }
+    this.window.gBrowser.addProgressListener(CliqzAntiPhishing.listener);
   }
 
   unload() {
-    if (utils.isPrivate(this.window)) {
-      this.window.gBrowser.removeProgressListener(CliqzAntiPhishing.listener);
-    }
+    this.window.gBrowser.removeProgressListener(CliqzAntiPhishing.listener);
   }
 
   changeAntiPhishingState() {

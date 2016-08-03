@@ -16,6 +16,8 @@ function displayTopSites (list, isEditMode = false) {
 
   const blockedTopSites = CLIQZEnvironment.getLocalStorage().getObject('blockedTopSites', []);
 
+  list = deduplicateTopsites(list);
+
   list = list.filter(item => blockedTopSites.indexOf(item.mainDomain) === -1);
 
   list = list.filter(item => tempBlockedTopSites.indexOf(item.mainDomain) === -1);
@@ -82,6 +84,11 @@ function displayTopSites (list, isEditMode = false) {
 
   new LongPress('.topSitesLink', onLongpress, onTap);
 
+}
+
+function deduplicateTopsites(list) {
+  let domains = {};
+  return list.filter(item => !domains[item.mainDomain] && (domains[item.mainDomain] = true));
 }
 
 var News = {

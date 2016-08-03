@@ -28,6 +28,7 @@ CLIQZEnvironment = {
     },
     OS: 'darwin',
     isPrivate: function(){ return false; },
+    isOnPrivateTab: function(win) { return false; },
     getWindow: function(){ return window; },
     httpHandler: function(method, url, callback, onerror, timeout, data){
         var req = new XMLHttpRequest();

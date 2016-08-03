@@ -1,0 +1,151 @@
+{
+   "datetime_db": {
+      "day_data": {
+         "0": 31, 
+         "1": 12, 
+         "2": 30, 
+         "3": 10, 
+         "4": 22, 
+         "5": 9, 
+         "6": 14
+      }, 
+      "hour_data": {
+         "1": 2, 
+         "7": 2, 
+         "8": 2, 
+         "9": 9, 
+         "10": 6, 
+         "11": 11, 
+         "12": 14, 
+         "13": 12, 
+         "14": 9, 
+         "15": 11, 
+         "16": 13, 
+         "17": 9, 
+         "18": 3, 
+         "19": 5, 
+         "20": 9, 
+         "21": 5, 
+         "22": 3, 
+         "23": 3
+      }, 
+      "month_data": {}, 
+      "total_signals": 128
+   },
+   "domain_info_db": {
+      "checkout_regex": {
+         "0": "/warenkorb/", 
+         "1": "cart_process",
+         "3": "jetztkaufen", 
+         "4": "shopping_cart", 
+         "5": "cl=basket", 
+         "7": "/checkout/", 
+         "8": "shopping_cart", 
+         "11": "/warenkorb/", 
+         "12": "checkout", 
+         "13": "/Checkout/", 
+         "15": "/Checkout/"
+      },
+      "top_sellers": [
+         [
+            0,
+            29
+         ], 
+         [
+            1, 
+            68
+         ], 
+         [
+            3, 
+            7
+         ], 
+         [
+            4, 
+            3
+         ], 
+         [
+            5, 
+            9
+         ], 
+         [
+            7, 
+            1
+         ], 
+         [
+            8, 
+            5
+         ], 
+         [
+            11, 
+            1
+         ], 
+         [
+            12, 
+            2
+         ], 
+         [
+            13, 
+            2
+         ], 
+         [
+            15, 
+            1
+         ]
+      ], 
+      "total_signals": 128
+   }, 
+   "general_db": {
+      "avg_evts_per_avg_sessions": 25, 
+      "avg_num_events_per_buying": 34, 
+      "avg_num_sessions_per_buying": 2, 
+      "avg_time_between_sessions": 941.6872001806674, 
+      "avg_total_buying_time": 3513477.8942968827, 
+      "top_referrers": [
+         [
+            "", 
+            42
+         ], 
+         [
+            "druckerzubehoer", 
+            44
+         ], 
+         [
+            "gubidu", 
+            2
+         ], 
+         [
+            "paypal", 
+            3
+         ], 
+         [
+            "bueromarkt-ag", 
+            19
+         ], 
+         [
+            "wlp-acs", 
+            1
+         ], 
+         [
+            "druckerpatronenhandel", 
+            1
+         ], 
+         [
+            "tinte24", 
+            2
+         ], 
+         [
+            "tintencenter", 
+            2
+         ], 
+         [
+            "hq-patronen", 
+            4
+         ], 
+         [
+            "hd-toner", 
+            8
+         ]
+      ], 
+      "total_buy_signals": 128
+   }
+}

@@ -6,6 +6,8 @@ var { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
 Cu.import('resource://gre/modules/Services.jsm');
 
+Services.scriptloader.loadSubScript("chrome://cliqz/content/core/content-scripts.js");
+
 var config = {{CONFIG}};
 
 var whitelist = [
@@ -288,6 +290,22 @@ function onDOMWindowCreated(ev) {
       }
     });
   };
+
+
+  var contentScript = getContentScript(window, currentURL());
+  if (contentScript) {
+    contentScript(window, function (msg) {
+      send({
+        windowId: windowId,
+        payload: {
+          module: "core",
+          action: msg.action,
+          args: msg.args
+        }
+      });
+    });
+  }
+
 
   var onKeyPress = throttle(proxyWindowEvent("recordKeyPress"), 250);
   var onMouseMove = throttle(proxyWindowEvent("recordMouseMove"), 250);

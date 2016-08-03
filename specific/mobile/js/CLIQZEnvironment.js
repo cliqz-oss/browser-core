@@ -60,7 +60,8 @@ const TEMPLATES = Object.freeze(Object.assign(Object.create(null), {
   "topsites": true,
   "url": true,
   "weatherAlert": true,
-  "weatherEZ": true
+  "weatherEZ": true,
+  "liveTicker": true
 }));
 
 CLIQZEnvironment = {
@@ -227,6 +228,7 @@ CLIQZEnvironment = {
   },
   OS: 'mobile',
   isPrivate: function(){ return false; },
+  isOnPrivateTab: function(win) { return false; },
   isScrolling: false,
   getWindow: function(){ return window; },
   getDomNodeContent: function(el) {

@@ -1,0 +1,121 @@
+<style>
+    .messageImage {
+        display: none;
+    }
+
+    .row {
+        margin:  0 -1.5em;
+        height: 100px;
+        margin-top: 7px;
+    }
+    .col { padding: 0  1.5em; }
+
+    .row:after {
+        content: "";
+        clear: both;
+        display: table;
+    }
+
+    @media only screen { .col {
+        float: left;
+        box-sizing: border-box;
+
+        height: 100px;
+        display: table;
+    }}
+
+    .col > div {
+        display: table-cell;
+        vertical-align: middle;
+    }
+
+    .col p {
+        margin: 5px 0;
+    }
+
+    .logo {
+        width: 25%;
+    }
+
+    .description {
+        width: 40%;
+    }
+
+    .code {
+        width: 25%;
+        text-align: center;
+    }
+
+    .img {
+        width: auto;
+        max-width: 100%;
+        max-height: 100px;
+    }
+
+    .cliqz-coupon {
+        cursor: copy;
+        /*-moz-user-select: text;*/
+        padding: 5px;
+        border-radius: 3px;
+        background-color: #bbbbbb;
+    }
+
+
+    .copy-coupon {
+        padding: 5px;
+        border-radius: 3px;
+        visibility: hidden;
+        font-size: 10px;
+        text-align: center;
+    }
+
+    #cliqz-coupon:hover {
+        background-color: #dbdbdb;
+    }
+
+    .notification-button:hover {
+        background-color: #3257c0 !important;
+        cursor: pointer;
+    }
+
+</style>
+
+<div class="row">
+    <div class="col logo">
+        <div>
+            {{#if image_url}}
+                <img class="img" src="{{image_url}}" alt="logo" />
+            {{else}}
+                <img class="img" src="https://cliqz.com/assets/images/logo.svg" alt="logo" />
+            {{/if}}
+        </div>
+    </div>
+    <div class="col description">
+        <div>
+            {{#if title}}
+                <p style="font-size: 20px">Angeboten von <b>{{title}}</b></p>
+            {{/if}}
+            {{#if desc}}
+                <p>{{desc}}</p>
+            {{/if}}
+            <div style="font-size: 10px">
+                <span><b>Einlösebedingungen: </b></span>
+                {{#if min_order_value}}
+                    <span>{{min_order_value}}€ Mindestbestelltwert,</span>
+                {{/if}}
+                {{#if valid_for}}
+                    <span>Gültig für {{valid_for}}</span>
+                {{/if}}
+            </div>
+        </div>
+    </div>
+    <div class="col code">
+        <div>
+            {{#if code}}
+                <p><b>CODE:</b></p>
+                <p class="cliqz-coupon" cliqz-action="copy_val">{{code}}</p>
+                <p class="copy-coupon">Code kopiert</p>
+            {{/if}}
+        </div>
+    </div>
+</div>

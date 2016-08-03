@@ -573,6 +573,8 @@ var CliqzHumanWeb = {
 
             try {
                 var aChannel = aHttpChannel.QueryInterface(nsIHttpChannel);
+                // Return if it's a private tab.
+                if(aChannel.isChannelPrivate != undefined && aChannel.isChannelPrivate) return;
                 var url = decodeURIComponent(aChannel.URI.spec);
                 var ho = CliqzHumanWeb.getHeaders(aExtraStringData);
                 var status = ho['status'];
@@ -826,13 +828,12 @@ var CliqzHumanWeb = {
                     }
                 }
 
-                var hiddenWindow = Services.appShell.hiddenDOMWindow;
-                var parser = new hiddenWindow.DOMParser();
-                var doc  = parser.parseFromString(req.responseText, "text/html");
-
-                var x = CliqzHumanWeb.getPageData(url, doc);
+                var document = Services.appShell.hiddenDOMWindow.document;
+                var doc = document.implementation.createHTMLDocument("example");
+                doc.documentElement.innerHTML = req.responseText;
 
                 CliqzHumanWeb.docCache[url] = {'time': CliqzHumanWeb.counter, 'doc': doc};
+                var x = CliqzHumanWeb.getPageData(url, doc);
 
                 onsuccess(url, page_data, original_url, x);
 
@@ -1590,6 +1591,10 @@ var CliqzHumanWeb = {
 
         onLocationChange: function(aProgress, aRequest, aURI) {
             // New location, means a page loaded on the top window, visible tab
+            // Return if it's a private tab.
+            if(aRequest && aRequest.isChannelPrivate !== undefined && aRequest.isChannelPrivate) {
+                return;
+            }
 
             if(aProgress.isLoadingDocument){
                 CliqzHumanWeb.captureJSRefresh(aRequest, aURI);
@@ -1694,8 +1699,6 @@ var CliqzHumanWeb = {
 
                 if (CliqzHumanWeb.state['v'][activeURL] == null) {
                     //if ((requery.test(activeURL) || yrequery.test(activeURL) || brequery.test(activeURL) ) && !reref.test(activeURL)) {
-
-                    AntiPhishing.auxOnPageLoad(activeURL, currwin, true);
 
                     var se = CliqzHumanWeb.checkSearchURL(activeURL);
                     if (se > -1) {
@@ -1853,7 +1856,7 @@ var CliqzHumanWeb = {
                     // wops, it exists on the active page, probably it comes from a back button or back
                     // from tab navigation
                     CliqzHumanWeb.state['v'][activeURL]['tend'] = null;
-                    AntiPhishing.auxOnPageLoad(activeURL, currwin, false);
+                    AntiPhishing.auxOnPageLoad(activeURL, currwin, true, true);
                 }
             }
         },
@@ -3226,37 +3229,7 @@ var CliqzHumanWeb = {
                 }
                 else {
                     _log("Going for double fetch: " + url);
-
-                    // only do doubleFetch for the same url 3 times in a row
-                    // (set up as CliqzHumanWeb.MAX_NUMBER_DOUBLEFETCH_ATTEMPS).
-                    // If more attemps are tried then the url is marked as private.
-                    // Prevent infinite loop if the doubleFetch causes the browser
-                    // to crash (issue #2213)
-                    //
-                    CliqzHumanWeb.loadRecord('last-double-fetch', function(data) {
-                      var obj = null;
-                      if (data==null) obj = {'url': url, 'count': 1};
-                      else {
-                        obj = JSON.parse(data);
-                        if (obj.url!=url) obj = {'url': url, 'count': 1};
-                        else {
-                          try {
-                            obj['count'] += 1;
-                          } catch(err) {
-                            obj['count'] = 1;
-                          }
-                        }
-                      }
-                      CliqzHumanWeb.saveRecord('last-double-fetch', JSON.stringify(obj));
-
-                      if (obj.count > CliqzHumanWeb.MAX_NUMBER_DOUBLEFETCH_ATTEMPS) {
-                        CliqzHumanWeb.setAsPrivate(url);
-                      }
-                      else {
-                        CliqzHumanWeb.doubleFetch(url, url_pagedocPair[url]);
-                      }
-                    });
-
+                    CliqzHumanWeb.doubleFetch(url, url_pagedocPair[url]);
                 }
             });
         }

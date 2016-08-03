@@ -1040,6 +1040,27 @@
     "attrack-trackers-count-info-msg": {
         "message": "Data Protected"
     },
+    "adb-menu-option": {
+      "message": "Block Advertisements (BETA)"
+    },
+    "adb-menu-disable-domain": {
+      "message": "Disable for this domain"
+    },
+    "adb-menu-disable-url": {
+      "message": "Disable only for this site"
+    },
+    "adb-menu-option-optimized": {
+      "message": "Optimized"
+    },
+    "adb-menu-option-enabled": {
+      "message": "All"
+    },
+    "adb-menu-option-disabled": {
+      "message": "None"
+    },
+    "adb-menu-more": {
+      "message": "Learn More"
+    },
     "freshtab_learn_more": {
       "message": "Learn more"
     },

@@ -434,6 +434,15 @@ var CLIQZEnvironment = {
 
         return win.cliqzIsPrivate
     },
+
+    /**
+     * @param {ChromeWindow} win - browser window to check.
+     * @return whether |win|'s current tab is in private mode.
+     */
+    isOnPrivateTab: function(win) {
+      return win.gBrowser.selectedBrowser.loadContext.usePrivateBrowsing;
+    },
+
     setInterval: function(func, timeout) {
         return _setTimer(func, timeout, Ci.nsITimer.TYPE_REPEATING_PRECISE, [].slice.call(arguments, 2));
     },

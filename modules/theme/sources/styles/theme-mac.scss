@@ -485,18 +485,28 @@ notification[type="warning"] .messageText {
     margin-bottom: -43px !important;
 }
 
-#titlebar, #tab-view-deck, #titlebar-content {
-    background-color: #ddd;
-}
-
-#main-window[tabsintitlebar] > #titlebar > #titlebar-content > #titlebar-buttonbox-container, #main-window[tabsintitlebar] > #titlebar > #titlebar-content > #titlebar-secondary-buttonbox > #titlebar-fullscreen-button {
-    margin-top: 11px;
-}
-
 .titlebar-placeholder[type="caption-buttons"], #titlebar-buttonbox {
     margin-right: -6px;
     margin-top: -5px;
     margin-left: 10px;
+}
+
+#titlebar, #tab-view-deck, #titlebar-content {
+    background-color: #ddd;
+}
+
+#main-window[privatebrowsingmode]:not([tabsintitlebar="true"]):not([inFullscreen="true"]) {
+    #titlebar {
+        margin-bottom: 0 !important;
+    }
+
+    #titlebar-buttonbox {
+        margin: 2px 0 0 6px;
+    }
+}
+
+#main-window[tabsintitlebar] > #titlebar > #titlebar-content > #titlebar-buttonbox-container, #main-window[tabsintitlebar] > #titlebar > #titlebar-content > #titlebar-secondary-buttonbox > #titlebar-fullscreen-button {
+    margin-top: 11px;
 }
 
 #PanelUI-button {

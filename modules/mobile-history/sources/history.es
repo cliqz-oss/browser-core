@@ -1,10 +1,11 @@
 'use strict';
-/* global document, CLIQZEnvironment, CliqzUtils, CliqzHandlebars, osAPI */
+/* global document, osAPI */
 
 import LongPress from 'mobile-touch/longpress';
+import { environment, handlebars, utils } from 'core/cliqz';
 
 var historyTimer;
-var editMode = false, showOnlyFavorite = false;
+var editMode = false;
 var selectedQueries = [];
 var selectedHistory = [];
 var allHistory = [];
@@ -14,14 +15,14 @@ function showHistory(history) {
   clearTimeout(historyTimer);
 
   allHistory = history;
-  const queries = CLIQZEnvironment.getLocalStorage().getObject('recentQueries', []).reverse();
+  const queries = environment.getLocalStorage().getObject('recentQueries', []).reverse();
 
   for (let i = 0; i < history.length; i++) {
     history[i].domain = history[i].url.match(/^(?:https?:\/\/)?(?:www\.)?([^\/]+)/i)[1];
   }
 
   const data = mixHistoryWithQueries(queries, history);
-  displayData(data, showOnlyFavorite);
+  History.displayData(data, History.showOnlyFavorite);
 }
 
 function showFavorites(favorites) {
@@ -30,14 +31,26 @@ function showFavorites(favorites) {
   allFavorites = favorites;
   const favoriteHistory = favorites;
 
-  const favoriteQueries = CLIQZEnvironment.getLocalStorage().getObject('favoriteQueries', []);
+  const favoriteQueries = environment.getLocalStorage().getObject('favoriteQueries', []);
 
   for (let i = 0; i < favoriteHistory.length; i++) {
     favoriteHistory[i].domain = favoriteHistory[i].url.match(/^(?:https?:\/\/)?(?:www\.)?([^\/]+)/i)[1];
   }
 
   const data = mixHistoryWithQueries(favoriteQueries, favoriteHistory);
-  displayData(data, showOnlyFavorite);
+  History.displayData(data, History.showOnlyFavorite);
+}
+
+function sendShowTelemetry(data) {
+  const queryCount = data.filter(function (item) { return item.query; }).length,
+      urlCount = data.filter(function (item) { return item.url; }).length;
+  utils.telemetry({
+    type: History.showOnlyFavorite ? 'favorites' : 'history',
+    action: 'show',
+    active_day_count: data.length - queryCount - urlCount,
+    query_count: queryCount,
+    url_count: urlCount
+  });
 }
 
 
@@ -89,15 +102,15 @@ function mixHistoryWithQueries(queries, history) {
 }
 
 function displayData(data, isFavorite = false) {
-  if (!CliqzHandlebars.tplCache['conversations']) {
-    return setTimeout(displayData, 100, data);
+  if (!handlebars.tplCache['conversations']) {
+    return setTimeout(History.displayData, 100, data);
   }
 
-  document.body.innerHTML = CliqzHandlebars.tplCache['conversations']({data: data, isFavorite});
+  document.body.innerHTML = handlebars.tplCache['conversations']({data: data, isFavorite});
 
   const B = document.body,
       H = document.documentElement;
-  
+
   let height;
 
   if (typeof document.height !== 'undefined') {
@@ -112,28 +125,6 @@ function displayData(data, isFavorite = false) {
       filterHistory(this.value);
   });
 
-  CLIQZEnvironment.addEventListenerToElements('.question, .answer', 'click', function () {
-    const targeType = this.className === 'question' ? 'query' : 'url';
-    CliqzUtils.telemetry({
-      type: 'history',
-      action: 'click',
-      target_type: targeType,
-      target_index: parseInt(this.dataset.index),
-      target_length: this.querySelector('.' + targeType).textContent.length,
-      target_ts: parseInt(this.dataset.timestamp)
-    });
-  });
-  const queryCount = data.filter(function (item) { return item.query; }).length,
-      urlCount = data.filter(function (item) { return item.url; }).length;
-  CliqzUtils.telemetry({
-    type: 'history',
-    action: 'show',
-    active_day_count: data.length - queryCount - urlCount,
-    query_count: queryCount,
-    url_count: urlCount
-  });
-
-
   function onTap(element) {
     const type = element.getAttribute('class');
     const clickAction = type.indexOf('question') >= 0 ? osAPI.notifyQuery : osAPI.openLink;
@@ -141,9 +132,12 @@ function displayData(data, isFavorite = false) {
       selectItem(element);
     } else {
       clickAction(element.getAttribute('data'));
+      sendClickTelemetry(element);
     }
   }
   new LongPress('.question, .answer', launchEditMode, onTap);
+
+  History.sendShowTelemetry(data);
 }
 
 function launchEditMode(element) {
@@ -219,7 +213,7 @@ function favoriteSelected() {
 }
 
 function setQueryFavorite() {
-  let favoriteQueries = CLIQZEnvironment.getLocalStorage().getObject('favoriteQueries', []);
+  let favoriteQueries = environment.getLocalStorage().getObject('favoriteQueries', []);
   selectedQueries.forEach((item) => {
     for (let i = 0; i < favoriteQueries.length; i++) {
       if (item.query === favoriteQueries[i].query) {
@@ -227,12 +221,12 @@ function setQueryFavorite() {
         break;
       }
     }
-    if (!showOnlyFavorite) {
+    if (!History.showOnlyFavorite) {
       favoriteQueries.push({query: item.query, timestamp: item.timestamp});
     }
   });
 
-  CLIQZEnvironment.getLocalStorage().setObject('favoriteQueries', favoriteQueries);
+  environment.getLocalStorage().setObject('favoriteQueries', favoriteQueries);
 }
 
 function setHistoryFavorite() {
@@ -243,19 +237,19 @@ function setHistoryFavorite() {
         break;
       }
     }
-    if (!showOnlyFavorite) {
+    if (!History.showOnlyFavorite) {
       allFavorites.push({url: item.url, timestamp: item.timestamp, title:item.title});
     }
   });
-  osAPI.setFavorites(selectedHistory, !showOnlyFavorite);
+  osAPI.setFavorites(selectedHistory, !History.showOnlyFavorite);
 }
 
 function removeQueries() {
-  let queries = CLIQZEnvironment.getLocalStorage().getObject('recentQueries', []);
+  let queries = environment.getLocalStorage().getObject('recentQueries', []);
 
   const queryIds = selectedQueries.map(query => query.id);
   queries = queries.filter(query => queryIds.indexOf(query.id) === -1);
-  CLIQZEnvironment.getLocalStorage().setObject('recentQueries', queries);
+  environment.getLocalStorage().setObject('recentQueries', queries);
 }
 
 function removeHistoryItems(ids) {
@@ -297,13 +291,13 @@ function selectHistory(item) {
 function selectItem(item) {
   let checkbox = item.querySelector('input');
   checkbox.checked = !checkbox.checked;
-  
+
   const id = parseInt(item.dataset.id);
   const data = item.getAttribute('data');
   const title = item.dataset.title;
   const timestamp = Date.now();
   item.getAttribute('class').indexOf('question') >= 0 ? selectQuery({id, query:data, title, timestamp}) : selectHistory({id, url:data, title, timestamp});
-  
+
   let framer = item.getElementsByClassName('framer')[0];
   if (framer.getAttribute('class').indexOf('selected') >= 0) {
     framer.setAttribute('class', 'framer');
@@ -315,24 +309,36 @@ function selectItem(item) {
   }
 }
 
-function init(onlyFavorites = showOnlyFavorite) {
+function init(onlyFavorites = History.showOnlyFavorite) {
   migrateQueries();
-  showOnlyFavorite = onlyFavorites;
+  History.showOnlyFavorite = onlyFavorites;
   const callback = onlyFavorites ? showFavorites : showHistory;
   historyTimer = setTimeout(callback, 200, {results: []});
   onlyFavorites ? osAPI.getFavorites('History.showFavorites') : osAPI.getHistoryItems('History.showHistory');
 }
 
 function update() {
-  showOnlyFavorite ? showFavorites(allFavorites) : showHistory(allHistory);
+  History.showOnlyFavorite ? showFavorites(allFavorites) : showHistory(allHistory);
 }
 
 function clearHistory() {
-  CLIQZEnvironment.getLocalStorage().setObject('recentQueries', []);
+  environment.getLocalStorage().setObject('recentQueries', []);
 }
 
 function clearFavorites() {
-  CLIQZEnvironment.getLocalStorage().setObject('favoriteQueries', []);
+  environment.getLocalStorage().setObject('favoriteQueries', []);
+}
+
+function sendClickTelemetry(element) {
+  const targeType = element.className === 'question' ? 'query' : 'url';
+    utils.telemetry({
+      type: History.showOnlyFavorite ? 'favorites' : 'history',
+      action: 'click',
+      target_type: targeType,
+      target_index: parseInt(element.dataset.index),
+      target_length: element.querySelector('.' + targeType).textContent.length,
+      target_ts: parseInt(element.dataset.timestamp)
+    });
 }
 
 /**
@@ -340,11 +346,11 @@ function clearFavorites() {
   to extension version Mobile Extension 3.5.2
 **/
 function migrateQueries() {
-  if (CLIQZEnvironment.getLocalStorage().getItem('isFavoritesRefactored')) {
+  if (environment.getLocalStorage().getItem('isFavoritesRefactored')) {
     return;
   }
-  let queries = CLIQZEnvironment.getLocalStorage().getObject('recentQueries', []);
-  let favoriteQueries = CLIQZEnvironment.getLocalStorage().getObject('favoriteQueries', []);
+  let queries = environment.getLocalStorage().getObject('recentQueries', []);
+  let favoriteQueries = environment.getLocalStorage().getObject('favoriteQueries', []);
   queries = queries.map(query => {
     if (query.favorite) {
       favoriteQueries.unshift({query: query.query, timestamp: query.timestamp});
@@ -352,21 +358,24 @@ function migrateQueries() {
     delete query.favorite;
     return query;
   });
-  CLIQZEnvironment.getLocalStorage().setObject('recentQueries', queries);
-  CLIQZEnvironment.getLocalStorage().setObject('favoriteQueries', favoriteQueries);
-  CLIQZEnvironment.getLocalStorage().setItem('isFavoritesRefactored', true);
+  environment.getLocalStorage().setObject('recentQueries', queries);
+  environment.getLocalStorage().setObject('favoriteQueries', favoriteQueries);
+  environment.getLocalStorage().setItem('isFavoritesRefactored', true);
 }
 
 
 var History = {
-  init: init,
-  showHistory: showHistory,
-  showFavorites: showFavorites,
-  clearHistory: clearHistory,
-  clearFavorites: clearFavorites,
-  favoriteSelected: favoriteSelected,
-  removeSelected: removeSelected,
-  endEditMode: endEditMode
+  init,
+  showHistory,
+  showFavorites,
+  clearHistory,
+  clearFavorites,
+  favoriteSelected,
+  removeSelected,
+  endEditMode,
+  displayData,
+  sendShowTelemetry,
+  showOnlyFavorite: false
 };
 
 export default History;
