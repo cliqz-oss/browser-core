@@ -24,7 +24,8 @@ export default Ember.Route.extend({
     return Ember.Object.create({
       miniOnboarding: config.miniOnboarding,
       isBrowser: config.isBrowser,
-      showHelp: config.showHelp
+      showHelp: config.showHelp,
+      showFeedback: config.showFeedback
     });
   },
 

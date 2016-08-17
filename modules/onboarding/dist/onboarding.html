@@ -22,8 +22,11 @@
     <link rel="stylesheet" href="css/normalize.css">
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/index.css">
-
-    <script type="text/javascript" src="../platform/global.js"></script>
+    <script>
+      Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+      var CliqzUtils = CLIQZ.System.get("core/utils").default;
+      var CliqzHandlebars = CLIQZ.System.get("core/templates").default;
+    </script>
     <script type="text/javascript" src="./scripts/tour.js"></script>
     <script type="text/javascript" src="./scripts/onboarding.js"></script>
 

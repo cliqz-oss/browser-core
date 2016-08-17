@@ -1,6 +1,3 @@
-'use strict';
-
-
 import { utils, events } from 'core/cliqz';
 import WebRequest from 'core/webrequest';
 
@@ -20,6 +17,7 @@ import ContentPolicy from 'adblocker/content-policy';
 import { hideNodes } from 'adblocker/cosmetics';
 import { MutationLogger } from 'adblocker/mutation-logger';
 
+import CliqzHumanWeb from 'human-web/human-web';
 
 
 // adb version
@@ -30,14 +28,19 @@ export const ADB_PREF = 'cliqz-adb';
 export const ADB_ABTEST_PREF = 'cliqz-adb-abtest';
 export const ADB_PREF_VALUES = {
   Optimized: 2,
-  Enabled:   1,
-  Disabled:  0
+  Enabled: 1,
+  Disabled: 0,
 };
 export const ADB_DEFAULT_VALUE = ADB_PREF_VALUES.Disabled;
 
 
 export function autoBlockAds() {
   return true;
+}
+
+
+export function adbABTestEnabled() {
+  return CliqzUtils.getPref(ADB_ABTEST_PREF, false);
 }
 
 
@@ -49,16 +52,12 @@ export function adbEnabled() {
   return adbABTestEnabled() && CliqzUtils.getPref(ADB_PREF, ADB_PREF_VALUES.Disabled) !== 0;
 }
 
-export function adbABTestEnabled() {
-  return CliqzUtils.getPref(ADB_ABTEST_PREF, false);
-}
-
 
 /* Wraps filter-based adblocking in a class. It has to handle both
  * the management of lists (fetching, updating) using a FiltersLoader
  * and the matching using a FilterEngine.
  */
-class AdBlocker{
+class AdBlocker {
   constructor() {
     this.engine = new FilterEngine();
 
@@ -69,11 +68,11 @@ class AdBlocker{
     });
 
     // Blacklists to disable adblocking on certain domains/urls
-    this.blacklist  = new Set();
-    this._blacklist = new LazyPersistentObject('adb-blacklist');
+    this.blacklist = new Set();
+    this.blacklistPersist = new LazyPersistentObject('adb-blacklist');
 
     // Is the adblocker initialized
-    this._initialized = false;
+    this.initialized = false;
   }
 
   initCache() {
@@ -83,27 +82,27 @@ class AdBlocker{
     // domain of the source.
 
     // Cache queries to FilterEngine
-    this._cache = new LRUCache(
-      this.engine.match.bind(this.engine),                  // Compute result
-      1000,                                                 // Maximum number of entries
-      request => { return request.sourceGD + request.url; } // Select key
+    this.cache = new LRUCache(
+      this.engine.match.bind(this.engine),      // Compute result
+      1000,                                     // Maximum number of entries
+      request => request.sourceGD + request.url // Select key
     );
   }
 
   init() {
     this.initCache();
     this.listsManager.load();
-    this._blacklist.load().then(value => {
+    this.blacklistPersist.load().then(value => {
       // Set value
-      if (value['urls'] !== undefined) {
-        this.blacklist = new Set(value['urls']);
+      if (value.urls !== undefined) {
+        this.blacklist = new Set(value.urls);
       }
     });
-    this._initialized = true;
+    this.initialized = true;
   }
 
   persistBlacklist() {
-    this._blacklist.setValue({'urls': [...this.blacklist.values()]});
+    this.blacklistPersist.setValue({ urls: [...this.blacklist.values()] });
   }
 
   addToBlacklist(url) {
@@ -137,23 +136,40 @@ class AdBlocker{
     return this.blacklist.has(url);
   }
 
-  toggleDomain(url) {
-    // Should all this domain stuff be extracted into a function?
-    // Why is CliqzUtils.detDetailsFromUrl not used?
-    const urlParts = URLInfo.get(url);
-    let hostname = urlParts.hostname;
-    if (hostname.startsWith('www.')) {
-      hostname = hostname.substring(4);
+  logActionHW(url, action, domain) {
+    let type = 'url';
+    if (domain) {
+      type = 'domain';
     }
-
-    this.toggleUrl(hostname);
+    if (!CliqzHumanWeb.state.v[url].adblocker_blacklist) {
+      CliqzHumanWeb.state.v[url].adblocker_blacklist = {};
+    }
+    CliqzHumanWeb.state.v[url].adblocker_blacklist[action] = type;
   }
 
-  toggleUrl(url) {
-    if(this.blacklist.has(url)) {
-      this.blacklist.delete(url);
+  toggleUrl(url, domain) {
+    let processedURL = url;
+    if (domain) {
+      // Should all this domain stuff be extracted into a function?
+      // Why is CliqzUtils.getDetailsFromUrl not used?
+      processedURL = URLInfo.get(url).hostname;
+      if (processedURL.startsWith('www.')) {
+        processedURL = processedURL.substring(4);
+      }
+    }
+
+    const existHW = CliqzHumanWeb && CliqzHumanWeb.state.v[url];
+    if (this.blacklist.has(processedURL)) {
+      this.blacklist.delete(processedURL);
+      // TODO: It's better to have an API from humanweb to indicate if a url is private
+      if (existHW) {
+        this.logActionHW(url, 'remove', domain);
+      }
     } else {
-      this.blacklist.add(url);
+      this.blacklist.add(processedURL);
+      if (existHW) {
+        this.logActionHW(url, 'add', domain);
+      }
     }
 
     this.persistBlacklist();
@@ -163,12 +179,13 @@ class AdBlocker{
    */
   match(httpContext) {
     // Check if the adblocker is initialized
-    if (!this._initialized) {
+    if (!this.initialized) {
       return false;
     }
 
     // Process endpoint URL
-    const urlParts = URLInfo.get(httpContext.url);
+    const url = httpContext.url.toLowerCase();
+    const urlParts = URLInfo.get(url);
     let hostname = urlParts.hostname;
     if (hostname.startsWith('www.')) {
       hostname = hostname.substring(4);
@@ -176,7 +193,7 @@ class AdBlocker{
     const hostGD = getGeneralDomain(hostname);
 
     // Process source url
-    const source = httpContext.getSourceURL();
+    const source = httpContext.getSourceURL().toLowerCase();
     const sourceParts = URLInfo.get(source);
     let sourceHostname = sourceParts.hostname;
     if (sourceHostname.startsWith('www.')) {
@@ -185,51 +202,53 @@ class AdBlocker{
     const sourceGD = getGeneralDomain(sourceHostname);
 
     // Wrap informations needed to match the request
+    // NOTE: Here we convert everything to lowercase
+    // since we only support case-insensitive matching
     const request = {
       // Request
-      url: httpContext.url,
+      url,
       cpt: httpContext.getContentPolicyType(),
-      tokens: tokenizeURL(httpContext.url),
+      tokens: tokenizeURL(url),
       // Source
       sourceURL: source,
-      sourceHostname: sourceHostname,
-      sourceGD: sourceGD,
+      sourceHostname,
+      sourceGD,
       // Endpoint
-      hostname: hostname,
-      hostGD: hostGD,
+      hostname,
+      hostGD,
     };
 
     log(`match ${JSON.stringify(request)}`);
 
-    let t0 = Date.now();
-    const isAd = this.isInBlacklist(request) ? false : this._cache.get(request);
+    const t0 = Date.now();
+    const isAd = this.isInBlacklist(request) ? false : this.cache.get(request);
     const totalTime = Date.now() - t0;
 
     log(`BLOCK AD ${JSON.stringify({
-      'timeAdFilter': totalTime,
-      'isAdFilter': isAd,
-      'context': {
-        'url': httpContext.url,
-        'source': httpContext.getSourceURL(),
-        'cpt': httpContext.getContentPolicyType(),
-        'method': httpContext.method
-      }
+      timeAdFilter: totalTime,
+      isAdFilter: isAd,
+      context: {
+        url: httpContext.url,
+        source: httpContext.getSourceURL(),
+        cpt: httpContext.getContentPolicyType(),
+        method: httpContext.method,
+      },
     })}`);
 
     return isAd;
   }
 }
 
-var CliqzADB = {
+const CliqzADB = {
   adblockInitialized: false,
   adbMem: {},
-  adbStats: {'pages': {}},
+  adbStats: { pages: {} },
   mutationLogger: null,
   adbDebug: false,
   MIN_BROWSER_VERSION: 35,
   timers: [],
 
-  init: function() {
+  init() {
     // Set `cliqz-adb` default to 'Disabled'
     if (CliqzUtils.getPref(ADB_PREF, undefined) === undefined) {
       CliqzUtils.setPref(ADB_PREF, ADB_PREF_VALUES.Disabled);
@@ -244,13 +263,16 @@ var CliqzADB = {
       CliqzADB.adBlocker.init();
       CliqzADB.adblockInitialized = true;
       CliqzADB.initPacemaker();
-      WebRequest.onBeforeRequest.addListener(CliqzADB.httpopenObserver.observe, undefined, ['blocking']);
+      WebRequest.onBeforeRequest.addListener(
+        CliqzADB.httpopenObserver.observe,
+        undefined,
+        ['blocking']
+      );
     };
 
     if (adbEnabled()) {
       initAdBlocker();
-    }
-    else {
+    } else {
       events.sub('prefchange', pref => {
         if (pref === ADB_PREF &&
             !CliqzADB.adblockInitialized &&
@@ -261,140 +283,138 @@ var CliqzADB = {
     }
   },
 
-  unload: function() {
+  unload() {
     CliqzADB.unloadPacemaker();
     browser.forEachWindow(CliqzADB.unloadWindow);
     WebRequest.onBeforeRequest.removeListener(CliqzADB.httpopenObserver.observe);
+    ContentPolicy.unload();
   },
 
-  initWindow: function(window) {
+  initWindow(window) {
     if (CliqzADB.mutationLogger !== null) {
       window.gBrowser.addProgressListener(CliqzADB.mutationLogger);
     }
   },
 
-  unloadWindow: function(window) {
+  unloadWindow(window) {
     if (window.gBrowser && CliqzADB.mutationLogger !== null) {
       window.gBrowser.removeProgressListener(CliqzADB.mutationLogger);
     }
   },
 
-  initPacemaker: function() {
-    let t1 = utils.setInterval(() => {
-          for (let url in CliqzADB.adbStats.pages) {
-            if (!CliqzADB.isTabURL[url]) {
-              delete(CliqzADB.adbStats.pages[url]);
-            }
-          }
-        }, 10 * 60 * 1000);
+  initPacemaker() {
+    const t1 = utils.setInterval(() => {
+      Object.keys(CliqzADB.adbStats.pages).forEach(url => {
+        if (!CliqzADB.isTabURL[url]) {
+          delete(CliqzADB.adbStats.pages[url]);
+        }
+      });
+    }, 10 * 60 * 1000);
     CliqzADB.timers.push(t1);
 
-    let t2 = utils.setInterval(() =>{
-      for (let t in CliqzADB.cacheADB) {
+    const t2 = utils.setInterval(() => {
+      Object.keys(CliqzADB.cacheADB).forEach(t => {
         if (!browser.isWindowActive(t)) {
           delete CliqzADB.cacheADB[t];
         }
-      }
+      });
     }, 10 * 60 * 1000);
     CliqzADB.timers.push(t2);
   },
 
-  unloadPacemaker: function() {
+  unloadPacemaker() {
     CliqzADB.timers.forEach(utils.clearTimeout);
   },
 
   httpopenObserver: {
-    observe: function(requestDetails) {
+    observe(requestDetails) {
       if (!adbEnabled()) {
-        return;
+        return {};
       }
 
-      let requestContext = new HttpRequestContext(requestDetails),
-          url = requestContext.url;
+      const requestContext = new HttpRequestContext(requestDetails);
+      const url = requestContext.url;
 
       if (!url) {
-        return;
+        return {};
       }
 
-      let url_parts = URLInfo.get(url);
+      const urlParts = URLInfo.get(url);
 
       if (requestContext.isFullPage()) {
-        CliqzADB.adbStats['pages'][url] = 0;
+        CliqzADB.adbStats.pages[url] = 0;
       }
 
-      let source_url = requestContext.getLoadingDocument(),
-          source_url_parts = null,
-          source_tab = requestContext.getOriginWindowID();
+      const sourceUrl = requestContext.getLoadingDocument();
+      let sourceUrlParts = null;
+      const sourceTab = requestContext.getOriginWindowID();
 
-      if (!source_url || source_url.startsWith('about:')) {
-        return;
+      if (!sourceUrl || sourceUrl.startsWith('about:')) {
+        return {};
       }
 
-      source_url_parts = URLInfo.get(source_url);
+      sourceUrlParts = URLInfo.get(sourceUrl);
 
       // same general domain
-      let same_gd = sameGeneralDomain(url_parts.hostname, source_url_parts.hostname) || false;
-      if (same_gd) {
-        var w_ori = requestContext.getOriginWindowID(),
-            w_out = requestContext.getOuterWindowID(),
-            w_in = requestContext.getInnerWindowID();
-        if (w_ori!=w_out)  { // request from iframe
-          var wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
+      const sameGd = sameGeneralDomain(urlParts.hostname, sourceUrlParts.hostname) || false;
+      if (sameGd) {
+        const wOri = requestContext.getOriginWindowID();
+        const wOut = requestContext.getOuterWindowID();
+        if (wOri !== wOut) { // request from iframe
+          const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
             .getService(Components.interfaces.nsIWindowMediator);
-          var frame = wm.getOuterWindowWithId(w_out).frameElement;
+          const frame = wm.getOuterWindowWithId(wOut).frameElement;
 
           if (adbEnabled() && CliqzADB.adBlocker.match(requestContext)) {
             frame.style.display = 'none';  // hide this node
-            CliqzADB.adbStats['pages'][source_url] = (CliqzADB.adbStats['pages'][source_url] || 0) + 1;
+            CliqzADB.adbStats.pages[sourceUrl] = (CliqzADB.adbStats.pages[sourceUrl] || 0) + 1;
 
-            frame.setAttribute('cliqz-adb', 'source: ' + url);
-            return {cancel: true};
+            frame.setAttribute('cliqz-adb', `source: ${url}`);
+            return { cancel: true };
           }
-          else {
-            frame.setAttribute('cliqz-adblocker', 'safe');
-          }
+          frame.setAttribute('cliqz-adblocker', 'safe');
         }
-        return;
-      } else {
-        if (adbEnabled()) {
-          if (CliqzADB.mutationLogger.tabsInfo[source_tab] && !CliqzADB.mutationLogger.tabsInfo[source_tab].observerAdded) {
-            CliqzADB.mutationLogger.addMutationObserver(source_tab);
-          }
-          if (CliqzADB.adBlocker.match(requestContext)) {
-            hideNodes(requestContext);
-            return {cancel: true};
+        return {};
+      } else if (adbEnabled()) {
+        if (CliqzADB.mutationLogger.tabsInfo[sourceTab] &&
+            !CliqzADB.mutationLogger.tabsInfo[sourceTab].observerAdded) {
+          CliqzADB.mutationLogger.addMutationObserver(sourceTab);
+        }
+        if (CliqzADB.adBlocker.match(requestContext)) {
+          hideNodes(requestContext);
+          return { cancel: true };
+        }
+      }
+      return {};
+    },
+  },
+  getBrowserMajorVersion() {
+    const appInfo = Components.classes['@mozilla.org/xre/app-info;1']
+                    .getService(Components.interfaces.nsIXULAppInfo);
+    return parseInt(appInfo.version.split('.')[0], 10);
+  },
+  isTabURL(url) {
+    const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
+              .getService(Components.interfaces.nsIWindowMediator);
+    const browserEnumerator = wm.getEnumerator('navigator:browser');
+
+    while (browserEnumerator.hasMoreElements()) {
+      const browserWin = browserEnumerator.getNext();
+      const tabbrowser = browserWin.gBrowser;
+
+      const numTabs = tabbrowser.browsers.length;
+      for (let index = 0; index < numTabs; index++) {
+        const currentBrowser = tabbrowser.getBrowserAtIndex(index);
+        if (currentBrowser) {
+          const tabURL = currentBrowser.currentURI.spec;
+          if (url === tabURL || url === tabURL.split('#')[0]) {
+            return true;
           }
         }
       }
     }
+    return false;
   },
-  getBrowserMajorVersion: function() {
-    let appInfo = Components.classes['@mozilla.org/xre/app-info;1']
-                    .getService(Components.interfaces.nsIXULAppInfo);
-    return parseInt(appInfo.version.split('.')[0]);
-  },
-  isTabURL: function(url) {
-      var wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
-              .getService(Components.interfaces.nsIWindowMediator);
-      var browserEnumerator = wm.getEnumerator('navigator:browser');
+};
 
-      while (browserEnumerator.hasMoreElements()) {
-          var browserWin = browserEnumerator.getNext();
-          var tabbrowser = browserWin.gBrowser;
-
-          var numTabs = tabbrowser.browsers.length;
-          for (var index = 0; index < numTabs; index++) {
-              var currentBrowser = tabbrowser.getBrowserAtIndex(index);
-              if (currentBrowser) {
-                  var tabURL = currentBrowser.currentURI.spec;
-                  if (url == tabURL || url == tabURL.split('#')[0]) {
-                      return true;
-                  }
-              }
-          }
-      }
-      return false;
-  },
-}
-
-export default CliqzADB
+export default CliqzADB;

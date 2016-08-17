@@ -12,10 +12,6 @@ var modules = require('./modules-tree');
 
 // input trees
 var mobileSpecific  = new Funnel('specific/mobile', { exclude: ['skin/sass/**/*', '*.py'] });
-var generic         = new Funnel('generic');
-var libs            = new Funnel(generic, { srcDir: 'modules/libs' });
-var global          = new Funnel(generic, { srcDir: 'modules/global' });
-var local           = new Funnel(generic, { srcDir: 'modules/local', exclude: ['views/**/*'] });
 
 var mobileCss = compileSass(
   ['specific/mobile/skin/sass'],
@@ -30,50 +26,9 @@ console.log('Source maps:', cliqzConfig.sourceMaps);
 console.log(cliqzConfig);
 // cliqz.json is finalized
 
-var globalConcated = concat(global, {
-  outputFile: 'global.js',
-  header: "'use strict';\n\nvar CLIQZ = {};\n\n",
-  headerFiles: [
-    'CliqzUtils.jsm',
-  ],
-  inputFiles: [
-    '*.jsm',
-  ],
-  footer: "\n",
-  sourceMapConfig: { enabled: cliqzConfig.sourceMaps },
-  process: function (src,filepath) {
-    var modulename = filepath.match(/[^\/]+$/)[0].split(".")[0]
-    return "// start module " + modulename + "\n"
-           + "(function(ctx,Q,E){\n"
-           + src
-           + "; ctx[EXPORTED_SYMBOLS[0]] = " + modulename + ";\n"
-           + "})(this, CLIQZ,CLIQZEnvironment);\n"
-           + "// end module " + modulename + "\n\n"
-  }
-});
-
-var localConcated = concat(local, {
-  outputFile: 'local.js',
-  header: "'use strict';\n\n",
-  inputFiles: [
-    "ContextMenu.js",
-  ],
-  sourceMapConfig: { enabled: cliqzConfig.sourceMaps },
-});
-
-var libsConcated = concat(libs, {
-  outputFile: 'libs.js',
-  inputFiles: [
-    "*.js",
-  ],
-  sourceMapConfig: { enabled: false },
-});
-
 var mobile = new MergeTrees([
   mobileSpecific,
   new Funnel(config),
-  new Funnel(libsConcated,   { destDir: 'js' }),
-  new Funnel(globalConcated, { destDir: 'js' }),
   new Funnel(mobileCss,      { destDir: 'skin/css' }),
   new Funnel(modules.bowerComponents, { destDir: 'bower_components' }),
   modules.modules

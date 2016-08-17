@@ -1,6 +1,6 @@
 # Browser Core
 
-CLIQZ is available on multiple platforms: browsers for Windows, Mac, Linux, and iOS (based on Mozilla/Firefox), as well as the CLIQZ browser for Android (based on Lightning). There's also the CLIQZ for Firefox browser extension. 
+CLIQZ is available on multiple platforms: browsers for Windows, Mac, Linux, and iOS (based on Mozilla/Firefox), as well as the CLIQZ browser for Android (based on Lightning). There's also the CLIQZ for Firefox browser extension.
 
 Browser Core is used in:
 
@@ -65,6 +65,48 @@ Examples:
 you need to build extension with `./fern.js serve ./configs/jenkins.json` configuration file in order to run tests.
 
 Then open this URL to start tests `chrome://cliqz/content/firefox-tests/index.html`
+
+## Testing in Docker
+
+It's now possible to run tests inside of docker locally. It can be useful for several reasons:
+
+1. Test any version of firefox without poluting your system.
+2. Make integration tests more robust as interacting with the browser while testing could break some tests.
+
+The current setup allows you to:
+
+1. Choose a firefox version at build time.
+2. Run tests inside of docker.
+3. Connect and interact with running docker using VNC client.
+4. Logs and test results are saved in the current extension directory.
+
+You first need to clone firefox-autoconfigs in the top directory of the extension:
+
+```sh
+git clone https://github.com/cliqz-oss/firefox-autoconfigs
+```
+
+Then *build* (or *serve*) the extension with `jenkins` configuration:
+
+```sh
+./fern.js serve configs/jenkins.json
+```
+
+You can then build docker with the following command:
+
+```sh
+docker build  --build-arg UID=`id -u` --build-arg VERSION=<version> --build-arg GID=`id -g` -f Dockerfile.firefox .
+```
+
+Here `<version>` can be any firefox [release number](https://ftp.mozilla.org/pub/firefox/releases/), for example: `47.0.1`.
+
+Then run tests with:
+
+```sh
+docker run -iP -p 15900:5900 -u 1000:1000 -v `pwd`:/ebs/jenkins/workspace/cliqz/navigation-extension/ -w /ebs/jenkins/workspace/cliqz/navigation-extension/
+```
+
+You can connect to docker with any VNC client on `localhost` port `15900`.
 
 ## Contributions
 

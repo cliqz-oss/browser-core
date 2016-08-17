@@ -1,5 +1,6 @@
 import { utils } from "core/cliqz";
 import HumanWeb from "human-web/human-web";
+import { simpleBtn, checkBox } from 'q-button/buttons';
 
 export default class {
   constructor(settings) {
@@ -44,7 +45,7 @@ export default class {
         currentBrowser.contentDocument.removeEventListener("scroll",    HumanWeb.captureScrollPage,true);
         currentBrowser.contentDocument.removeEventListener("copy",      HumanWeb.captureCopyPage,true);
       } catch(e) {}
-    }.bind(this));
+    });
   }
 
   createButtonItem(win) {
@@ -56,7 +57,7 @@ export default class {
 
     // HumanWeb checkbox
     menuPopup.appendChild(
-      win.CLIQZ.Core.createCheckBoxItem(
+      checkBox(
         doc,
         'dnt',
         utils.getLocalizedString('btnSafeSearch'),
@@ -66,7 +67,7 @@ export default class {
 
     // HumanWeb learn more button
     menuPopup.appendChild(
-      win.CLIQZ.Core.createSimpleBtn(
+      simpleBtn(
         doc,
         utils.getLocalizedString('btnSafeSearchDesc'),
         function(){

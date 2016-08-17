@@ -1,23 +1,31 @@
 <div id="freshTabPage">
-<div id="center" tabindex="0">
-  <div id="container">
-    {{outlet}}
+  <div id="center" tabindex="0">
+    <div id="container">
+      {{outlet}}
+    </div>
   </div>
-</div>
 
-<div id="cliqzOnboarding">
-  {{outlet 'modal'}}
-</div>
+  <div id="cliqzOnboarding">
+    {{outlet 'modal'}}
+  </div>
 
-<div id="onboarding">
-  {{#if model.miniOnboarding}}
-    {{mini-onboarding isBrowser=model.isBrowser freshTabLearnMoreAction="freshTabLearnMore" revertBackAction="revertBack"}}
+
+  {{#if model.showFeedback}}
+    <div id="feedback">
+      {{feedback-link}}
+    </div>
   {{else}}
-    {{#if model.showHelp}}
-      <div id="learnMore">
-        <a href="https://cliqz.com/aboutus/blog/new-startpage" title="Learn more" target="_blank" class="learnBtn">Learn more</a>
-      </div>
-    {{/if}}
+    <div id="onboarding">
+      {{#if model.miniOnboarding}}
+        {{mini-onboarding isBrowser=model.isBrowser freshTabLearnMoreAction="freshTabLearnMore" revertBackAction="revertBack"}}
+      {{else}}
+        {{#if model.showHelp}}
+          <div id="learnMore">
+            <a href="https://cliqz.com/aboutus/blog/new-startpage" title="Learn more" target="_blank" class="learnBtn">Learn more</a>
+          </div>
+        {{/if}}
+      {{/if}}
+    </div>
   {{/if}}
-</div>
+
 </div>

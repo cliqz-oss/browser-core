@@ -144,7 +144,7 @@ export default class {
           } catch(e) {
             utils.log("Locale exception: " + e.toString(), "unblock");
           }
-        }.bind(this));
+        });
       }
 
       this.isVideoBlocked(url).then((isBlocked) => {
@@ -214,10 +214,10 @@ export default class {
           // check for loading failure
           CliqzUtils.setTimeout(() => {
             this.checkLoadError(url, 0)
-          }.bind(this), 1000);
+          }, 1000);
         }
 
-      }.bind(this));
+      });
     }
   }
 
@@ -250,7 +250,7 @@ export default class {
       } else {
         utils.setTimeout(() => {
           this.checkLoadError(url, t + 1);
-        }.bind(this), 1000);
+        }, 1000);
       }
     });
   }

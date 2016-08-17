@@ -58,7 +58,7 @@ export default class extends QSWhitelistBase {
       if (config.token_whitelist_version && currentToken !== config.token_whitelist_version) {
         this._loadRemoteUnsafeKey();
       }
-    }.bind(this);
+    };
 
     events.sub('attrack:updated_config', this.onConfigUpdate);
   }

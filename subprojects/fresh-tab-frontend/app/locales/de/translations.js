@@ -35,9 +35,24 @@ export default {
     "btn-add": "Hinzufügen",
     "address": "Adresse eingeben",
     "exists-already": "Bereits vorhanden",
-    "not-valid": "Keine gültige url"
+    "not-valid": "Keine gültige url",
+    "history-sites": "Meist besucht",
+    "custom-sites": "Favoriten",
+    "add-favorite": "Favoriten hinzufügen",
+    "topsite-remove": "Entfernen",
+    "reset-all": "Alle meist besuchten Seiten anzeigen",
+    "undo": "Rückgängig",
+    "search-on": "Suche auf",
+    "shortcuts-one-removed": "Seite wurde entfernt",
+    "shortcuts-many-removed": "Seiten wurden entfernt"
   },
   urlBar: {
     "search-address": "Suche oder Adresse eingeben"
+  },
+  news: {
+    "read-more": "Weiterlesen"
+  },
+  abtests: {
+    "feedback": "Fragen? Anmerkungen? CLIQZ kontaktieren"
   }
 };

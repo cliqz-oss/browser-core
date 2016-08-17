@@ -6,6 +6,7 @@
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
+
 XPCOMUtils.defineLazyModuleGetter(this, "PlacesUtils",
                                   "resource://gre/modules/PlacesUtils.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "TelemetryStopwatch",
@@ -15,8 +16,8 @@ XPCOMUtils.defineLazyModuleGetter(this, "NetUtil",
 XPCOMUtils.defineLazyModuleGetter(this, "Task",
                                   "resource://gre/modules/Task.jsm");
 
-XPCOMUtils.defineLazyModuleGetter(this, 'CliqzUtils',
-                                'chrome://cliqzmodules/content/CliqzUtils.jsm');
+Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+var CliqzUtils = CLIQZ.CliqzUtils;
 
 ////////////////////////////////////////////////////////////////////////////////
 //// Constants
@@ -317,7 +318,7 @@ function CliqzPlacesAutoComplete()
                  FROM moz_places h
                  LEFT JOIN moz_favicons f ON f.id = h.favicon_id
                  LEFT JOIN moz_openpages_temp t ON t.url = h.url
-                 WHERE h.frecency <> 0 AND (h.hidden = 0  or h.typed = 1) AND (h.visit_count > 1 OR h.last_visit_date > (strftime('%s', date('now', '-6 months'))*1000000))
+                 WHERE h.frecency <> 0 AND (h.hidden = 0  or h.typed = 1) AND (h.visit_count > 1 OR h.last_visit_date > (strftime('%s', date('now', '-3 months'))*1000000))
                    AND AUTOCOMPLETE_MATCH(:searchString, h.url,
                                           IFNULL(btitle, h.title), tags,
                                           h.visit_count, h.typed,

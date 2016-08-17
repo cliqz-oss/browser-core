@@ -136,7 +136,7 @@ function ViewPager(elem, options) {
   }
 
   function positionInfo(pos) {
-    
+
     var totalOffset = -pos / elemSize,
         page = Math.floor(totalOffset),
         pageOffset = totalOffset - page;
@@ -418,7 +418,6 @@ function GestureDetector(elem, options) {
 
     onUp: function onUp(e) {
       window.scrollTo(0,window.scrollY);
-      CLIQZEnvironment.vp.goToIndex(CLIQZEnvironment.currentPage,200);
       if (!dragging) { return; }
       var p = getPoint(e);
       var dragData = getDragData(p);
@@ -428,7 +427,7 @@ function GestureDetector(elem, options) {
         var velo = vtracker.getVelocity();
         onFlingCb(dragData, velo);
       }
-      
+
       onUpCb();
     }
   };

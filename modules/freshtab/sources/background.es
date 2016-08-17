@@ -28,7 +28,7 @@ export default {
   */
   init(settings) {
     utils.bindObjectFunctions(this.actions, this);
-    FreshTab.startup(settings.freshTabABtest, settings.freshTabButton, settings.cliqzOnboarding, settings.channel);
+    FreshTab.startup(settings.freshTabButton, settings.cliqzOnboarding, settings.channel);
   },
   /**
   * @method unload
@@ -61,6 +61,13 @@ export default {
 
     _isBrowser() {
       return FreshTab.isBrowser;
+    },
+    _showFeedback() {
+      const showFeedback = utils.getPref('freshtabFeedback', false);
+      return showFeedback;
+    },
+    _getFeedbackUrl() {
+
     },
     /**
     * Get history based & user defined speedDials
@@ -122,10 +129,12 @@ export default {
         });
       }
 
+
       //Promise all concatenate results and return
       return Promise.all([historyDialups, customDialups]).then(function(results){
         return {
-          speedDials: results[0].concat(results[1])
+          history: results[0],
+          custom: results[1]
         };
       });
     },
@@ -161,9 +170,7 @@ export default {
     */
     getVisibleDials(historyLimit) {
       return this.actions.getSpeedDials().then((results) => {
-        return results.speedDials.filter(function(item, index) {
-          return (!item.custom && index < historyLimit) || item.custom;
-        });
+        return results.history.slice(0, historyLimit);
       })
     },
     /**
@@ -171,8 +178,9 @@ export default {
     * @method addSpeedDial
     * @param url {string}
     */
-    addSpeedDial(url) {
+    addSpeedDial(url, index) {
       const urlToAdd = utils.stripTrailingSlash(url);
+
       //history returns most frequest 15 results, but we display up to 5
       //so we need to validate only against visible results
       return this.actions.getVisibleDials(5).then((result) => {
@@ -203,13 +211,57 @@ export default {
         if(isPresent) {
           throw "duplicate";
         } else {
-          dialUps.custom.push({
+          var dialup = {
             url: utils.tryEncodeURIComponent(urlToAdd)
-          });
+          };
+          if(index !== null) {
+            dialUps.custom.splice(index, 0, dialup);
+          } else {
+            dialUps.custom.push(dialup);
+          }
           utils.setPref(DIALUPS, JSON.stringify(dialUps), '');
           return new SpeedDial(urlToAdd, true);
         }
       }).catch(reason => ({ error: true, reason: typeof reason === 'object' ? reason.toString() : reason }));
+    },
+
+    /**
+    * Parse speedDials
+    * @method parseSpeedDials
+    */
+    parseSpeedDials() {
+      return JSON.parse(utils.getPref(DIALUPS, '{}', ''));
+    },
+
+    /**
+    * Save speedDials
+    * @method saveSpeedDials
+    * @param dialUps object
+    */
+    saveSpeedDials(dialUps) {
+      utils.setPref(DIALUPS, JSON.stringify(dialUps), '');
+    },
+
+    /**
+    * Revert history url
+    * @method revertHistorySpeedDial
+    * @param url string
+    */
+    revertHistorySpeedDial(url) {
+      const dialUps = this.actions.parseSpeedDials();
+      delete dialUps.history[utils.hash(url)];
+      this.actions.saveSpeedDials(dialUps);
+    },
+
+    /**
+    * Reset all history speed dials
+    * @method resetAllHistory
+    */
+    resetAllHistory() {
+      const dialUps = this.actions.parseSpeedDials();
+      dialUps.history = {};
+      this.actions.saveSpeedDials(dialUps);
+      return this.actions.getSpeedDials();
     },
 
     /**
@@ -220,29 +272,19 @@ export default {
 
       return News.getNews().then(function(news) {
         News.init();
-        var topNews = news.top_h_news || [],
-            hbNews = news.hb_news || [];
 
-        topNews = topNews.map(function(r){
-          r.title = r.short_title;
-          r.personalized = false;
-          return r;
-        });
-
-        hbNews = hbNews.map( r => {
-          r.personalized = true;
-         return r;
-        });
+        var newsList = news.newsList || [];
+        var topNewsVersion = news.topNewsVersion || 0;
 
         return {
-          version: news.top_news_version,
-          news: topNews.concat(hbNews).map( r => ({
-            title: r.title,
+          version: topNewsVersion,
+          news: newsList.map( r => ({
+            title: r.short_title || r.title,
             description: r.description,
             displayUrl: utils.getDetailsFromUrl(r.url).cleanHost || r.title,
             logo: utils.getLogoDetails(utils.getDetailsFromUrl(r.url)),
             url: r.url,
-            personalized: r.personalized,
+            type: r.type,
           }))
         };
       });
@@ -260,7 +302,8 @@ export default {
         showOnboarding: self.actions._showOnboarding(),
         miniOnboarding: self.actions._showMiniOnboarding(),
         showHelp: self.actions._showHelp(),
-        isBrowser: self.actions._isBrowser()
+        isBrowser: self.actions._isBrowser(),
+        showFeedback: self.actions._showFeedback(),
       };
       return Promise.resolve(config);
     },
@@ -285,7 +328,6 @@ export default {
     */
     revertBack() {
       FreshTab.toggleState();
-      utils.getWindow().CLIQZ.Core.refreshButtons();
     },
 
     getTabIndex() {

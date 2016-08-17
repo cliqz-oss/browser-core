@@ -2,6 +2,7 @@
 
 var expect = chai.expect;
 
+DEPS.CliqzHandlebarsTest = ["core/templates"];
 TESTS.CliqzHandlebarsTest = function (CliqzHandlebars) {
     describe('CliqzHandlebarsTest', function () {
         describe('localizeNumber', function () {

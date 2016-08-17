@@ -1,15 +1,23 @@
 <div class="article-content">
-  <a href="{{model.url}}" class="topnews news" data-index="{{index}}">
+  <a style="position:relative" href="{{model.url}}" class="topnews news" data-index="{{index}}">
     <div class="clearfix">
       <div extra="logo" class="logo" style="{{model.logo.style}}">{{model.logo.text}}</div>
       <div extra="url" class="url">{{model.displayUrl}}</div>
     </div>
 
     <div class="newsContent">
-      <div extra='title' class='title'>
+      <div extra='title' class='title multiline-ellipsis'>
         {{model.title}}
       </div>
-      <div extra='description' class='description'>{{model.description}}</div>
     </div>
+
+    <div extra='description' class='description'>
+      <div class="text multiline-ellipsis">
+        <p>{{model.description}}</p>
+      </div>
+    </div>
+
+    <div class="readMore">{{t 'news.read-more'}}</div>
+
   </a>
 </div>

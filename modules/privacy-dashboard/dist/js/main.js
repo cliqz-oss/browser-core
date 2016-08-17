@@ -1,8 +1,8 @@
-Components.utils.import("chrome://cliqzmodules/content/CliqzHandlebars.jsm");
-Components.utils.import("chrome://cliqzmodules/content/CliqzUtils.jsm");
-Components.utils.import("chrome://cliqzmodules/content/CliqzEvents.jsm");
-
-CliqzPrivacyRep = CliqzUtils.getWindow().CLIQZ.System.get("privacy-dashboard/main").default;
+Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+var CliqzUtils = CLIQZ.System.get("core/utils").default;
+var CliqzEvents = CLIQZ.System.get("core/events").default;
+var CliqzHandlebars = CLIQZ.System.get("core/templates").default;
+var CliqzPrivacyRep = CLIQZ.System.get("privacy-dashboard/main").default;
 
 (function () {
   var TEMPLATE_NAMES = ['data_list'];

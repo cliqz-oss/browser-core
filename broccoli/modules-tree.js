@@ -4,9 +4,10 @@ var path = require('path');
 var Funnel = require('broccoli-funnel');
 var MergeTrees = require('broccoli-merge-trees');
 var Babel = require('broccoli-babel-transpiler');
-var JSHinter = require('broccoli-jshint');
+var eslint = require('broccoli-lint-eslint');
 var compileSass = require('broccoli-sass-source-maps');
 var broccoliSource = require('broccoli-source');
+var browserify = require('broccoli-fast-browserify');
 var WatchedDir = broccoliSource.WatchedDir;
 var UnwatchedDir = broccoliSource.UnwatchedDir;
 
@@ -28,7 +29,11 @@ function getPlatformTree() {
   let platform = new Funnel(new WatchedDir('platforms/'+cliqzConfig.platform), {
     exclude: ['tests/**/*']
   });
-  platform = Babel(platform, Object.assign({}, babelOptions, {moduleIds: false}));
+  platform = Babel(platform, Object.assign({}, babelOptions, {
+    getModuleId(moduleId) {
+      return "platform/"+moduleId;
+    }
+  }));
   return new Funnel(platform, { destDir: "platform" });
 }
 
@@ -59,10 +64,20 @@ moduleConfigs.forEach( config => {
 function getSourceTree() {
   let sources = new Funnel(modulesTree, {
     include: cliqzConfig.modules.map(name => `${name}/sources/**/*.es`),
+    exclude: cliqzConfig.modules.map(name => `${name}/sources/**/*.browserify`),
     getDestinationPath(path) {
       return path.replace("/sources", "");
     }
   });
+
+  let nodeModulesTree = new Funnel(modulesTree, {
+    include: cliqzConfig.modules.map(name => `${name}/sources/**/*.browserify`),
+    getDestinationPath(path) {
+      return path.replace("/sources", "");
+    }
+  });
+
+  let browserifyTree = browserify(nodeModulesTree)
 
   const moduleTestsTree = new Funnel(modulesTree, {
     include: cliqzConfig.modules.map(name =>  `${name}/tests/**/*.es`),
@@ -71,20 +86,22 @@ function getSourceTree() {
     }
   });
 
-  let jsHinterTree = new JSHinter(sources, {
-    jshintrcPath: process.cwd() + '/.jshintrc',
-    disableTestGenerator: true
+  let esLinterTree = eslint(sources, {
+    options: { configFile: process.cwd() + '/.eslintrc' }
   });
-  jsHinterTree.extensions = ['es']
+  esLinterTree.extensions = ['es'];
 
-  let transpiledSources = Babel(sources, babelOptions);
+  let transpiledSources = Babel(
+    esLinterTree,
+    Object.assign({}, babelOptions, { filterExtensions: ['js']})
+  );
   let transpiledModuleTestsTree = Babel(
     new Funnel(moduleTestsTree, { destDir: 'tests' }),
     babelOptions
   );
 
   let sourceTrees = [
-    jsHinterTree,
+    browserifyTree,
     transpiledSources,
   ];
 
@@ -93,7 +110,7 @@ function getSourceTree() {
   }
 
   return new Funnel(
-    new MergeTrees(sourceTrees),
+    new MergeTrees(sourceTrees), //, { overwrite: true }),
     {
       exclude: ["**/*.jshint.js"]
     }

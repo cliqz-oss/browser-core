@@ -1,13 +1,12 @@
 var urlbar = document.getElementById('urlbar');
-CliqzUtils.init(window);
+CliqzUtils.init({ lang: 'en' });
 var resultsBox = document.getElementById('results');
 CLIQZ.UI.init(urlbar);
 var item_container;
 
 CLIQZ.Core = {
 	urlbar: urlbar,
-	popup: resultsBox,
-	refreshButtons: function(){}
+	popup: resultsBox
 }
 urlbar.addEventListener('keydown', function(e){
 	setTimeout(function(){

@@ -10,17 +10,13 @@
 
 Components.utils.import('resource://gre/modules/XPCOMUtils.jsm');
 
-XPCOMUtils.defineLazyModuleGetter(this, 'CliqzUtils',
-  'chrome://cliqzmodules/content/CliqzUtils.jsm');
+var global = {};
+Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm', global);
+var CliqzUtils = global.CLIQZ.CliqzUtils;
+var CliqzEvents = global.CLIQZ.CliqzEvents;
 
 XPCOMUtils.defineLazyModuleGetter(this, 'CliqzHistoryManager',
   'chrome://cliqzmodules/content/CliqzHistoryManager.jsm');
-
-XPCOMUtils.defineLazyModuleGetter(this, 'CliqzAutocomplete',
-  'chrome://cliqzmodules/content/CliqzAutocomplete.jsm');
-
-XPCOMUtils.defineLazyModuleGetter(this, 'CliqzHistoryCluster',
-  'chrome://cliqzmodules/content/CliqzHistoryCluster.jsm');
 
 XPCOMUtils.defineLazyModuleGetter(this, 'CliqzLanguage',
   'chrome://cliqzmodules/content/CliqzLanguage.jsm');
@@ -28,26 +24,11 @@ XPCOMUtils.defineLazyModuleGetter(this, 'CliqzLanguage',
 XPCOMUtils.defineLazyModuleGetter(this, 'CliqzDemo',
   'chrome://cliqzmodules/content/CliqzDemo.jsm');
 
-XPCOMUtils.defineLazyModuleGetter(this, 'CliqzHandlebars',
-  'chrome://cliqzmodules/content/CliqzHandlebars.jsm');
-
-XPCOMUtils.defineLazyModuleGetter(this, 'CliqzResultProviders',
-  'chrome://cliqzmodules/content/CliqzResultProviders.jsm');
-
 XPCOMUtils.defineLazyModuleGetter(this, 'CliqzSearchHistory',
   'chrome://cliqzmodules/content/CliqzSearchHistory.jsm');
 
 XPCOMUtils.defineLazyModuleGetter(this, 'CliqzRedirect',
   'chrome://cliqzmodules/content/CliqzRedirect.jsm');
-
-XPCOMUtils.defineLazyModuleGetter(this, 'CliqzSpellCheck',
-  'chrome://cliqzmodules/content/CliqzSpellCheck.jsm');
-
-XPCOMUtils.defineLazyModuleGetter(this, 'CLIQZEnvironment',
-  'chrome://cliqzmodules/content/CLIQZEnvironment.jsm');
-
-XPCOMUtils.defineLazyModuleGetter(this, 'CliqzEvents',
-  'chrome://cliqzmodules/content/CliqzEvents.jsm');
 
 var gBrowser = gBrowser || CliqzUtils.getWindow().gBrowser;
 var Services = Services || CliqzUtils.getWindow().Services;
@@ -107,9 +88,6 @@ window.CLIQZ.Core = {
     eventListeners: [],
     init: function(){
         CliqzRedirect.addHttpObserver();
-        var localePromise = CliqzUtils.init(window);
-
-        CliqzSpellCheck.init();
 
         var windowModuleConfig = {
           onInstall: !this.checkSession(),
@@ -140,13 +118,8 @@ window.CLIQZ.Core = {
           });
         }.bind(this));
 
-        // TODO: Refactor locale loading.
-        windowModulePromises.push(localePromise);
-
         return Promise.all(windowModulePromises).then(function () {
           var urlBarGo = document.getElementById('urlbar-go-button');
-          this._urlbarGoButtonClick = urlBarGo.getAttribute('onclick');
-          urlBarGo.setAttribute('onclick', "CLIQZ.UI.window.urlbarGoClick(); " + this._urlbarGoButtonClick);
 
           if ('gBrowser' in window) {
               CliqzDemo.init(window);
@@ -155,37 +128,6 @@ window.CLIQZ.Core = {
               this.propagateEvents("core:page_load", window.gBrowser, "load", true);
               this.propagateEvents("core:tab_select", window.gBrowser.tabContainer, "TabSelect");
           }
-
-          CLIQZEnvironment.updateGeoLocation();
-
-          // make sure the Qbutton popup is clean
-          var menupopup = document.getElementById('cliqz-button').children.cliqz_menupopup;
-          while(menupopup.lastChild) menupopup.removeChild(menupopup.lastChild);
-
-          // Fill bBrowser Help menu
-          var helpMenu = document.getElementById("menu_HelpPopup");
-          if (helpMenu && CLIQZ.config.settings.helpMenus) {
-            var cliqzButton = document.createElement('toolbarbutton');
-            this.createQbutton(cliqzButton);
-            var list = cliqzButton.children;
-            var cliqzItemClass = "cliqz-item";
-            list[0].classList.add(cliqzItemClass);
-            list[1].classList.add(cliqzItemClass);
-
-            // Tips and Tricks
-            helpMenu.insertBefore(list[1], helpMenu.firstChild);
-            // Cliqz Tour
-            var tourButton = this.createSimpleBtn(document, 'CLIQZ tour',
-                function() {
-                  CLIQZEnvironment.openTabInWindow(document.defaultView,
-                      'chrome://cliqz/content/onboarding/onboarding.html');
-                }, 'tour');
-            tourButton.classList.add(cliqzItemClass);
-            helpMenu.insertBefore(tourButton, helpMenu.firstChild);
-            // Support
-            helpMenu.insertBefore(list[0], helpMenu.firstChild);
-          }
-
         }.bind(this));
     },
     addCSS: function(doc, path){
@@ -227,12 +169,6 @@ window.CLIQZ.Core = {
     },
     // restoring
     unload: function(soft){
-        var helpItems = document.querySelectorAll("#menu_HelpPopup>.cliqz-item");
-        if (helpItems) {
-            while (helpItems.lenght)
-                helpItems[0].parentNode.removeChild(helpItems[0]);
-        }
-
         this.windowModules.slice(0).reverse().forEach(function (mod, index) {
           var moduleIndex = CLIQZ.config.modules.length - 1 - index;
           var moduleName = CLIQZ.config.modules[moduleIndex];
@@ -269,17 +205,13 @@ window.CLIQZ.Core = {
         }
 
         if(!soft){
-            delete window.CliqzUtils;
+            window.CliqzUtils = undefined;
             delete window.CliqzHistoryManager;
-            delete window.CliqzAutocomplete;
             delete window.CliqzLanguage;
             delete window.CliqzDemo;
-            delete window.CliqzResultProviders;
             delete window.CliqzSearchHistory;
             delete window.CliqzRedirect;
-            delete window.CliqzHistoryCluster;
-            delete window.CliqzHandlebars;
-            delete window.CliqzEvents;
+            window.CliqzEvents = undefined;
         }
     },
     restart: function(soft){
@@ -332,9 +264,9 @@ window.CLIQZ.Core = {
                 history_days: history.days,
                 history_urls: history.size,
                 startup: startup? true: false,
-                prefs: CLIQZEnvironment.getCliqzPrefs(),
+                prefs: CliqzUtils.getCliqzPrefs(),
                 defaultSearchEngine: defaultSearchEngine,
-                isDefaultBrowser: CLIQZEnvironment.isDefaultBrowser(),
+                isDefaultBrowser: CliqzUtils.isDefaultBrowser(),
                 private_window: CliqzUtils.isPrivate(window),
                 distribution: CliqzUtils.getPref('distribution', ''),
                 version_host: CliqzUtils.getPref('gecko.mstone', '', ''),
@@ -354,379 +286,8 @@ window.CLIQZ.Core = {
             gBrowser.selectedTab = gBrowser.addTab(CliqzUtils.UNINSTALL);
         }
     },
-    // autocomplete query inline
-    autocompleteQuery: function(urlBar, firstResult, firstTitle){
-        if (urlBar.selectionStart !== urlBar.selectionEnd) {
-            // TODO: temp fix for flickering,
-            // need to make it compatible with auto suggestion
-            urlBar.mInputField.value = urlBar.mInputField.value.slice(0, urlBar.selectionStart);
-        }
-        if(CliqzAutocomplete._lastKey  === KeyEvent.DOM_VK_BACK_SPACE ||
-           CliqzAutocomplete._lastKey  === KeyEvent.DOM_VK_DELETE){
-            if (CliqzAutocomplete.selectAutocomplete) {
-                CLIQZ.UI.selectAutocomplete();
-            }
-            CliqzAutocomplete.selectAutocomplete = false;
-            return;
-        }
-        CliqzAutocomplete.selectAutocomplete = false;
-
-        // History cluster does not have a url attribute, therefore firstResult is null
-        var lastPattern = CliqzAutocomplete.lastPattern,
-            fRes = lastPattern ? lastPattern.filteredResults() : null;
-        if(!firstResult && lastPattern && fRes.length > 1)
-          firstResult = fRes[0].url;
-
-        var r, endPoint = urlBar.value.length;
-        var lastPattern = CliqzAutocomplete.lastPattern;
-        var results = lastPattern ? fRes : [];
-
-        // try to update misspelings like ',' or '-'
-        if (CLIQZ.Core.cleanUrlBarValue(urlBar.value).toLowerCase() != urlBar.value.toLowerCase()) {
-            urlBar.mInputField.value = CLIQZ.Core.cleanUrlBarValue(urlBar.value).toLowerCase();
-        }
-        // Use first entry if there are no patterns
-        if (results.length === 0 || lastPattern.query != urlBar.value ||
-          CliqzUtils.generalizeUrl(firstResult) != CliqzUtils.generalizeUrl(results[0].url)) {
-            var newResult = [];
-            newResult.url = firstResult;
-            newResult.title = firstTitle;
-            newResult.query = [];
-            results.unshift(newResult);
-        }
-        if (!CliqzUtils.isUrl(results[0].url)) return;
-
-        // Detect autocomplete
-        var autocomplete = CliqzHistoryCluster.autocompleteTerm(urlBar.value, results[0], true);
-
-        // No autocomplete
-        if(!autocomplete.autocomplete ||
-           !CliqzUtils.getPref("browser.urlbar.autoFill", false, '')){ // user has disabled autocomplete
-            CLIQZ.UI.clearAutocomplete();
-            CliqzAutocomplete.lastAutocomplete = null;
-            CliqzAutocomplete.lastAutocompleteActive = null;
-            CliqzAutocomplete.selectAutocomplete = false;
-            return;
-        }
-
-        // Apply autocomplete
-        CliqzAutocomplete.lastAutocompleteActive = autocomplete.autocomplete;
-        CliqzAutocomplete.lastAutocompleteLength = autocomplete.full_url.length;
-        CliqzAutocomplete.lastAutocompleteUrlbar = autocomplete.urlbar;
-        CliqzAutocomplete.lastAutocompleteSelectionStart = autocomplete.selectionStart;
-        urlBar.mInputField.value = autocomplete.urlbar;
-        urlBar.setSelectionRange(autocomplete.selectionStart, urlBar.mInputField.value.length);
-        CliqzAutocomplete.lastAutocomplete = autocomplete.full_url;
-        CLIQZ.UI.cursor = autocomplete.selectionStart;
-
-        // Highlight first entry in dropdown
-        if (autocomplete.highlight) {
-            CliqzAutocomplete.selectAutocomplete = true;
-            CLIQZ.UI.selectAutocomplete();
-        }
-    },
-    cleanUrlBarValue: function(val){
-        var cleanParts = CliqzUtils.cleanUrlProtocol(val, false).split('/'),
-            host = cleanParts[0],
-            pathLength = 0,
-            SYMBOLS = /,|\./g;
-
-        if(cleanParts.length > 1){
-            pathLength = ('/' + cleanParts.slice(1).join('/')).length;
-        }
-        if(host.indexOf('www') == 0 && host.length > 4){
-            // only fix symbols in host
-            if(SYMBOLS.test(host[3]) && host[4] != ' ')
-                // replace only issues in the host name, not ever in the path
-                return val.substr(0, val.length - pathLength).replace(SYMBOLS, '.') +
-                       (pathLength? val.substr(-pathLength): '');
-        }
-        return val;
-    },
     getQuerySession: function() {
         return _querySession;
-    },
-    refreshButtons: function(){
-        var enumerator = Services.wm.getEnumerator('navigator:browser');
-        while (enumerator.hasMoreElements()) {
-            var win = enumerator.getNext()
-
-            try{
-                var btn = win.document.getElementById('cliqz-button')
-                win.CLIQZ.Core.createQbutton(btn.children.cliqz_menupopup);
-            } catch(e){}
-        }
-    },
-
-    createQbutton: function(menupopup){
-        var win = window,
-            doc = win.document,
-            lang = CliqzUtils.getLanguage(win);
-
-        //clean it
-        while(menupopup.lastChild)
-          menupopup.removeChild(menupopup.lastChild);
-
-        function feedback_FAQ(){
-          var feeedbackUrl = 'https://cliqz.com/' + lang + '/feedback/',
-              feedbackParams =  CliqzUtils.extensionVersion + '-' + CLIQZ.config.settings.channel;
-
-          //TODO - use the original channel instead of the current one (it will be changed at update)
-          CLIQZEnvironment.openTabInWindow(win, feeedbackUrl + feedbackParams);
-        }
-
-        //feedback and FAQ
-        menupopup.appendChild(
-            this.createSimpleBtn(
-                doc,
-                CliqzUtils.getLocalizedString('btnFeedbackFaq'),
-                feedback_FAQ,
-                'feedback'));
-
-      // hide search prefs if the user decided to disable CLIQZ search
-      if (!CliqzUtils.getPref("cliqz_core_disabled", false)) {
-        menupopup.appendChild(this.createSimpleBtn(doc, CliqzUtils.getLocalizedString('btnTipsTricks'), function(){
-          CLIQZEnvironment.openTabInWindow(win, 'https://cliqz.com/home/cliqz-triqz');
-        }, 'triqz'));
-        menupopup.appendChild(doc.createElement('menuseparator'));
-
-        menupopup.appendChild(this.createSearchOptions(doc));
-        menupopup.appendChild(this.createAdultFilterOptions(doc));
-        menupopup.appendChild(this.createLocationPermOptions(win));
-
-        this.windowModules.forEach(function (mod) {
-          var buttonItem = mod && mod.createButtonItem && mod.createButtonItem(win);
-          if (buttonItem) {
-            if (Array.isArray(buttonItem)) {
-              for (let b of buttonItem) {
-                menupopup.appendChild(b);
-              }
-            } else {
-              menupopup.appendChild(buttonItem);
-            }
-          }
-        });
-      }
-
-      if (CliqzUtils.getPref("cliqz_core_disabled", false)) {
-        menupopup.appendChild(doc.createElement('menuseparator'));
-        menupopup.appendChild(this.createActivateButton(doc));
-      }
-    },
-    createSearchOptions: function(doc){
-        var menu = doc.createElement('menu'),
-            menupopup = doc.createElement('menupopup'),
-            engines = CliqzResultProviders.getSearchEngines(),
-            def = Services.search.currentEngine.name;
-
-        menu.setAttribute('label', CliqzUtils.getLocalizedString('btnDefaultSearchEngine'));
-
-        for(var i in engines){
-
-            var engine = engines[i],
-                item = doc.createElement('menuitem');
-            item.setAttribute('label', '[' + engine.prefix + '] ' + engine.name);
-            item.setAttribute('class', 'menuitem-iconic');
-            item.engineName = engine.name;
-            if(engine.name == def){
-                item.style.listStyleImage = 'url(' + CLIQZEnvironment.SKIN_PATH + 'checkmark.png)';
-            }
-            // TODO: Where is this listener removed?
-            item.addEventListener('command', (function(event) {
-                CliqzResultProviders.setCurrentSearchEngine(event.currentTarget.engineName);
-                CliqzUtils.setTimeout(CLIQZ.Core.refreshButtons, 0);
-                CliqzUtils.telemetry({
-                  type: 'activity',
-                  action: 'cliqz_menu_button',
-                  button_name: 'search_engine_change_' + event.currentTarget.engineName
-                });
-            }).bind(this), false);
-
-            menupopup.appendChild(item);
-        }
-
-        menu.appendChild(menupopup);
-
-        return menu;
-    },
-    createAdultFilterOptions: function(doc) {
-        var menu = doc.createElement('menu'),
-            menupopup = doc.createElement('menupopup');
-
-        menu.setAttribute('label', CliqzUtils.getLocalizedString('result_filter'));
-
-        var filter_levels = CliqzUtils.getAdultFilterState();
-
-        for(var level in filter_levels) {
-          var item = doc.createElement('menuitem');
-          item.setAttribute('label', filter_levels[level].name);
-          item.setAttribute('class', 'menuitem-iconic');
-
-          if(filter_levels[level].selected){
-            item.style.listStyleImage = 'url(' + CLIQZEnvironment.SKIN_PATH + 'checkmark.png)';
-          }
-
-          item.filter_level = new String(level);
-          item.addEventListener('command', function(event) {
-            CliqzUtils.setPref('adultContentFilter', this.filter_level.toString());
-            CliqzUtils.setTimeout(CLIQZ.Core.refreshButtons, 0);
-            CliqzUtils.telemetry({
-              type: 'activity',
-              action: 'cliqz_menu_button',
-              button_name: 'adult_filter_change_' + this.filter_level
-            });
-          }, false);
-
-          menupopup.appendChild(item);
-        };
-        menu.appendChild(menupopup);
-        return menu;
-    },
-
-    createLocationPermOptions: function(win) {
-      var doc = win.document,
-          menu = doc.createElement('menu'),
-          menupopup = doc.createElement('menupopup');
-
-      menu.setAttribute('label', CliqzUtils.getLocalizedString('share_location'));
-
-      var filter_levels = this.getLocationPermState();
-
-      for(var level in filter_levels) {
-        var item = doc.createElement('menuitem');
-        item.setAttribute('label', filter_levels[level].name);
-        item.setAttribute('class', 'menuitem-iconic');
-
-
-        if(filter_levels[level].selected){
-          item.style.listStyleImage = 'url(' + CLIQZEnvironment.SKIN_PATH + 'checkmark.png)';
-
-        }
-
-        item.filter_level = new String(level);
-        item.addEventListener('command', function(event) {
-            CLIQZEnvironment.setLocationPermission(window, this.filter_level.toString());
-            CliqzUtils.telemetry({
-              type: 'activity',
-              action: 'cliqz_menu_button',
-              button_name: 'location_change_' + this.filter_level
-            });
-        }, false);
-
-        menupopup.appendChild(item);
-      };
-
-      var learnMore = this.createSimpleBtn(
-          doc,
-          CliqzUtils.getLocalizedString('learnMore'),
-          function(){
-            var lang = CliqzUtils.getLanguage(win) == 'de' ? '' : 'en/';
-            CLIQZEnvironment.openTabInWindow(win, 'https://cliqz.com/' + lang + 'privacy');
-          },
-          'location_learn_more'
-      );
-      learnMore.setAttribute('class', 'menuitem-iconic');
-      menupopup.appendChild(doc.createElement('menuseparator'));
-      menupopup.appendChild(learnMore);
-
-      menu.appendChild(menupopup);
-      return menu;
-    },
-
-    createSimpleBtn: function(doc, txt, func, action){
-        var item = doc.createElement('menuitem');
-        item.setAttribute('label', txt);
-        item.setAttribute('action', action);
-        if(func)
-            item.addEventListener(
-                'command',
-                function() {
-                    CliqzUtils.telemetry({
-                        type: 'activity',
-                        action: 'cliqz_menu_button',
-                        button_name: action
-                    });
-                    func();
-                },
-                false);
-        else
-            item.setAttribute('disabled', 'true');
-
-        return item
-    },
-    // TODO - improve the API of this function
-    createCheckBoxItem: function(doc, key, label, activeState, onChange, state) {
-        function optInOut(){
-            const active = state !== undefined ?
-                          state :
-                          CliqzUtils.getPref(key, false) === (activeState == 'undefined' ? true : activeState);
-
-            return active ?
-               'url(' + CLIQZEnvironment.SKIN_PATH + 'opt-in.svg)':
-               'url(' + CLIQZEnvironment.SKIN_PATH + 'opt-out.svg)';
-        }
-
-        var btn = doc.createElement('menuitem');
-        btn.setAttribute('label', label || key);
-        btn.setAttribute('class', 'menuitem-iconic');
-        btn.style.listStyleImage = optInOut();
-
-        btn.addEventListener('command', function(event) {
-            if(onChange){
-                onChange();
-            } else {
-                CliqzUtils.setPref(key, !CliqzUtils.getPref(key, false));
-            }
-            CliqzUtils.telemetry({
-                type: 'activity',
-                action: 'cliqz_menu_button',
-                button_name: key
-            });
-
-            btn.style.listStyleImage = optInOut();
-        }, false);
-
-        return btn;
-    },
-    createActivateButton: function(doc) {
-      var button = doc.createElement('menuitem');
-      button.setAttribute('label', CliqzUtils.getLocalizedString('btnActivateCliqz'));
-      button.addEventListener('command', (function(event) {
-        CliqzUtils.setPref("cliqz_core_disabled", false);
-
-        var enumerator = Services.wm.getEnumerator('navigator:browser');
-        while (enumerator.hasMoreElements()) {
-            var win = enumerator.getNext();
-            win.CLIQZ.Core.init();
-        }
-
-        CliqzUtils.telemetry({
-          type: 'setting',
-          setting: 'international',
-          value: 'activate'
-        });
-      }).bind(this));
-      return button;
-    },
-    getLocationPermState: function(){
-        var data = {
-          'yes': {
-                  name: CliqzUtils.getLocalizedString('always'),
-                  selected: false
-          },
-          'ask': {
-                  name: CliqzUtils.getLocalizedString('always_ask'),
-                  selected: false
-          },
-          'no': {
-              name: CliqzUtils.getLocalizedString('never'),
-              selected: false
-          }
-        };
-
-        data[CliqzUtils.getPref('share_location', 'ask')].selected = true;
-
-        return data;
     },
     /** Adds a listener to eventTarget for events of type eventType, and republishes them
      *  through CliqzEvents with id eventPubName.

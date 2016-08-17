@@ -219,7 +219,7 @@ export function OfferManager() {
       self.offerFetcher = new OfferFetcher(destURL, mappings);
     }).then(function() {
         // we will use the CliqzStorage here
-        let localStorage = CLIQZEnvironment.getLocalStorage(OffersConfigs.USER_LOCAL_STORAGE_URL);
+        let localStorage = CliqzUtils.getLocalStorage(OffersConfigs.USER_LOCAL_STORAGE_URL);
         let cache = localStorage.getItem('user_data');
         if (!cache) {
           // we need to write this then
@@ -448,7 +448,7 @@ OfferManager.prototype.savePersistentData = function() {
   }
   // save userdb
   if(this.userDB) {
-    let localStorage = CLIQZEnvironment.getLocalStorage(OffersConfigs.USER_LOCAL_STORAGE_URL);
+    let localStorage = CliqzUtils.getLocalStorage(OffersConfigs.USER_LOCAL_STORAGE_URL);
     localStorage.setItem('user_data', JSON.stringify(this.userDB));
     LoggingHandler.LOG_ENABLED &&
     LoggingHandler.info(MODULE_NAME, 'Saving data into local storage');
@@ -1279,11 +1279,3 @@ OfferManager.prototype.beforeRequestListener = function(requestObj) {
     this.addCouponAsUsedStats(response['domain'], response['code']);
   }
 };
-
-
-
-
-
-
-
-

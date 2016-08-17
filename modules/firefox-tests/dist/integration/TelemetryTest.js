@@ -1,3 +1,4 @@
+DEPS.TelemetryTest = ["core/utils"];
 TESTS.TelemetryTest = function (CliqzUtils) {
   describe('Telemetry', function(){
     this.retries(1);

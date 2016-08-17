@@ -118,6 +118,10 @@ export default background({
         trakersList: info,
         ps: ps
       });
+
+      if (this.popup) {
+        this.popup.setBadge(utils.getWindow(), info.cookies.blocked + info.requests.unsafe);
+      }
     },
     /**
     * @method popupActions.toggleAttrack
@@ -195,7 +199,7 @@ export default background({
         delete msg.includeUnsafeCount
         const info = CliqzAttrack.getCurrentTabBlockingInfo();
         // drop duplicated messages
-        if (this.popupActions._isDuplicate(info)) {
+        if (info.error || this.popupActions._isDuplicate(info)) {
           return;
         }
         msg.unsafe_count = info.cookies.blocked + info.requests.unsafe;

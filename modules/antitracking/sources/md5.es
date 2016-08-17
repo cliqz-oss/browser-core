@@ -1,5 +1,5 @@
 import MapCache from 'antitracking/fixed-size-cache';
-import { md5 } from 'core/crypto'
+import md5 from 'core/helpers/md5'
 
 var md5Cache = new MapCache(md5, 1000);
 

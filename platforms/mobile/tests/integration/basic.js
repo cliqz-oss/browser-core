@@ -119,7 +119,7 @@ describe('Search View', function() {
   });
 
   afterEach(function () {
-  	contentWindow.CLIQZEnvironment.getLocalStorage().clear();
+  	contentWindow.CliqzUtils.getLocalStorage().clear();
     fakeServer.restore();
     document.body.removeChild(testBox);
   });
@@ -534,7 +534,7 @@ describe("Freshtab", function () {
   });
 
   afterEach(function () {
-    contentWindow.CLIQZEnvironment.getLocalStorage().clear();
+    contentWindow.CliqzUtils.getLocalStorage().clear();
     fakeServer.restore();
     document.body.removeChild(testBox);
   });
@@ -626,20 +626,6 @@ describe("Freshtab", function () {
       expect(topsites[1].getAttribute('url')).to.equal('http://www.tagesschau.de/eilmeldung/eilmeldung-1203.html');
     });
   });
-
-  context("Deduplicate sites with common domain", function () {
-    beforeEach(function () {
-      contentWindow.osAPI.openLink("http://www.tagesschau.de/eilmeldung/eilmeldung-1203.html");
-      contentWindow.osAPI.openLink("http://www.tagesschau.com/eilmeldung/eilmeldung-1204.html");
-      contentWindow.osAPI.openLink("http://m.tagesschau.de/eilmeldung/eilmeldung-1205.html");
-      contentWindow.jsAPI.search();
-    });
-
-    it("should display one topsite", function () {
-      const topsites = $('.topSitesLink');
-      expect(topsites).to.have.length(1);
-    });
-  });
 });
 
 
@@ -684,7 +670,7 @@ describe("Startup", function () {
   });
 
   afterEach(function () {
-    contentWindow.CLIQZEnvironment.getLocalStorage().clear();
+    contentWindow.CliqzUtils.getLocalStorage().clear();
     fakeServer.restore();
     document.body.removeChild(testBox);
   });
@@ -697,12 +683,11 @@ describe("Startup", function () {
       contentWindow.CliqzUtils.locale = {};
     });
 
-    it("should load default language if locale is not recognized", function (done) {
-      contentWindow.CliqzUtils.loadLocale('it-IT').then(function () {
-        expect(contentWindow.CliqzUtils.locale['it-IT']).to.be.not.ok;
-        expect(contentWindow.CliqzUtils.locale.default).to.be.ok;
-        done();
-      });
+    it("should load default language if locale is not recognized", function () {
+      contentWindow.CliqzUtils.loadLocale('it-IT');
+
+      expect(contentWindow.CliqzUtils.locale['it-IT']).to.be.not.ok;
+      expect(contentWindow.CliqzUtils.locale.default).to.be.ok;
     });
   });
 });

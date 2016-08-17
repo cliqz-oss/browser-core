@@ -1,5 +1,6 @@
 import {utils} from "core/cliqz";
 import CliqzAntiPhishing from "anti-phishing/anti-phishing";
+import { simpleBtn, checkBox } from 'q-button/buttons';
 
 export default class {
   constructor(settings) {
@@ -30,7 +31,7 @@ export default class {
 
     // HumanWeb checkbox
     menuPopup.appendChild(
-      win.CLIQZ.Core.createCheckBoxItem(
+      checkBox(
         doc,
         'cliqz-anti-phishing-enabled',
         utils.getLocalizedString('anti-phishing-enabled'),
@@ -40,7 +41,7 @@ export default class {
 
     // learn more
     menuPopup.appendChild(
-      win.CLIQZ.Core.createSimpleBtn(
+      simpleBtn(
         doc,
         utils.getLocalizedString('learnMore'),
         function(){

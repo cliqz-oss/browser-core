@@ -106,7 +106,6 @@ function populateDOM() {
 
       // aggregate data by company
       for (var company in data.trakersList.companies) {
-        var companyBadTracker = [];
         var companyTrackers = data.trakersList.companies[company];
         var trackerCount = companyTrackers .reduce( function (sum, domain) {
           var domainData = data.trakersList.trackers[domain];
@@ -114,22 +113,19 @@ function populateDOM() {
         }, 0);
 
         //Get the Bad Trackers
-        for(var ii = 0; ii < companyTrackers.length; ii++) {
-          var trackerName = companyTrackers[ii];
+        var companyBadTracker = companyTrackers.map(function(trackerName) {
+          return {
+            name: trackerName,
+            domain_name: CliqzUtils.getDetailsFromUrl(trackerName).domain,
+            count: data.trakersList.trackers[trackerName].bad_qs + data.trakersList.trackers[trackerName].cookie_blocked
+          };
+        });
+        // sort by count
+        companyBadTracker.sort(function (a, b) {
+          return b.count - a.count;
+        });
 
-          //Add the tracker if there are bad requests or cookie
-          if(data.trakersList.trackers[trackerName].bad_qs > 0 || data.trakersList.trackers[trackerName].cookie_blocked > 0){
-            var trackerObj = {};
-
-            trackerObj["name"] = trackerName;
-            trackerObj["domain_name"] = CliqzUtils.getDetailsFromUrl(trackerName).domain;
-            trackerObj["count"] = data.trakersList.trackers[trackerName].bad_qs + data.trakersList.trackers[trackerName].cookie_blocked;
-            companyBadTracker.push(trackerObj);
-          }
-        }
-
-        if (trackerCount > 0)
-          companies.push({name: company, count: trackerCount, trackers: companyBadTracker, watchDogName: company.replace(/ /g,"-")});
+        companies.push({name: company, count: trackerCount, trackers: companyBadTracker, watchDogName: company.replace(/ /g,"-")});
       };
 
 

@@ -8,8 +8,9 @@ Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/Downloads.jsm');
 Cu.import('resource://gre/modules/Task.jsm');
 Cu.import('resource://gre/modules/osfile.jsm');
-XPCOMUtils.defineLazyModuleGetter(this, 'CliqzUtils',
-  'chrome://cliqzmodules/content/CliqzUtils.jsm');
+
+Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+var CliqzUtils = CLIQZ.CliqzUtils;
 
 const BRAND_SHORT_NAME = Cc["@mozilla.org/intl/stringbundle;1"]
                         .getService(Ci.nsIStringBundleService)
@@ -97,7 +98,7 @@ function saveToFile(reply) {
 
 			w.saveURL(reply.data, filename, null,
 						   true /*aShouldBypassCache */, true /* aSkipPrompt */,
-						   d.documentURIObject, d);			
+						   d.documentURIObject, d);
 		}
 		catch (ex) {
 			CliqzUtils.log(ex);
@@ -110,7 +111,7 @@ function getFilename(defaultName) {
 	if (defaultName != FILENAME_DEFAULT_VALUE) {
 		return defaultName;
 	}
- 
+
 	const date = new Date();
 	let dateString = date.getFullYear() + "-" + (date.getMonth() + 1) +
                    "-" + date.getDate();
@@ -120,7 +121,7 @@ function getFilename(defaultName) {
 	}
 	return part;
 	}).join("-");
- 
+
 	const timeString = date.toTimeString().replace(/:/g, ".").split(" ")[0];
 	return l10n.lookupFormat("screenshotGeneratedFilename",
                             [ dateString, timeString ]) + ".png";

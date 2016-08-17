@@ -152,12 +152,12 @@ export default Ember.Service.extend({
     }), '*');
   },
 
-  getUrlbar(value) {
+  setUrlbar(value) {
     this.callbacks.getUrlbar = () => {};
     window.postMessage(JSON.stringify({
       target: 'cliqz',
       module: 'core',
-      action: 'getUrlbar',
+      action: 'setUrlbar',
       args: [value]
     }), '*');
   },
@@ -206,10 +206,10 @@ export default Ember.Service.extend({
       action: "getSpeedDials"
     }) , "*")
 
-    return DS.PromiseObject.create({ promise }).then(model => model.speedDials);
+    return DS.PromiseObject.create({ promise });
   },
 
-  addSpeedDial(item) {
+  addSpeedDial(url, index) {
     let promise = new Promise( resolve => {
       this.callbacks.addSpeedDial = resolve;
     });
@@ -218,10 +218,37 @@ export default Ember.Service.extend({
       target: "cliqz",
       module: "freshtab",
       action: "addSpeedDial",
-      "args": [item]
+      "args": [
+        url,
+        index,
+      ]
     }), "*");
 
     return DS.PromiseObject.create({ promise });
+  },
+
+  getFeedbackPage() {
+    let promise = new Promise( resolve => {
+      this.callbacks.getFeedbackPage = resolve;
+    });
+
+    window.postMessage(JSON.stringify({
+      target: "cliqz",
+      module: "core",
+      action: "getFeedbackPage"
+    }), "*");
+
+    return DS.PromiseObject.create({ promise });
+  },
+
+  revertHistorySpeedDial(item) {
+
+    window.postMessage(JSON.stringify({
+      target: "cliqz",
+      module: "freshtab",
+      "action": "revertHistorySpeedDial",
+      "args": [item]
+    }), "*");
   },
 
   removeSpeedDial(item) {
@@ -233,6 +260,20 @@ export default Ember.Service.extend({
       "action": "removeSpeedDial",
       "args": [item]
     }), "*");
+  },
+
+  resetAllHistory() {
+    let promise = new Promise( resolve => {
+      this.callbacks.resetAllHistory = resolve;
+    });
+
+    window.postMessage(JSON.stringify({
+      target: "cliqz",
+      module: "freshtab",
+      "action": "resetAllHistory",
+    }), "*");
+
+    return DS.PromiseObject.create({ promise });
   },
 
   getNews() {

@@ -67,7 +67,7 @@ function orderedStringify(t, res, onlyKeys) {
   }
 }
 
-function getRouteHashStr(obj, sourceMap) {
+export function getRouteHashStr(obj, sourceMap) {
   let action = obj.action;
   let keys = sourceMap[action].keys;
   let staticKeys = sourceMap[action].static||[];

@@ -8,12 +8,55 @@ const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
 
 Cu.import('resource://gre/modules/PlacesUtils.jsm');
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
-Cu.import('chrome://cliqzmodules/content/CliqzUtils.jsm');
 
-var browserHistory = Cc["@mozilla.org/browser/nav-history-service;1"].getService(Components.interfaces.nsIBrowserHistory),
+Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+Components.utils.import('chrome://cliqzmodules/content/CliqzPlacesAutoComplete.jsm');
+var CliqzUtils = CLIQZ.CliqzUtils;
+
+var browserHistory = Cc['@mozilla.org/browser/nav-history-service;1'].getService(Components.interfaces.nsIBrowserHistory),
     bookmarkService = Cc["@mozilla.org/browser/nav-bookmarks-service;1"].getService(Components.interfaces.nsINavBookmarksService);
 
 var CliqzHistoryManager = {
+  init: function() {
+    // AB-1076: History provider contrace
+    this.reg = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
+    this.CliqzHistoryContract = {
+                classID: Components.ID('{59a99d57-b4ad-fa7e-aead-da9d4f4e77c9}'),
+                classDescription: 'Cliqz',
+                contractID: '@mozilla.org/autocomplete/search;1?name=cliqz-history-results',
+                QueryInterface: XPCOMUtils.generateQI([ Ci.nsIAutoCompleteSearch ])
+    };
+
+    // AB - 1076
+    var appInfo = Cc['@mozilla.org/xre/app-info;1'].getService(Components.interfaces.nsIXULAppInfo);
+    var versionChecker = Cc['@mozilla.org/xpcom/version-comparator;1']
+                          .getService(Components.interfaces.nsIVersionComparator);
+
+    CliqzUtils.autocomplete.AB_1076_ACTIVE = versionChecker.compare(appInfo.version, '47.0') >= 0  && versionChecker.compare(appInfo.version, '51.0') < 0 && CliqzUtils.getPref('history.timeouts', false);
+
+    if (CliqzUtils.autocomplete.AB_1076_ACTIVE) {
+
+      for(var k in this.CliqzHistoryContract) CliqzPlacesAutoComplete.prototype[k] = this.CliqzHistoryContract[k];
+      const cpCliqzPlacesAutoComplete = CliqzPlacesAutoComplete.prototype;
+      const cpFactory = XPCOMUtils.generateNSGetFactory([CliqzPlacesAutoComplete])(cpCliqzPlacesAutoComplete.classID);
+      this.reg.registerFactory(cpCliqzPlacesAutoComplete.classID, cpCliqzPlacesAutoComplete.classDescription, cpCliqzPlacesAutoComplete.contractID, cpFactory);
+      CliqzUtils.log('AB - 1076: registration finished', 'CliqzAutocomplete');
+    }
+  },
+  unload: function() {
+    // AB-1076: Unregister history provider
+    try {
+      this.reg.unregisterFactory(
+        this.reg.contractIDToCID(this.CliqzHistoryContract.contractID),
+        this.reg.getClassObjectByContractID(
+          this.CliqzHistoryContract.contractID,
+          Ci.nsISupports
+        )
+      );
+    } catch(e) {
+      // just in case something goes wrong during unregistration
+    }
+  },
   getStats: function(callback) {
     let historysize = 0;
     let daysVisited = {};

@@ -1,4 +1,6 @@
 import Storage from "core/storage";
+import utils from "core/utils";
+import ABTests from "core/ab-tests";
 
 export default class {
 
@@ -7,7 +9,7 @@ export default class {
   }
 
   init() {
-  	this.window.CLIQZ.CliqzStorage = new Storage();
+    ABTests.check();
   }
 
   unload() {

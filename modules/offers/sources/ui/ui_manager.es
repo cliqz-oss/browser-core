@@ -1,8 +1,7 @@
 import { utils } from 'core/cliqz';
 import { loadFileFromChrome } from 'offers/utils';
 import LoggingHandler from 'offers/logging_handler';
-
-Components.utils.import('chrome://cliqzmodules/content/CliqzHandlebars.jsm');
+import CliqzHandlebars from 'core/templates';
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -219,7 +218,7 @@ UIManager.prototype.showOfferInCurrentWindow = function(offerInfo, filterGoToOff
   let self = this;
   if (couponElement) {
     couponElement.onclick = function () {
-      CLIQZEnvironment.copyResult(couponElement.innerHTML);
+      CliqzUtils.copyResult(couponElement.innerHTML);
       if (self.callbacks.cp_to_clipboard) {
         try {
           let copyText = couponElement.nextElementSibling
@@ -289,7 +288,3 @@ UIManager.prototype.hideOfferOfClusterFromCurrentWindow = function(clusterID) {
     }
   }
 };
-
-
-
-

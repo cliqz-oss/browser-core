@@ -12,13 +12,18 @@
   src: url("./fonts/Lato-Regular.ttf");
 }
 
-* {
-  margin: 0px;
-  padding: 0px;
+@font-face {
+  font-family: "Lato-Light";
+  src: url("./fonts/Lato-Light.ttf");
+}
+
+.freshTabContainer,
+.freshTabContainer * {
+  margin: 0;
+  padding: 0;
   font-family: "Lato", sans-serif;
   font-weight: 400;
   font-size: 14px;
-  line-height: 1.2;
 }
 
 a:hover, a:active, a:focus {
@@ -67,43 +72,48 @@ a:hover, a:active, a:focus {
 
 .multiline-ellipsis {
   overflow: hidden;
-  white-space: normal;
-  line-height: 1.2em;
-  max-height: 4.8em;
+  /*white-space: normal;*/
+  line-height: 18px;
+  height: 110px;
+}
+
+.multiline-ellipsis > *:first-child {
+  float: right;
+  width: 100%;
+  margin-left: -5px;
 }
 
 .multiline-ellipsis:before {
-  content: "";
+  content:"";
   float: left;
   width: 5px;
-  height: 4.8em;
-  white-space: normal;
+  height: 110px;
 }
 
 .multiline-ellipsis:after {
-  white-space: normal;
   content: "\02026";
+  box-sizing: content-box;
   float: right;
   position: relative;
-  top: -1.3em;
+  top: -20px;
   left: 100%;
-  width: 21px;
-  margin-left: -20px;
-  padding-right: 4px;
+  width: 3em; margin-left: -3em;
+  padding-right: 5px;
   text-align: right;
-  line-height: 1.3em;
+  background-size: 100% 100%;
 }
 
-.multiline-ellipsis > * {
-  float: right;
-  width: 100%;
-  margin: 0 0 0 -5px;
-  white-space: normal;
-  line-height: 1.2em;
-  margin-bottom: 0;
+
+body.freshTabContainer {
+  background: #f7f7f7;
 }
 
 #freshTabPage {
+
+  .undoOptions {
+    height: 35px;
+  }
+
   a {
     text-decoration: none;
     color: #333333;
@@ -121,7 +131,8 @@ a:hover, a:active, a:focus {
 
   #container {
     max-width: 1024px;
-    min-width: 800px;
+    min-width: 940px;
+    padding: 0 20px;
     margin: 0px auto;
     outline: none;
   }
@@ -143,18 +154,18 @@ a:hover, a:active, a:focus {
   }
 
   .wrap {
-    width: 800px;
+    width: 100%;
+    max-width: 800px;
     margin: 0px auto;
   }
 
   #urlbar {
     width: 100%;
     height: 40px;
-    border: 2px solid #999999;
+    border: 1px solid #CCC;
     padding: 0px 8px 0px 40px;
     box-sizing: border-box;
     -moz-box-sizing: border-box;
-    border-radius: 3px;
     font-size: 16px;
     /* EX-2255 */ /* Ref: theme-linux.scss */
     background-color: #fff !important;
@@ -184,100 +195,180 @@ a:hover, a:active, a:focus {
 
   /*top visited */
   #topVisited {
-    margin: 20px 0px 75px 0px;
+    margin: 20px 0px 25px 0px;
     text-align: center;
 
     a {
       display: block;
-      height: 100%;
       padding-top: 10px;
+      z-index: 1000;
+      position: relative;
+    }
+
+    .speedDialLabel {
+      font-size: 14px;
+      text-transform: uppercase;
+      font-family: "Lato-Light", sans-serif;
+      text-align: left;
+      margin-bottom: 10px;
+      color: #666;
+    }
+
+    .dialIconHolder {
+      display: inline-block;
+      width: 50px;
+      margin-bottom: 8px;
+
+      &.dialWithSearch {
+        position: relative;
+        width: 72px;
+        padding-right: 22px;
+
+        .searchAlias {
+          position: absolute;
+          right: 0;
+          top: 0;
+          width: 20px;
+          height: 100%;
+          color: #fff;
+          text-align: center;
+          background: #cc7716;
+          z-index: 10;
+          transition: 0.3s all;
+
+          a{
+            display: block;
+            width: 100%;
+            height: 100%;
+            line-height: 35px;
+            background: rgba(0, 0, 0, 0.25)
+          }
+
+          &:hover {
+            width: calc(100% - 15px);
+          }
+        }
+      }
+    }
+
+    .undo, .closeUndo, .resetAll {
+      display: inline-block;
+      padding-top: 0;
+      margin-left: 20px;
+    }
+
+    .closeUndo {
+      top: 6px;
+      position: relative;
+    }
+
+    .closeUndo svg:hover path {
+      fill: #9D9D9D;
+    }
+
+    .undo, .resetAll {
+      color: #5ea3f9;
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
 
     .cliqz-brand-logo {
-      width: 2em;
-      height: 2em;
-      padding: 0.375em; /* 9px / 24px */
       box-sizing: border-box;
-      border-radius: 50%;
+      overflow: hidden;
+      height: 50px;
+      padding: 0.375em; /* 9px / 24px */
+      margin: 0px auto 0 auto;
+      font-size: 24px;
       line-height: 1.25em; /* 30px / 24px */
       text-align: center;
       font-weight: bold;
       color: #FFF;
-      overflow: hidden;
       background-origin: content-box;
       background-size: contain;
       background-position: center center;
       background-repeat: no-repeat;
-      margin: 0px auto 10px auto;
-      font-size: 24px;
       transition: all 0.45s;
+      position: relative;
     }
 
     ul {
       max-width: 1024px;
       margin: -7px auto 10px;
+      max-height: 100px;
+      overflow: hidden;
     }
 
     li {
       overflow: hidden;
       position: relative;
-      display: inline-block;
-      width: 166px;
+      float: left;
+      width: 18.6%;
+      max-width: 166px;
       height: 96px;
       padding: 0px;
-      margin: 7px 5px 10px 5px;
+      margin: 7px 0.7% 10px;
       list-style: none;
       text-align: center;
-      box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.2);
-      border-radius: 3px;
       transition: box-shadow 0.25s ease;
     }
 
-    li:hover {
-      box-shadow: 0px 2px 6px  rgba(0, 0, 0, 0.35);
-    }
+
 
     li:hover .delete {
       opacity: 1;
-      transition:opacity 0.3s ease-out 0.5s;
-      -webkit-transition: opacity 0.3s ease-out 0.5s;
+      transition:opacity 0.1s ease-out 0.2s;
     }
 
     li.addFrame {
-      border: 1px dashed #ccc;
-      box-shadow: none;
+      .addBtn {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+        width: 50%;
+        height: 89%;
+
+        svg:hover path {
+          fill: #999;
+        }
+      }
+
+      .addLabel {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        color: #666;
+      }
+    }
+
+    .searchAlias {
+
     }
 
     #historyTiles {
-      max-height: 110px;
+      max-height: 140px;
       overflow: hidden;
-
-      li {
-        box-shadow: none;
-      }
-
-      li:hover {
-        box-shadow: 0px 2px 6px  rgba(0, 0, 0, 0.35);
-      }
     }
 
     #customTiles {
-      max-height: 110px;
+      max-height: 140px;
       overflow: hidden;
-    }
-
-    .addBtn {
-      background: url("./images/plus_icon.svg") no-repeat;
-      width: 32px;
-      height: 32px;
-      display: block;
-      margin: 32px auto;
     }
 
     .addDialForm {
       padding: 2px 10px;
       height: 100%;
       position: relative;
+      background: #fff;
+
+      ::-moz-placeholder {  /* Firefox 19+ */
+        color: #333;
+      }
 
       input {
         border-top: 0px;
@@ -309,16 +400,17 @@ a:hover, a:active, a:focus {
       text-align: right;
       color: #CCCCCC;
       font-size: 16px;
+      line-height: 12px;
     }
 
     .delete {
       position: absolute;
-      top: 5px;
-      right: 5px;
+      top: 0%;
+      left: 28%;
       opacity: 0;
-      width: 14px;
-      height: 14px;
-      background: url("./images/delete.svg") no-repeat;
+      width: 20px;
+      height: 20px;
+      background: url("./images/delete-icon.svg") no-repeat;
       cursor: pointer;
       overflow:hidden;
       text-indent:100%;
@@ -328,8 +420,13 @@ a:hover, a:active, a:focus {
       -webkit-transition-delay: 1s;
     }
 
+    .historyWithSearch + .delete {
+      left: 23%;
+    }
+
     .notification {
       color: #e92207;
+      font-size:12px;
     }
 
     .title {
@@ -344,10 +441,10 @@ a:hover, a:active, a:focus {
   /* news container */
   #newsContainer {
     width: 100%;
-    height: 300px;
     box-sizing: border-box;
     margin-top: 40px;
     margin-bottom: 40px;
+    height: 160px;
 
     .heading {
       padding-bottom: 6px;
@@ -373,8 +470,7 @@ a:hover, a:active, a:focus {
       div {
         width: 12px;
         height: 12px;
-        border: 1px solid #cccccc;
-        background-color: #ffffff;
+        background-color: #cccccc;
         float: left;
         border-radius: 50%;
         text-align: center;
@@ -389,9 +485,53 @@ a:hover, a:active, a:focus {
 
     .newsBox {
 
-      .description {
-        display: none;
+      .article-content {
+        position: relative;
       }
+
+
+
+      .description {
+        opacity: 0;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        padding: 10px 10px;
+        overflow: hidden;
+        background: #fff;
+        line-height: 22px;
+        transition: 0.4s all;
+      }
+
+      li:hover .description {
+        opacity: 1;
+      }
+
+      li:hover .readMore {
+        opacity: 1;
+      }
+
+      /*.text {
+        max-height: 90px;
+        line-height: 1.3;
+        overflow: hidden;
+      }*/
+
+      .readMore {
+        text-align: right;
+        position: absolute;
+        bottom: 0;
+        right: 10px;
+        opacity: 0;
+        color: #5ea3f9;
+        transition: 0.4s all;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
     }
 
     li {
@@ -423,8 +563,8 @@ a:hover, a:active, a:focus {
 
       .logo {
         float: left;
-        width: 1.8em;
-        height: 1.8em;
+        width: 30px;
+        height: 30px;
         font-size: 20px;
         padding: 0.2em; /* 4px / 20px */
         line-height: 1.25em; /* 25px / 20px */
@@ -437,7 +577,6 @@ a:hover, a:active, a:focus {
         background-position: center center;
         background-repeat: no-repeat;
         background-size: contain;
-        border-radius: 50%;
         box-sizing: border-box;
       }
     }
@@ -450,11 +589,14 @@ a:hover, a:active, a:focus {
 
       li {
         float: left;
-        width: 260px;
-        margin-right: 10px;
-        border-radius: 3px;
-        padding: 10px;
-        box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.2);
+        max-width: 260px;
+        width: 32%;
+        margin-right: 2%;
+        padding: 0 10px 10px 10px;
+        background: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+        /*box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.15);*/
       }
 
       li:nth-last-child(3n+1) {
@@ -604,6 +746,24 @@ a:hover, a:active, a:focus {
     z-index: 2;
   }
 
+  #feedback {
+    position: fixed;
+    bottom: 25px;
+    right: 20px;
+    cursor: pointer;
+    z-index: 2;
+
+    .feedbackText {
+      margin-right: 8px;
+      color: #666;
+    }
+
+    .feedbackIcon {
+      top: 3px;
+      position: relative
+    }
+  }
+
   .learnBtn {
     overflow:hidden;
     text-indent:100%;
@@ -635,19 +795,40 @@ a:hover, a:active, a:focus {
   }
 }
 
-@media (min-width: 825px) and (max-width: 990px) {
-  #freshTabPage #topVisited li {
-    width: 150px;
+@media (max-width: 940px) {
+  #freshTabPage #container {
+    width: 100%;
+    min-width: 0;
+    padding: 0 20px;
+  }
+
+  #freshTabPage #topVisited .historyWithSearch + .delete {
+    left: 21%;
   }
 }
 
-@media (min-width: 767px) and (max-width: 824px) {
-  #freshTabPage #topVisited li {
-    width: 120px;
+@media (max-width: 809px) {
+
+  #freshTabPage #newsContainer .allNews li {
+    width: 49%;
+    max-width: 370px;
+  }
+
+  #freshTabPage #newsContainer .allNews li:last-child {
+    margin-right: 0px;
+  }
+
+  #freshTabPage #topVisited .delete {
+    left: 25%;
+  }
+
+  #freshTabPage #topVisited .historyWithSearch + .delete {
+    left: 17%;
   }
 }
 
-@media (max-width: 768px) {
+
+@media (max-width: 640px) {
   #freshTabPage #container {
     max-width: auto;
     min-width: auto;
@@ -655,13 +836,15 @@ a:hover, a:active, a:focus {
 
   #freshTabPage #topVisited {
     height: auto;
-  }
 
-  #freshTabPage #topVisited li {
-    margin-bottom: 10px;
-    width: 66px;
-  }
+    .delete {
+      left: 15%;
+    }
 
+    .historyWithSearch + .delete {
+      left: 5%;
+    }
+  }
   #freshTabPage #topVisited .title {
     max-width: 46px;
     display: block;
@@ -669,7 +852,6 @@ a:hover, a:active, a:focus {
   }
 
   #freshTabPage .wrap {
-    width: 100%;
     padding: 20px;
   }
 
@@ -678,13 +860,9 @@ a:hover, a:active, a:focus {
   }
 
   #freshTabPage #newsContainer .allNews li{
-    float: left;
-    width: 100%;
-  }
-
-  #freshTabPage #newsContainer .newsBox {
     float: none;
-    width: auto;
+    width: 100%;
+    max-width: 100%;
   }
 
   #freshTabPage #newsContainer #yourNewsBox {
@@ -697,5 +875,100 @@ a:hover, a:active, a:focus {
 
   #freshTabPage #yourNewsBox li {
     max-width: 100%;
+  }
+
+  #freshTabPage #topVisited .addDialForm input {
+    font-size: 12px;
+  }
+
+  .freshTabContainer .undoOptions * {
+    font-size: 12px;
+  }
+
+  #freshTabPage #topVisited .undo,
+  #freshTabPage #topVisited .closeUndo,
+  #freshTabPage #topVisited .resetAll {
+    margin-left: 10px;
+  }
+
+  #freshTabPage #topVisited .speedDialLabel {
+    margin-left: 6%;
+  }
+
+  #freshTabPage #topVisited ul {
+    max-height: 95px;
+  }
+
+  #freshTabPage .undoOptions {
+    height: 40px;
+    margin-top: -5px;
+
+    span {
+      display: inline-block;
+      margin-left: 17px;
+    }
+  }
+
+  #freshTabPage #firstTimeOnboarding,
+  #freshTabPage #learnMore,
+  #freshTabPage #feedback {
+    right: 40px;
+  }
+}
+
+@media (max-width: 500px) {
+
+/*  #freshTabPage #container {
+    padding: 0 20px;
+  }*/
+
+  #freshTabPage #topVisited li {
+    width: 23.6%;
+
+    &:nth-child(5n) {
+      display:none;
+    }
+  }
+
+  #freshTabPage #topVisited .delete {
+    left: 15%;
+  }
+
+  #freshTabPage #topVisited .historyWithSearch + .delete {
+    left: 5%;
+  }
+
+  .cqz-ez-btn {
+    margin-bottom: 8px;
+  }
+
+  .addDialBox svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  #freshTabPage #topVisited .notification {
+    font-size: 11px;
+  }
+
+
+}
+
+@media (min-height: 950px) {
+
+  #freshTabPage #topVisited {
+    margin-bottom: 15%;
+  }
+
+  #freshTabPage #searchContainer {
+    margin-bottom:15%;
+  }
+}
+
+@media (max-height: 760px) {
+  #freshTabPage #firstTimeOnboarding,
+  #freshTabPage #learnMore,
+  #freshTabPage #feedback {
+    display: none;
   }
 }

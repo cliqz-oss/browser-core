@@ -178,7 +178,7 @@
 						<span id='phishing-url' style='display:inline'></span>
 						<span class='cliqz-locale' key='anti-phishing-txt2'></span>
 
-						<br /><a href="https://cliqz.com/whycliqz/anti-phishing" target='_blank'>
+						<br /><a id='learn-more' href="https://cliqz.com/whycliqz/anti-phishing" target='_blank'>
 							<span class='cliqz-locale' key='anti-phishing-txt3'></span>
 						 	</a>
 						<br /><br />
@@ -205,7 +205,8 @@
 
 </body>
 <script type="text/javascript">
-  Components.utils.import('chrome://cliqzmodules/content/CliqzUtils.jsm');
+  Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+  var CliqzUtils = CLIQZ.CliqzUtils;
   CliqzUtils.localizeDoc(document);
 </script>
 </html>

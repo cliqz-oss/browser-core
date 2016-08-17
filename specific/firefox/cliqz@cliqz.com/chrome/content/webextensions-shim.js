@@ -1,5 +1,6 @@
-Components.utils.import('chrome://cliqzmodules/content/CliqzEvents.jsm');
-Components.utils.import('chrome://cliqzmodules/content/CliqzUtils.jsm');
+Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+var CliqzUtils = CLIQZ.CliqzUtils;
+var CliqzEvents = CLIQZ.CliqzEvents;
 
 var messageCallbacks = Object.create(null);
 

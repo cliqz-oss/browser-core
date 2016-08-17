@@ -1,7 +1,7 @@
 <div class='cqz-result-h2'>
 
   {{#with data}}
-    <div class="flightStatusEZ-flightNumber" extra="title">{{flight_name}}</div>
+    <div class="flightStatusEZ-flightNumber" extra="title" url="{{ ../url }}">{{flight_name}}</div>
     <div class="flightStatusEZ-flightStatus" style="color:{{status_color}}">{{status}}</div>
     <div class="flightStatusEZ-flightStatus">{{status_detail}}</div>
 

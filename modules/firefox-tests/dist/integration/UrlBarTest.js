@@ -1,3 +1,4 @@
+DEPS.UrlBarTest = ["core/utils"];
 TESTS.UrlBarTest = function (CliqzUtils) {
 
     describe('UrlBar integration', function () {

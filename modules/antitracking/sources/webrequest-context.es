@@ -66,4 +66,18 @@ export default class {
   getPostData() {
     return this.details.getPostData();
   }
+
+  getWindowDepth() {
+    let windowDepth = 0;
+    if (this.getInnerWindowID() !== this.getOriginWindowID()) {
+      if (this.getOriginWindowID() === this.getParentWindowID()) {
+        // frame in document
+        windowDepth = 1;
+      } else {
+        // deeper than 1st level iframe
+        windowDepth = 2;
+      }
+    }
+    return windowDepth;
+  }
 }

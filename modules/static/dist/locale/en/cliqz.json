@@ -147,7 +147,7 @@
         "message": "Take part"
     },
     "anti-phishing": {
-        "message": "Phishing Protection"
+        "message": "Anti-Phishing"
     },
     "anti-phishing-enabled": {
         "message": "Enabled"
@@ -156,16 +156,16 @@
         "message": "Warning: deceptive website!"
     },
     "anti-phishing-txt1": {
-        "message": "CLIQZ has blocked access to ("
+        "message": "CLIQZ has blocked access to "
     },
     "anti-phishing-txt2": {
-        "message": ") because it has been reported as a phishing website. Phishing websites disguise as other sites you may trust in order to trick you into disclosing your login, password or other sensitive information."
+        "message": " because it has been reported as a phishing website. Phishing websites disguise as other sites you may trust in order to trick you into disclosing your login, password or other sensitive information."
     },
     "anti-phishing-txt3": {
         "message": "Learn more"
     },
     "anti-phishing-txt4": {
-        "message": "Back to safe website"
+        "message": "Go to safe website"
     },
     "anti-phishing-txt5": {
         "message": "Report this page as safe"
@@ -768,7 +768,7 @@
       "message": "Open Link in New Window"
     },
     "cMenuOpenInPrivateWindow": {
-      "message": "Open Link in New Private Window"
+      "message": "Open Link in New Forget Window"
     },
     "cMenuFeedback": {
       "message": "Feedback for CLIQZ"
@@ -870,7 +870,7 @@
       "message": "Thank you so much!"
     },
     "location_not_share_msg": {
-      "message": "Too bad, you are missing out on some cool stuff. You can always change your location settings in the CLIQZ menu."
+      "message": "Understood! You can always change your location settings in the CLIQZ menu."
     },
     "movies_confirm_no": {
       "message": "Are you sure you don't want to see in which cinemas this movie is playing?"
@@ -1047,10 +1047,10 @@
       "message": "Disable for this domain"
     },
     "adb-menu-disable-url": {
-      "message": "Disable only for this site"
+      "message": "Disable only for this page"
     },
     "adb-menu-option-optimized": {
-      "message": "Optimized"
+      "message": "Fair"
     },
     "adb-menu-option-enabled": {
       "message": "All"

@@ -3,20 +3,11 @@ Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import("resource://gre/modules/FileUtils.jsm");
 Cu.import("resource://gre/modules/NetUtil.jsm");
 Cu.import("resource://gre/modules/FileUtils.jsm");
-
-function getFunctionArguments(fn) {
-  var args = fn.toString ().match (/^\s*function\s+(?:\w*\s*)?\((.*?)\)/);
-  return args ? (args[1] ? args[1].trim ().split (/\s*,\s*/) : []) : [];
-}
+Cu.import('chrome://cliqzmodules/content/CLIQZ.jsm');
 
 function loadModule(moduleName) {
-  var MODULES = {};
-  XPCOMUtils.defineLazyModuleGetter(
-    MODULES,
-    moduleName,
-    'chrome://cliqzmodules/content/'+moduleName+'.jsm'
-  );
-  return MODULES[moduleName];
+  console.log(moduleName)
+  return CLIQZ.System.get(moduleName).default;
 }
 
 function getBrowserVersion() {
@@ -40,29 +31,42 @@ function closeBrowser() {
     .quit(Ci.nsIAppStartup.eForceQuit);
 }
 
-function writeToFile(testData) {
-  var version   = getBrowserVersion(),
-      filename  = "mocha-report-" + version + ".xml",
-      file      = FileUtils.getFile("ProfD", [filename]),
-      ostream   = FileUtils.openSafeFileOutputStream(file),
-      converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
-                    .createInstance(Ci.nsIScriptableUnicodeConverter),
-      istream;
+function writeToFile(content, filename) {
+  var file = FileUtils.getFile('ProfD', [filename]);
+  var ostream = FileUtils.openSafeFileOutputStream(file);
+  var converter = Cc['@mozilla.org/intl/scriptableunicodeconverter']
+                    .createInstance(Ci.nsIScriptableUnicodeConverter);
+  var istream;
 
-  converter.charset = "UTF-8";
-  istream = converter.convertToInputStream(testData);
+  converter.charset = 'UTF-8';
+  istream = converter.convertToInputStream(content);
 
   NetUtil.asyncCopy(istream, ostream);
 }
 
+
+function writeLogsToFile(logs) {
+  var version = getBrowserVersion();
+  var filename = 'logs-' + version + '.json';
+  writeToFile(JSON.stringify(logs), filename);
+}
+
+
+function writeTestResultsToFile(testData) {
+  var version = getBrowserVersion();
+  var filename = 'mocha-report-' + version + '.xml';
+  writeToFile(testData, filename);
+}
+
+
 var runner;
-var CliqzUtils = loadModule("CliqzUtils"),
+var CliqzUtils = loadModule("core/utils"),
     chrome = CliqzUtils.getWindow(),
     telemetry,
     getCliqzResults,
     browserMajorVersion = parseInt(getBrowserVersion().split('.')[0]);
 
-mocha.setup({ ui: 'bdd', timeout: 3000 });
+mocha.setup({ ui: 'bdd', timeout: 10000 });
 
 /**
  * If extension did not intialize properly we want to kill tests ASAP
@@ -84,14 +88,23 @@ initHttpServer();
 
 // Load Tests and inject their dependencies
 Object.keys(window.TESTS).forEach(function (testName) {
-  var testFunction = TESTS[testName],
-      moduleNames = getFunctionArguments(testFunction),
-      modules = moduleNames.map(loadModule);
+  var testFunction = window.TESTS[testName],
+      moduleNames = window.DEPS[testName],
+      modules;
+
+  if (moduleNames !== undefined) {
+    modules = moduleNames.map(loadModule);
+  }
 
   if ('MIN_BROWSER_VERSION' in testFunction && browserMajorVersion < testFunction.MIN_BROWSER_VERSION) {
     return; // skip tests
   }
   testFunction.apply(null, modules);
+});
+
+before(function () {
+  // force location as it is IP based
+  CliqzUtils.setPref("config_location", "de");
 });
 
 beforeEach(function () {
@@ -103,6 +116,13 @@ beforeEach(function () {
     /* Turn off telemetry during tests */
     telemetry = CliqzUtils.telemetry;
     CliqzUtils.telemetry = function () {};
+
+    /* Give time to the extension to restart */
+    return new Promise(function (resolve) {
+      CliqzUtils.setTimeout(function () {
+        resolve();
+      }, 200);
+    });
   });
 });
 
@@ -119,6 +139,28 @@ afterEach(function () {
 
 window.focus();
 
+
+// Capture console logs
+var logs = [];
+var theConsoleListener = {
+  observe:function( aMessage ) {
+    logs.push(aMessage);
+  },
+  QueryInterface: function (iid) {
+    if (!iid.equals(Components.interfaces.nsIConsoleListener) &&
+        !iid.equals(Components.interfaces.nsISupports)) {
+      throw Components.results.NS_ERROR_NO_INTERFACE;
+    }
+    return this;
+  }
+};
+
+var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"]
+    .getService(Components.interfaces.nsIConsoleService);
+aConsoleService.registerListener(theConsoleListener);
+
+
+// Init Mocha runner
 var runner =  mocha.run();
 
 var XMLReport = '<?xml version="1.0" encoding="UTF-8"?>';
@@ -157,6 +199,7 @@ Mocha.reporters.XUnit.prototype.write = function (line) {
 new Mocha.reporters.XUnit(runner, {});
 
 runner.on('end', function () {
-  writeToFile(XMLReport);
+  writeTestResultsToFile(XMLReport);
+  writeLogsToFile(logs);
   if(getParameterByName('closeOnFinish') === "1") { closeBrowser(); }
 });

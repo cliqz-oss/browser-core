@@ -55,7 +55,6 @@ export default class {
       item.filter_level = level;
       item.addEventListener('command', function(event) {
         CliqzUnblock.setMode(this.filter_level);
-        CliqzUtils.setTimeout(win.CLIQZ.Core.refreshButtons, 0);
       }, false);
 
       menupopup.appendChild(item);

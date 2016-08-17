@@ -5,14 +5,8 @@
 
 Components.utils.import('resource://gre/modules/Services.jsm');
 
-Components.utils.import('resource://gre/modules/XPCOMUtils.jsm');
-
-XPCOMUtils.defineLazyModuleGetter(this, 'CliqzUtils',
-                                  'chrome://cliqzmodules/content/CliqzUtils.jsm');
-
-XPCOMUtils.defineLazyModuleGetter(this, 'CliqzAutocomplete',
-                                  'chrome://cliqzmodules/content/CliqzAutocomplete.jsm');
-
+Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+var CliqzUtils = CLIQZ.CliqzUtils;
 
 var EXPORTED_SYMBOLS = ['CliqzRedirect'];
 
@@ -27,6 +21,7 @@ var CliqzRedirect = {
         // check the non 2xx page and report if this is one of the cliqz result
         observeActivity: function(aHttpChannel, aActivityType, aActivitySubtype, aTimestamp, aExtraSizeData, aExtraStringData) {
             if (nsIAO && aActivityType == nsIAO.ACTIVITY_TYPE_HTTP_TRANSACTION && aActivitySubtype == nsIAO.ACTIVITY_SUBTYPE_RESPONSE_HEADER) {
+                var autocomplete = CliqzUtils.autocomplete;
                 var aChannel = aHttpChannel.QueryInterface(nsIHttpChannel);
                 var res = {url: aChannel.URI.spec,
                            status: aExtraStringData.split(" ")[1]}
@@ -34,10 +29,10 @@ var CliqzRedirect = {
                     // CliqzUtils.log(JSON.stringify(res), "httpData")
                     // Now that we see a 404, let's compare to the cliqz results we provided
                     for (var i=0;
-                        CliqzAutocomplete.lastResult &&
-                        i < CliqzAutocomplete.lastResult._results.length;
+                        autocomplete.lastResult &&
+                        i < autocomplete.lastResult._results.length;
                         i++) {
-                        var r = CliqzAutocomplete.lastResult._results[i];
+                        var r = autocomplete.lastResult._results[i];
                         if (res.url == r.val) {
                             var action = {
                                 type: "performance",

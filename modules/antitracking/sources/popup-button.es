@@ -1,5 +1,5 @@
 import { utils } from "core/cliqz";
-
+import CliqzEvents from "core/events";
 
 export default CliqzPopupButton;
 
@@ -121,6 +121,9 @@ CliqzPopupButton.prototype.updateState = function (win, turnOn) {
 
   var button = win.document.getElementById(this.tbb.id);
 
+  // if button is hidden via 'customize' menu, button will be undefined
+  if (!button) return;
+
   if (turnOn) {
     button.classList.remove("off");
   } else {
@@ -130,6 +133,9 @@ CliqzPopupButton.prototype.updateState = function (win, turnOn) {
 
 CliqzPopupButton.prototype.setBadge = function (win, badgeText) {
   var button = win.document.getElementById(this.tbb.id);
+
+  // if button is hidden via 'customize' menu, button will be undefined
+  if (!button) return;
 
   if ( badgeText ) {
     button.setAttribute('badge', String(badgeText));
@@ -167,8 +173,6 @@ CliqzPopupButton.prototype.destroy = function () {
 };
 
 CliqzPopupButton.prototype.setupCommunicationChannel = function () {
-  Components.utils.import('chrome://cliqzmodules/content/CliqzEvents.jsm');
-
   var channelName = this.name,
       actions = this.actions;
 

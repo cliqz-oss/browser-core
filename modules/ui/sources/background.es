@@ -8,6 +8,7 @@ import v5 from "ui/views/weatherAlert";
 import v6 from "ui/views/weatherEZ";
 import v7 from "ui/views/generic";
 import v8 from "ui/views/entity-generic";
+import v9 from "ui/views/liveTicker";
 import p1 from "ui/views/partials/location/missing_location_1";
 
 export default {

@@ -1,4 +1,4 @@
-
+DEPS.AttrackQSWhitelistTest = ["core/utils", "core/events"];
 TESTS.AttrackQSWhitelistTest = function (CliqzUtils, CliqzEvents) {
   var System = CliqzUtils.getWindow().CLIQZ.System,
       QSWhitelist = System.get('antitracking/qs-whitelists').default,

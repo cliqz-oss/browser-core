@@ -5,6 +5,7 @@
   "settings": {},
   "modules": [
     "core",
+    "autocomplete",
     "mobile-ui",
     "mobile-dev",
     "mobile-freshtab",

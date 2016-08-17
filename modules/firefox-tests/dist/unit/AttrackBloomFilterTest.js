@@ -1,4 +1,4 @@
-
+DEPS.AttrackBloomFilterTest = ["core/utils"];
 TESTS.AttrackBloomFilterTest = function (CliqzUtils) {
   var System = CliqzUtils.getWindow().CLIQZ.System,
       { AttrackBloomFilter, BloomFilter } = System.get('antitracking/bloom-filter'),

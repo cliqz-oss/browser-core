@@ -1,7 +1,13 @@
 import Ember from 'ember';
+//import ResizeAware from 'ember-resize/mixins/resize-aware';
+
+const threeNewsBreakpoint = 809; //add 40px
+const twoNewsBreakpoint = 640;
 
 export default Ember.Component.extend({
+  resizeWidthSensitive: true,
   cliqz: Ember.inject.service(),
+  resizeService: Ember.inject.service(),
   pageNum: 0,
   maxHeight: Ember.computed.max("heights"),
 
@@ -14,7 +20,6 @@ export default Ember.Component.extend({
   pages: Ember.computed('model.[]', 'pageSize', function () {
     const pageSize = this.get('pageSize');
     const model = this.get("model").toArray();
-
     const ret = [];
 
     while (model.length > 0) {
@@ -22,6 +27,39 @@ export default Ember.Component.extend({
     }
     return ret;
   }),
+
+  setupResize: function(){
+    this.get('resizeService').on('didResize', event => {
+      this.didResize(window.innerWidth, window.innerHeight, event)
+    })
+  }.on('init'),
+
+
+  didResize(width, height, evt) {
+    //console.log(`Resized! ${width}x${height}`);
+    var pageNum = this.get('pageNum');
+    this.set('pageNum', 0)
+
+    this.updatePageSize(width);
+  },
+
+  updatePageSize: function(width) {
+    if(width > threeNewsBreakpoint) {
+      this.set('pageSize', 3);
+    } else {
+      if(width > twoNewsBreakpoint) {
+        this.set('pageSize', 2);
+      } else {
+        this.set('pageSize', 1);
+      }
+    }
+  },
+
+  setupPageSize: function() {
+    const width = window.outerWidth
+    this.updatePageSize(width)
+
+  }.on("init"),
 
   setupHeights: function () {
     this.set("heights", []);

@@ -11,8 +11,7 @@ function startup(aData, aReason) {
     Cu.unload('chrome://cliqzmodules/content/Extension.jsm');
 
     Cu.import('chrome://cliqzmodules/content/Extension.jsm');
-    Extension.init();
-    Extension.load(aReason == ADDON_UPGRADE, aData.oldVersion, aData.version);
+    Extension.init(aReason == ADDON_UPGRADE, aData.oldVersion, aData.version);
 }
 
 function shutdown(aData, aReason) {

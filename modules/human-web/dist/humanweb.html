@@ -147,12 +147,12 @@
         <br><br>
     </div>
     <script type="text/javascript">
-        Components.utils.import('chrome://cliqzmodules/content/CliqzUtils.jsm');
+        Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+        var CliqzUtils = CLIQZ.CliqzUtils;
         CliqzUtils.localizeDoc(document);
 
         function clickHW(cb){
             CliqzUtils.setPref('dnt', !cb.checked);
-            CliqzUtils.getWindow().CLIQZ.Core.refreshButtons();
 
             CliqzUtils.telemetry({
               type: 'humanWebStatus',

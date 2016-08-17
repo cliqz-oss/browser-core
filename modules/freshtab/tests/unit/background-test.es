@@ -104,13 +104,13 @@ export default describeModule("freshtab/background",
         it('display history tiles', function() {
 
           return this.module().default.actions.getSpeedDials().then((result) => {
-            chai.expect(result.speedDials.length).to.equal(history_results.length);
+            chai.expect(result.history.length).to.equal(history_results.length);
             history_results.forEach((history, i) => {
-              chai.expect(result.speedDials[i]).to.have.property('title').that.equal(history.url)
-              chai.expect(result.speedDials[i]).to.have.property('url').that.equal(history.url)
-              chai.expect(result.speedDials[i]).to.have.property('displayTitle').that.equal(history.url)
-              chai.expect(result.speedDials[i]).to.have.property('custom').that.equal(false)
-              chai.expect(result.speedDials[i]).to.have.property('logo').that.equal('')
+              chai.expect(result.history[i]).to.have.property('title').that.equal(history.url)
+              chai.expect(result.history[i]).to.have.property('url').that.equal(history.url)
+              chai.expect(result.history[i]).to.have.property('displayTitle').that.equal(history.url)
+              chai.expect(result.history[i]).to.have.property('custom').that.equal(false)
+              chai.expect(result.history[i]).to.have.property('logo').that.equal('')
             });
 
           });
@@ -125,7 +125,7 @@ export default describeModule("freshtab/background",
           }));
 
           return this.module().default.actions.getSpeedDials().then((result) => {
-            var customTiles = result.speedDials.filter((tile) => tile.custom);
+            var customTiles = result.custom.filter((tile) => tile.custom);
             chai.expect(customTiles.length).to.equal(2);
           });
         });
@@ -142,10 +142,8 @@ export default describeModule("freshtab/background",
           }));
 
           return this.module().default.actions.getSpeedDials().then((result) => {
-            var customTiles = result.speedDials.filter((tile) => tile.custom),
-                historyTiles = result.speedDials.filter((tile) => !tile.custom);
-            chai.expect(result.speedDials.length).to.equal(3);
-            chai.expect(historyTiles.length).to.equal(2);
+            chai.expect(result.custom.length).to.equal(1);
+            chai.expect(result.history.length).to.equal(2);
           });
         });
 
@@ -159,11 +157,8 @@ export default describeModule("freshtab/background",
           }));
 
           return this.module().default.actions.getSpeedDials().then((result) => {
-            var customTiles = result.speedDials.filter((tile) => tile.custom),
-                historyTiles = result.speedDials.filter((tile) => !tile.custom);
-            chai.expect(result.speedDials.length).to.equal(4);
-            chai.expect(customTiles.length).to.equal(2);
-            chai.expect(historyTiles.length).to.equal(2);
+            chai.expect(result.custom.length).to.equal(2);
+            chai.expect(result.history.length).to.equal(2);
           });
         });
       });

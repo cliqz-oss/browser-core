@@ -21,7 +21,6 @@ var CliqzFreshTabHistory = {
             "where moz_places.typed == 1",
                   "and moz_historyvisits.visit_date > (strftime('%s', date('now', '-6 months'))*1000000)",
                   "and moz_historyvisits.place_id == moz_places.id",
-                  "and moz_places.hidden == 0",
                   "and moz_places.visit_count > 1",
                   "and (moz_historyvisits.visit_type < 4 or moz_historyvisits.visit_type == 6)",
           ") as mzh",

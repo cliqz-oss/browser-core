@@ -1,0 +1,46 @@
+{{#if isCustom}}
+  <h3 class="speedDialLabel">{{t (concat 'speedDials.' type '-sites')}}</h3>
+{{else}}
+  {{#if displayHistoryLabel }}
+    <h3 class="speedDialLabel">{{t (concat 'speedDials.' type '-sites')}}</h3>
+  {{/if}}
+{{/if}}
+<ul class="clearfix">
+  {{#each speedDials as |dial index|}}
+    {{speed-dial model=dial
+                 index=index
+                 tagName="li"
+                 type=type
+                 removeAction="remove"
+                 resetAllAction="resetAll"
+                 alias=dial.searchAlias
+                 isCustom=isCustom}}
+  {{/each}}
+  {{#if isCustom}}
+    {{add-speed-dial isVisible=displayAddBtn addToCustomAction="addToCustom"}}
+  {{/if}}
+</ul>
+
+<div class="undoOptions">
+{{#if removedSpeedDials}}
+    <span>
+        {{removedSpeedDials.length}}
+        {{#if manyRemoved}}
+          {{t (concat 'speedDials.shortcuts-many-removed')}}
+
+        {{else}}
+          {{t (concat 'speedDials.shortcuts-one-removed')}}
+        {{/if}}
+    </span>
+
+    <a class="undo" href="#" {{action 'undoRemoval'}}>{{t 'speedDials.undo'}}</a>
+    {{#unless isCustom}}
+      <a class="resetAll" href="#" {{action 'resetAll'}}>{{t 'speedDials.reset-all'}}</a>
+    {{/unless}}
+    <a class="closeUndo" href="#" {{action 'closeUndo' type}}>
+      {{close-undo}}
+    </a>
+{{else}}
+  &nbsp;
+{{/if}}
+</div>

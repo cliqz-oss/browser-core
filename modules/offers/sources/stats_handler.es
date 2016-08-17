@@ -33,7 +33,7 @@ export class StatsHandler {
     };
 
     // we will use the CliqzStorage here
-    var localStorage = CLIQZEnvironment.getLocalStorage(OffersConfigs.STATS_LOCAL_STORAGE_URL);
+    var localStorage = CliqzUtils.getLocalStorage(OffersConfigs.STATS_LOCAL_STORAGE_URL);
     var cache = localStorage.getItem('stats_data');
     if (!cache) {
       // we need to write this then
@@ -83,7 +83,7 @@ export class StatsHandler {
     if (!this.dataDirty) {
       return;
     }
-    var localStorage = CLIQZEnvironment.getLocalStorage(OffersConfigs.STATS_LOCAL_STORAGE_URL);
+    var localStorage = CliqzUtils.getLocalStorage(OffersConfigs.STATS_LOCAL_STORAGE_URL);
     localStorage.setItem('stats_data', JSON.stringify(this.currentData));
     LoggingHandler.LOG_ENABLED &&
     LoggingHandler.info(MODULE_NAME, 'Saving data into local storage');
@@ -369,6 +369,3 @@ export class StatsHandler {
   }
 
 }
-
-
-

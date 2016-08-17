@@ -42,6 +42,7 @@
     "ember-i18n": "4.2.0",
     "ember-load-initializers": "^0.5.1",
     "ember-moment": "6.1.0",
+    "ember-resize": "0.0.16",
     "ember-resolver": "^2.0.3",
     "liquid-fire": "0.23.0",
     "loader.js": "^4.0.1"

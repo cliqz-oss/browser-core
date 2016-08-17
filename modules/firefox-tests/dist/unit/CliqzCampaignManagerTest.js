@@ -43,6 +43,7 @@ var campaigns = {
 
 var wasShown = false;
 
+DEPS.CliqzCampaignManagerTestUnit = ["campaign-manager/campaign-manager"];
 TESTS.CliqzCampaignManagerTestUnit = function (CliqzCampaignManager) {
   describe('CliqzCampaignManager (unit)', function() {
     var campaignManager;

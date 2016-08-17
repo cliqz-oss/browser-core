@@ -1,5 +1,7 @@
 'use strict';
 
+
+DEPS.CliqzCampaignManagerTestItegration = ["core/utils", "message-center/message-center", "campaign-manager/campaign-manager"];
 TESTS.CliqzCampaignManagerTestItegration = function (CliqzUtils, CliqzMsgCenter, CliqzCampaignManager) {
 	describe('integration CliqzCampaignManager' , function() {
     this.retries(1);
@@ -63,6 +65,7 @@ TESTS.CliqzCampaignManagerTestItegration = function (CliqzUtils, CliqzMsgCenter,
     });
 
     it('should show message', function() {
+      this.timeout(5000);
       campaignManager._campaigns.TEST001.limits.trigger = 2;
 
       core.urlbar.blur();
@@ -109,6 +112,7 @@ TESTS.CliqzCampaignManagerTestItegration = function (CliqzUtils, CliqzMsgCenter,
       });
     });
 
+    /*
     context('URL tests', function () {
       var url = 'about:config';
 
@@ -118,7 +122,7 @@ TESTS.CliqzCampaignManagerTestItegration = function (CliqzUtils, CliqzMsgCenter,
         }
       });
 
-      it('should open URL on confirm without limit', function(done) {
+      it('should open URL on confirm without limit', function() {
         campaignManager._campaigns.TEST001.limits.trigger = 1;
         campaignManager._campaigns.TEST001.limits.confirm = -1;
         campaignManager._campaigns.TEST001.message.options[0].url = url;
@@ -127,19 +131,26 @@ TESTS.CliqzCampaignManagerTestItegration = function (CliqzUtils, CliqzMsgCenter,
         core.urlbar.blur();
         core.urlbar.focus();
         fillIn('some query');
-        waitForResult().then(function() {
+        return waitForResult().then(function() {
           click($cliqzMessageContainer().find(".cqz-msg-btn-action-confirm")[0]);
-          setTimeout(function () {
-            chai.expect(CliqzUtils.getWindow().gBrowser.tabs).to.have.length(2);
-                            // checks (1) for expected URL and (2) that new tab is focused
-                            //remove trailing slash
-                            var str = CliqzUtils.stripTrailingSlash(core.urlbar.value);
-                            chai.expect(str).to.equal(url);
-                            done();
-                          }, 1000)
+          return new Promise(function (resolve, reject) {
+            setTimeout(function () {
+              // checks (1) for expected URL and (2) that new tab is focused
+              //remove trailing slash
+              try {
+                chai.expect(CliqzUtils.getWindow().gBrowser.tabs).to.have.length(2);
+                var str = CliqzUtils.stripTrailingSlash(core.urlbar.value);
+                chai.expect(str).to.equal(url);
+                resolve();
+              } catch(e) {
+                reject(e);
+              }
+            }, 1000);
+          });
         });
       });
     });
+    */
 /*
 
   it('should open URL on actions other than confirm', function(done) {

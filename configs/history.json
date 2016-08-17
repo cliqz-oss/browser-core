@@ -4,7 +4,6 @@
   "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
   "settings": {
     "freshTabButton": false,
-    "freshTabABtest" : false,
     "freshTabHistoryNews": true,
     "unblockUI": false,
     "showDataCollectionMessage": false,
@@ -13,8 +12,10 @@
     "antitrackingButton": true
   },
   "modules": [
+    "q-button",
     "static",
     "core",
+    "autocomplete",
     "ui",
     "human-web",
     "anti-phishing",
@@ -27,7 +28,6 @@
     "antitracking",
     "performance",
     "hpn",
-    "smart-cliqz-cache",
     "privacy-dashboard",
     "history",
     "history-ui-desktop"

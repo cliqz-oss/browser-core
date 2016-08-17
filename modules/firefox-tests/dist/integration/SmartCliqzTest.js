@@ -1,3 +1,4 @@
+DEPS.SmartCliqzTest = ["core/utils"];
 TESTS.SmartCliqzTest = function (CliqzUtils) {
 
 	function mockSmartCliqz(ez) {

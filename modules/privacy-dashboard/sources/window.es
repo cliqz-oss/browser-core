@@ -1,5 +1,6 @@
 import PrivacyRep from 'privacy-dashboard/main';
 import { utils } from 'core/cliqz';
+import { simpleBtn } from 'q-button/buttons';
 
 /**
 * @namespace privacy-dashboard
@@ -19,7 +20,7 @@ export default class {
   * @param win
   */
   createButtonItem(win) {
-    var btn = win.CLIQZ.Core.createSimpleBtn(
+    var btn = simpleBtn(
       win.document,
       utils.getLocalizedString('btnPrivacyDashboard'),
       function(){

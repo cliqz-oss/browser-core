@@ -127,25 +127,6 @@ CLIQZEnvironment = {
     addEngineWithDetails: function(engine) {
       return;
     },
-    createContextMenu: function(box, menuItems) {
-      if (contextMenu == undefined) {
-        contextMenu = document.createElement('ul');
-        contextMenu.setAttribute('class', 'context-menu');
-        for(var item = 0; item < menuItems.length; item++) {
-          if (menuItems[item].displayInDebug) {
-            var menuItem = document.createElement('li');
-            menuItem.setAttribute('class', 'context-menu-item');
-            menuItem.addEventListener('click', menuItems[item].command);
-            contextMenu.appendChild(menuItem);
-            menuItem.innerHTML = menuItems[item].label;
-          }
-        }
-        document.body.appendChild(contextMenu);
-        CLIQZEnvironment.clickListener();
-
-      }
-      return contextMenu;
-    },
     clickListener: function() {
       document.addEventListener('click', function(e) {
           var button = e.which || e.button;

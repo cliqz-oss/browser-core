@@ -33,8 +33,17 @@
     </div>
 
     <script type="text/javascript">
-        Components.utils.import('chrome://cliqzmodules/content/CliqzABTests.jsm');
-        Components.utils.import('chrome://cliqzmodules/content/CliqzUtils.jsm');
+
+        Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+
+        Promise.all([
+          CLIQZ.System.import("core/utils"),
+          CLIQZ.System.import("core/ab-tests"),
+        ]).then(function (modules) {
+
+        var CliqzUtils = modules[0].default;
+        var CliqzABTests = modules[1].default;
+
         var current = CliqzABTests.getCurrent();
 
         var override = CliqzUtils.getPref(CliqzABTests.PREF_OVERRIDE) != undefined;
@@ -155,6 +164,7 @@
                 showTest(t);
             }
         }
+        });
     </script>
 </body>
 </html>

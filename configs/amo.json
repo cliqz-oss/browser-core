@@ -4,7 +4,6 @@
   "testem_launchers": ["Mocha"],
   "settings": {
     "freshTabButton": true,
-    "freshTabABtest" : true,
     "freshTabHistoryNews": true,
     "showDataCollectionMessage": true,
     "cliqzOnboarding": false,
@@ -12,8 +11,10 @@
     "antitrackingButton": false
   },
   "modules": [
+    "q-button",
     "static",
     "core",
+    "autocomplete",
     "ui",
     "human-web",
     "anti-phishing",
@@ -22,8 +23,7 @@
     "telemetry-categories",
     "antitracking",
     "performance",
-    "hpn",
-    "smart-cliqz-cache"
+    "hpn"
   ],
   "subprojects": [
     "fresh-tab-frontend"

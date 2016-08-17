@@ -1,5 +1,5 @@
 import background from "core/base/background";
-import { utils, environment } from "core/cliqz";
+import { utils } from "core/cliqz";
 import { queryActiveTabs } from "core/tabs";
 import HistoryProvider from "core/history-provider";
 import createHistoryDTO from "history/history-dto";
@@ -135,7 +135,7 @@ export default background({
     },
 
     openUrl(url) {
-      environment.openLink(utils.getWindow(), url);
+      utils.openLink(utils.getWindow(), url);
     },
 
     selectTabAtIndex(index) {
@@ -154,7 +154,7 @@ export default background({
       if ( freshTab ) {
         window.gBrowser.selectTabAtIndex(freshTab.index);
       } else {
-        const tab = environment.openLink(window, "about:cliqz", true);
+        const tab = utils.openLink(window, "about:cliqz", true);
         window.gBrowser.selectedTab = tab;
       }
     },

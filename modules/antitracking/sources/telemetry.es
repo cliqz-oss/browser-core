@@ -12,6 +12,6 @@ export default {
     System.import(provider).then((mod) => {
       this.telemetry = mod.default.telemetry.bind(mod);
       this.msgType = mod.default.msgType;
-    }.bind(this));
+    });
   }
 };

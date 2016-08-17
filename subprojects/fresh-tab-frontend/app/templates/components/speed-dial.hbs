@@ -1,5 +1,22 @@
-<a class="historyLink" data-index="{{index}}" href="{{model.url}}" title="{{model.title}}">
-  <div class="cliqz-brand-logo" style="{{model.logo.style}}">{{model.logo.text}}</div>
-  <div class="title">{{model.displayTitle}}</div>
-</a>
-<a class="delete" {{action "remove"}}>X</a>
+<section contextmenu="speedDialCMenu-{{index}}-{{type}}">
+  <a class="historyLink {{if model.searchAlias "historyWithSearch"}}" data-index="{{index}}" href="{{model.url}}" title="{{model.title}}">
+
+    <div class="dialIconHolder {{if model.searchAlias "dialWithSearch"}}">
+      <div class="cliqz-brand-logo" style="{{model.logo.style}}">
+        {{model.logo.text}}
+      </div>
+      {{#if model.searchAlias}}
+       {{search-alias model=model type=type index=index alias=model.searchAlias}}
+      {{/if}}
+    </div>
+    <div class="title">{{model.displayTitle}}</div>
+  </a>
+  <a class="delete" {{action "remove"}}>X</a>
+
+  <menu type="context" id="speedDialCMenu-{{index}}-{{type}}">
+     <menuitem label="{{t 'speedDials.topsite-remove'}}" {{action "remove"}}></menuitem>
+     {{#unless isCustom}}
+      <menuitem label="{{t 'speedDials.reset-all'}}" {{action "resetAll"}}></menuitem>
+     {{/unless}}
+ </menu>
+</section>

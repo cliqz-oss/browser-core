@@ -20,8 +20,10 @@
     @import 'ezones/_weather';
     @import 'ezones/_local';
     @import 'ezones/_vod';
+    @import 'ezones/_live-ticker';
 
     @import 'parts/_footer-msg';
 }
 
-@import 'parts/_context-menu'
+@import 'parts/_context-menu';
+@import 'ezones/_history';

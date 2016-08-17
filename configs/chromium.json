@@ -1,0 +1,13 @@
+{
+  "platform": "chromium",
+  "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
+  "testem_launchers": ["Mocha"],
+  "settings": {
+  },
+  "modules": [
+    "core",
+    "autocomplete",
+    "static",
+    "ui"
+  ]
+}

@@ -1,0 +1,99 @@
+.cqz-liveticker-table {
+    overflow: hidden;
+    position: relative;
+    top: -5px;
+    padding-bottom: 5px;
+    min-height: 90px;
+    padding-left: 30px;
+
+    .cqz-vertical-title {
+        position: absolute;
+        top: calc(50% - 10px);
+        left: calc(-50% + 10px);
+        width: 100%;
+        height: 20px;
+        color: #fff;
+        text-align: center;
+        transform-origin: 50% 50% 0;
+        transform: rotate(-90deg);
+        background: #ccc;
+        z-index: 1;
+    }
+    ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        li {
+            margin: 0 0 7px;
+
+            &:last-child { margin: 0; }
+
+            .cqz-game-date {
+                display: block;
+                padding-bottom: 2px;
+                margin-bottom: 6px;
+                font-size: 12px;
+                line-height: 1.3em;
+                color: #666;
+                border-bottom: 1px solid #ccc;
+            }
+
+            table {
+                width: 100%;
+                table-layout: fixed;
+                border: 0;
+                max-width: 700px;
+
+                tr.cqz-live td {
+                    color: #2b7f12;
+                    vertical-align: middle;
+                    
+                    &.cqz-game-time {
+
+                        span {
+                            overflow: hidden;
+                            display: block;
+                            width: 8px;
+                            height: 8px;
+                            margin: 2px 0 0 9px;
+                            text-indent: -777px;
+                            border-radius: 50%;
+                            background: #2b7f12;
+                        }
+
+                    }
+                }
+                td {
+                    cursor: pointer;
+                    width: 50%;
+                    font-size: 12px;
+                    line-height: 1.2em;
+                    color: #506bb8;
+                    padding-bottom: 2px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+
+                    &.cqz-game-time {
+                        width: 50px;
+                        color: #999;
+                    }
+                    &.cqz-score {
+                        width: 50px;
+                        text-align: center;
+                    }
+                    &:last-child { text-align: right; }
+                }
+
+                tr:hover {
+                    td {
+                        background: #eee;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.cqz-liveticker .ez-liga-sponsor { bottom: 13px; }

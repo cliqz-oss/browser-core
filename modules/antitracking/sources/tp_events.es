@@ -25,9 +25,13 @@ function PageLoadData(url, isPrivate) {
     this.tps = {};
     this.redirects = [];
 
+    this._plainObject = null;
+
     // Get a stat counter object for the given third party host and path in
     // this page load.
     this.getTpUrl = function(tp_host, tp_path) {
+        // reset cached plain object
+        this._plainObject = null;
         var path_key = tp_path; // TODO hash it?
         if(!(tp_host in this.tps)) {
             this.tps[tp_host] = {};
@@ -59,6 +63,10 @@ function PageLoadData(url, isPrivate) {
     // Creates a plain, aggregated version of this object, suitable for converting
     // to JSON, and sending as telemetry.
     this.asPlainObject = function() {
+      return this._plainObject || this._buildPlainObject();
+    };
+
+    this._buildPlainObject = function() {
         var self = this,
             obj = {
                 hostname: this._shortHash(this.hostname),
@@ -99,6 +107,7 @@ function PageLoadData(url, isPrivate) {
         // This was added to collect data for experiment, safe to stop collecting it now.
         // checkBlackList(this.url, obj);
         // checkFingerPrinting(this.url, obj);
+        this._plainObject = obj;
         return obj;
     };
 

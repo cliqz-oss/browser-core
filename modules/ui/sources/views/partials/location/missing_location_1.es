@@ -1,4 +1,5 @@
 import { utils } from "core/cliqz";
+import CliqzHandlebars from "core/templates";
 
 var messages = {
   "movies": {
@@ -28,7 +29,11 @@ var events = {
   click: {
     "cqz_location_yes": function(ev) {
       ev.preventDefault();
-      CLIQZEnvironment.setLocationPermission(this.window, "yes");
+      CliqzUtils.callAction(
+        "geolocation",
+        "setLocationPermission",
+        ["yes"]
+      );
       this.loadLocalResults(ev.target);
       CliqzUtils.telemetry({
         type: 'setting',
@@ -38,7 +43,7 @@ var events = {
     },
     "cqz_location_once": function(ev) {
       ev.preventDefault();
-      CLIQZEnvironment.SHARE_LOCATION_ONCE = true;
+      CliqzUtils.SHARE_LOCATION_ONCE = true;
       this.loadLocalResults(ev.target);
       CliqzUtils.telemetry({
         type: 'setting',
@@ -51,7 +56,7 @@ var events = {
           el = ev.target,
           localType = el.getAttribute("local_sc_type") || "default";
 
-      container.innerHTML = this.CliqzHandlebars.tplCache["partials/location/missing_location_2"]({
+      container.innerHTML = CliqzHandlebars.tplCache["partials/location/missing_location_2"]({
           friendly_url: el.getAttribute("bm_url"),
           trans_str: messages[localType].trans_str
       });
@@ -62,7 +67,11 @@ var events = {
       });
     },
     "cqz_location_never": function(ev) {
-      CLIQZEnvironment.setLocationPermission(this.window, "no");
+      CliqzUtils.callAction(
+        "geolocation",
+        "setLocationPermission",
+        ["no"]
+      );
       this.displayMessageForNoPermission();
       CliqzUtils.telemetry({
         type: 'setting',
@@ -74,9 +83,13 @@ var events = {
       this.displayMessageForNoPermission();
     },
     "cqz_location_yes_confirm": function(ev) {
-      CLIQZEnvironment.setLocationPermission(this.window, "yes");
+      CliqzUtils.callAction(
+        "geolocation",
+        "setLocationPermission",
+        ["yes"]
+      );
       var container = this.CLIQZ.Core.popup.cliqzBox.querySelector(".local-sc-data-container");
-      if (container) container.innerHTML = this.CliqzHandlebars.tplCache["partials/location/no-locale-data"]({
+      if (container) container.innerHTML = CliqzHandlebars.tplCache["partials/location/no-locale-data"]({
         "display_msg": "location-thank-you"
       });
     }
@@ -88,7 +101,6 @@ export default class {
     this.window = win;
     this.CLIQZ = win.CLIQZ;
     this.events = { click: {} };
-    this.CliqzHandlebars = this.window.CliqzHandlebars;
     Object.keys(events.click).forEach( selector => {
       this.events.click[selector] = events.click[selector].bind(this);
     })
@@ -101,17 +113,20 @@ export default class {
       this.failedToLoadResults(el);
       return;
     }
-    CLIQZEnvironment.getGeo(true, (loc) => {
-        CLIQZEnvironment.USER_LAT = loc.lat;
-        CLIQZEnvironment.USER_LNG = loc.lng;
+    CliqzUtils.callAction("geolocation", "updateGeoLocation", []).then(loc => {
+      if(loc.latitude && loc.longitude){
         CliqzUtils.httpGet(CliqzUtils.RICH_HEADER +
             "&q=" + this.CLIQZ.Core.urlbar.value +
-            CliqzUtils.encodeLocation(true, loc.lat, loc.lng) +
+            CliqzUtils.encodeLocation(true, loc.latitude, loc.longitude) +
             "&bmresult=" + bmUrl,
             this.handleNewLocalResults(el));
-    }, () => {
+      } else {
+        CliqzUtils.log("Unable to get user's location", "getlocation.actions.updateGeoLocation");
         this.failedToLoadResults(el);
-        CliqzUtils.log("Unable to get user's location", "CliqzUtils.getGeo");
+      }
+    }).catch(() => {
+        CliqzUtils.log("Unable to get user's location", "getlocation.actions.updateGeoLocation");
+        this.failedToLoadResults(el);
     });
   }
 
@@ -125,6 +140,7 @@ export default class {
         resp = JSON.parse(req.response);
         } catch (ex) {
         this.failedToLoadResults(el);
+        return;
       }
       if (resp && resp.results && resp.results.length > 0) {
         while (container && !CliqzUtils.hasClass(container, "cqz-result-box")) {
@@ -133,7 +149,7 @@ export default class {
         }
         this.CLIQZ.UI.enhanceResults(resp);
         r = resp.results[0];
-        if (container) container.innerHTML = this.CliqzHandlebars.tplCache[r.data.template](r);
+        if (container) container.innerHTML = CliqzHandlebars.tplCache[r.data.template](r);
       } else {
         this.failedToLoadResults(el);
       }
@@ -143,11 +159,11 @@ export default class {
   failedToLoadResults(el) {
     var container = this.CLIQZ.Core.popup.cliqzBox.querySelector(".local-sc-data-container");
     if (el.id === "cqz_location_yes") {
-        container.innerHTML = this.CliqzHandlebars.tplCache["partials/location/no-locale-data"]({
+        container.innerHTML = CliqzHandlebars.tplCache["partials/location/no-locale-data"]({
           "display_msg": "location-sorry"
         });
     } else if (el.id == "cqz_location_once") {
-        container.innerHTML = this.CliqzHandlebars.tplCache["partials/location/no-locale-data"]({
+        container.innerHTML = CliqzHandlebars.tplCache["partials/location/no-locale-data"]({
           "display_msg": "location-sorry"
         });
     }
@@ -155,7 +171,7 @@ export default class {
 
   displayMessageForNoPermission() {
     var container = this.CLIQZ.Core.popup.cliqzBox.querySelector(".local-sc-data-container");
-    if (container) container.innerHTML = this.CliqzHandlebars.tplCache["partials/location/no-locale-data"]({
+    if (container) container.innerHTML = CliqzHandlebars.tplCache["partials/location/no-locale-data"]({
       "display_msg": "location-no"
     });
   }

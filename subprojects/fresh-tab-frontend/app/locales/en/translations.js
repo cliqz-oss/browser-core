@@ -35,9 +35,24 @@ export default {
     "btn-add": "Add",
     "address": "Enter address",
     "exists-already": "Exists already",
-    "not-valid": "Not valid url"
+    "not-valid": "Not valid url",
+    "history-sites": "Most visited",
+    "custom-sites": "Favorites",
+    "add-favorite": "add favorite",
+    "topsite-remove": "Delete",
+    "reset-all": "Show all most visited sites",
+    "undo": "Undo",
+    "search-on": "Search on",
+    "shortcuts-one-removed": "site was removed",
+    "shortcuts-many-removed": "sites were removed"
   },
   urlBar: {
     "search-address": "Search or enter address"
+  },
+  news: {
+    "read-more": "Read more"
+  },
+  abtests: {
+    "feedback": "Questions? Comments? Contact CLIQZ"
   }
 };

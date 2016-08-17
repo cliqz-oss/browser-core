@@ -1,4 +1,4 @@
-/* global CLIQZEnvironment */
+/* global CliqzUtils */
 /**
 * @namespace mobile-touch
 */
@@ -22,14 +22,14 @@ export default class {
 
 
 
-		CLIQZEnvironment.addEventListenerToElements(elements, 'touchstart', function () {
+		CliqzUtils.addEventListenerToElements(elements, 'touchstart', function () {
 			self.touchTimer = setTimeout(function(context) {
 			  clearTimer();
 			  longpressCallback(context);
 			}, 500, this);
 		});
 
-		CLIQZEnvironment.addEventListenerToElements(elements, 'touchend', function () {
+		CliqzUtils.addEventListenerToElements(elements, 'touchend', function () {
 		    if(self.touchTimer) {
 		      clearTimer();
 		      tapCallback(this);
@@ -38,7 +38,7 @@ export default class {
 		    }
 		});
 
-		CLIQZEnvironment.addEventListenerToElements(elements, 'touchmove', function () {
+		CliqzUtils.addEventListenerToElements(elements, 'touchmove', function () {
 			self.isTapBlocked = true;
 		    clearTimer();
 		});

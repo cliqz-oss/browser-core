@@ -1,5 +1,6 @@
 <div id="topVisited" class="center">
-  {{speed-dials model=model.speedDials}}
+  {{speed-dials-row model=model.speedDials.history type="history"}}
+  {{speed-dials-row model=model.speedDials.custom type="custom"}}
 </div>
 
 <div class="wrap">
@@ -9,11 +10,8 @@
   </div>
 
   <div id="newsContainer" class="clearfix">
-    {{#unless model.news.yourNews}}
-      {{all-news model=model.news.topNews type="yournews"}}
-    {{else}}
-      {{all-news model=model.news.yourNews type="topnews"}}
-    {{/unless}}
+    <div class="newsBox allNews clearfix">
+      {{article-items model=model.news tagName="ul" }}
+    </div>
   </div>
 </div>
-<br /><br /><br />

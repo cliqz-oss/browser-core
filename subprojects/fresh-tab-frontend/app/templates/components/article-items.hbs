@@ -9,6 +9,6 @@
 </div>
 <div class="content">
   {{#each page as |article index|}}
-    {{article-item model=article target-type=target-type index=index class="clearfix" tagName="li" showLogo=showLogo calculateHeightAction="calculateHeight" height=maxHeight}}
+    {{article-item model=article target-type=article.type index=index class="clearfix" tagName="li" showLogo=showLogo calculateHeightAction="calculateHeight" height=maxHeight}}
   {{/each}}
 </div>

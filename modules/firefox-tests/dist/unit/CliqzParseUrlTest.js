@@ -472,6 +472,7 @@ function fullTest(testFn) {
     testSpecArray(testFn, 'combined', combined);
 }
 
+DEPS.CliqzParseUrlTest = ["core/utils"];
 TESTS.CliqzParseUrlTest = function (CliqzUtils) {
   var parseURL = CliqzUtils.getWindow().CLIQZ.System.get("antitracking/url").parseURL;
 

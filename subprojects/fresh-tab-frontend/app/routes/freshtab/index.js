@@ -1,5 +1,4 @@
 import Ember from "ember";
-import News from "../../models/news";
 import SpeedDials from "../../models/speed-dials";
 
 var focusTotalTime = 0,
@@ -15,11 +14,22 @@ var focusTotalTime = 0,
 export default Ember.Route.extend({
   cliqz: Ember.inject.service('cliqz'),
 
+  activate() {
+    Ember.$('body').addClass('freshTabContainer');
+  },
+
+  deactivate() {
+    Ember.$('body').removeClass('freshTabContainer');
+  },
+
   model() {
     return this.get('cliqz').getSpeedDials().then( speedDials => {
       return Ember.Object.create({
-        speedDials: SpeedDials.create({ content: speedDials }),
-        news: News.create({ model: [] })
+        speedDials: {
+          history: speedDials.history.map(dial => Ember.Object.create(dial)),
+          custom: speedDials.custom.map(dial => Ember.Object.create(dial)),
+        },
+        news: Ember.ArrayProxy.create()
       });
     })
 
@@ -28,23 +38,33 @@ export default Ember.Route.extend({
   afterModel(model) {
 
     this.get('cliqz').getNews().then( news => {
-      model.set('news.model', news);
+      model.get('news').setProperties({
+        version: news.version,
+        content: news.news.map(article => Ember.Object.create(article)),
+      });
+
       var historySites = model.getWithDefault("speedDials.history.length", 0) < 5 ? model.get("speedDials.history.length") : 5,
           customSites = model.getWithDefault("speedDials.custom.length", 0),
           self = this;
 
-
       this.get('cliqz').getTabIndex().then(function(tabIndex){
-        this.get('cliqz').sendTelemetry({
+        const telemetry = {
           type: 'home',
           action: 'display',
           historysites: historySites,
           customsites: customSites,
-          topnews: model.getWithDefault("news.topNews.length", 0),
-          topnews_version: model.get("news.version"),
-          yournews: model.getWithDefault("news.yourNews.length", 0),
+          topnews_version: news.version,
           tab_index: tabIndex
-        });
+        };
+
+        const newsTypes = news.news.reduce((hash, curr) => {
+          hash[curr.type] = hash[curr.type] || 0;
+          hash[curr.type] += 1;
+          return hash;
+        }, {});
+
+        Object.assign(telemetry, newsTypes)
+        this.get('cliqz').sendTelemetry(telemetry);
 
         start = new Date().getTime();
         focusStart = start;

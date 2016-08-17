@@ -1,10 +1,10 @@
+"use strict"
 const walk = require('walk');
 const System = require('systemjs');
 const Mocha = require('mocha');
 const fs = require('fs');
 const chai = require('../bower_components/chai/chai.js');
 chai.config.truncateThreshold = 0
-require('source-map-support').install();
 
 global.chai = chai;
 
@@ -25,6 +25,15 @@ System.config({
     '*': { format: 'register' }
   }
 });
+
+// list names of all loaded modules so we can unload them after each test
+// check `unloadModules`
+let set = System.set;
+let modules = {};
+System.set = function (name) {
+  modules[name] = true;
+  return set.apply(System, arguments);
+};
 
 const testFiles = [];
 const walker = walk.walk(baseDir);
@@ -52,9 +61,16 @@ function describeModule(moduleName, loadDeps, testFn) {
   }
 
   function unloadModules() {
+
     System.delete(System.normalizeSync(moduleName));
     Object.keys(deps).forEach( mod => {
       return System.delete(mod)
+    });
+
+    // Unload remaining unmocked modules
+    Object.keys(modules).forEach(name => {
+      const normalizedName = System.normalizeSync(name);
+      System.delete(normalizedName);
     });
   }
 

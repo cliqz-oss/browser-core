@@ -1,10 +1,10 @@
+import CliqzUtils from "core/utils";
+import CliqzABTests from "core/ab-tests";
 const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu, manager: Cm } =
     Components;
 
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import("resource://gre/modules/Services.jsm");
-Cu.import('chrome://cliqzmodules/content/CliqzUtils.jsm');
-Cu.import('chrome://cliqzmodules/content/CliqzABTests.jsm');
 
 var CLIQZ_NEW_TAB = "about:cliqz",
     CLIQZ_NEW_TAB_URL = "chrome://cliqz/content/fresh-tab-frontend/index.html",
@@ -15,7 +15,6 @@ var CLIQZ_NEW_TAB = "about:cliqz",
     BAK_HOMEPAGE = "backup.homepage",
     BAK_NEWTAB = "backup.newtab",
     BAK_STARTUP = "backup.startup",
-    FRESH_TAB_AB = "freshTabAB", // true = AB test active
     FRESH_TAB_STATE = "freshTabState", // true = active
     FRESH_TAB_BACKUP_DONE = "freshTabBackupDone", // true = active
     OLD_FRESH_TAB = "freshtabdone",
@@ -89,7 +88,7 @@ var FreshTab = {
     cliqzOnboarding: 0,
     isBrowser: false,
 
-    startup: function(abTest, hasButton, cliqzOnboarding, channel){
+    startup: function(hasButton, cliqzOnboarding, channel){
         var disable = false;
 
         //show cliqz onboarding on 1st installation of browser
@@ -101,12 +100,8 @@ var FreshTab = {
 
         FreshTab.isBrowser = channel === "40";
 
-        // exit if not in the AB test
-        if(abTest && (!CliqzUtils.hasPref(FRESH_TAB_AB) || CliqzUtils.getPref(FRESH_TAB_AB) == false)) disable = true;
-
         // disable the AB test if the user doesnt have FF41 or above
         if(!FF41_OR_ABOVE){
-          CliqzABTests.disable("1056_B");
           CliqzABTests.disable("1065_B");
           disable = true;
         }

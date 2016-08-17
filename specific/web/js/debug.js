@@ -3,8 +3,8 @@ var urlbar      = document.getElementById('urlbar'),
     panelWindow = document.getElementById('panelWindow'),
     panelLeft   = -265,
     enableCMenu = CLIQZ.ContextMenu.enableContextMenu,
-    openPopup   = CLIQZEnvironment.openPopup;
-CliqzUtils.init(window);
+    openPopup   = CliqzUtils.openPopup;
+CliqzUtils.init({lang: 'en'});
 CLIQZ.UI.init(urlbar);
 //disable context menu by default
 togglecMenu(true);
@@ -12,8 +12,7 @@ togglecMenu(true);
 
 CLIQZ.Core = {
 	urlbar: urlbar,
-	popup: document.getElementById('results'),
-	refreshButtons: function(){}
+	popup: document.getElementById('results')
 }
 urlbar.addEventListener('keydown', function(e){
   panelWindow.style.left = panelLeft + 'px';
@@ -47,9 +46,9 @@ cpBtn.addEventListener('click', function(e) {
 function togglecMenu(checked) {
   if(checked) {
     CLIQZ.ContextMenu.enableContextMenu = function() { return false; }
-    CLIQZEnvironment.openPopup = function() { return false; }
+    CliqzUtils.openPopup = function() { return false; }
   } else {
     CLIQZ.ContextMenu.enableContextMenu = enableCMenu;
-    CLIQZEnvironment.openPopup = openPopup;
+    CliqzUtils.openPopup = openPopup;
   }
 }

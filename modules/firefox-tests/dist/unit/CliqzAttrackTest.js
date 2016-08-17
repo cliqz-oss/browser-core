@@ -17,13 +17,13 @@ var wait_until_server_up = function (testUrl, count, callback) {
     return;
   }
   CliqzUtils.httpGet(testUrl, callback, function() {
-    console.log("level "+ count);
-    setTimeout( function(testUrl) {
+    setTimeout(function() {
       wait_until_server_up(testUrl, count - 1, callback);
     }, 100);
   })
 };
 
+DEPS.AttrackTest = ["core/utils"];
 TESTS.AttrackTest = function (CliqzUtils) {
     var System = CliqzUtils.getWindow().CLIQZ.System,
         CliqzAttrack = System.get("antitracking/attrack").default,

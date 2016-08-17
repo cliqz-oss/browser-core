@@ -1,5 +1,11 @@
 @font-face { font-family: "Lato"; src: url("chrome://cliqz/content/static/skin/fonts/Lato-Regular.ttf"); }
 
+
+:root {
+    --menupanel-list-style-image: url("chrome://cliqz/content/theme/images/browser/win/menuPanel.png");
+    --menupanel-list-style-image-2x: url("chrome://cliqz/content/theme/images/browser/win/menuPanel@2x.png") !important;
+}
+
 :-moz-any(#back-button,
 #forward-button,
 #home-button,

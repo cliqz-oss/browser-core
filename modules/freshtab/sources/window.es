@@ -1,5 +1,5 @@
 import FreshTab from 'freshtab/main';
-
+import { checkBox } from 'q-button/buttons';
 const CLIQZ_NEW_TAB = "about:cliqz";
 
 /**
@@ -31,7 +31,7 @@ export default class {
   createButtonItem(win) {
     if (!this.buttonEnabled || !FreshTab.initialized) return;
 
-    return win.CLIQZ.Core.createCheckBoxItem(
+    return checkBox(
       win.document,
       'freshTabState',
       CliqzUtils.getLocalizedString('btnFreshTab'),

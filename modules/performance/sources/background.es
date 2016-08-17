@@ -1,6 +1,5 @@
 import { utils } from 'core/cliqz';
-
-Components.utils.import('chrome://cliqzmodules/content/CliqzEvents.jsm');
+import CliqzEvents from "core/events";
 
 const regexGoogleRef = /\.google\..*?\/(?:url|aclk)\?/;
 const regexGoogleQuery = /\.google\..*?[#?&;]q=[^$&]+/;

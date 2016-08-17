@@ -15,7 +15,7 @@ import { AttrackBloomFilter } from 'antitracking/bloom-filter';
 import * as datetime from 'antitracking/time';
 import QSWhitelist from 'antitracking/qs-whitelists';
 import BlockLog from 'antitracking/block-log';
-import { utils, events } from 'core/cliqz';
+import { utils, events, Promise } from 'core/cliqz';
 import ResourceLoader from 'core/resource-loader';
 import core from 'core/background';
 import CookieChecker from 'antitracking/cookie-checker';
@@ -219,12 +219,6 @@ var CliqzAttrack = {
                 return;
             }
 
-            // find the ok tokens fields
-            var isPrivate = requestContext.isChannelPrivate();
-            if (!isPrivate) {
-                CliqzAttrack.examineTokens(url_parts);
-            }
-
             // This needs to be a common function aswell. Also consider getting ORIGIN header.
             var referrer = requestContext.getReferrer();
             var same_gd = false;
@@ -262,6 +256,12 @@ var CliqzAttrack = {
                 same_gd = sameGeneralDomain(url_parts.hostname, source_url_parts.hostname) || false;
                 if (same_gd) {
                   return;
+                }
+
+                // find the ok tokens fields
+                var isPrivate = requestContext.isChannelPrivate();
+                if (!isPrivate) {
+                    CliqzAttrack.examineTokens(url_parts);
                 }
 
                 // extract and save tokens
@@ -307,17 +307,7 @@ var CliqzAttrack = {
                     tp_events.incrementStat(req_log, 'scheme_' + scheme);
 
                     // find frame depth
-                    let windowDepth = 0;
-                    if (requestContext.getInnerWindowID() !== requestContext.getOriginWindowID()) {
-                      if (requestContext.getOriginWindowID() === requestContext.getParentWindowID()) {
-                        // frame in document
-                        windowDepth = 1;
-                      } else {
-                        // deeper than 1st level iframe
-                        windowDepth = 2;
-                      }
-                    }
-                    tp_events.incrementStat(req_log, 'window_depth_' + windowDepth);
+                    tp_events.incrementStat(req_log, 'window_depth_' + requestContext.getWindowDepth());
                 }
 
                 // get cookie data
@@ -436,6 +426,7 @@ var CliqzAttrack = {
                                 tp_events.incrementStat(req_log, 'proxy');
                             }
                             CliqzAttrack.recentlyModified.add(source_tab + url, 30000);
+                            CliqzAttrack.recentlyModified.add(source_tab + tmp_url, 30000);
                             return {
                               redirectUrl: tmp_url,
                               requestHeaders: rule != 'same' ? [{name: CliqzAttrack.cliqzHeader, value: ' '}] : undefined
@@ -503,6 +494,28 @@ var CliqzAttrack = {
                 // is cached?
                 let cached = requestContext.isCached;
                 CliqzAttrack.tp_events.incrementStat(req_log, cached ? 'cached' : 'not_cached');
+
+
+                // broken by attrack?
+                if (CliqzAttrack.recentlyModified.has(source_tab + url) && requestContext.channel.responseStatus >= 400) {
+                  const payload = {
+                    source: source_url,
+                    status: requestContext.channel.responseStatus,
+                    url_info: {
+                      protocol: url_parts.protocol,
+                      hostname: url_parts.hostname,
+                      path: md5(url_parts.path),
+                      params: url_parts.getKeyValuesMD5()
+                    },
+                    context: requestContext.getWindowDepth()
+                  };
+                  const msg = {
+                    'type': telemetry.msgType,
+                    'action': 'attrack.breakage',
+                    'payload': CliqzAttrack.generateAttrackPayload(payload)
+                  };
+                  telemetry.telemetry(msg);
+                }
             }
         }
     },
@@ -874,41 +887,29 @@ var CliqzAttrack = {
         pacemaker.register(CliqzAttrack.hourChanged, two_mins, timeChangeConstraint("hourChanged", "hour"));
 
         // every 2 mins
-        pacemaker.register(function clean_visitCache(curr_time) {
-            var keys = Object.keys(CliqzAttrack.visitCache);
-            for(var i=0;i<keys.length;i++) {
-                var diff = curr_time - (CliqzAttrack.visitCache[keys[i]] || 0);
-                if (diff > CliqzAttrack.timeCleaningCache) delete CliqzAttrack.visitCache[keys[i]];
-            }
-        }, two_mins);
 
-        pacemaker.register(function clean_reloadWhiteList(curr_time) {
-            var keys = Object.keys(CliqzAttrack.reloadWhiteList);
-            for(var i=0;i<keys.length;i++) {
-                var diff = curr_time - (CliqzAttrack.reloadWhiteList[keys[i]] || 0);
-                if (diff > CliqzAttrack.timeCleaningCache) {
-                    delete CliqzAttrack.reloadWhiteList[keys[i]];
-                }
+        function cleanTimestampCache(cacheObj, timeout, currTime) {
+          const keys = Object.keys(cacheObj)
+          keys.forEach(function(k) {
+            if (currTime - cacheObj[k] || 0 > timeout) {
+              delete cacheObj[k];
             }
-        }, two_mins);
+          });
+        }
 
-        pacemaker.register(function clean_trackReload(curr_time) {
-            var keys = Object.keys(CliqzAttrack.trackReload);
-            for(var i=0;i<keys.length;i++) {
-                var diff = curr_time - (CliqzAttrack.trackReload[keys[i]] || 0);
-                if (diff > CliqzAttrack.timeCleaningCache) {
-                    delete CliqzAttrack.trackReload[keys[i]];
-                }
-            }
-            CliqzAttrack.tab_listener.cleanTabsStatus();
-        }, two_mins);
-
-        pacemaker.register(function clean_blockedCache(curr_time) {
-            var keys = Object.keys(CliqzAttrack.blockedCache);
-            for(var i=0;i<keys.length;i++) {
-                var diff = curr_time - (CliqzAttrack.blockedCache[keys[i]] || 0);
-                if (diff > CliqzAttrack.timeCleaningCache) delete CliqzAttrack.blockedCache[keys[i]];
-            }
+        pacemaker.register(function clean_caches(currTime) {
+          // visit cache
+          cleanTimestampCache(CliqzAttrack.visitCache, CliqzAttrack.timeCleaningCache, currTime);
+          // reload whitelist
+          cleanTimestampCache(CliqzAttrack.reloadWhiteList, CliqzAttrack.timeCleaningCache, currTime);
+          // track reload
+          cleanTimestampCache(CliqzAttrack.trackReload, CliqzAttrack.timeCleaningCache, currTime);
+          // blocked cache
+          cleanTimestampCache(CliqzAttrack.blockedCache, CliqzAttrack.timeCleaningCache, currTime);
+          // record cache
+          cleanTimestampCache(CliqzAttrack.linksRecorded, 1000, currTime);
+          // tab listener statuses
+          CliqzAttrack.tab_listener.cleanTabsStatus();
         }, two_mins);
 
         var bootup_task = pacemaker.register(function bootup_check(curr_time) {
@@ -927,34 +928,6 @@ var CliqzAttrack = {
         // every hour
         let hourly = 60 * 60 * 1000;
         pacemaker.register(CliqzAttrack.pruneRequestKeyValue, hourly);
-
-        // send tracking occurances whenever day changes
-        pacemaker.register(function sendTrackingDetections() {
-            if (CliqzAttrack.local_tracking.isEnabled()) {
-                CliqzAttrack.local_tracking.getTrackingOccurances(function(results) {
-                    if (results.length > 0) {
-                        CliqzAttrack.local_tracking.getTableSize(function(table_size) {
-                            var payl = {
-                                'ver': CliqzAttrack.VERSION,
-                                'ts': datetime.getTime().substring(0, 8),
-                                'data': {
-                                    'lt': results.map(function(tup) {
-                                        return {'tp': tup[0], 'k': tup[1], 'v': tup[2], 'n': tup[3]};
-                                    }),
-                                    'c': table_size
-                                }
-                            };
-                            telemetry.telemetry({
-                                'type': telemetry.msgType,
-                                'action': 'attrack.tracked',
-                                'payload': payl
-                            });
-                        });
-                    }
-                    CliqzAttrack.local_tracking.cleanTable();
-                });
-            }
-        }, hourly, timeChangeConstraint("local_tracking", "day"));
 
         pacemaker.register(function annotateSafeKeys() {
             CliqzAttrack.qs_whitelist.annotateSafeKeys(CliqzAttrack.requestKeyValue);
@@ -1438,11 +1411,17 @@ var CliqzAttrack = {
         }
         CliqzAttrack._tokens.setDirty();
     },
+    linksRecorded: {}, // cache when we recorded links for each url
     recordLinksForURL(url) {
       if (CliqzAttrack.loadedTabs[url]) {
         return;
       }
-
+      const now = Date.now();
+      const lastQuery = CliqzAttrack.linksRecorded[url] || 0;
+      if (now - lastQuery < 1000) {
+        return
+      }
+      CliqzAttrack.linksRecorded[url] = now;
       return Promise.all([
 
         core.getCookie(url).then(
@@ -1625,8 +1604,8 @@ var CliqzAttrack = {
       try {
         var gBrowser = CliqzUtils.getWindow().gBrowser,
             selectedBrowser = gBrowser.selectedBrowser;
-
-        tabId = selectedBrowser.outerWindowID;
+        // on FF < 38 selectBrowser.outerWindowID is undefined, so we get the windowID from _loadContext
+        tabId = selectedBrowser.outerWindowID || selectedBrowser._loadContext.DOMWindowID;
         urlForTab = selectedBrowser.currentURI.spec;
       } catch (e) {
       }

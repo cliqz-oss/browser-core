@@ -1,6 +1,9 @@
+import UI from "mobile-ui/UI";
+import { utils } from "core/cliqz";
+
 var MockOS = {
   postMessage: function(message) {
-    CliqzUtils.log(message, 'Mock');
+    utils.log(message, 'Mock');
     var dataBack;
     switch (message.action) {
       case 'searchHistory':
@@ -72,7 +75,7 @@ function getFavorites() {
   return mockedFavorites;
 };
 function isReady() {
-  CLIQZ.UI && jsAPI.setDefaultSearchEngine({name: 'google', url: 'http://www.google.com/search?q='});
+  UI && jsAPI.setDefaultSearchEngine({name: 'google', url: 'http://www.google.com/search?q='});
   jsAPI.setClientPreferences({
     incognito: false,
     showConsoleLogs: true

@@ -16,10 +16,9 @@ function injectTestHelpers(CliqzUtils) {
     });
 
     function check() {
-      CliqzUtils.log("!!", fn());
-      if(fn()) {
+      if (fn()) {
         clearInterval(interval);
-        resolver();
+        CliqzUtils.setTimeout(resolver, 100);
       }
     }
     var interval = setInterval(check, 250);
@@ -81,12 +80,20 @@ function injectTestHelpers(CliqzUtils) {
     return waitFor(function () {
       var popup = chrome.document.getElementById("PopupAutoCompleteRichResultCliqz");
       return popup.mPopupOpen === true;
+    }).then(function () {
+      return new Promise(function (resolve) {
+        CliqzUtils.setTimeout(resolve, 200);
+      });
     });
   };
 
   window.waitForResult = function () {
       return waitFor(function () {
         return $cliqzResults().find(".cqz-result-box").length > 0;
+      }).then(function () {
+        return new Promise(function (resolve) {
+          CliqzUtils.setTimeout(resolve, 200);
+        });
       });
   };
 

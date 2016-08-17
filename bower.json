@@ -14,14 +14,15 @@
     "crypto": "https://cdn.cliqz.com/cliqz-crypto/crypto.js",
     "jsencrypt": "https://cdn.cliqz.com/cliqz-crypto/jsencrypt.js",
     "rsa-sign": "https://cdn.cliqz.com/cliqz-crypto/rsa-sign.js",
-    "sha256": "https://cdn.cliqz.com/cliqz-crypto/sha256.js"
+    "sha256": "https://cdn.cliqz.com/cliqz-crypto/sha256.js",
+    "mathjs": "1.0.1",
+    "es6-promise": "~3.2.2"
   },
   "devDependencies": {
     "mocha": "cliqz-oss/mocha#2.5.0",
     "chai": "~3.0.0",
     "jquery": "~2.1.4",
     "core.js": "~2.4.0",
-    "httpd": "http://mxr.mozilla.org/mozilla-central/source/netwerk/test/httpserver/httpd.js?raw=1",
     "sinonjs": "~1.17.1"
   }
 }

@@ -17,7 +17,7 @@
               <RDF:Description>
                 <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
                 <em:minVersion>29.0</em:minVersion>
-                <em:maxVersion>47.*</em:maxVersion>
+                <em:maxVersion>48.*</em:maxVersion>
 
                 {#
                 This is where this version of the add-on will be downloaded from

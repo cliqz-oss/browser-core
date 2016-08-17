@@ -2,7 +2,8 @@
 
 var expect = chai.expect;
 
-TESTS.CliqzUtilsTest = function (CliqzUtils, CliqzRequestMonitor, CliqzLanguage, CLIQZEnvironment) {
+DEPS.CliqzUtilsTest = ["core/utils"];
+TESTS.CliqzUtilsTest = function (CliqzUtils) {
   describe('CliqzUtils', function(){
 
     it('RESULTS_PROVIDER should be set to the right mixer endpoint', function(){
@@ -142,34 +143,6 @@ TESTS.CliqzUtilsTest = function (CliqzUtils, CliqzRequestMonitor, CliqzLanguage,
       });
     });
 
-    describe("getCliqzResults", function () {
-      var mockReq,
-          mockHttpGet = function () { return mockReq; },
-          httpGet, requestMonitor;
-
-      beforeEach(function () {
-        mockReq = { timestamp: new Date() };
-        httpGet = CliqzUtils.httpGet;
-        CliqzUtils.httpGet = mockHttpGet;
-        requestMonitor = CliqzUtils.requestMonitor;
-        CliqzUtils.requestMonitor = {};
-      });
-
-      afterEach(function () {
-        CliqzUtils.httpGet = httpGet;
-        CliqzUtils.requestMonitor = requestMonitor;
-      });
-
-      it("calls requestMonitor.addRequest", function (done) {
-        CliqzUtils.requestMonitor.addRequest = function (req) {
-          expect(req).to.equal(mockReq);
-          done();
-        };
-        CliqzUtils.getCliqzResults("mozilla", function () {});
-      });
-
-    });
-
     describe("httpHandler", function () {
       it("return request object with timestamp", function () {
         var timestamp = CliqzUtils.httpHandler("GET", "http://localhost").timestamp
@@ -247,8 +220,6 @@ TESTS.CliqzUtilsTest = function (CliqzUtils, CliqzRequestMonitor, CliqzLanguage,
 
         it('can compress sent post data', function() {
           return CliqzUtils.importModule('core/gzip').then( function (gzip) {
-            CLIQZEnvironment.gzip = gzip;
-
             return CliqzUtils.promiseHttpHandler('POST', url, postDataSent, undefined, true).then( function(resp) {
               chai.expect(hitCtr).to.eql(1);
               chai.expect(resp.response).to.eql(responseTest);

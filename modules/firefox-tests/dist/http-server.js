@@ -1,6 +1,6 @@
 "use strict";
 
-Components.utils.import('chrome://cliqz/content/bower_components/httpd/index.js');
+Components.utils.import('chrome://cliqz/content/firefox-tests/content/extern/httpd.js');
 Components.utils.import('resource://gre/modules/FileUtils.jsm');
 Components.utils.import('resource://gre/modules/osfile.jsm');
 

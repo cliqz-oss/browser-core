@@ -1,7 +1,7 @@
 /* global waitFor, setTimeout, Promise */
 'use strict';
 
-
+DEPS.CliqzmessageCenterTestUnit = ["message-center/message-center", "core/utils"];
 TESTS.CliqzmessageCenterTestUnit = function (CliqzMsgCenter, CliqzUtils) {
   describe('CliqzMsgCenter (unit)', function() {
     this.timeout(4000);

@@ -4,7 +4,6 @@
   "testem_launchers": ["Mocha"],
   "settings": {
     "freshTabButton": false,
-    "freshTabABtest" : false,
     "freshTabHistoryNews": true,
     "unblockUI": false,
     "showDataCollectionMessage": false,
@@ -14,8 +13,11 @@
     "helpMenus": true
   },
   "modules": [
+    "q-button",
     "static",
     "core",
+    "autocomplete",
+    "geolocation",
     "ui",
     "human-web",
     "anti-phishing",
@@ -28,7 +30,6 @@
     "antitracking",
     "performance",
     "hpn",
-    "smart-cliqz-cache",
     "privacy-dashboard",
     "offers",
     "adblocker"

@@ -22,8 +22,20 @@ function findMatch(text, regexp) {
     return (matches) ? matches[1] : null;
 }
 
-function findVideoLinks(youtubePageContent) {
-  osAPI.notifyYoutubeVideoUrls(get_links(youtubePageContent));
+function fetch_yt_url(youtube_url, callback) {
+  if (!callback) {
+    callback = osAPI.notifyYoutubeVideoUrls;
+  }
+  let req = new XMLHttpRequest();
+  req.open('GET', youtube_url, true);
+  req.onreadystatechange = function () {
+    if (req.readyState === 4 && req.status === 200) {
+      callback(get_links(req.responseText));
+    } else if (req.readyState === 4) {
+      callback([]);
+    }
+  };
+  req.send(null);
 }
 
 function getSeparators(videoFormats) {
@@ -54,11 +66,11 @@ function get_links(bodyContent) {
   }
 
   let videoTitle = findMatch(bodyContent, TITLE_REGEX);
-  videoTitle = (videoTitle) ? videoTitle : 'Youtube Video';
+  videoTitle = (videoTitle) ? escape(videoTitle) : escape('Youtube Video');
 
   // parse the formats map
   const { sep1, sep2, sep3 } = getSeparators(videoFormats);
-
+  
 
   let videoURL = [];
   let videoSignature = [];
@@ -138,7 +150,7 @@ function get_links(bodyContent) {
       continue;
     }
     if (videoURL[format] !== undefined && FORMAT_LABEL[format] !== undefined && showFormat[format]) {
-      downloadCodeList.push({ url:encodeURIComponent(videoURL[format]), sig:videoSignature[format], format:format, label:FORMAT_LABEL[format] });
+      downloadCodeList.push({url:videoURL[format],sig:videoSignature[format],format:format,label:FORMAT_LABEL[format]});
       console.log('DYVAM - Info: itag'+format+' url:'+videoURL[format]);
     }
   }
@@ -150,4 +162,4 @@ function get_links(bodyContent) {
 }
 
 
-export { findVideoLinks as findVideoLinks };
+export { fetch_yt_url as getUrls };

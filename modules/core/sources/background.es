@@ -1,4 +1,5 @@
-import { language, utils, events } from "core/cliqz";
+import { utils, events } from "core/cliqz";
+import language from "platform/language";
 import config from "core/config";
 import ProcessScriptManager from "platform/process-script-manager";
 
@@ -131,9 +132,8 @@ export default {
       urlBar.focus();
       urlBar.mInputField.focus();
       urlBar.mInputField.setUserInput(query);
-      //utils.getWindow().CLIQZ.Core.urlbar.focus("ss");
     },
-    getUrlbar(value) {
+    setUrlbar(value) {
       return this.actions.queryCliqz(value);
     },
     recordLang(url, lang) {
@@ -144,6 +144,10 @@ export default {
     },
     recordMeta(url, meta) {
       events.pub("core:url-meta", url, meta);
+    },
+
+    getFeedbackPage() {
+      return utils.FEEDBACK_URL;
     }
   }
 };

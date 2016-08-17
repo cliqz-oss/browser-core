@@ -91,11 +91,11 @@ export default class {
 
     data.big_rs_size = isBigSnippet;
 
-    data.distance = CLIQZEnvironment.distance(
+    data.distance = CliqzUtils.distance(
                         data.lon,
                         data.lat,
-                      CLIQZEnvironment.USER_LNG,
-                      CLIQZEnvironment.USER_LAT)*1000;
+                      CliqzUtils.USER_LNG,
+                      CliqzUtils.USER_LAT)*1000;
 
     data.deepLinks = ((data.deepResults || []).find(res => res.type === 'buttons') || {}).links
   }

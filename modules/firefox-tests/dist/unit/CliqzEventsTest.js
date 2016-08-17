@@ -8,6 +8,7 @@ var expect = chai.expect,
   dummyArg = 10,
   eventID = "unitTestEvent";
 
+DEPS.CliqzEventsTest = ["core/events"];
 TESTS.CliqzEventsTest = function (CliqzEvents) {
   describe("CliqzEvents Unit Test", function () {
     beforeEach(function () {

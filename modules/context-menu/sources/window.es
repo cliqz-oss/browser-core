@@ -121,7 +121,7 @@ export default class {
     });
     // opens a new empty tab
     if(options.openInNewTab) {
-      CLIQZEnvironment.openTabInWindow(this.window, '', true)
+      utils.openTabInWindow(this.window, '', true)
     }
 
     var urlbar = this.window.document.getElementById('urlbar');

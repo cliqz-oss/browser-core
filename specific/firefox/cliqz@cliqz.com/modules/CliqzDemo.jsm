@@ -21,8 +21,8 @@ var EXPORTED_SYMBOLS = ['CliqzDemo'];
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 
-XPCOMUtils.defineLazyModuleGetter(this, 'CliqzUtils',
-  'chrome://cliqzmodules/content/CliqzUtils.jsm');
+Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+var CliqzUtils = CLIQZ.CliqzUtils;
 
 var PROXY_ID = "cliqzDemoProxy",
 	FAKE_CURSOR_ID = "CliqzDemoCursor",

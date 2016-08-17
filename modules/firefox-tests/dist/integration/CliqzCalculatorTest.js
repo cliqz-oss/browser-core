@@ -1,6 +1,9 @@
+/* global: $cliqzResults */
+
 var expect = chai.expect;
 
-TESTS.CliqzCalculatorTest = function(CliqzCalculator) {
+DEPS.CliqzCalculatorTest = [];
+TESTS.CliqzCalculatorTest = function() {
   function getResultString() {
     return $cliqzResults().find(".cqz-result-box").find("#calc-answer")[0].textContent.trim();
   }

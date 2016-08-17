@@ -19,11 +19,11 @@ CLIQZ.UI.VIEWS["local-cinema-sc"] = {
     });
 
     for(var i in data.cinemas) {
-      data.cinemas[i].cinema.distance = CLIQZEnvironment.distance(
+      data.cinemas[i].cinema.distance = CliqzUtils.distance(
                         data.cinemas[i].cinema.lon,
                         data.cinemas[i].cinema.lat,
-                      CLIQZEnvironment.USER_LNG,
-                      CLIQZEnvironment.USER_LAT)*1000;
+                      CliqzUtils.USER_LNG,
+                      CliqzUtils.USER_LAT)*1000;
     }
 
     if (data.emptyColumns) {
@@ -34,11 +34,11 @@ CLIQZ.UI.VIEWS["local-cinema-sc"] = {
   },
 
   enhanceResults: function(data) {
-    data.cinema.distance = CLIQZEnvironment.distance(
+    data.cinema.distance = CliqzUtils.distance(
                         data.cinema.lon,
                         data.cinema.lat,
-                      CLIQZEnvironment.USER_LNG,
-                      CLIQZEnvironment.USER_LAT)*1000;
+                      CliqzUtils.USER_LNG,
+                      CliqzUtils.USER_LAT)*1000;
     data.ratingStars = data.cinema;
     data.emptyColumns = data.movies;
     CLIQZ.UI.VIEWS["local-cinema-sc"].enhanceMovieSC(data);

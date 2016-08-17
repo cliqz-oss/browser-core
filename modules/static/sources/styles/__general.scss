@@ -636,7 +636,7 @@
 }
 
 .cqz-results .cqz-noresult-box .cqz-ez-title:after {
-    contet: '';
+    content: '';
     display: block;
     width: 230px;
     height: 1px;
@@ -1254,7 +1254,18 @@
     cursor: pointer;
 }
 
+.cqz-results .cliqz-history-hm {
+    font-size: 8px;
+    right: 20px;
+    top: -2px;
+    position: absolute;
+    cursor: pointer;
+}
+
 .cqz-results .cqz-result-h3 .cliqz-history-logo {
+    top: 3px;
+}
+.cqz-results .cqz-result-h3 .cliqz-history-hm {
     top: 3px;
 }
 

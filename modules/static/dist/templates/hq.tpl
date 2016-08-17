@@ -28,27 +28,21 @@
         ' extra="url">
             {{ emphasis urlDetails.friendly_url text 2 true }}
         </div>
-        <div class='cqz-result-desc overflow' style="height: 20px;"><span extra="des">{{ emphasis data.description text 2 true }}</span>
-            {{#unless data.richData.images.length}}
-                {{#each (links_or_sources data.richData) }}
-                    <span url='{{url}}' show-status='true'
-                         extra='sources{{ @index }}'
-                         class='cqz-link'>
-                        {{title}}
-                    </span>
-                {{/each}}
-            {{/unless}}
+        <div class='cqz-result-desc overflow' style="height: 20px;">
+          <span extra="des">{{ emphasis data.description text 2 true }}</span>
         </div>
-        {{#if (links_or_sources data.richData) }}
-            <div class="cqz-one-line" style="white-space: normal; height: 18px; margin-top: 5px;{{#if (logic (wikiEZ_height data.richData) 'is' 'cqz-result-h3') }}display: none;{{/if}}">
-            {{#each (links_or_sources data.richData)}}
-                <span url='{{url}}' show-status='true'
-                     extra='sources{{ @index }}'
-                     class='cqz-link'>
-                    {{title}}
-                </span>
-            {{/each}}
-            </div>
+        {{#if (logic (wikiEZ_height data.richData) '!=' 'cqz-result-h3') }}
+          {{#if (links_or_sources data.richData) }}
+              <div class="cqz-one-line" style="white-space: normal; height: 18px; margin-top: 5px;">
+              {{#each (links_or_sources data.richData)}}
+                  <span url='{{url}}' show-status='true'
+                       extra='sources{{ @index }}'
+                       class='cqz-link'>
+                      {{title}}
+                  </span>
+              {{/each}}
+              </div>
+          {{/if}}
         {{/if}}
     </div>
     {{> logo}}

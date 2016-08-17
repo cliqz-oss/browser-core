@@ -4,7 +4,6 @@
   "testem_launchers": ["Mocha"],
   "settings": {
     "freshTabButton": false,
-    "freshTabABtest" : false,
     "unblockUI": true,
     "showDataCollectionMessage": true,
     "cliqzOnboarding": false,
@@ -12,8 +11,11 @@
     "antitrackingButton": true
   },
   "modules": [
+    "q-button",
     "static",
     "core",
+    "autocomplete",
+    "geolocation",
     "ui",
     "context-menu",
     "freshtab",
@@ -28,7 +30,11 @@
     "privacy-dashboard",
     "performance",
     "hpn",
-    "adblocker"
+    "adblocker",
+    "hm",
+    "campaign-manager",
+    "message-center",
+    "q-button"
   ],
   "subprojects": [
     "fresh-tab-frontend"

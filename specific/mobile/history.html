@@ -9,13 +9,27 @@
        <script src="js/libs/system-polyfill.js"></script>
        <script src="js/osAPI.js"></script>
        <script src="js/jsAPI.js"></script>
-       <script src="js/libs.js"></script>
-       <script src="js/CLIQZEnvironment.js"></script>
-       <script src="js/global.js"></script>
        <script>
+        System.baseURL = './';
 
-        CliqzUtils.initPlatform(System);
-        System.import("core/startup").then(function (startupModule) {
+        Promise.all([
+          System.import("platform/environment"),
+          System.import("core/utils"),
+          System.import("core/storage"),
+          System.import("core/templates"),
+        ]).then(function (modules) {
+          var environment = modules[0].default;
+          var utils = modules[1].default;
+          var Storage = modules[2].default;
+          var handlebars = modules[3].default;
+          environment.storage = new Storage();
+          window.CLIQZEnvironment = environment;
+          window.CliqzUtils = utils;
+          window.CliqzHandlebars = handlebars;
+          utils.initPlatform(System);
+        }).then(function () {
+          return System.import("core/startup");
+        }).then(function (startupModule) {
           return startupModule.default(window, [
             "core",
             "mobile-dev", //only available in mobile-dev config
@@ -24,12 +38,14 @@
             "static"
           ]);
         }).then(function () {
-          return CliqzUtils.init(window);
+          return CliqzUtils.init({
+            lang: window.navigator.language || window.navigator.userLanguage
+          });
         }).then(function () {
+          jsAPI.init();
           osAPI.init();
           History.init();
         });
-
        </script>
        <meta name="viewport" content="initial-scale=1.0001, user-scalable=no" />
    </head>

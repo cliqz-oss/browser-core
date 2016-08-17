@@ -1,5 +1,6 @@
 "use strict"
 
+DEPS.GzipTest = ["core/utils"];
 TESTS.GzipTest = function(CliqzUtils) {
 
   describe('gzip', function() {

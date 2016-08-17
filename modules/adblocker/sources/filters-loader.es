@@ -1,59 +1,55 @@
-"use strict";
-
-import ResourceLoader, { Resource, UpdateCallbackHandler } from "core/resource-loader";
-
-import { log } from "adblocker/utils";
-import parseList from "adblocker/filters-parsing";
+import ResourceLoader, { Resource, UpdateCallbackHandler } from 'core/resource-loader';
+import parseList from 'adblocker/filters-parsing';
 
 
 // Disk persisting
-const RESOURCES_PATH = ["antitracking", "adblocking"];
+const RESOURCES_PATH = ['antitracking', 'adblocking'];
 
 
 // Common durations
-const ONE_SECOND  = 1000;
-const ONE_MINUTE  = 60 * ONE_SECOND;
-const ONE_HOUR    = 60 * ONE_MINUTE;
-const ONE_DAY     = 24 * ONE_HOUR;
+const ONE_SECOND = 1000;
+const ONE_MINUTE = 60 * ONE_SECOND;
+const ONE_HOUR = 60 * ONE_MINUTE;
+const ONE_DAY = 24 * ONE_HOUR;
 
 
 // URLs to fetch block lists
-const FILTER_LIST_BASE_URL = "https://raw.githubusercontent.com/gorhill/uBlock/master/";
-const BASE_URL             = "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/";
-const CHECKSUMS_URL        = BASE_URL + "checksums/ublock0.txt?_=";
+const FILTER_LIST_BASE_URL = 'https://raw.githubusercontent.com/gorhill/uBlock/master/';
+const BASE_URL = 'https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/';
+const CHECKSUMS_URL = `${BASE_URL}checksums/ublock0.txt?_=`;
 
 
 function urlFromPath(path) {
-  if (path.startsWith("assets/ublock/filter-lists.json")) {
+  if (path.startsWith('assets/ublock/filter-lists.json')) {
     return FILTER_LIST_BASE_URL + path;
-  }
-  else if (path.startsWith("assets/thirdparties/")) {
+  } else if (path.startsWith('assets/thirdparties/')) {
     return path.replace(
       /^assets\/thirdparties\//,
-      BASE_URL + "thirdparties/");
-  }
-  else if (path.startsWith("assets/ublock/")) {
+      `${BASE_URL}thirdparties/`);
+  } else if (path.startsWith('assets/ublock/')) {
     return path.replace(
       /^assets\/ublock\//,
-      BASE_URL + "filters/");
+      `${BASE_URL}filters/`);
   }
+
+  return null;
 }
 
 
 const ALLOWED_LISTS = new Set([
-    // uBlock
-    "assets/ublock/filters.txt",
-    "assets/ublock/unbreak.txt",
-    // Adblock plus
-    "assets/thirdparties/easylist-downloads.adblockplus.org/easylist.txt",
-    // Extra lists
-	  "pgl.yoyo.org/as/serverlist",
-    // Anti adblock killers
-    "https://raw.githubusercontent.com/reek/anti-adblock-killer/master/anti-adblock-killer-filters.txt",
-    "https://easylist-downloads.adblockplus.org/antiadblockfilters.txt",
-    // Privacy
-    // "assets/thirdparties/easylist-downloads.adblockplus.org/easyprivacy.txt",
-    // "assets/ublock/privacy.txt"
+  // uBlock
+  'assets/ublock/filters.txt',
+  'assets/ublock/unbreak.txt',
+  // Adblock plus
+  'assets/thirdparties/easylist-downloads.adblockplus.org/easylist.txt',
+  // Extra lists
+  'pgl.yoyo.org/as/serverlist',
+  // Anti adblock killers
+  'https://raw.githubusercontent.com/reek/anti-adblock-killer/master/anti-adblock-killer-filters.txt',
+  'https://easylist-downloads.adblockplus.org/antiadblockfilters.txt',
+  // Privacy
+  // "assets/thirdparties/easylist-downloads.adblockplus.org/easyprivacy.txt",
+  // "assets/ublock/privacy.txt"
 ]);
 
 
@@ -66,38 +62,38 @@ class Checksums extends UpdateCallbackHandler {
   constructor() {
     super();
 
-    this._loader = new ResourceLoader(
-      RESOURCES_PATH.concat("checksums"),
+    this.loader = new ResourceLoader(
+      RESOURCES_PATH.concat('checksums'),
       {
         cron: ONE_DAY,
-        dataType: "plainText",
-        remoteURL: this._remoteURL
+        dataType: 'plainText',
+        remoteURL: this.remoteURL,
       }
     );
-    this._loader.onUpdate(this._updateChecksums.bind(this));
+    this.loader.onUpdate(this.updateChecksums.bind(this));
   }
 
   load() {
-    this._loader.load().then(this._updateChecksums.bind(this));
+    this.loader.load().then(this.updateChecksums.bind(this));
   }
 
   // Private API
 
-  get _remoteURL() {
+  get remoteURL() {
     // The URL should contain a timestamp to avoid caching
     return CHECKSUMS_URL + String(Date.now());
   }
 
-  _updateChecksums(data) {
+  updateChecksums(data) {
     // Update the URL as it must include the timestamp to avoid caching
     // NOTE: This mustn't be removed as it would break the update.
-    this._loader.resource.remoteURL = this._remoteURL;
+    this.loader.resource.remoteURL = this.remoteURL;
 
     // Parse checksums
     data.split(/\r\n|\r|\n/g)
       .filter(line => line.length > 0)
       .forEach(line => {
-        const [checksum, asset] = line.split(" ");
+        const [checksum, asset] = line.split(' ');
 
         // Trigger callback even if checksum is the same since
         // it wouldn't work for filter-lists.json file which could
@@ -106,7 +102,7 @@ class Checksums extends UpdateCallbackHandler {
         this.triggerCallbacks({
           checksum,
           asset,
-          remoteURL: urlFromPath(asset)
+          remoteURL: urlFromPath(asset),
         });
       });
   }
@@ -117,31 +113,31 @@ class ExtraLists extends UpdateCallbackHandler {
   constructor() {
     super();
 
-    this._resource  = new Resource(
-      RESOURCES_PATH.concat(["assets", "ublock", "filter-lists.json"]),
-      { remoteURL: urlFromPath("assets/ublock/filter-lists.json") }
+    this.resource = new Resource(
+      RESOURCES_PATH.concat(['assets', 'ublock', 'filter-lists.json']),
+      { remoteURL: urlFromPath('assets/ublock/filter-lists.json') }
     );
-    this._resource.onUpdate(this._updateExtraLists.bind(this));
+    this.resource.onUpdate(this.updateExtraListsFromMetadata.bind(this));
   }
 
   load() {
-    this._resource.load().then(this._updateExtraLists.bind(this));
+    this.resource.load().then(this.updateExtraListsFromMetadata.bind(this));
   }
 
-  updateExtraLists({asset}) {
-    if (asset.endsWith("filter-lists.json")) {
-      this._resource.updateFromRemote();
+  updateExtraLists({ asset }) {
+    if (asset.endsWith('filter-lists.json')) {
+      this.resource.updateFromRemote();
     }
   }
 
-  _updateExtraLists(extraLists) {
+  updateExtraListsFromMetadata(extraLists) {
     Object.keys(extraLists).forEach(entry => {
       const metadata = extraLists[entry];
-      const url = metadata.hasOwnProperty("homeURL") ? metadata["homeURL"] : entry;
+      const url = metadata.hasOwnProperty('homeURL') ? metadata.homeURL : entry;
 
       this.triggerCallbacks({
         asset: entry,
-        remoteURL: url
+        remoteURL: url,
       });
     });
   }
@@ -153,31 +149,33 @@ class ExtraLists extends UpdateCallbackHandler {
 class FiltersList extends UpdateCallbackHandler {
   constructor(checksum, asset, remoteURL) {
     super();
-    this.checksum  = checksum;
-    this.filters   = [];
+    this.checksum = checksum;
+    this.filters = [];
+
+    let assetName = asset;
 
     // Strip prefix
-    ["http://", "https://"].forEach(prefix => {
-      if (asset.startsWith(prefix)) {
-        asset = asset.substring(prefix.length);
+    ['http://', 'https://'].forEach(prefix => {
+      if (assetName.startsWith(prefix)) {
+        assetName = assetName.substring(prefix.length);
       }
     });
 
-    this._resource  = new Resource(
-      RESOURCES_PATH.concat(asset.split("/")),
-      { remoteURL, dataType: "plainText" }
+    this.resource = new Resource(
+      RESOURCES_PATH.concat(assetName.split('/')),
+      { remoteURL, dataType: 'plainText' }
     );
-    this._resource.onUpdate(this.updateList.bind(this));
+    this.resource.onUpdate(this.updateList.bind(this));
   }
 
   load() {
-    this._resource.load().then(this.updateList.bind(this));
+    this.resource.load().then(this.updateList.bind(this));
   }
 
   updateFromChecksum(checksum) {
     if (checksum === undefined || checksum !== this.checksum) {
       this.checksum = checksum;
-      this._resource.updateFromRemote();
+      this.resource.updateFromRemote();
     }
   }
 
@@ -227,7 +225,7 @@ export default class extends UpdateCallbackHandler {
     return filters;
   }
 
-  updateList({checksum, asset, remoteURL}) {
+  updateList({ checksum, asset, remoteURL }) {
     if (isListSupported(asset)) {
       let list = this.lists.get(asset);
 
