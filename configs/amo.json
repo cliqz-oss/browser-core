@@ -19,11 +19,12 @@
     "human-web",
     "anti-phishing",
     "onboarding",
-    "freshtab",
     "telemetry-categories",
     "antitracking",
     "performance",
-    "hpn"
+    "hpn",
+    "geolocation",
+    "freshtab"
   ],
   "subprojects": [
     "fresh-tab-frontend"

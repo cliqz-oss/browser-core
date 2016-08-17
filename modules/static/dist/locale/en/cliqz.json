@@ -636,10 +636,10 @@
       "message": "OK"
     },
     "disable-cliqz": {
-      "message": "Disable Cliqz"
+      "message": "Disable CLIQZ search"
     },
     "btnActivateCliqz": {
-      "message": "Activate Cliqz"
+      "message": "Activate CLIQZ search"
     },
     "btnFreshTab": {
       "message": "Enable CLIQZ Start Page and New Tabs"

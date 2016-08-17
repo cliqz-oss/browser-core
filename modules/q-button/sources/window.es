@@ -163,7 +163,7 @@ export default class {
       utils.getLocalizedString('btnFeedbackFaq'),
       () => {
         //TODO - use the original channel instead of the current one (it will be changed at update)
-        CLIQZEnvironment.openTabInWindow(win, CliqzUtils.FEEDBACK_URL);
+        CLIQZEnvironment.openTabInWindow(win, utils.FEEDBACK_URL);
       },
       'feedback'
     );
@@ -215,12 +215,9 @@ export default class {
     button.setAttribute('label', utils.getLocalizedString('btnActivateCliqz'));
     button.addEventListener('command', (function(event) {
       utils.setPref("cliqz_core_disabled", false);
+      utils.extensionRestart();
 
-      var enumerator = Services.wm.getEnumerator('navigator:browser');
-      while (enumerator.hasMoreElements()) {
-          var win = enumerator.getNext();
-          win.CLIQZ.Core.init();
-      }
+      doc.getElementById('urlbar').blur();
 
       utils.telemetry({
         type: 'setting',

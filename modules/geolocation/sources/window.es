@@ -15,6 +15,8 @@ export default class {
   }
 
   createButtonItem(win) {
+    if (utils.getPref("cliqz_core_disabled", false)) return;
+
     var doc = win.document,
       menu = doc.createElement('menu'),
       menupopup = doc.createElement('menupopup');

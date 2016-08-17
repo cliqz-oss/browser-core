@@ -4,6 +4,7 @@ import {
 } from 'core/cliqz';
 
 import coreLanguage from 'platform/language';
+import PlacesUtils from 'platform/places-utils';
 
 import NewsCache from 'freshtab/news-cache';
 

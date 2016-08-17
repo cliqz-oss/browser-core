@@ -20,6 +20,8 @@ export default class {
   * @param win
   */
   createButtonItem(win) {
+    if (utils.getPref("cliqz_core_disabled", false)) return;
+
     var btn = simpleBtn(
       win.document,
       utils.getLocalizedString('btnPrivacyDashboard'),

@@ -1354,16 +1354,17 @@ function urlIndexInHistory(url, urlList) {
                 switch (state) {
                     //not supported country
                     case 'disable-cliqz':
-                        CliqzUtils.setPref("cliqz_core_disabled", true);
-                        clearMessage('bottom');
-                        var enumerator = Services.wm.getEnumerator('navigator:browser');
+                        CliqzUtils.extensionRestart(function(){
+                          CliqzUtils.setPref("cliqz_core_disabled", true);
+                        });
 
-                        //remove cliqz from all windows
-                        while (enumerator.hasMoreElements()) {
-                            var win = enumerator.getNext();
-                            win.CLIQZ.Core.unload(true);
-                        }
+                        // blur the urlbar so it picks up the default AutoComplete provider
                         CliqzAutocomplete.isPopupOpen = false;
+                        setTimeout(function(urlbar){
+                          urlbar.focus();
+                          urlbar.blur();
+                        }, 0, urlbar);
+
                         break;
                     case 'keep-cliqz':
                         clearMessage('bottom');
