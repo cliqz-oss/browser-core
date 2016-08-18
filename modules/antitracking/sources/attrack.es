@@ -145,6 +145,7 @@ var CliqzAttrack = {
     linksFromDom: {},
     cookiesFromDom: {},
     loadedTabs: {},
+    breakageCache: {},
     getBrowserMajorVersion: function() {
         var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
                         .getService(Components.interfaces.nsIXULAppInfo);
@@ -498,23 +499,22 @@ var CliqzAttrack = {
 
                 // broken by attrack?
                 if (CliqzAttrack.recentlyModified.has(source_tab + url) && requestContext.channel.responseStatus >= 400) {
-                  const payload = {
-                    source: source_url,
+                  const dedupKey = [source_url, url_parts.hostname, url_parts.path].join('-');
+                  CliqzAttrack.breakageCache[dedupKey] = CliqzAttrack.breakageCache[dedupKey] || {
+                    hostname: md5(source_url_parts.hostname).substring(0, 16),
+                    path: md5(source_url_parts.path),
                     status: requestContext.channel.responseStatus,
                     url_info: {
                       protocol: url_parts.protocol,
                       hostname: url_parts.hostname,
                       path: md5(url_parts.path),
-                      params: url_parts.getKeyValuesMD5()
+                      params: url_parts.getKeyValuesMD5(),
+                      status: requestContext.channel.responseStatus
                     },
-                    context: requestContext.getWindowDepth()
+                    context: requestContext.getWindowDepth(),
+                    count: 0
                   };
-                  const msg = {
-                    'type': telemetry.msgType,
-                    'action': 'attrack.breakage',
-                    'payload': CliqzAttrack.generateAttrackPayload(payload)
-                  };
-                  telemetry.telemetry(msg);
+                  CliqzAttrack.breakageCache[dedupKey].count += 1;
                 }
             }
         }
@@ -932,6 +932,19 @@ var CliqzAttrack = {
         pacemaker.register(function annotateSafeKeys() {
             CliqzAttrack.qs_whitelist.annotateSafeKeys(CliqzAttrack.requestKeyValue);
         }, 10 * 60 * 60 * 1000);
+
+        pacemaker.register(function pushBreakageTelemetry() {
+          Object.keys(CliqzAttrack.breakageCache).forEach((k) => {
+            const payload = CliqzAttrack.breakageCache[k];
+            const msg = {
+              'type': telemetry.msgType,
+              'action': 'attrack.breakage',
+              'payload': CliqzAttrack.generateAttrackPayload(payload)
+            };
+            telemetry.telemetry(msg);
+          });
+          CliqzAttrack.breakageCache = {};
+        }, 10 * 60 * 1000);
 
     },
     /** Global module initialisation.

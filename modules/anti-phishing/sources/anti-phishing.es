@@ -7,15 +7,18 @@ const Ci = Components.interfaces;
 
 function format(currWin, url, md5, logging) {
     let doc = currWin.document;
-    // currWin.location.reload = undefined;
+
     doc.getElementById('phishing-url').innerText = url;
     doc.getElementsByClassName('cqz-button-save-out')[0].onclick = function() {
       if (logging) {
         CliqzUtils.telemetry({type: 'anti-phishing', action: 'click', target: 'safe_out'});
-        CliqzHumanWeb.notification({'url': doc.URL, 'action': 'safe_out'});
+        // Modify human-web url to log the user interactions
+        // Note: there might be loss of data due to double fetch
+        if (CliqzHumanWeb && CliqzHumanWeb.state.v[url]) {
+          CliqzHumanWeb.state.v[url]['anti-phishing'] = 'safe_out';
+        }
       }
       if (doc.referrer) {
-          // currWin.location = doc.referrer;
           currWin.location.replace(doc.referrer);
       } else {
           currWin.history.back();
@@ -29,7 +32,9 @@ function format(currWin, url, md5, logging) {
     doc.getElementById('report-safe').onclick = function() {
       if (logging) {
         CliqzUtils.telemetry({type: 'anti-phishing', action: 'click', target: 'report'});
-        CliqzHumanWeb.notification({'url': doc.URL, 'action': 'report'});
+        if (CliqzHumanWeb && CliqzHumanWeb.state.v[url]) {
+          CliqzHumanWeb.state.v[url]['anti-phishing'] = 'report';
+        }
       }
       CliqzAntiPhishing.forceWhiteList[md5] = 1;
       currWin.location.replace(url);
@@ -38,7 +43,9 @@ function format(currWin, url, md5, logging) {
     proceedBt.onclick = function() {
       if (logging) {
         CliqzUtils.telemetry({type: 'anti-phishing', action: 'click', target: 'ignore'});
-        CliqzHumanWeb.notification({'url': doc.URL, 'action': 'ignore'});
+        if (CliqzHumanWeb && CliqzHumanWeb.state.v[url]) {
+          CliqzHumanWeb.state.v[url]['anti-phishing'] = 'ignore';
+        }
       }
       CliqzAntiPhishing.forceWhiteList[md5] = 2;
       currWin.location.replace(url);
@@ -61,7 +68,9 @@ function alert(aProgress, url, md5, logging) {
       getErrorCode(doc) == "deceptiveBlocked") {
     if (logging) {
       CliqzUtils.telemetry({type: 'anti-phishing', action: 'ff_block'});
-      CliqzHumanWeb.notification({'url': url, 'action': 'ff_block'});
+      if (CliqzHumanWeb && CliqzHumanWeb.state.v[url]) {
+        CliqzHumanWeb.state.v[url]['anti-phishing'] = 'ff_block';
+      }
     }
     return;
   }
@@ -201,10 +210,6 @@ function notifyHumanWeb(p) {
     try {
         CliqzHumanWeb.state['v'][url]['isMU'] = status;
     } catch(e) {}
-
-    // Commenting this line here, it sends empty payload.x to the humanweb and is marked private.
-    // CliqzHumanWeb.addURLtoDB(url, CliqzHumanWeb.state['v'][url]['ref'], CliqzHumanWeb.state['v'][url]);
-    // CliqzUtils.log("URL is malicious: "  + url + " : " + status, 'antiphishing');
 }
 
 function updateSuspiciousStatus(url, status) {
@@ -216,7 +221,6 @@ function updateSuspiciousStatus(url, status) {
         if (CliqzHumanWeb.state['v'][url]) {
             notifyHumanWeb(p);
         } else {
-            // CliqzUtils.log("delay notification", "antiphishing");
             CliqzUtils.setTimeout(notifyHumanWeb, 1000, p);
         }
     }
@@ -237,7 +241,6 @@ function updateBlackWhiteStatus(req, md5Prefix) {
 }
 
 function checkSuspicious(url, callback) {
-  CliqzUtils.log('check ' + url, 'antiphishing');
   checkScript(url, callback);
   checkHTML(url, callback);
   checkPassword(url, callback);
@@ -250,7 +253,9 @@ function checkStatus(url, md5Prefix, md5Surfix, aProgress, hw, logging) {
           if (!hw) {
             if (logging) {
               CliqzUtils.telemetry({type: 'anti-phishing', action: 'click', target: 'show_warning'});
-              CliqzHumanWeb.notification({'url': url, 'action': 'block'});
+              if (CliqzHumanWeb && CliqzHumanWeb.state.v[url]) {
+                CliqzHumanWeb.state.v[url]['anti-phishing'] = 'block';
+              }
             }
             // show the block html page
             // delay the actual show in case FF itself detects this as phishing also
@@ -280,7 +285,6 @@ var CliqzAntiPhishing = {
     */
     auxOnPageLoad: function(url, aProgress, hw, logging) {
         var [md5Prefix, md5Surfix] = getSplitDomainMd5(url);
-        // alert(currWin, url, md5Prefix + md5Surfix);
         if (md5Prefix in CliqzAntiPhishing.blackWhiteList)
             checkStatus(url, md5Prefix, md5Surfix, aProgress, hw, logging);
         else
@@ -321,8 +325,6 @@ var CliqzAntiPhishing = {
     listener: {
         QueryInterface: XPCOMUtils.generateQI(["nsIWebProgressListener", "nsISupportsWeakReference"]),
         onLocationChange: function(aProgress, aRequest, aURI) {
-          // CliqzUtils.p = aProgress;
-          // let currwin = aProgress.DOMWindow.top;
           let logging = true;
           if (aRequest && aRequest.isChannelPrivate !== undefined && aRequest.isChannelPrivate) {
             logging = false;
