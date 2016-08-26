@@ -24,7 +24,8 @@
     "performance",
     "hpn",
     "geolocation",
-    "freshtab"
+    "freshtab",
+    "offers"
   ],
   "subprojects": [
     "fresh-tab-frontend"

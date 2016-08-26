@@ -265,6 +265,7 @@ var CliqzABTests = {
                 break;
             case "1072_B":
                 CliqzUtils.setPref("grFeatureEnabled", true);
+                break;
             case "1074_A":
                 CliqzUtils.setPref("cliqz-adb-abtest", false);
                 break;

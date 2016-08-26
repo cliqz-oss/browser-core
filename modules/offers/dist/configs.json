@@ -7,6 +7,10 @@
     "4": {
       "session_time_secs" : 1800,
       "buy_intent_secs" : 86400
+    },
+    "5": {
+      "session_time_secs" : 1800,
+      "buy_intent_secs" : 86400
     }
   }
 }

@@ -13,11 +13,14 @@ var OffersConfigs = {
   HOUR: 60 * 60,
   DAY: 60 * 60 * 24,
 
-  CURRENT_VERSION: 0.55,
+  CURRENT_VERSION: 0.60,
 
 
   //////////////////////////////////////////////////////////////////////////////
   // Offer Manager
+
+  // debug mode flag (offersDevFlag)
+  DEBUG_MODE: false,
 
   // the number of milliseconds we want to wait till we hide the add
   HIDE_OFFER_MS: 5 * 60 * 1000,
@@ -44,9 +47,16 @@ var OffersConfigs = {
   // and click on "more info"
   OFFER_INFORMATION_URL: 'https://cliqz.com/products/cliqz-for-desktop/cliqz-angebote',
 
+  // the path to the local storage of the checkout regex map and the default path
+  CHECKOUT_REGEX_MAP_URL: 'chrome://cliqz/content/offers/checkout_regex.json',
+  CHECKOUT_REGEX_MAP_REMOTE_URL: 'https://cdn.cliqz.com/offers/regex_maps.json',
+  CHECKOUT_REGEX_MAP_CRON_MS: 12 * 60 * 60 * 1000, // 12 hours
+
   //////////////////////////////////////////////////////////////////////////////
   // Offer Fetcher
 
+  OFFER_DEV_URL: 'http://mixer-beta.clyqz.com/api/v1/rich-header?path=/map&bmresult=vouchers.cliqz.com&',
+  OFFER_PROD_URL: 'https://newbeta.cliqz.com/api/v1/rich-header?path=/map&bmresult=vouchers.cliqz.com&',
   OFFER_FETCHER_DEST_URL: 'https://newbeta.cliqz.com/api/v1/rich-header?path=/map&bmresult=vouchers.cliqz.com&',
 
   //////////////////////////////////////////////////////////////////////////////
@@ -67,6 +77,9 @@ var OffersConfigs = {
   // coupon handler load old data (TODO: change this in the release to true)
   COUPON_HANDLER_LOAD_FILE_FLAG: true,
   COUPON_HANDLER_RESET_FILE: false,
+
+  // voucher detection local storage
+  VOUCHER_REGEX_LOCAL_STORAGE_URL: 'chrome://cliqz/content/offers/vouchers_used_regex.json',
 
   // offer fetcher temp cache
   TS_THRESHOLD: 1000 * 60

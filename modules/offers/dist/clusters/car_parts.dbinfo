@@ -1,120 +1,110 @@
 {
    "datetime_db": {
       "day_data": {
-         "0": 9, 
-         "1": 6, 
-         "2": 6, 
-         "3": 5, 
-         "4": 4, 
-         "5": 4, 
+         "0": 9,
+         "1": 6,
+         "2": 6,
+         "3": 5,
+         "4": 4,
+         "5": 4,
          "6": 2
-      }, 
+      },
       "hour_data": {
-         "8": 1, 
-         "9": 8, 
-         "10": 1, 
-         "11": 3, 
-         "12": 2, 
-         "13": 1, 
-         "14": 1, 
-         "15": 2, 
-         "16": 2, 
-         "18": 4, 
-         "19": 4, 
-         "20": 2, 
-         "21": 2, 
+         "8": 1,
+         "9": 8,
+         "10": 1,
+         "11": 3,
+         "12": 2,
+         "13": 1,
+         "14": 1,
+         "15": 2,
+         "16": 2,
+         "18": 4,
+         "19": 4,
+         "20": 2,
+         "21": 2,
          "22": 3
-      }, 
-      "month_data": {}, 
+      },
+      "month_data": {},
       "total_signals": 36
-   }, 
+   },
    "domain_info_db": {
-      "checkout_regex": {
-         "36": "/einkaufskorb/", 
-         "37": "/cart", 
-         "39": "/basket", 
-         "40": "basket.html",
-         "42": "cl=basket", 
-         "45": "wk.html", 
-         "46": "/Kasse", 
-         "47": "shoppingCart"
-      }, 
       "top_sellers": [
          [
             36,
             2
-         ], 
+         ],
          [
-            37, 
+            37,
             1
-         ], 
+         ],
          [
-            39, 
+            39,
             1
-         ], 
+         ],
          [
             40,
             3
-         ], 
+         ],
          [
-            42, 
+            42,
             19
-         ], 
+         ],
          [
-            45, 
+            45,
             3
-         ], 
+         ],
          [
-            46, 
+            46,
             1
-         ], 
+         ],
          [
-            47, 
+            47,
             1
          ]
-      ], 
+      ],
       "total_signals": 36
-   }, 
+   },
    "general_db": {
-      "avg_evts_per_avg_sessions": 21, 
-      "avg_num_events_per_buying": 51, 
-      "avg_num_sessions_per_buying": 9, 
-      "avg_time_between_sessions": 788.1853650807784, 
-      "avg_total_buying_time": 5296687.345249997, 
+      "avg_evts_per_avg_sessions": 21,
+      "avg_num_events_per_buying": 51,
+      "avg_num_sessions_per_buying": 9,
+      "avg_time_between_sessions": 788.1853650807784,
+      "avg_total_buying_time": 5296687.345249997,
       "top_referrers": [
          [
-            "", 
+            "",
             12
-         ], 
+         ],
          [
-            "autoteiledirekt", 
+            "autoteiledirekt",
             3
-         ], 
+         ],
          [
-            "atp-autoteile", 
+            "atp-autoteile",
             3
-         ], 
+         ],
          [
-            "autoteile-teufel", 
+            "autoteile-teufel",
             11
-         ], 
+         ],
          [
-            "pkwteile", 
+            "pkwteile",
             2
-         ], 
+         ],
          [
-            "bremsen", 
+            "bremsen",
             3
-         ], 
+         ],
          [
-            "mister-auto", 
+            "mister-auto",
             1
-         ], 
+         ],
          [
-            "autoteile24", 
+            "autoteile24",
             1
          ]
-      ], 
+      ],
       "total_buy_signals": 36
    }
 }

@@ -39,13 +39,6 @@ DomainInfoDB.prototype.getTopSeller = function() {
   return this.data['top_sellers'][0];
 };
 
-DomainInfoDB.prototype.setCheckoutRegexMap = function(regexMap) {
-  this.data['checkout_regex'] = regexMap;
-};
-
-DomainInfoDB.prototype.getCheckoutForDomain = function(domainID) {
-  return this.data['checkout_regex'][domainID];
-};
 
 
 // Load from dict
@@ -53,7 +46,6 @@ DomainInfoDB.prototype.getCheckoutForDomain = function(domainID) {
 DomainInfoDB.prototype.loadFromDict = function(dict) {
   this.data['total_signals'] = dict['total_signals'];
   this.setTopSellersList(dict['top_sellers']);
-  this.setCheckoutRegexMap(dict['checkout_regex']);
 };
 
 

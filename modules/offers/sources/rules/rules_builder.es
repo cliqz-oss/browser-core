@@ -3,6 +3,7 @@ import LoggingHandler from 'offers/logging_handler';
 import { Rule } from 'offers/rules/rule';
 import { FoodDeliveryRule } from 'offers/rules/food_delivery_rule';
 import { TravelRule } from 'offers/rules/travel_rule';
+import { GamingRule } from 'offers/rules/gaming_rule';
 
 
 const MODULE_NAME = 'rules_builder';
@@ -34,6 +35,9 @@ export class RulesBuilder {
       // food delivery
       case 4:
         rule = new FoodDeliveryRule();
+        break;
+      case 5:
+        rule = new GamingRule();
         break;
 
       default:

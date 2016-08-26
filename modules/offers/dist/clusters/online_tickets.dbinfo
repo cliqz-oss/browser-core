@@ -1,124 +1,117 @@
 {
    "datetime_db": {
       "day_data": {
-         "0": 24, 
-         "1": 26, 
-         "2": 35, 
-         "3": 29, 
-         "4": 33, 
-         "5": 33, 
+         "0": 24,
+         "1": 26,
+         "2": 35,
+         "3": 29,
+         "4": 33,
+         "5": 33,
          "6": 37
-      }, 
+      },
       "hour_data": {
-         "0": 1, 
-         "1": 1, 
-         "2": 2, 
-         "6": 2, 
-         "7": 2, 
-         "8": 8, 
-         "9": 14, 
-         "10": 14, 
-         "11": 16, 
-         "12": 11, 
-         "13": 10, 
-         "14": 8, 
-         "15": 10, 
-         "16": 14, 
-         "17": 15, 
-         "18": 13, 
-         "19": 17, 
-         "20": 14, 
-         "21": 19, 
-         "22": 15, 
+         "0": 1,
+         "1": 1,
+         "2": 2,
+         "6": 2,
+         "7": 2,
+         "8": 8,
+         "9": 14,
+         "10": 14,
+         "11": 16,
+         "12": 11,
+         "13": 10,
+         "14": 8,
+         "15": 10,
+         "16": 14,
+         "17": 15,
+         "18": 13,
+         "19": 17,
+         "20": 14,
+         "21": 19,
+         "22": 15,
          "23": 11
-      }, 
-      "month_data": {}, 
+      },
+      "month_data": {},
       "total_signals": 217
    },
    "domain_info_db": {
-      "checkout_regex": {
-         "57": "(tware|shoppingCart)", 
-         "58": "secure/buy/", 
-         "59": "(tware|shoppingCart)", 
-         "61": "/tickets.html", 
-         "66": "/cart"
-      }, 
       "top_sellers": [
          [
             57,
             185
-         ], 
+         ],
          [
-            66, 
+            66,
             3
-         ], 
+         ],
          [
-            59, 
+            59,
             13
-         ], 
+         ],
          [
-            58, 
+            58,
             9
-         ], 
+         ],
          [
-            61, 
+            61,
             7
          ]
-      ], 
+      ],
       "total_signals": 217
-   }, 
+   },
    "general_db": {
-      "avg_evts_per_avg_sessions": 15, 
-      "avg_num_events_per_buying": 26, 
-      "avg_num_sessions_per_buying": 3, 
-      "avg_time_between_sessions": 678.6425341753318, 
-      "avg_total_buying_time": 4320442.713331803, 
+      "avg_evts_per_avg_sessions": 15,
+      "avg_num_events_per_buying": 26,
+      "avg_num_sessions_per_buying": 3,
+      "avg_time_between_sessions": 678.6425341753318,
+      "avg_total_buying_time": 4320442.713331803,
       "top_referrers": [
          [
-            "", 
+            "",
             81
-         ], 
+         ],
          [
-            "googleadservices", 
+            "googleadservices",
             1
-         ], 
+         ],
          [
-            "google", 
+            "google",
             2
-         ], 
+         ],
          [
-            "ticketonline", 
+            "ticketonline",
             8
-         ], 
+         ],
          [
-            "viagogo", 
+            "viagogo",
             4
-         ], 
+         ],
          [
-            "musicals", 
+            "musicals",
             3
-         ], 
+         ],
          [
-            "eventim", 
+            "eventim",
             115
          ],
          [
-            "viagogo", 
+            "viagogo",
             9
-         ], 
+         ],
          [
-            "musicals", 
+            "musicals",
             8
-         ], 
+         ],
          [
-            "eventim", 
+            "eventim",
             131
-         ], 
+         ],
          [
             "ticketbande",
             3
          ]
-      ], 
+      ],
       "total_buy_signals": 217
    }
 }

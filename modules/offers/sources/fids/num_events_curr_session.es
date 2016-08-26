@@ -11,6 +11,10 @@ const MODULE_NAME = 'num_events_curr_session_fid';
 //  N: the number of visits to check.
 //  delta: the delta number of visits to check.
 //
+// additionally you can provide the following arguments to override the others
+//  lowerBound: the lower bound to check
+//  upperBound: the upper bound to check
+//
 // TODO: if we want to do this generic we need to add the value in the database
 //       so we can do it generic for all the clusters...
 //
@@ -19,17 +23,6 @@ export class NumEventsCurrSessionFID extends FID {
     super('numEventsCurrSession');
     this.lowerBound = 0;
     this.upperBound = 0;
-
-    // this.configParams = {
-    //   'N' : {
-    //     description: 'N means the number of visits where we will activate this FID and return 1',
-    //     value: 1
-    //   },
-    //   'delta' : {
-    //     description: 'The delta number of visits to check',
-    //     value: 1
-    //   }
-    // };
   }
 
   configureDataBases(dbsMap) {
@@ -41,12 +34,22 @@ export class NumEventsCurrSessionFID extends FID {
     LoggingHandler.LOG_ENABLED &&
     LoggingHandler.info(MODULE_NAME, 'configuring args: ' + JSON.stringify(configArgs));
 
-    if (configArgs['N'] < 0 || configArgs['delta'] < 0) {
+    const hasArguments = (configArgs['N'] && configArgs['delta']) ||
+                         (configArgs['lowerBound'] && configArgs['upperBound']);
+
+    if (!hasArguments) {
       return;
     }
 
-    this.lowerBound = configArgs['N'] - configArgs['delta'];
-    this.upperBound = configArgs['N'] + configArgs['delta'];
+    if (configArgs['N'] && configArgs['delta']) {
+      this.lowerBound = configArgs['N'] - configArgs['delta'];
+      this.upperBound = configArgs['N'] + configArgs['delta'];
+    } else {
+      this.lowerBound = configArgs['lowerBound']
+      this.upperBound = configArgs['upperBound'];
+    }
+
+
   }
 
   evaluate(intentInput, extras) {

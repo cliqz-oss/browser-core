@@ -14,6 +14,7 @@ import OffersConfigs from 'offers/offers_configs';
 import LoggingHandler from 'offers/logging_handler';
 import { loadFileFromChrome } from 'offers/utils';
 import { VoucherDetector } from 'offers/voucher_detector';
+import ResourceLoader from 'core/resource-loader';
 
 Components.utils.import('resource://gre/modules/Services.jsm');
 // needed for the history
@@ -117,6 +118,11 @@ function getClustersFilesMap() {
       'domains_file' : 'travel.cluster',
       'db_file' : 'travel.dbinfo',
       'patterns_file' : 'travel.patterns'
+    },
+    'gaming': {
+      'domains_files': 'gaming.cluster',
+      'db_file': 'gaming.dbinfo',
+      'patterns_file': 'gaming.patterns'
     }
   };
 }
@@ -193,10 +199,15 @@ export function OfferManager() {
   this.couponHandler = null;
   // configs
   this.configs = null;
+  // the checkout regex mapping
+  this.checkoutRegexMap = null;
 
 
   // voucher detector
   this.voucherDetector = new VoucherDetector();
+
+  // load checkout regex map
+  this.loadCheckoutRegexMap();
 
   // the fetcher
   let destURL = OffersConfigs.OFFER_FETCHER_DEST_URL;
@@ -206,7 +217,6 @@ export function OfferManager() {
     LoggingHandler.LOG_ENABLED &&
     LoggingHandler.info(MODULE_NAME,
                         'load the configs.json: ' + JSON.stringify(self.configs));
-
     parseMappingsFileAsPromise('mappings.json').then(function(mappings) {
       self.mappings = mappings;
 
@@ -219,7 +229,7 @@ export function OfferManager() {
       self.offerFetcher = new OfferFetcher(destURL, mappings);
     }).then(function() {
         // we will use the CliqzStorage here
-        let localStorage = CliqzUtils.getLocalStorage(OffersConfigs.USER_LOCAL_STORAGE_URL);
+        let localStorage = utils.getLocalStorage(OffersConfigs.USER_LOCAL_STORAGE_URL);
         let cache = localStorage.getItem('user_data');
         if (!cache) {
           // we need to write this then
@@ -235,6 +245,15 @@ export function OfferManager() {
           LoggingHandler.LOG_ENABLED &&
           LoggingHandler.info(MODULE_NAME, 'db found, loading it: ' + cache);
           self.userDB = JSON.parse(cache);
+        }
+
+        // here we need to still create empty DB for new cluster we can have:
+        for (let cid in self.mappings['cid_to_cname']) {
+          if (self.userDB.hasOwnProperty(cid)) {
+            continue;
+          }
+          // else we create it here
+          self.userDB[cid] = {};
         }
     }).then(function() {
         LoggingHandler.LOG_ENABLED &&
@@ -255,11 +274,186 @@ export function OfferManager() {
     });
   });
 
-}
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 //                        "PRIVATE" METHODS
 ////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// @brief load the checkoutRegexMap, if we have one already we use the latest one
+//        if not we just load the default one
+//
+OfferManager.prototype.loadCheckoutRegexMap = function() {
+  // check if we have one already in the local storage
+  let localStorage = utils.getLocalStorage(OffersConfigs.CHECKOUT_REGEX_MAP_URL);
+  // on debug we always load from the extension
+  let cache = (OffersConfigs.DEBUG_MODE) ? null : localStorage.getItem('checkout_regex');
+  if (!cache) {
+    // we need to write this then
+    LoggingHandler.LOG_ENABLED &&
+    LoggingHandler.info(MODULE_NAME, 'no checkout_regex localstorage found, reading the file');
+    var self = this;
+    parseFileASPromise('checkout_regex.json').then(function(regexMap) {
+      LoggingHandler.LOG_ENABLED &&
+      LoggingHandler.info(MODULE_NAME, 'checkout_regex loaded from default location: ' + JSON.stringify(regexMap));
+      self.checkoutRegexMap = regexMap;
+
+      // now save it in the local storage
+      localStorage.setItem('checkout_regex', JSON.stringify(self.checkoutRegexMap));
+    });
+  } else {
+    LoggingHandler.LOG_ENABLED &&
+    LoggingHandler.info(MODULE_NAME, 'checkout_regex load it from localstorage ' + JSON.stringify(cache));
+    this.checkoutRegexMap = JSON.parse(cache);
+  }
+
+  // fetch from the backend now
+  this.getLatestRegularExpFromBE();
+};
+
+OfferManager.prototype.saveCheckoutRegexMap = function() {
+  let localStorage = utils.getLocalStorage(OffersConfigs.CHECKOUT_REGEX_MAP_URL);
+  if (localStorage && this.checkoutRegexMap) {
+    localStorage.setItem('checkout_regex', JSON.stringify(this.checkoutRegexMap));
+  }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// @brief This method will get a object with the following kind of form
+//      {
+//        domain_name: [regex1, regex2, ...]
+//      }
+//  where we will set this into the mappings.json and we will save it for the
+//  next time.
+//
+
+OfferManager.prototype.updateCheckoutRegex = function(regexDict) {
+
+  LoggingHandler.LOG_ENABLED &&
+  LoggingHandler.info(MODULE_NAME, 'updateCheckoutRegex!!');
+
+  if (!regexDict || !regexDict['dname_to_checkout_regex']) {
+    return;
+  }
+
+  // get the real map
+  regexDict = regexDict['dname_to_checkout_regex'];
+
+  if (!this.checkoutRegexMap) {
+    // nothing to do
+    LoggingHandler.LOG_ENABLED &&
+    LoggingHandler.info(MODULE_NAME, 'the checkout regex map is null!');
+    return;
+  }
+  // get the map that contains the checkout regular expression
+  if (!this.checkoutRegexMap['dname_to_checkout_regex']) {
+    LoggingHandler.LOG_ENABLED &&
+    LoggingHandler.error(MODULE_NAME,
+                         'No checkout map?',
+                         LoggingHandler.ERR_INTERNAL);
+    return;
+  }
+
+  // we need to remove the current list so we can do a full update
+  this.checkoutRegexMap['dname_to_checkout_regex'] = {};
+  const domMapChecker = this.mappings['dname_to_cid'];
+
+  // get the list to be updated
+  for (var domName in regexDict) {
+    if (!regexDict.hasOwnProperty(domName)) {
+      continue;
+    }
+    // we need to ensure that the domain is in the list of domains we can map
+    // to avoid security issues
+    if (!domMapChecker.hasOwnProperty(domName)) {
+      // skip this one
+      continue;
+    }
+
+    // else get the list and replace it
+    this.checkoutRegexMap['dname_to_checkout_regex'][domName] = regexDict[domName];
+  }
+
+  // update the current file here
+  this.saveCheckoutRegexMap();
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// @brief will fetch from the BE the latest information from the regular expressions
+//        for the checkouts and the coupons_used
+//
+OfferManager.prototype.getLatestRegularExpFromBE = function() {
+  // TODO:
+  // here we should use the ResourceLoader and get it into a function that will
+  // periodically (once per session?) fetch it and update the values: it will
+  // call each function (updateCheckoutRegex, updateCouponDetectionRegex) and
+  // before that will detect which is the current version on the BE to check
+  // if we really need to update this or not.
+  //
+  var rscLoader = new ResourceLoader(['regex_remote_map'], {
+      remoteURL: OffersConfigs.CHECKOUT_REGEX_MAP_REMOTE_URL,
+      cron: OffersConfigs.CHECKOUT_REGEX_MAP_CRON_MS,
+  });
+
+  var self = this;
+  rscLoader.onUpdate(function(regexMapData) {
+    // The regex map data will look like:
+    // {
+    //   'checkouts':{...},
+    //   'coupons_used': {...},
+    // }
+    if (!regexMapData) {
+      LoggingHandler.LOG_ENABLED &&
+      LoggingHandler.error(MODULE_NAME,
+                           'We couldnt fetch the file ' + OffersConfigs.CHECKOUT_REGEX_MAP_REMOTE_URL +
+                           ' from backend properly',
+                           LoggingHandler.ERR_BACKEND);
+      return;
+    }
+
+    LoggingHandler.LOG_ENABLED &&
+    LoggingHandler.info(MODULE_NAME,
+                         'regex_remote_map fetch from backend properly: ' +
+                         OffersConfigs.CHECKOUT_REGEX_MAP_REMOTE_URL +
+                         '. File data: \n' + JSON.stringify(regexMapData));
+
+    // check if it is valid data
+    var checkoutData = regexMapData.checkouts;
+    var couponsUsed = regexMapData.coupons_used;
+
+    if (checkoutData) {
+      self.updateCheckoutRegex(checkoutData);
+    } else {
+      LoggingHandler.LOG_ENABLED &&
+      LoggingHandler.error(MODULE_NAME,
+                           'The file fetched from the backend: ' + OffersConfigs.CHECKOUT_REGEX_MAP_REMOTE_URL +
+                           ' doesnt contains the checkouts field',
+                           LoggingHandler.ERR_BACKEND);
+    }
+
+    if (couponsUsed) {
+      if (self.voucherDetector) {
+        self.voucherDetector.updateCurrentRegEx(couponsUsed);
+        self.voucherDetector.saveCurrentRegEx();
+      }
+    } else {
+      LoggingHandler.LOG_ENABLED &&
+      LoggingHandler.error(MODULE_NAME,
+                           'The file fetched from the backend: ' + OffersConfigs.CHECKOUT_REGEX_MAP_REMOTE_URL +
+                           ' doesnt contains the coupons_used field',
+                           LoggingHandler.ERR_BACKEND);
+    }
+
+  });
+
+  rscLoader.updateFromRemote();
+};
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -448,7 +642,7 @@ OfferManager.prototype.savePersistentData = function() {
   }
   // save userdb
   if(this.userDB) {
-    let localStorage = CliqzUtils.getLocalStorage(OffersConfigs.USER_LOCAL_STORAGE_URL);
+    let localStorage = utils.getLocalStorage(OffersConfigs.USER_LOCAL_STORAGE_URL);
     localStorage.setItem('user_data', JSON.stringify(this.userDB));
     LoggingHandler.LOG_ENABLED &&
     LoggingHandler.info(MODULE_NAME, 'Saving data into local storage');
@@ -457,6 +651,7 @@ OfferManager.prototype.savePersistentData = function() {
   if (this.couponHandler) {
     this.couponHandler.savePersistentData();
   }
+
 };
 
 
@@ -654,23 +849,20 @@ OfferManager.prototype.removeAndUntrackOffer = function(offerID, fromTimeout = f
 // @brief flag is the user is on a checkout page
 //
 OfferManager.prototype.isCheckoutPage = function(domainName, fullUrl) {
-  if (this.mappings['dname_to_checkout_regex']){
-    let regexForDomain = this.mappings['dname_to_checkout_regex'][domainName];
-    //LoggingHandler.LOG_ENABLED &&
-    //LoggingHandler.info(MODULE_NAME, 'isCheckoutPage#regexForDomain: ' + regexForDomain);
-
-    //LoggingHandler.LOG_ENABLED &&
-    //LoggingHandler.info(MODULE_NAME, 'isCheckoutPage#friendly_url: ' + fullUrl);
-
-    if (regexForDomain && fullUrl.match(regexForDomain)) {
-      //LoggingHandler.LOG_ENABLED &&
-      //LoggingHandler.info(MODULE_NAME, 'isCheckoutPage: true');
-      return true;
+  if (this.checkoutRegexMap) {
+    // GR-191: we now support multiple regex per domain for the checkout
+    //
+    let regexForDomainList = this.checkoutRegexMap['dname_to_checkout_regex'][domainName];
+    if (regexForDomainList && regexForDomainList.length > 0) {
+      const regexSize = regexForDomainList.length;
+      for (var i = 0; i < regexSize; ++i) {
+        if (regexForDomainList[i] && fullUrl.match(regexForDomainList[i])) {
+          return true;
+        }
+      }
     }
   }
 
-  //LoggingHandler.LOG_ENABLED &&
-  //LoggingHandler.info(MODULE_NAME, 'isCheckoutPage: false');
   return false;
 };
 
@@ -711,8 +903,13 @@ OfferManager.prototype.showOfferIfNeeded = function(clusterID, domainID) {
     return;
   }
 
+  // nasty hack here to check if we need to void showing the offer in the given domain
+  // this is only for ffxiv-freetrial domain
+  const filterGoToOffer = offer.redirect_url_did === domainID;
+  const filterShowOffer = (this.mappings['dname_to_did']['ffxiv-freetrial'] === domainID);
+
   // else we need to show the current offer in this window
-  this.uiManager.showOfferInCurrentWindow(offer, offer.redirect_url_did === domainID);
+  this.uiManager.showOfferInCurrentWindow(offer, filterGoToOffer, filterShowOffer);
 };
 
 
@@ -974,8 +1171,13 @@ OfferManager.prototype.processNewEvent = function(urlObject) {
     LoggingHandler.LOG_ENABLED &&
     LoggingHandler.info(MODULE_NAME, 'trackCoupon proper called');
 
-    // we have a offer, show it into the UI for the user
-    self.uiManager.showOfferInCurrentWindow(offer, offer.redirect_url_did === domainID);
+    // nasty hack here to check if we need to void showing the offer in the given domain
+    // this is only for ffxiv-freetrial domain
+    const filterGoToOffer = offer.redirect_url_did === domainID;
+    const filterShowOffer = (self.mappings['dname_to_did']['ffxiv-freetrial'] === domainID);
+
+    // else we need to show the current offer in this window
+    self.uiManager.showOfferInCurrentWindow(offer, filterGoToOffer, filterShowOffer);
   });
 
 
@@ -988,11 +1190,25 @@ OfferManager.prototype.processNewEvent = function(urlObject) {
 //        was used on the page (This is done using content-scripts). This method
 //        should then check if the coupon used was one we provided or not
 //
-OfferManager.prototype.addCouponAsUsedStats = function(domain, coupon) {
-  coupon = coupon.toLowerCase();
+OfferManager.prototype.addCouponAsUsedStats = function(domain, aCoupon, isDownload) {
+  aCoupon = aCoupon.toLowerCase();
   const cid = this.mappings['dname_to_cid'][domain];
-  if(this.offersShownCounterMap.hasOwnProperty(coupon) && this.offersShownCounterMap[coupon] > 0){
-    this.offersShownCounterMap[coupon] -= 1;
+  if((this.offersShownCounterMap.hasOwnProperty(aCoupon) && this.offersShownCounterMap[aCoupon] > 0) ||
+     (isDownload)) {
+    // nasty fix here to distinguish between voucher and download offer
+    var coupon = aCoupon;
+    const offerID = this.cidToOfferMap[cid];
+    const offer = (offerID) ? this.currentOfferMap[offerID] : null;
+
+    if (isDownload) {
+      // we need to replace the coupon
+      coupon = offer ? offer.voucher_data.code : null;
+    }
+
+    if (coupon) {
+      this.offersShownCounterMap[coupon] -= 1;
+    }
+
     this.statsHandler.couponUsed(cid);
 
     LoggingHandler.LOG_ENABLED &&
@@ -1001,27 +1217,23 @@ OfferManager.prototype.addCouponAsUsedStats = function(domain, coupon) {
                        domain + ' \tcoupon: ' + coupon);
 
     // mark the current coupon as used
-    const offerID = this.cidToOfferMap[cid];
-    if (offerID) {
-      const offer = this.currentOfferMap[offerID];
-      if (offer) {
-        this.couponHandler.markCouponAsUsed(offer.voucher_data, Date.now());
-      }
+    if (offer) {
+      this.couponHandler.markCouponAsUsed(offer.voucher_data, Date.now());
     }
   } else {
     this.statsHandler.externalCouponUsed(cid);
     LoggingHandler.LOG_ENABLED &&
     LoggingHandler.info(MODULE_NAME,
                        'Unrecognized coupon used :\t cid: ' + cid  +
-                       ' \t domain: ' + domain + ' \tcoupon: ' + coupon);
+                       ' \t domain: ' + domain + ' \tcoupon: ' + aCoupon);
   }
 
-  // at any case we need to mark the current intent as over since the user used
-  // a coupon
-  var intentInput = this.intentInputMap[cid];
-  if (intentInput) {
-    intentInput.flagCurrentBuyIntentSessionAsDone();
-  }
+    // at any case we need to mark the current intent as over since the user used
+    // a coupon
+    var intentInput = this.intentInputMap[cid];
+    if (intentInput) {
+      intentInput.flagCurrentBuyIntentSessionAsDone();
+    }
 };
 
 
@@ -1204,7 +1416,7 @@ OfferManager.prototype.copyToClipboardUICallback = function(offerID) {
 //
 // @brief when an offer is shown
 //
-OfferManager.prototype.offerShownUICallback = function(offerID) {
+OfferManager.prototype.offerShownUICallback = function(offerID, templateType) {
   LoggingHandler.LOG_ENABLED &&
   LoggingHandler.info(MODULE_NAME, 'offerShownUICallback');
   if (!this.userDB) {
@@ -1232,7 +1444,7 @@ OfferManager.prototype.offerShownUICallback = function(offerID) {
 
   // track this into stats (telemetry later)
   if (this.statsHandler) {
-    this.statsHandler.advertiseDisplayed(clusterID);
+    this.statsHandler.advertiseDisplayed(clusterID, templateType);
   }
 
   // mark the coupon as shown
@@ -1276,6 +1488,12 @@ OfferManager.prototype.beforeRequestListener = function(requestObj) {
   }
   let response = this.voucherDetector.processRequest(requestObj);
   if (response) {
-    this.addCouponAsUsedStats(response['domain'], response['code']);
+    // another huge hacky here, this should be refactor ASAAAAAPPPPPPPP
+    var domain = response['domain'];
+    if (domain === 'bdi-services') {
+      domain = 'ffxiv-freetrial';
+    }
+    this.addCouponAsUsedStats(domain, response['code'], response['is_download'] === true);
   }
 };
+

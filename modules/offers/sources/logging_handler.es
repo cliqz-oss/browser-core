@@ -5,7 +5,7 @@ try {
 } catch(e) { }
 // to log in console
 import { utils } from 'core/cliqz';
-import ResourceLoader from 'core/resource-loader';
+import { writeFile } from "core/fs";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -51,30 +51,34 @@ var LoggingHandler = {
     // get the full path
     var self = this;
     if (LoggingHandler.SAVE_TO_FILE) {
-      const filePath = OS.Path.join(OS.Constants.Path.profileDir, ...LoggingHandler.LOG_FILE_NAME);
+      try {
+        const filePath = OS.Path.join(OS.Constants.Path.profileDir, ...LoggingHandler.LOG_FILE_NAME);
 
-      // check https://developer.mozilla.org/es/docs/Mozilla/JavaScript_code_modules/OSFile.jsm/OS.File_for_the_main_thread#Example: Append to File
-      OS.File.exists(filePath).then(exists => {
-        if (!exists) {
-          let rscLoader = new ResourceLoader([ 'offers', 'logging.log' ], {});
-          rscLoader.persist('').then(data => {
-            utils.log('logging file created successfully: ', '[offers]');
+        // check https://developer.mozilla.org/es/docs/Mozilla/JavaScript_code_modules/OSFile.jsm/OS.File_for_the_main_thread#Example: Append to File
+        OS.File.exists(filePath).then(exists => {
+          if (!exists) {
+            writeFile(filePath, (new TextEncoder()).encode('')).then(data => {
+              utils.log('logging file created successfully: ', '[offers]');
 
-            // now assign the file descriptor to it
-            OS.File.open(filePath, {write: true, append: true}).then(fileObject => {
-            self.fileObj = fileObject;
-            }).catch(function(ee){
-              utils.log('error opening the file to write and append: ' + ee, '[offers]');
+              // now assign the file descriptor to it
+              OS.File.open(filePath, {write: true, append: true}).then(fileObject => {
+              self.fileObj = fileObject;
+              }).catch(function(ee){
+                utils.log('error opening the file to write and append: ' + ee, '[offers]');
+              });
+            }).catch(function(errMsg) {
+              utils.log('error creating the file that doesnt exists: ' + errMsg, '[offers]');
             });
-          }).catch(function(errMsg) {
-            utils.log('error creating the file that doesnt exists: ' + errMsg, '[offers]');
-          });
-        } else {
-          OS.File.open(filePath, {write: true, append: true}).then(fileObject => {
-            self.fileObj = fileObject;
-          });
-        }
-      });
+          } else {
+            OS.File.open(filePath, {write: true, append: true}).then(fileObject => {
+              self.fileObj = fileObject;
+            });
+          }
+        });
+      } catch(ee) {
+        // error here nasty
+        utils.log('something happened when trying to save the file or something: ' + ee, '[offers]');
+      }
     }
 
   },

@@ -1,109 +1,101 @@
 {
    "datetime_db": {
       "day_data": {
-         "0": 15, 
-         "1": 17, 
-         "2": 23, 
-         "3": 14, 
-         "4": 22, 
-         "5": 24, 
+         "0": 15,
+         "1": 17,
+         "2": 23,
+         "3": 14,
+         "4": 22,
+         "5": 24,
          "6": 37
-      }, 
+      },
       "hour_data": {
-         "0": 1, 
-         "5": 1, 
-         "9": 1, 
-         "10": 1, 
-         "11": 3, 
-         "12": 9, 
-         "13": 8, 
-         "14": 3, 
-         "15": 3, 
-         "16": 11, 
-         "17": 19, 
-         "18": 24, 
-         "19": 20, 
-         "20": 18, 
-         "21": 13, 
-         "22": 9, 
+         "0": 1,
+         "5": 1,
+         "9": 1,
+         "10": 1,
+         "11": 3,
+         "12": 9,
+         "13": 8,
+         "14": 3,
+         "15": 3,
+         "16": 11,
+         "17": 19,
+         "18": 24,
+         "19": 20,
+         "20": 18,
+         "21": 13,
+         "22": 9,
          "23": 8
-      }, 
-      "month_data": {}, 
+      },
+      "month_data": {},
       "total_signals": 152
    },
    "domain_info_db": {
-      "checkout_regex": {
-         "73": "#!payment/cart", 
-         "74": "/checkout/", 
-         "75": "/order/",
-         "77": "/checkout",
-         "79": "/shop_bestellen.php", 
-         "80": "/checkout/\\w*/payment"
-      }, 
       "top_sellers": [
          [
-            73, 
+            73,
             73
-         ], 
+         ],
          [
-            74, 
+            74,
             63
-         ], 
+         ],
          [
-            75, 
+            75,
             4
-         ], 
+         ],
          [
-            77, 
+            77,
             1
          ],
          [
-            79, 
+            79,
             7
-         ], 
+         ],
          [
-            80, 
+            80,
             3
-         ], 
+         ],
          [
-            83, 
+            83,
             1
          ]
       ],
       "total_signals": 152
-   }, 
+   },
    "general_db": {
-      "avg_evts_per_avg_sessions": 25, 
-      "avg_num_events_per_buying": 63, 
-      "avg_num_sessions_per_buying": 2, 
-      "avg_time_between_sessions": 660.5802025385701, 
-      "avg_total_buying_time": 1799245.465092107, 
+      "avg_evts_per_avg_sessions": 25,
+      "avg_num_events_per_buying": 63,
+      "avg_num_sessions_per_buying": 2,
+      "avg_time_between_sessions": 660.5802025385701,
+      "avg_total_buying_time": 1799245.465092107,
       "top_referrers": [
          [
-            "", 
+            "",
             76
-         ], 
+         ],
          [
-            "lieferheld", 
+            "lieferheld",
             36
-         ], 
+         ],
          [
-            "google", 
+            "google",
             2
-         ], 
+         ],
          [
-            "lieferando", 
+            "lieferando",
             34
-         ], 
+         ],
          [
-            "deliveroo", 
+            "deliveroo",
             1
-         ], 
+         ],
          [
-            "online-pizza", 
+            "online-pizza",
             3
          ]
-      ], 
+      ],
       "total_buy_signals": 152
    }
 }

@@ -294,11 +294,17 @@ export class StatsHandler {
   //
   // @brief an ad has being desplayed
   //
-  advertiseDisplayed(clusterID) {
-    LoggingHandler.LOG_ENABLED &&
-    LoggingHandler.info(MODULE_NAME, 'advertiseDisplayed');
+  advertiseDisplayed(clusterID, templateType) {
+    if ((typeof templateType !== 'string') || templateType.length > 12) {
+      LoggingHandler.LOG_ENABLED &&
+      LoggingHandler.info(MODULE_NAME, 'advertiseDisplayed: invalid templateType?: ' + templateType);
+      return;
+    }
 
-    generateOrAddField(this.currentData['data'], clusterID, 'offers_displayed', 1);
+    LoggingHandler.LOG_ENABLED &&
+    LoggingHandler.info(MODULE_NAME, 'advertiseDisplayed of type ' + templateType);
+
+    generateOrAddField(this.currentData['data'], clusterID, 'offers_dpl_' + templateType, 1);
     this.dataDirty = true;
   }
 
@@ -367,5 +373,6 @@ export class StatsHandler {
     generateOrAddField(this.currentData['data'], clusterID, 'intent_lc', 1);
     this.dataDirty = true;
   }
+
 
 }
