@@ -151,16 +151,6 @@ UIManager.prototype.showVoucherNotificationInCurrentWindow = function(currWindow
     });
   }
 
-  // not interested in this
-  buttons.push({
-    label : 'Kein Interesse',
-    callback : function () {
-        if (self.callbacks.not_interested) {
-          return self.callbacks.not_interested(offerID);
-        }
-      }
-  });
-
   buttons.push({
     label : 'Ueber CLIQZ-Angebote',
     callback : function () {
@@ -262,7 +252,7 @@ UIManager.prototype.showLeadNotificationInCurrentWindow = function(currWindow, o
   });
 
   buttons.push({
-    label : 'Mehr Info',
+    label : 'Ueber CLIQZ-Angebote',
     callback : function () {
       if (self.callbacks.show_coupon) {
         return self.callbacks.information(offerID);

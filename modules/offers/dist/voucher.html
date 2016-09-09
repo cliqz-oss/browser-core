@@ -1,55 +1,107 @@
 <style>
-    .messageImage {
+    notification.cqz-voucher-holder {
+        padding: 20px 10px !important;
+        background: #fff !important;
+        border-bottom: 1px solid #666 !important;
+        -moz-box-pack: center;
+    }
+
+    notification.cqz-voucher-holder > *{
+        max-width: 1200px;
+    }
+
+    notification.cqz-voucher-holder .messageImage {
         display: none;
     }
 
-    .row {
-        margin:  0 -1.5em;
-        height: 100px;
-        margin-top: 7px;
+    notification.cqz-voucher-holder .notification-button {
+        cursor: pointer;
+        min-width: 160px;
+        padding: 6px 10px 6px;
+        line-height: 1em;
+        color: #fff;
+        font-size: 14px;
+        border-radius: 0;
+        box-shadow: none;
+        text-shadow: none;
+        border: none;
+        background: rgb(110, 159, 198);
     }
-    .col { padding: 0  1.5em; }
-
-    .row:after {
-        content: "";
-        clear: both;
-        display: table;
+    notification.cqz-voucher-holder .notification-button:hover {
+        background: #82b3da;
     }
 
-    @media only screen { .col {
-        float: left;
+    notification.cqz-voucher-holder .notification-button:nth-child(2) {
+        min-width: 0;
+        max-width: 100px;
+        text-align: center;
+        color: #666;
+        background: none;
+        text-decoration: underline;
+    }
+
+    notification.cqz-voucher-holder .messageCloseButton {
+        -moz-box-align: start;
+        -moz-box-pack: start;
+    }
+
+    .cqz-voucher-holder,
+    .cqz-voucher-holder * {
         box-sizing: border-box;
-
-        height: 100px;
-        display: table;
-    }}
-
-    .col > div {
-        display: table-cell;
-        vertical-align: middle;
+        -mox-box-sizing: border-box;
     }
 
-    .col p {
-        margin: 5px 0;
+    .cqz-voucher-holder {
+        color: #333;
     }
 
-    .logo {
-        width: 25%;
+    .cqz-voucher-holder img {
+        max-width: 100%;
+        height: auto;
     }
 
-    .description {
-        width: 40%;
+    .cqz-mtz-logo {
+        float: left;
+        width: 190px;
+        padding: 0 10px 0 0;
+        border-right: 1px solid #ccc;
+
     }
 
-    .code {
-        width: 25%;
+    .cqz-mtz-logo-brand {
+        overflow: hidden;
+        display: block;
+        max-height: 42px;
+        font-size: 18px;
+        line-height: 21px;
+        margin-bottom: 4px;
+    }
+
+    .cqz-mtz-logo-img {
+        display: block;
+        overflow: hidden;
+        max-height: 100px;
         text-align: center;
     }
 
-    .img {
-        width: auto;
-        max-width: 100%;
+    .cqz-mtz-logo-img img {
         max-height: 100px;
+    }
+
+    .cqz-mtz-description {
+        float: left;
+        width: calc(100% - 190px);
+        padding: 0 10px 0 20px;
+    }
+
+    .cqz-mtz-coupon-code p {
+        margin: 0 0 5px;
+    }
+
+    .cqz-code-msg {
+        text-align: center;
+        font-size: 12px;
+        margin: 0 0 3px;
     }
 
     .cliqz-coupon {
@@ -57,65 +109,102 @@
         /*-moz-user-select: text;*/
         padding: 5px;
         border-radius: 3px;
+        color: #fff;
+        text-align: center;
         background-color: #bbbbbb;
     }
 
-
-    .copy-coupon {
-        padding: 5px;
-        border-radius: 3px;
-        visibility: hidden;
-        font-size: 10px;
-        text-align: center;
+    .cqz-copy-coupon {
+        display: none;
     }
 
     #cliqz-coupon:hover {
         background-color: #dbdbdb;
     }
 
-    .notification-button:hover {
-        background-color: #3257c0 !important;
-        cursor: pointer;
+
+    .cqz-mtz-description .cqz-mtz-title {
+        display: block;
+        overflow: hidden;
+        max-height: 48px;
+        margin-bottom: 10px;
+        line-height: 24px;
+        font-size: 21px;
+        font-weight: normal;
+    }
+
+    .cqz-mtz-description .cqz-mtz-info-text {
+        display: block;
+        font-weight: normal;
+        font-size: 16px;
+    }
+
+    .cqz-mtz-offered-by {
+        display: block;
+        margin-top: 15px;
+        font-size: 12px;
+        font-weight: normal;
+        margin-bottom: 0px;
+    }
+
+    .cqz-mtz-offered-by {
+        display: block;
+        margin-top: 15px;
+        font-size: 12px;
+        font-weight: normal;
+        margin-bottom: 0px;
     }
 
 </style>
 
-<div class="row">
-    <div class="col logo">
-        <div>
+<div class="row cqz-mtz-voucher-holder">
+    <div class="cqz-mtz-logo">
+        <!--<span class="cqz-mtz-logo-brand">+++ Delivero +++</span>-->
+        <span  class="cqz-mtz-logo-img">
             {{#if image_url}}
                 <img class="img" src="{{image_url}}" alt="logo" />
             {{else}}
                 <img class="img" src="https://cliqz.com/assets/images/logo.svg" alt="logo" />
             {{/if}}
-        </div>
+        </span>
     </div>
-    <div class="col description">
-        <div>
+
+    <div class="cqz-mtz-description">
             {{#if title}}
-                <p style="font-size: 20px">Angeboten von <b>{{title}}</b></p>
+                <span class="cqz-mtz-title">
+                    <b>{{title}}</b>
+                </span>
             {{/if}}
-            {{#if desc}}
-                <p>{{desc}}</p>
-            {{/if}}
-            <div style="font-size: 10px">
-                <span><b>Einlösebedingungen: </b></span>
-                {{#if min_order_value}}
-                    <span>{{min_order_value}}€ Mindestbestelltwert,</span>
-                {{/if}}
-                {{#if valid_for}}
-                    <span>Gültig für {{valid_for}}</span>
-                {{/if}}
+
+            <div class="cqz-mtz-coupon-code">
+                    {{#if code}}
+                        <p class="cqz-code-msg">
+                            CODE:
+                            <span class="cqz-copy-coupon">
+                                Code kopiert
+                            </span>
+                        </p>
+                        <p class="cliqz-coupon" cliqz-action="copy_val">{{code}}</p>
+                    {{/if}}
             </div>
-        </div>
+
+            <div class="cqz-mtz-info-text">
+                {{#if desc}}
+                    <div>{{desc}}</div>
+                {{/if}}
+                <div>
+                    <span><b>Einlösebedingungen: </b></span>
+                    {{#if min_order_value}}
+                        <span>{{min_order_value}}€ Mindestbestelltwert,</span>
+                    {{/if}}
+                    {{#if valid_for}}
+                        <span>Gültig für {{valid_for}}</span>
+                    {{/if}}
+                </div>
+                <div>
+                    <span class="cqz-mtz-offered-by">Bereitgestellt von CLIQZ Add-on</span>
+                </div>
+            </div>
     </div>
-    <div class="col code">
-        <div>
-            {{#if code}}
-                <p><b>CODE:</b></p>
-                <p class="cliqz-coupon" cliqz-action="copy_val">{{code}}</p>
-                <p class="copy-coupon">Code kopiert</p>
-            {{/if}}
-        </div>
-    </div>
+
 </div>
