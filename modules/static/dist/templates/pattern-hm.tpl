@@ -1,7 +1,5 @@
 <!-- EZ-history.tpl -->
-<!-- {{ json data }} -->
 {{#with data}}
-    <!-- {{ json cont }} -->
 	<div class="cliqz-history-results cqz-3-history-results cqz-result-padding cqz-history-with-cluster" style="background: rgba(234,234,80,1.0);">
         {{#each urls}}
             <div class="cqz-history-result-item">

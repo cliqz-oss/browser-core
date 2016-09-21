@@ -1,0 +1,14 @@
+<html>
+<head>
+    <title>Webrequest leak test</title>
+</head>
+<body>
+    <script>
+    window.onunload = function() {
+        var httpReq = new XMLHttpRequest();
+        httpReq.open('GET', '/test');
+        httpReq.send("");
+    };
+    </script>
+</body>
+</html>

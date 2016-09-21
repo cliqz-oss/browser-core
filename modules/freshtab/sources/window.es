@@ -15,6 +15,7 @@ export default class {
     this.buttonEnabled = config.settings.freshTabButton;
     this.window = config.window;
     this.cliqzOnboarding = config.settings.cliqzOnboarding;
+    this.showNewBrandAlert = config.settings.showNewBrandAlert;
   }
   /**
   *@method init

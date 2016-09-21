@@ -53,15 +53,16 @@ do
     fi
 
     # Check commit messages
+    message_re='^\w+-[0-9]+:?\s.+'
     has_errors=0
     while read commit_id
     do
       commit_message=`git log -n1 --pretty=%s $commit_id`
       # Before modifying RE, make sure it works on all platfrorms!
-      ticked_id_match=`echo $commit_message | grep -E '^EX-[0-9]+:?\s\w+'`
-      if [ -z "$ticked_id_match" ]; then
+      message_match=`echo $commit_message | grep -E $message_re`
+      if [ -z "$message_match" ]; then
         has_errors=1
-        echo >&2 "Commit message of $commit_id contains no ticket ID:"
+        echo >&2 "Commit message of $commit_id isn't formatted properly:"
         echo >&2 $commit_message
         echo >&2 "--"
       fi
@@ -77,10 +78,13 @@ do
     done < <(git rev-list --no-merges "$range")
     if [ $has_errors != 0 ]; then
       echo >&2 "Some of your commit messages do not conform to style guides."
-      echo "Fix messages and try again."
+      echo "Please reformat your messages to comply with this RE: $message_re"
+      echo "Then try to push again."
       echo "For details see 'git-hooks/pre-push' script."
       echo "Checked commits are:"
       git rev-list --no-merges "$range"
+      echo "If these aren't yours, try syncing your local master branch, as \
+this script checks commits, diverging from merge-base with master."
       exit 1
     fi
   fi

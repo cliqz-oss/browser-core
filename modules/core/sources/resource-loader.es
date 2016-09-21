@@ -1,14 +1,33 @@
-"use strict";
-
-import { readFile, writeFile, mkdir } from "core/fs";
-import { utils } from "core/cliqz";
+import { readFile, writeFile, mkdir } from 'core/fs';
+import { utils } from 'core/cliqz';
 
 
 // Common durations
-const ONE_SECOND  = 1000;
-const ONE_MINUTE  = 60 * ONE_SECOND;
-const ONE_HOUR    = 60 * ONE_MINUTE;
-const ONE_DAY     = 24 * ONE_HOUR;
+const ONE_SECOND = 1000;
+const ONE_MINUTE = 60 * ONE_SECOND;
+const ONE_HOUR = 60 * ONE_MINUTE;
+
+
+function get(url) {
+  return new Promise((resolve, reject) => {
+    utils.httpGet(url, res => {
+      resolve(res.response);
+    }, reject);
+  });
+}
+
+
+function makeDirRecursive(path, from = []) {
+  const [first, ...rest] = path;
+
+  if (!first) {
+    return Promise.resolve();
+  }
+
+  return mkdir(from.concat(first)).then(() =>
+    makeDirRecursive(rest, from.concat(first))
+  );
+}
 
 
 /* Abstract away the pattern `onUpdate` trigger list of
@@ -32,21 +51,18 @@ export class UpdateCallbackHandler {
 
 /* A resource is responsible for handling a remote resource persisted on
  * disk. It will be persisted on disk upon each update from remote. It is
- * also able to parse JSON automatically if `dataType` is "json".
+ * also able to parse JSON automatically if `dataType` is 'json'.
  */
 export class Resource extends UpdateCallbackHandler {
 
   constructor(name, options = {}) {
     super();
 
-    if (typeof name === "string") {
-      name = [name];
-    }
-
-    this.name      = name;
+    this.name = (typeof name === 'string') ? [name] : name;
     this.remoteURL = options.remoteURL;
-    this.dataType  = options.dataType || "json";
-    this.filePath  = ["cliqz", ...this.name];
+    this.dataType = options.dataType || 'json';
+    this.filePath = ['cliqz', ...this.name];
+    this.chromeURL = `chrome://cliqz/content/${this.name.join('/')}`;
   }
 
   persist(data) {
@@ -59,32 +75,33 @@ export class Resource extends UpdateCallbackHandler {
   load() {
     return readFile(this.filePath)
       .then(data => (new TextDecoder()).decode(data))
-      .then(this._parseData.bind(this))
-      .catch(ex => {
-        return this.updateFromRemote();
-      });
+      .then(this.parseData.bind(this))
+      .catch(() => this.updateFromURL(this.chromeURL))
+      .catch(() => this.updateFromRemote());
+  }
+
+  updateFromURL(url) {
+    return get(url)
+      .then(this.persist.bind(this))
+      .then(this.parseData.bind(this));
   }
 
   updateFromRemote() {
     if (this.remoteURL === undefined) {
       return Promise.resolve();
-    } else {
-      return get(this.remoteURL)
-        .then(this.persist.bind(this))
-        .then(this._parseData.bind(this))
-        .then(data => {
-          this.triggerCallbacks(data);
-          return data;
-        });
     }
+    return this.updateFromURL(this.remoteURL)
+      .then(data => {
+        this.triggerCallbacks(data);
+        return data;
+      });
   }
 
-  _parseData(data) {
-    if (this.dataType === "json") {
+  parseData(data) {
+    if (this.dataType === 'json') {
       return JSON.parse(data);
-    } else {
-      return data;
     }
+    return data;
   }
 }
 
@@ -104,16 +121,15 @@ export default class {
   }
 
   updateFromRemote() {
-    const pref = `resource-loader.lastUpdates.${this.resource.name.join("/")}`;
+    const pref = `resource-loader.lastUpdates.${this.resource.name.join('/')}`;
     const lastUpdate = Number(utils.getPref(pref, 0));
     const currentTime = Date.now();
 
     if (currentTime > this.cron + lastUpdate) {
       return this.resource.updateFromRemote()
         .then(() => utils.setPref(pref, String(Date.now())));
-    } else {
-      return Promise.resolve();
     }
+    return Promise.resolve();
   }
 
   onUpdate(callback) {
@@ -123,26 +139,4 @@ export default class {
   stop() {
     utils.clearInterval(this.updateInterval);
   }
-}
-
-
-function get(url) {
-  return new Promise((resolve, reject) => {
-    utils.httpGet(url, res => {
-      resolve(res.response);
-    }, reject);
-  });
-}
-
-
-function makeDirRecursive(path, from = []) {
-  const [first, ...rest] = path;
-
-  if (!first) {
-    return Promise.resolve();
-  }
-
-  return mkdir(from.concat(first)).then(() => {
-    return makeDirRecursive(rest, from.concat(first));
-  });
 }

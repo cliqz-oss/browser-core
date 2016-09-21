@@ -5,6 +5,7 @@ import * as browser from 'platform/browser';
 import md5 from 'antitracking/md5';
 import {parseURL, dURIC, getHeaderMD5, URLInfo} from 'antitracking/url';
 import {getGeneralDomain, sameGeneralDomain} from 'antitracking/domain';
+import { utils } from 'core/cliqz';
 
 // An abstraction layer for extracting contextual information
 // from the HttpChannel on various Firefox versions.
@@ -30,6 +31,11 @@ class WindowTree {
     let parent = this.getWindowByID(parentId);
     if (id === parentId && parent) {
       // not actually a leaf, do no overwrite parent
+      // instead annotate parent
+      if(!parent.frames) {
+        parent.frames = [];
+      }
+      parent.frames.push(url);
       return;
     }
     this._removeWindowTree(id);
@@ -139,12 +145,20 @@ function HttpRequestContext(subject) {
   if(this.isFullPage()) {
     // fullpage - add tracked tab
     windowTree.addRootWindow(tabId, this.url);
-  } else if ( this.getContentPolicyType() === 7 ) {
+  } else if (this.getContentPolicyType() === 7) {
     // frame, add tab with parent
     windowTree.addLeafWindow(tabId, parentId, this.url);
-  } else {
-    // not a frame request
-    windowTree.addWindowAction(tabId, parentId, this.url, this.getContentPolicyType());
+  } else if (!windowTree.getWindowByID(tabId)) {
+    // plain request for a frameID we haven't seen yet
+    // check it is valid (i.e. loading context is somewhere in the tree)
+    // this is required to track the source tabId for request which come with a new frameID, but we can determine
+    // the correct loadingDocument.
+    const rootWindow = windowTree.getRootWindow(parentId);
+    const parentWindow = windowTree.getWindowByID(parentId);
+    const loadingDocument = this.getLoadingDocument();
+    if ((parentWindow && (parentWindow.url === loadingDocument)) || (rootWindow && (rootWindow.url === loadingDocument))) {
+      windowTree.addWindowAction(tabId, parentId, this.url, this.getContentPolicyType());
+    }
   }
 }
 
@@ -154,14 +168,14 @@ HttpRequestContext._cleaner = null;
 
 HttpRequestContext.initCleaner = function() {
   if (!HttpRequestContext._cleaner) {
-    HttpRequestContext._cleaner = CliqzUtils.setInterval(function() {
+    HttpRequestContext._cleaner = utils.setInterval(function() {
       windowTree.cleanWindows();
     }, 60000);
   }
 };
 
 HttpRequestContext.unloadCleaner = function() {
-  CliqzUtils.clearInterval(HttpRequestContext._cleaner);
+  utils.clearInterval(HttpRequestContext._cleaner);
   HttpRequestContext._cleaner = null;
 };
 
@@ -184,10 +198,9 @@ HttpRequestContext.prototype = {
     }
   },
   getLoadingDocument: function() {
-    let rootWindow = windowTree.getRootWindow(this.getParentWindowID());
-    if (rootWindow) {
-      return rootWindow.url;
-    } else if (this.loadInfo != null) {
+    if (this.isFullPage()) {
+      return this.url;
+    } else if (this.loadInfo !== null) {
       return this.loadInfo.loadingDocument != null && 'location' in this.loadInfo.loadingDocument && this.loadInfo.loadingDocument.location ? this.loadInfo.loadingDocument.location.href : "";
     } else {
       return this._legacyGetSource().url;
@@ -255,7 +268,23 @@ HttpRequestContext.prototype = {
     return visitor.getPostData();
   },
   getSourceURL: function() {
-    return this.getLoadingDocument() || this.getReferrer();
+    // determine the source page url for this request.
+    const rootWindow = windowTree.getRootWindow(this.getOuterWindowID());
+    const loadingDocument = this.getLoadingDocument() || this.getReferrer() || "";
+
+    if (rootWindow && rootWindow.url !== loadingDocument) {
+      // Request was not loaded from the root document either:
+      // 1) window id is different, so it was loaded from an iframe -> source is the root
+      // 2) window id is the same, so there is a mismatch -> fallback on the loading document as the source
+      // On older firefox we don't see iframe window ids, so we look for the loading doc in the list of frames for this root.
+      if (this.getOuterWindowID() !== rootWindow.id || (rootWindow.frames && rootWindow.frames.indexOf(loadingDocument) !== -1)) {
+        return rootWindow.url;
+      } else {
+        return loadingDocument;
+      }
+    } else {
+      return loadingDocument;
+    }
   },
   isTracker: function() {
     if (this.hostGD === this.sourceGD) {
@@ -291,7 +320,7 @@ HttpRequestContext.prototype = {
 
     // other types
     return 1;
-  }
+  },
 }
 
 function isXHRRequest(channel) {

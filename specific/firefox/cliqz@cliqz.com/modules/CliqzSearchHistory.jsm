@@ -15,9 +15,8 @@ var EXPORTED_SYMBOLS = ['CliqzSearchHistory'];
 var CliqzSearchHistory = {
     windows: {},
     /* Inserts the 'Letzte Eingabe' button/dropdown before given element. */
-    insertBeforeElement: function (element, window) {
-        window = window || CliqzUtils.getWindow();
-        var window_id = CliqzUtils.getWindowID();
+    insertBeforeElement: function (window) {
+        var window_id = CliqzUtils.getWindowID(window);
         var document = window.document;
         var gBrowser = window.gBrowser;
         this.windows[window_id] = {};
@@ -37,7 +36,7 @@ var CliqzSearchHistory = {
         this.windows[window_id].lastSearchElement = document.createElement('hbox');
         this.windows[window_id].lastSearchElement.className = 'cliqz-urlbar-Last-search';
         this.windows[window_id].lastSearchElement.addEventListener('click',
-                                                this.returnToLastSearch.bind(this));
+                                                this.returnToLastSearch.bind(this.windows[window_id]));
         this.windows[window_id].searchHistoryContainer.appendChild(this.windows[window_id].lastSearchElement)
 
         return this.windows[window_id].searchHistoryContainer;
@@ -45,7 +44,7 @@ var CliqzSearchHistory = {
 
     /* Puts the query in the dropdown and opens it. */
     returnToLastSearch: function (ev) {
-        var urlBar = this.windows[CliqzUtils.getWindowID()].urlbar;
+        var urlBar = this.urlbar;
 
         urlBar.mInputField.focus();
         urlBar.mInputField.setUserInput(ev.target.query);
@@ -64,15 +63,16 @@ var CliqzSearchHistory = {
     },
 
     /* */
-    lastQuery: function(){
-        var gBrowser = CliqzUtils.getWindow().gBrowser,
-            win = this.windows[CliqzUtils.getWindowID()];
+    lastQuery: function(window){
+        var win = this.windows[CliqzUtils.getWindowID(window)];
+        var gBrowser = window.gBrowser;
+
         if(win && win.urlbar){
             var val = win.urlbar.value.trim(),
                 lastQ = CliqzUtils.autocomplete.lastSearch.trim();
 
             if(lastQ && val && !CliqzUtils.isUrl(lastQ) && (val == lastQ || !this.isAutocomplete(val, lastQ) )){
-                this.showLastQuery(lastQ);
+                this.showLastQuery(lastQ, window);
                 win.lastQueryInTab[gBrowser.selectedTab.linkedPanel] = lastQ;
             } else {
                 // remove last query if the user ended his search session
@@ -82,15 +82,15 @@ var CliqzSearchHistory = {
         }
     },
 
-    hideLastQuery: function(){
-        var win = this.windows[CliqzUtils.getWindowID()];
+    hideLastQuery: function(window){
+        var win = this.windows[CliqzUtils.getWindowID(window)];
 
         if(win && win.searchHistoryContainer)
             win.searchHistoryContainer.className = 'hidden';
     },
 
-    showLastQuery: function(q){
-        var window_id = CliqzUtils.getWindowID(),
+    showLastQuery: function(q, window){
+        var window_id = CliqzUtils.getWindowID(window),
             lq = this.windows[window_id].lastSearchElement;
 
         this.windows[window_id].searchHistoryContainer.className = 'cliqz-urlbar-Last-search-container';
@@ -100,20 +100,21 @@ var CliqzSearchHistory = {
     },
 
     tabChanged: function(ev){
-        var curWin = this.windows[CliqzUtils.getWindowID()];
+        var window = ev.target.ownerGlobal;
+        var curWin = this.windows[CliqzUtils.getWindowID(window)];
 
         // Clean last search to avoid conflicts
         CliqzUtils.autocomplete.lastSearch = '';
 
         if(curWin && curWin.lastQueryInTab && curWin.lastQueryInTab[ev.target.linkedPanel])
-            this.showLastQuery(curWin.lastQueryInTab[ev.target.linkedPanel]);
+            this.showLastQuery(curWin.lastQueryInTab[ev.target.linkedPanel], window);
         else
-            this.hideLastQuery();
+            this.hideLastQuery(window);
     },
 
     tabRemoved: function(ev){
-        var window = CliqzUtils.getWindow();
-        var window_id = CliqzUtils.getWindowID();
+        var window = ev.target.ownerGlobal;
+        var window_id = CliqzUtils.getWindowID(window);
         var document = window.document;
         var gBrowser = window.gBrowser;
 
@@ -121,11 +122,6 @@ var CliqzSearchHistory = {
     },
 
     isAutocomplete: function(base, candidate){
-        var window = CliqzUtils.getWindow();
-        var window_id = CliqzUtils.getWindowID();
-        var document = window.document;
-        var gBrowser = window.gBrowser;
-
         if(base.indexOf('://') !== -1){
            base = base.split('://')[1];
         }

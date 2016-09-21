@@ -4,23 +4,25 @@
   <div class="main">
     <ul>
         {{#each this}}
-            <li class="item" onclick="osAPI.openLink('{{url}}')">
-                <div class="meta__logo transition"
-                 style="{{style}}"
-                 show-status=""
-                 extra="{{extra}}"
-                 url="{{url}}"
-                 >{{ text }}
-                </div>
-                <h1 class="main__headline">
-                    <a class="topNewsLink" data-index="{{@index}}">
+
+            <li class="cf answer" onclick="osAPI.openLink('{{url}}')">
+
+                <div class="item">
+                    {{#if backgroundImage}}
+                        <div class="item__logo bg" style="background-image:{{backgroundImage}};
+                                                          background-color:#{{backgroundColor}}"></div>
+                    {{else}}
+                        <div class="item__logo" style="{{ style }}">
+                            {{ text }}
+                        </div>
+                    {{/if}}
+                    <div class="url"><div>{{displayUrl}}</div></div>
+                    <h1 class="item__head" data-index="{{@index}}">
                         {{ short_title }}
-                    </a>
-                </h1>
-                <div class="meta">
-                  {{displayUrl}}
+                    </h1>
                 </div>
             </li>
+
         {{/each}}
     </ul>
   </div>

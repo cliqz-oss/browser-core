@@ -77,6 +77,10 @@ function lastTest() {
 }
 
 var testArray = [
+"Britney",
+"Burger King",
+"Wetter Kai",
+"flug LH112",
 "deviantart.com",
 "photobucket.com",
 "linkedin.com",

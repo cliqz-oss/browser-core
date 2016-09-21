@@ -16,7 +16,7 @@
            cliqz-action="searchEZbutton"
            >
         <input
-          dont-close="true" type="text" class="cqz-ez-search-box-input"
+          type="text" class="cqz-ez-search-box-input"
           cliqz-action="stop-click-event-propagation"
           search-url="{{data.search_url}}"
           search-provider="{{data.search_provider}}"

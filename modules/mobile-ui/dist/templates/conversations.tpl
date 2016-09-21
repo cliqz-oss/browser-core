@@ -1,96 +1,69 @@
 <!-- conversations.tpl -->
 
-<div class="main">
-    <div class='cqz-result-title overflow' arrow-override=''>
-        <h1 class="main__headline">
-            <div id="historysub">
-                    <span class="{{#unless isFavorite}}active{{/unless}}" id="show_history" style="float: left" onclick="History.init(false)">{{local 'mobile_history_title'}}</span>
-                    <span class="{{#if isFavorite}}active{{/if}}" id="show_favorites_only" style="float: right" onclick="History.init(true)">{{local 'mobile_favorites_title'}}</span>
-            </div>
-            <!-- <a extra="title">THE PAST</a> -->
-        </h1>
-    </div>
-    <div class="main__content history">
-        {{#each data}}
+<ul id="container" class="content history">
+    {{#each data}}
 
-            {{#if url}}
+        {{#if url}}
 
-            <table cellspacing="0" cellpadding="0" class="answer" data="{{url}}" data-title="{{title}}"
-                   data-id="{{id}}" data-timestamp={{ timestamp }} data-index="{{@index}}">
-                <tr>
-	                <td class="edit__delete"><input name="delete" type="checkbox" disabled></td>
-                    <td class="framer">
-                        <p>{{title}}</p>
-                        <p class="url">{{domain}}</p>
-                    </td>
-                    <td class="meta">
-                        <div>{{conversationsTime timestamp}}</div>
-                        {{#if favorite}}<div>favorite</div>{{/if}}
-                    </td>
-                </tr>
-            </table>
+            <li class="cf answer" data-ref="{{url}}" data-title="{{title}}"
+                 data-id="{{id}}" data-timestamp={{ timestamp }} data-index="{{@index}}">
 
-            {{else}}
+                <div class="item">
+                    {{#with logo}}
+                        {{#if backgroundImage}}
+                            <div class="item__logo bg" style="background-image:{{backgroundImage}};
+                                                              background-color:#{{backgroundColor}}"></div>
+                        {{else}}
+                            <div class="item__logo" style="{{ style }}">
+                                {{ text }}
+                            </div>
+                        {{/if}}
+                    {{/with}}
+                    <div class="url"><div>{{domain}}</div></div>
+                    <div class="item__head">
+                        {{title}}
+                    </div>
+                    <div class="item__meta">
+                        {{conversationsTime timestamp}}
+                    </div>
+                </div>
+            </li>
 
-                {{#if query}}
+        {{else}}
 
-                <table cellspacing="0" cellpadding="0" class="question" data="{{query}}"
+            {{#if query}}
+
+                <li class="cf question" data-ref="{{query}}"
                        data-id="{{id}}" data-timestamp={{ timestamp }} data-index="{{@index}}">
-                    <tr>
-                        <td class="meta">
+                    <div class="item">
+                        <div class="item__meta">
                             <div>{{conversationsTime timestamp}}</div>
-                        	{{#if favorite}}<div>favorite</div>{{/if}}
-                        </td>
-                        <td class="framer">
-                            <p class="query">{{query}}</p>
-                        </td>
-                        <td class="edit__delete"><input name="delete" type="checkbox" disabled></td>
-                    </tr>
-                </table>
+                        </div>
+                        <div class="item__head">
+                            {{query}}
+                        </div>
+                    </div>
+                </li>
 
                 {{else}}
-                <h2><span>{{this.date}}</span></h2>
-
-                {{/if}}
+                    
+                    <li>
+                        <div class="dateline"><span>{{this.date}}</span></div>
+                    </li>
 
             {{/if}}
-        {{/each}}
-        <div id="control" style="display:none;background-color: #862701;position:fixed">
-            {{#if isFavorite}}
-                <table>
-                    <td id='control_star' onclick="History.favoriteSelected()">
-                        {{local 'mobile_history_unstar'}}
-                    </td>
-                    <td onclick="History.endEditMode()">
-                        {{local 'mobile_history_cancel'}}
-                    </td>
-                </table>
-            {{else}}
-                <table>
-                    <td onclick="History.removeSelected()">
-                        {{local 'mobile_history_remove'}}
-                    </td>
-                    <td id='control_star' onclick="History.favoriteSelected()">
-                        {{local 'mobile_history_star'}}
-                    </td>
-                    <td onclick="History.endEditMode()">
-                        {{local 'mobile_history_cancel'}}
-                    </td>
-                </table>
-            {{/if}}
-        </div>
-        {{#unless data}}
-			<div class="nohistoryyet">
-                {{#if isFavorite}}
-                    <p>{{{local 'mobile_no_favorites'}}}</p>
-                {{else}}
-                    <p>{{{local 'mobile_no_history'}}}</p>
-                {{/if}}
-			</div>
-		{{/unless}}
 
-    </div>
-</div>
+        {{/if}}
+    {{/each}}
+</ul>
+    
+{{#unless data}}
+	<div class="nohistoryyet">
+        <p>{{{local 'mobile_no_history'}}}</p>
+	</div>
+{{/unless}}
+
+
 
 <div style="clear:both;"></div>
 <div id="search" style="display:none">

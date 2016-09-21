@@ -1,0 +1,93 @@
+{{#if module.adblocker.visible }}
+<div class="frame-container {{module.adblocker.off_state}}"
+     state="{{ module.adblocker.state }}"
+     inactiveState="off"
+     url="{{ activeURL }}"
+     data-visible="{{ module.adblocker.off_state }}">
+  <div class="adblocker">
+    <div class="title">
+      <svg stop-navigation class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+      <g stop-navigation id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
+        <ellipse stop-navigation id="Oval-2" fill="#D0D0D0" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
+        <text stop-navigation id="i-copy" font-family="AmericanTypewriter-Bold, American Typewriter" font-size="11.2" font-weight="bold" fill="#FFFFFF">
+          <tspan stop-navigation x="5.50934774" y="11.3937579">i</tspan>
+        </text>
+      </g>
+    </svg>
+      <div class="tooltip left">
+        <span class="title" data-i18n="control-center-info-ads-title"></span>
+        <span data-i18n="control-center-info-ads"></span>
+      </div>
+      <span data-i18n="control-center-adblock-title"></span>
+      <svg id="smallarrow" width="10px" height="15px" viewBox="1131 409 10 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <defs></defs>
+        <polyline id="Path-164-Copy-153" stroke="#7D7D7D" stroke-width="2.5999999" fill="none" opacity="0.44" points="1133.19742 410.787186 1139.09434 416.693941 1133.42806 422.369666"></polyline>
+      </svg>
+    </div>
+    <div class="counter">
+      <!-- <?xml version="1.0" encoding="UTF-8" standalone="no"?> -->
+      <svg id="block" width="40px" height="39px" viewBox="1769 198 40 39" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <defs></defs>
+        <g id="shield" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1769.000000, 198.000000)">
+          <path class="fill" d="M36.6242043,13.2267217 L36.1848644,12.1660615 L36.1848644,26.760208 L36.6242043,25.6995478 L26.3045843,36.0191678 L27.3652445,35.5798279 L12.771098,35.5798279 L13.8317582,36.0191678 L3.51213828,25.6995478 L3.95147811,26.760208 L3.95147811,12.1660615 L3.51213828,13.2267217 L13.8317582,2.90710177 L12.771098,3.3464416 L27.3652445,3.3464416 L26.3045843,2.90710177 L36.6242043,13.2267217 Z M27.9865648,0.346441602 L27.3652445,0.346441602 L12.771098,0.346441602 L12.1497777,0.346441602 L11.7104379,0.78578143 L1.39081794,11.1054014 L0.951478112,11.5447412 L0.951478112,12.1660615 L0.951478112,26.760208 L0.951478112,27.3815283 L1.39081794,27.8208682 L11.7104379,38.1404881 L12.1497777,38.5798279 L12.771098,38.5798279 L27.3652445,38.5798279 L27.9865648,38.5798279 L28.4259047,38.1404881 L38.7455246,27.8208682 L39.1848644,27.3815283 L39.1848644,26.760208 L39.1848644,12.1660615 L39.1848644,11.5447412 L38.7455246,11.1054014 L28.4259047,0.78578143 L27.9865648,0.346441602 Z"
+            id="Polygon-12-Copy-13" fill="#2CBA64"></path>
+          <path class="fill" d="M30.1535009,32.1264854 L31.214161,33.1871456 L33.3354814,31.0658253 L32.2748212,30.0051651 C32.2748212,30.0051651 35.0784737,32.8088176 26.612587,24.3429309 C18.1467002,15.8770441 9.68081344,7.41115734 9.68081344,7.41115734 L8.62015327,6.35049716 L6.49883292,8.47181751 L7.55949309,9.53247768 L30.1535009,32.1264854 Z"
+            id="Line-Copy-88" fill="#2CBA64"></path>
+        </g>
+      </svg>
+      <span id="count">{{ module.adblocker.totalCount }}</span>
+    </div>
+    <p class="description" data-i18n="control-center-adblock-description" visible-on-state="active"></p>
+    <p class="description" data-i18n="control-center-adblock-description-off-website" visible-on-state="off" data-visible="off_website"></p>
+    <p class="description" data-i18n="control-center-adblock-description-off-domain" visible-on-state="off" data-visible="off_domain"></p>
+    <p class="description" data-i18n="control-center-adblock-description-off-all" visible-on-state="off" data-visible="off_all"></p>
+
+    <div class="switches">
+      <!--======= Switch ======-->
+      <span>
+        <span class="cqz-switch"
+              data-type="switch"
+              adBlockerStatusChanger>
+          <span class="cqz-switch-box"></span>
+        </span>
+        <span visible-on-state="active" data-i18n="control-center-switch-on"></span>
+        <span visible-on-state="off" data-i18n="control-center-switch-off"></span>
+      </span>
+      <select class="dropdown-scope" visible-on-state="off">
+        <option stop-navigation {{#if module.adblocker.disabledForUrl }}selected{{/if}}
+            data-i18n="control-center-this-site"
+            value="page"
+            data-type="off_select"
+            data-state="off_website"
+            adBlockerStatusChanger></option>
+        <option stop-navigation {{#if module.adblocker.disabledForDomain }}selected{{/if}}
+            data-i18n="control-center-this-domain"
+            value="domain"
+            data-type="off_select"
+            data-state="off_domain"
+            adBlockerStatusChanger></option>
+        <option stop-navigation {{#if module.adblocker.disabledEverywhere }}selected{{/if}}
+            data-i18n="control-center-all-sites"
+            value="all-sites"
+            data-type="off_select"
+            data-state="off_all"
+            adBlockerStatusChanger></option>
+      </select>
+      <span visible-on-state="active">
+        <span class="squaredFour">
+          <input type="checkbox"
+                 id="squaredFour2"
+                 data-function="adb-optimized"
+                 name="check"
+                 {{#if module.adblocker.optimized }}checked{{/if}} />
+          <label for="squaredFour2"></label>
+          <span id="strict" data-i18n="control-center-check-strict"></span>
+        </span>
+      </span>
+    </div>
+  </div>
+  <div class="active-window-adblock">
+    {{> active-ad-blocking }}
+  </div>
+</div>
+{{/if}}

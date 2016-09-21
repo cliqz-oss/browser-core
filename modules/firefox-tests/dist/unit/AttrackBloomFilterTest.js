@@ -59,7 +59,7 @@ TESTS.AttrackBloomFilterTest = function (CliqzUtils) {
         whitelist.addUnsafeKey(domain, key);
         chai.expect(whitelist.isUnsafeKey(domain, key)).to.be.true;
       });
-    })
+    });
 
     describe('addSafeToken', function() {
       var domain = md5('example.com'),
@@ -93,8 +93,7 @@ TESTS.AttrackBloomFilterTest = function (CliqzUtils) {
             response.write(mock_bloom_filter_config);
           });
 
-          whitelist.configURL = 'http://localhost:' + testServer.port + '/bloom_filter/config';
-          whitelist.baseURL = 'http://localhost:' + testServer.port + '/bloom_filter/';
+          whitelist = new AttrackBloomFilter('http://localhost:' + testServer.port + '/bloom_filter/config', 'http://localhost:' + testServer.port + '/bloom_filter/');
 
           whitelist.update();
         });

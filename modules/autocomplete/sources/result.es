@@ -227,6 +227,8 @@ var Result = {
         var snip = result.snippet;
         resp.description = snip && (snip.desc || snip.snippet || (snip.og && snip.og.description));
         resp.title = result.snippet.title;
+        // mobile specific url
+        resp.mobile_url = snip.amp_url || snip.m_url;
 
         var ogT = snip && snip.og? snip.og.type: null,
             imgT = snip && snip.image? snip.image.type: null;

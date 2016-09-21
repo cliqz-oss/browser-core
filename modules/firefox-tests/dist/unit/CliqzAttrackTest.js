@@ -157,9 +157,6 @@ TESTS.AttrackTest = function (CliqzUtils) {
                     });
                 });
 
-                it('skip first', function() {
-                });
-
                 it('should add tabs to _active', function(done) {
 
                     this.timeout(3000);
@@ -182,27 +179,32 @@ TESTS.AttrackTest = function (CliqzUtils) {
                 });
 
                 describe('when a tab is closed', function() {
-                    beforeEach(function(done) {
+                    beforeEach(function() {
                         gBrowser.removeTab(tabs.shift());
-                        console.log(tabs);
-                        setTimeout(done, 700);
                     });
 
                     describe('CliqzAttrack.tp_events.commit', function() {
-                        beforeEach(function() {
-                            CliqzAttrack.tp_events.commit(true);
-                        });
 
                         it('should stage closed tabs only', function() {
-                            this.timeout(30000);
-                            chai.expect(Object.keys(CliqzAttrack.tp_events._active)).to.have.length(1);
-                            // check staged tab
-                            chai.expect(CliqzAttrack.tp_events._staged).to.have.length(1);
-                            chai.expect(CliqzAttrack.tp_events._staged[0].url).to.equal('http://localhost:60508/');
+                            this.timeout(3000);
 
-                            // check active tab
-                            tab_id = Object.keys(CliqzAttrack.tp_events._active)[0];
-                            chai.expect(CliqzAttrack.tp_events._active[tab_id].url).to.equal("http://localhost:60508/privacy#saferWeb");
+                            return waitIfNotReady(function() {
+                              CliqzAttrack.tp_events.commit(true);
+                              return Object.keys(CliqzAttrack.tp_events._active).length === 1;
+                            }).then(function() {
+                              chai.expect(Object.keys(CliqzAttrack.tp_events._active)).to.have.length(1);
+                              // check staged tab
+                              if (CliqzAttrack.tp_events._staged.length > 1) {
+                                var urls = CliqzAttrack.tp_events._staged.map(function(s) { return s.url });
+                                throw urls;
+                              }
+                              chai.expect(CliqzAttrack.tp_events._staged).to.have.length(1);
+                              chai.expect(CliqzAttrack.tp_events._staged[0].url).to.equal('http://localhost:60508/');
+
+                              // check active tab
+                              tab_id = Object.keys(CliqzAttrack.tp_events._active)[0];
+                              chai.expect(CliqzAttrack.tp_events._active[tab_id].url).to.equal("http://localhost:60508/privacy#saferWeb");
+                            });
                         });
                     });
 
@@ -224,9 +226,17 @@ TESTS.AttrackTest = function (CliqzUtils) {
                         });
 
                         it('should stage previous page load', function() {
+                          return waitIfNotReady(function() {
+                            CliqzAttrack.tp_events.commit(true);
+                            return Object.keys(CliqzAttrack.tp_events._active).length === 2;
+                          }).then(function() {
                             // still have 2 active tabs
                             chai.expect(Object.keys(CliqzAttrack.tp_events._active)).to.have.length(2);
                             // check staged tab
+                            if (CliqzAttrack.tp_events._staged.length > 1) {
+                                var urls = CliqzAttrack.tp_events._staged.map(function(s) { return s.url });
+                                throw urls;
+                            }
                             chai.expect(CliqzAttrack.tp_events._staged).to.have.length(1);
                             chai.expect(CliqzAttrack.tp_events._staged[0].url).to.equal('http://localhost:60508/');
 
@@ -236,6 +246,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
                             });
                             chai.expect(tabUrls).to.contain("http://cliqztest.de:60508/");
                             chai.expect(tabUrls).to.contain("http://localhost:60508/privacy#saferWeb");
+                          });
                         });
                     });
 
@@ -590,13 +601,21 @@ TESTS.AttrackTest = function (CliqzUtils) {
         var bloomFilter;
 
         beforeEach(function() {
-          bloomFilter = new AttrackBloomFilter();
-          bloomFilter.configURL = mock_bloom_filter_config_url;
-          bloomFilter.baseURL = mock_bloom_filter_base_url;
+          bloomFilter = new AttrackBloomFilter(mock_bloom_filter_config_url, mock_bloom_filter_base_url);
         });
 
-        it ('bloom filter first time update', function() {
-          bloomFilter.checkUpdate();
+        it ('bloom filter init', function() {
+          bloomFilter.init();
+          return waitFor(function() {
+            return bloomFilter.bloomFilter != null && bloomFilter.version != null;
+          }).then(function() {
+            chai.expect(bloomFilter.version.major).to.equal('0');
+            chai.expect(bloomFilter.bloomFilter.k).to.equal(5);
+          });
+        });
+
+        it ('bloom filter update', function() {
+          bloomFilter.update();
           return waitFor(function() {
             return bloomFilter.bloomFilter != null && bloomFilter.version != null;
           }).then(function() {
@@ -687,5 +706,5 @@ TESTS.AttrackTest = function (CliqzUtils) {
     });
 };
 
-TESTS.AttrackTest.MIN_BROWSER_VERSION = 35;
+TESTS.AttrackTest.MIN_BROWSER_VERSION = 39;
 

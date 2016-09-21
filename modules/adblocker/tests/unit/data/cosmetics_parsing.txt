@@ -1,0 +1,35 @@
+# TODO
+# {"filter": "example.org##.selector", "compiled": {"supported": true}}
+
+# Supported/Not supported
+{"filter": "example.org#$#.selector", "compiled": {"supported": false}}
+{"filter": "example.org#%#.selector", "compiled": {"supported": false}}
+{"filter": "example.org#@$#.selector", "compiled": {"supported": false}}
+{"filter": "example.org#@%#.selector", "compiled": {"supported": false}}
+{"filter": "example.org$$.selector", "compiled": {"supported": false}}
+{"filter": "#$#.selector", "compiled": {"supported": false}}
+{"filter": "#%#.selector", "compiled": {"supported": false}}
+{"filter": "#@$#.selector", "compiled": {"supported": false}}
+{"filter": "#@%#.selector", "compiled": {"supported": false}}
+{"filter": "$$.selector", "compiled": {"supported": false}}
+{"filter": "##", "compiled": {"supported": false}}
+{"filter": "example.org##", "compiled": {"supported": false}}
+{"filter": "example.##", "compiled": {"supported": false}}
+{"filter": "#@#.selector", "compiled": {"supported": false}}
+{"filter": "#@#{.selector}", "compiled": {"supported": false}}
+{"filter": "#@#.selector##test", "compiled": {"supported": false}}
+{"filter": "#@#script:inject(test.js)", "compiled": {"supported": false}}
+{"filter": "#@#script:contains(test)", "compiled": {"supported": false}}
+
+# Unhide
+{"filter": "example.org#@#.selector", "compiled": {"unhide": true, "supported": true}}
+{"filter": "example.org##.selector", "compiled": {"unhide": false, "supported": true}}
+{"filter": "##.selector", "compiled": {"unhide": false, "supported": true}}
+
+# Hostnames
+{"filter": "example.org##.selector", "compiled": {"hostnames": ["example.org"], "supported": true}}
+
+# Selector
+{"filter": "example.org##.selector", "compiled": {"selector": ".selector", "supported": true}}
+{"filter": "example.org#@#.selector", "compiled": {"selector": ".selector", "supported": true}}
+{"filter": "##.selector", "compiled": {"selector": ".selector", "supported": true}}

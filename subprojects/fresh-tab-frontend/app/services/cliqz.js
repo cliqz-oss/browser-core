@@ -85,6 +85,14 @@ export default Ember.Service.extend({
     return DS.PromiseObject.create({ promise });
   },
 
+  dismissAlert() {
+    window.postMessage(JSON.stringify({
+      target: 'cliqz',
+      module: 'freshtab',
+      action: 'dismissAlert'
+    }), '*');
+  },
+
   getQuery(query) {
     let promise = new Promise( resolve => {
       this.callbacks.getQuery = resolve;

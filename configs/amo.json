@@ -8,7 +8,8 @@
     "showDataCollectionMessage": true,
     "cliqzOnboarding": false,
     "channel": "04",
-    "antitrackingButton": false
+    "antitrackingButton": true,
+    "showNewBrandAlert": false
   },
   "modules": [
     "q-button",
@@ -24,8 +25,7 @@
     "performance",
     "hpn",
     "geolocation",
-    "freshtab",
-    "offers"
+    "freshtab"
   ],
   "subprojects": [
     "fresh-tab-frontend"

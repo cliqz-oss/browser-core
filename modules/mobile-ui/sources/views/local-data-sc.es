@@ -93,9 +93,7 @@ export default class {
 
     data.distance = CliqzUtils.distance(
                         data.lon,
-                        data.lat,
-                      CliqzUtils.USER_LNG,
-                      CliqzUtils.USER_LAT)*1000;
+                        data.lat)*1000;
 
     data.deepLinks = ((data.deepResults || []).find(res => res.type === 'buttons') || {}).links
   }

@@ -204,7 +204,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
         chai.expect(m.headers['cookie']).to.contain('uid=abcdefghijklmnop');
       } else {
         chai.expect(m.headers).to.not.have.property('cookie');
-        chai.expect(m.headers).to.have.property(CliqzAttrack.cliqzHeader.toLowerCase());
+        // chai.expect(m.headers).to.have.property(CliqzAttrack.cliqzHeader.toLowerCase());
       }
     };
 
@@ -753,7 +753,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                     chai.expect(m.qs).to.contain('uid=' + uid);
                   } else {
                     chai.expect(m.qs).to.not.contain('uid=' + uid);
-                    chai.expect(m.headers).to.have.property(CliqzAttrack.cliqzHeader.toLowerCase());
+                    // chai.expect(m.headers).to.have.property(CliqzAttrack.cliqzHeader.toLowerCase());
                   }
                   chai.expect(m.qs).to.contain('callback=func');
                 }, function(e) {

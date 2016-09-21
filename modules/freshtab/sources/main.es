@@ -88,14 +88,12 @@ var FreshTab = {
     cliqzOnboarding: 0,
     isBrowser: false,
 
-    startup: function(hasButton, cliqzOnboarding, channel){
+    startup: function(hasButton, cliqzOnboarding, channel, showNewBrandAlert){
         var disable = false;
 
-        //show cliqz onboarding on 1st installation of browser
-        if(cliqzOnboarding && !CliqzUtils.hasPref('session')) {
-          FreshTab.cliqzOnboarding = 1;
-        }
-
+        // checking if this is the first install happens in background._showOnboarding()
+        FreshTab.cliqzOnboarding = cliqzOnboarding ? 1 : 0;
+        FreshTab.showNewBrandAlert = showNewBrandAlert;
         HAS_BUTTON = hasButton;
 
         FreshTab.isBrowser = channel === "40";

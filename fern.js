@@ -88,6 +88,72 @@ function buildFreshtabFrontEnd() {
   }
 }
 
+function buildChromeHumanWeb(mode) {
+  const configPath = process.env['CLIQZ_CONFIG_PATH'];
+  const chromeManifest = JSON.parse(fs.readFileSync('specific/chromium/manifest.json'));
+  let finalManifest = {};
+  finalManifest.key = chromeManifest.key;
+  finalManifest.name = chromeManifest.name;
+  finalManifest.version = chromeManifest.version;
+  finalManifest.manifest_version = chromeManifest.manifest_version;
+  finalManifest.description = chromeManifest.description;
+  finalManifest.incognito = chromeManifest.incognito;
+  finalManifest.permissions = chromeManifest.permissions;
+  finalManifest.content_security_policy = chromeManifest.content_security_policy;
+  finalManifest.version_name = "packaged";
+  if(mode === "prod"){
+    finalManifest.chrome_url_overrides = chromeManifest.chrome_url_overrides;
+  }
+  var app = 'chrome-test-hw-hpn',
+      appPath = 'subprojects/' + app,
+      modulePath = appPath + '/hw/',
+      manifestPath = modulePath + 'manifest.json',
+      shouldBuild = function() {
+        if(CONFIG.subprojects.indexOf('chrome-test-hw-hpn') === -1) {
+          return false;
+        }
+
+        if(process.env['chrome-test-hw-hpn'] !== 'undefined') {
+          return true;
+        }
+        return false;
+      };
+
+  if(!shouldBuild()) {
+    return
+  }
+
+  const manifest = JSON.parse(fs.readFileSync(manifestPath));
+  const newPath = "js/hw/";
+  let newScript = [];
+  let newPermission = [];
+  manifest.background.scripts.forEach( e=> {
+    newScript.push(`${newPath}${e}`);
+  });
+  finalManifest.background = {"scripts": newScript};
+
+  manifest.permissions.forEach( e=> {
+    finalManifest.permissions.push(e);
+  });
+
+  // Need version name, to map content.js to correct path.
+  // manifest.version_name = "packaged";
+
+  wrench.copyDirSyncRecursive(modulePath, 'build/js/hw/', {
+      forceDelete: true
+  });
+
+  var stream = fs.createWriteStream("build/manifest.json");
+  stream.once('open', function(fd) {
+    stream.write(JSON.stringify(finalManifest, null, 2));
+    stream.end();
+  });
+
+  fs.unlink('build/js/hw/manifest.json', function (err) {
+    if (err) throw err;
+  });
+}
+
 function isPackageInstalled(pkg, options, msg) {
   var spawned = spaws.sync(pkg, [options], { stderr: 'inherit' });
   if(spawned.error !== null) {
@@ -131,6 +197,7 @@ program.command('build [file]')
        .option('--no-maps', 'disables source maps')
        .option('--version [version]', 'sets extension version', 'package')
        .option('--freshtab', 'enables ember fresh-tab-frontend build')
+       .option('--prod', 'to generate comprehensive manifest.json')
        .action((configPath, options) => {
           var buildStart = Date.now();
           setConfigPath(configPath);
@@ -148,7 +215,14 @@ program.command('build [file]')
             let child = spaws('broccoli', ['build', OUTPUT_PATH]);
             child.stderr.on('data', data => console.log(data.toString()));
             child.stdout.on('data', data => console.log(data.toString()));
-            child.on('close', code => console.log(code === 0 ? 'done - ' + (Date.now() - buildStart) +'ms' : ''));
+            child.on('close', code => {
+              let mode = "dev";
+              if(options.prod){
+                mode = "prod";
+              }
+              buildChromeHumanWeb(mode);
+              console.log(code === 0 ? 'done - ' + (Date.now() - buildStart) +'ms' : '');
+            })
           });
        });
 
@@ -199,20 +273,25 @@ program.command('serve [file]')
 
 program.command('test [file]')
        .option('--ci [output]', 'Starts Testem in CI mode')
+       .option('--grep [pattern]', 'only run tests matching <pattern>')
        .action( (configPath, options) => {
           "use strict";
           setConfigPath(configPath);
           const watcher = createBuildWatcher();
 
+          if (options.grep) {
+            process.env["MOCHA_GREP"] = options.grep;
+          }
+
           if (options.ci) {
             watcher.on('change', function() {
-              var Testem  = require('testem');
+              const Testem = require('testem');
+              const testem = new Testem();
 
-              var testem = new Testem();
-
-              var launch_in_ci = process.argv.slice(2, process.argv.length);
+              // TODO: Find a way to fix testem with too many tests
 
               testem.startCI({
+                debug: true,
                 host: 'localhost',
                 port: '4200',
                 launch_in_ci: CONFIG['testem_launchers'],

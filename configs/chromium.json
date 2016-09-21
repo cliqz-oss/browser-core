@@ -1,13 +1,16 @@
 {
   "platform": "chromium",
-  "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
-  "testem_launchers": ["Mocha"],
   "settings": {
+    "channel": "CH50"
   },
   "modules": [
     "core",
     "autocomplete",
     "static",
+    "geolocation",
     "ui"
+  ],
+  "subprojects": [
+    "chrome-test-hw-hpn"
   ]
 }

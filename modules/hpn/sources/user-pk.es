@@ -1,5 +1,8 @@
 import CliqzSecureMessage from 'hpn/main';
 import { _http } from 'hpn/utils';
+import { byteArrayToHexString, base64ToByteArray, stringToByteArray, privateKeytoKeypair } from "hpn/crypto-utils";
+
+
 /**
 Generate user Public-private key.
 This should be long-time key
@@ -41,6 +44,33 @@ export default class {
    * @returns signature in hex format.
    */
   sign(msg){
+    var promise = new Promise(function(resolve, reject){
+      var ppk = privateKeytoKeypair(CliqzSecureMessage.uPK.privateKey);
+      CliqzSecureMessage.crypto.subtle.importKey(
+        "pkcs8",
+        base64ToByteArray(ppk[1]),
+        {name: "RSASSA-PKCS1-v1_5", hash: "SHA-256"},
+        false,
+        ["sign"]
+      )
+      .then(function(privateKey) {
+        var documentBytes = stringToByteArray(msg);
+        CliqzSecureMessage.crypto.subtle.sign(
+          {name: "RSASSA-PKCS1-v1_5", hash: "SHA-256"},
+          privateKey,
+          documentBytes
+        )
+        .then(function(signatureBuffer) {
+          var signatureBytes = new Uint8Array(signatureBuffer);
+          var signatureHex = byteArrayToHexString(signatureBytes);
+          resolve(signatureHex);
+        })
+      })
+    })
+    return promise;
+  }
+  /*
+  sign(msg){
     var _this = this;
     var promise = new Promise(function(resolve, reject){
       try{
@@ -56,7 +86,7 @@ export default class {
     })
     return promise;
   }
-
+  */
   genKey(){
     var _this = this;
     var promise = new Promise(function(resolve, reject){

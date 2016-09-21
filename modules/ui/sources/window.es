@@ -43,6 +43,7 @@ export default class {
   constructor(settings) {
     this.window = settings.window;
     this.urlbarGoClick = this.urlbarGoClick.bind(this);
+    this.hidePopup = this.hidePopup.bind(this);
     this.initialzied = false;
 
     this.urlbarEventHandlers = {}
@@ -73,7 +74,6 @@ export default class {
     this.window.CLIQZ.Core.addCSS(document, 'chrome://cliqz/content/static/styles/styles.css');
     popup.setAttribute("type", 'autocomplete-richlistbox');
     popup.setAttribute("noautofocus", 'true');
-    popup.setAttribute("onpopuphiding", "CLIQZ.UI.closeResults(event)");
     popup.setAttribute("id", 'PopupAutoCompleteRichResultCliqz');
     this.window.CLIQZ.Core.elem.push(popup);
     document.getElementById('PopupAutoCompleteRichResult').parentElement.appendChild(popup);
@@ -90,6 +90,7 @@ export default class {
     this.window.CLIQZ.Core.popup = this.popup;
 
     initPopup(this.popup, this.window);
+    CliqzEvents.sub('ui:popup_hide', this.hidePopup);
     this.window.CLIQZ.UI.init(this.urlbar);
     this.window.CLIQZ.UI.window = this;
     this.window.CLIQZ.UI.autocompleteQuery = this.autocompleteQuery.bind(this);
@@ -117,7 +118,7 @@ export default class {
     this.reloadUrlbar(this.urlbar);
 
     // Add search history dropdown
-    var searchHistoryContainer = CliqzSearchHistory.insertBeforeElement(null, this.window);
+    var searchHistoryContainer = CliqzSearchHistory.insertBeforeElement(this.window);
     this.window.CLIQZ.Core.elem.push(searchHistoryContainer);
 
     // make CMD/CTRL + K equal with CMD/CTRL + L
@@ -262,6 +263,10 @@ export default class {
     utils.telemetry(action);
   }
 
+  hidePopup() {
+    this.window.CLIQZ.Core.popup.hidePopup();
+  }
+
   urlbarEvent(ev) {
     var action = {
       type: 'activity',
@@ -287,6 +292,7 @@ export default class {
     this.popup.removeEventListener('popuphiding', this.popupEventHandlers.popupClose);
     this.popup.removeEventListener('popupshowing', this.popupEventHandlers.popupOpen);
 
+    CliqzEvents.un_sub('ui:popup_hide', this.hidePopup);
 
 
     Object.keys(this.urlbarEventHandlers).forEach(function(ev) {
@@ -324,7 +330,7 @@ const urlbarEventHandlers = {
     utils.pingCliqzResults();
 
     autocomplete.lastFocusTime = Date.now();
-    CliqzSearchHistory.hideLastQuery();
+    CliqzSearchHistory.hideLastQuery(this.window);
     this.triggerLastQ = false;
     utils.setSearchSession(utils.rand(32));
     this.urlbarEvent('focus');
@@ -351,7 +357,7 @@ const urlbarEventHandlers = {
     autocomplete.resetSpellCorr();
 
     if(this.window.CLIQZ.Core.triggerLastQ)
-        CliqzSearchHistory.lastQuery();
+        CliqzSearchHistory.lastQuery(this.window);
 
     this.urlbarEvent('blur');
 

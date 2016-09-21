@@ -51,20 +51,16 @@
            </table>
            
        </div>
-       <div class="card__meta">
-                {{local 'KickerSponsor'}}
-            </div>
     </section>
 
-    
     {{#if news}}
         <section class="secondary" cliqz-action="stop-click-event-propagation">
             <div class="main mulitple">
                 {{#each news}}
                     <div url="{{url}}" extra="entry-{{@index}}" class="item">
-                        {{#with logo}}
-                            <div class="card__logo__secondary" data-style="{{style}}">.</div>
-                        {{/with}}
+                        <div class="main__image" data-style="background-image: url({{#if thumbnail}}{{ thumbnail }}{{else}}http://cdn.cliqz.com/extension/EZ/news/no-image-mobile.png{{/if}});">
+                            Image
+                        </div>
                         <h1 class="main__headline">
                             {{ title }}
                             <span>
@@ -81,6 +77,10 @@
             </div>
         </section>
     {{/if}}
+    {{ debug }}
+    <div class="poweredby" url="http://www.kicker.de/mobile/startseite.html">
+        {{local 'KickerSponsor'}}
+    </div>
 
     <section class="secondary" cliqz-action="stop-click-event-propagation">
 

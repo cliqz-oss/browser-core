@@ -54,6 +54,11 @@ export default background({
       OffersConfigs.COUPON_HANDLER_RESET_FILE = true;
     }
 
+    // change the fetcher url for debug purpose
+    if(utils.getPref('offersFetcherDevBE', false)) {
+      OffersConfigs.OFFER_FETCHER_DEST_URL = OffersConfigs.OFFER_DEV_URL;
+    }
+
     // check if we need to set dev flags or not
     // extensions.cliqz.offersDevFlag
     if (utils.getPref('offersDevFlag', false)) {
@@ -66,6 +71,7 @@ export default background({
       LoggingHandler.SAVE_TO_FILE = true;
     }
 
+
     // init the logging
     LoggingHandler.init();
 
@@ -75,7 +81,7 @@ export default background({
     this.offerManager = new OfferManager();
 
     // TODO: GR-137 && GR-140: temporary fix
-    events.sub('core.location_change_delayed', this.onTabOrWinChangedHandler.bind(this));
+    events.sub('core.location_change', this.onTabOrWinChangedHandler.bind(this));
     events.sub('core.window_closed', this.onWindowClosed.bind(this));
     events.sub('core.tab_location_change', this.onTabLocChanged.bind(this));
 
@@ -93,6 +99,7 @@ export default background({
       'OffersConfigs.LOAD_HISTORY_EVENTS: ' + OffersConfigs.LOAD_HISTORY_EVENTS + '\n' +
       'OffersConfigs.COUPON_HANDLER_LOAD_FILE_FLAG: ' + OffersConfigs.COUPON_HANDLER_LOAD_FILE_FLAG + '\n' +
       'OffersConfigs.COUPON_HANDLER_RESET_FILE: ' + OffersConfigs.COUPON_HANDLER_RESET_FILE + '\n' +
+      'OffersConfigs.OFFER_FETCHER_DEST_URL: ' + OffersConfigs.OFFER_FETCHER_DEST_URL + '\n' +
       'dev_flag: ' + utils.getPref('offersDevFlag', false) + '\n' +
       '------------------------------------------------------------------------\n'
       );

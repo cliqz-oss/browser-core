@@ -10,6 +10,8 @@ var broccoliSource = require('broccoli-source');
 var browserify = require('broccoli-fast-browserify');
 var WatchedDir = broccoliSource.WatchedDir;
 var UnwatchedDir = broccoliSource.UnwatchedDir;
+var broccoliHandlebars = require('broccoli-handlebars-precompiler');
+var concat = require('broccoli-sourcemap-concat');
 
 var cliqzConfig = require('./config');
 
@@ -105,7 +107,8 @@ function getSourceTree() {
     transpiledSources,
   ];
 
-  if (cliqzConfig.buildEnv !== 'production') {
+  if ((cliqzConfig.buildEnv !== 'production') &&
+      (cliqzConfig.testem_launchers || []).length) {
     sourceTrees.push(transpiledModuleTestsTree);
   }
 
@@ -154,20 +157,63 @@ function getSassTree() {
 }
 
 function getDistTree() {
-  return new MergeTrees([
+  const distTrees = [
     new Funnel(modulesTree, {
       include: cliqzConfig.modules.map( name => `${name}/dist/**/*` ),
       getDestinationPath(path) {
         return path.replace("/dist", "");
       }
-    }),
-    new Funnel(subprojectsTree, {
-      include: (cliqzConfig.subprojects || []).map( name => `${name}/dist/**/*` ),
+    })];
+  if (cliqzConfig.subprojects) {
+    distTrees.push(new Funnel(subprojectsTree, {
+      include: cliqzConfig.subprojects.map( name => `${name}/dist/**/*` ),
       getDestinationPath(path) {
         return path.replace("/dist", "");
       }
-    })
-  ]);
+    }));
+  }
+  return new MergeTrees(distTrees);
+}
+
+function getHandlebarsTree() {
+  const trees = cliqzConfig.modules.filter( name => {
+    let modulePath = `modules/${name}`;
+
+    try {
+      fs.statSync(modulePath+"/sources/templates"); // throws if not found
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }).map(name => {
+    const tree = new Funnel(modulesTree, {
+      include: ["**/*.hbs"],
+      srcDir: `${name}/sources/templates`,
+      destDir: `${name}/templates`
+    });
+    return {
+      name: name,
+      tree: broccoliHandlebars(tree, {
+        srcDir: `${name}/templates`,
+        namespace: 'CLIQZ.templates'
+      })
+    };
+  }).map(function (templatesTree) {
+    return concat(templatesTree.tree, {
+      outputFile: `${templatesTree.name}/templates.js`,
+      inputFiles: [
+        "**/*.js"
+      ],
+      header: `
+        'use strict';
+        CLIQZ = CLIQZ || {};
+        CLIQZ.templates = CLIQZ.templates || {};
+      `,
+      footer: "Handlebars.partials = CLIQZ.templates"
+    });
+  })
+
+  return new MergeTrees(trees);
 }
 
 const modules = new MergeTrees([
@@ -175,6 +221,7 @@ const modules = new MergeTrees([
   getDistTree(),
   getSassTree(),
   getSourceTree(),
+  getHandlebarsTree()
 ]);
 const bowerTree = new MergeTrees([
   new Funnel(bowerComponents, { include: Array.from(requiredBowerComponents) })

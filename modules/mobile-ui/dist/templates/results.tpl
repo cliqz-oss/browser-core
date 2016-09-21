@@ -38,7 +38,7 @@
 			<!-- googlethis -->
 			<div class="frame" extra="search" {{#if frameWidth }} style="width: {{ frameWidth }}px; left: {{ left }}px" {{/if}}>
 				<div class="card last-card">
-					<div id="defaultEngine" url="{{searchEngineUrl}}{{searchString}}" kind="CL" class="cqz-result-box">
+					<div id="defaultEngine" url="{{searchEngineUrl}}{{searchString}}" kind="CL" class="cqz-result-box"  style="background-color: #{{ background }}">
 						<div id="googleThisAnim">
 							<!-- <img data-src="skin/img/icon-google.svg"><br> -->
 							<h3>{{ title }}</h3>

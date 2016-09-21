@@ -94,35 +94,17 @@ function getClustersFilesMap() {
   // for now we will hardcode this.
   var result = {};
   return result = {
-    'car_parts' : {
-      'domains_file' : 'car_parts.cluster',
-      'db_file' : 'car_parts.dbinfo',
-      'patterns_file' : 'car_parts.patterns'
-    },
     'food_delivery' : {
-      'domains_file' : 'food_delivery.cluster',
       'db_file' : 'food_delivery.dbinfo',
-      'patterns_file' : 'food_delivery.patterns'
-    },
-    'online_tickets' : {
-      'domains_file' : 'online_tickets.cluster',
-      'db_file' : 'online_tickets.dbinfo',
-      'patterns_file' : 'online_tickets.patterns'
-    },
-    'toner_online' : {
-      'domains_file' : 'toner_online.cluster',
-      'db_file' : 'toner_online.dbinfo',
-      'patterns_file' : 'toner_online.patterns'
     },
     'travel' : {
-      'domains_file' : 'travel.cluster',
       'db_file' : 'travel.dbinfo',
-      'patterns_file' : 'travel.patterns'
     },
     'gaming': {
-      'domains_files': 'gaming.cluster',
       'db_file': 'gaming.dbinfo',
-      'patterns_file': 'gaming.patterns'
+    },
+    'wines' : {
+      'db_file': 'wines.dbinfo',
     }
   };
 }
@@ -295,10 +277,10 @@ OfferManager.prototype.loadCheckoutRegexMap = function() {
     LoggingHandler.LOG_ENABLED &&
     LoggingHandler.info(MODULE_NAME, 'no checkout_regex localstorage found, reading the file');
     var self = this;
-    parseFileASPromise('checkout_regex.json').then(function(regexMap) {
+    parseFileASPromise('regex_maps.json').then(function(regexMap) {
       LoggingHandler.LOG_ENABLED &&
       LoggingHandler.info(MODULE_NAME, 'checkout_regex loaded from default location: ' + JSON.stringify(regexMap));
-      self.checkoutRegexMap = regexMap;
+      self.checkoutRegexMap = regexMap['checkouts'];
 
       // now save it in the local storage
       localStorage.setItem('checkout_regex', JSON.stringify(self.checkoutRegexMap));

@@ -30,18 +30,16 @@ var observer = {
       tabId: requestContext.getOriginWindowID() || -1,
       type: requestContext.getContentPolicyType(),
       originUrl: requestContext.getLoadingDocument(),
-      isPrivate: requestContext.isChannelPrivate(),
       responseStatus: topic.startsWith('http-on-examine-') ? requestContext.channel.responseStatus : undefined,
+      // the following are not in the standard WebRequest API
+      isPrivate: requestContext.isChannelPrivate(),
       isCached: topic === 'http-on-examine-cached-response',
-      source: requestContext.source
+      source: requestContext.getSourceURL()
     }
     // use getters for headers
     requestInfo.getRequestHeader = requestContext.getRequestHeader.bind(requestContext);
     requestInfo.getResponseHeader = requestContext.getResponseHeader.bind(requestContext);
     requestInfo.getPostData = requestContext.getPostData.bind(requestContext);
-    requestInfo.getOuterWindowID = requestContext.getOuterWindowID.bind(requestContext);
-    requestInfo.getOriginWindowID = requestContext.getOriginWindowID.bind(requestContext);
-    requestInfo.getSourceURL = requestContext.getSourceURL.bind(requestContext);
 
     for (let listener of webRequest[event].listeners) {
       // ignore filter for the moment

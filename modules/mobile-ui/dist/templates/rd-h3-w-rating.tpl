@@ -8,7 +8,7 @@ IT IS USED AS A PARTIAL template
 
 <div class="meta">
     {{> logo}}
-    <h3 class="meta__url"><i class="fa fa-mobile mobile"></i> {{ emphasis urlDetails.host query 2 true }}{{ emphasis urlDetails.extra query 2 true }}</h3>
+    <div extra="url" class="card__meta"><div>{{urlDetails.host}}{{urlDetails.extra}}</div></div>
 </div>
 
 {{#with data}}

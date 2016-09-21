@@ -109,7 +109,7 @@ function populateDOM() {
         var companyTrackers = data.trakersList.companies[company];
         var trackerCount = companyTrackers .reduce( function (sum, domain) {
           var domainData = data.trakersList.trackers[domain];
-          return sum + (domainData.cookie_blocked || 0) + (domainData.bad_qs || 0)
+          return sum + (domainData.cookie_blocked || 0) + (domainData.tokens_removed || 0)
         }, 0);
 
         //Get the Bad Trackers
@@ -117,7 +117,7 @@ function populateDOM() {
           return {
             name: trackerName,
             domain_name: CliqzUtils.getDetailsFromUrl(trackerName).domain,
-            count: data.trakersList.trackers[trackerName].bad_qs + data.trakersList.trackers[trackerName].cookie_blocked
+            count: data.trakersList.trackers[trackerName].tokens_removed + data.trakersList.trackers[trackerName].cookie_blocked
           };
         });
         // sort by count

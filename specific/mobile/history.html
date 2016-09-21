@@ -2,30 +2,38 @@
 <html>
    <head>
        <title>History</title>
-       <link href="skin/css/style.css" rel="stylesheet" type="text/css">
+       <link href="mobile-history/styles/tabs.css" rel="stylesheet" type="text/css">
 
        <script src="bower_components/core.js/client/core.min.js"></script>
        <script src="bower_components/handlebars/handlebars.js"></script>
+       <script src="bower_components/jquery/dist/jquery.js"></script>
+       <script src="bower_components/hammerjs/hammer.js"></script>
+       <script src="bower_components/mathjs/dist/math.min.js"></script>
        <script src="js/libs/system-polyfill.js"></script>
        <script src="js/osAPI.js"></script>
        <script src="js/jsAPI.js"></script>
        <script>
         System.baseURL = './';
 
+        window.CLIQZ = {};
+
         Promise.all([
           System.import("platform/environment"),
           System.import("core/utils"),
           System.import("core/storage"),
           System.import("core/templates"),
+          System.import("core/events")
         ]).then(function (modules) {
           var environment = modules[0].default;
           var utils = modules[1].default;
           var Storage = modules[2].default;
           var handlebars = modules[3].default;
+          var events = modules[4].default;
           environment.storage = new Storage();
           window.CLIQZEnvironment = environment;
           window.CliqzUtils = utils;
           window.CliqzHandlebars = handlebars;
+          window.CliqzEvents = events;
           utils.initPlatform(System);
         }).then(function () {
           return System.import("core/startup");
@@ -34,7 +42,6 @@
             "core",
             "mobile-dev", //only available in mobile-dev config
             "mobile-history",
-            "mobile-touch",
             "static"
           ]);
         }).then(function () {
@@ -44,9 +51,10 @@
         }).then(function () {
           jsAPI.init();
           osAPI.init();
-          History.init();
+          History.init(false);
         });
        </script>
+       <meta charset='utf-8'>
        <meta name="viewport" content="initial-scale=1.0001, user-scalable=no" />
    </head>
    <body class="noselect">

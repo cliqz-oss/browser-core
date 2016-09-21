@@ -1,4 +1,4 @@
-import { getUrls } from "yt-downloader/main";
+import { findVideoLinks } from "yt-downloader/main";
 
 export default class {
   constructor(settings) {
@@ -6,7 +6,7 @@ export default class {
   }
 
   init() {
-  	this.window.ytdownloader = { getUrls };
+  	this.window.ytdownloader = { findVideoLinks };
   }
 
   unload() {

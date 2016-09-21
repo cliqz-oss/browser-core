@@ -1,4 +1,4 @@
-import { utils, events } from "core/cliqz";
+import { utils, events, Promise } from "core/cliqz";
 import language from "platform/language";
 import config from "core/config";
 import ProcessScriptManager from "platform/process-script-manager";
@@ -105,7 +105,6 @@ export default {
   handleRequest(msg) {
     const { action, module, args, requestId } = msg.data.payload,
           windowId = msg.data.windowId;
-
     utils.importModule(`${module}/background`).then( module => {
       const background = module.default;
       return background.actions[action].apply(null, args);
@@ -122,7 +121,27 @@ export default {
     callbacks[msg.data.requestId].apply(null, [msg.data.payload]);
   },
 
+  getWindowStatusFromModules(win){
+    return config.modules.map((moduleName) => {
+      var module = win.CLIQZ.Core.windowModules[moduleName];
+      return module && module.status ? module.status() : {}
+    })
+  },
+
   actions: {
+    getWindowStatus(win) {
+      return Promise
+        .all(this.getWindowStatusFromModules(win))
+        .then((allStatus) => {
+          var result = {}
+
+          allStatus.forEach((status, moduleIdx) => {
+            result[config.modules[moduleIdx]] = status || null;
+          })
+
+          return result;
+        })
+    },
     sendTelemetry(msg) {
       utils.telemetry(msg);
       return Promise.resolve();

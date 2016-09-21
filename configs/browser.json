@@ -10,7 +10,8 @@
     "cliqzOnboarding": true,
     "channel": "40",
     "antitrackingButton": true,
-    "helpMenus": true
+    "helpMenus": true,
+    "showNewBrandAlert": true
   },
   "modules": [
     "q-button",
@@ -30,9 +31,11 @@
     "antitracking",
     "performance",
     "hpn",
+    "control-center",
     "privacy-dashboard",
     "offers",
-    "adblocker"
+    "adblocker",
+    "https-everywhere"
   ],
   "subprojects": [
     "fresh-tab-frontend"

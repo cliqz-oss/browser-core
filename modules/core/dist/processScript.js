@@ -10,6 +10,10 @@ Services.scriptloader.loadSubScript("chrome://cliqz/content/core/content-scripts
 
 var config = {{CONFIG}};
 
+if (config.modules.indexOf('adblocker') > -1) {
+  Services.scriptloader.loadSubScript('chrome://cliqz/content/adblocker/content-scripts.js');
+}
+
 var whitelist = [
   "chrome://cliqz/"
 ].concat(config.settings.frameScriptWhitelist);
@@ -69,13 +73,17 @@ function getContextHTML(ev) {
 }
 
 function onDOMWindowCreated(ev) {
-  var window = ev.originalTarget.defaultView;
+  var window = ev.target.defaultView;
   var currentURL = function(){return window.location.href};
 
   var windowId = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
     var r = Math.random()*16|0, v = c === "x" ? r : (r&0x3|0x8);
     return v.toString(16);
   });
+
+  if (config.modules.indexOf('adblocker') > -1) {
+    requestDomainRules(currentURL(), window, send, windowId);
+  }
 
   var onMessage = function (ev) {
     var href = ev.target.location.href;
@@ -109,6 +117,10 @@ function onDOMWindowCreated(ev) {
   function onCallback(msg) {
     if (isDead()) {
       return;
+    }
+
+    if (config.modules.indexOf('adblocker') > -1) {
+      responseAdbMsg(msg, window);
     }
 
     if (!whitelist.some(function (url) { return currentURL().indexOf(url) === 0; }) ) {
@@ -258,11 +270,15 @@ function onDOMWindowCreated(ev) {
   };
 
   var onReady = function (event) {
+    if (config.modules.indexOf('adblocker') > -1) {
+      adbCosmFilter(currentURL(), window, send, windowId, throttle);
+    }
+
     // ReportLang
     var lang = window.document.getElementsByTagName('html')
       .item(0).getAttribute('lang');
     // don't analyse language for (i)frames
-    var isTopWindow = !event.originalTarget.defaultView.frameElement;
+    var isTopWindow = !event.target.defaultView.frameElement;
 
     if (isTopWindow && lang) {
       send({
@@ -285,23 +301,25 @@ function onDOMWindowCreated(ev) {
         ogDescription = window.document.querySelector("meta[property='og:description']"),
         ogImage = window.document.querySelector("meta[property='og:image']");
 
-    send({
-      windowId: windowId,
-      payload: {
-        module: "core",
-        action: "recordMeta",
-        args: [
-          currentURL(),
-          {
-            title: title && title.innerHTML,
-            description: description && description.content,
-            ogTitle: ogTitle && ogTitle.content,
-            ogDescription: ogDescription && ogDescription.content,
-            ogImage: ogImage && ogImage.content
-          }
-        ]
-      }
-    });
+    if (isTopWindow) {
+      send({
+        windowId: windowId,
+        payload: {
+          module: "core",
+          action: "recordMeta",
+          args: [
+            currentURL(),
+            {
+              title: title && title.innerHTML,
+              description: description && description.content,
+              ogTitle: ogTitle && ogTitle.content,
+              ogDescription: ogDescription && ogDescription.content,
+              ogImage: ogImage && ogImage.content
+            }
+          ]
+        }
+      });
+    }
   };
 
 
@@ -378,7 +396,7 @@ var DocumentManager = {
     }
 
     onDOMWindowCreated({
-      originalTarget: {
+      target: {
         defaultView: window
       }
     }, true)

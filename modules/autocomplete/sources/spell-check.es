@@ -1,5 +1,6 @@
 import autocomplete from "autocomplete/autocomplete";
 import { utils } from "core/cliqz";
+import { isFirefox } from "core/platform";
 
 var CliqzSpellCheck = {
     check: function(q) {
@@ -33,7 +34,7 @@ var CliqzSpellCheck = {
         }
     },
     init: function() {
-        if (utils.getPref("config_location", "") == "de" && Object.keys(autocomplete.spellCorrectionDict).length == 0) {
+        if (isFirefox && utils.getPref("config_location", "") == "de" && Object.keys(autocomplete.spellCorrectionDict).length == 0) {
             utils.log('loading dict', 'spellcorr');
             utils.loadResource('chrome://cliqz/content/spell_check.list', CliqzSpellCheck.loadRecords);
         }

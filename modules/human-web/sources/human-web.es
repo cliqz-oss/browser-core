@@ -32,8 +32,14 @@ function _log(msg){
     catch(e){CliqzUtils.log(e, CliqzHumanWeb.LOG_KEY)};
 }
 
+function getRandomIntInclusive(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 var CliqzHumanWeb = {
-    VERSION: '2.1',
+    VERSION: '2.2',
     WAIT_TIME: 2000,
     LOG_KEY: 'humanweb',
     debug: false,
@@ -62,10 +68,15 @@ var CliqzHumanWeb = {
     rArray: [], //Variable for content extraction fw.
     extractRules: {}, //Variable for content extraction fw.
     payloads: {}, //Variable for content extraction fw.
+    anonSearchEngines: [], //Variable for content extraction fw.
+    anonRArray: [], //Variable for content extraction fw.
+    anonExtractRules: {}, //Variable for content extraction fw.
+    anonPayloads: {}, //Variable for content extraction fw.
     messageTemplate: {},
-    idMappings: {},
+    anonIdMappings: {},
     patternsURL: 'https://cdn.cliqz.com/human-web/patterns',
-    configURL: 'https://safe-browsing.cliqz.com/config',
+    anonPatternsURL: 'https://cdn.cliqz.com/human-web/patterns-anon',
+    configURL: 'https://safe-browsing-proxy-network.cliqz.com/config',
     searchCache: {},
     ts : "",
     mRefresh : {},
@@ -90,6 +101,7 @@ var CliqzHumanWeb = {
     actionStatsLastSent: null,
     bloomFilter: null,
     bf:null,
+    strictQueries:[],
     _md5: function(str) {
         return md5(str);
     },
@@ -716,10 +728,17 @@ var CliqzHumanWeb = {
         // the page after.
 
 
+
         _log("xbef: " + JSON.stringify(struct_bef));
         _log("xaft: " + JSON.stringify(struct_aft));
 
+        // Check if struct_bef or struct_aft is not null, in case anyone is then we mark it as private.
+
         // if any of the titles is null (false), then decline (discard)
+        if (!(struct_bef && struct_aft)) {
+            _log("fovalidDoubleFetch: found an empty structure");
+            return false;
+        }
 
         if (!(struct_bef['t'] && struct_aft['t'])) {
             _log("fovalidDoubleFetch: found an empty title");
@@ -1541,12 +1560,25 @@ var CliqzHumanWeb = {
                           }
 
                           CliqzHumanWeb.getCD(url).then( doc => {
-                            CliqzHumanWeb.checkURL(doc, url);
+                            CliqzHumanWeb.checkURL(doc, url, "normal");
                             CliqzHumanWeb.queryCache[url] = {
                               d: 0,
                               q: CliqzHumanWeb.searchCache[se]['q'],
                               t: CliqzHumanWeb.searchCache[se]['t']
                             };
+
+                            let anonSe = CliqzHumanWeb.checkAnonSearchURL(url);
+                            if(anonSe > -1){
+                                let hostName = CliqzHumanWeb.parseURL(url)['hostname'];
+                                let qurl = "https://" + hostName + "/search?q=" + CliqzHumanWeb.searchCache[se]['q'];
+                                let qObj = {};
+                                qObj['qurl'] = qurl;
+                                qObj['ts'] = Date.now();
+                                qObj['tDiff'] = getRandomIntInclusive(1, 20);
+                                CliqzHumanWeb.strictQueries.push(qObj);
+                                CliqzHumanWeb.saveStrictQueries();
+                            }
+
                           });
                         }, CliqzHumanWeb.WAIT_TIME, activeURL);
                     }
@@ -1644,7 +1676,7 @@ var CliqzHumanWeb = {
 
                               if (se == -1){
                                 try {
-                                  CliqzHumanWeb.checkURL(cd, currURL);
+                                  CliqzHumanWeb.checkURL(cd, currURL,"normal");
                                 } catch (e) {
                                 }
                                   //Check active usage...
@@ -1779,6 +1811,7 @@ var CliqzHumanWeb = {
         if ((CliqzHumanWeb.counter/CliqzHumanWeb.tmult) % (1*60) == 0) {
             // every minute
             CliqzHumanWeb.listOfUnchecked(1, CliqzHumanWeb.doubleFetchTimeInSec, null, CliqzHumanWeb.processUnchecks);
+            CliqzHumanWeb.auxGetQuery();
         }
 
         if ((CliqzHumanWeb.counter/CliqzHumanWeb.tmult) % 10 == 0) {
@@ -2185,6 +2218,9 @@ var CliqzHumanWeb = {
         if(!CliqzHumanWeb.bloomFilter){
             CliqzHumanWeb.loadBloomFilter();
         }
+
+        // Load strict queries
+        CliqzHumanWeb.loadStrictQueries();
     },
     initAtBrowser: function(){
         if(CliqzUtils.getPref("dnt", false)) return;
@@ -2353,7 +2389,7 @@ var CliqzHumanWeb = {
 
         //Remove the msg if the query is too long,
 
-        if(msg.action=='query') {
+        if(msg.action=='query' || msg.action == 'anon-query') {
             //Remove the msg if the query is too long,
             if ((msg.payload.q == null) || (msg.payload.q == '')) {
                 return null;
@@ -3134,6 +3170,23 @@ var CliqzHumanWeb = {
           function error(res){
             _log('Error loading config. ')
             });
+
+        // Load anon content extraction.
+        CliqzUtils.httpGet(CliqzHumanWeb.anonPatternsURL, function success(req) {
+            if (!CliqzHumanWeb) return;
+
+            var patternConfig = JSON.parse(req.response);
+            CliqzHumanWeb.anonSearchEngines = patternConfig["searchEngines"];
+            CliqzHumanWeb.anonExtractRules = patternConfig["scrape"];
+            CliqzHumanWeb.anonPayloads = patternConfig["payloads"];
+            CliqzHumanWeb.anonIdMappings = patternConfig["idMapping"];
+            CliqzHumanWeb.anonRArray = [];
+            patternConfig["urlPatterns"].forEach(function (e) {
+                CliqzHumanWeb.anonRArray.push(new RegExp(e));
+            });
+        }, function error(res) {
+            _log('Error loading config. ');
+        });
     },
     checkForEmail: function(str) {
         if (str.match(/[a-z0-9\-_@]+(@|%40|%(25)+40)[a-z0-9\-_]+\.[a-z0-9\-_]/i) != null) return true;
@@ -3186,16 +3239,27 @@ var CliqzHumanWeb = {
             _log('Error loading config. ')
           }, 5000);
     },
-    checkURL: function(cd, url){
+    checkURL: function(cd, url, ruleset){
         var pageContent = cd;
         //var rArray = new Array(new RegExp(/\.google\..*?[#?&;]q=[^$&]+/), new RegExp(/.search.yahoo\..*?[#?&;]p=[^$&]+/), new RegExp(/.linkedin.*?\/pub\/dir+/),new RegExp(/\.bing\..*?[#?&;]q=[^$&]+/),new RegExp(/.*/))
         //scrap(4, pageContent)
-        for(var i=0;i<CliqzHumanWeb.rArray.length;i++){
-            if(CliqzHumanWeb.rArray[i].test(url)){
-                CliqzHumanWeb.extractContent(i, pageContent, url);
+        let rArray = [];
+        let searchEngines = [];
+        if (ruleset === "normal"){
+            rArray = CliqzHumanWeb.rArray;
+            searchEngines = CliqzHumanWeb.searchEngines;
+        }
+        else if (ruleset === "strict"){
+            rArray = CliqzHumanWeb.anonRArray;
+            searchEngines = CliqzHumanWeb.anonSearchEngines
+        }
+
+        for(var i=0;i<rArray.length;i++){
+            if (rArray[i].test(url)){
+                CliqzHumanWeb.extractContent(i, pageContent, url, ruleset);
 
                 //Do not want to continue after search engines...
-                if(CliqzHumanWeb.searchEngines.indexOf(''+i) != -1 ){return;}
+                if(searchEngines.indexOf(''+i) != -1 ){return;}
                 if (CliqzHumanWeb.debug) {
                     _log('Continue further after search engines ');
                 }
@@ -3208,7 +3272,7 @@ var CliqzHumanWeb = {
         for(var i=0;i<CliqzHumanWeb.rArray.length;i++){
             if(CliqzHumanWeb.rArray[i].test(url)){
                 //Do not want to continue after search engines... && !reref.test(url)
-                if(CliqzHumanWeb.searchEngines.indexOf(''+i) != -1 ){;
+                if(CliqzHumanWeb.searchEngines.indexOf(''+i) != -1 ){
                     idx = i;
                     return idx;
                 }
@@ -3221,14 +3285,41 @@ var CliqzHumanWeb = {
             }
         }
     },
-    extractContent: function(ind, cd, url){
+    checkAnonSearchURL: function (url) {
+        var idx = null;
+        for (var i = 0; i < CliqzHumanWeb.anonRArray.length; i++) {
+            if (CliqzHumanWeb.anonRArray[i].test(url)) {
+                //Do not want to continue after search engines... && !reref.test(url)
+                if (CliqzHumanWeb.anonSearchEngines.indexOf('' + i) != -1) {
+                    ;
+                    idx = i;
+                    return idx;
+                } else {
+                    if (CliqzHumanWeb.debug) {
+                        _log('Not search engine ' + i + CliqzHumanWeb.searchEngines);
+                    }
+                    return -1;
+                }
+            }
+        }
+    },
+    extractContent: function(ind, cd, url, ruleset){
         var scrapeResults = {};
         var eventMsg = {};
         var rules = {};
         var key = "";
         var rule = "";
+        var payloadRules = [];
 
-        rules = CliqzHumanWeb.extractRules[ind];
+        if(ruleset === "normal"){
+            rules = CliqzHumanWeb.extractRules[ind];
+            payloadRules = CliqzHumanWeb.payloads[ind];
+        }
+        else if(ruleset === "strict"){
+            rules = CliqzHumanWeb.anonExtractRules[ind];
+            payloadRules = CliqzHumanWeb.anonPayloads[ind];
+        }
+
         if (CliqzHumanWeb.debug) {
             _log('rules' + rules + ind);
         }
@@ -3297,8 +3388,8 @@ var CliqzHumanWeb = {
             }
         }
 
-        for(rule in CliqzHumanWeb.payloads[ind]){
-            CliqzHumanWeb.createPayload(scrapeResults, ind, rule)
+        for(rule in payloadRules){
+            CliqzHumanWeb.createPayload(scrapeResults, ind, rule, ruleset);
         }
     },
     mergeArr: function(arrS){
@@ -3339,9 +3430,14 @@ var CliqzHumanWeb = {
         }
         return arr;
     },
-    createPayload: function(scrapeResults, idx, key){
+    createPayload: function(scrapeResults, idx, key, payloadRule){
         try{
-            var payloadRules = CliqzHumanWeb.payloads[idx][key];
+            if(payloadRule === "normal"){
+                var payloadRules = CliqzHumanWeb.payloads[idx][key];
+            }else if(payloadRule === "strict"){
+                var payloadRules = CliqzHumanWeb.anonPayloads[idx][key];
+            }
+
             if (payloadRules['type'] == 'single' && payloadRules['results'] == 'single' ){
                 scrapeResults[key].forEach(function(e){
                     try {var location = CliqzUtils.getPref('config_location', null)} catch(ee){};
@@ -3874,6 +3970,10 @@ var CliqzHumanWeb = {
     saveActionStatsLastSent: function() {
         CliqzHumanWeb.saveRecord('actionStats_last_send', CliqzHumanWeb.actionStatsLastSent);
     },
+    saveStrictQueries: function() {
+        _log("Saving local table");
+        CliqzHumanWeb.saveRecord('localStrictQueries', JSON.stringify(CliqzHumanWeb.strictQueries));
+    },
     sendActionStatsIfNeeded: function() {
         // Send action stats once per day.
         // Day resolution.
@@ -3910,10 +4010,37 @@ var CliqzHumanWeb = {
         });
 
     },
+    loadStrictQueries: function(){
+        CliqzHumanWeb.loadRecord('localStrictQueries', function(data) {
+            if (data==null || data.length == 0) {
+                _log("There was no data on CliqzHumanWeb.bf");
+                CliqzHumanWeb.strictQueries = [];
+            }
+            else {
+                CliqzHumanWeb.strictQueries = JSON.parse(data);
+            }
+
+        });
+
+    },
     getDBConn: function(){
         return CliqzHumanWeb.dbConn || CliqzHumanWeb.initDB();
+    },
+    auxGetQuery: function(){
+        CliqzHumanWeb.strictQueries.forEach( function(e, idx) {
+            var t = Date.now();
+            if((t - e.ts) > (e.tDiff * 60 * 1000)) {
+                CliqzHumanWeb.auxGetPageData(e.qurl, null, e.qurl,function(url, page_data, ourl, x){
+                    let cd = CliqzHumanWeb.docCache[url]['doc'];
+                    CliqzHumanWeb.checkURL(cd, url, "strict");
+                }, function(a,b,c,d){
+                    _log("Error aux>>>> " + d)
+                });
+                CliqzHumanWeb.strictQueries.splice(idx, 1);
+                CliqzHumanWeb.saveStrictQueries();
+            }
+        })
     }
-
 };
 
 export default CliqzHumanWeb;

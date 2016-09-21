@@ -23,7 +23,7 @@ export default class {
 
     menu.setAttribute('label', utils.getLocalizedString('share_location'));
 
-    var filter_levels = this.getLocationPermState();
+    var filter_levels = utils.getLocationPermState();
 
     for(var level in filter_levels) {
       var item = doc.createElement('menuitem');
@@ -69,24 +69,12 @@ export default class {
     return menu;
   }
 
-  getLocationPermState(){
-    var data = {
-      'yes': {
-        name: utils.getLocalizedString('always'),
-        selected: false
-      },
-      'ask': {
-        name: utils.getLocalizedString('always_ask'),
-        selected: false
-      },
-      'no': {
-        name: utils.getLocalizedString('never'),
-        selected: false
+  status() {
+    if (utils.getPref("cliqz_core_disabled", false) === false) {
+      return {
+        visible: true,
+        state: utils.getLocationPermState()
       }
-    };
-
-    data[utils.getPref('share_location', 'ask')].selected = true;
-
-    return data;
+    }
   }
 }

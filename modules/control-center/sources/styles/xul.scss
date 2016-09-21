@@ -1,0 +1,54 @@
+#cliqz-cc-btn {
+    padding: 0;
+}
+
+.cliqz-control-center {
+    height: 31px;
+    padding: 9px 4px 0 32px;
+    color: transparent;
+    background-size: 20px;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(../images/cc-active.svg);
+}
+
+.cliqz-control-center:after {
+    content: 'CLIQZ';
+}
+
+#nav-bar .cliqz-control-center {
+    background-position: 4px 5px;
+    color: black;
+}
+
+#nav-bar .cliqz-control-center:after {
+    content: '';
+}
+
+/* if the button appears in the overflow area of the browser on very small widths */
+.widget-overflow-list .cliqz-control-center {
+    margin-left: 5px;
+}
+
+.widget-overflow-list .cliqz-control-center:after {
+    padding-left: 20px;
+}
+
+.cliqz-control-center[state="critical"] {
+    background-image: url(../images/cc-critical.svg)
+}
+
+.cliqz-control-center[state="inactive"] {
+    background-image: url(../images/cc-inactive.svg)
+}
+
+#cliqz-cc-btn-panel,
+#cliqz-cc-btn-panel > iframe,
+#cliqz-cc-btn-panel > panel-subview-body {
+    overflow: hidden !important;
+}
+
+panelmultiview[mainViewId="cliqz-cc-btn-panel"] > .panel-viewcontainer > .panel-viewstack > .panel-mainview:not([panelid="PanelUI-popup"]),
+panel[viewId="cliqz-cc-btn-panel"] .panel-mainview {
+    max-width: 50em !important;
+}

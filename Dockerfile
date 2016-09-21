@@ -32,5 +32,22 @@ ENV PATH "/usr/local/ssl/bin:$PATH"
 
 ARG UID
 ARG GID
-RUN groupadd jenkins -g $GID && \
-  useradd -ms /bin/bash jenkins -u $UID -g $GID
+RUN groupadd jenkins -g $GID \
+ && useradd -ms /bin/bash jenkins -u $UID -g $GID
+
+# TODO
+# Cache bower packages
+# RUN su - jenkins -c 'echo "{\"storage\": {\"packages\": \"~/.bower/packages\", \"registry\": \"~/.bower/registry\", \"links\": \"~/.bower/links\"}}" > /home/jenkins/.bowerrc'
+
+# TODO: Also make use of a caching directory
+USER jenkins
+# Cache npm install and bower in docker
+COPY package.json /home/jenkins/
+COPY bower.json /home/jenkins/
+RUN cd /home/jenkins/ && npm install && bower install
+
+# Freshtab
+RUN mkdir /home/jenkins/freshtab
+COPY subprojects/fresh-tab-frontend/package.json /home/jenkins/freshtab
+COPY subprojects/fresh-tab-frontend/bower.json /home/jenkins/freshtab
+RUN cd /home/jenkins/freshtab && npm install && bower install

@@ -3,11 +3,19 @@ import { simpleBtn } from 'q-button/buttons';
 import { utils } from 'core/cliqz';
 import CLIQZEnvironment from "platform/environment";
 import CliqzResultProviders from "autocomplete/result-providers";
+import background from 'q-button/background';
 
 const BTN_ID = 'cliqz-button',
       firstRunPref = 'firstStartDone',
+      CC_ENABLE_PREF = 'controlCenter',
       TRIQZ_URL = 'https://cliqz.com/home/cliqz-triqz',
-      TOUR_URL = 'chrome://cliqz/content/onboarding/onboarding.html';
+      TOUR_URL = 'chrome://cliqz/content/onboarding/onboarding.html',
+      SEARCH_BAR_ID = 'search-container'
+      dontHideSearchBar = 'dontHideSearchBar',
+      //toolbar
+      searchBarPosition = 'defaultSearchBarPosition',
+      //next element in the toolbar
+      searchBarPositionNext = 'defaultSearchBarPositionNext';
 
 export default class {
 
@@ -19,8 +27,27 @@ export default class {
   }
 
   init() {
-    this.addQbutton();
+    // if Control center is enabled Q button is disabled
+    if(background.buttonEnabled){
+      this.addQbutton();
+    }
+
+    // TODO: handle this help menu once ControlCenter goes 100%
     this.updateFFHelpMenu();
+    if (!utils.getPref(dontHideSearchBar, false)) {
+      //try to hide quick search
+      try{
+          var doc = this.window.document;
+          var [toolbarID, nextEl] = ToolbarButtonManager.hideToolbarElement(doc, SEARCH_BAR_ID);
+          if(toolbarID){
+              utils.setPref(searchBarPosition, toolbarID);
+          }
+          if(nextEl){
+              utils.setPref(searchBarPositionNext, nextEl);
+          }
+          utils.setPref(dontHideSearchBar, true);
+      } catch(e){}
+    }
   }
 
   updateFFHelpMenu() {
@@ -42,10 +69,12 @@ export default class {
   }
 
   unload() {
-    // remove Q menu
-    var btn = this.window.document.getElementById(BTN_ID);
-    if (btn) {
-      btn.parentNode.removeChild(btn);
+    if(background.buttonEnabled){
+      // remove Q menu
+      var btn = this.window.document.getElementById(BTN_ID);
+      if (btn) {
+        btn.parentNode.removeChild(btn);
+      }
     }
 
     //remove custom items from the Help Menu
@@ -64,20 +93,6 @@ export default class {
         utils.setPref(firstRunPref, true);
 
         ToolbarButtonManager.setDefaultPosition(BTN_ID, 'nav-bar', 'downloads-button');
-    }
-
-    if (!utils.getPref(dontHideSearchBar, false)) {
-        //try to hide quick search
-        try{
-            var [toolbarID, nextEl] = ToolbarButtonManager.hideToolbarElement(doc, SEARCH_BAR_ID);
-            if(toolbarID){
-                utils.setPref(searchBarPosition, toolbarID);
-            }
-            if(nextEl){
-                utils.setPref(searchBarPositionNext, nextEl);
-            }
-            utils.setPref(dontHideSearchBar, true);
-        } catch(e){}
     }
 
     // cliqz button
@@ -131,8 +146,10 @@ export default class {
     }
 
     // module buttons
-    win.CLIQZ.Core.windowModules.forEach(mod => {
-      var buttonItem = mod && mod.createButtonItem && mod.createButtonItem(win);
+    win.CLIQZ.config.modules.forEach(moduleName=> {
+      var mod = win.CLIQZ.Core.windowModules[moduleName],
+          buttonItem = mod && mod.createButtonItem && mod.createButtonItem(win);
+
       if (buttonItem) {
         if (Array.isArray(buttonItem)) {
           for (let b of buttonItem) {
@@ -214,16 +231,7 @@ export default class {
     var button = doc.createElement('menuitem');
     button.setAttribute('label', utils.getLocalizedString('btnActivateCliqz'));
     button.addEventListener('command', (function(event) {
-      utils.setPref("cliqz_core_disabled", false);
-      utils.extensionRestart();
-
-      doc.getElementById('urlbar').blur();
-
-      utils.telemetry({
-        type: 'setting',
-        setting: 'international',
-        value: 'activate'
-      });
+      CLIQZEnvironment.enableCliqzResults(doc.getElementById('urlbar'));
     }).bind(this));
     return button;
   }

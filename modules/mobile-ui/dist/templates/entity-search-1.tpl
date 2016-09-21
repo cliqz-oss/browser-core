@@ -6,16 +6,13 @@
 <section class="primary">
 
     <h1 class="card__title">
-       <a href="{{url}}">{{data.search_provider}}</a>
+       <div>{{data.search_provider}}</div>
     </h1>
 
     <div class="card__meta">
-        <a href="{{url}}">{{data.friendly_url}}</a>
+        <div>{{data.friendly_url}}</div>
     </div>
 
-</section>
-
-<section class="primary">
     <div class="card__description">
         
       <div
@@ -44,7 +41,10 @@
 
         
     </div>
+
 </section>
+
+
 
 
 

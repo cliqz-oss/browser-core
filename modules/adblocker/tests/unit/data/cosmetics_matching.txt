@@ -1,0 +1,57 @@
+[
+{
+    "url": "https://www.google.com/test",
+    "node": [".adwords"],
+    "matches": [
+        "##.adwords"
+    ],
+    "mismatches": [
+        "accounts.google.com#@#.adwords"
+    ]
+},
+{
+    "url": "https://www.example.de/test",
+    "node": ["#AD300Right"],
+    "matches": [
+        "###AD300Right"
+    ],
+    "misMatches": []
+},
+{
+    "url": "https://pokerupdate.com/test",
+    "node": ["#not_an_ad"],
+    "matches": [],
+    "misMatches": []
+},
+{
+    "url": "https://pokerupdate.com/test",
+    "node": [".related-room", ".prev-article"],
+    "matches": [
+        "pokerupdate.com##.related-room",
+        "pokerupdate.com##.prev-article"
+    ],
+    "misMatches": []
+},
+{
+    "url": "https://www.google.com/test",
+    "node": [".c"],
+    "matches": [
+        "google.com,~mail.google.com##.c[style=\"margin: 0pt;\"]",
+        "###tads + div + .c",
+        "##.mw > #rcnt > #center_col > #taw > #tvcap > .c",
+        "##.mw > #rcnt > #center_col > #taw > .c"
+    ]
+},
+{
+    "url": "https://mail.google.com/test",
+    "node": [".c"],
+    "matches": [
+        "###tads + div + .c",
+        "##.mw > #rcnt > #center_col > #taw > #tvcap > .c",
+        "##.mw > #rcnt > #center_col > #taw > .c"
+    ],
+    "misMatches": [
+        "google.com,~mail.google.com##.c[style=\"margin: 0pt;\"]"
+    ]
+}
+]

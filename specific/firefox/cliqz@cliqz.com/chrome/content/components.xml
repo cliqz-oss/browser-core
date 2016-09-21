@@ -50,6 +50,29 @@
           ]]>
         </body>
       </method>
+      <method name="handleKeyPress">
+        <body>
+          <![CDATA[
+            //mask default FF
+          ]]>
+        </body>
+      </method>
+      <method name="enableOneOffSearches">
+        <parameter name="enable"/>
+        <body>
+          <![CDATA[
+            //mask default FF
+          ]]>
+        </body>
+      </method>
+      <method name="oneOffSearchButtons">
+        <parameter name="enable"/>
+        <body>
+          <![CDATA[
+            //mask default FF
+          ]]>
+        </body>
+      </method>
       <method name="_openAutocompletePopup">
         <parameter name="aInput"/>
         <parameter name="aElement"/>

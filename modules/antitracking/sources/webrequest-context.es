@@ -16,11 +16,11 @@ export default class {
   }
 
   getOuterWindowID() {
-    return this.details.getOuterWindowID();
+    return this.details.frameId;
   }
 
   getParentWindowID() {
-    return this.details.parentFrameId || this.getOuterWindowID();
+    return this.details.parentFrameId || this.details.frameId;
   }
 
   getLoadingDocument() {
@@ -44,7 +44,7 @@ export default class {
   }
 
   getSourceURL() {
-    return this.details.getSourceURL();
+    return this.details.source;
   }
 
   getRequestHeader(header) {
@@ -56,7 +56,7 @@ export default class {
   }
 
   getOriginWindowID() {
-    return this.details.getOriginWindowID();
+    return this.details.tabId;
   }
 
   isChannelPrivate() {

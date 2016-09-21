@@ -13,7 +13,7 @@ var OffersConfigs = {
   HOUR: 60 * 60,
   DAY: 60 * 60 * 24,
 
-  CURRENT_VERSION: 0.60,
+  CURRENT_VERSION: 0.7,
 
 
   //////////////////////////////////////////////////////////////////////////////
@@ -57,6 +57,7 @@ var OffersConfigs = {
 
   OFFER_DEV_URL: 'http://mixer-beta.clyqz.com/api/v1/rich-header?path=/map&bmresult=vouchers.cliqz.com&',
   OFFER_PROD_URL: 'https://newbeta.cliqz.com/api/v1/rich-header?path=/map&bmresult=vouchers.cliqz.com&',
+  // This value is overwritten in background.es
   OFFER_FETCHER_DEST_URL: 'https://newbeta.cliqz.com/api/v1/rich-header?path=/map&bmresult=vouchers.cliqz.com&',
 
   //////////////////////////////////////////////////////////////////////////////

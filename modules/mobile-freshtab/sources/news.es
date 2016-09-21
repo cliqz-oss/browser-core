@@ -1,7 +1,8 @@
-/* global CustomEvent, window, document, CliqzLanguage, CliqzUtils, CliqzHandlebars, osAPI */
+/* global CustomEvent, window, document, osAPI */
 
 import LongPress from 'mobile-touch/longpress';
-import CliqzHandlebars from "core/templates";
+import CliqzHandlebars from 'core/templates';
+import CliqzUtils from 'core/utils';
 
 var DEPENDENCY_STATUS = {
   NOT_LOADED: 'NOT_LOADED',
@@ -11,11 +12,13 @@ var DEPENDENCY_STATUS = {
   retryCount: {}
 };
 
-var topSitesList = [], tempBlockedTopSites = [], newsVersion, displayedTopSitesCount, TOPSITES_LIMIT = 4;
+var topSitesList = [], tempBlockedTopSites = [], newsVersion, displayedTopSitesCount, TOPSITES_LIMIT = 5;
 
 function displayTopSites (list, isEditMode = false) {
 
   const blockedTopSites = CliqzUtils.getLocalStorage().getObject('blockedTopSites', []);
+
+  list = deduplicateTopsites(list);
 
   list = list.filter(item => blockedTopSites.indexOf(item.mainDomain) === -1);
 
@@ -42,12 +45,13 @@ function displayTopSites (list, isEditMode = false) {
 
   const isEmpty = list.length ? false : true;
 
-  list = list.concat('', '', '', ''); // 4 empty topsites to fill
+  list = list.concat(Array(TOPSITES_LIMIT).fill(''));
   list = list.splice(0, TOPSITES_LIMIT);
 
   const topSites = CliqzHandlebars.tplCache.topsites;
   const div = document.getElementById('topSites');
-  div.innerHTML = topSites({isEmpty, isEditMode, list});
+  const theme = (CliqzUtils.getPref('incognito', false) === 'true' ? 'incognito' : 'standard');
+  div.innerHTML = topSites({isEmpty, isEditMode, list, theme});
 
 
   CliqzUtils.addEventListenerToElements('#doneEditTopsites', 'click', _ => {
@@ -85,6 +89,11 @@ function displayTopSites (list, isEditMode = false) {
 
 }
 
+function deduplicateTopsites(list) {
+  let domains = {};
+  return list.filter(item => !domains[item.mainDomain] && (domains[item.mainDomain] = true));
+}
+
 var News = {
   GENERIC_NEWS_URL: 'https://newbeta.cliqz.com/api/v1/rich-header?path=/map&bmresult=rotated-top-news.cliqz.com&lang=de,en&locale=de',
   _recentHistory: {},
@@ -109,9 +118,8 @@ var News = {
       log('timeout error', arguments);
       News.getNews();
     },
-    data = null,
-    asynchronous = true;
-    CliqzUtils.httpHandler(method, News.GENERIC_NEWS_URL, callback, onerror, timeout, data, asynchronous);
+    data = null;
+    CliqzUtils.httpHandler(method, News.GENERIC_NEWS_URL, callback, onerror, timeout, data);
 
   },
   displayTopNews: function(top_news) {
