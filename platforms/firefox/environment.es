@@ -22,7 +22,6 @@ var CLIQZEnvironment = {
     prefs: Cc['@mozilla.org/preferences-service;1'].getService(Ci.nsIPrefService).getBranch(''),
     OS: Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS.toLowerCase(),
     RERANKERS: [],
-    RESULTS_TIMEOUT: 1000, // 1 second
     TEMPLATES: {'calculator': 1, 'clustering': 1, 'currency': 1, 'custom': 1, 'emphasis': 1, 'empty': 1,
       'generic': 1, /*'images_beta': 1,*/ 'main': 1, 'results': 1, 'text': 1, 'series': 1,
       'spellcheck': 1,
@@ -44,6 +43,11 @@ var CLIQZEnvironment = {
       'cpgame_movie': 3,
       'delivery-tracking': 2,
       'vod': 3,
+      'conversations': 1,
+      'conversations_future': 1,
+      'topnews': 1,
+      '_generic': 1,
+      '_history': 1,
       'liveTicker': 3
     },
     MESSAGE_TEMPLATES: [
@@ -70,8 +74,7 @@ var CLIQZEnvironment = {
         'partials/location/missing_location_1',
         'partials/timetable-cinema',
         'partials/timetable-movie',
-        'partials/bottom-data-sc',
-        'partials/download',
+        'partials/music-data-sc',
         'partials/streaming',
         'partials/lyrics'
     ],
@@ -336,8 +339,8 @@ var CLIQZEnvironment = {
                             .getService(Ci.nsIWindowMediator);
         return wm.getMostRecentWindow("navigator:browser");
     },
-    getWindowID: function(win){
-        win = win || CLIQZEnvironment.getWindow();
+    getWindowID: function(){
+        var win = CLIQZEnvironment.getWindow();
         var util = win.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils);
         return util.outerWindowID;
     },
@@ -353,6 +356,7 @@ var CLIQZEnvironment = {
           telemetrySeq = -1,
           telemetryReq = null,
           telemetrySending = [],
+          telemetryStart = undefined,
           TELEMETRY_MAX_SIZE = 500;
 
       function getNextSeq(){
@@ -371,6 +375,8 @@ var CLIQZEnvironment = {
         // put current data aside in case of failure
         telemetrySending = CLIQZEnvironment.trk.slice(0);
         CLIQZEnvironment.trk = [];
+
+        telemetryStart = Date.now();
 
         CLIQZEnvironment.log('push telemetry data: ' + telemetrySending.length + ' elements', "pushTelemetry");
 
@@ -425,10 +431,6 @@ var CLIQZEnvironment = {
         }
       }
     })(),
-    getDefaultSearchEngine() {
-      var searchEngines = CLIQZEnvironment.getSearchEngines();
-      return searchEngines.filter(function (se) { return se.default; })[0];
-    },
     //TODO: cache this
     getSearchEngines: function(){
         var defEngineName = Services.search.defaultEngine.name;
@@ -456,10 +458,10 @@ var CLIQZEnvironment = {
       Services.search.getEngineByName(name).alias = newAlias;
     },
     getEngineByAlias: function(alias) {
-      return CLIQZEnvironment.getSearchEngines().find(engine => { return engine.alias === alias; });
+     return Services.search.getEngineByAlias(alias);
     },
-    getEngineByName: function(name) {
-      return CLIQZEnvironment.getSearchEngines().find(engine => { return engine.name === name; });
+    getEngineByName: function(engine) {
+      return Services.search.getEngineByName(engine);
     },
     addEngineWithDetails: function(engine) {
       Services.search.addEngineWithDetails(
@@ -489,31 +491,6 @@ var CLIQZEnvironment = {
         uri = null
       }
       return uri;
-    },
-    disableCliqzResults: function (urlbar) {
-      CliqzUtils.extensionRestart(function(){
-        CliqzUtils.setPref("cliqz_core_disabled", true);
-      });
-
-      // blur the urlbar so it picks up the default AutoComplete provider
-      CliqzUtils.autocomplete.isPopupOpen = false;
-      setTimeout(function(urlbar){
-        urlbar.focus();
-        urlbar.blur();
-      }, 0, urlbar);
-    },
-    enableCliqzResults: function (urlbar) {
-      CliqzUtils.setPref("cliqz_core_disabled", false);
-      CliqzUtils.extensionRestart();
-
-      // blur the urlbar so it picks up the new CLIQZ Autocomplete provider
-      urlbar.blur();
-
-      CliqzUtils.telemetry({
-        type: 'setting',
-        setting: 'international',
-        value: 'activate'
-      });
     },
     // lazy init
     // callback called multiple times
@@ -551,6 +528,11 @@ var CLIQZEnvironment = {
                     onSearchResult: function(ctx, result) {
                         var res = [];
                         for (var i = 0; result && i < result.matchCount; i++) {
+                            if(result.getStyleAt(i).indexOf('heuristic') != -1 ||
+                               result.getStyleAt(i).indexOf('switchtab') != -1){
+                              // filter out "heuristic" results
+                              continue;
+                            }
                             res.push({
                                 style:   result.getStyleAt(i),
                                 value:   result.getValueAt(i),

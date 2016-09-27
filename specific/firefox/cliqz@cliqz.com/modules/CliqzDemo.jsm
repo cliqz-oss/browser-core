@@ -43,7 +43,7 @@ function _sendTelemetrySignal(action) {
 }
 
 function _onPageLoad (aEvent) {
-	var doc = aEvent.target;
+	var doc = aEvent.originalTarget;
 
 	if (doc.nodeName != "#document") return;
 	var details = CliqzUtils.getDetailsFromUrl(doc.location.toString());

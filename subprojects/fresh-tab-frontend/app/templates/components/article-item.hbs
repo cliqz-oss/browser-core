@@ -4,17 +4,9 @@
       <div extra="logo" class="logo" style="{{model.logo.style}}">{{model.logo.text}}</div>
       <div extra="url" class="url">{{model.displayUrl}}</div>
     </div>
+
     <div class="newsContent">
       <div extra='title' class='title'>
-        {{#if isBreakingNews}}
-          <span class="breakingNews">
-          {{#if model.breaking_label}}
-            {{model.breaking_label}}:
-          {{else}}
-            {{t 'news.breaking-news'}}
-          {{/if}}
-          </span>
-        {{/if}}
         {{model.title}}
       </div>
     </div>

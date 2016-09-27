@@ -37,11 +37,16 @@ var locationListener = {
   QueryInterface: XPCOMUtils.generateQI(["nsIWebProgressListener", "nsISupportsWeakReference"]),
 
   onLocationChange: function(aBrowser, aRequest, aURI) {
+    const isPrivate = aBrowser.usePrivateBrowsing;
+    CliqzEvents.pub("core.location_change", aURI.spec, isPrivate);
+
     // since the object seems to not be loaded at once what we will do is create a
     // second async call till the real object is fully loaded.
+    // (for now for backward compatibility) and we may later merge
+    // this one to the proper location_change if no problems are found.
     //
     CliqzUtils.setTimeout(function(aBrowserRef, aUriSpec) {
-      CliqzEvents.pub("core.location_change", aUriSpec, aBrowserRef.usePrivateBrowsing);
+      CliqzEvents.pub("core.location_change_delayed", aUriSpec, aBrowserRef.usePrivateBrowsing);
     }, 0, aBrowser, aURI.spec);
   }
 };
@@ -108,13 +113,14 @@ window.CLIQZ.Core = {
         this.tabRemoved = CliqzSearchHistory.tabRemoved.bind(CliqzSearchHistory);
         gBrowser.tabContainer.addEventListener("TabClose", this.tabRemoved, false);
 
-        this.windowModules = {};
+        // windowModules should be in same order as config.modules
+        this.windowModules = new Array(CLIQZ.config.modules.length);
 
         var windowModulePromises = CLIQZ.config.modules.map(function (moduleName, moduleIndex) {
           return CLIQZ.System.import(moduleName+"/window").then(function (Module) {
             var mod = new Module.default(windowModuleConfig);
             mod.init();
-            this.windowModules[moduleName] = mod;
+            this.windowModules[moduleIndex] = mod;
             return mod;
           }.bind(this)).catch(function (e) {
             console.log("CLIQZ core.js", "Error loading module: "+moduleName, e);
@@ -172,13 +178,15 @@ window.CLIQZ.Core = {
     },
     // restoring
     unload: function(soft){
-        CLIQZ.config.modules.slice(0).reverse().forEach((function (mod, index) {
+        this.windowModules.slice(0).reverse().forEach(function (mod, index) {
+          var moduleIndex = CLIQZ.config.modules.length - 1 - index;
+          var moduleName = CLIQZ.config.modules[moduleIndex];
           try {
-            this.windowModules[mod].unload();
+            mod.unload();
           } catch(e) {
-            console.log("CLIQZ core.js:", "error on unload module " + mod, e);
+            console.log("CLIQZ core.js:", "error on unload module " + moduleName, e);
           }
-        }).bind(this));
+        });
 
         clearTimeout(this._whoAmItimer);
 

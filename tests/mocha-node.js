@@ -1,52 +1,35 @@
-'use strict';
-
-/* globals require, process, global, error */
-
+"use strict"
 const walk = require('walk');
 const System = require('systemjs');
 const Mocha = require('mocha');
 const fs = require('fs');
 const chai = require('../bower_components/chai/chai.js');
-chai.config.truncateThreshold = 0;
+chai.config.truncateThreshold = 0
 
 global.chai = chai;
 
-
-function log(msg) {
-  fs.appendFileSync('./mocha.log', `${msg}\n`);
-}
-
-
-const configFilePath = process.env.CLIQZ_CONFIG_PATH;
+const configFilePath  = process.env['CLIQZ_CONFIG_PATH'];
 const cliqzConfig = JSON.parse(fs.readFileSync(configFilePath));
 
-log(JSON.stringify(cliqzConfig));
-
-const mochaOptions = {
+const mocha = new Mocha({
   ui: 'bdd',
-  reporter: 'tap',
-};
-const grep = process.env["MOCHA_GREP"];
-if (grep) {
-  mochaOptions.grep = grep;
-}
-const mocha = new Mocha(mochaOptions);
-const baseDir = cliqzConfig.testsBasePath;
+  reporter: 'tap'
+});
 
-log(`baseDir ${baseDir}`);
+const baseDir = cliqzConfig.testsBasePath;
 
 System.config({
   defaultJSExtensions: true,
   baseURL: baseDir,
   meta: {
-    '*': { format: 'register' },
-  },
+    '*': { format: 'register' }
+  }
 });
 
 // list names of all loaded modules so we can unload them after each test
 // check `unloadModules`
-const set = System.set;
-const modules = {};
+let set = System.set;
+let modules = {};
 System.set = function (name) {
   modules[name] = true;
   return set.apply(System, arguments);
@@ -55,8 +38,8 @@ System.set = function (name) {
 const testFiles = [];
 const walker = walk.walk(baseDir);
 
-walker.on('file', (root, state, next) => {
-  const testPath = `${root}/${state.name}`;
+walker.on('file', function (root, state, next) {
+  const testPath = root + '/' + state.name;
   if (state.name.endsWith('-test.js')) {
     testFiles.push(testPath);
     mocha.addFile(testPath);
@@ -65,19 +48,24 @@ walker.on('file', (root, state, next) => {
 });
 
 function describeModule(moduleName, loadDeps, testFn) {
-  let deps;
+  var deps;
 
   function loadModules() {
     return Promise.all(
       Object.keys(deps).map(
         dep => System.set(dep, System.newModule(deps[dep]))
       )
-    ).then(() => System.import(moduleName));
+    ).then(function () {
+      return System.import(moduleName);
+    });
   }
 
   function unloadModules() {
+
     System.delete(System.normalizeSync(moduleName));
-    Object.keys(deps).forEach(mod => System.delete(mod));
+    Object.keys(deps).forEach( mod => {
+      return System.delete(mod)
+    });
 
     // Unload remaining unmocked modules
     Object.keys(modules).forEach(name => {
@@ -87,7 +75,9 @@ function describeModule(moduleName, loadDeps, testFn) {
   }
 
   return new Promise(function (resolve) {
+
     describe(moduleName, function () {
+
       before(function () {
       });
 
@@ -97,7 +87,7 @@ function describeModule(moduleName, loadDeps, testFn) {
       beforeEach(function () {
         deps = loadDeps();
 
-        return loadModules().then(mod => {
+        return loadModules().then( (mod) => {
           this.module = function module() {
             module.module = module.module || mod;
             return module.module;
@@ -122,27 +112,25 @@ function describeModule(moduleName, loadDeps, testFn) {
 
 global.describeModule = describeModule;
 
-
-const run = mocha.run;
-const loadFiles = mocha.loadFiles;
+var run = mocha.run;
+var loadFiles = mocha.loadFiles;
 mocha.loadFiles = function () {};
 mocha.run = function () {
   loadFiles.call(this, function () {
     Promise.all(
       testFiles.map(
         path => System.import(path).then(function (testModule) {
-          log(`load ${path}`);
-          return testModule.default;
+          return testModule.default
         })
       )
-    ).then(function () {
+    ).then( function () {
       run.call(mocha);
     }, function (err) {
-      log(`error loading tests ${err} ${err.stack}`);
-      error('error loading tests', err, err.stack);
+      console.error('error loading tests', err, err.stack);
     });
   });
-};
+}
 
-
-walker.on('end', function () { mocha.run(); });
+walker.on('end', function () {
+  mocha.run();
+});

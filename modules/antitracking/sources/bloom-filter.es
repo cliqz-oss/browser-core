@@ -2,8 +2,7 @@ import md5 from 'antitracking/md5';
 import * as datetime from 'antitracking/time';
 import pacemaker from 'antitracking/pacemaker';
 import QSWhitelistBase from 'antitracking/qs-whitelist-base';
-import { utils, Promise } from 'core/cliqz';
-import { Resource } from 'core/resource-loader';
+import { utils } from 'core/cliqz';
 
 export function BloomFilter(a, k) {  // a the array, k the number of hash function
   var m = a.length * 32,  // 32 bits for each element in a
@@ -99,27 +98,18 @@ const UPDATE_EXPIRY_HOURS = 48;
 
 export class AttrackBloomFilter extends QSWhitelistBase {
 
-  constructor(configURL = BLOOMFILTER_CONFIG, baseURL = BLOOMFILTER_BASE_URL) {
+  constructor() {
     super();
     this.lastUpdate = '0';
     this.bloomFilter = null;
     this.version = null;
-    this.configURL = configURL;
-    this.baseURL = baseURL;
-    this._config = new Resource(['antitracking', 'bloom_config.json'], {
-      remoteURL: configURL
-    });
+    this.configURL = BLOOMFILTER_CONFIG;
+    this.baseURL = BLOOMFILTER_BASE_URL;
   }
 
   init() {
     super.init();
-    // try remote update before local
-    this._config.updateFromRemote().catch(() => {
-      return this._config.load();
-    }).then(this.checkUpdate.bind(this)).then(() => {
-      this.lastUpdate = datetime.getTime();
-    });
-    // check every 10s
+    this.update();
     pacemaker.register(this.update.bind(this), 10 * 60 * 1000);
   }
 
@@ -188,16 +178,16 @@ export class AttrackBloomFilter extends QSWhitelistBase {
   }
 
   update() {
-    this._config.updateFromRemote().then(this.checkUpdate.bind(this)).then(() => {
+    this.checkUpdate(function() {
       this.lastUpdate = datetime.getTime();
-    });
+    }.bind(this));
   }
 
-  remoteUpdate(major, minor) {
+  remoteUpdate(major, minor, callback) {
     var url = this.baseURL + major + '/' + minor + '.gz',
         self = this;
-
-    let updateFilter = function(bf) {
+    utils.httpGet(url, function(req) {
+      var bf = JSON.parse(req.response);
       if (minor !== 0) {
           self.bloomFilter.update(bf.bkt);
       } else {
@@ -205,46 +195,34 @@ export class AttrackBloomFilter extends QSWhitelistBase {
       }
       self.version.major = major;
       self.version.minor = minor;
-      return Promise.resolve();
-    };
+      callback && callback();
+  }, function() {
+    }, 10000);
+  }
 
-    // load the filter, if possible from the CDN, otherwise grab a cached local version
-    if (major === 'local') {
-      return this.loadFromLocal().then(updateFilter);
-    } else if (minor === 0) {
-      const bloomFile = new Resource(['antitracking', 'bloom_filter.json'], {
-        remoteURL: url
-      });
-      return bloomFile.updateFromRemote()
-        .catch(() => this.loadFromLocal())
-        .then(updateFilter);
-    } else {
-      return utils.promiseHttpHandler('GET', url, undefined, 10000)
-        .then((req) => JSON.parse(req.response))
-        .catch(() => this.loadFromLocal())
-        .then(updateFilter);
+  checkUpdate(callback) {
+    // check if the bloom filter version is up to date
+    if (this.configURL === null) {
+      return;
     }
-  }
-
-  loadFromLocal() {
-    const bloomFile = new Resource(['antitracking', 'bloom_filter.json']);
-    return bloomFile.load()
-  }
-
-  checkUpdate(version) {
     var self = this;
-    if (self.version === null || self.bloomFilter === null) {  // load the first time
-      self.version = {'major': null, 'minor': null};
-      return self.remoteUpdate(version.major, 0); // load the major version and update later
-    }
-    if (self.version.major === version.major &&
-      self.version.minor === version.minor) {  // already at the latest version
-      return Promise.resolve();
-    }
-    if (self.version.major !== version.major) {
-      return self.remoteUpdate(version.major, 0);
-    } else {
-      return self.remoteUpdate(version.major, version.minor);
-    }
+    utils.httpGet(self.configURL, function(req) {
+      var version = JSON.parse(req.response);
+      if (self.version === null || self.bloomFilter === null) {  // load the first time
+        self.version = {'major': null, 'minor': null};
+        self.remoteUpdate(version.major, 0, callback);
+        return;  // load the major version and update later
+      }
+      if (self.version.major === version.major &&
+        self.version.minor === version.minor) {  // already at the latest version
+        return;
+      }
+      if (self.version.major !== version.major) {
+        self.remoteUpdate(version.major, 0, callback);
+      } else {
+        self.remoteUpdate(version.major, version.minor, callback);
+      }
+    }, function() {
+    }, 10000);
   }
 }

@@ -11,7 +11,7 @@ var osAPI = {
           nativePostMessage(JSON.stringify(message));
         }
     } else {
-      osAPI.OS.postMessage = CLIQZ.MockOS.postMessage;
+      osAPI.OS.postMessage = MockOS.postMessage;
     }
     osAPI.isReady();
   },

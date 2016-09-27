@@ -1,14 +1,8 @@
 <!-- calculator.tpl -->
 
-{{#if urlDetails.friendly_url}}
-    {{#with logo}}
-    	<div class="card__logo {{#if backgroundImage}}bg{{/if}}" data-style="{{#if backgroundImage}}background-image:{{backgroundImage}};{{#if backgroundColor}} background-color:#{{backgroundColor}};{{/if}}{{else}}{{ style }};{{/if}}">{{ text }}</div>
-     {{/with}}
-
-    <div class="card__meta">
-        <div>{{urlDetails.friendly_url}}</div>
-    </div>
-{{/if}}
+{{#with logo}}
+	<div class="card__logo {{#if backgroundImage}}bg{{/if}}" data-style="{{#if backgroundImage}}background-image:{{backgroundImage}};{{#if backgroundColor}} background-color:#{{backgroundColor}};{{/if}}{{else}}{{ style }};{{/if}}">{{ text }}</div>
+ {{/with}}
 
 <section class="primary">
 
@@ -16,6 +10,17 @@
        {{timeOrCalculator data.ez_type}} {{data.location}}
     </h1>
 
+    <div class="card__meta">
+        {{#if data.richData.discovery_timestamp}}
+            <div class="timestamp">{{ agoline data.richData.discovery_timestamp }}</div>
+        {{else}}
+            {{urlDetails.friendly_url}}
+        {{/if}}
+    </div>
+
+</section>
+
+<section class="secondary">
     <div class="card__description">
         {{#if data.is_calculus}}
             <div class='cqz-result-h3 ez-calculator' cliqz-action='copy-calc-answer'>

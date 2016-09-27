@@ -1,5 +1,6 @@
 import ResourceLoader, { Resource, UpdateCallbackHandler } from 'core/resource-loader';
-import CliqzLanguage from 'platform/language';
+import parseList from 'adblocker/filters-parsing';
+
 
 // Disk persisting
 const RESOURCES_PATH = ['antitracking', 'adblocking'];
@@ -13,21 +14,47 @@ const ONE_DAY = 24 * ONE_HOUR;
 
 
 // URLs to fetch block lists
+const FILTER_LIST_BASE_URL = 'https://raw.githubusercontent.com/gorhill/uBlock/master/';
+const BASE_URL = 'https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/';
+const CHECKSUMS_URL = `${BASE_URL}checksums/ublock0.txt?_=`;
 
-const BASE_URL = 'https://cdn.cliqz.com/adblocking/latest-filters/';
 
-const LANGS = CliqzLanguage.state();
+function urlFromPath(path) {
+  if (path.startsWith('assets/ublock/filter-lists.json')) {
+    return FILTER_LIST_BASE_URL + path;
+  } else if (path.startsWith('assets/thirdparties/')) {
+    return path.replace(
+      /^assets\/thirdparties\//,
+      `${BASE_URL}thirdparties/`);
+  } else if (path.startsWith('assets/ublock/')) {
+    return path.replace(
+      /^assets\/ublock\//,
+      `${BASE_URL}filters/`);
+  }
+
+  return null;
+}
 
 
-function stripProtocol(url) {
-  let result = url;
-  ['http://', 'https://'].forEach(prefix => {
-    if (result.startsWith(prefix)) {
-      result = result.substring(prefix.length);
-    }
-  });
+const ALLOWED_LISTS = new Set([
+  // uBlock
+  'assets/ublock/filters.txt',
+  'assets/ublock/unbreak.txt',
+  // Adblock plus
+  'assets/thirdparties/easylist-downloads.adblockplus.org/easylist.txt',
+  // Extra lists
+  'pgl.yoyo.org/as/serverlist',
+  // Anti adblock killers
+  'https://raw.githubusercontent.com/reek/anti-adblock-killer/master/anti-adblock-killer-filters.txt',
+  'https://easylist-downloads.adblockplus.org/antiadblockfilters.txt',
+  // Privacy
+  // "assets/thirdparties/easylist-downloads.adblockplus.org/easyprivacy.txt",
+  // "assets/ublock/privacy.txt"
+]);
 
-  return result;
+
+function isListSupported(path) {
+  return ALLOWED_LISTS.has(path);
 }
 
 
@@ -35,12 +62,11 @@ class Checksums extends UpdateCallbackHandler {
   constructor() {
     super();
 
-    this.remoteURL = 'https://cdn.cliqz.com/adblocking/allowed-lists.json';
     this.loader = new ResourceLoader(
       RESOURCES_PATH.concat('checksums'),
       {
         cron: ONE_DAY,
-        dataType: 'json',
+        dataType: 'plainText',
         remoteURL: this.remoteURL,
       }
     );
@@ -53,38 +79,87 @@ class Checksums extends UpdateCallbackHandler {
 
   // Private API
 
+  get remoteURL() {
+    // The URL should contain a timestamp to avoid caching
+    return CHECKSUMS_URL + String(Date.now());
+  }
+
   updateChecksums(data) {
+    // Update the URL as it must include the timestamp to avoid caching
+    // NOTE: This mustn't be removed as it would break the update.
+    this.loader.resource.remoteURL = this.remoteURL;
+
     // Parse checksums
-    Object.keys(data).forEach(list => {
-      Object.keys(data[list]).forEach(asset => {
-        const checksum = data[list][asset].checksum;
-        let lang = null;
-        if (list === 'country_lists') {
-          lang = data[list][asset].language;
-        }
+    data.split(/\r\n|\r|\n/g)
+      .filter(line => line.length > 0)
+      .forEach(line => {
+        const [checksum, asset] = line.split(' ');
 
-        const assetName = stripProtocol(asset);
+        // Trigger callback even if checksum is the same since
+        // it wouldn't work for filter-lists.json file which could
+        // have the same checksum but lists could be expired.
+        // FiltersList class has then to check the checksum before update.
+        this.triggerCallbacks({
+          checksum,
+          asset,
+          remoteURL: urlFromPath(asset),
+        });
+      });
+  }
+}
 
-        if (lang === null || LANGS.indexOf(lang) > -1) {
-          this.triggerCallbacks({
-            checksum,
-            asset,
-            remoteURL: BASE_URL + assetName,
-            key: list,
-          });
-        }
+
+class ExtraLists extends UpdateCallbackHandler {
+  constructor() {
+    super();
+
+    this.resource = new Resource(
+      RESOURCES_PATH.concat(['assets', 'ublock', 'filter-lists.json']),
+      { remoteURL: urlFromPath('assets/ublock/filter-lists.json') }
+    );
+    this.resource.onUpdate(this.updateExtraListsFromMetadata.bind(this));
+  }
+
+  load() {
+    this.resource.load().then(this.updateExtraListsFromMetadata.bind(this));
+  }
+
+  updateExtraLists({ asset }) {
+    if (asset.endsWith('filter-lists.json')) {
+      this.resource.updateFromRemote();
+    }
+  }
+
+  updateExtraListsFromMetadata(extraLists) {
+    Object.keys(extraLists).forEach(entry => {
+      const metadata = extraLists[entry];
+      const url = metadata.hasOwnProperty('homeURL') ? metadata.homeURL : entry;
+
+      this.triggerCallbacks({
+        asset: entry,
+        remoteURL: url,
       });
     });
   }
 }
 
 
+// TODO: Download the file everytime, but we should find a way to use the checksum
+// Or, since some lists use an expiration date, we could store a timestamp instead of checksum
 class FiltersList extends UpdateCallbackHandler {
   constructor(checksum, asset, remoteURL) {
     super();
     this.checksum = checksum;
+    this.filters = [];
 
-    const assetName = stripProtocol(asset);
+    let assetName = asset;
+
+    // Strip prefix
+    ['http://', 'https://'].forEach(prefix => {
+      if (assetName.startsWith(prefix)) {
+        assetName = assetName.substring(prefix.length);
+      }
+    });
 
     this.resource = new Resource(
       RESOURCES_PATH.concat(assetName.split('/')),
@@ -105,9 +180,9 @@ class FiltersList extends UpdateCallbackHandler {
   }
 
   updateList(data) {
-    const filters = data.split(/\r\n|\r|\n/g);
-    if (filters.length > 0) {
-      this.triggerCallbacks(filters);
+    this.filters = parseList(data) || [];
+    if (this.filters.length > 0) {
+      this.triggerCallbacks(this.filters);
     }
   }
 }
@@ -123,32 +198,47 @@ export default class extends UpdateCallbackHandler {
     // Current checksums of official filters lists
     this.checksums = new Checksums();
 
+    // Index of available extra filters lists
+    this.extraLists = new ExtraLists();
 
     // Lists of filters currently loaded
     this.lists = new Map();
 
+    // Update extra lists
+    this.checksums.onUpdate(this.extraLists.updateExtraLists.bind(this.extraLists));
 
     // Register callbacks on list creation
     this.checksums.onUpdate(this.updateList.bind(this));
+    this.extraLists.onUpdate(this.updateList.bind(this));
   }
 
   load() {
+    this.extraLists.load();
     this.checksums.load();
   }
 
-  updateList({ checksum, asset, remoteURL, key }) {
-    let list = this.lists.get(asset);
+  concatLists(lists) {
+    let filters = [];
+    lists.forEach(list => {
+      filters = filters.concat(list.filters);
+    });
+    return filters;
+  }
 
-    if (list === undefined) {
-      list = new FiltersList(checksum, asset, remoteURL);
-      this.lists.set(asset, list);
-      list.onUpdate(filters => {
-        const isFiltersList = key !== 'js_resources';
-        this.triggerCallbacks({ asset, filters, isFiltersList });
-      });
-      list.load();
-    } else {
-      list.updateFromChecksum(checksum);
+  updateList({ checksum, asset, remoteURL }) {
+    if (isListSupported(asset)) {
+      let list = this.lists.get(asset);
+
+      if (list === undefined) {
+        list = new FiltersList(checksum, asset, remoteURL);
+        this.lists.set(asset, list);
+        list.onUpdate(() => {
+          this.triggerCallbacks(this.concatLists(this.lists));
+        });
+        list.load();
+      } else {
+        list.updateFromChecksum(checksum);
+      }
     }
   }
 }

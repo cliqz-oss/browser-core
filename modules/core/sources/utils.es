@@ -35,7 +35,6 @@ var CliqzUtils = {
   FEEDBACK:                       'https://cliqz.com/feedback/',
   SYSTEM_BASE_URL:                CLIQZEnvironment.SYSTEM_BASE_URL,
   PREFERRED_LANGUAGE:             null,
-  RESULTS_TIMEOUT:                CLIQZEnvironment.RESULTS_TIMEOUT,
 
   BRANDS_DATABASE: BRANDS_DATABASE,
 
@@ -132,16 +131,6 @@ var CliqzUtils = {
     var module = CliqzUtils.System.get(moduleName+"/background");
     var action = module.default.actions[actionName];
     return action.apply(null, args);
-  },
-
-  callWindowAction(win, moduleName, actionName, args) {
-    try {
-      var module = win.CLIQZ.Core.windowModules[moduleName];
-      var action = module.actions[actionName];
-      return action.apply(null, args);
-    } catch (e){
-      CliqzUtils.log('Failed to call "' + actionName +'" on "' + moduleName + '"', "callWindowAction failed");
-    }
   },
 
   isNumber: function(n){
@@ -643,9 +632,6 @@ var CliqzUtils = {
   pingCliqzResults: function(){
     CliqzUtils.httpHandler('HEAD', CliqzUtils.RESULTS_PROVIDER_PING);
   },
-  getBackendResults:  function(q, callback){
-
-  },
   getCliqzResults: function(q, callback){
     CliqzUtils._sessionSeq++;
 
@@ -1024,53 +1010,7 @@ var CliqzUtils = {
 
     return data;
   },
-  getLocationPermState(){
-    var data = {
-      'yes': {
-        name: CliqzUtils.getLocalizedString('always'),
-        selected: false
-      },
-      'ask': {
-        name: CliqzUtils.getLocalizedString('always_ask'),
-        selected: false
-      },
-      'no': {
-        name: CliqzUtils.getLocalizedString('never'),
-        selected: false
-      }
-    };
-
-    data[CliqzUtils.getPref('share_location', 'ask')].selected = true;
-
-    return data;
-  },
-
-  // Returns result elements selecatble and navigatable from keyboard.
-  // |container| search context, usually it's `CLIQZ.UI.gCliqzBox`.
-  extractSelectableElements(container) {
-    return Array.prototype.slice.call(
-        container.querySelectorAll('[arrow]')).filter(
-            function(el) {
-              // dont consider hidden elements
-              if(el.offsetParent == null)
-                return false;
-
-              if(!el.getAttribute('arrow-if-visible'))
-                return true;
-
-              // check if the element is visible
-              //
-              // for now this check is enough but we might be forced to switch to a
-              // more generic approach - maybe using document.elementFromPoint(x, y)
-              if (el.offsetLeft + el.offsetWidth > el.parentElement.offsetWidth)
-                return false
-              return true;
-            });
-  },
-
   getNoResults: CLIQZEnvironment.getNoResults,
-  disableCliqzResults: CLIQZEnvironment.disableCliqzResults,
-  enableCliqzResults: CLIQZEnvironment.enableCliqzResults,
   getParameterByName: function(name, location) {
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
@@ -1079,25 +1019,10 @@ var CliqzUtils = {
   },
   addEventListenerToElements: CLIQZEnvironment.addEventListenerToElements,
   search: CLIQZEnvironment.search,
-  distance: function(lon1, lat1, lon2 = CliqzUtils.USER_LNG, lat2 = CliqzUtils.USER_LAT) {
-    /** Converts numeric degrees to radians */
-    function degreesToRad(degree){
-      return degree * Math.PI / 180;
-    }
-
-    var R = 6371; // Radius of the earth in km
-    if(!lon2 || !lon1 || !lat2 || !lat1) { return -1; }
-    var dLat = degreesToRad(lat2-lat1);  // Javascript functions in radians
-    var dLon = degreesToRad(lon2-lon1);
-    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(degreesToRad(lat1)) * Math.cos(degreesToRad(lat2)) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    var d = R * c; // Distance in km
-    return d;
-  },
+  distance: CLIQZEnvironment.distance,
   getDefaultSearchEngine: CLIQZEnvironment.getDefaultSearchEngine,
   copyResult: CLIQZEnvironment.copyResult,
+  openLink: CLIQZEnvironment.openLink,
   openPopup: CLIQZEnvironment.openPopup,
   isOnPrivateTab: CLIQZEnvironment.isOnPrivateTab,
   getCliqzPrefs: CLIQZEnvironment.getCliqzPrefs,
@@ -1121,10 +1046,10 @@ var CliqzUtils = {
     if (!CLIQZEnvironment.onRenderComplete)
       return;
 
-    var linkNodes = this.extractSelectableElements(box);
-    var urls = linkNodes
-        .map(node => node.getAttribute("url") || node.getAttribute("href"))
-        .filter(url => !!url);
+    var linkNodes = box.querySelectorAll("[url]:not(.cqz-result-box):not(.entity-story):not([hidden]), [href]:not([hidden])");
+    var urls = [].map.call(linkNodes, function(node) {
+      return node.getAttribute("url") || node.getAttribute("href");
+    });
 
     CLIQZEnvironment.onRenderComplete(query, urls);
   }

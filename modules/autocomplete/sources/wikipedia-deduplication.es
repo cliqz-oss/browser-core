@@ -1,9 +1,7 @@
 /**
  * This modules implements reranking of results using user specific data
  */
-import { utils } from "core/cliqz";
-import language from "platform/language";
-
+import { utils, language } from "core/cliqz";
 
 var CliqzWikipediaDeduplication = {
     LOG_KEY: 'CliqzWikipediaDeduplication',

@@ -147,25 +147,25 @@
         "message": "Ich nehme teil"
     },
     "anti-phishing": {
-        "message": "Phishing Schutz"
+        "message": "Anti-Phishing"
     },
     "anti-phishing-enabled": {
         "message": "Aktiviert"
     },
     "anti-phishing-txt0": {
-        "message": "Sicherheits-Warnung"
+        "message": "Warnung: betrügerische Website!"
     },
     "anti-phishing-txt1": {
-        "message": "CLIQZ hat den Zugriff auf ("
+        "message": "CLIQZ hat den Zugriff auf "
     },
     "anti-phishing-txt2": {
-        "message": ") blockiert, weil diese Seite als Phishing-Website gemeldet wurde. Phishing-Websites geben vor, vertrauenswürdig zu sein, damit du deine Anmeldedaten, dein Passwort oder andere vertrauliche Informationen preisgibst."
+        "message": " blockiert, weil diese Seite möglicherweise eine Phishing-Website ist. Phishing-Websites geben vor, vertrauenswürdig zu sein, damit du deine Anmeldedaten, dein Passwort oder andere vertrauliche Informationen preisgibst."
     },
     "anti-phishing-txt3": {
         "message": "Mehr erfahren"
     },
     "anti-phishing-txt4": {
-        "message": "Zurück zu sicherer Seite"
+        "message": "Zu sicherer Seite"
     },
     "anti-phishing-txt5": {
         "message": "Diese Seite als sicher melden"
@@ -258,7 +258,7 @@
         "message":"vor $1 Jahren"
     },
     "onCalloutSameResult":{
-        "message":"Entschuldige die Unterbrechung, aber das Ergebnis hättest du hier schneller haben können. Spar Dir Zeit nächstes Mal!"
+        "message":"Entschuldige die Unterbrechung, aber das Ergebnis hättest du hier schneller haben können. Spar dir Zeit nächstes Mal!"
     },
     "onCalloutSameResultBtnOk":{
         "message":"Alles klar!"
@@ -267,7 +267,7 @@
         "message":"Nicht mehr zeigen."
     },
     "onCalloutSmartCliqz":{
-        "message":"Entschuldige die Unterbrechung, aber das Ergebnis hättest du hier schneller haben können. Spar Dir Zeit nächstes Mal!"
+        "message":"Entschuldige die Unterbrechung, aber das Ergebnis hättest du hier schneller haben können. Spar dir Zeit nächstes Mal!"
     },
     "onCalloutSmartCliqzBtnOk":{
         "message":"Alles klar!"
@@ -276,7 +276,7 @@
         "message":"Nicht mehr zeigen."
     },
     "onCalloutTypedUrl":{
-        "message":"Entschuldige die Unterbrechung, aber Du musst die Adresse nicht immer komplett eintippen. Drücke einfach auf ENTER, sobald die Adresse erscheint!"
+        "message":"Entschuldige die Unterbrechung, aber du musst die Adresse nicht immer komplett eintippen. Drücke einfach auf ENTER, sobald die Adresse erscheint!"
     },
     "onCalloutTypedUrlBtnOk":{
         "message":"Alles klar!"
@@ -285,7 +285,7 @@
         "message":"Nicht mehr zeigen."
     },
     "onCalloutIntro":{
-        "message":"Hier ist Deine neue CLIQZ-Suchleiste"
+        "message":"Hier ist deine neue CLIQZ-Suchleiste"
     },
     "onCalloutIntroBtnStart":{
         "message":"Demo starten"
@@ -303,13 +303,13 @@
         "message":"Demo nochmal ansehen"
     },
     "onCalloutTypeHere":{
-        "message":"CLIQZ funktioniert in deiner Adressleiste – gib Deine Suche oder Webadresse einfach hier ein"
+        "message":"CLIQZ funktioniert in deiner Adressleiste – gib deine Suche oder Webadresse einfach hier ein"
     },
     "onCalloutCliqzResults":{
         "message":"Deine Webseiten-Vorschläge erscheinen sofort hier"
     },
     "onCalloutLandingPage":{
-        "message":"Mit CLIQZ direkt am Ziel--schneller suchen, länger surfen"
+        "message":"Mit CLIQZ direkt am Ziel – mehr Zeit zum Surfen, weniger Suchen"
     },
     "onCalloutClickHere":{
         "message":"Klick hier um einen CLIQZ-Vorschlag auszuwählen"
@@ -318,19 +318,19 @@
         "message":"Surf jetzt los!"
     },
     "onUrlBarNowYou":{
-        "message":"Gib Deine Suche oder Webadresse einfach hier ein..."
+        "message":"Gib deine Suche oder Webadresse einfach hier ein..."
     },
     "onMsgInstalled":{
-        "message":"Installation erfolgreich! Ab jetzt surfst Du mit CLIQZ!"
+        "message":"Installation erfolgreich! Ab jetzt surfst du mit CLIQZ!"
     },
     "onMsgDemoDone":{
         "message":"Probier CLIQZ gleich mal aus!"
     },
     "onMsgThankYou":{
-        "message":"Danke, dass Du CLIQZ installiert hast!"
+        "message":"Danke, dass du CLIQZ installiert hast!"
     },
     "onMsgExplanation":{
-        "message":"CLIQZ verwandelt Deine Adressleiste in Deinen persönlichen Assistenten durch's Web."
+        "message":"CLIQZ verwandelt deine Adressleiste in deinen persönlichen Assistenten durchs Web."
     },
     "offRes_Cliqz":{
         "message":"CLIQZ"
@@ -348,7 +348,7 @@
         "message":"CLIQZ - Team"
     },
     "offTitle":{
-        "message":"die neue Art, durch’s Web zu navigieren"
+        "message":"die neue Art, durchs Web zu navigieren"
     },
     "offBtn":{
         "message":"Jetzt ausprobieren"
@@ -360,7 +360,7 @@
         "message":"Meine $1 Seiten"
     },
     "Sitemap_Youtube_Popular": {
-        "message":"Beliebt auf YouTube"
+        "message":"Beliebte auf YouTube"
     },
     "Sitemap_Youtube_Subscriptions": {
         "message":"Meine Abos"
@@ -540,13 +540,13 @@
       "message":"Việt Nam - Vietnam"
     },
     "statsShareMsg": {
-        "message": "mit @cliqz habe ich $1 Minuten in den letzten 7 Tagen gespart."
+        "message": "@cliqz saved me $1 minutes over the last 7 days"
     },
     "statsShareAction": {
         "message": "Diese Statistik auf $1 posten"
     },
     "spell_correction": {
-      "message":"Meintest Du wirklich"
+      "message":"Meintest du wirklich"
     },
     "result_filter": {
       "message":"Nicht-jugendfreie Inhalte blockieren"
@@ -630,7 +630,7 @@
         "message": "KGV (ttm)"
     },
     "OutOfCoverageWarning": {
-       "message": "CLIQZ’s Ergebnisse sind noch nicht so gut in Deinem Land.  Wir werden außerhalb von Deutschland bald besser sein."
+       "message": "CLIQZs Ergebnisse sind noch nicht so gut in deinem Land.  Wir werden außerhalb von Deutschland bald besser sein."
     },
     "keep-cliqz": {
       "message": "OK"
@@ -642,7 +642,7 @@
       "message": "CLIQZ Suche aktivieren"
     },
     "btnFreshTab": {
-      "message": "CLIQZ Tab aktivieren"
+      "message": "CLIQZ Startseite und Neue Tabs aktivieren"
     },
     "publish_date": {
         "message": "Veröffentlichungsdatum"
@@ -663,7 +663,7 @@
         "message": "Nachricht schließen"
     },
     "topSitesMessage":{
-        "message": "Wähle eine Deiner meist-besuchten Webseiten,"
+        "message": "Wähle eine deiner meist-besuchten Webseiten,"
     },
     "topSitesMessage1":{
         "message": "oder tipp' oben in die Leiste um woanders hinzugehen!"
@@ -690,7 +690,7 @@
       "message": "Meist gesehen"
     },
     "ez_video-music": {
-      "message": "Musik"
+      "message": "Music"
     },
     "ez_video-newest": {
       "message": "Neueste"
@@ -768,7 +768,7 @@
       "message": "Link in neuem Fenster öffnen"
     },
     "cMenuOpenInPrivateWindow": {
-      "message": "Link in neuem privaten Fenster öffnen"
+      "message": "Link in neuem Vergessen Fenster öffnen"
     },
     "cMenuFeedback": {
       "message": "Feedback an CLIQZ"
@@ -777,19 +777,19 @@
       "message": "Aus Chronik entfernen"
     },
     "cMenuRemoveFromBookmarksAndHistory": {
-      "message": "Aus Bookmarks und Lesezeichen entfernen"
+      "message": "Aus Lesezeichen und Chronik entfernen"
     },
     "cMenuRemoveFromHistoryAndCloseTab": {
-      "message": "Aus Chronik entfernen und offenen Tab schließen"
+      "message": "Aus Chronik entfernen und den offenen Tab schließen"
     },
     "cMenuRemoveFromHistoryAndBookmarksAndCloseTab": {
-      "message": "Aus Bookmarks und Chronik entfernen und offenen Tab schließen"
+      "message": "Aus Lesezeichen und Chronik entfernen und den offenen Tab schließen"
     },
     "myQuery": {
         "message": "Suchbegriff"
     },
     "ytDynamicSearch": {
-        "message": "Wusstest Du: Du kannst \"yt + Suchbegriff\" eingeben um direkt eine Vorschau auf Youtube Ergebnisse zu erhalten"
+        "message": "Wusstest du: du kannst \"yt + Suchbegriff\" eingeben um direkt eine Vorschau auf Youtube Ergebnisse zu erhalten"
     },
     "dismiss": {
         "message": "Nachricht schließen"
@@ -861,25 +861,25 @@
       "message": "Nein"
     },
     "no_local_data_msg": {
-      "message": "Entschuldigung, aber für dieses Ergebnis haben wir leider keine örtlichen Informationen in deiner Nähe. Können wir in Zukunft deinen Standort benutzten?"
+      "message": "Tut uns leid, aber für dieses Ergebnis haben wir leider keine örtlichen Informationen in deiner Nähe. Können wir in Zukunft deinen Standort benutzten?"
     },
     "location_sorry_msg": {
-      "message": "Entschuldigung, für dieses Ergebnis haben wir leider keine örtlichen Informationen in deiner Nähe."
+      "message": "Oh nein, leider ist etwas schief gegangen. Passiert nicht noch einmal!"
     },
     "location_thank_you_msg": {
       "message": "Vielen Dank!"
     },
     "location_not_share_msg": {
-      "message": "Voll blöd, Du verpasst etwas. Solltest Du Deine Meinung noch ändern, dann kannst Du Deine Einstellungen jederzeit im Cliqz Menü ändern"
+      "message": "Alles klar! Du kannst deine Standort-Einstellungen jederzeit im Cliqz Menü ändern."
     },
     "movies_confirm_no": {
-      "message": "Sicher, dass Du nicht sehen möchtest in welchen Kinos der Film gerade läuft?"
+      "message": "Sicher, dass du nicht sehen möchtest in welchen Kinos der Film gerade läuft?"
     },
     "cinemas_confirm_no": {
-      "message": "Sicher, dass Du nicht sehen möchtest welche Filme in diesem Kino laufen?"
+      "message": "Sicher, dass du nicht sehen möchtest welche Filme in diesem Kino laufen?"
     },
     "show_local_movies": {
-      "message": "Nein, zeig mir wo ich den Film anschauen kann."
+      "message": "Nein, zeig mir wo ich den Film schauen kann."
     },
     "show_local_cinemas": {
       "message": "Nein, zeig mir welche Filme ich sehen kann."
@@ -897,7 +897,7 @@
       "message":"Standort teilen"
     },
     "location_confirm_no": {
-      "message": "Sicher, dass Du keine Informationen über interessante Orte in deiner Umgebung sehen möchtest?"
+      "message": "Sicher, dass du keine Informationen über interessante Orte in deiner Umgebung sehen möchtest?"
     },
     "show_local_results": {
       "message": "Nein, zeige mir lokale Informationen."
@@ -921,7 +921,7 @@
       "message": "Wenn’s mal wieder länger dauert…"
     },
     "slow_connection_text_1": {
-      "message": "Du bist nicht Du wenn Du ohne Internet bist. Bitte die Verbindung überprüfen."
+      "message": "Du bist nicht du wenn du ohne Internet bist. Bitte die Verbindung überprüfen."
     },
     "slow_connection_header_2": {
       "message": "Verbleibende Ladezeit: 45266436 Stunden"
@@ -930,16 +930,16 @@
       "message": "Bitte die Internet-Verbindung überprüfen."
     },
     "slow_connection_header_3": {
-      "message": "Noch da?"
+      "message": "Hmpf."
     },
     "slow_connection_text_3": {
-      "message": "Bitte überprüfe die Internet-Verbindung."
+      "message": "Bitte die Internet-Verbindung überprüfen."
     },
     "slow_connection_header_4": {
-      "message": "Keine...Verbindung...mehr..."
+      "message": "Nicht unsere Schuld!"
     },
     "slow_connection_text_4": {
-      "message": "Bitte überprüfe die Internet-Verbindung."
+      "message": "Bitte die Internet-Verbindung überprüfen"
     },
     "dataCollection": {
       "message": "CLIQZ for Firefox übermittelt anonyme Daten über Web-Suchen und Website-Besuche an Server von Cliqz um die Such- und Browser-Funktionen zu verbessern."
@@ -984,16 +984,16 @@
       "message": "Privatsphäre nicht geschützt"
     },
     "attrack-score-text": {
-      "message": "Privatsphären-Punkte:"
+      "message": "Privatsphäre-Punkte:"
     },
     "attrack-headline-general-trackers": {
       "message": "Unsichere Daten entfernt"
     },
     "attrack-headline-general-whitelisted": {
-      "message": "Gegenwärtig sind deine persönlichen Daten auf dieser Seite Dritten zugänglich."
+      "message": "Gegenwärtig sind auf dieser Seite deine persönlichen Daten Dritten zugänglich."
     },
     "attrack-headline-deactivate": {
-      "message": "Der CLIQZ Privatsphären-Schutz ist ausgeschaltet. Private Daten sind nun Dritten zugänglich."
+      "message": "Der CLIQZ Privatsphäre-Schutz ist ausgeschaltet. Private Daten sind nun Dritten zugänglich."
     },
     "attrack-headline-reload": {
       "message": "Für sicheres Browsen bitte Seite neu laden"
@@ -1050,7 +1050,7 @@
       "message": "Nur für diese Seite deaktivieren"
     },
     "adb-menu-option-optimized": {
-      "message": "Optimiert"
+      "message": "Fair"
     },
     "adb-menu-option-enabled": {
       "message": "Alle"
@@ -1089,7 +1089,7 @@
       "message": "Abbrechen"
     },
     "mobile_freshtab_no_topsites": {
-      "message": "Hier werden Deine Topseiten erscheinen."
+      "message": "Hier werden deine Topseiten erscheinen."
     },
     "mobile_history_card_title": {
       "message": "Verlauf-Ergebnisse"
@@ -1101,10 +1101,10 @@
       "message": "Internetverbindung wird wieder hergestellt"
     },
     "mobile_no_history": {
-      "message": "Hier findest Du in Zukunft Deine Suchen und besuchten Seiten.<br />Bisher hast Du noch nicht gesucht und warst auf keinen Webseiten."
+      "message": "Hier findest du in Zukunft deine Suchen und besuchten Seiten.<br />Bisher hast du noch nicht gesucht und warst auf keinen Webseiten."
     },
     "mobile_no_favorites": {
-      "message": "Hier findest Du in Zukunft Deine Favoriten."
+      "message": "Hier findest du in Zukunft deine Favoriten.<br />Tippe lange auf einen Eintrag im Verlauf, um Favoriten anzulegen."
     },
     "mobile_history_title": {
       "message": "Besuchte Seiten"
@@ -1158,7 +1158,7 @@
       "message": "Nein, niemals"
     },
     "unblock_youtube_fail": {
-      "message": "OK, wir haben es versucht. Leider können wir das Video im Moment nicht zugänglich machen"
+      "message": "OK, wir haben es versucht, leider können wir das Video im Moment nicht zugänglich machen"
     },
     "cliqz-onboarding-title": {
       "message": "Juhuuu! CLIQZ wurde erfolgreich installiert."
@@ -1170,7 +1170,7 @@
       "message": "Unsere innovativen"
     },
     "cliqz-onboarding-txt-privacy2": {
-      "message": "Anti-Tracking & Anti-Phishing"
+      "message": "Anti-Tracking & -Phising"
     },
     "cliqz-onboarding-txt-privacy3": {
       "message": "Funktionen schützen deine persönlichen Daten."
@@ -1221,157 +1221,10 @@
       "message": "CLIQZ-Suche nach \"$1\""
     },
     "streaming": {
-      "message": "Stream Jetzt: "
+      "message": "Jetzt streamen: "
     },
     "lyrics": {
       "message": "Lyrics: "
-    },
-    "control-center-txt-header": {
-      "message": "Deine Daten sind geschützt"
-    },
-    "control-center-txt-header-not": {
-      "message": "Deine Daten sind nicht geschützt"
-    },
-    "control-center-datapoints": {
-      "message": "Persönliche Daten wurden entfernt"
-    },
-    "control-center-datapoints-inactive": {
-      "message": "Deaktiviert für diese Website"
-    },
-    "control-center-datapoints-off": {
-      "message": "Deaktiviert für alle Websites"
-    },
-    "control-center-trackers": {
-      "message": "Tracking Unternehmen auf dieser Seite"
-    },
-    "control-center-info-trackers": {
-      "message": "Auf fast allen Websites zeichnen integrierte Tracker deine Aktivitäten im Web auf. CLIQZ unterbindet die Daten, anhand derer du identifiziert werden könntest, bevor sie an die Tracking-Dienste gesendet werden. Wie viele einzelne Daten das sind, sagt dir die Zahl. Klick auf das Feld um nähere Details zu sehen."
-    },
-    "control-center-info-phishing-title": {
-      "message": "Anti-Phishing"
-    },
-    "control-center-info-phishing": {
-      "message": "Potentiell betrügerische Websites, die es auf deine Passwörter und Kontodaten abgesehen haben, werden mit der Anti-Tracking Technologie vorzeitig erkannt und blockiert."
-    },
-    "control-center-info-ads-title": {
-      "message": "Werbeblocker"
-    },
-    "control-center-info-ads": {
-      "message": "Die integrierte Funktion zum „Ausschalten“ von Werbung ist aktuell noch in der Entwicklungs-Phase (BETA). Schon jetzt kann Werbung generell oder nur auf einer bestimmten Website blockiert oder zugelassen werden. Ein „fairer“ Modus, der Werbung nur nach bestimmten Kriterien zulässt, ist in Planung."
-    },
-    "control-center-info-https": {
-      "message": "Diese Funktion erhöht die Sicherheit beim Surfen, indem sie immer verschlüsselte HTTPS Verbindungen zu Websites anfordert, wenn das möglich ist. Cliqz hat dazu den quelloffenen Service HTTPS Everywhere standardmäßig integriert."
-    },
-    "control-center-info-https-title": {
-      "message": "HTTPS bevorzugen"
-    },
-    "control-center-info-hpn-title": {
-      "message": "Suche über Proxy"
-    },
-    "control-center-info-hpn": {
-      "message": "Wer bei der Internet-Suche erweiterte Anonymität wünscht und die eigene IP-Adresse verbergen möchte, kann die Suchanfragen über ein Netzwerk aus Proxyservern laufen lassen."
-    },
-    "control-center-info-hw-title": {
-      "message": "Human Web"
-    },
-    "control-center-info-hw": {
-      "message": "CLIQZ arbeitet mit anonymisierten Daten über Suchanfragen und Website-Besuchen, die von der Gemeinschaft der Nutzer geschaffen werden. Die Technologie, die diese Daten erhebt und daraus einen Web-Index aufbaut, nennen wir Human Web."
-    },
-    "control-center-adblock-title": {
-      "message": "Werbeblocker [BETA]"
-    },
-    "control-center-adblock-description": {
-      "message": "Werbungen wurden geblockt"
-    },
-    "control-center-adblock-description-off-website": {
-      "message": "Deaktiviert für diese Seite"
-    },
-    "control-center-adblock-description-off-domain": {
-      "message": "Deaktiviert für diese Domain"
-    },
-    "control-center-adblock-description-off-all": {
-      "message": "Deaktiviert für alle Websites"
-    },
-    "control-center-adblock-advertisers": {
-      "message": "Liste der Werbetreibenden auf dieser Seite"
-    },
-    "control-center-phishing-report": {
-      "message": "Phishing Seite melden"
-    },
-    "control-center-support": {
-      "message": "FAQ & Support"
-    },
-    "control-center-othersettings": {
-      "message": "Andere Einstellungen"
-    },
-    "control-center-quicksearch": {
-      "message": "Sichere Schnell-Suche"
-    },
-    "control-center-enable-search": {
-      "message": "Cliqz Suche aktivieren"
-    },
-    "control-center-location": {
-      "message": "Standort teilen"
-    },
-    "control-center-explicit": {
-      "message": "Nicht-jugendfreie Seiten in Suche blockieren"
-    },
-    "control-center-proxy": {
-      "message": "Suche über Proxy"
-    },
-    "control-center-searchoptions": {
-      "message": "Mehr Suchoptionen"
-    },
-    "control-center-humanweb": {
-      "message": "Am Human Web teilnehmen"
-    },
-    "control-center-best-cliqz": {
-      "message": "Hol dir das Beste aus CLIQZ"
-    },
-    "control-center-transparency": {
-      "message": "Transparenz Monitor"
-    },
-    "control-center-history-options": {
-      "message": "Chronik Einstellungen"
-    },
-    "control-center-show-history": {
-      "message": "Gesamte Chronik anzeigen"
-    },
-    "control-center-forget-history": {
-      "message": "Chronik vergessen"
-    },
-    "control-center-forget-mode": {
-      "message": "Automatischer Vergessen Modus"
-    },
-    "control-center-switch-on": {
-      "message": "AN"
-    },
-    "control-center-switch-off": {
-      "message": "AUS"
-    },
-    "control-center-phishing-deceptive": {
-      "message": "Als betrügerisch gemeldet"
-    },
-    "control-center-phishing-deceptive-not": {
-      "message": "Nicht als betrügerisch gemeldet"
-    },
-    "control-center-check-strict": {
-      "message": "Streng"
-    },
-    "control-center-this-site": {
-      "message": "Diese Seite"
-    },
-    "control-center-this-domain": {
-      "message": "Diese Domain"
-    },
-    "control-center-all-sites": {
-      "message": "Alle Websites"
-    },
-    "download": {
-      "message": "Herunterladen von: "
-    },
-    "settings": {
-      "message": "Einstellungen"
     },
     "TEST": "OK"
 }

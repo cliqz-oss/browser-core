@@ -20,8 +20,6 @@ export default class {
   * @param win
   */
   createButtonItem(win) {
-    if (utils.getPref("cliqz_core_disabled", false)) return;
-
     var btn = simpleBtn(
       win.document,
       utils.getLocalizedString('btnPrivacyDashboard'),
@@ -29,13 +27,5 @@ export default class {
         utils.openTabInWindow(win, 'about:transparency');
       }, 'Cliqz Privacy Dashboard');
     return btn;
-  }
-
-  status() {
-    if (utils.getPref("cliqz_core_disabled", false)) return;
-
-    return {
-      visible: true
-    }
   }
 }

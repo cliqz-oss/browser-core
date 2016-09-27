@@ -34,7 +34,7 @@ XPCOMUtils.defineLazyModuleGetter(this, 'CliqzHistoryManager',
   var contextMenu,
       activeArea,
       CONTEXT_MENU_ITEMS,
-      target;
+      originalTarget;
 
   function telemetry(type){
     var signal = {
@@ -192,7 +192,7 @@ XPCOMUtils.defineLazyModuleGetter(this, 'CliqzHistoryManager',
 
   function rightClick(ev) {
     contextMenu = contextMenu || initContextMenu(); //lazy initialization
-    target = ev.target;
+    originalTarget = ev.target;
 
     var children,
         uri,
@@ -215,7 +215,7 @@ XPCOMUtils.defineLazyModuleGetter(this, 'CliqzHistoryManager',
 
       } else {
         PlacesUtils.asyncHistory.isURIVisited(uri, function(aURI, aIsVisited) {
-          if(!aIsVisited || CLIQZ.UI.getElementByAttr(target, 'dont-remove', 'true')) {
+          if(!aIsVisited || CLIQZ.UI.getElementByAttr(originalTarget, 'dont-remove', 'true')) {
             hideRemoveEntry(menu);
 
           } else {

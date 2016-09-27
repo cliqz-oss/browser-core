@@ -170,11 +170,11 @@ describe('Search View', function() {
     });
 
     it("has one local result", function () {
-      expect($('.cqz-local-result')).to.have.length(1);
+      expect($('.local')).to.have.length(1);
     });
 
     it("renders local template with address and map", function () {
-      var address = $('.address__text')[0];
+      var address = $('.cqz-local-address')[0];
       expect(address).to.be.ok;
 
       var addressText = address.lastChild.wholeText;
@@ -183,7 +183,7 @@ describe('Search View', function() {
     });
 
     it("shows local data image", function () {
-      var img = $('.map__img')[0];
+      var img = $('.local-data-img')[0];
       expect(img).to.be.ok
       expect(img).to.have.property('style');
       expect(img.style).to.have.property('display').that.not.equal('none');
@@ -624,20 +624,6 @@ describe("Freshtab", function () {
       expect(topsites).to.have.length(2);
       expect(topsites[0].getAttribute('url')).to.equal('http://www.manager-magazin.de/unternehmen/artikel/bayer-uebernahmepoker-mit-monsanto-geht-weiter-a-1094026.html');
       expect(topsites[1].getAttribute('url')).to.equal('http://www.tagesschau.de/eilmeldung/eilmeldung-1203.html');
-    });
-  });
-
-  context("Deduplicate sites with common domain", function () {
-    beforeEach(function () {
-      contentWindow.osAPI.openLink("http://www.tagesschau.de/eilmeldung/eilmeldung-1203.html");
-      contentWindow.osAPI.openLink("http://www.tagesschau.com/eilmeldung/eilmeldung-1204.html");
-      contentWindow.osAPI.openLink("http://m.tagesschau.de/eilmeldung/eilmeldung-1205.html");
-      contentWindow.jsAPI.search();
-    });
-
-    it("should display one topsite", function () {
-      const topsites = $('.topSitesLink');
-      expect(topsites).to.have.length(1);
     });
   });
 });

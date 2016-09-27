@@ -1,0 +1,21 @@
+c	mister-auto
+c	atp-autoteile
+a	kfzteile
+c	pkwteile
+c	autoteiledirekt
+c	autodoc
+c	autoteile-teufel
+a	daparto
+c	partacus
+a	bremsen						# this is a sub category (only breaks)
+c	autoteile-guenstig
+c	autoteile24
+c	teile-direkt
+c	bandel-online
+c	autoteilebilliger
+c	der-ersatzteile-profi
+a	ersatzteile-info
+a	teilando
+a	austroteile
+c	kfzteile123
+c	bartebben					# only citroen peugeot parts.

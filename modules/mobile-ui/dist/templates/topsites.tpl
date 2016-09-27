@@ -18,7 +18,7 @@
                   </div>
               </div>
             {{else}}
-              <div class="topsites__item {{../theme}}"></div>
+              <div class="topsites__item" style="background-color:#eee"></div>
             {{/if}}
           </td>
       {{/each}}

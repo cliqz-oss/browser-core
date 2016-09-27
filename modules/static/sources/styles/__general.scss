@@ -23,7 +23,6 @@
     font-size: 14px;
     line-height: 1.2em;
     font-family: Lato, Helvetica, sans-serif;
-    border-top: none;
     background: #fff; /* override linux default grey color */
 }
 
@@ -71,8 +70,7 @@
 .cliqz-urlbar-Last-search-container {
     overflow: hidden;
     max-width: 220px;
-    margin: -3px 3px -8px 0;
-    padding-bottom: 6px;
+    margin: -2px 3px -1px 0;
 }
 
 .cliqz-urlbar-Last-search {
@@ -84,7 +82,6 @@
     border-radius: 1px;
     background-size: 14px 10px;
     background-color: grey;
-    line-height: 23px;
 }
 
 /* ====== End Last Search ====== */
@@ -1382,37 +1379,37 @@
     cursor: pointer;
 }
 
-/*** BEGIN BOTTOM BUTTONS DATA SC ***/
+/*** BEGIN MUSIC DATA SC ***/
 
-#bottom_btn_region {
+#music_btn_region {
     margin-top: 20px;
 }
 
-#bottom_btn_region .bottom-label {
+#music_btn_region .music-label {
     float: left;
     margin-right: 10px;
     line-height: 26px;
     color: #999999;
-    max-width: 150px;
+    width: 82px;
 }
 
-#bottom_btn_region .bottom-btns-wrapper {
+#music_btn_region .music-btns-wrapper {
     vertical-align: bottom;
 }
 
-#bottom_btn_region .bottom-btns {
+#music_btn_region .music-btns {
     white-space: nowrap;
     overflow: hidden;
 }
 
-#bottom_btn_region .bottom-btn {
+#music_btn_region .music-btn {
     margin-right: 10px;
     display: inline-block;
     cursor: pointer;
     margin-bottom: 0px;
 }
 
-#bottom_btn_region .bottom-btn-text {
+#music_btn_region .music-btn-text {
     color: #fff;
     font-size: 14px;
     font-weight: normal;
@@ -1430,16 +1427,16 @@
 
 }
 
-#bottom_btn_region .bottom-btn img {
+#music_btn_region .music-btn img {
     max-height: 26px;
     max-width: 100px;
 }
 
-.bottom-btns-container {
+.music-btns-container {
     display: table-cell;
     vertical-align: bottom !important;
     width: 720px;
     height: 90px;
 }
 
-/*** END BOTTOM BUTTONS DATA SC ***/
+/*** END MUSIC DATA SC ***/

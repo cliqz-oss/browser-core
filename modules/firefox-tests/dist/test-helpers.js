@@ -60,7 +60,7 @@ function injectTestHelpers(CliqzUtils) {
   */
 
   window.respondWith = function respondWith(res) {
-    CliqzUtils.getBackendResults = function (q, callback) {
+    CliqzUtils.getCliqzResults = function (q, callback) {
       callback({
         response: JSON.stringify(res),
         status: 200

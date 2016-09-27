@@ -7,9 +7,7 @@
     {{#with data}}
     
         
-            <div extra="url" class="card__meta">
-                <div>{{emphasis friendly_url query 2 true}}</div>
-            </div>
+            <h3 class="meta__url"><i class="fa fa-mobile mobile"></i> {{emphasis friendly_url query 2 true}}</h3>
         </div>
     
         <div class="main">
@@ -30,7 +28,7 @@
               {{/if}}
             </div>
             
-            <p class="main__content description">{{emphasis cinema.desc query 2 true}}</p>
+            <p class="main__content description">{{{cinema.desc}}}</p>
             
             <ul class="cta">
                   <li><a xmlns="http://www.w3.org/1999/xhtml" arrow-override=""

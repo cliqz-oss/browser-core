@@ -1,4 +1,4 @@
-import utils from "core/utils";
+import {utils} from "core/cliqz";
 import CliqzAntiPhishing from "anti-phishing/anti-phishing";
 import { simpleBtn, checkBox } from 'q-button/buttons';
 
@@ -20,7 +20,7 @@ export default class {
   }
 
   createButtonItem(win) {
-    if (CliqzUtils.getPref('cliqz-anti-phishing', false) == false) {
+    if (!CliqzAntiPhishing.isAntiPhishingActive()) {
       return;
     }
     var doc = win.document,
@@ -53,14 +53,5 @@ export default class {
     menu.appendChild(menuPopup);
 
     return menu;
-  }
-
-  status() {
-    if (utils.getPref('cliqz-anti-phishing', false)) {
-      return {
-        visible: true,
-        active: utils.getPref('cliqz-anti-phishing-enabled', false)
-      }
-    }
   }
 }

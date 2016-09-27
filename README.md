@@ -44,7 +44,8 @@ To run ember freshtab:
 You can then access freshtab under http://localhost:3000. Every change you make in fresh-tab-frontend folder will be live reloaded. However if you change anything in freshtab folder (backend), restart browser to see your changes.
 
 To build ember freshtab:
-`./fern.js serve --freshtab ./configs/browser.json`
+`cd modules/fresh-tab-frontend`
+`npm run build`
 
 By running above command you end up with minified distributed files in fresh-tab-frontend/dist folder. If you want these files to be moved into build/firefox folder, you also have to be running fern.
 
@@ -85,14 +86,10 @@ You first need to clone firefox-autoconfigs in the top directory of the extensio
 git clone https://github.com/cliqz-oss/firefox-autoconfigs
 ```
 
-Then *build* an extension xpi with `jenkins` configuration, and put it in the repository root:
+Then *build* (or *serve*) the extension with `jenkins` configuration:
 
 ```sh
-./fern.js build configs/jenkins.json
-cd build
-fab package
-cp latest.xpi ../cliqz@cliqz.com.xpi
-cd ../
+./fern.js serve configs/jenkins.json
 ```
 
 You can then build docker with the following command:
@@ -106,7 +103,7 @@ Here `<version>` can be any firefox [release number](https://ftp.mozilla.org/pub
 Then run tests with:
 
 ```sh
-docker run -iP -p 15900:5900 -u 1000:1000 -v `pwd`:/ebs/jenkins/workspace/cliqz/navigation-extension/ -w /ebs/jenkins/workspace/cliqz/navigation-extension/ --entrypoint "./run_tests.sh" {image_id}
+docker run -iP -p 15900:5900 -u 1000:1000 -v `pwd`:/ebs/jenkins/workspace/cliqz/navigation-extension/ -w /ebs/jenkins/workspace/cliqz/navigation-extension/
 ```
 
 You can connect to docker with any VNC client on `localhost` port `15900`.

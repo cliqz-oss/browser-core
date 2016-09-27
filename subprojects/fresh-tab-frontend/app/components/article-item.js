@@ -5,8 +5,6 @@ export default Ember.Component.extend({
   elapsed: 0,
   cliqz: Ember.inject.service(),
 
-  isBreakingNews: Ember.computed.equal('model.type', 'breaking-news'),
-
   calculateHeight: function() {
     var height = this.$(".article-content").height();
     this.sendAction("calculateHeightAction", height);

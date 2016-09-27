@@ -11,7 +11,12 @@
     </h1>
 
     <div extra="url" class="card__meta">
-        <div>{{urlDetails.friendly_url}}</div>
+
+      {{#if data.richData.discovery_timestamp}}
+        <div class="timestamp">{{ agoline data.richData.discovery_timestamp }}</div>
+      {{else}}
+        {{urlDetails.friendly_url}}
+      {{/if}}
     </div>
 
     <div class="primary card__description">

@@ -11,8 +11,7 @@
     "showDataCollectionMessage": false,
     "cliqzOnboarding": true,
     "channel": "40",
-    "antitrackingButton": true,
-    "showNewBrandAlert": true
+    "antitrackingButton": true
   },
   "modules": [
     "q-button",

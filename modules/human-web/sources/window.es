@@ -81,13 +81,6 @@ export default class {
     return menu;
   }
 
-  status() {
-    return {
-      visible: true,
-      state: !utils.getPref('dnt', false)
-    }
-  }
-
   changeHumanWebState() {
     if(utils.getPref("humanWeb", false) && !utils.getPref('dnt', false)){
       HumanWeb.unloadAtBrowser();

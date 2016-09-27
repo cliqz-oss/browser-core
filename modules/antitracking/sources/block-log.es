@@ -1,11 +1,10 @@
 import * as persist from 'antitracking/persistent-state';
 import pacemaker from 'antitracking/pacemaker';
 import md5 from 'antitracking/md5';
-import { events } from 'core/cliqz';
+import { utils, events } from 'core/cliqz';
 import * as datetime from 'antitracking/time';
 import CliqzAttrack from 'antitracking/attrack';
 import telemetry from 'antitracking/telemetry';
-import ResourceLoader from 'core/resource-loader';
 
 const DAYS_EXPIRE = 7;
 
@@ -32,12 +31,12 @@ class TokenDomain {
   }
 
   clean() {
-    const day = datetime.newUTCDate();
-    day.setDate(day.getDate() - DAYS_EXPIRE);
-    const dayCutoff = datetime.dateString(day);
-    const td = this._tokenDomain.value;
-    for (const tok in td) {
-      for (const s in td[tok]) {
+    var day = datetime.newUTCDate();
+        day.setDate(day.getDate() - DAYS_EXPIRE);
+    var dayCutoff = datetime.dateString(day),
+        td = this._tokenDomain.value;
+    for (var tok in td) {
+      for (var s in td[tok]) {
         if (td[tok][s] < dayCutoff) {
           delete td[tok][s];
         }
@@ -61,36 +60,26 @@ class BlockLog {
     this.blockReportList = {};
     this.blocked = new persist.LazyPersistentObject('blocked');
     this.localBlocked = new persist.LazyPersistentObject('localBlocked');
-    this._blockReportListLoader = new ResourceLoader(
-      ['antitracking', 'anti-tracking-report-list.json'], {
-        remoteURL: 'https://cdn.cliqz.com/anti-tracking/whitelist/anti-tracking-report-list.json',
-        cron: 24 * 60 * 60 * 1000,
-      });
   }
 
   init() {
     this.blocked.load();
     this.localBlocked.load();
-    this._blockReportListLoader.load().then(this._loadReportList.bind(this));
-    this._blockReportListLoader.onUpdate(this._loadReportList.bind(this));
-  }
-
-  destroy() {
-    this._blockReportListLoader.stop();
+    this._loadReportList();
   }
 
   // blocked + localBlocked
   add(sourceUrl, tracker, key, value, type) {
-    const s = tracker;
-    const k = md5(key);
-    const v = md5(value);
-    const hour = datetime.getTime();
-    const source = md5(sourceUrl);
-
+    var s = tracker,
+        k = md5(key),
+        v = md5(value);
     if (this.isInBlockReportList(s, k, v)) {
-      this._addBlocked(s, k, v, type);
+        this._addBlocked(s, k, v, type);
     }
     // local logging of blocked tokens
+    var hour = datetime.getTime(),
+        source = md5(sourceUrl);
+
     this._addLocalBlocked(source, tracker, key, value, hour);
   }
 
@@ -101,9 +90,9 @@ class BlockLog {
   }
 
   _addBlocked(tracker, key, value, type) {
-    const bl = this.blocked.value;
+    var bl = this.blocked.value;
     if (!(tracker in bl)) {
-      bl[tracker] = {};
+          bl[tracker] = {};
     }
     if (!(key in bl[tracker])) {
       bl[tracker][key] = {};
@@ -119,7 +108,7 @@ class BlockLog {
   }
 
   _addLocalBlocked(source, s, k, v, hour) {
-    const lb = this.localBlocked.value;
+    var lb = this.localBlocked.value;
     if (!(source in lb)) {
       lb[source] = {};
     }
@@ -141,11 +130,11 @@ class BlockLog {
 
   _cleanLocalBlocked(hourCutoff) {
     // localBlocked
-    for (const source in this.localBlocked.value) {
-      for (const s in this.localBlocked.value[source]) {
-        for (const k in this.localBlocked.value[source][s]) {
-          for (const v in this.localBlocked.value[source][s][k]) {
-            for (const h in this.localBlocked.value[source][s][k][v]) {
+    for (var source in this.localBlocked.value) {
+      for (var s in this.localBlocked.value[source]) {
+        for (var k in this.localBlocked.value[source][s]) {
+          for (var v in this.localBlocked.value[source][s][k]) {
+            for (var h in this.localBlocked.value[source][s][k][v]) {
               if (h < hourCutoff) {
                 delete this.localBlocked.value[source][s][k][v][h];
               }
@@ -170,37 +159,39 @@ class BlockLog {
     this.localBlocked.save();
   }
 
-  _loadReportList(list) {
-    this.blockReportList = list;
+  _loadReportList() {
+    utils.loadResource(this.URL_BLOCK_REPORT_LIST, function(req) {
+      try {
+        this.blockReportList = JSON.parse(req.response);
+      } catch(e) {
+        this.blockReportList = {};
+      }
+    }.bind(this));
   }
 
   isInBlockReportList(s, k, v) {
     if ('*' in this.blockReportList) {
       return true;
     } else if (s in this.blockReportList) {
-      const keyList = this.blockReportList[s];
+      let keyList = this.blockReportList[s];
       if (keyList === '*') {
         return true;
       } else if (k in keyList) {
-        const valueList = keyList[k];
+        let valueList = keyList[k];
         if (valueList === '*') {
           return true;
         } else if (v in valueList) {
           return true;
         }
       }
+      return false;
     }
-    return false;
-  }
+}
 
   sendTelemetry() {
     if (Object.keys(this.blocked.value).length > 0) {
-      const payl = CliqzAttrack.generateAttrackPayload(this.blocked.value);
-      telemetry.telemetry({
-        type: telemetry.msgType,
-        action: 'attrack.blocked',
-        payload: payl,
-      });
+      var payl = CliqzAttrack.generateAttrackPayload(this.blocked.value);
+      telemetry.telemetry({'type': telemetry.msgType, 'action': 'attrack.blocked', 'payload': payl});
       // reset the state
       this.blocked.clear();
     }
@@ -239,20 +230,19 @@ export default class {
     this.blockedToken.load();
     this.loadedPage.load();
 
-    this.saveBlocklog = () => {
+    this.saveBlocklog = function() {
       this.checkedToken.save();
       this.blockedToken.save();
       this.loadedPage.save();
       this.tokenDomain._tokenDomain.save();
       this.blockLog.blocked.save();
       this.blockLog.localBlocked.save();
-    };
+    }.bind(this);
     this._pmTask = pacemaker.register(this.saveBlocklog, 1000 * 60 * 5);
   }
 
   destroy() {
     pacemaker.deregister(this._pmTask);
-    this.blockLog.destroy();
   }
 
   incrementCheckedTokens() {
@@ -268,7 +258,7 @@ export default class {
   }
 
   _incrementPersistentValue(v, n) {
-    const hour = this.currentHour;
+    var hour = this.currentHour;
     if (!(hour in v.value)) {
       v.value[hour] = 0;
     }
@@ -283,8 +273,8 @@ export default class {
   checkWrongToken(key) {
     this._clean();
     // send max one time a day
-    const day = datetime.getTime().slice(0, 8);
-    const wrongTokenLastSent = persist.getValue('wrongTokenLastSent', datetime.getTime().slice(0, 8));
+    var day = datetime.getTime().slice(0, 8),
+      wrongTokenLastSent = persist.getValue('wrongTokenLastSent', datetime.getTime().slice(0, 8));
     if (wrongTokenLastSent === day) {
       return;  // max one signal per day
     }
@@ -292,62 +282,59 @@ export default class {
     if (!('safeKey' in this._updated) || (!('token' in this._updated))) {
       return;  // wait until both lists are updated
     }
-    let countLoadedPage = 0;
-    let countCheckedToken = 0;
-    let countBlockedToken = 0;
-    let countWrongToken = 0;
-    let countWrongPage = 0;
+    var countLoadedPage = 0,
+        countCheckedToken = 0,
+        countBlockedToken = 0,
+        countWrongToken = 0,
+        countWrongPage = 0;
 
-    const localBlocked = this.blockLog.localBlocked.value;
-    for (const source in localBlocked) {
-      let wrongSource = true;
-      for (const s in localBlocked[source]) {
-        for (const k in localBlocked[source][s]) {
-          for (const v in localBlocked[source][s][k]) {
+    var localBlocked = this.blockLog.localBlocked.value;
+    for (var source in localBlocked) {
+      var _wrongSource = true;
+      for (var s in localBlocked[source]) {
+        for (var k in localBlocked[source][s]) {
+          for (var v in localBlocked[source][s][k]) {
             if (!this.qsWhitelist.isTrackerDomain(s) ||
               this.qsWhitelist.isSafeKey(s, k) ||
               this.qsWhitelist.isSafeToken(s, v)) {
-              for (const h in localBlocked[source][s][k][v]) {
+              for (let h in localBlocked[source][s][k][v]) {
                 countWrongToken += localBlocked[source][s][k][v][h];
                 localBlocked[source][s][k][v][h] = 0;
               }
               this.blockLog.localBlocked.setDirty();
-            } else {
-              wrongSource = false;
+            }
+            else {
+              _wrongSource = false;
             }
           }
         }
       }
-      if (wrongSource) {
+      if (_wrongSource) {
         countWrongPage++;
       }
     }
 
     // send signal
     // sum checkedToken & blockedToken
-    for (const h in this.checkedToken.value) {
+    for (let h in this.checkedToken.value) {
       countCheckedToken += this.checkedToken.value[h];
     }
-    for (const h in this.blockedToken.value) {
+    for (let h in this.blockedToken.value) {
       countBlockedToken += this.blockedToken.value[h];
     }
-    for (const h in this.loadedPage.value) {
+    for (let h in this.loadedPage.value) {
       countLoadedPage += this.loadedPage.value[h];
     }
 
-    const data = {
-      wrongToken: countWrongPage,
-      checkedToken: countCheckedToken,
-      blockedToken: countBlockedToken,
-      wrongPage: countWrongPage,
-      loadedPage: countLoadedPage,
+    var data = {
+      'wrongToken': countWrongPage,
+      'checkedToken': countCheckedToken,
+      'blockedToken': countBlockedToken,
+      'wrongPage': countWrongPage,
+      'loadedPage': countLoadedPage
     };
-    const payl = CliqzAttrack.generateAttrackPayload(data, wrongTokenLastSent);
-    telemetry.telemetry({
-      type: telemetry.msgType,
-      action: 'attrack.FP',
-      payload: payl,
-    });
+    var payl = CliqzAttrack.generateAttrackPayload(data, wrongTokenLastSent);
+    telemetry.telemetry({'type': telemetry.msgType, 'action': 'attrack.FP', 'payload': payl});
     persist.setValue('wrongTokenLastSent', day);
     this._updated = {};
   }
@@ -361,19 +348,19 @@ export default class {
   }
 
   _clean() {
-    const delay = 24;
-    const hour = datetime.newUTCDate();
+    var delay = 24,
+        hour = datetime.newUTCDate();
     hour.setHours(hour.getHours() - delay);
-    const hourCutoff = datetime.hourString(hour);
+    var hourCutoff = datetime.hourString(hour);
 
     this.blockLog._cleanLocalBlocked(hourCutoff);
     // checkedToken
-    for (const h in this.checkedToken.value) {
+    for (let h in this.checkedToken.value) {
       if (h < hourCutoff) {
         delete this.checkedToken.value[h];
       }
     }
-    for (const h in this.loadedPage.value) {
+    for (let h in this.loadedPage.value) {
       if (h < hourCutoff) {
         delete this.loadedPage.value[h];
       }

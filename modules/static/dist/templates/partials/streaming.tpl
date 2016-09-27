@@ -1,15 +1,15 @@
-<div class="bottom-btns-wrapper">
-    <span class="bottom-label">{{local "streaming"}}</span>
-    <ul class="bottom-btns">
+<div class="music-btns-wrapper">
+    <span class="music-label">{{local 'streaming'}}</span>
+    <ul class="music-btns">
     {{#each links}}
-        <li class="bottom-btn"
+        <li class="music-btn"
                 url="{{ url }}"
                 extra="{{ extra.domain }}" arrow="false" arrow-if-visible="true"
         >
             {{#if image}}
-                <img class="bottom-btn-img" src="{{ image }}" alt="{{ extra.domain }}" onerror="this.style.display='none';"/>
+                <img class="music-btn-img" src="{{ image }}" alt="{{ extra.domain }}" onerror="this.style.display='none';"/>
             {{else}}
-                <span class="bottom-btn-text" style="background-color: {{ generate_background_color url }}">{{ extra.domain }}</span>
+                <span class="music-btn-text" style="background-color: {{ generate_background_color url }}">{{ extra.domain }}</span>
             {{/if}}
         </li>
     {{/each}}

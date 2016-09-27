@@ -187,11 +187,8 @@ UIManager.prototype.showVoucherNotificationInCurrentWindow = function(currWindow
       CliqzUtils.copyResult(couponElement.innerHTML);
       if (self.callbacks.cp_to_clipboard) {
         try {
-
-          let copyText = notification.boxObject.firstChild.getElementsByClassName("cqz-copy-coupon")[0];
-          if (copyText) {
-            copyText.style.display = 'inline';
-          }
+          let copyText = couponElement.nextElementSibling
+          copyText.style.visibility = 'visible';
         } catch (ee) {
           LoggingHandler.LOG_ENABLED &&
           LoggingHandler.error(MODULE_NAME, "can't attach click listener to couponElement" + ee);
@@ -255,7 +252,7 @@ UIManager.prototype.showLeadNotificationInCurrentWindow = function(currWindow, o
   });
 
   buttons.push({
-    label : 'Mehr Info',
+    label : 'Ueber CLIQZ-Angebote',
     callback : function () {
       if (self.callbacks.show_coupon) {
         return self.callbacks.information(offerID);

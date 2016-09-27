@@ -19,7 +19,7 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
         });
       },
       tearDown: function() {
-        for (var t of this.topics) {
+        for (let t of this.topics) {
           webrequest[t].removeListener(this[t + 'Ctr']);
         }
       }
@@ -155,7 +155,6 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
       chai.expect(r.method).to.equal('GET');
       chai.expect(r.isPrivate).to.be.false;
       chai.expect(r.originUrl).to.equal(md.url);
-      chai.expect(r.source).to.equal(md.url);
     }
 
     function testInIFrame(r, topic, md, type) {
@@ -165,9 +164,7 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
       chai.expect(r.type).to.equal(type);
       chai.expect(r.method).to.equal('GET');
       chai.expect(r.isPrivate).to.be.false;
-      // source refers to top level url, origin is the iframe url
-      chai.expect(r.originUrl).to.not.equal(md.url);
-      chai.expect(r.source).to.equal(md.url);
+      chai.expect(r.originUrl).to.equal(md.url);
     }
 
     function testResponseCode(r, topic, code) {
@@ -324,8 +321,7 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
           chai.expect(r.type).to.equal(7);
           chai.expect(r.method).to.equal('GET');
           chai.expect(r.isPrivate).to.be.false;
-          chai.expect(r.originUrl).to.equal("http://cliqztest.de:60508/proxyiframe.html");
-          chai.expect(r.source).to.equal(md.url);
+          chai.expect(r.originUrl).to.equal(md.url);
           testResponseCode(r, topic);
         },
         'http://127.0.0.1:60508/bower_components/jquery/dist/jquery.js': function(r, topic, md) {
@@ -336,8 +332,7 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
           chai.expect(r.type).to.equal(2);
           chai.expect(r.method).to.equal('GET');
           chai.expect(r.isPrivate).to.be.false;
-          chai.expect(r.originUrl).to.equal("http://127.0.0.1:60508/iframe2.html");
-          chai.expect(r.source).to.equal(md.url);
+          chai.expect(r.originUrl).to.equal(md.url);
           testResponseCode(r, topic);
         },
         'http://127.0.0.1:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
@@ -347,8 +342,7 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
           chai.expect(r.type).to.equal(11);
           chai.expect(r.method).to.equal('GET');
           chai.expect(r.isPrivate).to.be.false;
-          chai.expect(r.originUrl).to.equal("http://127.0.0.1:60508/iframe2.html");
-          chai.expect(r.source).to.equal(md.url);
+          chai.expect(r.originUrl).to.equal(md.url);
           testResponseCode(r, topic);
         }
       }
@@ -358,6 +352,7 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
         block = false;
     function urlRewriter(req) {
       if (req.url.indexOf('localhost') === -1 && req.url.indexOf(uid) > -1) {
+        console.log(req.url);
         if (block) {
           return { cancel: true };
         } else {
@@ -379,16 +374,15 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
         it('determines correct request metadata', function() {
           CliqzUtils.getWindow().gBrowser.addTab(url);
           return waitFor(function() {
-            var testReqs = wrCollector.onHeadersReceived.filter( (req) => { return isTestServerAddress(req.url) });
+            let testReqs = wrCollector.onHeadersReceived.filter( (req) => { return isTestServerAddress(req.url) });
             return testReqs.length >= Object.keys(expectedUrls).length;
           }).then(function() {
             var testState = {
               testPage,
               url
             };
-            for (var topic of wrCollector.topics) {
-              var reqs = wrCollector[topic].filter( function(req) { return isTestServerAddress(req.url) }).forEach(function(r) {
-                console.log(r);
+            for (let topic of wrCollector.topics) {
+              let reqs = wrCollector[topic].filter( function(req) { return isTestServerAddress(req.url) }).forEach(function(r) {
                 chai.expect(expectedUrls).to.have.property(r.url);
                 expectedUrls[r.url](r, topic, testState);
               });
@@ -401,13 +395,13 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
           reqsReceived = [];
           CliqzUtils.getWindow().gBrowser.addTab(url);
           return waitFor(function() {
-            var testReqs = wrCollector.onHeadersReceived.filter( (req) => { return isTestServerAddress(req.url) });
+            let testReqs = wrCollector.onHeadersReceived.filter( (req) => { return isTestServerAddress(req.url) });
             return testReqs.length >= Object.keys(expectedUrls).length + (skipLengthTest ? 1 : 0);
           }).then(function() {
             if (!skipLengthTest) {
               chai.expect(reqsReceived).to.have.length(2);
             }
-            for (var req of reqsReceived) {
+            for (let req of reqsReceived) {
               // EXCEPTION: onBeforeRequest missed for image redirect
               if (req.host === 'localhost') {
                 chai.expect(req.qs).to.contain(uid);
@@ -423,11 +417,11 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
           reqsReceived = [];
           CliqzUtils.getWindow().gBrowser.addTab(url);
           return waitFor(function() {
-            var testReqs = wrCollector.onHeadersReceived.filter( (req) => { return isTestServerAddress(req.url) });
+            let testReqs = wrCollector.onHeadersReceived.filter( (req) => { return isTestServerAddress(req.url) });
             return testReqs.length >= Object.keys(expectedUrls).length - 1;
           }).then(function() {
             chai.expect(reqsReceived).to.have.length(1);
-            for (var req of reqsReceived) {
+            for (let req of reqsReceived) {
               // EXCEPTION: onBeforeRequest missed for image redirect
               if (req.host === 'localhost') {
                 chai.expect(req.qs).to.contain(uid);

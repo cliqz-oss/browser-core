@@ -21,6 +21,7 @@ import core from 'core/background';
 import CookieChecker from 'antitracking/cookie-checker';
 import TrackerProxy from 'antitracking/tracker-proxy';
 import { compressionAvailable, splitTelemetryData, compressJSONToBase64, generatePayload } from 'antitracking/utils';
+import {PrivacyScore} from 'antitracking/privacy-score';
 import * as browser from 'platform/browser';
 import WebRequest from 'core/webrequest';
 import telemetry from 'antitracking/telemetry';
@@ -229,7 +230,7 @@ var CliqzAttrack = {
             // 2. Get source url.
             // 3. header -> ORIGIN (This needs to be investigated.)
 
-            var source_url = requestContext.getSourceURL(),
+            var source_url = requestContext.getLoadingDocument(),
                 source_url_parts = null,
                 source_tab = requestContext.getOriginWindowID();
 
@@ -454,7 +455,7 @@ var CliqzAttrack = {
             var referrer = requestContext.getReferrer();
             var same_gd = false;
 
-            var source_url = requestContext.getSourceURL(),
+            var source_url = requestContext.getLoadingDocument(),
                 source_url_parts = null,
                 source_tab = requestContext.getOriginWindowID();
 
@@ -561,7 +562,7 @@ var CliqzAttrack = {
             // Then uri.spec == source_url
             // Only get source tabs for now.
 
-            var source_url = requestContext.getSourceURL(),
+            var source_url = requestContext.getLoadingDocument(),
                 source_url_parts = null,
                 source_tab = requestContext.getOriginWindowID();
 
@@ -1072,9 +1073,6 @@ var CliqzAttrack = {
 
         this._trackerLoader.stop();
         this._cookieWhitelistLoader.stop();
-        if (this._blockRulesLoader) {
-          this._blockRulesLoader.stop();
-        }
 
         events.un_sub("attrack:safekeys_updated");
     },
@@ -1200,13 +1198,13 @@ var CliqzAttrack = {
     },
     loadBlockRules: function() {
         CliqzAttrack.qsBlockRule = [];
-        CliqzAttrack._blockRulesLoader = new ResourceLoader( ['antitracking', 'anti-tracking-block-rules.json'], {
-          remoteURL: CliqzAttrack.URL_BLOCK_RULES,
-          cron: 24 * 60 * 60 * 1000,
+        CliqzUtils.loadResource(CliqzAttrack.URL_BLOCK_RULES, function(req) {
+            try {
+                CliqzAttrack.qsBlockRule = JSON.parse(req.response);
+            } catch(e) {
+                CliqzAttrack.qsBlockRule = [];
+            }
         });
-        const updateRules = (rules) => { CliqzAttrack.qsBlockRule = rules || []};
-        CliqzAttrack._blockRulesLoader.load().then(updateRules);
-        CliqzAttrack._blockRulesLoader.onUpdate(updateRules);
     },
     isInWhitelist: function(domain) {
         if(!CliqzAttrack.whitelist) return false;
@@ -1584,21 +1582,20 @@ var CliqzAttrack = {
         firstPartyCompany = CliqzAttrack.tracker_companies[getGeneralDomain(tabData.hostname)];
       result.hostname = tabData.hostname;
       result.path = tabData.path;
+      result.ps = PrivacyScore.get(md5(getGeneralDomain(result.hostname)).substr(0, 16) + 'site');
+      if (!result.ps.score) {
+        result.ps.getPrivacyScore();
+      }
 
       trackers.forEach(function(dom) {
         result.trackers[dom] = {};
-        ['c', 'cookie_set', 'cookie_blocked', 'bad_cookie_sent', 'bad_qs'].forEach(function (k) {
+        ['c', 'cookie_set', 'cookie_blocked', 'bad_cookie_sent', 'bad_qs', 'tokens_blocked', 'req_aborted'].forEach(function (k) {
           result.trackers[dom][k] = plain_data.tps[dom][k] || 0;
         });
-        // actual block count can be in several different signals, depending on configuration. Aggregate them into one.
-        result.trackers[dom].tokens_removed = ['empty', 'replace', 'placeholder', 'block'].reduce((cumsum, action) => {
-            return cumsum + (plain_data.tps[dom]['token_blocked_' + action] || 0);
-        }, 0);
-
         result.cookies.allowed += result.trackers[dom]['cookie_set'] - result.trackers[dom]['cookie_blocked'];
         result.cookies.blocked += result.trackers[dom]['cookie_blocked'];
-        result.requests.safe += result.trackers[dom]['c'] - result.trackers[dom].tokens_removed;
-        result.requests.unsafe += result.trackers[dom].tokens_removed;
+        result.requests.safe += result.trackers[dom]['c'] - result.trackers[dom]['bad_qs'];
+        result.requests.unsafe += result.trackers[dom]['bad_qs'];
 
         let tld = getGeneralDomain(dom),
           company = tld;
@@ -1615,10 +1612,10 @@ var CliqzAttrack = {
 
       return result;
     },
-    getCurrentTabBlockingInfo: function(_gBrowser) {
+    getCurrentTabBlockingInfo: function() {
       var tabId, urlForTab;
       try {
-        var gBrowser = _gBrowser || CliqzUtils.getWindow().gBrowser,
+        var gBrowser = CliqzUtils.getWindow().gBrowser,
             selectedBrowser = gBrowser.selectedBrowser;
         // on FF < 38 selectBrowser.outerWindowID is undefined, so we get the windowID from _loadContext
         tabId = selectedBrowser.outerWindowID || selectedBrowser._loadContext.DOMWindowID;

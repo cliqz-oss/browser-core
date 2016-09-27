@@ -1,13 +1,11 @@
-/* global require */
-/* global process */
+var Testem  = require('testem')
 
-const Testem = require('testem');
-const testem = new Testem();
+var testem = new Testem()
 
-process.on('message', msg => {
-  if (msg.cmd === 'start') {
-    testem.startDev(msg.options);
-  } else if (msg.cmd === 'restart') {
-    testem.restart();
-  }
-});
+process.on('message', function(msg) {
+	if (msg.cmd === 'start') {
+		testem.startDev(msg.options)
+	} else if (msg.cmd === 'restart') {
+		testem.restart()
+	}
+})

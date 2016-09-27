@@ -153,7 +153,7 @@
         "message": "Enabled"
     },
     "anti-phishing-txt0": {
-        "message": "Security Warning"
+        "message": "Warning: deceptive website!"
     },
     "anti-phishing-txt1": {
         "message": "CLIQZ has blocked access to "
@@ -258,7 +258,7 @@
         "message":"$1 years ago"
     },
     "onCalloutSameResult":{
-        "message":"Sorry to interrupt. Did you notice that you can get to the same result using CLIQZ?"
+        "message":"Sorry about interrupting. You can get to the same result here using CLIQZ."
     },
     "onCalloutSameResultBtnOk":{
         "message":"Got it!"
@@ -267,7 +267,7 @@
         "message":"Don't show again."
     },
     "onCalloutSmartCliqz":{
-        "message":"Sorry to interrupt. Did you notice that you can get to the same result using CLIQZ?"
+        "message":"Sorry about interrupting. You can get to the same result here using CLIQZ."
     },
     "onCalloutSmartCliqzBtnOk":{
         "message":"Got it!"
@@ -276,7 +276,7 @@
         "message":"Don't show again."
     },
     "onCalloutTypedUrl":{
-        "message":"Sorry to interrupt. You don't have to type the full address. Just press ENTER as soon as the address appears!"
+        "message":"Sorry about interrupting. You don't have to type the full address. Just press ENTER as soon as the address appears!"
     },
     "onCalloutTypedUrlBtnOk":{
         "message":"Got it!"
@@ -303,13 +303,13 @@
        "message":"Show me again"
     },
     "onCalloutTypeHere":{
-       "message":"All the CLIQZ action happens in your URL bar. Simply enter your search or a web address here."
+       "message":"All the CLIQZ action happens in your URL bar. Simply enter your search or a webaddress here."
     },
     "onCalloutCliqzResults":{
        "message":"Website suggestions appear in the CLIQZ Menu as you type."
     },
     "onCalloutLandingPage":{
-       "message":"More time where you want to be--stop searching & go surfing"
+       "message":"More time where you want to be—stop searching & go surfing"
     },
     "onCalloutClickHere":{
        "message":"Click to select a CLIQZ result"
@@ -318,7 +318,7 @@
        "message":"Start surfing!"
     },
     "onUrlBarNowYou":{
-       "message":"Enter search or web address here"
+       "message":"Enter search or webaddress here"
     },
     "onMsgInstalled":{
        "message":"Installation successful! You can now surf the web with CLIQZ!"
@@ -369,7 +369,7 @@
         "message":"History"
     },
     "Sitemap_Youtube_WatchLater": {
-        "message":"Watch later"
+        "message":"Watch Later"
     },
     "Sitemap_Youtube_Channels": {
         "message":"Channels"
@@ -570,7 +570,7 @@
         "message": "Explicit content has been blocked automatically. Continue blocking?"
     },
     "show_once": {
-      "message":"Show once"
+      "message":"Show Once"
     },
     "yes": {
         "message": "Yes"
@@ -642,7 +642,7 @@
       "message": "Activate CLIQZ search"
     },
     "btnFreshTab": {
-      "message": "Enable CLIQZ Tab"
+      "message": "Enable CLIQZ Start Page and New Tabs"
     },
     "publish_date": {
         "message": "Publish date"
@@ -654,7 +654,7 @@
         "message": "Copied"
     },
     "updateMessage":{
-        "message": "CLIQZ has just updated to the latest version."
+        "message": "CLIQZ has just updated to the latest, greatest version."
     },
     "updatePage":{
         "message": "See What’s New"
@@ -855,16 +855,16 @@
       "message": "December"
     },
     "location_permission_prompt": {
-      "message": "We'd love to enhance this result with some local information. Share your location with us?"
+      "message": "We'd love to enhance this result with some local info. Share your location with us?"
     },
     "location_never": {
       "message": "Never"
     },
     "no_local_data_msg": {
-      "message": "Sorry, CLIQZ currently has no information about a location near you. Would you like to always share your location with CLIQZ for a smoother experience?"
+      "message": "Oh no, something went wrong. Always share your location with us to avoid this in the future?"
     },
     "location_sorry_msg": {
-      "message": "Sorry, CLIQZ currently has no information about a location near you."
+      "message": "Oh no, something went wrong. Shouldn't happen again!"
     },
     "location_thank_you_msg": {
       "message": "Thank you so much!"
@@ -885,16 +885,16 @@
       "message": "No, show me what movies I can watch."
     },
     "location_just_once": {
-      "message": "Just once"
+      "message": "Just this once"
     },
     "location_not_now": {
       "message": "Not now"
     },
     "always_ask": {
-      "message": "Always ask"
+      "message": "Always Ask"
     },
     "share_location": {
-      "message": "Share location"
+      "message": "Share Location"
     },
     "location_confirm_no": {
       "message": "Are you sure you don't want to see relevant information about places around you?"
@@ -924,28 +924,28 @@
       "message": "Please check your connection."
     },
     "slow_connection_header_2": {
-      "message": "Time to load remaining: 45266436 hours."
+      "message": "Time to load remaining: 45266436 hours"
     },
     "slow_connection_text_2": {
       "message": "Please check your connection."
     },
     "slow_connection_header_3": {
-      "message": "You still there?"
+      "message": "Hmpf."
     },
     "slow_connection_text_3": {
       "message": "Please check your connection."
     },
     "slow_connection_header_4": {
-      "message": "Looks like you've lost internet connection."
+      "message": "Not our fault!"
     },
     "slow_connection_text_4": {
-      "message": "Please check and try again."
+      "message": "Please check your connection."
     },
     "dataCollection": {
       "message": "To improve the search and browsing experience, CLIQZ for Firefox sends data about web searches and website visits to Cliqz’s servers in a completely anonymous, privacy-safe way."
     },
     "learnMore": {
-      "message": "Learn more"
+      "message": "Learn More"
     },
     "humanWeb1": {
       "message": "Human Web"
@@ -969,10 +969,10 @@
       "message": "Also completely anonymously, and separately from its web traffic data, CLIQZ for Firefox records what the community of users search the web for and what they enter into the CLIQZ universal browser bar (the combined search box and address bar at the top of your browser window). Each of such entries and site visits are evaluated only as a single event. We never combine data from multiple entries or multiple visits and do not attempt to draw even theoretically possible conclusions about our users. We also never associate any personal data (such as your IP or email address) with any events."
     },
     "humanWeb8": {
-      "message": "Participating in Human Web is optional"
+      "message": "Participating in HumanWeb is optional"
     },
     "humanWeb9": {
-      "message": "You can choose if you want CLIQZ to submit anonymous statistical data to improve relevance and safety via the Human Web."
+      "message": "You can choose If you want CLIQZ to submit anonymous statistical data to improve relevance and safety via the Human Web."
     },
     "humanWeb10": {
       "message": "I participate in the Human Web"
@@ -993,7 +993,7 @@
       "message": "As long as the checkbox is checked Privacy Protection for this site will be turned off"
     },
     "attrack-headline-deactivate": {
-      "message": "Privacy Protection is OFF. Your data is exposed to trackers!"
+      "message": "Privacy Protection is OFF. Your data is exposed to trackers !"
     },
     "attrack-headline-reload": {
       "message": "Please reload to browse safely!"
@@ -1017,10 +1017,10 @@
       "message": "Turn off Protection for this site!"
     },
     "attrack-btn-details-more": {
-      "message": "See more"
+      "message": "See More"
     },
     "attrack-btn-details-less": {
-      "message": "See less"
+      "message": "See Less"
     },
     "attrack-help": {
       "message": "Learn more"
@@ -1059,7 +1059,7 @@
       "message": "None"
     },
     "adb-menu-more": {
-      "message": "Learn more"
+      "message": "Learn More"
     },
     "freshtab_learn_more": {
       "message": "Learn more"
@@ -1101,10 +1101,10 @@
       "message": "Re-establishing lost internet connection"
     },
     "mobile_no_history": {
-      "message": "Here you will find your history.<br />You haven't searched or navigated to websites yet."
+      "message": "Here you will find your history.<br />You still haven't searched or navigated to websites."
     },
     "mobile_no_favorites": {
-      "message": "Here you will find your favorites."
+      "message": "Here you will find your favorites.<br />Long tap on history items to create favorites."
     },
     "mobile_history_title": {
       "message": "History"
@@ -1170,7 +1170,7 @@
       "message": "Our innovative"
     },
     "cliqz-onboarding-txt-privacy2": {
-      "message": "Anti-Tracking & Anti-Phishing"
+      "message": "Anti-Tracking & -Phising"
     },
     "cliqz-onboarding-txt-privacy3": {
       "message": "technologies protect you and your privacy."
@@ -1225,153 +1225,6 @@
     },
     "lyrics": {
       "message": "Lyrics: "
-    },
-    "control-center-txt-header": {
-      "message": "Your data is protected"
-    },
-    "control-center-txt-header-not": {
-      "message": "Your data is not protected"
-    },
-    "control-center-datapoints": {
-      "message": "Private data points have been removed"
-    },
-    "control-center-datapoints-inactive": {
-      "message": "Turned off for this website"
-    },
-    "control-center-datapoints-off": {
-      "message": "Turned off for all websites"
-    },
-    "control-center-trackers": {
-      "message": "Tracking companies on this page"
-    },
-    "control-center-info-trackers": {
-      "message": "It is common for websites to include tracking services that record all user activity. CLIQZ blocks data that could be used to identify you, before trackers can collect them. The figure tells you how many single data points have been removed. Click inside the Anti-Tracking box to see more details."
-    },
-    "control-center-info-phishing-title": {
-      "message": "Anti-Phishing"
-    },
-    "control-center-info-phishing": {
-      "message": "Anti-Phishing technology identifies and blocks potentially deceptive websites that try to get your passwords or account data before you visit the site."
-    },
-    "control-center-info-ads-title": {
-      "message": "Ad Blocking"
-    },
-    "control-center-info-ads": {
-      "message": "This integrated ad blocker function is currently in BETA status. You can choose to block or show advertisements in general or only on specific websites. A „fair“ mode that shows ads in clearly defined cases only will be added soon."
-    },
-    "control-center-info-https": {
-      "message": "This function improves the level of security by forcing encrypted HTTPS connections to websites whenever possible. Cliqz has integrated the open-source service HTTPS Everywhere for this purpose."
-    },
-    "control-center-info-https-title": {
-      "message": "Prefer HTTPS"
-    },
-    "control-center-info-hpn-title": {
-      "message": "Search via Proxy"
-    },
-    "control-center-info-hpn": {
-      "message": "If you wish to hide your IP address from Cliqz you can send your search queries through a network of proxy servers."
-    },
-    "control-center-info-hw-title": {
-      "message": "Human Web"
-    },
-    "control-center-info-hw": {
-      "message": "CLIQZ works with anonymised data of search queries and website visits that have been generated by our community of users. The technology that collects this data to build the web index is called Human Web."
-    },
-    "control-center-adblock-title": {
-      "message": "Ad-block [BETA]"
-    },
-    "control-center-adblock-description": {
-      "message": "Ads have been blocked on this website"
-    },
-    "control-center-adblock-description-off-website": {
-      "message": "Turned off for this page"
-    },
-    "control-center-adblock-description-off-domain": {
-      "message": "Turned off for this domain"
-    },
-    "control-center-adblock-description-off-all": {
-      "message": "Turned off for all websites"
-    },
-    "control-center-adblock-advertisers": {
-      "message": "List of advertisers on this page"
-    },
-    "control-center-phishing-report": {
-      "message": "Report phishing Site"
-    },
-    "control-center-support": {
-      "message": "FAQ & Support"
-    },
-    "control-center-othersettings": {
-      "message": "Other Settings"
-    },
-    "control-center-quicksearch": {
-      "message": "Safe Quick-Search"
-    },
-    "control-center-enable-search": {
-      "message": "Enable Cliqz Search"
-    },
-    "control-center-location": {
-      "message": "Share location"
-    },
-    "control-center-explicit": {
-      "message": "Block adult websites in results"
-    },
-    "control-center-proxy": {
-      "message": "Search via proxy"
-    },
-    "control-center-searchoptions": {
-      "message": "More Search Options"
-    },
-    "control-center-humanweb": {
-      "message": "Take part in Human Web"
-    },
-    "control-center-best-cliqz": {
-      "message": "Get the best out of CLIQZ"
-    },
-    "control-center-transparency": {
-      "message": "Transparency Monitor"
-    },
-    "control-center-history-options": {
-      "message": "History options"
-    },
-    "control-center-show-history": {
-      "message": "Show all history"
-    },
-    "control-center-forget-history": {
-      "message": "Forget history"
-    },
-    "control-center-forget-mode": {
-      "message": "Automatic forget mode"
-    },
-    "control-center-switch-on": {
-      "message": "ON"
-    },
-    "control-center-switch-off": {
-      "message": "OFF"
-    },
-    "control-center-phishing-deceptive": {
-      "message": "Reported as deceptive"
-    },
-    "control-center-phishing-deceptive-not": {
-      "message": "Not reported as deceptive"
-    },
-    "control-center-check-strict": {
-      "message": "Strict"
-    },
-    "control-center-this-site": {
-      "message": "This page"
-    },
-    "control-center-this-domain": {
-      "message": "This domain"
-    },
-    "control-center-all-sites": {
-      "message": "All websites"
-    },
-    "download": {
-      "message": "Download from: "
-    },
-    "settings": {
-      "message": "Settings"
     },
     "TEST": "OK"
 }

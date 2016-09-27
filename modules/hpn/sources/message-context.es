@@ -8,8 +8,7 @@
 
 import CliqzSecureMessage from 'hpn/main';
 import JsonFormatter, { createHttpUrl, getRouteHash, getRandomWords } from "hpn/utils";
-import { hexToBinary } from "hpn/crypto-utils";
-
+import secureEventLoggerContext from "hpn/secure-logger";
 
 /* This method will ensure that we have the same length for all the mesages
 */
@@ -53,42 +52,10 @@ export default class {
 	 	this.mK = null;
 	 	this.mP = null;
 	 	this.dm = null;
-	 	// this.dmC =  this.calculateRouteHash(this.jMessage);
-	 	// this.proxyCoordinator = this.getProxyIP(this.dmC);
+	 	this.dmC =  this.calculateRouteHash(this.jMessage);
+	 	this.proxyCoordinator = this.getProxyIP(this.dmC);
 	 	this.proxyValidators = null;
-	}
-
-	getproxyCoordinator(){
-		var _this = this;
-		var msg = _this.jMessage;
-		var promise = new Promise(function(resolve, reject){
-			try{
-				var hash = "";
-				// var _msg = msg || this.orgMessage;
-				var stringRouteHash = getRouteHash(msg);
-				CliqzSecureMessage.sha1(stringRouteHash)
-				.then(hashM => {
-					var dmC = hexToBinary(hashM)['result'].slice(0,13);
-					var routeHash = parseInt(dmC, 2);
-					_this.fullHash = hashM;
-					_this.dmC = dmC;
-					var totalProxies = 4096;
-					var modRoute = routeHash % totalProxies;
-					var proxyIP = createHttpUrl(CliqzSecureMessage.routeTable[modRoute]);
-					_this.proxyCoordinator = proxyIP;
-					resolve(proxyIP);
-				})
-				.catch(err=>{
-					reject(err);
-				})
-
-
-			}
-			catch(e){
-				reject(e);
-			}
-		})
-		return promise;
+	 	CliqzSecureMessage.secureLogger = new secureEventLoggerContext();
 	}
 
 	/**

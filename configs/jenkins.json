@@ -8,8 +8,7 @@
     "showDataCollectionMessage": true,
     "cliqzOnboarding": false,
     "channel": "99",
-    "antitrackingButton": true,
-    "showNewBrandAlert": true
+    "antitrackingButton": true
   },
   "modules": [
     "q-button",
@@ -31,13 +30,11 @@
     "privacy-dashboard",
     "performance",
     "hpn",
-    "control-center",
     "adblocker",
     "hm",
     "campaign-manager",
     "message-center",
-    "q-button",
-    "https-everywhere"
+    "q-button"
   ],
   "subprojects": [
     "fresh-tab-frontend"

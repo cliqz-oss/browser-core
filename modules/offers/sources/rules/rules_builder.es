@@ -4,7 +4,6 @@ import { Rule } from 'offers/rules/rule';
 import { FoodDeliveryRule } from 'offers/rules/food_delivery_rule';
 import { TravelRule } from 'offers/rules/travel_rule';
 import { GamingRule } from 'offers/rules/gaming_rule';
-import { WinesRule } from 'offers/rules/wines_rule';
 
 
 const MODULE_NAME = 'rules_builder';
@@ -40,10 +39,6 @@ export class RulesBuilder {
       case 5:
         rule = new GamingRule();
         break;
-      case 6:
-        rule = new WinesRule();
-        break;
-
 
       default:
     }

@@ -2,7 +2,7 @@ import background from 'antitracking/background';
 import CliqzAttrack from 'antitracking/attrack';
 import { utils, events } from 'core/cliqz';
 import { simpleBtn } from 'q-button/buttons';
-import { URLInfo } from 'antitracking/url';
+
 
 function onLocationChange(ev) {
   if(this.interval) { CliqzUtils.clearInterval(this.interval); }
@@ -39,14 +39,16 @@ export default class {
 
     this.popup = background.popup;
 
-    this.onLocationChange = onLocationChange.bind(this);
+    if ( this.popup ) {
+      this.onLocationChange = onLocationChange.bind(this);
+    }
     this.onPrefChange = onPrefChange.bind(this);
     this.enabled = false;
   }
 
   init() {
-    CliqzEvents.sub("core.location_change", this.onLocationChange);
-    if( this.popup ){
+    if ( this.popup ) {
+      CliqzEvents.sub("core.location_change", this.onLocationChange);
       // Better to wait for first window to set the state of the button
       // otherways button may not be initialized yet
       this.popup.updateState(utils.getWindow(), CliqzAttrack.isEnabled());
@@ -56,9 +58,10 @@ export default class {
   }
 
   unload() {
-    CliqzEvents.un_sub("core.location_change", this.onLocationChange);
-    CliqzUtils.clearInterval(this.interval);
-
+    if ( this.popup ) {
+      CliqzEvents.un_sub("core.location_change", this.onLocationChange);
+      CliqzUtils.clearInterval(this.interval);
+    }
     if (CliqzAttrack.isEnabled()) {
       CliqzAttrack.unloadWindow(this.window);
     }
@@ -81,16 +84,7 @@ export default class {
       count = 0;
     }
 
-    if( this.popup ){
-      this.popup.setBadge(this.window, count);
-    } else {
-      utils.callWindowAction(
-        this.window,
-        'control-center',
-        'setBadge',
-        [ count ]
-      );
-    }
+    this.popup.setBadge(this.window, count);
   }
 
   createAttrackButton() {
@@ -159,28 +153,5 @@ export default class {
     return [
       this.createAttrackButton()
     ];
-  }
-
-  status() {
-    var info = CliqzAttrack.getCurrentTabBlockingInfo(this.window.gBrowser),
-        ps = info.ps,
-        hostname = URLInfo.get(this.window.gBrowser.currentURI.spec).hostname,
-        isWhitelisted = CliqzAttrack.isSourceWhitelisted(hostname),
-        enabled = utils.getPref('antiTrackTest', true) && !isWhitelisted;
-
-    return {
-      visible: true,
-      strict: utils.getPref('attrackForceBlock', false),
-      hostname: hostname,
-      cookiesCount: info.cookies.blocked,
-      requestsCount: info.requests.unsafe,
-      totalCount: info.cookies.blocked + info.requests.unsafe,
-      enabled: enabled,
-      isWhitelisted: isWhitelisted || enabled,
-      reload: info.reload || false,
-      trackersList: info,
-      ps: ps,
-      state: enabled ? 'active' : isWhitelisted ? 'inactive' : 'critical'
-    }
   }
 };
