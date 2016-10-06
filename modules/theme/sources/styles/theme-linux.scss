@@ -1,5 +1,9 @@
 @font-face { font-family: "Lato"; src: url("chrome://cliqz/content/static/skin/fonts/Lato-Regular.ttf"); }
 
+.cliqz-urlbar-Last-search {
+    padding-top: 3px;
+}
+
 :root {
     --menupanel-list-style-image: url("chrome://cliqz/content/theme/images/browser/linux/menuPanel.png");
     --menupanel-list-style-image-2x: url("chrome://cliqz/content/theme/images/browser/linux/menuPanel@2x.png") !important;

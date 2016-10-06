@@ -8,7 +8,7 @@
     <section cliqz-action='copy-calc-answer' class="primary">
 
       <div class="card__meta">
-          {{local 'no_legal_disclaimer'}}
+          <div>{{local 'no_legal_disclaimer'}}</div>
       </div>
 
       <h1 class="card__title">

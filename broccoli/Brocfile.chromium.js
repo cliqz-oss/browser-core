@@ -31,13 +31,13 @@ var chromiumTree = new MergeTrees([
 ], { overwrite: true } );
 
 var configTree = util.injectConfig(chromiumTree, config, 'cliqz.json', [
- 'modules/core/config.js'
+  'modules/core/config.js'
 ]);
 
 var outputTree = new MergeTrees([
   specific,
   chromiumTree,
-  configTree
+  configTree,
 ], { overwrite: true });
 
 // Output

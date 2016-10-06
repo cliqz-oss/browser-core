@@ -1,0 +1,39 @@
+<div id="companies-title">
+  <p data-i18n="control-center-trackers">Tracking Firmen auf dieser Seite</p>
+  <span>
+    <svg data-target="attrack_details_close" class="cross" width="21px" height="21px" viewBox="623 233 21 21" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+      <defs></defs>
+      <g id="Group" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(625.000000, 235.000000)" stroke-linecap="round">
+        <path d="M0.6,0.635192349 L15.6119957,15.647188" id="Line" stroke="#FFFFFF" stroke-width="2.5"></path>
+        <path d="M0.6,0.635192349 L15.6119957,15.647188" id="Line-Copy-47" stroke="#FFFFFF" stroke-width="2.5" transform="translate(8.400000, 8.435192) scale(-1, 1) translate(-8.400000, -8.435192) "></path>
+      </g>
+    </svg>
+  </span>
+</div>
+<div id="companies">
+  {{> companies-list companiesArray=module.antitracking.trackersList.companiesArray module="attrack" }}
+</div>
+
+<div id="bottom-part">
+  <div class="description" data-i18n="control-center-datapoints" visible-on-state="active"></div>
+  <div class="description" data-i18n="control-center-datapoints-inactive" visible-on-state="inactive"></div>
+  <div class="description" data-i18n="control-center-datapoints-off" visible-on-state="critical"></div>
+  <div class="switches" class="switches-antitrack" style="display: none">
+    <!--======= Switch ======-->
+    <span>
+      <span class="active cqz-switch">
+        <span class="cqz-switch-box"></span>
+      </span>
+      <span id="onlabel" data-i18n="control-center-switch-on"></span>
+    </span>
+  </div>
+  <div class="counter">
+    <!--======= Shield =======-->
+    <svg id="shield" width="42px" height="50px" viewBox="-1 0 38 44" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+      <defs></defs>
+      <path class="fill" d="M18.0059,0.375 C18.0059,0.375 13.1119,9.034 1.3039,9.034 C0.8799,9.034 0.4479,9.023 0.0059,9 L0.0049,9 C-0.1111,8.998 1.6699,34.772 18.0059,44 C34.3409,34.773 36.1219,9 36.0069,9 L36.0059,9 C35.5649,9.023 35.1319,9.034 34.7079,9.034 C22.8979,9.034 18.0059,0.375 18.0059,0.375 M32.4389,12.139 C31.4659,18.564 28.1719,33.281 18.0059,40.233 C7.8339,33.279 4.5449,18.563 3.5729,12.139 C10.6619,11.534 15.3369,8.172 18.0059,5.47 C20.6739,8.172 25.3499,11.534 32.4389,12.139 Z"
+        stroke="none" fill="#2CBA64" fill-rule="evenodd"></path>
+    </svg>
+    <span id="count">{{ module.antitracking.totalCount }}</span>
+  </div>
+</div>

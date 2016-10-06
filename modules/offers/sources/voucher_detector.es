@@ -13,7 +13,7 @@ export class VoucherDetector {
 
   constructor() {
     this.currentRegEx = {};
-    this.validDomains = new Set(['lieferando', 'deliveroo', 'hotels', 'reisen', 'bdi-services']);
+    this.validDomains = new Set(['lieferando', 'deliveroo', 'hotels', 'reisen', 'bdi-services', 'silkes-weinkeller']);
     this.loadRegEx();
   }
 
@@ -27,9 +27,9 @@ export class VoucherDetector {
       // we need to write this then
       LoggingHandler.LOG_ENABLED &&
       LoggingHandler.info(MODULE_NAME, 'no voucher regex db found, creating new one');
-      loadFileFromChrome(['offers', 'vouchers_used_regex.json']).then(raw => {
+      loadFileFromChrome(['offers', 'regex_maps.json']).then(raw => {
           let json = JSON.parse(raw);
-          self.updateCurrentRegEx(json);
+          self.updateCurrentRegEx(json['vouchers_used_regex']);
       }).catch(err => {
        LoggingHandler.LOG_ENABLED && LoggingHandler.error(MODULE_NAME, err);
        return;

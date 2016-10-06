@@ -5,6 +5,7 @@
  *
  */
 
+Components.utils.importGlobalProperties(['crypto'])
 var EXPORTED_SYMBOLS = ['Extension'];
 const { classes: Cc, interfaces: Ci, utils: Cu, manager: Cm } = Components;
 

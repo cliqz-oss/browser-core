@@ -52,7 +52,7 @@ var events = {
       });
     },
     "cqz_location_no": function(ev) {
-      var container = this.CLIQZ.Core.popup.cliqzBox.querySelector(".local-sc-data-container"),
+      var container = this.CLIQZ.UI.gCliqzBox.querySelector(".local-sc-data-container"),
           el = ev.target,
           localType = el.getAttribute("local_sc_type") || "default";
 
@@ -88,7 +88,7 @@ var events = {
         "setLocationPermission",
         ["yes"]
       );
-      var container = this.CLIQZ.Core.popup.cliqzBox.querySelector(".local-sc-data-container");
+      var container = this.CLIQZ.UI.gCliqzBox.querySelector(".local-sc-data-container");
       if (container) container.innerHTML = CliqzHandlebars.tplCache["partials/location/no-locale-data"]({
         "display_msg": "location-thank-you"
       });
@@ -107,7 +107,7 @@ export default class {
   }
 
   loadLocalResults(el) {
-    this.CLIQZ.Core.popup.cliqzBox.querySelector(".location_permission_prompt").classList.add("loading");
+    this.CLIQZ.UI.gCliqzBox.querySelector(".location_permission_prompt").classList.add("loading");
     var bmUrl = el.getAttribute("bm_url");
     if (!bmUrl) {
       this.failedToLoadResults(el);
@@ -148,7 +148,7 @@ export default class {
           if (!container || container.id == "cliqz-results") return;
         }
         this.CLIQZ.UI.enhanceResults(resp);
-        r = resp.results[0];
+        r = this.CLIQZ.UI.enhanceResults(resp).results[0];
         if (container) container.innerHTML = CliqzHandlebars.tplCache[r.data.template](r);
       } else {
         this.failedToLoadResults(el);
@@ -157,7 +157,7 @@ export default class {
   }
 
   failedToLoadResults(el) {
-    var container = this.CLIQZ.Core.popup.cliqzBox.querySelector(".local-sc-data-container");
+    var container = this.CLIQZ.UI.gCliqzBox.querySelector(".local-sc-data-container");
     if (el.id === "cqz_location_yes") {
         container.innerHTML = CliqzHandlebars.tplCache["partials/location/no-locale-data"]({
           "display_msg": "location-sorry"
@@ -170,7 +170,7 @@ export default class {
   }
 
   displayMessageForNoPermission() {
-    var container = this.CLIQZ.Core.popup.cliqzBox.querySelector(".local-sc-data-container");
+    var container = this.CLIQZ.UI.gCliqzBox.querySelector(".local-sc-data-container");
     if (container) container.innerHTML = CliqzHandlebars.tplCache["partials/location/no-locale-data"]({
       "display_msg": "location-no"
     });

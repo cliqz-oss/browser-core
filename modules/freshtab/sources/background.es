@@ -1,7 +1,7 @@
 import FreshTab from 'freshtab/main';
 import News from 'freshtab/news';
 import History from 'freshtab/history';
-import { utils } from 'core/cliqz';
+import { utils, events } from 'core/cliqz';
 import SpeedDial from 'freshtab/speed-dial';
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
@@ -28,7 +28,11 @@ export default {
   */
   init(settings) {
     utils.bindObjectFunctions(this.actions, this);
-    FreshTab.startup(settings.freshTabButton, settings.cliqzOnboarding, settings.channel);
+    FreshTab.startup(settings.freshTabButton, settings.cliqzOnboarding, settings.channel, settings.showNewBrandAlert);
+    events.sub( "control-center:amo-cliqz-tab", function() {
+      FreshTab.toggleState();
+    })
+
   },
   /**
   * @method unload
@@ -66,8 +70,18 @@ export default {
       const showFeedback = utils.getPref('freshtabFeedback', false);
       return showFeedback;
     },
-    _getFeedbackUrl() {
+    _showNewBrandAlert() {
+      const isInABTest = utils.getPref('freshtabNewBrand', false);
+      const isDismissed = utils.getPref('freshtabNewBrandDismissed', false);
+      return FreshTab.showNewBrandAlert && isInABTest && !isDismissed;
+    },
+    dismissAlert() {
+      try {
+        utils.setPref('freshtabNewBrandDismissed', true);
 
+      } catch (e) {
+        console.log(e, "freshtab error setting dismiss pref")
+      }
     },
     /**
     * Get history based & user defined speedDials
@@ -285,6 +299,7 @@ export default {
             logo: utils.getLogoDetails(utils.getDetailsFromUrl(r.url)),
             url: r.url,
             type: r.type,
+            breaking_label: r.breaking_label
           }))
         };
       });
@@ -304,6 +319,7 @@ export default {
         showHelp: self.actions._showHelp(),
         isBrowser: self.actions._isBrowser(),
         showFeedback: self.actions._showFeedback(),
+        showNewBrandAlert: self.actions._showNewBrandAlert()
       };
       return Promise.resolve(config);
     },

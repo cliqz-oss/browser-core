@@ -17,7 +17,6 @@ function isQinvalid(q){
 
 var CliqzAutocomplete = {
     LOG_KEY: 'CliqzAutocomplete',
-    TIMEOUT: 1000,
     HISTORY_TIMEOUT: 200,
     SCROLL_SIGNAL_MIN_TIME: 500,
     lastPattern: null,
@@ -336,7 +335,7 @@ var CliqzAutocomplete = {
                 if(q == this.searchString && this.startTime != null){ // be sure this is not a delayed result
                     var now = Date.now();
 
-                    if((now > this.startTime + CliqzAutocomplete.TIMEOUT) || // 1s timeout
+                    if((now > this.startTime + utils.RESULTS_TIMEOUT) ||
                        (this.isHistoryReady() || this.historyTimeout) && // history is ready or timed out
                        this.cliqzResults) { // all results are ready
                         /// Push full result
@@ -578,13 +577,10 @@ var CliqzAutocomplete = {
                 this.pushTimeoutCallback = this.pushTimeoutCallback.bind(this);
                 this.historyPatternCallback = this.historyPatternCallback.bind(this);
                 this.createInstantResultCallback = this.createInstantResultCallback.bind(this);
-
                 historyCluster.historyCallback = this.historyPatternCallback;
-
                 if(searchString.trim().length){
                     // start fetching results
-                    utils.getCliqzResults(searchString, this.cliqzResultFetcher);
-
+                    utils.getBackendResults(searchString, this.cliqzResultFetcher);
                     // if spell correction, no suggestions
                     if (CliqzAutocomplete.spellCorr.on && !CliqzAutocomplete.spellCorr.override) {
                         this.suggestionsRecieved = true;
@@ -604,7 +600,7 @@ var CliqzAutocomplete = {
                         //utils.getSuggestions(searchString, this.cliqzSuggestionFetcher);
                     }
                     utils.clearTimeout(this.resultsTimer);
-                    this.resultsTimer = utils.setTimeout(this.pushTimeoutCallback, CliqzAutocomplete.TIMEOUT, this.searchString);
+                    this.resultsTimer = utils.setTimeout(this.pushTimeoutCallback, utils.RESULTS_TIMEOUT, this.searchString);
                 } else {
                     this.cliqzResults = [];
                     this.cliqzResultsExtra = [];

@@ -35,9 +35,9 @@ TESTS.WindowTree = function(CliqzUtils) {
     describe('addRootWindow', function() {
 
       it('adds a window spec at the given window id', function() {
-        let testUrl = 'test url';
+        var testUrl = 'test url';
         wt.addRootWindow(4, testUrl);
-        let node = wt.getWindowByID(4);
+        var node = wt.getWindowByID(4);
         chai.expect(node.id).to.equal(4);
         chai.expect(node.top).to.be.true;
         chai.expect(node.url).to.equal(testUrl);
@@ -45,7 +45,7 @@ TESTS.WindowTree = function(CliqzUtils) {
 
       it('overrides the previous entry for the window id', function() {
         wt.addRootWindow(5, 'url1');
-        let node = wt.getWindowByID(5);
+        var node = wt.getWindowByID(5);
         wt.addRootWindow(5, 'url2');
         chai.expect(wt.getWindowByID(5)).to.not.equal(node);
         chai.expect(wt.getWindowByID(5).url).to.equal('url2');
@@ -65,7 +65,7 @@ TESTS.WindowTree = function(CliqzUtils) {
       it('is an orphan when parent does not exist', function() {
         wt.addLeafWindow(1, 2);
         chai.expect(wt.getWindowByID(2)).to.be.undefined;
-        let w = wt.getWindowByID(1)
+        var w = wt.getWindowByID(1)
         chai.expect(w.id).to.equal(1);
         chai.expect(w.url).to.be.undefined;
         chai.expect(w.top).to.be.false;
@@ -76,7 +76,7 @@ TESTS.WindowTree = function(CliqzUtils) {
       it('is not an orphan when parent exists', function() {
         wt.addRootWindow(2);
         wt.addLeafWindow(1, 2);
-        let w = wt.getWindowByID(1)
+        var w = wt.getWindowByID(1)
         chai.expect(w.id).to.equal(1);
         chai.expect(w.url).to.be.undefined;
         chai.expect(w.top).to.be.false;
@@ -99,7 +99,7 @@ TESTS.WindowTree = function(CliqzUtils) {
         wt.addRootWindow(2, 'root');
         wt.addWindowAction(2, 3, 'winaction');
 
-        let w = wt.getWindowByID(2);
+        var w = wt.getWindowByID(2);
         chai.expect(w.url).to.equal('root');
         chai.expect(w.origin).to.be.falsy;
       });
@@ -114,7 +114,7 @@ TESTS.WindowTree = function(CliqzUtils) {
         wt.addRootWindow(1);
         wt.addWindowAction(2, 1, 'leaf', 7);
 
-        let w = wt.getWindowByID(2);
+        var w = wt.getWindowByID(2);
         chai.expect(w.id).to.equal(2);
         chai.expect(w.top).to.be.falsy;
         chai.expect(w.parent).to.equal(1);

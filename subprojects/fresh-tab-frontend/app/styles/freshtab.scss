@@ -103,15 +103,47 @@ a:hover, a:active, a:focus {
   background-size: 100% 100%;
 }
 
-
 body.freshTabContainer {
   background: #f7f7f7;
 }
 
-#freshTabPage {
+#notificationsBox {
+  background-color: #506275;
+  color: #ffffff;
+  width: 100%;
+  padding: 20px;
+  letter-spacing: 1px;
+  position: relative;
 
+  .close {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+  }
+
+  h1 {
+    color: #ffffff;
+    font-size: 18px;
+    margin-bottom: 5px;
+  }
+
+  img {
+  float: left;
+  }
+
+  .text {
+  padding-left: 70px;
+  font-size: 14px;
+   }
+
+  a {
+  color: #8BE0E7;
+  }
+}
+
+#freshTabPage {
   .undoOptions {
-    height: 35px;
+    height: 50px;
   }
 
   a {
@@ -146,7 +178,7 @@ body.freshTabContainer {
 
   #search-icon {
     position: absolute;
-    top: 8px;
+    top: 6px;
     left: 10px;
     width: 24px;
     height: 24px;
@@ -161,8 +193,8 @@ body.freshTabContainer {
 
   #urlbar {
     width: 100%;
-    height: 40px;
-    border: 1px solid #CCC;
+    height: 35px;
+    border: 1px solid #DBDBDB;
     padding: 0px 8px 0px 40px;
     box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -179,23 +211,24 @@ body.freshTabContainer {
 
   #urlbar:focus {
     outline: none !important;
-    border: 2px solid #3B99FC;
+    border: 1px solid #7AA8D9;
+    box-shadow: inset 0 0 1px #AEC6DE;
   }
 
   .cliqz-brands-button-4 {
-    background-color: #74d463
+    background-color: #36c2c1;
   }
   .cliqz-brands-button-4:hover,
   .cliqz-brands-button-4[arrow='true'] {
-    background-color: #50b23f
+    background-color: #3eaeb6
   }
   .cliqz-brands-button-4:active {
-    background-color: #148701
+    background-color: #36c2c1;
   }
 
   /*top visited */
   #topVisited {
-    margin: 20px 0px 25px 0px;
+    margin: 20px 0px 10px;
     text-align: center;
 
     a {
@@ -206,12 +239,13 @@ body.freshTabContainer {
     }
 
     .speedDialLabel {
-      font-size: 14px;
+      font-size: 12px;
       text-transform: uppercase;
-      font-family: "Lato-Light", sans-serif;
-      text-align: left;
+      font-family: "Lato", sans-serif;
+      text-align: center;
       margin-bottom: 10px;
-      color: #666;
+      color: #ababab;
+      letter-spacing: 1px;
     }
 
     .dialIconHolder {
@@ -254,7 +288,7 @@ body.freshTabContainer {
     .undo, .closeUndo, .resetAll {
       display: inline-block;
       padding-top: 0;
-      margin-left: 20px;
+      margin-left: 15px;
     }
 
     .closeUndo {
@@ -295,7 +329,7 @@ body.freshTabContainer {
 
     ul {
       max-width: 1024px;
-      margin: -7px auto 10px;
+      margin: -10px auto 2px;
       max-height: 100px;
       overflow: hidden;
     }
@@ -470,11 +504,11 @@ body.freshTabContainer {
       div {
         width: 12px;
         height: 12px;
-        background-color: #cccccc;
         float: left;
         border-radius: 50%;
         text-align: center;
         margin-right: 5px;
+        border: 1px solid #bfbfbf;
       }
 
       div.active {
@@ -548,6 +582,12 @@ body.freshTabContainer {
         height: 90px;
       }
 
+      .breakingNews {
+        color: #E64C66;
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
       .title:hover {
         color: #506bb8;
       }
@@ -597,7 +637,7 @@ body.freshTabContainer {
         background: #fff;
         border: 1px solid rgba(0, 0, 0, 0.1);
         border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-        /*box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.15);*/
+        box-shadow: 0px 2px 1px -2px rgba(0,0,0,0.2);
       }
 
       li:nth-last-child(3n+1) {

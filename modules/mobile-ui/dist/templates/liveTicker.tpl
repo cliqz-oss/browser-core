@@ -8,7 +8,7 @@
 <section class="primary">
     <h1 extra="title" class="card__title">{{ data.title }}</h1>
     <div extra="url" class="card__meta">
-        {{url}}
+        <div>{{url}}</div>
     </div>
 </section>
 <section class="secondary">

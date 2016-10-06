@@ -1,11 +1,10 @@
-Components.utils.import('resource://gre/modules/PlacesUtils.jsm');
-
 import {
   utils as coreUtils,
   historyManager as coreHistoryManager,
 } from 'core/cliqz';
 
 import coreLanguage from 'platform/language';
+import PlacesUtils from 'platform/places-utils';
 
 import NewsCache from 'freshtab/news-cache';
 

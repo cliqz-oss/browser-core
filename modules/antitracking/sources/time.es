@@ -10,7 +10,7 @@ export function getTime() {
     var hr = null;
     var _ts = null;
     d = (new Date().getDate()  < 10 ? "0" : "" ) + new Date().getDate();
-    m = (new Date().getMonth() < 10 ? "0" : "" ) + parseInt((new Date().getMonth()) + 1);
+    m = (new Date().getMonth() < 9 ? "0" : "" ) + parseInt((new Date().getMonth()) + 1);
     h = (new Date().getUTCHours() < 10 ? "0" : "" ) + new Date().getUTCHours();
     y = new Date().getFullYear();
     _ts = y + "" + m + "" + d + "" + h;

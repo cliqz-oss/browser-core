@@ -191,9 +191,9 @@ TESTS.AttrackQSWhitelistTest = function (CliqzUtils, CliqzEvents) {
       });
 
       context('load token and tracker lists', function() {
-        var today = datetime.getTime();
 
         beforeEach( function() {
+          var today = datetime.getTime();
           whitelist._loadRemoteTokenWhitelist();
           whitelist._loadRemoteTrackerDomainList();
           return waitFor(function() {
@@ -282,10 +282,10 @@ TESTS.AttrackQSWhitelistTest = function (CliqzUtils, CliqzEvents) {
 
       context('old local key', function() {
         var domain1_hash = 'f528764d624db129',
-          key_hash = '924a8ceeac17f54d3be3f8cdf1c04eb2',
-          today = datetime.getTime();
+          key_hash = '924a8ceeac17f54d3be3f8cdf1c04eb2';
 
         beforeEach(function() {
+          var today = datetime.getTime();
           var safeKeys = whitelist.safeKeys.value;
           safeKeys[domain1_hash] = {};
           safeKeys[domain1_hash][key_hash] = [today.substring(0, 8), 'l'];
@@ -307,10 +307,10 @@ TESTS.AttrackQSWhitelistTest = function (CliqzUtils, CliqzEvents) {
       context('new local key', function() {
         var domain1_hash = 'f528764d624db129',
           key_hash = '924a8ceeac17f54d3be3f8cdf1c04eb2',
-          today = datetime.getTime(),
           day = '20200102';
 
         beforeEach(function() {
+          var today = datetime.getTime();
           var safeKeys = whitelist.safeKeys.value;
           safeKeys[domain1_hash] = {};
           safeKeys[domain1_hash][key_hash] = [day, 'l'];
@@ -331,8 +331,7 @@ TESTS.AttrackQSWhitelistTest = function (CliqzUtils, CliqzEvents) {
       });
 
       context('7 day old key', function() {
-        var today = datetime.getTime(),
-          domain1_hash = 'f528764d624db129',
+        var domain1_hash = 'f528764d624db129',
           key_hash = '4a8a08f09d37b73795649038408b5f33',
           day = new Date(),
           daystr = null,
@@ -340,10 +339,11 @@ TESTS.AttrackQSWhitelistTest = function (CliqzUtils, CliqzEvents) {
           m = '';
         day.setDate(day.getDate() - 8);
         d = (day.getDate()  < 10 ? '0' : '' ) + day.getDate();
-        m = (day.getMonth() < 10 ? '0' : '' ) + parseInt((day.getMonth()));
+        m = (day.getMonth() < 9 ? '0' : '' ) + parseInt(day.getMonth() + 1);
         daystr = '' + day.getFullYear() + m + d;
 
         beforeEach(function() {
+          var today = datetime.getTime();
           var safeKeys = whitelist.safeKeys.value;
           safeKeys[domain1_hash] = {};
           safeKeys[domain1_hash][key_hash] = [daystr, 'l'];

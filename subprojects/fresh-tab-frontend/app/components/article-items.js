@@ -80,17 +80,21 @@ export default Ember.Component.extend({
   },
 
   autoRotate: function () {
+    // cancel timer on manual page change
+    Ember.run.cancel(this.get("timer"));
+
+    // do nothing if there are no pages to rotate
     if (this.get("pageSize") === this.get("model.length")) {
       return;
     }
-    Ember.run.cancel(this.get("timer"));
-    this.set('timer', Ember.run.later( () => {
+
+    const timer = Ember.run.later( () => {
       this.animate(function() {
         this.nextPage();
       }.bind(this));
-      this.autoRotate();
-    }, 15000));
-  }.on('didInsertElement'),
+    }, 15000);
+    this.set('timer', timer);
+  }.on('didInsertElement').observes("pageNum", "pageSize"),
 
   actions: {
 
@@ -118,6 +122,9 @@ export default Ember.Component.extend({
   },
 
   animate: function(setNextPage) {
+    // force stop the timer to avoid multiple page changes
+    Ember.run.cancel(this.get("timer"));
+
     //stop rotation on hover
     if(this.$('.topnews:hover') && this.$('.topnews:hover').length ===0 ) {
       this.$().find('.content').fadeOut(function() {

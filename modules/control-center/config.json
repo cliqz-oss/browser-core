@@ -1,0 +1,6 @@
+{
+  "bower_components": [
+    "system.js/dist/system.js",
+    "jquery/dist/jquery.min.js"
+  ]
+}

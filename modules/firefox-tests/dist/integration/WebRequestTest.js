@@ -48,11 +48,11 @@ TESTS.WebRequestTest = function(CliqzUtils) {
       });
 
       it('calls each topic once', function() {
-        for (let topic of [onBeforeRequest, onBeforeSendHeaders, onHeadersReceived]) {
-          let reqs = topic.filter( function(req) { return req.url === url });
+        for (var topic of [onBeforeRequest, onBeforeSendHeaders, onHeadersReceived]) {
+          var reqs = topic.filter( function(req) { return req.url === url });
           chai.expect(reqs.length).to.eql(1);
 
-          let req = reqs[0];
+          var req = reqs[0];
           console.log(req);
           chai.expect(req.method).to.equal('GET');
           chai.expect(req.tabId).to.equal(-1);
@@ -61,12 +61,12 @@ TESTS.WebRequestTest = function(CliqzUtils) {
       });
 
       it('gives the response code only on headers received', function() {
-        for (let topic of [onBeforeRequest, onBeforeSendHeaders]) {
-          let reqs = topic.filter( function(req) { return req.url === url });
-          let req = reqs[0];
+        for (var topic of [onBeforeRequest, onBeforeSendHeaders]) {
+          var reqs = topic.filter( function(req) { return req.url === url });
+          var req = reqs[0];
           chai.expect(req.responseStatus).to.be.undefined;
         }
-        let req = onHeadersReceived.filter( function(req) { return req.url === url })[0];
+        var req = onHeadersReceived.filter( function(req) { return req.url === url })[0];
         chai.expect(req.responseStatus).to.equal(200);
       });
 
@@ -89,12 +89,12 @@ TESTS.WebRequestTest = function(CliqzUtils) {
       });
 
       it('calls each topic once', function() {
-        for (let topic of [onBeforeRequest, onBeforeSendHeaders, onHeadersReceived]) {
-          let reqs = topic.filter( function(req) { return req.url === url });
+        for (var topic of [onBeforeRequest, onBeforeSendHeaders, onHeadersReceived]) {
+          var reqs = topic.filter( function(req) { return req.url === url });
           console.log(reqs);
           chai.expect(reqs.length).to.eql(1);
 
-          let req = reqs[0];
+          var req = reqs[0];
           console.log(req);
           chai.expect(req.method).to.equal('GET');
           chai.expect(req.type).to.equal(6);
@@ -102,22 +102,22 @@ TESTS.WebRequestTest = function(CliqzUtils) {
       });
 
       it('gives the response code only on headers received', function() {
-        for (let topic of [onBeforeRequest, onBeforeSendHeaders]) {
-          let reqs = topic.filter( function(req) { return req.url === url });
-          let req = reqs[0];
+        for (var topic of [onBeforeRequest, onBeforeSendHeaders]) {
+          var reqs = topic.filter( function(req) { return req.url === url });
+          var req = reqs[0];
           chai.expect(req.responseStatus).to.be.undefined;
         }
-        let req = onHeadersReceived.filter( function(req) { return req.url === url })[0];
+        var req = onHeadersReceived.filter( function(req) { return req.url === url })[0];
         chai.expect(req.responseStatus).to.equal(200);
       });
 
       it('all listeners get same tabId', function() {
-        let req = onBeforeRequest.filter( function(req) { return req.url === url })[0];
-        let tabId = req.tabId;
+        var req = onBeforeRequest.filter( function(req) { return req.url === url })[0];
+        var tabId = req.tabId;
 
-        for (let topic of [onBeforeSendHeaders, onHeadersReceived]) {
-          let reqs = topic.filter( function(req) { return req.url === url });
-          let req = reqs[0];
+        for (var topic of [onBeforeSendHeaders, onHeadersReceived]) {
+          var reqs = topic.filter( function(req) { return req.url === url });
+          var req = reqs[0];
           chai.expect(req.tabId).to.equal(tabId);
         }
       });
@@ -157,8 +157,8 @@ TESTS.WebRequestTest = function(CliqzUtils) {
           setTimeout( function() {
             chai.expect(serverHit).to.be.false;
             // subsequent topics do not see request
-            for (let topic of [onBeforeSendHeaders, onHeadersReceived]) {
-              let reqs = topic.filter( function(req) { return req.url === url });
+            for (var topic of [onBeforeSendHeaders, onHeadersReceived]) {
+              var reqs = topic.filter( function(req) { return req.url === url });
               console.log(reqs);
               chai.expect(reqs.length).to.eql(0);
             }

@@ -1,0 +1,2 @@
+export { window };
+export { document };

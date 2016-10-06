@@ -56,7 +56,7 @@ export function isWindowActive(windowID) {
         try {
           // check for http URI.
           if (tabwindow.document.documentURI.substring(0, 4) === 'http') {
-            let contents = tabwindow._content;
+            let contents = tabwindow.content || tabwindow._content;
             return true;
           } else {
             return false;

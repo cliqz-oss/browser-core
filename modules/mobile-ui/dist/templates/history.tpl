@@ -1,22 +1,33 @@
 <!-- history.tpl -->
 
 {{#if data.urls}}
-    <section class="primary">
+    
+    <div class="primary">
         <h1 class="card__title">{{local 'mobile_history_card_title'}}</h1>
-    </section>
+    </div>
 
     <section class="secondary">
         {{#each data.urls}}
-                <div class="cards__item news" url='{{href}}' shortUrl='{{link}}' domain='{{domain}}' extra='{{extra}}' arrow="false">
-                    {{#with logo}}
-                        <div class="card__logo__secondary {{#if backgroundImage}}bg{{/if}}" data-style="{{#if backgroundImage}}background-image:{{backgroundImage}};{{#if backgroundColor}} background-color:#{{backgroundColor}};{{/if}}{{else}}{{ style }};{{/if}}">{{ text }}</div>
-                    {{/with}}
 
-                    <h2 class="cards__title__secondary" url="{{url}}">{{ emphasis title ../text 2 true }}</h2>
-                    <div class="card__meta__secondary">
-                        {{ emphasis link ../text 2 true }}
-                    </div>
-                </div>
+            <div class="additional_sources" url="{{href}}" shortUrl='{{link}}' domain='{{domain}}'
+                 extra='{{extra}}' arrow="false">
+                {{#with logo}}
+                    {{#if backgroundImage}}
+                        <div class="item__logo bg" style="background-image:{{backgroundImage}};
+                                                          background-color:#{{backgroundColor}}">
+                        </div>
+                    {{else}}
+                        <div class="item__logo" style="{{ style }}">
+                            {{ text }}
+                        </div>
+                    {{/if}}
+                {{/with}}
+                <div class="url"><div>{{ emphasis link ../text 2 true }}</div></div>
+                <h2 class="cards__title__secondary" data-index="{{@index}}">
+                    {{ emphasis title ../text 2 true }}
+                </h2>
+            </div>
+
         {{/each}}
     </section>
 {{/if}}

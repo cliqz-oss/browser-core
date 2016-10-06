@@ -1,0 +1,76 @@
+.tooltip {
+  $border-color: #D8D8D8;
+  line-height: 1.4;
+  display: none;
+  position: absolute;
+  z-index: 10;
+  background: #ffffff;
+  border: 1px solid $border-color;
+  border-radius: 4px;
+  color: #535353;
+  font-size: 13px;
+  padding: 20px;
+  box-shadow: 3px 2px 10px #ccc;
+
+  &:before {
+    content:' '; /* Must have content to display */
+    position: absolute;
+    border: 1px solid transparent;
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    transform: rotate(45deg);
+  }
+
+  &.left, &.right {
+    top: -10px;
+
+    &:before {
+      top:27px;
+    }
+  }
+
+  &.right {
+    left: 35px;
+    width: 270px;
+
+    &:before {
+      left: -6px;
+      border-left-color: $border-color;
+      border-bottom-color: $border-color;
+    }
+  }
+
+  &.left {
+    width: 170px;
+    right: 228px;
+
+    &:before {
+      right: -6px;
+      border-right-color: $border-color;
+      border-top-color: $border-color;
+    }
+  }
+
+  &.top {
+    width: 270px;
+    bottom: 140px;
+    left: 30px;
+
+    &:before {
+      bottom: -6px;
+      border-bottom-color: $border-color;
+      border-right-color: $border-color;
+    }
+  }
+
+  /* Quick hack */
+  &.top.proxy {
+    bottom: 117px;
+  }
+
+  .title {
+    margin: 0 0 15px;
+    display: block;
+  }
+}

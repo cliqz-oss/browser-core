@@ -9,6 +9,8 @@ import JsonFormatter,{ createHttpUrl, getRouteHash, _http, fetchSourceMapping, t
 import { overRideCliqzResults } from "hpn/http-handler-patch";
 import userPK from "hpn/user-pk";
 import CliqzHumanWeb from "human-web/human-web";
+import secureEventLoggerContext from "hpn/secure-logger";
+import { byteArrayToHexString, stringToByteArray} from "hpn/crypto-utils";
 
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
@@ -21,7 +23,6 @@ Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 
 Services.scriptloader.loadSubScript('chrome://cliqz/content/bower_components/bigint/index.js');
 Services.scriptloader.loadSubScript('chrome://cliqz/content/bower_components/crypto/index.js');
-Services.scriptloader.loadSubScript('chrome://cliqz/content/hpn/content/extern/helperFunctions.js');
 Services.scriptloader.loadSubScript('chrome://cliqz/content/bower_components/jsencrypt/index.js');
 Services.scriptloader.loadSubScript('chrome://cliqz/content/bower_components/sha256/index.js');
 
@@ -42,6 +43,7 @@ var CliqzSecureMessage = {
   secureLogger: null,
   JSEncrypt: JSEncrypt,
   cryptoJS: CryptoJS,
+  crypto,
   uPK : new userPK(),
   dsPK : null,
   routeTable : null,
@@ -217,10 +219,6 @@ var CliqzSecureMessage = {
       }
     },
     initAtWindow: function(window){
-    	Services.scriptloader.loadSubScript('chrome://cliqz/content/bower_components/crypto-kjur/index.js', window);
-    	CliqzSecureMessage.RSAKey = window.RSAKey;
-    	CliqzSecureMessage.sha1 = window.CryptoJS.SHA1;
-    	overRideCliqzResults();
     },
     init: function(){
     	// Doing it here, because this lib. uses navigator and window objects.
@@ -241,6 +239,8 @@ var CliqzSecureMessage = {
     	// Backup if we were not able to load from the webservice, pick the last one.
     	if(!CliqzSecureMessage.proxyList) loadLocalProxyList();
     	if(!CliqzSecureMessage.routeTable) loadLocalRouteTable();
+      overRideCliqzResults();
+      CliqzSecureMessage.secureLogger = new secureEventLoggerContext();
     },
     initDB: function() {
     	if ( FileUtils.getFile("ProfD", ["cliqz.dbhumanweb"]).exists() ) {
@@ -309,6 +309,25 @@ var CliqzSecureMessage = {
     	// CliqzSecureMessage.telemetry(msg);
     	CliqzSecureMessage.proxyStats = {};
     	return;
+    },
+    sha1: function(dataString){
+      var promise = new Promise(function(resolve, reject){
+        var documentBytes = stringToByteArray(dataString);
+        CliqzSecureMessage.crypto.subtle.digest({
+          name:"SHA-1"
+        },
+          documentBytes
+        )
+        .then(function(hash){
+            var signatureBytes = new Uint8Array(hash);
+            resolve(byteArrayToHexString(signatureBytes));
+        })
+        .catch(function(err){
+            CliqzUtils.log(">>> Error" + err);
+            reject(err);
+        });
+      })
+      return promise;
     }
   }
 

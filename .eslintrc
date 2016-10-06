@@ -26,6 +26,8 @@
         "XPCOMUtils": {}
     },
     "rules": {
-        "import/no-unresolved": "off"
+        "import/no-unresolved": "off",
+        "import/no-extraneous-dependencies": 0,
+        "no-continue": 0
     }
 }

@@ -8,7 +8,7 @@
 <section class="primary">
 		<h1 extra="title" class="card__title">{{ emphasis name ../text 2 true }} ({{ocupation}})</a><span>Wikipedia</span></h1>
 		<div extra="url" class="card__meta">
-			{{../urlDetails.friendly_url}}
+			<div>{{../urlDetails.friendly_url}}</div>
 		</div>
 		<div class="card__gallery">			
 			{{#each images}}
@@ -18,18 +18,19 @@
 			{{/each}}
 		</div>
 		<div extra="des" class="card__description">
-			{{{ emphasis description_wiki ../query 2 true }}}
+			{{ emphasis description_wiki ../query 2 true }}
+		</div>
+
+		<div class="social">
+			{{#each social}}
+				<div extra="social-{{@index}}" url="{{url}}" class="social__logo">
+					<div class="card__logo__secondary bg" data-style="background-image: url({{img}});background-color:#fff;">{{ text }}</div>
+				</div>
+			{{/each}}
 		</div>
 	</section>
 
 	<section class="secondary">
-		
-		{{#each social}}
-			<div extra="social-{{@index}}" url="{{url}}" class="cards__item social">
-				<div class="card__logo__secondary bg" data-style="background-image: url({{img}});background-color:#fff;">{{ text }}</div>
-				<h2 class="cards__title__secondary">{{url}}</h2>
-			</div>
-		 {{/each}}
 		
 		{{#if data.news}}
 			<!-- data.news -->
@@ -39,7 +40,7 @@
 					<div class="card__logo__secondary {{#if backgroundImage}}bg{{/if}}" data-style="{{#if backgroundImage}}background-image:{{backgroundImage}};{{#if backgroundColor}} background-color:#{{backgroundColor}};{{/if}}{{else}}{{ style }};{{/if}}">{{ text }}</div>
 				{{/with}}		
 
-					<h2 class="cards__title__secondary" url="{{url}}">{{title}}</h2>
+					<h2 class="cards__title__secondary" url="{{url}}"><div>{{title}}</div></h2>
 					<div class="card__meta__secondary">
 						{{data.url}}
 					</div>
@@ -70,13 +71,7 @@
 		{{/each}}
 
 		{{#each data.richData.additional_sources}} 
-			<div class="cards__item additional_sources">
-				<div class="card__logo__secondary">WI</div>
-				<!--{{#with logoDetails}}
-					{{#if backgroundImage}}
-						<div class="card__logo__secondary {{#if backgroundImage}}bg{{/if}}" data-style="{{#if backgroundImage}}background-image:{{backgroundImage}};{{#if backgroundColor}} background-color:#{{backgroundColor}};{{/if}}{{else}}{{ style }};{{/if}}">WI</div>
-					{{/if}}
-				{{/with}}-->
+			<div class="additional_sources">
 				<h2 class="cards__title__secondary" url="{{url}}">{{title}}</h2>
 			</div>
 		{{/each}}    

@@ -12,11 +12,13 @@
     "bigint": "https://cdn.cliqz.com/cliqz-crypto/bigint.js",
     "crypto-kjur": "https://cdn.cliqz.com/cliqz-crypto/crypto-kjur.js",
     "crypto": "https://cdn.cliqz.com/cliqz-crypto/crypto.js",
-    "jsencrypt": "https://cdn.cliqz.com/cliqz-crypto/jsencrypt.js",
+    "jsencrypt": "https://cdn.cliqz.com/cliqz-crypto/cl-jsencrypt.js",
     "rsa-sign": "https://cdn.cliqz.com/cliqz-crypto/rsa-sign.js",
     "sha256": "https://cdn.cliqz.com/cliqz-crypto/sha256.js",
     "mathjs": "1.0.1",
-    "es6-promise": "~3.2.2"
+    "es6-promise": "~3.2.2",
+    "system.js": "^0.19.37",
+    "hammerjs": "^2.0.8"
   },
   "devDependencies": {
     "mocha": "cliqz-oss/mocha#2.5.0",

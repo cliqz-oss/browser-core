@@ -1,3 +1,4 @@
+import { utils } from "core/cliqz";
 import background from 'hpn/background';
 import { simpleBtn, checkBox } from 'q-button/buttons';
 
@@ -46,5 +47,12 @@ export default class {
 		}
 	}
 
-
+  status() {
+    if(background.CliqzSecureMessage && !CliqzUtils.getPref("cliqz_core_disabled", false)){
+      return {
+        visible: true,
+        state: utils.getPref(prefKey)
+      }
+    }
+  }
 };

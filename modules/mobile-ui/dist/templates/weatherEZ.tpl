@@ -38,7 +38,7 @@
         <div class="card__description">
 
 
-            {{{data.description}}}
+            {{data.description}}
 
         </div>
 

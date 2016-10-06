@@ -37,6 +37,7 @@ RUN apt-get update \
         libxrender1 \
         libxt6 \
         lsb-release \
+        unzip \
         wget \
         x11vnc \
         xauth \
@@ -66,6 +67,3 @@ RUN mkdir /tmp/.X11-unix \
 
 # Expose port for VNC
 EXPOSE 5900
-
-ADD run_tests.sh /tmp/run_tests.sh
-ENTRYPOINT /tmp/run_tests.sh
