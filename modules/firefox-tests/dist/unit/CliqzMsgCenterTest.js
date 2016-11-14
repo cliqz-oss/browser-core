@@ -32,7 +32,9 @@ TESTS.CliqzmessageCenterTestUnit = function (CliqzMsgCenter, CliqzUtils) {
         text: 'Der CLIQZ browser ist besser als Firefox.'
       };
     }, ui = function () { return CliqzUtils.getWindow().CLIQZ.UI; },
-    core = CliqzUtils.getWindow().CLIQZ.Core;
+    core = function () {
+      return CliqzUtils.getWindow().CLIQZ.Core;
+    };
 
     beforeEach(function() {
       messageCenter = new CliqzMsgCenter();
@@ -94,8 +96,8 @@ context('dropdown handler tests', function () {
     }).then(function () {
       fillIn('some query');
       return waitForResult().then(function() {
-        chai.expect(core.popup.cliqzBox.messageContainer.innerHTML).to.contain(msg.text);
-        chai.expect(core.popup.cliqzBox.messageContainerTop.innerHTML).to.not.contain(msg.text);
+        chai.expect(core().popup.cliqzBox.messageContainer.innerHTML).to.contain(msg.text);
+        chai.expect(core().popup.cliqzBox.messageContainerTop.innerHTML).to.not.contain(msg.text);
         messageCenter.hideMessage(msg, 'MESSAGE_HANDLER_DROPDOWN');
         return Promise.resolve();
       });
@@ -111,8 +113,8 @@ context('dropdown handler tests', function () {
     }).then(function () {
       fillIn('some query');
       return waitForResult().then(function() {
-        chai.expect(core.popup.cliqzBox.messageContainer.innerHTML).to.not.contain(msg.text);
-        chai.expect(core.popup.cliqzBox.messageContainerTop.innerHTML).to.contain(msg.text);
+        chai.expect(core().popup.cliqzBox.messageContainer.innerHTML).to.not.contain(msg.text);
+        chai.expect(core().popup.cliqzBox.messageContainerTop.innerHTML).to.contain(msg.text);
         messageCenter.hideMessage(msg, 'MESSAGE_HANDLER_DROPDOWN');
         return Promise.resolve();
       });
@@ -133,8 +135,8 @@ context('dropdown handler tests', function () {
     }).then(function () {
       fillIn('some query');
       return waitForResult().then(function() {
-        chai.expect(core.popup.cliqzBox.messageContainer.innerHTML).to.not.contain(msg.text);
-        chai.expect(core.popup.cliqzBox.messageContainerTop.innerHTML).to.not.contain(msg.text);
+        chai.expect(core().popup.cliqzBox.messageContainer.innerHTML).to.not.contain(msg.text);
+        chai.expect(core().popup.cliqzBox.messageContainerTop.innerHTML).to.not.contain(msg.text);
         return Promise.resolve();
       });
     });
@@ -154,8 +156,8 @@ context('dropdown handler tests', function () {
     }).then(function () {
       fillIn('some query');
       return waitForResult().then(function() {
-        chai.expect(core.popup.cliqzBox.messageContainer.innerHTML).to.not.contain(msg.text);
-        chai.expect(core.popup.cliqzBox.messageContainerTop.innerHTML).to.not.contain(msg.text);
+        chai.expect(core().popup.cliqzBox.messageContainer.innerHTML).to.not.contain(msg.text);
+        chai.expect(core().popup.cliqzBox.messageContainerTop.innerHTML).to.not.contain(msg.text);
         return Promise.resolve();
       });
     });
@@ -189,10 +191,10 @@ context('dropdown handler tests', function () {
     }).then(function () {
       fillIn('some query');
       return waitForResult().then(function() {
-        chai.expect(core.popup.cliqzBox.messageContainer.innerHTML).to.not.contain(msg0.text);
-        chai.expect(core.popup.cliqzBox.messageContainerTop.innerHTML).to.not.contain(msg0.text);
-        chai.expect(core.popup.cliqzBox.messageContainer.innerHTML).to.not.contain(msg1.text);
-        chai.expect(core.popup.cliqzBox.messageContainerTop.innerHTML).to.not.contain(msg1.text);
+        chai.expect(core().popup.cliqzBox.messageContainer.innerHTML).to.not.contain(msg0.text);
+        chai.expect(core().popup.cliqzBox.messageContainerTop.innerHTML).to.not.contain(msg0.text);
+        chai.expect(core().popup.cliqzBox.messageContainer.innerHTML).to.not.contain(msg1.text);
+        chai.expect(core().popup.cliqzBox.messageContainerTop.innerHTML).to.not.contain(msg1.text);
         return Promise.resolve();
       });
     });
@@ -231,10 +233,10 @@ context('dropdown handler tests', function () {
     }).then(function () {
       fillIn('some query');
       return waitForResult().then(function() {
-        chai.expect(core.popup.cliqzBox.messageContainer.innerHTML).to.not.contain(msg0.text);
-        chai.expect(core.popup.cliqzBox.messageContainerTop.innerHTML).to.not.contain(msg0.text);
-        chai.expect(core.popup.cliqzBox.messageContainer.innerHTML).to.not.contain(msg1.text);
-        chai.expect(core.popup.cliqzBox.messageContainerTop.innerHTML).to.not.contain(msg1.text);
+        chai.expect(core().popup.cliqzBox.messageContainer.innerHTML).to.not.contain(msg0.text);
+        chai.expect(core().popup.cliqzBox.messageContainerTop.innerHTML).to.not.contain(msg0.text);
+        chai.expect(core().popup.cliqzBox.messageContainer.innerHTML).to.not.contain(msg1.text);
+        chai.expect(core().popup.cliqzBox.messageContainerTop.innerHTML).to.not.contain(msg1.text);
         return Promise.resolve();
       });
     });
@@ -258,15 +260,15 @@ context('dropdown handler tests', function () {
     }).then(function () {
       fillIn('some query');
       return waitForResult().then(function() {
-        chai.expect(core.popup.cliqzBox.messageContainer.innerHTML).to.not.contain(msg0.text);
-        chai.expect(core.popup.cliqzBox.messageContainerTop.innerHTML).to.contain(msg1.text);
+        chai.expect(core().popup.cliqzBox.messageContainer.innerHTML).to.not.contain(msg0.text);
+        chai.expect(core().popup.cliqzBox.messageContainerTop.innerHTML).to.contain(msg1.text);
         return Promise.resolve();
       });
     }).then(function () {
       messageCenter.hideMessage(msg1, 'MESSAGE_HANDLER_DROPDOWN');
       return waitFor(function () {
         return !Boolean(ui().messageCenterMessage) &&
-               core.popup.cliqzBox.messageContainerTop.innerHTML.indexOf(msg1.text) === -1;
+               core().popup.cliqzBox.messageContainerTop.innerHTML.indexOf(msg1.text) === -1;
       });
     });
   });

@@ -15,6 +15,7 @@ export default class extends Cache {
   constructor(file = 'cliqz/smartcliqz-trigger-urls-cache.json') {
     super(false);
     this.file = file;
+    this.init();
   }
   /**
   * @method init
@@ -103,12 +104,5 @@ export default class extends Cache {
       cleaners.reduce((current, next) =>
         current.then(_ => next(), e => { reject(e); return Promise.reject(); }), Promise.resolve());
     });
-  }
-  /**
-  * @method unload
-  */
-  unload() {
-    this.isUnloaded = true;
-    utils.clearTimeout(this.cleanTimeout);
   }
 }

@@ -14,10 +14,24 @@ html {
     padding: 0;
 }
 
+#control-center.onboarding {
+    .lock {
+        display: block;
+    }
+}
+
 #control-center {
     width: 455px;
     font-family: "HelveticaNeue", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     font-weight: 300;
+
+    .lock {
+        display: none;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        z-index: 100;
+    }
 
     .onboarding {
         display: none;
@@ -457,20 +471,13 @@ html {
                 }
             }
         }
-
-        .lock {
-            display: none;
-            position: absolute;
-            width: 100%;
-            height: 450px;
-            z-index: 100;
-        }
     }
 
     #othersettings {
         position: relative;
         width: 100%;
         background-color: #E9E9E9;
+
         .header {
             width: 457px;
             height: 50px;
@@ -917,7 +924,7 @@ html {
     background-position: 95% center;
 }
 
-.ask-dropdown {
+.custom-dropdown {
     cursor: pointer;
     margin-left: 5px;
     position: relative;
@@ -981,6 +988,11 @@ html {
             opacity: 1;
         }
     }
+}
+
+.location-more {
+    text-decoration: underline;
+    padding-left: 10px;
 }
 
 .clearfix:after {

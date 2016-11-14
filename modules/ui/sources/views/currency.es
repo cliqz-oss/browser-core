@@ -16,20 +16,20 @@ export default class {
   */
   enhanceResults(data) {
     if (typeof Intl != "undefined" && Intl.NumberFormat) {
-      data.CurrencyFormatSuport = true;
+      data.extra.CurrencyFormatSuport = true;
 
       //First param is the Locale: en-US....
       var currency_formatter = new this.window.Intl.NumberFormat(CliqzUtils.PREFERRED_LANGUAGE, {
         style: 'currency',
-        currency: data.toCurrency,
+        currency: data.extra.toCurrency,
         minimumFractionDigits: 2,
       });
 
-      if (data.toAmount.main) {
-        data.toAmount.main = currency_formatter.format(data.toAmount.main);
+      if (data.extra.toAmount.main) {
+        data.extra.toAmount.main = currency_formatter.format(data.extra.toAmount.main);
       }
     } else {
-      data.CurrencyFormatSuport = false;
+      data.extra.CurrencyFormatSuport = false;
     }
   }
 };

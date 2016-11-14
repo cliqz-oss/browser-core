@@ -21,11 +21,6 @@ export default background({
       return;
     }
 
-    this.buttonEnabled = utils.getPref('attrackUI', settings.antitrackingButton);
-
-    // if Control center is enabled Attrack button should be hidden
-    this.buttonEnabled = this.buttonEnabled && utils.getPref('controlCenter', false) == false;
-
     // fix for users without pref properly set: set to value from build config
     if (!utils.hasPref('attrackRemoveQueryStringTracking')) {
       utils.setPref('attrackRemoveQueryStringTracking', settings.antitrackingButton);
@@ -36,45 +31,14 @@ export default background({
 
     utils.bindObjectFunctions( this.popupActions, this );
 
-    if (this.buttonEnabled) {
-      this.popup = new CliqzPopupButton({
-        name: 'antitracking',
-        actions: this.popupActions
-      });
-      this.popup.attach();
-      this.popup.updateState(utils.getWindow(), false);
-    }
-
     // inject configured telemetry module
     telemetry.loadFromProvider(settings.telemetryProvider || 'human-web/human-web');
 
-    this.onPrefChange = function(pref) {
-      if (pref === CliqzAttrack.ENABLE_PREF && CliqzAttrack.isEnabled() !== this.enabled) {
-        const isEnabled = CliqzAttrack.isEnabled();
-
-        if (isEnabled) {
-          // now enabled, initialise module
-          CliqzAttrack.init();
-        } else {
-          // disabled, unload module
-          CliqzAttrack.unload();
-        }
-
-        if(this.popup){
-          this.popup.updateState(utils.getWindow(), isEnabled);
-        }
-        this.enabled = isEnabled;
-      } else if (pref === DEFAULT_ACTION_PREF) {
-        updateDefaultTrackerTxtRule();
+    return CliqzAttrack.init().then(() => {
+      if(this.popup){
+        this.popup.updateState(utils.getWindow(), true);
       }
-    }.bind(this);
-
-    this.onPrefChange(CliqzAttrack.ENABLE_PREF);
-    events.sub('prefchange', this.onPrefChange);
-  },
-
-  enabled() {
-    return this.enabled;
+    });
   },
 
   /**
@@ -91,10 +55,8 @@ export default background({
 
     events.un_sub('prefchange', this.onPrefChange);
 
-    if (CliqzAttrack.isEnabled()) {
-      CliqzAttrack.unload();
-      this.enabled = false;
-    }
+    CliqzAttrack.unload();
+    this.enabled = false;
   },
 
   popupActions: {
@@ -221,35 +183,32 @@ export default background({
   },
 
   events: {
+    "prefchange": function onPrefChange(pref) {
+      if (pref === DEFAULT_ACTION_PREF) {
+        updateDefaultTrackerTxtRule();
+      }
+    },
+    "core:urlbar_focus": CliqzAttrack.onUrlbarFocus,
     "core.tab_location_change": CliqzAttrack.onTabLocationChange,
     "core.tab_state_change": CliqzAttrack.tab_listener.onStateChange.bind(CliqzAttrack.tab_listener),
+    "antitracking:whitelist:add": function (hostname) {
+      CliqzAttrack.addSourceDomainToWhitelist(hostname);
+      this.popupActions.telemetry({
+        action: 'click',
+        target: 'whitelist_domain'
+      });
+    },
+    "antitracking:whitelist:remove": function (hostname) {
+      if (CliqzAttrack.isSourceWhitelisted(hostname)){
+        CliqzAttrack.removeSourceDomainFromWhitelist(hostname);
+        this.popupActions.telemetry({
+          action: 'click',
+          target: 'unwhitelist_domain'
+        });
+      }
+    },
     "control-center:antitracking-strict": function () {
       utils.setPref('attrackForceBlock', !utils.getPref('attrackForceBlock', false));
     },
-    "control-center:antitracking-activator": function (data) {
-      if(data.status == 'active'){
-        // when we activate we also remove the current url from whitelist
-        utils.setPref('antiTrackTest', true);
-        if(CliqzAttrack.isSourceWhitelisted(data.hostname)){
-          CliqzAttrack.removeSourceDomainFromWhitelist(data.hostname);
-          this.popupActions.telemetry( { action: 'click', target: 'unwhitelist_domain'} );
-        }
-      } else if(data.status == 'inactive'){
-        // inactive means that the current url is whitelisted but the whole mechanism is on
-        CliqzAttrack.addSourceDomainToWhitelist(data.hostname);
-        if(utils.getPref('antiTrackTest', false) == false){
-          utils.setPref('antiTrackTest', true)
-        }
-        this.popupActions.telemetry({ action: 'click', target: 'whitelist_domain' });
-      } else if(data.status == 'critical'){
-        // on critical we disable anti tracking completely so we must also clean the current url from whitelist
-        utils.setPref('antiTrackTest', false);
-        if(CliqzAttrack.isSourceWhitelisted(data.hostname)){
-          CliqzAttrack.removeSourceDomainFromWhitelist(data.hostname);
-          this.popupActions.telemetry( { action: 'click', target: 'unwhitelist_domain'} );
-        }
-      }
-    }
   },
-
 });

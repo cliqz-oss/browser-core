@@ -5,6 +5,7 @@
  */
 
 import { utils, events } from "core/cliqz";
+import environment from "platform/environment";
 import CliqzHumanWeb from "human-web/human-web";
 
 var streamMode = false;
@@ -72,13 +73,13 @@ var SignalListener = {
     // aggregate data within the predefined aggregation window
     // To use ONLY the LAST SIGNAL, use this line below instead of the if block, OR set SignalListener.telSigAggregatePeriod = 0
 
-    SignalListener.SigCache.tel = {"sig": [lastElementArray(utils.trk)], "timestamp": Date.now()};
+    SignalListener.SigCache.tel = {"sig": [lastElementArray(environment.trk)], "timestamp": Date.now()};
     /*
     var timeNow = Date.now();
     if (timeNow - SignalListener.SigCache.tel.timestamp < SignalListener.telSigAggregatePeriod) {
-      SignalListener.SigCache.tel.sig.push(lastElementArray(utils.trk));
+      SignalListener.SigCache.tel.sig.push(lastElementArray(environment.trk));
     } else {
-      SignalListener.SigCache.tel.sig = [lastElementArray(utils.trk)];
+      SignalListener.SigCache.tel.sig = [lastElementArray(environment.trk)];
       SignalListener.SigCache.tel.timestamp = timeNow;
     }
     */
@@ -121,7 +122,7 @@ var SignalListener = {
       // stored in the queue (if any)
 
       // this should be the signal user clicking the privacy dashboard button
-      SignalListener.SigCache.tel = {"sig": [lastElementArray(utils.trk)], "timestamp": Date.now()};
+      SignalListener.SigCache.tel = {"sig": [lastElementArray(environment.trk)], "timestamp": Date.now()};
       // last human web signal
       SignalListener.SigCache.hw = {"sig": lastElementArray(CliqzHumanWeb.trk), "timestamp": Date.now()};
       return true;

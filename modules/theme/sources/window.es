@@ -1,3 +1,6 @@
+import utils from '../core/utils';
+import { addStylesheet, removeStylesheet } from "../core/helpers/stylesheet";
+
 /**
 * @namespace theme
 */
@@ -15,26 +18,30 @@ export default class {
   * @method init
   */
   init() {
-    var CLIQZ = this.window.CLIQZ,
-        document = this.window.document,
-        themeUrl;
-
-    if(CliqzUtils.isWindows()) {
-      themeUrl = 'chrome://cliqz/content/theme/styles/theme-win.css';
-    } else if (CliqzUtils.isMac()) {
-      themeUrl = 'chrome://cliqz/content/theme/styles/theme-mac.css';
-    } else if (CliqzUtils.isLinux()) {
-      themeUrl = 'chrome://cliqz/content/theme/styles/theme-linux.css';
-    }
-
-    CLIQZ.Core.addCSS(document, themeUrl);
-
-    // Change location of forward button
-    CLIQZ.Core.frwBtn = document.getElementById('forward-button');
-    CLIQZ.Core.urlbarContainer = document.getElementById('urlbar-container');
-    CLIQZ.Core.urlbarWrapper = document.getElementById('urlbar-wrapper');
-    CLIQZ.Core.urlbarContainer.insertBefore(CLIQZ.Core.frwBtn, CLIQZ.Core.urlbarWrapper);
+    this.moveButtons(this.window.document);
+    addStylesheet(this.window.document, this.themeUrl());
   }
 
-  unload() {}
+  themeUrl() {
+    let url;
+    if (utils.isWindows()) {
+      url = 'chrome://cliqz/content/theme/styles/theme-win.css';
+    } else if (utils.isMac()) {
+      url = 'chrome://cliqz/content/theme/styles/theme-mac.css';
+    } else if (utils.isLinux()) {
+      url = 'chrome://cliqz/content/theme/styles/theme-linux.css';
+    }
+    return url;
+  }
+
+  moveButtons(document) {
+    const frwBtn = document.getElementById('forward-button');
+    const urlbarContainer = document.getElementById('urlbar-container');
+    const urlbarWrapper = document.getElementById('urlbar-wrapper');
+    urlbarContainer.insertBefore(frwBtn, urlbarWrapper);
+  }
+
+  unload() {
+    removeStylesheet(this.window.document, this.themeUrl());
+  }
 }

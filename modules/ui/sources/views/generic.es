@@ -11,7 +11,7 @@ export default class GenericView extends localData {
   */
   enhanceResults(data) {
 
-    if(data["__subType__"] && data["__subType__"]["class"] == "EntityLocal") {
+    if(data.subType && data.subType.class == "EntityLocal") {
         super.enhanceResults(data);
     }
 

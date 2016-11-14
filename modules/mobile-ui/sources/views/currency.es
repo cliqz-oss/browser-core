@@ -1,11 +1,9 @@
-import CliqzHandlebars from "core/templates";
-
 function getNumValue(value) {
     return (isNaN(value) || value <= 0 ? 0 : value - 0); // rounding value
 }
 
 function updateCurrencyTpl(data) {
-    document.getElementById("currency-tpl").innerHTML = CliqzHandlebars.tplCache.currency({data: data});
+    document.getElementById("currency-tpl").innerHTML = CLIQZ.templates.currency({data: data});
 }
 
 export default class {
@@ -15,22 +13,22 @@ export default class {
     switchCurrency(data) {
         var fromInput = document.getElementById("fromInput");
 
-        var convRate = 1 / data.mConversionRate;
-        data.mConversionRate = convRate + "";
-        convRate *= data.multiplyer;
+        var convRate = 1 / data.extra.mConversionRate;
+        data.extra.mConversionRate = convRate + "";
+        convRate *= data.extra.multiplyer;
         var fromValue = getNumValue(parseFloat(fromInput.value));
-        data.toAmount.main = getNumValue(fromValue * convRate);
-        data.fromAmount = fromValue;
+        data.extra.toAmount.main = getNumValue(fromValue * convRate);
+        data.extra.fromAmount = fromValue;
 
-        var temp = data.fromCurrency;
-        data.fromCurrency = data.toCurrency;
-        data.toCurrency = temp;
+        var temp = data.extra.fromCurrency;
+        data.extra.fromCurrency = data.extra.toCurrency;
+        data.extra.toCurrency = temp;
 
-        temp = data.formSymbol;
-        data.formSymbol = data.toSymbol;
-        data.toSymbol = temp;
+        temp = data.extra.formSymbol;
+        data.extra.formSymbol = data.extra.toSymbol;
+        data.extra.toSymbol = temp;
 
-        data.multiplyer = 1 / data.multiplyer;
+        data.extra.multiplyer = 1 / data.extra.multiplyer;
 
         updateCurrencyTpl(data);
     }
@@ -39,7 +37,7 @@ export default class {
         var fromInput = document.getElementById("fromInput");
         var toInput = document.getElementById("toInput");
         var toAmount = document.getElementById("calc-answer");
-        var toValue = getNumValue(fromInput.value / data.multiplyer * data.mConversionRate).toFixed(2) - 0;
+        var toValue = getNumValue(fromInput.value / data.extra.multiplyer * data.extra.mConversionRate).toFixed(2) - 0;
         toAmount.innerText = toValue.toLocaleString(CliqzUtils.PREFERRED_LANGUAGE);
         toInput.value = toValue;
     }
@@ -49,7 +47,7 @@ export default class {
         var toInput = document.getElementById("toInput");
         var toAmount = document.getElementById("calc-answer");
         var toValue = getNumValue(toInput.value);
-        var fromValue = getNumValue(toValue * data.multiplyer / data.mConversionRate).toFixed(2);
+        var fromValue = getNumValue(toValue * data.extra.multiplyer / data.extra.mConversionRate).toFixed(2);
         toAmount.innerText = toValue.toLocaleString(CliqzUtils.PREFERRED_LANGUAGE);
         fromInput.value = fromValue;
     }

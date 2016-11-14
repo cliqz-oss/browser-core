@@ -1,24 +1,63 @@
-import { utils, events, Promise } from "core/cliqz";
+import { events, Promise } from "core/cliqz";
+import utils from "./utils";
+import console from "core/console";
 import language from "platform/language";
 import config from "core/config";
 import ProcessScriptManager from "platform/process-script-manager";
+import HistoryManager from "./history-manager";
+import Language from "./language";
+import prefs from './prefs';
+import background from './base/background';
+import { Window, mapWindows } from '../platform/browser';
 
 var lastRequestId = 0;
 var callbacks = {};
 
-export default {
+export default background({
 
   init(settings) {
+    this.checkSession();
+    Language.init();
+    HistoryManager.init();
     this.dispatchMessage = this.dispatchMessage.bind(this);
-
-    utils.bindObjectFunctions(this.actions, this);
-
     this.mm = new ProcessScriptManager(this.dispatchMessage);
     this.mm.init();
+
+    this.report = utils.setTimeout(this.reportStartupTime.bind(this), 1000 * 60);
   },
 
   unload() {
+    utils.clearTimeout(this.report);
+    Language.unload();
+    HistoryManager.unload();
     this.mm.unload();
+  },
+
+  reportStartupTime() {
+    const status = this.actions.status();
+    utils.telemetry({
+      type: 'startup',
+      modules: status.modules,
+    });
+  },
+
+  checkSession() {
+    if (!prefs.has('session')) {
+      const session = [
+        utils.rand(18),
+        utils.rand(6, '0123456789'),
+        '|',
+        utils.getDay(),
+        '|',
+        config.settings.channel || 'NONE',
+      ].join('');
+      utils.setSupportInfo()
+      prefs.set('session', session);
+      prefs.set('install_date', session.split('|')[1]);
+      prefs.set('new_session', true);
+    } else {
+      prefs.set('new_session', false);
+    }
   },
 
   queryHTML(url, selector, attribute) {
@@ -114,7 +153,7 @@ export default {
         action: msg.data.payload.action,
         requestId,
       });
-    }).catch( e => utils.log(`${e.toString()}--${e.stack}`, "Problem with frameScript") );
+    }).catch(console.error.bind(null, "Process Script", `${action}/${module}`));
   },
 
   handleResponse(msg) {
@@ -128,7 +167,51 @@ export default {
     })
   },
 
+  events: {
+    'prefchange': function onPrefChange() {
+    }
+  },
+
   actions: {
+    restart() {
+      return utils.extensionRestart();
+    },
+    status() {
+      if (!utils.Extension) {
+        return {};
+      }
+      const availableModules = utils.Extension.app.availableModules;
+      const modules = config.modules.reduce((hash, moduleName) => {
+        const module = availableModules[moduleName];
+        const windowWrappers = mapWindows(window => new Window(window));
+        const windows = windowWrappers.reduce((hash, win) => {
+          const windowModule = module.windows[win.id] || {};
+          hash[win.id] = {
+            loadingTime: windowModule.loadingTime,
+          };
+          return hash;
+        }, Object.create(null));
+
+        hash[moduleName] = {
+          name: module.name,
+          isEnabled: module.isEnabled,
+          loadingTime: module.loadingTime,
+          windows,
+        };
+        return hash;
+      }, Object.create(null));
+
+      return {
+        modules,
+      };
+    },
+    broadcastMessage(url, message) {
+      this.mm.broadcast("cliqz:core", {
+        action: "postMessage",
+        url,
+        args: [JSON.stringify(message)],
+      });
+    },
     getWindowStatus(win) {
       return Promise
         .all(this.getWindowStatusFromModules(win))
@@ -152,6 +235,13 @@ export default {
       urlBar.mInputField.focus();
       urlBar.mInputField.setUserInput(query);
     },
+
+    closePopup() {
+      var popup = utils.getWindow().CLIQZ.Core.popup;
+
+      popup.hidePopup();
+    },
+
     setUrlbar(value) {
       return this.actions.queryCliqz(value);
     },
@@ -164,9 +254,17 @@ export default {
     recordMeta(url, meta) {
       events.pub("core:url-meta", url, meta);
     },
-
     getFeedbackPage() {
       return utils.FEEDBACK_URL;
-    }
-  }
-};
+    },
+    enableModule(moduleName) {
+      return utils.Extension.app.enableModule(moduleName);
+    },
+    disableModule(moduleName) {
+      utils.Extension.app.disableModule(moduleName);
+    },
+    resizeWindow(width, height) {
+      utils.getWindow().resizeTo(width, height);
+    },
+  },
+});

@@ -1,8 +1,8 @@
 <div class="cqz-result-h2 ez-weather cqz-ez-black-title">
 
-    {{#with data}}
+    {{#with data.extra}}
         <div class='cqz-ez-title' arrow-override='' extra="title">
-            <span url="{{../url}}" extra="title">{{ returned_location }}</span>
+            <span url="{{../url}}" extra="title">{{ ../title }}</span>
         </div>
 
         <div class="cqz-weather-holder">
@@ -22,8 +22,6 @@
             {{/each}}
         </div>
     {{/with}}
-    {{# if data.forecast_url}}
-       {{>partials/ez-generic-buttons}}
-    {{/if}}
+    {{>partials/ez-generic-buttons}}
     {{>logo}}
 </div>

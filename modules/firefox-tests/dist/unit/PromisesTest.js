@@ -17,6 +17,7 @@ function keysOf(object) {
 
 DEPS.PromiseTest = ["core/utils"];
 TESTS.PromiseTest = function(CliqzUtils) {
+  describe("Promise", function () {
 
   var System = CliqzUtils.getWindow().CLIQZ.System,
       Promise = System.get('core/cliqz').Promise,
@@ -1196,5 +1197,6 @@ TESTS.PromiseTest = function(CliqzUtils) {
           Promise.resolve(evilPromise);
           assert.strictEqual(thenCalled, false);
       });
+  });
   });
 }

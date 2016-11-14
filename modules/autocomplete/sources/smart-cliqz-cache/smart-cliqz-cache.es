@@ -158,7 +158,7 @@ export default class {
   * @param smartCliqz
   */
   getId(smartCliqz) {
-    return smartCliqz.data.__subType__.id;
+    return smartCliqz.data.subType.id;
   }
 
   /**
@@ -420,8 +420,5 @@ export default class {
   // log helper
   _log(msg) {
     utils.log(msg, 'smart-cliqz-cache');
-  }
-
-  unload() {
   }
 }

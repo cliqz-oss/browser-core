@@ -16,9 +16,6 @@ var CliqzABTests = {
     PREF: 'ABTests',
     PREF_OVERRIDE: 'ABTestsOverride',
     URL: 'https://logging.cliqz.com/abtests/check?session=',
-    init: function(){
-        CliqzABTests.check();
-    },
     // Accessors to list of tests this user is current in
     getCurrent: function() {
         if(CliqzUtils.hasPref(CliqzABTests.PREF))
@@ -284,17 +281,29 @@ var CliqzABTests = {
             case "1077_B":
                 CliqzUtils.setPref("languageDedup", true);
                 break;
-            case "1079_A":
-                CliqzUtils.setPref("controlCenter", false);
+            case "1078_A":
+                CliqzUtils.setPref("telemetryNoSession", false);
                 break;
-            case "1079_B":
-                CliqzUtils.setPref("controlCenter", true);
+            case "1078_B":
+                CliqzUtils.setPref("telemetryNoSession", true);
                 break;
             case "1080_A":
                 CliqzUtils.setPref("freshtabNewBrand", false);
                 break;
             case "1080_B":
                 CliqzUtils.setPref("freshtabNewBrand", true);
+                break;
+            case "1081_A":
+                CliqzUtils.setPref("attrackLogBreakage", false);
+                break;
+            case "1081_B":
+                CliqzUtils.setPref("attrackLogBreakage", true);
+                break;
+            case "1082_A":
+                CliqzUtils.setPref("experimentalCookieDroppingDetection", false);
+                break;
+            case "1082_B":
+                CliqzUtils.setPref("experimentalCookieDroppingDetection", true);
                 break;
             default:
                 rule_executed = false;
@@ -455,6 +464,10 @@ var CliqzABTests = {
             case "1077_B":
               CliqzUtils.clearPref("languageDedup");
               break;
+            case "1078_A":
+            case "1078_B":
+              CliqzUtils.clearPref("telemetryNoSession");
+              break;
             case "1079_A":
             case "1079_B":
               CliqzUtils.clearPref("controlCenter");
@@ -462,6 +475,14 @@ var CliqzABTests = {
             case "1080_A":
             case "1080_B":
               CliqzUtils.clearPref("freshtabNewBrand");
+              break;
+            case "1081_A":
+            case "1081_B":
+              CliqzUtils.clearPref("attrackLogBreakage");
+              break;
+            case "1082_A":
+            case "1082_B":
+              CliqzUtils.clearPref("experimentalCookieDroppingDetection");
               break;
             default:
                 rule_executed = false;

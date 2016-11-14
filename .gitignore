@@ -19,6 +19,7 @@ build/
 # external components
 node_modules
 bower_components
+firefox-autoconfigs
 
 *.scssc
 generic/static/styles/css/
@@ -29,3 +30,4 @@ npm.err
 
 subprojects/**/dist
 /docs
+mocha.log

@@ -91,7 +91,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
                 });
 
                 it('returns true for open tab id', function() {
-                  waitIfNotReady(function() {
+                  return waitIfNotReady(function() {
                     return CliqzAttrack.tab_listener.isWindowActive(tab_id) === true;
                   });
                 });
@@ -159,7 +159,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
 
                 it('should add tabs to _active', function(done) {
 
-                    this.timeout(3000);
+                    this.timeout(20000);
 
                     waitIfNotReady(function() {
                         return Object.keys(CliqzAttrack.tp_events._active).length > 0;
@@ -186,7 +186,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
                     describe('CliqzAttrack.tp_events.commit', function() {
 
                         it('should stage closed tabs only', function() {
-                            this.timeout(3000);
+                            this.timeout(20000);
 
                             return waitIfNotReady(function() {
                               CliqzAttrack.tp_events.commit(true);
@@ -293,7 +293,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
                   });
 
                   it('gets host at end of redirect chain', function(done) {
-                    this.timeout(3000);
+                    this.timeout(20000);
                     waitIfNotReady(function() {
                         return hit_target;
                       }).then(function() {
@@ -707,4 +707,3 @@ TESTS.AttrackTest = function (CliqzUtils) {
 };
 
 TESTS.AttrackTest.MIN_BROWSER_VERSION = 39;
-

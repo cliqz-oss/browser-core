@@ -60,6 +60,10 @@ $browser-top-bg-color: #ccc;
     list-style-image: url("../images/browser/mac/Toolbar.png");
 }
 
+/*.panel-arrow[side="top"] {
+    margin-bottom: -1px;
+}*/
+
 #main-window {
     font-family: "Lato";
 }

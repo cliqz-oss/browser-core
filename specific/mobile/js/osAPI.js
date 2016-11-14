@@ -211,6 +211,11 @@ var osAPI = {
       data: cardUrl
     };
     osAPI.OS.postMessage(message);
+    CliqzUtils.telemetry({
+      type: 'cards',
+      action: 'click',
+      target: 'share'
+    });
   },
 
   /**

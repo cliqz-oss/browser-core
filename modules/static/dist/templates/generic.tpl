@@ -1,4 +1,5 @@
 <!-- Resize to include history -->
+<!-- generic.tpl -->
 <div class="{{ data.genericZone.class }} cqz-ez-holder cqz-ez-generic">
     <div class="cqz-zone-holder">
         {{#each data.genericZone.partials as |partial| }}
@@ -9,5 +10,3 @@
         {{> logo }}
     </div>
 </div>
-
-

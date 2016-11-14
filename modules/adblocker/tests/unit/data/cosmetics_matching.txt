@@ -10,6 +10,14 @@
     ]
 },
 {
+    "url": "http://www.speedtest.net/test",
+    "node": [".ad-stack"],
+    "matches": [],
+    "mismatches": [
+        "##.ad-stack"
+    ]
+},
+{
     "url": "https://www.example.de/test",
     "node": ["#AD300Right"],
     "matches": [

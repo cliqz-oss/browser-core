@@ -870,7 +870,7 @@
       "message": "Vielen Dank!"
     },
     "location_not_share_msg": {
-      "message": "Voll blöd, Du verpasst etwas. Solltest Du Deine Meinung noch ändern, dann kannst Du Deine Einstellungen jederzeit im Cliqz Menü ändern"
+      "message": "Alles klar! Du kannst deine Standort-Einstellungen jederzeit im Cliqz Menü ändern."
     },
     "movies_confirm_no": {
       "message": "Sicher, dass Du nicht sehen möchtest in welchen Kinos der Film gerade läuft?"
@@ -1061,6 +1061,9 @@
     "adb-menu-more": {
       "message": "Mehr erfahren"
     },
+    "new_tab": {
+      "message": "Neuer Tab"
+    },
     "freshtab_learn_more": {
       "message": "Mehr erfahren"
     },
@@ -1089,7 +1092,7 @@
       "message": "Abbrechen"
     },
     "mobile_freshtab_no_topsites": {
-      "message": "Hier werden Deine Topseiten erscheinen."
+      "message": "Hier werden Deine meist-besuchten Seiten erscheinen."
     },
     "mobile_history_card_title": {
       "message": "Verlauf-Ergebnisse"
@@ -1104,7 +1107,7 @@
       "message": "Hier findest Du in Zukunft Deine Suchen und besuchten Seiten.<br />Bisher hast Du noch nicht gesucht und warst auf keinen Webseiten."
     },
     "mobile_no_favorites": {
-      "message": "Hier findest Du in Zukunft Deine Favoriten."
+      "message": "Hier findest Du in Zukunft Deine Favoriten.<br/>Bisher hast du noch keine Favoriten angelegt."
     },
     "mobile_history_title": {
       "message": "Besuchte Seiten"
@@ -1263,7 +1266,7 @@
       "message": "Schütze deine Privatsphäre"
     },
     "control-center-txt-privacy-cc-desc": {
-      "message": "Cliqz schützt deine persönlichen Daten aktiv vor dem Zugriff durch Tracker."
+      "message": "Cliqz actively protects your personal data from being accessed by tracking companies."
     },
     "control-center-info-https": {
       "message": "Diese Funktion erhöht die Sicherheit beim Surfen, indem sie immer verschlüsselte HTTPS Verbindungen zu Websites anfordert, wenn das möglich ist. Cliqz hat dazu den quelloffenen Service HTTPS Everywhere standardmäßig integriert."
@@ -1288,6 +1291,21 @@
     },
     "control-center-info-hw": {
       "message": "CLIQZ arbeitet mit anonymisierten Daten über Suchanfragen und Website-Besuchen, die von der Gemeinschaft der Nutzer geschaffen werden. Die Technologie, die diese Daten erhebt und daraus einen Web-Index aufbaut, nennen wir Human Web."
+    },
+    "control-center-info-forget-mode-title": {
+      "message": "Automatischer Vergessen Modus"
+    },
+    "control-center-info-forget-mode": {
+      "message": "Websites, die bekannt sind für nicht-jugendfreie Inhalte, werden automatisch in einem Vergessen Tab geöffnet. das heißt, Besuche dieser Seiten werden nicht in der Chronik gespeichert."
+    },
+    "control-center-info-share-location-title": {
+      "message": "Standort Teilen"
+    },
+    "control-center-info-share-location": {
+      "message": "CLIQZ kann jetzt auch nach Ergebnissen in deiner Nähe suchen. Genauere Suchergebnisse erhältst du, wenn du Immer Standort teilen auswählst. Deine Standort-Information dient nur der automatischen Verbesserung deiner Suchergebnisse und wird niemals weitergegeben oder anderweitig verwendet."
+    },
+    "control-center-info-share-location-link": {
+      "message": "Mehr erfahren"
     },
     "control-center-adblock-title": {
       "message": "Werbeblocker [BETA]"
@@ -1333,6 +1351,9 @@
     },
     "control-center-searchoptions": {
       "message": "Mehr Suchoptionen"
+    },
+    "control-center-search-engine": {
+      "message": "Ergänzende Suchmaschine"
     },
     "control-center-humanweb": {
       "message": "Am Human Web teilnehmen"
@@ -1382,8 +1403,50 @@
     "download": {
       "message": "Herunterladen von: "
     },
+    "cliqz-search-hint": {
+      "message": "Search is powered by"
+    },
     "settings": {
       "message": "Einstellungen"
+    },
+    "onboarding-step-1-msg": {
+      "message": "Willkommen bei CLIQZ"
+    },
+    "onboarding-step-1-btn": {
+      "message": "Aktiviere den Privatsphäre-Schutz"
+    },
+    "onboarding-step-1-tooltip": {
+      "message": "Hallo! Bereit für sicheres Surfen?"
+    },
+    "onboarding-step-2-msg": {
+      "message": "Dein Privatsphäre-Kontrollzentrum"
+    },
+    "onboarding-step-2-btn": {
+      "message": "Fang an zu surfen!"
+    },
+    "onboarding-step-2-tooltip": {
+      "message": "Hey, bist du bereit für den nächsten Schritt?"
+    },
+    "onboarding-step-3-msg": {
+      "message": "Es kann losgehen! Probiere die Cliqz Suche aus."
+    },
+    "onboarding-step-3-btn": {
+      "message": "Los geht's"
+    },
+    "onboarding-step-3-tooltip": {
+      "message": "Nutze die CLIQZ Schnell-Suche"
+    },
+    "onboarding-step-3-tooltip-query-text": {
+      "message": "Probiere es mit:"
+    },
+    "onboarding-search-query1": {
+      "message": "Wetter München"
+    },
+    "onboarding-search-query2": {
+      "message": "Lasagne kochen"
+    },
+    "onboarding-search-query3": {
+      "message": "TV Programm"
     },
     "TEST": "OK"
 }

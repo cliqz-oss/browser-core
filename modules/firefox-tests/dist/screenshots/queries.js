@@ -2,7 +2,7 @@ var QUERIES = {};
 
 QUERIES.top = [
     'google.de', 'g', 'f', 'y', 'goo', 'fa', 'www.google.de', 'face',
-    'go', 'web.de', 'you', 'gmx.de', 'ebay.de', 'google', 'bild.de', 'fac',
+    'go', 'web.de', 'you', 'gmx.net', 'ebay.de', 'google', 'bild.de', 'fac',
     'ama', 'amazon.de', 'ebay', 'we'
 ];
 

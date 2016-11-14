@@ -1,5 +1,6 @@
 import ResourceLoader, { Resource, UpdateCallbackHandler } from 'core/resource-loader';
-import CliqzLanguage from 'platform/language';
+import Language from 'core/language';
+import { platformName } from 'core/platform';
 
 // Disk persisting
 const RESOURCES_PATH = ['antitracking', 'adblocking'];
@@ -9,14 +10,13 @@ const RESOURCES_PATH = ['antitracking', 'adblocking'];
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
-const ONE_DAY = 24 * ONE_HOUR;
 
 
 // URLs to fetch block lists
-
 const BASE_URL = 'https://cdn.cliqz.com/adblocking/latest-filters/';
 
-const LANGS = CliqzLanguage.state();
+const LANGS = Language.state();
+const EOL = '\n';
 
 
 function stripProtocol(url) {
@@ -31,84 +31,50 @@ function stripProtocol(url) {
 }
 
 
-class Checksums extends UpdateCallbackHandler {
-  constructor() {
-    super();
-
-    this.remoteURL = 'https://cdn.cliqz.com/adblocking/allowed-lists.json';
-    this.loader = new ResourceLoader(
-      RESOURCES_PATH.concat('checksums'),
-      {
-        cron: ONE_DAY,
-        dataType: 'json',
-        remoteURL: this.remoteURL,
-      }
-    );
-    this.loader.onUpdate(this.updateChecksums.bind(this));
-  }
-
-  load() {
-    this.loader.load().then(this.updateChecksums.bind(this));
-  }
-
-  // Private API
-
-  updateChecksums(data) {
-    // Parse checksums
-    Object.keys(data).forEach(list => {
-      Object.keys(data[list]).forEach(asset => {
-        const checksum = data[list][asset].checksum;
-        let lang = null;
-        if (list === 'country_lists') {
-          lang = data[list][asset].language;
-        }
-
-        const assetName = stripProtocol(asset);
-
-        if (lang === null || LANGS.indexOf(lang) > -1) {
-          this.triggerCallbacks({
-            checksum,
-            asset,
-            remoteURL: BASE_URL + assetName,
-            key: list,
-          });
-        }
-      });
-    });
-  }
-}
-
-
-class FiltersList extends UpdateCallbackHandler {
+class FiltersList {
   constructor(checksum, asset, remoteURL) {
-    super();
     this.checksum = checksum;
+    this.baseRemoteURL = remoteURL;
 
     const assetName = stripProtocol(asset);
 
     this.resource = new Resource(
       RESOURCES_PATH.concat(assetName.split('/')),
-      { remoteURL, dataType: 'plainText' }
+      { remoteURL: this.remoteURL(), dataType: 'plainText' }
     );
-    this.resource.onUpdate(this.updateList.bind(this));
+  }
+
+  remoteURL() {
+    return `${this.baseRemoteURL}?t=${parseInt(Date.now() / 60 / 60 / 1000, 10)}`;
   }
 
   load() {
-    this.resource.load().then(this.updateList.bind(this));
+    return this.resource.load().then(this.updateList.bind(this));
+  }
+
+  update() {
+    return this.resource.updateFromRemote().then(this.updateList.bind(this));
+  }
+
+  needsToUpdate(checksum) {
+    return checksum !== this.checksum;
+  }
+
+  stop() {
   }
 
   updateFromChecksum(checksum) {
-    if (checksum === undefined || checksum !== this.checksum) {
-      this.checksum = checksum;
-      this.resource.updateFromRemote();
-    }
+    this.resource.remoteURL = this.remoteURL();
+    this.checksum = checksum;
+    return this.update();
   }
 
   updateList(data) {
-    const filters = data.split(/\r\n|\r|\n/g);
+    const filters = data.split(EOL);
     if (filters.length > 0) {
-      this.triggerCallbacks(filters);
+      return filters;
     }
+    return undefined;
   }
 }
 
@@ -120,35 +86,125 @@ export default class extends UpdateCallbackHandler {
   constructor() {
     super();
 
-    // Current checksums of official filters lists
-    this.checksums = new Checksums();
-
+    // Resource managing the allowed lists for the adblocker
+    this.allowedListsLoader = new ResourceLoader(
+      RESOURCES_PATH.concat('checksums'),
+      {
+        cron: ONE_HOUR,
+        updateInterval: 10 * ONE_MINUTE,
+        dataType: 'json',
+        remoteURL: this.remoteURL(),
+      }
+    );
+    this.allowedListsLoader.onUpdate(this.updateChecksums.bind(this));
 
     // Lists of filters currently loaded
     this.lists = new Map();
+  }
 
+  remoteURL() {
+    return `https://cdn.cliqz.com/adblocking/${platformName}/allowed-lists.json?t=${parseInt(Date.now() / 60 / 60 / 1000, 10)}`;
+  }
 
-    // Register callbacks on list creation
-    this.checksums.onUpdate(this.updateList.bind(this));
+  stop() {
+    this.allowedListsLoader.stop();
   }
 
   load() {
-    this.checksums.load();
+    return this.allowedListsLoader.load().then(this.updateChecksums.bind(this));
   }
 
-  updateList({ checksum, asset, remoteURL, key }) {
-    let list = this.lists.get(asset);
+  update() {
+    return this.loader.updateFromRemote();
+  }
 
-    if (list === undefined) {
-      list = new FiltersList(checksum, asset, remoteURL);
-      this.lists.set(asset, list);
-      list.onUpdate(filters => {
-        const isFiltersList = key !== 'js_resources';
-        this.triggerCallbacks({ asset, filters, isFiltersList });
+  // Private API
+
+  updateChecksums(allowedLists) {
+    // Update URL with current timestamp to play well with caching
+    this.allowedListsLoader.resource.remoteURL = this.remoteURL();
+
+    const filtersLists = [];
+
+    Object.keys(allowedLists).forEach(list => {
+      Object.keys(allowedLists[list]).forEach(asset => {
+        const checksum = allowedLists[list][asset].checksum;
+        let lang = null;
+
+        if (list === 'country_lists') {
+          lang = allowedLists[list][asset].language;
+        }
+
+        const assetName = stripProtocol(asset);
+        const filterRemoteURL = BASE_URL + assetName;
+
+        if (lang === null || LANGS.indexOf(lang) > -1) {
+          filtersLists.push({
+            checksum,
+            asset,
+            remoteURL: filterRemoteURL,
+            key: list,
+          });
+        }
       });
-      list.load();
-    } else {
-      list.updateFromChecksum(checksum);
-    }
+    });
+
+    return this.updateLists(filtersLists);
+  }
+
+  updateLists(filtersLists) {
+    const updatedLists = [];
+
+    filtersLists.forEach(newList => {
+      const { checksum, asset, remoteURL, key } = newList;
+      const isFiltersList = key !== 'js_resources';
+
+      if (!this.lists.has(asset)) {
+        // Create a new list
+        const list = new FiltersList(checksum, asset, remoteURL);
+        this.lists.set(asset, list);
+
+        // Load the list async
+        updatedLists.push(
+          list
+          .load()
+          .then(filters => ({
+            asset,
+            filters,
+            isFiltersList,
+            checksum: list.checksum,
+          }))
+        );
+      } else {
+        // Retrieve existing list
+        const list = this.lists.get(asset);
+
+        // Update the list only if needed (checksum is different)
+        if (list.needsToUpdate(checksum)) {
+          updatedLists.push(
+            list
+            .updateFromChecksum(checksum)
+            .then(filters => {
+              // Ignore any empty list
+              if (filters) {
+                return {
+                  asset,
+                  filters,
+                  isFiltersList,
+                  checksum: list.checksum,
+                };
+              }
+              return undefined;
+            })
+          );
+        }
+      }
+    });
+
+    // Wait for all lists to be fetched, filters the empty ones and
+    // trigger callback (will typically trigger a FiltersEngine update)
+    return Promise.all(updatedLists)
+      .then(filters => filters.filter(f => f !== undefined))
+      .then(filters => this.triggerCallbacks(filters));
   }
 }

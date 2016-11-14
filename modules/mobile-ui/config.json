@@ -1,5 +1,6 @@
 {
   "bower_components": [
-    "core.js/client/core.min.js"
+    "core.js/client/core.min.js",
+    "system.js/dist/system.js"
   ]
 }

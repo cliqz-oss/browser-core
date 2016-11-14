@@ -5,7 +5,7 @@ import HistoryProvider from "core/history-provider";
 import createHistoryDTO from "history/history-dto";
 import QueryDatabase from "history/query-database";
 import MetaDatabase from "history/meta-database";
-import Database from "history/database";
+import Database from "core/database";
 
 import MixerProxy from "history/mixer-proxy";
 import RichHeaderProxy from "history/rich-header-proxy";

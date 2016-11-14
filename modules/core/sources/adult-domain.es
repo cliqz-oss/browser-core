@@ -1,0 +1,19 @@
+import { BloomFilterUtils } from 'platform/bloom-filter-utils';
+import console from './console';
+
+const ADULT_DOMAINS_BF_FILE_URI = 'chrome://cliqz/content/core/adult-domains.bin';
+
+export class AdultDomain {
+  constructor() {
+    try {
+      this.filter = BloomFilterUtils.loadFromInput(ADULT_DOMAINS_BF_FILE_URI, 'uri')[0];
+    }
+    catch (e) {
+      console.log('Adult Domain List failed loading');
+    }
+  }
+  isAdult(domain) {
+    if (!this.filter) return false;
+    return this.filter.test(domain);
+  }
+}

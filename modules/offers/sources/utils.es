@@ -3,7 +3,8 @@ import { utils } from 'core/cliqz';
 
 const MODULE_NAME = 'utils';
 
-export function loadFileFromChrome(filePath) {
+
+function loadFileFromChrome(filePath) {
     var localURL = utils.System.baseURL + filePath.join('/');
     return new Promise( (resolve, reject) => {
       utils.httpGet( localURL , res => {
@@ -11,3 +12,12 @@ export function loadFileFromChrome(filePath) {
       }, reject );
     });
 }
+
+function isCLIQZBrowser(settings) {
+  return settings.channel === "40";
+}
+
+export {
+  loadFileFromChrome,
+  isCLIQZBrowser
+};

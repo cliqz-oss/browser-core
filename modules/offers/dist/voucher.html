@@ -147,14 +147,6 @@
         margin-bottom: 0px;
     }
 
-    .cqz-mtz-offered-by {
-        display: block;
-        margin-top: 15px;
-        font-size: 12px;
-        font-weight: normal;
-        margin-bottom: 0px;
-    }
-
 </style>
 
 <div class="row cqz-mtz-voucher-holder">
@@ -201,9 +193,11 @@
                         <span>Gültig für {{valid_for}}</span>
                     {{/if}}
                 </div>
+                {{# unless is_cliqz}}
                 <div>
                     <span class="cqz-mtz-offered-by">Bereitgestellt von CLIQZ Add-on</span>
                 </div>
+                {{/unless}}
             </div>
     </div>
 

@@ -4,9 +4,6 @@
  *
  */
 
-XPCOMUtils.defineLazyModuleGetter(this, 'CliqzHistoryManager',
-  'chrome://cliqzmodules/content/CliqzHistoryManager.jsm');
-
 (function(ctx) {
 
 

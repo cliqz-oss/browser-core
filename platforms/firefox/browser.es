@@ -2,20 +2,38 @@ import CliqzHumanWeb from 'human-web/human-web';
 
 Cu.import("resource://gre/modules/Services.jsm");
 
+export class Window {
+  constructor(window) {
+    this.window = window;
+  }
+
+  get id() {
+    const util = this.window.QueryInterface(Ci.nsIInterfaceRequestor)
+      .getInterface(Ci.nsIDOMWindowUtils);
+    return util.outerWindowID;
+  }
+}
+
 export let currentURL = CliqzHumanWeb.currentURL;
 
 export function contextFromEvent() {
   return CliqzHumanWeb.contextFromEvent;
 }
 
-export function forEachWindow(callback) {
-  var enumerator = Services.wm.getEnumerator('navigator:browser');
+export function mapWindows(callback) {
+  const enumerator = Services.wm.getEnumerator('navigator:browser');
+  const results = []
   while (enumerator.hasMoreElements()) {
     try {
       var win = enumerator.getNext();
-      callback(win);
+      results.push(callback(win));
     } catch(e) {}
   }
+  return results;
+}
+
+export function forEachWindow(callback) {
+  mapWindows(callback);
 }
 
 /** Returns true if the give windowID represents an open browser tab's windowID.

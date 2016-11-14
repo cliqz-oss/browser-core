@@ -3,13 +3,45 @@ import { log } from 'adblocker/utils';
 // Uniq ID generator
 let uidGen = 0;
 
-// TODO:
-// 1. support script tags filters:
-//    script:contains
-//    script:inject
-export class AdCosmetics {
-  constructor(line) {
-    // Assign an id to the filter
+const SEPARATOR = /[/^*]/;
+
+
+export function serializeFilter(filter) {
+  const serialized = Object.assign({}, filter);
+  if (filter.optDomains) {
+    serialized.optDomains = [...serialized.optDomains.values()];
+  }
+  if (serialized.optNotDomains) {
+    serialized.optNotDomains = [...serialized.optNotDomains.values()];
+  }
+  if (serialized.regex) {
+    serialized.regex = serialized.regex.toString();
+  }
+  return serialized;
+}
+
+
+export function deserializeFilter(serialized) {
+  try {
+  if (serialized.optDomains instanceof Array) {
+    serialized.optDomains = new Set(serialized.optDomains);
+  }
+  if (serialized.optNotDomains instanceof Array) {
+    serialized.optNotDomains = new Set(serialized.optNotDomains);
+  }
+  if (serialized.regex) {
+    const m = serialized.regex.match(/\/(.*)\/(.*)?/);
+    serialized.regex = new RegExp(m[1], m[2] || '');
+  }
+  // Assign a new id to the filter
+  serialized.id = uidGen++;
+  } catch (e) { log(`EXCEPTION DESERIALIZE ${e} ${e.stack}`); }
+  return serialized;
+}
+
+
+class AdCosmetics {
+  constructor(line, sharpIndex) {
     this.id = uidGen++;
 
     this.rawLine = line;
@@ -23,60 +55,88 @@ export class AdCosmetics {
     this.hostnames = [];
     this.selector = null;
 
-    // Ignore Adguard filters:
-    // `#$#` `#@$#`
-    // `#%#` `#@%#`
-    // `$$`
-    if (/#@?[$%]#|[$]{2}/.test(line)) {
+    const afterSharpIndex = sharpIndex + 1;
+    let suffixStartIndex = afterSharpIndex + 1;
+
+    // hostname1,hostname2#@#.selector
+    //                    ^^ ^
+    //                    || |
+    //                    || suffixStartIndex
+    //                    |afterSharpIndex
+    //                    sharpIndex
+
+    // Check if unhide
+    if (line[afterSharpIndex] === '@') {
+      this.unhide = true;
+      suffixStartIndex++;
+    }
+
+    // Parse hostnames
+    if (sharpIndex > 0) {
+      this.hostnames = line.substring(0, sharpIndex).split(',');
+    }
+
+    // Parse selector
+    this.selector = line.substring(suffixStartIndex);
+
+    // Deal with script:inject and script:contains
+    if (this.selector.startsWith('script:')) {
+      // this.selector
+      //      script:inject(.......)
+      //                    ^      ^
+      //   script:contains(/......./)
+      //                    ^      ^
+      //    script:contains(selector)
+      //           ^        ^       ^^
+      //           |        |       ||
+      //           |        |       |this.selector.length
+      //           |        |       scriptSelectorIndexEnd
+      //           |        scriptSelectorIndexStart
+      //           scriptMethodIndex
+      const scriptMethodIndex = 'script:'.length;
+      let scriptSelectorIndexStart = scriptMethodIndex;
+      let scriptSelectorIndexEnd = this.selector.length - 1;
+
+      if (this.selector.startsWith('inject(', scriptMethodIndex)) {
+        this.scriptInject = true;
+        scriptSelectorIndexStart += 'inject('.length;
+      } else if (this.selector.startsWith('contains(', scriptMethodIndex)) {
+        this.scriptBlock = true;
+        scriptSelectorIndexStart += 'contains('.length;
+
+        // If it's a regex
+        if (this.selector[scriptSelectorIndexStart] === '/'
+            && this.selector[scriptSelectorIndexEnd - 1] === '/') {
+          scriptSelectorIndexStart++;
+          scriptSelectorIndexEnd--;
+        }
+      }
+
+      this.selector = this.selector.substring(scriptSelectorIndexStart, scriptSelectorIndexEnd);
+    }
+
+    // Exceptions
+    if (this.selector === null ||
+        this.selector.length === 0 ||
+        this.selector.endsWith('}') ||
+        this.selector.includes('##') ||
+        (this.unhide && this.hostnames.length === 0)) {
       this.supported = false;
-    } else {
-      // Check if unhide
-      this.unhide = line.includes('#@#');
-
-      // Parse filter
-      const [prefix, suffix] = line.split(/#@?#/);
-
-      // Parse hostnames
-      if (prefix.length > 0) {
-        this.hostnames = prefix.split(',');
-      }
-
-      // Parse selector
-      if (suffix.length > 0) {
-        this.selector = suffix;
-
-        // extract script name
-        if (this.selector.includes('script:inject')) {
-          this.selector = this.selector.match(/script:inject\((.+)\)/)[1];
-          this.scriptInject = true;
-        }
-
-        // extract blocked scripts
-        if (this.selector.includes('script:contains')) {
-          this.selector = this.selector.match(/script:contains\((.+)\)/)[1];
-          if (this.selector[0] === '/' && this.selector.endsWith('/')) {
-            this.selector = this.selector.substring(1, this.selector.length - 1);
-          }
-          this.scriptBlock = true;
-        }
-      }
-
-      // Exceptions
-      if (this.selector === null ||
-          this.selector.length === 0 ||
-          this.selector.endsWith('}') ||
-          this.selector.includes('##') ||
-          (this.unhide && this.hostnames.length === 0)) {
-        this.supported = false;
-      }
     }
   }
 }
 
 
+function isRegex(filter, start, end) {
+  const starIndex = filter.indexOf('*', start);
+  const separatorIndex = filter.indexOf('^', start);
+  return ((starIndex !== -1 && starIndex < end) ||
+          (separatorIndex !== -1 && separatorIndex < end));
+}
+
+
 // TODO:
 // 1. Options not supported yet:
-//  - redirect
 //  - popup
 //  - popunder
 //  - generichide
@@ -84,18 +144,18 @@ export class AdCosmetics {
 // 2. Lot of hostname anchors are of the form hostname[...]*[...]
 //    we could split it into prefix + plain pattern
 // 3. Replace some of the attributes by a bitmask
-export class AdFilter {
+class AdFilter {
   constructor(line) {
     // Assign an id to the filter
     this.id = uidGen++;
 
     this.rawLine = line;
-    this.filterStr = this.rawLine;
+    this.filterStr = null;
     this.supported = true;
     this.isException = false;
-    this.rawOptions = null;
     this.hostname = null;
     this.isNetworkFilter = true;
+    this.isComment = false;
 
     this.regex = null;
 
@@ -111,6 +171,7 @@ export class AdFilter {
 
     this.thirdParty = null;
     this.firstParty = null;
+    this.redirect = null;
 
     // Options on origin policy
     this.fromAny = true;
@@ -133,129 +194,114 @@ export class AdFilter {
     this.isRightAnchor = false;
     this.isHostnameAnchor = false;
 
-    // Deal with comments
-    this.isComment = (this.filterStr.startsWith('!') ||
-                      this.filterStr.startsWith('#') ||
-                      this.filterStr.startsWith('[Adblock'));
+    let filterIndexStart = 0;
+    let filterIndexEnd = line.length;
 
-    // Trim comments at the end of the line
-    // eg: "... # Comment"
-    this.filterStr = this.filterStr.replace(/[\s]#.*$/, '');
+    // @@filter == Exception
+    this.isException = line.startsWith('@@');
+    if (this.isException) {
+      filterIndexStart += 2;
+    }
 
-    if (!this.isComment) {
-      // @@filter == Exception
-      this.isException = this.filterStr.startsWith('@@');
-      if (this.isException) {
-        this.filterStr = this.filterStr.substring(2);
-      }
+    // filter$options == Options
+    // ^     ^
+    // |     |
+    // |     optionsIndex
+    // filterIndexStart
+    const optionsIndex = line.indexOf('$', filterIndexStart);
+    if (optionsIndex !== -1) {
+      // Parse options and set flags
+      filterIndexEnd = optionsIndex;
+      this.parseOptions(line.substring(optionsIndex + 1));
+    }
 
-      // filter$options == Options
-      if (this.filterStr.includes('$')) {
-        const filterAndOptions = this.filterStr.split('$');
-        this.filterStr = filterAndOptions[0];
-        this.rawOptions = filterAndOptions[1];
-        // Parse options and set flags
-        this.parseOptions(this.rawOptions);
-      }
+    if (this.supported) {
+      // Identify kind of pattern
 
-      if (this.supported) {
-        // Identify kind of pattern
+      // Deal with hostname pattern
+      if (line.startsWith('127.0.0.1')) {
+        this.hostname = line.substring(line.lastIndexOf(' '));
+        this.filterStr = '';
+        this.isHostname = true;
+        this.isPlain = true;
+        this.isRegex = false;
+        this.isHostnameAnchor = true;
+      } else {
+        if (line.charAt(filterIndexEnd - 1) === '|') {
+          this.isRightAnchor = true;
+          filterIndexEnd--;
+        }
 
-        // Deal with hostname pattern
-        if (this.filterStr.startsWith('127.0.0.1')) {
-          this.hostname = this.filterStr.split(' ').pop();
-          this.filterStr = '';
-          this.isHostname = true;
-          this.isPlain = true;
-          this.isRegex = false;
+        if (line.startsWith('||', filterIndexStart)) {
           this.isHostnameAnchor = true;
-        } else {
-          if (this.filterStr.endsWith('|')) {
-            this.isRightAnchor = true;
-            this.filterStr = this.filterStr.substring(0, this.filterStr.length - 1);
-          }
+          filterIndexStart += 2;
+        } else if (line.charAt(filterIndexStart) === '|') {
+          this.isLeftAnchor = true;
+          filterIndexStart++;
+        }
 
-          if (this.filterStr.startsWith('||')) {
-            this.isHostnameAnchor = true;
-            this.filterStr = this.filterStr.substring(2);
-          } else if (this.filterStr.startsWith('|')) {
-            this.isLeftAnchor = true;
-            this.filterStr = this.filterStr.substring(1);
-          }
+        // If pattern ends with "*", strip it as it often can be
+        // transformed into a "plain pattern" this way.
+        // TODO: add a test
+        if (line.charAt(filterIndexEnd - 1) === '*' &&
+            (filterIndexEnd - filterIndexStart) > 1) {
+          filterIndexEnd--;
+        }
 
-          // If pattern ends with "*", strip it as it often can be
-          // transformed into a "plain pattern" this way.
-          if (this.filterStr.endsWith('*') && this.filterStr.length > 1) {
-            this.filterStr = this.filterStr.substring(0, this.filterStr.length - 1);
-          }
+        // Is regex?
+        this.isRegex = isRegex(line, filterIndexStart, filterIndexEnd);
+        this.isPlain = !this.isRegex;
 
-          // Is regex?
-          if (this.filterStr.includes('*') || this.filterStr.includes('^')) {
-            this.isRegex = true;
+        // Extract hostname to match it more easily
+        // NOTE: This is the most common case of filters
+        if (this.isPlain && this.isHostnameAnchor) {
+          // Look for next /
+          const slashIndex = line.indexOf('/', filterIndexStart);
+          if (slashIndex !== -1) {
+            this.hostname = line.substring(filterIndexStart, slashIndex);
+            filterIndexStart = slashIndex;
           } else {
-            this.isPlain = true;
+            this.hostname = line.substring(filterIndexStart, filterIndexEnd);
+            this.filterStr = '';
           }
+        } else if (this.isRegex && this.isHostnameAnchor) {
+          // Split at the first '/', '*' or '^' character to get the hostname
+          // and then the pattern.
+          const firstSeparator = line.search(SEPARATOR);
 
-          // Extract hostname to match it more easily
-          // NOTE: This is the most common case of filters
-          if (this.isPlain && this.isHostnameAnchor) {
-            // Look for next /
-            const slashIndex = this.filterStr.indexOf('/');
-            if (slashIndex !== -1) {
-              this.hostname = this.filterStr.substring(0, slashIndex);
-              this.filterStr = this.filterStr.substring(slashIndex);
-            } else {
-              this.hostname = this.filterStr;
+          if (firstSeparator !== -1) {
+            this.hostname = line.substring(filterIndexStart, firstSeparator);
+            filterIndexStart = firstSeparator;
+            this.isRegex = isRegex(line, filterIndexStart, filterIndexEnd);
+            this.isPlain = !this.isRegex;
+
+            if ((filterIndexEnd - filterIndexStart) === 1 &&
+                line.charAt(filterIndexStart) === '^') {
               this.filterStr = '';
-            }
-          } else if (this.isRegex && this.isHostnameAnchor) {
-            try {
-              // Split at the first '/' or '^' character to get the hostname
-              // and then the pattern.
-              const firstSep = this.filterStr.search(/[/^*]/);
-              if (firstSep !== -1) {
-                const hostname = this.filterStr.substring(0, firstSep);
-                const pattern = this.filterStr.substring(firstSep);
-
-                this.hostname = hostname;
-                this.isRegex = (pattern.includes('^') ||
-                  pattern.includes('*'));
-                this.isPlain = !this.isRegex;
-                this.filterStr = pattern;
-
-                if (this.filterStr === '^') {
-                  this.filterStr = '';
-                  this.isPlain = true;
-                  this.isRegex = false;
-                }
-
-                log(`SPLIT ${JSON.stringify({
-                  raw: this.rawLine,
-                  hostname: this.hostname,
-                  filterStr: this.filterStr,
-                  isRegex: this.isRegex,
-                })}`);
-              }
-            } catch (ex) {
-              log(`ERROR !! ${ex}`);
+              this.isPlain = true;
+              this.isRegex = false;
             }
           }
         }
+      }
 
-        // Compile Regex
-        if (this.isRegex) {
-          this.regex = this.compileRegex(this.filterStr);
-          this.rawRegex = this.regex.toString();
-        } else { // if (!this.matchCase) {
-          // NOTE: No filter seems to be using the `match-case` option,
-          // hence, it's more efficient to just convert everything to
-          // lower case before matching.
-          if (this.filterStr) {
-            this.filterStr = this.filterStr.toLowerCase();
-          }
-          if (this.hostname) {
-            this.hostname = this.hostname.toLowerCase();
-          }
+      if (this.filterStr === null) {
+        this.filterStr = line.substring(filterIndexStart, filterIndexEnd);
+      }
+
+      // Compile Regex
+      if (this.isRegex) {
+        this.regex = this.compileRegex(this.filterStr);
+        // this.rawRegex = this.regex.toString();
+      } else { // if (!this.matchCase) {
+        // NOTE: No filter seems to be using the `match-case` option,
+        // hence, it's more efficient to just convert everything to
+        // lower case before matching.
+        if (this.filterStr) {
+          this.filterStr = this.filterStr.toLowerCase();
+        }
+        if (this.hostname) {
+          this.hostname = this.hostname.toLowerCase();
         }
       }
     }
@@ -282,7 +328,6 @@ export class AdFilter {
     }
 
     try {
-      // Compile regex
       if (this.matchCase) {
         return new RegExp(filter);
       }
@@ -338,8 +383,6 @@ export class AdFilter {
             this.optNotDomains = null;
           }
 
-          // this.optDomains = [...this.optDomains.values()];
-          // this.optNotDomains = [...this.optNotDomains.values()];
           break;
         case 'image':
           this.fromImage = !negation;
@@ -387,6 +430,16 @@ export class AdFilter {
           break;
         case 'collapse':
           break;
+        case 'redirect':
+          // Negation of redirection doesn't make sense
+          this.supported = !negation;
+          // Ignore this filter if no redirection resource is specified
+          if (optionValues.length === 0) {
+            this.supported = false;
+          } else {
+            this.redirect = optionValues[0];
+          }
+          break;
         // Disable this filter if any other option is encountered
         default:
           // Disable this filter if we don't support all the options
@@ -411,10 +464,44 @@ export class AdFilter {
 }
 
 
-function parseLine(line) {
-  if (/#[@$%]*#|[$]{2}/.test(line)) {
-    return new AdCosmetics(line);
+const SPACE = /\s/;
+export function parseFilter(line) {
+  // Ignore comments
+  if (line.length === 1
+      || line.charAt(0) === '!'
+      || (line.charAt(0) === '#' && SPACE.test(line.charAt(1)))
+      || line.startsWith('[Adblock')) {
+    return { supported: false, isComment: true };
   }
+
+  // Ignore Adguard cosmetics
+  // `$$`
+  if (line.includes('$$')) {
+    return { supported: false };
+  }
+
+  // Check if filter is cosmetics
+  const sharpIndex = line.indexOf('#');
+  if (sharpIndex > -1) {
+    const afterSharpIndex = sharpIndex + 1;
+
+    // Ignore Adguard cosmetics
+    // `#$#` `#@$#`
+    // `#%#` `#@%#`
+    if (line.startsWith(/* #@$# */ '@$#', afterSharpIndex)
+        || line.startsWith(/* #@%# */ '@%#', afterSharpIndex)
+        || line.startsWith(/* #%# */ '%#', afterSharpIndex)
+        || line.startsWith(/* #$# */ '$#', afterSharpIndex)) {
+      return { supported: false };
+    } else if (line.startsWith(/* ## */'#', afterSharpIndex)
+        || line.startsWith(/* #@# */ '@#', afterSharpIndex)) {
+      // Parse supported cosmetic filter
+      // `##` `#@#`
+      return new AdCosmetics(line, sharpIndex);
+    }
+  }
+
+  // Everything else is a network filter
   return new AdFilter(line);
 }
 
@@ -426,7 +513,7 @@ export default function parseList(list) {
 
     list.forEach(line => {
       if (line) {
-        const filter = parseLine(line.trim());
+        const filter = parseFilter(line.trim());
         if (filter.supported && !filter.isComment) {
           log(`compiled ${line} into ${JSON.stringify(filter)}`);
           if (filter.isNetworkFilter) {

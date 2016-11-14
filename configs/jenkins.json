@@ -11,10 +11,14 @@
     "antitrackingButton": true,
     "showNewBrandAlert": true
   },
+  "default_prefs" : {
+    "modules.context-search.enabled": false
+  },
   "modules": [
-    "q-button",
-    "static",
     "core",
+    "firefox-specific",
+    "static",
+    "context-search",
     "autocomplete",
     "geolocation",
     "ui",
@@ -22,7 +26,6 @@
     "freshtab",
     "unblock",
     "theme",
-    "firefox-tests",
     "telemetry-categories",
     "human-web",
     "offers",
@@ -33,11 +36,11 @@
     "hpn",
     "control-center",
     "adblocker",
-    "hm",
     "campaign-manager",
     "message-center",
-    "q-button",
-    "https-everywhere"
+    "https-everywhere",
+    "moncomp",
+    "firefox-tests"
   ],
   "subprojects": [
     "fresh-tab-frontend"

@@ -1,3 +1,5 @@
+import HistoryManager from "core/history-manager";
+
 var CliqzFreshTabHistory = {
   /**
    * Returns the array of top visited URLs with their titles and number of visits
@@ -7,9 +9,7 @@ var CliqzFreshTabHistory = {
   getTopUrls(limit) {
     var result = [], domains = {};
     return new Promise(function(resolve, reject){
-      Components.utils.import('chrome://cliqzmodules/content/CliqzHistoryManager.jsm');
-
-      CliqzHistoryManager.PlacesInterestsStorage._execute(
+      HistoryManager.PlacesInterestsStorage._execute(
         [
           "select distinct rev_host as rev_host, title as title, url as url, max(total_count)  as total_count from (",
           "select mzh.url as url, mzh.title as title, sum(mzh.days_count) as total_count, mzh.rev_host as rev_host",

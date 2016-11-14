@@ -120,7 +120,8 @@ const MockOS = {
         break;
 
     }
-    clbk(message.callback, dataBack, window.self !== window.top);
+    if(message.callback)
+      clbk(message.callback, dataBack, window.self !== window.top);
   },
 };
 

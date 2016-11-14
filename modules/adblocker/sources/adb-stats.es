@@ -13,7 +13,6 @@ class PageStats {
 
   addBlockedUrl(url) {
     // retrieve company
-    this.count++;
     const domain = getGeneralDomain(URLInfo.get(url).hostname);
     let company;
     // Re-use anti tracking company list for the moment.
@@ -26,18 +25,24 @@ class PageStats {
       company = '_Unknown';
     }
     if (this.blocked.get(company)) {
+      if (!this.blocked.get(company).has(url)) {
+        this.count++;
+      }
       this.blocked.get(company).add(url);
     } else {
       this.blocked.set(company, new Set([url]));
+      this.count++;
     }
   }
 
   report() {
     const advertisersList = {};
-    this.blocked.forEach((v, k) => advertisersList[k] = [...v]);
+    this.blocked.forEach((v, k) => {
+      advertisersList[k] = [...v];
+    });
     return {
       totalCount: this.count,
-      advertisersList: advertisersList,
+      advertisersList,
     };
   }
 }
@@ -62,12 +67,11 @@ class AdbStats {
   report(url) {
     if (this.pages.get(url)) {
       return this.pages.get(url).report();
-    } else {
-      return {
-        totalCount: 0,
-        advertisersList: {},
-      };
     }
+    return {
+      totalCount: 0,
+      advertisersList: {},
+    };
   }
 
   clearStats() {

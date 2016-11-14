@@ -5,14 +5,14 @@ export default describeModule("freshtab/news",
       "platform/language": { default: { } },
       "platform/places-utils": { default: { } },
       "freshtab/news-cache": { default: function () { } },
-      "core/cliqz": {
-        utils: {
+      "core/utils": {
+        default: {
           log(message) {console.log(message)},
           setTimeout,
           clearTimeout,
         },
-        environment: {},
-
+      },
+      "core/cliqz": {
         historyManager: {
           PlacesInterestsStorage : {},
           makeURI() {return '';},
@@ -65,18 +65,18 @@ export default describeModule("freshtab/news",
 
       beforeEach(function() {
 
-        this.deps("core/cliqz").utils.getPref = function (prefName, defaultPref) {
+        this.deps("core/utils").default.getPref = function (prefName, defaultPref) {
           return defaultPref;
         };
 
-        this.deps("core/cliqz").utils.setPref = function (prefName, defaultPref) {
+        this.deps("core/utils").default.setPref = function (prefName, defaultPref) {
           console.log("prefName");
           return true;
         };
 
-        this.deps("core/cliqz").utils.log = function() {};
+        this.deps("core/utils").default.log = function() {};
 
-        this.deps("core/cliqz").utils.getDetailsFromUrl = function(url) {
+        this.deps("core/utils").default.getDetailsFromUrl = function(url) {
           var data = {
             "http://www.focus.de/politik/": {
               path: "/politik/",
@@ -87,17 +87,17 @@ export default describeModule("freshtab/news",
         };
 
 
-        this.deps("core/cliqz").utils.encodeLocale = function() {return '';}
+        this.deps("core/utils").default.encodeLocale = function() {return '';}
 
-        this.deps("core/cliqz").utils.RICH_HEADER = "https://newbeta.cliqz.com/api/v1/rich-header?path=/map";
+        this.deps("core/utils").default.RICH_HEADER = "https://newbeta.cliqz.com/api/v1/rich-header?path=/map";
 
-        this.deps("core/cliqz").utils.hash = cliqzHash;
+        this.deps("core/utils").default.hash = cliqzHash;
 
-        this.deps("core/cliqz").utils.log = function(mes){ console.log(mes); };
+        this.deps("core/utils").default.log = function(mes){ console.log(mes); };
 
         this.deps("platform/language").default.stateToQueryString = function() {return '&lang=en';};
 
-        this.deps("core/cliqz").environment.getLocalStorage = function (locale_storage) {
+        this.deps("core/utils").default.getLocalStorage = function (locale_storage) {
           return {
             getItem() { return true },
             setItem: function(itemName) {return true;}

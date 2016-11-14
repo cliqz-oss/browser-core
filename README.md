@@ -76,40 +76,25 @@ The current setup allows you to:
 
 1. Choose a firefox version at build time.
 2. Run tests inside of docker.
-3. Connect and interact with running docker using VNC client.
+3. Connect and interact with running docker using any VNC client.
 4. Logs and test results are saved in the current extension directory.
 
-You first need to clone firefox-autoconfigs in the top directory of the extension:
+Make sure the followings are available: `fabric` and `jinja2`.
+Also, if `xtightvncviewer` is available on your system, a vnc connection will
+automatically be created to the running docker so that you can inspect running tests.
+
+Everything can be done with only one command but make sure your developement
+environment is setup correctly; that is, you can run `./fern.js build` and it
+should build the extension successfuly (which will be attempted by the script
+if no `build` folder is present):
 
 ```sh
-git clone https://github.com/cliqz-oss/firefox-autoconfigs
+./run_tests_docker.sh <FIREFOX_VERSION>
 ```
 
-Then *build* an extension xpi with `jenkins` configuration, and put it in the repository root:
+Where `<FIREFOX_VERSION>` can be any [released version](https://ftp.mozilla.org/pub/firefox/releases/). For example: `./run_tests_docker.sh 47.0.1`.
 
-```sh
-./fern.js build configs/jenkins.json
-cd build
-fab package
-cp latest.xpi ../cliqz@cliqz.com.xpi
-cd ../
-```
-
-You can then build docker with the following command:
-
-```sh
-docker build  --build-arg UID=`id -u` --build-arg VERSION=<version> --build-arg GID=`id -g` -f Dockerfile.firefox .
-```
-
-Here `<version>` can be any firefox [release number](https://ftp.mozilla.org/pub/firefox/releases/), for example: `47.0.1`.
-
-Then run tests with:
-
-```sh
-docker run -iP -p 15900:5900 -u 1000:1000 -v `pwd`:/ebs/jenkins/workspace/cliqz/navigation-extension/ -w /ebs/jenkins/workspace/cliqz/navigation-extension/ --entrypoint "./run_tests.sh" {image_id}
-```
-
-You can connect to docker with any VNC client on `localhost` port `15900`.
+You can manually connect to docker with any VNC client on `localhost`, port `15900`, password `vnc`.
 
 ## Contributions
 

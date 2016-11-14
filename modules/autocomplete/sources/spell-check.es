@@ -2,14 +2,32 @@ import autocomplete from "autocomplete/autocomplete";
 import { utils } from "core/cliqz";
 import { isFirefox } from "core/platform";
 
-var CliqzSpellCheck = {
-    check: function(q) {
+export default class CliqzSpellCheck {
+    constructor() {
+      this.spellCorrectionDict = {};
+      this.resetState();
+      if (isFirefox && utils.getPref("config_location", "") == "de" && Object.keys(this.spellCorrectionDict).length == 0) {
+          utils.log('loading dict', 'spellcorr');
+          utils.loadResource('chrome://cliqz/content/spell_check.list', CliqzSpellCheck.loadRecords);
+      }
+    }
+    resetState() {
+      this.state = {
+            'on': false,
+            'correctBack': {},
+            'override': false,
+            'pushed': null,
+            'userConfirmed': false,
+            'searchTerms': []
+        }
+    }
+    check(q) {
         var words = q.split(" ");
         var correctBack = {}
         for (var i = 0; i < words.length; i++) {
             if (words[i] == "") continue;
-            if (autocomplete.spellCorrectionDict.hasOwnProperty(words[i])) {
-                var correct = autocomplete.spellCorrectionDict[words[i]];
+            if (this.spellCorrectionDict.hasOwnProperty(words[i])) {
+                var correct = this.spellCorrectionDict[words[i]];
                 if (correct.length > words[i].length &&
                     correct.slice(0, words[i].length) == words[i] &&
                     i == words.length - 1) continue;
@@ -23,22 +41,14 @@ var CliqzSpellCheck = {
             }
         }
         return [words.join(" "), correctBack];
-    },
-    loadRecords: function(req) {
+    }
+    loadRecords(req) {
         var content = req.response.split("\n");
         for (var i=0; i < content.length; i++) {
             var words = content[i].split("\t");
             var wrong = words[0];
             var right = words[1];
-            autocomplete.spellCorrectionDict[wrong] = right;
-        }
-    },
-    init: function() {
-        if (isFirefox && utils.getPref("config_location", "") == "de" && Object.keys(autocomplete.spellCorrectionDict).length == 0) {
-            utils.log('loading dict', 'spellcorr');
-            utils.loadResource('chrome://cliqz/content/spell_check.list', CliqzSpellCheck.loadRecords);
+            this.spellCorrectionDict[wrong] = right;
         }
     }
 }
-
-export default CliqzSpellCheck;

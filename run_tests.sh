@@ -14,7 +14,14 @@ unzip cliqz@cliqz.com.xpi -d /home/jenkins/firefox/distribution/extensions/cliqz
 RESOLUTION="1024x768"
 FIREFOX=/home/jenkins/firefox/firefox
 PROFILE=/home/jenkins/profile
-TEST_URL=chrome://cliqz/content/firefox-tests/run.html
+
+# If debug mode is specified, then don't kill firefox at the end of the tests
+if [ -z ${JOB_NAME} ] || [ ${FIREFOX_DEBUG} -eq 1 ]; then
+    TEST_URL=chrome://cliqz/content/firefox-tests/run-debug.html
+else
+    TEST_URL=chrome://cliqz/content/firefox-tests/run.html
+fi
+
 TEST_COMMAND="${FIREFOX} -profile ${PROFILE} --no-remote -chrome ${TEST_URL}"
 
 
@@ -34,6 +41,8 @@ export DISPLAY=:${DISPLAY_NUMBER}
 # Run virtual frame buffer
 Xvfb ${DISPLAY} -screen 0 ${RESOLUTION}x24 -ac &
 sleep 1
+
+openbox&
 
 # TODO: Make this more robust and push live
 # Start recording video

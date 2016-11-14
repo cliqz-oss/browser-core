@@ -36,6 +36,8 @@ export default describeModule('adblocker/filters-engine',
   () => {
     describe('Test cosmetic engine', () => {
       let FilterEngine;
+      let serializeEngine;
+      let deserializeEngine;
       let engine = null;
       const cosmeticsPath = 'modules/adblocker/tests/unit/data/cosmetics.txt';
       const cosmeticMatches = 'modules/adblocker/tests/unit/data/cosmetics_matching.txt';
@@ -43,9 +45,17 @@ export default describeModule('adblocker/filters-engine',
       beforeEach(function initializeCosmeticEngine() {
         this.timeout(10000);
         FilterEngine = this.module().default;
+        serializeEngine = this.module().serializeFiltersEngine;
+        deserializeEngine = this.module().deserializeFiltersEngine;
+
         if (engine === null) {
           engine = new FilterEngine();
-          engine.onUpdateFilters(undefined, loadLinesFromFile(cosmeticsPath));
+          engine.onUpdateFilters([{ filters: loadLinesFromFile(cosmeticsPath) }]);
+
+          // Serialize and deserialize engine
+          const serialized = serializeEngine(engine);
+          engine = new FilterEngine();
+          deserializeEngine(engine, serialized);
         }
       });
 

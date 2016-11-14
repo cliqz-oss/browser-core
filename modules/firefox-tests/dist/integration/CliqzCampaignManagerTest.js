@@ -7,7 +7,7 @@ TESTS.CliqzCampaignManagerTestItegration = function (CliqzUtils, CliqzMsgCenter,
     this.retries(1);
 
     var response, messageCenter, campaignManager,
-    core = CliqzUtils.getWindow().CLIQZ.Core,
+    core = function () { return CliqzUtils.getWindow().CLIQZ.Core },
     ui = function() { return CliqzUtils.getWindow().CLIQZ.UI },
     gBrowser = CliqzUtils.getWindow().gBrowser;
 
@@ -68,13 +68,13 @@ TESTS.CliqzCampaignManagerTestItegration = function (CliqzUtils, CliqzMsgCenter,
       this.timeout(5000);
       campaignManager._campaigns.TEST001.limits.trigger = 2;
 
-      core.urlbar.blur();
-      core.urlbar.focus();
+      core().urlbar.blur();
+      core().urlbar.focus();
       return waitFor(function() {
         return campaignManager._campaigns.TEST001.counts.trigger === 1;
       }).then(function () {
-        core.urlbar.blur();
-        core.urlbar.focus();
+        core().urlbar.blur();
+        core().urlbar.focus();
         return waitFor(function () {
           return Boolean(ui().messageCenterMessage) &&
                  campaignManager._campaigns.TEST001.state === 'show';
@@ -84,7 +84,7 @@ TESTS.CliqzCampaignManagerTestItegration = function (CliqzUtils, CliqzMsgCenter,
 
         return waitForResult().then(function() {
           return Boolean(ui().messageCenterMessage) &&
-                 core.popup.cliqzBox.messageContainer.innerHTML.indexOf(
+                 core().popup.cliqzBox.messageContainer.innerHTML.indexOf(
                    response.campaigns.TEST001.message.text) >= 0;
         });
       });
@@ -93,8 +93,8 @@ TESTS.CliqzCampaignManagerTestItegration = function (CliqzUtils, CliqzMsgCenter,
     it('should hide message', function() {
       campaignManager._campaigns.TEST001.limits.trigger = 1;
 
-      core.urlbar.blur();
-      core.urlbar.focus();
+      core().urlbar.blur();
+      core().urlbar.focus();
       return waitFor(function () {
         return Boolean(ui().messageCenterMessage) &&
                campaignManager._campaigns.TEST001.state === 'show';
@@ -106,7 +106,7 @@ TESTS.CliqzCampaignManagerTestItegration = function (CliqzUtils, CliqzMsgCenter,
       }).then(function () {
         fillIn('some query');
         return waitForResult().then(function() {
-          return core.popup.cliqzBox.messageContainer.innerHTML.indexOf(
+          return core().popup.cliqzBox.messageContainer.innerHTML.indexOf(
               response.campaigns.TEST001.message.text) === -1;
         });
       });
@@ -128,8 +128,8 @@ TESTS.CliqzCampaignManagerTestItegration = function (CliqzUtils, CliqzMsgCenter,
         campaignManager._campaigns.TEST001.message.options[0].url = url;
 
 
-        core.urlbar.blur();
-        core.urlbar.focus();
+        core().urlbar.blur();
+        core().urlbar.focus();
         fillIn('some query');
         return waitForResult().then(function() {
           click($cliqzMessageContainer().find(".cqz-msg-btn-action-confirm")[0]);
@@ -139,7 +139,7 @@ TESTS.CliqzCampaignManagerTestItegration = function (CliqzUtils, CliqzMsgCenter,
               //remove trailing slash
               try {
                 chai.expect(CliqzUtils.getWindow().gBrowser.tabs).to.have.length(2);
-                var str = CliqzUtils.stripTrailingSlash(core.urlbar.value);
+                var str = CliqzUtils.stripTrailingSlash(core().urlbar.value);
                 chai.expect(str).to.equal(url);
                 resolve();
               } catch(e) {
@@ -160,8 +160,8 @@ TESTS.CliqzCampaignManagerTestItegration = function (CliqzUtils, CliqzMsgCenter,
     campaignManager._campaigns.TEST001.message.options[1].url = url;
 
 
-    core.urlbar.blur();
-    core.urlbar.focus();
+    core().urlbar.blur();
+    core().urlbar.focus();
     fillIn('some query');
     waitForResult().then(function() {
       click($cliqzMessageContainer().find(".cqz-msg-btn-action-postpone")[0]);
@@ -169,7 +169,7 @@ TESTS.CliqzCampaignManagerTestItegration = function (CliqzUtils, CliqzMsgCenter,
         chai.expect(CliqzUtils.getWindow().gBrowser.tabs).to.have.length(2);
                         // checks (1) for expected URL and (2) that new tab is focused
                         //remove trailing slash
-                        var str = CliqzUtils.stripTrailingSlash(core.urlbar.value);
+                        var str = CliqzUtils.stripTrailingSlash(core().urlbar.value);
                         chai.expect(str).to.equal(url);
                         done();
                       }, 1000)
@@ -179,10 +179,3 @@ TESTS.CliqzCampaignManagerTestItegration = function (CliqzUtils, CliqzMsgCenter,
 */
   });
 };
-
-
-
-
-
-
-

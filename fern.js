@@ -2,6 +2,7 @@
 
 'use strict';
 
+const assert = require('assert');
 const childProcess = require('child_process');
 const os = require('os');
 
@@ -30,9 +31,8 @@ const rimraf = require('rimraf');
 const chalk = require('chalk');
 const notifier = require('node-notifier');
 
-const OUTPUT_PATH = process.env['CLIQZ_OUTPUT_PATH'] || 'build';
-
 let CONFIG;
+let OUTPUT_PATH;
 
 colors.setTheme({
   silly: 'rainbow',
@@ -52,11 +52,19 @@ let hookInstaller = spaws('git-hooks/install-hooks.sh');
 hookInstaller.stderr.on('data', data => console.log(data.toString()));
 hookInstaller.stdout.on('data', data => console.log(data.toString()));
 
-function setConfigPath(configPath) {
+function setConfigPath(configPath, buildIntoSubdir) {
   configPath = configPath || process.env['CLIQZ_CONFIG_PATH'] || './configs/jenkins.json'
   process.env['CLIQZ_CONFIG_PATH'] = configPath;
   CONFIG = JSON.parse(fs.readFileSync(configPath));
   CONFIG.subprojects = CONFIG.subprojects || [];
+
+  const configName = path.basename(configPath);
+  let defaultBuildDir = path.resolve(__dirname, 'build');
+  if (buildIntoSubdir)
+      defaultBuildDir = path.join(defaultBuildDir, path.parse(configPath).name);
+  OUTPUT_PATH = ('CLIQZ_OUTPUT_PATH' in process.env) ?
+      path.resolve(process.env.CLIQZ_OUTPUT_PATH) :
+      defaultBuildDir;
 }
 
 function buildFreshtabFrontEnd() {
@@ -139,19 +147,17 @@ function buildChromeHumanWeb(mode) {
   // Need version name, to map content.js to correct path.
   // manifest.version_name = "packaged";
 
-  wrench.copyDirSyncRecursive(modulePath, 'build/js/hw/', {
+  wrench.copyDirSyncRecursive(modulePath, path.join(OUTPUT_PATH, 'js', 'hw'), {
       forceDelete: true
   });
 
-  var stream = fs.createWriteStream("build/manifest.json");
+  var stream = fs.createWriteStream(path.join(OUTPUT_PATH, "manifest.json"));
   stream.once('open', function(fd) {
     stream.write(JSON.stringify(finalManifest, null, 2));
     stream.end();
   });
 
-  fs.unlink('build/js/hw/manifest.json', function (err) {
-    if (err) throw err;
-  });
+  rimraf.sync(path.join(OUTPUT_PATH, 'js', 'hw', 'manifest.json'));
 }
 
 function isPackageInstalled(pkg, options, msg) {
@@ -192,18 +198,22 @@ program.command('install')
           console.log(chalk.green('DONE!'))
        });
 
-
 program.command('build [file]')
        .option('--no-maps', 'disables source maps')
        .option('--version [version]', 'sets extension version', 'package')
        .option('--freshtab', 'enables ember fresh-tab-frontend build')
        .option('--prod', 'to generate comprehensive manifest.json')
+       .option('--to-subdir', 'build into a subdirectory named after the config')
+       .option('--instrument-functions [ms]', 'log all modules function calls which take more than given ms')
        .action((configPath, options) => {
           var buildStart = Date.now();
-          setConfigPath(configPath);
+          setConfigPath(configPath, options.toSubdir);
 
           process.env['CLIQZ_SOURCE_MAPS'] = options.maps;
           process.env['CLIQZ_FRESHTAB'] = options.freshtab;
+          if (options.instrumentFunctions !== undefined) {
+            process.env['CLIQZ_INSTRUMENT_FUNCTIONS'] = options.instrumentFunctions;
+          }
 
           console.log("Starting build");
 
@@ -212,6 +222,7 @@ program.command('build [file]')
 
           getExtensionVersion(options.version).then(tag => {
             process.env.EXTENSION_VERSION = tag;
+            assert(OUTPUT_PATH);
             let child = spaws('broccoli', ['build', OUTPUT_PATH]);
             child.stderr.on('data', data => console.log(data.toString()));
             child.stdout.on('data', data => console.log(data.toString()));
@@ -227,9 +238,13 @@ program.command('build [file]')
        });
 
 function cleanupDefaultBuild() {
-  if (OUTPUT_PATH === 'build') {
-    rimraf.sync('build');
-  }
+  assert(OUTPUT_PATH);
+  const outDirInsideRepo = OUTPUT_PATH.indexOf(__dirname) === 0;
+  console.log(OUTPUT_PATH, __dirname, outDirInsideRepo);
+  if (outDirInsideRepo)
+    rimraf.sync(OUTPUT_PATH);
+  else
+    console.log("Won't remove output directory because it's outside of the repo.");
 }
 
 function createBuildWatcher() {
@@ -250,10 +265,14 @@ program.command('serve [file]')
        .option('--no-maps', 'disables source maps')
        .option('--version [version]', 'sets extension version', 'package')
        .option('--freshtab', 'disables ember fresh-tab-frontend build')
+       .option('--instrument-functions [ms]', 'log all modules function calls which take more than given ms')
        .action((configPath, options) => {
           setConfigPath(configPath);
           process.env['CLIQZ_SOURCE_MAPS'] = options.maps;
           process.env['CLIQZ_FRESHTAB'] = options.freshtab;
+          if (options.instrumentFunctions !== undefined) {
+            process.env['CLIQZ_INSTRUMENT_FUNCTIONS'] = options.instrumentFunctions;
+          }
           buildFreshtabFrontEnd();
 
           getExtensionVersion(options.version).then(tag => {

@@ -10,7 +10,7 @@ export default Ember.Route.extend({
       var locale = config.locale,
           defaultLocale = this.get('i18n.locale');
 
-      const isLocaleAvailable = this.get('i18n.locales').some(function(elem) {
+      const isLocaleAvailable = locale && this.get('i18n.locales').some(function(elem) {
         //locale is in en-US form
         //i18n.locale is in en form
         return locale.split('-').indexOf(elem) > -1

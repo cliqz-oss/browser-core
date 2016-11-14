@@ -8,7 +8,7 @@ export default class {
   * @param data
   */
   enhanceResults(data) {
-    data.matches.forEach(matchday => {
+    data.extra.matches.forEach(matchday => {
       matchday.matches.forEach(match => {
         match.gameTimeHour = match.gameTime.split(', ')[1];
         match.class = match.isLive ? 'cqz-live' : '';

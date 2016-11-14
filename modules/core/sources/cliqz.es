@@ -1,5 +1,4 @@
-import CliqzHistoryManager from "platform/history-manager";
-export { CliqzHistoryManager as historyManager };
+export { default as historyManager } from "platform/history-manager";
 
 import CliqzUtils from "core/utils";
 import CliqzEvents from "core/events";

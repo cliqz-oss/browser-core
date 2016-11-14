@@ -29,19 +29,27 @@ const ENGINES = [
   }
 ];
 
+
 export default describeModule("autocomplete/result-providers",
   function () {
     return {
-      "core/cliqz": { utils: { log() {} } },
+      "core/utils": { default: { } },
+      "core/console": { default: { log() {} } },
       "autocomplete/result": { default: {} },
       "autocomplete/calculator": { default: {} },
       "core/search-engines": { setSearchEngine: function () {} }
     }
   },
   function () {
+    let resultProviders, utils;
+    beforeEach(function() {
+      this.deps("core/utils").default.getPref = () => {};
+      resultProviders = new (this.module().default)();
+    });
+
     describe('custom search - #team', function(){
       it('should return #team result', function(){
-        const team = this.module().default.customizeQuery('#team'),
+        const team = resultProviders.customizeQuery('#team'),
           expected = {"updatedQ":"#team","engineName":"CLIQZ","queryURI":"https://cliqz.com/team/","code":"#"}
         chai.expect(team).to.deep.equal(expected);
       });
@@ -49,32 +57,34 @@ export default describeModule("autocomplete/result-providers",
 
     describe('custom search - maps', function(){
       const queryURI = "https://maps.google.de/maps?q=wisen";
-
+      let resultProviders;
       beforeEach(function () {
-        this.deps("core/cliqz").utils.getEngineByAlias = function (alias) {
+        this.deps("core/utils").default.getPref = () => {};
+        this.deps("core/utils").default.getEngineByAlias = function (alias) {
           if (alias === "#gm") {
             return {
               name: "Google Maps",
             }
           }
         };
-        this.deps("core/cliqz").utils.getSearchEngines = function () {
+        this.deps("core/utils").default.getSearchEngines = function () {
           return [{
             name: "Google Maps",
             getSubmissionForQuery() { return queryURI; }
           }];
         };
+        resultProviders = new (this.module().default)();
       });
 
       it('should return google maps result for wisen', function(){
-        const customQuery = this.module().default.customizeQuery('#gm wisen'),
+        const customQuery = resultProviders.customizeQuery('#gm wisen'),
           expected = {"updatedQ":"wisen","engineName":"Google Maps", queryURI,"code":2};
 
         chai.expect(customQuery).to.deep.equal(expected);
       });
 
       it('should return google maps result for wisen when shortcut is in the end', function(){
-        const customQuery = this.module().default.customizeQuery('wisen #gm'),
+        const customQuery = resultProviders.customizeQuery('wisen #gm'),
           expected = {"updatedQ":"wisen","engineName":"Google Maps","queryURI":"https://maps.google.de/maps?q=wisen","code":2};
 
         chai.expect(customQuery).to.deep.equal(expected);
@@ -82,19 +92,20 @@ export default describeModule("autocomplete/result-providers",
     });
 
     describe('custom search - updateAliases', function() {
+
       beforeEach(function () {
-        const CliqzResultProviders = this.module().default;
-        this.deps("core/cliqz").utils.getEngineByName = function (name) {
+        const CliqzResultProviders = new (this.module().default)();
+        this.deps("core/utils").default.getEngineByName = function (name) {
           return ENGINES.find(engine => engine.name === name);
         };
-        this.deps("core/cliqz").utils.updateAlias = function (name, newAlias) {
+        this.deps("core/utils").default.updateAlias = function (name, newAlias) {
           for(var engine in ENGINES) {
             if(ENGINES[engine].name === name) {
               ENGINES[engine].alias = newAlias;
             }
           }
         };
-        this.deps("core/cliqz").utils.getSearchEngines = function () {
+        this.deps("core/utils").default.getSearchEngines = function () {
           return ENGINES.map(function(e){
             e.prefix = CliqzResultProviders.getShortcut(e.name);
             return e;
@@ -103,7 +114,7 @@ export default describeModule("autocomplete/result-providers",
       });
 
       it('should update an empty alias to first 2 letters', function() {
-        const resultProviders = this.module().default;
+        var resultProviders = new (this.module().default)();
         //arrange
         const expected = "#go";
 

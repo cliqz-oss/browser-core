@@ -9,16 +9,18 @@
     "cliqzOnboarding": false,
     "channel": "04",
     "antitrackingButton": true,
-    "showNewBrandAlert": false
+    "showNewBrandAlert": false,
+    "onBoardingVersion": "1.1"
   },
   "modules": [
-    "q-button",
+    "firefox-specific",
     "static",
     "core",
     "autocomplete",
     "ui",
     "human-web",
     "anti-phishing",
+    "context-menu",
     "onboarding",
     "telemetry-categories",
     "antitracking",

@@ -1,6 +1,7 @@
 import { HttpRequestContext } from 'platform/antitracking/http-request-context';
 import { ChannelListener } from 'platform/antitracking/channel-listener';
 import { utils } from 'core/cliqz';
+import console from 'core/console';
 
 Cu.import("resource://gre/modules/Services.jsm");
 

@@ -1,4 +1,7 @@
 import CLIQZEnvironment from "platform/environment";
+import console from "core/console";
+import prefs from "core/prefs";
+import Storage from "core/storage";
 
 var CliqzLanguage;
 
@@ -24,8 +27,8 @@ var COLOURS = ['#ffce6d','#ff6f69','#96e397','#5c7ba1','#bfbfbf','#3b5598','#fbb
 
 var CliqzUtils = {
   LANGS:                          {'de':'de', 'en':'en', 'fr':'fr'},
-  RESULTS_PROVIDER:               'https://newbeta.cliqz.com/api/v1/results?q=',
-  RICH_HEADER:                    'https://newbeta.cliqz.com/api/v1/rich-header?path=/map',
+  RESULTS_PROVIDER:               CLIQZEnvironment.RESULTS_PROVIDER,
+  RICH_HEADER:                    CLIQZEnvironment.RICH_HEADER,
   RESULTS_PROVIDER_LOG:           'https://newbeta.cliqz.com/api/v1/logging?q=',
   RESULTS_PROVIDER_PING:          'https://newbeta.cliqz.com/ping',
   CONFIG_PROVIDER:                'https://newbeta.cliqz.com/api/v1/config',
@@ -52,6 +55,8 @@ var CliqzUtils = {
         'o': 'cpgame_movie'
     },
   hm: null,
+  hw: null,
+  mc: null,
   TEMPLATES_PATH: CLIQZEnvironment.TEMPLATES_PATH,
   TEMPLATES: CLIQZEnvironment.TEMPLATES,
   MESSAGE_TEMPLATES: CLIQZEnvironment.MESSAGE_TEMPLATES,
@@ -60,6 +65,13 @@ var CliqzUtils = {
   LOCALE_PATH: CLIQZEnvironment.LOCALE_PATH,
   RERANKERS: CLIQZEnvironment.RERANKERS,
   MIN_QUERY_LENGHT_FOR_EZ: CLIQZEnvironment.MIN_QUERY_LENGHT_FOR_EZ,
+  CLIQZ_ONBOARDING: CLIQZEnvironment.CLIQZ_ONBOARDING,
+  BROWSER_ONBOARDING_PREF: CLIQZEnvironment.BROWSER_ONBOARDING_PREF,
+  BROWSER_ONBOARDING_STEP_PREF: CLIQZEnvironment.BROWSER_ONBOARDING_STEP_PREF,
+
+  telemetryHandlers: [
+    CLIQZEnvironment.telemetry
+  ],
 
   init: function(options){
     options = options || {};
@@ -129,9 +141,10 @@ var CliqzUtils = {
   },
 
   callAction(moduleName, actionName, args) {
-    var module = CliqzUtils.System.get(moduleName+"/background");
-    var action = module.default.actions[actionName];
-    return action.apply(null, args);
+    return CliqzUtils.System.import(moduleName+"/background").then(module => {
+      var action = module.default.actions[actionName];
+      return action.apply(null, args);
+    });
   },
 
   callWindowAction(win, moduleName, actionName, args) {
@@ -168,7 +181,6 @@ var CliqzUtils = {
   setSupportInfo: function(status){
     var prefs = Components.classes['@mozilla.org/preferences-service;1'].getService(Components.interfaces.nsIPrefBranch),
         host = 'firefox', hostVersion='';
-
     //check if the prefs exist and if they are string
     if(prefs.getPrefType('distribution.id') == 32 && prefs.getPrefType('distribution.version') == 32){
       host = prefs.getCharPref('distribution.id');
@@ -183,7 +195,7 @@ var CliqzUtils = {
         sites = ["http://cliqz.com","https://cliqz.com"]
 
     sites.forEach(function(url){
-        var ls = CLIQZEnvironment.getLocalStorage(url)
+        var ls = new Storage(url)
 
         if (ls) ls.setItem("extension-info",info)
     })
@@ -253,7 +265,12 @@ var CliqzUtils = {
   httpPost: function(url, callback, data, onerror, timeout) {
     return CliqzUtils.httpHandler('POST', url, callback, onerror, timeout, data);
   },
-  getLocalStorage: CLIQZEnvironment.getLocalStorage,
+  httpPut: function(url, callback, data, onerror, timeout) {
+    return CliqzUtils.httpHandler('PUT', url, callback, onerror, timeout, data);
+  },
+  getLocalStorage(url) {
+    return new Storage(url);
+  },
   /**
    * Loads a resource URL from the xpi.
    *
@@ -274,33 +291,13 @@ var CliqzUtils = {
     }
   },
   openTabInWindow: CLIQZEnvironment.openTabInWindow,
-  /**
-   * Get a value from preferences db
-   * @param {string}  pref - preference identifier
-   * @param {*=}      defautlValue - returned value in case pref is not defined
-   * @param {string=} prefix - prefix for pref
-   */
-  getPref: CLIQZEnvironment.getPref,
-  /**
-   * Set a value in preferences db
-   * @param {string}  pref - preference identifier
-   * @param {*=}      defautlValue - returned value in case pref is not defined
-   * @param {string=} prefix - prefix for pref
-   */
-  setPref: CLIQZEnvironment.setPref,
-  /**
-   * Check if there is a value in preferences db
-   * @param {string}  pref - preference identifier
-   * @param {string=} prefix - prefix for pref
-   */
-  hasPref: CLIQZEnvironment.hasPref,
-  /**
-   * Clear value in preferences db
-   * @param {string}  pref - preference identifier
-   * @param {string=} prefix - prefix for pref
-   */
-  clearPref: CLIQZEnvironment.clearPref,
-  log: CLIQZEnvironment.log,
+  getPref: prefs.get,
+  setPref: prefs.set,
+  hasPref: prefs.has,
+  clearPref: prefs.clear,
+  log: function (msg, key) {
+    console.log(key, msg);
+  },
   getDay: function() {
     return Math.floor(new Date().getTime() / 86400000);
   },
@@ -529,7 +526,6 @@ var CliqzUtils = {
     return false;
 
   },
-
   // checks if a value represents an url which is a seach engine
   isSearch: function(value){
     if(CliqzUtils.isUrl(value)){
@@ -639,57 +635,106 @@ var CliqzUtils = {
       return url;
     }
   },
+
   // establishes the connection
   pingCliqzResults: function(){
     CliqzUtils.httpHandler('HEAD', CliqzUtils.RESULTS_PROVIDER_PING);
   },
-  getBackendResults:  function(q, callback){
 
-  },
-  getCliqzResults: function(q, callback){
-    CliqzUtils._sessionSeq++;
-
-    // if the user sees the results more than 500ms we consider that he starts a new query
-    if(CliqzUtils._queryLastDraw && (Date.now() > CliqzUtils._queryLastDraw + 500)){
-      CliqzUtils._queryCount++;
+  getResultsProviderQueryString: function(q) {
+    let numberResults = 5;
+    if (CliqzUtils.getPref('languageDedup', false)) {
+      numberResults = 7;
     }
-    CliqzUtils._queryLastDraw = 0; // reset last Draw - wait for the actual draw
-    CliqzUtils._queryLastLength = q.length;
+    if (CliqzUtils.getPref('modules.context-search.enabled', false)) {
+      numberResults = 10;
+    }
+    return encodeURIComponent(q) +
+           CliqzUtils.encodeSessionParams() +
+           CliqzLanguage.stateToQueryString() +
+           CliqzUtils.encodeLocale() +
+           CliqzUtils.encodeResultOrder() +
+           CliqzUtils.encodeCountry() +
+           CliqzUtils.encodeFilter() +
+           CliqzUtils.encodeLocation(true) + // @TODO: remove true
+           CliqzUtils.encodeResultCount(numberResults) +
+           CliqzUtils.disableWikiDedup();
+  },
 
-    var url = CliqzUtils.RESULTS_PROVIDER +
-              encodeURIComponent(q) +
-              CliqzUtils.encodeSessionParams() +
-              CliqzLanguage.stateToQueryString() +
-              CliqzUtils.encodeLocale() +
-              CliqzUtils.encodeResultOrder() +
-              CliqzUtils.encodeCountry() +
-              CliqzUtils.encodeFilter() +
-              CliqzUtils.encodeLocation() +
-              CliqzUtils.encodeResultCount(7) +
-              CliqzUtils.disableWikiDedup();
+  getRichHeaderQueryString: function(q, loc) {
+    let numberResults = 5;
+    if (CliqzUtils.getPref('languageDedup', false)) {
+      numberResults = 7;
+    }
+    if (CliqzUtils.getPref('modules.context-search.enabled', false)) {
+      numberResults = 10;
+    }
+    return "&q=" + encodeURIComponent(q) + // @TODO: should start with &q=
+            CliqzUtils.encodeSessionParams() +
+            CliqzLanguage.stateToQueryString() +
+            CliqzUtils.encodeLocale() +
+            CliqzUtils.encodeResultOrder() +
+            CliqzUtils.encodeCountry() +
+            CliqzUtils.encodeFilter() +
+            CliqzUtils.encodeLocation(true, loc && loc.latitude, loc && loc.longitude) +
+            CliqzUtils.encodeResultCount(numberResults) +
+            CliqzUtils.disableWikiDedup();
+  },
 
-    var req = CliqzUtils.httpGet(url, function (res) {
-      callback && callback(res, q);
+  getBackendResults: function(q) {
+    return new Promise(function(resolve, reject) {
+      if (!CliqzUtils.getPref('cliqzBackendProvider.enabled', true)) {
+        resolve({
+          response: {
+            results: [],
+          },
+          query: q
+        });
+      }
+      else {
+        CliqzUtils._sessionSeq++;
+
+        // if the user sees the results more than 500ms we consider that he starts a new query
+        if(CliqzUtils._queryLastDraw && (Date.now() > CliqzUtils._queryLastDraw + 500)){
+          CliqzUtils._queryCount++;
+        }
+        CliqzUtils._queryLastDraw = 0; // reset last Draw - wait for the actual draw
+        CliqzUtils._queryLastLength = q.length;
+        var url = CliqzUtils.RESULTS_PROVIDER + CliqzUtils.getResultsProviderQueryString(q);
+        CliqzUtils.httpGet(url, function (res) {
+          var resp = JSON.parse(res.response || '{}')
+          if (resp.result !== undefined && resp.results === undefined) {
+            resp.results = resp.result;
+            delete resp.result;
+          }
+          resolve({
+            response: resp,
+            query: q
+          });
+        });
+      }
     });
   },
-  // IP driven configuration
-  fetchAndStoreConfig: function(callback){
-    CliqzUtils.httpGet(CliqzUtils.CONFIG_PROVIDER,
-      function(res){
-        if(res && res.response){
-          try {
-            var config = JSON.parse(res.response);
-            for(var k in config){
-              CliqzUtils.setPref('config_' + k, config[k]);
-            }
-          } catch(e){}
-        }
 
-        callback();
-      },
-      callback, //on error the callback still needs to be called
-      2000
-    );
+  // IP driven configuration
+  fetchAndStoreConfig(){
+    return new Promise(resolve => {
+      CliqzUtils.httpGet(CliqzUtils.CONFIG_PROVIDER,
+        function(res){
+          if(res && res.response){
+            try {
+              var config = JSON.parse(res.response);
+              for(var k in config){
+                CliqzUtils.setPref('config_' + k, config[k]);
+              }
+            } catch(e){}
+          }
+          resolve();
+        },
+        resolve, //on error the callback still needs to be called
+        2000
+      );
+    });
   },
   encodeLocale: function() {
     // send browser language to the back-end
@@ -716,10 +761,8 @@ var CliqzUtils = {
     return '&adult='+state;
   },
   encodeResultCount: function(count) {
-    var doDedup = CliqzUtils.getPref("languageDedup", false);
     count = count || 5;
-    if (doDedup) return '&count=' + count;
-    else return ""
+    return '&count=' + count;
   },
   encodeResultType: function(type){
     if(type.indexOf('action') !== -1) return ['T'];
@@ -803,7 +846,10 @@ var CliqzUtils = {
       });
   },
   isPrivate: CLIQZEnvironment.isPrivate,
-  telemetry: CLIQZEnvironment.telemetry,
+  telemetry: function () {
+    const args = arguments;
+    CliqzUtils.telemetryHandlers.forEach(handler => handler.apply(null, args));
+  },
   resultTelemetry: function(query, queryAutocompleted, resultIndex, resultUrl, resultOrder, extra) {
     CliqzUtils.setResultOrder(resultOrder);
     var params = encodeURIComponent(query) +
@@ -923,26 +969,33 @@ var CliqzUtils = {
     }
   },
   extensionRestart: function(changes){
-    var enumerator = Services.wm.getEnumerator('navigator:browser');
+    // unload windows
+    const enumerator = Services.wm.getEnumerator('navigator:browser');
     while (enumerator.hasMoreElements()) {
-      var win = enumerator.getNext();
+      const win = enumerator.getNext();
       if(win.CLIQZ && win.CLIQZ.Core){
-        win.CLIQZ.Core.unload(true);
+        CliqzUtils.Extension.app.unloadWindow(win);
       }
     }
+    // unload background
+    CliqzUtils.Extension.app.unload();
 
+    // apply changes
     changes && changes();
 
-    var corePromises = [];
-    enumerator = Services.wm.getEnumerator('navigator:browser');
-    while (enumerator.hasMoreElements()) {
-      var win = enumerator.getNext();
-      if(win.CLIQZ && win.CLIQZ.Core){
-        corePromises.push(win.CLIQZ.Core.init());
+    // load background
+    return CliqzUtils.Extension.app.load().then(() => {
+      // load windows
+      const corePromises = [];
+      const enumerator = Services.wm.getEnumerator('navigator:browser');
+      while (enumerator.hasMoreElements()) {
+        var win = enumerator.getNext();
+        corePromises.push(
+          CliqzUtils.Extension.app.loadWindow(win)
+        )
       }
-    }
-
-    return Promise.all(corePromises);
+      return CliqzUtils.Promise.all(corePromises);
+    });
   },
   isWindows: function(){
     return CLIQZEnvironment.OS.indexOf("win") === 0;

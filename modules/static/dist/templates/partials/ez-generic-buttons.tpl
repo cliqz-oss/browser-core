@@ -7,11 +7,9 @@
                     arrow="false"
                     arrow-if-visible='true'
             >
-                {{#if title_key}}
-                    {{ local title_key }}
-                {{else}}
-                    {{ title }}
-                {{/if}}
+
+              {{ local title }}
+
             </span>
         {{/each}}
     </div>

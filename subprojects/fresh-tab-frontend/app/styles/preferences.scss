@@ -1,0 +1,27 @@
+#preferences {
+  width: 800px;
+  margin: 0 auto;
+
+  table {
+    width: 800px;
+    color: #333;
+    font-family: Helvetica, Arial, sans-serif;
+    /* Table reset stuff */
+    border-collapse: collapse; border-spacing: 0;
+
+    td, th {  border: 0 none; height: 30px; }
+
+    th {
+      background: linear-gradient(#333 0%,#444 100%);
+      color: #FFF;
+      font-weight: bold;
+      height: 40px;
+    }
+
+
+    td {
+      background: #FAFAFA;
+      text-align: center;
+    }
+  }
+}

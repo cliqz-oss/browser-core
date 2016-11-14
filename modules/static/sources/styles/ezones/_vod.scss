@@ -14,7 +14,7 @@
 
 .cqz-vod .stream_txt {
     float: left;
-    margin-right: 10px;
+    margin: 0 0 20px 20px;
     line-height: 26px;
     color: #999999;
     white-space: nowrap;
@@ -23,6 +23,7 @@
 .cqz-vod .stream_btns {
     white-space: nowrap;
     overflow: hidden;
+    display:inline-block;
 }
 
 .cqz-vod .stream_btn_container {

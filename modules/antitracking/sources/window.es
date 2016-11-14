@@ -1,7 +1,6 @@
 import background from 'antitracking/background';
 import CliqzAttrack from 'antitracking/attrack';
 import { utils, events } from 'core/cliqz';
-import { simpleBtn } from 'q-button/buttons';
 import { URLInfo } from 'antitracking/url';
 
 function onLocationChange(ev) {
@@ -25,8 +24,6 @@ function onPrefChange(pref) {
   if (pref == CliqzAttrack.ENABLE_PREF && CliqzAttrack.isEnabled() != this.enabled) {
     if (CliqzAttrack.isEnabled()) {
       CliqzAttrack.initWindow(this.window);
-    } else {
-      CliqzAttrack.unloadWindow(this.window);
     }
     this.enabled = CliqzAttrack.isEnabled();
   }
@@ -58,10 +55,6 @@ export default class {
   unload() {
     CliqzEvents.un_sub("core.location_change", this.onLocationChange);
     CliqzUtils.clearInterval(this.interval);
-
-    if (CliqzAttrack.isEnabled()) {
-      CliqzAttrack.unloadWindow(this.window);
-    }
     CliqzEvents.un_sub("prefchange", this.onPrefChange);
   }
 
@@ -91,74 +84,6 @@ export default class {
         [ count ]
       );
     }
-  }
-
-  createAttrackButton() {
-    let win = this.window,
-        doc = win.document,
-        attrackBtn = doc.createElement('menu'),
-        attrackPopup = doc.createElement('menupopup');
-
-    attrackBtn.setAttribute('label', utils.getLocalizedString('attrack-force-block-setting'));
-
-    var filter_levels = {
-      false: {
-        name: utils.getLocalizedString('attrack-force-block-off'),
-        selected: false
-      },
-      true: {
-        name: utils.getLocalizedString('attrack-force-block-on'),
-        selected: false
-      }
-    };
-    filter_levels[utils.getPref('attrackForceBlock', false).toString()].selected = true;
-
-    for(var level in filter_levels) {
-      var item = doc.createElement('menuitem');
-      item.setAttribute('label', filter_levels[level].name);
-      item.setAttribute('class', 'menuitem-iconic');
-
-      if(filter_levels[level].selected){
-        item.style.listStyleImage = 'url(chrome://cliqz/content/static/skin/checkmark.png)';
-      }
-
-      item.filter_level = level;
-      item.addEventListener('command', function(event) {
-        if ( this.filter_level === 'true' ) {
-          utils.setPref('attrackForceBlock', true);
-          utils.telemetry( { type: 'antitracking', action: 'click', target: 'attrack_qbutton_strict'} );
-        } else {
-          utils.clearPref('attrackForceBlock');
-          utils.telemetry( { type: 'antitracking', action: 'click', target: 'attrack_qbutton_default'} );
-        }
-      }, false);
-
-      attrackPopup.appendChild(item);
-    };
-
-    var learnMore = simpleBtn(
-        doc,
-        utils.getLocalizedString('learnMore'),
-        function() {
-          utils.openTabInWindow(this.window, 'https://cliqz.com/whycliqz/anti-tracking');
-        }.bind(this),
-        'attrack_learn_more'
-    );
-    learnMore.setAttribute('class', 'menuitem-iconic');
-    attrackPopup.appendChild(doc.createElement('menuseparator'));
-    attrackPopup.appendChild(learnMore);
-
-    attrackBtn.appendChild(attrackPopup);
-
-    return attrackBtn;
-  }
-
-  createButtonItem() {
-    if (!background.buttonEnabled) return [];
-
-    return [
-      this.createAttrackButton()
-    ];
   }
 
   status() {

@@ -22,5 +22,6 @@ export default background({
     'mobile-browser:reset-state': jsAPI.resetState,
     'mobile-browser:set-search-engine': jsAPI.setDefaultSearchEngine,
     'mobile-browser:publish-card-url': jsAPI.getCardUrl,
+    'mobile-browser:showcase-swipe-card': jsAPI.onBoardingSwipe,
   },
 });

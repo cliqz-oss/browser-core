@@ -80,7 +80,7 @@ CLIQZEnvironment = {
           }
         }
     },
-    historySearch: function(q, callback, searchParam, sessionStart){
+    historySearch: function(q, callback, searchParam){
         var res = [];
         if (!_cliqzIsMobile) {
             for (var i = 0; i<30; i++) {

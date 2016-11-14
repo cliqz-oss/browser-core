@@ -16,9 +16,6 @@ XPCOMUtils.defineLazyModuleGetter(this, "NetUtil",
 XPCOMUtils.defineLazyModuleGetter(this, "Task",
                                   "resource://gre/modules/Task.jsm");
 
-Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
-var CliqzUtils = CLIQZ.CliqzUtils;
-
 ////////////////////////////////////////////////////////////////////////////////
 //// Constants
 // This is a slightly modified copy of https://github.com/cliqz/browser-f/blob/master/mozilla-release/toolkit/components/places/nsPlacesAutoComplete.js

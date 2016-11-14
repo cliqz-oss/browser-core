@@ -1,9 +1,11 @@
 function injectTestHelpers(CliqzUtils) {
   var chrome = CliqzUtils.getWindow();
   var urlBar = chrome.CLIQZ.Core.urlbar;
+  var popup = chrome.CLIQZ.Core.popup;
   var lang = CliqzUtils.getLocalizedString('locale_lang_code');
 
   window.fillIn = function fillIn(text) {
+    popup.mPopupOpen = false;
     urlBar.focus();
     urlBar.mInputField.focus();
     urlBar.mInputField.setUserInput(text);
@@ -18,7 +20,7 @@ function injectTestHelpers(CliqzUtils) {
     function check() {
       if (fn()) {
         clearInterval(interval);
-        CliqzUtils.setTimeout(resolver, 100);
+        resolver()
       }
     }
     var interval = setInterval(check, 250);
@@ -60,11 +62,12 @@ function injectTestHelpers(CliqzUtils) {
   */
 
   window.respondWith = function respondWith(res) {
-    CliqzUtils.getBackendResults = function (q, callback) {
-      callback({
-        response: JSON.stringify(res),
+    CliqzUtils.getBackendResults = function (q) {
+      return Promise.resolve({
+        response: res,
+        query: q,
         status: 200
-      }, q);
+      });
     };
   };
 

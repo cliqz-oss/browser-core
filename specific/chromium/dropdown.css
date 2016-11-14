@@ -1,0 +1,143 @@
+
+body {
+  margin: 0px;
+}
+
+/* This scrollbar only adds flicker when we toggle settings section. */
+body::-webkit-scrollbar {
+  display: none;
+}
+
+div#cliqz-results::-webkit-scrollbar {
+  width: 11px;
+}
+
+div#cliqz-results::-webkit-scrollbar-track {
+  background-color: #f0f0f0;
+}
+
+div#cliqz-results::-webkit-scrollbar-thumb {
+  background-color: #bcbcbc;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+}
+
+#settings-container {
+  cursor: default;
+  -webkit-user-select: none;
+}
+
+#settings-container #settings { display: none; }
+#settings-container.open #settings { display: block; }
+
+.cqz-settings-header {
+  position: relative;
+  height: 26px;
+  margin: -26px 11px 0 0;
+  background: #fff;
+}
+
+#cliqz-search-hint {
+  position: relative;
+  float: left;
+  line-height: 26px;
+  margin-left: 84px;
+  color: #b8b8b8;
+  text-decoration: none;
+}
+
+#cliqz-search-hint:after {
+  position: relative;
+  float:right;
+  margin-left: 0.5ch;
+  top: 8px;
+  content: '';
+  display: block;
+  background-image: url("img/CLIQZ_logo.svg");
+  width: 41px;
+  height: 11px;
+}
+
+#settingsButton {
+  position: relative;
+  float: right;
+  right: 64px;  /* Keep in sync with side paddings of .cqz-main-result-wrapper */
+  height: 26px;
+  line-height: 26px;
+  padding: 0px 30px 0px 12px;
+  color: #959595;
+  text-align: center;
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+
+#settingsButton:hover {
+    color: #757575;
+}
+
+#settingsButton:before {
+  position: absolute;
+  left: 10px;
+  content: '';
+  display: block;
+  top: 7px;
+  width: 10px;
+  height: 12px;
+}
+
+#settings-container.open #settingsButton:after {
+    background-image: url("img/settings_cogwheel_active.svg");
+}
+
+#settingsButton:after {
+  position: absolute;
+  right: 10px;
+  top: 6px;
+  content: '';
+  display: block;
+  background-image: url("img/settings_cogwheel.svg");
+  width: 14px;
+  height: 14px;
+}
+
+#settings {
+  clear: both;
+  padding: 10px 0 10px 84px;
+  background-color: #f0f0f0;
+}
+
+#settings label.pref-label {
+  color: #222;
+  margin-right: 20px;
+  white-space: nowrap;
+}
+
+#settings label.pref-label span {
+  margin-right: 7px;
+}
+
+#settings label.pref-label select {
+  border-radius: 3px;
+  border-color: #d2d2d2;
+  background: #fefefe;
+  padding-right: 5px;
+}
+
+@media (max-width: 628px) {
+  #cliqz-search-hint {
+    margin-left: calc((100% - 500px + 11px)/2 + 20px);
+  }
+
+  #settingsButton {
+    right: calc((100% - 500px + 11px)/2);
+  }
+
+  #settings {
+    margin-left: calc((100% - 500px)/2 + 20px);
+  }
+}
+

@@ -9,7 +9,7 @@
 function load(ctx) {
 
 var CliqzAutocomplete;
-var CliqzHandlebars;
+var CliqzHandlebars = CliqzHandlebars || CliqzUtils.System.get('handlebars').default;
 var CliqzEvents;
 
 function isValidURL(str) {
@@ -38,10 +38,6 @@ var TEMPLATES = CliqzUtils.TEMPLATES,
     rawResults, // raw results
     adultMessage = 0, //0 - show, 1 - temp allow, 2 - temp dissalow
 
-    // The number of times to attempt loading smart CLIQZ results asynchronously
-    smartCliqzMaxAttempts = 10,
-    // The number of milliseconds to wait after each attempt
-    smartCliqzWaitTime = 100,
     urlbarEvents = ['keydown']
     ;
 
@@ -163,6 +159,7 @@ var UI = {
             type: ctrl.getStyleAt(i),
             text: q,
             data: lastRes && lastRes.getDataAt(i),
+            maxNumberOfSlots: (i == 0 ? 3 : 1 )
           });
       }
 
@@ -211,19 +208,14 @@ var UI = {
         //CliqzUtils.log(CliqzUtils.getNoResults(), "NORES");
 
         // Results that are not ready (extra results, for which we received a callback_url)
-        var asyncResults = currentResults.results.filter(function(r) { return r.type == "cliqz-extra" && r.data && "__callback_url__" in r.data; } );
         var query = currentResults.q;
         if (!query)
           query = "";
-        currentResults.results = currentResults.results.filter(function(r) { return !(r.type == "cliqz-extra" && r.data && "__callback_url__" in r.data); } );
 
         // try to avoid Stack size limitations on Linux by breaking out Handlebars processing
-        setTimeout(function(currentResults, asyncResults, query){
-          // apply template; do not render "unmixed" results
-          // (results pushed asynchronoysly without processing)
+        setTimeout(function(currentResults, query){
           if(gCliqzBox.resultsBox && currentResults.isMixed) {
             UI.redrawDropdown(CliqzHandlebars.tplCache.results(currentResults), query);
-            UI.loadAsyncResult(asyncResults, query);
           }
 
           //might be unset at the first open
@@ -242,84 +234,9 @@ var UI = {
           CliqzAutocomplete.resultsOverflowHeight =
               gCliqzBox.resultsBox.scrollHeight - gCliqzBox.resultsBox.clientHeight;
 
-        }, 0, currentResults, asyncResults, query);
+        }, 0, currentResults, query);
 
         return currentResults;
-    },
-
-
-    loadAsyncResult: function(res, query) {
-
-      if (res && res.length > 0) {
-        for (var i in res) {
-          var r = res[i];
-          var query = r.text || r.query;
-          var qt = query + ": " + new Date().getTime();
-          CliqzUtils.log(r,"LOADINGASYNC");
-          CliqzUtils.log(query,"loadAsyncResult");
-          var loop_count = 0;
-          var async_callback = function(req) {
-              CliqzUtils.log(query,"async_callback");
-              var resp = null;
-              try {
-                resp = JSON.parse(req.response).results[0];
-              }
-              catch(err) {
-                res.splice(i,1);
-              }
-              if (resp &&  urlbar.value == query) {
-
-                var kind = r.data.kind;
-                if ("__callback_url__" in resp.data) {
-                    // If the result is again a promise, retry.
-                    if (loop_count < smartCliqzMaxAttempts) {
-                      setTimeout(function() {
-                        loop_count += 1;
-                        CliqzUtils.httpGet(resp.data.__callback_url__, async_callback, async_callback);
-                      }, smartCliqzWaitTime);
-                    }
-                    else if (currentResults.results.length == 0) {
-                      UI.redrawDropdown(CliqzHandlebars.tplCache.noResult(CliqzUtils.getNoResults()), query);
-                    }
-                }
-                else {
-                  r.data = resp.data;
-                  r.url = resp.url;
-                  r.data.kind = kind;
-                  r.data.subType = resp.subType;
-                  r.data.trigger_urls = resp.trigger_urls;
-                  r.vertical = r.data.template;
-                  r.urlDetails = CliqzUtils.getDetailsFromUrl(r.url);
-                  r.logo = CliqzUtils.getLogoDetails(r.urlDetails);
-
-                  if(gCliqzBox.resultsBox && urlbar.value == query) {
-                      // Remove all existing extra results
-                      currentResults.results = currentResults.results.filter(function(r) { return r.type != "cliqz-extra"; } );
-                      // add the current one on top of the list
-                      currentResults.results.unshift(r);
-
-                      if (currentResults.results.length > 0) {
-                        UI.redrawDropdown(CliqzHandlebars.tplCache.results(currentResults), query);
-                      }
-                      else {
-                        UI.redrawDropdown(CliqzHandlebars.tplCache.noResult(CliqzUtils.getNoResults()), query);
-                      }
-                  }
-                }
-              }
-              else {
-                res.splice(i,1);
-                if (currentResults.results.length == 0)
-                  UI.redrawDropdown(CliqzHandlebars.tplCache.noResult(CliqzUtils.getNoResults()), query);
-              }
-
-          };
-          CliqzUtils.httpGet(r.data.__callback_url__, async_callback, async_callback);
-        }
-
-
-      }
-
     },
 
     lastInstantLength: 0,
@@ -440,8 +357,8 @@ var UI = {
                 var selection = UI.getSelectionRange(ev.keyCode, urlbar.selectionStart, urlbar.selectionEnd, ev.shiftKey, ev.altKey, ev.ctrlKey | ev.metaKey);
                 urlbar.setSelectionRange(selection.selectionStart, selection.selectionEnd);
 
-                if (CliqzAutocomplete.spellCorr.on) {
-                    CliqzAutocomplete.spellCorr.override = true;
+                if (CliqzAutocomplete.spellCheck.state.on) {
+                    CliqzAutocomplete.spellCheck.state.override = true;
                 }
 
                 return true;
@@ -459,8 +376,8 @@ var UI = {
             case BACKSPACE:
             case DEL:
                 UI.lastInput = "";
-                if (CliqzAutocomplete.spellCorr.on && CliqzAutocomplete.lastSuggestions && Object.getOwnPropertyNames(CliqzAutocomplete.spellCorr.correctBack).length != 0) {
-                    CliqzAutocomplete.spellCorr.override = true
+                if (CliqzAutocomplete.spellCheck.state.on && CliqzAutocomplete.lastSuggestions && Object.getOwnPropertyNames(CliqzAutocomplete.spellCheck.state.correctBack).length != 0) {
+                    CliqzAutocomplete.spellCheck.state.override = true
                     // correct back the last word if it was changed
                     var words = urlbar.mInputField.value.split(' ');
                     var wrongWords = CliqzAutocomplete.lastSuggestions[1].split(' ');
@@ -666,14 +583,10 @@ var UI = {
     },
     enhanceSpecificResult: function(r) {
       var specificView;
-      if (r.subType && JSON.parse(r.subType).ez) {
+      if (r.subType && r.subType.id) {
         // Indicate that this is a RH result.
         r.type = "cliqz-extra";
       }
-      if(r.data.superTemplate && CliqzUtils.TEMPLATES.hasOwnProperty(r.data.superTemplate) && r.data["__subType__"]["class"] != "EntityLocal") {
-        r.data.template = r.data.superTemplate;
-      }
-
       specificView = UI.VIEWS[r.data.template] || UI.VIEWS.generic;
       if (specificView && specificView.enhanceResults) {
         specificView.enhanceResults(r.data);
@@ -682,7 +595,10 @@ var UI = {
     sessionEnd: sessionEnd,
     getResultOrChildAttr: getResultOrChildAttr,
     getElementByAttr: getElementByAttr,
-    enhanceResults: enhanceResults
+    enhanceResults: enhanceResults,
+    logUIEvent: logUIEvent,
+    getResultSelection: getResultSelection,
+    getResultKind: getResultKind
 };
 
 function navigateToEZinput(element){
@@ -821,7 +737,7 @@ function constructImage(data){
             img = data.image;
         var ratio = 0;
 
-        switch((data.richData && data.richData.type) || data.type){
+        switch((data.extra.rich_data && data.extra.rich_data.type) || data.type){
             case 'news': //fallthrough
             case 'shopping':
               height = 64;
@@ -934,19 +850,21 @@ function setPartialTemplates(data) {
   var partials = ['title', 'url'];
 
   // Description
-  if (data.description) {
+  if (data.description || data.desc) {
     partials.push('description');
   }
 
   // Local data
-  var localTemplate = data.superTemplate;
-  if (localTemplate) {
-    if (data.no_location) {
+
+  if (data.subType && data.subType.class == 'EntityLocal') {
+    if (data.extra.no_location) {
       partials.push('missing_location_1');
     } else {
-      partials.push(localTemplate);
+      partials.push('local-data-sc');
     }
   }
+
+
 
   // History
   if (data.urls && data.urls.length) {
@@ -963,22 +881,18 @@ function setPartialTemplates(data) {
     }
   }
 
-  // Smart CLIQZ buttons
-  if (data.actions && data.actions.length > 0) {
-    partials.push('buttons');
-  }
-  else if (data.deepResults) {
+
+  if (data.deepResults) {
     data.deepResults.forEach(function (item) {
       if (item.type == 'buttons') {
         data.btns = item.links;
-        delete item.links;
         partials.push('buttons');
       }
     })
   }
 
   // Bottom buttons
-  if (data.__subType__ && (data.__subType__.class === 'EntityMusic' || data.__subType__.class === 'EntityDownload')) {
+  if (data.subType && (data.subType.class === 'EntityMusic' || data.subType.class === 'EntityDownload')) {
     partials.push('bottom-data-sc');
   }
 
@@ -998,70 +912,48 @@ function enhanceResults(res){
     for(var i=0; i<res.results.length; i++) {
         var r = res.results[i];
         if (!r.data) {
-          r.data = {};
+          if (r.snippet) {
+            r.data = r.snippet;
+            delete r.snippet;
+          }
+          else {
+            r.data = {};
+          }
+        }
+        if (r.subType && !r.data.subType) {
+          r.data.subType = r.subType;
+        }
+        if (r.template && !r.data.template) {
+          r.data.template = r.template;
         }
 
-        if(r.data.adult) adult = true;
+        if(r.data.extra && r.data.extra.adult) adult = true;
 
         // Prepare list of partial templates for rendering
         r.data.partials = setPartialTemplates(r.data);
 
         //always use data.btns independetly of whether the buttons come from (history, rich header etc)
         r.data.btnExtra = 'cat';
-        if(r.data.categories) {
-          r.data.btns = r.data.categories;
-        } else if(r.data.richData && r.data.richData.categories) {
-          r.data.btns = r.data.richData.categories;
-        } else if(r.data.actions) {
-          r.data.btns = r.data.actions;
-          r.data.btnExtra = 'action';
-        } else if(r.data.static && (!r.data.btns)) {   // new Soccer SmartCliqz can contains both dynamic and static data
-            r.data.btns = [].concat(r.data.static.actions || []).concat(r.data.static.links || []);
-        }
+
         UI.enhanceSpecificResult(r);
 
-        if (r.type == 'cliqz-extra' || r.type.indexOf('cliqz-pattern') === 0) {
-          var d = r.data;
-          if(d){
-            if(d.template && TEMPLATES.hasOwnProperty(d.template)){
-              r.vertical = d.template;
-              r.urlDetails = CliqzUtils.getDetailsFromUrl(r.url);
-              r.logo = CliqzUtils.getLogoDetails(r.urlDetails);
-              if (r.vertical == 'text') r.dontCountAsResult = true;
-            } else {
-              // double safety - to be removed
-              r.invalid = true;
-              r.dontCountAsResult = true;
-              continue;
-            }
-
-            // Display the title instead of the name, if available
-            if(d.title)
-              d.name = d.title;
+        var d = r.data;
+        if(d) {
+          if(d.template && TEMPLATES.hasOwnProperty(d.template)){
+            r.vertical = d.template;
+            r.urlDetails = CliqzUtils.getDetailsFromUrl(r.url);
+            r.logo = CliqzUtils.getLogoDetails(r.urlDetails);
+            if (r.vertical == 'text') r.dontCountAsResult = true;
+          } else {
+            // double safety - to be removed
+            r.invalid = true;
+            r.dontCountAsResult = true;
+            continue;
           }
-        } else {
-          r.urlDetails = CliqzUtils.getDetailsFromUrl(r.url);
-          r.logo = CliqzUtils.getLogoDetails(r.urlDetails);
 
-           if (getPartial(r.type) != 'images') {
-             r.image = constructImage(r.data);
-             //r.width = res.width;// - TYPE_LOGO_WIDTH - (r.image && r.image.src ? r.image.width + 14 : 0);
-           }
-          r.vertical = getPartial(r.type);
-
-          //extract debug info from title
-          var _tmp = getDebugMsg(r.title);
-          r.title = _tmp[0];
-          r.debug = _tmp[1];
-          if(!UI.showDebug)
-              r.debug = null;
-
-          //extract tags from title
-          if(r.type.split(' ').indexOf('tag') != -1) {
-              _tmp = getTags(r.title);
-              r.title = _tmp[0];
-              r.tags = _tmp[1];
-          }
+          // Display the title instead of the name, if available
+          if(d.title)
+            d.name = d.title;
         }
 
         r.width = res.width > 500 ? res.width : 500;
@@ -1076,8 +968,8 @@ function enhanceResults(res){
             r.logo.add_logo_url = true;
         }
 
-        if (r.type == 'cliqz-extra' && r.data && "__message__" in r.data) {
-          var msg = r.data.__message__;
+        if (r.type == 'cliqz-extra' && r.data && r.data.extra && r.data.extra.__message__) {
+          var msg = r.data.extra.__message__;
           if (CliqzUtils.getPref(msg.pref, true)) {
             updateMessage('bottom', {
               "footer-message": {
@@ -1100,13 +992,13 @@ function enhanceResults(res){
     }
 
 
-    var spelC = CliqzAutocomplete.spellCorr;
+    var spelC = CliqzAutocomplete.spellCheck.state;
 
     //filter adult results
     if(adult) {
         var level = CliqzUtils.getPref('adultContentFilter', 'moderate');
         if(level != 'liberal' && adultMessage != 1)
-            res.results = res.results.filter(function(r){ return !(r.data && r.data.adult); });
+            res.results = res.results.filter(function(r){ return !(r.data && r.data.extra && r.data.extra.adult); });
 
         // if there no results after adult filter - show no results entry
         if(res.results.length == 0){
@@ -1204,7 +1096,6 @@ function enhanceResults(res){
       updateMessage(CLIQZ.UI.messageCenterMessage["footer-message"].location,
         CLIQZ.UI.messageCenterMessage);
     }
-
     return res;
 }
 
@@ -1345,7 +1236,9 @@ function urlIndexInHistory(url, urlList) {
                     //not supported country
                     case 'disable-cliqz':
                         clearMessage('bottom');
-                        CliqzUtils.disableCliqzResults(urlbar);
+                        CliqzEvents.pub('autocomplete:disable-search', {
+                          urlbar: urlbar
+                        });
                         break;
                     case 'keep-cliqz':
                         clearMessage('bottom');
@@ -1355,25 +1248,25 @@ function urlIndexInHistory(url, urlList) {
 
                     case 'spellcorrect-revert':
                         var s = urlbar.value;
-                        for (var c in CliqzAutocomplete.spellCorr.correctBack) {
-                            s = s.replace(c, CliqzAutocomplete.spellCorr.correctBack[c]);
+                        for (var c in CliqzAutocomplete.spellCheck.state.correctBack) {
+                            s = s.replace(c, CliqzAutocomplete.spellCheck.state.correctBack[c]);
                         }
                         urlbar.mInputField.setUserInput(s);
-                        CliqzAutocomplete.spellCorr.override = true;
+                        CliqzAutocomplete.spellCheck.state.override = true;
                         clearMessage('bottom');
                         break;
                     case 'spellcorrect-keep':
-                        var spellCorData = CliqzAutocomplete.spellCorr.searchTerms;
+                        var spellCorData = CliqzAutocomplete.spellCheck.state.searchTerms;
                         for (var i = 0; i < spellCorData.length; i++) {
                             //delete terms that were found in correctBack dictionary. User accepted our correction:-)
-                            for (var c in CliqzAutocomplete.spellCorr.correctBack) {
-                                if (CliqzAutocomplete.spellCorr.correctBack[c] === spellCorData[i].correctBack) {
-                                    delete CliqzAutocomplete.spellCorr.correctBack[c];
+                            for (var c in CliqzAutocomplete.spellCheck.state.correctBack) {
+                                if (CliqzAutocomplete.spellCheck.state.correctBack[c] === spellCorData[i].correctBack) {
+                                    delete CliqzAutocomplete.spellCheck.state.correctBack[c];
                                 }
                             }
                         }
 
-                        CliqzAutocomplete.spellCorr['userConfirmed'] = true;
+                        CliqzAutocomplete.spellCheck.state.userConfirmed = true;
                         clearMessage('bottom');
                         break;
 
@@ -1557,7 +1450,7 @@ function resultClick(ev) {
             CliqzUtils.openLink(window, url, newTab);
 
             //decouple!
-            window.CliqzHistoryManager && CliqzHistoryManager.updateInputHistory(CliqzAutocomplete.lastSearch, url);
+            window.CliqzHistoryManager && window.CliqzHistoryManager.updateInputHistory(CliqzAutocomplete.lastSearch, url);
             if (!newTab) CliqzEvents.pub('ui:popup_hide');
             break;
         } else if (el.getAttribute('cliqz-action')) {
@@ -1857,7 +1750,10 @@ function onEnter(ev, item){
       current_position: -1
     });
 
-    CliqzEvents.pub("alternative_search", {});
+    CliqzEvents.pub("alternative_search", {
+        cleanInput: cleanInput,
+        lastAuto: lastAuto
+    });
 
     CLIQZ.Core.triggerLastQ = true;
 
@@ -1883,7 +1779,10 @@ function onEnter(ev, item){
     }, urlbar.mInputField.value);
     CLIQZ.Core.triggerLastQ = true;
 
-    CliqzEvents.pub("alternative_search", {});
+    CliqzEvents.pub("alternative_search", {
+        cleanInput: cleanInput,
+        lastAuto: lastAuto
+    });
 
   // Result
   } else {
@@ -1897,7 +1796,7 @@ function onEnter(ev, item){
   }
 
   CliqzUtils.openLink(window, input, newTab);
-  CliqzHistoryManager.updateInputHistory(CliqzAutocomplete.lastSearch, input);
+  window.CliqzHistoryManager.updateInputHistory(CliqzAutocomplete.lastSearch, input);
   return true;
 }
 
@@ -1975,7 +1874,11 @@ function snippetQualityTelemetry(results){
     if(r.vertical == 'entity-generic' && r.data.urls) slots++;
 
     // hq results are 3 slots height if they have images
-    if(r.vertical == 'hq' && r.data && r.data.richData && r.data.richData.images) slots++;
+    if(r.vertical == 'hq' && r.data) {
+      (r.data.deepResults || []).forEach(function(dr) {
+        if (dr.type === 'images' && dr.links.length > 0) slots++;
+      });
+    }
   }
 
   CliqzUtils.telemetry({
@@ -2074,7 +1977,7 @@ function loadViews() {
     .forEach(function (templateName) {
       UI.VIEWS[templateName] = Object.create(null);
       try {
-        var module = CliqzUtils.System.get("ui/views/"+templateName);
+        var module = CliqzUtils.System.get(CliqzUtils.System.normalizeSync("ui/views/"+templateName));
         if (module) {
           UI.VIEWS[templateName] = new module.default(ctx);
 

@@ -1,6 +1,5 @@
 import { utils } from "core/cliqz";
 import HumanWeb from "human-web/human-web";
-import { simpleBtn, checkBox } from 'q-button/buttons';
 
 export default class {
   constructor(settings) {
@@ -48,56 +47,11 @@ export default class {
     });
   }
 
-  createButtonItem(win) {
-    var doc = win.document,
-        menu = doc.createElement('menu'),
-        menuPopup = doc.createElement('menupopup');
-
-    menu.setAttribute('label', 'Human Web');
-
-    // HumanWeb checkbox
-    menuPopup.appendChild(
-      checkBox(
-        doc,
-        'dnt',
-        utils.getLocalizedString('btnSafeSearch'),
-        false,
-        this.changeHumanWebState)
-    );
-
-    // HumanWeb learn more button
-    menuPopup.appendChild(
-      simpleBtn(
-        doc,
-        utils.getLocalizedString('btnSafeSearchDesc'),
-        function(){
-          utils.openTabInWindow(win, 'https://cliqz.com/privacy#humanweb');
-        },
-        'human_web_desc')
-    );
-
-    menu.appendChild(menuPopup);
-
-    return menu;
-  }
-
   status() {
     return {
       visible: true,
       state: !utils.getPref('dnt', false)
     }
-  }
-
-  changeHumanWebState() {
-    if(utils.getPref("humanWeb", false) && !utils.getPref('dnt', false)){
-      HumanWeb.unloadAtBrowser();
-    } else {
-      HumanWeb.initAtBrowser();
-    }
-
-    utils.extensionRestart(function() {
-      utils.setPref('dnt', !utils.getPref('dnt', false));
-    });
   }
 
   /**

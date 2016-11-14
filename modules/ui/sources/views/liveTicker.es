@@ -10,7 +10,7 @@ export default class {
   enhanceResults(data) {
 
     let gameIndex = 0;
-    data.matches.forEach(matchday => {
+    data.extra.matches.forEach(matchday => {
       matchday.matches.forEach(match => {
         gameIndex++;
         match.gameTimeHour = match.gameTime.split(', ')[1];

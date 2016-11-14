@@ -13,4 +13,6 @@ cliqzConfig.sourceMaps = process.env.CLIQZ_SOURCE_MAPS == 'false' ? false : true
 
 cliqzConfig.EXTENSION_VERSION = process.env.EXTENSION_VERSION;
 
+cliqzConfig.instrumentFunctions = process.env.CLIQZ_INSTRUMENT_FUNCTIONS;
+
 module.exports = cliqzConfig;

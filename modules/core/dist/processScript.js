@@ -157,6 +157,9 @@ function onDOMWindowCreated(ev) {
   }
 
   var fns = {
+    postMessage: function (message) {
+      window.postMessage(message, "*");
+    },
     getHTML: function () {
       return window.document.documentElement.outerHTML;
     },

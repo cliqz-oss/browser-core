@@ -93,6 +93,9 @@ var CliqzTour = {
                 CliqzUtils.getLocalizedString("onCalloutTypeHere"));
             CliqzTour.showCallout(45, -5, CliqzTour.urlBar, "after_start");
         }, t: 3000 },
+        { f: function () {
+            CliqzTour.urlBar.mInputField.focus();
+        }, t: 1000 },
         // start typing and move lens
         { f: function () {
             // FIXME: this closes dropdown
@@ -102,11 +105,12 @@ var CliqzTour = {
             CliqzTour.typeMessage(CliqzTour.searchQuery);
 
             CliqzTour.hideCallout();
-
+            /*
             CliqzTour.hideCursor();
             CliqzTour.setCursorAppearance("lens");
             CliqzTour.movePopupTo(CliqzTour.cursor, 10, CliqzTour.getPopupUrlBarCenterOffsetY());
             CliqzTour.showCursor();
+            */
 
             CliqzTour.telemetry("step_query_started");
         }, t: 50 },
@@ -116,16 +120,21 @@ var CliqzTour = {
                 CliqzTour.searchQuery.length * 6, 0,
                 CliqzTour.searchQuery.length / CliqzTour.charsPerSecond);
         }, t: 1300 },
+        /*
         // show intermediate results in dropdown
         { f: function () {
-            CliqzTour.win.CLIQZ.UI.results(CliqzTour.results.intermediate);
+            CliqzTour.win.CLIQZ.UI.setRawResults(CliqzTour.results.intermediate);
+            CliqzTour.win.CLIQZ.UI.render();
         }, t: 1100 },
+        */
         // show final results in dropdown
         { f: function () {
-            CliqzTour.win.CLIQZ.UI.results(CliqzTour.results.final);
+            CliqzTour.win.CLIQZ.UI.setRawResults(CliqzTour.results.final);
+            CliqzTour.win.CLIQZ.UI.render();
 
             CliqzTour.telemetry("step_results_shown");
         }, t: 2100 },
+        /*
         // show "these are cliqz results" callout
         { f: function () {
             CliqzTour.hideCursor();
@@ -191,6 +200,7 @@ var CliqzTour = {
             CliqzTour.getPageElement("landing-page-content").style.visibility = 'visible';
             CliqzTour.telemetry("step_landing_page_shown");
         }, t: 750 },
+        */
         // show "you made it" callout (inside page, not as popup)
         { f: function () {
             CliqzTour.getPageElement('landing-page-content').style.transition = 'all 1s ease-in-out';
@@ -471,7 +481,7 @@ var CliqzTour = {
         }
     },
     openDropdown: function () {
-        CliqzTour.win.CLIQZ.Core.popup.openPopup(CliqzTour.urlBar, "topleft bottomleft", 32, 0);
+        CliqzTour.win.CLIQZ.Core.popup.openPopup(CliqzTour.urlBar, "after_start", 0, 0, false, true);
     },
     closeDropdown: function () {
         CliqzTour.win.CLIQZ.Core.popup.hidePopup();
@@ -628,7 +638,7 @@ var CliqzTour = {
 
         if (pos < text.length && CliqzTour.isRunning) {
             CliqzUtils.setTimeout(function() {
-                CliqzTour.urlBar.value = text.substr(0, ++pos);
+                CliqzTour.urlBar.mInputField.setUserInput(text.substr(0, ++pos));
                 CliqzTour.typeMessage(text, pos);
             }, (1000.0 / CliqzTour.charsPerSecond) + Math.random(250));
         }

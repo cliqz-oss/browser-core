@@ -4,8 +4,6 @@ import v1 from "ui/views/currency";
 import v2 from "ui/views/local-cinema-sc";
 import v3 from "ui/views/local-data-sc";
 import v4 from "ui/views/local-movie-sc";
-import v5 from "ui/views/weatherAlert";
-import v6 from "ui/views/weatherEZ";
 import v7 from "ui/views/generic";
 import v8 from "ui/views/entity-generic";
 import v9 from "ui/views/liveTicker";

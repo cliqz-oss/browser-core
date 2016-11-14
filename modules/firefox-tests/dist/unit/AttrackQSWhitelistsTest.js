@@ -102,7 +102,7 @@ TESTS.AttrackQSWhitelistTest = function (CliqzUtils, CliqzEvents) {
       });
 
       describe('after list update', function() {
-        this.timeout(5000);
+        this.timeout(25000);
         var mock_token_string = '{"7269d282a42ce53e58c7b3f66ca19bac": true}\n',
           mock_tracker_string = '{"f528764d624db129": true}\n',
           mock_token_hash = '60c6923a50683b5a9c4643d82e6195ef',
@@ -135,11 +135,13 @@ TESTS.AttrackQSWhitelistTest = function (CliqzUtils, CliqzEvents) {
           whitelist.TRACKER_DM_URL = 'http://localhost:' + testServer.port + '/tracker_domain.json';
           persist.setValue('trackerDomainsversion', '');
 
-          whitelist._loadRemoteSafeKey();
-          whitelist._loadRemoteTokenWhitelist();
-          whitelist._loadRemoteUnsafeKey();
-          whitelist._loadRemoteTrackerDomainList();
-
+          return whitelist.init().then(function () {
+            whitelist.onConfigUpdate({
+              safekey_version: true,
+              token_whitelist_version: true,
+              tracker_domain_version: true,
+            });
+          });
         });
 
         it('returns true', function() {
@@ -193,6 +195,7 @@ TESTS.AttrackQSWhitelistTest = function (CliqzUtils, CliqzEvents) {
       context('load token and tracker lists', function() {
 
         beforeEach( function() {
+          this.timeout(25000)
           var today = datetime.getTime();
           whitelist._loadRemoteTokenWhitelist();
           whitelist._loadRemoteTrackerDomainList();

@@ -19,7 +19,7 @@ export function getSmartCliqz(url) {
             message: url + ' not found on server'
           });
         } else {
-          smartCliqz = Result.cliqzExtra(smartCliqzData);
+          smartCliqz = Result.cliqz(smartCliqzData);
           utils.log('getSmartCliqz: done fetching for ' + url);
           resolve(smartCliqz);
         }

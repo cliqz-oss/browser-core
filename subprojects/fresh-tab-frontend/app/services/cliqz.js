@@ -36,6 +36,72 @@ export default Ember.Service.extend({
     });
   },
 
+  getCliqzStatus() {
+    let promise = new Promise( resolve => {
+      this.callbacks.status = resolve;
+    });
+
+    window.postMessage(JSON.stringify({
+      target: 'cliqz',
+      module: 'core',
+      action: 'status',
+      args: [
+      ]
+    }), '*');
+
+    return DS.PromiseObject.create({ promise });
+  },
+
+  restart(moduleName) {
+    let promise = new Promise( resolve => {
+      this.callbacks.restart = resolve;
+    });
+
+    window.postMessage(JSON.stringify({
+      target: 'cliqz',
+      module: 'core',
+      action: 'restart',
+      args: [
+      ]
+    }), '*');
+
+    return DS.PromiseObject.create({ promise });
+  },
+
+  disableModule(moduleName) {
+    let promise = new Promise( resolve => {
+      this.callbacks.disableModule = resolve;
+    });
+
+    window.postMessage(JSON.stringify({
+      target: 'cliqz',
+      module: 'core',
+      action: 'disableModule',
+      args: [
+        moduleName
+      ]
+    }), '*');
+
+    return DS.PromiseObject.create({ promise });
+  },
+
+  enableModule(moduleName) {
+    let promise = new Promise( resolve => {
+      this.callbacks.enableModule = resolve;
+    });
+
+    window.postMessage(JSON.stringify({
+      target: 'cliqz',
+      module: 'core',
+      action: 'enableModule',
+      args: [
+        moduleName
+      ]
+    }), '*');
+
+    return DS.PromiseObject.create({ promise });
+  },
+
   redoQuery(query) {
     window.postMessage(JSON.stringify({
       target: 'cliqz',

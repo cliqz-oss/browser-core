@@ -27,7 +27,7 @@ var BROWSER_LANG = utils.getLocalizedString('locale_lang_code');
 function getEqualOperator(val, localizedStr){
   var valStr = val.toString().replace(",","").replace(".",""),
     normLocalizedStr = localizedStr.replace(",","").replace(".","");
-  return valStr === normLocalizedStr ? "=" : "\u2248";
+  return valStr === normLocalizedStr ? "=" : "&#x2248;";
 }
 
 var CliqzCalculator = {
@@ -86,7 +86,7 @@ var CliqzCalculator = {
         {'val': 1000, 'names': ['kg', 'kilogram', 'kilograms', 'kilogramme', 'kilogrammes', 'kilogramm', 'kilogramms']},
         {'val': 100, 'names': ['hg', 'hectogram', 'hectograms', 'hectogramme', 'hectogrammes', 'hectogramm', 'hectogramms']},
         {'val': 10, 'names': ['dag', 'decagram', 'decagrams', 'decagramme', 'decagrammes', 'decagramm', 'decagramms']},
-        {'val': 1, 'names': ['g', 'gr', 'gram', 'grams', 'gramme', 'grammes', 'gramm', 'gramms']},
+        {'val': 1, 'names': ['g', 'gram', 'grams', 'gramme', 'grammes', 'gramm', 'gramms']},
         {'val': 0.1, 'names': ['dg', 'decigram', 'decigrams', 'decigramme', 'decigrammes', 'decigramm', 'decigramms']},
         {'val': 0.01, 'names': ['cg', 'centigram', 'centigrams', 'centigramme', 'centigrammes', 'centigramm', 'centigramms']},
         {'val': 0.001, 'names': ['mg', 'milligram', 'milligrams', 'milligramme', 'milligrammes', 'milligramm', 'milligramms']},
@@ -94,7 +94,7 @@ var CliqzCalculator = {
         {'val': 453.59237, 'names': ['lb', 'lbs', 'pound', 'pounds', 'pound-mass', 'pfund']},
         {'val': 28.349523125, 'names': ['oz', 'ozs', 'ounce ', 'ounces', 'unze', 'unzen']},
         {'val': 1.7718452, 'names': ['dr', 'dram', 'drams']},
-        {'val': 0.06479891, 'names': ['grain', 'grains', 'Gran']}
+        {'val': 0.06479891, 'names': ['gr', 'grain', 'grains', 'Gran']}
       ]
     }
   },
@@ -141,20 +141,21 @@ var CliqzCalculator = {
     var expandedExpression = this.IS_UNIT_CONVERTER ? this.BASE_UNIT_CONVERTER : mathLib.parse(this.clean(q)).toString(),
       resultSign = this.shortenNumber()[0];
 
-    return Result.cliqzExtra(
+    return Result.cliqz(
       {
         url: "",
         q: q,
-        style: "cliqz-extra",
-        type: "cliqz-extra",
-        subType: JSON.stringify({type: 'calculator'}),
-        data: {
-          template: 'calculator',
-          expression: expandedExpression,
-          answer: this.CALCULATOR_RES,
-          is_calculus: true,
-          // TODO: support_copy_ans should be platform specific
-          support_copy_ans: true
+        type: "rh",
+        subType: {type: 'calculator'},
+        template: 'calculator',
+        snippet: {
+          extra: {
+            expression: expandedExpression,
+            answer: this.CALCULATOR_RES,
+            is_calculus: true,
+            // TODO: support_copy_ans should be platform specific
+            support_copy_ans: true
+          }
         }
       }
     );

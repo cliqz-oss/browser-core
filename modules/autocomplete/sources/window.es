@@ -1,6 +1,9 @@
 import autocomplete from "autocomplete/autocomplete";
 import CliqzResultProviders from "autocomplete/result-providers";
-import { utils } from "core/cliqz";
+import { utils, environment } from "core/cliqz";
+import Search from "autocomplete/search";
+import {Window as AutocompleteWindow} from "platform/auto-complete-component";
+
 
 export default class {
   constructor(settings) {
@@ -8,49 +11,19 @@ export default class {
   }
 
   init() {
-    this.window.CliqzAutocomplete = autocomplete;
+    utils.log('-- INITIALIAZING WINDOW ---', 'DEBUG');
+    AutocompleteWindow.init(this.window);
+    utils.log('-- INITIALIAZED WINDOW ---', 'DEBUG');
   }
 
   unload() {
-    delete this.window.CliqzAutocomplete;
+    AutocompleteWindow.unload(this.window)
   }
 
-  createButtonItem() {
-    if (utils.getPref("cliqz_core_disabled", false)) return;
-
-    const doc = this.window.document,
-      menu = doc.createElement('menu'),
-      menupopup = doc.createElement('menupopup'),
-      engines = CliqzResultProviders.getSearchEngines(),
-      def = Services.search.currentEngine.name;
-
-    menu.setAttribute('label', utils.getLocalizedString('btnDefaultSearchEngine'));
-
-    for(var i in engines){
-
-      var engine = engines[i],
-      item = doc.createElement('menuitem');
-      item.setAttribute('label', '[' + engine.prefix + '] ' + engine.name);
-      item.setAttribute('class', 'menuitem-iconic');
-      item.engineName = engine.name;
-      if(engine.name == def){
-        item.style.listStyleImage = 'url(' + utils.SKIN_PATH + 'checkmark.png)';
-      }
-      // TODO: Where is this listener removed?
-      item.addEventListener('command', (function(event) {
-        CliqzResultProviders.setCurrentSearchEngine(event.currentTarget.engineName);
-        utils.telemetry({
-          type: 'activity',
-          action: 'cliqz_menu_button',
-          button_name: 'search_engine_change_' + event.currentTarget.engineName
-        });
-      }).bind(this), false);
-
-      menupopup.appendChild(item);
+  status() {
+    return {
+      visible: true,
+      state: autocomplete.CliqzResultProviders.getSearchEngines()
     }
-
-    menu.appendChild(menupopup);
-
-    return menu;
   }
 }

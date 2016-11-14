@@ -201,7 +201,13 @@ HttpRequestContext.prototype = {
     if (this.isFullPage()) {
       return this.url;
     } else if (this.loadInfo !== null) {
-      return this.loadInfo.loadingDocument != null && 'location' in this.loadInfo.loadingDocument && this.loadInfo.loadingDocument.location ? this.loadInfo.loadingDocument.location.href : "";
+      if (this.loadInfo.loadingPrincipal && this.loadInfo.loadingPrincipal.URI) {
+        return this.loadInfo.loadingPrincipal.URI.spec;
+      } else if (this.loadInfo.loadingDocument != null && this.loadInfo.loadingDocument.location && this.loadInfo.loadingDocument.location.href) {
+        return this.loadInfo.loadingDocument.location.href;
+      } else {
+        return "";
+      }
     } else {
       return this._legacyGetSource().url;
     }

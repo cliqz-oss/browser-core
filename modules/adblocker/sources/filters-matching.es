@@ -1,3 +1,4 @@
+
 // Some content policy types used in filters
 const CPT = {
   TYPE_OTHER: 1,
@@ -118,14 +119,20 @@ function checkPattern(filter, request) {
       // Extract only the part after the hostname
       const urlPattern = url.substring(url.indexOf(filter.hostname) + filter.hostname.length);
       if (filter.isRegex) {
+        // If it's a regex, it should match the pattern after hostname
         return filter.regex.test(urlPattern);
+      } else if (filter.isRightAnchor) {
+        // If it's a right anchor, then the filterStr should match exactly
+        return urlPattern === filter.filterStr;
+      } else {
+        return urlPattern.startsWith(filter.filterStr);
       }
-      // TODO: Should startWith instead of includes?
-      return urlPattern.startsWith(filter.filterStr);
     }
   } else {
     if (filter.isRegex) {
       return filter.regex.test(url);
+    } else if (filter.isLeftAnchor && filter.isRightAnchor) {
+      return url === filter.filterStr;
     } else if (filter.isLeftAnchor) {
       return url.startsWith(filter.filterStr);
     } else if (filter.isRightAnchor) {

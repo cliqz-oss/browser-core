@@ -5,50 +5,54 @@ const BW_URL = "https://antiphishing.cliqz.com/api/bwlist?md5=";
 const WARNING = 'chrome://cliqz/content/anti-phishing/phishing-warning.html';
 const Ci = Components.interfaces;
 
-function format(currWin, url, md5, logging) {
+function format(currWin, url, md5, logging, domWinID) {
     let doc = currWin.document;
+    if (!(doc.getElementById('phishing-url'))) {
+      setTimeout(() => {
+        format(currWin, url, md5, logging, domWinID);
+      }, 100);
+    } else {
+      doc.getElementById('phishing-url').innerText = url;
+      const validUrl = CliqzAntiPhishing.getValidUrl(domWinID);
+      delete CliqzAntiPhishing.history[domWinID];
+      doc.getElementsByClassName('cqz-button-save-out')[0].onclick = function() {
+        if (logging) {
+          CliqzUtils.telemetry({type: 'anti-phishing', action: 'click', target: 'safe_out'});
+          // Modify human-web url to log the user interactions
+          // Note: there might be loss of data due to double fetch
+          if (CliqzHumanWeb && CliqzHumanWeb.state.v[url]) {
+            CliqzHumanWeb.state.v[url]['anti-phishing'] = 'safe_out';
+          }
+        }
+        currWin.location.replace(validUrl);
+      };
 
-    doc.getElementById('phishing-url').innerText = url;
-    doc.getElementsByClassName('cqz-button-save-out')[0].onclick = function() {
       if (logging) {
-        CliqzUtils.telemetry({type: 'anti-phishing', action: 'click', target: 'safe_out'});
-        // Modify human-web url to log the user interactions
-        // Note: there might be loss of data due to double fetch
-        if (CliqzHumanWeb && CliqzHumanWeb.state.v[url]) {
-          CliqzHumanWeb.state.v[url]['anti-phishing'] = 'safe_out';
+        doc.getElementById('learn-more').onclick = function() {
+          CliqzUtils.telemetry({type: 'anti-phishing', action: 'click', target: 'learn_more'});
         }
       }
-      if (doc.referrer) {
-          currWin.location.replace(doc.referrer);
-      } else {
-          currWin.history.back();
-      }
-    };
-    if (logging) {
-      doc.getElementById('learn-more').onclick = function() {
-        CliqzUtils.telemetry({type: 'anti-phishing', action: 'click', target: 'learn_more'});
-      }
-    }
-    doc.getElementById('report-safe').onclick = function() {
-      if (logging) {
-        CliqzUtils.telemetry({type: 'anti-phishing', action: 'click', target: 'report'});
-        if (CliqzHumanWeb && CliqzHumanWeb.state.v[url]) {
-          CliqzHumanWeb.state.v[url]['anti-phishing'] = 'report';
+      doc.getElementById('report-safe').onclick = function() {
+        if (logging) {
+          CliqzUtils.telemetry({type: 'anti-phishing', action: 'click', target: 'report'});
+          if (CliqzHumanWeb && CliqzHumanWeb.state.v[url]) {
+            CliqzHumanWeb.state.v[url]['anti-phishing'] = 'report';
+          }
         }
-      }
-      CliqzAntiPhishing.forceWhiteList[md5] = 1;
-      currWin.location.replace(url);
-    };
-    let proceedBt = doc.getElementById('proceed');
-    proceedBt.onclick = function() {
-      if (logging) {
-        CliqzUtils.telemetry({type: 'anti-phishing', action: 'click', target: 'ignore'});
-        if (CliqzHumanWeb && CliqzHumanWeb.state.v[url]) {
-          CliqzHumanWeb.state.v[url]['anti-phishing'] = 'ignore';
+        CliqzAntiPhishing.forceWhiteList[md5] = 1;
+        currWin.location.replace(url);
+      };
+      let proceedBt = doc.getElementById('proceed');
+      proceedBt.onclick = function() {
+        if (logging) {
+          CliqzUtils.telemetry({type: 'anti-phishing', action: 'click', target: 'ignore'});
+          if (CliqzHumanWeb && CliqzHumanWeb.state.v[url]) {
+            CliqzHumanWeb.state.v[url]['anti-phishing'] = 'ignore';
+          }
         }
+        CliqzAntiPhishing.forceWhiteList[md5] = 2;
+        currWin.location.replace(url);
       }
-      CliqzAntiPhishing.forceWhiteList[md5] = 2;
-      currWin.location.replace(url);
     }
 };
 
@@ -60,7 +64,7 @@ function getErrorCode(doc)
   return decodeURIComponent(url.slice(error + 2, duffUrl));
 }
 
-function alert(aProgress, url, md5, logging) {
+function alert(aProgress, url, md5, logging, domWinID) {
   let currWin = aProgress.DOMWindow.top,
       doc = currWin.document;
   // checking if the FF detected also Phishing on this tab
@@ -87,16 +91,16 @@ function alert(aProgress, url, md5, logging) {
     }
     return;
   }
+  currWin.stop();
   aProgress.loadURI(WARNING, Ci.nsIWebNavigation.LOAD_FLAGS_BYPASS_HISTORY, null, null, null);
-  // currWin.location.href = url;
+
   CliqzUtils.setTimeout(function (currWin, url, md5){
-    CliqzUtils.currWin = currWin;
-    format(currWin, url, md5, logging);
+    format(currWin, url, md5, logging, domWinID);
     let urlbar = CliqzUtils.getWindow().document.getElementById('urlbar');
     urlbar.textValue = url;
     urlbar.value = url;
     urlbar.mInputField.value = url;
-  }, 100, currWin, url, md5);
+  }, 150, currWin, url, md5);
 };
 
 function checkPassword(url, callback) {
@@ -246,7 +250,7 @@ function checkSuspicious(url, callback) {
   checkPassword(url, callback);
 }
 
-function checkStatus(url, md5Prefix, md5Surfix, aProgress, hw, logging) {
+function checkStatus(url, md5Prefix, md5Surfix, aProgress, hw, logging, domWinID) {
     var bw = CliqzAntiPhishing.blackWhiteList[md5Prefix];
     if (md5Surfix in bw) {  // black, white, suspicious or checking
         if (bw[md5Surfix].indexOf('black') > -1) {  // black
@@ -259,7 +263,7 @@ function checkStatus(url, md5Prefix, md5Surfix, aProgress, hw, logging) {
             }
             // show the block html page
             // delay the actual show in case FF itself detects this as phishing also
-            CliqzUtils.setTimeout(alert, 1000, aProgress, url, md5Prefix + md5Surfix, logging);
+            CliqzUtils.setTimeout(alert, 1000, aProgress, url, md5Prefix + md5Surfix, logging, domWinID);
           }
         }
     } else {
@@ -279,20 +283,26 @@ function checkStatus(url, md5Prefix, md5Surfix, aProgress, hw, logging) {
 var CliqzAntiPhishing = {
     forceWhiteList: {},
     blackWhiteList: {},
+    history: {},
+    minStay: 2000,  // 2 seconds
+    fallbackUrl: 'about:newtab',
     /**
     * @method auxOnPageLoad
     * @param url {string}
     */
-    auxOnPageLoad: function(url, aProgress, hw, logging) {
+    auxOnPageLoad: function(url, aProgress, hw, logging, domWinID) {
+        if (url.startsWith('about:') || url.startsWith('chrome:')) {
+          return;
+        }
         var [md5Prefix, md5Surfix] = getSplitDomainMd5(url);
         if (md5Prefix in CliqzAntiPhishing.blackWhiteList)
-            checkStatus(url, md5Prefix, md5Surfix, aProgress, hw, logging);
+            checkStatus(url, md5Prefix, md5Surfix, aProgress, hw, logging, domWinID);
         else
             CliqzUtils.httpGet(
                 BW_URL + md5Prefix,
                 function success(req) {
                     updateBlackWhiteStatus(req, md5Prefix);
-                    checkStatus(url, md5Prefix, md5Surfix, aProgress, hw, logging);
+                    checkStatus(url, md5Prefix, md5Surfix, aProgress, hw, logging, domWinID);
                 },
                 function onerror() {
                 },
@@ -322,14 +332,51 @@ var CliqzAntiPhishing = {
     isAntiPhishingActive: function() {
         return CliqzUtils.getPref('cliqz-anti-phishing-enabled', false);
     },
+    addPageLoad(domWinID, url, ts) {
+      if (!(domWinID in CliqzAntiPhishing.history)) {
+        CliqzAntiPhishing.history[domWinID] = [{url, ts}];
+      } else {
+        CliqzAntiPhishing.history[domWinID].push({url, ts});
+        let i = CliqzAntiPhishing.history[domWinID].length - 1;
+        while (i > 0) {
+          if (CliqzAntiPhishing.history[domWinID][i].ts - CliqzAntiPhishing.history[domWinID][i-1].ts > CliqzAntiPhishing.minStay) {
+            CliqzAntiPhishing.history[domWinID] = CliqzAntiPhishing.history[domWinID].slice(i-1);
+            break;
+          }
+          i--;
+        }
+      }
+      // clear closed tabs
+      Object.keys(CliqzAntiPhishing.history).forEach(domWinID => {
+        if (!CliqzUtils.getWindow().gBrowser.getBrowserForOuterWindowID(parseInt(domWinID))) {
+          delete CliqzAntiPhishing.history[domWinID];
+        }
+      });
+    },
+    getValidUrl(domWinID) {
+      const ts = Date.now();
+      if (!(domWinID in CliqzAntiPhishing.history) || CliqzAntiPhishing.history[domWinID].length <= 1) {
+        return CliqzAntiPhishing.fallbackUrl;
+      }
+      if (CliqzAntiPhishing.history[domWinID][1].ts - CliqzAntiPhishing.history[domWinID][0].ts > CliqzAntiPhishing.minStay) {
+        return CliqzAntiPhishing.history[domWinID][0].url;
+      }
+      return CliqzAntiPhishing.fallbackUrl;
+    },
     listener: {
         QueryInterface: XPCOMUtils.generateQI(["nsIWebProgressListener", "nsISupportsWeakReference"]),
         onLocationChange: function(aProgress, aRequest, aURI) {
+
           let logging = true;
+          let domWinID = aProgress.DOMWindowID;
           if (aRequest && aRequest.isChannelPrivate !== undefined && aRequest.isChannelPrivate) {
             logging = false;
+          } else {
+            // keep a history so we know where to go back to so we don't fall
+            // into a blackhole of redirect chains
+            CliqzAntiPhishing.addPageLoad(domWinID, aURI.spec, Date.now());
           }
-          CliqzAntiPhishing.auxOnPageLoad(aURI.spec, aProgress, false, logging);
+          CliqzAntiPhishing.auxOnPageLoad(aURI.spec, aProgress, false, logging, domWinID);
         }
     }
 };

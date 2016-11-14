@@ -23,6 +23,16 @@ TESTS.SmartCliqzTest = function (CliqzUtils) {
             chai.expect(title.toLowerCase()).to.contain("spiegel");
       });
     });
+
+    it('should display gmx smart cliqz', function () {
+      return mockSmartCliqz('gmx.net').then(function () {
+        fillIn("gmx.net");
+        return waitForPopup();
+      }).then(function () {
+    		var title = $cliqzResults().find(".cqz-result-box .cqz-ez-title")[0].textContent.trim();
+            chai.expect(title.toLowerCase()).to.contain("gmx");
+      });
+    });
   });
 
 };

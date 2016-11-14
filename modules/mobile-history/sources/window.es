@@ -1,5 +1,6 @@
 import { utils } from "core/cliqz";
 import History from "mobile-history/history";
+import helpers from 'mobile-history/content/helpers';
 
 /**
 * @namespace mobile-history
@@ -17,6 +18,9 @@ export default class {
   * @method init
   */
   init() {
+    Object.keys(helpers).forEach(function (helperName) {
+      Handlebars.registerHelper(helperName, helpers[helperName]);
+    });
   	this.window.History = History;
   }
 

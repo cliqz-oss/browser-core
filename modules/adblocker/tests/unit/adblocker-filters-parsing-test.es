@@ -28,7 +28,10 @@ function loadTestCases(path) {
 export default describeModule('adblocker/filters-parsing',
   () => ({
     'adblocker/utils': {
-      log: () => 0,
+      log: () => {
+        // const message = `[adblock] ${msg}`;
+        // console.log(message);
+      },
     },
     'core/cliqz': {
       utils: {},
@@ -36,19 +39,19 @@ export default describeModule('adblocker/filters-parsing',
   }),
   () => {
     describe('#AdFilter', () => {
-      let AdFilter;
+      let parseFilter;
 
       // Generate test cases
       context('Filters parsing', () => {
-        beforeEach(function importAdFilter() {
-          AdFilter = this.module().AdFilter;
+        beforeEach(function importFilterParser() {
+          parseFilter = this.module().parseFilter;
         });
 
         const dataPath = 'modules/adblocker/tests/unit/data/filters_parsing.txt';
         loadTestCases(dataPath).forEach(testCase => {
           it(`parses ${testCase.filter} correctly`,
              () => new Promise((resolve, reject) => {
-               const parsed = new AdFilter(testCase.filter);
+               const parsed = parseFilter(testCase.filter);
                Object.keys(testCase.compiled).forEach(key => {
                  if (parsed[key] !== testCase.compiled[key]) {
                    reject(`Expected ${key} == ${testCase.compiled[key]} (found ${parsed[key]})`);

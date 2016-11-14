@@ -1,5 +1,6 @@
 import { utils } from "core/cliqz";
 import Result from "autocomplete/result";
+import HistoryManager from "core/history-manager";
 
 var FF_DEF_FAVICON = 'chrome://mozapps/skin/places/defaultFavicon.png',
     Q_DEF_FAVICON = utils.SKIN_PATH + 'defaultFavicon.png';
@@ -34,7 +35,7 @@ var CliqzHistoryCluster = {
     // Extract results
     var patterns = [];
     for (var i = 0; i < history.results.length; i++) {
-      var parts = CliqzUtils.cleanMozillaActions(history.results[i].value);
+      var parts = utils.cleanMozillaActions(history.results[i].value);
       var url = parts[1],
           action = parts[0],
           title = history.results[i].comment;
@@ -69,7 +70,7 @@ var CliqzHistoryCluster = {
   _simplePreparePatterns: function(patterns, query) {
     var baseUrl, favicon, orig_query = query;
 
-    query = CliqzUtils.cleanUrlProtocol(query, true).trim();
+    query = utils.cleanUrlProtocol(query, true).trim();
 
     // Filter patterns that don't match search
     //patterns = CliqzHistoryCluster._filterPatterns(patterns, query.toLowerCase());
@@ -375,7 +376,7 @@ var CliqzHistoryCluster = {
         // Add https if required
         if (https) {
           // ...but only if there is a history entry with title
-          if (CliqzHistoryManager.getPageTitle('https://' + baseUrl)) {
+          if (HistoryManager.getPageTitle('https://' + baseUrl)) {
             utils.log('found https base URL with title', 'CliqzHistoryCluster');
             // keep https as true
           } else {
@@ -496,7 +497,7 @@ var CliqzHistoryCluster = {
         extra: 'history-' + i,
         favicon: favicon,
         // logo is only necessary for 3-up mini-history view, this can be removed if that is retired
-        logo: CliqzUtils.getLogoDetails(CliqzUtils.getDetailsFromUrl(urls[i].url)),
+        logo: utils.getLogoDetails(utils.getDetailsFromUrl(urls[i].url)),
         kind: ['H'],
       };
 
@@ -586,6 +587,7 @@ var CliqzHistoryCluster = {
     } else if (results.length < 3) {
       for (var i = 0; i < results.length; i++) {
         var instant = Result.generic('favicon', results[i].url, null, results[i].title, null, searchString);
+        instant.data.title = instant.comment;
         instant.comment += ' (history generic)!';
         instant.data.kind = ['H'];
         //promises.push(CliqzHistoryCluster._getDescription(instant));
@@ -594,7 +596,7 @@ var CliqzHistoryCluster = {
     } else {
       // 3-up combined generic history entry
       var instant = Result.generic('cliqz-pattern', '', null, '', null, searchString);
-      instant.data.title = '';
+      instant.data.title = instant.comment;
       instant.comment += ' (history generic)!';
       instant.data.template = 'pattern-h3';
       instant.data.generic = true;
@@ -624,12 +626,12 @@ var CliqzHistoryCluster = {
 
     } else {
       // generic history
-      var simple_generic = CliqzUtils.getPref('simpleHistory', false);
+      var simple_generic = utils.getPref('simpleHistory', false);
       //var simple_generic = true;
 
       // 3-up combined generic history entry
       var instant = Result.generic('cliqz-pattern', '', null, '', null, searchString);
-      instant.data.title = '';
+      instant.data.title = instant.comment;
       instant.comment += ' (history generic)!';
 
       //

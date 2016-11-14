@@ -3,7 +3,7 @@ import CliqzBloomFilter from "human-web/bloom-filter";
 import core from "core/background";
 import { utils } from "core/cliqz";
 import md5 from "core/helpers/md5";
-
+import ResourceLoader from 'core/resource-loader';
 
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/FileUtils.jsm");
@@ -204,7 +204,7 @@ var CliqzHumanWeb = {
             var pos_hash_char = aURI.indexOf('#');
 
             if (pos_hash_char > -1) {
-                if (CliqzHumanWeb.checkIfSearchURL(aURI)!=true && (aURI.length - pos_hash_char) >= 10) {
+                if (CliqzHumanWeb.checkSearchURL(aURI) == -1 && (aURI.length - pos_hash_char) >= 10) {
                     _log("Dropped because of # in url: " + decodeURIComponent(aURI));
                     return true;
                 }
@@ -428,10 +428,104 @@ var CliqzHumanWeb = {
                     CliqzHumanWeb.httpCache[url] = {'status': status, 'time': CliqzHumanWeb.counter};
                 }
 
-
+                if (CliqzHumanWeb.cdActive) {
+                  // controlled by ABtest "1082_A": false, "1082_B": true
+                  if (CliqzHumanWeb.cdForegroundURL && !CliqzHumanWeb.cdCache[url] && CliqzHumanWeb.cdRecord(url)) {
+                    if (!CliqzHumanWeb.cdRecord(CliqzHumanWeb.cdForegroundURL)) {
+                      if (!CliqzHumanWeb.cdRecordVisible(CliqzHumanWeb.cdForegroundURL)) {
+                          CliqzHumanWeb.cdCache[url] = {'time': CliqzHumanWeb.counter, 'source': CliqzHumanWeb.cdForegroundURL};
+                      }
+                    }
+                  }
+                }
 
               } catch(ee){};
         }
+    },
+    cdForegroundURL: null,
+    cdRecord: function(url) {
+      try {
+
+        var ind = url.indexOf('//rover.ebay.');
+        if (ind > 0 && ind < 10) return true;
+
+        ind = url.indexOf('//www.amazon.');
+        if (ind > 0 && ind < 10) {
+          if (url.indexOf('?tag=')>0 || url.indexOf('&tag=')>0) return true;
+          else return false;
+        }
+
+        /*
+        var u = CliqzHumanWeb.parseUri(url);
+        if (u.host.indexOf('rover.ebay')>=0) {
+          return true;
+        }
+        else if (u.host.indexOf('www.amazon.')>=0) {
+          if (url.indexOf('?tag=')>0 || url.indexOf('&tag=')>0) return true;
+          else return false;
+        }
+        */
+
+      } catch(ee) {};
+
+      return false;
+    },
+    cdRecordVisible: function(url) {
+      try {
+        var ind = url.indexOf('//www.ebay.');
+        if (ind > 0 && ind < 10) return true;
+
+        ind = url.indexOf('//www.amazon.');
+        if (ind > 0 && ind < 10) return true;
+
+        /*
+        var u = CliqzHumanWeb.parseUri(url);
+        if (u.host.indexOf('www.ebay.')>=0) {
+          return true;
+        }
+        else if (u.host.indexOf('www.amazon.')>=0) {
+          return true;
+        }
+        */
+      } catch(ee) {};
+
+      return
+    },
+    cdActive: false,
+    cdCache: {},
+    cdCleanCache: function() {
+      // remove any entry of less than 1 minute ago,
+      // FIXME, that removes independently of the target
+      var currTime = CliqzHumanWeb.counter;
+      for(var key in CliqzHumanWeb.cdCache) {
+        if ((currTime - CliqzHumanWeb.cdCache[key]['time']) < 60*CliqzHumanWeb.tmult) {
+          delete CliqzHumanWeb.cdCache[key];
+          //CliqzHumanWeb.cdCache[key]['removed'] = true;
+        }
+      }
+    },
+    cdSend: function() {
+      var seen = {}
+      var currTime = CliqzHumanWeb.counter;
+      for(var key in CliqzHumanWeb.cdCache) {
+        if ((currTime - CliqzHumanWeb.cdCache[key]['time']) > 120*CliqzHumanWeb.tmult) {
+          // The source is suspicious of doing cookie dropping, might not be as 1st party,
+          // external 3rd parties can have this malicous behavior. Need to collect the url
+          // url to investigate further
+          //
+          //var dest_dom = CliqzHumanWeb.parseUri(key).host;
+          var payload = {'source': CliqzHumanWeb.cdCache[key], 'dest': key}
+
+          var tmp_key = payload['source'] + '--' + payload['dest'];
+          if (!seen[tmp_key]) {
+            seen[tmp_key] = true;
+            CliqzHumanWeb.telemetry({'type': CliqzHumanWeb.msgType, 'action': 'cookie-dropping-watcher', 'payload': payload});
+
+          }
+
+          delete CliqzHumanWeb.cdCache[key];
+        }
+      }
     },
     historyTimeFrame: function(callback) {
         Cu.import('resource://gre/modules/PlacesUtils.jsm');
@@ -569,19 +663,6 @@ var CliqzHumanWeb = {
         }
         catch(ee){};
         return res;
-    },
-    checkIfSearchURL:function(activeURL) {
-        var requery = /\.google\..*?[#?&;]q=[^$&]+/; // regex for google query
-        var yrequery = /.search.yahoo\..*?[#?&;]p=[^$&]+/; // regex for yahoo query
-        var brequery = /\.bing\..*?[#?&;]q=[^$&]+/; // regex for yahoo query
-        var reref = /\.google\..*?\/(?:url|aclk)\?/; // regex for google refurl
-        var rerefurl = /url=(.+?)&/; // regex for the url in google refurl
-        if ((requery.test(activeURL) || yrequery.test(activeURL) || brequery.test(activeURL) ) && !reref.test(activeURL)){
-            return true;
-        }
-        else{
-            return false;
-        }
     },
     userSearchTransition: function(rq){
         // now let's manage the userTransitions.search
@@ -1542,10 +1623,18 @@ var CliqzHumanWeb = {
             CliqzHumanWeb.lastActiveAll = CliqzHumanWeb.counter;
 
             var activeURL = CliqzHumanWeb.cleanCurrentUrl(aURI.spec);
+
+            if (activeURL.indexOf('about:')!=0) {
+              CliqzHumanWeb.cdForegroundURL = activeURL;
+
+              if (CliqzHumanWeb.cdRecordVisible(activeURL)) {
+                CliqzUtils.setTimeout(CliqzHumanWeb.cdCleanCache, 5000);
+              }
+
+            }
+
             //Check if the URL is know to be bad: private, about:, odd ports, etc.
             if (CliqzHumanWeb.isSuspiciousURL(activeURL)) return;
-
-
 
             if (activeURL.indexOf('about:')!=0) {
 
@@ -1795,6 +1884,11 @@ var CliqzHumanWeb = {
             }
         }
 
+
+        if ((CliqzHumanWeb.counter/CliqzHumanWeb.tmult) % 180 == 0) {
+          CliqzHumanWeb.cdSend();
+        }
+
         if ((CliqzHumanWeb.counter/CliqzHumanWeb.tmult) % 10 == 0) {
             if (CliqzHumanWeb.debug) {
                 _log('Pacemaker: ' + CliqzHumanWeb.counter/CliqzHumanWeb.tmult + ' ' + activeURL + ' >> ' + CliqzHumanWeb.state.id);
@@ -1806,6 +1900,10 @@ var CliqzHumanWeb = {
             CliqzHumanWeb.cleanHttpCache();
             CliqzHumanWeb.cleanDocCache();
             CliqzHumanWeb.cleanLinkCache();
+
+
+            CliqzHumanWeb.cdActive = CliqzUtils.getPref('experimentalCookieDroppingDetection', false);
+
         }
 
         if ((CliqzHumanWeb.counter/CliqzHumanWeb.tmult) % (1*60) == 0) {
@@ -1831,13 +1929,6 @@ var CliqzHumanWeb = {
             }
         }
 
-        //Load patterns config
-        if ((CliqzHumanWeb.counter/CliqzHumanWeb.tmult) % (60 * 60 * 24) == 0) {
-            if (CliqzHumanWeb.debug) {
-                _log('Load pattern config');
-            }
-            CliqzHumanWeb.loadContentExtraction();
-        }
 
         //Load ts config
         if ((CliqzHumanWeb.counter/CliqzHumanWeb.tmult) % (60 * 20 * 1) == 0) {
@@ -2168,6 +2259,8 @@ var CliqzHumanWeb = {
     init: function(window) {
         if(CliqzUtils.getPref("dnt", false)) return;
 
+        CliqzUtils.hw = this;
+
         refineFuncMappings = {
            "splitF":CliqzHumanWeb.refineSplitFunc,
            "parseU":CliqzHumanWeb.refineParseURIFunc,
@@ -2208,7 +2301,6 @@ var CliqzHumanWeb = {
         }
 
 
-        CliqzHumanWeb.loadContentExtraction();
         CliqzHumanWeb.fetchAndStoreConfig();
 
         if (CliqzHumanWeb.actionStats==null) CliqzHumanWeb.loadActionStats();
@@ -2221,6 +2313,36 @@ var CliqzHumanWeb = {
 
         // Load strict queries
         CliqzHumanWeb.loadStrictQueries();
+        let rsNormal = new ResourceLoader(
+            ["human-web","patterns"],
+            {
+                chromeURL: "chrome://cliqz/content/bower_components/patterns/index",
+                remoteURL : CliqzHumanWeb.patternsURL,
+                cron: 1 * 20 * 60 * 1000,
+            }
+
+        );
+        rsNormal.load().then( e => {
+          CliqzHumanWeb.loadContentExtraction(e, "normal")
+        });
+        rsNormal.onUpdate( e => CliqzHumanWeb.loadContentExtraction(e, "normal"));
+
+        let rsStrict = new ResourceLoader(
+            ["human-web","patterns-anon"],
+            {
+                chromeURL: "chrome://cliqz/content/bower_components/anonpatterns/index",
+                remoteURL : CliqzHumanWeb.anonPatternsURL,
+                cron: 1 * 20 * 60 * 1000,
+            }
+
+        );
+
+        rsStrict.load().then( e => {
+          CliqzHumanWeb.loadContentExtraction(e, "strict")
+        });
+
+        rsStrict.onUpdate( e => CliqzHumanWeb.loadContentExtraction(e, "strict"));
+
     },
     initAtBrowser: function(){
         if(CliqzUtils.getPref("dnt", false)) return;
@@ -3151,13 +3273,10 @@ var CliqzHumanWeb = {
         try{var win = ww.openWindow(null, "chrome://cliqzmodules/content/debugInterface",
                         "debugInterface", null, null);}catch(ee){_log(ee)}
     },
-    loadContentExtraction: function(){
+    loadContentExtraction: function(resp, mode){
         //Load content extraction.
-        CliqzUtils.httpGet(CliqzHumanWeb.patternsURL,
-          function success(req){
-            if(!CliqzHumanWeb) return;
-
-            var patternConfig = JSON.parse(req.response);
+        if (mode === "normal"){
+            var patternConfig = resp;
             CliqzHumanWeb.searchEngines = patternConfig["searchEngines"];
             CliqzHumanWeb.extractRules = patternConfig["scrape"];
             CliqzHumanWeb.payloads = patternConfig["payloads"];
@@ -3166,16 +3285,9 @@ var CliqzHumanWeb = {
             patternConfig["urlPatterns"].forEach(function(e){
               CliqzHumanWeb.rArray.push(new RegExp(e));
             })
-          },
-          function error(res){
-            _log('Error loading config. ')
-            });
-
-        // Load anon content extraction.
-        CliqzUtils.httpGet(CliqzHumanWeb.anonPatternsURL, function success(req) {
-            if (!CliqzHumanWeb) return;
-
-            var patternConfig = JSON.parse(req.response);
+        }
+        else if(mode === "strict"){
+            var patternConfig = resp;
             CliqzHumanWeb.anonSearchEngines = patternConfig["searchEngines"];
             CliqzHumanWeb.anonExtractRules = patternConfig["scrape"];
             CliqzHumanWeb.anonPayloads = patternConfig["payloads"];
@@ -3184,9 +3296,7 @@ var CliqzHumanWeb = {
             patternConfig["urlPatterns"].forEach(function (e) {
                 CliqzHumanWeb.anonRArray.push(new RegExp(e));
             });
-        }, function error(res) {
-            _log('Error loading config. ');
-        });
+        }
     },
     checkForEmail: function(str) {
         if (str.match(/[a-z0-9\-_@]+(@|%40|%(25)+40)[a-z0-9\-_]+\.[a-z0-9\-_]/i) != null) return true;

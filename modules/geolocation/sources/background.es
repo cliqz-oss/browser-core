@@ -100,16 +100,31 @@ export default background({
 
   actions: {
     getGeo() {
-      if (utils.getPref('share_location') === 'yes' || utils.SHARE_LOCATION_ONCE) {
-        return getGeo().then(position => {
+      if (utils.getPref('share_location') !== 'yes' &&
+          !utils.SHARE_LOCATION_ONCE) {
+        return Promise.reject("No permission to get user's location");
+      }
+
+      const telemetryEvent = {
+        type: "performance",
+        action: "api_request",
+        target: "geolocation",
+        is_success: undefined,
+      };
+      return getGeo()
+        .then(position => {
+          telemetryEvent.is_success = true;
+          utils.telemetry(telemetryEvent);
           return {
             latitude: this.roundLocation(position.latitude),
             longitude: this.roundLocation(position.longitude),
           };
+        })
+        .catch(error => {
+          telemetryEvent.is_success = false;
+          utils.telemetry(telemetryEvent);
+          return Promise.reject(error);
         });
-      } else {
-        return Promise.reject("No permission to get user's location");
-      }
     },
 
     updateGeoLocation() {

@@ -37,6 +37,7 @@ RUN apt-get update \
         libxrender1 \
         libxt6 \
         lsb-release \
+        openbox \
         unzip \
         wget \
         x11vnc \
@@ -51,9 +52,8 @@ RUN groupadd jenkins --gid $GID \
  && useradd --create-home --shell /bin/bash jenkins --uid $UID --gid $GID
 
 # Install firefox $VERSION
-ARG VERSION
-ENV VERSION ${VERSION}
-RUN wget https://ftp.mozilla.org/pub/firefox/releases/${VERSION}/linux-x86_64/en-US/firefox-${VERSION}.tar.bz2 -O /home/jenkins/firefox.tar.bz2 \
+ARG URL
+RUN wget ${URL} -O /home/jenkins/firefox.tar.bz2 \
  && tar xjvf /home/jenkins/firefox.tar.bz2 -C /home/jenkins \
  && rm -f /home/jenkins/firefox.tar.bz2 \
  && mkdir -p /home/jenkins/firefox/distribution/extensions \

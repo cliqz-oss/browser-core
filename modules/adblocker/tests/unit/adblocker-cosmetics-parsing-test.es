@@ -28,7 +28,10 @@ function loadTestCases(path) {
 export default describeModule('adblocker/filters-parsing',
   () => ({
     'adblocker/utils': {
-      log: () => 0,
+      log: () => {
+        // const message = `[adblock] ${msg}`;
+        // console.log(message);
+      },
     },
     'core/cliqz': {
       utils: {},
@@ -36,19 +39,19 @@ export default describeModule('adblocker/filters-parsing',
   }),
   () => {
     describe('#AdCosmetics', () => {
-      let AdCosmetics;
+      let parseFilter;
 
       // Generate test cases
       context('Cosmetic filter parsing', () => {
-        beforeEach(function importAdCosmetics() {
-          AdCosmetics = this.module().AdCosmetics;
+        beforeEach(function importFilterParser() {
+          parseFilter = this.module().parseFilter;
         });
 
         const dataPath = 'modules/adblocker/tests/unit/data/cosmetics_parsing.txt';
         loadTestCases(dataPath).forEach(testCase => {
           it(`parses ${testCase.filter} correctly`,
              () => new Promise((resolve, reject) => {
-               const parsed = new AdCosmetics(testCase.filter);
+               const parsed = parseFilter(testCase.filter);
                Object.keys(testCase.compiled).forEach(key => {
                  try {
                    chai.expect(parsed[key]).to.deep.equal(testCase.compiled[key]);

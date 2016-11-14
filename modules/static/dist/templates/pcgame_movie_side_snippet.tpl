@@ -1,5 +1,6 @@
-{{#with richData}}
-    {{#if (logic superType '===' 'game')}}
+{{#with extra.rich_data}}
+    {{!--
+      {{#if (logic superType '===' 'game')}}
         <div>
             <div class="cqz-rd-info">{{local 'GameCategory'}}: {{game_cat}}</div>
             {{#if rating}}
@@ -12,6 +13,7 @@
         </div>
     {{/if}}
     {{#if (logic superType '===' 'movie')}}
+    --}}
         <div>
             {{#if (logic director '&&' director.title)}}
                 <div class="cqz-rd-info">{{local director.title}}: <a href="{{director.info.url}}" class="cqz-rd-link"
@@ -33,5 +35,7 @@
                 <p>{{des}}</p>
             </div>
         </div>
-    {{/if}}
+    {{!--
+      <!-- {{/if}} -->
+    --}}
 {{/with}}

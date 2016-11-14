@@ -2,6 +2,11 @@
 # Options
 ###############################################################################
 
+############
+# Redirect #
+{"filter": "||cliqz.com$redirect=blackhole.js", "compiled": {"supported": true, "redirect": "blackhole.js"}}
+{"filter": "||cliqz.com$~redirect", "compiled": {"supported": false}}
+
 #############
 # matchCase #
 # > True    #
@@ -173,9 +178,6 @@
 
 ##############################################################
 # supported / not supported (unsupported options) #
-# > Redirect
-{"filter": "||cliqz.com$redirect", "compiled": {"supported": false}}
-{"filter": "||cliqz.com$~redirect", "compiled": {"supported": false}}
 # > generichide
 {"filter": "||cliqz.com$generichide", "compiled": {"supported": false}}
 {"filter": "||cliqz.com$~generichide", "compiled": {"supported": false}}
@@ -261,6 +263,8 @@
 # isComment #
 # > True
 {"filter": "# ||cliqz.com^test/ad*|", "compiled": {"isComment": true}}
+{"filter": "# ", "compiled": {"isComment": true}}
+{"filter": "#", "compiled": {"isComment": true}}
 {"filter": "! ||cliqz.com^test/ad*|", "compiled": {"isComment": true}}
 {"filter": "[Adblock] ||cliqz.com^test/ad*|", "compiled": {"isComment": true}}
 {"filter": "[Adblock Plus 2.0] ||cliqz.com^test/ad*|", "compiled": {"isComment": true}}
@@ -287,9 +291,9 @@
 
 ##########################
 # Comment at end of line #
-{"filter": "cliqz # Comment", "compiled": {"filterStr": "cliqz"}}
-{"filter": "cliqz #Comment", "compiled": {"filterStr": "cliqz"}}
-{"filter": "cliqz #", "compiled": {"filterStr": "cliqz"}}
+# {"filter": "cliqz # Comment", "compiled": {"filterStr": "cliqz"}}
+# {"filter": "cliqz #Comment", "compiled": {"filterStr": "cliqz"}}
+# {"filter": "cliqz #", "compiled": {"filterStr": "cliqz"}}
 
 
 ###############################################################################

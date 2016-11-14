@@ -1,5 +1,6 @@
 import { utils } from "core/cliqz";
 import CliqzHandlebars from "core/templates";
+import autocomplete from "autocomplete/autocomplete";
 
 var messages = {
   "movies": {
@@ -57,7 +58,7 @@ var events = {
           localType = el.getAttribute("local_sc_type") || "default";
 
       container.innerHTML = CliqzHandlebars.tplCache["partials/location/missing_location_2"]({
-          friendly_url: el.getAttribute("bm_url"),
+          url: el.getAttribute("bm_url"),
           trans_str: messages[localType].trans_str
       });
       CliqzUtils.telemetry({
@@ -108,18 +109,28 @@ export default class {
 
   loadLocalResults(el) {
     this.CLIQZ.UI.gCliqzBox.querySelector(".location_permission_prompt").classList.add("loading");
-    var bmUrl = el.getAttribute("bm_url");
-    if (!bmUrl) {
-      this.failedToLoadResults(el);
-      return;
-    }
     CliqzUtils.callAction("geolocation", "updateGeoLocation", []).then(loc => {
       if(loc.latitude && loc.longitude){
-        CliqzUtils.httpGet(CliqzUtils.RICH_HEADER +
-            "&q=" + this.CLIQZ.Core.urlbar.value +
-            CliqzUtils.encodeLocation(true, loc.latitude, loc.longitude) +
-            "&bmresult=" + bmUrl,
-            this.handleNewLocalResults(el));
+        var query = autocomplete.lastResult._searchString,
+            localResult = autocomplete.lastResult._results[0],
+            url = CliqzUtils.RICH_HEADER + CliqzUtils.getRichHeaderQueryString(
+              query,
+              loc
+            ),
+            data = {
+              q: query,
+              results: [
+                {
+                  url: localResult.val,
+                  snippet: {
+                    title: localResult.data.title,
+                    description: localResult.data.description
+                  }
+                }
+              ]
+            };
+        CliqzUtils.httpPut(url, this.handleNewLocalResults(el), JSON.stringify(data));
+
       } else {
         CliqzUtils.log("Unable to get user's location", "getlocation.actions.updateGeoLocation");
         this.failedToLoadResults(el);
@@ -138,7 +149,7 @@ export default class {
 
       try {
         resp = JSON.parse(req.response);
-        } catch (ex) {
+      } catch (ex) {
         this.failedToLoadResults(el);
         return;
       }
@@ -147,9 +158,15 @@ export default class {
           container = container.parentElement;
           if (!container || container.id == "cliqz-results") return;
         }
-        this.CLIQZ.UI.enhanceResults(resp);
-        r = this.CLIQZ.UI.enhanceResults(resp).results[0];
-        if (container) container.innerHTML = CliqzHandlebars.tplCache[r.data.template](r);
+        resp = this.CLIQZ.UI.enhanceResults(resp);
+        r = resp.results[0];
+        // r.type === 'cliqz-extra' checks if the RH enhanced this result, or if it returned
+        // back the same snippet that it received (no local data)
+        if (r.type === 'cliqz-extra' && container) {
+          container.innerHTML = CliqzHandlebars.tplCache[r.template || 'generic'](r);
+        } else {
+          this.failedToLoadResults(el);
+        }
       } else {
         this.failedToLoadResults(el);
       }

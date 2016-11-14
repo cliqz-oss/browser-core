@@ -22,10 +22,7 @@ export default class extends QSWhitelistBase {
   }
 
   init() {
-    super.init();
-    this.safeTokens.load();
-    this.unsafeKeys.load();
-    this.trackerDomains.load();
+
     try {
       this.lastUpdate = JSON.parse(persist.getValue('lastUpdate'));
       if (this.lastUpdate.length !== 4) {
@@ -60,7 +57,14 @@ export default class extends QSWhitelistBase {
       }
     };
 
-    events.sub('attrack:updated_config', this.onConfigUpdate);
+    return Promise.all([
+      super.init(),
+      this.safeTokens.load(),
+      this.unsafeKeys.load(),
+      this.trackerDomains.load(),
+    ]).then(() => {
+      events.sub('attrack:updated_config', this.onConfigUpdate);
+    });
   }
 
   destroy() {

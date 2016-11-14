@@ -17,8 +17,9 @@ export default class {
   }
 
   init() {
-    this.safeKeys.load();
-    pacemaker.register(this._hourlyPruneAndSend.bind(this), 60 * 60 * 1000);
+    return this.safeKeys.load().then(() => {
+      pacemaker.register(this._hourlyPruneAndSend.bind(this), 60 * 60 * 1000);
+    });
   }
 
   destroy() {

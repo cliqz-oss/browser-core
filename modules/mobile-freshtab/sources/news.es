@@ -1,8 +1,10 @@
 /* global CustomEvent, window, document, osAPI */
 
 import LongPress from 'mobile-touch/longpress';
-import CliqzHandlebars from 'core/templates';
 import CliqzUtils from 'core/utils';
+import Storage from 'core/storage';
+
+const storage = new Storage();
 
 var DEPENDENCY_STATUS = {
   NOT_LOADED: 'NOT_LOADED',
@@ -12,11 +14,12 @@ var DEPENDENCY_STATUS = {
   retryCount: {}
 };
 
-var topSitesList = [], tempBlockedTopSites = [], newsVersion, displayedTopSitesCount, TOPSITES_LIMIT = 5;
+let topSitesList = [], tempBlockedTopSites = [], newsVersion, displayedTopSitesCount;
+const TOPSITES_LIMIT = 5, NEWS_LIMIT = 2;
 
 function displayTopSites (list, isEditMode = false) {
 
-  const blockedTopSites = CliqzUtils.getLocalStorage().getObject('blockedTopSites', []);
+  const blockedTopSites = storage.getObject('blockedTopSites', []);
 
   list = deduplicateTopsites(list);
 
@@ -48,31 +51,60 @@ function displayTopSites (list, isEditMode = false) {
   list = list.concat(Array(TOPSITES_LIMIT).fill(''));
   list = list.splice(0, TOPSITES_LIMIT);
 
-  const topSites = CliqzHandlebars.tplCache.topsites;
   const div = document.getElementById('topSites');
   const theme = (CliqzUtils.getPref('incognito', false) === 'true' ? 'incognito' : 'standard');
-  div.innerHTML = topSites({isEmpty, isEditMode, list, theme});
+  div.innerHTML = CLIQZ.templates.topsites({isEmpty, isEditMode, list, theme});
 
 
   CliqzUtils.addEventListenerToElements('#doneEditTopsites', 'click', _ => {
-    const blockedTopSites = CliqzUtils.getLocalStorage().getObject('blockedTopSites', []);
-    CliqzUtils.getLocalStorage().setObject('blockedTopSites', blockedTopSites.concat(tempBlockedTopSites));
+    const delete_count = tempBlockedTopSites.length;
+    const blockedTopSites = storage.getObject('blockedTopSites', []);
+    storage.setObject('blockedTopSites', blockedTopSites.concat(tempBlockedTopSites));
     tempBlockedTopSites = [];
     displayTopSites(topSitesList);
+    CliqzUtils.telemetry({
+      type: 'home',
+      action: 'click',
+      target: 'confirm_delete',
+      count: displayedTopSitesCount,
+      delete_count
+    });
   });
 
-  CliqzUtils.addEventListenerToElements('#cancelEditTopsites', 'click', _ => {
+  CliqzUtils.addEventListenerToElements('#cancelEditTopsites', 'click', () => {
+    const delete_count = tempBlockedTopSites.length;
     tempBlockedTopSites = [];
     displayTopSites(topSitesList);
+    CliqzUtils.telemetry({
+      type: 'home',
+      action: 'click',
+      target: 'cancel_delete',
+      count: displayedTopSitesCount,
+      delete_count
+    });
   });
 
-  CliqzUtils.addEventListenerToElements('.blockTopsite', 'click', function () {
+  CliqzUtils.addEventListenerToElements('.blockTopsite', 'click', function ({ target:element }) {
     tempBlockedTopSites.push(this.getAttribute('mainDomain'));
     displayTopSites(topSitesList, true);
+    CliqzUtils.telemetry({
+      type: 'home',
+      action: 'click',
+      target: 'delete_topsite',
+      count: displayedTopSitesCount,
+      index: element.dataset.index
+    });
   });
 
-  function onLongpress () {
+  function onLongpress (element) {
     displayTopSites(topSitesList, true);
+    CliqzUtils.telemetry({
+      type: 'home',
+      action: 'longpress',
+      target: 'topsite',
+      count: displayedTopSitesCount,
+      index: element.dataset.index
+    });
   }
 
   function onTap (element) {
@@ -95,79 +127,95 @@ function deduplicateTopsites(list) {
 }
 
 var News = {
+  lastShowTime: 0,
   GENERIC_NEWS_URL: 'https://newbeta.cliqz.com/api/v1/rich-header?path=/map&bmresult=rotated-top-news.cliqz.com&lang=de,en&locale=de',
   _recentHistory: {},
-  getNews: function() {
+  getNews: function(url) {
     log('loading news');
 
-    let method = 'GET',
+    let method = 'PUT',
     callback = function(data) {
         try {
             const sResponse = JSON.parse(data.responseText);
-            newsVersion = sResponse.results[0].news_version;
-            News.displayTopNews(sResponse.results[0].articles);
+            console.log('---- RH Response ----', sResponse);
+            newsVersion = sResponse.results[0].snippet.extra.news_version;
+            News.displayTopNews(sResponse.results[0].snippet.extra.articles);
         } catch(e) {
             log(e);
         }
     },
     onerror = function() {
       log('news error', arguments);
-      setTimeout(News.getNews, 1500);
+      setTimeout(News.getNews, 1500, url);
     },
     timeout = function() {
       log('timeout error', arguments);
-      News.getNews();
+      News.getNews(url);
     },
-    data = null;
-    CliqzUtils.httpHandler(method, News.GENERIC_NEWS_URL, callback, onerror, timeout, data);
+    data = {
+      q: '',
+      results: [
+        {
+          url: 'rotated-top-news.cliqz.com',
+          snippet: {}
+        }
+      ]
+    };
+    CliqzUtils.httpHandler(method, url, callback, onerror, timeout, JSON.stringify(data));
 
   },
-  displayTopNews: function(top_news) {
-    if(!top_news) {
+  displayTopNews: function(news) {
+    if(!news) {
       return;
     }
 
-    top_news = top_news.map(function(r){
+    news = news.map(function(r){
       const details = CliqzUtils.getDetailsFromUrl(r.url);
       const logo = CliqzUtils.getLogoDetails(details);
+      const type = r.breaking ? 'breakingnews' : 'topnews';
       return {
+        breaking: r.breaking,
         title: r.title,
         description: r.description,
         short_title: r.short_title || r.title,
         displayUrl: details.domain || r.title,
         url: r.url,
-        type: r.type,
         text: logo.text,
         backgroundColor: logo.backgroundColor,
         buttonsClass: logo.buttonsClass,
-        style: logo.style
+        style: logo.style,
+        type,
       };
     });
-    top_news = top_news.splice(0, 2);
+    news = news.splice(0, NEWS_LIMIT);
     const dependencyStatus = News.getDependencyStatus('topnews');
     if(dependencyStatus === DEPENDENCY_STATUS.NOT_LOADED) {
-      return setTimeout(News.displayTopNews, 100, top_news);
+      return setTimeout(News.displayTopNews, 100, news);
     } else if(dependencyStatus === DEPENDENCY_STATUS.GIVE_UP) {
       return;
     }
-    const topNews = CliqzHandlebars.tplCache.topnews;
     const div = document.getElementById('topNews');
-    div.innerHTML = topNews(top_news);
-    CliqzUtils.addEventListenerToElements('.topNewsLink', 'click', function () {
+    div.innerHTML = CLIQZ.templates.topnews(news);
+    CliqzUtils.addEventListenerToElements('.answer', 'click', function ({ currentTarget: item, target: element}) {
+      osAPI.openLink(item.dataset.url)
       CliqzUtils.telemetry({
         type: 'home',
         action: 'click',
-        target_type: 'topnews',
-        target_index: this.dataset.index
+        target: item.dataset.type,
+        element: element.dataset.extra,
+        index: item.dataset.index,
       });
     });
     window.dispatchEvent(new CustomEvent('newsLoadingDone'));
-
+    const breakingnews_count = news.reduce((count, item) => item.breaking ? count + 1 : count, 0);
+    const topnews_count = news.length - breakingnews_count;
     CliqzUtils.telemetry({
-      'type': 'home',
-      'action': 'display',
-      'historysites': displayedTopSitesCount,
-      'topnews_version': newsVersion
+      type: 'home',
+      action: 'show',
+      topsite_count: displayedTopSitesCount,
+      topnews_version: newsVersion,
+      topnews_count,
+      breakingnews_count,
     });
   },
 
@@ -181,8 +229,9 @@ var News = {
     } else if(dependencyStatus === DEPENDENCY_STATUS.GIVE_UP) {
       return;
     }
+    News.lastShowTime = Date.now();
 
-    News.getNews();
+    News.getNews(CliqzUtils.RICH_HEADER + CliqzUtils.getRichHeaderQueryString(''));
 
     topSitesList = [];
     let domain, domainArr, mainDomain;
@@ -202,12 +251,22 @@ var News = {
     if(DEPENDENCY_STATUS.retryCount[template] === undefined) {
       DEPENDENCY_STATUS.retryCount[template] = 0;
     }
-    if(!CliqzUtils.BRANDS_DATABASE.buttons || !CliqzHandlebars.tplCache[template]) {
+    if(!CliqzUtils.BRANDS_DATABASE.buttons) {
       return DEPENDENCY_STATUS.retryCount[template]++ < DEPENDENCY_STATUS.RETRY_LIMIT ? DEPENDENCY_STATUS.NOT_LOADED : DEPENDENCY_STATUS.GIVE_UP;
     }
     DEPENDENCY_STATUS.retryCount[template] = 0;
     return DEPENDENCY_STATUS.LOADED;
-  }
+  },
+
+  hideFreshtab: function () {
+    window.document.getElementById('startingpoint').style.display = 'none';
+    const showDuration = Date.now() - News.lastShowTime;
+    CliqzUtils.telemetry({
+      type: 'home',
+      action: 'hide',
+      show_duration: showDuration,
+    });
+  },
 };
 
 function log() {

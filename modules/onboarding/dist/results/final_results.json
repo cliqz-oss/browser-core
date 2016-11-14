@@ -9,6 +9,7 @@
       "text": "surfen münchen",
       "data": {
         "adult": false,
+        "template": "generic",
         "type": "other",
         "description": "Ein Blog über das Surfen in München mit Tipps zu Riversurfboards und vielen Informationen zur Münchner Szene im Riversurfen.\r\n",
         "kind": [
@@ -23,6 +24,7 @@
       "text": "surfen münchen",
       "data": {
         "adult": false,
+        "template": "generic",
         "type": "other",
         "description": "eisbachwelle.de - EISBACH MÜNCHEN RIVER SURFING – alles über Surfer & Fluss Surfen an der Eisbach Welle München Deutschland – river wave surfing Munich Germany",
         "kind": [
@@ -37,6 +39,7 @@
       "text": "surfen münchen",
       "data": {
         "adult": false,
+        "template": "generic",
         "type": "other",
         "description": "Die Eisbachsurfer sind weltbekannt: Auf zwei stehenden Wellen können erfahrene Surfer normalerweise wellenreiten. Die Welle an der Floßlände ist derzeit jedoch nicht nutzbar.",
         "kind": [

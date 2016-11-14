@@ -15,7 +15,7 @@ import { AttrackBloomFilter } from 'antitracking/bloom-filter';
 import * as datetime from 'antitracking/time';
 import QSWhitelist from 'antitracking/qs-whitelists';
 import BlockLog from 'antitracking/block-log';
-import { utils, events, Promise } from 'core/cliqz';
+import { utils, events } from 'core/cliqz';
 import ResourceLoader from 'core/resource-loader';
 import core from 'core/background';
 import CookieChecker from 'antitracking/cookie-checker';
@@ -27,9 +27,6 @@ import telemetry from 'antitracking/telemetry';
 
 var countReload = false;
 
-function onUrlbarFocus(){
-    countReload = true;
-}
 
 /**
  * Add padding characters to the left of the given string.
@@ -81,6 +78,10 @@ function anonymizeTrackerTokens(trackerData) {
   }
 
   return anonymizedTrackerData;
+}
+
+function logBreakageEnabled() {
+  return utils.getPref('attrackLogBreakage', false);
 }
 
 var CliqzAttrack = {
@@ -140,8 +141,7 @@ var CliqzAttrack = {
     bootupWhitelistCache: {},
     blockedCache: {},
     visitCache: {},
-    contextOauth: {},
-    linksFromDom: {},
+    contextOauth: {}, linksFromDom: {},
     cookiesFromDom: {},
     loadedTabs: {},
     breakageCache: {},
@@ -252,6 +252,10 @@ var CliqzAttrack = {
             if (source_url != null) {
                 source_url_parts = URLInfo.get(source_url);
 
+                // skip for chrome and resource protcols
+                if (source_url_parts.protocol === 'chrome' || source_url_parts.protocol === 'resource') {
+                    return;
+                }
                 // same general domain
                 same_gd = sameGeneralDomain(url_parts.hostname, source_url_parts.hostname) || false;
                 if (same_gd) {
@@ -497,7 +501,7 @@ var CliqzAttrack = {
 
 
                 // broken by attrack?
-                if (CliqzAttrack.recentlyModified.has(source_tab + url) && requestContext.channel.responseStatus >= 400) {
+                if (CliqzAttrack.recentlyModified.has(source_tab + url) && requestContext.channel.responseStatus >= 400 && logBreakageEnabled()) {
                   const dedupKey = [source_url, url_parts.hostname, url_parts.path].join('-');
                   CliqzAttrack.breakageCache[dedupKey] = CliqzAttrack.breakageCache[dedupKey] || {
                     hostname: md5(source_url_parts.hostname).substring(0, 16),
@@ -588,6 +592,11 @@ var CliqzAttrack = {
             source_url_parts = URLInfo.get(source_url);
             var req_log = null;
 
+            // skip for chrome and resource protcols
+            if (source_url_parts.protocol === 'chrome' || source_url_parts.protocol === 'resource') {
+                return;
+            }
+
             var same_gd = false;
             if (url_parts.hostname!='' && source_url_parts && source_url_parts.hostname!='') {
                 same_gd = sameGeneralDomain(url_parts.hostname, source_url_parts.hostname);
@@ -646,8 +655,8 @@ var CliqzAttrack = {
                 var diff = curr_time - (CliqzAttrack.cChecker.contextFromEvent.ts || 0);
                 if (diff < CliqzAttrack.timeAfterLink) {
 
-                    var host = getGeneralDomain(url_parts.hostname);
-                    if (host === CliqzAttrack.cChecker.contextFromEvent.gDM) {
+                    const hostGD = getGeneralDomain(url_parts.hostname);
+                    if (hostGD === CliqzAttrack.cChecker.contextFromEvent.cGD) {
                         CliqzAttrack.visitCache[host] = curr_time;
                         var src = null;
                         if (source_url_parts && source_url_parts.hostname) src = source_url_parts.hostname;
@@ -814,20 +823,6 @@ var CliqzAttrack = {
                 CliqzAttrack.clearDomLinks();
             }
         }
-
-        // New location, means a page loaded on the top window, visible tab
-        var activeURL = browser.currentURL();
-        var curr_time = Date.now();
-
-        if ((activeURL.indexOf('about:')!=0) && (activeURL.indexOf('chrome:')!=0)) {
-
-            var url_parts = parseURL(activeURL);
-
-            if (url_parts && url_parts.hostname && url_parts.hostname!='') {
-                var host = getGeneralDomain(url_parts.hostname);
-                CliqzAttrack.visitCache[host] = curr_time;
-            }
-        }
     },
     getDefaultRule: function() {
         if (CliqzAttrack.isForceBlockEnabled()) {
@@ -972,7 +967,8 @@ var CliqzAttrack = {
         //this._blocked = new persist.AutoPersistentObject("blocked", (v) => CliqzAttrack.blocked = v, 300000);
 
         CliqzAttrack.qs_whitelist = CliqzAttrack.isBloomFilterEnabled() ? new AttrackBloomFilter() : new QSWhitelist();
-        CliqzAttrack.qs_whitelist.init();
+        const initPromises = [];
+        initPromises.push(CliqzAttrack.qs_whitelist.init());
         CliqzAttrack.blockLog = new BlockLog(CliqzAttrack.qs_whitelist);
         CliqzAttrack.blockLog.init();
 
@@ -1034,6 +1030,8 @@ var CliqzAttrack = {
 
         CliqzAttrack.trackerProxy = new TrackerProxy();
         CliqzAttrack.trackerProxy.init();
+
+        return Promise.all(initPromises);
     },
     /** Per-window module initialisation
      */
@@ -1041,9 +1039,6 @@ var CliqzAttrack = {
         if (CliqzAttrack.getBrowserMajorVersion() < CliqzAttrack.MIN_BROWSER_VERSION) {
             return;
         }
-        // Load listerners:
-        window.CLIQZ.Core.urlbar.addEventListener('focus', onUrlbarFocus);
-
         CliqzAttrack.getPrivateValues(window);
     },
     unload: function() {
@@ -1060,8 +1055,6 @@ var CliqzAttrack = {
         CliqzAttrack.blockLog.destroy();
         CliqzAttrack.qs_whitelist.destroy();
 
-        browser.forEachWindow(CliqzAttrack.unloadWindow);
-
         WebRequest.onBeforeRequest.removeListener(CliqzAttrack.httpopenObserver.observe);
         WebRequest.onBeforeSendHeaders.removeListener(CliqzAttrack.httpmodObserver.observe);
         WebRequest.onHeadersReceived.removeListener(CliqzAttrack.httpResponseObserver.observe);
@@ -1077,11 +1070,6 @@ var CliqzAttrack = {
         }
 
         events.un_sub("attrack:safekeys_updated");
-    },
-    unloadWindow: function(window) {
-        if (window.CLIQZ) {
-            window.CLIQZ.Core.urlbar.removeEventListener('focus', onUrlbarFocus);
-        }
     },
     checkInstalledAddons: function() {
         System.import('platform/antitracking/addon-check').then( (addons) => {
@@ -1679,6 +1667,9 @@ var CliqzAttrack = {
     removeSourceDomainFromWhitelist: function(domain) {
       CliqzAttrack.disabled_sites.delete(domain);
       CliqzAttrack.saveSourceDomainWhitelist();
+    },
+    onUrlbarFocus(){
+      countReload = true;
     }
 };
 

@@ -4,7 +4,14 @@ var jsAPI = {
   init: function () {
   },
   search: function(e, location_enabled, latitude, longitude) {
-    CliqzUtils.search(e, location_enabled, latitude, longitude);
+    if (location_enabled) {
+      CliqzUtils.USER_LAT = latitude;
+      CliqzUtils.USER_LNG = longitude;
+    } else {
+      delete CliqzUtils.USER_LAT;
+      delete CliqzUtils.USER_LNG;
+    }
+    CliqzUtils.search(e);
   },
   getCardUrl: function() {
     var NOT_SHAREABLE_SIGNAL = '-1';
@@ -83,5 +90,8 @@ var jsAPI = {
     } else { // history view
       History.update();
     }
+  },
+  onBoardingSwipe: function () {
+    CLIQZ.UI.onBoardingSwipe();
   }
 }

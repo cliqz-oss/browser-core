@@ -223,17 +223,20 @@ export default class {
     this.blockLog.init();
     this.tokenDomain.init();
 
-    events.sub('attrack:hour_changed', () => {
+    this.onHourChanged = () => {
       this.currentHour = datetime.getTime();
       this._clean();
       this.sendTelemetry();
-    });
-    events.sub('attrack:token_whitelist_updated', () => {
+    };
+    events.sub('attrack:hour_changed', this.onHourChanged);
+    this.onTokenWhitelistUpdated = () => {
       this.checkWrongToken('token');
-    });
-    events.sub('attrack:safekeys_updated', () => {
+    };
+    events.sub('attrack:token_whitelist_updated', this.onTokenWhitelistUpdated);
+    this.onSafekeysUpdated = () => {
       this.checkWrongToken('safeKey');
-    });
+    };
+    events.sub('attrack:safekeys_updated', this.onSafekeysUpdated)
 
     this.checkedToken.load();
     this.blockedToken.load();
@@ -251,6 +254,9 @@ export default class {
   }
 
   destroy() {
+    events.un_sub('attrack:hour_changed', this.onHourChanged);
+    events.un_sub('attrack:token_whitelist_updated', this.onTokenWhitelistUpdated);
+    events.un_sub('attrack:safekeys_updated', this.onSafekeysUpdated)
     pacemaker.deregister(this._pmTask);
     this.blockLog.destroy();
   }

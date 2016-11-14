@@ -49,6 +49,20 @@ export default background({
         t: data.type,
         pt: data.positionType,
       };
+    },
+     /**
+    * @event control-center:toggleHumanWeb
+    */
+    "control-center:toggleHumanWeb": function() {
+      if(utils.getPref("humanWeb", false) && !utils.getPref('dnt', false)){
+        HumanWeb.unloadAtBrowser();
+      } else {
+        HumanWeb.initAtBrowser();
+      }
+
+     utils.extensionRestart(function() {
+       utils.setPref('dnt', !utils.getPref('dnt', false));
+     });
     }
   },
 

@@ -35,6 +35,7 @@ let currWinId = undefined;
 chrome.windows.getCurrent(null, (win) => { currWinId = win.id; });
 
 const urlbar = document.getElementById('urlbar'),
+      settingsContainer = document.getElementById("settings-container"),
       settings = document.getElementById("settings");
 
 CLIQZ.Core = {
@@ -44,41 +45,50 @@ CLIQZ.Core = {
 }
 
 System.baseURL = "modules/";
+System.config({
+  defaultJSExtensions: true
+})
 
 console.log('LOADING ...')
 
-let acResults;
-
+let SEARCH;
+System.set('handlebars', System.newModule({default: Handlebars}));
 Promise.all([
-  System.import("core/utils"),
-  System.import("core/templates")
+  System.import("core/cliqz"),
+  System.import("core/templates"),
   ])
   .then(function(modules){
-    window.CliqzUtils = modules[0].default;
-    window.CliqzHandlebars = modules[1].default;
+    window.CliqzHandlebars = System.get(System.normalizeSync('handlebars')).default;
+    window.CliqzUtils = System.get(System.normalizeSync("core/utils")).default;
+
   })
   .then(function(){
     return Promise.all([
       System.import("platform/environment"),
       System.import("autocomplete/mixer"),
       System.import("autocomplete/autocomplete"),
-      System.import("ui/background"),
+      System.import("autocomplete/result-providers"),
       System.import("core/events"),
-      System.import("platform/expansions-provider"),
+      System.import("ui/background"),
+      System.import("expansions-provider/expansions-provider"),
       System.import("core/config"),
-      System.import("geolocation/background")
+      System.import("geolocation/background"),
+      System.import("autocomplete/search")
     ])
   }).then(function (modules) {
     window.CLIQZEnvironment = modules[0].default;
     window.Mixer = modules[1].default;
     window.CliqzAutocomplete = modules[2].default;
+    window.ResultProviders = modules[3].default;
     window.CliqzEvents = modules[4].default;
+    CLIQZ.config = modules[7].default;
+    window.Search = modules[9].default;
 
 
     CliqzUtils.System = System;
     CliqzAutocomplete.Mixer = Mixer;
-    CLIQZEnvironment.ExpansionsProvider = modules[5].default;
-    CLIQZ.config = modules[6].default;
+    //CLIQZEnvironment.ExpansionsProvider = modules[5].default;
+
 
     // initiaize geolocation window
     CliqzUtils.callAction("geolocation", "updateGeoLocation", []);
@@ -104,18 +114,18 @@ Promise.all([
     // localize
     CliqzUtils.localizeDoc(document);
 
-    CLIQZ.UI.preinit(CliqzAutocomplete, CliqzHandlebars, CliqzEvents);
+    CLIQZ.UI.preinit(CliqzAutocomplete, window.CliqzHandlebars, CliqzEvents);
     CLIQZ.UI.init(urlbar);
     CLIQZ.UI.main(document.getElementById('results'));
     // Initialization of the ExpansionProvider should be after
     // the initialization of the autocomplete otherwise
     // CliqzUtils.getBackendResults gets blindly overwriten
-    CLIQZEnvironment.ExpansionsProvider.init();
+    //CLIQZEnvironment.ExpansionsProvider.init();
 
     // remove keydown handler from UI - the platform will do it
     urlbar.removeEventListener('keydown', CLIQZ.UI.urlbarkeydown)
   }).then(function () {
-    acResults = new CliqzAutocomplete.CliqzResults();
+    SEARCH = new Search();
 
     handleSettings();
     whoAmI(true);
@@ -136,54 +146,133 @@ Promise.all([
           if (winId === currWinId)
             CLIQZ.UI.selectResultByIndex(toIndex);
         });
+
+    var isUrlbarFocused = false;
     chrome.cliqzSearchPrivate.onOmniboxFocusChanged.addListener(
         (winId, focused) => {
-          if (winId === currWinId && !focused) {
-            CLIQZ.UI.sessionEnd();
-            // Close settings section.
-            document.getElementById("settings").classList.add("hidden");
+          if (winId === currWinId) {
+            if (!focused) { //blur
+              CLIQZ.UI.sessionEnd();
+              urlbarEvent('blur');
+              // Close settings section.
+              settingsContainer.classList.remove("open");
+            }
+            else { //focus
+              CliqzAutocomplete.lastFocusTime = Date.now();
+              CliqzUtils.setSearchSession(CliqzUtils.rand(32));
+              urlbarEvent('focus');
+              isUrlbarFocused = true;
+            }
           }
         });
-
+    chrome.cliqzSearchPrivate.onMatchAccepted.addListener(
+        (winId, inputSize, autocompleted, position, isSearch, destURL) => {
+          if (winId !== currWinId)
+            return;
+          const details = {
+              action: "result_enter",
+              autocompleted: autocompleted,
+              urlbar_time: CliqzAutocomplete.lastFocusTime ?
+                  (new Date()).getTime() - CliqzAutocomplete.lastFocusTime :
+                  null,
+              position_type: [isSearch ? 'inbar_query' : 'inbar_url'],
+              source: CLIQZ.UI.getResultKind(CLIQZ.UI.getResultSelection()),
+              current_position: position,
+              new_tab: false // TODO: Pass whether it's opened in a new tab.
+            };
+          if (autocompleted) {
+            details.autocompleted_length = destURL.length;
+          }
+          const element = (position >= 0) ?
+              CLIQZ.UI.keyboardSelection : {url: destURL};
+          CLIQZ.UI.logUIEvent(
+              element,
+              "autocomplete",
+              details
+          );
+        });
     // TODO: Move these to CE inself and introduce module init().
-    chrome.cliqzSearchPrivate.getSearchEngines((engines, defIdx) => {
-      function renameProps(obj, mapping) {
-        for (let p of Object.keys(mapping)) {
-          obj[mapping[p]] = obj[p];
-          delete obj[p];
-        }
-      }
+    chrome.cliqzSearchPrivate.getSearchEngines(updateSearchEngines);
+    chrome.cliqzSearchPrivate.onSearchEnginesChanged.addListener(
+        updateSearchEngines);
+    chrome.runtime.getPlatformInfo(v => CLIQZEnvironment.OS = v.os);
 
-      const enginePropMapping = {
-        "keyword"         : "alias",
-        "faviconUrl"      : "icon",
-        "id"              : "code",
-        "searchUrl"       : "searchForm",
-        "suggestionsUrl"  : "suggestionUrl"
+
+    //TODO - make this more generic -> do not copy events from UI/window.js
+    function urlbarEvent(ev) {
+      var action = {
+        type: 'activity',
+        action: 'urlbar_' + ev
       };
 
-      for (let engine of engines) {
-        renameProps(engine, enginePropMapping);
-      }
-      engines[defIdx].default = true;
+      CliqzEvents.pub('core:urlbar_' + ev);
+      CliqzUtils.telemetry(action);
+    }
 
-      CLIQZEnvironment._ENGINES = engines;
+    chrome.tabs.onCreated.addListener(function(tabId, changeInfo, tab) {
+      console.log("Tab created", arguments);
+
+      if (isUrlbarFocused){
+        // we try here to mimic what happens on Firefox
+        // blur first
+        urlbarEvent('blur');
+        CLIQZ.UI.sessionEnd();
+      }
+
+      // focus after
+      CliqzAutocomplete.lastFocusTime = Date.now();
+      CliqzUtils.setSearchSession(CliqzUtils.rand(32));
+      urlbarEvent('focus');
     });
-    chrome.runtime.getPlatformInfo(v => CLIQZEnvironment.OS = v.os);
 
     console.log('Glue init complete!');
   });
 
+function updateSearchEngines(engines, defIdx) {
+  function renameProps(obj, mapping) {
+    for (let p of Object.keys(mapping)) {
+      obj[mapping[p]] = obj[p];
+      delete obj[p];
+    }
+  }
+
+  const enginePropMapping = {
+    "keyword"         : "alias",
+    "faviconUrl"      : "icon",
+    "id"              : "code",
+    "searchUrl"       : "searchForm",
+    "suggestionsUrl"  : "suggestionUrl"
+  };
+
+  for (let engine of engines) {
+    renameProps(engine, enginePropMapping);
+  }
+  engines[defIdx].default = true;
+
+  CLIQZEnvironment._ENGINES = engines;
+}
+
 function startAutocomplete(query) {
-  settings.classList.add('hidden');
+  settings.classList.remove("open");
   urlbar.value = query;
-  acResults.search(query, function(r) {
+  SEARCH.search(query, function(r, i) {
     CLIQZ.UI.setRawResults({
       q: r._searchString,
       results: r._results.map(function(r) {
         r.type = r.style;
+        delete r.style;
+
+        r.text = r.query;
+        delete r.query;
+        delete r.label;
+
         r.url = r.val || '';
+        delete r.val;
+
         r.title = r.comment || '';
+        delete r.comment;
+
+        r.maxNumberOfSlots = (i == 0 ? 3 : 1 )
         return r;
       }),
       isInstant: false,
@@ -236,6 +325,16 @@ const stubs = {
         addListener: 0
       },
       onSelectionMoved: {
+        addListener: 0
+      },
+      onOmniboxFocusChanged: {
+        addListener: 0
+      },
+      getSearchEngines: 0,
+      onSearchEnginesChanged: {
+        addListener: 0
+      },
+      onMatchAccepted: {
         addListener: 0
       }
     }
@@ -297,63 +396,60 @@ function generateSession(source){
 
 // Settings
 
-function createOptionEntries(el, options, prefKey, action){
-  while (el.lastChild) {
-    el.removeChild(el.lastChild);
-  }
-
-  for(let id in options){
-    let option = document.createElement('option');
-    option.value = id;
-    option.textContent = options[id].name;
-    option.selected = options[id].selected;
-    el.appendChild(option);
-  }
-
-  el.addEventListener("change", function(ev){
-    CliqzUtils.setPref(prefKey, ev.target.value);
-    action(ev.target.value);
-  });
-}
-
-function handleSettings(){
+function handleSettings() {
   document.getElementById("settingsButton").addEventListener('click', function(){
-    this.classList.toggle('active');
-    settings.classList.toggle('hidden');
-
-    if(!settings.classList.contains('hidden')){
-      createSettingsMenu();
+    settingsContainer.classList.toggle('open');
+    if (settingsContainer.classList.contains('open')) {
+      updatePrefControls();
     }
   });
 
-  CLIQZEnvironment.addPrefListener(function(pref){
+  const locationSelector = document.getElementById('location');
+  locationSelector.addEventListener("change", function(ev) {
+    CliqzUtils.setPref("share_location", ev.target.value);
+    CliqzUtils.callAction(
+        "geolocation",
+        "setLocationPermission",
+        [ev.target.value.toString()]
+    );
+  });
+
+  const adultSelector = document.getElementById('adult');
+  adultSelector.addEventListener("change", function(ev) {
+    CliqzUtils.setPref("adultContentFilter", ev.target.value);
+  });
+
+  CliqzEvents.sub('prefchange', function(pref){
     // recreate the settings menu if relevant prefs change
     var relevantPrefs = [
       'share_location',
       'adultContentFilter',
     ]
     if(relevantPrefs.indexOf(pref) != -1)
-      createSettingsMenu();
+      updatePrefControls();
   });
 }
 
-function createSettingsMenu(){
-  createOptionEntries(
-    document.getElementById('adult'),
-    CliqzUtils.getAdultFilterState(),
-    "adultContentFilter"
-  );
+function updatePrefControls() {
+  function createOptionEntries(el, options) {
+    while (el.lastChild) {
+      el.removeChild(el.lastChild);
+    }
+
+    for(let id in options){
+      let option = document.createElement('option');
+      option.value = id;
+      option.textContent = options[id].name;
+      option.selected = options[id].selected;
+      el.appendChild(option);
+    }
+  }
 
   createOptionEntries(
-    document.getElementById('location'),
-    CliqzUtils.getLocationPermState(),
-    "share_location",
-    function (val) {
-      CliqzUtils.callAction(
-        "geolocation",
-        "setLocationPermission",
-        [val.toString()]
-      );
-    }
-  );
+      document.getElementById('adult'),
+      CliqzUtils.getAdultFilterState());
+
+  createOptionEntries(
+      document.getElementById('location'),
+      CliqzUtils.getLocationPermState());
 }

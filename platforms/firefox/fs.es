@@ -7,24 +7,32 @@ function getFullPath(filePath) {
   if ( typeof filePath === 'string' ) {
     filePath = [filePath];
   }
-  CliqzUtils.log(JSON.stringify(filePath))
   return OS.Path.join(OS.Constants.Path.profileDir, ...filePath);
 }
 
-export function readFile(filePath) {
-  let path = getFullPath(filePath);
-
-  return OS.File.read(path);
+function encodeText(text) {
+  return (new TextEncoder()).encode(text);
 }
 
-export function writeFile(filePath, data) {
-  let path = getFullPath(filePath);
+function decodeText(array) {
+  return (new TextDecoder()).decode(array);
+}
 
-  return OS.File.writeAtomic(path, data);
+export function readFile(filePath, {isText}={}) {
+  const path = getFullPath(filePath);
+  const data = OS.File.read(path);
+
+  return isText ? decodeText(data) : data;
+}
+
+export function writeFile(filePath, data, {isText}={}) {
+  const path = getFullPath(filePath);
+
+  return OS.File.writeAtomic(path, isText ? encodeText(data) : data);
 }
 
 export function mkdir(dirPath) {
-  let path = getFullPath(dirPath);
+  const path = getFullPath(dirPath);
 
   return OS.File.makeDir(path, { ignoreExisting: true });
 }

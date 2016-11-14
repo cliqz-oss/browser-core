@@ -60,6 +60,7 @@ AboutURL.prototype = {
     var html =  [
         '<!DOCTYPE html><html><head><meta charset="UTF-8">',
         '<style>* {margin:0;padding:0;width:100%;height:100%;overflow:hidden;border: 0}</style>',
+        '<title>' + CliqzUtils.getLocalizedString('new_tab') + '</title>',
         `</head><body><iframe src="${src}">`,
         '</iframe></body></html>'
     ].join("");

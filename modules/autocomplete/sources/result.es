@@ -11,10 +11,8 @@ function log(msg){
 
 // returns the super type of a result - type to be consider for UI creation
 function getSuperType(result){
-    if(result.source == 'bm' && result.snippet && result.snippet.rich_data){
-        return utils.getKnownType(result.snippet.rich_data.superType) || // superType used for custom templates
-               utils.getKnownType(result.snippet.rich_data.type)      || // fallback result type
-               'bm';                                                           // backwards compatibility (most generic type, requires only url)
+    if(result.type == 'bm' && result.snippet && result.template){
+        return utils.getKnownType(result.template) || 'bm';  // backwards compatibility (most generic type, requires only url)
     }
     return null;
 }
@@ -75,8 +73,7 @@ var Result = {
         }
 
         data = data || {};
-        data.kind = [utils.encodeResultType(style) + (subtype? '|' + subtype : '')];
-
+        data.kind = [utils.encodeResultType(style) + (subtype? '|' + JSON.stringify(subtype) : '')];
         var item = {
             style: style,
             val: value,
@@ -87,37 +84,29 @@ var Result = {
         };
         return item;
     },
-    cliqz: function(result){
-        var resStyle = Result.CLIQZR + ' sources-' + utils.encodeSources(getSuperType(result) || result.source).join('');
-
-        if(result.snippet){
-            return Result.generic(
-                resStyle, //style
-                result.url, //value
-                null, //image -> favico
-                result.snippet.title,
-                null, //label
-                result.q, //query
-                Result.getData(result),
-                result.subType
-            );
-        } else {
-            return Result.generic(resStyle, result.url, null, null, null, result.q, null, result.subType);
+    cliqz: function(result, q){
+        var resStyle;
+        if (result.type == 'bm') {
+          resStyle = Result.CLIQZR + ' sources-' + utils.encodeSources(getSuperType(result) || result.type).join('');
         }
-    },
-    cliqzExtra: function(result, snippet){
-        result.data.subType = result.subType;
-        result.data.trigger_urls = result.trigger_urls;
-        result.data.ts = result.ts;
+        else if (result.type == 'rh') {
+          resStyle = Result.CLIQZE;
+        }
+        Object.assign(result.snippet, {
+          subType: result.subType,
+          trigger_urls: result.trigger,
+          ts: result.ts,
+          template: result.template || 'generic'
+        });
 
         return Result.generic(
-            Result.CLIQZE, //style
+            resStyle, //style
             result.url, //value
             null, //image -> favico
-            result.data.title,
+            result.snippet.title,
             null, //label
-            result.q, //query
-            result.data,
+            q, //query
+            result.snippet,
             result.subType
         );
     },
@@ -189,56 +178,6 @@ var Result = {
         }
 
         return true;
-    },
-    // rich data and image
-    getData: function(result){
-        //TODO: rethink the whole image filtering
-        if(!result.snippet)
-            return;
-
-        var urlparts = utils.getDetailsFromUrl(result.url),
-            resp = {
-                richData: result.snippet.rich_data,
-                adult: result.snippet.adult || false,
-                media: result.snippet.media
-            },
-            source = getSuperType(result) || result.source;
-
-        resp.type = "other";
-        for(var type in Result.RULES){
-            var rules = Result.RULES[type];
-
-            for(var rule_i in rules) {
-                var rule = rules[rule_i];
-                if(rule.domain && urlparts.host.indexOf(rule.domain) != -1)
-                    for(var ogtype in (rule.ogtypes || []))
-                        if(result.snippet && result.snippet.og &&
-                           result.snippet.og.type == rule.ogtypes[ogtype])
-                                resp.type = type;
-
-                var verticals = source.split(',');
-                for(var v in verticals){
-                    if(verticals[v].trim() == rule.vertical)
-                        resp.type = type;
-                }
-            }
-
-
-        var snip = result.snippet;
-        resp.description = snip && (snip.desc || snip.snippet || (snip.og && snip.og.description));
-        resp.title = result.snippet.title;
-        // mobile specific url
-        resp.mobile_url = snip.amp_url || snip.m_url;
-
-        var ogT = snip && snip.og? snip.og.type: null,
-            imgT = snip && snip.image? snip.image.type: null;
-
-        if(resp.type != 'other' || ogT == 'cliqz' || imgT == 'cliqz')
-            resp.image = Result.getVerticalImage(result.snippet.image, result.snippet.rich_data) ||
-                         Result.getOgImage(result.snippet.og)
-        }
-
-        return resp;
     },
     getOgImage: function(og) {
         if(og && og.image){

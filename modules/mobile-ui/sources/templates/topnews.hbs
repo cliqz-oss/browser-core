@@ -1,0 +1,30 @@
+<!-- topnews.tpl -->
+
+{{#if this}}
+  <div class="main">
+    <ul>
+        {{#each this}}
+
+            <li class="cf answer" data-url="{{url}}" data-type="{{type}}" data-index="{{@index}}">
+                <div class="item {{breaking_class}}">
+                    {{#if backgroundImage}}
+                        <div class="item__logo bg" style="background-image:{{backgroundImage}};
+                                                          background-color:#{{backgroundColor}}"
+                             data-extra="logo"></div>
+                    {{else}}
+                        <div class="item__logo" style="{{ style }}" data-extra="logo">
+                            {{ text }}
+                        </div>
+                    {{/if}}
+                    <div class="url"><div data-extra="url">{{displayUrl}}</div></div>
+                    <h1 class="item__head" data-extra="head">
+                        {{ short_title }}
+                    </h1>
+                </div>
+            </li>
+
+        {{/each}}
+    </ul>
+  </div>
+{{/if}}
+<!-- end topnews.tpl -->

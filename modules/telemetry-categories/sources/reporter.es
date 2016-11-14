@@ -6,8 +6,6 @@
 import { utils } from 'core/cliqz';
 import { readFile } from 'core/fs';
 
-Components.utils.import('chrome://cliqzmodules/content/CliqzHistoryManager.jsm');
-
 function log(s){
 	utils.log(s, 'CATEGORIES')
 }
@@ -125,7 +123,7 @@ export default class {
     if(parseInt(utils.getPref('catHistoryTime', '0')) + ONE_DAY < start){
       utils.setPref('catHistoryTime', ''+start);
 
-      CliqzHistoryManager.PlacesInterestsStorage._execute(
+      HistoryManager.PlacesInterestsStorage._execute(
           'SELECT * FROM moz_places WHERE last_visit_date>:date',
           ['url', 'last_visit_date', 'visit_count'],
           function onRow(r){

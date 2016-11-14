@@ -1,0 +1,17 @@
+{
+  "platform": "chromium",
+  "settings": {
+    "channel": "CH50"
+  },
+  "modules": [
+    "core",
+    "autocomplete",
+    "static",
+    "geolocation",
+    "ui",
+    "expansions-provider"
+  ],
+  "subprojects": [
+    "chrome-test-hw-hpn"
+  ]
+}

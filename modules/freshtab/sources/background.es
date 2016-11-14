@@ -3,6 +3,10 @@ import News from 'freshtab/news';
 import History from 'freshtab/history';
 import { utils, events } from 'core/cliqz';
 import SpeedDial from 'freshtab/speed-dial';
+import { version as onboardingVersion, shouldShowOnboardingV2 } from "core/onboarding";
+import { AdultDomain } from 'core/adult-domain';
+import background from 'core/base/background';
+
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
 const ONE_DAY = 24 * 60 * 60 * 1000;
@@ -22,17 +26,17 @@ const isWithinNDaysAfterInstallation = function(days) {
 * @class Background
 */
 
-export default {
+export default background({
   /**
   * @method init
   */
   init(settings) {
-    utils.bindObjectFunctions(this.actions, this);
     FreshTab.startup(settings.freshTabButton, settings.cliqzOnboarding, settings.channel, settings.showNewBrandAlert);
     events.sub( "control-center:amo-cliqz-tab", function() {
       FreshTab.toggleState();
     })
 
+    this.adultDomainChecker = new AdultDomain();
   },
   /**
   * @method unload
@@ -42,14 +46,25 @@ export default {
     FreshTab.shutdown();
   },
 
+  isAdult(url) {
+    return this.adultDomainChecker.isAdult(CliqzUtils.getDetailsFromUrl(url).domain);
+  },
+
   actions: {
     _showOnboarding() {
-        var showOnboarding = false;
-        if(FreshTab.cliqzOnboarding === 1 && !utils.hasPref('browserOnboarding')) {
-          utils.setPref('browserOnboarding', true);
-          showOnboarding = true;
+      if(onboardingVersion() === '2.0') {
+        if(shouldShowOnboardingV2()) {
+          utils.openLink(utils.getWindow(), utils.CLIQZ_ONBOARDING);
+          return;
         }
-        return showOnboarding;
+      } else if(onboardingVersion() === '1.2') {
+        // Adding this back to be able to rollback to previous popup Onboarding
+        // if numbers are not promising
+        if(FreshTab.cliqzOnboarding === 1 && !utils.hasPref(utils.BROWSER_ONBOARDING_PREF)) {
+          utils.setPref(utils.BROWSER_ONBOARDING_PREF, true);
+          return true;
+        }
+      }
     },
 
     _showHelp: isWithinNDaysAfterInstallation.bind(null, 5),
@@ -83,6 +98,7 @@ export default {
         console.log(e, "freshtab error setting dismiss pref")
       }
     },
+
     /**
     * Get history based & user defined speedDials
     * @method getSpeedDials
@@ -92,7 +108,7 @@ export default {
           historyDialups = [],
           customDialups = dialUps.custom ? dialUps.custom : [];
 
-      historyDialups = History.getTopUrls().then(function(results){
+      historyDialups = History.getTopUrls().then(results => {
         utils.log("History", JSON.stringify(results));
         //hash history urls
         results = results.map(function(r) {
@@ -127,14 +143,16 @@ export default {
           return isCustom;
         }
 
-        results = dialUps.length === 0 ? results : results.filter(function(history) {
-          return !isDeleted(history.hashedUrl) && !isCustom(history.url);
+        results = dialUps.length === 0 ? results : results.filter(history => {
+          return !isDeleted(history.hashedUrl) && !isCustom(history.url) && !this.isAdult(history.url);
         });
 
         return results.map(function(r){
           return new SpeedDial(r.url, false);
         });
       });
+
+
 
       if(customDialups.length > 0) {
         utils.log(customDialups, "custom dialups");
@@ -351,4 +369,4 @@ export default {
     },
 
   }
-};
+});

@@ -3,13 +3,8 @@
 */
 
 import CliqzUtils from "core/utils";
-import { isFirefox } from "core/platform";
-
-if (isFirefox) {
-  Services.scriptloader.loadSubScript('chrome://cliqz/content/bower_components/handlebars/handlebars.js', this);
-}
-
-var CliqzHandlebars = Handlebars || this.Handlebars;
+import Handlebars from "handlebars";
+var CliqzHandlebars = Handlebars;
 
 var TEMPLATES = CliqzUtils.TEMPLATES,
     MESSAGE_TEMPLATES = CliqzUtils.MESSAGE_TEMPLATES || [],
@@ -134,15 +129,19 @@ function registerHelpers(){
         }
     });
 
-    Handlebars.registerHelper('wikiEZ_height', function(data_richData){
-        if (data_richData && data_richData.hasOwnProperty('images') && data_richData.images.length > 0){
-            if ( (this.type === 'cliqz-extra') || (this.url === CliqzUtils.autocomplete.lastResult._results[0].val))  // is the first result in the show list
-                return 'cqz-result-h2';
-            // BM hq result, but not the 1st result -> remove images
-            data_richData.images = [];
+    Handlebars.registerHelper('wikiEZ_height', function(result) {
+      var data = result.data;
+      for (var i in (data.deepResults || [])) {
+        var dr = data.deepResults[i];
+        if (dr.type === 'images') {
+          if (dr.links.length > 0 && result.maxNumberOfSlots > 1) {
+            return 'cqz-result-h2';
+          } else {
+            dr.links = [];
+          }
         }
-
-        return 'cqz-result-h3';
+      }
+      return 'cqz-result-h3';
     });
 
     Handlebars.registerHelper('recipe_rd_template', function(data_richData) {
@@ -161,7 +160,7 @@ function registerHelpers(){
         var minimalData_pcgame = data_richData && ((typeof(data_richData["image"]) !== "undefined" ) || (typeof(data_richData["game_cat"]) !== "undefined" && typeof(data_richData["rating"]) !== "undefined" && typeof(data_richData["categories"]) !== "undefined" ));
         var minimalData_movie = data_richData && ((typeof(data_richData["image"]) !== "undefined" ) || (data_richData["director"] && data_richData["director"]["title"]) || (data_richData["length"] &&  data_richData["length"] !== "_") || (data_richData["categories"]));
 
-        return (CliqzUtils.autocomplete.lastResult._results.length == 1 && (minimalData_pcgame || minimalData_movie)); // is the only result in the show list
+        return (minimalData_pcgame || minimalData_movie); // is the only result in the show list
     });
 
     Handlebars.registerHelper('image_rd_specification', function(richData){
@@ -212,6 +211,30 @@ function registerHelpers(){
        return str.toUpperCase();
     });
 
+    // Make sure the input string is in lower case
+    function latinMap(str) {
+        const map = [
+          { "base":"a", "letters":/[\u00E4]|ae/g },
+          { "base":"o", "letters":/[\u00F6]|oe/g },
+          { "base":"u", "letters":/[\u00FC]|ue/g },
+          { "base":"s", "letters":/[\u00DF]|ss/g },
+        ];
+
+        map.forEach(mapper => {
+          str = str.replace(mapper.letters, mapper.base);
+        });
+
+        return str;
+    }
+
+    function countRemovedChars(indexes, lBound, hBound) {
+      let count = 0;
+      indexes.forEach(index => {
+        if (index >= lBound && index <= hBound) ++count;
+      });
+      return count;
+    }
+
     Handlebars.registerHelper('emphasis', function(text, q, minQueryLength, cleanControlChars) {
         // lucian: questionable solution performance wise
         // strip out all the control chars
@@ -223,14 +246,30 @@ function registerHelpers(){
         if(!text || !q || q.length < (minQueryLength || 2)) return text;
 
         var map = Array(text.length),
-            tokens = q.toLowerCase().split(/\s+|\.+/).filter(function(t){ return t && t.length>1; }),
-            lowerText = text.toLowerCase(),
+            tokens = latinMap(q.toLowerCase()).split(/\s+|\.+/).filter(function(t){ return t && t.length>1; }),
+            lowerText = latinMap(text.toLowerCase()),
             out, high = false;
+
+        // Store a list of index(es) where a character has been removed
+        var indexes = [],
+            patt = /ae|oe|ue|ss/g,
+            match = null;
+
+        while (match = patt.exec(text.toLowerCase())) {
+          indexes.push(match.index);
+        }
+
+        var lastRemovedChars = 0,
+            currentRemovedChars = 0;
 
         tokens.forEach(function(token){
             var poz = lowerText.indexOf(token);
             while(poz !== -1){
-                for(var i=poz; i<poz+token.length; i++)
+                //Number of characters have been removed before this token
+                lastRemovedChars = countRemovedChars(indexes, 0, poz-1);
+                //Number of characters have been remove in this token
+                currentRemovedChars = countRemovedChars(indexes, poz, poz + token.length);
+                for(var i=poz+lastRemovedChars; i<poz+token.length+currentRemovedChars+lastRemovedChars; i++)
                     map[i] = true;
                 poz = lowerText.indexOf(token, poz+1);
             }
@@ -318,9 +357,6 @@ function registerHelpers(){
         return kind ? kind.join(';'): '';
     });
 
-    Handlebars.registerHelper('links_or_sources', function(richData) {
-        return richData ? ((richData.internal_links && richData.internal_links.length > 0) ? richData.internal_links : (richData.additional_sources ? richData.additional_sources : [])) : 0;
-    });
 
     Handlebars.registerHelper('pref', function(key) {
         return CliqzUtils.getPref(key, false);

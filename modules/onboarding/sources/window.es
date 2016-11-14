@@ -1,3 +1,5 @@
+import prefs from '../core/prefs';
+import utils from "core/utils";
 /**
 * @namespace onboarding
 */
@@ -8,7 +10,7 @@ export default class {
   * @constructor
   */
   constructor(settings) {
-    this.onInstall = settings.onInstall;
+    this.onInstall = prefs.get('new_session');
     this.window = settings.window;
     this._tutorialTimeout = null;
     this.cliqzOnboarding = settings.settings.cliqzOnboarding;

@@ -15,6 +15,8 @@ var concat = require('broccoli-sourcemap-concat');
 
 var cliqzConfig = require('./config');
 
+var Instrument = require('./instrument');
+
 const bowerComponents = new UnwatchedDir('bower_components');
 const modulesTree = new WatchedDir('modules');
 const subprojectsTree = new UnwatchedDir('subprojects');
@@ -24,19 +26,32 @@ var babelOptions = {
   filterExtensions: ['es'],
   modules: 'system',
   moduleIds: true,
-  compact: false
+  compact: false,
+  blacklist: ['regenerator'],
 };
 
 function getPlatformTree() {
-  let platform = new Funnel(new WatchedDir('platforms/'+cliqzConfig.platform), {
-    exclude: ['tests/**/*']
+  let platform = new Funnel(new WatchedDir('platforms/'), {
+    exclude: ['tests/**/*'],
   });
-  platform = Babel(platform, Object.assign({}, babelOptions, {
+  let esLinterTree = eslint(platform, {
+    options: { configFile: process.cwd() + '/.eslintrc' }
+  });
+  esLinterTree.extensions = ['es'];
+
+  platform = Babel(esLinterTree, Object.assign({}, babelOptions, {
+    filterExtensions: ['js'],
     getModuleId(moduleId) {
-      return "platform/"+moduleId;
-    }
+      let moduleName = moduleId.split('/');
+      moduleName.shift();
+      return `platform/${moduleName.join('/')}`;
+    },
   }));
-  return new Funnel(platform, { destDir: "platform" });
+
+  return new Funnel(platform, {
+    srcDir: cliqzConfig.platform,
+    destDir: "platform"
+  });
 }
 
 // Attach subprojects
@@ -92,7 +107,10 @@ function getSourceTree() {
     options: { configFile: process.cwd() + '/.eslintrc' }
   });
   esLinterTree.extensions = ['es'];
-
+  if (cliqzConfig.instrumentFunctions !== undefined) {
+    let threshold = parseInt(cliqzConfig.instrumentFunctions)||0;
+    esLinterTree = new Instrument(esLinterTree, {threshold:threshold});
+  }
   let transpiledSources = Babel(
     esLinterTree,
     Object.assign({}, babelOptions, { filterExtensions: ['js']})

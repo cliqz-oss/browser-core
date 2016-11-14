@@ -61,12 +61,17 @@ function writeTestResultsToFile(testData) {
 
 var runner;
 var CliqzUtils = loadModule("core/utils"),
+    CliqzABTests = loadModule("core/ab-tests"),
+    CliqzHumanWeb = loadModule("human-web/human-web"),
     chrome = CliqzUtils.getWindow(),
     telemetry,
-    getCliqzResults,
+    getBackendResults,
+    fetchAndStoreConfig,
+    fetchAndStoreHM,
+    abCheck,
     browserMajorVersion = parseInt(getBrowserVersion().split('.')[0]);
 
-mocha.setup({ ui: 'bdd', timeout: 10000 });
+mocha.setup({ ui: 'bdd', timeout: 20000 });
 
 /**
  * If extension did not intialize properly we want to kill tests ASAP
@@ -102,36 +107,42 @@ Object.keys(window.TESTS).forEach(function (testName) {
   testFunction.apply(null, modules);
 });
 
-before(function () {
-  // force location as it is IP based
-  CliqzUtils.setPref("config_location", "de");
-});
-
 beforeEach(function () {
-  return CliqzUtils.extensionRestart().then(function () {
-    window.closeAllTabs(chrome.gBrowser);
+  window.closeAllTabs(chrome.gBrowser);
+  return CliqzUtils.extensionRestart(function () {
+    getBackendResults = CliqzUtils.getBackendResults;
 
-    getCliqzResults = CliqzUtils.getCliqzResults;
+    fetchAndStoreHM = CliqzHumanWeb.fetchAndStoreConfig;
+    CliqzHumanWeb.fetchAndStoreConfig = function () {};
+
+    fetchAndStoreConfig = CliqzUtils.fetchAndStoreConfig;
+    CliqzUtils.fetchAndStoreConfig = function () {
+      CliqzUtils.setPref("config_location", "de");
+      CliqzUtils.setPref("config_logoVersion", "1473867650984");
+      CliqzUtils.setPref("config_backends", ["de"]);
+      return CliqzUtils.Promise.resolve();
+    };
+
+    abCheck = CliqzABTests.check;
+    CliqzABTests.check = function () {};
 
     /* Turn off telemetry during tests */
     telemetry = CliqzUtils.telemetry;
     CliqzUtils.telemetry = function () {};
-
-    /* Give time to the extension to restart */
-    return new Promise(function (resolve) {
-      CliqzUtils.setTimeout(function () {
-        resolve();
-      }, 200);
-    });
-  });
+  }.bind(this));
 });
 
 afterEach(function () {
   CliqzUtils.telemetry = telemetry;
-  CliqzUtils.getCliqzResults = getCliqzResults;
+  CliqzUtils.getBackendResults = getBackendResults;
+  CliqzUtils.fetchAndStoreConfig = fetchAndStoreConfig;
+  CliqzHumanWeb.fetchAndStoreConfig = fetchAndStoreHM;
+  CliqzABTests.check = abCheck;
 
   // clear urlbar
-  fillIn("");
+  if (chrome.CLIQZ.Core.popup) {
+    fillIn("");
+  }
 
   // clean waitFor side effects
   clearIntervals();
@@ -164,24 +175,6 @@ aConsoleService.registerListener(theConsoleListener);
 var runner =  mocha.run();
 
 var XMLReport = '<?xml version="1.0" encoding="UTF-8"?>';
-
-//append firefox version to the className attribute
-var mochaTest = Mocha.reporters.XUnit.prototype.test;
-Mocha.reporters.XUnit.prototype.test = function (test) {
-  var version = getBrowserVersion(),
-      fullTitle = test.parent.fullTitle;
-
-  test.parent.fullTitle = function () {
-    var title = fullTitle.apply(this);
-    if(title.indexOf("firefox: ") === 0) {
-      return title;
-    } else {
-      return "firefox: " + version + " - " + title;
-    }
-  }
-
-  mochaTest.call(this, test);
-}
 
 Mocha.reporters.XUnit.prototype.write = function (line) {
   var version = getBrowserVersion();

@@ -50,7 +50,7 @@ var __CliqzHumanWeb = function() { // (_export) {
                 VERSION: '3.0',
                 WAIT_TIME: 2000,
                 LOG_KEY: 'humanweb',
-                debug: true,
+                debug: false,
                 httpCache: {},
                 httpCache401: {},
                 queryCache: {},
@@ -186,7 +186,7 @@ var __CliqzHumanWeb = function() { // (_export) {
                         var hr = null;
                         var _ts = null;
                         d = (new Date().getDate() < 10 ? "0" : "") + new Date().getDate();
-                        m = (new Date().getMonth() < 10 ? "0" : "") + parseInt(new Date().getMonth() + 1);
+                        m = (new Date().getMonth() < 9 ? "0" : "") + parseInt(new Date().getMonth() + 1);
                         h = (new Date().getUTCHours() < 10 ? "0" : "") + new Date().getUTCHours();
                         y = new Date().getFullYear();
                         _ts = y + "" + m + "" + d + "" + h;
@@ -1640,7 +1640,7 @@ var __CliqzHumanWeb = function() { // (_export) {
                                 CliqzHumanWeb.state['v'][activeURL] = { 'url': activeURL, 'a': 0, 'x': null, 'tin': new Date().getTime(),
                                     'e': { 'cp': 0, 'mm': 0, 'kp': 0, 'sc': 0, 'md': 0 }, 'st': status, 'c': [], 'ref': referral, 'red': red };
 
-                                console.log('>>>>>', activeURL, referral);
+                                //console.log('>>>>>', activeURL, referral);
 
                                 if (referral) {
                                     // if there is a good referral, we must inherit the query if there is one
@@ -1773,7 +1773,8 @@ var __CliqzHumanWeb = function() { // (_export) {
 
                     if (CliqzHumanWeb.counter / CliqzHumanWeb.tmult % 5 == 0) {
 
-                        CliqzHumanWeb.getAllOpenPages(openPages => {
+                        CliqzHumanWeb.getAllOpenPages()
+                        .then(openPages => {
                             var tt = new Date().getTime();
 
                             for (var url in CliqzHumanWeb.state['v']) {
@@ -2162,7 +2163,6 @@ var __CliqzHumanWeb = function() { // (_export) {
                     return new Promise(function(resolve, reject){
                         background.getAllOpenPages()
                         .then( pages_arr => {
-                            _log(pages_arr.length);
                             resolve(pages_arr)
                         });
                     });
@@ -3307,17 +3307,16 @@ var __CliqzHumanWeb = function() { // (_export) {
                     }, 5000);
                 },
                 checkURL: function checkURL(cd, url, ruleset) {
-                    console.log(">>>>>> CHECK URL" + cd);
                     var pageContent = cd;
                     //var rArray = new Array(new RegExp(/\.google\..*?[#?&;]q=[^$&]+/), new RegExp(/.search.yahoo\..*?[#?&;]p=[^$&]+/), new RegExp(/.linkedin.*?\/pub\/dir+/),new RegExp(/\.bing\..*?[#?&;]q=[^$&]+/),new RegExp(/.*/))
                     //scrap(4, pageContent)
                     let rArray = [];
                     let searchEngines = [];
-                    if (ruleset === "strict"){
+                    if (ruleset === "normal"){
                         rArray = CliqzHumanWeb.rArray;
                         searchEngines = CliqzHumanWeb.searchEngines;
                     }
-                    else if (ruleset === "normal"){
+                    else if (ruleset === "strict"){
                         rArray = CliqzHumanWeb.anonRArray;
                         searchEngines = CliqzHumanWeb.anonSearchEngines
                     }
@@ -3375,14 +3374,17 @@ var __CliqzHumanWeb = function() { // (_export) {
                     var scrapeResults = {};
                     var eventMsg = {};
                     var rules = {};
+                    var payloadRules = [];
                     var key = "";
                     var rule = "";
 
                     if(ruleset === "normal"){
                         rules = CliqzHumanWeb.extractRules[ind];
+                        payloadRules = CliqzHumanWeb.payloads[ind];
                     }
                     else if(ruleset === "strict"){
                         rules = CliqzHumanWeb.anonExtractRules[ind];
+                        payloadRules = CliqzHumanWeb.anonPayloads[ind];
                     }
                     if (CliqzHumanWeb.debug) {
                         _log('rules' + rules + ind);
@@ -3446,7 +3448,7 @@ var __CliqzHumanWeb = function() { // (_export) {
                         }
                     }
 
-                    for (rule in CliqzHumanWeb.payloads[ind]) {
+                    for (rule in payloadRules){
                         CliqzHumanWeb.createPayload(scrapeResults, ind, rule, ruleset);
                     }
                 },

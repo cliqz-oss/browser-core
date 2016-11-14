@@ -109,7 +109,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
     }
 
     beforeEach(function() {
-      this.timeout(5000);
+      this.timeout(20000);
 
       setupAttrackTestServer();
 
@@ -450,29 +450,46 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
 
     // Test each of the page_specs in various different configurations.
     Object.keys(page_specs).forEach(function (testpage) {
-      describe(testpage, function() {
+      // replaced by functional test, but still useful to have these cases
+      // for manual testing
+      describe.skip(testpage, function() {
 
         context('cookie tests', function() {
 
-          before(function(done) {
-            this.timeout(4000);
+          before(function() {
+            this.timeout(20000);
             setupAttrackTestServer();
 
-            // initial request to ensure cookies are set
-            var tmp_tabs = ['localhost', 'cliqztest.com'].map(function(d) {
-              var url = "http://"+ d +":" + testServer.port + "/" + testpage;
-              return gBrowser.addTab(url);
+            var tmp_tabs;
+            var tmp_tabs_urls = ['localhost', 'cliqztest.com'].map(function(d) {
+              return "http://"+ d +":" + testServer.port + "/" + testpage;
             });
-            setTimeout(function() {
+            var promise = waitFor(function () {
+              var openUrls = [].slice.call(gBrowser.tabs).map(function (tab) {
+                return tab.linkedBrowser.currentURI.spec;
+              });
+              return tmp_tabs_urls.every(function (url) {
+                return openUrls.indexOf(url) !== -1;
+              });
+            }).then(function () {
               tmp_tabs.forEach(function(t) {
                 gBrowser.removeTab(t);
               });
-              setTimeout(done, 100);
-            }, 1500);
+              return new Promise(function (resolve) {
+                setTimeout(resolve, 100);
+              });
+            });
+
+            // initial request to ensure cookies are set
+            tmp_tabs = tmp_tabs_urls.map(function (url) {
+              return gBrowser.addTab(url);
+            });
+
+            return promise;
           });
 
           var testAllowsAllCookies = function(done) {
-            this.timeout(5000);
+            this.timeout(20000);
             openTestPage(testpage);
 
             // with no cookie blocking, all pages setting cookies should also set them.
@@ -538,7 +555,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
             };
 
             it('allows same-domain cookie and blocks third party domain cookie', function(done) {
-              this.timeout(5000);
+              this.timeout(20000);
               test_domain = 'localhost';
               testBlockTPCookies(done);
             });
@@ -556,7 +573,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
               it('allows all cookies on whitelisted site', testAllowsAllCookies);
 
               it('blocks cookies on other domains', function(done) {
-                this.timeout(5000);
+                this.timeout(20000);
                 test_domain = 'cliqztest.com';
                 testBlockTPCookies(done);
               });
@@ -578,7 +595,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
           });
 
           it('allows query strings on domains not in the tracker list', function(done) {
-            this.timeout(5000);
+            this.timeout(20000);
             openTestPage(testpage);
 
             var tp_event_expectation = new tp_events_expectations(testpage);
@@ -614,7 +631,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
             });
 
             it('allows QS first time on tracker', function(done) {
-              this.timeout(5000);
+              this.timeout(20000);
               openTestPage(testpage);
 
               var tp_event_expectation = new tp_events_expectations(testpage);
@@ -692,12 +709,12 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
               };
 
               it('blocks long tokens on tracker domain', function(done) {
-                this.timeout(5000);
+                this.timeout(20000);
                 testUIDisBlocked(done);
               });
 
               it('does not block if safekey', function(done) {
-                this.timeout(5000);
+                this.timeout(20000);
 
                 var key = md5('uid'),
                   tracker_hash = md5('127.0.0.1').substring(0, 16),
@@ -728,7 +745,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
               });
 
               it('blocks if key listed as unsafe', function(done) {
-                this.timeout(5000);
+                this.timeout(20000);
 
                 var key = md5('uid'),
                   tracker_hash = md5('127.0.0.1').substring(0, 16),
@@ -771,7 +788,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
               });
 
               var allowWhiteListedToken = function(done) {
-                this.timeout(5000);
+                this.timeout(20000);
 
                 var tok = md5(uid),
                   tracker_hash = md5('127.0.0.1').substring(0, 16),
@@ -814,7 +831,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                 });
 
                 it('allows all tokens on whitelisted site', function(done) {
-                  this.timeout(5000);
+                  this.timeout(20000);
                   var rid = 'xxa';
                   openTestPage(testpage, 'localhost', rid);
 
@@ -840,7 +857,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                 });
 
                 it('still blocks tokens on other sites', function(done) {
-                  this.timeout(5000);
+                  this.timeout(20000);
                   test_domain = 'cliqztest.com';
                   testUIDisBlocked(done)
                 });
@@ -850,7 +867,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
             it('increments domain count when a tracker is visited', function(done) {
               CliqzAttrack.obfuscateMethod = 'replace';
               CliqzAttrack.blockLog.clear();
-              this.timeout(10000);
+              this.timeout(20000);
 
               // open a page so that token domain will be incremented
               openTestPage(testpage);
@@ -917,7 +934,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
       });
 
       it('adds local safekey if 3 different values seen', function(done) {
-        this.timeout(5000);
+        this.timeout(20000);
 
         openTestPage(testpage);
 

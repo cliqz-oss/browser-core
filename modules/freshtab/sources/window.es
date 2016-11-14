@@ -1,5 +1,5 @@
 import FreshTab from 'freshtab/main';
-import { checkBox } from 'q-button/buttons';
+import prefs from '../core/prefs';
 /**
 * @namespace freshtab
 */
@@ -9,7 +9,7 @@ export default class {
   * @constructor
   */
   constructor(config) {
-    this.onInstall = config.onInstall;
+    this.onInstall = prefs.get('new_session');
     this.buttonEnabled = config.settings.freshTabButton;
     this.window = config.window;
     this.cliqzOnboarding = config.settings.cliqzOnboarding;
@@ -27,18 +27,6 @@ export default class {
   }
 
   unload() {}
-
-  createButtonItem(win) {
-    if (!this.buttonEnabled || !FreshTab.initialized) return;
-
-    return checkBox(
-      win.document,
-      'freshTabState',
-      CliqzUtils.getLocalizedString('btnFreshTab'),
-      true,
-      FreshTab.toggleState
-    );
-  }
 
   status() {
     return {

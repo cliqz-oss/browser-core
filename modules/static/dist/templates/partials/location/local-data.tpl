@@ -1,15 +1,15 @@
 <div class="cqz-row cqz-local-data cqz-collapse-outer-space">
-    {{#if data.map_img}}
+    {{#if data.extra.map_img}}
     <div class="cqz-col-3 local-img-holder" extra="map-image">
         <!--span class="cqz-vertical-title">{{local 'local_result_vertical_title'}}</span-->
-        <img src="{{ data.map_img }}" url="{{ data.mu }}" class="cqz-local-data-img"
+        <img src="{{ data.extra.map_img }}" url="{{ data.extra.mu }}" class="cqz-local-data-img"
              onerror="this.style.display='none';"/>
     </div>
     {{/if}}
     <div class="cqz-local-info cqz-col-9">
         {{> 'partials/ez-title' }}
         {{> 'partials/ez-url' }}
-        {{#with data}}
+        {{#with data.extra}}
         <ul class="cqz-local-info-box">
             {{#if address}}
             <li class="cqz-local-address" extra="address" show-status='true' url="{{mu}}">

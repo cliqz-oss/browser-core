@@ -1,3 +1,5 @@
+import autocomplete from "autocomplete/autocomplete";
+
 const {
   classes:    Cc,
   interfaces: Ci,
@@ -8,11 +10,14 @@ const {
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/NewTabUtils.jsm');
-Cu.import('chrome://cliqzmodules/content/CliqzPlacesAutoComplete.jsm');
 
-var _log = Cc['@mozilla.org/consoleservice;1'].getService(Ci.nsIConsoleService);
+import console from "core/console";
+import prefs from "core/prefs";
+
 
 var CLIQZEnvironment = {
+    RESULTS_PROVIDER: 'https://newbeta.cliqz.com/api/v2/results?nrh=1&q=',
+    RICH_HEADER: 'https://newbeta.cliqz.com/api/v2/rich-header?path=/v2/map',
     LOG: 'https://logging.cliqz.com',
     LOCALE_PATH: 'chrome://cliqz/content/static/locale/',
     TEMPLATES_PATH: 'chrome://cliqz/content/static/templates/',
@@ -24,25 +29,19 @@ var CLIQZEnvironment = {
     RERANKERS: [],
     RESULTS_TIMEOUT: 1000, // 1 second
     TEMPLATES: {'calculator': 1, 'clustering': 1, 'currency': 1, 'custom': 1, 'emphasis': 1, 'empty': 1,
-      'generic': 1, /*'images_beta': 1,*/ 'main': 1, 'results': 1, 'text': 1, 'series': 1,
+      'generic': 1, 'main': 1, 'results': 1, 'text': 1, 'series': 1,
       'spellcheck': 1,
       'pattern-h1': 3, 'pattern-h2': 2, 'pattern-h3': 1, 'pattern-h3-cluster': 1,
       'pattern-hm': 1,
-      'entity-portal': 3, 'topsites': 3,
-      'celebrities': 2, 'Cliqz': 2, 'entity-generic': 2, 'noResult': 3, 'stocks': 2, 'weatherAlert': 3, 'entity-news-1': 3,'entity-video-1': 3,
-      'entity-search-1': 2, 'flightStatusEZ-2': 2, 'weatherEZ': 2, 'commicEZ': 3,
-      'news' : 1, 'people' : 1, 'video' : 1, 'hq' : 1,
+      'topsites': 3,
+      'celebrities': 2, 'Cliqz': 2, 'entity-generic': 2, 'noResult': 3, 'weatherAlert': 3, 'entity-news-1': 3,'entity-video-1': 3,
+      'flightStatusEZ-2': 2, 'weatherEZ': 2,
+      'news' : 1, 'people' : 1, 'video' : 1, 'hq' : 2,
       'ligaEZ1Game': 2,
-      'ligaEZUpcomingGames': 3,
       'ligaEZTable': 3,
-      'local-movie-sc':3,
-      'local-cinema-sc':3,
-      'local-data-sc': 2,
-      'recipe': 3,
+      'recipeRD': 3,
       'rd-h3-w-rating': 1,
-      'ez-generic-2': 3,
-      'cpgame_movie': 3,
-      'delivery-tracking': 2,
+      'movie': 3,
       'vod': 3,
       'liveTicker': 3
     },
@@ -75,89 +74,28 @@ var CLIQZEnvironment = {
         'partials/streaming',
         'partials/lyrics'
     ],
+    CLIQZ_ONBOARDING: "about:onboarding",
+    BROWSER_ONBOARDING_PREF: "browserOnboarding",
+    BROWSER_ONBOARDING_STEP_PREF: "browserOnboarding-step",
 
     init: function(){
 
     },
     unload: function() {
     },
-    log: function(msg, key){
-      if(CLIQZEnvironment && CLIQZEnvironment.getPref('showConsoleLogs', false)){
-        _log.logStringMessage(
-          'CLIQZ ' + (new Date()).toISOString() + (key? ' ' + key : '') + ': ' +
-          (typeof msg == 'object'? JSON.stringify(msg): msg)
-        );
-      }
-    },
-    __prefixPref: function (pref, prefix) {
-        if ( !(typeof prefix === 'string') ) {
-          prefix = 'extensions.cliqz.';
-        }
-        return prefix + pref;
-    },
-    getPref: function(pref, defaultValue, prefix) {
-        pref = CLIQZEnvironment.__prefixPref(pref, prefix);
-
-        var prefs = CLIQZEnvironment.prefs;
-
-        try {
-            switch(prefs.getPrefType(pref)) {
-                case 128: return prefs.getBoolPref(pref);
-                case 32:  {
-                  var charVal = prefs.getCharPref(pref);
-
-                  // it might be a complex value
-                  if(charVal === "chrome://global/locale/intl.properties"){
-                    try {
-                      charVal = prefs.getComplexValue(pref, Components.interfaces.nsIPrefLocalizedString).data;
-                    } catch (e) {
-                      CLIQZEnvironment.log("Error fetching pref: "  + pref);
-                    }
-                  }
-
-                  return charVal;
-                }
-                case 64:  return prefs.getIntPref(pref);
-                default:  return defaultValue;
-            }
-        } catch(e) {
-            return defaultValue;
-        }
-    },
-    setPref: function(pref, value, prefix){
-        pref = CLIQZEnvironment.__prefixPref(pref, prefix);
-
-        var prefs = CLIQZEnvironment.prefs;
-
-        switch (typeof value) {
-            case 'boolean': prefs.setBoolPref(pref, value); break;
-            case 'number':  prefs.setIntPref(pref, value); break;
-            case 'string':  prefs.setCharPref(pref, value); break;
-        }
-    },
-    hasPref: function (pref, prefix) {
-        pref = CLIQZEnvironment.__prefixPref(pref, prefix);
-
-        return CLIQZEnvironment.prefs.getPrefType(pref) !== 0;
-    },
-    clearPref: function (pref, prefix) {
-        pref = CLIQZEnvironment.__prefixPref(pref, prefix);
-
-        CLIQZEnvironment.prefs.clearUserPref(pref);
-    },
     getCliqzPrefs: function(){
-        return Cc['@mozilla.org/preferences-service;1']
-                 .getService(Ci.nsIPrefService)
-                 .getBranch('extensions.cliqz.')
-                 .getChildList('')
-                 .reduce(function (prev, curr) {
-                    // dont send any :
-                    //    - backup data like startpage to avoid privacy leaks
-                    //    - deep keys like "attrack.update" which are not needed
-                    if(curr.indexOf('backup') == -1 && curr.indexOf('.') == -1 )
-                      prev[curr] = CLIQZEnvironment.getPref(curr);
-                    return prev;
-                 }, {});
+      return Cc['@mozilla.org/preferences-service;1']
+        .getService(Ci.nsIPrefService)
+        .getBranch('extensions.cliqz.')
+        .getChildList('')
+        .reduce(function (prev, curr) {
+          // dont send any :
+          //    - backup data like startpage to avoid privacy leaks
+          //    - deep keys like "attrack.update" which are not needed
+          if(curr.indexOf('backup') == -1 && curr.indexOf('.') == -1 )
+            prev[curr] = prefs.get(curr);
+          return prev;
+        }, {});
     },
     isUnknownTemplate: function(template){
       return template &&
@@ -193,19 +131,19 @@ var CLIQZEnvironment = {
             if(statusClass == 2 || statusClass == 3 || statusClass == 0 /* local files */){
                 callback && callback(req);
             } else {
-                CLIQZEnvironment.log( "loaded with non-200 " + url + " (status=" + req.status + " " + req.statusText + ")", "CLIQZEnvironment.httpHandler");
+                console.log( "loaded with non-200 " + url + " (status=" + req.status + " " + req.statusText + ")", "CLIQZEnvironment.httpHandler");
                 onerror && onerror();
             }
         }
         req.onerror = function(){
             if(CLIQZEnvironment){
-                CLIQZEnvironment.log( "error loading " + url + " (status=" + req.status + " " + req.statusText + ")", "CLIQZEnvironment.httpHandler");
+                console.log( "error loading " + url + " (status=" + req.status + " " + req.statusText + ")", "CLIQZEnvironment.httpHandler");
                 onerror && onerror();
             }
         }
         req.ontimeout = function(){
             if(CLIQZEnvironment){ //might happen after disabling the extension
-                CLIQZEnvironment.log( "timeout for " + url, "CLIQZEnvironment.httpHandler");
+                console.log( "timeout for " + url, "CLIQZEnvironment.httpHandler");
                 onerror && onerror();
             }
         }
@@ -214,24 +152,12 @@ var CLIQZEnvironment = {
             if(timeout){
                 req.timeout = parseInt(timeout)
             } else {
-                req.timeout = (method == 'POST'? 10000 : 1000);
+                req.timeout = (['POST', 'PUT'].indexOf(method) >= 0 ? 10000 : 1000);
             }
         }
 
         req.send(data);
         return req;
-    },
-    getLocalStorage: function(url) {
-      var uri = Services.io.newURI(url,"",null),
-          principalFunction = Components.classes['@mozilla.org/scriptsecuritymanager;1'].getService(Components.interfaces.nsIScriptSecurityManager).getNoAppCodebasePrincipal
-
-      if (typeof principalFunction != "function") return false
-
-      var principal = principalFunction(uri),
-          dsm = Components.classes["@mozilla.org/dom/localStorage-manager;1"]
-                .getService(Components.interfaces.nsIDOMStorageManager)
-
-      return dsm.getLocalStorageForPrincipal(principal, '')
     },
     promiseHttpHandler: function(method, url, data, timeout, compressedPost) {
       return new Promise( function(resolve, reject) {
@@ -240,7 +166,7 @@ var CLIQZEnvironment = {
        if (CLIQZEnvironment.gzip && CLIQZEnvironment.gzip.compress && method === 'POST' && compressedPost) {
          const dataLength = data.length;
          data = CLIQZEnvironment.gzip.compress(data);
-         CLIQZEnvironment.log("Compressed request to "+ url +", bytes saved = "+ (dataLength - data.length) + " (" + (100*(dataLength - data.length)/ dataLength).toFixed(1) +"%)", "CLIQZEnvironment.httpHandler");
+         console.log("Compressed request to "+ url +", bytes saved = "+ (dataLength - data.length) + " (" + (100*(dataLength - data.length)/ dataLength).toFixed(1) +"%)", "CLIQZEnvironment.httpHandler");
          CLIQZEnvironment.httpHandler(method, url, resolve, reject, timeout, data, undefined, 'gzip');
        } else {
          CLIQZEnvironment.httpHandler(method, url, resolve, reject, timeout, data);
@@ -275,7 +201,9 @@ var CLIQZEnvironment = {
         }
         else {
             // Set urlbar value to url immediately
-            win.CLIQZ.Core.urlbar.value = url;
+            if(win.CLIQZ.Core.urlbar) {
+              win.CLIQZ.Core.urlbar.value = url;
+            }
             win.openUILink(url);
         }
     },
@@ -357,7 +285,7 @@ var CLIQZEnvironment = {
 
       function getNextSeq(){
         if(telemetrySeq == -1)
-          telemetrySeq = CLIQZEnvironment.getPref('telemetrySeq', 0)
+          telemetrySeq = prefs.get('telemetrySeq', 0)
 
         telemetrySeq = (telemetrySeq + 1) % 2147483647;
 
@@ -365,14 +293,14 @@ var CLIQZEnvironment = {
       }
 
       function pushTelemetry() {
-        CLIQZEnvironment.setPref('telemetrySeq', telemetrySeq);
+        prefs.set('telemetrySeq', telemetrySeq);
         if(telemetryReq) return;
 
         // put current data aside in case of failure
         telemetrySending = CLIQZEnvironment.trk.slice(0);
         CLIQZEnvironment.trk = [];
 
-        CLIQZEnvironment.log('push telemetry data: ' + telemetrySending.length + ' elements', "pushTelemetry");
+        console.log('push telemetry data: ' + telemetrySending.length + ' elements', "pushTelemetry");
 
         telemetryReq = CLIQZEnvironment.promiseHttpHandler('POST', CLIQZEnvironment.LOG, JSON.stringify(telemetrySending), 10000, true);
         telemetryReq.then( pushTelemetryCallback );
@@ -384,7 +312,7 @@ var CLIQZEnvironment = {
           var response = JSON.parse(req.response);
 
           if(response.new_session){
-            CLIQZEnvironment.setPref('session', response.new_session);
+            prefs.set('session', response.new_session);
           }
           telemetrySending = [];
           telemetryReq = null;
@@ -393,13 +321,13 @@ var CLIQZEnvironment = {
 
       function pushTelemetryError(req){
         // pushTelemetry failed, put data back in queue to be sent again later
-        CLIQZEnvironment.log('push telemetry failed: ' + telemetrySending.length + ' elements', "pushTelemetry");
+        console.log('push telemetry failed: ' + telemetrySending.length + ' elements', "pushTelemetry");
         CLIQZEnvironment.trk = telemetrySending.concat(CLIQZEnvironment.trk);
 
         // Remove some old entries if too many are stored, to prevent unbounded growth when problems with network.
         var slice_pos = CLIQZEnvironment.trk.length - TELEMETRY_MAX_SIZE + 100;
         if(slice_pos > 0){
-          CLIQZEnvironment.log('discarding ' + slice_pos + ' old telemetry data', "pushTelemetry");
+          console.log('discarding ' + slice_pos + ' old telemetry data', "pushTelemetry");
           CLIQZEnvironment.trk = CLIQZEnvironment.trk.slice(slice_pos);
         }
 
@@ -410,9 +338,9 @@ var CLIQZEnvironment = {
       return function(msg, instantPush) {
         if(msg.type != 'environment' && CLIQZEnvironment.isPrivate()) return; // no telemetry in private windows
 
-        CLIQZEnvironment.log(msg, 'Utils.telemetry');
-        if(!CLIQZEnvironment.getPref('telemetry', true))return;
-        msg.session = CLIQZEnvironment.getPref('session');
+        console.log(msg, 'Utils.telemetry');
+        if(!prefs.get('telemetry', true))return;
+        msg.session = prefs.get('session');
         msg.ts = Date.now();
         msg.seq = getNextSeq();
 
@@ -432,7 +360,6 @@ var CLIQZEnvironment = {
     //TODO: cache this
     getSearchEngines: function(){
         var defEngineName = Services.search.defaultEngine.name;
-
         return Services.search.getEngines()
                 .filter(function(e){
                     return !e.hidden && e.iconURI != null;
@@ -444,6 +371,7 @@ var CLIQZEnvironment = {
                         default: e.name == defEngineName,
                         icon: e.iconURI.spec,
                         base_url: e.searchForm,
+                        prefix: e.prefix,
                         getSubmissionForQuery: function(q){
                             //TODO: create the correct search URL
                             return e.getSubmission(q).uri.spec;
@@ -492,7 +420,7 @@ var CLIQZEnvironment = {
     },
     disableCliqzResults: function (urlbar) {
       CliqzUtils.extensionRestart(function(){
-        CliqzUtils.setPref("cliqz_core_disabled", true);
+        prefs.set("cliqz_core_disabled", true);
       });
 
       // blur the urlbar so it picks up the default AutoComplete provider
@@ -503,7 +431,7 @@ var CLIQZEnvironment = {
       }, 0, urlbar);
     },
     enableCliqzResults: function (urlbar) {
-      CliqzUtils.setPref("cliqz_core_disabled", false);
+      prefs.set("cliqz_core_disabled", false);
       CliqzUtils.extensionRestart();
 
       // blur the urlbar so it picks up the new CLIQZ Autocomplete provider
@@ -520,11 +448,11 @@ var CLIQZEnvironment = {
     historySearch: (function(){
         var hist = null;
 
-        return function(q, callback, sessionStart){
+        return function(q, callback){
             if(hist === null) { //lazy
               // history autocomplete provider is removed
               // https://hg.mozilla.org/mozilla-central/rev/44a989cf6c16
-              if (CliqzUtils.autocomplete.AB_1076_ACTIVE){
+              if (CliqzUtils.AB_1076_ACTIVE){
                 CliqzUtils.log('AB - 1076: Initialize custom provider');
                 // If AB 1076 is not in B or firefox version less than 49 it will fall back to firefox history
                 var provider = Cc["@mozilla.org/autocomplete/search;1?name=cliqz-history-results"] ||
@@ -541,38 +469,31 @@ var CLIQZEnvironment = {
             if(q.length != 0 && urlbar().value.length == 0)
               return;
 
-            if(q.length == 0 && sessionStart){
-                NewTabUtils.links.populateCache(function(){
-                    callback(null, getTopSites());
-                })
-            }
-            else {
-                hist.startSearch(q, 'enable-actions', null, {
-                    onSearchResult: function(ctx, result) {
-                        var res = [];
-                        for (var i = 0; result && i < result.matchCount; i++) {
-                            if(result.getStyleAt(i).indexOf('heuristic') != -1 ||
-                               result.getStyleAt(i).indexOf('switchtab') != -1){
-                              // filter out "heuristic" results
-                              continue;
-                            }
-                            res.push({
-                                style:   result.getStyleAt(i),
-                                value:   result.getValueAt(i),
-                                image:   result.getImageAt(i),
-                                comment: result.getCommentAt(i),
-                                label:   result.getLabelAt(i)
-                            });
+            hist.startSearch(q, 'enable-actions', null, {
+                onSearchResult: function(ctx, result) {
+                    var res = [];
+                    for (var i = 0; result && i < result.matchCount; i++) {
+                        if(result.getStyleAt(i).indexOf('heuristic') != -1 ||
+                           result.getStyleAt(i).indexOf('switchtab') != -1){
+                          // filter out "heuristic" results
+                          continue;
                         }
-                        callback({
-                            query: q,
-                            results: res,
-                            ready:  result.searchResult != result.RESULT_NOMATCH_ONGOING &&
-                                    result.searchResult != result.RESULT_SUCCESS_ONGOING
-                        })
+                        res.push({
+                            style:   result.getStyleAt(i),
+                            value:   result.getValueAt(i),
+                            image:   result.getImageAt(i),
+                            comment: result.getCommentAt(i),
+                            label:   result.getLabelAt(i)
+                        });
                     }
-                });
-            }
+                    callback({
+                        query: q,
+                        results: res,
+                        ready:  result.searchResult != result.RESULT_NOMATCH_ONGOING &&
+                                result.searchResult != result.RESULT_SUCCESS_ONGOING
+                    })
+                }
+            });
         }
     })(),
     getNoResults: function() {
@@ -605,11 +526,11 @@ var CLIQZEnvironment = {
 
 
 
-      return CLIQZEnvironment.Result.cliqzExtra(
+      return CLIQZEnvironment.Result.cliqz(
               {
-                  data:
+                  template:'noResult',
+                  snippet:
                   {
-                      template:'noResult',
                       text_line1: CLIQZEnvironment.getLocalizedString('noResultTitle'),
                       // forwarding the query to the default search engine is not handled by CLIQZ but by Firefox
                       // we should take care of this specific case differently on alternative platforms
@@ -618,7 +539,8 @@ var CLIQZEnvironment = {
                       //use local image in case of no internet connection
                       "cliqz_logo": CLIQZEnvironment.SKIN_PATH + "img/cliqz.svg"
                   },
-                  subType: JSON.stringify({empty:true})
+                  type: 'rh',
+                  subType: {empty:true}
               }
           )
     }
@@ -627,6 +549,7 @@ function urlbar(){
   return CLIQZEnvironment.getWindow().CLIQZ.Core.urlbar;
 }
 
+// TODO - revive this one
 function getTopSites(){
     var results = NewTabUtils.links.getLinks().slice(0, 5);
     if(results.length>0){

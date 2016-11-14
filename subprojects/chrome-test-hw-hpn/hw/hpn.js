@@ -171,7 +171,6 @@ var CliqzSecureMessage = {
 	        pi += 1;
 	      }
 	    });
-	    CliqzUtils.log("Pruned local temp queue: " + pi + "items", CliqzSecureMessage.LOG_KEY);
 	    if(CliqzHumanWeb.actionStats) CliqzHumanWeb.actionStats['itemsLocalValidation'] = Object.keys(CliqzSecureMessage.localTemporalUniq).length;
 	  }
 	},

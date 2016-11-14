@@ -2,11 +2,14 @@ import { utils } from "core/cliqz";
 import autocomplete from "autocomplete/autocomplete";
 import CliqzHandlebars from "core/templates";
 import CliqzEvents from "core/events";
+import SearchHistory from "./search-history";
+import { addStylesheet, removeStylesheet } from "../core/helpers/stylesheet";
+import System from 'system';
 
 function initPopup(popup, win) {
   //patch this method to avoid any caching FF might do for components.xml
   popup._appendCurrentResult = function(){
-    if(popup._matchCount > 0 && popup.mInput){
+    if(popup.mInput){
       //try to break the call stack which cause 'too much recursion' exception on linux systems
       utils.setTimeout(win.CLIQZ.UI.handleResults.bind(win), 0);
     }
@@ -31,6 +34,8 @@ function initPopup(popup, win) {
   }.bind(popup);
 }
 
+const STYLESHEET_URL = 'chrome://cliqz/content/static/styles/styles.css';
+
 /**
   @namespace ui
 */
@@ -41,10 +46,11 @@ export default class {
   * @constructor
   */
   constructor(settings) {
+    this.elems = [];
     this.window = settings.window;
     this.urlbarGoClick = this.urlbarGoClick.bind(this);
     this.hidePopup = this.hidePopup.bind(this);
-    this.initialzied = false;
+    this.initialized = false;
 
     this.urlbarEventHandlers = {}
     Object.keys(urlbarEventHandlers).forEach( ev => {
@@ -64,18 +70,18 @@ export default class {
     // do not initialize the UI if the user decided to turn off search
     if(utils.getPref("cliqz_core_disabled", false)) return;
 
-    Services.scriptloader.loadSubScript(this.window.CLIQZ.System.baseURL + 'ui/UI.js', this.window);
+    Services.scriptloader.loadSubScript(System.baseURL + 'ui/UI.js', this.window);
     this.window.CLIQZ.UI.preinit(autocomplete, CliqzHandlebars, CliqzEvents);
-    Services.scriptloader.loadSubScript(this.window.CLIQZ.System.baseURL + 'ui/ContextMenu.js', this.window);
+    Services.scriptloader.loadSubScript(System.baseURL + 'ui/ContextMenu.js', this.window);
     //create a new panel for cliqz to avoid inconsistencies at FF startup
     var document = this.window.document,
         popup = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "panel");
 
-    this.window.CLIQZ.Core.addCSS(document, 'chrome://cliqz/content/static/styles/styles.css');
+    addStylesheet(this.window.document, STYLESHEET_URL);
     popup.setAttribute("type", 'autocomplete-richlistbox');
     popup.setAttribute("noautofocus", 'true');
     popup.setAttribute("id", 'PopupAutoCompleteRichResultCliqz');
-    this.window.CLIQZ.Core.elem.push(popup);
+    this.elems.push(popup);
     document.getElementById('PopupAutoCompleteRichResult').parentElement.appendChild(popup);
 
     this.urlbar = document.getElementById('urlbar');
@@ -118,8 +124,8 @@ export default class {
     this.reloadUrlbar(this.urlbar);
 
     // Add search history dropdown
-    var searchHistoryContainer = CliqzSearchHistory.insertBeforeElement(this.window);
-    this.window.CLIQZ.Core.elem.push(searchHistoryContainer);
+    var searchHistoryContainer = SearchHistory.insertBeforeElement(this.window);
+    this.elems.push(searchHistoryContainer);
 
     // make CMD/CTRL + K equal with CMD/CTRL + L
     this.searchShortcutElements = this.window.document.getElementById('mainKeyset').querySelectorAll('#key_search, #key_search2');
@@ -128,7 +134,15 @@ export default class {
       item.setAttribute('command', 'Browser:OpenLocation')
     });
 
-    this.initialzied = true;
+    this.tabChange = SearchHistory.tabChanged.bind(SearchHistory);
+    this.window.gBrowser.tabContainer.addEventListener("TabSelect",
+      this.tabChange, false);
+
+    this.tabRemoved = SearchHistory.tabRemoved.bind(SearchHistory);
+    this.window.gBrowser.tabContainer.addEventListener("TabClose",
+      this.tabRemoved, false);
+
+    this.initialized = true;
   }
 
   autocompleteQuery(firstResult, firstTitle) {
@@ -278,14 +292,15 @@ export default class {
   }
 
   unload() {
-    if(!this.initialzied) return;
+    if(!this.initialized) return;
+
+    removeStylesheet(this.window.document, STYLESHEET_URL);
 
     this.window.CLIQZ.UI.unload();
 
-    for(var i in this.window.CLIQZ.Core.elem){
-      var item = this.window.CLIQZ.Core.elem[i];
+    this.elems.forEach(item => {
       item && item.parentNode && item.parentNode.removeChild(item);
-    }
+    });
 
     this.urlbar.setAttribute('autocompletesearch', this._autocompletesearch);
     this.urlbar.setAttribute('autocompletepopup', this._autocompletepopup);
@@ -314,8 +329,12 @@ export default class {
       item.setAttribute('command', item.getAttribute('original_command'))
     });
 
-    delete this.window.CLIQZ.UI;
+    this.window.gBrowser.tabContainer.removeEventListener("TabSelect",
+      this.tabChange, false);
+    this.window.gBrowser.tabContainer.removeEventListener("TabClose",
+      this.tabRemoved, false);
 
+    delete this.window.CLIQZ.UI;
   }
 }
 
@@ -330,7 +349,7 @@ const urlbarEventHandlers = {
     utils.pingCliqzResults();
 
     autocomplete.lastFocusTime = Date.now();
-    CliqzSearchHistory.hideLastQuery(this.window);
+    SearchHistory.hideLastQuery(this.window);
     this.triggerLastQ = false;
     utils.setSearchSession(utils.rand(32));
     this.urlbarEvent('focus');
@@ -354,16 +373,19 @@ const urlbarEventHandlers = {
   * @param ev
   */
   blur: function(ev) {
-    autocomplete.resetSpellCorr();
+    if (autocomplete.spellCheck){
+      autocomplete.spellCheck.resetState();
+    }
+    // reset this flag as it can block the dropdown from opening
     autocomplete.isPopupOpen = false;
 
     if(this.window.CLIQZ.Core.triggerLastQ)
-        CliqzSearchHistory.lastQuery(this.window);
+        SearchHistory.lastQuery(this.window);
 
     this.urlbarEvent('blur');
 
     autocomplete.lastFocusTime = null;
-    autocomplete.resetSpellCorr();
+    autocomplete.spellCheck.resetState();
     this.window.CLIQZ.UI.sessionEnd();
   },
   /**

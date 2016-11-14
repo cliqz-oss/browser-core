@@ -1,8 +1,8 @@
 <div class='cqz-result-h3'>
-    {{#if image.src}}
+    {{#if data.extra.image.src}}
         <div class="cqz-video-image">
-            <div class="cqz-img-holder" style="background-image: url({{ image.src }});">
-                {{#if image.text }}<span class='cqz-video-duration'>{{ image.text }}</span>{{/if}}
+            <div class="cqz-img-holder" style="background-image: url({{ data.extra.image.src }});">
+                {{#if data.extra.rich_data.duration }}<span class='cqz-video-duration'>{{ sec_to_duration data.extra.rich_data.duration }}</span>{{/if}}
             </div>
         </div>
     {{/if}}
@@ -13,9 +13,9 @@
                          cqz-result-url-ssl
                     {{/if}}
         ' extra="url">
-            {{ emphasis urlDetails.friendly_url text 2 true }}{{ emphasis urlDetails.extra text 2 true }}
+            {{ emphasis urlDetails.friendly_url text 2 true }}
         </div>
-        <div class='cqz-result-desc overflow' extra="des-nview">{{ views_helper data.richData.views }}</div>
+        <div class='cqz-result-desc overflow' extra="des-nview">{{ views_helper data.extra.rich_data.views }}</div>
     </div>
     {{> logo}}
 </div>

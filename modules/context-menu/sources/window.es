@@ -18,8 +18,8 @@ export default class {
   * @class ContextMenu
   * @constructor
   */
-  constructor(settings) {
-    this.window = settings.window;
+  constructor(config) {
+    this.window = config.window;
     this.contextMenu = this.window.document.getElementById(
         'contentAreaContextMenu');
     this._builtInSearchItem = this.window.document.getElementById(
@@ -27,6 +27,7 @@ export default class {
     this.onPopupShowing = this.onPopupShowing.bind(this);
     this.onPopupHiding = this.onPopupHiding.bind(this);
     this.menuItem = null;
+    this.channel = config.settings.channel;
   }
 
   /**
@@ -65,10 +66,10 @@ export default class {
       return;
     }
 
-    let isLink = CliqzUtils.getWindow().gContextMenu.onLink;
+    let isLink = this.window.gContextMenu.onLink;
     let selection;
     if (isLink) {
-      selection = CliqzUtils.getWindow().gContextMenu.target.textContent;
+      selection = this.window.gContextMenu.target.textContent;
     } else {
       selection = this.getSelection();
     }
@@ -80,7 +81,7 @@ export default class {
         CliqzUtils.getLocalizedString('context-menu-search-item',
           trim(selection)));
 
-      const isFreshtab = CliqzUtils.getWindow().gBrowser.currentURI.spec === 'about:cliqz';
+      const isFreshtab = this.window.gBrowser.currentURI.spec === 'about:cliqz';
       this.menuItem.addEventListener(
           'click', this.clickHandler.bind(this, selection, {
             openInNewTab: !isFreshtab
@@ -88,7 +89,11 @@ export default class {
 
       this.contextMenu.insertBefore(this.menuItem, this._builtInSearchItem);
       // Can't do once in constructor, because it's dynamic.
-      this._builtInSearchItem.setAttribute('hidden', 'true');
+      // Check if this is CLIQZ browser
+      if (this.channel === "40") {
+        // Hide default search option
+        this._builtInSearchItem.setAttribute('hidden', 'true');
+      }
     } else {
       this.menuItem = null;
     }
@@ -132,8 +137,7 @@ export default class {
 
   getSelection() {
     try {
-      return this.window.document.commandDispatcher.focusedWindow
-          .getSelection().toString();
+      return this.window.gContextMenu.selectionInfo.text;
     } catch (e) {
       return '';
     }

@@ -24,7 +24,7 @@ export default class {
       ].join("");
     }
 
-    var isBigSnippet = Boolean(data.phonenumber || data.address || data.opening_hours || data.no_location),
+    var isBigSnippet = Boolean(data.extra.phonenumber || data.extra.address || data.extra.opening_hours || data.extra.no_location),
         rating_img = null,
         t = new Date(),
         current_t = [
@@ -39,11 +39,11 @@ export default class {
           close_soon: "#FFC802"
         };
 
-    data.phone_address = data.phonenumber || data.address;
+    data.extra.phone_address = data.extra.phonenumber || data.extra.address;
 
-    if (data.opening_hours && data.opening_hours.length > 0) {
+    if (data.extra.opening_hours && data.extra.opening_hours.length > 0) {
 
-      data.opening_hours.forEach(function (el) {
+      data.extra.opening_hours.forEach(function (el) {
         if (!el.open || !el.close) { return; }
         timeInfos.push(el.open.time + " - " + el.close.time);
         if(open_stt && open_stt !== "closed") { return; }
@@ -82,7 +82,7 @@ export default class {
       });
 
 
-      data.opening_status = {
+      data.extra.opening_status = {
         color: openingColors[open_stt],
         stt_text: CliqzUtils.getLocalizedString(open_stt),
         time_info_til: CliqzUtils.getLocalizedString("open_hour"),
@@ -90,22 +90,22 @@ export default class {
       };
     }
 
-    if (!data.rating) { data.rating = 0; }
+    if (!data.extra.rating) { data.extra.rating = 0; }
 
-    rating_img = "http://cdn.cliqz.com/extension/EZ/richresult/stars" + Math.max(0, Math.min(Math.round(data.rating), 5)) + ".svg";
+    rating_img = "http://cdn.cliqz.com/extension/EZ/richresult/stars" + Math.max(0, Math.min(Math.round(data.extra.rating), 5)) + ".svg";
 
     if (!isBigSnippet) {
-      data.richData = {
-        image: data.image,
+      data.extra.rich_data = {
+        image: data.extra.image,
         url_ratingimg: rating_img,
-        name: data.t,
-        des: data.desc
-      };
+        name: data.extra.t,
+        des: data.extra.desc
+      }
     } else {
-      data.url_ratingimg = rating_img;
+      data.extra.url_ratingimg = rating_img;
     }
 
 
-    data.big_rs_size = isBigSnippet;
+    data.extra.big_rs_size = isBigSnippet;
   }
 };

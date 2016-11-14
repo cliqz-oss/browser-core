@@ -1,58 +1,80 @@
+#!/bin/env groovy
+
 node('docker') {
-  stage 'checkout'
-  checkout scm
+  stage('checkout') {
+    checkout scm
+  }
 
-
+  def helpers = load 'build-helpers.groovy'
   def imgName = "cliqz/navigation-extension:${env.BUILD_TAG}"
 
-  stage 'docker build'
-  sh "docker build -t ${imgName} --build-arg UID=`id -u` --build-arg GID=`id -g` ."
-  dockerFingerprintFrom dockerfile: "./Dockerfile", image: imgName, toolName: env.DOCKER_TOOL_NAME
-
-  try {
-    sh '''#!/bin/bash +x
-      rm -fr certs
-      cp -R /cliqz certs
-    '''
-
+  stage('docker build') {
+    sh "docker build -t ${imgName} --build-arg UID=`id -u` --build-arg GID=`id -g` ."
+    dockerFingerprintFrom dockerfile: './Dockerfile', image: imgName, toolName: env.DOCKER_TOOL_NAME
+  }
+  
+  withCerts {
     docker.image(imgName).inside() {
       withEnv(["CLIQZ_CONFIG_PATH=./configs/${CLIQZ_CHANNEL}.json"]) {
-        stage 'fern install'
-        sh './fern.js install'
-
-        stage 'fern test'
-        sh './fern.js test --ci tests.xml'
-
-        stage 'fern build'
-        sh './fern.js build --freshtab'
-
-        stage 'checkout xpi-sign'
+        helpers.withCache {
+          stage('fern install') {
+            sh './fern.js install'
+          }
+  
+          stage('fern test') {
+            sh './fern.js test --ci tests.xml'
+          }
+  
+          stage('fern build') {
+            sh './fern.js build --freshtab'
+          }
+        }
+      }
+  
+      stage('checkout xpi-sign') {
         checkout([
-          $class: 'GitSCM',
-          branches: [[name: '*/cliqz-ci']],
-          doGenerateSubmoduleConfigurations: false,
-          extensions: [[
-            $class: 'RelativeTargetDirectory',
-            relativeTargetDir: 'xpi-sign'
-          ]],
-          submoduleCfg: [],
-          userRemoteConfigs: [[
-            credentialsId: XPI_SIGN_CREDENTIALS,
-            url: XPI_SIGN_REPO_URL
-          ]]
+            $class: 'GitSCM',
+            branches: [[name: '*/cliqz-ci']],
+            doGenerateSubmoduleConfigurations: false,
+            extensions: [[
+              $class: 'RelativeTargetDirectory',
+              relativeTargetDir: 'xpi-sign'
+            ]],
+            submoduleCfg: [],
+            userRemoteConfigs: [[
+              credentialsId: XPI_SIGN_CREDENTIALS,
+              url: XPI_SIGN_REPO_URL
+            ]]
         ])
-
-        stage 'fab publish'
-        sh """#!/bin/bash
-          cd build/
-          set +x
-          source ../certs/beta-upload-creds.sh
-          set -x
-          fab publish:beta=${CLIQZ_BETA},channel=${CLIQZ_CHANNEL},pre=${CLIQZ_PRE_RELEASE}
-        """
+      }
+  
+      stage('fab publish') {
+        withCredentials([[
+            $class: 'UsernamePasswordMultiBinding',
+            credentialsId: '06ec4a34-9d01-46df-9ff8-64c79eda8b14',
+            passwordVariable: 'AWS_SECRET_ACCESS_KEY',
+            usernameVariable: 'AWS_ACCESS_KEY_ID']]) {
+  
+          sh """#!/bin/bash
+            cd build
+            fab publish:beta=$CLIQZ_BETA,channel=$CLIQZ_CHANNEL,pre=$CLIQZ_PRE_RELEASE
+          """
+          
+        }
       }
     }
-  } finally {
+  }
+}
+
+def withCerts(Closure body) {
+  def cleanup = {
     sh 'rm -rf certs'
+  }
+  try {
+    cleanup()
+    sh 'cp -R /cliqz certs'
+    body()
+  } finally {
+    cleanup()
   }
 }

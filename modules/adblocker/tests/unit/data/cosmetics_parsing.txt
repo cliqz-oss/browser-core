@@ -1,5 +1,5 @@
 # TODO
-# {"filter": "example.org##.selector", "compiled": {"supported": true}}
+# {"filter": "example.org##.selector", "compiled": {"supported": true, "selector": ".selector"}}
 
 # Supported/Not supported
 {"filter": "example.org#$#.selector", "compiled": {"supported": false}}
@@ -33,3 +33,8 @@
 {"filter": "example.org##.selector", "compiled": {"selector": ".selector", "supported": true}}
 {"filter": "example.org#@#.selector", "compiled": {"selector": ".selector", "supported": true}}
 {"filter": "##.selector", "compiled": {"selector": ".selector", "supported": true}}
+
+# Script injection
+{"filter": "example.org##script:contains(/^\s*?window\.__AB__/)", "compiled": {"selector": "^\s*?window\.__AB__", "supported": true, "scriptBlock": true}}
+{"filter": "##script:contains(/regex/)", "compiled": {"selector": "regex", "supported": true, "scriptBlock": true}}
+{"filter": "example.org##script:inject(noeval.js)", "compiled": {"selector": "noeval.js", "supported": true, "scriptInject": true}}

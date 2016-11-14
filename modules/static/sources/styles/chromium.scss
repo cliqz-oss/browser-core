@@ -1,0 +1,31 @@
+.cqz-chromium {
+  .cqz-results {
+    height: 376px;
+    padding: 0 64px 26px;
+
+    .cqz-result-selected[active="true"] {
+      top: -20px;
+      left: 64px;
+    }
+  }
+
+  .cqz-message-container {
+    margin-top: -26px;
+    margin-bottom: 26px;
+    position: relative;
+  }
+}
+
+$dynamic-padding: calc((100% - 500px)/2);
+@media (max-width: 628px) {
+  .cqz-chromium {
+    .cqz-results {
+      padding-left: $dynamic-padding;
+      padding-right: $dynamic-padding;
+
+      .cqz-result-selected[active="true"] {
+        left: calc((100% - 500px + 11px)/2);  /* 11px for scrollbar */
+      }
+    }
+  }
+}

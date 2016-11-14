@@ -18,9 +18,13 @@ export default Ember.Component.extend({
       action: 'click',
       target_type: this.get('model.type'),
       extra: Ember.$(ev.target).attr('extra'),
-      target_index: this.get('index')
+      target_index: this.get('absoluteIndex')
     });
   },
+
+  absoluteIndex: Ember.computed("index", "pageNum", "pageSize", function () {
+    return (this.get("pageSize") * this.get("pageNum")) + this.get("index");
+  }),
 
   adjustHeight: function () {
     let height = this.get("height");

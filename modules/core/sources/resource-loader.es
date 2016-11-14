@@ -12,7 +12,7 @@ function get(url) {
   return new Promise((resolve, reject) => {
     utils.httpGet(url, res => {
       resolve(res.response);
-    }, reject);
+    }, reject, 10000);
   });
 }
 
@@ -44,7 +44,7 @@ export class UpdateCallbackHandler {
   }
 
   triggerCallbacks(args) {
-    this.callbacks.map(cb => cb(args));
+    return Promise.all(this.callbacks.map(cb => cb(args)));
   }
 }
 
@@ -53,22 +53,21 @@ export class UpdateCallbackHandler {
  * disk. It will be persisted on disk upon each update from remote. It is
  * also able to parse JSON automatically if `dataType` is 'json'.
  */
-export class Resource extends UpdateCallbackHandler {
+export class Resource {
 
   constructor(name, options = {}) {
-    super();
-
     this.name = (typeof name === 'string') ? [name] : name;
     this.remoteURL = options.remoteURL;
     this.dataType = options.dataType || 'json';
     this.filePath = ['cliqz', ...this.name];
-    this.chromeURL = `chrome://cliqz/content/${this.name.join('/')}`;
+    this.chromeURL = options.chromeURL || `chrome://cliqz/content/${this.name.join('/')}`;
   }
 
   persist(data) {
     const dirPath = this.filePath.slice(0, -1);
     return makeDirRecursive(dirPath)
       .then(() => writeFile(this.filePath, (new TextEncoder()).encode(data)))
+      .catch(() => writeFile(this.filePath, data))
       .then(() => data);
   }
 
@@ -91,10 +90,7 @@ export class Resource extends UpdateCallbackHandler {
       return Promise.resolve();
     }
     return this.updateFromURL(this.remoteURL)
-      .then(data => {
-        this.triggerCallbacks(data);
-        return data;
-      });
+      .catch(() => {});
   }
 
   parseData(data) {
@@ -106,14 +102,17 @@ export class Resource extends UpdateCallbackHandler {
 }
 
 
-export default class {
+export default class extends UpdateCallbackHandler {
 
   constructor(resourceName, options = {}) {
+    super();
+
     this.resource = new Resource(resourceName, options);
     this.cron = options.cron || ONE_HOUR;
-    this.updateInterval = utils.setInterval(
+    this.updateInterval = options.updateInterval || 10 * ONE_MINUTE;
+    this.intervalTimer = utils.setInterval(
         this.updateFromRemote.bind(this),
-        this.cron);
+        this.updateInterval);
   }
 
   load() {
@@ -127,16 +126,16 @@ export default class {
 
     if (currentTime > this.cron + lastUpdate) {
       return this.resource.updateFromRemote()
-        .then(() => utils.setPref(pref, String(Date.now())));
+        .then(data => {
+          utils.setPref(pref, String(Date.now()));
+          return data;
+        })
+        .then(this.triggerCallbacks.bind(this));
     }
     return Promise.resolve();
   }
 
-  onUpdate(callback) {
-    this.resource.onUpdate(callback);
-  }
-
   stop() {
-    utils.clearInterval(this.updateInterval);
+    utils.clearInterval(this.intervalTimer);
   }
 }

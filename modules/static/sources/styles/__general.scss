@@ -3,6 +3,76 @@
     src: url("../skin/fonts/Lato-Regular.ttf");
 }
 
+/*===== Onboarding =====*/
+
+#main-window.cqz-onboarding {
+    min-width: 1100px !important;
+    min-height: 768px !important;
+
+    &.cqz-step1 {
+        #PanelUI-button {
+            display: none;
+        }
+
+        #nav-bar > *:not(panel),
+        #urlbar-container {
+            visibility: hidden;
+
+        }
+    }
+
+    &.cqz-step2 {
+        #nav-bar #nav-bar-customization-target {
+            visibility: visible;
+
+            & > :not(#cliqz-cc-btn):not(#urlbar-container) {
+                display: none;
+            }
+        }
+
+        //Hack disable click on CCenter btn
+        #nav-bar-customization-target:before {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: block;
+            content: "";
+            width: 100%;
+            height: 100%;
+        }
+    }
+
+    &.cqz-step3 {}
+
+    .panel-arrowcontent {
+        padding: 0px;
+        --panel-arrowcontent-padding: 0px;
+    }
+
+    #UITourTooltipDescription iframe {
+        display: block;
+    }
+
+    #UITourTooltipTitle {
+        max-width: 420px;
+    }
+
+    #UITourTooltipTitleContainer {
+        margin-bottom: 0px;
+        display: none
+    }
+
+    #UITourTooltipClose {
+        margin-top: 0px;
+        display: none
+    }
+}
+
+#UITourTooltip[target="cliqz"] .panel-arrowcontent {
+    --panel-arrowcontent-padding: 0px;
+}
+
+
 #PopupAutoCompleteRichResultCliqz {
     -moz-binding: url("../../components.xml#autocomplete-rich-result-popup-cliqz");
     min-height: 350px; /* fixes bug with popup auto-sizing */
@@ -74,6 +144,10 @@
     margin: -2px 7px 0px 0px;
 }
 
+.cliqz-urlbar-Last-search-container[channel='40'] {
+    line-height: 24px;
+}
+
 .cliqz-urlbar-Last-search {
     overflow: hidden;
     max-width: 200px;
@@ -141,6 +215,16 @@
     border-bottom: 1px solid #CCC;
 }
 
+.cqz-results .cqz-result-box:nth-child(n+3):nth-last-child(2) {
+    margin-bottom: -1px;
+
+    & > .cqz-result-h1,
+    & > .cqz-result-h2,
+    & > .cqz-result-h3 {
+        border-bottom: none;
+    }
+}
+
 .cqz-results .transition {
     transition: all 0.2s ease;
 }
@@ -157,25 +241,23 @@
 .cqz-results .cqz-result-h2 { height: 234px; }
 .cqz-results .cqz-result-h3 { height: 117px; }
 
-.cqz-results .cqz-result-box { position: relative; }
+.cqz-results .cqz-result-box {
+    position: relative;
+}
 
 .cqz-results .cqz-result-selected {
     position: absolute;
     top: 10px;
     left: -20px;
-    height: 14px;
-    width: 14px;
 
-    background-color: #CCCCCC;
-    border-radius: 0 3px 0 0;
-    -moz-transform: rotate(42deg);
-    transform: rotate(42deg);
-    -moz-backface-visibility: hidden;
-    backface-visibility: hidden;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+
+    border-left: 8px solid #777;
 }
 
 .cqz-results .cqz-result-selected[active="true"] {
-    left: -8px;
+    left: 0px;
 }
 
 .cqz-results .cqz-result-debug {
@@ -227,8 +309,6 @@
     vertical-align: top;
     max-width: 550px;
 }
-
-
 
 /* common */
 .cqz-results .cqz-ez-btns {
@@ -541,7 +621,7 @@
 
 .cqz-results .ez-no-result .h1 {
     font-size: 20px;
-    margin-top: 36px;
+    padding-top: 36px;
 }
 
 .cqz-results .ez-no-result .h2 {
@@ -852,7 +932,7 @@
     height: 76px;
     float: left;
     margin-right: 20px;
-    max-width: 50px
+    max-width: 80px
 }
 
 .cqz-results .cqz-rhh3-snipet-txt {
@@ -867,6 +947,7 @@
 
 .cqz-results .cqz-rd-img {
     display: block;
+    max-height: 100%;
 }
 
 .cqz-results .cqz-rd-snippet_hspacing {

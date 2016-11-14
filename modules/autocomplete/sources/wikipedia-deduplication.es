@@ -8,7 +8,6 @@ import language from "platform/language";
 var CliqzWikipediaDeduplication = {
     LOG_KEY: 'CliqzWikipediaDeduplication',
     name: 'lang_deduplication',
-
     /* choose best url from list based on original order (reranking)*/
     chooseUrlByIndex: function(searchedUrls, originalUrls){
         var maxPos = originalUrls.length;
@@ -184,4 +183,18 @@ var CliqzWikipediaDeduplication = {
 
 };
 
-export default CliqzWikipediaDeduplication;
+export default class WikipediaDedupReranker {
+  constructor() {
+    this.name = 'lang_deduplication'
+  }
+  afterResults(_, backendResults) {
+    var reranked = CliqzWikipediaDeduplication.doRerank(backendResults.response.results);
+    var response = Object.assign({}, backendResults.response, {
+      results: reranked.response,
+      telemetrySignal: reranked.telemetrySignal
+    });
+    return Promise.resolve(Object.assign({}, backendResults, {
+      response: response
+    }));
+  }
+};

@@ -5,19 +5,7 @@
  */
 
 import DelayedImageLoader from 'mobile-ui/DelayedImageLoader';
-import handlebars from "core/templates";
 import { window, document } from 'mobile-ui/webview';
-
-//TODO: improve loading of these views!
-import v1 from 'mobile-ui/views/currency';
-import v2 from 'mobile-ui/views/entity-generic';
-import v3 from 'mobile-ui/views/generic';
-import v4 from 'mobile-ui/views/hq';
-import v6 from 'mobile-ui/views/local-data-sc';
-import v7 from 'mobile-ui/views/stocks';
-import v8 from 'mobile-ui/views/weatherAlert';
-import v9 from 'mobile-ui/views/weatherEZ';
-import v10 from 'mobile-ui/views/liveTicker';
 
 var resultsBox = null,
     viewPager = null,
@@ -35,19 +23,23 @@ var UI = {
     nCardsPerPage: 1,
     nPages: 1,
     DelayedImageLoader: null,
+    VIEWS: {},
     init: function () {
-        //check if loading is done
-        if (!handlebars.tplCache.main) return;
         let box = document.getElementById('results');
-        box.innerHTML = handlebars.tplCache.main();
+        box.innerHTML = CLIQZ.templates.main();
 
         resultsBox = document.getElementById('cliqz-results', box);
 
         resultsBox.addEventListener('click', resultClick);
 
         // FIXME: import does not work
-        UI.DelayedImageLoader = System.get('mobile-ui/DelayedImageLoader').default;
-        loadViews();
+        UI.DelayedImageLoader = DelayedImageLoader;
+    },
+    onBoardingSwipe: function () {
+      const DELAY = 1200;
+      const PAUSE = 1000;
+      setTimeout(viewPager.goToIndex, DELAY, 1, 1000)
+      setTimeout(viewPager.goToIndex, DELAY + PAUSE, 0, 1000);
     },
     setDimensions: function () {
       UI.CARD_WIDTH = window.innerWidth  -  2 * PEEK;
@@ -104,6 +96,8 @@ var UI = {
 
       var enhancedResults = enhanceResults(r._results);
 
+      const title = CliqzUtils.getLocalizedString(enhancedResults[0] ? 'mobile_more_results_title' : 'mobile_no_result_title');
+
       currentResults = {
         searchString: r._searchString,
         frameWidth: UI.CARD_WIDTH,
@@ -111,8 +105,7 @@ var UI = {
         isInstant: false,
         isMixed: true,
         googleThis: {
-          title: CliqzUtils.getLocalizedString('mobile_more_results_title'),
-          action: CliqzUtils.getLocalizedString('mobile_more_results_action', engine.name),
+          title,
           left: UI.CARD_WIDTH * enhancedResults.length,
           frameWidth: UI.CARD_WIDTH,
           searchString: encodeURIComponent(r._searchString),
@@ -121,30 +114,27 @@ var UI = {
           background: logo.backgroundColor
         }
       };
-        var query = currentResults.searchString || '';
 
-        if (imgLoader) imgLoader.stop();
+      var query = currentResults.searchString || '';
 
-        // Results that are not ready (extra results, for which we received a callback_url)
-        var asyncResults = currentResults.results.filter(assessAsync(true));
-        currentResults.results = currentResults.results.filter(assessAsync(false));
+      if (imgLoader) imgLoader.stop();
 
-        redrawDropdown(handlebars.tplCache.results(currentResults), query);
+      redrawDropdown(CLIQZ.templates.results(currentResults), query);
 
-        if (asyncResults.length) loadAsyncResult(asyncResults, query);
 
-        imgLoader = new UI.DelayedImageLoader('#cliqz-results img[data-src], #cliqz-results div[data-style], #cliqz-results span[data-style]');
-        imgLoader.start();
+      imgLoader = new UI.DelayedImageLoader('#cliqz-results img[data-src], #cliqz-results div[data-style], #cliqz-results span[data-style]');
+      imgLoader.start();
 
-        crossTransform(resultsBox, 0);
+      crossTransform(resultsBox, 0);
 
-        setResultNavigation(currentResults.results);
+      currentResultsCount = enhancedResults.length;
 
-        return currentResults.results;
+      setResultNavigation(currentResultsCount);
+
+      return currentResults.results;
     },
-    VIEWS: {},
     initViewpager: function () {
-        var views = {},
+        var views = { 0: 1 },
             pageShowTs = Date.now(),
             innerWidth = window.innerWidth,
             offset = 0;
@@ -166,16 +156,16 @@ var UI = {
             if (page === UI.currentPage || !UI.isSearch()) return;
 
             views[page] = (views[page] || 0) + 1;
+            const direction = page > UI.currentPage ? 'right' : 'left'
 
 
             CliqzUtils.telemetry({
-              type: 'activity',
-              action: 'swipe',
-              swipe_direction: page > UI.currentPage ? 'right' : 'left',
-              current_position: page,
-              views: views[page],
-              prev_position: UI.currentPage,
-              prev_display_time: Date.now() - pageShowTs
+              type: 'cards',
+              action: `swipe_${direction}`,
+              index: page,
+              show_count: views[page],
+              show_duration: Date.now() - pageShowTs,
+              count: currentResultsCount
             });
 
             pageShowTs = Date.now();
@@ -228,87 +218,6 @@ function setCardCountPerPage(windowWidth) {
 }
 
 
-function loadAsyncResult(res, query) {
-    for (var i in res) {
-      var r = res[i];
-      var qt = query + ": " + new Date().getTime();
-      CliqzUtils.log(r,"LOADINGASYNC");
-      CliqzUtils.log(query,"loadAsyncResult");
-      var loop_count = 0;
-      var async_callback = function (req) {
-          CliqzUtils.log(query,"async_callback");
-          var resp = null;
-          try {
-            resp = JSON.parse(req.response).results[0];
-          }
-          catch(err) {
-            res.splice(i,1);
-          }
-          if (resp &&  CliqzAutocomplete.lastSearch === query) {
-
-            var kind = r.data.kind;
-            if ("__callback_url__" in resp.data) {
-                // If the result is again a promise, retry.
-                if (loop_count < 10 /*smartCliqzMaxAttempts*/) {
-                  setTimeout(function () {
-                    loop_count += 1;
-                    CliqzUtils.httpGet(resp.data.__callback_url__, async_callback, async_callback);
-                  }, 100 /*smartCliqzWaitTime*/);
-                }
-                else if (!currentResults.results.length) {
-                  redrawDropdown(handlebars.tplCache.noResult(CliqzUtils.getNoResults()), query);
-                }
-            }
-            else {
-              r.data = resp.data;
-              r.url = resp.url;
-              r.data.kind = kind;
-              r.data.subType = resp.subType;
-              r.data.trigger_urls = resp.trigger_urls;
-              r.vertical = getVertical(r);
-              r.urlDetails = CliqzUtils.getDetailsFromUrl(r.url);
-              r.logo = CliqzUtils.getLogoDetails(r.urlDetails);
-
-              if (resultsBox && CliqzAutocomplete.lastSearch === query) {
-                  // Remove all existing extra results
-                  currentResults.results = currentResults.results.filter(function (r) { return r.type !== 'cliqz-extra'; } );
-                  // add the current one on top of the list
-                  currentResults.results.unshift(r);
-
-                  if (currentResults.results.length) {
-                    redrawDropdown(handlebars.tplCache.results(currentResults), query);
-                  }
-                  else {
-                    redrawDropdown(handlebars.tplCache.noResult(CliqzUtils.getNoResults()), query);
-                  }
-                  imgLoader = new UI.DelayedImageLoader('#cliqz-results img[data-src], #cliqz-results div[data-style], #cliqz-results span[data-style]');
-                  imgLoader.start();
-              }
-            }
-          }
-          // to handle broken promises (eg. Weather and flights) on mobile
-          else if (r.data && r.data.__callback_url__) {
-            shiftResults();
-          }
-          else {
-            res.splice(i,1);
-            if (!currentResults.results.length) {
-              redrawDropdown(handlebars.tplCache.noResult(CliqzUtils.getNoResults()), query);
-            }
-          }
-
-      };
-      CliqzUtils.httpGet(r.data.__callback_url__, async_callback, async_callback);
-    }
-}
-
-
-function assessAsync(getAsync) {
-    return function (result) {
-        var isAsync = result.type === 'cliqz-extra' && result.data && '__callback_url__' in result.data ;
-        return getAsync ? isAsync : !isAsync;
-    };
-}
 
 function redrawDropdown(newHTML) {
     resultsBox.style.display = 'block';
@@ -319,15 +228,14 @@ function redrawDropdown(newHTML) {
 function getVertical(result) {
   // if history records are less than 3 it goes to generic
   let template;
-  if (result.data.template === 'pattern-h3') {
+  if (result.template === 'pattern-h3') {
     template = 'history';
-  } else if (CliqzUtils.TEMPLATES[result.data.superTemplate]) {
-      template = result.data.superTemplate;
-  } else if(CliqzUtils.TEMPLATES[result.data.template]) {
-    template = result.data.template
+  } else if(CliqzUtils.TEMPLATES[result.template]) {
+    template = result.template;
   } else {
     template = 'generic';
   }
+  console.log('temp', template);
   return template;
 }
 
@@ -337,12 +245,12 @@ function enhanceResults(results) {
     const _tmp = getDebugMsg(r.comment || '');
     const url = r.val || '';
     const urlDetails = CliqzUtils.getDetailsFromUrl(url);
-
     enhancedResults.push(enhanceSpecificResult({
       query: r.query,
       type: r.style,
       left: (UI.CARD_WIDTH * index),
       data: r.data || {},
+      template: (r.data || {}).template,
       url,
       urlDetails,
       logo: CliqzUtils.getLogoDetails(urlDetails),
@@ -351,13 +259,7 @@ function enhanceResults(results) {
     }));
   });
 
-  let filteredResults = enhancedResults.filter(function (r) { return !(r.data && r.data.adult); });
-
-  // if there no results after adult filter - show no results entry
-  if (!filteredResults.length) {
-    filteredResults.push(CliqzUtils.getNoResults());
-    filteredResults[0].vertical = 'noResult';
-  }
+  let filteredResults = enhancedResults.filter(function (r) { return !(r.data && r.data.extra && r.data.extra.adult); });
 
   return filteredResults;
 }
@@ -386,13 +288,12 @@ function enhanceSpecificResult(r) {
     height: window.screen.height
   };
 
-  if (r.subType && JSON.parse(r.subType).ez) {
+  if (r.subType && r.subType.id) {
       // Indicate that this is a RH result.
       r.type = 'cliqz-extra';
   }
 
   const template = r.vertical = getVertical(r);
-
   const specificView = UI.VIEWS[template] || UI.VIEWS.generic;
   specificView.enhanceResults && specificView.enhanceResults(r.data, contentArea);
 
@@ -473,27 +374,21 @@ function shiftResults() {
     UI.lastResults[i] && (UI.lastResults[i].left = left);
     frames[i].style.left = left + 'px';
   }
-  setResultNavigation(UI.lastResults);
+  currentResultsCount = UI.lastResults.length;
+
+  setResultNavigation(currentResultsCount);
 }
 
 
-function setResultNavigation(results) {
+function setResultNavigation(resultCount) {
 
-  var showGooglethis = 1;
-  if (!results[0] || results[0].data.template === 'noResult') {
-    showGooglethis = 0;
-  }
+  const showGooglethis = 1;
 
   resultsBox.style.width = window.innerWidth + 'px';
   resultsBox.style.marginLeft = PEEK + 'px';
 
-
-  var lastResultOffset = results.length ? results[results.length - 1].left || 0 : 0;
-
-  currentResultsCount = lastResultOffset / UI.CARD_WIDTH + showGooglethis + 1;
-
   // get number of pages according to number of cards per page
-  UI.nPages = Math.ceil(currentResultsCount / UI.nCardsPerPage);
+  UI.nPages = Math.ceil((currentResultsCount + showGooglethis) / UI.nCardsPerPage);
 
   if (document.getElementById('currency-tpl')) {
     document.getElementById('currency-tpl').parentNode.removeAttribute('url');
@@ -515,7 +410,7 @@ window.addEventListener('resize', function () {
       UI.lastResults[i] && (UI.lastResults[i].left = left);
       frames[i].style.width = UI.CARD_WIDTH + 'px';
     }
-    setResultNavigation(UI.lastResults);
+    setResultNavigation(currentResultsCount);
     UI.currentPage = Math.floor(UI.currentPage * lastnCardsPerPage / UI.nCardsPerPage);
     viewPager.goToIndex(UI.currentPage, 0);
   }, 200);
@@ -532,28 +427,4 @@ window.addEventListener('connected', function () {
   elem && (elem.innerHTML = '');
 });
 
-function loadViews() {
-  UI.clickHandlers = {};
-  Object.keys(CliqzHandlebars.TEMPLATES).concat(CliqzHandlebars.MESSAGE_TEMPLATES).concat(CliqzHandlebars.PARTIALS).forEach(function (templateName) {
-    UI.VIEWS[templateName] = Object.create(null);
-    try {
-      let module = System.get('mobile-ui/views/' + templateName);
-      if (module) {
-        UI.VIEWS[templateName] = new module.default(window);
-
-        if (UI.VIEWS[templateName].events && UI.VIEWS[templateName].events.click) {
-          Object.keys(UI.VIEWS[templateName].events.click).forEach(function (selector) {
-            UI.clickHandlers[selector] = UI.VIEWS[templateName].events.click[selector];
-          });
-        }
-      } else {
-        CliqzUtils.log('failed to load ' + templateName, 'UI');
-      }
-    } catch (ex) {
-      CliqzUtils.log(ex, 'UI');
-    }
-  });
-}
-
 export default UI;
-    

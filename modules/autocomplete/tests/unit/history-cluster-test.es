@@ -3,6 +3,7 @@ export default describeModule("autocomplete/history-cluster",
     return {
       "core/cliqz": { utils: {} },
       "autocomplete/result": { default: {} },
+      "core/history-manager": { default: {} },
     }
   },
   function () {

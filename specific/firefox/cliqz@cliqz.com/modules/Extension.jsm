@@ -7,11 +7,16 @@
 
 Components.utils.importGlobalProperties(['crypto'])
 var EXPORTED_SYMBOLS = ['Extension'];
-const { classes: Cc, interfaces: Ci, utils: Cu, manager: Cm } = Components;
+const {
+  classes: Cc,
+  interfaces: Ci,
+  utils: Cu,
+  manager: Cm,
+  results: Cr
+} = Components;
 
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Components.utils.import('resource://gre/modules/Services.jsm');
-Components.utils.unload('chrome://cliqzmodules/content/CliqzHistoryManager.jsm');
 
 var SEARCH_BAR_ID = 'search-container',
     dontHideSearchBar = 'dontHideSearchBar',
@@ -45,11 +50,22 @@ var Extension = {
       Services.scriptloader.loadSubScript("chrome://cliqz/content/runloop.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqzmodules/content/extern/system-polyfill.js", this);
       Extension.System = this.System;
+      Extension.System.normalizeSync = function(modName) {return modName;};
+      Extension.System.set('system', { default: Extension.System });
+      Extension.System.set('promise', { default: this.Promise });
 
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/bower_components/handlebars/handlebars.js", this);
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/storage.js", this);
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/core/storage.js", this);
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/prefs.js", this);
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/core/prefs.js", this);
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/console.js", this);
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/core/console.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/environment.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/core/utils.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/core/events.js", this);
 
+      Extension.System.set('handlebars', {default: this.Handlebars});
       var environment = Extension.System.get("platform/environment").default;
       // must be set to this.Promise before anything else is called, so the proper Promise implementation can be used.
       environment.Promise = this.Promise;
@@ -65,20 +81,14 @@ var Extension = {
       CLIQZ.CliqzUtils = utils;
       CLIQZ.CliqzEvents = events;
       CliqzUtils = utils;
+      CliqzUtils.Extension = Extension;
       CliqzEvents = events;
 
-      Cu.import('chrome://cliqzmodules/content/CliqzRedirect.jsm');
-      Cu.import('chrome://cliqzmodules/content/CliqzSearchHistory.jsm');
-      Cu.import('chrome://cliqzmodules/content/CliqzLanguage.jsm');
-
       CliqzUtils.initPlatform(Extension.System)
-
-      Extension.setDefaultPrefs();
 
       CliqzUtils.init({
         lang: CliqzUtils.getPref('general.useragent.locale', 'en', '')
       });
-      CliqzLanguage.init();
       this.telemetry = CliqzUtils.telemetry;
 
       CliqzUtils.extensionVersion = newVersion;
@@ -97,41 +107,35 @@ var Extension = {
       CliqzUtils.RESULTS_PROVIDER = this. config.settings['resultsprovider-url'] || CliqzUtils.RESULTS_PROVIDER;
       CliqzUtils.FEEDBACK_URL = CliqzUtils.FEEDBACK + CliqzUtils.extensionVersion + '-' + this.config.settings.channel;
 
-      function startAbTests() {
-        return Extension.System.import("core/ab-tests").then(function (ab) {
-          ab.default.init();
+      function loadModulesBackground() {
+        return Extension.System.import("core/app").then(module => {
+          const App = module.default;
+          Extension.app = new App();
+          return Extension.app.load();
         });
       }
-
-      function loadModulesBackground() {
-        return Promise.all(
-          Extension.config.modules.map(function (moduleName) {
-            return Extension.System.import(moduleName+"/background")
-              .then(function (module) {
-                return module.default.init(Extension.config.settings);
-              }).catch(function (e) {
-                CliqzUtils.log("Error on loading module: "+moduleName+" - "+e.toString()+" -- "+e.stack, "Extension");
-              });
-          })
-        );
-      }
       // Load and initialize modules
-      Extension.modulesLoadedPromise = startAbTests()
-        .then(loadModulesBackground)
+      Extension.modulesLoadedPromise = loadModulesBackground()
         .then(function () {
           Extension.cliqzPrefsObserver.register();
-          CliqzHistoryManager.init();
-        })
 
-      // Load into currently open windows
-      var enumerator = Services.wm.getEnumerator('navigator:browser');
-      while (enumerator.hasMoreElements()) {
-        var win = enumerator.getNext();
-        Extension.loadIntoWindow(win);
-      }
+          // Load into currently open windows
+          var enumerator = Services.wm.getEnumerator('navigator:browser');
+          while (enumerator.hasMoreElements()) {
+            var win = enumerator.getNext();
+            Extension.loadIntoWindow(win);
+          }
+
+          Services.ww.registerNotification(Extension.windowWatcher);
+        })
+        .catch(function (e) {
+          CliqzUtils.log(e, 'Extension -- failed to init CLIQZ App');
+        });
+
 
       // Load into all new windows
-      Services.ww.registerNotification(Extension.windowWatcher);
+
+      Extension.setInstallDatePref();
     },
     shutdown: function () {
       Extension.quickUnloadModules();
@@ -145,13 +149,26 @@ var Extension = {
       try{
           Extension.restoreSearchBar(win);
           Extension.resetOriginalPrefs();
-          win.CLIQZ.Core.showUninstallMessage(version);
+          showUninstallMessage(win, version);
       } catch(e){}
     },
 
-    unload: function () {
-        Extension.unloadModules();
+    // for legacy users who have not set install date on installation
+    setInstallDatePref: function () {
+      try {
+        if (!CliqzUtils.getPref('install_date')) {
+          Cu.import('resource://gre/modules/AddonManager.jsm');
+          AddonManager.getAddonByID("cliqz@cliqz.com", function () {
+            var date = Math.floor(arguments[0].installDate.getTime() / 86400000);
+            CliqzUtils.setPref('install_date', date);
+          });
+        }
+      } catch (ex) {
+        CliqzUtils.log('Unable to set install date');
+      }
+    },
 
+    unload: function () {
         CliqzUtils.clearTimeout(Extension._SupportInfoTimeout)
 
         // Unload from any existing windows
@@ -161,13 +178,13 @@ var Extension = {
             Extension.unloadFromWindow(win);
         }
 
+        Extension.unloadModules();
+
         Services.ww.unregisterNotification(Extension.windowWatcher);
 
         Extension.cliqzPrefsObserver.unregister();
 
         this.cliqzRunloop.stop();
-        CliqzLanguage.unload();
-        CliqzHistoryManager.unload();
 
         Extension.unloadJSMs();
     },
@@ -199,78 +216,30 @@ var Extension = {
         }
     },
     quickUnloadModules: function () {
-        this.config.modules.slice(0).reverse().forEach(function (moduleName) {
-            try {
-                Extension.System.get(moduleName+"/background")
-                                .default.beforeBrowserShutdown();
-            } catch(e) {
-              CliqzUtils.log(e.toString()+" -- "+e.stack, "Error quick unloading module: "+moduleName);
-            }
-        });
+      Extension.app.unload({ quick: true });
     },
     unloadModules: function () {
-        this.config.modules.slice(0).reverse().forEach(function (moduleName) {
-            try {
-                Extension.System.get(moduleName+"/background")
-                                .default.unload();
-            } catch(e) {
-              CliqzUtils.log(e.toString()+" -- "+e.stack, "Error unloading module: "+moduleName);
-            }
-        });
+      Extension.app.unload();
     },
     unloadJSMs: function () {
         //unload all cliqz modules
-        Cu.unload('chrome://cliqzmodules/content/CliqzPlacesAutoComplete.jsm');
-        Cu.unload('chrome://cliqzmodules/content/CliqzHistoryManager.jsm');
-        Cu.unload('chrome://cliqzmodules/content/CliqzLanguage.jsm');
-        Cu.unload('chrome://cliqzmodules/content/CliqzSearchHistory.jsm');
-        Cu.unload('chrome://cliqzmodules/content/CliqzRedirect.jsm');
-        Cu.unload('chrome://cliqzmodules/content/CliqzAntiPhishing.jsm');
-        Cu.unload('chrome://cliqzmodules/content/CliqzDemo.jsm');
-        Cu.unload('chrome://cliqzmodules/content/CliqzMsgCenter.jsm');
         Cu.unload('chrome://cliqzmodules/content/CLIQZ.jsm');
     },
     restart: function(){
         CliqzUtils.extensionRestart();
     },
-    setDefaultPrefs: function() {
-      //TODO: cleaning prefs?
-    },
-    addScript: function(src, win) {
-        Services.scriptloader.loadSubScript(CliqzUtils.SYSTEM_BASE_URL + src + '.js', win);
-    },
-    setupCliqzGlobal: function (win) {
-      if(win.CLIQZ === undefined) {
-          Object.defineProperty( win, 'CLIQZ', {configurable:true, value:{}});
-      } else {
-          try{
-              //faulty uninstall of previous version
-              win.CLIQZ = win.CLIQZ || {};
-          } catch(e){}
-      }
-      win.CLIQZ.System = Extension.System;
-      win.CLIQZ.config = this.config;
-    },
     loadIntoWindow: function(win) {
       if (!win) return;
 
       function load() {
-        Extension.modulesLoadedPromise.then(function () {
-          Extension.setupCliqzGlobal(win);
-          Extension.addScript('core', win);
-
-          try {
-            win.CLIQZ.Core.init();
-            CliqzUtils.log('Initialized', 'CORE');
-
-            // Always set urlbar and start whoAmI
-            // We need the urlbar, so that we can activate cliqz from a different window that was already open at the moment of deactivation
-            win.CLIQZ.Core.urlbar = win.document.getElementById('urlbar');
-            win.CLIQZ.Core.whoAmI(true); //startup
-          } catch(e) {
-            Cu.reportError(e);
-          }
-        });
+        Extension.modulesLoadedPromise
+          .then(function () {
+            CliqzUtils.log('Extension CLIQZ App background loaded');
+            return Extension.app.loadWindow(win);
+          })
+          .catch(function (e) {
+            CliqzUtils.log(e, 'Extension filed loaded window modules');
+          });
       }
 
       if (!win.document || win.document.readyState !== "complete") {
@@ -291,12 +260,7 @@ var Extension = {
         }
 
         try {
-          win.CLIQZ.Core.unload(false);
-          delete win.CLIQZ.CliqzUtils;
-          delete win.CLIQZ.CliqzEvents;
-          delete win.CLIQZ.Core;
-          delete win.CLIQZ.UI;
-          delete win.CLIQZ;
+          Extension.app.unloadWindow(win);
 
           // count the number of opened windows here and send it to events
           // if the last window was closed then remaining == 0.
@@ -372,3 +336,14 @@ var Extension = {
       }
     }
 };
+
+function showUninstallMessage(window, currentVersion) {
+  const gBrowser = window.gBrowser;
+  const UNINSTALL_PREF = 'uninstallVersion';
+  const lastUninstallVersion = CliqzUtils.getPref(UNINSTALL_PREF, '');
+
+  if (currentVersion && (lastUninstallVersion !== currentVersion)) {
+    CliqzUtils.setPref(UNINSTALL_PREF, currentVersion);
+    gBrowser.selectedTab = gBrowser.addTab(CliqzUtils.UNINSTALL);
+  }
+}

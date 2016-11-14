@@ -11,19 +11,23 @@
     "channel": "40",
     "antitrackingButton": true,
     "helpMenus": true,
-    "showNewBrandAlert": true
+    "showNewBrandAlert": true,
+    "onBoardingVersion": "2.0"
+  },
+  "default_prefs" : {
+    "modules.context-search.enabled": false
   },
   "modules": [
-    "q-button",
-    "static",
     "core",
+    "firefox-specific",
+    "static",
+    "context-search",
     "autocomplete",
     "geolocation",
     "ui",
     "human-web",
     "anti-phishing",
     "context-menu",
-    "onboarding",
     "freshtab",
     "unblock",
     "theme",
@@ -35,7 +39,8 @@
     "privacy-dashboard",
     "offers",
     "adblocker",
-    "https-everywhere"
+    "https-everywhere",
+    "onboarding-v2"
   ],
   "subprojects": [
     "fresh-tab-frontend"

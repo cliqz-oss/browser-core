@@ -12,7 +12,7 @@ export function overRideCliqzResults(){
   environment.httpHandler = function(method, url, callback, onerror, timeout, data, sync){
     if(url.indexOf(utils.RESULTS_PROVIDER) > -1 && utils.getPref('hpn-query', false)) {
       var _q = url.replace((utils.RESULTS_PROVIDER),"")
-      var mc = new messageContext({"action": "extension-query", "type": "cliqz", "ts": "", "ver": "1.5", "payload":_q });
+      var mc = new messageContext({"action": "extension-query", "type": "cliqz", "ts": "", "ver": "1.5", "payload":_q, "rp": utils.RESULTS_PROVIDER});
       var proxyIP = CliqzSecureMessage.queryProxyIP;
       mc.aesEncrypt()
       .then(function(enxryptedQuery){

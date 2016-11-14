@@ -1,42 +1,32 @@
-import { utils, events } from "core/cliqz";
+import events from 'core/events';
 
-export default function (background) {
-  const bgInit = background.init,
-        bgUnload = background.unload,
-        bgEvents = background.events;
-  let enabled;
+export default function (originalBackground) {
+  const background = Object.assign({}, originalBackground);
+  const bgInit = background.init;
+  const bgUnload = background.unload;
+  const bgEvents = background.events;
 
   // bind actions to background object
-  Object.keys(background.actions || {}).forEach( action => {
+  Object.keys(background.actions || {}).forEach(action => {
     background.actions[action] = background.actions[action].bind(background);
   });
 
-  background.init = function init() {
-    enabled = background.enabled.apply(background, arguments);
+  background.init = function init(...args) {
+    const promise = Promise.resolve(bgInit.apply(background, args));
 
-    if (!enabled) {
-      return;
-    }
-
-    bgInit.apply(background, arguments);
-
-    Object.keys(bgEvents || {}).forEach( event => {
-
+    Object.keys(bgEvents || {}).forEach(event => {
       bgEvents[event] = bgEvents[event].bind(background);
       events.sub(event, bgEvents[event]);
     });
+    return promise;
   };
 
-  background.unload = function unload() {
-    if (!enabled) {
-      return;
-    }
-
-    Object.keys(bgEvents || {}).forEach( event => {
+  background.unload = function unload(...args) {
+    Object.keys(bgEvents || {}).forEach(event => {
       events.un_sub(event, bgEvents[event]);
     });
 
-    bgUnload.apply(background, arguments);
+    bgUnload.apply(background, args);
   };
 
   return background;

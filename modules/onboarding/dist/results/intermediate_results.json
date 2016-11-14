@@ -9,6 +9,7 @@
       "text": "surfen",
       "data": {
         "template": "hq",
+        "template": "generic",
         "adult": false,
         "type": "other",
         "description": "Surfen ist die Gleitfahrt auf einer Welle oder Walze über eine Wasseroberfläche.\r\n",
@@ -56,6 +57,7 @@
       "text": "surfen",
       "data": {
         "adult": false,
+        "template": "generic",
         "type": "other",
         "description": "Ein Blog über das Surfen in München mit Tipps zu Riversurfboards und vielen Informationen zur Münchner Szene im Riversurfen.\r\n",
         "kind": [

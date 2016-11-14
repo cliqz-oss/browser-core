@@ -10,11 +10,17 @@ import LRUCache from 'antitracking/fixed-size-cache';
 import HttpRequestContext from 'antitracking/webrequest-context';
 
 import { log } from 'adblocker/utils';
-import FilterEngine from 'adblocker/filters-engine';
+import FilterEngine, { serializeFiltersEngine
+                     , deserializeFiltersEngine } from 'adblocker/filters-engine';
 import FiltersLoader from 'adblocker/filters-loader';
 import AdbStats from 'adblocker/adb-stats';
 
 import CliqzHumanWeb from 'human-web/human-web';
+import { Resource } from 'core/resource-loader';
+
+
+// Disk persisting
+const SERIALIZED_ENGINE_PATH = ['antitracking', 'adblocking', 'engine.json'];
 
 
 // adb version
@@ -57,16 +63,64 @@ class AdBlocker {
   constructor() {
     this.engine = new FilterEngine();
 
+    // Plug filters lists manager with engine to update it
+    // whenever a new version of the rules is available.
     this.listsManager = new FiltersLoader();
-    this.listsManager.onUpdate(update => {
-      // Update list in engine
-      const { asset, filters, isFiltersList } = update;
-      if (isFiltersList) {
-        this.engine.onUpdateFilters(asset, filters);
-      } else {
-        this.engine.onUpdateResource(asset, filters);
+    this.listsManager.onUpdate(updates => {
+      // -------------------- //
+      // Update fitlers lists //
+      // -------------------- //
+      const filtersLists = updates.filter(update => {
+        const { asset, checksum, isFiltersList } = update;
+        if (isFiltersList && !this.engine.hasList(asset, checksum)) {
+          CliqzUtils.log(`Filters list ${asset} (${checksum}) will be updated`, 'adblocker');
+          return true;
+        }
+        return false;
+      });
+
+      if (filtersLists.length > 0) {
+        const startFiltersUpdate = Date.now();
+        this.engine.onUpdateFilters(filtersLists);
+        CliqzUtils.log(`Engine updated with ${filtersLists.length} lists` +
+                       ` (${Date.now() - startFiltersUpdate} ms)`, 'adblocker');
       }
+
+      // ---------------------- //
+      // Update resources lists //
+      // ---------------------- //
+      const resourcesLists = updates.filter(update => {
+        const { isFiltersList, asset, checksum } = update;
+        if (!isFiltersList && this.engine.resourceChecksum !== checksum) {
+          CliqzUtils.log(`Resources list ${asset} (${checksum}) will be updated`, 'adblocker');
+          return true;
+        }
+        return false;
+      });
+
+      if (resourcesLists.length > 0) {
+        const startResourcesUpdate = Date.now();
+        this.engine.onUpdateResource(resourcesLists);
+        CliqzUtils.log(`Engine updated with ${resourcesLists.length} resources` +
+                       ` (${Date.now() - startResourcesUpdate} ms)`, 'adblocker');
+      }
+
+      // Flush the cache since the engine is now different
       this.initCache();
+
+      // Serialize new version of the engine on disk if needed
+      if (this.engine.updated) {
+        const t0 = Date.now();
+        new Resource(SERIALIZED_ENGINE_PATH)
+          .persist(JSON.stringify(serializeFiltersEngine(this.engine)))
+          .then(() => {
+            const totalTime = Date.now() - t0;
+            CliqzUtils.log(`Serialized filters engine on disk (${totalTime} ms)`, 'adblocker');
+            this.engine.updated = false;
+          });
+      } else {
+        CliqzUtils.log('Engine has not been updated, do not serialize', 'adblocker');
+      }
     });
 
     // Blacklists to disable adblocking on certain domains/urls
@@ -93,7 +147,23 @@ class AdBlocker {
 
   init() {
     this.initCache();
-    this.listsManager.load();
+
+    // Load serialized engine from disk, then init filters manager
+    new Resource(SERIALIZED_ENGINE_PATH)
+      .load()
+      .then(serializedEngine => {
+        if (serializedEngine !== undefined) {
+          const t0 = Date.now();
+          deserializeFiltersEngine(this.engine, serializedEngine);
+          const totalTime = Date.now() - t0;
+          CliqzUtils.log(`Loaded filters engine from disk (${totalTime} ms)`, 'adblocker');
+        } else {
+          CliqzUtils.log('No filter engine was serialized on disk', 'adblocker');
+        }
+
+        this.listsManager.load();
+      });
+
     this.blacklistPersist.load().then(value => {
       // Set value
       if (value.urls !== undefined) {
@@ -101,6 +171,10 @@ class AdBlocker {
       }
     });
     this.initialized = true;
+  }
+
+  unload() {
+    this.listsManager.stop();
   }
 
   persistBlacklist() {
@@ -197,11 +271,18 @@ class AdBlocker {
     // Process source url
     const sourceURL = httpContext.getSourceURL().toLowerCase();
     const sourceParts = URLInfo.get(sourceURL);
+
+    // It can happen when source is not a valid URL, then we simply
+    // leave `sourceHostname` and `sourceGD` as undefined to allow
+    // some filter matching on the request URL itself.
     let sourceHostname = sourceParts.hostname;
-    if (sourceHostname.startsWith('www.')) {
-      sourceHostname = sourceHostname.substring(4);
+    let sourceGD = undefined;
+    if (sourceHostname !== undefined) {
+      if (sourceHostname.startsWith('www.')) {
+        sourceHostname = sourceHostname.substring(4);
+      }
+      sourceGD = getGeneralDomain(sourceHostname);
     }
-    const sourceGD = getGeneralDomain(sourceHostname);
 
     // Wrap informations needed to match the request
     const request = {
@@ -216,8 +297,6 @@ class AdBlocker {
       hostname,
       hostGD,
     };
-
-    log(`match ${JSON.stringify(request)}`);
 
     const t0 = Date.now();
     const isAd = this.isInBlacklist(request) ? false : this.cache.get(request);
@@ -269,10 +348,11 @@ const CliqzADB = {
     if (adbEnabled()) {
       initAdBlocker();
     } else {
-      events.sub('prefchange', pref => {
+      this.onPrefChangeEvent = events.subscribe('prefchange', pref => {
         if ((pref === ADB_PREF || pref === ADB_ABTEST_PREF) &&
-            !CliqzADB.adblockInitialized &&
-            adbEnabled()) {
+          !CliqzADB.adblockInitialized &&
+          adbEnabled()) {
+          // FIXME
           initAdBlocker();
         }
       });
@@ -280,6 +360,12 @@ const CliqzADB = {
   },
 
   unload() {
+    CliqzADB.adBlocker.unload();
+    CliqzADB.adBlocker = null;
+    CliqzADB.adblockInitialized = false;
+    if (this.onPrefChangeEvent) {
+      this.onPrefChangeEvent.unsubscribe();
+    }
     CliqzADB.unloadPacemaker();
     browser.forEachWindow(CliqzADB.unloadWindow);
     WebRequest.onBeforeRequest.removeListener(CliqzADB.httpopenObserver.observe);
@@ -316,19 +402,15 @@ const CliqzADB = {
 
   httpopenObserver: {
     observe(requestDetails) {
-      if (!adbEnabled()) {
-        return {};
-      }
-
       const requestContext = new HttpRequestContext(requestDetails);
       const url = requestContext.url;
 
-      if (!url) {
-        return {};
-      }
-
       if (requestContext.isFullPage()) {
         CliqzADB.adbStats.addNewPage(url);
+      }
+
+      if (!adbEnabled() || !url) {
+        return {};
       }
 
       const sourceUrl = requestContext.getSourceURL();
@@ -337,9 +419,14 @@ const CliqzADB = {
         return {};
       }
 
-      if (adbEnabled() && CliqzADB.adBlocker.match(requestContext)) {
-        CliqzADB.adbStats.addBlockedUrl(sourceUrl, url);
-        return { cancel: true };
+      if (adbEnabled()) {
+        const result = CliqzADB.adBlocker.match(requestContext);
+        if (result.redirect) {
+          return { redirectUrl: result.redirect };
+        } else if (result.match) {
+          CliqzADB.adbStats.addBlockedUrl(sourceUrl, url);
+          return { cancel: true };
+        }
       }
 
       return {};

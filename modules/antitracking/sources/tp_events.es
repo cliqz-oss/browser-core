@@ -245,7 +245,6 @@ var tp_events = {
                     'bloomFilter': CliqzAttrack.isBloomFilterEnabled(),
                     'trackTxt': CliqzAttrack.isTrackerTxtEnabled(),
                     'forceBlock': CliqzAttrack.isForceBlockEnabled(),
-                    'ui': background.buttonEnabled
                 };
                 for (var i = 0; i < payload_data.length; i++) {
                     var payl = {

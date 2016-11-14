@@ -1,0 +1,34 @@
+<h1>CLIQZ</h1>
+<button {{action 'restart'}}>restart all modules</button>
+
+<h2>Modules</h2>
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Is enabled?</th>
+    <th>Load time</th>
+    <th>Window ID</th>
+    <th>Window load time</th>
+    <th></th>
+  </tr>
+  {{#each-in model.modules as |moduleName module|}}
+    <tr>
+      <td>{{module.name}}</td>
+      <td>{{module.isEnabled}}</td>
+      <td>{{module.loadingTime}}</td>
+      <td></td>
+      <td></td>
+      <td><button {{action 'toggleModule' module}}>toggle</button></td>
+    </tr>
+    {{#each-in module.windows as |id window|}}
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>{{id}}</td>
+        <td>{{window.loadingTime}}</td>
+        <td></td>
+      </tr>
+     {{/each-in}}
+  {{/each-in}}
+</table>
