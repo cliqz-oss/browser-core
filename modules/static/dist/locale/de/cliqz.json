@@ -1266,7 +1266,7 @@
       "message": "Schütze deine Privatsphäre"
     },
     "control-center-txt-privacy-cc-desc": {
-      "message": "Cliqz actively protects your personal data from being accessed by tracking companies."
+      "message": "Cliqz schützt deine persönlichen Daten aktiv vor dem Zugriff durch Tracker."
     },
     "control-center-info-https": {
       "message": "Diese Funktion erhöht die Sicherheit beim Surfen, indem sie immer verschlüsselte HTTPS Verbindungen zu Websites anfordert, wenn das möglich ist. Cliqz hat dazu den quelloffenen Service HTTPS Everywhere standardmäßig integriert."

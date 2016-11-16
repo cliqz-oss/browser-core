@@ -23,7 +23,6 @@ var CLIQZEnvironment = {
     TEMPLATES_PATH: 'chrome://cliqz/content/static/templates/',
     SKIN_PATH: 'chrome://cliqz/content/static/skin/',
     SYSTEM_BASE_URL: 'chrome://cliqz/content/',
-    MIN_QUERY_LENGHT_FOR_EZ: 2,
     prefs: Cc['@mozilla.org/preferences-service;1'].getService(Ci.nsIPrefService).getBranch(''),
     OS: Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS.toLowerCase(),
     RERANKERS: [],

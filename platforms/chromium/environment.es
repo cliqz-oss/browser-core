@@ -18,7 +18,6 @@ const CLIQZEnvironment = {
   BRANDS_DATA_URL: 'static/brands_database.json',
   TEMPLATES_PATH: 'modules/static/templates/',
   LOCALE_PATH: 'modules/static/locale/',
-  MIN_QUERY_LENGHT_FOR_EZ: 2,
   RERANKERS: [],
   RESULTS_TIMEOUT: 1000, // 1 second
   TEMPLATES: {'calculator': 1, 'clustering': 1, 'currency': 1, 'custom': 1, 'emphasis': 1, 'empty': 1,

@@ -238,12 +238,13 @@ export default class Search {
 
   cliqz_hm_search(_this, res, hist_search_type) {
       var data = null;
+      var query = res.query || res.q; // query will be called q if RH is down
       if (hist_search_type === 1) {
-        data = CliqzUtils.hm.do_search(res.query, false);
+        data = CliqzUtils.hm.do_search(query, false);
         data['cont'] = null;
       }
       else {
-        data = CliqzUtils.hm.do_search(res.query, true);
+        data = CliqzUtils.hm.do_search(query, true);
       }
 
       var urlAuto = CliqzUtils.hm.urlForAutoLoad(data);
@@ -292,10 +293,10 @@ export default class Search {
       }
 
       if(patterns.length >0){
-        var res3 = historyCluster._simplePreparePatterns(patterns, res.query);
+        var res3 = historyCluster._simplePreparePatterns(patterns, query);
         // This is also causing undefined issue. Specifically when the res.length == 0;
         if(res3.results.length == 0){
-          res3.results.push({"url": res.query,"title": "Found no result in local history for query: ","favicon": "","_genUrl": "","base": true,"debug": ""})
+          res3.results.push({"url": query,"title": "Found no result in local history for query: ","favicon": "","_genUrl": "","base": true,"debug": ""})
         }
         historyCluster.simpleCreateInstantResult(res3, cont,  _this.searchString, function(kk2) {
           var vjoin = [];
@@ -397,13 +398,14 @@ export default class Search {
 
   historyPatternCallback(res) {
       // abort if we already have results
+    var query = res.query || res.q; // query will be called q if RH is down
     if(this.mixedResults.matchCount > 0) return;
 
-    if (res.query == this.searchString) {
+    if (query == this.searchString) {
       CliqzAutocomplete.lastPattern = res;
       var latency = 0;
-      if (historyCluster.latencies[res.query]) {
-        latency = (new Date()).getTime() - historyCluster.latencies[res.query];
+      if (historyCluster.latencies[query]) {
+        latency = (new Date()).getTime() - historyCluster.latencies[query];
       }
       this.latency.patterns = latency;
       // Create instant result
@@ -565,7 +567,7 @@ export default class Search {
   // handles fetched results from the cache
   cliqzResultFetcher(res, attemptsSoFar) {
       var json = res.response,
-          q = res.query;
+          q = res.query || res.q; // query will be called q if RH is down
       // be sure this is not a delayed result
       if(q != this.searchString) {
           this.discardedResults += 1; // count results discarded from backend because they were out of date

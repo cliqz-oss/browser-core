@@ -44,7 +44,6 @@ var CLIQZEnvironment = {
   LOCALE_PATH: 'static/locale/',
   SYSTEM_BASE_URL: './',
   RESULTS_LIMIT: 3,
-  MIN_QUERY_LENGHT_FOR_EZ: 0,
   RERANKERS: [],
   RESULTS_TIMEOUT: 60000, // 1 minute
   TEMPLATES: TEMPLATES,

@@ -17,8 +17,10 @@
             <div class="entity-story-description">
               <div class="entity-story-title"><a href="{{url}}">{{ title }}</a></div>
               <div class="entity-story-comment">
-                {{ extra.time }}
-                {{#if (logic exta.tweet_count '>' 1) }}
+                <span style="color: #d7011d; padding-right:5px; " extra="des-timestamp">
+                  {{ agoline extra.creation_timestamp }}
+                </span>
+                {{#if (logic extra.tweet_count '>' 1) }}
                   <span class="cqz-twitter-count">
                     {{ extra.tweet_count }}
                   </span>

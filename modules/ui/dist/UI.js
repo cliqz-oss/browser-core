@@ -125,6 +125,18 @@ var UI = {
         if (CliqzUtils.getPref('hist_search_type', 0))
             resultsBox.style.height = "580px";
     },
+    getMinimalResultData(data) {
+      // If an EZ ends up in the 2nd place (or after), we want to display it as
+      // a simple reslut. This function converts the EZ into a regular result
+      return {
+        title: data.title,
+        description: data.description || data.desc,
+        friendlyUrl: data.friendlyUrl,
+        trigger_urls: data.trigger_urls,
+        kind: data.kind,
+        template: 'generic'
+      }
+    },
     // FF specific
     handleResults: function(){
       // TODO: this is FF specific - move it to another place!
@@ -928,6 +940,10 @@ function enhanceResults(res){
         }
 
         if(r.data.extra && r.data.extra.adult) adult = true;
+
+        if (r.type.indexOf('cliqz-extra') !== -1 &&  i > 0 ) {
+          r.data = UI.getMinimalResultData(r.data);
+        }
 
         // Prepare list of partial templates for rendering
         r.data.partials = setPartialTemplates(r.data);

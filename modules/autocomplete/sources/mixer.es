@@ -34,8 +34,7 @@ function resultKindEnricher(newKindParams, result) {
 export default class Mixer {
   constructor({ smartCliqzCache, triggerUrlCache } = {}) {
     this.EZ_COMBINE = [
-      'entity-generic', 'ez-generic-2', 'entity-search-1',
-      'entity-portal', 'entity-banking-2',
+      'generic'
     ];
     this.EZ_QUERY_BLACKLIST = [
       'www', 'www.', 'http://www', 'https://www',
@@ -43,18 +42,6 @@ export default class Mixer {
     ];
     this.smartCliqzCache = smartCliqzCache;
     this.triggerUrlCache = triggerUrlCache;
-  }
-
-  // Is query valid for triggering an EZ?
-  // Must have more than 2 chars and not in blacklist
-  //  - avoids many unexpected EZ triggerings
-  _isValidQueryForEZ(q) {
-    var trimmed = q.trim();
-    if (trimmed.length <= utils.MIN_QUERY_LENGHT_FOR_EZ) {
-      return false;
-    }
-
-    return this.EZ_QUERY_BLACKLIST.indexOf(trimmed.toLowerCase()) == -1;
   }
 
   // Collect all sublinks and return a single list.
@@ -105,15 +92,33 @@ export default class Mixer {
   }
 
   // Remove results from second list that are present in the first
-  // Copy some information (such as the kind) to entry in the first list
   _deduplicateResults(first, second) {
-    var duplicates = this._getDuplicates(first, second);
+    // 2 cases when the first backend result is an EZ and the url matches the first
+    // history result
+    if (first.length > 0 && first[0].style === 'cliqz-pattern' && !first[0].data.cluster &&
+        second.length > 0 && second[0].style === 'cliqz-extra' &&
+        UrlCompare.sameUrls(first[0].data.urls[0].href, second[0].val))
+    {
+      // Case 1: History pattern
+      first[0].data.urls.shift();
+      first = [second.shift()];
+      second = first.concat(second);
+    }
+    else if (first.length > 0 && first[0].style === 'favicon' &&
+               second.length > 0 && second[0].style === 'cliqz-extra' &&
+               UrlCompare.sameUrls(first[0].val, second[0].val))
+    {
+      // Case 2: Simple history result
+      first.shift();
+      first = [second.shift()].concat(first);
+    }
 
+
+    var duplicates = this._getDuplicates(first, second);
     // remove duplicates from second list
     second = second.filter(function(c) {
       return duplicates.indexOf(c) === -1;
     });
-
     // take data from duplicate second result to augment result
     // Note: this does not combine data if it is a sublink match
     first = first.map(function(r) {
@@ -125,9 +130,9 @@ export default class Mixer {
 
       return r;
     });
-
     return { first: first, second: second };
   }
+
 
   // Special case deduplication: remove clustered links from history if already
   // somewhere else in the EZ
@@ -136,11 +141,10 @@ export default class Mixer {
     var otherLinks = [];
     Object.keys(result.data).filter(function(key) {
       return key != 'urls';
-    }).forEach(function(key) {
+    }).forEach((function(key) {
       var sublinks = this._collectSublinks(result.data[key]);
       otherLinks.concat(sublinks);
-    });
-
+    }).bind(this));
     // Filter history entry, if
     result.data.urls = result.data.urls.filter(function(entry) {
       var duplicate = false;
@@ -261,69 +265,57 @@ export default class Mixer {
   // Mix together history, backend and custom results. Called twice per query:
   // once with only history (instant), second with all data.
   mix(q, cliqz, history, customResults, only_history) {
-    var cliqzExtra = cliqz && cliqz.length > 0 && cliqz[0].style == 'cliqz-extra' ? [cliqz.shift()] : [];
-    if (!this._isValidQueryForEZ(q)) {
-      cliqzExtra = [];
-    } else {
-      // Cache any EZs found
-      this._cacheEZs(cliqzExtra);
-    }
-
     // Prepare other incoming data
-    utils.log('only_history:' + only_history +
-                   ' history:' + history.length +
-                   ' cliqz:' + cliqz.length +
-                   ' extra:' + cliqzExtra.length, 'Mixer');
+    customResults = customResults || [];
+    var cliqzExtra = [],
+        results = [],
+        r = {first: [], second: []}; // format returned by this._deduplicateResults()
 
-    // Were any history results also available as a cliqz result?
-    //  if so, remove from backend list and combine sources in history result
-    var r = this._deduplicateResults(history, cliqz);
+    // Pick EZ if any is available. Give priority to customResults then history-triggered
+    // EZ, then backend EZ.
+    var historyEZ = this._historyTriggerEZ(history[0]);
 
-    // Prepare results: history (first) then backend results (second)
-    var results = r.first.concat(r.second);
-
-    // Trigger EZ with first entry
-    var historyEZ = this._historyTriggerEZ(results[0]);
     if (historyEZ) {
       cliqzExtra = [historyEZ];
+    } else if (cliqz && cliqz.length > 0 && cliqz[0].style == 'cliqz-extra') {
+      cliqzExtra = [cliqz[0]];
+      this._cacheEZs(cliqzExtra);
     }
-
-    // Filter conflicting EZs
-    if (results.length > 0) {
-      cliqzExtra = this._filterConflictingEZ(cliqzExtra, results[0]);
-    }
-
-
-    // Add custom results to the beginning if there are any
-    if (customResults && customResults.length > 0) {
-      cliqzExtra = customResults.concat(cliqzExtra);
-    }
-
-    // limit to one entity zone
-    cliqzExtra = cliqzExtra.slice(0, 1);
-
-    // remove any BM or simple history results covered by EZ
-    r = this._deduplicateResults(cliqzExtra, results);
-    results = r.second;
-    var ez = r.first[0];
-
+    var ez = cliqzExtra[0];
     // Add EZ to result list
     if (ez) {
       utils.log('EZ (' + ez.data.kind + ') for ' + ez.val, 'Mixer');
 
-      // Make a combined entry, if possible
-      if (results.length > 0 && results[0].data.cluster &&
+      // Were any history results also available as a cliqz result?
+      // if so, remove from backend list and combine sources in history result
+      if (history.length > 0 && history[0].data.cluster &&
          this.EZ_COMBINE.indexOf(ez.data.template) !== -1 &&
-         UrlCompare.sameUrls(results[0].val, ez.val)) {
-
+         UrlCompare.sameUrls(history[0].val, ez.val)) {
         utils.log('Making combined entry.', 'Mixer');
-        results[0] = Result.combine(ez, result[0]);
-        this._deduplicateHistory(results[0]);
+
+        history[0] = Result.combine(ez, history[0]);
+        this._deduplicateHistory(history[0]);
       } else {
         // Add EZ to top of result list
-        results = [ez].concat(results);
+        if (history.length > 0) {
+          cliqzExtra = this._filterConflictingEZ(cliqzExtra, history[0]);
+        }
+        r = this._deduplicateResults(cliqzExtra, cliqz)
+        results = r.first.concat(r.second);
       }
     }
+    r = this._deduplicateResults(history, cliqz);
+
+    // Prepare results: history (first) then backend results (second)
+    results = customResults.concat(r.first).concat(r.second);
+
+    utils.log('only_history:' + only_history +
+              ' history:' + history.length +
+              ' cliqz:' + cliqz.length +
+              ' extra:' + cliqzExtra.length, 'Mixer');
+
+    // At this point, history, EZs, custom results & search results are mixed &
+    // deduplicated
 
     // Special case: adjust second result if it doesn't fit
     if (utils.getPref('hist_search_type', 0) == 0 && results.length > 1 && results[1].data.template == 'pattern-h2') {

@@ -13,7 +13,6 @@ export default describeModule("autocomplete/mixer",
           encodeResultType() { return ""; },
           isCompleteUrl() { return true; },
           generalizeUrl() { },
-          MIN_QUERY_LENGHT_FOR_EZ: 3
         },
       },
     }
@@ -25,68 +24,6 @@ export default describeModule("autocomplete/mixer",
       // Disable cleaning of smartCLIQZ trigger URLs during testing
       mixer._cleanTriggerUrls = function() {};
     });
-
-
-
-    describe('isValidQueryForEZ', function() {
-
-      let subject, blacklist, mixer;
-
-      beforeEach(function() {
-        mixer = new (this.module().default)();
-        subject = (mixer._isValidQueryForEZ).bind(mixer),
-                    blacklist;
-
-        blacklist = mixer.EZ_QUERY_BLACKLIST;
-        mixer.EZ_QUERY_BLACKLIST = ['xxx', 'yyy', 'ggg'];
-      });
-
-      afterEach(function() {
-        mixer.EZ_QUERY_BLACKLIST = blacklist;
-      });
-
-      it('rejects queries in blacklist', function() {
-        mixer.EZ_QUERY_BLACKLIST.forEach(function(query) {
-          expect(subject(query)).to.be.false;
-        });
-      });
-
-      it('ignores capitalization', function() {
-        mixer.EZ_QUERY_BLACKLIST.map(function(q) {return q.toUpperCase();})
-                                 .forEach(function(query) {
-          expect(subject(query)).to.be.false;
-        });
-
-        expect(subject('A')).to.be.false;
-        expect(subject('AA')).to.be.false;
-      });
-
-      it('ignores whitespace', function() {
-        mixer.EZ_QUERY_BLACKLIST.map(function(q) {return ' ' + q + ' ';})
-                                .forEach(function(query) {
-          expect(subject(query)).to.be.false;
-        });
-
-        expect(subject(' ')).to.be.false;
-        expect(subject('a ')).to.be.false;
-        expect(subject(' aa ')).to.be.false;
-      });
-
-      it('rejects short queries', function() {
-        expect(subject('')).to.be.false;
-        expect(subject('a')).to.be.false;
-        expect(subject('aa')).to.be.false;
-      });
-
-      it('accepts queries not in blacklist longer than 2 chars', function() {
-        expect(subject('wwww')).to.be.true;
-        expect(subject('http://www.fac')).to.be.true;
-        expect(subject('wmag')).to.be.true;
-        expect(subject(' www.f')).to.be.true;
-      });
-
-    });
-
 
     describe('collectSublinks', function() {
       it('should find nothing', function() {
