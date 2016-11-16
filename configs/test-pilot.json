@@ -1,0 +1,35 @@
+{
+  "platform": "firefox",
+  "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
+  "testem_launchers": ["Mocha"],
+  "settings": {
+    "freshTabButton": true,
+    "freshTabHistoryNews": true,
+    "showDataCollectionMessage": true,
+    "cliqzOnboarding": false,
+    "channel": "50",
+    "antitrackingButton": true,
+    "showNewBrandAlert": false,
+    "onBoardingVersion": "1.1"
+  },
+  "modules": [
+    "firefox-specific",
+    "static",
+    "core",
+    "autocomplete",
+    "ui",
+    "human-web",
+    "context-menu",
+    "onboarding",
+    "telemetry-categories",
+    "performance",
+    "hpn",
+    "geolocation",
+    "freshtab",
+    "control-center",
+    "offers"
+  ],
+  "subprojects": [
+    "fresh-tab-frontend"
+  ]
+}

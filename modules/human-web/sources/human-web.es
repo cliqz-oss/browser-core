@@ -1,4 +1,4 @@
-import AntiPhishing from "anti-phishing/anti-phishing";
+//import AntiPhishing from "anti-phishing/anti-phishing";
 import CliqzBloomFilter from "human-web/bloom-filter";
 import core from "core/background";
 import { utils } from "core/cliqz";
@@ -1810,7 +1810,7 @@ var CliqzHumanWeb = {
                     // wops, it exists on the active page, probably it comes from a back button or back
                     // from tab navigation
                     CliqzHumanWeb.state['v'][activeURL]['tend'] = null;
-                    AntiPhishing.auxOnPageLoad(activeURL, currwin, true, true);
+                    //AntiPhishing.auxOnPageLoad(activeURL, currwin, true, true);
                 }
             }
         },
