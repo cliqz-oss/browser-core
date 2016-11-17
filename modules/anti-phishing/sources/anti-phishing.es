@@ -290,6 +290,10 @@ var CliqzAntiPhishing = {
     * @method auxOnPageLoad
     * @param url {string}
     */
+    onHwActiveURL: function(msg) {
+      const url = msg.activeURL;
+      checkSuspicious(url, updateSuspiciousStatus);
+    },
     auxOnPageLoad: function(url, aProgress, hw, logging, domWinID) {
         if (url.startsWith('about:') || url.startsWith('chrome:')) {
           return;
