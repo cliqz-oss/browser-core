@@ -1570,8 +1570,10 @@ var CliqzHumanWeb = {
             // original:
             // var currwin = aProgress.topWindow || CliqzUtils.getWindow().gBrowser.selectedBrowser.contentDocument;
 
-            var currwin = aProgress.DOMWindow.top;
-            if(!currwin) return; //internal FF page
+            // currwin is not used anymore, since the document is fetched using content script.
+
+            // var currwin = aProgress.DOMWindow.top;
+            // if(!currwin) return; //internal FF page
 
             // This code looks obselete now, will remove in 1+ release.
             if(gadurl.test(aURI.spec)){
@@ -1581,6 +1583,7 @@ var CliqzHumanWeb = {
                     CliqzHumanWeb.mRefresh[tabID] = decodeURIComponent(aURI.spec);
                 }
             }
+
             // var currwin = CliqzUtils.getWindow();
             // var _currURL = '' + currwin.gBrowser.selectedBrowser.contentDocument.location;
 
@@ -1744,7 +1747,7 @@ var CliqzHumanWeb = {
                     }
 
 
-                    CliqzUtils.setTimeout(function(currWin, currURL) {
+                    CliqzUtils.setTimeout(function(currURL) {
 
                         // Extract info about the page, title, length of the page, number of links, hash signature,
                         // 404, soft-404, you name it
@@ -1803,7 +1806,7 @@ var CliqzHumanWeb = {
                               _log("Error fetching title and length of page: " + ee + " : " + currURL);
                             });
 
-                    }, CliqzHumanWeb.WAIT_TIME, currwin, activeURL);
+                    }, CliqzHumanWeb.WAIT_TIME, activeURL);
 
                 }
                 else {
