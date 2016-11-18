@@ -5,7 +5,7 @@
   "settings": {
     "history-ui-url": "http://localhost:3000/#/history-sidebar",
     "freshTabButton": false,
-    "freshTabHistoryNews": true,
+    "freshTabNews": true,
     "unblockUI": false,
     "showDataCollectionMessage": false,
     "cliqzOnboarding": true,

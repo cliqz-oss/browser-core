@@ -4,6 +4,7 @@
   "testem_launchers": ["Mocha"],
   "settings": {
     "freshTabButton": false,
+    "freshTabNews": true,
     "unblockUI": true,
     "showDataCollectionMessage": true,
     "cliqzOnboarding": false,

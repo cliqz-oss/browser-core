@@ -4,7 +4,7 @@
   "testem_launchers": ["Mocha"],
   "settings": {
     "freshTabButton": true,
-    "freshTabHistoryNews": true,
+    "freshTabNews": true,
     "showDataCollectionMessage": true,
     "cliqzOnboarding": false,
     "channel": "04",
