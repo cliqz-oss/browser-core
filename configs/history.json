@@ -11,7 +11,8 @@
     "channel": "40",
     "antitrackingButton": true,
     "helpMenus": true,
-    "showNewBrandAlert": true
+    "showNewBrandAlert": true,
+    "controlCenterSecurity": true
   },
   "modules": [
     "core",

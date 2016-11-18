@@ -12,7 +12,8 @@
     "antitrackingButton": true,
     "helpMenus": true,
     "showNewBrandAlert": true,
-    "onBoardingVersion": "2.0"
+    "onBoardingVersion": "2.0",
+    "controlCenterSecurity": true
   },
   "default_prefs" : {
     "modules.context-search.enabled": false

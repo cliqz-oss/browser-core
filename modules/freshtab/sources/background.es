@@ -376,5 +376,11 @@ export default background({
       return Promise.resolve(utils.getWindow().gBrowser.tabContainer.selectedIndex);
     },
 
-  }
+  },
+
+  events: {
+    "control-center:cliqz-tab": function () {
+      FreshTab.toggleState();
+    },
+  },
 });

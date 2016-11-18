@@ -1,4 +1,4 @@
-{{#if module.freshtab.visible }}
+{{#if visible }}
 <div class="frame-container">
   <div class="title" style="cursor: default;">
     <svg stop-navigation class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -15,17 +15,6 @@
     </div>
     <span>Cliqz Tab</span>
   </div>
-  <span class="cliqz-tab">
-    <span class="squaredFour">
-      <input type="checkbox"
-             id="squaredFour3"
-             name="check"
-             data-function="amo-cliqz-tab"
-             {{#if module.freshtab.enabled }}checked{{/if}}
-             />
-      <label for="squaredFour3"></label>
-      <span id="strict" data-i18n="control-center-txt-cliqz-tab-desc"></span>
-    </span>
-  </span>
+  {{> cliqz-tab-button }}
 </div>
 {{/if}}

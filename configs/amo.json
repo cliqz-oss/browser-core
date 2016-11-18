@@ -10,7 +10,8 @@
     "channel": "04",
     "antitrackingButton": true,
     "showNewBrandAlert": false,
-    "onBoardingVersion": "1.1"
+    "onBoardingVersion": "1.1",
+    "controlCenterSecurity": true
   },
   "modules": [
     "firefox-specific",

@@ -42,6 +42,10 @@
     background-image: url(../images/cc-inactive.svg)
 }
 
+.cliqz-control-center[state="off"] {
+    background-image: url(../images/cc-off.svg)
+}
+
 #cliqz-cc-btn-panel,
 #cliqz-cc-btn-panel > iframe,
 #cliqz-cc-btn-panel > panel-subview-body {

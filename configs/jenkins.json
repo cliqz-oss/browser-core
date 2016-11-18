@@ -10,7 +10,8 @@
     "cliqzOnboarding": false,
     "channel": "99",
     "antitrackingButton": true,
-    "showNewBrandAlert": true
+    "showNewBrandAlert": true,
+    "controlCenterSecurity": true
   },
   "default_prefs" : {
     "modules.context-search.enabled": false
