@@ -31,10 +31,12 @@ export default background({
   * @method init
   */
   init(settings) {
-    FreshTab.startup(settings.freshTabButton, settings.cliqzOnboarding, settings.channel, settings.showNewBrandAlert);
-    events.sub( "control-center:amo-cliqz-tab", function() {
-      FreshTab.toggleState();
-    })
+    FreshTab.startup(
+      settings.freshTabButton,
+      settings.cliqzOnboarding,
+      settings.channel,
+      settings.showNewBrandAlert,
+      settings.freshTabInitialState);
 
     this.adultDomainChecker = new AdultDomain();
     this.settings = settings;

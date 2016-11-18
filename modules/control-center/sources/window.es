@@ -49,8 +49,7 @@ export default class {
       "setMockBadge": this.setMockBadge.bind(this),
       "enableSearch": this.enableSearch.bind(this),
       "cliqz-tab": this.cliqzTab.bind(this),
-      "complementary-search": this.complementarySearch.bind(this),
-      'type-filter': this.typeFilter.bind(this),
+      "complementary-search": this.complementarySearch.bind(this)
     }
   }
 

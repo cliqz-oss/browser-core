@@ -5,6 +5,7 @@
   "settings": {
     "freshTabButton": false,
     "freshTabNews": true,
+    "freshTabInitialState": true,
     "unblockUI": false,
     "showDataCollectionMessage": false,
     "cliqzOnboarding": true,

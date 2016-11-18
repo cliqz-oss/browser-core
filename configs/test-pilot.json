@@ -5,6 +5,7 @@
   "settings": {
     "freshTabButton": true,
     "freshTabNews": false,
+    "freshTabInitialState": true,
     "showDataCollectionMessage": true,
     "cliqzOnboarding": false,
     "channel": "TP01",
