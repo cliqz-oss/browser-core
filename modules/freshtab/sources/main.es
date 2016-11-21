@@ -226,7 +226,7 @@ function deactivate(){
       }
   }
   else {//FF40 and older
-      CLiqzUtils.setPref(DEF_NEWTAB, CliqzUtils.getPref(BAK_NEWTAB), '');
+      CliqzUtils.setPref(DEF_NEWTAB, CliqzUtils.getPref(BAK_NEWTAB), '');
   }
 }
 
