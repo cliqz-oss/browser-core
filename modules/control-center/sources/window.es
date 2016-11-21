@@ -510,10 +510,15 @@ export default class {
     button.classList.add('chromeclass-toolbar-additional')
 
     var div = doc.createElement('div');
-    div.setAttribute('id','cliqz-control-center-badge')
-    div.setAttribute('class','cliqz-control-center')
+    div.setAttribute('class','cliqz-control-center');
+    div.setAttribute('state','off');
+    if(this.settings.controlCenterSecurity == true){
+      div.textContent = BTN_LABEL;
+    } else {
+      // default state for Control center without security features is "off"
+      div.setAttribute('state','off');
+    }
     button.appendChild(div);
-    div.textContent = BTN_LABEL;
 
     var panel = doc.createElement('panelview');
     panel.setAttribute('id', PANEL_ID);
