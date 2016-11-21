@@ -24,6 +24,8 @@ export default class {
     if(this.cliqzOnboarding || !this.onInstall){
       return;
     } else {
+      // avoid showing onboarding multiple times
+      prefs.set('new_session', false);
       this.fullTour();
     }
   }
