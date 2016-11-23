@@ -48,7 +48,7 @@ export default class {
       "openMockPopUp": this.openMockPopUp.bind(this),
       "setMockBadge": this.setMockBadge.bind(this),
       "enableSearch": this.enableSearch.bind(this),
-      "amo-cliqz-tab": this.amoCliqzTab.bind(this),
+      "cliqz-tab": this.cliqzTab.bind(this),
       "complementary-search": this.complementarySearch.bind(this)
     }
   }
@@ -178,8 +178,8 @@ export default class {
     });
   }
 
-  amoCliqzTab(data) {
-    events.pub("control-center:amo-cliqz-tab");
+  cliqzTab(data) {
+    events.pub("control-center:cliqz-tab");
     utils.telemetry({
       type: TELEMETRY_TYPE,
       target: 'cliqz_tab',
@@ -373,19 +373,20 @@ export default class {
           friendlyURL = url,
           generalState = 'active';
 
-      if(moduleData['anti-phishing'] && !moduleData['anti-phishing'].active){
-        generalState = 'inactive';
-      }
+      if(this.settings.controlCenterSecurity == true){
+        if(moduleData['anti-phishing'] && !moduleData['anti-phishing'].active){
+          generalState = 'inactive';
+        }
 
-      if(moduleData.antitracking && !moduleData.antitracking.enabled){
-        if(moduleData.antitracking.isWhitelisted){
+        if (!moduleData.antitracking){
+          // completely disabled
+          generalState = 'critical';
+        } else if(moduleData.antitracking.isWhitelisted) {
           // only this website is whitelisted
           generalState = 'inactive';
         }
-        else {
-          // completely disabled
-          generalState = 'critical';
-        }
+      } else {
+        generalState = 'off';
       }
 
       moduleData.adult = { visible: true, state: utils.getAdultFilterState() };
@@ -407,7 +408,8 @@ export default class {
         onboarding: this.isOnboarding(),
         searchDisabled: utils.getPref('cliqz_core_disabled', false),
         debug: utils.getPref('showConsoleLogs', false),
-        amo: config.settings.channel !== '40'
+        amo: config.settings.channel !== '40',
+        securityON: this.settings.controlCenterSecurity
       }
     });
   }
@@ -508,10 +510,15 @@ export default class {
     button.classList.add('chromeclass-toolbar-additional')
 
     var div = doc.createElement('div');
-    div.setAttribute('id','cliqz-control-center-badge')
-    div.setAttribute('class','cliqz-control-center')
+    div.setAttribute('class','cliqz-control-center');
+    div.setAttribute('state','off');
+    if(this.settings.controlCenterSecurity == true){
+      div.textContent = BTN_LABEL;
+    } else {
+      // default state for Control center without security features is "off"
+      div.setAttribute('state','off');
+    }
     button.appendChild(div);
-    div.textContent = BTN_LABEL;
 
     var panel = doc.createElement('panelview');
     panel.setAttribute('id', PANEL_ID);

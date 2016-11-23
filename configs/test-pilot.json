@@ -4,15 +4,15 @@
   "testem_launchers": ["Mocha"],
   "settings": {
     "freshTabButton": true,
-    "freshTabNews": true,
-    "freshTabInitialState": false,
+    "freshTabNews": false,
+    "freshTabInitialState": true,
     "showDataCollectionMessage": true,
     "cliqzOnboarding": false,
-    "channel": "04",
+    "channel": "TP01",
     "antitrackingButton": true,
     "showNewBrandAlert": false,
     "onBoardingVersion": "1.1",
-    "controlCenterSecurity": true
+    "controlCenterSecurity": false
   },
   "modules": [
     "firefox-specific",
@@ -21,11 +21,9 @@
     "autocomplete",
     "ui",
     "human-web",
-    "anti-phishing",
     "context-menu",
     "onboarding",
     "telemetry-categories",
-    "antitracking",
     "performance",
     "hpn",
     "geolocation",

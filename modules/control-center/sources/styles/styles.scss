@@ -24,6 +24,7 @@ html {
     width: 455px;
     font-family: "HelveticaNeue", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     font-weight: 300;
+    overflow: hidden;
 
     .lock {
         display: none;
@@ -487,26 +488,6 @@ html {
                 font-size: 24px;
                 margin: 10px 10px 10px 20px;
                 color: #595959;
-                #support {
-                    float: right;
-                    margin: 8px;
-                    color: #595959;
-                    font-size: 14px;
-                    cursor: pointer;
-
-                    .support-icon {
-                        position: relative;
-                        top: 3px;
-                    }
-
-                    &:hover {
-                        color: black;
-
-                        .support-icon #icon {
-                            fill: black;
-                        }
-                    }
-                }
             }
         }
         #arrow {
@@ -578,6 +559,9 @@ html {
 .accordion-section-content {
     font-size: 14px;
     display: none;
+    &.open {
+        display: block;
+    }
     .infobutton {
         margin: 0 0 -2px 0;
         &:hover {
@@ -922,6 +906,52 @@ html {
     background-image: url("../images/dropmarker.png");
     background-repeat: no-repeat;
     background-position: 95% center;
+}
+
+#settings.securityOFF {
+    padding-left: 40px;
+    background-size: 29px;
+    background-repeat: no-repeat;
+    background-position: left center;
+    background-image: url(../images/cc-gray.svg);
+    margin: 10px;
+
+    .headline {
+        font-size: 25px;
+        color: #444;
+    }
+
+    .cliqz-tab {
+        float: right;
+        margin: 7px 10px 0px 0px;
+    }
+
+    #strict {
+        font-weight: 300;
+        font-size: 14px;
+    }
+}
+
+#support {
+    float: right;
+    margin-right: 8px;
+    margin-top: 7px;
+    color: #595959;
+    font-size: 14px;
+    cursor: pointer;
+
+    .support-icon {
+        position: relative;
+        top: 3px;
+    }
+
+    &:hover {
+        color: black;
+
+        .support-icon #icon {
+            fill: black;
+        }
+    }
 }
 
 .custom-dropdown {

@@ -4,7 +4,8 @@
   "testem_launchers": ["Mocha"],
   "settings": {
     "freshTabButton": false,
-    "freshTabHistoryNews": true,
+    "freshTabNews": true,
+    "freshTabInitialState": true,
     "unblockUI": false,
     "showDataCollectionMessage": false,
     "cliqzOnboarding": true,
@@ -12,7 +13,8 @@
     "antitrackingButton": true,
     "helpMenus": true,
     "showNewBrandAlert": true,
-    "onBoardingVersion": "2.0"
+    "onBoardingVersion": "2.0",
+    "controlCenterSecurity": true
   },
   "default_prefs" : {
     "modules.context-search.enabled": false

@@ -54,7 +54,6 @@ $(document).ready(function(resolvedPromises) {
   });
 
   draw({});
-  resize();
   sendMessageToWindow({
     action: 'getData',
     data: {}
@@ -264,7 +263,7 @@ function draw(data){
   if(data.onboarding) {
     document.getElementById('control-center').classList.add('onboarding');
 
-    if(data.module.antitracking.totalCount === 1) {
+    if(data.module.antitracking && data.module.antitracking.totalCount === 1) {
       window.postMessage(JSON.stringify({
         target: 'cliqz',
         module: 'core',
@@ -282,15 +281,16 @@ function draw(data){
 
   if (data.module) {
     // antitracking default data
-    if (!data.module.antitracking.state) {
-      data.module.antitracking.visible = true
-      data.module.antitracking.state = "critical"
-      data.module.antitracking.totalCount = 0
+    if (data.module.antitracking){
+      if (!data.module.antitracking.state) {
+        data.module.antitracking.visible = true
+        data.module.antitracking.state = "critical"
+        data.module.antitracking.totalCount = 0
+      }
+      if (data.module.antitracking.trackersList) {
+        data.module.antitracking.trackersList.companiesArray = compile(data.module.antitracking.trackersList)
+      }
     }
-    if (data.module.antitracking.trackersList) {
-      data.module.antitracking.trackersList.companiesArray = compile(data.module.antitracking.trackersList)
-    }
-
 
     if (data.module.adblocker) {
       compileAdblockInfo(data);
@@ -302,15 +302,17 @@ function draw(data){
   }
 
   document.getElementById('control-center').innerHTML = CLIQZ.templates['template'](data)
-  document.getElementById('anti-phising').innerHTML = CLIQZ.templates['anti-phising'](data);
-  document.getElementById('anti-tracking').innerHTML = CLIQZ.templates['anti-tracking'](data);
+  if(data.securityON){
+    document.getElementById('anti-phising').innerHTML = CLIQZ.templates['anti-phising'](data);
+    document.getElementById('anti-tracking').innerHTML = CLIQZ.templates['anti-tracking'](data);
 
-  if(data.amo) {
-    document.getElementById('amo-privacy-cc').innerHTML = CLIQZ.templates['amo-privacy-cc']();
-    document.getElementById('cliqz-tab').innerHTML = CLIQZ.templates['amo-cliqz-tab'](data);
-  } else {
-    document.getElementById('ad-blocking').innerHTML = CLIQZ.templates['ad-blocking'](data);
-    document.getElementById('https').innerHTML = CLIQZ.templates['https'](data);
+    if(data.amo) {
+      document.getElementById('amo-privacy-cc').innerHTML = CLIQZ.templates['amo-privacy-cc']();
+      document.getElementById('cliqz-tab').innerHTML = CLIQZ.templates['cliqz-tab'](data);
+    } else {
+      document.getElementById('ad-blocking').innerHTML = CLIQZ.templates['ad-blocking'](data);
+      document.getElementById('https').innerHTML = CLIQZ.templates['https'](data);
+    }
   }
 
   function close_setting_accordion_section() {
@@ -503,6 +505,7 @@ function draw(data){
   });
 
   localizeDocument();
+  resize();
 }
 
 window.draw = draw;
