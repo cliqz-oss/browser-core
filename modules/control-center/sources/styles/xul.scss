@@ -2,7 +2,7 @@
     padding: 0;
 }
 
-#nav-bar .cliqz-control-center {
+.cliqz-control-center {
     height: 31px;
     padding: 9px 4px 0 32px;
     color: transparent;
@@ -12,16 +12,13 @@
     background-image: url(../images/cc-active.svg);
 }
 
-#nav-bar .cliqz-control-center:after {
-    content: 'CLIQZ';
-}
 
 #nav-bar .cliqz-control-center {
     background-position: 4px 5px;
     color: black;
 }
 
-#nav-bar .cliqz-control-center:after {
+.cliqz-control-center:after {
     content: '';
 }
 
@@ -34,18 +31,18 @@
     padding-left: 20px;
 }
 
-#nav-bar .cliqz-control-center[state="critical"] {
+.cliqz-control-center[state="critical"] {
     background-image: url(../images/cc-critical.svg);
 }
 
-#nav-bar .cliqz-control-center[state="inactive"] {
+.cliqz-control-center[state="inactive"] {
     background-image: url(../images/cc-inactive.svg);
 }
 
-#nav-bar .cliqz-control-center[state="off"] {
+.cliqz-control-center[state="off"] {
     background-image: url(../images/cc-off.svg);
     /* state off means there are no security features so no need for the badge text */
-    min-width: 30px;
+    min-width: 30px !important;
     padding: 0px;
     color: transparent;
 }
