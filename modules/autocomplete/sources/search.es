@@ -398,7 +398,7 @@ export default class Search {
 
   historyPatternCallback(res) {
       // abort if we already have results
-    var query = res.query || res.q; // query will be called q if RH is down
+    var query = res.query || res.q || ''; // query will be called q if RH is down
     if(this.mixedResults.matchCount > 0) return;
 
     if (query == this.searchString) {
