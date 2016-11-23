@@ -89,8 +89,8 @@ export default class {
 
       this.contextMenu.insertBefore(this.menuItem, this._builtInSearchItem);
       // Can't do once in constructor, because it's dynamic.
-      // Check if this is CLIQZ browser
-      if (this.channel === "40") {
+      // Check if this is CLIQZ browser or Test Pilot
+      if (this.channel === '40' || this.channel.startsWith('TP')) {
         // Hide default search option
         this._builtInSearchItem.setAttribute('hidden', 'true');
       }
