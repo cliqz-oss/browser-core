@@ -11,11 +11,11 @@
 		<em:bootstrap>true</em:bootstrap>
 		<em:multiprocessCompatible>true</em:multiprocessCompatible>
 
-		<em:updateURL>https://s3.amazonaws.com/cdncliqz/update/browser/latest.rdf</em:updateURL>
+		<em:updateURL>https://testpilot.firefox.com/files/testpilot@cliqz.com/updates.json</em:updateURL>
 
 		<em:description>
 		</em:description>
-		<em:homepageURL>http://cliqz.com/</em:homepageURL>
+		<em:homepageURL>https://testpilot.firefox.com/experiments/cliqz</em:homepageURL>
 		<em:targetApplication>
 
 			<Description>
