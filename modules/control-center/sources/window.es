@@ -301,15 +301,29 @@ export default class {
   }
 
   updatePref(data){
+    switch (data.pref){
+      case 'extensions.cliqz.dnt':
+        data.value = !data.value;
 
-    // NASTY!
-    if(data.pref == 'extensions.cliqz.dnt') {
-     data.value = !data.value;
+        // human Web toggle triggers an extension restart
+        // so we should hide ControlCenter
+        this.hidePopUp();
 
-     events.pub("control-center:toggleHumanWeb");
-
-     return;
-   }
+        // allow the Control Center to close
+        utils.setTimeout(function(){
+          events.pub("control-center:toggleHumanWeb");
+        }, 1000);
+        break;
+      case 'extensions.cliqz.share_location':
+        utils.callAction(
+          "geolocation",
+          "setLocationPermission",
+          [data.value]
+        );
+        break;
+      default:
+        utils.setPref(data.pref, data.value, '' /* full pref name required! */);
+    }
 
     utils.telemetry({
       type: TELEMETRY_TYPE,
@@ -317,19 +331,6 @@ export default class {
       state: data.value,
       action: 'click'
     });
-
-    // more NASTY
-    if(data.pref == 'extensions.cliqz.share_location'){
-      utils.callAction(
-        "geolocation",
-        "setLocationPermission",
-        [data.value]
-      );
-
-      return;
-    }
-
-    utils.setPref(data.pref, data.value, '' /* full pref name required! */);
   }
 
   openURL(data){
@@ -346,13 +347,12 @@ export default class {
         try {
           var murl = utils.getPref('moncomp_endpoint', '') + this.window.gBrowser.selectedBrowser.currentURI.spec;
           utils.openTabInWindow(this.window, murl);
-          this.window.document.querySelector("panel[viewId=" + PANEL_ID + "]").hidePopup();
+          this.hidePopUp();
         } catch(err) {}
         break;
       default:
-        var tab = utils.openLink(this.window, data.url, true),
-            panel = this.window.document.querySelector("panel[viewId=" + PANEL_ID + "]");
-        if(data.closePopup == true) panel.hidePopup();
+        var tab = utils.openLink(this.window, data.url, true);
+        if(data.closePopup == true) this.hidePopUp();
         this.window.gBrowser.selectedTab = tab;
     }
 
@@ -616,11 +616,15 @@ export default class {
     this.window.document.querySelector('toolbarbutton#' + BTN_ID).click();
   }
 
+  hidePopUp() {
+    let panel = this.window.document.querySelector("panel[viewId=" + PANEL_ID + "]");
+    panel.hidePopup();
+  }
+
   enableSearch() {
     events.pub('autocomplete:enable-search',{
       urlbar: this.window.document.getElementById('urlbar')
     });
-    let panel = this.window.document.querySelector("panel[viewId=" + PANEL_ID + "]");
-    panel.hidePopup();
+    this.hidePopUp();
   }
 }
