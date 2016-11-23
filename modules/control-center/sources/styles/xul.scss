@@ -60,3 +60,7 @@ panelmultiview[mainViewId="cliqz-cc-btn-panel"] > .panel-viewcontainer > .panel-
 panel[viewId="cliqz-cc-btn-panel"] .panel-mainview {
     max-width: 50em !important;
 }
+
+#customizationui-widget-panel[viewId="cliqz-cc-btn-panel"] .panel-arrowcontent {
+    padding-bottom: 0px;
+}

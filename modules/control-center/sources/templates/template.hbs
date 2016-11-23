@@ -62,6 +62,7 @@
         {{> cliqz-tab-button module.freshtab}}
     </div>
 {{/if}}
-<section id="othersettings">
+
+<section id="othersettings" class="{{#unless securityON}}securityOFF{{/unless}}">
   {{> other-settings }}
 </section>
