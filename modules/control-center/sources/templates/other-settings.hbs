@@ -34,14 +34,13 @@
             </text>
           </g>
         </svg>
-        <div class="tooltip top share-location">
+        <div class="tooltip share-location {{#if securityON}}top{{else}}right{{/if}}">
           <span class="title" data-i18n="control-center-info-share-location-title"></span>
           <span data-i18n="control-center-info-share-location"></span>
         </div>
         <span data-i18n="control-center-location"></span>
         <select class="custom-dropdown"
-                updatePref="extensions.cliqz.share_location"
-                data-target="search_location">
+                updatePref="extensions.cliqz.share_location">
           {{#each module.geolocation.state}}
             <option {{#if selected }}selected{{/if}} value="{{ @key }}" >{{ name }}</option>
           {{/each}}
@@ -120,9 +119,34 @@
         </select>
       </span>
       {{/if}}
-
-      {{#if module.human-web.visible }}
+      {{#unless searchDisabled }}
+          <span class="bullet"
+                {{#if amo}}
+                    openUrl="https://cliqz.com/tips-firefox"
+                {{else}}
+                    openUrl="https://cliqz.com/tips"
+                {{/if}}
+                data-target="search_tips">
+            <span data-i18n="control-center-best-cliqz"></span>
+            <svg class="bulletarrow" width="9px" height="12px" viewBox="175 40 9 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+              <defs></defs>
+              <polyline id="Path-164-Copy-140" stroke="#7D7D7D" stroke-width="1.5999999" fill="none" opacity="0.554279384" points="176 41 181.896928 46.9067547 176.230646 52.5824794"></polyline>
+            </svg>
+          </span>
+      {{/unless}}
+      {{#if module.privacy-dashboard.visible }}
         <span class="bullet"
+              openUrl="about:transparency"
+              data-target="search_transparency">
+          <span data-i18n="control-center-transparency"></span>
+          <svg class="bulletarrow" width="9px" height="12px" viewBox="175 40 9 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <defs></defs>
+            <polyline id="Path-164-Copy-140" stroke="#7D7D7D" stroke-width="1.5999999" fill="none" opacity="0.554279384" points="176 41 181.896928 46.9067547 176.230646 52.5824794"></polyline>
+          </svg>
+        </span>
+      {{/if}}
+      {{#if module.human-web.visible }}
+        <span class="bullet human-web"
               state="{{#if module.human-web.state}}active{{ else }}inactive{{/if}}"
               inactiveState="inactive">
           <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -154,32 +178,6 @@
           </span>
         </span>
       {{/if }}
-      {{#unless searchDisabled }}
-          <span class="bullet"
-                {{#if amo}}
-                    openUrl="https://cliqz.com/tips-firefox"
-                {{else}}
-                    openUrl="https://cliqz.com/tips"
-                {{/if}}
-                data-target="search_tips">
-            <span data-i18n="control-center-best-cliqz"></span>
-            <svg class="bulletarrow" width="9px" height="12px" viewBox="175 40 9 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-              <defs></defs>
-              <polyline id="Path-164-Copy-140" stroke="#7D7D7D" stroke-width="1.5999999" fill="none" opacity="0.554279384" points="176 41 181.896928 46.9067547 176.230646 52.5824794"></polyline>
-            </svg>
-          </span>
-      {{/unless}}
-      {{#if module.privacy-dashboard.visible }}
-        <span class="bullet"
-              openUrl="about:transparency"
-              data-target="search_transparency">
-          <span data-i18n="control-center-transparency"></span>
-          <svg class="bulletarrow" width="9px" height="12px" viewBox="175 40 9 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-            <defs></defs>
-            <polyline id="Path-164-Copy-140" stroke="#7D7D7D" stroke-width="1.5999999" fill="none" opacity="0.554279384" points="176 41 181.896928 46.9067547 176.230646 52.5824794"></polyline>
-          </svg>
-        </span>
-      {{/if}}
     </div>
   </div>
   <div class="accordion-section">

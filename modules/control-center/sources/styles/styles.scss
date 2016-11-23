@@ -493,6 +493,24 @@ html {
         #arrow {
             margin: 0 3px -1px;
         }
+
+        &.securityOFF {
+            .right {
+                left: 73px;
+                top: 20px;
+            }
+
+            .right, .top {
+                width: 344px;
+            }
+        }
+
+       .human-web {
+            .top {
+                bottom: 70px;
+            }
+        }
+
     }
 }
 

@@ -325,13 +325,14 @@ var CliqzHistoryCluster = {
 
     // Check for url matching query
     query = utils.generalizeUrl(query, true);
-    var key;
-    for (key in patterns) {
-      var url = patterns[key].url;
-      if (url.indexOf(query) === 0) {
-        baseUrl = url;
-        favicon = patterns[key].favicon;
-        break;
+    if(query){
+      for (let key in patterns) {
+        var url = patterns[key].url;
+        if (url.indexOf(query) === 0) {
+          baseUrl = url;
+          favicon = patterns[key].favicon;
+          break;
+        }
       }
     }
 
@@ -364,7 +365,7 @@ var CliqzHistoryCluster = {
     } else {
       utils.log('Using a base url that did not exist in history list.', 'CliqzHistoryCluster');
 
-      for (key in patterns) {
+      for (let key in patterns) {
         // if any pattern uses an https domain, try to use that for
         // base domain too.
         pUrl = patterns[key].url;
@@ -387,7 +388,7 @@ var CliqzHistoryCluster = {
       }
     }
 
-    for (key in patterns) {
+    for (let key in patterns) {
       // keep everything else except for base, it is already there
       if (patterns[key] != basePattern) newPatterns.push(patterns[key]);
     }
