@@ -40,7 +40,8 @@
         </div>
         <span data-i18n="control-center-location"></span>
         <select class="custom-dropdown"
-                updatePref="extensions.cliqz.share_location">
+                updatePref="extensions.cliqz.share_location"
+                data-target="search_location">
           {{#each module.geolocation.state}}
             <option {{#if selected }}selected{{/if}} value="{{ @key }}" >{{ name }}</option>
           {{/each}}
