@@ -511,7 +511,6 @@ export default class {
 
     var div = doc.createElement('div');
     div.setAttribute('class','cliqz-control-center');
-    div.setAttribute('state','off');
     if(this.settings.controlCenterSecurity == true){
       div.textContent = BTN_LABEL;
     } else {
