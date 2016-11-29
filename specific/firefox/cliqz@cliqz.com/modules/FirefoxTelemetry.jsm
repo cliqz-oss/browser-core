@@ -4,6 +4,7 @@ this.EXPORTED_SYMBOLS = [
   "FirefoxTelemetry"
 ];
 
+const ADDON_ID = "cliqz@cliqz.com";
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
@@ -175,37 +176,31 @@ function whenWindowLoaded(win, callback) {
  *
  * @param eventName The data is logged with this name.
  */
-function reportTelemetryValue(key, optionalData={}) {
-  // Increment "search" / "urlbar" countable.
-  // Since we only care about search volume, don't report details, like the
-  // suggestion index clicked, to countSearchEvent.
-  function recordSearch(engine=Services.search.currentEngine, source) {
-    let isInContentSearch = source.includes("content");
-    if (isInContentSearch) {
-      // Add engine name to the probe name.
-      source += "-" + engine.name.toLowerCase();
-    }
-
-    BrowserUITelemetry.countSearchEvent(source, null);
-
-    if (!isInContentSearch) {
-      let engineId = engine ? engine.identifier ? engine.identifier
-                                                : "other-" + engine.name
-                            : "other";
-      let count = Services.telemetry.getKeyedHistogramById("SEARCH_COUNTS");
-      count.add(`${engineId}.${source}`);
-    }
+function reportTelemetryValue(key, optionalData = { engine: Services.search.currentEngine }) {
+  function sendMetric(payload) {
+    const subject = {
+      wrappedJSObject: {
+        observersModuleSubjectWrapper: true,
+        object: ADDON_ID,
+      },
+    };
+    const topic = 'testpilot::send-metric';
+    Services.obs.notifyObservers(subject, topic, JSON.stringify(payload));
   }
+  const session = Services.prefs.getCharPref("extensions.cliqz.session");
+  const payload = { "cliqzSession": session };
 
   switch(key) {
     case "cliqzInstalled":
-      // environment.settings.userPrefs.cliqzSessionID
+      sendMetric(payload);
       break;
     case "userVisitedEngineHost":
-      recordSearch(optionalData.engine, "content");
+      payload.contentSearch = optionalData.engine.name.toLowerCase();
+      sendMetric(payload);
       break;
     case "userVisitedEngineResult":
-      recordSearch(optionalData.engine, "content-result");
+      payload.contentSearchResult = optionalData.engine.name.toLowerCase();
+      sendMetric(payload);
       break;
     default:
       Cu.reportError("reportTelemetryValue() got an unknown value");

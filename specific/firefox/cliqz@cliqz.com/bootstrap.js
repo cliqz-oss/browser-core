@@ -16,8 +16,6 @@ function startup(aData, aReason) {
 
     Cu.import('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
     FirefoxTelemetry.init();
-    // const session = CliqzUtils.getPref('session');
-    // TODO: store session and use TP way to do things.
     FirefoxTelemetry.reportTelemetryValue("cliqzInstalled");
 }
 
