@@ -125,7 +125,7 @@ export class AttrackBloomFilter extends QSWhitelistBase {
       }).then(this.checkUpdate.bind(this))
         .then(() => {
           this.lastUpdate = datetime.getTime();
-        }),
+        }, (e) => {utils.log(e)})
     ]);
   }
 
@@ -180,7 +180,6 @@ export class AttrackBloomFilter extends QSWhitelistBase {
   addSafeToken(domain, token) {
     utils.log([domain, token]);
     if (token === '') {
-      utils.log('add domain ' + domain);
       this.addDomain(domain);
     } else {
       this.bloomFilter.addSingle('t' + domain + token);
@@ -238,6 +237,9 @@ export class AttrackBloomFilter extends QSWhitelistBase {
   }
 
   checkUpdate(version) {
+    if (version === undefined) {
+      return Promise.reject('version undefined');
+    }
     var self = this;
     if (self.version === null || self.bloomFilter === null) {  // load the first time
       self.version = {'major': null, 'minor': null};
