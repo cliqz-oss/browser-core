@@ -1,7 +1,7 @@
 import getDbConn from 'platform/sqlite';
 
 const LOG_KEY = "storage-sqlite";
-var dbConn;
+let dbConn;
 
 function init() {
   dbConn = getDbConn('cliqz.dbattrack');
@@ -56,20 +56,14 @@ function saveRecord(id, data) {
   if (id.startsWith('cliqz.dbattrack.')) {
     id = id.substring('cliqz.dbattrack.'.length);
   }
-  var st = dbConn.createStatement("INSERT OR REPLACE INTO attrack (id,data) VALUES (:id, :data)");
-  st.params.id = id;
-  st.params.data = data;
-  var t_start = (new Date()).getTime();
+  const stmt = dbConn.createAsyncStatement("INSERT OR REPLACE INTO attrack (id,data) VALUES (:id, :data)");
+  stmt.params.id = id;
+  stmt.params.data = data;
 
-  st.executeAsync({
-    handleError: function(aError) {
-     CliqzUtils.log("SQL error: " + aError.message, LOG_KEY);
-    },
-    handleCompletion: function(aReason) {
-      var t_end = (new Date()).getTime();
-      CliqzUtils.log("Save "+ id +" in "+ (t_end - t_start) +"ms, data length = "+ data.length, LOG_KEY);
-    }
-  });
+  // Warning: do not put any callbacks to Async queries,
+  // they will blow if case Javascript contexed is terminated - for example
+  // by user disabling extension.
+  stmt.executeAsync();
 };
 
 export default {
@@ -90,5 +84,5 @@ export default {
       return JSON.parse(o);
     }
     return notFound;
-  }
+  },
 };
