@@ -92,14 +92,16 @@ var CliqzEvents = CliqzEvents || {
   },
 
   un_sub: function (id, fn) {
-    if (!CliqzEvents.cache[id]) {
-      throw "Trying to unsubscribe an unknown channel";
+    if (!CliqzEvents.cache[id] || CliqzEvents.cache[id].length === 0) {
+      console.error("Trying to unsubscribe event that had no subscribers")
+      return;
     }
+
     let index = CliqzEvents.cache[id].indexOf(fn);
     if (index > -1) {
       CliqzEvents.cache[id].splice(index, 1);
     } else {
-      throw "Trying to unsubscribe an unknown listener";
+      console.error("Trying to unsubscribe an unknown listener");
     }
   },
 
