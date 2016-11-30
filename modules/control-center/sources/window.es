@@ -378,7 +378,7 @@ export default class {
           generalState = 'inactive';
         }
 
-        if (!moduleData.antitracking){
+        if (!moduleData.antitracking || Object.keys(moduleData.antitracking).length == 0){
           // completely disabled
           generalState = 'critical';
         } else if(moduleData.antitracking.isWhitelisted) {
