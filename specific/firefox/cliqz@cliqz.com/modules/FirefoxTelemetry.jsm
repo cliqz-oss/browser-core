@@ -8,7 +8,7 @@ const ADDON_ID = "cliqz@cliqz.com";
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
-Cu.import("resource:///modules/BrowserUITelemetry.jsm");
+Cu.import("resource://gre/modules/TelemetryController.jsm", this);
 
 var gBrowsers = null;
 
@@ -188,7 +188,12 @@ function reportTelemetryValue(key, optionalData = { engine: Services.search.curr
     Services.obs.notifyObservers(subject, topic, JSON.stringify(payload));
   }
   const session = Services.prefs.getCharPref("extensions.cliqz.session");
-  const payload = { "cliqzSession": session };
+  const ping = TelemetryController.getCurrentPingData();
+  const payload = {
+    "cliqzSession": session,
+    "sessionId": ping.payload.info.sessionId,
+    "subsessionId": ping.payload.info.subsessionId,
+  };
 
   switch(key) {
     case "cliqzInstalled":
