@@ -5,6 +5,7 @@
 
 import { utils } from 'core/cliqz';
 import { readFile } from 'core/fs';
+import HistoryManager from "core/history-manager";
 
 function log(s){
 	utils.log(s, 'CATEGORIES')
