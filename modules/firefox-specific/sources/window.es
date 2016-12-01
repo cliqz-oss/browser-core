@@ -34,12 +34,6 @@ export default class {
       tabObserver,
       'state_change'
     );
-    this.pageLoadEventProxy = events.proxyEvent(
-      'core:page_load',
-      this.window.gBrowser,
-      'load',
-      true
-    );
     this.tabSelectEventProxy = events.proxyEvent(
       'core:tab_select',
       this.window.gBrowser.tabContainer,
@@ -61,7 +55,6 @@ export default class {
     this.locationChangeEvent.unsubscribe();
     this.tabLocationChangeEvent.unsubscribe();
     this.tabStateChangeEvent.unsubscribe();
-    this.pageLoadEventProxy.unsubscribe();
     this.tabSelectEventProxy.unsubscribe();
     Demo.unload(this.window);
     Redirect.unload();
