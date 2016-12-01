@@ -4,21 +4,23 @@ this.EXPORTED_SYMBOLS = [
   "FirefoxTelemetry"
 ];
 
-const ADDON_ID = "cliqz@cliqz.com";
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
-Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://gre/modules/Preferences.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
-Cu.import("resource://gre/modules/TelemetryController.jsm", this);
+Cu.import("resource://gre/modules/TelemetryController.jsm");
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 var gBrowsers = null;
+var gAddonId = null;
 
 this.FirefoxTelemetry = Object.freeze({
-  init() {
+  init(addonId) {
     if (gBrowsers) {
       Cu.reportError("FirefoxTelemetry.init() was invoked multiple times?");
       return;
     }
 
+    gAddonId = addonId;
     gBrowsers = new Set();
     getBrowserWindows();
     Services.ww.registerNotification(this);
@@ -176,18 +178,21 @@ function whenWindowLoaded(win, callback) {
  *
  * @param eventName The data is logged with this name.
  */
-function reportTelemetryValue(key, optionalData = { engine: Services.search.currentEngine }) {
+function reportTelemetryValue(key,
+                              optionalData = {
+                                engine: Services.search.currentEngine
+                              }) {
   function sendMetric(payload) {
     const subject = {
       wrappedJSObject: {
         observersModuleSubjectWrapper: true,
-        object: ADDON_ID,
+        object: gAddonId,
       },
     };
     const topic = 'testpilot::send-metric';
     Services.obs.notifyObservers(subject, topic, JSON.stringify(payload));
   }
-  const session = Services.prefs.getCharPref("extensions.cliqz.session");
+  const session = Preferences.get("extensions.cliqz.session", "not-found");
   const ping = TelemetryController.getCurrentPingData();
   const payload = {
     "cliqzSession": session,
