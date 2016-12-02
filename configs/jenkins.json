@@ -3,13 +3,17 @@
   "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
   "testem_launchers": ["Mocha"],
   "settings": {
+    "id": "cliqz@cliqz.com",
+    "name": "Cliqz",
+    "channel": "99",
+    "homepageURL": "http://cliqz.com/",
+    "updateURL": "https://s3.amazonaws.com/cdncliqz/update/browser/latest.rdf",
     "freshTabButton": false,
     "freshTabNews": true,
     "freshTabInitialState": true,
     "unblockUI": true,
     "showDataCollectionMessage": true,
     "cliqzOnboarding": false,
-    "channel": "99",
     "antitrackingButton": true,
     "showNewBrandAlert": true,
     "controlCenterSecurity": true

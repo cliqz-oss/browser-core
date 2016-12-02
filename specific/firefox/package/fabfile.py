@@ -19,8 +19,8 @@ sys.path.append("..")
 from fern.submitter import Submitter
 
 NAME = "Cliqz"
-PATH_TO_EXTENSION = "cliqz@cliqz.com"
-PATH_TO_EXTENSION_TEMP = "cliqz@cliqz.com_temp"
+EXTENSION_ID = "{{id}}"
+PATH_TO_EXTENSION_TEMP = EXTENSION_ID + "_temp"
 PATH_TO_S3_BUCKET = "s3://cdncliqz/update/"
 XML_EM_NAMESPACE = "http://www.mozilla.org/2004/em-rdf#"
 AUTO_INSTALLER_URL = "http://localhost:8888/"
@@ -72,7 +72,7 @@ def package(beta='True', version=None, sign='False', channel='browser'):
     folder = get_folder_name(beta=='True', channel)
 
     # Generate temporary manifest
-    install_manifest_path = "cliqz@cliqz.com/install.rdf"
+    install_manifest_path = EXTENSION_ID + "/install.rdf"
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('install.rdf')
     output_from_parsed_template = template.render(name=NAME,
@@ -84,7 +84,7 @@ def package(beta='True', version=None, sign='False', channel='browser'):
 
     # Zip extension
     output_file_name = "%s.%s.xpi" % (NAME, version)
-    local("cp -R %s %s" % (PATH_TO_EXTENSION, PATH_TO_EXTENSION_TEMP))
+    local("cp -R %s %s" % (EXTENSION_ID, PATH_TO_EXTENSION_TEMP))
 
     with lcd(PATH_TO_EXTENSION_TEMP):  # We need to be inside the folder when using zip
         with hide('output'):
