@@ -1,5 +1,6 @@
 <!-- pattern-h2 -->
-<div class='cqz-result-h2 cqz-result-padding cqz-result-pattern'>
+<div class='cqz-result-h2 cqz-result-padding cqz-result-pattern'
+     local-source='{{ data.localSource }}'>
     <div class='cqz-ez-title cliqz-pattern-title-h2 overflow'
          arrow='false'
          url='{{data.url}}'
@@ -26,6 +27,7 @@
                         extra="{{extra}}"
                         domain="{{domain}}"
                         arrow="false"
+                        local-source="{{style}}"
                         useParentOffset="true">
                         <span class='cqz-history-item-title'>{{ emphasis title ../../text 2 true }}</span>
                         <span class='cqz-history-item-link'>{{ emphasis link ../../text 2 true }}</span>

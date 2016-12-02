@@ -56,6 +56,7 @@ var CliqzHistoryCluster = {
           url: url,
           title: title,
           favicon: history.results[i].image,
+          style: history.results[i].style,
           _genUrl: utils.generalizeUrl(url, true)
         });
       }
@@ -500,6 +501,7 @@ var CliqzHistoryCluster = {
         // logo is only necessary for 3-up mini-history view, this can be removed if that is retired
         logo: utils.getLogoDetails(utils.getDetailsFromUrl(urls[i].url)),
         kind: ['H'],
+        style: urls[i].style
       };
 
       if (urls[i].hasOwnProperty('xtra_c')) {
@@ -564,6 +566,7 @@ var CliqzHistoryCluster = {
         title = results[0].url;
         utils.log('No title, assigning ' + title, 'CliqzHistoryCluster');
       }
+      instant.data.localSource = results[0].style;
       instant.data.title = title;
       // override with any titles we have saved
       //promises.push(CliqzHistoryCluster._getTitle(instant));
@@ -591,6 +594,7 @@ var CliqzHistoryCluster = {
         instant.data.title = instant.comment;
         instant.data.debug = '(history generic)!';
         instant.data.kind = ['H'];
+        instant.data.localSource = results[i].style;
         //promises.push(CliqzHistoryCluster._getDescription(instant));
         instant_results.push(instant);
       }
