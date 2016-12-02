@@ -264,24 +264,6 @@ function enhanceResults(results) {
   return filteredResults;
 }
 
-// debug message are at the end of the title like this: "title (debug)!"
-function getDebugMsg(fullTitle) {
-    // regex matches two parts:
-    // 1) the title, can be anything ([\s\S] is more inclusive than '.' as it includes newline)
-    // followed by:
-    // 2) a debug string like this " (debug)!"
-    if (fullTitle === null) {
-      return [null, null];
-    }
-    const r = fullTitle.match(/^([\s\S]+) \((.*)\)!$/);
-    if (r && r.length >= 3) {
-      return [r[1], r[2]];
-    }
-    else {
-      return [fullTitle, null];
-    }
-}
-
 function enhanceSpecificResult(r) {
   const contentArea = {
     width: UI.CARD_WIDTH,

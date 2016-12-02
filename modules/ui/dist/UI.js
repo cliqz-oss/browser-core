@@ -825,22 +825,6 @@ function getPartial(type){
     return 'generic';
 }
 
-// debug message are at the end of the title like this: "title (debug)!"
-function getDebugMsg(fullTitle){
-    // regex matches two parts:
-    // 1) the title, can be anything ([\s\S] is more inclusive than '.' as it includes newline)
-    // followed by:
-    // 2) a debug string like this " (debug)!"
-    if(fullTitle === null) {
-      return [null, null];
-    }
-    var r = fullTitle.match(/^([\s\S]+) \((.*)\)!$/)
-    if(r && r.length >= 3)
-        return [r[1], r[2]]
-    else
-        return [fullTitle, null]
-}
-
 // tags are piggybacked in the title, eg: Lady gaga - tag1,tag2,tag3
 function getTags(fullTitle){
     //[, title, tags] = fullTitle.match(/^(.+) \u2013 (.+)$/);
