@@ -7,11 +7,17 @@ TELEMETRY_SIGNAL[ADDON_DISABLE] = 'addon_disable';
 TELEMETRY_SIGNAL[ADDON_UNINSTALL] = 'addon_uninstall';
 
 function startup(aData, aReason) {
-    // try to cleanup an eventual broken shutdown
+    // In case of an unclean restart, ensure we load the latest version of the
+    // modules.
     Cu.unload('chrome://cliqzmodules/content/Extension.jsm');
+    Cu.unload('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
 
     Cu.import('chrome://cliqzmodules/content/Extension.jsm');
     Extension.init(aReason == ADDON_UPGRADE, aData.oldVersion, aData.version);
+
+    Cu.import('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
+    FirefoxTelemetry.init(aData.id);
+    FirefoxTelemetry.reportTelemetryValue("cliqzInstalled");
 }
 
 function shutdown(aData, aReason) {
@@ -47,6 +53,10 @@ function shutdown(aData, aReason) {
     Extension.unload();
 
     Cu.unload('chrome://cliqzmodules/content/Extension.jsm');
+
+    Cu.import('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
+    FirefoxTelemetry.destroy();
+    Cu.unload('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
 }
 
 function install(aData, aReason) {
