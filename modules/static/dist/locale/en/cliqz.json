@@ -768,7 +768,13 @@
       "message": "Open Link in New Window"
     },
     "cMenuOpenInPrivateWindow": {
-      "message": "Open Link in New Forget Window"
+      "message": "Open Link in New $1 Window"
+    },
+    "private": {
+      "message": "private"
+    },
+    "forget": {
+      "message": "Forget"
     },
     "cMenuFeedback": {
       "message": "Feedback for CLIQZ"

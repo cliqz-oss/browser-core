@@ -47,6 +47,7 @@ export default class {
   */
   constructor(settings) {
     this.elems = [];
+    this.settings = settings.settings;
     this.window = settings.window;
     this.urlbarGoClick = this.urlbarGoClick.bind(this);
     this.hidePopup = this.hidePopup.bind(this);
@@ -94,6 +95,7 @@ export default class {
 
     this.window.CLIQZ.Core.urlbar = this.urlbar;
     this.window.CLIQZ.Core.popup = this.popup;
+    this.window.CLIQZ.settings = this.settings;
 
     initPopup(this.popup, this.window);
     CliqzEvents.sub('ui:popup_hide', this.hidePopup);

@@ -768,7 +768,13 @@
       "message": "Link in neuem Fenster öffnen"
     },
     "cMenuOpenInPrivateWindow": {
-      "message": "Link in neuem privaten Fenster öffnen"
+      "message": "Link in neuem $1 Fenster öffnen"
+    },
+    "private": {
+      "message": "privatem"
+    },
+    "forget": {
+      "message": "Vergessen"
     },
     "cMenuFeedback": {
       "message": "Feedback an CLIQZ"

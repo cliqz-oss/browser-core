@@ -768,7 +768,13 @@
       "message": "Ouvrir dans une nouvelle fenêtre"
     },
     "cMenuOpenInPrivateWindow": {
-      "message": "Ouvrir en mode « Oubli » "
+      "message": "Ouvrir en mode $1"
+    },
+    "private": {
+      "message": "privé"
+    },
+    "forget": {
+      "message": "Oubli"
     },
     "cMenuFeedback": {
       "message": "Commentaires pour CLIQZ"
