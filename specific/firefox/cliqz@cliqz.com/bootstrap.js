@@ -17,7 +17,14 @@ function startup(aData, aReason) {
 
     Cu.import('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
     FirefoxTelemetry.init(aData.id);
-    FirefoxTelemetry.reportTelemetryValue("cliqzInstalled");
+    if (aReason == APP_STARTUP) {
+      // On browser startup the telemetry controller may not be initialized at
+      // this point, so delay the initial ping to give it a chance to initialize.
+      Cu.import('resource://gre/modules/Timer.jsm');
+      setTimeout(() => FirefoxTelemetry.reportTelemetryValue('cliqzInstalled'), 5000);
+    } else {
+      FirefoxTelemetry.reportTelemetryValue('cliqzInstalled');
+    }
 }
 
 function shutdown(aData, aReason) {
