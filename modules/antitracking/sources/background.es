@@ -53,9 +53,8 @@ export default background({
       this.popup.destroy();
     }
 
-    events.un_sub('prefchange', this.onPrefChange);
-
     CliqzAttrack.unload();
+
     this.enabled = false;
   },
 

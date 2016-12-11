@@ -7,6 +7,7 @@
              domain='{{domain}}'
              extra='{{extra}}'
              arrow='false'
+             local-source="{{style}}"
              kind='{{ kind_printer kind }}'>
             <div class='cliqz-pattern-element-title'>{{ emphasis title ../text 2 true }}</div>
             <div class='cliqz-pattern-element-link'>{{ emphasis link ../text 2 true }}</div>

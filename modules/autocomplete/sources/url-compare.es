@@ -126,11 +126,6 @@ var UrlCompare = {
       title = '' + Math.random();
     }
 
-    // remove debug info from title on the de-duplication, so that we have
-    // consistent behaviour.
-    // the debug info is anything that has ( foo bar )! end of line
-    title = title.replace(/\(.*\)!$/, '').trim();
-
     return [domain, domain + path, domain + title];
   },
 };

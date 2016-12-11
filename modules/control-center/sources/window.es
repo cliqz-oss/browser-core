@@ -378,12 +378,14 @@ export default class {
           generalState = 'inactive';
         }
 
-        if (!moduleData.antitracking){
-          // completely disabled
-          generalState = 'critical';
-        } else if(moduleData.antitracking.isWhitelisted) {
-          // only this website is whitelisted
-          generalState = 'inactive';
+        if(moduleData.antitracking && !moduleData.antitracking.enabled){
+          if(moduleData.antitracking.isWhitelisted){
+            // only this website is whitelisted
+            ccData.generalState = 'inactive';
+          }
+          else {
+            ccData.generalState = 'critical';
+          }
         }
       } else {
         generalState = 'off';
@@ -511,7 +513,6 @@ export default class {
 
     var div = doc.createElement('div');
     div.setAttribute('class','cliqz-control-center');
-    div.setAttribute('state','off');
     if(this.settings.controlCenterSecurity == true){
       div.textContent = BTN_LABEL;
     } else {

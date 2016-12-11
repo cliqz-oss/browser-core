@@ -66,6 +66,11 @@ export default class {
       return;
     }
 
+    if(this.window.gContextMenu == undefined){
+      // we need to find a solution for e10s
+      return;
+    }
+
     let isLink = this.window.gContextMenu.onLink;
     let selection;
     if (isLink) {

@@ -87,7 +87,7 @@ function getHbasedNewsObject() {
       let hbNewsDict = getHbasedNewsDict(reqData);
       let newsPlacing = hbasedRecom.newsPlacing || [];
 
-      const reqDomains = newsPlacing.filter(r => r.type === hbasedNewsTypeKey)
+      const reqDomains = newsPlacing.filter(r => ((r.type === hbasedNewsTypeKey)||(r.type === prClBurdaNewsTypeKey)))
         .map((r) => r.domain.split('/')[0]);
 
       let cleanhbNewsDict = {};
