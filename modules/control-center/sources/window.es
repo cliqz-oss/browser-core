@@ -16,12 +16,7 @@ const BTN_ID = 'cliqz-cc-btn',
       TOOLTIP_LABEL = 'CLIQZ',
       TELEMETRY_TYPE = 'control_center',
       SEARCH_BAR_ID = 'search-container',
-      TRIQZ_URL = 'https://cliqz.com/tips',
-      dontHideSearchBar = 'dontHideSearchBar',
-      //toolbar
-      searchBarPosition = 'defaultSearchBarPosition',
-      //next element in the toolbar
-      searchBarPositionNext = 'defaultSearchBarPositionNext';
+      TRIQZ_URL = 'https://cliqz.com/tips';
 
 export default class {
   constructor(config) {
@@ -61,20 +56,6 @@ export default class {
     CliqzEvents.sub("core.location_change", this.actions.refreshState);
 
     this.updateFFHelpMenu();
-    if (!utils.getPref(dontHideSearchBar, false)) {
-      //try to hide quick search
-      try {
-        var doc = this.window.document;
-        var [toolbarID, nextEl] = ToolbarButtonManager.hideToolbarElement(doc, SEARCH_BAR_ID);
-        if(toolbarID){
-            utils.setPref(searchBarPosition, toolbarID);
-        }
-        if(nextEl){
-            utils.setPref(searchBarPositionNext, nextEl);
-        }
-        utils.setPref(dontHideSearchBar, true);
-      } catch(e){}
-    }
   }
 
   updateFFHelpMenu() {
