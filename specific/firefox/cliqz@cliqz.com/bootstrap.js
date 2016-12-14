@@ -21,8 +21,10 @@ function startup(aData, aReason) {
       // On browser startup the telemetry controller may not be initialized at
       // this point, so delay the initial ping to give it a chance to initialize.
       Cu.import('resource://gre/modules/Timer.jsm');
-      setTimeout(() => FirefoxTelemetry.reportTelemetryValue('cliqzInstalled'), 5000);
-    } else {
+      setTimeout(() => FirefoxTelemetry.reportTelemetryValue('cliqzEnabled'), 5000);
+    } else if (aReason === ADDON_ENABLE) {
+      FirefoxTelemetry.reportTelemetryValue('cliqzEnabled');
+    } else if (aReason === ADDON_INSTALL) {
       FirefoxTelemetry.reportTelemetryValue('cliqzInstalled');
     }
 }
@@ -62,6 +64,11 @@ function shutdown(aData, aReason) {
     Cu.unload('chrome://cliqzmodules/content/Extension.jsm');
 
     Cu.import('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
+    if (aReason === ADDON_UNINSTALL) {
+      FirefoxTelemetry.reportTelemetryValue('cliqzUninstalled');
+    } else if (aReason === ADDON_DISABLE) {
+      FirefoxTelemetry.reportTelemetryValue('cliqzDisabled');
+    }
     FirefoxTelemetry.destroy();
     Cu.unload('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
 }

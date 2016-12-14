@@ -176,7 +176,7 @@ function whenWindowLoaded(win, callback) {
 /**
  * Registers the presence of an event.
  *
- * @param eventName The data is logged with this name.
+ * @param key The data is logged with this name.
  */
 function reportTelemetryValue(key,
                               optionalData = {
@@ -195,24 +195,15 @@ function reportTelemetryValue(key,
   const session = Preferences.get("extensions.cliqz.session", "not-found");
   const ping = TelemetryController.getCurrentPingData();
   const payload = {
+    "event": key,
     "cliqzSession": session,
     "sessionId": ping.payload.info.sessionId,
     "subsessionId": ping.payload.info.subsessionId,
   };
 
-  switch(key) {
-    case "cliqzInstalled":
-      sendMetric(payload);
-      break;
-    case "userVisitedEngineHost":
-      payload.contentSearch = optionalData.engine.name.toLowerCase();
-      sendMetric(payload);
-      break;
-    case "userVisitedEngineResult":
-      payload.contentSearchResult = optionalData.engine.name.toLowerCase();
-      sendMetric(payload);
-      break;
-    default:
-      Cu.reportError("reportTelemetryValue() got an unknown value");
+  if (key == "userVisitedEngineHost" || key == "userVisitedEngineResult") {
+    payload.contentSearch = optionalData.engine.name.toLowerCase();
   }
+
+  sendMetric(payload);
 }
