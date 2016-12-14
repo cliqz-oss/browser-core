@@ -527,8 +527,21 @@ var CliqzUtils = {
   },
   // checks if a value represents an url which is a seach engine
   isSearch: function(value){
-    if(CliqzUtils.isUrl(value)){
-       return CliqzUtils.getDetailsFromUrl(value).host.indexOf('google') === 0 ? true: false;
+    if (CliqzUtils.isUrl(value)) {
+      const {name, subdomains, path} = CliqzUtils.getDetailsFromUrl(value);
+      // allow only 'www' and 'de' (for Yahoo) subdomains to exclude 'maps.google.com' etc.
+      // and empty path only to exclude 'www.google.com/maps' etc.
+      const firstSubdomain = subdomains.length ? subdomains[0] : '';
+      return (!path || (path.length === 1 && path[0] === '/')) && (
+        (
+          name === 'google' ||
+          name === 'bing' ||
+          name === 'duckduckgo' ||
+          name === 'startpage'
+        ) && (!firstSubdomain || firstSubdomain === 'www') ||
+        (
+          name === 'yahoo'
+        ) && (!firstSubdomain || firstSubdomain === 'de'));
     }
     return false;
   },
