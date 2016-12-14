@@ -117,32 +117,4 @@ function getCurrentset(toolbar) {
           toolbar.getAttribute("defaultset")).split(",");
 }
 
-// cliqz
-ToolbarButtonManager.hideToolbarElement = function(doc, id){
-  function $(sel, all){
-    return doc[all ? "querySelectorAll" : "getElementById"](sel);
-  }
-
-  let toolbar, currentset, idx, next,
-      toolbars = $("toolbar", true);
-  for (let i = 0; i < toolbars.length; ++i) {
-    let tb = toolbars[i];
-    currentset = getCurrentset(tb);
-    idx = currentset.indexOf(id);
-    if (idx != -1) {
-      //store exact position
-      if(currentset.length > idx+1)next = currentset[idx+1];
-
-      currentset.splice(idx, 1);
-      currentset = currentset.join(",");
-      tb.currentSet = currentset;
-      tb.setAttribute("currentset", currentset);
-      doc.persist(tb.id, "currentset");
-
-      return [tb.id, next];
-    }
-  }
-}
-
-
 export default ToolbarButtonManager;
