@@ -108,6 +108,10 @@ export default class {
     this._autocompletepopup = this.urlbar.getAttribute('autocompletepopup');
     this.urlbar.setAttribute('autocompletepopup', /*'PopupAutoComplete'*/ 'PopupAutoCompleteRichResultCliqz');
 
+    // Firefox 52+ fails to update to the correct popup
+    this._originalFFpopup = this.urlbar.popup;
+    this.urlbar.popup = this.popup;
+
     var urlBarGo = document.getElementById('urlbar-go-button');
     this._urlbarGoButtonClick = urlBarGo.getAttribute('onclick');
     //we somehow break default FF -> on goclick the autocomplete doesnt get considered
@@ -309,6 +313,7 @@ export default class {
     this.urlbar.setAttribute('autocompletepopup', this._autocompletepopup);
     this.popup.removeEventListener('popuphiding', this.popupEventHandlers.popupClose);
     this.popup.removeEventListener('popupshowing', this.popupEventHandlers.popupOpen);
+    this.urlbar.popup = this._originalFFpopup;
 
     CliqzEvents.un_sub('ui:popup_hide', this.hidePopup);
 
