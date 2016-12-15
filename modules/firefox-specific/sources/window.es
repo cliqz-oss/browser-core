@@ -10,6 +10,7 @@ import TabObserver from '../platform/tab-observer';
 export default class {
   constructor(settings) {
     this.window = settings.window;
+    this.settings = settings.settings;
     this.INFO_INTERVAL = 60 * 60 * 1e3; // 1 hour
   }
 
@@ -123,6 +124,18 @@ export default class {
         version_dist: utils.getPref('distribution.version', '', ''),
         install_date: utils.getPref('install_date'),
       };
+
+      // we append Firefox session ID for the Test Pilot builds
+      if(this.settings.channel.indexOf('TP') === 0){
+        try {
+          Components.utils.import("resource://gre/modules/TelemetryController.jsm", this);
+          let p = this.TelemetryController.getCurrentPingData();
+          info.ff_sessionId =  p.payload.info.sessionId;
+          info.ff_subsessionId = p.payload.info.subsessionId;
+        } catch(e){
+          utils.log(e, 'Unable to fetch session information from Firefox!');
+        }
+      }
 
       utils.telemetry(info);
     });
