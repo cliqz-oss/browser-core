@@ -86,13 +86,17 @@ Browser.prototype = {
   onLocationChange(webProgress, request, uri, flags) {
     try {
       if (webProgress.isTopLevel && uri.host) {
-        let host = uri.host.replace(/^www./, "").replace(/^search./, "");
+        let host = uri.host.replace(/^www./, "")
+                           .replace(/^de./, "")
+                           .replace(/^search./, "")
+                           .replace(/.de$/, ".com");
         if (gEngines.has(host)) {
           let rv = Services.search.parseSubmissionURL(uri.spec);
           // HACK: try to not count result pages we generated and subpages.
           // This is tricky and working until the engines keep same param names.
           if (rv.engine &&
               !["hspart=mozilla", // Yahoo tracking
+                "fr=moz35",       // Yahoo tracking
                 "&b=",            // Yahoo paging
                 "client=firefox", // Google tracking
                 "&start=",        // Google paging
@@ -115,7 +119,10 @@ Browser.prototype = {
           flags & Ci.nsIWebProgressListener.STATE_IS_NETWORK &&
           (request && (request instanceof Ci.nsIChannel || "URI" in request)) &&
           request.URI.path == "/") {
-        let host = request.URI.host.replace(/^www./, "").replace(/^search./, "");
+        let host = request.URI.host.replace(/^www./, "")
+                                   .replace(/^de./, "")
+                                   .replace(/^search./, "")
+                                   .replace(/.de$/, ".com");
         if (gEngines.has(host)) {
           reportTelemetryValue("userVisitedEngineHost",
                                { engine: gEngines.get(host) });
@@ -135,7 +142,7 @@ XPCOMUtils.defineLazyGetter(this, "gEngines", () => {
     if (engine) {
       try {
         let engineHost = Services.io.newURI(engine.searchForm, null, null).host;
-        engines.set(engineHost.replace(/^www./, "").replace(/^search./, ""),
+        engines.set(engineHost.replace(/^www./, "").replace(/^de./, "").replace(/^search./, ""),
                     engine);
       } catch (ex) {}
     }
