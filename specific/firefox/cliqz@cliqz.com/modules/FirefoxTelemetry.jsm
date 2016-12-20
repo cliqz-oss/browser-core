@@ -96,6 +96,7 @@ Browser.prototype = {
           // This is tricky and working until the engines keep same param names.
           if (rv.engine &&
               !["hspart=mozilla", // Yahoo tracking
+                "fr=moz35",       // Yahoo tracking
                 "&b=",            // Yahoo paging
                 "client=firefox", // Google tracking
                 "&start=",        // Google paging
