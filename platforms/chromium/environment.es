@@ -12,6 +12,7 @@ port.onMessage.addListener(function(response) {
 
 
 const CLIQZEnvironment = {
+  SKIN_PATH: 'modules/static/skin/',
   RESULTS_PROVIDER: 'https://newbeta.cliqz.com/api/v2/results?nrh=1&q=',
   RICH_HEADER: 'https://newbeta.cliqz.com/api/v2/rich-header?path=/v2/map',
   LOG: 'https://logging.cliqz.com',

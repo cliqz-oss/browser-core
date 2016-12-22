@@ -1,7 +1,9 @@
-{{#if model.showNewBrandAlert}}
-<div id="notificationsBox" class="clearfix">
- {{notifications-box}}
-</div>
+{{#if model.messageCenter.hasMessages}}
+  <div id="notificationsBox">
+    {{#each model.messageCenter.messages as |message|}}
+      {{component (concat 'messages/' message.template '-message') model=message}}
+    {{/each}}
+  </div>
 {{/if}}
 
 <div id="freshTabPage">

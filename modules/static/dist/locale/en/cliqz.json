@@ -597,7 +597,7 @@
         "message": "Fast, private, direct. See results as you type."
     },
     "cliqz_common_questions":{
-        "message": "Common Questions"
+        "message": "FAQ"
     },
     "cliqz_give_feedback":{
         "message": "Give Feedback"
@@ -1085,6 +1085,12 @@
     "freshtab_abTest_btn_subscribe": {
       "message": "Subscribe NOW"
     },
+    "mobile_incognito": {
+      "message": "<strong>Forget Tab</strong><br /><br />Web sites are not saved to your history. Likewise, temporary files and cookies are not saved. However, downloads and bookmarks are saved.<br />Your Internet service provider, employer or the sites themselves can still track which pages you visit."
+    },
+    "mobile_freshtab_breaking_news": {
+      "message": "BREAKING NEWS:"
+    },
     "mobile_freshtab_edit_done": {
       "message": "Done"
     },
@@ -1302,7 +1308,7 @@
       "message": "Share Location"
     },
     "control-center-info-share-location": {
-      "message": "CLIQZ can now also search for results around you. Get richer search results by selecting Always share location. Your location will only be used to enhance your search results. It will never be shared or used in any other way."
+      "message": "CLIQZ can now also search for results around you. Get richer search results by selecting <strong>Always</strong> share location. Your location will only be used to enhance your search results. It will never be shared or used in any other way."
     },
     "control-center-info-share-location-link": {
       "message": "Learn more"
@@ -1329,7 +1335,7 @@
       "message": "Report phishing Site"
     },
     "control-center-support": {
-      "message": "FAQ & Support"
+      "message": "Support"
     },
     "control-center-othersettings": {
       "message": "Other Settings"

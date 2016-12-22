@@ -92,18 +92,24 @@ var CliqzEvents = CliqzEvents || {
   },
 
   un_sub: function (id, fn) {
-    var index;
-    if (!CliqzEvents.cache[id]) {
+    if (!CliqzEvents.cache[id] || CliqzEvents.cache[id].length === 0) {
+      console.error("Trying to unsubscribe event that had no subscribers")
       return;
     }
-    if (!fn) {
-      CliqzEvents.cache[id] = [];
+
+    let index = CliqzEvents.cache[id].indexOf(fn);
+    if (index > -1) {
+      CliqzEvents.cache[id].splice(index, 1);
     } else {
-      index = CliqzEvents.cache[id].indexOf(fn);
-      if (index > -1) {
-        CliqzEvents.cache[id].splice(index, 1);
-      }
+      console.error("Trying to unsubscribe an unknown listener");
     }
+  },
+
+  clean_channel: function(id) {
+    if (!CliqzEvents.cache[id]) {
+      throw "Trying to unsubscribe an unknown channel";
+    }
+    CliqzEvents.cache[id] = [];
   },
 
   /**

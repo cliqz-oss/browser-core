@@ -53,9 +53,8 @@ export default background({
       this.popup.destroy();
     }
 
-    events.un_sub('prefchange', this.onPrefChange);
-
     CliqzAttrack.unload();
+
     this.enabled = false;
   },
 
@@ -77,7 +76,7 @@ export default background({
         url: info.hostname,
         cookiesCount: info.cookies.blocked,
         requestsCount: info.requests.unsafe,
-        enabled: utils.getPref('antiTrackTest'),
+        enabled: utils.getPref('modules.antitracking.enabled'),
         isWhitelisted: CliqzAttrack.isSourceWhitelisted(info.hostname),
         reload: info.reload || false,
         trakersList: info,
@@ -101,7 +100,7 @@ export default background({
     * @param cb Callback
     */
     toggleAttrack(args, cb) {
-      var currentState = utils.getPref('antiTrackTest');
+      var currentState = utils.getPref('modules.antitracking.enabled');
 
       if (currentState) {
         CliqzAttrack.disableModule();
@@ -190,7 +189,6 @@ export default background({
     },
     "core:urlbar_focus": CliqzAttrack.onUrlbarFocus,
     "core.tab_location_change": CliqzAttrack.onTabLocationChange,
-    "core.tab_state_change": CliqzAttrack.tab_listener.onStateChange.bind(CliqzAttrack.tab_listener),
     "antitracking:whitelist:add": function (hostname) {
       CliqzAttrack.addSourceDomainToWhitelist(hostname);
       this.popupActions.telemetry({
@@ -210,5 +208,10 @@ export default background({
     "control-center:antitracking-strict": function () {
       utils.setPref('attrackForceBlock', !utils.getPref('attrackForceBlock', false));
     },
+    "core:mouse-down": function() {
+      if (CliqzAttrack.pipelineSteps.cookieContext) {
+        CliqzAttrack.pipelineSteps.cookieContext.setContextFromEvent.apply(CliqzAttrack.pipelineSteps.cookieContext, arguments);
+      }
+    }
   },
 });

@@ -209,6 +209,7 @@ program.command('build [file]')
           var buildStart = Date.now();
           setConfigPath(configPath, options.toSubdir);
 
+          process.env['CLIQZ_ENVIRONMENT'] = options.prod ? 'production' : 'development';
           process.env['CLIQZ_SOURCE_MAPS'] = options.maps;
           process.env['CLIQZ_FRESHTAB'] = options.freshtab;
           if (options.instrumentFunctions !== undefined) {

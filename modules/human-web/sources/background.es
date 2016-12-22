@@ -2,8 +2,6 @@ import { utils } from "core/cliqz";
 import background from "core/base/background";
 import HumanWeb from "human-web/human-web";
 import hs from "core/history-service";
-import Attrack from "antitracking/attrack";
-
 
 /**
 * @namespace human-web
@@ -63,7 +61,10 @@ export default background({
      utils.extensionRestart(function() {
        utils.setPref('dnt', !utils.getPref('dnt', false));
      });
-    }
+    },
+    "core:mouse-down": function onMouseDown() {
+      HumanWeb.captureMouseClickPage.apply(HumanWeb, arguments);
+    },
   },
 
   actions: {
@@ -78,13 +79,6 @@ export default background({
     */
     recordMouseMove() {
       HumanWeb.captureMouseMovePage.apply(HumanWeb, arguments);
-    },
-    /**
-    * @method actions.recordMouseDown
-    */
-    recordMouseDown() {
-      HumanWeb.captureMouseClickPage.apply(HumanWeb, arguments);
-      Attrack.cChecker.setContextFromEvent.apply(Attrack.cChecker, arguments);
     },
     /**
     * @method actions.recordScroll

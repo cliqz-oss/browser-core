@@ -3,8 +3,6 @@ import pacemaker from 'antitracking/pacemaker';
 import md5 from 'antitracking/md5';
 import { events } from 'core/cliqz';
 import * as datetime from 'antitracking/time';
-import CliqzAttrack from 'antitracking/attrack';
-import telemetry from 'antitracking/telemetry';
 import ResourceLoader from 'core/resource-loader';
 
 const DAYS_EXPIRE = 7;
@@ -56,7 +54,8 @@ class TokenDomain {
 }
 
 class BlockLog {
-  constructor() {
+  constructor(telemetry) {
+    this.telemetry = telemetry;
     this.URL_BLOCK_REPORT_LIST = 'https://cdn.cliqz.com/anti-tracking/whitelist/anti-tracking-report-list.json';
     this.blockReportList = {};
     this.blocked = new persist.LazyPersistentObject('blocked');
@@ -195,11 +194,11 @@ class BlockLog {
 
   sendTelemetry() {
     if (Object.keys(this.blocked.value).length > 0) {
-      const payl = CliqzAttrack.generateAttrackPayload(this.blocked.value);
-      telemetry.telemetry({
-        type: telemetry.msgType,
-        action: 'attrack.blocked',
-        payload: payl,
+      this.telemetry({
+        message:{
+          action: 'attrack.blocked',
+          payload: this.blocked.value,
+        }
       });
       // reset the state
       this.blocked.clear();
@@ -208,8 +207,9 @@ class BlockLog {
 }
 
 export default class {
-  constructor(qsWhitelist) {
-    this.blockLog = new BlockLog();
+  constructor(qsWhitelist, telemetry) {
+    this.telemetry = telemetry;
+    this.blockLog = new BlockLog(telemetry);
     this.tokenDomain = new TokenDomain();
     this.checkedToken = new persist.LazyPersistentObject('checkedToken');
     this.blockedToken = new persist.LazyPersistentObject('blockedToken');
@@ -348,11 +348,12 @@ export default class {
       wrongPage: countWrongPage,
       loadedPage: countLoadedPage,
     };
-    const payl = CliqzAttrack.generateAttrackPayload(data, wrongTokenLastSent);
-    telemetry.telemetry({
-      type: telemetry.msgType,
-      action: 'attrack.FP',
-      payload: payl,
+    this.telemetry({
+      message: {
+        action: 'attrack.FP',
+        payload: data,
+      },
+      ts: wrongTokenLastSent
     });
     persist.setValue('wrongTokenLastSent', day);
     this._updated = {};

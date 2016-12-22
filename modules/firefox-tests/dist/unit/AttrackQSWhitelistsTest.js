@@ -369,7 +369,7 @@ TESTS.AttrackQSWhitelistTest = function (CliqzUtils, CliqzEvents) {
     describe('after init', function() {
 
       beforeEach(function() {
-        whitelist.init();
+        return whitelist.init();
       });
 
       afterEach(function() {

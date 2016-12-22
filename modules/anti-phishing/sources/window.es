@@ -1,5 +1,5 @@
-import utils from "core/utils";
-import CliqzAntiPhishing from "anti-phishing/anti-phishing";
+import utils from 'core/utils';
+import CliqzAntiPhishing from 'anti-phishing/anti-phishing';
 
 export default class {
   constructor(settings) {
@@ -8,10 +8,12 @@ export default class {
 
   init() {
     this.window.gBrowser.addProgressListener(CliqzAntiPhishing.listener);
+    CliqzEvents.sub('HW-activeURL:', CliqzAntiPhishing.onHwActiveURL);
   }
 
   unload() {
     this.window.gBrowser.removeProgressListener(CliqzAntiPhishing.listener);
+    CliqzEvents.un_sub('HW-activeURL:', CliqzAntiPhishing.onHwActiveURL);
   }
 
   status() {

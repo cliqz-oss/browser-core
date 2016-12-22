@@ -40,7 +40,7 @@ describe('Search View', function() {
         respondImmediately: true
       });
 
-      contentWindow.sinon.FakeXMLHttpRequest.addFilter(function (method, url) {return !url.startsWith('https://newbeta.cliqz.com/api/v1/') });
+      contentWindow.sinon.FakeXMLHttpRequest.addFilter(function (method, url) { return url.indexOf('api/v2') === -1 });
       contentWindow.sinon.FakeXMLHttpRequest.useFilters = true;
       contentWindow.sinonLoaded = true;
       return waitForWindow(contentWindow);
@@ -234,6 +234,8 @@ describe('Search View', function() {
 
       cliqzResponse(query, [
         {
+          "url": "https://www.wunderground.com/cgi-bin/findweather/getForecast?query=48.15,11.5833",
+          "score": 0,
           "snippet": {
     				"deepResults": [
     					{

@@ -1,4 +1,4 @@
-export default function(){
+export default function () {
   this.transition(
     this.fromRoute('history-sidebar.index'),
     this.toRoute('history-sidebar.queries'),
@@ -24,4 +24,4 @@ export default function(){
     this.use('toLeft'),
     this.reverse('toRight')
   );
-};
+}

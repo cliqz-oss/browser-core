@@ -4,7 +4,7 @@
 
 .cliqz-control-center {
     height: 31px;
-    padding: 9px 4px 0 32px;
+    padding: 8px 4px 0 32px;
     color: transparent;
     background-size: 20px;
     background-repeat: no-repeat;
@@ -12,16 +12,14 @@
     background-image: url(../images/cc-active.svg);
 }
 
-.cliqz-control-center:after {
-    content: 'CLIQZ';
-}
 
 #nav-bar .cliqz-control-center {
-    background-position: 4px 5px;
+    min-width: 55px;
     color: black;
+    background-position: 4px 5px;
 }
 
-#nav-bar .cliqz-control-center:after {
+.cliqz-control-center:after {
     content: '';
 }
 
@@ -35,11 +33,19 @@
 }
 
 .cliqz-control-center[state="critical"] {
-    background-image: url(../images/cc-critical.svg)
+    background-image: url(../images/cc-critical.svg);
 }
 
 .cliqz-control-center[state="inactive"] {
-    background-image: url(../images/cc-inactive.svg)
+    background-image: url(../images/cc-inactive.svg);
+}
+
+.cliqz-control-center[state="off"] {
+    background-image: url(../images/cc-off.svg);
+    /* state off means there are no security features so no need for the badge text */
+    min-width: 30px !important;
+    padding: 0px;
+    color: transparent;
 }
 
 #cliqz-cc-btn-panel,
@@ -51,4 +57,8 @@
 panelmultiview[mainViewId="cliqz-cc-btn-panel"] > .panel-viewcontainer > .panel-viewstack > .panel-mainview:not([panelid="PanelUI-popup"]),
 panel[viewId="cliqz-cc-btn-panel"] .panel-mainview {
     max-width: 50em !important;
+}
+
+#customizationui-widget-panel[viewId="cliqz-cc-btn-panel"] .panel-arrowcontent {
+    padding-bottom: 0px;
 }

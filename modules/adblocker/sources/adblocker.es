@@ -61,6 +61,7 @@ export function adbEnabled() {
  */
 class AdBlocker {
   constructor() {
+    this.logs = [];
     this.engine = new FilterEngine();
 
     // Plug filters lists manager with engine to update it
@@ -73,7 +74,7 @@ class AdBlocker {
       const filtersLists = updates.filter(update => {
         const { asset, checksum, isFiltersList } = update;
         if (isFiltersList && !this.engine.hasList(asset, checksum)) {
-          CliqzUtils.log(`Filters list ${asset} (${checksum}) will be updated`, 'adblocker');
+          this.log(`Filters list ${asset} (${checksum}) will be updated`);
           return true;
         }
         return false;
@@ -82,8 +83,8 @@ class AdBlocker {
       if (filtersLists.length > 0) {
         const startFiltersUpdate = Date.now();
         this.engine.onUpdateFilters(filtersLists);
-        CliqzUtils.log(`Engine updated with ${filtersLists.length} lists` +
-                       ` (${Date.now() - startFiltersUpdate} ms)`, 'adblocker');
+        this.log(`Engine updated with ${filtersLists.length} lists` +
+                 ` (${Date.now() - startFiltersUpdate} ms)`);
       }
 
       // ---------------------- //
@@ -92,7 +93,7 @@ class AdBlocker {
       const resourcesLists = updates.filter(update => {
         const { isFiltersList, asset, checksum } = update;
         if (!isFiltersList && this.engine.resourceChecksum !== checksum) {
-          CliqzUtils.log(`Resources list ${asset} (${checksum}) will be updated`, 'adblocker');
+          this.log(`Resources list ${asset} (${checksum}) will be updated`);
           return true;
         }
         return false;
@@ -101,8 +102,8 @@ class AdBlocker {
       if (resourcesLists.length > 0) {
         const startResourcesUpdate = Date.now();
         this.engine.onUpdateResource(resourcesLists);
-        CliqzUtils.log(`Engine updated with ${resourcesLists.length} resources` +
-                       ` (${Date.now() - startResourcesUpdate} ms)`, 'adblocker');
+        this.log(`Engine updated with ${resourcesLists.length} resources` +
+                 ` (${Date.now() - startResourcesUpdate} ms)`);
       }
 
       // Flush the cache since the engine is now different
@@ -115,11 +116,11 @@ class AdBlocker {
           .persist(JSON.stringify(serializeFiltersEngine(this.engine)))
           .then(() => {
             const totalTime = Date.now() - t0;
-            CliqzUtils.log(`Serialized filters engine on disk (${totalTime} ms)`, 'adblocker');
+            this.log(`Serialized filters engine on disk (${totalTime} ms)`);
             this.engine.updated = false;
           });
       } else {
-        CliqzUtils.log('Engine has not been updated, do not serialize', 'adblocker');
+        this.log('Engine has not been updated, do not serialize');
       }
     });
 
@@ -129,6 +130,11 @@ class AdBlocker {
 
     // Is the adblocker initialized
     this.initialized = false;
+  }
+
+  log(msg) {
+    this.logs.push(msg);
+    CliqzUtils.log(msg, 'adblocker');
   }
 
   initCache() {
@@ -153,15 +159,34 @@ class AdBlocker {
       .load()
       .then(serializedEngine => {
         if (serializedEngine !== undefined) {
-          const t0 = Date.now();
-          deserializeFiltersEngine(this.engine, serializedEngine);
-          const totalTime = Date.now() - t0;
-          CliqzUtils.log(`Loaded filters engine from disk (${totalTime} ms)`, 'adblocker');
+          try {
+            const t0 = Date.now();
+            deserializeFiltersEngine(this.engine, serializedEngine);
+            const totalTime = Date.now() - t0;
+            this.log(`Loaded filters engine from disk (${totalTime} ms)`);
+          } catch (e) {
+            // In case there is a mismatch between the version of the code
+            // and the serialization format of the engine on disk, we might
+            // not be able to load the engine from disk. Then we just start
+            // fresh!
+            this.engine = new FilterEngine();
+            this.log(`Exception while loading engine from disk ${e} ${e.stack}`);
+          }
         } else {
-          CliqzUtils.log('No filter engine was serialized on disk', 'adblocker');
+          this.log('No filter engine was serialized on disk');
         }
 
-        this.listsManager.load();
+        // Load files from disk, then check if we should update
+        this.listsManager
+          .load()
+          .then(() => {
+            // Update check should be performed after a short while
+            CliqzUtils.log('Check for updates', 'adblocker');
+            setTimeout(
+              () => this.listsManager.update(),
+              30 * 1000
+            );
+          });
       });
 
     this.blacklistPersist.load().then(value => {
@@ -199,6 +224,9 @@ class AdBlocker {
   isDomainInBlacklist(url) {
     // Should all this domain stuff be extracted into a function?
     // Why is CliqzUtils.detDetailsFromUrl not used?
+    if (!utils.isUrl(url)) {
+      return false;
+    }
     const urlParts = URLInfo.get(url);
     let hostname = urlParts.hostname || url;
     if (hostname.startsWith('www.')) {
@@ -228,7 +256,9 @@ class AdBlocker {
     if (domain) {
       // Should all this domain stuff be extracted into a function?
       // Why is CliqzUtils.getDetailsFromUrl not used?
-      processedURL = URLInfo.get(url).hostname;
+      if (utils.isUrl(processedURL)) {
+        processedURL = URLInfo.get(url).hostname;
+      }
       if (processedURL.startsWith('www.')) {
         processedURL = processedURL.substring(4);
       }
@@ -259,6 +289,10 @@ class AdBlocker {
       return false;
     }
 
+    if (httpContext.isFullPage()) {
+      // allow loading document
+      return false;
+    }
     // Process endpoint URL
     const url = httpContext.url.toLowerCase();
     const urlParts = URLInfo.get(url);
@@ -276,7 +310,7 @@ class AdBlocker {
     // leave `sourceHostname` and `sourceGD` as undefined to allow
     // some filter matching on the request URL itself.
     let sourceHostname = sourceParts.hostname;
-    let sourceGD = undefined;
+    let sourceGD;
     if (sourceHostname !== undefined) {
       if (sourceHostname.startsWith('www.')) {
         sourceHostname = sourceHostname.substring(4);
@@ -299,7 +333,7 @@ class AdBlocker {
     };
 
     const t0 = Date.now();
-    const isAd = this.isInBlacklist(request) ? false : this.cache.get(request);
+    const isAd = this.isInBlacklist(request) ? { match: false } : this.cache.get(request);
     const totalTime = Date.now() - t0;
 
     log(`BLOCK AD ${JSON.stringify({

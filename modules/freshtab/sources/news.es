@@ -45,17 +45,19 @@ function requestBackend(url, data) {
   log(`Request url: ${url}`);
   return coreUtils.promiseHttpHandler('PUT', url, data)
     .then((response) => {
-      var resData = {};
-      try {
-        resData = JSON.parse(response.response);
-      } catch(e){}
+      const resData = JSON.parse(response.response);
       if (!resData.results || resData.results.length === 0) {
-        throw(`Backend response from ${url} is not valid "${response.response}"`);
+        throw(`Backend response from ${url} is not valid "${JSON.stringify(resData)}."`);
       }
       return {
         results: [resData.results[0].snippet.extra]
       };
     });
+}
+
+function checkNewsTypeForHbasedRequest(newsPlacingRecord){
+  return (newsPlacingRecord.type === hbasedNewsTypeKey)
+        ||(newsPlacingRecord.type === prClBurdaNewsTypeKey);
 }
 
 function getTopNewsList() {
@@ -87,7 +89,7 @@ function getHbasedNewsObject() {
       let hbNewsDict = getHbasedNewsDict(reqData);
       let newsPlacing = hbasedRecom.newsPlacing || [];
 
-      const reqDomains = newsPlacing.filter(r => r.type === hbasedNewsTypeKey)
+      const reqDomains = newsPlacing.filter(checkNewsTypeForHbasedRequest)
         .map((r) => r.domain.split('/')[0]);
 
       let cleanhbNewsDict = {};
@@ -279,7 +281,7 @@ function composeDomainHasheList(newsPlacing, historyBasedRecommendationsCache) {
 
 
   // extract domains' hashes for history based news
-  const domainHashList = newsPlacing.filter(r => r.type === hbasedNewsTypeKey).map(getDomainHash);
+  const domainHashList = newsPlacing.filter(checkNewsTypeForHbasedRequest).map(getDomainHash);
   const cachedHashList = (historyBasedRecommendationsCache && historyBasedRecommendationsCache.hashList) || [];
 
   if (domainHashList.length !== 0) {
@@ -341,18 +343,18 @@ function composeHistoryBasedRecommendations(globalVisitCount) {
     return i.count < j.count;
   }
 
-
   function getPressClipping(glVisitCount) {
     function getPressClipMapping(domain) {
       return PRESS_CLIPPING_MAPPING[parseInt(coreUtils.hash(domain), 10)] || false;
     }
     const glVisit = glVisitCount;
     const pressClipList = [];
+    const prClipThreshold = 5 ;
 
     let pressClipMapping;
     Object.keys(glVisit).forEach((domain) => {
       pressClipMapping = getPressClipMapping(domain);
-      if (typeof pressClipMapping === 'string') {
+      if ((typeof pressClipMapping === 'string') && (glVisit[domain].count > prClipThreshold)) {
         glVisit[domain].key = pressClipMapping;
         pressClipList.push(glVisit[domain]);
       }

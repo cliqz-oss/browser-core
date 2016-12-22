@@ -4,13 +4,15 @@
   "testem_launchers": ["Mocha"],
   "settings": {
     "freshTabButton": true,
-    "freshTabHistoryNews": true,
+    "freshTabNews": true,
+    "freshTabInitialState": false,
     "showDataCollectionMessage": true,
     "cliqzOnboarding": false,
     "channel": "04",
     "antitrackingButton": true,
     "showNewBrandAlert": false,
-    "onBoardingVersion": "1.1"
+    "onBoardingVersion": "1.1",
+    "controlCenterSecurity": true
   },
   "modules": [
     "firefox-specific",
@@ -29,7 +31,8 @@
     "geolocation",
     "freshtab",
     "control-center",
-    "offers"
+    "offers",
+    "message-center"
   ],
   "subprojects": [
     "fresh-tab-frontend"

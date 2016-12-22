@@ -1,10 +1,6 @@
 {
   "bower_components": [
-    "rsa-sign/index.js",
-    "sha256/index.js",
     "bigint/index.js",
-    "crypto-kjur/index.js",
-    "crypto/index.js",
-    "jsencrypt/index.js"
+    "md5/index.js"
   ]
 }

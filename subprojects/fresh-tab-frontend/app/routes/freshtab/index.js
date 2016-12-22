@@ -1,5 +1,4 @@
 import Ember from "ember";
-import SpeedDials from "../../models/speed-dials";
 
 var focusTotalTime = 0,
     displayTotalTime = 0,
@@ -12,22 +11,38 @@ var focusTotalTime = 0,
     focus = true;
 
 export default Ember.Route.extend({
-  cliqz: Ember.inject.service('cliqz'),
+  cliqz: Ember.inject.service(),
+  notifications: Ember.inject.service(),
 
   activate() {
+    //this.get('notifications').start();
     Ember.$('body').addClass('freshTabContainer');
   },
 
   deactivate() {
+    //this.get('notifications').stop();
     Ember.$('body').removeClass('freshTabContainer');
   },
 
   model() {
-    return this.get('cliqz').getSpeedDials().then( speedDials => {
+    return this.get('cliqz').getSpeedDials().then(speedDials => {
+      const allDials = speedDials.history.concat(speedDials.custom);
+      this.store.push({
+        data: allDials.map(dial => {
+          return {
+            id: dial.url,
+            type: 'speed-dial',
+            attributes: Object.assign({
+              type: dial.custom ? 'custom' : 'history',
+            }, dial),
+          };
+        })
+      });
+
       return Ember.Object.create({
         speedDials: {
-          history: speedDials.history.map(dial => Ember.Object.create(dial)),
-          custom: speedDials.custom.map(dial => Ember.Object.create(dial)),
+          history: this.store.peekAll('speed-dial').filterBy('type', 'history').toArray(),
+          custom: this.store.peekAll('speed-dial').filterBy('type', 'custom').toArray(),
         },
         news: Ember.ArrayProxy.create()
       });
@@ -36,7 +51,6 @@ export default Ember.Route.extend({
   },
 
   afterModel(model) {
-
     this.get('cliqz').getNews().then( news => {
       model.get('news').setProperties({
         version: news.version,
@@ -44,8 +58,7 @@ export default Ember.Route.extend({
       });
 
       var historySites = model.getWithDefault("speedDials.history.length", 0) < 5 ? model.get("speedDials.history.length") : 5,
-          customSites = model.getWithDefault("speedDials.custom.length", 0),
-          self = this;
+          customSites = model.getWithDefault("speedDials.custom.length", 0);
 
       this.get('cliqz').getTabIndex().then(function(tabIndex){
         const telemetry = {

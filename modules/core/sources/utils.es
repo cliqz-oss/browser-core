@@ -2,6 +2,7 @@ import CLIQZEnvironment from "platform/environment";
 import console from "core/console";
 import prefs from "core/prefs";
 import Storage from "core/storage";
+//import CliqzLanguage from "platform/language";
 
 var CliqzLanguage;
 
@@ -18,15 +19,13 @@ var VERTICAL_ENCODINGS = {
 
 var COLOURS = ['#ffce6d','#ff6f69','#96e397','#5c7ba1','#bfbfbf','#3b5598','#fbb44c','#00b2e5','#b3b3b3','#99cccc','#ff0027','#999999'],
     LOGOS = ['wikipedia', 'google', 'facebook', 'youtube', 'duckduckgo', 'sternefresser', 'zalando', 'bild', 'web', 'ebay', 'gmx', 'amazon', 't-online', 'wiwo', 'wwe', 'weightwatchers', 'rp-online', 'wmagazine', 'chip', 'spiegel', 'yahoo', 'paypal', 'imdb', 'wikia', 'msn', 'autobild', 'dailymotion', 'hm', 'hotmail', 'zeit', 'bahn', 'softonic', 'handelsblatt', 'stern', 'cnn', 'mobile', 'aetv', 'postbank', 'dkb', 'bing', 'adobe', 'bbc', 'nike', 'starbucks', 'techcrunch', 'vevo', 'time', 'twitter', 'weatherunderground', 'xing', 'yelp', 'yandex', 'weather', 'flickr'],
-    BRANDS_DATABASE = { domains: {}, palette: ["999"] }, brand_loaded = false,
-    MINUTE = 60*1e3,
+    BRANDS_DATABASE = { domains: {}, palette: ["999"] },
     ipv4_part = "0*([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])", // numbers 0 - 255
     ipv4_regex = new RegExp("^" + ipv4_part + "\\."+ ipv4_part + "\\."+ ipv4_part + "\\."+ ipv4_part + "([:]([0-9])+)?$"), // port number
     ipv6_regex = new RegExp("^\\[?(([0-9]|[a-f]|[A-F])*[:.]+([0-9]|[a-f]|[A-F])+[:.]*)+[\\]]?([:][0-9]+)?$");
 
 
 var CliqzUtils = {
-  LANGS:                          {'de':'de', 'en':'en', 'fr':'fr'},
   RESULTS_PROVIDER:               CLIQZEnvironment.RESULTS_PROVIDER,
   RICH_HEADER:                    CLIQZEnvironment.RICH_HEADER,
   RESULTS_PROVIDER_LOG:           'https://newbeta.cliqz.com/api/v1/logging?q=',
@@ -43,7 +42,7 @@ var CliqzUtils = {
   BRANDS_DATABASE: BRANDS_DATABASE,
 
   //will be updated from the mixer config endpoint every time new logos are generated
-  BRANDS_DATABASE_VERSION: 1457952995848,
+  BRANDS_DATABASE_VERSION: 1481799943898,
   GEOLOC_WATCH_ID:                null, // The ID of the geolocation watcher (function that updates cached geolocation on change)
   VERTICAL_TEMPLATES: {
         'n': 'news'    ,
@@ -65,14 +64,17 @@ var CliqzUtils = {
   LOCALE_PATH: CLIQZEnvironment.LOCALE_PATH,
   RERANKERS: CLIQZEnvironment.RERANKERS,
   CLIQZ_ONBOARDING: CLIQZEnvironment.CLIQZ_ONBOARDING,
+  CLIQZ_ONBOARDING_URL: CLIQZEnvironment.CLIQZ_ONBOARDING_URL,
   BROWSER_ONBOARDING_PREF: CLIQZEnvironment.BROWSER_ONBOARDING_PREF,
   BROWSER_ONBOARDING_STEP_PREF: CLIQZEnvironment.BROWSER_ONBOARDING_STEP_PREF,
+  CLIQZ_NEW_TAB: "about:cliqz",
+  CLIQZ_NEW_TAB_URL: CLIQZEnvironment.CLIQZ_NEW_TAB_URL,
 
   telemetryHandlers: [
     CLIQZEnvironment.telemetry
   ],
 
-  init: function(options){
+  init: function(options) {
     options = options || {};
 
     if (!options.lang) {
@@ -84,50 +86,29 @@ var CliqzUtils = {
       //no gzip, do nothing
     });
 
-    // FIXME: `import CliqzLanguage from "platform/language";` does not work
-    CliqzUtils.importModule('platform/language').then(function(language) {
-      CliqzLanguage = language.default;
-    }).catch(function () {
-      CliqzUtils.log('error: cannot load CliqzLanguage');
-    });
-
     // cutting cyclic dependency
     CLIQZEnvironment.getLogoDetails = CliqzUtils.getLogoDetails.bind(CliqzUtils);
     CLIQZEnvironment.getDetailsFromUrl = CliqzUtils.getDetailsFromUrl.bind(CliqzUtils);
     CLIQZEnvironment.getLocalizedString = CliqzUtils.getLocalizedString.bind(CliqzUtils);
-    CLIQZEnvironment.SKIN_PATH = CliqzUtils.SKIN_PATH;
-
-    if(!brand_loaded){
-      brand_loaded = true;
-
-      var config = this.getPref("config_logoVersion"), dev = this.getPref("brands-database-version");
-
-      if (dev) this.BRANDS_DATABASE_VERSION = dev
-      else if (config) this.BRANDS_DATABASE_VERSION = config
-
-      var retryPattern = [60*MINUTE, 10*MINUTE, 5*MINUTE, 2*MINUTE, MINUTE];
-
-      (function getLogoDB(url){
-
-          CliqzUtils && CliqzUtils.httpGet(url,
-          function(req){
-            CliqzUtils.BRANDS_DATABASE =  BRANDS_DATABASE = JSON.parse(req.response); },
-          function(){
-            var retry = retryPattern.pop();
-            if(retry) CliqzUtils.setTimeout(getLogoDB, retry, url);
-          }
-          , MINUTE/2);
-      })(CLIQZEnvironment.getBrandsDBUrl(this.BRANDS_DATABASE_VERSION));
-    }
-
+    System.import('platform/language').then((module) => {
+      CliqzLanguage = module.default;
+    })
     CliqzUtils.log('Initialized', 'CliqzUtils');
 
     CliqzUtils.setLang(options.lang);
   },
-
-  setLang: function (lang) {
-     CliqzUtils.PREFERRED_LANGUAGE = lang;
-     CliqzUtils.loadLocale(CliqzUtils.PREFERRED_LANGUAGE);
+  getLanguageFromLocale: function(locale) {
+    return locale.match(/([a-z]+)(?:[-_]([A-Z]+))?/)[1];
+  },
+  SUPPORTED_LANGS: {'de':'de', 'en':'en', 'fr':'fr'},
+  getSupportedLanguage: function(lang) {
+    return CliqzUtils.SUPPORTED_LANGS[lang] || 'en';
+  },
+  setLang: function (locale) {
+    const lang = CliqzUtils.getLanguageFromLocale(locale);
+    const supportedLang = CliqzUtils.getSupportedLanguage(lang);
+    CliqzUtils.PREFERRED_LANGUAGE = locale;
+    CliqzUtils.getLocaleFile(supportedLang);
   },
 
   initPlatform: function(System) {
@@ -140,10 +121,23 @@ var CliqzUtils = {
   },
 
   callAction(moduleName, actionName, args) {
-    return CliqzUtils.System.import(moduleName+"/background").then(module => {
-      var action = module.default.actions[actionName];
-      return action.apply(null, args);
-    });
+    const module = CliqzUtils.System.get(`${moduleName}/background`);
+    if (!module) {
+      return Promise.reject(`module "${moduleName}" does not exist`);
+    }
+
+    const action = module.default.actions[actionName];
+    if (!action) {
+      return Promise.reject(`module ${moduleName} does not implement action "${actionName}"`);
+    }
+
+    try {
+      const response = action.apply(null, args);
+      return Promise.resolve(response);
+    } catch (e) {
+      console.error(`callAction`, moduleName, actionName, e);
+      return Promise.reject(e);
+    }
   },
 
   callWindowAction(win, moduleName, actionName, args) {
@@ -198,6 +192,9 @@ var CliqzUtils = {
 
         if (ls) ls.setItem("extension-info",info)
     })
+  },
+  setLogoDb: function (db) {
+    BRANDS_DATABASE = CliqzUtils.BRANDS_DATABASE = db;
   },
   getLogoDetails: function(urlDetails){
     var base = urlDetails.name,
@@ -527,8 +524,21 @@ var CliqzUtils = {
   },
   // checks if a value represents an url which is a seach engine
   isSearch: function(value){
-    if(CliqzUtils.isUrl(value)){
-       return CliqzUtils.getDetailsFromUrl(value).host.indexOf('google') === 0 ? true: false;
+    if (CliqzUtils.isUrl(value)) {
+      const {name, subdomains, path} = CliqzUtils.getDetailsFromUrl(value);
+      // allow only 'www' and 'de' (for Yahoo) subdomains to exclude 'maps.google.com' etc.
+      // and empty path only to exclude 'www.google.com/maps' etc.
+      const firstSubdomain = subdomains.length ? subdomains[0] : '';
+      return (!path || (path.length === 1 && path[0] === '/')) && (
+        (
+          name === 'google' ||
+          name === 'bing' ||
+          name === 'duckduckgo' ||
+          name === 'startpage'
+        ) && (!firstSubdomain || firstSubdomain === 'www') ||
+        (
+          name === 'yahoo'
+        ) && (!firstSubdomain || firstSubdomain === 'de'));
     }
     return false;
   },
@@ -876,53 +886,17 @@ var CliqzUtils = {
   Promise: CLIQZEnvironment.Promise,
   locale: {},
   currLocale: null,
-  loadLocale: function (lang_locale) {
-    var locales = {
-      "en-US": "en"
-    };
-    lang_locale = locales[lang_locale] || lang_locale;
-
-    if (!CliqzUtils.locale.hasOwnProperty(lang_locale)
-      && !CliqzUtils.locale.hasOwnProperty('default')) {
-      try {
-        CliqzUtils.getLocaleFile(encodeURIComponent(lang_locale), lang_locale);
-      } catch(e) {
-        var loc = CliqzUtils.getLanguageFromLocale(lang_locale);
-        try {
-          CliqzUtils.getLocaleFile(loc, lang_locale);
-        } catch(e) {
-          try {
-            CliqzUtils.getLocaleFile('de', 'default');
-          } catch(e) {
-
-          }
-        }
-      }
-    }
-  },
-  getLocaleFile: function (locale_path, locale_key) {
+  getLocaleFile: function (locale) {
     function callback(req) {
         if (CliqzUtils){
-          if (locale_key !== 'default') {
-            CliqzUtils.currLocale = locale_key;
-          }
-          CliqzUtils.locale[locale_key] = JSON.parse(req.response);
+          CliqzUtils.currLocale = locale;
+          CliqzUtils.locale.default = CliqzUtils.locale[locale] = JSON.parse(req.response);
         }
     }
     function onerror(err) {
     }
-    var url = CLIQZEnvironment.LOCALE_PATH + locale_path + '/cliqz.json';
+    var url = CliqzUtils.LOCALE_PATH + locale + '/cliqz.json';
     var response = CliqzUtils.httpGet(url, callback, onerror, 3000, null, true);
-    if (response.readyState !== 2) {
-      throw "Error";
-    }
-    return response;
-  },
-  getLanguageFromLocale: function(locale){
-    return locale.match(/([a-z]+)(?:[-_]([A-Z]+))?/)[1];
-  },
-  getLanguage: function(win){
-    return CliqzUtils.LANGS[CliqzUtils.getLanguageFromLocale(win.navigator.language)] || 'en';
   },
   getLocalizedString: function(key, substitutions){
     if(!key) return '';

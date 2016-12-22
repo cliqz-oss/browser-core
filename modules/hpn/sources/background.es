@@ -1,5 +1,4 @@
-import { utils } from 'core/cliqz';
-import CliqzSecureMessage from "hpn/main";
+import CliqzSecureMessage from 'hpn/main';
 
 /**
 * @namespace hpn
@@ -10,33 +9,41 @@ export default {
   * @method init
   */
   init() {
-    var FF41_OR_ABOVE = false;
+    let FF48_OR_ABOVE = false;
 
     try {
-      var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
+      const appInfo = Components.classes['@mozilla.org/xre/app-info;1']
         .getService(Components.interfaces.nsIXULAppInfo);
-      var versionChecker = Components.classes["@mozilla.org/xpcom/version-comparator;1"]
+      const versionChecker = Components.classes['@mozilla.org/xpcom/version-comparator;1']
         .getService(Components.interfaces.nsIVersionComparator);
 
-      if(versionChecker.compare(appInfo.version, "41.0") >= 0){
-        FF41_OR_ABOVE = true;
+      if (versionChecker.compare(appInfo.version, '48.0') >= 0) {
+        FF48_OR_ABOVE = true;
       }
-    } catch(e){}
+    } catch (e) { CliqzUtils.log(e); }
 
-    if(FF41_OR_ABOVE && CliqzUtils.getPref("proxyNetwork", true)){
+    if (FF48_OR_ABOVE && CliqzUtils.getPref('proxyNetwork', true)) {
       // We need to use this function, 'load' events do not seem to be firing...
       this.enabled = true;
       this.CliqzSecureMessage = CliqzSecureMessage;
       CliqzSecureMessage.init();
+      CliqzSecureMessage.wCrypto = new Worker('crypto-worker.js');
+      CliqzSecureMessage.wCrypto.onmessage = function (e) {
+        if (e.data.type === 'instant') {
+          const callback = CliqzSecureMessage.queriesID[e.data.uid];
+          delete CliqzSecureMessage.queriesID[e.data.uid];
+          callback && callback({ response: e.data.res });
+        }
+      };
     }
   },
   /**
   * @method unload
   */
   unload() {
-    if(this.enabled){
+    if (this.enabled) {
+      CliqzSecureMessage.wCrypto.terminate();
       CliqzSecureMessage.unload();
     }
-  }
-
+  },
 };

@@ -21,14 +21,15 @@ function getHistoryItems() {
 function getFavorites() {
   return mockedFavorites;
 }
+function freshtabReady() {
+  events.pub('mobile-browser:restore-blocked-topsites');
+}
 function isReady() {
   events.pub('mobile-browser:set-search-engine', { name: 'google', url: 'http://www.google.com/search?q=' });
   events.pub('mobile-browser:notify-preferences', {
     incognito: false,
     showConsoleLogs: true,
   });
-  events.pub('mobile-browser:restore-blocked-topsites');
-  return -1;
 }
 function openLink(url) {
   const id = parseInt(6 + (100 * Math.random()), 10);

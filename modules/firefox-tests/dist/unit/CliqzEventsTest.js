@@ -48,7 +48,7 @@ TESTS.CliqzEventsTest = function (CliqzEvents) {
       });
 
       afterEach(function() {
-        CliqzEvents.un_sub(eventID);
+        CliqzEvents.clean_channel(eventID);
       });
 
       it("calls all functions", function() {
@@ -76,4 +76,3 @@ TESTS.CliqzEventsTest = function (CliqzEvents) {
     });
   });
 };
-

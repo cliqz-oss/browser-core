@@ -5,6 +5,7 @@ import CliqzEvents from "core/events";
 import SearchHistory from "./search-history";
 import { addStylesheet, removeStylesheet } from "../core/helpers/stylesheet";
 import System from 'system';
+import dns from "platform/dns";
 
 function initPopup(popup, win) {
   //patch this method to avoid any caching FF might do for components.xml
@@ -72,6 +73,7 @@ export default class {
 
     Services.scriptloader.loadSubScript(System.baseURL + 'ui/UI.js', this.window);
     this.window.CLIQZ.UI.preinit(autocomplete, CliqzHandlebars, CliqzEvents);
+    this.window.CLIQZ.UI.preinit(autocomplete, CliqzHandlebars, CliqzEvents, dns);
     Services.scriptloader.loadSubScript(System.baseURL + 'ui/ContextMenu.js', this.window);
     //create a new panel for cliqz to avoid inconsistencies at FF startup
     var document = this.window.document,
@@ -108,6 +110,16 @@ export default class {
     this._autocompletepopup = this.urlbar.getAttribute('autocompletepopup');
     this.urlbar.setAttribute('autocompletepopup', /*'PopupAutoComplete'*/ 'PopupAutoCompleteRichResultCliqz');
 
+    // Some versions of Firefox 52+ fail to update to the correct popup ref
+    // The fix landed in Aurora an nightly mid december 2016
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1323600
+    // we should keep this workaround for a short while to be sure we are
+    // not breaking any versions
+    if(this.urlbar._popup === undefined){
+      this._originalFFpopup = this.urlbar.popup;
+      this.urlbar.popup = this.popup;
+    }
+
     var urlBarGo = document.getElementById('urlbar-go-button');
     this._urlbarGoButtonClick = urlBarGo.getAttribute('onclick');
     //we somehow break default FF -> on goclick the autocomplete doesnt get considered
@@ -120,6 +132,9 @@ export default class {
       this.urlbar.addEventListener(ev, this.urlbarEventHandlers[ev]);
 
     }.bind(this));
+
+    //mock default FF function
+    this.popup.enableOneOffSearches = function() {}
 
     this.reloadUrlbar(this.urlbar);
 
@@ -306,6 +321,9 @@ export default class {
     this.urlbar.setAttribute('autocompletepopup', this._autocompletepopup);
     this.popup.removeEventListener('popuphiding', this.popupEventHandlers.popupClose);
     this.popup.removeEventListener('popupshowing', this.popupEventHandlers.popupOpen);
+    if(this._originalFFpopup){
+      this.urlbar.popup = this._originalFFpopup;
+    }
 
     CliqzEvents.un_sub('ui:popup_hide', this.hidePopup);
 

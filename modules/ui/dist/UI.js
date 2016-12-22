@@ -11,6 +11,7 @@ function load(ctx) {
 var CliqzAutocomplete;
 var CliqzHandlebars = CliqzHandlebars || CliqzUtils.System.get('handlebars').default;
 var CliqzEvents;
+var dns;
 
 function isValidURL(str) {
   var pattern = /(http|https):\/\/(\w+:{0,1}\w*)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/;
@@ -41,11 +42,6 @@ var TEMPLATES = CliqzUtils.TEMPLATES,
     urlbarEvents = ['keydown']
     ;
 
-function lg(msg){
-    CliqzUtils.log(msg, 'CLIQZ.UI');
-}
-
-
 var UI = {
     showDebug: false,
     preventAutocompleteHighlight: false,
@@ -57,10 +53,11 @@ var UI = {
     DROPDOWN_HEIGHT: 349,
     popupClosed: true,
     VIEWS: Object.create(null),
-    preinit: function (autocomplete, handlebars, cliqzEvents) {
+    preinit: function (autocomplete, handlebars, cliqzEvents, _dns) {
         CliqzAutocomplete = autocomplete;
         CliqzHandlebars = handlebars;
         CliqzEvents = cliqzEvents;
+        dns = _dns;
     },
     init: function(_urlbar) {
         urlbar = _urlbar
@@ -604,6 +601,18 @@ var UI = {
         specificView.enhanceResults(r.data);
       }
     },
+    isLocal: function(result) {
+      return result
+             && result.data
+             && result.data.subType
+             && result.data.subType.class === "EntityLocal";
+    },
+    hasAskedForLocation: function(result) {
+      return result
+             && result.data
+             && result.data.extra
+             && result.data.extra.no_location;
+    },
     sessionEnd: sessionEnd,
     getResultOrChildAttr: getResultOrChildAttr,
     getElementByAttr: getElementByAttr,
@@ -825,22 +834,6 @@ function getPartial(type){
     return 'generic';
 }
 
-// debug message are at the end of the title like this: "title (debug)!"
-function getDebugMsg(fullTitle){
-    // regex matches two parts:
-    // 1) the title, can be anything ([\s\S] is more inclusive than '.' as it includes newline)
-    // followed by:
-    // 2) a debug string like this " (debug)!"
-    if(fullTitle === null) {
-      return [null, null];
-    }
-    var r = fullTitle.match(/^([\s\S]+) \((.*)\)!$/)
-    if(r && r.length >= 3)
-        return [r[1], r[2]]
-    else
-        return [fullTitle, null]
-}
-
 // tags are piggybacked in the title, eg: Lady gaga - tag1,tag2,tag3
 function getTags(fullTitle){
     //[, title, tags] = fullTitle.match(/^(.+) \u2013 (.+)$/);
@@ -1008,7 +1001,7 @@ function enhanceResults(res){
     }
 
 
-    var spelC = CliqzAutocomplete.spellCheck.state;
+    var spelC = CliqzAutocomplete.spellCheck && CliqzAutocomplete.spellCheck.state;
 
     //filter adult results
     if(adult) {
@@ -1449,21 +1442,37 @@ function resultClick(ev) {
         url = el.getAttribute("href") || el.getAttribute('url');
         if (url && url != "#") {
             el.setAttribute('url', url); //set the url in DOM - will be checked later (to be improved)
+            var localSource = getResultOrChildAttr(el, 'local-source');
+
             var signal = {
                 action: "result_click",
                 new_tab: newTab,
                 extra: extra,
                 mouse: coordinate,
+                local_source: localSource,
                 position_type: getResultKind(el)
             };
-
             logUIEvent(el, "result", signal, CliqzAutocomplete.lastSearch);
 
             //publish result_click
+            const lastResults = CliqzAutocomplete.lastResult && CliqzAutocomplete.lastResult._results;
+            if(lastResults){
+              const result = lastResults.find(res => res.label === url);
+              signal.isLocal = UI.isLocal(result);
+              signal.hasAskedForLocation = UI.hasAskedForLocation(result);
+            }
             CliqzEvents.pub("result_click", signal, {});
 
-            var url = CliqzUtils.cleanMozillaActions(url)[1];
-            CliqzUtils.openLink(window, url, newTab);
+            if (localSource.indexOf('switchtab') != -1) {
+              let prevTab = gBrowser.selectedTab;
+              if (switchToTabHavingURI(url) && isTabEmpty(prevTab)) {
+                gBrowser.removeTab(prevTab);
+              }
+              return;
+            }
+            else {
+              CliqzUtils.openLink(window, url, newTab);
+            }
 
             //decouple!
             window.CliqzHistoryManager && window.CliqzHistoryManager.updateInputHistory(CliqzAutocomplete.lastSearch, url);
@@ -1707,6 +1716,7 @@ function onEnter(ev, item){
   var lastAuto = CliqzAutocomplete.lastAutocomplete ? CliqzAutocomplete.lastAutocomplete : "";
   var urlbar_time = CliqzAutocomplete.lastFocusTime ? (new Date()).getTime() - CliqzAutocomplete.lastFocusTime: null;
   var newTab = ev.metaKey || ev.ctrlKey;
+  var isFFaction = false;
 
   // Check if protocols match
   if(input.indexOf("://") == -1 && lastAuto.indexOf("://") != -1) {
@@ -1729,12 +1739,15 @@ function onEnter(ev, item){
   if (CliqzUtils.generalizeUrl(lastAuto)
   == CliqzUtils.generalizeUrl(input) &&
   urlbar.selectionStart !== 0 && urlbar.selectionStart !== urlbar.selectionEnd) {
+    var localSource = getResultOrChildAttr(UI.keyboardSelection, 'local-source');
+
     logUIEvent(UI.keyboardSelection, "autocomplete", {
       action: "result_enter",
       urlbar_time: urlbar_time,
       autocompleted: CliqzAutocomplete.lastAutocompleteActive,
       autocompleted_length: CliqzAutocomplete.lastAutocompleteLength,
       position_type: ['inbar_url'],
+      local_source: localSource,
       source: getResultKind(item),
       current_position: -1,
       new_tab: newTab
@@ -1742,6 +1755,8 @@ function onEnter(ev, item){
 
     //publish autocomplete event
     CliqzEvents.pub('autocomplete', {"autocompleted": CliqzAutocomplete.lastAutocompleteActive});
+
+    [input, isFFaction] = tryHandleFirefoxActions(localSource, input);
   }
   // Google
   else if ((!CliqzUtils.isUrl(input) && !CliqzUtils.isUrl(cleanInput)) || input.endsWith('.')) {
@@ -1786,34 +1801,81 @@ function onEnter(ev, item){
   }
   // Typed
   else if (!getResultSelection()){
-    logUIEvent({url: input}, "typed", {
-      action: "result_enter",
-      position_type: ['inbar_url'],
-      urlbar_time: urlbar_time,
-      current_position: -1,
-      new_tab: newTab
-    }, urlbar.mInputField.value);
-    CLIQZ.Core.triggerLastQ = true;
-
-    CliqzEvents.pub("alternative_search", {
+    if (!CliqzUtils.getPref("dnsLookup", false) || dns.lookup(CliqzUtils.getDetailsFromUrl(input).domain)) {
+      logUIEvent({url: input}, "typed", {
+        action: "result_enter",
+        position_type: ['inbar_url'],
+        urlbar_time: urlbar_time,
+        current_position: -1,
+        new_tab: newTab
+      }, urlbar.mInputField.value);
+      CLIQZ.Core.triggerLastQ = true;
+      // TODO: why is this "alternative_search"
+      CliqzEvents.pub("alternative_search", {
         cleanInput: cleanInput,
         lastAuto: lastAuto
-    });
-
+      });
+    } else {
+      logUIEvent({url: input}, "google", {
+        action: "result_enter",
+        position_type: ['inbar_query'],
+        urlbar_time: urlbar_time,
+        current_position: -1
+      });
+      var engine = CliqzUtils.getDefaultSearchEngine();
+      urlbar.value = engine.getSubmissionForQuery(input);
+      CLIQZ.Core.triggerLastQ = true;
+      CliqzEvents.pub("alternative_search", {
+        cleanInput: cleanInput,
+        lastAuto: lastAuto
+      });
+      return false;
+    }
   // Result
   } else {
+    var localSource = getResultOrChildAttr(UI.keyboardSelection, 'local-source');
+
     logUIEvent(UI.keyboardSelection, "result", {
       action: "result_enter",
       urlbar_time: urlbar_time,
-      new_tab: newTab
+      new_tab: newTab,
+      local_source: localSource
     }, CliqzAutocomplete.lastSearch);
 
     CliqzEvents.pub("result_enter", {"position_type": getResultKind(UI.keyboardSelection)}, {'vertical_list': Object.keys(VERTICALS)});
+
+    [input, isFFaction] = tryHandleFirefoxActions(localSource, input);
   }
 
-  CliqzUtils.openLink(window, input, newTab);
-  window.CliqzHistoryManager.updateInputHistory(CliqzAutocomplete.lastSearch, input);
-  return true;
+  //might be expensive
+  setTimeout(function(){
+    window.CliqzHistoryManager.updateInputHistory(CliqzAutocomplete.lastSearch, input);
+  }, 0);
+
+  if(isFFaction){
+    // we delegate to FF all their actions
+    if(CLIQZ.Core.urlbar) {
+      CLIQZ.Core.urlbar.value = input;
+    }
+    return false;
+  } else {
+    CliqzUtils.openLink(window, input, newTab, false, false);
+    return true;
+  }
+}
+
+function tryHandleFirefoxActions(localSource, input) {
+  if( localSource && localSource.indexOf('switchtab') !== -1 ){
+    // we delegate this one to Firefox
+
+    // protocol is required for firefox actions
+    if(input.indexOf("://") == -1 && input.trim().indexOf('about:') != 0)
+      input = "http://" + input;
+
+    return ["moz-action:switchtab," + JSON.stringify({url: input}), true];
+  } else {
+    return [input, false];
+  }
 }
 
 function enginesClick(ev){

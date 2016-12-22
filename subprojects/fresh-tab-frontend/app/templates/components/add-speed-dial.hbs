@@ -1,23 +1,19 @@
 {{#unless showForm}}
-  <li class="addFrame">
-    <a href="#" class="addBtn" {{action 'show'}}>
-      {{add-icon}}
-    </a>
-  </li>
+  <a href="#" class="addBtn" {{action 'show'}}>
+    {{add-icon}}
+  </a>
 {{else}}
-  <li class="addDialBox">
-    <form name="addForm" {{action "save" on="submit"}} class="clearfix addDialForm">
-      <a class="hideAddForm formRow" {{action 'hide'}}>
-        {{delete-icon}}
-      </a>
+  <form name="addForm" {{action "save" on="submit"}} class="clearfix addDialForm">
+    <a class="hideAddForm formRow" {{action 'hide'}}>
+      {{delete-icon}}
+    </a>
 
-      {{input name="addUrl" type="text" placeholder=(t 'speedDials.address') value=newSpeedDial class="formRow addUrl" autocomplete="off"}}
+    {{input name="addUrl" type="text" placeholder=(t 'speedDials.address') value=newSpeedDial class="formRow addUrl" autocomplete="off"}}
 
-      {{#if error}}
-        <div class="notification">{{t 'speedDials.exists-already' }}</div>
-      {{/if}}
+    {{#if error}}
+      <div class="notification">{{t 'speedDials.exists-already' }}</div>
+    {{/if}}
 
-      <button type="submit" class="cliqz-brands-button-4 cqz-ez-btn">{{t 'speedDials.btn-add'}}</button>
-    </form>
-  </li>
+    <button type="submit" class="cliqz-brands-button-4 cqz-ez-btn">{{t 'speedDials.btn-add'}}</button>
+  </form>
 {{/unless}}

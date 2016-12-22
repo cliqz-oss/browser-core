@@ -5,7 +5,10 @@
  *
  */
 
-Components.utils.importGlobalProperties(['crypto'])
+try {
+  Components.utils.importGlobalProperties(['crypto']);
+} catch(e){ /* Firefox < 37 */ }
+
 var EXPORTED_SYMBOLS = ['Extension'];
 const {
   classes: Cc,
@@ -55,6 +58,8 @@ var Extension = {
       Extension.System.set('promise', { default: this.Promise });
 
       Services.scriptloader.loadSubScript("chrome://cliqz/content/bower_components/handlebars/handlebars.js", this);
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/bower_components/mathjs/dist/math.min.js", this);
+
       Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/storage.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/core/storage.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/prefs.js", this);
@@ -66,6 +71,8 @@ var Extension = {
       Services.scriptloader.loadSubScript("chrome://cliqz/content/core/events.js", this);
 
       Extension.System.set('handlebars', {default: this.Handlebars});
+      Extension.System.set('math', {default: this.math});
+
       var environment = Extension.System.get("platform/environment").default;
       // must be set to this.Promise before anything else is called, so the proper Promise implementation can be used.
       environment.Promise = this.Promise;

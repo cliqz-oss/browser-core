@@ -1,61 +1,68 @@
 <div class="lock"></div>
+{{#if securityON }}
+    <header id="header" state="{{ generalState }}">
+     {{> header }}
+    </header>
 
-<header id="header" state="{{ generalState }}">
- {{> header }}
-</header>
+    <div id="currentsite">
+        <h3 class="truncate">{{ friendlyURL }}</h3>
+    </div>
 
-<div id="currentsite">
-    <h3 class="truncate">{{ friendlyURL }}</h3>
-</div>
+    <div id="settings" class="settings-section clearfix">
 
-<div id="settings" class="settings-section clearfix">
-
-  <div id="anti-tracking"
-       data-section="antitrack"
-       class="antitracker setting"
-       data-target="attrack">
-    {{> anti-tracking module.antitracking}}
-  </div>
-
-  {{#if amo}}
-      <div id="amo-privacy-cc"
-           class="privacy-cc setting"
-           data-target="privacy-cc"
-           data-section="privacy-cc">
-        {{> amo-privacy-cc }}
+      <div id="anti-tracking"
+           data-section="antitrack"
+           class="antitracker setting"
+           data-target="attrack">
+        {{> anti-tracking module.antitracking}}
       </div>
-  {{else}}
-    <div id="ad-blocking"
-         class="adblock setting"
-         data-target="adblock">
-        {{> ad-blocking }}
-    </div>
-  {{/if}}
 
-  <div id="anti-phising"
-       data-section="antiphish"
-       class="antiphishing setting"
-       data-target="antiphish">
-    {{> anti-phising}}
-  </div>
+      {{#if amo}}
+          <div id="amo-privacy-cc"
+               class="privacy-cc setting"
+               data-target="privacy-cc"
+               data-section="privacy-cc">
+            {{> amo-privacy-cc }}
+          </div>
+      {{else}}
+        <div id="ad-blocking"
+             class="adblock setting"
+             data-target="adblock">
+            {{> ad-blocking }}
+        </div>
+      {{/if}}
 
-  {{#if amo}}
-    <div class="setting"
-         id="cliqz-tab"
-         data-section="cliqz-tab"
-         data-target="cliqz-tab">
-      {{> amo-cliqz-tab }}
-    </div>
-  {{else}}
-    <div id="https"
-         class="setting"
-         data-section="https"
-         data-target="https">
-      {{> https module.https-everywhere}}
-    </div>
-  {{/if}}
-</div>
+      <div id="anti-phising"
+           data-section="antiphish"
+           class="antiphishing setting"
+           data-target="antiphish">
+        {{> anti-phising}}
+      </div>
 
-<section id="othersettings">
+      {{#if amo}}
+        <div class="setting"
+             id="cliqz-tab"
+             data-section="cliqz-tab"
+             data-target="cliqz-tab">
+          {{> cliqz-tab module.freshtab }}
+        </div>
+      {{else}}
+        <div id="https"
+             class="setting"
+             data-section="https"
+             data-target="https">
+          {{> https module.https-everywhere}}
+        </div>
+      {{/if}}
+    </div>
+{{ else }}
+    <div id="settings" class="settings-section clearfix securityOFF">
+        <span class="headline">Control Center</span>
+        {{> support }}
+        {{> cliqz-tab-button module.freshtab}}
+    </div>
+{{/if}}
+
+<section id="othersettings" class="{{#unless securityON}}securityOFF{{/unless}}">
   {{> other-settings }}
 </section>

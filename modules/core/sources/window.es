@@ -2,6 +2,7 @@ import utils from "core/utils";
 import events from "core/events";
 import ABTests from "core/ab-tests";
 import HistoryManager from "core/history-manager";
+import { isMobile } from "core/platform";
 
 export default class {
 
@@ -20,7 +21,9 @@ export default class {
     this.window.CliqzHistoryManager = HistoryManager;
 
     // Do not wait for AB to load
-    ABTests.check();
+    if (!isMobile) {
+      ABTests.check();
+    }
   }
 
   unload() {

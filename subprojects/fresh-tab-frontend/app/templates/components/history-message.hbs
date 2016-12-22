@@ -8,9 +8,7 @@
 {{/unless}}
 {{#if showDomain}}
   <div class="item" {{action "open"}}>
-    <span class="logo" style="{{{model.contact.logo.style}}}">
-      {{model.contact.logo.text}}
-    </span>
+    {{cliqz-logo model=model.logo tagName="span"}}
     <h2>{{model.contact.domain}}</h2>
     <p>{{model.contact.title}}</p>
   </div>

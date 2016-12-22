@@ -15,7 +15,8 @@ if (config.modules.indexOf('adblocker') > -1) {
 }
 
 var whitelist = [
-  "chrome://cliqz/"
+  "chrome://cliqz/",
+  "resource://cliqz/"
 ].concat(config.settings.frameScriptWhitelist);
 
 /**
@@ -131,6 +132,7 @@ function onDOMWindowCreated(ev) {
       type: "response",
       response: msg.data.response,
       action: msg.data.action,
+      module: msg.data.module,
       requestId: msg.data.requestId,
     }), "*");
   }
@@ -205,9 +207,12 @@ function onDOMWindowCreated(ev) {
       return;
     }
 
-    if ( msg.data.url !== currentURL() &&
-      // TEMP: Human web decodes the URI for internal storage
-      (msg.data.action == "getHTML" && msg.data.url !== decodeURIComponent(currentURL()))) {
+    var matchesCurrentUrl = msg.data.url === currentURL();
+    var isGetHTML = msg.data.action === 'getHTML';
+    // TEMP: Human web decodes the URI for internal storage
+    var isCurrentUrlBis = msg.data.url === decodeURIComponent(currentURL());
+
+    if (!matchesCurrentUrl || (isGetHTML && !isCurrentUrlBis)) {
       return;
     }
 
@@ -253,7 +258,7 @@ function onDOMWindowCreated(ev) {
     send({
       windowId: windowId,
       payload: {
-        module: "human-web",
+        module: "core",
         action: "recordMouseDown",
         args: [
           {

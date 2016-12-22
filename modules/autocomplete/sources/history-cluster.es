@@ -56,6 +56,7 @@ var CliqzHistoryCluster = {
           url: url,
           title: title,
           favicon: history.results[i].image,
+          style: history.results[i].style,
           _genUrl: utils.generalizeUrl(url, true)
         });
       }
@@ -325,13 +326,14 @@ var CliqzHistoryCluster = {
 
     // Check for url matching query
     query = utils.generalizeUrl(query, true);
-    var key;
-    for (key in patterns) {
-      var url = patterns[key].url;
-      if (url.indexOf(query) === 0) {
-        baseUrl = url;
-        favicon = patterns[key].favicon;
-        break;
+    if(query){
+      for (let key in patterns) {
+        var url = patterns[key].url;
+        if (url.indexOf(query) === 0) {
+          baseUrl = url;
+          favicon = patterns[key].favicon;
+          break;
+        }
       }
     }
 
@@ -364,7 +366,7 @@ var CliqzHistoryCluster = {
     } else {
       utils.log('Using a base url that did not exist in history list.', 'CliqzHistoryCluster');
 
-      for (key in patterns) {
+      for (let key in patterns) {
         // if any pattern uses an https domain, try to use that for
         // base domain too.
         pUrl = patterns[key].url;
@@ -387,7 +389,7 @@ var CliqzHistoryCluster = {
       }
     }
 
-    for (key in patterns) {
+    for (let key in patterns) {
       // keep everything else except for base, it is already there
       if (patterns[key] != basePattern) newPatterns.push(patterns[key]);
     }
@@ -499,6 +501,7 @@ var CliqzHistoryCluster = {
         // logo is only necessary for 3-up mini-history view, this can be removed if that is retired
         logo: utils.getLogoDetails(utils.getDetailsFromUrl(urls[i].url)),
         kind: ['H'],
+        style: urls[i].style
       };
 
       if (urls[i].hasOwnProperty('xtra_c')) {
@@ -534,7 +537,7 @@ var CliqzHistoryCluster = {
     } else if (res.urls) {
       // Rule-based clustering has already been performed, just take the entry as it is
       var instant = Result.generic('cliqz-pattern', res.url, null, res.title, null, searchString, res);
-      instant.comment += ' (history rules cluster)';
+      instant.data.debug ='(history rules cluster)!';
       // override with any titles we have saved
       //promises.push(CliqzHistoryCluster._getTitle(instant));
 
@@ -547,7 +550,7 @@ var CliqzHistoryCluster = {
       var instant = Result.generic('cliqz-pattern', '', null, '', null, searchString);
       instant.data.title = utils.getLocalizedString('history_results_cluster');
       instant.data.url = results[0].url;
-      instant.comment += ' (history top sites)!';
+      instant.data.debug = '(history top sites)!';
       instant.data.template = 'pattern-h1';
       instant.data.generic = true;
 
@@ -563,6 +566,7 @@ var CliqzHistoryCluster = {
         title = results[0].url;
         utils.log('No title, assigning ' + title, 'CliqzHistoryCluster');
       }
+      instant.data.localSource = results[0].style;
       instant.data.title = title;
       // override with any titles we have saved
       //promises.push(CliqzHistoryCluster._getTitle(instant));
@@ -572,7 +576,7 @@ var CliqzHistoryCluster = {
       //promises.push(CliqzHistoryCluster._getDescription(instant));
 
       instant.data.url = results[0].url;
-      instant.comment += ' (history domain cluster)!';
+      instant.data.debug = '(history domain cluster)!';
       instant.data.template = 'pattern-h2';
       instant.data.autoAdd = results[0].autoAdd;
       instant.data.cluster = true; // a history cluster based on a destination bet
@@ -588,8 +592,9 @@ var CliqzHistoryCluster = {
       for (var i = 0; i < results.length; i++) {
         var instant = Result.generic('favicon', results[i].url, null, results[i].title, null, searchString);
         instant.data.title = instant.comment;
-        instant.comment += ' (history generic)!';
+        instant.data.debug = '(history generic)!';
         instant.data.kind = ['H'];
+        instant.data.localSource = results[i].style;
         //promises.push(CliqzHistoryCluster._getDescription(instant));
         instant_results.push(instant);
       }
@@ -597,7 +602,7 @@ var CliqzHistoryCluster = {
       // 3-up combined generic history entry
       var instant = Result.generic('cliqz-pattern', '', null, '', null, searchString);
       instant.data.title = instant.comment;
-      instant.comment += ' (history generic)!';
+      instant.data.debug = '(history generic)!';
       instant.data.template = 'pattern-h3';
       instant.data.generic = true;
 
@@ -632,7 +637,7 @@ var CliqzHistoryCluster = {
       // 3-up combined generic history entry
       var instant = Result.generic('cliqz-pattern', '', null, '', null, searchString);
       instant.data.title = instant.comment;
-      instant.comment += ' (history generic)!';
+      instant.data.debug = '(history generic)!';
 
       //
       // There is so many levels of abstraction here that is impossible to follow,

@@ -46,7 +46,10 @@ CLIQZ.Core = {
 
 System.baseURL = "modules/";
 System.config({
-  defaultJSExtensions: true
+  defaultJSExtensions: true,
+  map: {
+    'math': "../bower_components/mathjs/dist/math.min.js"
+  }
 })
 
 console.log('LOADING ...')
@@ -73,7 +76,8 @@ Promise.all([
       System.import("expansions-provider/expansions-provider"),
       System.import("core/config"),
       System.import("geolocation/background"),
-      System.import("autocomplete/search")
+      System.import("autocomplete/search"),
+      System.import("platform/load-logo-db"),
     ])
   }).then(function (modules) {
     window.CLIQZEnvironment = modules[0].default;
@@ -83,6 +87,7 @@ Promise.all([
     window.CliqzEvents = modules[4].default;
     CLIQZ.config = modules[7].default;
     window.Search = modules[9].default;
+    modules[10].default().then(CliqzUtils.setLogoDb);
 
 
     CliqzUtils.System = System;

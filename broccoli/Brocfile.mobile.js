@@ -1,9 +1,7 @@
 "use strict";
 var Funnel = require('broccoli-funnel');
 var MergeTrees = require('broccoli-merge-trees');
-var compileSass = require('broccoli-sass-source-maps');
 var concat = require('broccoli-sourcemap-concat');
-var AssetRev = require('broccoli-asset-rev');
 var writeFile = require('broccoli-file-creator');
 
 var util = require('./util');
@@ -21,11 +19,47 @@ console.log('Source maps:', cliqzConfig.sourceMaps);
 console.log(cliqzConfig);
 // cliqz.json is finalized
 
+const concatTrees = new MergeTrees([
+  modules.modules,
+  concat(
+    new Funnel(mobileSpecific, { include: ['static/brands_database.json'] }), {
+      outputFile: 'brands.js',
+      inputFiles: ['**/*.json'],
+      header: `
+        System.register('mobile-ui/logo-db', [], function (_exports) {
+          var db =
+      `,
+      footer: `
+
+          _exports('default', db);
+        });
+      `
+    }
+  )
+]);
+
+const bundle = concat(concatTrees, {
+      outputFile: 'app.js',
+      inputFiles: [
+        "**/*.js"
+      ]
+});
+
+var bower = new Funnel(modules.bower, { destDir: 'bower_components' });
+
+var mobileDev = new MergeTrees([
+  mobileSpecific,
+  new Funnel(config),
+  bower,
+  modules.modules
+]);
+
 var mobile = new MergeTrees([
   mobileSpecific,
   new Funnel(config),
-  new Funnel(modules.bowerComponents, { destDir: 'bower_components' }),
-  modules.modules
+  bower,
+  modules.static,
+  bundle
 ]);
 
 var platformTests = new Funnel('platforms/'+cliqzConfig.platform, {
@@ -40,23 +74,25 @@ var testsTree = concat(platformTests, {
   sourceMapConfig: { enabled: cliqzConfig.sourceMaps },
 });
 
-if (cliqzConfig.buildEnv === 'production' ) {
-  mobile = new AssetRev(mobile, {
-    extensions: ['js', 'css'],
-    replaceExtensions: ['html', 'css', 'js'],
-    generateAssetMap: true
-  });
-}
-
 var configTree = util.injectConfig(mobile, config, 'cliqz.json', [
-  'core/config.js'
+  'app.js'
 ]);
 
-var outputTree = new MergeTrees([
-  mobile,
+var outputTreeDev = new MergeTrees([
+  mobileDev,
   configTree,
   new Funnel(testsTree, { destDir: 'tests'})
-], { overwrite: true });
+  ], { overwrite: true });
+
+
+var outputList = [mobile, configTree];
+
+if (process.env['CLIQZ_ENVIRONMENT'] !== 'production') {
+  outputList.push(new Funnel(testsTree, { destDir: 'tests'}));
+  outputList.push(new Funnel(outputTreeDev, { destDir: 'dev' }));
+}
+
+var outputTree = new MergeTrees(outputList, { overwrite: true });
 
 // Output
 module.exports = outputTree;

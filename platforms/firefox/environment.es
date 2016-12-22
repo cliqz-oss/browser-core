@@ -74,6 +74,9 @@ var CLIQZEnvironment = {
         'partials/lyrics'
     ],
     CLIQZ_ONBOARDING: "about:onboarding",
+    CLIQZ_ONBOARDING_URL: "chrome://cliqz/content/onboarding-v2/index.html",
+    CLIQZ_NEW_TAB: "about:cliqz",
+    CLIQZ_NEW_TAB_URL: "resource://cliqz/fresh-tab-frontend/index.html",
     BROWSER_ONBOARDING_PREF: "browserOnboarding",
     BROWSER_ONBOARDING_STEP_PREF: "browserOnboarding-step",
 
@@ -218,9 +221,6 @@ var CLIQZEnvironment = {
             utf8str = idnService.convertACEtoUTF8(encodeURIComponent(host));
 
         return decodeURIComponent(eTLDService.getPublicSuffixFromHost(utf8str));
-    },
-    getBrandsDBUrl: function(version){
-      return 'https://cdn.cliqz.com/brands-database/database/' + version + '/data/database.json'
     },
     isPrivate: function(win) {
         // try to get the current active window
@@ -472,18 +472,43 @@ var CLIQZEnvironment = {
                 onSearchResult: function(ctx, result) {
                     var res = [];
                     for (var i = 0; result && i < result.matchCount; i++) {
-                        if(result.getStyleAt(i).indexOf('heuristic') != -1 ||
-                           result.getStyleAt(i).indexOf('switchtab') != -1){
+                        if(result.getStyleAt(i).indexOf('heuristic') != -1){
                           // filter out "heuristic" results
                           continue;
                         }
-                        res.push({
-                            style:   result.getStyleAt(i),
-                            value:   result.getValueAt(i),
-                            image:   result.getImageAt(i),
-                            comment: result.getCommentAt(i),
-                            label:   result.getLabelAt(i)
-                        });
+
+                        if(result.getStyleAt(i).indexOf('switchtab') != -1){
+                          try {
+                            let [mozAction, mozActionVal] = CliqzUtils.cleanMozillaActions(result.getValueAt(i));
+                            let cleanURL = decodeURIComponent(JSON.parse(mozActionVal).url);
+                            let label;
+
+                            try {
+                              // https://bugzilla.mozilla.org/show_bug.cgi?id=419324
+                              uri = makeURI(action.params.url);
+                              label = losslessDecodeURI(uri);
+                            } catch (e) {}
+
+                            res.push({
+                              style:   result.getStyleAt(i),
+                              value:   cleanURL,
+                              image:   result.getImageAt(i),
+                              comment: result.getCommentAt(i),
+                              label:   label || cleanURL
+                            });
+                          } catch(e){
+                            // bummer! This was unexpected
+                          }
+                        }
+                        else {
+                          res.push({
+                              style:   result.getStyleAt(i),
+                              value:   result.getValueAt(i),
+                              image:   result.getImageAt(i),
+                              comment: result.getCommentAt(i),
+                              label:   result.getLabelAt(i)
+                          });
+                        }
                     }
                     callback({
                         query: q,

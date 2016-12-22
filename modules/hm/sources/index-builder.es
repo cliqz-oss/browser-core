@@ -615,12 +615,12 @@ export default class IndexBuilder {
   constructor() {
     this.buildingPromises = [];
 
-        // Simple storage for index metadata (num events, last build time...)
+    // Simple storage for index metadata (num events, last build time...)
     this.ss = new SimpleStorage();
 
-        // This is the storage for the index
-        // Tried to move this into SimpleStorage, but the proxy object
-        // creation for large objects (like the index) is extremely slow
+    // This is the storage for the index
+    // Tried to move this into SimpleStorage, but the proxy object
+    // creation for large objects (like the index) is extremely slow
     this.storage = new IncrementalStorage();
   }
   checkInit() {
@@ -638,29 +638,29 @@ export default class IndexBuilder {
 
   get lastBuildTime() {
     this.checkInit();
-    return this.ss.storage.lastBuildTime;
+    return this.ss.get('lastBuildTime');
   }
   set lastBuildTime(val) {
     this.checkInit();
-    this.ss.storage.lastBuildTime = val;
+    this.ss.set('lastBuildTime', val);
   }
 
   get numEvents() {
     this.checkInit();
-    return this.ss.storage.numEvents || 0;
+    return this.ss.get('numEvents') || 0;
   }
   set numEvents(val) {
     this.checkInit();
-    this.ss.storage.numEvents = val;
+    this.ss.set('numEvents', val);
   }
 
   get lastRows() {
     this.checkInit();
-    return this.ss.storage.lastRows || 0;
+    return this.ss.get('lastRows') || 0;
   }
   set lastRows(val) {
     this.checkInit();
-    this.ss.storage.lastRows = val;
+    this.ss.set('lastRows', val);
   }
 
   static placesDBExecutor(sql) {
@@ -701,7 +701,7 @@ export default class IndexBuilder {
 
     // Inits storage and table observers (and thus incremental updates)
   init() {
-    return this.ss.open('index_metadata.json', 'HMSearch', true)
+    return this.ss.open('index_metadata.json', 'HMSearch', true, true)
       .then(() => this.storage.open('data.json', e => this.processEvent(e), 'HMSearch', true))
       .then(() => {
         if (Object.keys(this.storage.obj).length === 0) {

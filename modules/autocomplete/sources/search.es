@@ -398,7 +398,7 @@ export default class Search {
 
   historyPatternCallback(res) {
       // abort if we already have results
-    var query = res.query || res.q; // query will be called q if RH is down
+    var query = res.query || res.q || ''; // query will be called q if RH is down
     if(this.mixedResults.matchCount > 0) return;
 
     if (query == this.searchString) {
@@ -589,11 +589,6 @@ export default class Search {
       this.pushResults(q);
   }
 
-  createFavicoUrl(url) {
-      return 'http://cdnfavicons.cliqz.com/' +
-              url.replace('http://','').replace('https://','').split('/')[0];
-  }
-
   prepareResults(q) {
     this.instant = (this.instant || []).map(function(r) {
       r = Result.clone(r);
@@ -654,6 +649,7 @@ export default class Search {
           discarded: obj.discardedResults,
           user_rerankers: obj.userRerankers,
           backend_params: obj.cliqzResultsParams,
+          proxied: utils.getPref('hpn-query', false),
           v: 1
       };
 

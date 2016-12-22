@@ -8,7 +8,7 @@ export default Ember.Route.extend({
     if (contact) {
       return contact;
     } else {
-      return this.get("historySync").loadMore({ domain, since: new Date() }).then( () => {
+      return this.get("historySync").loadMore({ domain: params.domain, since: new Date() }).then( () => {
         return this.store.peekRecord("history-contact", params.domain);
       });
     }

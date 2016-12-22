@@ -1,7 +1,7 @@
 <div class="article-content">
-  <a style="position:relative" href="{{model.url}}" class="topnews news" data-index="{{index}}">
+  <a href="{{model.url}}" class="topnews news" data-index="{{index}}">
     <div class="clearfix">
-      <div extra="logo" class="logo" style="{{model.logo.style}}">{{model.logo.text}}</div>
+      {{cliqz-logo model=model.logo}}
       <div extra="url" class="url">{{model.displayUrl}}</div>
     </div>
     <div class="newsContent">

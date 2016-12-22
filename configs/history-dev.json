@@ -5,14 +5,16 @@
   "settings": {
     "history-ui-url": "http://localhost:3000/#/history-sidebar",
     "freshTabButton": false,
-    "freshTabHistoryNews": true,
+    "freshTabNews": true,
+    "freshTabInitialState": true,
     "unblockUI": false,
     "showDataCollectionMessage": false,
     "cliqzOnboarding": true,
     "channel": "40",
     "antitrackingButton": true,
     "helpMenus": true,
-    "showNewBrandAlert": true
+    "showNewBrandAlert": true,
+    "controlCenterSecurity": true
   },
   "modules": [
     "core",

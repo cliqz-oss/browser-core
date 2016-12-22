@@ -213,7 +213,7 @@ function getHandlebarsTree() {
       name: name,
       tree: broccoliHandlebars(tree, {
         srcDir: `${name}/templates`,
-        namespace: 'CLIQZ.templates'
+        namespace: 'templates'
       })
     };
   }).map(function (templatesTree) {
@@ -224,28 +224,35 @@ function getHandlebarsTree() {
       ],
       header: `
         'use strict';
-        CLIQZ = CLIQZ || {};
-        CLIQZ.templates = CLIQZ.templates || {};
+        System.register('${templatesTree.name}/templates', [], function (_export) {
       `,
-      footer: "Handlebars.partials = CLIQZ.templates"
+      footer: `
+          _export('default', templates);
+        });
+      `
     });
   })
 
   return new MergeTrees(trees);
 }
 
-const modules = new MergeTrees([
+const esTree = new MergeTrees([
   getPlatformTree(),
+  getSourceTree(),
+  getHandlebarsTree(),
+]);
+
+const staticTree = new MergeTrees([
   getDistTree(),
   getSassTree(),
-  getSourceTree(),
-  getHandlebarsTree()
 ]);
+
 const bowerTree = new MergeTrees([
   new Funnel(bowerComponents, { include: Array.from(requiredBowerComponents) })
 ]);
 
 module.exports = {
-  modules,
-  bowerComponents: bowerTree
+  static: staticTree,
+  modules: esTree,
+  bower: bowerTree
 }

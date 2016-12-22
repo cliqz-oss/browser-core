@@ -1,4 +1,4 @@
-import Anacron from 'telemetry/anacron';
+import Anacron from 'core/anacron';
 import Behavior from 'telemetry/aggregators/behavior';
 import Database from 'core/database';
 import Demographics from 'telemetry/aggregators/demographics';
@@ -41,6 +41,8 @@ export default background({
     this.anacron = new Anacron({
       get: utils.getPref,
       set: utils.setPref,
+    }, {
+      name: 'telemetry.anacron',
     });
     // TODO: re-enable for production
     // this.actions.schedule('20-min-behavior', this.behavior,

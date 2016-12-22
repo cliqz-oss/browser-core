@@ -6,8 +6,8 @@ const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu, manager: Cm } =
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import("resource://gre/modules/Services.jsm");
 
-var CLIQZ_NEW_TAB = "about:cliqz",
-    CLIQZ_NEW_TAB_URL = "chrome://cliqz/content/fresh-tab-frontend/index.html",
+var CLIQZ_NEW_TAB = CliqzUtils.CLIQZ_NEW_TAB,
+    CLIQZ_NEW_TAB_URL = CliqzUtils.CLIQZ_NEW_TAB_URL,
     DEF_HOMEPAGE = "browser.startup.homepage",
     DEF_NEWTAB = "browser.newtab.url",
     DEF_STARTUP = "browser.startup.page",
@@ -56,14 +56,36 @@ AboutURL.prototype = {
   contractID: "@mozilla.org/network/protocol/about;1?what=cliqz",
 
   newChannel: function(uri) {
-    var src = CLIQZ_NEW_TAB_URL + "?cliqzOnboarding=" + FreshTab.cliqzOnboarding;
-    var html =  [
-        '<!DOCTYPE html><html><head><meta charset="UTF-8">',
-        '<style>* {margin:0;padding:0;width:100%;height:100%;overflow:hidden;border: 0}</style>',
-        '<title>' + CliqzUtils.getLocalizedString('new_tab') + '</title>',
-        `</head><body><iframe src="${src}">`,
-        '</iframe></body></html>'
-    ].join("");
+    const src = `${CLIQZ_NEW_TAB_URL}?cliqzOnboarding=${FreshTab.cliqzOnboarding}&e10s=${Services.appinfo.browserTabsRemoteAutostart}`;
+    const html = `<!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="UTF-8">
+      <style>* {margin:0;padding:0;width:100%;height:100%;overflow:hidden;border: 0}</style>
+      <title>${CliqzUtils.getLocalizedString('new_tab')}</title>
+    </head>
+    <body>
+      <iframe
+        type="content"
+        src="${src}">
+      </iframe>
+      <script type="text/javascript">
+        // https://github.com/cliqz-oss/browser-core/issues/4
+        var iframe = document.querySelector('iframe');
+        window.onload = function(){
+          iframe.contentWindow.addEventListener('message', function(msg) {
+            var data = JSON.parse(msg.data);
+            if(data.message === 'replaceURL'){
+              // on e10s we must open a new tab from freshtab otherwise
+              // the freshtab fails to load when navigating back
+              window.open(data.url);
+              window.close();
+            }
+          });
+        };
+      </script>
+    </body>
+</html>`;
 
     let channel = InputStreamChannel.createInstance(Ci.nsIInputStreamChannel).
         QueryInterface(Ci.nsIChannel);
@@ -91,7 +113,7 @@ var FreshTab = {
     freshTabState: FRESH_TAB_STATE,
     cliqzNewTab: CLIQZ_NEW_TAB,
 
-    startup: function(hasButton, cliqzOnboarding, channel, showNewBrandAlert){
+    startup: function(hasButton, cliqzOnboarding, channel, showNewBrandAlert, initialState){
         var disable = false;
 
         // checking if this is the first install happens in background._showOnboarding()
@@ -123,7 +145,7 @@ var FreshTab = {
 
         // first start
         if(HAS_BUTTON && !CliqzUtils.hasPref(FRESH_TAB_STATE)){
-          CliqzUtils.setPref(FRESH_TAB_STATE,  false); //opt-in
+          CliqzUtils.setPref(FRESH_TAB_STATE,  initialState);
         }
 
         Cm.registerFactory(

@@ -2,7 +2,9 @@ import helpers from 'control-center/content/helpers';
 import { messageHandler, sendMessageToWindow } from 'control-center/content/data';
 import $ from 'jquery';
 import Handlebars from 'handlebars';
+import templates from 'control-center/templates';
 
+Handlebars.partials = templates;
 var slideUp = $.fn.slideUp;
 var slideDown = $.fn.slideDown;
 function resize() {
@@ -32,7 +34,8 @@ function localizeDocument() {
   Array.prototype.forEach.call(document.querySelectorAll('[data-i18n]'), el => {
     var elArgs = el.dataset.i18n.split(','),
         key = elArgs.shift();
-    el.textContent = chrome.i18n.getMessage(key, elArgs);
+
+    el.innerHTML = chrome.i18n.getMessage(key, elArgs);
   });
 }
 
@@ -53,10 +56,8 @@ $(document).ready(function(resolvedPromises) {
     Handlebars.registerHelper(helperName, helpers[helperName]);
   });
 
-  draw({});
-  resize();
   sendMessageToWindow({
-    action: 'getData',
+    action: 'getEmptyFrameAndData',
     data: {}
   });
 });
@@ -71,7 +72,7 @@ $('body').on('click', function(ev) {
       action: 'sendTelemetry',
       args: [{
         type: 'onboarding',
-        version: '2.0',
+        version: '2.1',
         action: 'click',
         view: 'privacy',
         target: 'dashboard',
@@ -106,7 +107,8 @@ $('#control-center').on('click', '[data-function]', function(ev){
   sendMessageToWindow({
     action: ev.currentTarget.dataset.function,
     data: {
-      status: $(this).prop('checked')
+      status: $(this).prop('checked'),
+      target: ev.currentTarget.getAttribute('data-target')
     }
   });
 });
@@ -189,10 +191,10 @@ function updateGeneralState() {
     return el.getAttribute('state');
   }), state = 'active';
 
-  if(states.includes('critical')){
+  if(states.indexOf('critical') != -1){
     state = 'critical';
   }
-  else if(states.includes('inactive')){
+  else if(states.indexOf('inactive') != -1){
     state = 'inactive';
   }
 
@@ -264,14 +266,14 @@ function draw(data){
   if(data.onboarding) {
     document.getElementById('control-center').classList.add('onboarding');
 
-    if(data.module.antitracking.totalCount === 1) {
+    if(data.module.antitracking && data.module.antitracking.totalCount === 1) {
       window.postMessage(JSON.stringify({
         target: 'cliqz',
         module: 'core',
         action: 'sendTelemetry',
         args: [{
           type: 'onboarding',
-          version: '2.0',
+          version: '2.1',
           action: 'show',
           view: 'privacy',
           target: 'dashboard',
@@ -282,13 +284,15 @@ function draw(data){
 
   if (data.module) {
     // antitracking default data
-    if (!data.module.antitracking.state) {
-      data.module.antitracking.visible = true
-      data.module.antitracking.state = "critical"
-      data.module.antitracking.totalCount = 0
-    }
-    if (data.module.antitracking.trackersList) {
-      data.module.antitracking.trackersList.companiesArray = compile(data.module.antitracking.trackersList)
+    if (data.module.antitracking){
+      if (!data.module.antitracking.state) {
+        data.module.antitracking.visible = true
+        data.module.antitracking.state = "critical"
+        data.module.antitracking.totalCount = 0
+      }
+      if (data.module.antitracking.trackersList) {
+        data.module.antitracking.trackersList.companiesArray = compile(data.module.antitracking.trackersList)
+      }
     }
 
 
@@ -301,16 +305,18 @@ function draw(data){
     console.log('Drawing: ', data);
   }
 
-  document.getElementById('control-center').innerHTML = CLIQZ.templates['template'](data)
-  document.getElementById('anti-phising').innerHTML = CLIQZ.templates['anti-phising'](data);
-  document.getElementById('anti-tracking').innerHTML = CLIQZ.templates['anti-tracking'](data);
+  document.getElementById('control-center').innerHTML = templates['template'](data)
+  if(data.securityON){
+    document.getElementById('anti-phising').innerHTML = templates['anti-phising'](data);
+    document.getElementById('anti-tracking').innerHTML = templates['anti-tracking'](data);
 
-  if(data.amo) {
-    document.getElementById('amo-privacy-cc').innerHTML = CLIQZ.templates['amo-privacy-cc']();
-    document.getElementById('cliqz-tab').innerHTML = CLIQZ.templates['amo-cliqz-tab'](data);
-  } else {
-    document.getElementById('ad-blocking').innerHTML = CLIQZ.templates['ad-blocking'](data);
-    document.getElementById('https').innerHTML = CLIQZ.templates['https'](data);
+    if(data.amo) {
+      document.getElementById('amo-privacy-cc').innerHTML = templates['amo-privacy-cc']();
+      document.getElementById('cliqz-tab').innerHTML = templates['cliqz-tab'](data.module.freshtab);
+    } else {
+      document.getElementById('ad-blocking').innerHTML = templates['ad-blocking'](data);
+      document.getElementById('https').innerHTML = templates['https'](data);
+    }
   }
 
   function close_setting_accordion_section() {
@@ -318,12 +324,36 @@ function draw(data){
     $('.setting-accordion .setting-accordion-section-content').slideUp(150).removeClass('open');
   }
 
-  $('.accordion-active-title').click(function(e) {
-    //temporary disable accordion for attrack EX-2875
-    if($(this).attr('data-target').indexOf('attrack') == 0) {
-      return;
+  $('.setting-accordion-section-title').on('click', function(e) {
+    e.stopPropagation();
+    let index = $(this).attr('data-index'),
+        url = e.currentTarget.getAttribute('openUrl'),
+        target = $(this).attr('data-target'),
+        closePopup = e.currentTarget.dataset.closepopup || true;
+    //openURL already sends telemetry data
+    if($(this).attr('openUrl')) {
+      sendMessageToWindow({
+        action: 'openURL',
+        data: {
+          url: url,
+          target: target,
+          closePopup: closePopup,
+          index: index
+        }
+      });
+    } else {
+      sendMessageToWindow({
+        action: 'sendTelemetry',
+        data: {
+          target: target,
+          action: 'click',
+          index: index
+        }
+      });
     }
+  });
 
+  $('.accordion-active-title').click(function(e) {
     e.preventDefault();
     var currentAttrValue = $(this).attr('href'),
         state;
@@ -337,15 +367,6 @@ function draw(data){
       $('.setting-accordion ' + currentAttrValue).slideDown(150).addClass('open');
       state = 'expanded';
     }
-
-    sendMessageToWindow({
-      action: 'sendTelemetry',
-      data: {
-        target: $(this).attr('data-target'),
-        state: state,
-        action: 'click'
-      }
-    });
   });
 
   function close_accordion_section() {
@@ -389,13 +410,12 @@ function draw(data){
   });
 
   //====== SETTING SECTION =========//
-  $('.setting').click(function(e) {
+  $('.setting').on('click', function(e) {
     var $main = $(this).closest('#control-center'),
         $othersettings = $main.find('#othersettings'),
         $setting = $(this).closest('.setting'),
         $section = $setting.attr('data-section'),
         $target = $setting.attr('data-target');
-
     if (isNonClickable($section)) {
       return;
     } else if ($(e.target).hasClass('cqz-switch-box')) {
@@ -412,8 +432,9 @@ function draw(data){
       return;
     } else if ($(e.target).hasClass('cqz-switch-box')) {
       return;
+    } else if($(e.target).hasClass('active-window-tracking')) {
+      return
     }
-
     sendMessageToWindow({
       action: 'sendTelemetry',
       data: {
@@ -503,6 +524,7 @@ function draw(data){
   });
 
   localizeDocument();
+  resize();
 }
 
 window.draw = draw;

@@ -12,14 +12,18 @@ export default class {
 
   constructor(settings) {
     this.window = settings.window;
+    // check for using theme from extension or it exist in browser
+    this.useTheme = !this.window.document.documentElement.getAttribute("cliqzBrowser");
   }
 
   /**
   * @method init
   */
   init() {
-    this.moveButtons(this.window.document);
-    addStylesheet(this.window.document, this.themeUrl());
+    if (this.useTheme) {
+      this.moveButtons(this.window.document);
+      addStylesheet(this.window.document, this.themeUrl());
+    }
   }
 
   themeUrl() {
@@ -42,6 +46,8 @@ export default class {
   }
 
   unload() {
-    removeStylesheet(this.window.document, this.themeUrl());
+    if (this.useTheme) {
+      removeStylesheet(this.window.document, this.themeUrl());
+    }
   }
 }
