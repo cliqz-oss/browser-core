@@ -1,6 +1,6 @@
 {
   "name": "navigation-extension",
-  "version": "2.11.0",
+  "version": "2.11.1",
   "description": "",
   "main": "",
   "scripts": {
@@ -8,8 +8,8 @@
     "publish-beta": "cd build/firefox; fab publish:beta=True; cp latest.xpi ../../; cd ../..",
     "publish-pre-release": "cd build/firefox; fab publish:beta=False,pre=True; cp latest.xpi ../../; cd ../..",
     "publish-release": "cd build/firefox; fab publish:beta=False,pre=False; cp latest.xpi ../../; cd ../..",
-    "deploy-mobile-release": "export CLIQZ_BUILD_ENV=production && ./fern.js build configs/mobile.json && python specific/mobile/deploy-mobile.py -b build/mobile/search -k mobile/extension",
-    "deploy-mobile-beta": "export CLIQZ_BUILD_ENV=production && ./fern.js build configs/mobile.json && python specific/mobile/deploy-mobile.py -b build/mobile/search -k mobile/beta",
+    "deploy-mobile-release": "./fern.js build configs/mobile.json --environment=production && ./fern.js build configs/mobile.json && python specific/mobile/deploy-mobile.py -b build/mobile/search -k mobile/extension",
+    "deploy-mobile-beta": "./fern.js build configs/mobile.json --environment=production && ./fern.js build configs/mobile.json && python specific/mobile/deploy-mobile.py -b build/mobile/search -k mobile/beta",
     "doc": "yuidoc",
     "start": "./fern.js serve configs/browser.json --freshtab"
   },

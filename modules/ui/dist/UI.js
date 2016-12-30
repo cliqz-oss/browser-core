@@ -11,7 +11,6 @@ function load(ctx) {
 var CliqzAutocomplete;
 var CliqzHandlebars = CliqzHandlebars || CliqzUtils.System.get('handlebars').default;
 var CliqzEvents;
-var dns;
 
 function isValidURL(str) {
   var pattern = /(http|https):\/\/(\w+:{0,1}\w*)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/;
@@ -53,11 +52,10 @@ var UI = {
     DROPDOWN_HEIGHT: 349,
     popupClosed: true,
     VIEWS: Object.create(null),
-    preinit: function (autocomplete, handlebars, cliqzEvents, _dns) {
+    preinit: function (autocomplete, handlebars, cliqzEvents) {
         CliqzAutocomplete = autocomplete;
         CliqzHandlebars = handlebars;
         CliqzEvents = cliqzEvents;
-        dns = _dns;
     },
     init: function(_urlbar) {
         urlbar = _urlbar
@@ -1801,36 +1799,19 @@ function onEnter(ev, item){
   }
   // Typed
   else if (!getResultSelection()){
-    if (!CliqzUtils.getPref("dnsLookup", false) || dns.lookup(CliqzUtils.getDetailsFromUrl(input).domain)) {
-      logUIEvent({url: input}, "typed", {
-        action: "result_enter",
-        position_type: ['inbar_url'],
-        urlbar_time: urlbar_time,
-        current_position: -1,
-        new_tab: newTab
-      }, urlbar.mInputField.value);
-      CLIQZ.Core.triggerLastQ = true;
-      // TODO: why is this "alternative_search"
-      CliqzEvents.pub("alternative_search", {
-        cleanInput: cleanInput,
-        lastAuto: lastAuto
-      });
-    } else {
-      logUIEvent({url: input}, "google", {
-        action: "result_enter",
-        position_type: ['inbar_query'],
-        urlbar_time: urlbar_time,
-        current_position: -1
-      });
-      var engine = CliqzUtils.getDefaultSearchEngine();
-      urlbar.value = engine.getSubmissionForQuery(input);
-      CLIQZ.Core.triggerLastQ = true;
-      CliqzEvents.pub("alternative_search", {
-        cleanInput: cleanInput,
-        lastAuto: lastAuto
-      });
-      return false;
-    }
+    logUIEvent({url: input}, "typed", {
+      action: "result_enter",
+      position_type: ['inbar_url'],
+      urlbar_time: urlbar_time,
+      current_position: -1,
+      new_tab: newTab
+    }, urlbar.mInputField.value);
+    CLIQZ.Core.triggerLastQ = true;
+
+    CliqzEvents.pub("alternative_search", {
+      cleanInput: cleanInput,
+      lastAuto: lastAuto
+    });
   // Result
   } else {
     var localSource = getResultOrChildAttr(UI.keyboardSelection, 'local-source');

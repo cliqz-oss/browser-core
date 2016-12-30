@@ -124,8 +124,7 @@ function getSourceTree() {
     browserifyTree,
     transpiledSources,
   ];
-
-  if ((cliqzConfig.buildEnv !== 'production') &&
+  if ((cliqzConfig.environment !== 'production') &&
       (cliqzConfig.testem_launchers || []).length) {
     sourceTrees.push(transpiledModuleTestsTree);
   }

@@ -30,7 +30,6 @@ import DomChecker from 'antitracking/steps/dom-checker';
 import TokenChecker from 'antitracking/steps/token-checker';
 import BlockRules from 'antitracking/steps/block-rules';
 import CookieContext from 'antitracking/steps/cookie-context';
-import TrackerProxy from 'antitracking/steps/tracker-proxy';
 
 var countReload = false;
 
@@ -321,7 +320,6 @@ var CliqzAttrack = {
         tokenChecker: new TokenChecker(CliqzAttrack.qs_whitelist, CliqzAttrack.blockLog, CliqzAttrack.tokenDomainCountThreshold, CliqzAttrack.shortTokenLength, {}, CliqzAttrack.hashProb),
         blockRules: new BlockRules(),
         cookieContext: new CookieContext(),
-        trackerProxy: new TrackerProxy(),
       }
       CliqzAttrack.pipelineSteps = steps;
 
@@ -348,7 +346,6 @@ var CliqzAttrack = {
         steps.domChecker.checkDomLinks.bind(steps.domChecker),
         steps.domChecker.parseCookies.bind(steps.domChecker),
         steps.tokenChecker.findBadTokens.bind(steps.tokenChecker),
-        steps.trackerProxy.checkShouldProxy.bind(steps.trackerProxy),
         function checkHasBadTokens(state) {
           return (state.badTokens.length > 0)
         },
