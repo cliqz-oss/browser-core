@@ -98,7 +98,7 @@ export default class {
       data.distance = distance;
     }
 
-    data.escapedUrl = data.mu && escape(data.mu);
+    data.deepLinks = ((data.deepResults || []).find(res => res.type === 'buttons') || {}).links
     return data;
   }
 };

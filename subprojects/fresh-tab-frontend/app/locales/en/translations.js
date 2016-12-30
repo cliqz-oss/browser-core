@@ -44,7 +44,9 @@ export default {
     "undo": "Undo",
     "search-on": "Search on",
     "shortcuts-one-removed": "site was removed",
-    "shortcuts-many-removed": "sites were removed"
+    "shortcuts-many-removed": "sites were removed",
+    "notifications-disable": "Disable notifications",
+    "notifications-enable": "Enable notifications"
   },
   urlBar: {
     "search-address": "Search or enter address"
@@ -60,6 +62,11 @@ export default {
     "hdr-new-brand": "CLIQZ is about to get a new look!",
     "txt-new-brand1": "We are going to update the CLIQZ browser icon and overall branding soon.",
     "cta-new-brand": "Learn more",
-    "txt-new-brand2": "about this and the latest changes"
+    "txt-new-brand2": "about this and the latest changes",
+    "hdr-share-location": "Location sharing means better search results!",
+    "txt-share-location": "Your privacy will not be compromised.",
+    "cta-share-location": "Learn how it works",
+    "btn-always-share": "Always share location",
+    "btn-never-share": "Never share location"
   }
 };

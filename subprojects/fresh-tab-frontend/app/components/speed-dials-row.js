@@ -10,6 +10,8 @@ export default Ember.Component.extend({
     })
   }.on("init"),
 
+  showAddButton: Ember.computed.and('isCustom', 'displayAddBtn'),
+
   displayAddBtn: Ember.computed.lt('speedDials.length', 5),
 
   displayHistoryLabel: Ember.computed('speedDials.length', 'removedSpeedDials.length', function() {
@@ -35,10 +37,12 @@ export default Ember.Component.extend({
       this.set('removedSpeedDials', []);
     },
 
-    reAddSpeedDial(index, url) {
-      this.get('cliqz').addSpeedDial(url, index).then((obj) => {
-        const model = this.get('model');
-        model.insertAt(index, Ember.Object.create(obj));
+    reAddSpeedDial(speedDial) {
+      const index = speedDial.get('removedAt');
+      const model = this.get('model');
+      this.get('cliqz').addSpeedDial(speedDial.get('url'), index).then(() => {
+        this.get("removedSpeedDials").removeObject(speedDial);
+        model.insertAt(index, speedDial);
       });
     },
 
@@ -55,7 +59,7 @@ export default Ember.Component.extend({
 
 
       this.get("model").removeObject(speedDial);
-      this.get('cliqz').removeSpeedDial(speedDial);
+      this.get('cliqz').removeSpeedDial(speedDial.toJSON());
 
       this.get('cliqz').sendTelemetry({
         type: 'home',
@@ -82,10 +86,7 @@ export default Ember.Component.extend({
       const type = this.get("isCustom") ? 'custom' : 'history';
 
       if(this.get("isCustom")) {
-        this.actions.reAddSpeedDial.call(this,
-          speedDial.get("removedAt"),
-          speedDial.get("url")
-        );
+        this.actions.reAddSpeedDial.call(this, speedDial);
       } else {
         this.get('cliqz').revertHistorySpeedDial(speedDial.get("url"));
         this.get('model').insertAt(speedDial.get("removedAt"), speedDial);

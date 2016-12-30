@@ -599,6 +599,18 @@ var UI = {
         specificView.enhanceResults(r.data);
       }
     },
+    isLocal: function(result) {
+      return result
+             && result.data
+             && result.data.subType
+             && result.data.subType.class === "EntityLocal";
+    },
+    hasAskedForLocation: function(result) {
+      return result
+             && result.data
+             && result.data.extra
+             && result.data.extra.no_location;
+    },
     sessionEnd: sessionEnd,
     getResultOrChildAttr: getResultOrChildAttr,
     getElementByAttr: getElementByAttr,
@@ -1438,10 +1450,15 @@ function resultClick(ev) {
                 local_source: localSource,
                 position_type: getResultKind(el)
             };
-
             logUIEvent(el, "result", signal, CliqzAutocomplete.lastSearch);
 
             //publish result_click
+            const lastResults = CliqzAutocomplete.lastResult && CliqzAutocomplete.lastResult._results;
+            if(lastResults){
+              const result = lastResults.find(res => res.label === url);
+              signal.isLocal = UI.isLocal(result);
+              signal.hasAskedForLocation = UI.hasAskedForLocation(result);
+            }
             CliqzEvents.pub("result_click", signal, {});
 
             if (localSource.indexOf('switchtab') != -1) {
@@ -1792,10 +1809,9 @@ function onEnter(ev, item){
     CLIQZ.Core.triggerLastQ = true;
 
     CliqzEvents.pub("alternative_search", {
-        cleanInput: cleanInput,
-        lastAuto: lastAuto
+      cleanInput: cleanInput,
+      lastAuto: lastAuto
     });
-
   // Result
   } else {
     var localSource = getResultOrChildAttr(UI.keyboardSelection, 'local-source');

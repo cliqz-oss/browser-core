@@ -1,0 +1,39 @@
+#new-tab-button-panel,
+#new-tab-button-panel > iframe,
+#new-tab-button-panel > panel-subview-body {
+    overflow: hidden !important;
+}
+
+.tabs-newtab-button, #new-tab-button {
+    &.has-notification {
+        &:before {
+            content: " ";
+            display: inline-block;
+            height: 8px;
+            width: 8px;
+            border-radius: 8px;
+            background-color: red;
+        }
+    }
+}
+
+.tabs-newtab-button {
+    padding-left: 3px;
+    padding-right: 3px;
+    &:before {
+        margin-top: 3px;
+        margin-left: 2px;
+        margin-right: 3px;
+    }
+}
+
+#new-tab-button {
+    &:before {
+        margin-top: 0px;
+    }
+}
+
+panelmultiview[mainViewId="new-tab-button-panel"] > .panel-viewcontainer > .panel-viewstack > .panel-mainview:not([panelid="PanelUI-popup"]),
+panel[viewId="new-tab-button-panel"] .panel-mainview {
+    max-width: 50em !important;
+}

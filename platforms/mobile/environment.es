@@ -56,9 +56,7 @@ var CLIQZEnvironment = {
       'url',
       'logo',
       'EZ-category',
-      'EZ-history',
       'rd-h3-w-rating',
-      'pattern-h1',
       "local-data-sc"
   ],
   GOOGLE_ENGINE: {name:'Google', url: 'http://www.google.com/search?q='},
@@ -78,38 +76,26 @@ var CLIQZEnvironment = {
     return 'static/brands_database.json'
   },
   // TODO - SHOUD BE MOVED TO A LOGIC MODULE
-  autoComplete: function (val,searchString) {
+  autoComplete: function (val, searchString) {
 
-    if( val && val.length > 0){
+    if(val && val.length > 0) {
       val = val.replace(/http([s]?):\/\/(www.)?/,'');
       val = val.toLowerCase();
-      var urlbarValue = CLIQZEnvironment.lastSearch.toLowerCase();
+      const searchLower = searchString.toLowerCase();
 
-      if( val.indexOf(urlbarValue) === 0 ) {
-        // console.log('jsBridge autocomplete value:'+val,'osAPI1');
+      if(val.startsWith(searchLower)) {
         osAPI.autocomplete(val);
       } else {
-        var ls = storage.getObject('recentQueries', []);
-        for( var i in ls ) {
-          if( ls[i].query.toLowerCase().indexOf(searchString.toLowerCase()) === 0 ) {
-            osAPI.autocomplete(ls[i].query.toLowerCase());
-            break;
+        storage.getObject('recentQueries', []).some(item => {
+          const queryLower = item.query.toLowerCase();
+          if(queryLower !== searchLower && queryLower.startsWith(searchLower)) {
+            osAPI.autocomplete(queryLower);
+            return true;
           }
-        }
+          return false;
+        });
       }
     }
-  },
-  // TODO - SHOUD BE MOVED TO A LOGIC MODULE
-  putHistoryFirst: function(r) {
-    var history = [], backend = [];
-    r._results.forEach(function (res) {
-      if(res.style === 'cliqz-pattern' || res.style === 'favicon') {
-        history.push(res);
-      } else {
-        backend.push(res);
-      }
-    });
-    r._results = history.concat(backend);
   },
   resultsHandler: function (r) {
 
@@ -117,11 +103,10 @@ var CLIQZEnvironment = {
       console.log("u='"+CLIQZEnvironment.lastSearch+"'' s='"+r._searchString+"', returning","urlbar!=search");
       return;
     }
-    CLIQZEnvironment.putHistoryFirst(r);
 
     r._results.splice(CLIQZEnvironment.RESULTS_LIMIT);
 
-    const renderedResults = CLIQZ.UI.renderResults(r);
+    const renderedResults = window.CLIQZ.UI.renderResults(r);
 
     renderedResults[0] && CLIQZEnvironment.autoComplete(renderedResults[0].url, r._searchString);
   },
@@ -130,7 +115,6 @@ var CLIQZEnvironment = {
       // should be moved to UI except 'CLIQZEnvironment.initHomepage(true);'
       CLIQZEnvironment.lastSearch = '';
       CLIQZ.UI.hideResultsBox();
-      window.document.getElementById('startingpoint').style.display = 'block';
       CLIQZEnvironment.initHomepage(true);
       CLIQZ.UI.stopProgressBar();
       CLIQZ.UI.lastResults = null;
@@ -143,9 +127,9 @@ var CLIQZEnvironment = {
 
     CLIQZEnvironment.lastSearch = e;
 
-    News.hideFreshtab();
+    News.sendHideTelemetry();
 
-    CLIQZ.UI.startProgressBar();
+    window.CLIQZ.UI.startProgressBar();
 
 
     // start XHR call ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -309,7 +293,7 @@ var CLIQZEnvironment = {
       var start = document.getElementById('resetState');
       start && (start.style.display = 'none');
     }
-    osAPI.getTopSites('News.startPageHandler', 15);
+    osAPI.getTopSites('onNews', 15);
   },
   setDefaultSearchEngine: function(engine) {
     storage.setObject('defaultSearchEngine', engine);

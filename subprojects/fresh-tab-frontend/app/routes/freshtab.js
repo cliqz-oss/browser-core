@@ -3,9 +3,16 @@ import Ember from "ember";
 export default Ember.Route.extend({
   cliqz: Ember.inject.service(),
   i18n: Ember.inject.service(),
+  messageCenter: Ember.inject.service('message-center'),
+
 
   beforeModel() {
+    const messageCenter = this.get('messageCenter');
+
     return this.get('cliqz').getConfig().then( config => {
+
+      messageCenter.addMessages(config.messages);
+
       this.set('config', config);
       var locale = config.locale,
           defaultLocale = this.get('i18n.locale');
@@ -21,27 +28,24 @@ export default Ember.Route.extend({
 
   model: function() {
     const config = this.get('config');
+
     return Ember.Object.create({
       miniOnboarding: config.miniOnboarding,
       isBrowser: config.isBrowser,
       showHelp: config.showHelp,
       showFeedback: config.showFeedback,
-      showNewBrandAlert: config.showNewBrandAlert
+      showNewBrandAlert: config.showNewBrandAlert,
+      messageCenter: this.get('messageCenter'),
     });
   },
 
   afterModel() {
-    const config = this.get('config');
-
-    if(config.showOnboarding) {
-      Ember.run.later(this.send.bind(this, 'openModal', 'onboarding'), 1000);
-    }
   },
 
   actions: {
 
     toggleBackground() {
-      const $background = $('.optinBackground');
+      const $background = Ember.$('.optinBackground');
 
       if($background.hasClass('transparent')) {
         return;
@@ -67,7 +71,6 @@ export default Ember.Route.extend({
 
     openModal(modalName) {
       if (modalName === "onboarding") {
-        //this.get('cliqz').setCliqzOnboarding();
         this.get('cliqz').sendTelemetry({
           type: "onboarding",
           product: "cliqz",

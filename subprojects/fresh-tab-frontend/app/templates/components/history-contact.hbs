@@ -1,7 +1,5 @@
 <div class="status"></div>
-<span class="logo" style="{{{model.logo.style}}}">
-  {{model.logo.text}}
-</span>
+{{cliqz-logo model=model.logo tagName="span"}}
 <h2>{{model.domain}}</h2>
 <p>
   {{moment-from-now model.lastVisitedAt interval=1000}}

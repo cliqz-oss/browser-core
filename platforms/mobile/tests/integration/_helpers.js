@@ -11,7 +11,7 @@ function cliqzResponse(query, results) {
 
   fakeServer.respondWith(
     "GET",
-    new RegExp("^https:\/\/newbeta.cliqz.com\/api\/v2\/results\\?q="+encodeURIComponent(query)),
+    new RegExp(".*api\/v2\/results.*"),
     [ 200, { "Content-Type": "application/json" }, results ]
   );
 }
@@ -61,7 +61,7 @@ function newsResponse(articles) {
 
   fakeServer.respondWith(
     "PUT",
-    new RegExp(".*path=\/v2\/map.*"),
+    new RegExp(".*api\/v2\/rich-header.*"),
     [ 200, { "Content-Type": "application/json" }, response ]
   );
 }

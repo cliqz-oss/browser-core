@@ -66,3 +66,12 @@ export function generatePayload(data, ts, instant, attachAttrs) {
     }
     return payl;
 }
+
+export function cleanTimestampCache(cacheObj, timeout, currTime) {
+  const keys = Object.keys(cacheObj)
+  keys.forEach(function(k) {
+    if (currTime - cacheObj[k] || 0 > timeout) {
+      delete cacheObj[k];
+    }
+  });
+}

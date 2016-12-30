@@ -32,6 +32,7 @@ export default describeModule('adblocker/filters-engine',
     'core/cliqz': {
       utils: {},
     },
+    'platform/public-suffix-list': {},
   }),
   () => {
     describe('Test cosmetic engine', () => {
@@ -41,6 +42,7 @@ export default describeModule('adblocker/filters-engine',
       let engine = null;
       const cosmeticsPath = 'modules/adblocker/tests/unit/data/cosmetics.txt';
       const cosmeticMatches = 'modules/adblocker/tests/unit/data/cosmetics_matching.txt';
+      const domainMatches = 'modules/adblocker/tests/unit/data/domain_matching.txt';
 
       beforeEach(function initializeCosmeticEngine() {
         this.timeout(10000);
@@ -50,23 +52,34 @@ export default describeModule('adblocker/filters-engine',
 
         if (engine === null) {
           engine = new FilterEngine();
-          engine.onUpdateFilters([{ filters: loadLinesFromFile(cosmeticsPath) }]);
+          const filters = loadLinesFromFile(cosmeticsPath);
+
+          // Try update mechanism of filter engine
+          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 1 }]);
+          engine.onUpdateFilters([{ filters, asset: 'list2', checksum: 1 }]);
+          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 2 }]);
+          engine.onUpdateFilters([{ filters: [], asset: 'list2', checksum: 2 }]);
 
           // Serialize and deserialize engine
-          const serialized = serializeEngine(engine);
+          const serialized = JSON.stringify(serializeEngine(engine, true));
           engine = new FilterEngine();
-          deserializeEngine(engine, serialized);
+          deserializeEngine(engine, JSON.parse(serialized, true));
+
+          // Try to update after deserialization
+          engine.onUpdateFilters([{ filters, asset: 'list3', checksum: 1 }]);
+          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 3 }]);
+          engine.onUpdateFilters([{ filters: [], asset: 'list3', checksum: 2 }]);
         }
       });
 
-      loadTestCases(cosmeticMatches).forEach(testCase => {
+      loadTestCases(cosmeticMatches).forEach((testCase) => {
         it(`matches url: ${testCase.url}`,
             () => new Promise((resolve, reject) => {
               const shouldMatch = new Set(testCase.matches);
               const shouldNotMatch = new Set(testCase.misMatches);
               const rules = engine.getCosmeticsFilters(testCase.url, [testCase.node]);
               chai.expect(shouldMatch.size).to.equal(rules.length);
-              rules.forEach(rule => {
+              rules.forEach((rule) => {
                 if (!shouldMatch.has(rule.rawLine)) {
                   reject(`Expected node ${testCase.url} + ` +
                          `${JSON.stringify(testCase.node)}` +
@@ -75,6 +88,28 @@ export default describeModule('adblocker/filters-engine',
                 if (shouldNotMatch.has(rule.rawLine)) {
                   reject(`Expected node ${testCase.url} + ` +
                          `${JSON.stringify(testCase.node)}` +
+                         ` not to match ${rule.rawLine}`);
+                }
+              });
+              resolve();
+            })
+        );
+      });
+
+      loadTestCases(domainMatches).forEach((testCase) => {
+        it(`matches url: ${testCase.url}`,
+            () => new Promise((resolve, reject) => {
+              const shouldMatch = new Set(testCase.matches);
+              const shouldNotMatch = new Set(testCase.misMatches);
+              const rules = engine.getDomainFilters(testCase.url);
+              chai.expect(shouldMatch.size).to.equal(rules.length);
+              rules.forEach((rule) => {
+                if (!shouldMatch.has(rule.rawLine)) {
+                  reject(`Expected node ${testCase.url} ` +
+                         ` to match ${rule.rawLine}`);
+                }
+                if (shouldNotMatch.has(rule.rawLine)) {
+                  reject(`Expected node ${testCase.url} ` +
                          ` not to match ${rule.rawLine}`);
                 }
               });

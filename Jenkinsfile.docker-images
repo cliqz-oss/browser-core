@@ -1,0 +1,59 @@
+#!/bin/env groovy
+
+
+node('ubuntu && docker && !gpu') {
+
+  stage('checkout') {
+    checkout scm
+  }
+
+  helpers = load 'build-helpers.groovy'
+
+  // authorize docker deamon to access registry
+  sh "`aws ecr get-login --region=$AWS_REGION`"
+
+  docker.withRegistry(DOCKER_REGISTRY_URL) {
+
+    stage('base image') {
+      def app = docker.build(
+        'navigation-extension/base',
+        "--build-arg UID=1000 --build-arg GID=1000 ."
+      )
+
+      app.push 'latest'
+    }
+
+    stage('testem image') {
+      def app = docker.build(
+        'navigation-extension/testem',
+        "--build-arg UID=1000 --build-arg GID=1000 -f Dockerfile.testem ."
+      )
+
+      app.push 'latest'
+    }
+
+    stage('firefox images') {
+      firefoxVersions = helpers.firefoxVersions
+
+      for (int i = 0; i < firefoxVersions.size(); i++) {
+        def entry = firefoxVersions.get(i)
+        def version = entry[0]
+        def url = entry[1]
+
+        def app = docker.build(
+          'navigation-extension/firefox',
+          [
+            '--build-arg UID=1000',
+            '--build-arg GID=1000',
+            "--build-arg URL=$url",
+            '-f Dockerfile.firefox',
+            '.',
+          ].join(' ')
+        )
+
+        app.push "$version-latest"
+      }
+    }
+  }
+
+}

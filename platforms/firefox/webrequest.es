@@ -2,6 +2,7 @@ import { HttpRequestContext } from 'platform/antitracking/http-request-context';
 import { ChannelListener } from 'platform/antitracking/channel-listener';
 import { utils } from 'core/cliqz';
 import console from 'core/console';
+import * as tabListener from 'platform/antitracking/tab-listener';
 
 Cu.import("resource://gre/modules/Services.jsm");
 
@@ -47,18 +48,21 @@ var observer = {
       const {fn, filter, extraInfo} = listener;
       const blockingResponse = fn(requestInfo);
 
-      if (extraInfo && extraInfo.indexOf('blocking') > -1 && blockingResponse) {
-
-        if ( blockingResponse.cancel === true ) {
-          subject.cancel(Components.results.NS_BINDING_ABORTED);
-          return;
-        }
+      if (extraInfo && extraInfo.indexOf('requestHeaders') > -1 && blockingResponse) {
 
         if ( blockingResponse.requestHeaders ) {
           // channel listener for post redirect?
           blockingResponse.requestHeaders.forEach((h) => {
             aChannel.setRequestHeader(h.name, h.value, false);
           });
+        }
+      }
+
+      if (extraInfo && extraInfo.indexOf('blocking') > -1 && blockingResponse) {
+
+        if ( blockingResponse.cancel === true ) {
+          subject.cancel(Components.results.NS_BINDING_ABORTED);
+          return;
         }
 
         if ( blockingResponse.redirectUrl ) {
@@ -71,6 +75,15 @@ var observer = {
           if ( blockingResponse.requestHeaders ) {
             aChannel.notificationCallbacks = new ChannelListener(blockingResponse.requestHeaders);
           }
+        }
+      }
+
+      if (extraInfo && extraInfo.indexOf('responseHeaders') > -1 && blockingResponse) {
+
+        if (blockingResponse.responseHeaders) {
+          blockingResponse.responseHeaders.forEach((h) => {
+            aChannel.setResponseHeader(h.name, h.value, false);
+          });
         }
       }
     }
@@ -124,6 +137,7 @@ var httpContextManager = {
   notifyAdd: function() {
     if ( this.listenerCtr === 0 ) {
       HttpRequestContext.initCleaner();
+      tabListener.init();
     }
     this.listenerCtr++;
   },
@@ -131,6 +145,7 @@ var httpContextManager = {
     this.listenerCtr--;
     if ( this.listenerCtr === 0 ) {
       HttpRequestContext.unloadCleaner();
+      tabListener.unload();
     }
   }
 }

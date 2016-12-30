@@ -6,17 +6,22 @@
 
 import DelayedImageLoader from 'mobile-ui/DelayedImageLoader';
 import { window, document } from 'mobile-ui/webview';
+import utils from 'core/utils';
+import ViewPager from 'viewpager';
 
 var resultsBox = null,
-    viewPager = null,
+    freshtabDiv = window.document.getElementById('startingpoint'),
+    incognitoDiv = window.document.getElementById('incognito'),
     currentResults = null,
     imgLoader = null,
     progressBarInterval = null,
     PEEK = 25,
     currentResultsCount = 0,
+    viewPager = null,
     FRAME = 'frame';
 
 var UI = {
+    isIncognito: false,
     currentPage: 0,
     lastResults: null,
     CARD_WIDTH: 0,
@@ -25,6 +30,7 @@ var UI = {
     DelayedImageLoader: null,
     VIEWS: {},
     init: function () {
+
         let box = document.getElementById('results');
         box.innerHTML = CLIQZ.templates.main();
 
@@ -60,7 +66,18 @@ var UI = {
       return renderedResults;
     },
     setTheme: function (incognito = false) {
+      UI.isIncognito = incognito;
       window.document.body.style.backgroundColor = incognito ? '#4a4a4a' : '#E8E8E8';
+      if (!UI.isSearch()) {
+        if (incognito) {
+          incognitoDiv.innerHTML = utils.getLocalizedString('mobile_incognito');
+          freshtabDiv.style.display = 'none';
+          incognitoDiv.style.display = 'block';
+        } else {
+          freshtabDiv.style.display = 'block';
+          incognitoDiv.style.display = 'none';
+        }
+      }
     },
     setMobileBasedUrls: function  (o) {
       if (!o) return;
@@ -175,7 +192,12 @@ var UI = {
         });
     },
     hideResultsBox: function () {
-          resultsBox.style.display = 'none';
+      if (UI.isIncognito) {
+        incognitoDiv.style.display = 'block';
+      } else {
+        freshtabDiv.style.display = 'block';
+      }
+      resultsBox.style.display = 'none';
     },
     updateSearchCard: function (engine) {
       var engineDiv = document.getElementById('defaultEngine');
@@ -209,7 +231,7 @@ var UI = {
       document.getElementById('progress').style.width = '0px';
     },
     isSearch: function () {
-      return resultsBox && resultsBox.style.display === 'block';
+      return Boolean(UI.lastResults);
     }
 };
 
@@ -221,16 +243,15 @@ function setCardCountPerPage(windowWidth) {
 
 function redrawDropdown(newHTML) {
     resultsBox.style.display = 'block';
+    freshtabDiv.style.display = 'none';
+    incognitoDiv.style.display = 'none';
 
     resultsBox.innerHTML = newHTML;
 }
 
 function getVertical(result) {
-  // if history records are less than 3 it goes to generic
   let template;
-  if (result.template === 'pattern-h3') {
-    template = 'history';
-  } else if(CliqzUtils.TEMPLATES[result.template]) {
+  if (CliqzUtils.TEMPLATES[result.template]) {
     template = result.template;
   } else {
     template = 'generic';
@@ -240,28 +261,35 @@ function getVertical(result) {
 }
 
 function enhanceResults(results) {
+
   let enhancedResults = [];
-  results.forEach((r, index) => {
-    const _tmp = getDebugMsg(r.comment || '');
+  let filteredResults = results.filter(function (r) { return !(r.data && r.data.extra && r.data.extra.adult); });
+
+  filteredResults.forEach((r, index) => {
     const url = r.val || '';
-    const urlDetails = CliqzUtils.getDetailsFromUrl(url);
+    const urlDetails = url && CliqzUtils.getDetailsFromUrl(url);
+    const logo = urlDetails && CliqzUtils.getLogoDetails(urlDetails);
+    const kind = r.data.kind[0];
+    let historyStyle = '';
+    if (kind === 'H' || kind === 'C') {
+      historyStyle = 'history';
+    }
+
     enhancedResults.push(enhanceSpecificResult({
       query: r.query,
       type: r.style,
       left: (UI.CARD_WIDTH * index),
       data: r.data || {},
       template: (r.data || {}).template,
+      historyStyle,
       url,
       urlDetails,
-      logo: CliqzUtils.getLogoDetails(urlDetails),
-      title: _tmp[0],
-      debug: _tmp[1]
+      logo,
+      title: r.title,
     }));
   });
 
-  let filteredResults = enhancedResults.filter(function (r) { return !(r.data && r.data.extra && r.data.extra.adult); });
-
-  return filteredResults;
+  return enhancedResults;
 }
 
 function enhanceSpecificResult(r) {

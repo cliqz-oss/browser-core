@@ -90,8 +90,8 @@ export default class extends UpdateCallbackHandler {
     this.allowedListsLoader = new ResourceLoader(
       RESOURCES_PATH.concat('checksums'),
       {
-        cron: ONE_HOUR,
-        updateInterval: 10 * ONE_MINUTE,
+        cron: 24 * ONE_HOUR,
+        updateInterval: 15 * ONE_MINUTE,
         dataType: 'json',
         remoteURL: this.remoteURL(),
       }
@@ -115,7 +115,7 @@ export default class extends UpdateCallbackHandler {
   }
 
   update() {
-    return this.loader.updateFromRemote();
+    return this.allowedListsLoader.updateFromRemote();
   }
 
   // Private API

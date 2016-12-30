@@ -82,9 +82,7 @@ export default class {
   updateCache() {
     return this.updateFunction(this.parseDataFromCache())
       .then(this.putDataToCache.bind(this))
-      .catch((e) => {
-        log(`Error "${e}", cache ${this.cacheName} is not updated. ("${e.stack}")`);
-      });
+      .catch((e) => log(`Error "${e}", cache ${this.cacheName} is not updated.`));
   }
 
   getData() {

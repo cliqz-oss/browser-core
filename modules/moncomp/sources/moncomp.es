@@ -1,4 +1,3 @@
-import core from 'core/background';
 import { utils } from 'core/cliqz';
 
 Components.utils.import('resource://gre/modules/Services.jsm');

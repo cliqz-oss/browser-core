@@ -1,8 +1,6 @@
 <div class="status"></div>
 <div class="item" {{action "open"}}>
-  <span class="logo" style="{{{contact.logo.style}}}">
-    {{contact.logo.text}}
-  </span>
+  {{cliqz-logo model=contact.logo tagName="span"}}
   <h2>
     {{contact.domain}}
     {{#if showTime}}

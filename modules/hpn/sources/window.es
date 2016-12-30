@@ -1,4 +1,4 @@
-import { utils } from "core/cliqz";
+import { utils } from 'core/cliqz';
 import background from 'hpn/background';
 
 const prefKey = 'hpn-query', // 0 - enable, 1 - disable
@@ -11,20 +11,20 @@ export default class {
   }
 
   init() {
-  	if(background.CliqzSecureMessage){
-  		background.CliqzSecureMessage.initAtWindow(this.window);
-  	}
+    if (background.CliqzSecureMessage) {
+      background.CliqzSecureMessage.initAtWindow(this.window);
+    }
   }
 
   unload() {
   }
 
   status() {
-    if(background.CliqzSecureMessage && !CliqzUtils.getPref("cliqz_core_disabled", false)){
+    if (background.CliqzSecureMessage && !CliqzUtils.getPref('cliqz_core_disabled', false)) {
       return {
         visible: true,
         state: utils.getPref(prefKey)
-      }
+      };
     }
   }
-};
+}

@@ -4,6 +4,7 @@ RUN npm install -g \
   bower \
   broccoli-cli \
   ember-cli \
+  phantomjs \
   yuidocjs
 
 RUN apt-get update && \

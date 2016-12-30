@@ -29192,3 +29192,5 @@ pornwikileaks.com##td[width="43"]
 tube8.com##topadblock
 accounts.google.com#@#.adwords
 www.google.com#@##videoads
+bild.de##script:contains(/^s*de.bild.cmsKonfig/)
+bild.de#@#script:contains(/^s*de.bild.cmsKonfig/)

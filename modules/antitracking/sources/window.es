@@ -91,7 +91,7 @@ export default class {
         ps = info.ps,
         hostname = URLInfo.get(this.window.gBrowser.currentURI.spec).hostname,
         isWhitelisted = CliqzAttrack.isSourceWhitelisted(hostname),
-        enabled = utils.getPref('antiTrackTest', true) && !isWhitelisted;
+        enabled = utils.getPref('modules.antitracking.enabled', true) && !isWhitelisted;
 
     return {
       visible: true,

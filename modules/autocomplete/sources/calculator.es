@@ -6,16 +6,8 @@
 import { utils } from "core/cliqz";
 import Result from "autocomplete/result";
 import { isFirefox } from "core/platform";
+import mathLib from 'math';
 
-let mathLib;
-
-if (isFirefox) {
-  const global = {};
-  Services.scriptloader.loadSubScript('chrome://cliqz/content/bower_components/mathjs/dist/math.min.js', global);
-  mathLib = global.math;
-} else {
-  mathLib = window.math;
-}
 
 // REF:
 //      http://mathjs.org/docs/index.html

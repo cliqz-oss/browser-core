@@ -8,6 +8,7 @@
     "iscroll": "^5.2.0",
     "ember-qunit-notifications": "0.1.0",
     "hammer.js": "2.0.6",
-    "hammer-time": "1.0.0"
+    "hammer-time": "1.0.0",
+    "ember-mocha-adapter": "~0.3.1"
   }
 }

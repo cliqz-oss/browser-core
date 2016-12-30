@@ -1,14 +1,17 @@
 import CliqzEvents from "core/events";
 import CliqzBloomFilter from "human-web/bloom-filter";
-import core from "core/background";
 import { utils } from "core/cliqz";
 import md5 from "core/helpers/md5";
 import ResourceLoader from 'core/resource-loader';
+import { queryActiveTabs } from 'core/tabs';
+import { forEachWindow } from 'platform/browser';
 
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/FileUtils.jsm");
 
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
+const dnsService = Components.classes["@mozilla.org/network/dns-service;1"]
+  .createInstance(Components.interfaces.nsIDNSService);
 
 var nsIAO = Components.interfaces.nsIHttpActivityObserver;
 var nsIHttpChannel = Components.interfaces.nsIHttpChannel;
@@ -38,8 +41,12 @@ function getRandomIntInclusive(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function getHTML(...args) {
+  return utils.callAction('core', 'getHTML', args);
+}
+
 var CliqzHumanWeb = {
-    VERSION: '2.2',
+    VERSION: '2.3',
     WAIT_TIME: 2000,
     LOG_KEY: 'humanweb',
     debug: false,
@@ -105,27 +112,15 @@ var CliqzHumanWeb = {
     _md5: function(str) {
         return md5(str);
     },
-    parseUri: function (str) {
-        //var o   = parseUri.options,
-        var m = null;
-        var _uri = null;
-        var i = null;
-        var m   = CliqzHumanWeb.parser[CliqzHumanWeb.strictMode ? "strict" : "loose"].exec(str);
-        var _uri = {};
-        var i   = 14;
-
-        while (i--) _uri[CliqzHumanWeb.key[i]] = m[i] || "";
-
-        _uri[CliqzHumanWeb.q.name] = {};
-        _uri[CliqzHumanWeb.key[12]].replace(CliqzHumanWeb.q.parser, function ($0, $1, $2) { if ($1) { _uri[CliqzHumanWeb.q.name][$1] = $2; }});
-        return _uri;
-    },
     maskURL: function(url){
         var url_parts = null;
         var masked_url = null;
         // Fix
         // url_parts = CliqzHumanWeb.parseUri(url);
         url_parts = CliqzHumanWeb.parseURL(url);
+
+        // TO BE FIXED
+        if (!url_parts) return '';
 
         // Fix
         if (CliqzHumanWeb.dropLongURL(url)) {
@@ -148,6 +143,8 @@ var CliqzHumanWeb = {
     isShortenerURL: function(url) {
         try {
             var url_parts = CliqzHumanWeb.parseURL(url);
+            if (!url_parts) return true;
+
             if ((url_parts.hostname.length < 8) && (url_parts.path.length > 4)) {
                 var v = url_parts.path.split('/')
                 for(var i=0;i<v.length;i++) if (CliqzHumanWeb.isHash(v[i])) return true;
@@ -183,6 +180,9 @@ var CliqzHumanWeb = {
             var url_parts = {};
             url_parts = CliqzHumanWeb.parseURL(aURI);
 
+            if (!url_parts) return true;
+
+            _log(JSON.stringify(url_parts));
             if (aURI.indexOf('about:') == 0) return true;
 
             if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(url_parts.hostname)) {
@@ -232,6 +232,8 @@ var CliqzHumanWeb = {
             var can_url_parts = CliqzHumanWeb.parseURL(page_doc['x']['canonical_url']);
             var url_parts = CliqzHumanWeb.parseURL(url);
 
+            if (!url_parts || !can_url_parts) return true;
+
             if (url_parts.hostname!=null && url_parts.hostname!='' && url_parts.hostname==can_url_parts.hostname) {
                 // both canonical and url have a hostname and is the same,
 
@@ -252,6 +254,7 @@ var CliqzHumanWeb = {
             if (CliqzHumanWeb.checkForEmail(url)) return true;
 
             var url_parts = CliqzHumanWeb.parseURL(url);
+            if (!url_parts) return true;
 
             if (options.strict == true) {
                 if (url_parts.query_string && url_parts.query_string.length > CliqzHumanWeb.qs_len*0.75) return true;
@@ -634,9 +637,6 @@ var CliqzHumanWeb = {
         //req.withCredentials = false;
         //req.setRequestHeader("Authorization", "true");
 
-        // CliqzHumanWeb.auxGetPageData('http://github.com/cliqz/navigation-extension/', function(x) {console.log(x);}, function(y) {})
-        // CliqzHumanWeb.auxGetPageData('https://www.google.de/?gfe_rd=cr&ei=zk_bVNiXIMGo8wfwkYHwBQ&gws_rd=ssl', function(x) {console.log(x);}, function(y) {})
-
         req.onload = function(){
 
             if (req.status != 200 && req.status != 0 /* local files */){
@@ -712,8 +712,6 @@ var CliqzHumanWeb = {
         // compares the structure of the page when rendered in Firefox with the structure of
         // the page after.
 
-
-
         _log("xbef: " + JSON.stringify(struct_bef));
         _log("xaft: " + JSON.stringify(struct_aft));
 
@@ -736,6 +734,24 @@ var CliqzHumanWeb = {
             return false;
         }
 
+        // check that there are not different number of frames (or iframes) with an internal
+        // link on the two different loads (with and with session), if so, the frame (iframe)
+        // might contain a password field. Cannot afford to fetch all iframes on page. Only
+        // internal are considered, externals are likely to vary a lot due to advertisement.
+        //
+
+        /*
+        Adding key to check how many pages will we loose if frame check is turned on
+        if (struct_bef['nfsh']==null || struct_aft['nfsh']==null || struct_bef['nfsh']!=struct_aft['nfsh']) {
+            _log("fovalidDoubleFetch: number of internal frames does not match");
+            return false;
+        }
+
+        if (struct_bef['nifsh']==null || struct_aft['nifsh']==null || struct_bef['nifsh']!=struct_aft['nifsh']) {
+            _log("fovalidDoubleFetch: number of internal iframes does not match");
+            return false;
+        }
+        */
         if (struct_bef['canonical_url'] != struct_aft['canonical_url']) {
             // if canonicals are different, in principle are different pages,
 
@@ -873,6 +889,7 @@ var CliqzHumanWeb = {
         // check first if there is a query string,
 
         var url_parts = CliqzHumanWeb.parseURL(url);
+        if (!url_parts) return null;
 
         if (url_parts && url_parts.query_string && url_parts.query_string != '') {
             // it has a query string, either by ? # or ;
@@ -987,6 +1004,24 @@ var CliqzHumanWeb = {
                 _log("success on doubleFetch, need further validation" + url);
 
                 if (CliqzHumanWeb.validDoubleFetch(page_doc['x'], data, {'structure_strict': false})) {
+
+
+                    //
+                    // If the double fetch is validated, we will now check for the iFrame and frameSets
+                    // Since we only need the telemetry for now, this seems to be the right place
+                    // we need to inject the page structure. The final event will have an extra key
+                    // nifshmatch : true / false , nfshmatch: true / false.,
+                    // nifshbf : Iframe count in struct_bef, nifshbf : framsetcount in before.
+                    // This key is added to both page_doc and data.
+                    //
+
+                    let nifshmatch = CliqzHumanWeb.validFrameCount(page_doc['x'], data);
+                    let nfshmatch = CliqzHumanWeb.validFrameSetCount(page_doc['x'], data);
+
+                    data.nifshmatch = nifshmatch;
+                    data.nfshmatch = nfshmatch;
+                    data.nifshbf = page_doc.x.nifsh;
+                    data.nfshbf = page_doc.x.nifsh;
 
                     //
                     // url, we should have the data of the double for the referral in CliqzHumanWeb.docCache
@@ -1193,8 +1228,12 @@ var CliqzHumanWeb = {
 
             var target_url_no_protocol = target_url.replace(/^http(s?)\:\/\//, '');
             var target_url_relative = null;
-            var source_hostname = CliqzHumanWeb.parseURL(source_url).hostname;
-            var target_hostname = CliqzHumanWeb.parseURL(target_url).hostname;
+            try {
+                var source_hostname = CliqzHumanWeb.parseURL(source_url).hostname;
+                var target_hostname = CliqzHumanWeb.parseURL(target_url).hostname;
+            } catch(ee) {
+                return false;
+            }
 
             if (source_hostname == target_hostname) {
                 // same domain, path could be relative
@@ -1257,8 +1296,8 @@ var CliqzHumanWeb = {
         var url = cd.location.href;
         var doorwayURL = cd.getElementsByTagName('a')[0].href;
         try {var location = CliqzUtils.getPref('config_location', null)} catch(ee){};
-        var orignalDomain = CliqzHumanWeb.parseUri(url).host;
-        var dDomain = CliqzHumanWeb.parseUri(doorwayURL).host;
+        var orignalDomain = CliqzHumanWeb.parseURL(url).hostname;
+        var dDomain = CliqzHumanWeb.parseURL(doorwayURL).hostname;
         if(orignalDomain == dDomain) return;
         payload = {"url":url, "durl":doorwayURL,"ctry": location};
         CliqzHumanWeb.telemetry({'type': CliqzHumanWeb.msgType, 'action': 'doorwaypage', 'payload': payload});
@@ -1273,6 +1312,9 @@ var CliqzHumanWeb = {
         var inputs = null;
         var inputs_nh = null;
         var inputs_pwd = null;
+        var frames_same_host = null;
+        var iframes_same_host = null;
+        var frames = null;
         var forms = null;
         var pg_l = null;
         var metas = null;
@@ -1280,6 +1322,15 @@ var CliqzHumanWeb = {
         var iall = true;
         var all = null;
         var canonical_url = null;
+
+        var url_host = null;
+        var frame_host = null;
+
+        try {
+            url_host = CliqzHumanWeb.parseURL(url).hostname;
+        } catch(ee) {
+            url_host = null;
+        }
 
         try { len_html = cd.documentElement.innerHTML.length; } catch(ee) {}
         try { len_text = cd.documentElement.textContent.length; } catch(ee) {}
@@ -1297,13 +1348,54 @@ var CliqzHumanWeb = {
             }
         } catch(ee) {}
 
+
+        try {
+            frames = cd.getElementsByTagName('frame') || [];
+            frames_same_host = 0;
+            for(var i=0;i<frames.length;i++) {
+                if (frames[i]['src']) {
+                    var tsrc = frames[i]['src'];
+                    if (frames[i]['src'].startsWith('//')) tsrc = 'http:' + frames[i]['src'];
+                    try {
+                        frame_host = CliqzHumanWeb.parseURL(tsrc).hostname;
+                        if (frame_host===url_host || frame_host=='browser') frames_same_host++;
+                    } catch(ee) {
+                        frames_same_host++;
+                    }
+                }
+            }
+        }
+        catch(ee) {}
+
+        try {
+            frames = cd.getElementsByTagName('iframe') || [];
+            iframes_same_host = 0;
+            for(var i=0;i<frames.length;i++) {
+                if (frames[i]['src']) {
+                    var tsrc = frames[i]['src'];
+                    if (frames[i]['src'].startsWith('//')) tsrc = 'http:' + frames[i]['src'];
+                    try {
+                        frame_host = CliqzHumanWeb.parseURL(tsrc).hostname;
+                        if (frame_host===url_host || frame_host=='browser') iframes_same_host++;
+                    } catch(ee) {
+                        iframes_same_host++;
+                    }
+                }
+            }
+        }
+        catch(ee) {}
+
+
+
         try { forms = cd.getElementsByTagName('form'); } catch(ee) {}
 
         //Detect doorway pages
         // TBF : Need to make detecting of doorway page more strong. Currently lot of noise getting through.
+        /*
         if(numlinks == 1 && cd.location){
             CliqzHumanWeb.eventDoorWayPage(cd);
         }
+        */
 
         var metas = cd.getElementsByTagName('meta');
 
@@ -1323,7 +1415,7 @@ var CliqzHumanWeb = {
         // extract if indexable, no noindex on robots meta tag
         try {
             for (let i=0;i<metas.length;i++) {
-                var cnt = metas[i].getAttribute('content');
+                var cnt = metas[i].getAttribute('content').toLowerCase();
                 if (cnt!=null && cnt.indexOf('noindex') > -1) {
                     iall = false;
                 }
@@ -1347,18 +1439,19 @@ var CliqzHumanWeb = {
         if (canonical_url != null && canonical_url.length > 0) {
             // check that is not relative
             if (canonical_url[0] == '/') {
-                var ourl = CliqzHumanWeb.parseURL(url);
-                // ignore if httpauth or if non standard port
-                canonical_url = ourl['protocol'] + '://' + ourl['hostname'] + canonical_url;
+                try {
+                    var ourl = CliqzHumanWeb.parseURL(url);
+                    // ignore if httpauth or if non standard port
+                    canonical_url = ourl['protocol'] + '://' + ourl['hostname'] + canonical_url;
+                } catch(ee) {}
             }
         }
 
         // extract the location of the user (country level)
         try {var location = CliqzUtils.getPref('config_location', null)} catch(ee){}
 
+        var x = {'lh': len_html, 'lt': len_text, 't': title, 'nl': numlinks, 'ni': (inputs || []).length, 'ninh': inputs_nh, 'nip': inputs_pwd, 'nf': (forms || []).length, 'pagel' : pg_l , 'ctry' : location, 'iall': iall, 'canonical_url': canonical_url, 'nfsh': frames_same_host, 'nifsh': iframes_same_host};
 
-        var x = {'lh': len_html, 'lt': len_text, 't': title, 'nl': numlinks, 'ni': (inputs || []).length, 'ninh': inputs_nh, 'nip': inputs_pwd, 'nf': (forms || []).length, 'pagel' : pg_l , 'ctry' : location, 'iall': iall, 'canonical_url': canonical_url };
-        //_log("Testing" + x.ctry);
         return x;
     },
     getHTML(url) {
@@ -1369,7 +1462,7 @@ var CliqzHumanWeb = {
       ];
 
       function getDoc(url) {
-        return core.getHTML(url).then( docs => {
+        return getHTML(url).then( docs => {
           const doc = docs[0];
           if (doc) {
             return doc;
@@ -1556,14 +1649,16 @@ var CliqzHumanWeb = {
 
                             let anonSe = CliqzHumanWeb.checkAnonSearchURL(url);
                             if(anonSe > -1){
-                                let hostName = CliqzHumanWeb.parseURL(url)['hostname'];
-                                let qurl = "https://" + hostName + "/search?q=" + CliqzHumanWeb.searchCache[se]['q'];
-                                let qObj = {};
-                                qObj['qurl'] = qurl;
-                                qObj['ts'] = Date.now();
-                                qObj['tDiff'] = getRandomIntInclusive(1, 20);
-                                CliqzHumanWeb.strictQueries.push(qObj);
-                                CliqzHumanWeb.saveStrictQueries();
+                                try {
+                                    let hostName = CliqzHumanWeb.parseURL(url)['hostname'];
+                                    let qurl = "https://" + hostName + "/search?q=" + CliqzHumanWeb.searchCache[se]['q'];
+                                    let qObj = {};
+                                    qObj['qurl'] = qurl;
+                                    qObj['ts'] = Date.now();
+                                    qObj['tDiff'] = getRandomIntInclusive(1, 20);
+                                    CliqzHumanWeb.strictQueries.push(qObj);
+                                    CliqzHumanWeb.saveStrictQueries();
+                                } catch(ee) {}
                             }
 
                           });
@@ -1625,7 +1720,11 @@ var CliqzHumanWeb = {
                                 delete CliqzHumanWeb.state['v'][activeURL]['qr'];
                             }
                             else if(CliqzHumanWeb.state['v'][activeURL]['qr']['d'] == 2){
-                                if(CliqzHumanWeb.parseURL(activeURL)['hostname'] != CliqzHumanWeb.parseURL(referral)['hostname']){
+                                try {
+                                    if(CliqzHumanWeb.parseURL(activeURL)['hostname'] != CliqzHumanWeb.parseURL(referral)['hostname']){
+                                        delete CliqzHumanWeb.state['v'][activeURL]['qr'];
+                                    }
+                                } catch(ee) {
                                     delete CliqzHumanWeb.state['v'][activeURL]['qr'];
                                 }
                             }
@@ -2121,6 +2220,23 @@ var CliqzHumanWeb = {
     lastActive: null,
     lastActiveAll: null,
     getAllOpenPages: function() {
+        const urls = [];
+        try {
+            forEachWindow(win => {
+                const openTabs = queryActiveTabs(win);
+                openTabs.forEach(data => {
+                    const url = data.url;
+                    if (url && urls.indexOf(url) === -1 && url.startsWith('about:') === false) {
+                        urls.push(decodeURIComponent(url));
+                    }
+                });
+            });
+        } catch (ee) {
+         // do nothing, return empty set
+        }
+        return urls;
+
+        /*
         var res = [];
         try {
             var enumerator = Services.wm.getEnumerator('navigator:browser');
@@ -2144,6 +2260,7 @@ var CliqzHumanWeb = {
         catch(ee) {
             return [];
         }
+        */
     },
     init: function(window) {
         if(CliqzUtils.getPref("dnt", false)) return;
@@ -2247,11 +2364,9 @@ var CliqzHumanWeb = {
 
         try {msg.ts = CliqzUtils.getPref('config_ts', null)} catch(ee){};
 
-
         if(!msg.ts || msg.ts == ''){
             return null;
         }
-
 
         // Adding anti-duplicate key, so to detect duplicate messages on the backend.
         msg['anti-duplicates'] = Math.floor(Math.random() * 10000000);
@@ -2290,6 +2405,19 @@ var CliqzHumanWeb = {
                         }
                     }
                 })
+            }
+
+            // Remove continuations if not in the same domain for extra safety,
+            if(msg.payload.c) {
+                var cleanCont = [];
+                try {
+                    var mainDom = CliqzHumanWeb.parseURL(msg.payload.url).hostname;
+                    msg.payload.c.forEach(function(e){
+                        if (CliqzHumanWeb.parseURL(e.l).hostname == mainDom) cleanCont.push(e);
+                    });
+                } catch(ee) {};
+
+                msg.payload.c = cleanCont;
             }
 
             // Check for title.
@@ -2387,6 +2515,13 @@ var CliqzHumanWeb = {
           }
         }
 
+        // Check if qr.q is suspicious.
+        if(msg.payload.qr){
+          if (CliqzHumanWeb.isSuspiciousQuery(msg.payload.qr.q)) {
+            delete msg.payload.qr;
+          }
+        }
+
         //Check for doorway action durl
         if(msg.action=='doorwaypage') {
             if((CliqzHumanWeb.isSuspiciousURL(msg.payload['durl'])) || (CliqzHumanWeb.isSuspiciousURL(msg.payload['url']))){
@@ -2406,47 +2541,11 @@ var CliqzHumanWeb = {
                 return null;
             }
             else {
-                //Remove the msg if the query is too long,
-                if (msg.payload.q.length > 50) return null;
-                if (msg.payload.q.split(' ').length > 7) return null;
-
-                // Remove the msg if the query contains a number longer than 7 digits
-                // can be 666666 but also things like (090)90-2, 5555 3235
-                // note that full dates will be removed 2014/12/12
-                //
-                var haslongnumber = CliqzHumanWeb.checkForLongNumber(msg.payload.q, 7);
-                if (haslongnumber!=null) return null;
-
-
-                //Remove if email (exact), even if not totally well formed
-                if (CliqzHumanWeb.checkForEmail(msg.payload.q)) return null;
-                //Remove if query looks like an http pass
-                if (/[^:]+:[^@]+@/.test(msg.payload.q)) return null;
-                //Remove if email
-                if (/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(msg.payload.q)) return null;
-
-                var v = msg.payload.q.split(' ');
-                for(let i=0;i<v.length;i++) {
-                    if (v[i].length > 20) return null;
-                    if (/[^:]+:[^@]+@/.test(v[i])) return null;
-                    if (/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v[i])) return null;
+                if (CliqzHumanWeb.isSuspiciousQuery(msg.payload.q)) {
+                    return null;
                 }
-
-                if (msg.payload.q.length > 12) {
-
-                    var cquery = msg.payload.q.replace(/[^A-Za-z0-9]/g,'');
-
-                    if (cquery.length > 12) {
-                        var pp = CliqzHumanWeb.isHashProb(cquery);
-                        // we are a bit more strict here because the query
-                        // can have parts well formed
-                        if (pp < CliqzHumanWeb.probHashThreshold*1.5) return null;
-                    }
-                }
-
             }
         }
-
 
         return msg;
 
@@ -2472,16 +2571,21 @@ var CliqzHumanWeb = {
             CliqzUtils.getPref('dnt', false) ||
             CliqzUtils.isPrivate(CliqzUtils.getWindow())) return;
 
-        msg.ver = CliqzHumanWeb.VERSION;
-        msg = CliqzHumanWeb.msgSanitize(msg);
-        if (msg) CliqzHumanWeb.incrActionStats(msg.action);
-        if (msg) CliqzHumanWeb.trk.push(msg);
-        CliqzUtils.clearTimeout(CliqzHumanWeb.trkTimer);
-        if(instantPush || CliqzHumanWeb.trk.length % 100 == 0){
-            CliqzHumanWeb.pushTelemetry();
-        } else {
-            CliqzHumanWeb.trkTimer = CliqzUtils.setTimeout(CliqzHumanWeb.pushTelemetry, 60000);
-        }
+                // Check if host is private or not.
+        CliqzHumanWeb.isLocalURL(msg).then( status => {
+            if (!status) {
+                msg.ver = CliqzHumanWeb.VERSION;
+                msg = CliqzHumanWeb.msgSanitize(msg);
+                if (msg) CliqzHumanWeb.incrActionStats(msg.action);
+                if (msg) CliqzHumanWeb.trk.push(msg);
+            }
+            CliqzUtils.clearTimeout(CliqzHumanWeb.trkTimer);
+            if(instantPush || CliqzHumanWeb.trk.length % 100 == 0){
+                CliqzHumanWeb.pushTelemetry();
+            } else {
+                CliqzHumanWeb.trkTimer = CliqzUtils.setTimeout(CliqzHumanWeb.pushTelemetry, 60000);
+            }
+        });
     },
     _telemetry_req: null,
     _telemetry_sending: [],
@@ -2544,9 +2648,13 @@ var CliqzHumanWeb = {
     },
     dbConn: null,
     auxSameDomain: function(url1, url2) {
-        var d1 = CliqzHumanWeb.parseURL(url1).hostname.replace('www.','');
-        var d2 = CliqzHumanWeb.parseURL(url2).hostname.replace('www.','');
-        return d1==d2;
+        try {
+            var d1 = CliqzHumanWeb.parseURL(url1).hostname.replace('www.','');
+            var d2 = CliqzHumanWeb.parseURL(url2).hostname.replace('www.','');
+            return d1==d2;
+        } catch(ee) {
+            return false;
+        }
     },
     getPageFromDB: function(url, callback) {
         var res = [];
@@ -2737,11 +2845,19 @@ var CliqzHumanWeb = {
         var o = {};
 
         var v = url.split('://');
-        if (v.length >= 1) {
+        if (v.length >= 2) {
 
             o['protocol'] = v[0];
             var s = v.slice(1, v.length).join('://');
             v = s.split('/');
+
+            // Check for hostname, if not present then return null.
+            if (v[0] === '') return null;
+
+            // Check if the hostname is invalid by checking for special characters.
+            // Only special characters like - and _ are allowed.
+            var hostnameRegex = /[?!@#\$\^\&*\)\(+=]/g;
+            if (hostnameRegex.test(v[0])) return null;
 
             var oh = CliqzHumanWeb.parseHostname(v[0]);
             o['hostname'] = oh['hostname'];
@@ -2750,6 +2866,7 @@ var CliqzHumanWeb = {
             o['password'] = oh['password'];
             o['path'] = '/';
             o['query_string'] = null;
+
 
             if (v.length>1) {
                 s = v.splice(1, v.length).join('/');
@@ -3529,24 +3646,20 @@ var CliqzHumanWeb = {
         }
     },
     refineParseURIFunc: function(url, extractType, keyName){
-        var result = CliqzHumanWeb.parseUri(url);
-        if(extractType == 'key'){
-            if(result[keyName]){
-                return decodeURIComponent(result[keyName]);
+        var urlParts = CliqzHumanWeb.parseURL(url);
+        if(urlParts && urlParts.query_string) {
+            var result = CliqzHumanWeb.parseQueryString(urlParts.query_string);
+            if(extractType == 'qs'){
+                if(result[keyName]){
+                    return decodeURIComponent(result[keyName][0]);
+                }
+                else{
+                    return url;
+                }
             }
-            else{
-                return url;
-            }
+        } else {
+            return url;
         }
-        else if(extractType == 'qs'){
-            if(result['queryKey'][keyName]){
-                return decodeURIComponent(result['queryKey'][keyName]);
-            }
-            else{
-                return url;
-            }
-        }
-
     },
     refineReplaceFunc: function(replaceString, replaceWhat, replaceWith ){
         var result = decodeURIComponent(replaceString.replace("",replaceWhat,replaceWith));
@@ -4039,6 +4152,170 @@ var CliqzHumanWeb = {
                 CliqzHumanWeb.saveStrictQueries();
             }
         })
+    },
+    isSuspiciousQuery: function(query) {
+        //Remove the msg if the query is too long,
+        if (query.length > 50) return true;
+        if (query.split(' ').length > 7) return true;
+
+        // Remove the msg if the query contains a number longer than 7 digits
+        // can be 666666 but also things like (090)90-2, 5555 3235
+        // note that full dates will be removed 2014/12/12
+        //
+        var haslongnumber = CliqzHumanWeb.checkForLongNumber(query, 7);
+        if (haslongnumber!=null) return true;
+
+
+        //Remove if email (exact), even if not totally well formed
+        if (CliqzHumanWeb.checkForEmail(query)) return true;
+        //Remove if query looks like an http pass
+        if (/[^:]+:[^@]+@/.test(query)) return true;
+        //Remove if email
+        if (/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(query)) return true;
+
+        var v = query.split(' ');
+        for(let i=0;i<v.length;i++) {
+            if (v[i].length > 20) return true;
+            if (/[^:]+:[^@]+@/.test(v[i])) return true;
+            if (/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v[i])) return true;
+        }
+
+        if (query.length > 12) {
+
+            var cquery = query.replace(/[^A-Za-z0-9]/g,'');
+
+            if (cquery.length > 12) {
+                var pp = CliqzHumanWeb.isHashProb(cquery);
+                // we are a bit more strict here because the query
+                // can have parts well formed
+                if (pp < CliqzHumanWeb.probHashThreshold*1.5) return true;
+            }
+        }
+        return false;
+    },
+    isLocalURL: function(msg){
+        // We need to check for action page, if the URLs in the message
+        // are not private because of local domains. like fritzbox or admin.example.com.
+
+        let promise = new Promise(function(resolve, reject){
+            if (msg.action == 'page') {
+                // Get all the urls in the payload.
+                let urls = [];
+                urls.push(msg.payload.url);
+                if (msg.payload.ref) urls.push(msg.payload.ref);
+                if (msg.payload.red) {
+                    msg.payload.red.forEach( redURL => {
+                        urls.push(redURL);
+                    })
+                }
+
+                _log("All urls in the message:" + JSON.stringify(urls));
+
+                // Check for each URL if the host is public or private,
+                // If any of the host is private then it should resolve as true and exit.
+                // Else should resolve as not private.
+
+                Promise.all(urls.map(CliqzHumanWeb.isHostNamePrivate)).then(results => {
+                    _log(JSON.stringify(results));
+                    // Now that we have checked all the URLS, if any of the URL resulted as private
+                    // We drop the message.
+                    if (results.indexOf(true) > -1) {
+                        _log("Contains private URL");
+                        resolve(true);
+                    } else {
+                        _log("URLs are public");
+                        resolve(false);
+                    }
+                });
+            } else {
+                resolve(false);
+            }
+        });
+        return promise;
+    },
+    isHostNamePrivate: function(url){
+
+        let promise = new Promise(function(resolve, reject){
+            var host = null;
+            try {
+                host = CliqzHumanWeb.parseURL(url).hostname;
+            } catch(ee) {
+                resolve(true);
+            };
+
+            // If the parsing of the host fails for some reason,
+            // we would mark it as private.
+
+            if(!host || host === '') {
+                resolve(true);
+            }
+
+            dnsService.asyncResolve(host,
+                0,
+                {
+                    onLookupComplete: function(request, record, status) {
+                        if (!Components.isSuccessCode(status)) {
+                            // Handle error here
+                            resolve(false);
+                        }
+                        let address = record.getNextAddrAsString();
+                        _log("Host= " + host + " Address: " + address);
+                        if (CliqzHumanWeb.isIPInternal(address)) {
+                            _log("Host= " + host + " Address: " + address + "private");
+                            resolve(true);
+                            return;
+                        } else {
+                            _log("Host= " + host + " Address: " + address + "public");
+                            resolve(false);
+                        }
+                    }
+                },
+                null
+                );
+            });
+        return promise;
+    },
+    isIPInternal: function(ip) {
+        // Need to check for ipv6.
+        const ipSplit = ip.split(".");
+        if (parseInt(ipSplit[0]) === 10 ||
+            (parseInt(ipSplit[0]) === 172 && (parseInt(ipSplit[1]) >= 16 && parseInt(ipSplit[1]) <= 31)) ||
+            (parseInt(ipSplit[0]) === 192 && parseInt(ipSplit[1]) === 168) ||
+            (parseInt(ipSplit[0]) === 127) ||
+            (parseInt(ipSplit[0]) === 0)) {
+            return true;
+        } else {
+            return false;
+        }
+    },
+    validFrameCount: function(struct_bef, struct_aft) {
+        //
+        // To take into account, the transition state, when the extension is updated
+        // Data saved in the DB will not have the key nifsh, hence we should return true
+        // for those cases.
+        //
+
+        if (struct_bef.nifsh == null || struct_aft.nifsh == null || struct_bef.nifsh !=struct_aft.nifsh) {
+            _log("fovalidDoubleFetch: number of internal iframes does not match");
+            return false;
+        }
+
+        return true;
+    },
+    validFrameSetCount: function(struct_bef, struct_aft) {
+        //
+        // To take into account, the transition state, when the extension is updated
+        // Data saved in the DB will not have the key nfsh, hence we should return true
+        // for those cases.
+        //
+
+        if (struct_bef.nfsh ==null || struct_aft.nfsh==null || struct_bef.nfsh!=struct_aft.nfsh) {
+            _log("fovalidDoubleFetch: number of internal frameset does not match");
+            return false;
+        }
+
+        return true;
+
     }
 };
 

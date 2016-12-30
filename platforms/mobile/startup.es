@@ -1,7 +1,7 @@
 /* global System */
 import config from "core/config";
 
-function loadModule(moduleName) {
+export function loadModule(moduleName) {
   return System.import(moduleName+"/background")
     .then( module => module.default.init(config) )
     .then( () => System.import(moduleName+"/window") )

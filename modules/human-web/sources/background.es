@@ -61,7 +61,10 @@ export default background({
      utils.extensionRestart(function() {
        utils.setPref('dnt', !utils.getPref('dnt', false));
      });
-    }
+    },
+    "core:mouse-down": function onMouseDown() {
+      HumanWeb.captureMouseClickPage.apply(HumanWeb, arguments);
+    },
   },
 
   actions: {
@@ -76,12 +79,6 @@ export default background({
     */
     recordMouseMove() {
       HumanWeb.captureMouseMovePage.apply(HumanWeb, arguments);
-    },
-    /**
-    * @method actions.recordMouseDown
-    */
-    recordMouseDown() {
-      HumanWeb.captureMouseClickPage.apply(HumanWeb, arguments);
     },
     /**
     * @method actions.recordScroll

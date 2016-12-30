@@ -11,12 +11,24 @@ export default class Storage {
       return new Storage(url);
     }
 
-    this.storage = getStorage(url);
-    // just proxy to storage
-    this.getItem = this.storage.getItem.bind(this.storage);
-    this.setItem = this.storage.setItem.bind(this.storage);
-    this.removeItem = this.storage.removeItem.bind(this.storage);
-    this.clear = this.storage.clear.bind(this.storage);
+    this.storage = getStorage.bind(null, url);
+    this.url = url;
+  }
+
+  getItem(key) {
+    return this.storage().getItem(key);
+  }
+
+  setItem(key, value) {
+    return this.storage().setItem(key, value);
+  }
+
+  removeItem(key) {
+    return this.storage().removeItem(key);
+  }
+
+  clear() {
+    return this.storage().clear();
   }
 
   /**
@@ -25,7 +37,7 @@ export default class Storage {
    * @param object
    */
   setObject(key, object) {
-    this.storage.setItem(key, JSON.stringify(object));
+    this.storage().setItem(key, JSON.stringify(object));
   }
 
   /**
@@ -34,7 +46,7 @@ export default class Storage {
    * @param notFound {Boolean}
    */
   getObject(key, notFound = false) {
-    const o = this.storage.getItem(key);
+    const o = this.storage().getItem(key);
     if (o) {
       return JSON.parse(o);
     }

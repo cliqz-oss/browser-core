@@ -1,0 +1,11 @@
+[
+{
+    "url": "https://bild.de",
+    "matches": [
+    ],
+    "misMatches": [
+        "bild.de##script:contains(/^s*de.bild.cmsKonfig/)",
+        "bild.de#@#script:contains(/^s*de.bild.cmsKonfig/)"
+    ]
+}
+]

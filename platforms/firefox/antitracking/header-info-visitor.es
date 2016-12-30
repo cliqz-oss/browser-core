@@ -125,7 +125,6 @@ HeaderInfoVisitor.prototype = {
                 return new postData(oHttp.uploadStream);
             }
         } catch (e) {
-            if (CliqzAttrack.debug) CliqzUtils.log("Got an exception retrieving the post data: [" + e + "]", 'at-post');
             return "crap";
         }
         return null;

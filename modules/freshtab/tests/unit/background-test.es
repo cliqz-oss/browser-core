@@ -1,23 +1,41 @@
 export default describeModule("freshtab/background",
   function () {
     return {
+      "core/events": {
+        default: {
+          sub() {},
+          un_sub() {}
+        },
+      },
       "freshtab/main": {
-        default: { shutdown() { } }
+        default: {
+          startup() {},
+          shutdown() { }
+        }
       },
       "freshtab/news": {
-        default: { unload() { } }
+        default: { unload() {}, },
       },
       "freshtab/history": {
         default: { getTopUrls(limit) { } }
       },
-      "core/cliqz": { utils: { } },
-
+      "core/cliqz": { utils: {} },
       "freshtab/speed-dial": {
         default: function () { this.prototype.constructor.apply(this, arguments) }
-      }
+      },
+      "core/onboarding": {
+
+      },
+      "core/adult-domain": {
+        AdultDomain: function () {}
+      },
     }
   },
   function () {
+    beforeEach(function () {
+      this.deps("core/adult-domain").AdultDomain.prototype.isAdult = () => false;
+      this.module().default.init({});
+    });
     describe("#unload", function () {
       it("calls unload on News", function (done) {
         const News = this.deps("freshtab/news").default;
