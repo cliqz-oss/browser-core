@@ -127,9 +127,12 @@ TESTS.WebRequestTest = function(CliqzUtils) {
     context('listener returns cancel', function() {
 
       var requestSeen = false;
+      var url = 'http://localhost:' + testServer.port + '/block';
       var block = function(req) {
-        requestSeen = true;
-        return {cancel: true};
+        if (req.url === url) {
+          requestSeen = true;
+          return {cancel: true};
+        }
       };
 
       beforeEach( function() {
@@ -142,7 +145,6 @@ TESTS.WebRequestTest = function(CliqzUtils) {
 
       it('blocks the http request', function(done) {
         var serverHit = false;
-        var url = 'http://localhost:' + testServer.port + '/block';
 
         testServer.registerPathHandler('/block', function(req, resp) {
           serverHit = true;
@@ -173,8 +175,10 @@ TESTS.WebRequestTest = function(CliqzUtils) {
       var requestSeen = false,
         baseUrl = 'http://localhost:' + testServer.port
       var redirect = function(req) {
-        requestSeen = true;
-        return {redirectUrl: baseUrl + '/redirected'};
+        if (req.url.indexOf(baseUrl) !== -1) {
+          requestSeen = true;
+          return {redirectUrl: baseUrl + '/redirected'};
+        }
       };
 
       beforeEach( function() {
@@ -200,13 +204,11 @@ TESTS.WebRequestTest = function(CliqzUtils) {
         CliqzUtils.getWindow().gBrowser.addTab(baseUrl + '/');
 
         waitFor(function() {
-          return requestSeen;
+          return requestSeen && hitRedirect;
         }).then(function() {
-          setTimeout( function() {
-            chai.expect(hitBase).to.be.false;
-            chai.expect(hitRedirect).to.be.true;
-            done()
-          }, 200);
+          chai.expect(hitBase).to.be.false;
+          chai.expect(hitRedirect).to.be.true;
+          done()
         });
       });
 
@@ -215,18 +217,22 @@ TESTS.WebRequestTest = function(CliqzUtils) {
     context('listener returns requestHeaders', function() {
 
       var requestSeen = false;
+      var url = 'http://localhost:' + testServer.port + '/';
       var changeHeaders = function(req) {
-        requestSeen = true;
-        return {requestHeaders: [{
-          name: 'newheader',
-          value: 'test'
-        },{
-          name: 'accept-encoding',
-          value: 'gzip'
-        }]}
+        console.log('xxx', req);
+        if (req.url === url) {
+          requestSeen = true;
+          return {requestHeaders: [{
+            name: 'newheader',
+            value: 'test'
+          },{
+            name: 'accept-encoding',
+            value: 'gzip'
+          }]}
+        }
       };
 
-      var headers = {};
+      var headers = null;
       var collectHeaders = function(request, response) {
         var header_iter = request.headers;
         headers = {};
@@ -239,7 +245,8 @@ TESTS.WebRequestTest = function(CliqzUtils) {
       }
 
       beforeEach( function() {
-        webrequest.onBeforeRequest.addListener(changeHeaders, undefined, ['blocking']);
+        requestSeen = false;
+        webrequest.onBeforeRequest.addListener(changeHeaders, undefined, ['requestHeaders']);
       });
 
       afterEach( function() {
@@ -247,24 +254,20 @@ TESTS.WebRequestTest = function(CliqzUtils) {
       });
 
       it('modifies headers of the request', function(done) {
-        var url = 'http://localhost:' + testServer.port + '/';
         testServer.registerPathHandler('/', collectHeaders);
 
         CliqzUtils.getWindow().gBrowser.addTab(url);
 
         waitFor(function() {
-          return requestSeen;
+          return requestSeen && headers !== null;
         }).then(function() {
-          setTimeout(function() {
-            console.log(headers);
-            // newly added header
-            chai.expect(headers).to.have.property('newheader');
-            chai.expect(headers['newheader']).to.equal('test');
-            // modified header
-            chai.expect(headers).to.have.property('accept-encoding');
-            chai.expect(headers['accept-encoding']).to.equal('gzip');
-            done();
-          }, 200);
+          // newly added header
+          chai.expect(headers).to.have.property('newheader');
+          chai.expect(headers['newheader']).to.equal('test');
+          // modified header
+          chai.expect(headers).to.have.property('accept-encoding');
+          chai.expect(headers['accept-encoding']).to.equal('gzip');
+          done();
         });
       });
 

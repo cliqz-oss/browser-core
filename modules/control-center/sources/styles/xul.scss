@@ -4,7 +4,7 @@
 
 .cliqz-control-center {
     height: 31px;
-    padding: 9px 4px 0 32px;
+    padding: 8px 4px 0 32px;
     color: transparent;
     background-size: 20px;
     background-repeat: no-repeat;
@@ -14,8 +14,9 @@
 
 
 #nav-bar .cliqz-control-center {
-    background-position: 4px 5px;
+    min-width: 55px;
     color: black;
+    background-position: 4px 5px;
 }
 
 .cliqz-control-center:after {

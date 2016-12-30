@@ -29,16 +29,14 @@ export default Ember.Component.extend(IscrollList, {
     const separators = [],
       oldestContact = this.get("sortedInactiveContacts.lastObject");
 
-    yesterday: {
-      const yesterday = moment().startOf("day").toDate();
+    const yesterday = moment().startOf("day").toDate();
 
-      if (yesterday > oldestContact.get("lastVisitedAt")) {
-        separators.push({
-          title: "yesterday",
-          lastVisitedAt: yesterday,
-          componentName: "history-separator"
-        });
-      }
+    if (yesterday > oldestContact.get("lastVisitedAt")) {
+      separators.push({
+        title: "yesterday",
+        lastVisitedAt: yesterday,
+        componentName: "history-separator"
+      });
     }
 
     return separators;

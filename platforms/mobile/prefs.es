@@ -9,3 +9,7 @@ export function getPref(pref, fallback) {
 export function setPref(pref, val) {
   storage.setItem(pref, val);
 }
+
+export function hasPref(pref, val) {
+  return Boolean(storage.getItem(pref));
+}

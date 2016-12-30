@@ -39,7 +39,7 @@ function telemetrySig(msg) {
     action: 'sendTelemetry',
     args: [{
       type: 'onboarding',
-      version: '2.0',
+      version: '2.1',
       action: msg.action,
       view: msg.view,
       target: msg.target,
@@ -118,7 +118,6 @@ function step1() {
     //=== Telemetry
     telemetrySig({
       type: 'onboarding',
-      version: '2.0',
       action: 'click',
       view: 'intro',
       target: 'body',
@@ -187,7 +186,6 @@ function step2() {
     //=== Telemetry
     telemetrySig({
       type: 'onboarding',
-      version: '2.0',
       action: 'click',
       view: 'privacy',
       target: 'body',
@@ -278,7 +276,6 @@ function step3() {
     //=== Telemetry
     telemetrySig({
       type: 'onboarding',
-      version: '2.0',
       action: 'click',
       view: 'search',
       target: 'body',

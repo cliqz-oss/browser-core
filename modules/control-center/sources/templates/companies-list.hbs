@@ -1,9 +1,10 @@
 <div class="setting-accordion">
   {{#each companiesArray}}
     <div class="setting-accordion-section">
-      <a class="setting-accordion-section-title {{#if_eq ../module "attrack"}} accordion-active-title {{/if_eq}}"
+      <a class="setting-accordion-section-title {{#if_eq ../module "adblock"}} accordion-inactive-title {{/if_eq}}"
          href="#accordion-{{@index}}"
          data-target="{{../module}}_details_company_section"
+         data-index="{{@index}}"
          {{#if_eq ../module "attrack"}}
             openUrl="https://cliqz.com/whycliqz/anti-tracking/tracker#{{ watchDogName }}"
          {{/if_eq}}

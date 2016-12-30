@@ -13,8 +13,8 @@ export default Ember.Component.extend({
     },
 
     navigateTo(screenId, fromDots=false) {
-      $('.screen').addClass('hidden');
-      $(`#screen${screenId}`).removeClass('hidden');
+      Ember.$('.screen').addClass('hidden');
+      Ember.$(`#screen${screenId}`).removeClass('hidden');
 
       if(screenId === 3) {
         this.sendAction("toggleBackgroundAction");

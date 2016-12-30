@@ -15,9 +15,7 @@ export default background({
   // Number of decimal digits to keep in user's location
   LOCATION_ACCURACY: 3,
 
-  enabled() {
-    return true;
-  },
+  GEOLOCATION_MESSAGE_NUM_SHOWN: 0,
 
   /**
     @method init
@@ -91,7 +89,25 @@ export default background({
 
     "geolocation:sleep-notification": function (timestamp) {
       this.LAST_SLEEP = timestamp;
-    }
+    },
+
+    "ui:missing_location_shown": function() {
+      if(!utils.getPref('share_location')) {
+        this.GEOLOCATION_MESSAGE_NUM_SHOWN++;
+      }
+
+      if( this.GEOLOCATION_MESSAGE_NUM_SHOWN > 0) {
+        events.pub(
+          'msg_center:show_message',
+          {
+            "id": "share-location",
+            "template": "share-location",
+          },
+          'MESSAGE_HANDLER_FRESHTAB'
+        );
+        this.GEOLOCATION_MESSAGE_NUM_SHOWN = 0;
+      }
+    },
   },
 
   roundLocation(position) {

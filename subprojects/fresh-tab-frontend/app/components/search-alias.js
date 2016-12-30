@@ -3,6 +3,10 @@ import Ember from 'ember';
 export default Ember.Component.extend({
   cliqz: Ember.inject.service(),
 
+  classNames: ['searchAlias'],
+
+  attributeBindings: ['style'],
+
   click() {
     this.get('cliqz').setUrlbar(this.get('alias') + ' ');
     this.get('cliqz').sendTelemetry({
@@ -12,5 +16,10 @@ export default Ember.Component.extend({
       target_index: this.get('index')
     });
     return false;
-  }
+  },
+
+  style: Ember.computed('model.logo.backgroundColor', function () {
+    const color = this.get('model.logo.backgroundColor');
+    return new Ember.Handlebars.SafeString(`background: #${color};`);
+  }),
 });

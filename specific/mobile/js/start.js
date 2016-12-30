@@ -1,7 +1,9 @@
 System.config({
-  defaultJSExtensions: true
-});
-
+  map: {
+    'math': "bower_components/mathjs/dist/math.min.js",
+    'viewpager': "js/libs/viewpager.js"
+  }
+})
 window.XPCOMUtils = {
   defineLazyModuleGetter: function(){},
   generateQI: function(){},
@@ -23,39 +25,60 @@ window.Components = {
   ID: function(){}
 };
 
-window.CLIQZ = window.CLIQZ || {};
+var resolver;
 
+function onNews() {
+  News.startPageHandler.apply(News, arguments);
+  resolver();
+}
 
-Promise.all([
-  System.import("platform/environment"),
-  System.import("core/utils"),
-  System.import("core/events")
-]).then(function (modules) {
-  var environment = modules[0].default;
-  var utils = modules[1].default;
-  window.CLIQZEnvironment = environment;
-  window.CliqzUtils = utils;
-  var events = modules[2].default;
-  window.CliqzEvents  = events;
-  utils.initPlatform(System);
-}).then(function () {
-  return System.import("core/startup");
-}).then(function (startupModule) {
-  return startupModule.default(window, [
-    "autocomplete",
-    "mobile-ui",
-    "mobile-dev",
-    "mobile-freshtab",
-    "mobile-touch",
-    "static",
-    "yt-downloader"
-  ]);
-}).then(function () {
-  return CliqzUtils.init({
-    lang: window.navigator.language || window.navigator.userLanguage
+let startup, loadModule;
+
+document.addEventListener("DOMContentLoaded", function () {
+  System.import("platform/startup").then(function (startupModule) {
+    startup = startupModule.default;
+    loadModule = startupModule.loadModule
+    return Promise.all([
+      System.import("platform/environment"),
+      System.import("core/utils"),
+      System.import("core/storage"),
+      System.import("core/events")
+    ])
+  }).then(function (modules) {
+    var environment = modules.shift().default;
+    var utils = modules.shift().default;
+    var Storage = modules.shift().default;
+    var events = modules.shift().default;
+    environment.storage = new Storage();
+    window.CLIQZEnvironment = environment;
+    window.CliqzUtils = utils;
+    window.CliqzEvents  = events;
+    utils.initPlatform(System);
+    return utils.init({
+      lang: window.navigator.language || window.navigator.userLanguage
+    });
+  }).then(function () {
+    return startup(window, [
+      "mobile-dev",
+      "mobile-freshtab",
+    ]);
+  }).then(function () {
+    osAPI.init();
+    osAPI.freshtabReady();
+    return new Promise(function(resolve) {
+      resolver = resolve;
+      CliqzUtils.initHomepage(true);
+    })
+  }).then(function () {
+    return Promise.all(
+      [
+        "autocomplete",
+        "mobile-ui",
+        "static",
+        "yt-downloader"
+      ].map(loadModule)
+    );
+  }).then(function () {
+    osAPI.isReady();
   });
-}).then(function () {
-  jsAPI.init();
-  osAPI.init();
-  CliqzUtils.initHomepage(true);
 });

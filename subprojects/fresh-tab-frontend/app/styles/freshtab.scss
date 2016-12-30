@@ -1,3 +1,6 @@
+@import './freshtab/add-speed-dial';
+@import './freshtab/speed-dial';
+
  /* common */
 *,
 *:before,
@@ -108,12 +111,22 @@ body.freshTabContainer {
 }
 
 #notificationsBox {
+
   background-color: #506275;
   color: #ffffff;
   width: 100%;
   padding: 20px;
   letter-spacing: 1px;
   position: relative;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI";
+
+  .notificationsCon {
+    width: 100%;
+    max-width: 960px;
+    padding: 0 20px 0 30px;
+    margin: 0 auto;
+    cursor: default !important;
+  }
 
   .close {
     position: absolute;
@@ -127,17 +140,45 @@ body.freshTabContainer {
     margin-bottom: 5px;
   }
 
-  img {
-  float: left;
+  img.logo {
+    float: left;
+    margin-left: -40px;
+    cursor: default !important;
   }
 
   .text {
-  padding-left: 70px;
-  font-size: 14px;
+    padding: 0 20px 0 40px;
+    font-size: 14px;
+    float: left;
+    width: calc(100% - 400px); // 10px for the close btn
    }
 
   a {
-  color: #8BE0E7;
+    color: #8BE0E7;
+  }
+
+  .buttons {
+    float: left;
+    width: 400px;
+
+    button {
+      width: 200px;
+      padding: 6px 10px;
+      margin-bottom: 10px;
+      border: 1px solid #CFCFCF;
+      cursor: pointer !important;
+
+      &.enable {
+        color: #506275;
+        float: left;
+      }
+
+      &.disable {
+        color: #F7F7F7;
+        background: transparent;
+        float: left;
+      }
+    }
   }
 }
 
@@ -308,14 +349,14 @@ body.freshTabContainer {
       }
     }
 
-    .cliqz-brand-logo {
+    .logo {
       box-sizing: border-box;
       overflow: hidden;
       height: 50px;
-      padding: 0.375em; /* 9px / 24px */
+      padding: 11px 4px;
       margin: 0px auto 0 auto;
       font-size: 24px;
-      line-height: 1.25em; /* 30px / 24px */
+      line-height: 30px;
       text-align: center;
       font-weight: bold;
       color: #FFF;
@@ -330,7 +371,6 @@ body.freshTabContainer {
     ul {
       max-width: 1024px;
       margin: -10px auto 2px;
-      max-height: 100px;
       overflow: hidden;
     }
 
@@ -340,7 +380,6 @@ body.freshTabContainer {
       float: left;
       width: 18.6%;
       max-width: 166px;
-      height: 96px;
       padding: 0px;
       margin: 7px 0.7% 10px;
       list-style: none;
@@ -355,35 +394,6 @@ body.freshTabContainer {
       transition:opacity 0.1s ease-out 0.2s;
     }
 
-    li.addFrame {
-      .addBtn {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        margin: auto;
-        width: 50%;
-        height: 89%;
-
-        svg:hover path {
-          fill: #999;
-        }
-      }
-
-      .addLabel {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        color: #666;
-      }
-    }
-
-    .searchAlias {
-
-    }
-
     #historyTiles {
       max-height: 140px;
       overflow: hidden;
@@ -394,37 +404,6 @@ body.freshTabContainer {
       overflow: hidden;
     }
 
-    .addDialForm {
-      padding: 2px 10px;
-      height: 100%;
-      position: relative;
-      background: #fff;
-
-      ::-moz-placeholder {  /* Firefox 19+ */
-        color: #333;
-      }
-
-      input {
-        border-top: 0px;
-        border-left: 0px;
-        border-right: 0px;
-        border-bottom: 2px solid #F3F3F3;
-        color: #666666;
-        width: 100%;
-        padding: 0 0 1px 0;
-        height: auto;
-        line-height: 1.2em;
-      }
-
-      button {
-        position: absolute;
-        bottom: 5px;
-        left: 0px;
-        right: 0px;
-        margin-left: auto;
-        margin-right: auto;
-      }
-    }
 
     a.hideAddForm {
       display: block;
@@ -469,6 +448,21 @@ body.freshTabContainer {
       white-space: nowrap;
       overflow: hidden;
       max-width: 186px;
+
+      strong {
+        font-weight: bold;
+      }
+
+      button {
+        border: 0;
+        color: blue;
+        margin: 0 5px;
+        background-color: transparent;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
     }
   }
 
@@ -521,9 +515,10 @@ body.freshTabContainer {
 
       .article-content {
         position: relative;
+        & > a {
+          position: relative;
+        }
       }
-
-
 
       .description {
         opacity: 0;
@@ -837,6 +832,7 @@ body.freshTabContainer {
 }
 
 @media (max-width: 940px) {
+
   #freshTabPage #container {
     width: 100%;
     min-width: 0;
@@ -845,6 +841,16 @@ body.freshTabContainer {
 
   #freshTabPage #topVisited .historyWithSearch + .delete {
     left: 21%;
+  }
+}
+
+@media (max-width: 820px) {
+  #notificationsBox .text {
+    width: calc(100% - 200px);
+  }
+
+  #notificationsBox .buttons {
+    max-width: 180px;
   }
 }
 
@@ -954,6 +960,18 @@ body.freshTabContainer {
   #freshTabPage #learnMore,
   #freshTabPage #feedback {
     right: 40px;
+  }
+
+  #notificationsBox .text {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  #notificationsBox .buttons {
+    clear: both;
+    width: 100%;
+    max-width: 100%;
+    padding-left: 40px;
   }
 }
 

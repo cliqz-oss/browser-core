@@ -15,29 +15,39 @@
     <div class="card__description bundesliga">
         {{#each data.extra.matches }}
             <h2>{{ data.spielTag }} {{ this.date }}</h2>
-            <table cellspacing="0" cellpadding="0">
+
+            <div class="card__incard cf">
                 {{#each this.matches }}
-                    <tr class="{{ this.class }}" url="{{ this.live_url }}">
-                        <td class="cqz-game-time">
-                            {{ this.gameTimeHour }}
-                        </td>
-                        <td>
-                            {{ this.HOST }}
-                        </td>
-                        <td class="cqz-score">
-                            {{ this.scored }}
-                        </td>
-                        <td class="lastcell">
-                            {{ this.GUESS }}
-                        </td>
-                    </tr>
+
+                    <div class="card__incard__item" url="{{live_url}}">
+
+                        <div class="card__incard__content">
+                            <h4>
+                                {{ this.HOST }}
+                            </h4>
+                            <div class="score">
+                                {{ this.scored }} <span>({{ this.gameTimeHour }})</span>
+                            </div>
+                            <h4>
+                                {{ this.GUESS }}
+                            </h4>
+                        </div>
+
+                    </div>
+
                 {{/each}}
-            </table>
+
+            </div>
         {{/each}}
     </div>
 </section>
 
 <div class="poweredby" url="http://www.kicker.de/?gomobile=1">
+    <div class="card__logo__poweredby bg"
+        data-style="background-size: 75%;background-image:url(https://cdn.cliqz.com/brands-database/database/1452759183853/logos/kicker/$.svg);background-color:#FF1D1D;top:inherit;"
+        style="background-size: 75%;background-image:url(https://cdn.cliqz.com/brands-database/database/1452759183853/logos/kicker/$.svg);background-color: #FF1D1D;top:inherit;">
+            Ki
+    </div>
     {{local 'KickerSponsor'}}
 </div>
 <!-- end liveTicker.tpl -->

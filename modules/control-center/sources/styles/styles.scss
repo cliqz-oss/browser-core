@@ -628,7 +628,7 @@ html {
         font-size: 16px;
         color: #000;
         text-decoration: none;
-        cursor: default;
+        cursor: pointer;
         &.active {
             border-bottom: none;
             #arrow {
@@ -637,8 +637,8 @@ html {
         }
     }
 
-    .accordion-active-title {
-        cursor: pointer;
+    .accordion-inactive-title {
+        cursor: default;
     }
 
     .company-count {

@@ -11,9 +11,8 @@ var osAPI = {
           nativePostMessage(JSON.stringify(message));
         }
     } else {
-      osAPI.OS.postMessage = CLIQZ.MockOS.postMessage;
+      osAPI.OS.postMessage = MockOS.postMessage;
     }
-    osAPI.isReady();
   },
   /**
     function: searchHistory
@@ -57,6 +56,16 @@ var osAPI = {
     var message = {
       action: "getFavorites",
       callback: callback
+    };
+    osAPI.OS.postMessage(message);
+  },
+  /**
+    function: freshtabReady
+    description: informs OS that freshtab is loaded
+  */
+  freshtabReady: function() {
+    var message = {
+      action: "freshtabReady"
     };
     osAPI.OS.postMessage(message);
   },

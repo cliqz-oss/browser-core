@@ -1,6 +1,4 @@
 'use strict';
-const { utils: Cu } = Components;
-
 var TELEMETRY_SIGNAL = {};
 TELEMETRY_SIGNAL[APP_SHUTDOWN] = 'browser_shutdown';
 TELEMETRY_SIGNAL[ADDON_DISABLE] = 'addon_disable';
@@ -9,18 +7,18 @@ TELEMETRY_SIGNAL[ADDON_UNINSTALL] = 'addon_uninstall';
 function startup(aData, aReason) {
     // In case of an unclean restart, ensure we load the latest version of the
     // modules.
-    Cu.unload('chrome://cliqzmodules/content/Extension.jsm');
-    Cu.unload('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
+    Components.utils.unload('chrome://cliqzmodules/content/Extension.jsm');
+    Components.utils.unload('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
 
-    Cu.import('chrome://cliqzmodules/content/Extension.jsm');
+    Components.utils.import('chrome://cliqzmodules/content/Extension.jsm');
     Extension.init(aReason == ADDON_UPGRADE, aData.oldVersion, aData.version);
 
-    Cu.import('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
+    Components.utils.import('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
     FirefoxTelemetry.init(aData.id);
     if (aReason == APP_STARTUP) {
       // On browser startup the telemetry controller may not be initialized at
       // this point, so delay the initial ping to give it a chance to initialize.
-      Cu.import('resource://gre/modules/Timer.jsm');
+      Components.utils.import('resource://gre/modules/Timer.jsm');
       setTimeout(() => FirefoxTelemetry.reportTelemetryValue('cliqzEnabled'), 5000);
     } else if (aReason === ADDON_ENABLE) {
       FirefoxTelemetry.reportTelemetryValue('cliqzEnabled');
@@ -30,7 +28,7 @@ function startup(aData, aReason) {
 }
 
 function shutdown(aData, aReason) {
-    Cu.import('chrome://cliqzmodules/content/Extension.jsm');
+    Components.utils.import('chrome://cliqzmodules/content/Extension.jsm');
 
     Extension.telemetry({
         type: 'activity',
@@ -61,16 +59,16 @@ function shutdown(aData, aReason) {
 
     Extension.unload();
 
-    Cu.unload('chrome://cliqzmodules/content/Extension.jsm');
+    Components.utils.unload('chrome://cliqzmodules/content/Extension.jsm');
 
-    Cu.import('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
+    Components.utils.import('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
     if (aReason === ADDON_UNINSTALL) {
       FirefoxTelemetry.reportTelemetryValue('cliqzUninstalled');
     } else if (aReason === ADDON_DISABLE) {
       FirefoxTelemetry.reportTelemetryValue('cliqzDisabled');
     }
     FirefoxTelemetry.destroy();
-    Cu.unload('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
+    Components.utils.unload('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
 }
 
 function install(aData, aReason) {

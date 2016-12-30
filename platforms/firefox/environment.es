@@ -74,6 +74,9 @@ var CLIQZEnvironment = {
         'partials/lyrics'
     ],
     CLIQZ_ONBOARDING: "about:onboarding",
+    CLIQZ_ONBOARDING_URL: "chrome://cliqz/content/onboarding-v2/index.html",
+    CLIQZ_NEW_TAB: "about:cliqz",
+    CLIQZ_NEW_TAB_URL: "resource://cliqz/fresh-tab-frontend/index.html",
     BROWSER_ONBOARDING_PREF: "browserOnboarding",
     BROWSER_ONBOARDING_STEP_PREF: "browserOnboarding-step",
 
@@ -218,9 +221,6 @@ var CLIQZEnvironment = {
             utf8str = idnService.convertACEtoUTF8(encodeURIComponent(host));
 
         return decodeURIComponent(eTLDService.getPublicSuffixFromHost(utf8str));
-    },
-    getBrandsDBUrl: function(version){
-      return 'https://cdn.cliqz.com/brands-database/database/' + version + '/data/database.json'
     },
     isPrivate: function(win) {
         // try to get the current active window

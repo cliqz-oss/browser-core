@@ -22,7 +22,8 @@
       <span class="enable-search" data-i18n="control-center-enable-search"></span>
       {{/if}}
     </a>
-    <div id="accordion-1" class="accordion-section-content {{#unless securityON }}open{{/unless}}" style="display: block;">
+    <div id="accordion-1" class="accordion-section-content {{#unless securityON }}open{{/unless}}"
+         {{#unless securityON }}style="display: block;"{{/unless}}>
       {{#unless searchDisabled }}
       <span class="bullet">
         <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -120,6 +121,7 @@
         </select>
       </span>
       {{/if}}
+
       {{#unless searchDisabled }}
           <span class="bullet"
                 {{#if amo}}
@@ -145,6 +147,51 @@
             <polyline id="Path-164-Copy-140" stroke="#7D7D7D" stroke-width="1.5999999" fill="none" opacity="0.554279384" points="176 41 181.896928 46.9067547 176.230646 52.5824794"></polyline>
           </svg>
         </span>
+      {{/if}}
+      {{#if module.type-filter}}
+          {{#if module.type-filter.visible }}
+            <span class="bullet">
+            <span class="cliqz-tab">
+              <span class="squaredFour">
+                <input type="checkbox"
+                       id="squaredFour6"
+                       name="check"
+                       data-function="type-filter"
+                       data-target="type1"
+                       {{#if module.type-filter.type1 }}checked{{/if}}
+                />
+                <label for="squaredFour6"></label>
+                <span id="strict">Type 1</span>
+              </span>
+            </span>
+            <span class="cliqz-tab">
+              <span class="squaredFour">
+                <input type="checkbox"
+                       id="squaredFour7"
+                       name="check"
+                       data-function="type-filter"
+                       data-target="type2"
+                       {{#if module.type-filter.type2 }}checked{{/if}}
+                />
+                <label for="squaredFour7"></label>
+                <span id="strict">Type 2</span>
+              </span>
+            </span>
+            <span class="cliqz-tab">
+              <span class="squaredFour">
+                <input type="checkbox"
+                       id="squaredFour8"
+                       name="check"
+                       data-function="type-filter"
+                       data-target="type3"
+                       {{#if module.type-filter.type3 }}checked{{/if}}
+                />
+                <label for="squaredFour8"></label>
+                <span id="strict">Type 3</span>
+              </span>
+            </span>
+          </span>
+          {{/if}}
       {{/if}}
       {{#if module.human-web.visible }}
         <span class="bullet human-web"

@@ -32,8 +32,9 @@ var firefoxTree = new MergeTrees([
   firefoxSpecific,
   new Funnel(config,      { destDir: 'chrome/content'}),
   new Funnel(firefoxLibs, { destDir: 'modules/extern' }),
-  new Funnel(modules.bowerComponents,   { destDir: 'chrome/content/bower_components' }),
+  new Funnel(modules.bower,   { destDir: 'chrome/content/bower_components' }),
   new Funnel(modules.modules,     { destDir: 'chrome/content' }),
+  new Funnel(modules.static,     { destDir: 'chrome/content' }),
 ], { overwrite: true } );
 
 var firefox = new MergeTrees([

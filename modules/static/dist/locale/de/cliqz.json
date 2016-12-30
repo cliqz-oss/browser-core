@@ -1085,6 +1085,12 @@
     "freshtab_abTest_btn_subscribe": {
       "message": "JETZT abonnieren"
     },
+    "mobile_incognito": {
+      "message": "<strong>Vergessen Tab</strong><br /><br />Websites werden nicht in deinem Verlauf gespeichert. Ebenso werden temporäre Dateien und Cookies nicht gespeichert. Downloads und Lesezeichen werden aber gespeichert.<br />Dein Internetdienstanbieter oder Arbeitgeber können weiterhin nachvollziehen, welche Seiten du besucht hast."
+    },
+    "mobile_freshtab_breaking_news": {
+      "message": "EILMELDUNG:"
+    },
     "mobile_freshtab_edit_done": {
       "message": "Fertig"
     },
@@ -1296,13 +1302,13 @@
       "message": "Automatischer Vergessen Modus"
     },
     "control-center-info-forget-mode": {
-      "message": "Websites, die bekannt sind für nicht-jugendfreie Inhalte, werden automatisch in einem Vergessen Tab geöffnet. das heißt, Besuche dieser Seiten werden nicht in der Chronik gespeichert."
+      "message": "Websites, die bekannt sind für nicht-jugendfreie Inhalte, werden automatisch in einem Vergessen Tab geöffnet. Das heißt, Besuche dieser Seiten werden nicht in der Chronik gespeichert."
     },
     "control-center-info-share-location-title": {
       "message": "Standort Teilen"
     },
     "control-center-info-share-location": {
-      "message": "CLIQZ kann jetzt auch nach Ergebnissen in deiner Nähe suchen. Genauere Suchergebnisse erhältst du, wenn du Immer Standort teilen auswählst. Deine Standort-Information dient nur der automatischen Verbesserung deiner Suchergebnisse und wird niemals weitergegeben oder anderweitig verwendet."
+      "message": "CLIQZ kann jetzt auch nach Ergebnissen in deiner Nähe suchen. Genauere Suchergebnisse erhältst du, wenn du <strong>Immer</strong> Standort teilen auswählst. Deine Standort-Information dient nur der automatischen Verbesserung deiner Suchergebnisse und wird niemals weitergegeben oder anderweitig verwendet."
     },
     "control-center-info-share-location-link": {
       "message": "Mehr erfahren"

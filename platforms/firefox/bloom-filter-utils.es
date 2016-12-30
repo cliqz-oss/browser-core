@@ -1,4 +1,4 @@
-import { BloomFilter } from 'core/bloom-filter';
+import { BloomFilter } from './bloom-filter';
 Cu.import('resource://gre/modules/FileUtils.jsm');
 
 const HEAD_SIG = 0x43514246;  // ASCII 'CQBF' - CliQz Bloom Filter

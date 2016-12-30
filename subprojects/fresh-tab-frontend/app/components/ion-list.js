@@ -8,10 +8,9 @@ export default Ember.Component.extend(RecognizerMixin, {
 
   classNames: ['list'],
 
-  panUp(e) {
+  panUp() {
   },
 
-  panDown(e) {
-
+  panDown() {
   }
 });

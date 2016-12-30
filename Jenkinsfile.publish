@@ -12,7 +12,7 @@ node('docker') {
     sh "docker build -t ${imgName} --build-arg UID=`id -u` --build-arg GID=`id -g` ."
     dockerFingerprintFrom dockerfile: './Dockerfile', image: imgName, toolName: env.DOCKER_TOOL_NAME
   }
-  
+
   withCerts {
     docker.image(imgName).inside() {
       withEnv(["CLIQZ_CONFIG_PATH=./configs/${CLIQZ_CHANNEL}.json"]) {
@@ -20,17 +20,17 @@ node('docker') {
           stage('fern install') {
             sh './fern.js install'
           }
-  
+
           stage('fern test') {
             sh './fern.js test --ci tests.xml'
           }
-  
+
           stage('fern build') {
-            sh './fern.js build --freshtab'
+            sh './fern.js build --freshtab --environment=production'
           }
         }
       }
-  
+
       stage('checkout xpi-sign') {
         checkout([
             $class: 'GitSCM',
@@ -47,19 +47,19 @@ node('docker') {
             ]]
         ])
       }
-  
+
       stage('fab publish') {
         withCredentials([[
             $class: 'UsernamePasswordMultiBinding',
             credentialsId: '06ec4a34-9d01-46df-9ff8-64c79eda8b14',
             passwordVariable: 'AWS_SECRET_ACCESS_KEY',
             usernameVariable: 'AWS_ACCESS_KEY_ID']]) {
-  
+
           sh """#!/bin/bash
             cd build
             fab publish:beta=$CLIQZ_BETA,channel=$CLIQZ_CHANNEL,pre=$CLIQZ_PRE_RELEASE
           """
-          
+
         }
       }
     }

@@ -281,12 +281,14 @@ URLInfo.prototype = {
     return kvList;
   },
   getKeyValuesMD5: function () {
-    var kvList = this.getKeyValues();
+    const kvList = this.getKeyValues();
     return kvList.map(function (kv) {
+      // ensure v is stringy
+      const vStr = String(kv.v);
       kv.k_len = kv.k.length;
-      kv.v_len = kv.v.length;
+      kv.v_len = vStr.length;
       kv.k = md5(kv.k);
-      kv.v = md5(kv.v);
+      kv.v = md5(vStr);
       return kv;
     });
   }

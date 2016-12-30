@@ -1,81 +1,101 @@
-import messageContext from "hpn/message-context";
-import JsonFormatter, { createHttpUrl, getRouteHash } from "hpn/utils";
 import CliqzSecureMessage from 'hpn/main';
-import utils from "core/utils";
-import environment from "platform/environment";
+import utils from 'core/utils';
+import environment from 'platform/environment';
 
+const BW_URL = 'https://antiphishing.cliqz.com/api/bwlist?md5=';
+export function overRideCliqzResults() {
+  if (utils.getPref('proxyNetwork', true) === false) return;
 
-export function overRideCliqzResults(){
-  if(utils.getPref("proxyNetwork", true) == false) return;
-
-  if(!environment._httpHandler) environment._httpHandler = environment.httpHandler;
-  environment.httpHandler = function(method, url, callback, onerror, timeout, data, sync){
-    if(url.indexOf(utils.RESULTS_PROVIDER) > -1 && utils.getPref('hpn-query', false)) {
-      var _q = url.replace((utils.RESULTS_PROVIDER),"")
-      var mc = new messageContext({"action": "extension-query", "type": "cliqz", "ts": "", "ver": "1.5", "payload":_q, "rp": utils.RESULTS_PROVIDER});
-      var proxyIP = CliqzSecureMessage.queryProxyIP;
-      mc.aesEncrypt()
-      .then(function(enxryptedQuery){
-        return mc.signKey();
-      })
-      .then(function(){
-        var data = {"mP":mc.getMP()}
-        CliqzSecureMessage.stats(proxyIP, "queries-sent", 1);
-        return CliqzSecureMessage.httpHandler(proxyIP)
-        .post(JSON.stringify(data), "instant")
-      })
-      .then(function(response){
-        return mc.aesDecrypt(JSON.parse(response)["data"]);
-      })
-      .then(function(res){
-        CliqzSecureMessage.stats(proxyIP, "queries-recieved", 1);
-        callback && callback({"response":res});
-      })
-      .catch(function(err){
-        utils.log("Error query chain: " + err,CliqzSecureMessage.LOG_KEY);
-        CliqzSecureMessage.stats(proxyIP, "queries-error", 1);
-      })
+  if (!environment.proxyHttpHandler) environment.proxyHttpHandler = environment.httpHandler;
+  environment.httpHandler = function (method, url, callback, onerror, timeout, data, sync) {
+    if (url.startsWith(utils.RESULTS_PROVIDER) &&
+        utils.getPref('hpn-query', false)) {
+      const query = url.replace((utils.RESULTS_PROVIDER), '');
+      const uid = Math.floor(Math.random() * 10000000);
+      CliqzSecureMessage.queriesID[uid] = callback;
+      CliqzSecureMessage.wCrypto.postMessage({
+        msg: { action: 'instant',
+              type: 'cliqz',
+              ts: '',
+              ver: '1.5',
+              payload: query,
+              rp: utils.RESULTS_PROVIDER,
+        },
+        uid: uid,
+        type: 'instant',
+        sourcemap: CliqzSecureMessage.sourceMap,
+        upk: CliqzSecureMessage.uPK,
+        dspk: CliqzSecureMessage.dsPK,
+        sspk: CliqzSecureMessage.secureLogger,
+        queryproxyip: CliqzSecureMessage.queryProxyIP,
+      });
       return null;
-    } else if(url.indexOf(utils.RESULTS_PROVIDER_LOG) > -1 && utils.getPref('hpn-telemetry', false)) {
-      var _q = url.replace(utils.RESULTS_PROVIDER_LOG,"")
-      var mc = new messageContext({"action": "extension-result-telemetry", "type": "cliqz", "ts": "", "ver": "1.5", "payload":_q });
-      var proxyIP = CliqzSecureMessage.queryProxyIP;
-      mc.aesEncrypt()
-      .then(function(enxryptedQuery){
-        return mc.signKey();
-      })
-      .then(function(){
-        var data = {"mP":mc.getMP()}
-        CliqzSecureMessage.stats(proxyIP, "queries-sent", 1);
-        return CliqzSecureMessage.httpHandler(proxyIP)
-        .post(JSON.stringify(data), "instant")
-      })
-      .catch(function(err){
-        utils.log("Error query chain: " + err,CliqzSecureMessage.LOG_KEY);
-        CliqzSecureMessage.stats(proxyIP, "result-telemetry-error", 1);
-      })
+    } else if (url.startsWith(utils.RESULTS_PROVIDER_LOG) &&
+               utils.getPref('hpn-telemetry', false)) {
+      const query = url.replace((utils.RESULTS_PROVIDER_LOG), '');
+      const uid = Math.floor(Math.random() * 10000000);
+      CliqzSecureMessage.queriesID[uid] = callback;
+      CliqzSecureMessage.wCrypto.postMessage({
+        msg: { action: 'extension-result-telemetry',
+              type: 'cliqz',
+              ts: '',
+              ver: '1.5',
+              payload: query,
+        },
+        uid: uid,
+        type: 'instant',
+        sourcemap: CliqzSecureMessage.sourceMap,
+        upk: CliqzSecureMessage.uPK,
+        dspk: CliqzSecureMessage.dsPK,
+        sspk: CliqzSecureMessage.secureLogger,
+        queryproxyip: CliqzSecureMessage.queryProxyIP,
+      });
       return null;
-    }
-    else if(url == utils.SAFE_BROWSING && utils.getPref('hpn-telemetry', false)){
-      var batch = JSON.parse(data);
-      if(batch.length > 0){
-        batch.forEach(function(eachMsg){
+    } else if (url.startsWith(BW_URL) &&
+               utils.getPref('hpn-telemetry', false)) {
+      const query = url.replace(BW_URL, '');
+      const uid = Math.floor(Math.random() * 10000000);
+      CliqzSecureMessage.queriesID[uid] = callback;
+      CliqzSecureMessage.wCrypto.postMessage({
+        msg: { action: 'instant',
+              type: 'cliqz',
+              ts: '',
+              ver: '1.5',
+              payload: query,
+              rp: BW_URL,
+        },
+        uid: uid,
+        type: 'instant',
+        sourcemap: CliqzSecureMessage.sourceMap,
+        upk: CliqzSecureMessage.uPK,
+        dspk: CliqzSecureMessage.dsPK,
+        sspk: CliqzSecureMessage.secureLogger,
+        queryproxyip: CliqzSecureMessage.queryProxyIP,
+      });
+      return null;
+    } else if (url === utils.SAFE_BROWSING &&
+               utils.getPref('hpn-telemetry', false)) {
+      const batch = JSON.parse(data);
+      if (batch.length > 0) {
+        batch.forEach(eachMsg => {
           CliqzSecureMessage.telemetry(eachMsg);
-        })
+        });
       }
-      callback && callback({"response":'{"success":true}'});
+      callback && callback({ 'response': '{"success":true}' });
+    } else {
+      return environment.proxyHttpHandler.apply(utils, arguments);
     }
-    else{
-      return environment._httpHandler.apply(utils, arguments);
-    }
+    return null;
+  };
+  if (!environment.proxyPromiseHttpHandler) {
+    environment.proxyPromiseHttpHandler = environment.promiseHttpHandler;
   }
-  if(!environment._promiseHttpHandler) environment._promiseHttpHandler = environment.promiseHttpHandler;
-  utils.promiseHttpHandler = function(method, url, data, timeout, compressedPost) {
-    if(url == utils.SAFE_BROWSING && utils.getPref('hpn-telemetry', false)){
-      return environment._promiseHttpHandler(method, url, data, timeout, false);
+  utils.promiseHttpHandler = function (method, url, data, timeout, compressedPost) {
+    if (url === utils.SAFE_BROWSING &&
+        utils.getPref('hpn-telemetry', false)) {
+      return environment.proxyPromiseHttpHandler(method, url, data, timeout, false);
+    } else {
+      return environment.proxyPromiseHttpHandler.apply(utils, arguments);
     }
-    else{
-      return environment._promiseHttpHandler.apply(utils, arguments);
-    }
-  }
+  };
 }

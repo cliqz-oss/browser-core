@@ -323,7 +323,7 @@ popupnotificationcontent {
 /* :::::: Close button icons ::::: */
 
 .close-icon {
-  list-style-image: url("../images/browser/win/close.png");
+  list-style-image: var(--cliqz-close-image);
   -moz-image-region: rect(0, 16px, 16px, 0);
 }
 
@@ -343,7 +343,7 @@ popupnotificationcontent {
   }
 
   .close-icon {
-    list-style-image: url("../images/browser/win/close@2x.png");
+    list-style-image: var(--cliqz-close-image-2x);
     -moz-image-region: rect(0, 32px, 32px, 0);
   }
 

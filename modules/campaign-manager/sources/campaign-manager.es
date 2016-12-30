@@ -78,9 +78,7 @@ CliqzCampaignManager.prototype = {
       this.log('updating campaigns');
       CliqzUtils.httpGet(this.getEndpoint(),
           this._onCampaignsUpdate.bind(this),
-          function error(e) {
-              this.log('error updating campaigns: ' + e);
-          });
+          e => this.log('error updating campaigns: ' + e));
   },
   addCampaign: function (id, data) {
       this._campaigns[id] = new CliqzCampaign(id, data);

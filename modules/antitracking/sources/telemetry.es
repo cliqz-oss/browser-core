@@ -9,9 +9,10 @@ export default {
 
   loadFromProvider: function(provider) {
     utils.log("Load telemetry provider: "+ provider, "attrack");
-    System.import(provider).then((mod) => {
+    return System.import(provider).then((mod) => {
       this.telemetry = mod.default.telemetry.bind(mod);
       this.msgType = mod.default.msgType;
+      return this;
     });
   }
 };

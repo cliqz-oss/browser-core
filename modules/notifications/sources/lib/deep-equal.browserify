@@ -1,0 +1,10 @@
+System.register("notifications/lib/deep-equal", [], function (_export) {
+  "use strict";
+
+  _export("default", require('deep-equal'));
+
+  return {
+    setters: [],
+    execute: function () {}
+  };
+});

@@ -37,9 +37,11 @@ const baseDir = cliqzConfig.testsBasePath;
 
 log(`baseDir ${baseDir}`);
 
+const baseURL = baseDir + (cliqzConfig.platform === 'mobile' ? '/dev' : '');
+
 System.config({
   defaultJSExtensions: true,
-  baseURL: baseDir,
+  baseURL,
   meta: {
     '*': { format: 'register' },
   },
@@ -75,7 +77,8 @@ function describeModule(moduleName, loadDeps, testFn) {
       Object.keys(deps[dep]).forEach(key => {
         if (deps[dep][key] === '[dynamic]') {
           depsRewrite[dep][key] = function () {
-            return deps[dep][key].apply(null, arguments);
+            // TODO: add support for constuctor prototype
+            return deps[dep][key].apply(this, arguments);
           }
         }
       });
@@ -155,6 +158,9 @@ mocha.run = function () {
         path => System.import(path).then(function (testModule) {
           log(`load ${path}`);
           return testModule.default;
+        }).catch(function (e) {
+          console.error(e)
+          throw e
         })
       )
     ).then(function () {

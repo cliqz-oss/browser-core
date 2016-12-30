@@ -16,7 +16,7 @@ function loadTestCases(path) {
   const testCases = [];
 
   // Parse test cases
-  loadLinesFromFile(path).forEach(line => {
+  loadLinesFromFile(path).forEach((line) => {
     try {
       const testCase = JSON.parse(line);
       testCases.push(testCase);
@@ -40,6 +40,7 @@ export default describeModule('adblocker/filters-engine',
     'core/cliqz': {
       utils: {},
     },
+    'platform/public-suffix-list': {},
   }),
   () => {
     describe('Test filter engine one filter at a time', () => {
@@ -55,7 +56,7 @@ export default describeModule('adblocker/filters-engine',
         deserializeEngine = this.module().deserializeFiltersEngine;
       });
 
-      loadTestCases(matchingPath).forEach(testCase => {
+      loadTestCases(matchingPath).forEach((testCase) => {
         it(`matches ${testCase.filter} correctly`,
            () => new Promise((resolve, reject) => {
              // Create filter engine with only one filter
@@ -65,9 +66,9 @@ export default describeModule('adblocker/filters-engine',
              }]);
 
              // Serialize and deserialize engine
-             const serialized = serializeEngine(engine);
+             const serialized = JSON.stringify(serializeEngine(engine, true));
              engine = new FilterEngine();
-             deserializeEngine(engine, serialized);
+             deserializeEngine(engine, JSON.parse(serialized), true);
 
              // Check should match
              try {
@@ -97,7 +98,7 @@ export default describeModule('adblocker/filters-engine',
 
       // Load filters
       const filters = [];
-      testCases.forEach(testCase => {
+      testCases.forEach((testCase) => {
         filters.push(testCase.filter);
       });
 
@@ -107,16 +108,26 @@ export default describeModule('adblocker/filters-engine',
           serializeEngine = this.module().serializeFiltersEngine;
           deserializeEngine = this.module().deserializeFiltersEngine;
           engine = new FilterEngine();
-          engine.onUpdateFilters([{ filters }]);
+
+          // Try update mechanism of filter engine
+          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 1 }]);
+          engine.onUpdateFilters([{ filters, asset: 'list2', checksum: 1 }]);
+          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 2 }]);
+          engine.onUpdateFilters([{ filters: [], asset: 'list2', checksum: 2 }]);
 
           // Serialize and deserialize engine
-          const serialized = serializeEngine(engine);
+          const serialized = JSON.stringify(serializeEngine(engine, true));
           engine = new FilterEngine();
-          deserializeEngine(engine, serialized);
+          deserializeEngine(engine, JSON.parse(serialized, true));
+
+          // Try to update after deserialization
+          engine.onUpdateFilters([{ filters, asset: 'list3', checksum: 1 }]);
+          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 3 }]);
+          engine.onUpdateFilters([{ filters: [], asset: 'list3', checksum: 2 }]);
         }
       });
 
-      loadTestCases(matchingPath).forEach(testCase => {
+      loadTestCases(matchingPath).forEach((testCase) => {
         it(`${testCase.filter} matches correctly against full engine`,
            () => new Promise((resolve, reject) => {
              // Check should match
@@ -153,13 +164,13 @@ export default describeModule('adblocker/filters-engine',
           engine.onUpdateFilters([{ filters: loadLinesFromFile(filterListPath) }]);
 
           // Serialize and deserialize engine
-          const serialized = serializeEngine(engine);
+          const serialized = JSON.stringify(serializeEngine(engine, true));
           engine = new FilterEngine();
-          deserializeEngine(engine, serialized);
+          deserializeEngine(engine, JSON.parse(serialized), true);
         }
       });
 
-      loadTestCases(notMatchingPath).forEach(testCase => {
+      loadTestCases(notMatchingPath).forEach((testCase) => {
         it(`${testCase.url} does not match`,
            () => new Promise((resolve, reject) => {
              // Check should match
@@ -197,14 +208,14 @@ export default describeModule('adblocker/filters-engine',
           engine.onUpdateFilters([{ filters: loadLinesFromFile(filterListPath) }]);
 
           // Serialize and deserialize engine
-          const serialized = serializeEngine(engine);
+          const serialized = JSON.stringify(serializeEngine(engine, true));
           engine = new FilterEngine();
-          deserializeEngine(engine, serialized);
+          deserializeEngine(engine, JSON.parse(serialized), true);
           engine.onUpdateResource([{ filters: loadLinesFromFile(resourcesPath) }]);
         }
       });
 
-      loadTestCases(notMatchingPath).forEach(testCase => {
+      loadTestCases(notMatchingPath).forEach((testCase) => {
         it(`${testCase.url} redirected`,
            () => new Promise((resolve, reject) => {
              // Check should match

@@ -21,7 +21,7 @@ function reformatSignalsFlat (sig, ignoreKeys=[], send="allowed") {
     if (ignoreKeys.indexOf(name) === -1 && (sig[name] !== null)) {
       info.push({
         "name": name,
-        "val": (sig[name] && typeof(sig[name]) === "object" ? JSON.stringify(sig[name]) : sig[name]).toString(),
+        "val": (sig[name] && typeof(sig[name]) === "object" ? JSON.stringify(sig[name]) : sig[name] || '').toString(),
         "send": send,
         "des": ""  // todo: fill in descriptions
       });
