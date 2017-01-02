@@ -45,7 +45,7 @@ var CliqzEvents;
 
 var Extension = {
     modules: [],
-    init: function(upgrade, oldVersion, newVersion){
+    init: function(extensionID, upgrade, oldVersion, newVersion){
       Extension.unloadJSMs();
 
       Cu.import('chrome://cliqzmodules/content/CLIQZ.jsm');
@@ -142,7 +142,7 @@ var Extension = {
 
       // Load into all new windows
 
-      Extension.setInstallDatePref();
+      Extension.setInstallDatePref(extensionID);
     },
     shutdown: function () {
       Extension.quickUnloadModules();
@@ -161,17 +161,17 @@ var Extension = {
     },
 
     // for legacy users who have not set install date on installation
-    setInstallDatePref: function () {
+    setInstallDatePref: function (extensionID) {
       try {
         if (!CliqzUtils.getPref('install_date')) {
           Cu.import('resource://gre/modules/AddonManager.jsm');
-          AddonManager.getAddonByID("cliqz@cliqz.com", function () {
-            var date = Math.floor(arguments[0].installDate.getTime() / 86400000);
+          AddonManager.getAddonByID(extensionID, function (addon) {
+            var date = Math.floor(addon.installDate.getTime() / 86400000);
             CliqzUtils.setPref('install_date', date);
           });
         }
       } catch (ex) {
-        CliqzUtils.log('Unable to set install date');
+        CliqzUtils.log(ex.message, 'Extension.jsm: Unable to set install date -> ');
       }
     },
 

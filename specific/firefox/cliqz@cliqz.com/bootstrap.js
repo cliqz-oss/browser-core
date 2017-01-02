@@ -11,7 +11,7 @@ function startup(aData, aReason) {
     Components.utils.unload('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
 
     Components.utils.import('chrome://cliqzmodules/content/Extension.jsm');
-    Extension.init(aReason == ADDON_UPGRADE, aData.oldVersion, aData.version);
+    Extension.init(aData.id, aReason == ADDON_UPGRADE, aData.oldVersion, aData.version);
 
     Components.utils.import('chrome://cliqzmodules/content/FirefoxTelemetry.jsm');
     FirefoxTelemetry.init(aData.id);
