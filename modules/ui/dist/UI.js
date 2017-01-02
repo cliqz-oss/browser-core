@@ -37,7 +37,7 @@ var TEMPLATES = CliqzUtils.TEMPLATES,
     currentResults, // enhancedResults
     rawResults, // raw results
     adultMessage = 0, //0 - show, 1 - temp allow, 2 - temp dissalow
-
+    privateWindow = false,
     urlbarEvents = ['keydown']
     ;
 
@@ -78,6 +78,10 @@ var UI = {
           clearMessage(message["footer-message"].location);
         });
         loadViews();
+
+        // we need to know if the window is private or not in some
+        // cases like switchTab which needs to be deactivated
+        privateWindow = CliqzUtils.isOnPrivateTab(window);
     },
     unload: function(){
         for(var i in urlbarEvents){
@@ -1461,7 +1465,7 @@ function resultClick(ev) {
             }
             CliqzEvents.pub("result_click", signal, {});
 
-            if (localSource.indexOf('switchtab') != -1) {
+            if (!privateWindow && localSource.indexOf('switchtab') != -1) {
               let prevTab = gBrowser.selectedTab;
               if (switchToTabHavingURI(url) && isTabEmpty(prevTab)) {
                 gBrowser.removeTab(prevTab);
