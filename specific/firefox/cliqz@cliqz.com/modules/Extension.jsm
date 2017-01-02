@@ -196,19 +196,18 @@ var Extension = {
         Extension.unloadJSMs();
     },
     tryHideSearchBar: function(win){
+      function getCurrentset(toolbar) {
+        return (toolbar.getAttribute("currentset") ||
+                toolbar.getAttribute("defaultset")).split(",");
+      }
+
+      function $(sel, all){
+        return doc[all ? "querySelectorAll" : "getElementById"](sel);
+      }
       if (CliqzUtils.getPref(dontHideSearchBar, false)) {
         return;
       }
       try {
-        function getCurrentset(toolbar) {
-          return (toolbar.getAttribute("currentset") ||
-                  toolbar.getAttribute("defaultset")).split(",");
-        }
-
-        function $(sel, all){
-          return doc[all ? "querySelectorAll" : "getElementById"](sel);
-        }
-
         let doc = win.document,
             toolbar, currentset, idx, next, toolbarID,
             toolbars = $("toolbar", true);
