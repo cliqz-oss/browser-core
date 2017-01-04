@@ -6,8 +6,8 @@ const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu, manager: Cm } =
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import("resource://gre/modules/Services.jsm");
 
-var CLIQZ_NEW_TAB = "about:cliqz",
-    CLIQZ_NEW_TAB_URL = "chrome://cliqz/content/fresh-tab-frontend/index.html",
+var CLIQZ_NEW_TAB = CliqzUtils.CLIQZ_NEW_TAB,
+    CLIQZ_NEW_TAB_URL = CliqzUtils.CLIQZ_NEW_TAB_URL,
     DEF_HOMEPAGE = "browser.startup.homepage",
     DEF_NEWTAB = "browser.newtab.url",
     DEF_STARTUP = "browser.startup.page",
@@ -86,7 +86,6 @@ AboutURL.prototype = {
       </script>
     </body>
 </html>`;
-
 
     let channel = InputStreamChannel.createInstance(Ci.nsIInputStreamChannel).
         QueryInterface(Ci.nsIChannel);

@@ -1,18 +1,10 @@
-/* global CustomEvent, window, document, osAPI */
+/* global CustomEvent, osAPI */
 
-import LongPress from 'mobile-touch/longpress';
 import CliqzUtils from 'core/utils';
 import Storage from 'core/storage';
+import { window, document, Hammer } from 'mobile-ui/webview';
 
 const storage = new Storage();
-
-var DEPENDENCY_STATUS = {
-  NOT_LOADED: 'NOT_LOADED',
-  LOADED: 'LOADED',
-  GIVE_UP: 'GIVE_UP',
-  RETRY_LIMIT: 20,
-  retryCount: {}
-};
 
 let topSitesList = [], tempBlockedTopSites = [], newsVersion, displayedTopSitesCount;
 const TOPSITES_LIMIT = 5, NEWS_LIMIT = 2;
@@ -52,8 +44,7 @@ function displayTopSites (list, isEditMode = false) {
   list = list.splice(0, TOPSITES_LIMIT);
 
   const div = document.getElementById('topSites');
-  const theme = (CliqzUtils.getPref('incognito', false) === 'true' ? 'incognito' : 'standard');
-  div.innerHTML = CLIQZ.templates.topsites({isEmpty, isEditMode, list, theme});
+  div.innerHTML = CLIQZ.freshtabTemplates.topsites({isEmpty, isEditMode, list});
 
 
   CliqzUtils.addEventListenerToElements('#doneEditTopsites', 'click', _ => {
@@ -96,7 +87,7 @@ function displayTopSites (list, isEditMode = false) {
     });
   });
 
-  function onLongpress (element) {
+  function onLongpress ({ target: element }) {
     displayTopSites(topSitesList, true);
     CliqzUtils.telemetry({
       type: 'home',
@@ -107,8 +98,8 @@ function displayTopSites (list, isEditMode = false) {
     });
   }
 
-  function onTap (element) {
-    osAPI.openLink(element.getAttribute('url'));
+  function onTap ({ srcEvent: { currentTarget: element } }) {
+    osAPI.openLink(element.dataset.url);
     CliqzUtils.telemetry({
       type: 'home',
       action: 'click',
@@ -117,7 +108,11 @@ function displayTopSites (list, isEditMode = false) {
     });
   }
 
-  new LongPress('.topSitesLink', onLongpress, onTap);
+  const elements = document.querySelectorAll('.topSitesLink');
+  for (let i = 0; i < elements.length; i++) {
+    new Hammer(elements[i]).on('tap', onTap);
+    new Hammer(elements[i]).on('press', onLongpress);
+  }
 
 }
 
@@ -188,14 +183,8 @@ var News = {
       };
     });
     news = news.splice(0, NEWS_LIMIT);
-    const dependencyStatus = News.getDependencyStatus('topnews');
-    if(dependencyStatus === DEPENDENCY_STATUS.NOT_LOADED) {
-      return setTimeout(News.displayTopNews, 100, news);
-    } else if(dependencyStatus === DEPENDENCY_STATUS.GIVE_UP) {
-      return;
-    }
     const div = document.getElementById('topNews');
-    div.innerHTML = CLIQZ.templates.topnews(news);
+    div.innerHTML = CLIQZ.freshtabTemplates.topnews(news);
     CliqzUtils.addEventListenerToElements('.answer', 'click', function ({ currentTarget: item, target: element}) {
       osAPI.openLink(item.dataset.url)
       CliqzUtils.telemetry({
@@ -223,12 +212,6 @@ var News = {
     history.results.forEach(result => News._recentHistory[result.url] = true);
   },
   startPageHandler: function (list) {
-    const dependencyStatus = News.getDependencyStatus('topsites');
-    if(dependencyStatus === DEPENDENCY_STATUS.NOT_LOADED) {
-      return setTimeout(News.startPageHandler, 100, list);
-    } else if(dependencyStatus === DEPENDENCY_STATUS.GIVE_UP) {
-      return;
-    }
     News.lastShowTime = Date.now();
 
     News.getNews(CliqzUtils.RICH_HEADER + CliqzUtils.getRichHeaderQueryString(''));
@@ -246,20 +229,8 @@ var News = {
 
     displayTopSites(topSitesList);
   },
-  // wait for logos, templates, and locale to be loaded
-  getDependencyStatus: function(template) {
-    if(DEPENDENCY_STATUS.retryCount[template] === undefined) {
-      DEPENDENCY_STATUS.retryCount[template] = 0;
-    }
-    if(!CliqzUtils.BRANDS_DATABASE.buttons) {
-      return DEPENDENCY_STATUS.retryCount[template]++ < DEPENDENCY_STATUS.RETRY_LIMIT ? DEPENDENCY_STATUS.NOT_LOADED : DEPENDENCY_STATUS.GIVE_UP;
-    }
-    DEPENDENCY_STATUS.retryCount[template] = 0;
-    return DEPENDENCY_STATUS.LOADED;
-  },
 
-  hideFreshtab: function () {
-    window.document.getElementById('startingpoint').style.display = 'none';
+  sendHideTelemetry: function () {
     const showDuration = Date.now() - News.lastShowTime;
     CliqzUtils.telemetry({
       type: 'home',

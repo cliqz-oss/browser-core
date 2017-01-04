@@ -5,7 +5,10 @@
  *
  */
 
-Components.utils.importGlobalProperties(['crypto'])
+try {
+  Components.utils.importGlobalProperties(['crypto']);
+} catch(e){ /* Firefox < 37 */ }
+
 var EXPORTED_SYMBOLS = ['Extension'];
 const {
   classes: Cc,
@@ -42,7 +45,7 @@ var CliqzEvents;
 
 var Extension = {
     modules: [],
-    init: function(upgrade, oldVersion, newVersion){
+    init: function(extensionID, upgrade, oldVersion, newVersion){
       Extension.unloadJSMs();
 
       Cu.import('chrome://cliqzmodules/content/CLIQZ.jsm');
@@ -55,6 +58,8 @@ var Extension = {
       Extension.System.set('promise', { default: this.Promise });
 
       Services.scriptloader.loadSubScript("chrome://cliqz/content/bower_components/handlebars/handlebars.js", this);
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/bower_components/mathjs/dist/math.min.js", this);
+
       Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/storage.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/core/storage.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/prefs.js", this);
@@ -66,6 +71,8 @@ var Extension = {
       Services.scriptloader.loadSubScript("chrome://cliqz/content/core/events.js", this);
 
       Extension.System.set('handlebars', {default: this.Handlebars});
+      Extension.System.set('math', {default: this.math});
+
       var environment = Extension.System.get("platform/environment").default;
       // must be set to this.Promise before anything else is called, so the proper Promise implementation can be used.
       environment.Promise = this.Promise;
@@ -135,7 +142,7 @@ var Extension = {
 
       // Load into all new windows
 
-      Extension.setInstallDatePref();
+      Extension.setInstallDatePref(extensionID);
     },
     shutdown: function () {
       Extension.quickUnloadModules();
@@ -154,17 +161,17 @@ var Extension = {
     },
 
     // for legacy users who have not set install date on installation
-    setInstallDatePref: function () {
+    setInstallDatePref: function (extensionID) {
       try {
         if (!CliqzUtils.getPref('install_date')) {
           Cu.import('resource://gre/modules/AddonManager.jsm');
-          AddonManager.getAddonByID("cliqz@cliqz.com", function () {
-            var date = Math.floor(arguments[0].installDate.getTime() / 86400000);
+          AddonManager.getAddonByID(extensionID, function (addon) {
+            var date = Math.floor(addon.installDate.getTime() / 86400000);
             CliqzUtils.setPref('install_date', date);
           });
         }
       } catch (ex) {
-        CliqzUtils.log('Unable to set install date');
+        CliqzUtils.log(ex.message, 'Extension.jsm: Unable to set install date -> ');
       }
     },
 
@@ -189,19 +196,18 @@ var Extension = {
         Extension.unloadJSMs();
     },
     tryHideSearchBar: function(win){
+      function getCurrentset(toolbar) {
+        return (toolbar.getAttribute("currentset") ||
+                toolbar.getAttribute("defaultset")).split(",");
+      }
+
+      function $(sel, all){
+        return doc[all ? "querySelectorAll" : "getElementById"](sel);
+      }
       if (CliqzUtils.getPref(dontHideSearchBar, false)) {
         return;
       }
       try {
-        function getCurrentset(toolbar) {
-          return (toolbar.getAttribute("currentset") ||
-                  toolbar.getAttribute("defaultset")).split(",");
-        }
-
-        function $(sel, all){
-          return doc[all ? "querySelectorAll" : "getElementById"](sel);
-        }
-
         let doc = win.document,
             toolbar, currentset, idx, next, toolbarID,
             toolbars = $("toolbar", true);

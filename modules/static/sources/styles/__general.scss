@@ -177,7 +177,9 @@
 .cliqz-urlbar-Last-search {
     overflow: hidden;
     max-width: 200px;
-    padding: 0px 6px 2px 6px;
+    height: 24px;
+    line-height: 22px;
+    padding: 0 6px 0 6px;
     color: #fff;
     text-overflow: ellipsis;
     border-radius: 1px;
@@ -684,7 +686,7 @@
 }
 
 .cqz-results .ez-no-result .cliqz-logo {
-    background-image: url(../../skin/img/cliqz.svg);
+    background-image: url(../../static/skin/img/cliqz.svg);
     display: inline-block;
     width: 100px;
     height: 26px;

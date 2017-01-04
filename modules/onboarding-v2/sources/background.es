@@ -13,7 +13,7 @@ const InputStreamChannel = Cc["@mozilla.org/network/input-stream-channel;1"];
 const securityManager = Cc["@mozilla.org/scriptsecuritymanager;1"].getService(
     Ci.nsIScriptSecurityManager);
 
-var CLIQZ_ONBOARDING_URL = "chrome://cliqz/content/onboarding-v2/index.html"
+const ONBOARDING_URL = utils.CLIQZ_ONBOARDING_URL;
 
 Cm.QueryInterface(Ci.nsIComponentRegistrar);
 
@@ -25,11 +25,10 @@ AboutURL.prototype = {
   contractID: "@mozilla.org/network/protocol/about;1?what=onboarding",
 
   newChannel: function(uri) {
-    var src = CLIQZ_ONBOARDING_URL;
     var html =  [
         '<!DOCTYPE html><html><head><title>CLIQZ</title><meta charset="UTF-8">',
         '<style>* {margin:0;padding:0;width:100%;height:100%;overflow:hidden;border: 0}</style>',
-        `</head><body><iframe src="${src}">`,
+        `</head><body><iframe src="${ONBOARDING_URL}">`,
         '</iframe></body></html>'
     ].join("");
 
@@ -188,7 +187,7 @@ export default background({
 
     shakeIt() {
       utils.callAction('core', 'broadcastMessage', [
-        utils.CLIQZ_ONBOARDING,
+        ONBOARDING_URL,
         {
           action: 'shakeIt'
         }

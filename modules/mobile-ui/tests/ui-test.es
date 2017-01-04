@@ -1,18 +1,25 @@
-/* global chai, describeModule */
+/* global  chai, describeModule */
 
 export default describeModule('mobile-ui/UI',
   function () {
     return {
       'mobile-ui/webview': {
         window: {
-          addEventListener() { }
+          addEventListener() { },
+          document: {
+            getElementById() {}
+          },
         }
       },
       'core/templates': {
         default: {
           TEMPLATES: []
         }
-      }
+      },
+      'core/utils': {
+        default: {},
+      },
+      'viewpager': {}
     };
   },
   function () {

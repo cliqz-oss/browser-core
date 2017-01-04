@@ -1,0 +1,15 @@
+<div class="clearfix notificationsCon" {{action 'notificationClick'}}>
+  <div class="close">
+    <a href="#" {{action 'dismiss'}}><img src="./assets/images/close_icon.svg" /></a>
+  </div>
+  <img {{action 'logoClick'}} class="logo" width="39px" height="55px" src="./assets/images/location_icon.png" />
+  <div class="text">
+    <h1>{{t 'notifications.hdr-share-location'}}</h1>
+    <p>{{t 'notifications.txt-share-location'}}
+      <a href="#" {{action 'openLocationPage' 'https://cliqz.com/en/support/local-results'}}>{{t 'notifications.cta-share-location'}}</a>
+    </p>
+  </div>
+  <div class="buttons">
+    <button class="enable" {{action 'alwaysShare'}}>{{t 'notifications.btn-always-share'}}</button><button class="disable" {{action 'neverAsk'}}>{{t 'notifications.btn-never-share'}}</button>
+  </div>
+</div>

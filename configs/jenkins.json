@@ -19,7 +19,8 @@
     "controlCenterSecurity": true
   },
   "default_prefs" : {
-    "modules.context-search.enabled": false
+    "modules.context-search.enabled": false,
+    "modules.type-filter.enabled": false
   },
   "modules": [
     "core",
@@ -28,9 +29,9 @@
     "context-search",
     "autocomplete",
     "geolocation",
+    "freshtab",
     "ui",
     "context-menu",
-    "freshtab",
     "unblock",
     "theme",
     "telemetry-categories",
@@ -40,14 +41,18 @@
     "anti-phishing",
     "privacy-dashboard",
     "performance",
-    "hpn",
     "control-center",
     "adblocker",
+    "hm",
+    "hpn",
     "campaign-manager",
     "message-center",
     "https-everywhere",
+    "new-tab-button",
+    "notifications",
     "moncomp",
-    "firefox-tests"
+    "firefox-tests",
+    "type-filter"
   ],
   "subprojects": [
     "fresh-tab-frontend"

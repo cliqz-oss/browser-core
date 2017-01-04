@@ -1,14 +1,15 @@
 import { events, Promise } from "core/cliqz";
 import utils from "./utils";
-import console from "core/console";
-import language from "platform/language";
-import config from "core/config";
+import console from "./console";
+import language from "./language";
+import config from "./config";
 import ProcessScriptManager from "platform/process-script-manager";
 import HistoryManager from "./history-manager";
-import Language from "./language";
 import prefs from './prefs';
 import background from './base/background';
-import { Window, mapWindows } from '../platform/browser';
+import { Window, mapWindows } from 'platform/browser';
+import loadLogoDb from "platform/load-logo-db";
+import { isMobile } from "./platform";
 
 var lastRequestId = 0;
 var callbacks = {};
@@ -16,10 +17,17 @@ var callbacks = {};
 export default background({
 
   init(settings) {
-    this.checkSession();
-    Language.init();
-    HistoryManager.init();
+    if (!isMobile) {
+      this.checkSession();
+      language.init();
+      HistoryManager.init();
+    }
+    utils.CliqzLanguage = language;
     this.dispatchMessage = this.dispatchMessage.bind(this);
+
+    utils.bindObjectFunctions(this.actions, this);
+    loadLogoDb().then(utils.setLogoDb);
+
     this.mm = new ProcessScriptManager(this.dispatchMessage);
     this.mm.init();
 
@@ -28,7 +36,7 @@ export default background({
 
   unload() {
     utils.clearTimeout(this.report);
-    Language.unload();
+    language.unload();
     HistoryManager.unload();
     this.mm.unload();
   },
@@ -60,76 +68,6 @@ export default background({
     }
   },
 
-  queryHTML(url, selector, attribute) {
-    const requestId = lastRequestId++,
-          documents = [];
-
-    this.mm.broadcast("cliqz:core", {
-      action: "queryHTML",
-      url,
-      args: [selector, attribute],
-      requestId
-    });
-
-    return new Promise( (resolve, reject) => {
-      callbacks[requestId] = function (attributeValues) {
-        delete callbacks[requestId];
-        resolve(attributeValues);
-      };
-
-      utils.setTimeout(function () {
-        delete callbacks[requestId];
-        reject();
-      }, 1000);
-    });
-  },
-
-  getHTML(url, timeout = 1000) {
-    const requestId = lastRequestId++,
-          documents = [];
-
-    this.mm.broadcast("cliqz:core", {
-      action: "getHTML",
-      url,
-      args: [],
-      requestId
-    });
-
-    callbacks[requestId] = function (doc) {
-      documents.push(doc);
-    };
-
-    return new Promise( resolve => {
-      utils.setTimeout(function () {
-        delete callbacks[requestId];
-        resolve(documents);
-      }, timeout);
-    });
-  },
-
-  getCookie(url) {
-    const requestId = lastRequestId++,
-          documents = [];
-
-    this.mm.broadcast("cliqz:core", {
-      action: "getCookie",
-      url,
-      args: [],
-      requestId
-    });
-
-    return new Promise( (resolve, reject) => {
-      callbacks[requestId] = function (attributeValues) {
-        delete callbacks[requestId];
-        resolve(attributeValues);
-      };
-
-      utils.setTimeout(function () {
-        delete callbacks[requestId];
-        reject();
-      }, 1000);
-    });
-  },
 
   dispatchMessage(msg) {
     if (typeof msg.data.requestId === "number") {
@@ -150,10 +88,11 @@ export default background({
     }).then( response => {
       this.mm.broadcast(`window-${windowId}`, {
         response,
-        action: msg.data.payload.action,
+        action,
+        module,
         requestId,
       });
-    }).catch(console.error.bind(null, "Process Script", `${action}/${module}`));
+    }).catch(console.error.bind(null, "Process Script", `${modules}/${action}`));
   },
 
   handleResponse(msg) {
@@ -173,6 +112,9 @@ export default background({
   },
 
   actions: {
+    recordMouseDown(...args) {
+      events.pub('core:mouse-down', ...args);
+    },
     restart() {
       return utils.extensionRestart();
     },
@@ -265,6 +207,76 @@ export default background({
     },
     resizeWindow(width, height) {
       utils.getWindow().resizeTo(width, height);
+    },
+    queryHTML(url, selector, attribute) {
+      const requestId = lastRequestId++,
+        documents = [];
+
+      this.mm.broadcast("cliqz:core", {
+        action: "queryHTML",
+        url,
+        args: [selector, attribute],
+        requestId
+      });
+
+      return new Promise( (resolve, reject) => {
+        callbacks[requestId] = function (attributeValues) {
+          delete callbacks[requestId];
+          resolve(attributeValues);
+        };
+
+        utils.setTimeout(function () {
+          delete callbacks[requestId];
+          reject();
+        }, 1000);
+      });
+    },
+
+    getHTML(url, timeout = 1000) {
+      const requestId = lastRequestId++,
+        documents = [];
+
+      this.mm.broadcast("cliqz:core", {
+        action: "getHTML",
+        url,
+        args: [],
+        requestId
+      });
+
+      callbacks[requestId] = function (doc) {
+        documents.push(doc);
+      };
+
+      return new Promise( resolve => {
+        utils.setTimeout(function () {
+          delete callbacks[requestId];
+          resolve(documents);
+        }, timeout);
+      });
+    },
+
+    getCookie(url) {
+      const requestId = lastRequestId++,
+        documents = [];
+
+      this.mm.broadcast("cliqz:core", {
+        action: "getCookie",
+        url,
+        args: [],
+        requestId
+      });
+
+      return new Promise( (resolve, reject) => {
+        callbacks[requestId] = function (attributeValues) {
+          delete callbacks[requestId];
+          resolve(attributeValues);
+        };
+
+        utils.setTimeout(function () {
+          delete callbacks[requestId];
+          reject();
+        }, 1000);
+      });
     },
   },
 });

@@ -1,0 +1,6 @@
+{
+  "bower_components": [
+    "jquery/dist/jquery.js",
+    "hammerjs/hammer.js"
+  ]
+}

@@ -1,11 +1,14 @@
 import RegexProxyRule from 'unblock/regexp-proxy-rule';
 import ResourceLoader from 'core/resource-loader';
 import { utils } from 'core/cliqz';
-import core from 'core/background';
 
 Components.utils.import('resource://gre/modules/Services.jsm');
 
 const REFRESH_RETRIES = 2;
+
+function queryHTML(...args) {
+  return utils.callAction('core', 'queryHTML', args);
+}
 
 export default class {
   /**
@@ -135,7 +138,7 @@ export default class {
 
       if(!proxied) {
         // detect user locale from youtube logo
-        core.queryHTML(url, this.conf.locale_element_selector, 'innerText').then((locale) => {
+        queryHTML(url, this.conf.locale_element_selector, 'innerText').then((locale) => {
           try {
             if (locale[0]) {
               CliqzUtils.log("YT locale = " + locale[0], "unblock");
@@ -228,7 +231,7 @@ export default class {
   */
   checkLoadError(url, t) {
     // see if error message is visible
-    core.queryHTML(url, '.ytp-error', 'offsetParent').then((offsetParent) => {
+    queryHTML(url, '.ytp-error', 'offsetParent').then((offsetParent) => {
       // if zero results, then this url probably isn't open in our tabs anymore
       // so we should stop checking for errors.
       if (offsetParent.length === 0) {
@@ -276,7 +279,7 @@ export default class {
   isVideoBlocked(url) {
     // check for block message
     return new Promise( (resolve, reject) => {
-      core.queryHTML(url, this.conf.blocked_video_element, 'offsetParent').then((offsetParent) => {
+      queryHTML(url, this.conf.blocked_video_element, 'offsetParent').then((offsetParent) => {
         try {
           resolve(offsetParent.length > 0 && offsetParent[0] !== null);
         } catch(e) {

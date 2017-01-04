@@ -35,9 +35,9 @@ TESTS.AttrackTest = function (CliqzUtils) {
         pacemaker = System.get("antitracking/pacemaker").default;
 
 
-    var module_enabled = CliqzUtils.getPref('antiTrackTest', false);
+    var module_enabled = CliqzUtils.getPref('modules.antitracking.enabled', false);
     // make sure that module is loaded (default it is not initialised on extension startup)
-    CliqzUtils.setPref('antiTrackTest', true);
+    CliqzUtils.setPref('modules.antitracking.enabled', true);
 
     before(function() {
       // pause pacemaker to prevent external list updates
@@ -49,14 +49,15 @@ TESTS.AttrackTest = function (CliqzUtils) {
       pacemaker.start();
     });
 
-    describe('CliqzAttrack.tab_listener', function() {
+    describe('platform/browser', function() {
+        var browser = System.get('platform/browser');
 
         describe('isWindowActive', function() {
 
             it('returns false for none existant tab ids', function() {
-                chai.expect(CliqzAttrack.tab_listener.isWindowActive(-1)).to.be.false;
-                chai.expect(CliqzAttrack.tab_listener.isWindowActive(0)).to.be.false;
-                chai.expect(CliqzAttrack.tab_listener.isWindowActive(532)).to.be.false;
+                chai.expect(browser.isWindowActive(-1)).to.be.false;
+                chai.expect(browser.isWindowActive(0)).to.be.false;
+                chai.expect(browser.isWindowActive(532)).to.be.false;
             });
 
             describe('when tab is opened', function() {
@@ -92,7 +93,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
 
                 it('returns true for open tab id', function() {
                   return waitIfNotReady(function() {
-                    return CliqzAttrack.tab_listener.isWindowActive(tab_id) === true;
+                    return browser.isWindowActive(tab_id) === true;
                   });
                 });
 
@@ -103,7 +104,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
                     });
 
                     it('returns false for closed tab id', function() {
-                        chai.expect(CliqzAttrack.tab_listener.isWindowActive(tab_id)).to.be.false;
+                        chai.expect(browser.isWindowActive(tab_id)).to.be.false;
                     });
                 });
             });

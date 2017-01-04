@@ -26,8 +26,9 @@ console.log(cliqzConfig);
 
 var chromiumTree = new MergeTrees([
   new Funnel(config, { destDir: 'modules'}),
-  new Funnel(modules.bowerComponents, { destDir: 'bower_components' }),
+  new Funnel(modules.bower, { destDir: 'bower_components' }),
   new Funnel(modules.modules, { destDir: 'modules' }),
+  new Funnel(modules.static,     { destDir: 'modules' }),
 ], { overwrite: true } );
 
 var configTree = util.injectConfig(chromiumTree, config, 'cliqz.json', [

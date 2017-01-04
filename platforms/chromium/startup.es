@@ -18,6 +18,6 @@ export default function (window, modules = config.modules) {
   });
 
     return loadModule("core").then( () => {
-    return Promise.all(modulesToLoad.map(loadModule));
+      return Promise.all(modulesToLoad.map(loadModule));
   });
 };

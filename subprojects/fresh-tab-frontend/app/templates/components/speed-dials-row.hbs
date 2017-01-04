@@ -16,8 +16,8 @@
                  alias=dial.searchAlias
                  isCustom=isCustom}}
   {{/each}}
-  {{#if isCustom}}
-    {{add-speed-dial isVisible=displayAddBtn addToCustomAction="addToCustom"}}
+  {{#if showAddButton}}
+    {{add-speed-dial addToCustomAction="addToCustom"}}
   {{/if}}
 </ul>
 

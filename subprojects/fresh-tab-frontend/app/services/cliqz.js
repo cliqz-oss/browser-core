@@ -1,6 +1,8 @@
 import Ember from 'ember';
 import DS from 'ember-data';
 
+const Promise = Ember.RSVP.Promise;
+
 function nextId() {
   if(!nextId.id) {
     nextId.id = 1;
@@ -9,6 +11,8 @@ function nextId() {
 }
 
 export default Ember.Service.extend({
+  messageCenter: Ember.inject.service('message-center'),
+
   init() {
     this._super(...arguments);
 
@@ -23,12 +27,20 @@ export default Ember.Service.extend({
         // non CLIQZ or invalid message should be ignored
       }
 
-      if (message.type === "response") {
-        const action = this.callbacks[message.action];
-        const requestId = message.requestId;
+      if(message.action === "closeNotification") {
+        this.get('messageCenter').remove(message.messageId);
+      }
+      if(message.action === "addMessage") {
+        this.get('messageCenter').addMessages({ [message.message.id]: message.message });
+      }
 
-        if (requestId) {
-          action && action[requestId] && action[requestId].call(null, message.response);
+
+      if (message.type === "response") {
+        const action = (this.callbacks[message.module] || {})[message.action] || this.callbacks[message.action];
+        const requestId = message.requestId;
+        if (requestId && action && action[requestId]) {
+          action[requestId].call(null, message.response);
+          delete action[requestId];
         } else {
           action && action.call(null, message.response);
         }
@@ -52,7 +64,7 @@ export default Ember.Service.extend({
     return DS.PromiseObject.create({ promise });
   },
 
-  restart(moduleName) {
+  restart() {
     let promise = new Promise( resolve => {
       this.callbacks.restart = resolve;
     });
@@ -151,12 +163,18 @@ export default Ember.Service.extend({
     return DS.PromiseObject.create({ promise });
   },
 
-  dismissAlert() {
+  dismissMessage(message) {
+    let promise = new Promise( resolve => {
+      this.callbacks.dismissMessage = resolve;
+    })
     window.postMessage(JSON.stringify({
       target: 'cliqz',
       module: 'freshtab',
-      action: 'dismissAlert'
+      action: 'dismissMessage',
+      args: [message]
     }), '*');
+
+    return DS.PromiseObject.create({ promise });
   },
 
   getQuery(query) {
@@ -203,6 +221,101 @@ export default Ember.Service.extend({
     }), '*');
   },
 
+  getNotificationsConfig() {
+    let promise = new Promise( resolve => {
+      this.callbacks.notifications = this.callbacks.notifications || {};
+      this.callbacks.notifications.getConfig = resolve;
+    });
+
+    window.postMessage(JSON.stringify({
+      target: 'cliqz',
+      module: 'notifications',
+      action: 'getConfig'
+    }), '*');
+
+    return DS.PromiseObject.create({promise});
+  },
+
+  watch(url) {
+    const requestId = nextId();
+
+    let promise = new Ember.RSVP.Promise( resolve => {
+      this.callbacks.notifications = this.callbacks.notifications || {};
+      this.callbacks.notifications.watch = this.callbacks.notifications.watch || {};
+      this.callbacks.notifications.watch[requestId] = resolve;
+    });
+
+    window.postMessage(JSON.stringify({
+      requestId,
+      target: "cliqz",
+      module: "notifications",
+      action: "watch",
+      args: [url],
+    }), "*");
+
+    return DS.PromiseObject.create({ promise });
+  },
+
+  activateNotification(url) {
+    const requestId = nextId();
+
+    let promise = new Ember.RSVP.Promise( resolve => {
+      this.callbacks.notifications = this.callbacks.notifications || {};
+      this.callbacks.notifications.activateNotification = this.callbacks.notifications.activateNotification || {};
+      this.callbacks.notifications.activateNotification[requestId] = resolve;
+    });
+
+    window.postMessage(JSON.stringify({
+      requestId,
+      target: "cliqz",
+      module: "notifications",
+      action: "activate",
+      args: [url],
+    }), "*");
+
+    return DS.PromiseObject.create({ promise });
+  },
+
+  unwatch(url) {
+    const requestId = nextId();
+
+    let promise = new Ember.RSVP.Promise( resolve => {
+      this.callbacks.notifications = this.callbacks.notifications || {};
+      this.callbacks.notifications.unwatch = this.callbacks.notifications.unwatch || {};
+      this.callbacks.notifications.unwatch[requestId] = resolve;
+    });
+
+    window.postMessage(JSON.stringify({
+      requestId,
+      target: "cliqz",
+      module: "notifications",
+      action: "unwatch",
+      args: [url],
+    }), "*");
+
+    return DS.PromiseObject.create({ promise });
+  },
+
+  getNotifications(urls = []) {
+    const requestId = nextId();
+
+    let promise = new Ember.RSVP.Promise( resolve => {
+      this.callbacks.notifications = this.callbacks.notifications || {};
+      this.callbacks.notifications.getNotifications = this.callbacks.notifications.getNotifications || {};
+      this.callbacks.notifications.getNotifications[requestId] = resolve;
+    });
+
+    window.postMessage(JSON.stringify({
+      requestId,
+      target: "cliqz",
+      module: "notifications",
+      action: "getNotifications",
+      args: [urls],
+    }), "*");
+
+    return DS.PromiseObject.create({ promise });
+  },
+
   getConfig() {
     let promise = new Promise( resolve => {
       this.callbacks.getConfig = resolve;
@@ -223,6 +336,15 @@ export default Ember.Service.extend({
       target: 'cliqz',
       module: 'freshtab',
       action: 'takeFullTour'
+    }), '*');
+  },
+
+  shareLocation(decission = 'no') {
+    window.postMessage(JSON.stringify({
+      target: 'cliqz',
+      module: 'freshtab',
+      action: 'shareLocation',
+      args: [decission]
     }), '*');
   },
 

@@ -100,6 +100,7 @@ export default describeModule('adblocker/filters-loader',
         platformName,
       },
     },
+    'platform/public-suffix-list': {},
   }),
   () => {
     describe('Test loading filters', () => {

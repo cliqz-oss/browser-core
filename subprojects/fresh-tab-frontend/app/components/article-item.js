@@ -8,9 +8,11 @@ export default Ember.Component.extend({
   isBreakingNews: Ember.computed.equal('model.type', 'breaking-news'),
 
   calculateHeight: function() {
-    var height = this.$(".article-content").height();
-    this.sendAction("calculateHeightAction", height);
-  }.on('didInsertElement'),
+    this.scheduleOnce('afterRender', () => {
+      const height = this.$(".article-content").height();
+      this.sendAction("calculateHeightAction", height);
+    });
+  }.on('didIsertElement'),
 
   click(ev) {
     this.get('cliqz').sendTelemetry({

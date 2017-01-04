@@ -32,7 +32,6 @@ var CliqzAutocomplete = {
     highlightFirstElement: false,
     hm: null,
     currentAutoLoadURL: null,
-
     getResultsOrder: function(results){
         return CliqzAutocomplete.prepareResultOrder(results);
     },

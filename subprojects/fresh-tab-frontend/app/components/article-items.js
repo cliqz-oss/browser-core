@@ -35,9 +35,7 @@ export default Ember.Component.extend({
   }.on('init'),
 
 
-  didResize(width, height, evt) {
-    //console.log(`Resized! ${width}x${height}`);
-    var pageNum = this.get('pageNum');
+  didResize(width) {
     this.set('pageNum', 0)
 
     this.updatePageSize(width);

@@ -7,7 +7,7 @@
                 {{#if address}}
                     <div class="address__details">
                         <div extra="address" show-status='true' class="address__text"
-                            cliqz-action="stop-click-event-propagation" onclick="osAPI.browserAction('{{escapedUrl}}','map')">
+                            cliqz-action="stop-click-event-propagation" onclick="osAPI.browserAction('{{mu}}','map')">
                             {{ address }}
                         </div>
                     </div>
@@ -15,7 +15,7 @@
                 {{#if map_img}}
                     <img class="map__img" data-src="{{map_img}}" extra="map-image"
                          onerror="this.style.display='none';"
-                         cliqz-action="stop-click-event-propagation" onclick="osAPI.browserAction('{{escapedUrl}}','map')"/>
+                         cliqz-action="stop-click-event-propagation" onclick="osAPI.browserAction('{{mu}}','map')"/>
                 {{/if}}
             </div>
             <div class="local__details">

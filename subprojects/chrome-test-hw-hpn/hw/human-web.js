@@ -1385,7 +1385,7 @@ var __CliqzHumanWeb = function() { // (_export) {
                     }];
 
                     function getDoc(url) {
-                        return core.getHTML(url).then(function (docs) {
+                        return core.actions.getHTML(url).then(function (docs) {
                             var doc = docs[0];
                             if (doc) {
                                 return doc;

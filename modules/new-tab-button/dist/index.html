@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    <body>
+        <div class="container">
+            <ul class="notifications">
+                <li class="notification">
+                    gmail <label>3</label>
+                </li>
+                <li class="notification">
+                    slack <label>20</label>
+                </li>
+            </ul>
+        </div>
+        <script>
+            function addCss(fileName) {
+
+                var head = document.head
+                    , link = document.createElement('link')
+
+                link.type = 'text/css'
+                link.rel = 'stylesheet'
+                link.href = fileName
+
+                head.appendChild(link)
+            }
+
+            addCss('styles/styles.css?rand'+Math.random())
+        </script>
+    </body>
+</html>

@@ -9,7 +9,7 @@ export default class {
   }
 
   init() {
-    if(onboardingVersion() !== "2.0") {
+    if(onboardingVersion() !== "2.1") {
       return;
     }
 

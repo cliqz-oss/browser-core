@@ -1,0 +1,18 @@
+.speed-dial {
+  &.new-notifications {
+    color: red;
+    .title {
+      span {
+        font-weight: bold;
+      }
+      &:before {
+        content: '';
+        display: inline-block;
+        background-color: red;
+        height: 8px;
+        width: 8px;
+        border-radius: 8px;
+      }
+    }
+  }
+}

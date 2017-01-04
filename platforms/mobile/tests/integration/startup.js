@@ -30,7 +30,7 @@ describe("Startup", function () {
         autoRespond: true,
         respondImmediately: true
       });
-      contentWindow.sinon.FakeXMLHttpRequest.addFilter(function (method, url) {return !url.startsWith('https://newbeta.cliqz.com/api/v1/') });
+      contentWindow.sinon.FakeXMLHttpRequest.addFilter(function (method, url) { return url.indexOf('api/v2') === -1 });
       contentWindow.sinon.FakeXMLHttpRequest.useFilters = true;
       contentWindow.sinonLoaded = true;
       return waitForWindow(contentWindow);
@@ -50,9 +50,12 @@ describe("Startup", function () {
     });
 
     it("should load default language if locale is not recognized", function () {
-      contentWindow.CliqzUtils.loadLocale('it-IT');
+      contentWindow.CliqzUtils.setLang('it-IT');
 
       expect(contentWindow.CliqzUtils.locale['it-IT']).to.be.not.ok;
+      expect(contentWindow.CliqzUtils.locale.it).to.be.not.ok;
+      expect(contentWindow.CliqzUtils.locale.de).to.be.not.ok;
+      expect(contentWindow.CliqzUtils.locale.en).to.be.ok;
       expect(contentWindow.CliqzUtils.locale.default).to.be.ok;
     });
   });
