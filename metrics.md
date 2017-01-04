@@ -8,9 +8,9 @@ Apart from the [standard Test Pilot telemetry data](https://testpilot.firefox.co
 
 Metrics gathered from the Cliqz add-on will be reported to the Test Pilot add-on, which will augment that information and relay it to Firefox's telemetry system via `submitExternalPing`.
 
-Here is a rough schema:
+We are measuring whether the addon is enabled and whether the user visits and uses traditional search providers. The `cliqzSession` is the identifier used in Cliqz telemetry system.  Collecting this ID will allow us to look for correlations between their data set and our own. Here is the rough schema:
 
-```js
+```
 {
   event: ‘cliqzEnabled’ or ‘cliqzDisabled’ or ‘cliqzInstalled’ or ‘cliqzUninstalled’ or ‘userVisitedEngineResult’ or ‘userVisitedEngineHost’
   cliqzSession: a session string
@@ -22,7 +22,7 @@ Here is a rough schema:
 
 Here is an example of the `payload` portion of a Test Pilot telemetry ping when the add-on is enabled:
 
-```js
+```
 "payload": {
   "event": "cliqzEnabled",
   "cliqzSession": "session string",
@@ -33,7 +33,7 @@ Here is an example of the `payload` portion of a Test Pilot telemetry ping when 
 
 And here is another example of the `payload` portion of a Test Pilot telemetry ping after the user has visited bing.com searching for something:
 
-```js
+```
 "payload": {
   "event": "userVisitedEngineResult",
   "cliqzSession": "session string",
