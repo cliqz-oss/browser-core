@@ -202,14 +202,13 @@ var Extension = {
       }
 
       function $(sel, all){
-        return doc[all ? "querySelectorAll" : "getElementById"](sel);
+        return win.document[all ? "querySelectorAll" : "getElementById"](sel);
       }
       if (CliqzUtils.getPref(dontHideSearchBar, false)) {
         return;
       }
       try {
-        let doc = win.document,
-            toolbar, currentset, idx, next, toolbarID,
+        let toolbar, currentset, idx, next, toolbarID,
             toolbars = $("toolbar", true);
 
         for (let i = 0; i < toolbars.length; ++i) {
@@ -224,7 +223,7 @@ var Extension = {
             currentset = currentset.join(",");
             tb.currentSet = currentset;
             tb.setAttribute("currentset", currentset);
-            doc.persist(tb.id, "currentset");
+            win.document.persist(tb.id, "currentset");
 
             toolbarID = tb.id;
             break;
