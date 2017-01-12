@@ -4,7 +4,7 @@ A summary of the metrics the Cliqz add-on will record.
 
 ## Data collection
 
-Apart from the [standard Test Pilot telemetry data](https://testpilot.firefox.com/privacy) and the [standard Cliqz telemetry data](https://testpilot.firefox.com/privacy), there is also some additional data collection specific to this Test Pilot experiment.
+Apart from the [standard Test Pilot telemetry data](https://testpilot.firefox.com/privacy) and the [standard Cliqz telemetry data](https://cliqz.com/whycliqz/transparency), there is also some additional data collection specific to this Test Pilot experiment.
 
 Metrics gathered from the Cliqz add-on will be reported to the Test Pilot add-on, which will augment that information and relay it to Firefox's telemetry system via `submitExternalPing`.
 
