@@ -487,7 +487,7 @@ export function composeNewsList(historyObject, topNewsCache, hbasedResults) {
 
   function mergeToList(articlesToMerge, freshtabArticlesList, numberOfNewsToMerge, sourceArticleType, checkIfAlreadyInHistory, urlPatern) {
     function mergeCheck(article, checkHist, urlDomainPatern) {
-      return (!(checkHist && article.isVisited) &&
+      return (!(!(article.breaking === true) && checkHist && article.isVisited) &&
             (notAlreadyInList(article.url, freshtabArticlesList)) &&
             (article.url.indexOf(urlDomainPatern) !== -1));
     }

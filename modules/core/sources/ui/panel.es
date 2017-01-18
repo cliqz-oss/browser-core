@@ -2,7 +2,7 @@ import utils from '../utils';
 import maybe from '../helpers/maybe';
 
 export default class {
-  constructor(window, url, id, autohide = true, actions = {}) {
+  constructor(window, url, id, type, autohide = true, actions = {}) {
     this.window = window;
     this.document = this.window.document;
     this.url = url;
@@ -10,6 +10,7 @@ export default class {
     this.autohide = autohide;
     this.actions = actions;
     this.shouldBeOpen = false;
+    this.type = type;
 
     this.onShowing = this.onShowing.bind(this);
     this.onHiding = this.onHiding.bind(this);
@@ -85,6 +86,11 @@ export default class {
   onShowing() {
     this.createIframe();
     this.panel.querySelector('vbox').appendChild(this.iframe);
+    utils.telemetry({
+      type: this.type,
+      target: 'icon',
+      action: 'click',
+    });
 
     // TODO: need a better way to attach those events
     utils.setTimeout(() => {

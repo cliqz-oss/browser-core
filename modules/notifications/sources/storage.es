@@ -52,6 +52,26 @@ export default class {
     return isChanged;
   }
 
+  getDomainData(domain) {
+    const key = `watchedDomains.${domain}`;
+    const data = this.storage.getObject(key, {});
+    if(Object.keys(data).length === 0 && data.constructor === Object) {
+      return false
+    } else {
+      return data;
+    }
+  }
+
+  saveDomain(domain, data) {
+    const key = `watchedDomains.${domain}`;
+    this.storage.setObject(key, data);
+  }
+
+  deleteDomain(domain) {
+    const key = `watchedDomains.${domain}`;
+    this.storage.removeItem(key);
+  }
+
   notifications(domains) {
     return domains.reduce((counts, domain) => {
       const key = `watchedDomains.${domain}`;

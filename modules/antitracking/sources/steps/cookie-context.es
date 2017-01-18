@@ -81,15 +81,22 @@ export default class {
 
   setContextFromEvent(ev, contextHTML) {
     try {
+      const cGD = getGeneralDomain(URLInfo.get(ev.target.baseURI).hostname);
+      const pageGD = currentGD();
       if (contextHTML) {
         // don't log the event if it's not 3rd party
-        const cGD = getGeneralDomain(URLInfo.get(ev.target.baseURI).hostname);
-        const pageGD = currentGD();
         if (!pageGD || cGD === pageGD) {
           return;
         }
         this.contextFromEvent = {
           html: contextHTML,
+          ts: Date.now(),
+          cGD,
+          pageGD,
+        };
+      } else {
+        this.contextFromEvent = {
+          html: '',
           ts: Date.now(),
           cGD,
           pageGD,

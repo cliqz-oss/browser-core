@@ -19,9 +19,9 @@ export default background({
     'mobile-browser:search': jsAPI.search,
     'mobile-browser:notify-preferences': jsAPI.setClientPreferences,
     'mobile-browser:restore-blocked-topsites': jsAPI.restoreBlockedTopSites,
-    'mobile-browser:reset-state': jsAPI.resetState,
     'mobile-browser:set-search-engine': jsAPI.setDefaultSearchEngine,
     'mobile-browser:publish-card-url': jsAPI.getCardUrl,
     'mobile-browser:showcase-swipe-card': jsAPI.onBoardingSwipe,
+    'mobile-browser:urlbar-focus': jsAPI.onUrlbarFocus,
   },
 });

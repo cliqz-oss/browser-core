@@ -1496,62 +1496,13 @@
 
 /*** BEGIN BOTTOM BUTTONS DATA SC ***/
 
-#bottom_btn_region {
-    margin-top: 20px;
-}
-
-#bottom_btn_region .bottom-label {
-    float: left;
-    margin-right: 10px;
-    line-height: 26px;
+.cqz-ez-btns .cqz-ez-btn-label {
     color: #999999;
     max-width: 150px;
-}
-
-#bottom_btn_region .bottom-btns-wrapper {
-    vertical-align: bottom;
-}
-
-#bottom_btn_region .bottom-btns {
-    white-space: nowrap;
-    overflow: hidden;
-}
-
-#bottom_btn_region .bottom-btn {
+    height: 26px;
+    vertical-align: top;
+    line-height: 26px;
     margin-right: 10px;
-    display: inline-block;
-    cursor: pointer;
-    margin-bottom: 0px;
-}
-
-#bottom_btn_region .bottom-btn-text {
-    color: #fff;
-    font-size: 14px;
-    font-weight: normal;
-    padding: 3px 10px 10px 10px;
-    border-radius: 3px;
-    display: inline-block;
-    text-align: center;
-    text-transform: capitalize;
-
-    max-height: 26px;
-    max-width: 100px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-}
-
-#bottom_btn_region .bottom-btn img {
-    max-height: 26px;
-    max-width: 100px;
-}
-
-.bottom-btns-container {
-    display: table-cell;
-    vertical-align: bottom !important;
-    width: 720px;
-    height: 90px;
 }
 
 /*** END BOTTOM BUTTONS DATA SC ***/

@@ -29,6 +29,12 @@ export default background({
       forEachWindow(window => {
         utils.callWindowAction(window, 'new-tab-button', 'lightUp');
       });
+
+      utils.telemetry({
+        type: 'activity',
+        action: 'notify',
+        target: 'new_tab'
+      });
     },
     'notifications:notifications-cleared': function onNotificationsCleared() {
       forEachWindow(window => {

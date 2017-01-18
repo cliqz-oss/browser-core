@@ -180,8 +180,9 @@ TESTS.AttrackTest = function (CliqzUtils) {
                 });
 
                 describe('when a tab is closed', function() {
-                    beforeEach(function() {
+                    beforeEach(function(done) {
                         gBrowser.removeTab(tabs.shift());
+                        setTimeout(done, 200);
                     });
 
                     describe('CliqzAttrack.tp_events.commit', function() {

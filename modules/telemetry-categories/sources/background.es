@@ -1,3 +1,4 @@
+import background from '../core/base/background';
 import { utils, events } from 'core/cliqz';
 import Reporter from 'telemetry-categories/reporter';
 import ResourceLoader from 'core/resource-loader';
@@ -6,7 +7,7 @@ import ResourceLoader from 'core/resource-loader';
 * @class Background
 * @namespace telemetry-categories
 */
-export default {
+export default background({
   /**
   * @method init
   */
@@ -31,7 +32,6 @@ export default {
       this.reporter = new Reporter( categories );
 
       this.reporter.start();
-      events.sub( 'core.location_change', this.reporter.assess.bind(this.reporter) );
     });
 
     this.loader.onUpdate( categories => {
@@ -49,9 +49,23 @@ export default {
     this.loader.stop();
 
     if ( this.reporter ) {
-      events.un_sub( 'core.location_change', this.reporter.assess.bind(this.reporter) );
       this.reporter.stop();
     }
   },
 
-};
+  actions: {
+    assess(url) {
+      if (!this.reporter) {
+        return;
+      }
+      return this.reporter.assess(url);
+    }
+  },
+
+  events: {
+    'core.location_change': function onLocationChange(url) {
+      this.actions.assess(url);
+    },
+  },
+
+});

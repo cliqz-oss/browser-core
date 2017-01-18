@@ -1,0 +1,30 @@
+
+<!--
+<div class='extra'>BLA BLA BLA car</div>
+{{#each buttons }}
+    <button id="cqz-btn-action-sample" class="cqz-btn" data-cqz-of-btn-id={{ id }}>{{ name }}</button>
+{{/each}}
+-->
+
+<div id="cqz-offer-id" data-cqz-of-id={{ offer_id }}></div>
+<div class="cqz-row cqz-offer">
+    <div class="cqz-col-12">
+        <div class="cqz-logo-holder">
+            <img src= {{ logo_url }} alt="" />
+        </div>
+        <div class="cqz-buttons">
+            <a href="#" class="cqz-btn">Call to Action</a>
+        </div>
+        <div class="cqz-content-holder">
+            <h1 class="cqz-title">{{ title }}</h1>
+            <div class="cqz-offer-code-holder">
+                <span class="cqz-offer-code-info">Click to copy the code</span>
+                <span class="cqz-offer-code">{{ conditions }}</span>
+            </div>
+            <div class="cqz-descr">
+                {{ desc }}
+            </div>
+            <p><a href="#" class="cliqz-link">Learn more about CLIQZ Offers</a></p>
+        </div>
+    </div>
+</div>

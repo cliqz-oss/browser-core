@@ -19,7 +19,8 @@ export default describeModule('mobile-ui/UI',
       'core/utils': {
         default: {},
       },
-      'viewpager': {}
+      'viewpager': {},
+      'core/http': {}
     };
   },
   function () {

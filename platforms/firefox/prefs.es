@@ -1,5 +1,4 @@
-const prefs = Components.classes['@mozilla.org/preferences-service;1']
-  .getService(Components.interfaces.nsIPrefService).getBranch('');
+const prefs = Services.prefs.getBranch('');
 
 function prefixPref(pref, prefix = 'extensions.cliqz.') {
   return `${prefix}${pref}`;
@@ -42,7 +41,7 @@ export function setPref(key, value, prefix) {
     case 'boolean': prefs.setBoolPref(pref, value); break;
     case 'number': prefs.setIntPref(pref, value); break;
     case 'string': prefs.setCharPref(pref, value); break;
-    default: break;
+    default: Services.console.logStringMessage('WARNING: Unable to save "' + pref);break;
   }
 }
 

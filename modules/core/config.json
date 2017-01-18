@@ -1,6 +1,8 @@
 {
   "bower_components": [
     "handlebars/handlebars.js",
-    "es6-promise/es6-promise.js"
+    "es6-promise/es6-promise.js",
+    "core.js/client/core.min.js",
+    "whatwg-fetch/fetch.js"
   ]
 }

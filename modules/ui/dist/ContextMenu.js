@@ -160,12 +160,38 @@
   };
 
   function initContextMenu(){
+    // we call private mode "Forget mode" in the CLIQZ browser (channel 40)
+    const privateWinName = CLIQZ.settings.channel == '40' ?
+      CliqzUtils.getLocalizedString('forget') :
+      CliqzUtils.getLocalizedString('private');
+
     CONTEXT_MENU_ITEMS = [
-        { label: CliqzUtils.getLocalizedString('cMenuOpenInNewTab'),         command: openNewTab,            displayInDebug: true,   functionality: 'openNewTab' },
-        { label: CliqzUtils.getLocalizedString('cMenuOpenInNewWindow'),      command: openNewWindow,         displayInDebug: true,   functionality: 'openNewWindow' },
-        { label: CliqzUtils.getLocalizedString('cMenuOpenInPrivateWindow'),  command: openInPrivateWindow,   displayInDebug: false,  functionality: 'openInPrivateWindow' },
-        { label: CliqzUtils.getLocalizedString('cMenuRemoveFromHistory'),    command: removeEntry,           displayInDebug: true,   functionality: 'removeEntry' },
-        { label: CliqzUtils.getLocalizedString('cMenuFeedback'),             command: openFeedback,          displayInDebug: true,   functionality: 'openFeedback'},
+        {
+          label: CliqzUtils.getLocalizedString('cMenuOpenInNewTab'),
+          command: openNewTab,
+          displayInDebug: true,
+          functionality: 'openNewTab'
+        }, {
+          label: CliqzUtils.getLocalizedString('cMenuOpenInNewWindow'),
+          command: openNewWindow,
+          displayInDebug: true,
+          functionality: 'openNewWindow'
+        }, {
+          label: CliqzUtils.getLocalizedString('cMenuOpenInPrivateWindow', privateWinName),
+          command: openInPrivateWindow,
+          displayInDebug: false,
+          functionality: 'openInPrivateWindow'
+        }, {
+          label: CliqzUtils.getLocalizedString('cMenuRemoveFromHistory'),
+          command: removeEntry,
+          displayInDebug: true,
+          functionality: 'removeEntry'
+        }, {
+          label: CliqzUtils.getLocalizedString('cMenuFeedback'),
+          command: openFeedback,
+          displayInDebug: true,
+          functionality: 'openFeedback'
+        }
     ];
 
     return createContextMenu(activeArea, CONTEXT_MENU_ITEMS);

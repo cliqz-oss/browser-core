@@ -29,13 +29,23 @@ export default describeModule("freshtab/background",
       "core/adult-domain": {
         AdultDomain: function () {}
       },
+      "core/base/background": {
+        default: b => b
+      },
+      "core/browser": {
+        forEachWindow: function () {}
+      }
     }
   },
   function () {
+    let subject;
+
     beforeEach(function () {
+      subject = this.module().default;
       this.deps("core/adult-domain").AdultDomain.prototype.isAdult = () => false;
-      this.module().default.init({});
+      subject.init({});
     });
+
     describe("#unload", function () {
       it("calls unload on News", function (done) {
         const News = this.deps("freshtab/news").default;
@@ -48,6 +58,35 @@ export default describeModule("freshtab/background",
         FreshTab.shutdown = function () { done(); };
         this.module().default.unload();
       });
+    });
+
+    context('events', function () {
+   
+      describe("geolocation:wake-notification", function() {
+
+        it("fetches news", function (done) {
+          subject.actions.getNews = () => Promise.resolve().then(() => done());
+
+          subject.events['geolocation:wake-notification'] = 
+            subject.events['geolocation:wake-notification'].bind(subject);
+
+          subject.events['geolocation:wake-notification']();
+        })
+
+        it("having news calls action refreshFrontend", function(done){
+          const subject = this.module().default;
+
+          subject.actions.getNews = () => Promise.resolve();
+          subject.actions.refreshFrontend = () => done();
+
+          subject.events['geolocation:wake-notification'] = 
+            subject.events['geolocation:wake-notification'].bind(subject);
+
+          subject.events['geolocation:wake-notification']();
+        });
+
+      });
+
     });
 
     describe("actions", function () {

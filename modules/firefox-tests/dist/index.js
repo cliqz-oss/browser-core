@@ -118,6 +118,7 @@ beforeEach(function () {
     fetchAndStoreConfig = CliqzUtils.fetchAndStoreConfig;
     CliqzUtils.fetchAndStoreConfig = function () {
       CliqzUtils.setPref("config_location", "de");
+      CliqzUtils.setPref("backend_country", "de");
       CliqzUtils.setPref("config_logoVersion", "1473867650984");
       CliqzUtils.setPref("config_backends", ["de"]);
       return CliqzUtils.Promise.resolve();

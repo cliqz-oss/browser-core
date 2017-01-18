@@ -7,12 +7,12 @@ export default class {
   }
 
   init() {
-    this.window.gBrowser.addProgressListener(CliqzAntiPhishing.listener);
+    // this.window.gBrowser.addProgressListener(CliqzAntiPhishing.listener);
     CliqzEvents.sub('HW-activeURL:', CliqzAntiPhishing.onHwActiveURL);
   }
 
   unload() {
-    this.window.gBrowser.removeProgressListener(CliqzAntiPhishing.listener);
+    // this.window.gBrowser.removeProgressListener(CliqzAntiPhishing.listener);
     CliqzEvents.un_sub('HW-activeURL:', CliqzAntiPhishing.onHwActiveURL);
   }
 

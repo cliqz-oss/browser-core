@@ -30,7 +30,7 @@ export default class {
 
   status() {
     return {
-      visible: FreshTab.initialized,
+      visible: true,
       enabled: FreshTab.isActive()
     }
   }

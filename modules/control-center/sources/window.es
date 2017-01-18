@@ -5,6 +5,9 @@ import background from 'control-center/background';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import UITour from 'platform/ui-tour';
 import Panel from '../core/ui/panel';
+import console from 'core/console';
+import { queryActiveTabs } from '../core/tabs';
+import { Window } from '../core/browser';
 
 function toPx(pixels) {
   return pixels.toString() + 'px';
@@ -52,6 +55,7 @@ export default class {
       "enableSearch": this.enableSearch.bind(this),
       "cliqz-tab": this.cliqzTab.bind(this),
       "complementary-search": this.complementarySearch.bind(this),
+      "search-index-country": this.searchIndexCountry.bind(this),
       'type-filter': this.typeFilter.bind(this),
     }
 
@@ -59,6 +63,7 @@ export default class {
       this.window,
       'chrome://cliqz/content/control-center/index.html',
       PANEL_ID,
+      'control-center',
       false,
       this.actions
     );
@@ -70,6 +75,7 @@ export default class {
     addStylesheet(this.window.document, this.cssUrl);
 
     this.addCCbutton();
+    setTimeout(this.actions.refreshState, 100);
     CliqzEvents.sub("core.location_change", this.actions.refreshState);
 
     this.updateFFHelpMenu();
@@ -255,6 +261,16 @@ export default class {
     });
   }
 
+  searchIndexCountry(data) {
+    events.pub('control-center:setDefault-indexCountry', data.defaultCountry);
+    utils.telemetry({
+      type: TELEMETRY_TYPE,
+      target: 'search-index-country',
+      state: 'search_index_country_' + data.defaultCountry,
+      action: 'click'
+    });
+  }
+
   adbActivator(data){
 
     events.pub("control-center:adb-activator", data);
@@ -308,7 +324,7 @@ export default class {
             'refreshState',
             []
           );
-        }, 200, win);
+        }, 3000 /* some modules need time to start eg: antitracking */, win);
       }
       else {
         // current window - nothing to do
@@ -427,14 +443,10 @@ export default class {
           ccData.generalState = 'inactive';
         }
 
-        if(moduleData.antitracking && !moduleData.antitracking.enabled){
-          if(moduleData.antitracking.isWhitelisted){
-            // only this website is whitelisted
-            ccData.generalState = 'inactive';
-          }
-          else {
-            ccData.generalState = 'critical';
-          }
+        if(!moduleData.antitracking){
+          ccData.generalState = 'critical';
+        } else if(!moduleData.antitracking.enabled && moduleData.antitracking.isWhitelisted){
+          ccData.generalState = 'inactive';
         }
       } else {
         ccData.generalState = 'off';
@@ -597,9 +609,9 @@ export default class {
   }
 
   enableSearch() {
+    this.panel.hide();
     events.pub('autocomplete:enable-search',{
       urlbar: this.window.document.getElementById('urlbar')
     });
-    this.panel.hidePopup();
   }
 }

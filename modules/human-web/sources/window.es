@@ -1,5 +1,6 @@
 import { utils } from "core/cliqz";
 import HumanWeb from "human-web/human-web";
+import background from 'human-web/background';
 
 export default class {
   constructor(settings) {
@@ -14,7 +15,7 @@ export default class {
   }
 
   init() {
-    if (!this.enabled()) {
+    if (!this.enabled() || !background.enabled) {
       return;
     }
 
@@ -48,9 +49,11 @@ export default class {
   }
 
   status() {
-    return {
-      visible: true,
-      state: !utils.getPref('dnt', false)
+    if(background.enabled) {
+      return {
+        visible: true,
+        state: !utils.getPref('dnt', false)
+      }
     }
   }
 

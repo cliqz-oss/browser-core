@@ -37,7 +37,7 @@ var TEMPLATES = CliqzUtils.TEMPLATES,
     currentResults, // enhancedResults
     rawResults, // raw results
     adultMessage = 0, //0 - show, 1 - temp allow, 2 - temp dissalow
-
+    privateWindow = false,
     urlbarEvents = ['keydown']
     ;
 
@@ -78,6 +78,10 @@ var UI = {
           clearMessage(message["footer-message"].location);
         });
         loadViews();
+
+        // we need to know if the window is private or not in some
+        // cases like switchTab which needs to be deactivated
+        privateWindow = CliqzUtils.isOnPrivateTab(window);
     },
     unload: function(){
         for(var i in urlbarEvents){
@@ -364,10 +368,7 @@ var UI = {
                 var selection = UI.getSelectionRange(ev.keyCode, urlbar.selectionStart, urlbar.selectionEnd, ev.shiftKey, ev.altKey, ev.ctrlKey | ev.metaKey);
                 urlbar.setSelectionRange(selection.selectionStart, selection.selectionEnd);
 
-                if (CliqzAutocomplete.spellCheck.state.on) {
-                    CliqzAutocomplete.spellCheck.state.override = true;
-                }
-
+                CliqzAutocomplete.spellCheck.override();
                 return true;
             case KeyEvent.DOM_VK_HOME:
                 if (ev.shiftKey) {
@@ -395,11 +396,11 @@ var UI = {
                         CliqzUtils.log('hi', 'spellcorr');
                         words[words.length-2] = wrongWords[wrongWords.length-2];
                         urlbar.mInputField.value = words.join(' ');
-                        var signal = {
-                            type: 'activity',
-                            action: 'del_correct_back'
-                        };
-                        CliqzUtils.telemetry(signal);
+                  var signal = {
+                      type: 'activity',
+                      action: 'del_correct_back'
+                  };
+                  CliqzUtils.telemetry(signal);
                     }
                 } else {
                     var signal = {
@@ -998,8 +999,7 @@ function enhanceResults(res){
         }
     }
 
-
-    var spelC = CliqzAutocomplete.spellCheck && CliqzAutocomplete.spellCheck.state;
+    var spellCheckMessage;
 
     //filter adult results
     if(adult) {
@@ -1045,61 +1045,28 @@ function enhanceResults(res){
           "footer-message": getNotSupported()
        });
     }
-    else if(CliqzUtils.getPref('changeLogState', 0) == 1){
+    else if (CliqzAutocomplete.spellCheck &&
+      (spellCheckMessage = CliqzAutocomplete.spellCheck.getCurrentMessage(urlbar.mInputField.value))){
       updateMessage('bottom', {
         "footer-message": {
-          simple_message: CliqzUtils.getLocalizedString('updateMessage'),
-          telemetry: 'changelog',
+          simple_message: CliqzUtils.getLocalizedString('spell_correction'),
+          messages: spellCheckMessage,
+          telemetry: 'spellcorrect',
           options: [{
-              text: CliqzUtils.getLocalizedString('updatePage'),
-              action: 'update-show',
+              text: CliqzUtils.getLocalizedString('yes'),
+              action: 'spellcorrect-revert',
               state: 'default'
-            }, {
-              text: CliqzUtils.getLocalizedString('updateDismiss'),
-              action: 'update-dismiss',
-              state: 'gray'
+            },
+            {
+              text: CliqzUtils.getLocalizedString('no'),
+              action: 'spellcorrect-keep',
+              state: 'default'
             }
           ]
         }
       });
-    } else if (spelC.on && !spelC.override && CliqzUtils.getPref('spellCorrMessage', true) && !spelC.userConfirmed) {
-        var s = urlbar.mInputField.value;
-        var terms = s.split(" ");
-        var messages = [];
-        var termsObj = {};
-        for(var i = 0; i < terms.length; i++) {
-          termsObj = {
-            correct: terms[i]
-          };
-          messages.push(termsObj);
-          if(spelC.correctBack[terms[i]]) {
-            messages[i].correctBack = spelC.correctBack[terms[i]];
-          } else {
-            messages[i].correctBack = "";
-          }
-        }
-        //cache searchTerms to check against when user keeps spellcorrect
-        spelC.searchTerms = messages;
-
-        updateMessage('bottom', {
-            "footer-message": {
-              simple_message: CliqzUtils.getLocalizedString('spell_correction'),
-              messages: messages,
-              telemetry: 'spellcorrect',
-              options: [{
-                  text: CliqzUtils.getLocalizedString('yes'),
-                  action: 'spellcorrect-revert',
-                  state: 'default'
-                },
-                {
-                  text: CliqzUtils.getLocalizedString('no'),
-                  action: 'spellcorrect-keep',
-                  state: 'default'
-                }
-              ]
-            }
-        });
-    } else if (CLIQZ.UI.messageCenterMessage) {
+    }
+    else if (CLIQZ.UI.messageCenterMessage) {
       updateMessage(CLIQZ.UI.messageCenterMessage["footer-message"].location,
         CLIQZ.UI.messageCenterMessage);
     }
@@ -1116,14 +1083,18 @@ function getRandomForCurrentTime(range) {
 function notSupported(r){
     // Has the user seen our warning about cliqz not being optimized for their country, but chosen to ignore it? (i.e: By clicking OK)
     // or he is in germany
+    var supportedIndexCountries = JSON.parse(CliqzUtils.getPref("config_backends", '["de"]'))
     if(CliqzUtils.getPref("ignored_location_warning", false) ||
-        CliqzUtils.getPref("config_location", "de") == 'de' ||
+        supportedIndexCountries.indexOf(CliqzUtils.getPref("backend_country", "de")) > -1 ||
         // in case location is unknown do not show the message
-        CliqzUtils.getPref("config_location", "de") == '') return false
+        CliqzUtils.getPref("backend_country", "de") == '') return false
 
-    //if he is not in germany he might still be  german speaking
+    //if he is not in germany he might still be  speaking the language 
+    // of one of the supported countries
+    // doesn't work for countries where the country iso 
+    // doesnt match the language one
     var lang = navigator.language.toLowerCase();
-    return lang != 'de' && lang.split('-')[0] != 'de';
+    return supportedIndexCountries.indexOf(lang) < 0  && supportedIndexCountries.indexOf(lang.split('-')[0]) < 0;
 }
 
 function getNotSupported(){
@@ -1254,35 +1225,13 @@ function urlIndexInHistory(url, urlList) {
                         break;
 
                     case 'spellcorrect-revert':
-                        var s = urlbar.value;
-                        for (var c in CliqzAutocomplete.spellCheck.state.correctBack) {
-                            s = s.replace(c, CliqzAutocomplete.spellCheck.state.correctBack[c]);
-                        }
-                        urlbar.mInputField.setUserInput(s);
-                        CliqzAutocomplete.spellCheck.state.override = true;
+                        var revertedInput = CliqzAutocomplete.spellCheck.revert(urlbar.value);
+                        urlbar.mInputField.setUserInput(revertedInput);
                         clearMessage('bottom');
                         break;
                     case 'spellcorrect-keep':
-                        var spellCorData = CliqzAutocomplete.spellCheck.state.searchTerms;
-                        for (var i = 0; i < spellCorData.length; i++) {
-                            //delete terms that were found in correctBack dictionary. User accepted our correction:-)
-                            for (var c in CliqzAutocomplete.spellCheck.state.correctBack) {
-                                if (CliqzAutocomplete.spellCheck.state.correctBack[c] === spellCorData[i].correctBack) {
-                                    delete CliqzAutocomplete.spellCheck.state.correctBack[c];
-                                }
-                            }
-                        }
-
-                        CliqzAutocomplete.spellCheck.state.userConfirmed = true;
+                        CliqzAutocomplete.spellCheck.keep();
                         clearMessage('bottom');
-                        break;
-
-                    //changelog
-                    case 'update-show':
-                        CliqzUtils.openLink(window, CliqzUtils.CHANGELOG, true);
-                    case 'update-dismiss':
-                        clearMessage('bottom');
-                        CliqzUtils.setPref('changeLogState', 2);
                         break;
                     case 'dismiss':
                         clearMessage('bottom');
@@ -1315,7 +1264,7 @@ function urlIndexInHistory(url, urlList) {
                         }
                         clearMessage('bottom');
                         UI.render();
-                        if (user_location != "de" && user_location != "" && !ignored_location_warning)
+                        if (notSupported())
                             updateMessage('bottom', {
                                 "footer-message": getNotSupported()
                             });
@@ -1461,7 +1410,7 @@ function resultClick(ev) {
             }
             CliqzEvents.pub("result_click", signal, {});
 
-            if (localSource.indexOf('switchtab') != -1) {
+            if (!privateWindow && localSource.indexOf('switchtab') != -1) {
               let prevTab = gBrowser.selectedTab;
               if (switchToTabHavingURI(url) && isTabEmpty(prevTab)) {
                 gBrowser.removeTab(prevTab);
@@ -1666,7 +1615,7 @@ function setResultSelection(el, scrollTop, changeUrl, mouseOver){
             urlbar.value = el.getAttribute("url");
 
         if (!mouseOver)
-          UI.keyboardSelection = el;
+          UI.keyboardSelection = target;
     } else if (changeUrl && UI.lastInput != "") {
         urlbar.value = UI.lastInput;
         UI.lastSelectedUrl = "";

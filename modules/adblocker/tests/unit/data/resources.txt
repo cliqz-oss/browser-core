@@ -187,6 +187,10 @@ google-analytics.com/ga.js application/javascript
 		if ( a[0] === '_link' && typeof a[1] === 'string' ) {
 			window.location.assign(a[1]);
 		}
+		// https://github.com/gorhill/uBlock/issues/2162
+		if ( a[0] === '_set' && a[1] === 'hitCallback' && typeof a[2] === 'function' ) {
+			a[2]();
+		}
 	};
 	//
 	var tracker = (function() {
@@ -317,7 +321,7 @@ googletagservices.com/gpt.js application/javascript
 	// https://developers.google.com/doubleclick-gpt/reference
 	var noopfn = function() {
 		;
-	};
+	}.bind();
 	var noopthisfn = function() {
 		return this;
 	};
@@ -424,12 +428,14 @@ googletagservices.com/gpt.js application/javascript
 	gpt.content = function() { return contentService; };
 	gpt.defineOutOfPageSlot = function() { return new Slot(); };
 	gpt.defineSlot = function() { return new Slot(); };
+	gpt.destroySlots = noopfn;
 	gpt.disablePublisherConsole = noopfn;
 	gpt.display = noopfn;
 	gpt.enableServices = noopfn;
 	gpt.getVersion = noopstrfn;
 	gpt.pubads = function() { return pubAdsService; };
 	gpt.pubadsReady = true;
+	gpt.setAdIframeTitle = noopfn;
 	gpt.sizeMapping = function() { return new SizeMappingBuilder(); };
 	window.googletag = gpt;
 	while ( cmd.length !== 0 ) {
@@ -480,7 +486,7 @@ yavli-defuser.js application/javascript
 		Object.defineProperty(window, '__lturl', nourl);
 	} catch (ex) {
 	}
-	var aa = 'hx xh xb xj xs xw xf dx oq oj oz wy wj nr nw cw cv gy mr mz tq gb kx kr kt kv hc jz jb jd jx jj'.split(/\s+/);
+	var aa = 'hx xh xb xj xs xw xf dx oq oj oz wy wj nr nw cw cv gy mr mz tq gb kx kr kt kv hc jz jb jd jx jj nz'.split(/\s+/);
 	var no = {
 		set: noopfn,
 		get: function() {
@@ -501,7 +507,7 @@ yavli-defuser.js application/javascript
 # Addefend defuser
 uabinject-defuser.js application/javascript
 (function() {
-	window.uabpdl = window.uabInject = window.uabDetect = true;
+	window.trckd = window.uabpdl = window.uabInject = window.uabDetect = true;
 })();
 
 
@@ -562,35 +568,12 @@ forbes-defuser.js application/javascript
 	if ( window.location.pathname.lastIndexOf('/forbes/welcome/', 0) !== 0 ) {
 		return;
 	}
-	var noopfn = function() {
-		;
-	};
-	var odp = Object.defineProperty;
-	var wad, wadm, abc = function() {};
-	var abcp = abc.prototype;
-	abcp.addCheck =  abcp.check = abcp.initialize =
-	abcp.removeCheck = abcp.triggerAdBlockState = noopfn;
-	abcp.getAdBlockState = function() {
-		return false;
-	};
-	odp(window, 'WelcomeAd', {
-		get: function() { return wad; },
-		set: function(a) {
-			wad = a;
-			odp(a, 'Modules', {
-				get: function() { return wadm; },
-				set: function(a) {
-					wadm = a;
-					if ( a.AdBlockChecker ) {
-						a.AdBlockChecker = abc;
-					} else {
-						odp(a, 'AdBlockChecker', {
-							get: function() { return abc; },
-							set: function() {}
-						});
-					}
-				}
-			});
+	document.cookie = 'welcomeAd=true';
+	window.addEventListener('load', function() {
+		// https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie#Example_2_Get_a_sample_cookie_named_test2
+		var toURL = document.cookie.replace(/(?:(?:^|.*;\s*)toURL\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+		if ( toURL.lastIndexOf('http', 0) === 0 ) {
+			window.location.replace(toURL);
 		}
 	});
 })();
@@ -666,19 +649,19 @@ bab-defuser.js application/javascript
 		['blockadblock'],
 		['babasbm'],
 		[/getItem\('babn'\)/],
-		['getElementById','String.fromCharCode','ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789','charAt','DOMContentLoaded','addEventListener','doScroll','fromCharCode','sessionStorage','localStorage','Math.random']
+		['getElementById','String.fromCharCode','ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789','charAt','DOMContentLoaded','AdBlock','addEventListener','doScroll','fromCharCode','<<2|r>>4','sessionStorage','clientWidth','localStorage','Math','random']
 	];
 	var check = function(s) {
-		var tokens, match, j, token;
+		var tokens, match, j, token, pos;
 		for ( var i = 0; i < signatures.length; i++ ) {
 			tokens = signatures[i];
-			match = true;
-			for ( j = 0, pos = 0; j < tokens.length && match; j++ ) {
-				token = tokens[j]
-				pos = token instanceof RegExp ? s.search(token) : s.indexOf(token, pos);
-				if ( pos === -1 ) { match = false; }
+			match = 0;
+			for ( j = 0, pos = 0; j < tokens.length; j++ ) {
+				token = tokens[j];
+				pos = token instanceof RegExp ? s.search(token) : s.indexOf(token);
+				if ( pos !== -1 ) { match += 1; }
 			}
-			if ( match ) { return true; }
+			if ( (match / tokens.length) >= 0.8 ) { return true; }
 		}
 		return false;
 	};
@@ -829,19 +812,6 @@ addthis.com/addthis_widget.js application/javascript
 })();
 
 
-# https://adblockplus.org/forum/viewtopic.php?f=2&t=43914#p147866
-wired-defuser.js application/javascript
-(function() {
-	var sto = window.setTimeout,
-		re = /^function n\(\)/;
-	window.setTimeout = function(a, b) {
-		if ( b !== 50 || !re.test(a.toString()) ) {
-			return sto(a, b);
-		}
-	};
-})();
-
-
 # https://github.com/gorhill/uBlock/issues/1059#issuecomment-185434177
 # Works for stern.de, will see if reusable.
 bcplayer-defuser.js application/javascript
@@ -957,7 +927,7 @@ amazon-adsystem.com/aax2/amzn_ads.js application/javascript
 	var w = window;
 	var noopfn = function() {
 		;
-	};
+	}.bind();
 	var amznads = {
 		appendScriptTag: noopfn,
 		appendTargetingToAdServerUrl: noopfn,
@@ -1176,16 +1146,6 @@ nr-unwrapper.js application/javascript
 })();
 
 
-# https://github.com/uBlockOrigin/uAssets/issues/38
-r3z-defuser.js application/javascript
-(function() {
-	var r3z = window._r3z = window._r3z || {};
-	Object.defineProperty(r3z, 'pub', {
-		value: {}
-	});
-})();
-
-
 # https://github.com/uBlockOrigin/uAssets/issues/58
 gpt-defuser.js application/javascript
 (function() {
@@ -1237,8 +1197,9 @@ noeval.js application/javascript
 # Prevent web pages from using RTCPeerConnection(), and report attempts in console.
 nowebrtc.js application/javascript
 (function() {
+	var log = console.log.bind(console);
 	var pc = function(cfg) {
-		console.log('Document tried to create an RTCPeerConnection: %o', cfg);
+		log('Document tried to create an RTCPeerConnection: %o', cfg);
 	};
 	var noop = function() {
 		;
@@ -1249,7 +1210,14 @@ nowebrtc.js application/javascript
 		createOffer: noop,
 		setRemoteDescription: noop
 	};
+	var z = window.RTCPeerConnection;
 	window.RTCPeerConnection = pc.bind(window);
+	z.prototype.createDataChannel = function(a, b) {
+		return {
+			close: function() {},
+			send: function() {}
+		};
+	}.bind(null);
 })();
 
 
@@ -1359,26 +1327,22 @@ golem.de.js application/javascript
 # https://www.reddit.com/r/firefox/comments/4wpd23/popads_just_announced_that_they_have_a_new_method/
 popads.net.js application/javascript
 (function() {
-	window.PopAds = function() {
-		;
-	};
-})();
-
-
-# https://adblockplus.org/forum/viewtopic.php?f=1&t=45634#p157317
-allmusic.com.js application/javascript
-(function() {
-	var z = {
-		value: function() {
-			;
+	var magic = String.fromCharCode(Date.now() % 26 + 97) +
+				Math.floor(Math.random() * 982451653 + 982451653).toString(36),
+		oe = window.onerror;
+	window.onerror = function(msg, src, line, col, error) {
+		if ( msg.indexOf(magic) !== -1 ) { return true; }
+		if ( oe instanceof Function ) {
+			return oe(msg, src, line, col, error);
 		}
-	};
+	}.bind();
+	var throwMagic = function() { throw magic; };
+	delete window.PopAds;
+	delete window.popns;
 	Object.defineProperties(window, {
-		'__cli': z,
-		'cmnUNT':  z,
-        '__da': z
-    });
-	window.tile_num = 0;
+		PopAds: { set: throwMagic },
+		popns: { set: throwMagic }
+	});
 })();
 
 
@@ -1424,8 +1388,20 @@ Object.defineProperty(window, '___p_p', { value: 1 });
 
 
 # https://forums.lanik.us/viewtopic.php?f=64&t=32278
-jpost.com.js application/javascript
-Object.defineProperty(window, 'upManager', { value: function() {} });
+# https://www.reddit.com/r/chrome/comments/58eix6/ublock_origin_not_working_on_certain_sites/
+upmanager-defuser.js application/javascript
+(function() {
+	var onerror = window.onerror;
+	window.onerror = function(message, source, lineno, colno, error) {
+		if ( message.indexOf('upManager') !== -1 ) {
+			return true;
+		}
+		if ( onerror instanceof Function ) {
+			onerror.call(window, message, source, lineno, colno, error);
+		}
+	};
+	Object.defineProperty(window, 'upManager', { value: function() {} });
+})();
 
 
 # https://github.com/uBlockOrigin/uAssets/issues/108
@@ -1480,7 +1456,11 @@ i10c-defuser.js application/javascript
 	var noopfn = function() {
 		return false;
 	};
-	var v = { CanRun: noopfn };
+	var v = {
+		ScriptBegin: noopfn,
+		CanRun: noopfn,
+		ScriptEnd: noopfn
+	};
 	if ( window.I10C !== undefined ) {
 		window.I10C = v;
 	} else {
@@ -1507,4 +1487,242 @@ criteo.net.js application/javascript
 	} else {
 		Object.defineProperty(window, 'Criteo', { value: criteo });
 	}
+})();
+
+
+# https://github.com/uBlockOrigin/uAssets/issues/38
+# https://github.com/uBlockOrigin/uAssets/issues/150
+r3z-defuser.js application/javascript
+window._r3z = {};
+Object.defineProperties(window._r3z, {
+	jq: { value: undefined },
+	pub: { value: {} }
+});
+
+
+# https://forums.lanik.us/viewtopic.php?f=103&t=31558
+ideal.es.js application/javascript
+Object.defineProperty(window, 'is_block_adb_enabled', { value: false });
+
+
+# https://github.com/uBlockOrigin/uAssets/issues/125
+d3pkae9owd2lcf.cloudfront.net/mb105.js application/javascript
+(function() {
+	var noopfn = function(){};
+	window.MonkeyBroker = window.MonkeyBroker || {
+		addAttribute: noopfn,
+		addSlot: noopfn,
+		defineSlot: noopfn,
+		fillSlot: noopfn,
+		go: noopfn,
+		inventoryConditionalPlacement: noopfn,
+		registerSizeCallback: noopfn,
+		registerSlotCallback: noopfn
+	};
+})();
+
+
+# https://www.reddit.com/r/uBlockOrigin/comments/55pu1e/lastfm_super_aggressive_adblock_warning_message/
+last.fm.js application/javascript
+(function() {
+	var st = window.setTimeout;
+	var z = function(a, b) {
+		if ( b === 2000 && a.name.indexOf('bound') !== -1 ) {
+			return;
+		}
+		return st(a, b);
+	}.bind(window);
+	Object.defineProperty(window, 'setTimeout', { value: z });
+})();
+
+
+thefreedictionary.com.js application/javascript
+(function() {
+	window.warn = null;
+	window.onerror = function(msg, src, line, col, error) {
+		if ( msg.indexOf('warn') !== -1 ) { return true; }
+	};
+})();
+
+
+# https://news.ycombinator.com/item?id=12677179
+livescience.com.js application/javascript
+Object.defineProperty(window, 'tmnramp', { value: {} });
+
+
+# https://twitter.com/Scarbir/status/785551814460571648
+static.chartbeat.com/chartbeat.js application/javascript
+(function() {
+	var noopfn = function(){};
+	window.pSUPERFLY = {
+		activity: noopfn,
+		virtualPage: noopfn
+	};
+})();
+
+
+# https://discourse.mozilla-community.org/t/support-ublock-origin/6746/214
+lachainemeteo.com.js application/javascript
+Object.defineProperty(window, 'pliga', { value: { push: function(){} } });
+
+
+# https://github.com/gorhill/uBlock/issues/2132
+abort-on-property-write.js application/javascript
+(function() {
+	var magic = String.fromCharCode(Date.now() % 26 + 97) +
+				Math.floor(Math.random() * 982451653 + 982451653).toString(36);
+	var prop = '{{1}}',
+		owner = window,
+		pos;
+	for (;;) {
+		pos = prop.indexOf('.');
+		if ( pos === -1 ) { break; }
+		owner = owner[prop.slice(0, pos)];
+		if ( owner instanceof Object === false ) { return; }
+		prop = prop.slice(pos + 1);
+	}
+	delete owner[prop];
+	Object.defineProperty(owner, prop, {
+		set: function() {
+			throw new ReferenceError(magic);
+		}
+	});
+	var oe = window.onerror;
+	window.onerror = function(msg, src, line, col, error) {
+		if ( msg.indexOf(magic) !== -1 ) {
+			return true;
+		}
+		if ( oe instanceof Function ) {
+			return oe(msg, src, line, col, error);
+		}
+	}.bind();
+})();
+
+
+abort-on-property-read.js application/javascript
+(function() {
+	var magic = String.fromCharCode(Date.now() % 26 + 97) +
+				Math.floor(Math.random() * 982451653 + 982451653).toString(36);
+	var abort = function() {
+		throw new ReferenceError(magic);
+	};
+	var chain = '{{1}}', owner = window, pos, desc;
+	var makeProxy = function(owner, chain) {
+		pos = chain.indexOf('.');
+		if ( pos === -1 ) {
+			desc = Object.getOwnPropertyDescriptor(owner, chain);
+			if ( !desc || desc.get !== abort ) {
+				Object.defineProperty(owner, chain, { get: abort });
+			}
+			return;
+		}
+		var prop = chain.slice(0, pos),
+			v = owner[prop];
+		chain = chain.slice(pos + 1); 
+		if ( v !== undefined ) {
+			makeProxy(v, chain);
+			return;
+		}
+		desc = Object.getOwnPropertyDescriptor(owner, prop);
+		if ( desc && desc.set && desc.set.hasOwnProperty(magic) ) {
+			return;
+		}
+		var setter = function(a) {
+			v = a;
+			if ( a instanceof Object ) {
+				makeProxy(a, chain);
+			}
+		};
+		setter[magic] = undefined;
+		Object.defineProperty(owner, prop, {
+			get: function() { return v; },
+			set: setter
+		});
+	};
+	makeProxy(owner, chain);
+	var oe = window.onerror;
+	window.onerror = function(msg, src, line, col, error) {
+		if ( msg.indexOf(magic) !== -1 ) {
+			return true;
+		}
+		if ( oe instanceof Function ) {
+			return oe(msg, src, line, col, error);
+		}
+	}.bind();
+})();
+
+
+setTimeout-defuser.js application/javascript
+(function() {
+	var z = window.setTimeout,
+		needle = '{{1}}',
+		delay = parseInt('{{2}}', 10);
+	if ( needle === '' ) {
+		needle = '.?';
+	} else if ( needle.slice(0,1) === '/' && needle.slice(-1) === '/' ) {
+		needle = needle.slice(1,-1);
+	} else {
+		needle = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	}
+	needle = new RegExp(needle);
+	window.setTimeout = function(a, b) {
+		if ( (isNaN(delay) || b == delay) && needle.test(a.toString()) ) {
+			return 0;
+		}
+		return z(a, b);
+	}.bind(window);
+})();
+
+
+setTimeout-logger.js application/javascript
+(function() {
+	var z = window.setTimeout,
+		log = console.log.bind(console);
+	window.setTimeout = function(a, b) {
+		log('uBO: setTimeout("%s", %s)', a.toString(), b);
+		return z(a, b);
+	}.bind(window);
+})();
+
+
+setInterval-defuser.js application/javascript
+(function() {
+	var z = window.setInterval,
+		delay = parseInt('{{2}}', 10),
+		needle = '{{1}}';
+	window.setInterval = function(a, b) {
+		if (
+			(isNaN(delay) || b == delay) &&
+			(needle === '' || a.toString().indexOf(needle) !== -1)
+		) {
+			return 0;
+		}
+		return z(a, b);
+	}.bind(window);
+})();
+
+
+setInterval-logger.js application/javascript
+(function() {
+	var z = window.setInterval,
+		log = console.log.bind(console);
+	window.setInterval = function(a, b) {
+		log('uBO: setInterval("%s", %s)', a.toString(), b);
+		return z(a, b);
+	}.bind(window);
+})();
+
+
+# https://www.reddit.com/r/wow/comments/5exq2d/wowheadcom_sucking_bandwidth/
+wowhead.com.js application/javascript
+(function() {
+	var z = window.console,
+		y = z.log,
+		dummy;
+	window.console.log = function log(a) {
+		if ( a instanceof HTMLDivElement ) {
+			dummy = a.id != Date.now();
+		}
+		y.apply(z, arguments);
+	}.bind(z);
 })();

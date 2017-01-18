@@ -67,6 +67,8 @@ export default {
     "txt-share-location": "Votre vie privée ne sera pas compromise.",
     "cta-share-location": "En savoir plus",
     "btn-always-share": "Toujours partager sa position",
-    "btn-never-share": "Ne jamais partager sa position"
+    "btn-never-share": "Ne jamais partager sa position",
+    "txt-email-inaccessible": "Please log in to see email notifications",
+    "txt-email-refresh": "Actualiser les notifications"
   }
 };

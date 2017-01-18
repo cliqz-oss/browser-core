@@ -1,38 +1,23 @@
-//extracts only the key from a line of text
-function key(line){
-  return /\"(.*?)\"/.exec(line)[0];
-}
 
-DEPS.Validations = ["core/utils"];
+DEPS.Validations = ['core/utils'];
 TESTS.Validations = function (CliqzUtils) {
-  // translations files should have exactly the same keys on exactly the same lines
-  describe('LocaleValidation_DE_EN', function(){
+  describe('Should load locales', function () {
     this.retries(1);
 
-    it('should be symetric', function () {
-      var de = null, en = null;
-      CliqzUtils.loadResource(CliqzUtils.LOCALE_PATH + 'de/cliqz.json',
-        function(req){
-          de = req.response;
-        });
-
-      CliqzUtils.loadResource(CliqzUtils.LOCALE_PATH + 'en/cliqz.json',
-        function(req){
-          en = req.response;
-        });
+    it('should load locales files', () => {
+      // Load locales
+      const langs = ['de', 'en', 'fr'];
+      const locales = new Map();
+      langs.forEach((lang) => {
+        CliqzUtils.loadResource(
+          `${CliqzUtils.LOCALE_PATH}/${lang}/cliqz.json`,
+          req => locales.set(lang, req.response),
+        );
+      });
 
       return waitFor(function () {
-        return de != null && en != null;
-      }).then(function(){
-
-        de = de.split('\n').slice(1,-2);
-        en = en.split('\n').slice(1,-2);
-        chai.expect(de.length).to.equal(en.length);
-
-        for(var i=0;i<de.length;i+=3){
-          chai.expect(key(de[i])).to.equal(key(en[i]));
-        }
-      });
+        return locales.size === langs.length;
+      }).then(() => { chai.expect(locales.size).to.equal(langs.length); });
     });
   });
 };

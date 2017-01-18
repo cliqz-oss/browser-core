@@ -20,9 +20,27 @@ export default background({
   * @method init
   */
   init(settings) {
-    HumanWeb.initAtBrowser();
-    utils.bindObjectFunctions(this.actions, this);
-    hs.addObserver(HumanWeb.historyObserver, false);
+    let FF48_OR_ABOVE = false;
+
+    try {
+      const appInfo = Components.classes['@mozilla.org/xre/app-info;1']
+        .getService(Components.interfaces.nsIXULAppInfo);
+      const versionChecker = Components.classes['@mozilla.org/xpcom/version-comparator;1']
+        .getService(Components.interfaces.nsIVersionComparator);
+
+      if (versionChecker.compare(appInfo.version, '48.0') >= 0) {
+        FF48_OR_ABOVE = true;
+      }
+    } catch (e) { CliqzUtils.log(e); }
+
+    if (FF48_OR_ABOVE) {
+      this.enabled = true;
+      HumanWeb.initAtBrowser();
+      utils.bindObjectFunctions(this.actions, this);
+      hs.addObserver(HumanWeb.historyObserver, false);
+    } else {
+      this.enabled = false;
+    }
   },
 
   unload() {

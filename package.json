@@ -1,6 +1,6 @@
 {
   "name": "navigation-extension",
-  "version": "2.11.1",
+  "version": "2.12.0",
   "description": "",
   "main": "",
   "scripts": {
@@ -61,6 +61,9 @@
     "node-notifier": "4.6.1",
     "pouchdb": "^6.0.7",
     "rimraf": "2.5.4",
+    "sinon": "^1.17.6",
+    "sinon-as-promised": "4.0.2",
+    "sinon-chai": "^2.8.0",
     "source-map-support": "0.4.5",
     "systemjs": "0.19.39",
     "testem": "1.12.0",

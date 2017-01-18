@@ -1,5 +1,4 @@
 import autocomplete from "autocomplete/autocomplete";
-import CliqzResultProviders from "autocomplete/result-providers";
 import { utils, environment } from "core/cliqz";
 import Search from "autocomplete/search";
 import {Window as AutocompleteWindow} from "platform/auto-complete-component";
@@ -23,7 +22,8 @@ export default class {
   status() {
     return {
       visible: true,
-      state: autocomplete.CliqzResultProviders.getSearchEngines()
+      state: autocomplete.CliqzResultProviders.getSearchEngines(),
+      supportedIndexCountries: autocomplete.CliqzSearchCountryProviders.getProviders()
     }
   }
 }

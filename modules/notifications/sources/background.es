@@ -20,12 +20,26 @@ export default background({
       'notifications-cleared'
     );
 
+    this.onNotificationsInaccessible = events.proxyEvent(
+      'notifications:notifications-inaccessible',
+      this.notificationCenter,
+      'notifications-inaccessible'
+    );
+
+    this.onNotificationsAccessible = events.proxyEvent(
+      'notifications:notifications-accessible',
+      this.notificationCenter,
+      'notifications-accessible'
+    );
+
     this.notificationCenter.start();
   },
 
   unload() {
     this.onNewNotification.unsubscribe();
     this.onNotificationsCleared.unsubscribe();
+    this.onNotificationsInaccessible.unsubscribe();
+    this.onNotificationsAccessible.unsubscribe();
 
     this.notificationCenter.stop();
     delete this.notificationCenter;
@@ -33,6 +47,16 @@ export default background({
 
   beforeBrowserShutdown() {
 
+  },
+
+  broadcastMessage(action, message) {
+    utils.callAction('core', 'broadcastMessage', [
+      utils.CLIQZ_NEW_TAB_URL,
+      {
+        action: action,
+        message
+      }
+    ]);
   },
 
   actions: {
@@ -43,6 +67,14 @@ export default background({
       return {
         sources: this.notificationCenter.domainList(),
       };
+    },
+
+    hasNotifications() {
+      return this.notificationCenter.storage.watchedDomainNames().length > 0;
+    },
+
+    updateUnreadStatus() {
+      return this.notificationCenter.updateUnreadStatus();
     },
 
     /**
@@ -84,6 +116,16 @@ export default background({
     activate(url) {
       const domainDetails = utils.getDetailsFromUrl(url);
       return this.notificationCenter.activateDomain(domainDetails.host);
+    },
+
+    clearUnread(url) {
+      const domainDetails = utils.getDetailsFromUrl(url);
+      this.notificationCenter.clearDomainUnread(domainDetails.host);
+    },
+
+    refresh(url) {
+      const domainDetails = utils.getDetailsFromUrl(url);
+      this.notificationCenter.refresh(domainDetails.host);
     }
   },
 
@@ -91,9 +133,33 @@ export default background({
     /*
      * Clears unread status for domain at currently open tab
      */
-    'core.location_change': function onLocationChange(url) {
-      const domainDetails = utils.getDetailsFromUrl(url);
-      this.notificationCenter.clearDomainUnread(domainDetails.host);
+    'core.location_change': function onLocationChange(url, isPrivate) {
+      if (!isPrivate) {
+        this.actions.clearUnread(url);
+      }
     },
+    'notifications:new-notification': function onNewNotification(domain, count) {
+      this.broadcastMessage('newNotification', {
+        domain,
+        count
+      });
+    },
+    'notifications:notifications-cleared': function onClearNotification(domain) {
+      this.broadcastMessage('clearNotification', {
+        domain
+      });
+    },
+    'notifications:notifications-inaccessible': function onInaccessibleNotification(domain) {
+      this.broadcastMessage('inaccessibleNotification', {
+        domain
+      });
+    },
+    'notifications:notifications-accessible': function onAccessibleNotification(domain, count, hasUnread) {
+      this.broadcastMessage('accessibleNotification', {
+        domain,
+        count,
+        hasUnread
+      });
+    }
   },
 });

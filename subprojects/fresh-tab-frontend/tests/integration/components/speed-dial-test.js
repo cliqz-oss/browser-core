@@ -24,19 +24,30 @@ describeComponent('speed-dial', 'Integration | Component | speed dial',
         it('render notifications enable option if available', function() {
           this.set('model', {
             notificationsAvailable: true,
-            notificationsEnabled: true
+            notificationsEnabled: true,
           });
           this.render(hbs`{{speed-dial model=model}}`);
-          expect(this.$(`menuitem.action-notifications-enable`)).to.have.length(1);
+          expect(this.$(`menuitem.action-notifications-enabled`)).to.have.length(1);
         });
 
         it('render notifications disable option if available', function() {
           this.set('model', {
             notificationsAvailable: true,
-            notificationsEnabled: false
+            notificationsEnabled: false,
           });
           this.render(hbs`{{speed-dial model=model}}`);
-          expect(this.$(`menuitem.action-notifications-disable`)).to.have.length(1);
+          expect(this.$(`menuitem.action-notifications-disabled`)).to.have.length(1);
+        });
+
+        it('render notifications disable option if inaccessible', function() {
+          this.set('model', {
+            notificationsAvailable: true,
+            notificationsEnabled: false,
+            notificationInaccesible: true
+
+          });
+          this.render(hbs`{{speed-dial model=model}}`);
+          expect(this.$(`menuitem.action-notifications-enabled`)).to.have.length(1);
         });
 
         it('render no actions if notifications not available', function() {
@@ -45,7 +56,7 @@ describeComponent('speed-dial', 'Integration | Component | speed dial',
           });
           this.render(hbs`{{speed-dial model=model}}`);
           expect(this.$(`menuitem.action-notifications-enable`)).to.have.length(0);
-          expect(this.$(`menuitem.action-notifications-disable`)).to.have.length(0);
+          expect(this.$(`menuitem.action-notifications-disabled`)).to.have.length(0);
         });
       });
     });

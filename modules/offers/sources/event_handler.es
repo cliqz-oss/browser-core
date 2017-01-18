@@ -38,7 +38,7 @@ export class EventHandler {
     //
 
     events.sub('core.location_change', this.onTabOrWinChangedHandler.bind(this));
-    events.sub('core.tab_location_change', this.onTabLocChanged.bind(this));
+    events.sub('content:location-change', this.onTabLocChanged.bind(this));
 
     this.beforeRequestListener = this.beforeRequestListener.bind(this)
     WebRequest.onBeforeRequest.addListener(this.beforeRequestListener);
@@ -49,7 +49,7 @@ export class EventHandler {
   //
   destroy() {
     events.un_sub('core.location_change', this.onTabOrWinChangedHandler.bind(this));
-    events.un_sub('core.tab_location_change', this.onTabLocChanged.bind(this));
+    events.un_sub('content:location-change', this.onTabLocChanged.bind(this));
 
     WebRequest.onBeforeRequest.removeListener(this.beforeRequestListener);
   }
@@ -155,7 +155,7 @@ export class EventHandler {
   //////////////////////////////////////////////////////////////////////////////
   onTabLocChanged(data) {
     // EX-2561: private mode then we don't do anything here
-    if (data.isOnPrivateContext) {
+    if (data.isPrivate) {
       LoggingHandler.LOG_ENABLED &&
       LoggingHandler.info(MODULE_NAME, 'window is private skipping: onTabLocChanged');
       return;

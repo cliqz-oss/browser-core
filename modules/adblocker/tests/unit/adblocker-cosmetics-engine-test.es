@@ -55,20 +55,20 @@ export default describeModule('adblocker/filters-engine',
           const filters = loadLinesFromFile(cosmeticsPath);
 
           // Try update mechanism of filter engine
-          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 1 }]);
-          engine.onUpdateFilters([{ filters, asset: 'list2', checksum: 1 }]);
-          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 2 }]);
-          engine.onUpdateFilters([{ filters: [], asset: 'list2', checksum: 2 }]);
+          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 1 }], true);
+          engine.onUpdateFilters([{ filters, asset: 'list2', checksum: 1 }], true);
+          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 2 }], true);
+          engine.onUpdateFilters([{ filters: [], asset: 'list2', checksum: 2 }], true);
 
           // Serialize and deserialize engine
-          const serialized = JSON.stringify(serializeEngine(engine, true));
+          const serialized = JSON.stringify(serializeEngine(engine, undefined, true));
           engine = new FilterEngine();
-          deserializeEngine(engine, JSON.parse(serialized, true));
+          deserializeEngine(engine, JSON.parse(serialized), undefined, true);
 
           // Try to update after deserialization
-          engine.onUpdateFilters([{ filters, asset: 'list3', checksum: 1 }]);
-          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 3 }]);
-          engine.onUpdateFilters([{ filters: [], asset: 'list3', checksum: 2 }]);
+          engine.onUpdateFilters([{ filters, asset: 'list3', checksum: 1 }], true);
+          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 3 }], true);
+          engine.onUpdateFilters([{ filters: [], asset: 'list3', checksum: 2 }], true);
         }
       });
 

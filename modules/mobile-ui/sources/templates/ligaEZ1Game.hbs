@@ -18,59 +18,56 @@
 
         <div class="soccer__result" cliqz-action="stop-click-event-propagation" onclick="osAPI.openLink('{{live_url}}')">
 
-           <h5>{{spielTag}}</h5>
-           <span class="meta__legend">{{gameTime}} - {{location}}</span>
+            <h5>{{spielTag}}</h5>
+            <span class="meta__legend">{{gameTime}} - {{location}}</span>
 
-       </div>
+            <table cellspacing="0" cellpadding="0">
+              <tr>
+               <td>{{HOST}}</td>
+               <td class="score">
+                 {{#if isLive}}
+                   <div class="ez-liga-score">{{scored}}
+                     <div class="ez-liga-live">live</div>
+                   </div>
+                 {{else if scored}}
+                   <div class="ez-liga-vs">{{scored}}</div>
+                 {{else}}
+                   <div class="ez-liga-vs">{{local 'vs'}}</div>
+                 {{/if}}
+               </td>
+               <td>{{GUESS}}</td>
+             </tr>
+           </table>
+
+        </div>
     </section>
-
-    <table cellspacing="0" cellpadding="0">
-      <tr>
-       <td>{{HOST}}</td>
-       <td class="score">
-         {{#if isLive}}
-           <div class="ez-liga-score">{{scored}}
-             <div class="ez-liga-live">live</div>
-           </div>
-         {{else if scored}}
-           <div class="ez-liga-vs">{{scored}}</div>
-         {{else}}
-           <div class="ez-liga-vs">{{local 'vs'}}</div>
-         {{/if}}
-       </td>
-       <td>{{GUESS}}</td>
-     </tr>
-   </table>
-
-   </div>
-</section>
 {{/with}}
 
 {{#each data.deepResults}}
-  {{#if (logic type '===' 'news')}}
-    <section class="secondary" cliqz-action="stop-click-event-propagation">
-      <div class="main mulitple">
-        {{#each links}}
-          <div url="{{url}}" extra="entry-{{@index}}" class="item">
-            <div class="main__image" data-style="background-image: url({{#if extra.thumbnail}}{{ extra.thumbnail }}{{else}}http://cdn.cliqz.com/extension/EZ/news/no-image-mobile.png{{/if}});">
-              Image
-            </div>
-            <h1 class="main__headline">
-              {{ title }}
-              <span>
-                {{#if extra.tweet_count}}
-                  <span class="tweet_count">
-                    <img data-src="http://cdn.cliqz.com/extension/EZ/cliqz/EZ-social-twitter.svg"> {{extra.tweet_count}}
+    {{#if (logic type '===' 'news')}}
+        <section class="secondary" cliqz-action="stop-click-event-propagation">
+          <div class="main mulitple">
+            {{#each links}}
+              <div url="{{url}}" extra="entry-{{@index}}" class="item">
+                <div class="main__image" data-style="background-image: url({{#if extra.thumbnail}}{{ extra.thumbnail }}{{else}}http://cdn.cliqz.com/extension/EZ/news/no-image-mobile.png{{/if}});">
+                  Image
+                </div>
+                <h1 class="main__headline">
+                  {{ title }}
+                  <span>
+                    {{#if extra.tweet_count}}
+                      <span class="tweet_count">
+                        <img data-src="http://cdn.cliqz.com/extension/EZ/cliqz/EZ-social-twitter.svg"> {{extra.tweet_count}}
+                      </span>
+                    {{/if}}
+                    {{ agoline extra.discovery_timestamp }}
                   </span>
-                {{/if}}
-                {{ agoline extara.discovery_timestamp }}
-              </span>
-            </h1>
+                </h1>
+              </div>
+            {{/each}}
           </div>
-        {{/each}}
-      </div>
-    </section>
-  {{/if}}
+        </section>
+    {{/if}}
 {{/each}}
 
 <div class="poweredby" url="http://www.kicker.de/mobile/startseite.html">

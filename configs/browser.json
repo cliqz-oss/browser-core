@@ -3,13 +3,17 @@
   "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
   "testem_launchers": ["Mocha"],
   "settings": {
+    "id": "cliqz@cliqz.com",
+    "name": "Cliqz",
+    "channel": "40",
+    "homepageURL": "http://cliqz.com/",
+    "updateURL": "https://s3.amazonaws.com/cdncliqz/update/browser/latest.rdf",
     "freshTabButton": false,
     "freshTabNews": true,
     "freshTabInitialState": true,
     "unblockUI": false,
     "showDataCollectionMessage": false,
     "cliqzOnboarding": true,
-    "channel": "40",
     "antitrackingButton": true,
     "helpMenus": true,
     "showNewBrandAlert": true,
@@ -19,6 +23,9 @@
   "default_prefs" : {
     "modules.context-search.enabled": false,
     "modules.type-filter.enabled": false
+  },
+  "default_prefs" : {
+    "modules.context-search.enabled": false
   },
   "modules": [
     "core",
@@ -41,12 +48,15 @@
     "hpn",
     "control-center",
     "privacy-dashboard",
-    "offers",
     "adblocker",
     "message-center",
     "https-everywhere",
     "onboarding-v2",
-    "type-filter"
+    "new-tab-button",
+    "type-filter",
+    "offers",
+    "offers-v2",
+    "telemetry-speed-dial"
   ],
   "subprojects": [
     "fresh-tab-frontend"

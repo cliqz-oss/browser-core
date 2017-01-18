@@ -1,0 +1,79 @@
+<div class="cqz-offer cqz-clear {{ voucher_classes }}" style="background: {{ styles.background }}">
+    <div class="cqz-logo-holder">
+        <img src="{{ logo_url }}" alt=""/>
+    </div>
+
+    {{#if code}}
+        {{#if call_to_action}}
+            <div class="cqz-buttons">
+                <a href="#{{ call_to_action.url }}"
+                   class="cqz-btn"
+                   data-cqz-of-btn-id="call-to-action"
+                   target="{{ call_to_action.target }}"
+                    style="color: {{ styles.call-to-action-color }}; background: {{ styles.call-to-action-bg-color }}">
+                    {{ call_to_action.text }}
+                </a>
+            </div>
+        {{/if }}
+    {{/if }}
+
+    <div class="cqz-content-holder">
+        <h1 class="cqz-title" style="color: {{ styles.title-color }}">
+            {{ title }}
+        </h1>
+
+        {{#if code }}
+            <div class="cqz-offer-code-holder">
+                <span class="cqz-offer-code-info">{{ 'local offers_copy_code' }}</span>
+                <span class="cqz-offer-code" data-cqz-of-btn-id="copy-code">
+                    {{ code }}
+                </span>
+            </div>
+        {{else if call_to_action }}
+            <div class="cqz-buttons">
+                <a href="#{{ call_to_action.url }}"
+                   class="cqz-btn"
+                   data-cqz-of-btn-id="call-to-action"
+                   target="{{ call_to_action.target }}"
+                    style="color: {{ styles.call-to-action-color }}; background: {{ styles.call-to-action-bg-color }}">
+                    {{ call_to_action.text }}
+                </a>
+            </div>
+        {{/if }}
+
+        <div class="cqz-descr" style="color: {{ styles.description-color }}">
+            {{ conditions }} <br>
+            {{ desc }}
+        </div>
+        <p class="cqz-default-links">
+            <a href="#"
+               class="cliqz-link"
+               data-cqz-of-btn-id="more-about-cliqz"
+               style="color: {{ styles.description-color }}">
+                <i>
+                    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                         width="512px" height="512px" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve">
+                    <path id="info-5-icon" d="M256,50.002C142.229,50.002,50,142.228,50,256c0,113.769,92.229,205.998,206,205.998
+                        c113.77,0,206-92.229,206-205.998C462,142.228,369.77,50.002,256,50.002z M251.989,376.93
+                        c-29.694,10.436-54.175-1.531-49.264-30.049c4.913-28.523,33.09-89.589,37.11-101.135c4.017-11.547-3.687-14.712-11.943-10.015
+                        c-4.763,2.749-11.84,8.254-17.916,13.606c-1.685-3.393-4.055-7.27-5.833-10.983c9.915-9.936,26.488-23.256,46.108-28.083
+                        c23.441-5.787,62.624,3.463,45.783,48.271c-12.024,31.937-20.529,53.976-25.888,70.388c-5.356,16.418,1.006,19.861,10.382,13.464
+                        c7.325-5.001,15.129-11.804,20.849-17.079c2.646,4.301,3.494,5.672,6.11,10.614C297.559,346.105,271.584,369.924,251.989,376.93z
+                         M313.516,179.372c-13.469,11.463-33.433,11.216-44.601-0.561c-11.166-11.77-9.302-30.606,4.163-42.072
+                        c13.468-11.463,33.435-11.215,44.6,0.553C328.843,149.066,326.98,167.902,313.516,179.372z"/>
+                    </svg>
+                </i>
+                Mehr Informationen über CLIQZ Offers
+            </a>
+            <a class="cliqz-link"
+               data-cqz-of-btn-id="more-about-offer"
+               style="color: {{ styles.description-color }}">
+                <i style="margin-top: 0px;">
+                    <svg id="Layer_1" width="16" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 99.8 99.72"><title>Cliqz logo 2016_2</title><polygon points="80.36 74.39 99.8 67.89 46.08 46 67.97 99.72 74.47 80.28 92.65 98.46 98.54 92.57 80.36 74.39"/><path d="M76.25,106.34a29.4,29.4,0,1,1,29.4-29.4c0,0.18,0,.36,0,0.54l19.27,7.85A49.42,49.42,0,1,0,84.53,125.6l-7.85-19.28Z" transform="translate(-26.88 -27.58)"/></svg>
+                </i>
+                Bereitgestellt von CLIQZ Add-on
+            </a>
+        </p>
+    </div>
+</div>
+<span class="cqz-close" data-cqz-of-btn-id="close-offer"></span>

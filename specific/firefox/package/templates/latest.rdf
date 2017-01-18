@@ -3,7 +3,7 @@
 <RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:em="http://www.mozilla.org/2004/em-rdf#">
 
-  <RDF:Description about="urn:mozilla:extension:cliqz@cliqz.com">
+  <RDF:Description about="urn:mozilla:extension:{{id}}">
     <em:updates>
       <RDF:Seq>
 
@@ -19,10 +19,6 @@
                 <em:minVersion>36.0</em:minVersion>
                 <em:maxVersion>53.*</em:maxVersion>
                 <em:updateLink>{{download_link}}</em:updateLink>
-
-                <!-- A page describing what is new in this updated version
-                <em:updateInfoURL>http://cliqz.com/changelog</em:updateInfoURL>
-                -->
               </RDF:Description>
             </em:targetApplication>
           </RDF:Description>

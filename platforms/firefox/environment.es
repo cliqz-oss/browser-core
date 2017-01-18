@@ -1,4 +1,5 @@
 import autocomplete from "autocomplete/autocomplete";
+import { promiseHttpHandler } from "core/http";
 
 const {
   classes:    Cc,
@@ -114,67 +115,6 @@ var CLIQZEnvironment = {
 
       return null;
     },
-    httpHandler: function(method, url, callback, onerror, timeout, data, sync, encoding){
-        var req = Cc['@mozilla.org/xmlextras/xmlhttprequest;1'].createInstance();
-        req.timestamp = + new Date();
-        req.open(method, url, !sync);
-        req.channel.loadFlags |= Ci.nsIRequest.LOAD_ANONYMOUS | Ci.nsIRequest.LOAD_BYPASS_CACHE | Ci.nsIRequest.INHIBIT_PERSISTENT_CACHING;
-        req.overrideMimeType('application/json');
-
-        // headers for compressed data
-        if ( encoding ) {
-            req.setRequestHeader('Content-Encoding', encoding);
-        }
-
-        req.onload = function(){
-            if(!parseInt) return; //parseInt is not a function after extension disable/uninstall
-
-            var statusClass = parseInt(req.status / 100);
-            if(statusClass == 2 || statusClass == 3 || statusClass == 0 /* local files */){
-                callback && callback(req);
-            } else {
-                console.log( "loaded with non-200 " + url + " (status=" + req.status + " " + req.statusText + ")", "CLIQZEnvironment.httpHandler");
-                onerror && onerror();
-            }
-        }
-        req.onerror = function(){
-            if(CLIQZEnvironment){
-                console.log( "error loading " + url + " (status=" + req.status + " " + req.statusText + ")", "CLIQZEnvironment.httpHandler");
-                onerror && onerror();
-            }
-        }
-        req.ontimeout = function(){
-            if(CLIQZEnvironment){ //might happen after disabling the extension
-                console.log( "timeout for " + url, "CLIQZEnvironment.httpHandler");
-                onerror && onerror();
-            }
-        }
-
-        if(callback){
-            if(timeout){
-                req.timeout = parseInt(timeout)
-            } else {
-                req.timeout = (['POST', 'PUT'].indexOf(method) >= 0 ? 10000 : 1000);
-            }
-        }
-
-        req.send(data);
-        return req;
-    },
-    promiseHttpHandler: function(method, url, data, timeout, compressedPost) {
-      return new Promise( function(resolve, reject) {
-       // gzip.compress may be false if there is no implementation for this platform
-       // or maybe it is not loaded yet
-       if (CLIQZEnvironment.gzip && CLIQZEnvironment.gzip.compress && method === 'POST' && compressedPost) {
-         const dataLength = data.length;
-         data = CLIQZEnvironment.gzip.compress(data);
-         console.log("Compressed request to "+ url +", bytes saved = "+ (dataLength - data.length) + " (" + (100*(dataLength - data.length)/ dataLength).toFixed(1) +"%)", "CLIQZEnvironment.httpHandler");
-         CLIQZEnvironment.httpHandler(method, url, resolve, reject, timeout, data, undefined, 'gzip');
-       } else {
-         CLIQZEnvironment.httpHandler(method, url, resolve, reject, timeout, data);
-       }
-     });
-   },
    openLink: function(win, url, newTab, newWindow, newPrivateWindow){
         // make sure there is a protocol (this is required
         // for storing it properly in Firefoxe's history DB)
@@ -301,7 +241,7 @@ var CLIQZEnvironment = {
 
         console.log('push telemetry data: ' + telemetrySending.length + ' elements', "pushTelemetry");
 
-        telemetryReq = CLIQZEnvironment.promiseHttpHandler('POST', CLIQZEnvironment.LOG, JSON.stringify(telemetrySending), 10000, true);
+        telemetryReq = promiseHttpHandler('POST', CLIQZEnvironment.LOG, JSON.stringify(telemetrySending), 10000, true);
         telemetryReq.then( pushTelemetryCallback );
         telemetryReq.catch( pushTelemetryError );
       }

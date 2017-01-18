@@ -3,16 +3,19 @@
 /* globals addEventListener, content */
 // CLIQZ pages communication channel
 var { classes: Cc, interfaces: Ci, utils: Cu } = Components;
-
+Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
 
 Services.scriptloader.loadSubScript("chrome://cliqz/content/core/content-scripts.js");
 
 var config = {{CONFIG}};
 
-if (config.modules.indexOf('adblocker') > -1) {
-  Services.scriptloader.loadSubScript('chrome://cliqz/content/adblocker/content-scripts.js');
-}
+let injectModules = ['adblocker', 'anti-phishing'];
+injectModules.forEach((moduleName) => {
+  if (config.modules.indexOf(moduleName) > -1) {
+    Services.scriptloader.loadSubScript(`chrome://cliqz/content/${moduleName}/content-scripts.js`);
+  }
+});
 
 var whitelist = [
   "chrome://cliqz/",
@@ -75,6 +78,12 @@ function getContextHTML(ev) {
 
 function onDOMWindowCreated(ev) {
   var window = ev.target.defaultView;
+
+  // we only handle HTML documents for now
+  if(window.document.documentElement.nodeName.toLowerCase() !== 'html'){
+    return;
+  }
+
   var currentURL = function(){return window.location.href};
 
   var windowId = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
@@ -84,6 +93,10 @@ function onDOMWindowCreated(ev) {
 
   if (config.modules.indexOf('adblocker') > -1) {
     requestDomainRules(currentURL(), window, send, windowId);
+  }
+
+  if (config.modules.indexOf('anti-phishing') > -1 && window.parent.document.documentURI === window.document.documentURI) {
+    isPhishingUrl(currentURL(), windowId, send);
   }
 
   var onMessage = function (ev) {
@@ -122,6 +135,10 @@ function onDOMWindowCreated(ev) {
 
     if (config.modules.indexOf('adblocker') > -1) {
       responseAdbMsg(msg, window);
+    }
+
+    if (config.modules.indexOf('anti-phishing') > -1) {
+      responseAntiPhishingMsg(msg, window);
     }
 
     if (!whitelist.some(function (url) { return currentURL().indexOf(url) === 0; }) ) {
@@ -208,6 +225,12 @@ function onDOMWindowCreated(ev) {
     }
 
     var matchesCurrentUrl = msg.data.url === currentURL();
+   // wild card for cliqz URLS
+   if(msg.data.url.indexOf('resource://cliqz') === 0){
+     if(currentURL().indexOf(msg.data.url) === 0){
+       matchesCurrentUrl = true;
+     }
+   }
     var isGetHTML = msg.data.action === 'getHTML';
     // TEMP: Human web decodes the URI for internal storage
     var isCurrentUrlBis = msg.data.url === decodeURIComponent(currentURL());
@@ -396,8 +419,7 @@ var DocumentManager = {
     Services.obs.removeObserver(this, "document-element-inserted");
   },
 
-  observe: function(subject, topic, data) {
-    let document = subject;
+  observe: function(document, topic, data) {
     let window = document && document.defaultView;
     if (!document || !document.location || !window) {
       return;
