@@ -1,5 +1,7 @@
 import CliqzUtils from "core/utils";
 import CliqzABTests from "core/ab-tests";
+import config from "core/config";
+
 const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu, manager: Cm } =
     Components;
 
@@ -56,7 +58,27 @@ AboutURL.prototype = {
   contractID: "@mozilla.org/network/protocol/about;1?what=cliqz",
 
   newChannel: function(uri) {
-    const src = `${CLIQZ_NEW_TAB_URL}?cliqzOnboarding=${FreshTab.cliqzOnboarding}&t=${Date.now()}`;
+    var action = '';
+    if(config.settings.channel === '40'){
+      action = `<script type="text/javascript">
+        //
+        if(location.href === 'about:cliqz'){
+          var iframe = document.querySelector("iframe"), retries = 30;
+          function focusUrlBar(){
+            var urlbar = iframe.contentDocument.getElementById("urlbar");
+            if(urlbar){
+              urlbar.focus();
+            } else {
+              if(retries-- != 0){
+                setTimeout(focusUrlBar, 100);
+              }
+            }
+          }
+          setTimeout(focusUrlBar, 100);
+        }
+      </script>`;
+    }
+    const src = `${CLIQZ_NEW_TAB_URL}?cliqzOnboarding=${FreshTab.cliqzOnboarding}`;
     const html = `<!DOCTYPE html>
   <html>
     <head>
@@ -69,6 +91,7 @@ AboutURL.prototype = {
         type="content"
         src="${src}">
       </iframe>
+      ${action}
     </body>
 </html>`;
 

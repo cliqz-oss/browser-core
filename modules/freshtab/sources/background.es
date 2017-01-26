@@ -416,7 +416,7 @@ export default background({
       if( !(message.id in this.messages )) {
         this.messages[message.id] = message;
         utils.callAction('core', 'broadcastMessage', [
-          utils.CLIQZ_NEW_TAB_URL,
+          utils.CLIQZ_NEW_TAB_URL + '?cliqzOnboarding=1',
           {
             action: 'addMessage',
             message: message,
@@ -428,7 +428,7 @@ export default background({
 
       delete this.messages[message.id];
       utils.callAction('core', 'broadcastMessage', [
-        utils.CLIQZ_NEW_TAB_URL,
+        utils.CLIQZ_NEW_TAB_URL + '?cliqzOnboarding=1',
         {
           action: 'closeNotification',
           messageId: message.id,
