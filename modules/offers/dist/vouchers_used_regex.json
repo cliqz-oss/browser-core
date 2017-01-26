@@ -1,7 +1,0 @@
-{
-      "lieferando": [{"method": "GET", "url_regex": "*lieferando.de/*/*/discount", "code_regex": "code=([^&]*)"}],
-      "deliveroo": [{"method": "POST", "url_regex": "https://deliveroo.de/*/vouchers", "code_regex": "redemption_code", "parse_body": true}],
-      "hotels": [{"method": "POST", "url_regex": "*hotels.com/booking/apply_discount", "code_regex": "bookingSignInDiscount.coupon.code=([^&]*)", "parse_body": false}],
-      "reisen": [{"method":"POST", "url_regex": "*reisen.de/nsibe/booking/booking/key/*", "code_regex": "customerCouponCode=([^&]*)", "parse_body": false}],
-      "bdi-services": [{"method": "GET", "url_regex": "*dl.bdi-services.de/app/ffxivsetup_ft.exe*", "code_regex": "token=([^&]*)", "parse_body": false, "is_download": true}]
-}

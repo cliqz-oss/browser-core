@@ -32,8 +32,7 @@
     "hpn",
     "geolocation",
     "freshtab",
-    "control-center",
-    "offers"
+    "control-center"
   ],
   "subprojects": [
     "fresh-tab-frontend"

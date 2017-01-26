@@ -34,9 +34,9 @@
     "geolocation",
     "freshtab",
     "control-center",
-    "offers",
     "message-center",
-    "offers-v2"
+    "offers-v2",
+    "notifications"
   ],
   "subprojects": [
     "fresh-tab-frontend"

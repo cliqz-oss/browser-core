@@ -11,9 +11,12 @@ Services.scriptloader.loadSubScript("chrome://cliqz/content/core/content-scripts
 
 var config = {{CONFIG}};
 
-if (config.modules.indexOf('adblocker') > -1) {
-  Services.scriptloader.loadSubScript('chrome://cliqz/content/adblocker/content-scripts.js');
-}
+let injectModules = ['adblocker', 'anti-phishing'];
+injectModules.forEach((moduleName) => {
+  if (config.modules.indexOf(moduleName) > -1) {
+    Services.scriptloader.loadSubScript(`chrome://cliqz/content/${moduleName}/content-scripts.js`);
+  }
+});
 
 var whitelist = [
   "chrome://cliqz/",
@@ -93,6 +96,10 @@ function onDOMWindowCreated(ev) {
     requestDomainRules(currentURL(), window, send, windowId);
   }
 
+  if (config.modules.indexOf('anti-phishing') > -1 && window.parent.document.documentURI === window.document.documentURI) {
+    isPhishingUrl(currentURL(), windowId, send);
+  }
+
   var onMessage = function (ev) {
     var href = ev.target.location.href;
 
@@ -129,6 +136,10 @@ function onDOMWindowCreated(ev) {
 
     if (config.modules.indexOf('adblocker') > -1) {
       responseAdbMsg(msg, window);
+    }
+
+    if (config.modules.indexOf('anti-phishing') > -1) {
+      responseAntiPhishingMsg(msg, window);
     }
 
     if (!whitelist.some(function (url) { return currentURL().indexOf(url) === 0; }) ) {

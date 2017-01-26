@@ -58,12 +58,10 @@ export default background({
   actions: {
     _showOnboarding() {
       if (onboardingVersion() === '2.1') {
-        shouldShowOnboardingV2().then((show) => {
-          if (show) {
-            utils.openLink(utils.getWindow(), utils.CLIQZ_ONBOARDING);
-            return;
-          }
-        });
+        if (shouldShowOnboardingV2()) {
+          utils.openLink(utils.getWindow(), utils.CLIQZ_ONBOARDING);
+          return;
+        }
       }
     },
     _showHelp: isWithinNDaysAfterInstallation.bind(null, 5),
@@ -429,7 +427,7 @@ export default background({
       if( !(message.id in this.messages )) {
         this.messages[message.id] = message;
         utils.callAction('core', 'broadcastMessage', [
-          utils.CLIQZ_NEW_TAB_URL + '?cliqzOnboarding=1',
+          utils.CLIQZ_NEW_TAB_URL,
           {
             action: 'addMessage',
             message: message,
@@ -441,7 +439,7 @@ export default background({
 
       delete this.messages[message.id];
       utils.callAction('core', 'broadcastMessage', [
-        utils.CLIQZ_NEW_TAB_URL + '?cliqzOnboarding=1',
+        utils.CLIQZ_NEW_TAB_URL,
         {
           action: 'closeNotification',
           messageId: message.id,

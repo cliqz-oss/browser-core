@@ -51,7 +51,7 @@ export default background({
 
   broadcastMessage(action, message) {
     utils.callAction('core', 'broadcastMessage', [
-      utils.CLIQZ_NEW_TAB_URL + '?cliqzOnboarding=1',
+      utils.CLIQZ_NEW_TAB_URL,
       {
         action: action,
         message

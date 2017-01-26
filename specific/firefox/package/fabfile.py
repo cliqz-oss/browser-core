@@ -242,12 +242,10 @@ def comment_cleaner(path=None):
 
     exclude_dirs = ['node_modules', 'bower_components', 'extern', 'fresh-tab-frontend']
     ignore = [
-        'math.min.jsm',
         'Validations.js',
         'humanweb.html',
-        'CliqzAntiPhishing.jsm',
         'freshtab.html',
-        'news.js'
+        'processScript.js'
     ]
 
     print 'CommentCleaner - Start'

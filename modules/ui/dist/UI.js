@@ -1672,7 +1672,7 @@ function setResultSelection(el, scrollTop, changeUrl, mouseOver){
             urlbar.value = el.getAttribute("url");
 
         if (!mouseOver)
-          UI.keyboardSelection = el;
+          UI.keyboardSelection = target;
     } else if (changeUrl && UI.lastInput != "") {
         urlbar.value = UI.lastInput;
         UI.lastSelectedUrl = "";

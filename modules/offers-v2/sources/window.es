@@ -57,7 +57,7 @@ export default class {
   }
 
   unload() {
-
+    this.iframe.parentElement.removeChild(this.iframe);
   }
 
    //////////////////////////////////////////////////////////////////////////////
@@ -120,6 +120,14 @@ export default class {
           contentDeck = doc.getElementById("content-deck"),
           iframe = doc.createElementNS("http://www.w3.org/1999/xhtml", "iframe");
 
+    // remove iframe from previous version
+    try {
+      const oldIframe = doc.getElementById('cqz-of-iframe', panel);
+      if(oldIframe){
+        oldIframe.parentElement.removeChild(oldIframe);
+      }
+    } catch(e) { /* bummer */ }
+
     // set the cliqz offers iframe
     // TODO: avoid some hardcoded values here
     iframe.id = OffersConfigs.UI_IFRAME_ELEM_ID;
@@ -127,6 +135,7 @@ export default class {
     iframe.style.width = OffersConfigs.UI_IFRAME_WIDTH_DEF;
     iframe.style.overflow = "visible";
     iframe.style.position = "relative";
+    iframe.style.minHeight = "0";
     iframe.style.zIndex = "99999";
     iframe.style.background = "#fff";
     iframe.src = OffersConfigs.UI_IFRAME_SRC_DEF;

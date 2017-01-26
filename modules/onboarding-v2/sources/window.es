@@ -12,11 +12,9 @@ export default class {
     if(onboardingVersion() !== "2.1") {
       return;
     }
-    shouldShowOnboardingV2().then((show) => {
-      if(show) {
-        utils.openLink(this.window, CLIQZ_ONBOARDING);
-      }
-    })
+    if(shouldShowOnboardingV2()){
+      utils.openLink(this.window, CLIQZ_ONBOARDING);
+    }
 
     if (this.window.gInitialPages && this.window.gInitialPages.indexOf(CLIQZ_ONBOARDING)===-1) {
       this.window.gInitialPages.push(CLIQZ_ONBOARDING);

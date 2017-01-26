@@ -1,8 +1,6 @@
 import { utils } from "core/cliqz";
 import config from "core/config";
-import ProfileAge from "platform/profile-age";
 
-const profileAccessor = new ProfileAge(null, null);
 export function version() {
   return config.settings.onBoardingVersion;
 }
@@ -18,13 +16,5 @@ export function shouldShowOnboardingV2() {
     }
   }
 
-  return new Promise((resolve, reject) => {
-    profileAccessor.reset.then((time) => {
-      console.log('ProfileAccessor', `get reset time for profile ${time}`);
-      if(time !== undefined) {
-        shouldShow = false;
-      }
-      return resolve(shouldShow);
-    });
-  });
+  return shouldShow;
 }
