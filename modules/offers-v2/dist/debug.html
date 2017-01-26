@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Control Center Debug</title>
+    <style>
+        iframe {
+            border: none;
+        }
+    </style>
+</head>
+<body>
+<iframe id="offers" src="./index.html" width="100%" height="200"></iframe>
+
+<script>
+
+    //chrome://cliqz/content/offers-v2/debug.html
+    var iframe = document.getElementById("offers");
+    iframe.contentWindow.addEventListener('message', function (ev) {
+        var data = JSON.parse(ev.data);
+        if (!data.message || data.message.action !== 'testAction') {
+            return;
+        }
+        var mockOffer = {
+            "offer_id": "1",
+            "template_name": "test_template",
+            "template_data": {
+
+                "voucher_classes": "", // cqz-offer-no-call-to-action, cqz-offer-logo-landscape
+                "title": "Premier League am Boxing Day? Jetzt bei DAZN",
+                "desc": "Einlösebedingungen: Gültig für Neukunden",
+                "logo_url": "https://s3.amazonaws.com/cdn.cliqz.com/extension/goldrush/dazn-logo.png",
+//                "code": "",
+                "conditions": "",
+
+                "call_to_action": {
+                    "url": "http://newurl",
+                    "target": "", //to open in the same window or in new tab
+                    "text": "Jetzt Gratismonat starten"
+                },
+
+              //  "styles": {
+              //     "title-color": "#fff",
+              //     "description-color": "#fff",
+              //     "links-color": "#fff",
+              //     "call-to-action-color": "#fff",
+              //     "call-to-action-bg-color": "red",
+              //     "background": "#333"
+              // }
+            }
+        };
+        var strMockOffer = mockOffer;
+        iframe.contentWindow.postMessage(JSON.stringify({
+            target: "cliqz-offers",
+            origin: "window",
+            message: {
+                action: "render_template",
+                data: strMockOffer
+            },
+        }), "*");
+
+    });
+
+
+</script>
+</body>
+</html>

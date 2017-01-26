@@ -22,10 +22,10 @@
                 {{#unless no_location}}
                     <div class="cqz-local-info">
                         <div class="local-distance">
-                            <div class="icon" data-style="background-image: url(http://cdn.cliqz.com/extension/EZ/local/map-pin.svg)">
-                            icon
-                            </div>
                             {{#if distance}}
+                                <div class="icon" data-style="background-image: url(http://cdn.cliqz.com/extension/EZ/local/map-pin.svg)">
+                                icon
+                                </div>
                                 {{distance distance}}
                             {{/if}}
                         </div>
@@ -61,10 +61,7 @@
                 {{/unless}}
             </div>
         </div>
-        <div extra="des" class="card__description">{{../data.description}}</div>
     </section>
 {{/with}}
-{{log data}}
-{{>EZ-category}}
 
 <!-- end local-data-sc.tpl -->

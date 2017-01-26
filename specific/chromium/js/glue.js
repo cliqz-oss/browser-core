@@ -377,6 +377,20 @@ function sendEnvironmentalSignal(startup){
       version_dist: ''
   };
 
+  // try to enrich the environment signal with
+  // all the config parameters stored in localStorage
+  try {
+    Object.keys(localStorage)
+      .filter(function(key){
+        // consider only items which start with 'config_'
+        // they are populated by CliqzUtils.fetchAndStoreConfig
+        return key && key.indexOf('config_') == 0;
+      })
+      .forEach(function(key){
+        info[key] = localStorage.getItem(key);
+      });
+  } catch(e) {}
+
   CliqzUtils.telemetry(info);
 }
 

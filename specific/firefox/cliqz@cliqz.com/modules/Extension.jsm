@@ -1,3 +1,4 @@
+
 'use strict';
 /*
  * This module handles the loading and the unloading of the extension
@@ -57,6 +58,8 @@ var Extension = {
       Services.scriptloader.loadSubScript("chrome://cliqz/content/bower_components/handlebars/handlebars.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/bower_components/mathjs/dist/math.min.js", this);
 
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/xmlhttprequest.js", this);
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/fetch.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/storage.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/core/storage.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/prefs.js", this);
@@ -64,6 +67,9 @@ var Extension = {
       Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/console.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/core/console.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/environment.js", this);
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/gzip.js", this);
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/core/gzip.js", this);
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/core/http.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/core/utils.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/core/events.js", this);
 

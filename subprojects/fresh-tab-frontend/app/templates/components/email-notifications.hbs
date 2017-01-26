@@ -1,0 +1,14 @@
+{{#if model.notificationsEnabled}}
+  {{#if model.notificationCount}}
+  <span class="notifyDot newEmail"></span>
+  {{/if}}
+{{/if}}
+{{#if model.notificationsAvailable}}
+  <span class="notifyDot available"></span>
+  <div class="tooltip bottom">{{t 'notifications.txt-email-available'}}</div>
+{{/if}}
+
+{{#if model.notificationInaccesible}}
+  <span class="notifyDot inaccessible"></span>
+  <div class="tooltip bottom">{{t 'notifications.txt-email-inaccessible'}}</div>
+{{/if}}

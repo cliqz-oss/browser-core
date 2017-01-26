@@ -192,7 +192,7 @@ function clearFavorites() {
 }
 
 function onElementClick(event) {
-  const element = event.srcEvent.currentTarget;
+  const element = getElement(event.target);
   const tab = History.showOnlyFavorite ? 'favorites' : 'history';
   const targetType = element.getAttribute('class');
   if (targetType.indexOf('question') >= 0) {
@@ -203,6 +203,13 @@ function onElementClick(event) {
     sendClickTelemetry(event.target, 'site', tab);
   }
 
+}
+
+function getElement(el) {
+  if (!el || el.tagName === 'LI') {
+    return el;
+  }
+  return getElement(el.parentElement);
 }
 
 function crossTransform (element, x) {
@@ -218,14 +225,24 @@ function isElementDate(element) {
 
 function attachListeners(list) {
   var listItems = list.getElementsByTagName("li");
-
   for (let i = 0; i < listItems.length; i++) {
     if(!isElementDate(listItems[i])) {
-      new Hammer(listItems[i]).on('pan', onSwipe);
-      new Hammer(listItems[i]).on('panend', onSwipeEnd);
-      new Hammer(listItems[i]).on('tap', onElementClick);
+      const hammer = new Hammer(listItems[i]);
+      hammer.on('panstart', onSwipeStart);
+      hammer.on('pan', onSwipe);
+      hammer.on('panend', onSwipeEnd);
+      hammer.on('tap', onElementClick);
     }
   }
+}
+let moving = false;
+function onSwipeStart(ev) {
+  moving = false;
+  var angle = Math.abs(ev.angle);
+  if (angle > 30 && angle < 150) {
+    return;
+  }
+  moving = true;
 }
 
 function removeDomElement(element) {
@@ -240,10 +257,17 @@ function removeDomElement(element) {
 }
 
 function onSwipe(e) {
-  crossTransform(e.srcEvent.currentTarget, e.deltaX);
+  if (!moving) {
+    return;
+  }
+  crossTransform(getElement(e.target), e.deltaX);
 }
 function onSwipeEnd(e) {
-  const element = e.srcEvent.currentTarget;
+  if (!moving) {
+    return;
+  }
+  moving = false;
+  const element = getElement(e.target);
   const tab = History.showOnlyFavorite ? 'favorites' : 'history';
   const targetType = element.getAttribute('class').indexOf('question') >= 0 ? 'query' : 'site';
   const direction = e.direction === 4 ? 'right' : 'left';
@@ -260,7 +284,7 @@ function sendClickTelemetry(element, targetType, tab) {
     utils.telemetry({
       type: tab,
       action: 'click',
-      target_type: targetType,
+      target: targetType,
       element: element.dataset.name
     });
 }

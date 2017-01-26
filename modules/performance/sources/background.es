@@ -21,7 +21,7 @@ export default background({
   },
 
   events: {
-    'core.tab_location_change': function onTabLocationChange({ url }) {
+    'content:location-change': function onTabLocationChange({ url }) {
       if (url === this.currentUrl || !this.lastResult) {
         return;
       }

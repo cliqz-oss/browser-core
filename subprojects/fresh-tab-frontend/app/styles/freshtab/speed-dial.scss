@@ -1,18 +1,77 @@
 .speed-dial {
+  .notifyDot {
+    display: inline-block;
+    height: 8px;
+    width: 8px;
+    border-radius: 8px;
+    font-weight: normal;
+  }
+
   &.new-notifications {
     color: red;
     .title {
+      .newEmail {
+        background-color: red;
+      }
       span {
         font-weight: bold;
       }
+    }
+  }
+
+  .inaccessible {
+    background-color: #999999;
+    &:hover + .tooltip {
+      display: block;
+    }
+  }
+
+  .available {
+    border: 2px solid #666;
+    &:hover + .tooltip {
+      display: block;
+    }
+  }
+
+  .tooltip {
+    $border-color: #D8D8D8;
+    line-height: 1.4;
+    display: none;
+    position: absolute;
+    z-index: 10;
+    background: #ffffff;
+    border: 1px solid $border-color;
+    border-radius: 4px;
+    color: #535353;
+    font-size: 13px;
+    padding: 8px;
+    box-shadow: 3px 2px 10px #ccc;
+
+    &:before {
+      content:' '; /* Must have content to display */
+      position: absolute;
+      border: 1px solid transparent;
+      width: 10px;
+      height: 10px;
+      background-color: white;
+      transform: rotate(45deg);
+    }
+
+    &.bottom {
+      width: 185px;
+      max-width: 190px;
+      top: 115%;
+      left: 18px;
+      right: 0px;
+      white-space: normal;
+      text-align: left;
+
       &:before {
-        content: '';
-        display: inline-block;
-        background-color: red;
-        height: 8px;
-        width: 8px;
-        border-radius: 8px;
+        top: -6px;
+        border-top-color: $border-color;
+        border-left-color: $border-color;
       }
     }
   }
 }
+

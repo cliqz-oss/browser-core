@@ -19,6 +19,7 @@ class ContextSearch {
     this.dropOldHashesId = null;
     this.checkClosedTabsId = null;
     this.messages = [];
+    this.searchCache = Object.create(null);
 
     this.distribution = Object.create(null);
     this.invalidCache = false;
@@ -32,6 +33,63 @@ class ContextSearch {
     this.checkOldEntries = 30 * 60 * 1000; // default 30 min
     this.oldEntriesTTL = 60 * 60 * 1000; // default 60 min
     this.dropOldHashes = 2 * 60 * 60 * 1000;// default 2 hours
+
+    // from nltk.corpus.stopwords.words('english')
+    this.stopwordsEN = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours',
+      'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself',
+      'it', 'its', 'itself', 'they', 'them', 'their', 'heirs', 'themselves', 'what', 'which',
+      'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be',
+      'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an',
+      'the', 'and', 'but', 'i', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for',
+      'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after',
+      'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under',
+      'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all',
+      'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not',
+      'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just',
+      'don', 'should', 'now'];
+
+    // from nltk.corpus.stopwords.words('german')
+    this.stopwordsDE = ['aber', 'alle', 'allem', 'allen', 'aller', 'alles', 'als', 'also', 'am', 'an',
+      'ander', 'andere', 'anderem', 'anderen', 'anderer', 'anderes', 'anderm', 'andern', 'anderr',
+      'anders', 'auch', 'auf', 'aus', 'bei', 'beim', 'bin', 'bis', 'bist', 'da', 'damit', 'dann', 'der',
+      'den', 'des', 'dem', 'die', 'das', 'da\xdf', 'derselbe', 'derselben', 'denselben', 'desselben',
+      'demselben', 'dieselbe', 'dieselben', 'dasselbe', 'daz', 'dein', 'deine', 'deinem', 'deinen',
+      'deiner', 'deines', 'denn', 'derer', 'dessen', 'dich', 'dir', 'du', 'dies', 'diese', 'diesem',
+      'diesen', 'dieser', 'dieses', 'doch', 'dort', 'durch', 'ein', 'eine', 'einem', 'einen',
+      'einer', 'eines', 'einig', 'einige', 'einigem', 'einigen', 'einiger', 'einiges', 'einmal',
+      'er', 'ihn', 'ihm', 'es', 'etwas', 'euer', 'eure', 'eurem', 'euren', 'eurer', 'eures',
+      'f\xfcr', 'gegen', 'gewesen', 'hab', 'habe', 'haben', 'hat', 'hatte', 'hatten', 'hier',
+      'hin', 'hinter', 'ich', 'mich', 'mir', 'ihr', 'ihre', 'ihrem', 'ihren', 'ihrer', 'ihres',
+      'euch', 'im', 'in', 'indem', 'ins', 'ist', 'jede', 'jedem', 'jeden', 'jeder', 'jedes',
+      'jene', 'jenem', 'jenen', 'jener', 'jenes', 'jetzt', 'kann', 'kein', 'keine', 'keinem',
+      'keinen', 'keiner', 'keines', 'k\xf6nnen', 'k\xf6nnte', 'machen', 'man', 'manche', 'manchem',
+      'manchen', 'mancher', 'manches', 'mein', 'meine', 'meinem', 'meinen', 'meiner', 'meines',
+      'mit', 'muss', 'musste', 'nach', 'nicht', 'nichts', 'noch', 'nun', 'nur', 'ob', 'oder',
+      'ohne', 'sehr', 'sein', 'seine', 'seinem', 'seinen', 'seiner', 'seines', 'selbst', 'sich',
+      'sie', 'ihnen', 'sind', 'so', 'solche', 'solchem', 'solchen', 'solcher', 'solches', 'soll',
+      'sollte', 'sondern', 'sonst', '\xfcber', 'um', 'und', 'uns', 'unse', 'unsem', 'unsen',
+      'unser', 'unses', 'unter', 'viel', 'vom', 'von', 'vor', 'w\xe4hrend', 'war', 'waren',
+      'warst', 'was', 'weg', 'weil', 'weiter', 'welche', 'welchem', 'welchen', 'welcher',
+      'welches', 'wenn', 'werde', 'werden', 'wie', 'wieder', 'will', 'wir', 'wird', 'wirst',
+      'wo', 'wollen', 'wollte', 'w\xfcrde', 'w\xfcrden', 'zu', 'zum', 'zur', 'zwar', 'zwischen'];
+
+    this.stopwordsFR = ['ai', 'aie', 'aient', 'aies', 'ait', 'as', 'au', 'aura', 'aurai', 'auraient',
+      'aurais', 'aurait', 'auras', 'aurez', 'auriez', 'aurions', 'aurons', 'auront', 'aux', 'avaient',
+      'avais', 'avait', 'avec', 'avez', 'aviez', 'avions', 'avons', 'ayant', 'ayante', 'ayantes',
+      'ayants', 'ayez', 'ayons', 'c', 'ce', 'ces', 'd', 'dans', 'de', 'des', 'du', 'elle', 'en', 'es',
+      'est', 'et', 'eu', 'eue', 'eues', 'eurent', 'eus', 'eusse', 'eussent', 'eusses', 'eussiez',
+      'eussions', 'eut', 'eux', 'e\xfbmes', 'e\xfbt', 'e\xfbtes', 'furent', 'fus', 'fusse', 'fussent',
+      'fusses', 'fussiez', 'fussions', 'fut', 'f\xfbmes', 'f\xfbt', 'f\xfbtes', 'il', 'j', 'je', 'l',
+      'la', 'le', 'leur', 'lui', 'm', 'ma', 'mais', 'me', 'mes', 'moi', 'mon', 'm\xeame', 'n', 'ne',
+      'nos', 'notre', 'nous', 'on', 'ont', 'ou', 'par', 'pas', 'pour', 'qu', 'que', 'qui', 's', 'sa',
+      'se', 'sera', 'serai', 'seraient', 'serais', 'serait', 'seras', 'serez', 'seriez', 'serions',
+      'serons', 'seront', 'ses', 'soient', 'sois', 'soit', 'sommes', 'son', 'sont', 'soyez', 'soyons',
+      'suis', 'sur', 't', 'ta', 'te', 'tes', 'toi', 'ton', 'tu', 'un', 'une', 'vos', 'votre', 'vous',
+      'y', '\xe0', '\xe9taient', '\xe9tais', '\xe9tait', '\xe9tant', '\xe9tante', '\xe9tantes',
+      '\xe9tants', '\xe9tiez', '\xe9tions', '\xe9t\xe9', '\xe9t\xe9e', '\xe9t\xe9es', '\xe9t\xe9s',
+      '\xeates'];
+
+    this.stopwords = new Set(this.stopwordsDE.concat(this.stopwordsEN).concat(this.stopwordsFR));
 
     // debug versions
     // this.checkClosedTabs = 30 * 1000; //  30 sec
@@ -108,7 +166,10 @@ class ContextSearch {
   addWordsToCache(cacheId, words, type) {
     for (let i = 0; i < words.length; i++) {
       const word = words[i];
-      if (word.length > 3 && word.length < 30 && /^\d+$/.test(word) === false) {
+      if (word.length > 3 &&
+          word.length < 30 &&
+          /^\d+$/.test(word) === false &&
+          !this.stopwords.has(word)) {
         const minI = Math.max(i - this.window, 0);
         const maxI = Math.min(i + this.window + 1, words.length);
         const windowStr = words.slice(minI, maxI).join();
@@ -175,11 +236,18 @@ class ContextSearch {
   }
 
   removeOldEntries() {
+    // delete old entries from document cache
     const currentTime = Date.now();
     Object.keys(this.docCache).forEach(urlId => {
       const elem = this.docCache[urlId];
       if (elem.tab === false && currentTime > (elem.timestamp + this.oldEntriesTTL)) {
         delete this.docCache[urlId];
+      }
+    });
+    // delete old cached queries from search cache
+    Object.keys(this.searchCache).forEach(query => {
+      if (currentTime > (this.searchCache[query].timestamp + this.oldEntriesTTL)) {
+        delete this.searchCache[query];
       }
     });
   }
@@ -452,7 +520,7 @@ class ContextSearch {
           type: 'humanweb',
           action: 'usercontext',
           payload: {
-            url,
+            // url,
             result: 'distribution',
             distribution: result,
           },
@@ -464,7 +532,7 @@ class ContextSearch {
           action: 'usercontext',
           payload: {
             result: 'not found',
-            url,
+            // url,
           },
         };
         this.messages.push(message);
@@ -524,7 +592,7 @@ class ContextSearch {
   /**
    * merge 2 arrays using original result score in asc order
    * @param res1
-   * @param res2
+   * @param res2 - newer result
    * @returns {Array}
    */
 
@@ -572,10 +640,11 @@ class ContextSearch {
   /**
    * get expanded (extended) version of query based on latest history
    * @param q
+   * @param returnResult - boolean, if we should return result even if in cache
    * @returns {*}
    */
 
-  getQExt(q) {
+  getQExt(q, returnResult) {
     const words = ContextSearch.getBOW(q, 't');
     const mapping = [];
     const urlMapping = {};
@@ -604,7 +673,7 @@ class ContextSearch {
 
     let result = null;
     // seen at least MIN_SEEN times among different urls
-    // or differnet parts of the same url
+    // or different parts of the same url
     const MIN_SEEN = 5;
     if (words.length > 1) {
       // if original query had more than 1 word - trying to mix them here as well
@@ -620,6 +689,12 @@ class ContextSearch {
       if (bestValue && bestValue.sum > MIN_SEEN) {
         result = bestValue.key;
       }
+    }
+
+    if (result in this.searchCache && !returnResult) {
+      // update timestamp
+      this.searchCache[result].timestamp = Date.now();
+      result = null;
     }
     return result;
   }
@@ -681,13 +756,11 @@ class ContextSearch {
       mergedResponse = ContextSearch.mergeResults(response[0], response[1]);
       count = mergedResponse.filter((v, i) => (i < Math.min(10, response[0].length - 1) &&
                                                v !== response[0][i])).length;
-      // }).length;
       telemetrySignal.context_search = true;
     }
 
     telemetrySignal.version = 3;
     telemetrySignal.reranked_count = count;
-
     return {
       telemetrySignal,
       response: mergedResponse,
@@ -770,24 +843,42 @@ class ContextSearch {
     this.savedQuery = query;
     let doubledResponse = false;
     const contextResults = [response[0].response.results];
+    const possibleQExt = this.getQExt(query, true);
 
     if (response.length === 2) {
       doubledResponse = true;
+      if (possibleQExt && !(possibleQExt in this.searchCache)) {
+        const doc = Object.create(null);
+        doc.timestamp = Date.now();
+        doc.results = response[1].response.results;
+        this.searchCache[possibleQExt] = doc;
+      }
       contextResults.push(response[1].response.results);
     }
-
-    if (doubledResponse) {
-      // type 3 and 4
-      const resC = this.doRerank3(contextResults);
-      this.updateDistribution(resC.response, 'C', query.length);
-      const resD = this.doRerank4(contextResults);
-      this.updateDistribution(resD.response, 'D', query.length);
+    else if (possibleQExt) {
+      doubledResponse = true;
+      contextResults.push(this.searchCache[possibleQExt].results);
     }
-
+    let resC = null;
+    if (doubledResponse) {
+      // update second array with type
+      contextResults[1].forEach(arr => {
+        arr.cs = true;
+      });
+      // type 3 and 4
+      resC = this.doRerank3(contextResults);
+      this.updateDistribution(resC.response, 'C', query.length);
+      // const resD = this.doRerank4(contextResults);
+      // this.updateDistribution(resD.response, 'D', query.length);
+    }
     const resA = this.doRerank1(contextResults[0]);
     this.updateDistribution(resA.response, 'A', query.length);
-    const resB = this.doRerank2(contextResults[0]);
-    this.updateDistribution(resB.response, 'B', query.length);
+    // const resB = this.doRerank2(contextResults[0]);
+    // this.updateDistribution(resB.response, 'B', query.length);
+    if (doubledResponse) {
+      return resC;
+    }
+    return resA;
   }
 
 }

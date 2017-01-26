@@ -1,6 +1,6 @@
 {{#if data.extra.rich_data.full_name}}
-  {{#with data.extra}}
-    <div class='cqz-result-h3'>
+  <div class='cqz-result-h3'>
+    {{#with data.extra}}
       {{#if image.src}}
           <div class="cqz-image cqz-image-round" style="
                       position:relative;
@@ -32,9 +32,9 @@
               </div>
           {{/with}}
       </div>
-      {{> logo}}
-    </div>
-  {{/with}}
+    {{/with}}
+    {{>logo}}
+  </div>
 {{else}}
   {{partial 'generic'}}
 {{/if}}

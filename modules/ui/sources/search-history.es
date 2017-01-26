@@ -67,7 +67,7 @@ var CliqzSearchHistory = {
             var val = win.urlbar.value.trim(),
                 lastQ = utils.autocomplete.lastSearch.trim();
 
-            if(lastQ && val && !utils.isUrl(lastQ) && (val == lastQ || !this.isAutocomplete(val, lastQ) )){
+            if (lastQ && val && !utils.isUrl(lastQ) && (val == lastQ || !this.isAutocomplete(val, lastQ)) && !val.startsWith("about:")) {
                 this.showLastQuery(lastQ, window);
                 win.lastQueryInTab[gBrowser.selectedTab.linkedPanel] = lastQ;
             } else {

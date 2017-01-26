@@ -4,8 +4,7 @@ import utils from '../core/utils';
 import events from '../core/events';
 import HistoryManager from '../core/history-manager';
 import { Services } from '../platform/globals';
-import LocationObserver from '../platform/location-observer';
-import TabObserver from '../platform/tab-observer';
+import { Window } from '../core/browser';
 
 export default class {
   constructor(settings) {
@@ -14,36 +13,22 @@ export default class {
   }
 
   init() {
-    // Create observers
-    const locationObserver = new LocationObserver(this.window);
-    const tabObserver = new TabObserver(this.window);
-
-    // Create event proxies
-    this.locationChangeEvent = events.proxyEvent(
-      'core.location_change',
-      locationObserver,
-      'location_change'
-    );
-    this.tabLocationChangeEvent = events.proxyEvent(
-      'core.tab_location_change',
-      tabObserver,
-      'location_change'
-    );
-    this.tabStateChangeEvent = events.proxyEvent(
-      'core.tab_state_change',
-      tabObserver,
-      'state_change'
-    );
-    this.pageLoadEventProxy = events.proxyEvent(
-      'core:page_load',
-      this.window.gBrowser,
-      'load',
-      true
-    );
     this.tabSelectEventProxy = events.proxyEvent(
       'core:tab_select',
       this.window.gBrowser.tabContainer,
-      'TabSelect'
+      'TabSelect',
+      undefined,
+      function (event) {
+        const tab = event.target;
+        const browser = tab.linkedBrowser;
+        const win = new Window(tab.ownerGlobal);
+        const msg = {
+          windowId: win.id,
+          url: browser.currentURI.spec,
+          isPrivate: browser.loadContext.usePrivateBrowsing,
+        };
+        return [msg];
+      }
     );
 
     // Demo rely on UI
@@ -58,10 +43,6 @@ export default class {
 
   unload() {
     // Unsubsribe event proxies
-    this.locationChangeEvent.unsubscribe();
-    this.tabLocationChangeEvent.unsubscribe();
-    this.tabStateChangeEvent.unsubscribe();
-    this.pageLoadEventProxy.unsubscribe();
     this.tabSelectEventProxy.unsubscribe();
     Demo.unload(this.window);
     Redirect.unload();

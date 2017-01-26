@@ -89,7 +89,7 @@ function buildFreshtabFrontEnd() {
 
   rimraf.sync(appPath + 'dist', []);
   console.log(`Building Ember app: ${app}`);
-  var spawed = spaws.sync('./node_modules/ember-cli/bin/ember', ['build', '--output-path=dist', '--env=production'], { stdio: 'inherit', stderr: 'inherit', cwd: appPath});
+  var spawed = spaws.sync('./node_modules/ember-cli/bin/ember', ['build', '--output-path=dist', '--environment=production'], { stdio: 'inherit', stderr: 'inherit', cwd: appPath});
   if(spawed.status === 1) {
     console.log(chalk.red('*** RUN `./fern.js install` to install missing Freshtab ember dependencies'));
     process.exit(1);

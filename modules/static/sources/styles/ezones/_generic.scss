@@ -57,7 +57,14 @@
                     color: #ccc;
                 }
             }
-        }
 
+            li[local-source*="bookmark"] {
+                @extend .cqz-bookmark-icon;
+            }
+
+            li[local-source~="switchtab"] {
+                @extend .cqz-switchtab-icon;
+            }
+        }
     }
 }

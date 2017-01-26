@@ -48,6 +48,7 @@ export default class {
   */
   constructor(settings) {
     this.elems = [];
+    this.settings = settings.settings;
     this.window = settings.window;
     this.urlbarGoClick = this.urlbarGoClick.bind(this);
     this.hidePopup = this.hidePopup.bind(this);
@@ -96,6 +97,7 @@ export default class {
 
     this.window.CLIQZ.Core.urlbar = this.urlbar;
     this.window.CLIQZ.Core.popup = this.popup;
+    this.window.CLIQZ.settings = this.settings;
 
     initPopup(this.popup, this.window);
     CliqzEvents.sub('ui:popup_hide', this.hidePopup);
@@ -109,6 +111,16 @@ export default class {
 
     this._autocompletepopup = this.urlbar.getAttribute('autocompletepopup');
     this.urlbar.setAttribute('autocompletepopup', /*'PopupAutoComplete'*/ 'PopupAutoCompleteRichResultCliqz');
+
+    // Some versions of Firefox 52+ fail to update to the correct popup ref
+    // The fix landed in Aurora an nightly mid december 2016
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1323600
+    // we should keep this workaround for a short while to be sure we are
+    // not breaking any versions
+    if(this.urlbar._popup === undefined){
+      this._originalFFpopup = this.urlbar.popup;
+      this.urlbar.popup = this.popup;
+    }
 
     var urlBarGo = document.getElementById('urlbar-go-button');
     this._urlbarGoButtonClick = urlBarGo.getAttribute('onclick');
@@ -311,6 +323,9 @@ export default class {
     this.urlbar.setAttribute('autocompletepopup', this._autocompletepopup);
     this.popup.removeEventListener('popuphiding', this.popupEventHandlers.popupClose);
     this.popup.removeEventListener('popupshowing', this.popupEventHandlers.popupOpen);
+    if(this._originalFFpopup){
+      this.urlbar.popup = this._originalFFpopup;
+    }
 
     CliqzEvents.un_sub('ui:popup_hide', this.hidePopup);
 

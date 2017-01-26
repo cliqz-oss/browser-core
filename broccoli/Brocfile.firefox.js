@@ -38,14 +38,18 @@ var firefoxTree = new MergeTrees([
 ], { overwrite: true } );
 
 var firefox = new MergeTrees([
-  new Funnel(firefoxTree, { destDir: 'cliqz@cliqz.com' }),
+  new Funnel(firefoxTree, { destDir: cliqzConfig.settings.id }),
   firefoxPackage,
 ]);
 
 var configTree = util.injectConfig(firefox, config, 'cliqz.json', [
-  'cliqz@cliqz.com/modules/Extension.jsm',
-  'cliqz@cliqz.com/chrome/content/core/processScript.js',
-  'cliqz@cliqz.com/chrome/content/core/config.js'
+  cliqzConfig.settings.id + '/modules/Extension.jsm',
+  cliqzConfig.settings.id + '/chrome/content/core/processScript.js',
+  cliqzConfig.settings.id + '/chrome/content/core/config.js',
+  cliqzConfig.settings.id + '/install.rdf',
+  'templates/install.rdf',
+  'templates/latest.rdf',
+  'fabfile.py'
 ]);
 
 firefox = new MergeTrees([

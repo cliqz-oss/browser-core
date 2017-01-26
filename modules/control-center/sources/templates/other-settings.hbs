@@ -122,6 +122,22 @@
       </span>
       {{/if}}
 
+      {{#if module.autocomplete.visible}}
+      <span class="bullet">
+        <span data-i18n="control-center-backend-country"></span>
+        <select searchIndexCountryChanger
+                class="custom-dropdown"
+                data-target="search-index-country">
+            <option disabled selected value></option>
+          {{#each module.autocomplete.supportedIndexCountries}}
+            <option {{#if selected }}selected{{/if}} value="{{ iso }}">
+               {{ local  label_key }}
+            </option>
+          {{/each}}
+        </select>
+      </span>
+      {{/if}}
+
       {{#unless searchDisabled }}
           <span class="bullet"
                 {{#if amo}}

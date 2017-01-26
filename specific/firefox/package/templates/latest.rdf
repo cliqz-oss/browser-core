@@ -3,7 +3,7 @@
 <RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:em="http://www.mozilla.org/2004/em-rdf#">
 
-  <RDF:Description about="urn:mozilla:extension:cliqz@cliqz.com">
+  <RDF:Description about="urn:mozilla:extension:{{id}}">
     <em:updates>
       <RDF:Seq>
 
@@ -16,18 +16,9 @@
             <em:targetApplication>
               <RDF:Description>
                 <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
-                <em:minVersion>29.0</em:minVersion>
-                <em:maxVersion>48.*</em:maxVersion>
-
-                {#
-                This is where this version of the add-on will be downloaded from
-                Not working with CDN. It needs to be a https but our certificate is broken on the CDN.
-                #}
+                <em:minVersion>36.0</em:minVersion>
+                <em:maxVersion>53.*</em:maxVersion>
                 <em:updateLink>{{download_link}}</em:updateLink>
-
-                <!-- A page describing what is new in this updated version
-                <em:updateInfoURL>http://cliqz.com/changelog</em:updateInfoURL>
-                -->
               </RDF:Description>
             </em:targetApplication>
           </RDF:Description>

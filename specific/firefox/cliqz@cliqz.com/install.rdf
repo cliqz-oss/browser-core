@@ -2,27 +2,25 @@
 
 <RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#">
 	<Description about="urn:mozilla:install-manifest">
-		<em:id>cliqz@cliqz.com</em:id>
-		<em:name>Cliqz</em:name>
-		<em:version>1.2.99</em:version>
+		<em:id>{{id}}</em:id>
+		<em:name>{{name}}</em:name>
+		<em:version>{{codeVersion}}.dev</em:version>
 
 		<em:type>2</em:type>
 		<em:creator>feedback@cliqz.com</em:creator>
 		<em:bootstrap>true</em:bootstrap>
 		<em:multiprocessCompatible>true</em:multiprocessCompatible>
 
-		<em:updateURL>https://s3.amazonaws.com/cdncliqz/update/browser/latest.rdf</em:updateURL>
+		{{rdfUpdateURL}}
 
 		<em:description>
 		</em:description>
-		<em:homepageURL>http://cliqz.com/</em:homepageURL>
+		<em:homepageURL>{{rdfHomepageURL}}</em:homepageURL>
 		<em:targetApplication>
-
 			<Description>
 				<em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
-				<em:minVersion>29.0</em:minVersion>
-				<em:maxVersion>48.*</em:maxVersion>
-
+				<em:minVersion>36.0</em:minVersion>
+				<em:maxVersion>53.*</em:maxVersion>
 			</Description>
 		</em:targetApplication>
 	</Description>

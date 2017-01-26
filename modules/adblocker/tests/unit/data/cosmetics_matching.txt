@@ -61,5 +61,11 @@
     "misMatches": [
         "google.com,~mail.google.com##.c[style=\"margin: 0pt;\"]"
     ]
+},
+{
+    "url": "https://bitbucket.org/project",
+    "node": [".p"],
+    "matches": [],
+    "misMatches": []
 }
 ]

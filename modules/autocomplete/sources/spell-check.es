@@ -6,7 +6,7 @@ export default class CliqzSpellCheck {
     constructor() {
       this.spellCorrectionDict = {};
       this.resetState();
-      if (isFirefox && utils.getPref("config_location", "") == "de" && Object.keys(this.spellCorrectionDict).length == 0) {
+      if (isFirefox && utils.getPref("backend_country", "") == "de" && Object.keys(this.spellCorrectionDict).length == 0) {
           utils.log('loading dict', 'spellcorr');
           utils.loadResource('chrome://cliqz/content/spell_check.list', CliqzSpellCheck.loadRecords);
       }

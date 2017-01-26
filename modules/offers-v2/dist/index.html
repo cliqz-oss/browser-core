@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Control Center</title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <script>
+//        var node = document.createElement("link");
+//        node.rel = "stylesheet";
+//        node.href = 'styles/styles.css?' + Math.floor(Math.random() * 999999999);
+//        document.getElementsByTagName("head")[0].appendChild(node);
+    </script>
+
+
+    <script src="../webextensions-shim.js"></script>
+    <script src="../bower_components/system.js/dist/system.js"></script>
+    <script src="../bower_components/handlebars/handlebars.js"></script>
+    <script>
+//    debugger;
+      System.config({
+        defaultJSExtensions: true,
+        map: {
+          jquery: '../bower_components/jquery/dist/jquery.min.js',
+        }
+      });
+      System.set('handlebars', System.newModule({default: Handlebars}));
+      System.baseURL = System._loader.baseURL = "chrome://cliqz/content/";
+      System.import("offers-v2/content/app");
+
+    </script>
+  </head>
+  <body>
+    <!--======= Container =======-->
+    <div id="cliqz-offers" class="first cqz-offers-wrapper" cliqzofferid="">
+    </div>
+  </body>
+</html>

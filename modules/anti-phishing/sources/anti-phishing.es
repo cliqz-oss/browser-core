@@ -226,6 +226,9 @@ function notifyHumanWeb(p) {
 
 function updateSuspiciousStatus(url, status) {
     var [md5Prefix, md5Surfix] = getSplitDomainMd5(url);
+    if (!(md5Prefix in CliqzAntiPhishing.blackWhiteList)) {
+      CliqzAntiPhishing.blackWhiteList[md5Prefix] = {};
+    }
     if (CliqzAntiPhishing.blackWhiteList[md5Prefix][md5Surfix]) {
       // don't update if the status is already set
       return;
@@ -349,6 +352,9 @@ var CliqzAntiPhishing = {
         return CliqzUtils.getPref('cliqz-anti-phishing-enabled', false);
     },
     addPageLoad(domWinID, url, ts) {
+      if (!CliqzUtils.getWindow().gBrowser.getBrowserForOuterWindowID) {
+        return;
+      }
       if (!(domWinID in CliqzAntiPhishing.history)) {
         CliqzAntiPhishing.history[domWinID] = [{url, ts}];
       } else {
@@ -364,7 +370,8 @@ var CliqzAntiPhishing = {
       }
       // clear closed tabs
       Object.keys(CliqzAntiPhishing.history).forEach(domWinID => {
-        if (!CliqzUtils.getWindow().gBrowser.getBrowserForOuterWindowID(parseInt(domWinID))) {
+        if (CliqzUtils.getWindow().gBrowser.getBrowserForOuterWindowID &&
+        !CliqzUtils.getWindow().gBrowser.getBrowserForOuterWindowID(parseInt(domWinID))) {
           delete CliqzAntiPhishing.history[domWinID];
         }
       });

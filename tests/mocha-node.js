@@ -7,12 +7,16 @@ const System = require('systemjs');
 const Mocha = require('mocha');
 const fs = require('fs');
 const chai = require('chai');
+const sinon = require('sinon');
+const sinonChai = require('sinon-chai');
 const chaiAsPromised = require('chai-as-promised');
+const sinonAsPromised = require('sinon-as-promised');
 chai.config.truncateThreshold = 0
 chai.use(chaiAsPromised);
+chai.use(sinonChai);
 
 global.chai = chai;
-
+global.sinon = sinon;
 
 function log(msg) {
   fs.appendFileSync('./mocha.log', `${msg}\n`);

@@ -14,7 +14,7 @@ class ContextSearchReranker {
   }
 
   duringResults(input) {
-    const qExt = this.contextSearch.getQExt(input.query);
+    const qExt = this.contextSearch.getQExt(input.query, false);
     if (qExt && qExt.trim() !== input.query.trim()) {
       return new Promise((resolve) => {
         utils.getBackendResults(qExt).then(resolve);
@@ -29,8 +29,16 @@ class ContextSearchReranker {
       if (myResults.response) {
         results.push(myResults);
       }
-      this.contextSearch.doRerank(results, originalResults.query);
-      resolve(originalResults);
+      const newResponse = this.contextSearch.doRerank(results, originalResults.query);
+
+      const response = Object.assign({}, originalResults.response, {
+        results: newResponse.response,
+        telemetrySignal: newResponse.telemetrySignal,
+      });
+
+      resolve(Object.assign({}, originalResults, {
+        response,
+      }));
     });
   }
 }

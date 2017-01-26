@@ -92,7 +92,7 @@ self.onmessage = function(e) {
       });
   }
 
-  if (msgType === 'test-sha1') {
+  if (msgType === 'test-sha1' || msgType === 'hw-sha1') {
     sha1(e.data.msg)
       .then( result => {
         const response = {};

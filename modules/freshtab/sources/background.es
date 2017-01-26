@@ -6,6 +6,7 @@ import SpeedDial from 'freshtab/speed-dial';
 import { version as onboardingVersion, shouldShowOnboardingV2 } from "core/onboarding";
 import { AdultDomain } from 'core/adult-domain';
 import background from 'core/base/background';
+import { forEachWindow } from 'core/browser';
 
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
@@ -26,7 +27,6 @@ const isWithinNDaysAfterInstallation = function(days) {
 * @namespace freshtab
 * @class Background
 */
-
 export default background({
   /**
   * @method init
@@ -57,14 +57,15 @@ export default background({
 
   actions: {
     _showOnboarding() {
-      if(onboardingVersion() === '2.1') {
-        if(shouldShowOnboardingV2()) {
-          utils.openLink(utils.getWindow(), utils.CLIQZ_ONBOARDING);
-          return;
-        }
+      if (onboardingVersion() === '2.1') {
+        shouldShowOnboardingV2().then((show) => {
+          if (show) {
+            utils.openLink(utils.getWindow(), utils.CLIQZ_ONBOARDING);
+            return;
+          }
+        });
       }
     },
-
     _showHelp: isWithinNDaysAfterInstallation.bind(null, 5),
 
     _showMiniOnboarding() {
@@ -404,6 +405,18 @@ export default background({
         context: 'home',
         target: target
       });
+    },
+
+    refreshFrontend() {
+      forEachWindow(window => {
+        const tabs = [...window.gBrowser.tabs];
+        tabs.forEach(tab => {
+          const browser = tab.linkedBrowser;
+          if (browser.currentURI.spec === 'about:cliqz') {
+            browser.reload();
+          }
+        });
+      })
     }
 
   },
@@ -434,6 +447,11 @@ export default background({
           messageId: message.id,
         }
       ]);
+    },
+    "geolocation:wake-notification": function onWake(timestamp) {
+      this.actions.getNews().then(() => {
+        this.actions.refreshFrontend();
+      });
     },
   },
 });

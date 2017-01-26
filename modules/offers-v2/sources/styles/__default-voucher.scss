@@ -1,0 +1,174 @@
+$call-to-action: #49cc80;
+$call-to-action-hover: darken(#49cc80, 10%);
+
+body {
+    color: #333;
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+.cqz-offers-wrapper {
+    overflow: auto;
+    max-height: 200px;
+    min-width: 675px;
+    border-bottom: 1px solid #efefef;
+}
+
+.cqz-offer {
+    position: relative;
+    max-width: 1000px;
+    margin: 0 auto;
+    max-height: 180px;
+    padding: 10px 20px 10px 220px;
+
+    .cqz-logo-holder {
+        overflow: hidden;
+        float: left;
+        width: 160px;
+        padding-right: 20px;
+        margin-left: -210px;
+        height: 100%;
+        max-height: 100%;
+
+        &:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 185px;
+            width: 1px;
+            height: 100%;
+            background: #ccc;
+        }
+
+    }
+
+    & > .cqz-buttons {
+        float: right;
+        padding-top: 49px;
+        max-width: 170px;
+        margin-right: -190px;
+    }
+
+    .cqz-buttons {
+        .cqz-btn {
+            display: inline-block;
+            padding: 12px 20px 9px;
+            color: #fff;
+            font-size: 14px;
+            line-height: 1em;
+            text-decoration: none;
+            border-radius: 4px;
+            background: $call-to-action;
+
+            &:hover {
+                background: $call-to-action-hover;
+            }
+        }
+    }
+
+    .cqz-content-holder {
+        .cqz-title {
+            font-size: 21px;
+            font-weight: bold;
+            line-height: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .cqz-descr {
+            font-size: 12px;
+            line-height: 1.4em;
+            margin-bottom: 15px;
+        }
+
+    }
+
+    .cqz-offer-code-holder {
+        text-align: center;
+
+        .cqz-offer-code-info {
+            display: block;
+            font-size: 10px;
+        }
+
+        .cqz-offer-code {
+            display: inline-block;
+            padding: 8px 20px 6px;
+            margin: 5px 0;
+            font-size: 21px;
+            line-height: 1em;
+            background: #eee;
+        }
+    }
+    .cqz-default-links {
+        .cliqz-link {
+            float: right;
+            font-size: 12px;
+            color: #ccc;
+            text-decoration: none;
+
+            &[href]:hover {
+                text-decoration: underline;
+            }
+
+            &:first-child {
+                float: left;
+            }
+
+            i {
+                display: inline-block;
+                width: 19px;
+                height: 19px;
+                margin-top: -2px;
+                vertical-align: middle;
+
+                svg {
+                    fill: #ccc;
+                    max-width: 100%;
+                    max-height: 100%;
+                    margin-right: 8px;
+                }
+            }
+        }
+    }
+}
+
+.cqz-offer.cqz-offer-logo-landscape {
+    padding-left: 400px;
+
+    .cqz-logo-holder {
+        width: 390px;
+        margin-left: -390px;
+
+        &:before {
+            left: 390px;
+        }
+
+    }
+}
+
+.cqz-offer.cqz-offer-no-call-to-action {
+    padding-right: 0;
+
+    .cqz-buttons {
+        display: none;
+    }
+
+    .cqz-offer-code-holder {
+        text-align: left;
+    }
+}
+
+.cqz-close {
+    cursor: pointer;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    font-size: 16px;
+
+    &:after {
+        content: "×";
+    }
+}

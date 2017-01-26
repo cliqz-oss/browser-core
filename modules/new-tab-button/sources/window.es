@@ -1,6 +1,7 @@
 import maybe from '../core/helpers/maybe';
 import Panel from '../core/ui/panel';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
+import utils from '../core/utils';
 
 
 export default class {
@@ -16,6 +17,7 @@ export default class {
 
     this.onMouseOver = this.onMouseOver.bind(this);
     this.onMouseOut = this.onMouseOut.bind(this);
+    this.onClick = this.onClick.bind(this);
 
     this.actions = {
 
@@ -46,18 +48,32 @@ export default class {
     this.panel.attach();
 
     maybe(this, 'buttonA').then(button => {
-      button.addEventListener('mouseover', this.onMouseOver);
-      button.addEventListener('mouseout', this.onMouseOut);
+      this.addButtonListeners(button);
     });
+
+    maybe(this, 'buttonB').then(button => {
+      this.addButtonListeners(button);
+    });
+  }
+
+  addButtonListeners(button) {
+    button.addEventListener('mouseover', this.onMouseOver);
+    button.addEventListener('mouseout', this.onMouseOut);
+    button.addEventListener('click', this.onClick);
+  }
+
+  removeButtonListeners(button) {
+    button.removeEventListener('mouseover', this.onMouseOver);
+    button.removeEventListener('click', this.onClick);
+    button.addEventListener('mouseout', this.onMouseOut);
   }
 
   unload() {
     removeStylesheet(this.window.document, this.cssUrl);
 
     try {
-      const button = this.buttonA();
-      button.removeEventListener('mouseover', this.onMouseOver);
-      button.addEventListener('mouseout', this.onMouseOut);
+      this.removeButtonListeners(this.buttonA());
+      this.removeButtonListeners(this.buttonB());
     } catch (e) {
       // no button no problem
     }
@@ -76,6 +92,16 @@ export default class {
 
   onMouseOut() {
     //this.panel.hide();
+  }
+
+  onClick(e) {
+    const hasNotification = e.target.classList.contains('has-notification');
+    utils.telemetry({
+      type: 'activity',
+      action: 'click',
+      target: 'new_tab',
+      has_notification: hasNotification
+    });
   }
 
   buttonA() {

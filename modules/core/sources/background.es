@@ -80,8 +80,12 @@ export default background({
   },
 
   handleRequest(msg) {
-    const { action, module, args, requestId } = msg.data.payload,
-          windowId = msg.data.windowId;
+    const payload = msg.data.payload;
+    if (!payload) {
+      return;
+    }
+    const { action, module, args, requestId } = payload,
+      windowId = msg.data.windowId;
     utils.importModule(`${module}/background`).then( module => {
       const background = module.default;
       return background.actions[action].apply(null, args);
@@ -102,16 +106,31 @@ export default background({
   getWindowStatusFromModules(win){
     return config.modules.map((moduleName) => {
       var module = win.CLIQZ.Core.windowModules[moduleName];
-      return module && module.status ? module.status() : {}
+      return module && module.status ? module.status() : null;
     })
   },
 
   events: {
-    'prefchange': function onPrefChange() {
-    }
+    'core:tab_select': function onTabSelect({ url, isPrivate }) {
+      events.pub('core.location_change', url, isPrivate);
+    },
+    'content:location-change': function onLocationChange({ url, isPrivate }) {
+      events.pub('core.location_change', url, isPrivate);
+    },
   },
 
   actions: {
+    notifyLocationChange(...args) {
+      events.pub('content:location-change', ...args);
+    },
+    notifyStateChange(...args) {
+      // TODO: design proper property list for the event
+      events.pub('content:state-change', {
+        url: args[0].url
+      });
+      // DEPRECATED - use content:state-change instead
+      events.pub('core.tab_state_change', ...args);
+    },
     recordMouseDown(...args) {
       events.pub('core:mouse-down', ...args);
     },
@@ -188,6 +207,7 @@ export default background({
       return this.actions.queryCliqz(value);
     },
     recordLang(url, lang) {
+      events.pub('content:dom-ready', url);
       if (lang) {
         language.addLocale(url, lang);
       }

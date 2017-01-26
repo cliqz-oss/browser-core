@@ -1,7 +1,5 @@
 import CliqzUtils from "core/utils";
 import CliqzABTests from "core/ab-tests";
-import config from "core/config";
-
 const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu, manager: Cm } =
     Components;
 
@@ -58,27 +56,7 @@ AboutURL.prototype = {
   contractID: "@mozilla.org/network/protocol/about;1?what=cliqz",
 
   newChannel: function(uri) {
-    var action = '';
-    if(config.settings.channel === '40'){
-      action = `<script type="text/javascript">
-        //
-        if(location.href === 'about:cliqz'){
-          var iframe = document.querySelector("iframe"), retries = 30;
-          function focusUrlBar(){
-            var urlbar = iframe.contentDocument.getElementById("urlbar");
-            if(urlbar){
-              urlbar.focus();
-            } else {
-              if(retries-- != 0){
-                setTimeout(focusUrlBar, 100);
-              }
-            }
-          }
-          setTimeout(focusUrlBar, 100);
-        }
-      </script>`;
-    }
-    const src = `${CLIQZ_NEW_TAB_URL}?cliqzOnboarding=${FreshTab.cliqzOnboarding}`;
+    const src = `${CLIQZ_NEW_TAB_URL}?cliqzOnboarding=${FreshTab.cliqzOnboarding}&e10s=${Services.appinfo.browserTabsRemoteAutostart}`;
     const html = `<!DOCTYPE html>
   <html>
     <head>
@@ -91,7 +69,21 @@ AboutURL.prototype = {
         type="content"
         src="${src}">
       </iframe>
-      ${action}
+      <script type="text/javascript">
+        // https://github.com/cliqz-oss/browser-core/issues/4
+        var iframe = document.querySelector('iframe');
+        window.onload = function(){
+          iframe.contentWindow.addEventListener('message', function(msg) {
+            var data = JSON.parse(msg.data);
+            if(data.message === 'replaceURL'){
+              // on e10s we must open a new tab from freshtab otherwise
+              // the freshtab fails to load when navigating back
+              window.open(data.url);
+              window.close();
+            }
+          });
+        };
+      </script>
     </body>
 </html>`;
 

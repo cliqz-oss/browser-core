@@ -3,7 +3,8 @@
 /* globals addEventListener, content */
 // CLIQZ pages communication channel
 var { classes: Cc, interfaces: Ci, utils: Cu } = Components;
-
+Cu.import("resource://gre/modules/Console.jsm")
+Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
 
 Services.scriptloader.loadSubScript("chrome://cliqz/content/core/content-scripts.js");
@@ -75,6 +76,12 @@ function getContextHTML(ev) {
 
 function onDOMWindowCreated(ev) {
   var window = ev.target.defaultView;
+
+  // we only handle HTML documents for now
+  if(window.document.documentElement.nodeName.toLowerCase() !== 'html'){
+    return;
+  }
+
   var currentURL = function(){return window.location.href};
 
   var windowId = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
@@ -208,6 +215,12 @@ function onDOMWindowCreated(ev) {
     }
 
     var matchesCurrentUrl = msg.data.url === currentURL();
+   // wild card for cliqz URLS
+   if(msg.data.url.indexOf('resource://cliqz') === 0){
+     if(currentURL().indexOf(msg.data.url) === 0){
+       matchesCurrentUrl = true;
+     }
+   }
     var isGetHTML = msg.data.action === 'getHTML';
     // TEMP: Human web decodes the URI for internal storage
     var isCurrentUrlBis = msg.data.url === decodeURIComponent(currentURL());
@@ -396,8 +409,7 @@ var DocumentManager = {
     Services.obs.removeObserver(this, "document-element-inserted");
   },
 
-  observe: function(subject, topic, data) {
-    let document = subject;
+  observe: function(document, topic, data) {
     let window = document && document.defaultView;
     if (!document || !document.location || !window) {
       return;

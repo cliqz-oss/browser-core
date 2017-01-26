@@ -154,31 +154,6 @@ export default class {
     ]);
   }
 
-  onTabLocationChange(evnt) {
-    const url = evnt.url;
-
-    this.linksFromDom[url] = {};
-
-    if (evnt.isLoadingDocument) {
-      // when a new page is loaded, try to extract internal links and cookies
-      var doc = evnt.document;
-      this.loadedTabs[url] = false;
-
-      if(doc) {
-        if (doc.body) {
-          this.recordLinksForURL(url);
-        }
-        doc.addEventListener(
-          'DOMContentLoaded',
-          (ev) => {
-            this.loadedTabs[url] = true;
-            this.recordLinksForURL(url);
-          });
-        this.clearDomLinks();
-      }
-    }
-  }
-
   clearDomLinks() {
     for (var url in this.linksFromDom) {
       if (!isTabURL(url)) {

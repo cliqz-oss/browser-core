@@ -22,7 +22,7 @@ export default {
       }
     } catch (e) { CliqzUtils.log(e); }
 
-    if (FF48_OR_ABOVE && CliqzUtils.getPref('proxyNetwork', true)) {
+    if (FF48_OR_ABOVE) {
       // We need to use this function, 'load' events do not seem to be firing...
       this.enabled = true;
       this.CliqzSecureMessage = CliqzSecureMessage;

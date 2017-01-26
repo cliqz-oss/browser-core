@@ -560,6 +560,7 @@ export default class Search {
       subType.ez = 'deprecated';
     }
     subType.i = i;
+    subType.cs = r.cs ? 1 : 0;
     r.subType = subType;
     return r;
   }

@@ -22,5 +22,29 @@
       <script src="assets/fresh-tab.js"></script>
 
       {{content-for "body-footer"}}
+
+      <script type="text/javascript">
+        function getParameterByName(name) {
+          name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+          var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+          results = regex.exec(document.location.search);
+          return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+        }
+
+        // https://github.com/cliqz-oss/browser-core/issues/4
+        if(getParameterByName('e10s') == 'true'){
+          $(document).on('click', 'a[href]:not([href="#"])', function(ev){
+            // we need to replace the url for normal navigation to avoid adding it
+            // to session history (back is broken on e10s)
+            if(!(ev.ctrlKey || ev.metaKey || ev.altKey || ev.shiftKey)){
+              ev.preventDefault();
+              window.postMessage(JSON.stringify({
+                message: 'replaceURL',
+                url: ev.currentTarget.href
+              }), '*');
+            }
+          });
+        }
+      </script>
   </body>
 </html>

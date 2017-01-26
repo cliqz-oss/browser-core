@@ -5,8 +5,7 @@ const tabsStatus = {};
 const cleanInterval = 1000 * 60 * 2;
 let lastClean = Date.now();
 
-function onStateChange(evnt) {
-  let {urlSpec, isNewPage, windowID} = evnt;
+function onStateChange({urlSpec, isNewPage, windowID}) {
   // check flags for started request
   if (isNewPage && urlSpec && windowID && urlSpec.startsWith('http')) {
     // add window -> url pair to tab cache.

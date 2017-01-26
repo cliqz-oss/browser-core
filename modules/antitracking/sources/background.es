@@ -188,7 +188,17 @@ export default background({
       }
     },
     "core:urlbar_focus": CliqzAttrack.onUrlbarFocus,
-    "core.tab_location_change": CliqzAttrack.onTabLocationChange,
+    "content:dom-ready": function onDomReady(url) {
+      const domChecker = CliqzAttrack.pipelineSteps.domChecker;
+
+      if (!domChecker) {
+        return;
+      }
+
+      domChecker.loadedTabs[url] = true;
+      domChecker.recordLinksForURL(url);
+      domChecker.clearDomLinks();
+    },
     "antitracking:whitelist:add": function (hostname) {
       CliqzAttrack.addSourceDomainToWhitelist(hostname);
       this.popupActions.telemetry({
