@@ -1,8 +1,6 @@
-import utils from 'core/utils';
-import events from 'core/events';
+import { utils, events } from "core/cliqz";
 
-const PROCESS_SCRIPT_URL = 'chrome://cliqz/content/core/processScript.js';
-const FRAME_SCRIPT_URL = 'chrome://cliqz/content/core/frameScript.js';
+const PROCESS_SCRIPT_URL = "chrome://cliqz/content/core/processScript.js";
 
 class BaseProcessScriptLoader {
 
@@ -24,34 +22,15 @@ class BaseProcessScriptLoader {
  * Firefox >= 38
  */
 class ProcessScriptManager extends BaseProcessScriptLoader {
-  constructor(dispatcher) {
-    super(dispatcher);
-    this.timestamp = Date.now();
-  }
-
-  get ppmm() {
-    return Cc["@mozilla.org/parentprocessmessagemanager;1"]
-        .getService(Ci.nsIProcessScriptLoader);
-  }
-
-  get gmm() {
-    return Cc["@mozilla.org/globalmessagemanager;1"]
-      .getService(Ci.nsIMessageListenerManager);
-  }
-
-  get processScriptUrl() {
-    return `${PROCESS_SCRIPT_URL}?t=${this.timestamp}`;
-  }
-
-  get frameScriptUrl() {
-    return `${FRAME_SCRIPT_URL}?t=${this.timestamp}`;
-  }
-
   init() {
+    this.mm = Cc["@mozilla.org/parentprocessmessagemanager;1"]
+        .getService(Ci.nsIProcessScriptLoader);
+
+    this.processScriptUrl = PROCESS_SCRIPT_URL + "?t=" + Date.now();
+
     // on extension update or downgrade there might be a race condition
     // and we might end up having no process script
-    utils.setTimeout(this.ppmm.loadProcessScript.bind(this.ppmm, this.processScriptUrl, true), 0);
-    utils.setTimeout(this.gmm.loadFrameScript.bind(this.gmm, this.frameScriptUrl, true), 0);
+    utils.setTimeout(this.mm.loadProcessScript.bind(this.mm, this.processScriptUrl, true), 0);
 
     super.init();
   }
@@ -60,23 +39,19 @@ class ProcessScriptManager extends BaseProcessScriptLoader {
     super.unload();
     this.broadcast("cliqz:core", "unload");
     this.broadcast("cliqz:process-script", "unload");
-    this.ppmm.removeDelayedProcessScript(this.processScriptUrl);
-    this.gmm.removeDelayedFrameScript(this.frameScriptUrl);
+    this.mm.removeDelayedProcessScript(this.processScriptUrl);
   }
 
   broadcast(channel, msg) {
-    this.ppmm.broadcastAsyncMessage(channel, msg);
-    this.gmm.broadcastAsyncMessage(channel, msg);
+    this.mm.broadcastAsyncMessage(channel, msg);
   }
 
   addMessageListener(channel, cb) {
-    this.ppmm.addMessageListener(channel, cb);
-    this.gmm.addMessageListener(channel, cb);
+    this.mm.addMessageListener(channel, cb);
   }
 
   removeMessageListener(channel, cb) {
-    this.ppmm.removeMessageListener(channel, cb);
-    this.gmm.removeMessageListener(channel, cb);
+    this.mm.removeMessageListener(channel, cb);
   }
 }
 
@@ -108,12 +83,12 @@ class GlobalProcessScriptManager extends BaseProcessScriptLoader {
   }
 }
 
-const appInfo = Cc["@mozilla.org/xre/app-info;1"]
+var appInfo = Cc["@mozilla.org/xre/app-info;1"]
       .getService(Ci.nsIXULAppInfo);
-const versionChecker = Cc["@mozilla.org/xpcom/version-comparator;1"]
+var versionChecker = Cc["@mozilla.org/xpcom/version-comparator;1"]
       .getService(Ci.nsIVersionComparator);
 
-let Manager;
+var Manager;
 
 if (versionChecker.compare(appInfo.version, "38.0") >= 0) {
   Manager = ProcessScriptManager;

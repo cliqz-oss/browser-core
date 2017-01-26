@@ -630,7 +630,7 @@
         "message": "KGV (ttm)"
     },
     "OutOfCoverageWarning": {
-       "message": "CLIQZ’s Ergebnisse sind noch nicht so gut in Deinem Land.  Wir arbeiten hart um in Deinem Land bald besser zu werden."
+       "message": "CLIQZ’s Ergebnisse sind noch nicht so gut in Deinem Land.  Wir werden außerhalb von Deutschland bald besser sein."
     },
     "keep-cliqz": {
       "message": "OK"
@@ -768,13 +768,7 @@
       "message": "Link in neuem Fenster öffnen"
     },
     "cMenuOpenInPrivateWindow": {
-      "message": "Link in neuem $1 Fenster öffnen"
-    },
-    "private": {
-      "message": "privatem"
-    },
-    "forget": {
-      "message": "Vergessen"
+      "message": "Link in neuem privaten Fenster öffnen"
     },
     "cMenuFeedback": {
       "message": "Feedback an CLIQZ"
@@ -1104,7 +1098,7 @@
       "message": "Abbrechen"
     },
     "mobile_freshtab_no_topsites": {
-      "message": "Hier werden deine meist-besuchten Seiten erscheinen."
+      "message": "Hier werden Deine meist-besuchten Seiten erscheinen."
     },
     "mobile_history_card_title": {
       "message": "Verlauf-Ergebnisse"
@@ -1116,10 +1110,10 @@
       "message": "Internetverbindung wird wieder hergestellt"
     },
     "mobile_no_history": {
-      "message": "Hier findest Du in Zukunft deine Suchen und besuchten Seiten.<br />Bisher hast Du noch nicht gesucht und warst auf keinen Webseiten."
+      "message": "Hier findest Du in Zukunft Deine Suchen und besuchten Seiten.<br />Bisher hast Du noch nicht gesucht und warst auf keinen Webseiten."
     },
     "mobile_no_favorites": {
-      "message": "Hier findest Du in Zukunft deine Favoriten.<br/>Bisher hast du noch keine Favoriten angelegt."
+      "message": "Hier findest Du in Zukunft Deine Favoriten.<br/>Bisher hast du noch keine Favoriten angelegt."
     },
     "mobile_history_title": {
       "message": "Besuchte Seiten"
@@ -1366,9 +1360,6 @@
     },
     "control-center-search-engine": {
       "message": "Ergänzende Suchmaschine"
-    },
-    "control-center-backend-country": {
-      "message": "Suchergebnisse von"
     },
     "control-center-humanweb": {
       "message": "Am Human Web teilnehmen"

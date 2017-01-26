@@ -38,7 +38,7 @@ export default describeModule('adblocker/filters-parsing',
     },
   }),
   () => {
-    describe('#NetworkFilter', () => {
+    describe('#AdFilter', () => {
       let parseFilter;
 
       // Generate test cases

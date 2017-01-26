@@ -55,11 +55,6 @@ function requestBackend(url, data) {
     });
 }
 
-function checkNewsTypeForHbasedRequest(newsPlacingRecord){
-  return (newsPlacingRecord.type === hbasedNewsTypeKey)
-        ||(newsPlacingRecord.type === prClBurdaNewsTypeKey);
-}
-
 function getTopNewsList() {
   var url = coreUtils.RICH_HEADER + coreUtils.getRichHeaderQueryString(''),
       data = {
@@ -89,7 +84,7 @@ function getHbasedNewsObject() {
       let hbNewsDict = getHbasedNewsDict(reqData);
       let newsPlacing = hbasedRecom.newsPlacing || [];
 
-      const reqDomains = newsPlacing.filter(checkNewsTypeForHbasedRequest)
+      const reqDomains = newsPlacing.filter(r => r.type === hbasedNewsTypeKey)
         .map((r) => r.domain.split('/')[0]);
 
       let cleanhbNewsDict = {};
@@ -281,7 +276,7 @@ function composeDomainHasheList(newsPlacing, historyBasedRecommendationsCache) {
 
 
   // extract domains' hashes for history based news
-  const domainHashList = newsPlacing.filter(checkNewsTypeForHbasedRequest).map(getDomainHash);
+  const domainHashList = newsPlacing.filter(r => r.type === hbasedNewsTypeKey).map(getDomainHash);
   const cachedHashList = (historyBasedRecommendationsCache && historyBasedRecommendationsCache.hashList) || [];
 
   if (domainHashList.length !== 0) {
@@ -487,7 +482,7 @@ export function composeNewsList(historyObject, topNewsCache, hbasedResults) {
 
   function mergeToList(articlesToMerge, freshtabArticlesList, numberOfNewsToMerge, sourceArticleType, checkIfAlreadyInHistory, urlPatern) {
     function mergeCheck(article, checkHist, urlDomainPatern) {
-      return (!(!(article.breaking === true) && checkHist && article.isVisited) &&
+      return (!(checkHist && article.isVisited) &&
             (notAlreadyInList(article.url, freshtabArticlesList)) &&
             (article.url.indexOf(urlDomainPatern) !== -1));
     }

@@ -1,22 +1,17 @@
-<span class="cqz-ez-btn-label">{{local "streaming"}}</span>
-{{#each links}}
-    {{#if image}}
-        <img class="cqz-ez-btn"
+<div class="bottom-btns-wrapper">
+    <span class="bottom-label">{{local "streaming"}}</span>
+    <ul class="bottom-btns">
+    {{#each links}}
+        <li class="bottom-btn"
                 url="{{ url }}"
-                arrow="false"
-                arrow-if-visible='true'
-                src="{{ image }}"
-                alt="{{ extra.domain }}"
-                onerror="this.style.display='none';"
-        />
-    {{else}}
-        <span class="cqz-ez-btn {{ logo.buttonsClass }}"
-                url="{{ url }}"
-                arrow="false"
-                arrow-if-visible='true'
+                extra="{{ extra.domain }}" arrow="false" arrow-if-visible="true"
         >
-          {{ extra.domain }}
-
-        </span>
-    {{/if}}
-{{/each}}
+            {{#if image}}
+                <img class="bottom-btn-img" src="{{ image }}" alt="{{ extra.domain }}" onerror="this.style.display='none';"/>
+            {{else}}
+                <span class="bottom-btn-text" style="background-color: {{ generate_background_color url }}">{{ extra.domain }}</span>
+            {{/if}}
+        </li>
+    {{/each}}
+    </ul>
+</div>

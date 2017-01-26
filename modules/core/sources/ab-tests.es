@@ -228,6 +228,9 @@ var CliqzABTests = {
             case "1066_B":
                 CliqzUtils.setPref("proxyNetwork", true);
                 break;
+            case "1067_B":
+                CliqzUtils.setPref("attrackProxyTrackers", true);
+                break;
             case "1069_A":
                 CliqzUtils.setPref("grOfferSwitchFlag", false);
                 break;
@@ -296,6 +299,9 @@ var CliqzABTests = {
             case "1081_B":
                 CliqzUtils.setPref("attrackLogBreakage", true);
                 break;
+            case "1083_B":
+                CliqzUtils.setPref("dnsLookup", true);
+                break;
             case "1084_B":
                 CliqzUtils.setPref("attrackOverrideUserAgent", true);
                 break;
@@ -304,24 +310,6 @@ var CliqzABTests = {
                 break;
             case "1085_B":
                 CliqzUtils.setPref('extOnboardShareLocation', true);
-                break;
-            case "1086_A":
-                CliqzUtils.setPref("checkLogos", '1');
-                break;
-            case "1086_B":
-                CliqzUtils.setPref("checkLogos", '0');
-                break;
-            case "1087_A":
-                CliqzUtils.setPref('modules.context-search.enabled', false);
-                break;
-            case "1087_B":
-                CliqzUtils.setPref('modules.context-search.enabled', true);
-                break;
-            case "1088_A":
-                CliqzUtils.setPref('offers2FeatureEnabled', false);
-                break;
-            case "1088_B":
-                CliqzUtils.setPref('offers2FeatureEnabled', true);
                 break;
             default:
                 rule_executed = false;
@@ -442,6 +430,9 @@ var CliqzABTests = {
             case "1065_B":
                 CliqzUtils.clearPref("freshTabNewsEmail");
                 break;
+            case "1067_B":
+                CliqzUtils.clearPref("attrackProxyTrackers");
+                break;
             case "1068_A":
             case "1068_B":
                 CliqzUtils.clearPref("languageDedup");
@@ -499,23 +490,16 @@ var CliqzABTests = {
             case "1082_B":
               CliqzUtils.clearPref("experimentalCookieDroppingDetection");
               break;
+            case "1083_A":
+            case "1083_B":
+              CliqzUtils.clearPref("dnsLookup");
+              break;
             case "1084_B":
               CliqzUtils.clearPref("attrackOverrideUserAgent");
               break;
             case "1085_A":
             case "1085_B":
               CliqzUtils.clearPref("extOnboardShareLocation");
-              break;
-            case "1086_A":
-            case "1086_B":
-              CliqzUtils.clearPref("checkLogos");
-              break;
-            case "1087_B":
-              CliqzUtils.setPref('modules.context-search.enabled', false);
-              break;
-            case "1088_A":
-            case "1088_B":
-              CliqzUtils.clearPref('offers2FeatureEnabled');
               break;
             default:
                 rule_executed = false;

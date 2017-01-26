@@ -3,7 +3,6 @@ import Ember from 'ember';
 export default Ember.Component.extend({
   cliqz: Ember.inject.service('cliqz'),
   store: Ember.inject.service(),
-  notifications: Ember.inject.service('notifications'),
 
   tagName: 'li',
 
@@ -27,8 +26,6 @@ export default Ember.Component.extend({
   actions: {
     save() {
       const url = this.get("newSpeedDial") && this.get('newSpeedDial').trim();
-      const notifications = this.get('notifications');
-
       if(!url) {
         return;
       }
@@ -40,7 +37,6 @@ export default Ember.Component.extend({
         this.reset();
         this.toggleProperty('showForm');
         this.sendAction("addToCustomAction", speedDial);
-        notifications.getNotifications();
       }, () => {
         this.set('error', true);
       });

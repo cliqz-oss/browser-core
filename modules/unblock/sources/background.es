@@ -54,5 +54,8 @@ export default background({
     "core.location_change": function(url) {
       CliqzUnblock.pageObserver(url);
     },
+    "core:tab_select": function(event) {
+      CliqzUnblock.tabSelectListener(event);
+    }
   }
 });

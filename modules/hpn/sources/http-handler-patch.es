@@ -1,17 +1,15 @@
 import CliqzSecureMessage from 'hpn/main';
 import utils from 'core/utils';
-import * as http from 'core/http';
+import environment from 'platform/environment';
 
 const BW_URL = 'https://antiphishing.cliqz.com/api/bwlist?md5=';
-let proxyHttpHandler = null;
 export function overRideCliqzResults() {
   if (utils.getPref('proxyNetwork', true) === false) return;
 
-  if (!proxyHttpHandler) proxyHttpHandler = http.defaultHttpHandler;
-
-  function httpHandler(method, url, callback, onerror, timeout, data, sync) {
+  if (!environment.proxyHttpHandler) environment.proxyHttpHandler = environment.httpHandler;
+  environment.httpHandler = function (method, url, callback, onerror, timeout, data, sync) {
     if (url.startsWith(utils.RESULTS_PROVIDER) &&
-        utils.getPref('hpn-queryv2', false)) {
+        utils.getPref('hpn-query', false)) {
       const query = url.replace((utils.RESULTS_PROVIDER), '');
       const uid = Math.floor(Math.random() * 10000000);
       CliqzSecureMessage.queriesID[uid] = callback;
@@ -32,7 +30,8 @@ export function overRideCliqzResults() {
         queryproxyip: CliqzSecureMessage.queryProxyIP,
       });
       return null;
-    } else if (url.startsWith(utils.RESULTS_PROVIDER_LOG)) {
+    } else if (url.startsWith(utils.RESULTS_PROVIDER_LOG) &&
+               utils.getPref('hpn-telemetry', false)) {
       const query = url.replace((utils.RESULTS_PROVIDER_LOG), '');
       const uid = Math.floor(Math.random() * 10000000);
       CliqzSecureMessage.queriesID[uid] = callback;
@@ -52,7 +51,8 @@ export function overRideCliqzResults() {
         queryproxyip: CliqzSecureMessage.queryProxyIP,
       });
       return null;
-    } else if (url.startsWith(BW_URL)) {
+    } else if (url.startsWith(BW_URL) &&
+               utils.getPref('hpn-telemetry', false)) {
       const query = url.replace(BW_URL, '');
       const uid = Math.floor(Math.random() * 10000000);
       CliqzSecureMessage.queriesID[uid] = callback;
@@ -73,7 +73,8 @@ export function overRideCliqzResults() {
         queryproxyip: CliqzSecureMessage.queryProxyIP,
       });
       return null;
-    } else if (url === utils.SAFE_BROWSING) {
+    } else if (url === utils.SAFE_BROWSING &&
+               utils.getPref('hpn-telemetry', false)) {
       const batch = JSON.parse(data);
       if (batch.length > 0) {
         batch.forEach(eachMsg => {
@@ -82,12 +83,19 @@ export function overRideCliqzResults() {
       }
       callback && callback({ 'response': '{"success":true}' });
     } else {
-      return proxyHttpHandler.apply(undefined, arguments);
+      return environment.proxyHttpHandler.apply(utils, arguments);
     }
     return null;
   };
-
-  http.overrideHttpHandler(httpHandler);
-  http.addCompressionExclusion(utils.SAFE_BROWSING);
-
+  if (!environment.proxyPromiseHttpHandler) {
+    environment.proxyPromiseHttpHandler = environment.promiseHttpHandler;
+  }
+  utils.promiseHttpHandler = function (method, url, data, timeout, compressedPost) {
+    if (url === utils.SAFE_BROWSING &&
+        utils.getPref('hpn-telemetry', false)) {
+      return environment.proxyPromiseHttpHandler(method, url, data, timeout, false);
+    } else {
+      return environment.proxyPromiseHttpHandler.apply(utils, arguments);
+    }
+  };
 }

@@ -116,14 +116,8 @@ var CliqzEvents = CliqzEvents || {
    * Adds a listener to eventTarget for events of type eventType, and republishes them
    *  through CliqzEvents with id cliqzEventName.
    */
-  proxyEvent(cliqzEventName, eventTarget, eventType, propagate = false, transform)  {
-    const publisher = CliqzEvents.pub.bind(CliqzEvents, cliqzEventName);
-
-    function handler() {
-      const args = transform ? transform.apply(null, arguments) : arguments;
-      publisher.apply(null, args);
-    }
-
+  proxyEvent(cliqzEventName, eventTarget, eventType, propagate = false) {
+    const handler = CliqzEvents.pub.bind(CliqzEvents, cliqzEventName);
     eventTarget.addEventListener(eventType, handler, propagate);
     return {
       unsubscribe() {

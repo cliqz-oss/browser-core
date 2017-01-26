@@ -56,7 +56,7 @@ AboutURL.prototype = {
   contractID: "@mozilla.org/network/protocol/about;1?what=cliqz",
 
   newChannel: function(uri) {
-    const src = `${CLIQZ_NEW_TAB_URL}?cliqzOnboarding=${FreshTab.cliqzOnboarding}&e10s=${Services.appinfo.browserTabsRemoteAutostart}`;
+    const src = `${CLIQZ_NEW_TAB_URL}?cliqzOnboarding=${FreshTab.cliqzOnboarding}&t=${Date.now()}`;
     const html = `<!DOCTYPE html>
   <html>
     <head>
@@ -69,21 +69,6 @@ AboutURL.prototype = {
         type="content"
         src="${src}">
       </iframe>
-      <script type="text/javascript">
-        // https://github.com/cliqz-oss/browser-core/issues/4
-        var iframe = document.querySelector('iframe');
-        window.onload = function(){
-          iframe.contentWindow.addEventListener('message', function(msg) {
-            var data = JSON.parse(msg.data);
-            if(data.message === 'replaceURL'){
-              // on e10s we must open a new tab from freshtab otherwise
-              // the freshtab fails to load when navigating back
-              window.open(data.url);
-              window.close();
-            }
-          });
-        };
-      </script>
     </body>
 </html>`;
 

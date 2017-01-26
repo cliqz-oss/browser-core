@@ -1,5 +1,4 @@
 import localData from 'ui/views/local-data-sc';
-import utils from 'core/utils';
 
 /**
 * @namespace ui.views
@@ -151,13 +150,6 @@ export default class GenericView extends localData {
     if(data.btns && data.btns.length > 4) {
       data.btns = data.btns.slice(0, 4);
     }
-
-    (data.deepResults || []).forEach(function (item) {
-      item.links.forEach(function (link) {
-        link.urlDetails = utils.getDetailsFromUrl(link.url);
-        link.logo = utils.getLogoDetails(link.urlDetails);
-      });
-    });
 
   }
 }

@@ -630,7 +630,7 @@
         "message": "P/E ratio(ttm)"
     },
     "OutOfCoverageWarning": {
-       "message": "CLIQZ’s results for your country are not so \"gut\" yet. We are working hard to become better in your country."
+       "message": "CLIQZ’s results for your country are not so \"gut\" yet. We will get better outside of Germany soon."
     },
     "keep-cliqz": {
       "message": "OK"
@@ -768,13 +768,7 @@
       "message": "Open Link in New Window"
     },
     "cMenuOpenInPrivateWindow": {
-      "message": "Open Link in New $1 Window"
-    },
-    "private": {
-      "message": "private"
-    },
-    "forget": {
-      "message": "Forget"
+      "message": "Open Link in New Forget Window"
     },
     "cMenuFeedback": {
       "message": "Feedback for CLIQZ"
@@ -1366,9 +1360,6 @@
     },
     "control-center-search-engine": {
       "message": "Supplementary Search Engine"
-    },
-    "control-center-backend-country": {
-      "message": "Search Results from"
     },
     "control-center-humanweb": {
       "message": "Take part in Human Web"

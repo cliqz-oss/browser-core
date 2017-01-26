@@ -21,7 +21,6 @@ import * as browser from 'platform/browser';
 import WebRequest from 'core/webrequest';
 import telemetry from 'antitracking/telemetry';
 import console from 'core/console';
-import { fetch } from 'core/http';
 
 import { determineContext, skipInternalProtocols, checkSameGeneralDomain } from 'antitracking/steps/context';
 import PageLogger from 'antitracking/steps/page-logger';
@@ -31,6 +30,7 @@ import DomChecker from 'antitracking/steps/dom-checker';
 import TokenChecker from 'antitracking/steps/token-checker';
 import BlockRules from 'antitracking/steps/block-rules';
 import CookieContext from 'antitracking/steps/cookie-context';
+import TrackerProxy from 'antitracking/steps/tracker-proxy';
 
 var countReload = false;
 
@@ -127,6 +127,11 @@ var CliqzAttrack = {
     },
     httpmodObserver: function(requestDetails) {
       return CliqzAttrack.executePipeline(CliqzAttrack.onModifyPipeline, requestDetails, 'ATTRACK.MOD');
+    },
+    onTabLocationChange: function(evnt) {
+      if(CliqzAttrack.pipelineSteps.domChecker) {
+        CliqzAttrack.pipelineSteps.domChecker.onTabLocationChange(evnt);
+      }
     },
     getDefaultRule: function() {
         if (CliqzAttrack.isForceBlockEnabled()) {
@@ -316,6 +321,7 @@ var CliqzAttrack = {
         tokenChecker: new TokenChecker(CliqzAttrack.qs_whitelist, CliqzAttrack.blockLog, CliqzAttrack.tokenDomainCountThreshold, CliqzAttrack.shortTokenLength, {}, CliqzAttrack.hashProb),
         blockRules: new BlockRules(),
         cookieContext: new CookieContext(),
+        trackerProxy: new TrackerProxy(),
       }
       CliqzAttrack.pipelineSteps = steps;
 
@@ -342,6 +348,7 @@ var CliqzAttrack = {
         steps.domChecker.checkDomLinks.bind(steps.domChecker),
         steps.domChecker.parseCookies.bind(steps.domChecker),
         steps.tokenChecker.findBadTokens.bind(steps.tokenChecker),
+        steps.trackerProxy.checkShouldProxy.bind(steps.trackerProxy),
         function checkHasBadTokens(state) {
           return (state.badTokens.length > 0)
         },
@@ -543,47 +550,39 @@ var CliqzAttrack = {
     },
     updateConfig: function() {
         var today = datetime.getTime().substring(0, 10);
-        return fetch(CliqzAttrack.VERSIONCHECK_URL +"?"+ today, {
-          credentials: 'omit',
-          cache: 'default',
-        }).then((resp) => {
-          if (!resp.ok) {
-            throw "Request not ok: " + resp.status;
-          }
-          return resp.json()
-        }).then((versioncheck) => {
-          const requiresReload = parseInt(versioncheck.shortTokenLength) !== CliqzAttrack.shortTokenLength || parseInt(versioncheck.safekeyValuesThreshold) !== CliqzAttrack.safekeyValuesThreshold;
+        utils.httpGet(CliqzAttrack.VERSIONCHECK_URL +"?"+ today, function(req) {
+            // on load
+            var versioncheck = JSON.parse(req.response);
+            const requiresReload = parseInt(versioncheck.shortTokenLength) !== CliqzAttrack.shortTokenLength || parseInt(versioncheck.safekeyValuesThreshold) !== CliqzAttrack.safekeyValuesThreshold;
 
-          // config in versioncheck
-          if (versioncheck.placeHolder) {
-              persist.setValue('placeHolder', versioncheck.placeHolder);
-              CliqzAttrack.placeHolder = versioncheck.placeHolder;
-          }
+            // config in versioncheck
+            if (versioncheck.placeHolder) {
+                persist.setValue('placeHolder', versioncheck.placeHolder);
+                CliqzAttrack.placeHolder = versioncheck.placeHolder;
+            }
 
-          if (versioncheck.shortTokenLength) {
-              persist.setValue('shortTokenLength', versioncheck.shortTokenLength);
-              CliqzAttrack.shortTokenLength = parseInt(versioncheck.shortTokenLength) || CliqzAttrack.shortTokenLength;
-          }
+            if (versioncheck.shortTokenLength) {
+                persist.setValue('shortTokenLength', versioncheck.shortTokenLength);
+                CliqzAttrack.shortTokenLength = parseInt(versioncheck.shortTokenLength) || CliqzAttrack.shortTokenLength;
+            }
 
-          if (versioncheck.safekeyValuesThreshold) {
-              persist.setValue('safekeyValuesThreshold', versioncheck.safekeyValuesThreshold);
-              CliqzAttrack.safekeyValuesThreshold = parseInt(versioncheck.safekeyValuesThreshold) || CliqzAttrack.safekeyValuesThreshold;
-          }
+            if (versioncheck.safekeyValuesThreshold) {
+                persist.setValue('safekeyValuesThreshold', versioncheck.safekeyValuesThreshold);
+                CliqzAttrack.safekeyValuesThreshold = parseInt(versioncheck.safekeyValuesThreshold) || CliqzAttrack.safekeyValuesThreshold;
+            }
 
-          if (versioncheck.cliqzHeader) {
-              persist.setValue('cliqzHeader', versioncheck.cliqzHeader);
-              CliqzAttrack.cliqzHeader = versioncheck.cliqzHeader;
-          }
+            if (versioncheck.cliqzHeader) {
+                persist.setValue('cliqzHeader', versioncheck.cliqzHeader);
+                CliqzAttrack.cliqzHeader = versioncheck.cliqzHeader;
+            }
 
-          // refresh pipeline if config changed
-          if (requiresReload) {
-            CliqzAttrack.initPipeline();
-          }
-          // fire events for list update
-          events.pub("attrack:updated_config", versioncheck);
-        }).catch((err) => {
-          console.error('versioncheck fetch error', err);
-        });
+            // refresh pipeline if config changed
+            if (requiresReload) {
+              CliqzAttrack.initPipeline();
+            }
+            // fire events for list update
+            events.pub("attrack:updated_config", versioncheck);
+        }, utils.log, 10000);
     },
     isInWhitelist: function(domain) {
         if(!CliqzAttrack.whitelist) return false;
@@ -711,7 +710,7 @@ var CliqzAttrack = {
 
       trackers.forEach(function(dom) {
         result.trackers[dom] = {};
-        ['c', 'cookie_set', 'cookie_blocked', 'bad_cookie_sent', 'bad_qs', 'set_cookie_blocked'].forEach(function (k) {
+        ['c', 'cookie_set', 'cookie_blocked', 'bad_cookie_sent', 'bad_qs'].forEach(function (k) {
           result.trackers[dom][k] = plain_data.tps[dom][k] || 0;
         });
         // actual block count can be in several different signals, depending on configuration. Aggregate them into one.
@@ -719,13 +718,10 @@ var CliqzAttrack = {
             return cumsum + (plain_data.tps[dom]['token_blocked_' + action] || 0);
         }, 0);
 
-        result.cookies.allowed += result.trackers[dom].cookie_set - result.trackers[dom].cookie_blocked;
-        result.cookies.blocked += result.trackers[dom].cookie_blocked + result.trackers[dom].set_cookie_blocked;
-        result.requests.safe += result.trackers[dom].c - result.trackers[dom].tokens_removed;
+        result.cookies.allowed += result.trackers[dom]['cookie_set'] - result.trackers[dom]['cookie_blocked'];
+        result.cookies.blocked += result.trackers[dom]['cookie_blocked'];
+        result.requests.safe += result.trackers[dom]['c'] - result.trackers[dom].tokens_removed;
         result.requests.unsafe += result.trackers[dom].tokens_removed;
-
-        // add set cookie blocks to cookie blocked count
-        result.trackers[dom].cookie_blocked += result.trackers[dom].set_cookie_blocked;
 
         let tld = getGeneralDomain(dom),
           company = tld;

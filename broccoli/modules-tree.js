@@ -124,7 +124,8 @@ function getSourceTree() {
     browserifyTree,
     transpiledSources,
   ];
-  if ((cliqzConfig.environment !== 'production') &&
+
+  if ((cliqzConfig.buildEnv !== 'production') &&
       (cliqzConfig.testem_launchers || []).length) {
     sourceTrees.push(transpiledModuleTestsTree);
   }
@@ -224,7 +225,6 @@ function getHandlebarsTree() {
       header: `
         'use strict';
         System.register('${templatesTree.name}/templates', [], function (_export) {
-        if (typeof templates === 'undefined') { var templates = {};}
       `,
       footer: `
           _export('default', templates);

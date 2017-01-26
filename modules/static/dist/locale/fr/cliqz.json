@@ -630,7 +630,7 @@
         "message": "P/E ratio(ttm)"
     },
     "OutOfCoverageWarning": {
-       "message": "Les résultats de Cliqz ne sont pas encore optimisés pour votre pays. Nous faisons actuellement tout notre possible pour y remédier."
+       "message": "Les résultats de CLIQZ ne sont pas encore optimisés pour votre pays, mais le seront très prochainement."
     },
     "keep-cliqz": {
       "message": "OK"
@@ -768,13 +768,7 @@
       "message": "Ouvrir dans une nouvelle fenêtre"
     },
     "cMenuOpenInPrivateWindow": {
-      "message": "Ouvrir en mode $1"
-    },
-    "private": {
-      "message": "privé"
-    },
-    "forget": {
-      "message": "Oubli"
+      "message": "Ouvrir en mode « Oubli » "
     },
     "cMenuFeedback": {
       "message": "Commentaires pour CLIQZ"
@@ -1091,12 +1085,6 @@
     "freshtab_abTest_btn_subscribe": {
       "message": "S'abonner MAINTENANT"
     },
-    "mobile_incognito": {
-      "message": "<strong>Mode oubli</strong><br /><br />Les sites visités ne sont pas enregistrés dans votre historique. De même, les fichiers temporaires et cookies sont supprimés. Néanmoins, les téléchargements et marque-pages seront conservés.<br />Votre fournisseur d'accès à Internet, votre employeur ou les sites eux-mêmes peuvent toujours voir quelles pages vous visitez."
-    },
-    "mobile_freshtab_breaking_news": {
-      "message": "BREAKING NEWS :"
-    },
     "mobile_freshtab_edit_done": {
       "message": "Fait"
     },
@@ -1248,7 +1236,7 @@
       "message": "Vos données ne sont pas protégées"
     },
     "control-center-datapoints": {
-      "message": "Données personnelles sécurisées"
+      "message": "Les données personnelles ont été sécurisées"
     },
     "control-center-datapoints-inactive": {
       "message": "Désactiver pour ce site"
@@ -1316,9 +1304,6 @@
     "control-center-info-share-location": {
       "message": "Obtenez de meilleurs résultats en sélectionnant « Toujours partager ma position ». Votre position sera uniquement utilisée afin d'améliorer les résultats. Elle ne sera jamais partagée ou utilisée à d'autres fins."
     },
-    "control-center-info-share-location-link": {
-      "message": "En savoir plus"
-    },
     "control-center-adblock-title": {
       "message": "Bloqueur de publicité [BETA]"
     },
@@ -1356,7 +1341,7 @@
       "message": "Partager ma position"
     },
     "control-center-explicit": {
-      "message": "Masquer les résultats pornographiques"
+      "message": "Masquer les résultats à caractère pornographique"
     },
     "control-center-proxy": {
       "message": "Rechercher via un réseau de proxys"
@@ -1366,9 +1351,6 @@
     },
     "control-center-search-engine": {
       "message": "Moteurs de recherche complémentaires"
-    },
-    "control-center-backend-country": {
-      "message": "Résultats de la recherche pour"
     },
     "control-center-humanweb": {
       "message": "Faire partie du « Human Web »"

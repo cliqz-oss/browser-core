@@ -1,12 +1,6 @@
 var mutationObserver, injectedRules;
 
 var requestDomainRules = function(url, window, send, windowId) {
-  while (url !== window.parent.document.documentURI) {
-    // this might came from an iframe
-    // use parent url
-    url = window.parent.document.documentURI;
-    window = window.parent;
-  }
   injectedRules = {};
   if (!url || url[0] !== 'h') {
     return;
@@ -47,12 +41,6 @@ var adbCosmFilter = function(url, window, send, windowId, throttle) {
   }
 
   var sendNodeNames = function(nodeInfo) {
-    while (url !== window.parent.document.documentURI) {
-      // this might came from an iframe
-      // use parent url
-      url = window.parent.document.documentURI;
-      window = window.parent;
-    }
     if (!url || !nodeInfo.size) {
       return;
     }

@@ -4,7 +4,6 @@ import { isFirefox } from 'core/platform';
 import autocomplete from 'autocomplete/autocomplete';
 import historyCluster from 'autocomplete/history-cluster';
 import ResultProviders from 'autocomplete/result-providers';
-import CliqzSearchCountryProviders from "autocomplete/cliqz-backends";
 import Result from 'autocomplete/result';
 import WikipediaDeduplication from 'autocomplete/wikipedia-deduplication';
 import { background as AutocompleteBackground } from 'platform/auto-complete-component';
@@ -31,7 +30,6 @@ export default background({
     this.autocomplete = autocomplete;
     return onReady().then(() => {
       autocomplete.CliqzResultProviders = new ResultProviders();
-      autocomplete.CliqzSearchCountryProviders = new CliqzSearchCountryProviders();
       AutocompleteBackground.init();
       if (isFirefox) {
         environment.RERANKERS.push(new WikipediaDeduplication());
@@ -66,9 +64,6 @@ export default background({
     },
     'control-center:setDefault-search': function setDefaultSearchEngine(engine) {
       this.autocomplete.CliqzResultProviders.setCurrentSearchEngine(engine);
-    },
-    'control-center:setDefault-indexCountry': function setDefaultIndexCountry(country) {
-      utils.setDefaultIndexCountry(country);
     }
   }
 });

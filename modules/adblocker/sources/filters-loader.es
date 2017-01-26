@@ -1,7 +1,6 @@
 import ResourceLoader, { Resource, UpdateCallbackHandler } from 'core/resource-loader';
 import Language from 'core/language';
 import { platformName } from 'core/platform';
-import { log } from 'adblocker/utils';
 
 // Disk persisting
 const RESOURCES_PATH = ['antitracking', 'adblocking'];
@@ -36,10 +35,11 @@ class FiltersList {
   constructor(checksum, asset, remoteURL) {
     this.checksum = checksum;
     this.baseRemoteURL = remoteURL;
-    this.assetName = stripProtocol(asset);
+
+    const assetName = stripProtocol(asset);
 
     this.resource = new Resource(
-      RESOURCES_PATH.concat(this.assetName.split('/')),
+      RESOURCES_PATH.concat(assetName.split('/')),
       { remoteURL: this.remoteURL(), dataType: 'plainText' }
     );
   }
@@ -49,21 +49,11 @@ class FiltersList {
   }
 
   load() {
-    return this.resource
-      .load()
-      .then(this.updateList.bind(this))
-      .catch((e) => {
-        log(`exception while loading ${this.assetName} ${e} ${e.stack}`);
-      });
+    return this.resource.load().then(this.updateList.bind(this));
   }
 
   update() {
-    return this.resource
-      .updateFromRemote()
-      .then(this.updateList.bind(this))
-      .catch((e) => {
-        log(`exception while updating ${this.assetName} ${e} ${e.stack}`);
-      });
+    return this.resource.updateFromRemote().then(this.updateList.bind(this));
   }
 
   needsToUpdate(checksum) {
@@ -121,20 +111,11 @@ export default class extends UpdateCallbackHandler {
   }
 
   load() {
-    return this.allowedListsLoader
-      .load()
-      .then(this.updateChecksums.bind(this))
-      .catch((e) => {
-        log(`exception while loading allowed lists ${e} ${e.stack}`);
-      });
+    return this.allowedListsLoader.load().then(this.updateChecksums.bind(this));
   }
 
   update() {
-    return this.allowedListsLoader
-      .updateFromRemote()
-      .catch((e) => {
-        log(`exception while updating allowed lists ${e} ${e.stack}`);
-      });
+    return this.allowedListsLoader.updateFromRemote();
   }
 
   // Private API
@@ -174,7 +155,7 @@ export default class extends UpdateCallbackHandler {
   updateLists(filtersLists) {
     const updatedLists = [];
 
-    filtersLists.forEach((newList) => {
+    filtersLists.forEach(newList => {
       const { checksum, asset, remoteURL, key } = newList;
       const isFiltersList = key !== 'js_resources';
 
@@ -187,19 +168,12 @@ export default class extends UpdateCallbackHandler {
         updatedLists.push(
           list
           .load()
-          .then((filters) => {
-            // Ignore any empty list
-            if (filters) {
-              return {
-                asset,
-                filters,
-                isFiltersList,
-                checksum: list.checksum,
-              };
-            }
-
-            return undefined;
-          })
+          .then(filters => ({
+            asset,
+            filters,
+            isFiltersList,
+            checksum: list.checksum,
+          }))
         );
       } else {
         // Retrieve existing list
@@ -210,7 +184,7 @@ export default class extends UpdateCallbackHandler {
           updatedLists.push(
             list
             .updateFromChecksum(checksum)
-            .then((filters) => {
+            .then(filters => {
               // Ignore any empty list
               if (filters) {
                 return {
@@ -220,7 +194,6 @@ export default class extends UpdateCallbackHandler {
                   checksum: list.checksum,
                 };
               }
-
               return undefined;
             })
           );

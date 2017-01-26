@@ -1,5 +1,5 @@
 <section contextmenu="speedDialCMenu-{{index}}-{{type}}">
-  <a {{action "click" preventDefault=false}} class="historyLink {{if model.searchAlias "historyWithSearch"}}" data-index="{{index}}" href="{{model.url}}" title="{{model.title}}">
+  <a class="historyLink {{if model.searchAlias "historyWithSearch"}}" data-index="{{index}}" href="{{model.url}}" title="{{model.title}}">
 
     <div class="dialIconHolder {{if model.searchAlias "dialWithSearch"}}">
       {{cliqz-logo model=model.logo}}
@@ -8,7 +8,6 @@
       {{/if}}
     </div>
     <div class="title">
-      {{email-notifications model=model tagName="span"}}
       {{model.displayTitle}}
       {{#if model.notificationsEnabled}}
         {{#if model.notificationCount}}
@@ -25,21 +24,12 @@
      {{#unless isCustom}}
        <menuitem label="{{t 'speedDials.reset-all'}}" {{action "resetAll"}}></menuitem>
      {{/unless}}
-
-      {{#if model.notificationsEnabled}}
-        <menuitem class="action-notifications-enabled" label="{{t 'speedDials.notifications-disable'}}" {{action "disableNotifications"}}></menuitem>
-        <menuitem label="{{t 'notifications.txt-email-refresh'}}" {{action "refreshNotifications"}}></menuitem>
-      {{/if}}
-
-      {{#if model.notificationInaccesible}}
-        <menuitem class="action-notifications-enabled" label="{{t 'speedDials.notifications-disable'}}" {{action "disableNotifications"}}></menuitem>
-        <menuitem label="{{t 'notifications.txt-email-refresh'}}" {{action "refreshNotifications"}}></menuitem>
-      {{/if}}
-
-      {{#if model.notificationsAvailable}}
-        <menuitem class="action-notifications-disabled" label="{{t 'speedDials.notifications-enable'}}" {{action "enableNotifications"}}></menuitem>
-      {{/if}}
-
-
+     {{#if model.notificationsAvailable}}
+       {{#if model.notificationsEnabled}}
+         <menuitem class="action-notifications-enable" label="{{t 'speedDials.notifications-disable'}}" {{action "disableNotifications"}}></menuitem>
+       {{else}}
+         <menuitem class="action-notifications-disable" label="{{t 'speedDials.notifications-enable'}}" {{action "enableNotifications"}}></menuitem>
+       {{/if}}
+     {{/if}}
  </menu>
 </section>

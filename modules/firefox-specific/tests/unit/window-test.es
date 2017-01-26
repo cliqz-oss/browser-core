@@ -27,9 +27,12 @@ export default describeModule('firefox-specific/window',
           search: {}
         },
       },
-      '../core/browser': {
-        window: w => w
-      }
+      '../platform/location-observer': {
+        default: {},
+      },
+      '../platform/tab-observer': {
+        default: {},
+      },
     };
   },
   function () {

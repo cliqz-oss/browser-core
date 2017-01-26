@@ -5,8 +5,9 @@ import CliqzEvents from "core/events";
 import SearchHistory from "./search-history";
 import { addStylesheet, removeStylesheet } from "../core/helpers/stylesheet";
 import System from 'system';
+import dns from "platform/dns";
 
-function initPopup(popup, urlbar, win) {
+function initPopup(popup, win) {
   //patch this method to avoid any caching FF might do for components.xml
   popup._appendCurrentResult = function(){
     if(popup.mInput){
@@ -24,21 +25,14 @@ function initPopup(popup, urlbar, win) {
     if (!autocomplete.isPopupOpen) {
       this.mInput = aInput;
       this._invalidate();
-      setPopupWidth(this, aElement);
 
-      // 0,0 is the distance from the topleft of the popup to aElement (the urlbar).
+      var width = aElement.getBoundingClientRect().width;
+      this.setAttribute("width", width > 500 ? width : 500);
+      // 0,0 are the distance from the topleft of the popup to aElement (the urlbar).
       // If these values change, please adjust how mouse position is calculated for click event (in telemetry signal)
       this.openPopup(aElement, "after_start", 0, 0 , false, true);
     }
   }.bind(popup);
-
-  // set initial width of the popup equal with the width of the urlbar
-  setPopupWidth(popup, urlbar);
-}
-
-function setPopupWidth(popup, urlBar){
-  var width = urlBar.getBoundingClientRect().width;
-  popup.setAttribute("width", width > 500 ? width : 500);
 }
 
 const STYLESHEET_URL = 'chrome://cliqz/content/static/styles/styles.css';
@@ -54,7 +48,6 @@ export default class {
   */
   constructor(settings) {
     this.elems = [];
-    this.settings = settings.settings;
     this.window = settings.window;
     this.urlbarGoClick = this.urlbarGoClick.bind(this);
     this.hidePopup = this.hidePopup.bind(this);
@@ -80,6 +73,7 @@ export default class {
 
     Services.scriptloader.loadSubScript(System.baseURL + 'ui/UI.js', this.window);
     this.window.CLIQZ.UI.preinit(autocomplete, CliqzHandlebars, CliqzEvents);
+    this.window.CLIQZ.UI.preinit(autocomplete, CliqzHandlebars, CliqzEvents, dns);
     Services.scriptloader.loadSubScript(System.baseURL + 'ui/ContextMenu.js', this.window);
     //create a new panel for cliqz to avoid inconsistencies at FF startup
     var document = this.window.document,
@@ -102,9 +96,8 @@ export default class {
 
     this.window.CLIQZ.Core.urlbar = this.urlbar;
     this.window.CLIQZ.Core.popup = this.popup;
-    this.window.CLIQZ.settings = this.settings;
 
-    initPopup(this.popup, this.urlbar, this.window);
+    initPopup(this.popup, this.window);
     CliqzEvents.sub('ui:popup_hide', this.hidePopup);
     this.window.CLIQZ.UI.init(this.urlbar);
     this.window.CLIQZ.UI.window = this;
@@ -116,16 +109,6 @@ export default class {
 
     this._autocompletepopup = this.urlbar.getAttribute('autocompletepopup');
     this.urlbar.setAttribute('autocompletepopup', /*'PopupAutoComplete'*/ 'PopupAutoCompleteRichResultCliqz');
-
-    // Some versions of Firefox 52+ fail to update to the correct popup ref
-    // The fix landed in Aurora an nightly mid december 2016
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=1323600
-    // we should keep this workaround for a short while to be sure we are
-    // not breaking any versions
-    if(this.urlbar._popup === undefined){
-      this._originalFFpopup = this.urlbar.popup;
-      this.urlbar.popup = this.popup;
-    }
 
     var urlBarGo = document.getElementById('urlbar-go-button');
     this._urlbarGoButtonClick = urlBarGo.getAttribute('onclick');
@@ -328,9 +311,6 @@ export default class {
     this.urlbar.setAttribute('autocompletepopup', this._autocompletepopup);
     this.popup.removeEventListener('popuphiding', this.popupEventHandlers.popupClose);
     this.popup.removeEventListener('popupshowing', this.popupEventHandlers.popupOpen);
-    if(this._originalFFpopup){
-      this.urlbar.popup = this._originalFFpopup;
-    }
 
     CliqzEvents.un_sub('ui:popup_hide', this.hidePopup);
 
@@ -410,6 +390,7 @@ const urlbarEventHandlers = {
     this.urlbarEvent('blur');
 
     autocomplete.lastFocusTime = null;
+    autocomplete.spellCheck.resetState();
     this.window.CLIQZ.UI.sessionEnd();
   },
   /**

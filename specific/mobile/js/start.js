@@ -32,7 +32,7 @@ function onNews() {
   resolver();
 }
 
-var startup, loadModule;
+let startup, loadModule;
 
 document.addEventListener("DOMContentLoaded", function () {
   System.import("platform/startup").then(function (startupModule) {
@@ -54,7 +54,6 @@ document.addEventListener("DOMContentLoaded", function () {
     window.CliqzUtils = utils;
     window.CliqzEvents  = events;
     utils.initPlatform(System);
-    utils.setPref("incognito", false);
     return utils.init({
       lang: window.navigator.language || window.navigator.userLanguage
     });
@@ -68,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function () {
     osAPI.freshtabReady();
     return new Promise(function(resolve) {
       resolver = resolve;
-      CliqzUtils.initHomepage();
+      CliqzUtils.initHomepage(true);
     })
   }).then(function () {
     return Promise.all(

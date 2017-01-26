@@ -33,7 +33,7 @@ export default background({
 
     this.wakeObserver = new TopicForwarder(
       events,
-      "geolocation:wake-notification",
+      "geolocation:sleep-notification",
       Date.now
     );
 

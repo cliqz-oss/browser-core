@@ -1,5 +1,5 @@
 import { txtToDom } from '../../core/dom-parser';
-import utils from 'core/utils'
+
 function get(url, headers, data, timeout) {
   return new Promise(function(resolve, reject) {
     headers = headers || {};
@@ -13,17 +13,11 @@ function get(url, headers, data, timeout) {
       req.setRequestHeader(id, headers[id]);
     }
 
-    req.onload = function() {
-      if (req.status === 200) {
+    req.onreadystatechange = function() {
+      if (req.readyState === 4) {
         resolve(req);
-      } else {
-        reject('cannot-fetch-count');
       }
     };
-
-    req.onerror = function () {
-      reject('cannot-fetch-count');
-    }
 
     req.channel
       .QueryInterface(Ci.nsIHttpChannelInternal)
@@ -54,16 +48,9 @@ export default class {
     var fullCount = 0;
     var arr = feed.getElementsByTagName("fullcount");
     if(arr && arr.length) {
-      var text = arr[0].textContent;
-      if (text) {
-        fullCount = parseInt(text);
-      }
+      var tmp = arr[0].textContent;
+      if(tmp) fullCount = parseInt(tmp) || 0;
     }
-    utils.log(fullCount, "getNotificationCount")
-    if (fullCount >= 0) {
-      return fullCount;
-    } else {
-      throw 'cannot-get-count';
-    }
+    return fullCount;
   }
 }

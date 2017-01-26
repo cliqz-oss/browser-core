@@ -122,15 +122,6 @@ $('#control-center').on('click', '[complementarySearchChanger]', function(ev) {
   });
 });
 
-$('#control-center').on('click', '[searchIndexCountryChanger]', function(ev) {
-  sendMessageToWindow({
-    action: 'search-index-country',
-    data: {
-      defaultCountry: $(this).val()
-    }
-  });
-});
-
 $('#control-center').on('click', '[antiTrackingStatusChanger]', function(ev){
   var state,
       type = $(this).attr('data-type');
@@ -200,10 +191,10 @@ function updateGeneralState() {
     return el.getAttribute('state');
   }), state = 'active';
 
-  if(states.indexOf('critical') != -1){
+  if(states.includes('critical')){
     state = 'critical';
   }
-  else if(states.indexOf('inactive') != -1){
+  else if(states.includes('inactive')){
     state = 'inactive';
   }
 
@@ -274,6 +265,7 @@ function compileAdblockInfo(data) {
 function draw(data){
   if(data.onboarding) {
     document.getElementById('control-center').classList.add('onboarding');
+
     if(data.module.antitracking && data.module.antitracking.totalCount === 1) {
       window.postMessage(JSON.stringify({
         target: 'cliqz',
@@ -291,14 +283,16 @@ function draw(data){
   }
 
   if (data.module) {
-    if ( !data.module.antitracking ) {
-      data.module.antitracking = {};
-      data.module.antitracking.visible = true
-      data.module.antitracking.state = "critical"
-      data.module.antitracking.totalCount = 0
-    }
-    if ( data.module.antitracking && data.module.antitracking.trackersList) {
-      data.module.antitracking.trackersList.companiesArray = compile(data.module.antitracking.trackersList)
+    // antitracking default data
+    if (data.module.antitracking){
+      if (!data.module.antitracking.state) {
+        data.module.antitracking.visible = true
+        data.module.antitracking.state = "critical"
+        data.module.antitracking.totalCount = 0
+      }
+      if (data.module.antitracking.trackersList) {
+        data.module.antitracking.trackersList.companiesArray = compile(data.module.antitracking.trackersList)
+      }
     }
 
 
@@ -318,7 +312,7 @@ function draw(data){
 
     if(data.amo) {
       document.getElementById('amo-privacy-cc').innerHTML = templates['amo-privacy-cc']();
-      document.getElementById('cliqz-tab').innerHTML = templates['cliqz-tab'](data.module.freshtab);
+      document.getElementById('cliqz-tab').innerHTML = templates['cliqz-tab'](data);
     } else {
       document.getElementById('ad-blocking').innerHTML = templates['ad-blocking'](data);
       document.getElementById('https').innerHTML = templates['https'](data);
@@ -489,18 +483,7 @@ function draw(data){
   $('.cqz-switch').click(function() {
 
     var target = $(this).closest('.frame-container'),
-        type = 'switch',
-        dropdown = target.find('.dropdown-scope');
-
-    if (target.parent().attr('data-target') === 'adblock') {
-      //select first option "This domain" by default
-      dropdown.find('option:eq(1)').prop('selected', true);
-      target.attr('data-visible', 'off_domain');
-    } else {
-      //select first option "this website" by default
-      dropdown.find('option:eq(0)').prop('selected', true);
-    }
-
+        type = 'switch';
 
     target.attr('state', function(idx, attr){
         return attr !== 'active' ? 'active': target.attr('inactiveState');

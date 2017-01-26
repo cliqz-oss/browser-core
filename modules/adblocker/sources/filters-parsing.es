@@ -8,197 +8,61 @@ function getUID() {
 }
 
 
-const COSMETICS_MASK = {
-  unhide: 0,
-  scriptInject: 1,
-  scriptReplaced: 2,
-  scriptBlock: 3,
-};
-
-
-const NETWORK_FILTER_MASK = {
-  thirdParty: 0,
-  firstParty: 1,
-  fromAny: 2,
-  fromImage: 3,
-  fromMedia: 4,
-  fromObject: 5,
-  fromObjectSubrequest: 6,
-  fromOther: 7,
-  fromPing: 8,
-  fromScript: 9,
-  fromStylesheet: 10,
-  fromSubdocument: 11,
-  fromWebsocket: 12,
-  fromXmlHttpRequest: 13,
-  isImportant: 14,
-  matchCase: 15,
-
-  // Kind of pattern
-  isHostname: 16,
-  isPlain: 17,
-  isRegex: 18,
-  isLeftAnchor: 19,
-  isRightAnchor: 20,
-  isHostnameAnchor: 21,
-  isException: 22,
-};
-
-
 const SEPARATOR = /[/^*]/;
-
-
-function getBit(n, offset) {
-  return (n >> offset) & 1;
-}
-
-
-function setBit(n, offset) {
-  return n | (1 << offset);
-}
-
-
-function clearBit(n, offset) {
-  return n & ~(1 << offset);
-}
-
-
-function isBitSet(n, i) {
-  return getBit(n, i) === 1;
-}
-
-
-function isBitNotSet(n, i) {
-  return getBit(n, i) === 0;
-}
 
 
 export function serializeFilter(filter) {
   const serialized = Object.assign(Object.create(null), filter);
-
-  // Remove useless attributes
-  delete serialized.id;
-  if (serialized._r !== undefined) {
-    delete serialized._r;
-  }
-  if (serialized._nds !== undefined) {
-    delete serialized._nds;
-  }
-  if (serialized._ds !== undefined) {
-    delete serialized._ds;
-  }
-
+  try {
+    if (filter.optDomains) {
+      serialized.optDomains = [...serialized.optDomains.values()];
+    }
+    if (serialized.optNotDomains) {
+      serialized.optNotDomains = [...serialized.optNotDomains.values()];
+    }
+    if (serialized.regex) {
+      serialized.regex = serialized.regex.toString();
+    }
+  } catch (e) { log(`EXCEPTION SERIALIZING ${e} ${e.stack}`); }
   return serialized;
 }
 
 
 export function deserializeFilter(serialized) {
-  let filter;
-  if (serialized._m !== undefined) {
-    filter = new CosmeticFilter();
-  } else {
-    filter = new NetworkFilter();
-  }
-
-  // Copy remaining keys from serialized to filter
-  Object.assign(filter, serialized);
-
-  // Assign a new id to the filter
-  filter.id = getUID();
-
+  const filter = serialized;
+  try {
+    if (filter.optDomains instanceof Array) {
+      filter.optDomains = new Set(filter.optDomains);
+    }
+    if (filter.optNotDomains instanceof Array) {
+      filter.optNotDomains = new Set(filter.optNotDomains);
+    }
+    if (filter.regex) {
+      const m = filter.regex.match(/\/(.*)\/(.*)?/);
+      filter.regex = new RegExp(m[1], m[2] || '');
+    }
+    // Assign a new id to the filter
+    filter.id = getUID();
+  } catch (e) { log(`EXCEPTION DESERIALIZE ${e} ${e.stack}`); }
   return filter;
 }
 
 
-class CosmeticFilter {
+class AdCosmetics {
   constructor(line, sharpIndex) {
-    // The following fields are used as internal representation for the
-    // filter, but should not be used directly. Please use getters to
-    // access public property.
-    // this._s  == selector
-    // this._h  == hostnames
+    this.id = getUID();
 
-    // Mask to store attributes
-    // Each flag (unhide, scriptInject, etc.) takes only 1 bit
-    // at a specific offset defined in COSMETICS_MASK.
-    // cf: COSMETICS_MASK for the offset of each property
-    this._m = 0;
-    this.setMask(COSMETICS_MASK.unhide, false);
-    this.setMask(COSMETICS_MASK.scriptInject, false);
-    this.setMask(COSMETICS_MASK.scriptReplaced, false);
-    this.setMask(COSMETICS_MASK.scriptBlock, false);
+    this.rawLine = line;
+    this.supported = true;
+    this.unhide = false;
+    this.isCosmeticFilter = true;
+    this.scriptInject = false;
+    this.scriptReplaced = false;
+    this.scriptBlock = false;
 
-    // Parse filter if given as argument
-    if (line !== undefined) {
-      this.id = getUID();
-      this.supported = true;
-      this.isCosmeticFilter = true;
+    this.hostnames = [];
+    this.selector = null;
 
-      this.parse(line, sharpIndex);
-    }
-  }
-
-  set selector(value) {
-    this._s = value;
-  }
-
-  get selector() {
-    return this._s || '';
-  }
-
-  set hostnames(value) {
-    this._h = value;
-  }
-
-  get hostnames() {
-    return this._h || [];
-  }
-
-  set unhide(value) {
-    this.setMask(COSMETICS_MASK.unhide, value);
-  }
-
-  get unhide() {
-    return this.queryMask(COSMETICS_MASK.unhide);
-  }
-
-  set scriptInject(value) {
-    this.setMask(COSMETICS_MASK.scriptInject, value);
-  }
-
-  get scriptInject() {
-    return this.queryMask(COSMETICS_MASK.scriptInject);
-  }
-
-  set scriptReplaced(value) {
-    this.setMask(COSMETICS_MASK.scriptReplaced, value);
-  }
-
-  get scriptReplaced() {
-    return this.queryMask(COSMETICS_MASK.scriptReplaced);
-  }
-
-  set scriptBlock(value) {
-    this.setMask(COSMETICS_MASK.scriptBlock, value);
-  }
-
-  get scriptBlock() {
-    return this.queryMask(COSMETICS_MASK.scriptBlock);
-  }
-
-  queryMask(offset) {
-    return getBit(this._m, offset) === 1;
-  }
-
-  setMask(offset, value) {
-    if (value) {
-      this._m = setBit(this._m, offset);
-    } else {
-      this._m = clearBit(this._m, offset);
-    }
-  }
-
-  parse(line, sharpIndex) {
     const afterSharpIndex = sharpIndex + 1;
     let suffixStartIndex = afterSharpIndex + 1;
 
@@ -211,8 +75,8 @@ class CosmeticFilter {
 
     // Check if unhide
     if (line[afterSharpIndex] === '@') {
-      this.setMask(COSMETICS_MASK.unhide, true);
-      suffixStartIndex += 1;
+      this.unhide = true;
+      suffixStartIndex++;
     }
 
     // Parse hostnames
@@ -230,12 +94,11 @@ class CosmeticFilter {
       //                    ^      ^
       //   script:contains(/......./)
       //                    ^      ^
-      //    script:contains(selector[, args])
-      //           ^        ^               ^^
-      //           |        |          |    ||
-      //           |        |          |    |this.selector.length
-      //           |        |          |    scriptSelectorIndexEnd
-      //           |        |          |scriptArguments
+      //    script:contains(selector)
+      //           ^        ^       ^^
+      //           |        |       ||
+      //           |        |       |this.selector.length
+      //           |        |       scriptSelectorIndexEnd
       //           |        scriptSelectorIndexStart
       //           scriptMethodIndex
       const scriptMethodIndex = 'script:'.length;
@@ -252,8 +115,8 @@ class CosmeticFilter {
         // If it's a regex
         if (this.selector[scriptSelectorIndexStart] === '/'
             && this.selector[scriptSelectorIndexEnd - 1] === '/') {
-          scriptSelectorIndexStart += 1;
-          scriptSelectorIndexEnd -= 1;
+          scriptSelectorIndexStart++;
+          scriptSelectorIndexEnd--;
         }
       }
 
@@ -286,41 +149,65 @@ function isRegex(filter, start, end) {
 //  - popunder
 //  - generichide
 //  - genericblock
-class NetworkFilter {
+// 2. Lot of hostname anchors are of the form hostname[...]*[...]
+//    we could split it into prefix + plain pattern
+// 3. Replace some of the attributes by a bitmask
+class AdFilter {
   constructor(line) {
-    // The following fields can be added later but are `undefined` by default
-    // They should be accessed via the corresponding get/set methods
-    // this._f     == filterStr
-    // this._r     == regex
-    // this._d     == optDomains
-    // this._nd    == optNotDomains
+    // Assign an id to the filter
+    this.id = getUID();
 
-    // Represent options as bitmasks
-    // check if value is null
-    this._m1 = 0;
-    // check if value is true/false
-    this._m2 = 0;
+    this.rawLine = line;
+    this.filterStr = null;
+    this.supported = true;
+    this.isException = false;
+    this.hostname = null;
+    this.isNetworkFilter = true;
+    this.isComment = false;
 
-    this.setMask(NETWORK_FILTER_MASK.fromAny);
+    this.regex = null;
 
-    if (line !== undefined) {
-      // Assign an id to the filter
-      this.id = getUID();
+    // Options
+    // null  == not specified
+    // true  == value true
+    // false == negation (~)
+    this.optDomains = null;
+    this.optNotDomains = null;
 
-      this.supported = true;
-      this.isNetworkFilter = true;
-      this.isComment = false;
+    this.isImportant = false;
+    this.matchCase = false;
 
-      this.parse(line);
-    }
-  }
+    this.thirdParty = null;
+    this.firstParty = null;
+    this.redirect = null;
 
-  parse(line) {
+    // Options on origin policy
+    this.fromAny = true;
+    this.fromImage = null;
+    this.fromMedia = null;
+    this.fromObject = null;
+    this.fromObjectSubrequest = null;
+    this.fromOther = null;
+    this.fromPing = null;
+    this.fromScript = null;
+    this.fromStylesheet = null;
+    this.fromSubdocument = null;
+    this.fromWebsocket = null;
+    this.fromXmlHttpRequest = null;
+
+    // Kind of pattern
+    this.isHostname = false;
+    this.isPlain = false;
+    this.isRegex = false;
+    this.isLeftAnchor = false;
+    this.isRightAnchor = false;
+    this.isHostnameAnchor = false;
+
     let filterIndexStart = 0;
     let filterIndexEnd = line.length;
 
     // @@filter == Exception
-    this.setMask(NETWORK_FILTER_MASK.isException, line.startsWith('@@'));
+    this.isException = line.startsWith('@@');
     if (this.isException) {
       filterIndexStart += 2;
     }
@@ -343,23 +230,23 @@ class NetworkFilter {
       // Deal with hostname pattern
       if (line.startsWith('127.0.0.1')) {
         this.hostname = line.substring(line.lastIndexOf(' '));
-        this._f = '';
-        this.setMask(NETWORK_FILTER_MASK.isHostname);
-        this.setMask(NETWORK_FILTER_MASK.isPlain);
-        this.setMask(NETWORK_FILTER_MASK.isRegex, 0);
-        this.setMask(NETWORK_FILTER_MASK.isHostnameAnchor);
+        this.filterStr = '';
+        this.isHostname = true;
+        this.isPlain = true;
+        this.isRegex = false;
+        this.isHostnameAnchor = true;
       } else {
         if (line.charAt(filterIndexEnd - 1) === '|') {
-          this.setMask(NETWORK_FILTER_MASK.isRightAnchor);
-          filterIndexEnd -= 1;
+          this.isRightAnchor = true;
+          filterIndexEnd--;
         }
 
         if (line.startsWith('||', filterIndexStart)) {
-          this.setMask(NETWORK_FILTER_MASK.isHostnameAnchor);
+          this.isHostnameAnchor = true;
           filterIndexStart += 2;
         } else if (line.charAt(filterIndexStart) === '|') {
-          this.setMask(NETWORK_FILTER_MASK.isLeftAnchor);
-          filterIndexStart += 1;
+          this.isLeftAnchor = true;
+          filterIndexStart++;
         }
 
         // If pattern ends with "*", strip it as it often can be
@@ -367,12 +254,12 @@ class NetworkFilter {
         // TODO: add a test
         if (line.charAt(filterIndexEnd - 1) === '*' &&
             (filterIndexEnd - filterIndexStart) > 1) {
-          filterIndexEnd -= 1;
+          filterIndexEnd--;
         }
 
         // Is regex?
-        this.setMask(NETWORK_FILTER_MASK.isRegex, isRegex(line, filterIndexStart, filterIndexEnd));
-        this.setMask(NETWORK_FILTER_MASK.isPlain, !this.isRegex);
+        this.isRegex = isRegex(line, filterIndexStart, filterIndexEnd);
+        this.isPlain = !this.isRegex;
 
         // Extract hostname to match it more easily
         // NOTE: This is the most common case of filters
@@ -384,7 +271,7 @@ class NetworkFilter {
             filterIndexStart = slashIndex;
           } else {
             this.hostname = line.substring(filterIndexStart, filterIndexEnd);
-            this._f = '';
+            this.filterStr = '';
           }
         } else if (this.isRegex && this.isHostnameAnchor) {
           // Split at the first '/', '*' or '^' character to get the hostname
@@ -394,205 +281,39 @@ class NetworkFilter {
           if (firstSeparator !== -1) {
             this.hostname = line.substring(filterIndexStart, firstSeparator);
             filterIndexStart = firstSeparator;
-            this.setMask(NETWORK_FILTER_MASK.isRegex, isRegex(line, filterIndexStart, filterIndexEnd));
-            this.setMask(NETWORK_FILTER_MASK.isPlain, !this.isRegex);
+            this.isRegex = isRegex(line, filterIndexStart, filterIndexEnd);
+            this.isPlain = !this.isRegex;
 
             if ((filterIndexEnd - filterIndexStart) === 1 &&
                 line.charAt(filterIndexStart) === '^') {
-              this._f = '';
-              this.setMask(NETWORK_FILTER_MASK.isPlain);
-              this.setMask(NETWORK_FILTER_MASK.isRegex, 0);
+              this.filterStr = '';
+              this.isPlain = true;
+              this.isRegex = false;
             }
           }
         }
       }
 
-      // Strip www from hostname if present
-      if (this.isHostnameAnchor && this.hostname.startsWith("www.")) {
-        this.hostname = this.hostname.slice(4);
-      }
-
-      if (this._f === undefined) {
-        this._f = line.substring(filterIndexStart, filterIndexEnd) || undefined;
+      if (this.filterStr === null) {
+        this.filterStr = line.substring(filterIndexStart, filterIndexEnd);
       }
 
       // Compile Regex
       if (this.isRegex) {
-        // If this is a regex, the `compileRegex` will be lazily called when first needed
-        // using the lazy getter `get regex()` of this class.
+        this.regex = this.compileRegex(this.filterStr);
+        // this.rawRegex = this.regex.toString();
       } else { // if (!this.matchCase) {
         // NOTE: No filter seems to be using the `match-case` option,
         // hence, it's more efficient to just convert everything to
         // lower case before matching.
-        if (this._f !== undefined) {
-          this._f = this._f.toLowerCase();
+        if (this.filterStr) {
+          this.filterStr = this.filterStr.toLowerCase();
         }
         if (this.hostname) {
           this.hostname = this.hostname.toLowerCase();
         }
       }
     }
-
-    // Remove it if it's empty
-    if (!this._f) {
-      delete this._f;
-    }
-  }
-
-  queryMask(cptCode) {
-    if (isBitNotSet(this._m1, cptCode)) {
-      return null;
-    }
-    return isBitSet(this._m2, cptCode);
-  }
-
-  setMask(cptCode, value = 1) {
-    this._m1 = setBit(this._m1, cptCode);
-    if (value) {
-      this._m2 = setBit(this._m2, cptCode);
-    } else {
-      this._m2 = clearBit(this._m2, cptCode);
-    }
-  }
-
-  get optNotDomains() {
-    if (this._nds === undefined) {
-      if (!this._nd) {
-        this._nds = new Set();
-      } else if (typeof this._nd === 'string') {
-        this._nds = new Set(this._nd.split('|'));
-      }
-    }
-
-    return this._nds;
-  }
-
-  get optDomains() {
-    if (this._ds === undefined) {
-      if (!this._d) {
-        this._ds = new Set();
-      } else if (typeof this._d === 'string') {
-        this._ds = new Set(this._d.split('|'));
-      }
-    }
-
-    return this._ds;
-  }
-
-  get regex() {
-    if (this._r === undefined) {
-      this._r = this.compileRegex(this._f);
-    }
-
-    return this._r;
-  }
-
-  set hostname(value) {
-    this._h = value;
-  }
-
-  get hostname() {
-    return this._h;
-  }
-
-  set filterStr(value) {
-    this._f = value;
-  }
-
-  get filterStr() {
-    return this._f || '';
-  }
-
-  get isException() {
-    return this.queryMask(NETWORK_FILTER_MASK.isException) === true;
-  }
-
-  get isHostnameAnchor() {
-    return this.queryMask(NETWORK_FILTER_MASK.isHostnameAnchor) === true;
-  }
-
-  get isRightAnchor() {
-    return this.queryMask(NETWORK_FILTER_MASK.isRightAnchor) === true;
-  }
-
-  get isLeftAnchor() {
-    return this.queryMask(NETWORK_FILTER_MASK.isLeftAnchor) === true;
-  }
-
-  get matchCase() {
-    return this.queryMask(NETWORK_FILTER_MASK.matchCase) === true;
-  }
-
-  get isImportant() {
-    return this.queryMask(NETWORK_FILTER_MASK.isImportant) === true;
-  }
-
-  get isRegex() {
-    return this.queryMask(NETWORK_FILTER_MASK.isRegex) === true;
-  }
-
-  get isPlain() {
-    return this.queryMask(NETWORK_FILTER_MASK.isPlain) === true;
-  }
-
-  get isHostname() {
-    return this.queryMask(NETWORK_FILTER_MASK.isHostname) === true;
-  }
-
-  get fromAny() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromAny) === true;
-  }
-
-  get thirdParty() {
-    return this.queryMask(NETWORK_FILTER_MASK.thirdParty);
-  }
-
-  get firstParty() {
-    return this.queryMask(NETWORK_FILTER_MASK.firstParty);
-  }
-
-  get fromImage() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromImage);
-  }
-
-  get fromMedia() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromMedia);
-  }
-
-  get fromObject() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromObject);
-  }
-
-  get fromObjectSubrequest() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromObjectSubrequest);
-  }
-
-  get fromOther() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromOther);
-  }
-
-  get fromPing() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromPing);
-  }
-
-  get fromScript() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromScript);
-  }
-
-  get fromStylesheet() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromStylesheet);
-  }
-
-  get fromSubdocument() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromSubdocument);
-  }
-
-  get fromWebsocket() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromWebsocket);
-  }
-
-  get fromXmlHttpRequest() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromXmlHttpRequest);
   }
 
   compileRegex(filterStr) {
@@ -621,9 +342,10 @@ class NetworkFilter {
       }
       return new RegExp(filter, 'i');
     } catch (ex) {
-      log(`failed to compile regex ${filter} with error ${ex} ${ex.stack}`);
-      // Regex will always fail
-      return { test() { return false; } };
+      log(`failed to compile regex ${filter} with error ${ex}`);
+      // Ignore this filter
+      this.supported = false;
+      return null;
     }
   }
 
@@ -649,76 +371,74 @@ class NetworkFilter {
       }
 
       switch (option) {
-        case 'domain': {
-          const optDomains = [];
-          const optNotDomains = [];
+        case 'domain':
+          this.optDomains = new Set();
+          this.optNotDomains = new Set();
 
           optionValues.forEach((value) => {
             if (value) {
               if (value.startsWith('~')) {
-                optNotDomains.push(value.substring(1));
+                this.optNotDomains.add(value.substring(1));
               } else {
-                optDomains.push(value);
+                this.optDomains.add(value);
               }
             }
           });
 
-          if (optDomains.length > 0) {
-            this._d = optDomains.join('|');
+          if (this.optDomains.size === 0) {
+            this.optDomains = null;
           }
-          if (optNotDomains.length > 0) {
-            this._nd = optNotDomains.join('|');
+          if (this.optNotDomains.size === 0) {
+            this.optNotDomains = null;
           }
 
           break;
-        }
         case 'image':
-          this.setMask(NETWORK_FILTER_MASK.fromImage, !negation);
+          this.fromImage = !negation;
           break;
         case 'media':
-          this.setMask(NETWORK_FILTER_MASK.fromMedia, !negation);
+          this.fromMedia = !negation;
           break;
         case 'object':
-          this.setMask(NETWORK_FILTER_MASK.fromObject, !negation);
+          this.fromObject = !negation;
           break;
         case 'object-subrequest':
-          this.setMask(NETWORK_FILTER_MASK.fromObjectSubrequest, !negation);
+          this.fromObjectSubrequest = !negation;
           break;
         case 'other':
-          this.setMask(NETWORK_FILTER_MASK.fromOther, !negation);
+          this.fromOther = !negation;
           break;
         case 'ping':
-          this.setMask(NETWORK_FILTER_MASK.fromPing, !negation);
+          this.fromPing = !negation;
           break;
         case 'script':
-          this.setMask(NETWORK_FILTER_MASK.fromScript, !negation);
+          this.fromScript = !negation;
           break;
         case 'stylesheet':
-          this.setMask(NETWORK_FILTER_MASK.fromStylesheet, !negation);
+          this.fromStylesheet = !negation;
           break;
         case 'subdocument':
-          this.setMask(NETWORK_FILTER_MASK.fromSubdocument, !negation);
+          this.fromSubdocument = !negation;
           break;
         case 'xmlhttprequest':
-          this.setMask(NETWORK_FILTER_MASK.fromXmlHttpRequest, !negation);
+          this.fromXmlHttpRequest = !negation;
           break;
         case 'important':
           // Note: `negation` should always be `false` here.
-          this.setMask(NETWORK_FILTER_MASK.isImportant, 1);
+          this.isImportant = true;
           break;
         case 'match-case':
           // Note: `negation` should always be `false` here.
-          // TODO: Include in bitmask
-          this.setMask(NETWORK_FILTER_MASK.matchCase, 1);
+          this.matchCase = true;
           break;
         case 'third-party':
-          this.setMask(NETWORK_FILTER_MASK.thirdParty, !negation);
+          this.thirdParty = !negation;
           break;
         case 'first-party':
-          this.setMask(NETWORK_FILTER_MASK.firstParty, !negation);
+          this.firstParty = !negation;
           break;
         case 'websocket':
-          this.setMask(NETWORK_FILTER_MASK.fromWebsocket, !negation);
+          this.fromWebsocket = !negation;
           break;
         case 'collapse':
           break;
@@ -741,7 +461,7 @@ class NetworkFilter {
     });
 
     // Check if any of the fromX flag is set
-    const fromAny = (
+    this.fromAny = (
       this.fromImage === null &&
       this.fromMedia === null &&
       this.fromObject === null &&
@@ -753,7 +473,6 @@ class NetworkFilter {
       this.fromSubdocument === null &&
       this.fromWebsocket === null &&
       this.fromXmlHttpRequest === null);
-    this.setMask(NETWORK_FILTER_MASK.fromAny, fromAny);
   }
 }
 
@@ -791,16 +510,16 @@ export function parseFilter(line) {
         || line.startsWith(/* #@# */ '@#', afterSharpIndex)) {
       // Parse supported cosmetic filter
       // `##` `#@#`
-      return new CosmeticFilter(line, sharpIndex);
+      return new AdCosmetics(line, sharpIndex);
     }
   }
 
   // Everything else is a network filter
-  return new NetworkFilter(line);
+  return new AdFilter(line);
 }
 
 
-export default function parseList(list, debug = false) {
+export default function parseList(list) {
   try {
     const networkFilters = [];
     const cosmeticFilters = [];
@@ -811,25 +530,8 @@ export default function parseList(list, debug = false) {
         if (filter.supported && !filter.isComment) {
           log(`compiled ${line} into ${JSON.stringify(filter)}`);
           if (filter.isNetworkFilter) {
-            // Delete temporary attributes
-            if (!debug) {
-              delete filter.supported;
-              delete filter.isNetworkFilter;
-              delete filter.isComment;
-            } else {
-              filter.rawLine = line;
-            }
-
             networkFilters.push(filter);
           } else {
-            // Delete temporary attributes
-            if (!debug) {
-              delete filter.supported;
-              delete filter.isCosmeticFilter;
-            } else {
-              filter.rawLine = line;
-            }
-
             cosmeticFilters.push(filter);
           }
         }
@@ -841,7 +543,7 @@ export default function parseList(list, debug = false) {
       cosmeticFilters,
     };
   } catch (ex) {
-    log(`ERROR WHILE PARSING ${typeof list} ${ex} ${ex.stack}`);
+    log(`ERROR WHILE PARSING ${typeof list} ${ex}`);
     return null;
   }
 }

@@ -28,21 +28,18 @@ function generateDiagnosis() {
   // Updates
   var timestamp = Date.now();
   var lastUpdate = utils.getPref('resource-loader.lastUpdates.antitracking/adblocking/checksums');
-  var ago = timestamp - lastUpdate;
-  var seconds = ago / 1000;
-  var minutes = seconds / 60;
-  var hours = minutes / 60;
+  var ago = (timestamp / 60 / 60 / 1000) - (lastUpdate / 60 / 60 / 1000);
 
   content.push(`<h2>Updates</h2>`);
   content.push(`<div>current timestamp = ${timestamp}</div>`);
-  content.push(`<div>last update = ${lastUpdate} (${Math.floor(hours)}h ago)</div>`);
+  content.push(`<div>last update = ${lastUpdate} (${ago} hours ago)</div>`);
 
   // Engine stats
   content.push(`<h2>Loaded filters</h2>`);
   content.push(`<div>${adblocker.engine.size} filters loaded</div>`);
-  content.push(`<div>exceptions = ${adblocker.engine.exceptions.size} </div>`);
-  content.push(`<div>importants = ${adblocker.engine.importants.size} </div>`);
-  content.push(`<div>redirects = ${adblocker.engine.redirect.size} </div>`);
+  content.push(`<div>exception = ${adblocker.engine.exceptions.size} </div>`);
+  content.push(`<div>exception = ${adblocker.engine.importants.size} </div>`);
+  content.push(`<div>exception = ${adblocker.engine.redirect.size} </div>`);
   content.push(`<div>network filters = ${adblocker.engine.filters.size} </div>`);
   content.push(`<div>cosmetics filters = ${adblocker.engine.cosmetics.size} </div>`);
 

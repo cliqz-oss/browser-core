@@ -7,7 +7,6 @@
                  shortUrl="{{link}}"
                  extra="{{extra}}"
                  domain="{{domain}}"
-                 local-source="{{style}}"
                  arrow="false"
                  useParentOffset="true">
                 <span class='cqz-history-item-title'>{{ emphasis title ../../text 2 true }}</span>

@@ -8,7 +8,9 @@ export default class {
   /**
   * @method init
   */
-  init() {}
+  init() {
+    PrivacyRep.onExtensionStart();
+  }
 
   unload() {}
 

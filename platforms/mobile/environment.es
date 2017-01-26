@@ -75,6 +75,28 @@ var CLIQZEnvironment = {
     //TODO - consider the version !!
     return 'static/brands_database.json'
   },
+  // TODO - SHOUD BE MOVED TO A LOGIC MODULE
+  autoComplete: function (val, searchString) {
+
+    if(val && val.length > 0) {
+      val = val.replace(/http([s]?):\/\/(www.)?/,'');
+      val = val.toLowerCase();
+      const searchLower = searchString.toLowerCase();
+
+      if(val.startsWith(searchLower)) {
+        osAPI.autocomplete(val);
+      } else {
+        storage.getObject('recentQueries', []).some(item => {
+          const queryLower = item.query.toLowerCase();
+          if(queryLower !== searchLower && queryLower.startsWith(searchLower)) {
+            osAPI.autocomplete(queryLower);
+            return true;
+          }
+          return false;
+        });
+      }
+    }
+  },
   resultsHandler: function (r) {
 
     if( CLIQZEnvironment.lastSearch !== r._searchString  ){
@@ -84,14 +106,16 @@ var CLIQZEnvironment = {
 
     r._results.splice(CLIQZEnvironment.RESULTS_LIMIT);
 
-    window.CLIQZ.UI.renderResults(r);
+    const renderedResults = window.CLIQZ.UI.renderResults(r);
+
+    renderedResults[0] && CLIQZEnvironment.autoComplete(renderedResults[0].url, r._searchString);
   },
   search: function(e) {
     if(!e || e === '') {
-      // should be moved to UI except 'CLIQZEnvironment.initHomepage();'
+      // should be moved to UI except 'CLIQZEnvironment.initHomepage(true);'
       CLIQZEnvironment.lastSearch = '';
       CLIQZ.UI.hideResultsBox();
-      CLIQZEnvironment.initHomepage();
+      CLIQZEnvironment.initHomepage(true);
       CLIQZ.UI.stopProgressBar();
       CLIQZ.UI.lastResults = null;
       return;
@@ -118,10 +142,91 @@ var CLIQZEnvironment = {
   setTimeout: function(){ return setTimeout.apply(null, arguments); },
   clearTimeout: function(){ clearTimeout.apply(null, arguments); },
   Promise: Promise,
+  tldExtractor: function(host){
+    //temp
+    return host.split('.').splice(-1)[0];
+  },
   OS: 'mobile',
   isPrivate: function(){ return false; },
   isOnPrivateTab: function(win) { return false; },
   getWindow: function(){ return window; },
+  httpHandler: function(method, url, callback, onerror, timeout, data, sync) {
+    latestUrl = url;
+
+    function isMixerUrl(url) { return url.indexOf(CliqzUtils.RESULTS_PROVIDER) === 0; }
+
+    var req = new XMLHttpRequest();
+    req.open(method, url, !sync)
+    req.overrideMimeType && req.overrideMimeType('application/json');
+    req.onload = function(){
+      if(!parseInt) {
+        return;
+      } //parseInt is not a function after extension disable/uninstall
+
+      var statusClass = parseInt(req.status / 100);
+      if(statusClass === 2 || statusClass === 3 || statusClass === 0 /* local files */){
+
+        if(isMixerUrl(url)){
+          if(typeof CustomEvent !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('connected'));
+          }
+          lastSucceededUrl = url;
+          console.log('status '+req.status, 'CLIQZEnvironment.httpHandler.onload');
+        }
+
+        callback && callback(req);
+      } else {
+        console.log( 'loaded with non-200 ' + url + ' (status=' + req.status + ' ' + req.statusText + ')', 'CLIQZEnvironment.httpHandler.onload');
+        onerror && onerror();
+      }
+    };
+    req.onerror = function(){
+      if(latestUrl !== url || url === lastSucceededUrl || !isMixerUrl(url)) {
+        onerror && onerror();
+        return;
+      }
+      if(typeof CustomEvent !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('disconnected', { 'detail': 'This could be caused because of request error' }));
+      }
+
+      if(CLIQZEnvironment){
+        if(isMixerUrl(url)){
+          setTimeout(CLIQZEnvironment.httpHandler, 500, method, url, callback, onerror, timeout, data, sync);
+        }
+        console.log( 'error loading ' + url + ' (status=' + req.status + ' ' + req.statusText + ')', 'CLIQZEnvironment.httpHandler,onerror');
+        onerror && onerror();
+      }
+    };
+    req.ontimeout = function(){
+
+      console.log('BEFORE', 'CLIQZEnvironment.httpHandler.ontimeout');
+      if(latestUrl !== url || url === lastSucceededUrl || !isMixerUrl(url)) {
+        return;
+      }
+      if(typeof CustomEvent !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('disconnected', { 'detail': 'This could be caused because of timed out request' }));
+      }
+
+      if(CLIQZEnvironment){ //might happen after disabling the extension
+        if(isMixerUrl(url)){
+          setTimeout(CLIQZEnvironment.httpHandler, 500, method, url, callback, onerror, timeout, data, sync);
+        }
+        console.log( 'resending: timeout for ' + url, 'CLIQZEnvironment.httpHandler.ontimeout');
+        onerror && onerror();
+      }
+    };
+
+    if(callback && !sync){
+      if(timeout){
+        req.timeout = parseInt(timeout);
+      } else {
+        req.timeout = (['POST', 'PUT'].indexOf(method) >= 0 ? 10000 : 1000);
+      }
+    }
+
+    req.send(data);
+    return req;
+  },
   // TODO - SHOUD BE MOVED TO A LOGIC MODULE
   openLink: function(window, url){
     if(url !== '#')  {
@@ -183,10 +288,12 @@ var CLIQZEnvironment = {
     });
   },
 
-  initHomepage: function() {
-    if (!CLIQZ.UI  || !CLIQZ.UI.isIncognito) {
-      osAPI.getTopSites('onNews', 15);
+  initHomepage: function(hideLastState) {
+    if(hideLastState) {
+      var start = document.getElementById('resetState');
+      start && (start.style.display = 'none');
     }
+    osAPI.getTopSites('onNews', 15);
   },
   setDefaultSearchEngine: function(engine) {
     storage.setObject('defaultSearchEngine', engine);

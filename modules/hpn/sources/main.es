@@ -8,7 +8,6 @@ import { sendM } from 'hpn/send-message';
 import * as hpnUtils from 'hpn/utils';
 import { overRideCliqzResults } from 'hpn/http-handler-patch';
 import ResourceLoader from 'core/resource-loader';
-import ProxyFilter from 'hpn/proxy-filter';
 
 const { utils: Cu } = Components;
 
@@ -21,9 +20,10 @@ Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 /* Global variables
 */
 let proxyCounter = 0;
-
-
-const queryProxyFilter = new ProxyFilter();
+// hpn-query pref is to encrypt queries
+// hpn-telemetry is to encrypt telemetry data.
+CliqzUtils.setPref('hpn-telemetry', CliqzUtils.getPref('hpn-telemetry', true));
+CliqzUtils.setPref('hpn-query', CliqzUtils.getPref('hpn-query', false));
 
 const CliqzSecureMessage = {
   VERSION: '0.1',
@@ -54,8 +54,6 @@ const CliqzSecureMessage = {
   localTemporalUniq: null,
   wCrypto: null,
   queriesID: {},
-  servicesToProxy : ["newbeta.cliqz.com"],
-  proxyInfoObj: {},
   pacemaker: function () {
     if ((CliqzSecureMessage.counter / CliqzSecureMessage.tmult) % 10 === 0) {
       if (CliqzSecureMessage.debug) {
@@ -214,9 +212,8 @@ const CliqzSecureMessage = {
       CliqzSecureMessage.secureLogger.publicKeyB64 = e.secureloggerB64;
     });
 
-    if (CliqzUtils.getPref('proxyNetwork', true)) {
-      overRideCliqzResults();
-    }
+    overRideCliqzResults();
+
     // Check user-key present or not.
     CliqzSecureMessage.registerUser();
   },
@@ -234,7 +231,6 @@ const CliqzSecureMessage = {
     }
   },
   unload: function() {
-    queryProxyFilter.destroy();
     hpnUtils.saveLocalCheckTable();
     CliqzSecureMessage.pushTelemetry();
     this.sourceMapLoader.stop();

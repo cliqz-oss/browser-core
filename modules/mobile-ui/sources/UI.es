@@ -9,25 +9,9 @@ import { window, document } from 'mobile-ui/webview';
 import utils from 'core/utils';
 import ViewPager from 'viewpager';
 
-const ErrorHandlerReranker = {
-  name: 'error-handler-reranker',
-
-  afterResults: function (myResults, backendResults) {
-    if (backendResults.isInvalid && myResults.query.length === utils._queryLastLength) {
-      setTimeout(utils.search, 500, myResults.query, true);
-      reconnectingDiv.innerHTML = '<h3>'+utils.getLocalizedString('mobile_reconnecting_msg')+'</h3>'
-    } else {
-      reconnectingDiv.innerHTML = '';
-    }
-    return Promise.resolve(backendResults);
-  }
-}
-
-
 var resultsBox = null,
     freshtabDiv = window.document.getElementById('startingpoint'),
     incognitoDiv = window.document.getElementById('incognito'),
-    reconnectingDiv = window.document.getElementById('reconnecting'),
     currentResults = null,
     imgLoader = null,
     progressBarInterval = null,
@@ -40,8 +24,6 @@ var UI = {
     isIncognito: false,
     currentPage: 0,
     lastResults: null,
-    lastSearch: '',
-    lastAutocompletion: '',
     CARD_WIDTH: 0,
     nCardsPerPage: 1,
     nPages: 1,
@@ -49,17 +31,15 @@ var UI = {
     VIEWS: {},
     init: function () {
 
-      utils.RERANKERS.push(ErrorHandlerReranker);
+        let box = document.getElementById('results');
+        box.innerHTML = CLIQZ.templates.main();
 
-      let box = document.getElementById('results');
-      box.innerHTML = CLIQZ.templates.main();
+        resultsBox = document.getElementById('cliqz-results', box);
 
-      resultsBox = document.getElementById('cliqz-results', box);
+        resultsBox.addEventListener('click', resultClick);
 
-      resultsBox.addEventListener('click', resultClick);
-
-      // FIXME: import does not work
-      UI.DelayedImageLoader = DelayedImageLoader;
+        // FIXME: import does not work
+        UI.DelayedImageLoader = DelayedImageLoader;
     },
     onBoardingSwipe: function () {
       const DELAY = 1200;
@@ -77,15 +57,13 @@ var UI = {
         viewPager = UI.initViewpager();
       }
 
-      UI.lastSearch = r._searchString;
-
       const renderedResults = UI.results(r);
 
       UI.lastResults = renderedResults;
 
       CLIQZ.UI.stopProgressBar();
 
-      autoComplete(renderedResults[0] && renderedResults[0].url);
+      return renderedResults;
     },
     setTheme: function (incognito = false) {
       UI.isIncognito = incognito;
@@ -129,13 +107,13 @@ var UI = {
 
       UI.setDimensions();
 
-      var engine = utils.getDefaultSearchEngine();
-      var details = utils.getDetailsFromUrl(engine.url);
-      var logo = utils.getLogoDetails(details);
+      var engine = CliqzUtils.getDefaultSearchEngine();
+      var details = CliqzUtils.getDetailsFromUrl(engine.url);
+      var logo = CliqzUtils.getLogoDetails(details);
 
       var enhancedResults = enhanceResults(r._results);
 
-      const title = utils.getLocalizedString(enhancedResults[0] ? 'mobile_more_results_title' : 'mobile_no_result_title');
+      const title = CliqzUtils.getLocalizedString(enhancedResults[0] ? 'mobile_more_results_title' : 'mobile_no_result_title');
 
       currentResults = {
         searchString: r._searchString,
@@ -195,26 +173,22 @@ var UI = {
             if (page === UI.currentPage || !UI.isSearch()) return;
 
             views[page] = (views[page] || 0) + 1;
-            const direction = page > UI.currentPage ? 'right' : 'left';
-            const shownCardId = page < UI.lastResults.length - 1 ? `cqz-result-box-${page}` : 'defaultEngine';
-            const position_type = getResultKind(document.getElementById(shownCardId));
+            const direction = page > UI.currentPage ? 'right' : 'left'
 
 
-            utils.telemetry({
+            CliqzUtils.telemetry({
               type: 'cards',
               action: `swipe_${direction}`,
               index: page,
               show_count: views[page],
               show_duration: Date.now() - pageShowTs,
-              card_count: currentResultsCount,
-              position_type,
+              count: currentResultsCount
             });
 
             pageShowTs = Date.now();
 
             UI.currentPage = page;
-            autoComplete(UI.lastResults[page] && UI.lastResults[page].url);
-          },
+          }
         });
     },
     hideResultsBox: function () {
@@ -277,7 +251,7 @@ function redrawDropdown(newHTML) {
 
 function getVertical(result) {
   let template;
-  if (utils.TEMPLATES[result.template]) {
+  if (CliqzUtils.TEMPLATES[result.template]) {
     template = result.template;
   } else {
     template = 'generic';
@@ -293,8 +267,8 @@ function enhanceResults(results) {
 
   filteredResults.forEach((r, index) => {
     const url = r.val || '';
-    const urlDetails = url && utils.getDetailsFromUrl(url);
-    const logo = urlDetails && utils.getLogoDetails(urlDetails);
+    const urlDetails = url && CliqzUtils.getDetailsFromUrl(url);
+    const logo = urlDetails && CliqzUtils.getLogoDetails(urlDetails);
     const kind = r.data.kind[0];
     let historyStyle = '';
     if (kind === 'H' || kind === 'C') {
@@ -316,6 +290,24 @@ function enhanceResults(results) {
   });
 
   return enhancedResults;
+}
+
+// debug message are at the end of the title like this: "title (debug)!"
+function getDebugMsg(fullTitle) {
+    // regex matches two parts:
+    // 1) the title, can be anything ([\s\S] is more inclusive than '.' as it includes newline)
+    // followed by:
+    // 2) a debug string like this " (debug)!"
+    if (fullTitle === null) {
+      return [null, null];
+    }
+    const r = fullTitle.match(/^([\s\S]+) \((.*)\)!$/);
+    if (r && r.length >= 3) {
+      return [r[1], r[2]];
+    }
+    else {
+      return [fullTitle, null];
+    }
 }
 
 function enhanceSpecificResult(r) {
@@ -370,7 +362,6 @@ function resultClick(ev) {
             var card = document.getElementsByClassName('card')[UI.currentPage];
             var cardPosition = card.getBoundingClientRect();
             var coordinate = [ev.clientX - cardPosition.left, ev.clientY - cardPosition.top, UI.CARD_WIDTH];
-            const result_order = currentResults && CliqzAutocomplete.prepareResultOrder(UI.lastResults);
 
             var signal = {
                 type: 'activity',
@@ -381,20 +372,8 @@ function resultClick(ev) {
                 current_position: UI.currentPage
             };
 
-            if(!UI.isIncognito) {
-              utils.resultTelemetry(
-                UI.lastSearch,
-                UI.lastAutocompletion,
-                UI.currentPage,
-                utils.isPrivateResultType(signal.position_type) ? '' : url,
-                result_order,
-                signal.extra,
-              );
-
-              utils.telemetry(signal);
-            }
-
-            utils.openLink(window, url);
+            CliqzUtils.telemetry(signal);
+            CliqzUtils.openLink(window, url);
             return;
 
         } else if (action) {
@@ -402,7 +381,7 @@ function resultClick(ev) {
                 case 'stop-click-event-propagation':
                     return;
                 case 'copy-calc-answer':
-                    utils.copyResult(document.getElementById('calc-answer').innerHTML);
+                    CliqzUtils.copyResult(document.getElementById('calc-answer').innerHTML);
                     document.getElementById('calc-copied-msg').style.display = '';
                     document.getElementById('calc-copy-msg').style.display = 'none';
                     break;
@@ -444,27 +423,6 @@ function setResultNavigation(resultCount) {
   }
 }
 
-function autoComplete(url) {
-  const query = UI.lastSearch;
-
-  if(url && url.length > 0) {
-    url = url.replace(/http([s]?):\/\/(www.)?/,'');
-    url = url.toLowerCase();
-    const searchLower = query.toLowerCase();
-
-    if(url.startsWith(searchLower)) {
-      osAPI.autocomplete(url);
-      UI.lastAutocompletion = url;
-    } else {
-      osAPI.autocomplete(query);
-      UI.lastAutocompletion = query;
-    }
-  } else {
-    osAPI.autocomplete(query);
-    UI.lastAutocompletion = query;
-  }
-}
-
 var resizeTimeout;
 window.addEventListener('resize', function () {
   if (!UI.isSearch()) return;
@@ -485,6 +443,16 @@ window.addEventListener('resize', function () {
     viewPager.goToIndex(UI.currentPage, 0);
   }, 200);
 
+});
+
+window.addEventListener('disconnected', function () {
+  let elem = document.getElementById('reconnecting');
+  elem && (elem.innerHTML = '<h3>'+CliqzUtils.getLocalizedString('mobile_reconnecting_msg')+'</h3>');
+});
+
+window.addEventListener('connected', function () {
+  let elem = document.getElementById('reconnecting');
+  elem && (elem.innerHTML = '');
 });
 
 export default UI;

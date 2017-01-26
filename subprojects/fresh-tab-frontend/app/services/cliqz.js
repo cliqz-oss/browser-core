@@ -12,7 +12,6 @@ function nextId() {
 
 export default Ember.Service.extend({
   messageCenter: Ember.inject.service('message-center'),
-  notifications: Ember.inject.service('notifications'),
 
   init() {
     this._super(...arguments);
@@ -33,22 +32,6 @@ export default Ember.Service.extend({
       }
       if(message.action === "addMessage") {
         this.get('messageCenter').addMessages({ [message.message.id]: message.message });
-      }
-
-      if(message.action === "newNotification") {
-        this.get('notifications').newNotification(message.message.domain, message.message.count);
-      }
-
-      if(message.action === "clearNotification") {
-        this.get('notifications').clearNotification(message.message.domain);
-      }
-
-      if(message.action === "inaccessibleNotification") {
-        this.get('notifications').inaccessibleNotification(message.message.domain, message.message.count);
-      }
-
-      if(message.action === "accessibleNotification") {
-        this.get('notifications').accessibleNotification(message.message.domain, message.message.count, message.message.hasUnread);
       }
 
 
@@ -238,6 +221,21 @@ export default Ember.Service.extend({
     }), '*');
   },
 
+  getNotificationsConfig() {
+    let promise = new Promise( resolve => {
+      this.callbacks.notifications = this.callbacks.notifications || {};
+      this.callbacks.notifications.getConfig = resolve;
+    });
+
+    window.postMessage(JSON.stringify({
+      target: 'cliqz',
+      module: 'notifications',
+      action: 'getConfig'
+    }), '*');
+
+    return DS.PromiseObject.create({promise});
+  },
+
   watch(url) {
     const requestId = nextId();
 
@@ -258,41 +256,21 @@ export default Ember.Service.extend({
     return DS.PromiseObject.create({ promise });
   },
 
-  refreshNotifications(url) {
-     const requestId = nextId();
-
-    let promise = new Ember.RSVP.Promise( resolve => {
-     this.callbacks.notifications = this.callbacks.notifications || {};
-     this.callbacks.notifications.refreshNotifications = this.callbacks.notifications.refreshNotifications || {};
-     this.callbacks.notifications.refreshNotifications[requestId] = resolve;
-    });
-
-    window.postMessage(JSON.stringify({
-     requestId,
-     target: "cliqz",
-     module: "notifications",
-     action: "refresh",
-     args: [url],
-    }), "*");
-
-    return DS.PromiseObject.create({ promise });
-  },
-
   activateNotification(url) {
     const requestId = nextId();
 
     let promise = new Ember.RSVP.Promise( resolve => {
-     this.callbacks.notifications = this.callbacks.notifications || {};
-     this.callbacks.notifications.activateNotification = this.callbacks.notifications.activateNotification || {};
-     this.callbacks.notifications.activateNotification[requestId] = resolve;
+      this.callbacks.notifications = this.callbacks.notifications || {};
+      this.callbacks.notifications.activateNotification = this.callbacks.notifications.activateNotification || {};
+      this.callbacks.notifications.activateNotification[requestId] = resolve;
     });
 
     window.postMessage(JSON.stringify({
-     requestId,
-     target: "cliqz",
-     module: "notifications",
-     action: "activate",
-     args: [url],
+      requestId,
+      target: "cliqz",
+      module: "notifications",
+      action: "activate",
+      args: [url],
     }), "*");
 
     return DS.PromiseObject.create({ promise });

@@ -24,7 +24,7 @@ const SERIALIZED_ENGINE_PATH = ['antitracking', 'adblocking', 'engine.json'];
 
 
 // adb version
-export const ADB_VERSION = 2;
+export const ADB_VER = 0.01;
 
 // Preferences
 export const ADB_PREF = 'cliqz-adb';
@@ -55,17 +55,6 @@ export function adbEnabled() {
 }
 
 
-function extractGeneralDomain(uri) {
-  const url = uri.toLowerCase();
-  const urlParts = URLInfo.get(url);
-  let hostname = urlParts.hostname;
-  if (hostname.startsWith('www.')) {
-    hostname = hostname.substring(4);
-  }
-  return getGeneralDomain(hostname);
-}
-
-
 /* Wraps filter-based adblocking in a class. It has to handle both
  * the management of lists (fetching, updating) using a FiltersLoader
  * and the matching using a FilterEngine.
@@ -78,11 +67,11 @@ class AdBlocker {
     // Plug filters lists manager with engine to update it
     // whenever a new version of the rules is available.
     this.listsManager = new FiltersLoader();
-    this.listsManager.onUpdate((updates) => {
+    this.listsManager.onUpdate(updates => {
       // -------------------- //
       // Update fitlers lists //
       // -------------------- //
-      const filtersLists = updates.filter((update) => {
+      const filtersLists = updates.filter(update => {
         const { asset, checksum, isFiltersList } = update;
         if (isFiltersList && !this.engine.hasList(asset, checksum)) {
           this.log(`Filters list ${asset} (${checksum}) will be updated`);
@@ -101,7 +90,7 @@ class AdBlocker {
       // ---------------------- //
       // Update resources lists //
       // ---------------------- //
-      const resourcesLists = updates.filter((update) => {
+      const resourcesLists = updates.filter(update => {
         const { isFiltersList, asset, checksum } = update;
         if (!isFiltersList && this.engine.resourceChecksum !== checksum) {
           this.log(`Resources list ${asset} (${checksum}) will be updated`);
@@ -121,22 +110,17 @@ class AdBlocker {
       this.initCache();
 
       // Serialize new version of the engine on disk if needed
-      if (CliqzADB.onDiskCache) {
-        if (this.engine.updated) {
-          const t0 = Date.now();
-          new Resource(SERIALIZED_ENGINE_PATH)
-            .persist(JSON.stringify(serializeFiltersEngine(this.engine, ADB_VERSION)))
-            .then(() => {
-              const totalTime = Date.now() - t0;
-              this.log(`Serialized filters engine on disk (${totalTime} ms)`);
-              this.engine.updated = false;
-            })
-            .catch((e) => {
-              CliqzUtils.log(`Failed to serialize filters engine on disk ${e}`, 'adblocker');
-            });
-        } else {
-          this.log('Engine has not been updated, do not serialize');
-        }
+      if (this.engine.updated) {
+        const t0 = Date.now();
+        new Resource(SERIALIZED_ENGINE_PATH)
+          .persist(JSON.stringify(serializeFiltersEngine(this.engine)))
+          .then(() => {
+            const totalTime = Date.now() - t0;
+            this.log(`Serialized filters engine on disk (${totalTime} ms)`);
+            this.engine.updated = false;
+          });
+      } else {
+        this.log('Engine has not been updated, do not serialize');
       }
     });
 
@@ -149,9 +133,7 @@ class AdBlocker {
   }
 
   log(msg) {
-    const date = new Date();
-    const message = `${date.getHours()}:${date.getMinutes()} ${msg}`;
-    this.logs.push(message);
+    this.logs.push(msg);
     CliqzUtils.log(msg, 'adblocker');
   }
 
@@ -163,59 +145,51 @@ class AdBlocker {
 
     // Cache queries to FilterEngine
     this.cache = new LRUCache(
-      this.engine.match.bind(this.engine),       // Compute result
-      1000,                                      // Maximum number of entries
-      request => request.sourceGD + request.url, // Select key
+      this.engine.match.bind(this.engine),      // Compute result
+      1000,                                     // Maximum number of entries
+      request => request.sourceGD + request.url // Select key
     );
-  }
-
-  loadEngineFromDisk() {
-    if (CliqzADB.onDiskCache) {
-      return new Resource(SERIALIZED_ENGINE_PATH)
-        .load()
-        .then((serializedEngine) => {
-          if (serializedEngine !== undefined) {
-            try {
-              const t0 = Date.now();
-              deserializeFiltersEngine(this.engine, serializedEngine, ADB_VERSION);
-              const totalTime = Date.now() - t0;
-              this.log(`Loaded filters engine from disk (${totalTime} ms)`);
-            } catch (e) {
-              // In case there is a mismatch between the version of the code
-              // and the serialization format of the engine on disk, we might
-              // not be able to load the engine from disk. Then we just start
-              // fresh!
-              this.engine = new FilterEngine();
-              this.log(`Exception while loading engine from disk ${e} ${e.stack}`);
-            }
-          } else {
-            this.log('No filter engine was serialized on disk');
-          }
-        })
-        .catch(() => {
-          this.log('No engine on disk', 'adblocker');
-        });
-    }
-
-    return Promise.resolve();
   }
 
   init() {
     this.initCache();
 
     // Load serialized engine from disk, then init filters manager
-    this.loadEngineFromDisk()
-      .then(() => this.listsManager.load())
-      .then(() => {
-        // Update check should be performed after a short while
-        this.log('Check for updates');
-        setTimeout(
-          () => this.listsManager.update(),
-          30 * 1000,
-        );
+    new Resource(SERIALIZED_ENGINE_PATH)
+      .load()
+      .then(serializedEngine => {
+        if (serializedEngine !== undefined) {
+          try {
+            const t0 = Date.now();
+            deserializeFiltersEngine(this.engine, serializedEngine);
+            const totalTime = Date.now() - t0;
+            this.log(`Loaded filters engine from disk (${totalTime} ms)`);
+          } catch (e) {
+            // In case there is a mismatch between the version of the code
+            // and the serialization format of the engine on disk, we might
+            // not be able to load the engine from disk. Then we just start
+            // fresh!
+            this.engine = new FilterEngine();
+            this.log(`Exception while loading engine from disk ${e} ${e.stack}`);
+          }
+        } else {
+          this.log('No filter engine was serialized on disk');
+        }
+
+        // Load files from disk, then check if we should update
+        this.listsManager
+          .load()
+          .then(() => {
+            // Update check should be performed after a short while
+            CliqzUtils.log('Check for updates', 'adblocker');
+            setTimeout(
+              () => this.listsManager.update(),
+              30 * 1000
+            );
+          });
       });
 
-    this.blacklistPersist.load().then((value) => {
+    this.blacklistPersist.load().then(value => {
       // Set value
       if (value.urls !== undefined) {
         this.blacklist = new Set(value.urls);
@@ -250,11 +224,13 @@ class AdBlocker {
   isDomainInBlacklist(url) {
     // Should all this domain stuff be extracted into a function?
     // Why is CliqzUtils.detDetailsFromUrl not used?
-    let hostname = url;
-    try {
-      hostname = extractGeneralDomain(url);
-    } catch (e) {
-      // In case of ill-formed URL, just do a normal loopup
+    if (!utils.isUrl(url)) {
+      return false;
+    }
+    const urlParts = URLInfo.get(url);
+    let hostname = urlParts.hostname || url;
+    if (hostname.startsWith('www.')) {
+      hostname = hostname.substring(4);
     }
 
     return this.blacklist.has(hostname);
@@ -278,15 +254,14 @@ class AdBlocker {
   toggleUrl(url, domain) {
     let processedURL = url;
     if (domain) {
-      try {
-        processedURL = extractGeneralDomain(processedURL);
-      } catch (e) {
-        // If there is no general domain to be extracted, it means the URL is
-        // not correct. Hence we can just ignore it. (eg: about:config).
-        return;
+      // Should all this domain stuff be extracted into a function?
+      // Why is CliqzUtils.getDetailsFromUrl not used?
+      if (utils.isUrl(processedURL)) {
+        processedURL = URLInfo.get(url).hostname;
       }
-    } else {
-      processedURL = utils.cleanUrlProtocol(processedURL, true);
+      if (processedURL.startsWith('www.')) {
+        processedURL = processedURL.substring(4);
+      }
     }
 
     const existHW = CliqzHumanWeb && CliqzHumanWeb.state.v[url];
@@ -377,7 +352,6 @@ class AdBlocker {
 }
 
 const CliqzADB = {
-  onDiskCache: true,
   adblockInitialized: false,
   adbMem: {},
   adbStats: new AdbStats(),
@@ -401,14 +375,14 @@ const CliqzADB = {
       WebRequest.onBeforeRequest.addListener(
         CliqzADB.httpopenObserver.observe,
         undefined,
-        ['blocking'],
+        ['blocking']
       );
     };
 
     if (adbEnabled()) {
       initAdBlocker();
     } else {
-      this.onPrefChangeEvent = events.subscribe('prefchange', (pref) => {
+      this.onPrefChangeEvent = events.subscribe('prefchange', pref => {
         if ((pref === ADB_PREF || pref === ADB_ABTEST_PREF) &&
           !CliqzADB.adblockInitialized &&
           adbEnabled()) {
@@ -447,7 +421,7 @@ const CliqzADB = {
       if (!CliqzADB.cacheADB) {
         return;
       }
-      Object.keys(CliqzADB.cacheADB).forEach((t) => {
+      Object.keys(CliqzADB.cacheADB).forEach(t => {
         if (!browser.isWindowActive(t)) {
           delete CliqzADB.cacheADB[t];
         }
