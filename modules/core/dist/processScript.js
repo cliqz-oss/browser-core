@@ -207,7 +207,7 @@ function onDOMWindowCreated(ev) {
       return;
     }
 
-    var matchesCurrentUrl = globsMatch(msg.data.url,currentURL());
+    var matchesCurrentUrl = msg.data.url === currentURL();
     var isGetHTML = msg.data.action === 'getHTML';
     // TEMP: Human web decodes the URI for internal storage
     var isCurrentUrlBis = msg.data.url === decodeURIComponent(currentURL());

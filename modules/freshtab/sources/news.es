@@ -55,6 +55,11 @@ function requestBackend(url, data) {
     });
 }
 
+function checkNewsTypeForHbasedRequest(newsPlacingRecord){
+  return (newsPlacingRecord.type === hbasedNewsTypeKey)
+        ||(newsPlacingRecord.type === prClBurdaNewsTypeKey);
+}
+
 function getTopNewsList() {
   var url = coreUtils.RICH_HEADER + coreUtils.getRichHeaderQueryString(''),
       data = {
@@ -84,7 +89,7 @@ function getHbasedNewsObject() {
       let hbNewsDict = getHbasedNewsDict(reqData);
       let newsPlacing = hbasedRecom.newsPlacing || [];
 
-      const reqDomains = newsPlacing.filter(r => r.type === hbasedNewsTypeKey)
+      const reqDomains = newsPlacing.filter(checkNewsTypeForHbasedRequest)
         .map((r) => r.domain.split('/')[0]);
 
       let cleanhbNewsDict = {};
@@ -276,7 +281,7 @@ function composeDomainHasheList(newsPlacing, historyBasedRecommendationsCache) {
 
 
   // extract domains' hashes for history based news
-  const domainHashList = newsPlacing.filter(r => r.type === hbasedNewsTypeKey).map(getDomainHash);
+  const domainHashList = newsPlacing.filter(checkNewsTypeForHbasedRequest).map(getDomainHash);
   const cachedHashList = (historyBasedRecommendationsCache && historyBasedRecommendationsCache.hashList) || [];
 
   if (domainHashList.length !== 0) {
