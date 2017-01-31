@@ -7,7 +7,7 @@ console.log('Configuration file:', configFilePath);
 var cliqzConfig     = JSON.parse(fs.readFileSync(configFilePath));
 
 // build environment
-cliqzConfig.buildEnv = process.env.CLIQZ_ENVIRONMENT || 'development';
+cliqzConfig.environment = process.env.CLIQZ_ENVIRONMENT || 'development';
 
 // source maps
 cliqzConfig.sourceMaps = process.env.CLIQZ_SOURCE_MAPS == 'false' ? false : true;

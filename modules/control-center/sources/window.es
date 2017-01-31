@@ -609,9 +609,9 @@ export default class {
   }
 
   enableSearch() {
+    this.panel.hide();
     events.pub('autocomplete:enable-search',{
       urlbar: this.window.document.getElementById('urlbar')
     });
-    this.panel.hidePopup();
   }
 }

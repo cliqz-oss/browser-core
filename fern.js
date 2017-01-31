@@ -109,7 +109,7 @@ function buildChromeHumanWeb(mode) {
   finalManifest.permissions = chromeManifest.permissions;
   finalManifest.content_security_policy = chromeManifest.content_security_policy;
   finalManifest.version_name = "packaged";
-  if(mode === "prod"){
+  if(mode === "production"){
     finalManifest.chrome_url_overrides = chromeManifest.chrome_url_overrides;
   }
   var app = 'chrome-test-hw-hpn',
@@ -202,14 +202,14 @@ program.command('build [file]')
        .option('--no-maps', 'disables source maps')
        .option('--version [version]', 'sets extension version', 'package')
        .option('--freshtab', 'enables ember fresh-tab-frontend build')
-       .option('--prod', 'to generate comprehensive manifest.json')
+       .option('--environment <environment>', 'to generate comprehensive manifest.json')
        .option('--to-subdir', 'build into a subdirectory named after the config')
        .option('--instrument-functions [ms]', 'log all modules function calls which take more than given ms')
        .action((configPath, options) => {
           var buildStart = Date.now();
           setConfigPath(configPath, options.toSubdir);
 
-          process.env['CLIQZ_ENVIRONMENT'] = options.prod ? 'production' : 'development';
+          process.env['CLIQZ_ENVIRONMENT'] = options.environment || 'development';
           process.env['CLIQZ_SOURCE_MAPS'] = options.maps;
           process.env['CLIQZ_FRESHTAB'] = options.freshtab;
           if (options.instrumentFunctions !== undefined) {
@@ -228,11 +228,7 @@ program.command('build [file]')
             child.stderr.on('data', data => console.log(data.toString()));
             child.stdout.on('data', data => console.log(data.toString()));
             child.on('close', code => {
-              let mode = "dev";
-              if(options.prod){
-                mode = "prod";
-              }
-              buildChromeHumanWeb(mode);
+              buildChromeHumanWeb(options.environment || 'development');
               console.log(code === 0 ? 'done - ' + (Date.now() - buildStart) +'ms' : '');
             })
           });
@@ -265,10 +261,12 @@ function createBuildWatcher() {
 program.command('serve [file]')
        .option('--no-maps', 'disables source maps')
        .option('--version [version]', 'sets extension version', 'package')
+       .option('--environment <environment>', 'to generate comprehensive manifest.json')
        .option('--freshtab', 'disables ember fresh-tab-frontend build')
        .option('--instrument-functions [ms]', 'log all modules function calls which take more than given ms')
        .action((configPath, options) => {
           setConfigPath(configPath);
+          process.env['CLIQZ_ENVIRONMENT'] = options.environment || 'development';
           process.env['CLIQZ_SOURCE_MAPS'] = options.maps;
           process.env['CLIQZ_FRESHTAB'] = options.freshtab;
           if (options.instrumentFunctions !== undefined) {

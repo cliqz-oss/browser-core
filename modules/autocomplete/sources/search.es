@@ -7,7 +7,7 @@ import historyCluster from "autocomplete/history-cluster";
 import ResultProviders from "autocomplete/result-providers";
 import Result from "autocomplete/result";
 import Mixer from "autocomplete/mixer";
-import CliqzSpellCheck from "autocomplete/spell-check"
+import SpellCheck from "autocomplete/spell-check"
 
 class TimeoutError extends Error {}
 
@@ -82,7 +82,7 @@ export default class Search {
       triggerUrlCache: new TriggerUrlCache()
     } : {};
     this.mixer = new Mixer(mixerArgs);
-    this.spellCheck = new CliqzSpellCheck();
+    this.spellCheck = new SpellCheck();
     this.resultsTimer = null;
     this.historyTimer = null;
     this.historyTimeout = false;

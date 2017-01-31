@@ -9,7 +9,7 @@ function startup(aData, aReason) {
     Components.utils.unload('chrome://cliqzmodules/content/Extension.jsm');
 
     Components.utils.import('chrome://cliqzmodules/content/Extension.jsm');
-    Extension.init(aReason == ADDON_UPGRADE, aData.oldVersion, aData.version);
+    Extension.init(aData.id, aReason == ADDON_UPGRADE, aData.oldVersion, aData.version);
 }
 
 function shutdown(aData, aReason) {

@@ -200,10 +200,10 @@ function updateGeneralState() {
     return el.getAttribute('state');
   }), state = 'active';
 
-  if(states.includes('critical')){
+  if(states.indexOf('critical') != -1){
     state = 'critical';
   }
-  else if(states.includes('inactive')){
+  else if(states.indexOf('inactive') != -1){
     state = 'inactive';
   }
 

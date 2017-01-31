@@ -44,7 +44,7 @@ var CliqzUtils = {
   BRANDS_DATABASE: BRANDS_DATABASE,
 
   //will be updated from the mixer config endpoint every time new logos are generated
-  BRANDS_DATABASE_VERSION: 1473867650984,
+  BRANDS_DATABASE_VERSION: 1481799943898,
   GEOLOC_WATCH_ID:                null, // The ID of the geolocation watcher (function that updates cached geolocation on change)
   VERTICAL_TEMPLATES: {
         'n': 'news'    ,

@@ -228,9 +228,6 @@ var CliqzABTests = {
             case "1066_B":
                 CliqzUtils.setPref("proxyNetwork", true);
                 break;
-            case "1067_B":
-                CliqzUtils.setPref("attrackProxyTrackers", true);
-                break;
             case "1069_A":
                 CliqzUtils.setPref("grOfferSwitchFlag", false);
                 break;
@@ -250,6 +247,12 @@ var CliqzABTests = {
                 break;
             case "1071_B":
                 CliqzUtils.setPref("browser.privatebrowsing.apt", true, '');
+                break;
+            case "1072_A":
+                CliqzUtils.setPref("grFeatureEnabled", false);
+                break;
+            case "1072_B":
+                CliqzUtils.setPref("grFeatureEnabled", true);
                 break;
             case "1074_A":
                 CliqzUtils.setPref("cliqz-adb-abtest", false);
@@ -292,9 +295,6 @@ var CliqzABTests = {
                 break;
             case "1081_B":
                 CliqzUtils.setPref("attrackLogBreakage", true);
-                break;
-            case "1083_B":
-                CliqzUtils.setPref("dnsLookup", true);
                 break;
             case "1084_B":
                 CliqzUtils.setPref("attrackOverrideUserAgent", true);
@@ -442,9 +442,6 @@ var CliqzABTests = {
             case "1065_B":
                 CliqzUtils.clearPref("freshTabNewsEmail");
                 break;
-            case "1067_B":
-                CliqzUtils.clearPref("attrackProxyTrackers");
-                break;
             case "1068_A":
             case "1068_B":
                 CliqzUtils.clearPref("languageDedup");
@@ -501,10 +498,6 @@ var CliqzABTests = {
             case "1082_A":
             case "1082_B":
               CliqzUtils.clearPref("experimentalCookieDroppingDetection");
-              break;
-            case "1083_A":
-            case "1083_B":
-              CliqzUtils.clearPref("dnsLookup");
               break;
             case "1084_B":
               CliqzUtils.clearPref("attrackOverrideUserAgent");

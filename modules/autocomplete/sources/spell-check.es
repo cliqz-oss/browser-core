@@ -2,13 +2,14 @@ import autocomplete from "autocomplete/autocomplete";
 import { utils } from "core/cliqz";
 import { isFirefox } from "core/platform";
 
-export default class CliqzSpellCheck {
+export default class SpellCheck {
     constructor() {
+      this.active = false;
       this.spellCorrectionDict = {};
       this.resetState();
-      if (isFirefox && utils.getPref("backend_country", "") == "de" && Object.keys(this.spellCorrectionDict).length == 0) {
-          utils.log('loading dict', 'spellcorr');
-          utils.loadResource('chrome://cliqz/content/spell_check.list', CliqzSpellCheck.loadRecords);
+      if (isFirefox && utils.getPref("backend_country", "") == "de") {
+          utils.log('Initializing', 'SpellChecker');
+          utils.loadResource('chrome://cliqz/content/spell_check.list', this.loadRecords.bind(this));
       }
     }
     resetState() {
@@ -50,5 +51,52 @@ export default class CliqzSpellCheck {
             var right = words[1];
             this.spellCorrectionDict[wrong] = right;
         }
+        this.active = true;
+    }
+    getCurrentMessage(urlbarVal){
+      if(this.active && // loading is done
+         this.state.on &&
+         !this.state.override &&
+         !this.state.userConfirmed &&
+         utils.getPref('spellCorrMessage', true))
+      {
+        var terms = urlbarVal.split(" ");
+        var messages = [];
+        var termsObj = {};
+        for(var i = 0; i < terms.length; i++) {
+          termsObj = {
+            correct: terms[i]
+          };
+          messages.push(termsObj);
+          if(this.state.correctBack[terms[i]]) {
+            messages[i].correctBack = this.state.correctBack[terms[i]];
+          } else {
+            messages[i].correctBack = "";
+          }
+        }
+        //cache searchTerms to check against when user keeps spellcorrect
+        this.state.searchTerms = messages;
+
+        return messages;
+      }
+    }
+    revert(urlbarVal){
+      for (var c in this.state.correctBack) {
+          urlbarVal = urlbarVal.replace(c, this.state.correctBack[c]);
+      }
+      this.state.override = true;
+      return urlbarVal;
+    }
+    keep(){
+      for (var i = 0; i < this.state.searchTerms.length; i++) {
+          //delete terms that were found in correctBack dictionary. User accepted our correction:-)
+          for (var c in this.state.correctBack) {
+              if (this.state.correctBack[c] === this.state.searchTerms[i].correctBack) {
+                  delete this.state.correctBack[c];
+              }
+          }
+      }
+
+      this.state.userConfirmed = true;
     }
 }

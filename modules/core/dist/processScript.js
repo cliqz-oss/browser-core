@@ -3,7 +3,6 @@
 /* globals addEventListener, content */
 // CLIQZ pages communication channel
 var { classes: Cc, interfaces: Ci, utils: Cu } = Components;
-Cu.import("resource://gre/modules/Console.jsm")
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
 

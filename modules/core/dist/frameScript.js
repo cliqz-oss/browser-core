@@ -1,6 +1,11 @@
 var { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
-Cu.import("resource://gre/modules/Console.jsm")
+try {
+  Components.utils.import("resource://gre/modules/Console.jsm");
+} catch(e) {
+  // Older version of Firefox
+  Components.utils.import("resource://gre/modules/devtools/Console.jsm");
+}
 
 var FLAGS = {
   STATE_START: Ci.nsIWebProgressListener.STATE_START,

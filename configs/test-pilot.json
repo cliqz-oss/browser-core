@@ -31,8 +31,10 @@
     "performance",
     "hpn",
     "geolocation",
+    "notifications",
     "freshtab",
-    "control-center"
+    "control-center",
+    "offers"
   ],
   "subprojects": [
     "fresh-tab-frontend"

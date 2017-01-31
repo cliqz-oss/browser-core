@@ -58,10 +58,12 @@ export default background({
   actions: {
     _showOnboarding() {
       if (onboardingVersion() === '2.1') {
-        if (shouldShowOnboardingV2()) {
-          utils.openLink(utils.getWindow(), utils.CLIQZ_ONBOARDING);
-          return;
-        }
+        shouldShowOnboardingV2().then((show) => {
+          if (show) {
+            utils.openLink(utils.getWindow(), utils.CLIQZ_ONBOARDING);
+            return;
+          }
+        });
       }
     },
     _showHelp: isWithinNDaysAfterInstallation.bind(null, 5),
@@ -421,6 +423,16 @@ export default background({
 
   events: {
     "control-center:cliqz-tab": function () {
+      // toggle notifications before toggling freshtab
+      if(FreshTab.isActive()) {
+        events.pub('notifications:notifications-cleared');
+      } else {
+        utils.callAction('notifications', 'hasUnread').then( (res) => {
+          if (res) {
+            events.pub('notifications:new-notification');
+          }
+        });
+      }
       FreshTab.toggleState();
     },
     "message-center:handlers-freshtab:new-message": function onNewMessage(message) {

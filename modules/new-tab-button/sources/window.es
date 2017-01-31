@@ -8,7 +8,7 @@ export default class {
 
   constructor(settings) {
     this.window = settings.window;
-
+    this.channel = settings.settings.channel;
     this.panel = new Panel(
       this.window,
       'chrome://cliqz/content/new-tab-button/index.html',
@@ -105,11 +105,19 @@ export default class {
   }
 
   buttonA() {
-    return this.window.document.getAnonymousElementByAttribute(
+    const btn = this.window.document.getAnonymousElementByAttribute(
       this.window.gBrowser.tabContainer, 'anonid', 'tabs-newtab-button');
+    if(this.channel !== '40') {
+      btn.classList.add('amo');
+    }
+    return btn;
   }
 
   buttonB() {
-    return this.window.document.getElementById('new-tab-button');
+    const btn = this.window.document.getElementById('new-tab-button');
+    if(this.channel !== '40') {
+      btn.classList.add('amo');
+    }
+    return btn;
   }
 }
