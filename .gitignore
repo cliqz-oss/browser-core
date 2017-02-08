@@ -5,6 +5,7 @@
 tmp
 tests.tap
 tests.xml
+addon.env
 
 # ignore invisible files
 .Trashes
@@ -24,6 +25,7 @@ firefox-autoconfigs
 *.scssc
 generic/static/styles/css/
 npm.err
+npm-debug.log
 
 /certs
 /xpi-sign

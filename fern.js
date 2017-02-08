@@ -198,6 +198,19 @@ program.command('install')
           console.log(chalk.green('DONE!'))
        });
 
+program.command('addon-version')
+       .action(() => {
+          getExtensionVersion('package').then(version => {
+            console.log(version)
+          });
+        });
+
+program.command('addon-id [file]')
+       .action((configPath) => {
+          setConfigPath(configPath);
+          console.log(CONFIG.settings.id || 'cliqz@cliqz.com')
+        });
+
 program.command('build [file]')
        .option('--no-maps', 'disables source maps')
        .option('--version [version]', 'sets extension version', 'package')
