@@ -52,7 +52,7 @@ export default Ember.Component.extend({
       const url = this.get('model.url');
       const cliqz = this.get('cliqz');
       if (this.get('isCliqz')) {
-        cliqz.setUrlbar(this.get('keyword'));
+        cliqz.queryCliqz(this.get('keyword'));
       } else {
         cliqz.openUrl(url);
       }

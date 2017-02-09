@@ -446,7 +446,7 @@ export default class {
         break;
       default:
         utils.log(utils.dropDownStyle, '========= dropDownStyle CASE default ========');
-        urlbar.style.maxWidth = '800px';
+        urlbar.style.maxWidth = '';
         urlbar.style.margin = '0 2.5em !important';
         fb.style.border = 'none';
         fb.style.borderRight = '1px solid #e1e1e1';

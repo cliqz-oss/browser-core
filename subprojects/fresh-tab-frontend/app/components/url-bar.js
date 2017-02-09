@@ -10,7 +10,7 @@ export default Ember.Component.extend({
     if (ev.keyCode === 13) {
       input = Ember.$(ev.target).val();
     }
-    this.get('cliqz').setUrlbar(input);
+    this.get('cliqz').queryCliqz(input);
     this.get('cliqz').sendTelemetry({
       type: 'home',
       action: 'search_keystroke'

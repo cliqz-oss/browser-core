@@ -9,13 +9,24 @@
         &:before {
             content: " ";
             display: inline-block;
-            height: 8px;
-            width: 8px;
-            border-radius: 8px;
+            height: 6px;
+            width: 6px;
+            border-radius: 50%;
             background-color: red;
         }
     }
+
+    &.has-notification.amo {
+        .toolbarbutton-icon {
+            margin-left: -15px;
+        }
+
+        &:before {
+            margin-left: 20px;
+        }
+    }
 }
+
 
 .tabs-newtab-button {
     padding-left: 3px;
@@ -25,15 +36,68 @@
         margin-left: 2px;
         margin-right: 3px;
     }
+
+    &.amo {
+        &.has-notification {
+            padding-right: 10px;
+        }
+    }
 }
 
 #new-tab-button {
+    .toolbarbutton-icon {
+        margin-left: 0px;
+    }
+
     &:before {
         margin-top: 0px;
+    }
+
+    /*//==== when you have many tabs*/
+    &.has-notification.amo {
+        .toolbarbutton-icon {
+            margin-left: 5px;
+        }
+
+        &:before {
+            margin: 8px 0 -13px -15px;
+        }
     }
 }
 
 panelmultiview[mainViewId="new-tab-button-panel"] > .panel-viewcontainer > .panel-viewstack > .panel-mainview:not([panelid="PanelUI-popup"]),
 panel[viewId="new-tab-button-panel"] .panel-mainview {
     max-width: 50em !important;
+}
+
+@media (-moz-os-version: windows-xp), (-moz-os-version: windows-vista),
+(-moz-os-version: windows-win7), (-moz-os-version: windows-win8), (-moz-os-version: windows-win10) {
+
+    .tabs-newtab-button, #new-tab-button {
+
+        &.has-notification.amo {
+            .toolbarbutton-icon {
+                margin-left: 0px;
+            }
+
+            &:before {
+                margin-left: 10px;
+            }
+        }
+    }
+
+
+    /** different new tab button in case there are too many new tabs open**/
+    #new-tab-button {
+        .toolbarbutton-icon {
+            margin-left: 0px;
+        }
+
+
+        &.has-notification.amo {
+            &:before {
+                margin: 0 0 -1px -2px;
+            }
+        }
+    }
 }

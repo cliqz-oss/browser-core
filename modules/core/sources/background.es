@@ -213,7 +213,8 @@ export default background({
     },
 
     setUrlbar(value) {
-      return this.actions.queryCliqz(value);
+      let urlBar = utils.getWindow().document.getElementById("urlbar")
+      urlBar.mInputField.value = value;
     },
     recordLang(url, lang) {
       events.pub('content:dom-ready', url);

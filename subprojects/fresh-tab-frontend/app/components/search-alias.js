@@ -8,7 +8,7 @@ export default Ember.Component.extend({
   attributeBindings: ['style'],
 
   click() {
-    this.get('cliqz').setUrlbar(this.get('alias') + ' ');
+    this.get('cliqz').queryCliqz(this.get('alias') + ' ');
     this.get('cliqz').sendTelemetry({
       type: 'home',
       action: 'click',

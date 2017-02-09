@@ -44,8 +44,10 @@
     "notifications",
     "freshtab",
     "control-center",
+    "offers",
     "message-center",
-    "offers-v2"
+    "notifications",
+    "new-tab-button"
   ],
   "subprojects": [
     "fresh-tab-frontend"

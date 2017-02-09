@@ -72,8 +72,8 @@ export default Ember.Component.extend({
     },
 
     searchAlias() {
-      this.get('cliqz').setUrlbar('');
-      this.get('cliqz').setUrlbar(this.get('alias') + ' ');
+      this.get('cliqz').queryCliqz('');
+      this.get('cliqz').queryCliqz(this.get('alias') + ' ');
       this.get('cliqz').sendTelemetry({
         type: 'home',
         action: 'click',

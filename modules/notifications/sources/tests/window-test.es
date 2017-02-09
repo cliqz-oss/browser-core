@@ -5,6 +5,11 @@ export default describeModule("notifications/window",
         default: {
           callAction() {}
         }
+      },
+      'freshtab/main': {
+        default: {
+          isActive() {}
+        }
       }
     };
   },
@@ -20,6 +25,8 @@ export default describeModule("notifications/window",
 
       it('calls action: notifications/updateUnreadStatus', function() {
         const utils = this.deps('core/utils').default
+        const freshtab = this.deps('freshtab/main').default;
+        sinon.stub(freshtab, 'isActive').resolves(true);
         const stub = sinon.stub(utils, 'callAction').resolves(true);
         subject.init();
         stub().then(function(value) {
