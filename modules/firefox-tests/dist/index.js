@@ -91,6 +91,13 @@ if (!CliqzUtils) {
 injectTestHelpers(CliqzUtils);
 initHttpServer();
 
+function start() {
+
+if (!CliqzUtils.Extension.app.isFullyLoaded) {
+  setTimeout(start, 2000);
+  return;
+}
+
 // Load Tests and inject their dependencies
 Object.keys(window.TESTS).forEach(function (testName) {
   var testFunction = window.TESTS[testName],
@@ -130,6 +137,10 @@ beforeEach(function () {
     /* Turn off telemetry during tests */
     telemetry = CliqzUtils.telemetry;
     CliqzUtils.telemetry = function () {};
+    // we only need the tests for the regular cliqz dropdown
+    CliqzUtils.setPref('dropDownABCGroup', 'cliqz');
+    CliqzUtils.clearPref('dropDownStyle');
+
   }.bind(this));
 });
 
@@ -197,3 +208,5 @@ runner.on('end', function () {
   writeLogsToFile(logs);
   if(getParameterByName('closeOnFinish') === "1") { closeBrowser(); }
 });
+}
+start()

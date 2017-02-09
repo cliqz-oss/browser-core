@@ -1,17 +1,61 @@
-<div id="topVisited" class="center">
-  {{speed-dials-row model=model.speedDials.history type="history"}}
-  {{speed-dials-row model=model.speedDials.custom type="custom"}}
-</div>
-
-<div class="wrap">
-
-  <div id="searchContainer" class="center">
-  {{url-bar}}
+<div id="flexContainer">
+{{#if model.config.messageCenter.hasMessages}}
+  <div id="notificationsBox">
+    {{#each model.config.messageCenter.messages as |message|}}
+      {{component (concat 'messages/' message.template '-message') model=message}}
+    {{/each}}
   </div>
+{{/if}}
 
-  <div id="newsContainer" class="clearfix">
-    <div class="newsBox allNews clearfix">
-      {{article-items model=model.news tagName="ul" }}
+<div id="freshTabPage">
+{{!--   <nav>
+    {{#link-to 'freshtab.index' class='freshtab-button'}}
+      <img src="./assets/images/Home.svg">
+    {{/link-to}}
+    {{#link-to 'freshtab.history.index' (query-params query='') class="history-button"}}
+      <img src="./assets/images/History.svg">
+    {{/link-to}}
+  </nav> --}}
+  <div id="center" tabindex="0">
+    <div id="container">
+      <div id="topVisited" class="center">
+        {{speed-dials-row model=model.speedDials.history type="history"}}
+        {{speed-dials-row model=model.speedDials.custom type="custom"}}
+      </div>
+
+      <div class="wrap">
+
+        <div id="searchContainer" class="center">
+          {{url-bar}}
+        </div>
+
+        <div id="newsContainer" class="clearfix">
+          <div class="newsBox allNews clearfix">
+            {{article-items model=model.news tagName="ul"}}
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
+
+  {{#if model.config.showFeedback}}
+    <div id="feedback">
+      {{feedback-link}}
+    </div>
+  {{else}}
+    <div id="onboarding">
+      {{#if model.config.miniOnboarding}}
+        {{mini-onboarding isBrowser=model.config.isBrowser freshTabLearnMoreAction="freshTabLearnMore" revertBackAction="revertBack"}}
+      {{else}}
+        {{#if model.config.showHelp}}
+          <div id="learnMore">
+            <a href="https://cliqz.com/aboutus/blog/new-startpage" title="Learn more" target="_blank" class="learnBtn">Learn more</a>
+          </div>
+        {{/if}}
+      {{/if}}
+    </div>
+  {{/if}}
+</div>
+
 </div>

@@ -4,7 +4,7 @@ import * as browser from 'platform/browser';
 import { utils } from 'core/cliqz';
 
 // Class to hold a page load and third party urls loaded by this page.
-function PageLoadData(url, isPrivate) {
+function PageLoadData(url, isPrivate, reloaded) {
 
     // Create a short md5 hash of the input string s
     this._shortHash = function(s) {
@@ -22,6 +22,7 @@ function PageLoadData(url, isPrivate) {
     this.e = null;
     this.tps = {};
     this.redirects = [];
+    this.ra = reloaded;
 
     this._plainObject = null;
 
@@ -143,11 +144,15 @@ class PageEventTracker {
   //  or returns null if the url is malformed or null.
   onFullPage(url, tab_id, isPrivate) {
     // previous request finished. Move to staged
-    this.stage(tab_id);
+    const prevPage = this.stage(tab_id);
     // create new page load entry for tab
     if(url && url.hostname && tab_id > 0 && !this.ignore.has(url.hostname)) {
-        this._active[tab_id] = new PageLoadData(url, isPrivate || false);
-        return this._active[tab_id];
+
+      // check if it is a reload of the same page
+      const reloaded = prevPage && url.toString() === prevPage.url && Date.now() - prevPage.s < 30000;
+
+      this._active[tab_id] = new PageLoadData(url, isPrivate || false, reloaded || false);
+      return this._active[tab_id];
     } else {
         return null;
     }
@@ -156,7 +161,7 @@ class PageEventTracker {
   onRedirect(url_parts, tab_id, isPrivate) {
       if(tab_id in this._active) {
           let prev = this._active[tab_id];
-          this._active[tab_id] = new PageLoadData(url_parts, isPrivate);
+          this._active[tab_id] = new PageLoadData(url_parts, isPrivate, prev.ra || false);
           this._active[tab_id].redirects = prev.redirects;
           this._active[tab_id].redirects.push(prev.hostname);
       } else {
@@ -201,12 +206,15 @@ class PageEventTracker {
   }
 
   // Move the PageLoadData object for windowID to the staging area.
+  // returns the staged PageLoadData object
   stage(windowID) {
       if(windowID in this._active) {
           this._active[windowID]['e'] = (new Date()).getTime();
           // push object to staging and save its id
           this._old_tab_idx[windowID] = this._staged.push(this._active[windowID]) - 1;
           delete this._active[windowID];
+          // return the staged object
+          return this._staged[this._old_tab_idx[windowID]];
       }
   }
 

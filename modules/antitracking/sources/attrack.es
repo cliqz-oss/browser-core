@@ -46,23 +46,13 @@ var CliqzAttrack = {
     VERSION: '0.97',
     MIN_BROWSER_VERSION: 35,
     LOG_KEY: 'attrack',
-    VERSIONCHECK_URL: 'https://cdn.cliqz.com/anti-tracking/whitelist/versioncheck.json',
-    URL_ALERT_RULES: 'chrome://cliqz/content/anti-tracking-rules.json',
-    URL_BLOCK_RULES: 'https://cdn.cliqz.com/anti-tracking/whitelist/anti-tracking-block-rules.json',
     ENABLE_PREF: 'modules.antitracking.enabled',
     debug: false,
     msgType:'attrack',
     whitelist: null,
     similarAddon: false,
-    tokenDomainCountThreshold: 2,
-    safeKeyExpire: 7,
-    localBlockExpire: 24,
-    shortTokenLength: 8,
-    safekeyValuesThreshold: 4,
-    placeHolder: '',
     tp_events: null,
     recentlyModified: new TempSet(),
-    cliqzHeader: 'CLIQZ-AntiTracking',
     obfuscate: function(s, method) {
         // used when action != 'block'
         // default is a placeholder
@@ -74,9 +64,9 @@ var CliqzAttrack = {
         case 'same':
             return s;
         case 'placeholder':
-            return CliqzAttrack.placeHolder;
+            return CliqzAttrack.config.placeHolder;
         default:
-            return CliqzAttrack.placeHolder;
+            return CliqzAttrack.config.placeHolder;
         }
     },
     visitCache: {},
@@ -177,7 +167,7 @@ var CliqzAttrack = {
             };
         }
 
-        pacemaker.register(CliqzAttrack.updateConfig, 3 * 60 * 60 * 1000);
+        // pacemaker.register(CliqzAttrack.updateConfig, 3 * 60 * 60 * 1000);
 
         // if the hour has changed
         pacemaker.register(CliqzAttrack.hourChanged, two_mins, timeChangeConstraint("hourChanged", "hour"));
@@ -203,7 +193,8 @@ var CliqzAttrack = {
     },
     /** Global module initialisation.
      */
-    init: function() {
+    init: function(config) {
+        this.config = config;
         // disable for older browsers
         if (CliqzAttrack.getBrowserMajorVersion() < CliqzAttrack.MIN_BROWSER_VERSION) {
             return;
@@ -267,14 +258,6 @@ var CliqzAttrack = {
             CliqzAttrack.disabled_sites = new Set();
         }
 
-        // note: if a 0 value were to be saved, the default would be preferred. This is ok because these options
-        // cannot have 0 values.
-        CliqzAttrack.safekeyValuesThreshold = parseInt(persist.getValue('safekeyValuesThreshold')) || 4;
-        CliqzAttrack.shortTokenLength = parseInt(persist.getValue('shortTokenLength')) || 8;
-
-        CliqzAttrack.placeHolder = persist.getValue('placeHolder', CliqzAttrack.placeHolder);
-        CliqzAttrack.cliqzHeader = persist.getValue('cliqzHeader', CliqzAttrack.cliqzHeader);
-
         CliqzAttrack.tp_events = new PageEventTracker((payloadData) => {
           // take telemetry data to be pushed and add module metadata
           const enabled = {
@@ -310,10 +293,10 @@ var CliqzAttrack = {
       // initialise classes which are used as steps in listeners
       const steps = {
         pageLogger: new PageLogger(CliqzAttrack.tp_events, CliqzAttrack.blockLog),
-        tokenExaminer: new TokenExaminer(CliqzAttrack.qs_whitelist, CliqzAttrack.shortTokenLength, CliqzAttrack.safekeyValuesThreshold, CliqzAttrack.safeKeyExpire),
+        tokenExaminer: new TokenExaminer(CliqzAttrack.qs_whitelist, this.config),
         tokenTelemetry: new TokenTelemetry(CliqzAttrack.telemetry),
         domChecker: new DomChecker(),
-        tokenChecker: new TokenChecker(CliqzAttrack.qs_whitelist, CliqzAttrack.blockLog, CliqzAttrack.tokenDomainCountThreshold, CliqzAttrack.shortTokenLength, {}, CliqzAttrack.hashProb),
+        tokenChecker: new TokenChecker(CliqzAttrack.qs_whitelist, CliqzAttrack.blockLog, {}, CliqzAttrack.hashProb, CliqzAttrack.config),
         blockRules: new BlockRules(),
         cookieContext: new CookieContext(),
       }
@@ -416,7 +399,7 @@ var CliqzAttrack = {
           state.incrementStat('cookie_block_tp1');
           response.requestHeaders = response.requestHeaders || [];
           response.requestHeaders.push({name: 'Cookie', value: ''});
-          response.requestHeaders.push({name: CliqzAttrack.cliqzHeader, value: ' '});
+          response.requestHeaders.push({name: CliqzAttrack.config.cliqzHeader, value: ' '});
           return true;
         },
       ];
@@ -541,50 +524,6 @@ var CliqzAttrack = {
         // trigger other hourly events
         events.pub("attrack:hour_changed");
     },
-    updateConfig: function() {
-        var today = datetime.getTime().substring(0, 10);
-        return fetch(CliqzAttrack.VERSIONCHECK_URL +"?"+ today, {
-          credentials: 'omit',
-          cache: 'default',
-        }).then((resp) => {
-          if (!resp.ok) {
-            throw "Request not ok: " + resp.status;
-          }
-          return resp.json()
-        }).then((versioncheck) => {
-          const requiresReload = parseInt(versioncheck.shortTokenLength) !== CliqzAttrack.shortTokenLength || parseInt(versioncheck.safekeyValuesThreshold) !== CliqzAttrack.safekeyValuesThreshold;
-
-          // config in versioncheck
-          if (versioncheck.placeHolder) {
-              persist.setValue('placeHolder', versioncheck.placeHolder);
-              CliqzAttrack.placeHolder = versioncheck.placeHolder;
-          }
-
-          if (versioncheck.shortTokenLength) {
-              persist.setValue('shortTokenLength', versioncheck.shortTokenLength);
-              CliqzAttrack.shortTokenLength = parseInt(versioncheck.shortTokenLength) || CliqzAttrack.shortTokenLength;
-          }
-
-          if (versioncheck.safekeyValuesThreshold) {
-              persist.setValue('safekeyValuesThreshold', versioncheck.safekeyValuesThreshold);
-              CliqzAttrack.safekeyValuesThreshold = parseInt(versioncheck.safekeyValuesThreshold) || CliqzAttrack.safekeyValuesThreshold;
-          }
-
-          if (versioncheck.cliqzHeader) {
-              persist.setValue('cliqzHeader', versioncheck.cliqzHeader);
-              CliqzAttrack.cliqzHeader = versioncheck.cliqzHeader;
-          }
-
-          // refresh pipeline if config changed
-          if (requiresReload) {
-            CliqzAttrack.initPipeline();
-          }
-          // fire events for list update
-          events.pub("attrack:updated_config", versioncheck);
-        }).catch((err) => {
-          console.error('versioncheck fetch error', err);
-        });
-    },
     isInWhitelist: function(domain) {
         if(!CliqzAttrack.whitelist) return false;
         var keys = CliqzAttrack.whitelist;
@@ -652,7 +591,7 @@ var CliqzAttrack = {
 
           response.redirectUrl = tmp_url;
           response.requestHeaders = response.requestHeaders || [];
-          response.requestHeaders.push({name: CliqzAttrack.cliqzHeader, value: ' '})
+          response.requestHeaders.push({name: CliqzAttrack.config.cliqzHeader, value: ' '})
           return true;
       }
     },
@@ -812,7 +751,15 @@ var CliqzAttrack = {
     },
     onUrlbarFocus(){
       countReload = true;
-    }
+    },
+    clearCache: function() {
+      if (CliqzAttrack.pipelineSteps.tokenExaminer) {
+        CliqzAttrack.pipelineSteps.tokenExaminer.clearCache();
+      }
+      if (CliqzAttrack.pipelineSteps.tokenChecker) {
+        CliqzAttrack.pipelineSteps.tokenChecker.blockLog.clear();
+      }
+    },
 };
 
 export default CliqzAttrack;

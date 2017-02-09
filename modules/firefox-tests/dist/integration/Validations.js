@@ -4,15 +4,15 @@ TESTS.Validations = function (CliqzUtils) {
   describe('Should load locales', function () {
     this.retries(1);
 
-    it('should load locales files', () => {
+    it('should load locales files', function () {
       // Load locales
       const langs = ['de', 'en', 'fr'];
       const locales = new Map();
-      langs.forEach((lang) => {
+      langs.forEach(function (lang) {
         CliqzUtils.loadResource(
           `${CliqzUtils.LOCALE_PATH}/${lang}/cliqz.json`,
-          req => locales.set(lang, req.response),
-        );
+          req => locales.set(lang, req.response)
+        )
       });
 
       return waitFor(function () {

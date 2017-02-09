@@ -6,7 +6,9 @@
 			{{#if url}}
 				url='{{ url }}'
 				{{#unless (logic type 'starts_with' 'cliqz-pattern')}}
-					arrow="false"
+					{{#unless (logic type 'starts_with' 'cliqz-custom')}}
+						arrow="false"
+					{{/unless}}
 				{{/unless}}
 			{{/if}}
 			idx='{{ @index }}'

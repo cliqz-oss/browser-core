@@ -11,13 +11,16 @@ export default function () {
   const config = prefs.get("config_logoVersion");
   const dev = prefs.get("brands-database-version");
   const retryPattern = [60*MINUTE, 10*MINUTE, 5*MINUTE, 2*MINUTE, MINUTE, MINUTE/2];
-  let version = '1473867650984'; //default fallback value
+  let version = utils.BRANDS_DATABASE_VERSION; //default fallback value
 
   if (dev) {
     version = dev;
   } else if (config) {
     version = config;
   }
+
+  // use the proper database version for generating logo paths
+  utils.BRANDS_DATABASE_VERSION = version;
 
   return new Promise((resolve, reject) => {
     function get() {

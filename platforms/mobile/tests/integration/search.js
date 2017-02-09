@@ -1,28 +1,18 @@
 var expect = chai.expect;
 
-var contentWindow, fakeServer;
+var contentWindow;
 
 describe('Search View', function() {
   let timeout = 15000;
   var testBox;
 
-  beforeEach(function () {
+  beforeEach(function (done) {
     // startup can be quite slow for the first time. Maybe there is better way
     // to warm it up.
     this.timeout(timeout);
     testBox = document.createElement("iframe");
     testBox.setAttribute("class", "testFrame");
     testBox.src = 	"/build/index.html";
-
-    function waitForWindow(win) {
-      return new Promise(function (resolve, reject) {
-        const rejectTimeout = setTimeout(reject.bind(null, "did not initialize properly"), timeout);
-				win.osAPI.isReady = function () {
-          clearTimeout(rejectTimeout);
-          resolve();
-        };
-      })
-    }
 
     return new Promise(function (resolve, reject) {
       const rejectTimeout = setTimeout(reject.bind(null, "iframe contentWindow not loaded"), timeout);
@@ -34,22 +24,12 @@ describe('Search View', function() {
     }).then(function () {
       contentWindow = testBox.contentWindow;
       return injectSinon(contentWindow);
-    }).then(function () {
-      fakeServer = sinon.fakeServer.create({
-        autoRespond: true,
-        respondImmediately: true
-      });
-
-      contentWindow.sinon.FakeXMLHttpRequest.addFilter(function (method, url) { return url.indexOf('api/v2') === -1 });
-      contentWindow.sinon.FakeXMLHttpRequest.useFilters = true;
-      contentWindow.sinonLoaded = true;
-      return waitForWindow(contentWindow);
-    });
+    }).then(done);
   });
 
   afterEach(function () {
   	localStorage.clear();
-    fakeServer.restore();
+    window.fakeServer.restore();
     document.body.removeChild(testBox);
   });
 
@@ -58,6 +38,7 @@ describe('Search View', function() {
         extraResult;
 
     beforeEach(function (done) {
+
       this.timeout(10000);
 
       contentWindow.addEventListener('imgLoadingDone', function () { done() });

@@ -1,0 +1,9 @@
+<!-- images.tpl -->
+<div class="card__gallery">
+    {{#each links}}
+        {{#if (limit @index 3)}}
+          <div class="image" data-style="background-image: url({{image}})">Image</div>
+        {{/if}}
+    {{/each}}
+</div>
+<!-- end images.tpl -->

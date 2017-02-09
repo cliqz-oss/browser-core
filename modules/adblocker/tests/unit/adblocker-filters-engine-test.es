@@ -32,7 +32,7 @@ function loadTestCases(path) {
 export default describeModule('adblocker/filters-engine',
   () => ({
     'adblocker/utils': {
-      log: () => {
+      default: () => {
         // const message = `[adblock] ${msg}`;
         // console.log(message);
       },

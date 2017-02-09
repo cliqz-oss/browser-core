@@ -11,8 +11,7 @@
     "cliqzSearchPrivate",
     "geolocation",
     "windows",
-    "https://*.cliqz.com/*",
-    "http://suggestqueries.google.com/*"
+    "https://*.cliqz.com/*"
   ],
   "chrome_url_overrides": {
     "cliqz-popup": "index.html"

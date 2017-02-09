@@ -9,7 +9,7 @@ import { LazyPersistentObject } from 'antitracking/persistent-state';
 import LRUCache from 'antitracking/fixed-size-cache';
 import HttpRequestContext from 'antitracking/webrequest-context';
 
-import { log } from 'adblocker/utils';
+import log from 'adblocker/utils';
 import FilterEngine, { serializeFiltersEngine
                      , deserializeFiltersEngine } from 'adblocker/filters-engine';
 import FiltersLoader from 'adblocker/filters-loader';
@@ -27,6 +27,7 @@ const SERIALIZED_ENGINE_PATH = ['antitracking', 'adblocking', 'engine.json'];
 export const ADB_VERSION = 2;
 
 // Preferences
+export const ADB_DISK_CACHE = 'cliqz-adb-disk-cache';
 export const ADB_PREF = 'cliqz-adb';
 export const ADB_PREF_OPTIMIZED = 'cliqz-adb-optimized';
 export const ADB_ABTEST_PREF = 'cliqz-adb-abtest';
@@ -71,7 +72,8 @@ function extractGeneralDomain(uri) {
  * and the matching using a FilterEngine.
  */
 class AdBlocker {
-  constructor() {
+  constructor(onDiskCache) {
+    this.onDiskCache = onDiskCache;
     this.logs = [];
     this.engine = new FilterEngine();
 
@@ -121,7 +123,7 @@ class AdBlocker {
       this.initCache();
 
       // Serialize new version of the engine on disk if needed
-      if (CliqzADB.onDiskCache) {
+      if (this.onDiskCache) {
         if (this.engine.updated) {
           const t0 = Date.now();
           new Resource(SERIALIZED_ENGINE_PATH)
@@ -132,7 +134,7 @@ class AdBlocker {
               this.engine.updated = false;
             })
             .catch((e) => {
-              CliqzUtils.log(`Failed to serialize filters engine on disk ${e}`, 'adblocker');
+              this.log(`Failed to serialize filters engine on disk ${e}`);
             });
         } else {
           this.log('Engine has not been updated, do not serialize');
@@ -143,9 +145,6 @@ class AdBlocker {
     // Blacklists to disable adblocking on certain domains/urls
     this.blacklist = new Set();
     this.blacklistPersist = new LazyPersistentObject('adb-blacklist');
-
-    // Is the adblocker initialized
-    this.initialized = false;
   }
 
   log(msg) {
@@ -170,7 +169,7 @@ class AdBlocker {
   }
 
   loadEngineFromDisk() {
-    if (CliqzADB.onDiskCache) {
+    if (this.onDiskCache) {
       return new Resource(SERIALIZED_ENGINE_PATH)
         .load()
         .then((serializedEngine) => {
@@ -203,28 +202,24 @@ class AdBlocker {
   init() {
     this.initCache();
 
-    // Load serialized engine from disk, then init filters manager
-    this.loadEngineFromDisk()
-      .then(() => this.listsManager.load())
-      .then(() => {
-        // Update check should be performed after a short while
-        this.log('Check for updates');
-        setTimeout(
-          () => this.listsManager.update(),
-          30 * 1000,
-        );
-      });
-
-    this.blacklistPersist.load().then((value) => {
+    return this.blacklistPersist.load().then((value) => {
       // Set value
       if (value.urls !== undefined) {
         this.blacklist = new Set(value.urls);
       }
-    });
-    this.initialized = true;
+    }).then(() => this.loadEngineFromDisk())
+      .then(() => this.listsManager.load())
+      .then(() => {
+        // Update check should be performed after a short while
+        this.log('Check for updates');
+        this.loadingTimer = utils.setTimeout(
+          () => this.listsManager.update(),
+          30 * 1000);
+      });
   }
 
   unload() {
+    utils.clearTimeout(this.loadingTimer);
     this.listsManager.stop();
   }
 
@@ -243,7 +238,7 @@ class AdBlocker {
   }
 
   isInBlacklist(request) {
-    return (this.blacklist.has(request.sourceURL) ||
+    return (this.isUrlInBlacklist(request.sourceURL) ||
             this.blacklist.has(request.sourceGD));
   }
 
@@ -261,7 +256,8 @@ class AdBlocker {
   }
 
   isUrlInBlacklist(url) {
-    return this.blacklist.has(url);
+    const processedURL = utils.cleanUrlProtocol(url, true);
+    return this.blacklist.has(processedURL);
   }
 
   logActionHW(url, action, domain) {
@@ -309,11 +305,6 @@ class AdBlocker {
   /* @param {webrequest-context} httpContext - Context of the request
    */
   match(httpContext) {
-    // Check if the adblocker is initialized
-    if (!this.initialized) {
-      return false;
-    }
-
     if (httpContext.isFullPage()) {
       // allow loading document
       return false;
@@ -377,7 +368,7 @@ class AdBlocker {
 }
 
 const CliqzADB = {
-  onDiskCache: true,
+  onDiskCache: CliqzUtils.getPref(ADB_DISK_CACHE, true),
   adblockInitialized: false,
   adbMem: {},
   adbStats: new AdbStats(),
@@ -392,10 +383,9 @@ const CliqzADB = {
       CliqzUtils.setPref(ADB_PREF, ADB_PREF_VALUES.Disabled);
     }
 
-    CliqzADB.adBlocker = new AdBlocker();
+    CliqzADB.adBlocker = new AdBlocker(CliqzADB.onDiskCache);
 
-    const initAdBlocker = () => {
-      CliqzADB.adBlocker.init();
+    const initAdBlocker = () => CliqzADB.adBlocker.init().then(() => {
       CliqzADB.adblockInitialized = true;
       CliqzADB.initPacemaker();
       WebRequest.onBeforeRequest.addListener(
@@ -403,20 +393,21 @@ const CliqzADB = {
         undefined,
         ['blocking'],
       );
-    };
+    });
 
     if (adbEnabled()) {
-      initAdBlocker();
-    } else {
-      this.onPrefChangeEvent = events.subscribe('prefchange', (pref) => {
-        if ((pref === ADB_PREF || pref === ADB_ABTEST_PREF) &&
-          !CliqzADB.adblockInitialized &&
-          adbEnabled()) {
-          // FIXME
-          initAdBlocker();
-        }
-      });
+      return initAdBlocker();
     }
+
+    this.onPrefChangeEvent = events.subscribe('prefchange', (pref) => {
+      if ((pref === ADB_PREF || pref === ADB_ABTEST_PREF) &&
+        !CliqzADB.adblockInitialized &&
+        adbEnabled()) {
+        // FIXME
+        initAdBlocker();
+      }
+    });
+    return Promise.resolve();
   },
 
   unload() {
@@ -427,14 +418,7 @@ const CliqzADB = {
       this.onPrefChangeEvent.unsubscribe();
     }
     CliqzADB.unloadPacemaker();
-    browser.forEachWindow(CliqzADB.unloadWindow);
     WebRequest.onBeforeRequest.removeListener(CliqzADB.httpopenObserver.observe);
-  },
-
-  initWindow(/* window */) {
-  },
-
-  unloadWindow(/* window */) {
   },
 
   initPacemaker() {
@@ -507,7 +491,7 @@ const CliqzADB = {
       const tabbrowser = browserWin.gBrowser;
 
       const numTabs = tabbrowser.browsers.length;
-      for (let index = 0; index < numTabs; index++) {
+      for (let index = 0; index < numTabs; index += 1) {
         const currentBrowser = tabbrowser.getBrowserAtIndex(index);
         if (currentBrowser) {
           const tabURL = currentBrowser.currentURI.spec;

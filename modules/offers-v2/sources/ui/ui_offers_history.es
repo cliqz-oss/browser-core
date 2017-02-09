@@ -56,6 +56,13 @@ export class UIOffersHistory {
 
     linfo('constructor: offers history: ' + JSON.stringify(this.offersHistory));
 
+    // #GR-278: we will load old data
+    try {
+      this._removeOldEntries();
+      linfo('_removeOldEntries properly executed');
+    } catch(error) {
+      lerr('_removeOldEntries: Error happened when removing the old entries: ' + error);
+    }
   }
 
   destroy() {
@@ -260,6 +267,22 @@ export class UIOffersHistory {
     } catch(ee) {
       lerr('_clearPersistenceData: error clearing data: ' + ee + '. At place: ' + OffersConfigs.OFFERS_HISTORY_DATA);
     }
+  }
+
+
+  //
+  // @brief will iterate over all the entries of the data and will remove
+  //        all of them that are older than a given time
+  //
+  _removeOldEntries() {
+    const sigDeltaLiveTimeMs = Date.now() - OffersConfigs.OFFERS_HISTORY_LIVE_TIME_SECS * 1000;
+    Object.keys(this.offersHistory).forEach((elemID) => {
+      const creationTimeMs = this.getCreationTime(elemID);
+      if (creationTimeMs && creationTimeMs >= sigDeltaLiveTimeMs) {
+        linfo('_removeOldEntries: removing entry with ID: ' + elemID);
+        delete this.offersHistory[elemID];
+      }
+    });
   }
 };
 

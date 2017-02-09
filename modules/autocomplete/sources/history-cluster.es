@@ -536,7 +536,7 @@ var CliqzHistoryCluster = {
 
     } else if (res.urls) {
       // Rule-based clustering has already been performed, just take the entry as it is
-      var instant = Result.generic('cliqz-pattern', res.url, null, res.title, null, searchString, res);
+      var instant = Result.generic('cliqz-pattern', res.url, res.urls[0].favicon, res.title, null, searchString, res);
       instant.data.debug ='(history rules cluster)!';
       // override with any titles we have saved
       //promises.push(CliqzHistoryCluster._getTitle(instant));
@@ -560,7 +560,7 @@ var CliqzHistoryCluster = {
 
     } else if (res.cluster) {
       // domain-based cluster
-      var instant = Result.generic('cliqz-pattern', results[0].url, null, results[0].title, null, searchString);
+      var instant = Result.generic('cliqz-pattern', results[0].url, results[0].favicon, results[0].title, null, searchString);
       var title = results[0].title;
       if (!title) {
         title = results[0].url;
@@ -590,7 +590,7 @@ var CliqzHistoryCluster = {
 
     } else if (results.length < 3) {
       for (var i = 0; i < results.length; i++) {
-        var instant = Result.generic('favicon', results[i].url, null, results[i].title, null, searchString);
+        var instant = Result.generic('favicon', results[i].url, results[i].favicon, results[i].title, null, searchString);
         instant.data.title = instant.comment;
         instant.data.debug = '(history generic)!';
         instant.data.kind = ['H'];

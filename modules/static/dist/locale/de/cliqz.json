@@ -56,6 +56,9 @@
     "Photos":{
         "message": "Bilder"
     },
+    "lang_code":{
+        "message": "de"
+    },
     "locale_lang_code":{
         "message": "de-DE"
     },
@@ -194,8 +197,17 @@
     "noResultTitle":{
         "message": "Dieses Mal haben wir leider keinen guten Vorschlag."
     },
+    "noResultUrlNavigate":{
+        "message":"Drücke auf Enter um diese Seite aufzurufen"
+    },
+    "noResultUrlSearch":{
+        "message":"oder starte eine Suche auf:"
+    },
     "noResultMessage":{
         "message": "Versuche es mit ,Enter' bei $1 oder per Klick auf:"
+    },
+    "searchOn": {
+        "message": "Suche mit $1"
     },
     "noResults": {
         "message":"Keine Ergebnisse"
@@ -471,73 +483,73 @@
       "message":"Automatisch"
     },
     "country_code_AT": {
-      "message":"Österreich - Österreich"
+      "message":"Österreich"
     },
     "country_code_BR": {
-      "message":"Brazil - Brasilien"
+      "message":"Brasilien"
     },
     "country_code_CA": {
-      "message":"Canada - Kanada"
+      "message":"Kanada"
     },
     "country_code_HR": {
-      "message":"Hrvatska - Kroatien"
+      "message":"Kroatien"
     },
     "country_code_EE": {
-      "message":"Eesti - Estland"
+      "message":"Estland"
     },
     "country_code_FR": {
-      "message":"France - Frankreich"
+      "message":"Frankreich"
     },
     "country_code_DE": {
-      "message":"Deutschland - Deutschland"
+      "message":"Deutschland"
     },
     "country_code_GR": {
-      "message":"Ελλάδα - Griechenland"
+      "message":"Griechenland"
     },
     "country_code_HU": {
-      "message":"Magyarország - Ungarn"
+      "message":"Ungarn"
     },
     "country_code_ID": {
-      "message":"Indonesia - Indonesien"
+      "message":"Indonesien"
     },
     "country_code_IT": {
-      "message":"Italia - Italien"
+      "message":"Italien"
     },
     "country_code_PS": {
-      "message":"Palestine - Palästina"
+      "message":"Palästina"
     },
     "country_code_RO": {
-      "message":"România - Rumänien"
+      "message":"Rumänien"
     },
     "country_code_RU": {
-      "message":"Россия - Russland"
+      "message":"Russland"
     },
     "country_code_RS": {
-      "message":"Србија - Serbien"
+      "message":"Serbien"
     },
     "country_code_SG": {
-      "message":"Singapore - Singapur"
+      "message":"Singapur"
     },
     "country_code_ES": {
-      "message":"España - Spanien"
+      "message":"Spanien"
     },
     "country_code_CH": {
-      "message":"Schweiz - Schweiz"
+      "message":"Schweiz"
     },
     "country_code_TH": {
-      "message":"ประเทศไทย - Thailand"
+      "message":"Thailand"
     },
     "country_code_TR": {
-      "message":"Türkiye - Türkei"
+      "message":"Türkei"
     },
     "country_code_GB": {
-      "message":"United Kingdom - Großbritannien"
+      "message":"Großbritannien"
     },
     "country_code_US": {
-      "message":"United States - Vereinigte Staten"
+      "message":"Vereinigte Staten"
     },
     "country_code_VN": {
-      "message":"Việt Nam - Vietnam"
+      "message":"Vietnam"
     },
     "statsShareMsg": {
         "message": "mit @cliqz habe ich $1 Minuten in den letzten 7 Tagen gespart."
@@ -771,7 +783,7 @@
       "message": "Link in neuem $1 Fenster öffnen"
     },
     "private": {
-      "message": "privatem"
+      "message": "Privatem"
     },
     "forget": {
       "message": "Vergessen"
@@ -1091,8 +1103,8 @@
     "freshtab_abTest_btn_subscribe": {
       "message": "JETZT abonnieren"
     },
-    "mobile_incognito": {
-      "message": "<strong>Vergessen Tab</strong><br /><br />Websites werden nicht in deinem Verlauf gespeichert. Ebenso werden temporäre Dateien und Cookies nicht gespeichert. Downloads und Lesezeichen werden aber gespeichert.<br />Dein Internetdienstanbieter oder Arbeitgeber können weiterhin nachvollziehen, welche Seiten du besucht hast."
+    "mobile_local_card_call": {
+      "message": "Anrufen"
     },
     "mobile_freshtab_breaking_news": {
       "message": "EILMELDUNG:"
@@ -1406,6 +1418,9 @@
     "control-center-check-strict": {
       "message": "Streng"
     },
+    "control-center-check-hideMyIP": {
+      "message": "IP maskieren"
+    },
     "control-center-this-site": {
       "message": "Diese Seite"
     },
@@ -1414,6 +1429,9 @@
     },
     "control-center-all-sites": {
       "message": "Alle Websites"
+    },
+    "control-center-clear-trCache": {
+      "message": "Tracking Cache leeren"
     },
     "download": {
       "message": "Herunterladen von: "
@@ -1462,6 +1480,60 @@
     },
     "onboarding-search-query3": {
       "message": "TV Programm"
+    },
+    "video-downloader-title": {
+      "message": "Video herunterladen"
+    },
+    "video-downloader-more-formats": {
+      "message": "Weitere Formate"
+    },
+    "video-downloader-send-to-mobile": {
+      "message": "An Smartphone senden"
+    },
+    "video-downloader-unsupported-format": {
+      "message": "Sorry! Wir können das Video leider nicht herunterladen."
+    },
+    "transparency_html_title": {
+      "message": "Cliqz | Transparenz-Cockpit"
+    },
+    "transparency_document_title": {
+      "message": "Transparenz Cockpit"
+    },
+    "transparency_legend_title": {
+      "message": "Legende:"
+    },
+    "transparency_blocked1": {
+      "message": "Blockiert zum Schutz Deiner Privatssphäre"
+    },
+    "transparency_blocked2": {
+      "message": "Wird von CLIQZ empfangen"
+    },
+    "transparency_content_title": {
+      "message": "Transparenz Cockpit"
+    },
+    "transparency_content": {
+      "message": "Deine Privatsphäre ist uns heilig. CLIQZ erhebt keine persönlichen Daten. Damit du überprüfen kannst, welche Daten bei der Nutzung des CLIQZ-Browser generiert werden, haben wir das Transparenz-Cockpit entwickelt. Dieses zeigt Dir in Echtzeit, die Daten, die wir erhalten. Um deine Privatsphäre zu schützen, werden manche Daten blockiert. Das heißt, sie veranlassen entweder gar nicht erst den Browser (z.B. Geo-Daten, sofern diese nicht erlaubt wurden) oder werden nicht weiterverarbeit bzw. mit anderen Daten kombiniert. Mach dir dein eigenes Bild!"
+    },
+    "transparency_search_title": {
+      "message": "Deine Suche bei CLIQZ"
+    },
+    "transparency_search_content": {
+      "message": "Hier siehst du Daten über die Suchanfragen und Adressen, die du über die CLIQZ-Suche eingibst. Diese Informationen helfen uns, dein Sucherlebnis zu optimieren. Wie du sehen kannst, beinhalten diese Daten keinerlei persönliche Information. Für CLIQZ bist du anonym. Du hast die Möglichkeit, Suchen über CLIQZ über ein Proxy-Netzwerk laufen zu lassen um Deine Privatssphäre noch stärker zu schützen. Weitere Informationen findest du <a target='_blank' href='https://cliqz.com/whycliqz/transparency#your-search'>hier</a>."
+    },
+    "transparency_humanweb_title": {
+      "message": "Human Web"
+    },
+    "transparency_humanweb_content": {
+      "message": "Human Web ist unsere Technologie, mit der wir die Qualität unserer Suchergebnisse mittels statistischer Methoden ständig verbessern. Die anonymem statistischen Daten, die hier gesammelt werden, beziehen sich auch auf Suchanfragen und die jeweils erzielten Ergebnisse, unabhängig davon, welche Suchmaschine du nutzt. Die Datenarchitektur ist dabei so konzipiert, dass theoretisch mögliche Rückschlüsse auf Personen durch die Verknüpfung verschiedener Daten unmöglich sind. Die Übertragung der Human Web-Daten ist durch ein Proxy-Netzwerk und Verschlüsselung geschützt. Weitere Information findest du <a target='_blank' href='https://cliqz.com/whycliqz/transparency#human-web'>hier</a>."
+    },
+    "transparency_telemetry_title": {
+      "message": "Telemetrie"
+    },
+    "transparency_telemetry_content": {
+      "message": "Telemetrie umfasst alle Daten, die die Verwendung und Leistung des Browsers und seiner Funktionen betreffen. Wir nutzen diese Daten, um CLIQZ fortlaufend verbessern zu können. Daten die in diesen Bereich fallen, beinhalten z.B. die Browserversion oder die Zeit, bis die Ergebnisse angezeigt werden. Die Telemetriedaten  enthalten keinerlei Information über Suchanfragen, Suchergebnisse oder besuchte Webseiten. Weitere Information findest du <a target='_blank' href='https://cliqz.com/whycliqz/transparency#telemetry'>hier</a>."
+    },
+    "transparency_activity_buttons": {
+      "message": "Aktuell keine Aktivität"
     },
     "TEST": "OK"
 }

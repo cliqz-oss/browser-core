@@ -946,7 +946,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
         testpage = 'localsafekey.html';
 
       beforeEach(function() {
-        CliqzAttrack.safekeyValuesThreshold = 2;
+        CliqzAttrack.config.safekeyValuesThreshold = 2;
         CliqzAttrack.initPipeline();
       });
 

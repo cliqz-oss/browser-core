@@ -1,0 +1,12 @@
+<div class="clearfix notificationsCon" {{action 'notificationClick'}}>
+    <div class="close">
+    <a href="#" {{action 'dismiss'}}><img src="./assets/images/close_icon.svg" /></a>
+  </div>
+  <img {{action 'logoClick' bubbles=false}} class="logo" width="40px" height="31px" src="./assets/images/video-download.png" />
+  <div class="text fullWidth">
+    <h1>{{t 'notifications.hdr-video-downloader'}}</h1>
+    <p>{{t 'notifications.txt-video-downloader'}}
+      <a href="#" {{action 'openVideoDowloadPage' 'http://cliqz.com/en/magazine/cliqz-introduces-video-downloader' bubbles=false}}>{{t 'notifications.cta-video-downloader'}}</a>
+    </p>
+  </div>
+</div>

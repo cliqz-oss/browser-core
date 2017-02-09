@@ -27,7 +27,7 @@ export default background({
   * @method unload
   */
   unload() {
-    CliqzEvents.un_sub("prefchange:"+ CliqzUnblock.PREF_MODE, this.onPrefChange);
+    CliqzEvents.un_sub("prefchange", this.onPrefChange);
     CliqzUnblock.unload();
   },
 

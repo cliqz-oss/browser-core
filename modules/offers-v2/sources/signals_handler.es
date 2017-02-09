@@ -16,6 +16,7 @@
 import { utils } from 'core/cliqz';
 import LoggingHandler from 'offers-v2/logging_handler';
 import  OffersConfigs  from 'offers-v2/offers_configs';
+import config from 'core/config';
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -120,6 +121,8 @@ class SignalBucket {
   sendSignalsToBE() {
     // this will send all telemetry and remove all the data
     linfo('sendSignalsToBE: SENDING SIGNAL TO BE!!!: sending signal with id: ' + this.id);
+    const isDebug = utils.getPref('offersDevFlag', false);
+    const isDeveloper = utils.getPref('developer', false);
     for (var k in this.elems) {
       if (!this.elems.hasOwnProperty(k)) {
         continue;
@@ -128,11 +131,38 @@ class SignalBucket {
       var signal = {
         type: 'offers',
         v : OffersConfigs.CURRENT_VERSION,
+        ex_v: config.EXTENSION_VERSION,
+        bucket_freq_secs: this.expireTimeSecs,
+        is_debug: isDebug,
+        is_developer: isDeveloper,
         data: {}
       };
       signal.data[k] = this.elems[k];
       utils.telemetry(signal);
-      linfo('sendSignalsToBE: ' + JSON.stringify(signal));
+      linfo('sendSignalsToBE: telemetry: ' + JSON.stringify(signal));
+
+      // #GR-294: sending also to the hpn proxy, we need to remove the telemetry
+      //          on the future once this is stable
+      const hpnSignal = {
+          action: OffersConfigs.SIGNALS_HPN_BE_ACTION,
+          signal_id: k,
+          timestamp: Date.now(),
+          payload: {
+            v : OffersConfigs.CURRENT_VERSION,
+            ex_v: config.EXTENSION_VERSION,
+            bucket_freq_secs: this.expireTimeSecs,
+            is_debug: isDebug,
+            is_developer: isDeveloper,
+            data: {}
+          }
+        };
+      hpnSignal.payload.data[k] = this.elems[k];
+      const hpnStrSignal = JSON.stringify([hpnSignal]);
+      utils.httpPost(OffersConfigs.SIGNALS_HPN_BE_ADDR,
+                     success => {linfo('sendSignalsToBE: hpn signal sent')},
+                     hpnStrSignal,
+                     err => {lerr('sendSignalsToBE: error sending signal to hpn: ' + err)});
+      linfo('sendSignalsToBE: hpn: ' + hpnStrSignal);
     }
 
     return true;

@@ -5,7 +5,7 @@
         "commonjs": false,
         "es6": true,
         "mocha": true,
-        "node": false,
+        "node": true,
         "shared-node-browser": true,
         "webextensions": true,
         "worker": true
@@ -29,8 +29,13 @@
         "import/no-unresolved": "off",
         "import/no-extraneous-dependencies": 0,
         "import/extensions": "off",
+        "class-methods-use-this": "off",
+        "no-restricted-syntax": [
+            'error',
+            'ForInStatement',
+            'LabeledStatement',
+            'WithStatement',
+        ],
         "no-underscore-dangle": "off",
-        "no-continue": 0,
-        "no-console": 0
     }
 }

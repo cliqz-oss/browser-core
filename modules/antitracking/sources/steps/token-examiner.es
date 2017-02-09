@@ -7,11 +7,9 @@ import md5 from 'antitracking/md5';
 // creates local safe keys for keys with multiple observed values
 export default class {
 
-  constructor(qsWhitelist, shortTokenLength, safekeyValuesThreshold, safeKeyExpire) {
+  constructor(qsWhitelist, config) {
     this.qsWhitelist = qsWhitelist;
-    this.shortTokenLength = shortTokenLength;
-    this.safekeyValuesThreshold = safekeyValuesThreshold;
-    this.safeKeyExpire = safeKeyExpire;
+    this.config = config;
     this.requestKeyValue = {};
     this._requestKeyValue = new persist.AutoPersistentObject("requestKeyValue", (v) => this.requestKeyValue = v, 60000);
   }
@@ -48,7 +46,7 @@ export default class {
     var s = getGeneralDomain(url_parts.hostname);
     s = md5(s).substr(0, 16);
     url_parts.getKeyValuesMD5().filter((kv) => {
-      return kv.v_len >= this.shortTokenLength;
+      return kv.v_len >= this.config.shortTokenLength;
     }).forEach((kv) => {
       var key = kv.k,
           tok = kv.v;
@@ -62,7 +60,7 @@ export default class {
       this.requestKeyValue[s][key][tok] = today;
       // see at least 3 different value until it's safe
       let valueCount = Object.keys(this.requestKeyValue[s][key]).length
-      if ( valueCount > this.safekeyValuesThreshold ) {
+      if ( valueCount > this.config.safekeyValuesThreshold ) {
         this.qsWhitelist.addSafeKey(s, key, valueCount);
         // keep the last seen token
         this.requestKeyValue[s][key] = {tok: today};
@@ -73,7 +71,7 @@ export default class {
 
   _pruneRequestKeyValue() {
       var day = datetime.newUTCDate();
-      day.setDate(day.getDate() - this.safeKeyExpire);
+      day.setDate(day.getDate() - this.config.safeKeyExpire);
       var dayCutoff  = datetime.dateString(day);
       for (var s in this.requestKeyValue) {
         for (var key in this.requestKeyValue[s]) {

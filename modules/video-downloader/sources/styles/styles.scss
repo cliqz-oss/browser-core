@@ -1,0 +1,104 @@
+#video-downloader {
+    min-width: 300px;
+    font: small-caption;
+    font-weight: normal;
+    font-size: 14.6px;
+    line-height: 22px;
+    color: #414141;
+    overflow: hidden;
+}
+
+#video-downloader h3, #more-formats-btn {
+    margin-left: 13px;
+}
+
+#video-downloader h3 {
+    margin-top: 13px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.hidden {
+    display: none;
+}
+
+a.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+    cursor: default;
+}
+
+ul#download-links {
+    margin-bottom: 7px;
+    padding: 0;
+    list-style: none;
+}
+
+ul#download-links > li {
+    padding: 4px 13px;
+}
+
+ul#download-links > li:hover {
+    background: url('../images/download.svg') no-repeat right center;
+    border-right: 10px solid transparent;
+    background-color: #EDEDED;
+    cursor: pointer;
+}
+
+ul#download-links > li > p {
+    margin: 0;
+    color: #000;
+}
+
+ul#download-links > li > p > span {
+    font-size: 11px;
+    color: #9B9B9B;
+}
+
+#more-formats-btn {
+    margin-bottom: 20px;
+    font-size: 11px;
+    color: #0086A1;
+    text-decoration: none;
+}
+
+#more-formats-btn:hover {
+    text-decoration: underline;
+}
+
+.preloader {
+    text-align: center;
+    width: 100%;
+    min-height: 80px;
+}
+
+.pairing-wrapper {
+    margin-top: 10px;
+    padding: 8px 13px ;
+    border-top: 1px solid #EDEDED;
+}
+
+.pairing-wrapper > a {
+    text-decoration: none;
+    color: #000;
+}
+
+.pairing-wrapper > img {
+    width: 16px;
+    vertical-align: sub;
+}
+
+#pairing-status {
+    float: right;
+    margin-top: 1px;
+    width: 26px;
+}
+
+#sending-status {
+    width: 15px;
+    height: 15px;
+}
+
+#unsupported-format {
+    padding: 0 13px 20px;
+}

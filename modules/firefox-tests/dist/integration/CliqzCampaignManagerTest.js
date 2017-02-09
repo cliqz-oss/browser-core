@@ -63,7 +63,7 @@ TESTS.CliqzCampaignManagerTestItegration = function (CliqzUtils, CliqzMsgCenter,
       campaignManager.addCampaign('TEST001', response.campaigns.TEST001);
       chai.expect(Object.keys(campaignManager._campaigns).length).to.equal(1);
     });
-
+    /*
     it('should show message', function() {
       this.timeout(5000);
       campaignManager._campaigns.TEST001.limits.trigger = 2;
@@ -111,7 +111,7 @@ TESTS.CliqzCampaignManagerTestItegration = function (CliqzUtils, CliqzMsgCenter,
         });
       });
     });
-
+    */
     /*
     context('URL tests', function () {
       var url = 'about:config';

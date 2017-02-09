@@ -70,6 +70,10 @@ export default {
     "btn-never-share": "Niemals Standort teilen",
     "txt-email-inaccessible": "Logg dich ein um über neue E-Mails benachrichtigt zu werden",
     "txt-email-available": "E-Mail Benachrichtigungen kannst du im Kontextmenü (Klick mit rechter Maustaste) aktivieren",
-    "txt-email-refresh": "Benachrichtigungen aktualisieren"
-  }
+    "txt-email-refresh": "Benachrichtigungen aktualisieren",
+    "hdr-video-downloader": "YouTube Videos herunterladen",
+    "txt-video-downloader": "Dank der großen Nachfrage: ab sofort kannst du ganz einfach YouTube Videos auf deinen Computer herunterladen. Auf YouTube Videoseiten musst du dazu nur auf das Symbol klicken, das oben in der Browserleiste erscheint.",
+    "cta-video-downloader": "Mehr erfahren..."
+  },
+  title: 'Neuer Tab',
 };

@@ -1,19 +1,7 @@
-import { utils } from "core/cliqz";
-
-function getTabIndex(activeTabs, url) {
-  const activeTab = activeTabs.find( tab => tab.url === url );
-  if (activeTab) {
-    return activeTab.index;
-  } else {
-    return null;
-  }
-}
-
-function isUrlInCurrentTab(activeTabs, url) {
-  return activeTabs.some( tab => tab.isCurrent && (tab.url === url) );
-}
+import utils from '../core/utils';
 
 // https://github.com/substack/deep-freeze
+/* eslint-disable */
 function deepFreeze(o) {
   Object.freeze(o);
 
@@ -28,6 +16,7 @@ function deepFreeze(o) {
 
   return o;
 }
+/* eslint-enable */
 
 function createBaseStructure() {
   return {};
@@ -36,42 +25,53 @@ function createBaseStructure() {
 function mergePlaces(history, places) {
   deepFreeze(history);
 
-  let urlCount = 0,
-    frameStartsAt, frameEndsAt;
+  let urlCount = 0;
 
-  if (places.length > 0) {
-    frameStartsAt = places[places.length-1]["last_visit_date"];
-  }
+  const domainList = places.reduce((d, entry) => {
+    const domains = d;
 
-  const domains = places.reduce( (domains, entry) => {
     if (!entry.title) {
       return domains;
     }
 
-    urlCount++;
+    urlCount += 1;
 
-    if (!frameEndsAt) {
-      frameEndsAt = entry["last_visit_date"];
-    }
+    const isCliqz = entry.url.indexOf('cliqz://') === 0;
+    let host;
 
-    const details = utils.getDetailsFromUrl(entry.url),
+    if (isCliqz) {
+      const details = utils.getDetailsFromUrl('https://cliqz.com');
+      host = 'CLIQZ';
+
+      domains[host] = domains[host] || {
+        logo: utils.getLogoDetails(details),
+        lastVisitedAt: entry.visit_date,
+        baseUrl: '',
+        visits: [],
+      };
+    } else {
+      const details = utils.getDetailsFromUrl(entry.url);
       host = details.host;
 
-    domains[host] = domains[host] || {
-      logo: utils.getLogoDetails(details),
-      lastVisitedAt: entry["last_visit_date"],
-      baseUrl: `${details.scheme}//${details.host}/`,
-      urls: { }
-    };
-
-    if (domains[host].lastVisitedAt < entry["last_visit_date"]) {
-      domains[host].lastVisitedAt = entry["last_visit_date"];
+      domains[host] = domains[host] || {
+        logo: utils.getLogoDetails(details),
+        lastVisitedAt: entry.visit_date,
+        baseUrl: `${details.scheme}//${details.host}/`,
+        visits: [],
+      };
     }
 
-    domains[host].urls[entry.url] = {
+    if (domains[host].lastVisitedAt < entry.visit_date) {
+      domains[host].lastVisitedAt = entry.visit_date;
+    }
+
+    domains[host].visits.push({
+      url: entry.url,
       title: entry.title,
-      lastVisitedAt: entry["last_visit_date"],
-    };
+      lastVisitedAt: entry.visit_date,
+      sessionId: entry.session_id,
+      visitId: entry.id,
+    });
 
     return domains;
   }, {});
@@ -79,16 +79,14 @@ function mergePlaces(history, places) {
 
   return {
     urlCount,
-    frameStartsAt,
-    frameEndsAt,
-    domains
+    domains: domainList,
   };
 }
 
 function getUrls(history) {
   return Object.keys(history.domains).reduce(
     (urls, domain) => urls.concat(Object.keys(history.domains[domain].urls)),
-    []
+    [],
   );
 }
 
@@ -97,17 +95,17 @@ function mergeQueryDatabase(history, queryDatabase) {
 
   const urls = getUrls(history);
 
-  return queryDatabase.getQueriesForUrls(urls).then( queries => {
+  return queryDatabase.getQueriesForUrls(urls).then((queries) => {
     const newHistory = Object.assign({}, history);
 
     newHistory.domains = Object.assign({}, newHistory.domains);
     // thats messy, need to find a way to create deep clone
-    Object.keys(newHistory.domains).forEach( domain => {
+    Object.keys(newHistory.domains).forEach((domain) => {
       newHistory.domains[domain] = Object.assign({}, newHistory.domains[domain]);
       newHistory.domains[domain].urls =
         Object.assign({}, newHistory.domains[domain].urls);
 
-      Object.keys(newHistory.domains[domain].urls).forEach( url => {
+      Object.keys(newHistory.domains[domain].urls).forEach((url) => {
         const urlIndex = urls.indexOf(url);
         const query = queries[urlIndex];
 
@@ -121,25 +119,25 @@ function mergeQueryDatabase(history, queryDatabase) {
   });
 }
 
-function mergeMetaDatabase(history, metaDatabase) {
-  return history.then( history => {
+function mergeMetaDatabase(h, metaDatabase) {
+  return h.then((history) => {
     deepFreeze(history);
 
     const urls = getUrls(history);
 
     return Promise.all(
-      urls.map(metaDatabase.getMeta.bind(metaDatabase))
-    ).then( metas => {
+      urls.map(metaDatabase.getMeta.bind(metaDatabase)),
+    ).then((metas) => {
       const newHistory = Object.assign({}, history);
 
       newHistory.domains = Object.assign({}, newHistory.domains);
 
-      Object.keys(newHistory.domains).forEach( domain => {
+      Object.keys(newHistory.domains).forEach((domain) => {
         newHistory.domains[domain] = Object.assign({}, newHistory.domains[domain]);
         newHistory.domains[domain].urls =
           Object.assign({}, newHistory.domains[domain].urls);
 
-        Object.keys(newHistory.domains[domain].urls).forEach( url => {
+        Object.keys(newHistory.domains[domain].urls).forEach((url) => {
           const urlIndex = urls.indexOf(url);
           const meta = metas[urlIndex] || {};
 
@@ -159,12 +157,13 @@ function mergeActiveTabs(history, activeTabs) {
 
   const newHistory = Object.assign({}, history);
 
-  newHistory.tabs = activeTabs.reduce( (tabs, tab) => {
+  newHistory.tabs = activeTabs.reduce((t, tab) => {
+    const tabs = t;
     const host = utils.getDetailsFromUrl(tab.url).host;
     tabs[host] = tabs[host] || {};
     tabs[host][tab.url] = tabs[host][tab.url] || {
       isCurrent: tab.isCurrent,
-      index: tab.index
+      index: tab.index,
     };
     return tabs;
   }, {});
@@ -173,51 +172,63 @@ function mergeActiveTabs(history, activeTabs) {
 }
 
 // Returns a promise
-function mergeMixer(history, mixer) {
-  return history.then( history => {
+function mergeMixer(h, mixer) {
+  return h.then((history) => {
     deepFreeze(history);
 
     const newHistory = Object.assign({}, history);
     newHistory.domains = Object.assign({}, newHistory.domains);
 
     return Promise.all(
-      Object.keys(newHistory.domains).map( domain => {
+      Object.keys(newHistory.domains).map((domain) => {
         newHistory.domains[domain] = Object.assign({}, newHistory.domains[domain]);
         const baseUrl = newHistory.domains[domain].baseUrl;
         return mixer.getSnippet(baseUrl)
-          .then( snippet => newHistory.domains[domain].snippet = snippet )
-          .catch( () => newHistory.domains[domain].snippet = {} );
-      })
-    ).then( () => newHistory );
+          .then((snippet) => { newHistory.domains[domain].snippet = snippet; })
+          .catch(() => { newHistory.domains[domain].snippet = {}; });
+      }),
+    ).then(() => newHistory);
   });
 }
 
-function mergeNews(history, richHeader) {
-  return history.then( history => {
+function mergeNews(h, richHeader) {
+  return h.then((history) => {
     deepFreeze(history);
-
 
     const newHistory = Object.assign({}, history);
     newHistory.domains = Object.assign({}, newHistory.domains);
 
     return Promise.all(
-      Object.keys(newHistory.domains).map( domain => {
+      Object.keys(newHistory.domains).map((domain) => {
         newHistory.domains[domain] = Object.assign({}, newHistory.domains[domain]);
         return richHeader.getNews(domain)
-          .then( news => newHistory.domains[domain].news = news )
-          .catch( () => newHistory.domains[domain].news = [] );
-      })
-    ).then( () => newHistory );
+          .then((news) => { newHistory.domains[domain].news = news; })
+          .catch(() => { newHistory.domains[domain].news = []; });
+      }),
+    ).then(() => newHistory);
   });
 }
 
-export default function ({ places, queryDatabase, activeTabs, mixer, richHeader, metaDatabase }) {
+export default function ({ places, activeTabs, queryDatabase, metaDatabase, mixer, richHeader }) {
   let history = createBaseStructure();
   history = mergePlaces(history, places);
-  history = mergeActiveTabs(history, activeTabs)
-  history = mergeQueryDatabase(history, queryDatabase);
-  history = mergeMetaDatabase(history, metaDatabase);
-  history = mergeMixer(history, mixer);
-  history = mergeNews(history, richHeader);
+  history = mergeActiveTabs(history, activeTabs);
+
+  if (queryDatabase) {
+    history = mergeQueryDatabase(history, queryDatabase);
+  }
+
+  if (metaDatabase) {
+    history = mergeMetaDatabase(history, metaDatabase);
+  }
+
+  if (mixer) {
+    history = mergeMixer(history, mixer);
+  }
+
+  if (richHeader) {
+    history = mergeNews(history, richHeader);
+  }
+
   return history;
 }

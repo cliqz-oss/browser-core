@@ -1,7 +1,7 @@
 import ResourceLoader, { Resource, UpdateCallbackHandler } from 'core/resource-loader';
 import Language from 'core/language';
 import { platformName } from 'core/platform';
-import { log } from 'adblocker/utils';
+import log from 'adblocker/utils';
 
 // Disk persisting
 const RESOURCES_PATH = ['antitracking', 'adblocking'];
@@ -22,7 +22,7 @@ const EOL = '\n';
 
 function stripProtocol(url) {
   let result = url;
-  ['http://', 'https://'].forEach(prefix => {
+  ['http://', 'https://'].forEach((prefix) => {
     if (result.startsWith(prefix)) {
       result = result.substring(prefix.length);
     }
@@ -40,7 +40,7 @@ class FiltersList {
 
     this.resource = new Resource(
       RESOURCES_PATH.concat(this.assetName.split('/')),
-      { remoteURL: this.remoteURL(), dataType: 'plainText' }
+      { remoteURL: this.remoteURL(), dataType: 'plainText' },
     );
   }
 
@@ -104,7 +104,7 @@ export default class extends UpdateCallbackHandler {
         updateInterval: 15 * ONE_MINUTE,
         dataType: 'json',
         remoteURL: this.remoteURL(),
-      }
+      },
     );
     this.allowedListsLoader.onUpdate(this.updateChecksums.bind(this));
 
@@ -145,8 +145,8 @@ export default class extends UpdateCallbackHandler {
 
     const filtersLists = [];
 
-    Object.keys(allowedLists).forEach(list => {
-      Object.keys(allowedLists[list]).forEach(asset => {
+    Object.keys(allowedLists).forEach((list) => {
+      Object.keys(allowedLists[list]).forEach((asset) => {
         const checksum = allowedLists[list][asset].checksum;
         let lang = null;
 
@@ -199,7 +199,7 @@ export default class extends UpdateCallbackHandler {
             }
 
             return undefined;
-          })
+          }),
         );
       } else {
         // Retrieve existing list
@@ -222,7 +222,7 @@ export default class extends UpdateCallbackHandler {
               }
 
               return undefined;
-            })
+            }),
           );
         }
       }

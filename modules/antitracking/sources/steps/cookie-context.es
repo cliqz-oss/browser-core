@@ -55,12 +55,14 @@ export default class {
       const time = Date.now();
       const url = state.url;
       const tabId = state.tabId;
+      const urlParts = state.urlParts;
+      const sourceGD = state.sourceGD || getGeneralDomain(state.sourceUrlParts.hostname);
       const hostGD = state.hostGD || getGeneralDomain(state.urlParts.hostname);
 
       var diff = time - (this.contextFromEvent.ts || 0);
       if (diff < this.timeAfterLink) {
 
-          if (hostGD === this.contextFromEvent.cGD) {
+          if (hostGD === this.contextFromEvent.cGD && sourceGD === this.contextFromEvent.pageGD) {
               this.visitCache[`${tabId}:${hostGD}`] = time;
               state.incrementStat(`${stage}_allow_userinit_same_context_gd`);
               return false;
@@ -68,7 +70,7 @@ export default class {
           var pu = url.split(/[?&;]/)[0];
           if (this.contextFromEvent.html.indexOf(pu)!=-1) {
               // the url is in pu
-              if (url_parts && url_parts.hostname && url_parts.hostname!='') {
+              if (urlParts && urlParts.hostname && urlParts.hostname!='') {
                   this.visitCache[`${tabId}:${hostGD}`] = time;
                   state.incrementStat(`${stage}_allow_userinit_same_gd_link`);
                   return false;

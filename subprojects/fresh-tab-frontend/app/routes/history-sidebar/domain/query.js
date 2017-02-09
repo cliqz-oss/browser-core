@@ -20,14 +20,14 @@ export default Ember.Route.extend({
   model(params) {
     return this.get("cliqz").getQuery(params.query).then( results => {
       results.forEach( result => {
-        const record = this.store.peekRecord("history-message", result.url);
+        const record = this.store.peekRecord("history-message", result.lastVisitedAt);
         if (record) {
           return;
         }
 
         this.store.push({
           data: {
-            id: result.url,
+            id: result.lastVisitedAt,
             type: "history-message",
             attributes: {
               url: result.url,
@@ -50,7 +50,7 @@ export default Ember.Route.extend({
       return {
         query: params.query,
         messages: results.map( result => {
-          return this.store.peekRecord("history-message", result.url);
+          return this.store.peekRecord("history-message", result.lastVisitedAt);
         })
       };
     });

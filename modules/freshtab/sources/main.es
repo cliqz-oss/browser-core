@@ -1,13 +1,12 @@
 import CliqzUtils from "core/utils";
 import CliqzABTests from "core/ab-tests";
-const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu, manager: Cm } =
+import Factory from '../platform/component-registration';
+import AboutCliqz from './about-cliqz-protocol-handler';
+const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu } =
     Components;
 
-Cu.import('resource://gre/modules/XPCOMUtils.jsm');
-Cu.import("resource://gre/modules/Services.jsm");
-
 var CLIQZ_NEW_TAB = CliqzUtils.CLIQZ_NEW_TAB,
-    CLIQZ_NEW_TAB_URL = CliqzUtils.CLIQZ_NEW_TAB_URL,
+    CLIQZ_NEW_TAB_RESOURCE_URL = CliqzUtils.CLIQZ_NEW_TAB_RESOURCE_URL,
     DEF_HOMEPAGE = "browser.startup.homepage",
     DEF_NEWTAB = "browser.newtab.url",
     DEF_STARTUP = "browser.startup.page",
@@ -46,78 +45,15 @@ try{
 } catch(e){}
 
 
-Cm.QueryInterface(Ci.nsIComponentRegistrar);
-
-function AboutURL() {}
-AboutURL.prototype = {
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIAboutModule]),
-  classDescription: CLIQZ_NEW_TAB,
-  classID: Components.ID("{D5889F72-0F01-4aee-9B88-FEACC5038C34}"),
-  contractID: "@mozilla.org/network/protocol/about;1?what=cliqz",
-
-  newChannel: function(uri) {
-    const src = `${CLIQZ_NEW_TAB_URL}?cliqzOnboarding=${FreshTab.cliqzOnboarding}&e10s=${Services.appinfo.browserTabsRemoteAutostart}`;
-    const html = `<!DOCTYPE html>
-  <html>
-    <head>
-      <meta charset="UTF-8">
-      <style>* {margin:0;padding:0;width:100%;height:100%;overflow:hidden;border: 0}</style>
-      <title>${CliqzUtils.getLocalizedString('new_tab')}</title>
-    </head>
-    <body>
-      <iframe
-        type="content"
-        src="${src}">
-      </iframe>
-      <script type="text/javascript">
-        // https://github.com/cliqz-oss/browser-core/issues/4
-        var iframe = document.querySelector('iframe');
-        window.onload = function(){
-          iframe.contentWindow.addEventListener('message', function(msg) {
-            var data = JSON.parse(msg.data);
-            if(data.message === 'replaceURL'){
-              // on e10s we must open a new tab from freshtab otherwise
-              // the freshtab fails to load when navigating back
-              window.open(data.url);
-              window.close();
-            }
-          });
-        };
-      </script>
-    </body>
-</html>`;
-
-    let channel = InputStreamChannel.createInstance(Ci.nsIInputStreamChannel).
-        QueryInterface(Ci.nsIChannel);
-    channel.setURI(uri);
-    channel.originalURI = uri;
-    channel.contentStream = new StringInputStream(html, html.length);
-    channel.owner = securityManager.getSystemPrincipal();
-
-    return channel;
-  },
-
-  getURIFlags: function(uri) {
-    return Ci.nsIAboutModule.ALLOW_SCRIPT;
-  }
-};
-
-const AboutURLFactory =
-    XPCOMUtils.generateNSGetFactory([AboutURL])(AboutURL.prototype.classID);
-
 var FreshTab = {
     signalType: "home",
     initialized: false,
-    cliqzOnboarding: 0,
     isBrowser: false,
     freshTabState: FRESH_TAB_STATE,
-    cliqzNewTab: CLIQZ_NEW_TAB,
 
-    startup: function(hasButton, cliqzOnboarding, channel, showNewBrandAlert, initialState){
+    startup: function(hasButton, channel, showNewBrandAlert, initialState){
         var disable = false;
 
-        // checking if this is the first install happens in background._showOnboarding()
-        FreshTab.cliqzOnboarding = cliqzOnboarding ? 1 : 0;
         FreshTab.showNewBrandAlert = showNewBrandAlert;
         HAS_BUTTON = hasButton;
 
@@ -148,12 +84,8 @@ var FreshTab = {
           CliqzUtils.setPref(FRESH_TAB_STATE,  initialState);
         }
 
-        Cm.registerFactory(
-            AboutURL.prototype.classID,
-            AboutURL.prototype.classDescription,
-            AboutURL.prototype.contractID,
-            AboutURLFactory
-        );
+        this.aboutCliqzComponent = new Factory(AboutCliqz);
+        this.aboutCliqzComponent.register();
 
         // reset preferences in case of inconsistency
         if(CliqzUtils.hasPref(OLD_FRESH_TAB) || //  old FreshTab settings
@@ -177,7 +109,7 @@ var FreshTab = {
     shutdown: function(){
         if(!FreshTab.initialized) return;
 
-        Cm.unregisterFactory(AboutURL.prototype.classID, AboutURLFactory);
+        this.aboutCliqzComponent.unregister();
 
         deactivate();
     },
@@ -214,14 +146,14 @@ function activate(){
       }
 
       if(versionChecker.compare(appInfo.version, "44.0") < 0){
-        NewTabURL.override(CLIQZ_NEW_TAB);
+        NewTabURL.override(CLIQZ_NEW_TAB_RESOURCE_URL);
       } else {
         const aboutNewTabService = Cc['@mozilla.org/browser/aboutnewtab-service;1'].getService(Ci.nsIAboutNewTabService);
-        aboutNewTabService.newTabURL = CLIQZ_NEW_TAB;
+        aboutNewTabService.newTabURL = CLIQZ_NEW_TAB_RESOURCE_URL;
       }
   } else { //FF 40 or older
       if(firstStart) CliqzUtils.setPref(BAK_NEWTAB, CliqzUtils.getPref(DEF_NEWTAB, null, ''));
-      CliqzUtils.setPref(DEF_NEWTAB, CLIQZ_NEW_TAB, '');
+      CliqzUtils.setPref(DEF_NEWTAB, CLIQZ_NEW_TAB_RESOURCE_URL, '');
   }
 
   if(firstStart){

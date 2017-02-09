@@ -452,8 +452,9 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
           // special case: a 302 redirect does not trigger onBeforeRequest for the redirect target
           if (testPage !== 'image302test.html') {
             // when redirecting scripts specfied in the DOM in onBeforeRequest we get a duplicate request
-            it('can rewrite urls', function() {
-              return testRewrite(testPage === 'thirdpartyscript.html');
+            it('can rewrite urls', function(done) {
+              testRewrite(testPage === 'thirdpartyscript.html');
+              done();
             });
 
             it('can block urls', testBlock);
@@ -470,8 +471,9 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
             webrequest.onBeforeSendHeaders.removeListener(urlRewriter);
           });
 
-          it('can rewrite urls', function() {
-            return testRewrite(testPage === 'thirdpartyscript.html');
+          it('can rewrite urls', function(done) {
+            testRewrite(testPage === 'thirdpartyscript.html');
+            done();
           });
 
           it('can block urls', testBlock);

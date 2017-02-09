@@ -1,0 +1,12 @@
+<!-- videos.tpl -->
+<div class="ez-video">
+    {{#each links}}
+        <div class="item" url="{{url}}">
+            <div class="main__image" data-style="background-image: url({{ extra.thumbnail }})">
+                {{#if (sec_to_duration extra.duration)}}<span> {{ sec_to_duration extra.duration}}</span>{{/if}}
+            </div>
+            <h1 class="main__headline">{{ title }}</h1>
+        </div>
+    {{/each}}
+</div>
+<!-- end videos.tpl -->

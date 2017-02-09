@@ -68,6 +68,8 @@ node('ubuntu && docker && !gpu') {
           withEnv(['CLIQZ_CONFIG_PATH=./configs/jenkins.json']) {
             stage('fern build desktop') {
               sh './fern.js build > /dev/null'
+              // stage built files for mobile testem test
+              stash name: "content-testem-build", includes: "bower_components/,build/,tests/,testem.json"
             }
 
             stage('fern test') {
@@ -169,6 +171,49 @@ stage('tests') {
       docker.withRegistry(DOCKER_REGISTRY_URL) {
         timeout(20) {
           helpers.reportStatusToGithub 'testem mobile', gitCommit, "VNC $HOST:$VNC_PORT", {
+            def image = docker.image(imgName)
+            image.pull()
+            docker.image(image.imageName()).inside("-p $VNC_PORT:5900 --device /dev/nvidia0 --device /dev/nvidiactl") {
+              sh 'rm -rf report.xml'
+              try {
+                sh './run_tests_testem.sh'
+                return 'report.xml'
+              } catch(err) {
+                print "TESTS FAILED"
+                currentBuild.result = "FAILURE"
+                throw err
+              } finally {
+                step([
+                  $class: 'JUnitResultArchiver',
+                  allowEmptyResults: false,
+                  testResults: 'report.xml',
+                ])
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  stepsForParallel['testem desktop content'] = {
+    node('ubuntu-docker-gpu') {
+      def HOST = sh(returnStdout: true, script: '/sbin/ifconfig eth0 | grep "inet addr:" | cut -d: -f2 | awk \'{ print $1}\'').trim()
+      def NUMBER = env.BUILD_NUMBER.padLeft(5, "00000")
+      def VNC_PORT = "21${NUMBER[-3..-1]}"
+
+      // load files for test into workspace
+      unstash "content-testem-build"
+      unstash "test-helpers"
+
+      def helpers = load 'build-helpers.groovy'
+      def imgName = "navigation-extension/testem"
+
+      sh "`aws ecr get-login --region=$AWS_REGION`"
+
+      docker.withRegistry(DOCKER_REGISTRY_URL) {
+        timeout(20) {
+          helpers.reportStatusToGithub 'testem desktop content', gitCommit, "VNC $HOST:$VNC_PORT", {
             def image = docker.image(imgName)
             image.pull()
             docker.image(image.imageName()).inside("-p $VNC_PORT:5900 --device /dev/nvidia0 --device /dev/nvidiactl") {

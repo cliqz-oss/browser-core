@@ -38,6 +38,8 @@ var CliqzPrivacyRep = CLIQZ.System.get("privacy-dashboard/main").default;
     document.getElementById('searchData').innerHTML = TEMPLATE_CACHE["data_list"](signals.ql);
     document.getElementById('telemetryData').innerHTML = TEMPLATE_CACHE["data_list"](signals.tel);
     document.getElementById('humanwebData').innerHTML = TEMPLATE_CACHE["data_list"](signals.hw);
+
+    localizeDocument();
   }
 
   function init() {

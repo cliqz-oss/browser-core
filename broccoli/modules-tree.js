@@ -30,19 +30,25 @@ var babelOptions = {
   blacklist: ['regenerator'],
 };
 
-function getPlatformTree() {
-  let platform = new Funnel(new WatchedDir('platforms/'), {
-    exclude: ['tests/**/*'],
-  });
-  let esLinterTree = eslint(platform, {
-    options: { configFile: process.cwd() + '/.eslintrc' }
-  });
-  esLinterTree.extensions = ['es'];
 
-  platform = Babel(esLinterTree, Object.assign({}, babelOptions, {
-    filterExtensions: ['js'],
+const eslintOptions = {
+  configFile: process.cwd() + '/.eslintrc',
+};
+
+
+function getPlatformFunnel() {
+  return new Funnel(new WatchedDir('platforms/'), {
+    exclude: ['**/tests/**/*'],
+  });
+}
+
+
+function getPlatformTree() {
+  let platform = getPlatformFunnel();
+
+  platform = Babel(platform, Object.assign({}, babelOptions, {
     getModuleId(moduleId) {
-      let moduleName = moduleId.split('/');
+      const moduleName = moduleId.split('/');
       moduleName.shift();
       return `platform/${moduleName.join('/')}`;
     },
@@ -50,7 +56,7 @@ function getPlatformTree() {
 
   return new Funnel(platform, {
     srcDir: cliqzConfig.platform,
-    destDir: "platform"
+    destDir: 'platform',
   });
 }
 
@@ -78,14 +84,91 @@ moduleConfigs.forEach( config => {
   (config.bower_components || []).forEach(Set.prototype.add.bind(requiredBowerComponents));
 });
 
-function getSourceTree() {
-  let sources = new Funnel(modulesTree, {
+
+function getSourceFunnel() {
+  return new Funnel(modulesTree, {
     include: cliqzConfig.modules.map(name => `${name}/sources/**/*.es`),
     exclude: cliqzConfig.modules.map(name => `${name}/sources/**/*.browserify`),
     getDestinationPath(path) {
       return path.replace("/sources", "");
     }
   });
+}
+
+
+
+function testGenerator(relativePath, errors) {
+  return `
+  System.register("tests/${relativePath.replace('.es', '.lint-test.js')}", [], function (_export) {
+  "use strict";
+
+  return {
+    setters: [],
+    execute: function () {
+      _export("default", describeModule("core/lint", function () { return {}; }, function () {
+        describe("Check eslint on ${relativePath}", function () {
+          it('should have no style error', function () {
+            chai.expect(${errors.length}).to.equal(0);
+          });
+        });
+      }));
+      }
+  };
+});
+  `;
+}
+
+
+function getLintTestsTree() {
+  // Load .eslintignore
+  let eslintIgnore;
+  try {
+    const lines = fs.readFileSync(process.cwd() + '/.eslintignore', 'utf8').split('\n');
+    eslintIgnore = new Set(lines);
+  } catch (e) {
+    eslintIgnore = new Set();
+  }
+
+  // Checks if the given path is in .eslintignore file
+  const shouldNotLint = (filePath, srcDir) => {
+    const isPlatform = srcDir !== undefined;
+    let fullPath;
+    if (isPlatform) {
+      fullPath = `platforms/${srcDir}/${filePath}`;
+    } else {
+      fullPath = `modules/${filePath}`;
+    }
+
+    return eslintIgnore.has(fullPath);
+  };
+
+  // Generate tree of test files for eslint
+  const generateTestTree = (tree, destDir, srcDir) => {
+    const treeToLint = new Funnel(tree, {
+      srcDir,
+      exclude: [filePath => shouldNotLint(filePath, srcDir)],
+    });
+    const esLinterTree = eslint(treeToLint, {
+      options: eslintOptions,
+      testGenerator,
+    });
+    esLinterTree.extensions = ['es'];
+
+    return new Funnel(esLinterTree, { destDir });
+  };
+
+  const platform = getPlatformFunnel();
+  const sources = getSourceFunnel();
+
+  return new MergeTrees([
+    generateTestTree(platform, 'tests/platform', cliqzConfig.platform),
+    generateTestTree(sources, 'tests'),
+  ]);
+}
+
+
+function getSourceTree() {
+  let sources = getSourceFunnel();
 
   let nodeModulesTree = new Funnel(modulesTree, {
     include: cliqzConfig.modules.map(name => `${name}/sources/**/*.browserify`),
@@ -103,17 +186,13 @@ function getSourceTree() {
     }
   });
 
-  let esLinterTree = eslint(sources, {
-    options: { configFile: process.cwd() + '/.eslintrc' }
-  });
-  esLinterTree.extensions = ['es'];
   if (cliqzConfig.instrumentFunctions !== undefined) {
     let threshold = parseInt(cliqzConfig.instrumentFunctions)||0;
-    esLinterTree = new Instrument(esLinterTree, {threshold:threshold});
+    sources = new Instrument(sources, {threshold:threshold});
   }
-  let transpiledSources = Babel(
-    esLinterTree,
-    Object.assign({}, babelOptions, { filterExtensions: ['js']})
+  const transpiledSources = Babel(
+    sources,
+    babelOptions
   );
   let transpiledModuleTestsTree = Babel(
     new Funnel(moduleTestsTree, { destDir: 'tests' }),
@@ -248,11 +327,15 @@ const staticTree = new MergeTrees([
 ]);
 
 const bowerTree = new MergeTrees([
-  new Funnel(bowerComponents, { include: Array.from(requiredBowerComponents) })
+  new Funnel(bowerComponents, { include: Array.from(requiredBowerComponents) }),
 ]);
+
+const styleCheckTestsTree = getLintTestsTree();
+
 
 module.exports = {
   static: staticTree,
   modules: esTree,
-  bower: bowerTree
-}
+  bower: bowerTree,
+  styleTests: styleCheckTestsTree,
+};

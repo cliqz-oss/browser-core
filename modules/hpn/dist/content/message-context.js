@@ -387,7 +387,7 @@ var messageContext = class messageContext {
                                                 _this.bm1,
                                                 _this.bm2,
                                                 _this.bm3,
-                                                _this.sigendData);
+                                                _this.signedData);
       return _http(CliqzSecureMessage.BLIND_SIGNER)
               .post(JSON.stringify(payload))
               .then(response => {

@@ -10,11 +10,11 @@ try {
 var FLAGS = {
   STATE_START: Ci.nsIWebProgressListener.STATE_START,
   STATE_IS_DOCUMENT: Ci.nsIWebProgressListener.STATE_IS_DOCUMENT,
+  STATE_REDIRECTING: Ci.nsIWebProgressListener.STATE_REDIRECTING,
 };
 
 function log() {
   var args = Array.prototype.slice.apply(arguments);
-  args.unshift(content.window.location.toString());
   args.unshift('Frame Script');
   args.unshift('CLIQZ');
 
@@ -29,6 +29,7 @@ function send(payload) {
 
 function LocationObserver(webProgress) {
   this.webProgress = webProgress;
+  this.previousURIMap = new WeakMap();
 }
 
 LocationObserver.prototype.QueryInterface = XPCOMUtils.generateQI([
@@ -51,30 +52,55 @@ LocationObserver.prototype.onLocationChange = function onLocationChange(aWebProg
     return;
   }
 
-  if ( !aRequest ) {
-    return;
-  }
-
   // only react to network related requests
   if ( ['http', 'https'].indexOf(aURI.scheme) === -1 ) {
     return;
   }
 
-  var httpChannel = aRequest.QueryInterface(Ci.nsIHttpChannel);
+  var window = aWebProgress.DOMWindow;
+  var document = aWebProgress.document;
+  var isSameDocument = false;
 
-  var referrer = (aWebProgress.DOMWindow && aWebProgress.DOMWindow.document.referrer)
-    || (httpChannel.referrer && httpChannel.referrer.asciiSpec);
+  var referrer, triggeringURL, originalURL;
+
+  if (aRequest) {
+    var httpChannel = aRequest.QueryInterface(Ci.nsIHttpChannel);
+
+    referrer = (document && document.referrer)
+      || (httpChannel.referrer && httpChannel.referrer.asciiSpec);
+
+    try {
+      originalURL = aRequest.originalURI.spec;
+    } catch (e) {
+      // some requests don't have originalURI and that is fine
+    }
+
+    triggeringURL = aRequest.loadInfo.triggeringPrincipal.URI && aRequest.loadInfo.triggeringPrincipal.URI.spec;
+  } else if (aFlags & Ci.nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT) {
+    var previousURI = this.previousURIMap.get(window);
+
+    if (previousURI) {
+      triggeringURL = previousURI.spec;
+    }
+
+    isSameDocument = true;
+  }
+
+  this.previousURIMap.set(window, aURI);
 
   var msg = {
     url: aURI.spec,
+    originalUrl: originalURL,
     referrer: referrer,
+    triggeringUrl: triggeringURL,
     isPrivate: aWebProgress.usePrivateBrowsing,
     flags: aFlags,
     isLoadingDocument: aWebProgress.isLoadingDocument,
+    isSameDocument: isSameDocument,
     domWindowId: aWebProgress.DOMWindowID
   };
 
-  //log('msg location change', JSON.stringify(msg))
+  //log('msg location change', JSON.stringify(msg, null, 2))
 
   send({
     module: 'core',
@@ -84,14 +110,33 @@ LocationObserver.prototype.onLocationChange = function onLocationChange(aWebProg
 };
 
 LocationObserver.prototype.onStateChange = function onStateChange(aWebProgress, aRequest, aStateFlag, aStatus) {
+  var triggeringURL, originalURL;
+
+  if (!aRequest) {
+    return;
+  }
+
+  try {
+    if ( !aWebProgress.isTopLevel ) {
+      triggeringURL = aRequest.loadInfo.triggeringPrincipal.URI.spec;
+      originalURL = aRequest.originalURI.spec;
+    }
+  } catch (e) {
+    // no request no problem
+  }
+
   var msg = {
     url: aRequest && aRequest.name,
     urlSpec: aRequest && aRequest.URI && aRequest.URI.spec,
+    originalUrl: originalURL,
+    triggeringUrl: triggeringURL,
     isValid: (aStateFlag & FLAGS.STATE_START) && !aStatus,
     isNewPage: (FLAGS.STATE_START & aStateFlag) &&
       (FLAGS.STATE_IS_DOCUMENT & aStateFlag),
     windowID: aWebProgress.DOMWindowID,
   };
+
+  //log('msg state change', JSON.stringify(msg, null, 2))
 
   send({
     module: 'core',

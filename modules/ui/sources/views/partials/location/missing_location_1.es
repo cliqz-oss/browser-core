@@ -129,7 +129,7 @@ export default class {
                 }
               ]
             };
-        CliqzUtils.httpPut(url, this.handleNewLocalResults(el), JSON.stringify(data));
+        CliqzUtils.httpPut(url, this.handleNewLocalResults(el, this.CLIQZ.UI.gCliqzBox, query), JSON.stringify(data));
 
       } else {
         CliqzUtils.log("Unable to get user's location", "getlocation.actions.updateGeoLocation");
@@ -141,7 +141,7 @@ export default class {
     });
   }
 
-  handleNewLocalResults(el) {
+  handleNewLocalResults(el, box, q) {
     return (req) => {
       var resp,
           container = el,
@@ -154,7 +154,7 @@ export default class {
         return;
       }
       if (resp && resp.results && resp.results.length > 0) {
-        while (container && !CliqzUtils.hasClass(container, "cqz-result-box")) {
+        while (container && !container.classList.contains("cqz-result-box")) {
           container = container.parentElement;
           if (!container || container.id == "cliqz-results") return;
         }
@@ -164,9 +164,17 @@ export default class {
         // back the same snippet that it received (no local data)
         if (r.type === 'cliqz-extra' && container) {
           container.innerHTML = CliqzHandlebars.tplCache[r.template || 'generic'](r);
+
+          //we need to make the title arrowable for keyboard navigation
+          var targetTitle = container.querySelector('.cqz-result-title');
+          if(targetTitle){
+            targetTitle.setAttribute('url', r.url);
+            targetTitle.setAttribute('arrow', 'true');
+          }
         } else {
           this.failedToLoadResults(el);
         }
+        CliqzUtils.onRenderComplete(q, box);
       } else {
         this.failedToLoadResults(el);
       }

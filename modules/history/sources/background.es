@@ -1,33 +1,25 @@
-import background from "core/base/background";
-import { utils } from "core/cliqz";
-import { queryActiveTabs } from "core/tabs";
-import HistoryProvider from "core/history-provider";
-import createHistoryDTO from "history/history-dto";
-import QueryDatabase from "history/query-database";
-import MetaDatabase from "history/meta-database";
-import Database from "core/database";
+import History from '../platform/history/history';
+import background from '../core/base/background';
+import Database from '../core/database';
+import utils from '../core/utils';
+import { queryActiveTabs } from '../core/tabs';
+import createHistoryDTO from './history-dto';
+import MetaDatabase from './meta-database';
 
-import MixerProxy from "history/mixer-proxy";
-import RichHeaderProxy from "history/rich-header-proxy";
 /**
 * @namespace history
 * @class Background
 */
 export default background({
-  enabled() {
-    return true;
-  },
   /**
   * @method init
   */
   init() {
-    const queryDB = new Database("cliqz-queries"),
-          metaDB = new Database("cliqz-metas");
+    const metaDB = new Database('cliqz-metas');
 
-    this.queryDatabase = new QueryDatabase(queryDB);
     this.metaDatabase = new MetaDatabase(metaDB);
-    this.mixer = new MixerProxy();
-    this.richHeader = new RichHeaderProxy();
+    this.history = History;
+    this.redirectMap = Object.create(null);
   },
 
   unload() {
@@ -36,102 +28,108 @@ export default background({
   beforeBrowserShutdown() {
   },
 
+  getSourceUrl(url) {
+    const sourceUrl = this.redirectMap[url];
+    // delete this.redirectMap[url];
+
+    if (!sourceUrl) {
+      return url;
+    }
+
+    return this.getSourceUrl(sourceUrl);
+  },
+
   events: {
     /**
     * @event ui:click-on-url
     * @param data
     */
-    "ui:click-on-url": function (data) {
-      this.actions.recordQuery(data.query, data.url);
+    'ui:click-on-url': function onResult({ query, url }) {
+      const asyncHistory = Components.classes['@mozilla.org/browser/history;1']
+                         .getService(Components.interfaces.mozIAsyncHistory);
+      const queryUrl = `https://cliqz.com/search/?q=${query}`;
+      const uri = Services.io.newURI(queryUrl, null, null);
+
+      const place = {
+        uri,
+        title: `${query} - CLIQZ Search`,
+        visits: [{
+          visitDate: Date.now() * 1000,
+          transitionType: Components.interfaces.nsINavHistoryService.TRANSITION_TYPED,
+        }],
+      };
+
+      asyncHistory.updatePlaces(place, {
+        handleError: () => {},
+        handleResult: () => {},
+        handleCompletion: () => {
+          utils.setTimeout(() =>
+            History.fillFromVisit(url, encodeURI(queryUrl)), 2000);
+        },
+      });
     },
     /**
     * @event core:url-meta
     * @param url {string}
     * @param meta
     */
-    "core:url-meta": function (url, meta) {
+    'core:url-meta': function onUrlMeta(url, meta) {
       this.actions.recordMeta(url, meta);
+    },
+    'content:state-change': function onStateChange({ url, originalUrl, triggeringUrl }) {
+      if (url && triggeringUrl) {
+        this.redirectMap[url] = triggeringUrl;
+
+        // clean after some time
+        utils.setTimeout(() => {
+          delete this.redirectMap[url];
+        }, 1000);
+      }
+
+      if (originalUrl && triggeringUrl) {
+        this.redirectMap[originalUrl] = triggeringUrl;
+
+        // clean after some time
+        utils.setTimeout(() => {
+          delete this.redirectMap[originalUrl];
+        }, 1000);
+      }
+    },
+    'content:location-change': function onLocationChange({ url, triggeringUrl }) {
+      const sourceUrl = this.getSourceUrl(triggeringUrl);
+      if (url && sourceUrl) {
+        History.fillFromVisit(url, sourceUrl);
+      }
     },
   },
 
   actions: {
-    getHistory({ frameStartsAt, frameEndsAt, limit, domain }) {
+    getHistory({ frameStartsAt, frameEndsAt, limit, domain, query }) {
+      let sessionLimit = limit;
       // Allow unlimited queries only for fixed time fames
       if (!(frameStartsAt && frameEndsAt)) {
-        limit = limit || 100;
+        sessionLimit = sessionLimit || 100;
       }
 
-      const limitStatement = limit ? `LIMIT ${limit}` : "";
-      const frameStartsAtStatement = frameStartsAt ? `AND last_visit_date >= ${frameStartsAt}` : "";
-      const frameEndsAtStatement = frameEndsAt ? `AND last_visit_date < ${frameEndsAt}` : "";
-      const domainStatement = domain ? `AND url GLOB '*://${domain}/*'` : "";
-
-      const activeTabs = queryActiveTabs(utils.getWindow());
-
-      const query = `
-        SELECT url, title, last_visit_date
-        FROM moz_places
-        WHERE 1=1
-        ${frameStartsAtStatement}
-        ${frameEndsAtStatement}
-        ${domainStatement}
-        ORDER BY last_visit_date DESC
-        ${limitStatement}`;
-
-      return HistoryProvider.query(
+      return this.history.query({
+        limit: sessionLimit,
+        frameStartsAt,
+        frameEndsAt,
+        domain,
         query,
-        ["url", "last_visit_date", "title"]
-      ).then( places => {
-        return createHistoryDTO({
+      }).then(({ places, from, to }) => {
+        const activeTabs = queryActiveTabs(utils.getWindow());
+
+        const dto = createHistoryDTO({
           places,
-          queryDatabase: this.queryDatabase,
           activeTabs,
-          mixer: this.mixer,
-          richHeader: this.richHeader,
-          metaDatabase: this.metaDatabase,
         });
+
+        return Object.assign({
+          frameStartsAt: from,
+          frameEndsAt: to,
+        }, dto);
       });
-    },
-    /**
-     *
-     *  {
-     *    domain: "cliqz.com", //utils
-     *    url: "https://cliqz.com/",
-     *    lastVisitedAt: Date.now(), //places
-     *    isActive: false, //tabs
-     *    isCurrent: false, //tabs
-     *    tabIndex: 1, //tabs
-     *    meta: {}, //meta
-     *    logo: {}, //utils
-     *  }
-     *
-     */
-    getQuery(query) {
-      const activeTabs = queryActiveTabs(utils.getWindow());
-
-      return  this.queryDatabase.getUrls(query).then( urls => {
-        return urls.map(url => {
-          const details = utils.getDetailsFromUrl(url),
-            domain = details.host,
-            logo = utils.getLogoDetails(details),
-            meta = this.metaDatabase.getMeta(url),
-            activeTab = activeTabs.find( tab => tab.url === url);
-
-          return {
-            domain,
-            logo,
-            meta,
-            url,
-            isActive: !!activeTab,
-            isCurrent: activeTab && activeTab.isCurrent,
-            tabIndex: activeTab && activeTab.index
-          };
-        });
-      });
-    },
-
-    getQueries() {
-      return this.queryDatabase.getQueries();
     },
 
     openUrl(url) {
@@ -142,26 +140,22 @@ export default background({
       utils.getWindow().gBrowser.selectTabAtIndex(index);
     },
 
-    recordQuery(query, url) {
-      this.queryDatabase.record(query, url);
-    },
-
     newTab() {
       const window = utils.getWindow();
       const activeTabs = queryActiveTabs(window);
-      const freshTab = activeTabs.find( tab => tab.url === "about:cliqz" );
+      const newTabUrl = utils.CLIQZ_NEW_TAB;
+      const freshTab = activeTabs.find(tab => tab.url === newTabUrl);
 
-      if ( freshTab ) {
+      if (freshTab) {
         window.gBrowser.selectTabAtIndex(freshTab.index);
       } else {
-        const tab = utils.openLink(window, "about:cliqz", true);
+        const tab = utils.openLink(window, newTabUrl, true);
         window.gBrowser.selectedTab = tab;
       }
     },
 
     recordMeta(url, meta) {
       this.metaDatabase.record(url, meta);
-    }
-
-  }
+    },
+  },
 });

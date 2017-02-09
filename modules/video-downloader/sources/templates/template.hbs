@@ -1,0 +1,35 @@
+<h3><span data-i18n="video-downloader-title"></span></h3>
+{{#if isMockData}}
+<div class="preloader">
+    <img src='images/preloader.gif' />
+</div>
+{{else}}
+    {{#if unSupportedFormat}}
+    <div id="unsupported-format">
+        <span data-i18n="video-downloader-unsupported-format"></span>
+    </div>
+    {{else}}
+        <ul id="download-links">
+            {{#each formats}}
+            <li class="{{this.class}}">
+                <p data-href="{{this.url}}" target="_blank" data-format="{{this.name}}" download="{{this.title}}.{{this.format}}">{{this.name}} <span>{{this.size}}</span></p>
+            </li>
+            {{/each}}
+        </ul>
+        <a id="more-formats-btn" href="#"><span data-i18n="video-downloader-more-formats"></span></a>
+
+        {{#if pairingAvailable}}
+        <div class="pairing-wrapper">
+            {{#if isPaired}}
+            <img id="sending-status" src="images/send-to-mobile.svg" />
+            <a href="#" data-href="{{videoForPairing.url}}" data-title="{{videoForPairing.title}}" data-format="{{videoForPairing.format}}" id="send-to-mobile-btn"><span data-i18n="video-downloader-send-to-mobile"></span></a>
+            <img id="pairing-status" src="images/pair-icon-light.svg" />
+            {{else}}
+            <img src="images/send-to-mobile-disabled.svg" />
+            <a class="disabled" href="#" data-href="{{videoForPairing.url}}" data-title="{{videoForPairing.title}}" data-format="{{videoForPairing.format}}" id="send-to-mobile-btn"><span data-i18n="video-downloader-send-to-mobile"></span></a>
+            <a id="pairing-dashboard" href="about:preferences#pairing" target="_blank"><img id="pairing-status" src="images/pair-icon.svg" /></a>
+            {{/if}}
+        </div>
+        {{/if}}
+    {{/if}}
+{{/if}}

@@ -3,6 +3,8 @@ import utils from 'core/utils';
 import * as http from 'core/http';
 
 const BW_URL = 'https://antiphishing.cliqz.com/api/bwlist?md5=';
+const OFFER_TELEMETRY = 'https://offers-api.cliqz.com/api/v1/savesignal';
+
 let proxyHttpHandler = null;
 export function overRideCliqzResults() {
   if (utils.getPref('proxyNetwork', true) === false) return;
@@ -74,6 +76,14 @@ export function overRideCliqzResults() {
       });
       return null;
     } else if (url === utils.SAFE_BROWSING) {
+      const batch = JSON.parse(data);
+      if (batch.length > 0) {
+        batch.forEach(eachMsg => {
+          CliqzSecureMessage.telemetry(eachMsg);
+        });
+      }
+      callback && callback({ 'response': '{"success":true}' });
+    } else if (url === OFFER_TELEMETRY) {
       const batch = JSON.parse(data);
       if (batch.length > 0) {
         batch.forEach(eachMsg => {

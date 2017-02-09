@@ -1,0 +1,9 @@
+<div class="third">
+    {{#each links}}
+        <div url="{{url}}" extra="cat-{{ @index }}" class="cards__item ez-category">
+            <h2 class="cards__title__secondary">
+                {{local extra.domain}}
+            </h2>
+        </div>
+    {{/each}}
+</div>

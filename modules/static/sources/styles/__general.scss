@@ -75,7 +75,6 @@
 
 #PopupAutoCompleteRichResultCliqz {
     -moz-binding: url("../../components.xml#autocomplete-rich-result-popup-cliqz");
-    min-height: 350px; /* fixes bug with popup auto-sizing */
     overflow: hidden;
 }
 
@@ -210,6 +209,9 @@
 .cqz-results .cqz-result-title:visited,
 .cqz-results .cliqz-pattern-element-title {
     color: #8c275f !important;
+    &:hover {
+        text-decoration: underline;
+    }
 }
 
 .cqz-popup a:hover,

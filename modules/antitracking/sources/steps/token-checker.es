@@ -11,11 +11,10 @@ const STAT_KEYS = ['cookie', 'private', 'cookie_b64', 'private_b64', 'safekey', 
 
 export default class {
 
-  constructor(qsWhitelist, blockLog, tokenDomainCountThreshold, shortTokenLength, privateValues, hashProb) {
+  constructor(qsWhitelist, blockLog, privateValues, hashProb, config) {
     this.qsWhitelist = qsWhitelist;
     this.blockLog = blockLog;
-    this.tokenDomainCountThreshold = tokenDomainCountThreshold;
-    this.shortTokenLength = shortTokenLength;
+    this.config = config;
     this.debug = false;
     this.privateValues = privateValues;
     this.hashProb = hashProb;
@@ -76,12 +75,12 @@ export default class {
     var _incrStats = function(cc, prefix, tok, key, val) {
         if (cc == 0)
             stats['short_no_hash']++;
-        else if (cc < self.tokenDomainCountThreshold)
+        else if (cc < self.config.tokenDomainCountThreshold)
             stats[prefix+'_newToken']++;
         else {
             _addBlockLog(s, key, val, prefix);
             badTokens.push(val);
-            if (cc == self.tokenDomainCountThreshold)
+            if (cc == self.config.tokenDomainCountThreshold)
                 stats[prefix + '_countThreshold']++;
             stats[prefix]++;
             return true;
@@ -101,11 +100,11 @@ export default class {
             tok = dURIC(tok);
         }
 
-        if (tok.length < self.shortTokenLength || source_url.indexOf(tok) > -1) return;
+        if (tok.length < self.config.shortTokenLength || source_url.indexOf(tok) > -1) return;
 
         // Bad values (cookies)
         for (var c in cookievalue) {
-            if ((tok.indexOf(c) > -1 && c.length >= self.shortTokenLength) || c.indexOf(tok) > -1) {
+            if ((tok.indexOf(c) > -1 && c.length >= self.config.shortTokenLength) || c.indexOf(tok) > -1) {
                 if (self.debug) CliqzUtils.log('same value as cookie ' + val, 'tokk');
                 var cc = _countCheck(tok);
                 if (c != tok) {
@@ -118,7 +117,7 @@ export default class {
 
         // private value (from js function returns)
         for (var c in self.privateValues) {
-            if ((tok.indexOf(c) > -1 && c.length >= self.shortTokenLength) || c.indexOf(tok) > -1) {
+            if ((tok.indexOf(c) > -1 && c.length >= self.config.shortTokenLength) || c.indexOf(tok) > -1) {
                 if (self.debug) CliqzUtils.log('same private values ' + val, 'tokk');
                 var cc = _countCheck(tok);
                 if (c != tok) {
@@ -135,7 +134,7 @@ export default class {
         }
         if (b64 != null) {
             for (var c in cookievalue) {
-                if ((b64.indexOf(c) > -1 && c.length >= self.shortTokenLength) || c.indexOf(b64) > -1) {
+                if ((b64.indexOf(c) > -1 && c.length >= self.config.shortTokenLength) || c.indexOf(b64) > -1) {
                     if (self.debug) CliqzUtils.log('same value as cookie ' + b64, 'tokk-b64');
                     var cc = _countCheck(tok);
                     if (c != tok) {
@@ -146,7 +145,7 @@ export default class {
                 }
             }
             for (var c in self.privateValues) {
-                if (b64.indexOf(c) > -1 && c.length >= self.shortTokenLength) {
+                if (b64.indexOf(c) > -1 && c.length >= self.config.shortTokenLength) {
                     if (self.debug) CliqzUtils.log('same private values ' + b64, 'tokk-b64');
                     var cc = _countCheck(tok);
                     if (c != tok) {

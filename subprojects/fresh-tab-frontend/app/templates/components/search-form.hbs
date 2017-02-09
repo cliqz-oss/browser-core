@@ -1,0 +1,11 @@
+{{input id="search-form-input" value=modelProxy placeholder="Search History"}}
+<label for="search-form-input">
+  {{#if model}}
+    <img src="./assets/images/mag-glass-active.svg"/>
+  {{else}}
+    <img src="./assets/images/mag-glass-lgray.svg"/>
+  {{/if}}
+</label>
+<button {{action "clearQuery"}}>
+    <img src="./assets/images/close-search.svg"/>
+</button>

@@ -1,6 +1,7 @@
 /* global jsAPI */
 
 import background from 'core/base/background';
+import events from '../core/events';
 
 export default background({
   enabled() {
@@ -22,6 +23,9 @@ export default background({
     'mobile-browser:set-search-engine': jsAPI.setDefaultSearchEngine,
     'mobile-browser:publish-card-url': jsAPI.getCardUrl,
     'mobile-browser:showcase-swipe-card': jsAPI.onBoardingSwipe,
-    'mobile-browser:urlbar-focus': jsAPI.onUrlbarFocus,
+    'mobile-browser:urlbar-focus': function (...args) {
+      jsAPI.onUrlbarFocus.apply(jsAPI, args);
+      events.pub('core:urlbar_focus', ...args);
+    },
   },
 });

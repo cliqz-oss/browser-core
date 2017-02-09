@@ -1,10 +1,9 @@
-{{#if isCustom}}
-  <h3 class="speedDialLabel">{{t (concat 'speedDials.' type '-sites')}}</h3>
-{{else}}
+{{#if model.isLoaded}}
   {{#if displayHistoryLabel }}
     <h3 class="speedDialLabel">{{t (concat 'speedDials.' type '-sites')}}</h3>
   {{/if}}
 {{/if}}
+
 <ul class="clearfix">
   {{#each speedDials as |dial index|}}
     {{speed-dial model=dial
@@ -16,8 +15,11 @@
                  alias=dial.searchAlias
                  isCustom=isCustom}}
   {{/each}}
-  {{#if showAddButton}}
-    {{add-speed-dial addToCustomAction="addToCustom"}}
+
+  {{#if model.isLoaded}}
+    {{#if showAddButton}}
+      {{add-speed-dial addToCustomAction="addToCustom"}}
+    {{/if}}
   {{/if}}
 </ul>
 

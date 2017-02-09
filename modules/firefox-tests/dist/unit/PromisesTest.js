@@ -3,6 +3,8 @@
 
 /*global describe, specify, it, assert */
 
+Components.utils.import('resource://gre/modules/Services.jsm');
+
 function keysOf(object) {
   var results = [];
 
@@ -19,9 +21,15 @@ DEPS.PromiseTest = ["core/utils"];
 TESTS.PromiseTest = function(CliqzUtils) {
   describe("Promise", function () {
 
-  var System = CliqzUtils.getWindow().CLIQZ.System,
-      Promise = System.get('core/cliqz').Promise,
-      assert = chai.assert;
+  // Import runloop.js again to get a new instance of Promise. This is used instead
+  // of the global Promise object in CliqzUtils because we need to mock it during the
+  // tests. Mocking the global object will result in random tests failure if Promise
+  // is used by other modules at the same time tests are running.
+  var global = {};
+  Services.scriptloader.loadSubScript("chrome://cliqz/content/runloop.js", global);
+  var Promise = global.Promise;
+
+  var assert = chai.assert;
 
   function objectEquals(obj1, obj2) {
     for (var i in obj1) {

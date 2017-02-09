@@ -186,72 +186,72 @@
       "message":"Automatic"
     },
     "country_code_AT": {
-      "message":"Österreich - Austria"
+      "message":"Austria"
     },
     "country_code_BR": {
-      "message":"Brazil - Brasile"
+      "message":"Brasile"
     },
     "country_code_CA": {
-      "message":"Canada - Canada"
+      "message":"Canada"
     },
     "country_code_HR": {
-      "message":"Hrvatska - Croazie"
+      "message":"Croazie"
     },
     "country_code_EE": {
-      "message":"Eesti - Estonia"
+      "message":"Estonia"
     },
     "country_code_FR": {
-      "message":"France - Francia"
+      "message":"Francia"
     },
     "country_code_DE": {
-      "message":"Deutschland - Germania"
+      "message":"Germania"
     },
     "country_code_GR": {
-      "message":"Ελλάδα - Grecia"
+      "message":"Grecia"
     },
     "country_code_HU": {
-      "message":"Magyarország - Ungheria"
+      "message":"Ungheria"
     },
     "country_code_ID": {
-      "message":"Indonesia - Indonesia"
+      "message":"Indonesia"
     },
     "country_code_IT": {
-      "message":"Italia - Italia"
+      "message":"Italia"
     },
     "country_code_PS": {
-      "message":"Palestine - Palestina"
+      "message":"Palestina"
     },
     "country_code_RO": {
-      "message":"România - Romania"
+      "message":"Romania"
     },
     "country_code_RU": {
-      "message":"Россия - Russia"
+      "message":"Russia"
     },
     "country_code_RS": {
-      "message":"Србија - Serbia"
+      "message":"Serbia"
     },
     "country_code_SG": {
-      "message":"Singapore - Singapore"
+      "message":"Singapore"
     },
     "country_code_ES": {
-      "message":"España - Spagna"
+      "message":"Spagna"
     },
     "country_code_CH": {
-      "message":"Schweiz - Svizzera"
+      "message":"Svizzera"
     },
     "country_code_TH": {
-      "message":"ประเทศไทย - Thailandia"
+      "message":"Thailandia"
     },
     "country_code_TR": {
-      "message":"Türkiye - Turchia"
+      "message":"Turchia"
     },
     "country_code_GB": {
-      "message":"United Kingdom - Regno unito"
+      "message":"Regno unito"
     },
     "country_code_US": {
-      "message":"United States - Stati Uniti"
+      "message":"Stati Uniti"
     },
     "country_code_VN": {
-      "message":"Việt Nam - Vietnam"
+      "message":"Vietnam"
     }
 }

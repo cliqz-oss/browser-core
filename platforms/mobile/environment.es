@@ -10,35 +10,30 @@ const storage = new Storage();
 // END TEMP
 const TEMPLATES = Object.freeze(Object.assign(Object.create(null), {
   "Cliqz": true,
-  "EZ-category": true,
   "EZ-history": true,
   "calculator": true,
-  "celebrities": true,
   "currency": true,
   "emphasis": true,
   "empty": true,
-  "entity-news-1": true,
   "flightStatusEZ-2": true,
   "generic": true,
   "history": true,
-  "ligaEZ1Game": true,
-  "ligaEZTable": true,
-  "logo": true,
   "main": true,
   "noResult": true,
   "rd-h3-w-rating": true,
   "results": true,
   "topnews": true,
   "topsites": true,
-  "url": true,
   "weatherAlert": true,
   "weatherEZ": true,
-  "liveTicker": true
+  "liveTicker": true,
+  "ligaEZ1Game": true,
+  "ligaEZTable": true
 }));
 
 var CLIQZEnvironment = {
-  RESULTS_PROVIDER: 'https://newbeta.cliqz.com/api/v2/results?q=',
-  RICH_HEADER: 'https://newbeta.cliqz.com/api/v2/rich-header?path=/v2/map',
+  RESULTS_PROVIDER: 'https://api.cliqz.com/api/v2/results?q=',
+  RICH_HEADER: 'https://api.cliqz.com/api/v2/rich-header?path=/v2/map',
   BRANDS_DATA_URL: 'static/brands_database.json',
   TEMPLATES_PATH: 'mobile-ui/templates/',
   LOCALE_PATH: 'static/locale/',
@@ -57,7 +52,6 @@ var CLIQZEnvironment = {
       'logo',
       'EZ-category',
       'rd-h3-w-rating',
-      "local-data-sc"
   ],
   GOOGLE_ENGINE: {name:'Google', url: 'http://www.google.com/search?q='},
   //TODO: check if calling the bridge for each telemetry point is expensive or not
@@ -88,10 +82,7 @@ var CLIQZEnvironment = {
   },
   search: function(e) {
     if(!e || e === '') {
-      // should be moved to UI except 'CLIQZEnvironment.initHomepage();'
       CLIQZEnvironment.lastSearch = '';
-      CLIQZ.UI.hideResultsBox();
-      CLIQZEnvironment.initHomepage();
       CLIQZ.UI.stopProgressBar();
       CLIQZ.UI.lastResults = null;
       return;
@@ -102,8 +93,6 @@ var CLIQZEnvironment = {
     e = e.toLowerCase().trim();
 
     CLIQZEnvironment.lastSearch = e;
-
-    News.sendHideTelemetry();
 
     window.CLIQZ.UI.startProgressBar();
 
@@ -181,12 +170,6 @@ var CLIQZEnvironment = {
     Array.prototype.slice.call(document.querySelectorAll(elementSelector)).forEach(function (element) {
       element.addEventListener(eventType, listener);
     });
-  },
-
-  initHomepage: function() {
-    if (!CLIQZ.UI  || !CLIQZ.UI.isIncognito) {
-      osAPI.getTopSites('onNews', 15);
-    }
   },
   setDefaultSearchEngine: function(engine) {
     storage.setObject('defaultSearchEngine', engine);

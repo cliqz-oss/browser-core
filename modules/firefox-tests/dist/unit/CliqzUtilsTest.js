@@ -7,7 +7,7 @@ TESTS.CliqzUtilsTest = function (CliqzUtils) {
   describe('CliqzUtils', function(){
 
     it('RESULTS_PROVIDER should be set to the right mixer endpoint', function(){
-      expect(CliqzUtils.RESULTS_PROVIDER).to.equal('https://newbeta.cliqz.com/api/v2/results?nrh=1&q=');
+      expect(CliqzUtils.RESULTS_PROVIDER).to.equal('https://api.cliqz.com/api/v2/results?nrh=1&q=');
     });
 
     describe('GetDetailsFromUrl', function() {

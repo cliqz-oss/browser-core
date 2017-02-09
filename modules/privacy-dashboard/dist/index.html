@@ -7,8 +7,7 @@
         content="Mit CLIQZ for Firefox erlebst du ein völlig neues Web: direkt, schnell, sicher. Hier kannst du die kostenlose Browser-Erweiterung herunterladen."/>
     <meta name="keywords"
         content="Firefox,Add on,Erweiterung,Browser,Suche,Suchmaschine,Google,Alternative,Internet,web,Navigation,suchen,navigieren,finden"/>
-    <title>Cliqz | Transparenz-Cockpit</title>
-
+    <title data-i18n="transparency_html_title"></title>
     <!-- Cliqz CSS -->
     <link rel="stylesheet" href="chrome://cliqz/content/privacy-dashboard/css/styles.css"/>
 
@@ -19,30 +18,25 @@
 <body>
 
 	<h1>
-		<div class="title">
-			Transparenz-Cockpit
+		<div class="title" data-i18n="transparency_document_title">
 		</div>
 		<div class="legend">
-			<b class="meta">Legende:</b>
-			<span class="blocked">Blockiert zum Schutz Deiner Privatssphäre</span> & <br/> <span class="allowed">Wird von CLIQZ empfangen</span>
+			<b class="meta" data-i18n="transparency_legend_title"></b>
+			<span class="blocked" data-i18n="transparency_blocked1"></span> & <br/> <span class="allowed" data-i18n="transparency_blocked2"></span>
 		</div>
 	</h1>
 	<div class="wrapper">
             <section>
                 <header>
-                    <h2>Transparenz-Cockpit</h2>
-                    <div class="description">
-                        Deine Privatsphäre ist uns heilig. CLIQZ erhebt keine persönlichen Daten. Damit du überprüfen kannst, welche Daten bei der Nutzung des CLIQZ-Browser generiert werden, haben wir das Transparenz-Cockpit entwickelt. Dieses zeigt Dir in Echtzeit, die Daten, die wir erhalten. Um deine Privatsphäre zu schützen, werden manche Daten blockiert. Das heißt, sie veranlassen entweder gar nicht erst den Browser (z.B. Geo-Daten, sofern diese nicht erlaubt wurden) oder werden nicht weiterverarbeit bzw. mit anderen Daten kombiniert. Mach dir dein eigenes Bild!
-                    </div>
+                    <h2 data-i18n="transparency_content_title"></h2>
+                    <div class="description" data-i18n="transparency_content"></div>
                 </header>
             </section>
 
 		    <section class="antitracking">
 				<header>
-					<h3>Deine Suche bei CLIQZ</h3>
-					<div class="description">
-						Hier siehst du Daten über die Suchanfragen und Adressen, die du über die CLIQZ-Suche eingibst. Diese Informationen helfen uns, dein Sucherlebnis zu optimieren. Wie du sehen kannst, beinhalten diese Daten keinerlei persönliche Information. Für CLIQZ bist du anonym. Du hast die Möglichkeit, Suchen über CLIQZ über ein Proxy-Netzwerk laufen zu lassen um Deine Privatssphäre noch stärker zu schützen. Weitere Informationen findest du <a target="_blank" href="https://cliqz.com/whycliqz/transparency#your-search">hier</a>.
-					</div>
+					<h3 data-i18n="transparency_search_title"></h3>
+					<div class="description" data-i18n="transparency_search_content"></div>
 				</header>
 
 				<div id="searchData" class="cf">
@@ -53,10 +47,8 @@
 			<section class="humanweb">
 
 				<header>
-					<h3>Human Web</h3>
-                    <div class="description">
-                        Human Web ist unsere Technologie, mit der wir die Qualität unserer Suchergebnisse mittels statistischer Methoden ständig verbessern. Die anonymem statistischen Daten, die hier gesammelt werden, beziehen sich auch auf Suchanfragen und die jeweils erzielten Ergebnisse, unabhängig davon, welche Suchmaschine du nutzt. Die Datenarchitektur ist dabei so konzipiert, dass theoretisch mögliche Rückschlüsse auf Personen durch die Verknüpfung verschiedener Daten unmöglich sind. Die Übertragung der Human Web-Daten ist durch ein Proxy-Netzwerk und Verschlüsselung geschützt. Weitere Information findest du <a target="_blank" href="https://cliqz.com/whycliqz/transparency#human-web">hier</a>.
-                    </div>
+					<h3 data-i18n="transparency_humanweb_title"></h3>
+                    <div class="description" data-i18n="transparency_humanweb_content"></div>
 				</header>
 
 				<div id="humanwebData" class="cf">
@@ -67,12 +59,8 @@
             <section class="humanweb">
 
                 <header>
-                    <h3>Telemetrie</h3>
-                    <div class="description">
-                        Telemetrie umfasst alle Daten, die die Verwendung und Leistung des Browsers und seiner Funktionen betreffen. Wir nutzen diese Daten, um CLIQZ fortlaufend verbessern zu können. Daten die in diesen Bereich fallen, beinhalten z.B. die Browserversion oder die Zeit, bis die Ergebnisse angezeigt werden. Die Telemetriedaten  enthalten keinerlei Information über Suchanfragen, Suchergebnisse oder besuchte Webseiten.
-
-                        Weitere Information findest du <a target="_blank" href="https://cliqz.com/whycliqz/transparency#telemetry">hier</a>.
-                    </div>
+                    <h3 data-i18n="transparency_telemetry_title"></h3>
+                    <div class="description" data-i18n="transparency_telemetry_content"></div>
                 </header>
 
                 <div id="telemetryData" class="cf">
@@ -81,7 +69,20 @@
             </section>
 
 	</div>
+    <script>
+        // small functionality to allow this page internationalization (i18n)
+        Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+        var CliqzUtils = CLIQZ.CliqzUtils;
+        function localizeDocument() {
+            Array.prototype.forEach.call(document.querySelectorAll('[data-i18n]'), el => {
+                var elArgs = el.dataset.i18n.split(','),
+                    key = elArgs.shift();
 
+                el.innerHTML = CliqzUtils.getLocalizedString(key, elArgs);
+            });
+        }
+        localizeDocument();
+    </script>
 
 </body>
 

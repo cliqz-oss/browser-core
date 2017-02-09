@@ -1,0 +1,21 @@
+{{#each sessions as |session|}}
+  {{history-session model=session query=query tagName="li" class="session"}}
+{{else}}
+  {{#unless model.isLoading}}
+    <li>No history</li>
+  {{/unless}}
+{{/each}}
+
+{{#if model.isLoading}}
+  {{#if sessions}}
+    {{loading-spinner tagName=''}}
+  {{else}}
+    <li class="loading-list">
+      {{loading-spinner tagName=''}}
+    </li>
+  {{/if}}
+{{else}}
+  {{#unless model.hasMoreResults}}
+    <li>No more history</li>
+  {{/unless}}
+{{/if}}

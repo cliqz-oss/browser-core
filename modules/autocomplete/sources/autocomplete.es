@@ -35,7 +35,7 @@ var CliqzAutocomplete = {
     getResultsOrder: function(results){
         return CliqzAutocomplete.prepareResultOrder(results);
     },
-    // SOURCE: http://mxr.mozilla.org/mozilla-central/source/toolkit/components/autocomplete/nsIAutoCompleteResult.idl
+    // SOURCE: https://dxr.mozilla.org/mozilla-central/source/toolkit/components/autocomplete/nsIAutoCompleteResult.idl
 
     // a result is done once a new result comes in, or once the popup closes
     markResultsDone: function(newResultsUpdateTime) {

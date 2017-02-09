@@ -1,0 +1,46 @@
+#PanelUI-contents #wrapper-cliqz-vd-btn, #PanelUI-contents #cliqz-vd-btn {
+    vertical-align: top;
+}
+
+#cliqz-vd-btn {
+    padding: 0;
+}
+
+.cliqz-video-downloader {
+    height: 31px;
+    padding: 8px 4px 0 23px;
+    color: transparent;
+    background-size: auto 14px;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(../images/video-downloader.svg);
+}
+
+#customizationui-widget-panel[viewId="cliqz-vd-btn-panel"] .panel-arrowcontent {
+    --panel-arrowcontent-background: #fff;
+}
+
+.hidden {
+    display: none;
+}
+
+#cliqz-vd-btn.customizing {
+    -moz-animation:    none;
+    animation:         none;
+}
+
+#cliqz-vd-btn {
+    -moz-animation:    cliqz_animation 1s 1; /* Fx 2+ */
+    animation:         cliqz_animation 1s 1; /* IE 10+, Fx 29+ */
+    animation-timing-function: ease-out;
+}
+
+@-moz-keyframes cliqz_animation {
+  0%   { opacity: 0; background-color: #0086A1; }
+  100% { opacity: 1; background-color: transparent; }
+}
+
+@keyframes cliqz_animation {
+  0%   { opacity: 0; background-color: #0086A1; }
+  100% { opacity: 1; background-color: transparent; }
+}

@@ -1,6 +1,6 @@
 import { URLInfo } from 'antitracking/url';
 
-import { log } from 'adblocker/utils';
+import log from 'adblocker/utils';
 import parseList, { parseJSResource
                   , serializeFilter
                   , deserializeFilter } from 'adblocker/filters-parsing';

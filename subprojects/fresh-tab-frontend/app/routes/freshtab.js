@@ -5,24 +5,21 @@ export default Ember.Route.extend({
   i18n: Ember.inject.service(),
   messageCenter: Ember.inject.service('message-center'),
 
+  activate() {
+    document.title = this.get('i18n').t('title');
+    Ember.$('body').addClass('freshTabContainer');
+  },
+
+  deactivate() {
+    Ember.$('body').removeClass('freshTabContainer');
+  },
 
   beforeModel() {
     const messageCenter = this.get('messageCenter');
 
     return this.get('cliqz').getConfig().then( config => {
-
       messageCenter.addMessages(config.messages);
-
       this.set('config', config);
-      var locale = config.locale,
-          defaultLocale = this.get('i18n.locale');
-
-      const isLocaleAvailable = locale && this.get('i18n.locales').some(function(elem) {
-        //locale is in en-US form
-        //i18n.locale is in en form
-        return locale.split('-').indexOf(elem) > -1
-      });
-      isLocaleAvailable ? this.set('i18n.locale', locale) : this.set('i18n.locale', defaultLocale);
     });
   },
 
@@ -70,15 +67,6 @@ export default Ember.Route.extend({
     },
 
     openModal(modalName) {
-      if (modalName === "onboarding") {
-        this.get('cliqz').sendTelemetry({
-          type: "onboarding",
-          product: "cliqz",
-          action: "show",
-          version: "2.0"
-        });
-      }
-
       return this.render(modalName, {
         into: "freshtab",
         outlet: "modal"
@@ -86,14 +74,6 @@ export default Ember.Route.extend({
     },
 
     closeModal() {
-      this.get('cliqz').sendTelemetry({
-        type: "onboarding",
-        product: "cliqz",
-        action: "click",
-        action_target: "confirm",
-        version: "2.0"
-      });
-
       return this.disconnectOutlet({
         outlet: "modal",
         parentView: "freshtab"

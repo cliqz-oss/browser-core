@@ -1,0 +1,42 @@
+<a class="visit" href={{model.url}} title="{{model.title}}" {{action "open" preventDefault=true}}>
+  {{cliqz-logo model=model.contact.logo tagName="span" class=logoclass}}
+
+  {{#if logoclass}}
+    <div>
+      <span class="domain">
+        {{model.contact.domain}}
+      </span>
+    </div>
+  {{/if}}
+
+  <div>
+    <span class="title">
+      {{#if keyword}}
+        <span class="keyword">
+          <img src="./assets/images/mag-glass-dark.svg"/>
+          {{keyword}}
+        </span>
+        {{#unless isCliqz}}
+        &ndash;
+        {{/unless}}
+      {{/if}}
+      {{#unless isCliqz}}
+        {{highlight model.title query}}
+      {{/unless}}
+    </span>
+
+    <span class="url">
+      {{#unless isCliqz}}
+        {{highlight (url model.url) query}}
+      {{/unless}}
+    </span>
+
+    <span class="visited-at">
+      {{#if isHovered}}
+        {{moment-format model.lastVisitedAt 'HH:mm LL' }}
+      {{else}}
+        {{moment-from-now model.lastVisitedAt interval=60000}}
+      {{/if}}
+    </span>
+  </div>
+</a>

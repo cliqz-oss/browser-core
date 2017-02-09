@@ -54,7 +54,7 @@ const CliqzSecureMessage = {
   localTemporalUniq: null,
   wCrypto: null,
   queriesID: {},
-  servicesToProxy : ["newbeta.cliqz.com"],
+  servicesToProxy : ["api.cliqz.com"],
   proxyInfoObj: {},
   pacemaker: function () {
     if ((CliqzSecureMessage.counter / CliqzSecureMessage.tmult) % 10 === 0) {

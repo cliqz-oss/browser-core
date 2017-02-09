@@ -23,7 +23,13 @@
     @import 'ezones/_live-ticker';
 
     @import 'parts/_footer-msg';
+    @import 'simple-ui';
 }
+
+.cqz-popup-simple {
+  min-width: 0px;
+}
+
 
 @import 'parts/_context-menu';
 @import 'ezones/_history';

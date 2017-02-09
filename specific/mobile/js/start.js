@@ -25,13 +25,6 @@ window.Components = {
   ID: function(){}
 };
 
-var resolver;
-
-function onNews() {
-  News.startPageHandler.apply(News, arguments);
-  resolver();
-}
-
 var startup, loadModule;
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -54,22 +47,15 @@ document.addEventListener("DOMContentLoaded", function () {
     window.CliqzUtils = utils;
     window.CliqzEvents  = events;
     utils.initPlatform(System);
-    utils.setPref("incognito", false);
     return utils.init({
       lang: window.navigator.language || window.navigator.userLanguage
     });
   }).then(function () {
     return startup(window, [
       "mobile-dev",
-      "mobile-freshtab",
     ]);
   }).then(function () {
     osAPI.init();
-    osAPI.freshtabReady();
-    return new Promise(function(resolve) {
-      resolver = resolve;
-      CliqzUtils.initHomepage();
-    })
   }).then(function () {
     return Promise.all(
       [
@@ -81,5 +67,6 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   }).then(function () {
     osAPI.isReady();
+    CliqzUtils.fetchAndStoreConfig();
   });
 });

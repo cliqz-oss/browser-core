@@ -2,7 +2,7 @@ import utils from '../utils';
 import maybe from '../helpers/maybe';
 
 export default class {
-  constructor(window, url, id, type, autohide = true, actions = {}) {
+  constructor(window, url, id, type, autohide = true, actions = {}, version = 0) {
     this.window = window;
     this.document = this.window.document;
     this.url = url;
@@ -11,6 +11,7 @@ export default class {
     this.actions = actions;
     this.shouldBeOpen = false;
     this.type = type;
+    this.version = version;
 
     this.onShowing = this.onShowing.bind(this);
     this.onHiding = this.onHiding.bind(this);
@@ -66,8 +67,8 @@ export default class {
 
   onMessage(event) {
     const data = JSON.parse(event.data);
-    if (data.target === 'cliqz-control-center' &&
-       data.origin === 'iframe') {
+    if ((data.target === 'cliqz-control-center' && data.origin === 'iframe') ||
+      (data.target === 'cliqz-video-downloader' && data.origin === 'iframe')) {
       const message = data.message;
       this.actions[message.action](message.data);
     }
@@ -88,9 +89,11 @@ export default class {
     this.panel.querySelector('vbox').appendChild(this.iframe);
     utils.telemetry({
       type: this.type,
+      version: this.version,
       target: 'icon',
       action: 'click',
     });
+    this.startShowingAt = new Date();
 
     // TODO: need a better way to attach those events
     utils.setTimeout(() => {
@@ -105,6 +108,12 @@ export default class {
 
   onHiding() {
     this.panel.querySelector('vbox').removeChild(this.iframe);
+    utils.telemetry({
+      type: this.type,
+      version: this.version,
+      action: 'hide',
+      show_duration: new Date() - this.startShowingAt
+    });
 
     maybe(this, 'wrapperPanel').then(panel => {
       panel.removeEventListener('mouseover', this.onMouseOver);

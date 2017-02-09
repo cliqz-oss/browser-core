@@ -1,5 +1,5 @@
 {{#with data}}
-<div class="cqz-result-h1 ez-no-result nopadding">
+<div class="ez-no-result nopadding">
     <div class="h1">{{text_line1}}</div>
     <div class="h2">{{text_line2}}</div>
 

@@ -1,5 +1,5 @@
 import { utils } from 'core/cliqz';
-import background from "core/base/background";
+import background from 'core/base/background';
 import CliqzADB,
       { ADB_PREF_VALUES,
         ADB_PREF,
@@ -9,7 +9,7 @@ import CliqzADB,
 function isAdbActive(url) {
   return adbEnabled() &&
          !CliqzADB.adBlocker.isDomainInBlacklist(url) &&
-         !CliqzADB.adBlocker.isUrlInBlacklist(url)
+         !CliqzADB.adBlocker.isUrlInBlacklist(url);
 }
 
 export default background({
@@ -17,9 +17,9 @@ export default background({
 
   init() {
     if (CliqzADB.getBrowserMajorVersion() < CliqzADB.MIN_BROWSER_VERSION) {
-      return;
+      return Promise.resolve();
     }
-    CliqzADB.init();
+    return CliqzADB.init();
   },
 
   unload() {
@@ -30,33 +30,33 @@ export default background({
   },
 
   events: {
-    "control-center:adb-optimized": function () {
+    'control-center:adb-optimized': () => {
       utils.setPref(ADB_PREF_OPTIMIZED, !utils.getPref(ADB_PREF_OPTIMIZED, false));
     },
-    "control-center:adb-activator": function (data) {
-      const isUrlInBlacklist = CliqzADB.adBlocker.isUrlInBlacklist(data.url),
-            isDomainInBlacklist = CliqzADB.adBlocker.isDomainInBlacklist(data.url);
+    'control-center:adb-activator': (data) => {
+      const isUrlInBlacklist = CliqzADB.adBlocker.isUrlInBlacklist(data.url);
+      const isDomainInBlacklist = CliqzADB.adBlocker.isDomainInBlacklist(data.url);
 
-      //we first need to togle it off to be able to turn it on for the right thing - site or domain
-      if(isUrlInBlacklist){
+      // We first need to togle it off to be able to turn it on for the right thing - site or domain
+      if (isUrlInBlacklist) {
         CliqzADB.adBlocker.toggleUrl(data.url);
       }
 
-      if(isDomainInBlacklist){
+      if (isDomainInBlacklist) {
         CliqzADB.adBlocker.toggleUrl(data.url, true);
       }
 
-      if(data.status == 'active'){
+      if (data.status === 'active') {
         utils.setPref(ADB_PREF, ADB_PREF_VALUES.Enabled);
-      } else if(data.status == 'off'){
-        if(data.option == 'all-sites'){
+      } else if (data.status === 'off') {
+        if (data.option === 'all-sites') {
           utils.setPref(ADB_PREF, ADB_PREF_VALUES.Disabled);
         } else {
           utils.setPref(ADB_PREF, ADB_PREF_VALUES.Enabled);
-          CliqzADB.adBlocker.toggleUrl(data.url, data.option == 'domain' ? true : false);
+          CliqzADB.adBlocker.toggleUrl(data.url, data.option === 'domain');
         }
       }
-    }
+    },
   },
 
   actions: {
@@ -65,14 +65,14 @@ export default background({
       if (!isAdbActive(url)) {
         return {
           rules: [],
-          active: false
+          active: false,
         };
       }
       const candidates = CliqzADB.adBlocker.engine.getCosmeticsFilters(url, nodes);
       return {
         rules: candidates.map(rule => rule.selector),
-        active: true
-      }
+        active: true,
+      };
     },
 
     url(url) {
@@ -81,18 +81,20 @@ export default background({
           scripts: [],
           sytles: [],
           type: 'domain-rules',
-          active: false
-        }
+          active: false,
+        };
       }
 
       const candidates = CliqzADB.adBlocker.engine.getDomainFilters(url);
       return {
-        styles: candidates.filter(rule => !rule.scriptInject && !rule.scriptBlock).map(rule => rule.selector),
+        styles: candidates
+          .filter(rule => !rule.scriptInject && !rule.scriptBlock)
+          .map(rule => rule.selector),
         scripts: candidates.filter(rule => rule.scriptInject).map(rule => rule.selector),
         scriptBlock: candidates.filter(rule => rule.scriptBlock).map(rule => rule.selector),
         type: 'domain-rules',
-        active: true
-      }
-    }
+        active: true,
+      };
+    },
   },
 });

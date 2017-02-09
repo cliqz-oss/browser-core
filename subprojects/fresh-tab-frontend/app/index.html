@@ -1,50 +1,26 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <base target="_parent" />
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>FreshTab</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     {{content-for "head"}}
 
-    <link rel="stylesheet" href="assets/vendor.css">
-    <link rel="stylesheet" href="assets/fresh-tab.css">
+    <link rel="stylesheet" href="{{rootURL}}assets/vendor.css">
+    <link rel="stylesheet" href="{{rootURL}}assets/fresh-tab.css">
 
     {{content-for "head-footer"}}
   </head>
   <body>
-      {{content-for "body"}}
 
-      <script src="assets/vendor.js"></script>
-      <script src="assets/fresh-tab.js"></script>
+    {{content-for "body"}}
 
-      {{content-for "body-footer"}}
+    <script src="{{rootURL}}assets/vendor.js"></script>
+    <script src="{{rootURL}}assets/fresh-tab.js"></script>
 
-      <script type="text/javascript">
-        function getParameterByName(name) {
-          name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-          var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-          results = regex.exec(document.location.search);
-          return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-        }
+    {{content-for "body-footer"}}
 
-        // https://github.com/cliqz-oss/browser-core/issues/4
-        if(getParameterByName('e10s') == 'true'){
-          $(document).on('click', 'a[href]:not([href="#"])', function(ev){
-            // we need to replace the url for normal navigation to avoid adding it
-            // to session history (back is broken on e10s)
-            if(!(ev.ctrlKey || ev.metaKey || ev.altKey || ev.shiftKey)){
-              ev.preventDefault();
-              window.postMessage(JSON.stringify({
-                message: 'replaceURL',
-                url: ev.currentTarget.href
-              }), '*');
-            }
-          });
-        }
-      </script>
   </body>
 </html>

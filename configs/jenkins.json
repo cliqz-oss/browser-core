@@ -1,7 +1,8 @@
 {
   "platform": "firefox",
   "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
-  "testem_launchers": ["Mocha"],
+  "testem_launchers": ["Mocha", "Chrome"],
+  "testem_launchers_ci": ["Mocha"],
   "settings": {
     "id": "cliqz@cliqz.com",
     "name": "Cliqz",
@@ -13,7 +14,6 @@
     "freshTabInitialState": true,
     "unblockUI": true,
     "showDataCollectionMessage": true,
-    "cliqzOnboarding": false,
     "antitrackingButton": true,
     "showNewBrandAlert": true,
     "controlCenterSecurity": true
@@ -22,6 +22,16 @@
     "modules.context-search.enabled": false,
     "modules.type-filter.enabled": false
   },
+  "priority": [
+    "core",
+    "firefox-specific",
+    "static",
+    "autocomplete",
+    "ui",
+    "human-web",
+    "freshtab",
+    "hpn"
+  ],
   "modules": [
     "core",
     "firefox-specific",
@@ -35,6 +45,7 @@
     "unblock",
     "theme",
     "telemetry-categories",
+    "anolysis",
     "human-web",
     "antitracking",
     "anti-phishing",
@@ -44,7 +55,6 @@
     "adblocker",
     "hm",
     "hpn",
-    "offers",
     "offers-v2",
     "campaign-manager",
     "message-center",
@@ -54,7 +64,8 @@
     "moncomp",
     "firefox-tests",
     "type-filter",
-    "telemetry-speed-dial"
+    "telemetry-speed-dial",
+    "video-downloader"
   ],
   "subprojects": [
     "fresh-tab-frontend"

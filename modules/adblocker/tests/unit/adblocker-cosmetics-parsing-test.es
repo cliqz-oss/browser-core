@@ -28,7 +28,7 @@ function loadTestCases(path) {
 export default describeModule('adblocker/filters-parsing',
   () => ({
     'adblocker/utils': {
-      log: () => {
+      default: () => {
         // const message = `[adblock] ${msg}`;
         // console.log(message);
       },

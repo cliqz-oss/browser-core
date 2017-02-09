@@ -9,6 +9,7 @@ import v8 from "ui/views/entity-generic";
 import v9 from "ui/views/liveTicker";
 import p1 from "ui/views/partials/location/missing_location_1";
 
+
 const DISMISSED_ALERTS = 'dismissedAlerts';
 
 export default background({
@@ -18,6 +19,7 @@ export default background({
   unload() {
 
   },
+
 
   actions: {
     checkShareLocationTrigger(result) {

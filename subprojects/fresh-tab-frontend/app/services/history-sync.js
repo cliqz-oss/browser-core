@@ -7,24 +7,35 @@ export default Ember.Service.extend({
   limit: 100,
   latestFrameStartsAt: Infinity,
 
+  setup: function () {
+    this.set('isRunning', false);
+  }.on('init'),
+
+  stop() {
+    this.set('isRunning', false);
+  },
+
   start() {
     const startAt = Date.now() * 1000;
-    const fetch = this.fetch.bind(this);
-
-    function more(frameStartsAt) {
-      fetch({
+    const more = function (frameStartsAt) {
+      const endsAt = Date.now() * 1000;
+      this.fetch({
         frameStartsAt: frameStartsAt + 1,
-        frameEndsAt: Date.now() * 1000,
-      }).then(
-        history => Ember.run.later({}, more, history.frameEndsAt || startAt, 1000)
-      );
-    }
+        frameEndsAt: endsAt,
+      }).then(() => {
+        if (this.get('isRunning')) {
+          Ember.run.later(null, more, endsAt, 1000);
+        }
+      });
+    }.bind(this);
+
+    this.set('isRunning', true);
 
     return this.fetch({
       limit: this.get('limit'),
       frameEndsAt: startAt,
     }).then(
-      history => Ember.run.later({}, more, history.frameEndsAt, 1000)
+      ({history}) => Ember.run.later(null, more, history.frameEndsAt, 1000)
     );
   },
 
@@ -45,126 +56,191 @@ export default Ember.Service.extend({
     return this.fetch(params);
   },
 
-  fetch(params) {
-    var store = this.get('store');
+  updateLatestFrameStartsAt(history) {
+    const latestFrameStartsAt = this.get("latestFrameStartsAt");
 
-    return this.get('cliqz').getHistory(params).then(history => {
-      const latestFrameStartsAt = this.get("latestFrameStartsAt");
+    if (history.frameStartsAt < latestFrameStartsAt) {
+      this.set("latestFrameStartsAt", history.frameStartsAt);
+    }
+  },
 
-      if (history.frameStartsAt < latestFrameStartsAt) {
-        this.set("latestFrameStartsAt", history.frameStartsAt);
+  updateConcactsAndMessages(history) {
+    const records = Object.keys(history.domains)
+      .filter(domain => !!domain)
+      .map(domain => {
+        const contact = history.domains[domain];
+        const messages = contact.visits.map(message => {
+          return {
+            id: message.lastVisitedAt,
+            type: "history-message",
+            attributes: {
+              url: message.url,
+              title: message.title,
+              query: message.query,
+              meta: message.meta,
+              lastVisitedAt: new Date(message.lastVisitedAt / 1000),
+            },
+            relationships: {
+              contact: {
+                data: {
+                  id: domain,
+                  type: "history-contact",
+                }
+              }
+            }
+          }
+        });
+
+        const articles = (contact.news || []).map( article => {
+          return {
+            id: article.url,
+            type: 'cliqz-article',
+            attributes: {
+              publishedAt: new Date(article.cd * 1000),
+              title: article.title,
+              description: article.description,
+              imageUrl: article.media,
+              score: article.score,
+              url: article.url,
+              isRead: false
+            },
+            relationships: {
+              contact: {
+                data: {
+                  id: domain,
+                  type: "history-contact",
+                }
+              }
+            }
+          }
+        });
+
+        return [
+          ...articles,
+          ...messages,
+          {
+            id: domain,
+            type: "history-contact",
+            attributes: {
+              domain,
+              logo: contact.logo,
+              lastVisitedAt: new Date(contact.lastVisitedAt / 1000),
+              snippet: contact.snippet
+            },
+          }
+        ];
+      })
+      .reduce((flattened, list) => flattened.concat(list), []);
+
+    this.get('store').push({
+      data: records
+    });
+  },
+
+  updateTabsInfo(history) {
+    const store = this.get('store');
+
+    // clear tab status
+    store.peekAll("history-contact").forEach(
+      contact => contact.setProperties({
+        isCurrent: false,
+        isActive: false,
+      })
+    );
+    store.peekAll("history-message").forEach(
+      message => message.setProperties({
+        isCurrent: false,
+        isActive: false,
+        tabIndex: null,
+      })
+    );
+
+    // mark active tabs
+    Object.keys(history.tabs || {}).forEach( domain => {
+      /*
+      const contact = store.peekRecord("history-contact", domain);
+
+      if (!contact) {
+        return;
       }
 
-      store.push({
-        data: Object.keys(history.domains).map( domain => {
-          const contact = history.domains[domain];
-          const messages = Object.keys(contact.urls).map( url => {
-            const message = contact.urls[url];
-            return {
-              id: url,
-              type: "history-message",
-              attributes: {
-                url,
-                query: message.query,
-                meta: message.meta,
-                lastVisitedAt: new Date(message.lastVisitedAt / 1000),
-              },
-              relationships: {
-                contact: {
-                  data: {
-                    id: domain,
-                    type: "history-contact",
-                  }
-                }
-              }
-            }
-          });
-
-          const articles = (contact.news || []).map( article => {
-            return {
-              id: article.url,
-              type: 'cliqz-article',
-              attributes: {
-                publishedAt: new Date(article.cd * 1000),
-                title: article.title,
-                description: article.description,
-                imageUrl: article.media,
-                score: article.score,
-                url: article.url,
-                isRead: false
-              },
-              relationships: {
-                contact: {
-                  data: {
-                    id: domain,
-                    type: "history-contact",
-                  }
-                }
-              }
-            }
-          });
-
-          return [
-            ...articles,
-            ...messages,
-            {
-              id: domain,
-              type: "history-contact",
-              attributes: {
-                domain,
-                logo: contact.logo,
-                lastVisitedAt: new Date(contact.lastVisitedAt / 1000),
-                snippet: contact.snippet
-              },
-            }
-          ];
-        }).reduce( (flattened, list) => flattened.concat(list), [])
+      contact.setProperties({
+        isActive: true
       });
+      */
 
-      // clear tab status
-      store.peekAll("history-contact").forEach(
-        contact => contact.setProperties({
-          isCurrent: false,
-          isActive: false,
-        })
-      );
-      store.peekAll("history-message").forEach(
-        message => message.setProperties({
-          isCurrent: false,
-          isActive: false,
-          tabIndex: null,
-        })
-      );
+      Object.keys(history.tabs[domain] || {}).forEach( url => {
+        const message = history.tabs[domain][url];
+        const messageRecord = store.peekAll("history-message").find(
+          m => m.get('url') === url);
 
-      // mark active tabs
-      Object.keys(history.tabs).forEach( domain => {
-        const contact = store.peekRecord("history-contact", domain);
-
-        if (!contact) {
-          return;
+        if (message.isCurrent) {
+        //  contact.set("isCurrent", true);
         }
 
-        contact.setProperties({
-          isActive: true
-        });
-
-        Object.keys(history.tabs[domain]).forEach( url => {
-          const message = history.tabs[domain][url];
-          const messageRecord = store.peekRecord("history-message", url);
-          if (message.isCurrent) {
-            contact.set("isCurrent", true);
-          }
-          if (messageRecord) {
-            messageRecord.setProperties({
-              tabIndex: message.index,
-              isActive: true,
-              isCurrent: !!message.isCurrent,
-            });
-          }
-        });
+        if (messageRecord) {
+          messageRecord.setProperties({
+            tabIndex: message.index,
+            isActive: true,
+            isCurrent: !!message.isCurrent,
+          });
+        }
       });
-
-      return history;
     });
-  }
+  },
+
+  updateSessions(history) {
+    const store = this.get('store');
+    const visits = Object.keys(history.domains)
+      .map(domain => history.domains[domain].visits)
+      .reduce((all, urls) => all.concat(urls), []);
+    const sessions = [];
+
+    visits.map(visit => {
+      const message = store.peekRecord('history-message', visit.lastVisitedAt);
+
+      // FIXME: fails for file:// urls
+      if (!message) {
+        return;
+      }
+
+      let session = store.peekRecord('session', visit.sessionId);
+
+      if (!session) {
+        session = store.createRecord('session', {
+          id: visit.sessionId,
+        });
+      }
+
+      session.get('visits').addObject(message);
+
+      sessions.push(session);
+    });
+
+    return sessions.uniqBy('id');
+  },
+
+  fetch(params) {
+    return this.get('cliqz').getHistory(params).then(history => {
+      this.updateLatestFrameStartsAt(history);
+      this.updateConcactsAndMessages(history);
+      // this.updateTabsInfo(history);
+      const sessions = this.updateSessions(history);
+      return {
+        sessions,
+        history,
+      };
+    });
+  },
+
+  search(query, from, to) {
+    const params = {
+      query,
+      frameEndsAt: to,
+      frameStartsAt: from,
+      limit: 50,
+      page: 1,
+    };
+    return this.fetch(params);
+  },
 });

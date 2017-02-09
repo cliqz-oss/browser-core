@@ -19,7 +19,7 @@ export default Ember.Component.extend({
 
   pages: Ember.computed('model.[]', 'pageSize', function () {
     const pageSize = this.get('pageSize');
-    const model = this.get("model").toArray();
+    const model = this.getWithDefault("model", []).toArray();
     const ret = [];
 
     while (model.length > 0) {

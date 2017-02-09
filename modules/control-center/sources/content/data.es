@@ -1,4 +1,3 @@
-
 window.addEventListener("message", function(ev){
   var data = JSON.parse(ev.data);
   if(data.target == 'cliqz-control-center' &&

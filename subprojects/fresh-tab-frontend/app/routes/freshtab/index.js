@@ -15,39 +15,45 @@ export default Ember.Route.extend({
   notifications: Ember.inject.service(),
 
   activate() {
-    this.get('notifications').start();
     Ember.$('body').addClass('freshTabContainer');
   },
 
   deactivate() {
     this.get('notifications').stop();
-    Ember.$('body').removeClass('freshTabContainer');
   },
 
   model() {
-    return this.get('cliqz').getSpeedDials().then(speedDials => {
-      const allDials = speedDials.history.concat(speedDials.custom);
-      this.store.push({
-        data: allDials.map(dial => {
-          return {
-            id: dial.id,
-            type: 'speed-dial',
-            attributes: Object.assign({
-              type: dial.custom ? 'custom' : 'history',
-            }, dial),
-          };
-        })
-      });
+    const previousModel = this.modelFor("freshtab.index");
+    if (previousModel) {
+      return previousModel;
+    }
+    const config = this.modelFor("freshtab");
 
-      return Ember.Object.create({
-        speedDials: {
-          history: this.store.peekAll('speed-dial').filterBy('type', 'history').toArray(),
-          custom: this.store.peekAll('speed-dial').filterBy('type', 'custom').toArray(),
-        },
-        news: Ember.ArrayProxy.create()
-      });
-    })
+    const model = Ember.Object.create({
+      config,
+      speedDials: Ember.Object.create({
+        history: Ember.ArrayProxy.create({ content: []}),
+        custom: Ember.ArrayProxy.create({ content: []}),
+      }),
+      news: Ember.ArrayProxy.create({content: []}),
+    });
 
+    this.get('cliqz').getSpeedDials().then(speedDials => {
+      return speedDials.history.concat(speedDials.custom).map(dial => {
+        const type = dial.custom ? 'custom' : 'history';
+        return this.store.createRecord('speed-dial', Object.assign({ type }, dial));
+      });
+    }).then(dials => {
+      this.get('notifications').start();
+      model.get("speedDials.history").addObjects(dials.filterBy('type', 'history'));
+      model.get("speedDials.custom").addObjects(dials.filterBy('type', 'custom'));
+      model.setProperties({
+        "speedDials.history.isLoaded": true,
+        "speedDials.custom.isLoaded": true,
+      });
+    });
+
+    return model;
   },
 
   afterModel(model) {

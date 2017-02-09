@@ -56,6 +56,9 @@
     "Photos":{
         "message": "Photos"
     },
+    "lang_code":{
+        "message": "en"
+    },
     "locale_lang_code":{
         "message": "en-US"
     },
@@ -194,8 +197,17 @@
     "noResultTitle":{
         "message": "We don't have great results this time."
     },
+    "noResultUrlNavigate":{
+        "message":"Press enter to visit this page"
+    },
+    "noResultUrlSearch":{
+        "message":"or try one of these:"
+    },
     "noResultMessage":{
         "message":"press enter to search on $1, or try one of these:"
+    },
+    "searchOn": {
+        "message": "Search on $1"
     },
     "noResults": {
         "message":"No results"
@@ -471,64 +483,64 @@
       "message":"Automatic"
     },
     "country_code_AT": {
-      "message":"Österreich - Austria"
+      "message":"Austria"
     },
     "country_code_BR": {
-      "message":"Brazil - Brasil"
+      "message":"Brasil"
     },
     "country_code_CA": {
-      "message":"Canada - Canada"
+      "message":"Canada"
     },
     "country_code_HR": {
-      "message":"Hrvatska - Croatia"
+      "message":"Croatia"
     },
     "country_code_EE": {
-      "message":"Eesti - Estonia"
+      "message":"Estonia"
     },
     "country_code_FR": {
-      "message":"France - France"
+      "message":"France"
     },
     "country_code_DE": {
-      "message":"Deutschland - Germany"
+      "message":"Germany"
     },
     "country_code_GR": {
-      "message":"Ελλάδα - Greece"
+      "message":"Greece"
     },
     "country_code_HU": {
-      "message":"Magyarország - Hungary"
+      "message":"Hungary"
     },
     "country_code_ID": {
       "message":"Indonesia"
     },
     "country_code_IT": {
-      "message":"Italia - Italy"
+      "message":"Italy"
     },
     "country_code_PS": {
       "message":"Palestine"
     },
     "country_code_RO": {
-      "message":"România - Romania"
+      "message":"Romania"
     },
     "country_code_RU": {
-      "message":"Россия - Russia"
+      "message":"Russia"
     },
     "country_code_RS": {
-      "message":"Србија - Serbia"
+      "message":"Serbia"
     },
     "country_code_SG": {
-      "message":"Singapore - Singapore"
+      "message":"Singapore"
     },
     "country_code_ES": {
-      "message":"España - Spain"
+      "message":"Spain"
     },
     "country_code_CH": {
-      "message":"Schweiz - Switzerland"
+      "message":"Switzerland"
     },
     "country_code_TH": {
-      "message":"ประเทศไทย - Thailand"
+      "message":"Thailand"
     },
     "country_code_TR": {
-      "message":"Türkiye - Turkey"
+      "message":"Turkey"
     },
     "country_code_GB": {
       "message":"United Kingdom"
@@ -537,7 +549,7 @@
       "message":"United States"
     },
     "country_code_VN": {
-      "message":"Việt Nam - Vietnam"
+      "message":"Vietnam"
     },
     "statsShareMsg": {
         "message": "@cliqz saved me $1 minutes over the last 7 days"
@@ -771,7 +783,7 @@
       "message": "Open Link in New $1 Window"
     },
     "private": {
-      "message": "private"
+      "message": "Private"
     },
     "forget": {
       "message": "Forget"
@@ -1091,8 +1103,8 @@
     "freshtab_abTest_btn_subscribe": {
       "message": "Subscribe NOW"
     },
-    "mobile_incognito": {
-      "message": "<strong>Forget Tab</strong><br /><br />Web sites are not saved to your history. Likewise, temporary files and cookies are not saved. However, downloads and bookmarks are saved.<br />Your Internet service provider, employer or the sites themselves can still track which pages you visit."
+    "mobile_local_card_call": {
+      "message": "Call"
     },
     "mobile_freshtab_breaking_news": {
       "message": "BREAKING NEWS:"
@@ -1406,6 +1418,9 @@
     "control-center-check-strict": {
       "message": "Strict"
     },
+    "control-center-check-hideMyIP": {
+      "message": "Hide My IP"
+    },
     "control-center-this-site": {
       "message": "This page"
     },
@@ -1414,6 +1429,9 @@
     },
     "control-center-all-sites": {
       "message": "All websites"
+    },
+    "control-center-clear-trCache": {
+      "message": "Clear Tracking Cache"
     },
     "download": {
       "message": "Download from: "
@@ -1462,6 +1480,60 @@
     },
     "onboarding-search-query3": {
       "message": "TV program"
+    },
+    "video-downloader-title": {
+      "message": "Video downloader"
+    },
+    "video-downloader-more-formats": {
+      "message": "More formats"
+    },
+    "video-downloader-send-to-mobile": {
+      "message": "Send to mobile"
+    },
+    "video-downloader-unsupported-format": {
+      "message": "Sorry! We are not able to download this video."
+    },
+    "transparency_html_title": {
+      "message": "Cliqz | Transparency Cockpit"
+    },
+    "transparency_document_title": {
+      "message": "Transparency Cockpit"
+    },
+    "transparency_legend_title": {
+      "message": "Legend:"
+    },
+    "transparency_blocked1": {
+      "message": "Blocked to protect your privacy"
+    },
+    "transparency_blocked2": {
+      "message": "Received by Cliqz"
+    },
+    "transparency_content_title": {
+      "message": "Transparency Cockpit"
+    },
+    "transparency_content": {
+      "message": "We respect your privacy and aim to protect it. Cliqz does not collect or store any personal data. Our Transparency-Cockpit was built to give you insight into which data is generated when using the Cliqz browser. In real-time, it displays the data we receive when you start typing a search term into the address bar or when you visit a website. To protect your privacy, some data is blocked. I.e., these do not even leave your browser (e.g. geo-data, per your Cliqz settings)."
+    },
+    "transparency_search_title": {
+      "message": "Your search with Cliqz"
+    },
+    "transparency_search_content": {
+      "message": "The following are data signals concerning the Cliqz search function and display queries and URLs you enter or visit. They help us to optimize your search experience. As you can see, these data do not contain any personally identifiable information (“PII”). You are anonymous to Cliqz. You can route your searches through a network of proxy servers for an even stronger protection. Find more information <a target='_blank' href='https://cliqz.com/en/whycliqz/transparency#your-search'>here</a>."
+    },
+    "transparency_humanweb_title": {
+      "message": "Human Web"
+    },
+    "transparency_humanweb_content": {
+      "message": "Our Human Web technology uses statistical methods and algorithms to continuously enhance the quality of our search results. The collected anonymous, statistical data are related to queries and shown results displayed by one of the complimentary search engines. The chosen data architecture prevents any inference about a natural person. The transfer of Human Web data is encrypted and routed through a network of proxy servers. Find more information <a target='_blank' href='https://cliqz.com/en/whycliqz/transparency#human-web'>here</a>."
+    },
+    "transparency_telemetry_title": {
+      "message": "Telemetry"
+    },
+    "transparency_telemetry_content": {
+      "message": "Telemetry includes all data concerning the usage and performance of the browser and its features. We use these data to continuously improve your Cliqz experience. These data include e.g. the version number of the browser, or the time it takes to display Cliqz search results. Telemetry data do not contain any information about queries, search results or visited URLs. Find more information <a target='_blank' href='https://cliqz.com/en/whycliqz/transparency#telemetry'>here</a>."
+    },
+    "transparency_activity_buttons": {
+      "message": "No activity was captured"
     },
     "TEST": "OK"
 }

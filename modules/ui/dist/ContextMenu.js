@@ -223,7 +223,7 @@
 
     if(url.trim() != '') {
       children = contextMenu.childNodes;
-      var menu = CliqzUtils.getWindow().document.getElementById('dropdownContextMenu');
+      var menu = contextMenu;
       uri = CliqzUtils.makeUri(url, '', null);
       if (uri === null) {
 

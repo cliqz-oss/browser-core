@@ -1,0 +1,29 @@
+<!-- main-image.tpl -->
+<div class="card__gallery">
+    {{#with data}}
+        {{#if rich_data.image}}
+            <div class="image big" data-style="background-image: url({{ rich_data.image }});">
+                Image
+            </div>
+        {{else if media}}
+            <div class="image big" data-style="background-image: url({{ media }});">
+                Image
+            </div>
+        {{else if image.src}}
+            <div class="image big" data-style="background-image: url({{ image.src }})">
+                {{#if rich_data.duration}}
+                    <div class="duration">{{sec_to_duration rich_data.duration }}</div>
+                {{/if}}
+            </div>
+        {{else if i}}
+            <div class="image big" data-style="background-image: url({{ i }})">
+                Image
+            </div>
+        {{else if og.image}}
+            <div class="image big" data-style="background-image: url({{ og.image }})">
+                Image
+            </div>
+        {{/if}}
+    {{/with}}
+</div>
+<!-- end main-image.tpl -->

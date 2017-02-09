@@ -13,11 +13,6 @@ $tab-selected-bg-color: #fff;
 $tab-bg-color: rgba(255, 255, 255, 0.1);
 $tab-font-size: 12.5px;
 
-
-.cliqz-urlbar-Last-search {
-    padding-top: 3px;
-}
-
 #main-window:not([cliqzBrowser="true"]),
 #main-window:not([cliqzBrowser="true"]) * :root {
   --cliqz-close-image: url("../images/browser/win/close.png");
@@ -149,12 +144,13 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
 
 #urlbar {
     * { box-sizing: border-box; }
-
-    max-width: 800px;
+    // While the simpleUI AB test is running, we need to set these with javascript in ui/window
+    // max-width: 800px;
+    // margin: 0 36px !important;
     height: $urlbar-elms-height !important;
     box-sizing: border-box;
 
-    margin: 0 36px !important;
+
     padding: 1px 0;
     border: 1px solid #ccc !important;
     border-top: 1px solid transparent !important;
@@ -165,7 +161,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
     /* background: transparent !important; */
     background: #fff !important;
     -moz-border-start: 1px solid #d8d8d8 !important;
-
+    padding-left: 7px;
     &:hover,
     &[focused="true"] {
         background: #fff !important;;
@@ -413,8 +409,9 @@ notification[type="warning"] .notification-inner {
     margin-left: 0 !important;
     width: 37px;
     height: $urlbar-elms-height !important;
-    border: none !important;
-    border-right: 1px solid #e1e1e1 !important;
+    // While the simpleUI AB test is running, we need to set these with javascript in ui/window
+    // border: none !important;
+    // border-right: 1px solid #e1e1e1 !important;
     border-radius: 0 !important;
     box-shadow: 0 0 0 0 transparent !important;
     background-color: transparent !important;
@@ -639,6 +636,11 @@ toolbar .toolbarbutton-1 > .toolbarbutton-menubutton-dropmarker > .dropmarker-ic
 toolbar .toolbarbutton-1 > .toolbarbutton-menubutton-dropmarker[label='Bookmarks'] > .dropmarker-icon {
     padding: 0 4px !important;
 }
+
+.cliqz-urlbar-Last-search-container {
+    margin: 0 7px 0 0;
+}
+
 
 //=========================
 //======== WIN 7 ==========

@@ -2,24 +2,6 @@ import { readFile, writeFile, mkdir } from 'core/fs';
 import { utils } from 'core/cliqz';
 
 
-/* Because of crazy monky patching of Promises in the tests,
- * we need to implement our own `reject` and `resolve` functions
- * to be sure it always works...
- */
-function promiseReject(...args) {
-  return new Promise((resolve, reject) => {
-    reject(...args);
-  });
-}
-
-
-function promiseResolve(...args) {
-  return new Promise((resolve, reject) => {
-    resolve(...args);
-  });
-}
-
-
 // Common durations
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
@@ -39,7 +21,7 @@ function makeDirRecursive(path, from = []) {
   const [first, ...rest] = path;
 
   if (!first) {
-    return promiseResolve();
+    return Promise.resolve();
   }
 
   return mkdir(from.concat(first)).then(() =>
@@ -114,7 +96,7 @@ export class Resource {
    */
   updateFromRemote() {
     if (this.remoteURL === undefined) {
-      return promiseReject('updateFromRemote: remoteURL is undefined');
+      return Promise.reject('updateFromRemote: remoteURL is undefined');
     }
     return this.updateFromURL(this.remoteURL);
   }
@@ -129,7 +111,7 @@ export class Resource {
         .then(this.persist.bind(this));
     }
 
-    return promiseReject('updateFromURL: url is undefined');
+    return Promise.reject('updateFromURL: url is undefined');
   }
 
   persist(data) {
@@ -154,13 +136,13 @@ export class Resource {
     if (this.dataType === 'json') {
       try {
         const parsed = JSON.parse(data);
-        return promiseResolve(parsed);
+        return Promise.resolve(parsed);
       } catch (e) {
-        return promiseReject(`parseData: failed with exception ${e}`);
+        return Promise.reject(`parseData: failed with exception ${e}`);
       }
     }
 
-    return promiseResolve(data);
+    return Promise.resolve(data);
   }
 }
 
@@ -210,7 +192,7 @@ export default class extends UpdateCallbackHandler {
         .then(this.triggerCallbacks.bind(this))
         .catch(() => undefined);
     }
-    return promiseResolve();
+    return Promise.resolve();
   }
 
   stop() {

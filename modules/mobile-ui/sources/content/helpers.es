@@ -35,6 +35,13 @@ export default {
   },
 
 
+  getPartial(name) {
+    if (Handlebars.templates[name]) {
+      return Handlebars.templates[name](this);
+    }
+    return `<h1>partial ${name} not found</h1>`;
+  },
+
   math(lvalue, operator, rvalue) {
     const lval = parseFloat(lvalue);
     const rval = parseFloat(rvalue);

@@ -89,7 +89,7 @@ export default describeModule("freshtab/news",
 
         this.deps("core/utils").default.encodeLocale = function() {return '';}
 
-        this.deps("core/utils").default.RICH_HEADER = "https://newbeta.cliqz.com/api/v1/rich-header?path=/map";
+        this.deps("core/utils").default.RICH_HEADER = "https://api.cliqz.com/api/v1/rich-header?path=/map";
 
         this.deps("core/utils").default.hash = cliqzHash;
 

@@ -5,7 +5,7 @@
  */
 
 import DelayedImageLoader from 'mobile-ui/DelayedImageLoader';
-import { window, document } from 'mobile-ui/webview';
+import window from "platform/window";
 import utils from 'core/utils';
 import ViewPager from 'viewpager';
 
@@ -25,8 +25,6 @@ const ErrorHandlerReranker = {
 
 
 var resultsBox = null,
-    freshtabDiv = window.document.getElementById('startingpoint'),
-    incognitoDiv = window.document.getElementById('incognito'),
     reconnectingDiv = window.document.getElementById('reconnecting'),
     currentResults = null,
     imgLoader = null,
@@ -51,10 +49,10 @@ var UI = {
 
       utils.RERANKERS.push(ErrorHandlerReranker);
 
-      let box = document.getElementById('results');
+      let box = window.document.getElementById('results');
       box.innerHTML = CLIQZ.templates.main();
 
-      resultsBox = document.getElementById('cliqz-results', box);
+      resultsBox = window.document.getElementById('cliqz-results', box);
 
       resultsBox.addEventListener('click', resultClick);
 
@@ -90,40 +88,11 @@ var UI = {
     setTheme: function (incognito = false) {
       UI.isIncognito = incognito;
       window.document.body.style.backgroundColor = incognito ? '#4a4a4a' : '#E8E8E8';
-      if (!UI.isSearch()) {
-        if (incognito) {
-          incognitoDiv.innerHTML = utils.getLocalizedString('mobile_incognito');
-          freshtabDiv.style.display = 'none';
-          incognitoDiv.style.display = 'block';
-        } else {
-          freshtabDiv.style.display = 'block';
-          incognitoDiv.style.display = 'none';
-        }
-      }
-    },
-    setMobileBasedUrls: function  (o) {
-      if (!o) return;
-      const url = o.data && o.data.mobile_url;
-      if (o.val) {
-        o.val = url || o.val;
-      }
-      if (o.url) {
-        o.url = url || o.url;
-      }
-      if (o.url && o.m_url) {
-        o.url = o.m_url;
-      }
-      for (let i in o) {
-        if (typeof(o[i]) === 'object') {
-            UI.setMobileBasedUrls(o[i]);
-        }
-      }
     },
     results: function (r) {
 
       UI.currentPage = 0;
       viewPager.goToIndex(UI.currentPage);
-      UI.setMobileBasedUrls(r);
 
       setCardCountPerPage(window.innerWidth);
 
@@ -197,7 +166,7 @@ var UI = {
             views[page] = (views[page] || 0) + 1;
             const direction = page > UI.currentPage ? 'right' : 'left';
             const shownCardId = page < UI.lastResults.length - 1 ? `cqz-result-box-${page}` : 'defaultEngine';
-            const position_type = getResultKind(document.getElementById(shownCardId));
+            const position_type = getResultKind(window.document.getElementById(shownCardId));
 
 
             utils.telemetry({
@@ -213,20 +182,12 @@ var UI = {
             pageShowTs = Date.now();
 
             UI.currentPage = page;
-            autoComplete(UI.lastResults[page] && UI.lastResults[page].url);
+            autoComplete(UI.lastResults[page * UI.nCardsPerPage] && UI.lastResults[page * UI.nCardsPerPage].url);
           },
         });
     },
-    hideResultsBox: function () {
-      if (UI.isIncognito) {
-        incognitoDiv.style.display = 'block';
-      } else {
-        freshtabDiv.style.display = 'block';
-      }
-      resultsBox.style.display = 'none';
-    },
     updateSearchCard: function (engine) {
-      var engineDiv = document.getElementById('defaultEngine');
+      var engineDiv = window.document.getElementById('defaultEngine');
       if (engineDiv && CliqzAutocomplete.lastSearch) {
         engineDiv.setAttribute('url', engine.url + encodeURIComponent(CliqzAutocomplete.lastSearch));
       }
@@ -238,7 +199,7 @@ var UI = {
         clearInterval(progressBarInterval);
       }
       var multiplier = parseInt(Math.ceil(window.innerWidth/100)),
-      progress = document.getElementById('progress'),
+      progress = window.document.getElementById('progress'),
       i = 0;
       progressBarInterval = setInterval(function () {
         i++;
@@ -254,7 +215,7 @@ var UI = {
       if (progressBarInterval) {
         clearInterval(progressBarInterval);
       }
-      document.getElementById('progress').style.width = '0px';
+      window.document.getElementById('progress').style.width = '0px';
     },
     isSearch: function () {
       return Boolean(UI.lastResults);
@@ -268,11 +229,7 @@ function setCardCountPerPage(windowWidth) {
 
 
 function redrawDropdown(newHTML) {
-    resultsBox.style.display = 'block';
-    freshtabDiv.style.display = 'none';
-    incognitoDiv.style.display = 'none';
-
-    resultsBox.innerHTML = newHTML;
+  resultsBox.innerHTML = newHTML;
 }
 
 function getVertical(result) {
@@ -282,8 +239,16 @@ function getVertical(result) {
   } else {
     template = 'generic';
   }
-  console.log('temp', template);
   return template;
+}
+
+function getView(template) {
+  let view = {};
+  // don't pass Cliqz to generic view because it's mostly hardcoded
+  if (template !== 'Cliqz') {
+    view = UI.VIEWS[template] || UI.VIEWS.generic;
+  }
+  return view;
 }
 
 function enhanceResults(results) {
@@ -293,24 +258,21 @@ function enhanceResults(results) {
 
   filteredResults.forEach((r, index) => {
     const url = r.val || '';
-    const urlDetails = url && utils.getDetailsFromUrl(url);
-    const logo = urlDetails && utils.getLogoDetails(urlDetails);
-    const kind = r.data.kind[0];
+    r.data.urlDetails = url && utils.getDetailsFromUrl(url);
+    r.data.logo = r.data.urlDetails && utils.getLogoDetails(r.data.urlDetails);
+
     let historyStyle = '';
-    if (kind === 'H' || kind === 'C') {
-      historyStyle = 'history';
+    if ((r.data.kind || []).find(kind => kind === 'C' || kind === 'H')) {
+      r.data.historyStyle = 'history';
     }
 
     enhancedResults.push(enhanceSpecificResult({
       query: r.query,
       type: r.style,
       left: (UI.CARD_WIDTH * index),
-      data: r.data || {},
-      template: (r.data || {}).template,
-      historyStyle,
+      data: r.data,
+      template: r.data.template,
       url,
-      urlDetails,
-      logo,
       title: r.title,
     }));
   });
@@ -330,7 +292,7 @@ function enhanceSpecificResult(r) {
   }
 
   const template = r.vertical = getVertical(r);
-  const specificView = UI.VIEWS[template] || UI.VIEWS.generic;
+  const specificView = getView(template);
   specificView.enhanceResults && specificView.enhanceResults(r.data, contentArea);
 
   return r;
@@ -367,7 +329,7 @@ function resultClick(ev) {
 
         if (url && url !== '#') {
 
-            var card = document.getElementsByClassName('card')[UI.currentPage];
+            var card = window.document.getElementsByClassName('card')[UI.currentPage];
             var cardPosition = card.getBoundingClientRect();
             var coordinate = [ev.clientX - cardPosition.left, ev.clientY - cardPosition.top, UI.CARD_WIDTH];
             const result_order = currentResults && CliqzAutocomplete.prepareResultOrder(UI.lastResults);
@@ -402,9 +364,9 @@ function resultClick(ev) {
                 case 'stop-click-event-propagation':
                     return;
                 case 'copy-calc-answer':
-                    utils.copyResult(document.getElementById('calc-answer').innerHTML);
-                    document.getElementById('calc-copied-msg').style.display = '';
-                    document.getElementById('calc-copy-msg').style.display = 'none';
+                    utils.copyResult(window.document.getElementById('calc-answer').innerHTML);
+                    window.document.getElementById('calc-copied-msg').style.display = '';
+                    window.document.getElementById('calc-copy-msg').style.display = 'none';
                     break;
             }
         }
@@ -415,7 +377,7 @@ function resultClick(ev) {
 }
 
 function shiftResults() {
-  var frames = document.getElementsByClassName('frame');
+  var frames = window.document.getElementsByClassName('frame');
   for (var i = 0; i < frames.length; i++) {
     var left = frames[i].style.left.substring(0, frames[i].style.left.length - 1);
     left = parseInt(left);
@@ -439,8 +401,8 @@ function setResultNavigation(resultCount) {
   // get number of pages according to number of cards per page
   UI.nPages = Math.ceil((currentResultsCount + showGooglethis) / UI.nCardsPerPage);
 
-  if (document.getElementById('currency-tpl')) {
-    document.getElementById('currency-tpl').parentNode.removeAttribute('url');
+  if (window.document.getElementById('currency-tpl')) {
+    window.document.getElementById('currency-tpl').parentNode.removeAttribute('url');
   }
 }
 
@@ -473,7 +435,7 @@ window.addEventListener('resize', function () {
     const lastnCardsPerPage = UI.nCardsPerPage;
     setCardCountPerPage(window.innerWidth);
     UI.setDimensions();
-    const frames = document.getElementsByClassName(FRAME);
+    const frames = window.document.getElementsByClassName(FRAME);
     for (let i = 0; i < frames.length; i++) {
       let left = UI.CARD_WIDTH * i;
       frames[i].style.left = left + 'px';

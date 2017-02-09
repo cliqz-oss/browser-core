@@ -1,31 +1,4 @@
+@import 'common';
 @import 'freshtab';
 @import 'history-sidebar';
 @import 'preferences';
-
-html {
-  overflow-y: scroll;
-}
-
-body {
-  background-color: white;
-}
-
-.loading {
-  text-align: center;
-
-  .helper {
-    display: inline-block;
-    height: 100%;
-    vertical-align: middle;
-  }
-
-  img {
-    vertical-align: middle;
-    max-height: 300px;
-    padding: 0 10%;
-  }
-}
-
-.hidden {
-  display: none;
-}

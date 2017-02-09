@@ -1,0 +1,6 @@
+<div class="visits">
+  {{history-visit query=query model=entryVisit logoclass="big"}}
+  {{#each sortedVisits as |visit|}}
+    {{history-visit query=query model=visit}}
+  {{/each}}
+</div>

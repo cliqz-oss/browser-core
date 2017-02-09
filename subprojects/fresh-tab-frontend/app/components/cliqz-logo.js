@@ -7,7 +7,7 @@ export default Ember.Component.extend({
 
   style: Ember.computed('model.style', function () {
     const style = this.get('model.style');
-    return new Ember.Handlebars.SafeString(style);
+    return Ember.String.htmlSafe(style);
   }),
 
   extra: 'logo',

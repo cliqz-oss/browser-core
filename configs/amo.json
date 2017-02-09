@@ -11,12 +11,21 @@
     "freshTabNews": true,
     "freshTabInitialState": false,
     "showDataCollectionMessage": true,
-    "cliqzOnboarding": false,
     "antitrackingButton": true,
     "showNewBrandAlert": false,
     "onBoardingVersion": "1.1",
     "controlCenterSecurity": true
   },
+  "priority": [
+    "core",
+    "firefox-specific",
+    "static",
+    "autocomplete",
+    "ui",
+    "human-web",
+    "freshtab",
+    "hpn"
+  ],
   "modules": [
     "firefox-specific",
     "static",
@@ -32,12 +41,11 @@
     "performance",
     "hpn",
     "geolocation",
+    "notifications",
     "freshtab",
     "control-center",
-    "offers",
     "message-center",
-    "notifications",
-    "new-tab-button"
+    "offers-v2"
   ],
   "subprojects": [
     "fresh-tab-frontend"

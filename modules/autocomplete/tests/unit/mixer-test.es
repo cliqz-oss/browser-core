@@ -15,6 +15,12 @@ export default describeModule("autocomplete/mixer",
           generalizeUrl() { },
         },
       },
+      "core/prefs": {
+        default: {
+          get() {},
+          set() {}
+        }
+      }
     }
   },
   function () {

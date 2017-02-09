@@ -4,6 +4,10 @@ export default Ember.Route.extend({
   cliqz: Ember.inject.service(),
   historySync: Ember.inject.service('history-sync'),
 
+  deactivate() {
+    return this.get('historySync').stop();
+  },
+
   beforeModel() {
     return this.get('historySync').start();
   },

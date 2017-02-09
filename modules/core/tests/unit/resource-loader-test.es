@@ -34,7 +34,7 @@ const MOCK = {
  * Given a dict with
  */
 function iterateCases(testCase, idx = 0) {
-  console.log(`${idx} ${JSON.stringify(testCase)}`);
+  // console.log(`${idx} ${JSON.stringify(testCase)}`);
   const keys = Object.keys(testCase);
 
   if (idx >= keys.length) {

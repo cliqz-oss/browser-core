@@ -60,8 +60,8 @@ TESTS.HPNMessagesTest = function (CliqzUtils) {
 
 		it("send multiple messages, some failing, some not", function () {
 			this.timeout(10000);
-			let msg1 = makeSampleMessage();
-			let msg2 = makeSampleMessage();
+			var msg1 = makeSampleMessage();
+			var msg2 = makeSampleMessage();
 			expect(CliqzSecureMessage.trk.length).to.equal(0);
 			CliqzSecureMessage.trk.push(JSON.parse(msg1));
 			CliqzSecureMessage.trk.push(JSON.parse(msg1));

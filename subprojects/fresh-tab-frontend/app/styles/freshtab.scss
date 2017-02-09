@@ -1,36 +1,52 @@
 @import './freshtab/add-speed-dial';
 @import './freshtab/speed-dial';
+@import 'history';
 
- /* common */
-*,
-*:before,
-*:after {
-   -webkit-box-sizing: border-box;
-   -moz-box-sizing: border-box;
-   box-sizing: border-box;
+#flexContainer {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+
+  #notificationsBox {
+    flex: 0 0 auto;
+  }
+
+  #freshTabPage {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    position: relative;
+  }
 }
 
-@font-face {
-  font-family: "Lato";
-  src: url("./fonts/Lato2/Lato-Regular.ttf");
-}
 
-@font-face {
-  font-family: "Lato-Light";
-  src: url("./fonts/Lato2/Lato-Light.ttf");
-}
-
-.freshTabContainer,
-.freshTabContainer * {
+.freshTabContainer {
   margin: 0;
   padding: 0;
   font-family: "Lato", sans-serif;
   font-weight: 400;
   font-size: 14px;
-}
 
-a:hover, a:active, a:focus {
-  outline: 0;
+  nav {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 74px;
+    z-index: 100;
+    text-align: center;
+
+    a {
+      display: block;
+      cursor: pointer;
+      opacity: 1;
+      margin: 20px 0 0 0;
+      padding: 0px;
+      height: 25px;
+      opacity: 0.4;
+      &.active {
+        opacity: 1;
+      }
+    }
+  }
 }
 
 .clearfix:after {
@@ -40,14 +56,6 @@ a:hover, a:active, a:focus {
   font-size: 0;
   height: 0;
   visibility: hidden;
-}
-
-.visible {
-  display: block;
-}
-
-.hidden {
-  display: none;
 }
 
 .overflow-hidden {
@@ -117,8 +125,6 @@ body.freshTabContainer {
   width: 100%;
   padding: 20px;
   letter-spacing: 1px;
-  position: relative;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI";
 
   .notificationsCon {
     width: 100%;
@@ -151,6 +157,11 @@ body.freshTabContainer {
     font-size: 14px;
     float: left;
     width: calc(100% - 400px); // 10px for the close btn
+
+    &.fullWidth {
+      width: 100%;
+      padding-right: 0;
+    }
    }
 
   a {
@@ -183,6 +194,8 @@ body.freshTabContainer {
 }
 
 #freshTabPage {
+  display: flex;
+
   .undoOptions {
     height: 50px;
   }
@@ -194,15 +207,17 @@ body.freshTabContainer {
 
   /* containers */
   #center {
-    position: absolute;
-    min-height: 100%;
     width: 100%;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-items: center;
+    overflow-y: auto;
+    flex: 0 0 auto;
+    flex-direction: row;
   }
 
   #container {
+    flex: 0 0 auto;
     max-width: 1024px;
     min-width: 940px;
     padding: 0 20px;
@@ -269,6 +284,8 @@ body.freshTabContainer {
 
   /*top visited */
   #topVisited {
+    height: 343px;
+    overflow: hidden;
     margin: 20px 0px 10px;
     text-align: center;
 
@@ -570,7 +587,7 @@ body.freshTabContainer {
         text-decoration: none;
         max-height: 87px;
         overflow: hidden;
-        line-height: 1.23;
+        line-height: 1.24;
         height: 90px;
       }
 
@@ -1014,6 +1031,7 @@ body.freshTabContainer {
 
   #freshTabPage #topVisited {
     margin-bottom: 15%;
+    margin-top: 10%;
   }
 
   #freshTabPage #searchContainer {

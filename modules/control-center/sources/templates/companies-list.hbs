@@ -1,6 +1,6 @@
 <div class="setting-accordion">
   {{#each companiesArray}}
-    <div class="setting-accordion-section">
+    <div class="setting-accordion-section {{#if isInactive }} inactive{{/if}}">
       <a class="setting-accordion-section-title {{#if_eq ../module "adblock"}} accordion-inactive-title {{/if_eq}}"
          href="#accordion-{{@index}}"
          data-target="{{../module}}_details_company_section"

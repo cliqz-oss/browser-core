@@ -1,0 +1,46 @@
+*,
+*:before,
+*:after {
+   -webkit-box-sizing: border-box;
+   -moz-box-sizing: border-box;
+   box-sizing: border-box;
+}
+
+@font-face {
+  font-family: "Lato";
+  src: url("./fonts/Lato2/Lato-Regular.ttf");
+}
+
+@font-face {
+  font-family: "Lato-Light";
+  src: url("./fonts/Lato2/Lato-Light.ttf");
+}
+
+html, body, body > .ember-view, .liquid-container, .liquid-child {
+  height: 100%;
+}
+
+a:hover, a:active, a:focus {
+  outline: 0;
+}
+
+.hidden {
+  display: none;
+}
+
+.loading {
+  text-align: center;
+
+  .helper {
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+  }
+
+  img {
+    vertical-align: middle;
+    max-height: 300px;
+    padding: 0 10%;
+  }
+}
+

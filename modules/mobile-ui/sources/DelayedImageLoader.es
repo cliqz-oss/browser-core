@@ -60,8 +60,12 @@ DelayedImageLoader.prototype = {
       var url = self.getBackgroundImageUrlFromStyle(el.dataset.style),
           img = new Image();
       // TODO: onerror should show default error img
-      img.onload = img.onerror = function () {
+      img.onload = function () {
         el.setAttribute('style', el.dataset.style);
+        safeLoadNext();
+      }
+      img.onerror = function () {
+        el.setAttribute('style', "display: none;");
         safeLoadNext();
       }
       img.src = url;

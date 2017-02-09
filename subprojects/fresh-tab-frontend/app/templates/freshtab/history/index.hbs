@@ -1,0 +1,17 @@
+<section id="filters">
+  <h1>History</h1>
+  <menu type="toolbar" id="time-selector">
+    {{#link-to "freshtab.history.index" (query-params query=query from=undefined to=undefined) tagName="button"}}All{{/link-to}}
+    {{#link-to "freshtab.history.index" (query-params query=query from=timestamps.today.from to=timestamps.today.to) tagName="button"}}Today{{/link-to}}
+    {{#link-to "freshtab.history.index" (query-params query=query from=timestamps.yesterday.from to=timestamps.yesterday.to) tagName="button"}}Yesterday{{/link-to}}
+    {{#link-to "freshtab.history.index" (query-params query=query from=timestamps.lastWeek.from to=timestamps.lastWeek.to) tagName="button"}}Past week{{/link-to}}
+  </menu>
+</section>
+
+<section id="search">
+  <header>
+    {{search-form model=query debounce=200}}
+  </header>
+
+  {{history-sessions model=model query=query}}
+</section>

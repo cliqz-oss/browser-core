@@ -18,9 +18,19 @@ function cqzOfferGetCurrentOfferID() {
 // receive buttons callback
 function cqzOfferBtnClicked(ev) {
   // filter if it is button or not
+
   if (!ev.target || !ev.target.hasAttribute("data-cqz-of-btn-id")) {
     // skip this
     return;
+  }
+
+  if(ev.target.getAttribute("data-cqz-of-btn-id") === "copy-code") {
+    var success = copy(ev.target);
+
+    if (success) {
+      document.querySelector('.cqz-offer-code-info').className += " copied";
+    }
+
   }
 
   // we will get the data-action field here and will send this to the core
@@ -58,6 +68,30 @@ function draw(data) {
   document.getElementById('cliqz-offers').innerHTML = templates[templateName](templateData)
 }
 
+function selectElementText(e) {
+    var range = document.createRange();
+    range.selectNodeContents(e);
+    var selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+function copySelectionText() {
+  var copysuccess // var to check whether execCommand successfully executed
+  try {
+    copysuccess = document.execCommand("copy") // run command to copy selected text to clipboard
+  } catch (e) {
+    copysuccess = false
+  }
+  return copysuccess
+}
+
+function copy(e) {
+  selectElementText(e)
+  var copysuccess = copySelectionText()
+
+  return copysuccess
+}
 
 window.draw = draw;
 

@@ -1,21 +1,12 @@
 <!-- flightStatusEZ -->
-
-{{#with logo}}
-	<div extra="logo" class="card__logo {{#if backgroundImage}}bg{{/if}}" style="{{#if backgroundImage}}background-image:{{backgroundImage}};{{#if backgroundColor}} background-color:#{{backgroundColor}};{{/if}}{{else}}{{ style }};{{/if}}">{{ text }}</div>
- {{/with}}
+{{>logo data=data.logo}}
 {{#with data.extra}}
-    <section class="primary">
+    <div extra="status" class="card__meta">
+        <div class="flightStatusEZ-flightStatus" style="color:{{status_color}}">{{status}}</div>
+        {{status_detail}}
+    </div>
 
-        <h1 extra="title" class="card__title">
-           {{flight_name}}
-        </h1>
-
-        <div extra="status" class="card__meta">
-            <div class="flightStatusEZ-flightStatus" style="color:{{status_color}}">{{status}}</div>
-            {{status_detail}}
-        </div>
-
-    </section>
+    {{>title data=flight_name}}
 
     <section class="card__description">
        <div extra="route" class="flightStatusEZ-plane-position">

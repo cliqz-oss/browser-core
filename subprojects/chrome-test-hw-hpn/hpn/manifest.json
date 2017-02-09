@@ -3,7 +3,7 @@
   "description": "Test HPN encryption / decryption.",
   "version": "0.7",
         "permissions": [
-          "*://newbeta.cliqz.com/*",
+          "*://api.cliqz.com/*",
           "http://10.0.5.12/*",
           "http://54.211.9.241/*"
         ],

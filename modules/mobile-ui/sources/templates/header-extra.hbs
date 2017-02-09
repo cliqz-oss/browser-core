@@ -1,0 +1,11 @@
+{{#with data}}
+    {{#if under_name}}
+        <div class="timestamp">
+            {{under_name}}
+        </div>
+    {{else if discovery_timestamp}}
+        <div class="timestamp">
+            {{ agoline discovery_timestamp }}
+        </div>
+    {{/if}}
+{{/with}}

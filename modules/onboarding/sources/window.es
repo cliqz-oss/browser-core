@@ -13,7 +13,6 @@ export default class {
     this.onInstall = prefs.get('new_session');
     this.window = settings.window;
     this._tutorialTimeout = null;
-    this.cliqzOnboarding = settings.settings.cliqzOnboarding;
   }
 
   get version() { return  "1.1"; }
@@ -21,7 +20,7 @@ export default class {
   * @method init
   */
   init() {
-    if(this.cliqzOnboarding || !this.onInstall){
+    if(!this.onInstall){
       return;
     } else {
       // avoid showing onboarding multiple times

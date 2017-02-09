@@ -4,10 +4,9 @@ import History from 'freshtab/history';
 import { utils, events } from 'core/cliqz';
 import SpeedDial from 'freshtab/speed-dial';
 import { version as onboardingVersion, shouldShowOnboardingV2 } from "core/onboarding";
-import { AdultDomain } from 'core/adult-domain';
+import AdultDomain from 'freshtab/adult-domain';
 import background from 'core/base/background';
 import { forEachWindow } from 'core/browser';
-
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
 const DISMISSED_ALERTS = 'dismissedAlerts';
@@ -34,7 +33,6 @@ export default background({
   init(settings) {
     FreshTab.startup(
       settings.freshTabButton,
-      settings.cliqzOnboarding,
       settings.channel,
       settings.showNewBrandAlert,
       settings.freshTabInitialState);
@@ -42,6 +40,7 @@ export default background({
     this.adultDomainChecker = new AdultDomain();
     this.settings = settings;
     this.messages = {};
+
   },
   /**
   * @method unload
@@ -66,6 +65,7 @@ export default background({
         });
       }
     },
+
     _showHelp: isWithinNDaysAfterInstallation.bind(null, 5),
 
     _showMiniOnboarding() {
@@ -104,7 +104,7 @@ export default background({
         events.pub('msg_center:hide_message', { id: messageId }, 'MESSAGE_HANDLER_FRESHTAB');
         utils.telemetry({
           type: 'notification',
-          topic: 'share-location',
+          topic: messageId,
           context: 'home',
           action: 'click',
           target: 'hide'
@@ -159,7 +159,7 @@ export default background({
           return isCustom;
         }
 
-        results = dialUps.length === 0 ? results : results.filter(history => {
+        results = results.filter(history => {
           return !isDeleted(history.hashedUrl) && !isCustom(history.url) && !this.isAdult(history.url);
         });
 
@@ -412,7 +412,7 @@ export default background({
         const tabs = [...window.gBrowser.tabs];
         tabs.forEach(tab => {
           const browser = tab.linkedBrowser;
-          if (browser.currentURI.spec === 'about:cliqz') {
+          if (browser.currentURI.spec === utils.CLIQZ_NEW_TAB_RESOURCE_URL) {
             browser.reload();
           }
         });
@@ -423,23 +423,13 @@ export default background({
 
   events: {
     "control-center:cliqz-tab": function () {
-      // toggle notifications before toggling freshtab
-      if(FreshTab.isActive()) {
-        events.pub('notifications:notifications-cleared');
-      } else {
-        utils.callAction('notifications', 'hasUnread').then( (res) => {
-          if (res) {
-            events.pub('notifications:new-notification');
-          }
-        });
-      }
       FreshTab.toggleState();
     },
     "message-center:handlers-freshtab:new-message": function onNewMessage(message) {
       if( !(message.id in this.messages )) {
         this.messages[message.id] = message;
         utils.callAction('core', 'broadcastMessage', [
-          utils.CLIQZ_NEW_TAB_URL,
+          utils.CLIQZ_NEW_TAB_RESOURCE_URL,
           {
             action: 'addMessage',
             message: message,
@@ -451,7 +441,7 @@ export default background({
 
       delete this.messages[message.id];
       utils.callAction('core', 'broadcastMessage', [
-        utils.CLIQZ_NEW_TAB_URL,
+        utils.CLIQZ_NEW_TAB_RESOURCE_URL,
         {
           action: 'closeNotification',
           messageId: message.id,
@@ -462,6 +452,6 @@ export default background({
       this.actions.getNews().then(() => {
         this.actions.refreshFrontend();
       });
-    },
+    }
   },
 });

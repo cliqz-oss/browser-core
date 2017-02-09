@@ -1,4 +1,6 @@
-/* global Services */
+/* global Services, Components, XPCOMUtils */
 export {
-  Services
-}
+  Services,
+  Components,
+  XPCOMUtils,
+};

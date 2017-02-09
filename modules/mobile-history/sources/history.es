@@ -2,35 +2,34 @@
 /* global osAPI, math */
 
 import utils from 'core/utils';
-import { document, Hammer } from 'mobile-history/webview';
+import window from "platform/window";
 import Storage from "core/storage";
 
 const storage = new Storage();
-
 let allHistory = [];
 let allFavorites = [];
+let lastQueryIndex = 0, isAllHistory = false;
+let pageCount = 0;
+let showOnlyFavorite = false;
+let loadStartTime = 0;
 
-function showHistory(history) {
-  if (!utils.BRANDS_DATABASE.buttons) {
-    return setTimeout(History.showHistory, 50, history);
-  }
+function showHistory(history = []) {
 
-  allHistory = history;
-  const queries = storage.getObject('recentQueries', []).reverse();
+  const queries = storage.getObject('recentQueries', []);
 
   history.forEach(item => {
     item.domain = item.url.match(/^(?:https?:\/\/)?(?:www\.)?([^\/]+)/i)[1];
   });
 
   const historyWithLogos = addLogos(history);
+  isAllHistory = history.length < History.RECORD_LIMIT;
+  allHistory = allHistory.concat(history);
+
   const data = mixHistoryWithQueries(queries, historyWithLogos);
-  History.displayData(data, History.showOnlyFavorite);
+  History.displayData(data, showOnlyFavorite);
 }
 
 function showFavorites(favorites) {
-  if (!utils.BRANDS_DATABASE.buttons) {
-    return setTimeout(History.showFavorites, 50, favorites);
-  }
 
   allFavorites = favorites;
 
@@ -40,7 +39,7 @@ function showFavorites(favorites) {
 
   const favoritesWithLogos = addLogos(favorites);
 
-  History.displayData(favoritesWithLogos, History.showOnlyFavorite);
+  History.displayData(favoritesWithLogos, showOnlyFavorite);
 }
 
 function addLogos(list) {
@@ -51,88 +50,84 @@ function addLogos(list) {
   });
 }
 
-function sendShowTelemetry(data, type) {
-  const queryCount = data.filter(function (item) { return item.query; }).length,
-      urlCount = data.filter(function (item) { return item.url; }).length;
-  utils.telemetry({
+function sendLoadTelemetry(data) {
+  const type = showOnlyFavorite ? 'favorites' : 'history';
+  const loadDuration = Date.now() - loadStartTime;
+
+  const signal = {
     type,
-    action: 'show',
-    active_day_count: data.length - queryCount - urlCount,
-    query_count: queryCount,
-    url_count: urlCount
-  });
+    action: 'load',
+    load_duration: loadDuration,
+    url_count: showOnlyFavorite ? allFavorites.length : allHistory.length,
+  }
+
+  if (!showOnlyFavorite) {
+    signal.active_day_count = data.length - lastQueryIndex - allHistory.length;
+    signal.query_count = lastQueryIndex;
+  }
+  utils.telemetry(signal);
 }
 
 
 function mixHistoryWithQueries(queries, history) {
   let data = [];
   let hi = 0;
-  let qi = 0;
-  let date = '';
   while (true) {
-    if (hi >= history.length || qi >= queries.length) {
+    if (hi >= history.length || lastQueryIndex >= queries.length) {
       break;
     }
 
-    if (history[hi].timestamp <= queries[qi].timestamp) {
-      if (getDateFromTimestamp(history[hi].timestamp) !== date) {
-        data.push({date: getDateFromTimestamp(history[hi].timestamp)});
-        date = getDateFromTimestamp(history[hi].timestamp);
-      }
-      data.push(history[hi]);
-
+    if (history[hi].timestamp > queries[lastQueryIndex].timestamp) {
+      data.unshift(history[hi]);
       hi++;
     } else {
-      if (getDateFromTimestamp(queries[qi].timestamp) !== date) {
-        data.push({date: getDateFromTimestamp(queries[qi].timestamp)});
-        date = getDateFromTimestamp(queries[qi].timestamp);
-      }
-      data.push(queries[qi]);
-      qi++;
+      data.unshift(queries[lastQueryIndex]);
+      lastQueryIndex++;
     }
   }
   while (hi < history.length) {
-    if (getDateFromTimestamp(history[hi].timestamp) !== date) {
-      data.push({date: getDateFromTimestamp(history[hi].timestamp)});
-      date = getDateFromTimestamp(history[hi].timestamp);
-    }
-    data.push(history[hi]);
+    data.unshift(history[hi]);
     hi++;
   }
-  while (qi < queries.length) {
-    if (getDateFromTimestamp(queries[qi].timestamp) !== date) {
-      data.push({date: getDateFromTimestamp(queries[qi].timestamp)});
-      date = getDateFromTimestamp(queries[qi].timestamp);
-    }
-    data.push(queries[qi]);
-    qi++;
+
+  while (isAllHistory && lastQueryIndex < queries.length) {
+    data.unshift(queries[lastQueryIndex]);
+    lastQueryIndex++;
   }
 
-  return data;
+
+  return addDateSeparators(data);
+}
+
+function addDateSeparators(data) {
+  if (!data.length) {
+    return [];
+  }
+
+  let dataWithDates = [];
+  let date = '';
+  data.forEach(record => {
+    const recordDate = getDateFromTimestamp(record.timestamp);
+    if (recordDate !== date) {
+      dataWithDates.push({ date: recordDate });
+      date = recordDate;
+    }
+    dataWithDates.push(record);
+  });
+
+  return dataWithDates;
 }
 
 function displayData(data, isFavorite = false) {
 
-  const template = isFavorite ? 'favorites' : 'conversations';
-  document.body.innerHTML = CLIQZ.templates[template]({data: data});
+  const template = CLIQZ.templates[isFavorite ? 'favorites' : 'conversations'];
+  $('body').prepend(template({data: data, pageCount}));
+  const container = window.document.getElementById(`container-${pageCount}`);
 
-  const B = document.body,
-      H = document.documentElement;
+  window.document.body.scrollTop = container.scrollHeight;
+  attachListeners(container);
 
-  let height;
-
-  if (typeof document.height !== 'undefined') {
-      height = document.height; // For webkit browsers
-  } else {
-      height = Math.max( B.scrollHeight, B.offsetHeight,H.clientHeight, H.scrollHeight, H.offsetHeight );
-  }
-
-  document.body.scrollTop = height + 100;
-
-  attachListeners(document.getElementById('container'));
-
-  const type = isFavorite ? 'favorites' : 'history';
-  History.sendShowTelemetry(data, type);
+  sendLoadTelemetry(data);
 }
 
 function getDateFromTimestamp(time) {
@@ -173,14 +168,33 @@ function unfavoriteItem(item) {
 }
 
 function init(onlyFavorites) {
-  migrateQueries();
-  History.showOnlyFavorite = onlyFavorites;
+  showOnlyFavorite = onlyFavorites;
+  if(!onlyFavorites) {
+    window.addEventListener('scroll', onScroll);
+  }
   update();
 }
 
 function update() {
-  const callback = History.showOnlyFavorite ? showFavorites : showHistory;
-  History.showOnlyFavorite ? osAPI.getFavorites('History.showFavorites') : osAPI.getHistoryItems('History.showHistory');
+  initializeVariables();
+  window.document.body.innerHTML = "";
+
+  loadStartTime = Date.now();
+  showOnlyFavorite ? osAPI.getFavorites('History.showFavorites') : osAPI.getHistoryItems('History.showHistory', 0, History.RECORD_LIMIT);
+}
+
+function initializeVariables () {
+  isAllHistory = false;
+  allHistory = allFavorites = [];
+  lastQueryIndex = 0;
+}
+
+function onScroll() {
+  if (document.body.scrollTop !== 0 || isAllHistory) {
+    return;
+  }
+  loadStartTime = Date.now();
+  osAPI.getHistoryItems('History.showHistory', allHistory.length, History.RECORD_LIMIT);
 }
 
 function clearHistory() {
@@ -193,7 +207,7 @@ function clearFavorites() {
 
 function onElementClick(event) {
   const element = getElement(event.target);
-  const tab = History.showOnlyFavorite ? 'favorites' : 'history';
+  const tab = showOnlyFavorite ? 'favorites' : 'history';
   const targetType = element.getAttribute('class');
   if (targetType.indexOf('question') >= 0) {
     osAPI.notifyQuery(element.dataset.ref);
@@ -227,11 +241,12 @@ function attachListeners(list) {
   var listItems = list.getElementsByTagName("li");
   for (let i = 0; i < listItems.length; i++) {
     if(!isElementDate(listItems[i])) {
-      const hammer = new Hammer(listItems[i]);
+      const hammer = new window.Hammer(listItems[i]);
       hammer.on('panstart', onSwipeStart);
-      hammer.on('pan', onSwipe);
+      hammer.on('panmove', onSwipe);
       hammer.on('panend', onSwipeEnd);
       hammer.on('tap', onElementClick);
+      hammer.get('tap').set({time: 400});
     }
   }
 }
@@ -268,11 +283,11 @@ function onSwipeEnd(e) {
   }
   moving = false;
   const element = getElement(e.target);
-  const tab = History.showOnlyFavorite ? 'favorites' : 'history';
+  const tab = showOnlyFavorite ? 'favorites' : 'history';
   const targetType = element.getAttribute('class').indexOf('question') >= 0 ? 'query' : 'site';
   const direction = e.direction === 4 ? 'right' : 'left';
   if (math.abs(e.velocityX) < -1 || math.abs(e.deltaX) > 150) {
-    History.showOnlyFavorite ? unfavoriteItem(element) : removeItem(element);
+    showOnlyFavorite ? unfavoriteItem(element) : removeItem(element);
     removeDomElement(element);
     sendSwipeTelemetry(targetType, tab, direction);
   } else {
@@ -298,29 +313,6 @@ function sendSwipeTelemetry(targetType, tab, direction) {
 }
 
 
-/**
-  This function is for migration of history and favorite queries
-  to extension version Mobile Extension 3.5.2
-**/
-function migrateQueries() {
-  if (storage.getItem('isFavoritesRefactored')) {
-    return;
-  }
-  let queries = storage.getObject('recentQueries', []);
-  let favoriteQueries = storage.getObject('favoriteQueries', []);
-  queries = queries.map(query => {
-    if (query.favorite) {
-      favoriteQueries.unshift({query: query.query, timestamp: query.timestamp});
-    }
-    delete query.favorite;
-    return query;
-  });
-  storage.setObject('recentQueries', queries);
-  storage.setObject('favoriteQueries', favoriteQueries);
-  storage.setItem('isFavoritesRefactored', true);
-}
-
-
 var History = {
   init,
   update,
@@ -329,8 +321,7 @@ var History = {
   clearHistory,
   clearFavorites,
   displayData,
-  sendShowTelemetry,
-  showOnlyFavorite: false
+  RECORD_LIMIT: 50,
 };
 
 export default History;

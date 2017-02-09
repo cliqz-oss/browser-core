@@ -176,7 +176,7 @@ export default background({
     },
 
     finishOnboarding() {
-      utils.openLink(utils.getWindow(), "about:cliqz");
+      utils.openLink(utils.getWindow(), utils.CLIQZ_NEW_TAB);
     },
 
     _focusUrlbar() {

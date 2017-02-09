@@ -15,7 +15,7 @@ function log(msg){
 var CliqzABTests = {
     PREF: 'ABTests',
     PREF_OVERRIDE: 'ABTestsOverride',
-    URL: 'https://logging.cliqz.com/abtests/check?session=',
+    URL: 'https://stats.cliqz.com/abtests/check?session=',
     // Accessors to list of tests this user is current in
     getCurrent: function() {
         if(CliqzUtils.hasPref(CliqzABTests.PREF))
@@ -248,12 +248,6 @@ var CliqzABTests = {
             case "1071_B":
                 CliqzUtils.setPref("browser.privatebrowsing.apt", true, '');
                 break;
-            case "1072_A":
-                CliqzUtils.setPref("grFeatureEnabled", false);
-                break;
-            case "1072_B":
-                CliqzUtils.setPref("grFeatureEnabled", true);
-                break;
             case "1074_A":
                 CliqzUtils.setPref("cliqz-adb-abtest", false);
                 break;
@@ -322,6 +316,16 @@ var CliqzABTests = {
                 break;
             case "1088_B":
                 CliqzUtils.setPref('offers2FeatureEnabled', true);
+                break;
+            case "1091_A":
+                CliqzUtils.clearPref('dropDownABCGroup');
+                CliqzUtils.setDefaultIndexCountry(CliqzUtils.getPref('backend_country', 'de'), false);
+                break;
+            case "1092_A":
+                CliqzUtils.setPref("extOnboardVideoDownloader", false);
+                break;
+            case "1092_B":
+                CliqzUtils.setPref("extOnboardVideoDownloader", true);
                 break;
             default:
                 rule_executed = false;
@@ -516,6 +520,13 @@ var CliqzABTests = {
             case "1088_A":
             case "1088_B":
               CliqzUtils.clearPref('offers2FeatureEnabled');
+              break;
+            case "1091_A":
+              CliqzUtils.clearPref('dropDownStyle');
+              break;
+            case "1092_A":
+            case "1092_B":
+              CliqzUtils.clearPref('extOnboardVideoDownloader');
               break;
             default:
                 rule_executed = false;

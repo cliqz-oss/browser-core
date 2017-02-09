@@ -15,6 +15,15 @@ export default describeModule("ui/background",
           getDetailsFromUrl() {},
           getLogoDetails() {}
         }
+      },
+      "core/prefs": {
+        default: {
+          get() {},
+          set() {}
+        }
+      },
+      "core/browser": {
+        forEachWindow() {}
       }
     }
   },
@@ -38,7 +47,7 @@ export default describeModule("ui/background",
           spy = sinon.spy(events.pub);
           events.pub = spy;
 
-          this.deps("core/cliqz").utils.getPref = function (prefName) {
+          this.deps("core/prefs").default.get = this.deps("core/cliqz").utils.getPref = function (prefName) {
             if (prefName === "extOnboardShareLocation") {
               return isABTest;
             }

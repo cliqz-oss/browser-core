@@ -1,11 +1,11 @@
 {{#if module.anti-phishing.visible}}
 <div class="antiphishing frame-container" stop-navigation state="{{#if module.anti-phishing.active}}active{{ else }}inactive{{/if}}" inactiveState="inactive">
-  <div class="title" stop-navigation>
+  <div class="title">
     <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-      <g stop-navigation id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
-        <ellipse stop-navigation id="Oval-2" fill="#D0D0D0" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
+      <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
+        <ellipse id="Oval-2" fill="#D0D0D0" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
         <text id="i-copy" font-family="AmericanTypewriter-Bold, American Typewriter" font-size="11.2" font-weight="bold" fill="#FFFFFF">
-          <tspan stop-navigation x="5.50934774" y="11.3937579">i</tspan>
+          <tspan x="5.50934774" y="11.3937579">i</tspan>
         </text>
       </g>
     </svg>
@@ -13,24 +13,24 @@
       <span class="title" data-i18n="control-center-info-phishing-title"></span>
       <span data-i18n="control-center-info-phishing"></span>
     </div>
-    <span stop-navigation>Anti-Phishing</span>
+    <span>Anti-Phishing</span>
     <svg id="smallarrow" width="10px" height="15px" viewBox="1131 409 10 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
       <defs></defs>
       <polyline id="Path-164-Copy-153" stroke="#7D7D7D" stroke-width="2.5999999" fill="none" opacity="0.44" points="1133.19742 410.787186 1139.09434 416.693941 1133.42806 422.369666"></polyline>
     </svg>
   </div>
-  <div class="switches" stop-navigation>
+  <div class="switches">
     <!--======= Switch ======-->
-    <span stop-navigation>
-      <span stop-navigation class="cqz-switch" updatePref='extensions.cliqz.cliqz-anti-phishing-enabled'>
+    <span>
+      <span class="cqz-switch" updatePref='extensions.cliqz.cliqz-anti-phishing-enabled'>
           <span class="cqz-switch-box"></span>
       </span>
-      <span stop-navigation visible-on-state="active" data-i18n="control-center-switch-on"></span>
-      <span stop-navigation visible-on-state="inactive" data-i18n="control-center-switch-off"></span>
+      <span visible-on-state="active" data-i18n="control-center-switch-on"></span>
+      <span visible-on-state="inactive" data-i18n="control-center-switch-off"></span>
     </span>
     <select class="dropdown-scope" visible-on-state="inactive" style="display: none">
-      <option stop-navigation selected data-i18n="control-center-this-site" value="this"></option>
-      <option stop-navigation data-i18n="control-center-all-sites" value="all"></option>
+      <option selected data-i18n="control-center-this-site" value="this"></option>
+      <option data-i18n="control-center-all-sites" value="all"></option>
     </select>
   </div>
 </div>

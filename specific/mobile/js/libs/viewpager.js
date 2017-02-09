@@ -42,7 +42,7 @@ module.exports = {
       type = [type];
     }
     for (i = 0, l = type.length; i < l; i += 1) {
-      el.addEventListener(type[i], fn, !!capture);
+      el.addEventListener(type[i], fn, {capture: !!capture, passive: false});
     }
   },
 
@@ -52,7 +52,7 @@ module.exports = {
       type = [type];
     }
     for (i = 0, l = type.length; i < l; i += 1) {
-      el.removeEventListener(type[i], fn, !!capture);
+      el.removeEventListener(type[i], fn, {capture: !!capture, passive: false});
     }
   }
 };

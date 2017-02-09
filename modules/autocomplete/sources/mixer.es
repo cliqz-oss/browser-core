@@ -6,7 +6,7 @@
 import { utils } from "core/cliqz";
 import Result from "autocomplete/result";
 import UrlCompare from "autocomplete/url-compare";
-
+import prefs from "core/prefs";
 
 function objectExtend(target, obj) {
   Object.keys(obj).forEach(function(key) {
@@ -262,11 +262,51 @@ export default class Mixer {
       return true;
     });
   }
+
+  unpackHistoryPatterns(response) {
+    var allResults = [];
+    if (response.results) {
+      for (var i = 0; i < response.results.length; i++) {
+        if ((response.results[i].style === 'cliqz-pattern' || response.results[i].style == 'cliqz-extra' || response.results[i].data.cluster) && response.results[i].data.urls) {
+          const historyPattern = response.results[i];
+          const historyPatternResults = historyPattern.data.urls.map((result) => {
+            return {
+              comment: result.title,
+              data: {
+                kind: result.kind,
+                template: 'generic',
+                title: result.title,
+                localSource: result.style,
+              },
+              label: result.href,
+              val: result.href,
+              query: response.query,
+              style: result.style,
+              image: result.favicon || result.image || historyPattern.image,
+            }
+          });
+          allResults = allResults.concat(historyPatternResults);
+        }
+        else {
+          allResults.push(response.results[i])
+        }
+      }
+      response.results = allResults;
+    }
+    return response.results;
+  }
+
   // Mix together history, backend and custom results. Called twice per query:
   // once with only history (instant), second with all data.
   mix(q, cliqz, history, customResults, only_history) {
     // Prepare other incoming data
     customResults = customResults || [];
+    if (utils.dropDownStyle == 'ff') {
+      // calculator is not compatible with FF UI
+      customResults = customResults.filter(res => {
+        return (res.data.template !== 'calculator');
+      });
+    }
     var cliqzExtra = [],
         results = [],
         r = {first: [], second: []}; // format returned by this._deduplicateResults()
@@ -292,7 +332,6 @@ export default class Mixer {
          this.EZ_COMBINE.indexOf(ez.data.template) !== -1 &&
          UrlCompare.sameUrls(history[0].val, ez.val)) {
         utils.log('Making combined entry.', 'Mixer');
-
         history[0] = Result.combine(ez, history[0]);
         this._deduplicateHistory(history[0]);
       } else {
@@ -304,10 +343,10 @@ export default class Mixer {
         results = r.first.concat(r.second);
       }
     }
+    // start with the richer result
     r = this._deduplicateResults(history, cliqz);
-
     // Prepare results: history (first) then backend results (second)
-    results = customResults.concat(r.first).concat(r.second);
+  results = customResults.concat(r.first).concat(r.second);
 
     utils.log('only_history:' + only_history +
               ' history:' + history.length +
@@ -323,7 +362,7 @@ export default class Mixer {
                      ' to simple history', 'Mixer');
 
       // convert to simple history entry
-      var simple = Result.generic('favicon', results[1].val, null,
+      var simple = Result.generic('favicon', results[1].val, results[1].image,
                                   results[1].data.title, null, searchString);
       simple.data.kind = ['H'];
       simple.data.description = result[1].data.description;
@@ -338,9 +377,16 @@ export default class Mixer {
     });
     // Show no results message
     if (results.length === 0 && !only_history) {
-      utils.getNoResults && results.push(utils.getNoResults());
+      utils.getNoResults && results.push(utils.getNoResults(q, utils.dropDownStyle));
     }
 
-    return results;
+    if (['simple', 'ff'].indexOf(utils.dropDownStyle) !== -1) {
+      // in simple UI & FF UI, we don't have history clusters/patterns. We need
+      // to unpack them into separate results.
+      return this.unpackHistoryPatterns({query: q, results:results});
+    }
+    else {
+      return results;
+    }
   }
 }

@@ -20,6 +20,6 @@ export default Ember.Component.extend({
 
   style: Ember.computed('model.logo.backgroundColor', function () {
     const color = this.get('model.logo.backgroundColor');
-    return new Ember.Handlebars.SafeString(`background: #${color};`);
+    return Ember.String.htmlSafe(`background: #${color};`);
   }),
 });

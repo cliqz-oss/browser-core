@@ -54,11 +54,20 @@
     overflow: hidden !important;
 }
 
+.forceRerender {
+   overflow: hidden !important;
+}
+
 panelmultiview[mainViewId="cliqz-cc-btn-panel"] > .panel-viewcontainer > .panel-viewstack > .panel-mainview:not([panelid="PanelUI-popup"]),
 panel[viewId="cliqz-cc-btn-panel"] .panel-mainview {
     max-width: 50em !important;
 }
 
 #customizationui-widget-panel[viewId="cliqz-cc-btn-panel"] .panel-arrowcontent {
+    padding-top: 0px;
     padding-bottom: 0px;
+}
+
+#cliqz-cc-btn-panel {
+    border-radius: 3px;
 }

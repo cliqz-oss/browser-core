@@ -30,6 +30,8 @@ var OffersConfigs = {
   // this will clear the current saved that
   CLEAR_OFFERS_HISTORY_DATA: false,
   OFFERS_HISTORY_DATA: 'chrome://cliqz/content/offers-v2/offers_history.json',
+  // the time we want to track the signals after they were created
+  OFFERS_HISTORY_LIVE_TIME_SECS: 60 * 60 * 24 * 60,
 
   //////////////////////////////////////////////////////////////////////////////
   // SIGNALS
@@ -39,6 +41,8 @@ var OffersConfigs = {
   SIGNALS_OFFERS_FREQ_SECS: 60 * 60,
   SIGNALS_OFFERS_BUCKET_NAME: 'sig-offers',
   SIGNALS_TRIGGERS_BUCKET_NAME: 'sig-triggers',
+  SIGNALS_HPN_BE_ADDR: 'https://offers-api.cliqz.com/api/v1/savesignal',
+  SIGNALS_HPN_BE_ACTION: 'offers-signal',
 
   //////////////////////////////////////////////////////////////////////////////
   // CONFIG / DEBUG variables

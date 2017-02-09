@@ -43,6 +43,7 @@ CLIQZ.Core = {
   popup: document.getElementById('results'),
   refreshButtons: function(){}
 }
+CLIQZ.Core.popup.closePopup = function(){};
 
 System.baseURL = "modules/";
 System.config({
@@ -86,17 +87,19 @@ Promise.all([
     window.ResultProviders = modules[3].default;
     window.CliqzEvents = modules[4].default;
     CLIQZ.config = modules[7].default;
+    window.geolocation = modules[8].default;
     window.Search = modules[9].default;
     modules[10].default().then(CliqzUtils.setLogoDb);
 
 
     CliqzUtils.System = System;
     CliqzAutocomplete.Mixer = Mixer;
-    //CLIQZEnvironment.ExpansionsProvider = modules[5].default;
+    CLIQZEnvironment.ExpansionsProvider = modules[5].default;
 
 
     // initiaize geolocation window
-    CliqzUtils.callAction("geolocation", "updateGeoLocation", []);
+    const geolocation = modules[8].default;
+    geolocation.actions.updateGeoLocation();
 
     return System.import("core/startup")
   }).then(function (startupModule) {
@@ -125,7 +128,7 @@ Promise.all([
     // Initialization of the ExpansionProvider should be after
     // the initialization of the autocomplete otherwise
     // CliqzUtils.getBackendResults gets blindly overwriten
-    //CLIQZEnvironment.ExpansionsProvider.init();
+    CLIQZEnvironment.ExpansionsProvider.init();
 
     // remove keydown handler from UI - the platform will do it
     urlbar.removeEventListener('keydown', CLIQZ.UI.urlbarkeydown)
@@ -264,21 +267,14 @@ function startAutocomplete(query) {
     CLIQZ.UI.setRawResults({
       q: r._searchString,
       results: r._results.map(function(r) {
-        r.type = r.style;
-        delete r.style;
-
-        r.text = r.query;
-        delete r.query;
-        delete r.label;
-
-        r.url = r.val || '';
-        delete r.val;
-
-        r.title = r.comment || '';
-        delete r.comment;
-
-        r.maxNumberOfSlots = (i == 0 ? 3 : 1 )
-        return r;
+        return {
+          type: r.style,
+          text: r.query,
+          url: r.val || '',
+          title: r.comment || '',
+          data: r.data,
+          maxNumberOfSlots: (i == 0 ? 3 : 1 )
+        }
       }),
       isInstant: false,
       isMixed: true

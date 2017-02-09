@@ -39,12 +39,10 @@ var osAPI = {
       action: "getHistoryItems",
       callback: callback
     };
-    if (start && count) {
-      message.data = {
-        start: start,
-        count: count
-      };
-    }
+    message.data = {
+      offset: start,
+      limit: count
+    };
     osAPI.OS.postMessage(message);
   },
   /**

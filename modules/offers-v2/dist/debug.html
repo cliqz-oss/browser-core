@@ -5,63 +5,153 @@
     <title>Control Center Debug</title>
     <style>
         iframe {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 40px;
             border: none;
+            border-top: 15px solid #ccc;
+            border-bottom: 15px solid #ccc;
         }
     </style>
 </head>
 <body>
-<iframe id="offers" src="./index.html" width="100%" height="200"></iframe>
+    <div id="iframe-holder"></div>
 
-<script>
+    <script>
 
-    //chrome://cliqz/content/offers-v2/debug.html
-    var iframe = document.getElementById("offers");
-    iframe.contentWindow.addEventListener('message', function (ev) {
-        var data = JSON.parse(ev.data);
-        if (!data.message || data.message.action !== 'testAction') {
-            return;
-        }
-        var mockOffer = {
-            "offer_id": "1",
-            "template_name": "test_template",
-            "template_data": {
+        //chrome://cliqz/content/offers-v2/debug.html
+        var iframeHolder = document.getElementById("iframe-holder");
 
-                "voucher_classes": "", // cqz-offer-no-call-to-action, cqz-offer-logo-landscape
-                "title": "Premier League am Boxing Day? Jetzt bei DAZN",
-                "desc": "Einlösebedingungen: Gültig für Neukunden",
-                "logo_url": "https://s3.amazonaws.com/cdn.cliqz.com/extension/goldrush/dazn-logo.png",
-//                "code": "",
-                "conditions": "",
 
-                "call_to_action": {
-                    "url": "http://newurl",
-                    "target": "", //to open in the same window or in new tab
-                    "text": "Jetzt Gratismonat starten"
-                },
-
-              //  "styles": {
-              //     "title-color": "#fff",
-              //     "description-color": "#fff",
-              //     "links-color": "#fff",
-              //     "call-to-action-color": "#fff",
-              //     "call-to-action-bg-color": "red",
-              //     "background": "#333"
-              // }
-            }
-        };
-        var strMockOffer = mockOffer;
-        iframe.contentWindow.postMessage(JSON.stringify({
-            target: "cliqz-offers",
-            origin: "window",
-            message: {
-                action: "render_template",
-                data: strMockOffer
+        var mockOffer = [
+            {
+                "offer_id": "2",
+                "display_id": "2",
+                "template_name": "ticket_template",
+                "template_data": {
+                    "voucher_classes": "",
+                    "title": "25€ My test title is again here and all mighty powerful here and all mighty powerful",
+                    "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque imperdiet in erat facilisis laoreet. Curabitur auctor blandit lectus, non tristique urna porttitor non. Vivamus nibh risus, porta et sem ut, vulputate venenatis diam. Nulla finibus nisi nec tempor pretium. In tortor eros, vestibulum eget sagittis et, gravida et felis.",
+                    "logo_url": "https://s3.amazonaws.com/cdn.cliqz.com/extension/offers/dazn-logo.png",
+                    "conditions": "1 for 2",
+                    "code": "aBc234#as#",
+                    "call_to_action": {
+                        "url": "http://newurl",
+                        "target": "",
+                        "text": "Get the Offer"
+                    }
+                }
             },
-        }), "*");
+            {
+                "offer_id": "2",
+                "display_id": "2",
+                "template_name": "ticket_template",
+                "template_data": {
+                    "voucher_classes": "",
+                    "title": "25€ My test title is again here and all mighty powerful",
+                    "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque imperdiet in erat facilisis laoreet. Curabitur auctor blandit lectus, non tristique urna porttitor non. Vivamus nibh risus, porta et sem ut, vulputate venenatis diam. Nulla finibus nisi nec tempor pretium. In tortor eros, vestibulum eget sagittis et, gravida et felis.",
+                    "logo_url": "https://s3.amazonaws.com/cdn.cliqz.com/extension/offers/dazn-logo.png",
+                    "conditions": "",
+                    "call_to_action": {
+                        "url": "http://newurl",
+                        "target": "",
+                        "text": "Gutschein anzeigen"
+                    }
+                }
+            },
+            {
+                "offer_id": "2",
+                "display_id": "2",
+                "template_name": "default_template",
+                "template_data": {
+                    "voucher_classes": "cqz-voucher-big-title",
+                    "title": "25€ My test title is again here and all mighty powerful",
+                    "desc": "",
+                    "logo_url": "https://s3.amazonaws.com/cdn.cliqz.com/extension/offers/dazn-logo.png",
+                    "conditions": "",
+                    "call_to_action": {
+                        "url": "http://newurl",
+                        "target": "",
+                        "text": "Gutschein anzeigen"
+                    }
+                }
+            },
+            {
+                "offer_id": "2",
+                "display_id": "2",
+                "template_name": "ticket_template",
+                "template_data": {
+                    "voucher_classes": "",
+                    "title": "15% My test title is again here and all mighty powerful",
+                    "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque imperdiet in erat facilisis laoreet. Curabitur auctor blandit lectus, non tristique urna porttitor non. Vivamus nibh risus, porta et sem ut, vulputate venenatis diam. Nulla finibus nisi nec tempor pretium. In tortor eros, vestibulum eget sagittis et, gravida et felis.",
+                    "captions": {
+                        "cap1": "15%",
+                        "cap2": "off",
+                    },
+                    "conditions": "",
+                    "call_to_action": {
+                        "url": "http://newurl",
+                        "target": "",
+                        "text": "Gutschein anzeigen"
+                    }
+                }
+            },
+            {
+                "offer_id": "2",
+                "display_id": "2",
+                "template_name": "ticket_template",
+                "template_data": {
+                    "voucher_classes": "",
+                    "title": "15% My test title is again here and all mighty powerful",
+                    "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque imperdiet in erat facilisis laoreet. Curabitur auctor blandit lectus, non tristique urna porttitor non. Vivamus nibh risus, porta et sem ut, vulputate venenatis diam. Nulla finibus nisi nec tempor pretium. In tortor eros, vestibulum eget sagittis et, gravida et felis.",
+                    "code": "aBc234#as",
+                    "captions": {
+                        "cap1": "15%",
+                        "cap2": "off",
+                    },
+                    "conditions": "",
+                    "call_to_action": {
+                        "url": "http://newurl",
+                        "target": "",
+                        "text": "Gutschein anzeigen"
+                    }
+                }
+            },
+        ];
+        var strMockOffer = mockOffer;
 
-    });
+        mockOffer.forEach(function (offer, index) {
+            $dynamicIframeElm = document.createElement("iframe");
+            var iframeElmId = "cqz-offer-counter-" + index;
+            $dynamicIframeElm.id = iframeElmId;
+            $dynamicIframeElm.src = "index.html"
+            iframeHolder.append($dynamicIframeElm);
+
+            var iframeElm = document.getElementById(iframeElmId);
+            console.log(offer)
+
+//                iframeElm.contentWindow.addEventListener('message', function (ev) {
+//                    var data = JSON.parse(ev.data);
+//                    if (!data.message || data.message.action !== 'get_last_data') {
+//                        return;
+//                    }
+//                });
+
+            setTimeout(function () {
+                iframeElm.contentWindow.postMessage(JSON.stringify({
+                    target: "cliqz-offers",
+                    origin: "window",
+                    message: {
+                        action: "render_template",
+                        data: offer
+                    }
+                }), "*");
+            }, 500);
 
 
-</script>
+        });
+
+
+    </script>
 </body>
 </html>

@@ -24,4 +24,10 @@ export default function () {
     this.use('toLeft'),
     this.reverse('toRight')
   );
+  this.transition(
+    this.fromRoute('freshtab.index'),
+    this.toRoute('freshtab.history'),
+    this.use('fade', { duration: 250 }),
+    this.reverse('fade', { duration: 250 })
+  );
 }

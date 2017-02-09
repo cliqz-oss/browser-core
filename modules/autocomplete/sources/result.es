@@ -79,7 +79,8 @@ var Result = {
             comment: comment,
             label: label || value,
             query: query,
-            data: data
+            data: data,
+            image: image,
         };
         return item;
     },
@@ -108,7 +109,7 @@ var Result = {
         return Result.generic(
             resStyle, //style
             result.url, //value
-            null, //image -> favico
+            result.image, //image -> favico
             result.snippet.title,
             null, //label
             q, //query
@@ -119,6 +120,7 @@ var Result = {
     // Combine two results into a new result
     combine: function(first, second) {
         var ret = Result.clone(first);
+        ret.image = ret.image || second.image;
         ret.style = combineSources(ret.style, second.style);
         ret.data.kind = (ret.data.kind || []).concat(second.data.kind || []);
 
@@ -128,13 +130,18 @@ var Result = {
         if(second.data.title && !ret.data.title) // title
             ret.data.title = second.data.title;
         if(second.data.urls && !ret.data.urls) // history url list
-            ret.data.urls = second.data.urls;
+            ret.data.urls = second.data.urls.map(
+                item => {
+                  item.favicon = item.favicon || ret.image;
+                  return item;
+                }
+            );
 
         return ret;
     },
     // not really cloning the object !!!
     clone: function(entry) {
-        var ret = Result.generic(entry.style, entry.val, null, entry.comment, entry.label, entry.query, null);
+        var ret = Result.generic(entry.style, entry.val, entry.image, entry.comment, entry.label, entry.query, null);
         ret.data = JSON.parse(JSON.stringify(entry.data)); // nasty way of cloning an object
         if(entry.autocompleted) ret.autocompleted = true;
         return ret;

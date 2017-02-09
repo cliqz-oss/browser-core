@@ -5,17 +5,9 @@
 var { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
-
-Services.scriptloader.loadSubScript("chrome://cliqz/content/core/content-scripts.js");
+Cu.import("resource://gre/modules/Console.jsm")
 
 var config = {{CONFIG}};
-
-let injectModules = ['adblocker', 'anti-phishing'];
-injectModules.forEach((moduleName) => {
-  if (config.modules.indexOf(moduleName) > -1) {
-    Services.scriptloader.loadSubScript(`chrome://cliqz/content/${moduleName}/content-scripts.js`);
-  }
-});
 
 var whitelist = [
   "chrome://cliqz/",
@@ -76,8 +68,29 @@ function getContextHTML(ev) {
   }
 }
 
+Services.scriptloader.loadSubScript('chrome://cliqz/content/core/content-scripts.js');
+
+var injectModules = ['adblocker', 'anti-phishing', 'history'];
+injectModules.forEach((moduleName) => {
+  if (config.modules.indexOf(moduleName) > -1) {
+    try {
+      Services.scriptloader.loadSubScript('chrome://cliqz/content/'+moduleName+'/content-scripts.js');
+    } catch(e) {
+      // do nothing if missing
+    }
+  }
+});
+
 function onDOMWindowCreated(ev) {
   var window = ev.target.defaultView;
+
+  window.chrome = {
+    runtime: {
+      sendMessage: function (message) {
+        send({ payload: message });
+      }
+    }
+  };
 
   // we only handle HTML documents for now
   if(window.document.documentElement.nodeName.toLowerCase() !== 'html'){
@@ -353,21 +366,7 @@ function onDOMWindowCreated(ev) {
     }
   };
 
-
-  var contentScript = getContentScript(window, currentURL());
-  if (contentScript) {
-    contentScript(window, function (msg) {
-      send({
-        windowId: windowId,
-        payload: {
-          module: "core",
-          action: msg.action,
-          args: msg.args
-        }
-      });
-    });
-  }
-
+  runContentScripts(window);
 
   var onKeyPress = throttle(proxyWindowEvent("recordKeyPress"), 250);
   var onMouseMove = throttle(proxyWindowEvent("recordMouseMove"), 250);

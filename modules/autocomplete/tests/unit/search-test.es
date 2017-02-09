@@ -12,14 +12,14 @@ export default describeModule("autocomplete/search",
           getDetailsFromUrl: function (url) { return { extra: "", path: "", host: "" }; },
           encodeResultType() { return ""; },
           isCompleteUrl() { return true; },
-          generalizeUrl() { }
+          generalizeUrl() { },
+          setInterval() {},
         }
       },
       "core/console": { default: { log() {} } },
       "autocomplete/calculator": {
         default: {}
       },
-      "core/prefs": {},
       "core/search-engines": {
         default: {}
       },
@@ -43,7 +43,9 @@ export default describeModule("autocomplete/search",
       },
       "autocomplete/history-cluster": {
         default: {}
-      }
+      },
+      "platform/window": { default: {} },
+      "core/prefs": { default: {}}
     }
   },
   function () {

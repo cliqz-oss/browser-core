@@ -1,7 +1,8 @@
 {
   "platform": "firefox",
   "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
-  "testem_launchers": ["Mocha"],
+  "testem_launchers": ["Mocha", "Chrome"],
+  "testem_launchers_ci": ["Mocha"],
   "settings": {
     "id": "cliqz@cliqz.com",
     "name": "Cliqz",
@@ -13,7 +14,6 @@
     "freshTabInitialState": true,
     "unblockUI": false,
     "showDataCollectionMessage": false,
-    "cliqzOnboarding": true,
     "antitrackingButton": true,
     "helpMenus": true,
     "showNewBrandAlert": true,
@@ -27,6 +27,16 @@
   "default_prefs" : {
     "modules.context-search.enabled": false
   },
+  "priority": [
+    "core",
+    "firefox-specific",
+    "static",
+    "autocomplete",
+    "ui",
+    "human-web",
+    "freshtab",
+    "hpn"
+  ],
   "modules": [
     "core",
     "firefox-specific",
@@ -54,9 +64,9 @@
     "onboarding-v2",
     "new-tab-button",
     "type-filter",
-    "offers",
     "offers-v2",
-    "telemetry-speed-dial"
+    "telemetry-speed-dial",
+    "video-downloader"
   ],
   "subprojects": [
     "fresh-tab-frontend"

@@ -6,6 +6,7 @@ import md5 from 'antitracking/md5';
 import { DEFAULT_ACTION_PREF, updateDefaultTrackerTxtRule } from 'antitracking/tracker-txt';
 import { utils, events } from 'core/cliqz';
 import telemetry from 'antitracking/telemetry';
+import Config from 'antitracking/config';
 
 /**
 * @namespace antitracking
@@ -34,10 +35,15 @@ export default background({
     // inject configured telemetry module
     telemetry.loadFromProvider(settings.telemetryProvider || 'human-web/human-web');
 
-    return CliqzAttrack.init().then(() => {
-      if(this.popup){
-        this.popup.updateState(utils.getWindow(), true);
-      }
+    // load config
+    this.config = new Config({});
+
+    return this.config.init().then(() => {
+      return CliqzAttrack.init(this.config).then(() => {
+        if(this.popup){
+          this.popup.updateState(utils.getWindow(), true);
+        }
+      });
     });
   },
 
@@ -222,6 +228,13 @@ export default background({
       if (CliqzAttrack.pipelineSteps.cookieContext) {
         CliqzAttrack.pipelineSteps.cookieContext.setContextFromEvent.apply(CliqzAttrack.pipelineSteps.cookieContext, arguments);
       }
-    }
+    },
+    "control-center:antitracking-clearcache": function() {
+      CliqzAttrack.clearCache();
+      this.popupActions.telemetry({
+        action: 'click',
+        target: 'clearcache',
+      });
+    },
   },
 });

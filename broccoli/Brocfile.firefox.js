@@ -28,19 +28,41 @@ var firefoxLibs = new MergeTrees([
   new Funnel(nodeModules, { srcDir: 'es6-micro-loader/dist', include: ['system-polyfill.js'] }),
 ]);
 
+var src = new Funnel(modules.modules, {
+  destDir: 'chrome/content',
+  exclude: ['tests/*/content/**/*']
+});
+
+
 var firefoxTree = new MergeTrees([
   firefoxSpecific,
-  new Funnel(config,      { destDir: 'chrome/content'}),
-  new Funnel(firefoxLibs, { destDir: 'modules/extern' }),
-  new Funnel(modules.bower,   { destDir: 'chrome/content/bower_components' }),
-  new Funnel(modules.modules,     { destDir: 'chrome/content' }),
-  new Funnel(modules.static,     { destDir: 'chrome/content' }),
+  new Funnel(config,              { destDir: 'chrome/content'}),
+  new Funnel(firefoxLibs,         { destDir: 'modules/extern' }),
+  new Funnel(modules.bower,       { destDir: 'chrome/content/bower_components' }),
+  src,
+  new Funnel(modules.static,      { destDir: 'chrome/content' }),
+  new Funnel(modules.styleTests,  { destDir: 'chrome/content' }),
 ], { overwrite: true } );
 
-var firefox = new MergeTrees([
+var firefoxOutputTrees = [
   new Funnel(firefoxTree, { destDir: cliqzConfig.settings.id }),
   firefoxPackage,
-]);
+];
+
+// TODO: move to modules-tree
+if (cliqzConfig.environment !== 'production') {
+  var contentTestsTree = new Funnel(modules.modules, {
+    include: ['tests/*/content/**/*']
+  });
+  var contentTests = concat(contentTestsTree, {
+    header: ";System = { register: function () {arguments[2]().execute(); }};",
+    inputFiles: "**/*.js",
+    outputFile: 'tests/tests.js'
+  })
+  firefoxOutputTrees.push(contentTests);
+}
+
+var firefox = new MergeTrees(firefoxOutputTrees);
 
 var configTree = util.injectConfig(firefox, config, 'cliqz.json', [
   cliqzConfig.settings.id + '/modules/Extension.jsm',

@@ -5,7 +5,7 @@ export function getSmartCliqz(url) {
   utils.log('getSmartCliqz: start fetching for ' + url);
 
   return new Promise((resolve, reject) => {
-    const endpointUrl = 'https://newbeta.cliqz.com/api/v1/rich-header?path=/map&bmresult=' + url;
+    const endpointUrl = 'https://api.cliqz.com/api/v1/rich-header?path=/map&bmresult=' + url;
 
     utils.httpGet(endpointUrl, (function success(req) {
       try {

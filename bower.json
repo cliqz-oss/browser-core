@@ -18,7 +18,7 @@
     "system.js": "0.19.39",
     "hammerjs": "2.0.8",
     "simple-statistics": "1.0.1",
-    "ua-parser-js": "0.7.10",
+    "ua-parser-js": "0.7.12",
     "moment": "2.15.1",
     "whatwg-fetch": "1.0.0"
   },

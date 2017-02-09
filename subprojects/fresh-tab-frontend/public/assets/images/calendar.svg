@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="24px" height="23px" viewBox="0 0 24 23" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 41.2 (35397) - http://www.bohemiancoding.com/sketch -->
+    <title>calendar</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="calendar" stroke="#4D4D4D">
+            <rect id="Rectangle-4" stroke-width="1.891" x="3.80334473" y="5" width="16" height="15"></rect>
+            <path d="M15.8515059,2.5 L15.8515059,6.52826677" id="Line" stroke-width="1.891" stroke-linecap="square"></path>
+            <path d="M7.74884473,2.5 L7.74884473,6.52826677" id="Line-Copy" stroke-width="1.891" stroke-linecap="square"></path>
+            <path d="M3.5,10.6723633 L18.5,10.6723633" id="Line" stroke-linecap="square"></path>
+        </g>
+    </g>
+</svg>

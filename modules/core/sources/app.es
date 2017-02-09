@@ -12,21 +12,26 @@ function shouldEnableModule(name) {
 
 export default class {
   constructor() {
+    this.priorityModulesLoaded = false;
     this.availableModules = config.modules.reduce((hash, moduleName) => {
       hash[moduleName] = new Module(moduleName);
       return hash;
     }, Object.create(null));
+
+    this.prefchangeEventListener = subscribe('prefchange', this.onPrefChange, this);
   }
 
   modules() {
-    return Object.keys(this.availableModules)
-      .map(
-        moduleName => this.availableModules[moduleName]
-      );
+    const notPriority = Object.keys(this.availableModules)
+                          .filter((m) => config.priority.indexOf(m) === -1);
+    const modules = this.priorityModulesLoaded ? notPriority : config.priority;
+    return modules.map(
+      moduleName => this.availableModules[moduleName]
+    );
   }
 
   enabledModules() {
-    return this.modules().filter(module => module.isEnabled);
+    return config.modules.map(name => this.availableModules[name]).filter(module => module.isEnabled);
   }
 
   setDefaultPrefs() {
@@ -46,6 +51,7 @@ export default class {
     console.log('App', 'Loading modules started');
     const backgroundPromises = this.modules()
       .map(module => {
+
         if (shouldEnableModule(module.name)) {
           try {
             return module.enable()
@@ -59,8 +65,6 @@ export default class {
           return System.import(module.name + '/background');
         }
       });
-
-    this.prefchangeEventListener = subscribe('prefchange', this.onPrefChange, this);
 
     return Promise.all(backgroundPromises).then(() => {
       console.log('App', 'Loading modules -- all background loaded');
@@ -82,6 +86,8 @@ export default class {
       }
     });
     console.log('App', 'unload background modules finished');
+
+    this.priorityModulesLoaded = false;
   }
 
   loadWindow(window) {
@@ -93,10 +99,12 @@ export default class {
     };
 
     // TODO: remove CLIQZ from window
-    Object.defineProperty(window, 'CLIQZ', {
-      configurable: true,
-      value: CLIQZ,
-    });
+    if(!window.CLIQZ){
+      Object.defineProperty(window, 'CLIQZ', {
+        configurable: true,
+        value: CLIQZ,
+      });
+    }
 
     const windowModulePromises = this.enabledModules().map(module => {
       console.log('App window', 'loading module', `"${module.name}"`, 'started');
@@ -108,6 +116,16 @@ export default class {
 
     return Promise.all(windowModulePromises).then(() => {
       console.log('App', 'Window loaded');
+    }).then(() => {
+      if (this.priorityModulesLoaded) {
+        return Promise.resolve();
+      }
+      this.priorityModulesLoaded = true;
+      return this.load().then(() => {
+        return this.loadWindow(window);
+      }).then(() => {
+        this.isFullyLoaded = true;
+      });
     });
   }
 
@@ -230,6 +248,11 @@ class Module {
    */
   loadWindow(window) {
     console.log('Module window:', `"${this.name}"`, 'loading');
+
+    if(window.CLIQZ.Core.windowModules[this.name]){
+      return Promise.resolve();
+    }
+
     const loadingStartedAt = Date.now();
     return System.import(`${this.name}/window`)
       .then(({ default: WindowModule }) =>

@@ -26,12 +26,12 @@ class PageStats {
     }
     if (this.blocked.get(company)) {
       if (!this.blocked.get(company).has(url)) {
-        this.count++;
+        this.count += 1;
       }
       this.blocked.get(company).add(url);
     } else {
       this.blocked.set(company, new Set([url]));
-      this.count++;
+      this.count += 1;
     }
   }
 

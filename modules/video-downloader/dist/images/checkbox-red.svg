@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="16px" height="15px" viewBox="0 0 16 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 41.2 (35397) - http://www.bohemiancoding.com/sketch -->
+    <title>checkbox-red1</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="checkbox-red1" fill="#E64C66">
+            <g id="Page-1">
+                <g id="checkbox-red">
+                    <g id="Page-1">
+                        <g id="checkbox-green">
+                            <g id="Group" transform="translate(0.272145, 0.000035)">
+                                <path d="M0.949276005,2.47233108 L13.2185783,14.7416334 C13.6091026,15.1321577 14.2422676,15.1321577 14.6327919,14.7416334 C15.0233161,14.3511091 15.0233161,13.7179441 14.6327919,13.3274198 L2.36348957,1.05811752 C1.97296528,0.667593229 1.3398003,0.667593229 0.949276005,1.05811752 C0.558751713,1.44864181 0.558751713,2.08180679 0.949276005,2.47233108 Z" id="Line"></path>
+                                <path d="M13.2101719,1.05811734 L0.940869662,13.3274196 C0.55034537,13.7179439 0.55034537,14.3511089 0.940869662,14.7416332 C1.33139395,15.1321575 1.96455893,15.1321575 2.35508322,14.7416332 L14.6243855,2.4723309 C15.0149098,2.08180661 15.0149098,1.44864163 14.6243855,1.05811734 C14.2338612,0.667593047 13.6006962,0.667593047 13.2101719,1.05811734 Z" id="Line-Copy"></path>
+                            </g>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,13 @@
+<div extra="des" class="card__description">
+    {{#if data.rich_data.rating.img}}
+        {{#if data.rich_data.rating.val}}
+            <img data-src="{{data.rich_data.rating.img}}" class="cqz-rd-rateimg"/>
+        {{/if}}
+    {{/if}}
+
+    {{#with data.rich_data.director}}
+        <div url="{{info.url}}" class="main__director">
+            {{title}}: {{info.name}}
+        </div>
+    {{/with}}
+</div>

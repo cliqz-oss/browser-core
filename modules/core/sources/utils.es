@@ -2,6 +2,7 @@ import CLIQZEnvironment from "platform/environment";
 import console from "core/console";
 import prefs from "core/prefs";
 import Storage from "core/storage";
+import CliqzEvents from 'core/events';
 import { TLDs } from "core/tlds";
 //import CliqzLanguage from "platform/language";
 import { httpHandler, promiseHttpHandler } from 'core/http';
@@ -30,9 +31,9 @@ var COLOURS = ['#ffce6d','#ff6f69','#96e397','#5c7ba1','#bfbfbf','#3b5598','#fbb
 var CliqzUtils = {
   RESULTS_PROVIDER:               CLIQZEnvironment.RESULTS_PROVIDER,
   RICH_HEADER:                    CLIQZEnvironment.RICH_HEADER,
-  RESULTS_PROVIDER_LOG:           'https://newbeta.cliqz.com/api/v1/logging?q=',
-  RESULTS_PROVIDER_PING:          'https://newbeta.cliqz.com/ping',
-  CONFIG_PROVIDER:                'https://newbeta.cliqz.com/api/v1/config',
+  RESULTS_PROVIDER_LOG:           'https://api.cliqz.com/api/v1/logging?q=',
+  RESULTS_PROVIDER_PING:          'https://api.cliqz.com/ping',
+  CONFIG_PROVIDER:                'https://api.cliqz.com/api/v1/config',
   SAFE_BROWSING:                  'https://safe-browsing.cliqz.com',
   TUTORIAL_URL:                   'https://cliqz.com/home/onboarding',
   UNINSTALL:                      'https://cliqz.com/home/offboarding',
@@ -44,7 +45,7 @@ var CliqzUtils = {
   BRANDS_DATABASE: BRANDS_DATABASE,
 
   //will be updated from the mixer config endpoint every time new logos are generated
-  BRANDS_DATABASE_VERSION: 1481799943898,
+  BRANDS_DATABASE_VERSION: 1483980213630,
   GEOLOC_WATCH_ID:                null, // The ID of the geolocation watcher (function that updates cached geolocation on change)
   VERTICAL_TEMPLATES: {
         'n': 'news'    ,
@@ -69,8 +70,8 @@ var CliqzUtils = {
   CLIQZ_ONBOARDING_URL: CLIQZEnvironment.CLIQZ_ONBOARDING_URL,
   BROWSER_ONBOARDING_PREF: CLIQZEnvironment.BROWSER_ONBOARDING_PREF,
   BROWSER_ONBOARDING_STEP_PREF: CLIQZEnvironment.BROWSER_ONBOARDING_STEP_PREF,
-  CLIQZ_NEW_TAB: "about:cliqz",
-  CLIQZ_NEW_TAB_URL: CLIQZEnvironment.CLIQZ_NEW_TAB_URL,
+  CLIQZ_NEW_TAB: CLIQZEnvironment.CLIQZ_NEW_TAB,
+  CLIQZ_NEW_TAB_RESOURCE_URL: CLIQZEnvironment.CLIQZ_NEW_TAB_RESOURCE_URL,
 
   telemetryHandlers: [
     CLIQZEnvironment.telemetry
@@ -125,7 +126,8 @@ var CliqzUtils = {
   },
 
   callAction(moduleName, actionName, args) {
-    const module = CliqzUtils.System.get(`${moduleName}/background`);
+    const module = CliqzUtils.System.get(
+        CliqzUtils.System.normalizeSync(`${moduleName}/background`));
     if (!module) {
       return Promise.reject(`module "${moduleName}" does not exist`);
     }
@@ -766,8 +768,26 @@ var CliqzUtils = {
                   CliqzUtils.setPref('config_' + k, config[k]);
                 }
               }
+
+              // we only set the prefered backend once at first start
               if (CliqzUtils.getPref('backend_country', '') === '') {
-                CliqzUtils.setPref('backend_country', CliqzUtils.getPref('config_location', ''));
+                if(CliqzUtils.getPref('config_location', 'de') === 'de' &&
+                   Date.now() < 1486684800000 /* 10.02.2017 */){
+                  var rand = Math.random();
+
+                  if (rand < 0.33) {
+                    CliqzUtils.setPref('dropDownABCGroup', 'simple');
+                  } else if (rand > 0.66) {
+                    CliqzUtils.setPref('dropDownABCGroup', 'ff');
+                  } else {
+                    CliqzUtils.setPref('dropDownABCGroup', 'cliqz');
+                  }
+                }
+
+                // waiting a bit to be sure first initialization is complete
+                CliqzUtils.setTimeout(function(){
+                  CliqzUtils.setDefaultIndexCountry(CliqzUtils.getPref('config_location', 'de'), true);
+                }, 2000);
               }
             } catch(e){
               CliqzUtils.log(e);
@@ -776,12 +796,39 @@ var CliqzUtils = {
           resolve();
         },
         resolve, //on error the callback still needs to be called
-        2000
+        10000
       );
     });
   },
-  setDefaultIndexCountry: function(country) {
+  setDefaultIndexCountry: function(country, restart) {
     CliqzUtils.setPref('backend_country', country);
+    CliqzUtils._country = country;
+
+    if(country !== 'de'){
+      // simple UI for outside germany
+      CliqzUtils.setPref('dropDownStyle', 'simple');
+    } else {
+      var group = CliqzUtils.getPref('dropDownABCGroup');
+      if (group === 'simple') {
+        CliqzUtils.setPref('dropDownStyle', 'simple');
+      } else if (group === 'ff') {
+        CliqzUtils.setPref('dropDownStyle', 'ff');
+      } else if (group === 'cliqz') {
+        CliqzUtils.clearPref('dropDownStyle');
+      } else {
+        // old german users outside of the drop down style AB test
+        CliqzUtils.clearPref('dropDownStyle');
+      }
+    }
+
+    if(restart){
+      CliqzUtils.setPref('modules.ui.enabled', false);
+
+      // we need to avoid the throttle on prefs
+      CliqzUtils.setTimeout(function() {
+        CliqzUtils.setPref('modules.ui.enabled', true);
+      }, 0);
+    }
   },
   encodeLocale: function() {
     // send browser language to the back-end
@@ -797,15 +844,23 @@ var CliqzUtils = {
     if (doDedup) return '&ddl=0';
     else return ""
   },
-  encodeFilter: function() {
+  getAdultContentFilterState: function() {
     var data = {
       'conservative': 3,
       'moderate': 0,
       'liberal': 1
     },
-    state = data[CliqzUtils.getPref('adultContentFilter', 'moderate')];
-
-    return '&adult='+state;
+    pref = CliqzUtils.getPref('adultContentFilter', 'moderate');
+    if (CliqzUtils.dropDownStyle == 'ff' && pref == 'moderate') {
+      // in FF UI we cannot display the adult warning message, so "always ask"
+      // should behave the same as "Always block", to preserve the default blocking
+      // behaviour
+      pref = 'conservative';
+    }
+    return data[pref];
+  },
+  encodeFilter: function() {
+    return '&adult=' + CliqzUtils.getAdultContentFilterState();
   },
   encodeResultCount: function(count) {
     count = count || 5;
@@ -900,16 +955,22 @@ var CliqzUtils = {
   },
   resultTelemetry: function(query, queryAutocompleted, resultIndex, resultUrl, resultOrder, extra) {
     CliqzUtils.setResultOrder(resultOrder);
-    var params = encodeURIComponent(query) +
-      (queryAutocompleted ? '&a=' + encodeURIComponent(queryAutocompleted) : '') +
-      '&i=' + resultIndex +
-      (resultUrl ? '&u=' + encodeURIComponent(resultUrl) : '') +
-      CliqzUtils.encodeSessionParams() +
-      CliqzUtils.encodeResultOrder() +
-      (extra ? '&e=' + extra : '')
-    CliqzUtils.httpGet(CliqzUtils.RESULTS_PROVIDER_LOG + params);
+    CliqzEvents.pub("human-web:sanitize-result-telemetry",
+      { type: 'extension-result-telemetry',
+        q: query,
+        s: CliqzUtils.encodeSessionParams(),
+        msg: {
+          i: resultIndex,
+          o: CliqzUtils.encodeResultOrder(),
+          u: (resultUrl ? resultUrl : ''),
+          a: queryAutocompleted,
+          e: extra
+        },
+        endpoint: CliqzUtils.RESULTS_PROVIDER_LOG,
+        method: "GET",
+      }
+    );
     CliqzUtils.setResultOrder('');
-    CliqzUtils.log(params, 'Utils.resultTelemetry');
   },
   _resultOrder: '',
   setResultOrder: function(resultOrder) {
@@ -1015,9 +1076,6 @@ var CliqzUtils = {
   },
   getWindow: CLIQZEnvironment.getWindow,
   getWindowID: CLIQZEnvironment.getWindowID,
-  hasClass: function(element, className) {
-    return (' ' + element.className + ' ').indexOf(' ' + className + ' ') > -1;
-  },
   /**
    * Bind functions contexts to a specified object.
    * @param {Object} from - An object, whose function properties will be processed.
@@ -1160,9 +1218,8 @@ var CliqzUtils = {
   copyResult: CLIQZEnvironment.copyResult,
   openPopup: CLIQZEnvironment.openPopup,
   isOnPrivateTab: CLIQZEnvironment.isOnPrivateTab,
-  getCliqzPrefs: CLIQZEnvironment.getCliqzPrefs,
+  getAllCliqzPrefs: CLIQZEnvironment.getAllCliqzPrefs,
   isDefaultBrowser: CLIQZEnvironment.isDefaultBrowser,
-  initHomepage: CLIQZEnvironment.initHomepage,
   setDefaultSearchEngine: CLIQZEnvironment.setDefaultSearchEngine,
   isUnknownTemplate: CLIQZEnvironment.isUnknownTemplate,
   historySearch: CLIQZEnvironment.historySearch,
@@ -1172,6 +1229,24 @@ var CliqzUtils = {
   getSearchEngines: CLIQZEnvironment.getSearchEngines,
   updateAlias: CLIQZEnvironment.updateAlias,
   openLink: CLIQZEnvironment.openLink,
+  getCliqzPrefs() {
+    function filterer(entry) {
+        // avoid privay leaking prefs ('backup').
+        // avoid irrelevant deep prefs (something.otherthing.x.y)
+        // allow 'enabled' prefs
+        return ((entry.indexOf('.') == -1 && entry.indexOf('backup') == -1)
+                || entry.indexOf('.enabled') != -1);
+      }
+
+      let cliqzPrefs = {}
+      let cliqzPrefsKeys = CliqzUtils.getAllCliqzPrefs().filter(filterer);
+
+      for (let i = 0; i < cliqzPrefsKeys.length; i++) {
+        cliqzPrefs[cliqzPrefsKeys[i]] = prefs.get(cliqzPrefsKeys[i]);
+      }
+
+      return cliqzPrefs;
+  },
   promiseHttpHandler: promiseHttpHandler,
   registerResultProvider: function (o) {
     CLIQZEnvironment.CliqzResultProviders = o.ResultProviders;

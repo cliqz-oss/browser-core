@@ -129,9 +129,9 @@ function checkPattern(filter, request) {
       } else if (filter.isRightAnchor) {
         // If it's a right anchor, then the filterStr should match exactly
         return urlPattern === filter.filterStr;
-      } else {
-        return urlPattern.startsWith(filter.filterStr);
       }
+
+      return urlPattern.startsWith(filter.filterStr);
     }
   } else {
     if (filter.isRegex) {

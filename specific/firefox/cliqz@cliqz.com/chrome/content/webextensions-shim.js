@@ -1,3 +1,25 @@
+// for tests
+if (typeof Components === "undefined") {
+  Components = {
+    fake: true,
+    utils: {
+      import: function () {}
+    }
+  };
+  CLIQZ = {
+    CliqzEvents: {
+      sub: function () {
+
+      }
+    },
+    CliqzUtils: {
+      getLocalizedString: function (key) {
+        return key;
+      }
+    }
+  }
+}
+
 Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
 var CliqzUtils = CLIQZ.CliqzUtils;
 var CliqzEvents = CLIQZ.CliqzEvents;

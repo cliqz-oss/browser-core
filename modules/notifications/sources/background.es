@@ -51,7 +51,7 @@ export default background({
 
   broadcastMessage(action, message) {
     utils.callAction('core', 'broadcastMessage', [
-      utils.CLIQZ_NEW_TAB_URL,
+      utils.CLIQZ_NEW_TAB_RESOURCE_URL,
       {
         action: action,
         message
@@ -69,8 +69,8 @@ export default background({
       };
     },
 
-    hasUnread() {
-      return this.notificationCenter.storage.hasUnread();
+    hasNotifications() {
+      return this.notificationCenter.storage.watchedDomainNames().length > 0;
     },
 
     updateUnreadStatus() {

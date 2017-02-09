@@ -5,7 +5,14 @@
     </header>
 
     <div id="currentsite">
-        <h3 class="truncate">{{ friendlyURL }}</h3>
+        <h3 class="truncate">
+
+            {{#if isSpecialUrl}}
+                <span class="dark">{{ friendlyURL }}</span>
+            {{else}}
+                <span class="dark">{{ domain }}</span><span>{{ extraUrl }}</span>
+            {{/if}}
+        </h3>
     </div>
 
     <div id="settings" class="settings-section clearfix">
@@ -14,7 +21,7 @@
            data-section="antitrack"
            class="antitracker setting"
            data-target="attrack">
-        {{> anti-tracking module.antitracking}}
+        {{> anti-tracking}}
       </div>
 
       {{#if amo}}

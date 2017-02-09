@@ -70,6 +70,7 @@ var Extension = {
       Services.scriptloader.loadSubScript("chrome://cliqz/content/core/prefs.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/console.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/core/console.js", this);
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/globals.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/environment.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/gzip.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/core/gzip.js", this);
@@ -112,11 +113,12 @@ var Extension = {
         CliqzUtils.setSupportInfo()
       }, 30000);
 
+      // Load Config - Synchronous!
+      this.config = {{CONFIG}};
+
       // Ensure prefs are set to our custom values
       Extension.setOurOwnPrefs();
 
-      // Load Config - Synchronous!
-      this.config = {{CONFIG}};
       CliqzUtils.RICH_HEADER = this.config.settings['richheader-url'] || CliqzUtils.RICH_HEADER;
       CliqzUtils.RESULTS_PROVIDER = this. config.settings['resultsprovider-url'] || CliqzUtils.RESULTS_PROVIDER;
       CliqzUtils.FEEDBACK_URL = CliqzUtils.FEEDBACK + CliqzUtils.extensionVersion + '-' + this.config.settings.channel;
@@ -202,6 +204,55 @@ var Extension = {
 
         Extension.unloadJSMs();
     },
+    tryHideSearchBar: function(win){
+      function getCurrentset(toolbar) {
+        return (toolbar.getAttribute("currentset") ||
+                  toolbar.getAttribute("defaultset")).split(",");
+      }
+
+      function $(sel, all){
+        return win.document[all ? "querySelectorAll" : "getElementById"](sel);
+      }
+
+      if (CliqzUtils.getPref(dontHideSearchBar, false)) {
+        return;
+      }
+      try {
+        let toolbar, currentset, idx, next, toolbarID,
+            toolbars = $("toolbar", true);
+
+        for (let i = 0; i < toolbars.length; ++i) {
+          let tb = toolbars[i];
+          currentset = getCurrentset(tb);
+          idx = currentset.indexOf(SEARCH_BAR_ID);
+          if (idx != -1) {
+            //store exact position
+            if(currentset.length > idx+1)next = currentset[idx+1];
+
+            currentset.splice(idx, 1);
+            currentset = currentset.join(",");
+            tb.currentSet = currentset;
+            tb.setAttribute("currentset", currentset);
+            win.document.persist(tb.id, "currentset");
+
+            toolbarID = tb.id;
+            break;
+          }
+        }
+
+        if(toolbarID){
+          CliqzUtils.setPref(searchBarPosition, toolbarID);
+        }
+
+        if(next){
+          CliqzUtils.setPref(searchBarPositionNext, next);
+        }
+
+        CliqzUtils.setPref(dontHideSearchBar, true);
+      } catch(e){
+        CliqzUtils.log(e, 'Search bar hiding failed!');
+      }
+    },
     restoreSearchBar: function(win){
         var toolbarId = CliqzUtils.getPref(searchBarPosition, '');
         CliqzUtils.setPref(dontHideSearchBar, false);
@@ -254,6 +305,8 @@ var Extension = {
           .catch(function (e) {
             CliqzUtils.log(e, 'Extension filed loaded window modules');
           });
+
+        Extension.tryHideSearchBar(win);
       }
 
       if (!win.document || win.document.readyState !== "complete") {
@@ -311,6 +364,10 @@ var Extension = {
         if(unifiedComplete == 128 && urlBarPref.getBoolPref("unifiedcomplete") == true){
           CliqzUtils.setPref('unifiedcomplete', true);
           urlBarPref.setBoolPref("unifiedcomplete", false)
+        }
+
+        if (this.config.environment === 'development') {
+          CliqzUtils.setPref('developer', true);
         }
     },
     /** Reset changed prefs on uninstall */

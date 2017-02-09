@@ -12,8 +12,7 @@ export default Ember.Service.extend({
 
   addMessages(msgs) {
     const messages = this.get('messages');
-
-    Object.keys(msgs).forEach(messageId => {
+    msgs && Object.keys(msgs).forEach(messageId => {
 
       const message = msgs[messageId];
       if (this.container.registry.has(`template:components/messages/${message.template}-message`)) {

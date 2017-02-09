@@ -1,7 +1,6 @@
 import { utils } from 'core/cliqz';
 import CliqzADB,
-     { adbEnabled,
-       adbABTestEnabled,
+     { adbABTestEnabled,
        ADB_PREF_VALUES,
        ADB_PREF_OPTIMIZED,
        ADB_PREF } from 'adblocker/adblocker';
@@ -13,26 +12,17 @@ export default class {
   }
 
   init() {
-    if (adbEnabled()) {
-      CliqzADB.initWindow(this.window);
-      this.window.adbinit = true;
-    }
   }
 
   unload() {
-    if (adbEnabled()) {
-      CliqzADB.unloadWindow(this.window);
-      this.window.adbinit = false;
-    }
   }
 
   status() {
     if (!adbABTestEnabled()) {
-      return;
+      return undefined;
     }
 
     const currentURL = this.window.gBrowser.currentURI.spec;
-    const adbDisabled = !adbEnabled();
 
     const isCorrectUrl = utils.isUrl(currentURL);
     let disabledForUrl = false;
@@ -45,11 +35,6 @@ export default class {
       disabledForUrl = CliqzADB.adBlocker.isUrlInBlacklist(currentURL);
     }
 
-    const state = Object.keys(ADB_PREF_VALUES).map(name => ({
-      name: name.toLowerCase(),
-      selected: utils.getPref(ADB_PREF, ADB_PREF_VALUES.Disabled) == ADB_PREF_VALUES[name],
-    }));
-
     const report = CliqzADB.adbStats.report(currentURL);
     const enabled = CliqzUtils.getPref(ADB_PREF, false) !== ADB_PREF_VALUES.Disabled;
 
@@ -57,19 +42,41 @@ export default class {
       disabledForDomain = CliqzADB.adBlocker.isDomainInBlacklist(currentURL);
       disabledForUrl = CliqzADB.adBlocker.isUrlInBlacklist(currentURL);
     }
-    disabledEverywhere = !enabled && !disabledForUrl && !disabledForDomain
+    disabledEverywhere = !enabled && !disabledForUrl && !disabledForDomain;
+
+    // Check stat of the adblocker
+    let state;
+    if (!enabled) {
+      state = 'off';
+    } else if (disabledForUrl || disabledForDomain) {
+      state = 'off';
+    } else {
+      state = 'active';
+    }
+
+    // Check disable state
+    let offState;
+    if (disabledForUrl) {
+      offState = 'off_website';
+    } else if (disabledForDomain) {
+      offState = 'off_domain';
+    } else if (disabledEverywhere) {
+      offState = 'off_all';
+    } else {
+      offState = 'off_website';
+    }
 
     return {
       visible: true,
       enabled: enabled && !disabledForDomain && !disabledForUrl,
-      optimized: CliqzUtils.getPref(ADB_PREF_OPTIMIZED, false) == true,
-      disabledForUrl: disabledForUrl,
-      disabledForDomain: disabledForDomain,
-      disabledEverywhere: disabledEverywhere,
+      optimized: CliqzUtils.getPref(ADB_PREF_OPTIMIZED, false) === true,
+      disabledForUrl,
+      disabledForDomain,
+      disabledEverywhere,
       totalCount: report.totalCount,
       advertisersList: report.advertisersList,
-      state: (!enabled) ? 'off' : (disabledForUrl || disabledForDomain ? 'off' : 'active'),
-      off_state: disabledForUrl ? 'off_website' : (disabledForDomain ? 'off_domain' : (disabledEverywhere ? 'off_all' : 'off_website'))
-    }
+      state,
+      off_state: offState,
+    };
   }
 }

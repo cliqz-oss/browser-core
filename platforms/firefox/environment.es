@@ -1,25 +1,28 @@
 import autocomplete from "autocomplete/autocomplete";
 import { promiseHttpHandler } from "core/http";
+import { Components, Services } from "platform/globals";
 
-const {
-  classes:    Cc,
-  interfaces: Ci,
-  utils:      Cu,
-  manager:    Cm
-} = Components;
 
-Cu.import('resource://gre/modules/Services.jsm');
-Cu.import('resource://gre/modules/XPCOMUtils.jsm');
-Cu.import('resource://gre/modules/NewTabUtils.jsm');
+  const {
+    classes:    Cc,
+    interfaces: Ci,
+    utils:      Cu,
+    manager:    Cm
+  } = Components;
+
+try {
+  Cu.import('resource://gre/modules/XPCOMUtils.jsm');
+  Cu.import('resource://gre/modules/NewTabUtils.jsm');
+} catch(e) {}
 
 import console from "core/console";
 import prefs from "core/prefs";
 
 
 var CLIQZEnvironment = {
-    RESULTS_PROVIDER: 'https://newbeta.cliqz.com/api/v2/results?nrh=1&q=',
-    RICH_HEADER: 'https://newbeta.cliqz.com/api/v2/rich-header?path=/v2/map',
-    LOG: 'https://logging.cliqz.com',
+    RESULTS_PROVIDER: 'https://api.cliqz.com/api/v2/results?nrh=1&q=',
+    RICH_HEADER: 'https://api.cliqz.com/api/v2/rich-header?path=/v2/map',
+    LOG: 'https://stats.cliqz.com',
     LOCALE_PATH: 'chrome://cliqz/content/static/locale/',
     TEMPLATES_PATH: 'chrome://cliqz/content/static/templates/',
     SKIN_PATH: 'chrome://cliqz/content/static/skin/',
@@ -43,7 +46,10 @@ var CLIQZEnvironment = {
       'rd-h3-w-rating': 1,
       'movie': 3,
       'vod': 3,
-      'liveTicker': 3
+      'liveTicker': 3,
+      'simple-ui/result': 1,
+      'simple-ui/results': 1,
+      'simple-ui/main': 1
     },
     MESSAGE_TEMPLATES: [
       'footer-message',
@@ -72,34 +78,27 @@ var CLIQZEnvironment = {
         'partials/bottom-data-sc',
         'partials/download',
         'partials/streaming',
-        'partials/lyrics'
+        'partials/lyrics',
+        'simple-ui/logo'
     ],
     CLIQZ_ONBOARDING: "about:onboarding",
     CLIQZ_ONBOARDING_URL: "chrome://cliqz/content/onboarding-v2/index.html",
     CLIQZ_NEW_TAB: "about:cliqz",
-    CLIQZ_NEW_TAB_URL: "resource://cliqz/fresh-tab-frontend/index.html",
+    CLIQZ_NEW_TAB_RESOURCE_URL: 'resource://cliqz/fresh-tab-frontend/index.html',
     BROWSER_ONBOARDING_PREF: "browserOnboarding",
     BROWSER_ONBOARDING_STEP_PREF: "browserOnboarding-step",
 
-    init: function(){
+    init: function(){},
 
-    },
-    unload: function() {
-    },
-    getCliqzPrefs: function(){
+    unload: function() {},
+
+    getAllCliqzPrefs: function() {
       return Cc['@mozilla.org/preferences-service;1']
-        .getService(Ci.nsIPrefService)
-        .getBranch('extensions.cliqz.')
-        .getChildList('')
-        .reduce(function (prev, curr) {
-          // dont send any :
-          //    - backup data like startpage to avoid privacy leaks
-          //    - deep keys like "attrack.update" which are not needed
-          if(curr.indexOf('backup') == -1 && curr.indexOf('.') == -1 )
-            prev[curr] = prefs.get(curr);
-          return prev;
-        }, {});
+             .getService(Ci.nsIPrefService)
+             .getBranch('extensions.cliqz.')
+             .getChildList('')
     },
+
     isUnknownTemplate: function(template){
       return template &&
         CLIQZEnvironment.TEMPLATES.hasOwnProperty(template) == false;
@@ -118,8 +117,9 @@ var CLIQZEnvironment = {
    openLink: function(win, url, newTab, newWindow, newPrivateWindow){
         // make sure there is a protocol (this is required
         // for storing it properly in Firefoxe's history DB)
-        if(url.indexOf("://") == -1 && url.trim().indexOf('about:') != 0)
-            url = "http://" + url;
+        if(url.indexOf("://") == -1 && url.trim().indexOf('about:') != 0) {
+          url = "http://" + url;
+        }
 
         // Firefox history boosts URLs that are typed in the URL bar, autocompleted,
         // or selected from the history dropbdown; thus, mark page the user is
@@ -310,7 +310,6 @@ var CLIQZEnvironment = {
                         default: e.name == defEngineName,
                         icon: e.iconURI.spec,
                         base_url: e.searchForm,
-                        prefix: e.prefix,
                         getSubmissionForQuery: function(q){
                             //TODO: create the correct search URL
                             return e.getSubmission(q).uri.spec;
@@ -412,6 +411,9 @@ var CLIQZEnvironment = {
                 onSearchResult: function(ctx, result) {
                     var res = [];
                     for (var i = 0; result && i < result.matchCount; i++) {
+                        if (result.getValueAt(i).indexOf('https://cliqz.com/search/?q=') === 0) {
+                          continue;
+                        }
                         if(result.getStyleAt(i).indexOf('heuristic') != -1){
                           // filter out "heuristic" results
                           continue;
@@ -460,7 +462,7 @@ var CLIQZEnvironment = {
             });
         }
     })(),
-    getNoResults: function() {
+    getNoResults: function(q, dropDownStyle) {
       var se = [// default
               {"name": "DuckDuckGo", "base_url": "https://duckduckgo.com"},
               {"name": "Bing", "base_url": "https://www.bing.com/search?q=&pc=MOZI"},
@@ -468,7 +470,8 @@ var CLIQZEnvironment = {
               {"name": "Google Images", "base_url": "https://images.google.de/"},
               {"name": "Google Maps", "base_url": "https://maps.google.de/"}
           ],
-          chosen = new Array();
+          chosen = new Array(),
+          isUrl = CliqzUtils.isUrl(q);
 
       var engines = CLIQZEnvironment.CliqzResultProviders.getSearchEngines(),
           defaultName = engines[0].name;
@@ -480,7 +483,7 @@ var CLIQZEnvironment = {
 
               def.code = e.code;
               def.style = CLIQZEnvironment.getLogoDetails(CLIQZEnvironment.getDetailsFromUrl(url)).style;
-              def.text = e.prefix.slice(1);
+              def.text = e.alias ? e.alias.slice(1) : '';
 
               chosen.push(def)
           }
@@ -490,23 +493,31 @@ var CLIQZEnvironment = {
 
 
 
-      return CLIQZEnvironment.Result.cliqz(
-              {
-                  template:'noResult',
-                  snippet:
-                  {
-                      text_line1: CLIQZEnvironment.getLocalizedString('noResultTitle'),
-                      // forwarding the query to the default search engine is not handled by CLIQZ but by Firefox
-                      // we should take care of this specific case differently on alternative platforms
-                      text_line2: CLIQZEnvironment.getLocalizedString('noResultMessage', defaultName),
-                      "search_engines": chosen,
-                      //use local image in case of no internet connection
-                      "cliqz_logo": CLIQZEnvironment.SKIN_PATH + "img/cliqz.svg"
-                  },
-                  type: 'rh',
-                  subType: {empty:true}
-              }
-          )
+      var res = CLIQZEnvironment.Result.cliqz(
+        {
+          template:'noResult',
+          snippet:
+          {
+            text_line1: CLIQZEnvironment.getLocalizedString(isUrl ? 'noResultUrlNavigate' : 'noResultTitle'),
+            // forwarding the query to the default search engine is not handled by CLIQZ but by Firefox
+            // we should take care of this specific case differently on alternative platforms
+            text_line2: isUrl ? CLIQZEnvironment.getLocalizedString('noResultUrlSearch') : CLIQZEnvironment.getLocalizedString('noResultMessage', defaultName),
+            "search_engines": chosen,
+            //use local image in case of no internet connection
+            "cliqz_logo": CLIQZEnvironment.SKIN_PATH + "img/cliqz.svg",
+          },
+          type: 'rh',
+          subType: {empty:true}
+        },
+        q
+      );
+      if(dropDownStyle){
+        const engine = this.getDefaultSearchEngine();
+        res.val = engine.getSubmissionForQuery(q);
+        res.label = CLIQZEnvironment.getLocalizedString('searchOn', engine.name);
+        res.text = res.comment = q;
+      }
+      return res;
     }
 }
 function urlbar(){

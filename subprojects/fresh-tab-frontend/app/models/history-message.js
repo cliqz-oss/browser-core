@@ -5,6 +5,7 @@ import { belongsTo } from 'ember-data/relationships';
 
 export default Model.extend({
   url: attr(),
+  title: attr(),
   query: attr(),
   isActive: attr(),
   isCurrent: attr(),
@@ -13,6 +14,7 @@ export default Model.extend({
   meta: attr(),
 
   contact: belongsTo('history-contact'),
+  session: belongsTo('session'),
 
   shortUrl: Ember.computed("url", function () {
     const url = this.get("url");
@@ -20,8 +22,8 @@ export default Model.extend({
     return (url.match(reUrlPath) || []).pop() || "/";
   }),
 
-  title: Ember.computed("meta.ogTitle", "meta.title", function () {
-    return this.get("meta.ogTitle") || this.get("meta.title");
+  smartTitle: Ember.computed("title", "meta.ogTitle", "meta.title", function () {
+    return this.get("meta.ogTitle") || this.get("meta.title") || this.get("title");
   }),
 
   description: Ember.computed("meta.ogDescription", "meta.description", function () {

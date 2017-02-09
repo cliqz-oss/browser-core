@@ -22,9 +22,9 @@ var TEMPLATES = CliqzUtils.TEMPLATES,
         [58060800     , 'ago1year'   , 1],
         [2903040000   , 'agoXYears'     , 29030400]
     ],
-    ZERO_CLICK_INFO_PRIO = [["Phone", "http://cdn.cliqz.com/extension/EZ/generic/zeroclick/phone.svg"],
-                            ["BIC", "http://cdn.cliqz.com/extension/EZ/generic/zeroclick/BIC.svg"],
-                            ["E-Mail", "http://cdn.cliqz.com/extension/EZ/generic/zeroclick/emaill.svg"]
+    ZERO_CLICK_INFO_PRIO = [["Phone", "https://cdn.cliqz.com/extension/EZ/generic/zeroclick/phone.svg"],
+                            ["BIC", "https://cdn.cliqz.com/extension/EZ/generic/zeroclick/BIC.svg"],
+                            ["E-Mail", "https://cdn.cliqz.com/extension/EZ/generic/zeroclick/emaill.svg"]
                            ];
 
 

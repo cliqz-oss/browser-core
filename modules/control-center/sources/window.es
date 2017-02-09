@@ -20,12 +20,7 @@ const BTN_ID = 'cliqz-cc-btn',
       TOOLTIP_LABEL = 'CLIQZ',
       TELEMETRY_TYPE = 'control_center',
       SEARCH_BAR_ID = 'search-container',
-      TRIQZ_URL = 'https://cliqz.com/tips',
-      dontHideSearchBar = 'dontHideSearchBar',
-      //toolbar
-      searchBarPosition = 'defaultSearchBarPosition',
-      //next element in the toolbar
-      searchBarPositionNext = 'defaultSearchBarPositionNext';
+      TRIQZ_URL = 'https://cliqz.com/tips';
 
 export default class {
   constructor(config) {
@@ -48,6 +43,7 @@ export default class {
       "antitracking-activator": this.antitrackingActivator.bind(this),
       "adb-activator": this.adbActivator.bind(this),
       "antitracking-strict": this.antitrackingStrict.bind(this),
+      "antitracking-clearcache": this.antitrackingClearCache.bind(this),
       "sendTelemetry": this.sendTelemetry.bind(this),
       "openPopUp": this.openPopUp.bind(this),
       "openMockPopUp": this.openMockPopUp.bind(this),
@@ -65,7 +61,8 @@ export default class {
       PANEL_ID,
       'control-center',
       false,
-      this.actions
+      this.actions,
+      1 // telemetry version
     );
   }
 
@@ -79,20 +76,6 @@ export default class {
     CliqzEvents.sub("core.location_change", this.actions.refreshState);
 
     this.updateFFHelpMenu();
-    if (!utils.getPref(dontHideSearchBar, false)) {
-      //try to hide quick search
-      try {
-        var doc = this.window.document;
-        var [toolbarID, nextEl] = ToolbarButtonManager.hideToolbarElement(doc, SEARCH_BAR_ID);
-        if(toolbarID){
-            utils.setPref(searchBarPosition, toolbarID);
-        }
-        if(nextEl){
-            utils.setPref(searchBarPositionNext, nextEl);
-        }
-        utils.setPref(dontHideSearchBar, true);
-      } catch(e){}
-    }
   }
 
   updateFFHelpMenu() {
@@ -197,6 +180,10 @@ export default class {
     });
   }
 
+  antitrackingClearCache() {
+    events.pub("control-center:antitracking-clearcache");
+  }
+
   cliqzTab(data) {
     events.pub("control-center:cliqz-tab");
     utils.telemetry({
@@ -262,7 +249,21 @@ export default class {
   }
 
   searchIndexCountry(data) {
+    function rerender(target, n){
+      target.classList.toggle('forceRerender');
+
+      if(n >= 0){
+        utils.setTimeout(rerender, 10, target, n - 1);
+      }
+    }
+
     events.pub('control-center:setDefault-indexCountry', data.defaultCountry);
+
+    // changing the search index triggers an update of the UI module
+    // which reloads the urlbar which makes the control center crazy
+    // -> we need to trigger a rerender to avoid having it empty
+    rerender(this.panel.panel.children[0], 10);
+
     utils.telemetry({
       type: TELEMETRY_TYPE,
       target: 'search-index-country',
@@ -407,18 +408,31 @@ export default class {
   // creates the static frame data without any module details
   // re-used for fast first render and onboarding
   getFrameData(){
-    var url = this.window.gBrowser.currentURI.spec,
-        friendlyURL = url;
-
+   var url = this.window.gBrowser.currentURI.spec,
+        friendlyURL = url,
+        isSpecialUrl = false,
+        urlDetails;
     try {
-      // try to clean the url
-      friendlyURL = utils.stripTrailingSlash(utils.cleanUrlProtocol(url, true))
+      urlDetails = utils.getDetailsFromUrl(url);
+      switch(urlDetails.name) {
+        case 'about':
+          friendlyURL = utils.stripTrailingSlash(utils.cleanUrlProtocol(url, true))
+          isSpecialUrl = true;
+          break;
+        case 'resource':
+          friendlyURL = 'Cliqz Tab';
+          isSpecialUrl = true;
+          break;
+      }
     } catch (e) {}
-
 
     return {
       activeURL: url,
       friendlyURL: friendlyURL,
+      isSpecialUrl: isSpecialUrl,
+      domain: urlDetails.domain,
+      extraUrl: urlDetails.extra === '/' ? '' : urlDetails.extra,
+      hostname: urlDetails.host,
       module: {}, //will be filled later
       generalState: 'active',
       feedbackURL: utils.FEEDBACK_URL,
@@ -475,7 +489,9 @@ export default class {
     ccDataMocked.module = this.mockedData;
     // we also need to override some of the frame Data
     ccDataMocked.activeURL = 'examplepage.de/webpage';
-    ccDataMocked.friendlyURL = 'examplepage.de/webpage';
+    ccDataMocked.isSpecialUrl = false;
+    ccDataMocked.domain = 'examplepage.de';
+    ccDataMocked.extraUrl = '/webpage';
     ccDataMocked.onboarding = true;
 
     var numberAnimation = function () {
@@ -610,8 +626,11 @@ export default class {
 
   enableSearch() {
     this.panel.hide();
-    events.pub('autocomplete:enable-search',{
-      urlbar: this.window.document.getElementById('urlbar')
-    });
+    utils.setTimeout(
+      events.pub,
+      1000,
+      "autocomplete:enable-search",
+      { urlbar: this.window.document.getElementById('urlbar') }
+    );
   }
 }

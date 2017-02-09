@@ -1,7 +1,5 @@
 import utils from 'core/utils';
 
-
-const CLIQZ_NEW_TAB_URL = 'chrome://cliqz/content/fresh-tab-frontend/index.html';
 const ONE_MINUTE = 60 * 1000;
 
 function log(s) {
@@ -13,7 +11,7 @@ export default class {
     this.cacheName = cacheName;
     this.timerName = `${cacheName}_timer`;
     this.updateInterval = updateInterval;
-    this.localStore = utils.getLocalStorage(CLIQZ_NEW_TAB_URL);
+    this.localStore = utils.getLocalStorage(utils.CLIQZ_NEW_TAB_RESOURCE_URL);
     this.updateFunction = updateFunction;
 
     // remove old versions of the caches

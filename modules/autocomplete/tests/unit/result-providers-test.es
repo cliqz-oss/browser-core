@@ -33,7 +33,7 @@ const ENGINES = [
 export default describeModule("autocomplete/result-providers",
   function () {
     return {
-      "core/utils": { default: { } },
+      "core/utils": { default: { getLanguageFromLocale() {} } },
       "core/console": { default: { log() {} } },
       "autocomplete/result": { default: {} },
       "autocomplete/calculator": { default: {} },
@@ -106,10 +106,7 @@ export default describeModule("autocomplete/result-providers",
           }
         };
         this.deps("core/utils").default.getSearchEngines = function () {
-          return ENGINES.map(function(e){
-            e.prefix = CliqzResultProviders.getShortcut(e.name);
-            return e;
-          });
+          return ENGINES;
         };
       });
 

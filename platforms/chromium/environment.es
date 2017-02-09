@@ -1,6 +1,7 @@
 import console from "core/console";
 import prefs from "core/prefs";
 import Storage from "core/storage";
+import CliqzUtils from "core/utils"
 
 let eventIDs = {};
 const port = chrome.runtime.connect({name: "encrypted-query"});
@@ -13,9 +14,9 @@ port.onMessage.addListener(function(response) {
 
 const CLIQZEnvironment = {
   SKIN_PATH: 'modules/static/skin/',
-  RESULTS_PROVIDER: 'https://newbeta.cliqz.com/api/v2/results?nrh=1&q=',
-  RICH_HEADER: 'https://newbeta.cliqz.com/api/v2/rich-header?path=/v2/map',
-  LOG: 'https://logging.cliqz.com',
+  RESULTS_PROVIDER: 'https://api.cliqz.com/api/v2/results?nrh=1&q=',
+  RICH_HEADER: 'https://api.cliqz.com/api/v2/rich-header?path=/v2/map',
+  LOG: 'https://stats.cliqz.com',
   BRANDS_DATA_URL: 'static/brands_database.json',
   TEMPLATES_PATH: 'modules/static/templates/',
   LOCALE_PATH: 'modules/static/locale/',
@@ -76,8 +77,8 @@ const CLIQZEnvironment = {
       telemetrySending = CE.trk.slice(0);
       CE.trk = [];
 
-      CE.httpHandler('POST', CE.LOG, pushTelemetryCallback,
-          pushTelemetryError, 10000, JSON.stringify(telemetrySending));
+      CliqzUtils.httpPost(CE.LOG, pushTelemetryCallback, JSON.stringify(telemetrySending),
+          pushTelemetryError, 10000);
 
       console.log('Telemetry', 'push telemetry data: ' + telemetrySending.length + ' elements');
     }
@@ -140,7 +141,6 @@ const CLIQZEnvironment = {
   isPrivate: function() { return chrome.extension.inIncognitoContext; },
   isOnPrivateTab: function(win) { return CE.isPrivate(); },
   getWindow: function(){ return { document: { getElementById() {} } } },
-  XMLHttpRequest: XMLHttpRequest,
 
   historySearch: function(q, callback, searchParam) {
     chrome.cliqzSearchPrivate.queryHistory(q, (query, matches, finished) => {
@@ -183,7 +183,7 @@ const CLIQZEnvironment = {
   },
   // debug
   _ENGINES: [{
-    "name": "CLIQZ dummy search", "alias": "#qq", "default": true, "icon": "", "searchForm": "", "suggestionUrl": "", "base_url": "https://www.cliqz.com/search?q=", "prefix": "#qq", "code": 3
+    "name": "CLIQZ dummy search", "alias": "#qq", "default": true, "icon": "", "searchForm": "https://www.cliqz.com/?q={searchTerms}", "suggestionUrl": "", "base_url": "https://www.cliqz.com/search?q=", "prefix": "#qq", "code": 3
   }],
   getSearchEngines: function(){
     return CE._ENGINES.map(function(e){
@@ -207,24 +207,25 @@ const CLIQZEnvironment = {
   getEngineByName: function(name) {
     return CE._ENGINES.find(engine => { return engine.name === name; });
   },
-  getNoResults: function() {
+  getNoResults: function(q) {
     const engines = CE.getSearchEngines().map(e => {
       e.style = CE.getLogoDetails(
           CE.getDetailsFromUrl(e.searchForm)).style;
       e.text =  e.alias.slice(1);
       return e;
     });
-    const defaultName = CE.getDefaultSearchEngine().name;
+    const defaultName = CE.getDefaultSearchEngine().name,
+          isUrl = CliqzUtils.isUrl(q);
 
     return CE.Result.cliqz(
             {
                 template:'noResult',
                 snippet:
                 {
-                    text_line1: CE.getLocalizedString('noResultTitle'),
+                    text_line1: CE.getLocalizedString(isUrl ? 'noResultUrlNavigate' : 'noResultTitle'),
                     // forwarding the query to the default search engine is not handled by CLIQZ but by Firefox
                     // we should take care of this specific case differently on alternative platforms
-                    text_line2: CE.getLocalizedString('noResultMessage', defaultName),
+                    text_line2: isUrl ? CE.getLocalizedString('noResultUrlSearch') : CE.getLocalizedString('noResultMessage', defaultName),
                     "search_engines": engines,
                     //use local image in case of no internet connection
                     "cliqz_logo": CE.SKIN_PATH + "img/cliqz.svg"

@@ -81,22 +81,23 @@ export default background({
 
   handleRequest(msg) {
     const payload = msg.data.payload;
+    // TODO: remove this check. messages without a payload should never be sent
     if (!payload) {
       return;
     }
-    const { action, module, args, requestId } = payload,
+    const { action, module: moduleName, args, requestId } = payload,
       windowId = msg.data.windowId;
-    utils.importModule(`${module}/background`).then( module => {
-      const background = module.default;
+
+    utils.importModule(`${moduleName}/background`).then(({ default: background })  => {
       return background.actions[action].apply(null, args);
     }).then( response => {
       this.mm.broadcast(`window-${windowId}`, {
         response,
         action,
-        module,
+        module: moduleName,
         requestId,
       });
-    }).catch(console.error.bind(null, "Process Script", `${modules}/${action}`));
+    }).catch(console.error.bind(null, "Process Script", `${moduleName}/${action}`));
   },
 
   handleResponse(msg) {
@@ -116,6 +117,10 @@ export default background({
     },
     'content:location-change': function onLocationChange({ url, isPrivate }) {
       events.pub('core.location_change', url, isPrivate);
+      utils.telemetry({
+        'type': 'navigation',
+        'action': 'location_change',
+      });
     },
   },
 
@@ -124,10 +129,14 @@ export default background({
       events.pub('content:location-change', ...args);
     },
     notifyStateChange(...args) {
+      const ev = args[0];
+
       // TODO: design proper property list for the event
       events.pub('content:state-change', {
-        url: args[0].url
+        url: ev.urlSpec,
+        triggeringUrl: ev.triggeringUrl,
       });
+
       // DEPRECATED - use content:state-change instead
       events.pub('core.tab_state_change', ...args);
     },
@@ -216,8 +225,14 @@ export default background({
     recordMeta(url, meta) {
       events.pub("core:url-meta", url, meta);
     },
-    getFeedbackPage() {
-      return utils.FEEDBACK_URL;
+    openFeedbackPage() {
+      const window = utils.getWindow();
+      const tab = utils.openLink(
+        window,
+        utils.FEEDBACK_URL,
+        true
+      );
+      window.gBrowser.selectedTab = tab;
     },
     enableModule(moduleName) {
       return utils.Extension.app.enableModule(moduleName);

@@ -1,6 +1,7 @@
 {
   "bower_components": [
     "hammerjs/hammer.js",
-    "mathjs/dist/math.min.js"
+    "mathjs/dist/math.min.js",
+    "jquery/dist/jquery.min.js"
   ]
 }

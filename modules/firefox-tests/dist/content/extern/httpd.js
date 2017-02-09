@@ -2376,7 +2376,7 @@ ServerHandler.prototype =
         else
         {
           var longestPrefix = "";
-          for (let prefix in this._overridePrefixes) {
+          for (var prefix in this._overridePrefixes) {
             if (prefix.length > longestPrefix.length &&
                 path.substr(0, prefix.length) == prefix)
             {
@@ -2856,7 +2856,7 @@ ServerHandler.prototype =
         throw e;
       }
 
-      let writeMore = function () {
+      var writeMore = function () {
         gThreadManager.currentThread
                       .dispatch(writeData, Ci.nsIThread.DISPATCH_NORMAL);
       }

@@ -9,6 +9,8 @@ import Result from 'autocomplete/result';
 import WikipediaDeduplication from 'autocomplete/wikipedia-deduplication';
 import { background as AutocompleteBackground } from 'platform/auto-complete-component';
 import background from 'core/base/background';
+import Search from 'autocomplete/search';
+import ResultCache from 'autocomplete/result-cache';
 
 function onReady() {
   return new Promise(resolve => {
@@ -28,6 +30,9 @@ export default background({
   },
 
   init() {
+    this.resultCache = new ResultCache();
+    Search.fetchAndCacheResult = this.resultCache.getResult.bind(this.resultCache);
+    Search.clearResultCache = this.resultCache.clear.bind(this.resultCache);
     this.autocomplete = autocomplete;
     return onReady().then(() => {
       autocomplete.CliqzResultProviders = new ResultProviders();
@@ -68,7 +73,12 @@ export default background({
       this.autocomplete.CliqzResultProviders.setCurrentSearchEngine(engine);
     },
     'control-center:setDefault-indexCountry': function setDefaultIndexCountry(country) {
-      utils.setDefaultIndexCountry(country);
-    }
+      utils.setDefaultIndexCountry(country, true);
+    },
+    'core:urlbar_focus': function onUrlBarFocus() {
+      if (isFirefox) {
+        this.resultCache.clear();
+      }
+    },
   }
 });

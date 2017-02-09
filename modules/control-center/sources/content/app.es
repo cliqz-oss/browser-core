@@ -1,8 +1,8 @@
-import helpers from 'control-center/content/helpers';
-import { messageHandler, sendMessageToWindow } from 'control-center/content/data';
 import $ from 'jquery';
 import Handlebars from 'handlebars';
-import templates from 'control-center/templates';
+import { messageHandler, sendMessageToWindow } from './data';
+import helpers from './helpers';
+import templates from '../templates';
 
 Handlebars.partials = templates;
 var slideUp = $.fn.slideUp;
@@ -39,19 +39,17 @@ function localizeDocument() {
   });
 }
 
-function isNonClickable(section) {
-  const nonClickableSections = ["https", "privacy-cc", "cliqz-tab"];
-  return nonClickableSections.indexOf(section) > -1;
-}
-
 function isOnboarding() {
   return $('#control-center').hasClass('onboarding');
 }
 
+function close_accordion_section() {
+  $('.accordion .accordion-section-title').removeClass('active');
+  $('.accordion .accordion-section-content').slideUp(150).removeClass('open');
+}
 
 //====== GENERIC SETTING ACCORDION FUNCTIONALITY =========//
 $(document).ready(function(resolvedPromises) {
-
   Object.keys(helpers).forEach(function (helperName) {
     Handlebars.registerHelper(helperName, helpers[helperName]);
   });
@@ -113,7 +111,7 @@ $('#control-center').on('click', '[data-function]', function(ev){
   });
 });
 
-$('#control-center').on('click', '[complementarySearchChanger]', function(ev) {
+$('#control-center').on('change', '[complementarySearchChanger]', function(ev) {
   sendMessageToWindow({
     action: 'complementary-search',
     data: {
@@ -122,7 +120,7 @@ $('#control-center').on('click', '[complementarySearchChanger]', function(ev) {
   });
 });
 
-$('#control-center').on('click', '[searchIndexCountryChanger]', function(ev) {
+$('#control-center').on('change', '[searchIndexCountryChanger]', function(ev) {
   sendMessageToWindow({
     action: 'search-index-country',
     data: {
@@ -133,9 +131,15 @@ $('#control-center').on('click', '[searchIndexCountryChanger]', function(ev) {
 
 $('#control-center').on('click', '[antiTrackingStatusChanger]', function(ev){
   var state,
-      type = $(this).attr('data-type');
+      type = $(this).attr('data-type'), status;
   if (type === 'switch') {
     state = $(this).closest('.frame-container').attr('state');
+    //make this website default
+    var $switches = $(this).closest('.switches'),
+        options = $switches.find('.dropdown-content-option'),
+        defaultSelect = $switches.find('.dropdown-content-option[data-state="off_website"]');
+    options.removeClass('selected');
+    defaultSelect.addClass('selected');
   } else {
     state = $(this).attr('data-state');
   }
@@ -158,18 +162,29 @@ $('#control-center').on('click', '[antiTrackingStatusChanger]', function(ev){
 $('#control-center').on('click', '[adBlockerStatusChanger]', function(ev){
   var state,
       type = $(this).attr('data-type'),
-      frame = $(this).closest('.frame-container');
+      frame = $(this).closest('.frame-container'),
+      option;
 
   if (type === 'switch') {
     state = frame.attr('state');
+    option = 'domain';
+    //select first option "This domain" by default
+    frame.attr('data-visible', 'off_domain');
+    var $switches = $(this).closest('.switches'),
+        options = $switches.find('.dropdown-content-option'),
+        defaultSelect = $switches.find('.dropdown-content-option[data-state="off_domain"]');
+    options.removeClass('selected')
+    defaultSelect.addClass('selected');
   } else {
     state = $(this).attr('data-state');
+    option = $(this).attr('value');
   }
 
   frame.attr('data-visible', $(this).attr('data-state'));
   if(isOnboarding()) {
     return;
   }
+
   sendMessageToWindow({
     action: 'adb-activator',
     data: {
@@ -177,7 +192,8 @@ $('#control-center').on('click', '[adBlockerStatusChanger]', function(ev){
       state: state,
       status: frame.attr('state'),
       url: frame.attr('url'),
-      option: $(this).closest('.switches').find('.dropdown-scope').val()
+      //TODO instead of dropdown-scope selece the active button
+      option: option
     }
   });
 });
@@ -236,6 +252,7 @@ function compile(obj) {
           count: 0
         };
         company.count = company.domains.reduce(function (prev, curr) { return prev + curr.count }, 0)
+        company.isInactive = company.count === 0;
         return company;
       })
       .sort(function (a,b) {
@@ -244,29 +261,35 @@ function compile(obj) {
 }
 
 function compileAdblockInfo(data) {
-  var advertisers = data.module.adblocker.advertisersList;
-  var firstParty = advertisers['First party'];
-  var unknown = advertisers['_Unknown']
+  var advertisers = data.module.adblocker.advertisersList,
+      firstParty = advertisers['First party'],
+      unknown = advertisers['_Unknown'],
+      firstPartyCount = firstParty && firstParty.length,
+      unknownCount = unknown && unknown.length;
   delete advertisers['First party'];
   delete advertisers['_Unknown'];
   data.module.adblocker.advertisersList.companiesArray = Object.keys(advertisers).map(function (advertiser) {
-    var resources = advertisers[advertiser];
+    var resources = advertisers[advertiser],
+        count = resources.length;
     return {
       name: advertiser,
-      count: resources.length
+      count: count,
+      isInactive: count === 0
     }
   }).sort((a,b) => a.count < b.count);
 
   if (firstParty) {
     data.module.adblocker.advertisersList.companiesArray.unshift({
       name: 'First Party', // i18n
-      count: firstParty.length
+      count: firstPartyCount,
+      isInactive: firstPartyCount === 0
     });
   }
   if (unknown) {
     data.module.adblocker.advertisersList.companiesArray.push({
       name: 'Other', // i18n
-      count: unknown.length
+      count: unknownCount,
+      isInactive: unknownCount === 0
     });
   }
 }
@@ -375,11 +398,6 @@ function draw(data){
     }
   });
 
-  function close_accordion_section() {
-    $('.accordion .accordion-section-title').removeClass('active');
-    $('.accordion .accordion-section-content').slideUp(150).removeClass('open');
-  }
-
   $('.accordion-section-title').click(function(e) {
     if($(this).attr('data-disabled') == 'true') {
       return;
@@ -387,9 +405,10 @@ function draw(data){
 
     e.preventDefault();
     var currentAttrValue = $(this).attr('href'),
+        sectionTitle = $(this).closest('.accordion-section-title'),
         state;
 
-    if ($(e.target).is('.active') || ($(e.target)[0].parentElement.className == 'accordion-section-title active')) {
+    if (sectionTitle.hasClass('active')) {
       close_accordion_section();
       state = 'collapsed';
     } else {
@@ -415,32 +434,13 @@ function draw(data){
     });
   });
 
-  //====== SETTING SECTION =========//
-  $('.setting').on('click', function(e) {
+  $('[start-navigation]').on('click', function() {
     var $main = $(this).closest('#control-center'),
+        $settings = $('#settings'),
         $othersettings = $main.find('#othersettings'),
         $setting = $(this).closest('.setting'),
-        $section = $setting.attr('data-section'),
         $target = $setting.attr('data-target');
-    if (isNonClickable($section)) {
-      return;
-    } else if ($(e.target).hasClass('cqz-switch-box')) {
-      return;
-    } else if ($(e.target).hasClass('dropdown-scope')) {
-      return;
-    } else if (e.target.hasAttribute && e.target.hasAttribute('stop-navigation')) {
-      return;
-    } else if ($(e.target).hasClass('box')) {
-      return;
-    } else if ($(e.target)[0].nodeName == 'LABEL') {
-      return;
-    } else if ($(e.target)[0].nodeName == 'INPUT') {
-      return;
-    } else if ($(e.target).hasClass('cqz-switch-box')) {
-      return;
-    } else if($(e.target).hasClass('active-window-tracking')) {
-      return
-    }
+
     sendMessageToWindow({
       action: 'sendTelemetry',
       data: {
@@ -448,9 +448,9 @@ function draw(data){
         action: 'click'
       }
     });
-
-    $('#settings').addClass('open');
-    $(this).addClass('active');
+    close_accordion_section();
+    $settings.addClass('open');
+    $setting.addClass('active');
     $othersettings.css('display', 'none');
   });
 
@@ -490,18 +490,12 @@ function draw(data){
 
     var target = $(this).closest('.frame-container'),
         type = 'switch',
-        dropdown = target.find('.dropdown-scope');
+        dropdown = target.find('.dropdown-scope'),
+        dropdownContent = target.find('.new-dropdown-content');
 
-    if (target.parent().attr('data-target') === 'adblock') {
-      //select first option "This domain" by default
-      dropdown.find('option:eq(1)').prop('selected', true);
-      target.attr('data-visible', 'off_domain');
-    } else {
-      //select first option "this website" by default
-      dropdown.find('option:eq(0)').prop('selected', true);
+    if (dropdownContent.hasClass('visible')) {
+      dropdownContent.toggleClass('visible');
     }
-
-
     target.attr('state', function(idx, attr){
         return attr !== 'active' ? 'active': target.attr('inactiveState');
     });
@@ -525,19 +519,36 @@ function draw(data){
     updateGeneralState();
   });
 
-  $('.dropdown-scope').change(function(ev) {
-    var state = ev.currentTarget.value,
-        target = $(this).closest('.frame-container');
-
-    target.attr('state', state == 'all' ?
-      'critical' : target.attr('inactiveState'));
-
-    updateGeneralState();
+  $('.dropdown-btn').on('click', function() {
+    $(this).next('.new-dropdown-content').toggleClass('visible');
   });
+
+  $('.dropdown-content-option').on('click', function(ev) {
+      var state = $(this).attr('value'),
+          target = $(this).closest('.frame-container'),
+          option = '.dropdown-content-option',
+          content = '.new-dropdown-content',
+          $this = $(this);
+
+      target.attr('state', state === 'all' ?
+        'critical' : target.attr('inactiveState'));
+
+      $this.siblings(option).each(function(index, elem) {
+        $(elem).removeClass('selected')
+      });
+      $this.addClass('selected')
+      $this.parent(content).toggleClass('visible');
+
+      updateGeneralState()
+    });
 
   $('.pause').click(function () {
     // TODO
     localizeDocument();
+  });
+
+  $('.clickableLabel').click(function() {
+    $(this).siblings('input').click();
   });
 
   localizeDocument();

@@ -1,4 +1,4 @@
-import { window } from 'mobile-ui/webview';
+import window from 'platform/window';
 
 export let XMLHttpRequest = window.XMLHttpRequest;
 

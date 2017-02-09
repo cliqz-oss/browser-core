@@ -6,11 +6,11 @@
      data-visible="{{ module.adblocker.off_state }}">
   <div class="adblocker">
     <div class="title">
-      <svg stop-navigation class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-      <g stop-navigation id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
-        <ellipse stop-navigation id="Oval-2" fill="#D0D0D0" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
-        <text stop-navigation id="i-copy" font-family="AmericanTypewriter-Bold, American Typewriter" font-size="11.2" font-weight="bold" fill="#FFFFFF">
-          <tspan stop-navigation x="5.50934774" y="11.3937579">i</tspan>
+      <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+      <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
+        <ellipse id="Oval-2" fill="#D0D0D0" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
+        <text id="i-copy" font-family="AmericanTypewriter-Bold, American Typewriter" font-size="11.2" font-weight="bold" fill="#FFFFFF">
+          <tspan x="5.50934774" y="11.3937579">i</tspan>
         </text>
       </g>
     </svg>
@@ -18,13 +18,13 @@
         <span class="title" data-i18n="control-center-info-ads-title"></span>
         <span data-i18n="control-center-info-ads"></span>
       </div>
-      <span data-i18n="control-center-adblock-title"></span>
-      <svg id="smallarrow" width="10px" height="15px" viewBox="1131 409 10 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+      <span start-navigation data-i18n="control-center-adblock-title"></span>
+      <svg start-navigation id="smallarrow" width="10px" height="15px" viewBox="1131 409 10 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <defs></defs>
         <polyline id="Path-164-Copy-153" stroke="#7D7D7D" stroke-width="2.5999999" fill="none" opacity="0.44" points="1133.19742 410.787186 1139.09434 416.693941 1133.42806 422.369666"></polyline>
       </svg>
     </div>
-    <div class="counter">
+    <div class="counter" start-navigation>
       <!-- <?xml version="1.0" encoding="UTF-8" standalone="no"?> -->
       <svg id="block" width="40px" height="39px" viewBox="1769 198 40 39" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <defs></defs>
@@ -37,10 +37,10 @@
       </svg>
       <span id="count">{{ module.adblocker.totalCount }}</span>
     </div>
-    <p class="description" data-i18n="control-center-adblock-description" visible-on-state="active"></p>
-    <p class="description" data-i18n="control-center-adblock-description-off-website" visible-on-state="off" data-visible="off_website"></p>
-    <p class="description" data-i18n="control-center-adblock-description-off-domain" visible-on-state="off" data-visible="off_domain"></p>
-    <p class="description" data-i18n="control-center-adblock-description-off-all" visible-on-state="off" data-visible="off_all"></p>
+    <p class="description" start-navigation data-i18n="control-center-adblock-description" visible-on-state="active"></p>
+    <p class="description" start-navigation data-i18n="control-center-adblock-description-off-website" visible-on-state="off" data-visible="off_website"></p>
+    <p class="description" start-navigation data-i18n="control-center-adblock-description-off-domain" visible-on-state="off" data-visible="off_domain"></p>
+    <p class="description" start-navigation data-i18n="control-center-adblock-description-off-all" visible-on-state="off" data-visible="off_all"></p>
 
     <div class="switches">
       <!--======= Switch ======-->
@@ -53,36 +53,58 @@
         <span visible-on-state="active" data-i18n="control-center-switch-on"></span>
         <span visible-on-state="off" data-i18n="control-center-switch-off"></span>
       </span>
-      <select class="dropdown-scope" visible-on-state="off">
-        <option stop-navigation {{#if module.adblocker.disabledForUrl }}selected{{/if}}
-            data-i18n="control-center-this-site"
-            value="page"
-            data-type="off_select"
-            data-state="off_website"
-            adBlockerStatusChanger></option>
-        <option stop-navigation {{#if module.adblocker.disabledForDomain }}selected{{/if}}
-            data-i18n="control-center-this-domain"
-            value="domain"
-            data-type="off_select"
-            data-state="off_domain"
-            adBlockerStatusChanger></option>
-        <option stop-navigation {{#if module.adblocker.disabledEverywhere }}selected{{/if}}
-            data-i18n="control-center-all-sites"
-            value="all-sites"
-            data-type="off_select"
-            data-state="off_all"
-            adBlockerStatusChanger></option>
-      </select>
-      <span visible-on-state="active">
-        <span class="squaredFour">
-          <input type="checkbox"
-                 id="squaredFour2"
-                 data-function="adb-optimized"
-                 name="check"
-                 {{#if module.adblocker.optimized }}checked{{/if}} />
-          <label for="squaredFour2"></label>
-          <span id="strict" data-i18n="control-center-check-strict"></span>
-        </span>
+
+      <span visible-on-state="off" class="new-dropdown">
+        <button class="dropdown-btn">
+          <span class="dropdown-content-option-text"
+                visible-on-state="off"
+                data-i18n="control-center-this-site"
+                data-visible="off_website">
+          </span>
+          <span class="dropdown-content-option-text"
+                visible-on-state="off"
+                data-i18n="control-center-this-domain"
+                data-visible="off_domain">
+          </span>
+          <span class="dropdown-content-option-text"
+                visible-on-state="off"
+                data-i18n="control-center-all-sites"
+                data-visible="off_all">
+          </span>
+          <svg class="arr" width="12px" height="7px" viewBox="96 10 12 7" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+              <defs></defs>
+              <polyline id="fill" id="Path-164-Copy-93" stroke="none" fill="#A2A2A2" fill-rule="evenodd" opacity="0.554279384" transform="translate(102.166470, 13.884133) rotate(90.000000) translate(-102.166470, -13.884133) " points="99.218006 8.09289333 105.114934 13.999648 99.4486516 19.6753727"></polyline>
+          </svg>
+        </button>
+
+        <div class="new-dropdown-content">
+          <a class="dropdown-content-option thisSiteText
+          {{#if module.adblocker.disabledForUrl }} selected {{/if}}"
+              data-i18n="control-center-this-site"
+              value="page"
+              data-type="off_select"
+              data-state="off_website"
+              adBlockerStatusChanger>
+          </a>
+
+          <a class="dropdown-content-option thisDomainText
+          {{#if module.adblocker.disabledForDomain }} selected {{/if}}"
+              data-i18n="control-center-this-domain"
+              value="domain"
+              data-type="off_select"
+              data-state="off_domain"
+              adBlockerStatusChanger>
+           </a>
+
+          <a class="dropdown-content-option allSitesText
+          {{#if module.adblocker.disabledEverywhere}} selected {{/if}}"
+              data-i18n="control-center-all-sites"
+              value="all-sites"
+              data-type="off_select"
+              data-state="off_all"
+              adBlockerStatusChanger>
+           </a>
+        </div>
       </span>
     </div>
   </div>

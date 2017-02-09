@@ -1,4 +1,4 @@
-<div class='cqz-result-h3'>
+<div class='cqz-result-h3' url='{{originalUrl}}' arrow='true'>
     <div class='cqz-result-center'>
         <div class='cqz-custom-text overflow'>
         	{{#with data}}

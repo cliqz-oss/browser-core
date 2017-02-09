@@ -15,7 +15,11 @@
         }
       });
       System.set('handlebars', System.newModule({default: Handlebars}));
-      System.baseURL = System._loader.baseURL = "chrome://cliqz/content/";
+      if (!Components.fake) {
+        System.baseURL = System._loader.baseURL = "chrome://cliqz/content/";
+      } else {
+        System.baseURL  = '../'
+      }
       System.import("control-center/content/app");
     </script>
   </head>

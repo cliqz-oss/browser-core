@@ -1,13 +1,11 @@
 <!-- history.tpl -->
 
-{{#if data.urls}}
-    
-    <div class="primary">
-        <h1 class="card__title">{{local 'mobile_history_card_title'}}</h1>
-    </div>
+{{#with data}}
+
+    {{>title data=(local 'mobile_history_card_title')}}
 
     <section class="secondary">
-        {{#each data.urls}}
+        {{#each this}}
 
             <div class="additional_sources history" url="{{href}}" shortUrl='{{link}}' domain='{{domain}}'
                  extra='{{extra}}' arrow="false">
@@ -30,6 +28,6 @@
 
         {{/each}}
     </section>
-{{/if}}
+{{/with}}
 
 <!-- end history.tpl -->

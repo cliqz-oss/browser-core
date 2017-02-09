@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Video Downloader</title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <script src="../webextensions-shim.js"></script>
+    <script src="../bower_components/system.js/dist/system.js"></script>
+    <script src="../bower_components/handlebars/handlebars.js"></script>
+    <script>
+      System.config({
+        defaultJSExtensions: true,
+        map: {
+          jquery: '../bower_components/jquery/dist/jquery.min.js',
+        }
+      });
+      System.set('handlebars', System.newModule({default: Handlebars}));
+      System.baseURL = System._loader.baseURL = "chrome://cliqz/content/";
+      System.import("video-downloader/content/app");
+    </script>
+  </head>
+  <body>
+    <!--======= Container =======-->
+    <div id="video-downloader" class="first">
+    </div>
+  </body>
+</html>

@@ -1,15 +1,6 @@
-import localView from 'mobile-ui/views/local-data-sc';
+import LocalView from 'mobile-ui/views/local-data-sc';
 
 export class GenericResult {
-
-  get links() {
-    return (this.deepResults || []).reduce((previous, current) => {
-      if (current.type === 'buttons' || current.type === 'simple_links') {
-        previous = previous.concat(current.links);
-      }
-      return previous;
-    }, []);
-  }
 
   get shortDescription() {
     let description = this.description;
@@ -27,28 +18,61 @@ export class GenericResult {
   }
 }
 
-function getLogoDetails(url) {
-  return CliqzUtils.getLogoDetails(CliqzUtils.getDetailsFromUrl(url));
-}
-
-function attachLogoDetails(resources = []) {
-  return resources.map(resource => Object.assign({}, resource, {
-    logoDetails: getLogoDetails(resource.url),
-  }));
-}
-
-export default class Generic extends localView {
+export default class Generic {
 
   enhanceResults(data, screen) {
     if (data.subType && data.subType.class === 'EntityLocal') {
-      super.enhanceResults(data.extra);
+      new LocalView().enhanceResults(data.extra);
     }
-    const result = data;
-    if (result.extra) {
-      result.extra.rich_data = result.extra.rich_data || {};
-    }
-    result.screen = screen;
-    Object.setPrototypeOf(result, GenericResult.prototype);
 
+    data.extra = data.extra || {};
+    data.screen = screen;
+    Object.setPrototypeOf(data, GenericResult.prototype);
+
+
+
+    let partials = [];
+    const headerTypes = ['logo', 'urlDetails', 'title'];
+    const mediaTypes = ['images', 'videos', 'news'];
+    const specificTypes = ['local-data-sc', 'movie'];
+
+    headerTypes.forEach(partial => partials.push({type: partial, data: data[partial], historyStyle: data.historyStyle}));
+
+    const footers = (data.deepResults || []).filter(res => {
+      res.links = (res.links || []).slice(0, 3);
+      if (mediaTypes.indexOf(res.type) > -1) {
+        partials.push(res);
+        return false;
+      }
+      return true;
+    });
+
+    partials.push({type: 'header-extra', data: data.extra.rich_data});
+
+    partials.push({type: 'main-image', data: data.extra});
+
+    // specific
+    specificTypes.forEach(partial => {
+      console.log('data.template', data.template)
+      if (data.template === partial || data.extra.superTemplate === partial) {
+        partials.push({type: partial, data: data.extra})
+      }
+    });
+
+
+    // description
+    partials.push({type: 'shortDescription', data: data.shortDescription});
+
+    // history
+    if (data.urls) {
+      partials.push({type: 'history', data: data.urls.slice(0, 3)});
+    }
+
+    // put streaming first
+    // footers
+    partials = partials.concat(footers.sort((first, second) => second.type === 'streaming' ? 1 : -1));
+
+    // filter empty deep results
+    data.partials = partials.filter(partial => !partial.links || partial.links.length);
   }
 }

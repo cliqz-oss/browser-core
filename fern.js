@@ -312,7 +312,7 @@ program.command('test [file]')
                 debug: true,
                 host: 'localhost',
                 port: '4200',
-                launch_in_ci: CONFIG['testem_launchers'],
+                launch: (CONFIG['testem_launchers_ci'] || []).join(','),
                 reporter: 'xunit',
                 report_file: options.ci
               });

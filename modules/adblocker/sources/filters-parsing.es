@@ -1,4 +1,5 @@
-import { log } from 'adblocker/utils';
+import log from 'adblocker/utils';
+import { platformName } from 'core/platform';
 
 
 // Uniq ID generator
@@ -77,15 +78,15 @@ export function serializeFilter(filter) {
   const serialized = Object.assign(Object.create(null), filter);
 
   // Remove useless attributes
-  delete serialized.id;
+  serialized.id = undefined;
   if (serialized._r !== undefined) {
-    delete serialized._r;
+    serialized._r = undefined;
   }
   if (serialized._nds !== undefined) {
-    delete serialized._nds;
+    serialized._nds = undefined;
   }
   if (serialized._ds !== undefined) {
-    delete serialized._ds;
+    serialized._ds = undefined;
   }
 
   return serialized;
@@ -408,7 +409,7 @@ class NetworkFilter {
       }
 
       // Strip www from hostname if present
-      if (this.isHostnameAnchor && this.hostname.startsWith("www.")) {
+      if (this.isHostnameAnchor && this.hostname.startsWith('www.')) {
         this.hostname = this.hostname.slice(4);
       }
 
@@ -420,22 +421,19 @@ class NetworkFilter {
       if (this.isRegex) {
         // If this is a regex, the `compileRegex` will be lazily called when first needed
         // using the lazy getter `get regex()` of this class.
-      } else { // if (!this.matchCase) {
-        // NOTE: No filter seems to be using the `match-case` option,
-        // hence, it's more efficient to just convert everything to
-        // lower case before matching.
-        if (this._f !== undefined) {
-          this._f = this._f.toLowerCase();
-        }
+      } else {
         if (this.hostname) {
           this.hostname = this.hostname.toLowerCase();
+        }
+        if (this._f) {
+          this._f = this._f.toLowerCase();
         }
       }
     }
 
     // Remove it if it's empty
     if (!this._f) {
-      delete this._f;
+      this._f = undefined;
     }
   }
 
@@ -628,6 +626,8 @@ class NetworkFilter {
   }
 
   parseOptions(rawOptions) {
+    // TODO: This could be implemented without string copy,
+    // using indices, like in main parsing functions.
     rawOptions.split(',').forEach((rawOption) => {
       let negation = false;
       let option = rawOption;
@@ -736,7 +736,6 @@ class NetworkFilter {
         default:
           // Disable this filter if we don't support all the options
           this.supported = false;
-          log(`NOT SUPPORTED OPTION ${option}`);
       }
     });
 
@@ -791,6 +790,14 @@ export function parseFilter(line) {
         || line.startsWith(/* #@# */ '@#', afterSharpIndex)) {
       // Parse supported cosmetic filter
       // `##` `#@#`
+      if (platformName === 'mobile') {
+        // We don't support cosmetics filters on mobile, so no need
+        // to parse them, store them, etc.
+        // This will reduce both: loading time, memory footprint, and size of
+        // the serialized index on disk.
+        return { supported: false };
+      }
+
       return new CosmeticFilter(line, sharpIndex);
     }
   }
@@ -809,13 +816,12 @@ export default function parseList(list, debug = false) {
       if (line) {
         const filter = parseFilter(line.trim());
         if (filter.supported && !filter.isComment) {
-          log(`compiled ${line} into ${JSON.stringify(filter)}`);
           if (filter.isNetworkFilter) {
             // Delete temporary attributes
             if (!debug) {
-              delete filter.supported;
-              delete filter.isNetworkFilter;
-              delete filter.isComment;
+              filter.supported = undefined;
+              filter.isNetworkFilter = undefined;
+              filter.isComment = undefined;
             } else {
               filter.rawLine = line;
             }
@@ -824,8 +830,8 @@ export default function parseList(list, debug = false) {
           } else {
             // Delete temporary attributes
             if (!debug) {
-              delete filter.supported;
-              delete filter.isCosmeticFilter;
+              filter.supported = undefined;
+              filter.isCosmeticFilter = undefined;
             } else {
               filter.rawLine = line;
             }

@@ -1,10 +1,6 @@
 
 /* old style css */
 
-*
-  margin: 0
-  padding: 0
-
 input#urlbar
   display: n
   /* margin: 0px auto 0
@@ -21,7 +17,7 @@ input#urlbar
   position: absolute
   top: -17px
   bottom: 0
-  margin: 0px auto
+  margin: 5px auto 0
 #results::-webkit-scrollbar
   display: none
   /*border: 1px solid gray
@@ -248,7 +244,7 @@ li.cqz-ez-search-app.transition
 
 a
   /* font-weight: bold
-  color: rgba(0, 0, 0, 0.8) !important
+  color: rgba(0, 0, 0, 0.8)
 
 div#cliqz-swiping-dots-new
   background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(25, 25, 25, 0)), to(rgba(25, 25, 25, 0.8)), color-stop(0.45, #fff))
@@ -376,69 +372,6 @@ img.__main__image__many
     margin: 5px 5px 0px 5px
     color: #777
 
-div
-  &#conversations
-    /* background: #eee
-    left: -7px
-  &#showpastbutton
-    position: absolute
-    left: -4px
-    border-radius: 5px
-    border: 1px solid #555
-    padding: 9px
-    top: -13px
-    background: rgba(0, 31, 110, 0.3)
-    color: #fff
-  &#showfuturebutton
-    position: absolute
-    right: -3px
-    border-radius: 5px
-    border: 1px solid #555
-    padding: 8px
-    top: -15px
-    background: rgba(0, 31, 110, 0.3)
-    color: #fff
-
-.future_domain h1
-  font-size: 21px
-
-div.future_domain
-  ul
-    display: none
-  border-radius: 4px
-  background: #EEF8FF
-  border: 1px solid #999
-  margin: 10px
-  padding: 10px
-  box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.44)
-
-.future_domain
-  .amount
-    /* position: absolute
-    float: right
-    margin-top: -22px
-    border-radius: 50%
-    border: 1px solid #555
-    background: #640000
-    color: white
-    width: 20px
-    height: 20px
-    text-align: center
-  a
-    font-weight: bold
-    font-weight: bold
-  li
-    list-style-type: none
-    margin: 0px
-    padding: 10px
-    border: 1px solid rgba(85, 85, 85, 0.22)
-    background: rgba(239, 239, 239, 0.4)
-    background-: 0.5
-    margin-bottom: 5px
-    margin-top: 10px
-    img
-      float: right
-      max-width: 100px
 
 #reconnecting
   position: absolute
@@ -731,7 +664,6 @@ a
   font-weight: 400
 
 .main.mulitple
-  padding: 1rem 0 0
   display: -webkit-box
   display: -moz-box
   display: box
@@ -998,128 +930,10 @@ a
 
 .breaking_news
   color: #E64C66
+  text-transform: uppercase
 
 #topNews
   min-height: 200px
-
-#incognito
-  position: absolute
-  background-color: #4a4a4a
-  height: 90%
-  width: 90%
-  top: 0
-  display: none
-  color: #999
-  padding: 5%
-  text-align: center
-
-#startingpoint
-  padding: 0px 24px
-  -webkit-overflow-scrolling: touch
-  overflow-y: scroll
-  position: absolute
-  top: 0
-  bottom: 0
-  left: 0
-  right: 0
-  h2
-    padding: 24px 0 12px
-    text-align: center
-    position: relative
-    font-size: 12px
-    font-weight: 300
-    color: #999
-    &:after
-      position: absolute
-      content: ""
-      top: 32px
-      left: 0
-      right: 0
-      border-top: 1px #eee solid
-      z-index: 1
-    span
-      display: inline
-      background-color: #fff
-      padding: 0 8px
-      color: #999
-      z-index: 99
-      position: relative
-  .meta__logo
-    width: 32px
-    height: 32px
-    line-height: 32px
-    color: #fff
-    text-align: center
-    overflow: hidden
-    margin: 0 12px 4px 10px
-    background-size: 62%
-    background-position: center
-    background-repeat: no-repeat
-    &.image
-      text-indent: -9999px
-      background-image: url("logos/twitter.svg")
-      background-size: 62%
-      background-position: center
-      background-repeat: no-repeat
-  li
-    list-style-type: none
-  .cf
-      padding: 0.25rem 0
-  .answer
-    .item
-      width: 100%
-      background-color: white
-      color: #333
-      padding: 0 0.75rem 0.5rem 0.75rem
-      display: inline-block
-      border-radius: 0.25rem
-      box-sizing: border-box
-      position: relative
-      box-shadow: 0 2px 4px rgba(0,0,0,0.12)
-      h1
-        padding: 0
-        margin: 0
-        font-size: 1rem
-        line-height: 1.25rem
-        font-weight: 500
-        display: inline
-      .item__meta
-        position: absolute
-        bottom: 0
-        right: 0
-        color: #aaa
-        font-size: 0.7rem
-        padding: 0.25rem
-      .url
-        position: absolute
-        top: 0
-        left: 60px
-        text-align: left
-        font-size: 0.75rem
-        color: #4A90E2
-        width: 70%
-        height: 32px
-        overflow: hidden
-        overflow-wrap: break-word
-        div
-          position: relative
-          top: 50%
-          transform: translateY(-50%)
-          display: -webkit-box
-          -webkit-line-clamp: 2
-          -webkit-box-orient: vertical
-      .item__logo
-        width: 32px
-        height: 32px
-        line-height: 32px
-        color: #fff
-        text-align: center
-        overflow: hidden
-        margin: 0 12px 4px 0px
-        background-size: 50%
-        background-position: center
-        background-repeat: no-repeat
-
 
 .list
   padding: 0 0 12px
@@ -1438,28 +1252,8 @@ a
     .flightStatusEZ-depart-arrival-name
       color: #000
 
-.currency .expression, .ez-calculator .expression
-  color: #999
-
-.currency .message, .ez-calculator .message
-  color: #bbb
-
-.currency .main__headline, .ez-calculator .main__headline
-  font-size: 28px
-  line-height: 32px
-
-@media only screen and (min-width: 375px)
-  .currency .main__headline, .ez-calculator .main__headline
-    font-size: 32px
-    line-height: 36px
-
-@media only screen and (min-width: 414px)
-  .currency .main__headline, .ez-calculator .main__headline
-    font-size: 36px
-    line-height: 40px
-
 .cqz-local-result
-  padding: 0 1rem
+  margin: 0 1rem
   overflow: hidden
   .local__head
     word-break: break-all
@@ -1467,33 +1261,44 @@ a
     box-sizing: border-box
     .map__img
       overflow: hidden
-      width: 35%
-      height: auto
+      width: 4rem
+      height: 4rem
       box-sizing: border-box
+      margin: 0 1rem
     .address__details
-      float: right
-      width: 60%
+      margin-left: 0.5rem
       box-sizing: border-box
       word-break: break-word
       overflow: hidden
+    .local-distance
+      text-align: center
+      text-indent: -5px
+      color: #45C2CC
   .local__details
-    padding-top: 10px
-    width: 100%
-  .cqz-local-info
-    .cqz-local-address, .phone_num, .cqz-local-info-right, .local-distance
-      padding: 0 0 16px 24px
-      position: relative
-    .local-distance .icon, .phone_num .icon, .cqz-local-info-right .icon
-      width: 16px
-      float: left
-      background-position: center
-      background-size: contain
-      text-indent: -9999px
+    width: 90%
+    margin: 0.5rem 0
+    .time-icon-cell
+      vertical-align: top
       margin-right: 16px
-      background-repeat: no-repeat
-      position: absolute
-      top: 0
-      left: 0
+      .icon
+        background-position: center
+        background-size: contain
+        text-indent: -9999px
+        background-repeat: no-repeat
+        height: 1rem
+        width: 1rem
+    .phone-num-cell
+      text-align: center
+      .icon
+        background-position: center
+        background-size: contain
+        background-repeat: no-repeat
+        width: 1.5rem
+        height: 1.5rem
+        margin: auto
+      .call-text
+        margin-top: 5px
+        color: #45C2CC
 
 #cliqz-message-container
   position: absolute
@@ -1526,6 +1331,7 @@ a
   margin-bottom: 16px
 
 .currency__table
+  padding: 0 1rem
   td
     padding: 2px 0
     input
@@ -1538,10 +1344,16 @@ a
         text-align: right
   .currency__swap td
     padding: 2px 0 24px
-    border-bottom: 1px #eee solid
+
+.currency__copy
+  font-size: 0.75rem
+  color: #CECECE
+  text-align: center
+  width: 100%
+  line-height: 1.5rem
 
 .poweredby
-  padding: 0 1rem 1rem
+  padding: 1rem 1rem
   font-size: 0.75rem
   color: #999
   text-align: left
@@ -1549,8 +1361,7 @@ a
 
 .ez-liga-tableHeader
   table
-    margin: 0
-    padding: 0
+    padding: 0 1rem
     width: 100%
     max-width: 100%
     th
@@ -1559,6 +1370,7 @@ a
       font-size: 12px
       color: #999
     td
+      text-align: left
       font-size: 12px
       padding: 0
       margin: 0
@@ -1568,7 +1380,6 @@ a
         font-size: 12px
         font-weight: 400
         color: #666
-        text-align: right
       &.bold
         font-weight: 700
         color: #333
@@ -1591,7 +1402,7 @@ a
 .currencyInput
   width: 100%
   box-sizing: border-box
-  border: 1px solid #EDECEC
+  border: 1px solid #073673
 
 .currency__table
   .text-center
@@ -1599,18 +1410,12 @@ a
     font-weight: 500
 
 .currencySwitch
-  border: 0
-  width: 100%
   box-sizing: border-box
-  background-color: #EDECEC
-  margin: 0
-  padding: 0 0.25rem
-  height: 1.4rem
-  color: #999
-  &:hover
-    background-color: #eee
-    color: #333
-
+  margin: 5px auto 0px
+  height: 1.2rem
+  background-color: #073673
+  border-radius: 5px
+  padding: 5px
 
 
 ul.recipe_ingredients
@@ -1737,20 +1542,6 @@ span.highlighted
     padding: 0 0
 
 
-p.share_this_card
-    text-indent: -500px
-    position: absolute
-    background-image: url(../img/share-icon-108.png)
-    background-size: 22px
-    background-repeat: no-repeat
-    right: -5px
-    z-index: 0000
-    top: 40px
-    height: 36px
-    width: 36px
-    display: none
-
-
 h3.meta__url
     max-width: 80%
 
@@ -1795,20 +1586,28 @@ body
   .primary
     padding: 0.75rem 0 0
   .timestamp
+    margin-top: -1rem
     font-size: 0.75rem
-    line-height: 1rem
     color: #4A90E2
-    height: 1rem
     overflow: hidden
     text-overflow: ellipsis
     color: #448100
-    padding: 0.5rem 1rem 0rem
+    padding: 0.5rem 1rem
   .social
     display: table
     padding: 0 1rem
     .social__logo
       display: table-cell
       padding-right: 15px
+      width: 2rem
+      height: 2rem
+  .streaming
+    display: table
+    padding: 0 1rem
+    .streaming__logo
+      display: table-cell
+      padding-right: 15px
+      width: 3.5rem
   .card__logo
     margin: 0 12px
     width: 3rem
@@ -1822,11 +1621,9 @@ body
       text-indent: -9999px
       text-align: left
   .card__logo__secondary
-    width: 3rem
-    height: 3rem
     background-position: center
     background-repeat: no-repeat
-    background-size: 50%
+    background-size: 100%
     font-size: 0.75rem
     line-height: 2rem
     text-align: center
@@ -1889,6 +1686,7 @@ body
     text-overflow: ellipsis
     color: #4A90E2
   .cards__title__secondary
+    margin: 0
     font-weight: 400
     color: #333
     padding: 0.25rem 0rem 0.25rem
@@ -1899,9 +1697,15 @@ body
     height: 1.5rem
     word-break: break-all;
 
+  .history_card__title
+    margin: 1rem 1rem
+    font-weight: 500
+    text-align: left
+    font-size: 1.2rem
+    line-height: 1.5rem
+
   .card__title
-    padding: 0.25rem 1rem 0rem
-    margin: 0
+    padding: 1rem 1rem
     font-weight: 500
     text-align: left
     font-size: 1.2rem
@@ -1975,10 +1779,19 @@ body
       background-size: cover
       background-repeat: no-repeat
       height: 5rem
-      margin: 1rem 0 1rem
+      margin: 0rem 0 1rem
       text-indent: -9999px
+      position: relative
       &.big
         height: 10rem
+      .duration
+        text-indent: 0px
+        background-color: black
+        color: white
+        position: absolute
+        padding: 5px
+        bottom: 0
+        right: 0
   .secondary
     .separator
       padding: 2px 0
@@ -2041,7 +1854,6 @@ body
     text-align: center
     padding: 0.25rem 1.5rem
     font-size: 0.5rem
-    line-height: 2rem
     display: block
     color: rgba(0,0,0,0.38)
     a
@@ -2075,8 +1887,8 @@ body
         position: relative
         float: left
         margin: 0 1rem 0 0
-        height: auto
-        padding-top: 18%
+        height: 4rem
+        width: 4rem
       .main__headline
         font-size: 0.75rem
         line-height: 1rem
@@ -2084,13 +1896,13 @@ body
         text-overflow: ellipsis
         overflow: hidden
   .soccer__result
-    padding: 1rem 1rem 1rem
-    border-top: 1px rgba(0,0,0,0.1) solid
+    padding: 0 1rem
     h5
       font-size: 1rem
       line-height: 1.5rem
       font-weight: 700
       color: #333
+      margin: 0
     .meta__legend
       font-size: 0.75rem
       line-height: 1rem
@@ -2126,6 +1938,7 @@ body
       font-weight: 400
   .weather__today
     padding: 0.5rem 2rem
+    text-align: center
     .EZ-weather-date
       font-size: 1.25rem
       line-height: 1.5rem
@@ -2145,6 +1958,7 @@ body
       display: block
       width: 100%
   .weather__gallery
+    text-align: center
     padding: 0 2rem
     &::after
       clear: both
@@ -2243,7 +2057,6 @@ em
   font-style: normal
 
 .bundesliga
-  padding: 1rem 0 !important
   .card__incard
     padding: 1rem
   .card__incard__item

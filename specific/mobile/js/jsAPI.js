@@ -15,13 +15,15 @@ var jsAPI = {
   },
   getCardUrl: function() {
     var NOT_SHAREABLE_SIGNAL = '-1';
-    if(CLIQZ.UI.lastResults && CLIQZ.UI.lastResults[CLIQZ.UI.currentPage]) {
-      osAPI.shareCard(CLIQZ.UI.lastResults[CLIQZ.UI.currentPage].url || NOT_SHAREABLE_SIGNAL);
+    if(CLIQZ.UI.lastResults && CLIQZ.UI.lastResults[CLIQZ.UI.currentPage * CLIQZ.UI.nCardsPerPage]) {
+      osAPI.shareCard(CLIQZ.UI.lastResults[CLIQZ.UI.currentPage * CLIQZ.UI.nCardsPerPage].url || NOT_SHAREABLE_SIGNAL);
     } else {
       osAPI.shareCard(NOT_SHAREABLE_SIGNAL);
     }
   },
   setClientPreferences: function(prefs) {
+    // clear cache with every visit to tab overiew and settings
+    Search && Search.clearResultCache();
     CLIQZ.UI && CLIQZ.UI.setTheme(prefs.incognito);
     for (var key in prefs) {
       if (prefs.hasOwnProperty(key)) {
@@ -46,11 +48,7 @@ var jsAPI = {
     CliqzUtils.getLocalStorage().setObject('blockedTopSites', []);
   },
   onShow: function () {
-    if (CLIQZ.UI) { // search view
-      if (!CLIQZ.UI.isSearch()) { // freshtab
-        CliqzUtils.initHomepage();
-      }
-    } else { // history view
+    if (!CLIQZ.UI) { // history view
       History.update();
     }
   },

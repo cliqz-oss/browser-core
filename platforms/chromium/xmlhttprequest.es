@@ -1,6 +1,7 @@
-
-export let XMLHttpRequest = XMLHttpRequest;
-
-export function setPrivateFlags(request) {}
-
-export function setBackgroundRequest(request) {}
+function setPrivateFlags() {}
+function setBackgroundRequest() {}
+export {
+  XMLHttpRequest,
+  setPrivateFlags,
+  setBackgroundRequest
+}

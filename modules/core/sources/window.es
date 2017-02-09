@@ -19,7 +19,6 @@ export default class {
     this.window.CliqzUtils = utils;
     this.window.CliqzEvents = events;
     this.window.CliqzHistoryManager = HistoryManager;
-
     // Do not wait for AB to load
     if (!isMobile) {
       ABTests.check();

@@ -1,45 +1,35 @@
 <!-- calculator.tpl -->
+{{#with data}}
+    {{>logo data=logo}}
+    {{>urlDetails data=urlDetails}}
 
-{{#if urlDetails.friendly_url}}
-    {{#with logo}}
-    	<div class="card__logo {{#if backgroundImage}}bg{{/if}}" data-style="{{#if backgroundImage}}background-image:{{backgroundImage}};{{#if backgroundColor}} background-color:#{{backgroundColor}};{{/if}}{{else}}{{ style }};{{/if}}">{{ text }}</div>
-     {{/with}}
+    {{#with extra}}
+        <div class="card__title">
+           {{timeOrCalculator ez_type}} {{location}}
+        </div>
 
-    <div class="card__meta">
-        <div>{{urlDetails.friendly_url}}</div>
-    </div>
-{{/if}}
-
-<section class="primary">
-
-    <h1 class="card__title">
-       {{timeOrCalculator data.extra.ez_type}} {{data.extra.location}}
-    </h1>
-
-
-    <div class="card__description">
-        {{#if data.extra.is_calculus}}
-            <div class='cqz-result-h3 ez-calculator' cliqz-action='copy-calc-answer'>
-            {{#with data.extra}}
-                <div class="main">
-                   <div class="main__headline">{{prefix_answer}} <span id='calc-answer'>{{answer}}</span></div>
-                   <div class="expression "> {{expression}}</div>
-                   {{#if support_copy_ans}}
-                       <div class="message" id="calc-copy-msg">{{local 'mobile_calc_copy_ans'}}</div>
-                       <div class="message" id="calc-copied-msg" style="display: none">{{local 'Copied'}}</div>
-                   {{/if}}
+        <div class="card__description">
+            {{#if is_calculus}}
+                <div class='cqz-result-h3 ez-calculator' cliqz-action='copy-calc-answer'>
+                    <div class="main">
+                       <div class="main__headline">{{prefix_answer}} <span id='calc-answer'>{{answer}}</span></div>
+                       <div class="expression "> {{expression}}</div>
+                       {{#if support_copy_ans}}
+                            <div class="currency__copy">
+                                <div id="calc-copy-msg">{{local 'mobile_calc_copy_ans'}}</div>
+                                <div id="calc-copied-msg" style="display: none">{{local 'Copied'}}</div>
+                            </div>
+                       {{/if}}
+                    </div>
                 </div>
-            {{/with}}
-            </div>
-        {{else}}
-            <div class='cqz-result-h3 ez-calculator'>
-            {{#with data.extra}}
-                <div>
-                   <div class="answer calc-answer">{{prefix_answer}} {{answer}}</div>
-                   <div class="expression">{{expression}}</div>
+            {{else}}
+                <div class='cqz-result-h3 ez-calculator'>
+                    <div>
+                        <div class="answer calc-answer">{{prefix_answer}} {{answer}}</div>
+                        <div class="expression">{{expression}}</div>
+                    </div>
                 </div>
-            {{/with}}
-            </div>
-        {{/if}}
-    </div>
-</section>
+            {{/if}}
+        </div>
+    {{/with}}
+{{/with}}

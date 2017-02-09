@@ -14,6 +14,7 @@ Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 const dnsService = Components.classes["@mozilla.org/network/dns-service;1"]
   .createInstance(Components.interfaces.nsIDNSService);
 
+
 var nsIAO = Components.interfaces.nsIHttpActivityObserver;
 var nsIHttpChannel = Components.interfaces.nsIHttpChannel;
 var refineFuncMappings ;
@@ -2032,6 +2033,7 @@ var CliqzHumanWeb = {
     unloadAtBrowser: function(){
         try {
             CliqzHumanWeb.activityDistributor.removeObserver(CliqzHumanWeb.httpObserver);
+            CliqzEvents.un_sub("human-web:sanitize-result-telemetry", CliqzHumanWeb.sanitizeResultTelemetry);
         } catch(e){}
     },
     currentURL: function() {
@@ -2370,6 +2372,7 @@ var CliqzHumanWeb = {
     initAtBrowser: function(){
         if(CliqzUtils.getPref("dnt", false)) return;
         CliqzHumanWeb.activityDistributor.addObserver(CliqzHumanWeb.httpObserver);
+        CliqzEvents.sub("human-web:sanitize-result-telemetry", CliqzHumanWeb.sanitizeResultTelemetry);
     },
     state: {'v': {}, 'm': [], '_id': Math.floor( Math.random() * 1000 ) },
     hashCode: function(s) {
@@ -4326,6 +4329,132 @@ var CliqzHumanWeb = {
         } else {
             return false;
         }
+    },
+    sanitizeResultTelemetry: function(data) {
+        /*
+        Sanitize result telemetry before sending to the backend.
+        */
+        const msg = data.msg;
+        const msgType = data.type;
+
+        let query = data.q;
+        let sanitisedQuery = null;
+        let url = msg.u;
+
+        const hostNameDetails = CliqzUtils.getDetailsFromUrl(url);
+        if(!hostNameDetails) {
+            _log("Invalid URL, should be dropped");
+            return;
+        }
+
+        const hostName = hostNameDetails.host;
+
+        // Check if there is a query.
+        if (!query || query.length == 0) {
+            _log("No Query");
+            return;
+        }
+
+        // If suspicious query.
+         if (CliqzHumanWeb.isSuspiciousQuery(query)) {
+            _log("Query is suspicious");
+            sanitisedQuery = "(PROTECTED)";
+        }
+
+        // Check if query is like a URL.
+        let query_parts = CliqzHumanWeb.parseURL(query);
+        let queryLikeURL = false;
+        if (query_parts && (query_parts.protocol === "http"  || query_parts.protocol === "https"  || query_parts.protocol === "www")) {
+            queryLikeURL = true;
+        }
+
+        if (queryLikeURL &&
+            (CliqzHumanWeb.isSuspiciousURL(query) || CliqzHumanWeb.dropLongURL(query))) {
+            _log("Query is dangerous");
+            sanitisedQuery = "(PROTECTED)"
+        };
+
+        // Queries also appear on the URL, in which
+        // case we need to check whether it's a URL or not.
+        if (hostName.length > 0 && url && url.length > 0) {
+            // Check if the URL is marked as already private.
+            const urlPrivate = CliqzHumanWeb.bloomFilter.testSingle(md5(url));
+            if (urlPrivate) {
+                _log("Url is already marked private");
+                return;
+            }
+
+            // Check URL is suspicious
+            if (CliqzHumanWeb.isSuspiciousURL(url)) {
+                _log("Url is suspicious");
+                return;
+            }
+
+            // Check URL is dangerous, with strict DROPLONGURL.
+            if (CliqzHumanWeb.dropLongURL(url, {strict: true})) {
+                _log("Url is dangerous");
+                return;
+            }
+
+            // Check for DNS.
+            CliqzHumanWeb.isHostNamePrivate(url).then( res => {
+                if (res) {
+                    _log("Private Domain");
+                    return;
+                } else {
+                    // Mask URL.
+                    let maskedURL = CliqzHumanWeb.maskURL(url);
+
+                    // Cases when query and URL are same.
+                    if (url === query){
+                        sanitisedQuery = "(PROTECTED)";
+                        maskedURL = sanitisedQuery;
+                    }
+                    // Check if query failed any checks, then replace it with
+                    // a placeholder.
+                    if (sanitisedQuery) {
+                        query = sanitisedQuery;
+                        maskedURL = sanitisedQuery;
+                    }
+                    CliqzHumanWeb.sendResultTelemetry(query, maskedURL, data);
+                }
+            });
+        } else {
+            // The URL was not a URL hence drop it.
+            // Check if query failed any checks, then replace it with
+            // a placeholder.
+
+            // As a final check, if query is a single token, and can be a private domain.
+            // Like my.adminportal.com
+            if(query.indexOf(' ') === -1 && query.indexOf('.') > -1) {
+                CliqzHumanWeb.isHostNamePrivate(query).then( res => {
+                    if (res) {
+                    _log("Private Domain");
+                        sanitisedQuery = "(PROTECTED)";
+                    }
+                    if (sanitisedQuery) {
+                        query = sanitisedQuery;
+                    }
+                    CliqzHumanWeb.sendResultTelemetry(query, null, data);
+                })
+            } else {
+                if (sanitisedQuery) {
+                    query = sanitisedQuery;
+                }
+                CliqzHumanWeb.sendResultTelemetry(query, null, data);
+            }
+        }
+    },
+    sendResultTelemetry: function(query, url, data){
+        const params = encodeURIComponent(query) +
+                        (data.msg.a ? '&a=' + encodeURIComponent(data.msg.a) : '') +
+                        '&i=' + data.msg.i +
+                        (url ? '&u=' + encodeURIComponent(url) : '') +
+                        data.s +
+                        data.msg.o +
+                        (data.msg.e ? '&e=' + data.msg.e : '');
+        const payLoadURL = data.endpoint + params;
+        CliqzUtils.httpGet(payLoadURL);
     },
     validFrameCount: function(struct_bef, struct_aft) {
         //
