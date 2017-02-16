@@ -63,9 +63,6 @@ var CliqzHistoryCluster = {
     }
     // Process patterns
     res = CliqzHistoryCluster._preparePatterns(patterns, query);
-    CliqzHistoryCluster.firefoxHistory = [];
-    CliqzHistoryCluster.firefoxHistory.res = res;
-    CliqzHistoryCluster.firefoxHistory.query = query;
     CliqzHistoryCluster.historyCallback(res);
   },
   _simplePreparePatterns: function(patterns, query) {
