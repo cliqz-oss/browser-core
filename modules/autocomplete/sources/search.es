@@ -587,7 +587,6 @@ export default class Search {
                      (attemptsSoFar || 0) + 1);
 
           this.cliqzResults = json.results.filter(this.isReadyToRender).map(this.enhanceResult);
-          console.log(this.cliqzResults.length,"CliqzAutocomplete.cliqzResultFetcher");
 
           this.cliqzResultsParams = {
             choice: json.choice,
