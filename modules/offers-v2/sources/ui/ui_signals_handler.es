@@ -3,8 +3,8 @@
  *        backend related with the ui
  */
 
-import LoggingHandler from 'offers-v2/logging_handler';
-import OffersConfigs from 'offers-v2/offers_configs';
+import LoggingHandler from '../logging_handler';
+import OffersConfigs from '../offers_configs';
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,23 +59,6 @@ export class UISignalsHandler {
   //
   constructor(sigHandler) {
     this.sigHandler = sigHandler;
-
-    // check if we have the associated bucket, if not we create one
-    var bucketInfo = this.sigHandler.getBucketInfo(OffersConfigs.SIGNALS_OFFERS_BUCKET_NAME);
-    if (!bucketInfo) {
-      linfo('creating a new bucket ' + OffersConfigs.SIGNALS_OFFERS_BUCKET_NAME);
-      const config = {
-        tts_secs: OffersConfigs.SIGNALS_OFFERS_FREQ_SECS,
-      }
-      if (!this.sigHandler.createBucket(OffersConfigs.SIGNALS_OFFERS_BUCKET_NAME, config)) {
-        lerr('we couldnt create the bucket, something happened...');
-        // TODO: handle error here?
-      }
-    }
-    // TODO: check if we need to update the bucket (remove old and create a new one)
-    //       this may delete all the current data => create a method to update
-    //       the configuration of the bucket only then.
-
   }
 
   destroy() {
@@ -95,7 +78,7 @@ export class UISignalsHandler {
       return;
     }
     // get the offer related info
-    var offerSigInfo = this.sigHandler.getSignal(OffersConfigs.SIGNALS_OFFERS_BUCKET_NAME, offerID);
+    var offerSigInfo = this.sigHandler.getSignalData(offerID);
     if (!offerSigInfo) {
       offerSigInfo = this._createOfferSignalData();
     }
@@ -104,7 +87,7 @@ export class UISignalsHandler {
     addOrCreate(offerSigInfo, signalKey, 1);
 
     // set it back to the sig handler
-    this.sigHandler.addSignal(OffersConfigs.SIGNALS_OFFERS_BUCKET_NAME, offerID, offerSigInfo);
+    this.sigHandler.setSignalData(offerID, offerSigInfo);
   }
 
   //
@@ -116,7 +99,7 @@ export class UISignalsHandler {
       return;
     }
     // get the offer related info
-    var offerSigInfo = this.sigHandler.getSignal(OffersConfigs.SIGNALS_OFFERS_BUCKET_NAME, offerID);
+    var offerSigInfo = this.sigHandler.getSignalData(offerID);
     if (!offerSigInfo) {
       offerSigInfo = this._createOfferSignalData();
     }
@@ -125,7 +108,7 @@ export class UISignalsHandler {
     offerSigInfo[attrName] = attrValue;
 
     // set it back to the sig handler
-    this.sigHandler.addSignal(OffersConfigs.SIGNALS_OFFERS_BUCKET_NAME, offerID, offerSigInfo);
+    this.sigHandler.setSignalData(offerID, offerSigInfo);
   }
 
 

@@ -1,7 +1,7 @@
-import background from 'offers-v2/background';
-import LoggingHandler from 'offers-v2/logging_handler';
-import OffersConfigs from 'offers-v2/offers_configs';
-import {utils} from 'core/cliqz';
+import background from './background';
+import LoggingHandler from './logging_handler';
+import OffersConfigs from './offers_configs';
+import {utils} from '../core/cliqz';
 
 
 

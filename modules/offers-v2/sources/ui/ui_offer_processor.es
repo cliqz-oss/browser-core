@@ -3,20 +3,20 @@
  *        we will control all the display logic.
  */
 
-import { utils } from 'core/cliqz';
-import LoggingHandler from 'offers-v2/logging_handler';
-import OffersConfigs from 'offers-v2/offers_configs';
-import CliqzHandlebars from 'core/templates';
-import { loadFileFromChrome } from 'offers-v2/utils';
-import { UIDisplayManager } from 'offers-v2/ui/ui_display_manager';
-import SignalType from 'offers-v2/ui/ui_display_manager';
-import TrackSignalID from 'offers-v2/ui/ui_signals_handler';
-import { UISignalsHandler } from 'offers-v2/ui/ui_signals_handler';
-import HistorySignalID from 'offers-v2/ui/ui_offers_history';
-import { UIOffersHistory } from 'offers-v2/ui/ui_offers_history';
-import { openNewTabAndSelect } from 'offers-v2/utils';
-import {UIFilterRulesEvaluator} from 'offers-v2/ui/ui_filter_rules_evaluator';
-
+import { utils } from '../../core/cliqz';
+import LoggingHandler from '../logging_handler';
+import OffersConfigs from '../offers_configs';
+import { loadFileFromChrome } from '../utils';
+import { UIDisplayManager } from './ui_display_manager';
+import SignalType from './ui_display_manager';
+import TrackSignalID from './ui_signals_handler';
+import { UISignalsHandler } from './ui_signals_handler';
+import HistorySignalID from './ui_offers_history';
+import { UIOffersHistory } from './ui_offers_history';
+import { openNewTabAndSelect } from '../utils';
+import {UIFilterRulesEvaluator} from './ui_filter_rules_evaluator';
+import events from '../../core/events';
+import { isChromium } from '../../core/platform';
 
 ////////////////////////////////////////////////////////////////////////////////
 // consts
@@ -134,22 +134,33 @@ export class UIOfferProcessor {
     }
 
     // TODO: separate this properly and apply the logic we need here
+    var offerInfoCpy = JSON.parse(JSON.stringify(offerInfo));
     const offerData = {
-      id: offerInfo.offer_id,
-      template_name: offerInfo.ui_info.template_name,
-      template_data: offerInfo.ui_info.template_data
+      id: offerInfoCpy.offer_id,
+      template_name: offerInfoCpy.ui_info.template_name,
+      template_data: offerInfoCpy.ui_info.template_data
     };
-    this.uiDisplayMngr.addOffer(offerData, offerInfo.rule_info);
 
-    this.activeOffers[offerInfo.offer_id] = offerInfo;
+    if (isChromium) {
+      events.pub('msg_center:show_message', {
+        id: offerInfoCpy.display_id,
+        Message: offerInfoCpy.ui_info.template_data.title,
+        Link: offerInfoCpy.ui_info.template_data.call_to_action.text,
+        LinkText: offerInfoCpy.ui_info.template_data.call_to_action.url
+      }, 'ghostery');
+    } else {
+      this.uiDisplayMngr.addOffer(offerData, offerInfoCpy.rule_info);
+    }
+
+    this.activeOffers[offerInfoCpy.offer_id] = offerInfoCpy;
 
     // track the last time we show this particular offer and displayid
-    const displayID = offerInfo.display_id;
-    this.offersHistory.incHistorySignal(offerInfo.offer_id, HistorySignalID.HSIG_OFFER_ADDED);
+    const displayID = offerInfoCpy.display_id;
+    this.offersHistory.incHistorySignal(offerInfoCpy.offer_id, HistorySignalID.HSIG_OFFER_ADDED);
     this.offersHistory.incHistorySignal(displayID, HistorySignalID.HSIG_OFFER_ADDED);
 
     // to track we use the offer_id
-    this.sigHandler.trackOfferSignal(offerInfo.offer_id, TrackSignalID.TSIG_OFFER_ADDED);
+    this.sigHandler.trackOfferSignal(offerInfoCpy.offer_id, TrackSignalID.TSIG_OFFER_ADDED);
   }
 
   //

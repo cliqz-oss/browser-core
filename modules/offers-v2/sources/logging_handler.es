@@ -3,9 +3,8 @@
 try {
   Components.utils.import('resource://gre/modules/osfile.jsm');
 } catch(e) { }
-// to log in console
-import { utils } from 'core/cliqz';
-import { writeFile } from "core/fs";
+import { writeFile } from "../core/fs";
+import console from '../core/console';
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -57,19 +56,19 @@ var LoggingHandler = {
         // https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/OSFile.jsm/OS.File_for_the_main_thread#OS.File.exists()
         // create the directory with makeDir and catch the error if the directory exists
         OS.File.makeDir(dirname, {ignoreExisting: false}).then(() => {
-          utils.log('directory does not exist. Creating it...');
+          console.log('directory does not exist. Creating it...');
           OS.File.open(filePath, {write: true, append: true}).then(fileObject => {
             self.fileObj = fileObject;
           });
         }).catch(function(ee){
-          utils.log('directory exist. Opening the file to write and append: ');
+          console.log('directory exist. Opening the file to write and append: ');
           OS.File.open(filePath, {write: true, append: true}).then(fileObject => {
             self.fileObj = fileObject;
           });
         });
       } catch(ee) {
         // error here nasty
-        utils.log('something happened when trying to save the file or something: ' + ee, '[offersV2]');
+        console.log('something happened when trying to save the file or something: ' + ee, '[offersV2]');
       }
     }
 
@@ -103,7 +102,7 @@ var LoggingHandler = {
       }
       let encoder = new TextEncoder();
       this.fileObj.write(encoder.encode(strToLog)).catch(function(ee) {
-        utils.log('error logging to the file! something happened?: ' + ee, '[offersV2]');
+        console.log('error logging to the file! something happened?: ' + ee, '[offersV2]');
       });
     } else {
       // GR-145: logging system is not working properly, not saving all the data from the beginning
@@ -112,7 +111,7 @@ var LoggingHandler = {
       }
     }
     // log to the console
-    utils.log(strToLog, '');
+    console.log(strToLog, '');
   },
 
   //////////////////////////////////////////////////////////////////////////////

@@ -772,7 +772,7 @@ var CliqzUtils = {
               // we only set the prefered backend once at first start
               if (CliqzUtils.getPref('backend_country', '') === '') {
                 if(CliqzUtils.getPref('config_location', 'de') === 'de' &&
-                   Date.now() < 1487073600000 /* 14.02.2017 */){
+                   Date.now() < 1488758400000 /* 06.03.2017 */){
                   var rand = Math.random();
 
                   if (rand < 0.33) {

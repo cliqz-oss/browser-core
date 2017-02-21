@@ -1,22 +1,14 @@
 /*
- * @brief Module used to send signals to the backend using different channels and
- *        configurations
-
- * The module works as follow:
- *  - Signals are grouped by buckets (keys) with configurations each (time to send, etc).
- *  - every bucket contains elements defined by keys, each key represent a signal
- *    that will be sent separately. Each key maps to a dict (json) data.
- *  - every time the tts (time to send) expires, the signals are sent to the specified
- *    backend (telemetry / humanweb / whatever).
- *  - the data will be stored on HD and loaded every time the browser is loaded, it
- *    will be send automatically to the BE if the tts expired.
- *
+ * Module used to send signals to the BE every OffersConfigs.SIGNALS_OFFERS_FREQ_SECS
+ * seconds.
+ * Each signal (id) will be kept on the DB till OffersConfigs.SIGNALS_OFFERS_EXPIRATION_SECS
+ * is reached from the last modification time.
  */
 
-import { utils } from 'core/cliqz';
-import LoggingHandler from 'offers-v2/logging_handler';
-import  OffersConfigs  from 'offers-v2/offers_configs';
-import config from 'core/config';
+import { utils } from '../core/cliqz';
+import LoggingHandler from './logging_handler';
+import  OffersConfigs  from './offers_configs';
+import config from '../core/config';
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -26,6 +18,7 @@ const MODULE_NAME = 'signals_handler';
 
 const DB_MAIN_FIELD = 'chrome://cliqz/content/offers-v2/signals_data.json';
 const DB_PREFIX = 'sig_hand_';
+const DB_SIGMAP_KEY = 'sig_map';
 
 // TODO: remove this methods
 function linfo(msg) {
@@ -39,105 +32,136 @@ function lerr(msg) {
 }
 
 
-class SignalBucket {
-  constructor(id, expireTimeSecs = null, createdTS = null) {
-    this.id = id;
-    this.elems = {};
-    this.expireTimeSecs = expireTimeSecs;
-    this.createdTS = createdTS;
-    this.isDataDirty = true;
+
+////////////////////////////////////////////////////////////////////////////////
+export class SignalHandler {
+
+  //
+  // @brief [v2.0] we will not use bucket anymore so now we will have the following
+  //        data for each signal:
+  // {
+  //   sig_id: {
+  //     created_ts: (when the signal was created),
+  //     modified_ts: (when was last modified),
+  //     be_sync: true/false (defines if the signal was sent properly to the BE)
+  //     data: {
+  //       // the signal data
+  //     }
+  //   }
+  // }
+  constructor() {
+    // TODO: we need to translate the old data into the new one to not loose signals
+    //       or we just dont care and start directly with the new approach.
+    this.sigMap = {};
+
+    // the signal queue
+    this.sigsToSend = new Set();
+
+    // load the persistent data
+    this._loadPersistenceData();
+
+    // set the interval timer method to send the signals
+    this.sendIntervalTimer = null;
+    this._startSendSignalsLoop(OffersConfigs.SIGNALS_OFFERS_FREQ_SECS);
+
+    // TODO: load old data and delete file.
   }
 
-  // set signal
-  setSignal(sigKey, sigData) {
+  // destructor
+  destroy() {
+    // save data
+    this._savePersistenceData();
+
+    // stop interval
+    if (this.sendIntervalTimer) {
+      utils.clearInterval(this.sendIntervalTimer);
+      this.sendIntervalTimer = null;
+    }
+  }
+
+  savePersistenceData() {
+    this._savePersistenceData();
+  }
+
+
+  //
+  // @brief set the signal data to a given signal key, if not exists will be created
+  //
+  setSignalData(sigKey, sigData) {
     if (!sigKey) {
-      lerr('setSignal: trying to set a null key? this should not happen');
-      return;
+      lwarn('setSignalData: sigKey null?');
+      return false;
     }
-    linfo('setSignal: setting signal in ' + sigKey + ': ' + JSON.stringify(sigData));
-    this.elems[sigKey] = sigData;
-    this.isDataDirty = true;
-  }
-
-  // return the signal or null otherwise
-  getSignal(sigKey) {
-    const sig = this.elems[sigKey];
-    return (sig) ? sig : null;
-  }
-
-  // expired?
-  timeExpired() {
-    const timeDiffSecs = (Date.now() - this.createdTS) / 1000;
-    return timeDiffSecs >= this.expireTimeSecs;
-  }
-
-  // reset the last time sent
-  resetCreatedTS(newTS) {
-    this.createdTS = newTS;
-  }
-
-  // is dirty
-  isDirty() {
-    return this.isDataDirty;
-  }
-
-  isEmpty() {
-    for (var k in this.elems) {
-      if (this.elems.hasOwnProperty(k)) {
-        return false;
-      }
+    var sigInfo = this.sigMap[sigKey];
+    if (!sigInfo) {
+      linfo('setSignalData: creating new signal: ' + sigKey);
+      this.sigMap[sigKey] = sigInfo = this._createSignal(sigData);
+    } else {
+      sigInfo.data = sigData;
+      sigInfo.modified_ts = Date.now();
     }
+
+    // mark it as dirty
+    sigInfo.be_sync = false;
+
+    this._addSignalToBeSent(sigKey);
     return true;
   }
 
-  // toJSON
-  toJSON() {
+  //
+  // @brief returns the given signal if exists or null if not
+  //
+  getSignalData(sigKey) {
+    if (!sigKey) {
+      lwarn('getSignalData: sigKey null?');
+      return null;
+    }
+    var sigInfo = this.sigMap[sigKey];
+    return !sigInfo ? null : sigInfo.data;
+  }
+
+
+  //////////////////////////////////////////////////////////////////////////////
+  //                            PRIVATE METHODS
+
+  _createSignal(sigData) {
     return {
-      elems: this.elems,
-      expireTimeSecs: this.expireTimeSecs,
-      createdTS: this.createdTS
+      created_ts: Date.now(),
+      modified_ts: Date.now(),
+      be_sync: false,
+      data: sigData
     };
   }
 
-  // fromJSON
-  fromJSON(jdata) {
-    if (!jdata.elems ||
-        !jdata.expireTimeSecs ||
-        !jdata.createdTS) {
-      lerr('fromJSON: the JSON data is invalid, some field is missing');
-      return;
-    }
-
-    // now we just set it
-    this.elems = jdata.elems;
-    this.expireTimeSecs = jdata.expireTimeSecs;
-    this.createdTS = jdata.createdTS;
-
-    // data dirty ?
-    this.isDataDirty = true;
+  _addSignalToBeSent(sigKey) {
+    this.sigsToSend.add(sigKey);
   }
 
-  // send telemetry (return true on success | false on error)
-  sendSignalsToBE() {
-    // this will send all telemetry and remove all the data
-    linfo('sendSignalsToBE: SENDING SIGNAL TO BE!!!: sending signal with id: ' + this.id);
+  _sendSignalsToBE() {
+    // iterate over all the signals and send them to the BE
+    linfo('_sendSignalsToBE: SENDING SIGNALSS TO BE!!!');
     const isDebug = utils.getPref('offersDevFlag', false);
     const isDeveloper = utils.getPref('developer', false);
-    for (var k in this.elems) {
-      if (!this.elems.hasOwnProperty(k)) {
-        continue;
+    this.sigsToSend.forEach(sigID => {
+      var sigData = this.sigMap[sigID];
+      if (!sigData) {
+        lerr('_sendSignalsToBE: we have a signal on the queue but the signal was removed?: ' +
+             sigID + ' - ' + JSON.stringify(this.sigMap));
+        return;
       }
-
+      // this will help us to avoid duplicated signals
+      if (sigData.be_sync) {
+        return;
+      }
       var signal = {
         type: 'offers',
         v : OffersConfigs.CURRENT_VERSION,
         ex_v: config.EXTENSION_VERSION,
-        bucket_freq_secs: this.expireTimeSecs,
         is_debug: isDebug,
         is_developer: isDeveloper,
         data: {}
       };
-      signal.data[k] = this.elems[k];
+      signal.data[sigID] = sigData.data;
       utils.telemetry(signal);
       linfo('sendSignalsToBE: telemetry: ' + JSON.stringify(signal));
 
@@ -145,175 +169,44 @@ class SignalBucket {
       //          on the future once this is stable
       const hpnSignal = {
           action: OffersConfigs.SIGNALS_HPN_BE_ACTION,
-          signal_id: k,
+          signal_id: sigID,
           timestamp: Date.now(),
           payload: {
             v : OffersConfigs.CURRENT_VERSION,
             ex_v: config.EXTENSION_VERSION,
-            bucket_freq_secs: this.expireTimeSecs,
             is_debug: isDebug,
             is_developer: isDeveloper,
             data: {}
           }
         };
-      hpnSignal.payload.data[k] = this.elems[k];
-      const hpnStrSignal = JSON.stringify([hpnSignal]);
+
+      hpnSignal.payload.data[sigID] = sigData.data;
+      const hpnStrSignal = JSON.stringify(hpnSignal);
       utils.httpPost(OffersConfigs.SIGNALS_HPN_BE_ADDR,
                      success => {linfo('sendSignalsToBE: hpn signal sent')},
                      hpnStrSignal,
                      err => {lerr('sendSignalsToBE: error sending signal to hpn: ' + err)});
       linfo('sendSignalsToBE: hpn: ' + hpnStrSignal);
-    }
+
+      // we mark the signal as sent to the BE
+      sigData.be_sync = true;
+    }.bind(this));
+
+    this.sigsToSend.clear();
 
     return true;
   }
 
-  // clear the current data
-  clearSignals() {
-    delete this.elems;
-    this.elems = {};
-    this.isDataDirty = false;
-  }
-
-
-};
-
-////////////////////////////////////////////////////////////////////////////////
-export class SignalHandler {
-
-  //
-  constructor() {
-    // bucket type id -> bucket
-    this.bucketsMap = {};
-    // timers map
-    this.timersMap = {};
-
-    // load the persistent data
-    this._loadPersistenceData();
-  }
-
-  // destructor
-  destroy() {
-    this._savePersistenceData();
-  }
-
-  //
-  // @brief create bucket with key and time config
-  // @param config:
-  //  {
-  //    tts_secs: N, // number of seconds to send the bucket
-  //  }
-  //
-  // @return true on success | false otherwise
-  //
-  createBucket(keyName, config, overWrite = false) {
-    if (this.bucketsMap[keyName]) {
-      if (overWrite) {
-        this.deleteBucket(keyName);
+  // this method will configure the interval call to
+  _startSendSignalsLoop(timeToSendSecs) {
+    this.sendIntervalTimer = utils.setInterval(function () {
+      // here we need to process this particular bucket
+      if (this.sigsToSend.size > 0) {
+        this._sendSignalsToBE();
       } else {
-        lwarn('this bucket already exists: ' + keyName);
-        return false;
+        linfo('_startSendSignalsLoop: nothing to send');
       }
-    }
-
-    if (!config.tts_secs) {
-      lwarn('tts field in config should be provided');
-      return false;
-    }
-
-    this.bucketsMap[keyName] = new SignalBucket(keyName, config.tts_secs, Date.now());
-
-    // track the timer for this
-    this._startTimer(keyName, config.tts_secs);
-
-    return true;
-  }
-
-  deleteBucket(keyName) {
-    if (!this.bucketsMap[keyName]) {
-      lwarn('this bucket doesnt exists: ' + keyName);
-      return false;
-    }
-    // remove all data
-    this._stopTimer(keyName);
-    delete this.bucketsMap[keyName];
-
-    return true;
-  }
-
-  // get the information of a bucket or null if not exists
-  getBucketInfo(keyName) {
-    var bucket = this.bucketsMap[keyName];
-    if (!bucket) {
-      return null;
-    }
-    return {
-      tts_secs: bucket.expireTimeSecs,
-    }
-  }
-
-  // add signal to bucket + signal key + data.
-  addSignal(bucketKey, sigKey, sigData) {
-    var bucket = this.bucketsMap[bucketKey];
-    if (!bucket) {
-      lwarn('addSignal: the bucket doesnt exists: ' + bucketKey);
-      return false;
-    }
-    // add the signal
-    return bucket.setSignal(sigKey, sigData);
-  }
-
-  // returns a signal if we have or null if not
-  getSignal(bucketKey, sigKey) {
-    var bucket = this.bucketsMap[bucketKey];
-    if (!bucket) {
-      return null;
-    }
-    // add the signal
-    return bucket.getSignal(sigKey);
-  }
-
-  //////////////////////////////////////////////////////////////////////////////
-  //                            PRIVATE METHODS
-
-  _getDBBucketKey(bucketKeyName) {
-    return DB_PREFIX + bucketKeyName;
-  }
-
-  // process a bucket with a given name (send it and clear it)
-  _sendBucketToBE(bucketKeyName) {
-    var bucket = this.bucketsMap[bucketKeyName];
-    if (!bucket) {
-      lwarn('_sendBucketToBE: the bucket doesnt exists: ' + bucketKeyName);
-      return false;
-    }
-
-    // if empty we do nothing
-    if (!bucket.isDirty()) {
-      // nothing to do
-      linfo('_sendBucketToBE: bucket ' + bucketKeyName + ' is not dirty, nothing to do');
-      return true;
-    }
-
-    // send the data and restore the
-    if (!bucket.sendSignalsToBE()) {
-      lerr('_sendBucketToBE: bucket ' + bucketKeyName + ' failed on sending to BE');
-      // TODO: do some other error check here.. maybe save it for a little more time
-    }
-
-    bucket.clearSignals();
-    bucket.resetCreatedTS(Date.now());
-
-    // TODO: clear the data here in the database
-    var localStorage = utils.getLocalStorage(DB_MAIN_FIELD);
-    if (!localStorage) {
-      lerr('_sendBucketToBE: error getting the main local storage: ' + DB_MAIN_FIELD);
-      return false;
-    }
-    const dbKeyName = this._getDBBucketKey(bucketKeyName);
-    localStorage.setItem(dbKeyName, JSON.stringify(bucket.toJSON()));
-
-    return true;
+    }.bind(this), timeToSendSecs * 1000);
   }
 
   // save persistence data
@@ -324,47 +217,20 @@ export class SignalHandler {
       return;
     }
 
-    // we will store each bucket in a different place on the DB using the
-    // DB_PREFIX + bucketID as the doc name in the DB.
-    // We should at some point make sure that we dont store garbage for ever.
-    //
-    // iterate over all buckets and save them into the DB
-    linfo('_savePersistenceData: saving local data');
-    var localStorage = utils.getLocalStorage(DB_MAIN_FIELD);
-    if (!localStorage) {
-      lerr('_savePersistenceData: error getting the main local storage: ' + DB_MAIN_FIELD);
-      return;
+    // save the full json into the same file
+    try {
+      linfo('_savePersistenceData: saving local data calleddd!');
+      var localStorage = utils.getLocalStorage(DB_MAIN_FIELD);
+      if (!localStorage) {
+        lerr('_savePersistenceData: error getting the main local storage: ' + DB_MAIN_FIELD);
+        return;
+      }
+
+      localStorage.setItem(DB_SIGMAP_KEY, JSON.stringify(this.sigMap));
+      linfo('_savePersistenceData: ' + DB_SIGMAP_KEY + ' saved: ' + JSON.stringify(this.sigMap));
+    } catch(e) {
+      lerr('_savePersistenceData: error: ' + e);
     }
-
-    var bucketsIDs = [];
-    for (var k in this.bucketsMap) {
-      if (!this.bucketsMap.hasOwnProperty(k)) {
-        continue;
-      }
-      var bucket = this.bucketsMap[k];
-      if (!bucket.isDirty() || bucket.isEmpty()) {
-        linfo('_savePersistenceData: skipping ' + k + ' bucket.isDirty(): ' +
-              bucket.isDirty() + ' - bucket.isEmpty(): ' + bucket.isEmpty());
-        continue;
-      }
-      // we will store it as a separated document
-      const docKey = this._getDBBucketKey(bucket.id);
-      if (localStorage) {
-        localStorage.setItem(docKey, JSON.stringify(bucket.toJSON()));
-        linfo('_savePersistenceData: ' + docKey + ' saved: ' + JSON.stringify(bucket.toJSON()));
-        bucketsIDs.push(docKey);
-      } else {
-        lerr('_savePersistenceData: ' + docKey + ' error: ' + err);
-      }
-    }
-
-    // we need to store all the buckets ids now
-    const dataToSave = {
-      all_keys: bucketsIDs
-    };
-
-    localStorage.setItem('all_fields', JSON.stringify(dataToSave));
-    linfo('_savePersistenceData: all fields: ' + JSON.stringify(dataToSave));
   }
 
   // load persistence data
@@ -372,95 +238,49 @@ export class SignalHandler {
     // for testing comment the following check
     if (OffersConfigs.DEBUG_MODE) {
       linfo('_loadPersistenceData: skipping the loading');
-      return;
+      return true;
     }
 
     linfo('_loadPersistenceData: loading local data');
     var localStorage = utils.getLocalStorage(DB_MAIN_FIELD);
     if (!localStorage) {
       lerr('_loadPersistenceData: error getting the main local storage: ' + DB_MAIN_FIELD);
-      return;
+      return false;
     }
 
     // if we are on debug mode we will reload everything from extension
-    var cache = localStorage.getItem('all_fields');
+    var cache = localStorage.getItem(DB_SIGMAP_KEY);
     if (!cache) {
       linfo('_loadPersistenceData: nothing to load from the data base');
-      return;
+      return true;
     }
 
-    // parse it and check the fields
-    const allFields = JSON.parse(cache);
-    if (!allFields || !allFields.all_keys) {
-      lerr('_loadPersistenceData: error parsing the data? or is null');
-      return;
+    try {
+      this.sigMap = JSON.parse(cache);
+    } catch(e) {
+      lerr('_loadPersistenceData: error parsing the DB: ' + cache);
+      this.sigMap = {};
+      return false;
     }
 
-    // we will delete all the current data here
-    delete this.bucketsMap;
-    this.bucketsMap = {};
-
-    // iterate and read all of them again
-    const prefixSize = DB_PREFIX.length;
-    for (var i = 0; i < allFields.all_keys.length; ++i) {
-      const keyName = allFields.all_keys[i];
-      cache = localStorage.getItem(keyName);
-      if (!cache) {
-        linfo('_loadPersistenceData: nothing to load from the data base for key ' + keyName);
-        continue;
+    // remove old signals and add all the keys that are not sync with the BE yet
+    const currentTS = Date.now();
+    Object.keys(this.sigMap).forEach((k) => {
+      const sigData = this.sigMap[k];
+      if (!sigData) {
+        return;
       }
-      // else we have so we construct one bucket
-      const bucketName = keyName.slice(prefixSize);
-      var bucket = new SignalBucket(bucketName)
-      bucket.fromJSON(JSON.parse(cache));
-
-      // if for some reason this bucket is empty we will just delete it from here
-      // TODO: OPTIMIZATION: maybe we can check if it is empty before creating it
-      if (bucket.isEmpty()) {
-        linfo('_loadPersistenceData: removing old empty bucket?: ' + bucketName +
-              ' - data: ' + cache);
-        continue;
+      const timeDiff = (currentTS - sigData.modified_ts) / 1000;
+      if (timeDiff >= OffersConfigs.SIGNALS_OFFERS_EXPIRATION_SECS) {
+        // remove this signal
+        linfo('removing signal: ' + k + ' - data: ' + JSON.stringify(sigData));
+        delete this.sigMap[k];
+        return;
       }
-
-      this.bucketsMap[bucketName] = bucket;
-      this._startTimer(bucketName, bucket.expireTimeSecs);
-
-      linfo('_loadPersistenceData: loaded bucket from storage: ' + bucketName +
-            ' with data: ' + cache);
-
-      // check if we need to process right now the bucket, if we load it maybe
-      // it is already expired so we send the signal right now
-      if (bucket.timeExpired()) {
-        this._sendBucketToBE(bucketName);
+      if (!sigData.be_sync) {
+        this._addSignalToBeSent(k);
       }
-    }
+    });
   }
-
-  // start / stop timers
-  _startTimer(bucketKeyName, ttsSecs = null) {
-    if (!bucketKeyName || !ttsSecs) {
-      lerr('_startTimer: invalid parameters.');
-      return;
-    }
-    this._stopTimer(bucketKeyName);
-    this.timersMap[bucketKeyName] = utils.setInterval(function () {
-      // here we need to process this particular bucket
-      if (!this._sendBucketToBE(bucketKeyName)) {
-        // remove this timer
-        this._stopTimer(bucketKeyName);
-      }
-    }.bind(this), ttsSecs * 1000);
-  }
-
-  _stopTimer(bucketKeyName) {
-    var bucketTimer = this.timersMap[bucketKeyName];
-    if (bucketTimer) {
-      utils.clearInterval(bucketTimer);
-      delete this.timersMap[bucketKeyName];
-    }
-  }
-
-
-
 
 }

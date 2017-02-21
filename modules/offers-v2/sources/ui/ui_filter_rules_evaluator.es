@@ -2,10 +2,10 @@
  * @brief Evaluate the filtering rules of a particular offer
  */
 
-import LoggingHandler from 'offers-v2/logging_handler';
-import OffersConfigs from 'offers-v2/offers_configs';
-import HistorySignalID from 'offers-v2/ui/ui_offers_history';
-import { UIOffersHistory } from 'offers-v2/ui/ui_offers_history';
+import LoggingHandler from '../logging_handler';
+import OffersConfigs from '../offers_configs';
+import HistorySignalID from './ui_offers_history';
+import { UIOffersHistory } from './ui_offers_history';
 
 
 

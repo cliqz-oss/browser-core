@@ -2,9 +2,9 @@
  * @brief Store all the information of the offers we need in this module
  */
 
-import { utils } from 'core/cliqz';
-import LoggingHandler from 'offers-v2/logging_handler';
-import OffersConfigs from 'offers-v2/offers_configs';
+import { utils } from '../../core/cliqz';
+import LoggingHandler from '../logging_handler';
+import OffersConfigs from '../offers_configs';
 
 
 

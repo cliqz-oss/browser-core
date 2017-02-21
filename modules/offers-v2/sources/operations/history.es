@@ -4,8 +4,7 @@ var ops = {};
 export default ops;
 
 
-
-ops['$history'] = function(args, eventLoop) {
+ops['$match_history'] = function(args, eventLoop, context) {
   return new Promise((resolve, reject) => {
     if(args.length < 2) {
       reject(new Error('invalid args'));
@@ -13,12 +12,38 @@ ops['$history'] = function(args, eventLoop) {
 
     var ts = timestamp();
 
-    resolve(eventLoop.environments.queryHistory(ts - args[0], ts - args[1]));
+    var start = args.shift();
+    var end = args.shift();
+    var patterns = args;
+
+    var numMatches = 0;
+
+    var history = eventLoop.historyIndex.queryHistory(ts - start, ts - end);
+    history.forEach(function(entry) {
+      for(var i = 0; i < patterns.length; i++) {
+        var re = eventLoop.regexpCache.getRegexp(patterns[i]);
+        if(re.exec(entry.url)) {
+          numMatches++;
+          break;
+        }
+      }
+    });
+
+    // add current url to history, if it matches same patterns
+    for(var i = 0; i < patterns.length; i++) {
+      var re = eventLoop.regexpCache.getRegexp(patterns[i]);
+      if(re.exec(context['#url'])) {
+        eventLoop.historyIndex.addUrl(context['#url'], context);
+        break;
+      }
+    }
+
+    resolve(numMatches);
   });
 };
 
 
-ops['$count_sessions'] = function(args, eventLoop) {
+ops['$count_history_sessions'] = function(args, eventLoop, context) {
   return new Promise((resolve, reject) => {
     if(args.length < 4) {
       reject(new Error('invalid args'));
@@ -29,41 +54,33 @@ ops['$count_sessions'] = function(args, eventLoop) {
     var ttl = args[2];
     var patterns = args[3];
 
-    var compiledPatterns = [];
-    patterns.forEach(function(pattern) {
-      compiledPatterns.push(new RegExp(pattern));
-    });
-
     var ts = timestamp();
     var lastMatchTimestamp = 0;
     var numSessions = 0;
-    var history = eventLoop.environment.queryHistory(ts - args[0], ts - args[1]);
+    var history = eventLoop.historyIndex.queryHistory(ts - start, ts - end);
     history.forEach(function(entry) {
-      compiledPatterns.forEach(function(pattern) {
-        if(pattern.exec(entry.url)) {
+      for(var i = 0; i < patterns.length; i++) {
+        var re = eventLoop.regexpCache.getRegexp(patterns[i]);
+        if(re.exec(entry.url)) {
           if(entry.timestamp - lastMatchTimestamp > ttl) {
             numSessions++;
           }
-          lastMatchTimestamp = entry.timestamp;
+          lastMatchTimestamp = entry.ts;
+          break;
         }
-      });
+      }
     });
 
-    resolve(numSessions);
-  });
-};
-
-
-ops['$active_since'] = function(args, eventLoop) {
-  return new Promise((resolve, reject) => {
-    if(args.length < 1) {
-      reject(new Error('invalid args'));
+    // add current url to history, if it matches same patterns
+    for(var i = 0; i < patterns.length; i++) {
+      var re = eventLoop.regexpCache.getRegexp(patterns[i]);
+      if(re.exec(context['#url'])) {
+        eventLoop.historyIndex.addUrl(context['#url'], context);
+        break;
+      }
     }
 
-    var ts = timestamp();
-    var history = eventLoop.environment.queryHistory(ts - args[0], ts);
-
-    resolve(history.length > 0);
+    resolve(numSessions);
   });
 };
 

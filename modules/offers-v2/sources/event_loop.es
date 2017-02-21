@@ -3,8 +3,10 @@
 // - dependent triggers are only requestsed only when ALL previous dep triggers expire
 
 import TriggerCache from './trigger_cache'
+import RegexpCache from './regexp_cache'
 import OperationExecutor from './operation_executor'
 import TriggerMachine from './trigger_machine'
+import HistoryIndex from './history_index'
 
 
 export default class EventLoop {
@@ -15,8 +17,10 @@ export default class EventLoop {
     // initialize
     self.environment = environment;
     self.triggerCache = new TriggerCache(this);
+    self.regexpCache = new RegexpCache(this);
     self.operationExecutor = new OperationExecutor(this);
     self.triggerMachine = new TriggerMachine(this);
+    self.historyIndex = new HistoryIndex(this);
 
     self.environment.onUrlChange((url) => {
       if(!url) {

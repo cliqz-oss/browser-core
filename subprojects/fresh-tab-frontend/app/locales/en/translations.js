@@ -73,7 +73,9 @@ export default {
     "txt-email-refresh": "Refresh notifications",
     "hdr-video-downloader": "Download YouTube Videos",
     "txt-video-downloader": "You asked, we listened: you can now easily download YouTube videos to your computer. Just go to a video page on youtube.com and click on the icon that appears in the browser bar.",
-    "cta-video-downloader": "Learn more..."
+    "cta-video-downloader": "Learn more...",
+    "txt-cliqz-ghostery": "WE'VE JOINED FORCES WITH GHOSTERY",
+    "cta-learn-more": "READ ALL ABOUT IT"
   },
   title: 'New Tab',
 };

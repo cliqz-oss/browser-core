@@ -1,8 +1,8 @@
-import { utils, events } from 'core/cliqz';
-import LoggingHandler from 'offers-v2/logging_handler';
-import OffersConfigs from 'offers-v2/offers_configs';
-import { forEachWindow } from 'platform/browser';
-import { queryActiveTabs } from 'core/tabs';
+import { utils, events } from '../../core/cliqz';
+import LoggingHandler from '../logging_handler';
+import OffersConfigs from '../offers_configs';
+import { forEachWindow } from '../../platform/browser';
+import { queryActiveTabs } from '../../core/tabs';
 
 
 // TODO: remove all not needed logs
@@ -68,11 +68,20 @@ export class UIDisplayManager {
     //
     this.eventHandler.subscribeUrlChange(this._onLocationChange.bind(this));
     this.eventHandler.subscribeTabSelChange(this._onTabSelectionChanged.bind(this));
+
+    // #EX-3958 we need to get a particular case here, for when the user go
+    //          to page that is not an url, for example, freshtab / about:addons
+    //          or whatever, any of the other triggers are being executed, hence
+    //          we need to use the content:state-change event
+    this._onContentStateChanged = this._onContentStateChanged.bind(this);
+    events.sub('content:state-change', this._onContentStateChanged);
   }
 
   destroy() {
     this.eventHandler.unsubscribeUrlChange(this._onLocationChange.bind(this));
     this.eventHandler.unsubscribeTabSelChange(this._onTabSelectionChanged.bind(this));
+
+    events.un_sub('content:state-change', this._onContentStateChanged);
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -603,6 +612,21 @@ export class UIDisplayManager {
     // remove the offer here to not be shown anymore and also send a signal
     this._emitSignal(SignalType.OFFER_DISPLAY_TIMEOUT, offerID, {});
     this.removeOffer(offerID);
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  _onContentStateChanged({ url, originalUrl, triggeringUrl }) {
+    try {
+      if (!url || url.indexOf('file://') < 0) {
+        // nothing to do, is not an internal page
+        return;
+      }
+      // else we will refresh the current page / tab
+      linfo('_onContentStateChanged: we are on a local page?');
+      this._showOrHideOfferOnActiveTabs();
+    } catch (e) {
+      lerr('_onContentStateChanged: something bad happened here... ' + e);
+    }
   }
 
 }

@@ -73,7 +73,9 @@ export default {
     "txt-email-refresh": "Benachrichtigungen aktualisieren",
     "hdr-video-downloader": "YouTube Videos herunterladen",
     "txt-video-downloader": "Dank der großen Nachfrage: ab sofort kannst du ganz einfach YouTube Videos auf deinen Computer herunterladen. Auf YouTube Videoseiten musst du dazu nur auf das Symbol klicken, das oben in der Browserleiste erscheint.",
-    "cta-video-downloader": "Mehr erfahren..."
+    "cta-video-downloader": "Mehr erfahren...",
+    "txt-cliqz-ghostery": "WIR VERBÜNDEN UNS MIT GHOSTERY",
+    "cta-learn-more": "LIES MEHR DARÜBER"
   },
   title: 'Neuer Tab',
 };

@@ -272,12 +272,12 @@ var UI = {
       const url = imgPlaceHolder.getAttribute('url');
       const uri = CliqzUtils.makeUri(url);
       if (PlacesUtils.bookmarks.isBookmarked(uri)) {
-        imgPlaceHolder.setAttribute('src', 'https://cdn.cliqz.com/extension/core/icons/bookmark_cliqz.svg')
+        imgPlaceHolder.setAttribute('src', 'chrome://cliqz/content/static/skin/simple-ui/bookmark.svg')
       }
       else {
         PlacesUtils.asyncHistory.isURIVisited(uri, function(aURI, isVisited) {
           if (isVisited) {
-            imgPlaceHolder.setAttribute('src', 'https://cdn.cliqz.com/extension/core/icons/history_cliqz.svg');
+            imgPlaceHolder.setAttribute('src', 'chrome://cliqz/content/static/skin/simple-ui/history.svg');
           }
         });
       }
@@ -987,10 +987,10 @@ function enhanceResults(res){
           r.data.template = r.template;
         }
         if (r.type.indexOf('bookmark') >= 0) {
-          r.data.resultIcon = 'https://cdn.cliqz.com/extension/core/icons/bookmark_cliqz.svg';
+          r.data.resultIcon = 'chrome://cliqz/content/static/skin/simple-ui/bookmark.svg';
           r.title = r.data.title || r.title;
         } else if (r.type.indexOf('favicon') >= 0) {
-          r.data.resultIcon = 'https://cdn.cliqz.com/extension/core/icons/history_cliqz.svg';
+          r.data.resultIcon = 'chrome://cliqz/content/static/skin/simple-ui/history.svg';
           r.title = r.data.title || r.title;
         } else if (r.data.template == 'news') {
           r.data.resultIcon = 'https://cdn.cliqz.com/extension/core/icons/news_cliqz.svg';

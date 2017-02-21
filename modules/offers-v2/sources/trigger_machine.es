@@ -1,16 +1,17 @@
-
+import config from '../core/config';
 
 export default class TriggerMachine {
   constructor(eventLoop) {
     this.eventLoop = eventLoop;
 
+    this.triggersRoot = config.settings['triggers-root'] || 'root';
     this.rootTrigger = {
       parent_trigger_ids: [],
-      trigger_id: 'root',
+      trigger_id: this.triggersRoot,
       ttl: 3600,
       condition: null,
       actions: [
-        ["$activate_subtriggers", ["root"]]
+        ["$activate_subtriggers", [this.triggersRoot]]
       ]
     };
   }
@@ -21,7 +22,7 @@ export default class TriggerMachine {
 
     // if root trigger has expired, add it again.
     // This is needed to reload subtriggers
-    if(!self.eventLoop.triggerCache.getTrigger('root')) {
+    if(!self.eventLoop.triggerCache.getTrigger(this.triggersRoot)) {
       self.eventLoop.triggerCache.addTrigger(self.rootTrigger);
     }
 

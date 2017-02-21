@@ -1,3 +1,5 @@
+import { isChromium } from '../core/platform';
+
 var OffersConfigs = {
 
   //////////////////////////////////////////////////////////////////////////////
@@ -29,9 +31,14 @@ var OffersConfigs = {
   LOAD_OFFERS_HISTORY_DATA: true,
   // this will clear the current saved that
   CLEAR_OFFERS_HISTORY_DATA: false,
-  OFFERS_HISTORY_DATA: 'chrome://cliqz/content/offers-v2/offers_history.json',
+  OFFERS_HISTORY_DATA: isChromium ? undefined : 'chrome://cliqz/content/offers-v2/offers_history.json',
   // the time we want to track the signals after they were created
   OFFERS_HISTORY_LIVE_TIME_SECS: 60 * 60 * 24 * 60,
+
+  // trigger specific browser history
+  LOAD_TRIGGERS_HISTORY_DATA: true,
+  TRIGGER_HISTORY_DATA: isChromium ? undefined : 'chrome://cliqz/content/offers-v2/trigger_history.json',
+
 
   //////////////////////////////////////////////////////////////////////////////
   // SIGNALS
@@ -39,10 +46,11 @@ var OffersConfigs = {
   // how often we want to send the signals related with the offers to the BE
   // one hour
   SIGNALS_OFFERS_FREQ_SECS: 60 * 60,
-  SIGNALS_OFFERS_BUCKET_NAME: 'sig-offers',
-  SIGNALS_TRIGGERS_BUCKET_NAME: 'sig-triggers',
   SIGNALS_HPN_BE_ADDR: 'https://offers-api.cliqz.com/api/v1/savesignal',
   SIGNALS_HPN_BE_ACTION: 'offers-signal',
+  // the time we want to keep the signals (accumulating) from the last time
+  // the signal was modified (#GR-298)
+  SIGNALS_OFFERS_EXPIRATION_SECS: 60 * 60 * 24 * 60, //60 days?
 
   //////////////////////////////////////////////////////////////////////////////
   // CONFIG / DEBUG variables

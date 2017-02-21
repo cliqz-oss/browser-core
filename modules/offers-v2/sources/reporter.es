@@ -8,10 +8,10 @@
 */
 
 
-import { utils } from 'core/cliqz';
-import { readFile } from 'core/fs';
-import CliqzHistoryManager from 'core/history-manager'
-import LoggingHandler from 'offers-v2/logging_handler';
+import { utils } from '../core/cliqz';
+import { readFile } from '../core/fs';
+import CliqzHistoryManager from '../core/history-manager'
+import LoggingHandler from './logging_handler';
 
 const MODULE_NAME = 'reporter';
 

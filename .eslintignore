@@ -225,6 +225,7 @@ modules/offers-v2/environments/empty_environment.es
 modules/offers-v2/environments/extension_environment.es
 modules/offers-v2/event_handler.es
 modules/offers-v2/event_loop.es
+modules/offers-v2/history_index.es
 modules/offers-v2/logging_handler.es
 modules/offers-v2/offers_configs.es
 modules/offers-v2/operation_executor.es
@@ -233,6 +234,7 @@ modules/offers-v2/operations/display.es
 modules/offers-v2/operations/history.es
 modules/offers-v2/operations/signal.es
 modules/offers-v2/operations/trigger.es
+modules/offers-v2/regexp_cache.es
 modules/offers-v2/reporter.es
 modules/offers-v2/signals_handler.es
 modules/offers-v2/tests/unit/environments/test_environment.es

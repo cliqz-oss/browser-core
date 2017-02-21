@@ -72,7 +72,9 @@ export default {
     "txt-email-refresh": "Actualiser les notifications",
     "hdr-video-downloader": "Télécharger des vidéos de Youtube",
     "txt-video-downloader": "À la grande demande de nos utilisateurs, tu peux maintenant télécharger des vidéos YouTube sur ton ordinateur. Vas simplement sur une vidéo sur youtube.com et clique sur l'icône qui apparaîtra dans la barre de navigation.",
-    "cta-video-downloader": "En savoir plus..."
+    "cta-video-downloader": "En savoir plus...",
+    "txt-cliqz-ghostery": "GHOSTERY REJOINT NOS RANGS",
+    "cta-learn-more": "EN APPRENDRE PLUS"
   },
   title: 'Nouvel onglet',
 };

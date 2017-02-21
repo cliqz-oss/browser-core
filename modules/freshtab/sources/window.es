@@ -1,6 +1,6 @@
 import FreshTab from './main';
 import prefs from '../core/prefs';
-import utils from '../core/utils';
+import { utils, events } from '../core/cliqz';
 
 function clearUrlbar(window) {
   const currentUrl = window.gBrowser.selectedBrowser.currentURI.spec;
@@ -23,6 +23,8 @@ function clearUrlbar(window) {
     }
   });
 }
+const DISMISSED_ALERTS = 'dismissedAlerts';
+
 
 /**
 * @namespace freshtab
@@ -44,6 +46,9 @@ export default class {
   */
   init() {
     clearUrlbar(this.window);
+    utils.setTimeout(() => {
+      this.showOnboarding();
+    }, 2000);
   }
 
   unload() {}
@@ -53,5 +58,24 @@ export default class {
       visible: true,
       enabled: FreshTab.isActive(),
     };
+  }
+
+  showOnboarding() {
+    const locale = utils.getPref('general.useragent.locale', 'en', '');
+    const isInABTest = utils.getPref('extOnboardCliqzGhostery', false);
+    const dismissed = JSON.parse(utils.getPref(DISMISSED_ALERTS, '{}'));
+    const messageType = 'cliqz-ghostery';
+    const isDismissed = (dismissed[messageType] && dismissed[messageType].count >= 1) || false;
+
+    if (isInABTest && (locale !== 'fr') && !isDismissed) {
+      events.pub(
+        'msg_center:show_message',
+        {
+          id: 'cliqz-ghostery',
+          template: 'cliqz-ghostery',
+        },
+        'MESSAGE_HANDLER_FRESHTAB',
+      );
+    }
   }
 }

@@ -125,6 +125,8 @@ body.freshTabContainer {
   width: 100%;
   padding: 20px;
   letter-spacing: 1px;
+  display: flex;
+  justify-content: center;
 
   .notificationsCon {
     width: 100%;
@@ -150,6 +152,24 @@ body.freshTabContainer {
     float: left;
     margin-left: -40px;
     cursor: default !important;
+  }
+
+  .ghosteryDismiss {
+    top: 23px;
+  }
+
+  .ghostery {
+    margin-top: -20px;
+    margin-bottom: 0;
+
+    img {
+      position:relative;
+      top: 10px;
+    }
+
+    a {
+      text-decoration: none;
+    }
   }
 
   .text {

@@ -1,8 +1,7 @@
-import LoggingHandler from 'offers-v2/logging_handler';
+import LoggingHandler from '../logging_handler';
 import EmptyEnvironment from './empty_environment'
-import OffersConfigs from 'offers-v2/offers_configs';
-import HistorySignalID from 'offers-v2/ui/ui_offers_history';
-
+import OffersConfigs from '../offers_configs';
+import HistorySignalID from '../ui/ui_offers_history';
 
 const MODULE_NAME = 'extension_environment';
 
@@ -83,7 +82,11 @@ export default class ExtensionEnvironment extends EmptyEnvironment {
   }
 
   hasOffer(offerId) {
-    return this.uiOfferProcessor.hasOffer(offerId);
+    if (this.uiOfferProcessor) {
+      return this.uiOfferProcessor.hasOffer(offerId);
+    } else {
+      return false;
+    }
   }
 
   getOfferLastUpdate(offerId, signal) {
@@ -115,17 +118,6 @@ export default class ExtensionEnvironment extends EmptyEnvironment {
       }
     }
 
-    // check if we have the associated bucket, if not we create one
-    var bucketInfo = this.signalHandler.getBucketInfo(OffersConfigs.SIGNALS_TRIGGERS_BUCKET_NAME);
-    if (!bucketInfo) {
-      const config = {
-        tts_secs: OffersConfigs.SIGNALS_OFFERS_FREQ_SECS,
-      }
-      if (!this.signalHandler.createBucket(OffersConfigs.SIGNALS_TRIGGERS_BUCKET_NAME, config)) {
-        // TODO: handle error here?
-        return;
-      }
-    }
     // TODO: check if we need to update the bucket (remove old and create a new one)
     //       this may delete all the current data => create a method to update
     //       the configuration of the bucket only then.
@@ -134,7 +126,7 @@ export default class ExtensionEnvironment extends EmptyEnvironment {
       return;
     }
     // get the offer related info
-    var signal = this.signalHandler.getSignal(OffersConfigs.SIGNALS_TRIGGERS_BUCKET_NAME, signalId);
+    var signal = this.signalHandler.getSignalData(signalId);
     if (!signal) {
       signal = {};
     }
@@ -143,6 +135,6 @@ export default class ExtensionEnvironment extends EmptyEnvironment {
     addOrCreate(signal, key, 1);
 
     // set it back to the sig handler
-    this.signalHandler.addSignal(OffersConfigs.SIGNALS_TRIGGERS_BUCKET_NAME, signalId, signal);
+    this.signalHandler.setSignalData(signalId, signal);
   }
 }

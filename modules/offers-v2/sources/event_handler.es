@@ -5,9 +5,9 @@ way for the offers module.
 
 */
 
-import LoggingHandler from 'offers-v2/logging_handler';
-import { utils, events } from 'core/cliqz';
-import WebRequest from 'core/webrequest';
+import LoggingHandler from './logging_handler';
+import { utils, events } from '../core/cliqz';
+import WebRequest from '../core/webrequest';
 
 ////////////////////////////////////////////////////////////////////////////////
 // Consts
@@ -191,11 +191,12 @@ export class EventHandler {
     //
     LoggingHandler.LOG_ENABLED &&
     LoggingHandler.info(MODULE_NAME, 'new event with location: ' + data.url + ' - referrer: ' + data.referrer);
-    if (data.flags === Components.interfaces.nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT) {
+    if (data.isSameDocument) {
       LoggingHandler.LOG_ENABLED &&
       LoggingHandler.info(MODULE_NAME, 'discarding event since it is repeated');
       return;
     }
+
     // else we emit the event here
     this.onLocationChangeHandler(data.url, data.referrer);
   }
