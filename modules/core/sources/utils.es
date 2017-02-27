@@ -1,8 +1,12 @@
-import CLIQZEnvironment from "platform/environment";
-import console from "core/console";
-import prefs from "core/prefs";
-import Storage from "core/storage";
-//import CliqzLanguage from "platform/language";
+import System from "system";
+import CLIQZEnvironment from "../platform/environment";
+import console from "./console";
+import prefs from "./prefs";
+import Storage from "./storage";
+import CliqzEvents from './events';
+import { TLDs } from "./tlds";
+import { httpHandler, promiseHttpHandler } from './http';
+import { isUrl } from './url';
 
 var CliqzLanguage;
 
@@ -474,20 +478,7 @@ var CliqzUtils = {
     }
     return str;
   },
-  _isUrlRegExp: /^(([a-z\d]([a-z\d-]*[a-z\d]))\.)+[a-z]{2,}(\:\d+)?$/i,
-  isUrl: function(input){
-    //step 1 remove eventual protocol
-    var protocolPos = input.indexOf('://');
-    if(protocolPos != -1 && protocolPos <= 6){
-      input = input.slice(protocolPos+3)
-    }
-    //step2 remove path & everything after
-    input = input.split('/')[0];
-    //step3 run the regex
-    return CliqzUtils._isUrlRegExp.test(input);
-  },
-
-
+  isUrl,
   // Chechks if the given string is a valid IPv4 addres
   isIPv4: function(input) {
     var ipv4_part = "0*([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])"; // numbers 0 - 255

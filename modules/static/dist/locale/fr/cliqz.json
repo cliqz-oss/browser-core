@@ -212,8 +212,14 @@
     "searchUsing":{
         "message":"Rechercher avec"
     },
+    "searchWith": {
+        "message":"Rechercher avec $1"
+    },
     "on":{
-        "message":"sur"
+        "message":"avec"
+    },
+    "visit":  {
+        "message":"Visiter"
     },
     "peoplePositionAt":{
         "message":"à"

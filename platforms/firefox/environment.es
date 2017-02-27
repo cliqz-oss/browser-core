@@ -520,7 +520,7 @@ var CLIQZEnvironment = {
             });
         }
     })(),
-    getNoResults: function() {
+    getNoResults: function(q, dropDownStyle) {
       var se = [// default
               {"name": "DuckDuckGo", "base_url": "https://duckduckgo.com"},
               {"name": "Bing", "base_url": "https://www.bing.com/search?q=&pc=MOZI"},
@@ -528,7 +528,8 @@ var CLIQZEnvironment = {
               {"name": "Google Images", "base_url": "https://images.google.de/"},
               {"name": "Google Maps", "base_url": "https://maps.google.de/"}
           ],
-          chosen = new Array();
+          chosen = new Array(),
+          isUrl = CliqzUtils.isUrl(q);
 
       var engines = CLIQZEnvironment.CliqzResultProviders.getSearchEngines(),
           defaultName = engines[0].name;
@@ -551,22 +552,30 @@ var CLIQZEnvironment = {
 
 
       return CLIQZEnvironment.Result.cliqz(
-              {
-                  template:'noResult',
-                  snippet:
-                  {
-                      text_line1: CLIQZEnvironment.getLocalizedString('noResultTitle'),
-                      // forwarding the query to the default search engine is not handled by CLIQZ but by Firefox
-                      // we should take care of this specific case differently on alternative platforms
-                      text_line2: CLIQZEnvironment.getLocalizedString('noResultMessage', defaultName),
-                      "search_engines": chosen,
-                      //use local image in case of no internet connection
-                      "cliqz_logo": CLIQZEnvironment.SKIN_PATH + "img/cliqz.svg"
-                  },
-                  type: 'rh',
-                  subType: {empty:true}
-              }
-          )
+        {
+          template:'noResult',
+          snippet:
+          {
+            text_line1: CLIQZEnvironment.getLocalizedString('noResultTitle'),
+            // forwarding the query to the default search engine is not handled by CLIQZ but by Firefox
+            // we should take care of this specific case differently on alternative platforms
+            text_line2: isUrl ? CLIQZEnvironment.getLocalizedString('noResultUrlSearch') : CLIQZEnvironment.getLocalizedString('noResultMessage', defaultName),
+            "search_engines": chosen,
+            //use local image in case of no internet connection
+            "cliqz_logo": CLIQZEnvironment.SKIN_PATH + "img/cliqz.svg",
+          },
+          type: 'rh',
+          subType: {empty:true}
+        },
+        q
+      );
+      if(dropDownStyle && dropDownStyle !== 'cliqzilla'){
+        const engine = this.getDefaultSearchEngine();
+        res.val = engine.getSubmissionForQuery(q);
+        res.label = CLIQZEnvironment.getLocalizedString('searchOn', engine.name);
+        res.text = res.comment = q;
+      }
+      return res;
     }
 }
 function urlbar(){

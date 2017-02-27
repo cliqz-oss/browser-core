@@ -5,6 +5,164 @@ import CliqzEvents from "core/events";
 import SearchHistory from "./search-history";
 import { addStylesheet, removeStylesheet } from "../core/helpers/stylesheet";
 import System from 'system';
+import placesUtils from 'platform/places-utils';
+import console from '../core/console';
+import prefs from '../core/prefs';
+
+const SEARCH_BAR_ID = 'search-container';
+const dontHideSearchBar = 'dontHideSearchBar';
+// toolbar
+const searchBarPosition = 'defaultSearchBarPosition';
+// next element in the toolbar
+const searchBarPositionNext = 'defaultSearchBarPositionNext';
+
+function restoreSearchBar(win) {
+  const toolbarId = utils.getPref(searchBarPosition, '');
+  utils.setPref(dontHideSearchBar, false);
+  if (toolbarId) {
+    const toolbar = win.document.getElementById(toolbarId);
+    if (toolbar) {
+      if (toolbar.currentSet.indexOf(SEARCH_BAR_ID) === -1) {
+        const next = utils.getPref(searchBarPositionNext, '');
+        if (next) {
+          const set = toolbar.currentSet.split(',');
+          const idx = set.indexOf(next);
+
+          if (idx !== -1) {
+            set.splice(idx, 0, SEARCH_BAR_ID);
+          } else {
+            set.push(SEARCH_BAR_ID);
+          }
+
+          toolbar.currentSet = set.join(',');
+        } else {
+          // no next element, append it to the end
+          toolbar.currentSet += `,${SEARCH_BAR_ID}`;
+        }
+      } else {
+        // the user made it visible
+        utils.setPref(dontHideSearchBar, true);
+      }
+    }
+  }
+}
+
+function getPopupDimensions(urlbar, win) {
+  var urlbarRect = urlbar.getBoundingClientRect();
+  // x,y are the distance from the topleft of the popup to urlbar.
+  // This function is also used when calculating mouse position on click event (in UI.js).
+  // If you change something here, please make sure this calculation also works as expected.
+  if ((utils.dropDownStyle === 'simple') || (utils.dropDownStyle === 'cliqzilla')) {
+    return {
+      width: win.innerWidth,
+      x: -1 * (urlbarRect.left || urlbarRect.x || 0),
+      y: 0
+    }
+  } else {
+    return {
+      width: Math.max(urlbarRect.width || 0, 500),
+      x: 0,
+      y: 0
+    }
+  }
+}
+
+function tryHideSearchBar(win){
+  function getCurrentset(toolbar) {
+    return (toolbar.getAttribute("currentset") ||
+      toolbar.getAttribute("defaultset")).split(",");
+  }
+
+  function $(sel, all){
+    return win.document[all ? "querySelectorAll" : "getElementById"](sel);
+  }
+
+  if (prefs.get(dontHideSearchBar, false)) {
+    return;
+  }
+  try {
+    let toolbar, currentset, idx, next, toolbarID,
+      toolbars = $("toolbar", true);
+
+    for (let i = 0; i < toolbars.length; ++i) {
+      let tb = toolbars[i];
+      currentset = getCurrentset(tb);
+      idx = currentset.indexOf(SEARCH_BAR_ID);
+      if (idx != -1) {
+        //store exact position
+        if(currentset.length > idx+1)next = currentset[idx+1];
+
+        currentset.splice(idx, 1);
+        currentset = currentset.join(",");
+        tb.currentSet = currentset;
+        tb.setAttribute("currentset", currentset);
+        win.document.persist(tb.id, "currentset");
+
+        toolbarID = tb.id;
+        break;
+      }
+    }
+
+    if(toolbarID){
+      prefs.set(searchBarPosition, toolbarID);
+    }
+
+    if(next){
+      prefs.set(searchBarPositionNext, next);
+    }
+
+    prefs.set(dontHideSearchBar, true);
+  } catch(e){
+    console.log(e, 'Search bar hiding failed!');
+  }
+}
+
+function patchFFPopup(popup) {
+  // The FF popup has a bug that causes misalignment of elements with cliqz results
+  // (or any provider that needs to render results more than once per query).
+  popup.__appendCurrentResult = popup._appendCurrentResult.bind(popup);
+  popup._appendCurrentResult = (invalidationReason) => {
+    popup.__appendCurrentResult(invalidationReason);
+
+    for (let i = 0; i < popup._matchCount; i++) {
+      var item = popup.richlistbox.childNodes[i];
+      // Original implementation fails to reference the right item when adjusting the position of the results
+      // https://github.com/mozilla/gecko-dev/blob/master/toolkit/content/widgets/autocomplete.xml#L1377
+      setTimeout((item) => {
+        let changed = item.adjustSiteIconStart(this._siteIconStart);
+        if (changed) {
+          item.handleOverUnderflow();
+        }
+      }, 0, item);
+    }
+
+    const firstUIResult = popup.richlistbox.childNodes[0];
+    const firstResult = {
+      url: null,
+      title: null,
+    };
+
+    if (firstUIResult) {
+      firstResult.url = firstUIResult.getAttribute('url');
+      firstResult.title = firstUIResult.getAttribute('title');
+    }
+
+    if(firstResult && firstResult.url){
+      this.autocompleteQuery(
+        utils.cleanMozillaActions(firstResult.url)[1],
+        firstResult.title
+      );
+    }
+  };
+}
+
+function unPatchFFPopup(popup) {
+  // remove the patch at unload
+  if(popup.__appendCurrentResult !== undefined){
+    popup._appendCurrentResult = popup.__appendCurrentResult;
+    delete popup.__appendCurrentResult;
+  }
+}
 
 function initPopup(popup, urlbar, win) {
   //patch this method to avoid any caching FF might do for components.xml
@@ -24,11 +182,20 @@ function initPopup(popup, urlbar, win) {
     if (!autocomplete.isPopupOpen) {
       this.mInput = aInput;
       this._invalidate();
-      setPopupWidth(this, aElement);
+      let popupDimensions = getPopupDimensions(aElement, win);
+      let attachToElement = aElement;
 
-      // 0,0 is the distance from the topleft of the popup to aElement (the urlbar).
-      // If these values change, please adjust how mouse position is calculated for click event (in telemetry signal)
-      this.openPopup(aElement, "after_start", 0, 0 , false, true);
+      if ((utils.dropDownStyle === 'simple') || (utils.dropDownStyle === 'cliqzilla')) {
+        attachToElement = win.document.querySelector('#urlbar-container');
+        popupDimensions = Object.assign(popupDimensions, {
+          x: 0,
+          y: 0,
+        });
+      }
+
+      this.setAttribute("width", popupDimensions.width);
+      win.document.getElementById('cliqz-popup').style.width = `${popupDimensions.width}px`;
+      this.openPopup(attachToElement, "after_start", popupDimensions.x, popupDimensions.y, false, true);
     }
   }.bind(popup);
 
@@ -56,10 +223,28 @@ export default class {
     this.elems = [];
     this.settings = settings.settings;
     this.window = settings.window;
+    this.urlbar = this.window.document.getElementById('urlbar');
     this.urlbarGoClick = this.urlbarGoClick.bind(this);
     this.hidePopup = this.hidePopup.bind(this);
     this.initialized = false;
-
+    this.actions = {
+      setUrlbarValue: (value, visibleValue) => {
+        this.urlbar.value = value;
+        this.urlbar.mInputField.value = visibleValue || value;
+      },
+      updatePopupStyle: () => {
+        if (!this.popup) {
+          return;
+        }
+        const style = utils.dropDownStyle;
+        const minHeight = style === 'simple' ? '0px' : null;
+        this.popup.style.minHeight = minHeight;
+        if (this.popup.cliqzBox) {
+          this.window.CLIQZ.UI.main(this.popup.cliqzBox);
+        }
+      },
+      updateUrlBar: () => { this.reloadUrlbar(this.urlbar); }
+    },
     this.urlbarEventHandlers = {}
     Object.keys(urlbarEventHandlers).forEach( ev => {
       this.urlbarEventHandlers[ev] = urlbarEventHandlers[ev].bind(this)
@@ -78,36 +263,64 @@ export default class {
     // do not initialize the UI if the user decided to turn off search
     if(utils.getPref("cliqz_core_disabled", false)) return;
 
-    Services.scriptloader.loadSubScript(System.baseURL + 'ui/UI.js', this.window);
-    this.window.CLIQZ.UI.preinit(autocomplete, CliqzHandlebars, CliqzEvents);
-    Services.scriptloader.loadSubScript(System.baseURL + 'ui/ContextMenu.js', this.window);
+    utils.dropDownStyle = prefs.get('dropDownStyle', '');
+
+    console.log("UI window init");
+
     //create a new panel for cliqz to avoid inconsistencies at FF startup
-    var document = this.window.document,
-        popup = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "panel");
+    var document = this.window.document;
+
+    tryHideSearchBar(this.window);
 
     addStylesheet(this.window.document, STYLESHEET_URL);
-    popup.setAttribute("type", 'autocomplete-richlistbox');
-    popup.setAttribute("noautofocus", 'true');
-    popup.setAttribute("id", 'PopupAutoCompleteRichResultCliqz');
-    this.elems.push(popup);
-    document.getElementById('PopupAutoCompleteRichResult').parentElement.appendChild(popup);
 
-    this.urlbar = document.getElementById('urlbar');
+    this.applyAdditionalThemeStyles(this.urlbar);
 
-    this.popup = popup;
 
-    this.urlbarPrefs = Components.classes['@mozilla.org/preferences-service;1']
-        .getService(Components.interfaces.nsIPrefService).getBranch('browser.urlbar.');
+    let loadingPromise;
+    //create a new panel for cliqz to avoid inconsistencies at FF startup
+    if (false) {
+      Services.scriptloader.loadSubScript(System.baseURL + 'ui/UI.js', this.window);
+      this.window.CLIQZ.UI.preinit(autocomplete, CliqzHandlebars, CliqzEvents, System, placesUtils);
+      this.window.CLIQZ.UI.getPopupDimensions = getPopupDimensions;
+      Services.scriptloader.loadSubScript(System.baseURL + 'ui/ContextMenu.js', this.window);
+      loadingPromise = Promise.resolve();
+    } else {
+      loadingPromise = new Promise((resolve) => {
+        let counter = 0;
+        const tryLoad = () => {
+          utils.setTimeout(() => {
+            if (counter > 20) {
+              console.error('we tried, but it did not work');
+              return;
+            }
 
+            if (this.window.CLIQZ.Core.windowModules.dropdown) {
+              this.window.CLIQZ.Core.windowModules.dropdown.actions.init();
+              resolve();
+            } else {
+              counter += 1;
+              tryLoad();
+            }
+          }, 100);
+        };
+
+        if (this.window.CLIQZ.Core.windowModules.dropdown) {
+          this.window.CLIQZ.Core.windowModules.dropdown.actions.init();
+          resolve();
+        } else {
+          tryLoad();
+        }
+      });
+    }
+
+    loadingPromise.then(() => {
 
     this.window.CLIQZ.Core.urlbar = this.urlbar;
-    this.window.CLIQZ.Core.popup = this.popup;
     this.window.CLIQZ.settings = this.settings;
 
-    initPopup(this.popup, this.urlbar, this.window);
     CliqzEvents.sub('ui:popup_hide', this.hidePopup);
-    this.window.CLIQZ.UI.init(this.urlbar);
-    this.window.CLIQZ.UI.window = this;
+
     this.window.CLIQZ.UI.autocompleteQuery = this.autocompleteQuery.bind(this);
 
     this._autocompletesearch = this.urlbar.getAttribute('autocompletesearch');
@@ -117,54 +330,85 @@ export default class {
     this._autocompletepopup = this.urlbar.getAttribute('autocompletepopup');
     this.urlbar.setAttribute('autocompletepopup', /*'PopupAutoComplete'*/ 'PopupAutoCompleteRichResultCliqz');
 
-    // Some versions of Firefox 52+ fail to update to the correct popup ref
-    // The fix landed in Aurora an nightly mid december 2016
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=1323600
-    // we should keep this workaround for a short while to be sure we are
-    // not breaking any versions
-    if(this.urlbar._popup === undefined){
-      this._originalFFpopup = this.urlbar.popup;
-      this.urlbar.popup = this.popup;
-    }
-
     var urlBarGo = document.getElementById('urlbar-go-button');
     this._urlbarGoButtonClick = urlBarGo.getAttribute('onclick');
     //we somehow break default FF -> on goclick the autocomplete doesnt get considered
-    urlBarGo.setAttribute('onclick', "CLIQZ.UI.window.urlbarGoClick(); " + this._urlbarGoButtonClick);
+    urlBarGo.setAttribute('onclick', "CLIQZ.Core.windowModules.ui.urlbarGoClick(); " + this._urlbarGoButtonClick);
 
-    this.popup.addEventListener('popuphiding', this.popupEventHandlers.popupClose);
-    this.popup.addEventListener('popupshowing', this.popupEventHandlers.popupOpen);
+    if (utils.dropDownStyle !== 'ff') {
+      var popup = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "panel");
+      this.popup = popup;
+      this.window.CLIQZ.Core.popup = this.popup;
+      popup.setAttribute("type", 'autocomplete-richlistbox');
+      popup.setAttribute("noautofocus", 'true');
+      popup.setAttribute("id", 'PopupAutoCompleteRichResultCliqz');
+      this.elems.push(popup);
+      document.getElementById('PopupAutoCompleteRichResult').parentElement.appendChild(popup);
+      initPopup(this.popup, this.urlbar, this.window);
 
-    Object.keys(this.urlbarEventHandlers).forEach(function(ev) {
-      this.urlbar.addEventListener(ev, this.urlbarEventHandlers[ev]);
+      this.window.CLIQZ.UI.init(this.urlbar);
 
-    }.bind(this));
+      this._autocompletepopup = this.urlbar.getAttribute('autocompletepopup');
+      this.urlbar.setAttribute('autocompletepopup', /*'PopupAutoComplete'*/ 'PopupAutoCompleteRichResultCliqz');
 
-    //mock default FF function
-    this.popup.enableOneOffSearches = function() {}
+      this.popup.addEventListener('popuphiding', this.popupEventHandlers.popupClose);
+      this.popup.addEventListener('popupshowing', this.popupEventHandlers.popupOpen);
 
-    this.reloadUrlbar(this.urlbar);
+      Object.keys(this.urlbarEventHandlers).forEach(function(ev) {
+        this.urlbar.addEventListener(ev, this.urlbarEventHandlers[ev]);
+      }.bind(this));
 
-    // Add search history dropdown
-    var searchHistoryContainer = SearchHistory.insertBeforeElement(this.window);
-    this.elems.push(searchHistoryContainer);
+      //mock default FF function
+      this.popup.enableOneOffSearches = function() {}
 
-    // make CMD/CTRL + K equal with CMD/CTRL + L
-    this.searchShortcutElements = this.window.document.getElementById('mainKeyset').querySelectorAll('#key_search, #key_search2');
-    [].forEach.call(this.searchShortcutElements, function (item) {
-      item.setAttribute('original_command', item.getAttribute('command'))
-      item.setAttribute('command', 'Browser:OpenLocation')
-    });
+      // make CMD/CTRL + K equal with CMD/CTRL + L
+      this.searchShortcutElements = this.window.document.getElementById('mainKeyset').querySelectorAll('#key_search, #key_search2');
+      [].forEach.call(this.searchShortcutElements, function (item) {
+        item.setAttribute('original_command', item.getAttribute('command'))
+        item.setAttribute('command', 'Browser:OpenLocation')
+      });
 
-    this.tabChange = SearchHistory.tabChanged.bind(SearchHistory);
-    this.window.gBrowser.tabContainer.addEventListener("TabSelect",
-      this.tabChange, false);
+      this.tabChange = SearchHistory.tabChanged.bind(SearchHistory);
+      this.window.gBrowser.tabContainer.addEventListener("TabSelect",
+        this.tabChange, false);
 
-    this.tabRemoved = SearchHistory.tabRemoved.bind(SearchHistory);
-    this.window.gBrowser.tabContainer.addEventListener("TabClose",
-      this.tabRemoved, false);
+      this.tabRemoved = SearchHistory.tabRemoved.bind(SearchHistory);
+      this.window.gBrowser.tabContainer.addEventListener("TabClose",
+        this.tabRemoved, false);
+
+      this.actions.updatePopupStyle();
+      this.reloadUrlbar(this.urlbar);
+
+      // Add search history dropdown
+      var searchHistoryContainer = SearchHistory.insertBeforeElement(this.window);
+      this.elems.push(searchHistoryContainer);
+    }
+    // FF UI
+    else {
+      this.popup = this.window.document.getElementById(this.urlbar.getAttribute('autocompletepopup'));
+      patchFFPopup.call(this, this.popup);
+      this.window.CLIQZ.Core.popup = this.popup;
+      if (!this.urlbar.popup) {
+        this.urlbar.popup = this.popup;
+      }
+
+      this.urlbarGoButton = this.window.document.getElementById('urlbar-go-button');
+
+      Object.keys(this.firefoxUrlbarEventHandlers).forEach(ev => {
+        this.urlbar.addEventListener(ev, this.firefoxUrlbarEventHandlers[ev]);
+      }.bind(this));
+
+      Object.keys(this.firefoxPopupEventHandlers).forEach(ev => {
+        this.popup.addEventListener(ev, this.firefoxPopupEventHandlers[ev]);
+      }.bind(this));
+
+      this.firefoxUrlbarGoButtonHandler = this.firefoxUrlbarGoButtonHandler.bind(this);
+      this.urlbarGoButton.addEventListener('click', this.firefoxUrlbarGoButtonHandler);
+    }
 
     this.initialized = true;
+
+    });
   }
 
   autocompleteQuery(firstResult, firstTitle) {
@@ -207,6 +451,7 @@ export default class {
           newResult.query = [];
           results.unshift(newResult);
       }
+      // FIXME: we get [[]] here for dropdown module
       if (!utils.isUrl(results[0].url)) return;
 
       // Detect autocomplete
@@ -237,6 +482,8 @@ export default class {
           autocomplete.selectAutocomplete = true;
           this.window.CLIQZ.UI.selectAutocomplete();
       }
+
+      return true;
   }
 
   cleanUrlBarValue(val) {
@@ -266,6 +513,35 @@ export default class {
     if(el && el.parentNode) {
       el.parentNode.insertBefore(el, el.nextSibling);
       el.value = oldVal;
+    }
+    this.applyAdditionalThemeStyles(el);
+  }
+
+  applyAdditionalThemeStyles() {
+    var fb = this.window.document.getElementById('forward-button'),
+        bb = this.window.document.getElementById('back-button'),
+        urlbar = this.urlbar;
+    switch (utils.dropDownStyle) {
+      case 'cliqzilla':
+      case 'simple':
+      case 'ff':
+        utils.log(utils.dropDownStyle, '========= dropDownStyle CASE ff simple ========');
+        urlbar.style.maxWidth = '100%';
+        urlbar.style.margin = '0px 0px';
+        fb.style.border = 'none';
+        fb.style.borderRight = '0px';
+        bb.style.border = 'none';
+        bb.style.border = '1px solid #e1e1e1';
+        break;
+      default:
+        utils.log(utils.dropDownStyle, '========= dropDownStyle CASE default ========');
+        urlbar.style.maxWidth = '';
+        urlbar.style.margin = '0 2.5em !important';
+        fb.style.border = 'none';
+        fb.style.borderRight = '1px solid #e1e1e1';
+        bb.style.border = 'none';
+        bb.style.border = '1px solid #e1e1e1';
+        break;
     }
   }
 
@@ -318,46 +594,52 @@ export default class {
 
     removeStylesheet(this.window.document, STYLESHEET_URL);
 
-    this.window.CLIQZ.UI.unload();
 
     this.elems.forEach(item => {
       item && item.parentNode && item.parentNode.removeChild(item);
     });
 
     this.urlbar.setAttribute('autocompletesearch', this._autocompletesearch);
-    this.urlbar.setAttribute('autocompletepopup', this._autocompletepopup);
-    this.popup.removeEventListener('popuphiding', this.popupEventHandlers.popupClose);
-    this.popup.removeEventListener('popupshowing', this.popupEventHandlers.popupOpen);
-    if(this._originalFFpopup){
-      this.urlbar.popup = this._originalFFpopup;
-    }
-
     CliqzEvents.un_sub('ui:popup_hide', this.hidePopup);
 
+    if (utils.dropDownStyle !== 'ff') {
+      this.window.CLIQZ.UI.unload();
+      this.urlbar.setAttribute('autocompletepopup', this._autocompletepopup);
 
-    Object.keys(this.urlbarEventHandlers).forEach(function(ev) {
-      this.urlbar.removeEventListener(ev, this.urlbarEventHandlers[ev]);
-    }.bind(this));
+      this.popup.removeEventListener('popuphiding', this.popupEventHandlers.popupClose);
+      this.popup.removeEventListener('popupshowing', this.popupEventHandlers.popupOpen);
+      Object.keys(this.urlbarEventHandlers).forEach(function(ev) {
+        this.urlbar.removeEventListener(ev, this.urlbarEventHandlers[ev]);
+      }.bind(this));
+      // revert onclick handler
+      [].forEach.call(this.searchShortcutElements, function (item) {
+        item.setAttribute('command', item.getAttribute('original_command'))
+      });
+      this.window.gBrowser.tabContainer.removeEventListener("TabSelect",
+        this.tabChange, false);
+      this.window.gBrowser.tabContainer.removeEventListener("TabClose",
+        this.tabRemoved, false);
+      var urlBarGo = this.window.document.getElementById('urlbar-go-button');
+      urlBarGo.setAttribute('onclick', this._urlbarGoButtonClick);
+    } else {
+      Object.keys(this.firefoxUrlbarEventHandlers).forEach(ev => {
+        this.urlbar.removeEventListener(ev, this.firefoxUrlbarEventHandlers[ev]);
+      }.bind(this));
+
+      Object.keys(this.firefoxPopupEventHandlers).forEach(ev => {
+        this.popup.removeEventListener(ev, this.firefoxPopupEventHandlers[ev]);
+      }.bind(this));
+
+      this.urlbarGoButton.removeEventListener('click', this.firefoxUrlbarGoButtonHandler);
+    }
+
+    unPatchFFPopup(this.popup);
 
     var searchContainer = this.window.document.getElementById('search-container');
     if(this._searchContainer){
       searchContainer.setAttribute('class', this._searchContainer);
     }
-
-    // revert onclick handler
-    var urlBarGo = this.window.document.getElementById('urlbar-go-button');
-    urlBarGo.setAttribute('onclick', this._urlbarGoButtonClick);
-
     this.reloadUrlbar(this.urlbar);
-
-    [].forEach.call(this.searchShortcutElements, function (item) {
-      item.setAttribute('command', item.getAttribute('original_command'))
-    });
-
-    this.window.gBrowser.tabContainer.removeEventListener("TabSelect",
-      this.tabChange, false);
-    this.window.gBrowser.tabContainer.removeEventListener("TabClose",
-      this.tabRemoved, false);
 
     delete this.window.CLIQZ.UI;
   }
@@ -441,7 +723,7 @@ const urlbarEventHandlers = {
   * @param ev
   */
   drop: function(ev){
-  var dTypes = ev.dataTransfer.types;
+    var dTypes = ev.dataTransfer.types;
     if (dTypes.indexOf && dTypes.indexOf("text/plain") !== -1 ||
       dTypes.contains && dTypes.contains("text/plain") !== -1) {
       // open dropdown on text drop
@@ -453,6 +735,20 @@ const urlbarEventHandlers = {
         type: 'activity',
         action: 'textdrop'
       });
+    }
+  },
+  keydown(ev) {
+    autocomplete._lastKey = ev.keyCode;
+    let cancel;
+    try {
+      cancel = this.window.CLIQZ.UI.keyDown(ev);
+    } catch(e) {
+      console.error(e);
+      throw e;
+    }
+    if (cancel) {
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
     }
   },
   /**

@@ -1,0 +1,9 @@
+{{#if internalResults}}
+    <div class='buttons padded'>
+        {{#each (take internalResults internalResultsLimit)}}
+            <a class="result btn" href="{{ url }}">
+                {{local title}}
+            </a>
+        {{/each}}
+    </div>
+{{/if}}

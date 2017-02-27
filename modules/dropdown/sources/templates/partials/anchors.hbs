@@ -1,0 +1,7 @@
+{{#if anchorResults}}
+    <div class="anchors padded">
+        {{#each (take anchorResults 4)}}
+            <a class="result" title="{{title}}" href="{{url}}">{{title}}</a>
+        {{/each}}
+    </div>
+{{/if}}

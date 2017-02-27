@@ -223,10 +223,20 @@ function getHandlebarsTree() {
       ],
       header: `
         'use strict';
-        System.register('${templatesTree.name}/templates', [], function (_export) {
+        System.register('${templatesTree.name}/templates', ['handlebars'], function (_export) {
+        if (typeof Handlebars === 'undefined') { var Handlebars; }
+        if (typeof templates === 'undefined') { var templates = {};}
+        return {
+            setters: [function (_handlebars) {
+              Handlebars = _handlebars['default'];
+            }],
+            execute: function () {
       `,
       footer: `
-          _export('default', templates);
+
+              _export('default', templates);
+            }
+          };
         });
       `
     });

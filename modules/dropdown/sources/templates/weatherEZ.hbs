@@ -1,0 +1,30 @@
+<div class="result instant weather">
+    <div class="header">
+        {{> partials/logo}}
+        <div class="abstract">
+            <span class="title">{{title}}</span>
+        </div>
+    </div>
+
+    <div class="forecast">
+        <div class="weather-item">
+            <div class="date">{{today.date}}</div>
+            <img width="55" height="55" src="{{today.icon}}" />
+            <div class="temp">
+                {{today.minTemp}}   {{today.maxTemp}}
+            </div>
+        </div>
+
+        {{#each forecast}}
+            <div class="weather-item">
+                <div class="date">{{weekday}}</div>
+                <img width="55" height="55" src="{{icon}}" />
+                <div class="temp">
+                    {{max}}  {{min}}
+                </div>
+            </div>
+        {{/each}}
+    </div>
+
+    {{> partials/buttons}}
+</div>

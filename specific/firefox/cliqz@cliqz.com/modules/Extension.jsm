@@ -66,7 +66,10 @@ var Extension = {
       Services.scriptloader.loadSubScript("chrome://cliqz/content/core/prefs.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/console.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/core/console.js", this);
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/globals.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/environment.js", this);
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/platform/url.js", this);
+      Services.scriptloader.loadSubScript("chrome://cliqz/content/core/url.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/core/utils.js", this);
       Services.scriptloader.loadSubScript("chrome://cliqz/content/core/events.js", this);
 

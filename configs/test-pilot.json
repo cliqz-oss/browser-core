@@ -22,6 +22,7 @@
     "firefox-specific",
     "static",
     "core",
+    "dropdown",
     "autocomplete",
     "ui",
     "human-web",
