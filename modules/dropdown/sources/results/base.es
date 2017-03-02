@@ -32,11 +32,19 @@ export default class BaseResult {
       .map((deepResult) => {
         const type = deepResult.type;
         const links = getDeepResults(this.rawResult, type).reduce((filtered, result) => {
-          const isDuplicate = allResultsFlat.some(url => equals(url, result.url));
+          let resultUrl;
+          // TODO: fix the data!!!
+          if (type === 'images') {
+            resultUrl = (result.extra && result.extra.original_image) || result.image;
+          } else {
+            resultUrl = result.url;
+          }
+
+          const isDuplicate = allResultsFlat.some(url => equals(url, resultUrl));
           if (isDuplicate) {
             return filtered;
           }
-          allResultsFlat.push(result.url);
+          allResultsFlat.push(resultUrl);
           return [
             ...filtered,
             result,
@@ -144,8 +152,8 @@ export default class BaseResult {
   get imageResults() {
     const deepLinks = getDeepResults(this.rawResult, 'images')
     return deepLinks.map(({ url, image, extra}) => new ImageResult({
-      url: image,
-      image: (extra && extra.original_image) || image,
+      url: (extra && extra.original_image) || image,
+      thumbnail: image,
     }));
   }
 
@@ -163,8 +171,9 @@ export default class BaseResult {
       url,
       title,
       thumbnail: extra.thumbnail,
-      creation_time: extra.time, //extra.creation_timestamp
-      tweet_count: extra.tweet_count
+      creation_time: extra.creation_timestamp,
+      tweet_count: extra.tweet_count,
+      showLogo: utils.getDetailsFromUrl(this.url).domain !== utils.getDetailsFromUrl(url).domain,
     }));
   }
 
@@ -217,6 +226,9 @@ export default class BaseResult {
 
 class ThumbnailBlock extends BaseResult {
   get logo() {
+    if (this.rawResult.showLogo) {
+      return super.logo;
+    }
   }
 
   get thumbnail() {
@@ -224,6 +236,10 @@ class ThumbnailBlock extends BaseResult {
   }
 
   get friendlyUrl() {
+    //TODO fix responsive behaviour when adding url
+    // if (this.rawResult.showLogo) {
+    //   return super.friendlyUrl;
+    // }
   }
 
 }
@@ -253,8 +269,8 @@ class VideoResult extends ThumbnailBlock {
 }
 
 class ImageResult extends BaseResult {
-  get url() {
-    return this.rawResult.image;
+  get thumbnail() {
+    return this.rawResult.thumbnail;
   }
 }
 

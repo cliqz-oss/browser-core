@@ -2,6 +2,20 @@ import Handlebars from 'handlebars';
 import templates from './templates';
 import utils from '../core/utils';
 
+ const AGO_CEILINGS = [
+        [0            , '',1],
+        [120          , 'ago1Minute' , 1],
+        [3600         , 'agoXMinutes'   , 60],
+        [7200         , 'ago1Hour' , 1],
+        [86400        , 'agoXHours'   , 3600],
+        [172800       , 'agoYesterday'          , 1],
+        [604800       , 'agoXDays'     , 86400],
+        [4838400      , 'ago1Month'  , 1],
+        [29030400     , 'agoXMonths'   , 2419200],
+        [58060800     , 'ago1year'   , 1],
+        [2903040000   , 'agoXYears'     , 29030400]
+    ];
+
 // Make sure the input string is in lower case
 function latinMap(str) {
   const map = [
@@ -104,5 +118,18 @@ export default {
     var name = args.shift();
     return utils.getLocalizedString.apply(null, [name, args]);
   },
+
+  agoline(ts, options) {
+    if(!ts) return '';
+    var now = (new Date().getTime() / 1000),
+        seconds = parseInt(now - ts),
+        i=0, slot;
+
+    while (slot = AGO_CEILINGS[i++])
+        if (seconds < slot[0])
+            return utils.getLocalizedString(slot[1], parseInt(seconds / slot[2]))
+    return '';
+  }
+
 
 }
