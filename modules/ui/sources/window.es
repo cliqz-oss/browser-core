@@ -263,7 +263,7 @@ export default class {
     // do not initialize the UI if the user decided to turn off search
     if(utils.getPref("cliqz_core_disabled", false)) return;
 
-    utils.dropDownStyle = prefs.get('dropDownStyle', '');
+    utils.dropDownStyle = 'cliqzilla';
 
     console.log("UI window init");
 
