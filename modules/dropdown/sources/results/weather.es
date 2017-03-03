@@ -10,6 +10,10 @@ export default class extends BaseResult {
     return this.rawResult.data.extra.todayWeekday;
   }
 
+  get url() {
+    return null;
+  }
+
   get today() {
     const extra = this.rawResult.data.extra;
     return {
