@@ -4,8 +4,15 @@ import autocomplete from '../autocomplete/autocomplete';
 import Results from './results';
 
 export default class {
-  constructor(element) {
-    this.element = element;
+  constructor(widnow) {
+    this.window = window;
+  }
+
+  get element() {
+    // TODO: do not use global
+    // need to get currently loaded popup - which is not obvious if we reload
+    // urlbar, the popup is likely to be replaced
+    return this.window.CLIQZ.Core.popup;
   }
 
   get query() {
