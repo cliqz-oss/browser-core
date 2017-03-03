@@ -3,7 +3,7 @@ import BaseResult from './base';
 export default class extends BaseResult {
 
   get template() {
-    return 'weatherEZ';
+    return 'weather';
   }
 
   get todayDate() {

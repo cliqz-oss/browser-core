@@ -24,7 +24,7 @@ class ResultFactory {
       Constructor = CurrencyResult;
     }
 
-    if (rawResult.data.template === 'weatherEZ') {
+    if (rawResult.data.template === 'weatherEZ' || rawResult.data.template === 'weatherAlert') {
       Constructor = WeatherResult;
     }
 
