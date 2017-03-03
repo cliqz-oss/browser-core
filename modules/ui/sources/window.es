@@ -186,7 +186,7 @@ function initPopup(popup, urlbar, win) {
       let attachToElement = aElement;
 
       if ((utils.dropDownStyle === 'simple') || (utils.dropDownStyle === 'cliqzilla')) {
-        attachToElement = win.document.querySelector('#urlbar-container');
+        attachToElement = win.document.querySelector('#nav-bar');
         popupDimensions = Object.assign(popupDimensions, {
           x: 0,
           y: 0,
