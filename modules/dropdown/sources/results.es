@@ -14,6 +14,9 @@ class ResultFactory {
     }
 
     if (rawResult.data.template === 'calculator') {
+      if (rawResult.data.extra.ez_type) {
+        return;
+      }
       Constructor = CalculatorResult;
     }
 
