@@ -4,7 +4,7 @@ import autocomplete from '../autocomplete/autocomplete';
 import Results from './results';
 
 export default class {
-  constructor(widnow) {
+  constructor(window) {
     this.window = window;
   }
 
