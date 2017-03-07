@@ -525,6 +525,10 @@ export default class {
         urlbar = this.urlbar;
     switch (utils.dropDownStyle) {
       case 'cliqzilla':
+        utils.log(utils.dropDownStyle, '========= dropDownStyle CASE ff cliqzilla ========');
+        urlbar.style.maxWidth = '100%';
+        urlbar.style.margin = '0px 0px';
+        break;
       case 'simple':
       case 'ff':
         utils.log(utils.dropDownStyle, '========= dropDownStyle CASE ff simple ========');
