@@ -354,10 +354,10 @@ var Extension = {
     setOurOwnPrefs: function() {
         var urlBarPref = Components.classes['@mozilla.org/preferences-service;1'].getService(Components.interfaces.nsIPrefService).getBranch('browser.urlbar.');
 
-        if (!CliqzUtils.hasPref("maxRichResultsBackup")) {
-            CliqzUtils.setPref("maxRichResultsBackup",
-                urlBarPref.getIntPref("maxRichResults"));
-            urlBarPref.setIntPref("maxRichResults", 30);
+        if (CliqzUtils.hasPref("maxRichResultsBackup")) {
+            // we reset CLIQZ changes to "browser.urlbar.maxRichResults"
+            CliqzUtils.clearPref("maxRichResultsBackup")
+            urlBarPref.clearUserPref("maxRichResults");
         }
 
         var unifiedComplete = urlBarPref.getPrefType("unifiedcomplete");
@@ -372,18 +372,6 @@ var Extension = {
     },
     /** Reset changed prefs on uninstall */
     resetOriginalPrefs: function() {
-        var urlBarPref = Components.classes['@mozilla.org/preferences-service;1'].getService(Components.interfaces.nsIPrefService).getBranch('browser.urlbar.');
-        var cliqzBackup = CliqzUtils.getPref("maxRichResultsBackup");
-        if (cliqzBackup) {
-            CliqzUtils.log("Loading maxRichResults backup...", "CliqzUtils.setOurOwnPrefs");
-            urlBarPref.setIntPref("maxRichResults",
-                CliqzUtils.getPref("maxRichResultsBackup"));
-
-            CliqzUtils.clearPref("maxRichResultsBackup", 0);
-        } else {
-            CliqzUtils.log("maxRichResults backup does not exist; doing nothing.", "CliqzUtils.setOurOwnPrefs")
-        }
-
         if(CliqzUtils.getPref('unifiedcomplete', false)){
           urlBarPref.setBoolPref("unifiedcomplete", true);
           CliqzUtils.setPref('unifiedcomplete', false);

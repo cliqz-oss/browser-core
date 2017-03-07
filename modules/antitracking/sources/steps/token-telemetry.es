@@ -3,6 +3,7 @@ import * as datetime from 'antitracking/time';
 import * as persist from 'antitracking/persistent-state';
 import { splitTelemetryData } from 'antitracking/utils';
 import pacemaker from 'antitracking/pacemaker';
+import random from 'core/crypto/random';
 
 /**
  * Add padding characters to the left of the given string.
@@ -42,7 +43,7 @@ function anonymizeTrackerTokens(trackerData) {
   // Random base id
   const min = 1;
   const max = Number.MAX_SAFE_INTEGER;
-  let randId = Math.floor(Math.random() * (max - min + 1)) + min;
+  let randId = Math.floor(random() * (max - min + 1)) + min;
 
   // Anonymize the given tracker data
   let anonymizedTrackerData = {};

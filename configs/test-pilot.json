@@ -15,7 +15,8 @@
     "antitrackingButton": true,
     "showNewBrandAlert": false,
     "onBoardingVersion": "1.1",
-    "controlCenterSecurity": false
+    "controlCenterSecurity": false,
+    "HW_CHANNEL": "ff-test-pilot"
   },
   "priority": [
     "core",

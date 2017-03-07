@@ -333,6 +333,12 @@ var CliqzABTests = {
             case "1093_B":
               CliqzUtils.setPref("extOnboardCliqzGhostery", true);
               break;
+            case "1094_A":
+              CliqzUtils.setPref("ff-experiment", false);
+              break;
+            case "1094_B":
+              CliqzUtils.setPref("ff-experiment", true);
+              break;
             default:
                 rule_executed = false;
         }
@@ -537,6 +543,10 @@ var CliqzABTests = {
             case "1093_A":
             case "1093_B":
               CliqzUtils.clearPref('extOnboardCliqzGhostery');
+              break;
+            case "1094_A":
+            case "1094_B":
+              CliqzUtils.clearPref('ff-experiment');
               break;
             default:
                 rule_executed = false;

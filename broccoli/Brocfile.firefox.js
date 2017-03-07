@@ -69,6 +69,7 @@ var configTree = util.injectConfig(firefox, config, 'cliqz.json', [
   cliqzConfig.settings.id + '/chrome/content/core/processScript.js',
   cliqzConfig.settings.id + '/chrome/content/core/config.js',
   cliqzConfig.settings.id + '/install.rdf',
+  cliqzConfig.settings.id + '/chrome/content/human-web/human-web.js',
   'templates/install.rdf',
   'templates/latest.rdf',
   'fabfile.py'

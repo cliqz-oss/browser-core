@@ -18,7 +18,8 @@
     "helpMenus": true,
     "showNewBrandAlert": true,
     "onBoardingVersion": "2.1",
-    "controlCenterSecurity": true
+    "controlCenterSecurity": true,
+    "HW_CHANNEL": "cliqz"
   },
   "default_prefs" : {
     "modules.context-search.enabled": false,

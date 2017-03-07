@@ -53,6 +53,10 @@ module.exports = {
           match: /\{\{rdfHomepageURL\}\}/g,
           replacement: config => config.settings.homepageURL || ''
         },
+        {
+          match: /\{\{HW_CHANNEL\}\}/g,
+          replacement: config => config.settings.HW_CHANNEL || ''
+        },
       ]
     });
   }

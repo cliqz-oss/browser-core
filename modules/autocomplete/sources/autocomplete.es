@@ -11,7 +11,6 @@ import language from "platform/language";
 
 var CliqzAutocomplete = {
     LOG_KEY: 'CliqzAutocomplete',
-    HISTORY_TIMEOUT: 200,
     SCROLL_SIGNAL_MIN_TIME: 500,
     REFETCH_MAX_ATTEMPTS: 10, // How many times should we try fetching incomplete (promised) results before giving up?
     lastPattern: null,
