@@ -276,6 +276,10 @@ export default class {
 
     this.applyAdditionalThemeStyles(this.urlbar);
 
+    // Load autocompletesearch as soon as possible - it is compatible with
+    // default firefox and will work with any UI
+    this._autocompletesearch = this.urlbar.getAttribute('autocompletesearch');
+    this.urlbar.setAttribute('autocompletesearch', 'cliqz-results');// + urlbar.getAttribute('autocompletesearch')); /* urlinline history'*/
 
     let loadingPromise;
     //create a new panel for cliqz to avoid inconsistencies at FF startup
@@ -323,8 +327,6 @@ export default class {
 
     this.window.CLIQZ.UI.autocompleteQuery = this.autocompleteQuery.bind(this);
 
-    this._autocompletesearch = this.urlbar.getAttribute('autocompletesearch');
-    this.urlbar.setAttribute('autocompletesearch', 'cliqz-results');// + urlbar.getAttribute('autocompletesearch')); /* urlinline history'*/
     this.urlbar.setAttribute('pastetimeout', 0)
 
     this._autocompletepopup = this.urlbar.getAttribute('autocompletepopup');
