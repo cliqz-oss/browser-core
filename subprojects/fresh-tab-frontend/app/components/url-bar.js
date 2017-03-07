@@ -19,6 +19,11 @@ export default Ember.Component.extend({
       this.$('input').val("")
     })
   },
+
+  autofocus: function () {
+    this.$('input').focus();
+  }.on('didInsertElement'),
+
   actions: {
     focus() {
       this.get('cliqz').sendTelemetry({
