@@ -16,24 +16,4 @@
   <div id="cliqzOnboarding">
     {{outlet 'modal'}}
   </div>
-
-
-  {{#if model.showFeedback}}
-    <div id="feedback">
-      {{feedback-link}}
-    </div>
-  {{else}}
-    <div id="onboarding">
-      {{#if model.miniOnboarding}}
-        {{mini-onboarding isBrowser=model.isBrowser freshTabLearnMoreAction="freshTabLearnMore" revertBackAction="revertBack"}}
-      {{else}}
-        {{#if model.showHelp}}
-          <div id="learnMore">
-            <a href="https://cliqz.com/aboutus/blog/new-startpage" title="Learn more" target="_blank" class="learnBtn">Learn more</a>
-          </div>
-        {{/if}}
-      {{/if}}
-    </div>
-  {{/if}}
-
 </div>

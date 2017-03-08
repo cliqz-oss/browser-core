@@ -30,10 +30,7 @@ export default Ember.Route.extend({
     const config = this.get('config');
 
     return Ember.Object.create({
-      miniOnboarding: config.miniOnboarding,
       isBrowser: config.isBrowser,
-      showHelp: config.showHelp,
-      showFeedback: config.showFeedback,
       showNewBrandAlert: config.showNewBrandAlert,
       messageCenter: this.get('messageCenter'),
     });
