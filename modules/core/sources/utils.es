@@ -516,7 +516,8 @@ var CliqzUtils = {
   // checks if a value represents an url which is a seach engine
   isSearch: function(value){
     if (CliqzUtils.isUrl(value)) {
-      const {name, subdomains, path} = CliqzUtils.getDetailsFromUrl(value);
+      const url = this.cleanMozillaActions(value)[1];
+      const {name, subdomains, path} = CliqzUtils.getDetailsFromUrl(url);
       // allow only 'www' and 'de' (for Yahoo) subdomains to exclude 'maps.google.com' etc.
       // and empty path only to exclude 'www.google.com/maps' etc.
       const firstSubdomain = subdomains.length ? subdomains[0] : '';
