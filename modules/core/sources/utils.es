@@ -318,7 +318,14 @@ var CliqzUtils = {
   cleanMozillaActions: function(url){
     if(url.indexOf("moz-action:") == 0) {
         var [, action, url] = url.match(/^moz-action:([^,]+),(.*)$/);
-        //url = url.match(/^moz-action:([^,]+),(.*)$/)[2];
+        try {
+          // handle cases like: moz-action:visiturl,{"url": "..."}
+          const mozActionUrl = JSON.parse(url).url;
+          if (mozActionUrl) {
+            url = decodeURIComponent(mozActionUrl);
+          }
+        } catch (e) {
+        }
     }
     return [action, url];
   },

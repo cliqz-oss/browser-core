@@ -149,7 +149,7 @@ function patchFFPopup(popup) {
 
     if(firstResult && firstResult.url){
       this.autocompleteQuery(
-        utils.cleanMozillaActions(firstResult.url)[1],
+        firstResult.url,
         firstResult.title
       );
     }
@@ -433,8 +433,11 @@ export default class {
       // History cluster does not have a url attribute, therefore firstResult is null
       var lastPattern = autocomplete.lastPattern,
           fRes = lastPattern ? lastPattern.filteredResults() : null;
-      if(!firstResult && lastPattern && fRes.length > 1)
+      if(!firstResult && lastPattern && fRes.length > 1) {
         firstResult = fRes[0].url;
+      }
+
+      firstResult = utils.cleanMozillaActions(firstResult)[1];
 
       var r, endPoint = urlBar.value.length;
       var lastPattern = autocomplete.lastPattern;
