@@ -22,7 +22,7 @@ export default class EventLoop {
     self.triggerMachine = new TriggerMachine(this);
     self.historyIndex = new HistoryIndex(this);
 
-    self.environment.onUrlChange((url) => {
+    self.environment.onUrlChange((url, urlObj) => {
       if(!url) {
         return;
       }
@@ -30,6 +30,10 @@ export default class EventLoop {
       var context = {
         '#url': url
       };
+
+      if(urlObj && urlObj['domain']) {
+        context['#domain'] = urlObj['domain'];
+      }
 
       self.triggerMachine.runRoot(context).then(result => {
         self.environment.info("EventLoop", "Executed triggers for context: " + JSON.stringify(context));

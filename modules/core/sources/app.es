@@ -21,13 +21,27 @@ export default class {
     this.prefchangeEventListener = subscribe('prefchange', this.onPrefChange, this);
   }
 
-  modules() {
-    const notPriority = Object.keys(this.availableModules)
-                          .filter((m) => config.priority.indexOf(m) === -1);
-    const modules = this.priorityModulesLoaded ? notPriority : config.priority;
+  modules({ type } = {}) {
+    let modules;
+    if (type === 'priority' ) {
+      modules = this.priorityModules;
+    } else if (type === 'nonpriority') {
+      modules = this.nonPriorityModules;
+    } else {
+      modules = this.priorityModulesLoaded ? this.nonPriorityModules : this.priorityModules;
+    }
     return modules.map(
       moduleName => this.availableModules[moduleName]
     );
+  }
+
+  get priorityModules() {
+    return config.priority;
+  }
+
+  get nonPriorityModules() {
+    return Object.keys(this.availableModules)
+      .filter((m) => config.priority.indexOf(m) === -1);
   }
 
   enabledModules() {
@@ -54,6 +68,9 @@ export default class {
 
         if (shouldEnableModule(module.name)) {
           try {
+            if (module.isEnabled) {
+              return Promise.resolve();
+            }
             return module.enable()
               .catch(e => console.error('App', 'Error on loading module:', module.name, e));
           } catch (e) {
@@ -91,23 +108,26 @@ export default class {
   }
 
   loadWindow(window) {
-    const CLIQZ = {
-      System,
-      Core: {
-        windowModules: {},
-      }, // TODO: remove and all clients
-    };
-
     // TODO: remove CLIQZ from window
     if(!window.CLIQZ){
+      const CLIQZ = {
+        app: this,
+        System,
+        Core: {
+          windowModules: {},
+        }, // TODO: remove and all clients
+      };
       Object.defineProperty(window, 'CLIQZ', {
         configurable: true,
         value: CLIQZ,
       });
     }
 
-    const windowModulePromises = this.enabledModules().map(module => {
+    const windowModulePromises = this.modules({ type: (window.CLIQZ.priorityModulesLoaded ? 'nonpriority' : 'priority') }).map(module => {
       console.log('App window', 'loading module', `"${module.name}"`, 'started');
+      if (!module.isEnabled) {
+        return Promise.resolve();
+      }
       return module.loadWindow(window)
         .catch(e => {
           console.error('App window', `Error loading module: ${module.name}`, e);
@@ -117,9 +137,10 @@ export default class {
     return Promise.all(windowModulePromises).then(() => {
       console.log('App', 'Window loaded');
     }).then(() => {
-      if (this.priorityModulesLoaded) {
+      if (window.CLIQZ.priorityModulesLoaded) {
         return Promise.resolve();
       }
+      window.CLIQZ.priorityModulesLoaded = true;
       this.priorityModulesLoaded = true;
       return this.load().then(() => {
         return this.loadWindow(window);
@@ -247,11 +268,16 @@ class Module {
    * return window module
    */
   loadWindow(window) {
+    if (!this.isEnabled) {
+      return Promise.reject('cannot load window of disabled module');
+    }
+
     console.log('Module window:', `"${this.name}"`, 'loading');
 
     if(window.CLIQZ.Core.windowModules[this.name]){
       return Promise.resolve();
     }
+    window.CLIQZ.Core.windowModules[this.name] = true;
 
     const loadingStartedAt = Date.now();
     return System.import(`${this.name}/window`)

@@ -3,6 +3,23 @@
 var ops = {};
 export default ops;
 
+
+ops['$watch_requests'] = function(args, eventLoop, context) {
+  return new Promise((resolve, reject) => {
+    if(args.length < 1) {
+      reject(new Error('invalid args'));
+    }
+
+    var domain = args[0];
+
+    eventLoop.environment.watchDomain(domain);
+
+    resolve(true);
+  });
+}
+
+
+
 ops['$activate_subtriggers'] = function(args, eventLoop, context) {
   return new Promise((resolve, reject) => {
     if(!context._currentTriggerLevel) {

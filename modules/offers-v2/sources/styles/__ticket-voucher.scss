@@ -4,6 +4,9 @@
     margin: 7px auto;
     padding: 0  10px;
 
+    $call-to-action: #e74111;
+    $call-to-action-hover: darken(#e74111, 10%);
+
     &:before {
         content: '';
         position: fixed;
@@ -19,7 +22,7 @@
         overflow: hidden;
         max-height: 180px;
         overflow: hidden;
-        padding: 10px 200px 10px 170px;
+        padding: 30px 200px 10px 170px;
         box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
         background-color: #fff;
         background-repeat: no-repeat;
@@ -74,7 +77,7 @@
 
     .cqz-call-to-action {
         float: right;
-        padding: 40px 10px 0;
+        padding: 16px 10px 0;
         max-width: 200px;
         margin-right: -200px;
         text-align: center;
@@ -97,14 +100,16 @@
     }
 
     .cqz-content-holder {
+        position: relative;
+        top: -13px;
         padding: 0 0 0 20px;
         .cqz-title {
             overflow: hidden;
-            font-size: 21px;
+            font-size: 20px;
             font-weight: bold;
             line-height: 1.3em;
             max-height: 2.6em;
-            margin-bottom: 10px;
+            margin: 10px 0;
         }
 
         .cqz-descr {
@@ -122,7 +127,6 @@
             width: 10px;
             height: 100%;
             content: '';
-            background: url("chrome://cliqz/content/offers-v2/images/ticket-tmpl/border-left.png") repeat-y;
         }
 
         &:after {
@@ -133,7 +137,6 @@
             width: 10px;
             height: 100%;
             content: '';
-            background: url("chrome://cliqz/content/offers-v2/images/ticket-tmpl/border-right.png") repeat-y;
         }
     }
 

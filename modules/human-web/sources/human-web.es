@@ -4806,7 +4806,12 @@ var CliqzHumanWeb = {
     getQuorumCheckOtherUrls: function(msg){
         let urls = [];
         let urlPos = {};
-        if (msg.payload.x.canonical_url) {
+
+        // Ony check canonical, when
+        // It is not from qr.
+        // If it is from qr then only type cl or othr.
+        if ((msg.payload.x.canonical_url && !msg.payload.qr) ||
+            (msg.payload.x.canonical_url && msg.payload.qr && (msg.payload.qr.t === "cl" || msg.payload.qr.t === "othr"))) {
             let canURL = msg.payload.x.canonical_url;
             let parse_url = CliqzHumanWeb.parseURL(canURL);
 
@@ -4864,6 +4869,8 @@ var CliqzHumanWeb = {
         Example:
         https://example.com/ will not be sent.
         https://example.com/?q=something will be sent.
+
+        We do not need to check canonical url for quorum if it comes out of a search engine.
 
         */
         let promise = new Promise( (resolve, reject) => {

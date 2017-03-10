@@ -62,7 +62,8 @@ export default class OperationExecutor {
 
       var opFunc = self.operations[name];
       if(!opFunc) {
-        reject(new Error('undefined operation: ' + name))
+        self.eventLoop.environment.info('OperationExecutor', 'unsupported operation: ' + name);
+        resolve(undefined);
         return;
       }
 

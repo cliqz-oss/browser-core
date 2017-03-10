@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Control Center Debug</title>
+    <title>Offers V2 Debug</title>
     <style>
         iframe {
             width: 100%;
@@ -13,6 +13,12 @@
             border-bottom: 15px solid #ccc;
         }
     </style>
+    <script>
+       var node = document.createElement("link");
+       node.rel = "stylesheet";
+       node.href = 'styles/styles.css?' + Math.floor(Math.random() * 999999999);
+       document.getElementsByTagName("head")[0].appendChild(node);
+     </script>
 </head>
 <body>
     <div id="iframe-holder"></div>
@@ -21,7 +27,6 @@
 
         //chrome://cliqz/content/offers-v2/debug.html
         var iframeHolder = document.getElementById("iframe-holder");
-
 
         var mockOffer = [
             {
@@ -48,8 +53,8 @@
                 "template_name": "ticket_template",
                 "template_data": {
                     "voucher_classes": "",
-                    "title": "25€ My test title is again here and all mighty powerful",
-                    "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque imperdiet in erat facilisis laoreet. Curabitur auctor blandit lectus, non tristique urna porttitor non. Vivamus nibh risus, porta et sem ut, vulputate venenatis diam. Nulla finibus nisi nec tempor pretium. In tortor eros, vestibulum eget sagittis et, gravida et felis.",
+                    "title": "Mit HAUSGOLD verkaufen Sie Ihre Immobilie zum Top Preis!",
+                    "desc": "Unsere Experten beraten Sie kompetent, unabhängig und vermitteln Ihnen den besten Makler. Jetzt kostenlose Immobilienbewertung inkl. Energieausweis anfordern!",
                     "logo_url": "https://s3.amazonaws.com/cdn.cliqz.com/extension/offers/dazn-logo.png",
                     "conditions": "",
                     "call_to_action": {
@@ -125,7 +130,7 @@
             var iframeElmId = "cqz-offer-counter-" + index;
             $dynamicIframeElm.id = iframeElmId;
             $dynamicIframeElm.src = "index.html"
-            iframeHolder.append($dynamicIframeElm);
+            iframeHolder.appendChild($dynamicIframeElm);
 
             var iframeElm = document.getElementById(iframeElmId);
             console.log(offer)

@@ -16,6 +16,8 @@ const MODULE_NAME = 'background';
 export default background({
 
   init(settings) {
+    var self = this;
+
     // check if we need to do something or not
     if (!utils.getPref('offers2FeatureEnabled', false)) {
       this.initialized = false;
@@ -94,6 +96,14 @@ export default background({
 
     this.onUrlChange = this.onUrlChange.bind(this);
     this.eventHandler.subscribeUrlChange(this.onUrlChange);
+
+    this.onHttpRequest = this.onHttpRequest.bind(this);
+    this.env.watchDomain = function(domain) {
+      if(self.eventHandler.subscribeHttpReq(self.onHttpRequest, domain)) {
+        LoggingHandler.LOG_ENABLED &&
+        LoggingHandler.info(MODULE_NAME, "Subscribed to all HTTP requests for domain " + domain);
+      }
+    };
 
     // for the new ui system
     this.signalsHandler = new SignalHandler();
@@ -175,13 +185,21 @@ export default background({
 
   onUrlChange(urlObj, url) {
     if(url) {
-      this.env.emitUrlChange(url);
+      this.env.emitUrlChange(url, urlObj);
 
       LoggingHandler.LOG_ENABLED &&
       LoggingHandler.info(MODULE_NAME, JSON.stringify(urlObj));
     }
-
   },
+
+  onHttpRequest(reqObj) {
+    if(reqObj && reqObj.req_obj && reqObj.req_obj.url) {
+      this.env.emitUrlChange(reqObj.req_obj.url);
+
+      LoggingHandler.LOG_ENABLED &&
+      LoggingHandler.info(MODULE_NAME, JSON.stringify(reqObj.req_obj.url));
+    }
+  },  
 
   //////////////////////////////////////////////////////////////////////////////
   events: {

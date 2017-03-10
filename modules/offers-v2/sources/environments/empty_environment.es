@@ -10,8 +10,12 @@ export default class EmptyEnvironment {
   }
 
   // this should be the url which is OPEN
-  emitUrlChange(url) {
-    this.urlChangeListener(url);
+  emitUrlChange(url, urlObj) {
+    this.urlChangeListener(url, urlObj);
+  }
+
+  // activates http request events for specified domains
+  watchDomain(domain) {
   }
 
   queryHistory(start, end) {

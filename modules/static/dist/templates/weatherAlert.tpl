@@ -9,7 +9,7 @@
   <div class="cqz-result-h2">
     {{#with data.extra}}
       <div class='cqz-ez-title cqz-ez-black-title' arrow-override='' extra="title">
-        <span url="{{../url}}" extra="title">{{ returned_location }}</span>
+        <span url="{{../url}}" extra="title">{{ ../title }}</span>
       </div>
       <div class="cqz-weather-holder">
         <div class="EZ-weather-info-sec">

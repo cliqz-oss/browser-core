@@ -139,7 +139,19 @@ export class EventHandler {
     if (!this.callbacksMap['http_req'][domainName]) {
       this.callbacksMap['http_req'][domainName] = []
     }
-    this.callbacksMap['http_req'][domainName].push(cb);
+
+    var alreadySubscribed = false;
+    this.callbacksMap['http_req'][domainName].forEach(function(callback) {
+      if(callback === cb) {
+        alreadySubscribed = true;
+      }
+    });
+
+    if(!alreadySubscribed) {
+      this.callbacksMap['http_req'][domainName].push(cb);
+    }
+
+    return !alreadySubscribed;
   }
   unsubscribeHttpReq(cb, domainName) {
     if (!this.callbacksMap['http_req'][domainName]) {
@@ -273,14 +285,16 @@ export class EventHandler {
 
     // check if we have a domain for this
     var urlInfo = utils.getDetailsFromUrl(requestObj.url);
-    const domainName = urlInfo['name'];
-    var callbacks = this.callbacksMap['http_req'][domainName];
-    if (!callbacks) {
-      return;
-    }
+    const domainName = urlInfo['domain'];
+    if(domainName && this.callbacksMap['http_req']) {
+      var callbacks = this.callbacksMap['http_req'][domainName];
+      if (!callbacks) {
+        return;
+      }
 
-    // we have callbacks then we call them
-    this._publish(callbacks, { req_obj: requestObj });
+      // we have callbacks then we call them
+      this._publish(callbacks, { req_obj: requestObj });
+    }
   }
 
   //////////////////////////////////////////////////////////////////////////////
