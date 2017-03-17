@@ -261,9 +261,6 @@ $light-gray: #f5f5f5;
     }
 
     .history {
-        // margin: 0 -4px;
-        // padding: 0 4px;
-
         background-color: $light-gray;
 
         .description[data-extra='full-url'] {
@@ -277,8 +274,20 @@ $light-gray: #f5f5f5;
         }
 
         &.cluster {
-            // margin: -4px -4px 0 -4px;
-            // padding: 4px 4px 0 4px;
+            position: relative;
+            overflow: hidden;
+
+            span.timeline {
+                position: absolute;
+                width: 1px;
+                height: calc(100% - 40px);
+                left: 54px;
+                z-index: 0;
+                top: 20px;
+            }
+            a.result {
+                position: relative;
+            }
 
             .history-cluster {
                 .micro-logo {
@@ -292,19 +301,18 @@ $light-gray: #f5f5f5;
                 .logo {
                     display: none;
                 }
-
-                &.result.selected {
-                    .micro-logo {
-                        display: none;
-                    }
-
-                    .logo {
-                        display: inline-block;
-                        margin-left: 5px;
-                    }
-                }
             }
         }
+
+        .buttons
+             span.dot {
+                width: 5px;
+                height: 5px;
+                margin: 10px 0px 8px 0px;
+                border-radius: 50%;
+                position: absolute;
+                left: 52px
+            }
     }
 
     .search {
