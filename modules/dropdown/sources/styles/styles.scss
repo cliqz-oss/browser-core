@@ -180,6 +180,8 @@ $light-gray: #f5f5f5;
                 color: #000000;
                 margin: 0px;
                 padding: 0px;
+                display: flex;
+                width: 100%;
 
                 span {
                     @extend .ellipsis;
@@ -246,7 +248,8 @@ $light-gray: #f5f5f5;
                     color: rgba(255, 255, 255, 0.8);
                 }
 
-                .description {
+                .description,
+                .url {
                     max-width: 100%;
                 }
             }
