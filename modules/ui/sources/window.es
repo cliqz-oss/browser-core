@@ -329,8 +329,6 @@ export default class {
 
     this.urlbar.setAttribute('pastetimeout', 0)
 
-    this._autocompletepopup = this.urlbar.getAttribute('autocompletepopup');
-    this.urlbar.setAttribute('autocompletepopup', /*'PopupAutoComplete'*/ 'PopupAutoCompleteRichResultCliqz');
 
     var urlBarGo = document.getElementById('urlbar-go-button');
     this._urlbarGoButtonClick = urlBarGo.getAttribute('onclick');
@@ -612,7 +610,6 @@ export default class {
     CliqzEvents.un_sub('ui:popup_hide', this.hidePopup);
 
     if (utils.dropDownStyle !== 'ff') {
-      this.window.CLIQZ.UI.unload();
       this.urlbar.setAttribute('autocompletepopup', this._autocompletepopup);
 
       this.popup.removeEventListener('popuphiding', this.popupEventHandlers.popupClose);
@@ -642,12 +639,11 @@ export default class {
       this.urlbarGoButton.removeEventListener('click', this.firefoxUrlbarGoButtonHandler);
     }
 
-    unPatchFFPopup(this.popup);
-
     var searchContainer = this.window.document.getElementById('search-container');
     if(this._searchContainer){
       searchContainer.setAttribute('class', this._searchContainer);
     }
+
     this.reloadUrlbar(this.urlbar);
 
     delete this.window.CLIQZ.UI;

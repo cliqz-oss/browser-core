@@ -101,7 +101,7 @@ var CliqzEvents = CliqzEvents || {
     if (index > -1) {
       CliqzEvents.cache[id].splice(index, 1);
     } else {
-      console.error("Trying to unsubscribe an unknown listener");
+      console.error("Trying to unsubscribe an unknown listener:", id);
     }
   },
 
