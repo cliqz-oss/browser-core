@@ -91,6 +91,7 @@ $light-gray: #f5f5f5;
     }
 
     .logo {
+        position: relative;
         width: 2.133em;
         height: 2.133em;
         padding: 0.367em;
@@ -260,6 +261,19 @@ $light-gray: #f5f5f5;
                     background-repeat: no-repeat;
                 }
             }
+
+            .logo:after, .micro-logo:after {
+                content: ' ';
+                width: inherit;
+                height: inherit;
+                border-radius: inherit;
+                position: absolute;
+                top: 0px;
+                left: 0px;
+                border: 1px solid rgba(255,255,255, 0.4);
+                opacity: 0.3;
+                box-sizing: border-box;
+            }
         }
     }
 
@@ -287,6 +301,7 @@ $light-gray: #f5f5f5;
                 left: 54px;
                 z-index: 0;
                 top: 20px;
+                opacity: 0.25;
             }
             a.result {
                 position: relative;
@@ -294,11 +309,13 @@ $light-gray: #f5f5f5;
 
             .history-cluster {
                 .micro-logo {
+                    position: relative;
                     display: inline-block;
                     width: 5px;
                     height: 5px;
                     margin: 7px 7px 8px 13px;
                     border-radius: 50%;
+                    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.1);
                 }
 
                 .logo {
