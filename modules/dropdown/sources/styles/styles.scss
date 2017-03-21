@@ -262,7 +262,7 @@ $light-gray: #f5f5f5;
                 }
             }
 
-            .logo:after, .micro-logo:after {
+            .logo[style]:after, .micro-logo[style]:after {
                 content: ' ';
                 width: inherit;
                 height: inherit;
@@ -298,7 +298,7 @@ $light-gray: #f5f5f5;
                 position: absolute;
                 width: 1px;
                 height: calc(100% - 40px);
-                left: 54px;
+                left: 53px;
                 z-index: 0;
                 top: 20px;
                 opacity: 0.25;
@@ -313,7 +313,7 @@ $light-gray: #f5f5f5;
                     display: inline-block;
                     width: 5px;
                     height: 5px;
-                    margin: 7px 7px 8px 13px;
+                    margin: 7px 8px 8px 12px;
                     border-radius: 50%;
                     box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.1);
                 }
@@ -331,7 +331,7 @@ $light-gray: #f5f5f5;
                 margin: 10px 0px 8px 0px;
                 border-radius: 50%;
                 position: absolute;
-                left: 52px
+                left: 51px
             }
     }
 
