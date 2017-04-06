@@ -31,6 +31,7 @@ export default class {
     }, Object.create(null));
 
     utils.app = this;
+    utils.extensionVersion = version;
     setGlobal(this);
     this.prefchangeEventListener = subscribe('prefchange', this.onPrefChange, this);
   }
