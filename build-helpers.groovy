@@ -113,9 +113,8 @@ def reportStatusToGithub(String name, String commit, String pending, Closure tes
   } else {
     try {
       // check if there are no errors
-      def status = sh(returnStatus: true, script: 'grep -v \'failures="0" errors="0"\' ' + report)
-
-      if (status == 0) {
+      def testSummary = parseJunitReport(reportPath: report)
+      if (testSummary['failures'] == "0") {
         setGithubCommitStatus(name, 'success', 'finished without errors', commit)
       } else {
         throw new Exception()
@@ -124,6 +123,30 @@ def reportStatusToGithub(String name, String commit, String pending, Closure tes
       setGithubCommitStatus(name, 'failure', 'some tests failed', commit)
     }
   }
+}
+
+
+/**
+ * Parses junit test report for summary
+ *
+ * @param   reportPath    The path to junit report
+ * @return  Test report summary as a map
+ */
+def parseJunitReport(Map vars) {
+    if (vars == null || !vars.reportPath) {
+        error 'Parameter <reportPath> is required for parseJunitReport'
+    }
+
+    def result = sh(returnStdout: true, script: "xmllint --xpath '//testsuite/@*' ${vars.reportPath}").trim()
+    def lstResult = result =~ /([^=]+)="([^"]+)"[\s]*/
+
+    def summary = [:]
+    if (lstResult.hasGroup()) {
+      for (int i=0; i<lstResult.size(); i++) {
+        summary[lstResult[i][1]] = lstResult[i][2]
+      }
+    }
+    return summary
 }
 
 def setGithubCommitStatus(context, status, description, COMMIT_ID) {

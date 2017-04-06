@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <!-- Cliqz CSS -->
+    <link rel="stylesheet" href="chrome://cliqz/content/pairing/css/styles.css"/>
+
+    <script src="chrome://cliqz/content/bower_components/jquery/dist/jquery.js"></script>
+    <script src="chrome://cliqz/content/bower_components/qrcode.js/qrcode.js"></script>
+    <script>
+      Components.utils.import("chrome://cliqzmodules/content/CLIQZ.jsm");
+      CLIQZ.System.import('pairing/ui')
+      .then((module) => {
+        var PairingUI = module.default;
+        var ui = new PairingUI(document, window);
+        ui.init();
+        $(window).unload(function() {
+          if (ui) {
+            ui.unload();
+          }
+        });
+      });
+    </script>
+</head>
+<body>
+  <div id="content">
+  </div>
+</body>
+</html>

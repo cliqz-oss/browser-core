@@ -1,9 +1,9 @@
-import * as persist from 'antitracking/persistent-state';
-import * as datetime from 'antitracking/time';
-import { events } from 'core/cliqz';
-import CliqzAttrack from 'antitracking/attrack';
-import pacemaker from 'antitracking/pacemaker';
-import telemetry  from 'antitracking/telemetry';
+import * as persist from './persistent-state';
+import * as datetime from './time';
+import { events } from '../core/cliqz';
+import CliqzAttrack from './attrack';
+import pacemaker from './pacemaker';
+import telemetry  from './telemetry';
 
 const safeKeyExpire = 7;
 

@@ -47,6 +47,12 @@ TESTS.CliqzmessageCenterTestUnit = function (CliqzMsgCenter, CliqzUtils) {
       setTimeout(done, 100);
     });
 
+    context('debug', function() {
+      it('CLIQZ.UI should exist', function() {
+        chai.expect(CliqzUtils.getWindow().CLIQZ.UI).to.not.be.undefined;
+      });
+    });
+
     context('general tests', function () {
       it('should register all handlers', function() {
         chai.expect(messageCenter._messageHandlers).to.have.all.keys(

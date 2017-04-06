@@ -1,6 +1,6 @@
 /* global jsAPI */
 
-import background from 'core/base/background';
+import background from '../core/base/background';
 import events from '../core/events';
 
 export default background({

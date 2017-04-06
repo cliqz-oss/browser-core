@@ -1,9 +1,9 @@
-import * as persist from 'antitracking/persistent-state';
-import pacemaker from 'antitracking/pacemaker';
-import md5 from 'antitracking/md5';
-import { events } from 'core/cliqz';
-import * as datetime from 'antitracking/time';
-import ResourceLoader from 'core/resource-loader';
+import * as persist from './persistent-state';
+import pacemaker from './pacemaker';
+import md5 from './md5';
+import { events } from '../core/cliqz';
+import * as datetime from './time';
+import ResourceLoader from '../core/resource-loader';
 
 const DAYS_EXPIRE = 7;
 

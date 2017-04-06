@@ -41,7 +41,10 @@ function loadRecord(id, callback) {
         callback(null);
     },
     handleCompletion: function(aReason) {
-        if (res.length == 1) callback(res[0]);
+        if (res.length == 1) {
+          CliqzUtils.log(`Load ${id}, data length = ${res[0].length}`, LOG_KEY);
+          callback(res[0]);
+        }
         else callback(null);
     }
   });

@@ -1,0 +1,32 @@
+#cliqz-dropdown {
+    .anchors {
+        @extend .clearfix;
+        padding-top: 2px;
+
+        a.result {
+            float: left;
+            background: url(../images/link-icon.svg) no-repeat;
+            background-position: left center;
+            background-size: 12.5px 12.5px;
+            padding-left: 14px;
+            padding-top: 0px;
+            padding-bottom: 0px;
+            padding-right: 0px;
+            margin-top: 1px;
+            margin-bottom: 5px;
+            color: #1076D7;
+            font-size: 0.833em;
+            margin-right: 14px;
+            text-decoration: none;
+            max-width: 120px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+}

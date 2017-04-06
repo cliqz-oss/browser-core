@@ -1,4 +1,4 @@
-import * as psl from 'platform/public-suffix-list';
+import * as psl from '../platform/public-suffix-list';
 // Functions for manipulating domain names
 
 export function getGeneralDomain(domain) {
@@ -25,5 +25,3 @@ export function isIpv4Address(domain) {
     return d >= 0 && d < 256;
   });
 }
-
-

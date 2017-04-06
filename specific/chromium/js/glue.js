@@ -79,6 +79,7 @@ Promise.all([
       System.import("geolocation/background"),
       System.import("autocomplete/search"),
       System.import("platform/load-logo-db"),
+      System.import("hpn/background"),
     ])
   }).then(function (modules) {
     window.CLIQZEnvironment = modules[0].default;
@@ -90,7 +91,12 @@ Promise.all([
     window.geolocation = modules[8].default;
     window.Search = modules[9].default;
     modules[10].default().then(CliqzUtils.setLogoDb);
+    window.CliqzSecureMessage = modules[11].actions;
 
+    // Reveal urlbar in development builds
+    if (CLIQZ.config.environment !== 'production') {
+      document.querySelector('#urlbar').style.display = 'block';
+    }
 
     CliqzUtils.System = System;
     CliqzAutocomplete.Mixer = Mixer;
@@ -122,7 +128,7 @@ Promise.all([
     // localize
     CliqzUtils.localizeDoc(document);
 
-    CLIQZ.UI.preinit(CliqzAutocomplete, window.CliqzHandlebars, CliqzEvents);
+    CLIQZ.UI.preinit(CliqzAutocomplete, window.CliqzHandlebars, CliqzEvents, System);
     CLIQZ.UI.init(urlbar);
     CLIQZ.UI.main(document.getElementById('results'));
     // Initialization of the ExpansionProvider should be after
@@ -335,7 +341,12 @@ const stubs = {
 
         setTimeout(callback, 100, q, res, true);
       },
-      processResults: 0,
+      processResults: function(query, allUrls){
+        console.log("OnRenderComplete", query, allUrls)
+      },
+      onResultSelectionChange: function(position, selectedUrl, allUrls){
+        console.log("onResultSelectionChange", position, selectedUrl, allUrls)
+      },
       onInputChanged: {
         addListener: 0
       },
@@ -348,7 +359,17 @@ const stubs = {
       onOmniboxFocusChanged: {
         addListener: 0
       },
-      getSearchEngines: 0,
+      getSearchEngines: function(callback){
+        callback([{
+          "keyword": "#qq",
+          "faviconUrl": "",
+          "id": "1",
+          "searchUrl": "https://www.cliqz.com/q=%s",
+          "base_url": "https://www.cliqz.com/q=%s",
+          "name": "CLIQZ",
+          "suggestionsUrl": "https://www.cliqz.com/q=%s"
+        }], 0);
+      },
       onSearchEnginesChanged: {
         addListener: 0
       },

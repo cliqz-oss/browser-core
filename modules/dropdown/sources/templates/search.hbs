@@ -1,0 +1,14 @@
+<a class="result search" href="{{url}}">
+    <div class="icons">
+        <span class="icon {{icon}}"></span>
+    </div>
+    <div class="abstract">
+        <p>
+            <span class="strong">{{query}}</span>
+            {{#if query}}
+                <span class="divider">&#8212;</span>
+            {{/if}}
+            <span class="url">{{local 'searchWith' engine}}</span>
+        </p>
+    </div>
+</a>

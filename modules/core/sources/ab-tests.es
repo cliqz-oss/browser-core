@@ -333,6 +333,24 @@ var CliqzABTests = {
             case "1094_B":
               CliqzUtils.setPref("ff-experiment", true);
               break;
+            case "1095_A":
+              CliqzUtils.setPref("connect", false);
+              break;
+            case "1095_B":
+              CliqzUtils.setPref("connect", true);
+              break;
+            case "1096_A":
+              CliqzUtils.setPref("extOnboardCliqzConnect", false);
+              break;
+            case "1096_B":
+              CliqzUtils.setPref("extOnboardCliqzConnect", true);
+              break;
+            case "1097_A":
+              CliqzUtils.setPref("dropdownAdCampaignPosition", 'top');
+              break;
+            case "1097_B":
+              CliqzUtils.setPref("dropdownAdCampaignPosition", 'bottom');
+              break;
             default:
                 rule_executed = false;
         }
@@ -541,6 +559,18 @@ var CliqzABTests = {
             case "1094_A":
             case "1094_B":
               CliqzUtils.clearPref('ff-experiment');
+              break;
+            case "1095_A":
+            case "1095_B":
+              CliqzUtils.clearPref('connect');
+              break;
+            case "1096_A":
+            case "1096_B":
+              CliqzUtils.clearPref('extOnboardCliqzConnect');
+              break;
+            case "1097_A":
+            case "1097_B":
+              CliqzUtils.clearPref('dropdownAdCampaignPosition');
               break;
             default:
                 rule_executed = false;

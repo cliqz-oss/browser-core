@@ -5,6 +5,10 @@ import utils from '../core/utils';
 
 const DISMISSED_ALERTS = 'dismissedAlerts';
 
+const cliqzInitialPages = [
+  utils.CLIQZ_NEW_TAB_RESOURCE_URL,
+  utils.CLIQZ_NEW_TAB,
+];
 
 /**
 * @namespace freshtab
@@ -19,14 +23,22 @@ export default class {
     this.buttonEnabled = config.settings.freshTabButton;
     this.window = config.window;
     this.showNewBrandAlert = config.settings.showNewBrandAlert;
+
+    const initialPages = this.window.gInitialPages;
+    cliqzInitialPages.forEach((initialPage) => {
+      const isInitialPage = initialPages.indexOf(initialPage) >= 0;
+
+      if (!isInitialPage) {
+        initialPages.push(initialPage);
+      }
+    });
   }
+
   /**
   *@method init
   *@return null
   */
   init() {
-    this.core = inject.module('core');
-    this.clearUrlbar();
     this.showOnboarding();
   }
 
@@ -37,28 +49,6 @@ export default class {
       visible: true,
       enabled: FreshTab.isActive(),
     };
-  }
-
-  clearUrlbar() {
-    const currentUrl = this.window.gBrowser.selectedBrowser.currentURI.spec;
-    const initialPages = this.window.gInitialPages;
-    const cliqzInitialPages = [
-      utils.CLIQZ_NEW_TAB_RESOURCE_URL,
-      utils.CLIQZ_NEW_TAB,
-    ];
-
-    cliqzInitialPages.forEach((initialPage) => {
-      const isInitialPage = initialPages.indexOf(initialPage) >= 0;
-      const isCurrentUrl = cliqzInitialPages.indexOf(currentUrl) >= 0;
-
-      if (!isInitialPage) {
-        initialPages.push(initialPage);
-      }
-
-      if (isCurrentUrl) {
-        this.core.action('setUrlbar', '');
-      }
-    });
   }
 
   showOnboarding() {

@@ -82,7 +82,9 @@ export default {
     "txt-video-downloader": "You asked, we listened: you can now easily download YouTube videos to your computer. Just go to a video page on youtube.com and click on the icon that appears in the browser bar.",
     "cta-video-downloader": "Learn more...",
     "txt-cliqz-ghostery": "WE'VE JOINED FORCES WITH GHOSTERY",
-    "cta-learn-more": "READ ALL ABOUT IT"
+    "cta-learn-more": "READ ALL ABOUT IT",
+    "txt-cliqz-connect": "Connect with Cliqz for Android now to start sending links or download videos to your mobile device.",
+    "cta-cliqz-connect": "How it works"
   },
   title: 'New Tab',
   settings: {

@@ -403,6 +403,9 @@ notification[type="warning"] .notification-inner {
 
 
 /* ======= Navigation Arrows Back Forth ======= */
+#back-button {
+    border-right: 1px solid #e1e1e1 !important;
+}
 
 #forward-button,
 #back-button {

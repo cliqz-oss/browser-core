@@ -9,6 +9,7 @@
   "modules": [
     "core",
     "message-center",
+    "hpn",
     "offers-v2"
   ]
 }

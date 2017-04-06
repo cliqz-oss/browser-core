@@ -1,8 +1,8 @@
-import { getGeneralDomain } from 'antitracking/domain';
-import { URLInfo } from 'antitracking/url';
-import { utils } from 'core/cliqz';
-import { cleanTimestampCache } from 'antitracking/utils';
-import pacemaker from 'antitracking/pacemaker';
+import { getGeneralDomain } from '../domain';
+import { URLInfo } from '../url';
+import { utils } from '../../core/cliqz';
+import { cleanTimestampCache } from '../utils';
+import pacemaker from '../pacemaker';
 
 // moved from cookie-checker
 function currentGD() {
@@ -10,7 +10,7 @@ function currentGD() {
   let gd = null;
   if (currwin && currwin.gBrowser) {
     const url = currwin.gBrowser.selectedBrowser.currentURI.spec;
-    gd = getGeneralDomain(URLInfo.get(url).hostname);
+    gd = URLInfo.get(url).generalDomain;
   }
   return gd;
 }
@@ -39,8 +39,6 @@ export default class {
     // check if the response has been received yet
     const stage = state.responseStatus !== undefined ? 'set_cookie' : 'cookie';
     const tabId = state.tabId;
-    state.hostGD = getGeneralDomain(state.urlParts.hostname);
-    state.sourceGD = getGeneralDomain(state.sourceUrlParts.hostname);
     const diff = Date.now() - (this.visitCache[`${tabId}:${state.hostGD}`] || 0);
     if (diff < this.timeActive && this.visitCache[`${tabId}:${state.sourceGD}`]) {
       state.incrementStat(`${stage}_allow_visitcache`);
@@ -56,8 +54,8 @@ export default class {
       const url = state.url;
       const tabId = state.tabId;
       const urlParts = state.urlParts;
-      const sourceGD = state.sourceGD || getGeneralDomain(state.sourceUrlParts.hostname);
-      const hostGD = state.hostGD || getGeneralDomain(state.urlParts.hostname);
+      const sourceGD = state.sourceUrlParts.generalDomain;
+      const hostGD = state.urlParts.generalDomain;
 
       var diff = time - (this.contextFromEvent.ts || 0);
       if (diff < this.timeAfterLink) {
@@ -83,7 +81,7 @@ export default class {
 
   setContextFromEvent(ev, contextHTML) {
     try {
-      const cGD = getGeneralDomain(URLInfo.get(ev.target.baseURI).hostname);
+      const cGD = URLInfo.get(ev.target.baseURI).generalDomain;
       const pageGD = currentGD();
       if (contextHTML) {
         // don't log the event if it's not 3rd party

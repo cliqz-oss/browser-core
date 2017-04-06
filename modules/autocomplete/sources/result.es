@@ -140,7 +140,7 @@ var Result = {
           ret.data.deepResults = second.data.deepResults;
         if (second.data.extra && !ret.data.extra)
           ret.data.extra = second.data.extra;
-        if (ret.data.template !== 'pattern-h2')
+        if (ret.data.template !== 'pattern-h2' && second.data.template != 'generic')
           ret.data.template = second.data.template;
 
         return ret;

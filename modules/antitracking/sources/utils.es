@@ -1,4 +1,4 @@
-import { compress } from 'core/gzip';
+import { compress } from '../core/gzip';
 
 function _arrayBufferToBase64( buffer ) {
     var binary = '';

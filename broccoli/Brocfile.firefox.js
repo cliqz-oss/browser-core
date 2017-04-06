@@ -42,6 +42,7 @@ var firefoxTree = new MergeTrees([
   src,
   new Funnel(modules.static,      { destDir: 'chrome/content' }),
   new Funnel(modules.styleTests,  { destDir: 'chrome/content' }),
+  new Funnel(modules.bundles,     { destDir: 'chrome/content' }),
 ], { overwrite: true } );
 
 var firefoxOutputTrees = [
@@ -55,7 +56,7 @@ if (cliqzConfig.environment !== 'production') {
     include: ['tests/*/content/**/*']
   });
   var contentTests = concat(contentTestsTree, {
-    header: ";System = { register: function () {arguments[2]().execute(); }};",
+    header: ";System = { register: function () {arguments[1]().execute(); }};",
     inputFiles: "**/*.js",
     outputFile: 'tests/tests.js',
     allowNone: true

@@ -5,7 +5,6 @@ import CliqzADB,
        ADB_PREF_OPTIMIZED,
        ADB_PREF } from 'adblocker/adblocker';
 
-
 export default class {
   constructor(settings) {
     this.window = settings.window;

@@ -82,7 +82,9 @@ export default {
     "txt-video-downloader": "À la grande demande de nos utilisateurs, tu peux maintenant télécharger des vidéos YouTube sur ton ordinateur. Vas simplement sur une vidéo sur youtube.com et clique sur l'icône qui apparaîtra dans la barre de navigation.",
     "cta-video-downloader": "En savoir plus...",
     "txt-cliqz-ghostery": "GHOSTERY REJOINT NOS RANGS",
-    "cta-learn-more": "EN APPRENDRE PLUS"
+    "cta-learn-more": "EN APPRENDRE PLUS",
+    "txt-cliqz-connect": "Connecte-toi avec Cliqz pour Android maintenant pour pouvoir partager des onglets et des vidéos Youtube avec ton téléphone.",
+    "cta-cliqz-connect": "Pour en savoir plus"
   },
   title: 'Nouvel onglet',
   settings: {

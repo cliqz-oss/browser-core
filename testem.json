@@ -8,7 +8,8 @@
       },
       "ChromiumNoSandbox": {
         "protocol": "browser",
-        "command": "chromium --user-data-dir=/tmp/testem.chromium --no-default-browser-check --no-first-run --ignore-certificate-errors --no-sandbox --test-type --disable-renderer-backgrounding --disable-background-timer-throttling <url>"
+        "exe": "chromium",
+        "args": ["--user-data-dir=/tmp/testem.chromium", "--no-default-browser-check", "--no-first-run", "--ignore-certificate-errors", "--no-sandbox", "--test-type", "--disable-renderer-backgrounding", "--disable-background-timer-throttling"]
       }
     },
     "launch_in_dev": ["Mocha"],

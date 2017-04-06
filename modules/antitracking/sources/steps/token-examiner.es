@@ -1,8 +1,7 @@
-import pacemaker from 'antitracking/pacemaker';
-import * as persist from 'antitracking/persistent-state';
-import * as datetime from 'antitracking/time';
-import { getGeneralDomain } from 'antitracking/domain';
-import md5 from 'antitracking/md5';
+import pacemaker from '../pacemaker';
+import * as persist from '../persistent-state';
+import * as datetime from '../time';
+import md5 from '../md5';
 
 // creates local safe keys for keys with multiple observed values
 export default class {
@@ -43,8 +42,7 @@ export default class {
     var today = datetime.dateString(day);
     // save appeared tokens with field name
     // mark field name as "safe" if different values appears
-    var s = getGeneralDomain(url_parts.hostname);
-    s = md5(s).substr(0, 16);
+    var s = url_parts.generalDomainHash;
     url_parts.getKeyValuesMD5().filter((kv) => {
       return kv.v_len >= this.config.shortTokenLength;
     }).forEach((kv) => {

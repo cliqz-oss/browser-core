@@ -86,7 +86,7 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
         response.setHeader('Pragma', 'no-cache');
         response.setHeader('Expires', '0');
         var path = request.path.indexOf('.gif') > 0 ? 'test.gif' : 'test';
-        response.setHeader('Location', 'http://127.0.0.1:'+ testServer.port +'/' + path + '?'+ request.queryString);
+        response.setHeader('Location', 'http://cliqztest.de:'+ testServer.port +'/' + path + '?'+ request.queryString);
       };
       testServer.registerPathHandler('/tracker302', redirect302);
       testServer.registerPathHandler('/tracker302.gif', redirect302);
@@ -272,24 +272,24 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
         }
       },
 
-      'image302test.html': {
-        'http://localhost:60508/image302test.html': function(r, topic, md) {
-          testMainDocument(r, topic, md);
-          testResponseCode(r, topic);
-        },
-        'http://localhost:60508/test.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
-          testInMainFrame(r, topic, md, 3);
-          testResponseCode(r, topic);
-        },
-        'http://localhost:60508/tracker302.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
-          testInMainFrame(r, topic, md, 3);
-          testResponseCode(r, topic, 302);
-        },
-        'http://127.0.0.1:60508/test.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
-          testInMainFrame(r, topic, md, 3);
-          testResponseCode(r, topic);
-        }
-      },
+      // 'image302test.html': {
+      //   'http://localhost:60508/image302test.html': function(r, topic, md) {
+      //     testMainDocument(r, topic, md);
+      //     testResponseCode(r, topic);
+      //   },
+      //   'http://localhost:60508/test.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+      //     testInMainFrame(r, topic, md, 3);
+      //     testResponseCode(r, topic);
+      //   },
+      //   'http://localhost:60508/tracker302.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+      //     testInMainFrame(r, topic, md, 3);
+      //     testResponseCode(r, topic, 302);
+      //   },
+      //   'http://cliqztest.de:60508/test.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+      //     testInMainFrame(r, topic, md, 3);
+      //     testResponseCode(r, topic);
+      //   }
+      // },
 
       'nestediframetest.html': {
         'http://localhost:60508/nestediframetest.html': function(r, topic, md) {
@@ -388,11 +388,14 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
               url
             };
             for (var topic of wrCollector.topics) {
-              var reqs = wrCollector[topic].filter( function(req) { return isTestServerAddress(req.url) }).forEach(function(r) {
-                console.log(r);
-                chai.expect(expectedUrls).to.have.property(r.url);
-                expectedUrls[r.url](r, topic, testState);
-              });
+              var reqs = wrCollector[topic].filter( function(req) { return isTestServerAddress(req.url) }).reduce(function(hash, r) {
+                hash[r.url] = r;
+                return hash;
+              }, Object.create(null));
+              for (var seenUrl of Object.keys(expectedUrls)) {
+                chai.expect(reqs).to.have.property(seenUrl);
+                expectedUrls[seenUrl](reqs[seenUrl], topic, testState);
+              };
             }
           });
         });

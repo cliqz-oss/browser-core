@@ -2,7 +2,7 @@ import console from '../core/console';
 import prefs from '../core/prefs';
 import utils from '../core/utils';
 import ResourceLoader from '../core/resource-loader';
-import { auditInstalledAddons } from '../platform/antitracking/addon-check';
+import { auditInstalledAddons } from '../platform/addon-check';
 
 const REPORTED_PREF = 'spywareLastSuspiciousReported';
 

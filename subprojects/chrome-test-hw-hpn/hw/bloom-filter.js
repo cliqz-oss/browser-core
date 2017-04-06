@@ -114,45 +114,10 @@ var __CliqzBloomFilter = function() { //_export) {
       CliqzBloomFilter = {
         VERSION: '0.1',
         debug: 'true',
-        BLOOM_FILTER_CONFIG: 'https://cdn.cliqz.com/bloom_filter',
+        BLOOM_FILTER_CONFIG: '',
 
         hash: function hash(str, alg) {
-            /*
-          switch (alg) {
-            case "sha1":
-              ch.init(ch.SHA1);
-              break;
-            case "sha256":
-              ch.init(ch.SHA256);
-              break;
-            case "sha384":
-              ch.init(ch.SHA384);
-              break;
-            case "SHA512":
-              ch.init(ch.SHA512);
-              break;
-            default:
-              // md5, (CliqzHumanweb._md5 is faster)
-              ch.init(ch.MD5);
-          }
-            */
-
-          /*
-          // FF2CHROME
-          //var data = converter.convertToByteArray(str);
-          var data = [];
-          for (var i = 0; i < str.length; ++i) data.push(str.charCodeAt(i));
-          //
-
-          ch.update(data, data.length);
-          var hashed = ch.finish(false);
-          return Object.keys(hashed).map(function (i) {
-            return toHexString(hashed.charCodeAt(i));
-          }).join('');
-          */
-
           return md5(str);
-
         },
         fnv32a: function fnv32a(str) {
           var FNV1_32A_INIT = 0x811c9dc5;

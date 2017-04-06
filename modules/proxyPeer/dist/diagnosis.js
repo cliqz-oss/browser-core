@@ -1,8 +1,8 @@
 
 function generateDiagnosis() {
-  const utils = Components.utils.import("chrome://cliqzmodules/content/CLIQZ.jsm").CLIQZ.System.get("core/utils").default;
-  const proxy = Components.utils.import("chrome://cliqzmodules/content/CLIQZ.jsm").CLIQZ.System.get("hpnPeer/main").default.proxy;
-  const trackerProxy = Components.utils.import("chrome://cliqzmodules/content/CLIQZ.jsm").CLIQZ.System.get("antitracking/attrack").default.pipelineSteps.trackerProxy;
+  const utils = Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm').CLIQZ.System.get('core/utils').default;
+  const trackerProxy = Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm').CLIQZ.System.get('proxyPeer/background').default.trackerProxy;
+  const proxy = trackerProxy.proxyPeer;
 
   const elt = document.getElementById('proxy-logs');
   const content = [];

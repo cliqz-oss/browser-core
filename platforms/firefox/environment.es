@@ -48,6 +48,7 @@ var CLIQZEnvironment = {
     },
     MESSAGE_TEMPLATES: [
       'footer-message',
+      'footer-ad',
       'onboarding-callout',
       'onboarding-callout-extended',
       'slow_connection',
@@ -78,6 +79,7 @@ var CLIQZEnvironment = {
     ],
     CLIQZ_ONBOARDING: "about:onboarding",
     CLIQZ_ONBOARDING_URL: "chrome://cliqz/content/onboarding-v2/index.html",
+    BASE_CONTENT_URL: "chrome://cliqz/content/",
     CLIQZ_NEW_TAB: "about:cliqz",
     CLIQZ_NEW_TAB_RESOURCE_URL: 'resource://cliqz/fresh-tab-frontend/index.html',
     BROWSER_ONBOARDING_PREF: "browserOnboarding",
@@ -424,8 +426,7 @@ var CLIQZEnvironment = {
 
                         if(result.getStyleAt(i).indexOf('switchtab') != -1){
                           try {
-                            let [mozAction, mozActionVal] = utils.cleanMozillaActions(result.getValueAt(i));
-                            let cleanURL = decodeURIComponent(JSON.parse(mozActionVal).url);
+                            let [mozAction, cleanURL] = utils.cleanMozillaActions(result.getValueAt(i));
                             let label;
 
                             try {
@@ -514,7 +515,7 @@ var CLIQZEnvironment = {
         },
         q
       );
-      if(dropDownStyle){
+      if(dropDownStyle && dropDownStyle !== 'cliqzilla'){
         const engine = this.getDefaultSearchEngine();
         res.val = engine.getSubmissionForQuery(q);
         res.label = CLIQZEnvironment.getLocalizedString('searchOn', engine.name);
@@ -523,6 +524,7 @@ var CLIQZEnvironment = {
       return res;
     }
 }
+
 function urlbar(){
   return CLIQZEnvironment.getWindow().CLIQZ.Core.urlbar;
 }

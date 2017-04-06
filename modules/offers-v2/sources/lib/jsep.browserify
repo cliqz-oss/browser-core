@@ -1,0 +1,10 @@
+System.register("offers-v2/lib/jsep", [], function (_export) {
+  "use strict";
+
+  _export("default", require('jsep'));
+
+  return {
+    setters: [],
+    execute: function () {}
+  };
+});

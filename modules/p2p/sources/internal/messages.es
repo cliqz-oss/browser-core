@@ -2,6 +2,7 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
 
+import random from 'core/crypto/random';
 import constants from './constants';
 import * as utils from './utils';
 
@@ -40,7 +41,7 @@ function decodeMessage(buffer) {
   if (type & constants.JSON_MSG_FLAG) {
     data = JSON.parse(UTF8ArrToStr(data.subarray(2 + labelSize)));
   } else {
-    data = data.buffer.slice(2 + labelSize);
+    data = data.slice(2 + labelSize);
   }
   return {
     data,
@@ -119,18 +120,18 @@ function decodeChunk(buffer) {
 
 class OutMessage {
   constructor(data, label, peer, resolve, reject, cliqzPeer) {
-    this.msgTimeout = 5000; // TODO: make configurable
+    this.msgTimeout = cliqzPeer.msgTimeout;
     this.retries = 0;
     this.maxRetries = cliqzPeer.maxMessageRetries;
     this.peer = peer;
     this.resolve = resolve;
     this.reject = reject;
     this.cliqzPeer = cliqzPeer;
-    this.log = cliqzPeer.log;
-    this.logDebug = cliqzPeer.logDebug;
+    this.log = (...args) => cliqzPeer.log(`[${peer}]`, ...args);
+    this.logDebug = (...args) => cliqzPeer.logDebug(`[${peer}]`, ...args);
     this.chunkSize = cliqzPeer.chunkSize;
     do {
-      this.msgId = Math.round(Math.random() * 2000000000);
+      this.msgId = Math.round(random() * 2000000000);
     } while (cliqzPeer.outMessages[this.msgId]);
     // TODO: not very nice, might be a good idea to rethink it...
     cliqzPeer.outMessages[this.msgId] = this;
@@ -179,10 +180,10 @@ class OutMessage {
             ++this.retries;
             this.send();
           })
-          .catch(() => {
+          .catch((ex) => {
             this.log('Killing outcoming message', this.msgId, 'to peer', this.peer);
             delete this.cliqzPeer.outMessages[this.msgId];
-            this.reject('killing outcoming message');
+            this.reject(`killing outcoming message: ${ex}`);
           });
     } else {
       delete this.cliqzPeer.outMessages[this.msgId];
@@ -231,10 +232,10 @@ class OutMessage {
 
 class InMessage {
   constructor(firstChunk, peer, resolve, cliqzPeer) {
-    this.msgTimeout = 5000; // TODO: make configurable
+    this.msgTimeout = cliqzPeer.msgTimeout;
     this.cliqzPeer = cliqzPeer;
-    this.log = cliqzPeer.log;
-    this.logDebug = cliqzPeer.logDebug;
+    this.log = (...args) => cliqzPeer.log(`[${peer}]`, ...args);
+    this.logDebug = (...args) => cliqzPeer.logDebug(`[${peer}]`, ...args);
     this.peer = peer;
     this.resolve = resolve;
     this.chunks = [];

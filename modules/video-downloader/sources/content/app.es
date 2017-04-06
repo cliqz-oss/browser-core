@@ -55,10 +55,13 @@ $(document).on('click', '#more-formats-btn', function(e) {
 
 $(document).on('click', '#send-to-mobile-btn', function(e) {
   e.stopPropagation();
+  var resend = $('#send-to-mobile-btn').text() ===
+    chrome.i18n.getMessage('pairing-send-video-to-mobile-retry');
   var dataToSend = {
     url: $(this).attr('data-href'),
     title: $(this).attr('data-title'),
     format: $(this).attr('data-format'),
+    resend,
   }
   $(this).attr('class', 'disabled');
   sendMessageToWindow({
@@ -98,6 +101,9 @@ function draw(data) {
       $('#sending-status').attr('src', 'images/checkbox-green.svg');
     } else {
       $('#sending-status').attr('src', 'images/checkbox-red.svg');
+
+      $('#send-to-mobile-btn').removeClass('disabled');
+      $('#send-to-mobile-btn').text(chrome.i18n.getMessage('pairing-send-video-to-mobile-retry'));
     }
   } else {
     $('#video-downloader').html(templates['template'](data));

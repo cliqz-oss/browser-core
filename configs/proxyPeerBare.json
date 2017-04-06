@@ -17,11 +17,17 @@
     "showNewBrandAlert": false,
     "showDataCollectionMessage": false,
     "antitrackingButton": false,
-    "controlCenterSecurity": false
+    "controlCenterSecurity": false,
+    "HW_CHANNEL": "cliqz"
+  },
+  "default_prefs" : {
+    "modules.context-search.enabled": false,
+    "modules.type-filter.enabled": false,
+    "proxyPeer": true,
+    "showConsoleLogs": true
   },
   "priority": [
     "core",
-    "firefox-specific",
     "static",
     "autocomplete",
     "human-web",
@@ -29,14 +35,12 @@
   ],
   "modules": [
     "core",
-    "firefox-specific",
     "static",
     "autocomplete",
     "human-web",
     "hpn",
     "p2p",
-    "proxyPeer",
-    "antitracking"
+    "proxyPeer"
   ],
   "subprojects": [
   ]

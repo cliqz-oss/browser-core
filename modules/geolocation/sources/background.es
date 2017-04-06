@@ -2,7 +2,7 @@ import background from "../core/base/background";
 import { isFirefox } from "../core/platform";
 import utils from '../core/utils';
 import events from '../core/events';
-import getGeo from "../platform/geolocation";
+import getGeo from "../core/geolocation";
 import inject from "../core/kord/inject";
 
 // If the computer wakes up from a sleep that was longer than this many milliseconds, we update geolocation.

@@ -1,3 +1,3 @@
-import Database from 'platform/database';
+import Database from '../platform/database';
 
 export default Database;

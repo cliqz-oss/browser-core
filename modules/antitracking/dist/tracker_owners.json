@@ -191,6 +191,7 @@
         "adzerk.net"
     ],
     "Akamai": [
+        "akamaihd.net",
         "edgesuite.net",
         "edgekey.net"
     ],
@@ -207,7 +208,8 @@
         "cloudfront.net",
         "amazonaws.com",
         "images-amazon.com",
-        "elasticbeanstalk.com"
+        "elasticbeanstalk.com",
+        "ssl-images-amazon.com"
     ],
     "Ancestry.com": [
         "mfcreative.com"
@@ -599,10 +601,10 @@
         "flattr.net"
     ],
     "Facebook": [
-        "akamaihd.net",
         "fbcdn.net",
         "facebook.com",
-        "instagram.com"
+        "instagram.com",
+        "facebook.net"
     ],
     "Federated Media": [
         "lijit.com"
@@ -685,7 +687,8 @@
     ],
     "Youtube": [
         "youtube.com",
-        "googlevideo.com"
+        "googlevideo.com",
+        "ytimg.com"
     ],
     "Google": [
         "gstatic.com",
@@ -890,7 +893,9 @@
         "google.co.zm",
         "google.co.zw",
         "google.cat",
-        "googletagmanager.com"
+        "googletagmanager.com",
+        "googleadservices.com",
+        "googletagservices.com"
     ],
     "Granify Inc.": [
         "granify.com"
@@ -953,13 +958,8 @@
     "IBM": [
         "coremetrics.com"
     ],
-    "IBT - Internet Business Technologies, Lda.": [
-        "webspectator.com"
-    ],
-    "INFOnline": [
-        "ivwbox.de"
-    ],
     "INFOnline GmbH": [
+        "ivwbox.de",
         "ioam.de"
     ],
     "IP Broadcasting B.V.": [
@@ -1174,8 +1174,8 @@
         "mncdn.com"
     ],
     "Meetrics": [
-        "de.com",
-        "meetrics.net"
+        "meetrics.net",
+        "mxcdn.net"
     ],
     "Methilonia ltd": [
         "adquantix.com"
@@ -2001,7 +2001,9 @@
         "ebay.com",
         "ebay-us.com",
         "ebayimg.com",
-        "ebayrtm.com"
+        "ebayrtm.com",
+        "ebaystatic.com",
+        "ebayc3.com"
     ],
     "eTarget": [
         "etargetnet.com"

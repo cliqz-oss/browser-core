@@ -1,4 +1,4 @@
-import CliqzUtils from 'core/utils';
+import utils from '../core/utils';
 
 const default_tpace = 10 * 1000;
 
@@ -15,11 +15,11 @@ class Pacemaker {
     if (this._id) {
       this.stop();
     }
-    this._id = CliqzUtils.setInterval(this._tick.bind(this), this.tpace, null);
+    this._id = utils.setInterval(this._tick.bind(this), this.tpace, null);
   }
 
   stop() {
-    CliqzUtils.clearTimeout(this._id);
+    utils.clearTimeout(this._id);
     this._id = null;
     this._tasks = new Set();
   }
@@ -28,24 +28,24 @@ class Pacemaker {
     var now = (new Date()).getTime();
     // initial waiting period
     if (this.twait > now) {
-      CliqzUtils.log("tick wait", "pacemaker");
+      utils.log("tick wait", "pacemaker");
       return;
     }
 
     // run registered tasks
     this._tasks.forEach(function(task) {
       if (now > task.last + task.freq) {
-        CliqzUtils.setTimeout(function() {
+        utils.setTimeout(function() {
           let task_name = task.fn.name || "<anon>";
           try {
             // if task constraint is set, test it before running
             if (!task.when || task.when(task)) {
-              CliqzUtils.log("run task: "+ task_name, "pacemaker");
+              utils.log("run task: "+ task_name, "pacemaker");
               task.fn(now);
             }
             task.last = now;
           } catch(e) {
-            CliqzUtils.log("Error executing task "+ task_name +": "+ e, "pacemaker");
+            utils.log("Error executing task "+ task_name +": "+ e, "pacemaker");
           }
         }, 0);
       }

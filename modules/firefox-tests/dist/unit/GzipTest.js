@@ -7,7 +7,7 @@ TESTS.GzipTest = function(CliqzUtils) {
     var gzip;
 
     beforeEach( function() {
-      return CliqzUtils.importModule('core/gzip').then( function(mod) {
+      return CliqzUtils.getWindow().CLIQZ.System.import('core/gzip').then( function(mod) {
         gzip = mod;
       });
     });

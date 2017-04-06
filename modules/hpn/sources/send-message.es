@@ -1,6 +1,5 @@
-import CliqzSecureMessage from 'hpn/main';
-import { saveLocalCheckTable } from 'hpn/utils';
-import CliqzUtils from 'core/utils';
+import CliqzSecureMessage from './main';
+import CryptoWorker from './crypto-worker';
 
 // Using this function it is easier to see if the push of message failed.
 const sendMessage = function (ww, m) {
@@ -16,8 +15,6 @@ const sendMessage = function (ww, m) {
       localTemporalUniq: CliqzSecureMessage.localTemporalUniq,
     });
   } catch (e) {
-    // CliqzUtils.log('Error creating mc: ' + e, CliqzSecureMessage.LOG_KEY);
-    return;
   }
 };
 
@@ -28,14 +25,14 @@ Will return a Promise which resolves to an array, one for each sent message:
 its value will be null if everything was ok,
 and a string indicating the error message otherwise (useful for testing)
 */
-const sendM = function (m, sent = []) {
-  const sendMessageWCrypto = new Worker('crypto-worker.js');
+export function sendM(m, sent = []) {
+  const sendMessageWCrypto = new CryptoWorker();
   sendMessage(sendMessageWCrypto, m);
 
-  sendMessageWCrypto.onmessage = function (e) {
+  sendMessageWCrypto.onmessage = (e) => {
     if (e.data.type === 'telemetry') {
       CliqzSecureMessage.localTemporalUniq = e.data.localTemporalUniq;
-      saveLocalCheckTable();
+      CliqzSecureMessage.storage.saveLocalCheckTable();
     }
 
     const nextMsg = CliqzSecureMessage.nextMessage();
@@ -43,12 +40,9 @@ const sendM = function (m, sent = []) {
       sendMessage(sendMessageWCrypto, nextMsg);
     } else {
       // Queue is empty hence dump the local temp queue to disk.
-      saveLocalCheckTable();
+      CliqzSecureMessage.storage.saveLocalCheckTable();
       sendMessageWCrypto.terminate();
       return sent;
     }
   };
 };
-
-export { sendM };
-

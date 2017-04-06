@@ -1,0 +1,21 @@
+<div class="clearfix notificationsCon" {{action 'notificationClick'}}>
+  <div class="close connectDismiss">
+    <a href="#" {{action 'dismiss'}}><img src="./assets/images/close_icon.svg" /></a>
+  </div>
+
+ <img {{action 'logoClick' bubbles=false}} class="logo" src="./assets/images/cliqz-connect.svg" width="40" />
+
+  <div class="text fullWidth">
+      <h1>Connect</h1>
+    <p>{{t 'notifications.txt-cliqz-connect'}}
+
+    <a href="#" {{action 'openConnectPage' 'http://cliqz.com/magazine/cliqz-connect' bubbles=false}}>
+      {{t 'notifications.cta-cliqz-connect'}}
+      <svg start-navigation id="smallarrow" width="5px" height="10px" viewBox="1131 409 10 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <defs></defs>
+        <polyline id="Path-164-Copy-153" stroke="#8BE0E7" stroke-width="3.5999999" fill="none" opacity="0.9" points="1133.19742 410.787186 1139.09434 416.693941 1133.42806 422.369666"></polyline>
+      </svg>
+    </a>
+    </p>
+  </div>
+</div>

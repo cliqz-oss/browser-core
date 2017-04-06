@@ -1,8 +1,8 @@
-import md5 from 'antitracking/md5';
-import * as datetime from 'antitracking/time';
-import * as persist from 'antitracking/persistent-state';
-import { splitTelemetryData } from 'antitracking/utils';
-import pacemaker from 'antitracking/pacemaker';
+import md5 from '../md5';
+import * as datetime from '../time';
+import * as persist from '../persistent-state';
+import { splitTelemetryData } from '../utils';
+import pacemaker from '../pacemaker';
 
 /**
  * Add padding characters to the left of the given string.
@@ -41,11 +41,11 @@ function leftpad(str, char, size) {
 function anonymizeTrackerTokens(trackerData) {
   let index = 1
   // Anonymize the given tracker data
-  let anonymizedTrackerData = {};
+  const anonymizedTrackerData = {};
 
   for (let originalKey in trackerData) {
     const newRandomKey = leftpad(index.toString().substr(0, 16), '0', 16);
-    index = index + 1;
+    index += 1;
     anonymizedTrackerData[newRandomKey] = trackerData[originalKey];
   }
 

@@ -1,9 +1,10 @@
-'use strict';
 /* global osAPI, math */
 
-import utils from 'core/utils';
-import window from "platform/window";
-import Storage from "core/storage";
+import Hammer from "hammer";
+import $ from 'jquery';
+import utils from '../core/utils';
+import window from '../platform/window';
+import Storage from '../core/storage';
 
 const storage = new Storage();
 let allHistory = [];
@@ -186,9 +187,9 @@ function unfavoriteItem(item) {
   osAPI.setFavorites([{title, url}], false);
 }
 
-function init(onlyFavorites) {
-  showOnlyFavorite = onlyFavorites;
-  if(!onlyFavorites) {
+function init(mode) {
+  showOnlyFavorite = (mode === 'favorites');
+  if(!showOnlyFavorite) {
     window.addEventListener('scroll', onScroll);
   }
   onShow();
@@ -313,7 +314,7 @@ function onSwipeEnd(e) {
   const tab = showOnlyFavorite ? 'favorites' : 'history';
   const targetType = element.getAttribute('class').indexOf('question') >= 0 ? 'query' : 'site';
   const direction = e.direction === 4 ? 'right' : 'left';
-  if (math.abs(e.velocityX) < -1 || math.abs(e.deltaX) > 150) {
+  if (Math.abs(e.velocityX) < -1 || Math.abs(e.deltaX) > 150) {
     showOnlyFavorite ? unfavoriteItem(element) : removeItem(element);
     removeDomElement(element);
     sendSwipeTelemetry(targetType, tab, direction);

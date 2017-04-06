@@ -1,7 +1,7 @@
-import { utils } from 'core/cliqz';
 import Backend from 'anolysis/backend-communication';
 import log from 'anolysis/logging';
 import moment from 'platform/moment';
+import getSynchronizedDate, { DATE_FORMAT } from 'anolysis/synchronized-date';
 
 
 const CLIENT_STATE = {
@@ -13,99 +13,11 @@ const CLIENT_STATE = {
 };
 
 
-const DATE_FORMAT = 'DD/MM/YYYY';
-
-
-// Abstraction over storage in preferences
-const PREF_STORAGE = {
-  get: utils.getPref,
-  set: utils.setPref,
-};
-
-
 const NEW_INSTALL_DATE_PREF = 'anolysisInstalled';
 const LAST_TIME_SENT_PREF = 'anolysisLastAliveSignal';
 const LAST_TIME_GID_UPDATE_PREF = 'anolysisLastGIDUpdate';
 const CURRENT_SAFE_GID_PREF = 'anolysisGID';
 const CURRENT_DEMOGRAPHICS_PREF = 'anolysisDemographics';
-
-
-/**
- * Manage the date at which we last updated the GID.
- */
-function setLastGIDUpdateDate(date) {
-  PREF_STORAGE.set(LAST_TIME_GID_UPDATE_PREF, date);
-}
-
-
-function getLastGIDUpdateDate() {
-  return PREF_STORAGE.get(LAST_TIME_GID_UPDATE_PREF);
-}
-
-
-/**
- * setter and getter to manage the granular combination of
- * demographics for the user.
- */
-function setCurrentDemographics(demographics) {
-  PREF_STORAGE.set(CURRENT_DEMOGRAPHICS_PREF, demographics);
-}
-
-
-function getCurrentDemographics() {
-  return PREF_STORAGE.get(CURRENT_DEMOGRAPHICS_PREF);
-}
-
-
-/**
- * setter and getter to manage the safe group ID for the user.
- */
-function setCurrentGID(gid) {
-  PREF_STORAGE.set(CURRENT_SAFE_GID_PREF, gid);
-}
-
-
-function getCurrentGID() {
-  return PREF_STORAGE.get(CURRENT_SAFE_GID_PREF);
-}
-
-
-/**
- * setter and getter to manage the timestamp of the 'new install' event for the user.
- * This can be either the first day the user installed Cliqz, or the day telemetry
- * without ID was enabled for the an existing user.
- */
-function setNewInstallDate(date) {
-  PREF_STORAGE.set(NEW_INSTALL_DATE_PREF, date);
-}
-
-
-function getNewInstallDate() {
-  return PREF_STORAGE.get(NEW_INSTALL_DATE_PREF);
-}
-
-
-/**
- * setter and getter to manage the last time the granular combination of
- * demographics factors was sent to the backend.
- */
-function setLastTimeDemographicSent(date) {
-  PREF_STORAGE.set(LAST_TIME_SENT_PREF, date);
-}
-
-
-function getLastTimeDemographicSent() {
-  return PREF_STORAGE.get(LAST_TIME_SENT_PREF);
-}
-
-
-/**
- * Given an ID (either granular demographics or GID) as a JSON, serialize
- * it to a String and make sure we can compare them (keys should be sorted).
- */
-function serializeID(id) {
-  return JSON.stringify(id);
-}
 
 
 /**
@@ -133,20 +45,99 @@ function serializeID(id) {
  * information on this mechanism).
  */
 export default class {
-  constructor(demographicsStorage) {
+  constructor(demographicsStorage, storage) {
     this.demographicsStorage = demographicsStorage;
+    this.isReadyPromise = null;
+    this.storage = storage;
   }
 
+  /**
+   * Init is a method what will perform the following actions:
+   * 1. Check if granular demographics factors are available (prefs, pouchdb)
+   * 2. Perform actions if needed: new install, update GID
+   * 3. Check if alive signal should be sent (and send it if necessary)
+   *
+   * Moreover, the method is implemented in such a way that it cannot be called
+   * two times concurrently. If `init` is called twice in a row, and the first
+   * call did not resolve yet, then the second call will be ignored and will
+   * return the promise created by the first call.
+   */
   init() {
-    log('gid manager init');
-    return this.registerDemographicsFirstTime()
-      .then(() => this.updateClientState())
-      .then(() => this.handleActiveUserSignal())
-      .catch(() => {
-        // We currently don't have any demographics available, we need to
-        // wait until a call to `updateDemographics` before proceeding.
-        // TODO: Log here
-      });
+    if (this.isReadyPromise === null) {
+      this.isReadyPromise = this.registerDemographicsFirstTime()
+        .then(demographics => this.updateClientState(demographics).then(() => demographics))
+        .then(demographics => this.handleActiveUserSignal(demographics))
+        .catch(() => {
+          // We currently don't have any demographics available, we need to
+          // wait until a call to `updateDemographics` before proceeding.
+          log('No valid GID available found');
+        })
+        .then(() => {
+          // Delete reference as init is done.
+          this.isReadyPromise = null;
+        });
+    }
+
+    return this.isReadyPromise;
+  }
+
+  /**
+   * Manage the date at which we last updated the GID.
+   */
+  setLastGIDUpdateDate(date) {
+    this.storage.set(LAST_TIME_GID_UPDATE_PREF, date);
+  }
+
+  getLastGIDUpdateDate() {
+    return this.storage.get(LAST_TIME_GID_UPDATE_PREF);
+  }
+
+  /**
+   * setter and getter to manage the granular combination of
+   * demographics for the user.
+   */
+  setCurrentDemographics(demographics) {
+    this.storage.set(CURRENT_DEMOGRAPHICS_PREF, demographics);
+  }
+
+  getCurrentDemographics() {
+    return this.storage.get(CURRENT_DEMOGRAPHICS_PREF);
+  }
+
+  /**
+   * setter and getter to manage the safe group ID for the user.
+   */
+  setCurrentGID(gid) {
+    this.storage.set(CURRENT_SAFE_GID_PREF, gid);
+  }
+
+  getCurrentGID() {
+    return this.storage.get(CURRENT_SAFE_GID_PREF);
+  }
+
+  /**
+   * setter and getter to manage the timestamp of the 'new install' event for the user.
+   * This can be either the first day the user installed Cliqz, or the day telemetry
+   * without ID was enabled for the an existing user.
+   */
+  setNewInstallDate(date) {
+    this.storage.set(NEW_INSTALL_DATE_PREF, date);
+  }
+
+  getNewInstallDate() {
+    return this.storage.get(NEW_INSTALL_DATE_PREF);
+  }
+
+  /**
+   * setter and getter to manage the last time the granular combination of
+   * demographics factors was sent to the backend.
+   */
+  setLastTimeDemographicSent(date) {
+    this.storage.set(LAST_TIME_SENT_PREF, date);
+  }
+
+  getLastTimeDemographicSent() {
+    return this.storage.get(LAST_TIME_SENT_PREF);
   }
 
   /**
@@ -155,8 +146,8 @@ export default class {
    * none is present, then the user is set as UNSAFE, until one is present.
    */
   registerDemographicsFirstTime() {
-    log('registerDemographicsFirstTime');
-    if (getCurrentDemographics() === undefined) {
+    const currentDemographics = this.getCurrentDemographics();
+    if (currentDemographics === undefined) {
       // If it's the first time, it might be that there is no granular
       // demographic factors yet. Check if there is one in storage, if
       // yes, use the last one.
@@ -165,9 +156,9 @@ export default class {
         .then((results) => {
           log(`registerDemographicsFirstTime results ${JSON.stringify(results)}`);
           if (results.length === 1) {
-            log(`registerDemographicsFirstTime setCurrentDemographics ${JSON.stringify(results[0])}`);
-            setCurrentDemographics(serializeID(results[0].demographics));
-            return Promise.resolve();
+            const newDemographics = JSON.stringify(results[0].demographics);
+            log(`registerDemographicsFirstTime returns ${newDemographics}`);
+            return Promise.resolve(newDemographics);
           }
 
           // If no demographic factors are present in storage, the user is
@@ -176,27 +167,20 @@ export default class {
         });
     }
 
-    return Promise.resolve();
+    return Promise.resolve(currentDemographics);
   }
 
-  getCurrentState() {
-    log('getCurrentState');
-    // Get current date: DD/MM/YYYY
-    const currentDate = moment();
+  currentState() {
+    const currentDate = getSynchronizedDate();
+    const installDateFormatted = this.getNewInstallDate();
 
     // If we did not register any install date yet,
     // it means that this is a new install.
-    if (getNewInstallDate() === undefined) {
-      // Only enter the NEW_INSTALL state if demographics are available
-      if (getCurrentDemographics() !== undefined) {
-        return CLIENT_STATE.NEW_INSTALL;
-      }
-
-      // Otherwise we are in an unsafe state
-      return CLIENT_STATE.UNSAFE;
+    if (installDateFormatted === undefined) {
+      return CLIENT_STATE.NEW_INSTALL;
     }
 
-    const installDate = moment(getNewInstallDate(), DATE_FORMAT);
+    const installDate = moment(this.getNewInstallDate(), DATE_FORMAT);
 
     // If we are still the same day as the install date
     // then we are in the FIRST_DAY state.
@@ -207,14 +191,14 @@ export default class {
     // If we are more than one day after the install
     // then we should query the backend to get our safe
     // GID.
-    if (getCurrentGID() === undefined &&
+    if (this.getCurrentGID() === undefined &&
         currentDate.isAfter(installDate, 'day')) {
       return CLIENT_STATE.SHOULD_UPDATE;
     }
 
     // If a GID is already present, check if it's not out-of-date.
-    if (getLastGIDUpdateDate() !== undefined) {
-      const gidUpdateDate = moment(getLastGIDUpdateDate(), DATE_FORMAT);
+    if (this.getLastGIDUpdateDate() !== undefined) {
+      const gidUpdateDate = moment(this.getLastGIDUpdateDate(), DATE_FORMAT);
 
       // If we did not update the GID for the current month, then
       // we should query the backend again to check for update.
@@ -224,7 +208,7 @@ export default class {
 
       // If we have GID and it has been updated during the current month
       // then we are safe!
-      if (getCurrentGID() !== undefined &&
+      if (this.getCurrentGID() !== undefined &&
           gidUpdateDate.isSame(currentDate, 'month')) {
         return CLIENT_STATE.SAFE;
       }
@@ -233,13 +217,13 @@ export default class {
     return CLIENT_STATE.UNSAFE;
   }
 
-  updateClientState() {
-    log(`update client state from ${this.getCurrentState()}`);
-    switch (this.getCurrentState()) {
+  updateClientState(demographics) {
+    log(`update client state from ${this.currentState()} ${demographics}`);
+    switch (this.currentState()) {
       case CLIENT_STATE.NEW_INSTALL:
-        return this.handleNewInstall();
+        return this.handleNewInstall(demographics);
       case CLIENT_STATE.SHOULD_UPDATE:
-        return this.handleUpdate();
+        return this.handleUpdate(demographics);
       case CLIENT_STATE.SAFE:
       case CLIENT_STATE.FIRST_DAY:
       case CLIENT_STATE.UNSAFE:
@@ -260,26 +244,36 @@ export default class {
   // * handleActiveSignal
   // --------------------------------------------------------------------------
 
-  handleNewInstall() {
+  handleNewInstall(demographics) {
     log('handleNewInstall');
-    return Backend.newInstall(getCurrentDemographics())
-      .then(() => {
+    return Backend.newInstall(demographics)
+      .then((formattedDemographics) => {
         log('Success handleNewInstall');
-        setNewInstallDate(moment().format(DATE_FORMAT));
+        const currentDate = getSynchronizedDate().format(DATE_FORMAT);
+
+        this.setLastTimeDemographicSent(currentDate);
+        this.setNewInstallDate(currentDate);
+        this.setCurrentDemographics(formattedDemographics);
+
+        return formattedDemographics;
       })
       .catch((ex) => {
         // TODO: This could be a security problem for the user
-        log(`Could not send newInstall signal ${ex} ${ex.stack}`);
+        log(`Could not send newInstall signal ${ex}`);
+
+        return '';
       });
   }
 
-  handleUpdate() {
+  handleUpdate(demographics) {
     log('handleUpdate');
-    return Backend.updateGID(getCurrentDemographics())
+    return Backend.updateGID(demographics)
       .then((gid) => {
         log(`success handleUpdate ${gid}`);
-        setLastGIDUpdateDate(moment().format(DATE_FORMAT));
-        setCurrentGID(gid);
+        this.setLastGIDUpdateDate(getSynchronizedDate().format(DATE_FORMAT));
+        this.setCurrentGID(gid);
+
+        return gid;
       })
       .catch(() => {
         // If we were not able to retrieve a valid GID, then the user
@@ -287,30 +281,43 @@ export default class {
       });
   }
 
-  handleActiveUserSignal() {
-    log('handleActiveUserSignal');
+  handleActiveUserSignal(demographics) {
     // TODO: Right now all user will send this once a month (except
     // if it's the same month as the install date), but in the future
     // we might want to send it only with a given probability. eg: 75%.
 
     // Check if we should send the 'alive signal' along with
     // the most granular demographic factors.
-    if (getLastTimeDemographicSent() !== undefined) {
+    const lastTimeDemographicsSent = this.getLastTimeDemographicSent();
+    if (lastTimeDemographicsSent !== undefined) {
       log('handleActiveUserSignal has already been sent before');
-      // Get current date: DD/MM/YYYY
-      const currentDate = moment();
-      const lastDemographicSentDate = moment(getLastTimeDemographicSent(), DATE_FORMAT);
+
+      const currentDate = getSynchronizedDate();
+      const lastDemographicSentDate = moment(lastTimeDemographicsSent, DATE_FORMAT);
 
       if (currentDate.isAfter(lastDemographicSentDate, 'month')) {
         log('handleActiveUserSignal send again');
-        return Backend.activeUserSignal(getCurrentDemographics())
-          .then(() => {
-            setLastTimeDemographicSent(currentDate.format(DATE_FORMAT));
+        // Get latest demographics available in storage
+        return this.demographicsStorage.getLastN(1)
+          .then((results) => {
+            if (results.length === 1) {
+              return JSON.stringify(results[0].demographics);
+            }
+
+            return Promise.reject();
+          })
+          .catch(() => demographics)
+          .then(newDemographics => Backend.activeUserSignal(newDemographics))
+          .then((formattedDemographics) => {
+            this.setCurrentDemographics(formattedDemographics);
+            this.setLastTimeDemographicSent(currentDate.format(DATE_FORMAT));
+            return formattedDemographics;
           });
       }
     }
 
-    return Promise.resolve();
+    // The demographics have already been sent before
+    return Promise.resolve(demographics);
   }
 
   /**
@@ -318,7 +325,8 @@ export default class {
    */
   updateDemographics(demographics) {
     log(`updateDemographics ${JSON.stringify(demographics)}`);
-    return this.demographicsStorage.put(demographics);
+    return this.demographicsStorage.put(demographics)
+      .then(() => this.init());
   }
 
   /**
@@ -335,12 +343,11 @@ export default class {
     log('getGID');
     return this.init()
       .then(() => {
-        log('init successful');
-        switch (this.getCurrentState()) {
+        switch (this.currentState()) {
           case CLIENT_STATE.FIRST_DAY:
-            return getCurrentDemographics();
+            return this.getCurrentDemographics();
           case CLIENT_STATE.SAFE:
-            return getCurrentGID();
+            return this.getCurrentGID();
           case CLIENT_STATE.NEW_INSTALL:
           case CLIENT_STATE.SHOULD_UPDATE:
           case CLIENT_STATE.UNSAFE:

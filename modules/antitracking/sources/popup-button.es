@@ -1,5 +1,5 @@
-import { utils } from "core/cliqz";
-import CliqzEvents from "core/events";
+import { utils } from "../core/cliqz";
+import CliqzEvents from "../core/events";
 
 export default CliqzPopupButton;
 

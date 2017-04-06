@@ -1,3 +1,4 @@
+import inject from '../core/kord/inject';
 import UI from './ui';
 import { utils, events } from 'core/cliqz';
 
@@ -15,10 +16,10 @@ export default class {
     // If not, we pass a null value.
     // So this video-downloader module could work
     // with/without 'pairing' module.
-    utils.importModule('pairing/main')
-    .then(x => (this.PeerComm = x.default))
-    .catch(() => {})
-    .then(() => {
+    inject.module('pairing').action('getPairingPeer')
+    .catch((e) => undefined)
+    .then((peerComm) => {
+      this.peerComm = peerComm;
       this.UI = new UI(this.PeerComm, this.window);
       this.UI.init();
 

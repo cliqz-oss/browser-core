@@ -3,7 +3,7 @@
 /* global require */
 
 
-const fs = require('fs');
+const fs = System._nodeRequire('fs');
 
 
 // extracts only the key from a line of text

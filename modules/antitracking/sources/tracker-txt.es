@@ -2,9 +2,9 @@
 TrackerTXT: caching rules for tracker.txt
  */
 
-import MapCache from 'antitracking/fixed-size-cache';
-import { getTime } from 'antitracking/time';
-import { utils } from 'core/cliqz';
+import MapCache from './fixed-size-cache';
+import { getTime } from './time';
+import { utils } from '../core/cliqz';
 
 var trackerTxtActions = new Set(['placeholder', 'block', 'empty', 'replace']);
 

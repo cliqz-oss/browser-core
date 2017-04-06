@@ -44,7 +44,7 @@ node('ubuntu && docker && !gpu') {
   if (helpers.hasWipLabel()) {
     error "Branch is wip"
   }
-  
+
   gitCommit = helpers.getGitCommit()
 
   // stash dockerfile for use on other nodes without checkout
@@ -66,7 +66,7 @@ node('ubuntu && docker && !gpu') {
           }
 
           // mobile build and stash
-          withEnv(['CLIQZ_CONFIG_PATH=./configs/mobile-dev.json']) {
+          withEnv(['CLIQZ_CONFIG_PATH=./configs/mobile.json']) {
             stage('fern build mobile') {
               sh './fern.js build > /dev/null'
               // stage built files for mobile testem test
@@ -153,7 +153,7 @@ stage('tests') {
     def url = entry[1]
     stepsForParallel['Firefox ' + version] = {
       build(
-        job: 'cliqz/navigation-extension/nav-ext-browser-matrix-v3',
+        job: 'cliqz/navigation-extension/nav-ext-browser-matrix-v4',
         parameters: [
           string(name: 'FIREFOX_VERSION', value: version),
           string(name: 'TRIGGERING_BUILD_NUMBER', value: env.BUILD_NUMBER),
@@ -180,10 +180,10 @@ stage('tests') {
 
       docker.withRegistry(DOCKER_REGISTRY_URL) {
         timeout(20) {
-          helpers.reportStatusToGithub 'testem mobile', gitCommit, "VNC $HOST:$VNC_PORT", {
-            def image = docker.image(imgName)
-            image.pull()
-            docker.image(image.imageName()).inside("-p $VNC_PORT:5900 --device /dev/nvidia0 --device /dev/nvidiactl") {
+          def image = docker.image(imgName)
+          image.pull()
+          docker.image(image.imageName()).inside("-p $VNC_PORT:5900 --device /dev/nvidia0 --device /dev/nvidiactl") {
+            helpers.reportStatusToGithub 'testem mobile', gitCommit, "VNC $HOST:$VNC_PORT", {
               sh 'rm -rf report.xml'
               try {
                 sh './run_tests_testem.sh'
@@ -223,10 +223,10 @@ stage('tests') {
 
       docker.withRegistry(DOCKER_REGISTRY_URL) {
         timeout(20) {
-          helpers.reportStatusToGithub 'testem desktop content', gitCommit, "VNC $HOST:$VNC_PORT", {
-            def image = docker.image(imgName)
-            image.pull()
-            docker.image(image.imageName()).inside("-p $VNC_PORT:5900 --device /dev/nvidia0 --device /dev/nvidiactl") {
+          def image = docker.image(imgName)
+          image.pull()
+          docker.image(image.imageName()).inside("-p $VNC_PORT:5900 --device /dev/nvidia0 --device /dev/nvidiactl") {
+            helpers.reportStatusToGithub 'testem desktop content', gitCommit, "VNC $HOST:$VNC_PORT", {
               sh 'rm -rf report.xml'
               try {
                 sh './run_tests_testem.sh'

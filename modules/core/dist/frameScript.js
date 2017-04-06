@@ -125,8 +125,17 @@ LocationObserver.prototype.onStateChange = function onStateChange(aWebProgress, 
     // no request no problem
   }
 
+  var url;
+  try {
+    url = aRequest && aRequest.name;
+  } catch (e) {
+    // aRequest.name throws a NS_ERROR_NOT_IMPLEMENTED error if this is a view-source page
+    // try to create the url from the URI instead
+    url = aRequest && aRequest.URI && aRequest.URI.spec;
+  }
+
   var msg = {
-    url: aRequest && aRequest.name,
+    url: url,
     urlSpec: aRequest && aRequest.URI && aRequest.URI.spec,
     originalUrl: originalURL,
     triggeringUrl: triggeringURL,

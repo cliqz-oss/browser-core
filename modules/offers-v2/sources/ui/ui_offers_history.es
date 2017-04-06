@@ -278,7 +278,7 @@ export class UIOffersHistory {
     const sigDeltaLiveTimeMs = Date.now() - OffersConfigs.OFFERS_HISTORY_LIVE_TIME_SECS * 1000;
     Object.keys(this.offersHistory).forEach((elemID) => {
       const creationTimeMs = this.getCreationTime(elemID);
-      if (creationTimeMs && creationTimeMs >= sigDeltaLiveTimeMs) {
+      if (creationTimeMs && creationTimeMs < sigDeltaLiveTimeMs) {
         linfo('_removeOldEntries: removing entry with ID: ' + elemID);
         delete this.offersHistory[elemID];
       }

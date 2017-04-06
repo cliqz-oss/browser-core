@@ -94,11 +94,13 @@ var CliqzDemo = {
     if(utils.getPref("cliqz_core_disabled", false)) return;
 
 		win.gBrowser.addEventListener("DOMContentLoaded", _onPageLoad, false);
-		win.CLIQZ.Core.popup.
-			addEventListener("popuphidden", _dropdownHiddenListener, false);
-		_createFakeCursor(win);
+    if (win.CLIQZ) {
+  		win.CLIQZ.Core.popup.
+  			addEventListener("popuphidden", _dropdownHiddenListener, false);
+  		_createFakeCursor(win);
 
-    initialized = true;
+      initialized = true;
+    }
 	},
 	unload: function (win) {
     if(!initialized) return;

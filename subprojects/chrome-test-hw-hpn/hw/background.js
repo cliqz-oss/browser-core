@@ -1,10 +1,25 @@
 var manifest = chrome.runtime.getManifest();
-var contentScriptPath = "content.js";
-var hpnWorkerPath = "hpn-worker.js";
+
+// For packaging with Ghostery
+var contentScriptPath = "modules/human-web/content.js";
+
+// For packaging with chromium + cliqz.
 if(manifest.version_name === "packaged"){
   contentScriptPath = "js/hw/content.js";
-  hpnWorkerPath = "js/hw/hpn-worker.js";
 }
+
+// For packaging as a standalone web extension.
+if(manifest.name === "CLIQZ search" || manifest.version_name === "standalone"){
+  contentScriptPath = "human-web/content.js";
+}
+
+const channel = manifest.name.toLowerCase();
+
+const allowedCountryCodes = ['de', 'at', 'ch', 'es', 'us', 'fr', 'nl', 'gb', 'it', 'se'];
+
+const dbPrefixes = ['usafe', 'telemetry', 'hpn', 'prefs'];
+const prefs = ['config_location','humanWeb','hpnTelemetry','config_ts', 'config_activeUsageCount', 'config_activeUsage', 'enable_human_web'];
+
 
 function observeRequest(requestDetails){
     for (var i = 0; i < requestDetails.requestHeaders.length; ++i) {
@@ -12,11 +27,13 @@ function observeRequest(requestDetails){
            if (CliqzHumanWeb.gadurl.test(requestDetails.url)) {
                 CliqzHumanWeb.linkCache[requestDetails.url] = {'s': ''+requestDetails.requestHeaders[i].value, 'time': CliqzHumanWeb.counter};
             }
+
            break;
       }
     }
     return {requestHeaders: requestDetails.requestHeaders}
 }
+
 
 function observeResponse(requestDetails){
     for (var i = 0; i < requestDetails.responseHeaders.length; ++i) {
@@ -24,7 +41,8 @@ function observeResponse(requestDetails){
         CliqzHumanWeb.httpCache401[requestDetails.url] = {'time': CliqzHumanWeb.counter};
       }
     }
-    CliqzHumanWeb.httpCache[requestDetails.url] = {'status': requestDetails.statusCode, 'time': CliqzHumanWeb.counter}
+    CliqzHumanWeb.httpCache[requestDetails.url] = {'status': requestDetails.statusCode, 'time': CliqzHumanWeb.counter};
+    // domain2IP(requestDetails);
 }
 
 function observeRedirect(requestDetails){
@@ -51,12 +69,6 @@ function domain2IP(requestDetails) {
   }
 }
 
-chrome.webRequest.onBeforeSendHeaders.addListener(observeRequest, {urls:["http://*/*", "https://*/*"],types:["main_frame"]},["requestHeaders"]);
-chrome.webRequest.onBeforeRedirect.addListener(observeRedirect, {urls:["http://*/*", "https://*/*"],types:["main_frame"]},["responseHeaders"]);
-chrome.webRequest.onResponseStarted.addListener(observeResponse, {urls:["http://*/*", "https://*/*"],types:["main_frame"]},["responseHeaders"]);
-// chrome.webRequest.onAuthRequired.addListener(observeAuth, {urls:["http://*/*", "https://*/*"],types:["main_frame"]},["responseHeaders"]);
-chrome.webRequest.onCompleted.addListener(domain2IP, {urls:["http://*/*", "https://*/*"],tabId:-1},["responseHeaders"])
-
 
 var eventList = ['onDOMContentLoaded'];
 
@@ -72,10 +84,8 @@ var aProgress = {};
 var aRequest = {};
 var aURI = {};
 
-CliqzHumanWeb.init();
-CliqzSecureMessage.init();
-
-
+/*
+TBR: Legacy.
 function focusOrCreateTab(url) {
   chrome.windows.getAll({"populate":true}, function(windows) {
     var existing_tab = null;
@@ -96,20 +106,14 @@ function focusOrCreateTab(url) {
     }
   });
 }
-
+*/
 
 // chrome.history.onVisitRemoved.addListener(CliqzHumanWeb.onHistoryVisitRemoved);
 // chrome.browsingData.removeHistory({}, e => {console.log(e)});
 
-chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-    if (changeInfo.status == 'complete' && tab.status == 'complete' && tab.url != undefined) {
-        if (tab.url.startsWith('https://') || tab.url.startsWith('http://')) {
-            chrome.tabs.executeScript(tabId, {file: contentScriptPath});
-        }
-    }
-});
 
-
+/*
+Replacing this in favour of chrome.runtime.onMessage.
 chrome.runtime.onConnect.addListener(function(port) {
   var tab = port.sender.tab;
   // This will get called by the content script we execute in
@@ -149,7 +153,7 @@ chrome.runtime.onConnect.addListener(function(port) {
     }
   });
 })
-
+*/
 var background = {
   getAllOpenPages: function(){
     return new Promise(function(resolve, reject){
@@ -170,33 +174,145 @@ var background = {
 // We can add a check to make sure it only comes from our counterpart, by checking the senderID.
 // For long-lived connections:
 
-chrome.runtime.onConnect.addListener(function(port) {
-  port.onMessage.addListener(function(request) {
-    if(!request.msg) return;
-    var eID = request.eventID;
-    var mc = new messageContext(request.msg);
-    var proxyIP = getProxyIP();
-    mc.aesEncrypt()
-    .then(function(enxryptedQuery){
-      return mc.signKey();
-    })
-    .then(function(){
-      var data = {"mP":mc.getMP()}
-      return _http(proxyIP)
-           .post(JSON.stringify(data), "instant")
-    })
-    .then(function(response){
-      if(request.msg.action != "extension-query") return;
-      return mc.aesDecrypt(JSON.parse(response)["data"]);
-    })
-    .then(function(res){
-      let resp = {"data":
-          {
-          "response": res
-          },
-          "eID": eID
-        }
-      port.postMessage(resp);
-    })
+// This would need a bit of more testing before replacing.
+// For now this is only needed for chromium based platforms
+// therefore putting a check.
+
+if (chrome.runtime && chrome.runtime.onConnect) {
+  chrome.runtime.onConnect.addListener(function(port) {
+    port.onMessage.addListener(function(request) {
+      if(!request.msg) return;
+      var eID = request.eventID;
+      var mc = new messageContext(request.msg);
+      var proxyIP = getProxyIP();
+      mc.aesEncrypt()
+      .then(function(enxryptedQuery){
+        return mc.signKey();
+      })
+      .then(function(){
+        var data = {"mP":mc.getMP()}
+        return _http(proxyIP)
+             .post(JSON.stringify(data), "instant")
+      })
+      .then(function(response){
+        if(request.msg.action != "extension-query") return;
+        return mc.aesDecrypt(JSON.parse(response)["data"]);
+      })
+      .then(function(res){
+        let resp = {"data":
+            {
+            "response": res
+            },
+            "eID": eID
+          }
+        port.postMessage(resp);
+      })
+    });
   });
-});
+}
+
+function initOnMessage() {
+    chrome.runtime.onMessage.addListener( (info, sender, sendResponse) => {
+
+      // Listen for pref change from GH UI:
+      if(info && info.name === 'onHWSettingChanged') {
+        console.log("onHWSettingChanged RECEIVED", info.message);
+         CliqzUtils.setPref('enable_human_web', info.message);
+      }
+
+      // Will only get executed, if human-web in enabled and content script loaded.
+      var tab = sender.tab;
+      // This will get called by the content script we execute in
+      // the tab as a result of the user pressing the browser action.
+      if(info.type == "dom"){
+        CliqzHumanWeb.tempCurrentURL = tab.url;
+
+        aProgress["isLoadingDocument"] = tab.status;
+        aRequest["isChannelPrivate"] = tab.incognito;
+        aRequest["tabId"] = tab.id;
+
+        aURI["spec"] = tab.url;
+        CliqzHumanWeb.contentDocument[decodeURIComponent(tab.url)] = {"doc":info.html,'time': CliqzHumanWeb.counter};
+        console.log(">>>>> DOM RCVD >>> " + tab.url);
+        CliqzHumanWeb.listener.onLocationChange(aProgress, aRequest, aURI);
+      }
+      else if(info.type == "event_listener"){
+        CliqzHumanWeb.tempCurrentURL = tab.url;
+        var ev = {};
+        ev["target"] = {"baseURI": info.baseURI,"href": null,"parentNode": {"href": null}};
+
+        if(info.action == "keypress"){
+          CliqzHumanWeb.captureKeyPressPage(ev);
+        }
+        else if(info.action == "mousemove"){
+          CliqzHumanWeb.captureMouseMovePage(ev);
+        }
+        else if(info.action == "mousedown"){
+          if(info.targetHref){
+            ev["target"] = {"href": info.targetHref};
+          }
+          CliqzHumanWeb.captureMouseClickPage(ev);
+        }
+        else if(info.action == "scroll"){
+          CliqzHumanWeb.captureScrollPage(ev);
+        }
+        else if(info.action == "copy"){
+          CliqzHumanWeb.captureCopyPage(ev);
+        }
+      }
+  });
+}
+
+function initWebRequestListeners() {
+  // chrome.webRequest.onBeforeSendHeaders.addListener(observeRequest, {urls:["http://*/*", "https://*/*"],types:["main_frame"]},["requestHeaders"]);
+  chrome.webRequest.onBeforeRedirect.addListener(observeRedirect, {urls:["http://*/*", "https://*/*"],types:["main_frame"]},["responseHeaders"]);
+  chrome.webRequest.onResponseStarted.addListener(observeResponse, {urls:["http://*/*", "https://*/*"],types:["main_frame"]},["responseHeaders"]);
+  chrome.webRequest.onCompleted.addListener(domain2IP, {urls:["http://*/*", "https://*/*"],tabId:-1});
+}
+
+function initTabListener() {
+  chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+      if (changeInfo.status == 'complete' && tab.status == 'complete' && tab.url != undefined) {
+          if (tab.url.startsWith('https://') || tab.url.startsWith('http://')) {
+              // We should execute the content script, with runAt, instead of setting timeout in content script.
+              chrome.tabs.executeScript(tabId, {file: contentScriptPath, runAt: 'document_start'});
+          }
+      }
+  });
+}
+
+function initModules() {
+  CliqzHumanWeb.init();
+  CliqzSecureMessage.init();
+}
+
+function initHumanWeb() {
+
+  initWebRequestListeners();
+  initWebRequestListeners();
+  initTabListener();
+  initModules();
+
+}
+
+
+function enableHumanWeb() {
+  if (navigator &&
+      navigator.appVersion.indexOf('Edge') === -1 &&
+      CliqzUtils.getPref('enable_human_web', true)
+    ) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+CliqzUtils.loadPrefs()
+  .then( () => {
+    // Need to have the pref change listener even when human-web is disabled.
+    initOnMessage();
+    if (enableHumanWeb()) {
+      initHumanWeb();
+    }
+  })
+  .catch( err => console.log("Error while loading prefs: " + err));

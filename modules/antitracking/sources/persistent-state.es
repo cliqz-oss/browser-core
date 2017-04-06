@@ -1,6 +1,6 @@
-import pacemaker from "antitracking/pacemaker";
-import sto from "platform/antitracking/storage";
-import CliqzUtils from 'core/utils';
+import utils from '../core/utils';
+import pacemaker from "./pacemaker";
+import sto from "../platform/antitracking/storage";
 
 const LOG_KEY = "attrack-persist";
 
@@ -90,12 +90,12 @@ export function clear_persistent(value) {
 };
 
 export function getValue(key, default_value) {
-  let val = CliqzUtils.getPref("attrack." + key, default_value);
+  let val = utils.getPref("attrack." + key, default_value);
   return val;
 };
 
 export function setValue(key, value) {
-  CliqzUtils.setPref("attrack." + key, value);
+  utils.setPref("attrack." + key, value);
 };
 
 export { loadRecord, saveRecord };

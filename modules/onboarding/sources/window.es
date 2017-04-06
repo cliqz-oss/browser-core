@@ -36,7 +36,7 @@ export default class {
     var showNewOnboarding = isVersionHigherThan("36.0");
 
     if (showNewOnboarding) {
-      tutorialUrl = this.window.CLIQZ.System.baseURL+"onboarding/onboarding.html";
+      tutorialUrl = utils.environment.BASE_CONTENT_URL+"onboarding/onboarding.html";
       tutorialVersion = this.version; //CliqzTour.VERSION;
     } else {
       tutorialUrl = utils.TUTORIAL_URL;

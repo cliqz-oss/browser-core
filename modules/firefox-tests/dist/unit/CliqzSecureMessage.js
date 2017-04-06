@@ -18,7 +18,7 @@ TESTS.HPNTest = function (CliqzUtils, CliqzSecureMessage) {
 
     beforeEach(function (done) {
       // Pass the message to the web-worker.
-      var testWCrypto = new Worker('chrome://cliqz/content/hpn/crypto-worker.js');
+      var testWCrypto = new Worker('chrome://cliqz/content/hpn/worker.bundle.js');
 
       testWCrypto.postMessage({
           "msg":JSON.parse(sample_message),
@@ -67,7 +67,7 @@ TESTS.HPNTest = function (CliqzUtils, CliqzSecureMessage) {
 
     it("HPN-utils-sha1", function (done) {
       // Pass the message to the web-worker.
-      var testWCrypto = new Worker('chrome://cliqz/content/hpn/crypto-worker.js');
+      var testWCrypto = new Worker('chrome://cliqz/content/hpn/worker.bundle.js');
 
       testWCrypto.onmessage = function(e){
           var result = e.data["result"];
@@ -85,7 +85,7 @@ TESTS.HPNTest = function (CliqzUtils, CliqzSecureMessage) {
 
     it("HPN-utils-sha1-with-accents", function (done) {
       // Pass the message to the web-worker.
-      var testWCrypto = new Worker('chrome://cliqz/content/hpn/crypto-worker.js');
+      var testWCrypto = new Worker('chrome://cliqz/content/hpn/worker.bundle.js');
 
       testWCrypto.onmessage = function(e){
           var result = e.data["result"];
@@ -104,14 +104,15 @@ TESTS.HPNTest = function (CliqzUtils, CliqzSecureMessage) {
 
   describe("secure-message-RSA", function () {
 
-    it("HPN-RSA-sign", function () {
+    it("HPN-RSA-sign", function (done) {
       // Pass the message to the web-worker.
-      var testWCrypto = new Worker('chrome://cliqz/content/hpn/crypto-worker.js');
+      var testWCrypto = new Worker('chrome://cliqz/content/hpn/worker.bundle.js');
 
       testWCrypto.onmessage = function(e){
           var result = e.data["result"];
           expect(result).to.equal("2be67d16d64c93f55af6db28dd83f48ff92761e459e61dab161f475aea010208b3a8437e8acec0f15d463f762e64e00033cbcab1b6017d541b88dbb1258c98cfe9c70436caf6d62effa8edc9f5a54d17e77724ae2864a34a0c6b0877f00f2fa8e5d583b02bafa8f72eadf16b2edd844fdca9440aa93ec6dd88d280831becdeb363ca69ecf4e6d82bdd9a18de3034b3bdc23c557847503924c45dcb3e8ed4d164725068109109fd5ffc3727e41c73e246e9017f497603d6261ffcd0c939857f11b9a2e49bf34e9ab31aaa1d82ba420a8d09517a97c98b176bebeb3b8c97f5bfe148258b268eb95b3916c328584f9b7975a0265198a919e89e507ddb6c9e51f025");
           testWCrypto.terminate();
+          done();
       };
 
       testWCrypto.postMessage({
@@ -124,7 +125,7 @@ TESTS.HPNTest = function (CliqzUtils, CliqzSecureMessage) {
 
     it("HPN-RSA-verify", function (done) {
       // Pass the message to the web-worker.
-      var testWCrypto = new Worker('chrome://cliqz/content/hpn/crypto-worker.js');
+      var testWCrypto = new Worker('chrome://cliqz/content/hpn/worker.bundle.js');
 
       testWCrypto.onmessage = function(e){
           var result = e.data["result"];

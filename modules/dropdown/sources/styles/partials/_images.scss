@@ -1,0 +1,19 @@
+#cliqz-dropdown {
+    .images {
+        padding: 2px 0 2px 0px;
+
+        a.result {
+            display: inline-block;
+            height: 72px;
+            margin-right: -3px;
+
+            &:hover {
+                background-color: transparent;
+            }
+
+            img {
+                height: 72px;
+            }
+        }
+    }
+}

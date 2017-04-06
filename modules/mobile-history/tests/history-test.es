@@ -16,7 +16,9 @@ export default describeModule('mobile-history/history',
             getElementById() { return { addEventListener() { } }; }
           }
         }
-      }
+      },
+      'hammer': {},
+      'jquery': {}
     };
   },
   function () {

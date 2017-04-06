@@ -13,24 +13,28 @@ var CliqzAutocomplete = {
     LOG_KEY: 'CliqzAutocomplete',
     SCROLL_SIGNAL_MIN_TIME: 500,
     REFETCH_MAX_ATTEMPTS: 10, // How many times should we try fetching incomplete (promised) results before giving up?
-    lastPattern: null,
-    lastSearch: '',
-    lastResult: null,
-    lastSuggestions: null,
-    lastResultHeights: [],
-    hasUserScrolledCurrentResults: false, // set to true whenever user scrolls, set to false when new results are shown
-    lastResultsUpdateTime: null, // to measure how long a result has been shown for
-    resultsOverflowHeight: 0, // to determine if scrolling is possible (i.e., overflow > 0px)
-    afterQueryCount: 0,
-    discardedResults: 0,
-    isPopupOpen: false,
-    lastPopupOpen: null,
-    lastQueryTime: null,
-    lastDisplayTime: null,
-    lastFocusTime: null,
-    highlightFirstElement: false,
-    hm: null,
-    currentAutoLoadURL: null,
+    setup() {
+      Object.assign(this, {
+        lastPattern: null,
+        lastSearch: '',
+        lastResult: null,
+        lastSuggestions: null,
+        lastResultHeights: [],
+        hasUserScrolledCurrentResults: false, // set to true whenever user scrolls, set to false when new results are shown
+        lastResultsUpdateTime: null, // to measure how long a result has been shown for
+        resultsOverflowHeight: 0, // to determine if scrolling is possible (i.e., overflow > 0px)
+        afterQueryCount: 0,
+        discardedResults: 0,
+        isPopupOpen: false,
+        lastPopupOpen: null,
+        lastQueryTime: null,
+        lastDisplayTime: null,
+        lastFocusTime: null,
+        highlightFirstElement: false,
+        hm: null,
+        currentAutoLoadURL: null,
+      });
+    },
     getResultsOrder: function(results){
         return CliqzAutocomplete.prepareResultOrder(results);
     },

@@ -1,7 +1,8 @@
 <!-- Resize to include history -->
 <!-- generic.tpl -->
 <div class="{{ data.genericZone.class }} cqz-ez-holder cqz-ez-generic"
-     local-source="{{ data.localSource }}">
+     local-source="{{ data.localSource }}"
+     kind='{{ kind_printer data.kind }}'>
     <div class="cqz-zone-holder">
         {{#each data.genericZone.partials as |partial| }}
             {{!Last argument .. send the correct data to the partial }}

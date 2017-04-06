@@ -1,4 +1,4 @@
-import console from 'core/console';
+import console from './console';
 
 
 /**
@@ -49,7 +49,7 @@ export default function (name, callback) {
   const registerCallbackOnData = () => {
     getNextData()
       .then(([data, resolvePush]) => Promise.resolve(callback(data)).then(resolvePush))
-      .catch(ex => console.debug(`MessageQueue ${name} :: error: ${ex} ${ex.stack}`))
+      .catch(ex => console.error(`MessageQueue ${name} :: error: ${ex}`))
       .then(registerCallbackOnData);
   };
 
@@ -82,5 +82,8 @@ export default function (name, callback) {
   // The only interface for this entity is the `push` function,
   // that will add a message in the queue, processed async by
   // the callback.
-  return { push };
+  return {
+    push,
+    getSize() { return queue.length; },
+  };
 }

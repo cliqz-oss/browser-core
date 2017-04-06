@@ -1,6 +1,7 @@
 import moment from 'platform/moment';
 import UAParser from 'platform/ua-parser';
 import log from 'anolysis/logging';
+import getSynchronizedDate from 'anolysis/synchronized-date';
 
 
 const ARCHITECTURE = new Set([
@@ -179,26 +180,40 @@ export default class {
     this.settings = settings;
   }
 
-  process(signal) {
+  process(signal, schema, schemaName) {
     if (this.isDemographics(signal)) {
-      return {
+      return Promise.resolve({
         demographics: this.parseDemographics(signal),
-      };
+        meta: {},
+      });
     }
 
-    // Behavioral signals
-    const behavior = { type: this.getId(signal) };
+    // Legacy behavior signal
+    if (schema === undefined) {
+      // This is a legacy signal that should be aggregated
+      const behavior = { type: this.getId(signal) };
 
-    Object.keys(signal)
-      .filter(key => this.idComponents.indexOf(key) === -1)
-      .filter(key => !this.isObject(signal[key]))
-      .forEach((key) => {
-        behavior[key] = signal[key];
-      });
+      Object.keys(signal)
+        .filter(key => this.idComponents.indexOf(key) === -1)
+        .filter(key => !this.isObject(signal[key]))
+        .forEach((key) => {
+          behavior[key] = signal[key];
+        });
 
-    return {
-      behavior,
-    };
+      return Promise.resolve(behavior);
+    }
+
+    // New signal, with a schema provided.
+    // TODO: Build signal from `signal` and `schema`.
+    // TODO: Check that the signal is well-formed.
+    return Promise.resolve({
+      id: schemaName,
+      behavior: signal,
+      meta: {},
+    });
+
+    // TODO: The schema check can fail and then a Promise.reject
+    // should be returned with an explanation of why it failed.
   }
 
   isObject(value) {
@@ -230,7 +245,7 @@ export default class {
     // ---------------------------------------------------------------------- //
     // Parse distribution
     // ---------------------------------------------------------------------- //
-    if (isString(signal.distribution) !== null && signal.distribution !== undefined) {
+    if (signal.distribution !== undefined && isString(signal.distribution)) {
       const rawDistribution = signal.distribution;
 
       // TODO: Use brands.json to generate/update this data
@@ -310,8 +325,13 @@ export default class {
     // ---------------------------------------------------------------------- //
     if (signal.install_date) {
       const installDateMs = signal.install_date * 86400000;
-      installDate = moment(installDateMs).format('YYYY/MM/DD');
-      if (signal.install_date < 16129 || installDateMs > Date.now()) {
+      const momentInstallDate = moment(installDateMs);
+      // This date format is expected by the gid backend. '/' is used as a
+      // separator to split demographics into sub-trees. Do not use another
+      // format there.
+      installDate = momentInstallDate.format('YYYY/MM/DD');
+      const currentDate = getSynchronizedDate();
+      if (signal.install_date < 16129 || momentInstallDate.isAfter(currentDate)) {
         // Some install date are not possible and should be considered as
         // outlier:
         // - In the past (before Cliqz existed)

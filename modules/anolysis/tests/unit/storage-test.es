@@ -1,13 +1,23 @@
 /* global chai */
 /* global describeModule */
-/* global require */
+
+
+const moment = System._nodeRequire('moment');
+
+const DATE_FORMAT = 'YYYY-MM-DD';
+const getCurrentMoment = () => moment('2017-01-01', DATE_FORMAT);
 
 
 export default describeModule('anolysis/storage',
   () => ({
+    'anolysis/synchronized-date': {
+      DATE_FORMAT,
+      default() {
+        return getCurrentMoment();
+      },
+    },
     'anolysis/logging': {
-      default: (msg) => {
-        console.log(msg.trim());
+      default: () => {
       },
     },
   }),
@@ -32,7 +42,7 @@ export default describeModule('anolysis/storage',
         };
         return storage.put({ type: 'type_A', value: 5 }).then(() => {
           const ts = record.ts;
-          chai.expect(Date.now() - ts).to.be.within(0, 10);
+          chai.expect(ts).to.be.equal(getCurrentMoment().format(DATE_FORMAT));
           delete record.ts;
           delete record._id;
           chai.expect(record).to.be.eql({ type: 'type_A', value: 5 });

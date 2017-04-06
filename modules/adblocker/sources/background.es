@@ -1,13 +1,15 @@
-import { utils } from 'core/cliqz';
-import background from 'core/base/background';
+import { utils } from '../core/cliqz';
+import background from '../core/base/background';
+import { getBrowserMajorVersion } from '../platform/browser';
 import CliqzADB,
       { ADB_PREF_VALUES,
         ADB_PREF,
         ADB_PREF_OPTIMIZED,
         ADB_USER_LANG,
         ADB_USER_LANG_OVERRIDE,
-        adbEnabled } from 'adblocker/adblocker';
-import FilterEngine from 'adblocker/filters-engine';
+        adbEnabled } from './adblocker';
+import inject from '../core/kord/inject';
+import FilterEngine from './filters-engine';
 
 function isAdbActive(url) {
   return adbEnabled() &&
@@ -16,17 +18,19 @@ function isAdbActive(url) {
 }
 
 export default background({
+  humanWeb: inject.module('human-web'),
+
   enabled() { return true; },
 
   init() {
-    if (CliqzADB.getBrowserMajorVersion() < CliqzADB.MIN_BROWSER_VERSION) {
+    if (getBrowserMajorVersion() < CliqzADB.MIN_BROWSER_VERSION) {
       return Promise.resolve();
     }
-    return CliqzADB.init();
+    return CliqzADB.init(this.humanWeb);
   },
 
   unload() {
-    if (CliqzADB.getBrowserMajorVersion() < CliqzADB.MIN_BROWSER_VERSION) {
+    if (getBrowserMajorVersion() < CliqzADB.MIN_BROWSER_VERSION) {
       return;
     }
     CliqzADB.unload();

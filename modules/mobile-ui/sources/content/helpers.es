@@ -1,5 +1,5 @@
 /* global Handlebars */
-import utils from 'core/utils';
+import utils from '../../core/utils';
 
 const AGO_CEILINGS =
   [

@@ -1,5 +1,5 @@
 /*
- * In Firefox this method will return undefined is called too easly in
+ * In Firefox this method will return undefined is called too early in
  * browser lifecycle. On some older versions like 2x it may even crash
  * entire process.
  */

@@ -1,6 +1,6 @@
-import Search from "autocomplete/search";
-import { utils } from "core/cliqz";
-import autocomplete from "autocomplete/autocomplete"
+import Search from "../autocomplete/search";
+import utils from "../core/utils";
+import autocomplete from "../autocomplete/autocomplete"
 
 export let background = {
   init() { },

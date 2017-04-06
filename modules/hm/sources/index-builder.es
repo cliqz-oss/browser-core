@@ -1,6 +1,6 @@
 import TableChangeObserver from 'hm/table-change-observer';
-import IncrementalStorage from 'hm/incremental-storage';
-import SimpleStorage from 'hm/simple-storage';
+import IncrementalStorage from 'core/incremental-storage';
+import SimpleStorage from 'core/simple-storage';
 import { ngrams, len, comp_url, is_search_url, normalize,
  url_norm, zip, has } from 'hm/helpers';
 import GatherData from 'hm/gather-data';
@@ -706,7 +706,7 @@ export default class IndexBuilder {
       .then(() => this.storage.open('data.json', e => this.processEvent(e), 'HMSearch', true))
       .then(() => {
         if (Object.keys(this.storage.obj).length === 0) {
-          return this.storage.snapshot(makeEmptyIndex());
+          return this.storage.replace(makeEmptyIndex());
         }
         return Promise.resolve();
       })
@@ -789,7 +789,7 @@ export default class IndexBuilder {
               this.runComputation = null;
               this.lastBuildTime = Date.now();
               this.numEvents = 0;
-              const pr = this.storage.snapshot(e.data);
+              const pr = this.storage.replace(e.data);
               this.buildingPromises.splice(0, this.buildingPromises.length).forEach(x => {
                 try {
                   x[0](pr);

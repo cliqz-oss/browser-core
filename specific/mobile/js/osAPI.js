@@ -13,6 +13,7 @@ var osAPI = {
     } else {
       osAPI.OS.postMessage = MockOS.postMessage;
     }
+    osAPI.isReady();
   },
   /**
     function: searchHistory
@@ -98,9 +99,6 @@ var osAPI = {
     message data: {data: as string, type: as string}
   */
   browserAction: function(type, data) {
-    if (type === 'shareLocation') {
-      Search && Search.clearResultCache();
-    }
     var message = {
       action: "browserAction",
       data: {
@@ -227,6 +225,33 @@ var osAPI = {
       target: 'share'
     });
   },
+  /**
+    function: shareLocation
+    description: requests sharing of user location
+  */
+  shareLocation: function() {
+    Search && Search.clearResultCache();
+    var message = {
+      action: "shareLocation"
+    };
+    osAPI.OS.postMessage(message);
+  },
+  /**
+    function: pushJavascriptResult
+    description: sends result to native
+    @param: {int} handler - hashcode of callback function
+    @param: {Object} result - result
+  */
+  pushJavascriptResult: function(handler, result) {
+    var message = {
+      action: "pushJavascriptResult",
+      data: {
+        ref: handler,
+        data: result
+      }
+    };
+    osAPI.OS.postMessage(message);
+  },
 
   /**
     function: notifyYoutubeVideoUrls
@@ -240,5 +265,46 @@ var osAPI = {
       data: urls
     };
     osAPI.OS.postMessage(message);
-  }
+  },
+
+  // DT-mobile pairing messages (uses a different bridge, need to refactor this)
+  downloadVideo: function(url) {
+    var message = {
+      action: 'downloadVideo',
+      data: url,
+    };
+    osAPI.OS.postMessage(message);
+  },
+
+  openTab: function(url) {
+    var message = {
+      action: 'openTab',
+      data: url,
+    };
+    osAPI.OS.postMessage(message);
+  },
+
+  pushPairingData: function(data) {
+    var message = {
+      action: 'pushPairingData',
+      data: data,
+    };
+    osAPI.OS.postMessage(message);
+  },
+
+  deviceARN: function(callback) {
+    var message = {
+      action: 'deviceARN',
+      data: '',
+      callback: callback,
+    };
+    osAPI.OS.postMessage(message);
+  },
+  notifyPairingError: function(data) {
+    var message = {
+      action: 'notifyPairingError',
+      data: data,
+    };
+    osAPI.OS.postMessage(message);
+  },
 };

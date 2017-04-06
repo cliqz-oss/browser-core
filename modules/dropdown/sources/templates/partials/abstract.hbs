@@ -1,0 +1,37 @@
+<div class="abstract">
+    {{#if thumbnail}}
+        <div class="thumbnail">
+            <img src="{{thumbnail}}" />
+        </div>
+    {{/if}}
+
+    <div>
+        <p>
+            <span data-extra="title">{{emphasis title query 2 true}}</span>
+            {{#if friendlyUrl}}
+                <span class="divider">&#8212;</span>
+                <span data-extra="url" class="url">{{friendlyUrl}}</span>
+            {{/if}}
+        </p>
+
+        <p>
+            {{#if description}}
+                <span class="description" data-extra="description">{{emphasis description query 2 true}}</span>
+            {{else}}
+                <span class="description" data-extra="full-url">{{url}}</span>
+            {{/if}}
+            {{#if publishedAt}}
+                <span class="published-at subtitle attention">
+                    {{agoline publishedAt}}
+                </span>
+            {{/if}}
+
+            {{#if videoViews}}
+                <span class="video-views subtitle normal">
+                    {{videoViews}} {{local 'views'}}
+                </span>
+            {{/if}}
+        </p>
+    </div>
+
+</div>

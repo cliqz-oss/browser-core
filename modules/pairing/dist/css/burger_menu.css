@@ -1,0 +1,8 @@
+#mobilepairing_btn {
+    list-style-image: url('chrome://cliqz/content/pairing/images/pairing-icon.svg');
+}
+
+#mobilepairing_btn[cui-areatype='menu-panel'], toolbarpaletteitem[place='palette'] > #mobilepairing_btn {
+}
+    list-style-image: url('chrome://cliqz/content/pairing/images/pairing-icon.svg');
+}

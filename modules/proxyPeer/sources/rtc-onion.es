@@ -1,10 +1,10 @@
-import console from 'core/console';
+import console from './console';
 import { generateAESKey
        , encryptRSA
        , decryptRSA
        , encryptAES
        , decryptAES
-       , fromArrayBuffer } from 'proxyPeer/rtc-crypto';
+       , b64Encode } from './rtc-crypto';
 
 
 /*
@@ -52,7 +52,7 @@ export function wrapOnionRequest(data, peers, connectionID, aesKey, messageNumbe
     connectionID,
     messageNumber,
     role: 'exit',
-    data: [...data.values()],
+    data: b64Encode(data),
   };
 
   const wrapRequest = (layer, i) => {
@@ -67,7 +67,7 @@ export function wrapOnionRequest(data, peers, connectionID, aesKey, messageNumbe
           nextPeer: peerName,
           data: encrypted,
         },
-        i - 1)).catch((e) => { console.debug(`proxyPeer PEER ERROR ${e}`); });
+        i - 1)).catch((e) => { console.error(`proxyPeer PEER ERROR ${e} ${e.stack}`); });
     }
 
     return encryptPayload(layer, peers[0].pubKey);
@@ -84,7 +84,7 @@ export function sendOnionRequest(onionRequest, peers, peer) {
     onionRequest,
     'antitracking',
   ).catch((e) => {
-    console.debug(`proxyPeer CLIENT ERROR: could not send message ${e}`);
+    console.error(`proxyPeer CLIENT ERROR: could not send message ${e} ${e.stack}`);
   });
 }
 

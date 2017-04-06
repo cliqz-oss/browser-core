@@ -224,8 +224,14 @@
     "searchUsing":{
         "message":"Suche mit"
     },
+    "searchWith": {
+        "message":"Mit $1 suchen"
+    },
     "on":{
         "message":"auf"
+    },
+    "visit":  {
+        "message":"Aufrufen"
     },
     "peoplePositionAt":{
         "message":"bei"
@@ -1110,7 +1116,7 @@
       "message": "Anrufen"
     },
     "mobile_share_location": {
-      "message": "Einmalig lokale Informationen abrufen"
+      "message": "Lokale Informationen abrufen"
     },
     "mobile_freshtab_breaking_news": {
       "message": "EILMELDUNG:"
@@ -1540,6 +1546,63 @@
     },
     "transparency_activity_buttons": {
       "message": "Aktuell keine Aktivität"
+    },
+    "pairing-title": {
+      "message": "Connect"
+    },
+    "pairing-description": {
+      "message": "Verknüpfe CLIQZ auf deinem Computer mit CLIQZ auf deinem mobilen Gerät. Dann kannst du geöffnete Webseiten und YouTube Videos direkt an dein Handy oder Tablet senden.\nGanz ohne Nutzerkonto."
+    },
+    "pairing-android-app": {
+      "message": "<a id=\"playstore-btn\" target=\"_blank\" href=\"https://play.google.com/store/apps/details?hl=de&id=com.cliqz.browser\">Cliqz für Android</a>"
+    },
+    "pairing-video-title": {
+      "message": "Video Herunterladen"
+    },
+    "pairing-video-tip": {
+      "message": "Öffne ein YouTube Video.\nKlicke auf das Video Download Icon.\nWähle \"An mobiles Gerät senden\"."
+    },
+    "pairing-tab-title": {
+      "message": "Tab senden"
+    },
+    "pairing-tab-tip": {
+      "message": "Mache einen Rechtsklick auf einen Tab oder eine Website.\nWähle \"An mobiles Gerät senden\"."
+    },
+    "pairing-browser-pair-with": {
+      "message": "Dieser Browser ist jetzt verknüpft mit:"
+    },
+    "pairing-on-disconnected-tip": {
+      "message": "Um diese Funktion nutzen zu können, muss dein mobiles Gerät mit dem Internet verbunden und aktiv sein."
+    },
+    "pairing-contact-support": {
+      "message": "Bei Fragen oder Problemen kontaktiere bitte unser"
+    },
+    "pairing-scan-title": {
+      "message": "Scanne den QR Code"
+    },
+    "pairing-step1-title": {
+      "message": "Öffne die Cliqz App auf deinem mobilen Gerät. Gehe ins Menu und wähle dort \"Connect\" aus."
+    },
+    "pairing-step2-title": {
+      "message": "Klicke auf (+) um den  QR Code Scanner zu starten."
+    },
+    "pairing-online": {
+      "message": "ONLINE"
+    },
+    "pairing-offline": {
+      "message": "OFFLINE"
+    },
+    "pairing-unpair": {
+      "message": "Verknüpfung entfernen"
+    },
+    "pairing-send-tab-to-mobile": {
+      "message": "An mobiles Gerät senden"
+    },
+    "pairing-send-video-to-mobile-retry": {
+      "message": "Erneut senden"
+    },
+    "ad-label": {
+      "message": "Anzeige"
     },
     "TEST": "OK"
 }

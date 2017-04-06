@@ -1,4 +1,4 @@
-import ResourceLoader from 'core/resource-loader';
+import ResourceLoader from '../core/resource-loader';
 
 export function HashProb() {
     this.probHashLogM = null;

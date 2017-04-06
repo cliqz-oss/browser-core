@@ -1,4 +1,4 @@
-import CliqzUtils from 'core/utils';
+import CliqzUtils from '../../core/utils';
 
 /**
 * @namespace ui.views

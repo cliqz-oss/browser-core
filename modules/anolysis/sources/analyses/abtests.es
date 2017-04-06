@@ -14,7 +14,6 @@ export default class {
 
     abtests.forEach((abtest) => {
       signals.push({
-        id: this.name,
         data: {
           abtest,
         },

@@ -21,14 +21,13 @@ export default class {
   constructor({ version, extensionId }) {
     this.version = version;
     this.extensionId = extensionId;
-    this.priorityModulesLoaded = false;
-    this.availableModules = config.modules.reduce((hash, moduleName) => {
-      hash[moduleName] = new Module(
+    this.availableModules = Object.create(null);
+    config.modules.forEach((moduleName) => {
+      this.availableModules[moduleName] = new Module(
         moduleName,
         Object.assign({}, config.settings, { version })
       );
-      return hash;
-    }, Object.create(null));
+    });
 
     utils.app = this;
     utils.extensionVersion = version;
@@ -38,7 +37,7 @@ export default class {
 
   extensionRestart(changes) {
     // unload windows
-    forEachWindow(win => {
+    forEachWindow((win) => {
       if (win.CLIQZ && win.CLIQZ.Core) {
         this.unloadWindow(win);
       }
@@ -56,7 +55,7 @@ export default class {
     return this.load().then(() => {
       // load windows
       const corePromises = [];
-      forEachWindow(win => {
+      forEachWindow((win) => {
         corePromises.push(this.loadWindow(win));
       });
       return Promise.all(corePromises);
@@ -86,19 +85,15 @@ export default class {
   loadIntoWindow(win) {
     if (!win) return;
 
-    waitWindowReady(win)
+    waitWindowReady(win) // This takes a lot to fulfill...
       .then(() => {
-        if (!mustLoadWindow(win)) {
-          return Promise.reject();
+        if (mustLoadWindow(win)) {
+          return this.loadWindow(win);
         }
-        return this.modulesLoadedPromise;
+        return null;
       })
-      .then(() => {
-        utils.log('Extension CLIQZ App background loaded');
-        return this.loadWindow(win);
-      }, () => { /* do nothin for non browser.xul windows */ })
-      .catch(e => {
-        utils.log(e, 'Extension filed loaded window modules');
+      .catch((e) => {
+        console.log(e, 'Extension filed loaded window modules');
       });
   }
 
@@ -106,34 +101,38 @@ export default class {
     // Load Config - Synchronous!
     utils.FEEDBACK_URL = `${utils.FEEDBACK}${this.version}-${config.settings.channel}`;
 
-    this.modulesLoadedPromise = this.load()
-      .then(() => {
-        enableChangeEvents();
+    this.load()
+    .catch((e) => {
+      utils.log(e, 'Extension -- failed to init CLIQZ App');
+    });
 
-        this.windowWatcher = (win, event) => {
-          if (event === 'opened') {
-            this.loadIntoWindow(win);
-          } else if (event === 'closed') {
-            this.unloadFromWindow(win);
-          }
-        };
-
-        addWindowObserver(this.windowWatcher);
-
-        // Load into currently open windows
-        forEachWindow(win => {
+    // TODO: could be nicer
+    this.availableModules.core.isReady().then(() => {
+      enableChangeEvents();
+      this.windowWatcher = (win, event) => {
+        if (event === 'opened') {
           this.loadIntoWindow(win);
-        });
-      })
-      .catch(e => {
-        utils.log(e, 'Extension -- failed to init CLIQZ App');
+        } else if (event === 'closed') {
+          this.unloadFromWindow(win);
+        }
+      };
+
+      addWindowObserver(this.windowWatcher);
+
+      // Load into currently open windows
+      forEachWindow((win) => {
+        this.loadIntoWindow(win);
       });
+    });
   }
 
   stop(isShutdown, disable, telemetrySignal) {
+    /* eslint-disable no-param-reassign */
+    // NOTE: Disable this warning locally since the solution is hacky anyway.
+
     utils.telemetry({
       type: 'activity',
-      action: telemetrySignal,
+      action: telemetrySignal
     }, true /* force push */);
 
     /**
@@ -149,13 +148,25 @@ export default class {
      *
      */
 
+    if (disable && config.settings.channel === '40') {
+      // in the CLIQZ browser the extension runns as a system addon and
+      // the user cannot disable or uninstall it. Therefore we do not need
+      // to consider an uninstall signal.
+      //
+      // we need this override to avoid an issue in FF52. Please check:
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1351617
+      //
+      // TODO: find a nicer way to detect if this runs in the CLIQZ browser
+      disable = false;
+    }
+
     if (isShutdown) {
       this.unload({ quick: true });
       return;
     }
 
     // Unload from any existing windows
-    forEachWindow(w => {
+    forEachWindow((w) => {
       this.unloadFromWindow(w, { disable });
     });
 
@@ -168,35 +179,17 @@ export default class {
     removeWindowObserver(this.windowWatcher);
 
     disableChangeEvents();
-
-    this.prefchangeEventListener = subscribe('prefchange', this.onPrefChange, this);
   }
 
-  modules({ type } = {}) {
-    let modules;
-    if (type === 'priority' ) {
-      modules = this.priorityModules;
-    } else if (type === 'nonpriority') {
-      modules = this.nonPriorityModules;
-    } else {
-      modules = this.priorityModulesLoaded ? this.nonPriorityModules : this.priorityModules;
-    }
-    return modules.map(
-      moduleName => this.availableModules[moduleName]
-    );
-  }
-
-  get priorityModules() {
-    return config.priority;
-  }
-
-  get nonPriorityModules() {
-    return Object.keys(this.availableModules)
-      .filter((m) => config.priority.indexOf(m) === -1);
+  modules() {
+    const modules = this.availableModules;
+    return Object.keys(modules).map(moduleName => modules[moduleName]);
   }
 
   enabledModules() {
-    return config.modules.map(name => this.availableModules[name]).filter(module => module.isEnabled);
+    return config.modules
+    .map(name => this.availableModules[name])
+    .filter(module => module.isEnabled);
   }
 
   setupPrefs() {
@@ -211,7 +204,7 @@ export default class {
     setOurOwnPrefs();
 
     if ('default_prefs' in config) {
-      Object.keys(config.default_prefs).forEach(pref => {
+      Object.keys(config.default_prefs).forEach((pref) => {
         if (!prefs.has(pref)) {
           console.log('App', 'set up preference', `"${pref}"`);
           prefs.set(pref, config.default_prefs[pref]);
@@ -224,34 +217,34 @@ export default class {
     resetOriginalPrefs();
   }
 
+  loadModule(module) {
+    try {
+      if (module.isEnabled) {
+        return Promise.resolve();
+      }
+      return module.enable()
+        .catch(e => console.error('App', 'Error on loading module:', module.name, e));
+    } catch (e) {
+      console.error('App module:', `"${module.name}"`, ' -- something went wrong', e);
+      return Promise.resolve();
+    }
+  }
+
   load() {
     console.log('App', 'Loading modules started');
     this.setupPrefs();
-    const backgroundPromises = this.modules()
-      .map(module => {
+    const allModules = this.modules();
+    const core = allModules.find(x => x.name === 'core');
+    const modules = allModules.filter(x => x.name !== 'core' && shouldEnableModule(x.name));
 
-        if (shouldEnableModule(module.name)) {
-          try {
-            if (module.isEnabled) {
-              return Promise.resolve();
-            }
-            return module.enable()
-              .catch(e => console.error('App', 'Error on loading module:', module.name, e));
-          } catch (e) {
-            console.error('App module:', `"${module.name}"`, ' -- something went wrong', e);
-            return Promise.resolve();
-          }
-        } else {
-          module.isLoading = false;
-          module.isEnabled = false;
-          // TODO: should not be here
-          return System.import(`${module.name}/background`);
-        }
-      });
+    core.preload();
+    modules.forEach(x => x.preload());
 
-    return Promise.all(backgroundPromises).then(() => {
-      console.log('App', 'Loading modules -- all background loaded');
-    }).catch(e => {
+    return this.loadModule(core)
+    .then(() => Promise.all(modules.map(x => this.loadModule(x))))
+    .then(() => {
+      console.log('App', 'Loading modules -- all loaded');
+    }).catch((e) => {
       console.error('App', 'Loading modules failed', e);
     });
   }
@@ -260,7 +253,7 @@ export default class {
     this.prefchangeEventListener.unsubscribe();
 
     console.log('App', 'unload background modules');
-    this.enabledModules().reverse().forEach(module => {
+    this.enabledModules().reverse().forEach((module) => {
       try {
         console.log('App', 'unload background module: ', module.name);
         module.disable({ quick });
@@ -269,13 +262,11 @@ export default class {
       }
     });
     console.log('App', 'unload background modules finished');
-
-    this.priorityModulesLoaded = false;
   }
 
   loadWindow(window) {
     // TODO: remove CLIQZ from window
-    if(!window.CLIQZ){
+    if (!window.CLIQZ) {
       const CLIQZ = {
         app: this,
         System,
@@ -289,34 +280,29 @@ export default class {
       });
     }
 
-    const windowModulePromises = this.modules({ type: (window.CLIQZ.priorityModulesLoaded ? 'nonpriority' : 'priority') }).map(module => {
-      if (!module.isEnabled) {
-        return Promise.resolve();
-      }
-      return module.loadWindow(window)
-        .catch(e => {
-          console.error('App window', `Error loading module: ${module.name}`, e);
-        });
-    });
+    const core = this.modules().find(x => x.name === 'core');
+    const modules = this.modules().filter(x => x.name !== 'core');
 
-    return Promise.all(windowModulePromises).then(() => {
-      if (window.CLIQZ.priorityModulesLoaded) {
-        return Promise.resolve();
-      }
-      window.CLIQZ.priorityModulesLoaded = true;
-      this.priorityModulesLoaded = true;
-      return this.load().then(() => {
-        return this.loadWindow(window);
-      }).then(() => {
-        console.log('App', 'Window loaded');
-        this.isFullyLoaded = true;
-      });
+    return core.loadWindow(window)
+    .then(() => modules.filter(x => x.isLoading))
+    .then(mods => Promise.all(
+      mods.map(
+        mod => mod.loadWindow(window)
+          .catch(e => console.error('App', 'error loading window module', mod.name, e))
+      )
+    ))
+    .then(() => {
+      console.log('App', 'Window loaded');
+      this.isFullyLoaded = true;
+    })
+    .catch((e) => {
+      console.error('App window', 'Error loading (should not happen!)', e);
     });
   }
 
   unloadWindow(window, data) {
     console.log('App window', 'unload window modules');
-    this.enabledModules().reverse().forEach(module => {
+    this.enabledModules().reverse().forEach((module) => {
       try {
         module.unloadWindow(window, data);
       } catch (e) {
@@ -338,7 +324,7 @@ export default class {
       return;
     }
 
-    const isEnabled = prefs.get(pref);
+    const isEnabled = prefs.get(pref) === true;
     const moduleName = prefParts.pop();
     const module = this.availableModules[moduleName];
 
@@ -357,6 +343,7 @@ export default class {
   }
 
   // use in runtime not startup
+  // TODO: check this is working fine with new module loading
   enableModule(moduleName) {
     const module = this.availableModules[moduleName];
 
@@ -364,22 +351,29 @@ export default class {
       return Promise.resolve();
     }
 
-    return module.enable().then(() =>
-      Promise.all(
-        mapWindows(module.loadWindow.bind(module))
-      ).then(() => {
-        prefs.set(`modules.${moduleName}.enabled`, true);
-      })
-    );
+    if (module.isLoading) {
+      return module.isReady();
+    }
+
+    module.preload();
+    module.enable();
+    return Promise.all(
+      mapWindows(module.loadWindow.bind(module))
+    ).then(() => {
+      prefs.set(`modules.${moduleName}.enabled`, true);
+    });
   }
 
   // use in runtime not startup
+  // TODO: check this is working fine with new module loading
   disableModule(moduleName) {
     const module = this.availableModules[moduleName];
 
     if (!module.isEnabled) {
       return Promise.resolve();
     }
+
+    // TODO: what if it was loading? Can we stop it?
 
     forEachWindow(module.unloadWindow.bind(module));
     module.disable();

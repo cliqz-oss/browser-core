@@ -1,9 +1,8 @@
 /* global chai */
 /* global describeModule */
-/* global require */
 
 
-const fs = require('fs');
+const fs = System._nodeRequire('fs');
 
 
 function readFile(path) {
@@ -62,15 +61,21 @@ function platformSpecificLoadingTest(listsToLoad, FilterLoader) {
 
 export default describeModule('adblocker/filters-loader',
   () => ({
-    'platform/language': {
+    'core/console': {
+      default: {
+
+      },
+    },
+    'core/language': {
       default: {
         state() { return []; },
       },
     },
-    'core/fs': {
-      readFile() { return Promise.reject('readFile should not be called'); },
-      writeFile() { return Promise.resolve(); },
-      mkdir() { return Promise.resolve(); },
+    'platform/resource-loader-storage': {
+      default: class {
+        load() { return Promise.reject('load should not be called'); }
+        save() { return Promise.resolve(); }
+      }
     },
     'adblocker/adblocker': {
       ADB_USER_LANG: 'cliqz-adb-lang',
@@ -78,11 +83,6 @@ export default describeModule('adblocker/filters-loader',
     },
     'adblocker/utils': {
       default() {
-      },
-    },
-    'core/utils': {
-      utils: {
-        getPref() { },
       },
     },
     'core/cliqz': {
@@ -110,7 +110,6 @@ export default describeModule('adblocker/filters-loader',
         platformName,
       },
     },
-    'platform/public-suffix-list': {},
   }),
   () => {
     describe('Test loading filters', () => {

@@ -111,7 +111,7 @@ function doTests() {
               }
               return true;
             }
-            var numBytes = 1024*1024;
+            var numBytes = 100*1024;
             var bytes1 = new Uint8Array(numBytes);
             var bytes2 = new Uint8Array(numBytes);
             fillRandom(bytes1);
@@ -154,7 +154,7 @@ TESTS.CliqzPeerTest = function(CliqzUtils) {
 
   before(function() {
     return Promise.all(modules.map(function(x) {
-      return CliqzUtils.importModule(x);
+      return CliqzUtils.getWindow().CLIQZ.System.import(x);
     }))
     .then(function(modules) {
       CliqzPeer = modules[0].default;
@@ -172,4 +172,4 @@ TESTS.CliqzPeerTest = function(CliqzUtils) {
   });
 };
 
-TESTS.CliqzPeerTest.MIN_BROWSER_VERSION = 37;
+TESTS.CliqzPeerTest.MIN_BROWSER_VERSION = 48;

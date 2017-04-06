@@ -82,7 +82,7 @@ function injectTestHelpers(CliqzUtils) {
   window.waitForPopup = function () {
     return waitFor(function () {
       var popup = chrome.document.getElementById("PopupAutoCompleteRichResultCliqz");
-      return popup.mPopupOpen === true;
+      return popup && popup.mPopupOpen === true;
     }).then(function () {
       return new Promise(function (resolve) {
         CliqzUtils.setTimeout(resolve, 200);

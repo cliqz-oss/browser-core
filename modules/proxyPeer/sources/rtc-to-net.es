@@ -1,14 +1,14 @@
 
-import { utils } from 'core/cliqz';
-import console from 'core/console';
+import { utils } from '../core/cliqz';
 // import md5 from 'core/helpers/md5';
 
-import { openSocket } from 'proxyPeer/tcp-socket';
+import console from './console';
+import { openSocket } from './tcp-socket';
 import { SERVER_REPLY
-       , parseRequest } from 'proxyPeer/socks-protocol';
-import { unpackAESKeyAndIv } from 'proxyPeer/rtc-crypto';
-import { createResponseFromExitNode } from 'proxyPeer/rtc-onion';
-import MessageQueue from 'proxyPeer/message-queue';
+       , parseRequest } from './socks-protocol';
+import { unwrapAESKey, b64Decode } from './rtc-crypto';
+import { createResponseFromExitNode } from './rtc-onion';
+import MessageQueue from './message-queue';
 
 
 function hashConnectionID(connectionID /* , peerID */) {
@@ -104,7 +104,7 @@ export default class {
    */
   openNewConnection(message, peer, sender, connectionHash, peerPrivKey) {
     const connectionID = message.connectionID;
-    const data = message.data;
+    const data = b64Decode(message.data);
     console.debug(`proxyPeer EXIT ${connectionID} ${message.messageNumber} openNewConnection`);
 
     // We have a SOCKS Request and need to establish the connection
@@ -149,7 +149,7 @@ export default class {
             this.dataOut += response.length;
             return peer.send(sender, response, 'antitracking')
               .catch((e) => {
-                console.debug(`proxyPeer EXIT ${connectionID} ${currentMessageNumber} ` +
+                console.error(`proxyPeer EXIT ${connectionID} ${currentMessageNumber} ` +
                     `ERROR: could not send message ${e}`);
               });
           });
@@ -187,7 +187,7 @@ export default class {
         this.dataOut += acknowledgement.length;
         return peer.send(sender, acknowledgement, 'antitracking')
           .catch((e) => {
-            console.debug(`proxyPeer EXIT ${connectionHash} ${message.messageNumber} ` +
+            console.error(`proxyPeer EXIT ${connectionHash} ${message.messageNumber} ` +
                 `ERROR: could not send message ${e}`);
           });
       });
@@ -196,7 +196,7 @@ export default class {
       // perspective, but then client sends a request again through the
       // same channel. Then it's ok to make this fail as we don't really
       // want to have long-lived connection through proxy network.
-      console.debug(`proxyPeer EXIT ${connectionHash} exception while unpacking ` +
+      console.error(`proxyPeer EXIT ${connectionHash} exception while unpacking ` +
           `AES keys ${ex} ${JSON.stringify(message)}`);
     });
   }
@@ -204,7 +204,7 @@ export default class {
 
   relayToOpenedConnection(message, connectionHash) {
     const connectionID = message.connectionID;
-    const data = message.data;
+    const data = b64Decode(message.data);
 
     // This should be a byte array (Uint8Array) and the connection should be established
     if (this.outgoingTcpConnections.has(connectionHash)) {
