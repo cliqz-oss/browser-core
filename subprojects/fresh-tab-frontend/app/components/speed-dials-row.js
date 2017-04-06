@@ -20,6 +20,8 @@ export default Ember.Component.extend({
 
   isCustom: Ember.computed.equal("type", "custom"),
 
+  classNameBindings: ['isCustom'],
+
   speedDials: Ember.computed('model.[]', 'limit', function () {
     return this.getWithDefault("model", []).slice(0, this.get("limit"));
   }),

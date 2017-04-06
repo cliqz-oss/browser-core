@@ -20,7 +20,7 @@ export default class {
   }
 
   status() {
-    if (background.CliqzSecureMessage && !CliqzUtils.getPref('cliqz_core_disabled', false)) {
+    if (background.CliqzSecureMessage && !utils.getPref('cliqz_core_disabled', false)) {
       return {
         visible: true,
         state: utils.getPref(prefKey)

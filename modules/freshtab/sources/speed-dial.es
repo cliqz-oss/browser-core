@@ -1,10 +1,12 @@
 import { utils } from 'core/cliqz';
-import getEngines from "platform/search-engines";
 
 function getAlias(aUrl) {
   const url = utils.getDetailsFromUrl(aUrl).host;
-  const engine = getEngines().find(engine => {
-    const urlDetails = utils.getDetailsFromUrl(engine.searchForm);
+  //EX-3916: blacklist google images and google maps on Freshtab speed-dials,
+  // so that Google search takes precedence
+  const blackListedEngines = utils.blackListedEngines('freshtab');
+  const engine = utils.getSearchEngines(blackListedEngines).find(engine => {
+    const urlDetails = utils.getDetailsFromUrl(engine.base_url);
     return url === urlDetails.host || url === urlDetails.domain;
   }) || {};
 

@@ -75,6 +75,11 @@ var UI = {
         viewPager = UI.initViewpager();
       }
 
+      if (UI.lastSearch !== r._searchString) {
+        UI.currentPage = 0;
+        viewPager.goToIndex(UI.currentPage);
+      }
+
       UI.lastSearch = r._searchString;
 
       const renderedResults = UI.results(r);
@@ -90,9 +95,6 @@ var UI = {
       window.document.body.style.backgroundColor = incognito ? '#4a4a4a' : '#E8E8E8';
     },
     results: function (r) {
-
-      UI.currentPage = 0;
-      viewPager.goToIndex(UI.currentPage);
 
       setCardCountPerPage(window.innerWidth);
 
@@ -116,7 +118,7 @@ var UI = {
           title,
           left: UI.CARD_WIDTH * enhancedResults.length,
           frameWidth: UI.CARD_WIDTH,
-          searchString: encodeURIComponent(r._searchString),
+          searchString: r._searchString,
           searchEngineUrl: engine.url,
           logo: logo,
           background: logo.backgroundColor
@@ -132,8 +134,6 @@ var UI = {
 
       imgLoader = new UI.DelayedImageLoader('#cliqz-results img[data-src], #cliqz-results div[data-style], #cliqz-results span[data-style]');
       imgLoader.start();
-
-      crossTransform(resultsBox, 0);
 
       currentResultsCount = enhancedResults.length;
 
@@ -230,6 +230,25 @@ function setCardCountPerPage(windowWidth) {
 
 function redrawDropdown(newHTML) {
   resultsBox.innerHTML = newHTML;
+  setAccordionListeners();
+}
+
+function setAccordionListeners() {
+  const acc = document.getElementsByClassName("accordion");
+
+  for (let i = 0; i < acc.length; i++) {
+      acc[i].onclick = function () {
+
+          this.lastElementChild.classList.toggle("active");
+
+          var panel = this.nextElementSibling;
+          if (panel.style.display === "block") {
+              panel.style.display = "none";
+          } else {
+              panel.style.display = "block";
+          }
+      }
+  }
 }
 
 function getVertical(result) {

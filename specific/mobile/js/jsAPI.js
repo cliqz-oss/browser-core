@@ -49,7 +49,7 @@ var jsAPI = {
   },
   onShow: function () {
     if (!CLIQZ.UI) { // history view
-      History.update();
+      History.onShow();
     }
   },
   onBoardingSwipe: function () {

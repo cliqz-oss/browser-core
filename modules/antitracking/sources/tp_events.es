@@ -4,123 +4,156 @@ import * as browser from 'platform/browser';
 import { utils } from 'core/cliqz';
 
 // Class to hold a page load and third party urls loaded by this page.
-function PageLoadData(url, isPrivate, reloaded) {
+class PageLoadData {
 
-    // Create a short md5 hash of the input string s
-    this._shortHash = function(s) {
-        if(!s) return '';
-        return md5(s).substring(0, 16);
-    };
-
+  constructor(url, isPrivate, reloaded) {
     this.url = url.toString();
     this.hostname = url.hostname;
     this.path = this._shortHash(url.path);
     this.scheme = url.protocol;
     this.private = isPrivate;
     this.c = 1;
-    this.s = (new Date()).getTime();
-    this.e = null;
+    this.s = Date.now()
+    this.e = this.s;
     this.tps = {};
     this.redirects = [];
     this.ra = reloaded;
 
+    this.triggeringTree = {};
     this._plainObject = null;
-
-    // Get a stat counter object for the given third party host and path in
-    // this page load.
-    this.getTpUrl = function(tp_host, tp_path) {
-        // reset cached plain object
-        this._plainObject = null;
-        var path_key = tp_path; // TODO hash it?
-        if(!(tp_host in this.tps)) {
-            this.tps[tp_host] = {};
-        }
-        if(!(path_key in this.tps[tp_host])) {
-            this.tps[tp_host][path_key] = this._tpStatCounter();
-        }
-        return this.tps[tp_host][path_key];
-    };
-
-    // Returns true if the given referrer matches this page load.
-    // This can be either a direct referral (referrer matches page load url),
-    // or nth degree (referrer is somewhere in the graph of referrals originating
-    // from the original page load url).
-    this.isReferredFrom = function(ref_parts) {
-        if(!ref_parts) return false;
-        if(sameGeneralDomain(ref_parts.hostname, this.hostname)) {
-            return true;
-        }
-        // not a direct referral, but could be via a third party
-        if(ref_parts.hostname in this.tps) {
-            return true;
-        }
-        return false;
-    };
-
     this._tpStatCounter = _newStatCounter;
+  }
 
-    // Creates a plain, aggregated version of this object, suitable for converting
-    // to JSON, and sending as telemetry.
-    this.asPlainObject = function() {
-      return this._plainObject || this._buildPlainObject();
-    };
+  // Create a short md5 hash of the input string s
+  _shortHash(s) {
+    if(!s) return '';
+    return md5(s).substring(0, 16);
+  }
 
-    this._buildPlainObject = function() {
-        var self = this,
-            obj = {
-                hostname: this._shortHash(this.hostname),
-                path: this.path,
-                scheme: this.scheme,
-                c: this.c,
-                t: this.e - this.s,
-                ra: this.ra || 0,
-                tps: {},
-                redirects: this.redirects.filter(function(hostname) {
-                    return !sameGeneralDomain(hostname, self.hostname);
-                })
-            };
-        if(!obj.hostname) return obj;
+  // Get a stat counter object for the given third party host and path in
+  // this page load.
+  getTpUrl(tp_host, tp_path) {
+    // reset cached plain object
+    this._plainObject = null;
+    var path_key = tp_path; // TODO hash it?
+    if(!(tp_host in this.tps)) {
+        this.tps[tp_host] = {};
+    }
+    if(!(path_key in this.tps[tp_host])) {
+        this.tps[tp_host][path_key] = this._tpStatCounter();
+    }
+    return this.tps[tp_host][path_key];
+  }
 
-        for(let tp_domain in this.tps) {
-            var tp_domain_data = this.tps[tp_domain],
-                tp_paths = Object.keys(tp_domain_data);
-            // skip same general domain
-            if(sameGeneralDomain(self.hostname, tp_domain)) {
-                continue;
-            }
-            if(tp_paths.length > 0) {
-                // aggregate stats per tp domain.
-                var path_data = tp_paths.map(function(k) {
-                    tp_domain_data[k]['paths'] = [self._shortHash(k)];
-                    return tp_domain_data[k];
-                });
-                obj['tps'][tp_domain] = path_data.reduce(this._sumStats);
+  // Returns true if the given referrer matches this page load.
+  // This can be either a direct referral (referrer matches page load url),
+  // or nth degree (referrer is somewhere in the graph of referrals originating
+  // from the original page load url).
+  isReferredFrom(ref_parts) {
+    if(!ref_parts) return false;
+    if(sameGeneralDomain(ref_parts.hostname, this.hostname)) {
+        return true;
+    }
+    // not a direct referral, but could be via a third party
+    if(ref_parts.hostname in this.tps) {
+        return true;
+    }
+    return false;
+  }
 
-                // Remove the keys which have value == 0;
-                stats.forEach(function(eachKey){
-                    if(obj['tps'][tp_domain] && obj['tps'][tp_domain][eachKey] == 0)
-                        delete obj['tps'][tp_domain][eachKey];
-                });
-            }
-        }
-        // This was added to collect data for experiment, safe to stop collecting it now.
-        // checkBlackList(this.url, obj);
-        // checkFingerPrinting(this.url, obj);
-        this._plainObject = obj;
-        return obj;
-    };
+  // Creates a plain, aggregated version of this object, suitable for converting
+  // to JSON, and sending as telemetry.
+  asPlainObject() {
+    return this._plainObject || this._buildPlainObject();
+  }
 
-    this._sumStats = function(a, b) {
-        var c = {},
-            stats_keys = new Set(Object.keys(a).concat(Object.keys(b)));
-        // paths is a special case
-        stats_keys.delete('paths');
-        stats_keys.forEach(function(s){
-            c[s] = (a[s] || 0) + (b[s] || 0);
+  addTrigger(host, triggeredBy) {
+    if (triggeredBy.indexOf('://') > 0) {
+      let triggerDomain = triggeredBy.split('://')[1];
+      // if trigger is same as page, hide as 'first party'
+      if (triggerDomain === this.hostname) {
+        triggerDomain = "first party";
+      }
+      // if triggered by self, don't add
+      if (sameGeneralDomain(triggerDomain, host)) {
+        return;
+      }
+      if (!this.triggeringTree[triggerDomain]) {
+        this.triggeringTree[triggerDomain] = new Set()
+      }
+      this.triggeringTree[triggerDomain].add(host);
+    }
+    this._plainObject = null;
+  }
+
+  setAsStaged() {
+    this.e = Date.now();
+    this._plainObject = null;
+  }
+
+  _buildPlainObject() {
+    var self = this,
+        obj = {
+            hostname: this._shortHash(this.hostname),
+            path: this.path,
+            scheme: this.scheme,
+            c: this.c,
+            t: this.e - this.s,
+            ra: this.ra || 0,
+            tps: {},
+            redirects: this.redirects.filter(function(hostname) {
+                return !sameGeneralDomain(hostname, self.hostname);
+            }),
+            triggeringTree: {},
+        };
+    if(!obj.hostname) return obj;
+
+    for(let tp_domain in this.tps) {
+      var tp_domain_data = this.tps[tp_domain],
+          tp_paths = Object.keys(tp_domain_data);
+      // skip same general domain
+      if(sameGeneralDomain(self.hostname, tp_domain)) {
+        continue;
+      }
+      if(tp_paths.length > 0) {
+        // aggregate stats per tp domain.
+        var path_data = tp_paths.map(function(k) {
+          tp_domain_data[k]['paths'] = [self._shortHash(k)];
+          return tp_domain_data[k];
         });
-        c['paths'] = a['paths'].concat(b['paths']);
-        return c;
-    };
+        obj['tps'][tp_domain] = path_data.reduce(this._sumStats);
+
+        // Remove the keys which have value == 0;
+        stats.forEach(function(eachKey){
+          if(obj['tps'][tp_domain] && obj['tps'][tp_domain][eachKey] == 0)
+            delete obj['tps'][tp_domain][eachKey];
+        });
+      }
+    }
+
+    Object.keys(this.triggeringTree).forEach((trigger) => {
+      // convert set to list
+      obj.triggeringTree[trigger] = [...this.triggeringTree[trigger]]
+    });
+
+    // This was added to collect data for experiment, safe to stop collecting it now.
+    // checkBlackList(this.url, obj);
+    // checkFingerPrinting(this.url, obj);
+    this._plainObject = obj;
+    return obj;
+  }
+
+  _sumStats(a, b) {
+    var c = {},
+        stats_keys = new Set(Object.keys(a).concat(Object.keys(b)));
+    // paths is a special case
+    stats_keys.delete('paths');
+    stats_keys.forEach(function(s){
+      c[s] = (a[s] || 0) + (b[s] || 0);
+    });
+    c['paths'] = a['paths'].concat(b['paths']);
+    return c;
+  }
 };
 
 var stats = ['c'];
@@ -209,7 +242,7 @@ class PageEventTracker {
   // returns the staged PageLoadData object
   stage(windowID) {
       if(windowID in this._active) {
-          this._active[windowID]['e'] = (new Date()).getTime();
+          this._active[windowID].setAsStaged()
           // push object to staging and save its id
           this._old_tab_idx[windowID] = this._staged.push(this._active[windowID]) - 1;
           delete this._active[windowID];

@@ -2,7 +2,8 @@
  * This module provides misc functions related to the FF history database.
  */
 
-import utils from "core/utils";
+import utils from 'core/utils';
+import CLIQZEnvironment from 'platform/environment';
 
 Cu.import('resource://gre/modules/PlacesUtils.jsm');
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
@@ -28,11 +29,9 @@ var CliqzHistoryManager = {
     var versionChecker = Cc['@mozilla.org/xpcom/version-comparator;1']
                           .getService(Components.interfaces.nsIVersionComparator);
 
-    utils.AB_1076_ACTIVE = versionChecker.compare(appInfo.version, '47.0') >= 0  && versionChecker.compare(appInfo.version, '51.0') < 0 && utils.getPref('history.timeouts', false);
+    CLIQZEnvironment.AB_1076_ACTIVE = versionChecker.compare(appInfo.version, '47.0') >= 0  && versionChecker.compare(appInfo.version, '51.0') < 0 && utils.getPref('history.timeouts', false);
 
-    if (utils.AB_1076_ACTIVE) {
-
-
+    if (CLIQZEnvironment.AB_1076_ACTIVE) {
       for(var k in this.CliqzHistoryContract) CliqzPlacesAutoComplete.prototype[k] = this.CliqzHistoryContract[k];
       const cpCliqzPlacesAutoComplete = CliqzPlacesAutoComplete.prototype;
       const cpFactory = XPCOMUtils.generateNSGetFactory([CliqzPlacesAutoComplete])(cpCliqzPlacesAutoComplete.classID);

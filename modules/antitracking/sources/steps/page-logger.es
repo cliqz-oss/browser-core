@@ -7,7 +7,7 @@ export default class {
     this.blockLog = blockLog;
   }
 
-  checkIsMainDocument(state) {
+  logMainDocument(state) {
     const requestContext = state.requestContext;
     if (state.requestContext.isFullPage()) {
       this.tpEvents.onFullPage(state.urlParts, requestContext.getOuterWindowID(), requestContext.isChannelPrivate());
@@ -28,6 +28,12 @@ export default class {
       this.tpEvents.incrementStat(request, statName, c || 1);
     }
     state.incrementStat = incrementStat;
+
+    // add triggeringPrinciple info
+    const pageLoad = this.tpEvents._active[state.tabId];
+    if (pageLoad && state.trigger) {
+      pageLoad.addTrigger(urlParts.hostname, state.trigger);
+    }
 
     return true;
   }

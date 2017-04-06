@@ -6,6 +6,7 @@
                     extra="{{../data.btnExtra}}-{{@index }}"
                     arrow="false"
                     arrow-if-visible='true'
+                    title="{{ local title }}"
             >
 
               {{ local title }}

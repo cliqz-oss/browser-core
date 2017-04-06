@@ -1,13 +1,16 @@
-import CliqzHumanWeb from 'human-web/human-web';
-import utils from 'core/utils';
-import md5 from 'core/helpers/md5';
+import CliqzHumanWeb from '../human-web/human-web';
+import utils from '../core/utils';
+import md5 from '../core/helpers/md5';
+import inject from '../core/kord/inject';
 
 function queryHTML(...args) {
-  return utils.callAction('core', 'queryHTML', args);
+  const core = inject.module('core');
+  return core.action('queryHTML', ...args);
 }
 
 function getHTML(...args) {
-  return utils.callAction('core', 'getHTML', args);
+  const core = inject.module('core');
+  return core.action('getHTML', ...args);
 }
 
 function checkPassword(url, callback) {
@@ -155,7 +158,7 @@ const CliqzAntiPhishing = {
   },
 
   isAntiPhishingActive() {
-    return CliqzUtils.getPref('cliqz-anti-phishing-enabled', false);
+    return utils.getPref('cliqz-anti-phishing-enabled', false);
   },
 
   updateSuspiciousStatus(url, status) {
@@ -177,7 +180,7 @@ const CliqzAntiPhishing = {
       if (CliqzHumanWeb.state.v[url]) {
         notifyHumanWeb(p);
       } else {
-        CliqzUtils.setTimeout(notifyHumanWeb, 1000, p);
+        utils.setTimeout(notifyHumanWeb, 1000, p);
       }
     }
   },

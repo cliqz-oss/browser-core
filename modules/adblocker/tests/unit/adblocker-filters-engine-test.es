@@ -37,8 +37,8 @@ export default describeModule('adblocker/filters-engine',
         // console.log(message);
       },
     },
-    'core/cliqz': {
-      utils: {},
+    'core/utils': {
+      default: {},
     },
     'platform/public-suffix-list': {},
   }),

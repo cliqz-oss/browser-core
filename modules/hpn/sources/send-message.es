@@ -1,5 +1,6 @@
 import CliqzSecureMessage from 'hpn/main';
 import { saveLocalCheckTable } from 'hpn/utils';
+import CliqzUtils from 'core/utils';
 
 // Using this function it is easier to see if the push of message failed.
 const sendMessage = function (ww, m) {

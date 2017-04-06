@@ -1,6 +1,13 @@
 import CliqzHumanWeb from 'human-web/human-web';
+import utils from 'core/utils';
+import events from 'core/events';
 
-Cu.import("resource://gre/modules/Services.jsm");
+const {
+  interfaces: Ci,
+  utils: Cu,
+} = Components;
+
+Cu.import('resource://gre/modules/Services.jsm');
 
 export class Window {
   constructor(window) {
@@ -14,7 +21,7 @@ export class Window {
   }
 }
 
-export let currentURL = CliqzHumanWeb.currentURL;
+export const currentURL = CliqzHumanWeb.currentURL;
 
 export function contextFromEvent() {
   return CliqzHumanWeb.contextFromEvent;
@@ -22,12 +29,14 @@ export function contextFromEvent() {
 
 export function mapWindows(callback) {
   const enumerator = Services.wm.getEnumerator('navigator:browser');
-  const results = []
+  const results = [];
   while (enumerator.hasMoreElements()) {
     try {
-      var win = enumerator.getNext();
+      const win = enumerator.getNext();
       results.push(callback(win));
-    } catch(e) {}
+    } catch (e) {
+      // Nothing
+    }
   }
   return results;
 }
@@ -86,4 +95,122 @@ export function isWindowActive(windowID) {
     }
   }
   return false;
+}
+
+const windowObservers = new Map();
+export function addWindowObserver(callback) {
+  const cb = (win, topic) => {
+    callback(win, topic === 'domwindowopened' ? 'opened' : 'closed');
+  };
+  windowObservers.set(callback, cb);
+  Services.ww.registerNotification(cb);
+}
+
+export function removeWindowObserver(callback) {
+  const cb = windowObservers.get(callback);
+  if (cb) {
+    Services.ww.unregisterNotification(cb);
+  }
+}
+
+export function reportError(e) {
+  Cu.reportError(e);
+}
+
+export function mustLoadWindow(win) {
+  return win.location.href === 'chrome://browser/content/browser.xul';
+}
+
+export function setInstallDatePref(extensionId) {
+  // for legacy users who have not set install date on installation
+  try {
+    if (!utils.getPref('install_date')) {
+      Cu.import('resource://gre/modules/AddonManager.jsm');
+      AddonManager.getAddonByID(extensionId, (addon) => {
+        const date = Math.floor(addon.installDate.getTime() / 86400000);
+        utils.setPref('install_date', date);
+      });
+    }
+  } catch (ex) {
+    utils.log(ex.message, 'Extension.jsm: Unable to set install date -> ');
+  }
+}
+
+export function setOurOwnPrefs() {
+  const urlBarPref = Components.classes['@mozilla.org/preferences-service;1']
+    .getService(Components.interfaces.nsIPrefService).getBranch('browser.urlbar.');
+
+  if (utils.hasPref('maxRichResultsBackup')) {
+    // we reset CLIQZ change to "browser.urlbar.maxRichResults"
+    utils.clearPref('maxRichResultsBackup');
+    utils.clearPref('browser.urlbar.maxRichResults', '');
+  }
+
+  const unifiedComplete = urlBarPref.getPrefType('unifiedcomplete');
+  if (unifiedComplete === 128 && urlBarPref.getBoolPref('unifiedcomplete')) {
+    utils.setPref('unifiedcomplete', true);
+    urlBarPref.setBoolPref('unifiedcomplete', false);
+  }
+}
+
+/** Reset changed prefs on uninstall */
+export function resetOriginalPrefs() {
+  const cliqzBackup = utils.getPref('maxRichResultsBackup');
+  if (cliqzBackup) {
+    utils.log('Loading maxRichResults backup...', 'utils.setOurOwnPrefs');
+    utils.setPref('maxRichResults', utils.getPref('maxRichResultsBackup'), 'browser.urlbar.');
+    utils.clearPref('maxRichResultsBackup', 0);
+  } else {
+    utils.log('maxRichResults backup does not exist; doing nothing.', 'utils.setOurOwnPrefs');
+  }
+
+  if (utils.getPref('unifiedcomplete', false)) {
+    utils.setPref('unifiedcomplete', true, 'browser.urlbar.');
+    utils.setPref('unifiedcomplete', false);
+  }
+}
+
+let branch;
+const observer = {
+  observe: (subject, topic, data) => {
+    events.pub('prefchange', data);
+  },
+};
+
+export function enableChangeEvents() {
+  if (!branch) {
+    const prefService = Components.classes['@mozilla.org/preferences-service;1']
+      .getService(Components.interfaces.nsIPrefService);
+    branch = prefService.getBranch('extensions.cliqz.');
+    if (!('addObserver' in branch)) {
+      branch.QueryInterface(Components.interfaces.nsIPrefBranch2);
+    }
+    branch.addObserver('', observer, false);
+  }
+}
+
+export function disableChangeEvents() {
+  if (branch) {
+    branch.removeObserver('', observer);
+    branch = null;
+  }
+}
+
+export function getLang() {
+  return utils.getPref('general.useragent.locale', 'en', '');
+}
+
+export function waitWindowReady(win) {
+  return new Promise(resolve => {
+    if (!win.document || win.document.readyState !== 'complete') {
+      win.addEventListener('load', function loader() {
+        win.removeEventListener('load', loader, false);
+        if (mustLoadWindow(win)) {
+          resolve(win);
+        }
+      }, false);
+    } else {
+      resolve(win);
+    }
+  });
 }

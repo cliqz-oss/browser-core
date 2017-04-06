@@ -60,8 +60,12 @@ function checkNewsTypeForHbasedRequest(newsPlacingRecord){
         ||(newsPlacingRecord.type === prClBurdaNewsTypeKey);
 }
 
+function getNewsLanguage() {
+  return coreUtils.getPref('news_language', '');
+}
+
 function getTopNewsList() {
-  var url = coreUtils.RICH_HEADER + coreUtils.getRichHeaderQueryString(''),
+  var url = coreUtils.RICH_HEADER + coreUtils.getRichHeaderQueryString('', null, getNewsLanguage()),
       data = {
         q: '',
         results: [
@@ -110,7 +114,7 @@ function getHbasedNewsObject() {
       requestPromise = Promise.resolve({});
     } else {
       var query = JSON.stringify(hbasedRecom.hashList),
-          url = coreUtils.RICH_HEADER + coreUtils.getRichHeaderQueryString(query),
+          url = coreUtils.RICH_HEADER + coreUtils.getRichHeaderQueryString(query, null, getNewsLanguage()),
           data = {
             q: query,
             results: [

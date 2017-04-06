@@ -1,6 +1,9 @@
 export default describeModule("core/utils",
   function () {
     return {
+      "system": {
+        default: {},
+      },
       "core/console": {
         default: {}
       },
@@ -28,7 +31,6 @@ export default describeModule("core/utils",
       "core/http": {
         promiseHttpHandler: {}
       },
-
       "platform/environment": {
         default: {}
       }

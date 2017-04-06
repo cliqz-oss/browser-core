@@ -991,7 +991,7 @@ a
   li
     list-style-type: none
     margin: 0 0 2px
-    a
+    div
       display: block
       color: #666
       padding: 4px 8px 4px
@@ -1000,57 +1000,6 @@ a
       border: 1px rgba(0, 0, 0, 0.2) solid
       border-radius: 4px
       background-color: rgba(0, 0, 0, 0.1)
-      position: relative
-    .cta__logo
-      width: 32px
-      height: 32px
-      line-height: 32px
-      border-radius: 4px
-      background-color: #000
-      margin-right: 8px
-      position: absolute
-      top: 12px
-      left: 12px
-      color: #fff
-      text-align: center
-      background-size: 62%
-      background-position: center
-      background-repeat: no-repeat
-      &.image
-        text-indent: -9999px
-        background-image: url("logos/twitter.svg")
-
-    h3
-      font-size: 14px
-      line-height: 16px
-      padding: 4px 0 4px 46px
-      overflow: hidden
-      max-height: 32px
-      font-weight: 400
-      color: rgba(0, 0, 0, 0.62)
-    span
-      font-size: 12px
-      line-height: 14px
-      color: #aaa
-      display: block
-      padding-left: 46px
-      max-height: 14px
-      text-overflow: ellipsis
-      overflow: hidden
-      white-space: nowrap
-  &.cta__history li
-    a
-      min-height: 48px
-      padding: 8px 0 16px
-      background-color: transparent
-      border: 0
-      border-bottom: 1px #eee solid
-      h3
-        max-height: 150px
-      .cta__logo
-        left: 0
-    &:last-child a
-      border-bottom: 0
 
 
 .cta-list
@@ -1252,6 +1201,24 @@ a
     .flightStatusEZ-depart-arrival-name
       color: #000
 
+.no__location
+  color: #45C2CC
+  margin: 0.5rem 5%
+  padding: 0.25rem 0
+  overflow: hidden
+  border: 1px #45C2CC solid
+  border-radius: 4px
+  width: 90%
+  text-align: center
+  .pin__logo
+    width: 1rem
+    height: 1rem
+    display: inline
+  .share__once
+    white-space: nowrap
+    font-size: 0.75rem
+    display: inline
+    vertical-align: text-top
 .cqz-local-result
   margin: 0 1rem
   overflow: hidden
@@ -1299,6 +1266,7 @@ a
       .call-text
         margin-top: 5px
         color: #45C2CC
+        white-space: nowrap
 
 #cliqz-message-container
   position: absolute
@@ -1321,9 +1289,6 @@ a
       text-align: center
       background-color: #e2a500
       border-radius: 4px
-
-.recipe .item .cqz-rd-info img
-  width: 38%
 
 .currency .main__headline
   padding-bottom: 16px
@@ -1417,13 +1382,6 @@ a
   border-radius: 5px
   padding: 5px
 
-
-ul.recipe_ingredients
-  list-style-type: none
-  li
-    padding: 7px 0
-    border-top: 1px solid #FFF
-    /* font-size: 12px */
 
 
 .no-results-title
@@ -1650,6 +1608,8 @@ body
     padding: 0rem 1rem 1rem
     line-height: 1.25rem
     color: #0C2B4A
+    .cook__time
+      margin-top: 0.25rem
   .card__meta
     position: absolute
     -webkit-transform: translateZ(0)
@@ -1692,10 +1652,10 @@ body
     padding: 0.25rem 0rem 0.25rem
     font-size: 1rem
     line-height: 1.5rem
-    overflow: hidden
     text-overflow: ellipsis
     height: 1.5rem
-    word-break: break-all;
+    overflow: hidden
+    white-space: nowrap
 
   .history_card__title
     margin: 1rem 1rem
@@ -1839,14 +1799,12 @@ body
         .cards__title__secondary
           color: #551A8B
     .cards__item
-      position: relative
       padding: 0.5rem 1rem
       background: #FFF
       border-top: 1px #EDECEC solid
   .third
      padding: 0
      .cards__item
-       position: relative
        padding: 0.5rem 1rem
        border-top: 1px #EDECEC solid
   .share
@@ -2122,3 +2080,28 @@ em
 
 ::-webkit-scrollbar
   display: none
+
+.recipe__details
+  margin-bottom: 1rem
+  border-bottom: 1px #EDECEC solid
+  .accordion
+    text-transform: capitalize
+    padding: 0.5rem 1rem;
+    text-align: left;
+    border-top: 1px #EDECEC solid
+    img
+      padding: 5px
+      float: right
+      transition: 0.5s
+      &.active
+        -moz-transform: scale(-1, -1);
+        -o-transform: scale(-1, -1);
+        -webkit-transform: scale(-1, -1);
+        transform: scale(-1, -1);
+  .panel
+    background-color: white;
+    display: none;
+    padding: 0 2rem
+    margin: 0
+    li
+      margin: 0.5rem 0

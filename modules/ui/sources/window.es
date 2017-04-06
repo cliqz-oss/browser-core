@@ -1,13 +1,51 @@
+import System from 'system';
 import { utils } from "core/cliqz";
 import autocomplete from "autocomplete/autocomplete";
 import CliqzHandlebars from "core/templates";
 import CliqzEvents from "core/events";
 import SearchHistory from "./search-history";
 import { addStylesheet, removeStylesheet } from "../core/helpers/stylesheet";
-import System from 'system';
-import prefs from "core/prefs";
 import placesUtils from 'platform/places-utils';
+import console from '../core/console';
+import prefs from '../core/prefs';
 
+const SEARCH_BAR_ID = 'search-container';
+const dontHideSearchBar = 'dontHideSearchBar';
+// toolbar
+const searchBarPosition = 'defaultSearchBarPosition';
+// next element in the toolbar
+const searchBarPositionNext = 'defaultSearchBarPositionNext';
+
+function restoreSearchBar(win) {
+  const toolbarId = utils.getPref(searchBarPosition, '');
+  utils.setPref(dontHideSearchBar, false);
+  if (toolbarId) {
+    const toolbar = win.document.getElementById(toolbarId);
+    if (toolbar) {
+      if (toolbar.currentSet.indexOf(SEARCH_BAR_ID) === -1) {
+        const next = utils.getPref(searchBarPositionNext, '');
+        if (next) {
+          const set = toolbar.currentSet.split(',');
+          const idx = set.indexOf(next);
+
+          if (idx !== -1) {
+            set.splice(idx, 0, SEARCH_BAR_ID);
+          } else {
+            set.push(SEARCH_BAR_ID);
+          }
+
+          toolbar.currentSet = set.join(',');
+        } else {
+          // no next element, append it to the end
+          toolbar.currentSet += `,${SEARCH_BAR_ID}`;
+        }
+      } else {
+        // the user made it visible
+        utils.setPref(dontHideSearchBar, true);
+      }
+    }
+  }
+}
 
 function getPopupDimensions(urlbar, win) {
   var urlbarRect = urlbar.getBoundingClientRect();
@@ -26,6 +64,56 @@ function getPopupDimensions(urlbar, win) {
       x: 0,
       y: 0
     }
+  }
+}
+
+function tryHideSearchBar(win){
+  function getCurrentset(toolbar) {
+    return (toolbar.getAttribute("currentset") ||
+      toolbar.getAttribute("defaultset")).split(",");
+  }
+
+  function $(sel, all){
+    return win.document[all ? "querySelectorAll" : "getElementById"](sel);
+  }
+
+  if (prefs.get(dontHideSearchBar, false)) {
+    return;
+  }
+  try {
+    let toolbar, currentset, idx, next, toolbarID,
+      toolbars = $("toolbar", true);
+
+    for (let i = 0; i < toolbars.length; ++i) {
+      let tb = toolbars[i];
+      currentset = getCurrentset(tb);
+      idx = currentset.indexOf(SEARCH_BAR_ID);
+      if (idx != -1) {
+        //store exact position
+        if(currentset.length > idx+1)next = currentset[idx+1];
+
+        currentset.splice(idx, 1);
+        currentset = currentset.join(",");
+        tb.currentSet = currentset;
+        tb.setAttribute("currentset", currentset);
+        win.document.persist(tb.id, "currentset");
+
+        toolbarID = tb.id;
+        break;
+      }
+    }
+
+    if(toolbarID){
+      prefs.set(searchBarPosition, toolbarID);
+    }
+
+    if(next){
+      prefs.set(searchBarPositionNext, next);
+    }
+
+    prefs.set(dontHideSearchBar, true);
+  } catch(e){
+    console.log(e, 'Search bar hiding failed!');
   }
 }
 
@@ -168,13 +256,14 @@ export default class {
   * @method init
   */
   init() {
+    tryHideSearchBar(this.window);
 
     // do not initialize the UI if the user decided to turn off search
     if(utils.getPref("cliqz_core_disabled", false)) return;
     utils.dropDownStyle = prefs.get('dropDownStyle', '');
     this.applyAdditionalThemeStyles(this.urlbar);
     Services.scriptloader.loadSubScript(System.baseURL + 'ui/UI.js', this.window);
-    this.window.CLIQZ.UI.preinit(autocomplete, CliqzHandlebars, CliqzEvents, placesUtils);
+    this.window.CLIQZ.UI.preinit(autocomplete, CliqzHandlebars, CliqzEvents, System, placesUtils);
     this.window.CLIQZ.UI.getPopupDimensions = getPopupDimensions;
     Services.scriptloader.loadSubScript(System.baseURL + 'ui/ContextMenu.js', this.window);
     //create a new panel for cliqz to avoid inconsistencies at FF startup
@@ -186,6 +275,11 @@ export default class {
     this.urlbarPrefs = Components.classes['@mozilla.org/preferences-service;1']
         .getService(Components.interfaces.nsIPrefService).getBranch('browser.urlbar.');
 
+    // Load autocompletesearch as soon as possible - it is compatible with
+    // default firefox and will work with any UI
+    this._autocompletesearch = this.urlbar.getAttribute('autocompletesearch');
+    this.urlbar.setAttribute('autocompletesearch', 'cliqz-results');// + urlbar.getAttribute('autocompletesearch')); /* urlinline history'*/
+
     this.window.CLIQZ.Core.urlbar = this.urlbar;
     this.window.CLIQZ.settings = this.settings;
 
@@ -195,8 +289,6 @@ export default class {
     this.window.CLIQZ.UI.window = this;
     this.window.CLIQZ.UI.autocompleteQuery = this.autocompleteQuery.bind(this);
 
-    this._autocompletesearch = this.urlbar.getAttribute('autocompletesearch');
-    this.urlbar.setAttribute('autocompletesearch', 'cliqz-results');
     this.urlbar.setAttribute('pastetimeout', 0)
 
 
@@ -498,6 +590,10 @@ export default class {
 
     CliqzEvents.pub('core:urlbar_' + ev);
     utils.telemetry(action);
+  }
+
+  disable() {
+    restoreSearchBar(this.window);
   }
 
   unload() {
@@ -853,8 +949,6 @@ const popupEventHandlers = {
   * @param e
   */
   popupClose: function(e){
-    // ensures popup is closed (EX-3819)
-    CliqzEvents.pub('ui:popup_hide');
     autocomplete.isPopupOpen = false;
     autocomplete.markResultsDone(null);
     this.popupEvent(false);

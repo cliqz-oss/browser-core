@@ -1,9 +1,17 @@
+import events from '../core/events';
+import { chrome } from './globals';
+
 export default class {
 
   constructor(dispatcher) {
   }
 
   init() {
+    chrome.webNavigation.onCommitted.addListener(({ url }) => {
+      events.pub('content:location-change', {
+        url,
+      });
+    });
   }
 
   unload() {

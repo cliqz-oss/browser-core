@@ -1,7 +1,7 @@
-import * as ftch from 'platform/fetch';
-import console from 'core/console';
-import { compress } from 'core/gzip';
-import { XMLHttpRequest, setPrivateFlags, setBackgroundRequest } from 'platform/xmlhttprequest';
+import * as ftch from '../platform/fetch';
+import console from './console';
+import { compress } from './gzip';
+import { XMLHttpRequestFactory, setPrivateFlags, setBackgroundRequest } from '../platform/xmlhttprequest';
 
 export let fetch = ftch.fetch;
 export let Headers = ftch.Headers;
@@ -13,6 +13,7 @@ export let Response = ftch.Response;
  *  If you want to make HTTP requests, please check out the fetch API (platform/fetch)
  */
 export function defaultHttpHandler(method, url, callback, onerror, timeout, data, sync, encoding, background) {
+  const XMLHttpRequest = XMLHttpRequestFactory();
   var req = new XMLHttpRequest();
   req.timestamp = + new Date();
   if (background) {
@@ -20,7 +21,7 @@ export function defaultHttpHandler(method, url, callback, onerror, timeout, data
   }
   req.open(method, url, !sync);
   setPrivateFlags(req);
-  req.overrideMimeType('application/json');
+  req.overrideMimeType && req.overrideMimeType('application/json');
 
   // headers for compressed data
   if (encoding) {

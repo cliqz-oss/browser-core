@@ -38,8 +38,8 @@ function platformSpecificLoadingTest(listsToLoad, FilterLoader) {
   const loadedLists = new Set();
 
   return new Promise((resolve, reject) => {
-    filtersLoader.onUpdate(updates => {
-      updates.forEach(update => {
+    filtersLoader.onUpdate((updates) => {
+      updates.forEach((update) => {
         const { asset } = update;
         loadedLists.add(asset);
       });
@@ -51,8 +51,10 @@ function platformSpecificLoadingTest(listsToLoad, FilterLoader) {
       if (allListsLoaded(listsToLoad, loadedLists)) {
         resolve();
       } else {
-        reject();
+        reject('Not all lists were loaded');
       }
+    }).catch((ex) => {
+      reject(ex);
     });
   });
 }
@@ -66,13 +68,21 @@ export default describeModule('adblocker/filters-loader',
       },
     },
     'core/fs': {
-      readFile() { return Promise.reject(); },
+      readFile() { return Promise.reject('readFile should not be called'); },
       writeFile() { return Promise.resolve(); },
       mkdir() { return Promise.resolve(); },
     },
+    'adblocker/adblocker': {
+      ADB_USER_LANG: 'cliqz-adb-lang',
+      ADB_USER_LANG_OVERRIDE: 'cliqz-adb-lang-override',
+    },
     'adblocker/utils': {
-      log() {
-        // console.log( `[adblocker] ${msg}`);
+      default() {
+      },
+    },
+    'core/utils': {
+      utils: {
+        getPref() { },
       },
     },
     'core/cliqz': {
@@ -84,7 +94,7 @@ export default describeModule('adblocker/filters-loader',
         setPref() {},
         httpGet(url, callback) {
           let content = '';
-          if (url.startsWith('https://cdn.cliqz.com/adblocking/undefined/allowed-lists.json')) {
+          if (url.startsWith('https://cdn.cliqz.com/adblocking/') && url.indexOf('/allowed-lists.json') !== -1) {
             if (isMobile) {
               content = readFile('modules/adblocker/tests/unit/data/allowed-lists-mobile.json');
             } else {
@@ -107,10 +117,11 @@ export default describeModule('adblocker/filters-loader',
       let FilterLoader;
 
       beforeEach(function importFiltersLoader() {
+        this.timeout(10000);
         FilterLoader = this.module().default;
       });
 
-      it('does not load mobile customized filters', () => {
+      it('loads mobile customized filters', () => {
         isMobile = true;
         platformName = 'mobile';
 
@@ -125,7 +136,7 @@ export default describeModule('adblocker/filters-loader',
         ]), FilterLoader);
       });
 
-      it('does not load firefox filters', () => {
+      it('does not load mobile filters', () => {
         isMobile = false;
         platformName = 'firefox';
 

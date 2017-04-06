@@ -12,21 +12,35 @@ var similarAddonNames = {
   "NoScript": true
 }
 
-export function checkInstalledAddons() {
-  var similarAddon = false;
-  if (genericPrefs.prefHasUserValue('network.cookie.cookieBehavior')) {
-      similarAddon = 'Firefox';
-  }
-  AddonManager.getAllAddons(function(aAddons) {
-    aAddons.forEach(function(a) {
-      if (a.isActive === true && a.name in similarAddonNames){
-        if (similarAddon == false) {
-          similarAddon = a.name;
-        } else {
-          similarAddon = true;
-        }
+/**
+ * Gets an indicator of the privacy addons installed on this profile.
+ * @return {Promise.<String,Boolean>} if just one of the shortlisted addons
+ * is installed, returns its name. if two or more are installed, returns true
+ * otherwise, returns false.
+ */
+export function checkInstalledPrivacyAddons() {
+  return auditInstalledAddons().then((addons) => {
+    const privacyAddons = addons.filter((a) => a.name in similarAddonNames);
+    if(privacyAddons.length === 0) {
+      return privacyAddons[0].name;
+    } else {
+      return privacyAddons.length > 1;
+    }
+  });
+}
+
+/**
+ * Get a list of installed and active extensions for this browser.
+ * @return {Promise.<Array>} Promise resolves to an array of objects,
+ * each with the id and name of an extension
+ */
+export function auditInstalledAddons() {
+  return AddonManager.getAddonsByTypes(["extension"]).then((addons) => {
+    return addons.filter(addon => addon.isActive).map(addon => {
+      return {
+        id: addon.id,
+        name: addon.name,
       }
     });
   });
-  return similarAddon;
-};
+}

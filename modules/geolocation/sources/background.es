@@ -1,7 +1,9 @@
-import background from "core/base/background";
-import { isFirefox } from "core/platform";
-import { events, utils } from "core/cliqz";
-import getGeo from "platform/geolocation";
+import background from "../core/base/background";
+import { isFirefox } from "../core/platform";
+import utils from '../core/utils';
+import events from '../core/events';
+import getGeo from "../platform/geolocation";
+import inject from "../core/kord/inject";
 
 // If the computer wakes up from a sleep that was longer than this many milliseconds, we update geolocation.
 const GEOLOCATION_UPDATE_MIN_WAIT = 3600 * 1000;
@@ -16,6 +18,8 @@ export default background({
   LOCATION_ACCURACY: 3,
 
   GEOLOCATION_MESSAGE_NUM_SHOWN: 0,
+
+  messageCenter: inject.module('message-center'),
 
   /**
     @method init
@@ -97,15 +101,16 @@ export default background({
       }
 
       if( this.GEOLOCATION_MESSAGE_NUM_SHOWN > 0) {
-        events.pub(
-          'msg_center:show_message',
+        this.messageCenter.action(
+          'showMessage',
+          'MESSAGE_HANDLER_FRESHTAB',
           {
             "id": "share-location",
             "template": "share-location",
-          },
-          'MESSAGE_HANDLER_FRESHTAB'
-        );
-        this.GEOLOCATION_MESSAGE_NUM_SHOWN = 0;
+          }
+        ).then(() => {
+          this.GEOLOCATION_MESSAGE_NUM_SHOWN = 0;
+        });
       }
     },
   },

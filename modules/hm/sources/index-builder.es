@@ -5,6 +5,7 @@ import { ngrams, len, comp_url, is_search_url, normalize,
  url_norm, zip, has } from 'hm/helpers';
 import GatherData from 'hm/gather-data';
 import md5 from 'core/helpers/md5';
+import CliqzUtils from 'core/utils';
 
 Components.utils.import('resource://gre/modules/PlacesUtils.jsm');
 

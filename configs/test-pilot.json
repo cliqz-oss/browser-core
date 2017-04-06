@@ -44,7 +44,7 @@
     "notifications",
     "message-center",
     "freshtab",
-    "offers"
+    "offboarding"
   ],
   "subprojects": [
     "fresh-tab-frontend"

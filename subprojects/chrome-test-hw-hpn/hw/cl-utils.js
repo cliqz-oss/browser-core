@@ -38,7 +38,6 @@ var __CliqzUtils = function() { // (_export) {
                     CliqzUtils.prefs[label] = value;
                 },
                 setTimeout: function(callback, time, args) {
-
                 },
                 clearTimeout: function(id) {
 

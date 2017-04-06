@@ -1,5 +1,5 @@
-import utils from "core/utils";
-import CliqzMsgHandler from "message-center/handlers/base";
+import utils from "../../core/utils";
+import CliqzMsgHandler from "./base";
 
 export default class CliqzMsgHandlerAlert extends CliqzMsgHandler {
   constructor() {

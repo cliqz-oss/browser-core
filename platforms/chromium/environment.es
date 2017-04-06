@@ -1,7 +1,7 @@
-import console from "core/console";
-import prefs from "core/prefs";
-import Storage from "core/storage";
-import CliqzUtils from "core/utils"
+import console from "../core/console";
+import prefs from "../core/prefs";
+import Storage from "../core/storage";
+import CliqzUtils from "../core/utils"
 
 let eventIDs = {};
 const port = chrome.runtime.connect({name: "encrypted-query"});
@@ -35,6 +35,7 @@ const CLIQZEnvironment = {
     'ligaEZTable': 3,
     'rd-h3-w-rating': 1,
     'vod': 3,
+    'movie-vod': 3,
     'liveTicker': 3
   },
   MESSAGE_TEMPLATES: [
@@ -143,12 +144,21 @@ const CLIQZEnvironment = {
   getWindow: function(){ return { document: { getElementById() {} } } },
 
   historySearch: function(q, callback, searchParam) {
+    function matchTypeToStyle(type) {
+    if (!type)
+      return 'favicon';
+    type = type.toLowerCase();
+    if (type.startsWith('history'))
+      return 'favicon'
+    return type;
+  }
+
     chrome.cliqzSearchPrivate.queryHistory(q, (query, matches, finished) => {
       var res = matches.map(function(match) {
           return {
               value:   match.url,
               comment: match.description,
-              style:   'favicon',
+              style: matchTypeToStyle(match.provider_type),
               image:   '',
               label:   ''
           };
@@ -162,10 +172,7 @@ const CLIQZEnvironment = {
   },
 
   openLink: function(win, url, newTab) {
-    if (newTab)
-      window.open(url);
-    else
-      window.location.href = url;
+    chrome.cliqzSearchPrivate.navigate(url, !!newTab);
   },
 
   copyResult: function(val) {
@@ -248,6 +255,7 @@ const CLIQZEnvironment = {
   onRenderComplete: function(query, urls){
     chrome.cliqzSearchPrivate.processResults(query, urls);
   },
+  setSupportInfo() {},
 };
 const CE = CLIQZEnvironment;  // Shorthand alias.
 

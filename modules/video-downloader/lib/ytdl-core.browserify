@@ -1,0 +1,2 @@
+global.ytdl = require('ytdl-core');
+global.getVideoID = require('ytdl-core/lib/util').getVideoID;

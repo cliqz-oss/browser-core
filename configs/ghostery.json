@@ -1,0 +1,14 @@
+{
+  "platform": "chromium",
+  "brocfile": "node.Brocfile.js",
+  "format": "common",
+  "settings": {
+    "channel": "CH80",
+    "triggers-root": "ghostery-root"
+  },
+  "modules": [
+    "core",
+    "message-center",
+    "offers-v2"
+  ]
+}

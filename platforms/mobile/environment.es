@@ -1,6 +1,7 @@
 import console from "core/console";
 import prefs from "core/prefs";
 import Storage from "core/storage";
+import CliqzUtils from "core/utils";
 
 //TODO: get rid of me!
 var lastSucceededUrl;
@@ -26,9 +27,6 @@ const TEMPLATES = Object.freeze(Object.assign(Object.create(null), {
   "topsites": true,
   "weatherAlert": true,
   "weatherEZ": true,
-  "liveTicker": true,
-  "ligaEZ1Game": true,
-  "ligaEZTable": true
 }));
 
 var CLIQZEnvironment = {
@@ -45,7 +43,8 @@ var CLIQZEnvironment = {
   KNOWN_TEMPLATES: {
       'entity-generic': true,
       'entity-video-1': true,
-      'vod': true
+      'vod': true,
+      'movie-vod': true
   },
   PARTIALS: [
       'url',
@@ -177,6 +176,8 @@ var CLIQZEnvironment = {
   getDefaultSearchEngine: function() {
     return storage.getObject('defaultSearchEngine', CLIQZEnvironment.GOOGLE_ENGINE);
   },
+  addEngineWithDetails() {
+  },
 };
 
 CLIQZEnvironment.setCurrentQuery = function(query) {
@@ -186,6 +187,7 @@ CLIQZEnvironment.setCurrentQuery = function(query) {
   }
 
   var recentItems = storage.getObject('recentQueries', []);
+  query = unescape(query);
 
   if(!recentItems[0]) {
     recentItems = [{id: 1, query:query, timestamp:Date.now()}];

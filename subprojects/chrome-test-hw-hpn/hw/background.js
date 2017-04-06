@@ -1,7 +1,9 @@
 var manifest = chrome.runtime.getManifest();
 var contentScriptPath = "content.js";
+var hpnWorkerPath = "hpn-worker.js";
 if(manifest.version_name === "packaged"){
   contentScriptPath = "js/hw/content.js";
+  hpnWorkerPath = "js/hw/hpn-worker.js";
 }
 
 function observeRequest(requestDetails){
@@ -17,6 +19,11 @@ function observeRequest(requestDetails){
 }
 
 function observeResponse(requestDetails){
+    for (var i = 0; i < requestDetails.responseHeaders.length; ++i) {
+      if (requestDetails.responseHeaders[i].name === 'WWW-Authenticate') {
+        CliqzHumanWeb.httpCache401[requestDetails.url] = {'time': CliqzHumanWeb.counter};
+      }
+    }
     CliqzHumanWeb.httpCache[requestDetails.url] = {'status': requestDetails.statusCode, 'time': CliqzHumanWeb.counter}
 }
 
@@ -27,17 +34,28 @@ function observeRedirect(requestDetails){
       }
     }
 }
+
+/*
 function observeAuth(requestDetails){
   // This does not capture the cases when password is already saved, but that should we taken care of when the doubeFetch happens.
   if(requestDetails.statusCode == 401){
     CliqzHumanWeb.httpCache401[requestDetails.url] = {'time': CliqzHumanWeb.counter};
   }
 }
+*/
+
+function domain2IP(requestDetails) {
+  if(requestDetails && requestDetails.ip) {
+    let domain = CliqzHumanWeb.parseURL(requestDetails.url).hostname;
+    CliqzHumanWeb.domain2IP[domain] = {ip: requestDetails.ip, ts: Date.now()};
+  }
+}
 
 chrome.webRequest.onBeforeSendHeaders.addListener(observeRequest, {urls:["http://*/*", "https://*/*"],types:["main_frame"]},["requestHeaders"]);
 chrome.webRequest.onBeforeRedirect.addListener(observeRedirect, {urls:["http://*/*", "https://*/*"],types:["main_frame"]},["responseHeaders"]);
 chrome.webRequest.onResponseStarted.addListener(observeResponse, {urls:["http://*/*", "https://*/*"],types:["main_frame"]},["responseHeaders"]);
-chrome.webRequest.onAuthRequired.addListener(observeAuth, {urls:["http://*/*", "https://*/*"],types:["main_frame"]},["responseHeaders"]);
+// chrome.webRequest.onAuthRequired.addListener(observeAuth, {urls:["http://*/*", "https://*/*"],types:["main_frame"]},["responseHeaders"]);
+chrome.webRequest.onCompleted.addListener(domain2IP, {urls:["http://*/*", "https://*/*"],tabId:-1},["responseHeaders"])
 
 
 var eventList = ['onDOMContentLoaded'];
@@ -80,7 +98,8 @@ function focusOrCreateTab(url) {
 }
 
 
-chrome.history.onVisitRemoved.addListener(CliqzHumanWeb.onHistoryVisitRemoved);
+// chrome.history.onVisitRemoved.addListener(CliqzHumanWeb.onHistoryVisitRemoved);
+// chrome.browsingData.removeHistory({}, e => {console.log(e)});
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     if (changeInfo.status == 'complete' && tab.status == 'complete' && tab.url != undefined) {

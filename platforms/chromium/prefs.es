@@ -1,5 +1,6 @@
-import Storage from 'core/storage';
-import events from 'core/events';
+import Storage from '../core/storage';
+import events from '../core/events';
+
 const storage = new Storage();
 
 export function getPref(pref, notFound) {
@@ -30,4 +31,12 @@ export function hasPref(pref) {
 
 export function clearPref(pref) {
   storage.removeItem(pref);
+}
+
+export function enableChangeEvents() {
+  throw new Error('not implemented - prefs.enableChangeEvents');
+}
+
+export function disableChangeEvents() {
+  throw new Error('not implemented - prefs.disableChangeEvents');
 }

@@ -1,3 +1,6 @@
+import java.io.BufferedReader
+import java.io.InputStreamReader
+
 @NonCPS
 def entries(m) {m.collect {k, v -> [k, v]}}
 
@@ -22,6 +25,55 @@ def getGitCommit() {
     return sh(returnStdout: true, script: "echo $parents | tr ' ' '\n' | head -1").trim()
   }
 }
+
+def getGitLabels() {
+  withCredentials([[$class: 'StringBinding', 
+                    credentialsId: '5d3e0a3c-2490-491b-8a67-aa5eab2f27f2', 
+                    variable: 'GITHUB_TOKEN']]) {
+    repository = "cliqz/navigation-extension"
+    def pr_number
+
+    try {
+      pr_number = JOB_BASE_NAME.split(/(-)/)[1]  
+    } catch(err) {
+      return false
+    }
+    
+    URLConnection connLabels = new URL("https://api.github.com/repos/${repository}/issues/${pr_number}/labels").openConnection();
+    connLabels.setRequestProperty("Authorization", "token ${env.GITHUB_TOKEN}");
+    def resp = new groovy.json.JsonSlurper().parse(new BufferedReader(new InputStreamReader(connLabels.getInputStream())));
+    return resp
+  }
+}
+
+def hasNewerQueuedJobs() {
+  def queue = jenkins.model.Jenkins.getInstance().getQueue().getItems()
+  for (int i=0; i < queue.length; i++) {
+    if (queue[i].task.getName() == env.JOB_NAME ) {
+      echo "Jobs in queue, aborting"
+      return true
+    }
+  }
+  return false
+}
+
+def hasWipLabel(){ 
+  def labels = getGitLabels()
+  if (!labels) {
+    return false
+  }
+
+
+
+
+  for (String label: labels) {
+    if (label.containsKey('name') && label.get('name') == 'WIP') {
+      return true
+    }
+  }
+  return false
+}
+
 
 def withCache(Closure body=null) {
   def cleanCache = {

@@ -1,9 +1,9 @@
-import CliqzUtils from "core/utils";
-import CliqzEvents from "core/events";
-import CliqzMsgHandlerAlert from "message-center/handlers/alert";
-import CliqzMsgHandlerDropdown from "message-center/handlers/dropdown";
-import CliqzMsgHandlerFreshtab from "message-center/handlers/freshtab";
-import CliqzMsgHandlerCallout from "message-center/handlers/callout";
+import CliqzUtils from "../core/utils";
+import CliqzEvents from "../core/events";
+import CliqzMsgHandlerAlert from "./handlers/alert";
+import CliqzMsgHandlerDropdown from "./handlers/dropdown";
+import CliqzMsgHandlerFreshtab from "./handlers/freshtab";
+import CliqzMsgHandlerCallout from "./handlers/callout";
 
 /* ************************************************************************* */
 function _log(msg) {
@@ -23,17 +23,9 @@ function CliqzMsgCenter() {
     new CliqzMsgHandlerAlert());
   this.registerMessageHandler('MESSAGE_HANDLER_FRESHTAB',
     new CliqzMsgHandlerFreshtab());
-
-  CliqzEvents.sub('msg_center:show_message', this.showMessage);
-  CliqzEvents.sub('msg_center:hide_message', this.hideMessage);
 }
 
 CliqzMsgCenter.prototype = {
-
-  unload() {
-    CliqzEvents.un_sub('msg_center:show_message', this.showMessage);
-    CliqzEvents.un_sub('msg_center:hide_message', this.hideMessage);
-  },
 
 	registerMessageHandler: function (id, handler) {
 		this._messageHandlers[id] = handler;

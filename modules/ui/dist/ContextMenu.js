@@ -165,9 +165,14 @@
       CliqzUtils.getLocalizedString('forget') :
       CliqzUtils.getLocalizedString('private');
 
+    const inPrivateWindow = CliqzUtils.isPrivate(window);
+
     CONTEXT_MENU_ITEMS = [
         {
-          label: CliqzUtils.getLocalizedString('cMenuOpenInNewTab'),
+          label: inPrivateWindow ?
+              CliqzUtils.getLocalizedString('cMenuOpenInNewPrivateTab',
+                  privateWinName) :
+              CliqzUtils.getLocalizedString('cMenuOpenInNewTab'),
           command: openNewTab,
           displayInDebug: true,
           functionality: 'openNewTab'
@@ -193,6 +198,10 @@
           functionality: 'openFeedback'
         }
     ];
+
+    if (inPrivateWindow) {
+      CONTEXT_MENU_ITEMS.splice(1, 1);  // Remove second menu item. DB-1143
+    }
 
     return createContextMenu(activeArea, CONTEXT_MENU_ITEMS);
   }

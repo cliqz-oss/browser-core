@@ -44,7 +44,6 @@ TESTS.CliqzmessageCenterTestUnit = function (CliqzMsgCenter, CliqzUtils) {
     });
 
     afterEach(function (done) {
-      messageCenter.unload();
       setTimeout(done, 100);
     });
 

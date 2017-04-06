@@ -57,7 +57,8 @@ if (cliqzConfig.environment !== 'production') {
   var contentTests = concat(contentTestsTree, {
     header: ";System = { register: function () {arguments[2]().execute(); }};",
     inputFiles: "**/*.js",
-    outputFile: 'tests/tests.js'
+    outputFile: 'tests/tests.js',
+    allowNone: true
   })
   firefoxOutputTrees.push(contentTests);
 }
@@ -65,7 +66,6 @@ if (cliqzConfig.environment !== 'production') {
 var firefox = new MergeTrees(firefoxOutputTrees);
 
 var configTree = util.injectConfig(firefox, config, 'cliqz.json', [
-  cliqzConfig.settings.id + '/modules/Extension.jsm',
   cliqzConfig.settings.id + '/chrome/content/core/processScript.js',
   cliqzConfig.settings.id + '/chrome/content/core/config.js',
   cliqzConfig.settings.id + '/install.rdf',

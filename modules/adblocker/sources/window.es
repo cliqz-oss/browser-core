@@ -36,7 +36,7 @@ export default class {
     }
 
     const report = CliqzADB.adbStats.report(currentURL);
-    const enabled = CliqzUtils.getPref(ADB_PREF, false) !== ADB_PREF_VALUES.Disabled;
+    const enabled = utils.getPref(ADB_PREF, false) !== ADB_PREF_VALUES.Disabled;
 
     if (isCorrectUrl) {
       disabledForDomain = CliqzADB.adBlocker.isDomainInBlacklist(currentURL);
@@ -69,7 +69,7 @@ export default class {
     return {
       visible: true,
       enabled: enabled && !disabledForDomain && !disabledForUrl,
-      optimized: CliqzUtils.getPref(ADB_PREF_OPTIMIZED, false) === true,
+      optimized: utils.getPref(ADB_PREF_OPTIMIZED, false) === true,
       disabledForUrl,
       disabledForDomain,
       disabledEverywhere,

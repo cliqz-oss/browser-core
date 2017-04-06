@@ -279,6 +279,11 @@ HttpRequestContext.prototype = {
       return loadingDocument;
     }
   },
+  getTriggeringPrincipal: function() {
+    if (this.loadInfo && this.loadInfo.triggeringPrincipal) {
+      return this.loadInfo.triggeringPrincipal.origin;
+    }
+  },
   _legacyGetSource: function() {
     if (this._legacy_source === undefined) {
       this._legacy_source = getRefToSource(this.subject, this.getReferrer());

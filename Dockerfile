@@ -5,7 +5,8 @@ RUN npm install -g \
   broccoli-cli \
   ember-cli \
   phantomjs \
-  yuidocjs
+  yuidocjs \
+  selleck
 
 RUN apt-get update && \
   apt-get install -y \
@@ -13,7 +14,8 @@ RUN apt-get update && \
     python-dev \
     python-pip \
     zip
-
+    
+RUN pip install --upgrade cffi
 RUN pip install \
   fabric \
   jinja2 \

@@ -8,6 +8,13 @@ export default {
   // },
   //
   // "key.with.interpolation": "Text with {{anInterpolation}}"
+  general: {
+    "switch-on": "ON",
+    "switch-off": "OFF",
+    "en-language": "Anglais",
+    "de-language": "Allemand",
+    "fr-language": "Français"
+  },
   onboarding: {
     "title": "Wouhou ! CLIQZ a été installé.",
     "hdr-privacy": "Tu es en sûreté avec CLIQZ.",
@@ -68,7 +75,8 @@ export default {
     "cta-share-location": "En savoir plus",
     "btn-always-share": "Toujours partager sa position",
     "btn-never-share": "Ne jamais partager sa position",
-    "txt-email-inaccessible": "Please log in to see email notifications",
+    "txt-email-inaccessible": "Connecte-toi pour voir les notifications de ton e-mail",
+    "txt-email-available": "Clique-droit et active les notifications pour recevoir les alertes e-mail",
     "txt-email-refresh": "Actualiser les notifications",
     "hdr-video-downloader": "Télécharger des vidéos de Youtube",
     "txt-video-downloader": "À la grande demande de nos utilisateurs, tu peux maintenant télécharger des vidéos YouTube sur ton ordinateur. Vas simplement sur une vidéo sur youtube.com et clique sur l'icône qui apparaîtra dans la barre de navigation.",
@@ -77,4 +85,14 @@ export default {
     "cta-learn-more": "EN APPRENDRE PLUS"
   },
   title: 'Nouvel onglet',
+  settings: {
+    "hdr-customize": "Personnaliser Cliqz Tab",
+    "hdr-top-sites": "Top Sites",
+    "txt-show-mail-notifications": "Montrer les alertes d’emails",
+    "tooltip-mail-notifications": "Afin de recevoir les notifications de nouveaux emails entrants sur Cliqz Tab, ton service de messagerie doit est l’un de tes Top Sites (sites les plus visités) et tu devrais y être connecté. Les notifications apparaîtront à côté de tes Top Sites (sites les plus visités) et sur le button ouvrant de nouveaux onglets. Pour l’instant, Gmail est le seul service de messagerie supporté (mail.google.com).",
+    "hdr-news-feed": "Fil d’actualités",
+    "txt-top-news-edition": "Top News",
+    "tooltip-top-news": "Les Top News que nous te proposons par défaut sont uniquement basés sur la langue de votre navigateur. Tu peux changer d'édition ici.",
+    "send-us-feedback": "Nous envoyer un Feedback ou commentaire"
+  }
 };

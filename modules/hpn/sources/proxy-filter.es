@@ -1,5 +1,6 @@
 import { getRandomIntInclusive }from 'hpn/utils';
 import CliqzSecureMessage from 'hpn/main';
+import CliqzUtils from 'core/utils';
 /*
 Picked up from unblock proxy.es
 */

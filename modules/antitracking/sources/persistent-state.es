@@ -1,5 +1,6 @@
 import pacemaker from "antitracking/pacemaker";
 import sto from "platform/antitracking/storage";
+import CliqzUtils from 'core/utils';
 
 const LOG_KEY = "attrack-persist";
 

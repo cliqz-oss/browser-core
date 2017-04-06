@@ -1,9 +1,15 @@
 import System from 'system';
 import config from './config';
 import console from './console';
-import { subscribe } from './events';
+import utils from './utils';
+import events, { subscribe } from './events';
 import prefs from './prefs';
-import { Window, mapWindows, forEachWindow } from '../platform/browser';
+import Module from './app/module';
+import { setGlobal } from './kord';
+import { mapWindows, forEachWindow, addWindowObserver,
+  removeWindowObserver, reportError, mustLoadWindow, setInstallDatePref,
+  setOurOwnPrefs, resetOriginalPrefs, enableChangeEvents,
+  disableChangeEvents, waitWindowReady } from '../platform/browser';
 
 function shouldEnableModule(name) {
   const pref = `modules.${name}.enabled`;
@@ -11,12 +17,156 @@ function shouldEnableModule(name) {
 }
 
 export default class {
-  constructor() {
+
+  constructor({ version, extensionId }) {
+    this.version = version;
+    this.extensionId = extensionId;
     this.priorityModulesLoaded = false;
     this.availableModules = config.modules.reduce((hash, moduleName) => {
-      hash[moduleName] = new Module(moduleName);
+      hash[moduleName] = new Module(
+        moduleName,
+        Object.assign({}, config.settings, { version })
+      );
       return hash;
     }, Object.create(null));
+
+    utils.app = this;
+    setGlobal(this);
+    this.prefchangeEventListener = subscribe('prefchange', this.onPrefChange, this);
+  }
+
+  extensionRestart(changes) {
+    // unload windows
+    forEachWindow(win => {
+      if (win.CLIQZ && win.CLIQZ.Core) {
+        this.unloadWindow(win);
+      }
+    });
+
+    // unload background
+    this.unload();
+
+    // apply changes
+    if (changes) {
+      changes();
+    }
+
+    // load background
+    return this.load().then(() => {
+      // load windows
+      const corePromises = [];
+      forEachWindow(win => {
+        corePromises.push(this.loadWindow(win));
+      });
+      return Promise.all(corePromises);
+    });
+  }
+
+  unloadFromWindow(win, data) {
+    // unload core even if the window closes to allow all modules to do their cleanup
+    if (!mustLoadWindow(win)) {
+      return;
+    }
+
+    try {
+      this.unloadWindow(win, data);
+      // count the number of opened windows here and send it to events
+      // if the last window was closed then remaining == 0.
+      let remainingWin = 0;
+      forEachWindow(() => {
+        remainingWin += 1;
+      });
+      events.pub('core.window_closed', { remaining: remainingWin });
+    } catch (e) {
+      reportError(e);
+    }
+  }
+
+  loadIntoWindow(win) {
+    if (!win) return;
+
+    waitWindowReady(win)
+      .then(() => {
+        if (!mustLoadWindow(win)) {
+          return Promise.reject();
+        }
+        return this.modulesLoadedPromise;
+      })
+      .then(() => {
+        utils.log('Extension CLIQZ App background loaded');
+        return this.loadWindow(win);
+      }, () => { /* do nothin for non browser.xul windows */ })
+      .catch(e => {
+        utils.log(e, 'Extension filed loaded window modules');
+      });
+  }
+
+  start() {
+    // Load Config - Synchronous!
+    utils.FEEDBACK_URL = `${utils.FEEDBACK}${this.version}-${config.settings.channel}`;
+
+    this.modulesLoadedPromise = this.load()
+      .then(() => {
+        enableChangeEvents();
+
+        this.windowWatcher = (win, event) => {
+          if (event === 'opened') {
+            this.loadIntoWindow(win);
+          } else if (event === 'closed') {
+            this.unloadFromWindow(win);
+          }
+        };
+
+        addWindowObserver(this.windowWatcher);
+
+        // Load into currently open windows
+        forEachWindow(win => {
+          this.loadIntoWindow(win);
+        });
+      })
+      .catch(e => {
+        utils.log(e, 'Extension -- failed to init CLIQZ App');
+      });
+  }
+
+  stop(isShutdown, disable, telemetrySignal) {
+    utils.telemetry({
+      type: 'activity',
+      action: telemetrySignal,
+    }, true /* force push */);
+
+    /**
+     *
+     *  There are different reasons on which extension does shutdown:
+     *  https://developer.mozilla.org/en-US/Add-ons/Bootstrapped_extensions#Reason_constants
+     *
+     *  We handle them differently:
+     *  * APP_SHUTDOWN - nothing need to be unloaded as browser shutdown, but
+     *      there may be data that we may like to persist
+     *  * ADDON_DISABLE, ADDON_UNINSTALL - full cleanup + bye bye messages
+     *  * ADDON_UPGRADE, ADDON_DOWNGRADE - fast cleanup
+     *
+     */
+
+    if (isShutdown) {
+      this.unload({ quick: true });
+      return;
+    }
+
+    // Unload from any existing windows
+    forEachWindow(w => {
+      this.unloadFromWindow(w, { disable });
+    });
+
+    this.unload();
+
+    if (disable) {
+      this.restorePrefs();
+    }
+
+    removeWindowObserver(this.windowWatcher);
+
+    disableChangeEvents();
 
     this.prefchangeEventListener = subscribe('prefchange', this.onPrefChange, this);
   }
@@ -48,7 +198,17 @@ export default class {
     return config.modules.map(name => this.availableModules[name]).filter(module => module.isEnabled);
   }
 
-  setDefaultPrefs() {
+  setupPrefs() {
+    setInstallDatePref(this.extensionId);
+
+    if (config.environment === 'development') {
+      prefs.set('developer', true);
+    }
+
+    // Ensure prefs are set to our custom values
+    /** Change some prefs for a better cliqzperience -- always do a backup! */
+    setOurOwnPrefs();
+
     if ('default_prefs' in config) {
       Object.keys(config.default_prefs).forEach(pref => {
         if (!prefs.has(pref)) {
@@ -59,10 +219,13 @@ export default class {
     }
   }
 
+  restorePrefs() {
+    resetOriginalPrefs();
+  }
+
   load() {
-    console.log('App', 'Set up default parameters for new modules');
-    this.setDefaultPrefs();
     console.log('App', 'Loading modules started');
+    this.setupPrefs();
     const backgroundPromises = this.modules()
       .map(module => {
 
@@ -78,8 +241,10 @@ export default class {
             return Promise.resolve();
           }
         } else {
+          module.isLoading = false;
+          module.isEnabled = false;
           // TODO: should not be here
-          return System.import(module.name + '/background');
+          return System.import(`${module.name}/background`);
         }
       });
 
@@ -124,7 +289,6 @@ export default class {
     }
 
     const windowModulePromises = this.modules({ type: (window.CLIQZ.priorityModulesLoaded ? 'nonpriority' : 'priority') }).map(module => {
-      console.log('App window', 'loading module', `"${module.name}"`, 'started');
       if (!module.isEnabled) {
         return Promise.resolve();
       }
@@ -135,8 +299,6 @@ export default class {
     });
 
     return Promise.all(windowModulePromises).then(() => {
-      console.log('App', 'Window loaded');
-    }).then(() => {
       if (window.CLIQZ.priorityModulesLoaded) {
         return Promise.resolve();
       }
@@ -145,16 +307,17 @@ export default class {
       return this.load().then(() => {
         return this.loadWindow(window);
       }).then(() => {
+        console.log('App', 'Window loaded');
         this.isFullyLoaded = true;
       });
     });
   }
 
-  unloadWindow(window) {
+  unloadWindow(window, data) {
     console.log('App window', 'unload window modules');
     this.enabledModules().reverse().forEach(module => {
       try {
-        module.unloadWindow(window);
+        module.unloadWindow(window, data);
       } catch (e) {
         console.error('App window', `error on unload module ${module.name}`, e);
       }
@@ -200,13 +363,13 @@ export default class {
       return Promise.resolve();
     }
 
-    return module.enable().then(() => {
-      return Promise.all(
+    return module.enable().then(() =>
+      Promise.all(
         mapWindows(module.loadWindow.bind(module))
       ).then(() => {
         prefs.set(`modules.${moduleName}.enabled`, true);
-      });
-    });
+      })
+    );
   }
 
   // use in runtime not startup
@@ -220,98 +383,6 @@ export default class {
     forEachWindow(module.unloadWindow.bind(module));
     module.disable();
     prefs.set(`modules.${moduleName}.enabled`, false);
-  }
-}
-
-class Module {
-
-  constructor(name) {
-    this.name = name;
-    this.isEnabled = false;
-    this.loadingTime = null;
-    this.windows = Object.create(null);
-  }
-
-  enable() {
-    console.log('Module', this.name, 'start loading');
-    const loadingStartedAt = Date.now();
-    if (this.isEnabled) {
-      throw new Error('Module already enabled');
-    }
-    return System.import(`${this.name}/background`)
-      .then(({ default: background }) => background.init(config.settings))
-      .then(() => {
-        this.isEnabled = true;
-        this.loadingTime = Date.now() - loadingStartedAt;
-        console.log('Module: ', this.name, ' -- Background loaded');
-      });
-  }
-
-  disable({ quick } = { quick: false }) {
-    console.log('Module', this.name, 'start unloading');
-    const background = System.get(`${this.name}/background`).default;
-
-    if (quick) {
-      // background does not need to have beforeBrowserShutdown defined
-      const quickShutdown = background.beforeBrowserShutdown ||
-        function beforeBrowserShutdown() {};
-      quickShutdown.call(background);
-    } else {
-      background.unload();
-      this.isEnabled = false;
-      this.loadingTime = null;
-    }
-    console.log('Module', this.name, 'unloading finished');
-  }
-
-  /**
-   * return window module
-   */
-  loadWindow(window) {
-    if (!this.isEnabled) {
-      return Promise.reject('cannot load window of disabled module');
-    }
-
-    console.log('Module window:', `"${this.name}"`, 'loading');
-
-    if(window.CLIQZ.Core.windowModules[this.name]){
-      return Promise.resolve();
-    }
-    window.CLIQZ.Core.windowModules[this.name] = true;
-
-    const loadingStartedAt = Date.now();
-    return System.import(`${this.name}/window`)
-      .then(({ default: WindowModule }) =>
-        new WindowModule({
-          settings: config.settings,
-          window,
-        })
-      )
-      .then(module => {
-        return Promise.resolve(module.init()).then(() => module);
-      })
-      .then(windowModule => {
-        const win = new Window(window);
-        this.windows[win.id] = {
-          loadingTime: Date.now() - loadingStartedAt,
-        };
-        console.log('Module window:', `"${this.name}"`, 'loading finished');
-        window.CLIQZ.Core.windowModules[this.name] = windowModule;
-      });
-  }
-
-  unloadWindow(window) {
-    const win = new Window(window);
-    console.log('Module window', `"${this.name}"`, 'unloading');
-    window.CLIQZ.Core.windowModules[this.name].unload();
-    delete window.CLIQZ.Core.windowModules[this.name];
-    delete this.windows[win.id];
-    console.log('Module window', `"${this.name}"`, 'unloading finished');
-  }
-
-  status() {
-    return {
-      isEnabled: this.isEnabled,
-    };
+    return Promise.resolve();
   }
 }

@@ -114,6 +114,12 @@
         }
     }
 
+    &[local-source*="builtin"] {
+        .cqz-ez-title, .cqz-result-title {
+            @extend .cqz-builtin-icon;
+        }
+    }
+
     &[local-source~="switchtab"] {
         .cqz-ez-title, .cqz-result-title {
             @extend .cqz-switchtab-icon;
@@ -138,14 +144,28 @@
 }
 
 .cqz-bookmark-icon {
-    background-image: url(chrome://cliqz/content/static/skin/urlbar-star.svg#star);
+    background-image: url(../skin/urlbar-star.svg#star);
     background-repeat: no-repeat;
     padding-left: 20px !important;
     background-position: center left;
 }
 
 .cqz-switchtab-icon {
-    background-image: url(chrome://cliqz/content/static/skin/urlbar-tab.svg#tab);
+    background-image: url(../skin/urlbar-tab.svg#tab);
+    background-repeat: no-repeat;
+    padding-left: 20px !important;
+    background-position: center left;
+}
+
+.cqz-builtin-icon {
+    background-image: url(../skin/blank-sheet.svg);
+    background-repeat: no-repeat;
+    padding-left: 20px !important;
+    background-position: center left;
+}
+
+.cqz-history-icon {
+    background-image: url(../skin/history-clock.svg);
     background-repeat: no-repeat;
     padding-left: 20px !important;
     background-position: center left;
@@ -194,9 +214,10 @@
     -mox-box-sizing: border-box;
 }
 
-.cqz-results .cqz-result-title,
+.cqz-results .cqz-result-title a,
 .cqz-results .cqz-ez-title a,
 .cqz-results .entity-story-title,
+.cqz-results div[local-source] .cliqz-pattern-element-title,
 .cqz-results .cqz-url {
     color: #506bb8;
 }
@@ -207,7 +228,10 @@
 
 .cqz-popup a:visited,
 .cqz-results .cqz-result-title:visited,
-.cqz-results .cliqz-pattern-element-title {
+
+.cqz-results div[local-source*="switchtab"] .cliqz-pattern-element-title,
+.cqz-results div[local-source*="bookmark"] .cliqz-pattern-element-title,
+.cqz-results div[local-source*="favicon"] .cliqz-pattern-element-title {
     color: #8c275f !important;
     &:hover {
         text-decoration: underline;
@@ -610,6 +634,14 @@
 
 .cqz-results .cliqz-pattern-element[local-source~="switchtab"]{
     @extend .cqz-switchtab-icon;
+}
+
+.cqz-results .cliqz-pattern-element[local-source~="builtin"]{
+    @extend .cqz-builtin-icon;
+}
+
+.cqz-results .cliqz-pattern-element[local-source~="favicon"]{
+    @extend .cqz-history-icon;
 }
 
 .cqz-results .cliqz-pattern-element-title {

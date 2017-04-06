@@ -112,6 +112,7 @@ function buildChromeHumanWeb(mode) {
   if(mode === "production"){
     finalManifest.chrome_url_overrides = chromeManifest.chrome_url_overrides;
   }
+  /*
   var app = 'chrome-test-hw-hpn',
       appPath = 'subprojects/' + app,
       modulePath = appPath + '/hw/',
@@ -126,7 +127,22 @@ function buildChromeHumanWeb(mode) {
         }
         return false;
       };
+  */
 
+  var app = 'human-web/',
+      appPath = 'build/' + app,
+      modulePath = appPath,
+      manifestPath = modulePath + 'manifest.json',
+      shouldBuild = function() {
+        if(CONFIG.subprojects.indexOf('chrome-test-hw-hpn') === -1) {
+          return false;
+        }
+
+        if(process.env['chrome-test-hw-hpn'] !== 'undefined') {
+          return true;
+        }
+        return false;
+      };
   if(!shouldBuild()) {
     return
   }
@@ -150,7 +166,7 @@ function buildChromeHumanWeb(mode) {
   wrench.copyDirSyncRecursive(modulePath, path.join(OUTPUT_PATH, 'js', 'hw'), {
       forceDelete: true
   });
-
+  wrench.rmdirSyncRecursive('build/human-web');
   var stream = fs.createWriteStream(path.join(OUTPUT_PATH, "manifest.json"));
   stream.once('open', function(fd) {
     stream.write(JSON.stringify(finalManifest, null, 2));
@@ -198,6 +214,19 @@ program.command('install')
           console.log(chalk.green('DONE!'))
        });
 
+program.command('addon-version')
+       .action(() => {
+          getExtensionVersion('package').then(version => {
+            console.log(version)
+          });
+        });
+
+program.command('addon-id [file]')
+       .action((configPath) => {
+          setConfigPath(configPath);
+          console.log(CONFIG.settings.id || 'cliqz@cliqz.com')
+        });
+
 program.command('build [file]')
        .option('--no-maps', 'disables source maps')
        .option('--version [version]', 'sets extension version', 'package')
@@ -217,7 +246,6 @@ program.command('build [file]')
           }
 
           console.log("Starting build");
-
           buildFreshtabFrontEnd();
           cleanupDefaultBuild();
 

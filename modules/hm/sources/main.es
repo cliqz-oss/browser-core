@@ -14,6 +14,7 @@
 
 import { ngrams, url_norm, comp_url, normalize } from 'hm/helpers';
 import IndexBuilder from 'hm/index-builder';
+import CliqzUtils from 'core/utils';
 
 const { utils: Cu } = Components;
 

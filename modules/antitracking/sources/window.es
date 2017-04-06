@@ -2,20 +2,21 @@ import background from 'antitracking/background';
 import CliqzAttrack from 'antitracking/attrack';
 import { utils, events } from 'core/cliqz';
 import { URLInfo } from 'antitracking/url';
+import inject from '../core/kord/inject';
 
 function onLocationChange(ev) {
-  if(this.interval) { CliqzUtils.clearInterval(this.interval); }
+  if(this.interval) { utils.clearInterval(this.interval); }
 
   var counter = 8;
 
   this.updateBadge();
 
-  this.interval = CliqzUtils.setInterval(function () {
+  this.interval = utils.setInterval(function () {
     this.updateBadge();
 
     counter -= 1;
     if (counter <= 0) {
-      CliqzUtils.clearInterval(this.interval);
+      utils.clearInterval(this.interval);
     }
   }.bind(this), 2000);
 }
@@ -33,6 +34,7 @@ export default class {
 
   constructor(config) {
     this.window = config.window;
+    this.controlCenter = inject.module('control-center');
 
     this.popup = background.popup;
 
@@ -42,24 +44,24 @@ export default class {
   }
 
   init() {
-    CliqzEvents.sub("core.location_change", this.onLocationChange);
+    events.sub("core.location_change", this.onLocationChange);
     if( this.popup ){
       // Better to wait for first window to set the state of the button
       // otherways button may not be initialized yet
       this.popup.updateState(utils.getWindow(), CliqzAttrack.isEnabled());
     }
     this.onPrefChange(CliqzAttrack.ENABLE_PREF);
-    CliqzEvents.sub("prefchange", this.onPrefChange);
+    events.sub("prefchange", this.onPrefChange);
   }
 
   unload() {
-    CliqzEvents.un_sub("core.location_change", this.onLocationChange);
-    CliqzUtils.clearInterval(this.interval);
-    CliqzEvents.un_sub("prefchange", this.onPrefChange);
+    events.un_sub("core.location_change", this.onLocationChange);
+    utils.clearInterval(this.interval);
+    events.un_sub("prefchange", this.onPrefChange);
   }
 
   updateBadge() {
-    if (this.window !== CliqzUtils.getWindow()) { return; }
+    if (this.window !== utils.getWindow()) { return; }
 
     var info = CliqzAttrack.getCurrentTabBlockingInfo(), count;
 
@@ -77,11 +79,10 @@ export default class {
     if( this.popup ){
       this.popup.setBadge(this.window, count);
     } else {
-      utils.callWindowAction(
+      this.controlCenter.windowAction(
         this.window,
-        'control-center',
         'setBadge',
-        [ count ]
+        count
       );
     }
   }

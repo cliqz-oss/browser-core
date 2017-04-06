@@ -31,7 +31,7 @@ export default background({
       if (versionChecker.compare(appInfo.version, '48.0') >= 0) {
         FF48_OR_ABOVE = true;
       }
-    } catch (e) { CliqzUtils.log(e); }
+    } catch (e) { utils.log(e); }
 
     if (FF48_OR_ABOVE) {
       this.enabled = true;
@@ -76,9 +76,9 @@ export default background({
         HumanWeb.initAtBrowser();
       }
 
-     utils.extensionRestart(function() {
-       utils.setPref('dnt', !utils.getPref('dnt', false));
-     });
+      utils.app.extensionRestart(() => {
+        utils.setPref('dnt', !utils.getPref('dnt', false));
+      });
     },
     "core:mouse-down": function onMouseDown() {
       HumanWeb.captureMouseClickPage.apply(HumanWeb, arguments);

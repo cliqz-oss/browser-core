@@ -2,7 +2,7 @@
     handlebars wrapper which adds all the needed helpers
 */
 
-import CliqzUtils from "core/utils";
+import CliqzUtils from "./utils";
 import Handlebars from "handlebars";
 var CliqzHandlebars = Handlebars;
 

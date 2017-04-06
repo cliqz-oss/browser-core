@@ -65,8 +65,13 @@
     "moncomp",
     "firefox-tests",
     "type-filter",
+    "history",
     "telemetry-speed-dial",
-    "video-downloader"
+    "offboarding",
+    "video-downloader",
+    "p2p",
+    "proxyPeer",
+    "antispy"
   ],
   "subprojects": [
     "fresh-tab-frontend"

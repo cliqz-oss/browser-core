@@ -13,10 +13,14 @@ var __CliqzHumanWeb = function() { // (_export) {
         };
     }
 
+    function getRandomIntInclusive(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
     return {
-        setters: [function (_antiPhishingAntiPhishing) {
-            AntiPhishing = _antiPhishingAntiPhishing["default"];
-        }, function (_humanWebBloomFilter) {
+        setters: [function (_humanWebBloomFilter) {
             CliqzBloomFilter = _humanWebBloomFilter["default"];
         }, function (_coreBackground) {
             core = _coreBackground["default"];
@@ -82,9 +86,9 @@ var __CliqzHumanWeb = function() { // (_export) {
                 anonPayloads: {}, //Variable for content extraction fw.
                 messageTemplate: {},
                 anonIdMappings: {},
-                patternsURL: 'https://cdn.cliqz.com/human-web-chromium/patterns',
-                anonPatternsURL: 'https://cdn.cliqz.com/human-web-chromium/patterns-anon',
-                configURL: 'https://safe-browsing-proxy-network.cliqz.com/config',
+                patternsURL: {{ENDPOINT_PATTERNSURL}},
+                anonPatternsURL: {{ENDPOINT_ANONPATTERNSURL}},
+                configURL: {{ENDPOINT_CONFIGURL}},
                 searchCache: {},
                 ts: "",
                 mRefresh: {},
@@ -118,31 +122,21 @@ var __CliqzHumanWeb = function() { // (_export) {
                 },
                 gadurl: gadurl,
                 strictQueries: [],
-                parseUri: function parseUri(str) {
-                    //var o   = parseUri.options,
-                    var m = null;
-                    var _uri = null;
-                    var i = null;
-                    var m = CliqzHumanWeb.parser[CliqzHumanWeb.strictMode ? "strict" : "loose"].exec(str);
-                    var _uri = {};
-                    var i = 14;
-
-                    while (i--) _uri[CliqzHumanWeb.key[i]] = m[i] || "";
-
-                    _uri[CliqzHumanWeb.q.name] = {};
-                    _uri[CliqzHumanWeb.key[12]].replace(CliqzHumanWeb.q.parser, function ($0, $1, $2) {
-                        if ($1) {
-                            _uri[CliqzHumanWeb.q.name][$1] = $2;
-                        }
-                    });
-                    return _uri;
-                },
+                domain2IP: {},
+                oc: null,
+                SAFE_QUORUM_ENDPOINT: {{ENDPOINT_SAFE_QUORUM_ENDPOINT}},
+                SAFE_QUORUM_PROVIDER: {{ENDPOINT_SAFE_QUORUM_PROVIDER}},
+                quorumBloomFilters: {},
+                safeQuorumProvider: null,
                 maskURL: function maskURL(url) {
                     var url_parts = null;
                     var masked_url = null;
                     // Fix
                     // url_parts = CliqzHumanWeb.parseUri(url);
                     url_parts = CliqzHumanWeb.parseURL(url);
+
+                    // TO BE FIXED
+                    if (!url_parts) return '';
 
                     // Fix
                     if (CliqzHumanWeb.dropLongURL(url)) {
@@ -165,6 +159,8 @@ var __CliqzHumanWeb = function() { // (_export) {
                 isShortenerURL: function isShortenerURL(url) {
                     try {
                         var url_parts = CliqzHumanWeb.parseURL(url);
+                        if (!url_parts) return true;
+
                         if (url_parts.hostname.length < 8 && url_parts.path.length > 4) {
                             var v = url_parts.path.split('/');
                             for (var i = 0; i < v.length; i++) if (CliqzHumanWeb.isHash(v[i])) return true;
@@ -201,6 +197,7 @@ var __CliqzHumanWeb = function() { // (_export) {
                         var url_parts = {};
                         url_parts = CliqzHumanWeb.parseURL(aURI);
 
+                        if (!url_parts) return true;
                         if (aURI.indexOf('about:') == 0) return true;
 
                         if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(url_parts.hostname)) {
@@ -268,6 +265,7 @@ var __CliqzHumanWeb = function() { // (_export) {
                         if (CliqzHumanWeb.checkForEmail(url)) return true;
 
                         var url_parts = CliqzHumanWeb.parseURL(url);
+                        if (!url_parts) return true;
 
                         if (options.strict == true) {
                             if (url_parts.query_string && url_parts.query_string.length > CliqzHumanWeb.qs_len * 0.75) return true;
@@ -916,6 +914,7 @@ var __CliqzHumanWeb = function() { // (_export) {
                     // check first if there is a query string,
 
                     var url_parts = CliqzHumanWeb.parseURL(url);
+                    if (!url_parts) return null;
 
                     if (url_parts && url_parts.query_string && url_parts.query_string != '') {
                         // it has a query string, either by ? # or ;
@@ -1262,8 +1261,8 @@ var __CliqzHumanWeb = function() { // (_export) {
                     try {
                         var location = CliqzUtils.getPref('config_location', null);
                     } catch (ee) {};
-                    var orignalDomain = CliqzHumanWeb.parseUri(url).host;
-                    var dDomain = CliqzHumanWeb.parseUri(doorwayURL).host;
+                    var orignalDomain = CliqzHumanWeb.parseURL(url).hostname;
+                    var dDomain = CliqzHumanWeb.parseURL(doorwayURL).hostname;
                     if (orignalDomain == dDomain) return;
                     payload = { "url": url, "durl": doorwayURL, "ctry": location };
                     CliqzHumanWeb.telemetry({ 'type': CliqzHumanWeb.msgType, 'action': 'doorwaypage', 'payload': payload });
@@ -1875,6 +1874,12 @@ var __CliqzHumanWeb = function() { // (_export) {
                             _log('Pacemaker: ' + CliqzHumanWeb.counter / CliqzHumanWeb.tmult);
                         }
                     }
+
+                    // To avoid sending duplicate call when extension starts, it's already in init.
+                    if (CliqzHumanWeb.counter > 10 && CliqzHumanWeb.counter / CliqzHumanWeb.tmult % (60 * 20 * 1) == 0) {
+                        CliqzHumanWeb.fetchSafeQuorumConfig();
+                    }
+
                     CliqzHumanWeb.counter += 1;
                 },
                 cleanUserTransitions: function cleanUserTransitions(force) {
@@ -2256,6 +2261,12 @@ var __CliqzHumanWeb = function() { // (_export) {
 
                     // Load strictQueries list.
                     CliqzHumanWeb.loadStrictQueries();
+
+                    // Load config from the backend
+                    CliqzHumanWeb.fetchSafeQuorumConfig();
+
+                    // Load quorum bloom filter
+                    CliqzHumanWeb.loadQuorumBloomFilter();
                 },
                 initAtBrowser: function initAtBrowser() {
                     if (CliqzUtils.getPref("dnt", false)) return;
@@ -2281,7 +2292,7 @@ var __CliqzHumanWeb = function() { // (_export) {
 
                     // Adding anti-duplicate key, so to detect duplicate messages on the backend.
                     msg['anti-duplicates'] = Math.floor(Math.random() * 10000000);
-                    msg['channel'] = 'chromium';
+                    msg['channel'] = {{MSGCHANNEL}};
 
                     if (msg.action == 'page') {
                         if (msg.payload.tend && msg.payload.tin) {
@@ -2315,6 +2326,10 @@ var __CliqzHumanWeb = function() { // (_export) {
                                     }
                                 }
                             });
+                        }
+
+                        if (msg.payload.c) {
+                            msg.payload.c = null;
                         }
 
                         // Check for title.
@@ -2402,6 +2417,12 @@ var __CliqzHumanWeb = function() { // (_export) {
                         }
                     }
 
+                    if (msg.payload.qr) {
+                        if (CliqzHumanWeb.isSuspiciousQuery(msg.payload.qr.q)) {
+                            delete msg.payload.qr;
+                        }
+                    }
+
                     //Check for doorway action durl
                     if (msg.action == 'doorwaypage') {
                         if (CliqzHumanWeb.isSuspiciousURL(msg.payload['durl']) || CliqzHumanWeb.isSuspiciousURL(msg.payload['url'])) {
@@ -2419,41 +2440,8 @@ var __CliqzHumanWeb = function() { // (_export) {
                         if (msg.payload.q == null || msg.payload.q == '') {
                             return null;
                         } else {
-                            //Remove the msg if the query is too long,
-                            if (msg.payload.q.length > 50) return null;
-                            if (msg.payload.q.split(' ').length > 7) return null;
-
-                            // Remove the msg if the query contains a number longer than 7 digits
-                            // can be 666666 but also things like (090)90-2, 5555 3235
-                            // note that full dates will be removed 2014/12/12
-                            //
-                            var haslongnumber = CliqzHumanWeb.checkForLongNumber(msg.payload.q, 7);
-                            if (haslongnumber != null) return null;
-
-                            //Remove if email (exact), even if not totally well formed
-                            if (CliqzHumanWeb.checkForEmail(msg.payload.q)) return null;
-                            //Remove if query looks like an http pass
-                            if (/[^:]+:[^@]+@/.test(msg.payload.q)) return null;
-                            //Remove if email
-                            if (/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(msg.payload.q)) return null;
-
-                            var v = msg.payload.q.split(' ');
-                            for (var i = 0; i < v.length; i++) {
-                                if (v[i].length > 20) return null;
-                                if (/[^:]+:[^@]+@/.test(v[i])) return null;
-                                if (/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v[i])) return null;
-                            }
-
-                            if (msg.payload.q.length > 12) {
-
-                                var cquery = msg.payload.q.replace(/[^A-Za-z0-9]/g, '');
-
-                                if (cquery.length > 12) {
-                                    var pp = CliqzHumanWeb.isHashProb(cquery);
-                                    // we are a bit more strict here because the query
-                                    // can have parts well formed
-                                    if (pp < CliqzHumanWeb.probHashThreshold * 1.5) return null;
-                                }
+                            if (CliqzHumanWeb.isSuspiciousQuery(msg.payload.q)) {
+                                return null;
                             }
                         }
                     }
@@ -2481,16 +2469,36 @@ var __CliqzHumanWeb = function() { // (_export) {
                     //if (!CliqzHumanWeb || //might be called after the module gets unloaded
                     //CliqzUtils.getPref('dnt', false) || CliqzUtils.isPrivate(CliqzUtils.getWindow())) return;
 
-                    msg.ver = CliqzHumanWeb.VERSION;
-                    msg = CliqzHumanWeb.msgSanitize(msg);
-                    // if (msg) CliqzHumanWeb.incrActionStats(msg.action);
-                    if (msg) CliqzHumanWeb.trk.push(msg);
-                    // CliqzUtils.clearTimeout(CliqzHumanWeb.trkTimer);
-                    if (instantPush || CliqzHumanWeb.trk.length % 100 == 0) {
-                        CliqzHumanWeb.pushTelemetry();
-                    } else {
-                        CliqzHumanWeb.trkTimer = setTimeout(CliqzHumanWeb.pushTelemetry, 60000);
-                    }
+                    CliqzHumanWeb.isPublicDomain(msg).then(function (success) {
+                        return CliqzHumanWeb.safeQuorumCheck(msg);
+                    }, function (fail) {
+                        return Promise.reject("localcheck");
+                    }).then(function (isSafe) {
+                        _log("Quorum consent ?" + isSafe);
+                        if (isSafe) {
+                            msg.ver = CliqzHumanWeb.VERSION;
+                            msg = CliqzHumanWeb.msgSanitize(msg);
+                            _log("Message sanitized");
+
+                            if (msg) CliqzHumanWeb.incrActionStats(msg.action);
+                            if (msg) CliqzHumanWeb.trk.push(msg);
+                            _log("Added to the queue");
+
+                            clearTimeout(CliqzHumanWeb.trkTimer);
+                            if (instantPush || CliqzHumanWeb.trk.length % 100 == 0) {
+                                CliqzHumanWeb.pushTelemetry();
+                            } else {
+                                CliqzHumanWeb.trkTimer = setTimeout(CliqzHumanWeb.pushTelemetry, 10000);
+                            }
+                        } else {
+
+                            _log("Dropping data as quorum check failed");
+                            CliqzHumanWeb.incrActionStats("droppedQC");
+                        }
+                    })["catch"](function (err) {
+                        _log("Error while safe quorum check: " + err);
+                        CliqzHumanWeb.incrActionStats("dropped-" + err);
+                    });
                 },
                 _telemetry_req: null,
                 _telemetry_sending: [],
@@ -2713,11 +2721,19 @@ var __CliqzHumanWeb = function() { // (_export) {
                     var o = {};
 
                     var v = url.split('://');
-                    if (v.length >= 1) {
+                    if (v.length >= 2) {
 
                         o['protocol'] = v[0];
                         var s = v.slice(1, v.length).join('://');
                         v = s.split('/');
+
+                        // Check for hostname, if not present then return null.
+                        if (v[0] === '') return null;
+
+                        // Check if the hostname is invalid by checking for special characters.
+                        // Only special characters like - and _ are allowed.
+                        var hostnameRegex = /[?!@#\$\^\&*\)\(+=]/g;
+                        if (hostnameRegex.test(v[0])) return null;
 
                         var oh = CliqzHumanWeb.parseHostname(v[0]);
                         o['hostname'] = oh['hostname'];
@@ -3585,19 +3601,18 @@ var __CliqzHumanWeb = function() { // (_export) {
                     }
                 },
                 refineParseURIFunc: function refineParseURIFunc(url, extractType, keyName) {
-                    var result = CliqzHumanWeb.parseUri(url);
-                    if (extractType == 'key') {
-                        if (result[keyName]) {
-                            return decodeURIComponent(result[keyName]);
-                        } else {
-                            return url;
+                    var urlParts = CliqzHumanWeb.parseURL(url);
+                    if (urlParts && urlParts.query_string) {
+                        var result = CliqzHumanWeb.parseQueryString(urlParts.query_string);
+                        if (extractType == 'qs') {
+                            if (result[keyName]) {
+                                return decodeURIComponent(result[keyName][0]);
+                            } else {
+                                return url;
+                            }
                         }
-                    } else if (extractType == 'qs') {
-                        if (result['queryKey'][keyName]) {
-                            return decodeURIComponent(result['queryKey'][keyName]);
-                        } else {
-                            return url;
-                        }
+                    } else {
+                        return url;
                     }
                 },
                 refineReplaceFunc: function refineReplaceFunc(replaceString, replaceWhat, replaceWith) {
@@ -4061,6 +4076,509 @@ var __CliqzHumanWeb = function() { // (_export) {
                             CliqzHumanWeb.saveStrictQueries();
                         }
                     })
+                },
+                auxGetQuery: function auxGetQuery() {
+                    CliqzHumanWeb.strictQueries.forEach(function (e, idx) {
+                        var t = Date.now();
+                        if (t - e.ts > e.tDiff * 60 * 1000) {
+                            CliqzHumanWeb.auxGetPageData(e.qurl, null, e.qurl, function (url, page_data, ourl, x) {
+                                var cd = CliqzHumanWeb.docCache[url]['doc'];
+                                CliqzHumanWeb.checkURL(cd, url, "strict");
+                            }, function (a, b, c, d) {
+                                _log("Error aux>>>> " + d);
+                            });
+                            CliqzHumanWeb.strictQueries.splice(idx, 1);
+                            CliqzHumanWeb.saveStrictQueries();
+                        }
+                    });
+                },
+                isSuspiciousQuery: function isSuspiciousQuery(query) {
+                    //Remove the msg if the query is too long,
+                    if (query.length > 50) return true;
+                    if (query.split(' ').length > 7) return true;
+
+                    // Remove the msg if the query contains a number longer than 7 digits
+                    // can be 666666 but also things like (090)90-2, 5555 3235
+                    // note that full dates will be removed 2014/12/12
+                    //
+                    var haslongnumber = CliqzHumanWeb.checkForLongNumber(query, 7);
+                    if (haslongnumber != null) return true;
+
+                    //Remove if email (exact), even if not totally well formed
+                    if (CliqzHumanWeb.checkForEmail(query)) return true;
+                    //Remove if query looks like an http pass
+                    if (/[^:]+:[^@]+@/.test(query)) return true;
+                    //Remove if email
+                    if (/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(query)) return true;
+
+                    var v = query.split(' ');
+                    for (var i = 0; i < v.length; i++) {
+                        if (v[i].length > 20) return true;
+                        if (/[^:]+:[^@]+@/.test(v[i])) return true;
+                        if (/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v[i])) return true;
+                    }
+
+                    if (query.length > 12) {
+
+                        var cquery = query.replace(/[^A-Za-z0-9]/g, '');
+
+                        if (cquery.length > 12) {
+                            var pp = CliqzHumanWeb.isHashProb(cquery);
+                            // we are a bit more strict here because the query
+                            // can have parts well formed
+                            if (pp < CliqzHumanWeb.probHashThreshold * 1.5) return true;
+                        }
+                    }
+                    return false;
+                },
+                isPublicDomain: function isPublicDomain(msg) {
+                    // We need to check for action page, if the URLs in the message
+                    // are not private because of local domains. like fritzbox or admin.example.com.
+
+                    var promise = new Promise(function (resolve, reject) {
+                        if (msg.action == 'page') {
+                            (function () {
+                                // Get all the urls in the payload.
+                                var urls = [];
+                                urls.push(msg.payload.url);
+                                if (msg.payload.ref) urls.push(msg.payload.ref);
+                                if (msg.payload.red) {
+                                    msg.payload.red.forEach(function (redURL) {
+                                        urls.push(redURL);
+                                    });
+                                }
+
+                                _log("All urls in the message:" + JSON.stringify(urls));
+
+                                // Check for each URL if the host is public or private,
+                                // If any of the host is private then it should resolve as true and exit.
+                                // Else should resolve as not private.
+
+                                Promise.all(urls.map(CliqzHumanWeb.isHostNamePrivate)).then(function (results) {
+                                    _log(JSON.stringify(results));
+                                    // Now that we have checked all the URLS, if any of the URL resulted as private
+                                    // We drop the message.
+                                    if (results.indexOf(true) > -1) {
+                                        _log("Contains private URL");
+                                        reject(false);
+                                    } else {
+                                        _log("URLs are public");
+                                        resolve(true);
+                                    }
+                                });
+                            })();
+                        } else {
+                            resolve(true);
+                        }
+                    });
+                    return promise;
+                },
+                isHostNamePrivate: function isHostNamePrivate(url) {
+
+                    var promise = new Promise(function (resolve, reject) {
+                        var host = null;
+                        try {
+                            host = CliqzHumanWeb.parseURL(url).hostname;
+                        } catch (ee) {
+                            resolve(true);
+                        };
+
+                        // If the parsing of the host fails for some reason,
+                        // we would mark it as private.
+
+                        if (!host || host === '') {
+                            resolve(true);
+                        }
+
+
+                        if(CliqzHumanWeb.domain2IP) {
+                            if(CliqzHumanWeb.domain2IP.hasOwnProperty(host)) {
+                                let address = CliqzHumanWeb.domain2IP[host].ip;
+                                if (CliqzHumanWeb.isIPInternal(address)) {
+                                    _log("Host= " + host + " Address: " + address + "private");
+                                    resolve(true);
+                                    return;
+                                } else {
+                                    _log("Host= " + host + " Address: " + address + "public");
+                                    resolve(false);
+                                }
+                            } else {
+                                _log("Could not be resolved, hence treating it as private." + host);
+                                resolve(true);
+                                return;
+                            }
+                        }
+                    });
+                    return promise;
+                },
+                isIPInternal: function isIPInternal(ip) {
+                    // Need to check for ipv6.
+                    var ipSplit = ip.split(".");
+                    if (parseInt(ipSplit[0]) === 10 || parseInt(ipSplit[0]) === 172 && parseInt(ipSplit[1]) >= 16 && parseInt(ipSplit[1]) <= 31 || parseInt(ipSplit[0]) === 192 && parseInt(ipSplit[1]) === 168 || parseInt(ipSplit[0]) === 127 || parseInt(ipSplit[0]) === 0) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                },
+                sanitizeResultTelemetry: function sanitizeResultTelemetry(data) {
+                    /*
+                    Sanitize result telemetry before sending to the backend.
+                    */
+                    var msg = data.msg;
+                    var msgType = data.type;
+
+                    var query = data.q;
+                    var sanitisedQuery = null;
+                    var url = msg.u;
+
+                    var hostNameDetails = CliqzUtils.getDetailsFromUrl(url);
+                    if (!hostNameDetails) {
+                        _log("Invalid URL, should be dropped");
+                        return;
+                    }
+
+                    var hostName = hostNameDetails.host;
+
+                    // Check if there is a query.
+                    if (!query || query.length == 0) {
+                        _log("No Query");
+                        return;
+                    }
+
+                    // If suspicious query.
+                    if (CliqzHumanWeb.isSuspiciousQuery(query)) {
+                        _log("Query is suspicious");
+                        sanitisedQuery = "(PROTECTED)";
+                    }
+
+                    // Check if query is like a URL.
+                    var query_parts = CliqzHumanWeb.parseURL(query);
+                    var queryLikeURL = false;
+                    if (query_parts && (query_parts.protocol === "http" || query_parts.protocol === "https" || query_parts.protocol === "www")) {
+                        queryLikeURL = true;
+                    }
+
+                    if (queryLikeURL && (CliqzHumanWeb.isSuspiciousURL(query) || CliqzHumanWeb.dropLongURL(query))) {
+                        _log("Query is dangerous");
+                        sanitisedQuery = "(PROTECTED)";
+                    };
+
+                    // Queries also appear on the URL, in which
+                    // case we need to check whether it's a URL or not.
+                    if (hostName.length > 0 && url && url.length > 0) {
+                        // Check if the URL is marked as already private.
+                        var urlPrivate = CliqzHumanWeb.bloomFilter.testSingle(md5(url));
+                        if (urlPrivate) {
+                            _log("Url is already marked private");
+                            return;
+                        }
+
+                        // Check URL is suspicious
+                        if (CliqzHumanWeb.isSuspiciousURL(url)) {
+                            _log("Url is suspicious");
+                            return;
+                        }
+
+                        // Check URL is dangerous, with strict DROPLONGURL.
+                        if (CliqzHumanWeb.dropLongURL(url, { strict: true })) {
+                            _log("Url is dangerous");
+                            return;
+                        }
+
+                        // Check for DNS.
+                        CliqzHumanWeb.isHostNamePrivate(url).then(function (res) {
+                            if (res) {
+                                _log("Private Domain");
+                                return;
+                            } else {
+                                // Mask URL.
+                                var maskedURL = CliqzHumanWeb.maskURL(url);
+
+                                // Cases when query and URL are same.
+                                if (url === query) {
+                                    sanitisedQuery = "(PROTECTED)";
+                                    maskedURL = sanitisedQuery;
+                                }
+                                // Check if query failed any checks, then replace it with
+                                // a placeholder.
+                                if (sanitisedQuery) {
+                                    query = sanitisedQuery;
+                                    maskedURL = sanitisedQuery;
+                                }
+                                CliqzHumanWeb.sendResultTelemetry(query, maskedURL, data);
+                            }
+                        });
+                    } else {
+                        // The URL was not a URL hence drop it.
+                        // Check if query failed any checks, then replace it with
+                        // a placeholder.
+
+                        // As a final check, if query is a single token, and can be a private domain.
+                        // Like my.adminportal.com
+                        if (query.indexOf(' ') === -1 && query.indexOf('.') > -1) {
+                            CliqzHumanWeb.isHostNamePrivate(query).then(function (res) {
+                                if (res) {
+                                    _log("Private Domain");
+                                    sanitisedQuery = "(PROTECTED)";
+                                }
+                                if (sanitisedQuery) {
+                                    query = sanitisedQuery;
+                                }
+                                CliqzHumanWeb.sendResultTelemetry(query, null, data);
+                            });
+                        } else {
+                            if (sanitisedQuery) {
+                                query = sanitisedQuery;
+                            }
+                            CliqzHumanWeb.sendResultTelemetry(query, null, data);
+                        }
+                    }
+                },
+                sendResultTelemetry: function sendResultTelemetry(query, url, data) {
+                    var params = encodeURIComponent(query) + (data.msg.a ? '&a=' + encodeURIComponent(data.msg.a) : '') + '&i=' + data.msg.i + (url ? '&u=' + encodeURIComponent(url) : '') + data.s + data.msg.o + (data.msg.e ? '&e=' + data.msg.e : '');
+                    var payLoadURL = data.endpoint + params;
+                    CliqzUtils.httpGet(payLoadURL);
+                },
+                validFrameCount: function validFrameCount(struct_bef, struct_aft) {
+                    //
+                    // To take into account, the transition state, when the extension is updated
+                    // Data saved in the DB will not have the key nifsh, hence we should return true
+                    // for those cases.
+                    //
+
+                    if (struct_bef.nifsh == null || struct_aft.nifsh == null || struct_bef.nifsh != struct_aft.nifsh) {
+                        _log("fovalidDoubleFetch: number of internal iframes does not match");
+                        return false;
+                    }
+
+                    return true;
+                },
+                validFrameSetCount: function validFrameSetCount(struct_bef, struct_aft) {
+                    //
+                    // To take into account, the transition state, when the extension is updated
+                    // Data saved in the DB will not have the key nfsh, hence we should return true
+                    // for those cases.
+                    //
+
+                    if (struct_bef.nfsh == null || struct_aft.nfsh == null || struct_bef.nfsh != struct_aft.nfsh) {
+                        _log("fovalidDoubleFetch: number of internal frameset does not match");
+                        return false;
+                    }
+
+                    return true;
+                },
+                performQC: function performQC(msg) {
+                    if (msg.action === "page") {
+                        var parse_url = CliqzHumanWeb.parseURL(msg.payload.url);
+
+                        if (msg.payload.qr && (msg.payload.qr.t === "cl" || msg.payload.qr.t === "othr")) {
+                            if (parse_url && parse_url.path.length > 1) return true;
+                        } else if (!msg.payload.qr) {
+                            if (parse_url && parse_url.path.length > 1) return true;
+                        }
+                    }
+                    return false;
+                },
+                safeQuorumCheck: function safeQuorumCheck(msg) {
+                    //
+                    // Check for conditions.
+                    //
+
+                    var promise = new Promise(function (resolve, reject) {
+                        if (CliqzHumanWeb.performQC(msg)) {
+                            _log("Perform QC: true");
+                            var url = msg.payload.url;
+
+                            return CliqzHumanWeb.sha1(url)
+                                .then(CliqzHumanWeb.sendQuorumIncrement)
+                                .then(CliqzHumanWeb.getQuorumConsent)
+                                .then(function (result) {
+                                    return resolve(result);
+                                })["catch"](function (err) {
+                                _log("Error while safe quorum check: " + err);
+                                reject("quorumcheck");
+                            });
+                        } else {
+                            _log("Perform QC: false");
+                            resolve(true);
+                        }
+                    });
+                    return promise;
+                },
+                sha1: function sha1(s) {
+                    // Pass the message to the web-worker for SHA-1.
+                    var promise = new Promise(function (resolve, reject) {
+                        var wCrypto = new Worker(hpnWorkerPath);
+
+                        wCrypto.onmessage = function (e) {
+                            var result = e.data.result;
+                            wCrypto.terminate();
+                            _log("Got result for sha1:" + result);
+                            resolve(result);
+                        };
+
+                        wCrypto.postMessage({
+                            "msg": s,
+                            "type": "hw-sha1"
+                        });
+                    });
+                    return promise;
+                },
+                sendQuorumIncrement: function sendQuorumIncrement(hashedUrl) {
+                    var promise = new Promise(function (resolve, reject) {
+                        // Check for hashed URL in quorum bloom filter;
+                        CliqzHumanWeb.isPageVisitedQuorumBloomFilter(hashedUrl).then(function (status) {
+                            _log("Page already visited: " + status);
+                            if (status) {
+                                resolve(hashedUrl);
+                            } else {
+                                var payload = "?hu=" + hashedUrl + "&oc=" + CliqzHumanWeb.oc;
+                                var _rp = CliqzHumanWeb.SAFE_QUORUM_ENDPOINT + "incrquorum";
+                                return CliqzHumanWeb.sendInstantMessage(_rp, payload);
+                            }
+                        }).then(CliqzHumanWeb.setPageVisitQuorumBloomFilter(hashedUrl)).then(function () {
+                            return resolve(hashedUrl);
+                        })["catch"](function (err) {
+                            _log("Error while sending send quorum increment" + err);
+                            reject("quorumincr");
+                        });
+                    });
+                    return promise;
+                },
+                getQuorumConsent: function getQuorumConsent(hashedUrl) {
+                    var payload = "?hu=" + hashedUrl;
+                    var _rp = CliqzHumanWeb.SAFE_QUORUM_ENDPOINT + "checkquorum";
+
+                    return new Promise(function (resolve, reject) {
+                        CliqzHumanWeb.sendInstantMessage(_rp, payload).then(function (result) {
+                            return resolve(result);
+                        })["catch"](function (err) {
+                            return reject("quorumconsent");
+                        });
+                    });
+                },
+                sendInstantMessage: function sendInstantMessage(_rp, payload) {
+                    CliqzSecureMessage.proxyIP();
+                    var promise = new Promise(function (resolve, reject) {
+                        var wCrypto = new Worker(hpnWorkerPath);
+
+                        wCrypto.onmessage = function (e) {
+                            var _result = JSON.parse(e.data.res).result;
+                            wCrypto.terminate();
+                            _log("Got result for: " + _rp + " : " + _result);
+                            resolve(_result);
+                        };
+
+                        wCrypto.postMessage({
+                            msg: { action: 'instant',
+                                type: 'cliqz',
+                                ts: '',
+                                ver: '1.5',
+                                payload: payload,
+                                rp: _rp
+                            },
+                            uid: "",
+                            type: 'instant',
+                            sourcemap: CliqzSecureMessage.sourceMap,
+                            upk: CliqzSecureMessage.uPK,
+                            dspk: CliqzSecureMessage.dsPK,
+                            sspk: CliqzSecureMessage.secureLogger,
+                            queryproxyip: CliqzSecureMessage.queryProxyIP
+                        });
+                        // CliqzUtils.httpGet(_rp + payload, result => {onHistoryVisitRemovedonHistoryVisitRemoved(JSON.parse(result.response).result)}, e => {console.log(e)}, t => {console.log(t)});
+                    });
+                    return promise;
+                },
+                registerQuorumBloomFilters: function registerQuorumBloomFilters() {
+                    var promise = new Promise(function (resolve, reject) {
+                        // Check for current date.
+                        var currentDay = CliqzHumanWeb.getTime().slice(0, 8);
+                        // Check if quorumBF exists for current date.
+                        if (Object.keys(CliqzHumanWeb.quorumBloomFilters).indexOf(currentDay) === -1) {
+                            _log("Need to create quorum bloom filter for: " + currentDay);
+                            var _bloomFilterSize = 10000; // User is unlikely to visit more than 10000 URLs in day. Size is approx. 12 KB. per Bloom filter.
+                            var bloomFilter = new CliqzBloomFilter.BloomFilter(Array(_bloomFilterSize).join('0'), bloomFilterNHashes);
+                            CliqzHumanWeb.quorumBloomFilters[currentDay] = bloomFilter;
+                        }
+
+                        var bf = CliqzHumanWeb.quorumBloomFilters[currentDay];
+                        resolve(bf);
+                    });
+
+                    return promise;
+                },
+                setPageVisitQuorumBloomFilter: function setPageVisitQuorumBloomFilter(hashedUrl) {
+                    CliqzHumanWeb.registerQuorumBloomFilters().then(function (bf) {
+                        if (bf) {
+                            bf.addSingle(hashedUrl);
+                            CliqzHumanWeb.dumpQuorumBloomFilter();
+                            Promise.resolve(true);
+                        }
+                    });
+                },
+                isPageVisitedQuorumBloomFilter: function isPageVisitedQuorumBloomFilter(hashedUrl) {
+                    var promise = new Promise(function (resolve, reject) {
+                        Object.keys(CliqzHumanWeb.quorumBloomFilters).forEach(function (eachDay) {
+                            var status = CliqzHumanWeb.quorumBloomFilters[eachDay].testSingle(hashedUrl);
+                            if (status) {
+                                resolve(true);
+                            }
+                        });
+                        resolve(false);
+                    });
+                    return promise;
+                },
+                dumpQuorumBloomFilter: function dumpQuorumBloomFilter() {
+                    var quorumBF = {};
+
+                    Object.keys(CliqzHumanWeb.quorumBloomFilters).forEach(function (eachDay) {
+                        var _bf = [].slice.call(CliqzHumanWeb.quorumBloomFilters[eachDay].buckets);
+                        quorumBF[eachDay] = _bf.join("|");
+                    });
+                    CliqzHumanWeb.saveRecord('quorumbf', JSON.stringify(quorumBF));
+                },
+                loadQuorumBloomFilter: function loadQuorumBloomFilter() {
+                    CliqzHumanWeb.loadRecord('quorumbf', function (data) {
+                        if (data) {
+                            (function () {
+                                var jData = JSON.parse(data);
+                                _log("Loading quorum bloom filter");
+                                Object.keys(jData).forEach(function (eachDay) {
+                                    var _data = jData[eachDay].split("|").map(Number);
+                                    var bloomFilter = new CliqzBloomFilter.BloomFilter(_data, bloomFilterNHashes);
+                                    CliqzHumanWeb.quorumBloomFilters[eachDay] = bloomFilter;
+                                });
+                            })();
+                        }
+                    });
+                },
+                expireQuorumBloomFilter: function expireQuorumBloomFilter() {
+                    // Need to pass the string as YYYY, MM-1, DD to convert to date object.
+                    var currentDay = CliqzHumanWeb.getTime().slice(0, 8);
+                    var dateToday = new Date(currentDay.slice(0, 4), currentDay.slice(4, 6) - 1, currentDay.slice(6, 8));
+
+                    Object.keys(CliqzHumanWeb.quorumBloomFilters).forEach(function (eachDay) {
+                        var registerDate = new Date(eachDay.slice(0, 4), eachDay.slice(4, 6) - 1, eachDay.slice(6, 8));
+                        var diff = dateToday - registerDate;
+                        if (diff > CliqzHumanWeb.keyExpire) {
+                            delete CliqzHumanWeb.quorumBloomFilters[eachDay];
+                        }
+                    });
+                    CliqzHumanWeb.dumpQuorumBloomFilter();
+                },
+                fetchSafeQuorumConfig: function fetchSafeQuorumConfig() {
+                    //Load latest config.
+                    CliqzUtils.httpGet(CliqzHumanWeb.SAFE_QUORUM_PROVIDER, function success(req) {
+                        if (!CliqzHumanWeb) return;
+                        try {
+                            var resp = JSON.parse(req.response);
+                            CliqzHumanWeb.keyExpire = resp.expiry * (24 * 60 * 60 * 1000); // Backend sends it in days;
+                            CliqzHumanWeb.oc = resp.oc;
+                            CliqzHumanWeb.quorumThreshold = resp.threshold;
+                        } catch (e) {};
+                    }, function error(res) {
+                        _log('Error loading config. ');
+                    }, 5000);
                 }
             };
 

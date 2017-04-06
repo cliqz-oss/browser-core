@@ -1,5 +1,4 @@
 <div class="cqz-result-h1 cqz-rd cqz-vod cqz-result-padding">
-    {{#log this}}{{/log}}
     {{#with data}}
         <div class="cqz-rd-body {{#if i}}layout_no_foot_node{{/if}}" >
             <div class="cqz-result-title overflow" arrow-override=''><a extra="title" href="{{../url}}">{{extra.n}}</a>
@@ -58,7 +57,7 @@
                             <ul class="stream_btns">
                                 {{#each links}}
                                     <li class="stream_btn_container"
-                                        url="{{u}}"
+                                        url="{{url}}"
                                         extra="{{extra.source}}" arrow="false" arrow-if-visible="true"
                                         >
                                         <img src="{{image}}" class="stream_btn_img" onerror="this.style.display='none';"/>
@@ -91,7 +90,7 @@
                     {{#each links}}
                         <li>
                           <span class="stream_btn_container"
-                            url="{{u}}"
+                            url="{{url}}"
                             extra="{{extra.source}}" arrow="false" arrow-if-visible="true"
                             ><img src="{{image}}" class="stream_btn_img" onerror="this.style.display='none';"/></span>
                         </li>

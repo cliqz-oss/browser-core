@@ -1,3 +1,5 @@
+import CliqzUtils from 'core/utils';
+
 /** Get datetime string of the current hour in the format YYYYMMDDHH
  */
 export function getTime() {

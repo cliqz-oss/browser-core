@@ -1,11 +1,11 @@
-import CLIQZEnvironment from "platform/environment";
-import console from "core/console";
-import prefs from "core/prefs";
-import Storage from "core/storage";
-import CliqzEvents from 'core/events';
-import { TLDs } from "core/tlds";
-//import CliqzLanguage from "platform/language";
-import { httpHandler, promiseHttpHandler } from 'core/http';
+import System from "system";
+import CLIQZEnvironment from "../platform/environment";
+import console from "./console";
+import prefs from "./prefs";
+import Storage from "./storage";
+import CliqzEvents from './events';
+import { TLDs } from "./tlds";
+import { httpHandler, promiseHttpHandler } from './http';
 
 var CliqzLanguage;
 
@@ -93,6 +93,7 @@ var CliqzUtils = {
     CLIQZEnvironment.getLogoDetails = CliqzUtils.getLogoDetails.bind(CliqzUtils);
     CLIQZEnvironment.getDetailsFromUrl = CliqzUtils.getDetailsFromUrl.bind(CliqzUtils);
     CLIQZEnvironment.getLocalizedString = CliqzUtils.getLocalizedString.bind(CliqzUtils);
+    CLIQZEnvironment.app = CliqzUtils.app;
     System.import('platform/language').then((module) => {
       CliqzLanguage = module.default;
     })
@@ -116,46 +117,8 @@ var CliqzUtils = {
     CliqzUtils.getLocaleFile(supportedLang);
   },
 
-  initPlatform: function(System) {
-    System.baseURL = CLIQZEnvironment.SYSTEM_BASE_URL;
-    CliqzUtils.System = System;
-  },
-
   importModule: function(moduleName) {
-    return CliqzUtils.System.import(moduleName)
-  },
-
-  callAction(moduleName, actionName, args) {
-    const module = CliqzUtils.System.get(
-        CliqzUtils.System.normalizeSync(`${moduleName}/background`));
-    if (!module) {
-      return Promise.reject(`module "${moduleName}" does not exist`);
-    }
-
-    const action = module.default.actions[actionName];
-    if (!action) {
-      return Promise.reject(`module ${moduleName} does not implement action "${actionName}"`);
-    }
-
-    try {
-      const response = action.apply(null, args);
-      return Promise.resolve(response);
-    } catch (e) {
-      console.error(`callAction`, moduleName, actionName, e);
-      return Promise.reject(e);
-    }
-  },
-
-  callWindowAction(win, moduleName, actionName, args) {
-    try {
-      var module = win.CLIQZ.Core.windowModules[moduleName];
-      var action = module.actions[actionName];
-      return action.apply(null, args);
-    } catch (e){
-      CliqzUtils.log('Failed to call "' + actionName +'" on "' + moduleName + '"' +
-                     '. With error: ' + e,
-                     "callWindowAction failed");
-    }
+    return System.import(moduleName)
   },
 
   isNumber: function(n){
@@ -178,29 +141,6 @@ var CliqzUtils = {
    */
   makeUri: CLIQZEnvironment.makeUri,
 
-  //move this out of CliqzUtils!
-  setSupportInfo: function(status){
-    var prefs = Components.classes['@mozilla.org/preferences-service;1'].getService(Components.interfaces.nsIPrefBranch),
-        host = 'firefox', hostVersion='';
-    //check if the prefs exist and if they are string
-    if(prefs.getPrefType('distribution.id') == 32 && prefs.getPrefType('distribution.version') == 32){
-      host = prefs.getCharPref('distribution.id');
-      hostVersion = prefs.getCharPref('distribution.version');
-    }
-    var info = JSON.stringify({
-          version: CliqzUtils.extensionVersion,
-          host: host,
-          hostVersion: hostVersion,
-          status: status != undefined ? status : "active"
-        }),
-        sites = ["http://cliqz.com","https://cliqz.com"]
-
-    sites.forEach(function(url){
-        var ls = new Storage(url)
-
-        if (ls) ls.setItem("extension-info",info)
-    })
-  },
   setLogoDb: function (db) {
     BRANDS_DATABASE = CliqzUtils.BRANDS_DATABASE = db;
   },
@@ -327,16 +267,18 @@ var CliqzUtils = {
     return [action, url];
   },
   cleanUrlProtocol: function(url, cleanWWW){
-    if(!url) return '';
+    if (!url)
+      return '';
 
-    var protocolPos = url.indexOf('://');
-
-    // removes protocol http(s), ftp, ...
-    if(protocolPos != -1 && protocolPos <= 6)
-      url = url.split('://')[1];
+    // removes protocol if it's http(s). See CLIQZIUM-218.
+    const urlLowered = url.toLowerCase();
+    if (urlLowered.startsWith('http://'))
+      url = url.slice(7);
+    if (urlLowered.startsWith('https://'))
+      url = url.slice(8);
 
     // removes the www.
-    if(cleanWWW && url.toLowerCase().indexOf('www.') == 0)
+    if (cleanWWW && url.toLowerCase().startsWith('www.'))
       url = url.slice(4);
 
     return url;
@@ -694,7 +636,7 @@ var CliqzUtils = {
            CliqzUtils.disableWikiDedup();
   },
 
-  getRichHeaderQueryString: function(q, loc) {
+  getRichHeaderQueryString: function(q, loc, locale) {
     let numberResults = 5;
     if (CliqzUtils.getPref('languageDedup', false)) {
       numberResults = 7;
@@ -705,7 +647,7 @@ var CliqzUtils = {
     return "&q=" + encodeURIComponent(q) + // @TODO: should start with &q=
             CliqzUtils.encodeSessionParams() +
             CliqzLanguage.stateToQueryString() +
-            CliqzUtils.encodeLocale() +
+            CliqzUtils.encodeLocale(locale) +
             CliqzUtils.encodeResultOrder() +
             CliqzUtils.encodeCountry() +
             CliqzUtils.encodeFilter() +
@@ -771,19 +713,6 @@ var CliqzUtils = {
 
               // we only set the prefered backend once at first start
               if (CliqzUtils.getPref('backend_country', '') === '') {
-                if(CliqzUtils.getPref('config_location', 'de') === 'de' &&
-                   Date.now() < 1488758400000 /* 06.03.2017 */){
-                  var rand = Math.random();
-
-                  if (rand < 0.33) {
-                    CliqzUtils.setPref('dropDownABCGroup', 'simple');
-                  } else if (rand > 0.66) {
-                    CliqzUtils.setPref('dropDownABCGroup', 'ff');
-                  } else {
-                    CliqzUtils.setPref('dropDownABCGroup', 'cliqz');
-                  }
-                }
-
                 // waiting a bit to be sure first initialization is complete
                 CliqzUtils.setTimeout(function(){
                   CliqzUtils.setDefaultIndexCountry(CliqzUtils.getPref('config_location', 'de'), true);
@@ -808,17 +737,7 @@ var CliqzUtils = {
       // simple UI for outside germany
       CliqzUtils.setPref('dropDownStyle', 'simple');
     } else {
-      var group = CliqzUtils.getPref('dropDownABCGroup');
-      if (group === 'simple') {
-        CliqzUtils.setPref('dropDownStyle', 'simple');
-      } else if (group === 'ff') {
-        CliqzUtils.setPref('dropDownStyle', 'ff');
-      } else if (group === 'cliqz') {
-        CliqzUtils.clearPref('dropDownStyle');
-      } else {
-        // old german users outside of the drop down style AB test
-        CliqzUtils.clearPref('dropDownStyle');
-      }
+      CliqzUtils.clearPref('dropDownStyle');
     }
 
     if(restart){
@@ -830,9 +749,14 @@ var CliqzUtils = {
       }, 0);
     }
   },
-  encodeLocale: function() {
+  encodeLocale: function(locale) {
+    var preferred = (CliqzUtils.PREFERRED_LANGUAGE || "");
+    if(locale) {
+      preferred = locale;
+    }
     // send browser language to the back-end
-    return '&locale='+ (CliqzUtils.PREFERRED_LANGUAGE || "");
+    //return '&locale=' + (locale ? locale : (CliqzUtils.PREFERRED_LANGUAGE || ""));
+    return '&locale='+ preferred;
   },
   encodeCountry: function() {
     //international results not supported
@@ -1036,35 +960,6 @@ var CliqzUtils = {
         el.textContent = CliqzUtils.getLocalizedString(el.getAttribute('key'));
     }
   },
-  extensionRestart: function(changes){
-    // unload windows
-    const enumerator = Services.wm.getEnumerator('navigator:browser');
-    while (enumerator.hasMoreElements()) {
-      const win = enumerator.getNext();
-      if(win.CLIQZ && win.CLIQZ.Core){
-        CliqzUtils.Extension.app.unloadWindow(win);
-      }
-    }
-    // unload background
-    CliqzUtils.Extension.app.unload();
-
-    // apply changes
-    changes && changes();
-
-    // load background
-    return CliqzUtils.Extension.app.load().then(() => {
-      // load windows
-      const corePromises = [];
-      const enumerator = Services.wm.getEnumerator('navigator:browser');
-      while (enumerator.hasMoreElements()) {
-        var win = enumerator.getNext();
-        corePromises.push(
-          CliqzUtils.Extension.app.loadWindow(win)
-        )
-      }
-      return CliqzUtils.Promise.all(corePromises);
-    });
-  },
   isWindows: function(){
     return CLIQZEnvironment.OS.indexOf("win") === 0;
   },
@@ -1187,8 +1082,6 @@ var CliqzUtils = {
   },
 
   getNoResults: CLIQZEnvironment.getNoResults,
-  disableCliqzResults: CLIQZEnvironment.disableCliqzResults,
-  enableCliqzResults: CLIQZEnvironment.enableCliqzResults,
   getParameterByName: function(name, location) {
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
@@ -1227,6 +1120,7 @@ var CliqzUtils = {
   addEngineWithDetails: CLIQZEnvironment.addEngineWithDetails,
   getEngineByAlias: CLIQZEnvironment.getEngineByAlias,
   getSearchEngines: CLIQZEnvironment.getSearchEngines,
+  blackListedEngines: CLIQZEnvironment.blackListedEngines,
   updateAlias: CLIQZEnvironment.updateAlias,
   openLink: CLIQZEnvironment.openLink,
   getCliqzPrefs() {

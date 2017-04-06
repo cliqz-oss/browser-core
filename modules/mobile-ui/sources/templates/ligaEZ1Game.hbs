@@ -1,9 +1,5 @@
 <!-- ligaEZ1Game.tpl-->
-{{>logo data=data.logo}}
-{{>urlDetails data=data.urlDetails}}
-{{>title data=data.title}}
-
-{{#with data.extra}}
+{{#with data}}
 
     <div class="soccer__result" cliqz-action="stop-click-event-propagation" onclick="osAPI.openLink('{{live_url}}')">
 
@@ -29,11 +25,6 @@
         </table>
     </div>
 
-
 {{/with}}
 {{>poweredby-kicker}}
-{{#each data.deepResults}}
-    {{{getPartial type}}}
-{{/each}}
-
 <!-- end ligaEZ1Game.tpl-->

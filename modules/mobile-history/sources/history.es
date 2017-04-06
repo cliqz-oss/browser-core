@@ -12,10 +12,25 @@ let lastQueryIndex = 0, isAllHistory = false;
 let pageCount = 0;
 let showOnlyFavorite = false;
 let loadStartTime = 0;
+let latestHistoryTimestamp = 0, latestQueryTimestamp = 0;
 
 function showHistory(history = []) {
 
   const queries = storage.getObject('recentQueries', []);
+
+  // display only if new data
+  const currHistoryTimestamp = history.length && history[0].timestamp;
+  const currQueryTimestamp = queries.length && queries[0].timestamp;
+  if (latestHistoryTimestamp === currHistoryTimestamp && latestQueryTimestamp === currQueryTimestamp && pageCount) {
+    // no new data
+    return;
+  }
+  if (currHistoryTimestamp > latestHistoryTimestamp || currQueryTimestamp > latestQueryTimestamp) {
+    // new data, refresh
+    refresh();
+    latestQueryTimestamp = currQueryTimestamp;
+    latestHistoryTimestamp = currHistoryTimestamp;
+  }
 
   history.forEach(item => {
     item.domain = item.url.match(/^(?:https?:\/\/)?(?:www\.)?([^\/]+)/i)[1];
@@ -123,11 +138,13 @@ function displayData(data, isFavorite = false) {
   const template = CLIQZ.templates[isFavorite ? 'favorites' : 'conversations'];
   $('body').prepend(template({data: data, pageCount}));
   const container = window.document.getElementById(`container-${pageCount}`);
+  if (container) {
+    window.document.body.scrollTop = container.scrollHeight;
+    attachListeners(container);
 
-  window.document.body.scrollTop = container.scrollHeight;
-  attachListeners(container);
-
-  sendLoadTelemetry(data);
+    sendLoadTelemetry(data);
+  }
+  pageCount += 1;
 }
 
 function getDateFromTimestamp(time) {
@@ -149,11 +166,13 @@ function removeQuery(id) {
 
   queries = queries.filter(query => id !== query.id);
   storage.setObject('recentQueries', queries);
+  latestQueryTimestamp = queries.length && queries[0].timestamp;
 }
 
 function removeHistoryItem(id) {
   allHistory = allHistory.filter(history => id !== history.id);
   osAPI.removeHistoryItems([id]);
+  latestHistoryTimestamp = allHistory.length && allHistory[0].timestamp;
 }
 
 function removeItem(item) {
@@ -172,21 +191,28 @@ function init(onlyFavorites) {
   if(!onlyFavorites) {
     window.addEventListener('scroll', onScroll);
   }
-  update();
+  onShow();
 }
 
-function update() {
+function onShow() {
+  loadStartTime = Date.now();
+  if (showOnlyFavorite) {
+    refresh();
+    osAPI.getFavorites('History.showFavorites');
+  } else {
+    osAPI.getHistoryItems('History.showHistory', 0, History.RECORD_LIMIT);
+  }
+}
+
+function refresh() {
   initializeVariables();
   window.document.body.innerHTML = "";
-
-  loadStartTime = Date.now();
-  showOnlyFavorite ? osAPI.getFavorites('History.showFavorites') : osAPI.getHistoryItems('History.showHistory', 0, History.RECORD_LIMIT);
 }
 
 function initializeVariables () {
-  isAllHistory = false;
   allHistory = allFavorites = [];
   lastQueryIndex = 0;
+  pageCount = 0;
 }
 
 function onScroll() {
@@ -199,6 +225,7 @@ function onScroll() {
 
 function clearHistory() {
   storage.setObject('recentQueries', []);
+  refresh();
 }
 
 function clearFavorites() {
@@ -315,7 +342,7 @@ function sendSwipeTelemetry(targetType, tab, direction) {
 
 var History = {
   init,
-  update,
+  onShow,
   showHistory,
   showFavorites,
   clearHistory,

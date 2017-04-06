@@ -1,11 +1,11 @@
-import ToolbarButtonManager from 'control-center/ToolbarButtonManager';
-import { utils, events } from 'core/cliqz';
-import CLIQZEnvironment from 'platform/environment';
-import background from 'control-center/background';
+import inject from '../core/kord/inject';
+import utils from '../core/utils';
+import events from '../core/events';
+import ToolbarButtonManager from './ToolbarButtonManager';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
-import UITour from 'platform/ui-tour';
+import UITour from '../platform/ui-tour';
 import Panel from '../core/ui/panel';
-import console from 'core/console';
+import console from '../core/console';
 import { queryActiveTabs } from '../core/tabs';
 import { Window } from '../core/browser';
 
@@ -25,11 +25,14 @@ const BTN_ID = 'cliqz-cc-btn',
 export default class {
   constructor(config) {
     this.window = config.window;
+    this.controlCenter = inject.module('control-center');
     this.settings = config.settings;
     this.channel = config.settings.channel;
     this.cssUrl = 'chrome://cliqz/content/control-center/styles/xul.css';
     this.createFFhelpMenu = this.createFFhelpMenu.bind(this);
     this.helpMenu = config.window.document.getElementById("menu_HelpPopup");
+    this.geolocation = inject.module('geolocation');
+    this.core = inject.module('core');
     this.actions = {
       setBadge: this.setBadge.bind(this),
       getData: this.getData.bind(this),
@@ -73,7 +76,7 @@ export default class {
 
     this.addCCbutton();
     setTimeout(this.actions.refreshState, 100);
-    CliqzEvents.sub("core.location_change", this.actions.refreshState);
+    events.sub("core.location_change", this.actions.refreshState);
 
     this.updateFFHelpMenu();
   }
@@ -122,7 +125,7 @@ export default class {
   tipsAndTricks(win) {
     return this.simpleBtn(win.document,
       utils.getLocalizedString('btnTipsTricks'),
-      () => CLIQZEnvironment.openTabInWindow(win, TRIQZ_URL),
+      () => utils.openTabInWindow(win, TRIQZ_URL),
       'triqz'
     );
   }
@@ -132,7 +135,7 @@ export default class {
       utils.getLocalizedString('btnFeedbackFaq'),
       () => {
         //TODO - use the original channel instead of the current one (it will be changed at update)
-        CLIQZEnvironment.openTabInWindow(win, utils.FEEDBACK_URL);
+        utils.openTabInWindow(win, utils.FEEDBACK_URL);
       },
       'feedback'
     );
@@ -141,7 +144,7 @@ export default class {
   unload() {
     this.panel.detach();
     removeStylesheet(this.window.document, this.cssUrl);
-    CliqzEvents.un_sub("core.location_change", this.actions.refreshState);
+    events.un_sub("core.location_change", this.actions.refreshState);
 
     this.button.parentElement.removeChild(this.button);
 
@@ -202,19 +205,19 @@ export default class {
   antitrackingActivator(data){
     switch(data.status) {
       case 'active':
-        utils.callAction('core', 'enableModule', ['antitracking']).then(() => {
+        this.core.action('enableModule', 'antitracking').then(() => {
           events.pub('antitracking:whitelist:remove', data.hostname);
         });
         break;
       case 'inactive':
-        utils.callAction('core', 'enableModule', ['antitracking']).then(() => {
+        this.core.action('enableModule', 'antitracking').then(() => {
           events.pub('antitracking:whitelist:add', data.hostname);
         });
         break;
       case 'critical':
         events.pub('antitracking:whitelist:remove', data.hostname);
         events.nextTick(() => {
-          utils.callAction('core', 'disableModule', ['antitracking']);
+          this.core.action('disableModule', 'antitracking');
         });
         //reset the badge when the anti tracking module gets offline
         this.updateBadge('0');
@@ -319,11 +322,9 @@ export default class {
       var win = enumerator.getNext();
       if(win != this.window){
         setTimeout((win) => {
-          utils.callWindowAction(
+          this.controlCenter.windowAction(
             win,
-            'control-center',
-            'refreshState',
-            []
+            'refreshState'
           );
         }, 3000 /* some modules need time to start eg: antitracking */, win);
       }
@@ -352,10 +353,9 @@ export default class {
         }, 1000);
         break;
       case 'extensions.cliqz.share_location':
-        utils.callAction(
-          "geolocation",
+        this.geolocation.action(
           "setLocationPermission",
-          [data.value]
+          data.value
         );
 
         events.pub("message-center:handlers-freshtab:clear-message", {
@@ -439,16 +439,15 @@ export default class {
       onboarding: this.isOnboarding(),
       searchDisabled: utils.getPref('cliqz_core_disabled', false),
       debug: utils.getPref('showConsoleLogs', false),
-      amo: config.settings.channel !== '40',
+      amo: this.settings.channel !== '40',
       securityON: this.settings.controlCenterSecurity
     }
   }
 
   prepareData(){
-    return utils.callAction(
-      "core",
+    return this.core.action(
       "getWindowStatus",
-      [this.window]
+      this.window
     ).then((moduleData) => {
       var ccData = this.getFrameData();
 
@@ -467,7 +466,7 @@ export default class {
       }
 
       moduleData.adult = { visible: true, state: utils.getAdultFilterState() };
-      if(utils.hasPref('browser.privatebrowsing.apt', '') && config.settings.channel === '40'){
+      if(utils.hasPref('browser.privatebrowsing.apt', '') && this.settings.channel === '40'){
         moduleData.apt = { visible: true, state: utils.getPref('browser.privatebrowsing.apt', false, '') }
       }
 

@@ -9,8 +9,9 @@
 function load(ctx) {
 
 var CliqzAutocomplete;
-var CliqzHandlebars = CliqzHandlebars || CliqzUtils.System.get('handlebars').default;
+var CliqzHandlebars;
 var CliqzEvents;
+var System;
 var PlacesUtils;
 
 function isValidURL(str) {
@@ -53,11 +54,11 @@ var UI = {
     popupClosed: true,
     getPopupDimensions: null, // Set by ui/sources/window.es
     VIEWS: Object.create(null),
-    resultIconsTimer: null, // used to display history/bookmark icons for backend results
-    preinit: function (autocomplete, handlebars, cliqzEvents, placesUtils) {
+    preinit: function (autocomplete, handlebars, cliqzEvents, system, placesUtils) {
         CliqzAutocomplete = autocomplete;
         CliqzHandlebars = handlebars;
         CliqzEvents = cliqzEvents;
+        System = system;
         PlacesUtils = placesUtils;
     },
     init: function(_urlbar) {
@@ -1081,7 +1082,7 @@ function enhanceResults(res){
 
         // if there no results after adult filter - show no results entry
         if(res.results.length == 0){
-          const noResults = CliqzUtils.dropDownStyle === 'simple' ? getNoResultsForSimpleUI(CliqzUtils.getNoResults(res.q)) : CliqzUtils.getNoResults(res.q);
+          const noResults = CliqzUtils.dropDownStyle === 'simple' ? getNoResultsForSimpleUI(CliqzUtils.getNoResults(res.q, CliqzUtils.dropDownStyle)) : CliqzUtils.getNoResults(res.q);
           res.results.push(noResults);
           res.results[0].vertical = 'noResult';
         }
@@ -2068,7 +2069,7 @@ function loadViews() {
     .forEach(function (templateName) {
       UI.VIEWS[templateName] = Object.create(null);
       try {
-        var module = CliqzUtils.System.get(CliqzUtils.System.normalizeSync("ui/views/"+templateName));
+        var module = System.get(System.normalizeSync("ui/views/"+templateName));
         if (module) {
           UI.VIEWS[templateName] = new module.default(ctx);
 

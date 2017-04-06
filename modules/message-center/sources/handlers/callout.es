@@ -1,6 +1,6 @@
-import { utils, events } from 'core/cliqz';
-import CliqzMsgHandler from "message-center/handlers/base";
-import UITour from 'platform/ui-tour';
+import { utils, events } from '../../core/cliqz';
+import CliqzMsgHandler from "./base";
+import UITour from '../../platform/ui-tour';
 
 export default class CliqzMsgHandlerCallout extends CliqzMsgHandler {
 

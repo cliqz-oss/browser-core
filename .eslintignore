@@ -80,6 +80,7 @@ modules/core/ab-tests.es
 modules/core/adult-domain.es
 modules/core/anacron.es
 modules/core/app.es
+modules/core/app/module.es
 modules/core/background.es
 modules/core/base/background.es
 modules/core/browser.es
@@ -217,7 +218,6 @@ modules/notifications/providers/pin-tab.es
 modules/notifications/storage.es
 modules/notifications/tests/unit/notification-center-test.es
 modules/notifications/tests/window-test.es
-modules/notifications/window.es
 modules/offers-v2/background.es
 modules/offers-v2/content/app.es
 modules/offers-v2/content/data.es
@@ -298,6 +298,7 @@ modules/privacy-dashboard/background.es
 modules/privacy-dashboard/main.es
 modules/privacy-dashboard/signals.es
 modules/privacy-dashboard/window.es
+modules/proxyPeer/rtc-crypto.es
 modules/static/background.es
 modules/static/main.es
 modules/static/tests/unit/locales-validation-test.es
@@ -332,7 +333,6 @@ modules/unblock/youtube.es
 modules/video-downloader/ToolbarButtonManager.es
 modules/video-downloader/ui.es
 modules/video-downloader/window.es
-modules/video-downloader/extractors/youtube.es
 modules/video-downloader/content/app.es
 modules/video-downloader/content/data.es
 modules/video-downloader/content/helpers.es

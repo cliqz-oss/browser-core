@@ -34,7 +34,7 @@ export default class Generic {
     let partials = [];
     const headerTypes = ['logo', 'urlDetails', 'title'];
     const mediaTypes = ['images', 'videos', 'news'];
-    const specificTypes = ['local-data-sc', 'movie'];
+    const specificTypes = ['local-data-sc', 'movie', 'movie-vod', 'recipeRD', 'liveTicker', 'ligaEZ1Game', 'ligaEZTable'];
 
     headerTypes.forEach(partial => partials.push({type: partial, data: data[partial], historyStyle: data.historyStyle}));
 

@@ -30,12 +30,15 @@ function isReady() {
     incognito: false,
     showConsoleLogs: true,
   });
+  events.pub('mobile-browser:urlbar-focus');
+  // notify tests
+  window.postMessage('cliqz-ready', '*');
 }
 function openLink(url) {
   const id = parseInt(6 + (100 * Math.random()), 10);
   mockedHistory.unshift({
     id,
-    title: `History item ${id}`,
+    title: url,
     mainDomain: url,
     url,
     timestamp: Date.now(),
@@ -44,7 +47,11 @@ function openLink(url) {
 function getTopSites() {
   return mockedHistory;
 }
-function browserAction() {}
+function browserAction(data) {
+  if (data.type === 'shareLocation') {
+    jsAPI.search(CliqzAutocomplete.lastSearch, true, 48.1517832, 11.6200855);
+  }
+}
 function autocomplete() {}
 function notifyQuery() {}
 function pushTelemetry() {}

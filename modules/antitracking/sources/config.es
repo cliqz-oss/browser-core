@@ -7,7 +7,7 @@ const VERSIONCHECK_URL = 'https://cdn.cliqz.com/anti-tracking/whitelist/versionc
 
 const DEFAULTS = {
   safekeyValuesThreshold: 4,
-  shortTokenLength: 8,
+  shortTokenLength: 6,
   placeHolder: 'cliqz.com/tracking',
   cliqzHeader: 'CLIQZ-AntiTracking',
 };

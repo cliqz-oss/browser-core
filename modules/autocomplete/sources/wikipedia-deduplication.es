@@ -80,7 +80,7 @@ var CliqzWikipediaDeduplication = {
     doRerank: function (response) {
         //reset telemetry
         var telemetrySignal = {};
-        var doDedup = CliqzUtils.getPref("languageDedup", false);
+        var doDedup = utils.getPref("languageDedup", false);
         if (doDedup && response != null) {
 
             var userLangs = this.getUserLanguages();
@@ -103,7 +103,7 @@ var CliqzWikipediaDeduplication = {
 
             // process response and fill all structures
             response.forEach(function (r) {
-                var obj = CliqzUtils.getDetailsFromUrl(r.url);
+                var obj = utils.getDetailsFromUrl(r.url);
                 if (obj.domain == "wikipedia.org" && obj.subdomains.length) {
                     var lang = obj.subdomains[0];
                     if (wikiLangs[lang] == null) wikiLangs[lang] = [];

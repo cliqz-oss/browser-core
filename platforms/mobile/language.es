@@ -1,6 +1,6 @@
+import window from 'platform/window';
 var CliqzLanguage = {
-  // rich header will fall back to english if locale is not supported
-  stateToQueryString: function () { return '&lang=N/A'; }
+  stateToQueryString: function () { return `&lang=${window.navigator.language.slice(0, 2)}`; }
 };
 
 export default CliqzLanguage;

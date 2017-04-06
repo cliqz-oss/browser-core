@@ -15,13 +15,13 @@
           {{/if}}
           </span>
         {{/if}}
-        {{model.title}}
+       {{truncate model.title 85}}
       </div>
     </div>
 
     <div extra='description' class='description'>
-      <div class="text multiline-ellipsis">
-        <p>{{model.description}}</p>
+      <div class="text">
+        <p>{{truncate model.description 180}}</p>
       </div>
     </div>
 

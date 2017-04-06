@@ -8,13 +8,14 @@
   <binding id="autocomplete-rich-result-popup-cliqz"
         extends="chrome://global/content/bindings/autocomplete.xml#autocomplete-rich-result-popup" >
     <content ignorekeys="true" level="top" consumeoutsideclicks="false">
-      <div xmlns="http://www.w3.org/1999/xhtml" anonid="cliqz-html-container" tooltip="aHTMLTooltip"></div>
+      <div xmlns="http://www.w3.org/1999/xhtml" anonid="cliqz-html-container"></div>
     </content>
 
     <implementation >
         <constructor>
           <![CDATA[
             CLIQZ.UI.main(this.cliqzBox);
+            this.cliqzBox.setAttribute('tooltip', 'aHTMLTooltip');
           ]]>
         </constructor>
       <field name="cliqzBox" readonly="true">

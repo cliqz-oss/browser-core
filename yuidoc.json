@@ -9,6 +9,6 @@
       "modules/"
     ],
     "exclude": "node_modules,bower_components",
-    "outdir":   "docs"
+    "outdir":   "./docs/api"
   }
 }

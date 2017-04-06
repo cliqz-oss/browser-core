@@ -4,7 +4,10 @@ import CliqzADB,
       { ADB_PREF_VALUES,
         ADB_PREF,
         ADB_PREF_OPTIMIZED,
+        ADB_USER_LANG,
+        ADB_USER_LANG_OVERRIDE,
         adbEnabled } from 'adblocker/adblocker';
+import FilterEngine from 'adblocker/filters-engine';
 
 function isAdbActive(url) {
   return adbEnabled() &&
@@ -55,6 +58,14 @@ export default background({
           utils.setPref(ADB_PREF, ADB_PREF_VALUES.Enabled);
           CliqzADB.adBlocker.toggleUrl(data.url, data.option === 'domain');
         }
+      }
+    },
+    prefchange: (pref) => {
+      if (pref === ADB_USER_LANG || pref === ADB_USER_LANG_OVERRIDE) {
+        // change in user lang pref, reload the filters
+        CliqzADB.adBlocker.engine = new FilterEngine();
+        CliqzADB.adBlocker.listsManager.initLists();
+        CliqzADB.adBlocker.listsManager.load();
       }
     },
   },

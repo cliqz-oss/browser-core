@@ -112,36 +112,49 @@ function parseURL(url) {
   return o;
 };
 
+function isMaybeJson(v) {
+  if (typeof v !== 'string') {
+    return false;
+  }
+  const trimmed = v.trim();
+  const first = trimmed[0];
+  const last = trimmed[trimmed.length - 1];
+  return (first === '{' && last === '}') || (first === '[' && last === ']')
+}
+
+function getJson(v) {
+  if (isMaybeJson(v)) {
+    return _flattenJson(v);
+  }
+  return false;
+}
+
 function getParametersQS(qs) {
-  var res = {},
-      _blacklist = {};
+  var res = {};
+  const keysMultiValue = new Set();
   let state = 'key';
   let k = '';
   let v = '';
-  var _reviewQS = function(k, v) {
-    if (v.indexOf('=') > -1) {
-      var items = v.split('=');
-      k = k + '_' + items[0];
-      v = items.splice(1).join('=');
-    }
-    return [k, v];
-  };
+
   var _updateQS = function(k, v) {
-    if (k in res || k in _blacklist) {
-      _blacklist[k] = true;
-      var kv = _reviewQS(k, v);
-      res[kv[0]] = kv[1];
-      // also the old one
-      if (k in res) {
-        v = res[k];
-        kv = _reviewQS(k, v);
-        res[kv[0]] = kv[1];
-        delete res[k];
-      }
+    // check for JSON in value
+    const jsonParts = getJson(v);
+    if (jsonParts) {
+      Object.keys(jsonParts).forEach((jk) => {
+        res[k + jk] = jsonParts[jk];
+      })
     } else {
-      res[k] = v;
+      if (keysMultiValue.has(k)) {
+        res[k].push(v)
+      } else if (k in res) {
+        keysMultiValue.add(k);
+        res[k] = [res[k], v]
+      } else {
+        res[k] = v;
+      }
     }
   };
+
   var quotes = '';
   for(let i=0; i<qs.length; i++) {
     let c = qs.charAt(i);
@@ -186,7 +199,32 @@ function getParametersQS(qs) {
   } else if(state == 'key' && k.length > 0) {
     res[k] = 'true';
   }
-  return _flattenJson(res);
+
+  // for keys with multiple values, check for '=' in value, and use that to build a unique key
+  keysMultiValue.forEach((mvKey) => {
+    const doubleKeys = res[mvKey].filter((v) => v.indexOf('=') > -1)
+    if (doubleKeys.length > 0) {
+      // add new keys to res object
+      doubleKeys.forEach(v => {
+        var items = v.split('=');
+        const k2 = mvKey + '_' + items[0];
+        const v2 = items.splice(1).join('=');
+        _updateQS(k2, v2);
+      });
+      // delete old duplicate values
+      if (doubleKeys.length === res[mvKey].length) {
+        delete res[mvKey];
+      } else {
+        res[mvKey] = res[mvKey].filter((v) => v.indexOf('=') === -1)
+        // special case: only one element left, unpack array
+        if (res[mvKey].length === 1) {
+          res[mvKey] = res[mvKey][0];
+        }
+      }
+    }
+  });
+
+  return res
 };
 
 // The value in query strings can be a json object, we need to extract the key-value pairs out
@@ -208,14 +246,6 @@ function _flattenJson(obj) {
         res[key + _key] = r[_key];
       }
     }
-    break;
-  case 'array':
-    obj.forEach(function(e, i) {
-      var r = _flattenJson(e);
-      for (var _key in r) {
-        res[i + _key] = r[_key];
-      }
-    });
     break;
   case 'number':
     obj = JSON.stringify(obj);
@@ -275,7 +305,14 @@ URLInfo.prototype = {
     var kvList = [];
     for (let kv of [this.query_keys, this.parameter_keys]) {
       for (let key in kv) {
-        kvList.push({k: key, v: kv[key]});
+        // iterate each array element separately
+        if (Array.isArray(kv[key])) {
+          kv[key].forEach((val) => {
+            kvList.push({k: key, v: val});
+          });
+        } else {
+          kvList.push({k: key, v: kv[key]});
+        }
       }
     }
     return kvList;

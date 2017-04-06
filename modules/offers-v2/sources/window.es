@@ -1,8 +1,8 @@
+import inject from '../core/kord/inject';
 import background from './background';
 import LoggingHandler from './logging_handler';
 import OffersConfigs from './offers_configs';
-import {utils} from '../core/cliqz';
-
+import utils from '../core/utils';
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -19,6 +19,8 @@ export default class {
     if (!utils.getPref('offers2FeatureEnabled', false)) {
       return;
     }
+
+    this.offers = inject.module('offers-v2');
     this.window = settings.window;
     this.settings = settings.settings;
     // GR-117 -> check comment below in init()
@@ -219,7 +221,7 @@ export default class {
   // @brief method to send a message to the core ui manager
   //
   sendToCoreUIHandler(data) {
-    utils.callAction('offers-v2', 'windowUIConnector', [data]);
+    this.offers.action('windowUIConnector', data);
   }
 
   //////////////////////////////////////////////////////////////////////////////

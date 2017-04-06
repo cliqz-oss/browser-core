@@ -93,11 +93,14 @@ var osAPI = {
   /**
     function: browserAction
     description: requests the OS to perform a custom action (call number, send e-mail, or etc..)
-    params: data as string (phone number, e-mail, etc..)
     params: type as string (the type of the data)
+    params: data as string (phone number, e-mail, etc..)
     message data: {data: as string, type: as string}
   */
-  browserAction: function(data, type) {
+  browserAction: function(type, data) {
+    if (type === 'shareLocation') {
+      Search && Search.clearResultCache();
+    }
     var message = {
       action: "browserAction",
       data: {

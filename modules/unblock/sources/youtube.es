@@ -1,13 +1,13 @@
-import RegexProxyRule from 'unblock/regexp-proxy-rule';
-import ResourceLoader from 'core/resource-loader';
-import { utils } from 'core/cliqz';
-
-Components.utils.import('resource://gre/modules/Services.jsm');
+import inject from '../core/kord/inject';
+import RegexProxyRule from './regexp-proxy-rule';
+import ResourceLoader from '../core/resource-loader';
+import utils from '../core/utils';
 
 const REFRESH_RETRIES = 2;
 
 function queryHTML(...args) {
-  return utils.callAction('core', 'queryHTML', args);
+  const core = inject.module('core');
+  return core.action('queryHTML', ...args);
 }
 
 export default class {
@@ -108,7 +108,7 @@ export default class {
         this.proxy_service.addProxyRule(rule);
         block_info.proxy_region = region;
         // revert rule after 1 minute
-        CliqzUtils.setTimeout(function() {
+        utils.setTimeout(function() {
           this.video_info[vid].proxy_region = undefined;
           this.proxy_service.removeProxyRule(rule);
         }.bind(this), 60000);
@@ -141,7 +141,7 @@ export default class {
         queryHTML(url, this.conf.locale_element_selector, 'innerText').then((locale) => {
           try {
             if (locale[0]) {
-              CliqzUtils.log("YT locale = " + locale[0], "unblock");
+              utils.log("YT locale = " + locale[0], "unblock");
               this.current_region = locale[0];
             }
           } catch(e) {
@@ -155,7 +155,7 @@ export default class {
           let allowed_regions = [];
           if (!proxied) {
             // normal block, add blocked entry and reload page
-            CliqzUtils.log("blocked video: "+ vid, "unblock");
+            utils.log("blocked video: "+ vid, "unblock");
             // add blocked entry
             allowed_regions = new Set(this.proxy_manager.getAvailableRegions());
             allowed_regions.delete(this.current_region);
@@ -165,8 +165,8 @@ export default class {
             this.video_info[vid].blocked_regions = [this.current_region];
             this.video_info[vid].allowed_regions = Array.from(allowed_regions);
 
-            CliqzUtils.log('Add blocked youtube page', 'unblock');
-            CliqzUtils.telemetry({
+            utils.log('Add blocked youtube page', 'unblock');
+            utils.telemetry({
               'type': 'unblock',
               'action': 'yt_blocked_message',
               'region': this.current_region
@@ -176,7 +176,7 @@ export default class {
             allowed_regions = new Set(this.video_info[vid].allowed_regions);
             allowed_regions.delete(this.video_info[vid].proxy_region || '');
             this.video_info[vid].allowed_regions = Array.from(allowed_regions);
-            CliqzUtils.telemetry({
+            utils.telemetry({
               'type': 'unblock',
               'action': 'yt_blocked_2',
               'region': this.video_info[vid].proxy_region || '',
@@ -192,7 +192,7 @@ export default class {
             // tell unblock that we can unblock here
             var self = this;
             this.on_block_cb(url, function() {
-              CliqzUtils.telemetry({
+              utils.telemetry({
                 'type': 'unblock',
                 'action': 'yt_retry',
                 'regions': Array.from(allowed_regions)
@@ -208,14 +208,14 @@ export default class {
         // We also cache the url to prevent multiple triggering of this signal, as this function
         // is triggered multiple times for a single video load.
         if (proxied && !isBlocked && url != this.last_success) {
-          CliqzUtils.telemetry({
+          utils.telemetry({
             'type': 'unblock',
             'action': 'yt_success'
           });
           this.last_success = url;
 
           // check for loading failure
-          CliqzUtils.setTimeout(() => {
+          utils.setTimeout(() => {
             this.checkLoadError(url, 0)
           }, 1000);
         }
@@ -262,7 +262,7 @@ export default class {
   * @param url {string}
   */
   getVideoID(url) {
-    let url_parts = CliqzUtils.getDetailsFromUrl(url),
+    let url_parts = utils.getDetailsFromUrl(url),
       query = getParametersQS(url_parts.query);
     if(url_parts.path == '/watch' &&
         'v' in query) {
@@ -313,7 +313,7 @@ export default class {
           return;
         }
         // blocking was detected, but no proxy rule yet, maybe we need permission?
-        CliqzUtils.setTimeout(function() {
+        utils.setTimeout(function() {
           self.on_block_cb(url, function() {
             self.updateProxyRule(vid);
             self.refreshPageForVideo(vid);
@@ -326,7 +326,7 @@ export default class {
         this.video_info[vid] = this.video_info[vid] || {}
         this.video_info[vid].lookup = true;
 
-        CliqzUtils.httpGet(this.conf.api_url.replace('{video_id}', vid), function(req) {
+        utils.httpGet(this.conf.api_url.replace('{video_id}', vid), function(req) {
           if (self.conf.api_check.not_blocked_if.every(function(test) { return req.response.indexOf(test) == -1})
             && self.conf.api_check.blocked_if.some(function(test) { return req.response.indexOf(test) > -1})) {
             // error code,
@@ -335,13 +335,13 @@ export default class {
             self.video_info[vid].is_blocked = true;
             self.video_info[vid].blocked_regions = [self.current_region]
             self.video_info[vid].allowed_regions = Array.from(allowed_regions);
-            CliqzUtils.telemetry({
+            utils.telemetry({
               'type': 'unblock',
               'action': 'yt_blocked_api',
               'region': self.current_region
             });
 
-            CliqzUtils.setTimeout(function() {
+            utils.setTimeout(function() {
               self.on_block_cb(url, function() {
                 // try to refresh page
                 self.updateProxyRule(vid);
@@ -383,7 +383,7 @@ export default class {
       }
     }
     if (!found && retry_count > 0) {
-      CliqzUtils.setTimeout(function() {
+      utils.setTimeout(function() {
         this.refreshPageForVideo(vid, retry_count-1);
       }.bind(this), 400);
     }

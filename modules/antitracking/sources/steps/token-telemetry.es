@@ -3,7 +3,6 @@ import * as datetime from 'antitracking/time';
 import * as persist from 'antitracking/persistent-state';
 import { splitTelemetryData } from 'antitracking/utils';
 import pacemaker from 'antitracking/pacemaker';
-import random from 'core/crypto/random';
 
 /**
  * Add padding characters to the left of the given string.
@@ -40,17 +39,13 @@ function leftpad(str, char, size) {
  * @param {Object} trackerData - associate source domains to key/value pairs.
 **/
 function anonymizeTrackerTokens(trackerData) {
-  // Random base id
-  const min = 1;
-  const max = Number.MAX_SAFE_INTEGER;
-  let randId = Math.floor(random() * (max - min + 1)) + min;
-
+  let index = 1
   // Anonymize the given tracker data
   let anonymizedTrackerData = {};
 
   for (let originalKey in trackerData) {
-    const newRandomKey = leftpad(randId.toString().substr(0, 16), '0', 16);
-    randId = (randId + 1) % max;
+    const newRandomKey = leftpad(index.toString().substr(0, 16), '0', 16);
+    index = index + 1;
     anonymizedTrackerData[newRandomKey] = trackerData[originalKey];
   }
 

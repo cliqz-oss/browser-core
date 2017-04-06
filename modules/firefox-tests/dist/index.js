@@ -69,7 +69,8 @@ var CliqzUtils = loadModule("core/utils"),
     fetchAndStoreConfig,
     fetchAndStoreHM,
     abCheck,
-    browserMajorVersion = parseInt(getBrowserVersion().split('.')[0]);
+    browserMajorVersion = parseInt(getBrowserVersion().split('.')[0]),
+    app = CliqzUtils.app;
 
 mocha.setup({ ui: 'bdd', timeout: 20000 });
 
@@ -93,7 +94,7 @@ initHttpServer();
 
 function start() {
 
-if (!CliqzUtils.Extension.app.isFullyLoaded) {
+if (!CliqzUtils.app.isFullyLoaded) {
   setTimeout(start, 2000);
   return;
 }
@@ -116,7 +117,7 @@ Object.keys(window.TESTS).forEach(function (testName) {
 
 beforeEach(function () {
   window.closeAllTabs(chrome.gBrowser);
-  return CliqzUtils.extensionRestart(function () {
+  return app.extensionRestart(function () {
     getBackendResults = CliqzUtils.getBackendResults;
 
     fetchAndStoreHM = CliqzHumanWeb.fetchAndStoreConfig;

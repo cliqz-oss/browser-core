@@ -8,6 +8,13 @@ export default {
   // },
   //
   // "key.with.interpolation": "Text with {{anInterpolation}}"
+  general: {
+    "switch-on": "AN",
+    "switch-off": "AUS",
+    "en-language": "Englisch",
+    "de-language": "Deutsch",
+    "fr-language": "Französisch"
+  },
   onboarding: {
     "title": "Juhuuu! CLIQZ wurde erfolgreich installiert.",
     "hdr-privacy": "Mit CLIQZ bist du sicher.",
@@ -78,4 +85,14 @@ export default {
     "cta-learn-more": "LIES MEHR DARÜBER"
   },
   title: 'Neuer Tab',
+  settings: {
+    "hdr-customize": "Cliqz Tab anpassen",
+    "hdr-top-sites": "Top Sites",
+    "txt-show-mail-notifications": "E-Mail Benachrichtigungen zeigen",
+    "tooltip-mail-notifications": "Auf Cliqz Tab kannst du über neue E-Mails benachrichtigt werden. Dazu muss dein E-Mail-Anbieter unter deinen Top Sites sein und du musst in das E-Mail Konto eingeloggt sein. Dann wirst du auf Cliqz Tab und auf der Neuer Tab Schaltfläche auf neue E-Mails hingewiesen. Aktuell ist diese Funktion nur für Gmail (mail.google.com) verfügbar.",
+    "hdr-news-feed": "Nachrichten",
+    "txt-top-news-edition": "Top Nachrichten Edition",
+    "tooltip-top-news": "Die Auswahl der Top Nachrichten basiert ausschließlich auf der Sprache deines CLIQZ Browsers. Du kannst hier eine andere Sprachausgabe wählen.",
+    "send-us-feedback": "Feedback schicken"
+  }
 };

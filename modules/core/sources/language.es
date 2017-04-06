@@ -1,2 +1,2 @@
-import Language from 'platform/language';
+import Language from '../platform/language';
 export default Language;

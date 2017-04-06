@@ -1,12 +1,15 @@
 import background from '../core/base/background';
 import { forEachWindow } from '../platform/browser';
 import utils from '../core/utils';
+import inject from '../core/kord/inject';
 
 /**
   @namespace <namespace>
   @class Background
  */
 export default background({
+
+  newTabButton: inject.module('new-tab-button'),
 
   /**
     @method init
@@ -27,7 +30,7 @@ export default background({
   events: {
     'notifications:new-notification': function onNewNotification() {
       forEachWindow(window => {
-        utils.callWindowAction(window, 'new-tab-button', 'lightUp');
+        this.newTabButton.windowAction(window, 'lightUp');
       });
 
       utils.telemetry({
@@ -38,7 +41,7 @@ export default background({
     },
     'notifications:notifications-cleared': function onNotificationsCleared() {
       forEachWindow(window => {
-        utils.callWindowAction(window, 'new-tab-button', 'lightDown');
+        this.newTabButton.windowAction(window, 'lightDown');
       });
     },
   },

@@ -1,15 +1,16 @@
-import { events, Promise } from "core/cliqz";
+import events from './events';
 import utils from "./utils";
 import console from "./console";
 import language from "./language";
 import config from "./config";
-import ProcessScriptManager from "platform/process-script-manager";
+import ProcessScriptManager from "../platform/process-script-manager";
 import HistoryManager from "./history-manager";
 import prefs from './prefs';
 import background from './base/background';
-import { Window, mapWindows } from 'platform/browser';
-import loadLogoDb from "platform/load-logo-db";
+import { Window, mapWindows, getLang } from '../platform/browser';
+import loadLogoDb from "../platform/load-logo-db";
 import { isMobile } from "./platform";
+import Storage from 'core/storage';
 
 var lastRequestId = 0;
 var callbacks = {};
@@ -17,6 +18,10 @@ var callbacks = {};
 export default background({
 
   init(settings) {
+    this.settings = settings;
+    utils.init({
+      lang: getLang(),
+    });
     if (!isMobile) {
       this.checkSession();
       language.init();
@@ -30,8 +35,10 @@ export default background({
 
     this.mm = new ProcessScriptManager(this.dispatchMessage);
     this.mm.init();
-
-    this.report = utils.setTimeout(this.reportStartupTime.bind(this), 1000 * 60);
+    // @TODO: mobile doesn't use utils.app
+    if (utils.app) {
+      this.report = utils.setTimeout(this.reportStartupTime.bind(this), 1000 * 60);
+    }
   },
 
   unload() {
@@ -59,7 +66,14 @@ export default background({
         '|',
         config.settings.channel || 'NONE',
       ].join('');
-      utils.setSupportInfo()
+
+      utils.setTimeout(() => {
+        this.setSupportInfo();
+        if(config.settings.channel == 40){
+          this.browserDetection();
+        }
+      }, 30000);
+
       prefs.set('session', session);
       prefs.set('install_date', session.split('|')[1]);
       prefs.set('new_session', true);
@@ -111,6 +125,39 @@ export default background({
     })
   },
 
+  setSupportInfo(status) {
+    const version = this.settings.version;
+    const host = prefs.get('distribution.id', '', '');
+    const hostVersion = prefs.get('distribution.version', '', '');
+    const info = JSON.stringify({
+      version,
+      host,
+      hostVersion,
+      country: CliqzUtils.getPref('config_location', ''),
+      status: status || 'active',
+    });
+
+    ['http://cliqz.com', 'https://cliqz.com'].forEach(url => {
+      const ls = new Storage(url);
+      ls.setItem('extension-info', info);
+    });
+  },
+
+  browserDetection() {
+    var pref = 'detection',
+        sites = ["https://www.ghostery.com", "https://ghostery.com"];
+
+    // make sure we only do it once
+    if(CliqzUtils.getPref(pref, false) !== true){
+      CliqzUtils.setPref(pref, true);
+
+      sites.forEach(function(url){
+          var ls = new Storage(url)
+          if (ls) ls.setItem("cliqz", true)
+      });
+    }
+  },
+
   events: {
     'core:tab_select': function onTabSelect({ url, isPrivate }) {
       events.pub('core.location_change', url, isPrivate);
@@ -144,13 +191,10 @@ export default background({
       events.pub('core:mouse-down', ...args);
     },
     restart() {
-      return utils.extensionRestart();
+      return utils.app.extensionRestart();
     },
     status() {
-      if (!utils.Extension) {
-        return {};
-      }
-      const availableModules = utils.Extension.app.availableModules;
+      const availableModules = utils.app.availableModules;
       const modules = config.modules.reduce((hash, moduleName) => {
         const module = availableModules[moduleName];
         const windowWrappers = mapWindows(window => new Window(window));
@@ -236,10 +280,10 @@ export default background({
       window.gBrowser.selectedTab = tab;
     },
     enableModule(moduleName) {
-      return utils.Extension.app.enableModule(moduleName);
+      return utils.app.enableModule(moduleName);
     },
     disableModule(moduleName) {
-      utils.Extension.app.disableModule(moduleName);
+      utils.app.disableModule(moduleName);
     },
     resizeWindow(width, height) {
       utils.getWindow().resizeTo(width, height);

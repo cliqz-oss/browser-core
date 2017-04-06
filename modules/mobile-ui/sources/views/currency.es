@@ -1,3 +1,5 @@
+import CliqzUtils from 'core/utils';
+
 function getNumValue(value) {
     return (isNaN(value) || value <= 0 ? 0 : value - 0); // rounding value
 }

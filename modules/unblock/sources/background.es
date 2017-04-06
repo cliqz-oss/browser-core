@@ -16,7 +16,7 @@ export default background({
     this.loadPlugins();
     CliqzUnblock.init(settings.unblockUI);
     this.onPrefChange = this.onPrefChange.bind(this);
-    CliqzEvents.sub("prefchange", this.onPrefChange);
+    events.sub("prefchange", this.onPrefChange);
   },
 
   enabled() {
@@ -27,7 +27,7 @@ export default background({
   * @method unload
   */
   unload() {
-    CliqzEvents.un_sub("prefchange", this.onPrefChange);
+    events.un_sub("prefchange:"+ CliqzUnblock.PREF_MODE, this.onPrefChange);
     CliqzUnblock.unload();
   },
 
@@ -35,7 +35,7 @@ export default background({
   * @method loadPlugins
   */
   loadPlugins() {
-    if (CliqzUtils.getPref('unblock.plugin.youtube', true)) {
+    if (utils.getPref('unblock.plugin.youtube', true)) {
       CliqzUnblock.unblockers.push(new YoutubeUnblocker());
     }
   },

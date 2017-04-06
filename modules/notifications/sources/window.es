@@ -1,19 +1,21 @@
-import utils from '../core/utils';
-import FreshTab from 'freshtab/main';
+import inject from '../core/kord/inject';
+import FreshTab from '../freshtab/main';
 
 export default class {
-  constructor(settings) {
+  constructor() {
+    this.notifications = inject.module('notifications');
   }
 
   init() {
     if (!FreshTab.isActive()) {
-      return;
+      return Promise.resolve();
     }
 
-    utils.callAction('notifications', 'hasUnread').then((res) => {
-      if (res) {
-        utils.callAction('notifications', 'updateUnreadStatus');
+    return this.notifications.action('hasUnread').then((res) => {
+      if (!res) {
+        return Promise.resolve();
       }
+      return this.notifications.action('updateUnreadStatus');
     });
   }
 

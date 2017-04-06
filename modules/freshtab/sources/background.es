@@ -1,32 +1,26 @@
-import FreshTab from 'freshtab/main';
-import News from 'freshtab/news';
-import History from 'freshtab/history';
-import { utils, events } from 'core/cliqz';
-import SpeedDial from 'freshtab/speed-dial';
-import { version as onboardingVersion, shouldShowOnboardingV2 } from "core/onboarding";
-import AdultDomain from 'freshtab/adult-domain';
-import background from 'core/base/background';
-import { forEachWindow } from 'core/browser';
+import inject from '../core/kord/inject';
+import FreshTab from './main';
+import News from './news';
+import History from './history';
+import utils from '../core/utils';
+import events from '../core/events';
+import SpeedDial from './speed-dial';
+import { version as onboardingVersion, shouldShowOnboardingV2 } from "../core/onboarding";
+import AdultDomain from './adult-domain';
+import background from '../core/base/background';
+import { forEachWindow } from '../core/browser';
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
 const DISMISSED_ALERTS = 'dismissedAlerts';
-const ONE_DAY = 24 * 60 * 60 * 1000;
-const FIVE_DAYS = 5 * ONE_DAY;
-const PREF_ONBOARDING = 'freshtabOnboarding';
-
-const getInstallationDate = function() {
-  return parseInt(utils.getPref(PREF_ONBOARDING, '0'));
-}
-
-const isWithinNDaysAfterInstallation = function(days) {
-  return getInstallationDate() + ONE_DAY * days > Date.now();
-}
-
 /**
 * @namespace freshtab
 * @class Background
 */
 export default background({
+  core: inject.module('core'),
+  geolocation: inject.module('geolocation'),
+  notifications: inject.module('notifications'),
+
   /**
   * @method init
   */
@@ -55,6 +49,14 @@ export default background({
   },
 
   actions: {
+    _hasActiveNotifications() {
+      return this.notifications.action('hasActiveNotifications').then((res) => {
+        return res;
+      });
+    },
+    _getNewsLanguage() {
+      return utils.getPref('news_language', 'de');
+    },
     _showOnboarding() {
       if (onboardingVersion() === '2.1') {
         shouldShowOnboardingV2().then((show) => {
@@ -66,23 +68,8 @@ export default background({
       }
     },
 
-    _showHelp: isWithinNDaysAfterInstallation.bind(null, 5),
-
-    _showMiniOnboarding() {
-
-      if (getInstallationDate() === 0) {
-        utils.setPref(PREF_ONBOARDING, '' + Date.now());
-      }
-
-      return isWithinNDaysAfterInstallation(1);
-    },
-
     _isBrowser() {
       return FreshTab.isBrowser;
-    },
-    _showFeedback() {
-      const showFeedback = utils.getPref('freshtabFeedback', false);
-      return showFeedback;
     },
     _showNewBrandAlert() {
       const isInABTest = utils.getPref('freshtabNewBrand', false);
@@ -310,6 +297,11 @@ export default background({
       return this.actions.getSpeedDials();
     },
 
+    setNewsLanguage(language) {
+      utils.setPref('news_language', language);
+      this.actions.refreshFrontend();
+    },
+
     /**
     * Get list with top & personalized news
     * @method getNews
@@ -355,14 +347,17 @@ export default background({
       var config = {
         locale: utils.PREFERRED_LANGUAGE,
         showOnboarding: self.actions._showOnboarding(),
-        miniOnboarding: self.actions._showMiniOnboarding(),
-        showHelp: self.actions._showHelp(),
         isBrowser: self.actions._isBrowser(),
-        showFeedback: self.actions._showFeedback(),
         showNewBrandAlert: self.actions._showNewBrandAlert(),
-        messages: this.messages
+        messages: this.messages,
+        newsLanguage: self.actions._getNewsLanguage(),
       };
-      return Promise.resolve(config);
+
+      let hasActiveNotifications = self.actions._hasActiveNotifications();
+      return Promise.all([hasActiveNotifications]).then((res) => {
+        config.hasActiveNotifications = res[0];
+        return config;
+      })
     },
     /**
     * @method takeFullTour
@@ -393,7 +388,7 @@ export default background({
 
     shareLocation(decision) {
       events.pub('msg_center:hide_message', {'id': 'share-location' }, 'MESSAGE_HANDLER_FRESHTAB');
-      utils.callAction('geolocation', 'setLocationPermission', [decision]);
+      this.geolocation.action('setLocationPermission', decision);
 
       const target = (decision === 'yes') ?
         'always_share' : 'never_share';
@@ -427,7 +422,7 @@ export default background({
       if(FreshTab.isActive()) {
         events.pub('notifications:notifications-cleared');
       } else {
-        utils.callAction('notifications', 'hasUnread').then( (res) => {
+        this.notifications.action('hasUnread').then( (res) => {
           if (res) {
             events.pub('notifications:new-notification');
           }
@@ -438,25 +433,27 @@ export default background({
     "message-center:handlers-freshtab:new-message": function onNewMessage(message) {
       if( !(message.id in this.messages )) {
         this.messages[message.id] = message;
-        utils.callAction('core', 'broadcastMessage', [
+        this.core.action(
+          'broadcastMessage',
           utils.CLIQZ_NEW_TAB_RESOURCE_URL,
           {
             action: 'addMessage',
             message: message,
           }
-        ]);
+        );
       }
     },
     "message-center:handlers-freshtab:clear-message": function onMessageClear(message) {
 
       delete this.messages[message.id];
-      utils.callAction('core', 'broadcastMessage', [
+      this.core.action(
+        'broadcastMessage',
         utils.CLIQZ_NEW_TAB_RESOURCE_URL,
         {
           action: 'closeNotification',
           messageId: message.id,
         }
-      ]);
+      );
     },
     "geolocation:wake-notification": function onWake(timestamp) {
       this.actions.getNews().then(() => {

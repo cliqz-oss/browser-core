@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import DS from 'ember-data';
+import Spanan from 'npm:spanan';
 
 const Promise = Ember.RSVP.Promise;
 
@@ -16,6 +17,29 @@ export default Ember.Service.extend({
 
   init() {
     this._super(...arguments);
+
+    const freshtab = new Spanan(({ uuid, functionName, args }) => {
+      const message = JSON.stringify({
+        target: 'cliqz',
+        module: 'freshtab',
+        action: functionName,
+        requestId: uuid,
+        args,
+      });
+      window.postMessage(message, '*');
+    });
+    const freshtabProxy = freshtab.createProxy();
+
+    this.getConfig = freshtabProxy.getConfig;
+    this.dismissMessage = freshtabProxy.dismissMessage;
+    this.getNews = freshtabProxy.getNews;
+    this.resetAllHistory = freshtabProxy.resetAllHistory;
+    this.removeSpeedDial = freshtabProxy.removeSpeedDial;
+    this.revertHistorySpeedDial = freshtabProxy.revertHistorySpeedDial;
+    this.addSpeedDial = freshtabProxy.addSpeedDial;
+    this.getSpeedDials = freshtabProxy.getSpeedDials;
+    this.revertBack = freshtabProxy.revertBack;
+    this.getTabIndex = freshtabProxy.getTabIndex;
 
     this.callbacks = Object.create(null);
 
@@ -53,6 +77,15 @@ export default Ember.Service.extend({
 
 
       if (message.type === "response") {
+        const spananMessage = {
+          uuid: message.requestId,
+          returnedValue: message.response
+        };
+
+        if (freshtab.dispatch(spananMessage)) {
+          return;
+        }
+
         const action = (this.callbacks[message.module] || {})[message.action] || this.callbacks[message.action];
         const requestId = message.requestId;
         if (requestId && action && action[requestId]) {
@@ -175,20 +208,6 @@ export default Ember.Service.extend({
       action: 'getQueries',
       args: [
       ]
-    }), '*');
-
-    return DS.PromiseObject.create({ promise });
-  },
-
-  dismissMessage(message) {
-    let promise = new Promise( resolve => {
-      this.callbacks.dismissMessage = resolve;
-    })
-    window.postMessage(JSON.stringify({
-      target: 'cliqz',
-      module: 'freshtab',
-      action: 'dismissMessage',
-      args: [message]
     }), '*');
 
     return DS.PromiseObject.create({ promise });
@@ -337,20 +356,6 @@ export default Ember.Service.extend({
     return DS.PromiseObject.create({ promise });
   },
 
-  getConfig() {
-    let promise = new Promise( resolve => {
-      this.callbacks.getConfig = resolve;
-    });
-
-    window.postMessage(JSON.stringify({
-      target: 'cliqz',
-      module: 'freshtab',
-      action: 'getConfig'
-    }), '*');
-
-    return DS.PromiseObject.create({ promise });
-  },
-
   takeFullTour() {
     this.callbacks.takeFullTour = () => {};
     window.postMessage(JSON.stringify({
@@ -379,25 +384,31 @@ export default Ember.Service.extend({
     }), '*');
   },
 
-  revertBack() {
-    this.callbacks.revertBack = () => {};
-    window.postMessage(JSON.stringify({
-      target: 'cliqz',
-      module: 'freshtab',
-      action: 'revertBack'
-    }), '*');
-  },
-
-  getTabIndex() {
-    let promise = new Promise( resolve => {
-      this.callbacks.getTabIndex = resolve;
+  getNewsLanguage() {
+    let promise = new Promise( (resolve) => {
+      this.callbacks.getNewsLanguage = resolve;
     });
 
     window.postMessage(JSON.stringify({
       target: 'cliqz',
       module: 'freshtab',
-      action: 'getTabIndex'
-    }), '*');
+      action: 'getNewsLanguage'
+    }), "*");
+
+    return DS.PromiseObject.create({ promise });
+  },
+
+  setNewsLanguage(language) {
+    let promise = new Promise( resolve => {
+      this.callbacks.setNewsLanguage = resolve;
+    });
+
+    window.postMessage(JSON.stringify({
+      target: "cliqz",
+      module: "freshtab",
+      "action": "setNewsLanguage",
+      "args": [language]
+    }), "*");
 
     return DS.PromiseObject.create({ promise });
   },
@@ -410,38 +421,6 @@ export default Ember.Service.extend({
       action: "sendTelemetry",
       args: [msg]
     }) , "*")
-  },
-
-  getSpeedDials() {
-    let promise = new Promise( resolve => {
-      this.callbacks.getSpeedDials = resolve;
-    });
-
-    window.postMessage(JSON.stringify({
-      target: "cliqz",
-      module: "freshtab",
-      action: "getSpeedDials"
-    }) , "*")
-
-    return DS.PromiseObject.create({ promise });
-  },
-
-  addSpeedDial(url, index) {
-    let promise = new Promise( resolve => {
-      this.callbacks.addSpeedDial = resolve;
-    });
-
-    window.postMessage(JSON.stringify({
-      target: "cliqz",
-      module: "freshtab",
-      action: "addSpeedDial",
-      "args": [
-        url,
-        index,
-      ]
-    }), "*");
-
-    return DS.PromiseObject.create({ promise });
   },
 
   openFeedbackPage() {
@@ -458,52 +437,4 @@ export default Ember.Service.extend({
     return DS.PromiseObject.create({ promise });
   },
 
-  revertHistorySpeedDial(item) {
-
-    window.postMessage(JSON.stringify({
-      target: "cliqz",
-      module: "freshtab",
-      "action": "revertHistorySpeedDial",
-      "args": [item]
-    }), "*");
-  },
-
-  removeSpeedDial(item) {
-    this.callbacks.removeSpeedDial = () => {};
-
-    window.postMessage(JSON.stringify({
-      target: "cliqz",
-      module: "freshtab",
-      "action": "removeSpeedDial",
-      "args": [item]
-    }), "*");
-  },
-
-  resetAllHistory() {
-    let promise = new Promise( resolve => {
-      this.callbacks.resetAllHistory = resolve;
-    });
-
-    window.postMessage(JSON.stringify({
-      target: "cliqz",
-      module: "freshtab",
-      "action": "resetAllHistory",
-    }), "*");
-
-    return DS.PromiseObject.create({ promise });
-  },
-
-  getNews() {
-    let promise = new Promise( resolve => {
-      this.callbacks.getNews = resolve;
-    });
-
-    window.postMessage(JSON.stringify({
-      target: "cliqz",
-      module: "freshtab",
-      action: "getNews"
-    }) , "*")
-
-    return DS.PromiseObject.create({ promise });
-  }
 });

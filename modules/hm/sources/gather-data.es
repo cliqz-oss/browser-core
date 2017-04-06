@@ -1,7 +1,9 @@
+import CliqzUtils from 'core/utils';
+import { len, btoa_safe } from 'hm/helpers';
+
 Components.utils.import('resource://gre/modules/PlacesUtils.jsm');
 const Ci = Components.interfaces;
 
-import { len, btoa_safe } from 'hm/helpers';
 export default class GatherData {
   static unifyData(data) {
     const res = [];

@@ -7,6 +7,7 @@
   </div>
 {{/if}}
 
+
 <div id="freshTabPage">
 {{!--   <nav>
     {{#link-to 'freshtab.index' class='freshtab-button'}}
@@ -16,6 +17,9 @@
       <img src="./assets/images/History.svg">
     {{/link-to}}
   </nav> --}}
+{{!--   <div id="custom-settings">
+    {{custom-settings model=model.config}}
+  </div> --}}
   <div id="center" tabindex="0">
     <div id="container">
       <div id="topVisited" class="center">
@@ -38,24 +42,6 @@
       </div>
     </div>
   </div>
-
-  {{#if model.config.showFeedback}}
-    <div id="feedback">
-      {{feedback-link}}
-    </div>
-  {{else}}
-    <div id="onboarding">
-      {{#if model.config.miniOnboarding}}
-        {{mini-onboarding isBrowser=model.config.isBrowser freshTabLearnMoreAction="freshTabLearnMore" revertBackAction="revertBack"}}
-      {{else}}
-        {{#if model.config.showHelp}}
-          <div id="learnMore">
-            <a href="https://cliqz.com/aboutus/blog/new-startpage" title="Learn more" target="_blank" class="learnBtn">Learn more</a>
-          </div>
-        {{/if}}
-      {{/if}}
-    </div>
-  {{/if}}
 </div>
 
 </div>

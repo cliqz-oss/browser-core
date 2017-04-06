@@ -717,7 +717,7 @@ class CosmeticEngine {
               if (rule.scriptInject) {
                 // make sure the selector was replaced by javascript
                 if (!rule.scriptReplaced) {
-                  if (rule.selector.includes(',')) {
+                  if (rule.selector.indexOf(',') !== -1) {
                     rule.scriptArguments = rule.selector.split(',').slice(1).map(String.trim);
                     rule.selector = rule.selector.split(',')[0];
                   }
@@ -994,7 +994,7 @@ export default class {
       if (result.redirect) {
         const { data, contentType } = this.resources.get(result.redirect);
         let dataUrl;
-        if (contentType.includes(';')) {
+        if (contentType.indexOf(';') !== -1) {
           dataUrl = `data:${contentType},${data}`;
         } else {
           dataUrl = `data:${contentType};base64,${btoa(data)}`;

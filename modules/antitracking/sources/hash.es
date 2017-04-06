@@ -49,3 +49,17 @@ HashProb.prototype.isHash = function(str) {
     var p = this.isHashProb(str);
     return (p < this.probHashThreshold);
 };
+
+const numberThreshold = 0.8;
+
+export function isMostlyNumeric(str) {
+  let numbers = 0;
+  const length = str.length;
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i);
+    if (code >= 48 && code < 58) {
+      numbers += 1;
+    }
+  }
+  return numbers / length > numberThreshold;
+}

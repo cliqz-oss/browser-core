@@ -1,4 +1,5 @@
 import ResourceLoader from 'core/resource-loader';
+import CliqzUtils from 'core/utils';
 
 export default class {
   /**

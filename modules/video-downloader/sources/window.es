@@ -15,7 +15,7 @@ export default class {
     // If not, we pass a null value.
     // So this video-downloader module could work
     // with/without 'pairing' module.
-    CLIQZ.System.import('pairing/main')
+    utils.importModule('pairing/main')
     .then(x => (this.PeerComm = x.default))
     .catch(() => {})
     .then(() => {

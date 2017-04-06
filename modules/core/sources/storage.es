@@ -1,4 +1,4 @@
-import getStorage from 'platform/storage';
+import getStorage from '../platform/storage';
 
 /**
 * @namespace core

@@ -26,8 +26,10 @@ TESTS.PromiseTest = function(CliqzUtils) {
   // tests. Mocking the global object will result in random tests failure if Promise
   // is used by other modules at the same time tests are running.
   var global = {};
+
   Services.scriptloader.loadSubScript("chrome://cliqz/content/runloop.js", global);
-  var Promise = global.Promise;
+  Services.scriptloader.loadSubScript('chrome://cliqz/content/bower_components/es6-promise/es6-promise.js', global);
+  var Promise = global.ES6Promise.Promise;
 
   var assert = chai.assert;
 

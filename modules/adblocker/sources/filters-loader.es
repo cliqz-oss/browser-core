@@ -2,6 +2,8 @@ import ResourceLoader, { Resource, UpdateCallbackHandler } from 'core/resource-l
 import Language from 'core/language';
 import { platformName } from 'core/platform';
 import log from 'adblocker/utils';
+import { ADB_USER_LANG, ADB_USER_LANG_OVERRIDE } from 'adblocker/adblocker';
+import { utils } from 'core/cliqz';
 
 // Disk persisting
 const RESOURCES_PATH = ['antitracking', 'adblocking'];
@@ -15,8 +17,6 @@ const ONE_HOUR = 60 * ONE_MINUTE;
 
 // URLs to fetch block lists
 const BASE_URL = 'https://cdn.cliqz.com/adblocking/latest-filters/';
-
-const LANGS = Language.state();
 const EOL = '\n';
 
 
@@ -108,8 +108,16 @@ export default class extends UpdateCallbackHandler {
     );
     this.allowedListsLoader.onUpdate(this.updateChecksums.bind(this));
 
+    this.initLists();
+  }
+
+  initLists() {
     // Lists of filters currently loaded
     this.lists = new Map();
+    // Available languages from filter lists
+    this.availableLang = new Set();
+    // Currently used language
+    this.loadedLang = new Set();
   }
 
   remoteURL() {
@@ -138,6 +146,29 @@ export default class extends UpdateCallbackHandler {
   }
 
   // Private API
+  userOverrides() {
+    const langOverride = utils.getPref(ADB_USER_LANG_OVERRIDE, '');
+    if (typeof langOverride === 'string' && langOverride !== '') {
+      return langOverride.split(';');
+    }
+    return [];
+  }
+
+  userLang() {
+    // check if language specific filters are disabled
+    if (!utils.getPref(ADB_USER_LANG, true)) {
+      // ADB_USER_LANG default is set to true to keep the current behavior
+      return [];
+    }
+
+    // check if language override exists
+    const overrides = this.userOverrides();
+    if (overrides.length > 0) {
+      return overrides;
+    }
+
+    return Language.state();
+  }
 
   updateChecksums(allowedLists) {
     // Update URL with current timestamp to play well with caching
@@ -145,6 +176,9 @@ export default class extends UpdateCallbackHandler {
 
     const filtersLists = [];
 
+    this.availableLang = new Set();
+    this.loadedLang = new Set();
+    const userLang = this.userLang();
     Object.keys(allowedLists).forEach((list) => {
       Object.keys(allowedLists[list]).forEach((asset) => {
         const checksum = allowedLists[list][asset].checksum;
@@ -152,18 +186,22 @@ export default class extends UpdateCallbackHandler {
 
         if (list === 'country_lists') {
           lang = allowedLists[list][asset].language;
+          this.availableLang.add(lang);
         }
 
         const assetName = stripProtocol(asset);
         const filterRemoteURL = BASE_URL + assetName;
 
-        if (lang === null || LANGS.indexOf(lang) > -1) {
+        if (lang === null || userLang.indexOf(lang) !== -1) {
           filtersLists.push({
             checksum,
             asset,
             remoteURL: filterRemoteURL,
             key: list,
           });
+          if (lang !== null) {
+            this.loadedLang.add(lang);
+          }
         }
       });
     });

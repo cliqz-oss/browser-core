@@ -3,9 +3,9 @@
   "version" : "0.1",
   "version_name" : "standalone",
   "description" : "Test",
-  "permissions": [ "webRequest", "webNavigation", "storage", "cookies", "history", "http://*/*", "https://*/*","activeTab","tabs"],
+  "permissions": [ "webRequest", "webNavigation", "storage", "cookies", "http://*/*", "https://*/*","tabs"],
   "background": {
-    "scripts": ["directory-service.js","blind-sign.js","send-message.js","user-pk.js","crypto-utils.js","message-context.js","secure-logger.js","utils.js","dist/js/crypto-js.js","dist/js/jsencrypt.js","dist/js/bigint.js","dist/js/sha256.js","hpn.js","md5.min.js", "cl-chrome-db.js","cl-utils.js", "bloom-filter.js", "human-web.js", "pacemaker.js", "content.js", "background.js"]
+    "scripts": ["md5.min.js", "cl-chrome-db.js","cl-utils.js", "bloom-filter.js", "human-web.js", "content.js","send-message.js","hpn.js","background.js","hpn-worker.js"]
   },
   "manifest_version": 2
 }

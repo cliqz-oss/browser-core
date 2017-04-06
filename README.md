@@ -8,6 +8,11 @@ Browser Core is used in:
 * [CLIQZ for Android](https://github.com/cliqz-oss/browser-android)
 * [CLIQZ for IOS](https://github.com/cliqz-oss/browser-ios)
 
+## Documentation
+
+* [API](http://docs.clyqz.com/browser-core/api/)
+* [Guides](http://docs.clyqz.com/browser-core/guides/)
+
 ## Core modules
 
 Browser Core consist of independent modules that together form the CLIQZ product. The most important ones are:

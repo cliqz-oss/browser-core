@@ -401,9 +401,10 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
           block = false;
           reqsReceived = [];
           CliqzUtils.getWindow().gBrowser.addTab(url);
+          var nExpected = Object.keys(expectedUrls).filter((url) => url.indexOf('/test') > 0).length;
           return waitFor(function() {
             var testReqs = wrCollector.onHeadersReceived.filter( (req) => { return isTestServerAddress(req.url) });
-            return testReqs.length >= Object.keys(expectedUrls).length + (skipLengthTest ? 1 : 0);
+            return reqsReceived.length >= 2;
           }).then(function() {
             if (!skipLengthTest) {
               chai.expect(reqsReceived).to.have.length(2);
@@ -423,9 +424,10 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
           block = true;
           reqsReceived = [];
           CliqzUtils.getWindow().gBrowser.addTab(url);
+          var nExpected = Object.keys(expectedUrls).filter((url) => url.indexOf('/test') > 0).length;
           return waitFor(function() {
             var testReqs = wrCollector.onHeadersReceived.filter( (req) => { return isTestServerAddress(req.url) });
-            return testReqs.length >= Object.keys(expectedUrls).length - 1;
+            return reqsReceived.length >= 1;
           }).then(function() {
             chai.expect(reqsReceived).to.have.length(1);
             for (var req of reqsReceived) {
@@ -452,12 +454,13 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
           // special case: a 302 redirect does not trigger onBeforeRequest for the redirect target
           if (testPage !== 'image302test.html') {
             // when redirecting scripts specfied in the DOM in onBeforeRequest we get a duplicate request
-            it('can rewrite urls', function(done) {
-              testRewrite(testPage === 'thirdpartyscript.html');
-              done();
+            it('can rewrite urls', function() {
+              return testRewrite(testPage === 'thirdpartyscript.html')
             });
 
-            it('can block urls', testBlock);
+            it('can block urls', function() {
+              return testBlock()
+            });
           }
 
         });
@@ -471,12 +474,13 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
             webrequest.onBeforeSendHeaders.removeListener(urlRewriter);
           });
 
-          it('can rewrite urls', function(done) {
-            testRewrite(testPage === 'thirdpartyscript.html');
-            done();
+          it('can rewrite urls', function() {
+            return testRewrite(testPage === 'thirdpartyscript.html');
           });
 
-          it('can block urls', testBlock);
+          it('can block urls', function() {
+            return testBlock()
+          });
         });
       });
     });

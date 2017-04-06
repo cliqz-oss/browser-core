@@ -268,6 +268,9 @@ export default class Mixer {
     if (response.results) {
       for (var i = 0; i < response.results.length; i++) {
         if ((response.results[i].style === 'cliqz-pattern' || response.results[i].style == 'cliqz-extra' || response.results[i].data.cluster) && response.results[i].data.urls) {
+          if(response.results[i].val){
+            allResults.push(response.results[i]);
+          }
           const historyPattern = response.results[i];
           const historyPatternResults = historyPattern.data.urls.map((result) => {
             return {
@@ -343,7 +346,6 @@ export default class Mixer {
         results = r.first.concat(r.second);
       }
     }
-    // start with the richer result
     r = this._deduplicateResults(history, cliqz);
     // Prepare results: history (first) then backend results (second)
   results = customResults.concat(r.first).concat(r.second);
@@ -383,7 +385,7 @@ export default class Mixer {
     if (['simple', 'ff'].indexOf(utils.dropDownStyle) !== -1) {
       // in simple UI & FF UI, we don't have history clusters/patterns. We need
       // to unpack them into separate results.
-      return this.unpackHistoryPatterns({query: q, results:results});
+      return this.unpackHistoryPatterns({query: q, results: results});
     }
     else {
       return results;

@@ -6,23 +6,25 @@ var CliqzSecureMessage = {
 	counter: 0,
 	tmult: 4,
   	tpace: 250,
-	SOURCE_MAP_PROVIDER: "https://collector-proxy-network.cliqz.com/sourcemapjson?q=1",
-	LOOKUP_TABLE_PROVIDER: "https://collector-proxy-network.cliqz.com/lookuptable?q=1",
-	KEYS_PROVIDER: "https://collector-proxy-network.cliqz.com/signerKey?q=1",
+	SOURCE_MAP_PROVIDER: {{ENDPOINT_SOURCE_MAP_PROVIDER}},
+	LOOKUP_TABLE_PROVIDER: {{ENDPOINT_LOOKUP_TABLE_PROVIDER}},
+	KEYS_PROVIDER: {{ENDPOINT_KEYS_PROVIDER}},
 	proxyList: null,
 	routeTable: null,
 	proxyStats:{},
-	PROXY_LIST_PROVIDER: "https://collector-proxy-network.cliqz.com/proxyList?q=1",
-	BLIND_SIGNER:"http://signer-proxy-network.cliqz.com/sign",
-	USER_REG:"http://signer-proxy-network.cliqz.com/register",
+	PROXY_LIST_PROVIDER: {{ENDPOINT_PROXY_LIST_PROVIDER}},
+	BLIND_SIGNER: {{ENDPOINT_BLIND_SIGNER}},
+	USER_REG: {{ENDPOINT_USER_REG}},
 	signerKey: null,
 	loggerKey: null,
 	localTemporalUniq:{},
 	pacemakerId: null,
-	dsPK : null,
-	JSEncrypt: JSEncrypt,
-	crypto: crypto,
-	httpHandler:_http,
+	dsPK : {},
+	secureLogger: {},
+	uPK: {},
+	proxyCounter : 0,
+	DS_PUBKEY: {{KEY_DS_PUBKEY}},
+	SECURE_LOGGER_PUBKEY: {{KEY_SECURE_LOGGER_PUBKEY}},
 	testMessage: function(){
 		var sample_message = [
 								// {"action":"extension-query","type":"cliqz","ts":"","ver":"1.5","payload":"a&s=Mdw1i5slNi95U3DCaw9dCJWdRQPWM3CV&n=1&qc=0&lang=en%2Cde&locale=en-US&force_country=true&adult=0&loc_pref=ask"},
@@ -67,7 +69,7 @@ var CliqzSecureMessage = {
 	    	if (CliqzSecureMessage.debug) {
 	    		CliqzUtils.log('Load proxy list', CliqzSecureMessage.LOG_KEY);
 	    	}
-	    	fetchSourceMapping();
+	    	CliqzSecureMessage.fetchSourceMapping();
 	    	CliqzSecureMessage.fetchProxyList();
 	      	CliqzSecureMessage.fetchRouteTable();
 	      	CliqzSecureMessage.prunelocalTemporalUniq();
@@ -101,15 +103,23 @@ var CliqzSecureMessage = {
 		if (CliqzSecureMessage.pacemakerId == null) {
 		    CliqzSecureMessage.pacemakerId = setInterval(CliqzSecureMessage.pacemaker, CliqzSecureMessage.tpace, null);
 		}
+
+		/*
 		CliqzSecureMessage.secureLogger = new secureLogger();
 		CliqzSecureMessage.uPK = new userPK();
 	    if(!CliqzSecureMessage.dsPK){
 	      CliqzSecureMessage.dsPK = new directoryServicePK();
 	    }
+	    */
+
 	    CliqzSecureMessage.loadLocalCheckTable();
     	if(!CliqzSecureMessage.proxyList) CliqzSecureMessage.loadLocalProxyList();
     	if(!CliqzSecureMessage.routeTable) CliqzSecureMessage.loadLocalRouteTable();
- 	},
+	    // Check user-key present or not.
+	    CliqzSecureMessage.registerUser();
+	    CliqzSecureMessage.dsPK.pubKeyB64 = CliqzSecureMessage.DS_PUBKEY;
+	    CliqzSecureMessage.secureLogger.publicKeyB64 = CliqzSecureMessage.SECURE_LOGGER_PUBKEY;
+    },
   	fetchRouteTable: function(){
 		// This will fetch the route table from webservice.
 		CliqzUtils.httpGet(CliqzSecureMessage.LOOKUP_TABLE_PROVIDER,
@@ -275,5 +285,81 @@ var CliqzSecureMessage = {
     			CliqzSecureMessage.routeTable = JSON.parse(res[0]);
     		}
     	})
-    }
+    },
+	registerUser: function() {
+		CliqzSecureMessage.loadKeys().then(userKey => {
+		  if (!userKey) {
+		    const userCrypto = new Worker(hpnWorkerPath);
+		    userCrypto.postMessage({
+		      type: 'user-key'
+		    });
+
+		    userCrypto.onmessage = function msgRecieved(e) {
+		        if (e.data.status) {
+		          const uK = {};
+		          uK.privateKey = e.data.privateKey;
+		          uK.publicKey = e.data.publicKey;
+		          uK.ts = Date.now();
+		          CliqzSecureMessage.saveKeys(uK).then( response => {
+		            if (response) {
+		              CliqzSecureMessage.uPK.publicKeyB64 = e.data.publicKey;
+		              CliqzSecureMessage.uPK.privateKey = e.data.privateKey;
+		            }
+		          });
+		        }
+		        userCrypto.terminate();
+		    }
+		  }
+		  else {
+		    CliqzSecureMessage.uPK.publicKeyB64 = userKey.publicKey;
+		    CliqzSecureMessage.uPK.privateKey = userKey.privateKey;
+		  }
+		});
+	},
+	fetchSourceMapping: function(){
+	  // This will fetch the route table from local file, will move it to webservice later.
+	    //Check health
+	    CliqzUtils.httpGet(CliqzSecureMessage.SOURCE_MAP_PROVIDER,
+	      function success(req){
+	        try {
+	          CliqzSecureMessage.sourceMap = JSON.parse(req.response);
+	        } catch(e){}
+	      },
+	      function error(res){
+	        CliqzUtils.log('Error loading config. ', CliqzSecureMessage.LOG_KEY);
+	      }, 5000);
+	},
+	loadKeys: function() {
+	  return new Promise(function(resolve, reject) {
+	    CliqzSecureMessage.loadRecord('userKey')
+	    .then(data => {
+	      if (data.length === 0) {
+	        console.log('There was no key for the user');
+	        resolve(null);
+	      }
+	      else {
+	        try {
+	        	console.log('There was key for the user');
+				resolve(JSON.parse(data));
+	        } catch(ee) {
+	          resolve(null);
+	        }
+	      }
+	    });
+	  })
+	},
+	saveKeys: function(_data) {
+	  return new Promise(function(resolve, reject) {
+	    CliqzChromeDB.set('hpn', 'userKey', JSON.stringify(_data));
+	    resolve(true);
+	  });
+	},
+    proxyIP: function () {
+      if (!CliqzSecureMessage.proxyList) return;
+
+      if (CliqzSecureMessage.proxyCounter >= CliqzSecureMessage.proxyList.length) CliqzSecureMessage.proxyCounter = 0;
+      var url = createHttpUrl(CliqzSecureMessage.proxyList[CliqzSecureMessage.proxyCounter]);
+      CliqzSecureMessage.queryProxyIP = url;
+      CliqzSecureMessage.proxyCounter += 1;
+    },
 }

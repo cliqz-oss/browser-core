@@ -1,4 +1,4 @@
-import CliqzUtils from "core/utils";
+import CliqzUtils from "../../core/utils";
 
 export default class CliqzMsgHandler {
   constructor() {

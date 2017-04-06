@@ -1,6 +1,6 @@
-import utils from "core/utils";
-import events from "core/events";
-import CliqzMsgHandler from "message-center/handlers/base";
+import utils from "../../core/utils";
+import events from "../../core/events";
+import CliqzMsgHandler from "./base";
 
 export default class CliqzMsgHandlerDropdown extends CliqzMsgHandler {
   constructor() {

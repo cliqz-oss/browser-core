@@ -400,10 +400,6 @@ notification[type="warning"] .messageText {
     border-image-slice: 0; /*Remove border burger menu button*/
 }
 
-#notification-popup-box {
-    background-color: rgba(255, 255, 255, 0);
-}
-
 #main-window[privatebrowsingmode="temporary"],
 #navigator-toolbox[on_private_tab="true"] {
     #notification-popup-box {

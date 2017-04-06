@@ -1,5 +1,5 @@
-import utils from "core/utils";
-import prefs from "core/prefs";
+import utils from "../core/utils";
+import prefs from "../core/prefs";
 
 function getBrandsDBUrl(version) {
   return 'https://cdn.cliqz.com/brands-database/database/' + version + '/data/database.json';

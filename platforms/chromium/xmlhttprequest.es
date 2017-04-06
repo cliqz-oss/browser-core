@@ -1,7 +1,11 @@
 function setPrivateFlags() {}
 function setBackgroundRequest() {}
+function XMLHttpRequestFactory() {
+  return XMLHttpRequest;
+}
+
 export {
-  XMLHttpRequest,
+  XMLHttpRequestFactory,
   setPrivateFlags,
   setBackgroundRequest
 }

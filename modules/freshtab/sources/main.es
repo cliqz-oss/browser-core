@@ -2,8 +2,6 @@ import CliqzUtils from "core/utils";
 import CliqzABTests from "core/ab-tests";
 import Factory from '../platform/component-registration';
 import AboutCliqz from './about-cliqz-protocol-handler';
-const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu } =
-    Components;
 
 var CLIQZ_NEW_TAB = CliqzUtils.CLIQZ_NEW_TAB,
     CLIQZ_NEW_TAB_RESOURCE_URL = CliqzUtils.CLIQZ_NEW_TAB_RESOURCE_URL,

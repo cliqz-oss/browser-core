@@ -21,6 +21,7 @@
   "devDependencies": {
     "broccoli-asset-rev": "2.4.5",
     "ember-ajax": "2.4.1",
+    "ember-browserify": "^1.1.13",
     "ember-cli": "2.10.0",
     "ember-cli-app-version": "2.0.0",
     "ember-cli-babel": "5.1.7",
@@ -46,5 +47,8 @@
     "ember-resolver": "2.0.3",
     "liquid-fire": "0.27.0",
     "loader.js": "4.0.10"
+  },
+  "dependencies": {
+    "spanan": "^1.0.2"
   }
 }

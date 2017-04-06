@@ -1,5 +1,6 @@
 /* global System */
-import config from "core/config";
+import config from "../core/config";
+import console from "../core/console";
 
 function loadModule(moduleName) {
   return System.import(moduleName+"/background")
@@ -7,7 +8,7 @@ function loadModule(moduleName) {
     .then( () => System.import(moduleName+"/window") )
     .then( module => (new module.default({ window })).init() )
     .catch( e => {
-      CliqzUtils.log("Error on loading module: "+moduleName+" - "+e.toString()+" -- "+e.stack, "Extension");
+      console.log("Error on loading module: "+moduleName+" - "+e.toString()+" -- "+e.stack, "Extension");
     });
 }
 

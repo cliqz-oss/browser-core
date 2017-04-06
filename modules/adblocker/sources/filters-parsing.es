@@ -265,7 +265,7 @@ class CosmeticFilter {
     if (this.selector === null ||
         this.selector.length === 0 ||
         this.selector.endsWith('}') ||
-        this.selector.includes('##') ||
+        this.selector.indexOf('##') !== -1 ||
         (this.unhide && this.hostnames.length === 0)) {
       this.supported = false;
     }
@@ -343,7 +343,7 @@ class NetworkFilter {
 
       // Deal with hostname pattern
       if (line.startsWith('127.0.0.1')) {
-        this.hostname = line.substring(line.lastIndexOf(' '));
+        this.hostname = line.substring(line.lastIndexOf(' ') + 1);
         this._f = '';
         this.setMask(NETWORK_FILTER_MASK.isHostname);
         this.setMask(NETWORK_FILTER_MASK.isPlain);
@@ -642,7 +642,7 @@ class NetworkFilter {
 
       // Check for options: option=value1|value2
       let optionValues = [];
-      if (option.includes('=')) {
+      if (option.indexOf('=') !== -1) {
         const optionAndValues = option.split('=', 2);
         option = optionAndValues[0];
         optionValues = optionAndValues[1].split('|');
@@ -769,7 +769,7 @@ export function parseFilter(line) {
 
   // Ignore Adguard cosmetics
   // `$$`
-  if (line.includes('$$')) {
+  if (line.indexOf('$$') !== -1) {
     return { supported: false };
   }
 

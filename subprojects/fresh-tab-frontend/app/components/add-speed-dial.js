@@ -26,7 +26,7 @@ export default Ember.Component.extend({
 
   actions: {
     save() {
-      const url = this.get("newSpeedDial") && this.get('newSpeedDial').trim();
+      const url = this.get("newSpeedDial") && this.get('newSpeedDial').trim().replace(/\s/g,'');
       const notifications = this.get('notifications');
 
       if(!url) {

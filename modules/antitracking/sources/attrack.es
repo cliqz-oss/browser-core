@@ -1,6 +1,7 @@
 /*
  * This module prevents user from 3rd party tracking
  */
+import inject from '../core/kord/inject';
 import pacemaker from 'antitracking/pacemaker';
 import * as persist from 'antitracking/persistent-state';
 import TempSet from 'antitracking/temp-set';
@@ -22,6 +23,7 @@ import WebRequest from 'core/webrequest';
 import telemetry from 'antitracking/telemetry';
 import console from 'core/console';
 import { fetch } from 'core/http';
+import Pipeline from './pipeline';
 
 import { determineContext, skipInternalProtocols, checkSameGeneralDomain } from 'antitracking/steps/context';
 import PageLogger from 'antitracking/steps/page-logger';
@@ -31,19 +33,22 @@ import DomChecker from 'antitracking/steps/dom-checker';
 import TokenChecker from 'antitracking/steps/token-checker';
 import BlockRules from 'antitracking/steps/block-rules';
 import CookieContext from 'antitracking/steps/cookie-context';
+import RedirectTagger from 'antitracking/steps/redirect-tagger';
 
 var countReload = false;
 
 function queryHTML(...args) {
-  return utils.callAction('core', 'queryHTML', args);
+  const core = inject.module('core');
+  return core.action('queryHTML', ...args);
 }
 
 function getCookie(...args) {
-  return utils.callAction('core', 'getCookie', args);
+  const core = inject.module('core');
+  return core.action('getCookie', ...args);
 }
 
 var CliqzAttrack = {
-    VERSION: '0.97',
+    VERSION: '0.98',
     MIN_BROWSER_VERSION: 35,
     LOG_KEY: 'attrack',
     ENABLE_PREF: 'modules.antitracking.enabled',
@@ -78,7 +83,7 @@ var CliqzAttrack = {
     getPrivateValues: function(window) {
         // creates a list of return values of functions may leak private info
         var p = {};
-        // var navigator = CliqzUtils.getWindow().navigator;
+        // var navigator = utils.getWindow().navigator;
         var navigator = window.navigator;
         // plugins
         for (var i = 0; i < navigator.plugins.length; i++) {
@@ -89,34 +94,14 @@ var CliqzAttrack = {
         }
         CliqzAttrack.privateValues = p;
     },
-    executePipeline: function(pipeline, initialState, logKey) {
-      const state = initialState;
-      const response = {};
-      let i = 0;
-      for (; i<pipeline.length; i++) {
-        try {
-          const cont = pipeline[i](state, response);
-          if (!cont) {
-            break;
-          }
-        } catch(e) {
-          console.error(logKey, state.url, 'Step exception', e);
-          break;
-        }
-      }
-      if (CliqzAttrack.debug) {
-        console.log(logKey, state.url, 'Break at', (pipeline[i] || {name: "end"}).name);
-      }
-      return response;
-    },
     httpopenObserver: function(requestDetails) {
-      return CliqzAttrack.executePipeline(CliqzAttrack.onOpenPipeline, requestDetails, 'ATTRACK.OPEN');
+      return CliqzAttrack.pipeline.execute('open', requestDetails);
     },
     httpResponseObserver: function(requestDetails) {
-      return CliqzAttrack.executePipeline(CliqzAttrack.responsePipeline, requestDetails, 'ATTRACK.RESP');
+      return CliqzAttrack.pipeline.execute('response', requestDetails);
     },
     httpmodObserver: function(requestDetails) {
-      return CliqzAttrack.executePipeline(CliqzAttrack.onModifyPipeline, requestDetails, 'ATTRACK.MOD');
+      return CliqzAttrack.pipeline.execute('modify', requestDetails);
     },
     getDefaultRule: function() {
         if (CliqzAttrack.isForceBlockEnabled()) {
@@ -126,31 +111,31 @@ var CliqzAttrack = {
         }
     },
     isEnabled: function() {
-        return CliqzUtils.getPref(CliqzAttrack.ENABLE_PREF, false);
+        return utils.getPref(CliqzAttrack.ENABLE_PREF, false);
     },
     isCookieEnabled: function(source_hostname) {
         if (source_hostname != undefined && CliqzAttrack.isSourceWhitelisted(source_hostname)) {
             return false;
         }
-        return CliqzUtils.getPref('attrackBlockCookieTracking', true);
+        return utils.getPref('attrackBlockCookieTracking', true);
     },
     isQSEnabled: function() {
-        return CliqzUtils.getPref('attrackRemoveQueryStringTracking', true);
+        return utils.getPref('attrackRemoveQueryStringTracking', true);
     },
     isFingerprintingEnabled: function() {
-        return CliqzUtils.getPref('attrackCanvasFingerprintTracking', false);
+        return utils.getPref('attrackCanvasFingerprintTracking', false);
     },
     isReferrerEnabled: function() {
-        return CliqzUtils.getPref('attrackRefererTracking', false);
+        return utils.getPref('attrackRefererTracking', false);
     },
     isTrackerTxtEnabled: function() {
-        return CliqzUtils.getPref('trackerTxt', false);
+        return utils.getPref('trackerTxt', false);
     },
     isBloomFilterEnabled: function() {
-        return CliqzUtils.getPref('attrackBloomFilter', false);
+        return utils.getPref('attrackBloomFilter', false);
     },
     isForceBlockEnabled: function() {
-        return CliqzUtils.getPref('attrackForceBlock', false);
+        return utils.getPref('attrackForceBlock', false);
     },
     initPacemaker: function() {
         const two_mins = 2 * 60 * 1000;
@@ -201,7 +186,7 @@ var CliqzAttrack = {
         }
 
         // Replace getWindow functions with window object used in init.
-        if (CliqzAttrack.debug) CliqzUtils.log("Init function called:", CliqzAttrack.LOG_KEY);
+        if (CliqzAttrack.debug) utils.log("Init function called:", CliqzAttrack.LOG_KEY);
 
         if (!CliqzAttrack.hashProb) {
           CliqzAttrack.hashProb = new HashProb();
@@ -253,7 +238,7 @@ var CliqzAttrack = {
         WebRequest.onHeadersReceived.addListener(CliqzAttrack.httpResponseObserver, undefined, ['responseHeaders']);
 
         try {
-            CliqzAttrack.disabled_sites = new Set(JSON.parse(CliqzUtils.getPref(CliqzAttrack.DISABLED_SITES_PREF, "[]")));
+            CliqzAttrack.disabled_sites = new Set(JSON.parse(utils.getPref(CliqzAttrack.DISABLED_SITES_PREF, "[]")));
         } catch(e) {
             CliqzAttrack.disabled_sites = new Set();
         }
@@ -289,6 +274,7 @@ var CliqzAttrack = {
     },
     initPipeline: function() {
       CliqzAttrack.unloadPipeline();
+      const pipeline = CliqzAttrack.pipeline;
 
       // initialise classes which are used as steps in listeners
       const steps = {
@@ -299,7 +285,9 @@ var CliqzAttrack = {
         tokenChecker: new TokenChecker(CliqzAttrack.qs_whitelist, CliqzAttrack.blockLog, {}, CliqzAttrack.hashProb, CliqzAttrack.config),
         blockRules: new BlockRules(),
         cookieContext: new CookieContext(),
-      }
+        redirectTagger: new RedirectTagger(),
+      };
+
       CliqzAttrack.pipelineSteps = steps;
 
       // initialise step objects
@@ -311,10 +299,10 @@ var CliqzAttrack = {
       });
 
       // create pipeline for on open request
-      CliqzAttrack.onOpenPipeline = [
+      pipeline.addAll(['open'], [
         CliqzAttrack.qs_whitelist.isReady.bind(CliqzAttrack.qs_whitelist),
         determineContext,
-        steps.pageLogger.checkIsMainDocument.bind(steps.pageLogger),
+        steps.pageLogger.logMainDocument.bind(steps.pageLogger),
         skipInternalProtocols,
         checkSameGeneralDomain,
         CliqzAttrack.cancelRecentlyModified.bind(CliqzAttrack),
@@ -341,12 +329,10 @@ var CliqzAttrack = {
           return state.badTokens.length > 0 && CliqzAttrack.qs_whitelist.isUpToDate();
         },
         CliqzAttrack.applyBlock.bind(CliqzAttrack),
-      ];
-
-
+      ]);
 
       // create pipeline for on modify request
-      CliqzAttrack.onModifyPipeline = [
+      pipeline.addAll(['modify'], [
         determineContext,
         function checkIsMainDocument(state) {
           return !state.requestContext.isFullPage();
@@ -355,7 +341,7 @@ var CliqzAttrack = {
         checkSameGeneralDomain,
         steps.pageLogger.attachStatCounter.bind(steps.pageLogger),
         function catchMissedOpenListener(state, response) {
-          if (state.reqLog && state.reqLog.c === 0) {
+          if ((state.reqLog && state.reqLog.c === 0) || steps.redirectTagger.isFromRedirect(state.url)) {
             // take output from httpopenObserver and copy into our response object
             const openResponse = CliqzAttrack.httpopenObserver(state) || {};
             Object.keys(openResponse).forEach((k) => {
@@ -402,10 +388,10 @@ var CliqzAttrack = {
           response.requestHeaders.push({name: CliqzAttrack.config.cliqzHeader, value: ' '});
           return true;
         },
-      ];
+      ]);
 
       // create pipeline for on response received
-      CliqzAttrack.responsePipeline = [
+      pipeline.addAll(['response'], [
         CliqzAttrack.qs_whitelist.isReady.bind(CliqzAttrack.qs_whitelist),
         determineContext,
         function checkMainDocumentRedirects(state) {
@@ -431,6 +417,7 @@ var CliqzAttrack = {
           return state.sourceUrl !== '' && state.sourceUrl.indexOf('about:') === -1;
         },
         checkSameGeneralDomain,
+        steps.redirectTagger.checkRedirectStatus.bind(steps.redirectTagger),
         steps.pageLogger.attachStatCounter.bind(steps.pageLogger),
         function logResponseStats(state) {
           if (state.incrementStat) {
@@ -461,7 +448,7 @@ var CliqzAttrack = {
           state.incrementStat('set_cookie_blocked');
           return true;
         },
-      ]
+      ]);
     },
     unloadPipeline: function() {
       Object.keys(CliqzAttrack.pipelineSteps || {}).forEach((key) => {
@@ -470,7 +457,7 @@ var CliqzAttrack = {
           step.unload();
         }
       });
-      CliqzAttrack.pipelineSteps = {};
+      CliqzAttrack.pipeline = new Pipeline();
     },
     /** Per-window module initialisation
      */
@@ -509,7 +496,9 @@ var CliqzAttrack = {
     },
     checkInstalledAddons: function() {
         System.import('platform/antitracking/addon-check').then( (addons) => {
-            CliqzAttrack.similarAddon = addons.checkInstalledAddons();
+            addons.checkInstalledAddons().then((adds) => {
+              CliqzAttrack.similarAddon = adds;
+            });
         }).catch( (e) => {
             utils.log("Error loading addon checker", "attrack");
         });
@@ -583,9 +572,9 @@ var CliqzAttrack = {
           state.incrementStat('token_blocked_' + rule);
 
           // TODO: do this nicer
-          if (CliqzAttrack.pipelineSteps.trackerProxy && CliqzAttrack.pipelineSteps.trackerProxy.shouldProxy(tmp_url)) {
-              state.incrementStat('proxy');
-          }
+          // if (CliqzAttrack.pipelineSteps.trackerProxy && CliqzAttrack.pipelineSteps.trackerProxy.shouldProxy(tmp_url)) {
+          //     state.incrementStat('proxy');
+          // }
           CliqzAttrack.recentlyModified.add(state.requestContext.getOriginWindowID() + state.url, 30000);
           CliqzAttrack.recentlyModified.add(state.requestContext.getOriginWindowID() + tmp_url, 30000);
 
@@ -684,7 +673,7 @@ var CliqzAttrack = {
     getCurrentTabBlockingInfo: function(_gBrowser) {
       var tabId, urlForTab;
       try {
-        var gBrowser = _gBrowser || CliqzUtils.getWindow().gBrowser,
+        var gBrowser = _gBrowser || utils.getWindow().gBrowser,
             selectedBrowser = gBrowser.selectedBrowser;
         // on FF < 38 selectBrowser.outerWindowID is undefined, so we get the windowID from _loadContext
         tabId = selectedBrowser.outerWindowID || selectedBrowser._loadContext.DOMWindowID;
@@ -712,21 +701,21 @@ var CliqzAttrack = {
       if (CliqzAttrack.isEnabled()) {
           return;
       }
-      CliqzUtils.setPref(CliqzAttrack.ENABLE_PREF, true);
+      utils.setPref(CliqzAttrack.ENABLE_PREF, true);
       if (!module_only) {
-        CliqzUtils.setPref('attrackBlockCookieTracking', true);
-        CliqzUtils.setPref('attrackRemoveQueryStringTracking', true);
+        utils.setPref('attrackBlockCookieTracking', true);
+        utils.setPref('attrackRemoveQueryStringTracking', true);
       }
     },
     /** Disables anti-tracking immediately.
      */
     disableModule: function() {
-      CliqzUtils.setPref(CliqzAttrack.ENABLE_PREF, false);
+      utils.setPref(CliqzAttrack.ENABLE_PREF, false);
     },
     disabled_sites: new Set(),
     DISABLED_SITES_PREF: "attrackSourceDomainWhitelist",
     saveSourceDomainWhitelist: function() {
-      CliqzUtils.setPref(CliqzAttrack.DISABLED_SITES_PREF,
+      utils.setPref(CliqzAttrack.DISABLED_SITES_PREF,
         JSON.stringify(Array.from(CliqzAttrack.disabled_sites)));
     },
     isSourceWhitelisted: function(hostname) {

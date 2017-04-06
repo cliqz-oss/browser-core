@@ -71,10 +71,10 @@
     "MWL":{
         "message": "Muslim World League"
     },
-    "CookingIntruct":{
-        "message": "Direction"
+    "instruction":{
+        "message": "Instructions"
     },
-    "Ingredients":{
+    "ingredients":{
         "message": "Ingredients"
     },
     "Votes":{
@@ -776,6 +776,9 @@
     "cMenuOpenInNewTab": {
       "message": "Open Link in New Tab"
     },
+    "cMenuOpenInNewPrivateTab": {
+      "message": "Open Link in New $1 Tab"
+    },
     "cMenuOpenInNewWindow": {
       "message": "Open Link in New Window"
     },
@@ -1106,6 +1109,9 @@
     "mobile_local_card_call": {
       "message": "Call"
     },
+    "mobile_share_location": {
+      "message": "Share location for once"
+    },
     "mobile_freshtab_breaking_news": {
       "message": "BREAKING NEWS:"
     },
@@ -1380,7 +1386,7 @@
       "message": "Supplementary Search Engine"
     },
     "control-center-backend-country": {
-      "message": "Search Results from"
+      "message": "Search Results for"
     },
     "control-center-humanweb": {
       "message": "Take part in Human Web"
@@ -1512,7 +1518,7 @@
       "message": "Transparency Cockpit"
     },
     "transparency_content": {
-      "message": "We respect your privacy and aim to protect it. Cliqz does not collect or store any personal data. Our Transparency-Cockpit was built to give you insight into which data is generated when using the Cliqz browser. In real-time, it displays the data we receive when you start typing a search term into the address bar or when you visit a website. To protect your privacy, some data is blocked. I.e., these do not even leave your browser (e.g. geo-data, per your Cliqz settings)."
+      "message": "We respect your privacy and aim to protect it. Cliqz does not collect or store any personal data. Our Transparency Cockpit was built to give you insight into which data is generated when using the Cliqz browser. In real-time, it displays the data we receive when you start typing a search term into the address bar or when you visit a website. To protect your privacy, some data is blocked. I.e., these do not even leave your browser (e.g. geo-data, per your Cliqz settings)."
     },
     "transparency_search_title": {
       "message": "Your search with Cliqz"
@@ -1524,7 +1530,7 @@
       "message": "Human Web"
     },
     "transparency_humanweb_content": {
-      "message": "Our Human Web technology uses statistical methods and algorithms to continuously enhance the quality of our search results. The collected anonymous, statistical data are related to queries and shown results displayed by one of the complimentary search engines. The chosen data architecture prevents any inference about a natural person. The transfer of Human Web data is encrypted and routed through a network of proxy servers. Find more information <a target='_blank' href='https://cliqz.com/en/whycliqz/transparency#human-web'>here</a>."
+      "message": "Our Human Web technology uses statistical methods and algorithms to continuously enhance the quality of our search results. The collected anonymous, statistical data are related to queries and shown results displayed by one of the complementary search engines. The chosen data architecture prevents any inference about a natural person. The transfer of Human Web data is encrypted and routed through a network of proxy servers. Find more information <a target='_blank' href='https://cliqz.com/en/whycliqz/transparency#human-web'>here</a>."
     },
     "transparency_telemetry_title": {
       "message": "Telemetry"

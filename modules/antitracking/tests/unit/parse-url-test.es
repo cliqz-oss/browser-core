@@ -286,7 +286,43 @@ var query_strings = [
         password: "",
         port: 80
     }
-}
+},
+{
+  url: "http://pix04.revsci.net/F09828/b3/Z/3/120814/588347998.js?D=DM_LOC%3Dhttp%253A%252F%252Fwww.eltern.de%252F%253Fbpid%253Dgrunerjahr%2526_rsiL%253D0%26DM_EOM%3D1&C=F09828&asidi=cliqz.com/tracking&asidi=V6roVyy38IZUh0ZkC_jXhw",
+  url_parts: {
+    protocol: "http",
+    hostname: "pix04.revsci.net",
+    path: "/F09828/b3/Z/3/120814/588347998.js",
+    query: "D=DM_LOC%3Dhttp%253A%252F%252Fwww.eltern.de%252F%253Fbpid%253Dgrunerjahr%2526_rsiL%253D0%26DM_EOM%3D1&C=F09828&asidi=cliqz.com/tracking&asidi=V6roVyy38IZUh0ZkC_jXhw",
+    query_keys: {
+      "D": "DM_LOC=http%3A%2F%2Fwww.eltern.de%2F%3Fbpid%3Dgrunerjahr%26_rsiL%3D0&DM_EOM=1",
+      "C": "F09828",
+      asidi: ["cliqz.com/tracking", "V6roVyy38IZUh0ZkC_jXhw"]
+    },
+    username: "",
+    password: "",
+    port: 80,
+  }
+},
+{
+    "url": "http://tags.bluekai.com/site/19275?ret=html&phint=page=Mashable&phint=channel=home&phint=prop2=Channel&phint=test",
+    "url_parts": {
+        "username": "",
+        "protocol": "http",
+        "hostname": "tags.bluekai.com",
+        "path": "/site/19275",
+        "query": "ret=html&phint=page=Mashable&phint=channel=home&phint=prop2=Channel&phint=test",
+        "query_keys": {
+            "ret": "html",
+            "phint_page": "Mashable",
+            "phint_channel": "home",
+            "phint_prop2": "Channel",
+            "phint": "test",
+        },
+        "password": "",
+        "port": 80
+    }
+},
 ];
 
 var parameters = [
@@ -452,6 +488,21 @@ var empty_parts = {
     "fragment_keys": {}
 }
 
+
+const keyValueTestCases = [{
+  url: "https://cliqz.com",
+  expectedKv: []
+},{
+  url: "http://pix04.revsci.net/F09828/b3/Z/3/120814/588347998.js?D=DM_LOC%3Dhttp%253A%252F%252Fwww.eltern.de%252F%253Fbpid%253Dgrunerjahr%2526_rsiL%253D0%26DM_EOM%3D1&C=F09828&asidi=cliqz.com/tracking&asidi=V6roVyy38IZUh0ZkC_jXhw",
+  expectedKv: [
+    {k: "D", v: "DM_LOC=http%3A%2F%2Fwww.eltern.de%2F%3Fbpid%3Dgrunerjahr%26_rsiL%3D0&DM_EOM=1"},
+    {k: "C", v: "F09828"},
+    {k: "asidi", v: "cliqz.com/tracking"},
+    {k: "asidi", v: "V6roVyy38IZUh0ZkC_jXhw"},
+  ]
+}]
+
+
 function fillInSpec(spec) {
     Object.keys(empty_parts).forEach(function(k) {
         spec[k] = spec[k] || empty_parts[k];
@@ -491,8 +542,6 @@ export default describeModule('antitracking/url',
               var url_desc = testcase['url'];
               if(url_desc.length > 180) url_desc = url_desc.substring(0, 180) + '...';
               it(url_desc, function() {
-                console.log(testFn(testcase['url']));
-                console.log(fillInSpec(testcase['url_parts']));
                 chai.expect(testFn(testcase['url'])).to.deep.equal(fillInSpec(testcase['url_parts']));
               });
             });
@@ -507,5 +556,40 @@ export default describeModule('antitracking/url',
         testSpecArray('combined', combined);
         testSpecArray('special', special);
       });
+
+    describe('URLInfo', () => {
+      let urlInfo;
+
+      beforeEach(function() {
+        urlInfo = this.module().URLInfo;
+      });
+
+      describe('get', function() {
+        it('returns empty string if argument is falsy', () => {
+          chai.expect(urlInfo.get('')).to.eql('');
+          chai.expect(urlInfo.get()).to.eql('');
+          chai.expect(urlInfo.get(false)).to.eql('');
+          chai.expect(urlInfo.get(null)).to.eql('');
+        });
+
+        it('returns parsed url info for valid url', () => {
+          const urlParts = urlInfo.get('https://cliqz.com');
+          chai.expect(urlParts.hostname).to.equal('cliqz.com');
+          chai.expect(urlParts.protocol).to.equal('https');
+          chai.expect(urlParts.path).to.equal('/');
+        });
+      });
+
+      describe('getKeyValues', function() {
+
+        keyValueTestCases.forEach((testCase) => {
+          it(testCase.url, () => {
+            const kv = urlInfo.get(testCase.url).getKeyValues();
+            chai.expect(kv).to.eql(testCase.expectedKv);
+          });
+        });
+
+      });
+    });
   }
 );

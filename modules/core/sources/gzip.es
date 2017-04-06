@@ -1,4 +1,4 @@
-import * as gzip from "platform/gzip";
+import * as gzip from "../platform/gzip";
 
 /**
  *  Compress a string

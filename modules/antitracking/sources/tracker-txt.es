@@ -69,7 +69,7 @@ TrackerTXT.prototype = {
             this.last_update == getTime()) return;  // try max once per hour
         this.status = 'updating';
         var self = this;
-        CliqzUtils.httpGet(
+        utils.httpGet(
             self.baseurl + '/tracking.txt',
             function success(req) {
                 if (req.responseText.length < 4 * 1024) {

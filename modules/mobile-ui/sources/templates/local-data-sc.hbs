@@ -5,7 +5,7 @@
                 <tr>
                     <td>
                         <img class="map__img" data-src="skin/img/maps-logo.svg" extra="map-image"
-                             cliqz-action="stop-click-event-propagation" onclick="osAPI.browserAction('{{mu}}','map')"/>
+                             cliqz-action="stop-click-event-propagation" onclick="osAPI.browserAction('map', '{{mu}}')"/>
                          <div class="local-distance">
                             {{#if distance}}
                                 {{distance distance}}
@@ -16,7 +16,7 @@
                         {{#if address}}
                             <div class="address__details">
                                 <div extra="address" show-status='true' class="address__text"
-                                    cliqz-action="stop-click-event-propagation" onclick="osAPI.browserAction('{{mu}}','map')">
+                                    cliqz-action="stop-click-event-propagation" onclick="osAPI.browserAction('map', '{{mu}}')">
                                     {{ address }}
                                 </div>
                             </div>
@@ -33,8 +33,6 @@
                             </div>
                         </div>
                     </td>
-                {{/if}}
-                {{#if opening_hours}}
                     <td>
                         <div extra="open-hour" style="color: {{opening_status.color}}">
                             {{opening_status.stt_text}}
@@ -45,13 +43,13 @@
                         <div>
                             {{opening_status.time_info_str}}
                         </div>
-                </td>
-                    {{/if}}
+                    </td>
+                {{/if}}
                 {{#if phone_address}}
                     {{#if phonenumber}}
                         <td class="phone-num-cell">
                             <div cliqz-action="stop-click-event-propagation"
-                            onclick="osAPI.browserAction('{{phonenumber}}','phoneNumber')">
+                            onclick="osAPI.browserAction('phoneNumber', '{{phonenumber}}')">
                                 <div class="icon"
                                 data-style="background-image: url(skin/img/call-icon.svg)">
                                 </div>
@@ -64,5 +62,13 @@
                 {{/if}}
             </table>
         </div>
+    {{else if no_location}}
+        <table class="no__location" extra="share-location"
+               cliqz-action="stop-click-event-propagation" onclick="osAPI.browserAction('shareLocation')">
+            <td>
+                <img class="pin__logo" data-src="skin/img/location_pin.svg"/>
+                <div class="share__once">{{local 'mobile_share_location'}}</div>
+            </td>
+        </table>
     {{/if}}
 {{/with}}

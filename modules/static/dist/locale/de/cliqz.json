@@ -71,10 +71,10 @@
     "MWL":{
         "message": "Islamishe Weltliga"
     },
-    "CookingIntruct":{
+    "instruction":{
         "message": "Zubereitungsschritte"
     },
-    "Ingredients":{
+    "ingredients":{
         "message": "Zutaten"
     },
     "Votes":{
@@ -776,6 +776,9 @@
     "cMenuOpenInNewTab": {
       "message": "Link in neuem Tab öffnen"
     },
+    "cMenuOpenInNewPrivateTab": {
+      "message": "Link in neuem $1 Tab öffnen"
+    },
     "cMenuOpenInNewWindow": {
       "message": "Link in neuem Fenster öffnen"
     },
@@ -1106,6 +1109,9 @@
     "mobile_local_card_call": {
       "message": "Anrufen"
     },
+    "mobile_share_location": {
+      "message": "Einmalig lokale Informationen abrufen"
+    },
     "mobile_freshtab_breaking_news": {
       "message": "EILMELDUNG:"
     },
@@ -1380,7 +1386,7 @@
       "message": "Ergänzende Suchmaschine"
     },
     "control-center-backend-country": {
-      "message": "Suchergebnisse von"
+      "message": "Suchergebnisse für"
     },
     "control-center-humanweb": {
       "message": "Am Human Web teilnehmen"
@@ -1494,7 +1500,7 @@
       "message": "Sorry! Wir können das Video leider nicht herunterladen."
     },
     "transparency_html_title": {
-      "message": "Cliqz | Transparenz-Cockpit"
+      "message": "Cliqz | Transparenz Cockpit"
     },
     "transparency_document_title": {
       "message": "Transparenz Cockpit"
@@ -1512,7 +1518,7 @@
       "message": "Transparenz Cockpit"
     },
     "transparency_content": {
-      "message": "Deine Privatsphäre ist uns heilig. CLIQZ erhebt keine persönlichen Daten. Damit du überprüfen kannst, welche Daten bei der Nutzung des CLIQZ-Browser generiert werden, haben wir das Transparenz-Cockpit entwickelt. Dieses zeigt Dir in Echtzeit, die Daten, die wir erhalten. Um deine Privatsphäre zu schützen, werden manche Daten blockiert. Das heißt, sie veranlassen entweder gar nicht erst den Browser (z.B. Geo-Daten, sofern diese nicht erlaubt wurden) oder werden nicht weiterverarbeit bzw. mit anderen Daten kombiniert. Mach dir dein eigenes Bild!"
+      "message": "Deine Privatsphäre ist uns heilig. CLIQZ erhebt keine persönlichen Daten. Damit du überprüfen kannst, welche Daten bei der Nutzung des CLIQZ-Browser generiert werden, haben wir das Transparenz Cockpit entwickelt. Dieses zeigt Dir in Echtzeit, die Daten, die wir erhalten. Um deine Privatsphäre zu schützen, werden manche Daten blockiert. Das heißt, sie veranlassen entweder gar nicht erst den Browser (z.B. Geo-Daten, sofern diese nicht erlaubt wurden) oder werden nicht weiterverarbeit bzw. mit anderen Daten kombiniert. Mach dir dein eigenes Bild!"
     },
     "transparency_search_title": {
       "message": "Deine Suche bei CLIQZ"

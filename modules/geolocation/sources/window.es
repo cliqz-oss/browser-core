@@ -1,12 +1,14 @@
-import { utils } from "core/cliqz";
+import inject from '../core/kord/inject';
+import utils from '../core/utils';
+import prefs from '../core/prefs';
 
 export default class {
   constructor(settings) {
-
+    this.geolocation = inject.module('geolocation');
   }
 
   init() {
-    utils.callAction("geolocation", "updateGeoLocation", []);
+    this.geolocation.action("updateGeoLocation");
   }
 
   unload() {
@@ -14,9 +16,9 @@ export default class {
   }
 
   status() {
-    if (utils.getPref("cliqz_core_disabled", false) === false &&
+    if (prefs.get("cliqz_core_disabled", false) === false &&
         // we only need the show the location setting for cliqz UI
-        utils.getPref('dropDownStyle', 'cliqz') == 'cliqz') {
+        prefs.get('dropDownStyle', 'cliqz') == 'cliqz') {
       return {
         visible: true,
         state: utils.getLocationPermState()

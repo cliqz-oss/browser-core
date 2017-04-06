@@ -535,10 +535,6 @@ toolbarbutton#cliqz-cc-btn {
     z-index: 0;
 }
 
-#notification-popup-box {
-    background-color: rgba(255, 255, 255, 0);
-}
-
 #navigator-toolbox[on_private_tab="true"] {
     #notification-popup-box {
         border-image: var(--cliqz-urlbar-arrow-image) 0 8 0 0 fill;

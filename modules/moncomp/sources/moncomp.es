@@ -11,11 +11,11 @@ var nsIHttpChannel = Components.interfaces.nsIHttpChannel;
 function _log(msg){
     try {
         if(CliqzMonComp.debug) {
-            CliqzUtils.log(msg, CliqzMonComp.LOG_KEY);
+            utils.log(msg, CliqzMonComp.LOG_KEY);
         }
     }
     catch(e) {
-      CliqzUtils.log(e, CliqzMonComp.LOG_KEY)
+      utils.log(e, CliqzMonComp.LOG_KEY)
     };
 }
 
@@ -24,7 +24,7 @@ var CliqzMonComp = {
     LOG_KEY: 'moncomp',
     debug: true,
     init: function(window) {
-      if (!CliqzUtils.mc) CliqzUtils.mc = CliqzMonComp;
+      if (!utils.mc) utils.mc = CliqzMonComp;
     }
 }
 

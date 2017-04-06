@@ -9,10 +9,12 @@ export default describeModule('mobile-history/history',
       },
       'core/storage': { default: function () { } },
       'platform/window': {
-        document: {
-          body: { },
-          documentElement: { },
-          getElementById() { return { addEventListener() { } }; }
+        default: {
+          document: {
+            body: { },
+            documentElement: { },
+            getElementById() { return { addEventListener() { } }; }
+          }
         }
       }
     };

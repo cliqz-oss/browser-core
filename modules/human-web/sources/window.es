@@ -46,6 +46,10 @@ export default class {
         currentBrowser.contentDocument.removeEventListener("copy",      HumanWeb.captureCopyPage,true);
       } catch(e) {}
     });
+
+    if(this.notification){
+      this.notification.close();
+    }
   }
 
   status() {
@@ -91,7 +95,7 @@ export default class {
       }
     });
 
-    box.appendNotification(
+    this.notification = box.appendNotification(
       utils.getLocalizedString("dataCollection"),
       null,
       null,

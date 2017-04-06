@@ -1,7 +1,7 @@
 {
     "extends": "airbnb",
     "env": {
-        "browser": true,
+        "browser": false,
         "commonjs": false,
         "es6": true,
         "mocha": true,
@@ -11,19 +11,16 @@
         "worker": true
     },
     "globals": {
-        "CLIQZEnvironment": {},
-        "CliqzABTests": {},
-        "CliqzEvents": {},
-        "CliqzHandlebars": {},
-        "CliqzHistoryCluster": {},
-        "CliqzHistoryManager": {},
-        "CliqzLanguage": {},
-        "CliqzSearchHistory": {},
-        "CliqzUtils": {},
         "Components": {},
         "Services": {},
         "dump": {},
-        "XPCOMUtils": {}
+        "System": {},
+        "Cc": {},
+        "Ci": {},
+        "Promise": {},
+        "setTimeout": {},
+        "setInterval": {},
+        "clearTimeout": {}
     },
     "rules": {
         "import/no-unresolved": "off",
@@ -37,5 +34,10 @@
             'WithStatement',
         ],
         "no-underscore-dangle": "off",
+        "comma-dangle": ["error", {
+            "arrays": "only-multiline",
+            "objects": "only-multiline",
+            "functions": "ignore",
+        }],
     }
 }

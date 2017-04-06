@@ -30,7 +30,7 @@ const ENABLE_PREF = 'telemetryNoSession';
 
 
 function isTelemetryEnabled() {
-  return utils.getPref(ENABLE_PREF, false);
+  return utils.getPref(ENABLE_PREF, true);
 }
 
 

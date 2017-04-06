@@ -1,0 +1,29 @@
+<h2>Code structure</h2>
+Extension code based is split into modules.
+
+Each module:
+<ul>
+  <li>is separate functional unit</li>
+  <li>is independant - that means, can depend only on "core" module, which acts
+  as common library of helper function and abstracts over platform the code is
+  being run on</li>
+  <li>can be enabled (asynchonously)</li>
+  <li>can be disabled (synchonously)</li>
+  <li>should be platform independant, platform specific code should be
+  provided by "core" module and implemented in "platforms" folder</li>
+  <li>communicate with other modules using "events" - that means, can react to
+  events published by other modules and can publish own events, but cannot
+  expect that any module will listen to them</li>
+  <li>expose a public api called "actions"</li>
+  <li>can call other module actions with assumption that those modules can be
+  missing or disabled</li>
+  <li>has maintainer, who should review changes to that module before merging</li>
+  <li>should pass automatic code styleguide check</li>
+  <li>can use bower provided dependency which is listed in module config file</li>
+  <li>can use sass for stylesheet compilation</li>
+  <li>can use handlerbars for templates compilation</li>
+  <li>can use browserify to include node module</li>
+  <li>should not call platform dependant APIs in UI</li>
+  <li>should provide unit tests that will run in full isolation on nodejs</li>
+  <li>having UI, should provide UI tests, that run on phantomjs</li>
+</ul>

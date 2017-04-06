@@ -83,7 +83,7 @@ export default class {
       this.menuItem = this.window.document.createElement('menuitem');
 
       this.menuItem.setAttribute('label',
-        CliqzUtils.getLocalizedString('context-menu-search-item',
+        utils.getLocalizedString('context-menu-search-item',
           trim(selection)));
 
       const isFreshtab = this.window.gBrowser.currentURI.spec === utils.CLIQZ_NEW_TAB;

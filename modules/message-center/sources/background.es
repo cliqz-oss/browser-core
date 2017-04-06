@@ -1,5 +1,6 @@
-import background from "core/base/background";
-import MessageCenter from "message-center/message-center";
+import background from "../core/base/background";
+import MessageCenter from "./message-center";
+import MessageHandlerBase from './handlers/base';
 
 /**
   @namespace <namespace>
@@ -7,16 +8,12 @@ import MessageCenter from "message-center/message-center";
  */
 export default background({
 
-  enabled() {
-    return true;
-  },
-
   /**
     @method init
     @param settings
   */
   init(settings) {
-
+    this.messageCenter = MessageCenter.getInstance();
   },
 
   unload() {
@@ -28,10 +25,29 @@ export default background({
   },
 
   events: {
-
+    'msg_center:show_message': function () {
+      this.messageCenter.showMessage.apply(this.messageCenter, arguments);
+    },
+    'msg_center:hide_message': function () {
+      this.messageCenter.hideMessage.apply(this.messageCenter, arguments);
+    },
   },
 
   actions: {
+    registerMessageHandler(id, handler) {
+      class NewMessageHandler extends MessageHandlerBase {
+        _renderMessage(message) {
+          handler(message);
+        }
 
-  }
+        _hideMessage(message) {
+          // TODO
+        }
+      };
+      this.messageCenter.registerMessageHandler(id, new NewMessageHandler());
+    },
+    showMessage(handler, message) {
+      this.messageCenter.showMessage(message, handler);
+    },
+  },
 });

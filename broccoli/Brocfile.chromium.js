@@ -16,7 +16,6 @@ var root            = new UnwatchedDir('.');
 var nodeModules     = new UnwatchedDir('node_modules');
 var specific        = new WatchedDir('specific/chromium');
 
-
 // cliqz.json should be saved after not transpiled modules are removed from configration
 var config          = writeFile('cliqz.json', JSON.stringify(cliqzConfig));
 console.log('Source maps:', cliqzConfig.sourceMaps);
@@ -35,11 +34,65 @@ var configTree = util.injectConfig(chromiumTree, config, 'cliqz.json', [
   'modules/core/config.js'
 ]);
 
+
+
+// Compile Human-web
+
+const funnel = require('broccoli-funnel');
+const replace = require('broccoli-string-replace');
+
+const appRoot = 'subprojects/chrome-test-hw-hpn/hw/';
+const moduleRoot = 'modules/hpn/dist/content';
+
+const html = funnel(appRoot, {
+  include   : ['**/*'],
+  destDir : 'human-web/'
+});
+
+const mergeFolders = new MergeTrees([
+	appRoot + '/hpn-worker/content',
+	moduleRoot,
+	'bower_components/bigint/'
+], { overwrite: true });
+
+const hwSpecific  = new funnel(appRoot + '/hpn-worker/content');
+const hwFiles = concat(mergeFolders, {
+  outputFile: 'human-web/hpn-worker.js',
+  inputFiles: [
+    "**/*.js"
+  ],
+  header: '// BEGIN',
+  footer: '// END',
+  allowNone: true
+});
+
+const outputList = [html, hwFiles];
+
+var _outputTree = new MergeTrees(outputList, { overwrite: true });
+var config          = writeFile('cliqz.json', JSON.stringify(cliqzConfig));
+console.log('Source maps:', cliqzConfig.sourceMaps);
+console.log(cliqzConfig);
+
+var _configTree = util.injectConfig(_outputTree, config, 'cliqz.json', [
+	'human-web/hpn.js',
+	'human-web/human-web.js',
+	'human-web/hpn-worker.js'
+]);
+
+_outputTree = new MergeTrees([
+	_outputTree,
+	_configTree
+	], { overwrite: true }
+)
+
+
 var outputTree = new MergeTrees([
   specific,
   chromiumTree,
   configTree,
+  _outputTree
 ], { overwrite: true });
+
 
 // Output
 module.exports = outputTree;

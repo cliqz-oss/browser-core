@@ -1,2 +1,2 @@
-/* global console */
-export default console;
+import { window } from './globals';
+export default window.console;

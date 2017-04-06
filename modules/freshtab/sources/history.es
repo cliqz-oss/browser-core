@@ -1,4 +1,5 @@
 import HistoryManager from "core/history-manager";
+import CliqzUtils from 'core/utils';
 
 var CliqzFreshTabHistory = {
   /**

@@ -148,7 +148,7 @@ CliqzPopupButton.prototype.setBadge = function (win, badgeText) {
     button.classList.add('badged-button');
   }
 
-  CliqzUtils.setTimeout(function () {
+  utils.setTimeout(function () {
     var badge = button.ownerDocument.getAnonymousElementByAttribute(
       button,
       'class',

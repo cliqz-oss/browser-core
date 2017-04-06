@@ -1,28 +1,8 @@
+import inject from '../core/kord/inject';
 import FreshTab from './main';
 import prefs from '../core/prefs';
-import { utils, events } from '../core/cliqz';
+import utils from '../core/utils';
 
-function clearUrlbar(window) {
-  const currentUrl = window.gBrowser.selectedBrowser.currentURI.spec;
-  const initialPages = window.gInitialPages;
-  const cliqzInitialPages = [
-    utils.CLIQZ_NEW_TAB_RESOURCE_URL,
-    utils.CLIQZ_NEW_TAB,
-  ];
-
-  cliqzInitialPages.forEach((initialPage) => {
-    const isInitialPage = initialPages.indexOf(initialPage) >= 0;
-    const isCurrentUrl = cliqzInitialPages.indexOf(currentUrl) >= 0;
-
-    if (!isInitialPage) {
-      initialPages.push(initialPage);
-    }
-
-    if (isCurrentUrl) {
-      utils.callAction('core', 'setUrlbar', ['']);
-    }
-  });
-}
 const DISMISSED_ALERTS = 'dismissedAlerts';
 
 
@@ -45,10 +25,9 @@ export default class {
   *@return null
   */
   init() {
-    clearUrlbar(this.window);
-    utils.setTimeout(() => {
-      this.showOnboarding();
-    }, 2000);
+    this.core = inject.module('core');
+    this.clearUrlbar();
+    this.showOnboarding();
   }
 
   unload() {}
@@ -60,21 +39,44 @@ export default class {
     };
   }
 
+  clearUrlbar() {
+    const currentUrl = this.window.gBrowser.selectedBrowser.currentURI.spec;
+    const initialPages = this.window.gInitialPages;
+    const cliqzInitialPages = [
+      utils.CLIQZ_NEW_TAB_RESOURCE_URL,
+      utils.CLIQZ_NEW_TAB,
+    ];
+
+    cliqzInitialPages.forEach((initialPage) => {
+      const isInitialPage = initialPages.indexOf(initialPage) >= 0;
+      const isCurrentUrl = cliqzInitialPages.indexOf(currentUrl) >= 0;
+
+      if (!isInitialPage) {
+        initialPages.push(initialPage);
+      }
+
+      if (isCurrentUrl) {
+        this.core.action('setUrlbar', '');
+      }
+    });
+  }
+
   showOnboarding() {
     const locale = utils.getPref('general.useragent.locale', 'en', '');
     const isInABTest = utils.getPref('extOnboardCliqzGhostery', false);
     const dismissed = JSON.parse(utils.getPref(DISMISSED_ALERTS, '{}'));
     const messageType = 'cliqz-ghostery';
     const isDismissed = (dismissed[messageType] && dismissed[messageType].count >= 1) || false;
+    const messageCenter = inject.module('message-center');
 
     if (isInABTest && (locale !== 'fr') && !isDismissed) {
-      events.pub(
-        'msg_center:show_message',
+      messageCenter.action(
+        'showMessage',
+        'MESSAGE_HANDLER_FRESHTAB',
         {
           id: 'cliqz-ghostery',
           template: 'cliqz-ghostery',
         },
-        'MESSAGE_HANDLER_FRESHTAB',
       );
     }
   }

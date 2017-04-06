@@ -1,3 +1,5 @@
+import CliqzUtils from 'core/utils';
+
 /* UGLY TEST SYSTEM */
 
 var iterator = 0;
@@ -64,7 +66,7 @@ function nextTest() {
   if(typeof testArray[iterator] == "undefined") {
     iterator = 0;
   }
-  CliqzUtils.search(testArray[iterator], true, 48.1517832, 11.6200855);
+  jsAPI.search(escape(testArray[iterator]), true, 48.1517832, 11.6200855);
 }
 
 function lastTest() {
@@ -72,7 +74,7 @@ function lastTest() {
   if(typeof testArray[iterator] == "undefined") {
     iterator = testArray.length-1;
   }
-  CliqzUtils.search(testArray[iterator], true, 48.1517832, 11.6200855);
+  jsAPI.search(escape(testArray[iterator]), true, 48.1517832, 11.6200855);
 
 }
 
@@ -174,8 +176,8 @@ function stopAutoTest() {
 var Test = {
   init: function() {
     window.addEventListener('imgLoadingDone', _ => running && setTimeout(nextTest,500));
-    var testSearch = CliqzUtils.search;
-    CliqzUtils.search = function(q, ...rest) {
+    var testSearch = jsAPI.search;
+    jsAPI.search = function(q, ...rest) {
       if(q === 'testme') {
         initTest();
       } else {

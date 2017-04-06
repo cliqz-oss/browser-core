@@ -1,32 +1,26 @@
-import autocomplete from "autocomplete/autocomplete";
-import { promiseHttpHandler } from "core/http";
+import console from 'core/console';
+import prefs from 'core/prefs';
+import utils from 'core/utils';
+import { promiseHttpHandler } from 'core/http';
 import { Components, Services } from "platform/globals";
-
-
-  const {
-    classes:    Cc,
-    interfaces: Ci,
-    utils:      Cu,
-    manager:    Cm
-  } = Components;
 
 try {
   Cu.import('resource://gre/modules/XPCOMUtils.jsm');
   Cu.import('resource://gre/modules/NewTabUtils.jsm');
 } catch(e) {}
 
-import console from "core/console";
-import prefs from "core/prefs";
-
-
 var CLIQZEnvironment = {
+    setTimeout,
+    setInterval,
+    clearTimeout,
+    clearInterval,
+    Promise,
     RESULTS_PROVIDER: 'https://api.cliqz.com/api/v2/results?nrh=1&q=',
     RICH_HEADER: 'https://api.cliqz.com/api/v2/rich-header?path=/v2/map',
     LOG: 'https://stats.cliqz.com',
     LOCALE_PATH: 'chrome://cliqz/content/static/locale/',
     TEMPLATES_PATH: 'chrome://cliqz/content/static/templates/',
     SKIN_PATH: 'chrome://cliqz/content/static/skin/',
-    SYSTEM_BASE_URL: 'chrome://cliqz/content/',
     prefs: Cc['@mozilla.org/preferences-service;1'].getService(Ci.nsIPrefService).getBranch(''),
     OS: Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS.toLowerCase(),
     RERANKERS: [],
@@ -46,6 +40,7 @@ var CLIQZEnvironment = {
       'rd-h3-w-rating': 1,
       'movie': 3,
       'vod': 3,
+      'movie-vod': 3,
       'liveTicker': 3,
       'simple-ui/result': 1,
       'simple-ui/results': 1,
@@ -114,7 +109,7 @@ var CLIQZEnvironment = {
 
       return null;
     },
-   openLink: function(win, url, newTab, newWindow, newPrivateWindow){
+    openLink: function(win, url, newTab, newWindow, newPrivateWindow, focus){
         // make sure there is a protocol (this is required
         // for storing it properly in Firefoxe's history DB)
         if(url.indexOf("://") == -1 && url.trim().indexOf('about:') != 0) {
@@ -135,7 +130,11 @@ var CLIQZEnvironment = {
 
         win.CLIQZ.Core.triggerLastQ = true;
         if(newTab) {
-           return win.gBrowser.addTab(url);
+          const tab = win.gBrowser.addTab(url);
+          if (focus) {
+            win.gBrowser.selectedTab = tab;
+          }
+          return tab;
         } else if(newWindow) {
             win.open(url, '_blank');
         } else if(newPrivateWindow) {
@@ -297,11 +296,11 @@ var CLIQZEnvironment = {
       return searchEngines.filter(function (se) { return se.default; })[0];
     },
     //TODO: cache this
-    getSearchEngines: function(){
+    getSearchEngines: function(blackListed = []){
         var defEngineName = Services.search.defaultEngine.name;
         return Services.search.getEngines()
                 .filter(function(e){
-                    return !e.hidden && e.iconURI != null;
+                    return !e.hidden && e.iconURI != null && blackListed.indexOf(e.name) < 0;
                 })
                 .map(function(e){
                     var r = {
@@ -317,6 +316,15 @@ var CLIQZEnvironment = {
                     }
                     return r;
                 });
+    },
+    blackListedEngines: function(scope) {
+      const engines = {
+        'freshtab': [
+          'Google Images',
+          'Google Maps'
+        ]
+      };
+      return engines[scope];
     },
     updateAlias: function(name, newAlias) {
       Services.search.getEngineByName(name).alias = newAlias;
@@ -356,30 +364,25 @@ var CLIQZEnvironment = {
       }
       return uri;
     },
+
     disableCliqzResults: function (urlbar) {
-      CliqzUtils.extensionRestart(function(){
+      CLIQZEnvironment.app.extensionRestart(() => {
         prefs.set("cliqz_core_disabled", true);
       });
 
       // blur the urlbar so it picks up the default AutoComplete provider
-      CliqzUtils.autocomplete.isPopupOpen = false;
-      setTimeout(function(urlbar){
+      utils.autocomplete.isPopupOpen = false;
+      setTimeout(() => {
         urlbar.focus();
         urlbar.blur();
-      }, 0, urlbar);
+      }, 0);
     },
     enableCliqzResults: function (urlbar) {
       prefs.set("cliqz_core_disabled", false);
-      CliqzUtils.extensionRestart();
+      CLIQZEnvironment.app.extensionRestart();
 
       // blur the urlbar so it picks up the new CLIQZ Autocomplete provider
       urlbar.blur();
-
-      CliqzUtils.telemetry({
-        type: 'setting',
-        setting: 'international',
-        value: 'activate'
-      });
     },
     // lazy init
     // callback called multiple times
@@ -390,8 +393,8 @@ var CLIQZEnvironment = {
             if(hist === null) { //lazy
               // history autocomplete provider is removed
               // https://hg.mozilla.org/mozilla-central/rev/44a989cf6c16
-              if (CliqzUtils.AB_1076_ACTIVE){
-                CliqzUtils.log('AB - 1076: Initialize custom provider');
+              if (CLIQZEnvironment.AB_1076_ACTIVE) {
+                console.log('AB - 1076: Initialize custom provider');
                 // If AB 1076 is not in B or firefox version less than 49 it will fall back to firefox history
                 var provider = Cc["@mozilla.org/autocomplete/search;1?name=cliqz-history-results"] ||
                                Cc["@mozilla.org/autocomplete/search;1?name=history"] ||
@@ -421,7 +424,7 @@ var CLIQZEnvironment = {
 
                         if(result.getStyleAt(i).indexOf('switchtab') != -1){
                           try {
-                            let [mozAction, mozActionVal] = CliqzUtils.cleanMozillaActions(result.getValueAt(i));
+                            let [mozAction, mozActionVal] = utils.cleanMozillaActions(result.getValueAt(i));
                             let cleanURL = decodeURIComponent(JSON.parse(mozActionVal).url);
                             let label;
 
@@ -471,7 +474,7 @@ var CLIQZEnvironment = {
               {"name": "Google Maps", "base_url": "https://maps.google.de/"}
           ],
           chosen = new Array(),
-          isUrl = CliqzUtils.isUrl(q);
+          isUrl = utils.isUrl(q);
 
       var engines = CLIQZEnvironment.CliqzResultProviders.getSearchEngines(),
           defaultName = engines[0].name;
@@ -499,8 +502,8 @@ var CLIQZEnvironment = {
           snippet:
           {
             text_line1: CLIQZEnvironment.getLocalizedString(isUrl ? 'noResultUrlNavigate' : 'noResultTitle'),
-            // forwarding the query to the default search engine is not handled by CLIQZ but by Firefox
-            // we should take care of this specific case differently on alternative platforms
+                      // forwarding the query to the default search engine is not handled by CLIQZ but by Firefox
+                      // we should take care of this specific case differently on alternative platforms
             text_line2: isUrl ? CLIQZEnvironment.getLocalizedString('noResultUrlSearch') : CLIQZEnvironment.getLocalizedString('noResultMessage', defaultName),
             "search_engines": chosen,
             //use local image in case of no internet connection

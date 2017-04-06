@@ -1,3 +1,5 @@
+import CliqzUtils from 'core/utils';
+
 function error(e) {
   return typeof !e || e === 'string' ? (e || '') : `${e.message} ${e.stack}`;
 }

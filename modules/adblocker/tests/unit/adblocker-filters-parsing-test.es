@@ -33,6 +33,11 @@ export default describeModule('adblocker/filters-parsing',
         // console.log(message);
       },
     },
+    'core/platform': {
+      default: {
+        platformName: 'firefox',
+      },
+    },
     'core/cliqz': {
       utils: {},
     },

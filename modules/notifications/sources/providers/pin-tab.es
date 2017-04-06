@@ -1,3 +1,4 @@
+import inject from '../../core/kord/inject';
 import utils from '../../core/utils';
 import { mapWindows } from '../../core/browser';
 import { queryActiveTabs as getTabs, pinTab } from '../../core/tabs';
@@ -20,13 +21,18 @@ export default class {
     this.domain = domain;
     this.selector = selector;
     this.attribute = attribute;
+    this.core = inject.module('core');
   }
 
   count() {
     const openTabUrls = activeUrlsForDomain(this.domain);
     const urls = [...new Set(openTabUrls)]; // unique
-    const countForUrl = url => utils
-      .callAction('core', 'queryHTML', [url, this.selector, this.attribute]);
+    const countForUrl = url => this.core.action(
+      'queryHTML',
+      url,
+      this.selector,
+      this.attribute
+    );
 
     if (!this.canCount()) {
       return Promise.reject('no-data');

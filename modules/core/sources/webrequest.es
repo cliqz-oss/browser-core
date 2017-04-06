@@ -1,3 +1,3 @@
-import WebRequest from 'platform/webrequest';
+import WebRequest from '../platform/webrequest';
 
 export default WebRequest;

@@ -1,5 +1,5 @@
-import { notImplemented } from 'core/platform';
-import * as fs from 'platform/fs';
+import { notImplemented } from './platform';
+import * as fs from '../platform/fs';
 
 /**
  * Read file from default location.

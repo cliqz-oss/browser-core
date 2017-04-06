@@ -136,6 +136,12 @@ var Result = {
                   return item;
                 }
             );
+        if (second.data.deepResults && !ret.data.deepResults)
+          ret.data.deepResults = second.data.deepResults;
+        if (second.data.extra && !ret.data.extra)
+          ret.data.extra = second.data.extra;
+        if (ret.data.template !== 'pattern-h2')
+          ret.data.template = second.data.template;
 
         return ret;
     },

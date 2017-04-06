@@ -16,7 +16,6 @@ import jsstrip
 
 import sys
 sys.path.append("..")
-from fern.submitter import Submitter
 
 NAME = "Cliqz"
 EXTENSION_ID = "{{id}}"
@@ -195,6 +194,7 @@ def publish(beta='True', version=None, channel='browser', pre='True'):
         credentials['balrog_credentials']['balrogadmin']
     )
 
+    from fern.submitter import Submitter
     submitter = Submitter(
         release_name="SystemAddons-"+upload_folder,
         auth=auth,

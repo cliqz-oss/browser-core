@@ -1,0 +1,17 @@
+{
+  "com": {
+    "kaspersky-labs": "report",
+    "xfreeservice": "report",
+    "foxydeal": "report",
+    "dfgio": "report",
+    "srvtrck": "report"
+  },
+  "net": {
+    "cloudfront": {
+      "d2p5uuu8vyzvbv": "report"
+    },
+    "mxpnl": {
+      "ff-input": "report"
+    }
+  }
+}

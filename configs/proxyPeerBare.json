@@ -1,0 +1,43 @@
+{
+  "platform": "firefox",
+  "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
+  "testem_launchers": ["Mocha"],
+  "settings": {
+    "id": "cliqz@cliqz.com",
+    "name": "Cliqz",
+    "channel": "99",
+    "homepageURL": "http://cliqz.com/",
+    "updateURL": "https://s3.amazonaws.com/cdncliqz/update/browser/latest.rdf",
+    "freshTabButton": false,
+    "freshTabNews": false,
+    "freshTabInitialState": true,
+    "unblockUI": false,
+    "cliqzOnboarding": false,
+    "helpMenus": false,
+    "showNewBrandAlert": false,
+    "showDataCollectionMessage": false,
+    "antitrackingButton": false,
+    "controlCenterSecurity": false
+  },
+  "priority": [
+    "core",
+    "firefox-specific",
+    "static",
+    "autocomplete",
+    "human-web",
+    "hpn"
+  ],
+  "modules": [
+    "core",
+    "firefox-specific",
+    "static",
+    "autocomplete",
+    "human-web",
+    "hpn",
+    "p2p",
+    "proxyPeer",
+    "antitracking"
+  ],
+  "subprojects": [
+  ]
+}

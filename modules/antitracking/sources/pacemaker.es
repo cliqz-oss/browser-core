@@ -1,3 +1,4 @@
+import CliqzUtils from 'core/utils';
 
 const default_tpace = 10 * 1000;
 

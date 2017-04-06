@@ -36,7 +36,8 @@ var observer = {
       // the following are not in the standard WebRequest API
       isPrivate: requestContext.isChannelPrivate(),
       isCached: topic === 'http-on-examine-cached-response',
-      source: requestContext.getSourceURL()
+      source: requestContext.getSourceURL(),
+      trigger: requestContext.getTriggeringPrincipal(),
     }
     // use getters for headers
     requestInfo.getRequestHeader = requestContext.getRequestHeader.bind(requestContext);

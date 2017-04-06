@@ -63,11 +63,20 @@ export default background({
   events: {
     'autocomplete:disable-search': function({urlbar}){
       utils.setPref('cliqzBackendProvider.enabled', false);
-      utils.disableCliqzResults && utils.disableCliqzResults(urlbar);
+      if (environment.disableCliqzResults) {
+        environment.disableCliqzResults(urlbar);
+      }
     },
     'autocomplete:enable-search': function({urlbar}){
       utils.setPref('cliqzBackendProvider.enabled', true);
-      utils.enableCliqzResults && utils.enableCliqzResults(urlbar);
+      if (environment.enableCliqzResults) {
+        environment.enableCliqzResults(urlbar);
+        utils.telemetry({
+          type: 'setting',
+          setting: 'international',
+          value: 'activate',
+        });
+      }
     },
     'control-center:setDefault-search': function setDefaultSearchEngine(engine) {
       this.autocomplete.CliqzResultProviders.setCurrentSearchEngine(engine);

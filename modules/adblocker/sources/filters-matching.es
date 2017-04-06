@@ -144,7 +144,7 @@ function checkPattern(filter, request) {
       return url.endsWith(filter.filterStr);
     }
 
-    return url.includes(filter.filterStr);
+    return url.indexOf(filter.filterStr) !== -1;
   }
 
   return false;

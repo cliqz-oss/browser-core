@@ -46,6 +46,18 @@ export default background({
     },
     "autocomplete": function onAutoComplete(result) {
       this.actions.checkShareLocationTrigger(result);
+    },
+    // The next two events came to be as a result for EX-3819 & EX-3905
+    // For an unkown reason (@chrmod convinced it is FF bug), the browser (gecko?) is
+    // reporting false status of the dropdown (popup) menu (closed when it's open). This in turn
+    // triggers cliqz events that are handled when the popup is being closed and because it is not
+    // really closed, it causes problems. Those next two event capturing, ensures that the popup
+    // is hidden when it should be hidden (tab change & window content click)
+    "core:tab_select": function onTabSelect() {
+      events.pub('ui:popup_hide');
+    },
+    "core:mouse-down": function onMouseDown() {
+      events.pub('ui:popup_hide');
     }
   }
 });

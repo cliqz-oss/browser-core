@@ -1,4 +1,4 @@
-import events from 'core/events';
+import events from '../events';
 
 export default function (originalBackground) {
   const background = Object.assign({}, originalBackground);

@@ -1,4 +1,5 @@
 import CliqzSecureMessage from 'hpn/main';
+import CliqzUtils from 'core/utils';
 
 /**
 * @namespace hpn

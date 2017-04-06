@@ -1,4 +1,4 @@
-import { getPref, setPref, hasPref, clearPref } from "platform/prefs";
+import { getPref, setPref, hasPref, clearPref, enableChangeEvents, disableChangeEvents } from "../platform/prefs";
 
 export default {
   /**
@@ -26,4 +26,8 @@ export default {
    * @param {string=} prefix - prefix for pref
    */
   clear: clearPref,
+
+  enableChangeEvents,
+
+  disableChangeEvents,
 };

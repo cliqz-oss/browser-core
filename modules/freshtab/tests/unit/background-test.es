@@ -19,7 +19,7 @@ export default describeModule("freshtab/background",
       "freshtab/history": {
         default: { getTopUrls(limit) { } }
       },
-      "core/cliqz": { utils: {} },
+      "core/utils": { default: {} },
       "freshtab/speed-dial": {
         default: function () { this.prototype.constructor.apply(this, arguments) }
       },
@@ -97,7 +97,7 @@ export default describeModule("freshtab/background",
       beforeEach(function() {
         prefs = {};
 
-        this.deps("core/cliqz").utils.tryDecodeURIComponent = function(s) {
+        this.deps("core/utils").default.tryDecodeURIComponent = function(s) {
           try {
             return decodeURIComponent(s);
           } catch(e) {
@@ -105,21 +105,21 @@ export default describeModule("freshtab/background",
           }
         }
 
-        this.deps("core/cliqz").utils.getPref = function(key, def) {
+        this.deps("core/utils").default.getPref = function(key, def) {
           return prefs[key] || def;
         }
 
-        this.deps("core/cliqz").utils.hasPref = function(key) { return key in prefs; }
+        this.deps("core/utils").default.hasPref = function(key) { return key in prefs; }
 
-        this.deps("core/cliqz").utils.setPref = function(key, value) {
+        this.deps("core/utils").default.setPref = function(key, value) {
           prefs[key] = value;
         }
 
-        this.deps("core/cliqz").utils.log = function() {};
+        this.deps("core/utils").default.log = function() {};
 
-        this.deps("core/cliqz").utils.getDetailsFromUrl = function() { return {}; }
+        this.deps("core/utils").default.getDetailsFromUrl = function() { return {}; }
 
-        this.deps("core/cliqz").utils.getLogoDetails = function() { return ''; }
+        this.deps("core/utils").default.getLogoDetails = function() { return ''; }
 
         this.deps('freshtab/speed-dial').default.prototype = function (url, custom) {
           this.title = url;
@@ -129,7 +129,7 @@ export default describeModule("freshtab/background",
           this.logo = '';
         }
 
-        this.deps("core/cliqz").utils.hash = function(url) {
+        this.deps("core/utils").default.hash = function(url) {
           if(url === 'http://cliqz.com/') {
             return '171601621';
           } else {
@@ -137,7 +137,7 @@ export default describeModule("freshtab/background",
           }
         }
 
-        this.deps("core/cliqz").utils.stripTrailingSlash = function(url) { return url; }
+        this.deps("core/utils").default.stripTrailingSlash = function(url) { return url; }
       });
 
       describe("#getSpeedDials", function() {
@@ -176,7 +176,7 @@ export default describeModule("freshtab/background",
         });
 
         it('display manually added custom tiles', function() {
-          this.deps("core/cliqz").utils.setPref("extensions.cliqzLocal.freshtab.speedDials", JSON.stringify({
+          this.deps("core/utils").default.setPref("extensions.cliqzLocal.freshtab.speedDials", JSON.stringify({
             "custom": [
               { url: "https://yahoo.com/" },
               { url: "https://www.gmail.com/" }
@@ -191,7 +191,7 @@ export default describeModule("freshtab/background",
 
 
         it('do NOT display manually deleted history tiles', function() {
-          this.deps("core/cliqz").utils.setPref("extensions.cliqzLocal.freshtab.speedDials", JSON.stringify({
+          this.deps("core/utils").default.setPref("extensions.cliqzLocal.freshtab.speedDials", JSON.stringify({
             "history": {
               "171601621": { "hidden": true }
             },
@@ -208,7 +208,7 @@ export default describeModule("freshtab/background",
 
         it('do NOT display history tiles in 1st row when manually added to 2nd row', function() {
 
-          this.deps("core/cliqz").utils.setPref("extensions.cliqzLocal.freshtab.speedDials", JSON.stringify({
+          this.deps("core/utils").default.setPref("extensions.cliqzLocal.freshtab.speedDials", JSON.stringify({
             "custom": [
               {"url": "https://www.yahoo.com/"},
               {"url": "http://cliqz.com/"}
@@ -237,8 +237,8 @@ export default describeModule("freshtab/background",
             return Promise.resolve([]);
           }
 
-          this.deps("core/cliqz").utils.stripTrailingSlash = url => url;
-          this.deps("core/cliqz").utils.tryEncodeURIComponent = url => url;
+          this.deps("core/utils").default.stripTrailingSlash = url => url;
+          this.deps("core/utils").default.tryEncodeURIComponent = url => url;
 
         });
 
@@ -249,7 +249,7 @@ export default describeModule("freshtab/background",
 
             return this.module().default.actions.addSpeedDial(url).then((newSpeedDial) => {
               //throw new Error(JSON.stringify(newSpeedDial))
-              const speedDials = JSON.parse(this.deps("core/cliqz").utils.getPref("extensions.cliqzLocal.freshtab.speedDials"));
+              const speedDials = JSON.parse(this.deps("core/utils").default.getPref("extensions.cliqzLocal.freshtab.speedDials"));
 
               chai.expect(speedDials.custom).to.deep.equal([
                 { "url": url }
@@ -267,7 +267,7 @@ export default describeModule("freshtab/background",
         context("speed dials already present", function () {
 
           it("do NOT add duplicate urls (after sanitization)", function() {
-            this.deps("core/cliqz").utils.stripTrailingSlash = function(url) { return 'always_the_same'; }
+            this.deps("core/utils").default.stripTrailingSlash = function(url) { return 'always_the_same'; }
 
             const url = "https://www.cliqz.com/";
 
@@ -303,14 +303,14 @@ export default describeModule("freshtab/background",
 
         context("NO previous deleted tiles", function() {
           it("remove history speed dial", function() {
-            //this.deps("core/cliqz").utils.setPref("extensions.cliqzLocal.freshtab.speedDials", ''));
+            //this.deps("core/utils").default.setPref("extensions.cliqzLocal.freshtab.speedDials", ''));
 
             const speedDial = {
               "url": "http://cliqz.com/",
               "custom": false
             }
             this.module().default.actions.removeSpeedDial(speedDial);
-            let speedDials = JSON.parse(this.deps("core/cliqz").utils.getPref("extensions.cliqzLocal.freshtab.speedDials"));
+            let speedDials = JSON.parse(this.deps("core/utils").default.getPref("extensions.cliqzLocal.freshtab.speedDials"));
             chai.expect(speedDials).to.deep.equal({
               "history":
                 {
@@ -323,7 +323,7 @@ export default describeModule("freshtab/background",
         context("custom speed dials already present", function() {
 
           it("remove custom speed dial", function() {
-            this.deps("core/cliqz").utils.setPref("extensions.cliqzLocal.freshtab.speedDials", JSON.stringify({
+            this.deps("core/utils").default.setPref("extensions.cliqzLocal.freshtab.speedDials", JSON.stringify({
               "custom": [
                 { "url": "http://cliqz.com/" },
                 { "url": "https://www.spiegel.com/" }
@@ -335,7 +335,7 @@ export default describeModule("freshtab/background",
               "custom": true
             }
             this.module().default.actions.removeSpeedDial(speedDial);
-            let speedDials = JSON.parse(this.deps("core/cliqz").utils.getPref("extensions.cliqzLocal.freshtab.speedDials"));
+            let speedDials = JSON.parse(this.deps("core/utils").default.getPref("extensions.cliqzLocal.freshtab.speedDials"));
             chai.expect(speedDials).to.deep.equal({
               "custom": [
                 { "url": "https://www.spiegel.com/" }

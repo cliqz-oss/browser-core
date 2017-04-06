@@ -1,3 +1,5 @@
+import CliqzUtils from 'core/utils';
+
 /** Set like class whose members are removed after a specifie
 */
 export default class {

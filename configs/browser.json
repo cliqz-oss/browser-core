@@ -25,9 +25,6 @@
     "modules.context-search.enabled": false,
     "modules.type-filter.enabled": false
   },
-  "default_prefs" : {
-    "modules.context-search.enabled": false
-  },
   "priority": [
     "core",
     "firefox-specific",
@@ -65,8 +62,9 @@
     "onboarding-v2",
     "new-tab-button",
     "type-filter",
-    "offers-v2",
     "telemetry-speed-dial",
+    "offboarding",
+    "offers-v2",
     "video-downloader"
   ],
   "subprojects": [

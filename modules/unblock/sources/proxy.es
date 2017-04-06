@@ -1,3 +1,5 @@
+import CliqzUtils from 'core/utils';
+
 export default class {
   /**
   * Wrapper for rule-based url proxying: implementation for Firefox

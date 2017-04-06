@@ -30,15 +30,20 @@ function injectSinon(win) {
   var sinonScript = win.document.createElement("script");
   sinonScript.src = "/bower_components/sinonjs/sinon.js";
   sinonScript.onload = function () {
-    window.sinon = contentWindow.sinon;
-    window.fakeServer = sinon.fakeServer.create({
+    win.fakeServer = win.sinon.fakeServer.create({
       autoRespond: true,
       respondImmediately: true
     });
+    window.sinon = win.sinon;
+    fakeServer = win.fakeServer;
 
-    contentWindow.sinon.FakeXMLHttpRequest.addFilter(function (method, url) { return url.indexOf('api/v2') === -1 });
-    contentWindow.sinon.FakeXMLHttpRequest.useFilters = true;
-    contentWindow.sinonLoaded = true;
+    win.sinon.FakeXMLHttpRequest.useFilters = true;
+
+    win.sinon.FakeXMLHttpRequest.addFilter(function (method, url) {
+      return url.indexOf('api/v2') === -1;
+    });
+    win.sinonLoaded = true;
+
     resolver();
   };
   win.document.body.appendChild(sinonScript);

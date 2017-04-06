@@ -9,5 +9,6 @@ if (cliqzConfig.environment === 'development') {
 }
 // end
 
-var platformBrocfile = require('./broccoli/Brocfile.' + cliqzConfig.platform);
+var brocfile = cliqzConfig.brocfile || ('Brocfile.' + cliqzConfig.platform);
+var platformBrocfile = require('./broccoli/' + brocfile);
 module.exports = platformBrocfile;

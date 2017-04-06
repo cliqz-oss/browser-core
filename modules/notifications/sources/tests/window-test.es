@@ -1,9 +1,9 @@
 export default describeModule("notifications/window",
   function() {
     return {
-      'core/utils': {
+      'core/kord/inject': {
         default: {
-          callAction() {}
+          module() { return { action() {} }; }
         }
       },
       'freshtab/main': {
@@ -23,16 +23,21 @@ export default describeModule("notifications/window",
 
     describe('#init', function() {
 
-      it('calls action: notifications/updateUnreadStatus', function() {
-        const utils = this.deps('core/utils').default
-        const freshtab = this.deps('freshtab/main').default;
-        sinon.stub(freshtab, 'isActive').resolves(true);
-        const stub = sinon.stub(utils, 'callAction').resolves(true);
-        subject.init();
-        stub().then(function(value) {
-         chai.expect(spy).to.have.been.calledWith('notifications', 'updateUnreadStatus')
-        })
+      context('with Freshtab active', function () {
+        beforeEach(function () {
+          const freshtab = this.deps('freshtab/main').default;
+          sinon.stub(freshtab, 'isActive', () => true)
+        });
 
+        it('calls action: notifications/updateUnreadStatus', function() {
+          const actionStub = sinon.stub(subject.notifications, 'action',
+            () => Promise.resolve(true));
+
+          return subject.init().then(() => {
+            chai.expect(actionStub).to.have.been.calledWith('hasUnread');
+            chai.expect(actionStub).to.have.been.calledWith('updateUnreadStatus');
+          });
+        });
       });
 
     });

@@ -1,5 +1,4 @@
 import { compress } from 'core/gzip';
-import random from 'core/crypto/random';
 
 function _arrayBufferToBase64( buffer ) {
     var binary = '';
@@ -56,7 +55,6 @@ export function generatePayload(data, ts, instant, attachAttrs) {
     var payl = {
         'data': data,
         'ts': ts,
-        'anti-duplicates': Math.floor(random() * 10000000),
     };
     if (instant)
         payl['instant'] = true;

@@ -36,6 +36,8 @@ export const ADB_PREF_VALUES = {
   Disabled: 0,
 };
 export const ADB_DEFAULT_VALUE = ADB_PREF_VALUES.Disabled;
+export const ADB_USER_LANG = 'cliqz-adb-lang';
+export const ADB_USER_LANG_OVERRIDE = 'cliqz-adb-lang-override';
 
 
 export function autoBlockAds() {
@@ -44,7 +46,7 @@ export function autoBlockAds() {
 
 
 export function adbABTestEnabled() {
-  return CliqzUtils.getPref(ADB_ABTEST_PREF, false);
+  return utils.getPref(ADB_ABTEST_PREF, false);
 }
 
 
@@ -52,7 +54,7 @@ export function adbEnabled() {
   // TODO: Deal with 'optimized' mode.
   // 0 = Disabled
   // 1 = Enabled
-  return adbABTestEnabled() && CliqzUtils.getPref(ADB_PREF, ADB_PREF_VALUES.Disabled) !== 0;
+  return adbABTestEnabled() && utils.getPref(ADB_PREF, ADB_PREF_VALUES.Disabled) !== 0;
 }
 
 
@@ -151,7 +153,7 @@ class AdBlocker {
     const date = new Date();
     const message = `${date.getHours()}:${date.getMinutes()} ${msg}`;
     this.logs.push(message);
-    CliqzUtils.log(msg, 'adblocker');
+    utils.log(msg, 'adblocker');
   }
 
   initCache() {
@@ -244,7 +246,7 @@ class AdBlocker {
 
   isDomainInBlacklist(url) {
     // Should all this domain stuff be extracted into a function?
-    // Why is CliqzUtils.detDetailsFromUrl not used?
+    // Why is utils.detDetailsFromUrl not used?
     let hostname = url;
     try {
       hostname = extractGeneralDomain(url);
@@ -368,7 +370,7 @@ class AdBlocker {
 }
 
 const CliqzADB = {
-  onDiskCache: CliqzUtils.getPref(ADB_DISK_CACHE, true),
+  onDiskCache: utils.getPref(ADB_DISK_CACHE, true),
   adblockInitialized: false,
   adbMem: {},
   adbStats: new AdbStats(),
@@ -379,8 +381,8 @@ const CliqzADB = {
 
   init() {
     // Set `cliqz-adb` default to 'Disabled'
-    if (CliqzUtils.getPref(ADB_PREF, undefined) === undefined) {
-      CliqzUtils.setPref(ADB_PREF, ADB_PREF_VALUES.Disabled);
+    if (utils.getPref(ADB_PREF, undefined) === undefined) {
+      utils.setPref(ADB_PREF, ADB_PREF_VALUES.Disabled);
     }
 
     CliqzADB.adBlocker = new AdBlocker(CliqzADB.onDiskCache);

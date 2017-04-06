@@ -23,7 +23,7 @@ export default {
   },
 
   sendTelemetry(nResults) {
-    CliqzUtils.telemetry({
+    utils.telemetry({
       type: 'Results Rendered',
       nResults,
     });
@@ -155,7 +155,7 @@ export default {
 
     if (ago) {
       const roundedTime = parseInt(seconds / ago[2], 10);
-      const translation = CliqzUtils.getLocalizedString(ago[1], roundedTime);
+      const translation = utils.getLocalizedString(ago[1], roundedTime);
       return translation;
     }
 
@@ -196,7 +196,7 @@ export default {
     // just in case this helper is used on unsanitezed data from backend
     try {
       const num = parseFloat(number).toFixed(2);
-      return parseFloat(num).toLocaleString(CliqzUtils.PREFERRED_LANGUAGE);
+      return parseFloat(num).toLocaleString(utils.PREFERRED_LANGUAGE);
     } catch (e) {
       return '';
     }

@@ -1,9 +1,5 @@
 <!-- liveTicker.tpl -->
-{{>logo data=data.logo}}
-{{>urlDetails data=data.urlDetails}}
-{{>title data=data.title}}
-
-{{#with data.extra}}
+{{#with data}}
     <div class="bundesliga">
         {{#each matches }}
             <h2>{{ data.spielTag }} {{ this.date }}</h2>

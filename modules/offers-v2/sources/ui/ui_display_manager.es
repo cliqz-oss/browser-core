@@ -3,6 +3,7 @@ import LoggingHandler from '../logging_handler';
 import OffersConfigs from '../offers_configs';
 import { forEachWindow } from '../../platform/browser';
 import { queryActiveTabs } from '../../core/tabs';
+import inject from '../../core/kord/inject';
 
 
 // TODO: remove all not needed logs
@@ -45,6 +46,8 @@ export class UIDisplayManager {
 
   //////////////////////////////////////////////////////////////////////////////
   constructor(signalCallback, eventHandler) {
+    this.offersModule = inject.module('offers-v2');
+
     this.signalCallback = signalCallback;
     this.eventHandler = eventHandler;
     // the offer information: offer_id -> {offer_data, rule_info}
@@ -318,7 +321,7 @@ export class UIDisplayManager {
     // TODO: ensure that the offerData is properly formatted
 
     // communicate with the window sending the offer data
-    utils.callWindowAction(win, 'offers-v2', 'showOfferCoreHandler', [offerData]);
+    this.offersModule.windowAction(win, 'showOfferCoreHandler', offerData);
   }
 
   _hideOffer(win) {
@@ -328,7 +331,7 @@ export class UIDisplayManager {
     }
 
     // this will just hide the current offer on the given tab
-    utils.callWindowAction(win, 'offers-v2', 'hideOfferCoreHandler');
+    this.offersModule.windowAction(win, 'hideOfferCoreHandler');
   }
 
   _emitSignal(signalType, offerID, data) {

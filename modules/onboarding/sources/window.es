@@ -39,20 +39,20 @@ export default class {
       tutorialUrl = this.window.CLIQZ.System.baseURL+"onboarding/onboarding.html";
       tutorialVersion = this.version; //CliqzTour.VERSION;
     } else {
-      tutorialUrl = CliqzUtils.TUTORIAL_URL;
+      tutorialUrl = utils.TUTORIAL_URL;
       tutorialVersion = "0.0"
     }
 
-    CliqzUtils.setPref('onboarding_versionShown', tutorialVersion);
-    CliqzUtils.setPref('onboarding_finishedWatching', false);
+    utils.setPref('onboarding_versionShown', tutorialVersion);
+    utils.setPref('onboarding_finishedWatching', false);
 
-    this._tutorialTimeout = CliqzUtils.setTimeout(function() {
-      CliqzUtils.openTabInWindow(this.window, tutorialUrl, true);
+    this._tutorialTimeout = utils.setTimeout(function() {
+      utils.openTabInWindow(this.window, tutorialUrl, true);
     }.bind(this), 100);
   }
 
   unload() {
-    CliqzUtils.clearTimeout(this._tutorialTimeout);
+    utils.clearTimeout(this._tutorialTimeout);
   }
 };
 
@@ -65,7 +65,7 @@ function isVersionHigherThan(version) {
 
     return versionChecker.compare(appInfo.version, version) >= 0;
   } catch (e) {
-    CliqzUtils.log('error checking browser version: ' + e);
+    utils.log('error checking browser version: ' + e);
     return false;
   }
 }

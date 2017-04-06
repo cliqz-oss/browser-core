@@ -1,4 +1,5 @@
 import getDbConn from 'platform/sqlite';
+import CliqzUtils from 'core/utils';
 
 /** Sqlite table for collecting tracking information locally.
  */

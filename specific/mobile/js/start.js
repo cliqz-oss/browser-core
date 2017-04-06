@@ -27,6 +27,7 @@ window.Components = {
 
 var startup, loadModule;
 
+System.set(System.normalizeSync('system'), System.newModule({default: System}));
 document.addEventListener("DOMContentLoaded", function () {
   System.import("platform/startup").then(function (startupModule) {
     startup = startupModule.default;
@@ -46,10 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
     window.CLIQZEnvironment = environment;
     window.CliqzUtils = utils;
     window.CliqzEvents  = events;
-    utils.initPlatform(System);
-    return utils.init({
-      lang: window.navigator.language || window.navigator.userLanguage
-    });
+    utils.setPref("incognito", false);
   }).then(function () {
     return startup(window, [
       "mobile-dev",

@@ -8,6 +8,7 @@
         <script src="bower_components/handlebars/handlebars.js"></script>
         <script src="bower_components/jquery/dist/jquery.min.js"></script>
         <script src="bower_components/hammerjs/hammer.js"></script>
+        <script src="bower_components/whatwg-fetch/fetch.js"></script>
         <script src="bower_components/mathjs/dist/math.min.js"></script>
         <script src="bower_components/system.js/dist/system.js"></script>
         <script>window.CLIQZ = {}</script>
@@ -20,7 +21,7 @@
                 'app.js': ['core/startup.js']
               }
             });
-
+            System.set(System.normalizeSync('system'), System.newModule({default: System}));
             System.import("core/startup").then(function (startupModule) {
               return Promise.all([
                 System.import("platform/environment"),
@@ -38,7 +39,6 @@
               window.CLIQZEnvironment = environment;
               window.CliqzUtils = utils;
               window.CliqzEvents  = events;
-              utils.initPlatform(System);
               return modules.shift();
             }).then(function (startupModule) {
               return startupModule.default(window, [
@@ -47,10 +47,6 @@
                 "mobile-history",
                 "static"
               ]);
-            }).then(function () {
-              return CliqzUtils.init({
-                lang: window.navigator.language || window.navigator.userLanguage
-              });
             }).then(function () {
               jsAPI.init();
               osAPI.init();

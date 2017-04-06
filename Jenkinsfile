@@ -2,6 +2,7 @@
 
 def gitCommit = ''
 
+
 node('ubuntu && docker && !gpu') {
   stage('checkout') {
     checkout scm
@@ -32,9 +33,18 @@ node('ubuntu && docker && !gpu') {
   }
 
   properties([
+    disableConcurrentBuilds(),
     parameters(params)
   ])
 
+  if (helpers.hasNewerQueuedJobs()) {
+    error("Has Jobs in queue, aborting")
+  }
+
+  if (helpers.hasWipLabel()) {
+    error "Branch is wip"
+  }
+  
   gitCommit = helpers.getGitCommit()
 
   // stash dockerfile for use on other nodes without checkout

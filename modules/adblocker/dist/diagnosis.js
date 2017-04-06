@@ -1,7 +1,9 @@
 
 function generateDiagnosis() {
-  var adblocker = Components.utils.import("chrome://cliqzmodules/content/CLIQZ.jsm").CLIQZ.System.get("adblocker/adblocker").default.adBlocker;
+  var adb = Components.utils.import("chrome://cliqzmodules/content/CLIQZ.jsm").CLIQZ.System.get("adblocker/adblocker");
+  var adblocker = adb.default.adBlocker;
   var utils = Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm').CLIQZ.System.get("core/utils").default;
+  var lang = Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm').CLIQZ.System.get("core/language").default;
   var elt;
   var content = [];
 
@@ -60,6 +62,22 @@ function generateDiagnosis() {
           }
       });
   });
+  elt.innerHTML = content.join("\n");
+
+  // Language
+  elt = document.getElementById("adb-lang");
+  content = ['<h1>User Language</h1>']
+
+  // current loaded language
+  content.push(`<h2>ADB language prefs</h2>`);
+  content.push(`<div>Language filters enabled (${adb.ADB_USER_LANG}): ${utils.getPref(adb.ADB_USER_LANG, true)}</div>`);
+  content.push(`<div>Language filters override (${adb.ADB_USER_LANG_OVERRIDE}): ${utils.getPref(adb.ADB_USER_LANG_OVERRIDE, '')} </div>`);
+  content.push(`<h2>User language</h2>`)
+  content.push(`<div>${lang.state().join(', ')}</div>`)
+  content.push(`<h2>Loaded language</h2>`)
+  content.push(`<div>${[...adblocker.listsManager.loadedLang].join(', ')}</div>`)
+  content.push(`<h2>Available language</h2>`)
+  content.push(`<div>${[...adblocker.listsManager.availableLang].join(', ')}</div>`)
   elt.innerHTML = content.join("\n");
 }
 

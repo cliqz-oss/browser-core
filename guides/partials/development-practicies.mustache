@@ -1,0 +1,35 @@
+<h2>Development practices</h2>
+Development process in Frontend department goes strongly in line with our project management practices.
+It is bug tracker oriented, so all development should start with bug tracker ticket.
+
+Process can be summarized in few steps:
+<ul>
+  <li>every developer forks upstream repository</li>
+  <li>given a bug tracker ticket, developer creates new branch in local repository clone. Branch is named after the ticket, eg. EX-1245
+    <ul>
+      <li>commits to repository should have messages starting with bug tracker ticker name, eg. EX-1234: Adding feature X</li>
+      <li>branch should ideally have only one commit, so work should be squashed before pushing</li>
+      <li>once work is done, code changes, related tests and documentation are pushed to git remote clone</li>
+    </ul>
+  </li>
+  <li>a github pull request is created
+    <ul>
+      <li>developer assigns one or more reviewers to the PR</li>
+      <li>continuous integration starts automated test suits:
+        <ul>
+          <li>integration tests for supported versions of Firefox, that is 38+</li>
+          <li>unit tests, run on nodejs</li>
+          <li>ui tests, run on headless browser</li>
+          <li>mobile codebase integration tests, run on chromium</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>pull request gets merged to master if all tests are green and all review are positive
+    <ul>
+      <li>changes gets rebased on top of upstream repository master branch</li>
+    </ul>
+  </li>
+  <li>once merged, changes are released on beta channel and manually tested by quality assurance team</li>
+</ul>
+
