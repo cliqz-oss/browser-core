@@ -24,7 +24,7 @@ export function determineContext(state) {
   return true;
 }
 
-const internalProtocols = new Set(['chrome', 'resource'])
+const internalProtocols = new Set(['chrome', 'resource', 'moz-extension']);
 
 export function skipInternalProtocols(state) {
   if (state.sourceUrlParts && internalProtocols.has(state.sourceUrlParts.protocol)) {
