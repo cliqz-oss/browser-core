@@ -142,6 +142,7 @@ html {
         .title {
             margin: 10px 0 5px 10px;
             font-weight: 400;
+            white-space: nowrap;
             &:hover {
                 cursor: pointer;
             }

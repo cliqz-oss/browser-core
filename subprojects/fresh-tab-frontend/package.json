@@ -49,6 +49,6 @@
     "loader.js": "4.0.10"
   },
   "dependencies": {
-    "spanan": "^1.0.2"
+    "spanan": "1.0.2"
   }
 }

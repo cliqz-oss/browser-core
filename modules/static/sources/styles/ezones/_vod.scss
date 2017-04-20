@@ -1,6 +1,6 @@
 /* ------- VideoOnDemand (VOD) EZ ----------*/
 .cqz-vod .stream_btn_container {
-    margin-right: 10px;
+    margin-left: 10px;
 }
 
 .cqz-vod .stream_btn_img {
@@ -9,12 +9,11 @@
 
 .cqz-vod .layout_foot_node .movie_info_btn {
     float: left;
-    margin-right: 40px;
 }
 
 .cqz-vod .stream_txt {
     float: left;
-    margin: 0 0 20px 20px;
+    margin: 0 0 20px 13px;
     line-height: 26px;
     color: #999999;
     white-space: nowrap;
@@ -24,6 +23,7 @@
     white-space: nowrap;
     overflow: hidden;
     display:inline-block;
+    margin-left: 0px;
 }
 
 .cqz-vod .stream_btn_container {

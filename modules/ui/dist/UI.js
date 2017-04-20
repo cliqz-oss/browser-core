@@ -999,6 +999,10 @@ function enhanceResults(res){
           hasAd = true;
           resultWithAd = r;
           adIndex = i;
+
+          if (r.data.extra.url_ad) {
+            r.url = r.data.extra.url_ad;
+          }
         }
 
         if (r.type.indexOf('cliqz-extra') !== -1 &&  i > 0 ) {
@@ -1842,6 +1846,7 @@ function onEnter(ev, item){
     // we delegate to FF all their actions
     if(CLIQZ.Core.urlbar) {
       CLIQZ.Core.urlbar.value = input;
+      CLIQZ.Core.urlbar.mInputField.value = input;
     }
     return false;
   } else {

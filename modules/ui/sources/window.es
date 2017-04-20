@@ -306,11 +306,10 @@ export default class {
       this.tabRemoved, false);
     this.actions.updatePopupStyle();
     // Add search history dropdown
-    var searchHistoryContainer = SearchHistory.insertBeforeElement(this.window);
-    this.elems.push(searchHistoryContainer);
     }).then(() => {
       this.reloadUrlbar();
       this.initialized = true;
+      this.elems.push(SearchHistory.insertBeforeElement(this.window));
     })
   }
 
