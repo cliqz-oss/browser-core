@@ -7,8 +7,18 @@ import SimpleStorage from 'core/simple-storage';
 
 import { createHiddenWindow, destroyHiddenWindow } from 'p2p/utils';
 
+// TODO: remove this!
+const CustomizableUI = Components.utils.import('resource:///modules/CustomizableUI.jsm', null).CustomizableUI;
+
+const BTN_ID = 'mobilepairing_btn';
+
 export default {
   init() {
+    if (CliqzUtils.getPref('connect', false) === false) {
+      this.enabled = false;
+      return;
+    }
+
     const pingpong = new PingPongApp();
     PeerComm.addObserver('PINGPONG', pingpong);
 
@@ -20,9 +30,8 @@ export default {
       CliqzUtils.httpGet(youtubeurl, (x) => {
         if (x && x.responseText) {
           const videos = YoutubeApp.getLinks(x.responseText);
-          CliqzUtils.getWindow().console.log(videos);
           if (videos.length) {
-            CliqzUtils.getWindow().gBrowser.addTab(videos[0].url); // Ugly hack
+            CliqzUtils.openLink(CliqzUtils.getWindow(), videos[0].url, true, false, false, true);
           }
         }
       });
@@ -41,12 +50,33 @@ export default {
         this.window = w;
         return PeerComm.init(this.storage, this.window);
       });
+
+
+    CustomizableUI.createWidget({
+      id: BTN_ID,
+      defaultArea: CustomizableUI.AREA_PANEL,
+      label: 'Connect',
+      tooltiptext: 'Connect',
+      onCommand: () => {
+        CliqzUtils.openLink(CliqzUtils.getWindow(), 'about:preferences#connect', true, false, false, true);
+        CliqzUtils.telemetry({
+          type: 'burger_menu',
+          version: 1,
+          action: 'click',
+          target: 'connect',
+        });
+      },
+    });
+    this.enabled = true;
   },
   unload() {
-    PeerComm.unload();
-    this.storage.close();
-    destroyHiddenWindow(this.window);
-    this.window = null;
+    if (this.enabled) {
+      CustomizableUI.destroyWidget(BTN_ID);
+      PeerComm.unload();
+      this.storage.close();
+      destroyHiddenWindow(this.window);
+      this.window = null;
+    }
   },
 
   actions: {

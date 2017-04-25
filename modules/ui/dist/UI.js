@@ -1642,8 +1642,8 @@ function setResultSelection(el, scrollTop, changeUrl, mouseOver){
         }
 
         if (!mouseOver) {
-          const targetElement = target.parentElement.parentElement.parentElement;
-          targetElement.scrollIntoView({block: "end", behavior: "smooth"});
+          //make the whole result visible
+          closest(target, '.cqz-result-box').scrollIntoView({block: "end", behavior: "smooth"});
         }
 
         target.setAttribute('arrow', 'true');

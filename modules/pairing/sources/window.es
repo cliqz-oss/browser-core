@@ -2,8 +2,6 @@ import { utils } from 'core/cliqz';
 import inject from '../core/kord/inject';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 
-const { utils: Cu } = Components;
-const CustomizableUI = Cu.import('resource:///modules/CustomizableUI.jsm', null).CustomizableUI;
 const STYLESHEET_URL = 'chrome://cliqz/content/pairing/css/burger_menu.css';
 const DISMISSED_ALERTS = 'dismissedAlerts';
 /**
@@ -23,23 +21,6 @@ export default class {
   */
   init() {
     if (this.status().visible) {
-      CustomizableUI.createWidget({
-        id: 'mobilepairing_btn',
-        defaultArea: CustomizableUI.AREA_PANEL,
-        label: 'Connect',
-        tooltiptext: 'Connect',
-        onCommand: () => {
-          const gBrowser = utils.getWindow().gBrowser;
-          gBrowser.selectedTab = gBrowser.addTab('about:preferences#connect');
-          utils.telemetry({
-            type: 'burger_menu',
-            version: 1,
-            action: 'click',
-            target: 'connect',
-          });
-        },
-      });
-
       this.showOnboarding();
 
       addStylesheet(this.window.document, STYLESHEET_URL);
@@ -48,7 +29,6 @@ export default class {
 
   unload() {
     if (this.status().visible) {
-      CustomizableUI.destroyWidget('mobilepairing_btn');
       removeStylesheet(this.window.document, STYLESHEET_URL);
     }
   }

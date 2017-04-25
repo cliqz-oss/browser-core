@@ -83,10 +83,13 @@ export default {
     "cta-video-downloader": "Mehr erfahren...",
     "hdr-ADB-onboarding": "Werbeblocker aktiviert",
     "txt-ADB-onboarding": "Wußtest du, dass Cliqz Werbungen auf Websites entfernen kann? Wir haben zum Test den Werbeblocker für dich aktiviert. Du kannst die Einstellungen jederzeit im Control Center neben der Adressleiste ändern.",
-    "txt-cliqz-ghostery": "WIR VERBÜNDEN UNS MIT GHOSTERY",
     "cta-learn-more": "LIES MEHR DARÜBER",
-    "txt-cliqz-connect": "Jetzt mit Cliqz für Android verbinden und ganz einfach Links und Videos auf das Smartphone senden.",
-    "cta-cliqz-connect": "So gehts"
+    "hdr-cliqz-connect": "Dürfen wir vorstellen: Connect",
+    "txt-cliqz-connect": "Einfach Websites und YouTube Videos an dein Android Smartphone oder Tablet schicken.",
+    "cta-cliqz-connect": "So gehts.",
+    "hdr-win-no-support-message": "Unterstützung für Windows XP und Vista Endet",
+    "txt-win-no-support-message": "Wie du Cliqz weiter nutzen kannst, erfährst du",
+    "cta-win-no-support-message": "hier"
   },
   title: 'Neuer Tab',
   settings: {

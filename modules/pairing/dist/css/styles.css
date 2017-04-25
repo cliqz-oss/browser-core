@@ -154,6 +154,10 @@ div.clear-row {
     max-width: 100%;
 }
 
+.btn-google-play {
+    margin-left: 15px;
+}
+
 .btn-google-play > a {
     background-image: url(chrome://cliqz/content/pairing/images/Get_it_on_Google_play.svg);
     line-height: 2.8rem;

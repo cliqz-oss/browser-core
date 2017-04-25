@@ -23,6 +23,7 @@ var CLIQZEnvironment = {
     SKIN_PATH: 'chrome://cliqz/content/static/skin/',
     prefs: Cc['@mozilla.org/preferences-service;1'].getService(Ci.nsIPrefService).getBranch(''),
     OS: Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS.toLowerCase(),
+    OS_VERSION: Services.sysinfo.getProperty("version"),
     RERANKERS: [],
     RESULTS_TIMEOUT: 1000, // 1 second
     TEMPLATES: {'calculator': 1, 'clustering': 1, 'currency': 1, 'custom': 1, 'emphasis': 1, 'empty': 1,

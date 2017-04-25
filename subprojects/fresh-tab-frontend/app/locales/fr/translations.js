@@ -83,10 +83,13 @@ export default {
     "cta-video-downloader": "En savoir plus...",
     "hdr-ADB-onboarding": "Ad-block enabled",
     "txt-ADB-onboarding": "Did you know that Cliqz can remove advertisements on websites? We activated ad-blocking for you to test. You can change the settings in the Control Center next to the address bar at any time.",
-    "txt-cliqz-ghostery": "GHOSTERY REJOINT NOS RANGS",
     "cta-learn-more": "EN APPRENDRE PLUS",
-    "txt-cliqz-connect": "Connecte-toi avec Cliqz pour Android maintenant pour pouvoir partager des onglets et des vidéos Youtube avec ton téléphone.",
-    "cta-cliqz-connect": "Pour en savoir plus"
+    "hdr-cliqz-connect": "Connect",
+    "txt-cliqz-connect": "Envoyez des liens ou téléchargez des vidéos YouTube vers votre périphérique Android.",
+    "cta-cliqz-connect": "Voici comment.",
+    "hdr-win-no-support-message": "Support for Windows XP and Vista Ending",
+    "txt-win-no-support-message": "Cliqz will end support for Windows XP and Windows Vista with the next update at the end of April. Find out how you can continue using Cliqz",
+    "cta-win-no-support-message": "here"
   },
   title: 'Nouvel onglet',
   settings: {

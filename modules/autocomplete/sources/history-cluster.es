@@ -542,7 +542,7 @@ var CliqzHistoryCluster = {
       instant.data.cluster = true; // a history cluster based on a destination bet
       instant_results.push(instant);
 
-    } else if (searchString.length === 0 && customResults === null ) {
+    } else if (searchString.trim().length === 0 && customResults === null ) {
       // special case for user request of top sites from history
       var instant = Result.generic('cliqz-pattern', '', null, '', null, searchString);
       instant.data.title = utils.getLocalizedString('history_results_cluster');

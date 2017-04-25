@@ -155,8 +155,11 @@ export default class PairingUI {
       contactSupport: i18n('pairing-contact-support'),
       pairingStep1Title: i18n('pairing-step1-title'),
       pairingStep2Title: i18n('pairing-step2-title'),
+      pairingStep3Title: i18n('pairing-step3-title'),
+      pairingStep4Title: i18n('pairing-step4-title'),
       pairingScanTitle: i18n('pairing-scan-title'),
       pairingErrorMessage: i18n('pairing-error-message'),
+
 
       unpair: i18n('pairing-unpair'),
     };

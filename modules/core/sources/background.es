@@ -109,6 +109,7 @@ export default background({
     }
     const { action, module: moduleName, args, requestId } = payload,
       windowId = msg.data.windowId;
+    const origin = msg.data.origin;
 
     const module = utils.app.availableModules[moduleName];
     if (!module) {
@@ -121,6 +122,7 @@ export default background({
 
     .then( response => {
       this.mm.broadcast(`window-${windowId}`, {
+        origin,
         response,
         action,
         module: moduleName,

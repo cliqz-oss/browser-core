@@ -321,12 +321,6 @@ var CliqzABTests = {
             case "1092_B":
                 CliqzUtils.setPref("extOnboardVideoDownloader", true);
                 break;
-            case "1093_A":
-              CliqzUtils.setPref("extOnboardCliqzGhostery", false);
-              break;
-            case "1093_B":
-              CliqzUtils.setPref("extOnboardCliqzGhostery", true);
-              break;
             case "1094_A":
               CliqzUtils.setPref("ff-experiment", false);
               break;
