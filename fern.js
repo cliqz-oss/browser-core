@@ -96,6 +96,86 @@ function buildFreshtabFrontEnd() {
   }
 }
 
+function buildChromeHumanWeb(mode) {
+  const configPath = process.env['CLIQZ_CONFIG_PATH'];
+  const chromeManifest = JSON.parse(fs.readFileSync('specific/chromium/manifest.json'));
+  let finalManifest = {};
+  finalManifest.key = chromeManifest.key;
+  finalManifest.name = chromeManifest.name;
+  finalManifest.version = chromeManifest.version;
+  finalManifest.manifest_version = chromeManifest.manifest_version;
+  finalManifest.description = chromeManifest.description;
+  finalManifest.incognito = chromeManifest.incognito;
+  finalManifest.permissions = chromeManifest.permissions;
+  finalManifest.content_security_policy = chromeManifest.content_security_policy;
+  finalManifest.version_name = "packaged";
+  if(mode === "production"){
+    finalManifest.chrome_url_overrides = chromeManifest.chrome_url_overrides;
+  }
+  /*
+  var app = 'chrome-test-hw-hpn',
+      appPath = 'subprojects/' + app,
+      modulePath = appPath + '/hw/',
+      manifestPath = modulePath + 'manifest.json',
+      shouldBuild = function() {
+        if(CONFIG.subprojects.indexOf('chrome-test-hw-hpn') === -1) {
+          return false;
+        }
+
+        if(process.env['chrome-test-hw-hpn'] !== 'undefined') {
+          return true;
+        }
+        return false;
+      };
+  */
+
+  var app = 'human-web/',
+      appPath = 'build/' + app,
+      modulePath = appPath,
+      manifestPath = modulePath + 'manifest.json',
+      shouldBuild = function() {
+        if(CONFIG.subprojects.indexOf('chrome-test-hw-hpn') === -1) {
+          return false;
+        }
+
+        if(process.env['chrome-test-hw-hpn'] !== 'undefined') {
+          return true;
+        }
+        return false;
+      };
+  if(!shouldBuild()) {
+    return
+  }
+
+  const manifest = JSON.parse(fs.readFileSync(manifestPath));
+  const newPath = "js/hw/";
+  let newScript = [];
+  let newPermission = [];
+  manifest.background.scripts.forEach( e=> {
+    newScript.push(`${newPath}${e}`);
+  });
+  finalManifest.background = {"scripts": newScript};
+
+  manifest.permissions.forEach( e=> {
+    finalManifest.permissions.push(e);
+  });
+
+  // Need version name, to map content.js to correct path.
+  // manifest.version_name = "packaged";
+
+  wrench.copyDirSyncRecursive(modulePath, path.join(OUTPUT_PATH, 'js', 'hw'), {
+      forceDelete: true
+  });
+  wrench.rmdirSyncRecursive('build/human-web');
+  var stream = fs.createWriteStream(path.join(OUTPUT_PATH, "manifest.json"));
+  stream.once('open', function(fd) {
+    stream.write(JSON.stringify(finalManifest, null, 2));
+    stream.end();
+  });
+
+  rimraf.sync(path.join(OUTPUT_PATH, 'js', 'hw', 'manifest.json'));
+}
+
 function isPackageInstalled(pkg, options, msg) {
   var spawned = spaws.sync(pkg, [options], { stderr: 'inherit' });
   if(spawned.error !== null) {
@@ -151,7 +231,7 @@ program.command('build [file]')
        .option('--no-maps', 'disables source maps')
        .option('--version [version]', 'sets extension version', 'package')
        .option('--freshtab', 'enables ember fresh-tab-frontend build')
-       .option('--environment <environment>')
+       .option('--environment <environment>', 'to generate comprehensive manifest.json')
        .option('--to-subdir', 'build into a subdirectory named after the config')
        .option('--instrument-functions [ms]', 'log all modules function calls which take more than given ms')
        .action((configPath, options) => {
@@ -176,6 +256,7 @@ program.command('build [file]')
             child.stderr.on('data', data => console.log(data.toString()));
             child.stdout.on('data', data => console.log(data.toString()));
             child.on('close', code => {
+              buildChromeHumanWeb(options.environment || 'development');
               console.log(code === 0 ? 'done - ' + (Date.now() - buildStart) +'ms' : '');
             })
           });
@@ -208,7 +289,7 @@ function createBuildWatcher() {
 program.command('serve [file]')
        .option('--no-maps', 'disables source maps')
        .option('--version [version]', 'sets extension version', 'package')
-       .option('--environment <environment>')
+       .option('--environment <environment>', 'to generate comprehensive manifest.json')
        .option('--freshtab', 'disables ember fresh-tab-frontend build')
        .option('--instrument-functions [ms]', 'log all modules function calls which take more than given ms')
        .action((configPath, options) => {
@@ -321,26 +402,6 @@ program.command('generate <type> <moduleName>')
           next();
         });
        });
-
-program.command('react-dev')
-      .description('run the react-native dev server')
-      .action(() => {
-        setConfigPath('configs/react-native.json');
-        const projectRoots = [OUTPUT_PATH, path.resolve(__dirname, 'node_modules')]
-        const options = ['./node_modules/react-native/local-cli/cli.js', 'start',
-                         '--projectRoots', projectRoots.join(',')]
-        spaws.sync('node', options, { stdio: 'inherit', stderr: 'inherit'});
-      });
-
-program.command('react-bundle <platform> [dest]')
-      .description('create a react-native jsbundle')
-      .action((platform, dest) => {
-        setConfigPath('configs/react-native.json');
-        var options = ['./node_modules/react-native/local-cli/cli.js', 'bundle',
-          '--platform', platform, '--entry-file', `${OUTPUT_PATH}/index.${platform}.js`,
-          '--bundle-output', dest || 'jsengine.bundle.js']
-        spaws.sync('node', options, { stdio: 'inherit', stderr: 'inherit'});
-      });
 
 program.parse(process.argv);
 }

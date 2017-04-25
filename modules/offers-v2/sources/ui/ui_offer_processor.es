@@ -160,7 +160,7 @@ export class UIOfferProcessor {
     this.offersHistory.incHistorySignal(displayID, HistorySignalID.HSIG_OFFER_ADDED);
 
     // to track we use the offer_id
-    this.sigHandler.trackOfferSignal(offerInfoCpy.campaign_id, offerInfoCpy.offer_id, TrackSignalID.TSIG_OFFER_ADDED);
+    this.sigHandler.trackOfferSignal(offerInfoCpy.offer_id, TrackSignalID.TSIG_OFFER_ADDED);
   }
 
   //
@@ -263,25 +263,24 @@ export class UIOfferProcessor {
   // the processing methods should go here
   //
   _processUISignal(offerID, signalType, signalData) {
-    const campaignID = this._getCampaignIDFromOfferID(offerID);
     const displayID = this._getDisplayIDFromOfferID(offerID);
     switch (signalType) {
       case SignalType.OFFER_DISPLAYED:
         //
-        this.sigHandler.trackOfferSignal(campaignID, offerID, TrackSignalID.TSIG_OFFER_SHOWN);
+        this.sigHandler.trackOfferSignal(offerID, TrackSignalID.TSIG_OFFER_SHOWN);
         this.offersHistory.incHistorySignal(displayID, HistorySignalID.HSIG_OFFER_SHOWN);
         this.offersHistory.incHistorySignal(offerID, HistorySignalID.HSIG_OFFER_SHOWN);
       break;
 
       case SignalType.OFFER_HIDE:
-        this.sigHandler.trackOfferSignal(campaignID, offerID, TrackSignalID.TSIG_OFFER_HIDE);
+        this.sigHandler.trackOfferSignal(offerID, TrackSignalID.TSIG_OFFER_HIDE);
       break;
 
       case SignalType.OFFER_DISPLAY_TIMEOUT:
         // increase the times of closed?
         this.offersHistory.incHistorySignal(displayID, HistorySignalID.HSIG_OFFER_TIMEOUT);
         this.offersHistory.incHistorySignal(offerID, HistorySignalID.HSIG_OFFER_TIMEOUT);
-        this.sigHandler.trackOfferSignal(campaignID, offerID, TrackSignalID.TSIG_OFFER_TIMEOUT);
+        this.sigHandler.trackOfferSignal(offerID, TrackSignalID.TSIG_OFFER_TIMEOUT);
         // remove the offer from active ones
         this.removeOffer(offerID);
       break;
@@ -332,29 +331,17 @@ export class UIOfferProcessor {
     return offerInfo.display_id;
   }
 
-  //
-  // return the campaign id from an offer id
-  //
-  _getCampaignIDFromOfferID(offerID) {
-    const offerInfo = this.activeOffers[offerID];
-    if (!offerInfo) {
-      return null;
-    }
-    return offerInfo.campaign_id;
-  }
-
   //////////////////////////////////////////////////////////////////////////////
   // actions from ui
 
   _uiFunCallToAction(offerID, data) {
-    const campaignID = this._getCampaignIDFromOfferID(offerID);
     const offerInfo = this.activeOffers[offerID];
     if (!offerInfo) {
       lwarn('_uiFunCallToAction: we dont have an active offer with id: ' + offerID);
       return;
     }
     linfo('_uiFunCallToAction: called for offer id: ' + offerID);
-    this.sigHandler.trackOfferSignal(campaignID, offerID, TrackSignalID.TSIG_OFFER_CALL_TO_ACTION);
+    this.sigHandler.trackOfferSignal(offerID, TrackSignalID.TSIG_OFFER_CALL_TO_ACTION);
 
     // execute the action if we have one
     if (offerInfo.action_info && offerInfo.action_info.on_click) {
@@ -365,19 +352,16 @@ export class UIOfferProcessor {
   }
 
   _uiFunMoreAboutCliqz(offerID, data) {
-    const campaignID = this._getCampaignIDFromOfferID(offerID);
     linfo('_uiFunMoreAboutCliqz: called for offer id: ' + offerID);
-    this.sigHandler.trackOfferSignal(campaignID, offerID, TrackSignalID.TSIG_OFFER_MORE_INFO);
+    this.sigHandler.trackOfferSignal(offerID, TrackSignalID.TSIG_OFFER_MORE_INFO);
     openNewTabAndSelect(OffersConfigs.OFFER_INFORMATION_URL);
   }
 
   _uiFunCloseOffer(offerID, data) {
-    const campaignID = this._getCampaignIDFromOfferID(offerID);
     linfo('_uiFunCloseOffer: called for offer id: ' + offerID);
-    this.sigHandler.trackOfferSignal(campaignID, offerID, TrackSignalID.TSIG_OFFER_CLOSED);
+    this.sigHandler.trackOfferSignal(offerID, TrackSignalID.TSIG_OFFER_CLOSED);
     const displayID = this._getDisplayIDFromOfferID(offerID);
     this.offersHistory.incHistorySignal(displayID, HistorySignalID.HSIG_OFFER_CLOSED);
-	  //Should we just take one of them?
     this.offersHistory.incHistorySignal(offerID, HistorySignalID.HSIG_OFFER_CLOSED);
 
     // close the offer?
@@ -386,9 +370,8 @@ export class UIOfferProcessor {
 
   _uiFunMoreAboutOffer(offerID, data) {
     // TODO:
-    const campaignID = this._getCampaignIDFromOfferID(offerID);
     linfo('_uiFunMoreAboutOffer: called for offer id: ' + offerID);
-    this.sigHandler.trackOfferSignal(campaignID, offerID, TrackSignalID.TSIG_OFFER_MORE_ABT_CLIQZ);
+    this.sigHandler.trackOfferSignal(offerID, TrackSignalID.TSIG_OFFER_MORE_ABT_CLIQZ);
   }
 
 

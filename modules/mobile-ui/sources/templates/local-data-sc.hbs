@@ -4,7 +4,7 @@
             <table class="local__head">
                 <tr>
                     <td>
-                        <img class="map__img" src="skin/img/maps-logo.svg" extra="map-image"
+                        <img class="map__img" data-src="skin/img/maps-logo.svg" extra="map-image"
                              cliqz-action="stop-click-event-propagation" onclick="osAPI.browserAction('map', '{{mu}}')"/>
                          <div class="local-distance">
                             {{#if distance}}
@@ -28,7 +28,7 @@
                 {{#if opening_hours}}
                     <td class="time-icon-cell">
                         <div extra="open-hour">
-                            <div class="icon" style="background-image: url(skin/img/local-opening-hours.svg)">
+                            <div class="icon" data-style="background-image: url(skin/img/local-opening-hours.svg)">
                               Icon
                             </div>
                         </div>
@@ -51,7 +51,7 @@
                             <div cliqz-action="stop-click-event-propagation"
                             onclick="osAPI.browserAction('phoneNumber', '{{phonenumber}}')">
                                 <div class="icon"
-                                style="background-image: url(skin/img/call-icon.svg)">
+                                data-style="background-image: url(skin/img/call-icon.svg)">
                                 </div>
                                 <div class="call-text">
                                     {{local 'mobile_local_card_call'}}
@@ -64,9 +64,9 @@
         </div>
     {{else if no_location}}
         <table class="no__location" extra="share-location"
-               cliqz-action="stop-click-event-propagation" onclick="osAPI.shareLocation()">
+               cliqz-action="stop-click-event-propagation" onclick="osAPI.browserAction('shareLocation')">
             <td>
-                <img class="pin__logo" src="skin/img/location_pin.svg"/>
+                <img class="pin__logo" data-src="skin/img/location_pin.svg"/>
                 <div class="share__once">{{local 'mobile_share_location'}}</div>
             </td>
         </table>

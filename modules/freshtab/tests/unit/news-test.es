@@ -1,5 +1,3 @@
-const fs = System._nodeRequire('fs');
-
 export default describeModule("freshtab/news",
   function () {
     return {
@@ -54,6 +52,7 @@ export default describeModule("freshtab/news",
 
       function readMock(fileName) {
         return new Promise(function (resolve, reject) {
+          var fs = require('fs');
           fs.readFile(fileName, 'utf8', function (err, data) {
             if (err) {
               console.log(err);

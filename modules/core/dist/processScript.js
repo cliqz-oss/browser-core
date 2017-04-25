@@ -141,7 +141,6 @@ function onDOMWindowCreated(ev) {
     }
 
     send({
-      origin: 'content',
       windowId: windowId,
       payload: message
     });
@@ -163,17 +162,14 @@ function onDOMWindowCreated(ev) {
     if (!whitelist.some(function (url) { return currentURL().indexOf(url) === 0; }) ) {
       return;
     }
-
-    if (msg.data.origin === 'content') {
-      window.postMessage(JSON.stringify({
-        target: "cliqz",
-        type: "response",
-        response: msg.data.response,
-        action: msg.data.action,
-        module: msg.data.module,
-        requestId: msg.data.requestId,
-      }), "*");
-    }
+    window.postMessage(JSON.stringify({
+      target: "cliqz",
+      type: "response",
+      response: msg.data.response,
+      action: msg.data.action,
+      module: msg.data.module,
+      requestId: msg.data.requestId,
+    }), "*");
   }
 
   function throttle(fn, threshhold) {
@@ -275,7 +271,6 @@ function onDOMWindowCreated(ev) {
     }
 
     send({
-      origin: 'content',
       payload: payload,
       requestId: msg.data.requestId
     });

@@ -3,9 +3,7 @@ import Search from "autocomplete/search";
 
 class ProviderAutoCompleteSearch {
   constructor() {
-    this.search = new Search({
-      successCode: Components.interfaces.nsIAutoCompleteResult.RESULT_SUCCESS,
-    });
+    this.search = new Search();
   }
 
   startSearch(searchString, searchParam, previousResult, listener){

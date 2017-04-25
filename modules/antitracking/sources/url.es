@@ -1,6 +1,5 @@
-import md5 from './md5';
-import MapCache from './fixed-size-cache';
-import { getGeneralDomain } from './domain';
+import md5 from 'antitracking/md5';
+import MapCache from 'antitracking/fixed-size-cache';
 
 function parseHostname(hostname) {
   var o = {'hostname': null, 'username': '', 'password': '', 'port': null};
@@ -26,6 +25,7 @@ function parseHostname(hostname) {
 
   return o;
 }
+
 
 function parseURL(url) {
   /*  Parse a URL string into a set of sub-components, namely:
@@ -106,7 +106,6 @@ function parseURL(url) {
       o['parameter_keys'] = {};
       o['fragment_keys'] = {};
     }
-
   } else {
     return null;
   }
@@ -280,46 +279,29 @@ function getHeaderMD5(headers) {
 /**
  URLInfo class: holds a parsed URL.
  */
-
-const urlCache = new MapCache(function(url) { return new Url(url); }, 100);
-
-/** Factory getter for URLInfo. URLInfo are cached in a LRU cache. */
-const URLInfo = {
-  get: function(url) {
-    if (!url) return "";
-    return urlCache.get(url);
+var URLInfo = function(url) {
+  this.url_str = url;
+  // map parsed url parts onto URL object
+  let url_parts = parseURL(url);
+  for(let k in url_parts) {
+    this[k] = url_parts[k];
   }
+  return this;
 }
 
-class Url {
+URLInfo._cache = new MapCache(function(url) { return new URLInfo(url); }, 100);
 
-  constructor(urlString) {
-    this.urlString = urlString;
-    // add attributes from parseURL to this object
-    const parsed = parseURL(urlString);
-    if (parsed) {
-      Object.keys(parsed).forEach((k) => {
-        this[k] = parsed[k];
-      });
-    }
-  }
+/** Factory getter for URLInfo. URLInfo are cached in a LRU cache. */
+URLInfo.get = function(url) {
+  if (!url) return "";
+  return URLInfo._cache.get(url);
+}
 
-  get generalDomain() {
-    if (!this._generalDomain) {
-      this._generalDomain = getGeneralDomain(this.hostname);
-    }
-    return this._generalDomain;
-  }
-
-  get generalDomainHash() {
-    return md5(this.generalDomain).substring(0, 16);
-  }
-
-  toString() {
-    return this.urlString;
-  }
-
-  getKeyValues() {
+URLInfo.prototype = {
+  toString: function() {
+    return this.url_str;
+  },
+  getKeyValues: function () {
     var kvList = [];
     for (let kv of [this.query_keys, this.parameter_keys]) {
       for (let key in kv) {
@@ -334,9 +316,8 @@ class Url {
       }
     }
     return kvList;
-  }
-
-  getKeyValuesMD5() {
+  },
+  getKeyValuesMD5: function () {
     const kvList = this.getKeyValues();
     return kvList.map(function (kv) {
       // ensure v is stringy
@@ -348,8 +329,7 @@ class Url {
       return kv;
     });
   }
-
-}
+};
 
 function shuffle(s) {
   var a = s.split(""),

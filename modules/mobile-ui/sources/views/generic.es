@@ -1,4 +1,4 @@
-import LocalView from './local-data-sc';
+import LocalView from 'mobile-ui/views/local-data-sc';
 
 export class GenericResult {
 
@@ -25,6 +25,7 @@ export default class Generic {
       new LocalView().enhanceResults(data.extra);
     }
 
+    data.extra = data.extra || {};
     data.screen = screen;
     Object.setPrototypeOf(data, GenericResult.prototype);
 
@@ -46,19 +47,17 @@ export default class Generic {
       return true;
     });
 
-    if (data.extra) {
-      partials.push({type: 'header-extra', data: data.extra.rich_data});
+    partials.push({type: 'header-extra', data: data.extra.rich_data});
 
-      partials.push({type: 'main-image', data: data.extra});
+    partials.push({type: 'main-image', data: data.extra});
 
-      // specific
-      specificTypes.forEach(partial => {
-
-        if (data.template === partial || data.extra.superTemplate === partial) {
-          partials.push({type: partial, data: data.extra})
-        }
-      });
-    }
+    // specific
+    specificTypes.forEach(partial => {
+      console.log('data.template', data.template)
+      if (data.template === partial || data.extra.superTemplate === partial) {
+        partials.push({type: partial, data: data.extra})
+      }
+    });
 
 
     // description

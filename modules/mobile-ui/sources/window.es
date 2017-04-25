@@ -1,9 +1,8 @@
-import Handlebars from 'handlebars'
-import utils from '../core/utils';
-import UI from "./UI";
-import templates from "./templates";
-import helpers from './content/helpers';
-import VIEWS from './views';
+import { utils } from "core/cliqz";
+import UI from "mobile-ui/UI";
+import templates from "mobile-ui/templates";
+import helpers from 'mobile-ui/content/helpers';
+import VIEWS from 'mobile-ui/views';
 
 /**
 * @namespace mobile-ui

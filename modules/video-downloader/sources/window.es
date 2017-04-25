@@ -1,6 +1,5 @@
-import { utils, events } from 'core/cliqz';
-import inject from '../core/kord/inject';
 import UI from './ui';
+import { utils, events } from 'core/cliqz';
 
 const DISMISSED_ALERTS = 'dismissedAlerts';
 
@@ -16,11 +15,13 @@ export default class {
     // If not, we pass a null value.
     // So this video-downloader module could work
     // with/without 'pairing' module.
-    inject.module('pairing').action('getPairingPeer')
+    utils.importModule('pairing/main')
+    .then(x => (this.PeerComm = x.default))
     .catch(() => {})
-    .then((peerComm) => {
-      this.UI = new UI(peerComm, this.window);
+    .then(() => {
+      this.UI = new UI(this.PeerComm, this.window);
       this.UI.init();
+
       this.showOnboarding();
     });
   }
@@ -36,13 +37,13 @@ export default class {
     const isBrowser = this.settings.channel === '40';
     const dismissedAlerts = JSON.parse(utils.getPref(DISMISSED_ALERTS, '{}'));
     const messageType = 'video-downloader';
-    const isDismissed = dismissedAlerts[messageType] && dismissedAlerts[messageType].count >= 1;
+    const isDismissed = dismissedAlerts[messageType] && dismissedAlerts[messageType]['count'] >= 1 || false;
     if (isBrowser && isInABTest && !isDismissed) {
       events.pub(
         'msg_center:show_message',
         {
-          id: 'video-downloader',
-          template: 'video-downloader',
+          "id": "video-downloader",
+          "template": "video-downloader",
         },
         'MESSAGE_HANDLER_FRESHTAB'
       );

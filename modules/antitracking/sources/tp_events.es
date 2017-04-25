@@ -1,9 +1,7 @@
-import { utils } from '../core/cliqz';
-import background from './background';
-import CliqzAttrack from './attrack';
-import md5 from './md5';
-import { sameGeneralDomain } from './domain';
-import * as browser from '../platform/browser';
+import md5 from 'antitracking/md5';
+import { sameGeneralDomain } from 'antitracking/domain';
+import * as browser from 'platform/browser';
+import { utils } from 'core/cliqz';
 
 // Class to hold a page load and third party urls loaded by this page.
 class PageLoadData {
@@ -260,12 +258,11 @@ class PageEventTracker {
       var now = (new Date()).getTime();
       if(now - this._last_clean > this._clean_interval || force_clean == true) {
           for(let k in this._active) {
-              browser.checkIsWindowActive(k).then(active => {
-                if(!active || force_stage == true) {
+              var active = browser.isWindowActive(k);
+              if(!active || force_stage == true) {
                   if (this.debug) utils.log('Stage tab '+k, 'tp_events');
                   this.stage(k);
-                }
-              });
+              }
           }
           this._last_clean = now;
       }

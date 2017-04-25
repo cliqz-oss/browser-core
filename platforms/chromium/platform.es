@@ -3,6 +3,3 @@ export default {
   isFirefox: false,
   isChromium: true
 };
-export function isPlatformAtLeastInVersion(version) {
-  return true;
-}

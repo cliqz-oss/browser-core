@@ -1,17 +1,23 @@
+'use strict';
 /*
  This module is used for sending the events for purpose of
  human-web, anti-tracking via a secure channel.
 */
 
-import Storage from '../platform/hpn/storage';
-import CliqzUtils from '../core/utils';
-import config from '../core/config';
-import ResourceLoader from '../core/resource-loader';
-import { sendM } from './send-message';
-import * as hpnUtils from './utils';
-import { overRideCliqzResults } from './http-handler-patch';
-import ProxyFilter from './proxy-filter';
-import CryptoWorker from './crypto-worker';
+import { sendM } from 'hpn/send-message';
+import * as hpnUtils from 'hpn/utils';
+import { overRideCliqzResults } from 'hpn/http-handler-patch';
+import ResourceLoader from 'core/resource-loader';
+import CliqzUtils from 'core/utils';
+import ProxyFilter from 'hpn/proxy-filter';
+
+const { utils: Cu } = Components;
+
+
+Cu.import('resource://gre/modules/Services.jsm');
+Cu.import('resource://gre/modules/FileUtils.jsm');
+Cu.import('resource://gre/modules/XPCOMUtils.jsm');
+
 
 /* Global variables
 */
@@ -31,17 +37,18 @@ const CliqzSecureMessage = {
   eventID: {},
   sourceMap: null,
   sourceMapLoader: null,
+  secureKeysLoader: null,
   tmult: 4,
   tpace: 250,
-  SOURCE_MAP_PROVIDER: config.settings.ENDPOINT_SOURCE_MAP_PROVIDER,
-  LOOKUP_TABLE_PROVIDER: config.settings.ENDPOINT_LOOKUP_TABLE_PROVIDER,
-  KEYS_PROVIDER: config.settings.ENDPOINT_KEYS_PROVIDER,
+  SOURCE_MAP_PROVIDER: 'https://hpn-collector.cliqz.com/sourcemapjson?q=1',
+  LOOKUP_TABLE_PROVIDER: 'https://hpn-collector.cliqz.com/lookuptable?q=1',
+  KEYS_PROVIDER: 'https://hpn-collector.cliqz.com/signerKey?q=1',
   proxyList: null,
   proxyListLoader: null,
   proxyStats: {},
-  PROXY_LIST_PROVIDER: config.settings.ENDPOINT_PROXY_LIST_PROVIDER,
-  BLIND_SIGNER: config.settings.ENDPOINT_BLIND_SIGNER,
-  USER_REG: config.settings.ENDPOINT_USER_REG,
+  PROXY_LIST_PROVIDER: 'https://hpn-collector.cliqz.com/proxyList?q=1',
+  BLIND_SIGNER: 'https://hpn-sign.cliqz.com/sign',
+  USER_REG: 'https://hpn-sign.cliqz.com/register',
   localTemporalUniq: null,
   wCrypto: null,
   queriesID: {},
@@ -49,8 +56,6 @@ const CliqzSecureMessage = {
   proxyInfoObj: {},
   queryProxyFilter: null,
   pacemaker: function () {
-    CliqzSecureMessage.counter += 1;
-
     if ((CliqzSecureMessage.counter / CliqzSecureMessage.tmult) % 10 === 0) {
       if (CliqzSecureMessage.debug) {
         CliqzUtils.log('Pacemaker: ' + CliqzSecureMessage.counter / CliqzSecureMessage.tmult, CliqzSecureMessage.LOG_KEY);
@@ -73,12 +78,22 @@ const CliqzSecureMessage = {
       }
     }
 
-    if ((CliqzSecureMessage.counter / CliqzSecureMessage.tmult) % (60 * 15 * 1) === 0) {
+    if ((CliqzSecureMessage.counter / CliqzSecureMessage.tmult) % (60 * 3 * 1) === 0) {
       if (CliqzSecureMessage.debug) {
-        CliqzUtils.log('Clean local temp queue', CliqzSecureMessage.LOG_KEY);
+        CliqzUtils.log('Load proxy list', CliqzSecureMessage.LOG_KEY);
       }
       hpnUtils.prunelocalTemporalUniq();
     }
+
+
+    if ((CliqzSecureMessage.counter / CliqzSecureMessage.tmult) % (60 * 10 * 1) === 0) {
+      if (CliqzSecureMessage.debug) {
+        CliqzUtils.log('Save local temporalUniquness stats', CliqzSecureMessage.LOG_KEY);
+      }
+      hpnUtils.saveLocalCheckTable();
+    }
+
+    CliqzSecureMessage.counter += 1;
   },
   // ****************************
   // telemetry, PREFER NOT TO SHARE WITH CliqzUtils for safety, blatant rip-off though
@@ -104,7 +119,7 @@ const CliqzSecureMessage = {
   previousDataPost: null,
   pushMessage : [],
   routeHashTable: null,
-  eacemakerId: null,
+  pacemakerId: null,
   queryProxyIP: null,
   performance: null,
   pushTelemetry: function() {
@@ -128,17 +143,15 @@ const CliqzSecureMessage = {
     // Better method appriciated.
 
     if (CliqzSecureMessage.pacemakerId == null) {
-      CliqzSecureMessage.pacemakerId = CliqzUtils.setInterval(CliqzSecureMessage.pacemaker.bind(this), CliqzSecureMessage.tpace, null);
+      CliqzSecureMessage.pacemakerId = CliqzUtils.setInterval(CliqzSecureMessage.pacemaker, CliqzSecureMessage.tpace, null);
     }
+    if (!CliqzSecureMessage.dbConn) CliqzSecureMessage.initDB();
 
-    // TODO: do not pass this to storage
-    this.storage = new Storage(this);
-
-    if (!CliqzSecureMessage.localTemporalUniq) this.storage.loadLocalCheckTable();
+    if (!CliqzSecureMessage.localTemporalUniq) hpnUtils.loadLocalCheckTable();
 
     // Load source map. Update it once an hour.
     this.sourceMapLoader = new ResourceLoader(
-        ["hpn","sourcemap.json"],
+        ["hpn","sourcemap"],
         {
           remoteURL: CliqzSecureMessage.SOURCE_MAP_PROVIDER
         }
@@ -152,7 +165,7 @@ const CliqzSecureMessage = {
 
     // Load proxy list. Update every 5 minutes.
     this.proxyListLoader = new ResourceLoader(
-        ["hpn","proxylist.json"],
+        ["hpn","proxylist"],
         {
           remoteURL: CliqzSecureMessage.PROXY_LIST_PROVIDER,
           cron: 1 * 5 * 60 * 1000,
@@ -168,7 +181,7 @@ const CliqzSecureMessage = {
 
     // Load lookuptable. Update every 5 minutes.
     this.routeTableLoader = new ResourceLoader(
-        ["hpn","routeTable.json"],
+        ["hpn","routeTable"],
         {
           remoteURL: CliqzSecureMessage.LOOKUP_TABLE_PROVIDER,
           cron: 1 * 5 * 60 * 1000,
@@ -182,8 +195,23 @@ const CliqzSecureMessage = {
 
     this.routeTableLoader.onUpdate(e => CliqzSecureMessage.routeTable = e);
 
-    CliqzSecureMessage.dsPK.pubKeyB64 = config.settings.KEY_DS_PUBKEY;
-    CliqzSecureMessage.secureLogger.publicKeyB64 = config.settings.KEY_SECURE_LOGGER_PUBKEY;
+    // Load secure keys. Update every one hour.
+    this.secureKeysLoader = new ResourceLoader(
+        ["hpn","securekeys"],
+        {
+          remoteURL: CliqzSecureMessage.KEYS_PROVIDER
+        }
+    );
+
+    this.secureKeysLoader.load().then( e => {
+      CliqzSecureMessage.dsPK.pubKeyB64 = e.signerB64;
+      CliqzSecureMessage.secureLogger.publicKeyB64 = e.secureloggerB64;
+    })
+
+    this.secureKeysLoader.onUpdate(e => {
+      CliqzSecureMessage.dsPK.pubKeyB64 = e.signerB64;
+      CliqzSecureMessage.secureLogger.publicKeyB64 = e.secureloggerB64;
+    });
 
     if (CliqzUtils.getPref('proxyNetwork', true)) {
       overRideCliqzResults();
@@ -194,18 +222,31 @@ const CliqzSecureMessage = {
     // Register proxy fr query.
 
     CliqzSecureMessage.queryProxyFilter = new ProxyFilter();
-    CliqzSecureMessage.queryProxyFilter.init();
+  },
+  initDB: function() {
+    if (FileUtils.getFile('ProfD', ['cliqz.dbhumanweb']).exists()) {
+      if (CliqzSecureMessage.dbConn == null) {
+        CliqzSecureMessage.dbConn = Services.storage.openDatabase(FileUtils.getFile('ProfD', ['cliqz.dbhumanweb']));
+      }
+      hpnUtils.createTable();
+      return;
+    }
+    else {
+      CliqzSecureMessage.dbConn = Services.storage.openDatabase(FileUtils.getFile('ProfD', ['cliqz.dbhumanweb']));
+      hpnUtils.createTable();
+    }
   },
   unload: function() {
-    CliqzSecureMessage.queryProxyFilter.unload();
-    this.storage.saveLocalCheckTable();
+    CliqzSecureMessage.queryProxyFilter.destroy();
+    hpnUtils.saveLocalCheckTable();
     CliqzSecureMessage.pushTelemetry();
     this.sourceMapLoader.stop();
     this.proxyListLoader.stop();
     this.routeTableLoader.stop();
+    this.secureKeysLoader.stop();
     CliqzUtils.clearTimeout(CliqzSecureMessage.pacemakerId);
-    this.storage.close();
   },
+  dbConn: null,
   proxyIP: function () {
     if (!CliqzSecureMessage.proxyList) return;
 
@@ -215,17 +256,20 @@ const CliqzSecureMessage = {
     proxyCounter += 1;
   },
   registerUser: function() {
-    this.storage.loadKeys().then(userKey => {
+    hpnUtils.loadKeys().then(userKey => {
       if (!userKey) {
-        const userCrypto = new CryptoWorker();
+        const userCrypto = new Worker('crypto-worker.js');
+        userCrypto.postMessage({
+          type: 'user-key'
+        });
 
-        userCrypto.onmessage = (e) => {
+        userCrypto.onmessage = function msgRecieved(e) {
             if (e.data.status) {
               const uK = {};
               uK.privateKey = e.data.privateKey;
               uK.publicKey = e.data.publicKey;
               uK.ts = Date.now();
-              this.storage.saveKeys(uK).then( response => {
+              hpnUtils.saveKeys(uK).then( response => {
                 if (response.status) {
                   CliqzSecureMessage.uPK.publicKeyB64 = response.data.publicKey;
                   CliqzSecureMessage.uPK.privateKey = response.data.privateKey;
@@ -234,11 +278,8 @@ const CliqzSecureMessage = {
             }
             userCrypto.terminate();
         }
-
-        userCrypto.postMessage({
-          type: 'user-key'
-        });
-      } else {
+      }
+      else {
         CliqzSecureMessage.uPK.publicKeyB64 = userKey.publicKey;
         CliqzSecureMessage.uPK.privateKey = userKey.privateKey;
       }

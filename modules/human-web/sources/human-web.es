@@ -6,7 +6,8 @@ import md5 from "../core/helpers/md5";
 import ResourceLoader from '../core/resource-loader';
 import { queryActiveTabs } from '../core/tabs';
 import { forEachWindow } from '../core/browser';
-import random from '../core/crypto/random';
+import CliqzSecureMessage from '../hpn/main';
+import random from 'core/crypto/random';
 
 Components.utils.import("resource://gre/modules/FileUtils.jsm");
 
@@ -4617,7 +4618,23 @@ var CliqzHumanWeb = {
         return promise;
     },
     sha1: function(s) {
-      return CliqzHumanWeb.hpn.action('sha1', s);
+        // Pass the message to the web-worker for SHA-1.
+        let promise = new Promise( (resolve, reject) => {
+            let wCrypto = new Worker('chrome://cliqz/content/hpn/crypto-worker.js');
+
+            wCrypto.onmessage = function(e){
+                let result = e.data.result;
+                wCrypto.terminate();
+                _log("Got result for sha1:" + result);
+                resolve(result);
+            };
+
+            wCrypto.postMessage({
+                "msg":s,
+                "type":"hw-sha1"
+            });
+        });
+        return promise;
     },
     sendQuorumIncrement: function(hashedUrl){
         let promise = new Promise( (resolve, reject) => {
@@ -4630,7 +4647,7 @@ var CliqzHumanWeb = {
                 } else {
                     let payload = `?hu=${hashedUrl}&oc=${CliqzHumanWeb.oc}`;
                     let _rp = `${CliqzHumanWeb.SAFE_QUORUM_ENDPOINT}incrquorum`;
-                    return CliqzHumanWeb.hpn.action('sendInstantMessage', _rp, payload);
+                    return CliqzHumanWeb.sendInstantMessage(_rp, payload);
                 }
              })
             .then( CliqzHumanWeb.setPageVisitQuorumBloomFilter(hashedUrl))
@@ -4646,7 +4663,41 @@ var CliqzHumanWeb = {
         let payload = "?hu=" + hashedUrl;
         let _rp = CliqzHumanWeb.SAFE_QUORUM_ENDPOINT + "checkquorum";
 
-        return CliqzHumanWeb.hpn.action('sendInstantMessage', _rp, payload);
+        return new Promise( (resolve, reject) => {
+            CliqzHumanWeb.sendInstantMessage(_rp, payload)
+                .then( result => resolve(result))
+                .catch( err => reject("quorumconsent"));
+        });
+    },
+    sendInstantMessage: function(_rp, payload){
+        let promise = new Promise( (resolve, reject) => {
+            let wCrypto = new Worker('chrome://cliqz/content/hpn/crypto-worker.js');
+
+            wCrypto.onmessage = function(e){
+                let _result = JSON.parse(e.data.res).result;
+                wCrypto.terminate();
+                _log("Got result for: " + _rp + " : " + _result);
+                resolve(_result);
+            };
+
+            wCrypto.postMessage({
+                msg: { action: 'instant',
+                      type: 'cliqz',
+                      ts: '',
+                      ver: '1.5',
+                      payload: payload,
+                      rp: _rp,
+                },
+                uid: "",
+                type: 'instant',
+                sourcemap: CliqzSecureMessage.sourceMap,
+                upk: CliqzSecureMessage.uPK,
+                dspk: CliqzSecureMessage.dsPK,
+                sspk: CliqzSecureMessage.secureLogger,
+                queryproxyip: CliqzSecureMessage.queryProxyIP,
+            });
+        });
+        return promise;
     },
     registerQuorumBloomFilters: function(){
         let promise = new Promise( (resolve, reject) => {

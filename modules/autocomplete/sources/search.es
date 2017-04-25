@@ -50,12 +50,26 @@ class ProviderAutoCompleteResultCliqz {
   get defaultIndex() { return this._defaultIndex; }
   get errorDescription() { return this._errorDescription; }
   get matchCount() { return this._results.length; }
-  getValueAt(index) { return (this._results[index] || {}).val; }
+  getValueAt(index) {
+    var val = (this._results[index] || {}).val;
+    if (this.getStyleAt(index).indexOf('switchtab') >= 0 && utils.dropDownStyle === 'ff') {
+      val = "moz-action:switchtab," + JSON.stringify({url: val});
+    }
+    return val;
+  }
   getFinalCompleteValueAt(index) { return this.getValueAt(index); }
   getCommentAt(index) { return (this._results[index] || {}).comment; }
   getStyleAt(index) { return (this._results[index] || {}).style; }
   getImageAt (index) { return (this._results[index] || {}).image || ''; }
-  getLabelAt(index) { return (this._results[index] || {}).label; }
+  getLabelAt(index) {
+    const val = this.getValueAt(index);
+    if (val && val.indexOf('moz-action:') == 0 && utils.dropDownStyle === 'ff') {
+      return val;
+    } else {
+      return (this._results[index] || {}).label;
+    }
+
+  }
   getDataAt(index) { return (this._results[index] || {}).data; }
 
   setResults(results){
@@ -73,7 +87,7 @@ class ProviderAutoCompleteResultCliqz {
 }
 
 export default class Search {
-  constructor({ successCode } = {}) {
+  constructor() {
     this.TIMEOUT = 1000;
     this.HISTORY_TIMEOUT = 400;
 
@@ -81,7 +95,6 @@ export default class Search {
       smartCliqzCache: new SmartCliqzCache(),
       triggerUrlCache: new TriggerUrlCache()
     } : {};
-    this.successCode = successCode;
     this.mixer = new Mixer(mixerArgs);
     this.spellCheck = new SpellCheck();
     this.resultsTimer = null;
@@ -178,10 +191,11 @@ export default class Search {
       this.callback = callback;
       this.searchString = searchString;
       this.searchStringSuggest = null;
+      const defaultIndex = utils.dropDownStyle == 'ff' ? 0 : -2; // -2 blocks default FF autocomplete
       this.mixedResults = new ProviderAutoCompleteResultCliqz(
               this.searchString,
-              this.successCode,
-              -2, // blocks autocomplete
+              Components.interfaces.nsIAutoCompleteResult.RESULT_SUCCESS,
+              defaultIndex, // blocks autocomplete
               '');
 
       this.startTime = Date.now();
@@ -580,7 +594,7 @@ export default class Search {
   cliqzResultFetcher(res, attemptsSoFar) {
       var json = res.response,
           q = res.query || res.q; // query will be called q if RH is down
-      if (['simple'].indexOf(utils.dropDownStyle) > -1) {
+      if (['simple', 'ff'].indexOf(utils.dropDownStyle) > -1) {
         // Remove query-triggered RH results (smart cliqz) in simple UI && FF UI
         json.results = json.results.filter((r) => {
           return !(r.type === 'rh' && r.trigger_method === 'query');

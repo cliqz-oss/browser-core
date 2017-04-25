@@ -1,7 +1,7 @@
-import { getGeneralDomain } from '../antitracking/domain';
-import { isTabURL } from '../platform/browser';
-import { URLInfo } from '../antitracking/url';
-import domainInfo from '../core/domain-info';
+import { getGeneralDomain } from 'antitracking/domain';
+import attrack from 'antitracking/attrack';
+import CliqzADB from 'adblocker/adblocker';
+import { URLInfo } from 'antitracking/url';
 
 
 class PageStats {
@@ -17,12 +17,12 @@ class PageStats {
     let company;
     // Re-use anti tracking company list for the moment.
     // TODO: Replace it with a proper ads company list later
-    if (domain in domainInfo.domainOwners) {
-      company = domainInfo.domainOwners[domain];
+    if (domain in attrack.tracker_companies) {
+      company = attrack.tracker_companies[domain];
     } else if (domain === getGeneralDomain(URLInfo.get(this.pageUrl).hostname)) {
       company = 'First party';
     } else {
-      company = domain;
+      company = '_Unknown';
     }
     if (this.blocked.get(company)) {
       if (!this.blocked.get(company).has(url)) {
@@ -76,7 +76,7 @@ class AdbStats {
 
   clearStats() {
     this.pages.forEach((value, key) => {
-      if (!isTabURL(key)) {
+      if (!CliqzADB.isTabURL(key)) {
         this.pages.delete(key);
       }
     });

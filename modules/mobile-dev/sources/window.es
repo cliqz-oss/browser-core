@@ -1,6 +1,6 @@
-import utils from "../core/utils";
-import Test from "./test";
-import MockOS from "./MockOS";
+import { utils } from "core/cliqz";
+import Test from "mobile-dev/test";
+import MockOS from "mobile-dev/MockOS";
 
 /**
 * @namespace mobile-dev

@@ -45,38 +45,6 @@ export function forEachWindow(callback) {
   mapWindows(callback);
 }
 
-
-export function isTabURL(url) {
-  const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
-    .getService(Components.interfaces.nsIWindowMediator);
-  const browserEnumerator = wm.getEnumerator('navigator:browser');
-
-  while (browserEnumerator.hasMoreElements()) {
-    const browserWin = browserEnumerator.getNext();
-    const tabbrowser = browserWin.gBrowser;
-
-    const numTabs = tabbrowser.browsers.length;
-    for (let index = 0; index < numTabs; index += 1) {
-      const currentBrowser = tabbrowser.getBrowserAtIndex(index);
-      if (currentBrowser) {
-        const tabURL = currentBrowser.currentURI.spec;
-        if (url === tabURL || url === tabURL.split('#')[0]) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-}
-
-
-export function getBrowserMajorVersion() {
-  const appInfo = Components.classes['@mozilla.org/xre/app-info;1']
-                  .getService(Components.interfaces.nsIXULAppInfo);
-  return parseInt(appInfo.version.split('.')[0], 10);
-}
-
-
 /** Returns true if the give windowID represents an open browser tab's windowID.
  */
 export function isWindowActive(windowID) {
@@ -127,10 +95,6 @@ export function isWindowActive(windowID) {
     }
   }
   return false;
-}
-
-export function checkIsWindowActive(windowID) {
-  return Promise.resolve(isWindowActive(windowID));
 }
 
 const windowObservers = new Map();

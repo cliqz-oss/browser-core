@@ -252,11 +252,8 @@ const CLIQZEnvironment = {
         return e;
     }
   },
-  onRenderComplete: function(query, allUrls) {
-    chrome.cliqzSearchPrivate.processResults(query, allUrls);
-  },
-  onResultSelectionChange: function(position) {
-    chrome.cliqzSearchPrivate.onResultSelectionChange(position);
+  onRenderComplete: function(query, urls){
+    chrome.cliqzSearchPrivate.processResults(query, urls);
   },
   setSupportInfo() {},
 };

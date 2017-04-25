@@ -1,4 +1,4 @@
-import TempSet from '../temp-set';
+import TempSet from 'antitracking/temp-set';
 
 /**
  * Caches 302 redirects so that we can ensure that the resulting request is properly

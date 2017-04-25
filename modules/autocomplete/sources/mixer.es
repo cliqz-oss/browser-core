@@ -304,6 +304,12 @@ export default class Mixer {
   mix(q, cliqz, history, customResults, only_history) {
     // Prepare other incoming data
     customResults = customResults || [];
+    if (utils.dropDownStyle == 'ff') {
+      // calculator is not compatible with FF UI
+      customResults = customResults.filter(res => {
+        return (res.data.template !== 'calculator');
+      });
+    }
     var cliqzExtra = [],
         results = [],
         r = {first: [], second: []}; // format returned by this._deduplicateResults()
@@ -376,8 +382,8 @@ export default class Mixer {
       utils.getNoResults && results.push(utils.getNoResults(q, utils.dropDownStyle));
     }
 
-    if (['simple'].indexOf(utils.dropDownStyle) !== -1) {
-      // in simple UI, we don't have history clusters/patterns. We need
+    if (['simple', 'ff'].indexOf(utils.dropDownStyle) !== -1) {
+      // in simple UI & FF UI, we don't have history clusters/patterns. We need
       // to unpack them into separate results.
       return this.unpackHistoryPatterns({query: q, results: results});
     }

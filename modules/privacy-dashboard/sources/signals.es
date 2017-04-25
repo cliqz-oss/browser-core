@@ -88,23 +88,22 @@ var SignalListener = {
   },
 
   monkeyPatchHttpGet: function () {
-    setTimeout(function(url){
-      var queryLog = {};
-      if(url.startsWith(utils.RESULTS_PROVIDER) || url.startsWith(utils.RESULTS_PROVIDER_LOG)){
-        var qs = utils.getDetailsFromUrl(url).query;
-        var qsParams = utils.parseQueryString(qs);
-        Object.keys(qsParams).forEach(function(key){
-          if(qsParams[key]){
-            queryLog[QUERY_LOG_PARAM[key] || key] = qsParams[key];
-          }
-        });
+    var queryLog = {};
+    SignalListener.httpGetOrigin.apply(this, arguments);
 
-        SignalListener.SigCache.ql = {"sig": queryLog, "timestamp": Date.now()};
-        SignalListener.fireNewDataEvent("ql");
-      }
-    }, 0, arguments[0])
+    var url = arguments[0];
+    if(url.startsWith(utils.RESULTS_PROVIDER) || url.startsWith(utils.RESULTS_PROVIDER_LOG)){
+      var qs = utils.getDetailsFromUrl(url).query;
+      var qsParams = utils.parseQueryString(qs);
+      Object.keys(qsParams).forEach(function(key){
+        if(qsParams[key]){
+          queryLog[QUERY_LOG_PARAM[key] || key] = qsParams[key];
+        }
+      });
 
-    return SignalListener.httpGetOrigin.apply(this, arguments);
+      SignalListener.SigCache.ql = {"sig": queryLog, "timestamp": Date.now()};
+      SignalListener.fireNewDataEvent("ql");
+    }
   },
 
   init: function () {

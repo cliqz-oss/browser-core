@@ -1,9 +1,9 @@
-import utils from '../core/utils';
+import CliqzUtils from 'core/utils';
 
 /** Get datetime string of the current hour in the format YYYYMMDDHH
  */
 export function getTime() {
-  var ts = utils.getPref('config_ts', null);
+  var ts = CliqzUtils.getPref('config_ts', null);
   if(!ts){
     var d = null;
     var m = null;

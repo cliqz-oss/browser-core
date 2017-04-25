@@ -1,4 +1,4 @@
-import utils from '../core/utils';
+import CliqzUtils from 'core/utils';
 
 /** Set like class whose members are removed after a specifie
 */
@@ -19,7 +19,7 @@ export default class {
 
   add(item, ttl) {
     this._items.add(item);
-    var timeout = utils.setTimeout(function() {
+    var timeout = CliqzUtils.setTimeout(function() {
         this.delete(item);
         this._timeouts.delete(timeout);
     }.bind(this), ttl || 0);
@@ -32,7 +32,7 @@ export default class {
 
   clear() {
     for (let t of this._timeouts) {
-      utils.clearTimeout(t);
+      CliqzUtils.clearTimeout(t);
     }
     this._timeouts.clear();
     this._items.clear();

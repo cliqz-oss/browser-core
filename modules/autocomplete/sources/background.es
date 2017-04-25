@@ -34,7 +34,6 @@ export default background({
     Search.fetchAndCacheResult = this.resultCache.getResult.bind(this.resultCache);
     Search.clearResultCache = this.resultCache.clear.bind(this.resultCache);
     this.autocomplete = autocomplete;
-    this.autocomplete.setup();
     return onReady().then(() => {
       autocomplete.CliqzResultProviders = new ResultProviders();
       autocomplete.CliqzSearchCountryProviders = new CliqzSearchCountryProviders();

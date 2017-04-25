@@ -1,13 +1,12 @@
-import background from "../core/base/background";
-import * as browser from '../platform/browser';
-import CliqzPopupButton from './popup-button';
-import CliqzAttrack from './attrack';
-import {PrivacyScore} from './privacy-score';
-import md5 from './md5';
-import { DEFAULT_ACTION_PREF, updateDefaultTrackerTxtRule } from './tracker-txt';
-import { utils, events } from '../core/cliqz';
-import telemetry from './telemetry';
-import Config from './config';
+import background from "core/base/background";
+import CliqzPopupButton from 'antitracking/popup-button';
+import CliqzAttrack from 'antitracking/attrack';
+import {PrivacyScore} from 'antitracking/privacy-score';
+import md5 from 'antitracking/md5';
+import { DEFAULT_ACTION_PREF, updateDefaultTrackerTxtRule } from 'antitracking/tracker-txt';
+import { utils, events } from 'core/cliqz';
+import telemetry from 'antitracking/telemetry';
+import Config from 'antitracking/config';
 import inject from '../core/kord/inject';
 
 /**
@@ -22,13 +21,13 @@ export default background({
   * @param settings
   */
   init(settings) {
-    if (browser.getBrowserMajorVersion() < CliqzAttrack.MIN_BROWSER_VERSION) {
+    if (CliqzAttrack.getBrowserMajorVersion() < CliqzAttrack.MIN_BROWSER_VERSION) {
       return;
     }
 
     // fix for users without pref properly set: set to value from build config
     if (!utils.hasPref('attrackRemoveQueryStringTracking')) {
-      utils.setPref('attrackRemoveQueryStringTracking', true);
+      utils.setPref('attrackRemoveQueryStringTracking', settings.antitrackingButton);
     }
 
     this.enabled = false;
@@ -37,7 +36,7 @@ export default background({
     utils.bindObjectFunctions( this.popupActions, this );
 
     // inject configured telemetry module
-    telemetry.loadFromProvider(settings.telemetryProvider || 'human-web');
+    telemetry.loadFromProvider(settings.telemetryProvider || 'human-web/human-web');
 
     // load config
     this.config = new Config({});
@@ -55,7 +54,7 @@ export default background({
   * @method unload
   */
   unload() {
-    if (browser.getBrowserMajorVersion() < CliqzAttrack.MIN_BROWSER_VERSION) {
+    if (CliqzAttrack.getBrowserMajorVersion() < CliqzAttrack.MIN_BROWSER_VERSION) {
       return;
     }
 

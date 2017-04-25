@@ -1,9 +1,6 @@
-import md5 from 'core/helpers/md5';
-import { utils } from 'core/cliqz';
-
 import Backend from 'anolysis/backend-communication';
 import log from 'anolysis/logging';
-import getSynchronizedDate, { DATE_FORMAT } from 'anolysis/synchronized-date';
+import { utils } from 'core/cliqz';
 
 
 export default class {
@@ -12,67 +9,59 @@ export default class {
 
     // Send signals by chunks, at regular intervals
     // Make throughput customizable
-    this.batchSize = 6;
-    this.sendInterval = 15000;
+    this.batchSize = 10;
+    this.sendInterval = 5000;
 
     // Send signal by batch and make sure each message has been sent before
     // deleting from the persistent storage.
     this.interval = utils.setInterval(
         () => {
-          this.processNextBatch(this.batchSize);
+          // 1. Get a batch of signals to send to backend
+          this.storage.getN(this.batchSize)
+            .then((batch) => {
+              if (batch.length > 0) {
+                log(`get batch of ${batch.length}`);
+                batch.forEach((doc) => {
+                  // 2. For each signal sent, remove it from DB
+                  try {
+                    const signal = doc.signal;
+                    if (signal !== undefined) {
+                      const gid = signal.meta.gid;
+
+                      log(`send signal ${JSON.stringify(signal)}`);
+                      Backend.sendSignal(gid, signal)
+                        .then((response) => {
+                          if (response.ok) {
+                            this.storage.remove(doc);
+                          } else {
+                            log(`send failed with code ${response.status}`);
+                          }
+                        })
+                        .catch((ex) => {
+                          log(`failed to send signal with exception ${ex} ${ex.stack}`);
+                        });
+                    }
+                  } catch (ex) {
+                    log(`Exception in signal queue ${ex} ${ex.stack}`);
+                    this.storage.remove(doc);
+                  }
+                });
+              }
+            });
         },
         this.sendInterval,
     );
-  }
-
-  init() {
-    return this.storage
-      .deleteByTimespan({ to: getSynchronizedDate().subtract(1, 'months').format(DATE_FORMAT) })
-      .catch(err => log(`error deleting old messages from queue: ${err}`));
   }
 
   unload() {
     utils.clearInterval(this.interval);
   }
 
-  processNextBatch(size) {
-    return this.getNextBatch(size)
-      .then(batch => this.sendBatch(batch));
-  }
-
-  getNextBatch(size) {
-    return this.storage.getN(size).catch(() => []);
-  }
-
-  sendSignal(doc) {
-    const signal = doc.signal;
-    if (signal !== undefined) {
-      log(`send signal ${JSON.stringify(signal)}`);
-      return Backend.sendSignal(signal)
-        .then(() => this.storage.remove(doc).catch(() => { /* Ignore */ }))
-        .catch((ex) => {
-          // We don't remove the document from the db since it will be retried
-          // later. This way we avoid loosing signals because of server's
-          // errors.
-          log(`failed to send signal with exception ${ex}`);
-        });
-    }
-
-    return Promise.reject(`doc.signal is undefined: ${JSON.stringify(doc)}`);
-  }
-
-  sendBatch(batch) {
-    if (batch.length > 0) {
-      log(`get batch of ${batch.length}`);
-    }
-
-    return Promise.all(
-      batch.map(doc => this.sendSignal(doc))
-    );
-  }
-
   push(signal) {
-    return this.storage.put({ signal, type: 'anolysisSignal', _id: md5(JSON.stringify(signal)) })
-      .then(() => this.storage.info());
+    this.storage.put({ signal, type: 'anolysisSignal' })
+      .then(() => this.storage.info())
+      .then((info) => {
+        log(`DB INFO ${JSON.stringify(info)}`);
+      });
   }
 }

@@ -1,8 +1,8 @@
-import utils from "./utils";
-import events from "./events";
-import ABTests from "./ab-tests";
-import HistoryManager from "./history-manager";
-import { isMobile } from "./platform";
+import utils from "core/utils";
+import events from "core/events";
+import ABTests from "core/ab-tests";
+import HistoryManager from "core/history-manager";
+import { isMobile } from "core/platform";
 
 export default class {
 
@@ -16,7 +16,6 @@ export default class {
 
   init() {
     // expose globals
-    this.window.CLIQZEnvironment = utils.environment;
     this.window.CliqzUtils = utils;
     this.window.CliqzEvents = events;
     this.window.CliqzHistoryManager = HistoryManager;

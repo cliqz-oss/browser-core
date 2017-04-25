@@ -1,12 +1,12 @@
-import config from './config';
-import console from './console';
-import { utils } from './cliqz';
-import Storage from '../platform/resource-loader-storage';
+import { readFile, writeFile, mkdir } from 'core/fs';
+import { utils } from 'core/cliqz';
+
 
 // Common durations
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
+
 
 function get(url) {
   return new Promise((resolve, reject) => {
@@ -15,6 +15,20 @@ function get(url) {
     }, reject, 10 * ONE_SECOND);
   });
 }
+
+
+function makeDirRecursive(path, from = []) {
+  const [first, ...rest] = path;
+
+  if (!first) {
+    return Promise.resolve();
+  }
+
+  return mkdir(from.concat(first)).then(() =>
+    makeDirRecursive(rest, from.concat(first))
+  );
+}
+
 
 /* Abstract away the pattern `onUpdate` trigger list of
  * callbacks. This pattern is used a lot, so it looks worth
@@ -34,6 +48,7 @@ export class UpdateCallbackHandler {
   }
 }
 
+
 /* A resource is responsible for handling a remote resource persisted on
  * disk. It will be persisted on disk upon each update from remote. It is
  * also able to parse JSON automatically if `dataType` is 'json'.
@@ -45,8 +60,7 @@ export class Resource {
     this.remoteURL = options.remoteURL;
     this.dataType = options.dataType || 'json';
     this.filePath = ['cliqz', ...this.name];
-    this.chromeURL = options.chromeURL || `${config.baseURL}${this.name.join('/')}`;
-    this.storage = new Storage(this.filePath);
+    this.chromeURL = options.chromeURL || `chrome://cliqz/content/${this.name.join('/')}`;
   }
 
   /**
@@ -59,7 +73,7 @@ export class Resource {
    * promise to handle errors properly.
    */
   load() {
-    return this.storage.load()
+    return readFile(this.filePath)
       .then((data) => {
         try {
           // If TextDecoder is not available just use `data`
@@ -101,11 +115,21 @@ export class Resource {
   }
 
   persist(data) {
-    return this.parseData(data).then(parsed =>
-      this.storage.save(data)
-      .catch(e => console.error('resource-loader error on persist: ', e))
-      .then(() => parsed)
-    );
+    return this.parseData(data)
+      .then((parsed) => {
+        const dirPath = this.filePath.slice(0, -1);
+        return makeDirRecursive(dirPath)
+          .then(() => {
+            try {
+              // If TextEncoder is not available just use `data`
+              return (new TextEncoder()).encode(data);
+            } catch (e) {
+              return data;
+            }
+          })
+          .then(encoded => writeFile(this.filePath, encoded))
+          .then(() => parsed);
+      });
   }
 
   parseData(data) {

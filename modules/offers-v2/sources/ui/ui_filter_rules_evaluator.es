@@ -6,7 +6,6 @@ import LoggingHandler from '../logging_handler';
 import OffersConfigs from '../offers_configs';
 import HistorySignalID from './ui_offers_history';
 import { UIOffersHistory } from './ui_offers_history';
-import jsep from '../lib/jsep';
 
 
 
@@ -37,7 +36,6 @@ export class UIFilterRulesEvaluator {
     // filter actions
     this.filterEvalFunMap = {
       not_closed_mt: this._notClosedMt.bind(this),
-      not_added_mt: this._notAddedMt.bind(this),
       not_created_last_secs: this._notCreatedLastSecs.bind(this),
       not_timedout_mt: this._notTimedoutMt.bind(this),
     }
@@ -65,46 +63,27 @@ export class UIFilterRulesEvaluator {
 
     linfo('shouldWeShowOffer: rules[' + offerID + ']: ' + JSON.stringify(rules));
 
-    /*
-      depending on the version of the triggers the rules can be object or string
-      object is the previous version and has structure: {
-        // show if not closed more than
-        not_closed_mt: 3,
+    // show if all the conditions are true
+    for (var ruleName in rules) {
+      if (!rules.hasOwnProperty(ruleName)) {
+        continue;
       }
-      string is the new format and should be used from now on
-     */
-
-    if(rules.constructor === Object) {
-      linfo("shouldWeShowOffer: rules is Object: \t Using old expression eval function");
-      // show if all the conditions are true
-      for (var ruleName in rules) {
-        if (!rules.hasOwnProperty(ruleName)) {
-          continue;
-        }
-        var ruleFun = this.filterEvalFunMap[ruleName];
-        if (!ruleFun) {
-          lerr('shouldWeShowOffer: one of the rules specified on the offer is not ' +
-               'yet implemented. Filter Rule name: ' + ruleName + '. Skipping this one');
-          continue;
-        }
-        if (!ruleFun(offerID, rules[ruleName])) {
-          linfo('shouldWeShowOffer: filter rule ' + ruleName + ' didnt passed. We should ' +
-                'not show this offer with ID ' + offerID);
-          return false;
-        }
-        // rule passed, check the next
+      var ruleFun = this.filterEvalFunMap[ruleName];
+      if (!ruleFun) {
+        lerr('shouldWeShowOffer: one of the rules specified on the offer is not ' +
+             'yet implemented. Filter Rule name: ' + ruleName + '. Skipping this one');
+        continue;
       }
-      // alles rules passed
-      return true;
-    } else if (rules.constructor === String) {
-      linfo("shouldWeShowOffer: rules is String: \t Using new expression eval function");
-      let expr = jsep(rules); // parse rules string and create AST
-      return this._evalExpression(expr);
-    } else {
-      lerr("shouldWeShowOffer: unknown rules format #shouldWeShowOffer");
-      return false;
+      if (!ruleFun(offerID, rules[ruleName])) {
+        linfo('shouldWeShowOffer: filter rule ' + ruleName + ' didnt passed. We should ' +
+              'not show this offer with ID ' + offerID);
+        return false;
+      }
+      // rule passed, check the next
     }
 
+    // alles rules passed
+    return true;
   }
 
 
@@ -118,17 +97,6 @@ export class UIFilterRulesEvaluator {
     if (timesClosed >= notClosedMt) {
       linfo('_notClosedMt: offer closed more than ' + notClosedMt +
             ' (' + timesClosed + ')');
-      return false;
-    }
-    return true;
-  }
-
-  _notAddedMt(offerID, notAddedMt) {
-    const timesAdded = this.offersHistory.getHistorySignal(offerID,
-                                                            HistorySignalID.HSIG_OFFER_ADDED);
-    if (timesAdded >= notAddedMt) {
-      linfo('_notAddedMt: offer added more than ' + notAddedMt +
-            ' (' + timesAdded + ')');
       return false;
     }
     return true;
@@ -160,28 +128,9 @@ export class UIFilterRulesEvaluator {
     return true;
   }
 
-  _evalExpression(expr) {
-    try {
-      linfo("current expr" + JSON.stringify(expr));
-      if(expr.type === "CallExpression") {
-        let callee = expr.callee.name;
-        let args = expr.arguments[0].value;
-        return this.filterEvalFunMap[callee](args);
-      } else if (expr.type === "LogicalExpression" && expr.operator === "||") {
-        return this._evalExpression(expr.left) || this._evalExpression(expr.right);
-      } else if (expr.type === "LogicalExpression" && expr.operator === "&&") {
-        return this._evalExpression(expr.left) && this._evalExpression(expr.right);
-      }
-    }
-    catch (e) {
-        lerr("expr failed: " + JSON.stringify(expr));
-        lerr("with error message: " + e);
-        return false;
-    }
-
-  }
-
 
 
 };
+
+export default HistorySignalID;
 

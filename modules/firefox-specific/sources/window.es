@@ -6,7 +6,6 @@ import HistoryManager from '../core/history-manager';
 import { Services } from '../platform/globals';
 import { Window } from '../core/browser';
 
-
 export default class {
   constructor(settings) {
     this.window = settings.window;
@@ -33,10 +32,9 @@ export default class {
     );
 
     // Demo rely on UI
-    // This seems to be related with some tests (Calculator...) timing out
-    // utils.setTimeout(() => {
-    //   Demo.init(this.window);
-    // }, 2000);
+    utils.setTimeout(() => {
+      Demo.init(this.window);
+    }, 2000);
 
     Redirect.addHttpObserver();
 

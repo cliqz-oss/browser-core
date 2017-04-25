@@ -1,10 +1,32 @@
-import pacemaker from '../pacemaker';
-import core from '../../core/background';
-import { dURIC } from '../url';
-import { isTabURL } from '../../platform/browser';
+import pacemaker from 'antitracking/pacemaker';
+import core from 'core/background';
+import { dURIC } from 'antitracking/url';
 
 const DOM_CHECK_PERIOD = 1000;
 
+
+function isTabURL(url) {
+  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+          .getService(Components.interfaces.nsIWindowMediator);
+  var browserEnumerator = wm.getEnumerator("navigator:browser");
+
+  while (browserEnumerator.hasMoreElements()) {
+      var browserWin = browserEnumerator.getNext();
+      var tabbrowser = browserWin.gBrowser;
+
+      var numTabs = tabbrowser.browsers.length;
+      for (var index = 0; index < numTabs; index++) {
+          var currentBrowser = tabbrowser.getBrowserAtIndex(index);
+          if (currentBrowser) {
+              var tabURL = currentBrowser.currentURI.spec;
+              if (url == tabURL || url == tabURL.split('#')[0]) {
+                  return true;
+              }
+          }
+      }
+  }
+  return false;
+}
 
 // from CliqzAttrack.getCookieValues
 function getCookieValues(c, url) {

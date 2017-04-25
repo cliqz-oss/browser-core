@@ -1,7 +1,7 @@
 /* eslint no-eval: off */
 
-import utils from '../core/utils';
-import events from '../core/events';
+import { utils } from 'core/cliqz';
+import events from 'core/events';
 
 const mockedFavorites = []; // JSON.parse('[{\"title\":\"T-Online Navigationshilfe\",\"timestamp\":1465203184868,\"url\":\"http://navigationshilfe1.t-online.de/dnserror?url=http://goo.om/\"},{\"title\":\"HELLO! Online: celebrity & royal news, magazine, babies, weddings, style\",\"timestamp\":1465203192872,\"url\":\"http://www.hellomagazine.com/\"}]').reverse();
 let mockedHistory = []; // JSON.parse('[{\"title\":\"HELLO! Online: celebrity & royal news, magazine, babies, weddings, style\",\"timestamp\":1465203194431.158,\"id\":3,\"favorite\":false,\"url\":\"http://www.hellomagazine.com/\"},{\"title\":\"T-Online Navigationshilfe\",\"timestamp\":1465203182810.896,\"id\":2,\"favorite\":false,\"url\":\"http://navigationshilfe1.t-online.de/dnserror?url=http://goo.om/\"},{\"title\":\"Spekulationen um Rückzug: Gauck kündigt Erklärung für 12 Uhr an - SPIEGEL ONLINE - Nachrichten - Politik\",\"timestamp\":1465203157183.131,\"id\":1,\"favorite\":false,\"url\":\"http://m.spiegel.de/politik/deutschland/a-1096014.html#spRedirectedFrom=www&referrrer=\"}]').reverse();
@@ -32,9 +32,7 @@ function isReady() {
   });
   events.pub('mobile-browser:urlbar-focus');
   // notify tests
-  if (window.parent !== window) {
-    window.parent.postMessage('cliqz-ready', '*');
-  }
+  window.postMessage('cliqz-ready', '*');
 }
 function openLink(url) {
   const id = parseInt(6 + (100 * Math.random()), 10);
@@ -49,7 +47,10 @@ function openLink(url) {
 function getTopSites() {
   return mockedHistory;
 }
-function browserAction() {
+function browserAction(data) {
+  if (data.type === 'shareLocation') {
+    jsAPI.search(CliqzAutocomplete.lastSearch, true, 48.1517832, 11.6200855);
+  }
 }
 function autocomplete() {}
 function notifyQuery() {}
@@ -75,9 +76,6 @@ function setFavorites(data) {
   });
 }
 function shareCard() {}
-function shareLocation() {
-  jsAPI.search(CliqzAutocomplete.lastSearch, true, 48.1517832, 11.6200855);
-}
 
 const MockOS = {
   postMessage(message) {
@@ -126,8 +124,6 @@ const MockOS = {
       case 'shareCard':
         shareCard(message.data);
         break;
-      case 'shareLocation':
-        shareLocation();
       default:
         break;
 

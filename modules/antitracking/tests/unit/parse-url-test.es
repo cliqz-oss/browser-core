@@ -512,10 +512,7 @@ function fillInSpec(spec) {
 
 export default describeModule('antitracking/url',
   () => ({
-    './md5': {},
-    './domain': {
-      getGeneralDomain() {}
-    }
+    'antitracking/md5': {},
   }),
   () => {
       describe('CliqzAttrack.parseURL', function() {

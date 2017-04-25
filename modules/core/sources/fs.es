@@ -1,8 +1,6 @@
 import { notImplemented } from './platform';
 import * as fs from '../platform/fs';
 
-const notImplementedPromise = () => new Promise(() => notImplemented());
-
 /**
  * Read file from default location.
  *
@@ -10,7 +8,7 @@ const notImplementedPromise = () => new Promise(() => notImplemented());
  * @param {Object} options - {bool} isText: decodes data before returning
  * @returns {Promise}
  */
-export const readFile = fs.readFile || notImplementedPromise;
+export const readFile = fs.readFile || notImplemented;
 
 /**
  * Write to file from default location.
@@ -20,7 +18,7 @@ export const readFile = fs.readFile || notImplementedPromise;
  * @param {Object} options - {bool} isText: encodes data before writing
  * @returns {Promise}
  */
-export const writeFile = fs.writeFile || notImplementedPromise;
+export const writeFile = fs.writeFile || notImplemented;
 
 /**
  * Create directory in default location, does not fail if directory exists.
@@ -28,7 +26,7 @@ export const writeFile = fs.writeFile || notImplementedPromise;
  * @param {string|Array} path
  * @returns {Promise}
  */
-export const mkdir = fs.mkdir || notImplementedPromise;
+export const mkdir = fs.mkdir || notImplemented;
 
 /**
  * Similar to writeFile, but this one does not do atomic write. Always truncates file.
@@ -38,7 +36,7 @@ export const mkdir = fs.mkdir || notImplementedPromise;
  * @param {Object} options - {bool} isText: encodes data before writing
  * @returns {Promise}
  */
-export const write = fs.write || notImplementedPromise;
+export const write = fs.write || notImplemented;
 
 /**
  * Renames old path to new path.
@@ -47,7 +45,7 @@ export const write = fs.write || notImplementedPromise;
  * @param {string|Array} newPath
  * @returns {Promise}
  */
-export const renameFile = fs.renameFile || notImplementedPromise;
+export const renameFile = fs.renameFile || notImplemented;
 
 /**
  * Returns whether it exists a file with given path or not.
@@ -55,7 +53,7 @@ export const renameFile = fs.renameFile || notImplementedPromise;
  * @param {string|Array} path
  * @returns {Promise}
  */
-export const fileExists = fs.fileExists || notImplementedPromise;
+export const fileExists = fs.fileExists || notImplemented;
 
 /**
  * Truncates file with given path.
@@ -63,7 +61,7 @@ export const fileExists = fs.fileExists || notImplementedPromise;
  * @param {string|Array} path
  * @returns {Promise}
  */
-export const truncateFile = fs.truncateFile || notImplementedPromise;
+export const truncateFile = fs.truncateFile || notImplemented;
 
 /**
  * Opens file with given file (creating if does not exist) and return
@@ -72,7 +70,7 @@ export const truncateFile = fs.truncateFile || notImplementedPromise;
  * @param {string|Array} path
  * @returns {Promise}
  */
-export const openForAppend = fs.openForAppend || notImplementedPromise;
+export const openForAppend = fs.openForAppend || notImplemented;
 
 /**
  * Writes to given open file.
@@ -82,7 +80,7 @@ export const openForAppend = fs.openForAppend || notImplementedPromise;
  * @param {Object} options - {bool} isText: encodes data before writing
  * @returns {Promise}
  */
-export const writeFD = fs.writeFD || notImplementedPromise;
+export const writeFD = fs.writeFD || notImplemented;
 
 /**
  * Closes given open file.
@@ -90,7 +88,7 @@ export const writeFD = fs.writeFD || notImplementedPromise;
  * @param {Object} openFile
  * @returns {Promise}
  */
-export const closeFD = fs.closeFD || notImplementedPromise;
+export const closeFD = fs.closeFD || notImplemented;
 
 /**
  * Removes file with given path, does not fail if file does not exist.
@@ -98,7 +96,7 @@ export const closeFD = fs.closeFD || notImplementedPromise;
  * @param {string|Array} path
  * @returns {Promise}
  */
-export const removeFile = fs.removeFile || notImplementedPromise;
+export const removeFile = fs.removeFile || notImplemented;
 
 /**
  * Creates empty file with given path.
@@ -106,7 +104,7 @@ export const removeFile = fs.removeFile || notImplementedPromise;
  * @param {string|Array} path
  * @returns {Promise}
  */
-export const createFile = fs.createFile || notImplementedPromise;
+export const createFile = fs.createFile || notImplemented;
 
 /**
  * Returns file size.
@@ -114,7 +112,7 @@ export const createFile = fs.createFile || notImplementedPromise;
  * @param {string|Array} path
  * @returns {Promise}
  */
-export const getFileSize = fs.getFileSize || notImplementedPromise;
+export const getFileSize = fs.getFileSize || notImplemented;
 
 /**
  * Joins the given path components.
@@ -122,4 +120,4 @@ export const getFileSize = fs.getFileSize || notImplementedPromise;
  * @param {Array} paths
  * @returns {Promise}
  */
-export const pathJoin = fs.pathJoin || notImplementedPromise;
+export const pathJoin = fs.pathJoin || notImplemented;

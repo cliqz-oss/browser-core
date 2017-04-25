@@ -1,3 +1,4 @@
+import System from "system";
 import CLIQZEnvironment from "../platform/environment";
 import console from "./console";
 import prefs from "./prefs";
@@ -5,9 +6,8 @@ import Storage from "./storage";
 import CliqzEvents from './events';
 import { TLDs } from "./tlds";
 import { httpHandler, promiseHttpHandler } from './http';
-import gzip from './gzip';
-import CliqzLanguage from './language';
-import { isUrl } from './url';
+
+var CliqzLanguage;
 
 var VERTICAL_ENCODINGS = {
     'people':'p',
@@ -26,10 +26,9 @@ var COLOURS = ['#ffce6d','#ff6f69','#96e397','#5c7ba1','#bfbfbf','#3b5598','#fbb
     ipv4_part = "0*([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])", // numbers 0 - 255
     ipv4_regex = new RegExp("^" + ipv4_part + "\\."+ ipv4_part + "\\."+ ipv4_part + "\\."+ ipv4_part + "([:]([0-9])+)?$"), // port number
     ipv6_regex = new RegExp("^\\[?(([0-9]|[a-f]|[A-F])*[:.]+([0-9]|[a-f]|[A-F])+[:.]*)+[\\]]?([:][0-9]+)?$");
-const schemeRE = /^(\S+?):(\/\/)?(.*)$/i;
+
 
 var CliqzUtils = {
-  environment: CLIQZEnvironment,
   RESULTS_PROVIDER:               CLIQZEnvironment.RESULTS_PROVIDER,
   RICH_HEADER:                    CLIQZEnvironment.RICH_HEADER,
   RESULTS_PROVIDER_LOG:           'https://api.cliqz.com/api/v1/logging?q=',
@@ -84,14 +83,20 @@ var CliqzUtils = {
     if (!options.lang) {
       return Promise.reject("lang missing");
     }
-
-    CLIQZEnvironment.gzip = gzip;
+    CliqzUtils.importModule('core/gzip').then(function(gzip) {
+      CLIQZEnvironment.gzip = gzip;
+    }).catch(function () {
+      //no gzip, do nothing
+    });
 
     // cutting cyclic dependency
     CLIQZEnvironment.getLogoDetails = CliqzUtils.getLogoDetails.bind(CliqzUtils);
     CLIQZEnvironment.getDetailsFromUrl = CliqzUtils.getDetailsFromUrl.bind(CliqzUtils);
     CLIQZEnvironment.getLocalizedString = CliqzUtils.getLocalizedString.bind(CliqzUtils);
     CLIQZEnvironment.app = CliqzUtils.app;
+    System.import('platform/language').then((module) => {
+      CliqzLanguage = module.default;
+    })
     CliqzUtils.log('Initialized', 'CliqzUtils');
 
     CliqzUtils.setLang(options.lang);
@@ -110,6 +115,10 @@ var CliqzUtils = {
     const supportedLang = CliqzUtils.getSupportedLanguage(lang);
     CliqzUtils.PREFERRED_LANGUAGE = locale;
     CliqzUtils.getLocaleFile(supportedLang);
+  },
+
+  importModule: function(moduleName) {
+    return System.import(moduleName)
   },
 
   isNumber: function(n){
@@ -253,14 +262,7 @@ var CliqzUtils = {
   cleanMozillaActions: function(url){
     if(url.indexOf("moz-action:") == 0) {
         var [, action, url] = url.match(/^moz-action:([^,]+),(.*)$/);
-        try {
-          // handle cases like: moz-action:visiturl,{"url": "..."}
-          const mozActionUrl = JSON.parse(url).url;
-          if (mozActionUrl) {
-            url = decodeURIComponent(mozActionUrl);
-          }
-        } catch (e) {
-        }
+        //url = url.match(/^moz-action:([^,]+),(.*)$/)[2];
     }
     return [action, url];
   },
@@ -301,23 +303,17 @@ var CliqzUtils = {
     var [action, originalUrl] = CliqzUtils.cleanMozillaActions(originalUrl);
     // exclude protocol
     var url = originalUrl,
-        scheme = '',
-        slashes = '',
         name = '',
         tld = '',
         subdomains = [],
         path = '',
         query ='',
-        fragment = '';
+        fragment = '',
+        ssl = originalUrl.indexOf('https') == 0;
 
     // remove scheme
-    const schemeMatch = schemeRE.exec(url);
-    if (schemeMatch) {
-      scheme = schemeMatch[1];
-      slashes = schemeMatch[2];
-      url = schemeMatch[3];
-    }
-    const ssl = scheme == 'https';
+    url = CliqzUtils.cleanUrlProtocol(url, false);
+    var scheme = originalUrl.replace(url, '').replace('//', '');
 
     // separate hostname from path, etc. Could be separated from rest by /, ? or #
     var host = url.split(/[\/\#\?]/)[0].toLowerCase();
@@ -411,8 +407,6 @@ var CliqzUtils = {
     }
 
     var friendly_url = cleanHost + extra;
-    if (scheme && scheme != 'http' && scheme != 'https')
-      friendly_url = scheme + ":" + slashes + friendly_url;
     //remove trailing slash from the end
     friendly_url = CliqzUtils.stripTrailingSlash(friendly_url);
 
@@ -422,7 +416,7 @@ var CliqzUtils = {
     }
 
     var urlDetails = {
-              scheme: scheme ? scheme + ':' : '',
+              scheme: scheme,
               name: name,
               domain: tld ? name + '.' + tld : '',
               tld: tld,
@@ -446,7 +440,20 @@ var CliqzUtils = {
     }
     return str;
   },
-  isUrl,
+  _isUrlRegExp: /^(([a-z\d]([a-z\d-]*[a-z\d]))\.)+[a-z]{2,}(\:\d+)?$/i,
+  isUrl: function(input){
+    //step 1 remove eventual protocol
+    var protocolPos = input.indexOf('://');
+    if(protocolPos != -1 && protocolPos <= 6){
+      input = input.slice(protocolPos+3)
+    }
+    //step2 remove path & everything after
+    input = input.split('/')[0];
+    //step3 run the regex
+    return CliqzUtils._isUrlRegExp.test(input);
+  },
+
+
   // Chechks if the given string is a valid IPv4 addres
   isIPv4: function(input) {
     var ipv4_part = "0*([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])"; // numbers 0 - 255
@@ -484,8 +491,7 @@ var CliqzUtils = {
   // checks if a value represents an url which is a seach engine
   isSearch: function(value){
     if (CliqzUtils.isUrl(value)) {
-      const url = this.cleanMozillaActions(value)[1];
-      const {name, subdomains, path} = CliqzUtils.getDetailsFromUrl(url);
+      const {name, subdomains, path} = CliqzUtils.getDetailsFromUrl(value);
       // allow only 'www' and 'de' (for Yahoo) subdomains to exclude 'maps.google.com' etc.
       // and empty path only to exclude 'www.google.com/maps' etc.
       const firstSubdomain = subdomains.length ? subdomains[0] : '';
@@ -769,6 +775,12 @@ var CliqzUtils = {
       'liberal': 1
     },
     pref = CliqzUtils.getPref('adultContentFilter', 'moderate');
+    if (CliqzUtils.dropDownStyle == 'ff' && pref == 'moderate') {
+      // in FF UI we cannot display the adult warning message, so "always ask"
+      // should behave the same as "Always block", to preserve the default blocking
+      // behaviour
+      pref = 'conservative';
+    }
     return data[pref];
   },
   encodeFilter: function() {
@@ -1134,37 +1146,16 @@ var CliqzUtils = {
     CLIQZEnvironment.CliqzResultProviders = o.ResultProviders;
     CLIQZEnvironment.Result = o.Result;
   },
-  lastRenderedResults: [],
-  lastRenderedURLs: [],
-  lastSelection: -1,
-  onRenderComplete: function onRenderComplete(query, box) {
-    if (!CLIQZEnvironment.onRenderComplete) return;
-
-    CliqzUtils.lastRenderedResults = this.extractSelectableElements(box).filter(function (node) {
-      return !!(node.getAttribute("url") || node.getAttribute("href"));
-    });
-    CliqzUtils.lastRenderedURLs = CliqzUtils.lastRenderedResults
-      .map(function (node) {
-        return node.getAttribute("url") || node.getAttribute("href");
-      });
-
-    CLIQZEnvironment.onRenderComplete(query, CliqzUtils.lastRenderedURLs);
-  },
-  onSelectionChange: function onSelectionChange(element) {
-    if (!element) return;
-
-    var current = CliqzUtils.lastRenderedResults.indexOf(element);
-    if (current == -1) {
-      current = CliqzUtils.lastRenderedURLs.indexOf(
-          element.getAttribute("url"));
-    }
-
-    if (CliqzUtils.lastSelection == current)
+  onRenderComplete: function(query, box){
+    if (!CLIQZEnvironment.onRenderComplete)
       return;
-    CliqzUtils.lastSelection = current;
 
-    if (!CLIQZEnvironment.onResultSelectionChange) return;
-    CLIQZEnvironment.onResultSelectionChange(current);
+    var linkNodes = this.extractSelectableElements(box);
+    var urls = linkNodes
+        .map(node => node.getAttribute("url") || node.getAttribute("href"))
+        .filter(url => !!url);
+
+    CLIQZEnvironment.onRenderComplete(query, urls);
   }
 };
 

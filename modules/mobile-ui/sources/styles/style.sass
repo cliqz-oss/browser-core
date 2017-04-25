@@ -23,6 +23,16 @@ input#urlbar
   /*border: 1px solid gray
   /* background: #eee
 
+progress#progress
+  opacity: 0.2
+  position: absolute
+  height: 4px
+  display: none
+  z-index: 100
+  top: 0px
+  left: 20px
+  width: 316px
+
 .cliqz-brand-logo.transition
   width: 51px
   float: left
@@ -189,15 +199,14 @@ img
     /* margin-left: 87px
 
 .EZ-Cliqz-Header
-  .cliqz-title
-    margin: 0 0 1rem
-    width: 50%
-  .cliqz-social
-    float: right
-    width: 50%
-    img
-      float: right
-      margin: 0 0.5rem 0.25rem
+  background-repeat: no-repeat
+  background-position: 0
+  padding-left: 98px
+  line-height: 1.5rem
+  text-align: right
+  margin: 1rem 0
+  img
+    margin: 0 0.5rem
 
 .EZ-Cliqz-Body-H1
   font-weight: bold
@@ -396,10 +405,6 @@ div#progress
   top: 0px
   position: absolute
   z-index: 100000
-  display: none
-  width: 0px
-  height: 1px
-  background: darkblue
 
 /* Old Style-Slide */
 
@@ -2072,10 +2077,6 @@ em
         td
           background-color: #c7e8ad
 
-
-.transform-wrapper
-  transform: translate(0, 0)
-  -webkit-transform: translate(0, 0)
 
 ::-webkit-scrollbar
   display: none

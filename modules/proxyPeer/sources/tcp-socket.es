@@ -1,4 +1,4 @@
-import console from './console';
+import console from 'core/console';
 
 let MAIN_THREAD = null;
 let TRANSPORT_SERVICE = null;
@@ -10,7 +10,7 @@ try {
     .getService(Components.interfaces.nsISocketTransportService);
   OK_RESULT = Components.results.NS_OK;
 } catch (ex) {
-  console.error(`proxyPeer TCP MAIN_THREAD ERROR ${ex}`);
+  console.debug(`proxyPeer TCP MAIN_THREAD ERROR ${ex}`);
 }
 
 
@@ -88,10 +88,7 @@ export class TcpConnection {
   sendData(data, length) {
     // TODO: Send async somehow. (use a data queue?)
     console.debug(`proxyPeer TCP ${this.id} sends ${length} octets`);
-    return Promise.resolve(this._binaryWriter.writeByteArray(data, length))
-      .catch((ex) => {
-        console.debug(`proxyPeer TCP exception on sendData ${ex}`);
-      });
+    return Promise.resolve(this._binaryWriter.writeByteArray(data, length));
   }
 
   /* Returns a promise wrapping the next chunk of data received

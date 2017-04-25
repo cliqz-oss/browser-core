@@ -59,63 +59,37 @@ var __CliqzChromeDB = function() { // (_export) {
                     }
                 },
                 size: function(callback) {
-                    if (typeof(chrome.storage.local.getBytesInUse) != 'undefined' &&
-                        typeof(chrome.storage.local.QUOTA_BYTES) != 'undefined'
-                        ) {
-                            chrome.storage.local.getBytesInUse(null, function(a) {
-                                var res = [a, a/chrome.storage.local.QUOTA_BYTES];
-                                console.log('Current size: ', res[0], res[1]);
-                                if (callback) callback(res);
-
-                            });
-                        }
-                    else {
-                        const QUOTA_BYTES = 5000000;
-                        chrome.storage.local.get(null, data => {
-                            let size = 0;
-                            Object.keys(data).forEach(key => {
-                                size += (key + JSON.stringify(data[key])).length;
-                            });
-                            console.log("POLIFILL SIZE:", size);
-                            let res = [size, size / QUOTA_BYTES];
-                            console.log('Current size: ', res[0], res[1]);
-                            if (callback) callback(res);
-                        });
-                    }
-                },
-                removeEverything: function() {
-                    // Looks like the DB size breached the threshold, we should remove only human-web / hpn
-                    // specific information. running .clear() would clear everything even ghostery settings.
-                    let toBeRemoved = [];
-                    chrome.storage.local.get(null, items => {
-                        Object.keys(items).forEach( value => {
-                            let keyPrefix = value.split(':')[0];
-                            if (dbPrefixes.indexOf(keyPrefix) > -1) {
-                                toBeRemoved.push(value);
-                            }
-                        });
-
-                        if (toBeRemoved.length > 0) {
-                            CliqzUtils.log("Keys to be removed " + JSON.stringify(toBeRemoved));
-                            chrome.storage.local.remove(toBeRemoved);
-                        }
+                    chrome.storage.local.getBytesInUse(null, function(a) {
+                        var res = [a, a/chrome.storage.local.QUOTA_BYTES];
+                        console.log('Current size: ', res[0], res[1]);
+                        if (callback) callback(res);
                     });
                 },
+                removeEverything: function() {
+                    chrome.storage.local.clear();
+                    CliqzChromeDB.size();
+                },
                 init: function() {
+
                     CliqzChromeDB.size(function(sv) {
                         if (sv && sv[1] > 0.90) {
                             // more than 90% utilization,
                             // drop everything
 
                             CliqzChromeDB.removeEverything();
-
+                            // FIXME
                             // we should send a telemetry signal for when it
                             // happens
                             var payload = {};
                             payload['cleared'] = true;
-                            CliqzHumanWeb.telemetry({ 'type': 'humanweb', 'action': 'dbcleared', 'payload': payload });
+                            try {
+                                var location = CliqzUtils.getPref('config_location', null);
+                            } catch (ee) {};
+                            payload['ctry'] = location;
+                            CliqzHumanWeb.telemetry({ 'type': CliqzHumanWeb.msgType, 'action': 'dbcleared', 'payload': payload });
                         }
                     })
+
                 },
                 __test_sets: function() {
 

@@ -67,15 +67,10 @@ var observer = {
         }
 
         if ( blockingResponse.redirectUrl ) {
-          if (blockingResponse.redirectUrl.indexOf('data') === 0) {
-            // if it's data url, always use aChannel.redirectTo
+          try {
+            aChannel.URI.spec = blockingResponse.redirectUrl;
+          } catch(error) {
             aChannel.redirectTo(Services.io.newURI(blockingResponse.redirectUrl, null, null));
-          } else {
-            try {
-              aChannel.URI.spec = blockingResponse.redirectUrl;
-            } catch(error) {
-              aChannel.redirectTo(Services.io.newURI(blockingResponse.redirectUrl, null, null));
-            }
           }
           // ensure header changes follow redirected url
           if ( blockingResponse.requestHeaders ) {

@@ -1,7 +1,6 @@
 var coreBackground = require('./core/background');
 var offersBackground = require('./offers-v2/background');
 var messageCenterBackground = require('./message-center/background');
-var hpnBackground = require('./hpn/background');
 var prefs = require('./core/prefs');
 var config = require('./core/config');
 
@@ -14,8 +13,7 @@ module.exports = {
     return coreBackground.init().then(function () {
       return Promise.all([
         offersBackground.init(),
-        messageCenterBackground.init(),
-        hpnBackground.init(),
+        messageCenterBackground.init()
       ]);
     }).then(function (ret) {
       console.log('CLIQZ', 'finished loading', config);
@@ -33,9 +31,6 @@ module.exports = {
     },
     'message-center': {
       actions: messageCenterBackground.actions
-    },
-    'hpn': {
-      actions: hpn.actions
     }
   }
 };

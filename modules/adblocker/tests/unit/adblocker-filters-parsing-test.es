@@ -1,8 +1,9 @@
 /* global chai */
 /* global describeModule */
+/* global require */
 
 
-const fs = System._nodeRequire('fs');
+const fs = require('fs');
 
 
 function loadTestCases(path) {
@@ -10,7 +11,7 @@ function loadTestCases(path) {
   const testCases = [];
 
   // Parse test cases
-  data.split(/\n/).forEach((line) => {
+  data.split(/\n/).forEach(line => {
     let testCase = null;
     try {
       testCase = JSON.parse(line);
@@ -33,41 +34,15 @@ export default describeModule('adblocker/filters-parsing',
       },
     },
     'core/platform': {
-      platformName: 'firefox',
+      default: {
+        platformName: 'firefox',
+      },
     },
     'core/cliqz': {
       utils: {},
     },
   }),
   () => {
-    describe('#CosmeticFilter', () => {
-      let parseFilter;
-
-      // Generate test cases
-      context('Cosmetic filter parsing', () => {
-        beforeEach(function importFilterParser() {
-          parseFilter = this.module().parseFilter;
-        });
-
-        const dataPath = 'modules/adblocker/tests/unit/data/cosmetics_parsing.txt';
-        loadTestCases(dataPath).forEach((testCase) => {
-          it(`parses ${testCase.filter} correctly`,
-             () => new Promise((resolve, reject) => {
-               const parsed = parseFilter(testCase.filter);
-               Object.keys(testCase.compiled).forEach((key) => {
-                 try {
-                   chai.expect(parsed[key]).to.deep.equal(testCase.compiled[key]);
-                 } catch (ex) {
-                   reject(`Expected ${key} == ${testCase.compiled[key]} (found ${parsed[key]})`);
-                 }
-               });
-               resolve();
-             })
-          );
-        });
-      });
-    });
-
     describe('#NetworkFilter', () => {
       let parseFilter;
 
@@ -78,11 +53,11 @@ export default describeModule('adblocker/filters-parsing',
         });
 
         const dataPath = 'modules/adblocker/tests/unit/data/filters_parsing.txt';
-        loadTestCases(dataPath).forEach((testCase) => {
+        loadTestCases(dataPath).forEach(testCase => {
           it(`parses ${testCase.filter} correctly`,
              () => new Promise((resolve, reject) => {
                const parsed = parseFilter(testCase.filter);
-               Object.keys(testCase.compiled).forEach((key) => {
+               Object.keys(testCase.compiled).forEach(key => {
                  if (parsed[key] !== testCase.compiled[key]) {
                    reject(`Expected ${key} == ${testCase.compiled[key]} (found ${parsed[key]})`);
                  }

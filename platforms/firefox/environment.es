@@ -23,7 +23,6 @@ var CLIQZEnvironment = {
     SKIN_PATH: 'chrome://cliqz/content/static/skin/',
     prefs: Cc['@mozilla.org/preferences-service;1'].getService(Ci.nsIPrefService).getBranch(''),
     OS: Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS.toLowerCase(),
-    OS_VERSION: Services.sysinfo.getProperty("version"),
     RERANKERS: [],
     RESULTS_TIMEOUT: 1000, // 1 second
     TEMPLATES: {'calculator': 1, 'clustering': 1, 'currency': 1, 'custom': 1, 'emphasis': 1, 'empty': 1,
@@ -49,7 +48,6 @@ var CLIQZEnvironment = {
     },
     MESSAGE_TEMPLATES: [
       'footer-message',
-      'footer-ad',
       'onboarding-callout',
       'onboarding-callout-extended',
       'slow_connection',
@@ -80,7 +78,6 @@ var CLIQZEnvironment = {
     ],
     CLIQZ_ONBOARDING: "about:onboarding",
     CLIQZ_ONBOARDING_URL: "chrome://cliqz/content/onboarding-v2/index.html",
-    BASE_CONTENT_URL: "chrome://cliqz/content/",
     CLIQZ_NEW_TAB: "about:cliqz",
     CLIQZ_NEW_TAB_RESOURCE_URL: 'resource://cliqz/fresh-tab-frontend/index.html',
     BROWSER_ONBOARDING_PREF: "browserOnboarding",
@@ -427,7 +424,8 @@ var CLIQZEnvironment = {
 
                         if(result.getStyleAt(i).indexOf('switchtab') != -1){
                           try {
-                            let [mozAction, cleanURL] = utils.cleanMozillaActions(result.getValueAt(i));
+                            let [mozAction, mozActionVal] = utils.cleanMozillaActions(result.getValueAt(i));
+                            let cleanURL = decodeURIComponent(JSON.parse(mozActionVal).url);
                             let label;
 
                             try {
@@ -516,7 +514,7 @@ var CLIQZEnvironment = {
         },
         q
       );
-      if(dropDownStyle && dropDownStyle !== 'cliqzilla'){
+      if(dropDownStyle){
         const engine = this.getDefaultSearchEngine();
         res.val = engine.getSubmissionForQuery(q);
         res.label = CLIQZEnvironment.getLocalizedString('searchOn', engine.name);
@@ -525,7 +523,6 @@ var CLIQZEnvironment = {
       return res;
     }
 }
-
 function urlbar(){
   return CLIQZEnvironment.getWindow().CLIQZ.Core.urlbar;
 }

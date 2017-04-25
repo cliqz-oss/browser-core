@@ -1,7 +1,0 @@
-{
-  "bower_components": [
-    "jquery/dist/jquery.js",
-    "qrcode.js/qrcode.js",
-    "pako/dist/pako.min.js"
-  ]
-}

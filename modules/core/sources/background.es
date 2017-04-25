@@ -10,10 +10,7 @@ import background from './base/background';
 import { Window, mapWindows, getLang } from '../platform/browser';
 import loadLogoDb from "../platform/load-logo-db";
 import { isMobile } from "./platform";
-import Storage from './storage';
-import resourceManager from './resource-manager';
-import inject from './kord/inject';
-
+import Storage from 'core/storage';
 
 var lastRequestId = 0;
 var callbacks = {};
@@ -38,22 +35,17 @@ export default background({
 
     this.mm = new ProcessScriptManager(this.dispatchMessage);
     this.mm.init();
-
     // @TODO: mobile doesn't use utils.app
     if (utils.app) {
       this.report = utils.setTimeout(this.reportStartupTime.bind(this), 1000 * 60);
     }
-    resourceManager.init();
   },
 
   unload() {
     utils.clearTimeout(this.report);
-    if (!isMobile) {
-      language.unload();
-      HistoryManager.unload();
-    }
+    language.unload();
+    HistoryManager.unload();
     this.mm.unload();
-    resourceManager.unload();
   },
 
   reportStartupTime() {
@@ -109,28 +101,17 @@ export default background({
     }
     const { action, module: moduleName, args, requestId } = payload,
       windowId = msg.data.windowId;
-    const origin = msg.data.origin;
 
-    const module = utils.app.availableModules[moduleName];
-    if (!module) {
-      console.error("Process Script", `${moduleName}/${action}`, "Module not available");
-      return;
-    }
-
-    // inject the required module, then call the requested action
-    inject.module(moduleName).action(action, ...(args || []))
-
-    .then( response => {
+    utils.importModule(`${moduleName}/background`).then(({ default: background })  => {
+      return background.actions[action].apply(null, args);
+    }).then( response => {
       this.mm.broadcast(`window-${windowId}`, {
-        origin,
         response,
         action,
         module: moduleName,
         requestId,
       });
-    })
-
-    .catch(console.error.bind(null, "Process Script", `${moduleName}/${action}`));
+    }).catch(console.error.bind(null, "Process Script", `${moduleName}/${action}`));
   },
 
   handleResponse(msg) {
@@ -152,7 +133,7 @@ export default background({
       version,
       host,
       hostVersion,
-      country: utils.getPref('config_location', ''),
+      country: CliqzUtils.getPref('config_location', ''),
       status: status || 'active',
     });
 
@@ -167,8 +148,8 @@ export default background({
         sites = ["https://www.ghostery.com", "https://ghostery.com"];
 
     // make sure we only do it once
-    if(utils.getPref(pref, false) !== true){
-      utils.setPref(pref, true);
+    if(CliqzUtils.getPref(pref, false) !== true){
+      CliqzUtils.setPref(pref, true);
 
       sites.forEach(function(url){
           var ls = new Storage(url)

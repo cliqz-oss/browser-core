@@ -1,6 +1,9 @@
-import utils from '../core/utils';
-import background from './background';
+import { utils } from 'core/cliqz';
+import background from 'hpn/background';
 
+const prefKey = 'hpn-query', // 0 - enable, 1 - disable
+      BLOCK = false,
+      ALLOW = true;
 export default class {
 
   constructor(settings) {
@@ -20,7 +23,7 @@ export default class {
     if (background.CliqzSecureMessage && !utils.getPref('cliqz_core_disabled', false)) {
       return {
         visible: true,
-        state: utils.getPref('hpn-query'),
+        state: utils.getPref(prefKey)
       };
     }
   }

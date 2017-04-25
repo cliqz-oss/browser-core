@@ -1,12 +1,12 @@
-import ResourceLoader, { Resource, UpdateCallbackHandler } from '../core/resource-loader';
-import Language from '../core/language';
-import { platformName } from '../core/platform';
-import log from './utils';
-import { ADB_USER_LANG, ADB_USER_LANG_OVERRIDE } from './adblocker';
-import { utils } from '../core/cliqz';
+import ResourceLoader, { Resource, UpdateCallbackHandler } from 'core/resource-loader';
+import Language from 'core/language';
+import { platformName } from 'core/platform';
+import log from 'adblocker/utils';
+import { ADB_USER_LANG, ADB_USER_LANG_OVERRIDE } from 'adblocker/adblocker';
+import { utils } from 'core/cliqz';
 
 // Disk persisting
-const RESOURCES_PATH = ['adblocker'];
+const RESOURCES_PATH = ['antitracking', 'adblocking'];
 
 
 // Common durations
@@ -30,6 +30,7 @@ function stripProtocol(url) {
 
   return result;
 }
+
 
 class FiltersList {
   constructor(checksum, asset, remoteURL) {
@@ -97,7 +98,7 @@ export default class extends UpdateCallbackHandler {
 
     // Resource managing the allowed lists for the adblocker
     this.allowedListsLoader = new ResourceLoader(
-      RESOURCES_PATH.concat(platformName, 'checksums'),
+      RESOURCES_PATH.concat('checksums'),
       {
         cron: 24 * ONE_HOUR,
         updateInterval: 15 * ONE_MINUTE,
@@ -120,9 +121,7 @@ export default class extends UpdateCallbackHandler {
   }
 
   remoteURL() {
-    // mobile has been moved to a non-standard path
-    const path = platformName === 'mobile' ? 'mobile-new' : platformName;
-    return `https://cdn.cliqz.com/adblocking/${path}/allowed-lists.json?t=${parseInt(Date.now() / 60 / 60 / 1000, 10)}`;
+    return `https://cdn.cliqz.com/adblocking/${platformName}/allowed-lists.json?t=${parseInt(Date.now() / 60 / 60 / 1000, 10)}`;
   }
 
   stop() {

@@ -45,16 +45,12 @@ ul#download-links > li:hover {
     cursor: pointer;
 }
 
-ul#download-links > li:hover > p {
-    color: #0086A1;
-}
-
 ul#download-links > li > p {
     margin: 0;
     color: #000;
 }
 
-span.video-size {
+ul#download-links > li > p > span {
     font-size: 11px;
     color: #9B9B9B;
 }
@@ -105,8 +101,4 @@ span.video-size {
 
 #unsupported-format {
     padding: 0 13px 20px;
-}
-
-#send-to-mobile-btn:hover {
-    color: #0086A1;
 }

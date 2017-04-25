@@ -12,11 +12,3 @@ export function mapWindows() {
 export function getLang() {
   return window.navigator.language || window.navigator.userLanguage;
 }
-
-export function isTabURL() {
-  return false;
-}
-
-export function getBrowserMajorVersion() {
-  return 100;
-}

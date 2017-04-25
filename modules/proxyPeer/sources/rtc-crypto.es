@@ -1,4 +1,4 @@
-import console from './console';
+import console from 'core/console';
 
 // import crypto from 'platform/crypto';
 Components.utils.importGlobalProperties(['crypto']);
@@ -17,7 +17,7 @@ const mod_table = [0, 2, 1];
 
 
 // Returns base64 encoded string, expects Uint8Array
-export function b64Encode(data) {
+function base64_encode(data) {
 	if (!data.buffer) {
 		data = new Uint8Array(data);
 	}
@@ -47,7 +47,7 @@ export function b64Encode(data) {
 
 
 //Returns Uint8Array, expects base64 encoded string
-export function b64Decode(data) {
+function base64_decode(data) {
 	var input_length = data.length;
 	if (input_length % 4 !== 0) return;
 
@@ -91,7 +91,7 @@ export function fromArrayBuffer(data, format) {
   if (format === 'hex') {
     return hex_encode(newdata);
   } else if (format === 'b64') {
-    return b64Encode(newdata);
+    return base64_encode(newdata);
   }
   return newdata;
 }
@@ -101,7 +101,7 @@ function toArrayBuffer(data, format) {
   if (format === 'hex') {
     return hex_decode(data).buffer;
   } else if (format === 'b64') {
-    return b64Decode(data).buffer;
+    return base64_decode(data).buffer;
   }
   return data;
 }
@@ -183,7 +183,7 @@ export function decryptAES(encrypted, key) {
 function importRSAKey(pk, pub = true) {
   return crypto.subtle.importKey(
     pub ? 'spki' : 'pkcs8',
-    b64Decode(pk),
+    base64_decode(pk),
     {
       name: 'RSA-OAEP',
       hash: { name: 'SHA-256' },
@@ -214,7 +214,7 @@ function wrapAESKey(aesKey, publicKey) {
     typeof publicKey === 'string' ? importRSAKey(publicKey, true) : publicKey
   ).then(pk =>
     crypto.subtle.wrapKey('raw', aesKey, pk, { name: 'RSA-OAEP', hash: { name: 'SHA-256' } })
-  ).then(wrapped => b64Encode(wrapped));
+  ).then(wrapped => base64_encode(wrapped));
 }
 
 
@@ -225,7 +225,7 @@ function unwrapAESKey(aesKey, privateKey) {
     .then(pk =>
       crypto.subtle.unwrapKey(
         'raw',
-        b64Decode(aesKey),
+        base64_decode(aesKey),
         pk,
         {
           name: 'RSA-OAEP',

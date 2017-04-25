@@ -3,7 +3,6 @@
 
 
 import log from 'anolysis/logging';
-import getSynchronizedDate, { DATE_FORMAT } from 'anolysis/synchronized-date';
 
 
 export default class {
@@ -48,20 +47,20 @@ export default class {
   }
 
   remove(doc) {
-    return this.database.remove(doc);
+    this.database.remove(doc);
   }
 
   put(doc) {
     const type = this.getDocType(doc);
-    const timestamp = getSynchronizedDate().format(DATE_FORMAT);
+    const timestamp = Date.now();
     const decoratedDoc = Object.assign({
       ts: doc.ts || timestamp,
-      _id: doc._id || `${doc.ts || Date.now()}/${type}`,
+      _id: `${doc.ts || timestamp}/${type}`,
     }, doc);
 
     return this.database.put(decoratedDoc)
       .then(() => decoratedDoc)
-      .catch((ex) => { log(`put exception ${ex} ${JSON.stringify(decoratedDoc)}`); });
+      .catch((ex) => { log(`put exception ${ex}`); });
   }
 
   getN(n) {
@@ -96,11 +95,7 @@ export default class {
       startkey: from,
       endkey: to,
       include_docs: true,
-    }).then((result) => {
-      const documents = result.rows.map(row => row.doc);
-      log(`getByTimespan from ${from} to ${to} found ${documents.length} documents`);
-      return documents;
-    });
+    }).then(result => result.rows.map(row => row.doc));
   }
 
   getTypesByTimespan(timespan) {
@@ -117,9 +112,8 @@ export default class {
 
   deleteByTimespan(timespan) {
     return this.getByTimespan(timespan)
-      .then((documents) => {
-        log(`remove ${documents.length} with timespan ${JSON.stringify(timespan)}`);
-        return Promise.all(documents.map(doc => this.database.remove(doc)));
-      });
+      // TODO: find out why `.then(documents => this.database.bulkDocs(documents,
+      //       { _deleted: true }));` does not work
+      .then(documents => Promise.all(documents.map(doc => this.database.remove(doc))));
   }
 }
