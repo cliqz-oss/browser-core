@@ -105,18 +105,49 @@ export default class UI {
       'hidden toolbarbutton-1 chromeclass-toolbar-additional');
   }
 
-  sendToMobile({ url, format, title }) {
+  sendToMobile({ url, format, title, resend }) {
+    if (resend) {
+      utils.telemetry({
+        type: TELEMETRY_TYPE,
+        version: TELEMETRY_VERSION,
+        action: 'click',
+        target: 'send_to_mobile',
+        state: 'error',
+      });
+    } else {
+      utils.telemetry({
+        type: TELEMETRY_TYPE,
+        version: TELEMETRY_VERSION,
+        action: 'click',
+        target: 'send_to_mobile',
+        state: 'initial',
+      });
+    }
     this.PeerComm.getObserver('YTDOWNLOADER').sendVideo({ url, format, title })
       .then(() => {
         this.sendMessageToPopup({
           action: 'pushData',
           data: { sendingStatus: 'success' },
         });
+
+        utils.telemetry({
+          type: 'connect',
+          version: TELEMETRY_VERSION,
+          action: 'send_video',
+          is_success: true,
+        });
       })
       .catch(() => {
         this.sendMessageToPopup({
           action: 'pushData',
           data: { sendingStatus: 'error' },
+        });
+
+        utils.telemetry({
+          type: 'connect',
+          version: TELEMETRY_VERSION,
+          action: 'send_video',
+          is_success: false,
         });
       });
   }
@@ -265,7 +296,7 @@ export default class UI {
             type: TELEMETRY_TYPE,
             version: TELEMETRY_VERSION,
             action: 'popup_open',
-            is_downloadable: 'false',
+            is_downloadable: false,
           });
         }
       }
@@ -283,7 +314,7 @@ export default class UI {
         type: TELEMETRY_TYPE,
         version: TELEMETRY_VERSION,
         action: 'popup_open',
-        is_downloadable: 'false',
+        is_downloadable: false,
       });
     });
   }

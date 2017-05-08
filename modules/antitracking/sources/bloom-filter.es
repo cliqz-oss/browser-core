@@ -1,10 +1,9 @@
-import Promise from 'promise';
-import md5 from 'antitracking/md5';
-import * as datetime from 'antitracking/time';
-import pacemaker from 'antitracking/pacemaker';
-import QSWhitelistBase from 'antitracking/qs-whitelist-base';
-import { utils } from 'core/cliqz';
-import { Resource } from 'core/resource-loader';
+import md5 from './md5';
+import * as datetime from './time';
+import pacemaker from './pacemaker';
+import QSWhitelistBase from './qs-whitelist-base';
+import { utils } from '../core/cliqz';
+import { Resource } from '../core/resource-loader';
 
 export function BloomFilter(a, k) {  // a the array, k the number of hash function
   var m = a.length * 32,  // 32 bits for each element in a

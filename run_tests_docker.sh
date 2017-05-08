@@ -53,13 +53,13 @@ else
 
     # Run docker
     echo "Running tests, you can connect using a vnc client to 'localhost:15900 with password vnc'"
-    DOCKER_RUN="docker run  -iP -p 15900:5900 -u 1000:1000 -v `pwd`:/workspace/ -w /workspace -e FIREFOX_DEBUG --entrypoint ./run_tests.sh docker-firefox-extension-tests-${FIREFOX_VERSION}"
+    DOCKER_RUN="docker run  -iP -p 15900:5900 -u jenkins:jenkins -v `pwd`:/workspace/ -w /workspace -e FIREFOX_DEBUG --entrypoint ./run_tests.sh docker-firefox-extension-tests-${FIREFOX_VERSION}"
 
     if type xtightvncviewer >/dev/null 2>&1 ; then
-        ${DOCKER_RUN} &
-        sleep 5
-        echo vnc | xtightvncviewer -autopass localhost::15900
+       ${DOCKER_RUN} &
+       sleep 5
+       echo vnc | xtightvncviewer -autopass localhost::15900
     else
-        ${DOCKER_RUN}
+       ${DOCKER_RUN}
     fi
 fi

@@ -1,4 +1,4 @@
-import ResourceLoader from 'core/resource-loader';
+import ResourceLoader from '../../core/resource-loader';
 
 const URL_BLOCK_RULES = 'https://cdn.cliqz.com/anti-tracking/whitelist/anti-tracking-block-rules.json';
 

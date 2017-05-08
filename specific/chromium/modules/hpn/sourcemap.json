@@ -1,0 +1,153 @@
+{
+	"alive": {
+		"keys": ["action", "payload.t"],
+		"endpoint": "safe-browsing"
+	},
+	"page": {
+		"keys": ["payload.url", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"query": {
+		"keys": ["payload.q", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"query-test": {
+		"keys": ["payload.q", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"anon-query": {
+		"keys": ["action", "payload.q", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"ads_A": {
+		"keys": ["action", "payload.q", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"ads_B": {
+		"keys": ["action", "payload.q", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"ads_C": {
+		"keys": ["action", "payload.q", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"anon-ads_A": {
+		"keys": ["action", "payload.q", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"anon-ads_B": {
+		"keys": ["action", "payload.q", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"anon-ads_C": {
+		"keys": ["action", "payload.q", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"snippet": {
+		"keys": ["action", "payload.q", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"snippet2": {
+		"keys": ["action", "payload.q", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"snippet3": {
+		"keys": ["action", "payload.q", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"doorwaypage": {
+		"keys": ["action", "payload.url", "payload.durl"],
+		"endpoint": "safe-browsing"
+	},
+	"linkedin": {
+		"keys": ["action", "payload.profileLink", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"suspiciousurl": {
+		"keys": ["action", "payload.qurl", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"maliciousUrl": {
+		"keys": ["action", "payload.qurl", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"extension-query": {
+		"keys": ["ts"],
+		"endpoint": "query"
+	},
+	"extension-result-telemetry": {
+		"keys": ["ts"],
+		"endpoint": "query-telemetry"
+	},
+	"attrack.tokens": {
+		"keys": ["action", "ts", "payload"],
+		"endpoint": "safe-browsing"
+	},
+	"attrack.tp_events": {
+		"keys": ["action", "ts", "payload.data[0].hostname", "payload.data[0].path"],
+		"bkeys": ["action", "ts", "payload.data.1.hostname", "payload.data.1.path"],
+		"endpoint": "safe-browsing"
+	},
+	"attrack.safekey": {
+		"keys": ["action", "payload.ts"],
+		"endpoint": "safe-browsing"
+	},
+	"attrack.fp": {
+		"keys": ["action", "payload.ts"],
+		"endpoint": "safe-browsing"
+	},
+	"attrack.whitelistDomain": {
+		"keys": ["action", "payload", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"proxy-health": {
+		"keys": ["action", "anti-duplicates"],
+		"endpoint": "health-stats"
+	},
+	"test-message": {
+		"keys": ["action", "anti-duplicates"],
+		"endpoint": "health-stats"
+	},
+	"hw.telemetry.actionstats": {
+		"keys": ["action", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"ga-watchdog-experiment": {
+		"keys": ["action", "ts", "payload.r"],
+		"endpoint": "safe-browsing-experiment"
+	},
+	"locdata": {
+		"keys": ["action", "payload.q", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"ads_D": {
+		"keys": ["action", "payload.q", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"usercontext": {
+		"keys": ["action", "anti-duplicates"],
+		"endpoint": "safe-browsing"
+	},
+	"attrack.breakage": {
+		"keys": ["action", "payload.data.hostname", "payload.data.path", "payload.data.url_info.hostname", "payload.data.url_info.path"],
+		"endpoint": "safe-browsing"
+	},
+	"attrack.blocked": {
+		"keys": ["action", "payload.ts"],
+		"endpoint": "safe-browsing"
+	},
+	"sq": {
+		"keys": ["action", "payload.oq", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"anon-ads_D": {
+		"keys": ["action", "payload.q", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"instant": {
+		"keys": ["ts"],
+		"endpoint": "scout-stats"
+	}
+
+}
+

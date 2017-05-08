@@ -1,4 +1,4 @@
-import MockOS from "mobile-dev/MockOS"
+import MockOS from "./MockOS"
 
 export default {
   init(settings) {

@@ -1,0 +1,16 @@
+<div class="result instant">
+    <div class="header">
+        {{> partials/logo}}
+        <div class="abstract">
+            <span class="title">{{toAmount}} {{toCurrency}}</span>
+        </div>
+    </div>
+
+    <p class="subtitle padded">
+        <span>{{multiplyer}} {{fromCurrency}} = {{conversionRate}} {{toCurrency}} {{local 'no_legal_disclaimer'}}</span>
+    </p>
+
+{{!--     <p class="padded">
+        <a class="result" href="{{url}}">{{friendlyUrl}}</a>
+    </p> --}}
+</div>

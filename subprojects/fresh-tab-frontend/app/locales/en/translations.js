@@ -81,8 +81,15 @@ export default {
     "hdr-video-downloader": "Download YouTube Videos",
     "txt-video-downloader": "You asked, we listened: you can now easily download YouTube videos to your computer. Just go to a video page on youtube.com and click on the icon that appears in the browser bar.",
     "cta-video-downloader": "Learn more...",
-    "txt-cliqz-ghostery": "WE'VE JOINED FORCES WITH GHOSTERY",
-    "cta-learn-more": "READ ALL ABOUT IT"
+    "hdr-ADB-onboarding": "Ad-block enabled",
+    "txt-ADB-onboarding": "Did you know that Cliqz can remove advertisements on websites? We activated ad-blocking for you to test. You can change the settings in the Control Center next to the address bar at any time.",
+    "cta-learn-more": "READ ALL ABOUT IT",
+    "hdr-cliqz-connect": "Welcome to Connect",
+    "txt-cliqz-connect": "Send links or download YouTube videos to your Android device.",
+    "cta-cliqz-connect": "Here is how.",
+    "hdr-win-no-support-message": "Support for Windows XP and Vista Ending",
+    "txt-win-no-support-message": "Find out how you can continue using Cliqz",
+    "cta-win-no-support-message": "here"
   },
   title: 'New Tab',
   settings: {

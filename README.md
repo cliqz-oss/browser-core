@@ -97,6 +97,12 @@ if no `build` folder is present):
 ./run_tests_docker.sh <FIREFOX_VERSION>
 ```
 
+You need `bash4` on MacOS, you can do
+```
+brew install bash
+/usr/local/bin/bash run_tests_docker.sh <FIREFOX_VERSION>
+```
+
 Where `<FIREFOX_VERSION>` can be any [released version](https://ftp.mozilla.org/pub/firefox/releases/). For example: `./run_tests_docker.sh 47.0.1`.
 
 You can manually connect to docker with any VNC client on `localhost`, port `15900`, password `vnc`.

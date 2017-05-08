@@ -56,17 +56,6 @@ TESTS.HumanWebTest = function (CliqzUtils, CliqzHumanWeb) {
 		});
 	});
 
-	describe('human-web.sha1', function() {
-	    it("human-web-sha1", function (done) {
-	    	this.timeout(2000);
-			CliqzHumanWeb.sha1('hello').then( hash => {
-				expect(hash).to.equal("aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d");
-				done();
-			});
-
-	    });
-	});
-
 	describe('human-web.isSuspiciousTitle', function() {
         var not_suspicious = ['',
             'Firefox',

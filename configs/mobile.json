@@ -1,0 +1,18 @@
+{
+  "platform": "mobile",
+  "testsBasePath": "./build",
+  "testem_launchers": ["Mocha", "Chrome"],
+  "settings": {},
+  "modules": [
+    "core",
+    "autocomplete",
+    "mobile-ui",
+    "mobile-dev",
+    "mobile-history",
+    "yt-downloader",
+    "p2p",
+    "pairing",
+    "mobile-pairing",
+    "static"
+  ]
+}

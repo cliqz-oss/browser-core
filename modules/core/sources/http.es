@@ -2,6 +2,7 @@ import * as ftch from '../platform/fetch';
 import console from './console';
 import { compress } from './gzip';
 import { XMLHttpRequestFactory, setPrivateFlags, setBackgroundRequest } from '../platform/xmlhttprequest';
+import { chromeUrlHandler } from '../platform/chrome-url-handler';
 
 export let fetch = ftch.fetch;
 export let Headers = ftch.Headers;
@@ -13,6 +14,10 @@ export let Response = ftch.Response;
  *  If you want to make HTTP requests, please check out the fetch API (platform/fetch)
  */
 export function defaultHttpHandler(method, url, callback, onerror, timeout, data, sync, encoding, background) {
+  if (method === 'GET' && url.startsWith('chrome://') && chromeUrlHandler) {
+    chromeUrlHandler(url, callback, onerror);
+    return;
+  }
   const XMLHttpRequest = XMLHttpRequestFactory();
   var req = new XMLHttpRequest();
   req.timestamp = + new Date();

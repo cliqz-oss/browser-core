@@ -1,6 +1,5 @@
-import HttpRequestContext from 'antitracking/webrequest-context';
-import { parseURL, dURIC, getHeaderMD5, URLInfo } from 'antitracking/url';
-import { getGeneralDomain, sameGeneralDomain } from 'antitracking/domain';
+import HttpRequestContext from '../webrequest-context';
+import { parseURL, dURIC, getHeaderMD5, URLInfo } from '../url';
 
 
 export function determineContext(state) {
@@ -37,5 +36,5 @@ export function skipInternalProtocols(state) {
 }
 
 export function checkSameGeneralDomain(state) {
-  return !sameGeneralDomain(state.urlParts.hostname, state.sourceUrlParts.hostname);
+  return state.urlParts.generalDomain !== state.sourceUrlParts.generalDomain;
 }

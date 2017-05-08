@@ -1,0 +1,15 @@
+<div class="clearfix notificationsCon" {{action 'notificationClick'}} style="padding-left: 20px;">
+    <div class="close">
+    <a href="#" {{action 'dismiss'}}><img src="./assets/images/close_icon.svg" /></a>
+  </div>
+  <div class="fullWidth">
+    <h1>{{t 'notifications.hdr-win-no-support-message'}}</h1>
+    <p>
+      {{t 'notifications.txt-win-no-support-message'}}
+      <a href="#" {{action 'openSupportPage' 'https://cliqz.com/support/support-ende-windows-xp-und-vista' bubbles=false}}>
+        {{t 'notifications.cta-win-no-support-message'}}
+      </a>
+      .
+    </p>
+  </div>
+</div>

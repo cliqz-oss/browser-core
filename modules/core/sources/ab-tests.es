@@ -321,18 +321,63 @@ var CliqzABTests = {
             case "1092_B":
                 CliqzUtils.setPref("extOnboardVideoDownloader", true);
                 break;
-            case "1093_A":
-              CliqzUtils.setPref("extOnboardCliqzGhostery", false);
-              break;
-            case "1093_B":
-              CliqzUtils.setPref("extOnboardCliqzGhostery", true);
-              break;
             case "1094_A":
               CliqzUtils.setPref("ff-experiment", false);
               break;
             case "1094_B":
               CliqzUtils.setPref("ff-experiment", true);
               break;
+            case "1095_A":
+              CliqzUtils.setPref("connect", false);
+              break;
+            case "1095_B":
+              CliqzUtils.setPref("connect", true);
+              break;
+            case "1096_A":
+              CliqzUtils.setPref("extOnboardCliqzConnect", false);
+              break;
+            case "1096_B":
+              CliqzUtils.setPref("extOnboardCliqzConnect", true);
+              break;
+            case "1097_A":
+              CliqzUtils.setPref("dropdownAdCampaignPosition", 'top');
+              break;
+            case "1097_B":
+              CliqzUtils.setPref("dropdownAdCampaignPosition", 'bottom');
+              break;
+            case "1098_A": // ADB turned OFF
+              if(CliqzUtils.getPref("cliqz-adb-onboarding-ab", false) === true){
+                // turn ADB back OFF only if it was set ON by this test
+                CliqzUtils.clearPref("cliqz-adb-onboarding-ab");
+                CliqzUtils.clearPref("cliqz-adb-onboarding-message");
+                CliqzUtils.setPref("cliqz-adb", 0);
+              }
+              break;
+            case "1098_B": // ADB turned ON
+              if(CliqzUtils.getPref("cliqz-adb", 0) === 1){
+                // ADB already turned ON by the user so leave this test
+                CliqzABTests.disable("1098_B");
+              } else {
+                CliqzUtils.setPref("cliqz-adb-onboarding-ab", true);
+                CliqzUtils.setPref("cliqz-adb", 1);
+              }
+              break;
+            case "1098_C": // ADB turned ON + message
+              if(CliqzUtils.getPref("cliqz-adb", 0) === 1){
+                // ADB already turned ON by the user so leave this test
+                CliqzABTests.disable("1098_C");
+              } else {
+                CliqzUtils.setPref("cliqz-adb-onboarding-ab", true);
+                CliqzUtils.setPref("cliqz-adb", 1);
+                CliqzUtils.setPref("cliqz-adb-onboarding-message", true);
+              }
+              break;
+            case "1099_A":
+                CliqzUtils.setPref("attrackCookieTrustReferers", false);
+                break;
+            case "1099_B":
+                CliqzUtils.setPref("attrackCookieTrustReferers", true);
+                break;
             default:
                 rule_executed = false;
         }
@@ -541,6 +586,32 @@ var CliqzABTests = {
             case "1094_A":
             case "1094_B":
               CliqzUtils.clearPref('ff-experiment');
+              break;
+            case "1095_A":
+            case "1095_B":
+              CliqzUtils.clearPref('connect');
+              break;
+            case "1096_A":
+            case "1096_B":
+              CliqzUtils.clearPref('extOnboardCliqzConnect');
+              break;
+            case "1097_A":
+            case "1097_B":
+              CliqzUtils.clearPref('dropdownAdCampaignPosition');
+              break;
+            case "1098_A":
+            case "1098_B":
+            case "1098_C":
+              if(CliqzUtils.getPref("cliqz-adb-onboarding-ab", false) === true){
+                // turn ADB back OFF only if it was set ON by this test
+                CliqzUtils.setPref("cliqz-adb", 0);
+              }
+              CliqzUtils.clearPref("cliqz-adb-onboarding-ab");
+              CliqzUtils.clearPref("cliqz-adb-onboarding-message");
+              break;
+            case "1099_A":
+            case "1099_B":
+              CliqzUtils.clearPref("attrackCookieTrustReferers");
               break;
             default:
                 rule_executed = false;

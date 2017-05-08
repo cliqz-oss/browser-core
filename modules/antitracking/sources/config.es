@@ -1,7 +1,7 @@
-import * as persist from 'antitracking/persistent-state';
-import events from 'core/events';
-import ResourceLoader from 'core/resource-loader';
-import { Promise } from 'core/cliqz';
+import * as persist from './persistent-state';
+import events from '../core/events';
+import ResourceLoader from '../core/resource-loader';
+import { Promise } from '../core/cliqz';
 
 const VERSIONCHECK_URL = 'https://cdn.cliqz.com/anti-tracking/whitelist/versioncheck.json';
 

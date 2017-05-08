@@ -29,7 +29,7 @@ function generateDiagnosis() {
 
   // Updates
   var timestamp = Date.now();
-  var lastUpdate = utils.getPref('resource-loader.lastUpdates.antitracking/adblocking/checksums');
+  var lastUpdate = utils.getPref('resource-loader.lastUpdates.adblocker/firefox/checksums');
   var ago = timestamp - lastUpdate;
   var seconds = ago / 1000;
   var minutes = seconds / 60;

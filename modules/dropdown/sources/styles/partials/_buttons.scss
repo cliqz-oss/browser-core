@@ -1,0 +1,36 @@
+#cliqz-dropdown {
+    .buttons {
+        padding: 2px 0 2px 0px;
+        font-size: 13px;
+
+        &:after {
+            @extend .clearfix;
+        }
+
+        .result.btn {
+            @extend .ellipsis;
+
+            display: inline-block;
+            max-width: 140px;
+            line-height: 24px;
+            margin: 0 5px -4px 0;
+            padding: 0 9px;
+            cursor: pointer;
+            color: #1076D7;
+            text-decoration: none;
+            border-radius: 3px;
+            border: 1px solid #CFE6FF;
+
+            &:hover,
+            &.selected {
+                border-color: #2385E7;
+            }
+        }
+
+
+
+        .result {
+            height: auto;
+        }
+    }
+}

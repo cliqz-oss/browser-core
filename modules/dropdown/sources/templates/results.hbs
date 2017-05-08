@@ -1,0 +1,5 @@
+{{#each results}}
+    <div class="{{#if isHistory}}history {{#if url}}cluster{{/if}}{{/if}}">
+        {{> (lookup this 'template')}}
+    </div>
+{{/each}}

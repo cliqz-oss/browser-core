@@ -12,6 +12,8 @@ var WatchedDir = broccoliSource.WatchedDir;
 var UnwatchedDir = broccoliSource.UnwatchedDir;
 var broccoliHandlebars = require('broccoli-handlebars-precompiler');
 var concat = require('broccoli-sourcemap-concat');
+var SystemBuilder = require('broccoli-system-builder');
+const writeFile = require('broccoli-file-creator');
 
 var cliqzConfig = require('./config');
 
@@ -25,7 +27,6 @@ var babelOptions = {
   sourceMaps: cliqzConfig.sourceMaps ? 'inline' : false,
   filterExtensions: ['es'],
   modules: cliqzConfig.format || 'system',
-  moduleIds: true,
   compact: false,
   blacklist: ['regenerator'],
 };
@@ -46,13 +47,7 @@ function getPlatformFunnel() {
 function getPlatformTree() {
   let platform = getPlatformFunnel();
 
-  platform = Babel(platform, Object.assign({}, babelOptions, {
-    getModuleId(moduleId) {
-      const moduleName = moduleId.split('/');
-      moduleName.shift();
-      return `platform/${moduleName.join('/')}`;
-    },
-  }));
+  platform = Babel(platform, babelOptions);
 
   return new Funnel(platform, {
     srcDir: cliqzConfig.platform,
@@ -90,7 +85,7 @@ function getSourceFunnel() {
     include: cliqzConfig.modules.map(name => `${name}/sources/**/*.es`),
     exclude: cliqzConfig.modules.map(name => `${name}/sources/**/*.browserify`),
     getDestinationPath(path) {
-      return path.replace("/sources", "");
+      return path.replace('/sources', '');
     }
   });
 }
@@ -186,6 +181,52 @@ function walk(p, filter) {
   return list;
 }
 
+function replaceFileExtension(filename) {
+  const filenameParts = filename.split('.');
+  filenameParts.pop();
+  filenameParts.push('js');
+  return filenameParts.join('.');
+}
+
+function getBundlesTree(modulesTree) {
+  const bundles = cliqzConfig.modules.map((moduleName) => {
+    const modulePath = path.join('modules', moduleName);
+    const inputFiles =  walk(modulePath,
+      fileName => fileName.endsWith('.bundle.es'));
+    const outputFiles = inputFiles.map((bundlePath) => {
+      const bundlePathParts = bundlePath.split("/")
+      let bundleName = bundlePathParts[bundlePathParts.length-1];
+      bundleName = replaceFileExtension(bundleName);
+
+      return new SystemBuilder(modulesTree, '/', moduleName + '/system.config.js', function(builder) {
+        builder.config({
+          defaultJSExtensions: true,
+          paths: {
+            'specific/*': './specific/'+cliqzConfig.platform+'/*',
+            'bower_components/*': './bower_components/*',
+          },
+          meta: {
+            'specific/*': {
+              format: 'global',
+            },
+            'bower_components/*': {
+              format: 'global',
+            },
+            "*": {
+              format: "system",
+            }
+          }
+        });
+        const bundle = moduleName + '/' + bundleName;
+        return builder.buildStatic(bundle, bundle);
+      });
+    });
+
+    return new MergeTrees(outputFiles);
+  });
+  return new MergeTrees(bundles);
+}
+
 function getBrowserifyTree() {
   const browserifyTrees = [];
   cliqzConfig.modules.forEach((name) => {
@@ -213,6 +254,12 @@ function getBrowserifyTree() {
 
 function getSourceTree() {
   let sources = getSourceFunnel();
+  const config = writeFile('core/config.es', 'export default '+JSON.stringify(cliqzConfig, null, 2));
+
+  sources = new MergeTrees([
+    sources,
+    config,
+  ]);
 
   const moduleTestsTree = new Funnel(modulesTree, {
     include: cliqzConfig.modules.map(name =>  `${name}/tests/**/*.es`),
@@ -337,11 +384,19 @@ function getHandlebarsTree() {
       ],
       header: `
         'use strict';
-        System.register('${templatesTree.name}/templates', [], function (_export) {
+        System.register(['handlebars'], function (_export) {
+        if (typeof Handlebars === 'undefined') { var Handlebars; }
         if (typeof templates === 'undefined') { var templates = {};}
+        return {
+            setters: [function (_handlebars) {
+              Handlebars = _handlebars['default'];
+            }],
+            execute: function () {
       `,
       footer: `
-          _export('default', templates);
+              _export('default', templates);
+            }
+          };
         });
       `
     });
@@ -373,5 +428,6 @@ module.exports = {
   static: staticTree,
   modules: esTree,
   bower: bowerTree,
+  bundles: getBundlesTree(new MergeTrees([esTree, staticTree])),
   styleTests: styleCheckTestsTree,
 };

@@ -1,5 +1,7 @@
 import platform from '../platform/platform';
 
+export { isPlatformAtLeastInVersion } from '../platform/platform';
+
 export function notImplemented() {
   throw new Error('Not implemented');
 }

@@ -1,33 +1,14 @@
 <!DOCTYPE html>
 <html>
    <head>
-      <title>developer tool</title>
-
-
-      <link href="mobile-ui/styles/style.css" rel="stylesheet" type="text/css">
-      <script src="bower_components/core.js/client/core.min.js"></script>
-      <script src="bower_components/handlebars/handlebars.js"></script>
-      <script src="bower_components/hammerjs/hammer.js"></script>
-      <script src="bower_components/whatwg-fetch/fetch.js"></script>
-      <script src="bower_components/system.js/dist/system.js"></script>
-      <script src="js/libs/ios-orientationchange-fix.js"></script>
-      <script>window.CLIQZ = {}</script>
-      <script src="js/osAPI.js"></script>
-      <script src="js/jsAPI.js"></script>
-      <script src="app.js"></script>
       <meta charset='utf-8'>
+      <link href="mobile-ui/styles/style.css" rel="stylesheet" type="text/css">
       <meta id="viewport-tag" name="viewport" content="height=device-height, width=device-width,minimum-scale=1.0001, user-scalable=no"/>
    </head>
-
    <body>
-
-      <div style="width:0px;height:1px;background:darkblue" id="progress" style="display:none"></div>
-
-      <div id="reconnecting" class="reconnecting-layer">
-      </div>
-
+      <div id="progress"></div>
+      <div id="reconnecting" class="reconnecting-layer"></div>
       <div id="results"></div>
-      <script src="js/start.js"></script>
+      <script src="mobile-ui/app.bundle.js"></script>
    </body>
-
 </html>

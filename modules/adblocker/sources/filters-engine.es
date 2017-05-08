@@ -1,12 +1,12 @@
-import { URLInfo } from 'antitracking/url';
+import { URLInfo } from '../antitracking/url';
 
-import log from 'adblocker/utils';
+import log from './utils';
 import parseList, { parseJSResource
                   , serializeFilter
-                  , deserializeFilter } from 'adblocker/filters-parsing';
+                  , deserializeFilter } from './filters-parsing';
 import { matchNetworkFilter
-       , matchCosmeticFilter } from 'adblocker/filters-matching';
-import { TLDs } from 'core/tlds';
+       , matchCosmeticFilter } from './filters-matching';
+import { TLDs } from '../core/tlds';
 
 
 const TOKEN_BLACKLIST = new Set([

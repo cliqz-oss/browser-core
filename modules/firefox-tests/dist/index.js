@@ -153,9 +153,9 @@ afterEach(function () {
   CliqzABTests.check = abCheck;
 
   // clear urlbar
-  if (chrome.CLIQZ.Core.popup) {
-    fillIn("");
-  }
+  fillIn("");
+  // if we don't blur, there can be problems with old results appearing...
+  chrome.gURLBar.blur();
 
   // clean waitFor side effects
   clearIntervals();

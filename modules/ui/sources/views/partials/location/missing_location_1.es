@@ -1,6 +1,7 @@
 import utils from '../../../../core/utils';
 import CliqzHandlebars from "../../../../core/templates";
 import autocomplete from "../../../../autocomplete/autocomplete";
+import CliqzEvents from '../../../../core/events';
 import inject from '../../../../core/kord/inject';
 
 var messages = {
@@ -41,6 +42,9 @@ var events = {
         setting: "location-setting-dropdown",
         value: "share-location-yes"
       });
+
+      // force a cache reset
+      CliqzEvents.pub('core:reset_cache');
     },
     "cqz_location_once": function(ev) {
       ev.preventDefault();
@@ -51,6 +55,9 @@ var events = {
         setting: "location-setting-dropdown",
         value: "share-location-once-step-" + ev.target.getAttribute("location_dialogue_step")
       });
+
+      // force a cache reset
+      CliqzEvents.pub('core:reset_cache');
     },
     "cqz_location_no": function(ev) {
       var container = this.CLIQZ.UI.gCliqzBox.querySelector(".local-sc-data-container"),
@@ -91,6 +98,9 @@ var events = {
       if (container) container.innerHTML = CliqzHandlebars.tplCache["partials/location/no-locale-data"]({
         "display_msg": "location-thank-you"
       });
+
+      // force a cache reset
+      CliqzEvents.pub('core:reset_cache');
     }
   }
 };

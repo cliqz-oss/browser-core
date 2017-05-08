@@ -1,4 +1,4 @@
-import LRU from "core/LRU";
+import LRU from "../core/LRU";
 /* Fixed length lookup cache. Allows expensive operations to be cached for later lookup. Once
  * the cache limit is exceeded, least recently used values are removed.
  */

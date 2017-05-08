@@ -11,7 +11,11 @@
 		<em:bootstrap>true</em:bootstrap>
     <em:multiprocessCompatible>true</em:multiprocessCompatible>
 
+		{% if beta == 'True' %}
+		{{rdfUpdateURLbeta}}
+		{% else %}
 		{{rdfUpdateURL}}
+		{% endif %}
 
 		<em:description>
 		</em:description>

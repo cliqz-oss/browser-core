@@ -16,7 +16,6 @@ export default background({
     this.loadPlugins();
     CliqzUnblock.init(settings.unblockUI);
     this.onPrefChange = this.onPrefChange.bind(this);
-    events.sub("prefchange", this.onPrefChange);
   },
 
   enabled() {
@@ -27,7 +26,6 @@ export default background({
   * @method unload
   */
   unload() {
-    events.un_sub("prefchange:"+ CliqzUnblock.PREF_MODE, this.onPrefChange);
     CliqzUnblock.unload();
   },
 
@@ -54,5 +52,8 @@ export default background({
     "core.location_change": function(url) {
       CliqzUnblock.pageObserver(url);
     },
+    "prefchange": function(pref) {
+      this.onPrefChange(pref);
+    }
   }
 });

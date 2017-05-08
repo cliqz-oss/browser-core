@@ -5,6 +5,7 @@
 
 import LoggingHandler from '../logging_handler';
 import OffersConfigs from '../offers_configs';
+import random from '../../core/crypto/random';
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -72,49 +73,75 @@ export class UISignalsHandler {
   //
   // @brief this will track a new signal coming from an offer.
   //
-  trackOfferSignal(offerID, signalKey) {
-    if (!offerID || !signalKey) {
-      lwarn('trackOfferSignal: the offerID or signalKey are null?');
+  trackOfferSignal(campaignID, offerID, signalKey) {
+    if (!campaignID || !offerID || !signalKey) {
+      lwarn('trackOfferSignal: the campaignID, offerID or signalKey are null?');
       return;
     }
+
     // get the offer related info
-    var offerSigInfo = this.sigHandler.getSignalData(offerID);
-    if (!offerSigInfo) {
+    var campaignSigInfo = this.sigHandler.getSignalData(campaignID);
+    if (!campaignSigInfo) {
+      campaignSigInfo = this._createCampaignSignalData();
+    }
+
+    var offerSigInfo = campaignSigInfo.offers[offerID];
+    if(!offerSigInfo) {
       offerSigInfo = this._createOfferSignalData();
+      campaignSigInfo.offers[offerID] = offerSigInfo;
     }
 
     // merge (update) signal
     addOrCreate(offerSigInfo, signalKey, 1);
 
     // set it back to the sig handler
-    this.sigHandler.setSignalData(offerID, offerSigInfo);
+    this.sigHandler.setSignalData(campaignID, campaignSigInfo);
   }
 
   //
   // @brief this will set an attribute to an offer id, like offer_source
   //
-  setOfferAttribute(offerID, attrName, attrValue) {
-    if (!offerID || !attrName) {
-      lwarn('setOfferAttribute: the offerID or attrName are null?');
+  setOfferAttribute(campaignID, offerID, attrName, attrValue) {
+    if (!campaignID || !offerID) {
+      lwarn('setOfferAttribute: the campaignID or offerID are null?');
       return;
     }
+
     // get the offer related info
-    var offerSigInfo = this.sigHandler.getSignalData(offerID);
-    if (!offerSigInfo) {
+    var campaignSigInfo = this.sigHandler.getSignalData(campaignID);
+    if (!campaignSigInfo) {
+      campaignSigInfo = this._createCampaignSignalData();
+    }
+
+    var offerSigInfo = campaignSigInfo[offerID];
+    if(!offerSigInfo) {
       offerSigInfo = this._createOfferSignalData();
+      campaignSigInfo[offerID] = offerSigInfo;
     }
 
     // set attribute
     offerSigInfo[attrName] = attrValue;
 
     // set it back to the sig handler
-    this.sigHandler.setSignalData(offerID, offerSigInfo);
+    this.sigHandler.setSignalData(campaignID, campaignSigInfo);
   }
 
 
   //////////////////////////////////////////////////////////////////////////////
   //                            PRIVATE METHODS
   //////////////////////////////////////////////////////////////////////////////
+
+  // create a new offer data signal to be sent (skeleton).
+  _createCampaignSignalData() {
+    var self = this;
+
+    // TODO: put the data we need here, maybe when we created this?
+    return {
+      created_ts: Date.now(),
+      ucid: self._uuid(),
+      offers: {}
+    };
+  }
 
   // create a new offer data signal to be sent (skeleton).
   _createOfferSignalData() {
@@ -124,7 +151,15 @@ export class UISignalsHandler {
     };
   }
 
-
+  _uuid() {
+    function s4() {
+      return Math.floor((1 + random()) * 0x10000)
+        .toString(16)
+        .substring(1);
+    }
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+      s4() + '-' + s4() + s4() + s4();
+  }
 };
 
 

@@ -11,6 +11,7 @@ const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
 const chaiAsPromised = require('chai-as-promised');
 const sinonAsPromised = require('sinon-as-promised');
+const path = require('path');
 chai.config.truncateThreshold = 0
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
@@ -151,30 +152,32 @@ function describeModule(moduleName, loadDeps, testFn) {
 
 global.describeModule = describeModule;
 
-
 const run = mocha.run;
-const loadFiles = mocha.loadFiles;
 mocha.loadFiles = function () {};
 mocha.run = function () {
-  loadFiles.call(this, function () {
-    Promise.all(
-      testFiles.map(
-        path => System.import(path).then(function (testModule) {
-          log(`load ${path}`);
-          return testModule.default;
-        }).catch(function (e) {
-          console.error(e)
-          throw e
-        })
-      )
-    ).then(function () {
-      run.call(mocha);
-    }, function (err) {
-      log(`error loading tests ${err} ${err.stack}`);
-      error('error loading tests', err, err.stack);
+  /* mocha.loadFiles supporting async loading */
+  const self = this;
+  const suite = this.suite;
+  const promises = this.files.map(function (file) {
+    console.log(file)
+    file = path.resolve(file);
+    suite.emit('pre-require', global, file, self);
+    return System.import(file).then(module => {
+      suite.emit('require', module, file, self);
+      suite.emit('post-require', global, file, self);
+    }).catch((error) => {
+      // TODO: handle the error here by adding failing test result for this file
+      throw error;
     });
   });
-};
+  /* mocha.loadFiles end */
 
+  Promise.all(promises).then(function () {
+    run.call(mocha);
+  }, function (err) {
+    log(`error loading tests ${err} ${err.stack}`);
+    console.error('error loading tests', err, err.stack);
+  });
+};
 
 walker.on('end', function () { mocha.run(); });

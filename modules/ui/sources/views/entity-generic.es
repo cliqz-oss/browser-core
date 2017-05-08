@@ -1,2 +1,2 @@
-import generic from 'ui/views/generic';
+import generic from './generic';
 export default generic;

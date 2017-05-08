@@ -408,23 +408,18 @@ export default class {
   // creates the static frame data without any module details
   // re-used for fast first render and onboarding
   getFrameData(){
-   var url = this.window.gBrowser.currentURI.spec,
+    var url = this.window.gBrowser.currentURI.spec,
         friendlyURL = url,
         isSpecialUrl = false,
-        urlDetails;
-    try {
-      urlDetails = utils.getDetailsFromUrl(url);
-      switch(urlDetails.name) {
-        case 'about':
-          friendlyURL = utils.stripTrailingSlash(utils.cleanUrlProtocol(url, true))
-          isSpecialUrl = true;
-          break;
-        case 'resource':
-          friendlyURL = 'Cliqz Tab';
-          isSpecialUrl = true;
-          break;
-      }
-    } catch (e) {}
+        urlDetails = utils.getDetailsFromUrl(url);
+
+    if(url.indexOf('about:') === 0){
+      friendlyURL = url;
+      isSpecialUrl = true;
+    } else if(url.indexOf(utils.CLIQZ_NEW_TAB_RESOURCE_URL) === 0){
+      friendlyURL = 'Cliqz Tab';
+      isSpecialUrl = true;
+    }
 
     return {
       activeURL: url,

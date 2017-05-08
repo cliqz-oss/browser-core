@@ -1,5 +1,5 @@
-import log from 'adblocker/utils';
-import { platformName } from 'core/platform';
+import log from '../adblocker/utils';
+import { platformName } from '../core/platform';
 
 
 // Uniq ID generator

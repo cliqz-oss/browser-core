@@ -224,8 +224,14 @@
     "searchUsing":{
         "message":"Suche mit"
     },
+    "searchWith": {
+        "message":"Mit $1 suchen"
+    },
     "on":{
         "message":"auf"
+    },
+    "visit":  {
+        "message":"Aufrufen"
     },
     "peoplePositionAt":{
         "message":"bei"
@@ -1110,7 +1116,7 @@
       "message": "Anrufen"
     },
     "mobile_share_location": {
-      "message": "Einmalig lokale Informationen abrufen"
+      "message": "Lokale Informationen abrufen"
     },
     "mobile_freshtab_breaking_news": {
       "message": "EILMELDUNG:"
@@ -1494,7 +1500,7 @@
       "message": "Weitere Formate"
     },
     "video-downloader-send-to-mobile": {
-      "message": "An Smartphone senden"
+      "message": "An mobiles Gerät senden"
     },
     "video-downloader-unsupported-format": {
       "message": "Sorry! Wir können das Video leider nicht herunterladen."
@@ -1540,6 +1546,69 @@
     },
     "transparency_activity_buttons": {
       "message": "Aktuell keine Aktivität"
+    },
+    "pairing-title": {
+      "message": "Connect"
+    },
+    "pairing-description": {
+      "message": "Verbinde Cliqz auf deinem Computer mit Cliqz auf deinem mobilen Gerät. Dann kannst du Websites und YouTube Videos direkt an dein Smartphone oder Tablet schicken."
+    },
+    "pairing-android-app": {
+      "message": "<a id=\"playstore-btn\" target=\"_blank\" href=\"https://play.google.com/store/apps/details?hl=de&id=com.cliqz.browser\">Cliqz für Android</a>"
+    },
+    "pairing-video-title": {
+      "message": "Videos herunterladen"
+    },
+    "pairing-video-tip": {
+      "message": "Öffne ein YouTube Video.\nKlicke auf das Video Download Icon.\nWähle \"An mobiles Gerät senden\"."
+    },
+    "pairing-tab-title": {
+      "message": "Tabs senden"
+    },
+    "pairing-tab-tip": {
+      "message": "Klicke mit der rechten Maustaste auf einen Tab oder eine Website.\nWähle \"Tab an mobiles Gerät senden\"."
+    },
+    "pairing-browser-pair-with": {
+      "message": "Dieser Browser ist jetzt verknüpft mit:"
+    },
+    "pairing-on-disconnected-tip": {
+      "message": "Handover funktioniert nur, wenn dein mobiles Gerät mit dem Internet verbunden und aktiv ist."
+    },
+    "pairing-contact-support": {
+      "message": "Bei Fragen oder Problemen kontaktiere bitte unser"
+    },
+    "pairing-scan-title": {
+      "message": "Mobiles Gerät verbinden"
+    },
+    "pairing-step1-title": {
+      "message": "Lade Cliqz für Android im Play Store herunter."
+    },
+    "pairing-step2-title": {
+      "message": "Öffne die Cliqz App auf deinem mobilen Gerät. Wähle im Menü \"Connect\" aus."
+    },
+    "pairing-step3-title": {
+      "message": "Klicke auf (+) um den QR Code Scanner zu starten."
+    },
+    "pairing-step4-title": {
+      "message": "Scanne den QR Code."
+    },
+    "pairing-online": {
+      "message": "ONLINE"
+    },
+    "pairing-offline": {
+      "message": "OFFLINE"
+    },
+    "pairing-unpair": {
+      "message": "Verbindung trennen"
+    },
+    "pairing-send-tab-to-mobile": {
+      "message": "An mobiles Gerät senden"
+    },
+    "pairing-send-video-to-mobile-retry": {
+      "message": "Erneut senden"
+    },
+    "ad-label": {
+      "message": "Anzeige"
     },
     "TEST": "OK"
 }

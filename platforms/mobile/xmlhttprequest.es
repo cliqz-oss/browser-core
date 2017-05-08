@@ -1,4 +1,4 @@
-import window from 'platform/window';
+import window from './window';
 
 export let XMLHttpRequestFactory = () => window.XMLHttpRequest;
 

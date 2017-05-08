@@ -219,7 +219,7 @@ TESTS.CliqzUtilsTest = function (CliqzUtils) {
         });
 
         it('can compress sent post data', function() {
-          return CliqzUtils.importModule('core/gzip').then( function (gzip) {
+          return CliqzUtils.getWindow().CLIQZ.System.import('core/gzip').then( function (gzip) {
             return CliqzUtils.promiseHttpHandler('POST', url, postDataSent, undefined, true).then( function(resp) {
               chai.expect(hitCtr).to.eql(1);
               chai.expect(resp.response).to.eql(responseTest);

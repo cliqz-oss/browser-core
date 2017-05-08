@@ -1,6 +1,6 @@
 import log from 'anolysis/logging';
 import md5 from 'core/helpers/md5';
-import { fetch, Request } from 'core/http';
+import { fetch, Request, Headers } from 'core/http';
 
 
 function post(url, payload) {
@@ -10,7 +10,13 @@ function post(url, payload) {
     headers,
     method: 'POST',
     body: JSON.stringify(payload) });
-  return fetch(request);
+  return fetch(request)
+    .then((response) => {
+      if (!response.ok) {
+        return Promise.reject(`Backend ${url} answered with code ${response.status}`);
+      }
+      return response.json();
+    });
 }
 
 /**
@@ -25,11 +31,36 @@ const TELEMETRY_BACKEND_URL = 'https://anolysis-telemetry.cliqz.com/collect';
 function sendDemographics(demographics, endpoint) {
   log(`${endpoint} ${demographics}`);
   return post(`${GID_BACKEND_URL}/${endpoint}`, { id: demographics })
-    .then((response) => {
-      if (response.ok) {
-        return Promise.resolve();
+    .then((result) => {
+      // Extract id returned by the backend. This is important because both
+      // the backend and the client must agree on a common format. This will
+      // be used later to update the GID.
+      if (result.id) {
+        // Check that id contains the same values than the `demographics`
+        // we sent, to prevent the backend from changing this. Which could
+        // allow tracking.
+        const id = JSON.parse(result.id);
+        const original = JSON.parse(demographics);
+
+        const idKeys = Object.keys(id);
+        const originalKeys = Object.keys(original);
+
+        if (idKeys.length !== originalKeys.length) {
+          return Promise.reject('Returned id contains different keys:'
+            + ` sent ${demographics}, received ${result.id}`);
+        }
+
+        for (const key of originalKeys) {
+          if (original[key] !== id[key]) {
+            return Promise.reject(`The value for key ${key} differs:`
+              + `sent ${original[key]}, received ${id[key]}`);
+          }
+        }
+
+        return result.id;
       }
-      return Promise.reject();
+
+      return Promise.reject('No id returned by the backend.');
     });
 }
 
@@ -73,7 +104,7 @@ function activeUserSignal(demographics) {
  * in the future.
  */
 function updateGID(demographics) {
-  log(`updateDemographics ${JSON.stringify(demographics)}`);
+  log(`updateDemographics ${demographics}`);
   const hash = md5(demographics);
 
   // TODO: What is the right size?
@@ -81,12 +112,6 @@ function updateGID(demographics) {
 
   // Send a prefix of the hash to the backend
   return post(`${GID_BACKEND_URL}/update_gid`, { hash_prefix: prefix })
-    .then((response) => {
-      if (response.ok) {
-        return response.json();
-      }
-      return Promise.reject();
-    })
     .then((data) => {
       log(`updateGID response ${JSON.stringify(data)}`);
       if (data.candidates) {
@@ -105,7 +130,7 @@ function updateGID(demographics) {
         }
       }
 
-      return Promise.reject();
+      return Promise.reject(`No valid GID found ${hash}`);
     });
 }
 
@@ -113,8 +138,8 @@ function updateGID(demographics) {
 /**
  * Sends a behavioral signal to the backend
  */
-function sendSignal(gid, signal) {
-  log(`sendSignal ${gid} => ${JSON.stringify(signal)}`);
+function sendSignal(signal) {
+  log(`sendSignal ${JSON.stringify(signal)}`);
   return post(TELEMETRY_BACKEND_URL, signal);
 }
 

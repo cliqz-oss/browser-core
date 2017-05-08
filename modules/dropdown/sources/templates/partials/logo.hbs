@@ -1,0 +1,13 @@
+<div class="icons">
+
+    <span class="logo" data-extra="logo"
+        {{#if logo}}style="{{logo.style}}"{{/if}}>
+        {{logo.text}}
+    </span>
+    <span class="micro-logo" data-extra="logo"
+        {{#if logo}}style="background-color: #{{logo.backgroundColor}}"{{/if}}>
+    </span>
+    {{#if icon}}
+        <span class="icon {{icon}}" data-extra="icon-{{icon}}"></span>
+    {{/if}}
+</div>

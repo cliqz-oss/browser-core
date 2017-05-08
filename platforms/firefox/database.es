@@ -1,6 +1,6 @@
 /* global PouchDB */
 import environment from "platform/environment";
-import { log, error } from "platform/console";
+import console from "platform/console";
 
 Cu.importGlobalProperties(['indexedDB', 'XMLHttpRequest']);
 
@@ -15,8 +15,10 @@ const global = {
   clearTimeout: environment.clearTimeout,
   setTimeout: environment.setTimeout,
   console: {
-    log,
-    error
+    log: console.log.bind(console),
+    error: console.error.bind(console),
+    warn: (console.warn || console.error).bind(console),
+    info: (console.info || console.log).bind(console),
   },
   global: {
     // placeholder for PouchDB object

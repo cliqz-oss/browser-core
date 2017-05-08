@@ -1,6 +1,6 @@
-import CliqzSecureMessage from 'hpn/main';
-import utils from 'core/utils';
-import * as http from 'core/http';
+import utils from '../core/utils';
+import * as http from '../core/http';
+import CliqzSecureMessage from './main';
 
 const OFFER_TELEMETRY = 'https://offers-api.cliqz.com/api/v1/savesignal';
 

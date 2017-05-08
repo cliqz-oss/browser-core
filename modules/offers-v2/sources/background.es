@@ -7,6 +7,9 @@ import EventLoop from './event_loop';
 import { EventHandler } from './event_handler';
 import { UIOfferProcessor } from './ui/ui_offer_processor';
 import {SignalHandler} from './signals_handler';
+import jsep from './lib/jsep';
+import { UIOffersHistory } from './ui/ui_offers_history';
+import {UIFilterRulesEvaluator} from './ui/ui_filter_rules_evaluator';
 
 ////////////////////////////////////////////////////////////////////////////////
 // consts
@@ -68,6 +71,7 @@ export default background({
     // init the logging
     LoggingHandler.init();
 
+    // this.demoJSEP();
 
     // TODO: GR-137 && GR-140: temporary fix
     this.onWindowClosed = this.onWindowClosed.bind(this);
@@ -232,6 +236,16 @@ export default background({
                           'windowUIConnector something bad happened: ' + ee);
     }
   },
+
+  demoJSEP() {
+    LoggingHandler.info(MODULE_NAME, "jsep loaded: " + JSON.stringify(jsep("1+1")));
+    let expr = jsep("unkown_func(10)");
+    let ee = new UIFilterRulesEvaluator(new UIOffersHistory());
+    LoggingHandler.info(MODULE_NAME, "result : " + ee._evalExpression(expr));
+    // LoggingHandler.info(MODULE_NAME, "result : " + ee._evalExpression(jsep("not_created_last_secs(10) || not_created_last_secs2(60)")));
+  },
+
+
 
 
 

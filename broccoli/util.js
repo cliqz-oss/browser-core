@@ -50,6 +50,22 @@ module.exports = {
           }
         },
         {
+          match: /\{\{rdfUpdateURLbeta\}\}/g,
+          replacement: config => {
+            if (config.settings.updateURLbeta) {
+              var url = config.settings.updateURLbeta;
+              url = injectVars(url, config);
+              return [
+                "<em:updateURL>",
+                url,
+                "</em:updateURL>",
+              ].join("");
+            } else {
+              return "";
+            }
+          }
+        },
+        {
           match: /\{\{rdfHomepageURL\}\}/g,
           replacement: config => config.settings.homepageURL || ''
         },
@@ -112,6 +128,10 @@ module.exports = {
         {
           match: /\{\{HW_CHANNEL\}\}/g,
           replacement: config => config.settings.HW_CHANNEL || ''
+        },
+        {
+          match: /\{\{CONFIG_PROVIDER\}\}/g,
+          replacement: config => config.settings.CONFIG_PROVIDER || ''
         }
       ]
     });

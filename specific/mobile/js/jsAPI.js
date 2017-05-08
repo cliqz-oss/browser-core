@@ -21,6 +21,9 @@ var jsAPI = {
       osAPI.shareCard(NOT_SHAREABLE_SIGNAL);
     }
   },
+  getLogoFromUrl: function(url) {
+    return CliqzUtils.getLogoDetails(CliqzUtils.getDetailsFromUrl(url));
+  },
   setClientPreferences: function(prefs) {
     // clear cache with every visit to tab overiew and settings
     Search && Search.clearResultCache();

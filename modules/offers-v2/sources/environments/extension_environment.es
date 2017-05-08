@@ -2,6 +2,7 @@ import LoggingHandler from '../logging_handler';
 import EmptyEnvironment from './empty_environment'
 import OffersConfigs from '../offers_configs';
 import HistorySignalID from '../ui/ui_offers_history';
+import random from '../../core/crypto/random';
 
 const MODULE_NAME = 'extension_environment';
 
@@ -108,7 +109,7 @@ export default class ExtensionEnvironment extends EmptyEnvironment {
   }
 
 
-  sendSignal(signalId, key) {
+  sendSignal(campaignId, offerId, key) {
     function addOrCreate(d, field, value) {
       const elem = d[field];
       if (elem) {
@@ -122,19 +123,45 @@ export default class ExtensionEnvironment extends EmptyEnvironment {
     //       this may delete all the current data => create a method to update
     //       the configuration of the bucket only then.
 
-    if (!signalId || !key) {
+    if (!campaignId || !offerId || !key) {
       return;
     }
+
     // get the offer related info
-    var signal = this.signalHandler.getSignalData(signalId);
-    if (!signal) {
-      signal = {};
+    var signalData = this.signalHandler.getSignalData(campaignId);
+    if (!signalData) {
+      signalData = {
+        created_ts: Date.now(),
+        ucid: this.uuid(),
+        offers: {}
+      };
     }
 
+    var offerData = signalData.offers[offerId];
+    if(!offerData) {
+      offerData = {
+        created_ts: Date.now()
+      };
+      signalData.offers[offerId] = offerData; 
+    };
+
+
+
     // merge (update) signal
-    addOrCreate(signal, key, 1);
+    addOrCreate(offerData, key, 1);
 
     // set it back to the sig handler
-    this.signalHandler.setSignalData(signalId, signal);
+    this.signalHandler.setSignalData(campaignId, signalData);
+  }
+
+
+  uuid() {
+    function s4() {
+      return Math.floor((1 + random()) * 0x10000)
+        .toString(16)
+        .substring(1);
+    }
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+      s4() + '-' + s4() + s4() + s4();
   }
 }

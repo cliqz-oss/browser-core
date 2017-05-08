@@ -1,62 +1,16 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>History</title>
         <link href="mobile-history/styles/tabs.css" rel="stylesheet" type="text/css">
-
-        <script src="bower_components/core.js/client/core.min.js"></script>
-        <script src="bower_components/handlebars/handlebars.js"></script>
-        <script src="bower_components/jquery/dist/jquery.min.js"></script>
-        <script src="bower_components/hammerjs/hammer.js"></script>
-        <script src="bower_components/whatwg-fetch/fetch.js"></script>
-        <script src="bower_components/mathjs/dist/math.min.js"></script>
-        <script src="bower_components/system.js/dist/system.js"></script>
-        <script>window.CLIQZ = {}</script>
-        <script src="js/osAPI.js"></script>
-        <script src="js/jsAPI.js"></script>
-        <script>
-            System.config({
-              defaultJSExtensions: true,
-              bundles: {
-                'app.js': ['core/startup.js']
-              }
-            });
-            System.set(System.normalizeSync('system'), System.newModule({default: System}));
-            System.import("core/startup").then(function (startupModule) {
-              return Promise.all([
-                System.import("platform/environment"),
-                System.import("core/utils"),
-                System.import("core/storage"),
-                System.import("core/events"),
-                startupModule
-              ])
-            }).then(function (modules) {
-              var environment = modules.shift().default;
-              var utils = modules.shift().default;
-              var Storage = modules.shift().default;
-              var events = modules.shift().default;
-              environment.storage = new Storage();
-              window.CLIQZEnvironment = environment;
-              window.CliqzUtils = utils;
-              window.CliqzEvents  = events;
-              return modules.shift();
-            }).then(function (startupModule) {
-              return startupModule.default(window, [
-                "core",
-                "mobile-dev", //only available in mobile-dev config
-                "mobile-history",
-                "static"
-              ]);
-            }).then(function () {
-              jsAPI.init();
-              osAPI.init();
-              osAPI.isReady();
-              History.init(false);
-            });
-        </script>
         <meta charset='utf-8'>
         <meta name="viewport" content="initial-scale=1.0001, user-scalable=no" />
     </head>
     <body class="noselect">
+        <script>
+            window.CLIQZ = {
+                mode: 'history',
+            };
+        </script>
+        <script src="mobile-history/app.bundle.js"></script>
     </body>
 </html>

@@ -1,0 +1,9 @@
+{{#if imageResults}}
+    <div class='images padded'>
+        {{#each (take imageResults 4)}}
+            <a class="result" href="{{url}}">
+                <img src="{{thumbnail}}" />
+            </a>
+        {{/each}}
+    </div>
+{{/if}}

@@ -7,35 +7,41 @@ var __CliqzUtils = function() { // (_export) {
             CliqzUtils = {
                 VERSION: '0.1',
                 prefs : {},
+                CONFIG_PROVIDER: '{{CONFIG_PROVIDER}}',
                 log: function(msg, key) {
                     console.log(msg, key);
                 },
                 getPref: function(label, defaultValue) {
-                    //  CliqzUtils.getPref('config_ts', null);
-                    //  CliqzUtils.getPref('config_location', null);
-                    //  CliqzUtils.getPref('config_activeUsage', null);
-                    switch (label)
-                    {
-                        case "config_ts":
-                            defaultValue = CliqzHumanWeb.getTime().slice(0, 8);
-                            if(CliqzUtils.prefs.hasOwnProperty(label)){
-                                defaultValue = CliqzUtils.prefs[label];
-                            }
-                            break;
-                        case "config_location":
-                            defaultValue = "de";
-                            if(CliqzUtils.prefs.hasOwnProperty(label)){
-                                defaultValue = CliqzUtils.prefs[label];
-                            }
-                        default:
-                            defaultValue;
-                            break;
+                    if (CliqzUtils.prefs.hasOwnProperty(label)) {
+                        return CliqzUtils.prefs[label];
+                    } else {
+                        return defaultValue;
                     }
-                    return defaultValue;
+                },
+                loadPrefs: function(){
+                    return new Promise(function(resolve, reject) {
+                        let _prefs = prefs.map( e => {return 'prefs:' + e});
+                        chrome.storage.local.get(_prefs, results => {
+                            Object.keys(results).forEach( e => {
+                                if (typeof(results[e]) != 'undefined') {
+                                    let prefName = e.split(':')[1];
+                                    CliqzUtils.prefs[prefName] = results[e];
+                                }
+                            });
+                            resolve();
+                        });
+                    });
                 },
                 setPref: function(label, value) {
-                    console.log("Need to set pref" + label + " : " + value);
-                    CliqzUtils.prefs[label] = value;
+                    CliqzUtils.log("Need to set pref" + label + " : " + value);
+                    if (prefs.indexOf(label) > -1) {
+                        CliqzUtils.prefs[label] = value;
+                        CliqzChromeDB.set('prefs', label, value, result => {
+                            CliqzUtils.log("Pref set: " + label);
+                        });
+                    } else {
+                        CliqzUtils.log("Pref is not set in the list of prefs. Did not store." + label + " : " + value);
+                    }
                 },
                 setTimeout: function(callback, time, args) {
                 },
@@ -94,7 +100,23 @@ var __CliqzUtils = function() { // (_export) {
                     }
                     return temp;
                 },
-
+                fetchAndStoreConfig: function() {
+                    //Load latest config.
+                    CliqzUtils.httpGet(CliqzUtils.CONFIG_PROVIDER, function success(req) {
+                        if (!CliqzHumanWeb) return;
+                        try {
+                            let config = JSON.parse(req.response);
+                            if (config && config['location']) {
+                                CliqzUtils.setPref('config_location', config['location'])
+                            }
+                        } catch (e) {};
+                    }, function error(res) {
+                        _log('Error loading config. ');
+                    }, 5000);
+                },
+                getWindow: function() {
+                    return "";
+                }
             }
 
             return CliqzUtils;

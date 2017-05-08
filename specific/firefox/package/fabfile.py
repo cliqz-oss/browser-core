@@ -77,7 +77,7 @@ def package(beta='True', version=None, sign='False', channel='browser'):
     output_from_parsed_template = template.render(name=NAME,
                                                   version=version,
                                                   folder=folder,
-                                                  updateURL=('False' if channel == 'amo' else 'True'))
+                                                  beta=beta)
     with open(install_manifest_path, "wb") as f:
         f.write(output_from_parsed_template.encode("utf-8"))
 

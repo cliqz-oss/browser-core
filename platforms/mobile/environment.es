@@ -1,7 +1,7 @@
-import console from "core/console";
-import prefs from "core/prefs";
-import Storage from "core/storage";
-import CliqzUtils from "core/utils";
+import console from "../core/console";
+import prefs from "../core/prefs";
+import Storage from "../core/storage";
+import CliqzUtils from "../core/utils";
 
 //TODO: get rid of me!
 var lastSucceededUrl;
@@ -86,6 +86,8 @@ var CLIQZEnvironment = {
       CLIQZ.UI.lastResults = null;
       return;
     }
+
+    e = decodeURIComponent(e);
 
     CLIQZEnvironment.setCurrentQuery(e);
 
@@ -187,7 +189,6 @@ CLIQZEnvironment.setCurrentQuery = function(query) {
   }
 
   var recentItems = storage.getObject('recentQueries', []);
-  query = unescape(query);
 
   if(!recentItems[0]) {
     recentItems = [{id: 1, query:query, timestamp:Date.now()}];

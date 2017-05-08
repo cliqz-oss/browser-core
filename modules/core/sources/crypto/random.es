@@ -1,6 +1,6 @@
 /* eslint-disable no-bitwise */
 
-import crypto from 'platform/crypto';
+import crypto from '../../platform/crypto';
 
 // Cryptographically secure Math.random replacement
 //

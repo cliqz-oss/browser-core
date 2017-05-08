@@ -4,7 +4,7 @@
 {{#each results}}
     {{#unless invalid}}
         <div class="frame" {{#if ../frameWidth }} style="width: {{ ../frameWidth }}px; left: {{ left }}px" {{/if}}>
-            <div class="card">
+            <div class="card transform-wrapper">
                 <div class="cqz-result-box"
                     type='{{ type }}'
                     kind='{{ kind_printer data.kind }}'
@@ -31,7 +31,7 @@
 <!-- googlethis -->
 {{#with googleThis}}
     <div class="frame" extra="search" {{#if frameWidth }} style="width: {{ frameWidth }}px; left: {{ left }}px" {{/if}}>
-        <div class="card last-card">
+        <div class="card last-card transform-wrapper">
             <div id="defaultEngine" url="{{searchEngineUrl}}{{searchString}}" kind="CL" class="cqz-result-box"  style="background-color: #{{ background }}">
                 <div id="googleThisAnim">
                     <!-- <img data-src="skin/img/icon-google.svg"><br> -->

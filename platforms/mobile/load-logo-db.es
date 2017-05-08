@@ -1,5 +1,3 @@
-import logoDb from "mobile-ui/logo-db";
-
 export default function () {
-  return Promise.resolve(logoDb);
+  return fetch('core/logo-database.json').then(response => response.json());
 }

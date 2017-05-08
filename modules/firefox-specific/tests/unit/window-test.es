@@ -29,7 +29,17 @@ export default describeModule('firefox-specific/window',
       },
       '../core/browser': {
         window: w => w
-      }
+      },
+      '../core/kord/inject': {
+        default: {}
+      },
+      '../core/console': {
+        default: {
+          log() {},
+          error() {},
+          debug() {},
+        },
+      },
     };
   },
   function () {
@@ -91,6 +101,9 @@ export default describeModule('firefox-specific/window',
         }
         this.deps('../core/history-manager').default.getStats = cb => cb({
 
+        });
+        this.deps('../core/kord/inject').default.module = () => ({
+          action: () => Promise.resolve(),
         });
         windowModule.sendEnvironmentalSignal(startup, searchEngineName);
       });

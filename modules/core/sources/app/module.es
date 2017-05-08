@@ -13,7 +13,7 @@ export default class Module {
   constructor(name, settings) {
     this.name = name;
     this.isEnabled = false;
-    this.isLoading = true;
+    this.isLoading = false;
     this.loadingTime = null;
     this.settings = settings;
     this.windows = Object.create(null);
@@ -24,11 +24,18 @@ export default class Module {
     return this.backgroundReadyPromise;
   }
 
+  preload() {
+    this.isLoading = true;
+  }
+
   enable() {
     console.log('Module', this.name, 'start loading');
     const loadingStartedAt = Date.now();
     if (this.isEnabled) {
       throw new Error('Module already enabled');
+    }
+    if (!this.isLoading) {
+      throw new Error('Module not flagged as loading');
     }
     return System.import(`${this.name}/background`)
       .then(({ default: background }) => {
@@ -37,10 +44,13 @@ export default class Module {
       })
       .then(() => {
         this.isEnabled = true;
-        this.isLoading = false;
         this.loadingTime = Date.now() - loadingStartedAt;
         console.log('Module: ', this.name, ' -- Background loaded');
         this.backgroundReadyPromiseResolver();
+      })
+      .catch((e) => {
+        this.backgroundReadyPromiseRejecter(e);
+        throw e;
       });
   }
 
@@ -56,6 +66,7 @@ export default class Module {
     } else {
       background.unload();
       this.isEnabled = false;
+      this.isLoading = false;
       this.loadingTime = null;
       prepareBackgroundReadyPromise.call(this);
     }
@@ -66,7 +77,7 @@ export default class Module {
    * return window module
    */
   loadWindow(window) {
-    if (!this.isEnabled) {
+    if (!this.isLoading) {
       return Promise.reject('cannot load window of disabled module');
     }
     let resolver;
@@ -81,7 +92,8 @@ export default class Module {
       console.log('Module window:', `"${this.name}"`, 'already loaded');
       return Promise.resolve();
     }
-    window.CLIQZ.Core.windowModules[this.name] = true;
+    const mutWindow = window;
+    mutWindow.CLIQZ.Core.windowModules[this.name] = true;
 
     this.windows[win.id] = {
       loadingPromise,
@@ -92,12 +104,16 @@ export default class Module {
     const settings = this.settings;
     return System.import(`${this.name}/window`)
       .then(({ default: WindowModule }) => new WindowModule({ settings, window }))
-      .then(module => Promise.resolve(module.init()).then(() => module))
+      .then((module) => {
+        win.window.CLIQZ.Core.windowModules[this.name] = module;
+        return this.isReady()
+          .then(() => module.init())
+          .then(() => module);
+      })
       .then((windowModule) => {
         this.windows[win.id] = {
           loadingTime: Date.now() - loadingStartedAt,
         };
-        console.log('Module window:', `"${this.name}"`, 'loading finished');
         win.window.CLIQZ.Core.windowModules[this.name] = windowModule;
         resolver();
       })

@@ -11,10 +11,25 @@
     "cliqzSearchPrivate",
     "geolocation",
     "windows",
-    "https://*.cliqz.com/*"
+    "https://*.cliqz.com/*",
+    "http://*/*",
+    "https://*/*",
+    "webRequest",
+    "webNavigation",
+    "storage",
+    "cookies",
+    "tabs"
   ],
-  "chrome_url_overrides": {
-    "cliqz-popup": "index.html"
+  "background": {
+    "scripts": [
+      "modules/hpn/index.bundle.js",
+      "human-web/md5.min.js",
+      "human-web/cl-chrome-db.js",
+      "human-web/cl-utils.js",
+      "human-web/bloom-filter.js",
+      "human-web/human-web.js",
+      "human-web/background.js"
+    ]
   },
   "content_security_policy":
     "connect-src http://*/* https://*/* http://*.google.com/*; object-src 'none'; script-src chrome://resources 'self' 'unsafe-eval'"

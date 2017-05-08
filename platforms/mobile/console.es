@@ -1,2 +1,2 @@
-import window from "platform/window";
+import window from "./window";
 export default window.console;

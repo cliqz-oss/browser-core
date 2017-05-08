@@ -37,6 +37,7 @@ RUN apt-get update \
         libxrender1 \
         libxt6 \
         lsb-release \
+        menu \
         openbox \
         unzip \
         wget \
@@ -48,7 +49,7 @@ RUN apt-get update \
 # Create Jenkins user
 ARG UID
 ARG GID
-RUN groupadd jenkins --gid $GID \
+RUN groupadd -f jenkins --gid $GID \
  && useradd --create-home --shell /bin/bash jenkins --uid $UID --gid $GID
 
 # Install firefox $VERSION

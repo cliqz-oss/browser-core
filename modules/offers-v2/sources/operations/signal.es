@@ -6,14 +6,15 @@ export default ops;
 
 ops['$send_signal'] = function(args, eventLoop) {
   return new Promise((resolve, reject) => {
-    if(args.length < 2) {
+    if(args.length < 3) {
       reject(new Error('invalid args'));
     }
 
-    var signalId = args[0];
+    var offerId = args[0];
     var key = args[1];
+    var capmaignId = args[2];
 
-    eventLoop.environment.sendSignal(signalId, key);
+    eventLoop.environment.sendSignal(capmaignId, offerId, key);
 
     resolve();
   });

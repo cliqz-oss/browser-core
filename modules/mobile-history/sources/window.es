@@ -1,7 +1,8 @@
-import { utils } from "core/cliqz";
-import History from "mobile-history/history";
-import templates from "mobile-history/templates";
-import helpers from 'mobile-history/content/helpers';
+import Handlebars from 'handlebars';
+import { utils } from '../core/cliqz';
+import History from './history';
+import templates from './templates';
+import helpers from './content/helpers';
 
 /**
 * @namespace mobile-history
@@ -14,6 +15,7 @@ export default class {
   */
   constructor(settings) {
   	this.window = settings.window;
+    this.mode = settings.mode;
   }
   /**
   * @method init
@@ -24,6 +26,7 @@ export default class {
     });
     window.CLIQZ.templates = Handlebars.templates = templates;
   	this.window.History = History;
+    this.history = History;
   }
 
   unload() {}

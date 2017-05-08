@@ -3,15 +3,18 @@
     <div class="card__description">
        {{#with data}}
             <div class="cqz-result-h2 nopadding">
-             <div class="EZ-Cliqz-Header"
-                    data-style="background-image: url({{extra.cliqz_logo}})">
-                    {{#each deepResults}}
-                        {{#if (logic type '===' 'social')}}
-                            {{#each links}}
-                                <img  extra="title" url="{{url}}" class="EZ-Cliqz_Header-Contact-icon" src="{{image}}" />
-                            {{/each}}
-                        {{/if}}
-                    {{/each}}
+             <div class="EZ-Cliqz-Header">
+                    <img class="cliqz-title" src="{{extra.cliqz_logo}}">
+                    </img>
+                    <div class="cliqz-social">
+                        {{#each deepResults}}
+                            {{#if (logic type '===' 'social')}}
+                                {{#each links}}
+                                    <img  extra="title" url="{{url}}" class="EZ-Cliqz_Header-Contact-icon" src="{{image}}" />
+                                {{/each}}
+                            {{/if}}
+                        {{/each}}
+                    </div>
              </div>
 
              {{#with extra.slogan}}

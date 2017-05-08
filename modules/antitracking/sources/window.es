@@ -4,6 +4,9 @@ import { utils, events } from 'core/cliqz';
 import { URLInfo } from 'antitracking/url';
 import inject from '../core/kord/inject';
 
+const CliqzUtils = utils;
+const CliqzEvents = events;
+
 function onLocationChange(ev) {
   if(this.interval) { utils.clearInterval(this.interval); }
 

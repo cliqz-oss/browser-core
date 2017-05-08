@@ -32,17 +32,11 @@ export default class {
   * @method fullTour
   */
   fullTour() {
-    //we only show the onboarding for DE and EN speaking users
-    if(utils.PREFERRED_LANGUAGE.toLowerCase().indexOf('de') === -1 &&
-       utils.PREFERRED_LANGUAGE.toLowerCase().indexOf('en') === -1){
-      return;
-    }
-
     var tutorialUrl, tutorialVersion;
     var showNewOnboarding = isVersionHigherThan("36.0");
 
     if (showNewOnboarding) {
-      tutorialUrl = this.window.CLIQZ.System.baseURL+"onboarding/onboarding.html";
+      tutorialUrl = utils.environment.BASE_CONTENT_URL+"onboarding/onboarding.html";
       tutorialVersion = this.version; //CliqzTour.VERSION;
     } else {
       tutorialUrl = utils.TUTORIAL_URL;

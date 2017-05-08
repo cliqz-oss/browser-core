@@ -34,6 +34,7 @@ export default background({
     Search.fetchAndCacheResult = this.resultCache.getResult.bind(this.resultCache);
     Search.clearResultCache = this.resultCache.clear.bind(this.resultCache);
     this.autocomplete = autocomplete;
+    this.autocomplete.setup();
     return onReady().then(() => {
       autocomplete.CliqzResultProviders = new ResultProviders();
       autocomplete.CliqzSearchCountryProviders = new CliqzSearchCountryProviders();
@@ -85,6 +86,13 @@ export default background({
       utils.setDefaultIndexCountry(country, true);
     },
     'core:urlbar_focus': function onUrlBarFocus() {
+      if (isFirefox) {
+        this.resultCache.clear();
+      }
+    },
+    // there are a few places which can change some state and this state
+    // must reset the whole result cache
+    'core:reset_cache': function onResetCache() {
       if (isFirefox) {
         this.resultCache.clear();
       }

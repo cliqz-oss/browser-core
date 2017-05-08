@@ -133,6 +133,12 @@ export class SignalHandler {
     };
   }
 
+// (EX-4191) Fix hpn-ts format to "yyyyMMdd"
+  _getHpnTimeStamp(){
+    var now = new Date();
+    return now.toISOString().slice(0,10).replace(/-/g,"");
+  }
+
   _addSignalToBeSent(sigKey) {
     this.sigsToSend.add(sigKey);
   }
@@ -170,7 +176,8 @@ export class SignalHandler {
       const hpnSignal = {
           action: OffersConfigs.SIGNALS_HPN_BE_ACTION,
           signal_id: sigID,
-          timestamp: Date.now(),
+          timestamp: this._getHpnTimeStamp(),
+//          timestamp: Date.now(),
           payload: {
             v : OffersConfigs.CURRENT_VERSION,
             ex_v: config.EXTENSION_VERSION,

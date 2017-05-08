@@ -1,8 +1,8 @@
-import * as persist from 'antitracking/persistent-state';
-import * as datetime from 'antitracking/time';
-import { utils, events } from 'core/cliqz';
-import md5 from 'antitracking/md5';
-import QSWhitelistBase from 'antitracking/qs-whitelist-base';
+import * as persist from './persistent-state';
+import * as datetime from './time';
+import { utils, events } from '../core/cliqz';
+import md5 from './md5';
+import QSWhitelistBase from './qs-whitelist-base';
 
 const updateExpire = 48;
 

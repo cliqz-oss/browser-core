@@ -1,26 +1,24 @@
-import { utils, events } from 'core/cliqz';
-import WebRequest from 'core/webrequest';
+import { utils, events } from '../core/cliqz';
+import WebRequest from '../core/webrequest';
 
-import { URLInfo } from 'antitracking/url';
-import { getGeneralDomain } from 'antitracking/domain';
-import * as browser from 'platform/browser';
+import { URLInfo } from '../antitracking/url';
+import { getGeneralDomain } from '../antitracking/domain';
+import * as browser from '../platform/browser';
 
-import { LazyPersistentObject } from 'antitracking/persistent-state';
-import LRUCache from 'antitracking/fixed-size-cache';
-import HttpRequestContext from 'antitracking/webrequest-context';
+import { LazyPersistentObject } from '../antitracking/persistent-state';
+import LRUCache from '../antitracking/fixed-size-cache';
+import HttpRequestContext from '../antitracking/webrequest-context';
 
-import log from 'adblocker/utils';
+import log from './utils';
 import FilterEngine, { serializeFiltersEngine
-                     , deserializeFiltersEngine } from 'adblocker/filters-engine';
-import FiltersLoader from 'adblocker/filters-loader';
-import AdbStats from 'adblocker/adb-stats';
+                     , deserializeFiltersEngine } from '../adblocker/filters-engine';
+import FiltersLoader from '../adblocker/filters-loader';
+import AdbStats from '../adblocker/adb-stats';
 
-import CliqzHumanWeb from 'human-web/human-web';
-import { Resource } from 'core/resource-loader';
-
+import { Resource } from '../core/resource-loader';
 
 // Disk persisting
-const SERIALIZED_ENGINE_PATH = ['antitracking', 'adblocking', 'engine.json'];
+const SERIALIZED_ENGINE_PATH = ['adblocker', 'engine.json'];
 
 
 // adb version
@@ -74,8 +72,9 @@ function extractGeneralDomain(uri) {
  * and the matching using a FilterEngine.
  */
 class AdBlocker {
-  constructor(onDiskCache) {
+  constructor(onDiskCache, humanWeb) {
     this.onDiskCache = onDiskCache;
+    this.humanWeb = humanWeb;
     this.logs = [];
     this.engine = new FilterEngine();
 
@@ -267,10 +266,9 @@ class AdBlocker {
     if (domain) {
       type = 'domain';
     }
-    if (!CliqzHumanWeb.state.v[url].adblocker_blacklist) {
-      CliqzHumanWeb.state.v[url].adblocker_blacklist = {};
-    }
-    CliqzHumanWeb.state.v[url].adblocker_blacklist[action] = type;
+    const data = {};
+    data[action] = type;
+    return this.humanWeb.action('addDataToUrl', url, 'adblocker_blacklist', data);
   }
 
   toggleUrl(url, domain) {
@@ -287,18 +285,23 @@ class AdBlocker {
       processedURL = utils.cleanUrlProtocol(processedURL, true);
     }
 
-    const existHW = CliqzHumanWeb && CliqzHumanWeb.state.v[url];
+    const checkProcessing = this.humanWeb.action('isProcessingUrl', url);
+    checkProcessing.catch(() => {
+      log('no humanweb -> black/whitelist will not be logged');
+    });
+    const existHW = checkProcessing.then((exists) => {
+      if (exists) {
+        return Promise.resolve();
+      }
+      return Promise.reject();
+    });
     if (this.blacklist.has(processedURL)) {
       this.blacklist.delete(processedURL);
       // TODO: It's better to have an API from humanweb to indicate if a url is private
-      if (existHW) {
-        this.logActionHW(url, 'remove', domain);
-      }
+      existHW.then(this.logActionHW.bind(this, url, 'remove', domain));
     } else {
       this.blacklist.add(processedURL);
-      if (existHW) {
-        this.logActionHW(url, 'add', domain);
-      }
+      existHW.then(this.logActionHW.bind(this, url, 'add', domain));
     }
 
     this.persistBlacklist();
@@ -379,19 +382,19 @@ const CliqzADB = {
   MIN_BROWSER_VERSION: 35,
   timers: [],
 
-  init() {
+  init(humanWeb) {
     // Set `cliqz-adb` default to 'Disabled'
     if (utils.getPref(ADB_PREF, undefined) === undefined) {
       utils.setPref(ADB_PREF, ADB_PREF_VALUES.Disabled);
     }
 
-    CliqzADB.adBlocker = new AdBlocker(CliqzADB.onDiskCache);
+    CliqzADB.adBlocker = new AdBlocker(CliqzADB.onDiskCache, humanWeb);
 
     const initAdBlocker = () => CliqzADB.adBlocker.init().then(() => {
       CliqzADB.adblockInitialized = true;
       CliqzADB.initPacemaker();
       WebRequest.onBeforeRequest.addListener(
-        CliqzADB.httpopenObserver.observe,
+        CliqzADB.httpOpenObserver.observe,
         undefined,
         ['blocking'],
       );
@@ -420,7 +423,7 @@ const CliqzADB = {
       this.onPrefChangeEvent.unsubscribe();
     }
     CliqzADB.unloadPacemaker();
-    WebRequest.onBeforeRequest.removeListener(CliqzADB.httpopenObserver.observe);
+    WebRequest.onBeforeRequest.removeListener(CliqzADB.httpOpenObserver.observe);
   },
 
   initPacemaker() {
@@ -446,7 +449,7 @@ const CliqzADB = {
     CliqzADB.timers.forEach(utils.clearTimeout);
   },
 
-  httpopenObserver: {
+  httpOpenObserver: {
     observe(requestDetails) {
       const requestContext = new HttpRequestContext(requestDetails);
       const url = requestContext.url;
@@ -477,33 +480,6 @@ const CliqzADB = {
 
       return {};
     },
-  },
-  getBrowserMajorVersion() {
-    const appInfo = Components.classes['@mozilla.org/xre/app-info;1']
-                    .getService(Components.interfaces.nsIXULAppInfo);
-    return parseInt(appInfo.version.split('.')[0], 10);
-  },
-  isTabURL(url) {
-    const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
-              .getService(Components.interfaces.nsIWindowMediator);
-    const browserEnumerator = wm.getEnumerator('navigator:browser');
-
-    while (browserEnumerator.hasMoreElements()) {
-      const browserWin = browserEnumerator.getNext();
-      const tabbrowser = browserWin.gBrowser;
-
-      const numTabs = tabbrowser.browsers.length;
-      for (let index = 0; index < numTabs; index += 1) {
-        const currentBrowser = tabbrowser.getBrowserAtIndex(index);
-        if (currentBrowser) {
-          const tabURL = currentBrowser.currentURI.spec;
-          if (url === tabURL || url === tabURL.split('#')[0]) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
   },
 };
 

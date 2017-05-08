@@ -12,7 +12,7 @@
         <ul id="download-links">
             {{#each formats}}
             <li class="{{this.class}}">
-                <p data-href="{{this.url}}" target="_blank" data-format="{{this.name}}" download="{{this.title}}.{{this.format}}">{{this.name}} <span>{{this.size}}</span></p>
+                <p data-href="{{this.url}}" target="_blank" data-format="{{this.name}}" download="{{this.title}}.{{this.format}}">{{this.name}} <span class="video-size">{{this.size}}</span></p>
             </li>
             {{/each}}
         </ul>
@@ -27,8 +27,9 @@
             {{else}}
             <img src="images/send-to-mobile-disabled.svg" />
             <a class="disabled" href="#" data-href="{{videoForPairing.url}}" data-title="{{videoForPairing.title}}" data-format="{{videoForPairing.format}}" id="send-to-mobile-btn"><span data-i18n="video-downloader-send-to-mobile"></span></a>
-            <a id="pairing-dashboard" href="about:preferences#pairing" target="_blank"><img id="pairing-status" src="images/pair-icon.svg" /></a>
+            <a id="pairing-dashboard" href="about:preferences#connect" target="_blank"><img id="pairing-status" src="images/pair-icon.svg" /></a>
             {{/if}}
+            <span class="video-size">{{videoForPairing.size}}</span>
         </div>
         {{/if}}
     {{/if}}

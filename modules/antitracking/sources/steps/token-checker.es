@@ -1,9 +1,9 @@
-import md5 from 'antitracking/md5';
-import { getGeneralDomain } from 'antitracking/domain';
-import * as datetime from 'antitracking/time';
-import { HashProb, isMostlyNumeric } from 'antitracking/hash';
-import { dURIC } from 'antitracking/url';
-import CliqzUtils from 'core/utils';
+import md5 from '../md5';
+import { getGeneralDomain } from '../domain';
+import * as datetime from '../time';
+import { HashProb, isMostlyNumeric } from '../hash';
+import { dURIC } from '../url';
+import CliqzUtils from '../../core/utils';
 
 const STAT_KEYS = ['cookie', 'private', 'cookie_b64', 'private_b64', 'safekey', 'whitelisted',
   'cookie_newToken', 'cookie_countThreshold', 'private_newToken', 'private_countThreshold',
@@ -27,7 +27,9 @@ export default class {
 
   findBadTokens(state) {
     const stats = {};
-    state.badTokens = this.checkTokens(state.urlParts, state.sourceUrl, state.cookieValues, stats, state.sourceUrlParts);
+    state.isTracker = this.qsWhitelist.isTrackerDomain(state.urlParts.generalDomainHash);
+    state.badTokens = this.checkTokens(state.urlParts, state.sourceUrl, state.cookieValues,
+      stats, state.sourceUrlParts, state.isTracker);
     // set stats
     if (state.incrementStat) {
       Object.keys(stats).forEach(function(key) {
@@ -44,13 +46,12 @@ export default class {
     return true;
   }
 
-  checkTokens(url_parts, source_url, cookievalue, stats, source_url_parts) {
+  checkTokens(url_parts, source_url, cookievalue, stats, source_url_parts, tracker) {
     const self = this;
     // bad tokens will still be returned in the same format
-    var s = getGeneralDomain(url_parts.hostname);
-    s = md5(s).substr(0, 16);
+    const s = url_parts.generalDomainHash;
     // If it's a rare 3rd party, we don't do the rest
-    if (!this.qsWhitelist.isTrackerDomain(s)) return [];
+    if (!tracker) return [];
 
     var sourceD = md5(source_url_parts.hostname).substr(0, 16);
     var today = datetime.getTime().substr(0, 8);

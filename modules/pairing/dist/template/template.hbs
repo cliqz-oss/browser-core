@@ -1,0 +1,75 @@
+<div id="page-container">
+    <div class="header-wrapper">
+        <span class="header-name">{{i18n.title}}</span>
+    </div>
+    <div class="content-wrapper">
+        <div id="general-info" class="row">
+            <div id="general-info-function" class="column">
+                <div class="content-left">
+                    <p>{{{i18n.description}}}</p>
+                    <div class="row">
+                        <div class="column width-50-percent">
+                            <div class="content-left">
+                                <img id="video-downloader-img" />
+                                <p class="sub-header">{{i18n.videoDownloaderTitle}}</p>
+                                <p class="extra-info">{{i18n.videoDownloaderTip}}</p>
+                            </div>
+                        </div>
+                        <div class="column width-50-percent">
+                            <div class="content-right">
+                                <img id="send-tab-img" />
+                                <p class="sub-header">{{i18n.sendTabTitle}}</p>
+                                <p class="extra-info">{{i18n.sendTabTip}}</p>
+                            </div>
+                        </div>
+                        <div class="clear-row">&nbsp;</div>
+                    </div>
+                </div>
+            </div>
+            <div id="connection-status" class="column width-50-percent">
+                <div class="content-right">
+                    <img id="connection-status-img" />
+                    <div id="devices-info">
+                        <p id="device-name" class="sub-header"></p>
+                        <p>{{i18n.pairingBrowserPairWith}}</p>
+                        <p class="sub-header"><span id="master-name"></span> <strong>:</strong> <span id="connection-status-text"></span></p>
+                        <p id="on-disconnected-tip">{{i18n.onDisconnectedTip}}</p>
+                        <input type="button" value="{{i18n.unpair}}" id='unpair-button'>
+                    </div>
+                </div>
+            </div>
+            <div class="clear-row">&nbsp;</div>
+        </div>
+
+        <div id="pairing-instructions" class="row">
+            <div class="column width-50-percent">
+                <div class="content-left">
+                    <p class="sub-header">{{i18n.pairingScanTitle}}</p>
+                    <div class="row">
+                        <p> <span class="sub-header">1.</span> {{i18n.pairingStep1Title}}</p>
+                        <div class="width-40-percent image-button btn-google-play">
+                            {{{i18n.androidApp}}}
+                        </div>
+                    </div>
+                    <p> <span class="sub-header">2.</span> {{i18n.pairingStep2Title}}</p>
+                    <p class="spacer"> <span class="sub-header">3.</span> {{i18n.pairingStep3Title}}</p>
+                    <p class="spacer"> <span class="sub-header">4.</span> {{i18n.pairingStep4Title}}</p>
+                </div>
+            </div>
+            <div class="column width-50-percent">
+                <div class="content-right">
+                    <div id="qrcode-wrapper" class="row">
+                        <div id="qrcode"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="clear-row">&nbsp;</div>
+        </div>
+        <div class="footer">
+            <p>
+                <img style="width: 20px" src="chrome://cliqz/content/pairing/images/lifebuoy.png" />
+                <small>{{i18n.contactSupport}} <a class="support-link" target="_blank" href="https://cliqz.com/support">Support Team</a>.</small>
+            <p>
+        </div>
+    </div>
+</div>

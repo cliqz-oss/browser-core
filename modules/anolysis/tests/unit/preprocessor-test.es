@@ -1,11 +1,10 @@
 /* eslint-disable no-unused-expressions */
 /* global chai */
 /* global describeModule */
-/* global require */
 
 
-const UAParser = require('ua-parser-js');
-const moment = require('moment');
+const UAParser = System._nodeRequire('ua-parser-js');
+const moment = System._nodeRequire('moment');
 
 
 const ABTESTS_TESTS = [
@@ -2788,9 +2787,9 @@ const INSTALL_DATE_TESTS = [
   { signal: { install_date: 16128 }, result: 'Other/2014/02/27' },
   { signal: { install_date: 16129 }, result: '2014/02/28' },
   { signal: { install_date: 17070 }, result: '2016/09/26' },
-  { signal: { install_date: 17170 }, result: '2017/01/04' },
-  { signal: { install_date: 17175 }, result: '2017/01/09' },
-  { signal: { install_date: 17180 }, result: '2017/01/14' },
+  { signal: { install_date: 17170 }, result: 'Other/2017/01/04' },
+  { signal: { install_date: 17175 }, result: 'Other/2017/01/09' },
+  { signal: { install_date: 17180 }, result: 'Other/2017/01/14' },
   { signal: { install_date: 20000 }, result: 'Other/2024/10/04' },
 ];
 
@@ -3161,9 +3160,13 @@ export default describeModule('anolysis/preprocessor',
     'platform/moment': {
       default: moment,
     },
+    'anolysis/synchronized-date': {
+      default() {
+        return moment('2017-01-01', 'YYYY-MM-DD');
+      },
+    },
     'anolysis/logging': {
       default: () => {
-        // console.log(msg.trim());
       },
     },
   }),
@@ -3189,7 +3192,9 @@ export default describeModule('anolysis/preprocessor',
           signal.type = 'environment';
 
           it(`Should parse ${JSON.stringify(signal)}`, () => {
-            chai.expect(preprocessor.process(signal).demographics[factor]).to.be.eql(result);
+            return preprocessor.process(signal).then((processed) => {
+              chai.expect(processed.demographics[factor]).to.be.eql(result);
+            });
           });
         });
       });

@@ -1,5 +1,5 @@
 
-import { TLDs } from 'core/tlds';
+import { TLDs } from '../core/tlds';
 
 
 // Some content policy types used in filters

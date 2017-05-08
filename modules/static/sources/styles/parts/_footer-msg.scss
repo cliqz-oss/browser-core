@@ -1,6 +1,7 @@
 
 /* Footer Message */
-.cqz-message-bar {
+.cqz-message-bar,
+.ad-container {
     display: -moz-box;
     display: flex;
     flex-flow: row wrap;
@@ -11,6 +12,15 @@
     color: #fff;
     background: #3bb5d4;
     padding: 2px 20px;
+}
+
+.ad-container {
+    background-color: #45c2cc;
+
+    .cliqz-brand-logo {
+        background-color: transparent !important;
+        border: 1px solid #fff;
+    }
 }
 
 .cqz-message-bar * {

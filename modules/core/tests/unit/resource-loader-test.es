@@ -5,11 +5,16 @@
 
 
 let httpGet = () => {};
-let readFile = () => {};
-let writeFile = () => {};
-
+let load = () => {};
+let save = () => {};
 
 const MOCK = {
+  'core/console': {
+    default: {
+      error() {
+      }
+    },
+  },
   'core/cliqz': {
     utils: {
       setInterval() {},
@@ -22,11 +27,12 @@ const MOCK = {
       },
     },
   },
-  'core/fs': {
-    readFile() { return readFile(); },
-    writeFile() { return writeFile(); },
-    mkdir() { return Promise.resolve(); },
-  },
+  'platform/resource-loader-storage': {
+    default: class {
+      save() { return save(); }
+      load() { return load(); }
+    }
+  }
 };
 
 
@@ -107,14 +113,14 @@ function mockModule(testCase) {
     }
   };
 
-  readFile = () => {
+  load = () => {
     if (testCase.inProfile) {
       return Promise.resolve(getMockData(testCase));
     }
     return Promise.reject('Error while reading from profile');
   };
 
-  writeFile = () => {
+  save = () => {
     if (testCase.persistSuccess) {
       return Promise.resolve();
     }
@@ -140,7 +146,6 @@ export default describeModule('core/resource-loader',
       const FAILING_CASES = [
         { inProfile: false, inChrome: false, inRemote: false, parsingSuccess: [true, false], dataType: ['json', 'plain'], persistSuccess: [true, false] },
         { inProfile: [false, true], inChrome: [true, false], inRemote: [true, false], parsingSuccess: false, dataType: 'json', persistSuccess: [true, false] },
-        { inProfile: false, inChrome: [true, false], inRemote: [true, false], parsingSuccess: [true, false], dataType: ['plain', 'json'], persistSuccess: false },
       ];
 
       FAILING_CASES.forEach((pattern) => {
@@ -158,9 +163,9 @@ export default describeModule('core/resource-loader',
       });
 
       const SUCCESS_CASES = [
-        { inProfile: true, inChrome: [true, false], inRemote: [true, false], parsingSuccess: true, dataType: ['plain', 'json'], persistSuccess: true },
-        { inProfile: false, inChrome: true, inRemote: [true, false], parsingSuccess: true, dataType: ['plain', 'json'], persistSuccess: true },
-        { inProfile: false, inChrome: false, inRemote: true, parsingSuccess: true, dataType: ['plain', 'json'], persistSuccess: true },
+        { inProfile: true, inChrome: [true, false], inRemote: [true, false], parsingSuccess: true, dataType: ['plain', 'json'], persistSuccess: [true, false] },
+        { inProfile: false, inChrome: true, inRemote: [true, false], parsingSuccess: true, dataType: ['plain', 'json'], persistSuccess: [true, false] },
+        { inProfile: false, inChrome: false, inRemote: true, parsingSuccess: true, dataType: ['plain', 'json'], persistSuccess: [true, false] },
       ];
 
       SUCCESS_CASES.forEach((pattern) => {
@@ -192,7 +197,6 @@ export default describeModule('core/resource-loader',
       const FAILING_CASES = [
         { inProfile: [true, false], inChrome: [false, true], inRemote: false, parsingSuccess: [true, false], dataType: ['plain', 'json'], persistSuccess: true },
         { inProfile: [true, false], inChrome: [false, true], inRemote: true, parsingSuccess: false, dataType: 'json', persistSuccess: true },
-        { inProfile: [true, false], inChrome: [false, true], inRemote: [true, false], parsingSuccess: [true, false], dataType: ['json', 'plain'], persistSuccess: false },
       ];
 
       FAILING_CASES.forEach((pattern) => {
@@ -210,7 +214,7 @@ export default describeModule('core/resource-loader',
       });
 
       const SUCCESS_CASES = [
-        { inProfile: [true, false], inChrome: [false, true], inRemote: true, parsingSuccess: true, dataType: ['plain', 'json'], persistSuccess: true },
+        { inProfile: [true, false], inChrome: [false, true], inRemote: true, parsingSuccess: true, dataType: ['plain', 'json'], persistSuccess: [true, false] },
       ];
 
       SUCCESS_CASES.forEach((pattern) => {

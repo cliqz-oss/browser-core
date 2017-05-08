@@ -45,7 +45,7 @@ var OffersConfigs = {
 
   // how often we want to send the signals related with the offers to the BE
   // one hour
-  SIGNALS_OFFERS_FREQ_SECS: 60 * 60,
+  SIGNALS_OFFERS_FREQ_SECS: 10 * 60,
   SIGNALS_HPN_BE_ADDR: 'https://offers-api.cliqz.com/api/v1/savesignal',
   SIGNALS_HPN_BE_ACTION: 'offers-signal',
   // the time we want to keep the signals (accumulating) from the last time

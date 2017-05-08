@@ -1,4 +1,4 @@
-import Storage from 'core/storage';
+import Storage from '../core/storage';
 
 const storage = new Storage();
 

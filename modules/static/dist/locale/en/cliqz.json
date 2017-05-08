@@ -224,8 +224,14 @@
     "searchUsing":{
         "message":"search using"
     },
+    "searchWith": {
+        "message":"Search with $1"
+    },
     "on":{
         "message":"on"
+    },
+    "visit":  {
+        "message":"Visit"
     },
     "peoplePositionAt":{
         "message":"at"
@@ -1110,7 +1116,7 @@
       "message": "Call"
     },
     "mobile_share_location": {
-      "message": "Share location for once"
+      "message": "Show local info"
     },
     "mobile_freshtab_breaking_news": {
       "message": "BREAKING NEWS:"
@@ -1540,6 +1546,69 @@
     },
     "transparency_activity_buttons": {
       "message": "No activity was captured"
+    },
+    "pairing-title": {
+      "message": "Connect"
+    },
+    "pairing-description": {
+      "message": "Connect Cliqz on your computer with Cliqz on your Android device. This will allow you to send websites or download YouTube videos from your desktop straight to your smartphone or tablet."
+    },
+    "pairing-android-app": {
+      "message": "<a id=\"playstore-btn\" target=\"_blank\" href=\"https://play.google.com/store/apps/details?hl=en&id=com.cliqz.browser\">Cliqz for Android</a>"
+    },
+    "pairing-video-title": {
+      "message": "Download videos"
+    },
+    "pairing-video-tip": {
+      "message": "Open a YouTube video.\nClick on the video download icon.\nSelect \"Send to mobile\"."
+    },
+    "pairing-tab-title": {
+      "message": "Send tabs"
+    },
+    "pairing-tab-tip": {
+      "message": "Right-click on a tab or a website.\nSelect \"Send tab to mobile\"."
+    },
+    "pairing-browser-pair-with": {
+      "message": "This browser is now connected with:"
+    },
+    "pairing-on-disconnected-tip": {
+      "message": "Handover requires that your mobile device is awake and connected to the Internet."
+    },
+    "pairing-contact-support": {
+      "message": "If you have questions or difficulties, please contact our"
+    },
+    "pairing-scan-title": {
+      "message": "Connect a mobile device"
+    },
+    "pairing-step1-title": {
+      "message": "Download Cliqz for Android from the Play Store."
+    },
+    "pairing-step2-title": {
+      "message": "Open the CLIQZ app on your mobile device. Go to the menu and select \"Connect\"."
+    },
+    "pairing-step3-title": {
+      "message": "Tap on (+) to start the QR code scanner."
+    },
+    "pairing-step4-title": {
+      "message": "Scan the QR code."
+    },
+    "pairing-online": {
+      "message": "ONLINE"
+    },
+    "pairing-offline": {
+      "message": "OFFLINE"
+    },
+    "pairing-unpair": {
+      "message": "Disconnect"
+    },
+    "pairing-send-tab-to-mobile": {
+      "message": "Send to mobile"
+    },
+    "pairing-send-video-to-mobile-retry": {
+      "message": "Send again"
+    },
+    "ad-label": {
+      "message": "Anzeige"
     },
     "TEST": "OK"
 }
