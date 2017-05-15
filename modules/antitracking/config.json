@@ -1,0 +1,6 @@
+{
+  "bower_components": [
+    "pouchdb/dist/pouchdb.js",
+    "moment/min/moment.min.js"
+  ]
+}

@@ -36,6 +36,8 @@ var HistorySignalID = {
   HSIG_OFFER_CLOSED:                2,
   // when the offer is added
   HSIG_OFFER_ADDED:                 3,
+  // when offer is displayed
+  HSIG_OFFER_DISPLAYED:             4,
 
 };
 

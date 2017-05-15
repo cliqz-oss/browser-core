@@ -1,4 +1,4 @@
-@font-face {
+ @font-face {
     font-family: "Lato";
     src: url("../skin/fonts/Lato-Regular.ttf");
 }
@@ -128,15 +128,18 @@
 }
 
 .cqz-results .cqz-ez-holder,
-#cliqz-message-container .cqz-ez-holder {
+#cliqz-message-container .cqz-ez-holder,
+#cliqz-message-container-top .cqz-ez-holder {
     padding: 16px 110px 16px 20px;
 }
 
-#cliqz-message-container .cqz-ez-holder {
+#cliqz-message-container .cqz-ez-holder,
+#cliqz-message-container-top .cqz-ez-holder  {
     padding-left: 0px;
 }
 
-.cqz-popup #cliqz-message-container .cqz-ez-generic .cqz-zone-holder {
+.cqz-popup #cliqz-message-container .cqz-ez-generic .cqz-zone-holder,
+.cqz-popup #cliqz-message-container-top .cqz-ez-generic .cqz-zone-holder {
     display: flex;
     flex-direction: column;
 }
@@ -306,7 +309,7 @@
 
 .cqz-results .cqz-result-box {
     position: relative;
-    z-index: 0
+    z-index: 0;
 }
 
 .cqz-results .cqz-result-selected {
@@ -330,7 +333,8 @@
 }
 
 .cqz-results .cqz-result-title,
-#cliqz-message-container .cqz-result-title {
+#cliqz-message-container .cqz-result-title,
+#cliqz-message-container-top .cqz-result-title  {
     @extend .cqz-ellipsis;
 
     font-size: 18px;
@@ -346,7 +350,7 @@
     .ad {
         position: relative;
         top: 3px;
-        padding: 0px 4px;
+        padding: 0 4px;
         margin-right: 3px;
         display: inline-block;
         line-height: 1.2em;
@@ -356,6 +360,12 @@
         text-transform: uppercase;
         font-size: 14px;
         font-weight: bold;
+    }
+}
+
+#cliqz-message-container {
+    .cliqz-brand-logo {
+        margin-right: 18px;
     }
 }
 
@@ -517,20 +527,6 @@
      z-index: 1000;
     position: relative;
 }
-
-.cqz-popup #cliqz-message-container .cqz-result-title {
-    color: #fff !important;
-
-    a {
-        color: #fff !important;
-        border-color: #fff !important;
-    }
-    .ad {
-        color: #fff;
-        border-color: #fff;
-    }
-}
-
 
 /* EZ banking */
 .cqz-results .cqz-ez-banking-box {
@@ -1558,10 +1554,6 @@
     display: block;
     margin-bottom: 18px;
     color: #999999;
-}
-
-#cliqz-message-container .cqz-ez-subtitle {
-    color: #00869f;
 }
 
 .cqz-results .clearfix::after,

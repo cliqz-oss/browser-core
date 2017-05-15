@@ -22,6 +22,11 @@
     "ENDPOINT_LOOKUP_TABLE_PROVIDER": "https://hpn-collector.cliqz.com/lookuptable?q=1",
     "ENDPOINT_KEYS_PROVIDER": "https://hpn-collector.cliqz.com/signerKey?q=1",
     "ENDPOINT_PROXY_LIST_PROVIDER": "https://hpn-collector.cliqz.com/proxyList?q=1",
+    "ENDPOINT_PATTERNSURL": "https://cdn.cliqz.com/human-web/patterns",
+    "ENDPOINT_ANONPATTERNSURL": "https://cdn.cliqz.com/human-web/patterns-anon",
+    "ENDPOINT_CONFIGURL": "https://safe-browsing.cliqz.com/config",
+    "ENDPOINT_SAFE_QUORUM_ENDPOINT": "https://safe-browsing-quorum.cliqz.com/",
+    "ENDPOINT_SAFE_QUORUM_PROVIDER": "https://safe-browsing-quorum.cliqz.com/config",
     "HW_CHANNEL": "ff-test-pilot"
   },
   "priority": [

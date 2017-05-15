@@ -10,6 +10,8 @@ import {SignalHandler} from './signals_handler';
 import jsep from './lib/jsep';
 import { UIOffersHistory } from './ui/ui_offers_history';
 import {UIFilterRulesEvaluator} from './ui/ui_filter_rules_evaluator';
+import Database from '../core/database';
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // consts
@@ -46,8 +48,13 @@ export default background({
       // enable logs?
       LoggingHandler.LOG_ENABLED = true;
       LoggingHandler.SAVE_TO_FILE = true;
+
       // enable trigger history
       OffersConfigs.LOAD_TRIGGER_HISTORY_DATA = false;
+      // dont load signals from DB
+      OffersConfigs.SIGNALS_LOAD_FROM_DB = utils.getPref('offersLoadSignalsFromDB', false);
+      // avoid loading storage data if needed
+      OffersConfigs.LOAD_OFFERS_STORAGE_DATA = utils.getPref('offersSaveStorage', false);
     }
 
     if(utils.getPref('triggersBE')) {
@@ -91,6 +98,8 @@ export default background({
       '------------------------------------------------------------------------\n'
       );
 
+    // create the DB to be used over all offers module
+    this.offersDB = new Database('cliqz-offers');
 
     // create the event handler
     this.eventHandler = new EventHandler();
@@ -110,12 +119,14 @@ export default background({
     };
 
     // for the new ui system
-    this.signalsHandler = new SignalHandler();
+    this.signalsHandler = new SignalHandler(this.offersDB);
 
-    this.uiOfferProc = new UIOfferProcessor(this.signalsHandler, this.eventHandler);
+    this.uiOfferProc = new UIOfferProcessor(this.signalsHandler, this.eventHandler, this.offersDB);
 
     this.actions = {
       windowUIConnector: this.windowUIConnector.bind(this),
+      getStorageOffers: this.getStorageOffers.bind(this),
+      onStorageOffersUIEvent: this.onStorageOffersUIEvent.bind(this)
     };
     this.env.uiOfferProcessor = this.uiOfferProc;
     this.env.signalHandler = this.signalsHandler;
@@ -203,7 +214,7 @@ export default background({
       LoggingHandler.LOG_ENABLED &&
       LoggingHandler.info(MODULE_NAME, JSON.stringify(reqObj.req_obj.url));
     }
-  },  
+  },
 
   //////////////////////////////////////////////////////////////////////////////
   events: {
@@ -245,6 +256,24 @@ export default background({
     // LoggingHandler.info(MODULE_NAME, "result : " + ee._evalExpression(jsep("not_created_last_secs(10) || not_created_last_secs2(60)")));
   },
 
+  //////////////////////////////////////////////////////////////////////////////
+  // offers storage interfaces
+
+  //
+  // return the offers on the storage
+  //
+  getStorageOffers() {
+    return (this.uiOfferProc) ? this.uiOfferProc.getStorageOffers() : [];
+  },
+
+  //
+  // called whenever a new ui event on the offers storage interface occurs
+  //
+  onStorageOffersUIEvent(event) {
+    if (this.uiOfferProc) {
+      this.uiOfferProc.onStorageOffersUIEvent(event);
+    }
+  },
 
 
 

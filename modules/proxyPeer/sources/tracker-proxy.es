@@ -1,12 +1,23 @@
 import { utils, events } from '../core/cliqz';
-import console from './console';
+import logger from './logger';
 import ProxyPeer from './proxy-peer';
-
+import { CompositePolicy, TrackerWhitelistPolicy,
+  PrivateIPBlacklistPolicy, PublicDomainOnlyPolicy,
+  BloomFilterWhitelistPolicy } from './proxy-policy';
+import ResourceLoader from '../core/resource-loader';
 
 const PROXY_INSECURE_CONNECTIONS_PREF = 'proxyInsecureConnections';
 const PROXY_PEER_PREF = 'proxyPeer';
 const PROXY_TRACKERS_PREF = 'proxyTrackers';
 const PROXY_ALL_PREF = 'proxyAll';
+
+// Signaling server for WebRTC
+const PROXY_SIGNALING_URL_PREF = 'proxySignalingUrl';
+const PROXY_SIGNALING_DEFAULT = 'wss://p2p-signaling-proxypeer.cliqz.com';
+
+// Endpoint used to get the peers
+const PROXY_PEERS_URL_PREF = 'proxyPeersUrl';
+const PROXY_PEERS_DEFAULT = 'https://p2p-signaling-proxypeer.cliqz.com/peers';
 
 
 function shouldProxyTrackers() {
@@ -34,9 +45,30 @@ function shouldProxyInsecureConnections() {
 }
 
 
+function getSignalingUrl() {
+  let signalingUrl = utils.getPref(PROXY_SIGNALING_URL_PREF);
+  if (!signalingUrl) {
+    signalingUrl = PROXY_SIGNALING_DEFAULT;
+    utils.setPref(PROXY_SIGNALING_URL_PREF, signalingUrl);
+  }
+
+  return signalingUrl;
+}
+
+
+function getPeersUrl() {
+  let peersUrl = utils.getPref(PROXY_PEERS_URL_PREF);
+  if (!peersUrl) {
+    peersUrl = PROXY_PEERS_DEFAULT;
+    utils.setPref(PROXY_PEERS_URL_PREF, peersUrl);
+  }
+
+  return peersUrl;
+}
+
 export default class {
 
-  constructor(antitracking) {
+  constructor(antitracking, p2p) {
     // Use a local socks proxy to be able to 'hack' the HTTP lifecycle
     // inside Firefox. This allows us to proxy some requests in a peer
     // to peer fashion using WebRTC.
@@ -45,6 +77,9 @@ export default class {
 
     // Internal state
     this.proxyPeer = null;
+    this.signalingUrlHostname = null;
+    this.peersUrlHostname = null;
+
     this.firefoxProxy = null;
     this.prefListener = null;
 
@@ -57,7 +92,19 @@ export default class {
     // Proxy state
     this.urlsToProxy = new Set();
     this.proxyStats = new Map();
+
+    // External dependencies
     this.antitracking = antitracking;
+    this.p2p = p2p;
+
+    // Policies for when to proxy and when to block exit requests
+    this.proxyPolicy = new PublicDomainOnlyPolicy();
+    this.exitPolicy = new CompositePolicy();
+    this.exitPolicy.addBlacklistPolicy(new PrivateIPBlacklistPolicy());
+    this.proxyWhitelistLoader = new ResourceLoader(['proxyPeer', 'proxy_whitelist_bf.json'], {
+      cron: 1000 * 60 * 60 * 12,
+      remoteURL: 'https://cdn.cliqz.com/anti-tracking/proxy_whitelist_bf.json',
+    });
   }
 
   isProxyEnabled() {
@@ -70,7 +117,18 @@ export default class {
 
   initPeer() {
     if (this.isPeerEnabled() && this.proxyPeer === null) {
-      this.proxyPeer = new ProxyPeer();
+      const signalingUrl = getSignalingUrl();
+      this.signalingUrlHostname = utils.getDetailsFromUrl(signalingUrl).host;
+      const peersUrl = getPeersUrl();
+      this.peersUrlHostname = utils.getDetailsFromUrl(peersUrl).host;
+
+      this.proxyPeer = new ProxyPeer(
+        signalingUrl,
+        peersUrl,
+        this.exitPolicy,
+        this.p2p,
+      );
+
       return this.proxyPeer.init();
     }
 
@@ -82,6 +140,8 @@ export default class {
       this.proxyPeer.unload();
       this.proxyPeer = null;
     }
+
+    return Promise.resolve();
   }
 
   initProxy() {
@@ -89,12 +149,12 @@ export default class {
     if (this.isProxyEnabled() && this.firefoxProxy === null) {
       // Inform Firefox to use our local proxy
       this.firefoxProxy = this.pps.newProxyInfo(
-        'socks',                              // aType = socks5
-        this.proxyPeer.getSocksProxyHost(),   // aHost
-        this.proxyPeer.getSocksProxyPort(),   // aPort
-        null,                                 // aFlags
-        5000,                                 // aFailoverTimeout
-        null);                                // aFailoverProxy
+        'socks',                            // aType = socks5
+        this.proxyPeer.getSocksProxyHost(), // aHost
+        this.proxyPeer.getSocksProxyPort(), // aPort
+        Components.interfaces.nsIProxyInfo.TRANSPARENT_PROXY_RESOLVES_HOST,
+        5000,                               // aFailoverTimeout
+        null);                              // aFailoverProxy
 
       // Filter used to determine which requests are to be proxied.
       // Position 2 since 'unblock/sources/proxy.es' is in position 1
@@ -123,11 +183,13 @@ export default class {
           // Here we must perform some additional checks so that the proxying
           // does not interfere with the signaling and WebRTC infrastructure.
           // In particular, we must check that calls to the signaling server
-          // or https://hpn-sign.cliqz.com/ are not proxied.
-          const isSignalingServer = state.url.indexOf(this.proxyPeer.signalingURL) !== -1;
-          const isHpnPeerEndpoint = state.url.indexOf('https://hpn-sign.cliqz.com/') === 0;
+          // are not routed through the proxy network.
+          const isSignalingServer = state.url.indexOf(this.signalingUrlHostname) !== -1;
+          const isPeersServer = state.url.indexOf(this.peersUrlHostname) !== -1;
+          // We also check that the current network policy allows this host to be proxied
+          const proxyIsPermitted = this.proxyPolicy.shouldProxyAddress(state.urlParts.hostname);
 
-          if (!(isSignalingServer || isHpnPeerEndpoint)) {
+          if (!(isSignalingServer || isPeersServer) && proxyIsPermitted) {
             this.checkShouldProxyRequest(state);
           }
 
@@ -150,6 +212,25 @@ export default class {
     return Promise.resolve();
   }
 
+  initPolicy() {
+    const firstPartyWhitelist = new BloomFilterWhitelistPolicy();
+    const loadCallback = firstPartyWhitelist.updateBloomFilter.bind(firstPartyWhitelist);
+
+    this.proxyWhitelistLoader.onUpdate(loadCallback);
+    return this.proxyWhitelistLoader.load().then(loadCallback)
+    .then(() => (
+      this.antitracking.action('getWhitelist').then((qsWhitelist) => {
+        const trackerWhitelist = new TrackerWhitelistPolicy(qsWhitelist);
+        // trackers are always proxied; public others must be in the first party whitelist
+        this.proxyPolicy.setOverridePolicy(trackerWhitelist);
+        this.proxyPolicy.setRequiredPolicy(firstPartyWhitelist);
+        // the exit policy is trackers or popular domains
+        this.exitPolicy.addWhitelistPolicy(trackerWhitelist);
+        this.exitPolicy.addWhitelistPolicy(firstPartyWhitelist);
+      })
+    ));
+  }
+
   unloadProxy() {
     if (this.firefoxProxy !== null) {
       this.pps.unregisterFilter(this);
@@ -160,7 +241,7 @@ export default class {
     return Promise.all([
       this.antitracking.action('removePipelineStep', 'checkShouldProxyTrackers'),
       this.antitracking.action('removePipelineStep', 'checkShouldProxyAll'),
-    ]);
+    ]).catch(() => {}); // This should not fail
   }
 
   initPrefListener() {
@@ -174,10 +255,9 @@ export default class {
 
   init() {
     this.initPrefListener();
-    return this.initPeer()
-      .then(() => {
-        this.initProxy();
-      });
+    return this.initPolicy()
+      .then(() => this.initPeer())
+      .then(() => this.initProxy());
   }
 
   unload() {
@@ -237,18 +317,18 @@ export default class {
 
   checkShouldProxyURL(url, isTrackerDomain) {
     if (this.firefoxProxy === null) {
-      console.error('proxyPeer cannot proxy: tracker-proxy not yet initialized');
+      logger.error('cannot proxy: tracker-proxy not yet initialized');
       return false;
     }
 
     if (this.proxyPeer === null || this.proxyPeer.socksToRTC === null) {
-      console.error('proxyPeer cannot proxy: proxyPeer not yet initialized');
+      logger.error('cannot proxy: proxyPeer not yet initialized');
       return false;
     }
 
-    const availablePeers = this.proxyPeer.socksToRTC.availablePeers.length;
+    const availablePeers = this.proxyPeer.socksToRTC.peers.length;
     if (availablePeers < 2) {
-      console.error(`proxyPeer cannot proxy: not enough peers available (${availablePeers})`);
+      logger.error(`cannot proxy: not enough peers available (${availablePeers})`);
       return false;
     }
 
@@ -258,18 +338,18 @@ export default class {
 
       // Ignore https if proxyHttp is false
       if (isHttp && !this.shouldProxyInsecureConnections) {
-        console.error(`proxyPeer do not proxy non-https ${url}`);
+        logger.error(`do not proxy non-https ${url}`);
         return false;
       }
 
       if (isHttp || isHttps) {
-        console.debug(`proxyPeer proxy: ${url}`);
+        logger.debug(`proxy: ${url}`);
         this.proxyOnce(url);
         return true;
       }
     }
 
-    console.debug(`proxyPeer do *not* proxy: ${url}`);
+    logger.debug(`do *not* proxy: ${url}`);
 
     return false;
   }

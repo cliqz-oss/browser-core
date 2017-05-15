@@ -4,7 +4,7 @@ module.exports = function(environment) {
   var ENV = {
     modulePrefix: 'fresh-tab',
     environment: environment,
-    locationType: 'none',
+    locationType: 'hash',
     rootURL: '/',
     EmberENV: {
       FEATURES: {
@@ -20,6 +20,12 @@ module.exports = function(environment) {
     APP: {
       // Here you can pass flags/options to your application instance
       // when it is created
+    },
+
+    moment: {
+      // To cherry-pick specific locale support into your application.
+      // Full list of locales: https://github.com/moment/moment/tree/2.10.3/locale
+      includeLocales: ['de', 'fr']
     }
   };
 

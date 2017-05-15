@@ -9,6 +9,7 @@ export default Ember.Service.extend({
 
   setup: function () {
     this.set('isRunning', false);
+    this.set('urlsToDelete', []);
   }.on('init'),
 
   stop() {
@@ -196,7 +197,7 @@ export default Ember.Service.extend({
       .reduce((all, urls) => all.concat(urls), []);
     const sessions = [];
 
-    visits.map(visit => {
+    visits.uniqBy('lastVisitedAt').forEach(visit => {
       const message = store.peekRecord('history-message', visit.lastVisitedAt);
 
       // FIXME: fails for file:// urls
@@ -212,9 +213,8 @@ export default Ember.Service.extend({
         });
       }
 
-      session.get('visits').addObject(message);
-
-      sessions.push(session);
+      session.get('visits').pushObject(message);
+      sessions.pushObject(session);
     });
 
     return sessions.uniqBy('id');
@@ -243,4 +243,66 @@ export default Ember.Service.extend({
     };
     return this.fetch(params);
   },
+
+  updateHistoryUrls(deletedUrls) {
+    const store = this.get('store');
+    const visits = store.peekAll('history-message');
+    const urlsToDelete = this.get('urlsToDelete');
+    const urls = [];
+    deletedUrls.forEach(deletedUrl => {
+      if (urlsToDelete.includes(deletedUrl)) {
+        urlsToDelete.removeObject(deletedUrl);
+      } else {
+        urls.push(deletedUrl);
+      }
+    });
+    visits.toArray().forEach(visit => {
+      if(urls.indexOf(visit.get('url')) >= 0) {
+        const isLastChild = visit.get('session.visits.length') === 1;
+        const sessionId = visit.get('session.id');
+        visit.unloadRecord();
+        if(isLastChild) {
+          const session = store.peekRecord('session', sessionId);
+          session.unloadRecord();
+        }
+      }
+    });
+    this.set('urlsToDelete', []);
+  },
+
+  deleteVisit(visitId) {
+    const store = this.get('store');
+    const cliqz = this.get('cliqz');
+    const visit = store.peekRecord('history-message', visitId);
+    const session = visit.get('session.content');
+    this.get('urlsToDelete').addObject(visit.get('url'));
+    visit.unloadRecord();
+    if (session.get('visits.length') === 0) {
+      session.unloadRecord();
+    }
+    cliqz.sendTelemetry({
+      type: 'history',
+      view: 'sections',
+      action: 'click',
+      target: 'delete_site'
+    });
+    cliqz.deleteVisit(visitId);
+  },
+
+  deleteSession(sessionId) {
+    const store = this.get('store');
+    const cliqz = this.get('cliqz');
+    const session = store.peekRecord('session', sessionId);
+    const visitIds = session.get('visits').mapBy('id');
+    const visitUrls = session.get('visits').mapBy('url');
+    this.get('urlsToDelete').addObjects(visitUrls);
+    session.unloadRecord();
+    cliqz.sendTelemetry({
+      type: 'history',
+      view: 'sections',
+      action: 'click',
+      target: 'delete_section'
+    });
+    cliqz.deleteVisits(visitIds);
+  }
 });

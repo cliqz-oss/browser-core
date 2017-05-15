@@ -1647,10 +1647,7 @@ body
     padding: 0.25rem 0rem 0.25rem
     font-size: 1rem
     line-height: 1.5rem
-    text-overflow: ellipsis
-    height: 1.5rem
     overflow: hidden
-    white-space: nowrap
 
   .history_card__title
     margin: 1rem 1rem
@@ -1665,6 +1662,8 @@ body
     text-align: left
     font-size: 1.2rem
     line-height: 1.5rem
+    &:first-letter
+      text-transform: capitalize
     span
       font-size: 0.75rem
       line-height: 1.5rem
@@ -1769,14 +1768,13 @@ body
         width: 70%
         height: 32px
         overflow: hidden
-        overflow-wrap: break-word
         div
           position: relative
           top: 50%
           transform: translateY(-50%)
-          display: -webkit-box
-          -webkit-line-clamp: 2
-          -webkit-box-orient: vertical
+          white-space: nowrap;
+          text-overflow: ellipsis
+          overflow: hidden
       .item__logo
         width: 32px
         height: 32px
@@ -2006,7 +2004,7 @@ body
   white-space: normal
 
 em
-  background: rgba(100, 174, 225, 0.25)
+  font-weight: 600
   font-style: normal
 
 .bundesliga

@@ -43,6 +43,7 @@ export default class OperationExecutor {
     return new Promise((resolve, reject) => {
       if(!operation || operation.length === 0) {
         resolve(true);
+        return;
       }
 
       // clone operation

@@ -75,5 +75,7 @@ export default class Generic {
 
     // filter empty deep results
     data.partials = partials.filter(partial => !partial.links || partial.links.length);
+
+    data.partials.forEach(partial => partial.query = data.query);
   }
 }

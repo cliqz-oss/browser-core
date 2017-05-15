@@ -1,0 +1,6 @@
+{
+  "bower_components": [
+    "patterns/index",
+    "anonpatterns/index"
+  ]
+}

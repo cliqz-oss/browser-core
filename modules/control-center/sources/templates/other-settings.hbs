@@ -115,6 +115,16 @@
         <polygon id="Rectangle" stroke="none" fill="#838383" fill-rule="evenodd" transform="translate(1023.344411, 663.208565) rotate(45.000000) translate(-1023.344411, -663.208565) " points="1018.95691 660.49484 1027.73191 658.821065 1026.05814 667.596065"></polygon>
       </svg>
       <span data-i18n="control-center-searchoptions"></span>
+
+      <span id="tips"
+        data-i18n="control-center-tips"
+        {{#if amo}}
+          openUrl="https://cliqz.com/tips-firefox"
+        {{else}}
+          openUrl="https://cliqz.com/tips"
+        {{/if}}
+      </span>
+
     </a>
     <div id="accordion-2" class="accordion-section-content">
       {{#if module.autocomplete.visible}}
@@ -147,21 +157,18 @@
       </span>
       {{/if}}
 
-      {{#unless searchDisabled }}
-          <span class="bullet"
-                {{#if amo}}
-                    openUrl="https://cliqz.com/tips-firefox"
-                {{else}}
-                    openUrl="https://cliqz.com/tips"
-                {{/if}}
-                data-target="search_tips">
-            <span data-i18n="control-center-best-cliqz"></span>
-            <svg class="bulletarrow" width="9px" height="12px" viewBox="175 40 9 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-              <defs></defs>
-              <polyline id="Path-164-Copy-140" stroke="#7D7D7D" stroke-width="1.5999999" fill="none" opacity="0.554279384" points="176 41 181.896928 46.9067547 176.230646 52.5824794"></polyline>
-            </svg>
-          </span>
-      {{/unless}}
+    {{#unless searchDisabled }}
+        <span class="bullet"
+              openUrl="https://cliqz.com/report-url"
+              data-target="report_url">
+          <span data-i18n="control-center-report-url"></span>
+          <svg class="bulletarrow" width="9px" height="12px" viewBox="175 40 9 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <defs></defs>
+            <polyline id="Path-164-Copy-140" stroke="#7D7D7D" stroke-width="1.5999999" fill="none" opacity="0.554279384" points="176 41 181.896928 46.9067547 176.230646 52.5824794"></polyline>
+          </svg>
+        </span>
+    {{/unless}}
+
       {{#if module.privacy-dashboard.visible }}
         <span class="bullet"
               openUrl="about:transparency"
@@ -173,6 +180,7 @@
           </svg>
         </span>
       {{/if}}
+
       {{#if module.type-filter}}
           {{#if module.type-filter.visible }}
             <span class="bullet">

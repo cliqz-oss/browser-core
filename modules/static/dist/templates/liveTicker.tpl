@@ -4,9 +4,7 @@
     <div class="cqz-ez-title" selectable='' extra="title">
         <a href="{{url}}" extra="title"> {{ data.title }}  </a>
     </div>
-    <div class="cqz-result-url overflow" extra="url">
-        {{ emphasis urlDetails.friendly_url text 2 true }}
-    </div>
+    {{> 'partials/ez-url' }}
 
     <div class="cqz-liveticker-table">
       <span class="cqz-vertical-title">{{ data.extra.spielTag }}</span>

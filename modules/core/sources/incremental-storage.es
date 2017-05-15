@@ -1,9 +1,9 @@
-import md5 from 'core/helpers/md5';
-import utils from 'core/utils';
-import console from 'core/console';
-import { addShutdownBlocker, removeShutdownBlocker } from 'platform/shutdown-blocker';
+import md5 from './helpers/md5';
+import utils from './utils';
+import console from './console';
+import { addShutdownBlocker, removeShutdownBlocker } from '../platform/shutdown-blocker';
 import { renameFile, fileExists, readFile, write, removeFile, createFile,
-  pathJoin, openForAppend, closeFD, mkdir, writeFD } from 'core/fs';
+  openForAppend, closeFD, mkdir, writeFD } from './fs';
 
 // Avoid using the global Promise module, so that Promises are not blocked on shutdown
 // and we are able to flush the data. All Promises used come from internal fs functions
@@ -48,7 +48,7 @@ export default class IncrementalStorage {
     }
     this.filePrefix = exactName ? dbName : md5(dbName);
     this.processFunction = processFunction;
-    this.dirName = dirName;
+    this.dir = Array.isArray(dirName) ? dirName : [dirName];
     this.immediateSnap = immediateSnap;
     this.isOpening = true;
     return this.waitPromise(() =>
@@ -135,7 +135,7 @@ export default class IncrementalStorage {
     this.obj = {};
     this.processFunction = null;
     this.filePrefix = null;
-    this.dirName = null;
+    this.dir = null;
     this.isOpen = false;
     this.flushTimeout = 1000;
     this.flushScheduler = null;
@@ -259,7 +259,7 @@ export default class IncrementalStorage {
     const sn = this.getNewSnapshotFile();
     const jn = this.getNewJournalFile();
     const files = [s, j, sn, jn];
-    return mkdir(this.getDir())
+    return mkdir(this.dir)
       .then(() => PromiseAll(files.map(fileExists)))
       .then((present) => {
         if (!present[2] && !present[3]) { // Initialize (or do nothing)
@@ -322,10 +322,7 @@ export default class IncrementalStorage {
     return this.getFile(`${this.filePrefix}.error${corrupt ? '.corrupt' : ''}`);
   }
   getFile(filename) {
-    return pathJoin(this.getDir(), filename);
-  }
-  getDir() {
-    return this.dirName;
+    return this.dir.concat(filename);
   }
   appendToJournal(e) {
     this.dirty = true;

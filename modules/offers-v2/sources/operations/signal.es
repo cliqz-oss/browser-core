@@ -8,6 +8,7 @@ ops['$send_signal'] = function(args, eventLoop) {
   return new Promise((resolve, reject) => {
     if(args.length < 3) {
       reject(new Error('invalid args'));
+      return;
     }
 
     var offerId = args[0];

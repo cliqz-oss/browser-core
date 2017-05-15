@@ -1,14 +1,15 @@
 /* eslint-disable camelcase */
-/* global USERAGENT */
+/* global USERAGENT, window */
 
-import MessageStorage from 'pairing/message-storage';
-import CliqzCrypto from 'pairing/crypto';
-import console from 'core/console';
-import utils from 'core/utils';
-import fetch from 'platform/fetch';
-import { encryptPairedMessage, decryptPairedMessage, ERRORS, getMessageTargets } from 'pairing/shared';
-import { base64_encode, hex_decode } from 'p2p/internal/utils';
-import CliqzPeer from 'p2p/cliqz-peer';
+import MessageStorage from './message-storage';
+import CliqzCrypto from './crypto';
+import console from '../core/console';
+import utils from '../core/utils';
+import fetch from '../platform/fetch';
+import { encryptPairedMessage, decryptPairedMessage, ERRORS, getMessageTargets } from './shared';
+import { toBase64, fromHex } from '../core/encoding';
+import CliqzPeer from '../p2p/cliqz-peer';
+import inject from '../core/kord/inject';
 
 const PAIRING_ERRORS = {
   BAD_DEVICE_NAME: 2,
@@ -22,6 +23,7 @@ const maxSize = 5 * 1024 * 1024;
 
 export default class PeerMaster {
   constructor(debug = false) {
+    this.p2p = inject.module('p2p');
     this.pushTime = 1000;
     this.debug = debug;
     this.apps = new Map();
@@ -113,7 +115,6 @@ export default class PeerMaster {
     this.slavesById[slave.peerID] = slave;
     this.slavesByName[slave.name] = slave;
     this.setStorage('__slaves', this.slaves);
-    this.enableMasterPeerIfNeeded();
     return slave;
   }
 
@@ -128,7 +129,10 @@ export default class PeerMaster {
     }
   }
 
-  generateKey() {
+  generateKeypair() {
+    if (this.keypair) {
+      return Promise.resolve();
+    }
     return CliqzPeer.generateKeypair()
     .then((keypair) => {
       this.setStorage('keypair', keypair);
@@ -138,17 +142,16 @@ export default class PeerMaster {
     })
     .catch(e => this.log(e));
   }
-  init(storage, window) {
+  init(storage) {
     if (this.isInit) {
       throw new Error('Module already init!');
     }
-    this.window = window;
     this.storage = storage;
     this.storagePrefix = 'PEERMASTER_';
 
     if (!this.masterName) {
-      const info = typeof USERAGENT !== 'undefined' ?
-        USERAGENT.analyze(this.window.navigator.userAgent) : { os: {}, device: {} };
+      const info = typeof window !== 'undefined' && typeof USERAGENT !== 'undefined' ?
+        USERAGENT.analyze(window.navigator.userAgent) : { os: {}, device: {} };
       const deviceInfo = info.device.full || 'CLIQZ Mobile Browser';
       const osInfo = info.os.full ? ` (${info.os.full})` : '';
       this.setStorage('masterName', `${deviceInfo}${osInfo}`);
@@ -162,17 +165,13 @@ export default class PeerMaster {
     this.slaves = [];
     this.pairingDevices = {};
 
-    return Promise.resolve(this.__loadSlaves())
-    .then(() => {
-      if (!this.keypair) {
-        return this.generateKey();
-      } else if (!this.peerID) {
-        // Migrate
-        return CliqzCrypto.sha256(this.keypair[0])
-          .then(h => this.setStorage('peerID', h));
-      }
-      return null;
-    })
+    return Promise.all([
+      this.__loadSlaves(),
+      this.generateKeypair(),
+    ])
+    .then(() => CliqzCrypto.sha256(this.keypair[0]))
+    .then(h => this.setStorage('peerID', h))
+    .then(() => this.initPeer())
     .then(() => {
       if (this.msgStorage) {
         this.msgStorage.cleanMessages(this.getTrustedDevices());
@@ -220,11 +219,7 @@ export default class PeerMaster {
       utils.clearInterval(this.pushInterval);
       this.pushInterval = null;
       if (this.masterPeer) {
-        try {
-          this.masterPeer.destroy();
-        } catch (e) {
-          this.logError('Error destroying masterPeer', e);
-        }
+        this.masterPeer.destroy();
         this.masterPeer = null;
       }
       this.apps.forEach((app) => {
@@ -274,7 +269,7 @@ export default class PeerMaster {
         .catch(() => {
           // If we fail sending the message, then store it.
           try {
-            this.msgStorage.pushPeerMessage(base64_encode(data), peerID);
+            this.msgStorage.pushPeerMessage(toBase64(data), peerID);
             this.checkMessagePusher();
           } catch (e) {
             this.log(e, 'Failed storing message');
@@ -325,11 +320,11 @@ export default class PeerMaster {
     if (hexArn.length !== 32) {
       return Promise.reject(new Error('arn length is not 32'));
     }
-    data.set(hex_decode(hexArn));
+    data.set(fromHex(hexArn));
     new DataView(data.buffer).setInt32(16, ts, true);
     const cleanPK = publicKey.split('\n').filter(x => x.trim() && !x.includes('-')).join('');
     return CliqzCrypto.rawEncryptRSA(data, cleanPK)
-    .then(x => base64_encode(x));
+    .then(x => toBase64(x));
   }
 
   setDeviceARN(arn) {
@@ -502,57 +497,60 @@ export default class PeerMaster {
     return Promise.reject(new Error(`loadPairingAESKey: unknown peer ${peerID}`));
   }
 
-  // Assuming keypair is already generated
   enableMasterPeerIfNeeded() {
     const numPairing = Object.keys(this.pairingDevices).length;
     const numDevices = Object.keys(this.slaves).length;
-    if (this.masterPeer || (numPairing === 0 && numDevices === 0)) {
-      return;
+    if (numPairing > 0 || numDevices > 0) {
+      this.masterPeer.open();
+      this.masterPeer.onmessage = this.processMessage.bind(this);
+      this.masterPeer.onconnect = (peerID) => {
+        this.propagateEvent('statusChanged');
+        if (has(this.slavesById, peerID)) {
+          this.checkMessagePusher();
+        } else if (!has(this.pairingDevices, peerID)) {
+          this.log('Unknown peer', peerID);
+        }
+      };
+      this.masterPeer.ondisconnect = (peer) => {
+        this.log('Connection with', peer, 'was closed');
+        this.removePairingDevice(peer, true);
+        this.disableMasterPeerIfNeeded();
+        this.propagateEvent('statusChanged');
+        this.checkMessagePusher();
+      };
+      this.getTrustedDevices().forEach((slaveID) => {
+        if (slaveID !== this.peerID) {
+          this.masterPeer.addTrustedPeer(slaveID);
+        }
+      });
+      this.checkConnections();
     }
+  }
 
-    this.masterPeer = new CliqzPeer(
-      this.window,
+  initPeer() {
+    return this.p2p.action(
+      'createPeer',
       this.keypair,
       {
         DEBUG: this.debug,
+        ordered: true,
+        maxMessageRetries: 0,
+        signalingEnabled: false,
       },
-    );
+    )
+      .then((masterPeer) => {
+        this.masterPeer = masterPeer;
+        this.masterPeer.encryptSignaling = (data, peerID) =>
+          this.loadPairingAESKey(peerID)
+          .then(aesKey => PeerMaster.sendEncrypted(data, aesKey))
+          .catch(() => data);
 
-    this.masterPeer.encryptSignaling = (data, peerID) =>
-      this.loadPairingAESKey(peerID)
-      .then(aesKey => PeerMaster.sendEncrypted(data, aesKey))
-      .catch(() => data);
-
-    this.masterPeer.decryptSignaling = (data, peerID) =>
-      this.loadPairingAESKey(peerID)
-      .then(aesKey => PeerMaster.receiveEncrypted(data, aesKey))
-      .catch(() => data);
-
-    this.masterPeer.onmessage = this.processMessage.bind(this);
-    this.masterPeer.setMessageSizeLimit(maxSize);
-    this.masterPeer.onconnect = (peerID) => {
-      this.propagateEvent('statusChanged');
-      if (has(this.slavesById, peerID)) {
-        this.checkMessagePusher();
-      } else if (!has(this.pairingDevices, peerID)) {
-        this.log('Unknown peer', peerID);
-      }
-    };
-    this.masterPeer.ondisconnect = (peer) => {
-      this.log('Connection with', peer, 'was closed');
-      this.removePairingDevice(peer, true);
-      this.disableMasterPeerIfNeeded();
-      this.propagateEvent('statusChanged');
-      this.checkMessagePusher();
-    };
-
-    this.getTrustedDevices().forEach((slaveID) => {
-      if (slaveID !== this.peerID) {
-        this.masterPeer.addTrustedPeer(slaveID);
-      }
-    });
-
-    this.checkConnections();
+        this.masterPeer.decryptSignaling = (data, peerID) =>
+          this.loadPairingAESKey(peerID)
+          .then(aesKey => PeerMaster.receiveEncrypted(data, aesKey))
+          .catch(() => data);
+        this.masterPeer.setMessageSizeLimit(maxSize);
+      });
   }
 
   checkConnections() {
@@ -572,10 +570,7 @@ export default class PeerMaster {
     const numPairing = Object.keys(this.pairingDevices).length;
     const numDevices = Object.keys(this.slaves).length;
     if (numPairing === 0 && numDevices === 0) {
-      if (this.masterPeer) {
-        this.masterPeer.destroy();
-        this.masterPeer = null;
-      }
+      this.masterPeer.close();
     }
   }
 

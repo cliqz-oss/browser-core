@@ -1,0 +1,76 @@
+{{#each this  }}
+    <li data-offer-id="{{ offer_id }}">
+        <div
+            class="cqz-ticket-offer
+                        {{#unless template_data.call_to_action }}
+                           cqz-no-call-to-action
+                        {{/unless }}
+                        cqz-clear {{ template_data.voucher_classes }}"
+        >
+            <div class="cqz-offer-holder"
+                 style="background-color: {{ template_data.styles.background }}; background-image: url({{ template_data.logo_url }});">
+                <div class="cqz-logo-holder">
+                    {{#if template_data.logo_url }}
+                        <!--<img src="{{ template_data.logo_url }}" alt=""/>-->
+                    {{else if template_data.captions }}
+                    <table class="cqz-offer-captions">
+                        <tr>
+                            <td>
+                                <span>{{ template_data.captions.cap1}}</span>
+                                <span>{{ template_data.captions.cap2}}</span>
+                            </td>
+                        </tr>
+                    </table>
+                    {{/if }}
+                </div>
+
+                {{#if template_data.call_to_action }}
+                <div class="cqz-call-to-action">
+                    <a href="#{{ template_data.call_to_action.url }}"
+                       class="cqz-btn"
+                       data-cqz-of-btn-id="call-to-action"
+                       data-cqz-offer-id="{{ offer_id }}"
+                       target="{{ template_data.call_to_action.target }}"
+                       style="color: {{ template_data.styles.call-to-action-color }}; background: {{ template_data.styles.call-to-action-bg-color }}">
+                        {{ template_data.call_to_action.text }}
+                    </a>
+                </div>
+                {{/if }}
+
+
+                <div class="cqz-content-holder">
+                    <h1 class="cqz-title" style="color: {{ template_data.styles.title-color }}">
+                        {{ template_data.title }}
+                    </h1>
+
+                    {{#if template_data.code }}
+                    <div class="cqz-offer-code-holder">
+                        <span class="cqz-offer-code-info" data-i18n="offers-hub-code-copy"></span>
+                        <span class="cqz-offer-code"
+                              data-cqz-of-btn-id="copy-code"
+                              data-cqz-offer-id="{{ offer_id }}"
+                              data-cqz-of-btn-action-type="offer-action-signal"
+                        >
+                            {{ template_data.code  }}
+                        </span>
+                    </div>
+                    {{/if }}
+
+
+                    <div class="cqz-descr" style="color: {{ template_data.styles.description-color }}">
+                        {{#if template_data.conditions }}
+                        {{ template_data.conditions }} <br>
+                        {{/if }}
+                        {{ template_data.desc }}
+                    </div>
+                </div>
+            </div>
+            <span
+                class="cqz-close"
+                data-cqz-of-btn-id="close-offer-link"
+                data-cqz-of-btn-action-type="action"
+                data-cqz-offer-id="{{ offer_id }}"
+            ></span>
+        </div>
+    </li>
+{{/each}}

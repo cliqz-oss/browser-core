@@ -1,4 +1,4 @@
-import Stats from 'anolysis/simple-statistics';
+import Stats from './simple-statistics';
 
 
 export default class {

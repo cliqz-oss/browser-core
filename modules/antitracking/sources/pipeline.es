@@ -136,7 +136,20 @@ export default class {
 
   _executePipeline(pipeline, initialState, logKey) {
     const state = initialState;
-    const response = {};
+    const response = {
+      redirectTo(url) {
+        this.redirectUrl = url;
+      },
+      block() {
+        this.cancel = true;
+      },
+      modifyHeader(name, value) {
+        if (!this.requestHeaders) {
+          this.requestHeaders = [];
+        }
+        this.requestHeaders.push({ name, value });
+      }
+    };
     let i = 0;
     for (; i < pipeline.length; i += 1) {
       try {

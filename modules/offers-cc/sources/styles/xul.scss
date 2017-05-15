@@ -1,0 +1,41 @@
+#nav-bar .cliqz-control-center {
+    min-width: 55px;
+    color: black;
+    background-position: 4px 5px;
+}
+
+panelmultiview[mainViewId="cliqz-offers-cc-btn-panel"] > .panel-viewcontainer > .panel-viewstack > .panel-mainview:not([panelid="PanelUI-popup"]),
+panel[viewId="cliqz-offers-cc-btn-panel"] .panel-mainview {
+    max-width: 50em !important;
+    width: 600px;
+    //height: 400px;
+}
+
+.cliqz-offers-cc {
+    position: relative;
+    height: 31px;
+    padding: 8px 4px 0 32px;
+    color: transparent;
+    background-repeat: no-repeat;
+    background-position: 8px 3px;
+    background-size: 20px;
+    background-image: url(../images/offers-cc-icon.svg);
+
+    &[state="new-offers"] {
+        &:before {
+            content: "";
+            display: block;
+            position: absolute;
+            top: 3px;
+            left: calc(50% + 6px);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #fd001e;
+        }
+    }
+}
+
+#customizationui-widget-panel[viewId="cliqz-offers-cc-btn-panel"] .panel-arrowcontent {
+    padding: 0;
+}

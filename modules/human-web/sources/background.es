@@ -1,7 +1,7 @@
 import utils from "../core/utils";
 import background from "../core/base/background";
 import HumanWeb from "./human-web";
-import hs from "../core/history-service";
+import { legacy as hs } from "../platform/history-service";
 import inject from "../core/kord/inject";
 
 /**
@@ -76,46 +76,36 @@ export default background({
     * @event control-center:toggleHumanWeb
     */
     "control-center:toggleHumanWeb": function() {
-      if(utils.getPref("humanWeb", false) && !utils.getPref('dnt', false)){
-        HumanWeb.unloadAtBrowser();
-      } else {
-        HumanWeb.initAtBrowser();
-      }
+      // 1. we turn off HumanWeb module
+      utils.setPref('modules.human-web.enabled', false);
 
-      utils.app.extensionRestart(() => {
-        utils.setPref('dnt', !utils.getPref('dnt', false));
-      });
+      // 2. change the pref
+      utils.setPref('dnt', !utils.getPref('dnt', false));
+
+      // we need to avoid the throttle on prefs
+      utils.setTimeout(function() {
+        //3. start again the module
+        utils.setPref('modules.human-web.enabled', true);
+      }, 0);
     },
     "core:mouse-down": function onMouseDown() {
       HumanWeb.captureMouseClickPage.apply(HumanWeb, arguments);
     },
+    "core:key-press": function onKeyPress() {
+      HumanWeb.captureKeyPressPage.apply(HumanWeb, arguments);
+    },
+    "core:mouse-move": function onMouseMove() {
+      HumanWeb.captureMouseMovePage.apply(HumanWeb, arguments);
+    },
+    "core:scroll": function onScroll() {
+      HumanWeb.captureScrollPage.apply(HumanWeb, arguments);
+    },
+    "core:copy": function onCopy() {
+      HumanWeb.captureCopyPage.apply(HumanWeb, arguments);
+    }
   },
 
   actions: {
-    /**
-    * @method actions.recordKeyPress
-    */
-    recordKeyPress() {
-      HumanWeb.captureKeyPressPage.apply(HumanWeb, arguments);
-    },
-    /**
-    * @method actions.recordMouseMove
-    */
-    recordMouseMove() {
-      HumanWeb.captureMouseMovePage.apply(HumanWeb, arguments);
-    },
-    /**
-    * @method actions.recordScroll
-    */
-    recordScroll() {
-      HumanWeb.captureScrollPage.apply(HumanWeb, arguments);
-    },
-    /**
-    * @method actions.recordCopy
-    */
-    recordCopy() {
-      HumanWeb.captureCopyPage.apply(HumanWeb, arguments);
-    },
 
     /**
      * Check whether there is some state for this url.

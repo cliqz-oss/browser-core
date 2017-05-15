@@ -1,3 +1,22 @@
-import sto from '../storage';
+import { AsyncStorage } from 'react-native';
 
-export default sto;
+const PREFIX = "@cliqzstorage:";
+
+export default {
+
+  getItem(id) {
+    return AsyncStorage.getItem(PREFIX + id);
+  },
+
+  setItem(id, value) {
+    return AsyncStorage.setItem(PREFIX + id, value);
+  },
+
+  removeItem(id) {
+    return AsyncStorage.removeItem(PREFIX + id);
+  },
+
+  clear() {
+    AsyncStorage.clear();
+  }
+};

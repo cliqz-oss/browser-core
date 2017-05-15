@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Control Center Debug</title>
+  </head>
+  <body>
+    <iframe id="control-center" src="./index.html"></iframe>
+    <script>
+        var mockOffer = [
+            {
+                "offer_id": "2",
+                "display_id": "2",
+                "template_name": "ticket_template",
+                "template_data": {
+                    "voucher_classes": "",
+                    "title": "25€ My test title is again here and all mighty powerful here and all mighty powerful",
+                    "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque imperdiet in erat facilisis laoreet. Curabitur auctor blandit lectus, non tristique urna porttitor non. Vivamus nibh risus, porta et sem ut, vulputate venenatis diam. Nulla finibus nisi nec tempor pretium. In tortor eros, vestibulum eget sagittis et, gravida et felis.",
+                    "logo_url": "https://s3.amazonaws.com/cdn.cliqz.com/extension/offers/dazn-logo.png",
+                    "conditions": "1 for 2",
+                    "code": "aBc234#as#",
+                    "call_to_action": {
+                        "url": "http://newurl",
+                        "target": "",
+                        "text": "Get the Offer"
+                    }
+                }
+            },
+            {
+                "offer_id": "2",
+                "display_id": "2",
+                "template_name": "ticket_template",
+                "template_data": {
+                    "voucher_classes": "",
+                    "title": "25€ My test title is again here and all mighty powerful",
+                    "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque imperdiet in erat facilisis laoreet. Curabitur auctor blandit lectus, non tristique urna porttitor non. Vivamus nibh risus, porta et sem ut, vulputate venenatis diam. Nulla finibus nisi nec tempor pretium. In tortor eros, vestibulum eget sagittis et, gravida et felis.",
+                    "logo_url": "https://s3.amazonaws.com/cdn.cliqz.com/extension/offers/dazn-logo.png",
+                    "conditions": "",
+                    "call_to_action": {
+                        "url": "http://newurl",
+                        "target": "",
+                        "text": "Gutschein anzeigen"
+                    }
+                }
+            },
+            {
+                "offer_id": "2",
+                "display_id": "2",
+                "template_name": "ticket_template",
+                "template_data": {
+                    "voucher_classes": "cqz-voucher-big-title",
+                    "title": "25€ My test title is again here and all mighty powerful",
+                    "desc": "",
+                    "logo_url": "https://s3.amazonaws.com/cdn.cliqz.com/extension/offers/dazn-logo.png",
+                    "conditions": "",
+                    "call_to_action": {
+                        "url": "http://newurl",
+                        "target": "",
+                        "text": "Gutschein anzeigen"
+                    }
+                }
+            },
+            {
+                "offer_id": "2",
+                "display_id": "2",
+                "template_name": "ticket_template",
+                "template_data": {
+                    "voucher_classes": "",
+                    "title": "15% My test title is again here and all mighty powerful",
+                    "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque imperdiet in erat facilisis laoreet. Curabitur auctor blandit lectus, non tristique urna porttitor non. Vivamus nibh risus, porta et sem ut, vulputate venenatis diam. Nulla finibus nisi nec tempor pretium. In tortor eros, vestibulum eget sagittis et, gravida et felis.",
+                    "captions": {
+                        "cap1": "15%",
+                        "cap2": "off",
+                    },
+                    "conditions": "",
+                    "call_to_action": {
+                        "url": "http://newurl",
+                        "target": "",
+                        "text": "Gutschein anzeigen"
+                    }
+                }
+            },
+            {
+                "offer_id": "2",
+                "display_id": "2",
+                "template_name": "ticket_template",
+                "template_data": {
+                    "voucher_classes": "",
+                    "title": "15% My test title is again here and all mighty powerful",
+                    "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque imperdiet in erat facilisis laoreet. Curabitur auctor blandit lectus, non tristique urna porttitor non. Vivamus nibh risus, porta et sem ut, vulputate venenatis diam. Nulla finibus nisi nec tempor pretium. In tortor eros, vestibulum eget sagittis et, gravida et felis.",
+                    "code": "aBc234#as",
+                    "captions": {
+                        "cap1": "15%",
+                        "cap2": "off",
+                    },
+                    "conditions": "",
+                    "call_to_action": {
+                        "url": "http://newurl",
+                        "target": "",
+                        "text": "Gutschein anzeigen"
+                    }
+                }
+            },
+        ];
+
+      var iframe = document.getElementById("control-center");
+      function resize(obj) {
+        iframe.style.width = "100%";
+        iframe.style.height ="500px";
+      }
+
+          iframe.contentWindow.addEventListener("message", function (ev) {
+            var data = JSON.parse(ev.data);
+              console.log("===debug listener")
+            if(data.target == 'cliqz-offers-cc' &&
+               data.origin == 'iframe'){
+              if (data.message.action === "resize") {
+                resize(data.message.data);
+              }
+              if (data.message.action === "getEmptyFrameAndData") {
+                  setTimeout(function () {
+                      iframe.contentWindow.postMessage(JSON.stringify({
+                          target: "cliqz-offers-cc",
+                          origin: "window",
+                          message: {
+                              action: "pushData",
+                              data: mockOffer
+                          },
+                      }), "*");
+                  }, 250)
+              }
+            }
+          });
+    </script>
+  </body>
+</html>

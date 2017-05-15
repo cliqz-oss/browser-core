@@ -22,7 +22,7 @@ const SERIALIZED_ENGINE_PATH = ['adblocker', 'engine.json'];
 
 
 // adb version
-export const ADB_VERSION = 2;
+export const ADB_VERSION = 5;
 
 // Preferences
 export const ADB_DISK_CACHE = 'cliqz-adb-disk-cache';
@@ -52,7 +52,10 @@ export function adbEnabled() {
   // TODO: Deal with 'optimized' mode.
   // 0 = Disabled
   // 1 = Enabled
-  return adbABTestEnabled() && utils.getPref(ADB_PREF, ADB_PREF_VALUES.Disabled) !== 0;
+  return (
+    adbABTestEnabled() &&
+    utils.getPref(ADB_PREF, ADB_PREF_VALUES.Disabled) !== ADB_PREF_VALUES.Disabled
+  );
 }
 
 
@@ -378,6 +381,7 @@ const CliqzADB = {
   adbMem: {},
   adbStats: new AdbStats(),
   mutationLogger: null,
+  adBlocker: null,
   adbDebug: false,
   MIN_BROWSER_VERSION: 35,
   timers: [],
@@ -388,42 +392,54 @@ const CliqzADB = {
       utils.setPref(ADB_PREF, ADB_PREF_VALUES.Disabled);
     }
 
-    CliqzADB.adBlocker = new AdBlocker(CliqzADB.onDiskCache, humanWeb);
-
-    const initAdBlocker = () => CliqzADB.adBlocker.init().then(() => {
+    const initAdBlocker = () => {
       CliqzADB.adblockInitialized = true;
-      CliqzADB.initPacemaker();
-      WebRequest.onBeforeRequest.addListener(
-        CliqzADB.httpOpenObserver.observe,
-        undefined,
-        ['blocking'],
-      );
-    });
+      CliqzADB.adBlocker = new AdBlocker(CliqzADB.onDiskCache, humanWeb);
+      return CliqzADB.adBlocker.init().then(() => {
+        CliqzADB.initPacemaker();
+        WebRequest.onBeforeRequest.addListener(
+          CliqzADB.httpOpenObserver.observe,
+          undefined,
+          ['blocking'],
+        );
+      });
+    };
 
     if (adbEnabled()) {
       return initAdBlocker();
     }
 
     this.onPrefChangeEvent = events.subscribe('prefchange', (pref) => {
-      if ((pref === ADB_PREF || pref === ADB_ABTEST_PREF) &&
-        !CliqzADB.adblockInitialized &&
-        adbEnabled()) {
-        // FIXME
-        initAdBlocker();
+      if (pref === ADB_PREF) {
+        if (!CliqzADB.adblockInitialized && adbEnabled()) {
+          initAdBlocker();
+        } else if (CliqzADB.adblockInitialized && !adbEnabled()) {
+          // Shallow unload
+          CliqzADB.unload(false);
+        }
       }
     });
+
     return Promise.resolve();
   },
 
-  unload() {
-    CliqzADB.adBlocker.unload();
-    CliqzADB.adBlocker = null;
-    CliqzADB.adblockInitialized = false;
-    if (this.onPrefChangeEvent) {
-      this.onPrefChangeEvent.unsubscribe();
+  unload(fullUnload = true) {
+    if (CliqzADB.adblockInitialized) {
+      CliqzADB.adBlocker.unload();
+      CliqzADB.adBlocker = null;
+
+      CliqzADB.unloadPacemaker();
+      WebRequest.onBeforeRequest.removeListener(CliqzADB.httpOpenObserver.observe);
+
+      CliqzADB.adblockInitialized = false;
     }
-    CliqzADB.unloadPacemaker();
-    WebRequest.onBeforeRequest.removeListener(CliqzADB.httpOpenObserver.observe);
+
+    // If this is full unload, we also remove the pref listener
+    if (fullUnload) {
+      if (this.onPrefChangeEvent) {
+        this.onPrefChangeEvent.unsubscribe();
+      }
+    }
   },
 
   initPacemaker() {
@@ -468,7 +484,7 @@ const CliqzADB = {
         return {};
       }
 
-      if (adbEnabled()) {
+      if (adbEnabled() && CliqzADB.adblockInitialized) {
         const result = CliqzADB.adBlocker.match(requestContext);
         if (result.redirect) {
           return { redirectUrl: result.redirect };

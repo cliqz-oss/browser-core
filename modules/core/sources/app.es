@@ -1,11 +1,10 @@
-import System from 'system';
 import config from './config';
-import console from './console';
-import utils from './utils';
 import events, { subscribe } from './events';
 import prefs from './prefs';
 import Module from './app/module';
 import { setGlobal } from './kord';
+import console from './console';
+import utils from './utils';
 import { mapWindows, forEachWindow, addWindowObserver,
   removeWindowObserver, reportError, mustLoadWindow, setInstallDatePref,
   setOurOwnPrefs, resetOriginalPrefs, enableChangeEvents,
@@ -35,6 +34,7 @@ export default class {
     this.prefchangeEventListener = subscribe('prefchange', this.onPrefChange, this);
   }
 
+  // should be used only for testing!
   extensionRestart(changes) {
     // unload windows
     forEachWindow((win) => {
@@ -127,8 +127,8 @@ export default class {
   }
 
   stop(isShutdown, disable, telemetrySignal) {
-    /* eslint-disable no-param-reassign */
     // NOTE: Disable this warning locally since the solution is hacky anyway.
+    /* eslint-disable no-param-reassign */
 
     utils.telemetry({
       type: 'activity',
@@ -269,11 +269,16 @@ export default class {
     if (!window.CLIQZ) {
       const CLIQZ = {
         app: this,
-        System,
         Core: {
           windowModules: {},
         }, // TODO: remove and all clients
       };
+
+      // legacy code for bootstrap addon - remove it when bundling is there
+      if (typeof System === 'object') {
+        CLIQZ.System = System;
+      }
+
       Object.defineProperty(window, 'CLIQZ', {
         configurable: true,
         value: CLIQZ,

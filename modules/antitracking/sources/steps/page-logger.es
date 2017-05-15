@@ -2,9 +2,8 @@
 
 export default class {
 
-  constructor(tpEvents, blockLog) {
+  constructor(tpEvents) {
     this.tpEvents = tpEvents;
-    this.blockLog = blockLog;
   }
 
   logMainDocument(state) {
@@ -14,7 +13,6 @@ export default class {
       // if (CliqzAttrack.isTrackerTxtEnabled()) {
       //   TrackerTXT.get(url_parts).update();
       // }
-      this.blockLog.incrementLoadedPages();
       return false;
     }
     return true;

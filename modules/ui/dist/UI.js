@@ -39,7 +39,8 @@ var TEMPLATES = CliqzUtils.TEMPLATES,
     currentResults, // enhancedResults
     rawResults, // raw results
     adultMessage = 0, //0 - show, 1 - temp allow, 2 - temp dissalow
-    privateWindow = false;
+    privateWindow = false,
+    offersDropdownAdPosition = CliqzUtils.getPref('offersDropdownAdPosition', '');
 
 var UI = {
     showDebug: false,
@@ -89,12 +90,19 @@ var UI = {
 
         var resultsBox = document.getElementById('cliqz-results',box);
         var messageContainer = document.getElementById('cliqz-message-container'),
-            messageContainerTop = document.getElementById('cliqz-message-container-top');
+            messageContainerTop = document.getElementById('cliqz-message-container-top'),
+            sideBarContainer = document.getElementById('cliqz-sidebar');
 
         resultsBox.addEventListener('mouseup', resultClick);
         resultsBox.addEventListener('mousedown', handleMouseDown);
         messageContainer.addEventListener('mouseup', resultClick);
         messageContainer.addEventListener('mousedown', handleMouseDown);
+        messageContainerTop.addEventListener('mouseup', resultClick);
+        messageContainerTop.addEventListener('mousedown', handleMouseDown);
+        if (sideBarContainer) {
+          sideBarContainer.addEventListener('mouseup', resultClick);
+          sideBarContainer.addEventListener('mousedown', handleMouseDown);
+        }
 
         resultsBox.addEventListener('mouseout', function(){
             XULBrowserWindow.updateStatusField();
@@ -107,6 +115,7 @@ var UI = {
         messageContainerTop.addEventListener('mouseup', messageClick);
         gCliqzBox.messageContainer = messageContainer;
         gCliqzBox.messageContainerTop = messageContainerTop;
+        gCliqzBox.sideBarContainer = sideBarContainer;
         resultsBox.addEventListener('scroll', resultScroll);
 
         box.addEventListener('mousemove', resultMove);
@@ -122,7 +131,9 @@ var UI = {
 
       return {
         title: data.title,
-        hasAd: data.extra && data.extra.is_ad && CliqzUtils.getPref('dropdownAdCampaignPosition', '') !== '',
+        hasAd: data.extra && data.extra.is_ad && offersDropdownAdPosition !== '',
+        banner: (data.extra && data.extra.banner) ? data.extra.banner : '',
+        btn_text: (data.extra && data.extra.btn_text) ? data.extra.btn_text : '',
         description: data.description || data.desc,
         friendlyUrl: data.friendlyUrl,
         trigger_urls: data.trigger_urls,
@@ -224,6 +235,7 @@ var UI = {
         if (!query)
           query = "";
 
+        UI.lastInput = query;
         // try to avoid Stack size limitations on Linux by breaking out Handlebars processing
         setTimeout(function(currentResults, query){
           if(gCliqzBox.resultsBox && currentResults.isMixed) {
@@ -952,15 +964,12 @@ function enhanceResults(res){
     // is this smart?
     // clone the object to avoid losing the raw version
     res = JSON.parse(JSON.stringify(res));
-
-    clearMessage('bottom');
     var adult = false,
         data,
         hasAd = false,
         resultWithAd = {},
-        adPosition = CliqzUtils.getPref('dropdownAdCampaignPosition', ''),
         adIndex;
-
+    CLIQZ.UI.newMessages = false;
     for(var i=0; i<res.results.length; i++) {
         var r = res.results[i];
         if (!r.data) {
@@ -994,16 +1003,21 @@ function enhanceResults(res){
         }
         if(r.data.extra && r.data.extra.adult) adult = true;
 
-        if(r.data.extra && r.data.extra.is_ad && adPosition !== '') {
+        if(r.data.extra && r.data.extra.is_ad && offersDropdownAdPosition !== '') {
           r.data.hasAd = r.data.extra.is_ad;
+          r.data.btn_text = r.data.extra.btn_text;
+          r.data.banner = r.data.extra.banner;
           hasAd = true;
           resultWithAd = r;
+          resultWithAd.query = '';
+          resultWithAd.text = ''
           adIndex = i;
 
           if (r.data.extra.url_ad) {
             r.url = r.data.extra.url_ad;
           }
         }
+
 
         if (r.type.indexOf('cliqz-extra') !== -1 &&  i > 0 ) {
           r.data = UI.getMinimalResultData(r.data);
@@ -1075,10 +1089,16 @@ function enhanceResults(res){
     }
 
     // remove adResult from results, we will display it as an Ad at the footer
-    if(hasAd && adPosition === 'bottom') {
+    if(hasAd && offersDropdownAdPosition !== '' ) {
       res.results = res.results.filter((r) => {
         return !r.data.hasAd;
       });
+    }
+
+    if(hasAd && offersDropdownAdPosition === 'right') {
+      CLIQZ.UI.gCliqzBox.classList.add('cqz-popup-offer');
+    } else {
+      CLIQZ.UI.gCliqzBox.classList.remove('cqz-popup-offer');
     }
 
     var spellCheckMessage;
@@ -1122,14 +1142,41 @@ function enhanceResults(res){
                 }
             });
         }
-    } else if(hasAd && adPosition === 'bottom') {
-      updateMessage('bottom', {
+    } else if(hasAd && offersDropdownAdPosition === 'top') {
+       updateMessage('top', {
         "footer-ad": resultWithAd
       });
       //Keep original ranking of the result for telemetry purposes
       document.getElementById('ad-container').setAttribute('idx', adIndex);
-    }
-    else if (notSupported()) {
+    } else if(hasAd && offersDropdownAdPosition === 'bottom') {
+       // if there is no result left - show no results entry, because we have already removed adResult from the res.results before
+      if(res.results.length <= 0){
+        const noResults = CliqzUtils.dropDownStyle === 'simple' ? getNoResultsForSimpleUI(CliqzUtils.getNoResults(res.q)) : CliqzUtils.getNoResults(res.q);
+        res.results.push(noResults);
+        res.results[0].vertical = 'noResult';
+      } else {
+        updateMessage('bottom', {
+          "footer-ad": resultWithAd
+        });
+        //Keep original ranking of the result for telemetry purposes
+        document.getElementById('ad-container').setAttribute('idx', adIndex);
+      }
+    } else if(hasAd && offersDropdownAdPosition === 'right') {
+        // if there is no result left - show no results entry
+       if(res.results.length <= 0){
+        const noResults = CliqzUtils.dropDownStyle === 'simple' ? getNoResultsForSimpleUI(CliqzUtils.getNoResults(res.q)) : CliqzUtils.getNoResults(res.q);
+        res.results.push(noResults);
+        res.results[0].vertical = 'noResult';
+
+        CLIQZ.UI.gCliqzBox.classList.remove('cqz-popup-offer');
+      } else {
+        updateMessage('right', {
+          "footer-ad": resultWithAd
+        });
+        //Keep original ranking of the result for telemetry purposes
+        document.getElementById('ad-container').setAttribute('idx', adIndex);
+      }
+    } else if (notSupported()) {
       updateMessage('bottom', {
           "footer-message": getNotSupported()
        });
@@ -1159,6 +1206,13 @@ function enhanceResults(res){
       updateMessage(CLIQZ.UI.messageCenterMessage["footer-message"].location,
         CLIQZ.UI.messageCenterMessage);
     }
+    if (!CLIQZ.UI.newMessages) {
+      clearMessage('bottom');
+      clearMessage('right');
+      clearMessage('top');
+    }
+
+
     return res;
 
 }
@@ -1232,11 +1286,17 @@ function getNotSupported(){
   */
 
 function updateMessage(location, messages) {
+  CLIQZ.UI.newMessages = true;
   var container = {
     top: gCliqzBox.messageContainerTop,
-    bottom: gCliqzBox.messageContainer
+    bottom: gCliqzBox.messageContainer,
+    right: gCliqzBox.sideBarContainer
   }[location] || gCliqzBox.messageContainer;
 
+  if(JSON.stringify(container.visibleMessages) == JSON.stringify(messages)) {
+    return;
+  }
+  container.visibleMessages = messages;
   container.innerHTML = Object.keys(messages).map(function (tplName) {
     return CliqzHandlebars.tplCache[tplName](messages[tplName]);
   }).join('');
@@ -1964,7 +2024,8 @@ function handleMouseDown(e) {
   var walk_the_DOM = function walk(node) {
     while(node) {
       if (node.classList.contains(IC) /* one of the results container */ ||
-          node.classList.contains('cqz-message-container') /* footer */ ) return; //do not go higher that results box
+          node.classList.contains('cqz-message-container') || /* footer */
+          node.classList.contains('cqz-message-container-top') /* header */ ) return; //do not go higher that results box
       //disable onclick handling for anchor tags, click event handling is left on the div
       //type window.location.href = SOME_URL in the console to see what would happen otherwise:-)
       if (node.tagName === 'a') {

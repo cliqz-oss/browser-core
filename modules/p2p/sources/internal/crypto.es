@@ -2,8 +2,8 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
 
+import { toBase64, fromBase64 } from '../../core/encoding';
 import ByteBuffer from './byte-buffer';
-import * as utils from './utils';
 
 function bytesToEncode(len) {
   let sum = len + 1;
@@ -99,7 +99,7 @@ function padIfSigned(array) {
 }*/
 function exportPrivateKey(key) {
   const origValues = ['AA==', key.n, key.e, key.d, key.p, key.q, key.dp, key.dq, key.qi];
-  const values = origValues.map(x => padIfSigned(utils.base64_decode(fromBase64url(x))));
+  const values = origValues.map(x => padIfSigned(fromBase64(fromBase64url(x))));
   const buffer = new ByteBuffer(2000);
 
   buffer.pushByte(0x30); // SEQUENCE
@@ -129,7 +129,7 @@ function exportPrivateKey(key) {
             // INTEGER e
 function exportPublicKey(key) {
   const origValues = [key.n, key.e];
-  const values = origValues.map(x => padIfSigned(utils.base64_decode(fromBase64url(x))));
+  const values = origValues.map(x => padIfSigned(fromBase64(fromBase64url(x))));
   const numBytes = values.reduce((a, x) => a + bytesToEncode(x.length), 0);
 
   const buffer = new ByteBuffer(2000);
@@ -161,7 +161,7 @@ function exportPublicKeySPKI(key) {
 
 function exportPrivateKeyPKCS8(key) {
   const origValues = ['AA==', key.n, key.e, key.d, key.p, key.q, key.dp, key.dq, key.qi];
-  const values = origValues.map(x => padIfSigned(utils.base64_decode(fromBase64url(x))));
+  const values = origValues.map(x => padIfSigned(fromBase64(fromBase64url(x))));
   const numBytes = values.reduce((a, x) => a + bytesToEncode(x.length), 0);
 
   const buffer = new ByteBuffer(2000);
@@ -218,7 +218,7 @@ function __importKey(buffer, values) {
     readLength(buffer);
     for (let i = 0; i < values.length; ++i) {
       let val = readInteger(buffer);
-      val = toBase64url(utils.base64_encode(val));
+      val = toBase64url(toBase64(val));
       key[values[i]] = val;
     }
   } else {
@@ -235,13 +235,13 @@ function __importKey(buffer, values) {
 
 function _importKey(data, values) {
   const buffer = new ByteBuffer(0);
-  buffer.setData(utils.base64_decode(data));
+  buffer.setData(fromBase64(data));
   return __importKey(buffer, values);
 }
 
 function importPublicKey(data) {
   const buffer = new ByteBuffer(0);
-  buffer.setData(utils.base64_decode(data));
+  buffer.setData(fromBase64(data));
   if (buffer.readByte() === 0x30) {
     readLength(buffer);
     buffer.readBytes(15);

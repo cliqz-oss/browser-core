@@ -3,8 +3,8 @@ import CalculatorResult from './results/calculator';
 import CurrencyResult from './results/currency';
 import WeatherResult from './results/weather';
 import HistoryResult from './results/history';
-import { equals } from '../../core/url';
-import console from '../../core/console';
+import { equals } from '../core/url';
+import console from '../core/console';
 
 class ResultFactory {
   static create(rawResult, allResultsFlat) {

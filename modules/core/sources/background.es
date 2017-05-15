@@ -9,11 +9,10 @@ import prefs from './prefs';
 import background from './base/background';
 import { Window, mapWindows, getLang } from '../platform/browser';
 import loadLogoDb from "../platform/load-logo-db";
-import { isMobile } from "./platform";
+import { isFirefox } from "./platform";
 import Storage from './storage';
 import resourceManager from './resource-manager';
 import inject from './kord/inject';
-
 
 var lastRequestId = 0;
 var callbacks = {};
@@ -22,11 +21,13 @@ export default background({
 
   init(settings) {
     this.settings = settings;
+    this.utils = utils;
     utils.init({
       lang: getLang(),
     });
-    if (!isMobile) {
-      this.checkSession();
+
+    this.checkSession();
+    if(isFirefox){
       language.init();
       HistoryManager.init();
     }
@@ -48,7 +49,7 @@ export default background({
 
   unload() {
     utils.clearTimeout(this.report);
-    if (!isMobile) {
+    if (isFirefox) {
       language.unload();
       HistoryManager.unload();
     }
@@ -156,10 +157,16 @@ export default background({
       status: status || 'active',
     });
 
-    ['http://cliqz.com', 'https://cliqz.com'].forEach(url => {
-      const ls = new Storage(url);
-      ls.setItem('extension-info', info);
-    });
+
+    try {
+      ['http://cliqz.com', 'https://cliqz.com'].forEach(url => {
+        const ls = new Storage(url);
+        ls.setItem('extension-info', info);
+      });
+    } catch(e) {
+      console.log('Error setting localstorage', e);
+    }
+
   },
 
   browserDetection() {
@@ -208,6 +215,30 @@ export default background({
     },
     recordMouseDown(...args) {
       events.pub('core:mouse-down', ...args);
+    },
+    /**
+    * @method actions.recordKeyPress
+    */
+    recordKeyPress() {
+      events.pub('core:key-press', ...arguments);
+    },
+    /**
+    * @method actions.recordMouseMove
+    */
+    recordMouseMove() {
+      events.pub('core:mouse-move', ...arguments);
+    },
+    /**
+    * @method actions.recordScroll
+    */
+    recordScroll() {
+      events.pub('core:scroll', ...arguments);
+    },
+    /**
+    * @method actions.recordCopy
+    */
+    recordCopy() {
+      events.pub('core:copy', ...arguments);
     },
     restart() {
       return utils.app.extensionRestart();
@@ -264,6 +295,7 @@ export default background({
     },
     queryCliqz(query) {
       let urlBar = utils.getWindow().document.getElementById("urlbar")
+      urlBar.mInputField.setUserInput('');
       urlBar.focus();
       urlBar.mInputField.focus();
       urlBar.mInputField.setUserInput(query);

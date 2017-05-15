@@ -123,7 +123,6 @@ modules/expansions-provider/expansions-provider.es
 modules/expansions-provider/window.es
 modules/firefox-specific/background.es
 modules/firefox-specific/demo.es
-modules/firefox-specific/redirect.es
 modules/firefox-specific/tests/unit/window-test.es
 modules/firefox-specific/window.es
 modules/firefox-tests/background.es
@@ -166,6 +165,11 @@ modules/human-web/background.es
 modules/human-web/bloom-filter.es
 modules/human-web/human-web.es
 modules/human-web/window.es
+modules/human-web2/background.es
+modules/human-web2/bloom-filter.es
+modules/human-web2/human-web.es
+modules/human-web2/window.es
+platforms/firefox/human-web/storage.es
 modules/message-center/background.es
 modules/message-center/handlers/alert.es
 modules/message-center/handlers/base.es
@@ -246,7 +250,6 @@ modules/offers-v2/ui/ui_display_manager.es
 modules/offers-v2/ui/ui_filter_rules_evaluator.es
 modules/offers-v2/ui/ui_offer_processor.es
 modules/offers-v2/ui/ui_offers_history.es
-modules/offers-v2/ui/ui_signals_handler.es
 modules/offers-v2/utils.es
 modules/offers-v2/window.es
 modules/offers/background.es
@@ -296,7 +299,6 @@ modules/privacy-dashboard/background.es
 modules/privacy-dashboard/main.es
 modules/privacy-dashboard/signals.es
 modules/privacy-dashboard/window.es
-modules/proxyPeer/rtc-crypto.es
 modules/static/background.es
 modules/static/main.es
 modules/static/tests/unit/locales-validation-test.es

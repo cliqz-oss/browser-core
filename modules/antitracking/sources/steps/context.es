@@ -18,7 +18,7 @@ export function determineContext(state) {
   state.sourceUrl = sourceUrl;
   state.sourceUrlParts = URLInfo.get(sourceUrl);
 
-  if (!sourceUrl) return false;
+  if (!state.sourceUrlParts || !state.urlParts) return false;
 
   return true;
 }

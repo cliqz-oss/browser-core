@@ -30,9 +30,9 @@ CliqzCampaignManager.prototype = {
       if (!this._updateTimer) {
           // run once now
           this.updateCampaigns();
-          this._updateTimer = CliqzUtils.setInterval(function () {
-              this.updateCampaigns();
-          }, this.UPDATE_INTERVAL);
+          this._updateTimer = CliqzUtils.setInterval(
+            () => this.updateCampaigns(),
+            this.UPDATE_INTERVAL);
       }
   },
   deactivateCampaignUpdates: function () {

@@ -9,14 +9,15 @@ import OffersConfigs from '../offers_configs';
 import { loadFileFromChrome } from '../utils';
 import { UIDisplayManager } from './ui_display_manager';
 import SignalType from './ui_display_manager';
-import TrackSignalID from './ui_signals_handler';
-import { UISignalsHandler } from './ui_signals_handler';
+import TrackSignalID from '../signals_defs';
 import HistorySignalID from './ui_offers_history';
 import { UIOffersHistory } from './ui_offers_history';
 import { openNewTabAndSelect } from '../utils';
 import {UIFilterRulesEvaluator} from './ui_filter_rules_evaluator';
 import events from '../../core/events';
 import { isChromium } from '../../core/platform';
+import OffersStorage from '../offers_storage';
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // consts
@@ -41,7 +42,9 @@ function lerr(msg) {
 export class UIOfferProcessor {
 
   //
-  constructor(sigHandler, eventHandler) {
+  constructor(sigHandler, eventHandler, offersDB) {
+    this.offersDB = offersDB;
+
     // the display manager
     this.uiDisplayMngr = new UIDisplayManager(this.uiDisplayMngrSignalsCb.bind(this), eventHandler);
     // active offers (not mean being displayed)
@@ -64,7 +67,14 @@ export class UIOfferProcessor {
     };
 
     // signal handler
-    this.sigHandler = new UISignalsHandler(sigHandler);
+    this.sigHandler = sigHandler;
+
+    // we will use this flag here to identify if we should use the storage or not
+    // still we will build it
+    this.shouldUseStorage = utils.getPref('offersHubEnableSwitch', false);
+
+    // create the offers storage module
+    this.offersStorage = new OffersStorage(this.offersHistory, this.sigHandler, this.offersDB);
   }
 
   destroy() {
@@ -80,6 +90,9 @@ export class UIOfferProcessor {
     if (this.filterRuleEval) {
       this.filterRuleEval.destroy();
     }
+    if (this.offersStorage) {
+      this.offersStorage.destroy();
+    }
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -88,6 +101,10 @@ export class UIOfferProcessor {
     // save all sub modules persistence data
     if (this.offersHistory) {
       this.offersHistory.savePersistenceData();
+    }
+
+    if (this.offersStorage) {
+      this.offersStorage.savePersistentData();
     }
   }
 
@@ -149,7 +166,10 @@ export class UIOfferProcessor {
         LinkText: offerInfoCpy.ui_info.template_data.call_to_action.url
       }, 'ghostery');
     } else {
-      this.uiDisplayMngr.addOffer(offerData, offerInfoCpy.rule_info);
+      // this is temporary and little nasty
+      if (!this.shouldUseStorage) {
+        this.uiDisplayMngr.addOffer(offerData, offerInfoCpy.rule_info);
+      }
     }
 
     this.activeOffers[offerInfoCpy.offer_id] = offerInfoCpy;
@@ -158,9 +178,23 @@ export class UIOfferProcessor {
     const displayID = offerInfoCpy.display_id;
     this.offersHistory.incHistorySignal(offerInfoCpy.offer_id, HistorySignalID.HSIG_OFFER_ADDED);
     this.offersHistory.incHistorySignal(displayID, HistorySignalID.HSIG_OFFER_ADDED);
+    this.offersHistory.incHistorySignal(displayID, HistorySignalID.HSIG_OFFER_DISPLAYED);
 
     // to track we use the offer_id
-    this.sigHandler.trackOfferSignal(offerInfoCpy.campaign_id, offerInfoCpy.offer_id, TrackSignalID.TSIG_OFFER_ADDED);
+    const originID = 'processor';
+    this.sigHandler.setCampaignSignal(offerInfoCpy.campaign_id,
+                                      offerInfoCpy.offer_id,
+                                      originID,
+                                      TrackSignalID.TSIG_OFFER_ADDED);
+
+    this.sigHandler.setCampaignSignal(offerInfoCpy.campaign_id,
+                                      offerInfoCpy.offer_id,
+                                      originID,
+                                      TrackSignalID.TSIG_OFFER_DISPLAYED);
+
+    if (this.shouldUseStorage) {
+      this._processOfferStorage(offerInfoCpy.offer_id, offerInfoCpy, OffersConfigs.OFFERS_STORAGE_DEFAULT_TTS_SECS);
+    }
   }
 
   //
@@ -187,6 +221,14 @@ export class UIOfferProcessor {
       lerr('this should not happen...');
       return false;
     }
+
+
+    const local_offerInfo = this.activeOffers[offerID];
+    if (!this._shouldShowOffer(local_offerInfo)) {
+      linfo('We should not show this offer with ID: ' + local_offerInfo.offer_id);
+      return;
+    }
+
     // check if it is the same or we need to change it
     // TODO: not implemented yet supporting multiple rule types
     if (currRuleInfo.type !== ruleInfo.type) {
@@ -213,6 +255,8 @@ export class UIOfferProcessor {
       return false;
     }
 
+    const local_displayID = local_offerInfo.display_id;
+    this.offersHistory.incHistorySignal(local_displayID, HistorySignalID.HSIG_OFFER_DISPLAYED);
     this.activeOffers[offerID].rule_info = newRuleInfo;
     return true;
   }
@@ -257,6 +301,21 @@ export class UIOfferProcessor {
     this._processUISignal(signalData.offer_id, signalData.signal_type, signalData.data);
   }
 
+  //
+  // storage connectors
+  //
+  getStorageOffers() {
+    if (!this.offersStorage) {
+      return [];
+    }
+    return this.offersStorage.getAllOffers();
+  }
+  onStorageOffersUIEvent(event) {
+    if (this.offersStorage) {
+      this.offersStorage.onStorageOffersUIEvent(event);
+    }
+  }
+
   ////////////////////////////////////////////////////////////////////////////////
   // internal methods
 
@@ -265,23 +324,24 @@ export class UIOfferProcessor {
   _processUISignal(offerID, signalType, signalData) {
     const campaignID = this._getCampaignIDFromOfferID(offerID);
     const displayID = this._getDisplayIDFromOfferID(offerID);
+    const originID = 'banner';
     switch (signalType) {
       case SignalType.OFFER_DISPLAYED:
         //
-        this.sigHandler.trackOfferSignal(campaignID, offerID, TrackSignalID.TSIG_OFFER_SHOWN);
+        this.sigHandler.setCampaignSignal(campaignID, offerID, originID, TrackSignalID.TSIG_OFFER_SHOWN);
         this.offersHistory.incHistorySignal(displayID, HistorySignalID.HSIG_OFFER_SHOWN);
         this.offersHistory.incHistorySignal(offerID, HistorySignalID.HSIG_OFFER_SHOWN);
       break;
 
       case SignalType.OFFER_HIDE:
-        this.sigHandler.trackOfferSignal(campaignID, offerID, TrackSignalID.TSIG_OFFER_HIDE);
+        this.sigHandler.setCampaignSignal(campaignID, offerID, originID, TrackSignalID.TSIG_OFFER_HIDE);
       break;
 
       case SignalType.OFFER_DISPLAY_TIMEOUT:
         // increase the times of closed?
         this.offersHistory.incHistorySignal(displayID, HistorySignalID.HSIG_OFFER_TIMEOUT);
         this.offersHistory.incHistorySignal(offerID, HistorySignalID.HSIG_OFFER_TIMEOUT);
-        this.sigHandler.trackOfferSignal(campaignID, offerID, TrackSignalID.TSIG_OFFER_TIMEOUT);
+        this.sigHandler.setCampaignSignal(campaignID, offerID, originID, TrackSignalID.TSIG_OFFER_TIMEOUT);
         // remove the offer from active ones
         this.removeOffer(offerID);
       break;
@@ -343,18 +403,54 @@ export class UIOfferProcessor {
     return offerInfo.campaign_id;
   }
 
+
+  //
+  // process the rules (if any) and add the offer on the storage
+  // called properly
+  //
+  _processOfferStorage(offerID, offerInfo, tts) {
+    if (offerID === null || offerID === undefined || !offerInfo) {
+      lwarn('_processOfferStorage: invalid arguments');
+      return false;
+    }
+    if (!this.offersStorage) {
+      lwarn('_processOfferStorage: no storage set?');
+      return false;
+    }
+
+    // add it to the storage if not added yet
+    if (this.offersStorage.hasOffer(offerID)) {
+      linfo('_processOfferStorage: offer with ID ' + offerID + ' already on the storage');
+      return true;
+    }
+
+    // TODO: we may want to check if the offer was already added before here? or
+    // perform some other checks. For now we will add it if it is not there
+    //
+
+    // add it
+    var offerData = {
+      tts: tts,
+      offer_info: offerInfo
+    };
+    return this.offersStorage.addOffer(offerID, offerData);
+  }
+
+
+
   //////////////////////////////////////////////////////////////////////////////
   // actions from ui
 
   _uiFunCallToAction(offerID, data) {
     const campaignID = this._getCampaignIDFromOfferID(offerID);
     const offerInfo = this.activeOffers[offerID];
+    const originID = 'banner';
     if (!offerInfo) {
       lwarn('_uiFunCallToAction: we dont have an active offer with id: ' + offerID);
       return;
     }
     linfo('_uiFunCallToAction: called for offer id: ' + offerID);
-    this.sigHandler.trackOfferSignal(campaignID, offerID, TrackSignalID.TSIG_OFFER_CALL_TO_ACTION);
+    this.sigHandler.setCampaignSignal(campaignID, offerID, originID, TrackSignalID.TSIG_OFFER_CALL_TO_ACTION);
 
     // execute the action if we have one
     if (offerInfo.action_info && offerInfo.action_info.on_click) {
@@ -366,15 +462,17 @@ export class UIOfferProcessor {
 
   _uiFunMoreAboutCliqz(offerID, data) {
     const campaignID = this._getCampaignIDFromOfferID(offerID);
+    const originID = 'banner';
     linfo('_uiFunMoreAboutCliqz: called for offer id: ' + offerID);
-    this.sigHandler.trackOfferSignal(campaignID, offerID, TrackSignalID.TSIG_OFFER_MORE_INFO);
+    this.sigHandler.setCampaignSignal(campaignID, offerID, originID, TrackSignalID.TSIG_OFFER_MORE_INFO);
     openNewTabAndSelect(OffersConfigs.OFFER_INFORMATION_URL);
   }
 
   _uiFunCloseOffer(offerID, data) {
     const campaignID = this._getCampaignIDFromOfferID(offerID);
+    const originID = 'banner';
     linfo('_uiFunCloseOffer: called for offer id: ' + offerID);
-    this.sigHandler.trackOfferSignal(campaignID, offerID, TrackSignalID.TSIG_OFFER_CLOSED);
+    this.sigHandler.setCampaignSignal(campaignID, offerID, originID, TrackSignalID.TSIG_OFFER_CLOSED);
     const displayID = this._getDisplayIDFromOfferID(offerID);
     this.offersHistory.incHistorySignal(displayID, HistorySignalID.HSIG_OFFER_CLOSED);
 	  //Should we just take one of them?
@@ -387,8 +485,9 @@ export class UIOfferProcessor {
   _uiFunMoreAboutOffer(offerID, data) {
     // TODO:
     const campaignID = this._getCampaignIDFromOfferID(offerID);
+    const originID = 'banner';
     linfo('_uiFunMoreAboutOffer: called for offer id: ' + offerID);
-    this.sigHandler.trackOfferSignal(campaignID, offerID, TrackSignalID.TSIG_OFFER_MORE_ABT_CLIQZ);
+    this.sigHandler.setCampaignSignal(campaignID, offerID, originID, TrackSignalID.TSIG_OFFER_MORE_ABT_CLIQZ);
   }
 
 

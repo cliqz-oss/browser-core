@@ -27,11 +27,11 @@ const global = {
 
 const pouchUrl = "chrome://cliqz/content/bower_components/pouchdb/dist/pouchdb.js";
 
-export default function (dbName) {
+export default function (dbName, options) {
   if (!global.global.PouchDB) {
     Services.scriptloader.loadSubScriptWithOptions(pouchUrl, {
       target: global
     });
   }
-  return new global.global.PouchDB(dbName);
+  return new global.global.PouchDB(dbName, options);
 }

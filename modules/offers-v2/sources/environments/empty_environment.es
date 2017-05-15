@@ -45,4 +45,8 @@ export default class EmptyEnvironment {
 
   sendSignal(signalId, params) {
   }
+
+  getPref(pref,default_val) {
+    return undefined;
+  }
 }

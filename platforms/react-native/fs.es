@@ -1,10 +1,9 @@
-import { utils } from '../core/cliqz';
 import RNFS from 'react-native-fs';
 
 const BASEDIR = RNFS.DocumentDirectoryPath;
 
 function getFullPath(filePath) {
-  if ( typeof filePath === 'string' ) {
+  if (typeof filePath === 'string') {
     filePath = [filePath];
   }
   return filePath.join('_');

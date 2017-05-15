@@ -4,14 +4,17 @@ const MergeTrees = require('broccoli-merge-trees');
 const concat = require('broccoli-sourcemap-concat');
 const cliqzConfig = require('./config');
 const modules = require('./modules-tree');
+const writeFile = require('broccoli-file-creator');
 
 // input trees
 const mobileSpecific  = new Funnel('specific/mobile', { exclude: ['skin/sass/**/*', '*.py'] });
 
 console.log('Source maps:', cliqzConfig.sourceMaps);
 console.log(cliqzConfig);
+const configFile = writeFile('cliqz.json', JSON.stringify(cliqzConfig));
 
 const mobile = new MergeTrees([
+  configFile,
   mobileSpecific,
   modules.static,
   modules.bundles,

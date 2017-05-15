@@ -9,14 +9,20 @@
 
 
 <div id="freshTabPage">
-  {{!-- <nav>
+
+  <nav>
+        {{#if model.config.isHistoryEnabled}}
+
     {{#link-to 'freshtab.index' class='freshtab-button'}}
       <img src="./assets/images/Home.svg">
     {{/link-to}}
-    {{#link-to 'freshtab.history.index' (query-params query='') class="history-button"}}
-      <img src="./assets/images/History.svg">
-    {{/link-to}}
-  </nav> --}}
+      <span {{action 'sendTelemetry' 'home-click-history'}}>
+        {{#link-to 'freshtab.history.index' (query-params query='') class="history-button"}}
+          <img src="./assets/images/History.svg">
+        {{/link-to}}
+      </span>
+    {{/if}}
+  </nav>
 {{!--   <div id="custom-settings">
     {{custom-settings model=model.config}}
   </div> --}}

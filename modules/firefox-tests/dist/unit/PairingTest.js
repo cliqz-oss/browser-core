@@ -96,8 +96,8 @@ TESTS.PairingTest = function(CliqzUtils) {
       var simpleStorage = new SimpleStorage(true);
       var pkmaster, pkslave;
       return Promise.all([
-        CliqzMasterComm.init(storage, window),
-        CliqzSlaveComm.init(simpleStorage, window),
+        CliqzMasterComm.init(storage),
+        CliqzSlaveComm.init(simpleStorage),
       ])
       .then(() => {
         return new Promise((resolve, reject) => {
@@ -164,7 +164,6 @@ TESTS.PairingTest = function(CliqzUtils) {
       })
       .then(() => {
         expect(Object.keys(CliqzMasterComm.slaves).length).to.equal(0);
-        expect(CliqzMasterComm.masterPeer).to.be.null;
       })
       .then(() => {
         return new Promise((resolve, reject) => {
@@ -229,7 +228,6 @@ TESTS.PairingTest = function(CliqzUtils) {
       })
       .then(() => {
         expect(Object.keys(CliqzMasterComm.slaves).length).to.equal(0);
-        expect(CliqzMasterComm.masterPeer).to.be.null;
       })
       .then(() => Promise.all([CliqzMasterComm.destroy(), CliqzSlaveComm.destroy()]));
     });
@@ -262,9 +260,9 @@ TESTS.PairingTest = function(CliqzUtils) {
       CliqzSlave2.addObserver('TEST', TestApp2);
       CliqzMasterComm.addObserver('TEST', TestAppMaster);
       return Promise.all([
-        CliqzMasterComm.init(storage, window),
-        CliqzSlave1.init(simpleStorage1, window),
-        CliqzSlave2.init(simpleStorage2, window),
+        CliqzMasterComm.init(storage),
+        CliqzSlave1.init(simpleStorage1),
+        CliqzSlave2.init(simpleStorage2),
       ])
       .then(() => {
         return new Promise(resolve => {
@@ -326,8 +324,8 @@ TESTS.PairingTest = function(CliqzUtils) {
       // Master message storage test (postponed delivery)
       .then(() => {
         var id = CliqzSlave1.deviceID;
-        return CliqzSlave1.unload()
-          .then(() => id);
+        CliqzSlave1.unload();
+        return id;
       })
       .then(id => TestApp2.comm.send('HOLA2', id))
       .then(() => {
@@ -342,7 +340,7 @@ TESTS.PairingTest = function(CliqzUtils) {
               resolve();
             }
           };
-          CliqzSlave1.init(simpleStorage1, window);
+          CliqzSlave1.init(simpleStorage1);
         });
         return Promise.all([p1, p2]);
       })
@@ -390,7 +388,6 @@ TESTS.PairingTest = function(CliqzUtils) {
       })
       .then(() => {
         expect(Object.keys(CliqzMasterComm.slaves).length).to.equal(0);
-        expect(CliqzMasterComm.masterPeer).to.be.null;
       })
       .then(() => Promise.all([CliqzMasterComm.destroy(), CliqzSlave1.destroy(), CliqzSlave2.destroy()]));
     });

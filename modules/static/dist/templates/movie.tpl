@@ -4,7 +4,9 @@
     {{#with data}}
       <div class="cqz-rd-body">
           <div class="cqz-result-title overflow" arrow-override=''><a extra="title" href="{{../url}}">{{extra.rich_data.name}}</a></div>
-          <div class="cqz-result-url overflow" extra="url">{{../urlDetails.friendly_url}}</div>
+          {{#with ..}}
+            {{> 'partials/ez-url'}}
+          {{/with}}
 
           <div class="cqz-rd-h2-snippet">
               {{#if extra.rich_data.image}}

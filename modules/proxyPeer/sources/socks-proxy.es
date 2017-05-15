@@ -1,10 +1,10 @@
-import console from './console';
+import logger from './logger';
 import { TcpConnection } from './tcp-socket';
 
 
 export default class SocksProxy {
   constructor() {
-    this.host = '0.0.0.0';
+    this.host = '127.0.0.1';
 
     this._socket = Cc['@mozilla.org/network/server-socket;1']
       .createInstance(Ci.nsIServerSocket);
@@ -49,7 +49,7 @@ export default class SocksProxy {
         // TODO: Exception or logging?
       }
     } catch (ex) {
-      console.error(`proxyPeer SOCKS PROXY error on socket accept ${ex}`);
+      logger.error(`SOCKS PROXY error on socket accept ${ex}`);
     }
   }
 

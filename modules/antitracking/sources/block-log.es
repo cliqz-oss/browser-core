@@ -1,100 +1,63 @@
 import * as persist from './persistent-state';
-import pacemaker from './pacemaker';
 import md5 from './md5';
 import { events } from '../core/cliqz';
 import * as datetime from './time';
-import ResourceLoader from '../core/resource-loader';
 
-const DAYS_EXPIRE = 7;
 
-class TokenDomain {
+export default class {
 
-  constructor() {
-    this._tokenDomain = new persist.LazyPersistentObject('tokenDomain');
-  }
-
-  init() {
-    this._tokenDomain.load();
-  }
-
-  addTokenOnFirstParty(token, firstParty) {
-    if (!this._tokenDomain.value[token]) {
-      this._tokenDomain.value[token] = {};
-    }
-    this._tokenDomain.value[token][firstParty] = datetime.getTime().substr(0, 8);
-    this._tokenDomain.setDirty();
-  }
-
-  getNFirstPartiesForToken(token) {
-    return Object.keys(this._tokenDomain.value[token] || {}).length;
-  }
-
-  clean() {
-    const day = datetime.newUTCDate();
-    day.setDate(day.getDate() - DAYS_EXPIRE);
-    const dayCutoff = datetime.dateString(day);
-    const td = this._tokenDomain.value;
-    for (const tok in td) {
-      for (const s in td[tok]) {
-        if (td[tok][s] < dayCutoff) {
-          delete td[tok][s];
-        }
-      }
-      if (Object.keys(td[tok]).length === 0) {
-        delete td[tok];
-      }
-    }
-    this._tokenDomain.setDirty();
-    this._tokenDomain.save();
-  }
-
-  clear() {
-    this._tokenDomain.clear();
-  }
-}
-
-class BlockLog {
-  constructor(telemetry) {
+  constructor(telemetry, config) {
     this.telemetry = telemetry;
-    this.URL_BLOCK_REPORT_LIST = 'https://cdn.cliqz.com/anti-tracking/whitelist/anti-tracking-report-list.json';
-    this.blockReportList = {};
+    this.config = config;
     this.blocked = new persist.LazyPersistentObject('blocked');
     this.localBlocked = new persist.LazyPersistentObject('localBlocked');
-    this._blockReportListLoader = new ResourceLoader(
-      ['antitracking', 'anti-tracking-report-list.json'], {
-        remoteURL: 'https://cdn.cliqz.com/anti-tracking/whitelist/anti-tracking-report-list.json',
-        cron: 24 * 60 * 60 * 1000,
-      });
+  }
+
+  get blockReportList() {
+    return this.config.reportList || {};
   }
 
   init() {
     this.blocked.load();
     this.localBlocked.load();
-    this._blockReportListLoader.load().then(this._loadReportList.bind(this));
-    this._blockReportListLoader.onUpdate(this._loadReportList.bind(this));
+
+    this.onHourChanged = () => {
+      const delay = 24;
+      const hour = datetime.newUTCDate();
+      hour.setHours(hour.getHours() - delay);
+      const hourCutoff = datetime.hourString(hour);
+
+      this._cleanLocalBlocked(hourCutoff);
+      this.sendTelemetry();
+    };
+    this._hourChangedListener = events.subscribe('attrack:hour_changed', this.onHourChanged);
   }
 
-  destroy() {
-    this._blockReportListLoader.stop();
-  }
-
-  // blocked + localBlocked
-  add(sourceUrl, tracker, key, value, type) {
-    const s = tracker;
-    const k = md5(key);
-    const v = md5(value);
-    const hour = datetime.getTime();
-    const source = md5(sourceUrl);
-
-    if (this.isInBlockReportList(s, k, v)) {
-      this._addBlocked(s, k, v, type);
+  unload() {
+    if (this._hourChangedListener) {
+      this._hourChangedListener.unsubscribe();
+      this._hourChangedListener = null;
     }
+  }
+
+  /**
+   * Add an entry to the block log
+   * @param {String} sourceUrl domain name of where this block happened
+   * @param {String} tracker   the 3rd party tracker hostname which was blocked
+   * @param {String} key       the key for the blocked value
+   * @param {String} value     the blocked value
+   * @param {String} type      the type of blocked value
+   */
+  add(sourceUrl, tracker, key, value, type) {
+    const hour = datetime.getTime();
+
+    this.offerToReporter(sourceUrl, tracker, key, value, type);
+
     // local logging of blocked tokens
-    this._addLocalBlocked(source, tracker, key, value, hour);
+    this._addLocalBlocked(sourceUrl, tracker, key, value, hour);
   }
 
   clear() {
-    this.blockReportList = {};
     this.blocked.clear();
     this.localBlocked.clear();
   }
@@ -169,22 +132,31 @@ class BlockLog {
     this.localBlocked.save();
   }
 
-  _loadReportList(list) {
-    this.blockReportList = list;
+  /**
+   * Check if this block event should be reported via telemetry, and if so, add to the
+   * block log
+   * @param  {String} sourceUrl
+   * @param  {String} tracker
+   * @param  {String} key
+   * @param  {String} value
+   * @param  {String} type
+   */
+  offerToReporter(sourceUrl, tracker, key, value, type) {
+    if (this.isInBlockReportList(tracker, key, value)) {
+      this._addBlocked(tracker, key, md5(value), type);
+    }
   }
 
-  isInBlockReportList(s, k, v) {
-    if ('*' in this.blockReportList) {
-      return true;
-    } else if (s in this.blockReportList) {
-      const keyList = this.blockReportList[s];
+  isInBlockReportList(tracker, key, value) {
+    if (tracker in this.blockReportList) {
+      const keyList = this.blockReportList[tracker];
       if (keyList === '*') {
         return true;
-      } else if (k in keyList) {
-        const valueList = keyList[k];
+      } else if (key in keyList || md5(key) in keyList) {
+        const valueList = keyList[k] || keyList[md5(key)];
         if (valueList === '*') {
           return true;
-        } else if (v in valueList) {
+        } else if (value in valueList || md5(value) in valueList) {
           return true;
         }
       }
@@ -204,192 +176,4 @@ class BlockLog {
       this.blocked.clear();
     }
   }
-}
-
-export default class {
-  constructor(qsWhitelist, telemetry) {
-    this.telemetry = telemetry;
-    this.blockLog = new BlockLog(telemetry);
-    this.tokenDomain = new TokenDomain();
-    this.checkedToken = new persist.LazyPersistentObject('checkedToken');
-    this.blockedToken = new persist.LazyPersistentObject('blockedToken');
-    this.loadedPage = new persist.LazyPersistentObject('loadedPage');
-    this.currentHour = datetime.getTime();
-    this._updated = {};
-    this.qsWhitelist = qsWhitelist;
-  }
-
-  init() {
-    this.blockLog.init();
-    this.tokenDomain.init();
-
-    this.onHourChanged = () => {
-      this.currentHour = datetime.getTime();
-      this._clean();
-      this.sendTelemetry();
-    };
-    events.sub('attrack:hour_changed', this.onHourChanged);
-    this.onTokenWhitelistUpdated = () => {
-      this.checkWrongToken('token');
-    };
-    events.sub('attrack:token_whitelist_updated', this.onTokenWhitelistUpdated);
-    this.onSafekeysUpdated = () => {
-      this.checkWrongToken('safeKey');
-    };
-    events.sub('attrack:safekeys_updated', this.onSafekeysUpdated)
-
-    this.checkedToken.load();
-    this.blockedToken.load();
-    this.loadedPage.load();
-
-    this.saveBlocklog = () => {
-      this.checkedToken.save();
-      this.blockedToken.save();
-      this.loadedPage.save();
-      this.tokenDomain._tokenDomain.save();
-      this.blockLog.blocked.save();
-      this.blockLog.localBlocked.save();
-    };
-    this._pmTask = pacemaker.register(this.saveBlocklog, 1000 * 60 * 5);
-  }
-
-  destroy() {
-    events.un_sub('attrack:hour_changed', this.onHourChanged);
-    events.un_sub('attrack:token_whitelist_updated', this.onTokenWhitelistUpdated);
-    events.un_sub('attrack:safekeys_updated', this.onSafekeysUpdated)
-    pacemaker.deregister(this._pmTask);
-    this.blockLog.destroy();
-  }
-
-  incrementCheckedTokens() {
-    this._incrementPersistentValue(this.checkedToken, 1);
-  }
-
-  incrementBlockedTokens(nBlocked) {
-    this._incrementPersistentValue(this.blockedToken, nBlocked);
-  }
-
-  incrementLoadedPages() {
-    this._incrementPersistentValue(this.loadedPage, 1);
-  }
-
-  _incrementPersistentValue(v, n) {
-    const hour = this.currentHour;
-    if (!(hour in v.value)) {
-      v.value[hour] = 0;
-    }
-    v.value[hour] += n;
-    v.setDirty();
-  }
-
-  sendTelemetry() {
-    this.blockLog.sendTelemetry();
-  }
-
-  checkWrongToken(key) {
-    this._clean();
-    // send max one time a day
-    const day = datetime.getTime().slice(0, 8);
-    const wrongTokenLastSent = persist.getValue('wrongTokenLastSent', datetime.getTime().slice(0, 8));
-    if (wrongTokenLastSent === day) {
-      return;  // max one signal per day
-    }
-    this._updated[key] = true;
-    if (!('safeKey' in this._updated) || (!('token' in this._updated))) {
-      return;  // wait until both lists are updated
-    }
-    let countLoadedPage = 0;
-    let countCheckedToken = 0;
-    let countBlockedToken = 0;
-    let countWrongToken = 0;
-    let countWrongPage = 0;
-
-    const localBlocked = this.blockLog.localBlocked.value;
-    for (const source in localBlocked) {
-      let wrongSource = true;
-      for (const s in localBlocked[source]) {
-        for (const k in localBlocked[source][s]) {
-          for (const v in localBlocked[source][s][k]) {
-            if (!this.qsWhitelist.isTrackerDomain(s) ||
-              this.qsWhitelist.isSafeKey(s, k) ||
-              this.qsWhitelist.isSafeToken(s, v)) {
-              for (const h in localBlocked[source][s][k][v]) {
-                countWrongToken += localBlocked[source][s][k][v][h];
-                localBlocked[source][s][k][v][h] = 0;
-              }
-              this.blockLog.localBlocked.setDirty();
-            } else {
-              wrongSource = false;
-            }
-          }
-        }
-      }
-      if (wrongSource) {
-        countWrongPage++;
-      }
-    }
-
-    // send signal
-    // sum checkedToken & blockedToken
-    for (const h in this.checkedToken.value) {
-      countCheckedToken += this.checkedToken.value[h];
-    }
-    for (const h in this.blockedToken.value) {
-      countBlockedToken += this.blockedToken.value[h];
-    }
-    for (const h in this.loadedPage.value) {
-      countLoadedPage += this.loadedPage.value[h];
-    }
-
-    const data = {
-      wrongToken: countWrongPage,
-      checkedToken: countCheckedToken,
-      blockedToken: countBlockedToken,
-      wrongPage: countWrongPage,
-      loadedPage: countLoadedPage,
-    };
-    this.telemetry({
-      message: {
-        action: 'attrack.FP',
-        payload: data,
-      },
-      ts: wrongTokenLastSent
-    });
-    persist.setValue('wrongTokenLastSent', day);
-    this._updated = {};
-  }
-
-  clear() {
-    this.blockLog.clear();
-    this.tokenDomain.clear();
-    this.checkedToken.clear();
-    this.blockedToken.clear();
-    this.loadedPage.clear();
-  }
-
-  _clean() {
-    const delay = 24;
-    const hour = datetime.newUTCDate();
-    hour.setHours(hour.getHours() - delay);
-    const hourCutoff = datetime.hourString(hour);
-
-    this.blockLog._cleanLocalBlocked(hourCutoff);
-    // checkedToken
-    for (const h in this.checkedToken.value) {
-      if (h < hourCutoff) {
-        delete this.checkedToken.value[h];
-      }
-    }
-    for (const h in this.loadedPage.value) {
-      if (h < hourCutoff) {
-        delete this.loadedPage.value[h];
-      }
-    }
-
-    this.checkedToken.setDirty();
-    this.loadedPage.setDirty();
-
-    this.tokenDomain.clean();
-  }
-
 }

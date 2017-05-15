@@ -1,4 +1,4 @@
-import console from './console';
+import logger from './logger';
 
 
 /**
@@ -49,7 +49,7 @@ export default function (name, callback) {
   const registerCallbackOnData = () => {
     getNextData()
       .then(([data, resolvePush]) => Promise.resolve(callback(data)).then(resolvePush))
-      .catch(ex => console.error(`MessageQueue ${name} :: error: ${ex}`))
+      .catch(ex => logger.error(`MessageQueue ${name} :: error: ${ex}`))
       .then(registerCallbackOnData);
   };
 

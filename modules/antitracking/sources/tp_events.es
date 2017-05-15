@@ -119,10 +119,7 @@ class PageLoadData {
       }
       if(tp_paths.length > 0) {
         // aggregate stats per tp domain.
-        var path_data = tp_paths.map(function(k) {
-          tp_domain_data[k]['paths'] = [self._shortHash(k)];
-          return tp_domain_data[k];
-        });
+        const path_data = tp_paths.map(k => tp_domain_data[k]);
         obj['tps'][tp_domain] = path_data.reduce(this._sumStats);
 
         // Remove the keys which have value == 0;
@@ -148,12 +145,9 @@ class PageLoadData {
   _sumStats(a, b) {
     var c = {},
         stats_keys = new Set(Object.keys(a).concat(Object.keys(b)));
-    // paths is a special case
-    stats_keys.delete('paths');
     stats_keys.forEach(function(s){
       c[s] = (a[s] || 0) + (b[s] || 0);
     });
-    c['paths'] = a['paths'].concat(b['paths']);
     return c;
   }
 };

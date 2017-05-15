@@ -8,6 +8,7 @@ import { httpHandler, promiseHttpHandler } from './http';
 import gzip from './gzip';
 import CliqzLanguage from './language';
 import { isUrl } from './url';
+import random from './crypto/random';
 
 var VERTICAL_ENCODINGS = {
     'people':'p',
@@ -15,7 +16,7 @@ var VERTICAL_ENCODINGS = {
     'video':'v',
     'hq':'h',
     'bm': 'm',
-    'recipeRD': 'r',
+    'reciperd': 'r',
     'game': 'g',
     'movie': 'o'
 };
@@ -243,7 +244,7 @@ var CliqzUtils = {
           sLen = space.length;
 
       for(i=0; i < len; i++ )
-          ret += space.charAt(Math.floor(Math.random() * sLen));
+          ret += space.charAt(Math.floor(random() * sLen));
 
       return ret;
   },
@@ -627,6 +628,7 @@ var CliqzUtils = {
            CliqzUtils.encodeFilter() +
            CliqzUtils.encodeLocation(true) + // @TODO: remove true
            CliqzUtils.encodeResultCount(numberResults) +
+           CliqzUtils.enncodeQuerySuggestionParam() +
            CliqzUtils.disableWikiDedup();
   },
 
@@ -778,6 +780,10 @@ var CliqzUtils = {
     count = count || 5;
     return '&count=' + count;
   },
+  enncodeQuerySuggestionParam: function () {
+    const suggestionsEnabled = CliqzUtils.getPref("suggestionsEnabled", false);
+    return `&suggest=${suggestionsEnabled ? 1 : 0}`;
+  },
   encodeResultType: function(type){
     if(type.indexOf('action') !== -1) return ['T'];
     else if(type.indexOf('cliqz-results') == 0) return CliqzUtils.encodeCliqzResultType(type);
@@ -899,11 +905,14 @@ var CliqzUtils = {
   locale: {},
   currLocale: null,
   getLocaleFile: function (locale) {
-    const url = CliqzUtils.LOCALE_PATH + locale + '/cliqz.json';
-    // Synchronous request is depricated
-    const req = CliqzUtils.httpGet(url, null, null, null, null, true);
-    CliqzUtils.currLocale = locale;
-    CliqzUtils.locale.default = CliqzUtils.locale[locale] = JSON.parse(req.response);
+    // locale file might not exist on mobile
+    if (CliqzUtils.LOCALE_PATH) {
+      const url = CliqzUtils.LOCALE_PATH + locale + '/cliqz.json';
+      // Synchronous request is depricated
+      const req = CliqzUtils.httpGet(url, null, null, null, null, true);
+      CliqzUtils.currLocale = locale;
+      CliqzUtils.locale.default = CliqzUtils.locale[locale] = JSON.parse(req.response);
+    }
   },
   getLocalizedString: function(key, substitutions){
     if(!key) return '';

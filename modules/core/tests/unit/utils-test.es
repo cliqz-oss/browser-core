@@ -37,6 +37,9 @@ export default describeModule("core/utils",
         httpHandler: {},
         promiseHttpHandler: {}
       },
+      './crypto/random': {
+        default: Math.random.bind(Math),
+      },
     };
   },
   function () {

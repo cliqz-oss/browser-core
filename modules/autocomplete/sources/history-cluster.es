@@ -516,7 +516,7 @@ var CliqzHistoryCluster = {
       result.data.urls.push(item);
 
       if ((result.data.urls.length > 9 && result.data.template == 'pattern-h1') ||
-          (result.data.urls.length > 5 && result.data.template == 'pattern-h2') ||
+          (result.data.urls.length > 4 && result.data.template == 'pattern-h2') ||
           (result.data.urls.length > 2 && result.data.template == 'pattern-h3')) {
         break;
       }

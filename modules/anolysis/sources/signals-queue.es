@@ -1,9 +1,9 @@
-import md5 from 'core/helpers/md5';
-import { utils } from 'core/cliqz';
+import md5 from '../core/helpers/md5';
+import { utils } from '../core/cliqz';
 
-import Backend from 'anolysis/backend-communication';
-import log from 'anolysis/logging';
-import getSynchronizedDate, { DATE_FORMAT } from 'anolysis/synchronized-date';
+import Backend from './backend-communication';
+import logger from './logger';
+import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
 
 
 export default class {
@@ -13,7 +13,7 @@ export default class {
     // Send signals by chunks, at regular intervals
     // Make throughput customizable
     this.batchSize = 6;
-    this.sendInterval = 15000;
+    this.sendInterval = 10000;
 
     // Send signal by batch and make sure each message has been sent before
     // deleting from the persistent storage.
@@ -28,7 +28,7 @@ export default class {
   init() {
     return this.storage
       .deleteByTimespan({ to: getSynchronizedDate().subtract(1, 'months').format(DATE_FORMAT) })
-      .catch(err => log(`error deleting old messages from queue: ${err}`));
+      .catch(err => logger.error(`error deleting old messages from queue: ${err}`));
   }
 
   unload() {
@@ -40,6 +40,10 @@ export default class {
       .then(batch => this.sendBatch(batch));
   }
 
+  destroy() {
+    return this.storage.destroy();
+  }
+
   getNextBatch(size) {
     return this.storage.getN(size).catch(() => []);
   }
@@ -47,14 +51,14 @@ export default class {
   sendSignal(doc) {
     const signal = doc.signal;
     if (signal !== undefined) {
-      log(`send signal ${JSON.stringify(signal)}`);
+      logger.debug(`send signal ${JSON.stringify(signal)}`);
       return Backend.sendSignal(signal)
         .then(() => this.storage.remove(doc).catch(() => { /* Ignore */ }))
         .catch((ex) => {
           // We don't remove the document from the db since it will be retried
           // later. This way we avoid loosing signals because of server's
           // errors.
-          log(`failed to send signal with exception ${ex}`);
+          logger.error(`failed to send signal with exception ${ex}`);
         });
     }
 
@@ -63,7 +67,7 @@ export default class {
 
   sendBatch(batch) {
     if (batch.length > 0) {
-      log(`get batch of ${batch.length}`);
+      logger.debug(`get batch of ${batch.length}`);
     }
 
     return Promise.all(

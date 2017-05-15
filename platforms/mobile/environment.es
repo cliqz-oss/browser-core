@@ -184,7 +184,7 @@ var CLIQZEnvironment = {
 
 CLIQZEnvironment.setCurrentQuery = function(query) {
 
-  if(prefs.get('incognito') === "true" || query.match(/http[s]{0,1}:/)) {
+  if(prefs.get('incognito', false) || query.match(/http[s]{0,1}:/)) {
     return;
   }
 

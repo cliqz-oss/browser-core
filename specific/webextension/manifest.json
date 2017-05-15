@@ -1,0 +1,27 @@
+{
+  "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC6xdwspdy7qcs6Nh5hfp5o3JAPwMGb7plR3fey1Ys3giIFAI7u0H7iJUeD6vojtZxubazL2dzeI//AXKn9JmZ1qfnSsQsM1pC9ZrxFeGy2cd/wyyI3HCs9xDIGQKxAmm+LrBc+6kcqTKbAMIEHTwGoX8O2e2u7oXsB/Rnm+ltPOQIDAQAB",
+  "name": "CLIQZ search",
+  "version": "0.1",
+  "manifest_version": 2,
+  "description": "CLIQZ search",
+  "icons": {
+  },
+  "incognito" : "split",
+  "permissions": [
+    "windows",
+    "tabs",
+    "http://*/*",
+    "https://*/*",
+    "webRequest",
+    "webNavigation",
+    "storage",
+    "history"
+  ],
+  "background": {
+    "scripts": [
+      "modules/webextension-specific/app.bundle.js"
+    ]
+  },
+  "content_security_policy":
+    "connect-src http://*/* https://*/* http://*.google.com/*; object-src 'none'; script-src chrome://resources 'self' 'unsafe-eval'"
+}

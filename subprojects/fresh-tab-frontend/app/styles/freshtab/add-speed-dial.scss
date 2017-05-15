@@ -1,15 +1,19 @@
 .add-speed-dial {
-  .addFrame {
-    .addBtn {
-      margin: auto;
-      width: 50%;
-      height: 89%;
+  #addBtn {
+    display: block;
+    padding-top: 10px;
+    z-index: 1000;
+    cursor: pointer;
+    margin: auto;
+    width: 50%;
+    height: 89%;
 
-      svg:hover path {
-        fill: #999;
-      }
+    svg:hover path {
+      fill: #999;
     }
+  }
 
+  .addFrame {
     .addLabel {
       color: #666;
     }

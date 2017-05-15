@@ -15,6 +15,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
   height: 100%;
   display: flex;
   flex-direction: row;
+  overflow: auto;
 
   h1 {
     font-size: 24px;
@@ -22,6 +23,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
     margin-top: 20px;
     margin-bottom: 11px;
     color: $color-dark-gray;
+    white-space: nowrap;
   }
 
   nav {
@@ -54,6 +56,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
 
   .history {
     flex: 1 1 auto;
+    min-width: 720px;
 
     .liquid-child {
       display: flex;
@@ -99,6 +102,25 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
         flex: 0 0 auto;
         border-bottom: 1px solid #D4D4D4;
         padding: 15px;
+
+        .clear-history-btn {
+          position: absolute;
+          color: #414141;
+          top: 14px;
+          right: 55px;
+          height: 35px;
+          background: url(./images/trash-session.svg) no-repeat left 10px center;
+          border-radius: 5px;
+          padding: 0px 7px 0 31px;
+          border: 1px solid #ccc;
+        }
+
+        .clear-history-btn:hover {
+          color: #000;
+          background-color: #fff;
+          background-image: url(./images/trash-session-hover.svg);
+          border: 1px solid #E64C66;
+        }
       }
     }
 
@@ -130,8 +152,16 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
       display: flex;
       position: relative;
 
+      input:focus, input:focus ~ label, input:focus ~ button {
+        border-color: #575757;
+      }
+
       &.is-active {
-        label, input, button {
+        input, label, button {
+          border-color: $color-dark-highlight;
+        }
+
+        input:focus ~ label, input:focus ~ button {
           border-color: $color-dark-highlight;
         }
 
@@ -146,6 +176,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
         background-color: white;
         border-radius: 0 20px 20px 0;
         padding: 5px 12px 4px 0px;
+        line-height: 1.43;
 
         img {
           box-sizing: content-box;
@@ -170,6 +201,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
         padding: 0px 0px 0px 12px;
         padding-top: 5px;
         padding-bottom: 4px;
+        line-height: 1.43;
 
         img {
           box-sizing: content-box;
@@ -202,6 +234,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
       flex: 1 1 auto;
       overflow-y: scroll;
       overflow-x: hidden;
+      margin-bottom: 15px;
       padding: 20px 20px 0 20px;
       padding-bottom: 0px;
 
@@ -214,8 +247,10 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
       }
 
       .session {
+        position: relative;
         clear: both;
         background-color: white;
+        margin-right: 20px;
         margin-bottom: 20px;
         padding: 10px 0px;
         box-shadow: 0 1px 1px rgba(34, 25, 25, 0.15);
@@ -229,6 +264,10 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
         //  border-bottom: 1px solid red;
         }
 
+        &.marked-for-deletion {
+          border-color: #E64C66;
+        }
+
         .visits {
           clear: both;
           display: block;
@@ -236,6 +275,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
           overflow: hidden;
 
           .visit {
+            position: relative;
             max-width: 100%;
 
             overflow: hidden;
@@ -247,7 +287,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
             &:hover {
               background-color: #F7F7F7;
 
-              span {
+              .visit-content span {
                 color: #00869F;
               }
 
@@ -319,7 +359,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
               text-overflow: ellipsis;
               white-space: nowrap;
               overflow: hidden;
-              margin-right: 5vw;
+              margin-right: 2vw;
             }
 
             em {
@@ -386,36 +426,91 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
               }
             }
 
-            .title {
-              float: left;
-              width: 25vw;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-              overflow: hidden;
-              margin-right: 5vw;
+            .visit-content {
+              display: flex;
+              flex: 1;
+
+              .title {
+                float: left;
+                max-width: 25vw;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+                margin-right: 2vw;
+              }
+
+              .url {
+                display: inline-block;
+                font-size: 13.5px;
+                color: #8E8E8E;
+                text-overflow: ellipsis;
+                max-width: 23vw;
+                white-space: nowrap;
+                overflow: hidden;
+                margin-right: 1vw;
+              }
+
+              @media screen and (max-width: 1100px) {
+                .url {
+                  display: none;
+                }
+              }
+
+              .visited-at {
+                position: absolute;
+                right: 50px;
+                display: inline-block;
+                width: 200px;
+                font-size: 13.5px;
+                color: #8E8E8E;
+                text-align: right;
+              }
             }
 
-            .url {
-              display: inline-block;
-              font-size: 13.5px;
-              color: #8E8E8E;
-              text-overflow: ellipsis;
-              width: 23vw;
-              white-space: nowrap;
-              overflow: hidden;
-              margin-right: 20px;
+            .delete-visit-btn {
+              background:url('./images/trash-visit.svg') no-repeat;
+              width: 46px;
+              height: 36px;
+              border: none;
+              background-position: center bottom 8px;
+
+              background-size: 16px 16px;
+
+              position: absolute;
+              top: 0;
+              bottom: 0;
+              right: 0;
+              height: 100%;
             }
 
-            .visited-at {
-              display: inline-block;
-              float: right;
-              width: 200px;
-              font-size: 13.5px;
-              color: #8E8E8E;
-              text-align: right;
+            .delete-visit-btn:hover {
+              background-color: #E64C66;
+              background-image:url('./images/trash-visit-hover.svg');
             }
 
+            &.marked-for-deletion {
+              background-color: #FFDEE3;
+
+              .visit-content span {
+                color: #000;
+              }
+            }
           }
+        }
+
+        .delete-session-btn {
+          position: absolute;
+          top: 0;
+          right: -30px;
+
+          background:url('./images/trash-session.svg') no-repeat;
+          width: 20px;
+          height: 20px;
+          border: none;
+        }
+
+        .delete-session-btn:hover {
+          background-image:url('./images/trash-session-hover.svg');
         }
       }
     }

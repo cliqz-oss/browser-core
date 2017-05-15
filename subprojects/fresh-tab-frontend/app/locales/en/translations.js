@@ -101,5 +101,19 @@ export default {
     "txt-top-news-edition": "Top News edition",
     "tooltip-top-news": "The Top News Edition you see is solely based on your browser's language. You can switch to another edition here.",
     "send-us-feedback": "Send us feedback"
+  },
+  history: {
+    "tab-title": "History",
+    "btn-clear-all-label": "Clear Recent History...",
+    "search-placeholder": "Search History",
+    "delete-this-page": "Delete this page",
+    "delete-this-section": "Delete this section",
+    "day-selection-all": "All",
+    "day-selection-today": "Today",
+    "day-selection-yesterday": "Yesterday",
+    "day-selection-pastweek": "Last 7 days",
+    "no-history-entry-found": "No history entries found",
+    "no-search-result-found": "No search results found for:",
+    "no-further-history-entry": "No further history entries"
   }
 };

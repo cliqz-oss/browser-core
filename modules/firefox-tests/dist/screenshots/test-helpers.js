@@ -238,7 +238,7 @@ setTimeout(
 setTimeout(
     function(){
         loadScript(
-          'chrome://cliqz/content/firefox-tests/index.js',
+          'chrome://cliqz/content/firefox-tests/tests-index.js',
           document.getElementById('mocha')
         );
     },

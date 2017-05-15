@@ -1,8 +1,10 @@
 <div id="history">
   <nav>
-    {{#link-to 'freshtab.index' class='freshtab-button'}}
-      <img src="./assets/images/Home White.svg">
-    {{/link-to}}
+    <span {{action 'sendTelemetry'}}>
+      {{#link-to 'freshtab.index' class='freshtab-button'}}
+        <img src="./assets/images/Home White.svg">
+      {{/link-to}}
+    </span>
     {{#link-to 'freshtab.history.index' class="history-button"}}
       <img src="./assets/images/History White.svg">
     {{/link-to}}

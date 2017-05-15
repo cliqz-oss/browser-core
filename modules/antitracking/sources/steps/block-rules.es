@@ -1,26 +1,12 @@
-import ResourceLoader from '../../core/resource-loader';
-
-const URL_BLOCK_RULES = 'https://cdn.cliqz.com/anti-tracking/whitelist/anti-tracking-block-rules.json';
 
 export default class {
 
-  constructor(blockRulesUrl) {
-    this.blockRulesUrl = blockRulesUrl || URL_BLOCK_RULES;
-    this.qsBlockRule = [];
-    this._blockRulesLoader = new ResourceLoader( ['antitracking', 'anti-tracking-block-rules.json'], {
-      remoteURL: this.blockRulesUrl,
-      cron: 24 * 60 * 60 * 1000,
-    });
+  constructor(config) {
+    this.config = config;
   }
 
-  init() {
-    const updateRules = (rules) => { this.qsBlockRule = rules || []};
-    this._blockRulesLoader.load().then(updateRules);
-    this._blockRulesLoader.onUpdate(updateRules);
-  }
-
-  unload() {
-    this._blockRulesLoader.stop();
+  get qsBlockRule() {
+    return this.config.blockRules || [];
   }
 
   shouldBlock(host, sourceHost) {

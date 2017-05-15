@@ -114,12 +114,14 @@ def reportStatusToGithub(String name, String commit, String pending, Closure tes
     try {
       // check if there are no errors
       def testSummary = parseJunitReport(reportPath: report)
+      println testSummary
       if (testSummary['failures'] == "0") {
         setGithubCommitStatus(name, 'success', 'finished without errors', commit)
       } else {
         throw new Exception()
       }
     } catch (err) {
+      println err
       setGithubCommitStatus(name, 'failure', 'some tests failed', commit)
     }
   }

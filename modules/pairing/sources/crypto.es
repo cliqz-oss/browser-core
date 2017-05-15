@@ -1,33 +1,31 @@
 /* eslint-disable camelcase */
 
-import crypto from 'platform/crypto';
+import crypto from '../platform/crypto';
+import { toBase64, fromBase64, toHex, fromHex, toUTF8, fromUTF8 } from '../core/encoding';
 
-import { base64_encode, base64_decode, hex_encode, hex_decode,
-    UTF8ArrToStr, strToUTF8Arr } from 'p2p/internal/utils';
-
-import { exportPrivateKey, exportPublicKey } from 'p2p/internal/crypto';
+import { exportPrivateKey, exportPublicKey } from '../p2p/internal/crypto';
 
 export default class CliqzCrypto {
   static sha256(str, format = 'hex') {
     return CliqzCrypto.hash('SHA-256', str, format);
   }
   static hash(algo, str, format = 'hex') {
-    return crypto.subtle.digest(algo, typeof str === 'string' ? strToUTF8Arr(str) : str)
+    return crypto.subtle.digest(algo, typeof str === 'string' ? toUTF8(str) : str)
     .then(hash => CliqzCrypto.fromArrayBuffer(hash, format));
   }
   static fromByteArray(data, format) {
     if (format === 'hex') {
-      return hex_encode(data);
+      return toHex(data);
     } else if (format === 'b64') {
-      return base64_encode(data);
+      return toBase64(data);
     }
     return data;
   }
   static toByteArray(data, format) {
     if (format === 'hex') {
-      return hex_decode(data);
+      return fromHex(data);
     } else if (format === 'b64') {
-      return base64_decode(data);
+      return fromBase64(data);
     }
     return data;
   }
@@ -51,7 +49,7 @@ export default class CliqzCrypto {
   }
   // Returns [IV, encryptedData]
   static encryptStringAES(txt, key, iv) {
-    return CliqzCrypto.encryptAES(strToUTF8Arr(txt).buffer, key, iv);
+    return CliqzCrypto.encryptAES(toUTF8(txt).buffer, key, iv);
   }
   static decryptAES(encrypted, key) {
     let iv = encrypted[0];
@@ -64,7 +62,7 @@ export default class CliqzCrypto {
   }
   static decryptStringAES(encrypted, key) {
     return CliqzCrypto.decryptAES(encrypted, key)
-    .then(decrypted => UTF8ArrToStr(new Uint8Array(decrypted)));
+    .then(decrypted => fromUTF8(new Uint8Array(decrypted)));
   }
   static generateAESKey() {
     return crypto.subtle.generateKey(
@@ -82,7 +80,7 @@ export default class CliqzCrypto {
   static importRSAKey(pk, pub = true, hash = 'SHA-256') {
     return crypto.subtle.importKey(
       pub ? 'spki' : 'pkcs8',
-      base64_decode(pk),
+      fromBase64(pk),
       {
         name: 'RSA-OAEP',
         hash: { name: hash },
@@ -98,7 +96,7 @@ export default class CliqzCrypto {
     .then(pk =>
       crypto.subtle.wrapKey('raw', aesKey, pk, { name: 'RSA-OAEP', hash: { name: 'SHA-256' } }),
     )
-    .then(wrapped => base64_encode(wrapped));
+    .then(wrapped => toBase64(wrapped));
   }
   static unwrapAESKey(aesKey, privateKey) {
     return Promise.resolve(
@@ -107,7 +105,7 @@ export default class CliqzCrypto {
     .then(pk =>
       crypto.subtle.unwrapKey(
         'raw',
-        base64_decode(aesKey),
+        fromBase64(aesKey),
         pk,
         {
           name: 'RSA-OAEP',

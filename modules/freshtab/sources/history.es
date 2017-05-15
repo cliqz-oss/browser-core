@@ -20,6 +20,7 @@ var CliqzFreshTabHistory = {
                    "(moz_historyvisits.visit_date /(86400* 1000000) - (strftime('%s', date('now', '-6 months'))/86400) ) as days_count",
             "from moz_historyvisits, moz_places",
             "where moz_places.typed == 1",
+                  "and moz_places.hidden == 0",
                   "and moz_historyvisits.visit_date > (strftime('%s', date('now', '-6 months'))*1000000)",
                   "and moz_historyvisits.place_id == moz_places.id",
                   "and moz_places.visit_count > 1",

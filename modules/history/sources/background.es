@@ -1,10 +1,10 @@
 import History from '../platform/history/history';
 import background from '../core/base/background';
-import Database from '../core/database';
 import utils from '../core/utils';
 import { queryActiveTabs } from '../core/tabs';
 import createHistoryDTO from './history-dto';
-import MetaDatabase from './meta-database';
+// import Database from '../core/database';
+// import MetaDatabase from './meta-database';
 
 /**
 * @namespace history
@@ -15,9 +15,8 @@ export default background({
   * @method init
   */
   init() {
-    const metaDB = new Database('cliqz-metas');
-
-    this.metaDatabase = new MetaDatabase(metaDB);
+    // const metaDB = new Database('cliqz-metas');
+    // this.metaDatabase = new MetaDatabase(metaDB);
     this.history = History;
     this.redirectMap = Object.create(null);
   },
@@ -47,7 +46,7 @@ export default background({
     'ui:click-on-url': function onResult({ query, url }) {
       const asyncHistory = Components.classes['@mozilla.org/browser/history;1']
                          .getService(Components.interfaces.mozIAsyncHistory);
-      const queryUrl = `https://cliqz.com/search/?q=${query}`;
+      const queryUrl = `https://cliqz.com/search?q=${query}`;
       const uri = Services.io.newURI(queryUrl, null, null);
 
       const place = {
@@ -65,6 +64,8 @@ export default background({
         handleCompletion: () => {
           utils.setTimeout(() =>
             History.fillFromVisit(url, encodeURI(queryUrl)), 2000);
+
+          History.markAsHidden(queryUrl);
         },
       });
     },
@@ -132,8 +133,8 @@ export default background({
       });
     },
 
-    openUrl(url) {
-      utils.openLink(utils.getWindow(), url);
+    openUrl(url, newTab = false) {
+      utils.openLink(utils.getWindow(), url, newTab);
     },
 
     selectTabAtIndex(index) {
@@ -154,8 +155,21 @@ export default background({
       }
     },
 
-    recordMeta(url, meta) {
-      this.metaDatabase.record(url, meta);
+    recordMeta(/* url, meta */) {
+      // turn off for now
+      // this.metaDatabase.record(url, meta);
     },
+
+    deleteVisit(visitId) {
+      return this.history.deleteVisit(visitId);
+    },
+
+    deleteVisits(visitIds) {
+      return this.history.deleteVisits(visitIds);
+    },
+
+    showHistoryDeletionPopup() {
+      return this.history.showHistoryDeletionPopup(utils.getWindow());
+    }
   },
 });

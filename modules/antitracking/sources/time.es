@@ -1,24 +1,32 @@
 import utils from '../core/utils';
 
+// this is the sanitised timestamp retrieved from humanweb.
+let hwTs = utils.getPref('config_ts', null);
+
+export function updateTimestamp(ts) {
+  hwTs = ts;
+}
+
 /** Get datetime string of the current hour in the format YYYYMMDDHH
  */
 export function getTime() {
-  var ts = utils.getPref('config_ts', null);
-  if(!ts){
+  const date = new Date();
+  var ts = hwTs;
+  var _ts;
+  if(!ts) {
     var d = null;
     var m = null;
     var y = null;
     var h = null;
     var hr = null;
     var _ts = null;
-    d = (new Date().getDate()  < 10 ? "0" : "" ) + new Date().getDate();
-    m = (new Date().getMonth() < 9 ? "0" : "" ) + parseInt((new Date().getMonth()) + 1);
-    h = (new Date().getUTCHours() < 10 ? "0" : "" ) + new Date().getUTCHours();
-    y = new Date().getFullYear();
+    d = (date.getDate()  < 10 ? "0" : "" ) + date.getDate();
+    m = (date.getMonth() < 9 ? "0" : "" ) + parseInt((date.getMonth()) + 1);
+    h = (date.getUTCHours() < 10 ? "0" : "" ) + date.getUTCHours();
+    y = date.getFullYear();
     _ts = y + "" + m + "" + d + "" + h;
-  }
-  else{
-    h = (new Date().getUTCHours() < 10 ? "0" : "" ) + new Date().getUTCHours();
+  } else {
+    h = (date.getUTCHours() < 10 ? "0" : "" ) + date.getUTCHours();
     _ts = ts + "" + h;
   }
   return _ts;

@@ -23,7 +23,7 @@
     "whatwg-fetch": "1.0.0",
     "qrcode.js": "https://github.com/davidshimjs/qrcodejs.git#04f46c6a0708418cb7b96fc563eacae0fbf77674",
     "useragent.js": "https://github.com/zsxsoft/useragent.js.git#2fc1a6b48322a275f556318b026c8b9c4ecdc00e",
-    "pako": "^1.0.3"
+    "pako": "1.0.3"
   },
   "devDependencies": {
     "mocha": "cliqz-oss/mocha#2.5.0",

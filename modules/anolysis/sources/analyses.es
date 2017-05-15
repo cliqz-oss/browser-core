@@ -1,3 +1,4 @@
+import ResultSelectionAnalysis from './analyses/result-selection';
 
 // Some analyses only consist in selecting fields from the
 // aggregation. In which case the telemetry schema is used
@@ -34,6 +35,7 @@ class SchemaAnalysis {
 * to the backend.
 */
 const analyses = [
+  new ResultSelectionAnalysis(),
   // Schemas
   // TODO: ping should not be sent as part of aggregation analyses, otherwise it
   // will be sent retro-actively every day. Also, retention now gives us the
