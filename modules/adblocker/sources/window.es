@@ -50,13 +50,18 @@ export default class {
     let disabledEverywhere = false;
 
     // Check if adblocker is disabled on this page
-    if (isCorrectUrl && CliqzADB.adblockInitialized) {
+    if (isCorrectUrl) {
       disabledForDomain = CliqzADB.adBlocker.isDomainInBlacklist(currentURL);
       disabledForUrl = CliqzADB.adBlocker.isUrlInBlacklist(currentURL);
     }
 
     const report = CliqzADB.adbStats.report(currentURL);
     const enabled = utils.getPref(ADB_PREF, false) !== ADB_PREF_VALUES.Disabled;
+
+    if (isCorrectUrl) {
+      disabledForDomain = CliqzADB.adBlocker.isDomainInBlacklist(currentURL);
+      disabledForUrl = CliqzADB.adBlocker.isUrlInBlacklist(currentURL);
+    }
     disabledEverywhere = !enabled && !disabledForUrl && !disabledForDomain;
 
     // Check stat of the adblocker

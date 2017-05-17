@@ -13,9 +13,7 @@ IT IS USED AS A PARTIAL template
 
     <div class="cqz-rhh3-snipet-txt">
       <div class="cqz-result-title overflow" arrow-override=''><a href="{{../url}}" extra="title">{{extra.rich_data.name}}</a></div>
-      {{#with ..}}
-        {{> 'partials/ez-url'}}
-      {{/with}}
+      <div class="cqz-result-url overflow" extra="url">{{../urlDetails.friendly_url}}</div>
       <div class="cqz-rd-snippet_hspacing">
         {{#if extra.rich_data.url_ratingimg}}
           <img src="{{extra.rich_data.url_ratingimg}}" class="cqz-rd-rateimg " onerror="this.style.display='none';" extra="des-rate"/>

@@ -609,7 +609,7 @@ class NetworkFilter {
       filter = `${filter}$`;
     }
 
-    if (this.isLeftAnchor) {
+    if (this.isHostnameAnchor || this.isLeftAnchor) {
       filter = `^${filter}`;
     }
 

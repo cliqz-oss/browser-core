@@ -11,7 +11,8 @@ function trim(text) {
 }
 
 function isValidURL(url) {
-  return url.indexOf('https:') === 0 || url.indexOf('http:') === 0;
+  return url.indexOf('about:') !== 0 && url.indexOf('place:') !== 0 &&
+    url.indexOf('resource:') !== 0 && url.indexOf('chrome:') !== 0;
 }
 
 function sendTab(PeerComm, url) {
@@ -67,7 +68,7 @@ export default class {
   }
 
   getPeerComm() {
-    return this.pairing.action('getPairingPeer').catch((e) => undefined);
+    return this.pairing.action('getPairingPeer').catch((e) => undefined)
   }
 
   initPageMenu() {
@@ -93,15 +94,15 @@ export default class {
       }
 
       const isLink = this.window.gContextMenu.onLink;
-      let selection = '';
-      let url = ''; // Display "Send to mobile" option based on this url
-      if (this.window.gContextMenu.selectionInfo.text) {
-        selection = this.window.gContextMenu.selectionInfo.text;
-      } else if (isLink) {
-        selection = this.window.gContextMenu.getLinkText();
-        url = this.window.gContextMenu.getLinkURL();
-      } else { // No text selected
-        url = this.window.gBrowser.currentURI.spec;
+      let selection;
+      if (isLink) {
+        selection = this.window.gContextMenu.target.textContent;
+      } else {
+        try {
+          selection = this.window.gContextMenu.selectionInfo.text;
+        } catch (e) {
+          selection = '';
+        }
       }
 
       if (selection) {
@@ -136,11 +137,13 @@ export default class {
         }
       }
 
-      if (!isValidURL(url)) return; // Do not show the "Send to mobile" option
       // Pairing menu
+      const url = isLink ?
+        this.window.gContextMenu.target.href : this.window.gBrowser.currentURI.spec;
+
       this.getPeerComm().then((PeerComm) => {
         const beforeElem = this.window.document.getElementById('context-bookmarklink');
-        const isEnabled = PeerComm && PeerComm.isInit && PeerComm.isPaired;
+        const isEnabled = PeerComm && PeerComm.isInit && PeerComm.isPaired && isValidURL(url);
         const onclick = isEnabled ? () => {
           sendTab(PeerComm, url);
           utils.telemetry({

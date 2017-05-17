@@ -212,7 +212,55 @@ if (chrome.runtime && chrome.runtime.onConnect) {
 }
 
 function initOnMessage() {
-    chrome.runtime.onMessage.addListener(onMessageListener);
+    chrome.runtime.onMessage.addListener( (info, sender, sendResponse) => {
+
+      // Listen for pref change from GH UI:
+      if(info && info.name === 'onHWSettingChanged') {
+        console.log("onHWSettingChanged RECEIVED", info.message);
+         CliqzUtils.setPref('enable_human_web', info.message);
+      }
+
+      // Will only get executed, if human-web in enabled and content script loaded.
+      var tab = sender.tab;
+      // This will get called by the content script we execute in
+      // the tab as a result of the user pressing the browser action.
+      if(info.type == "dom"){
+        CliqzHumanWeb.tempCurrentURL = tab.url;
+
+        aProgress["isLoadingDocument"] = tab.status;
+        aRequest["isChannelPrivate"] = tab.incognito;
+        aRequest["tabId"] = tab.id;
+
+        aURI["spec"] = tab.url;
+        CliqzHumanWeb.contentDocument[decodeURIComponent(tab.url)] = {"doc":info.html,'time': CliqzHumanWeb.counter};
+        console.log(">>>>> DOM RCVD >>> " + tab.url);
+        CliqzHumanWeb.listener.onLocationChange(aProgress, aRequest, aURI);
+      }
+      else if(info.type == "event_listener"){
+        CliqzHumanWeb.tempCurrentURL = tab.url;
+        var ev = {};
+        ev["target"] = {"baseURI": info.baseURI,"href": null,"parentNode": {"href": null}};
+
+        if(info.action == "keypress"){
+          CliqzHumanWeb.captureKeyPressPage(ev);
+        }
+        else if(info.action == "mousemove"){
+          CliqzHumanWeb.captureMouseMovePage(ev);
+        }
+        else if(info.action == "mousedown"){
+          if(info.targetHref){
+            ev["target"] = {"href": info.targetHref};
+          }
+          CliqzHumanWeb.captureMouseClickPage(ev);
+        }
+        else if(info.action == "scroll"){
+          CliqzHumanWeb.captureScrollPage(ev);
+        }
+        else if(info.action == "copy"){
+          CliqzHumanWeb.captureCopyPage(ev);
+        }
+      }
+  });
 }
 
 function initWebRequestListeners() {
@@ -223,75 +271,16 @@ function initWebRequestListeners() {
 }
 
 function initTabListener() {
-  chrome.tabs.onUpdated.addListener(tabListener);
-}
-
-function onMessageListener(info, sender, sendResponse) {
-  // Listen for pref change from GH UI:
-  if(info && info.name === 'onHWSettingChanged') {
-     CliqzUtils.setPref('enable_human_web', info.message);
-
-     // We should unload all the scripts, clear timers when the user sets it to false.
-     // They only way to enable is via AB-test, hence only false conditions need to be tested.
-     if (info.message === false) {
-      unloadHumanWeb();
-     }
-
-     if (info.message === true) {
-      initHumanWeb();
-     }
-  }
-
-  // Will only get executed, if human-web in enabled and content script loaded.
-  var tab = sender.tab;
-  // This will get called by the content script we execute in
-  // the tab as a result of the user pressing the browser action.
-  if(info.type == "dom"){
-    CliqzHumanWeb.tempCurrentURL = tab.url;
-
-    CliqzHumanWeb.detectOwnKeyword(info.html, info.ad, info.hidden);
-
-    aProgress["isLoadingDocument"] = tab.status;
-    aRequest["isChannelPrivate"] = tab.incognito;
-    aRequest["tabId"] = tab.id;
-
-    aURI["spec"] = tab.url;
-    CliqzHumanWeb.contentDocument[decodeURIComponent(tab.url)] = {"doc":info.html,'time': CliqzHumanWeb.counter};
-    CliqzHumanWeb.listener.onLocationChange(aProgress, aRequest, aURI);
-  }
-  else if(info.type == "event_listener"){
-    CliqzHumanWeb.tempCurrentURL = tab.url;
-    var ev = {};
-    ev["target"] = {"baseURI": info.baseURI,"href": null,"parentNode": {"href": null}};
-
-    if(info.action == "keypress"){
-      CliqzHumanWeb.captureKeyPressPage(ev);
-    }
-    else if(info.action == "mousemove"){
-      CliqzHumanWeb.captureMouseMovePage(ev);
-    }
-    else if(info.action == "mousedown"){
-      if(info.targetHref){
-        ev["target"] = {"href": info.targetHref};
+  chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+      if (changeInfo.status == 'complete' && tab.status == 'complete' && tab.url != undefined) {
+          if (tab.url.startsWith('https://') || tab.url.startsWith('http://')) {
+              // We should execute the content script, with runAt, instead of setting timeout in content script.
+              chrome.tabs.executeScript(tabId, {file: contentScriptPath, runAt: 'document_start'});
+          }
       }
-      CliqzHumanWeb.captureMouseClickPage(ev);
-    }
-    else if(info.action == "scroll"){
-      CliqzHumanWeb.captureScrollPage(ev);
-    }
-    else if(info.action == "copy"){
-      CliqzHumanWeb.captureCopyPage(ev);
-    }
-  }
+  });
 }
-function tabListener(tabId, changeInfo, tab) {
-  if (changeInfo.status == 'complete' && tab.status == 'complete' && tab.url != undefined) {
-      if (tab.url.startsWith('https://') || tab.url.startsWith('http://')) {
-          // We should execute the content script, with runAt, instead of setting timeout in content script.
-          chrome.tabs.executeScript(tabId, {file: contentScriptPath, runAt: 'document_start'});
-      }
-  }
-}
+
 function initModules() {
   CliqzHumanWeb.init();
   CliqzSecureMessage.init();
@@ -299,6 +288,7 @@ function initModules() {
 
 function initHumanWeb() {
 
+  initWebRequestListeners();
   initWebRequestListeners();
   initTabListener();
   initModules();
@@ -309,22 +299,12 @@ function initHumanWeb() {
 function enableHumanWeb() {
   if (navigator &&
       navigator.appVersion.indexOf('Edge') === -1 &&
-      CliqzUtils.getPref('enable_human_web', false)
+      CliqzUtils.getPref('enable_human_web', true)
     ) {
     return true;
   } else {
     return false;
   }
-}
-
-function unloadHumanWeb() {
-  CliqzHumanWeb.unload();
-  CliqzSecureMessage.background.unload();
-  chrome.tabs.onUpdated.removeListener(tabListener);
-  chrome.runtime.onMessage.removeListener(onMessageListener);
-  chrome.webRequest.onCompleted.removeListener(domain2IP);
-  chrome.webRequest.onResponseStarted.removeListener(observeResponse);
-  chrome.webRequest.onBeforeRedirect.removeListener(observeRedirect);
 }
 
 CliqzUtils.loadPrefs()

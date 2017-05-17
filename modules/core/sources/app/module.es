@@ -1,6 +1,6 @@
-import { Window } from '../../platform/browser';
-import console from '../console';
-import modules from './modules';
+import { Window } from 'platform/browser';
+import System from 'system';
+import console from 'core/console';
 
 function prepareBackgroundReadyPromise() {
   this.backgroundReadyPromise = new Promise((resolve, reject) => {
@@ -28,14 +28,6 @@ export default class Module {
     this.isLoading = true;
   }
 
-  get backgroundModule() {
-    return modules[this.name].Background;
-  }
-
-  get windowModule() {
-    return modules[this.name].Window;
-  }
-
   enable() {
     console.log('Module', this.name, 'start loading');
     const loadingStartedAt = Date.now();
@@ -45,8 +37,8 @@ export default class Module {
     if (!this.isLoading) {
       throw new Error('Module not flagged as loading');
     }
-    return Promise.resolve(this.backgroundModule)
-      .then((background) => {
+    return System.import(`${this.name}/background`)
+      .then(({ default: background }) => {
         this.background = background;
         return background.init(this.settings);
       })
@@ -64,7 +56,7 @@ export default class Module {
 
   disable({ quick } = { quick: false }) {
     console.log('Module', this.name, 'start unloading');
-    const background = this.background;
+    const background = System.get(`${this.name}/background`).default;
 
     if (quick) {
       // background does not need to have beforeBrowserShutdown defined
@@ -110,8 +102,8 @@ export default class Module {
 
     const loadingStartedAt = Date.now();
     const settings = this.settings;
-    return Promise.resolve(this.windowModule)
-      .then(WindowModule => new WindowModule({ settings, window }))
+    return System.import(`${this.name}/window`)
+      .then(({ default: WindowModule }) => new WindowModule({ settings, window }))
       .then((module) => {
         win.window.CLIQZ.Core.windowModules[this.name] = module;
         return this.isReady()

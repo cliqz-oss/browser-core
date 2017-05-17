@@ -1,9 +1,7 @@
 <div class="cqz-result-h1 ez-liga-genSM">
 
         <div class="cqz-result-title overflow" extra="title"><a href="{{../url}}">{{data.title}}</a></div>
-        {{#with ..}}
-            {{> 'partials/ez-url'}}
-        {{/with}}
+        <div class="cqz-result-url overflow" extra="url">{{../urlDetails.friendly_url}}</div>
         <div class="cqz-multy-lines-ellipses cqz-line-vis-2">
             <p>{{data.description}}</p>
         </div>

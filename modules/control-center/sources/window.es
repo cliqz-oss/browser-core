@@ -157,11 +157,7 @@ export default class {
     this.helpMenu.removeEventListener('popupshowing', this.createFFhelpMenu);
   }
 
-  refreshState(url) {
-    // wait for tab content to load
-    if (!url || url === "about:blank") {
-      return;
-    }
+  refreshState() {
     this.prepareData().then((data) => {
       this.setState(data.generalState);
     });
@@ -345,7 +341,16 @@ export default class {
   updatePref(data){
     switch (data.pref){
       case 'extensions.cliqz.dnt':
-        events.pub("control-center:toggleHumanWeb");
+        data.value = !data.value;
+
+        // human Web toggle triggers an extension restart
+        // so we should hide ControlCenter
+        this.panel.hide();
+
+        // allow the Control Center to close
+        utils.setTimeout(function(){
+          events.pub("control-center:toggleHumanWeb");
+        }, 1000);
         break;
       case 'extensions.cliqz.share_location':
         this.geolocation.action(
@@ -415,6 +420,7 @@ export default class {
       friendlyURL = 'Cliqz Tab';
       isSpecialUrl = true;
     }
+
     return {
       activeURL: url,
       friendlyURL: friendlyURL,
@@ -516,8 +522,7 @@ export default class {
         this.sendMessageToPopup({
           action: 'pushData',
           data: data
-        });
-        this.updateBadge(data.module.antitracking.badgeData);
+        })
       }).catch(e => utils.log(e.toString(), "getData error"))
     }
   }

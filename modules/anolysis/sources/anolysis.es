@@ -1,20 +1,19 @@
 /* eslint { "no-param-reassign": "off" } */
 
-import moment from '../platform/moment';
+import moment from 'platform/moment';
 
-import { utils } from '../core/cliqz';
-import Database from '../core/database';
-import events from '../core/events';
+import { utils } from 'core/cliqz';
+import Database from 'core/database';
 
-import BehaviorAggregator from './aggregator';
-import GIDManager from './gid-manager';
-import Preprocessor, { parseABTests } from './preprocessor';
-import SignalQueue from './signals-queue';
-import Storage from './storage';
-import analyses from './analyses';
-import generateRetentionSignals from './analyses/retention';
-import logger from './logger';
-import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
+import BehaviorAggregator from 'anolysis/aggregator';
+import GIDManager from 'anolysis/gid-manager';
+import Preprocessor, { parseABTests } from 'anolysis/preprocessor';
+import SignalQueue from 'anolysis/signals-queue';
+import Storage from 'anolysis/storage';
+import analyses from 'anolysis/analyses';
+import generateRetentionSignals from 'anolysis/analyses/retention';
+import log from 'anolysis/logging';
+import getSynchronizedDate, { DATE_FORMAT } from 'anolysis/synchronized-date';
 
 
 export default class {
@@ -37,13 +36,6 @@ export default class {
     this.behaviorStorage = new Storage(new Database('cliqz-anolysis-behavior'));
     this.demographicsStorage = new Storage(new Database('cliqz-anolysis-demographics'));
 
-    // Storage to keep track of what days have been aggregated and sent to
-    // backend.
-    this.aggregationLogDB = new Database('cliqz-anolysis-aggregation-log');
-
-    // Storage to keep track of when retention signals have been generated and sent.
-    this.retentionLogDB = new Database('cliqz-anolysis-retention-log');
-
     // This is used to aggregate telemetry signals over 1 day. The result is
     // passed as an argument to the different analyses to generate telemetry
     // signals.
@@ -59,94 +51,51 @@ export default class {
     // will be called before sending any telemetry to check for an existing GID.
     this.gidManager = new GIDManager(
       this.demographicsStorage,
-      { get: utils.getPref, set: utils.setPref, clear: utils.clearPref },
+      { get: utils.getPref, set: utils.setPref },
     );
   }
 
   init() {
-    // Wait for some demographics to be registered to generate any signals.
-    this.onDemographicsRegistered = events.subscribe(
-      'anolysis:demographics_registered',
-      () => {
-        // Stop listening to this event
-        this.onDemographicsRegistered.unsubscribe();
-        this.onDemographicsRegistered = undefined;
-
-        // This can be run async since calling two times the same method will
-        // resolve to the same Promise object. It's not returned there to not
-        // delay the loading of the module.
-        this.gidManager.init();
-
-        // 1. Trigger sending of retention signals if needed
-        // This can be done as soon as possible, the first time
-        // the user starts the browser, at most once a day.
-        //
-        // 2. Then we check previous days (30 days max) to aggregate and send
-        // telemetry if the user was not active. This task is async and will try to
-        // not overload the browser.
-        this.sendRetentionSignals()
-          .then(() => this.generateAnalysesSignalsFromAggregation());
-      },
+    // Trigger sending of retention signals if needed
+    // This can be done as soon as possible, the first time
+    // the user starts the browser, at most once a day.
+    this.asyncRetention = utils.setTimeout(
+      () => this.sendRetentionSignals(),
+      4000,
     );
 
-    // Check everytime we switch to a new day, and trigger the generation of
-    // aggregated telemetry signals (analyses).
-    let currentDate = utils.getPref('config_ts');
-    this.onNewDate = events.subscribe('prefchange', (pref) => {
-      if (pref === 'config_ts') {
-        const newValue = utils.getPref('config_ts');
-        if (newValue !== currentDate) {
-          currentDate = newValue;
-          this.generateAnalysesSignalsFromAggregation();
-        }
-      }
-    });
+    // This will check previous days (30 days max) to aggregate and send
+    // telemetry if the user was not active. This task is async and will try to
+    // not overload the browser.
+    this.asyncSignals = utils.setTimeout(
+      () => this.generateAnalysesSignalsFromAggregation(),
+      6000,
+    );
 
-    // This will delete older signals async
-    // We don't need to wait for this.
-    Promise.all([
+    // This can be run async since calling two times the same method will
+    // resolve to the same Promise object. It's not returned there to not
+    // delay the loading of the module.
+    this.gidManager.init();
+
+    return Promise.all([
       this.removeOldDataFromDB(),
       this.messageQueue.init(),
     ]);
   }
 
   stop() {
-    if (this.onDemographicsRegistered) {
-      this.onDemographicsRegistered.unsubscribe();
-      this.onDemographicsRegistered = undefined;
-    }
-
-    if (this.onNewDate) {
-      this.onNewDate.unsubscribe();
-      this.onNewDate = undefined;
-    }
-
+    utils.clearTimeout(this.asyncRetention);
     utils.clearTimeout(this.generateAggregationSignalsTimeout);
-    utils.clearTimeout(this.asyncMessageGeneration);
+    utils.clearTimeout(this.asyncSignals);
 
-    this.messageQueue.unload();
-  }
-
-  /**
-   * WARNING: This method will only be used during the release of the system. It
-   * will only be triggered on a version change, to allow existing
-   * users (who could be using a previously buggy version of anolysis) to be
-   * updated completely and be put in a safe state.
-   */
-  reset() {
-    // Clear state related to gid management + out-going messages that could be
-    // sent with a GID that does not exist anymore.
-    return Promise.all([
-      this.gidManager.reset(),
-      this.messageQueue.destroy(),
-    ]);
+    return this.messageQueue.unload();
   }
 
   registerSchemas(schemas) {
     return new Promise((resolve, reject) => {
       Object.keys(schemas).forEach((name) => {
         const schema = schemas[name];
-        logger.log(`Register schema ${name}`);
+        log(`Register schema ${name}`);
         // TODO: Perform some checks on `schema`.
         // - allowed fields
         // - missing information
@@ -171,15 +120,16 @@ export default class {
     return Promise.all([
       this.behaviorStorage
         .deleteByTimespan({ to: getSynchronizedDate().subtract(1, 'months').format(DATE_FORMAT) })
-        .catch(err => logger.error(`error deleting old behavior data: ${err}`)),
+        .catch(err => log(`error deleting old behavior data: ${err}`)),
       this.demographicsStorage
         .deleteByTimespan({ to: getSynchronizedDate().subtract(1, 'months').format(DATE_FORMAT) })
-        .catch(err => logger.error(`error deleting old behavior data: ${err}`)),
+        .catch(err => log(`error deleting old behavior data: ${err}`)),
     ]);
   }
 
   sendRetentionSignals() {
-    return this.retentionLogDB.get('retention')
+    const instantPushDB = new Database('cliqz-anolysis-retention-log');
+    return instantPushDB.get('retention')
       .catch((err) => {
         // Create default document
         if (err.name === 'not_found') {
@@ -195,31 +145,31 @@ export default class {
         throw err;
       })
       .then((doc) => {
-        logger.log(`generate retention signals ${JSON.stringify(doc)}\n`);
-        const promise = Promise.all(generateRetentionSignals(doc).map(([schema, signal]) => {
-          logger.debug(`Retention signal ${JSON.stringify(signal)} (${schema})`);
-          return this.handleTelemetrySignal(signal, schema);
-        }));
+        log(`generate retention signals ${JSON.stringify(doc)}\n`);
+        generateRetentionSignals(doc).forEach(([schema, signal]) => {
+          this.handleTelemetrySignal(signal, schema);
+        });
 
         // Doc is updated by the `generateRetentionSignals` function to keep
         // track of the current activity, and avoid generating the signals
         // several times.
-        return this.retentionLogDB.put(doc).then(() => promise);
+        return instantPushDB.put(doc);
       });
   }
 
   generateAnalysesSignalsFromAggregation() {
+    const aggregationLogDB = new Database('cliqz-anolysis-aggregation-log');
     const startDay = getSynchronizedDate().subtract(1, 'days');
     const stopDay = getSynchronizedDate().subtract(1, 'months');
 
     const checkPast = (formattedDate) => {
       const date = moment(formattedDate, DATE_FORMAT);
-      return this.aggregationLogDB.get(formattedDate)
+      return aggregationLogDB.get(formattedDate)
         .then(() => { /* We already processed this day before, do nothing */ })
         .catch(() => this.generateAndSendAnalysesSignalsForDay(formattedDate)
-          .then(() => this.aggregationLogDB.put({ _id: formattedDate }))
+          .then(() => aggregationLogDB.put({ _id: formattedDate }))
           .catch((ex) => {
-            logger.error(`could not generate aggregated signals for day ${formattedDate}: ${ex}`);
+            log(`could not generate aggregated signals for day ${formattedDate}: ${ex}`);
           })
         ).then(() => {
           // Recursively check previous day until we reach `stopDay`
@@ -255,7 +205,7 @@ export default class {
     return this.behaviorStorage.getTypesByTimespan(timespan)
       .then((records) => {
         // Ignore days with no records
-        if (records.length === 0) return Promise.resolve();
+        if (records.length === 0) return;
 
         const t0 = Date.now();
         const aggregation = this.behaviorAggregator.aggregate(records);
@@ -265,13 +215,13 @@ export default class {
         const abtests = new Set(parseABTests(utils.getPref('ABTests')));
 
         // 3. Generate messages for each analysis
-        logger.log(`generateSignals ${date}`);
-        return Promise.all(analyses.map((analysis) => {
-          logger.debug(`generateSignals for ${analysis.name}`);
-          return Promise.all(analysis.generateSignals(aggregation, abtests)
-            .map((signal) => {
-              logger.debug(`Signal for ${analysis.name} ${JSON.stringify(signal)}`);
-              return this.handleTelemetrySignal(
+        log(`generateSignals ${date}`);
+        analyses.forEach((analysis) => {
+          log(`generateSignals for ${analysis.name}`);
+          analysis.generateSignals(aggregation, abtests)
+            .forEach((signal) => {
+              log(`Signal for ${analysis.name} ${JSON.stringify(signal)}`);
+              this.handleTelemetrySignal(
                 Object.assign(signal, {
                   meta: {
                     date,
@@ -282,8 +232,8 @@ export default class {
                 }),
                 analysis.name,
               );
-            }));
-        }));
+            });
+        });
       });
   }
 
@@ -296,7 +246,6 @@ export default class {
    * @param {Object} signal - The telemetry signal.
    */
   handleTelemetrySignal(signal, schemaName) {
-    logger.debug(`handleTelemetrySignal ${schemaName} ${JSON.stringify(signal)}`);
     // Try to fetch the schema definition from the name.
     let schema;
     if (schemaName !== undefined) {
@@ -315,7 +264,7 @@ export default class {
         if (isDemographics) {
           return this.gidManager.updateDemographics(processedSignal);
         } else if (isInstantPush && !isLegacy) {
-          logger.debug(`Signal is instantPush ${JSON.stringify(processedSignal)}`);
+          log(`Signal is instantPush ${JSON.stringify(processedSignal)}`);
           return this.gidManager.getGID()
             .then((gid) => {
               // Attach id to the message
@@ -348,7 +297,7 @@ export default class {
         // This signal is stored and will be aggregated with other signals from
         // the same day to generate 'analyses' signals.
         return this.behaviorStorage.put(processedSignal)
-          .catch((ex) => { logger.error(`behavior exception ${ex}`); });
+          .catch((ex) => { log(`behavior exception ${ex}`); });
         // }
       });
   }

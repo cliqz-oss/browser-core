@@ -1,7 +1,7 @@
 {{#unless showForm}}
-  <div id="addBtn" {{action 'show'}}>
+  <a href="#" class="addBtn" {{action 'show'}}>
     {{add-icon}}
-  </div>
+  </a>
 {{else}}
   <form name="addForm" {{action "save" on="submit"}} class="clearfix addDialForm">
     <a class="hideAddForm formRow" {{action 'hide'}}>

@@ -1,7 +1,6 @@
-import md5 from '../core/helpers/md5';
-import { fetch, Request, Headers } from '../core/http';
-
-import logger from './logger';
+import log from 'anolysis/logging';
+import md5 from 'core/helpers/md5';
+import { fetch, Request, Headers } from 'core/http';
 
 
 function post(url, payload) {
@@ -30,7 +29,7 @@ const TELEMETRY_BACKEND_URL = 'https://anolysis-telemetry.cliqz.com/collect';
 
 
 function sendDemographics(demographics, endpoint) {
-  logger.log(`${endpoint} ${demographics}`);
+  log(`${endpoint} ${demographics}`);
   return post(`${GID_BACKEND_URL}/${endpoint}`, { id: demographics })
     .then((result) => {
       // Extract id returned by the backend. This is important because both
@@ -74,13 +73,6 @@ function newInstall(demographics) {
 
 
 /**
- * Send a reappearing_user signal to the backend, with granular demographics.
- */
-function reappearingUser(demographics) {
-  return sendDemographics(demographics, 'reappearing_user');
-}
-
-/**
  * Once during each month (except during the same month as the new_install),
  * sends the granular demographic factors again to the backend.
  */
@@ -112,7 +104,7 @@ function activeUserSignal(demographics) {
  * in the future.
  */
 function updateGID(demographics) {
-  logger.log(`updateDemographics ${demographics}`);
+  log(`updateDemographics ${demographics}`);
   const hash = md5(demographics);
 
   // TODO: What is the right size?
@@ -121,7 +113,7 @@ function updateGID(demographics) {
   // Send a prefix of the hash to the backend
   return post(`${GID_BACKEND_URL}/update_gid`, { hash_prefix: prefix })
     .then((data) => {
-      logger.log(`updateGID response ${JSON.stringify(data)}`);
+      log(`updateGID response ${JSON.stringify(data)}`);
       if (data.candidates) {
         const candidates = data.candidates;
         let gid = null;
@@ -147,14 +139,13 @@ function updateGID(demographics) {
  * Sends a behavioral signal to the backend
  */
 function sendSignal(signal) {
-  logger.log(`sendSignal ${JSON.stringify(signal)}`);
+  log(`sendSignal ${JSON.stringify(signal)}`);
   return post(TELEMETRY_BACKEND_URL, signal);
 }
 
 
 export default {
   newInstall,
-  reappearingUser,
   activeUserSignal,
   updateGID,
   sendSignal,

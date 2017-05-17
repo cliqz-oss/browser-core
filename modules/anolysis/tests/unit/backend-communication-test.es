@@ -24,12 +24,8 @@ function mockFetchFail(status) {
 
 
 const MOCK = {
-  'anolysis/logger': {
-    default: {
-      debug() {},
-      log() {},
-      error() {},
-    },
+  'anolysis/logging': {
+    default: () => {},
   },
   'core/http': {
     fetch(req) { return fetch(req); },

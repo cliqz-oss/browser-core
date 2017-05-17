@@ -1,42 +1,5 @@
 import HistoryProvider from '../../core/history-provider';
-import events from '../../core/events';
 
-const { utils: Cu } = Components;
-const PlacesUtils = Cu.import('resource://gre/modules/PlacesUtils.jsm', null).PlacesUtils;
-
-const history = Components.classes['@mozilla.org/browser/nav-history-service;1']
-  .getService(Components.interfaces.nsINavHistoryService);
-
-const observer = {
-  isProcessBatch: false,
-  onBeginUpdateBatch() {
-    this.batch = [];
-  },
-  onEndUpdateBatch() {
-    events.pub('history:removed', this.batch);
-    this.batch = null;
-  },
-  onDeleteURI(aURI) {
-    const url = aURI.spec;
-    if (!this.batch) {
-      events.pub('history:removed', [url]);
-    } else {
-      this.batch.push(url);
-    }
-  },
-  onClearHistory() {
-    events.pub('history:cleared');
-  },
-  QueryInterface(iid) {
-    if (iid.equals(Components.interfaces.nsINavHistoryObserver) ||
-        iid.equals(Components.interfaces.nsISupports)) {
-      return this;
-    }
-    throw Components.results.NS_ERROR_NO_INTERFACE;
-  }
-};
-
-history.addObserver(observer, false);
 
 function findLastVisitId(url, since) {
   return HistoryProvider.query(
@@ -54,37 +17,6 @@ function findLastVisitId(url, since) {
 }
 
 export default class {
-  static deleteVisit(visitId) {
-    return HistoryProvider.query(
-      `
-        SELECT id, from_visit AS fromVisit
-        FROM moz_historyvisits
-        WHERE visit_date = '${visitId}'
-        LIMIT 1
-      `,
-      ['id', 'fromVisit'],
-    ).then(([{ id, fromVisit }]) =>
-      HistoryProvider.query(
-        `
-          UPDATE moz_historyvisits
-          SET from_visit = '${fromVisit}'
-          WHERE from_visit = ${id}
-        `
-      ).then(() => PlacesUtils.history.removePagesByTimeframe(visitId, visitId))
-    );
-  }
-
-  static deleteVisits(visitIds) {
-    visitIds.forEach((visitId) => {
-      PlacesUtils.history.removePagesByTimeframe(visitId, visitId);
-    });
-  }
-
-  static showHistoryDeletionPopup(window) {
-    Components.classes['@mozilla.org/browser/browserglue;1']
-      .getService(Components.interfaces.nsIBrowserGlue).sanitize(window);
-  }
-
   static query({ limit, frameStartsAt, frameEndsAt, domain, query }) {
     const conditions = [];
 
@@ -213,11 +145,4 @@ export default class {
     });
   }
 
-  static markAsHidden(url) {
-    return HistoryProvider.query(`
-      UPDATE moz_places
-      SET hidden = 1
-      WHERE url = '${url}'
-    `);
-  }
 }

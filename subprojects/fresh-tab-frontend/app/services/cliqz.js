@@ -14,7 +14,6 @@ function nextId() {
 export default Ember.Service.extend({
   messageCenter: Ember.inject.service('message-center'),
   notifications: Ember.inject.service('notifications'),
-  historySync: Ember.inject.service('history-sync'),
 
   init() {
     this._super(...arguments);
@@ -41,22 +40,6 @@ export default Ember.Service.extend({
     this.getSpeedDials = freshtabProxy.getSpeedDials;
     this.revertBack = freshtabProxy.revertBack;
     this.getTabIndex = freshtabProxy.getTabIndex;
-
-    const history = new Spanan(({ uuid, functionName, args }) => {
-      const message = JSON.stringify({
-        target: 'cliqz',
-        module: 'history',
-        action: functionName,
-        requestId: uuid,
-        args,
-      });
-      window.postMessage(message, '*');
-    });
-    const historyProxy = history.createProxy();
-
-    this.deleteVisit = historyProxy.deleteVisit;
-    this.deleteVisits = historyProxy.deleteVisits;
-    this.showHistoryDeletionPopup = historyProxy.showHistoryDeletionPopup;
 
     this.callbacks = Object.create(null);
 
@@ -92,9 +75,6 @@ export default Ember.Service.extend({
         this.get('notifications').accessibleNotification(message.message.domain, message.message.count, message.message.hasUnread);
       }
 
-      if(message.action === "updateHistoryUrls") {
-        this.get('historySync').updateHistoryUrls(message.message.urls);
-      }
 
       if (message.type === "response") {
         const spananMessage = {
@@ -206,14 +186,13 @@ export default Ember.Service.extend({
     }), '*');
   },
 
-  openUrl(url, newTab) {
+  openUrl(url) {
     window.postMessage(JSON.stringify({
       target: 'cliqz',
       module: 'history',
       action: 'openUrl',
       args: [
-        url,
-        newTab
+        url
       ]
     }), '*');
   },

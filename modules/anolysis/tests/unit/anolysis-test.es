@@ -32,15 +32,6 @@ export default describeModule('anolysis/anolysis',
     'platform/moment': {
       default: moment,
     },
-    'core/events': {
-      default: {
-        subscript() {
-          return {
-            unsubscribe() {},
-          };
-        },
-      },
-    },
     'anolysis/synchronized-date': {
       DATE_FORMAT,
       DAY_FORMAT,
@@ -92,12 +83,8 @@ export default describeModule('anolysis/anolysis',
         { name: 'fake', generateSignals() { return [{}]; } },
       ],
     },
-    'anolysis/logger': {
-      default: {
-        debug() {},
-        log() {},
-        error() {},
-      },
+    'anolysis/logging': {
+      default() {},
     },
   }),
   () => {

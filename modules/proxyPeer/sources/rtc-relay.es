@@ -1,7 +1,6 @@
 // import md5 from 'core/helpers/md5';
 import { utils } from '../core/cliqz';
-import logger from './logger';
-import { ERROR_CODE } from './rtc-onion';
+import console from './console';
 
 
 function hashConnectionID(connectionID /* , peerID */) {
@@ -12,22 +11,19 @@ function hashConnectionID(connectionID /* , peerID */) {
 
 
 export default class {
-  constructor(peer) {
-    this.peer = peer;
+  constructor() {
     this.previousPeer = new Map();
 
     // Keep some statistics
     this.receivedMessages = 0;
     this.droppedMessages = 0;
-
-    // Stats about data received
-    this.dataIn = 0;  // Updated in proxy-peer.es
+    this.dataIn = 0;
     this.dataOut = 0;
 
     // Display health check
     this.healthCheck = utils.setInterval(
       () => {
-        logger.log(`RTCRelay healthcheck ${JSON.stringify(this.healthcheck())}`);
+        console.debug(`proxyPeer RTCRelay healthcheck ${JSON.stringify(this.healthcheck())}`);
       },
       60 * 1000);
 
@@ -36,18 +32,10 @@ export default class {
       () => {
         const timestamp = Date.now();
         [...this.previousPeer.keys()].forEach((connectionID) => {
-          const { lastActivity, sender } = this.previousPeer.get(connectionID);
-          if (lastActivity < (timestamp - (1000 * 15))) {
-            logger.debug(`RELAY ${connectionID} garbage collect`);
+          const { lastActivity } = this.previousPeer.get(connectionID);
+          if (lastActivity < (timestamp - (1000 * 60))) {
+            console.debug(`proxyPeer RELAY ${connectionID} garbage collect`);
             this.previousPeer.delete(connectionID);
-
-            // Signal to the client that the connection has been garbage
-            // collected.
-            this.signalClosedConnectionToClient(
-              connectionID,
-              sender,
-              ERROR_CODE.RELAY_CONNECTION_GARBAGE_COLLECTED
-            );
           }
         });
       },
@@ -58,8 +46,8 @@ export default class {
     return {
       receivedMessages: this.receivedMessages,
       droppedMessages: this.droppedMessages,
-      dataIn: `${(this.dataIn / 1048576).toFixed(2)} MB`,
-      dataOut: `${(this.dataOut / 1048576).toFixed(2)} MB`,
+      dataIn: this.dataIn,
+      dataOut: this.dataOut,
       currentOpenedConnections: this.previousPeer.size,
     };
   }
@@ -69,25 +57,22 @@ export default class {
     utils.clearInterval(this.healthCheck);
   }
 
-  unload() {
-    this.stop();
-  }
-
   isOpenedConnection(connectionID, sender) {
     return this.previousPeer.has(hashConnectionID(connectionID, sender));
   }
 
-  handleRelayMessage(data, message, sender) {
+  handleRelayMessage(data, message, peer, sender) {
     try {
       this.receivedMessages += 1;
+      this.dataIn += data.length;
 
       if (message.nextPeer) {
-        return this.relay(message, this.peer, sender);
+        return this.relay(message, peer, sender);
       }
 
       return this.relayBackward(
         data,
-        this.peer,
+        peer,
         sender,
         message.connectionID,
         message.messageNumber,
@@ -99,23 +84,21 @@ export default class {
 
   relayBackward(data, peer, sender, connectionID, messageNumber) {
     const connectionHash = hashConnectionID(connectionID, sender);
-
     if (this.previousPeer.has(connectionHash)) {
       const previousPeer = this.previousPeer.get(connectionHash);
       previousPeer.lastActivity = Date.now();
 
-      logger.debug(`RELAY ${connectionID} ${messageNumber} backward ${data.length}`);
+      console.debug(`proxyPeer RELAY ${connectionID} ${messageNumber} backward ${data.length}`);
 
       this.dataOut += data.length;
       return peer.send(previousPeer.sender, data, 'antitracking')
         .catch((e) => {
-          // We were not able to contact the client
-          logger.error(`RELAY ${connectionID} ${messageNumber} ERROR: could not send message ${e}`);
+          console.error(`proxyPeer RELAY ${connectionID} ${messageNumber} ERROR: could not send message ${e}`);
         });
     }
 
-    // Drop message because connection doesn't exist anymore
-    logger.error(`RELAY ${connectionID} ${messageNumber} dropped message`);
+    // Drop message because connection doesn't exist
+    console.debug(`proxyPeer RELAY ${connectionID} ${messageNumber} dropped message`);
     this.droppedMessages += 1;
     return Promise.resolve();
   }
@@ -128,41 +111,18 @@ export default class {
     const nextData = message.data;
     const connectionID = message.connectionID;
 
-    logger.debug(`RELAY ${connectionID} ${message.messageNumber} forward ${nextData.length}`);
+    console.debug(`proxyPeer RELAY ${connectionID} ${message.messageNumber} forward ${nextData.length}`);
 
     // Remember where the query came from
     this.previousPeer.set(
       hashConnectionID(message.connectionID, nextPeer),
-      {
-        sender,
-        lastActivity: Date.now()
-      });
+      { sender, lastActivity: Date.now() });
 
     // Sends payload to the next peer
     this.dataOut += nextData.length;
     return peer.send(nextPeer, nextData, 'antitracking')
       .catch((e) => {
-        logger.error(`RELAY ${connectionID} ${message.messageNumber} ERROR: could not send message ${e}`);
-        // We were not able to connect to the next node, so we relay backward an
-        // error message so that the client can close the connection as soon as
-        // possible.
-        return this.signalClosedConnectionToClient(
-          connectionID,
-          sender,
-          ERROR_CODE.RELAY_CANNOT_CONNECT_TO_EXIT);
+        console.error(`proxyPeer RELAY ${connectionID} ${message.messageNumber} ERROR: could not send message ${e}`);
       });
-  }
-
-
-  signalClosedConnectionToClient(connectionID, sender, error) {
-    const payload = JSON.stringify({
-      connectionID,
-      error,
-      role: 'relay',
-    });
-
-    // Send back response to the client. Note that this is not encrypted, as
-    // there is not much information here.
-    return this.peer.send(sender, payload, 'antitracking');
   }
 }

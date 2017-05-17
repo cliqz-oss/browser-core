@@ -101,19 +101,5 @@ export default {
     "txt-top-news-edition": "Top Nachrichten Edition",
     "tooltip-top-news": "Die Auswahl der Top Nachrichten basiert ausschließlich auf der Sprache deines CLIQZ Browsers. Du kannst hier eine andere Sprachausgabe wählen.",
     "send-us-feedback": "Feedback schicken"
-  },
-  history: {
-    "tab-title": "Chronik",
-    "btn-clear-all-label": "Gesamte Chronik löschen...",
-    "search-placeholder": "Chronik durchsuchen",
-    "delete-this-page": "Diese Seite löschen",
-    "delete-this-section": "Diesen Abschnitt löschen",
-    "day-selection-all": "Alles",
-    "day-selection-today": "Heute",
-    "day-selection-yesterday": "Gestern",
-    "day-selection-pastweek": "Letzte 7 Tage",
-    "no-history-entry-found": "Keine Chronikeinträge gefunden",
-    "no-search-result-found": "Keine Suchergebnisse gefunden für:",
-    "no-further-history-entry": "Keine weiteren Chronikeinträge"
   }
 };

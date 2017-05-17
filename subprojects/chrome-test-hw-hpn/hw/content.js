@@ -4,25 +4,10 @@ function get_dom(){
 	if(done) {
 		return
 	}
-
-	// Need to parse here and send it to the background.
-	let _ad = '';
-	let _h = false;
-
-	if (document.querySelector('#s0p1c0')) {
-		_ad = document.querySelector('#s0p1c0').href;
-	}
-
-	if (document.querySelector('#tads .ads-ad')) {
-		if (document.querySelector('#tads .ads-ad').offsetParent === null) _h = true;
-	}
-
 	var additionalInfo = {
 	  "type": "dom",
 	  "title": document.title,
-	  "html": document.getElementsByTagName('html')[0].innerHTML,
-	  "ad": _ad,
-	  "hidden": _h
+	  "html": document.getElementsByTagName('html')[0].innerHTML
 	};
 
 	// chrome.runtime.connect().postMessage(additionalInfo);
@@ -44,7 +29,6 @@ function get_dom(){
 		})
 	})
 	done = true;
-	// alert(document.querySelector('#tads .ads-ad a').href);
 }
 
 window.addEventListener("load",get_dom);

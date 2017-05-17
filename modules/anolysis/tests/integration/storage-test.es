@@ -18,11 +18,8 @@ export default describeModule('anolysis/storage',
         return getCurrentMoment();
       },
     },
-    'anolysis/logger': {
-      default: {
-        debug() {},
-        log() {},
-        error() {},
+    'anolysis/logging': {
+      default: () => {
       },
     },
   }),

@@ -972,23 +972,19 @@ export default class {
     let result = null;
 
     // Check the filters in the following order:
-    // 1. $important (not subject to exceptions)
-    // 2. redirection ($redirect=resource)
+    // 1. redirection ($redirect=resource)
+    // 2. $important (not subject to exceptions)
     // 3. normal filters
     // 4. exceptions
-    result = this.importants.match(request, checkedFilters);
-
+    result = this.redirect.match(request, checkedFilters);
     if (result === null) {
-      // Check if there is a redirect or a normal match
-      result = this.redirect.match(request, checkedFilters);
+      result = this.importants.match(request, checkedFilters);
       if (result === null) {
         result = this.filters.match(request, checkedFilters);
-      }
-
-      // If we found something, check for exceptions
-      if (result !== null) {
-        if (this.exceptions.match(request, checkedFilters)) {
-          result = null;
+        if (result !== null) {
+          if (this.exceptions.match(request, checkedFilters)) {
+            result = null;
+          }
         }
       }
     }

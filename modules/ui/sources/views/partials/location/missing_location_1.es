@@ -73,9 +73,6 @@ var events = {
         setting: "location-setting-dropdown",
         value: "share-location-no"
       });
-
-      // force a cache reset
-      CliqzEvents.pub('core:reset_cache');
     },
     "cqz_location_never": function(ev) {
       this.geolocation.action(
@@ -88,15 +85,9 @@ var events = {
         setting: "location-setting-dropdown",
         value: "share-location-never"
       });
-
-      // force a cache reset
-      CliqzEvents.pub('core:reset_cache');
     },
     "cqz_location_not_now": function(ev) {
       this.displayMessageForNoPermission();
-
-      // force a cache reset
-      CliqzEvents.pub('core:reset_cache');
     },
     "cqz_location_yes_confirm": function(ev) {
       this.geolocation.action(

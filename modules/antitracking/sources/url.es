@@ -1,7 +1,6 @@
 import md5 from './md5';
 import MapCache from './fixed-size-cache';
 import { getGeneralDomain } from './domain';
-import unquotedJsonParse from './parsers/unquoted-json-parser';
 
 function parseHostname(hostname) {
   var o = {'hostname': null, 'username': '', 'password': '', 'port': null};
@@ -124,19 +123,9 @@ function isMaybeJson(v) {
   return (first === '{' && last === '}') || (first === '[' && last === ']')
 }
 
-const complexParsers = [JSON.parse, unquotedJsonParse];
-
 function getJson(v) {
   if (isMaybeJson(v)) {
-    let obj = v;
-    for (let i = 0; i < complexParsers.length; i++) {
-      try {
-        obj = complexParsers[i](v);
-        break;
-      } catch(e) {
-      }
-    }
-    return _flattenJson(obj);
+    return _flattenJson(v);
   }
   return false;
 }
@@ -298,11 +287,7 @@ const urlCache = new MapCache(function(url) { return new Url(url); }, 100);
 const URLInfo = {
   get: function(url) {
     if (!url) return "";
-    try {
-      return urlCache.get(url);
-    } catch(e) {
-      return null;
-    }
+    return urlCache.get(url);
   }
 }
 
@@ -316,8 +301,6 @@ class Url {
       Object.keys(parsed).forEach((k) => {
         this[k] = parsed[k];
       });
-    } else {
-      throw new Error(`invalid url: ${urlString}`);
     }
   }
 

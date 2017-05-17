@@ -2,9 +2,8 @@
 /* global emit */
 
 
-import md5 from '../core/helpers/md5';
-import logger from './logger';
-import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
+import log from 'anolysis/logging';
+import getSynchronizedDate, { DATE_FORMAT } from 'anolysis/synchronized-date';
 
 
 export default class {
@@ -44,15 +43,6 @@ export default class {
     return 'behavior';
   }
 
-  close() {
-    return this.database.close()
-      .catch(() => { /* can happen after DB is destroyed */ });
-  }
-
-  destroy() {
-    return this.database.destroy();
-  }
-
   info() {
     return this.database.info();
   }
@@ -64,15 +54,14 @@ export default class {
   put(doc) {
     const type = this.getDocType(doc);
     const timestamp = getSynchronizedDate().format(DATE_FORMAT);
-    const docHash = md5(JSON.stringify(doc));
     const decoratedDoc = Object.assign({
       ts: doc.ts || timestamp,
-      _id: doc._id || `${doc.ts || Date.now()}/${type}/${docHash}`,
+      _id: doc._id || `${doc.ts || Date.now()}/${type}`,
     }, doc);
 
     return this.database.put(decoratedDoc)
       .then(() => decoratedDoc)
-      .catch((ex) => { logger.error(`put exception ${ex} ${JSON.stringify(decoratedDoc)}`); });
+      .catch((ex) => { log(`put exception ${ex} ${JSON.stringify(decoratedDoc)}`); });
   }
 
   getN(n) {
@@ -102,14 +91,14 @@ export default class {
   }
 
   getByTimespan({ from, to } = { }) {
-    logger.debug(`getByTimespan ${from} -> ${to}`);
+    log(`getByTimespan ${from} -> ${to}`);
     return this.database.query('index/by_ts', {
       startkey: from,
       endkey: to,
       include_docs: true,
     }).then((result) => {
       const documents = result.rows.map(row => row.doc);
-      logger.debug(`getByTimespan from ${from} to ${to} found ${documents.length} documents`);
+      log(`getByTimespan from ${from} to ${to} found ${documents.length} documents`);
       return documents;
     });
   }
@@ -129,7 +118,7 @@ export default class {
   deleteByTimespan(timespan) {
     return this.getByTimespan(timespan)
       .then((documents) => {
-        logger.debug(`remove ${documents.length} with timespan ${JSON.stringify(timespan)}`);
+        log(`remove ${documents.length} with timespan ${JSON.stringify(timespan)}`);
         return Promise.all(documents.map(doc => this.database.remove(doc)));
       });
   }

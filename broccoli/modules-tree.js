@@ -16,7 +16,6 @@ var SystemBuilder = require('broccoli-system-builder');
 const writeFile = require('broccoli-file-creator');
 
 var cliqzConfig = require('./config');
-const modulesList = require('./modules/modules-list');
 
 var Instrument = require('./instrument');
 
@@ -219,9 +218,7 @@ function getBundlesTree(modulesTree) {
           }
         });
         const bundle = moduleName + '/' + bundleName;
-        return builder.buildStatic(bundle, bundle, {
-          sourceMaps: 'inline',
-        });
+        return builder.buildStatic(bundle, bundle);
       });
     });
 
@@ -262,7 +259,6 @@ function getSourceTree() {
   sources = new MergeTrees([
     sources,
     config,
-    new Funnel(modulesList, { destDir: 'core/app' }),
   ]);
 
   const moduleTestsTree = new Funnel(modulesTree, {

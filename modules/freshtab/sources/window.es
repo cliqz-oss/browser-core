@@ -6,8 +6,6 @@ import events from '../core/events';
 const cliqzInitialPages = [
   utils.CLIQZ_NEW_TAB_RESOURCE_URL,
   utils.CLIQZ_NEW_TAB,
-  `${utils.CLIQZ_NEW_TAB_RESOURCE_URL}#`,
-  `${utils.CLIQZ_NEW_TAB_RESOURCE_URL}#/`,
 ];
 
 /**

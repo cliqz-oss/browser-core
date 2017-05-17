@@ -1,3 +1,4 @@
+import System from 'system';
 import { utils } from "core/cliqz";
 import autocomplete from "autocomplete/autocomplete";
 import CliqzHandlebars from "core/templates";
@@ -8,7 +9,6 @@ import placesUtils from '../platform/places-utils';
 import console from '../core/console';
 import prefs from '../core/prefs';
 import inject from '../core/kord/inject';
-import Background from './background';
 
 const SEARCH_BAR_ID = 'search-container';
 const dontHideSearchBar = 'dontHideSearchBar';
@@ -16,8 +16,6 @@ const dontHideSearchBar = 'dontHideSearchBar';
 const searchBarPosition = 'defaultSearchBarPosition';
 // next element in the toolbar
 const searchBarPositionNext = 'defaultSearchBarPositionNext';
-
-const ACproviderName = 'cliqz-results';
 
 function restoreSearchBar(win) {
   const toolbarId = utils.getPref(searchBarPosition, '');
@@ -113,6 +111,7 @@ function tryHideSearchBar(win){
       prefs.set(searchBarPositionNext, next);
     }
 
+    prefs.set(dontHideSearchBar, true);
   } catch(e){
     console.log(e, 'Search bar hiding failed!');
   }
@@ -219,9 +218,6 @@ export default class {
     // do not initialize the UI if the user decided to turn off search
     if(utils.getPref("cliqz_core_disabled", false)) return;
 
-    // do not initialize the UI if locationbar is invisible in this window
-    if(!this.window.locationbar.visible) return;
-
     utils.dropDownStyle = prefs.get('dropDownStyle', '');
 
     console.log("UI window init");
@@ -237,7 +233,7 @@ export default class {
       // Load autocompletesearch as soon as possible - it is compatible with
       // default firefox and will work with any UI
       this._autocompletesearch = this.urlbar.getAttribute('autocompletesearch');
-      this.urlbar.setAttribute('autocompletesearch', ACproviderName);
+      this.urlbar.setAttribute('autocompletesearch', 'cliqz-results');// + urlbar.getAttribute('autocompletesearch')); /* urlinline history'*/
     });
 
     let uiLoadingPromise;
@@ -487,12 +483,7 @@ export default class {
   }
 
   disable() {
-
-    if(Background.firstWindowDisabled == undefined){
-      // we only need to restore it for one window
-      Background.firstWindowDisabled = true;
-      restoreSearchBar(this.window);
-    }
+    restoreSearchBar(this.window);
   }
 
   unload() {
@@ -542,26 +533,6 @@ const urlbarEventHandlers = {
   * @event focus
   */
   focus: function(ev) {
-    if(utils.ACproviderInitialized == undefined){
-      // try once to force the initialization of the AC provider
-      this.urlbar.blur();
-      setTimeout(function(urlbar){ urlbar.focus() }, 0, this.urlbar);
-      utils.ACproviderInitialized = true;
-      return;
-    }
-
-    if(this.urlbar.getAttribute('autocompletesearch').indexOf(ACproviderName) === -1){
-      // BUMMER!! Something happened and our AC provider was overriden!
-      // trying to set it back while keeping the new value in case CLIQZ
-      // gets disabled
-      this._autocompletesearch = this.urlbar.getAttribute('autocompletesearch');
-      this.urlbar.setAttribute('autocompletesearch', ACproviderName);
-      this.reloadUrlbar();
-      this.urlbar.blur();
-      setTimeout(function(urlbar){ urlbar.focus() }, 0, this.urlbar);
-      return;
-    }
-
     //try to 'heat up' the connection
     utils.pingCliqzResults();
 

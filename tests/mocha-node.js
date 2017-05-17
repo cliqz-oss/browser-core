@@ -34,7 +34,6 @@ const mochaOptions = {
   reporter: 'tap',
 };
 const grep = process.env["MOCHA_GREP"];
-const fgrep = process.env["MOCHA_FGREP"];
 if (grep) {
   mochaOptions.grep = grep;
 }
@@ -68,10 +67,6 @@ const walker = walk.walk(baseDir);
 walker.on('file', (root, state, next) => {
   const testPath = `${root}/${state.name}`;
   if (state.name.endsWith('-test.js')) {
-    if (fgrep && state.name.indexOf(fgrep) < 0) {
-      next();
-      return;
-    }
     testFiles.push(testPath);
     mocha.addFile(testPath);
   }

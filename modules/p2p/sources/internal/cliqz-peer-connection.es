@@ -1,6 +1,6 @@
 /* eslint no-param-reassign: off */
 
-import random from '../../core/crypto/random';
+import random from 'core/crypto/random';
 import constants from './constants';
 
 // CliqzPeerConnection: encapsulates a RTCDataChannel and RTCPeerConnection
@@ -19,9 +19,9 @@ export default class CliqzPeerConnection {
   }
 
   constructor(cliqzPeer, peerOptions, peer, isLocal) {
-    this.logDebug = cliqzPeer.logDebug.bind(null, `[${peer}]`);
-    this.log = cliqzPeer.log.bind(null, `[${peer}]`);
-    this.logError = cliqzPeer.logError.bind(null, `[${peer}]`);
+    this.log = (...args) => cliqzPeer.log(`[${peer}]`, ...args);
+    this.logDebug = (...args) => cliqzPeer.logDebug(`[${peer}]`, ...args);
+    this.logError = (...args) => cliqzPeer.logError(`[${peer}]`, ...args);
     this.id = Math.round(random() * 2000000000);
     this.remoteId = null;
     this.cliqzPeer = cliqzPeer;
@@ -71,7 +71,7 @@ export default class CliqzPeerConnection {
 
     this.connection.onerror = (e) => {
       if (connection === this.connection) {
-        this.logError(e, 'Connection error');
+        this.log(e, 'Connection error');
         this.close('connection.onerror');
       } else {
         this.logError('ERROR: received onerror message from old PeerConnection');
@@ -157,12 +157,8 @@ export default class CliqzPeerConnection {
           } else if (pairs.length > 1) {
             return reject('more than one candidate pair');
           }
-          const localCandidate = conn.iceCandidateStats.find(x =>
-            x.type.indexOf('local') === 0 && x.id === pairs[0].localCandidateId
-          );
-          const remoteCandidate = conn.iceCandidateStats.find(x =>
-            x.type.indexOf('remote') === 0 && x.id === pairs[0].remoteCandidateId
-          );
+          const localCandidate = conn.iceCandidateStats.find(x => x.type === 'localcandidate' && x.id === pairs[0].localCandidateId);
+          const remoteCandidate = conn.iceCandidateStats.find(x => x.type === 'remotecandidate' && x.id === pairs[0].remoteCandidateId);
           if (!localCandidate) {
             return reject('no local candidate');
           }
@@ -244,7 +240,7 @@ export default class CliqzPeerConnection {
           connection.addIceCandidate(new this.cliqzPeer.RTCIceCandidate(candidate), () => {
             this.logDebug('candidate ok', candidate);
           }, (e) => {
-            this.logError(e, 'candidate wrong', candidate);
+            this.log(e, 'candidate wrong', candidate);
           });
         } else {
           // TODO: should we do sth here? Chromium and Firefox seem to handle this differently...
@@ -314,7 +310,7 @@ export default class CliqzPeerConnection {
       this.status = 'nosuchroute';
       this.close('nosuchroute');
     } else {
-      this.logError('Discarding no such route error', id, this.id);
+      this.logDebug('Discarding no such route error', id, this.id);
     }
   }
 
@@ -396,7 +392,7 @@ export default class CliqzPeerConnection {
         try {
           this.onopen();
         } catch (e) {
-          this.logError(typeof e === 'string' ? e : e.message, 'error calling cliqzpeerconnection onopen');
+          this.log(typeof e === 'string' ? e : e.message, 'error calling cliqzpeerconnection onopen');
         }
       }
     };

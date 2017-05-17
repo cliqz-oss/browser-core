@@ -1,9 +1,9 @@
-import CliqzMasterComm from './cliqz-master-comm';
-import YoutubeApp from '../pairing/apps/youtube';
-import TabsharingApp from '../pairing/apps/tabsharing';
-import PingPongApp from '../pairing/apps/pingpong';
-import PairingObserver from '../pairing/apps/pairing-observer';
-import CliqzUtils from '../core/utils';
+import CliqzMasterComm from 'mobile-pairing/cliqz-master-comm';
+import YoutubeApp from 'pairing/apps/youtube';
+import TabsharingApp from 'pairing/apps/tabsharing';
+import PingPongApp from 'pairing/apps/pingpong';
+import PairingObserver from 'pairing/apps/pairing-observer';
+import CliqzUtils from 'core/utils';
 
 export default {
   init() {
@@ -45,7 +45,7 @@ export default {
       }
     }, 1000 * 300);
 
-    return CliqzMasterComm.init(window.localStorage)
+    return CliqzMasterComm.init(window.localStorage, window)
     .then(() => {
       try {
         osAPI.deviceARN('setDeviceARN');

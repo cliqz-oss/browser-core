@@ -16,30 +16,6 @@
     flex: 1 1 auto;
     overflow-y: auto;
     position: relative;
-
-    nav {
-      padding: 0px;
-      text-align: center;
-      position: relative;
-      top: 0;
-      left: 0;
-      flex: 0 0 auto;
-      align-self: stretch;
-      width: 74px;
-
-      a {
-        display: block;
-        cursor: pointer;
-        opacity: 1;
-        margin-top: 20px;
-        padding: 0px;
-        height: 25px;
-        opacity: 0.4;
-        &.active {
-          opacity: 1;
-        }
-      }
-    }
   }
 }
 
@@ -51,7 +27,27 @@
   font-weight: 400;
   font-size: 14px;
 
+  nav {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 74px;
+    z-index: 100;
+    text-align: center;
 
+    a {
+      display: block;
+      cursor: pointer;
+      opacity: 1;
+      margin: 20px 0 0 0;
+      padding: 0px;
+      height: 25px;
+      opacity: 0.4;
+      &.active {
+        opacity: 1;
+      }
+    }
+  }
 }
 
 .clearfix:after {
@@ -185,8 +181,7 @@ body.freshTabContainer {
 
   /* containers */
   #center {
-    width: calc(100% - 74px);
-    padding-right: 74px;
+    width: 100%;
     display: flex;
     align-items: flex-start;
     justify-items: center;

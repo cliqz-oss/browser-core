@@ -8,7 +8,6 @@ import Result from "autocomplete/result";
 import Mixer from "autocomplete/mixer";
 import SpellCheck from "autocomplete/spell-check";
 import console from "core/console";
-import { handleQuerySuggestions } from 'platform/query-suggestions';
 
 class TimeoutError extends Error {}
 
@@ -77,8 +76,6 @@ export default class Search {
   constructor({ successCode } = {}) {
     this.TIMEOUT = 1000;
     this.HISTORY_TIMEOUT = 400;
-    this.REFETCH_MAX_ATTEMPTS = 10; // How many times should we try fetching incomplete (promised) results before giving up?
-    this.REFETCH_DELAY = 100; // delay before refetch
 
     var mixerArgs = isFirefox ? {
       smartCliqzCache: new SmartCliqzCache(),
@@ -173,7 +170,6 @@ export default class Search {
       }
 
       this.cliqzResults = [];
-      this.cliqzResultsDone = false;
       this.cliqzResultsParams = { };
       this.cliqzCache = null;
       this.historyResults = null;
@@ -223,7 +219,6 @@ export default class Search {
           this.resultsTimer = utils.setTimeout(this.pushTimeoutCallback, utils.RESULTS_TIMEOUT, this.searchString);
       } else {
           this.cliqzResults = [];
-          this.cliqzResultsDone = true;
           CliqzAutocomplete.spellCheck.resetState();
       }
 
@@ -456,7 +451,7 @@ export default class Search {
 
        if((now > this.startTime + utils.RESULTS_TIMEOUT) || // do we have a timeout or
            (this.isHistoryReady() || this.historyTimeout) && // history is ready or timed out and
-           (this.cliqzResults.length > 0 || this.cliqzResultsDone)) {   // backend results are ready
+            this.cliqzResults.length > 0) {                  // backend results are ready
           /// Push full result
           utils.clearTimeout(this.resultsTimer);
           utils.clearTimeout(this.historyTimer);
@@ -596,14 +591,11 @@ export default class Search {
           this.discardedResults += 1; // count results discarded from backend because they were out of date
       } else {
           this.latency.backend = Date.now() - this.startTime;
-          setTimeout(this.loadIncompleteResults.bind(this), this.REFETCH_DELAY,
+          setTimeout(this.loadIncompleteResults.bind(this), 0,
                      json,
                      q,
                      (attemptsSoFar || 0) + 1);
           this.cliqzResults = json.results.filter(this.isReadyToRender).map(this.enhanceResult);
-          this.cliqzResultsDone = true;
-
-          handleQuerySuggestions(q, json.suggestions);
 
           this.cliqzResultsParams = {
             choice: json.choice,
@@ -714,7 +706,6 @@ export default class Search {
       obj.resultsTimer = null;
       obj.historyTimer = null;
       obj.cliqzResults = [];
-      obj.cliqzResultsDone = false;
       obj.cliqzCache = null;
       obj.historyResults = null;
       obj.instant = [];

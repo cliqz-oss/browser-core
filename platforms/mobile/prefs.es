@@ -3,21 +3,7 @@ import Storage from '../core/storage';
 const storage = new Storage();
 
 export function getPref(pref, fallback) {
-  // local storage saves only strings
-  const mypref = storage.getItem(pref);
-  if (mypref) {
-    if (mypref === 'false') {
-      return false;
-    }
-    if (mypref === 'true') {
-      return true;
-    }
-    if (!isNaN(mypref)) {
-      return parseInt(mypref, 10);
-    }
-    return mypref;
-  }
-  return fallback;
+  return storage.getItem(pref) || fallback;
 }
 
 export function setPref(pref, val) {

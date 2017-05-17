@@ -388,7 +388,7 @@ function whoAmI(startup){
   setTimeout(whoAmI, 60 * 60 * 1e3 /* one hour */, false);
 
   //executed after the services are fetched
-  CliqzUtils.fetchAndStoreConfig().then(function(){
+  CliqzUtils.fetchAndStoreConfig(function(){
     sendEnvironmentalSignal(startup);
   });
 }
@@ -405,7 +405,7 @@ function sendEnvironmentalSignal(startup){
       language: navigator.language,
       width: window.innerWidth,
       height: window.innerHeight,
-      version: CLIQZ.config.EXTENSION_VERSION,
+      version: '4.8.0', // TODO
       startup: !!startup,
       version_host: hostVersion,
       version_dist: ''
@@ -430,13 +430,13 @@ function sendEnvironmentalSignal(startup){
 
 function checkSession() {
   if (CliqzUtils.hasPref('session'))
-    return false;  // Session is already present.
+    return true;  // Session is already present.
 
   const newSession = CLIQZEnvironment.isPrivate() ?
       ["PRIVATE", "15000", CLIQZ.config.settings.channel].join("|") :
       generateSession(CLIQZ.config.settings.channel);
   CliqzUtils.setPref('session', newSession)
-  return true;
+  return false;
 }
 
 function generateSession(source){

@@ -63,16 +63,13 @@ export default class extends QSWhitelistBase {
       this.unsafeKeys.load(),
       this.trackerDomains.load(),
     ]).then(() => {
-      this._configEventListener = events.subscribe('attrack:updated_config', this.onConfigUpdate);
+      events.sub('attrack:updated_config', this.onConfigUpdate);
     });
   }
 
   destroy() {
     super.destroy();
-    if (this._configEventListener) {
-      this._configEventListener.unsubscribe();
-      this._configEventListener = null;
-    }
+    events.un_sub('attrack:updated_config', this.onConfigUpdate);
   }
 
   isUpToDate() {

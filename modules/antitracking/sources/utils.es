@@ -1,5 +1,24 @@
-import { toBase64 } from '../core/encoding';
 import { compress } from '../core/gzip';
+
+function _arrayBufferToBase64( buffer ) {
+    var binary = '';
+    var bytes = new Uint8Array( buffer );
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode( bytes[ i ] );
+    }
+    return btoa( binary );
+}
+
+function _base64ToArrayBuffer(base64) {
+    var binary_string =  window.atob(base64);
+    var len = binary_string.length;
+    var bytes = new Uint8Array( len );
+    for (var i = 0; i < len; i++)        {
+        bytes[i] = binary_string.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
 
 export function compressionAvailable() {
   return compress !== false;
@@ -7,7 +26,7 @@ export function compressionAvailable() {
 
 export function compressJSONToBase64(obj) {
   const bytes = compress(JSON.stringify(obj));
-  return toBase64(bytes);
+  return _arrayBufferToBase64(bytes);
 }
 
 export function splitTelemetryData(data, bucketSize) {

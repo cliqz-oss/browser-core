@@ -5,8 +5,7 @@ export default Ember.Component.extend({
   classNames: ['session-list'],
 
   sessionsSorting: ['lastVisitedAt:desc'],
-  sortedSessions: Ember.computed.sort('model', 'sessionsSorting'),
-  sessions: Ember.computed.filterBy('sortedSessions', 'isDeleted', false),
+  sessions: Ember.computed.sort('model', 'sessionsSorting'),
 
   setScrollEvent: function () {
     this.__scroll = this.scroll.bind(this);

@@ -56,7 +56,6 @@ var CliqzTour = {
         // clear URL bar and hide mouse cursor
         { f: function () {
             CliqzTour.clearUrlBar();
-            CliqzTour.clearDropdown();
             // TODO: use CSS "disabled" class for this
             CliqzTour.getPageElement("tour-btn").style.cursor = "none";
         }, t: 100 },
@@ -252,8 +251,6 @@ var CliqzTour = {
             CliqzTour.urlBar.value = CliqzUtils.getLocalizedString('onUrlBarNowYou');
 
             CliqzTour.urlBar.setSelectionRange(0, CliqzTour.urlBar.mInputField.value.length);
-
-            CliqzTour.clearDropdown();
 
             // clear URL bar on click and hide callout
             CliqzTour.urlBar.addEventListener('click', CliqzTour.clearUrlBarListener);
@@ -458,7 +455,6 @@ var CliqzTour = {
             CliqzTour.closeDropdown();
             CliqzTour.hideCallout();
             CliqzTour.hideCursor();
-            CliqzTour.clearDropdown();
             CliqzTour.clearUrlBar();
         }, 0);
     },
@@ -471,15 +467,6 @@ var CliqzTour = {
     },
 
     /* **** dropdown helpers **** */
-    clearDropdown: function () {
-        if (CliqzTour.win.CLIQZ.Core.popup.cliqzBox.children.length > 0) {
-            var content = CliqzTour.win.CLIQZ.Core.popup.cliqzBox.children[0].children[0];
-
-            while (content.firstChild) {
-                content.removeChild(content.firstChild);
-            }
-        }
-    },
     openDropdown: function () {
         CliqzTour.win.CLIQZ.Core.popup.openPopup(CliqzTour.urlBar, "after_start", 0, 0, false, true);
     },

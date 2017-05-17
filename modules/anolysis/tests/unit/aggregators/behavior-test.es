@@ -4,13 +4,7 @@ export default describeModule('anolysis/aggregator',
       'anolysis/simple-statistics': {
         default: { mean: () => 'mean' },
       },
-      'anolysis/logger': {
-        default: {
-          debug() {},
-          log() {},
-          error() {},
-        },
-      },
+      'anolysis/logging': { default: () => {} },
     };
   },
   function () {

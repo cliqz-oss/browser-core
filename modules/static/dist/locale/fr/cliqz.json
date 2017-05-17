@@ -1394,12 +1394,6 @@
     "control-center-backend-country": {
       "message": "Résultats de recherche pour"
     },
-    "control-center-report-url": {
-      "message": "Reporter le site"
-    },
-    "control-center-tips": {
-      "message": "Astuces"
-    },
     "control-center-humanweb": {
       "message": "Faire partie du « Human Web »"
     },
@@ -1608,91 +1602,13 @@
       "message": "Disconnect"
     },
     "pairing-send-tab-to-mobile": {
-      "message": "Send tab to mobile"
+      "message": "Send to mobile"
     },
     "pairing-send-video-to-mobile-retry": {
       "message": "Send again"
     },
     "ad-label": {
       "message": "Anzeige"
-    },
-    "offers-hub-title": {
-      "message": "CLIQZ OFFERS:"
-    },
-    "offers-hub-show-all-offers-btn": {
-      "message": "Offres récentes"
-    },
-    "offers-hub-welcome-title": {
-      "message": "Bienvenue dans CLIQZ Offres
-    },
-    "offers-hub-welcome-text": {
-      "message": "Ici, vous trouverez bientôt des annonces exclusives pour vous"
-    },
-    "offers-hub-feedback-title": {
-      "message": "Vos commentaires nous importent"
-    },
-    "offers-hub-feedaback-sub-title": {
-      "message": "Pourquoi avez-vous refusé l'offre:"
-    },
-    "offers-hub-feedaback-option1": {
-      "message": "Cette offre ne m'intéresse pas"
-    },
-    "offers-hub-feedaback-option2": {
-      "message": "Les offres de CLIQZ Offers ne m'intéressent pas"
-    },
-    "offers-hub-feedaback-option3": {
-      "message": "Aucune offre ne m'intéresse"
-    },
-    "offers-hub-cancel": {
-      "message": "Annuler"
-    },
-    "offers-hub-remove": {
-      "message": "Supprimer"
-    },
-    "offers-hub-about-cliqz-offers": {
-      "message": "Plus d'informations à propos des offres de CLIQZ Offers"
-    },
-    "offers-hub-powered-by": {
-      "message": "Fourni par CLIQZ"
-    },
-    "offers-hub-code-copy": {
-      "message": "Code Copié"
-    },
-    "signals-humanweb-inactive-message": {
-      "message": "Human Web is not activated"
-    },
-    "signals-humanweb-inactive": {
-      "message": "inactive"
-    },
-    "signals-your-ip-id": {
-      "message": "your IP/IDs: "
-    },
-    "signals-your-location": {
-      "message": "your location"
-    },
-    "signals-private-urls": {
-      "message": "private URLs"
-    },
-    "signals-what-you-search": {
-      "message": "your search term"
-    },
-    "signals-your-ip-address": {
-      "message": "Your IP-Addresse"
-    },
-    "signals-search-results": {
-      "message": "Search result"
-    },
-    "signals-visited-page": {
-      "message": "Visited page"
-    },
-    "signals-count-action": {
-      "message": "Count action"
-    },
-    "signals-page-info": {
-      "message": "Page info"
-    },
-    "signals-redirected-links": {
-      "message": "Redirected links"
     },
     "TEST": "OK"
 }

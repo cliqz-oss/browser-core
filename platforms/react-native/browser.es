@@ -24,7 +24,7 @@ export function mapWindows(fn) {
 }
 
 export function getLang() {
-  return 'en';
+  return '';
 }
 
 export function isTabURL() {

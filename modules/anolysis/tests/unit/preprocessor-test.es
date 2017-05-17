@@ -3165,11 +3165,8 @@ export default describeModule('anolysis/preprocessor',
         return moment('2017-01-01', 'YYYY-MM-DD');
       },
     },
-    'anolysis/logger': {
-      default: {
-        debug() {},
-        log() {},
-        error() {},
+    'anolysis/logging': {
+      default: () => {
       },
     },
   }),

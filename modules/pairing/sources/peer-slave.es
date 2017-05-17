@@ -1,19 +1,19 @@
 /* eslint-disable camelcase */
-import CliqzUtils from '../core/utils';
-import Crypto from './crypto';
-import console from '../core/console';
-import { encryptPairedMessage, decryptPairedMessage, ERRORS } from './shared';
-import CliqzPeer from '../p2p/cliqz-peer';
-import fetch from '../platform/fetch';
-import { fromBase64 } from '../core/encoding';
-import inject from '../core/kord/inject';
+import CliqzUtils from 'core/utils';
+import Crypto from 'pairing/crypto';
+import console from 'core/console';
+import { encryptPairedMessage, decryptPairedMessage, ERRORS } from 'pairing/shared';
+import CliqzPeer from 'p2p/cliqz-peer';
+import fetch from 'platform/fetch';
+import { base64_decode } from 'p2p/internal/utils';
 
-// This class has the responsibility of handling the desktop-mobile pairing
-// (from the desktop side).
-// Provides the infrastructure for pairing, unpairing, sending messages to other
-// devices, receiving messages and dispatching them, etc.
+// This class has the responsibility of handling the desktop-mobile pairing.
+// It should be agnostic of concrete features, just providing the infrastructure
+// for pairing, unpairing, sending messages to other devices, receiving messages and
+// dispatching them, etc.
 
 export default class CliqzPairing {
+  // COMM
   static get STATUS_UNPAIRED() {
     return 0;
   }
@@ -37,17 +37,63 @@ export default class CliqzPairing {
   }
 
   generateKeypair() {
-    if (this.keypair) {
-      return Promise.resolve();
-    }
     return CliqzPeer.generateKeypair()
-      .then(keypair =>
-        Crypto.sha256(keypair[0])
-          .then((deviceID) => {
-            this.deviceID = deviceID;
-            this.keypair = keypair;
-          })
-      );
+      .then((keypair) => {
+        this.keypair = keypair;
+        return Crypto.sha256(this.keypair[0]);
+      })
+      .then((deviceID) => {
+        this.deviceID = deviceID;
+      });
+  }
+  // data will generally be an auto-persisting object
+  // CliqzPeer is the p2p client library constructor (passed to avoid dealing with
+  // hidden window loading, etc)
+  initComm(window, data) {
+    this.pairingTimeout = 60; // seconds
+    this.window = window;
+    this.data = data;
+
+    this.onpairing = null;
+    this.onpaired = null;
+    this.onunpaired = null;
+    this.onmessage = null;
+    this.onerror = null;
+    this.ondeviceadded = null;
+    this.ondeviceremoved = null;
+    this.onmasterconnected = null;
+    this.onmasterdisconnected = null;
+    if (this.masterID) {
+      this.setPaired(this.masterID, this.devices);
+      this.checkMasterConnection();
+    } else {
+      this.setUnpaired(true);
+    }
+    // TODO: is this really a good idea? are we doing it too often?
+    // this.connectionKeeper = CliqzUtils.setInterval(
+    //   this.checkMasterConnection.bind(this),
+    //   60000
+    // );
+    return Promise.resolve();
+  }
+
+  unloadComm() {
+    if (this.peer) {
+      this.peer.destroy();
+      this.peer = null;
+      this.destroyed = true;
+    }
+    this.onpairing = null;
+    this.onpaired = null;
+    this.onunpaired = null;
+    this.onmessage = null;
+    this.onerror = null;
+    this.ondeviceadded = null;
+    this.ondeviceremoved = null;
+    this.onmasterconnected = null;
+    this.onmasterdisconnected = null;
+    CliqzUtils.clearInterval(this.connectionKeeper);
+    this.connectionKeeper = null;
   }
 
   stopPairing() {
@@ -260,7 +306,7 @@ export default class CliqzPairing {
       };
       if (Array.isArray(data)) {
         // This might cause out of order msgs (single msgs that are faster to decrypt)
-        Promise.all(data.map(fromBase64).map(decMsg))
+        Promise.all(data.map(base64_decode).map(decMsg))
         .catch((e) => {
           errorDecrypting(e);
           throw e;
@@ -333,17 +379,7 @@ export default class CliqzPairing {
   }
 
   setPaired(masterID, devices) {
-    this.status = CliqzPairing.STATUS_PAIRED;
-    this.masterID = masterID;
-    this.devices = devices;
-    this.pairingMaster = null;
-    this.pairingToken = null;
-    CliqzUtils.clearInterval(this.pairingTimer);
-    this.pairingTimer = null;
-    this.pairingName = null;
-    this.cancelPairing = false;
-    this.peer.open();
-    this.peer.addTrustedPeer(masterID);
+    this.initPeer();
     this.peer.onconnect = (peerID) => {
       if (peerID === this.masterID && this.onmasterconnected) {
         this.onmasterconnected();
@@ -354,7 +390,17 @@ export default class CliqzPairing {
         this.onmasterdisconnected();
       }
     };
+    this.status = CliqzPairing.STATUS_PAIRED;
+    this.peer.addTrustedPeer(masterID);
     this.peer.onmessage = this.onPairedMessage.bind(this);
+    this.masterID = masterID;
+    this.devices = devices;
+    this.pairingMaster = null;
+    this.pairingToken = null;
+    CliqzUtils.clearInterval(this.pairingTimer);
+    this.pairingTimer = null;
+    this.pairingName = null;
+    this.cancelPairing = false;
     if (this.onpaired) {
       this.onpaired(masterID, devices);
     }
@@ -362,7 +408,12 @@ export default class CliqzPairing {
 
   setUnpaired(noTrigger) {
     this.status = CliqzPairing.STATUS_UNPAIRED;
-    this.peer.close();
+    if (this.peer) {
+      this.peer.destroy();
+      this.peer = null;
+    }
+    this.deviceID = null;
+    this.keypair = null;
     this.pairingAESKey = null;
     this.pairingToken = null;
     this.aesKey = null;
@@ -385,7 +436,6 @@ export default class CliqzPairing {
     this.randomToken = Crypto.fromByteArray(token, 'b64');
     return this.loadPairingAESKey();
   }
-
   sendPairingMessage(masterID) {
     return this.loadPairingAESKey()
     .then(pairingAESKey =>
@@ -396,7 +446,6 @@ export default class CliqzPairing {
     )
     .then(encrypted => this.peer.send(masterID, encrypted));
   }
-
   retryPairingName(deviceName) {
     if (this.isPairing) {
       this.pairingName = deviceName;
@@ -405,7 +454,6 @@ export default class CliqzPairing {
       }
     }
   }
-
   setPairing(slaveName) {
     this.status = CliqzPairing.STATUS_PAIRING;
     this.pairingRemaining = this.pairingTimeout;
@@ -421,22 +469,29 @@ export default class CliqzPairing {
         this.onpairingtick(this.pairingRemaining);
       }
     }, 1000);
-    this.peer.open();
-    this.peer.onconnect = peerID => this.sendPairingMessage(peerID);
-    this.peer.ondisconnect = null;
-    this.peer.clearPeerWhitelist();
-    this.peer.onmessage = this.onPairingMessage.bind(this);
 
-    Promise.all([this.generatePairingKey(), this.peer.createConnection()])
+    Promise.all([
+      this.generateKeypair(),
+      this.generatePairingKey(),
+    ])
       .then(() => {
-        const b64 = Crypto.fromByteArray(Crypto.toByteArray(this.peer.peerID, 'hex'), 'b64');
-        this.pairingToken = [b64, this.randomToken].join(':');
-        if (this.onpairing) {
-          this.onpairing(this.pairingToken);
-        }
-        if (this.cancelPairing) {
-          this.setUnpaired();
-        }
+        const p = this.initPeer();
+        return p
+        .then(() => {
+          this.peer.onconnect = peerID => this.sendPairingMessage(peerID);
+
+          this.peer.ondisconnect = null;
+          this.peer.clearPeerWhitelist();
+          this.peer.onmessage = this.onPairingMessage.bind(this);
+          const b64 = Crypto.fromByteArray(Crypto.toByteArray(this.peer.peerID, 'hex'), 'b64');
+          this.pairingToken = [b64, this.randomToken].join(':');
+          if (this.onpairing) {
+            this.onpairing(this.pairingToken);
+          }
+          if (this.cancelPairing) {
+            this.setUnpaired();
+          }
+        });
       })
       .catch((e) => {
         // TODO: Errors here should be handled properly, server might be down, etc -> notifications
@@ -447,16 +502,15 @@ export default class CliqzPairing {
   }
 
   initPeer() {
-    return this.p2p.action('createPeer',
-      this.keypair,
-      {
-        DEBUG: this.debug,
-        ordered: true,
-        maxMessageRetries: 0,
-        signalingEnabled: false,
-      },
-    ).then((peer) => {
-      this.peer = peer;
+    if (!this.peer) {
+      this.peer = new CliqzPeer(this.window,
+        this.keypair,
+        {
+          DEBUG: this.debug,
+          ordered: true,
+          maxMessageRetries: 0,
+        },
+      );
       this.peer.setMessageSizeLimit(this.maxMsgSize);
       this.peer.encryptSignaling = data =>
         this.loadPairingAESKey()
@@ -467,13 +521,15 @@ export default class CliqzPairing {
         this.loadPairingAESKey()
         .then(aesKey => CliqzPairing.receiveEncrypted(data, aesKey))
         .catch(() => data);
-    });
+    }
+    return this.peer.createConnection();
   }
+  // !COMM
 
   constructor(debug = false) {
-    this.p2p = inject.module('p2p');
     this.maxMsgSize = 5 * 1024 * 1024;
     this.debug = debug;
+    this.window = null;
     this.isInit = false;
     this.apps = new Map();
     this.initPromise = new Promise((resolve, reject) => {
@@ -519,31 +575,12 @@ export default class CliqzPairing {
     };
   }
 
-  init(storage) {
-    this.pairingTimeout = 60; // seconds
-    this.data = storage;
-
-    this.onpairing = null;
-    this.onpaired = null;
-    this.onunpaired = null;
-    this.onmessage = null;
-    this.onerror = null;
-    this.ondeviceadded = null;
-    this.ondeviceremoved = null;
-    this.onmasterconnected = null;
-    this.onmasterdisconnected = null;
-
-    return this.generateKeypair()
-      .then(() => this.initPeer())
+  init(storage, window) {
+    this.ss = storage;
+    this.window = window;
+    return this.initComm(this.window, this.ss)
       .then(() => {
-        if (this.masterID) {
-          this.setPaired(this.masterID, this.devices);
-          this.checkMasterConnection();
-        } else {
-          this.setUnpaired(true);
-        }
-
-        // These events will be directly propagated to all the apps
+        // These events will be directly propagated from this.comm to all the apps
         const events = [
           'onpairing',
           'onpaired',
@@ -575,7 +612,6 @@ export default class CliqzPairing {
         this.rejectInit(e);
       });
   }
-
   send(msg, channel, targets) {
     let t = targets;
     if (!t) {
@@ -584,7 +620,6 @@ export default class CliqzPairing {
     t = Array.isArray(t) ? t : [t];
     return this.sendMessage(msg, channel, t);
   }
-
   getOnInitArgs(channel) {
     const self = this;
     // This is the object each app will receive on init, and will be its interface to the
@@ -635,7 +670,6 @@ export default class CliqzPairing {
     };
     return [comm];
   }
-
   unload() {
     this.apps.forEach((app) => {
       if (app.onunload) {
@@ -643,30 +677,15 @@ export default class CliqzPairing {
       }
     });
     this.apps.clear();
-
-    if (this.peer) {
-      this.peer.destroy();
-      this.peer = null;
-    }
-    this.destroyed = true;
-    this.peer = null;
-    this.onpairing = null;
-    this.onpaired = null;
-    this.onunpaired = null;
-    this.onmessage = null;
-    this.onerror = null;
-    this.ondeviceadded = null;
-    this.ondeviceremoved = null;
-    this.onmasterconnected = null;
-    this.onmasterdisconnected = null;
-    CliqzUtils.clearInterval(this.connectionKeeper);
-    this.connectionKeeper = null;
+    this.unloadComm();
+    this.window = null;
     this.isInit = false;
     this.isUnloaded = true;
-    this.data = null;
+    this.initPromises = [];
+    return Promise.resolve();
   }
 
   destroy() {
-    this.unload();
+    this.unload(true);
   }
 }

@@ -3,9 +3,7 @@
         <div class="cqz-rd-body {{#if i}}layout_no_foot_node{{/if}}" >
             <div class="cqz-result-title overflow" arrow-override=''><a extra="title" href="{{../url}}">{{extra.n}}</a>
             </div>
-            {{#with ..}}
-              {{> 'partials/ez-url'}}
-            {{/with}}
+            <div class="cqz-result-url overflow" extra="url">{{../urlDetails.friendly_url}}</div>
 
             <div class="cqz-rd-h2-snippet">
                 {{#if extra.i}}

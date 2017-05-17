@@ -1,6 +1,8 @@
 <div class="cqz-result-h1 ez-news cqz-result-padding">
   <div class="cqz-ez-title" selectable='' extra="title"><a href="{{url}}" extra="title">{{ emphasis data.name text 2 true }}</a></div>
-  {{> 'partials/ez-url' }}
+  <span class="cqz-ez-subtitle"  extra="url">
+    {{ emphasis urlDetails.friendly_url text 2 true }}
+  </span>
   <div class="entity-stories latest">
     {{#each data.deepResults}}
       {{#if (logic type '===' 'news')}}

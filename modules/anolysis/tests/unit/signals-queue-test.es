@@ -12,11 +12,8 @@ export default describeModule('anolysis/signals-queue',
         setInterval() {},
       },
     },
-    'anolysis/logger': {
-      default: {
-        debug() {},
-        log() {},
-        error() {},
+    'anolysis/logging': {
+      default() {
       },
     },
     'anolysis/synchronized-date': {

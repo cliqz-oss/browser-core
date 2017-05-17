@@ -8,14 +8,12 @@ import utils from '../core/utils';
 import coreBG from '../core/background';
 import attrackBG from '../antitracking/background';
 import adblockBG from '../adblocker/background';
-import attrackBlockerBG from '../antitracking-blocker/background';
 
 const backgrounds = {
   core: coreBG,
   antitracking: attrackBG,
   adblocker: adblockBG,
-  'antitracking-blocker': attrackBlockerBG,
-};
+}
 
 function shouldEnableModule(name) {
   const pref = `modules.${name}.enabled`;
@@ -198,26 +196,13 @@ export default class {
   }
 }
 
-function prepareBackgroundReadyPromise() {
-  this.backgroundReadyPromise = new Promise((resolve, reject) => {
-    this.backgroundReadyPromiseResolver = resolve;
-    this.backgroundReadyPromiseRejecter = reject;
-  });
-}
-
 class Module {
 
   constructor(name) {
     this.name = name;
     this.isEnabled = false;
-    this.isLoading = true;
     this.loadingTime = null;
     this.windows = Object.create(null);
-    prepareBackgroundReadyPromise.call(this);
-  }
-
-  isReady() {
-    return this.backgroundReadyPromise;
   }
 
   enable() {
@@ -226,21 +211,12 @@ class Module {
     if (this.isEnabled) {
       throw new Error('Module already enabled');
     }
-    if (!this.isLoading) {
-      throw new Error('Module not flagged as loading');
-    }
     const module = backgrounds[this.name];
-    this.background = module;
     return module.init(config.settings)
       .then(() => {
         this.isEnabled = true;
         this.loadingTime = Date.now() - loadingStartedAt;
         console.log('Module: ', this.name, ' -- Background loaded');
-        this.backgroundReadyPromiseResolver();
-      })
-      .catch((e) => {
-        this.backgroundReadyPromiseRejecter(e);
-        throw e;
       });
   }
 
@@ -256,9 +232,7 @@ class Module {
     } else {
       background.unload();
       this.isEnabled = false;
-      this.isLoading = false;
       this.loadingTime = null;
-      prepareBackgroundReadyPromise.call(this);
     }
     console.log('Module', this.name, 'unloading finished');
   }

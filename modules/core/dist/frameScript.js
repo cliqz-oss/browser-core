@@ -52,35 +52,38 @@ LocationObserver.prototype.onLocationChange = function onLocationChange(aWebProg
     return;
   }
 
+  // only react to network related requests
+  if ( ['http', 'https'].indexOf(aURI.scheme) === -1 ) {
+    return;
+  }
+
   var window = aWebProgress.DOMWindow;
   var document = aWebProgress.document;
   var isSameDocument = false;
 
   var referrer, triggeringURL, originalURL;
 
-  try {
+  if (aRequest) {
+    var httpChannel = aRequest.QueryInterface(Ci.nsIHttpChannel);
 
-    if (aRequest) {
-      var httpChannel = aRequest.QueryInterface(Ci.nsIHttpChannel);
+    referrer = (document && document.referrer)
+      || (httpChannel.referrer && httpChannel.referrer.asciiSpec);
 
-      referrer = (document && document.referrer)
-        || (httpChannel.referrer && httpChannel.referrer.asciiSpec);
-      
-        originalURL = aRequest.originalURI.spec;
-      
-      triggeringURL = aRequest.loadInfo.triggeringPrincipal.URI && aRequest.loadInfo.triggeringPrincipal.URI.spec;
-    } else if (aFlags & Ci.nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT) {
-      var previousURI = this.previousURIMap.get(window);
-
-      if (previousURI) {
-        triggeringURL = previousURI.spec;
-      }
-
-      isSameDocument = true;
+    try {
+      originalURL = aRequest.originalURI.spec;
+    } catch (e) {
+      // some requests don't have originalURI and that is fine
     }
 
-  } catch (e) {
-    // some requests don't have originalURI and that is fine
+    triggeringURL = aRequest.loadInfo.triggeringPrincipal.URI && aRequest.loadInfo.triggeringPrincipal.URI.spec;
+  } else if (aFlags & Ci.nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT) {
+    var previousURI = this.previousURIMap.get(window);
+
+    if (previousURI) {
+      triggeringURL = previousURI.spec;
+    }
+
+    isSameDocument = true;
   }
 
   this.previousURIMap.set(window, aURI);

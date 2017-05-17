@@ -1,10 +1,7 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
-  classNameBindings: ['query:is-active', 'hasOngoingVisits:has-ongoing-visits',
-    'isMarkedForDeletion:marked-for-deletion'],
-
-  history: Ember.inject.service('history-sync'),
+  classNameBindings: ['query:is-active', 'hasOngoingVisits:has-ongoing-visits'],
 
   visitsSorting: ['lastVisitedAt:asc'],
   visits: Ember.computed.sort('model.visits', 'visitsSorting'),
@@ -22,22 +19,4 @@ export default Ember.Component.extend({
 
   hasOngoingVisits: Ember.computed.gt('ongoingVisits.length', 0),
 
-  hasNoSortedVisits: Ember.computed.equal('sortedVisits.length', 0),
-
-  actions: {
-    deleteVisit(visit) {
-      this.get('history').deleteVisit(visit.get('id'));
-    },
-    deleteSession() {
-      this.$().fadeOut(500, function() {
-        this.get('history').deleteSession(this.get('model.id'));
-      }.bind(this));
-    },
-    markForDeletion() {
-      this.set("isMarkedForDeletion", true);
-    },
-    unMarkForDeletion() {
-      this.set("isMarkedForDeletion", false);
-    },
-  }
 });

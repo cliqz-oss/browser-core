@@ -384,27 +384,6 @@ var CliqzABTests = {
             case "1100_B":
                 CliqzUtils.setPref('offersHubEnableSwitch', true);
                 break;
-            case "1101_A":
-                CliqzUtils.setPref("modules.history.enabled", false);
-                break;
-            case "1101_B":
-                CliqzUtils.setPref("modules.history.enabled", true);
-                break;
-            case "1102_A":
-                CliqzUtils.setPref("modules.antitracking-blocker.enabled", false);
-                break;
-            case "1102_B":
-                CliqzUtils.setPref("antitrackingBlocklist", "default");
-                CliqzUtils.setPref("modules.antitracking-blocker.enabled", true);
-                break;
-            case "1102_C":
-                CliqzUtils.setPref("antitrackingBlocklist", "cliqz");
-                CliqzUtils.setPref("modules.antitracking-blocker.enabled", true);
-                break;
-            case "1102_D":
-                CliqzUtils.setPref("antitrackingBlocklist", "ghostery");
-                CliqzUtils.setPref("modules.antitracking-blocker.enabled", true);
-                break;
             case "1103_A":
                CliqzUtils.setPref("offersDropdownAdPosition", 'top');
                break;
@@ -652,17 +631,6 @@ var CliqzABTests = {
             case "1100_A":
             case "1100_B":
               CliqzUtils.clearPref("offersHubEnableSwitch");
-              break;
-            case "1101_A":
-            case "1101_B":
-              CliqzUtils.clearPref("modules.history.enabled");
-              break;
-            case "1102_A":
-            case "1102_B":
-            case "1102_C":
-            case "1102_D":
-              CliqzUtils.setPref("modules.antitracking-blocker.enabled", false);
-              CliqzUtils.clearPref("antitrackingBlocklist");
               break;
             case "1103_A":
             case "1103_B":

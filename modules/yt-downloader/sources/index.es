@@ -3,5 +3,5 @@ import Window from './window';
 
 export default {
   Background,
-  Window,
-};
+  Window
+}

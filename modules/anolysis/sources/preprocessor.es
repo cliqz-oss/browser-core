@@ -1,8 +1,7 @@
-import moment from '../platform/moment';
-import UAParser from '../platform/ua-parser';
-import logger from './logger';
-import getSynchronizedDate from './synchronized-date';
-import legacyPreprocessor from './preprocessors/legacy';
+import moment from 'platform/moment';
+import UAParser from 'platform/ua-parser';
+import log from 'anolysis/logging';
+import getSynchronizedDate from 'anolysis/synchronized-date';
 
 
 const ARCHITECTURE = new Set([
@@ -167,7 +166,7 @@ export function parseABTests(abtests) {
     return Object.keys(JSON.parse(abtests));
   } catch (ex) {
     /* Ignore exception */
-    logger.error(`EXCEPTION ${ex} ${ex.stack}`);
+    log(`EXCEPTION ${ex} ${ex.stack}`);
   }
 
   return [];
@@ -192,13 +191,8 @@ export default class {
     // Legacy behavior signal
     if (schema === undefined) {
       // This is a legacy signal that should be aggregated
-      const type = this.getId(signal);
+      const behavior = { type: this.getId(signal) };
 
-      if (Object.prototype.hasOwnProperty.call(legacyPreprocessor, type)) {
-        return Promise.resolve({ behavior: legacyPreprocessor[type](signal) });
-      }
-
-      const behavior = { type };
       Object.keys(signal)
         .filter(key => this.idComponents.indexOf(key) === -1)
         .filter(key => !this.isObject(signal[key]))
@@ -206,14 +200,14 @@ export default class {
           behavior[key] = signal[key];
         });
 
-      return Promise.resolve({ behavior });
+      return Promise.resolve(behavior);
     }
 
     // New signal, with a schema provided.
     // TODO: Build signal from `signal` and `schema`.
     // TODO: Check that the signal is well-formed.
     return Promise.resolve({
-      type: schemaName,
+      id: schemaName,
       behavior: signal,
       meta: {},
     });
@@ -238,7 +232,7 @@ export default class {
 
   // TODO: define 'campaign'
   parseDemographics(signal) {
-    logger.debug('parse demographics');
+    log('parse demographics');
     const channel = signal.channel || this.settings.channel;
 
     // Resulting demographic factors
@@ -324,7 +318,7 @@ export default class {
         distribution = `Other/c=${channel} d=${rawDistribution}`;
       }
     }
-    logger.debug(`distribution ${JSON.stringify(distribution)}`);
+    log(`distribution ${JSON.stringify(distribution)}`);
 
     // ---------------------------------------------------------------------- //
     // Parse installDate
@@ -337,7 +331,7 @@ export default class {
       // format there.
       installDate = momentInstallDate.format('YYYY/MM/DD');
       const currentDate = getSynchronizedDate();
-      if (signal.install_date < 16129 || momentInstallDate.isAfter(currentDate, 'day')) {
+      if (signal.install_date < 16129 || momentInstallDate.isAfter(currentDate)) {
         // Some install date are not possible and should be considered as
         // outlier:
         // - In the past (before Cliqz existed)
@@ -345,7 +339,7 @@ export default class {
         installDate = `Other/${installDate}`;
       }
     }
-    logger.debug(`installDate ${JSON.stringify(installDate)}`);
+    log(`installDate ${JSON.stringify(installDate)}`);
 
     // ---------------------------------------------------------------------- //
     // Parse platform
@@ -408,7 +402,7 @@ export default class {
         platform = `${platform}/${splittedVersion.join('.').trim()}`;
       }
     }
-    logger.debug(`platform ${JSON.stringify(platform)}`);
+    log(`platform ${JSON.stringify(platform)}`);
 
     // ---------------------------------------------------------------------- //
     // Parse product
@@ -463,10 +457,10 @@ export default class {
       if (parsedVersion) {
         product = `${product}/${parsedVersion.join('.')}`;
       }
-      logger.debug(`product ${JSON.stringify(product)}`);
+      log(`product ${JSON.stringify(product)}`);
     } catch (ex) {
       /* Wrong data for product */
-      logger.error(`exception ${ex} ${ex.stack}`);
+      log(`exception ${ex} ${ex.stack}`);
     }
 
     // ---------------------------------------------------------------------- //

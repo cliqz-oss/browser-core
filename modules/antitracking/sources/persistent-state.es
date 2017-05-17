@@ -18,10 +18,6 @@ function saveRecord(id, data) {
   sto.setItem('cliqz.dbattrack.' + id, data);
 };
 
-function deleteRecord(id) {
-  return sto.removeItem(`cliqz.dbattrack.${id}`);
-}
-
 class PersistenceHandler {
   constructor(name, target, dirty) {
     this.name = name;
@@ -152,10 +148,6 @@ export class LazyPersistentObject {
     this.dirty = true;
     this.save();
   }
-}
-
-export function deletePersistantObject(name) {
-  return deleteRecord(name);
 }
 
 export class PersistentObject {

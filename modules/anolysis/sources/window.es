@@ -1,5 +1,4 @@
 import { utils } from '../core/cliqz';
-import events from '../core/events';
 import background from './background';
 
 
@@ -14,12 +13,6 @@ export default class {
     }
 
     this.generateDemographicsSignal(this.window);
-
-    // When anolysis is initialized, we will send the env signal again
-    this.onPrefChangeEvent = events.subscribe(
-      'anolysis:initialized',
-      () => this.generateDemographicsSignal(this.window),
-    );
   }
 
   generateDemographicsSignal(window) {
@@ -27,7 +20,6 @@ export default class {
     // preprocessor.
     const navigator = window.navigator;
     background.actions.handleTelemetrySignal({
-      anolysis: true,
       type: 'environment',
       agent: navigator.userAgent,
       distribution: utils.getPref('distribution', ''),
@@ -39,8 +31,5 @@ export default class {
   }
 
   unload() {
-    if (this.onPrefChangeEvent) {
-      this.onPrefChangeEvent.unsubscribe();
-    }
   }
 }

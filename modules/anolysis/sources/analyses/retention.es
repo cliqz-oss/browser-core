@@ -1,12 +1,11 @@
 /* eslint-disable no-param-reassign */
 
-import moment from '../../platform/moment';
+import moment from 'platform/moment';
 import getSynchronizedDate, {
   DATE_FORMAT,
   DAY_FORMAT,
   WEEK_FORMAT,
-  MONTH_FORMAT } from '../synchronized-date';
-import logger from '../logger';
+  MONTH_FORMAT } from 'anolysis/synchronized-date';
 
 
 /**
@@ -42,7 +41,6 @@ function generateRetention({
 export function generateDailyRetention(state, formattedDate) {
   const date = moment(formattedDate, DATE_FORMAT);
   const currentDay = date.format(DAY_FORMAT);
-  logger.debug(`Retention daily for ${currentDay}`);
 
   if (state[currentDay] === undefined) {
     state[currentDay] = [formattedDate];
@@ -64,7 +62,6 @@ export function generateDailyRetention(state, formattedDate) {
 export function generateWeeklyRetention(state, formattedDate) {
   const date = moment(formattedDate, DATE_FORMAT);
   const currentWeek = date.format(WEEK_FORMAT);
-  logger.debug(`Retention weekly for ${currentWeek}`);
 
   if (state[currentWeek] === undefined) {
     state[currentWeek] = [formattedDate];
@@ -89,7 +86,6 @@ export function generateMonthlyRetention(state, formattedDate) {
   const date = moment(formattedDate, DATE_FORMAT);
   const currentWeek = date.format(WEEK_FORMAT);
   const currentMonth = date.format(MONTH_FORMAT);
-  logger.debug(`Retention monthly for ${currentMonth}`);
 
   if (state[currentMonth] === undefined) {
     state[currentMonth] = [currentWeek];
@@ -114,7 +110,6 @@ export default function generateRetentionSignals(retentionState) {
   const date = getSynchronizedDate();
   const formattedDate = date.format(DATE_FORMAT);
   const signals = [];
-  logger.debug(`Retention for ${formattedDate}`);
 
   // Generate all kinds of retentions.
   [

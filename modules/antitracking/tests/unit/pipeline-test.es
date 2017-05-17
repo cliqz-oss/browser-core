@@ -139,21 +139,12 @@ export default describeModule('antitracking/pipeline',
     describe('#execute', () => {
       let p;
 
-      const expectedKeys = new Set(['redirectTo', 'block', 'modifyHeader']);
-
-      function expectEmptyResponse(resp) {
-        const keys = Object.keys(resp).filter((k) => !expectedKeys.has(k));
-        chai.expect(keys).to.eql([]);
-      }
-
       beforeEach(function() {
         p = new Pipeline();
       });
 
       it('returns object for empty pipeline', () => {
-        const response = p.execute('open');
-        chai.expect(response).to.not.be.null;
-        expectEmptyResponse(response);
+        chai.expect(p.execute('open')).to.eql({});
       });
 
       it('calls functions in pipeline one with mutible state argument', () => {
@@ -178,7 +169,7 @@ export default describeModule('antitracking/pipeline',
         const resp = p.execute(stage, {});
         chai.expect(fn1Called).to.eql(1);
         chai.expect(fn2Called).to.eql(1);
-        expectEmptyResponse(resp);
+        chai.expect(resp).to.eql({});
       });
 
       it('stops when a function returns false', () => {
@@ -201,7 +192,7 @@ export default describeModule('antitracking/pipeline',
         const resp = p.execute(stage, {});
         chai.expect(fn1Called).to.eql(1);
         chai.expect(fn2Called).to.eql(0);
-        expectEmptyResponse(resp);
+        chai.expect(resp).to.eql({});
       });
 
       it('returns the final value of the result', () => {
@@ -221,8 +212,7 @@ export default describeModule('antitracking/pipeline',
         p.add(stage, fn2);
 
         const resp = p.execute(stage, {});
-        chai.expect(resp.fn1).to.eql(5);
-        chai.expect(resp.fn2).to.eql(-4);
+        chai.expect(resp).to.eql({fn1: 5, fn2: -4});
       });
 
       it('stops when a function throws', () => {
@@ -247,7 +237,7 @@ export default describeModule('antitracking/pipeline',
         const resp = p.execute(stage, {});
         chai.expect(fn1Called).to.eql(1);
         chai.expect(fn2Called).to.eql(0);
-        chai.expect(resp.beforeError).to.eql(1);
+        chai.expect(resp).to.eql({beforeError: 1});
       });
     });
   }

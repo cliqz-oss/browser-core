@@ -12,8 +12,7 @@ function log(msg){
 // returns the super type of a result - type to be consider for UI creation
 function getSuperType(result){
     if(result.type == 'bm' && result.snippet && result.template){
-        // backwards compatibility (most generic type, requires only url)
-        return utils.getKnownType(result.template.toLowerCase()) || 'bm';
+        return utils.getKnownType(result.template) || 'bm';  // backwards compatibility (most generic type, requires only url)
     }
     return null;
 }

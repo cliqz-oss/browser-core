@@ -1,4 +1,4 @@
-System.register([], function (_export) {
+System.register("notifications/lib/deep-equal", [], function (_export) {
   "use strict";
 
   _export("default", require('deep-equal'));

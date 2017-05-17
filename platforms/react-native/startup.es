@@ -6,16 +6,14 @@ import bridge from './native-bridge';
 import CliqzAttrack from '../antitracking/attrack';
 import CliqzAdblock from '../adblocker/adblocker';
 import { setGlobal } from '../core/kord/inject';
-import utils from '../core/utils';
-import ABTests from "../core/ab-tests";
 
 var app;
 
 const startup = loadPrefs().then(() => {
   app = new App();
-  setGlobal(app);
   return app.load();
 }).then(() => {
+  setGlobal(app);
   bridge.registerAction('antitracking:getTrackerListForTab', CliqzAttrack.getTrackerListForTab);
   bridge.registerAction('antitracking:isSourceWhitelisted', (domain) => {
     return CliqzAttrack.isSourceWhitelisted(domain)
@@ -43,13 +41,6 @@ const startup = loadPrefs().then(() => {
       console.log('toggleUrl -- adblocker is undefined')
     }
   });
-  return Promise.resolve(app);
-}).then(() => {
-  // get config hourly
-  utils.setInterval(utils.fetchAndStoreConfig, 60 * 60 * 1e3);
-  utils.fetchAndStoreConfig();
-  // load ABtests
-  ABTests.check();
   return Promise.resolve(app);
 });
 

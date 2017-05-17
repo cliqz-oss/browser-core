@@ -1,8 +1,5 @@
 /* eslint no-bitwise: off */
 
-import logger from './logger';
-
-
 // Supported SOCKS version
 export const SOCKS5 = 5;
 
@@ -84,7 +81,6 @@ export function parseRequest(data) {
       command !== COMMAND_TYPE.TCP_CONNECT &&
       command !== COMMAND_TYPE.UDP_ASSOCIATE) {
     // SERVER_REPLY.COMMAND_NOT_SUPPORTED
-    logger.error(`socks-protocol: command not supported: ${command}`);
     return undefined;
   }
 
@@ -99,6 +95,7 @@ export function parseRequest(data) {
 
     // Variable length (stored in first octet)
     case ADDRESS_TYPE.DOMAIN_NAME:
+      // NOTE: It should never happen when firefox is proxying
       // data[4] == length
       address = String.fromCharCode.apply(null, data.slice(5, 5 + data[4]));
       break;
@@ -109,8 +106,8 @@ export function parseRequest(data) {
       break;
 
     default:
+      // TODO: throw error
       // SERVER_REPLY.ADDRESS_TYPE_NOT_SUPPORTED
-      logger.error(`socks-protocol address type not supported: ${addressType}`);
       return undefined;
   }
 

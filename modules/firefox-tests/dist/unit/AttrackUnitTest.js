@@ -64,8 +64,8 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
 
       initialCookie = CliqzUtils.getPref('attrackBlockCookieTracking');
       initialQS = CliqzUtils.getPref('attrackRemoveQueryStringTracking');
-      attrack.config.cookieEnabled = false;
-      attrack.config.qsEnabled = false;
+      CliqzUtils.setPref('attrackBlockCookieTracking', false);
+      CliqzUtils.setPref('attrackRemoveQueryStringTracking', false);
 
       attrack.recentlyModified.clear();
 
@@ -108,7 +108,7 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
 
           describe('cookie blocking disabled', function() {
             beforeEach(function() {
-              attrack.config.cookieEnabled = false;
+              CliqzUtils.setPref('attrackBlockCookieTracking', false);
             });
 
             it('allows all cookies', function() {
@@ -120,7 +120,7 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
 
           describe('cookie blocking enabled', function() {
             beforeEach(function() {
-              attrack.config.cookieEnabled = true;
+              CliqzUtils.setPref('attrackBlockCookieTracking', true);
             });
 
             it('blocks third party cookies', function() {
@@ -185,7 +185,7 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
         context('QS blocking', function() {
 
           beforeEach(function() {
-            attrack.config.qsEnabled = true;
+            CliqzUtils.setPref('attrackRemoveQueryStringTracking', true);
           });
 
           it('allows query strings on domains not in the tracker list', function() {
@@ -202,8 +202,8 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
             beforeEach(function() {
               attrack.qs_whitelist.addSafeToken(tracker_hash, "");
               attrack.config.tokenDomainCountThreshold = 2;
+              attrack.blockLog.clear();
               attrack.initPipeline();
-              attrack.pipelineSteps.tokenChecker.tokenDomain.clear();
             });
 
             it('allows QS first time on tracker', function() {
@@ -300,7 +300,7 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
       var uid = '04C2EAD03BAB7F5E-2E85855CF4C75134';
 
       beforeEach(function() {
-        attrack.config.qsEnabled = true;
+        CliqzUtils.setPref('attrackRemoveQueryStringTracking', true);
         attrack.qs_whitelist.addSafeToken(md5('tracker.com').substring(0, 16), '');
         attrack.config.tokenDomainCountThreshold = 0; // block first time
         attrack.initPipeline();

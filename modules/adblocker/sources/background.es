@@ -11,14 +11,11 @@ import CliqzADB,
 import inject from '../core/kord/inject';
 import FilterEngine from './filters-engine';
 
-
 function isAdbActive(url) {
   return adbEnabled() &&
-         CliqzADB.adblockInitialized &&
          !CliqzADB.adBlocker.isDomainInBlacklist(url) &&
          !CliqzADB.adBlocker.isUrlInBlacklist(url);
 }
-
 
 export default background({
   humanWeb: inject.module('human-web'),
@@ -43,21 +40,17 @@ export default background({
     'control-center:adb-optimized': () => {
       utils.setPref(ADB_PREF_OPTIMIZED, !utils.getPref(ADB_PREF_OPTIMIZED, false));
     },
-
     'control-center:adb-activator': (data) => {
-      if (CliqzADB.adblockInitialized) {
-        const isUrlInBlacklist = CliqzADB.adBlocker.isUrlInBlacklist(data.url);
-        const isDomainInBlacklist = CliqzADB.adBlocker.isDomainInBlacklist(data.url);
+      const isUrlInBlacklist = CliqzADB.adBlocker.isUrlInBlacklist(data.url);
+      const isDomainInBlacklist = CliqzADB.adBlocker.isDomainInBlacklist(data.url);
 
-        // We first need to togle it off to be able to turn it on for the
-        // right thing - site or domain
-        if (isUrlInBlacklist) {
-          CliqzADB.adBlocker.toggleUrl(data.url);
-        }
+      // We first need to togle it off to be able to turn it on for the right thing - site or domain
+      if (isUrlInBlacklist) {
+        CliqzADB.adBlocker.toggleUrl(data.url);
+      }
 
-        if (isDomainInBlacklist) {
-          CliqzADB.adBlocker.toggleUrl(data.url, true);
-        }
+      if (isDomainInBlacklist) {
+        CliqzADB.adBlocker.toggleUrl(data.url, true);
       }
 
       if (data.status === 'active') {
@@ -71,15 +64,12 @@ export default background({
         }
       }
     },
-
     prefchange: (pref) => {
       if (pref === ADB_USER_LANG || pref === ADB_USER_LANG_OVERRIDE) {
-        if (CliqzADB.adblockInitialized) {
-          // change in user lang pref, reload the filters
-          CliqzADB.adBlocker.engine = new FilterEngine();
-          CliqzADB.adBlocker.listsManager.initLists();
-          CliqzADB.adBlocker.listsManager.load();
-        }
+        // change in user lang pref, reload the filters
+        CliqzADB.adBlocker.engine = new FilterEngine();
+        CliqzADB.adBlocker.listsManager.initLists();
+        CliqzADB.adBlocker.listsManager.load();
       }
     },
   },

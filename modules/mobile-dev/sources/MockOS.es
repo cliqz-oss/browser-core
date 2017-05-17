@@ -29,7 +29,6 @@ function isReady() {
   events.pub('mobile-browser:notify-preferences', {
     incognito: false,
     showConsoleLogs: true,
-    suggestionsEnabled: true,
   });
   events.pub('mobile-browser:urlbar-focus');
   // notify tests
@@ -53,7 +52,6 @@ function getTopSites() {
 function browserAction() {
 }
 function autocomplete() {}
-function showQuerySuggestions() {}
 function notifyQuery() {}
 function pushTelemetry() {}
 function copyResult() {}
@@ -130,10 +128,6 @@ const MockOS = {
         break;
       case 'shareLocation':
         shareLocation();
-        break;
-      case 'showQuerySuggestions':
-        showQuerySuggestions();
-        break;
       default:
         break;
 

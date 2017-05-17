@@ -1,9 +1,11 @@
-import CliqzUtils from '../core/utils';
-import PeerComm from './main';
-import YoutubeApp from './apps/youtube';
-import TabsharingApp from './apps/tabsharing';
-import PingPongApp from './apps/pingpong';
-import SimpleStorage from '../core/simple-storage';
+import CliqzUtils from 'core/utils';
+import PeerComm from 'pairing/main';
+import YoutubeApp from 'pairing/apps/youtube';
+import TabsharingApp from 'pairing/apps/tabsharing';
+import PingPongApp from 'pairing/apps/pingpong';
+import SimpleStorage from 'core/simple-storage';
+
+import { createHiddenWindow, destroyHiddenWindow } from 'p2p/utils';
 
 // TODO: remove this!
 const CustomizableUI = Components.utils.import('resource:///modules/CustomizableUI.jsm', null).CustomizableUI;
@@ -14,7 +16,7 @@ export default {
   init() {
     if (CliqzUtils.getPref('connect', false) === false) {
       this.enabled = false;
-      return Promise.resolve();
+      return;
     }
 
     const pingpong = new PingPongApp();
@@ -41,6 +43,14 @@ export default {
       CliqzUtils.getWindow().gBrowser.addTab(tab);
     });
     PeerComm.addObserver('TABSHARING', tabsharing);
+    this.storage = new SimpleStorage();
+    const storagePromise = this.storage.open('data', 'cliqz/pairing', true, true);
+    Promise.all([createHiddenWindow(), storagePromise])
+      .then(([w]) => {
+        this.window = w;
+        return PeerComm.init(this.storage, this.window);
+      });
+
 
     CustomizableUI.createWidget({
       id: BTN_ID,
@@ -57,18 +67,15 @@ export default {
         });
       },
     });
-
     this.enabled = true;
-
-    this.storage = new SimpleStorage();
-    return this.storage.open('data', ['cliqz', 'pairing'], true, true)
-      .then(() => PeerComm.init(this.storage));
   },
   unload() {
     if (this.enabled) {
       CustomizableUI.destroyWidget(BTN_ID);
       PeerComm.unload();
       this.storage.close();
+      destroyHiddenWindow(this.window);
+      this.window = null;
     }
   },
 

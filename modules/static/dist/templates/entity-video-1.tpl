@@ -1,7 +1,9 @@
 <div class="cqz-result-h1 cqz-result-padding ez-video">
   {{#with data}}
     <div class="cqz-ez-title" extra="title"><a href="{{url}}" extra="title">{{title}}{{#if extra.name_cat }} - {{ local extra.name_cat }} {{/if}}</a></div>
-    {{> 'partials/ez-url' }}
+    <span class="cqz-ez-subtitle"  extra="url">
+      {{ emphasis urlDetails.friendly_url text 2 true }}
+    </span>
     <div class="entity-stories">
       {{#each deepResults}}
         {{#if (logic type '===' 'videos')}}

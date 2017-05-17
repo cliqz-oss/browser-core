@@ -8,11 +8,8 @@ var __CliqzUtils = function() { // (_export) {
                 VERSION: '0.1',
                 prefs : {},
                 CONFIG_PROVIDER: '{{CONFIG_PROVIDER}}',
-                debug: false,
                 log: function(msg, key) {
-                    if (CliqzUtils.debug) {
-                        console.log(msg, key);
-                    }
+                    console.log(msg, key);
                 },
                 getPref: function(label, defaultValue) {
                     if (CliqzUtils.prefs.hasOwnProperty(label)) {
@@ -49,7 +46,7 @@ var __CliqzUtils = function() { // (_export) {
                 setTimeout: function(callback, time, args) {
                 },
                 clearTimeout: function(id) {
-                    clearTimeout(id);
+
                 },
                 setInterval: function(callback, time) {
 
@@ -114,7 +111,7 @@ var __CliqzUtils = function() { // (_export) {
                             }
                         } catch (e) {};
                     }, function error(res) {
-                        CliqzUtils.log('Error loading config. ');
+                        _log('Error loading config. ');
                     }, 5000);
                 },
                 getWindow: function() {

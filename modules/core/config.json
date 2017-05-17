@@ -1,10 +1,8 @@
 {
   "bower_components": [
-    "system.js/dist/system.js",
     "handlebars/handlebars.js",
     "es6-promise/es6-promise.js",
     "core.js/client/core.min.js",
-    "whatwg-fetch/fetch.js",
-    "mathjs/dist/math.min.js"
+    "whatwg-fetch/fetch.js"
   ]
 }

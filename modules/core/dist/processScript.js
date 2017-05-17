@@ -286,7 +286,7 @@ function onDOMWindowCreated(ev) {
       send({
         windowId: windowId,
         payload: {
-          module: "core",
+          module: "human-web",
           action: action,
           args: [
             {
