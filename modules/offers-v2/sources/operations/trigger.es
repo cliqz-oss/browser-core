@@ -8,6 +8,7 @@ ops['$watch_requests'] = function(args, eventLoop, context) {
   return new Promise((resolve, reject) => {
     if(args.length < 1) {
       reject(new Error('invalid args'));
+      return;
     }
 
     var domain = args[0];
@@ -33,6 +34,7 @@ ops['$activate_subtriggers'] = function(args, eventLoop, context) {
 
     if(args.length < 1) {
       reject(new Error('invalid args'));
+      return;
     }
 
     var parentTriggerId = args[0];

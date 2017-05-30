@@ -699,6 +699,15 @@ html {
          background-image: url("../images/refresh-black.svg");
          color: #1C9C6B;
      }
+
+     #tips {
+       float: right;
+       color: #595959;
+       font-size: 14px;
+       cursor: pointer;
+       margin-right: 8px;
+       font-weight: 300;
+     }
 }
 
 .accordion-section-title {

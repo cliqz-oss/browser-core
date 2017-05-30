@@ -1,0 +1,147 @@
+<h2>Test guidelines</h2>
+
+<h3>Name convention</h3>
+
+To create a unit test there you should create a folder inside of the module folder that
+you want to test and name it tests (should be at the same level than <strong>sources</strong> and
+<strong>dist</strong>).
+
+The files you create in there should follow the following convention:
+
+<strong>[sub_module_name]-test.es</strong>
+
+We use the <strong>mocha</strong> test framework together with <a href="http://chaijs.com">chai assertion library</a>.
+
+<h3>How to run</h3>
+
+For executing the tests you can execute:
+
+```
+./fern.js test configs/browser.json
+```
+
+and this will run all the tests for you using the <strong>configs/browser.json</strong> configuration.
+If you want to run only tests where the file paths contains a substring N you can
+execute with the option --fgrep
+
+```
+./fern.js test configs/browser.json --fgrep offers
+```
+
+For the offers case the above command will do the trick.
+
+<h3>how to implement them</h3>
+
+The following code snipet shows the basic implementation and the comments on it
+explain what they mean and how to implement a very basic one.
+
+```
+/* global chai */
+/* global describeModule */
+/* global require */
+
+// describe the (sub)module name we are testing, in this case is the offers_db
+// inside of the offers-v2 module.
+//
+export default describeModule('offers-v2/offers_db',
+  // in this first part we define all the possible mocks we will use on the tests,
+  // this should be defined as a dictionary of
+  // <path_to_module> -> {variable | class | function}
+  // When compiling the tests all the reference to those elements will be mocked up.
+  () => ({
+    // here we are mocking up the logging handler, so everywhere that is being imported
+    // will take the following implementation. In this case is empty and dummy,
+    // note that if your code use any of the functions exposed by the class / object
+    // will throw an exception since it is not defined here.
+    './logging_handler': {
+      default: {}
+    },
+    // in this case we are defining the variable isChromium from the core/platform
+    // module as false, since in this particular case is the only one we are using
+    // from one of the includes on our dependencies.
+    'core/platform': {
+      isChromium: false
+    },
+    // we are defining here the default class for the db_helper, note that here we
+    // are not defining the name of the class but the interface exported.
+    // We also defined 2 functions (2 mocked functions) method1 and method2.
+    './db_helper': {
+      default: class {
+        method1() {
+          return 1;
+        }
+        method2() {
+          return null;
+        }
+      }
+    }
+  }),
+  () => {
+    // Here we define all the tests for this particular module.
+    // We can group them using describe / context / it, as nested as we want, trying
+    // to keep a human readable logic, on the following case we define one set of
+    // tests named "constructor" where we have 2 context: "with argument" and
+    // "without argument", where inside of them we check some other cases (it(...)).
+    //
+    // Every context (describe section as well) can have global variables but is
+    // important that each of the tests are isolated from each other, since we cannot
+    // ensure the ordering of the execution, we should not have dependencies between them.
+    // If you need to execute on common code before each test (it block) you can
+    // use the beforeEach method as shown below, the same applies if you need to
+    // execute some common code after each test (method: afterEach(...)).
+    //
+    // For more information about how to assert check the chai API documentation.
+    //
+    describe('OffersDB', function() {
+      let OffersDB;
+
+      beforeEach(function () {
+        // this is the way we can load the current module, the one is at
+        // the above descrubeModule part, this will return a reference to the
+        // object (not instance) that we will need later to construct an instance
+        // of it. Note that the name we define here is not strictly the same than
+        // the one defined on offers_db module, but it will be good to keep the same
+        // for consistency.
+        OffersDB = this.module().default;
+      });
+
+      describe('#constructor', function () {
+        context('with argument', function () {
+          let db;
+
+          beforeEach(function () {
+            db = new OffersDB({});
+          });
+
+          it('sets dbDirty to false', function () {
+            chai.expect(db).to.have.property('dbDirty').that.equals(false);
+          });
+
+          it('wraps db with DbHelper', function () {
+            // if you need to load a different interface you can use the *deps*
+            // method instead of *module* as used before. In this particular case
+            // we are saying that DbHelper will be the interface used to build objects
+            // of type defined as default on ./db_helper (this case is a mock).
+            const DbHelper = this.deps('./db_helper').default;
+
+            // if you need to dynamically override a method you can do it using
+            // the prototype as follow:
+            DbHelper.prototype.test = () => 1
+
+            chai.expect(db).to.have.property('db').that.is.instanceOf(DbHelper);
+            chai.expect(db.db.test()).to.equal(1)
+          })
+        });
+
+        context('without argument', function () {
+          it('throw error', function () {
+            chai.expect(function () {
+              new OffersDB();
+            }).to.throw(Error)
+          });
+        })
+      });
+    })
+  }
+);
+```

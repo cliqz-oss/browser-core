@@ -22,6 +22,7 @@ class ExtensionApp extends React.Component {
   componentDidMount() {
     startup.then((app) => {
       this.app = app;
+      global.app = app;
       setTimeout(() => {
         const modules = this.app.modules().map((m) => {
             return {

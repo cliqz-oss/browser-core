@@ -2,7 +2,9 @@
 <div class="cqz-result-h1 ez-liga cqz-result-padding">
   {{#with data}}
     <div class="cqz-ez-title" selectable='' extra="title"><a href="{{../url}}" extra="title">{{extra.leagueName}}</a></div>
-    <div class="cqz-result-url overflow" extra="url">{{../urlDetails.friendly_url}}</div>
+    {{#with ..}}
+      {{> 'partials/ez-url'}}
+    {{/with}}
     <div class="ez-liga-tableHeader">
       <table>
         <thead>

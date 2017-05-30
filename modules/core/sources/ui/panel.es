@@ -2,7 +2,7 @@ import utils from '../utils';
 import maybe from '../helpers/maybe';
 
 export default class {
-  constructor(window, url, id, type, autohide = true, actions = {}, version = 0) {
+  constructor(window, url, id, type, autohide = true, actions = {}, version = 0, onHidingCallback) {
     this.window = window;
     this.document = this.window.document;
     this.url = url;
@@ -14,7 +14,7 @@ export default class {
     this.version = version;
 
     this.onShowing = this.onShowing.bind(this);
-    this.onHiding = this.onHiding.bind(this);
+    this.onHiding = this.onHiding.bind(this, onHidingCallback);
     this.onMouseOver = this.onMouseOver.bind(this);
     this.onMouseOut = this.onMouseOut.bind(this);
     this.onMessage = this.onMessage.bind(this);
@@ -67,8 +67,9 @@ export default class {
 
   onMessage(event) {
     const data = JSON.parse(event.data);
-    if ((data.target === 'cliqz-control-center' && data.origin === 'iframe') ||
-      (data.target === 'cliqz-video-downloader' && data.origin === 'iframe')) {
+    if ((data.target === 'cliqz-control-center' &&
+       data.origin === 'iframe') || (data.target === 'cliqz-offers-cc' &&
+       data.origin === 'iframe') || (data.target === 'cliqz-video-downloader' && data.origin === 'iframe')) {
       const message = data.message;
       this.actions[message.action](message.data);
     }
@@ -106,15 +107,20 @@ export default class {
     }, 200);
   }
 
-  onHiding() {
+  onHiding(cb) {
     this.panel.querySelector('vbox').removeChild(this.iframe);
+    let shownDurationTime = new Date() - this.startShowingAt;
     utils.telemetry({
       type: this.type,
       version: this.version,
       action: 'hide',
-      show_duration: new Date() - this.startShowingAt
+      show_duration: shownDurationTime
     });
 
+    this.shownDurationTime = shownDurationTime;
+    if (typeof cb === "function") {
+      cb();
+    }
     maybe(this, 'wrapperPanel').then(panel => {
       panel.removeEventListener('mouseover', this.onMouseOver);
     });

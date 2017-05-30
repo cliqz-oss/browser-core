@@ -497,8 +497,6 @@ TESTS.AttrackTest = function (CliqzUtils) {
                     chai.expect(Object.keys(plain.tps)).to.have.length(1);
                     chai.expect(plain.tps).to.have.property('example.com');
                     chai.expect(plain.tps['example.com']['c']).to.equal(2);
-                    chai.expect(plain.tps['example.com']['paths']).to.have.length(2);
-                    chai.expect(plain.tps['example.com']['paths']).to.eql(paths.map(page_load._shortHash));
                 });
 
                 it('should prune all zero stats', function() {
@@ -513,7 +511,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
                     tps[1]['has_qs'] = 1;
 
                     var plain = page_load.asPlainObject();
-                    chai.expect(plain.tps['example.com']).to.eql({'c': 2, 'has_qs': 1, 'paths': paths_hash});
+                    chai.expect(plain.tps['example.com']).to.eql({'c': 2, 'has_qs': 1});
                 });
             });
 

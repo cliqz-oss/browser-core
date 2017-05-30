@@ -70,6 +70,19 @@ function saveRecord(id, data) {
   stmt.executeAsync();
 };
 
+function deleteRecord(id) {
+  if (!dbConn) {
+    init();
+  }
+  if (id.startsWith('cliqz.dbattrack.')) {
+    id = id.substring('cliqz.dbattrack.'.length);
+  }
+
+  const stmt = dbConn.createAsyncStatement("DELETE FROM attrack WHERE id = :id")
+  stmt.params.id = id;
+  stmt.executeAsync();
+}
+
 export default {
   getItem: function(id) {
     return new Promise( (resolve, reject) => {
@@ -78,6 +91,9 @@ export default {
   },
   setItem: function(id, value) {
     saveRecord(id, value);
+  },
+  removeItem: function(id) {
+    deleteRecord(id);
   },
   setObject(key, object) {
     this.setItem(key, JSON.stringify(object));

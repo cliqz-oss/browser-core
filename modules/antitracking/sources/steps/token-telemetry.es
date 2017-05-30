@@ -109,7 +109,7 @@ export default class {
     // send tokens every 5 minutes
     let data = {},
         hour = datetime.getTime(),
-        limit = Object.keys(this.tokens).length / 12;
+        limit = Math.floor(Object.keys(this.tokens).length / 12) || 1;
 
     // sort tracker keys by lastSent, i.e. send oldest data first
     let sortedTrackers = Object.keys(this.tokens).sort((a, b) => {

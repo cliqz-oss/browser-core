@@ -22,7 +22,10 @@ var jsAPI = {
     }
   },
   getLogoFromUrl: function(url) {
-    return CliqzUtils.getLogoDetails(CliqzUtils.getDetailsFromUrl(url));
+    const urlDetails = CliqzUtils.getDetailsFromUrl(url);
+    const logoDetails = CliqzUtils.getLogoDetails(urlDetails);
+    logoDetails.domain = urlDetails.name;
+    return logoDetails;
   },
   setClientPreferences: function(prefs) {
     // clear cache with every visit to tab overiew and settings

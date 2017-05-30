@@ -1,7 +1,7 @@
 <!-- shortDescription.tpl -->
-{{#with data}}
+{{#if data}}
     <div extra="des" class="card__description">
-        {{ emphasis this query 2 true }}
+        {{{ emphasis data query 2 true }}}
     </div>
-{{/with}}
+{{/if}}
 <!-- end shortDescription.tpl -->

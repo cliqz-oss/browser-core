@@ -6,6 +6,9 @@ class ProviderAutoCompleteSearch {
     this.search = new Search({
       successCode: Components.interfaces.nsIAutoCompleteResult.RESULT_SUCCESS,
     });
+    // in some cases this might end up un-initialized althought the
+    // urlbar is focused
+    utils.ACproviderInitialized = true;
   }
 
   startSearch(searchString, searchParam, previousResult, listener){

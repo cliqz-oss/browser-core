@@ -1,18 +1,24 @@
-<a class="visit" href={{model.url}} title="{{model.title}}" {{action "open" preventDefault=true}}>
-  {{cliqz-logo model=model.contact.logo tagName="span" class=logoclass}}
-
+{{#unless hasNoSortedVisits}}
+  <button class="delete-visit-btn" {{action "deleteVisit" bubbles=false}}
+    {{action "markForDeletion" on="mouseEnter"}} title="{{t 'history.delete-this-page'}}"
+    {{action "unMarkForDeletion" on="mouseLeave"}}>
+  </button>
+{{/unless}}
+  <span {{action 'sendTelemetry' 'logo'}}>
+    {{cliqz-logo model=model.contact.logo tagName="span" class=logoclass}}
+  </span>
   {{#if logoclass}}
     <div>
-      <span class="domain">
+      <span class="domain" {{action 'sendTelemetry' 'header_url'}}>
         {{model.contact.domain}}
       </span>
     </div>
   {{/if}}
 
-  <div>
+  <div class="visit-content">
     <span class="title">
       {{#if keyword}}
-        <span class="keyword">
+        <span class="keyword" {{action 'sendTelemetry' 'query'}}>
           <img src="./assets/images/mag-glass-dark.svg"/>
           {{keyword}}
         </span>
@@ -21,22 +27,25 @@
         {{/unless}}
       {{/if}}
       {{#unless isCliqz}}
-        {{highlight model.title query}}
+        <span {{action 'sendTelemetry' 'title'}}>
+          {{highlight model.title query}}
+        </span>
       {{/unless}}
     </span>
 
-    <span class="url">
+    <span class="url" {{action 'sendTelemetry' 'url'}}>
       {{#unless isCliqz}}
         {{highlight (url model.url) query}}
       {{/unless}}
     </span>
 
-    <span class="visited-at">
-      {{#if isHovered}}
-        {{moment-format model.lastVisitedAt 'HH:mm LL' }}
-      {{else}}
-        {{moment-from-now model.lastVisitedAt interval=60000}}
+    <span class="visited-at" {{action 'sendTelemetry' 'timestamp'}}>
+      {{#if model.lastVisitedAt}}
+        {{#if isHovered}}
+          {{moment-format model.lastVisitedAt 'HH:mm LL' }}
+        {{else}}
+          {{moment-from-now model.lastVisitedAt interval=60000}}
+        {{/if}}
       {{/if}}
     </span>
   </div>
-</a>

@@ -40,6 +40,7 @@ export class UIFilterRulesEvaluator {
       not_added_mt: this._notAddedMt.bind(this),
       not_created_last_secs: this._notCreatedLastSecs.bind(this),
       not_timedout_mt: this._notTimedoutMt.bind(this),
+      not_diplayed_mt: this._notDisplayedMt.bind(this),
     }
   }
 
@@ -115,9 +116,23 @@ export class UIFilterRulesEvaluator {
   _notClosedMt(offerID, notClosedMt) {
     const timesClosed = this.offersHistory.getHistorySignal(offerID,
                                                             HistorySignalID.HSIG_OFFER_CLOSED);
+
     if (timesClosed >= notClosedMt) {
       linfo('_notClosedMt: offer closed more than ' + notClosedMt +
             ' (' + timesClosed + ')');
+      return false;
+    }
+    return true;
+  }
+  
+  _notDisplayedMt(offerID, notDisplayedMt) {
+
+    const timesDisplayed = this.offersHistory.getHistorySignal(offerID,
+                                                            HistorySignalID.HSIG_OFFER_DISPLAYED);
+
+    if (timesDisplayed >= notDisplayedMt) {
+      linfo('_notDisplayedMt: offer displayed more than ' + notDisplayedMt +
+            ' (' + timesDisplayed + ')');
       return false;
     }
     return true;

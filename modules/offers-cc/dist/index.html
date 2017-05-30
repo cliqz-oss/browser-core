@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Offers Control Center</title>
+    <!--<link href="styles/styles.css" rel="stylesheet">-->
+    <script>
+        var node = document.createElement("link");
+        node.rel = "stylesheet";
+        node.href = 'styles/styles.css?' + Math.floor(Math.random() * 999999999);
+        document.getElementsByTagName("head")[0].appendChild(node);
+    </script>
+    <script src="../webextensions-shim.js"></script>
+    <script src="../bower_components/system.js/dist/system.js"></script>
+    <script src="../bower_components/handlebars/handlebars.js"></script>
+    <script>
+      System.config({
+        defaultJSExtensions: true,
+        map: {
+          jquery: '../bower_components/jquery/dist/jquery.min.js',
+        }
+      });
+      System.set('handlebars', System.newModule({default: Handlebars}));
+      if (!Components.fake) {
+        System.baseURL = System._loader.baseURL = "chrome://cliqz/content/";
+      } else {
+        System.baseURL  = '../'
+      }
+      System.import("offers-cc/content/app");
+    </script>
+</head>
+<body>
+<div id="cliqz-offers-cc" class="cqz-offers-cc-wrapper">
+    <header>
+        <ul class="main-nav">
+            <!--<li class="favourite">&#9733;</li>-->
+            <li class="vouchers active"  data-i18n="offers-hub-title"></li>
+            <!--<li class="voucher-history">Recent</li>-->
+        </ul>
+        <span class="cqz-close-hub"
+              data-cqz-of-btn-id="close-hub"
+              data-cqz-of-btn-action-type="action"></span>
+    </header>
+
+    <section id="cqz-vouchers-wrapper" class="cqz-vouchers">
+
+        <ul id="cqz-new-vouchers-holder"></ul>
+        <a class="cqz-show-all-offers"
+           data-cqz-of-btn-id="show-all-offers-btn"
+           data-cqz-of-btn-action-type="action"
+           data-i18n="offers-hub-show-all-offers-btn"
+        ></a>
+        <ul id="cqz-recent-vouchers-holder"></ul>
+
+        <div class="cqz-no-vouchers-msg">
+            <h1 data-i18n="offers-hub-welcome-title"></h1>
+            <p data-i18n="offers-hub-welcome-text"></p>
+        </div>
+
+        <div class="cqz-remove-feedback">
+            <div class="holder">
+                <h1 data-i18n="offers-hub-feedback-title"></h1>
+                <p data-i18n="offers-hub-feedaback-sub-title"></p>
+                <ul>
+                    <li>
+                        <label>
+                             <input type="radio" name="remove_feedback" value="feedback-option1">
+                             <span data-i18n="offers-hub-feedaback-option1"></span>
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                             <input type="radio" name="remove_feedback" value="feedback-option2">
+                              <span data-i18n="offers-hub-feedaback-option2"></span>
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                             <input type="radio" name="remove_feedback" value="feedback-option3">
+                              <span data-i18n="offers-hub-feedaback-option3"></span>
+                        </label>
+                    </li>
+                </ul>
+                <p>
+                    <a
+                        class="cancel-feedback button"
+                        data-cqz-of-btn-id="close-offer-cancel"
+                        data-cqz-of-btn-action-type="action"
+                        data-i18n="offers-hub-cancel"
+                    ></a>
+                    <a
+                        class="remove-offer button"
+                        data-cqz-of-btn-id="close-offer"
+                        data-cqz-offer-id=""
+                        data-i18n="offers-hub-remove"
+                    ></a>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <ul>
+            <li>
+                <a href="https://cliqz.com/desktop/cliqz-angebote"
+                   class="cqz-power-by"
+                   data-cqz-of-btn-id="more-about-cliqz"
+                   data-cqz-of-btn-action-type="action"
+                   target="_blank"
+                   data-i18n="offers-hub-about-cliqz-offers"
+                   style="color: {{ styles.description-color }}"
+                ></a>
+            </li>
+            <li class="powered-by">
+                 <a class="cqz-power-by"
+                   data-cqz-of-btn-id="more-about-offer"
+                   style="color: {{ styles.description-color }}">
+                    <i>
+                        <svg id="Layer_1" width="16" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 99.8 99.72"><title>Cliqz logo 2016_2</title><polygon points="80.36 74.39 99.8 67.89 46.08 46 67.97 99.72 74.47 80.28 92.65 98.46 98.54 92.57 80.36 74.39"/><path d="M76.25,106.34a29.4,29.4,0,1,1,29.4-29.4c0,0.18,0,.36,0,0.54l19.27,7.85A49.42,49.42,0,1,0,84.53,125.6l-7.85-19.28Z" transform="translate(-26.88 -27.58)"/></svg>
+                    </i>
+                    <span data-i18n="offers-hub-powered-by"></span>
+                </a>
+            </li>
+        </ul>
+    </footer>
+</div>
+</body>
+</html>

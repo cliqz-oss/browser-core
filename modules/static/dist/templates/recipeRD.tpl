@@ -8,7 +8,9 @@
              {{extra.rich_data.name}}
             </a>
           </div>
-          <div class="cqz-result-url overflow" extra="url">{{../urlDetails.friendly_url}}</div>
+          {{#with ..}}
+            {{> 'partials/ez-url'}}
+          {{/with}}
           <div class="cqz-rd-h3-snippet">
               {{#if extra.rich_data.image}}
                  <div class="cqz-rd-img_div cqz-image-round">

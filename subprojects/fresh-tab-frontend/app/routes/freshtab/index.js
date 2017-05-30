@@ -155,5 +155,15 @@ export default Ember.Route.extend({
         });
       }.bind(this));
     });
+  },
+  actions: {
+    sendTelemetry() {
+      this.get('cliqz').sendTelemetry({
+        type: 'history',
+        view: 'sections',
+        action: 'click',
+        target: 'cliqztab'
+      });
+    }
   }
 });

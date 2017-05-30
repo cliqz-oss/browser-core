@@ -1,0 +1,27 @@
+<h2>Webextension FAQ</h2>
+
+
+<p><strong>Question:</strong> Which storage option to use in webextension?</p>
+<p><strong>Answer:</strong>
+  <p>
+    There are only two storage options that we should rely upon:
+  </p>
+  <ul>
+    <li>indexed_db - is use cases that requires search</li>
+    <li>chrome.storage - if you need to persist "large" data</li>
+  </ul>
+
+  <p>
+  If you don't fall into any of those usecases you are free to choose
+  whatever you like.
+  </p>
+
+  <p>
+  Note that currently chrome.storage in Firefox is crippled and
+  should not be used too extensively.
+  </p>
+
+  <p>
+  Any wrapper or top of them is fine to use. So Dexie or Pouchdb are welcome.
+  </p>
+</p>

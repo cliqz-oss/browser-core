@@ -144,6 +144,10 @@ TESTS.AttrackQSWhitelistTest = function (CliqzUtils, CliqzEvents) {
           });
         });
 
+        afterEach(function () {
+          whitelist.destroy();
+        });
+
         it('returns true', function() {
           return waitFor(function() {
             return whitelist.isUpToDate();

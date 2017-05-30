@@ -8,7 +8,8 @@ import SpeedDial from './speed-dial';
 import { version as onboardingVersion, shouldShowOnboardingV2 } from "../core/onboarding";
 import AdultDomain from './adult-domain';
 import background from '../core/base/background';
-import { forEachWindow } from '../core/browser';
+import { forEachWindow, mapWindows } from '../core/browser';
+import { queryActiveTabs } from '../core/tabs';
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
 const DISMISSED_ALERTS = 'dismissedAlerts';
@@ -34,7 +35,6 @@ export default background({
     this.adultDomainChecker = new AdultDomain();
     this.settings = settings;
     this.messages = {};
-
   },
   /**
   * @method unload
@@ -146,8 +146,13 @@ export default background({
           return isCustom;
         }
 
+        function isCliqz(url) {
+          return url.indexOf('https://cliqz.com/search?q=') === 0;
+        }
+
         results = results.filter(history => {
-          return !isDeleted(history.hashedUrl) && !isCustom(history.url) && !this.isAdult(history.url);
+          return !isDeleted(history.hashedUrl) && !isCustom(history.url)
+                  && !this.isAdult(history.url) && !isCliqz(history.url);
         });
 
         return results.map(function(r){
@@ -342,15 +347,17 @@ export default background({
     * @method getConfig
     */
     getConfig() {
-      var self = this;
+      var self = this,
+          isBrowser = self.actions._isBrowser();
 
       var config = {
         locale: utils.PREFERRED_LANGUAGE,
         showOnboarding: self.actions._showOnboarding(),
-        isBrowser: self.actions._isBrowser(),
+        isBrowser: isBrowser,
         showNewBrandAlert: self.actions._showNewBrandAlert(),
         messages: this.messages,
         newsLanguage: self.actions._getNewsLanguage(),
+        isHistoryEnabled: isBrowser && utils.getPref('modules.history.enabled', false),
       };
 
       let hasActiveNotifications = self.actions._hasActiveNotifications();
@@ -411,7 +418,19 @@ export default background({
             browser.reload();
           }
         });
-      })
+      });
+    },
+
+    refreshHistoryUI() {
+      forEachWindow(window => {
+        const tabs = [...window.gBrowser.tabs];
+        tabs.forEach(tab => {
+          const browser = tab.linkedBrowser;
+          if (browser.currentURI.spec.indexOf(`${utils.CLIQZ_NEW_TAB_RESOURCE_URL}#/history`) >= 0) {
+            browser.reload();
+          }
+        });
+      });
     }
 
   },
@@ -459,6 +478,30 @@ export default background({
       this.actions.getNews().then(() => {
         this.actions.refreshFrontend();
       });
-    }
+    },
+    "history:cleared": function onHistoryCleared() {
+      this.actions.refreshHistoryUI();
+    },
+    "history:removed": function onHistoryRemoved(urls) {
+      const activeUrls = [...mapWindows(w => w).map(queryActiveTabs).reduce((aUrls, aTabs) => {
+        return new Set([
+          ...urls,
+          ...aTabs.map(t => t.url),
+        ]);
+      }, new Set())];
+      const historyUrls = activeUrls
+        .filter(u => u.indexOf(`${utils.CLIQZ_NEW_TAB_RESOURCE_URL}#/history`) >= 0);
+
+      historyUrls.forEach((url) => {
+        this.core.action(
+          'broadcastMessage',
+           url,
+          {
+            action: 'updateHistoryUrls',
+            message: { urls },
+          }
+        );
+      });
+    },
   },
 });

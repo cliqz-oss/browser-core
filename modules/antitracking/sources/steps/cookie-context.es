@@ -1,5 +1,5 @@
-import { getGeneralDomain } from '../domain';
 import { URLInfo } from '../url';
+import { sameGeneralDomain } from '../domain';
 import { utils } from '../../core/cliqz';
 import { cleanTimestampCache } from '../utils';
 import pacemaker from '../pacemaker';
@@ -16,23 +16,85 @@ function currentGD() {
 }
 
 export default class {
-  constructor() {
+  constructor(config, pageMeta) {
+    this.config = config;
+    this.pageMeta = pageMeta;
     this.visitCache = {};
     this.contextFromEvent = null;
     this.timeAfterLink = 5*1000;
     this.timeCleaningCache = 180*1000;
     this.timeActive = 20*1000;
+    this.trustedThirdParties = new Map();
+    // how long to keep trust entries which have not been triggered
+    this.UNUSED_TRUST_TIMEOUT = 120000; // 2 minutes
+    // how long to keep trust entries which have been used
+    this.USED_TRUST_TIMEOUT = 900000; // 15 minutes
   }
 
   init() {
-    this._pmclean = pacemaker.register(function clean_caches(currTime) {
-      // visit cache
-      cleanTimestampCache(this.visitCache, this.timeCleaningCache, currTime);
-    }.bind(this), 2 * 60 * 1000);
+    this._pmclean = pacemaker.register(this.cleanCookieCache.bind(this), 2 * 60 * 1000);
   }
 
   unload() {
     pacemaker.deregister(this._pmclean);
+  }
+
+  cleanCookieCache(currTime) {
+    // visit cache
+    cleanTimestampCache(this.visitCache, this.timeCleaningCache, currTime);
+    // trusted domain pairs
+    const now = Date.now();
+    this.trustedThirdParties.forEach((counter, key) => {
+      const timeoutAt = counter.ts + (counter.c > 0 ? this.USED_TRUST_TIMEOUT :
+                                                      this.UNUSED_TRUST_TIMEOUT);
+      if (now > timeoutAt) {
+        this.trustedThirdParties.delete(key);
+      }
+    });
+  }
+
+  _addTrustLink(fromFirstParty, toThirdParty) {
+    if (sameGeneralDomain(fromFirstParty, toThirdParty)) {
+      return;
+    }
+    const key = `${fromFirstParty}:${toThirdParty}`;
+    if (!this.trustedThirdParties.has(key)) {
+      this.trustedThirdParties.set(key, { c: 0 });
+    }
+    this.trustedThirdParties.get(key).ts = Date.now();
+  }
+
+  assignCookieTrust(state) {
+    if (state.requestContext.isFullPage() && state.requestContext.getReferrer()) {
+      const referrer = URLInfo.get(state.requestContext.getReferrer());
+      const trustedHost = state.urlParts.hostname;
+      const trustedOn = referrer.hostname;
+
+      // this domain is now trusted by the referrer
+      this._addTrustLink(trustedOn, trustedHost);
+
+      // check redirect chain for this page to see if we should back-propagate the trust chain
+      this.pageMeta._active[state.tabId].redirects.forEach((domain) => {
+        this._addTrustLink(domain, trustedHost);
+      });
+    }
+    return true;
+  }
+
+  checkCookieTrust(state) {
+    const stage = state.responseStatus !== undefined ? 'set_cookie' : 'cookie';
+    const sourceHost = state.sourceUrlParts.hostname;
+    const requestHost = state.urlParts.hostname;
+    const key = `${sourceHost}:${requestHost}`;
+    if (this.config.cookieTrustReferers && this.trustedThirdParties.has(key)) {
+      const trustCounter = this.trustedThirdParties.get(key);
+      trustCounter.c += 1;
+      trustCounter.ts = Date.now();
+
+      state.incrementStat(`${stage}_allow_trust`);
+      return false;
+    }
+    return true;
   }
 
   checkVisitCache(state) {

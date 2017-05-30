@@ -244,7 +244,7 @@ function compile(obj) {
             var domainData = obj.trackers[domain];
             return {
               domain: domain,
-              count: (domainData.cookie_blocked || 0) + (domainData.bad_qs || 0)
+              count: (domainData.cookie_blocked || 0) + (domainData.tokens_removed || 0)
             }
           }).sort(function (a, b) {
             return a.count < b.count;

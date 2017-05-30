@@ -1,13 +1,4 @@
-let hs;
+import historyService from '../platform/history-service';
 
-try {
-  hs = Cc["@mozilla.org/browser/nav-history-service;1"]
-         .getService(Ci.nsINavHistoryService);
-} catch(e) {
-  hs = {
-    addObserver() {},
-    removeObserver() {}
-  };
-}
-
-export default hs;
+// implements https://developer.chrome.com/extensions/history
+export default historyService;

@@ -8,6 +8,7 @@ ops['$match_history'] = function(args, eventLoop, context) {
   return new Promise((resolve, reject) => {
     if(args.length < 2) {
       reject(new Error('invalid args'));
+      return;
     }
 
     var ts = timestamp();
@@ -47,6 +48,7 @@ ops['$count_history_sessions'] = function(args, eventLoop, context) {
   return new Promise((resolve, reject) => {
     if(args.length < 4) {
       reject(new Error('invalid args'));
+      return;
     }
 
     var start = args[0];

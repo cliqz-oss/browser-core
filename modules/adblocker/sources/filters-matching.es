@@ -116,22 +116,28 @@ function checkPattern(filter, request) {
   const url = request.url;
   const host = request.hostname;
 
-  // Try to match url with pattern
   if (filter.isHostnameAnchor) {
     const matchIndex = host.indexOf(filter.hostname);
     // Either start at beginning of hostname or be preceded by a '.'
     if ((matchIndex > 0 && host[matchIndex - 1] === '.') || matchIndex === 0) {
-      // Extract only the part after the hostname
-      const urlPattern = url.substring(url.indexOf(filter.hostname) + filter.hostname.length);
       if (filter.isRegex) {
-        // If it's a regex, it should match the pattern after hostname
-        return filter.regex.test(urlPattern);
-      } else if (filter.isRightAnchor) {
-        // If it's a right anchor, then the filterStr should match exactly
-        return urlPattern === filter.filterStr;
+        // If it's a regex, it should match somewhere in the URL
+        return filter.regex.test(url);
       }
 
-      return urlPattern.startsWith(filter.filterStr);
+      // Since this is not a regex, the filter pattern must follow the hostname
+      // with nothing in between. So we extract the part of the URL following
+      // after hostname and will perform the matching on it.
+      const urlAfterHostname = url.substring(url.indexOf(filter.hostname) + filter.hostname.length);
+      if (filter.isRightAnchor) {
+        // Since it must follow immediatly after the hostname and be a suffix of
+        // the URL, we conclude that filterStr must be equal to the part of the
+        // url following the hostname.
+        return filter.filterStr === urlAfterHostname;
+      }
+
+      // Otherwise, it should only be a prefix of the URL.
+      return urlAfterHostname.startsWith(filter.filterStr);
     }
   } else {
     if (filter.isRegex) {

@@ -4,6 +4,7 @@ import OffersConfigs from '../offers_configs';
 import HistorySignalID from '../ui/ui_offers_history';
 import random from '../../core/crypto/random';
 import utils from '../../core/utils';
+import events from '../../core/events';
 
 const MODULE_NAME = 'extension_environment';
 
@@ -38,9 +39,11 @@ export default class ExtensionEnvironment extends EmptyEnvironment {
       req.onload = function() {
         if(req.status == 200) {
           resolve(JSON.parse(req.response));
+          return;
         }
         else {
           reject('Status code ' + req.status + ' for ' + url + this.statusText);
+          return;
         }
       };
       req.onerror = function () {
@@ -120,53 +123,38 @@ export default class ExtensionEnvironment extends EmptyEnvironment {
       }
     }
 
-    // TODO: check if we need to update the bucket (remove old and create a new one)
-    //       this may delete all the current data => create a method to update
-    //       the configuration of the bucket only then.
-
     if (!campaignId || !offerId || !key) {
       return;
     }
 
-    // get the offer related info
-    var signalData = this.signalHandler.getSignalData(campaignId);
-    if (!signalData) {
-      signalData = {
-        created_ts: Date.now(),
-        ucid: this.uuid(),
-        offers: {}
-      };
-    }
-
-    var offerData = signalData.offers[offerId];
-    if(!offerData) {
-      offerData = {
-        created_ts: Date.now()
-      };
-      signalData.offers[offerId] = offerData;
-    };
-
-
-
-    // merge (update) signal
-    addOrCreate(offerData, key, 1);
-
-    // set it back to the sig handler
-    this.signalHandler.setSignalData(campaignId, signalData);
+    // send the signal associated to the campaign using the origin trigger
+    const originID = 'trigger';
+    this.signalHandler.setCampaignSignal(campaignId, offerId, originID, key);
   }
 
   getPref(pref,default_val) {
     return utils.getPref(String(pref),default_val);
   }
 
-
-  uuid() {
-    function s4() {
-      return Math.floor((1 + random()) * 0x10000)
-        .toString(16)
-        .substring(1);
+  /**
+   * This method will return the unique generated number for a particular browser.
+   * If the value is not generated yet will create a new one.
+   * @return {int} the unique number we have for this user, the values will be between
+   *               [0, 9999].
+   */
+  getABNumber() {
+    const prefID = 'offersUniqueNumber';
+    let num = null;
+    if (!utils.hasPref(prefID)) {
+      // generate one
+      num = Math.floor(random() * 10000);
+      utils.setPref(prefID, num.toString());
+    } else {
+      // we get it and transform it to num
+      num = Number(utils.getPref(prefID, 0));
     }
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-      s4() + '-' + s4() + s4() + s4();
+
+    return num;
   }
+
 }

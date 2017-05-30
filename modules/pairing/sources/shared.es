@@ -1,10 +1,8 @@
 /* eslint-disable camelcase */
 
-import Crypto from 'pairing/crypto';
-import { inflate, deflate } from 'core/zlib';
-
-import { base64_encode, base64_decode, hex_encode, hex_decode,
-    UTF8ArrToStr, strToUTF8Arr } from 'p2p/internal/utils';
+import Crypto from './crypto';
+import { inflate, deflate } from '../core/zlib';
+import { toBase64, fromBase64, toHex, fromHex, toUTF8, fromUTF8 } from '../core/encoding';
 
 // TODO: encrypting/decrypting code is a bit complicated, maybe rewrite/refactor
 
@@ -13,12 +11,12 @@ import { base64_encode, base64_decode, hex_encode, hex_decode,
 // let's just add this redundant info for convenience
 function encryptPairedMessage({ msg, type, source }, targets) {
   const pks = targets.map(({ publicKey }) => publicKey);
-  const bigMsg = strToUTF8Arr(JSON.stringify({ msg, type, source }));
+  const bigMsg = toUTF8(JSON.stringify({ msg, type, source }));
   const compressed = deflate(bigMsg);
   return Crypto.encryptRSA(compressed, pks)
   .then(([[iv, encrypted], wrappedKeys]) => {
-    const ivRaw = base64_decode(iv); // 12 bytes
-    const encryptedRaw = base64_decode(encrypted); // Rest
+    const ivRaw = fromBase64(iv); // 12 bytes
+    const encryptedRaw = fromBase64(encrypted); // Rest
     // Assuming targets ids are 32 bytes hex encoded strings, and wrapped keys
     // 256 bytes each (2048 bit, depends on RSA key size)
     const finalData = new Uint8Array(
@@ -29,8 +27,8 @@ function encryptPairedMessage({ msg, type, source }, targets) {
     finalData[1] = wrappedKeys.length;
     for (let i = 0; i < wrappedKeys.length; i += 1) {
       const start = 2 + (i * (32 + 256));
-      finalData.set(hex_decode(targets[i].id), start);
-      finalData.set(base64_decode(wrappedKeys[i]), start + 32);
+      finalData.set(fromHex(targets[i].id), start);
+      finalData.set(fromBase64(wrappedKeys[i]), start + 32);
     }
     finalData.set(ivRaw, 2 + (wrappedKeys.length * (32 + 256)));
     finalData.set(encryptedRaw, 2 + (wrappedKeys.length * (32 + 256)) + 12);
@@ -43,8 +41,8 @@ function getMessageTargets(data) {
   const wrappedKeys = [];
   for (let i = 0; i < numKeys; i += 1) {
     const start = 2 + (i * (32 + 256));
-    const id = hex_encode(data.subarray(start, start + 32));
-    const wrappedKey = base64_encode(data.subarray(start + 32, start + 32 + 256));
+    const id = toHex(data.subarray(start, start + 32));
+    const wrappedKey = toBase64(data.subarray(start + 32, start + 32 + 256));
     wrappedKeys.push([id, wrappedKey]);
   }
   return wrappedKeys;
@@ -54,14 +52,14 @@ function decryptPairedMessage(data, deviceID, privateKey) {
   const end = 2 + (wrappedKeys.length * (32 + 256));
   const ivRaw = data.subarray(end, end + 12);
   const encryptedRaw = data.subarray(end + 12);
-  const encrypted = [base64_encode(ivRaw), base64_encode(encryptedRaw)];
+  const encrypted = [toBase64(ivRaw), toBase64(encryptedRaw)];
   const device = wrappedKeys.find(x => x[0] === deviceID);
   if (!device) {
     return Promise.reject(new Error('cannot find wrapped key when decrypting paired message'));
   }
   const wrappedKey = device[1];
   return Crypto.decryptRSA([encrypted, wrappedKey], privateKey)
-  .then(compressed => JSON.parse(UTF8ArrToStr(inflate(new Uint8Array(compressed)))))
+  .then(compressed => JSON.parse(fromUTF8(inflate(new Uint8Array(compressed)))))
   .then(({ msg, type, source }) => ({ msg, type, source }));
 }
 

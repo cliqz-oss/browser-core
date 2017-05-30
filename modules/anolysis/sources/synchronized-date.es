@@ -1,13 +1,7 @@
 
-import moment from 'platform/moment';
+import moment from '../platform/moment';
 import prefs from '../core/prefs';
 
-
-/**
- * Format of the synchronized date as stored in the prefs.
- * @constant
- */
-const SYNC_DATE_FORMAT = 'YYYYMMDD';
 
 /**
  * Define standard date formats in anolysis module
@@ -22,7 +16,10 @@ export const MONTH_FORMAT = 'YYYY-M';
 export default function getSynchronizedDate() {
   const formatted = prefs.get('config_ts', null);
   if (formatted !== null) {
-    return moment(formatted, SYNC_DATE_FORMAT);
+    const year = formatted.substr(0, 4);
+    const month = formatted.substr(4, 2);
+    const day = formatted.substr(6, 2);
+    return moment(`${year}-${month}-${day}`, DATE_FORMAT);
   }
 
   return null;

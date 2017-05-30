@@ -106,7 +106,7 @@ BloomFilter.prototype._a_b = function(x) {
 // For a pair of given subhashes of a value yields a series of bit indexes to
 // read or write to.
 // |a| and |b| must be numbers.
-BloomFilter.prototype._bitIndexes = function(a, b) {
+BloomFilter.prototype._bitIndexes = function*(a, b) {
   const k = this.k;
   const m = this.m;
   let x = a % m;

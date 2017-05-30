@@ -153,7 +153,7 @@ export default background({
       utils.setPref(utils.BROWSER_ONBOARDING_PREF, true);
       utils.setPref(utils.BROWSER_ONBOARDING_STEP_PREF, 3);
 
-      this.controlCenter(
+      this.controlCenter.windowAction(
         utils.getWindow(),
         'setMockBadge',
         0

@@ -8,13 +8,7 @@
     {{/if}}
     <div class='cqz-result-center'>
       <div class='cqz-result-title overflow' extra="title"><a href="{{url}}" extra="title">{{ emphasis title text 2 true }}</a></div>
-        <div class='cqz-result-url overflow
-                    {{#if urlDetails.ssl }}
-                         cqz-result-url-ssl
-                    {{/if}}
-        ' extra="url">
-            {{ emphasis urlDetails.friendly_url text 2 true }}
-        </div>
+        {{> 'partials/ez-url' }}
         <div class='cqz-result-desc overflow' extra="des-nview">{{ views_helper data.extra.rich_data.views }}</div>
     </div>
     {{> logo}}

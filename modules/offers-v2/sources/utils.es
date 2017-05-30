@@ -1,4 +1,5 @@
 import LoggingHandler from './logging_handler';
+import random from '../core/crypto/random';
 import { utils } from '../core/cliqz';
 
 const MODULE_NAME = 'utils';
@@ -27,8 +28,20 @@ function openNewTabAndSelect(url) {
   return true;
 }
 
+// generate a new UUID
+function generateUUID() {
+  function s4() {
+    return Math.floor((1 + random()) * 0x10000)
+      .toString(16)
+      .substring(1);
+  }
+  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+    s4() + '-' + s4() + s4() + s4();
+}
+
 export {
   loadFileFromChrome,
   isCLIQZBrowser,
-  openNewTabAndSelect
+  openNewTabAndSelect,
+  generateUUID
 };

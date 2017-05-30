@@ -2,7 +2,11 @@
   {{history-session model=session query=query tagName="li" class="session"}}
 {{else}}
   {{#unless model.isLoading}}
-    <li>No history</li>
+    {{#if query}}
+      <li>{{t 'history.no-search-result-found'}} {{query}}</li>
+    {{else}}
+      <li>{{t 'history.no-history-entry-found'}}</li>
+    {{/if}}
   {{/unless}}
 {{/each}}
 
@@ -16,6 +20,8 @@
   {{/if}}
 {{else}}
   {{#unless model.hasMoreResults}}
-    <li>No more history</li>
+    {{#if sessions}}
+      <li>{{t 'history.no-further-history-entry'}}</li>
+    {{/if}}
   {{/unless}}
 {{/if}}

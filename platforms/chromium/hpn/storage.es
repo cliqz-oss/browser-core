@@ -101,12 +101,10 @@ export default class {
       this.loadRecord('userKey')
         .then(data => {
           if (data.length === 0) {
-            console.log('There was no key for the user');
             resolve(null);
           }
           else {
             try {
-              console.log('There was key for the user');
               resolve(JSON.parse(data));
             } catch(ee) {
               resolve(null);

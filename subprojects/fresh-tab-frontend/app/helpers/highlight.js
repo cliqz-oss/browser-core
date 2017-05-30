@@ -5,7 +5,7 @@ export function highlight([text, em]) {
     return text;
   }
   const re = new RegExp(em, 'gi');
-  const highlighted = text.replace(re, function (match) {
+  const highlighted = (text || '').replace(re, function (match) {
     return `<em>${match}</em>`;
   });
   return Ember.String.htmlSafe(highlighted)

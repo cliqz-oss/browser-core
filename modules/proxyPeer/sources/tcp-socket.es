@@ -1,4 +1,4 @@
-import console from './console';
+import logger from './logger';
 
 let MAIN_THREAD = null;
 let TRANSPORT_SERVICE = null;
@@ -10,7 +10,7 @@ try {
     .getService(Components.interfaces.nsISocketTransportService);
   OK_RESULT = Components.results.NS_OK;
 } catch (ex) {
-  console.error(`proxyPeer TCP MAIN_THREAD ERROR ${ex}`);
+  logger.error(`TCP MAIN_THREAD ERROR ${ex}`);
 }
 
 
@@ -62,7 +62,7 @@ export class TcpConnection {
     // Callbacks
     this.onClose = null;
 
-    console.debug(`proxyPeer TCP new connection ${JSON.stringify({
+    logger.debug(`TCP new connection ${JSON.stringify({
       input: this.input,
       output: this.output,
       transportPort: this.transportPort,
@@ -86,11 +86,10 @@ export class TcpConnection {
    * @param {integer} length - Number of octets to be sent.
    */
   sendData(data, length) {
-    // TODO: Send async somehow. (use a data queue?)
-    console.debug(`proxyPeer TCP ${this.id} sends ${length} octets`);
+    logger.debug(`TCP ${this.id} sends ${length} octets`);
     return Promise.resolve(this._binaryWriter.writeByteArray(data, length))
       .catch((ex) => {
-        console.debug(`proxyPeer TCP exception on sendData ${ex}`);
+        logger.debug(`TCP exception on sendData ${ex}`);
       });
   }
 
@@ -105,7 +104,7 @@ export class TcpConnection {
         onInputStreamReady() {
           try {
             const data = readBytes(self._binaryReader);
-            console.debug(`proxyPeer TCP socket ${self.id} received ${data.length} octets`);
+            logger.debug(`TCP socket ${self.id} received ${data.length} octets`);
             resolve(data);
           } catch (ex) {
             self.close();
@@ -125,8 +124,8 @@ export class TcpConnection {
     this.getNextData().then((data) => {
       callback(data);
       this.registerCallbackOnData(callback);
-    }).catch(() => {
-      console.debug(`proxyPeer TCP ${this.id} closing connection`);
+    }).catch((ex) => {
+      logger.debug(`TCP ${this.id} closing connection ${ex} ${ex.stack}`);
       try {
         // Make sure transport is properly closed
         this.close();
@@ -152,10 +151,10 @@ export class TcpConnection {
  * @param {String} port - Port to use.
  */
 export function openSocket(host, port) {
-  console.debug(`proxyPeer TCP openSocket ${host}:${port}`);
+  logger.debug(`TCP openSocket ${host}:${port}`);
   const transport = TRANSPORT_SERVICE.createTransport(
-    ['starttls'], // null,  // aSocketTypes
-    1, // 0,     // aTypeCount
+    null,  // aSocketTypes
+    0,     // aTypeCount
     host,  // aHost
     port,  // aPort
     null); // aProxyInfo

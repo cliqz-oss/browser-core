@@ -4,6 +4,7 @@ export default Ember.Route.extend({
   cliqz: Ember.inject.service(),
   i18n: Ember.inject.service(),
   messageCenter: Ember.inject.service('message-center'),
+  moment: Ember.inject.service(),
 
   activate() {
     document.title = this.get('i18n').t('title');
@@ -20,15 +21,21 @@ export default Ember.Route.extend({
     return this.get('cliqz').getConfig().then( config => {
       messageCenter.addMessages(config.messages);
       this.set('config', config);
-      var locale = config.locale,
-          defaultLocale = this.get('i18n.locale');
+      const defaultLocale = this.get('i18n.locale');
+      let locale = config.locale;
 
       const isLocaleAvailable = locale && this.get('i18n.locales').some(function(elem) {
         //locale is in en-US form
         //i18n.locale is in en form
         return locale.split('-').indexOf(elem) > -1
       });
-      isLocaleAvailable ? this.set('i18n.locale', locale) : this.set('i18n.locale', defaultLocale);
+
+      if (!isLocaleAvailable) {
+        locale = defaultLocale;
+      }
+
+      this.set('i18n.locale', locale);
+      this.set('moment.locale', locale);
     });
   },
 
@@ -39,7 +46,8 @@ export default Ember.Route.extend({
       showNewBrandAlert: config.showNewBrandAlert,
       messageCenter: this.get('messageCenter'),
       newsLanguage: config.newsLanguage,
-      hasActiveNotifications: config.hasActiveNotifications
+      hasActiveNotifications: config.hasActiveNotifications,
+      isHistoryEnabled: config.isHistoryEnabled,
     });
   },
 

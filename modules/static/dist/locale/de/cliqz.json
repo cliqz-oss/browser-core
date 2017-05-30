@@ -90,7 +90,7 @@
         "message": "powered by kicker online"
     },
     "vs":{
-        "message": "gegen"
+        "message": "vs."
     },
     "NEXT GAME" : {
         "message": "NÄCHSTES SPIEL"
@@ -1394,6 +1394,12 @@
     "control-center-backend-country": {
       "message": "Suchergebnisse für"
     },
+    "control-center-report-url": {
+      "message": "Website melden"
+    },
+    "control-center-tips": {
+      "message": "Tipps"
+    },
     "control-center-humanweb": {
       "message": "Am Human Web teilnehmen"
     },
@@ -1602,13 +1608,91 @@
       "message": "Verbindung trennen"
     },
     "pairing-send-tab-to-mobile": {
-      "message": "An mobiles Gerät senden"
+      "message": "Tab an mobiles Gerät senden"
     },
     "pairing-send-video-to-mobile-retry": {
       "message": "Erneut senden"
     },
     "ad-label": {
       "message": "Anzeige"
+    },
+    "offers-hub-title": {
+      "message": "CLIQZ OFFERS:"
+    },
+    "offers-hub-show-all-offers-btn": {
+      "message": "Frühere Angebote"
+    },
+    "offers-hub-welcome-title": {
+      "message": "Willkommen bei CLIQZ Offers"
+    },
+    "offers-hub-welcome-text": {
+      "message": "Hier findest du in Kürze exklusive Angebote für dich."
+    },
+    "offers-hub-feedback-title": {
+      "message": "Dein Feedback ist uns wichtig"
+    },
+    "offers-hub-feedaback-sub-title": {
+      "message": "Warum hast du das Angebot entfernt:"
+    },
+    "offers-hub-feedaback-option1": {
+      "message": "Ich habe keine Interesse an diesem Angebot"
+    },
+    "offers-hub-feedaback-option2": {
+      "message": "Ich habe keine Interesse an CLIQZ Offers"
+    },
+    "offers-hub-feedaback-option3": {
+      "message": "Ich bin an keinem Angebot interessiert"
+    },
+    "offers-hub-cancel": {
+      "message": "Abbrechen"
+    },
+    "offers-hub-remove": {
+      "message": "Entfernen"
+    },
+    "offers-hub-about-cliqz-offers": {
+      "message": "Mehr Informationen über CLIQZ Offers"
+    },
+    "offers-hub-powered-by": {
+      "message": "Bereitgestellt von CLIQZ"
+    },
+    "offers-hub-code-copy": {
+      "message": "Code kopiert"
+    },
+    "signals-humanweb-inactive-message": {
+      "message": "Human Web ist nicht aktiviert"
+    },
+    "signals-humanweb-inactive": {
+      "message": "nicht aktiv"
+    },
+    "signals-your-ip-id": {
+      "message": "deine IP/IDs: "
+    },
+    "signals-your-location": {
+      "message": "dein Standort"
+    },
+    "signals-private-urls": {
+      "message": "private URLs"
+    },
+    "signals-what-you-search": {
+      "message": "deine Suchanfrage"
+    },
+    "signals-your-ip-address": {
+      "message": "deine IP-Adresse"
+    },
+    "signals-search-results": {
+      "message": "Suchergebnis"
+    },
+    "signals-visited-page": {
+      "message": "Besuchte Seite"
+    },
+    "signals-count-action": {
+      "message": "Anzahl Aktionen"
+    },
+    "signals-page-info": {
+      "message": "Seiteninfo"
+    },
+    "signals-redirected-links": {
+      "message": "Weitergeleitete Links"
     },
     "TEST": "OK"
 }

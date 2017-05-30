@@ -39,6 +39,9 @@ var OffersConfigs = {
   LOAD_TRIGGER_HISTORY_DATA: true,
   TRIGGER_HISTORY_DATA: isChromium ? undefined : 'chrome://cliqz/content/offers-v2/trigger_history.json',
 
+  // offer storage
+  LOAD_OFFERS_STORAGE_DATA: true,
+  OFFERS_STORAGE_DEFAULT_TTS_SECS: 60 * 60 * 24 * 10,
 
   //////////////////////////////////////////////////////////////////////////////
   // SIGNALS
@@ -51,6 +54,10 @@ var OffersConfigs = {
   // the time we want to keep the signals (accumulating) from the last time
   // the signal was modified (#GR-298)
   SIGNALS_OFFERS_EXPIRATION_SECS: 60 * 60 * 24 * 60, //60 days?
+  // the version number of the signal structure we are currently using
+  SIGNALS_VERSION: 3.0,
+  // debug variable to load / not load the data from DB
+  SIGNALS_LOAD_FROM_DB: true,
 
   //////////////////////////////////////////////////////////////////////////////
   // CONFIG / DEBUG variables

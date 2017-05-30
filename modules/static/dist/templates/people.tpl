@@ -15,14 +15,9 @@
           <div class='cqz-result-title overflow' extra="title">
             <a href="{{../url}}" extra="title">{{ rich_data.full_name }}</a>
           </div>
-          <div class='cqz-result-url overflow
-                      {{#if urlDetails.ssl }}
-                           cqz-result-url-ssl
-                      {{/if}}
-
-          ' extra="url">
-              {{ emphasis ../urlDetails.friendly_url text 2 true }}
-          </div>
+          {{#with ..}}
+            {{> 'partials/ez-url'}}
+          {{/with}}
           {{#with rich_data}}
               <div class='cqz-result-desc overflow'>
               {{#if current_job_type }}

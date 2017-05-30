@@ -64,7 +64,6 @@ var __CliqzChromeDB = function() { // (_export) {
                         ) {
                             chrome.storage.local.getBytesInUse(null, function(a) {
                                 var res = [a, a/chrome.storage.local.QUOTA_BYTES];
-                                console.log('Current size: ', res[0], res[1]);
                                 if (callback) callback(res);
 
                             });
@@ -76,9 +75,7 @@ var __CliqzChromeDB = function() { // (_export) {
                             Object.keys(data).forEach(key => {
                                 size += (key + JSON.stringify(data[key])).length;
                             });
-                            console.log("POLIFILL SIZE:", size);
                             let res = [size, size / QUOTA_BYTES];
-                            console.log('Current size: ', res[0], res[1]);
                             if (callback) callback(res);
                         });
                     }

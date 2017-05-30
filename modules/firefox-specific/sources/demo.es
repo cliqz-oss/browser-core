@@ -91,7 +91,7 @@ var initialized = false;
 
 var CliqzDemo = {
 	init: function (win) {
-    if(utils.getPref("cliqz_core_disabled", false)) return;
+    if(utils.getPref("cliqz_core_disabled", false) || !win.CLIQZ.Core.popup) return;
 
 		win.gBrowser.addEventListener("DOMContentLoaded", _onPageLoad, false);
     if (win.CLIQZ) {

@@ -5,7 +5,6 @@ import { forEachWindow } from '../../platform/browser';
 import { queryActiveTabs } from '../../core/tabs';
 import inject from '../../core/kord/inject';
 
-
 // TODO: remove all not needed logs
 
 ////////////////////////////////////////////////////////////////////////////////

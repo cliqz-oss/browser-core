@@ -19,13 +19,7 @@
       <div extra="title" class='cqz-result-title overflow'
         arrow="false" arrow-override=''
         ><a href="{{url}}" extra="title">{{ emphasis title text 2 true }}</a></div>
-      <div class='cqz-result-url overflow
-                  {{#if urlDetails.ssl }}
-                       cqz-result-url-ssl
-                  {{/if}}
-      ' extra="url">
-          {{ emphasis urlDetails.friendly_url text 2 true }}
-      </div>
+      {{> 'partials/ez-url' }}
       <div class='cqz-result-desc overflow' style="height: 20px;">
         <span extra="des">{{ emphasis data.description text 2 true }}</span>
       </div>

@@ -1,4 +1,4 @@
-import * as utils from './utils';
+import { toBase64, fromBase64 } from '../../core/encoding';
 
 export default class ByteBuffer {
   constructor(length) {
@@ -55,10 +55,10 @@ export default class ByteBuffer {
   }
 
   toBase64() {
-    return utils.base64_encode(this.buffer.subarray(0, this.pos));
+    return toBase64(this.buffer.subarray(0, this.pos));
   }
 
   fromBase64(data) {
-    this.pushBytes(utils.base64_decode(data));
+    this.pushBytes(fromBase64(data));
   }
 }

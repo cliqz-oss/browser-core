@@ -98,14 +98,19 @@ try {
 
     stop: function (aData, aReason) {
       var TELEMETRY_SIGNAL = {};
+      TELEMETRY_SIGNAL[APP_STARTUP] = 'browser_startup';
       TELEMETRY_SIGNAL[APP_SHUTDOWN] = 'browser_shutdown';
+      TELEMETRY_SIGNAL[ADDON_ENABLE] = 'addon_enable';
       TELEMETRY_SIGNAL[ADDON_DISABLE] = 'addon_disable';
+      TELEMETRY_SIGNAL[ADDON_INSTALL] = 'addon_install';
       TELEMETRY_SIGNAL[ADDON_UNINSTALL] = 'addon_uninstall';
+      TELEMETRY_SIGNAL[ADDON_UPGRADE] = 'addon_upgrade';
+      TELEMETRY_SIGNAL[ADDON_DOWNGRADE] = 'addon_downgrade';
 
       this.app.stop(
         aReason === APP_SHUTDOWN,
         aReason === ADDON_DISABLE || aReason === ADDON_UNINSTALL,
-        TELEMETRY_SIGNAL[aReason]
+        TELEMETRY_SIGNAL[aReason] || aReason
       );
 
       global.clearRunloop();

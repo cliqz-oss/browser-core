@@ -110,6 +110,13 @@ export default describeModule('anolysis/analyses/retention',
         return getCurrentDate();
       },
     },
+    'anolysis/logger': {
+      default: {
+        debug() {},
+        log() {},
+        error() {},
+      },
+    },
   }),
   () => {
     describe('Generate full retention', () => {

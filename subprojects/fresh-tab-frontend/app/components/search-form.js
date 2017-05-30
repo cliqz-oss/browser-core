@@ -1,6 +1,7 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
+  cliqz: Ember.inject.service(),
   tagName: 'from',
   classNames: ['search'],
 
@@ -11,6 +12,7 @@ export default Ember.Component.extend({
   modelObserver: function() {
     Ember.run.debounce(() => {
       this.set('model', this.get('modelProxy'));
+      this.actions.sendTelemetry.call(this);
     }, this.get('debounce'));
   }.observes('modelProxy'),
 
@@ -23,7 +25,7 @@ export default Ember.Component.extend({
   }.property('model'),
 
   clear() {
-    this.set('modelProxy', '')
+    this.set('modelProxy', '');
   },
 
   keyUp(e) {
@@ -33,10 +35,27 @@ export default Ember.Component.extend({
   },
 
   actions: {
-
     clearQuery() {
+      if (this.get('hasQuery')) {
+        this.get('cliqz').sendTelemetry({
+          type: 'history',
+          view: 'sections',
+          action: 'click',
+          target: 'clear_search'
+        });
+      }
       this.clear();
+    },
+    sendTelemetry() {
+      // TODO: @mai check why query length is equal 1 when there are two letters in the search box
+      if (this.get('hasQuery')) {
+        this.get('cliqz').sendTelemetry({
+          type: 'history',
+          view: 'sections',
+          action: 'search',
+          query_length: this.get('model.length')
+        });
+      }
     }
-
   }
 });

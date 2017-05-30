@@ -1,6 +1,6 @@
-import { utils } from "core/cliqz";
-import HumanWeb from "human-web/human-web";
-import background from 'human-web/background';
+import { utils } from "../core/cliqz";
+import HumanWeb from "./human-web";
+import background from './background';
 
 export default class {
   constructor(settings) {

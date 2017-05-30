@@ -1,10 +1,8 @@
-import { fetch, Request } from '../core/http';
 import { utils } from '../core/cliqz';
 
 import CliqzPeer from '../p2p/cliqz-peer';
-import { createHiddenWindow, destroyHiddenWindow } from '../p2p/utils';
 
-import console from './console';
+import logger from './logger';
 import MessageQueue from './message-queue';
 import SocksProxy from './socks-proxy';
 import RTCRelay from './rtc-relay';
@@ -16,7 +14,8 @@ import { decryptPayload } from './rtc-onion';
 /**
  * Wrap a MessageQueue into a multiplexer. It exposes a different `push`
  * function, with an extra argument `key`. For each different value of key,
- * a different queue is created.
+ * a different queue is created. This is to allow more concurrency in the way
+ * requests belonging to different connections are processed.
  *
  * It also implements a mechanism to garbage collect un-used queues.
  */
@@ -47,7 +46,7 @@ function MultiplexedQueue(name, callback) {
       Object.keys(queues).forEach((key) => {
         const { lastActivity } = queues[key];
         if (lastActivity < (timestamp - (1000 * 30))) {
-          console.debug(`proxyPeer ${name}_${key} garbage collect`);
+          logger.debug(`${name}_${key} garbage collect`);
           delete queues[key];
         }
       });
@@ -63,25 +62,11 @@ function MultiplexedQueue(name, callback) {
 }
 
 
-function post(url, payload) {
-  const headers = new Headers();
-  headers.append('Content-Type', 'application/json');
-  const request = new Request(url, {
-    headers,
-    method: 'POST',
-    body: JSON.stringify(payload) });
-  return fetch(request)
-    .then((response) => {
-      if (response.ok) {
-        return Promise.resolve();
-      }
-      return Promise.reject();
-    });
-}
-
-
 export default class {
-  constructor() {
+  constructor(signalingUrl, peersUrl, policy, p2p) {
+    // External dependency
+    this.p2p = p2p;
+
     // Create a socks proxy
     this.socksProxy = new SocksProxy();
     this.peer = null;
@@ -91,99 +76,109 @@ export default class {
     this.rtcRelay = null;
     this.rtcToNet = null;
 
-    this.signalingURL = 'p2p-signaling-102182689.us-east-1.elb.amazonaws.com:9666';
+    this.signalingURL = signalingUrl;
+    this.peersUrl = peersUrl;
+    this.policy = policy;
   }
 
-  createPeer(window) {
+  createPeer() {
     return CliqzPeer.generateKeypair()
       .then((ppk) => { this.ppk = ppk; })
-      .then(() => {
-        this.peer = new CliqzPeer(window, this.ppk, {
-          ordered: true,
-          brokerUrl: `ws://${this.signalingURL}`,
-          maxReconnections: 0,
-          maxMessageRetries: 0,
-        });
-
+      .then(() =>
+        this.p2p.action(
+          'createPeer',
+          this.ppk,
+          {
+            ordered: true,
+            brokerUrl: this.signalingURL,
+            maxReconnections: 0,
+            maxMessageRetries: 0,
+            chunkSize: 100 * 1024,
+            DEBUG: true,
+          }
+        )
+      )
+      .then((p) => {
+        this.peer = p;
+        this.peer.setMessageSizeLimit(5 * 1024 * 1024);
         // Add message listener
         this.peer.onmessage = (message, label, peer) => this.handleNewMessage(message, peer);
-      })
-      .then(() => this.peer.createConnection())
-      .then(() => post('https://hpn-sign.cliqz.com/registerPeerProxy/', {
-        pk: this.ppk[0],
-        name: this.peer.peerID,
-        ver: '0.6',
-      }))
-      .then(() => this.peer.socket.close())
-      .then(() => post('https://hpn-sign.cliqz.com/registerPeerProxy/', {
-        name: this.peer.peerID,
-        ver: '0.6',
-      }));
+      });
   }
 
   init() {
     // Init peer and register it to the signaling server
-    return createHiddenWindow()
-      .then(window => this.createPeer(window))
+    return this.createPeer()
       .then(() => {
         // Client
-        this.socksToRTC = new SocksToRTC(this.peer, this.socksProxy);
+        this.socksToRTC = new SocksToRTC(this.peer, this.socksProxy, this.peersUrl);
         this.clientQueue = MultiplexedQueue(
           'client',
           ({ msg }) => this.socksToRTC.handleClientMessage(msg),
         );
 
         // Relay
-        this.rtcRelay = new RTCRelay();
+        this.rtcRelay = new RTCRelay(this.peer);
         this.relayQueue = MultiplexedQueue(
           'relay',
           ({ msg, message, peer }) =>
-          this.rtcRelay.handleRelayMessage(
-            message,     /* Original message */
-            msg,         /* Decrypted message */
-            this.peer,   /* Current peer */
-            peer),       /* Sender */
+            this.rtcRelay.handleRelayMessage(
+              message,     /* Original message */
+              msg,         /* Decrypted message */
+              peer),       /* Sender */
         );
 
         // Exit
-        this.rtcToNet = new RTCToNet();
+        this.rtcToNet = new RTCToNet(this.policy, this.peer);
         this.exitQueue = MultiplexedQueue(
           'exit',
           ({ msg, peer }) =>
-          this.rtcToNet.handleExitMessage(
-            msg,          /* Decrypted message */
-            this.peer,    /* Current peer */
-            peer,         /* Sender */
-            this.ppk[1]), /* Private key of current peer */
+            this.rtcToNet.handleExitMessage(
+              msg,          /* Decrypted message */
+              peer,         /* Sender */
+              this.ppk[1]), /* Private key of current peer */
         );
 
         // All messages
         this.messages = MessageQueue(
           'all',
-          ({ message, peer }) =>
-          decryptPayload(message, this.ppk[1])
-          .then((msg) => {
-            // Every message must have these fields defined
-            const connectionID = msg.connectionID;
-            const role = msg.role;
-            const data = {
-              msg,
-              message,
-              peer,
-            };
+          ({ message, peer }) => {
+            // Get real size of the message as received
+            const dataIn = message.length;
 
-            // Push in corresponding message queue
-            if (role === 'exit') {
-              this.exitQueue.push(connectionID, data);
-            } else if (role === 'relay') {
-              if (msg.nextPeer || this.rtcRelay.isOpenedConnection(connectionID, peer)) {
-                this.relayQueue.push(connectionID, data);
-              } else {
-                this.clientQueue.push(connectionID, data);
-              }
-            }
-          })
-          .catch(ex => console.error(`proxyPeer ProxyPeer error: ${ex} ${ex.stack}`)),
+            return decryptPayload(message, this.ppk[1])
+              .then((msg) => {
+                // Every message must have these fields defined
+                const connectionID = msg.connectionID;
+                const role = msg.role;
+                const data = {
+                  msg,
+                  message,
+                  peer,
+                };
+
+                // Push in corresponding message queue
+                if (role === 'exit') {
+                  this.rtcToNet.dataIn += dataIn;
+                  this.exitQueue.push(connectionID, data);
+                } else if (role === 'relay') {
+                  if (msg.nextPeer || this.rtcRelay.isOpenedConnection(connectionID, peer)) {
+                    this.rtcRelay.dataIn += dataIn;
+                    this.relayQueue.push(connectionID, data);
+                  } else if (this.socksToRTC.isOpenedConnection(connectionID, peer)) {
+                    this.clientQueue.push(connectionID, data);
+                  } else {
+                    // Drop message as it might belong to a closed connection
+                    // This happens normally when the client closed the TCP
+                    // socket and the exit node did the same, in this case the
+                    // client will still receive a message from the exit node
+                    // saying that the connection has been closed. It's safe to
+                    // ignore it.
+                    logger.debug(`peer drops ${JSON.stringify(data)}`);
+                  }
+                }
+              }).catch(ex => logger.error(`proxy-peer error: ${ex} ${ex.stack}`));
+          }
         );
       });
   }
@@ -198,16 +193,21 @@ export default class {
 
   unload() {
     // Unload multiplexed message queues
-    [this.socksToRTC, this.rtcRelay, this.rtcToNet].forEach((queue) => {
+    [this.clientQueue, this.relayQueue, this.exitQueue].forEach((queue) => {
       if (queue !== null) {
         queue.unload();
       }
     });
 
+    // Unload client, relay and exit
+    [this.socksToRTC, this.rtcRelay, this.rtcToNet].forEach((node) => {
+      if (node !== null) {
+        node.unload();
+      }
+    });
+
     this.socksProxy.unload();
-    this.peer.disableSignaling();
     this.peer.destroy();
-    destroyHiddenWindow();
     this.peer = null;
   }
 

@@ -14,7 +14,6 @@ import mathLib from 'math';
 //      http://stackoverflow.com/questions/26603795/variable-name-and-restrict-operators-in-math-js
 //      http://jsbin.com/duduru/1/edit?html,output
 
-var BROWSER_LANG = utils.getLocalizedString('locale_lang_code');
 
 function getEqualOperator(val, localizedStr){
   var valStr = val.toString().replace(",","").replace(".",""),
@@ -172,9 +171,11 @@ var CliqzCalculator = {
   },
 
   selectUnitTerms: function(unit_data, val) {
+
     /*
      *   + based on the value and the language preference, select unit name in suitable language and form (singular/plural)
      */
+    var BROWSER_LANG = utils.getLocalizedString('locale_lang_code');
     var noun_type = val === 1 ? 's' : 'p',
       nameInfo = unit_data[CliqzCalculator.UNIT_CONVERSION_DATA.LOCALIZE_KEYS[BROWSER_LANG]]
                   || unit_data[CliqzCalculator.UNIT_CONVERSION_DATA.LOCALIZE_KEYS['default']]

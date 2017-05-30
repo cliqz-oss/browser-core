@@ -2,13 +2,10 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
 
-import random from 'core/crypto/random';
+import random from '../../core/crypto/random';
+import { toUTF8, fromUTF8 } from '../../core/encoding';
 import constants from './constants';
-import * as utils from './utils';
-
-const strToUTF8Arr = utils.strToUTF8Arr;
-const UTF8ArrToStr = utils.UTF8ArrToStr;
-const isArrayBuffer = utils.isArrayBuffer;
+import { isArrayBuffer } from './utils';
 
 
 function putInt(data, offset, num) {
@@ -37,9 +34,9 @@ function decodeMessage(buffer) {
   let data = new Uint8Array(buffer);
   const type = data[0];
   const labelSize = data[1];
-  const label = UTF8ArrToStr(data.subarray(2, 2 + labelSize));
+  const label = fromUTF8(data.subarray(2, 2 + labelSize));
   if (type & constants.JSON_MSG_FLAG) {
-    data = JSON.parse(UTF8ArrToStr(data.subarray(2 + labelSize)));
+    data = JSON.parse(fromUTF8(data.subarray(2 + labelSize)));
   } else {
     data = data.slice(2 + labelSize);
   }
@@ -58,7 +55,7 @@ function encodeAck(msgId, chunkId) {
 }
 
 function encodeMessage(data, label) {
-  label = strToUTF8Arr(label);
+  label = toUTF8(label);
   if (label.byteLength > 255) {
     throw new Error('Label length must be <= 255 bytes');
   }
@@ -69,7 +66,7 @@ function encodeMessage(data, label) {
       // than the underlying buffer...
       data = data.slice().buffer;
     } else {
-      data = strToUTF8Arr(JSON.stringify(data)).buffer;
+      data = toUTF8(JSON.stringify(data)).buffer;
       type |= constants.JSON_MSG_FLAG;
     }
   }
@@ -127,8 +124,11 @@ class OutMessage {
     this.resolve = resolve;
     this.reject = reject;
     this.cliqzPeer = cliqzPeer;
-    this.log = (...args) => cliqzPeer.log(`[${peer}]`, ...args);
-    this.logDebug = (...args) => cliqzPeer.logDebug(`[${peer}]`, ...args);
+
+    this.log = cliqzPeer.log.bind(null, `[${peer}]`);
+    this.logDebug = cliqzPeer.logDebug.bind(null, `[${peer}]`);
+    this.logError = cliqzPeer.logError.bind(null, `[${peer}]`);
+
     this.chunkSize = cliqzPeer.chunkSize;
     do {
       this.msgId = Math.round(random() * 2000000000);
@@ -181,7 +181,7 @@ class OutMessage {
             this.send();
           })
           .catch((ex) => {
-            this.log('Killing outcoming message', this.msgId, 'to peer', this.peer);
+            this.logError('Killing outcoming message', this.msgId, 'to peer', this.peer);
             delete this.cliqzPeer.outMessages[this.msgId];
             this.reject(`killing outcoming message: ${ex}`);
           });
@@ -197,19 +197,19 @@ class OutMessage {
         this.cliqzPeer.stats.outbytes += this.chunks[chunk].byteLength;
         --this.remainingChunks;
         if (this.remainingChunks === 0) {
-          this.log('Received last ack ', this.msgId, chunk);
+          this.logDebug('Received last ack ', this.msgId, chunk);
           this.cliqzPeer.stats.outmsgs++;
           this.kill(true);
           this.resolve();
         } else {
-          this.log('Received ack ', this.msgId, chunk);
+          this.logDebug('Received ack ', this.msgId, chunk);
           this.scheduleKiller();
         }
       } else {
-        this.log('Warning: repeated chunk');
+        this.logError('Warning: repeated chunk');
       }
     } else {
-      this.log('Warning: chunk number is too big');
+      this.logError('Warning: chunk number is too big');
     }
   }
 
@@ -226,7 +226,7 @@ class OutMessage {
           conn.send(this.chunks[i]);
         }
       })
-      .catch(e => this.log('Error sending msg', e));
+      .catch(e => this.logError('Error sending msg', e));
   }
 }
 
@@ -234,8 +234,11 @@ class InMessage {
   constructor(firstChunk, peer, resolve, cliqzPeer) {
     this.msgTimeout = cliqzPeer.msgTimeout;
     this.cliqzPeer = cliqzPeer;
-    this.log = (...args) => cliqzPeer.log(`[${peer}]`, ...args);
-    this.logDebug = (...args) => cliqzPeer.logDebug(`[${peer}]`, ...args);
+
+    this.log = cliqzPeer.log.bind(null, `[${peer}]`);
+    this.logDebug = cliqzPeer.logDebug.bind(null, `[${peer}]`);
+    this.logError = cliqzPeer.logError.bind(null, `[${peer}]`);
+
     this.peer = peer;
     this.resolve = resolve;
     this.chunks = [];
@@ -249,19 +252,25 @@ class InMessage {
     this.receivedChunk(firstChunk);
   }
 
-  receivedChunk(chunk) {
-    if (chunk.chunkId < this.numChunks) {
-      if (!this.chunks[chunk.chunkId]) {
-        this.currentSize += chunk.data.byteLength;
-        this.cliqzPeer.stats.inbytes += chunk.data.byteLength;
+  receivedChunk({ chunkId, data }) {
+    // decodeChunk gives us some guarantees:
+    // version is 1 byte int
+    // msgId is 4 bytes int
+    // chunkId is 2 bytes int (good to limit max number of chunks)
+    // numChunks is 2 bytes int
+    // data is Uint8Array
+    if (chunkId < this.numChunks) {
+      if (!this.chunks[chunkId]) {
+        this.currentSize += data.byteLength;
+        this.cliqzPeer.stats.inbytes += data.byteLength;
         if (
           !this.cliqzPeer.messageSizeLimit || this.currentSize <= this.cliqzPeer.messageSizeLimit
         ) {
-          this.chunks[chunk.chunkId] = chunk.data;
+          this.chunks[chunkId] = data;
           --this.remainingChunks;
-          this.sendAck(chunk.chunkId);
+          this.sendAck(chunkId);
           if (this.remainingChunks === 0) {
-            this.log('Received last chunk ', this.msgId, chunk.chunkId);
+            this.logDebug('Received last chunk ', this.msgId, chunkId);
             this.cliqzPeer.stats.inmsgs++;
             this.kill(true);
             this.cliqzPeer.setTimeout(() => {
@@ -279,17 +288,19 @@ class InMessage {
               this.resolve(decoded.data, decoded.label);
             }, 0);
           } else {
-            this.log('Received chunk ', this.msgId, chunk.chunkId, this.remainingChunks);
+            this.logDebug('Received chunk ', this.msgId, chunkId, this.remainingChunks);
             this.scheduleKiller();
           }
         } else {
-          this.log('Message size exceeded, dropping chunk...');
+          this.logError('Message size exceeded, killing message...');
+          this.kill();
         }
       } else {
-        this.log('Warning: received repeated chunk');
+        this.logError('Warning: received repeated chunk');
       }
     } else {
-      this.log('Warning: received chunk number is too big');
+      this.logError('Warning: received chunk number is too big, killing message');
+      this.kill();
     }
   }
 
@@ -316,7 +327,7 @@ class InMessage {
     this.cancelKiller();
     delete this.cliqzPeer.inMessages[this.msgId];
     if (!success) {
-      this.log('Killing incoming message', this.msgId, 'from peer', this.peer);
+      this.logError('Killing incoming message', this.msgId, 'from peer', this.peer);
           // this.reject();
     }
   }

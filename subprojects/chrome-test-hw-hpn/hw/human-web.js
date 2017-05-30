@@ -5,9 +5,7 @@ var __CliqzHumanWeb = function() { // (_export) {
 
     function _log(msg) {
         try {
-            if (CliqzHumanWeb.debug) {
-                CliqzUtils.log(msg, CliqzHumanWeb.LOG_KEY);
-            }
+            CliqzUtils.log(msg, CliqzHumanWeb.LOG_KEY);
         } catch (e) {
             CliqzUtils.log(e, CliqzHumanWeb.LOG_KEY);
         };
@@ -1408,7 +1406,7 @@ var __CliqzHumanWeb = function() { // (_export) {
 
                                         CliqzHumanWeb.getCD(url).then(function (doc) {
                                             CliqzHumanWeb.checkURL(doc, url, "normal");
-                                            CliqzHumanWeb.detectOwnKeyword(doc);
+                                            // CliqzHumanWeb.detectOwnKeyword(doc);
                                             let anonSe = CliqzHumanWeb.checkAnonSearchURL(url);
                                             if(anonSe > -1){
                                                 let hostName = CliqzHumanWeb.parseURL(url)['hostname'];
@@ -1759,10 +1757,12 @@ var __CliqzHumanWeb = function() { // (_export) {
                             CliqzUtils.setPref('config_activeUsageCount', CliqzHumanWeb.activeUsage);
                         }
                     }
-                    // send all the data
-                    CliqzHumanWeb.pushTelemetry();
+
                     CliqzUtils.clearTimeout(CliqzHumanWeb.pacemakerId);
                     CliqzUtils.clearTimeout(CliqzHumanWeb.trkTimer);
+                    CliqzHumanWeb.pacemakerId = null;
+                    CliqzHumanWeb.trkTimer = null;
+
                 },
                 unloadAtBrowser: function unloadAtBrowser() {
                     try {
@@ -1978,7 +1978,6 @@ var __CliqzHumanWeb = function() { // (_export) {
                 },
                 init: function init(window) {
                     // if (CliqzUtils.getPref("dnt", false)) return;
-                    console.log(">>>>> Init Called <<<<<<");
 
                     // Load prefs from local storage.
                     CliqzUtils.loadPrefs();
@@ -2008,7 +2007,6 @@ var __CliqzHumanWeb = function() { // (_export) {
                     }
 
                     CliqzHumanWeb.loadRecord('config_activeUsageCount', function (data) {
-                        console.log("<<< Active usage >>>" + data);
                         if(data){
                             CliqzHumanWeb.activeUsage = data;
                         }
@@ -2019,7 +2017,6 @@ var __CliqzHumanWeb = function() { // (_export) {
                             CliqzHumanWeb.activeUsageLastSent = Date.now();
                             CliqzHumanWeb.saveRecord("activeUsageLastSent", CliqzHumanWeb.activeUsageLastSent);
                         }
-                        console.log("<<< Time Active usage >>>" + data);
                         // CliqzHumanWeb.activeUsage = data;
                     })
 
@@ -4013,13 +4010,17 @@ var __CliqzHumanWeb = function() { // (_export) {
 
                     return promise;
                 },
-                detectOwnKeyword : function(doc){
+                detectOwnKeyword : function(_doc, ad_url, hidden){
                     let qSelector = '#ires';
                     let adSelector = '.ads-visurl cite';
                     let organicSelector = '.rc .r a';
 
+                    let parser = new DOMParser();
+                    let doc = parser.parseFromString(_doc, "text/html");
+
                     // Check if the pages has query, organic result and ad.
                     if(doc.querySelector(qSelector) && doc.querySelector(organicSelector) && doc.querySelector(adSelector)) {
+
                         let query = decodeURIComponent(doc.querySelector(qSelector).getAttribute('data-async-context').replace('query:',''));
                         let organicURL = doc.querySelector(organicSelector).href;
                         let adURL = doc.querySelector(adSelector).textContent;
@@ -4029,11 +4030,11 @@ var __CliqzHumanWeb = function() { // (_export) {
                         CliqzHumanWeb.queryMapping[query]['ts'] = Date.now();
                         CliqzHumanWeb.queryMapping[query]['organic'] = organicURL;
                         CliqzHumanWeb.queryMapping[query]['ads'] = adURL;
-                        console.log(">>>>>> ad url? " + doc.querySelector('#tads .ads-ad'));
-                        CliqzHumanWeb.queryMapping[query]['ad_url'] = doc.querySelector('#tads .ads-ad a').href;
+                        CliqzHumanWeb.queryMapping[query]['ad_url'] = ad_url;
                         CliqzHumanWeb.queryMapping[query]['organic_url'] = doc.querySelector('.rc .r a').href;
                         CliqzHumanWeb.queryMapping[query]['click_organic'] = false;
                         CliqzHumanWeb.queryMapping[query]['click_ads'] = false;
+                        CliqzHumanWeb.queryMapping[query]['hidden'] = hidden;
                     }
 
                 },
@@ -4055,25 +4056,23 @@ var __CliqzHumanWeb = function() { // (_export) {
                 },
                 experimentOwnKeyword: function(key) {
                     _log("In experimentOwnKeyword: " + key);
-                    if (CliqzHumanWeb.queryMapping[key].click_ads ||
-                        CliqzHumanWeb.queryMapping[key].click_organic
-                        ) {
 
-                        let payload = {};
-                        payload.ad = CliqzHumanWeb.queryMapping[key].ads;
-                        payload.organic = CliqzHumanWeb.queryMapping[key].organic;
-                        payload.click_ads = CliqzHumanWeb.queryMapping[key].click_ads;
-                        payload.click_organic = CliqzHumanWeb.queryMapping[key].click_organic;
+                    let payload = {};
+                    payload.ad = CliqzHumanWeb.queryMapping[key].ads;
+                    payload.organic = CliqzHumanWeb.queryMapping[key].organic;
+                    payload.click_ads = CliqzHumanWeb.queryMapping[key].click_ads;
+                    payload.click_organic = CliqzHumanWeb.queryMapping[key].click_organic;
+                    payload.query = key;
+                    payload.adBlocked = CliqzHumanWeb.queryMapping[key].hidden;
 
-                        _log(">>>experimentOwnKeyword payload " + JSON.stringify(payload));
-                        CliqzHumanWeb.telemetry({
-                            'type': CliqzHumanWeb.msgType,
-                            'action': 'experiment-sem-own-keyword',
-                            'ctry': CliqzHumanWeb.getCountryCode(),
-                            'anti-duplicates': Math.floor(CliqzHumanWeb.cryptoRandom() * 10000000),
-                            'payload': payload
-                        });
-                    }
+                    _log(">>>experimentOwnKeyword payload " + JSON.stringify(payload));
+                    CliqzHumanWeb.telemetry({
+                        'type': CliqzHumanWeb.msgType,
+                        'action': 'experiment-sem-own-keyword',
+                        'ctry': CliqzHumanWeb.getCountryCode(),
+                        'anti-duplicates': Math.floor(CliqzHumanWeb.cryptoRandom() * 10000000),
+                        'payload': payload
+                    });
 
                     delete CliqzHumanWeb.queryMapping[key]
                 },

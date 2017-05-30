@@ -76,8 +76,8 @@ function mergePlaces(history, places) {
     return domains;
   }, {});
 
-
   return {
+    totalUrlCount: places.length,
     urlCount,
     domains: domainList,
   };

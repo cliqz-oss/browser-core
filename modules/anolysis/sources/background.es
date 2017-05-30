@@ -1,12 +1,14 @@
 /* eslint { "object-shorthand": "off" } */
 
-import background from 'core/base/background';
-import { utils } from 'core/cliqz';
+import background from '../core/base/background';
+import { utils } from '../core/cliqz';
+import events from '../core/events';
 
 
-import telemetrySchemas from 'anolysis/telemetry-schemas';
-import Anolysis from 'anolysis/anolysis';
-import getSynchronizedDate from 'anolysis/synchronized-date';
+import telemetrySchemas from './telemetry-schemas';
+import Anolysis from './anolysis';
+import getSynchronizedDate from './synchronized-date';
+import logger from './logger';
 
 
 /* TODO - use the new kord module
@@ -16,11 +18,49 @@ import getSynchronizedDate from 'anolysis/synchronized-date';
  */
 
 
-const ENABLE_PREF = 'telemetryNoSession';
+export const ENABLE_PREF = 'telemetryNoSession';
+const LATEST_VERSION_USED_PREF = 'anolysisVersion';
+
+/**
+ * VERSION is used to signal major changes in Anolysis. Its purpose so far is to
+ * only signal when the state of the client should be reset, which is a
+ * temporary thing.
+ */
+const VERSION = 1;
+
+
+function versionWasUpdated() {
+  return utils.getPref(LATEST_VERSION_USED_PREF, null) !== VERSION;
+}
+
+
+function storeNewVersionInPrefs() {
+  utils.setPref(LATEST_VERSION_USED_PREF, VERSION);
+}
 
 
 function isTelemetryEnabled() {
-  return utils.getPref(ENABLE_PREF, true);
+  return utils.getPref(ENABLE_PREF, false);
+}
+
+
+/**
+ * This function will instantiate an Anolysis class. It will also check if the
+ * internal states need to be reset (on version bump).
+ */
+function instantiateAnolysis(settings) {
+  const anolysis = new Anolysis(settings);
+
+  // Check if we should reset
+  if (versionWasUpdated()) {
+    logger.log('reset anolysis state because of update');
+    return anolysis.reset()
+      .then(() => anolysis.stop())
+      .then(() => storeNewVersionInPrefs())
+      .then(() => new Anolysis(settings));
+  }
+
+  return Promise.resolve(anolysis);
 }
 
 
@@ -48,28 +88,32 @@ export default background({
     // this.intervalTimer = utils.setInterval(
     //   () => this.actions.generateSignals(Date.now()),
     //   ONE_MINUTE);
-    this.anolysis = new Anolysis(this.settings);
 
-    // TODO
-    // Register legacy telemetry signals listener. In the future this should
-    // not be needed as the `utils.telemetry` function should directly call
-    // the action `log` of this background (using the kord mechanism).
-    this.telemetryHandler = this.events['telemetry:handleTelemetrySignal'].bind(this);
-    utils.telemetryHandlers.push(this.telemetryHandler);
+    return instantiateAnolysis(this.settings).then((anolysis) => {
+      this.anolysis = anolysis;
 
-    // TODO - send ping_anolysis signal with legacy telemetry system
-    // This is only meant for testing purposes and will be remove in
-    // the future.
-    utils.telemetry({
-      type: 'anolysis_ping',
-    }, true /* force push */);
+      // TODO
+      // Register legacy telemetry signals listener. In the future this should
+      // not be needed as the `utils.telemetry` function should directly call
+      // the action `log` of this background (using the kord mechanism).
+      this.telemetryHandler = this.events['telemetry:handleTelemetrySignal'].bind(this);
+      utils.telemetryHandlers.push(this.telemetryHandler);
 
-    return this.anolysis.init()
-      .then(() => { this.actions.registerSchemas(telemetrySchemas); })
-      .then(() => {
-        this.isRunning = true;
-        utils.log('started', 'anon');
-      });
+      // TODO - send ping_anolysis signal with legacy telemetry system
+      // This is only meant for testing purposes and will be remove in
+      // the future.
+      utils.telemetry({
+        type: 'anolysis_ping',
+      }, true /* force push */);
+
+      return this.actions.registerSchemas(telemetrySchemas)
+        .then(() => { this.anolysis.init(); })
+        .then(() => {
+          this.isRunning = true;
+          utils.log('started', 'anon');
+          events.pub('anolysis:initialized');
+        });
+    });
   },
 
   stop() {
