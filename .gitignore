@@ -6,6 +6,7 @@ tmp
 tests.tap
 tests.xml
 addon.env
+jsconfig.json
 
 # ignore invisible files
 .Trashes

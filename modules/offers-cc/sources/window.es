@@ -356,10 +356,6 @@ export default class {
   }
 
   openPanel() {
-    if (utils.getWindow() !== this.window) {
-      return;
-    }
-    this.closePanel();
     this.panel.open(this.button);
   }
 

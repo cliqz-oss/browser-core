@@ -1,5 +1,5 @@
 import messageContext from './message-context';
-import { sha1 } from './crypto-utils';
+import { sha1 } from '../../core/crypto/utils';
 import userPK from './user-pk';
 import { parseDSKey } from './blind-signature';
 import config from '../../core/config';

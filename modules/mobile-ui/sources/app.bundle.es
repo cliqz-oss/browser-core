@@ -15,6 +15,7 @@ import dev from '../mobile-dev/index';
 import autocomplete from '../autocomplete/index';
 import ui from '../mobile-ui/index';
 import downloader from '../yt-downloader/index';
+import window from '../platform/window';
 
 window.CLIQZ = {};
 

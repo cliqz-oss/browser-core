@@ -140,6 +140,13 @@ $(document).ready(() => {
   // link the click function here to the buttons
   document.getElementById('cliqz-offers-cc').addEventListener('click', cqzOfferBtnClicked);
 
+  $('.cqz-close-hub').on('click', () => {
+    sendMessageToWindow({
+      action: 'closePanel',
+      data: {}
+    });
+  });
+
   $('.cqz-show-all-offers').on('click', () => {
     $('#cqz-vouchers-wrapper').addClass('show-all');
     resize();
@@ -150,13 +157,6 @@ $(document).ready(() => {
   $('body').on('click', (e) => {
     const elm = $(e.target);
     // console.log('+++++ body click');
-
-    if (elm.hasClass('cqz-close-hub')) {
-      sendMessageToWindow({
-        action: 'closePanel',
-        data: {}
-      });
-    }
 
     if (elm.hasClass('cqz-close')) {
       const offersPosition = $('.cqz-vouchers').scrollTop() || 0;

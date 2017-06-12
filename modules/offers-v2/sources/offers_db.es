@@ -35,7 +35,6 @@ class OfferDB {
 
   constructor(offersDB) {
     this.db = new DBHelper(offersDB);
-
     // we will hold here the index data needed in a very basic and non duplicated
     // form, all the other index tables will be built after loaded from disk.
     // {
@@ -64,10 +63,6 @@ class OfferDB {
 
   savePersistentData() {
     this._savePersistentData();
-  }
-
-  loadPersistentData() {
-    return this._loadPersistentData();
   }
 
   // ---------------------------------------------------------------------------
@@ -145,10 +140,7 @@ class OfferDB {
 
     // mark as dirty and update tables
     this._markOfferDirty(offerID);
-
-    // we should not remove this since we relay still on accessing the display_id
-    // information of the offer
-    // this._removeIndexTablesForOffer(offerID);
+    this._removeIndexTablesForOffer(offerID);
 
     // remove the data
     // delete container.offer_obj;
@@ -183,10 +175,7 @@ class OfferDB {
     return this.dataIndex.offers_index[offerID] !== undefined;
   }
   hasOfferObject(offerID) {
-    if (this.getOfferObject(offerID)) {
-      return true;
-    }
-    return false;
+    return this.getOfferObject(offerID);
   }
   isOfferPresent(offerID) {
     const container = this.dataIndex.offers_index[offerID];
@@ -634,54 +623,27 @@ class OfferDB {
   _loadPersistentData() {
     if (!OffersConfigs.LOAD_OFFERS_STORAGE_DATA) {
       linfo('_loadPersistenceData: skipping the load of storage data');
-      return new Promise((resolve) => { resolve(true); });
+      return;
     }
     const self = this;
-    return new Promise((resolve) => {
-      this.db.getDocData(STORAGE_DB_DOC_ID).then((docData) => {
-        if (!docData || !docData.data_index) {
-          lerr('_loadPersistenceData: something went wrong loading the data?');
-          resolve(false);
-          return;
-        }
-        // set the data
-        self.dataIndex = docData.data_index;
-
-        // remove the old ones
-        self._removeOldEntries();
-
-        // build tables
-        self._buildIndexTables();
-
-        self.dbDirty = false;
-        resolve(true);
-      }).catch((err) => {
-        lerr(`_loadPersistenceData: error loading the storage data...: ${JSON.stringify(err)}`);
-        resolve(false);
-      });
-    });
-  }
-
-
-  // ///////////////////////////////////////////////////////////////////////////
-  // DEBUG HELPER METHODS
-  // ///////////////////////////////////////////////////////////////////////////
-  //
-
-  /**
-   * will remove the current database and store an empty element on the storage
-   */
-  __removePersistenLocalDB() {
-    linfo('__removePersistenLocalDB: removing current data and DB');
-    this.dataIndex = {
-      offers_index: {},
-      display_id_index: {}
-    };
-    this.db.saveDocData(STORAGE_DB_DOC_ID,
-      {
-        data_index: this.dataIndex
+    this.db.getDocData(STORAGE_DB_DOC_ID).then((docData) => {
+      if (!docData || !docData.data_index) {
+        lerr('_loadPersistenceData: something went wrong loading the data?');
+        return;
       }
-    );
+      // set the data
+      self.data_index = docData.data_index;
+
+      // remove the old ones
+      self._removeOldEntries();
+
+      // build tables
+      self._buildIndexTables();
+
+      self.dbDirty = false;
+    }).catch((err) => {
+      lerr(`_loadPersistenceData: error loading the storage data...: ${JSON.stringify(err)}`);
+    });
   }
 
 }

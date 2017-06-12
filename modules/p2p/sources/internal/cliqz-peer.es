@@ -5,7 +5,7 @@ import CliqzPeerConnection from './cliqz-peer-connection';
 import logger from './logger';
 import constants from './constants';
 import { has, isArrayBuffer } from './utils';
-import { importPrivateKey, exportPublicKeySPKI, exportPrivateKeyPKCS8 } from './crypto';
+import { privateKeytoKeypair } from '../../core/crypto/pkcs-conversion';
 import * as _messages from './messages';
 
 const InMessage = _messages.InMessage;
@@ -397,8 +397,7 @@ export default class CliqzPeer {
   * same keypair format returned by the promise of {@link module:global#CliqzPeer.generateKeypair}.
   */
   static privateKeytoKeypair(privateKey) {
-    const key = importPrivateKey(privateKey);
-    return [exportPublicKeySPKI(key), exportPrivateKeyPKCS8(key)];
+    return privateKeytoKeypair(privateKey);
   }
 
   /**

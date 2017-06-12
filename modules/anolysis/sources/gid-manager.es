@@ -408,10 +408,6 @@ export default class {
   updateDemographics(demographics) {
     logger.debug(`updateDemographics ${JSON.stringify(demographics)}`);
     return this.demographicsStorage.put(demographics)
-      .catch((err) => {
-        /* Ignore, it means these demographics are already stored */
-        logger.debug(`Could not insert demographics ${err}`);
-      })
       .then(() => { this.init(); })
       .then(() => { events.pub('anolysis:demographics_registered'); });
   }

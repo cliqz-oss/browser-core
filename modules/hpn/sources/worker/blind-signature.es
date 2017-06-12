@@ -1,12 +1,47 @@
 import { randBigInt } from 'bigint';
 import CliqzSecureMessage from './index';
+
 import {
-  base64_decode,
-  base64UrlDecode,
-  byteArrayToHexString,
-  stringToByteArray,
-  h2d
-} from './crypto-utils';
+  fromBase64,
+  toUTF8,
+  toHex
+} from '../../core/encoding';
+
+import crypto from '../../platform/crypto';
+
+function base64UrlDecode(str) {
+  str = atob(str.replace(/-/g, '+').replace(/_/g, '/'));
+  var buffer = new Uint8Array(str.length);
+  for(var i = 0; i < str.length; ++i) {
+    buffer[i] = str.charCodeAt(i);
+  }
+  return buffer;
+}
+
+function h2d(s) {
+    function add(x, y) {
+        var c = 0, r = [];
+        var x = x.split('').map(Number);
+        var y = y.split('').map(Number);
+        while(x.length || y.length) {
+            var s = (x.pop() || 0) + (y.pop() || 0) + c;
+            r.unshift(s < 10 ? s : s - 10);
+            c = s < 10 ? 0 : 1;
+        }
+        if(c) r.unshift(c);
+        return r.join('');
+    }
+
+    var dec = '0';
+    s.split('').forEach(function(chr) {
+        var n = parseInt(chr, 16);
+        for(var t = 8; t; t >>= 1) {
+            dec = add(dec, dec);
+            if(n & t) dec = add(dec, '1');
+        }
+    });
+    return dec;
+}
 
 export function parseDSKey(){
     // Parse key contents.
@@ -14,7 +49,7 @@ export function parseDSKey(){
     return new Promise(function(resolve, reject){
         crypto.subtle.importKey(
          'spki',
-          base64_decode(CliqzSecureMessage.dsPK.pubKeyB64),
+          fromBase64(CliqzSecureMessage.dsPK.pubKeyB64),
           {
             name: 'RSA-OAEP',
             hash: { name: 'SHA-1' }
@@ -26,10 +61,10 @@ export function parseDSKey(){
               function(key) {
                 // base64url-decode modulus
                 var modulus = base64UrlDecode(key.n);
-                CliqzSecureMessage.dsPK["n"] = h2d(byteArrayToHexString(modulus));
+                CliqzSecureMessage.dsPK["n"] = h2d(toHex(modulus));
                 // base64url-decode exponent
                 var exponent = base64UrlDecode(key.e);
-                CliqzSecureMessage.dsPK["e"] = '' + h2d(byteArrayToHexString(exponent));
+                CliqzSecureMessage.dsPK["e"] = '' + h2d(toHex(exponent));
                 resolve();
                 // modulus and exponent are now Uint8Arrays
           })
@@ -100,8 +135,8 @@ blindSignContext.prototype.hashMessage = function(){
     // Need sha256 digest the message.
     let _this = this;
     let promise = new Promise(function(resolve, reject){
-      crypto.subtle.digest("SHA-256", stringToByteArray(_this.msg)).then( hash => {
-        resolve(byteArrayToHexString(new Uint8Array(hash)));
+      crypto.subtle.digest("SHA-256", toUTF8(_this.msg)).then( hash => {
+        resolve(toHex(new Uint8Array(hash)));
       });
     });
     return promise;

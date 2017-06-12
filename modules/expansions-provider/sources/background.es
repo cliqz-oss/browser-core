@@ -33,15 +33,6 @@ export default background({
 
   },
 
-  events: {
-    'autocomplete:enable-search': function() {
-      this.expansionsProvider.disable();
-    },
-    'autocomplete:disable-search': function() {
-      this.expansionsProvider.enable();
-    }
-  },
-
   actions: {
 
   }

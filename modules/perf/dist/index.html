@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <script src="chrome://cliqz/content/bower_components/jquery/dist/jquery.js"></script>
+    <script src="chrome://cliqz/content/bower_components/tablesorter/dist/js/jquery.tablesorter.min.js"></script>
+</head>
+<body>
+  <table id="myTable" class="tablesorter">
+    <thead>
+      <tr>
+          <th>Function name</th>
+          <th>Filename</th>
+          <th>Line/col</th>
+          <th>Max (ms)</th>
+          <th>Avg (ms/call)</th>
+          <th>Total (ms)</th>
+          <th>Calls</th>
+      </tr>
+    </thead>
+    <tbody id="myBody">
+    </tbody>
+  </table>
+
+  <ul class="mylist">
+  </ul>
+  <div id="content">
+  </div>
+
+  <script>
+    Components.utils.import("chrome://cliqzmodules/content/CLIQZ.jsm");
+    var perf = CLIQZ.System.get('perf/background').default;
+    var perfData = perf.getPerf();
+    var data = Object.keys(perfData).map(x => [x, perfData[x]]).sort((a, b) => b[1].max - a[1].max);
+    data.forEach((x) => {
+      var key = x[0];
+      var funcname = key.split('|')[0];
+      var filename = key.split('|')[1];
+      var lineCol = key.split('|')[2];
+      var lineCol = key.split('|')[2];
+      var max = x[1].max;
+      var n = x[1].n;
+      var total = x[1].total;
+      var avg = total/n;
+      var tr = $('<tr/>');
+      var cols = [funcname, filename, lineCol, max, avg, total, n];
+      cols.forEach((y) => {
+        $('<td/>').text(y).appendTo(tr);
+      });
+      tr.appendTo($('#myBody'));
+    });
+    $("#myTable").tablesorter({sortList: [[3,1]]});
+  </script>
+</body>
+</html>

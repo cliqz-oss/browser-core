@@ -1,7 +1,15 @@
 import CliqzEvents from '../core/events';
+import config from '../core/config';
 
 var CLIQZEnvironment = {
+  RESULTS_PROVIDER: config.settings.RESULTS_PROVIDER,
+  RICH_HEADER: config.settings.RICH_HEADER,
+  RESULTS_LIMIT: config.settings.RESULTS_LIMIT,
+  RESULTS_TIMEOUT: config.settings.RESULTS_TIMEOUT,
+  historySearch() {},
+  RERANKERS: [],
   log: console.log,
+  getWindow() {},
   httpHandler: function(method, url, callback, onerror, timeout, data) {
     var wrappedCallback = (cb) => {
       return (resp) => {

@@ -859,7 +859,7 @@ export function parseJSResource(lines) {
   let type = null;
   let name = '';
   const parsed = new Map();
-  for (let line of lines) {
+  lines.forEach((line) => {
     line = line.trim();
     if (line.startsWith('#')) {
       state = 'comment';
@@ -891,7 +891,7 @@ export function parseJSResource(lines) {
         break;
       default:
     }
-  }
+  });
   if (tmpContent) {
     if (!parsed.get(type)) {
       parsed.set(type, new Map());

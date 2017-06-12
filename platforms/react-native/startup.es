@@ -49,7 +49,7 @@ const startup = loadPrefs().then(() => {
   utils.setInterval(utils.fetchAndStoreConfig, 60 * 60 * 1e3);
   utils.fetchAndStoreConfig();
   // load ABtests
-  ABTests.check();
+  // ABTests.check();
   return Promise.resolve(app);
 });
 

@@ -323,4 +323,11 @@ var osAPI = {
     };
     osAPI.OS.postMessage(message);
   },
+  notifyPairingSuccess: function(data) {
+    var message = {
+      action: 'notifyPairingSuccess',
+      data: data,
+    };
+    osAPI.OS.postMessage(message);
+  },
 };

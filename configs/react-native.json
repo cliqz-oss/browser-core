@@ -5,7 +5,11 @@
   "settings": {
     "antitrackingButton": false,
     "telemetryProvider": "platform",
-    "channel": "MI00"
+    "channel": "MI00",
+    "RESULTS_PROVIDER": "https://api.cliqz.com/api/v2/results?q=",
+    "RICH_HEADER": "https://api.cliqz.com/api/v2/rich-header?path=/v2/map",
+    "RESULTS_LIMIT": 3,
+    "RESULTS_TIMEOUT": 3000
   },
   "default_prefs" : {
     "attrackBloomFilter": true,
@@ -15,8 +19,10 @@
   },
   "modules": [
     "core",
+    "autocomplete",
     "antitracking",
     "antitracking-blocker",
-    "adblocker"
+    "adblocker",
+    "static"
   ]
 }

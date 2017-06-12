@@ -1,4 +1,3 @@
-import { Promise } from './cliqz';
 
 class ResourceManager {
   constructor() {

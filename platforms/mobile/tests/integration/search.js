@@ -22,14 +22,11 @@ describe('Search View', function() {
         }
       });
       document.body.appendChild(testBox);
-    }).then(() => {
-      return injectSinon(testBox.contentWindow);
     }).then(done);
   });
 
   afterEach(function () {
   	localStorage.clear();
-    window.fakeServer.restore();
     document.body.removeChild(testBox);
   });
 
@@ -79,9 +76,15 @@ describe('Search View', function() {
       };
 
 
-      cliqzResponse(query, [ extraResult ]);
+      var response = cliqzResponse(query, [ extraResult ]);
+      
+      mockHttp(contentWindow, /.*api\/v2\/results.*/, response);
 
       contentWindow.jsAPI.search(encodeURIComponent(query), true, 48.151753799999994, 11.620054999999999);
+    });
+
+    afterEach(function () {
+      fetchMock.restore();
     });
 
     it("should intercept request and respond with fake result", function () {
@@ -117,7 +120,7 @@ describe('Search View', function() {
 
       contentWindow.addEventListener('imgLoadingDone', function () { done() });
 
-      cliqzResponse(query, [
+      var response = cliqzResponse(query, [
         {
           "url": "https://www.amazon.de/",
           "trigger_method": "url",
@@ -165,6 +168,8 @@ describe('Search View', function() {
         }
       ]);
 
+      mockHttp(contentWindow, /.*api\/v2\/results.*/, response);
+      
       contentWindow.jsAPI.search(encodeURIComponent(query));
     });
 
@@ -185,7 +190,7 @@ describe('Search View', function() {
 
       contentWindow.addEventListener('imgLoadingDone', function () { done() });
 
-      cliqzResponse(query, [
+      var response = cliqzResponse(query, [
         {
           "snippet": {
             "description": "Grosse Titten :: Kostenlose porno von Grosse Titten. Auf Einfachporno finden Sie alle Pornofilme von Grosse Titten die Sie sich k\u00f6nnen vorstellen. Nur hier Qualit\u00e4tsporno.",
@@ -205,7 +210,13 @@ describe('Search View', function() {
         }
       ]);
 
+      mockHttp(contentWindow, /.*api\/v2\/results.*/, response);
+      
       contentWindow.jsAPI.search(encodeURIComponent(query));
+    });
+
+    afterEach(function () {
+      fetchMock.restore();
     });
 
     it("should filter all results", function () {
@@ -221,7 +232,7 @@ describe('Search View', function() {
 
       contentWindow.addEventListener('imgLoadingDone', function () { done() });
 
-      cliqzResponse(query, [
+      var response = cliqzResponse(query, [
         {
           "url": "https://www.wunderground.com/cgi-bin/findweather/getForecast?query=48.15,11.5833",
           "score": 0,
@@ -311,11 +322,17 @@ describe('Search View', function() {
     		}
       ]);
 
+      mockHttp(contentWindow, /.*api\/v2\/results.*/, response);
+      
       contentWindow.jsAPI.search(encodeURIComponent(query));
     });
 
     it("should intercept request and respond with fake result", function () {
       expect($('.card__title')[0].innerText).to.contain('!!!Fake title!!!');
+    });
+
+    afterEach(function () {
+      fetchMock.restore();
     });
 
     it("should have the weather card", function () {
@@ -332,7 +349,7 @@ describe('Search View', function() {
 
       contentWindow.addEventListener('imgLoadingDone', function () { done() });
 
-      cliqzResponse(query, [
+      var response = cliqzResponse(query, [
         {
           "url": "http://www.fcbayern.de/",
           "trigger_method": "url",
@@ -410,7 +427,13 @@ describe('Search View', function() {
         },
       ]);
 
+      mockHttp(contentWindow, /.*api\/v2\/results.*/, response);
+      
       contentWindow.jsAPI.search(encodeURIComponent(query));
+    });
+
+    afterEach(function () {
+      fetchMock.restore();
     });
 
     it("should intercept request and respond with fake result", function () {

@@ -27,7 +27,7 @@
                 {{#if template_data.call_to_action }}
                 <div class="cqz-call-to-action">
                     <a href="#{{ template_data.call_to_action.url }}"
-                       class="cqz-btn cqz-close-hub"
+                       class="cqz-btn"
                        data-cqz-of-btn-id="call-to-action"
                        data-cqz-offer-id="{{ offer_id }}"
                        target="{{ template_data.call_to_action.target }}"
@@ -50,8 +50,9 @@
                               data-cqz-of-btn-id="copy-code"
                               data-cqz-offer-id="{{ offer_id }}"
                               data-cqz-of-btn-action-type="offer-action-signal"
-                        >{{ template_data.code  }}</span>
-                        <!-- Do not put {{ template_data.code  }} otherwise will bring empty spaces in COPY selection-->
+                        >
+                            {{ template_data.code  }}
+                        </span>
                     </div>
                     {{/if }}
 

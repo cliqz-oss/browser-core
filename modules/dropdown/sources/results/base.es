@@ -1,4 +1,5 @@
 /* eslint no-use-before-define: ["error", { "classes": false }] */
+import events from '../../core/events';
 import utils from '../../core/utils';
 import { equals } from '../../core/url';
 
@@ -107,6 +108,16 @@ export default class BaseResult {
     return this.localSource.indexOf('bookmark') !== -1;
   }
 
+  get isCliqzAction() {
+    return !this.rawResult.url || this.rawResult.url.indexOf('cliqz-actions') === 0;
+  }
+
+  get isAdult() {
+    const data = this.rawResult.data || {};
+    const extra = data.extra || {};
+    return extra.adult;
+  }
+
   get icon() {
     let icon;
 
@@ -129,6 +140,10 @@ export default class BaseResult {
     return this.rawResult.url;
   }
 
+  get rawUrl() {
+    return this.rawResult.url;
+  }
+
   get displayUrl() {
     return this.rawResult.url;
   }
@@ -143,10 +158,14 @@ export default class BaseResult {
 
   // cannot limit here - inheriting results may like to have filtering
   get internalResults() {
+    if (this.isAskingForLocation) { // Hide these buttons when asking for location sharing
+      return [];
+    }
     const deepLinks = getDeepResults(this.rawResult, 'buttons');
     return deepLinks.map(({ url, title }) => new InternalResult({
       url,
-      title
+      title,
+      text: this.query,
     }));
   }
 
@@ -155,6 +174,7 @@ export default class BaseResult {
     return deepLinks.map(({ image, extra }) => new ImageResult({
       url: (extra && extra.original_image) || image,
       thumbnail: image,
+      text: this.query,
     }));
   }
 
@@ -163,19 +183,76 @@ export default class BaseResult {
     return deepLinks.map(({ url, title }) => new AnchorResult({
       url,
       title,
+      text: this.query,
     }));
   }
 
   get newsResults() {
     const deepLinks = getDeepResults(this.rawResult, 'news');
-    return deepLinks.map(({ url, title, extra }) => new NewsResult({
+    return deepLinks.map(({ url, title, extra = {} } = {}) => new NewsResult({
       url,
       title,
       thumbnail: extra.thumbnail,
       creation_time: extra.creation_timestamp,
       tweet_count: extra.tweet_count,
-      showLogo: utils.getDetailsFromUrl(this.url).domain !== utils.getDetailsFromUrl(url).domain,
+      showLogo: this.url && (
+        utils.getDetailsFromUrl(this.url).domain !==
+        utils.getDetailsFromUrl(url).domain
+      ),
+      text: this.query,
     }));
+  }
+
+  /**
+   * To be used with the `with` statement in the template
+   */
+  get shareLocationButtonsWrapper() {
+    return {
+      internalResults: this.shareLocationButtons,
+      internalResultsLimit: 3,
+      logo: null
+    };
+  }
+
+  get isAskingForLocation() {
+    const extra = this.rawResult.data.extra || {};
+    return extra.no_location && this.rawResult.locationAssistant.isAskingForLocation;
+  }
+
+
+  get shareLocationButtons() {
+    if (!this.isAskingForLocation) {
+      return [];
+    }
+    const locationAssistant = this.rawResult.locationAssistant;
+    return locationAssistant.actions.map((action) => {
+      let additionalClassName = '';
+      if (action.actionName === 'allowOnce') {
+        additionalClassName = 'location-allow-once';
+      }
+
+      return new ShareLocationButton({
+        title: action.title,
+        url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: action.actionName })}`,
+        text: this.rawResult.text,
+        className: additionalClassName,
+        locationAssistant,
+        onButtonClick: this.rawResult.redoQuery,
+      });
+    });
+  }
+
+  get localResult() {
+    const extra = this.rawResult.data.extra || {};
+    if (!extra.address && !extra.phonenummber) {
+      return null;
+    }
+    return new LocalResult({
+      address: extra.address,
+      phoneNumber: extra.phonenumber,
+      mapUrl: extra.mu,
+      mapImg: extra.map_img
+    });
   }
 
   get videoResults() {
@@ -193,9 +270,11 @@ export default class BaseResult {
   get selectableResults() {
     return [
       ...(this.url ? [this] : []),
+      ...(this.shareLocationButtons),
       ...(this.newsResults).slice(0, 3),
       ...(this.videoResults).slice(0, 3),
       ...this.internalResults.slice(0, this.internalResultsLimit),
+      ...(this.localResult ? this.localResult.internalResults : []),
     ];
   }
 
@@ -208,23 +287,49 @@ export default class BaseResult {
   }
 
   findResultByUrl(href) {
-    return this.allResults.find(r => equals(r.url, href));
+    return this.allResults.find(r => equals(r.url, href) || equals(r.rawUrl, href));
   }
 
   hasUrl(href) {
-    return this.allResults.some(r => equals(r.url, href));
+    return Boolean(this.findResultByUrl(href));
   }
 
-  isHistory() {
+  get isHistory() {
     return this.kind[0] === 'H';
   }
 
+  get isDeletable() {
+    return this.isHistory;
+  }
+
   click(window, href, ev) {
-    // TODO: do not use global
-    /* eslint-disable */
-    window.CLIQZ.Core.urlbar.value = href;
-    /* eslint-enable */
-    window.CLIQZ.Core.urlbar.handleCommand(ev);
+    if (equals(href, this.url)) {
+      events.pub('ui:click-on-url', {
+        url: href,
+        query: this.query,
+      });
+      // TODO: do not use global
+      /* eslint-disable */
+      window.CLIQZ.Core.urlbar.value = href;
+      /* eslint-enable */
+
+      const newTab = ev.altKey || ev.metaKey || ev.ctrlKey;
+      if (!newTab) {
+        // delegate to Firefox for full set of features like switch-to-tab
+        window.CLIQZ.Core.urlbar.handleCommand(ev, 'current');
+      } else {
+        utils.openLink(window, this.rawUrl, true, false, false, false);
+      }
+    } else {
+      this.findResultByUrl(href).click(window, href, ev);
+    }
+  }
+
+  /*
+   * Lifecycle hook
+   */
+  didRender() {
+
   }
 }
 
@@ -248,7 +353,6 @@ class ThumbnailBlock extends BaseResult {
     //   return super.friendlyUrl;
     // }
   }
-
 }
 
 
@@ -286,5 +390,74 @@ class ImageResult extends BaseResult {
 class InternalResult extends BaseResult {
 }
 
+class LocalInfoResult extends BaseResult {
+  get mapImg() {
+    return this.rawResult.mapImg;
+  }
+}
+
 class AnchorResult extends BaseResult {
+}
+
+class LocalResult extends BaseResult {
+  get address() {
+    return this.rawResult.address || {};
+  }
+
+  get phoneNumber() {
+    return this.rawResult.phoneNumber || {};
+  }
+
+  get mapImg() {
+    return this.rawResult.mapImg || {};
+  }
+
+  get mapUrl() {
+    return this.rawResult.mapUrl || {};
+  }
+
+  get internalResults() {
+    if (!this.mapUrl || !this.mapImg) {
+      return [];
+    }
+    return [new LocalInfoResult({
+      url: this.mapUrl,
+      title: 'show-map',
+      text: this.query,
+      mapImg: this.mapImg,
+    })];
+  }
+}
+
+class ShareLocationButton extends BaseResult {
+  get displayUrl() {
+    return this.rawResult.text;
+  }
+
+  get className() {
+    return this.rawResult.className;
+  }
+
+  get elementClassName() {
+    return this.rawResult.className;
+  }
+
+  click(window, href, ev) {
+    // Add loading spinner on the button
+    const el = ev.target;
+    const document = el.ownerDocument;
+    const loadingImg = document.createElement('div');
+    loadingImg.className = 'spinner';
+    el.appendChild(loadingImg);
+
+    const action = JSON.parse(href.split('cliqz-actions,')[1]);
+    const locationAssistant = this.rawResult.locationAssistant;
+    const actionName = action.actionName;
+    if (!locationAssistant.hasAction(actionName)) {
+      return;
+    }
+    locationAssistant[actionName]().then(() => {
+      this.rawResult.onButtonClick();
+    });
+  }
 }

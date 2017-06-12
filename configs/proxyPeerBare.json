@@ -40,6 +40,7 @@
     "modules.type-filter.enabled": false,
     "modules.antitracking-blocker.enabled": false,
     "proxyPeer": true,
+    "proxySignalingUrl": "ws://10.0.26.188:9700",
     "showConsoleLogs": true
   },
   "priority": [

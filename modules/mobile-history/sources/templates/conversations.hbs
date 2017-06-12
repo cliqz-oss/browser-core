@@ -57,7 +57,9 @@
 {{else}}
     {{#unless pageCount}}
         <div class="nohistoryyet">
-            <p>{{{local 'mobile_no_history'}}}</p>
+            {{#each (breakLine (local 'mobile_no_history'))}}
+                <p>{{this}}</p>
+            {{/each}}
         </div>
     {{/unless}}
 {{/if}}

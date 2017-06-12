@@ -32,6 +32,7 @@ export default describeModule('adblocker/filters-parsing',
         // console.log(message);
       },
     },
+    'platform/url': {},
     'core/platform': {
       platformName: 'firefox',
     },

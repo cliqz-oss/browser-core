@@ -3,11 +3,11 @@
  * http://mxr.mozilla.org/mozilla-central/source/toolkit/components/autocomplete/nsIAutoCompleteResult.idl
  */
 
-import { utils, events } from "core/cliqz";
-import historyCluster from "autocomplete/history-cluster";
-import Result from "autocomplete/result";
-import resultProviders from "autocomplete/result-providers";
-import language from "platform/language";
+import { utils, events } from "../core/cliqz";
+import historyCluster from "./history-cluster";
+import Result from "./result";
+import resultProviders from "./result-providers";
+import language from "../platform/language";
 
 var CliqzAutocomplete = {
     LOG_KEY: 'CliqzAutocomplete',

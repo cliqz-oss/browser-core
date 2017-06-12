@@ -4,7 +4,7 @@ import { generateAESKey
        , encryptRSA
        , decryptRSA
        , encryptAES
-       , decryptAES } from './rtc-crypto';
+       , decryptAES } from '../core/crypto/utils';
 
 
 export const ERROR_CODE = {

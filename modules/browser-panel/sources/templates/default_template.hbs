@@ -25,7 +25,9 @@
         {{#if code }}
             <div class="cqz-offer-code-holder">
                 <span class="cqz-offer-code-info">{{ 'local offers_copy_code' }}</span>
-                <span class="cqz-offer-code" data-cqz-of-btn-id="copy-code">{{ code }}</span>
+                <span class="cqz-offer-code" data-cqz-of-btn-id="copy-code">
+                    {{ code }}
+                </span>
             </div>
         {{else if call_to_action }}
             <div class="cqz-buttons">

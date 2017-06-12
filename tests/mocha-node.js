@@ -68,7 +68,7 @@ const walker = walk.walk(baseDir);
 walker.on('file', (root, state, next) => {
   const testPath = `${root}/${state.name}`;
   if (state.name.endsWith('-test.js')) {
-    if (fgrep && state.name.indexOf(fgrep) < 0) {
+    if (fgrep && testPath.indexOf(fgrep) < 0) {
       next();
       return;
     }

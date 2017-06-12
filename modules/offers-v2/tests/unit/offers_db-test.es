@@ -41,32 +41,12 @@ export default describeModule('offers-v2/offers_db',
       default: {}
     },
     'core/platform': {
-      isChromium: false,
-    },
-    'core/console': {
-      default: {}
-    },
-    'core/prefs': {
-      default: {}
+      isChromium: false
     },
     './db_helper': {
       default: class {
-        constructor(db) {
-          this.db = db;
-        }
-        saveDocData(docID, docData) {
-          const self = this;
-          return new Promise((resolve, reject) => {
-            self.db[docID] = docData;
-            resolve();
-          });
-        }
-        getDocData(docID) {
-          const self = this;
-          return new Promise((resolve, reject) => {
-            resolve(self.db[docID]);
-          });
-        }
+        saveDocData(docID, docData) {return new Promise((resolve, reject) => {resolve();});}
+        getDocData(docID) {return new Promise((resolve, reject) => {resolve();});}
         removeDocData(docID) {}
       }
     }
@@ -248,76 +228,6 @@ export default describeModule('offers-v2/offers_db',
           });
 
         });
-
-        context('persistence', function () {
-          let o;
-
-          beforeEach(function () {
-            o = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
-          });
-
-          it('stored offers remains', function () {
-            // const database = new Database('offers-test');
-            let database = {};
-            let odb = new OffersDB(database);
-            chai.expect(odb.addOfferObject(o.offer_id, o)).to.equal(true);
-            odb.savePersistentData();
-
-            // check exists
-            chai.expect(odb.hasOfferData(o.offer_id)).to.equal(true);
-            chai.expect(odb.hasOfferObject(o.offer_id)).to.equal(true);
-            chai.expect(odb.isOfferPresent(o.offer_id)).to.equal(true);
-
-            // remove old
-            // delete odb;
-            let odb2 = new OffersDB({});
-            const p1 = odb2.loadPersistentData().then(() => {
-              chai.expect(odb2.hasOfferData(o.offer_id)).to.equal(false);
-              chai.expect(odb2.hasOfferObject(o.offer_id)).to.equal(false);
-              chai.expect(odb2.isOfferPresent(o.offer_id)).to.equal(false);
-            });
-
-            let odb3 = new OffersDB(database);
-            const p2 = odb3.loadPersistentData().then(() => {
-              chai.expect(odb3.hasOfferData(o.offer_id)).to.equal(true);
-              chai.expect(odb3.hasOfferObject(o.offer_id)).to.equal(true);
-              chai.expect(odb3.isOfferPresent(o.offer_id)).to.equal(true);
-            });
-
-            // create a new one
-            // delete odb;
-            return Promise.all([p1, p2]);
-          });
-
-        it('stored offers and attributes remains', function () {
-            // const database = new Database('offers-test');
-            let database = {};
-            let odb = new OffersDB(database);
-            chai.expect(odb.addOfferObject(o.offer_id, o)).to.equal(true);
-            chai.expect(odb.incOfferAction(o.offer_id, 'h1')).to.equal(true);
-            chai.expect(odb.incOfferAction(o.offer_id, 'h2')).to.equal(true);
-            chai.expect(odb.incOfferAction(o.offer_id, 'h3')).to.equal(true);
-            odb.savePersistentData();
-
-            let odb2 = new OffersDB({});
-            const p1 = odb2.loadPersistentData().then(() => {
-              chai.expect(odb2.hasOfferData(o.offer_id)).to.equal(false);
-            });
-
-            let odb3 = new OffersDB(database);
-            const p2 = odb3.loadPersistentData().then(() => {
-              chai.expect(odb3.hasOfferData(o.offer_id)).to.equal(true);
-              chai.expect(odb3.getOfferActionMeta(o.offer_id, 'h1').count).to.equal(1);
-              chai.expect(odb3.getOfferActionMeta(o.offer_id, 'h2').count).to.equal(1);
-              chai.expect(odb3.getOfferActionMeta(o.offer_id, 'h3').count).to.equal(1);
-            });
-
-            // create a new one
-            // delete odb;
-            return Promise.all([p1, p2]);
-          });
-        });
-
 
         // TODO: we need to add more tests
         // - check time is properly update whenever we update an action / attribute

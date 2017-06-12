@@ -91,7 +91,7 @@ var initialized = false;
 
 var CliqzDemo = {
 	init: function (win) {
-    if(utils.getPref("cliqz_core_disabled", false) || !win.CLIQZ.Core.popup) return;
+    if(!win.CLIQZ.Core.popup) return;
 
 		win.gBrowser.addEventListener("DOMContentLoaded", _onPageLoad, false);
     if (win.CLIQZ) {
@@ -150,8 +150,11 @@ var CliqzDemo = {
 		}
 	},
 	openDropdown: function () {
-		var core = utils.getWindow().CLIQZ.Core;
-		core.popup._openAutocompletePopup(core.urlbar, core.urlbar);
+		var win = utils.getWindow(),
+				urlbar = win.document.getElementById('urlbar'),
+				popup = urlbar.popup;
+
+		urlbar.popup._openAutocompletePopup(urlbar, urlbar);
 	},
 	typeInUrlbar: function (text, pos, core) {
 		if (!pos) {

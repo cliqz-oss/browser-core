@@ -254,12 +254,6 @@ var CliqzABTests = {
             case "1074_B":
                 CliqzUtils.setPref("cliqz-adb-abtest", true);
                 break;
-            case "1076_A":
-                CliqzUtils.setPref("history.timeouts", false);
-                break;
-            case "1076_B":
-                CliqzUtils.setPref("history.timeouts", true);
-                break;
             case "1077_A":
                 CliqzUtils.setPref("languageDedup", false);
                 break;
@@ -311,10 +305,6 @@ var CliqzABTests = {
             case "1088_B":
                 CliqzUtils.setPref('offers2FeatureEnabled', true);
                 break;
-            case "1091_A":
-                CliqzUtils.clearPref('dropDownABCGroup');
-                CliqzUtils.setDefaultIndexCountry(CliqzUtils.getPref('backend_country', 'de'), false);
-                break;
             case "1092_A":
                 CliqzUtils.setPref("extOnboardVideoDownloader", false);
                 break;
@@ -326,12 +316,6 @@ var CliqzABTests = {
               break;
             case "1094_B":
               CliqzUtils.setPref("ff-experiment", true);
-              break;
-            case "1095_A":
-              CliqzUtils.setPref("connect", false);
-              break;
-            case "1095_B":
-              CliqzUtils.setPref("connect", true);
               break;
             case "1096_A":
               CliqzUtils.setPref("extOnboardCliqzConnect", false);
@@ -423,11 +407,14 @@ var CliqzABTests = {
             case "1105_B":
                 CliqzUtils.setPref('offersBrowserPanelEnableSwitch', true);
                 break;
-            case "1107_A":
-               CliqzUtils.setPref("MarketAnalysisEnabled", false);
+            case "1106_A":
+               CliqzUtils.setPref("greenads", 'green');
                break;
-            case "1107_B":
-               CliqzUtils.setPref("MarketAnalysisEnabled", true);
+            case "1106_B":
+               CliqzUtils.setPref("greenads", 'collect');
+               break;
+            case "1106_C":
+               CliqzUtils.setPref("greenads", 'disabled');
                break;
             default:
                 rule_executed = false;
@@ -693,9 +680,10 @@ var CliqzABTests = {
             case "1105_B":
                 CliqzUtils.clearPref('offersBrowserPanelEnableSwitch');
                 break;
-            case "1107_A":
-            case "1107_B":
-               CliqzUtils.clearPref("MarketAnalysisEnabled");
+            case "1106_A":
+            case "1106_B":
+            case "1106_C":
+               CliqzUtils.clearPref("greenads");
                break;
             default:
                 rule_executed = false;

@@ -239,13 +239,16 @@ class SocksConnection {
 
 
 class AvailablePeers {
-  constructor(peersUrl, peer) {
+  constructor(peersUrl, exitsUrl, peer) {
     this.peersUrl = peersUrl;
+    this.exitsUrl = exitsUrl;
     this.peer = peer;
 
     // Blacklist for peers
     this.blacklist = new Map();
     this.availablePeers = [];
+    this.availableExits = [];
+
     this.update();
   }
 
@@ -258,8 +261,17 @@ class AvailablePeers {
     return fetchRemotePeers(this.peer.peerID, this.peersUrl)
       .then(peers => peers.filter(({ name }) => !this.blacklist.has(name)))
       .then((peers) => {
-        logger.debug(`SocksToRTC found ${peers.length} peers`);
+        logger.log(`SocksToRTC found ${peers.length} peers`);
         this.availablePeers = peers;
+      });
+  }
+
+  updateExits() {
+    return fetchRemotePeers(this.peer.peerID, this.exitsUrl)
+      .then(peers => peers.filter(({ name }) => !this.blacklist.has(name)))
+      .then((peers) => {
+        logger.log(`SocksToRTC found ${peers.length} exit nodes`);
+        this.availableExits = peers;
       });
   }
 
@@ -277,6 +289,7 @@ class AvailablePeers {
   update() {
     return Promise.all([
       this.updatePeers(),
+      this.updateExits(),
       this.updateBlacklist(),
     ]);
   }
@@ -284,9 +297,10 @@ class AvailablePeers {
   getRandomRoute() {
     // Choose a route for this connection
     const shuffledPeers = shuffle(this.availablePeers);
+    const shuffledExits = shuffle(this.availableExits);
     return [
       shuffledPeers[0],
-      shuffledPeers[1],
+      shuffledExits[0],
     ];
   }
 
@@ -301,16 +315,17 @@ class AvailablePeers {
 
     // Remove the peer from available peers
     this.availablePeers = this.availablePeers.filter(({ name }) => name !== peerName);
+    this.availableExits = this.availableExits.filter(({ name }) => name !== peerName);
   }
 }
 
 
 export default class {
-  constructor(peer, socksProxy, peersUrl) {
+  constructor(peer, socksProxy, peersUrl, exitsUrl) {
     // {connectionID => SocksConnection} Opened connections
     this.connections = new Map();
 
-    this.peers = new AvailablePeers(peersUrl, peer);
+    this.peers = new AvailablePeers(peersUrl, exitsUrl, peer);
 
     this.actionInterval = utils.setInterval(
       () => {

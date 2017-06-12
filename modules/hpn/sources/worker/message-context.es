@@ -10,18 +10,18 @@ import { md5 } from 'md5';
 // FIXME: remove circular dependency
 import CliqzSecureMessage, { localTemporalUniq } from './index';
 import userPK from './user-pk';
+
+import { sha1 } from '../../core/crypto/utils';
+
 import {
-  base64_decode,
-  base64_encode,
-  padMessage,
-  sha1,
-  isJson,
-  stringToByteArray,
-  byteArrayToHexString,
-  byteArrayToString,
-  hexStringToByteArray,
-  hexToBinary,
-} from './crypto-utils';
+  fromBase64,
+  toBase64,
+  toUTF8,
+  fromUTF8,
+  fromHex,
+  toHex
+} from '../../core/encoding';
+
 import {
   createPayloadBlindSignature,
   createPayloadProxy,
@@ -30,6 +30,52 @@ import {
 } from './utils';
 import { unBlindMessage, blindSignContext } from './blind-signature';
 import _http from './http-worker';
+
+import crypto from '../../platform/crypto';
+
+/* This method will ensure that we have the same length for all the mesages
+*/
+function padMessage(msg){
+	const mxLen = 14000;
+	var padLen = (mxLen - msg.length) + 1;
+	if (padLen < 0) {
+		throw 'msgtoobig';
+	}
+	return msg + new Array(padLen).join("\n");
+}
+
+function isJson(str) {
+// If can be parsed that means it's a str.
+// If cannot be parsed and is an object then it's a JSON.
+  try {
+      JSON.parse(str);
+  } catch (e) {
+  	if(typeof str =='object')
+      return true;
+  }
+  return false;
+}
+
+function hexToBinary(s) {
+    var i, k, part, ret = '';
+    // lookup table for easier conversion. '0' characters are padded for '1' to '7'
+    var lookupTable = {
+        '0': '0000', '1': '0001', '2': '0010', '3': '0011', '4': '0100',
+        '5': '0101', '6': '0110', '7': '0111', '8': '1000', '9': '1001',
+        'a': '1010', 'b': '1011', 'c': '1100', 'd': '1101',
+        'e': '1110', 'f': '1111',
+        'A': '1010', 'B': '1011', 'C': '1100', 'D': '1101',
+        'E': '1110', 'F': '1111'
+    };
+    for (i = 0; i < s.length; i += 1) {
+        if (lookupTable.hasOwnProperty(s[i])) {
+            ret += lookupTable[s[i]];
+        } else {
+            return { valid: false };
+        }
+    }
+    return { valid: true, result: ret };
+}
 
 export default class {
   constructor(msg) {
@@ -127,7 +173,7 @@ export default class {
     let _this = this;
     let promise = new Promise(function(resolve, reject){
       crypto.subtle.exportKey('raw', key).then( result => {
-        _this.aesKey = byteArrayToHexString(new Uint8Array(result));
+        _this.aesKey = toHex(new Uint8Array(result));
         resolve(key);
       }).catch ( err => {
         console.log("Error in exporting key: " + err);
@@ -150,7 +196,7 @@ export default class {
             iv: _iv,
         },
         key,
-        stringToByteArray(msgEncrypt) //ArrayBuffer of data you want to encrypt
+        toUTF8(msgEncrypt) //ArrayBuffer of data you want to encrypt
       ).then( encrypted => {
         resolve(encrypted);
       }).catch( err => {
@@ -168,7 +214,7 @@ export default class {
       let publicKey = CliqzSecureMessage.secureLogger.publicKeyB64;
       crypto.subtle.importKey(
        'spki',
-        base64_decode(publicKey),
+        fromBase64(publicKey),
         {
           name: 'RSA-OAEP',
           hash: { name: 'SHA-1' }
@@ -181,10 +227,10 @@ export default class {
               name: "RSA-OAEP",
           },
           key,
-          stringToByteArray(msg)
+          toUTF8(msg)
         )
         .then(function(encrypted){
-          resolve(base64_encode(new Uint8Array(encrypted)));
+          resolve(toBase64(new Uint8Array(encrypted)));
         })
         .catch(function(err){
             console.error("Error during rsa encryption: " + err);
@@ -203,12 +249,12 @@ export default class {
 		var _this = this;
 		var promise = new Promise(function(resolve, reject){
       var _iv = crypto.getRandomValues(new Uint8Array(16));
-      var eventID = ('' + byteArrayToHexString(_iv)).substring(0,5);
+      var eventID = ('' + toHex(_iv)).substring(0,5);
       var aesKeyBytes;
-      // console.log(">> IV: " + byteArrayToHexString(_iv));
+      // console.log(">> IV: " + toHex(_iv));
       // console.log(">> E" + eventID);
       _this.eventID = eventID;
-      _this.iv = byteArrayToHexString(_iv);
+      _this.iv = toHex(_iv);
       _this.mID = eventID;
       _this.oiv = _iv;
 
@@ -230,7 +276,7 @@ export default class {
           }
 
           _this.aesEncryption(key, _iv, msgEncrypt).then( encryptedResult => {
-            _this.mE = base64_encode(new Uint8Array(encryptedResult));
+            _this.mE = toBase64(new Uint8Array(encryptedResult));
             resolve(_this.mE);
           });
         });
@@ -245,12 +291,12 @@ export default class {
 	aesDecrypt(msg){
 		var _this = this;
 		var promise = new Promise(function(resolve, reject){
-      var _msg =base64_decode(msg.split(";")[1]);
+      var _msg =fromBase64(msg.split(";")[1]);
       var hashKey = _this.aesKey;
       var _iv = _this.iv;
       crypto.subtle.importKey(
           "raw", //can be "jwk" or "raw"
-          hexStringToByteArray(hashKey),
+          fromHex(hashKey),
           "AES-CBC",
           false, //whether the key is extractable (i.e. can be used in exportKey)
           ["decrypt"] //can be "encrypt", "decrypt", "wrapKey", or "unwrapKey"
@@ -262,15 +308,15 @@ export default class {
         crypto.subtle.decrypt(
         {
             name: "AES-CBC",
-            iv: hexStringToByteArray(_iv), //The initialization vector you used to encrypt
+            iv: fromHex(_iv), //The initialization vector you used to encrypt
         },
         key, //from generateKey or importKey above
         _msg  //ArrayBuffer of the data
         )
         .then(function(decrypted){
             //returns an ArrayBuffer containing the decrypted data
-            // console.log("Decrypted>>> " + byteArrayToString(new Uint8Array(decrypted)));
-            resolve(byteArrayToString(new Uint8Array(decrypted)));
+            // console.log("Decrypted>>> " + fromUTF8(new Uint8Array(decrypted)));
+            resolve(fromUTF8(new Uint8Array(decrypted)));
         })
         .catch(function(err){
             console.error(err);

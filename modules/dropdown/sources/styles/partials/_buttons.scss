@@ -11,7 +11,7 @@
             @extend .ellipsis;
 
             display: inline-block;
-            max-width: 140px;
+            max-width: 170px;
             line-height: 24px;
             margin: 0 5px -4px 0;
             padding: 0 9px;
@@ -21,7 +21,6 @@
             border-radius: 3px;
             border: 1px solid #CFE6FF;
 
-            &:hover,
             &.selected {
                 border-color: #2385E7;
             }

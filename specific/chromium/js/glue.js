@@ -49,7 +49,7 @@ System.baseURL = "modules/";
 System.config({
   defaultJSExtensions: true,
   map: {
-    'math': "../bower_components/mathjs/dist/math.min.js"
+    'mathjs': "../bower_components/mathjs/dist/math.min.js"
   }
 })
 
@@ -161,7 +161,7 @@ Promise.all([
             CLIQZ.UI.selectResultByIndex(toIndex);
         });
 
-    var isUrlbarFocused = false;
+    var isUrlbarFocused = true;  // count as focused by default
     chrome.cliqzSearchPrivate.onOmniboxFocusChanged.addListener(
         (winId, focused) => {
           if (winId === currWinId) {
@@ -170,6 +170,7 @@ Promise.all([
               urlbarEvent('blur');
               // Close settings section.
               settingsContainer.classList.remove("open");
+              isUrlbarFocused = false;
             }
             else { //focus
               CliqzAutocomplete.lastFocusTime = Date.now();
@@ -185,17 +186,22 @@ Promise.all([
             return;
           const details = {
               action: "result_enter",
-              autocompleted: autocompleted,
               urlbar_time: CliqzAutocomplete.lastFocusTime ?
                   (new Date()).getTime() - CliqzAutocomplete.lastFocusTime :
                   null,
-              position_type: [isSearch ? 'inbar_query' : 'inbar_url'],
-              source: CLIQZ.UI.getResultKind(CLIQZ.UI.getResultSelection()),
               current_position: position,
               new_tab: false // TODO: Pass whether it's opened in a new tab.
             };
+          if (position >= 0) {
+            details.position_type = CLIQZ.UI.getResultKind(CLIQZ.UI.getResultSelection());
+          }
+          else {
+            details.position_type = [isSearch ? 'inbar_query' : 'inbar_url'];
+          }
           if (autocompleted) {
+            details.autocompleted = autocompleted;
             details.autocompleted_length = destURL.length;
+            details.source = CLIQZ.UI.getResultKind(CLIQZ.UI.getResultSelection());
           }
           const element = (position >= 0) ?
               CLIQZ.UI.keyboardSelection : {url: destURL};
@@ -472,6 +478,11 @@ function handleSettings() {
     CliqzUtils.setPref("adultContentFilter", ev.target.value);
   });
 
+  const indexSelector = document.getElementById('searchIndex');
+  indexSelector.addEventListener("change", function(ev) {
+    CliqzUtils.setDefaultIndexCountry(ev.target.value);
+  });
+
   CliqzEvents.sub('prefchange', function(pref){
     // recreate the settings menu if relevant prefs change
     var relevantPrefs = [
@@ -505,4 +516,8 @@ function updatePrefControls() {
   createOptionEntries(
       document.getElementById('location'),
       CliqzUtils.getLocationPermState());
+
+  createOptionEntries(
+      document.getElementById('searchIndex'),
+      CliqzUtils.autocomplete.CliqzSearchCountryProviders.getProviders());
 }

@@ -1,0 +1,10 @@
+System.register([], function (_export) {
+  "use strict";
+
+  _export('default', require('cron-parser/lib/parser'));
+
+  return {
+    setters: [],
+    execute: function () {}
+  };
+});

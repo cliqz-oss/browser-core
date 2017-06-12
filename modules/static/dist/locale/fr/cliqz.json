@@ -276,7 +276,7 @@
         "message":"il y a $1 ans"
     },
     "onCalloutSameResult":{
-        "message":"Désolé de t'interrompre. Saviez-vous que vous pouviez obtenir le même résultat en utilisant CLIQZ ?"
+        "message":"Désolé de vous interrompre. Saviez-vous que vous pouviez obtenir le même résultat en utilisant CLIQZ ?"
     },
     "onCalloutSameResultBtnOk":{
         "message":"J'ai compris !"
@@ -285,7 +285,7 @@
         "message":"Ne plus montrer."
     },
     "onCalloutSmartCliqz":{
-        "message":"Désolé de t'interrompre. Saviez-vous que vous pouviez obtenir le même résultat en utilisant CLIQZ ?"
+        "message":"Désolé de vous interrompre. Saviez-vous que vous pouviez obtenir le même résultat en utilisant CLIQZ ?"
     },
     "onCalloutSmartCliqzBtnOk":{
         "message":"J'ai compris !"
@@ -417,10 +417,10 @@
         "message":"Listes"
     },
     "Sitemap_Amazon_MyAmazon": {
-        "message":"Ton espace Amazon"
+        "message":"Votre espace Amazon"
     },
     "Sitemap_Amazon_MyAccount": {
-        "message":"Ton compte"
+        "message":"Votre compte"
     },
     "Sitemap_Amazon_Wishlist": {
         "message":"Liste de souhaits"
@@ -585,10 +585,13 @@
       "message":"Mes sites les plus visités"
     },
     "adultInfo": {
-        "message": "Du contenu à caractère pornographique a été bloqué automatiquement. Continuer de le bloquer ?"
+        "message": "Certains résultats à caractère pornographique ont été automatiquement bloqués. Souhaitez-vous maintenir le bloquage ?"
     },
     "show_once": {
       "message":"Montrer une fois"
+    },
+    "show_local_result": {
+        "message": "Show local result"
     },
     "yes": {
         "message": "Oui"
@@ -646,18 +649,6 @@
     },
     "cliqz_stock_pe_ratio": {
         "message": "P/E ratio(ttm)"
-    },
-    "OutOfCoverageWarning": {
-       "message": "Les résultats de Cliqz ne sont pas encore optimisés pour votre pays. Nous faisons actuellement tout notre possible pour y remédier."
-    },
-    "keep-cliqz": {
-      "message": "OK"
-    },
-    "disable-cliqz": {
-      "message": "Désactiver CLIQZ"
-    },
-    "btnActivateCliqz": {
-      "message": "Activer CLIQZ"
     },
     "btnFreshTab": {
       "message": "Activer CLIQZ Tab"
@@ -906,10 +897,10 @@
       "message": "Êtes-vous sûr·e de ne pas vouloir savoir quels films sont projetés dans ce cinéma ?"
     },
     "show_local_movies": {
-      "message": "Non, montre-moi où je peux le voir."
+      "message": "Non, me montrer où je peux le voir."
     },
     "show_local_cinemas": {
-      "message": "Non, montre-moi quel film je peux voir."
+      "message": "Non, me montrer quel film je peux voir."
     },
     "location_just_once": {
       "message": "Juste une fois"
@@ -927,7 +918,7 @@
       "message": "Êtes-vous sûr·e de ne pas vouloir recevoir des informations pertinentes sur les lieux autour de vous?"
     },
     "show_local_results": {
-      "message": "Non, montre-moi les informations locales"
+      "message": "Non, me montrer les informations locales"
     },
     "local_result_vertical_title": {
       "message": "PROCHE DE"
@@ -1284,7 +1275,7 @@
       "message": "Entreprises traqueuses de cette page"
     },
     "control-center-info-trackers": {
-      "message": "Il est courant que des sites Web placent des traqueurs pour enregistrer les activités des utilisateurs. CLIQZ bloque les données qui peuvent être utilisées afin de vous identifier avant que les traqueurs ne les obtiennent. La chiffre ici vous montre le nombre de données personnelles sécurisées par CLIQZ. Cliquez dessus pour plus de détails."
+      "message": "Il est courant que des sites Web placent des traqueurs pour enregistrer les activités des utilisateurs. Cliqz bloque les données qui peuvent être utilisées afin de vous identifier avant que les traqueurs ne les obtiennent. La chiffre ici vous montre le nombre de données personnelles sécurisées par CLIQZ. Cliquez dessus pour plus de détails."
     },
     "control-center-info-phishing-title": {
       "message": "Anti-Phishing"
@@ -1326,7 +1317,7 @@
       "message": "Human Web"
     },
     "control-center-info-hw": {
-      "message": "CLIQZ fonctionne grâce à des données anonymisées de requêtes et pages visitées par notre communauté d'utilisateurs. La technologie utilisée pour collecter ces données afin de construire nos index est appelée « Human Web »"
+      "message": "Cliqz fonctionne grâce à des données anonymisées de requêtes et pages visitées par notre communauté d'utilisateurs. La technologie utilisée pour collecter ces données afin de construire nos index est appelée « Human Web »"
     },
     "control-center-info-forget-mode-title": {
       "message": "Mode « Oubli » Automatique"
@@ -1372,9 +1363,6 @@
     },
     "control-center-quicksearch": {
       "message": "Recherche rapide sécurisée"
-    },
-    "control-center-enable-search": {
-      "message": "Activer la recherche Cliqz"
     },
     "control-center-location": {
       "message": "Partager ma position"
@@ -1488,7 +1476,7 @@
       "message": "Commencer à explorer le Web"
     },
     "onboarding-step-3-tooltip-query-text": {
-      "message": "Essaye :"
+      "message": "Essayez :"
     },
     "onboarding-search-query1": {
       "message": "Météo Munich"
@@ -1533,7 +1521,7 @@
       "message": "Nous respectons votre vie privée et avons pour but de la protéger. Cliqz ne recueille ni enregistre aucune de vos données personnelles. Notre Panneau de Transparence a éte dévéloppé pour vous donner un aperçu des données générées quand vous naviguez avec Cliqz. Il affiche en temps réel les données que nous recevons quand vous commencez à saisir une requête dans la barre d'adresse ou quand vous surfez sur un site. Pour protéger votre vie privée, certaines données ont étées bloquées, c'est à dire qu' elles ne quittent pas du tout votre navigateur (c'est le cas des données de localisation, suivant vos paramètres Cliqz)."
     },
     "transparency_search_title": {
-      "message": "Ta recherche avec Cliqz"
+      "message": "Votre recherche avec Cliqz"
     },
     "transparency_search_content": {
       "message": "Ici, vous verrez des données sur vos recherches et sur les sites Web que vous visitez sur Cliqz. Ces données nous aident à optimiser votre experience de recherche. Comme vous pouvez le voir, elles ne contiennent aucune information personnelle. Pour Cliqz, vous êtes anonyme. Vous pourriez aussi surfer avec Cliqz en utilisant un réseau de serveurs proxy, si vous voulez une meilleure protection. Pour en savoir plus, cliquez <a target='_blank' href='https://cliqz.com/en/whycliqz/transparency#your-search'>ici</a>."
@@ -1542,13 +1530,13 @@
       "message": "Human Web"
     },
     "transparency_humanweb_content": {
-      "message": "Notre technologie, Human Web, utilise des méthodes statistiques et des algorithmes pour toujours améliorer la qualité de nos résultats de recherche. Les données statistiques, collectionnées de façon anonyme, sont combinées aux requêtes et aux résultats de recherche fournis par l'un des moteurs de recherche complémentaires. L'architecture des données que nous avons choisi empêche aucune toute déduction sur l'identité de la personne . La transmission des données de “Human Web” est réalisée au travers d' un réseau des serveurs proxy. Pour en savoir plus, clique <a target='_blank' href='https://cliqz.com/en/whycliqz/transparency#human-web'>ici</a>."
+      "message": "Notre technologie, Human Web, utilise des méthodes statistiques et des algorithmes pour toujours améliorer la qualité de nos résultats de recherche. Les données statistiques, collectionnées de façon anonyme, sont combinées aux requêtes et aux résultats de recherche fournis par l'un des moteurs de recherche complémentaires. L'architecture des données que nous avons choisi empêche aucune toute déduction sur l'identité de la personne . La transmission des données de “Human Web” est réalisée au travers d' un réseau des serveurs proxy. Pour en savoir plus, cliquez <a target='_blank' href='https://cliqz.com/en/whycliqz/transparency#human-web'>ici</a>."
     },
     "transparency_telemetry_title": {
       "message": "Télémétrie"
     },
     "transparency_telemetry_content": {
-      "message": "La télémétrie inclut toutes les données qui concernent l'utilisation et la performance du navigateur et ses fonctionnalités. Ces données comprennent par example le numéro de version du navigateur ou le temps nécéssaire pour afficher les resultats de recherche de Cliqz. Les données de la télémétrie ne contiennent aucune information sur les recherches, les résultats de recherche ou les URL visitées. Pour en savoir plus, clique <a target='_blank' href='https://cliqz.com/en/whycliqz/transparency#telemetry'>ici</a>."
+      "message": "La télémétrie inclut toutes les données qui concernent l'utilisation et la performance du navigateur et ses fonctionnalités. Ces données comprennent par example le numéro de version du navigateur ou le temps nécéssaire pour afficher les resultats de recherche de Cliqz. Les données de la télémétrie ne contiennent aucune information sur les recherches, les résultats de recherche ou les URL visitées. Pour en savoir plus, cliquez <a target='_blank' href='https://cliqz.com/en/whycliqz/transparency#telemetry'>ici</a>."
     },
     "transparency_activity_buttons": {
       "message": "Aucune activité n'a été saisie"
@@ -1557,73 +1545,76 @@
       "message": "Connect"
     },
     "pairing-description": {
-      "message": "Connect Cliqz on your computer with Cliqz on your Android device. This will allow you to send websites or download YouTube videos from your desktop straight to your smartphone or tablet."
+      "message": "Connectez Cliqz de votre ordinateur à votre mobile. Ceci vous permettra de partager des sites web ou de télécharger des vidéos Youtube depuis votre ordinateur directement vers votre mobile ou tablette."
     },
     "pairing-android-app": {
-      "message": "<a id=\"playstore-btn\" target=\"_blank\" href=\"https://play.google.com/store/apps/details?hl=en&id=com.cliqz.browser\">Cliqz for Android</a>"
+      "message": "https://play.google.com/store/apps/details?hl=fr&id=com.cliqz.browser"
+    },
+    "pairing-cliqz-for-android": {
+      "message": "Cliqz pour Android"
     },
     "pairing-video-title": {
-      "message": "Download videos"
+      "message": "Télécharger des vidéos"
     },
     "pairing-video-tip": {
-      "message": "Open a YouTube video.\nClick on the video download icon.\nSelect \"Send to mobile\"."
+      "message": "Sélectionner une vidéo Youtube.\nCliquer sur l'icône de téléchargement de vidéo.\nSelectionner \"Envoyer au mobile.\"."
     },
     "pairing-tab-title": {
-      "message": "Send tabs"
+      "message": "Envoyer des onglets."
     },
     "pairing-tab-tip": {
-      "message": "Right-click on a tab or a website.\nSelect \"Send tab to mobile\"."
+      "message": "Clique-droit sur un onglet ou un site Web.\nSélectionner \"Envoyer au mobile\"."
     },
     "pairing-browser-pair-with": {
-      "message": "This browser is now connected with:"
+      "message": "Ce navigateur est maintenant connecté à :"
     },
     "pairing-on-disconnected-tip": {
-      "message": "Handover requires that your mobile device is awake and connected to the Internet."
+      "message": "Pour pouvoir effectuer le transfert, votre mobile doit être allumé et connecté à Internet."
     },
     "pairing-contact-support": {
-      "message": "If you have questions or difficulties, please contact our"
+      "message": "Si vous avez des questions ou des difficultés, veuillez contacter notre"
     },
     "pairing-scan-title": {
-      "message": "Connect a mobile device"
+      "message": "Connecter un appareil mobile"
     },
     "pairing-step1-title": {
-      "message": "Download Cliqz for Android from the Play Store."
+      "message": "Télécharger Cliqz pour Android depuis le Play Store."
     },
     "pairing-step2-title": {
-      "message": "Open the CLIQZ app on your mobile device. Go to the menu and select \"Connect\"."
+      "message": "Ouvrir l'application CLIQZ sur votre appareil mobile. Ouvrir le menu et sélectionner \"Connect\"."
     },
     "pairing-step3-title": {
-      "message": "Tap on (+) to start the QR code scanner."
+      "message": "Appuyer sur (+) pour lancer le scanneur de code QR."
     },
     "pairing-step4-title": {
-      "message": "Scan the QR code."
+      "message": "Scanner le code QR."
     },
     "pairing-online": {
-      "message": "ONLINE"
+      "message": "CONNECTÉ"
     },
     "pairing-offline": {
-      "message": "OFFLINE"
+      "message": "DÉCONNECTÉ"
     },
     "pairing-unpair": {
-      "message": "Disconnect"
+      "message": "Se déconnecter"
     },
     "pairing-send-tab-to-mobile": {
-      "message": "Send tab to mobile"
+      "message": "Envoyer l'onglet au mobile"
     },
     "pairing-send-video-to-mobile-retry": {
-      "message": "Send again"
+      "message": "Envoyer à nouveau"
     },
     "ad-label": {
-      "message": "Anzeige"
+      "message": "Offre"
     },
     "offers-hub-title": {
-      "message": "CLIQZ OFFERS:"
+      "message": "CLIQZ OFFRES:"
     },
     "offers-hub-show-all-offers-btn": {
       "message": "Offres récentes"
     },
     "offers-hub-welcome-title": {
-      "message": "Bienvenue dans CLIQZ Offres
+      "message": "Bienvenue dans CLIQZ-Offres"
     },
     "offers-hub-welcome-text": {
       "message": "Ici, vous trouverez bientôt des annonces exclusives pour vous"
@@ -1638,7 +1629,7 @@
       "message": "Cette offre ne m'intéresse pas"
     },
     "offers-hub-feedaback-option2": {
-      "message": "Les offres de CLIQZ Offers ne m'intéressent pas"
+      "message": "Les offres de CLIQZ-Offres ne m'intéressent pas"
     },
     "offers-hub-feedaback-option3": {
       "message": "Aucune offre ne m'intéresse"
@@ -1650,7 +1641,7 @@
       "message": "Supprimer"
     },
     "offers-hub-about-cliqz-offers": {
-      "message": "Plus d'informations à propos des offres de CLIQZ Offers"
+      "message": "Plus d'informations à propos des offres de CLIQZ-Offres"
     },
     "offers-hub-powered-by": {
       "message": "Fourni par CLIQZ"
@@ -1659,40 +1650,55 @@
       "message": "Code Copié"
     },
     "signals-humanweb-inactive-message": {
-      "message": "Human Web is not activated"
+      "message": "Human Web n'est pas activé"
     },
     "signals-humanweb-inactive": {
-      "message": "inactive"
+      "message": "inactif"
     },
     "signals-your-ip-id": {
-      "message": "your IP/IDs: "
+      "message": "Votre IP/IDs: "
     },
     "signals-your-location": {
-      "message": "your location"
+      "message": "Votre position"
     },
     "signals-private-urls": {
-      "message": "private URLs"
+      "message": "URLs privées"
     },
     "signals-what-you-search": {
-      "message": "your search term"
+      "message": "Votre terme de recherche"
     },
     "signals-your-ip-address": {
-      "message": "Your IP-Addresse"
+      "message": "Votre adresse IP"
     },
     "signals-search-results": {
-      "message": "Search result"
+      "message": "Résultat de recherche"
     },
     "signals-visited-page": {
-      "message": "Visited page"
+      "message": "Page visitée"
     },
     "signals-count-action": {
-      "message": "Count action"
+      "message": "Action de comptage"
     },
     "signals-page-info": {
-      "message": "Page info"
+      "message": "Information relative à la page"
     },
     "signals-redirected-links": {
-      "message": "Redirected links"
+      "message": "Liens de redirection"
+    },
+    "calculator-decimal-separator": {
+      "message": ","
+    },
+    "calculator-thousands-separator": {
+      "message": "."
+    },
+    "show-location-and-contact": {
+      "message": "Afficher résultat local et contact"
+    },
+    "always-show-location": {
+      "message": "Afficher toujours"
+    },
+    "show-map": {
+      "message": "Montrer la carte"
     },
     "TEST": "OK"
 }

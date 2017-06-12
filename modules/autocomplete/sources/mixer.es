@@ -3,10 +3,10 @@
  *
  */
 
-import { utils } from "core/cliqz";
-import Result from "autocomplete/result";
-import UrlCompare from "autocomplete/url-compare";
-import prefs from "core/prefs";
+import { utils } from "../core/cliqz";
+import Result from "./result";
+import UrlCompare from "./url-compare";
+import prefs from "../core/prefs";
 
 function objectExtend(target, obj) {
   Object.keys(obj).forEach(function(key) {
@@ -100,9 +100,7 @@ export default class Mixer {
         UrlCompare.sameUrls(first[0].data.urls[0].href, second[0].val))
     {
       // Case 1: History pattern
-      first[0].data.urls.shift();
-      first = [second.shift()];
-      second = first.concat(second);
+      second.shift();
     }
     else if (first.length > 0 && first[0].style === 'favicon' &&
                second.length > 0 && second[0].style === 'cliqz-extra' &&
@@ -263,42 +261,6 @@ export default class Mixer {
     });
   }
 
-  unpackHistoryPatterns(response) {
-    var allResults = [];
-    if (response.results) {
-      for (var i = 0; i < response.results.length; i++) {
-        if ((response.results[i].style === 'cliqz-pattern' || response.results[i].style == 'cliqz-extra' || response.results[i].data.cluster) && response.results[i].data.urls) {
-          if(response.results[i].val){
-            allResults.push(response.results[i]);
-          }
-          const historyPattern = response.results[i];
-          const historyPatternResults = historyPattern.data.urls.map((result) => {
-            return {
-              comment: result.title,
-              data: {
-                kind: result.kind,
-                template: 'generic',
-                title: result.title,
-                localSource: result.style,
-              },
-              label: result.href,
-              val: result.href,
-              query: response.query,
-              style: result.style,
-              image: result.favicon || result.image || historyPattern.image,
-            }
-          });
-          allResults = allResults.concat(historyPatternResults);
-        }
-        else {
-          allResults.push(response.results[i])
-        }
-      }
-      response.results = allResults;
-    }
-    return response.results;
-  }
-
   // Mix together history, backend and custom results. Called twice per query:
   // once with only history (instant), second with all data.
   mix(q, cliqz, history, customResults, only_history) {
@@ -372,18 +334,12 @@ export default class Mixer {
       if (r.style.indexOf('cliqz-results ') === 0) cliqzRes++;
       return cliqzRes <= 3;
     });
-    // Show no results message
-    if (results.length === 0 && !only_history) {
-      utils.getNoResults && results.push(utils.getNoResults(q, utils.dropDownStyle));
+
+    //TODO Refactor (EX-4497: Old dropdown cleanup)
+    if(results.length === 0 && !only_history) {
+      utils.getNoResults && results.push(utils.getNoResults(q));
     }
 
-    if (['simple'].indexOf(utils.dropDownStyle) !== -1) {
-      // in simple UI, we don't have history clusters/patterns. We need
-      // to unpack them into separate results.
-      return this.unpackHistoryPatterns({query: q, results: results});
-    }
-    else {
-      return results;
-    }
+    return results;
   }
 }

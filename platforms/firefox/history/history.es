@@ -1,11 +1,162 @@
-import HistoryProvider from '../../core/history-provider';
+/* global PlacesUtils, StopIteration */
 import events from '../../core/events';
+import { Components } from '../globals';
 
-const { utils: Cu } = Components;
-const PlacesUtils = Cu.import('resource://gre/modules/PlacesUtils.jsm', null).PlacesUtils;
+Components.utils.import('resource://gre/modules/PlacesUtils.jsm');
 
 const history = Components.classes['@mozilla.org/browser/nav-history-service;1']
   .getService(Components.interfaces.nsINavHistoryService);
+
+function observableFromSql(sql, columns) {
+  // change row into object with columns as property names
+  const rowToResults = row => columns.reduce((cols, column) => ({
+    [column]: row.getResultByName(column),
+    ...cols,
+  }), Object.create(null));
+
+  return {
+    subscribe(handleResult, handleError, handleCompletion) {
+      let doNothing = false;
+      let pendingStatement;
+
+      // use promiseDBConnection to avoid connection duplicates
+      //   PlacesUtils.promiseDBConnection().then((conn) => {
+      // IMPORTANT withConnectionWrapper is used instead as
+      // promiseDBConnection is read-only.
+      // TODO: separate read and write into separte methods
+      PlacesUtils.withConnectionWrapper('CLIQZ', (conn) => {
+        // cancel already disposed subscribtion
+        if (doNothing) {
+          return Promise.resolve();
+        }
+        // access raw connection to create statements that can be canceled
+        const connection = conn._connectionData._dbConn;
+        const statement = connection.createAsyncStatement(sql);
+
+        return new Promise((resolve) => {
+          pendingStatement = statement.executeAsync({
+            handleResult(rowSet) {
+              for (let row = rowSet.getNextRow(); row; row = rowSet.getNextRow()) {
+                const result = rowToResults(row);
+                handleResult(result);
+              }
+            },
+            handleCompletion(...args) {
+              handleCompletion(...args);
+              resolve();
+            },
+            handleError,
+          });
+        });
+      });
+
+      return {
+        dispose() {
+          if (pendingStatement) {
+            try {
+              pendingStatement.cancel();
+            } catch (e) {
+              // error is thrown on cancel called multiple times
+            }
+          }
+
+          doNothing = true;
+        },
+      };
+    }
+  };
+}
+
+const HistoryProvider = {
+  query: function query(sql, columns = []) {
+    const results = [];
+    let resolver;
+    let rejecter;
+
+    const promise = new Promise((resolve, reject) => {
+      resolver = resolve;
+      rejecter = reject;
+    });
+
+    const observable = observableFromSql(sql, columns);
+
+    observable.subscribe(
+      Array.prototype.push.bind(results),
+      rejecter,
+      () => resolver(results)
+    );
+
+    return promise;
+  }
+};
+
+const visitSessionStatement = `
+  WITH RECURSIVE
+    visit_sessions(visit_id, session_id) AS (
+      select id, id from moz_historyvisits where from_visit IN (0, id)
+      union
+      select id, session_id from moz_historyvisits, visit_sessions
+      where moz_historyvisits.from_visit=visit_sessions.visit_id
+    )
+`;
+
+const searchQuery = ({ limit, frameStartsAt, frameEndsAt, domain, query },
+  { onlyCount } = { onlyCount: false }) => {
+  const conditions = [];
+
+  if (frameStartsAt) {
+    conditions.push(`visit_date >= ${frameStartsAt}`);
+  }
+
+  if (frameEndsAt) {
+    conditions.push(`visit_date < ${frameEndsAt}`);
+  }
+
+  if (domain) {
+    conditions.push(`url GLOB '*://${domain}/*'`);
+  }
+
+  if (query) {
+    const aSearchString = query ? `'${query}'` : '';
+    const aURL = 'url';
+    const aTitle = 'title';
+    const aTags = 'NULL';
+    const aVisitCount = 'visit_count';
+    const aTyped = 'typed';
+    const aBookmark = 'NULL';
+    const aOpenPageCount = 'NULL';
+    const aMatchBehavior = '0'; // MATCH_ANYWHERE
+    const aSearchBehavior = '1'; // BEHAVIOR_HISTORY
+
+    conditions.push(`AUTOCOMPLETE_MATCH(${aSearchString}, ${aURL}, ${aTitle},
+        ${aTags}, ${aVisitCount}, ${aTyped}, ${aBookmark}, ${aOpenPageCount},
+        ${aMatchBehavior}, ${aSearchBehavior})`);
+  }
+
+  const conditionsStatement = conditions.length > 0 ?
+    `WHERE ${conditions.join(' AND ')}` : '';
+
+  const limitStatement = limit ? `LIMIT ${limit}` : '';
+
+  const selectStatement = onlyCount ? 'COUNT(DISTINCT visit_sessions.session_id) as count' : `
+      moz_historyvisits.id AS id,
+      visit_sessions.session_id AS session_id,
+      moz_historyvisits.visit_date AS visit_date
+  `;
+
+  return `
+    ${visitSessionStatement}
+
+    SELECT ${selectStatement}
+    FROM moz_historyvisits
+    JOIN moz_places ON moz_historyvisits.place_id = moz_places.id
+    JOIN visit_sessions ON moz_historyvisits.id = visit_sessions.visit_id
+    ${conditionsStatement}
+    ORDER BY visit_date DESC
+    ${limitStatement}
+  `;
+};
+
 
 const observer = {
   isProcessBatch: false,
@@ -53,7 +204,21 @@ function findLastVisitId(url, since) {
   ).then(([{ id }]) => id);
 }
 
+// second * minute * hour * day * year
+const YEAR_IN_MS = 1000 * 60 * 60 * 24 * 365;
+
 export default class {
+
+  static sessionCountObservable(query) {
+    const sql = searchQuery({
+      query,
+      frameStartsAt: (Date.now() - (YEAR_IN_MS / 2)) * 1000,
+      frameEndsAt: Date.now() * 1000,
+    }, { onlyCount: true });
+
+    return observableFromSql(sql, ['count']);
+  }
+
   static deleteVisit(visitId) {
     return HistoryProvider.query(
       `
@@ -85,66 +250,8 @@ export default class {
       .getService(Components.interfaces.nsIBrowserGlue).sanitize(window);
   }
 
+  // TODO: introduce command method to separate read from write
   static query({ limit, frameStartsAt, frameEndsAt, domain, query }) {
-    const conditions = [];
-
-    if (frameStartsAt) {
-      conditions.push(`visit_date >= ${frameStartsAt}`);
-    } if (frameEndsAt) {
-      conditions.push(`visit_date < ${frameEndsAt}`);
-    }
-
-    if (domain) {
-      conditions.push(`url GLOB '*://${domain}/*'`);
-    }
-
-    if (query) {
-      const aSearchString = query ? `'${query}'` : '';
-      const aURL = 'url';
-      const aTitle = 'title';
-      const aTags = 'NULL';
-      const aVisitCount = 'visit_count';
-      const aTyped = 'typed';
-      const aBookmark = 'NULL';
-      const aOpenPageCount = 'NULL';
-      const aMatchBehavior = '0'; // MATCH_ANYWHERE
-      const aSearchBehavior = '1'; // BEHAVIOR_HISTORY
-
-      conditions.push(`AUTOCOMPLETE_MATCH(${aSearchString}, ${aURL}, ${aTitle},
-        ${aTags}, ${aVisitCount}, ${aTyped}, ${aBookmark}, ${aOpenPageCount},
-        ${aMatchBehavior}, ${aSearchBehavior})`);
-    }
-
-    const conditionsStatement = conditions.length > 0 ?
-      `WHERE ${conditions.join(' AND ')}` : '';
-
-    const limitStatement = limit ? `LIMIT ${limit}` : '';
-
-    const visitSessionStatement = `
-      WITH RECURSIVE
-        visit_sessions(visit_id, session_id) AS (
-          select id, id from moz_historyvisits where from_visit IN (0, id)
-          union
-          select id, session_id from moz_historyvisits, visit_sessions
-          where moz_historyvisits.from_visit=visit_sessions.visit_id
-        )
-    `;
-
-    const searchQuery = `
-      ${visitSessionStatement}
-
-      SELECT
-        moz_historyvisits.id AS id,
-        visit_sessions.session_id AS session_id,
-        moz_historyvisits.visit_date AS visit_date
-      FROM moz_historyvisits
-      JOIN moz_places ON moz_historyvisits.place_id = moz_places.id
-      JOIN visit_sessions ON moz_historyvisits.id = visit_sessions.visit_id
-      ${conditionsStatement}
-      ORDER BY visit_date DESC
-      ${limitStatement}
-    `;
-
     const sessionsQuery = sessionIds => `
       ${visitSessionStatement}
 
@@ -155,8 +262,11 @@ export default class {
       WHERE visit_sessions.session_id IN (${sessionIds.join(', ')})
     `;
 
+
+    const sql = searchQuery({ frameStartsAt, frameEndsAt, domain, query, limit });
+
     return HistoryProvider.query(
-      searchQuery,
+      sql,
       ['id', 'session_id', 'visit_date'],
     ).then((places) => {
       if (places.length === 0) {

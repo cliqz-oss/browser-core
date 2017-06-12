@@ -1,0 +1,6 @@
+{
+  "bower_components": [
+    "jquery/dist/jquery.js",
+    "tablesorter/dist/js/jquery.tablesorter.min.js"
+  ]
+}

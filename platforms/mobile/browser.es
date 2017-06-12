@@ -10,7 +10,7 @@ export function mapWindows() {
 }
 
 export function getLang() {
-  return window.navigator.language || window.navigator.userLanguage;
+  return window.navigator.language || window.navigator.userLanguage || 'en';
 }
 
 export function isTabURL() {

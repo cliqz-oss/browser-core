@@ -63,7 +63,7 @@ function MultiplexedQueue(name, callback) {
 
 
 export default class {
-  constructor(signalingUrl, peersUrl, policy, p2p) {
+  constructor(signalingUrl, peersUrl, exitsUrl, policy, p2p) {
     // External dependency
     this.p2p = p2p;
 
@@ -78,6 +78,7 @@ export default class {
 
     this.signalingURL = signalingUrl;
     this.peersUrl = peersUrl;
+    this.exitsUrl = exitsUrl;
     this.policy = policy;
   }
 
@@ -111,7 +112,12 @@ export default class {
     return this.createPeer()
       .then(() => {
         // Client
-        this.socksToRTC = new SocksToRTC(this.peer, this.socksProxy, this.peersUrl);
+        this.socksToRTC = new SocksToRTC(
+          this.peer,
+          this.socksProxy,
+          this.peersUrl,
+          this.exitsUrl
+        );
         this.clientQueue = MultiplexedQueue(
           'client',
           ({ msg }) => this.socksToRTC.handleClientMessage(msg),

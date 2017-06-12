@@ -13,6 +13,10 @@ export default class NavigateToResult extends BaseResult {
     return true;
   }
 
+  get isDeletable() {
+    return false;
+  }
+
   get logo() {
     const query = this.rawResult.text;
     let url;

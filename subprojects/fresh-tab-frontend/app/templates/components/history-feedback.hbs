@@ -1,0 +1,32 @@
+<button id="feedback-button" {{action "startFeedback"}}>{{t 'history.feedback-button'}}</button>
+<button id="close-feedback-button" class="{{closeButtonVisibility}}" {{action "closeFeedback"}}></button>
+
+{{#if feedbackStep1}}
+  <div style="z-index: 2; position: relative;">
+    <p class="feedback-text">{{t 'history.feedback-step1-box'}}</p>
+  </div>
+  <div id="feedback-vote-wrapper">
+    <button id="positive-feedback-button" {{action "startPositiveFeedback"}}></button>
+    <button id="negative-feedback-button" {{action "startNegativeFeedback"}}></button>
+  </div>
+{{/if}}
+
+{{#if feedbackStep2}}
+  <p class="feedback-text">{{t 'history.feedback-step2-box'}}</p>
+  {{textarea value=comments autofocus='autofocus' class="feedback-textarea" cols="8" rows="3"}}
+  <button class="submit-comment" {{action "submitComments" comments}}>
+    {{t 'history.feedback-submit-button'}}
+  </button>
+{{/if}}
+
+{{#if feedbackStep3}}
+  <p class="feedback-text">{{t 'history.feedback-step3-box'}}</p>
+{{/if}}
+
+{{#if feedbackStep4}}
+  <p class="feedback-text">{{t 'history.feedback-step4-box'}}</p>
+  {{textarea value=moreComments autofocus=autofocus class="feedback-textarea" cols="8" rows="3"}}
+  <button class="submit-comment" {{action "submitMoreComments" moreComments}}>
+    {{t 'history.feedback-submit-button'}}
+  </button>
+{{/if}}

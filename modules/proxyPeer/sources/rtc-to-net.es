@@ -7,7 +7,7 @@ import { openSocket } from './tcp-socket';
 import { SERVER_REPLY
        , ADDRESS_TYPE
        , parseRequest } from './socks-protocol';
-import { unwrapAESKey } from './rtc-crypto';
+import { unwrapAESKey } from '../core/crypto/utils';
 import { ERROR_CODE, createResponseFromExitNode } from './rtc-onion';
 import { asyncResolve, isPrivateIPAddress } from './dns-utils';
 

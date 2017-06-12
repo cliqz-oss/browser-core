@@ -1,26 +1,8 @@
 import md5 from './helpers/md5';
 import utils from './utils';
 import console from './console';
-import { addShutdownBlocker, removeShutdownBlocker } from '../platform/shutdown-blocker';
 import { renameFile, fileExists, readFile, write, removeFile, createFile,
   openForAppend, closeFD, mkdir, writeFD } from './fs';
-
-// Avoid using the global Promise module, so that Promises are not blocked on shutdown
-// and we are able to flush the data. All Promises used come from internal fs functions
-function PromiseAll(promises) {
-  const n = promises.length;
-  const results = [];
-  return (function iterate(i) {
-    if (i < n) {
-      return promises[i]
-      .then((x) => {
-        results.push(x);
-        return iterate(i + 1);
-      });
-    }
-    return results;
-  }(0));
-}
 
 /*
  * This class should be useful for modifying a JSON object persisted on disk
@@ -51,42 +33,30 @@ export default class IncrementalStorage {
     this.dir = Array.isArray(dirName) ? dirName : [dirName];
     this.immediateSnap = immediateSnap;
     this.isOpening = true;
-    return this.waitPromise(() =>
-      this.recoverBadState() // Also does the init for an empty DB
-        .then(() => this.readFromDisk())
-        .catch(() => this.handleCorrupt()) // TODO: maybe an error does not mean corrupt data...
-        .then(() => openForAppend(this.getJournalFile()))
-        .then((f) => {
-          this.journalFile = f;
-          this.isOpen = true;
-          this.isOpening = false;
-          this.onShutdown = () => this.close();
-          addShutdownBlocker(this.onShutdown);
-          return this.startFlushes();
-        }),
-    );
+    return this.recoverBadState() // Also does the init for an empty DB
+      .then(() => this.readFromDisk())
+      .catch(() => this.handleCorrupt()) // TODO: maybe an error does not mean corrupt data...
+      .then(() => openForAppend(this.getJournalFile()))
+      .then((f) => {
+        this.journalFile = f;
+        this.isOpen = true;
+        this.isOpening = false;
+        this.onShutdown = () => this.close();
+      });
   }
   close() {
-    return this.waitPromise(() => {
-      if (this.isOpen) {
-        if (!this.closingPromise) {
-          this.stopFlushes();
-          this.processFunction = this.filePrefix = this.flushScheduler = null;
-          this.obj = {};
-          this.closingPromise = this.flush()
-            .then(() => closeFD(this.journalFile))
-            .catch((e) => {
-              console.error('Error closing incremental-storage', e);
-            })
-            .then(() => this.internalClose());
-        }
-        return this.closingPromise;
-      }
-      return null;
-    });
+    if (this.isOpen) {
+      this.isOpen = false;
+      utils.clearTimeout(this.flushTimer);
+      return this._flush()
+        .then(() => closeFD(this.journalFile))
+        .then(() => this.setInitialState());
+    }
+    return Promise.resolve();
   }
   snapshot() {
     this.scheduledSnapshot = true;
+    this.flush();
   }
   processEvent(event) {
     if (!this.isOpen) {
@@ -101,56 +71,43 @@ export default class IncrementalStorage {
     }
   }
   destroy() {
-    this.stopFlushes();
-    return this.waitPromise(() => {
-      if (this.isOpen) {
-        return closeFD(this.journalFile)
-        .then(() => removeFile(this.getNewSnapshotFile()))
-        .then(() => removeFile(this.getNewJournalFile()))
-        .then(() => removeFile(this.getJournalFile()))
-        .then(() => removeFile(this.getSnapshotFile()))
-        .then(() => removeFile(this.getErrorFile()))
-        .then(() => this.internalClose());
-      }
-      return null;
-    });
+    if (this.isOpen) {
+      const nsf = this.getNewSnapshotFile();
+      const njf = this.getNewJournalFile();
+      const jf = this.getJournalFile();
+      const sf = this.getSnapshotFile();
+      const ef = this.getErrorFile();
+
+      this.close();
+
+      return removeFile(nsf)
+      .then(() => removeFile(njf))
+      .then(() => removeFile(jf))
+      .then(() => removeFile(sf))
+      .then(() => removeFile(ef));
+    }
+    return Promise.resolve();
   }
   // Replaces internal object by new one
   replace(obj) {
     this.obj = obj;
-    this.journalToFlush = [];
-    this.stopFlushes();
-    return this.waitPromise(() => {
-      if (this.isOpen) {
-        return this.doRealSnapshot()
-        .catch(() => {})
-        .then(() => this.startFlushes());
-      }
-      return null;
-    });
+    this.toFlush = [];
+    this.snapshot();
+    return this.flush();
   }
 
   // PRIVATE
   setInitialState() {
     this.obj = {};
-    this.processFunction = null;
-    this.filePrefix = null;
     this.dir = null;
     this.isOpen = false;
-    this.flushTimeout = 1000;
-    this.flushScheduler = null;
     this.acumTime = 0;
     this.journalFile = null;
     this.dirty = false;
-    this.journalToFlush = [];
+    this.toFlush = [];
     this.isOpening = false;
     this.onShutdown = null;
-    this.closingPromise = null;
-    this.writingPromise = null;
-  }
-  internalClose() {
-    removeShutdownBlocker(this.onShutdown);
-    this.setInitialState();
+    this.flushResolver = this.flushTimer = this.processFunction = this.filePrefix = null;
   }
   handleCorrupt() {
     return renameFile(this.getNewSnapshotFile(), this.getNewSnapshotFile(true))
@@ -192,7 +149,7 @@ export default class IncrementalStorage {
       .then((f) => {
         closeFD(this.journalFile);
         this.journalFile = f;
-        this.journalToFlush = [];
+        this.toFlush = [];
         this.dirty = false;
         return write(sn, JSON.stringify(this.obj), { isText: true });
       })
@@ -210,47 +167,42 @@ export default class IncrementalStorage {
         return this.obj;
       });
   }
-
-  stopFlushes() {
-    utils.clearTimeout(this.flushScheduler);
-    this.flushScheduler = null;
-  }
-  startFlushes() {
-    this.flushScheduler = utils.setTimeout(() => this.scheduleFlush(), this.flushTimeout);
-  }
-  flush() {
-    const data = this.journalToFlush.splice(0, this.journalToFlush.length).join('');
+  _flush() {
+    const data = this.toFlush.splice(0, this.toFlush.length).join('');
     return writeFD(this.journalFile, data, { isText: true });
   }
-
-  // Any operation that has to be waited for completion when close is called
-  // should be done through this function (typically writes)
-  // Also waits for previous operation done.
-  waitPromise(cb) {
-    // Does this create a mem leak?
-    if (!this.writingPromise) {
-      this.writingPromise = cb();
-      return this.writingPromise;
+  flush() {
+    if (!this.isOpen) {
+      return Promise.reject(new Error('incremental-storage not open'));
     }
-    return (this.writingPromise = this.writingPromise.catch(() => {}).then(cb));
-  }
-  scheduleFlush() {
-    this.stopFlushes();
-    return this.waitPromise(() => {
-      if (this.isOpen) {
-        return this.flush()
+    if (!this.flushPromise) {
+      const flusher = () => {
+        this._flush()
+        .catch(e => this.error('Error in flush', e))
         .then(() => {
-          // TODO: if journal is empty, do nothing
-          if (this.scheduledSnapshot ||
-            (this.dirty && (this.immediateSnap || this.acumTime >= 1000))) {
+          if (
+            this.isOpen &&
+            (this.scheduledSnapshot ||
+            (this.dirty && (this.immediateSnap || this.acumTime >= 1000)))) {
             return this.doRealSnapshot();
           }
           return null;
         })
-        .then(() => this.startFlushes());
-      }
-      return null;
-    });
+        .then(() => {
+          const resolve = this.flushResolver;
+          this.flushTimer = this.flushPromise = this.flushResolver = null;
+          resolve();
+          if (this.toFlush.length > 0) {
+            this.flush();
+          }
+        });
+      };
+      this.flushTimer = utils.setTimeout(flusher, 0);
+      this.flushPromise = new Promise((resolve) => {
+        this.flushResolver = resolve;
+      });
+    }
+    return this.flushPromise;
   }
   recoverBadState() {
     this.acumTime = 0;
@@ -260,7 +212,7 @@ export default class IncrementalStorage {
     const jn = this.getNewJournalFile();
     const files = [s, j, sn, jn];
     return mkdir(this.dir)
-      .then(() => PromiseAll(files.map(fileExists)))
+      .then(() => Promise.all(files.map(fileExists)))
       .then((present) => {
         if (!present[2] && !present[3]) { // Initialize (or do nothing)
           if (!present[1]) {
@@ -271,7 +223,7 @@ export default class IncrementalStorage {
           }
           throw new Error('unknown file state(1)');
         } else if (present[0] && present[1]) { // Rollback
-          return PromiseAll([removeFile(sn), removeFile(jn)]);
+          return Promise.all([removeFile(sn), removeFile(jn)]);
         } else if (!present[0]) { // Commit
           // TODO: This stage is already in snapshot, refactor
           if (present[3]) {
@@ -296,7 +248,7 @@ export default class IncrementalStorage {
   readFromDisk() {
     const snapshotFile = this.getSnapshotFile();
     const journalFile = this.getJournalFile();
-    return PromiseAll([
+    return Promise.all([
       readFile(snapshotFile, { isText: true }),
       readFile(journalFile, { isText: true }),
     ]).then((results) => {
@@ -326,17 +278,16 @@ export default class IncrementalStorage {
   }
   appendToJournal(e) {
     this.dirty = true;
-    this.journalToFlush.push(`${JSON.stringify(e)}\n`);
+    this.toFlush.push(`${JSON.stringify(e)}\n`);
+    this.flush();
   }
   appendError(event, error) {
-    this.waitPromise(() =>
-      openForAppend(this.getErrorFile())
-      .then((f) => {
-        const data = { ts: (new Date()).toISOString(), event, error };
-        return writeFD(f, `${JSON.stringify(data)}\n`, { isText: true })
-        .catch(() => {})
-        .then(() => closeFD(f));
-      })
-    );
+    openForAppend(this.getErrorFile())
+    .then((f) => {
+      const data = { ts: (new Date()).toISOString(), event, error };
+      return writeFD(f, `${JSON.stringify(data)}\n`, { isText: true })
+      .catch(() => {})
+      .then(() => closeFD(f));
+    });
   }
 }

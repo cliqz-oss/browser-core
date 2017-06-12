@@ -114,6 +114,12 @@ export default {
     "day-selection-pastweek": "Letzte 7 Tage",
     "no-history-entry-found": "Keine Chronikeinträge gefunden",
     "no-search-result-found": "Keine Suchergebnisse gefunden für:",
-    "no-further-history-entry": "Keine weiteren Chronikeinträge"
+    "no-further-history-entry": "Keine weiteren Chronikeinträge",
+    "feedback-button": "Feedback",
+    "feedback-step1-box": "Was hältst du von dieser neuen Chronik-Ansicht?",
+    "feedback-step2-box": "Kommentar hinzufügen?",
+    "feedback-step3-box": "Danke!",
+    "feedback-step4-box": "Weitere Kommentare?",
+    "feedback-submit-button": "Senden"
   }
 };

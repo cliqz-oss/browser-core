@@ -42,4 +42,27 @@ export function urlStripProtocol(url) {
   return resultUrl;
 }
 
+
+// IP Validation
+
+const ipv4_part = "0*([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])"; // numbers 0 - 255
+const ipv4_regex = new RegExp("^" + ipv4_part + "\\."+ ipv4_part + "\\."+ ipv4_part + "\\."+ ipv4_part + "([:]([0-9])+)?$"); // port number
+const ipv6_regex = new RegExp("^\\[?(([0-9]|[a-f]|[A-F])*[:.]+([0-9]|[a-f]|[A-F])+[:.]*)+[\\]]?([:][0-9]+)?$");
+
+
+export function isIpv4Address(host) {
+  return ipv4_regex.test(host);
+}
+
+
+export function isIpv6Address(host) {
+  return ipv6_regex.test(host);
+}
+
+
+export function isIpAddress(host) {
+  return isIpv4Address(host) || isIpv6Address(host);
+}
+
+
 export { default as equals } from '../platform/url';

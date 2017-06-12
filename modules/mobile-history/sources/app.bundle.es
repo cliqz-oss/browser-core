@@ -14,6 +14,7 @@ import config from '../core/config';
 import core from '../core/index';
 import dev from '../mobile-dev/index';
 import history from '../mobile-history/index';
+import window from '../platform/window';
 
 
 const modules = new Map();

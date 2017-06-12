@@ -14,6 +14,10 @@ function fetchLocal(url) {
   })
 }
 
+export function fetchFactory() {
+  return fetch;
+}
+
 export default fetch;
 export {
   fetch,

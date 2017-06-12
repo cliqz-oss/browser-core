@@ -310,12 +310,6 @@ modules/type-filter/window.es
 modules/ui/background.es
 modules/ui/search-history.es
 modules/ui/tests/unit/background-test.es
-modules/ui/views/currency.es
-modules/ui/views/entity-generic.es
-modules/ui/views/generic.es
-modules/ui/views/liveTicker.es
-modules/ui/views/local-data-sc.es
-modules/ui/views/partials/location/missing_location_1.es
 modules/ui/window.es
 modules/unblock/background.es
 modules/unblock/main.es
@@ -416,3 +410,14 @@ modules/hpn/worker/index.es
 modules/hpn/worker/pkcs-conversion.es
 modules/hpn/worker/user-pk.es
 modules/hpn/worker/utils.es
+modules/dropdown/debug/fixtures/adult-question.es
+modules/dropdown/debug/fixtures/calculator.es
+modules/dropdown/debug/fixtures/celebrities.es
+modules/dropdown/debug/fixtures/history-and-news.es
+modules/dropdown/debug/fixtures/location-sharing.es
+modules/dropdown/debug/fixtures/lotto.es
+modules/dropdown/debug/fixtures/simple.es
+modules/dropdown/debug/fixtures/ui-cut-off.es
+modules/dropdown/debug/fixtures/weather.es
+modules/dropdown/debug/fixtures/youtube.es
+modules/dropdown/debug/index.es

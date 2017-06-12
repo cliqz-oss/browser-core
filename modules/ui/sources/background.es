@@ -2,13 +2,6 @@
 // This should be moved to UI as soon as it will be moved from dist to sources
 import background from 'core/base/background';
 import { utils, events } from 'core/cliqz';
-import v1 from "ui/views/currency";
-import v3 from "ui/views/local-data-sc";
-import v7 from "ui/views/generic";
-import v8 from "ui/views/entity-generic";
-import v9 from "ui/views/liveTicker";
-import p1 from "ui/views/partials/location/missing_location_1";
-
 
 const DISMISSED_ALERTS = 'dismissedAlerts';
 

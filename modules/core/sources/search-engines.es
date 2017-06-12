@@ -1,1 +1,1 @@
-export * from "platform/search-engines";
+export * from "../platform/search-engines";

@@ -114,6 +114,12 @@ export default {
     "day-selection-pastweek": "Last 7 days",
     "no-history-entry-found": "No history entries found",
     "no-search-result-found": "No search results found for:",
-    "no-further-history-entry": "No further history entries"
+    "no-further-history-entry": "No further history entries",
+    "feedback-button": "Feedback",
+    "feedback-step1-box": "How do you like this new history view?",
+    "feedback-step2-box": "Any comments?",
+    "feedback-step3-box": "Thank you!",
+    "feedback-step4-box": "More comments?",
+    "feedback-submit-button": "Send"
   }
 };

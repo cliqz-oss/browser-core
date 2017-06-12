@@ -347,16 +347,17 @@ export default background({
     * @method getConfig
     */
     getConfig() {
-      var self = this;
+      var self = this,
+          isBrowser = self.actions._isBrowser();
 
       var config = {
         locale: utils.PREFERRED_LANGUAGE,
         showOnboarding: self.actions._showOnboarding(),
-        isBrowser: self.actions._isBrowser(),
+        isBrowser: isBrowser,
         showNewBrandAlert: self.actions._showNewBrandAlert(),
         messages: this.messages,
         newsLanguage: self.actions._getNewsLanguage(),
-        isHistoryEnabled: utils.getPref('modules.history.enabled', false),
+        isHistoryEnabled: isBrowser && utils.getPref('modules.history.enabled', false),
       };
 
       let hasActiveNotifications = self.actions._hasActiveNotifications();

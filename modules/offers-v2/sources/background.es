@@ -23,7 +23,7 @@ export default background({
     var self = this;
 
     // check if we need to do something or not
-    if (!utils.getPref('offers2FeatureEnabled', false)) {
+    if (!utils.getPref('offers2FeatureEnabled', false) || true) {
       this.initialized = false;
       return;
     }

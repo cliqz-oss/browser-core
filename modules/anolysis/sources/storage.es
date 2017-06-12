@@ -136,7 +136,7 @@ export default class {
   deleteByTimespan(timespan) {
     return this.getByTimespan(timespan)
       .then((documents) => {
-        logger.debug(`remove ${documents.length} with timespan ${JSON.stringify(timespan)}`);
+        logger.error(`remove ${documents.length} with timespan ${JSON.stringify(timespan)}`);
         // Delete documents in bulk
         return this.database.bulkDocs(
           // Add a _deleted: true to each document to make sure they are deleted

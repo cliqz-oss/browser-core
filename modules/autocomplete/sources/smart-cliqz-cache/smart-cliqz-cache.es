@@ -1,7 +1,7 @@
-import { getSmartCliqz } from 'autocomplete/smart-cliqz-cache/rich-header'
-import { utils } from 'core/cliqz';
-import { mkdir } from 'core/fs';
-import Cache from 'autocomplete/smart-cliqz-cache/cache';
+import { getSmartCliqz } from './rich-header'
+import { utils } from '../../core/cliqz';
+import { mkdir } from '../../core/fs';
+import Cache from './cache';
 
 const CUSTOM_DATA_CACHE_FOLDER = 'cliqz';
 const CUSTOM_DATA_CACHE_FILE = CUSTOM_DATA_CACHE_FOLDER + '/smartcliqz-custom-data-cache.json';

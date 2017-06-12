@@ -173,9 +173,6 @@ $url-bar-hover-shadow: inset 0 0 2px #aec6de;
     margin-left: 0 !important;
     box-shadow: 0 0 0 0 transparent !important;
     border-radius: 0 !important;
-    // While the simpleUI AB test is running, we need to set these with javascript in ui/window
-    // border: none !important;
-    // border-right: 1px solid #e1e1e1 !important;
     background-color: transparent !important;
 
     &:hover:not(:-moz-lwtheme):not([disabled="true"]) {
@@ -203,9 +200,6 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
 
 #urlbar {
     box-sizing: border-box;
-    // While the simpleUI AB test is running, we need to set these with javascript in ui/window
-    // max-width: 800px;
-    // margin: 0 2.5em !important;
     height: $urlbar-elms-height !important;
     padding: 1px 0px;
     border-radius: 0 !important;

@@ -3,12 +3,13 @@ import console from "./console";
 import prefs from "./prefs";
 import Storage from "./storage";
 import CliqzEvents from './events';
-import { TLDs } from "./tlds";
+import tlds from "./tlds";
 import { httpHandler, promiseHttpHandler } from './http';
 import gzip from './gzip';
 import CliqzLanguage from './language';
-import { isUrl } from './url';
+import { isUrl, isIpv4Address, isIpv6Address } from './url';
 import random from './crypto/random';
+import { fetchFactory } from '../platform/fetch';
 
 var VERTICAL_ENCODINGS = {
     'people':'p',
@@ -23,10 +24,7 @@ var VERTICAL_ENCODINGS = {
 
 var COLOURS = ['#ffce6d','#ff6f69','#96e397','#5c7ba1','#bfbfbf','#3b5598','#fbb44c','#00b2e5','#b3b3b3','#99cccc','#ff0027','#999999'],
     LOGOS = ['wikipedia', 'google', 'facebook', 'youtube', 'duckduckgo', 'sternefresser', 'zalando', 'bild', 'web', 'ebay', 'gmx', 'amazon', 't-online', 'wiwo', 'wwe', 'weightwatchers', 'rp-online', 'wmagazine', 'chip', 'spiegel', 'yahoo', 'paypal', 'imdb', 'wikia', 'msn', 'autobild', 'dailymotion', 'hm', 'hotmail', 'zeit', 'bahn', 'softonic', 'handelsblatt', 'stern', 'cnn', 'mobile', 'aetv', 'postbank', 'dkb', 'bing', 'adobe', 'bbc', 'nike', 'starbucks', 'techcrunch', 'vevo', 'time', 'twitter', 'weatherunderground', 'xing', 'yelp', 'yandex', 'weather', 'flickr'],
-    BRANDS_DATABASE = { domains: {}, palette: ["999"] },
-    ipv4_part = "0*([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])", // numbers 0 - 255
-    ipv4_regex = new RegExp("^" + ipv4_part + "\\."+ ipv4_part + "\\."+ ipv4_part + "\\."+ ipv4_part + "([:]([0-9])+)?$"), // port number
-    ipv6_regex = new RegExp("^\\[?(([0-9]|[a-f]|[A-F])*[:.]+([0-9]|[a-f]|[A-F])+[:.]*)+[\\]]?([:][0-9]+)?$");
+    BRANDS_DATABASE = { domains: {}, palette: ["999"] };
 const schemeRE = /^(\S+?):(\/\/)?(.*)$/i;
 
 var CliqzUtils = {
@@ -40,7 +38,6 @@ var CliqzUtils = {
   TUTORIAL_URL:                   'https://cliqz.com/home/onboarding',
   UNINSTALL:                      'https://cliqz.com/home/offboarding',
   FEEDBACK:                       'https://cliqz.com/feedback/',
-  SYSTEM_BASE_URL:                CLIQZEnvironment.SYSTEM_BASE_URL,
   PREFERRED_LANGUAGE:             null,
   RESULTS_TIMEOUT:                CLIQZEnvironment.RESULTS_TIMEOUT,
 
@@ -251,7 +248,7 @@ var CliqzUtils = {
   hash: function(s){
     return s.split('').reduce(function(a,b){ return (((a<<4)-a)+b.charCodeAt(0)) & 0xEFFFFFF}, 0)
   },
-  cleanMozillaActions: function(url){
+  cleanMozillaActions: function(url = ''){
     if(url.indexOf("moz-action:") == 0) {
         var [, action, url] = url.match(/^moz-action:([^,]+),(.*)$/);
         try {
@@ -282,22 +279,7 @@ var CliqzUtils = {
 
     return url;
   },
-  genericTldExtractor: function (host) {
-    var v = host.toLowerCase().split('.'),
-        tld = '';
-
-    var first_level = TLDs[v[v.length - 1]];
-    tld = v[v.length - 1];
-
-    if ((v.length > 2) && (first_level == 'cc')) {
-      // check if we also have to remove the second level, only if 3 or more
-      //  levels and the first_level was a country code
-      if (TLDs[v[v.length - 2]]) {
-        tld = v[v.length - 2] + '.' + tld;
-      }
-    }
-    return tld;
-  },
+  genericTldExtractor: tlds.getPublicSuffix,
   getDetailsFromUrl: function(originalUrl){
     var [action, originalUrl] = CliqzUtils.cleanMozillaActions(originalUrl);
     // exclude protocol
@@ -332,9 +314,8 @@ var CliqzUtils = {
     // Parse Port number
     var port = "";
 
-    var isIPv4 = ipv4_regex.test(host);
-    var isIPv6 = ipv6_regex.test(host);
-
+    var isIPv4 = isIpv4Address(host);
+    var isIPv6 = isIpv6Address(host);
 
     var indexOfColon = host.indexOf(":");
     if ((!isIPv6 || isIPv4) && indexOfColon >= 0) {
@@ -375,8 +356,8 @@ var CliqzUtils = {
     if(fragment)
       extra += "#" + fragment;
 
-    isIPv4 = ipv4_regex.test(host);
-    isIPv6 = ipv6_regex.test(host);
+    isIPv4 = isIpv4Address(host);
+    isIPv6 = isIpv6Address(host);
     var isLocalhost = CliqzUtils.isLocalhost(host, isIPv4, isIPv6);
 
     // find parts of hostname
@@ -412,8 +393,14 @@ var CliqzUtils = {
     }
 
     var friendly_url = cleanHost + extra;
-    if (scheme && scheme != 'http' && scheme != 'https')
-      friendly_url = scheme + ":" + slashes + friendly_url;
+    if (scheme){
+      if (scheme === 'about'){
+        friendly_url = originalUrl;
+      }
+      else if (scheme != 'http' && scheme != 'https'){
+        friendly_url = scheme + ":" + slashes + friendly_url;
+      }
+    }
     //remove trailing slash from the end
     friendly_url = CliqzUtils.stripTrailingSlash(friendly_url);
 
@@ -448,31 +435,9 @@ var CliqzUtils = {
     return str;
   },
   isUrl,
-  // Chechks if the given string is a valid IPv4 addres
-  isIPv4: function(input) {
-    var ipv4_part = "0*([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])"; // numbers 0 - 255
-    var ipv4_regex = new RegExp("^" + ipv4_part + "\\."+ ipv4_part + "\\."+ ipv4_part + "\\."+ ipv4_part
-    + "([:]([0-9])+)?$"); // port number
-    return ipv4_regex.test(input);
-  },
-
-  isIPv6: function(input) {
-
-    // Currently using a simple regex for "what looks like an IPv6 address" for readability
-    var ipv6_regex = new RegExp("^\\[?(([0-9]|[a-f]|[A-F])*[:.]+([0-9]|[a-f]|[A-F])+[:.]*)+[\\]]?([:][0-9]+)?$")
-    return ipv6_regex.test(input);
-
-    /* A better (more precise) regex to validate IPV6 addresses from StackOverflow:
-    link: http://stackoverflow.com/questions/53497/regular-expression-that-matches-valid-ipv6-addresses
-
-    var ipv6_regex = new RegExp("(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:)"
-    + "{1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,"
-    + "4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a"
-    + "-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}"
-    + "|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])"
-    + "|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))");
-    */
-  },
+  // Checks if the given string is a valid IPv4 addres
+  isIPv4: isIpv4Address,
+  isIPv6: isIpv6Address,
 
   isLocalhost: function(host, isIPv4, isIPv6) {
     if (host == "localhost") return true;
@@ -653,42 +618,32 @@ var CliqzUtils = {
   },
 
   getBackendResults: function(q) {
-    return new Promise(function(resolve, reject) {
-      if (!CliqzUtils.getPref('cliqzBackendProvider.enabled', true)) {
-        resolve({
-          response: {
-            results: [],
-          },
-          query: q
-        });
-      }
-      else {
-        CliqzUtils._sessionSeq++;
+    if (!CliqzUtils.getPref('cliqzBackendProvider.enabled', true)) {
+      return Promise.resolve({
+        response: {
+          results: [],
+        },
+        query: q
+      });
+    }
 
-        // if the user sees the results more than 500ms we consider that he starts a new query
-        if(CliqzUtils._queryLastDraw && (Date.now() > CliqzUtils._queryLastDraw + 500)){
-          CliqzUtils._queryCount++;
-        }
-        CliqzUtils._queryLastDraw = 0; // reset last Draw - wait for the actual draw
-        CliqzUtils._queryLastLength = q.length;
-        var url = CliqzUtils.RESULTS_PROVIDER + CliqzUtils.getResultsProviderQueryString(q);
-        CliqzUtils.httpGet(
-          url,
-          function (res) {
-            var resp = JSON.parse(res.response || '{}')
-            if (resp.result !== undefined && resp.results === undefined) {
-              resp.results = resp.result;
-              delete resp.result;
-            }
-            resolve({
-              response: resp,
-              query: q
-            });
-          },
-          reject
-        );
-      }
-    });
+    CliqzUtils._sessionSeq++;
+
+    // if the user sees the results more than 500ms we consider that he starts a new query
+    if (CliqzUtils._queryLastDraw && (Date.now() > CliqzUtils._queryLastDraw + 500)){
+      CliqzUtils._queryCount++;
+    }
+    CliqzUtils._queryLastDraw = 0; // reset last Draw - wait for the actual draw
+    CliqzUtils._queryLastLength = q.length;
+    const url = CliqzUtils.RESULTS_PROVIDER + CliqzUtils.getResultsProviderQueryString(q);
+
+    const fetch = fetchFactory();
+    return fetch(url)
+      .then(res => res.json())
+      .then(response => ({
+        response,
+        query: q
+      }));
   },
 
   // IP driven configuration
@@ -709,10 +664,8 @@ var CliqzUtils = {
 
               // we only set the prefered backend once at first start
               if (CliqzUtils.getPref('backend_country', '') === '') {
-                // waiting a bit to be sure first initialization is complete
-                CliqzUtils.setTimeout(function(){
-                  CliqzUtils.setDefaultIndexCountry(CliqzUtils.getPref('config_location', 'de'), true);
-                }, 2000);
+                // we fallback to german results if we did not decode the location
+                CliqzUtils.setDefaultIndexCountry(CliqzUtils.getPref('config_location', 'de'));
               }
             } catch(e){
               CliqzUtils.log(e);
@@ -725,24 +678,20 @@ var CliqzUtils = {
       );
     });
   },
-  setDefaultIndexCountry: function(country, restart) {
-    CliqzUtils.setPref('backend_country', country);
-    CliqzUtils._country = country;
-
-    if(country !== 'de'){
-      // simple UI for outside germany
-      CliqzUtils.setPref('dropDownStyle', 'simple');
+  setDefaultIndexCountry: function(country) {
+    var supportedCountries = JSON.parse(CliqzUtils.getPref("config_backends", '["de"]'));
+    if(supportedCountries.indexOf(country) !== -1){
+      // supported country
+      CliqzUtils.setPref('backend_country', country);
     } else {
-      CliqzUtils.clearPref('dropDownStyle');
-    }
-
-    if(restart){
-      CliqzUtils.setPref('modules.ui.enabled', false);
-
-      // we need to avoid the throttle on prefs
-      CliqzUtils.setTimeout(function() {
-        CliqzUtils.setPref('modules.ui.enabled', true);
-      }, 0);
+      // unsupported country - fallback to
+      //    'de' for german speaking users
+      //    'en' for everybody else
+      if(CliqzUtils.currLocale === 'de'){
+        CliqzUtils.setPref('backend_country', 'de');
+      } else {
+        CliqzUtils.setPref('backend_country', 'us')
+      }
     }
   },
   encodeLocale: function(locale) {
@@ -755,8 +704,7 @@ var CliqzUtils = {
     return '&locale='+ preferred;
   },
   encodeCountry: function() {
-    //international results not supported
-    return '&country=' + CliqzUtils._country;
+    return '&country=' + CliqzUtils.getPref('backend_country', 'de');
   },
   disableWikiDedup: function() {
     // disable wikipedia deduplication on the backend side
@@ -824,7 +772,6 @@ var CliqzUtils = {
   // number of queries in search session
   _queryCount: null,
   setSearchSession: function(rand){
-    CliqzUtils._country = CliqzUtils.getPref('backend_country');
     CliqzUtils._searchSession = rand;
     CliqzUtils._sessionSeq = 0;
     CliqzUtils._queryCount = 0;
@@ -840,10 +787,11 @@ var CliqzUtils = {
   },
 
   encodeLocation: function(specifySource, lat, lng) {
-    var qs = [
-     '&loc_pref=',
-     CliqzUtils.getPref('share_location','ask')
-    ].join('')
+    let locationPref = CliqzUtils.getPref('share_location', 'ask');
+    if (locationPref === 'showOnce') {
+      locationPref = 'ask';
+    }
+    let qs = `&loc_pref=${locationPref}`;
 
     if (CliqzUtils.USER_LAT && CliqzUtils.USER_LNG || lat && lng) {
       qs += [
@@ -889,6 +837,11 @@ var CliqzUtils = {
       }
     );
     CliqzUtils.setResultOrder('');
+  },
+  sendUserFeedback(data) {
+    data._type = 'user_feedback';
+    // Params: method, url, resolve, reject, timeout, data
+    httpHandler('POST', CLIQZEnvironment.LOG, null, null, 10000, JSON.stringify(data));
   },
   _resultOrder: '',
   setResultOrder: function(resultOrder) {
@@ -1029,8 +982,11 @@ var CliqzUtils = {
           selected: false
       }
     };
-
-    data[CliqzUtils.getPref('adultContentFilter', 'moderate')].selected = true;
+    let state = CliqzUtils.getPref('adultContentFilter', 'moderate');
+    if (state === 'showOnce') {
+      state = 'moderate';
+    }
+    data[state].selected = true;
 
     return data;
   },
@@ -1112,7 +1068,6 @@ var CliqzUtils = {
   isDefaultBrowser: CLIQZEnvironment.isDefaultBrowser,
   setDefaultSearchEngine: CLIQZEnvironment.setDefaultSearchEngine,
   isUnknownTemplate: CLIQZEnvironment.isUnknownTemplate,
-  historySearch: CLIQZEnvironment.historySearch,
   getEngineByName: CLIQZEnvironment.getEngineByName,
   addEngineWithDetails: CLIQZEnvironment.addEngineWithDetails,
   getEngineByAlias: CLIQZEnvironment.getEngineByAlias,

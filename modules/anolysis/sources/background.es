@@ -192,5 +192,12 @@ export default background({
       }
       return this.anolysis.handleTelemetrySignal(signal, schemaName);
     },
+
+    getCurrentDemographics() {
+      if (!this.anolysis) {
+        return null;
+      }
+      return this.anolysis.gidManager.getCurrentDemographics();
+    },
   },
 });

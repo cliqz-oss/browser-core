@@ -1,0 +1,7 @@
+{
+  "transpile": true,
+  "bower_components": [
+    "moment/min/moment.min.js",
+    "moment-range/index.js"
+  ]
+}

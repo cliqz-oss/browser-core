@@ -74,9 +74,11 @@ export default class {
       this._addTrustLink(trustedOn, trustedHost);
 
       // check redirect chain for this page to see if we should back-propagate the trust chain
-      this.pageMeta._active[state.tabId].redirects.forEach((domain) => {
-        this._addTrustLink(domain, trustedHost);
-      });
+      if (this.pageMeta._active[state.tabId]) {
+        this.pageMeta._active[state.tabId].redirects.forEach((domain) => {
+          this._addTrustLink(domain, trustedHost);
+        });
+      }
     }
     return true;
   }

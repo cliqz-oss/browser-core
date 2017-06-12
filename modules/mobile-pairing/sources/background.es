@@ -37,6 +37,9 @@ export default {
     observer.onpairingerror = (error) => {
       osAPI.notifyPairingError({ error });
     };
+    observer.ondeviceadded = (data) => {
+      osAPI.notifyPairingSuccess(data);
+    };
     CliqzMasterComm.addObserver('__MOBILEUI', observer);
 
     this.arnChecker = CliqzUtils.setInterval(() => {

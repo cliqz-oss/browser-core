@@ -2,15 +2,19 @@ import CliqzSecureMessage from './index';
 import {
   privateKeytoKeypair,
   exportPrivateKey,
-  exportPublicKey,
-} from './pkcs-conversion';
+  exportPublicKey
+} from '../../core/crypto/pkcs-conversion';
+
 import {
-  stringToByteArray,
-  byteArrayToHexString,
-  hexStringToByteArray,
-  base64ToByteArray,
-} from './crypto-utils';
+  toUTF8,
+  toHex,
+  fromHex,
+  fromBase64
+} from '../../core/encoding';
+
 import _http from './http-worker';
+
+import crypto from '../../platform/crypto';
 
 export default class {
   constructor(msg) {
@@ -27,13 +31,13 @@ export default class {
       var ppk = privateKeytoKeypair(CliqzSecureMessage.uPK.privateKey);
       crypto.subtle.importKey(
         "pkcs8",
-        base64ToByteArray(ppk[1]),
+        fromBase64(ppk[1]),
         {name: "RSASSA-PKCS1-v1_5", hash: "SHA-256"},
         false,
         ["sign"]
       )
       .then(function(privateKey) {
-        var documentBytes = stringToByteArray(msg);
+        var documentBytes = toUTF8(msg);
         crypto.subtle.sign(
           {name: "RSASSA-PKCS1-v1_5", hash: "SHA-256"},
           privateKey,
@@ -41,7 +45,7 @@ export default class {
         )
         .then(function(signatureBuffer) {
           var signatureBytes = new Uint8Array(signatureBuffer);
-          var signatureHex = byteArrayToHexString(signatureBytes);
+          var signatureHex = toHex(signatureBytes);
           resolve(signatureHex);
         }).catch( err => reject(err));
       }).catch(err => reject(err));
@@ -54,14 +58,14 @@ export default class {
       var ppk = privateKeytoKeypair(CliqzSecureMessage.uPK.privateKey);
       crypto.subtle.importKey(
         "spki",
-        base64ToByteArray(ppk[0]),
+        fromBase64(ppk[0]),
         {name: "RSASSA-PKCS1-v1_5", hash: "SHA-256"},
         false,
         ["verify"]
       )
       .then(function(publicKey) {
-        var signatureBytes = hexStringToByteArray(sig);
-        var documentBytes = stringToByteArray(msg);
+        var signatureBytes = fromHex(sig);
+        var documentBytes = toUTF8(msg);
         crypto.subtle.verify(
           {name: "RSASSA-PKCS1-v1_5", hash: "SHA-256"},
           publicKey,

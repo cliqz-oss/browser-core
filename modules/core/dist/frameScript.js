@@ -52,6 +52,9 @@ LocationObserver.prototype.onLocationChange = function onLocationChange(aWebProg
     return;
   }
 
+  var windowTreeInformation;
+  windowTreeInformation = getWindowTreeInformation(aWebProgress.DOMWindow);
+
   var window = aWebProgress.DOMWindow;
   var document = aWebProgress.document;
   var isSameDocument = false;
@@ -65,9 +68,9 @@ LocationObserver.prototype.onLocationChange = function onLocationChange(aWebProg
 
       referrer = (document && document.referrer)
         || (httpChannel.referrer && httpChannel.referrer.asciiSpec);
-      
+
         originalURL = aRequest.originalURI.spec;
-      
+
       triggeringURL = aRequest.loadInfo.triggeringPrincipal.URI && aRequest.loadInfo.triggeringPrincipal.URI.spec;
     } else if (aFlags & Ci.nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT) {
       var previousURI = this.previousURIMap.get(window);
@@ -87,6 +90,7 @@ LocationObserver.prototype.onLocationChange = function onLocationChange(aWebProg
 
   var msg = {
     url: aURI.spec,
+    windowTreeInformation: windowTreeInformation,
     originalUrl: originalURL,
     referrer: referrer,
     triggeringUrl: triggeringURL,
@@ -106,18 +110,48 @@ LocationObserver.prototype.onLocationChange = function onLocationChange(aWebProg
   });
 };
 
+
+function getWindowId(window) {
+  return window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+    .getInterface(Components.interfaces.nsIDOMWindowUtils).outerWindowID;
+}
+
+
+function getWindowTreeInformation(window) {
+  var currentWindow = window;
+
+  // Keep track of window IDs
+  var currentId = getWindowId(window);
+  var windowId = currentId;
+  var parentId = currentId;
+
+  while (currentId !== getWindowId(currentWindow.parent)) {
+    // Go up one level
+    parentId = currentId;
+    currentWindow = currentWindow.parent;
+    currentId = getWindowId(currentWindow);
+  }
+
+  return {
+    originWindowID: currentId,
+    parentWindowID: parentId,
+    outerWindowID: windowId,
+  };
+}
+
+
 LocationObserver.prototype.onStateChange = function onStateChange(aWebProgress, aRequest, aStateFlag, aStatus) {
-  var triggeringURL, originalURL;
+  var triggeringURL, originalURL, windowTreeInformation;
+
+  windowTreeInformation = getWindowTreeInformation(aWebProgress.DOMWindow);
 
   if (!aRequest) {
     return;
   }
 
   try {
-    if ( !aWebProgress.isTopLevel ) {
-      triggeringURL = aRequest.loadInfo.triggeringPrincipal.URI.spec;
-      originalURL = aRequest.originalURI.spec;
-    }
+    triggeringURL = aRequest.loadInfo.triggeringPrincipal.URI.spec;
+    originalURL = aRequest.originalURI.spec;
   } catch (e) {
     // no request no problem
   }
@@ -140,6 +174,7 @@ LocationObserver.prototype.onStateChange = function onStateChange(aWebProgress, 
     isNewPage: (FLAGS.STATE_START & aStateFlag) &&
       (FLAGS.STATE_IS_DOCUMENT & aStateFlag),
     windowID: aWebProgress.DOMWindowID,
+    windowTreeInformation: windowTreeInformation,
   };
 
   //log('msg state change', JSON.stringify(msg, null, 2))

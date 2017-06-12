@@ -2,8 +2,6 @@ import ResourceLoader, { Resource, UpdateCallbackHandler } from '../core/resourc
 import Language from '../core/language';
 import { platformName } from '../core/platform';
 import log from './utils';
-import { ADB_USER_LANG, ADB_USER_LANG_OVERRIDE } from './adblocker';
-import { utils } from '../core/cliqz';
 
 // Disk persisting
 const RESOURCES_PATH = ['adblocker'];
@@ -92,8 +90,12 @@ class FiltersList {
  */
 export default class extends UpdateCallbackHandler {
 
-  constructor() {
+  constructor(adbLang, adbLangOverride) {
     super();
+
+    // Manage country-specific lists preferences
+    this.adbLang = adbLang;
+    this.adbLangOverride = adbLangOverride;
 
     // Resource managing the allowed lists for the adblocker
     this.allowedListsLoader = new ResourceLoader(
@@ -148,7 +150,7 @@ export default class extends UpdateCallbackHandler {
 
   // Private API
   userOverrides() {
-    const langOverride = utils.getPref(ADB_USER_LANG_OVERRIDE, '');
+    const langOverride = this.adbLangOverride;
     if (typeof langOverride === 'string' && langOverride !== '') {
       return langOverride.split(';');
     }
@@ -157,7 +159,7 @@ export default class extends UpdateCallbackHandler {
 
   userLang() {
     // check if language specific filters are disabled
-    if (!utils.getPref(ADB_USER_LANG, true)) {
+    if (!this.adbLang) {
       // ADB_USER_LANG default is set to true to keep the current behavior
       return [];
     }

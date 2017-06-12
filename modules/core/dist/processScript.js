@@ -49,6 +49,7 @@ if (typeof sendAsyncMessage !== "undefined") {
   }
 }
 
+
 function getContextHTML(ev) {
   var target = ev.target,
       count = 0,
@@ -75,7 +76,7 @@ function getContextHTML(ev) {
 
 Services.scriptloader.loadSubScript('chrome://cliqz/content/core/content-scripts.js');
 
-var injectModules = ['adblocker', 'anti-phishing', 'history'];
+var injectModules = ['adblocker', 'anti-phishing', 'green-ads', 'history'];
 injectModules.forEach((moduleName) => {
   if (config.modules.indexOf(moduleName) > -1) {
     try {
@@ -85,6 +86,7 @@ injectModules.forEach((moduleName) => {
     }
   }
 });
+
 
 function onDOMWindowCreated(ev) {
   var window = ev.target.defaultView;
@@ -104,17 +106,18 @@ function onDOMWindowCreated(ev) {
 
   var currentURL = function(){return window.location.href};
 
-  var windowId = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
-    var r = Math.random()*16|0, v = c === "x" ? r : (r&0x3|0x8);
-    return v.toString(16);
-  });
-
-  if (config.modules.indexOf('adblocker') > -1) {
-    requestDomainRules(currentURL(), window, send, windowId);
-  }
-
-  if (config.modules.indexOf('anti-phishing') > -1 && window.parent.document.documentURI === window.document.documentURI) {
-    isPhishingUrl(currentURL(), windowId, send);
+  // Extract information about the window tree
+  // originWindowID, parentWindowID, outerWindowID
+  var windowTreeInformation;
+  var windowId;
+  if (config.modules.indexOf('green-ads') > -1) {
+    windowTreeInformation = getWindowTreeInformation(window);
+    windowId = windowTreeInformation.outerWindowID;
+  } else {
+    var windowId = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+      var r = Math.random()*16|0, v = c === "x" ? r : (r&0x3|0x8);
+      return v.toString(16);
+    });
   }
 
   var onMessage = function (ev) {
@@ -154,6 +157,10 @@ function onDOMWindowCreated(ev) {
 
     if (config.modules.indexOf('adblocker') > -1) {
       responseAdbMsg(msg, window);
+    }
+
+    if (config.modules.indexOf('green-ads') > -1 && MODE !== 'disabled') {
+      greenAdsOnMessageReceived({ msg, window });
     }
 
     if (config.modules.indexOf('anti-phishing') > -1) {
@@ -291,7 +298,8 @@ function onDOMWindowCreated(ev) {
           args: [
             {
               target: {
-                baseURI: ev.target.baseURI
+                baseURI: ev.target.baseURI,
+                windowTreeInformation: windowTreeInformation,
               }
             }
           ]
@@ -309,6 +317,7 @@ function onDOMWindowCreated(ev) {
         args: [
           {
             target: {
+              windowTreeInformation: windowTreeInformation,
               baseURI: ev.target.baseURI,
               value: ev.target.value,
               href: ev.target.href,
@@ -323,9 +332,36 @@ function onDOMWindowCreated(ev) {
     });
   };
 
+  var onLoad = function (event) {
+    if (config.modules.indexOf('green-ads') > -1 && MODE !== 'disabled') {
+      greenAdsOnFullLoad({
+        mode: MODE,
+        url: currentURL(),
+        window,
+        send,
+        windowId,
+        windowTreeInformation,
+        throttle,
+      });
+    }
+  };
+
   var onReady = function (event) {
     if (config.modules.indexOf('adblocker') > -1) {
       adbCosmFilter(currentURL(), window, send, windowId, throttle);
+    }
+
+    if (config.modules.indexOf('green-ads') > -1 && MODE !== 'disabled') {
+      greenAdsOnDOMLoaded({
+        url: currentURL(),
+        mode: MODE,
+        inventory: INVENTORY,
+        window,
+        send,
+        windowId,
+        windowTreeInformation,
+        throttle,
+      });
     }
 
     // ReportLang
@@ -390,8 +426,28 @@ function onDOMWindowCreated(ev) {
   window.addEventListener("scroll", onScroll);
   window.addEventListener("copy", onCopy);
   window.addEventListener("DOMContentLoaded", onReady);
+  window.addEventListener("load", onLoad);
   startListening("window-"+windowId, onCallback);
   startListening("cliqz:core", onCore);
+
+  if (config.modules.indexOf('adblocker') > -1) {
+    requestDomainRules(currentURL(), window, send, windowId);
+  }
+
+  if (config.modules.indexOf('green-ads') > -1 && MODE !== 'disabled') {
+    greenAdsOnDOMCreated({
+      mode: MODE,
+      url: currentURL(),
+      window,
+      send,
+      windowId,
+      windowTreeInformation,
+    });
+  }
+
+  if (config.modules.indexOf('anti-phishing') > -1 && window.parent.document.documentURI === window.document.documentURI) {
+    isPhishingUrl(currentURL(), windowId, send);
+  }
 
   function stop() {
     stopListening("window-"+windowId, onCallback);
@@ -403,6 +459,7 @@ function onDOMWindowCreated(ev) {
     window.removeEventListener("scroll", onScroll);
     window.removeEventListener("copy", onCopy);
     window.removeEventListener("DOMContentLoaded", onReady);
+    window.removeEventListener("load", onLoad);
   }
 
   function isDead() {
@@ -444,6 +501,62 @@ var DocumentManager = {
 
 DocumentManager.init();
 
+// Create a new processScriptId
+var processId = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+  var r = Math.random()*16|0, v = c === "x" ? r : (r&0x3|0x8);
+  return v.toString(16);
+});
+
+
+if (config.modules.indexOf('green-ads') > -1) {
+  // Notify green-ads about this new process script.
+  // The background will then send back the inventory and the green-ad mode
+  send({
+    payload: {
+      module: 'green-ads',
+      action: 'updateProcessScripts',
+      args: [
+        { processId, getInventory: true, getMode: true },
+      ],
+    },
+  });
+}
+
+
+// Green ads state (once per process)
+let MODE = 'disabled';
+let INVENTORY = {
+  maxAds: 3,
+  tokens: {},
+  ads: [],
+  index: {},
+};
+
+
+function updateGreenAdsState(payload) {
+  const inventory = payload.inventory;
+  if (inventory) {
+    INVENTORY = inventory;
+  }
+
+  const mode = payload.mode;
+  if (mode) {
+    MODE = mode;
+  }
+}
+
+
+/**
+ * Listen for messages on this particular process script
+ */
+function targetedMessageListener(msg) {
+  if (msg.data) {
+    updateGreenAdsState(msg.data);
+  }
+}
+
+startListening('cliqz:process-script-' + processId, targetedMessageListener);
+
 /**
  * make sure to unload propertly
  */
@@ -451,5 +564,8 @@ startListening("cliqz:process-script", function ps(msg) {
   if (msg.data === "unload") {
     DocumentManager.uninit();
     stopListening("cliqz:process-script", ps);
+    stopListening("cliqz:process-script-" + processId, targetedMessageListener);
+  } else {
+    updateGreenAdsState(msg.data);
   }
 });

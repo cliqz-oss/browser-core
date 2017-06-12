@@ -3,21 +3,26 @@
     <div class="primary card__description">
         <div class="main mulitple">
             {{#each links}}
-                <div url="{{url}}" extra="entry-{{@index}}" class="item">
+                <div url="{{url}}" extra="entry-{{@index}}" class="item {{#if (logic ../links.length '===' 1)}}single{{/if}}">
+                    {{#if (logic ../links.length '===' 1)}}
+                      <div class="news_domain">{{extra.domain}}</div>
+                    {{/if}}
                     <div class="main__image" data-style="background-image: url({{#if extra.thumbnail}}{{ extra.thumbnail }}{{else}}https://cdn.cliqz.com/extension/EZ/news/no-image-mobile.png{{/if}});">
                             Image
                     </div>
-                    <h1 class="main__headline">
+                    <div class="main__headline">
                         {{ title }}
-                        <span>
-                            {{#if extra.tweet_count}}
-                                <span class="tweet_count">
-                                    <img data-src="https://cdn.cliqz.com/extension/EZ/cliqz/EZ-social-twitter.svg"> {{extra.tweet_count}}
-                                </span>
-                            {{/if}}
-                            {{ agoline extra.creation_timestamp }}
-                        </span>
-                    </h1>
+                    </div>
+                    <span class="twitter_snippet">
+                      {{#if extra.tweet_count}}
+                          <span class="tweet_count">
+                              <img data-src="https://cdn.cliqz.com/extension/EZ/cliqz/EZ-social-twitter.svg"> {{extra.tweet_count}}
+                          </span>
+                      {{/if}}
+                      <span style="{{#if (logic ../links.length '===' 1)}}color: #2CBA84{{/if}}">
+                          {{ agoline extra.creation_timestamp }}
+                      </span>
+                    </span>
                 </div>
             {{/each}}
         </div>

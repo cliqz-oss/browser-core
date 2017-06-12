@@ -167,6 +167,7 @@ class PageEventTracker {
     this._last_push = 0;
     this.ignore = new Set(['self-repair.mozilla.org']);
     this.pushTelemetry = telemetryCallback;
+    this.listeners = new Map();
   }
   // Called when a url is loaded on windowID source.
   // Returns the PageLoadData object for this url.
@@ -243,7 +244,10 @@ class PageEventTracker {
           this._old_tab_idx[windowID] = this._staged.push(this._active[windowID]) - 1;
           delete this._active[windowID];
           // return the staged object
-          return this._staged[this._old_tab_idx[windowID]];
+          const stagedPage = this._staged[this._old_tab_idx[windowID]];
+          // call stage listeners
+          (this.listeners.get('stage') || []).forEach(cb => cb(windowID, stagedPage))
+          return stagedPage;
       }
   }
 
@@ -302,6 +306,22 @@ class PageEventTracker {
           }
           req_log[stat_key] += n;
       }
+  }
+
+  getPageForTab(tabId) {
+    return this._active[tabId];
+  }
+
+  addEventListener(event, callback) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, []);
+    }
+    const listeners = this.listeners.get(event);
+    listeners.push(callback);
+  }
+
+  getOpenPages(cb) {
+    return Object.keys(this._active).map(id => this._active[id]);
   }
 }
 

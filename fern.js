@@ -11,8 +11,15 @@ if (process.argv[2] === "install") {
   if (os.platform().indexOf('win') == 0) {
     command += ".cmd"
   }
+
+  // Install npm packages
   const npmInstall = childProcess.spawn(command, ['install'], { stdio: [0,1,2] });
-  npmInstall.on('exit', function () { fern() });
+  npmInstall.on('exit', function () {
+    const publicSuffixListUpdate = childProcess.spawn(command, ['run', 'tldjs-update-rules'], { stdio: [0,1,2] });
+    publicSuffixListUpdate.on('exit', function () {
+      fern();
+    });
+  });
 } else {
   fern();
 }
@@ -153,7 +160,7 @@ program.command('build [file]')
        .option('--freshtab', 'enables ember fresh-tab-frontend build')
        .option('--environment <environment>')
        .option('--to-subdir', 'build into a subdirectory named after the config')
-       .option('--instrument-functions [ms]', 'log all modules function calls which take more than given ms')
+       .option('--instrument-functions', 'enable function instrumentation for profiling')
        .action((configPath, options) => {
           var buildStart = Date.now();
           setConfigPath(configPath, options.toSubdir);
@@ -161,9 +168,7 @@ program.command('build [file]')
           process.env['CLIQZ_ENVIRONMENT'] = options.environment || 'development';
           process.env['CLIQZ_SOURCE_MAPS'] = options.maps;
           process.env['CLIQZ_FRESHTAB'] = options.freshtab;
-          if (options.instrumentFunctions !== undefined) {
-            process.env['CLIQZ_INSTRUMENT_FUNCTIONS'] = options.instrumentFunctions;
-          }
+          process.env['CLIQZ_INSTRUMENT_FUNCTIONS'] = options.instrumentFunctions || '';
 
           console.log("Starting build");
           buildFreshtabFrontEnd();
@@ -210,15 +215,13 @@ program.command('serve [file]')
        .option('--version [version]', 'sets extension version', 'package')
        .option('--environment <environment>')
        .option('--freshtab', 'disables ember fresh-tab-frontend build')
-       .option('--instrument-functions [ms]', 'log all modules function calls which take more than given ms')
+       .option('--instrument-functions', 'enable function instrumentation for profiling')
        .action((configPath, options) => {
           setConfigPath(configPath);
           process.env['CLIQZ_ENVIRONMENT'] = options.environment || 'development';
           process.env['CLIQZ_SOURCE_MAPS'] = options.maps;
           process.env['CLIQZ_FRESHTAB'] = options.freshtab;
-          if (options.instrumentFunctions !== undefined) {
-            process.env['CLIQZ_INSTRUMENT_FUNCTIONS'] = options.instrumentFunctions;
-          }
+          process.env['CLIQZ_INSTRUMENT_FUNCTIONS'] = options.instrumentFunctions || '';
           buildFreshtabFrontEnd();
 
           getExtensionVersion(options.version).then(tag => {
@@ -327,24 +330,48 @@ program.command('generate <type> <moduleName>')
         });
        });
 
-program.command('react-dev')
+program.command('react-dev [config]')
       .description('run the react-native dev server')
-      .action(() => {
-        setConfigPath('configs/react-native.json');
+      .action((config) => {
+        setConfigPath(config || 'configs/react-native.json');
         const projectRoots = [OUTPUT_PATH, path.resolve(__dirname, 'node_modules')]
         const options = ['./node_modules/react-native/local-cli/cli.js', 'start',
                          '--projectRoots', projectRoots.join(',')]
         spaws.sync('node', options, { stdio: 'inherit', stderr: 'inherit'});
       });
 
-program.command('react-bundle <platform> [dest]')
+program.command('react-bundle <platform> [config] [dest]')
       .description('create a react-native jsbundle')
-      .action((platform, dest) => {
-        setConfigPath('configs/react-native.json');
+      .action((platform, config, dest) => {
+        setConfigPath(config || 'configs/react-native.json');
         var options = ['./node_modules/react-native/local-cli/cli.js', 'bundle',
           '--platform', platform, '--entry-file', `${OUTPUT_PATH}/index.${platform}.js`,
           '--bundle-output', dest || 'jsengine.bundle.js']
         spaws.sync('node', options, { stdio: 'inherit', stderr: 'inherit'});
+      });
+
+program.command('react-release <platform> <tag> [config]')
+      .description('deploy a react bundle to the CDN')
+      .action((platform, tag, config) => {
+        setConfigPath(config || 'configs/react-native.json');
+        const shellOpts = { stdio: 'inherit', stderr: 'inherit'};
+        // create bundle
+        const bundleName = `jsengine.bundle.${platform}.${tag}`;
+        var options = ['./node_modules/react-native/local-cli/cli.js', 'bundle',
+          '--platform', platform, '--entry-file', `${OUTPUT_PATH}/index.${platform}.js`,
+          '--bundle-output', bundleName]
+        spaws.sync('node', options, shellOpts);
+        // compress bundle
+        spaws.sync('gzip', [bundleName], shellOpts);
+        // prepare package.json
+        const packageJsonName = `package.json.${platform}.${tag}`
+        spaws.sync('cp', ['package.json', packageJsonName], shellOpts);
+        // push to s3
+        const s3Bucket = 's3://cdn.cliqz.com/mobile/jsengine/';
+        spaws.sync('aws', ['s3', 'cp', packageJsonName, s3Bucket], shellOpts);
+        spaws.sync('aws', ['s3', 'cp', `${bundleName}.gz`, s3Bucket], shellOpts);
+        // cleanup
+        spaws.sync('rm', [packageJsonName, `${bundleName}.gz`, `${bundleName}.meta`], shellOpts);
       });
 
 program.parse(process.argv);

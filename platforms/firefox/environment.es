@@ -26,58 +26,9 @@ var CLIQZEnvironment = {
     OS_VERSION: Services.sysinfo.getProperty("version"),
     RERANKERS: [],
     RESULTS_TIMEOUT: 1000, // 1 second
-    TEMPLATES: {'calculator': 1, 'clustering': 1, 'currency': 1, 'custom': 1, 'emphasis': 1, 'empty': 1,
-      'generic': 1, 'main': 1, 'results': 1, 'text': 1, 'series': 1,
-      'spellcheck': 1,
-      'pattern-h1': 3, 'pattern-h2': 2, 'pattern-h3': 1, 'pattern-h3-cluster': 1,
-      'pattern-hm': 1,
-      'topsites': 3,
-      'celebrities': 2, 'Cliqz': 2, 'entity-generic': 2, 'noResult': 3, 'weatherAlert': 3, 'entity-news-1': 3,'entity-video-1': 3,
-      'flightStatusEZ-2': 2, 'weatherEZ': 2,
-      'news' : 1, 'people' : 1, 'video' : 1, 'hq' : 2,
-      'ligaEZ1Game': 2,
-      'ligaEZTable': 3,
-      'recipeRD': 3,
-      'rd-h3-w-rating': 1,
-      'movie': 3,
-      'vod': 3,
-      'movie-vod': 3,
-      'liveTicker': 3,
-      'simple-ui/result': 1,
-      'simple-ui/results': 1,
-      'simple-ui/main': 1
-    },
-    MESSAGE_TEMPLATES: [
-      'footer-message',
-      'footer-ad',
-      'onboarding-callout',
-      'onboarding-callout-extended',
-      'slow_connection',
-      'partials/location/missing_location_2',
-      'partials/location/no-locale-data'
-    ],
-    PARTIALS: [
-        'url',
-        'logo',
-        'EZ-category',
-        'partials/ez-title',
-        'partials/ez-url',
-        'partials/ez-history',
-        'partials/ez-description',
-        'partials/ez-generic-buttons',
-        'EZ-history',
-        'rd-h3-w-rating',
-        'pcgame_movie_side_snippet',
-        'partials/location/local-data',
-        'partials/location/missing_location_1',
-        'partials/timetable-cinema',
-        'partials/timetable-movie',
-        'partials/bottom-data-sc',
-        'partials/download',
-        'partials/streaming',
-        'partials/lyrics',
-        'simple-ui/logo'
-    ],
+    TEMPLATES: {},
+    MESSAGE_TEMPLATES: [],
+    PARTIALS: [],
     CLIQZ_ONBOARDING: "about:onboarding",
     CLIQZ_ONBOARDING_URL: "chrome://cliqz/content/onboarding-v2/index.html",
     BASE_CONTENT_URL: "chrome://cliqz/content/",
@@ -131,7 +82,6 @@ var CLIQZEnvironment = {
                 historyService.markPageAsTyped(urlObject);
         } catch(e) { }
 
-        win.CLIQZ.Core.triggerLastQ = true;
         if(newTab) {
           const tab = win.gBrowser.addTab(url);
           if (focus) {
@@ -154,15 +104,6 @@ var CLIQZEnvironment = {
     copyResult: function(val) {
         var gClipboardHelper = Components.classes["@mozilla.org/widget/clipboardhelper;1"].getService(Components.interfaces.nsIClipboardHelper);
         gClipboardHelper.copyString(val);
-    },
-    tldExtractor: function(host){
-        var eTLDService = Cc["@mozilla.org/network/effective-tld-service;1"]
-                            .getService(Ci.nsIEffectiveTLDService),
-            idnService = Cc["@mozilla.org/network/idn-service;1"]
-                            .getService(Ci.nsIIDNService),
-            utf8str = idnService.convertACEtoUTF8(encodeURIComponent(host));
-
-        return decodeURIComponent(eTLDService.getPublicSuffixFromHost(utf8str));
     },
     isPrivate: function(win) {
         // try to get the current active window
@@ -294,31 +235,44 @@ var CLIQZEnvironment = {
         }
       }
     })(),
+    _isSearchServiceInitialized: (() => {
+      if (Services.search.init) {
+        Services.search.init(() => {
+          CLIQZEnvironment._isSearchServiceInitialized = true;
+        });
+        return false;
+      }
+      return true;
+    })(),
     getDefaultSearchEngine() {
       var searchEngines = CLIQZEnvironment.getSearchEngines();
       return searchEngines.filter(function (se) { return se.default; })[0];
     },
-    //TODO: cache this
-    getSearchEngines: function(blackListed = []){
-        var defEngineName = Services.search.defaultEngine.name;
-        return Services.search.getEngines()
-                .filter(function(e){
-                    return !e.hidden && e.iconURI != null && blackListed.indexOf(e.name) < 0;
-                })
-                .map(function(e){
-                    var r = {
-                        name: e.name,
-                        alias: e.alias,
-                        default: e.name == defEngineName,
-                        icon: e.iconURI.spec,
-                        base_url: e.searchForm,
-                        getSubmissionForQuery: function(q){
-                            //TODO: create the correct search URL
-                            return e.getSubmission(q).uri.spec;
-                        }
-                    }
-                    return r;
-                });
+    getSearchEngines: function(blackListed = []) {
+      const SEARCH_ENGINES = CLIQZEnvironment._isSearchServiceInitialized ?
+        {
+          defaultEngine: Services.search.defaultEngine,
+          engines: Services.search.getEngines()
+        } : {
+          defaultEngine: null,
+          engines: []
+        };
+
+      return SEARCH_ENGINES.engines
+        .filter((e) => !e.hidden && e.iconURI != null && blackListed.indexOf(e.name) < 0)
+        .map((e) => {
+          return {
+            name: e.name,
+            alias: e.alias,
+            default: e === SEARCH_ENGINES.defaultEngine,
+            icon: e.iconURI.spec,
+            base_url: e.searchForm,
+            getSubmissionForQuery: function(q){
+              //TODO: create the correct search URL
+              return e.getSubmission(q).uri.spec;
+            }
+          };
+        });
     },
     blackListedEngines: function(scope) {
       const engines = {
@@ -367,161 +321,19 @@ var CLIQZEnvironment = {
       }
       return uri;
     },
-
-    disableCliqzResults: function (urlbar) {
-      CLIQZEnvironment.app.extensionRestart(() => {
-        prefs.set("cliqz_core_disabled", true);
-      });
-
-      // blur the urlbar so it picks up the default AutoComplete provider
-      utils.autocomplete.isPopupOpen = false;
-      setTimeout(() => {
-        urlbar.focus();
-        urlbar.blur();
-      }, 0);
-    },
-    enableCliqzResults: function (urlbar) {
-      prefs.set("cliqz_core_disabled", false);
-      CLIQZEnvironment.app.extensionRestart();
-
-      // blur the urlbar so it picks up the new CLIQZ Autocomplete provider
-      urlbar.blur();
-    },
-    // lazy init
-    // callback called multiple times
-    historySearch: (function(){
-        var hist = null;
-
-        return function(q, callback){
-            if(hist === null) { //lazy
-              // history autocomplete provider is removed
-              // https://hg.mozilla.org/mozilla-central/rev/44a989cf6c16
-              if (CLIQZEnvironment.AB_1076_ACTIVE) {
-                console.log('AB - 1076: Initialize custom provider');
-                // If AB 1076 is not in B or firefox version less than 49 it will fall back to firefox history
-                var provider = Cc["@mozilla.org/autocomplete/search;1?name=cliqz-history-results"] ||
-                               Cc["@mozilla.org/autocomplete/search;1?name=history"] ||
-                               Cc["@mozilla.org/autocomplete/search;1?name=unifiedcomplete"];
-                hist = provider.getService(Ci["nsIAutoCompleteSearch"]);
-              } else{
-                var provider = Cc["@mozilla.org/autocomplete/search;1?name=history"] ||
-                               Cc["@mozilla.org/autocomplete/search;1?name=unifiedcomplete"];
-                hist = provider.getService(Ci["nsIAutoCompleteSearch"]);
-              }
-            }
-            // special case: user has deleted text from urlbar
-            if(q.length != 0 && urlbar().value.length == 0)
-              return;
-
-            hist.startSearch(q, 'enable-actions', null, {
-                onSearchResult: function(ctx, result) {
-                    var res = [];
-                    for (var i = 0; result && i < result.matchCount; i++) {
-                        if (result.getValueAt(i).indexOf('https://cliqz.com/search?q=') === 0) {
-                          continue;
-                        }
-                        if(result.getStyleAt(i).indexOf('heuristic') != -1){
-                          // filter out "heuristic" results
-                          continue;
-                        }
-
-                        if(result.getStyleAt(i).indexOf('switchtab') != -1){
-                          try {
-                            let [mozAction, cleanURL] = utils.cleanMozillaActions(result.getValueAt(i));
-                            let label;
-
-                            try {
-                              // https://bugzilla.mozilla.org/show_bug.cgi?id=419324
-                              uri = makeURI(action.params.url);
-                              label = losslessDecodeURI(uri);
-                            } catch (e) {}
-
-                            res.push({
-                              style:   result.getStyleAt(i),
-                              value:   cleanURL,
-                              image:   result.getImageAt(i),
-                              comment: result.getCommentAt(i),
-                              label:   label || cleanURL
-                            });
-                          } catch(e){
-                            // bummer! This was unexpected
-                          }
-                        }
-                        else {
-                          res.push({
-                              style:   result.getStyleAt(i),
-                              value:   result.getValueAt(i),
-                              image:   result.getImageAt(i),
-                              comment: result.getCommentAt(i),
-                              label:   result.getLabelAt(i)
-                          });
-                        }
-                    }
-                    callback({
-                        query: q,
-                        results: res,
-                        ready:  result.searchResult != result.RESULT_NOMATCH_ONGOING &&
-                                result.searchResult != result.RESULT_SUCCESS_ONGOING
-                    })
-                }
-            });
-        }
-    })(),
-    getNoResults: function(q, dropDownStyle) {
-      var se = [// default
-              {"name": "DuckDuckGo", "base_url": "https://duckduckgo.com"},
-              {"name": "Bing", "base_url": "https://www.bing.com/search?q=&pc=MOZI"},
-              {"name": "Google", "base_url": "https://www.google.de"},
-              {"name": "Google Images", "base_url": "https://images.google.de/"},
-              {"name": "Google Maps", "base_url": "https://maps.google.de/"}
-          ],
-          chosen = new Array(),
-          isUrl = utils.isUrl(q);
-
-      var engines = CLIQZEnvironment.CliqzResultProviders.getSearchEngines(),
-          defaultName = engines[0].name;
-
-      se.forEach(function(def){
-        engines.forEach(function(e){
-          if(def.name == e.name){
-              var url = def.base_url || e.base_url;
-
-              def.code = e.code;
-              def.style = CLIQZEnvironment.getLogoDetails(CLIQZEnvironment.getDetailsFromUrl(url)).style;
-              def.text = e.alias ? e.alias.slice(1) : '';
-
-              chosen.push(def)
-          }
-          if(e.default) defaultName = e.name;
-        })
-      })
-
+    getNoResults: function(q) {
 
 
       var res = CLIQZEnvironment.Result.cliqz(
         {
           template:'noResult',
-          snippet:
-          {
-            text_line1: CLIQZEnvironment.getLocalizedString(isUrl ? 'noResultUrlNavigate' : 'noResultTitle'),
-                      // forwarding the query to the default search engine is not handled by CLIQZ but by Firefox
-                      // we should take care of this specific case differently on alternative platforms
-            text_line2: isUrl ? CLIQZEnvironment.getLocalizedString('noResultUrlSearch') : CLIQZEnvironment.getLocalizedString('noResultMessage', defaultName),
-            "search_engines": chosen,
-            //use local image in case of no internet connection
-            "cliqz_logo": CLIQZEnvironment.SKIN_PATH + "img/cliqz.svg",
-          },
+          snippet: {},
           type: 'rh',
           subType: {empty:true}
         },
         q
       );
-      if(dropDownStyle && dropDownStyle !== 'cliqzilla'){
-        const engine = this.getDefaultSearchEngine();
-        res.val = engine.getSubmissionForQuery(q);
-        res.label = CLIQZEnvironment.getLocalizedString('searchOn', engine.name);
-        res.text = res.comment = q;
-      }
+
       return res;
     }
 }
