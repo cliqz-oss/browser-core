@@ -1,9 +1,9 @@
 import { utils } from '../core/cliqz';
+import MessageQueue from '../core/message-queue';
 
 import CliqzPeer from '../p2p/cliqz-peer';
 
 import logger from './logger';
-import MessageQueue from './message-queue';
 import SocksProxy from './socks-proxy';
 import RTCRelay from './rtc-relay';
 import RTCToNet from './rtc-to-net';

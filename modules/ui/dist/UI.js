@@ -271,6 +271,7 @@ var UI = {
         return currentResults;
     },
 
+    lastInstantLength: 0,
     lastQuery: "",
     setResultTypeIcon: function (imgPlaceHolder) {
       if (!PlacesUtils) return;
@@ -302,9 +303,9 @@ var UI = {
       var oldResults = oldBox.getElementsByClassName("cqz-result-box");
       var newResults = newBox.getElementsByClassName("cqz-result-box");
 
+      if (CliqzAutocomplete.lastResultIsInstant) UI.lastInstantLength = newResults.length;
       // Process Instant Results
-      if ((CliqzAutocomplete.lastResultIsInstant || oldResults.length == 0) &&
-          (newResults.length <= oldResults.length)) {
+      if (CliqzAutocomplete.lastResultIsInstant && newResults.length <= oldResults.length) {
         for(var i=0; i<newResults.length; i++) {
           var oldChild = oldResults[i];
           var curUrls = UI.extractResultUrls(oldChild.innerHTML);

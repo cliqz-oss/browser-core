@@ -11,3 +11,7 @@ export default function random() {
   const values = crypto.getRandomValues(new Uint32Array(2));
   return (((2 ** 32) * (values[0] & 0x1FFFFF)) + values[1]) / (2 ** 53);
 }
+
+export function randomInt() {
+  return Math.floor(random() * Number.MAX_SAFE_INTEGER);
+}

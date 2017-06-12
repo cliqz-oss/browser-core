@@ -22,28 +22,15 @@ export class EventHandler {
     // the list of callbacks we will handle.
     this.callbacksMap = {
       url_change: [],
-      url_tab_change: [],
-      url_tab_sel_change: [],
       query_search: [],
       http_req: {},
 
       http_req_all: [], // this should be removed on the future! we should use more specific ones
     };
 
-
-    // TODO here we should subscribe to the system events
-    // we want to handle the following events:
-    // - url has changed
-    // - new query has being performed
-    // - new http / post request has being done in a particular domain
-    //
-    this.onTabOrWinChangedHandler = this.onTabOrWinChangedHandler.bind(this);
     this.onTabLocChanged = this.onTabLocChanged.bind(this);
-    this.onTabSelectionChangedHandler = this.onTabSelectionChangedHandler.bind(this);
 
-    events.sub('core.location_change', this.onTabOrWinChangedHandler);
     events.sub('content:location-change', this.onTabLocChanged);
-    events.sub('core:tab_select', this.onTabSelectionChangedHandler);
 
     this.beforeRequestListener = this.beforeRequestListener.bind(this)
     WebRequest.onBeforeRequest.addListener(this.beforeRequestListener);
@@ -53,9 +40,7 @@ export class EventHandler {
   // @brief destructor
   //
   destroy() {
-    events.un_sub('core.location_change', this.onTabOrWinChangedHandler);
     events.un_sub('content:location-change', this.onTabLocChanged);
-    events.un_sub('core:tab_select', this.onTabSelectionChangedHandler);
 
     WebRequest.onBeforeRequest.removeListener(this.beforeRequestListener);
   }
@@ -76,34 +61,6 @@ export class EventHandler {
   }
   unsubscribeUrlChange(cb) {
     this._unsubscribeCallback('url_change', cb);
-  }
-
-  //
-  // @brief subscribe to get events whenever a tab loc changed
-  // @note
-  //  The event emitted is a url details structure + referrer field (check
-  //  utils.getDetailsFromUrl(url); for more info)
-  //    {
-  //      'url' : urlObj,
-  //      'referrer' : the_referrer
-  //    }
-
-  //
-  subscribeTabUrlChange(cb) {
-    this.callbacksMap['url_tab_change'].push(cb);
-  }
-  unsubscribeTabUrlChange(cb) {
-    this._unsubscribeCallback('url_tab_change', cb);
-  }
-
-  //
-  // @brief when a tab selection changes
-  //
-  subscribeTabSelChange(cb) {
-    this.callbacksMap['url_tab_sel_change'].push(cb);
-  }
-  unsubscribeTabSelChange(cb) {
-    this._unsubscribeCallback('url_tab_sel_change', cb);
   }
 
   //
@@ -195,17 +152,16 @@ export class EventHandler {
     // for our project.
     // Check issue https://cliqztix.atlassian.net/projects/GR/issues/GR-117
     //
-    LoggingHandler.LOG_ENABLED &&
-    LoggingHandler.info(MODULE_NAME, ' location changed from ' + JSON.stringify(data));
 
     // skip the event if is the same document here
     // https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIWebProgressListener
     //
-    LoggingHandler.LOG_ENABLED &&
-    LoggingHandler.info(MODULE_NAME, 'new event with location: ' + data.url + ' - referrer: ' + data.referrer);
     if (data.isSameDocument) {
-      LoggingHandler.LOG_ENABLED &&
-      LoggingHandler.info(MODULE_NAME, 'discarding event since it is repeated');
+      return;
+    }
+
+    // we will do a further check here so we can avoid extra execution
+    if (!data.url || data.url.length === 0) {
       return;
     }
 
@@ -215,9 +171,17 @@ export class EventHandler {
 
   //////////////////////////////////////////////////////////////////////////////
   onLocationChangeHandler(url, referrer) {
-    var u = utils.getDetailsFromUrl(url);
-    LoggingHandler.LOG_ENABLED &&
-    LoggingHandler.info(MODULE_NAME, 'location changed to ' + u.host);
+    // we will filter some urls here, we need to add them in the future we will
+    // https://cliqztix.atlassian.net/browse/EX-4570
+    // resource://
+    // about:
+    // file://
+    if (!url ||
+        !(url.startsWith('http://') || url.startsWith('https://'))) {
+      return;
+    }
+
+    const u = utils.getDetailsFromUrl(url);
 
     // now we add the referrer to the url
     if (referrer) {
@@ -237,43 +201,6 @@ export class EventHandler {
                            LoggingHandler.ERR_INTERNAL);
     }
   }
-
-
-  //////////////////////////////////////////////////////////////////////////////
-  onTabOrWinChangedHandler(url, isWinPrivate) {
-    // check if this is the window
-    // EX-2561: private mode then we don't do anything here
-    if (isWinPrivate) {
-      LoggingHandler.LOG_ENABLED &&
-      LoggingHandler.info(MODULE_NAME, 'window is private skipping: onTabOrWinChangedHandler');
-      return;
-    }
-
-    try {
-      var u = utils.getDetailsFromUrl(url);
-      this._publish(this.callbacksMap['url_tab_change'], { url: u });
-    } catch (e) {
-      LoggingHandler.LOG_ENABLED &&
-      LoggingHandler.error(MODULE_NAME,
-                           'Exception catched on onTabOrWinChangedHandler: ' + e,
-                           LoggingHandler.ERR_INTERNAL);
-    }
-  }
-
-  //////////////////////////////////////////////////////////////////////////////
-  onTabSelectionChangedHandler(data) {
-    // data.url +
-    try {
-      this._publish(this.callbacksMap['url_tab_sel_change'], data);
-    } catch (e) {
-      // log this error, is nasty, something went wrong
-      LoggingHandler.LOG_ENABLED &&
-      LoggingHandler.error(MODULE_NAME,
-                           'Exception catched when processing a new event: ' + e,
-                           LoggingHandler.ERR_INTERNAL);
-    }
-  }
-
 
   //////////////////////////////////////////////////////////////////////////////
   beforeRequestListener(requestObj) {

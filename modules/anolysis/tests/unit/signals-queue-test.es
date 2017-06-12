@@ -10,8 +10,10 @@ export default describeModule('anolysis/signals-queue',
     'core/cliqz': {
       utils: {
         setInterval() {},
+        setTimeout(cb) { cb(); },
       },
     },
+    'core/console': { default: {} },
     'anolysis/logger': {
       default: {
         debug() {},
@@ -37,19 +39,19 @@ export default describeModule('anolysis/signals-queue',
       let db;
 
       beforeEach(function initDatabase() {
-        db = [];
+        db = new Map();
         storage = {
           put(doc) {
-            return Promise.resolve(db.push(doc));
+            return Promise.resolve(db.set(doc._id, doc));
           },
           remove(doc) {
-            return Promise.resolve(db.splice(db.indexOf(doc), 1));
+            return Promise.resolve(db.delete(doc._id));
           },
           info() {
-            return Promise.resolve(db.length);
+            return Promise.resolve(db.size);
           },
           getN(n) {
-            return Promise.resolve(db.slice(0, n));
+            return Promise.resolve([...db.values()].slice(0, n));
           },
         };
 
@@ -60,7 +62,7 @@ export default describeModule('anolysis/signals-queue',
       it('pushes new messages in the queue', () => {
         return queue.push({ signal: 1 })
           .then(() => queue.push({ signal: 2 }))
-          .then(size => chai.expect(size).to.equal(2));
+          .then(() => chai.expect(db.size).to.equal(2));
       });
 
       it('process batch of size 1', () => {
@@ -69,7 +71,7 @@ export default describeModule('anolysis/signals-queue',
         return queue.push({ signal: 1 })
           .then(() => queue.push({ signal: 2 }))
           .then(() => queue.processNextBatch(1))
-          .then(() => chai.expect(db).to.have.length(1))
+          .then(() => chai.expect(db.size).to.equal(1))
           .then(() => chai.expect(sendSignal).to.have.been.calledOnce);
       });
 
@@ -79,7 +81,7 @@ export default describeModule('anolysis/signals-queue',
         return queue.push({ signal: 1 })
           .then(() => queue.push({ signal: 2 }))
           .then(() => queue.processNextBatch(2))
-          .then(() => chai.expect(db).to.have.length(0))
+          .then(() => chai.expect(db.size).to.equal(0))
           .then(() => chai.expect(sendSignal).to.have.been.calledTwice);
       });
 
@@ -88,9 +90,9 @@ export default describeModule('anolysis/signals-queue',
 
         return queue.push({ signal: 1 })
           .then(() => queue.push({ signal: 2 }))
-          .then(() => queue.processNextBatch(2))
-          .then(() => chai.expect(db).to.have.length(2))
-          .then(() => chai.expect(sendSignal).to.have.been.calledTwice);
+          .then(() => chai.expect(queue.processNextBatch(2)).to.be.rejected)
+          .then(() => chai.expect(db.size).to.equal(2))
+          .then(() => chai.expect(sendSignal).to.have.been.calledOnce);
       });
     });
   },
