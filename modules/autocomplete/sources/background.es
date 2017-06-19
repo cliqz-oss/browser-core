@@ -1,16 +1,16 @@
-import { utils } from '../core/cliqz';
-import environment from '../platform/environment';
-import { isFirefox } from '../core/platform';
-import autocomplete from './autocomplete';
-import historyCluster from './history-cluster';
-import ResultProviders from './result-providers';
-import CliqzSearchCountryProviders from "./cliqz-backends";
-import Result from './result';
-import WikipediaDeduplication from './wikipedia-deduplication';
-import { background as AutocompleteBackground } from '../platform/auto-complete-component';
-import background from '../core/base/background';
-import Search from './search';
-import ResultCache from './result-cache';
+import { utils } from 'core/cliqz';
+import environment from 'platform/environment';
+import { isFirefox } from 'core/platform';
+import autocomplete from 'autocomplete/autocomplete';
+import historyCluster from 'autocomplete/history-cluster';
+import ResultProviders from 'autocomplete/result-providers';
+import CliqzSearchCountryProviders from "autocomplete/cliqz-backends";
+import Result from 'autocomplete/result';
+import WikipediaDeduplication from 'autocomplete/wikipedia-deduplication';
+import { background as AutocompleteBackground } from 'platform/auto-complete-component';
+import background from 'core/base/background';
+import Search from 'autocomplete/search';
+import ResultCache from 'autocomplete/result-cache';
 
 function onReady() {
   return new Promise(resolve => {
@@ -61,18 +61,29 @@ export default background({
   beforeBrowserShutdown() {
 
   },
-  actions:  {
-    search(query, cb) {
-      const search = new Search();
-      search.search(query, cb);
-    }
-  },
   events: {
+    'autocomplete:disable-search': function({urlbar}){
+      utils.setPref('cliqzBackendProvider.enabled', false);
+      if (environment.disableCliqzResults) {
+        environment.disableCliqzResults(urlbar);
+      }
+    },
+    'autocomplete:enable-search': function({urlbar}){
+      utils.setPref('cliqzBackendProvider.enabled', true);
+      if (environment.enableCliqzResults) {
+        environment.enableCliqzResults(urlbar);
+        utils.telemetry({
+          type: 'setting',
+          setting: 'international',
+          value: 'activate',
+        });
+      }
+    },
     'control-center:setDefault-search': function setDefaultSearchEngine(engine) {
       this.autocomplete.CliqzResultProviders.setCurrentSearchEngine(engine);
     },
     'control-center:setDefault-indexCountry': function setDefaultIndexCountry(country) {
-      utils.setDefaultIndexCountry(country);
+      utils.setDefaultIndexCountry(country, true);
     },
     'core:urlbar_focus': function onUrlBarFocus() {
       if (isFirefox) {

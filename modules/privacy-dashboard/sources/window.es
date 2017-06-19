@@ -13,6 +13,8 @@ export default class {
   unload() {}
 
   status() {
+    if (utils.getPref("cliqz_core_disabled", false)) return;
+
     return {
       visible: true
     }

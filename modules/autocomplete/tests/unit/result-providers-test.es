@@ -36,7 +36,7 @@ export default describeModule("autocomplete/result-providers",
       "core/utils": { default: { getLanguageFromLocale() {} } },
       "core/console": { default: { log() {} } },
       "autocomplete/result": { default: {} },
-      "autocomplete/calculator": { default: { init() {} } },
+      "autocomplete/calculator": { default: {} },
       "core/search-engines": { setSearchEngine: function () {} }
     }
   },

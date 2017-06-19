@@ -3670,7 +3670,14 @@ var CliqzHumanWeb = {
           }, 5000);
     },
     getCountryCode: function() {
-        let ctryCode = utils.getPref('config_location', null);
+        let ctryCode = null;
+
+        try {
+            ctryCode = utils.getPref('config_location', null);
+        } catch (ee) {
+            _log("Could not get config_location");
+        };
+
         return CliqzHumanWeb.sanitizeCounrtyCode(ctryCode);
     },
     sanitizeCounrtyCode: function(ctryCode){

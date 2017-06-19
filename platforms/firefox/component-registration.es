@@ -4,9 +4,6 @@ import { Components } from './globals';
 export default class {
   constructor(component) {
     this.Component = component;
-
-    // enables factory registrations eg: Components.manager.registerFactory
-    Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
   }
 
   createInstance(outer, iid) {

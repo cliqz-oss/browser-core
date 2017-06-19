@@ -3,10 +3,10 @@
  *
  */
 
-import mathLib from 'mathjs';
-import { utils } from "../core/cliqz";
-import Result from "./result";
-import { isFirefox } from "../core/platform";
+import { utils } from "core/cliqz";
+import Result from "autocomplete/result";
+import { isFirefox } from "core/platform";
+import mathLib from 'math';
 
 
 // REF:
@@ -89,12 +89,6 @@ var CliqzCalculator = {
       ]
     }
   },
-  init() {
-    const thousandsSeparator = utils.getLocalizedString('calculator-thousands-separator');
-    const decimalSeparator = utils.getLocalizedString('calculator-decimal-separator');
-    this.thousandsRegex = new RegExp(`(\\d)\\${thousandsSeparator}(\\d)`, 'g');
-    this.decimalRegex = new RegExp(`(\\d)\\${decimalSeparator}(\\d)`, 'g');
-  },
   shortenNumber: function(){
     // shorten numbers when needed
     try {
@@ -121,9 +115,8 @@ var CliqzCalculator = {
     if (!isNaN(q)) {
       return ''; // Don't trigger calculator yet if the query is just a number
     }
-    const operators = ['+', '-', '*', '/', '^', '='];
-    q = q.replace(this.thousandsRegex, '$1$2'); // Remove all thousands separators
-    q = q.replace(this.decimalRegex, '$1.$2'); // Replace all decimal separators by period
+    var operators = ['+', '-', '*', '/', '^', '='];
+    q = q.replace(/(\d),(\d)/g, '$1.$2'); // commas are separators to german ppl
     q = q.replace(/ /g, ''); // Remove all spaces
     for (var i = 0; i < operators.length; i++) {
       if (q[q.length - 1] == operators[i]) {

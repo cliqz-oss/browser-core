@@ -304,10 +304,5 @@ export default Ember.Service.extend({
       target: 'delete_section'
     });
     cliqz.deleteVisits(visitIds);
-  },
-
-  sendUserFeedback(data) {
-    const cliqz = this.get('cliqz');
-    cliqz.sendUserFeedback(data);
   }
 });

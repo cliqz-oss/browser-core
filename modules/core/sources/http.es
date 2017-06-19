@@ -27,7 +27,6 @@ export function defaultHttpHandler(method, url, callback, onerror, timeout, data
   req.open(method, url, !sync);
   setPrivateFlags(req);
   req.overrideMimeType && req.overrideMimeType('application/json');
-  req.setRequestHeader('Content-Type', 'application/json');
 
   // headers for compressed data
   if (encoding) {
@@ -41,20 +40,17 @@ export function defaultHttpHandler(method, url, callback, onerror, timeout, data
       if(statusClass == 2 || statusClass == 3 || statusClass == 0 /* local files */){
           callback && callback(req);
       } else {
-          const error = `loaded with non-200 ${url} (status=${req.status} ${req.statusText}) CLIQZEnvironment.httpHandler`;
-          console.log(error);
-          onerror && onerror(error);
+          console.log( "loaded with non-200 " + url + " (status=" + req.status + " " + req.statusText + ")", "CLIQZEnvironment.httpHandler");
+          onerror && onerror();
       }
   }
   req.onerror = function () {
-    const error = `error loading ${url} (status=${req.status} ${req.statusText}) CLIQZEnvironment.httpHandler`;
-    console.log(error);
-    onerror && onerror(error);
+    console.log( "error loading " + url + " (status=" + req.status + " " + req.statusText + ")", "CLIQZEnvironment.httpHandler");
+    onerror && onerror();
   }
   req.ontimeout = function () {
-    const error = `timeout for ${url} CLIQZEnvironment.httpHandler`;
-    console.log(error);
-    onerror && onerror(error);
+    console.log( "timeout for " + url, "CLIQZEnvironment.httpHandler");
+    onerror && onerror();
   }
 
   if (callback) {

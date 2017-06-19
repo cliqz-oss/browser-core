@@ -377,7 +377,7 @@ export default class {
       const currentDate = getSynchronizedDate();
       const lastDemographicSentDate = moment(lastTimeDemographicsSent, DATE_FORMAT);
 
-      if (currentDate.isSame(lastDemographicSentDate.add(6, 'months'), 'month')) {
+      if (currentDate.isAfter(lastDemographicSentDate, 'month')) {
         logger.debug('handleActiveUserSignal send again');
         // Get latest demographics available in storage
         return this.demographicsStorage.getLastN(1)

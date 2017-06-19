@@ -1,5 +1,7 @@
 // TODO: remove dependency on autocomplete
 import autocomplete from '../autocomplete/autocomplete';
+import Results from './results';
+import console from '../core/console';
 
 export default class {
   constructor(window) {
@@ -28,6 +30,10 @@ export default class {
     return urlbar.mInputField.value;
   }
 
+  get isOpen() {
+    return this.element.mPopupOpen;
+  }
+
   results() {
     const ctrl = this.element.mInput.controller;
     const resultCount = this.element._matchCount;
@@ -46,16 +52,13 @@ export default class {
       };
       return rawResult;
     });
-    return {
+    const results = new Results({
       query: this.query,
       queriedAt: autocomplete.lastQueryTime,
       rawResults,
-    };
-  }
+    });
 
-  execBrowserCommandHandler(...args) {
-    const urlbar = this.element.mInput;
-    urlbar.value = urlbar.mInputField.value;
-    this.element.mInput.handleCommand(...args);
+    console.log('results', results);
+    return results;
   }
 }

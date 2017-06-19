@@ -26,6 +26,7 @@ export default background({
     @param settings
   */
   init(settings) {
+    utils.SHARE_LOCATION_ONCE = false;
     utils.updateGeoLocation = this.actions.updateGeoLocation;
 
     this.sleepObserver = new TopicForwarder(
@@ -120,18 +121,19 @@ export default background({
 
   actions: {
     getGeo() {
-      if (utils.getPref('share_location') !== 'yes'
-        && utils.getPref('share_location') !== 'showOnce') {
+      if (utils.getPref('share_location') !== 'yes' &&
+          !utils.SHARE_LOCATION_ONCE) {
         return Promise.reject("No permission to get user's location");
       }
+
       const telemetryEvent = {
-        type: 'performance',
-        action: 'api_request',
-        target: 'geolocation',
+        type: "performance",
+        action: "api_request",
+        target: "geolocation",
         is_success: undefined,
       };
       return getGeo()
-        .then((position) => {
+        .then(position => {
           telemetryEvent.is_success = true;
           utils.telemetry(telemetryEvent);
           return {
@@ -139,7 +141,7 @@ export default background({
             longitude: this.roundLocation(position.longitude),
           };
         })
-        .catch((error) => {
+        .catch(error => {
           telemetryEvent.is_success = false;
           utils.telemetry(telemetryEvent);
           return Promise.reject(error);
@@ -147,7 +149,7 @@ export default background({
     },
 
     updateGeoLocation() {
-      return this.actions.getGeo().then((position) => {
+      return this.actions.getGeo().then(position => {
         utils.USER_LAT = position.latitude;
         utils.USER_LNG = position.longitude;
         this.LAST_GEOLOCATION_UPDATE = Date.now();
@@ -163,15 +165,10 @@ export default background({
     },
 
     setLocationPermission(newPerm) {
-      if (newPerm === 'yes' || newPerm === 'no' || newPerm === 'ask') {
-        utils.setPref('share_location', newPerm);
+      if (newPerm == "yes" || newPerm == "no" || newPerm == "ask") {
+        utils.setPref('share_location',newPerm);
         this.actions.updateGeoLocation();
       }
-    },
-
-    resetGeoLocation() {
-      utils.USER_LAT = null;
-      utils.USER_LNG = null;
     },
   },
 

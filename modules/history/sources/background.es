@@ -3,7 +3,6 @@ import background from '../core/base/background';
 import utils from '../core/utils';
 import { queryActiveTabs } from '../core/tabs';
 import createHistoryDTO from './history-dto';
-import { equals } from '../core/url';
 // import Database from '../core/database';
 // import MetaDatabase from './meta-database';
 
@@ -20,7 +19,6 @@ export default background({
     // this.metaDatabase = new MetaDatabase(metaDB);
     this.history = History;
     this.redirectMap = Object.create(null);
-    this.sessionCounts = new Map();
   },
 
   unload() {
@@ -41,53 +39,6 @@ export default background({
   },
 
   events: {
-    'autocomplete:search': function onSearch(query) {
-      /* eslint-disable */
-      if (true) {
-        return; // TEMP
-      }
-      /* eslint-enable */
-      if (this.sessionCountSubscribtion) {
-        this.sessionCountSubscribtion.dispose();
-      }
-
-      let sessionCount = this.sessionCounts.get(query);
-      if (sessionCount && sessionCount.hasValue) {
-        // cache already populated
-        return;
-      }
-
-      let resolver;
-      let rejecter;
-      const promise = new Promise((resolve, reject) => {
-        resolver = resolve;
-        rejecter = reject;
-      });
-
-      sessionCount = {
-        promise,
-      };
-      this.sessionCounts.set(query, sessionCount);
-
-      const observable = History.sessionCountObservable(query);
-      const subscribtion = observable.subscribe(
-        result => resolver(result.count),
-        rejecter,
-        (success) => {
-          // success = 0
-          // canceled = 1
-          // error = 2
-          if (success !== 0) {
-            this.sessionCounts.delete(query);
-            rejecter();
-          } else {
-            sessionCount.hasValue = true;
-          }
-        },
-      );
-
-      this.sessionCountSubscribtion = subscribtion;
-    },
     /**
     * @event ui:click-on-url
     * @param data
@@ -111,9 +62,8 @@ export default background({
         handleError: () => {},
         handleResult: () => {},
         handleCompletion: () => {
-          utils.setTimeout(() => {
-            History.fillFromVisit(url, encodeURI(queryUrl));
-          }, 2000);
+          utils.setTimeout(() =>
+            History.fillFromVisit(url, encodeURI(queryUrl)), 2000);
 
           History.markAsHidden(queryUrl);
         },
@@ -148,7 +98,7 @@ export default background({
     },
     'content:location-change': function onLocationChange({ url, triggeringUrl }) {
       const sourceUrl = this.getSourceUrl(triggeringUrl);
-      if (url && sourceUrl && (!equals(url, triggeringUrl))) {
+      if (url && sourceUrl) {
         History.fillFromVisit(url, sourceUrl);
       }
     },
@@ -220,20 +170,6 @@ export default background({
 
     showHistoryDeletionPopup() {
       return this.history.showHistoryDeletionPopup(utils.getWindow());
-    },
-
-    sendUserFeedback(data) {
-      return utils.sendUserFeedback(data);
-    },
-    /*
-     * returns undefined if value not is cache
-     */
-    getSessionCount(query) {
-      const sessionCount = this.sessionCounts.get(query);
-      if (sessionCount) {
-        return sessionCount.promise;
-      }
-      return Promise.resolve();
-    },
+    }
   },
 });

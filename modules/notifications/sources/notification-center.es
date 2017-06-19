@@ -160,7 +160,10 @@ export default Evented(class {
          error: null,
          unread: newCount > oldCount
        });
-      this.updateUnreadStatus(domain, newCount);
+
+      if(newCount > oldCount) {
+        this.updateUnreadStatus(domain, newCount);
+      }
     }
 
     if(oldData && oldData.status === 'inaccessible') {
@@ -200,10 +203,6 @@ export default Evented(class {
     const hasUnread = this.storage.hasUnread();
     const eventName = hasUnread ? 'new-notification' : 'notifications-cleared';
     this.publishEvent(eventName, domain, count);
-  }
-
-  updateUnreadCount(domain, count) {
-    this.publishEvent('update-mail-count', domain, count);
   }
 
   clearDomainUnread(domain) {

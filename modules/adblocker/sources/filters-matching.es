@@ -1,5 +1,5 @@
 
-import tlds from '../core/tlds';
+import { TLDs } from '../core/tlds';
 
 
 // Some content policy types used in filters
@@ -197,7 +197,7 @@ function matchHostname(hostname, hostnamePattern) {
     // Ignore TLDs suffix
     const parts = hostname.split('.').reverse();
     let i = 0;
-    while (i < parts.length && tlds.TLDs[parts[i]]) {
+    while (i < parts.length && TLDs[parts[i]]) {
       i += 1;
     }
 
@@ -219,7 +219,13 @@ function matchHostnames(hostname, hostnames) {
     return true;
   }
 
-  return hostnames.some(hn => matchHostname(hostname, hn));
+  for (const hn of hostnames) {
+    if (matchHostname(hostname, hn)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 

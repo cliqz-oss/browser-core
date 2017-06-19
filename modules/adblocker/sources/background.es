@@ -29,7 +29,6 @@ export default background({
     if (getBrowserMajorVersion() < CliqzADB.MIN_BROWSER_VERSION) {
       return Promise.resolve();
     }
-    this.adb = CliqzADB;
     return CliqzADB.init(this.humanWeb);
   },
 

@@ -102,25 +102,14 @@ export default Ember.Service.extend({
        notificationError: null,
     });
    },
-
-   clearNotification(domain, count) { 
+   clearNotification(domain) {
     const store = this.get('store');
-    const dial = store.peekRecord('speed-dial', domain);
-
-    if (!dial) {
-      return;
+    let dial = store.peekRecord('speed-dial', domain);
+    if (dial !== null) {
+      dial.setProperties({
+        hasNewNotifications: false
+      });
     }
-
-    const attrs = {
-      hasNewNotifications: false,
-      notificationError: null,
-    };
-
-    if (count) {
-      attrs.notificationCount = count;
-    }
-   
-    dial.setProperties(attrs);
    },
    inaccessibleNotification(domain) {
     const store = this.get('store');

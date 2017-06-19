@@ -15,8 +15,43 @@ var browserHistory = Cc['@mozilla.org/browser/nav-history-service;1'].getService
 
 var CliqzHistoryManager = {
   init: function() {
+    // AB-1076: History provider contrace
+    this.reg = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
+    this.CliqzHistoryContract = {
+                classID: Components.ID('{59a99d57-b4ad-fa7e-aead-da9d4f4e77c9}'),
+                classDescription: 'Cliqz',
+                contractID: '@mozilla.org/autocomplete/search;1?name=cliqz-history-results',
+                QueryInterface: XPCOMUtils.generateQI([ Ci.nsIAutoCompleteSearch ])
+    };
+
+    // AB - 1076
+    var appInfo = Cc['@mozilla.org/xre/app-info;1'].getService(Components.interfaces.nsIXULAppInfo);
+    var versionChecker = Cc['@mozilla.org/xpcom/version-comparator;1']
+                          .getService(Components.interfaces.nsIVersionComparator);
+
+    CLIQZEnvironment.AB_1076_ACTIVE = versionChecker.compare(appInfo.version, '47.0') >= 0  && versionChecker.compare(appInfo.version, '51.0') < 0 && utils.getPref('history.timeouts', false);
+
+    if (CLIQZEnvironment.AB_1076_ACTIVE) {
+      for(var k in this.CliqzHistoryContract) CliqzPlacesAutoComplete.prototype[k] = this.CliqzHistoryContract[k];
+      const cpCliqzPlacesAutoComplete = CliqzPlacesAutoComplete.prototype;
+      const cpFactory = XPCOMUtils.generateNSGetFactory([CliqzPlacesAutoComplete])(cpCliqzPlacesAutoComplete.classID);
+      this.reg.registerFactory(cpCliqzPlacesAutoComplete.classID, cpCliqzPlacesAutoComplete.classDescription, cpCliqzPlacesAutoComplete.contractID, cpFactory);
+      utils.log('AB - 1076: registration finished', 'CliqzAutocomplete');
+    }
   },
   unload: function() {
+    // AB-1076: Unregister history provider
+    try {
+      this.reg.unregisterFactory(
+        this.reg.contractIDToCID(this.CliqzHistoryContract.contractID),
+        this.reg.getClassObjectByContractID(
+          this.CliqzHistoryContract.contractID,
+          Ci.nsISupports
+        )
+      );
+    } catch(e) {
+      // just in case something goes wrong during unregistration
+    }
   },
   getStats: function(callback) {
     let historysize = 0;
@@ -221,25 +256,14 @@ var CliqzHistoryManager = {
       return promiseMock;
     }
   },
-  removeFromHistory: function(url) {
-    try {
-      const uri = CliqzHistoryManager.makeURI(url);
-      browserHistory.removePage(uri);
-    } catch(e) {
-      utils.log(e.message, 'Error removing entry from history');
-    }
+  removeFromHistory: function(uri) {
+    browserHistory.removePage(uri);
   },
-  removeFromBookmarks: function(url) {
-    try {
-      const uri = CliqzHistoryManager.makeURI(url);
-      var itemId = PlacesUtils.getBookmarksForURI(uri);
-      bookmarkService.removeItem(itemId[0]);
-    } catch(e) {
-      utils.log(e.message, "Error removing entry from bookmarks");
-    }
+  removeFromBookmarks: function(uri) {
+    var itemId = PlacesUtils.getBookmarksForURI(uri);
+    bookmarkService.removeItem(itemId[0]);
   },
-  isBookmarked: function(url) {
-    const uri = CliqzHistoryManager.makeURI(url);
+  isBookmarked: function(uri) {
     return bookmarkService.isBookmarked(uri);
   }
 };

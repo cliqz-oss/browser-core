@@ -2,25 +2,24 @@
 /* global describeModule */
 
 
-let httpPost = () => {};
+let fetch = () => {};
 
 
 function mockFetch(returnValue) {
-  let response;
-  try {
-    response = JSON.stringify(returnValue);
-  } catch (ex) {
-    response = returnValue;
-  }
-
-  httpPost = (url, resolve) => resolve({
-    response,
+  fetch = () => Promise.resolve({
+    ok: true,
+    status: 200,
+    json() { return Promise.resolve(returnValue); },
   });
 }
 
 
-function mockFetchFail() {
-  httpPost = (url, resolve, payload, reject) => reject();
+function mockFetchFail(status) {
+  fetch = () => Promise.resolve({
+    ok: false,
+    status,
+    json() { return Promise.reject(); },
+  });
 }
 
 
@@ -32,18 +31,15 @@ const MOCK = {
       error() {},
     },
   },
-  'core/cliqz': {
-    utils: {
-      httpPost(url, resolve, payload, reject, timeout) {
-        return httpPost(
-          url,
-          resolve,
-          payload,
-          reject,
-          timeout,
-        );
-      },
-    },
+  'core/http': {
+    fetch(req) { return fetch(req); },
+    Headers: () => ({
+      append() {},
+    }),
+    Request: (url, options) => ({
+      url,
+      options,
+    }),
   },
 };
 
@@ -156,9 +152,9 @@ export default describeModule('anolysis/backend-communication',
         sendSignal = this.module().default.sendSignal;
       });
 
-      it('sends signal receives illformed response (response is undefined)', () => {
+      it('sends signal correctly', () => {
         mockFetch(undefined);
-        return chai.expect(sendSignal({ behavior: 42 })).to.be.rejected;
+        return chai.expect(sendSignal({ behavior: 42 })).to.eventually.equal(undefined);
       });
 
       it('sends signal correctly', () => {

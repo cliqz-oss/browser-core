@@ -152,18 +152,17 @@ export default background({
         count
       });
     },
-    'notifications:notifications-cleared': function onNotificationsCleared(domain, count) {
+    'notifications:notifications-cleared': function onClearNotification(domain) {
       this.broadcastMessage('clearNotification', {
-        domain,
-        count
+        domain
       });
     },
-    'notifications:notifications-inaccessible': function onNotificationsInaccessible(domain) {
+    'notifications:notifications-inaccessible': function onInaccessibleNotification(domain) {
       this.broadcastMessage('inaccessibleNotification', {
         domain
       });
     },
-    'notifications:notifications-accessible': function onNotificationsAccessible(domain, count, hasUnread) {
+    'notifications:notifications-accessible': function onAccessibleNotification(domain, count, hasUnread) {
       this.broadcastMessage('accessibleNotification', {
         domain,
         count,

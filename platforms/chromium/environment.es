@@ -17,6 +17,7 @@ const CLIQZEnvironment = {
   RESULTS_PROVIDER: 'https://api.cliqz.com/api/v2/results?nrh=1&q=',
   RICH_HEADER: 'https://api.cliqz.com/api/v2/rich-header?path=/v2/map',
   LOG: 'https://stats.cliqz.com',
+  BRANDS_DATA_URL: 'static/brands_database.json',
   TEMPLATES_PATH: 'modules/static/templates/',
   LOCALE_PATH: 'modules/static/locale/',
   RERANKERS: [],
@@ -141,6 +142,35 @@ const CLIQZEnvironment = {
   isPrivate: function() { return chrome.extension.inIncognitoContext; },
   isOnPrivateTab: function(win) { return CE.isPrivate(); },
   getWindow: function(){ return { document: { getElementById() {} } } },
+
+  historySearch: function(q, callback, searchParam) {
+    function matchTypeToStyle(type) {
+    if (!type)
+      return 'favicon';
+    type = type.toLowerCase();
+    if (type.startsWith('history'))
+      return 'favicon'
+    return type;
+  }
+
+    chrome.cliqzSearchPrivate.queryHistory(q, (query, matches, finished) => {
+      var res = matches.map(function(match) {
+          return {
+              value:   match.url,
+              comment: match.description,
+              style: matchTypeToStyle(match.provider_type),
+              image:   '',
+              label:   ''
+          };
+      });
+      callback({
+        query: query,
+        results: res,
+        ready: true
+      });
+    });
+  },
+
   openLink: function(win, url, newTab) {
     chrome.cliqzSearchPrivate.navigate(url, !!newTab);
   },

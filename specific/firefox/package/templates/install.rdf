@@ -17,18 +17,7 @@
 		{{rdfUpdateURL}}
 		{% endif %}
 
-		<em:localized>
-			<Description>
-				<em:locale>de</em:locale>
-				<em:name>{{name}}</em:name>
-				<em:description>
-					Schneller zu Suchergebnissen, direkt als Auswahlmenü im Browser. Schon beim Eintippen der Suchanfrage werden Ihnen in Echtzeit Resultate und Website-Vorschläge unter der Adressleiste angezeigt. Da Cliqz keine personenbezogenen Daten sammelt oder Benutzerprofile anlegt, bleibt Ihre Suche privat.
-				</em:description>
-				<em:homepageURL>https://testpilot.firefox.com/experiments/cliqz</em:homepageURL>
-			</Description>
-		</em:localized>
 		<em:description>
-			Get search results faster, directly in the browser. Start typing and see suggestions from around the Web in real time, right below the URL bar. And because Cliqz avoids collecting personally identifiable data, or building user profiles, your results are more private.
 		</em:description>
 		<em:homepageURL>{{rdfHomepageURL}}</em:homepageURL>
 		<em:targetApplication>
@@ -36,7 +25,7 @@
 			<Description>
 				<em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
 				<em:minVersion>36.0</em:minVersion>
-				<em:maxVersion>54.*</em:maxVersion>
+				<em:maxVersion>53.*</em:maxVersion>
 
 			</Description>
 		</em:targetApplication>

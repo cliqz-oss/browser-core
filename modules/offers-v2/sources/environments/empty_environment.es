@@ -29,13 +29,13 @@ export default class EmptyEnvironment {
   addOffer(offerPayload) {
   }
 
-  displayOffer(offerId, ruleInfo) {
+  addRuleInfoForOffer(offerId, ruleInfo) {
   }
 
   removeOffer(offerId) {
   }
 
-  isOfferActive(offerId) {
+  hasOffer(offerId) {
     return false;
   }
 

@@ -1,4 +1,5 @@
 import Storage from '../core/storage';
+
 const storage = new Storage();
 
 export function getPref(pref, fallback) {

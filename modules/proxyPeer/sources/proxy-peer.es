@@ -1,9 +1,9 @@
 import { utils } from '../core/cliqz';
-import MessageQueue from '../core/message-queue';
 
 import CliqzPeer from '../p2p/cliqz-peer';
 
 import logger from './logger';
+import MessageQueue from './message-queue';
 import SocksProxy from './socks-proxy';
 import RTCRelay from './rtc-relay';
 import RTCToNet from './rtc-to-net';
@@ -63,7 +63,7 @@ function MultiplexedQueue(name, callback) {
 
 
 export default class {
-  constructor(signalingUrl, peersUrl, exitsUrl, policy, p2p) {
+  constructor(signalingUrl, peersUrl, policy, p2p) {
     // External dependency
     this.p2p = p2p;
 
@@ -78,7 +78,6 @@ export default class {
 
     this.signalingURL = signalingUrl;
     this.peersUrl = peersUrl;
-    this.exitsUrl = exitsUrl;
     this.policy = policy;
   }
 
@@ -112,12 +111,7 @@ export default class {
     return this.createPeer()
       .then(() => {
         // Client
-        this.socksToRTC = new SocksToRTC(
-          this.peer,
-          this.socksProxy,
-          this.peersUrl,
-          this.exitsUrl
-        );
+        this.socksToRTC = new SocksToRTC(this.peer, this.socksProxy, this.peersUrl);
         this.clientQueue = MultiplexedQueue(
           'client',
           ({ msg }) => this.socksToRTC.handleClientMessage(msg),

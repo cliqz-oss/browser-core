@@ -4,11 +4,11 @@
  *
  */
 
-import utils from "../core/utils";
-import console from "../core/console";
-import Result from "./result";
-import CliqzCalculator from "./calculator";
-import { setSearchEngine } from "../core/search-engines";
+import utils from "core/utils";
+import console from "core/console";
+import Result from "autocomplete/result";
+import CliqzCalculator from "autocomplete/calculator";
+import { setSearchEngine } from "core/search-engines";
 
 // INIT_KEY ('newProvidersAdded') was used only as a boolean but now we have multiple states
 // state 1 -> Google images & Google maps
@@ -57,7 +57,6 @@ class CliqzResultProviders {
   constructor() {
     console.log('CliqzResultProviders initialized', LOG_KEY);
     this.manageProviders();
-    CliqzCalculator.init();
   }
   manageProviders() {
 
@@ -259,7 +258,7 @@ var NonDefaultProviders = {
     },
     {
       key: "#st",
-      url: "https://www.startpage.com/do/dsearch?query={searchTerms}&cat=web&pl=opensearch&language=deutsch",
+      url: "https://www.startpage.com/do/search?q={searchTerms}&ref=cliqz",
       name: "Start Page",
       iconURL: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAAXNSR0IArs4c6QAAAe9QTFRF0d3z0t701eD01eH11eP31eL21uH01+L11+H11eH02eP22Nzs16ux1oiG14iF16er2Nbm09/zr8PlydfvtMbml7DbmbLcucvo1+H02eP13OP02Y6L12FU2pOR2pWU2G9l2omEzNXsc5XNhaLTjKjXm7PdiabVb5LLqL7i3OX239fi2F1O3Kiq4O//4O384N/s4NDYz9nvcZTMoLfe3OX14un33eb2ytfu4+Pu23Zs2WZZ3qio4crR4+Pv5e/80t3xdZbOw9Hr5u355Ov45ez4rsLj6O/75tfe35CK2mZZ2VpK2mxg47q81eDydpfOxdPs6u/66O756O763+f2e5vQpbvg7PH77fX+7PL86+bu6M7S4ImA211O1szZdpnQydbt7/P77PH67vL72uPzdJbNs8bl7+vx6srM7urw8fj/8fv/6szN2ldG2MPMc5fPqb7g8vb87vL6qb7hdZbN1+Hy8eLl33Rn3nNm5aGa5qSe3W1f4oJ23t/rdpjOiqbVla7ZqL3gkq3YcZPMtcfl8/b8+Pr+9OTl6qym5I6D67Cq9uzt4+v3eJnOytftyNXrorjdpbrfztru9fj8+Pr9+vv++/3/+/7//P3/5ev2093v/////Pz+/Pz/+/z+/f3//v7/6O73eZnO1d/w+Pr88PT5zmljmAAAAAFiS0dEmpjfZxIAAAAJcEhZcwAACxMAAAsTAQCanBgAAABsSURBVBgZXcHbCoJAAEXRs/VQKaLzYv//fz0IEVloTF6QZlpL/0A5s1CMJRGiircv5BzIOZD4DL1bEtPQuiXV40DOgcO9Y+GOQ2DlAIgfdxAFPBpgOo2utYKKV6mzas/aVLerZi0K7cbmqc0Xo4UVg4tdcLcAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTQtMDctMTVUMTA6NDg6NTgrMDI6MDB+HgtZAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE0LTA3LTE1VDEwOjQ4OjU4KzAyOjAwD0Oz5QAAABF0RVh0ZXhpZjpDb2xvclNwYWNlADEPmwJJAAAAEnRFWHRleGlmOkNvbXByZXNzaW9uADaY0ectAAAAIXRFWHRleGlmOkRhdGVUaW1lADIwMTQ6MDc6MTQgMTE6Mzg6MjfrLWLNAAAAGHRFWHRleGlmOkV4aWZJbWFnZUxlbmd0aAAyNjBOcW3eAAAAF3RFWHRleGlmOkV4aWZJbWFnZVdpZHRoADI2MNPu6MwAAAATdEVYdGV4aWY6RXhpZk9mZnNldAAxNjjFzWc/AAAAHnRFWHRleGlmOkpQRUdJbnRlcmNoYW5nZUZvcm1hdAAzMDawHZ2iAAAAJXRFWHRleGlmOkpQRUdJbnRlcmNoYW5nZUZvcm1hdExlbmd0aAA3Njc3u8Y0mAAAAC10RVh0ZXhpZjpTb2Z0d2FyZQBBZG9iZSBQaG90b3Nob3AgQ1M1LjEgTWFjaW50b3NoOzZ19QAAAA10RVh0cmRmOkJhZwAgICAgIFuLzEsAAAASdEVYdHhtcE1NOkRlcml2ZWRGcm9tAJeoJAgAAAAASUVORK5CYII=',
       method: 'GET',
@@ -301,7 +300,7 @@ var NonDefaultProviders = {
     },
     {
       key: "#st",
-      url: "https://www.startpage.com/do/dsearch?query={searchTerms}&cat=web&pl=opensearch&language=english",
+      url: "https://www.startpage.com/do/search?q={searchTerms}&ref=cliqz",
       name: "Start Page",
       iconURL: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAAXNSR0IArs4c6QAAAe9QTFRF0d3z0t701eD01eH11eP31eL21uH01+L11+H11eH02eP22Nzs16ux1oiG14iF16er2Nbm09/zr8PlydfvtMbml7DbmbLcucvo1+H02eP13OP02Y6L12FU2pOR2pWU2G9l2omEzNXsc5XNhaLTjKjXm7PdiabVb5LLqL7i3OX239fi2F1O3Kiq4O//4O384N/s4NDYz9nvcZTMoLfe3OX14un33eb2ytfu4+Pu23Zs2WZZ3qio4crR4+Pv5e/80t3xdZbOw9Hr5u355Ov45ez4rsLj6O/75tfe35CK2mZZ2VpK2mxg47q81eDydpfOxdPs6u/66O756O763+f2e5vQpbvg7PH77fX+7PL86+bu6M7S4ImA211O1szZdpnQydbt7/P77PH67vL72uPzdJbNs8bl7+vx6srM7urw8fj/8fv/6szN2ldG2MPMc5fPqb7g8vb87vL6qb7hdZbN1+Hy8eLl33Rn3nNm5aGa5qSe3W1f4oJ23t/rdpjOiqbVla7ZqL3gkq3YcZPMtcfl8/b8+Pr+9OTl6qym5I6D67Cq9uzt4+v3eJnOytftyNXrorjdpbrfztru9fj8+Pr9+vv++/3/+/7//P3/5ev2093v/////Pz+/Pz/+/z+/f3//v7/6O73eZnO1d/w+Pr88PT5zmljmAAAAAFiS0dEmpjfZxIAAAAJcEhZcwAACxMAAAsTAQCanBgAAABsSURBVBgZXcHbCoJAAEXRs/VQKaLzYv//fz0IEVloTF6QZlpL/0A5s1CMJRGiircv5BzIOZD4DL1bEtPQuiXV40DOgcO9Y+GOQ2DlAIgfdxAFPBpgOo2utYKKV6mzas/aVLerZi0K7cbmqc0Xo4UVg4tdcLcAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTQtMDctMTVUMTA6NDg6NTgrMDI6MDB+HgtZAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE0LTA3LTE1VDEwOjQ4OjU4KzAyOjAwD0Oz5QAAABF0RVh0ZXhpZjpDb2xvclNwYWNlADEPmwJJAAAAEnRFWHRleGlmOkNvbXByZXNzaW9uADaY0ectAAAAIXRFWHRleGlmOkRhdGVUaW1lADIwMTQ6MDc6MTQgMTE6Mzg6MjfrLWLNAAAAGHRFWHRleGlmOkV4aWZJbWFnZUxlbmd0aAAyNjBOcW3eAAAAF3RFWHRleGlmOkV4aWZJbWFnZVdpZHRoADI2MNPu6MwAAAATdEVYdGV4aWY6RXhpZk9mZnNldAAxNjjFzWc/AAAAHnRFWHRleGlmOkpQRUdJbnRlcmNoYW5nZUZvcm1hdAAzMDawHZ2iAAAAJXRFWHRleGlmOkpQRUdJbnRlcmNoYW5nZUZvcm1hdExlbmd0aAA3Njc3u8Y0mAAAAC10RVh0ZXhpZjpTb2Z0d2FyZQBBZG9iZSBQaG90b3Nob3AgQ1M1LjEgTWFjaW50b3NoOzZ19QAAAA10RVh0cmRmOkJhZwAgICAgIFuLzEsAAAASdEVYdHhtcE1NOkRlcml2ZWRGcm9tAJeoJAgAAAAASUVORK5CYII=',
       method: 'GET',
@@ -343,7 +342,7 @@ var NonDefaultProviders = {
     },
     {
       key: "#st",
-      url: "https://www.startpage.com/do/dsearch?query={searchTerms}&cat=web&pl=opensearch&language=francais",
+      url: "https://www.startpage.com/do/search?q={searchTerms}&ref=cliqz",
       name: "Start Page",
       iconURL: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAAXNSR0IArs4c6QAAAe9QTFRF0d3z0t701eD01eH11eP31eL21uH01+L11+H11eH02eP22Nzs16ux1oiG14iF16er2Nbm09/zr8PlydfvtMbml7DbmbLcucvo1+H02eP13OP02Y6L12FU2pOR2pWU2G9l2omEzNXsc5XNhaLTjKjXm7PdiabVb5LLqL7i3OX239fi2F1O3Kiq4O//4O384N/s4NDYz9nvcZTMoLfe3OX14un33eb2ytfu4+Pu23Zs2WZZ3qio4crR4+Pv5e/80t3xdZbOw9Hr5u355Ov45ez4rsLj6O/75tfe35CK2mZZ2VpK2mxg47q81eDydpfOxdPs6u/66O756O763+f2e5vQpbvg7PH77fX+7PL86+bu6M7S4ImA211O1szZdpnQydbt7/P77PH67vL72uPzdJbNs8bl7+vx6srM7urw8fj/8fv/6szN2ldG2MPMc5fPqb7g8vb87vL6qb7hdZbN1+Hy8eLl33Rn3nNm5aGa5qSe3W1f4oJ23t/rdpjOiqbVla7ZqL3gkq3YcZPMtcfl8/b8+Pr+9OTl6qym5I6D67Cq9uzt4+v3eJnOytftyNXrorjdpbrfztru9fj8+Pr9+vv++/3/+/7//P3/5ev2093v/////Pz+/Pz/+/z+/f3//v7/6O73eZnO1d/w+Pr88PT5zmljmAAAAAFiS0dEmpjfZxIAAAAJcEhZcwAACxMAAAsTAQCanBgAAABsSURBVBgZXcHbCoJAAEXRs/VQKaLzYv//fz0IEVloTF6QZlpL/0A5s1CMJRGiircv5BzIOZD4DL1bEtPQuiXV40DOgcO9Y+GOQ2DlAIgfdxAFPBpgOo2utYKKV6mzas/aVLerZi0K7cbmqc0Xo4UVg4tdcLcAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTQtMDctMTVUMTA6NDg6NTgrMDI6MDB+HgtZAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE0LTA3LTE1VDEwOjQ4OjU4KzAyOjAwD0Oz5QAAABF0RVh0ZXhpZjpDb2xvclNwYWNlADEPmwJJAAAAEnRFWHRleGlmOkNvbXByZXNzaW9uADaY0ectAAAAIXRFWHRleGlmOkRhdGVUaW1lADIwMTQ6MDc6MTQgMTE6Mzg6MjfrLWLNAAAAGHRFWHRleGlmOkV4aWZJbWFnZUxlbmd0aAAyNjBOcW3eAAAAF3RFWHRleGlmOkV4aWZJbWFnZVdpZHRoADI2MNPu6MwAAAATdEVYdGV4aWY6RXhpZk9mZnNldAAxNjjFzWc/AAAAHnRFWHRleGlmOkpQRUdJbnRlcmNoYW5nZUZvcm1hdAAzMDawHZ2iAAAAJXRFWHRleGlmOkpQRUdJbnRlcmNoYW5nZUZvcm1hdExlbmd0aAA3Njc3u8Y0mAAAAC10RVh0ZXhpZjpTb2Z0d2FyZQBBZG9iZSBQaG90b3Nob3AgQ1M1LjEgTWFjaW50b3NoOzZ19QAAAA10RVh0cmRmOkJhZwAgICAgIFuLzEsAAAASdEVYdHhtcE1NOkRlcml2ZWRGcm9tAJeoJAgAAAAASUVORK5CYII=',
       method: 'GET',

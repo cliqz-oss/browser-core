@@ -11,7 +11,7 @@ export default background({
     @param settings
   */
   init() {
-    this.is_enabled = utils.getPref('offersHubTrigger', 'off') !== 'off';
+    this.is_enabled = utils.getPref('offersHubEnableSwitch', false);
   },
 
   unload() {

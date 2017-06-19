@@ -1,27 +1,29 @@
 /*
  * This module handles the different country-specific search backends
- * cliqz provides
+ * cliqz provides 
  *
  */
 
-import utils from "../core/utils";
-import console from "../core/console";
+import utils from "core/utils";
+import console from "core/console";
+
+var LOG_KEY = 'CliqzBackends.jsm';
 
 
 class CliqzSearchCountryProviders {
-  constructor() {}
+  constructor() {
+    console.log('CliqzSearchCountryProviders initialized', LOG_KEY);
+    //this.supportedIndexCountries = this.getProviders();
+  }
 
   getProviders() {
-    let available = JSON.parse(utils.getPref('config_backends', '["de"]'));
+    var supportedIndexCountries = JSON.parse(utils.getPref('config_backends', '["de"]'));
+    return supportedIndexCountries.map(function(c) { return {'iso': c, 
+               'selected': c === utils.getPref('backend_country', 'de'),
+               'label_key': 'country_code_' + c.toUpperCase()
+             }}
+            );
 
-    return available.reduce(function(acc, cur) {
-      acc[cur] = {
-        'selected': cur === utils.getPref('backend_country', 'de'),
-        'name': utils.getLocalizedString('country_code_' + cur.toUpperCase())
-      }
-
-      return acc;
-    }, {});
   }
 }
 

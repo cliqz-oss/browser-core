@@ -72,7 +72,7 @@ function injectTestHelpers(CliqzUtils) {
   };
 
   window.$cliqzResults = function $cliqzResults() {
-    return $(chrome.document.getElementById("cliqz-dropdown"));
+    return $(chrome.document.getElementById("cliqz-results"));
   };
 
   window.$cliqzMessageContainer = function $cliqzResults() {

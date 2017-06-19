@@ -2,15 +2,12 @@ import BaseResult from './results/base';
 import CalculatorResult from './results/calculator';
 import CurrencyResult from './results/currency';
 import WeatherResult from './results/weather';
-import HistoryCluster from './results/history';
-import SessionsResult from './results/sessions';
-import AdultQuestionResult from './results/adult-question';
-import LottoResult from './results/lotto';
+import HistoryResult from './results/history';
 import { equals } from '../core/url';
 import console from '../core/console';
 
 class ResultFactory {
-  static create(rawResult, allResultsFlat, options) {
+  static create(rawResult, allResultsFlat) {
     let Constructor = BaseResult;
 
     if (['custom', 'noResult'].indexOf(rawResult.data.template) >= 0) {
@@ -32,27 +29,23 @@ class ResultFactory {
       Constructor = WeatherResult;
     }
 
-    if (rawResult.data.template === 'lotto') {
-      Constructor = LottoResult;
-    }
-
     if (rawResult.data.urls) {
-      Constructor = HistoryCluster;
+      Constructor = HistoryResult;
     }
 
     if (rawResult.type === 'cliqz-pattern' && !rawResult.data.urls) {
       throw new Error('ignore');
     }
 
-    return new Constructor(Object.assign({}, rawResult, options), allResultsFlat);
+    return new Constructor(rawResult, allResultsFlat);
   }
 
-  static createAll(rawResults, options) {
+  static createAll(rawResults) {
     const all = rawResults.reduce(({ resultList, allResultsFlat }, rawResult) => {
       let result;
 
       try {
-        result = ResultFactory.create(rawResult, allResultsFlat, options);
+        result = ResultFactory.create(rawResult, allResultsFlat);
       } catch (e) {
         if (['duplicate', 'ignore'].indexOf(e.message) >= 0) {
           // it is expected to have duplicates
@@ -65,6 +58,7 @@ class ResultFactory {
         resultList.push(result);
       }
 
+
       return {
         resultList,
         allResultsFlat,
@@ -76,32 +70,11 @@ class ResultFactory {
 }
 
 export default class Results {
-  constructor({ query, rawResults, queriedAt, sessionCountPromise, queryCliqz,
-    adultAssistant, locationAssistant }) {
+
+  constructor({ query, rawResults, queriedAt }) {
     this.query = query;
     this.queriedAt = queriedAt;
-    this.results = ResultFactory.createAll(rawResults,
-      { redoQuery: queryCliqz.bind(null, this.query),
-        locationAssistant
-      });
-
-    if (this.hasAdultResults) {
-      if (adultAssistant.isBlockingAdult) {
-        this.results = this.results.filter(result => !result.isAdult);
-      }
-
-      if (adultAssistant.isAskingForAdult) {
-        this.addAdultQuestionResult({
-          onButtonClick: queryCliqz.bind(null, this.query),
-          adultAssistant,
-        });
-      }
-    }
-
-    if (this.hasHistory && sessionCountPromise) {
-      // TEMP: this.addSessionsResult(sessionCountPromise);
-    }
-
+    this.results = ResultFactory.createAll(rawResults);
     this.displayedAt = Date.now();
   }
 
@@ -139,7 +112,7 @@ export default class Results {
   }
 
   findSelectable(href) {
-    return this.selectableResults.find(r => equals(r.url, href) || equals(r.rawUrl, href));
+    return this.selectableResults.find(r => equals(r.url, href));
   }
 
   indexOf(result) {
@@ -154,41 +127,4 @@ export default class Results {
     this.results.unshift(result);
   }
 
-  insertAt(result, index) {
-    this.results = [
-      ...this.results.slice(0, index),
-      result,
-      ...this.results.slice(index),
-    ];
-  }
-
-  addSessionsResult(countPromise) {
-    const firstNonHistoryIndex = this.results.findIndex(r => !r.isHistory);
-    const sessionResult = new SessionsResult({
-      query: this.query,
-    }, countPromise);
-
-    this.insertAt(
-      sessionResult,
-      firstNonHistoryIndex >= 0 ? firstNonHistoryIndex : this.results.length,
-    );
-  }
-
-  addAdultQuestionResult({ onButtonClick, adultAssistant }) {
-    this.prepend(
-      new AdultQuestionResult({
-        text: this.query,
-        onButtonClick,
-        adultAssistant,
-      })
-    );
-  }
-
-  get hasHistory() {
-    return this.results.some(r => r.isHistory);
-  }
-
-  get hasAdultResults() {
-    return this.results.some(r => r.isAdult);
-  }
 }

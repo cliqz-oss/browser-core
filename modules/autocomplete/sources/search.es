@@ -1,15 +1,14 @@
-import { utils, events } from "../core/cliqz";
-import { isFirefox } from "../core/platform";
-import SmartCliqzCache from './smart-cliqz-cache/smart-cliqz-cache';
-import TriggerUrlCache from './smart-cliqz-cache/trigger-url-cache';
-import CliqzAutocomplete from "./autocomplete";
-import historyCluster from "./history-cluster";
-import Result from "./result";
-import Mixer from "./mixer";
-import SpellCheck from "./spell-check";
-import console from "../core/console";
-import { handleQuerySuggestions } from '../platform/query-suggestions';
-import historySearch from '../platform/history/search';
+import { utils, events } from "core/cliqz";
+import { isFirefox } from "core/platform";
+import SmartCliqzCache from 'autocomplete/smart-cliqz-cache/smart-cliqz-cache';
+import TriggerUrlCache from 'autocomplete/smart-cliqz-cache/trigger-url-cache';
+import CliqzAutocomplete from "autocomplete/autocomplete";
+import historyCluster from "autocomplete/history-cluster";
+import Result from "autocomplete/result";
+import Mixer from "autocomplete/mixer";
+import SpellCheck from "autocomplete/spell-check";
+import console from "core/console";
+import { handleQuerySuggestions } from 'platform/query-suggestions';
 
 class TimeoutError extends Error {}
 
@@ -102,8 +101,6 @@ export default class Search {
   }
 
   search(searchString, callback) {
-      events.pub('autocomplete:search', searchString);
-
       CliqzAutocomplete.lastQueryTime = Date.now();
       CliqzAutocomplete.lastDisplayTime = null;
       CliqzAutocomplete.lastResult = null;
@@ -144,8 +141,7 @@ export default class Search {
       searchString = this.analyzeQuery(searchString);
 
       // spell correction
-      const window = utils.getWindow();
-      var urlbar = window ? window.document.getElementById('urlbar') : null;
+      var urlbar = utils.getWindow().document.getElementById('urlbar');
       if (urlbar && //we do not have urlbar on mobile TODO - fix it better!
           !this.spellCheck.state.override &&
           urlbar.selectionEnd == urlbar.selectionStart &&
@@ -176,7 +172,7 @@ export default class Search {
           this.spellCheck.state.userConfirmed = false;
       }
 
-      this.cliqzResults = null;
+      this.cliqzResults = [];
       this.cliqzResultsDone = false;
       this.cliqzResultsParams = { };
       this.cliqzCache = null;
@@ -226,7 +222,7 @@ export default class Search {
           utils.clearTimeout(this.resultsTimer);
           this.resultsTimer = utils.setTimeout(this.pushTimeoutCallback, utils.RESULTS_TIMEOUT, this.searchString);
       } else {
-          this.cliqzResults = null;
+          this.cliqzResults = [];
           this.cliqzResultsDone = true;
           CliqzAutocomplete.spellCheck.resetState();
       }
@@ -235,7 +231,7 @@ export default class Search {
       this.historyTimer = utils.setTimeout(this.historyTimeoutCallback, this.HISTORY_TIMEOUT, this.searchString);
       this.historyTimeout = false;
       // trigger history search
-      historySearch(searchString, this.onHistoryDone.bind(this));
+      utils.historySearch(searchString, this.onHistoryDone.bind(this));
 
       var hist_search_type = utils.getPref('hist_search_type', 0);
       if (hist_search_type != 0) {
@@ -460,7 +456,7 @@ export default class Search {
 
        if((now > this.startTime + utils.RESULTS_TIMEOUT) || // do we have a timeout or
            (this.isHistoryReady() || this.historyTimeout) && // history is ready or timed out and
-           (this.cliqzResults || this.cliqzResultsDone)) {   // backend results are ready
+           (this.cliqzResults.length > 0 || this.cliqzResultsDone)) {   // backend results are ready
           /// Push full result
           utils.clearTimeout(this.resultsTimer);
           utils.clearTimeout(this.historyTimer);
@@ -589,6 +585,12 @@ export default class Search {
   cliqzResultFetcher(res, attemptsSoFar) {
       var json = res.response,
           q = res.query || res.q; // query will be called q if RH is down
+      if (['simple'].indexOf(utils.dropDownStyle) > -1) {
+        // Remove query-triggered RH results (smart cliqz) in simple UI && FF UI
+        json.results = json.results.filter((r) => {
+          return !(r.type === 'rh' && r.trigger_method === 'query');
+        });
+      }
       // be sure this is not a delayed result
       if(q != this.searchString) {
           this.discardedResults += 1; // count results discarded from backend because they were out of date
@@ -622,7 +624,7 @@ export default class Search {
       return r;
     });
 
-    this.cliqzResults = (this.cliqzResults || []).map(function(r, i) {
+    this.cliqzResults = this.cliqzResults.map(function(r, i) {
       return Result.cliqz(r, q);
     });
   }
@@ -711,7 +713,7 @@ export default class Search {
       utils.clearTimeout(obj.historyTimer);
       obj.resultsTimer = null;
       obj.historyTimer = null;
-      obj.cliqzResults = null;
+      obj.cliqzResults = [];
       obj.cliqzResultsDone = false;
       obj.cliqzCache = null;
       obj.historyResults = null;

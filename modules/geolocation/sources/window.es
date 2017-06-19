@@ -16,9 +16,13 @@ export default class {
   }
 
   status() {
-    return {
-      visible: true,
-      state: utils.getLocationPermState()
+    if (prefs.get("cliqz_core_disabled", false) === false &&
+        // we only need the show the location setting for cliqz UI
+        prefs.get('dropDownStyle', 'cliqz') == 'cliqz') {
+      return {
+        visible: true,
+        state: utils.getLocationPermState()
+      }
     }
   }
 }

@@ -17,7 +17,7 @@ export default class {
   }
 
   status() {
-    if (background.CliqzSecureMessage) {
+    if (background.CliqzSecureMessage && !utils.getPref('cliqz_core_disabled', false)) {
       return {
         visible: true,
         state: utils.getPref('hpn-query'),

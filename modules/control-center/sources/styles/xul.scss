@@ -3,7 +3,8 @@
 }
 
 .cliqz-control-center {
-    padding: 3px 4px 3px 32px;
+    height: 31px;
+    padding: 8px 4px 0 32px;
     color: transparent;
     background-size: 20px;
     background-repeat: no-repeat;
@@ -15,7 +16,7 @@
 #nav-bar .cliqz-control-center {
     min-width: 55px;
     color: black;
-    background-position: 3px 0px;
+    background-position: 4px 5px;
 }
 
 .cliqz-control-center:after {

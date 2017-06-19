@@ -20,6 +20,7 @@ export default class {
   */
   constructor(config) {
     this.onInstall = prefs.get('new_session');
+    this.buttonEnabled = config.settings.freshTabButton;
     this.window = config.window;
     this.showNewBrandAlert = config.settings.showNewBrandAlert;
 

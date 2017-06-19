@@ -5,11 +5,11 @@ var expect = chai.expect;
 DEPS.CliqzCalculatorTest = [];
 TESTS.CliqzCalculatorTest = function() {
   function getResultString() {
-    return $cliqzResults().find(".result").find("#calc-answer")[0].textContent.trim();
+    return $cliqzResults().find(".cqz-result-box").find("#calc-answer")[0].textContent.trim();
   }
 
   function getUnitBaseString() {
-    return $cliqzResults().find(".result").find(".expression")[0].firstChild.textContent.trim();
+    return $cliqzResults().find(".cqz-result-box").find(".expression")[0].firstChild.textContent.trim();
   }
 
   describe('Calculator and unit converter integration', function() {
@@ -24,8 +24,8 @@ TESTS.CliqzCalculatorTest = function() {
         expect(getResultString()).to.equal(getLocaliseString({'de': '6.666,4', 'default': '6,666.4'}));
       });
 
-      xit('Should have copy message', function() {
-        expect($cliqzResults().find(".result").find("#calc-copy-msg")[0].textContent.trim()).to.exist;
+      it('Should have copy message', function() {
+        expect($cliqzResults().find(".cqz-result-box").find("#calc-copy-msg")[0].textContent.trim()).to.exist;
       });
     });
 
@@ -40,12 +40,12 @@ TESTS.CliqzCalculatorTest = function() {
         expect(getResultString()).to.equal(getLocaliseString({'de': '1.000 mm', 'default': '1,000 mm'}));
       });
 
-      xit('Should have base-unit conversion in localized format', function() {
+      it('Should have base-unit conversion in localized format', function() {
         expect(getUnitBaseString()).to.equal(getLocaliseString({'de': '1 m = 1.000 mm', 'default': '1 m = 1,000 mm'}));
       });
 
-      xit('Should have copy message', function() {
-        expect($cliqzResults().find(".result").find("#calc-copy-msg")[0].textContent.trim()).to.exist;
+      it('Should have copy message', function() {
+        expect($cliqzResults().find(".cqz-result-box").find("#calc-copy-msg")[0].textContent.trim()).to.exist;
       });
     });
 
@@ -57,7 +57,7 @@ TESTS.CliqzCalculatorTest = function() {
       });
 
 
-      xit('Unit base line should show 1 meile = ... in German browser, and 1 mile = ... in English browser', function() {
+      it('Unit base line should show 1 meile = ... in German browser, and 1 mile = ... in English browser', function() {
         expect(getUnitBaseString().split("=")[0].trim()).to.equal(getLocaliseString({'de': '1 meile', 'default': '1 mile'}))
       });
     });
@@ -83,59 +83,11 @@ TESTS.CliqzCalculatorTest = function() {
       });
 
       it('Results should have ID calc-answer, in localized format', function() {
-        expect(getResultString()).to.equal(getLocaliseString({'de': '6.444,4', 'default': '64,444'}));
+        expect(getResultString()).to.equal(getLocaliseString({'de': '6.444,4', 'default': '6,444.4'}));
       });
 
-      xit('Should have copy message', function() {
-        expect($cliqzResults().find(".result").find("#calc-copy-msg")[0].textContent.trim()).to.exist;
-      });
-    });
-
-    context("Calculator simple DE format - 1.500,2 + 2000,3", function() {
-      beforeEach(function() {
-        respondWith({results: []});
-        fillIn("1.500,2 + 2000,3");
-        return waitForPopup();
-      });
-
-      it('Results should have ID calc-answer, in localized format', function() {
-        expect(getResultString()).to.equal(getLocaliseString({'de': '3.500,5', 'default': '20,004.5'}));
-      });
-
-      xit('Should have copy message', function() {
-        expect($cliqzResults().find(".result").find("#calc-copy-msg")[0].textContent.trim()).to.exist;
-      });
-    });
-
-    context("Calculator simple DE format - 10,2 + 1.000,00", function() {
-      beforeEach(function() {
-        respondWith({results: []});
-        fillIn("10,2 + 1.000,00");
-        return waitForPopup();
-      });
-
-      it('Results should have ID calc-answer, in localized format', function() {
-        expect(getResultString()).to.equal(getLocaliseString({'de': '1.010,2', 'default': '103'}));
-      });
-
-      xit('Should have copy message', function() {
-        expect($cliqzResults().find(".result").find("#calc-copy-msg")[0].textContent.trim()).to.exist;
-      });
-    });
-
-    context("Calculator simple DE format - 1001,1 + 1.1", function() {
-      beforeEach(function() {
-        respondWith({results: []});
-        fillIn("1001,1 + 1.1");
-        return waitForPopup();
-      });
-
-      it('Results should have ID calc-answer, in localized format', function() {
-        expect(getResultString()).to.equal(getLocaliseString({'de': '1.012,1', 'default': '10,012.1'}));
-      });
-
-      xit('Should have copy message', function() {
-        expect($cliqzResults().find(".result").find("#calc-copy-msg")[0].textContent.trim()).to.exist;
+      it('Should have copy message', function() {
+        expect($cliqzResults().find(".cqz-result-box").find("#calc-copy-msg")[0].textContent.trim()).to.exist;
       });
     });
   });

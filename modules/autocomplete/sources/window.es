@@ -1,7 +1,7 @@
-import autocomplete from "./autocomplete";
-import { utils, environment } from "../core/cliqz";
-import Search from "./search";
-import {Window as AutocompleteWindow} from "../platform/auto-complete-component";
+import autocomplete from "autocomplete/autocomplete";
+import { utils, environment } from "core/cliqz";
+import Search from "autocomplete/search";
+import {Window as AutocompleteWindow} from "platform/auto-complete-component";
 
 
 export default class {
@@ -10,7 +10,9 @@ export default class {
   }
 
   init() {
+    utils.log('-- INITIALIAZING WINDOW ---', 'DEBUG');
     AutocompleteWindow.init(this.window);
+    utils.log('-- INITIALIAZED WINDOW ---', 'DEBUG');
   }
 
   unload() {

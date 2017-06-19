@@ -70,6 +70,7 @@ var UI = {
       UI.CARD_WIDTH /= UI.nCardsPerPage;
     },
     renderResults: function(r) {
+
       if (!viewPager) {
         viewPager = UI.initViewpager();
       }
@@ -94,6 +95,7 @@ var UI = {
       window.document.body.style.backgroundColor = incognito ? '#333333' : '#E8E8E8';
     },
     results: function (r) {
+
       setCardCountPerPage(window.innerWidth);
 
       UI.setDimensions();
@@ -269,6 +271,7 @@ function getView(template) {
 }
 
 function enhanceResults(results) {
+
   let enhancedResults = [];
   let filteredResults = results.filter(function (r) { return !(r.data && r.data.extra && r.data.extra.adult); });
 
@@ -413,6 +416,7 @@ function shiftResults() {
 
 
 function setResultNavigation(resultCount) {
+
   const showGooglethis = 1;
 
   resultsBox.style.width = window.innerWidth + 'px';

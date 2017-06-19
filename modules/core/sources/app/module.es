@@ -111,11 +111,7 @@ export default class Module {
     const loadingStartedAt = Date.now();
     const settings = this.settings;
     return Promise.resolve(this.windowModule)
-      .then(WindowModule => new WindowModule({
-        settings,
-        window,
-        background: this.backgroundModule,
-      }))
+      .then(WindowModule => new WindowModule({ settings, window }))
       .then((module) => {
         win.window.CLIQZ.Core.windowModules[this.name] = module;
         return this.isReady()

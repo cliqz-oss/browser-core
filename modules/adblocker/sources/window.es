@@ -1,9 +1,9 @@
-import { utils } from '../core/cliqz';
+import { utils } from 'core/cliqz';
 import CliqzADB,
      { adbABTestEnabled,
        ADB_PREF_VALUES,
        ADB_PREF_OPTIMIZED,
-       ADB_PREF } from './adblocker';
+       ADB_PREF } from 'adblocker/adblocker';
 import events from '../core/events';
 
 const DISMISSED_ALERTS = 'dismissedAlerts';

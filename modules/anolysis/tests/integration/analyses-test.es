@@ -106,9 +106,6 @@ export default describeModule('anolysis/anolysis',
     'platform/ua-parser': {
       default: UAParser,
     },
-    'core/crypto/random': {
-      randomInt() { return 0; },
-    },
     'core/events': {
       default: {
         subscript() {

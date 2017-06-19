@@ -28,8 +28,6 @@
       width: 74px;
 
       a {
-        display: inline-block;
-        width: 100%;
         display: block;
         cursor: pointer;
         opacity: 1;
@@ -37,16 +35,8 @@
         padding: 0px;
         height: 25px;
         opacity: 0.4;
-        &.active, &:hover {
+        &.active {
           opacity: 1;
-        }
-
-        &.freshtab-button {
-          background: url('../assets/images/Home.svg') no-repeat center;
-        }
-
-        &.history-button {
-          background: url('../assets/images/History.svg') no-repeat center;
         }
       }
     }
@@ -778,7 +768,7 @@ body.freshTabContainer {
   }
 }
 
-@media (max-width: 1040px) {
+@media (max-width: 940px) {
 
   #freshTabPage #container {
     width: 100%;

@@ -25,7 +25,6 @@ const TEST_CASES = [
 
 export default describeModule('adblocker/filters-matching',
   () => ({
-    'platform/url': {},
     'adblocker/utils': {
       default: () => {
         // const message = `[adblock] ${msg}`;

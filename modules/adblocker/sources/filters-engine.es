@@ -6,7 +6,7 @@ import parseList, { parseJSResource
                   , deserializeFilter } from './filters-parsing';
 import { matchNetworkFilter
        , matchCosmeticFilter } from './filters-matching';
-import tlds from '../core/tlds';
+import { TLDs } from '../core/tlds';
 
 
 const TOKEN_BLACKLIST = new Set([
@@ -26,7 +26,7 @@ const TOKEN_BLACKLIST = new Set([
 function tokenizeHostname(hostname) {
   return hostname.split('.')
     .filter(token => (token &&
-                      !tlds.TLDs[token] &&
+                      !TLDs[token] &&
                       !TOKEN_BLACKLIST.has(token)));
 }
 
@@ -94,7 +94,7 @@ class FuzzyIndex {
     this.tokenizer(key, (token) => {
       if (TOKEN_BLACKLIST.has(token)) {
         commonTokens.push(token);
-      } else if (tlds.TLDs[token]) {
+      } else if (TLDs[token]) {
         tldTokens.push(token);
       } else {
         goodTokens.push(token);
@@ -240,18 +240,12 @@ class FilterReverseIndex {
 
     const buckets = this.index.getFromTokens(request.tokens);
 
-    let match = null;
-    buckets.some((bucket) => {
+    for (const bucket of buckets) {
       log(`INDEX ${this.name} BUCKET => ${bucket.length}`);
       const result = this.matchList(request, bucket, checkedFilters);
       if (result !== null) {
-        match = result;
-        return true;
+        return result;
       }
-      return false;
-    });
-    if (match) {
-      return match;
     }
 
     log(`INDEX ${this.name} ${this.miscFilters.length} remaining filters checked`);
@@ -353,19 +347,17 @@ class FilterHostnameDispatch {
 
   matchWithDomain(request, domain, checkedFilters) {
     const buckets = this.hostnameAnchors.getFromKey(domain);
-    let match = null;
-    buckets.some((bucket) => {
+    for (const bucket of buckets) {
       if (bucket !== undefined) {
         log(`${this.name} bucket try to match hostnameAnchors (${domain}/${bucket.name})`);
         const result = bucket.match(request, checkedFilters);
         if (result !== null) {
-          match = result
-          return true;
+          return result;
         }
-        return false;
       }
-    });
-    return match;
+    }
+
+    return null;
   }
 
   match(request, checkedFilters) {
@@ -715,7 +707,7 @@ class CosmeticEngine {
     const uniqIds = new Set();
     log(`getDomainRules ${url} => ${hostname}`);
     this.cosmetics.getFromKey(hostname).forEach((bucket) => {
-      bucket.index.index.forEach((value) => {
+      for (const value of bucket.index.index.values()) {
         value.forEach((rule) => {
           if (!uniqIds.has(rule.id)) {
             // check if one of the preceeding rules has the same selector
@@ -750,7 +742,7 @@ class CosmeticEngine {
             }
           }
         });
-      });
+      }
     });
     return rules;
   }

@@ -19,12 +19,3 @@ export function queryActiveTabs(window) {
     isPinned: tab.pinned,
   }));
 }
-
-export function getTabsWithUrl(window, url) {
-  return Array.prototype.filter.call(window.gBrowser.tabs,
-    (tab => tab.linkedBrowser.currentURI.spec === url && tab));
-}
-
-export function closeTab(window, tab) {
-  window.gBrowser.removeTab(tab);
-}

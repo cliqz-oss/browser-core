@@ -77,7 +77,7 @@ function cqzOfferBtnClicked(ev) {
   const sigType = ev.target.getAttribute('data-cqz-of-btn-action-type') || 'button_pressed';
 
 
-  if (data === 'remove-offer') {
+  if (data === 'close-offer') {
     const feedbackElm = $(ev.target).parents('.cqz-remove-feedback').find('input[name=remove_feedback]:checked');
     const offersFeedback = feedbackElm.val() || 'feedback-no';
     // If you don't close the hub we have to reset the choice
@@ -178,13 +178,8 @@ $(document).ready(() => {
     if (elm.hasClass('remove-offer')) {
       $('#cliqz-offers-cc').removeClass('feedback');
       offerElm.css('display', 'none');
-      if (offerElm.parents('.cqz-vouchers-inner-holder').find('li:visible').length === 0) {
-        // Check do we have collapsed offer when we delete offer. If we then we expand
-        if ($('.cqz-show-all-offers:visible').length === 0) {
-          document.getElementById('cqz-vouchers-wrapper').classList.add('no-vouchers');
-        } else {
-          $('.cqz-show-all-offers').click();
-        }
+      if (offerElm.parents('ul').find('li:visible').length === 0) {
+        document.getElementById('cqz-vouchers-wrapper').classList.add('no-vouchers');
       }
       resize();
     }

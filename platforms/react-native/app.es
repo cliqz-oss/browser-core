@@ -175,7 +175,6 @@ export default class {
       return Promise.resolve();
     }
 
-    module.isLoading = true;
     return module.enable().then(() => {
       return Promise.all(
         mapWindows(module.loadWindow.bind(module))

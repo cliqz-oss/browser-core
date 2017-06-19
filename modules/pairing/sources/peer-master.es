@@ -2,7 +2,7 @@
 /* global USERAGENT, window */
 
 import MessageStorage from './message-storage';
-import { sha256, rawEncryptRSA, toByteArray, deriveAESKey, fromByteArray, encryptStringAES, decryptStringAES } from '../core/crypto/utils';
+import CliqzCrypto from './crypto';
 import console from '../core/console';
 import utils from '../core/utils';
 import fetch from '../platform/fetch';
@@ -137,7 +137,7 @@ export default class PeerMaster {
     .then((keypair) => {
       this.setStorage('keypair', keypair);
       const publicKey = keypair[0];
-      return sha256(publicKey)
+      return CliqzCrypto.sha256(publicKey)
         .then(h => this.setStorage('peerID', h));
     })
     .catch(e => this.log(e));
@@ -169,7 +169,7 @@ export default class PeerMaster {
       this.__loadSlaves(),
       this.generateKeypair(),
     ])
-    .then(() => sha256(this.keypair[0]))
+    .then(() => CliqzCrypto.sha256(this.keypair[0]))
     .then(h => this.setStorage('peerID', h))
     .then(() => this.initPeer())
     .then(() => {
@@ -323,7 +323,7 @@ export default class PeerMaster {
     data.set(fromHex(hexArn));
     new DataView(data.buffer).setInt32(16, ts, true);
     const cleanPK = publicKey.split('\n').filter(x => x.trim() && !x.includes('-')).join('');
-    return rawEncryptRSA(data, cleanPK)
+    return CliqzCrypto.rawEncryptRSA(data, cleanPK)
     .then(x => toBase64(x));
   }
 
@@ -416,7 +416,7 @@ export default class PeerMaster {
 
   processPairingMessage(peerID, publicKey, deviceName, { randomToken }) {
     this.log(`Registering Slave: ${deviceName} ${peerID}`);
-    return sha256(publicKey)
+    return CliqzCrypto.sha256(publicKey)
     .then((h) => {
       // Error handling
       if (h !== peerID) {
@@ -491,8 +491,8 @@ export default class PeerMaster {
   loadPairingAESKey(peerID) {
     const device = this.pairingDevices[peerID] || this.slavesById[peerID];
     if (device && device.randomToken) {
-      const random = toByteArray(device.randomToken, 'b64');
-      return deriveAESKey(random);
+      const random = CliqzCrypto.toByteArray(device.randomToken, 'b64');
+      return CliqzCrypto.deriveAESKey(random);
     }
     return Promise.reject(new Error(`loadPairingAESKey: unknown peer ${peerID}`));
   }
@@ -576,9 +576,6 @@ export default class PeerMaster {
 
   addPairingDevice(deviceID, data) {
     if (!has(this.pairingDevices, deviceID)) {
-      if (has(this.slavesById, deviceID)) {
-        this._removePeer(deviceID);
-      }
       this.pairingDevices[deviceID] = data;
       this.enableMasterPeerIfNeeded();
       this.masterPeer.addTrustedPeer(deviceID);
@@ -637,7 +634,7 @@ export default class PeerMaster {
     }
     try {
       const [id64, randomToken] = value.split(':');
-      const deviceID = fromByteArray(toByteArray(id64, 'b64'), 'hex');
+      const deviceID = CliqzCrypto.fromByteArray(CliqzCrypto.toByteArray(id64, 'b64'), 'hex');
       if (CliqzPeer.isPeerAuthenticated(deviceID)) {
         this.addPairingDevice(deviceID, { randomToken });
       } else {
@@ -661,11 +658,11 @@ export default class PeerMaster {
   }
 
   static sendEncrypted(message, aesKey) {
-    return encryptStringAES(JSON.stringify(message), aesKey);
+    return CliqzCrypto.encryptStringAES(JSON.stringify(message), aesKey);
   }
 
   static receiveEncrypted(data, aesKey) {
-    return decryptStringAES(data, aesKey)
+    return CliqzCrypto.decryptStringAES(data, aesKey)
     .then(message => JSON.parse(message));
   }
 

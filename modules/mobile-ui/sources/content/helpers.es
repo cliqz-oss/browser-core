@@ -34,13 +34,12 @@ export default {
     return JSON.stringify(value);
   },
 
-  // safe lookup partials
+
   getPartial(name) {
     if (Handlebars.templates[name]) {
-      return Handlebars.templates[name];
+      return Handlebars.templates[name](this);
     }
-    // telemetry
-    return () => '';
+    return `<h1>partial ${name} not found</h1>`;
   },
 
   math(lvalue, operator, rvalue) {

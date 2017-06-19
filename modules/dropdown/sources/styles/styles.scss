@@ -3,21 +3,14 @@ $light-gray: #f5f5f5;
 @import 'partials/images';
 @import 'partials/anchors';
 @import 'partials/buttons';
-@import 'partials/location';
 
 #cliqz-dropdown {
-
-    @import 'results/sessions';
-
     font-size: 15px;
     line-height: 1.07em;
     position: relative;
 
     * {
         box-sizing: border-box;
-    }
-
-    p {
         margin: 0;
         padding: 0;
     }
@@ -171,10 +164,6 @@ $light-gray: #f5f5f5;
                 &.search {
                     background-image: url("chrome://global/skin/icons/autocomplete-search.svg#search-icon");
                 }
-
-                &.history-tool {
-                    background-image: url("resource://cliqz/dropdown/images/history_tool_grey.svg");
-                }
             }
         }
 
@@ -201,9 +190,6 @@ $light-gray: #f5f5f5;
                     float: left;
                     margin-right: 5px;
                     max-width: 500px;
-
-                    /* temporary override to avoid cutting of some letters */
-                    line-height: 1.15em;
                 }
 
                 .divider {
@@ -249,7 +235,7 @@ $light-gray: #f5f5f5;
         }
 
         &.selected, &.selected:visited {
-            background-color: #2385E7;
+            background: #2385E7;
             text-decoration: none;
             color: white !important;
             .abstract {
@@ -274,11 +260,6 @@ $light-gray: #f5f5f5;
                     background-image: url("chrome://global/skin/icons/autocomplete-search.svg#search-icon-inverted");
                     background-repeat: no-repeat;
                 }
-
-                .icon.history-tool {
-                    background-image: url("resource://cliqz/dropdown/images/history_tool_white.svg");
-                }
-
             }
 
             .logo[style]:after, .micro-logo[style]:after {
@@ -444,37 +425,6 @@ $light-gray: #f5f5f5;
 
         .logo {
             box-shadow: none;
-        }
-    }
-
-    .result.adult-question {
-        color: #8D2CB1;
-
-        & > p {
-            padding-bottom: 0.6em;
-        }
-
-        .buttons {
-            .result.btn {
-                color: #8D2CB1;
-                border-color: #EAD5F1;
-
-                &.selected {
-                    background-color: #8D2CB1;
-                    border-color: #8D2CB1;
-                }
-
-                &.adult-allow-once {
-                    background-image: url("resource://cliqz/dropdown/images/adult-icon.svg");
-                    background-repeat: no-repeat;
-                    background-position: 5px center;
-                    padding-left: 28px;
-
-                    &.selected {
-                        background-image: url("resource://cliqz/dropdown/images/adult-icon-hover.svg");
-                    }
-                }
-            }
         }
     }
 

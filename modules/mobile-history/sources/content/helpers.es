@@ -18,7 +18,4 @@ export default {
     var formatedDate = hours + ':' + minutes;
     return formatedDate;
   },
-  breakLine(text) {
-    return (text || '').split(/<br ?\/>/);
-  }
 }

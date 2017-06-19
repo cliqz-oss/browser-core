@@ -1,6 +1,6 @@
-import { utils } from "../core/cliqz";
-import Result from "./result";
-import HistoryManager from "../core/history-manager";
+import { utils } from "core/cliqz";
+import Result from "autocomplete/result";
+import HistoryManager from "core/history-manager";
 
 var FF_DEF_FAVICON = 'chrome://mozapps/skin/places/defaultFavicon.png',
     Q_DEF_FAVICON = utils.SKIN_PATH + 'defaultFavicon.png';
@@ -140,15 +140,6 @@ var CliqzHistoryCluster = {
 
     res.results = CliqzHistoryCluster._removeDuplicates(res.results);
     return res;
-  },
-
-  // find the best (https) common protocol for urls from patterns for the same domain
-  // if no https urls is found 'http' will be used
-  _findBestCommonProtocol(baseDomain, patterns) {
-    return patterns.find((pattern) => {
-      const details = utils.getDetailsFromUrl(pattern.url);
-      return baseDomain === details.domain && details.scheme === 'https';
-    }) && 'https' || 'http';
   },
 
   // Calculates the _weighted_ share of the most common domain in given patterns
@@ -413,21 +404,17 @@ var CliqzHistoryCluster = {
 
       utils.log('Adding base domain to history cluster: ' + baseUrl, 'CliqzHistoryCluster');
 
-      var urldetails = utils.getDetailsFromUrl(baseUrl);
-      // Add protocol if it is missing
-      if (!urldetails.scheme) {
-        baseUrl = this._findBestCommonProtocol(urldetails.domain, patterns) + '://' + baseUrl;
-      }
       // Add trailing slash if not there
+      var urldetails = utils.getDetailsFromUrl(baseUrl);
       if (urldetails.path === '')
         baseUrl = baseUrl + '/';
 
       patterns.unshift({
         title: title.charAt(0).toUpperCase() + title.split('.')[0].slice(1),
         url: baseUrl,
-        favicon: favicon,
-        autoAdd: true,
+        favicon: favicon
       });
+      patterns[0].autoAdd = true;
     }
   },
   // Autocomplete an urlbar value with the given patterns
@@ -539,13 +526,17 @@ var CliqzHistoryCluster = {
   createInstantResult: function(res, searchString, callback, customResults) {
     var instant_results = [];
     var results = res.filteredResults();
+    var promises = [];
 
     if (results.length === 0 && !res.urls) {
       // no results, so do nothing
+
     } else if (res.urls) {
       // Rule-based clustering has already been performed, just take the entry as it is
       var instant = Result.generic('cliqz-pattern', res.url, res.urls[0].favicon, res.title, null, searchString, res);
       instant.data.debug ='(history rules cluster)!';
+      // override with any titles we have saved
+      //promises.push(CliqzHistoryCluster._getTitle(instant));
 
       instant.data.template = 'pattern-h2';
       instant.data.cluster = true; // a history cluster based on a destination bet
@@ -574,6 +565,13 @@ var CliqzHistoryCluster = {
       }
       instant.data.localSource = results[0].style;
       instant.data.title = title;
+      // override with any titles we have saved
+      //promises.push(CliqzHistoryCluster._getTitle(instant));
+
+      // get description in case we need it
+      //(if this cluster is converted back to simple history)
+      //promises.push(CliqzHistoryCluster._getDescription(instant));
+
       instant.data.url = results[0].url;
       instant.data.debug = '(history domain cluster)!';
       instant.data.template = 'pattern-h2';
@@ -594,6 +592,7 @@ var CliqzHistoryCluster = {
         instant.data.debug = '(history generic)!';
         instant.data.kind = ['H'];
         instant.data.localSource = results[i].style;
+        //promises.push(CliqzHistoryCluster._getDescription(instant));
         instant_results.push(instant);
       }
     } else {
@@ -608,7 +607,14 @@ var CliqzHistoryCluster = {
       instant_results.push(instant);
     }
 
-    callback(instant_results, 'cliqz-prod');
+    if (typeof(Promise) === 'undefined') {
+      // Firefox versions < 29
+      callback(instant_results, 'cliqz-prod');
+    } else {
+      Promise.all(promises).then(function(data) {
+        callback(instant_results, 'cliqz-prod');
+      });
+    }
   },
   // Creates one (or potentially more) instant results based on history
   simpleCreateInstantResult: function(res, cont, searchString, callback) {

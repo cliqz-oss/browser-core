@@ -56,6 +56,7 @@ export default class ExpansionsProvider {
   enable() {
     if (!this.isEnabled()) {
       utils.setPref('expansion_fallback', true);
+      utils.setPref('ignored_location_warning', true);
       utils.RERANKERS.push(this.reranker);
     }
 
@@ -64,6 +65,7 @@ export default class ExpansionsProvider {
   disable() {
     if (this.isEnabled()) {
       utils.setPref('expansion_fallback', false);
+      utils.setPref('ignored_location_warning', false);
       utils.RERANKERS.splice(utils.RERANKERS.indexOf(this.reranker), 1);
     }
   }

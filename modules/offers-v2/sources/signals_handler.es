@@ -397,15 +397,6 @@ export class SignalHandler {
     linfo('_sendSignalsToBE: SENDING SIGNALSS TO BE!!!');
     const isDeveloper = utils.getPref('developer', false) ||
                         utils.getPref('offersDevFlag', false);
-
-    let GID = utils.getPref('anolysisGID');
-    try {
-      GID = JSON.parse(String(GID));
-    } catch (err) {
-      lerr('sendSignalsToBE: GID is undefined');
-      GID = 'undefined';
-    }
-
     let self = this;
     try {
       Object.keys(self.sigsToSend).forEach(function(signalType) {
@@ -462,7 +453,6 @@ export class SignalHandler {
                 v : OffersConfigs.SIGNALS_VERSION,
                 ex_v: config.EXTENSION_VERSION,
                 is_developer: isDeveloper,
-                gid : GID,
                 type: signalType,
                 sent_ts: self._getMinuteTimestamp(),
                 data: sigDataToSend
