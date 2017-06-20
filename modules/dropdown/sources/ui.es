@@ -24,7 +24,9 @@ export default class {
   }
 
   sessionEnd() {
-    this.dropdown.selectionIndex = -1;
+    if (this.dropdown) { // this might be called before the initiaization
+      this.dropdown.selectionIndex = -1;
+    }
   }
 
   keyDown(ev) {
