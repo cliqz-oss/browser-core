@@ -37,9 +37,11 @@ export default class {
   }
 
   sessionEnd() {
-    this.dropdown.selectedIndex = -1;
-    this.adultAssistant.resetAllowOnce();
-    this.locationAssistant.resetAllowOnce();
+    if (this.dropdown) { // this might be called before the initiaization
+      this.dropdown.selectedIndex = -1;
+      this.adultAssistant.resetAllowOnce();
+      this.locationAssistant.resetAllowOnce();
+    }
   }
 
   keyDown(ev) {

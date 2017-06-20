@@ -3,7 +3,6 @@ import utils from '../core/utils';
 import events from '../core/events';
 import ToolbarButtonManager from './ToolbarButtonManager';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
-import UITour from '../platform/ui-tour';
 import Panel from '../core/ui/panel';
 import console from '../core/console';
 import { queryActiveTabs } from '../core/tabs';
@@ -564,21 +563,9 @@ export default class {
     }
     button.appendChild(div);
 
-    UITour.targets.set("cliqz", { query: '#cliqz-cc-btn', widgetName: 'cliqz-cc-btn', allowAdd: true });
-    var promise = UITour.getTarget(this.window, "cliqz");
-    var win = this.window
-    promise.then(target => {
-      button.addEventListener('command', () => {
-        if (this.isOnboarding()) {
-          this.panel.createIframe();
-
-          UITour.showInfo(win, target, "", "");
-          doc.getElementById("UITourTooltipDescription").appendChild(this.panel.iframe)
-        } else {
-          this.panel.open(button);
-        }
-      });
-    });
+    button.addEventListener('command', () => {
+      this.panel.open(button);
+    }, false);
 
     ToolbarButtonManager.restorePosition(doc, button);
 
