@@ -1,6 +1,7 @@
 import LoggingHandler from './logging_handler';
 import OffersConfigs from './offers_configs';
 import DBHelper from './db_helper';
+import { utils } from '../core/cliqz';
 
 
 const MODULE_NAME = 'offers_db';
@@ -56,10 +57,24 @@ class OfferDB {
     this.displayIDCounter = {};
 
     this.dbDirty = false;
+
+    // save offers in a frequent way
+    const self = this;
+    if (OffersConfigs.LOAD_OFFERS_STORAGE_DATA) {
+      this.saveInterval = utils.setInterval(() => {
+        if (self.dbDirty) {
+          self._savePersistentData();
+        }
+      }, OffersConfigs.OFFERS_STORAGE_AUTOSAVE_FREQ_SECS * 1000);
+    }
   }
 
   destroy() {
     this.savePersistentData();
+    if (this.saveInterval) {
+      utils.clearInterval(this.saveInterval);
+      delete this.saveInterval;
+    }
   }
 
   savePersistentData() {
@@ -610,12 +625,11 @@ class OfferDB {
    */
   _savePersistentData() {
     if (!OffersConfigs.LOAD_OFFERS_STORAGE_DATA) {
-      linfo('_savePersistentData: skipping loading offers DB');
+      linfo('_savePersistentData: skipping saving offers DB');
       return;
     }
 
     if (!this.dbDirty) {
-      linfo('_savePersistentData: no db changes, skipping saving here');
       return;
     }
 

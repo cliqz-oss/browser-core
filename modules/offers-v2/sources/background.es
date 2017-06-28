@@ -7,7 +7,6 @@ import EventLoop from './event_loop';
 import { EventHandler } from './event_handler';
 import OfferProcessor from './offer_processor';
 import {SignalHandler} from './signals_handler';
-import jsep from '../platform/lib/jsep';
 import Database from '../core/database';
 import OfferDB from './offers_db';
 
@@ -77,12 +76,6 @@ export default background({
     // init the logging
     LoggingHandler.init();
 
-    // this.demoJSEP();
-
-    // TODO: GR-137 && GR-140: temporary fix
-    this.onWindowClosed = this.onWindowClosed.bind(this);
-    events.sub('core.window_closed', this.onWindowClosed);
-
     // print the timestamp
     LoggingHandler.LOG_ENABLED &&
     LoggingHandler.info(MODULE_NAME,
@@ -128,9 +121,6 @@ export default background({
                                         this.db,
                                         this.offersDB);
 
-    this.actions = {
-      getStoredOffers: this.getStoredOffers.bind(this),
-    };
     this.env.offerProcessor = this.offerProc;
     this.env.signalHandler = this.signalsHandler;
     this.env.offersDB = this.offersDB;
@@ -144,9 +134,6 @@ export default background({
     if (this.initialized === false) {
       return;
     }
-
-    // TODO: GR-137 && GR-140: temporary fix
-    events.un_sub('core.window_closed', this.onWindowClosed);
 
     if (this.offerProc) {
       this.offerProc.destroy();
@@ -197,18 +184,6 @@ export default background({
     LoggingHandler.info(MODULE_NAME, 'background script unloaded');
   },
 
-  //////////////////////////////////////////////////////////////////////////////
-  onWindowClosed(data) {
-    LoggingHandler.LOG_ENABLED &&
-    LoggingHandler.info(MODULE_NAME, 'window closed!!: remaining: ' + data.remaining);
-    // GR-147: if this is the last window then we just save everything here
-    if (data.remaining === 0) {
-      if (this.offerProc) {
-        this.offerProc.savePersistenceData();
-      }
-    }
-  },
-
   onUrlChange(urlObj, url) {
     if(url) {
       this.env.emitUrlChange(url, urlObj);
@@ -223,23 +198,30 @@ export default background({
 
   //////////////////////////////////////////////////////////////////////////////
   events: {
+    'core.window_closed'({ remaining } = {}) {
+      LoggingHandler.LOG_ENABLED &&
+        LoggingHandler.info(MODULE_NAME, 'window closed!!: remaining: ' + remaining);
+      // GR-147: if this is the last window then we just save everything here
+      if (remaining === 0) {
+        if (this.offerProc) {
+          this.offerProc.savePersistenceData();
+        }
+      }
+    } 
   },
 
   actions: {
+    getStoredOffers(args) {
+      return (this.offerProc) ? this.offerProc.getStoredOffers(args) : [];
+    },
+
+    createExternalOffer(args) {
+      return (this.offerProc) ? this.offerProc.createExternalOffer(args) : false;
+    },
+
+    hasExternalOffer(args) {
+      return (this.offerProc) ? this.offerProc.hasExternalOffer(args) : false;
+    }
   },
-
-  //////////////////////////////////////////////////////////////////////////////
-  // offers storage interfaces
-
-  //
-  // return the offers on the storage
-  //
-  getStoredOffers(args) {
-    return (this.offerProc) ? this.offerProc.getStoredOffers(args) : [];
-  },
-
-
-
-
 
 });

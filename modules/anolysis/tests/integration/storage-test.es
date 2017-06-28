@@ -12,6 +12,12 @@ const getFormattedCurrentDate = () => getCurrentMoment().format(DATE_FORMAT);
 
 export default describeModule('anolysis/storage',
   () => ({
+    'core/cliqz': {
+      utils: {
+        setTimeout(cb) { cb(); },
+        setInterval() {},
+      },
+    },
     'anolysis/synchronized-date': {
       DATE_FORMAT,
       default() {

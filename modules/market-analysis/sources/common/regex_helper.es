@@ -7,7 +7,7 @@ import LRU from '../../core/LRU';
 class RegexHelper {
   constructor() {
     // mapping from regexString to (compiled) RegEx object of that regexString
-    this.cachedRegExps = new LRU(200);
+    this.cachedRegExps = new LRU(1000);
   }
 
   /**

@@ -19,6 +19,7 @@ const DATE_FORMAT = 'YYYY/MM/DD';
 const has = (obj, prop) => Object.prototype.hasOwnProperty.call(obj, prop);
 const now = () => getSynchronizedDate().format(DATE_FORMAT);
 
+
 // TODO:
 // * support unlimited treatment lengths (?)
 // * create simple UI to manage/test AB tests locally
@@ -298,7 +299,10 @@ export default class {
             const testDateRange = moment.range(testFirstDate, testLastDate || testFirstDate);
 
             return testDateRange.contains(userDate);
+          } else if (factor === 'core_version') {
+            // TODO - get install date and parse it
           }
+
           return (userValue || '').startsWith(testValue);
         })
       );

@@ -188,10 +188,6 @@ export default background({
     },
     'content:location-change': function onLocationChange({ url, isPrivate }) {
       events.pub('core.location_change', url, isPrivate);
-      utils.telemetry({
-        'type': 'navigation',
-        'action': 'location_change',
-      });
     },
   },
 
@@ -239,6 +235,14 @@ export default background({
     */
     recordCopy() {
       events.pub('core:copy', ...arguments);
+    },
+    /**
+     * publish an event using events.pub
+     * @param  {String}    evtChannel channel name
+     * @param  {...[objects]} args       arguments to sent
+     */
+    publishEvent(evtChannel, ...args) {
+      events.pub(evtChannel, ...args);
     },
     restart() {
       return utils.app.extensionRestart();
@@ -431,5 +435,14 @@ export default background({
         }, 1000);
       });
     },
+
+    getPref(name, defVal) {
+      return prefs.get(name, defVal);
+    },
+
+    setPref(name, val) {
+      prefs.set(name, val);
+    },
+
   },
 });

@@ -30,12 +30,11 @@ var CLIQZEnvironment = {
     MESSAGE_TEMPLATES: [],
     PARTIALS: [],
     CLIQZ_ONBOARDING: "about:onboarding",
-    CLIQZ_ONBOARDING_URL: "chrome://cliqz/content/onboarding-v2/index.html",
+    CLIQZ_ONBOARDING_URL: "chrome://cliqz/content/onboarding-v3/index.html",
     BASE_CONTENT_URL: "chrome://cliqz/content/",
     CLIQZ_NEW_TAB: "about:cliqz",
     CLIQZ_NEW_TAB_RESOURCE_URL: 'resource://cliqz/fresh-tab-frontend/index.html',
     BROWSER_ONBOARDING_PREF: "browserOnboarding",
-    BROWSER_ONBOARDING_STEP_PREF: "browserOnboarding-step",
 
     init: function(){},
 
@@ -98,7 +97,8 @@ var CLIQZEnvironment = {
             if(win.CLIQZ.Core.urlbar) {
               win.CLIQZ.Core.urlbar.value = url;
             }
-            win.openUILink(url);
+            //win.openUILink(url);
+            win.gBrowser.loadURI(url);
         }
     },
     copyResult: function(val) {

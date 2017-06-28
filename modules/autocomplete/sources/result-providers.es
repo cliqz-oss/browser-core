@@ -163,7 +163,7 @@ class CliqzResultProviders {
     if(CUSTOM[q.trim()] && CUSTOM[q.trim()].url){
       return {
         updatedQ  : q,
-        engineName: 'CLIQZ',
+        engineName: 'Cliqz',
         queryURI  : CUSTOM[q.trim()].url,
         code      : '#'
       }

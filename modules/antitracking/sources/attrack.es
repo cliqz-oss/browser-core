@@ -646,13 +646,14 @@ var CliqzAttrack = {
           company = tld;
         // find the company behind this tracker. I
         // If the first party is from a tracker company, then do not add the company so that the actual tlds will be shown in the list
-        if (tld in domainInfo.domainOwners && domainInfo.domainOwners[tld] !== firstPartyCompany) {
+        if (tld in domainInfo.domainOwners) {
           company = domainInfo.domainOwners[tld];
         }
         if (!(company in result.companies)) {
           result.companies[company] = [];
         }
         result.companies[company].push(dom);
+
       });
 
       return result;

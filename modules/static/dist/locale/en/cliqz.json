@@ -117,10 +117,10 @@
         "message": "$1 (open in new tab)"
     },
     "whatIsCliqz":{
-        "message": "What is CLIQZ?"
+        "message": "What is Cliqz?"
     },
     "whatIsCliqzTry":{
-        "message": "What is CLIQZ? <-- try it yourself, eg: 'weather new york'"
+        "message": "What is Cliqz? <-- try it yourself, eg: 'weather new york'"
     },
     "btnPrivacyDashboard": {
         "message": "Transparency Dashboard"
@@ -159,7 +159,7 @@
         "message": "Security Warning"
     },
     "anti-phishing-txt1": {
-        "message": "CLIQZ has blocked access to "
+        "message": "Cliqz has blocked access to "
     },
     "anti-phishing-txt2": {
         "message": " because it has been reported as a phishing website. Phishing websites disguise as other sites you may trust in order to trick you into disclosing your login, password or other sensitive information."
@@ -189,7 +189,7 @@
         "message": "Deactivate AdBlock Plus on BILD.de"
     },
     "adblockbildWarning":{
-        "message": "Would you like CLIQZ to deactivate AdBlock Plus on BILD.de? (AdBlock Plus remains active on all other sites) "
+        "message": "Would you like Cliqz to deactivate AdBlock Plus on BILD.de? (AdBlock Plus remains active on all other sites) "
     },
     "urlBarLastSearch":{
         "message":"↵  "
@@ -276,7 +276,7 @@
         "message":"$1 years ago"
     },
     "onCalloutSameResult":{
-        "message":"Sorry to interrupt. Did you notice that you can get to the same result using CLIQZ?"
+        "message":"Sorry to interrupt. Did you notice that you can get to the same result using Cliqz?"
     },
     "onCalloutSameResultBtnOk":{
         "message":"Got it!"
@@ -285,7 +285,7 @@
         "message":"Don't show again."
     },
     "onCalloutSmartCliqz":{
-        "message":"Sorry to interrupt. Did you notice that you can get to the same result using CLIQZ?"
+        "message":"Sorry to interrupt. Did you notice that you can get to the same result using Cliqz?"
     },
     "onCalloutSmartCliqzBtnOk":{
         "message":"Got it!"
@@ -303,7 +303,7 @@
         "message":"Don't show again."
     },
     "onCalloutIntro":{
-        "message":"This is your new CLIQZ bar"
+        "message":"This is your new Cliqz bar"
     },
     "onCalloutIntroBtnStart":{
         "message":"Take tour"
@@ -321,16 +321,16 @@
        "message":"Show me again"
     },
     "onCalloutTypeHere":{
-       "message":"All the CLIQZ action happens in your URL bar. Simply enter your search or a web address here."
+       "message":"All the Cliqz action happens in your URL bar. Simply enter your search or a web address here."
     },
     "onCalloutCliqzResults":{
-       "message":"Website suggestions appear in the CLIQZ Menu as you type."
+       "message":"Website suggestions appear in the Cliqz Menu as you type."
     },
     "onCalloutLandingPage":{
        "message":"More time where you want to be--stop searching & go surfing"
     },
     "onCalloutClickHere":{
-       "message":"Click to select a CLIQZ result"
+       "message":"Click to select a Cliqz result"
     },
     "onCalloutNowYou":{
        "message":"Start surfing!"
@@ -339,31 +339,31 @@
        "message":"Enter search or web address here"
     },
     "onMsgInstalled":{
-       "message":"Installation successful! You can now surf the web with CLIQZ!"
+       "message":"Installation successful! You can now surf the web with Cliqz!"
     },
     "onMsgDemoDone":{
         "message":"Try it out!"
     },
     "onMsgThankYou":{
-       "message":"Thank you for installing CLIQZ!"
+       "message":"Thank you for installing Cliqz!"
     },
     "onMsgExplanation":{
-       "message":"CLIQZ lets you search and navigate directly from your browser bar."
+       "message":"Cliqz lets you search and navigate directly from your browser bar."
     },
     "offRes_Cliqz":{
-        "message":"CLIQZ"
+        "message":"Cliqz"
     },
     "offRes_AboutCliqz":{
-        "message":"CLIQZ - About us"
+        "message":"Cliqz - About us"
     },
     "offRes_Privacy":{
-        "message":"CLIQZ - Privacy"
+        "message":"Cliqz - Privacy"
     },
     "offRes_Support":{
-        "message":"CLIQZ - Support"
+        "message":"Cliqz - Support"
     },
     "offRes_Team":{
-        "message":"CLIQZ - Team"
+        "message":"Cliqz - Team"
     },
     "offTitle":{
         "message":"the new way to navigate the web"
@@ -651,7 +651,7 @@
         "message": "P/E ratio(ttm)"
     },
     "btnFreshTab": {
-      "message": "Enable CLIQZ Tab"
+      "message": "Enable Cliqz Tab"
     },
     "publish_date": {
         "message": "Publish date"
@@ -663,7 +663,7 @@
         "message": "Copied"
     },
     "updateMessage":{
-        "message": "CLIQZ has just updated to the latest version."
+        "message": "Cliqz has just updated to the latest version."
     },
     "updatePage":{
         "message": "See What’s New"
@@ -792,7 +792,7 @@
       "message": "Forget"
     },
     "cMenuFeedback": {
-      "message": "Feedback for CLIQZ"
+      "message": "Feedback for Cliqz"
     },
     "cMenuRemoveFromHistory": {
       "message": "Remove from History"
@@ -882,16 +882,16 @@
       "message": "Never"
     },
     "no_local_data_msg": {
-      "message": "Sorry, CLIQZ currently has no information about a location near you. Would you like to always share your location with CLIQZ for a smoother experience?"
+      "message": "Sorry, Cliqz currently has no information about a location near you. Would you like to always share your location with Cliqz for a smoother experience?"
     },
     "location_sorry_msg": {
-      "message": "Sorry, CLIQZ currently has no information about a location near you."
+      "message": "Sorry, Cliqz currently has no information about a location near you."
     },
     "location_thank_you_msg": {
       "message": "Thank you so much!"
     },
     "location_not_share_msg": {
-      "message": "Understood! You can always change your location settings in the CLIQZ menu."
+      "message": "Understood! You can always change your location settings in the Cliqz menu."
     },
     "movies_confirm_no": {
       "message": "Are you sure you don't want to see in which cinemas this movie is playing?"
@@ -963,7 +963,7 @@
       "message": "Please check and try again."
     },
     "dataCollection": {
-      "message": "To improve the search and browsing experience, CLIQZ for Firefox sends data about web searches and website visits to Cliqz’s servers in a completely anonymous, privacy-safe way."
+      "message": "To improve the search and browsing experience, Cliqz for Firefox sends data about web searches and website visits to Cliqz’s servers in a completely anonymous, privacy-safe way."
     },
     "learnMore": {
       "message": "Learn more"
@@ -975,25 +975,25 @@
       "message": "Privacy Statement"
     },
     "humanWeb3": {
-      "message": "Human Web collects CLIQZ usage data in a completely anonymous, privacy-safe way."
+      "message": "Human Web collects Cliqz usage data in a completely anonymous, privacy-safe way."
     },
     "humanWeb4": {
       "message": "One for all. All for one. Together for a better web."
     },
     "humanWeb5": {
-      "message": "By using CLIQZ, you benefit from the wisdom of the crowd.  The community of users contributes – totally anonymously – to statistical web data. Our search technology uses this data to rate the relevance, trustworthiness and security of websites. We call this technology that indexes the Internet  with the help oft he users \"Human Web\"."
+      "message": "By using Cliqz, you benefit from the wisdom of the crowd.  The community of users contributes – totally anonymously – to statistical web data. Our search technology uses this data to rate the relevance, trustworthiness and security of websites. We call this technology that indexes the Internet  with the help oft he users \"Human Web\"."
     },
     "humanWeb6": {
-      "message": "CLIQZ's Human Web technology calculates web traffic statistics for websites that are visited by all users who participate in the Human Web, e.g. the sites’ addresses (URLs) and the amount of time people spend there. This is carried out entirely anonymously, without reference to any personal data or user identity. IP addresses are removed automatically from the Human Web data."
+      "message": "Cliqz's Human Web technology calculates web traffic statistics for websites that are visited by all users who participate in the Human Web, e.g. the sites’ addresses (URLs) and the amount of time people spend there. This is carried out entirely anonymously, without reference to any personal data or user identity. IP addresses are removed automatically from the Human Web data."
     },
     "humanWeb7": {
-      "message": "Also completely anonymously, and separately from its web traffic data, CLIQZ for Firefox records what the community of users search the web for and what they enter into the CLIQZ universal browser bar (the combined search box and address bar at the top of your browser window). Each of such entries and site visits are evaluated only as a single event. We never combine data from multiple entries or multiple visits and do not attempt to draw even theoretically possible conclusions about our users. We also never associate any personal data (such as your IP or email address) with any events."
+      "message": "Also completely anonymously, and separately from its web traffic data, Cliqz for Firefox records what the community of users search the web for and what they enter into the Cliqz universal browser bar (the combined search box and address bar at the top of your browser window). Each of such entries and site visits are evaluated only as a single event. We never combine data from multiple entries or multiple visits and do not attempt to draw even theoretically possible conclusions about our users. We also never associate any personal data (such as your IP or email address) with any events."
     },
     "humanWeb8": {
       "message": "Participating in Human Web is optional"
     },
     "humanWeb9": {
-      "message": "You can choose if you want CLIQZ to submit anonymous statistical data to improve relevance and safety via the Human Web."
+      "message": "You can choose if you want Cliqz to submit anonymous statistical data to improve relevance and safety via the Human Web."
     },
     "humanWeb10": {
       "message": "I participate in the Human Web"
@@ -1179,7 +1179,7 @@
       "message": "Unblock YouTube Videos"
     },
     "unblock_prompt": {
-      "message": "Would you like CLIQZ to try to unblock Youtube Videos?"
+      "message": "Would you like Cliqz to try to unblock Youtube Videos?"
     },
     "unblock_always": {
       "message": "Yes, always"
@@ -1193,65 +1193,8 @@
     "unblock_youtube_fail": {
       "message": "OK, we tried, but it seems we cannot unblock this video for you at this time"
     },
-    "cliqz-onboarding-title": {
-      "message": "Woohoo! CLIQZ was successfully installed."
-    },
-    "cliqz-onboarding-hdr-privacy": {
-      "message": "You are safe with CLIQZ."
-    },
-    "cliqz-onboarding-txt-privacy1": {
-      "message": "Our innovative"
-    },
-    "cliqz-onboarding-txt-privacy2": {
-      "message": "Anti-Tracking & Anti-Phishing"
-    },
-    "cliqz-onboarding-txt-privacy3": {
-      "message": "technologies protect you and your privacy."
-    },
-    "cliqz-onboarding-cta1": {
-      "message": "Cool, what else?"
-    },
-    "cliqz-onboarding-hdr-search": {
-      "message": "Quick search"
-    },
-    "cliqz-onboarding-txt-search1": {
-      "message": "See"
-    },
-    "cliqz-onboarding-txt-search2": {
-      "message": "search results"
-    },
-    "cliqz-onboarding-txt-search3": {
-      "message": "as you type and click to go there directly."
-    },
-    "cliqz-onboarding-cta2": {
-      "message": "Got it..."
-    },
-    "cliqz-onboarding-hdr-homescreen": {
-      "message": "Your top sites and news"
-    },
-    "cliqz-onboarding-txt-homescreen1": {
-      "message": "We populate your"
-    },
-    "cliqz-onboarding-txt-homescreen2": {
-      "message": "Homescreen"
-    },
-    "cliqz-onboarding-txt-homescreen3": {
-      "message": "with your favorite websites and trending news."
-    },
-    "cliqz-onboarding-cta3": {
-      "message": "OK, let's go!"
-    },
-    "cliqz-onboarding-learn-more": {
-      "message": "Learn more about CLIQZ"
-    },
-    "cliqz-onboarding-full-tour": {
-      "message": "take the full tour"
-    },
-    "cliqz-onboarding-or": {
-      "message": "or"
-    },
     "context-menu-search-item": {
-      "message": "Search CLIQZ for \"$1\""
+      "message": "Search Cliqz for \"$1\""
     },
     "streaming": {
       "message": "Stream Now: "
@@ -1395,7 +1338,7 @@
       "message": "Take part in Human Web"
     },
     "control-center-best-cliqz": {
-      "message": "Get the best out of CLIQZ"
+      "message": "Get the best out of Cliqz"
     },
     "control-center-transparency": {
       "message": "Transparency Monitor"
@@ -1451,44 +1394,23 @@
     "settings": {
       "message": "Settings"
     },
-    "onboarding-step-1-msg": {
-      "message": "Welcome to CLIQZ"
+    "onboarding-welcome": {
+      "message": "Welcome to Cliqz!"
     },
-    "onboarding-step-1-btn": {
-      "message": "Turn on privacy"
+    "onboarding-text": {
+      "message": "The no-compromise browser"
     },
-    "onboarding-step-1-tooltip": {
-      "message": "Hey there! Ready to browse safely?"
+    "onboarding-start-btn": {
+      "message": "Start"
     },
-    "onboarding-step-2-msg": {
-      "message": "Your Privacy Control Center"
+    "onboarding-fast": {
+      "message": "Fast"
     },
-    "onboarding-step-2-btn": {
-      "message": "Search the web"
+    "onboarding-private": {
+      "message": "Private"
     },
-    "onboarding-step-2-tooltip": {
-      "message": "Holla! Ready for your next step?"
-    },
-    "onboarding-step-3-msg": {
-      "message": "You are ready to go! Try Cliqz Search."
-    },
-    "onboarding-step-3-btn": {
-      "message": "Let's go"
-    },
-    "onboarding-step-3-tooltip": {
-      "message": "Start searching the web."
-    },
-    "onboarding-step-3-tooltip-query-text": {
-      "message": "Try:"
-    },
-    "onboarding-search-query1": {
-      "message": "Weather Munich"
-    },
-    "onboarding-search-query2": {
-      "message": "Make lasagna"
-    },
-    "onboarding-search-query3": {
-      "message": "TV program"
+    "onboarding-secure": {
+      "message": "Secure"
     },
     "video-downloader-title": {
       "message": "Video downloader"
@@ -1584,7 +1506,7 @@
       "message": "Download Cliqz for Android from the Play Store."
     },
     "pairing-step2-title": {
-      "message": "Open the CLIQZ app on your mobile device. Go to the menu and select \"Connect\"."
+      "message": "Open the Cliqz app on your mobile device. Go to the menu and select \"Connect\"."
     },
     "pairing-step3-title": {
       "message": "Tap on (+) to start the QR code scanner."
@@ -1611,13 +1533,13 @@
       "message": "Anzeige"
     },
     "offers-hub-title": {
-      "message": "CLIQZ OFFERS:"
+      "message": "Cliqz Offers:"
     },
     "offers-hub-show-all-offers-btn": {
       "message": "Previous offers"
     },
     "offers-hub-welcome-title": {
-      "message": "Welcome to CLIQZ Offers"
+      "message": "Welcome!"
     },
     "offers-hub-welcome-text": {
       "message": "Soon you'll find here exclusive offers for you"
@@ -1632,7 +1554,7 @@
       "message": "I'm not interested in this offer"
     },
     "offers-hub-feedaback-option2": {
-      "message": "I'm not interested in CLIQZ Offers"
+      "message": "I'm not interested in Cliqz Offers"
     },
     "offers-hub-feedaback-option3": {
       "message": "I'm not interested in any kind of offers"
@@ -1644,13 +1566,16 @@
       "message": "Remove"
     },
     "offers-hub-about-cliqz-offers": {
-      "message": "More information about CLIQZ Offers"
+      "message": "More information"
     },
     "offers-hub-powered-by": {
-      "message": "Powered by CLIQZ"
+      "message": "Powered by Cliqz"
     },
     "offers-hub-code-copy": {
       "message": "Code Copied"
+    },
+    "offers_hub_tooltip_new_offer": {
+      "message": "new Offer"
     },
     "signals-humanweb-inactive-message": {
       "message": "Human Web is not activated"

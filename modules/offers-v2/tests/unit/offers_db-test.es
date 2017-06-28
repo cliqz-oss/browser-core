@@ -49,6 +49,11 @@ export default describeModule('offers-v2/offers_db',
     'core/prefs': {
       default: {}
     },
+    'core/cliqz': {
+      utils: {
+        setInterval: function() {},
+      }
+    },
     './db_helper': {
       default: class {
         constructor(db) {

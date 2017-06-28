@@ -22,6 +22,7 @@ const LAST_TIME_SENT_PREF = 'anolysisLastAliveSignal';
 const LAST_TIME_GID_UPDATE_PREF = 'anolysisLastGIDUpdate';
 const CURRENT_SAFE_GID_PREF = 'anolysisGID';
 const CURRENT_DEMOGRAPHICS_PREF = 'anolysisDemographics';
+const NEXT_DEMOGRAPHICS_PREF = 'anolysisLatestDemographics';
 
 
 /**
@@ -49,8 +50,7 @@ const CURRENT_DEMOGRAPHICS_PREF = 'anolysisDemographics';
  * information on this mechanism).
  */
 export default class {
-  constructor(demographicsStorage, storage) {
-    this.demographicsStorage = demographicsStorage;
+  constructor(storage) {
     this.isReadyPromise = null;
     this.storage = storage;
   }
@@ -63,7 +63,8 @@ export default class {
       LAST_TIME_SENT_PREF,
       LAST_TIME_GID_UPDATE_PREF,
       CURRENT_SAFE_GID_PREF,
-      CURRENT_DEMOGRAPHICS_PREF
+      CURRENT_DEMOGRAPHICS_PREF,
+      NEXT_DEMOGRAPHICS_PREF,
     ];
 
     prefs.forEach(pref => this.storage.clear(pref));
@@ -120,6 +121,17 @@ export default class {
 
   getCurrentDemographics() {
     return this.storage.get(CURRENT_DEMOGRAPHICS_PREF);
+  }
+
+  /** Store latest demographics available, this might be more up-to-date than
+   *  what is used for the GID.
+   */
+  setLatestDemographics(demographics) {
+    this.storage.set(NEXT_DEMOGRAPHICS_PREF, demographics);
+  }
+
+  getLatestDemographics() {
+    return this.storage.get(NEXT_DEMOGRAPHICS_PREF);
   }
 
   /**
@@ -181,22 +193,18 @@ export default class {
     const currentDemographics = this.getCurrentDemographics();
     if (currentDemographics === undefined) {
       // If it's the first time, it might be that there is no granular
-      // demographic factors yet. Check if there is one in storage, if
-      // yes, use the last one.
+      // demographic factors yet. Check if there is a candidate in latest
+      // demographics.
       logger.debug('try to get latest demographics from storage');
-      return this.demographicsStorage.getLastN(1)
-        .then((results) => {
-          logger.debug(`registerDemographicsFirstTime results ${JSON.stringify(results)}`);
-          if (results.length === 1) {
-            const newDemographics = JSON.stringify(results[0].demographics);
-            logger.log(`registerDemographicsFirstTime returns ${newDemographics}`);
-            return Promise.resolve(newDemographics);
-          }
+      const candidate = this.getLatestDemographics();
+      if (candidate !== undefined) {
+        logger.log(`registerDemographicsFirstTime returns ${candidate}`);
+        return Promise.resolve(candidate);
+      }
 
-          // If no demographic factors are present in storage, the user is
-          // unsafe, until the GID manager is updated with a new id.
-          return Promise.reject();
-        });
+      // If no demographic factors are present in storage, the user is
+      // unsafe, until the GID manager is updated with a new id.
+      return Promise.reject();
     }
 
     return Promise.resolve(currentDemographics);
@@ -379,17 +387,13 @@ export default class {
 
       if (currentDate.isSame(lastDemographicSentDate.add(6, 'months'), 'month')) {
         logger.debug('handleActiveUserSignal send again');
-        // Get latest demographics available in storage
-        return this.demographicsStorage.getLastN(1)
-          .then((results) => {
-            if (results.length === 1) {
-              return JSON.stringify(results[0].demographics);
-            }
+        // Get latest demographics available
+        let candidate = this.getLatestDemographics();
+        if (candidate === undefined) {
+          candidate = demographics;
+        }
 
-            return Promise.reject();
-          })
-          .catch(() => demographics)
-          .then(newDemographics => Backend.activeUserSignal(newDemographics))
+        return Backend.activeUserSignal(candidate)
           .then((formattedDemographics) => {
             this.setCurrentDemographics(formattedDemographics);
             this.setLastTimeDemographicSent(currentDate.format(DATE_FORMAT));
@@ -407,13 +411,9 @@ export default class {
    */
   updateDemographics(demographics) {
     logger.debug(`updateDemographics ${JSON.stringify(demographics)}`);
-    return this.demographicsStorage.put(demographics)
-      .catch((err) => {
-        /* Ignore, it means these demographics are already stored */
-        logger.debug(`Could not insert demographics ${err}`);
-      })
-      .then(() => { this.init(); })
-      .then(() => { events.pub('anolysis:demographics_registered'); });
+    this.setLatestDemographics(JSON.stringify(demographics.demographics));
+    return this.init()
+      .then(() => events.pub('anolysis:demographics_registered'));
   }
 
   /**

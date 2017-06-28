@@ -87,6 +87,7 @@ export default class Results {
     locationAssistant,
     rerender,
     getSnippet,
+    copyToClipboard,
   } = {}) {
     this.rerender = rerender;
     this.query = query;
@@ -97,6 +98,7 @@ export default class Results {
       adultAssistant,
       replaceResult: this.replaceResult.bind(this),
       getSnippet,
+      copyToClipboard,
     };
     this.results = ResultFactory.createAll(rawResults, actions);
 

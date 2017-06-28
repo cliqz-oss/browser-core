@@ -1,7 +1,7 @@
 import ToolbarButtonManager from 'control-center/ToolbarButtonManager';
 import inject from '../core/kord/inject';
 import { utils, events } from '../core/cliqz';
-import { addStylesheet } from '../core/helpers/stylesheet';
+import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import Panel from '../core/ui/panel';
 import background from './background';
 import UITour from '../platform/ui-tour';
@@ -16,7 +16,7 @@ const BTN_ID = 'cliqz-offers-cc-btn';
 const PANEL_ID = `${BTN_ID}-panel`;
 const firstRunPref = 'cliqz-offers-cc-initialized';
 const BTN_LABEL = '';
-const TOOLTIP_LABEL = 'CLIQZ';
+const TOOLTIP_LABEL = 'Cliqz';
 
 const offersHubTrigger = utils.getPref('offersHubTrigger', 'off');
 
@@ -65,7 +65,12 @@ export default class {
     this.badge.setAttribute('state', '');
     // else we will change the state of all offers
     const self = this;
-    return this.offersV2.action('getStoredOffers').then((recentData) => {
+    const args = {
+      filters: {
+        by_rs_dest: ORIGIN_NAME
+      }
+    };
+    return this.offersV2.action('getStoredOffers', args).then((recentData) => {
       const offersIDs = [];
       recentData.forEach((elem) => {
         if (elem && elem.offer_id) {
@@ -106,6 +111,9 @@ export default class {
       return;
     }
     events.un_sub('offers-send-ch', this.onOffersCoreEvent);
+    this.panel.detach();
+    this.button.parentElement.removeChild(this.button);
+    removeStylesheet(this.window.document, this.cssUrl);
   }
 
   getData() {
@@ -174,7 +182,12 @@ export default class {
 
   _getAllOffers() {
     const self = this;
-    return this.offersV2.action('getStoredOffers').then((recentData) => {
+    const args = {
+      filters: {
+        by_rs_dest: ORIGIN_NAME
+      }
+    };
+    return this.offersV2.action('getStoredOffers', args).then((recentData) => {
       const parsedResult = [];
       recentData.forEach((elem) => {
         if (elem &&
@@ -331,7 +344,8 @@ export default class {
             };
 
             promise.then((target) => {
-              UITour.showInfo(win, target, '', 'Neues Angebot', '', '', myOptions);
+              const offerTooltipTranslation = utils.getLocalizedString('offers_hub_tooltip_new_offer');
+              UITour.showInfo(win, target, '', offerTooltipTranslation, '', '', myOptions);
               win.document.querySelector('#UITourTooltip[targetName=cliqz-offers]').addEventListener('click', (e) => {
                 UITour.hideInfo(this.window);
                 if (e.target.matches('#UITourTooltipClose')) {

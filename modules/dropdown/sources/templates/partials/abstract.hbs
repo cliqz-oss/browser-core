@@ -16,6 +16,11 @@
 
         <p>
             {{#if description}}
+                {{#unless isHistory}}
+                    {{#if isAd}}
+                        <span class="ad">Anzeige</span>
+                    {{/if}}
+                {{/unless}}
                 <span class="description" data-extra="description">{{emphasis description query 2 true}}</span>
             {{else}}
                 <span class="description" data-extra="full-url">{{url}}</span>

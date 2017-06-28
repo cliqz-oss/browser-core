@@ -656,6 +656,7 @@ export default class Search {
 
   sendResultsSignal(obj, instant) {
       var results = obj.mixedResults._results;
+
       var action = {
           type: 'activity',
           action: 'results',

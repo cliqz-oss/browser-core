@@ -99,7 +99,7 @@ def package(beta='True', version=None, sign='False', channel='browser'):
 
     if sign == 'True':
         local("mv %s UNSIGNED_%s" % (output_file_name, output_file_name))
-        # signs the XPI with the CLIQZ certificate
+        # signs the XPI with the Cliqz certificate
 
         # look for xpi-sign report on the same level as navigation-extension
         local( ("python ../xpi-sign/xpisign.py "

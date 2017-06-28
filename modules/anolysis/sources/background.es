@@ -26,7 +26,7 @@ const LATEST_VERSION_USED_PREF = 'anolysisVersion';
  * only signal when the state of the client should be reset, which is a
  * temporary thing.
  */
-const VERSION = 1;
+const VERSION = 2;
 
 
 function versionWasUpdated() {

@@ -7,6 +7,12 @@ key-press='sendReadySignal'}}
     <img src="./assets/images/mag-glass-lgray.svg"/>
   {{/if}}
 </label>
+
 <button {{action "clearQuery"}}>
+  {{#if model}}
     <img src="./assets/images/close-search.svg"/>
+  {{else}}
+    <img src="./assets/images/close-search-white.svg"/>
+  {{/if}}
 </button>
+

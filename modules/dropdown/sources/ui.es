@@ -1,6 +1,7 @@
 import Dropdown from './dropdown';
 import Results from './results';
 import Popup from './popup';
+import events from '../core/events';
 import inject from '../core/kord/inject';
 import SupplementarySearchResult from './results/supplementary-search';
 import HistoryManager from '../core/history-manager';
@@ -10,6 +11,7 @@ import { enterSignal, removeFromHistorySignal } from './telemetry';
 import AdultAssistant from './adult-content-assistant';
 import LocationAssistant from './location-sharing-assistant';
 import { getTabsWithUrl, closeTab } from '../core/tabs';
+import { copyToClipboard } from '../core/clipboard';
 
 export default class {
 
@@ -160,6 +162,7 @@ export default class {
       queriedAt,
       rawResults,
     } = this.popup.results();
+    events.pub('ui:results', rawResults);
     const results = new Results({
       query,
       queriedAt,
@@ -170,6 +173,7 @@ export default class {
       locationAssistant: this.locationAssistant,
       rerender: () => this.dropdown.renderResults(results),
       getSnippet: this.autocomplete.action.bind(this.autocomplete, 'getSnippet'),
+      copyToClipboard,
     });
     const queryIsUrl = isUrl(results.query);
     const queryIsNotEmpty = query.trim() !== '';

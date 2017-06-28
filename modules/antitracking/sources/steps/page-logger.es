@@ -26,6 +26,7 @@ export default class {
       this.tpEvents.incrementStat(request, statName, c || 1);
     }
     state.incrementStat = incrementStat;
+    state.getPageAnnotations = this.tpEvents.getAnnotations.bind(this.tpEvents, state.tabId);
 
     // add triggeringPrinciple info
     const pageLoad = this.tpEvents._active[state.tabId];

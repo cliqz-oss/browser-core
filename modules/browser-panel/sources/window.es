@@ -1,4 +1,5 @@
 import { utils } from '../core/cliqz';
+import console from '../core/console';
 import inject from '../core/kord/inject';
 import background from './background';
 
@@ -11,13 +12,13 @@ const UI_IFRAME_SRC_DEF = 'chrome://cliqz/content/browser-panel/index.html';
 
 
 function linfo(msg) {
-  utils.log(`[info] ${msg}`, MODULE_NAME);
+  console.log(`[info] ${msg}`, MODULE_NAME);
 }
 function lwarn(msg) {
-  utils.log(`[warning] ${msg}`, MODULE_NAME);
+  console.log(`[warning] ${msg}`, MODULE_NAME);
 }
 // function lerr(msg) {
-//   utils.log(MODULE_NAME, `[error] ${msg}`);
+//   console.log(MODULE_NAME, `[error] ${msg}`);
 // }
 
 export default class {

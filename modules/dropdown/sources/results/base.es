@@ -135,11 +135,15 @@ export default class BaseResult {
   }
 
   get url() {
-    const url = this.rawResult.url;
+    let url = this.rawResult.url;
+    if (this.isAd && this.urlAd) {
+      url = this.urlAd;
+    }
+
     if (this.isActionSwitchTab) {
       return `moz-action:switchtab,${JSON.stringify({ url })}`;
     }
-    return this.rawResult.url;
+    return url;
   }
 
   get rawUrl() {
@@ -267,12 +271,14 @@ export default class BaseResult {
     if (!extra.address && !extra.phonenummber) {
       return null;
     }
-    return new LocalResult({
+    const result = new LocalResult({
       address: extra.address,
       phoneNumber: extra.phonenumber,
       mapUrl: extra.mu,
       mapImg: extra.map_img
     });
+    result.actions = this.actions;
+    return result;
   }
 
   get videoResults() {
@@ -285,6 +291,18 @@ export default class BaseResult {
     //   duration: extra.duration,
     //   views: extra.views
     // }));
+  }
+
+  get isAd() {
+    const data = this.rawResult.data || {};
+    const extra = data.extra || {};
+    return extra.is_ad && utils.getPref('offersDropdownSwitch', false);
+  }
+
+  get urlAd() {
+    const data = this.rawResult.data || {};
+    const extra = data.extra || {};
+    return extra.url_ad;
   }
 
   get selectableResults() {
@@ -302,7 +320,7 @@ export default class BaseResult {
       ...this.selectableResults,
       ...this.imageResults,
       ...this.anchorResults,
-      ...(this.localResult ? this.localResult.internalResults : []),
+      ...(this.localResult ? [...this.localResult.allResults] : []),
     ];
   }
 
@@ -327,6 +345,7 @@ export default class BaseResult {
       events.pub('ui:click-on-url', {
         url: href,
         query: this.query,
+        rawResult: this.rawResult,
       });
       // TODO: do not use global
       /* eslint-disable */
@@ -420,33 +439,86 @@ class LocalInfoResult extends BaseResult {
 class AnchorResult extends BaseResult {
 }
 
+class TextResult extends BaseResult {
+
+  get textType() {
+    return this.rawResult.textType;
+  }
+
+  get displayText() {
+    return this.rawResult.text;
+  }
+
+  click(window, href, ev) {
+    this.actions.copyToClipboard(this.rawResult.text);
+    const el = ev.target;
+    el.classList.add('copied');
+    setTimeout(() => {
+      el.classList.remove('copied');
+    }, 1000);
+  }
+}
+
 class LocalResult extends BaseResult {
   get address() {
-    return this.rawResult.address || {};
+    return this.rawResult.address || '';
   }
 
   get phoneNumber() {
-    return this.rawResult.phoneNumber || {};
+    return this.rawResult.phoneNumber || '';
   }
 
   get mapImg() {
-    return this.rawResult.mapImg || {};
+    return this.rawResult.mapImg || '';
   }
 
   get mapUrl() {
-    return this.rawResult.mapUrl || {};
+    return this.rawResult.mapUrl || '';
   }
 
-  get internalResults() {
-    if (!this.mapUrl || !this.mapImg) {
-      return [];
-    }
-    return [new LocalInfoResult({
+  get allResults() {
+    return [
+      this.mapResult,
+      ...this.textResults,
+    ];
+  }
+
+  get mapResult() {
+    return new LocalInfoResult({
       url: this.mapUrl,
       title: 'show-map',
       text: this.query,
       mapImg: this.mapImg,
-    })];
+    });
+  }
+
+  get textResults() {
+    if (!this._textResults) {
+      this._textResults = [];
+      if (this.address) {
+        const address = !this.address ? null : new TextResult({
+          url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: 'copyAddress' })}`,
+          text: this.address,
+          textType: 'local-address',
+        });
+        address.actions = this.actions;
+
+        this._textResults.push(address);
+      }
+
+      if (this.phoneNumber) {
+        const phone = new TextResult({
+          url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: 'copyPhoneNumber' })}`,
+          text: this.phoneNumber,
+          textType: 'local-phone',
+        });
+        phone.actions = this.actions;
+
+        this._textResults.push(phone);
+      }
+    }
+
+    return this._textResults;
   }
 }
 

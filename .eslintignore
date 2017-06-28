@@ -419,4 +419,5 @@ modules/dropdown/debug/fixtures/simple.es
 modules/dropdown/debug/fixtures/ui-cut-off.es
 modules/dropdown/debug/fixtures/weather.es
 modules/dropdown/debug/fixtures/youtube.es
+modules/dropdown/debug/fixtures/offers.es
 modules/dropdown/debug/index.es

@@ -28,7 +28,7 @@ function getSize(contentLength) {
 const BTN_ID = 'cliqz-vd-btn';
 const PANEL_ID = `${BTN_ID}-panel`;
 const firstRunPref = 'cliqz-vd-initialized';
-const TOOLTIP_LABEL = 'CLIQZ Video Downloader';
+const TOOLTIP_LABEL = 'Cliqz Video Downloader';
 const TELEMETRY_VERSION = 1;
 const TELEMETRY_TYPE = 'video_downloader';
 

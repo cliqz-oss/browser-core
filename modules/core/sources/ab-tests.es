@@ -422,6 +422,18 @@ var CliqzABTests = {
             case "1107_B":
                CliqzUtils.setPref("MarketAnalysisEnabled", true);
                break;
+            case "1108_A":
+               CliqzUtils.setPref("extOnboardNewSearchUI", false);
+               break;
+            case "1108_B":
+               CliqzUtils.setPref("extOnboardNewSearchUI", true);
+               break;
+            case "1109_A":
+                CliqzUtils.setPref("offersDropdownSwitch", false);
+                break;
+            case "1109_B":
+                CliqzUtils.setPref("offersDropdownSwitch", true);
+                break;
             default:
                 rule_executed = false;
         }
@@ -695,6 +707,14 @@ var CliqzABTests = {
             case "1107_B":
                CliqzUtils.clearPref("MarketAnalysisEnabled");
                break;
+            case "1108_A":
+            case "1108_B":
+                 CliqzUtils.clearPref("extOnboardNewSearchUI");
+                 break;
+            case "1109_A":
+            case "1109_B":
+                CliqzUtils.clearPref("offersDropdownSwitch");
+                break;
             default:
                 rule_executed = false;
         }

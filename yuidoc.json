@@ -1,6 +1,6 @@
 {
   "name": "Browser Core",
-  "description": "CLIQZ is available on multiple platforms: browsers for Windows, Mac, Linux, and iOS (based on Mozilla/Firefox), as well as the CLIQZ browser for Android (based on Lightning). There's also the CLIQZ for Firefox browser extension.",
+  "description": "Cliqz is available on multiple platforms: browsers for Windows, Mac, Linux, and iOS (based on Mozilla/Firefox), as well as the Cliqz browser for Android (based on Lightning). There's also the Cliqz for Firefox browser extension.",
   "options": {
     "themedir": "node_modules/yuidoc-lucid-theme",
     "helpers":  ["node_modules/yuidoc-lucid-theme/helpers/helpers.js"],

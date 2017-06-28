@@ -5,7 +5,6 @@ import History from './history';
 import utils from '../core/utils';
 import events from '../core/events';
 import SpeedDial from './speed-dial';
-import { version as onboardingVersion, shouldShowOnboardingV2 } from "../core/onboarding";
 import AdultDomain from './adult-domain';
 import background from '../core/base/background';
 import { forEachWindow, mapWindows } from '../core/browser';
@@ -58,14 +57,7 @@ export default background({
       return utils.getPref('news_language', 'de');
     },
     _showOnboarding() {
-      if (onboardingVersion() === '2.1') {
-        shouldShowOnboardingV2().then((show) => {
-          if (show) {
-            utils.openLink(utils.getWindow(), utils.CLIQZ_ONBOARDING);
-            return;
-          }
-        });
-      }
+
     },
 
     _isBrowser() {

@@ -8,6 +8,7 @@ import AdultQuestion from './fixtures/adult-question';
 import LocationSharing from './fixtures/location-sharing';
 import UiCutOff from './fixtures/ui-cut-off';
 import Lotto from './fixtures/lotto';
+import Offers from './fixtures/offers';
 
 const tests = {
   ...SimpleResult,
@@ -20,6 +21,7 @@ const tests = {
   ...LocationSharing,
   ...UiCutOff,
   ...Lotto,
+  ...Offers,
 };
 Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
 const System = CLIQZ.System;

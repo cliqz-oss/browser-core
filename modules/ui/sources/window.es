@@ -513,7 +513,7 @@ const urlbarEventHandlers = {
 
     if(this.urlbar.getAttribute('autocompletesearch').indexOf(ACproviderName) === -1){
       // BUMMER!! Something happened and our AC provider was overriden!
-      // trying to set it back while keeping the new value in case CLIQZ
+      // trying to set it back while keeping the new value in case Cliqz
       // gets disabled
       this._autocompletesearch = this.urlbar.getAttribute('autocompletesearch');
       this.urlbar.setAttribute('autocompletesearch', ACproviderName);

@@ -152,7 +152,7 @@ export default class PeerMaster {
     if (!this.masterName) {
       const info = typeof window !== 'undefined' && typeof USERAGENT !== 'undefined' ?
         USERAGENT.analyze(window.navigator.userAgent) : { os: {}, device: {} };
-      const deviceInfo = info.device.full || 'CLIQZ Mobile Browser';
+      const deviceInfo = info.device.full || 'Cliqz Mobile Browser';
       const osInfo = info.os.full ? ` (${info.os.full})` : '';
       this.setStorage('masterName', `${deviceInfo}${osInfo}`);
     }
