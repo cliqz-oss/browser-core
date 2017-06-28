@@ -75,7 +75,10 @@ export default background({
     },
     getWhitelist() {
       return CliqzAttrack.qs_whitelist;
-    }
+    },
+    getTabTracker() {
+      return CliqzAttrack.tp_events;
+    },
   },
 
   popupActions: {

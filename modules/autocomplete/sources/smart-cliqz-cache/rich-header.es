@@ -1,5 +1,5 @@
-import { utils } from 'core/cliqz';
-import Result from "autocomplete/result";
+import { utils } from '../../core/cliqz';
+import Result from "../result";
 
 export function getSmartCliqz(url) {
   utils.log('getSmartCliqz: start fetching for ' + url);

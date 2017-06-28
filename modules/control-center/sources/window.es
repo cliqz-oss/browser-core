@@ -51,7 +51,6 @@ export default class {
       "openPopUp": this.openPopUp.bind(this),
       "openMockPopUp": this.openMockPopUp.bind(this),
       "setMockBadge": this.setMockBadge.bind(this),
-      "enableSearch": this.enableSearch.bind(this),
       "cliqz-tab": this.cliqzTab.bind(this),
       "complementary-search": this.complementarySearch.bind(this),
       "search-index-country": this.searchIndexCountry.bind(this),
@@ -426,7 +425,6 @@ export default class {
       generalState: 'active',
       feedbackURL: utils.FEEDBACK_URL,
       onboarding: this.isOnboarding(),
-      searchDisabled: utils.getPref('cliqz_core_disabled', false),
       debug: utils.getPref('showConsoleLogs', false),
       amo: this.settings.channel !== '40',
       securityON: this.settings.controlCenterSecurity
@@ -566,10 +564,21 @@ export default class {
     }
     button.appendChild(div);
 
-    UITour.targets.set('cliqz', { query: '#cliqz-cc-btn', widgetName: 'cliqz-cc-btn', allowAdd: true });
-    button.addEventListener('command', () => {
-      this.panel.open(button);
-    }, false);
+    UITour.targets.set("cliqz", { query: '#cliqz-cc-btn', widgetName: 'cliqz-cc-btn', allowAdd: true });
+    var promise = UITour.getTarget(this.window, "cliqz");
+    var win = this.window
+    promise.then(target => {
+      button.addEventListener('command', () => {
+        if (this.isOnboarding()) {
+          this.panel.createIframe();
+
+          UITour.showInfo(win, target, "", "");
+          doc.getElementById("UITourTooltipDescription").appendChild(this.panel.iframe)
+        } else {
+          this.panel.open(button);
+        }
+      });
+    });
 
     ToolbarButtonManager.restorePosition(doc, button);
 
@@ -600,15 +609,5 @@ export default class {
 
   openPopUp() {
     this.window.document.querySelector('toolbarbutton#' + BTN_ID).click();
-  }
-
-  enableSearch() {
-    this.panel.hide();
-    utils.setTimeout(
-      events.pub,
-      1000,
-      "autocomplete:enable-search",
-      { urlbar: this.window.document.getElementById('urlbar') }
-    );
   }
 }

@@ -1,13 +1,13 @@
-import autocomplete from "autocomplete/autocomplete";
-import { utils } from "core/cliqz";
-import { isFirefox } from "core/platform";
+import autocomplete from "./autocomplete";
+import { utils } from "../core/cliqz";
+import { isFirefox } from "../core/platform";
 
 export default class SpellCheck {
     constructor() {
       this.active = false;
       this.spellCorrectionDict = {};
       this.resetState();
-      if (isFirefox && utils.getPref("backend_country", "") == "de") {
+      if (isFirefox && utils.getPref('backend_country', 'de') == 'de') {
           utils.log('Initializing', 'SpellChecker');
           utils.loadResource('chrome://cliqz/content/spell_check.list', this.loadRecords.bind(this));
       }

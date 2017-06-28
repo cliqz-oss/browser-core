@@ -41,7 +41,7 @@ const webRequest = {
         return fn(requestInfo);
       }).reduce((acc, val) => {
         Object.keys(val).forEach(k => {
-          acc[k] = val;
+          acc[k] = val[k];
         });
         return acc;
       }, {});

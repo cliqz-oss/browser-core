@@ -120,6 +120,7 @@ export default class PairingUI {
   }
 
   renderPaired() {
+    if (!PeerComm.isPaired) return;
     const masterName = PeerComm.masterName;
     const isMasterConnected = PeerComm.isMasterConnected;
     this.hideExtraInfos(masterName);
@@ -146,6 +147,7 @@ export default class PairingUI {
 
       description: i18n('pairing-description'),
       androidApp: i18n('pairing-android-app'),
+      cliqzForAndroid: i18n('pairing-cliqz-for-android'),
       videoDownloaderTitle: i18n('pairing-video-title'),
       videoDownloaderTip: i18n('pairing-video-tip'),
       sendTabTitle: i18n('pairing-tab-title'),
@@ -248,7 +250,7 @@ export default class PairingUI {
     observer.oninit = () => {
       this.renderInitial();
       if (PeerComm.isPaired) {
-        observer.onpaired();
+        this.renderPaired();
       } else if (PeerComm.isPairing) {
         observer.onpairing();
       } else {
@@ -261,7 +263,7 @@ export default class PairingUI {
     };
 
     observer.ondeviceadded = () => {
-      observer.onpaired();
+      this.renderPaired();
     };
 
     observer.ondeviceremoved = () => {
@@ -275,9 +277,7 @@ export default class PairingUI {
     };
 
     observer.onpaired = () => {
-      if (PeerComm.isPaired) {
-        this.renderPaired();
-      }
+      this.renderPaired();
     };
 
     observer.onunpaired = () => {
@@ -288,11 +288,11 @@ export default class PairingUI {
     };
 
     observer.onmasterconnected = () => {
-      observer.onpaired();
+      this.renderPaired();
     };
 
     observer.onmasterdisconnected = () => {
-      observer.onpaired();
+      this.renderPaired();
     };
 
     if (PeerComm.isInit && PeerComm.isPaired) {

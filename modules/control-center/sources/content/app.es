@@ -428,12 +428,6 @@ function draw(data){
     });
   });
 
-  $('.enable-search').click(function(e) {
-     sendMessageToWindow({
-      action: 'enableSearch'
-    });
-  });
-
   $('[start-navigation]').on('click', function() {
     var $main = $(this).closest('#control-center'),
         $settings = $('#settings'),

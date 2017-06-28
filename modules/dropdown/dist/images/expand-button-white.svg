@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="5px" height="8px" viewBox="0 0 5 8" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 44.1 (41455) - http://www.bohemiancoding.com/sketch -->
+    <title>Da button</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="square">
+        <g id="Da-button" stroke="#FFFFFF">
+            <g id="Group" transform="translate(0.000000, 5.000000)">
+                <path d="M0.5,0.5 L2.5,2.5" id="Line"></path>
+                <path d="M2.5,2.5 L4.5,0.5" id="Line"></path>
+            </g>
+            <g id="Group-2">
+                <path d="M0.5,0.580322266 L2.5,2.58032227" id="Line" transform="translate(1.500000, 1.580322) scale(1, -1) translate(-1.500000, -1.580322) "></path>
+                <path d="M2.5,2.58032227 L4.5,0.580322266" id="Line" transform="translate(3.500000, 1.580322) scale(1, -1) translate(-3.500000, -1.580322) "></path>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -11,7 +11,7 @@ export default class {
   }
 
   status() {
-    if (utils.getPref("modules.type-filter.enabled", false) && !utils.getPref('cliqz_core_disabled', false)) {
+    if (utils.getPref("modules.type-filter.enabled", false)) {
       return {
         visible: true,
         type1: utils.getPref("type_filter_type1", true),

@@ -26,6 +26,14 @@ function common({ results, result, clickedResult, url }) {
     );
   }
 
+  utils.resultTelemetry(
+    results.query,
+    clickedResult.isAutocompleted || false,
+    signal.current_position,
+    utils.isPrivateResultType(signal.position_type) ? '' : url,
+    results.kinds
+  );
+
   return signal;
 }
 
@@ -34,6 +42,9 @@ export function enterSignal({ dropdown, newTab }) {
   const index = dropdown.selectedIndex;
   const clickedResult = dropdown.results.get(index);
   const result = dropdown.results.find(clickedResult.url);
+
+  if (result.isCliqzAction) return;
+
   const isAutocompleted = result.isAutocompleted;
   const commonParts = common({ results, result, clickedResult, url: clickedResult.url });
   const enterSpecificParts = {
@@ -64,14 +75,40 @@ export function enterSignal({ dropdown, newTab }) {
 
 export function clickSignal({ extra, coordinates, results, result, url, newTab }) {
   const clickedResult = result.findResultByUrl(url);
-  const commonPart = common({ results, result, clickedResult, url });
-  const signal = Object.assign({}, commonPart, {
-    action: 'result_click',
-    extra,
-    mouse: coordinates,
-    new_tab: newTab,
-  });
+  if (clickedResult) {
+    const commonPart = common({ results, result, clickedResult, url });
+    const signal = Object.assign({}, commonPart, {
+      action: 'result_click',
+      extra,
+      mouse: coordinates,
+      new_tab: newTab,
+    });
+
+    utils.telemetry(signal);
+  }
+}
+
+export function dropdownContextMenuSignal({ action = 'click', context = 'dropdown', target }) {
+  const signal = {
+    action,
+    context,
+    type: 'context_menu',
+  };
+
+  if (target) {
+    signal.target = target;
+  }
 
   utils.telemetry(signal);
 }
 
+
+export function removeFromHistorySignal({ withBookmarks = false }) {
+  const signal = {
+    type: 'activity',
+    v: 3.0,
+    action: withBookmarks ? 'remove_from_history_and_bookmarks' : 'remove_from_history'
+  };
+
+  utils.telemetry(signal);
+}

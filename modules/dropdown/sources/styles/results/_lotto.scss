@@ -1,0 +1,110 @@
+.lotto {
+    display: inline-block;
+    box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.17);
+    padding: 7px 50px 4px 12px;
+    margin-bottom: 3px;
+
+    .lotto-date {
+        font-size: 12px;
+        margin-bottom: 5px;
+    }
+
+    .row {
+        display: block;
+        padding: 5px 0;
+
+        .lotto-item-wrapper {
+            display: inline-block;
+
+            .item {
+                display: inline-block;
+                border: 1px solid #ccc;
+                width: 40px;
+                height: 40px;
+                text-align: center;
+                font-size: 20px;
+                font-weight: bold;
+                line-height: 40px;
+            }
+
+            &.circle {
+                .item {
+                    border-radius: 50%;
+                }
+            }
+
+            &.normal {
+                .item {
+                    border: none;
+                    width: auto;
+                    height: auto;
+                    font-size: 14px;
+                    font-weight: normal;
+                    padding-top: 0;
+                    padding-right: 18px;
+                    text-align: left;
+                    line-height: 20px;
+                }
+            }
+
+            &.highlight-last {
+                .item:last-child {
+                    background-color: #eee;
+                }
+            }
+
+            &.bold-first {
+                .item:first-child {
+                    padding-right: 0;
+                    width: 80px;
+                    font-weight: bold;
+                }
+            }
+        }
+
+        .description {
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        #lotto-table {
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+
+            .table-head {
+                display: table-header-group;
+            }
+
+            .table-row {
+                display: table-row;
+                font-size: 14px;
+
+                span:nth-child(2) {
+                    letter-spacing: 7px;
+                }
+            }
+            span {
+                display: table-cell;
+                padding-right: 30px;
+                padding-bottom: 10px;
+            }
+
+            span:nth-child(2), span:nth-child(3), span:nth-child(4) {
+                text-align: right;
+            }
+        }
+    }
+}
+
+#lotto-expand-button {
+    background-image: url("resource://cliqz/dropdown/images/expand-button.svg");
+    background-repeat: no-repeat;
+    background-size: 6px 10px;
+    background-position: 4px center;
+    padding-left: 16px !important;
+
+    &.selected {
+        background-image: url("resource://cliqz/dropdown/images/expand-button-white.svg");
+    }
+}
+

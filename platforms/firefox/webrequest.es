@@ -44,6 +44,33 @@ var observer = {
     requestInfo.getResponseHeader = requestContext.getResponseHeader.bind(requestContext);
     requestInfo.getPostData = requestContext.getPostData.bind(requestContext);
 
+    // TODO: Only add to the web request is it's present in extraInfo for the listener
+    if (topic === 'http-on-modify-request') {
+      const requestHeaders = [];
+      subject.visitRequestHeaders({
+        visitHeader: function(aHeader, aValue) {
+          requestHeaders.push({
+            name: aHeader,
+            value: aValue
+          });
+        }
+      });
+      requestInfo.requestHeaders = requestHeaders;
+    }
+
+    if (topic === 'http-on-examine-response' || topic === 'http-on-examine-cached-response') {
+      const responseHeaders = [];
+      subject.visitResponseHeaders({
+        visitHeader: function(aHeader, aValue) {
+          responseHeaders.push({
+            name: aHeader,
+            value: aValue
+          });
+        }
+      });
+      requestInfo.responseHeaders = responseHeaders;
+    }
+
     for (let listener of webRequest[event].listeners) {
       // ignore filter for the moment
       const {fn, filter, extraInfo} = listener;

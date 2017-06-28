@@ -1,5 +1,5 @@
 /* eslint no-param-reassign: off */
-import LRU from 'core/LRU';
+import LRU from '../core/LRU';
 
 export default class ResultCache {
 

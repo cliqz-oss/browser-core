@@ -77,7 +77,7 @@ function cqzOfferBtnClicked(ev) {
   const sigType = ev.target.getAttribute('data-cqz-of-btn-action-type') || 'button_pressed';
 
 
-  if (data === 'close-offer') {
+  if (data === 'remove-offer') {
     const feedbackElm = $(ev.target).parents('.cqz-remove-feedback').find('input[name=remove_feedback]:checked');
     const offersFeedback = feedbackElm.val() || 'feedback-no';
     // If you don't close the hub we have to reset the choice
@@ -137,15 +137,29 @@ $(document).ready(() => {
     data: {}
   });
 
-  // link the click function here to the buttons
-  document.getElementById('cliqz-offers-cc').addEventListener('click', cqzOfferBtnClicked);
-
-  $('.cqz-close-hub').on('click', () => {
+  // open URL
+  $('#cliqz-offers-cc').on('click', '[openUrl]', (ev) => {
     sendMessageToWindow({
-      action: 'closePanel',
-      data: {}
+      action: 'openURL',
+      data: {
+        url: ev.currentTarget.getAttribute('openUrl'),
+        closePopup: ev.currentTarget.dataset.closepopup || true
+      }
     });
   });
+
+    // close panel
+  $('#cliqz-offers-cc').on('click', '.cqz-call-to-action .cqz-close-hub', () => {
+    sendMessageToWindow({
+      action: 'closePanel',
+      data: {
+        force: true
+      }
+    });
+  });
+
+  // link the click function here to the buttons
+  document.getElementById('cliqz-offers-cc').addEventListener('click', cqzOfferBtnClicked);
 
   $('.cqz-show-all-offers').on('click', () => {
     $('#cqz-vouchers-wrapper').addClass('show-all');
@@ -157,6 +171,13 @@ $(document).ready(() => {
   $('body').on('click', (e) => {
     const elm = $(e.target);
     // console.log('+++++ body click');
+
+    if (elm.hasClass('cqz-close-hub')) {
+      sendMessageToWindow({
+        action: 'closePanel',
+        data: {}
+      });
+    }
 
     if (elm.hasClass('cqz-close')) {
       const offersPosition = $('.cqz-vouchers').scrollTop() || 0;
@@ -178,8 +199,13 @@ $(document).ready(() => {
     if (elm.hasClass('remove-offer')) {
       $('#cliqz-offers-cc').removeClass('feedback');
       offerElm.css('display', 'none');
-      if (offerElm.parents('ul').find('li:visible').length === 0) {
-        document.getElementById('cqz-vouchers-wrapper').classList.add('no-vouchers');
+      if (offerElm.parents('.cqz-vouchers-inner-holder').find('li:visible').length === 0) {
+        // Check do we have collapsed offer when we delete offer. If we then we expand
+        if ($('.cqz-show-all-offers:visible').length === 0) {
+          document.getElementById('cqz-vouchers-wrapper').classList.add('no-vouchers');
+        } else {
+          $('.cqz-show-all-offers').click();
+        }
       }
       resize();
     }

@@ -1,5 +1,5 @@
-import { utils } from 'core/cliqz';
-import OffersConfigs from 'offers-v2/offers_configs';
+import { utils } from '../core/cliqz';
+import OffersConfigs from './offers_configs';
 
 
 export default class HistoryIndex {

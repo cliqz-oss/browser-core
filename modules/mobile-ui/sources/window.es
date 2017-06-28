@@ -21,7 +21,6 @@ export default class {
   * @method init
   */
   init() {
-
     Object.keys(helpers).forEach(function (helperName) {
       Handlebars.registerHelper(helperName, helpers[helperName]);
     });

@@ -2,7 +2,7 @@
   <div id="sliderBtns">
     {{#unless isOnePage}}
       {{#each pages as |page index|}}
-        <div class="{{if (equal index pageNum) "active"}}"><a href="#" class="overflow-hidden" {{action "setPage" index}}>{{index}}</a></div>
+        <div class="{{if (equal index pageNum) "active"}}"><span class="overflow-hidden" {{action "setPage" index}}>{{index}}</span></div>
       {{/each}}
     {{/unless}}
   </div>

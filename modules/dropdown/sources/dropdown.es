@@ -1,6 +1,7 @@
 import { equals } from '../core/url';
 import templates from './templates';
 import { clickSignal } from './telemetry';
+import ContextMenu from './context-menu';
 
 export default class {
   constructor(element, window) {
@@ -14,10 +15,15 @@ export default class {
     this.rootElement.innerHTML = templates.main();
     this.dropdownElement.addEventListener('mouseup', this.onMouseUp);
     this.dropdownElement.addEventListener('mousemove', this.onMouseMove);
+    this.contextMenu = new ContextMenu(this.window, this.dropdownElement);
   }
 
   get dropdownElement() {
     return this.rootElement.querySelector('#cliqz-dropdown');
+  }
+
+  get selectedResult() {
+    return this.results.get(this.selectedIndex);
   }
 
   nextResult() {
@@ -52,24 +58,33 @@ export default class {
 
   updateSelection() {
     this.clearSelection();
-    const selectedResult = this.results.get(this.selectedIndex);
-    this.selectResult(selectedResult);
-    return selectedResult;
+    this.selectResult(this.selectedResult);
+    return this.selectedResult;
   }
 
   renderResults(results) {
     this.selectedIndex = 0;
     this.results = results;
+
+    // Render and insert templates
     const html = templates.results({ results: results.results });
     this.dropdownElement.innerHTML = html;
+
+    // Nofify results that have been rendered
+    results.results.forEach((result) => {
+      if (!result.didRender) {
+        return;
+      }
+      result.didRender(this.dropdownElement);
+    });
 
     // prevent default behavior of anchor tags
     [...this.rootElement.querySelectorAll('a')].forEach((anchor) => {
       anchor.setAttribute('onclick', 'return false;');
       anchor.setAttribute('onmousedown', 'return false;');
     });
-
-    this.rootElement.querySelector('a.result').classList.add('selected');
+    const resultElem = this.rootElement.querySelector('.result');
+    resultElem.classList.add('selected');
 
     const historyResults = this.rootElement.querySelectorAll('.history');
     if (historyResults.length > 0) {
@@ -91,26 +106,36 @@ export default class {
     ];
     const result = this.results.find(href);
 
-    result.click(this.window, href, ev);
+    if (ev.button === 2) {
+      const subresult = result.findResultByUrl(href) || result;
+      this.contextMenu.show(subresult, { x: ev.screenX, y: ev.screenY });
+    } else {
+      result.click(this.window, href, ev);
 
-    clickSignal({
-      extra,
-      coordinates,
-      results: this.results,
-      result,
-      url: href,
-      newTab: ev.ctrlKey || ev.metaKey,
-    });
+      if (!result.isCliqzAction) {
+        clickSignal({
+          extra,
+          coordinates,
+          results: this.results,
+          result,
+          url: href,
+          newTab: ev.altKey || ev.metaKey || ev.ctrlKey,
+        });
+      }
+    }
   }
 
   onMouseMove(ev) {
+    if (this.lastTarget === ev.originalTarget) {
+      return;
+    }
+    this.lastTarget = ev.originalTarget;
+
     const now = Date.now();
-    if ((now - this.lastMouseMove) < 50) {
+    if ((now - this.lastMouseMove) < 10) {
       return;
     }
     this.lastMouseMove = now;
-
-    this.clearSelection();
 
     // TODO: merge with onMouseUp handler
     let resultElement;
@@ -128,6 +153,7 @@ export default class {
     const resultIndex = this.results.selectableResults.findIndex(r => equals(r.url, href));
 
     if (resultIndex !== -1) {
+      this.clearSelection();
       this.selectedIndex = resultIndex;
       this.updateSelection();
     }

@@ -74,8 +74,9 @@ function extractGeneralDomain(uri) {
  * the management of lists (fetching, updating) using a FiltersLoader
  * and the matching using a FilterEngine.
  */
-class AdBlocker {
-  constructor(onDiskCache, humanWeb) {
+export class AdBlocker {
+  constructor(onDiskCache, humanWeb, useCountryList = true) {
+    this.useCountryList = useCountryList;
     this.onDiskCache = onDiskCache;
     this.humanWeb = humanWeb;
     this.logs = [];
@@ -83,7 +84,10 @@ class AdBlocker {
 
     // Plug filters lists manager with engine to update it
     // whenever a new version of the rules is available.
-    this.listsManager = new FiltersLoader();
+    this.listsManager = new FiltersLoader(
+      this.useCountryList && utils.getPref(ADB_USER_LANG, true),
+      utils.getPref(ADB_USER_LANG_OVERRIDE, '')
+    );
     this.listsManager.onUpdate((updates) => {
       // -------------------- //
       // Update fitlers lists //
@@ -317,6 +321,7 @@ class AdBlocker {
       // allow loading document
       return false;
     }
+
     // Process endpoint URL
     const url = httpContext.url.toLowerCase();
     const urlParts = URLInfo.get(url);
@@ -357,7 +362,7 @@ class AdBlocker {
     };
 
     const t0 = Date.now();
-    const isAd = this.isInBlacklist(request) ? { match: false } : this.cache.get(request);
+    const isAd = this.cache.get(request);
     const totalTime = Date.now() - t0;
 
     log(`BLOCK AD ${JSON.stringify({
@@ -481,6 +486,14 @@ const CliqzADB = {
       const sourceUrl = requestContext.getSourceURL();
 
       if (!sourceUrl || sourceUrl.startsWith('about:')) {
+        return {};
+      }
+
+      // We do it here because the Adblocker might be used by other modules
+      // (like green-ads), and they should not be subjected to whitelists.
+      const sourceURL = requestContext.getSourceURL();
+      const sourceGD = extractGeneralDomain(sourceURL);
+      if (CliqzADB.adBlocker.isInBlacklist({ sourceURL, sourceGD })) {
         return {};
       }
 

@@ -195,7 +195,7 @@ export default describeModule('anolysis/gid-manager',
         });
       });
 
-      it('update granular demographics on new month', () => {
+      it('update granular demographics after 6 months', () => {
         // Simulate a new available demographics
         const newDemographics = { new: 42 };
         const serializedNewDemographics = JSON.stringify(newDemographics);
@@ -206,8 +206,8 @@ export default describeModule('anolysis/gid-manager',
 
         activeUserSignal = sinon.spy(() => Promise.resolve(serializedNewDemographics));
 
-        // Simulate install for the day before
-        const installDate = moment(CURRENT_DATE, DATE_FORMAT).subtract(1, 'month').format(DATE_FORMAT);
+        // Simulate install for 6 months before
+        const installDate = moment(CURRENT_DATE, DATE_FORMAT).subtract(6, 'month').format(DATE_FORMAT);
         storage = {
           anolysisInstalled: installDate,
           anolysisLastAliveSignal: installDate,
@@ -460,8 +460,8 @@ export default describeModule('anolysis/gid-manager',
         activeUserSignal = sinon.spy(() => Promise.resolve('demographics'));
         updateGID = sinon.spy(() => Promise.reject());
 
-        // Simulate install for the day before
-        const installDate = moment(CURRENT_DATE, DATE_FORMAT).subtract(1, 'month').format(DATE_FORMAT);
+        // Simulate install for 6 months before before
+        const installDate = moment(CURRENT_DATE, DATE_FORMAT).subtract(6, 'month').format(DATE_FORMAT);
         storage = {
           anolysisInstalled: installDate,
           anolysisLastAliveSignal: installDate,
@@ -493,8 +493,8 @@ export default describeModule('anolysis/gid-manager',
         activeUserSignal = sinon.spy(() => Promise.resolve('demographics'));
         updateGID = sinon.spy(() => Promise.resolve('updatedGID'));
 
-        // Simulate install for the day before
-        const installDate = moment(CURRENT_DATE, DATE_FORMAT).subtract(1, 'month').format(DATE_FORMAT);
+        // Simulate install for 6 months before
+        const installDate = moment(CURRENT_DATE, DATE_FORMAT).subtract(6, 'month').format(DATE_FORMAT);
         storage = {
           anolysisInstalled: installDate,
           anolysisLastAliveSignal: installDate,

@@ -1,3 +1,4 @@
+import inject from '../core/kord/inject';
 import background from '../core/base/background';
 
 /**
@@ -5,10 +6,7 @@ import background from '../core/base/background';
   @class Background
  */
 export default background({
-
-  enabled() {
-    return true;
-  },
+  history: inject.module('history'),
 
   /**
     @method init
@@ -20,6 +18,10 @@ export default background({
 
   unload() {
 
+  },
+
+  getSessionCount(query) {
+    return this.history.action('getSessionCount', query);
   },
 
   beforeBrowserShutdown() {

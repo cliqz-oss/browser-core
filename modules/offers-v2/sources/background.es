@@ -5,12 +5,11 @@ import LoggingHandler from './logging_handler';
 import ExtensionEnvironment from './environments/extension_environment';
 import EventLoop from './event_loop';
 import { EventHandler } from './event_handler';
-import { UIOfferProcessor } from './ui/ui_offer_processor';
+import OfferProcessor from './offer_processor';
 import {SignalHandler} from './signals_handler';
-import jsep from './lib/jsep';
-import { UIOffersHistory } from './ui/ui_offers_history';
-import {UIFilterRulesEvaluator} from './ui/ui_filter_rules_evaluator';
+import jsep from '../platform/lib/jsep';
 import Database from '../core/database';
+import OfferDB from './offers_db';
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -44,7 +43,7 @@ export default background({
     // extensions.cliqz.offersDevFlag
     if (utils.getPref('offersDevFlag', false)) {
       // new ui system
-      OffersConfigs.LOAD_OFFERS_HISTORY_DATA = false;
+      OffersConfigs.LOAD_OFFERS_STORAGE_DATA = false;
       // enable logs?
       LoggingHandler.LOG_ENABLED = true;
       LoggingHandler.SAVE_TO_FILE = true;
@@ -99,7 +98,11 @@ export default background({
       );
 
     // create the DB to be used over all offers module
-    this.offersDB = new Database('cliqz-offers');
+    this.db = new Database('cliqz-offers');
+
+    // the offersDB will be used by multiple modules and will be the new place
+    // where we will centralize all the information related to offers
+    this.offersDB = new OfferDB(this.db);
 
     // create the event handler
     this.eventHandler = new EventHandler();
@@ -119,17 +122,18 @@ export default background({
     };
 
     // for the new ui system
-    this.signalsHandler = new SignalHandler(this.offersDB);
+    this.signalsHandler = new SignalHandler(this.db);
 
-    this.uiOfferProc = new UIOfferProcessor(this.signalsHandler, this.eventHandler, this.offersDB);
+    this.offerProc = new OfferProcessor(this.signalsHandler,
+                                        this.db,
+                                        this.offersDB);
 
     this.actions = {
-      windowUIConnector: this.windowUIConnector.bind(this),
-      getStorageOffers: this.getStorageOffers.bind(this),
-      onStorageOffersUIEvent: this.onStorageOffersUIEvent.bind(this)
+      getStoredOffers: this.getStoredOffers.bind(this),
     };
-    this.env.uiOfferProcessor = this.uiOfferProc;
+    this.env.offerProcessor = this.offerProc;
     this.env.signalHandler = this.signalsHandler;
+    this.env.offersDB = this.offersDB;
 
     // to be checked on unload
     this.initialized = true;
@@ -144,8 +148,8 @@ export default background({
     // TODO: GR-137 && GR-140: temporary fix
     events.un_sub('core.window_closed', this.onWindowClosed);
 
-    if (this.uiOfferProc) {
-      this.uiOfferProc.destroy();
+    if (this.offerProc) {
+      this.offerProc.destroy();
     }
     if (this.signalsHandler) {
       this.signalsHandler.destroy();
@@ -153,6 +157,9 @@ export default background({
     if (this.eventHandler) {
       this.eventHandler.destroy();
       delete this.eventHandler;
+    }
+    if (this.offersDB) {
+      this.offersDB.savePersistentData();
     }
   },
 
@@ -171,9 +178,13 @@ export default background({
     LoggingHandler.LOG_ENABLED &&
     LoggingHandler.info(MODULE_NAME, 'unloading background');
 
-    if (this.uiOfferProc) {
-      this.uiOfferProc.savePersistenceData();
-      this.uiOfferProc.destroy();
+    if (this.offerProc) {
+      this.offerProc.savePersistenceData();
+      this.offerProc.destroy();
+    }
+
+    if (this.offersDB) {
+      this.offersDB.savePersistentData();
     }
 
     if (this.signalsHandler) {
@@ -192,8 +203,8 @@ export default background({
     LoggingHandler.info(MODULE_NAME, 'window closed!!: remaining: ' + data.remaining);
     // GR-147: if this is the last window then we just save everything here
     if (data.remaining === 0) {
-      if (this.uiOfferProc) {
-        this.uiOfferProc.savePersistenceData();
+      if (this.offerProc) {
+        this.offerProc.savePersistenceData();
       }
     }
   },
@@ -201,59 +212,20 @@ export default background({
   onUrlChange(urlObj, url) {
     if(url) {
       this.env.emitUrlChange(url, urlObj);
-
-      LoggingHandler.LOG_ENABLED &&
-      LoggingHandler.info(MODULE_NAME, JSON.stringify(urlObj));
     }
   },
 
   onHttpRequest(reqObj) {
     if(reqObj && reqObj.req_obj && reqObj.req_obj.url) {
       this.env.emitUrlChange(reqObj.req_obj.url);
-
-      LoggingHandler.LOG_ENABLED &&
-      LoggingHandler.info(MODULE_NAME, JSON.stringify(reqObj.req_obj.url));
     }
   },
 
   //////////////////////////////////////////////////////////////////////////////
   events: {
-    'content:location-change': function onLocationChange({ url }) {
-    },
   },
 
   actions: {
-  },
-
-  // new ui system functions needed
-
-  //
-  // @brief This should be implemented to connect the UI with the ui manager module
-  // @param data should be one argument only
-  //
-  windowUIConnector() {
-    try {
-      var args = [].slice.call(arguments)[0];
-      LoggingHandler.LOG_ENABLED &&
-      LoggingHandler.info(MODULE_NAME,
-                          'windowUIConnector called with args: ' + JSON.stringify(args));
-
-      if (this.uiOfferProc) {
-        this.uiOfferProc.onUICallback(args);
-      }
-    } catch (ee) {
-      LoggingHandler.LOG_ENABLED &&
-      LoggingHandler.error(MODULE_NAME,
-                          'windowUIConnector something bad happened: ' + ee);
-    }
-  },
-
-  demoJSEP() {
-    LoggingHandler.info(MODULE_NAME, "jsep loaded: " + JSON.stringify(jsep("1+1")));
-    let expr = jsep("unkown_func(10)");
-    let ee = new UIFilterRulesEvaluator(new UIOffersHistory());
-    LoggingHandler.info(MODULE_NAME, "result : " + ee._evalExpression(expr));
-    // LoggingHandler.info(MODULE_NAME, "result : " + ee._evalExpression(jsep("not_created_last_secs(10) || not_created_last_secs2(60)")));
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -262,18 +234,10 @@ export default background({
   //
   // return the offers on the storage
   //
-  getStorageOffers() {
-    return (this.uiOfferProc) ? this.uiOfferProc.getStorageOffers() : [];
+  getStoredOffers(args) {
+    return (this.offerProc) ? this.offerProc.getStoredOffers(args) : [];
   },
 
-  //
-  // called whenever a new ui event on the offers storage interface occurs
-  //
-  onStorageOffersUIEvent(event) {
-    if (this.uiOfferProc) {
-      this.uiOfferProc.onStorageOffersUIEvent(event);
-    }
-  },
 
 
 

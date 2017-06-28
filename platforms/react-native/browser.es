@@ -16,7 +16,24 @@ export function checkIsWindowActive(windowID) {
 }
 
 export function forEachWindow(fn) {
-  return
+}
+
+export function setInstallDatePref() {
+}
+
+export function enableChangeEvents() {
+}
+
+export function disableChangeEvents() {
+}
+
+export function waitWindowReady() {
+}
+
+export function setOurOwnPrefs() {
+}
+
+export function addWindowObserver() {
 }
 
 export function mapWindows(fn) {

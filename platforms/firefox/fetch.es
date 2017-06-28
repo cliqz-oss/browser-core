@@ -11,6 +11,10 @@ try {
   });
 }
 
+export function fetchFactory() {
+  return fetch;
+}
+
 export default fetch;
 export {
   fetch,

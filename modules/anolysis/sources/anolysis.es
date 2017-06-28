@@ -5,10 +5,11 @@ import moment from '../platform/moment';
 import { utils } from '../core/cliqz';
 import Database from '../core/database';
 import events from '../core/events';
+import { randomInt } from '../core/crypto/random';
 
 import BehaviorAggregator from './aggregator';
 import GIDManager from './gid-manager';
-import Preprocessor, { parseABTests } from './preprocessor';
+import Preprocessor /* , { parseABTests } */ from './preprocessor';
 import SignalQueue from './signals-queue';
 import Storage from './storage';
 import analyses from './analyses';
@@ -216,11 +217,12 @@ export default class {
       const date = moment(formattedDate, DATE_FORMAT);
       return this.aggregationLogDB.get(formattedDate)
         .then(() => { /* We already processed this day before, do nothing */ })
-        .catch(() => this.generateAndSendAnalysesSignalsForDay(formattedDate)
-          .then(() => this.aggregationLogDB.put({ _id: formattedDate }))
-          .catch((ex) => {
-            logger.error(`could not generate aggregated signals for day ${formattedDate}: ${ex}`);
-          })
+        .catch(() =>
+          this.generateAndSendAnalysesSignalsForDay(formattedDate)
+            .then(() => this.aggregationLogDB.put({ _id: formattedDate }))
+            .catch((ex) => {
+              logger.error(`could not generate aggregated signals for day ${formattedDate}: ${ex}`);
+            })
         ).then(() => {
           // Recursively check previous day until we reach `stopDay`
           if (stopDay.isBefore(date, 'day')) {
@@ -261,29 +263,40 @@ export default class {
         const aggregation = this.behaviorAggregator.aggregate(records);
         const total = Date.now() - t0;
 
-        // Extract AB Tests
-        const abtests = new Set(parseABTests(utils.getPref('ABTests')));
+        // Delete signals and only keep aggregation
+        return this.behaviorStorage.deleteByTimespan(timespan)
+          .then(() => this.behaviorStorage.put({
+            ts: date,
+            _id: `aggregation_${date}`,
+            aggregation,
+          }))
+          .catch((err) => { logger.error(`error while inserting aggregatin ${err}`); })
+          .then(() => {
+            // Extract AB Tests
+            // This is not used at the moment, so let's not do useless work
+            // const abtests = new Set(parseABTests(utils.getPref('ABTests')));
 
-        // 3. Generate messages for each analysis
-        logger.log(`generateSignals ${date}`);
-        return Promise.all(analyses.map((analysis) => {
-          logger.debug(`generateSignals for ${analysis.name}`);
-          return Promise.all(analysis.generateSignals(aggregation, abtests)
-            .map((signal) => {
-              logger.debug(`Signal for ${analysis.name} ${JSON.stringify(signal)}`);
-              return this.handleTelemetrySignal(
-                Object.assign(signal, {
-                  meta: {
-                    date,
-                    // TODO: This will be removed in the future. The aggregation
-                    // time could also be sent separately in its own signal.
-                    aggregation_time: total,
-                  },
-                }),
-                analysis.name,
-              );
+            // 3. Generate messages for each analysis
+            logger.log(`generateSignals ${date}`);
+            return Promise.all(analyses.map((analysis) => {
+              logger.debug(`generateSignals for ${analysis.name}`);
+              return Promise.all(analysis.generateSignals(aggregation /* , abtests */)
+                .map((signal) => {
+                  logger.debug(`Signal for ${analysis.name} ${JSON.stringify(signal)}`);
+                  return this.handleTelemetrySignal(
+                    Object.assign(signal, {
+                      meta: {
+                        date,
+                        // TODO: This will be removed in the future. The aggregation
+                        // time could also be sent separately in its own signal.
+                        aggregation_time: total,
+                      },
+                    }),
+                    analysis.name,
+                  );
+                }));
             }));
-        }));
+          });
       });
   }
 
@@ -329,6 +342,11 @@ export default class {
                 // this case, such users will form a group on their own.
                 processedSignal.meta.gid = '';
               }
+
+              // We add a random seed to each message to allow deduplication
+              // from the backend. This should not be a privacy concern, as each
+              // message will include a different number.
+              processedSignal.meta.seed = randomInt();
 
               // TODO: This is temporary! Should be removed before
               // putting in production. This will be there as long

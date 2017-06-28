@@ -65,9 +65,15 @@ var CliqzSearchHistory = {
 
         if(win && win.urlbar){
             var val = win.urlbar.value.trim(),
-                lastQ = utils.autocomplete.lastSearch.trim();
+                lastQ = utils.autocomplete.lastSearch.trim(),
+                lastAC = utils.autocomplete.lastAutocomplete;
 
-            if (lastQ && val && !utils.isUrl(lastQ) && (val == lastQ || !this.isAutocomplete(val, lastQ)) && !val.startsWith("about:")) {
+            if (lastQ &&
+                val &&
+                !utils.isUrl(lastQ) &&
+                (val == lastQ || !this.wasAutocomplete(val, lastQ, lastAC)) &&
+                !val.startsWith("about:"))
+            {
                 this.showLastQuery(lastQ, window);
                 win.lastQueryInTab[gBrowser.selectedTab.linkedPanel] = lastQ;
             } else {
@@ -118,7 +124,11 @@ var CliqzSearchHistory = {
         delete this.windows[window_id].lastQueryInTab[ev.target.linkedPanel];
     },
 
-    isAutocomplete: function(base, candidate){
+    wasAutocomplete: function(base, candidate, baseOfLastAutocomplete){
+        if(base !== baseOfLastAutocomplete){
+            return false;
+        }
+
         if(base.indexOf('://') !== -1){
            base = base.split('://')[1];
         }

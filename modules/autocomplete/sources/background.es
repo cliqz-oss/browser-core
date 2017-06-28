@@ -1,19 +1,19 @@
-import { utils } from 'core/cliqz';
-import environment from 'platform/environment';
-import { isFirefox } from 'core/platform';
-import autocomplete from 'autocomplete/autocomplete';
-import historyCluster from 'autocomplete/history-cluster';
-import ResultProviders from 'autocomplete/result-providers';
-import CliqzSearchCountryProviders from "autocomplete/cliqz-backends";
-import Result from 'autocomplete/result';
-import WikipediaDeduplication from 'autocomplete/wikipedia-deduplication';
-import { background as AutocompleteBackground } from 'platform/auto-complete-component';
-import background from 'core/base/background';
-import Search from 'autocomplete/search';
-import ResultCache from 'autocomplete/result-cache';
+import utils from '../core/utils';
+import environment from '../platform/environment';
+import { isFirefox } from '../core/platform';
+import autocomplete from './autocomplete';
+import historyCluster from './history-cluster';
+import ResultProviders from './result-providers';
+import CliqzSearchCountryProviders from './cliqz-backends';
+import Result from './result';
+import WikipediaDeduplication from './wikipedia-deduplication';
+import { background as AutocompleteBackground } from '../platform/auto-complete-component';
+import background from '../core/base/background';
+import Search from './search';
+import ResultCache from './result-cache';
 
 function onReady() {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     if (isFirefox && Services.search && Services.search.init) {
       Services.search.init(resolve);
     } else {
@@ -61,29 +61,54 @@ export default background({
   beforeBrowserShutdown() {
 
   },
+
+  actions: {
+    search(query, cb) {
+      const search = new Search();
+      search.search(query, cb);
+    },
+
+    /**
+     * fetches extra info for result from rich header
+     */
+    getSnippet(query, result) {
+      const loc = {
+        latitude: utils.USER_LAT,
+        longitude: utils.USER_LNG,
+      };
+      const url = utils.RICH_HEADER + utils.getRichHeaderQueryString(
+        query,
+        loc,
+      );
+      const resultData = {
+        q: query,
+        loc,
+        results: [
+          {
+            url: result.url,
+            snippet: {
+              title: result.data.title,
+              description: result.data.description,
+            },
+          }
+        ],
+      };
+      return new Promise((resolve) => {
+        utils.httpPut(url, resolve, JSON.stringify(resultData));
+      }).then((request) => {
+        const response = JSON.parse(request.response);
+        const results = response.results;
+        return results[0].snippet;
+      });
+    },
+  },
+
   events: {
-    'autocomplete:disable-search': function({urlbar}){
-      utils.setPref('cliqzBackendProvider.enabled', false);
-      if (environment.disableCliqzResults) {
-        environment.disableCliqzResults(urlbar);
-      }
-    },
-    'autocomplete:enable-search': function({urlbar}){
-      utils.setPref('cliqzBackendProvider.enabled', true);
-      if (environment.enableCliqzResults) {
-        environment.enableCliqzResults(urlbar);
-        utils.telemetry({
-          type: 'setting',
-          setting: 'international',
-          value: 'activate',
-        });
-      }
-    },
     'control-center:setDefault-search': function setDefaultSearchEngine(engine) {
       this.autocomplete.CliqzResultProviders.setCurrentSearchEngine(engine);
     },
     'control-center:setDefault-indexCountry': function setDefaultIndexCountry(country) {
-      utils.setDefaultIndexCountry(country, true);
+      utils.setDefaultIndexCountry(country);
     },
     'core:urlbar_focus': function onUrlBarFocus() {
       if (isFirefox) {

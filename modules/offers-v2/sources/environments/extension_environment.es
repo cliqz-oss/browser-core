@@ -1,7 +1,7 @@
 import LoggingHandler from '../logging_handler';
 import EmptyEnvironment from './empty_environment'
 import OffersConfigs from '../offers_configs';
-import HistorySignalID from '../ui/ui_offers_history';
+import ActionID from '../actions_defs';
 import random from '../../core/crypto/random';
 import utils from '../../core/utils';
 import events from '../../core/events';
@@ -21,6 +21,9 @@ export default class ExtensionEnvironment extends EmptyEnvironment {
 
     return new Promise((resolve, reject) => {
       var pairs = [];
+
+      // we will always set the engine version as argument
+      params.t_eng_ver = OffersConfigs.TRIGGER_ENGINE_VERSION;
       for(var prop in params) {
         pairs.push(prop + '=' + encodeURIComponent(params[prop]));
       }
@@ -74,56 +77,64 @@ export default class ExtensionEnvironment extends EmptyEnvironment {
     LoggingHandler.LOG_ENABLED && LoggingHandler.warning(mod, msg);
   }
 
-  addRuleInfoForOffer(offerId, ruleInfo) {
-    this.uiOfferProcessor.addRuleInfoForOffer(offerId, ruleInfo);
+  displayOffer(offerId, ruleInfo) {
+    this.offerProcessor.displayOffer(offerId, ruleInfo);
   }
 
   addOffer(offerInfo) {
-    this.uiOfferProcessor.addOffer(offerInfo);
+    this.offerProcessor.addOffer(offerInfo);
   }
 
   removeOffer(offerId) {
-    this.uiOfferProcessor.removeOffer(offerId);
+    this.offerProcessor.removeOffer(offerId);
   }
 
-  hasOffer(offerId) {
-    if (this.uiOfferProcessor) {
-      return this.uiOfferProcessor.hasOffer(offerId);
+  isOfferActive(offerId) {
+    if (this.offerProcessor) {
+      return this.offerProcessor.isOfferActive(offerId);
     } else {
       return false;
     }
   }
 
+  isOfferPresent(offerID) {
+    if (!this.offersDB) {
+      return false;
+    }
+    return this.offersDB.isOfferPresent(offerID);
+  }
+
   getOfferLastUpdate(offerId, signal) {
-    var offerProc = this.uiOfferProcessor;
+    var offerProc = this.offerProcessor;
 
-    if(!offerProc.offersHistory) {
+    if(!offerProc.offersDB) {
       return null;
     }
 
-    var signalId;
+    var actionID;
     if(signal === 'offer-added') {
-      signalId = HistorySignalID.HSIG_OFFER_ADDED
-    }
-    else {
+      actionID = ActionID.AID_OFFER_ADDED;
+    } else {
       return null;
     }
 
-    return offerProc.offersHistory.getLastUpdateOf(offerId, signalId);
+    // check if we have data for this offer id
+    const offerActionMeta = offerProc.offersDB.getOfferActionMeta(offerId, actionID)
+    if (!offerActionMeta) {
+      return null;
+    }
+    return offerActionMeta.l_u_ts;
   }
 
 
-  sendSignal(campaignId, offerId, key) {
-    function addOrCreate(d, field, value) {
-      const elem = d[field];
-      if (elem) {
-        d[field] = elem + value;
-      } else {
-        d[field] = value;
-      }
+  sendSignal(offerId, key) {
+    if (!offerId || !key || !this.offersDB) {
+      return;
     }
 
-    if (!campaignId || !offerId || !key) {
+    // get the campaign id for this offer if we have one.
+    const campaignId = this.offersDB.getCampaignID(offerId);
+    if (!campaignId) {
       return;
     }
 

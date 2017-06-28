@@ -43,6 +43,14 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
       padding: 0px;
       height: 25px;
       display: block;
+
+      &.freshtab-button {
+        background: url('../assets/images/Home White.svg') no-repeat center;
+      }
+
+      &.history-button {
+        background: url('../assets/images/History White.svg') no-repeat center;
+      }
     }
 
     a:hover {
@@ -65,7 +73,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
     }
 
     #filters {
-      padding: 0 30px;
+      padding: 0 25px;
 
       background-color: #F7F7F7;
       flex: 0 1 auto;
@@ -86,6 +94,139 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
           &.active {
             font-weight: bold;
           }
+        }
+      }
+
+      #feedback {
+        clear: both;
+        margin-top: 149px;
+        border-top: 1px solid #ccc;
+        width: 100px;
+
+        #feedback-button {
+          margin: 5px 0;
+          background:url('./images/face-feedback.svg') no-repeat;
+          background-position: left bottom;
+          border: none;
+          width: 74px;
+          height: 20px;
+          font-size: 11px;
+          color: #8E8E8E;
+          padding: 0;
+          text-align: right;
+        }
+
+        #feedback-button:hover {
+          color: #00869F;
+        }
+
+        #feedback-button:active {
+          color: #3F3F3F;
+        }
+
+        #close-feedback-button {
+          margin-top: 8px;
+          float: right;
+          background:url('./images/close-search.svg') no-repeat center top;
+          width: 12px;
+          height: 12px;
+          border: none;
+          opacity: 0.6;
+          vertical-align: middle;
+          visibility: hidden;
+        }
+
+        #close-feedback-button:hover {
+          border: none;
+          opacity: 1;
+        }
+
+        #close-feedback-button.visible {
+          visibility: visible;
+        }
+
+        .feedback-text {
+          padding: 5px 5px 7px 7px;
+          font-size: 12.5px;
+          line-height: 18px;
+          color: #fff;
+          background-color: #35BBDA;
+          box-shadow: 1px #0085A6;
+          border-radius: 5px;
+          -moz-box-shadow: 0px 1px 2px 0px rgba(0,133,166,1);
+          box-shadow: 0px 1px 2px 0px rgba(0,133,166,1);
+        }
+
+        .feedback-textarea {
+          border: 2px solid #eee;
+          border-radius: 3px;
+          width: 100%;
+        }
+
+        .feedback-textarea:focus {
+          border-color: #37BCDB;
+        }
+
+
+        #feedback-vote-wrapper {
+          background-color: #fff;
+          border-top: 0;
+          border-radius: 7px;
+          padding-top: 19px;
+          margin-top: -20px;
+          position: relative;
+          text-align: center;
+          -moz-box-shadow: 0px 1px 1px 0px rgba(0,0,0,0.15);
+          box-shadow: 0px 1px 1px 0px rgba(0,0,0,0.15);
+
+          #positive-feedback-button {
+            background:url('./images/thumb-up.svg') no-repeat center top;
+            width: 36px;
+            height: 36px;
+            border: none;
+          }
+
+          #positive-feedback-button:hover {
+            background:url('./images/thumb-up-hover.svg') no-repeat center top;
+          }
+
+          #positive-feedback-button:active {
+            background:url('./images/thumb-up-active.svg') no-repeat center top;
+          }
+
+          #negative-feedback-button {
+            background:url('./images/thumb-down.svg') no-repeat center center;
+            width: 36px;
+            height: 36px;
+            border: none;
+          }
+
+          #negative-feedback-button:hover {
+            background:url('./images/thumb-down-hover.svg') no-repeat center;
+          }
+
+          #negative-feedback-button:active {
+            background:url('./images/thumb-down-active.svg') no-repeat center;
+          }
+        }
+
+        .submit-comment {
+          margin-top: 10px;
+          border: 2px solid #37BCDB;
+          border-radius: 5px;
+          background-color: #fff;
+          width: 100%;
+          height: 30px;
+        }
+
+        .submit-comment:hover {
+          color: #00869F;
+          border-color: #00869F;
+        }
+
+        .submit-comment:active {
+          color: #ccc;
+          border-color: #ccc;
         }
       }
 
@@ -296,72 +437,6 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
               }
             }
 
-            & > div {
-              height: 22px;
-              span {
-                line-height: 22px;
-              }
-            }
-
-            .domain {
-              font-size: 11px;
-              font-weight: 500;
-              color: #8E8E8E;
-              float: left;
-            }
-
-            span {
-              color: $color-black;
-              font-size: 15px;
-            }
-
-            .logo {
-              float: left;
-              margin-right: 10px;
-
-              height: 22px;
-              width: 22px;
-              margin-left: 22px;
-              font-size: 12px;
-
-              &.big {
-                margin-left: 0px;
-                height: 44px;
-                width: 44px;
-                font-size: 24px;
-              }
-            }
-
-            .keyword {
-              box-sizing: content-box;
-              float: left;
-              border: 1px solid #D4D4D4;
-              margin-right: 5px;
-              font-weight: bold;
-              line-height: 20px;
-              display: inline-block;
-              height: 20px;
-              padding: 0px 5px;
-
-              img {
-                display: inline-block;
-                margin-top: 3px;
-                height: 15px;
-                float: left;
-                width: 15px;
-                margin-right: 5px;
-              }
-            }
-
-            .title {
-              float: left;
-              width: 25vw;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-              overflow: hidden;
-              margin-right: 2vw;
-            }
-
             em {
               color: $color-black;
               border-radius: 3px;
@@ -415,6 +490,8 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
               display: inline-block;
               height: 20px;
               padding: 0px 5px;
+              max-width: calc(100% - 12px);
+              overflow-x: hidden;
 
               img {
                 display: inline-block;
@@ -432,7 +509,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
 
               .title {
                 float: left;
-                max-width: 25vw;
+                width: 25vw;
                 text-overflow: ellipsis;
                 white-space: nowrap;
                 overflow: hidden;

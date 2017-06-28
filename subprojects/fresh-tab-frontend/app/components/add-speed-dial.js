@@ -11,16 +11,9 @@ export default Ember.Component.extend({
 
   classNameBindings: ['showFrom:addDialBox:addFrame'],
 
-  observeNewSpeedDial: Ember.observer("newSpeedDial", function () {
-    const url = this.get("newSpeedDial"),
-        re = /^((https?:\/\/.*)|((https?:\/)|(https?:)|(https?)|(htt)|(ht)|(h?))$)/;
-    if(!re.test(url)) {
-      this.set("newSpeedDial", "http://" + url);
-    }
-  }),
-
   reset: function () {
-    this.set('error', false);
+    this.set('error-duplicate', false);
+    this.set('error-invalid', false);
     this.set("newSpeedDial", '');
   }.on('didInsertElement'),
 
@@ -41,8 +34,12 @@ export default Ember.Component.extend({
         this.toggleProperty('showForm');
         this.sendAction("addToCustomAction", speedDial);
         notifications.getNotifications();
-      }, () => {
-        this.set('error', true);
+      }, (e) => {
+        if (e === 'duplicate') {
+          this.set('error-duplicate', true);
+        } else {
+          this.set('error-invalid', true);
+        }
       });
     },
     show() {

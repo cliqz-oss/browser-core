@@ -3,7 +3,7 @@
  *
  */
 
-import { utils } from "core/cliqz";
+import { utils } from "../core/cliqz";
 
 function log(msg){
     //utils.log(msg, 'Result.jsm');

@@ -120,8 +120,7 @@ export default background({
 
     // inject the required module, then call the requested action
     inject.module(moduleName).action(action, ...(args || []))
-
-    .then( response => {
+    .then((response) => {
       this.mm.broadcast(`window-${windowId}`, {
         origin,
         response,
@@ -130,7 +129,6 @@ export default background({
         requestId,
       });
     })
-
     .catch(console.error.bind(null, "Process Script", `${moduleName}/${action}`));
   },
 
@@ -207,7 +205,9 @@ export default background({
       // TODO: design proper property list for the event
       events.pub('content:state-change', {
         url: ev.urlSpec,
+        originalUrl: ev.originalUrl,
         triggeringUrl: ev.triggeringUrl,
+        windowTreeInformation: ev.windowTreeInformation,
       });
 
       // DEPRECATED - use content:state-change instead
@@ -269,6 +269,15 @@ export default background({
         modules,
       };
     },
+    broadcast(target, payload) {
+      this.mm.broadcast(target, payload);
+    },
+    broadcastMessageToWindow(payload, windowId, module) {
+      this.mm.broadcast(`window-${windowId}`, {
+        payload,
+        module,
+      });
+    },
     broadcastMessage(url, message) {
       this.mm.broadcast("cliqz:core", {
         action: "postMessage",
@@ -293,8 +302,21 @@ export default background({
       utils.telemetry(msg);
       return Promise.resolve();
     },
+
+    refreshPopup(query = '') {
+      if (query.trim() !== '') {
+        return this.actions.queryCliqz(query);
+      }
+      const doc = utils.getWindow().document;
+      const urlBar = doc.getElementById("urlbar");
+      const dropmarker = doc.getAnonymousElementByAttribute(urlBar, "anonid", "historydropmarker");
+      setTimeout(() => {
+        dropmarker.click();
+      }, 0);
+    },
+
     queryCliqz(query) {
-      let urlBar = utils.getWindow().document.getElementById("urlbar")
+      let urlBar = utils.getWindow().document.getElementById("urlbar");
       urlBar.mInputField.setUserInput('');
       urlBar.focus();
       urlBar.mInputField.focus();

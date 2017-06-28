@@ -13,6 +13,14 @@ export default class NavigateToResult extends BaseResult {
     return true;
   }
 
+  get isDeletable() {
+    return false;
+  }
+
+  get isActionSwitchTab() {
+    return false;
+  }
+
   get logo() {
     const query = this.rawResult.text;
     let url;
@@ -32,6 +40,10 @@ export default class NavigateToResult extends BaseResult {
   get url() {
     const query = this.rawResult.text;
     return `moz-action:visiturl,${JSON.stringify({ url: query })}`;
+  }
+
+  get rawUrl() {
+    return this.rawResult.text;
   }
 
   get displayUrl() {

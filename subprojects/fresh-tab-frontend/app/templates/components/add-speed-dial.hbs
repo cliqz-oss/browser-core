@@ -10,8 +10,11 @@
 
     {{input name="addUrl" type="text" placeholder=(t 'speedDials.address') value=newSpeedDial class="formRow addUrl" autocomplete="off"}}
 
-    {{#if error}}
+    {{#if error-duplicate}}
       <div class="notification">{{t 'speedDials.exists-already' }}</div>
+    {{/if}}
+    {{#if error-invalid}}
+      <div class="notification">{{t 'speedDials.not-valid' }}</div>
     {{/if}}
 
     <button type="submit" class="cliqz-brands-button-4 cqz-ez-btn">{{t 'speedDials.btn-add'}}</button>

@@ -17,7 +17,7 @@ function shouldEnableModule(name) {
 
 export default class {
 
-  constructor({ version, extensionId }) {
+  constructor({ version, extensionId } = {}) {
     this.version = version;
     this.extensionId = extensionId;
     this.availableModules = Object.create(null);

@@ -1,5 +1,5 @@
-import { utils } from 'core/cliqz';
-import { readFile, writeFile } from 'core/fs';
+import { utils } from '../../core/cliqz';
+import { readFile, writeFile } from '../../core/fs';
 
 /**
 * this simple cache is a dictionary that addionally stores

@@ -1,7 +1,7 @@
-import background from 'antitracking/background';
-import CliqzAttrack from 'antitracking/attrack';
-import { utils, events } from 'core/cliqz';
-import { URLInfo } from 'antitracking/url';
+import background from './background';
+import CliqzAttrack from './attrack';
+import { utils, events } from '../core/cliqz';
+import { URLInfo } from './url';
 import inject from '../core/kord/inject';
 
 const CliqzUtils = utils;

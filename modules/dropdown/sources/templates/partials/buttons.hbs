@@ -1,8 +1,10 @@
 {{#if internalResults}}
     <div class='buttons padded'>
-        <span class="dot" style="background-color: #{{logo.backgroundColor}}"></span>
+        {{#if logo}}
+            <span class="dot" style="background-color: #{{logo.backgroundColor}}"></span>
+        {{/if}}
         {{#each (take internalResults internalResultsLimit)}}
-            <a class="result btn" href="{{ url }}">
+            <a id="{{elementId}}" class="result btn {{className}}" href="{{ url }}">
                 {{local title}}
             </a>
         {{/each}}

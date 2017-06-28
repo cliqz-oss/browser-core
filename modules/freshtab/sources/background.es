@@ -218,12 +218,24 @@ export default background({
     */
     addSpeedDial(url, index) {
       const urlToAdd = utils.stripTrailingSlash(url);
+      const validUrl = SpeedDial.getValidUrl(urlToAdd);
+
+      function makeErrorObject(reason) {
+        return {
+          error: true,
+          reason: typeof reason === 'object' ? reason.toString() : reason
+        };
+      }
+
+      if (!validUrl) {
+        return Promise.resolve(makeErrorObject('invalid'));
+      }
 
       //history returns most frequest 15 results, but we display up to 5
       //so we need to validate only against visible results
       return this.actions.getVisibleDials(5).then((result) => {
         const isDuplicate = result.some(function(dialup) {
-          return urlToAdd === utils.stripTrailingSlash(dialup.url);
+          return validUrl === utils.stripTrailingSlash(dialup.url);
         });
 
         if(isDuplicate) {
@@ -243,14 +255,15 @@ export default background({
 
 
         const isPresent = dialUps.custom.some(function(dialup) {
-          return utils.tryEncodeURIComponent(urlToAdd) === utils.stripTrailingSlash(dialup.url);
+          return utils.tryEncodeURIComponent(validUrl) === utils.stripTrailingSlash(dialup.url);
         });
 
         if(isPresent) {
           throw "duplicate";
         } else {
+          console.log(`valid url: ${validUrl}, original url: ${urlToAdd}`);
           var dialup = {
-            url: utils.tryEncodeURIComponent(urlToAdd)
+            url: utils.tryEncodeURIComponent(validUrl)
           };
           if(index !== null) {
             dialUps.custom.splice(index, 0, dialup);
@@ -258,7 +271,7 @@ export default background({
             dialUps.custom.push(dialup);
           }
           utils.setPref(DIALUPS, JSON.stringify(dialUps), '');
-          return new SpeedDial(urlToAdd, true);
+          return new SpeedDial(validUrl, true);
         }
       }).catch(reason => ({ error: true, reason: typeof reason === 'object' ? reason.toString() : reason }));
     },

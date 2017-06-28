@@ -35,7 +35,7 @@ module.exports = {
       actions: messageCenterBackground.actions
     },
     'hpn': {
-      actions: hpn.actions
+      actions: hpnBackground.actions
     }
   }
 };

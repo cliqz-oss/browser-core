@@ -32,10 +32,8 @@ const TEMPLATES = Object.freeze(Object.assign(Object.create(null), {
 var CLIQZEnvironment = {
   RESULTS_PROVIDER: 'https://api.cliqz.com/api/v2/results?q=',
   RICH_HEADER: 'https://api.cliqz.com/api/v2/rich-header?path=/v2/map',
-  BRANDS_DATA_URL: 'static/brands_database.json',
   TEMPLATES_PATH: 'mobile-ui/templates/',
   LOCALE_PATH: 'static/locale/',
-  SYSTEM_BASE_URL: './',
   RESULTS_LIMIT: 3,
   RERANKERS: [],
   RESULTS_TIMEOUT: 60000, // 1 minute
@@ -122,36 +120,6 @@ var CLIQZEnvironment = {
     }
 
     return false;
-  },
-  // TODO - SHOUD BE MOVED TO A LOGIC MODULE
-  processHistory: function(data) {
-    try {
-      var items = data.results;
-      var res = [];
-      for (var i in items) {
-        var item = items[i];
-        res.push({
-          style:   'favicon',
-          value:   item.url,
-          image:   '',
-          comment: (typeof(item.title) !== 'undefined' ? item.title : 'no comment'),
-          label:   ''
-        });
-      }
-      return {results: res, query:data.query, ready:true};
-    } catch (e) {
-      console.log('Error: ' + e, 'CLIQZEnvironment.processHistory');
-    }
-  },
-  // TODO - SHOUD BE MOVED TO A LOGIC MODULE
-  displayHistory: function(data){
-    console.log(this, 'bbb');
-    CLIQZEnvironment.searchHistoryCallback(CLIQZEnvironment.processHistory(data));
-  },
-  // TODO - SHOUD BE MOVED TO A LOGIC MODULE
-  historySearch: function(q, callback){
-    CLIQZEnvironment.searchHistoryCallback = callback;
-    window.osAPI.searchHistory(q, 'CLIQZEnvironment.displayHistory');
   },
   //TODO: remove this dependency
   getSearchEngines: function(){

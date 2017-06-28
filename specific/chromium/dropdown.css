@@ -114,6 +114,8 @@ div#cliqz-results::-webkit-scrollbar-thumb {
   color: #222;
   margin-right: 20px;
   white-space: nowrap;
+  display: inline-block;
+  height: 24px;
 }
 
 #settings label.pref-label span {

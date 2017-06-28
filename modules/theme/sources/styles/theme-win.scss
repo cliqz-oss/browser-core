@@ -144,9 +144,6 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
 
 #urlbar {
     * { box-sizing: border-box; }
-    // While the simpleUI AB test is running, we need to set these with javascript in ui/window
-    // max-width: 800px;
-    // margin: 0 36px !important;
     height: $urlbar-elms-height !important;
     box-sizing: border-box;
 
@@ -412,9 +409,6 @@ notification[type="warning"] .notification-inner {
     margin-left: 0 !important;
     width: 37px;
     height: $urlbar-elms-height !important;
-    // While the simpleUI AB test is running, we need to set these with javascript in ui/window
-    // border: none !important;
-    // border-right: 1px solid #e1e1e1 !important;
     border-radius: 0 !important;
     box-shadow: 0 0 0 0 transparent !important;
     background-color: transparent !important;

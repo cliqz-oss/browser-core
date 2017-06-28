@@ -1,10 +1,16 @@
 
 
 var ops = {};
-export default ops;
 
 
-ops['$watch_requests'] = function(args, eventLoop, context) {
+/**
+ * will start checking for requests in a domain. This is will start the mechanisms
+ * to catch all requests that are performed on that domain so we can check for
+ * conversions and more
+ * @param  {string} domain the domain we want to start watching
+ * @version 1.0
+ */
+function watch_requests(args, eventLoop, context) {
   return new Promise((resolve, reject) => {
     if(args.length < 1) {
       reject(new Error('invalid args'));
@@ -20,8 +26,13 @@ ops['$watch_requests'] = function(args, eventLoop, context) {
 }
 
 
-
-ops['$activate_subtriggers'] = function(args, eventLoop, context) {
+/**
+ * this method will fetch from the BE the new subtriggers given the parent trigger ID
+ * @param  {string} parentTriggerID  the id of the parent trigger that we want to
+ *                                   to fetch the subtriggers for
+ * @version 1.0
+ */
+function activate_subtriggers(args, eventLoop, context) {
   return new Promise((resolve, reject) => {
     if(!context._currentTriggerLevel) {
       context._currentTriggerLevel = 0;
@@ -80,3 +91,9 @@ ops['$activate_subtriggers'] = function(args, eventLoop, context) {
     }
   });
 };
+
+
+ops['$watch_requests'] = watch_requests;
+ops['$activate_subtriggers'] = activate_subtriggers;
+
+export default ops;

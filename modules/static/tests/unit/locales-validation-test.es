@@ -29,16 +29,6 @@ export default describeModule('static/main',
     describe('Validate locale structure', () => {
       const localesPath = 'modules/static/dist/locale';
 
-      listLocales(localesPath).forEach(lang => {
-        it(`Translation file for "${lang}" is valid`, function () {
-          const locale = readLocaleFile(`${localesPath}/${lang}/cliqz.json`);
-          chai.expect(function () {
-            JSON.parse(locale);
-          }).to.not.throw(SyntaxError)
-        });
-      });
-
-
       it('All locales should have the same structure', () => {
         // Load all available locales
         const langs = listLocales(localesPath);

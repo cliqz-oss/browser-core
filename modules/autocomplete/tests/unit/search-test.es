@@ -45,7 +45,8 @@ export default describeModule("autocomplete/search",
         default: {}
       },
       "platform/window": { default: {} },
-      "core/prefs": { default: {}}
+      "core/prefs": { default: {}},
+      "platform/history/search": { default: {}},
     }
   },
   function () {

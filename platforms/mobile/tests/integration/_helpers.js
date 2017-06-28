@@ -1,19 +1,11 @@
 var expect = chai.expect;
 
-var contentWindow, fakeServer;
-
 function cliqzResponse(query, results) {
-  var results = JSON.stringify({
+  return {
     q: query,
     results: results,
     schema_valid: true
-  });
-
-  fakeServer.respondWith(
-    "GET",
-    new RegExp(".*api\/v2\/results.*"),
-    [ 200, { "Content-Type": "application/json" }, results ]
-  );
+  }
 }
 
 
@@ -21,32 +13,18 @@ function $(selector) {
   return contentWindow.document.querySelectorAll(selector)
 }
 
-function injectSinon(win) {
-  var resolver,
-      promise = new Promise(function (resolve) {
-        resolver = resolve;
-      });
-
-  var sinonScript = win.document.createElement("script");
-  sinonScript.src = "/bower_components/sinonjs/sinon.js";
-  sinonScript.onload = function () {
-    win.fakeServer = win.sinon.fakeServer.create({
-      autoRespond: true,
-      respondImmediately: true
-    });
-    window.sinon = win.sinon;
-    fakeServer = win.fakeServer;
-
-    win.sinon.FakeXMLHttpRequest.useFilters = true;
-
-    win.sinon.FakeXMLHttpRequest.addFilter(function (method, url) {
-      return url.indexOf('api/v2') === -1;
-    });
-    win.sinonLoaded = true;
-
-    resolver();
-  };
-  win.document.body.appendChild(sinonScript);
-
-  return promise;
+/**
+ * @function mockHttp replace fetch with configured fetchMock
+ * @param {object} window - test window
+ * @param {RegExp} matcher - to match request
+ * @param {object} response - mocked response
+ * @param {object} options - configurations
+ * fetchMock http://www.wheresrhys.co.uk/fetch-mock/api
+ * is a library that stubs fetch to filter requests
+ */
+window.mockHttp = function () {
+  var args = Array.prototype.slice.apply(arguments);
+  var win = args.shift();
+  window.fetchMock.mock.apply(fetchMock, args);
+  win.fetch = window.fetch;
 }

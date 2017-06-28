@@ -1,4 +1,5 @@
-{{input id="search-form-input" value=modelProxy placeholder=(t 'history.search-placeholder')}}
+{{input id="search-form-input" value=modelProxy placeholder=(t 'history.search-placeholder')
+key-press='sendReadySignal'}}
 <label for="search-form-input">
   {{#if model}}
     <img src="./assets/images/mag-glass-active.svg"/>

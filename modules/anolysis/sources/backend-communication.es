@@ -1,23 +1,26 @@
 import md5 from '../core/helpers/md5';
-import { fetch, Request, Headers } from '../core/http';
+import { utils } from '../core/cliqz';
 
 import logger from './logger';
 
 
 function post(url, payload) {
-  const headers = new Headers();
-  headers.append('Content-Type', 'application/json');
-  const request = new Request(url, {
-    headers,
-    method: 'POST',
-    body: JSON.stringify(payload) });
-  return fetch(request)
-    .then((response) => {
-      if (!response.ok) {
-        return Promise.reject(`Backend ${url} answered with code ${response.status}`);
-      }
-      return response.json();
-    });
+  return new Promise((resolve, reject) => {
+    utils.httpPost(
+      url,
+      (req) => {
+        try {
+          const json = JSON.parse(req.response);
+          resolve(json);
+        } catch (ex) {
+          reject(`Backend ${url} could not parse JSON: ${req.response}`);
+        }
+      },
+      JSON.stringify(payload),
+      reject,
+      1000 * 15, // Request timeout = 15 seconds
+    );
+  });
 }
 
 /**

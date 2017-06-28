@@ -204,13 +204,17 @@
 
 .cliqz-urlbar-Last-search-container[channel='40'] {
     line-height: 24px;
+
+    .cliqz-urlbar-Last-search {
+        height: 24px;
+        line-height: 22px;
+    }
 }
 
 .cliqz-urlbar-Last-search {
     overflow: hidden;
     max-width: 200px;
-    height: 24px;
-    line-height: 22px;
+    line-height: 17px;
     padding: 0 6px 0 6px;
     color: #fff;
     text-overflow: ellipsis;

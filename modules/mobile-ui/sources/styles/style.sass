@@ -691,42 +691,42 @@ a
   -ms-flex-line-pack: stretch
   .item
     position: relative
-    -webkit-box-flex: 1
-    -moz-box-flex: 1
-    box-flex: 1
-    -webkit-flex: 1 1 auto
-    -moz-flex: 1 1 auto
-    -ms-flex: 1 1 auto
-    flex: 1 1 auto
-    border-radius: 4px
-    margin-top: 8px
-    .main__headline
-      padding: 0 8px 16px 72px
+    padding: 8px
+    &.single
+      background-color: #F7F7F7
+      border-radius: 4px
+    .news_domain
       font-size: 0.75rem
-      line-height: 1rem
+      color: #4A90E2
+    .main__headline
+      padding: 0 8px
+      font-size: 14px
+      line-height: 15px
       box-sizing: border-box
-      min-height: 48px
+      max-height: 45px
       margin: 0
-      span
-        display: block
+      overflow: hidden
+      text-overflow: ellipsis
+      display: -webkit-box
+      -webkit-line-clamp: 3
+      -webkit-box-orient: vertical
+    .twitter_snippet
+      padding: 0 8px
+      font-size: 14px
+      line-height: 15px
+      color: rgba(0,0,0,0.38)
+      .tweet_count
+        color: #49C0F2
+        display: inline
         font-size: 0.75rem
-        line-height: 1rem
-        color: rgba(0,0,0,0.38)
-        .tweet_count
-          color: #49C0F2
-          display: inline
-          font-size: 0.75rem
-          img
-            height: 10px
+        img
+          height: 10px
     .main__image
-      position: absolute
-      top: 2px
-      left: 0
       width: 64px
-      height: 48px
+      height: 60px
       margin: 0
       background-position: top
-      border-radius: 4px
+      border-radius: 0
     .main__multiple__time
       position: absolute
       bottom: 0

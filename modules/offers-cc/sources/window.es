@@ -3,20 +3,22 @@ import inject from '../core/kord/inject';
 import { utils, events } from '../core/cliqz';
 import { addStylesheet } from '../core/helpers/stylesheet';
 import Panel from '../core/ui/panel';
-import console from '../core/console';
 import background from './background';
+import UITour from '../platform/ui-tour';
 
 
 function toPx(pixels) {
   return `${pixels.toString()}px`;
 }
 
+const ORIGIN_NAME = 'offers-cc';
 const BTN_ID = 'cliqz-offers-cc-btn';
 const PANEL_ID = `${BTN_ID}-panel`;
 const firstRunPref = 'cliqz-offers-cc-initialized';
 const BTN_LABEL = '';
 const TOOLTIP_LABEL = 'CLIQZ';
-const OSE_NEW_OFFER = 'new-offer-added';
+
+const offersHubTrigger = utils.getPref('offersHubTrigger', 'off');
 
 export default class {
   constructor(settings) {
@@ -35,7 +37,8 @@ export default class {
       getEmptyFrameAndData: this.getEmptyFrameAndData.bind(this),
       resize: this.resizePopup.bind(this),
       sendTelemetry: this.sendTelemetry.bind(this),
-      closePanel: this.closePanel.bind(this)
+      closePanel: this.closePanel.bind(this),
+      openURL: this.openURL.bind(this)
     };
     this.panel = new Panel(
       this.window,
@@ -48,31 +51,31 @@ export default class {
       this.onPopupHiding.bind(this)
     );
 
-    this.onStorageEvent = this.onStorageEvent.bind(this);
+    this.onOffersCoreEvent = this.onOffersCoreEvent.bind(this);
   }
 
   onPopupHiding() {
+    UITour.hideInfo(this.window);
     // check if we need to update the state of all the offers as old
     if (this.panel.shownDurationTime <= 2000) {
       // nothing to do
       return null;
     }
 
+    this.badge.setAttribute('state', '');
     // else we will change the state of all offers
     const self = this;
-    return this.offersV2.action('getStorageOffers').then((recentData) => {
+    return this.offersV2.action('getStoredOffers').then((recentData) => {
       const offersIDs = [];
       recentData.forEach((elem) => {
-        if (elem && elem.offer_info && elem.offer_info.offer_id) {
-          offersIDs.push(elem.offer_info.offer_id);
-          self.badge.setAttribute('state', '');
+        if (elem && elem.offer_id) {
+          offersIDs.push(elem.offer_id);
         }
       });
 
       // send the message with all the offers
-      const eventData = {
-        origin: 'offers-cc',
-        offer_id: null,
+      // check the API documentation for proper formating this
+      const msg = {
         type: 'offers-state-changed',
         // no data for now
         data: {
@@ -80,7 +83,7 @@ export default class {
           new_state: 'old'
         }
       };
-      self.offersV2.action('onStorageOffersUIEvent', eventData);
+      self.sendMessageToOffersCore(msg);
     }).catch((e) => {
       utils.log(e.message, '!!error');
     });
@@ -95,14 +98,14 @@ export default class {
     // stylesheet for control center button
     addStylesheet(this.window.document, this.cssUrl);
     this.addCCbutton();
-    events.sub('offers-storage:new_event', this.onStorageEvent);
+    events.sub('offers-send-ch', this.onOffersCoreEvent);
   }
 
   unload() {
     if (!background.is_enabled) {
       return;
     }
-    events.un_sub('offers-storage:new_event', this.onStorageEvent);
+    events.un_sub('offers-send-ch', this.onOffersCoreEvent);
   }
 
   getData() {
@@ -171,23 +174,27 @@ export default class {
 
   _getAllOffers() {
     const self = this;
-    return this.offersV2.action('getStorageOffers').then((recentData) => {
+    return this.offersV2.action('getStoredOffers').then((recentData) => {
       const parsedResult = [];
       recentData.forEach((elem) => {
-        if (elem && elem.offer_info && elem.offer_info.offer_id && elem.offer_info.ui_info) {
+        if (elem &&
+            elem.offer_id &&
+            elem.offer_info &&
+            elem.offer_info.ui_info) {
           // we need to send the template name and template data here from the
           // ui info
           const uiInfo = elem.offer_info.ui_info;
-          let offerState = elem.state;
-          if (!offerState) {
-            offerState = 'new';
+
+          let offerState = 'new';
+          if (elem.attrs && elem.attrs.state) {
+            offerState = elem.attrs.state;
           }
           const data = {
             created: elem.created_ts,
             state: offerState,
             template_name: uiInfo.template_name,
             template_data: uiInfo.template_data,
-            offer_id: elem.offer_info.offer_id,
+            offer_id: elem.offer_id,
           };
           parsedResult.push(data);
         }
@@ -202,6 +209,27 @@ export default class {
     });
   }
 
+  /**
+   * will send a message to the offers-core following the new API:
+   * https://cliqztix.atlassian.net/wiki/pages/viewpage.action?pageId=88618158
+   * @param  {[type]} msg  object containing the following parameters:
+   *                       - type (signal type)
+   *                       - data (depending on the type)
+   * @return {[type]}      [description]
+   */
+  sendMessageToOffersCore(msg) {
+    if (!msg || !msg.type) {
+      utils.log('Error: invalid message');
+      return;
+    }
+    // create the message to be sent
+    const message = {
+      origin: ORIGIN_NAME,
+      type: msg.type,
+      data: msg.data
+    };
+    events.pub('offers-recv-ch', message);
+  }
 
   sendTelemetry(data) {
     // utils.telemetry(data);
@@ -211,34 +239,38 @@ export default class {
       return;
     }
 
-    // call the offers_storage module
-    // {
-    //   origin:    The id name to identify the ui (for example offers-storage-btn
-    //              or any other id).
-    //   offer_id:  The offer related on the ui event (or null if none).
-    //   type:      The event type (button-clicked?)
-    //   data:      Extra arguments if needed (like button id...).
-    // }
-    let eventData = null;
+    // we will do a "bridging" here from the current signals to the new API
+    // format.
+    let msg = null;
     if (data.signal_type === 'button_pressed') {
       // process the button pressed action, this actions have some impact or
       // modification on the offers module (for example closing an offer / etc).
-      eventData = {
-        origin: 'offers-cc',
-        offer_id: data.offer_id,
-         // TODO: note that we assume that we are always sending this way the data
-        //       with the element_id, and it may not be always true
-        type: data.element_id,
-        // no data for now
-        data: {},
-      };
+
+      // we can have here the followings:
+      //  - call-to-action
+      //  - close-offer
+      //  - remove-offer
+      //
+      switch (data.element_id) {
+        case 'call-to-action':
+        case 'close-offer':
+        case 'remove-offer':
+          msg = {
+            type: data.element_id,
+            data: {
+              offer_id: data.offer_id
+            }
+          };
+          break;
+        default:
+          utils.log(`sendTelemetry: error: invalid button_pressed action: ${data.element_id}`);
+          break;
+      }
     } else if (data.signal_type === 'action') {
       // This type of signals are just for tracking and information purposes,
       // will not change any logic on the offers module
       // This signals are not related to any offer, just "telemetry"
-      eventData = {
-        origin: 'offers-cc',
-        offer_id: null,
+      msg = {
         type: 'action-signal',
         // no data for now
         data: {
@@ -249,47 +281,98 @@ export default class {
     } else if (data.signal_type === 'offer-action-signal') {
       // this signals will be associated to offers but will not affect the behavior
       // or anything on the offer module, just for information purposes.
-      eventData = {
-        origin: 'offers-cc',
-        offer_id: data.offer_id,
+      msg = {
         type: 'offer-action-signal',
         // no data for now
         data: {
+          offer_id: data.offer_id,
           // this is the signal we want to send
           action_id: data.element_id
         },
       };
     }
-    this.offersV2.action('onStorageOffersUIEvent', eventData);
+    if (msg) {
+      this.sendMessageToOffersCore(msg);
+    } else {
+      utils.log(`sendTelemetry: error: the message is null? invalid signal type? ${data.signal_type}`);
+    }
   }
 
   //
   // subscribe to the storage events
   //
-  onStorageEvent(event) {
+  onOffersCoreEvent(event) {
+    // check if we need to discard the event or not
+    if (event.dest && event.dest.length > 0 && !(ORIGIN_NAME in event.dest)) {
+      // we should not process this message
+      return;
+    }
     // we also have event data: event.data;
-    const eventID = event.event_id;
+    const eventID = event.type;
 
-    // TODO process the event here, for now we will get all the events again
     this._getAllOffers().then(() => {
-      // data = JSON.stringify(data);
+      switch (eventID) {
+        case 'offer-active': {
+          // Auto open the panel
+          this.badge.setAttribute('state', 'new-offers');
 
-      if (eventID === OSE_NEW_OFFER) {
-        // Auto open the panel
-        this.openPanel();
-        this.badge.setAttribute('state', 'new-offers');
+          if (offersHubTrigger === 'tooltip') {
+            UITour.targets.set('cliqz-offers', { query: '#cliqz-offers-cc-btn', widgetName: 'cliqz-offers-cc-btn', allowAdd: true });
+            const promise = UITour.getTarget(this.window, 'cliqz-offers');
+            const win = this.window;
+            const myOptions = {
+              closeButtonCallback: () => {
+                const data = {
+                  signal_type: 'action',
+                  element_id: 'offer-tooltip-close-btn',
+                };
+                this.sendTelemetry(data);
+              }
+            };
+
+            promise.then((target) => {
+              UITour.showInfo(win, target, '', 'Neues Angebot', '', '', myOptions);
+              win.document.querySelector('#UITourTooltip[targetName=cliqz-offers]').addEventListener('click', (e) => {
+                UITour.hideInfo(this.window);
+                if (e.target.matches('#UITourTooltipClose')) {
+                  return;
+                }
+
+                this.badge.setAttribute('state', '');
+                this.openPanel();
+              });
+            });
+          } else {
+            this.openPanel();
+          }
+        }
+          break;
+        default:
+          utils.log('invalid event from core type', eventID);
+          break;
       }
     }).catch((err) => {
-      console.log('======= event: error: ', err);
+      utils.log('======= event: error: ', err);
     });
   }
 
   openPanel() {
+    if (utils.getWindow() !== this.window) {
+      return;
+    }
+    this.closePanel();
     this.panel.open(this.button);
   }
 
-  closePanel() {
-    this.panel.hide();
+  closePanel(data = {}) {
+    UITour.hideInfo(this.window);
+    this.panel.hide({ force: data.force });
+  }
+
+  openURL(data) {
+    const tab = utils.openLink(this.window, data.url, true);
+    if (data.closePopup === true) this.panel.hide({ force: true });
+    this.window.gBrowser.selectedTab = tab;
   }
 
 }

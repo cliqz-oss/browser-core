@@ -70,7 +70,7 @@ node('ubuntu && docker && !gpu') {
             stage('fern build mobile') {
               sh './fern.js build > /dev/null'
               // stage built files for mobile testem test
-              stash name: "mobile-testem-build", includes: "bower_components/,build/,tests/,testem.json"
+              stash name: "mobile-testem-build", includes: "node_modules/fetch-mock/es5/,bower_components/,build/,tests/,testem.json"
             }
           }
 

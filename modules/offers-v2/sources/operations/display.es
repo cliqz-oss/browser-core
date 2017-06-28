@@ -9,6 +9,7 @@ let ops = {};
  * @param  {string} url   the current url
  * @param  {object} offer  is the offer object itself
  * @return {void} nothing
+ * @version 1.0
  */
 function show_offer(args, eventLoop) {
   return new Promise((resolve, reject) => {
@@ -25,11 +26,11 @@ function show_offer(args, eventLoop) {
 
     var env = eventLoop.environment;
 
-    if(!env.hasOffer(offerInfo.offer_id)) {
+    if(!env.isOfferActive(offerInfo.offer_id)) {
       env.addOffer(offerInfo);
     }
     else {
-      env.addRuleInfoForOffer(offerInfo.offer_id, offerInfo.rule_info);
+      env.displayOffer(offerInfo.offer_id, offerInfo.rule_info);
     }
 
     resolve();
@@ -43,6 +44,7 @@ function show_offer(args, eventLoop) {
  * @param  {integer} secs The number of seconds
  * @return {boolean} true if the offer was "added" in the last secs seconds or false
  *                   otherwise
+ * @version 1.0
  */
 function offer_added(args, eventLoop) {
   return new Promise((resolve, reject) => {
@@ -81,6 +83,7 @@ function offer_added(args, eventLoop) {
  *  4) After selecting that offer we show it as usual.
  * @param {string} url is the url that we want to
  * @param {list} offerList is the list of offers with their given percentage
+ * @version 1.0
  */
 function show_ab_offer(args, eventLoop) {
   return new Promise((resolve, reject) => {
@@ -154,11 +157,10 @@ function show_ab_offer(args, eventLoop) {
     selectedOffer.rule_info["url"] = [url];
 
 
-    if(!env.hasOffer(selectedOffer.offer_id)) {
+    if(!env.isOfferActive(selectedOffer.offer_id)) {
       env.addOffer(selectedOffer);
-    }
-    else {
-      env.addRuleInfoForOffer(selectedOffer.offer_id, selectedOffer.rule_info);
+    } else {
+      env.displayOffer(selectedOffer.offer_id, selectedOffer.rule_info);
     }
     resolve();
   });

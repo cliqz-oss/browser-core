@@ -98,30 +98,23 @@ export default describeModule('anolysis/storage',
     });
     describe('#deleteByTimespan', () => {
       it('should query database with correct documents & timespan', () => {
-        const documents = [];
-        // let params;
-        database.query = (_index, _params) => {
-          return Promise.resolve({
-            rows: [
-              { doc: { behavior: { type: 'type_A', value: 1 } } },
-              { doc: { behavior: { type: 'type_B', value: 1 } } },
-              { doc: { behavior: { type: 'type_A', value: 2 } } },
-            ],
-          });
+        let documents = [];
+        database.query = () => Promise.resolve({
+          rows: [
+            { doc: { behavior: { type: 'type_A', value: 1 } } },
+            { doc: { behavior: { type: 'type_B', value: 1 } } },
+            { doc: { behavior: { type: 'type_A', value: 2 } } },
+          ],
+        });
+        database.bulkDocs = (_documents) => {
+          documents = _documents;
+          return Promise.resolve(documents);
         };
-        // database.bulkDocs = (_documents, _params) => {
-        //   documents = _documents;
-        //   params = _params;
-        // };
-        database.remove = _document => Promise.resolve(documents.push(_document));
         return storage.deleteByTimespan({ from: 1, to: 100 }).then(() => {
-          // chai.expect(params, 'used incorrect query parameters').to.be.eql({
-          //   _deleted: true,
-          // });
           chai.expect(documents, 'documents not passed on').to.deep.have.members([
-            { behavior: { type: 'type_A', value: 1 } },
-            { behavior: { type: 'type_A', value: 2 } },
-            { behavior: { type: 'type_B', value: 1 } },
+            { behavior: { type: 'type_A', value: 1 }, _deleted: true },
+            { behavior: { type: 'type_A', value: 2 }, _deleted: true },
+            { behavior: { type: 'type_B', value: 1 }, _deleted: true },
           ]);
         });
       });

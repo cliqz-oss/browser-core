@@ -4,6 +4,8 @@ import YoutubeApp from './apps/youtube';
 import TabsharingApp from './apps/tabsharing';
 import PingPongApp from './apps/pingpong';
 import SimpleStorage from '../core/simple-storage';
+import PairingObserver from './apps/pairing-observer';
+
 
 // TODO: remove this!
 const CustomizableUI = Components.utils.import('resource:///modules/CustomizableUI.jsm', null).CustomizableUI;
@@ -59,8 +61,19 @@ export default {
     });
 
     this.enabled = true;
-
     this.storage = new SimpleStorage();
+
+    const observer = new PairingObserver();
+    observer.onpaired = () => {
+      CliqzUtils.telemetry({
+        type: 'connect',
+        version: 1,
+        action: 'connect',
+        is_success: true,
+      });
+    };
+    PeerComm.addObserver('TELEMETRY', observer);
+
     return this.storage.open('data', ['cliqz', 'pairing'], true, true)
       .then(() => PeerComm.init(this.storage));
   },

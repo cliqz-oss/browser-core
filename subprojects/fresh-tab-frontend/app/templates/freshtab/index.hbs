@@ -14,11 +14,10 @@
         {{#if model.config.isHistoryEnabled}}
 
     {{#link-to 'freshtab.index' class='freshtab-button'}}
-      <img src="./assets/images/Home.svg">
+      &nbsp;
     {{/link-to}}
       <span {{action 'sendTelemetry' 'home-click-history'}}>
         {{#link-to 'freshtab.history.index' (query-params query='') class="history-button"}}
-          <img src="./assets/images/History.svg">
         {{/link-to}}
       </span>
     {{/if}}

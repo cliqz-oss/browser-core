@@ -19,7 +19,7 @@ TESTS.SmartCliqzTest = function (CliqzUtils) {
         fillIn("spiegel");
         return waitForPopup();
       }).then(function () {
-    		var title = $cliqzResults().find(".cqz-result-box .cqz-ez-title")[0].textContent.trim();
+    		var title = $cliqzResults().find(".result [data-extra='title']")[0].textContent.trim();
             chai.expect(title.toLowerCase()).to.contain("spiegel");
       });
     });
@@ -29,7 +29,7 @@ TESTS.SmartCliqzTest = function (CliqzUtils) {
         fillIn("gmx.net");
         return waitForPopup();
       }).then(function () {
-    		var title = $cliqzResults().find(".cqz-result-box .cqz-ez-title")[0].textContent.trim();
+    		var title = $cliqzResults().find(".result [data-extra='title']")[0].textContent.trim();
             chai.expect(title.toLowerCase()).to.contain("gmx");
       });
     });

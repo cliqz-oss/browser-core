@@ -3904,14 +3904,7 @@ var __CliqzHumanWeb = function() { // (_export) {
                     }, 5000);
                 },
                 getCountryCode: function getCountryCode() {
-                    var ctryCode = null;
-
-                    try {
-                        ctryCode = CliqzUtils.getPref('config_location', null);
-                    } catch (ee) {
-                        _log("Could not get config_location");
-                    };
-
+                    var ctryCode = CliqzUtils.getPref('config_location', null)
                     return CliqzHumanWeb.sanitizeCounrtyCode(ctryCode);
                 },
                 sanitizeCounrtyCode: function sanitizeCounrtyCode(ctryCode) {

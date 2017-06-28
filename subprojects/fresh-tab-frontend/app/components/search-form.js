@@ -12,7 +12,10 @@ export default Ember.Component.extend({
   modelObserver: function() {
     Ember.run.debounce(() => {
       this.set('model', this.get('modelProxy'));
-      this.actions.sendTelemetry.call(this);
+      if(this.get('isReadyToSendTelemetry')) {
+        this.actions.sendTelemetry.call(this);
+        this.set('isReadyToSendTelemetry', false);
+      }
     }, this.get('debounce'));
   }.observes('modelProxy'),
 
@@ -47,7 +50,6 @@ export default Ember.Component.extend({
       this.clear();
     },
     sendTelemetry() {
-      // TODO: @mai check why query length is equal 1 when there are two letters in the search box
       if (this.get('hasQuery')) {
         this.get('cliqz').sendTelemetry({
           type: 'history',
@@ -56,6 +58,9 @@ export default Ember.Component.extend({
           query_length: this.get('model.length')
         });
       }
+    },
+    sendReadySignal() { // To prevent sending duplicate signals when user types fast
+      this.set('isReadyToSendTelemetry', true);
     }
   }
 });

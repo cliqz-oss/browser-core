@@ -14,6 +14,9 @@
       {{#link-to "freshtab.history.index" (query-params query=query from=timestamps.lastWeek.from to=timestamps.lastWeek.to) tagName="button"}}{{t 'history.day-selection-pastweek'}}{{/link-to}}
     </span>
   </menu>
+  <div id="feedback">
+    {{history-feedback}}
+  </div>
 </section>
 
 <section id="search">

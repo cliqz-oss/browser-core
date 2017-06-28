@@ -585,10 +585,13 @@
       "message":"Besuchte Seiten"
     },
     "adultInfo": {
-        "message": "Nicht-jugendfreie Inhalte wurden automatisch blockiert. Weiterhin blockieren?"
+        "message": "Websites mit nicht-jugendfreien Inhalten wurden automatisch geblockt. Weiterhin blockieren?"
     },
     "show_once": {
-      "message":"Jetzt anzeigen"
+      "message":"Diesmal anzeigen"
+    },
+    "show_local_result": {
+        "message": "Show local result"
     },
     "yes": {
         "message": "Ja"
@@ -600,7 +603,7 @@
         "message": "Nein"
     },
     "never": {
-        "message": "Niemals"
+        "message": "Nie"
     },
     "options": {
         "message": "Suchergebnisfilter"
@@ -646,18 +649,6 @@
     },
     "cliqz_stock_pe_ratio": {
         "message": "KGV (ttm)"
-    },
-    "OutOfCoverageWarning": {
-       "message": "CLIQZ’s Ergebnisse sind noch nicht so gut in Deinem Land.  Wir arbeiten hart um in Deinem Land bald besser zu werden."
-    },
-    "keep-cliqz": {
-      "message": "OK"
-    },
-    "disable-cliqz": {
-      "message": "CLIQZ Suche deaktivieren"
-    },
-    "btnActivateCliqz": {
-      "message": "CLIQZ Suche aktivieren"
     },
     "btnFreshTab": {
       "message": "CLIQZ Tab aktivieren"
@@ -790,6 +781,9 @@
     },
     "cMenuOpenInPrivateWindow": {
       "message": "Link in neuem $1 Fenster öffnen"
+    },
+    "cMenuCopyLinkLocation": {
+      "message": "Link-Adresse kopieren"
     },
     "private": {
       "message": "Privatem"
@@ -1284,7 +1278,7 @@
       "message": "Tracking Unternehmen auf dieser Seite"
     },
     "control-center-info-trackers": {
-      "message": "Auf fast allen Websites zeichnen integrierte Tracker deine Aktivitäten im Web auf. CLIQZ unterbindet die Daten, anhand derer du identifiziert werden könntest, bevor sie an die Tracking-Dienste gesendet werden. Wie viele einzelne Daten das sind, sagt dir die Zahl. Klick auf das Feld um nähere Details zu sehen."
+      "message": "Auf fast allen Websites zeichnen integrierte Tracker deine Aktivitäten im Web auf. Cliqz unterbindet die Daten, anhand derer du identifiziert werden könntest, bevor sie an die Tracking-Dienste gesendet werden. Wie viele einzelne Daten das sind, sagt dir die Zahl. Klick auf das Feld um nähere Details zu sehen."
     },
     "control-center-info-phishing-title": {
       "message": "Anti-Phishing"
@@ -1326,7 +1320,7 @@
       "message": "Human Web"
     },
     "control-center-info-hw": {
-      "message": "CLIQZ arbeitet mit anonymisierten Daten über Suchanfragen und Website-Besuchen, die von der Gemeinschaft der Nutzer geschaffen werden. Die Technologie, die diese Daten erhebt und daraus einen Web-Index aufbaut, nennen wir Human Web."
+      "message": "Cliqz arbeitet mit anonymisierten Daten über Suchanfragen und Website-Besuchen, die von der Gemeinschaft der Nutzer geschaffen werden. Die Technologie, die diese Daten erhebt und daraus einen Web-Index aufbaut, nennen wir Human Web."
     },
     "control-center-info-forget-mode-title": {
       "message": "Automatischer Vergessen Modus"
@@ -1338,7 +1332,7 @@
       "message": "Standort Teilen"
     },
     "control-center-info-share-location": {
-      "message": "CLIQZ kann jetzt auch nach Ergebnissen in deiner Nähe suchen. Genauere Suchergebnisse erhältst du, wenn du <strong>Immer</strong> Standort teilen auswählst. Deine Standort-Information dient nur der automatischen Verbesserung deiner Suchergebnisse und wird niemals weitergegeben oder anderweitig verwendet."
+      "message": "Cliqz kann jetzt auch nach Ergebnissen in deiner Nähe suchen. Genauere Suchergebnisse erhältst du, wenn du <strong>Immer</strong> Standort teilen auswählst. Deine Standort-Information dient nur der automatischen Verbesserung deiner Suchergebnisse und wird niemals weitergegeben oder anderweitig verwendet."
     },
     "control-center-info-share-location-link": {
       "message": "Mehr erfahren"
@@ -1372,9 +1366,6 @@
     },
     "control-center-quicksearch": {
       "message": "Sichere Schnell-Suche"
-    },
-    "control-center-enable-search": {
-      "message": "Cliqz Suche aktivieren"
     },
     "control-center-location": {
       "message": "Standort teilen"
@@ -1560,7 +1551,10 @@
       "message": "Verbinde Cliqz auf deinem Computer mit Cliqz auf deinem mobilen Gerät. Dann kannst du Websites und YouTube Videos direkt an dein Smartphone oder Tablet schicken."
     },
     "pairing-android-app": {
-      "message": "<a id=\"playstore-btn\" target=\"_blank\" href=\"https://play.google.com/store/apps/details?hl=de&id=com.cliqz.browser\">Cliqz für Android</a>"
+      "message": "https://play.google.com/store/apps/details?hl=de&id=com.cliqz.browser"
+    },
+    "pairing-cliqz-for-android": {
+      "message": "Cliqz für Android"
     },
     "pairing-video-title": {
       "message": "Videos herunterladen"
@@ -1693,6 +1687,51 @@
     },
     "signals-redirected-links": {
       "message": "Weitergeleitete Links"
+    },
+    "calculator-thousands-separator": {
+      "message": "."
+    },
+    "show-location-and-contact": {
+      "message": "Ort & Kontakt jetzt anzeigen"
+    },
+    "always-show-location": {
+      "message": "Immer anzeigen"
+    },
+    "show-map": {
+      "message": "Karte zeigen"
+    },
+    "lotto-gewinnzahlen": {
+      "message": "Gewinnzahlen"
+    },
+    "lotto-superzahl": {
+      "message": "Superzahl"
+    },
+    "lotto-5aus50": {
+      "message": "5 aus 50"
+    },
+    "lotto-2aus8": {
+      "message": "2 aus 10"
+    },
+    "lotto-gewinnklasse7": {
+      "message": "Gewinnklasse 7"
+    },
+    "lotto-klasse": {
+      "message": "Klasse"
+    },
+    "lotto-gewinne": {
+      "message": "Gewinne"
+    },
+    "lotto-quoten": {
+      "message": "Quoten"
+    },
+    "lotto-rente": {
+      "message": "Rente"
+    },
+    "lotto-expand": {
+      "message": "Mehr zeigen"
+    },
+    "lotto-euro": {
+      "message": "€"
     },
     "TEST": "OK"
 }

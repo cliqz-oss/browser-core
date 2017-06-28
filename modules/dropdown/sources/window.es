@@ -7,9 +7,11 @@ import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 const STYLESHEET_URL = 'chrome://cliqz/content/dropdown/styles/styles.css';
 
 export default class {
-  constructor({ window }) {
+  constructor({ window, background }) {
     this.window = window;
-    this.ui = new UI(this.window);
+    this.ui = new UI(this.window, {
+      getSessionCount: background.getSessionCount.bind(background),
+    });
 
     this.actions = {
       init: () => {

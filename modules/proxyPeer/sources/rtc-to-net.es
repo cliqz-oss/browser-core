@@ -1,14 +1,14 @@
 import { utils } from '../core/cliqz';
 import { toUTF8, fromBase64 } from '../core/encoding';
+import MessageQueue from '../core/message-queue';
 
 import logger from './logger';
 import { openSocket } from './tcp-socket';
 import { SERVER_REPLY
        , ADDRESS_TYPE
        , parseRequest } from './socks-protocol';
-import { unwrapAESKey } from './rtc-crypto';
+import { unwrapAESKey } from '../core/crypto/utils';
 import { ERROR_CODE, createResponseFromExitNode } from './rtc-onion';
-import MessageQueue from './message-queue';
 import { asyncResolve, isPrivateIPAddress } from './dns-utils';
 
 

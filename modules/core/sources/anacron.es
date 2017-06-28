@@ -1,83 +1,69 @@
-import { utils } from 'core/cliqz';
+import { utils } from './cliqz';
+import moment from '../platform/moment';
+import cronParser from './lib/cron-parser';
 
-const ONE_SECOND = 1000;
-const ONE_MINUTE = 60 * ONE_SECOND;
-const ONE_HOUR = 60 * ONE_MINUTE;
 
 export class Task {
   constructor(run, pattern) {
     this.run = run;
-    this.pattern = this.parse(pattern);
+    this.pattern = pattern;
+    this.defaultIterator = this.iterator();
   }
 
-  // TODO: return false if currently running
-  shouldRun(date = new Date()) {
-    const pattern = this.pattern;
-    const minutes = date.getMinutes();
-    const hours = date.getHours();
-
-    return (minutes % pattern.minutes.interval === 0 ||
-            isNaN(pattern.minutes.interval) &&
-              (isNaN(pattern.minutes.absolute) ||
-               pattern.minutes.absolute === minutes)) &&
-           (hours % pattern.hours.interval === 0 ||
-            isNaN(pattern.hours.interval) &&
-              (isNaN(pattern.hours.absolute) ||
-               pattern.hours.absolute === hours));
+  iterator(from = new Date()) {
+    return cronParser.parseExpression(this.pattern, { currentDate: from, utc: true });
   }
 
-  parse(pattern) {
-    const [minutes, hours] = pattern.split(' ').map((unit) => {
-      const [absolute, interval] = unit.split('/').map(Number);
-      return { absolute, interval };
-    });
-    return { hours, minutes };
-  }
 }
 
-export class Queue {
-  constructor() {
-    this.consumers = [];
+
+class OrderedMultiIterator {
+  constructor(comparator) {
+    this.iterators = {};
     this.queue = [];
+    this.comparator = comparator;
   }
 
-  isEmpty() {
-    return !this.queue.length;
+  addIterator(index, it) {
+    this.iterators[index] = it;
+    this.queue.push({ index, value: it.next() });
   }
 
-  // TODO: add tests
-  head() {
+  removeIterator(index) {
+    delete this.iterators[index];
+    this.queue = this.queue.filter(el => el.index !== index);
+  }
+
+  peek() {
+    if (this.queue.length === 0) {
+      return null;
+    }
+    this.queue.sort(this.comparator);
     return this.queue[0];
   }
 
-  // TODO: add tests
-  enqueue(item) {
-    this.queue.push(item);
-    if (!this.timeout) {
-      this.timeout = utils.setTimeout(this.consume.bind(this), 0);
+  next() {
+    if (this.queue.length === 0) {
+      return null;
     }
-  }
-
-  // TODO: add tests
-  subscribe(callback) {
-    this.consumers.push(callback);
-  }
-
-  // TODO: add tests
-  consume() {
-    while (!this.isEmpty()) {
-      const item = this.queue.shift();
-      this.consumers.forEach(callback => callback(item));
-      // TODO: make asynch, use setTimeout for next item
-    }
-    this.timeout = null;
+    this.queue.sort(this.comparator);
+    const first = this.queue.splice(0, 1)[0];
+    // get another element from the consumed iterator
+    this.queue.push({
+      index: first.index,
+      value: this.iterators[first.index].next()
+    });
+    return first;
   }
 }
 
 export class Cron {
   constructor() {
     this.isRunning = false;
-    this.tasks = [];
+    this._i = 0;
+    this.tasks = {};
+    this.taskQueue = new OrderedMultiIterator((a, b) => a.value.toDate() - b.value.toDate());
+    this.RATE_LIMIT = 10000;
   }
 
   start() {
@@ -85,9 +71,9 @@ export class Cron {
       return;
     }
 
-    this.clock = utils.setInterval(
-      this.onTick.bind(this), ONE_MINUTE);
+    this.clock = null;
     this.isRunning = true;
+    this._scheduleNext();
   }
 
   stop() {
@@ -101,26 +87,57 @@ export class Cron {
 
   schedule(func, pattern) {
     const task = new Task(func, pattern);
-    this.tasks.push(task);
-    return task;
+    this._i += 1;
+    this.tasks[this._i] = task;
+    this.taskQueue.addIterator(this._i, this.getIteratorForTask(task));
+    if (this.isRunning) {
+      this._scheduleNext();
+    }
+    return this._i;
+  }
+
+  getIteratorForTask(task) {
+    return task.defaultIterator;
   }
 
   unschedule(task) {
-    const index = this.tasks.indexOf(task);
-    if (index >= 0) {
-      this.tasks.splice(index, 1);
+    delete this.tasks[task];
+    this.taskQueue.removeIterator(task);
+    this._scheduleNext();
+  }
+
+  _scheduleNext() {
+    utils.clearTimeout(this.clock);
+    const nextTask = this.taskQueue.peek();
+    if (nextTask) {
+      const inMillis = nextTask.value.getTime() - Date.now();
+      console.log('cron', `schedule task in ${moment.duration(inMillis, 'ms').toString()}, ${nextTask.value.toString()}`);
+      this.clock = utils.setTimeout(this._runNext.bind(this),
+        Math.max(this.RATE_LIMIT, inMillis));
     }
   }
 
-  run(date, { force } = { force: false }) {
-    this.tasks
-      .filter(task => force || task.shouldRun(date))
-      .forEach(task => utils.setTimeout(task.run, 0, date));
+  _runNext() {
+    const task = this.taskQueue.next();
+    this.runTask(task.index, new Date(task.value.getTime()));
+    this.nextTask = null;
+    this.clock = null;
+    this._scheduleNext();
   }
 
-  onTick(date = new Date()) {
-    this.run(date);
+  run(date, { force } = { force: false }) {
+    if (force) {
+      Object.keys(this.tasks)
+      .forEach((id) => utils.setTimeout(this.runTask.bind(this, id, date)));
+    } else {
+      this._scheduleNext();
+    }
   }
+
+  runTask(id, date) {
+    this.tasks[id].run(date);
+  }
+
 }
 
 // Anacron
@@ -131,36 +148,18 @@ export default class extends Cron {
     // TODO: test getting of setting
     this.setting = `${name}.last`;
     this.last = Number(this.storage.get(this.setting, 0));
-    this.queue = new Queue();
-    // TODO: move to `start`; also call `unsubscribe` from `stop`
-    this.queue.subscribe(this.run.bind(this));
   }
 
-  // TODO: add tests
-  run(date) {
-    // `super.run` runs tasks asynchronously, thus does not block
-    super.run(date);
-    // TODO: test setting of setting
+  getIteratorForTask(task) {
+    // iterator starting from last saved point
+    return task.iterator(new Date(this.last || Date.now()));
+  }
+
+  runTask(id, date) {
+    super.runTask(id, date);
+    // persist task run time to storage
     this.last = date.getTime();
-    // TODO: since `super.run` is asynchronous, not all tasks are completed at this point;
-    //       timestamp setting should only be set once alls tasks are completed to avoid missing
-    //       tasks (e.g., due to browser shutdown)
     this.storage.set(this.setting, String(this.last));
   }
 
-  converge(date) {
-    const now = date.getTime();
-    if (!this.last || this.last > now) {
-      this.last = now - ONE_MINUTE;
-    }
-    let next = this.last + ONE_MINUTE;
-    while (now - next >= 0) {
-      this.queue.enqueue(new Date(next));
-      next += ONE_MINUTE;
-    }
-  }
-
-  onTick(date = new Date()) {
-    this.converge(date);
-  }
 }

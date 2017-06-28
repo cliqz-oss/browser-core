@@ -53,7 +53,7 @@ try {
     Services.scriptloader.loadSubScript('chrome://cliqz/content/bower_components/mathjs/dist/math.min.js', context);
 
     global.System.set('handlebars', {default: context.Handlebars});
-    global.System.set('math', {default: context.math});
+    global.System.set('mathjs', {default: context.math});
   }
 
   function loadLegacyCodePolyfill() {
@@ -114,6 +114,17 @@ try {
       );
 
       global.clearRunloop();
-    }
+    },
+    _perf: function(key, time) {
+      var data = exports.CLIQZ._perfData[key] = (exports.CLIQZ._perfData[key] || {
+        total: 0,
+        max: 0,
+        n: 0,
+      });
+      data.total += time;
+      data.max = Math.max(data.max, time);
+      data.n += 1;
+    },
+    _perfData: {},
   };
 })(this);

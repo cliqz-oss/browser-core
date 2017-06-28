@@ -32,7 +32,12 @@ const MOCK = {
       save() { return save(); }
       load() { return load(); }
     }
-  }
+  },
+  'platform/text-decoder': {
+    default: class {
+      decode(d) { return d }
+    }
+  },
 };
 
 

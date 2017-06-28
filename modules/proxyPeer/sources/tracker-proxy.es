@@ -15,9 +15,13 @@ const PROXY_ALL_PREF = 'proxyAll';
 const PROXY_SIGNALING_URL_PREF = 'proxySignalingUrl';
 const PROXY_SIGNALING_DEFAULT = 'wss://p2p-signaling-proxypeer.cliqz.com';
 
-// Endpoint used to get the peers
+// Endpoint used to get the relay peers
 const PROXY_PEERS_URL_PREF = 'proxyPeersUrl';
 const PROXY_PEERS_DEFAULT = 'https://p2p-signaling-proxypeer.cliqz.com/peers';
+
+// Endpoint used to get the relay peers
+const PROXY_PEERS_EXIT_URL_PREF = 'proxyPeersExitUrl';
+const PROXY_PEERS_EXIT_DEFAULT = 'https://p2p-signaling-proxypeer.cliqz.com/exitNodes';
 
 
 function shouldProxyTrackers() {
@@ -45,26 +49,31 @@ function shouldProxyInsecureConnections() {
 }
 
 
-function getSignalingUrl() {
-  let signalingUrl = utils.getPref(PROXY_SIGNALING_URL_PREF);
-  if (!signalingUrl) {
-    signalingUrl = PROXY_SIGNALING_DEFAULT;
-    utils.setPref(PROXY_SIGNALING_URL_PREF, signalingUrl);
+function getPrefOrDefault(pref, defaultValue) {
+  let value = utils.getPref(pref);
+  if (!value) {
+    value = defaultValue;
+    utils.setPref(pref, value);
   }
 
-  return signalingUrl;
+  return value;
+}
+
+
+function getSignalingUrl() {
+  return getPrefOrDefault(PROXY_SIGNALING_URL_PREF, PROXY_SIGNALING_DEFAULT);
 }
 
 
 function getPeersUrl() {
-  let peersUrl = utils.getPref(PROXY_PEERS_URL_PREF);
-  if (!peersUrl) {
-    peersUrl = PROXY_PEERS_DEFAULT;
-    utils.setPref(PROXY_PEERS_URL_PREF, peersUrl);
-  }
-
-  return peersUrl;
+  return getPrefOrDefault(PROXY_PEERS_URL_PREF, PROXY_PEERS_DEFAULT);
 }
+
+
+function getExitsUrl() {
+  return getPrefOrDefault(PROXY_PEERS_EXIT_URL_PREF, PROXY_PEERS_EXIT_DEFAULT);
+}
+
 
 export default class {
 
@@ -121,10 +130,13 @@ export default class {
       this.signalingUrlHostname = utils.getDetailsFromUrl(signalingUrl).host;
       const peersUrl = getPeersUrl();
       this.peersUrlHostname = utils.getDetailsFromUrl(peersUrl).host;
+      const exitsUrl = getExitsUrl();
+      this.exitsUrlHostname = utils.getDetailsFromUrl(exitsUrl).host;
 
       this.proxyPeer = new ProxyPeer(
         signalingUrl,
         peersUrl,
+        exitsUrl,
         this.exitPolicy,
         this.p2p,
       );
@@ -186,10 +198,11 @@ export default class {
           // are not routed through the proxy network.
           const isSignalingServer = state.url.indexOf(this.signalingUrlHostname) !== -1;
           const isPeersServer = state.url.indexOf(this.peersUrlHostname) !== -1;
+          const isExitsServer = state.url.indexOf(this.exitsUrlHostname) !== -1;
           // We also check that the current network policy allows this host to be proxied
           const proxyIsPermitted = this.proxyPolicy.shouldProxyAddress(state.urlParts.hostname);
 
-          if (!(isSignalingServer || isPeersServer) && proxyIsPermitted) {
+          if (!(isSignalingServer || isPeersServer || isExitsServer) && proxyIsPermitted) {
             this.checkShouldProxyRequest(state);
           }
 

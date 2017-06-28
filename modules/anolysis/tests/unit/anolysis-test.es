@@ -32,6 +32,9 @@ export default describeModule('anolysis/anolysis',
     'platform/moment': {
       default: moment,
     },
+    'core/crypto/random': {
+      randomInt() { return 0; },
+    },
     'core/events': {
       default: {
         subscript() {
@@ -84,7 +87,7 @@ export default describeModule('anolysis/anolysis',
     'anolysis/storage': {
       default: class Storage {
         getTypesByTimespan() { return Promise.resolve([]); }
-
+        deleteByTimespan() { return Promise.resolve([]); }
       },
     },
     'anolysis/analyses': {

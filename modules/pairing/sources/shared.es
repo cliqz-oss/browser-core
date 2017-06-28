@@ -1,6 +1,5 @@
 /* eslint-disable camelcase */
-
-import Crypto from './crypto';
+import { encryptRSA, decryptRSA } from '../core/crypto/utils';
 import { inflate, deflate } from '../core/zlib';
 import { toBase64, fromBase64, toHex, fromHex, toUTF8, fromUTF8 } from '../core/encoding';
 
@@ -13,7 +12,7 @@ function encryptPairedMessage({ msg, type, source }, targets) {
   const pks = targets.map(({ publicKey }) => publicKey);
   const bigMsg = toUTF8(JSON.stringify({ msg, type, source }));
   const compressed = deflate(bigMsg);
-  return Crypto.encryptRSA(compressed, pks)
+  return encryptRSA(compressed, pks)
   .then(([[iv, encrypted], wrappedKeys]) => {
     const ivRaw = fromBase64(iv); // 12 bytes
     const encryptedRaw = fromBase64(encrypted); // Rest
@@ -58,7 +57,7 @@ function decryptPairedMessage(data, deviceID, privateKey) {
     return Promise.reject(new Error('cannot find wrapped key when decrypting paired message'));
   }
   const wrappedKey = device[1];
-  return Crypto.decryptRSA([encrypted, wrappedKey], privateKey)
+  return decryptRSA([encrypted, wrappedKey], privateKey)
   .then(compressed => JSON.parse(fromUTF8(inflate(new Uint8Array(compressed)))))
   .then(({ msg, type, source }) => ({ msg, type, source }));
 }

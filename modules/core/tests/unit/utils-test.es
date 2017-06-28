@@ -31,7 +31,9 @@ export default describeModule("core/utils",
         default: {}
       },
       './tlds': {
-        TLDs: {}
+        default: {
+          getPublicSuffix() {},
+        },
       },
       './http': {
         httpHandler: {},
@@ -39,6 +41,9 @@ export default describeModule("core/utils",
       },
       './crypto/random': {
         default: Math.random.bind(Math),
+      },
+      '../platform/fetch': {
+        fetchFactory() {},
       },
     };
   },

@@ -20,17 +20,12 @@ export default class {
   * @method init
   */
   init() {
-    if (this.status().visible) {
-      this.showOnboarding();
-
-      addStylesheet(this.window.document, STYLESHEET_URL);
-    }
+    this.showOnboarding();
+    addStylesheet(this.window.document, STYLESHEET_URL);
   }
 
   unload() {
-    if (this.status().visible) {
-      removeStylesheet(this.window.document, STYLESHEET_URL);
-    }
+    removeStylesheet(this.window.document, STYLESHEET_URL);
   }
 
   showOnboarding() {
@@ -51,11 +46,5 @@ export default class {
         },
       );
     }
-  }
-
-  status() {
-    return {
-      visible: utils.getPref('connect', false),
-    };
   }
 }

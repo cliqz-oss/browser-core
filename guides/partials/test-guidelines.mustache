@@ -145,3 +145,23 @@ export default describeModule('offers-v2/offers_db',
   }
 );
 ```
+
+If for some reason you need (<strong>you should try to avoid as much as possible</strong>)
+to use an external module what you can do a small trick and load it (take into account
+that this is not a good practice since you are not isolating the test but generating a
+external dependency).
+In the following example we will try to load a module named `offers_db` located
+on the `offers-v2` module folder, which contains a class named `OfferDB`.
+
+```
+      let OfferDB;
+
+      beforeEach(function () {
+        OfferProcessor = this.module().default;
+        return System.import('offers-v2/offers_db').then((mod) => {
+          OfferDB = mod.default;
+        });
+      });
+```
+
+After that you can create an object of type OfferDB as usual.

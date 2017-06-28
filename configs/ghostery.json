@@ -1,6 +1,8 @@
 {
   "platform": "chromium",
   "brocfile": "node.Brocfile.js",
+  "baseURL": "/",
+  "sourceMaps": false,
   "format": "common",
   "settings": {
     "channel": "CH80",

@@ -93,7 +93,7 @@ var CliqzAttrack = {
     httpopenObserver: function(requestDetails) {
       const response =  CliqzAttrack.pipeline.execute('open', requestDetails);
       // annotate source of this block
-      if (Object.keys(response).length > 0) {
+      if (response.cancel || response.redirectUrl) {
         response.source = 'ATTRACK';
       }
       return response;

@@ -85,7 +85,7 @@ export default class {
     }
   }
 
-  onShowing() {
+  onShowing(cb) {
     this.createIframe();
     this.panel.querySelector('vbox').appendChild(this.iframe);
     utils.telemetry({
@@ -105,6 +105,10 @@ export default class {
         panel.addEventListener('mouseout', this.onMouseOut);
       });
     }, 200);
+
+    if (typeof cb === "function") {
+      cb();
+    }
   }
 
   onHiding(cb) {
@@ -138,10 +142,10 @@ export default class {
     );
   }
 
-  hide() {
+  hide({ force = false } = {}) {
     this.shouldBeOpen = false;
     utils.setTimeout(() => {
-      if (!this.shouldBeOpen) {
+      if (force || !this.shouldBeOpen) {
         maybe(this, 'wrapperPanel').then(panel => panel.hidePopup());
       }
     }, 300);

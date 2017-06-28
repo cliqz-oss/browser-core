@@ -20,10 +20,6 @@ export default describeModule('core/incremental-storage',
       default: data => crypto.createHash('md5').update(data).digest('hex'),
     },
     'core/fs': _fs,
-    'platform/shutdown-blocker': {
-      addShutdownBlocker: () => {},
-      removeShutdownBlocker: () => {},
-    },
     'core/console': console,
   }),
   () => {
