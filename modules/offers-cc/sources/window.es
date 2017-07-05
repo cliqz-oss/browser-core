@@ -159,7 +159,7 @@ export default class {
     this.button = button;
 
     const div = doc.createElement('div');
-    div.setAttribute('class', 'cliqz-offers-cc');
+    div.setAttribute('class', 'cliqz-offers-cc toolbarbutton-icon');
     if (this.settings.controlCenterSecurity === true) {
       div.textContent = BTN_LABEL;
     }

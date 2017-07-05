@@ -56,14 +56,15 @@ class MASignalBuilder {
    *     "tlcat": "Home"
    *   },
    *   "tfs": {
-   *     "doy": 151,
-   *     "woy": 22,
-   *     "m": 5
+   *     "doy": "177"
    *   },
    *   "metrics": {
    *     "imp": 5,
-   *     "cr1Imp": 2,
-   *     "cr2Imp": 1
+   *     "v": 1,
+   *     "reg": 1,
+   *     "sho": 1,
+   *     "chk": 1,
+   *     "tra": 1
    *   }
    * }
    * @param  {String}     domain
@@ -109,37 +110,42 @@ class MASignalBuilder {
    * {
    *   "isUniqueMetrics": true,
    *   "group": {
-   *     "tlcat": "Home"
+   *     "domain": "matratzen-concord.de"
    *   },
-   *   "records": [
-   *     {
-   *       "metrics": {
-   *         "uImp": 1,
-   *         "cr1UImp": 1
-   *       },
-   *       "tf": {
-   *         "doy": "151"
-   *       }
+   *   "records": [{
+   *     "metrics": {
+   *       "uVisitor": 1,
+   *       "uRegistrant": 1,
+   *       "uPotBuyer": 1,
+   *       "uBuyer": 1,
+   *       "uShopper": 1
    *     },
-   *     {
-   *       "metrics": {
-   *         "uImp": 1,
-   *         "cr1UImp": 1
-   *       },
-   *       "tf": {
-   *         "woy": "22"
-   *       }
-   *     },
-   *     {
-   *       "metrics": {
-   *         "uImp": 1,
-   *         "cr1UImp": 1
-   *       },
-   *       "tf": {
-   *         "m": "5"
-   *       }
+   *     "tf": {
+   *       "doy": "177"
    *     }
-   *   ]
+   *   }, {
+   *     "metrics": {
+   *       "uVisitor": 1,
+   *       "uRegistrant": 1,
+   *       "uPotBuyer": 1,
+   *       "uBuyer": 1,
+   *       "uShopper": 1
+   *     },
+   *     "tf": {
+   *       "woy": "26"
+   *     }
+   *   }, {
+   *     "metrics": {
+   *       "uVisitor": 1,
+   *       "uRegistrant": 1,
+   *       "uPotBuyer": 1,
+   *       "uBuyer": 1,
+   *       "uShopper": 1
+   *     },
+   *     "tf": {
+   *       "m": "6"
+   *     }
+   *   }]
    * }
    * @param  {String} group
    * @param  {String} groupVal

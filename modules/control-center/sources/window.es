@@ -543,7 +543,7 @@ export default class {
     button.classList.add('chromeclass-toolbar-additional')
 
     const div = doc.createElement('div');
-    div.setAttribute('class', 'cliqz-control-center');
+    div.setAttribute('class', 'cliqz-control-center toolbarbutton-icon');
     if (this.settings.controlCenterSecurity === true) {
       div.textContent = BTN_LABEL;
     } else {
@@ -553,12 +553,9 @@ export default class {
     button.appendChild(div);
 
     UITour.targets.set('cliqz', { query: '#cliqz-cc-btn', widgetName: 'cliqz-cc-btn', allowAdd: true });
-    const promise = UITour.getTarget(this.window, 'cliqz');
-    promise.then(() => {
-      button.addEventListener('command', () => {
-        this.panel.open(button);
-      });
-    });
+    button.addEventListener('command', () => {
+      this.panel.open(button);
+    }, false);
 
     ToolbarButtonManager.restorePosition(doc, button);
 

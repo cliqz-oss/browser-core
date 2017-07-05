@@ -9,17 +9,26 @@ export function isURI(text) {
   }
 }
 
+export class URI {
+  constructor(url) {
+    this.uri = Services.io.newURI(url, 'UTF-8', null);
+  }
+
+  get cleanHost() {
+    let cleanHost = this.uri.host;
+    if (this.uri.host.toLowerCase().indexOf('www.') === 0) {
+      cleanHost = this.uri.host.slice(4);
+    }
+    return cleanHost;
+  }
+  get path() {
+    return this.uri.path;
+  }
+}
+
 export default function equal(url1, url2) {
   let uri1;
   let uri2;
-
-  if (!url1 || !url2) {
-    return false;
-  }
-
-  if (url1 === url2) {
-    return true;
-  }
 
   try {
     uri1 = Services.io.newURI(url1, 'UTF-8', null);

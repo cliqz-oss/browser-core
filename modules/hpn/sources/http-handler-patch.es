@@ -3,6 +3,7 @@ import * as http from '../core/http';
 import CliqzSecureMessage from './main';
 
 const OFFER_TELEMETRY = 'https://offers-api.cliqz.com/api/v1/savesignal';
+const OFFER_TELEMETRY_PREFIX = 'https://offers-api.cliqz.com'
 
 let proxyHttpHandler = null;
 export function overRideCliqzResults() {
@@ -30,7 +31,7 @@ export function overRideCliqzResults() {
         upk: CliqzSecureMessage.uPK,
         dspk: CliqzSecureMessage.dsPK,
         sspk: CliqzSecureMessage.secureLogger,
-        queryproxyip: CliqzSecureMessage.queryProxyIP,
+        queryProxyUrl: CliqzSecureMessage.queryProxyIP,
       });
       return null;
     } else if (url.startsWith(utils.RESULTS_PROVIDER_LOG)) {
@@ -50,7 +51,7 @@ export function overRideCliqzResults() {
         upk: CliqzSecureMessage.uPK,
         dspk: CliqzSecureMessage.dsPK,
         sspk: CliqzSecureMessage.secureLogger,
-        queryproxyip: CliqzSecureMessage.queryProxyIP,
+        queryProxyUrl: CliqzSecureMessage.queryProxyIP,
       });
       return null;
     } else if (url === utils.SAFE_BROWSING) {
@@ -61,10 +62,42 @@ export function overRideCliqzResults() {
         });
       }
       callback && callback({ 'response': '{"success":true}' });
-    } else if (url === OFFER_TELEMETRY) {
-      const batch = JSON.parse(data);
-      CliqzSecureMessage.telemetry(batch);
-      callback && callback({ 'response': '{"success":true}' });
+    } else if (url.startsWith(OFFER_TELEMETRY_PREFIX)) {
+
+      // Make sure that that CliqzSecureMessage.queryProxyIP exists,
+      // otherwise, sending the message will silently fail.
+      //
+      // The queryProxyIP contains the proxy's verify endpoint
+      // (e.g., "http://<proxy-ip>/verify").
+      const queryProxyUrl = CliqzSecureMessage.proxyIP();
+      if (!queryProxyUrl) {
+        throw new Error(
+          'Failed to send message, as the list of proxies is empty');
+      }
+
+      const query = url.replace(OFFER_TELEMETRY_PREFIX, '');
+      const uid = Math.floor(Math.random() * 10000000);
+      CliqzSecureMessage.queriesID[uid] = callback;
+
+      const message = {
+        msg: { action: 'offers-api',
+              type: 'cliqz',
+              ts: '',
+              ver: '1.5',
+              payload: query,
+              rp: OFFER_TELEMETRY_PREFIX,
+              body: data,
+        },
+        uid: uid,
+        type: 'instant',
+        sourcemap: CliqzSecureMessage.sourceMap,
+        upk: CliqzSecureMessage.uPK,
+        dspk: CliqzSecureMessage.dsPK,
+        sspk: CliqzSecureMessage.secureLogger,
+        queryProxyUrl: queryProxyUrl,
+      };
+      CliqzSecureMessage.wCrypto.postMessage(message);
+      return null;
     } else {
       return proxyHttpHandler.apply(undefined, arguments);
     }

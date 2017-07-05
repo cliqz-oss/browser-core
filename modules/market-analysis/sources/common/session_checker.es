@@ -28,28 +28,13 @@ class SessionChecker {
       switch (metric) {
         case MAMetrics.VISIT:
         case MAMetrics.REGISTRATION:
+        case MAMetrics.SHOPPING:
         case MAMetrics.CHECKOUT:
         case MAMetrics.TRANSACTION: {
           // 30-minute session
-          if (diffSeconds < 1800) {
-            return false;
-          }
-          return true;
+          return diffSeconds >= 1800;
         }
-
-        case MAMetrics.SHOPPING: {
-          // 5-minute session
-          if (diffSeconds < 300) {
-            return false;
-          }
-          return true;
-        }
-
         case MAMetrics.IMP: {
-          // 3-second session
-          if (diffSeconds < 3) {
-            return false;
-          }
           return true;
         }
 

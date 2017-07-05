@@ -10,6 +10,7 @@ import CliqzLanguage from './language';
 import { isUrl, isIpv4Address, isIpv6Address } from './url';
 import random from './crypto/random';
 import { fetchFactory } from '../platform/fetch';
+import LRU from './LRU';
 
 var VERTICAL_ENCODINGS = {
     'people':'p',
@@ -26,6 +27,8 @@ var COLOURS = ['#ffce6d','#ff6f69','#96e397','#5c7ba1','#bfbfbf','#3b5598','#fbb
     LOGOS = ['wikipedia', 'google', 'facebook', 'youtube', 'duckduckgo', 'sternefresser', 'zalando', 'bild', 'web', 'ebay', 'gmx', 'amazon', 't-online', 'wiwo', 'wwe', 'weightwatchers', 'rp-online', 'wmagazine', 'chip', 'spiegel', 'yahoo', 'paypal', 'imdb', 'wikia', 'msn', 'autobild', 'dailymotion', 'hm', 'hotmail', 'zeit', 'bahn', 'softonic', 'handelsblatt', 'stern', 'cnn', 'mobile', 'aetv', 'postbank', 'dkb', 'bing', 'adobe', 'bbc', 'nike', 'starbucks', 'techcrunch', 'vevo', 'time', 'twitter', 'weatherunderground', 'xing', 'yelp', 'yandex', 'weather', 'flickr'],
     BRANDS_DATABASE = { domains: {}, palette: ["999"] };
 const schemeRE = /^(\S+?):(\/\/)?(.*)$/i;
+
+const urlDetailsCache = new LRU(10000);
 
 var CliqzUtils = {
   environment: CLIQZEnvironment,
@@ -284,6 +287,9 @@ var CliqzUtils = {
   },
   genericTldExtractor: tlds.getPublicSuffix,
   getDetailsFromUrl: function(originalUrl){
+    if (urlDetailsCache.has(originalUrl)) {
+      return urlDetailsCache.get(originalUrl);
+    }
     var [action, originalUrl] = CliqzUtils.cleanMozillaActions(originalUrl);
     // exclude protocol
     var url = originalUrl,
@@ -425,6 +431,7 @@ var CliqzUtils = {
               port: port,
               friendly_url: friendly_url
         };
+    urlDetailsCache.set(originalUrl, urlDetails);
 
     return urlDetails;
   },

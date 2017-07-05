@@ -111,7 +111,7 @@ export default class BaseResult {
   }
 
   get isCliqzAction() {
-    return !this.rawResult.url || this.rawResult.url.indexOf('cliqz-actions') === 0;
+    return this.rawResult.url && this.rawResult.url.indexOf('cliqz-actions') === 0;
   }
 
   get isAdult() {

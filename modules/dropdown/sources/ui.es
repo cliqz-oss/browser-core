@@ -42,9 +42,11 @@ export default class {
   }
 
   sessionEnd() {
-    this.dropdown.selectedIndex = -1;
-    this.adultAssistant.resetAllowOnce();
-    this.locationAssistant.resetAllowOnce();
+    if (this.dropdown) { // this might be called before the initiaization
+      this.dropdown.selectedIndex = -1;
+      this.adultAssistant.resetAllowOnce();
+      this.locationAssistant.resetAllowOnce();
+    }
   }
 
   keyDown(ev) {
@@ -104,6 +106,12 @@ export default class {
             && (this.popup.query === urlbarValue)
             && firstResult.isAutocompleted) {
             this.dropdown.results.firstResult.click(this.window, firstResult.url, ev);
+            break;
+          }
+
+          const result = this.dropdown.results.findSelectable(this.popup.urlbarVisibleValue);
+          if (result) {
+            result.click(this.window, result.url, ev);
             break;
           }
 

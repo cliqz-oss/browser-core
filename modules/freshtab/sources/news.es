@@ -2,6 +2,7 @@ import {
   historyManager as coreHistoryManager,
 } from 'core/cliqz';
 import coreUtils from 'core/utils';
+import {extractSimpleURI} from 'core/url';
 
 import coreLanguage from 'platform/language';
 import PlacesUtils from 'platform/places-utils';
@@ -168,7 +169,7 @@ export function getHistoryBasedRecommendations(oldCacheData) {
   }
 
   function addHRecordToGlobalVisitCount(record, globalVisitCount) {
-    const urlData = coreUtils.getDetailsFromUrl(record.url);
+    const urlData = extractSimpleURI(record.url);
     if (checkIfDomainForCounting(urlData.cleanHost)) {
       let domainVisitCount;
       if (pathHasIndex(urlData.path)) {

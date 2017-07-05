@@ -171,7 +171,7 @@ export default class {
   }
 
   detach() {
-    const panelui = this.panelUI();
+    const panelui = this.panel.parentElement;
     if (panelui) {
       panelui.removeChild(this.panel);
       this.destroyPanel();

@@ -1,4 +1,4 @@
-import { randBigInt } from 'bigint';
+import randBigInt from 'bigint';
 import CliqzSecureMessage from './index';
 
 import {
@@ -150,7 +150,7 @@ blindSignContext.prototype.hashMessage = function(){
 blindSignContext.prototype.getBlindingNonce = function(){
     // Create a random value.
 
-    var randomNumber = randBigInt(this.keySize,1);
+    var randomNumber = randBigInt.randBigInt(this.keySize,1);
     this.blindingNonce = randomNumber;
     return randomNumber;
 }

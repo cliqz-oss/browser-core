@@ -213,6 +213,7 @@ const CliqzSecureMessage = {
     const url = hpnUtils.createHttpUrl(CliqzSecureMessage.proxyList[proxyCounter]);
     CliqzSecureMessage.queryProxyIP = url;
     proxyCounter += 1;
+    return url;
   },
   registerUser: function() {
     this.storage.loadKeys().then(userKey => {

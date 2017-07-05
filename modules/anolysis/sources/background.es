@@ -76,6 +76,13 @@ export default background({
 
     // Initialize the module - we only do that if a sync date is available
     if (isTelemetryEnabled() && getSynchronizedDate() !== null) {
+      // TODO - send ping_anolysis signal with legacy telemetry system
+      // This is only meant for testing purposes and will be remove in
+      // the future.
+      utils.telemetry({
+        type: 'anolysis.start_init',
+      });
+
       return this.start();
     }
     return Promise.resolve();
@@ -99,19 +106,29 @@ export default background({
       this.telemetryHandler = this.events['telemetry:handleTelemetrySignal'].bind(this);
       utils.telemetryHandlers.push(this.telemetryHandler);
 
-      // TODO - send ping_anolysis signal with legacy telemetry system
-      // This is only meant for testing purposes and will be remove in
-      // the future.
-      utils.telemetry({
-        type: 'anolysis_ping',
-      }, true /* force push */);
-
       return this.actions.registerSchemas(telemetrySchemas)
         .then(() => { this.anolysis.init(); })
         .then(() => {
           this.isRunning = true;
           utils.log('started', 'anon');
           events.pub('anolysis:initialized');
+        })
+        .then(() => {
+          // TODO - send ping_anolysis signal with legacy telemetry system
+          // This is only meant for testing purposes and will be remove in
+          // the future.
+          utils.telemetry({
+            type: 'anolysis.start_end',
+          });
+        })
+        .catch((ex) => {
+          // TODO - send ping_anolysis signal with legacy telemetry system
+          // This is only meant for testing purposes and will be remove in
+          // the future.
+          utils.telemetry({
+            type: 'anolysis.start_exception',
+            exception: `${ex}`,
+          });
         });
     });
   },

@@ -260,11 +260,11 @@ function onDOMWindowCreated(ev) {
        matchesCurrentUrl = true;
      }
    }
-    var isGetHTML = msg.data.action === 'getHTML';
+    var isHumanWebUrl = ['getHTML', 'queryHTML'].indexOf(msg.data.action) >= 0;
     // TEMP: Human web decodes the URI for internal storage
     var isCurrentUrlBis = msg.data.url === decodeURIComponent(currentURL());
 
-    if (!matchesCurrentUrl || (isGetHTML && !isCurrentUrlBis)) {
+    if (!matchesCurrentUrl && (isHumanWebUrl && !isCurrentUrlBis)) {
       return;
     }
 

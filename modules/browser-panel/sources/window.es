@@ -89,6 +89,7 @@ export default class {
     this.iframe.style.width = '0';
     this.iframe.style.height = '0';
     this.iframe.style.border = 'none';
+    this.iframe.style.margin = '2px 0 0 0';
 
     // for safety we remove the id of the offer
     this.setOfferID('');

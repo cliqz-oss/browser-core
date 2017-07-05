@@ -16,7 +16,6 @@ export default function (url) {
         client.setRequestHeader("x-type", type ? type : "delayed");
         client.overrideMimeType('application/json');
         //client.setRequestHeader("Content-Type", "application/json;charset=utf-8");
-        client.send(data);
 
         client.onload = function () {
         	var statusClass = parseInt(client.status / 100);
@@ -35,6 +34,8 @@ export default function (url) {
         client.ontimeout = function(){
         	reject(this.statusText);
         };
+
+        client.send(data);
       });
 
       // Return the promise

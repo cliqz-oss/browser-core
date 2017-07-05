@@ -16,8 +16,8 @@
             <em:targetApplication>
               <RDF:Description>
                 <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
-                <em:minVersion>36.0</em:minVersion>
-                <em:maxVersion>54.*</em:maxVersion>
+                <em:minVersion>42.0</em:minVersion>
+                <em:maxVersion>56.*</em:maxVersion>
                 <em:updateLink>{{download_link}}</em:updateLink>
               </RDF:Description>
             </em:targetApplication>

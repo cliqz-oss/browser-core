@@ -165,7 +165,7 @@ export default describeModule('market-analysis/market_analyzer_main',
 
         const expected = {
           'domain|amazon.de': {
-            [todayDOYStr]: { [MAMetrics.IMP]: 2, [MAMetrics.VISIT]: 1, [MAMetrics.U_VISITOR]: 1 },
+            [todayDOYStr]: { [MAMetrics.IMP]: 3, [MAMetrics.VISIT]: 1, [MAMetrics.U_VISITOR]: 1 },
             [todayWOYStr]: { [MAMetrics.U_VISITOR]: 1 },
             [todayMStr]: { [MAMetrics.U_VISITOR]: 1 }
           },
@@ -226,7 +226,7 @@ export default describeModule('market-analysis/market_analyzer_main',
             [todayDOYStr]: {
               [MAMetrics.IMP]: 4,
               [MAMetrics.VISIT]: 1,
-              [MAMetrics.SHOPPING]: 2,
+              [MAMetrics.SHOPPING]: 1,
               [MAMetrics.U_VISITOR]: 1,
               [MAMetrics.U_SHOPPER]: 1
             },
@@ -266,10 +266,10 @@ export default describeModule('market-analysis/market_analyzer_main',
         let expected;
         expected = {
           [todayDOYStr]: {
-            [MAMetrics.IMP]: 6,
+            [MAMetrics.IMP]: 8,
             [MAMetrics.VISIT]: 1,
             [MAMetrics.REGISTRATION]: 1,
-            [MAMetrics.SHOPPING]: 2,
+            [MAMetrics.SHOPPING]: 1,
             [MAMetrics.CHECKOUT]: 1,
             [MAMetrics.TRANSACTION]: 1,
             [MAMetrics.U_VISITOR]: 1,
@@ -381,7 +381,7 @@ export default describeModule('market-analysis/market_analyzer_main',
           [todayDOYStr]: {
             [MAMetrics.IMP]: 6,
             [MAMetrics.VISIT]: 1,
-            [MAMetrics.SHOPPING]: 2,
+            [MAMetrics.SHOPPING]: 1,
             [MAMetrics.TRANSACTION]: 1,
             [MAMetrics.U_VISITOR]: 1,
             [MAMetrics.U_SHOPPER]: 1,
