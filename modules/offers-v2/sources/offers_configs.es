@@ -30,6 +30,7 @@ var OffersConfigs = {
   // offer storage
   LOAD_OFFERS_STORAGE_DATA: true,
   OFFERS_STORAGE_DEFAULT_TTS_SECS: 60 * 60 * 24 * 10,
+  OFFERS_STORAGE_AUTOSAVE_FREQ_SECS: 2 * 60,
 
   //////////////////////////////////////////////////////////////////////////////
   // SIGNALS
@@ -46,6 +47,8 @@ var OffersConfigs = {
   SIGNALS_VERSION: 3.0,
   // debug variable to load / not load the data from DB
   SIGNALS_LOAD_FROM_DB: true,
+  // how frequent we want to save into DB
+  SIGNALS_AUTOSAVE_FREQ_SECS: 2 * 60,
 
   //////////////////////////////////////////////////////////////////////////////
   // CONFIG / DEBUG variables

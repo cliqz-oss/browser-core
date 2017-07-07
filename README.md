@@ -1,12 +1,12 @@
 # Browser Core
 
-CLIQZ is available on multiple platforms: browsers for Windows, Mac, Linux, and iOS (based on Mozilla/Firefox), as well as the CLIQZ browser for Android (based on Lightning). There's also the CLIQZ for Firefox browser extension.
+Cliqz is available on multiple platforms: browsers for Windows, Mac, Linux, and iOS (based on Mozilla/Firefox), as well as the Cliqz browser for Android (based on Lightning). There's also the Cliqz for Firefox browser extension.
 
 Browser Core is used in:
 
-* [CLIQZ for Desktop](https://github.com/cliqz-oss/browser-f)
-* [CLIQZ for Android](https://github.com/cliqz-oss/browser-android)
-* [CLIQZ for IOS](https://github.com/cliqz-oss/browser-ios)
+* [Cliqz for Desktop](https://github.com/cliqz-oss/browser-f)
+* [Cliqz for Android](https://github.com/cliqz-oss/browser-android)
+* [Cliqz for IOS](https://github.com/cliqz-oss/browser-ios)
 
 ## Documentation
 
@@ -15,9 +15,9 @@ Browser Core is used in:
 
 ## Core modules
 
-Browser Core consist of independent modules that together form the CLIQZ product. The most important ones are:
+Browser Core consist of independent modules that together form the Cliqz product. The most important ones are:
 
-* quick search - [modules/ui](modules/ui/sources) - heart of the CLIQZ navigation: search directly in the browser
+* quick search - [modules/ui](modules/ui/sources) - heart of the Cliqz navigation: search directly in the browser
 * human web - [modules/human-web](modules/human-web/) - collects anonymous statistical data to assess website relevance and security [read more](https://cliqz.com/en/whycliqz/human-web)
 * anti tracking - [modules/antitracking](modules/antitracking) - detects and overwrites tracking data that could be used to indentify individual users [read more](https://cliqz.com/en/whycliqz/anti-tracking)
 * anti phishing -  [modules/anti-phishing](modules/anti-phishing) - detects and alerts users about forged websites and data theft attempts [read more](https://cliqz.com/en/whycliqz/anti-phishing)

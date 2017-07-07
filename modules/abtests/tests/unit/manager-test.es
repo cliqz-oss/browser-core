@@ -9,11 +9,12 @@ const MOCK = {
       error() {},
     },
   },
-  'anolysis/background': {
+  'abtests/demographics': {
+    default: () => mockExtensionVersion,
+  },
+  'core/kord/inject': {
     default: {
-      actions: {
-        getCurrentDemographics: () => JSON.stringify(mockUserDemographics),
-      }
+      module() { return { action() {} }; }
     }
   },
   'anolysis/synchronized-date': {
@@ -73,6 +74,7 @@ const mockTest1 = {
 let mockUserDemographics = { };
 let mockSynchronizedDate = Moment(new Date(2017, 5, 1));
 let mockRandom = 0;
+let mockExtensionVersion = null;
 
 export default describeModule('abtests/manager',
   () => MOCK,
@@ -102,7 +104,7 @@ export default describeModule('abtests/manager',
         const startedTests = [];
         const stoppedTests = [];
         manager.runningTests = { '3': { id: '3' }, '4': { id: '4 '} };
-        manager.shouldStartTest = ({ id }) => id === '2';
+        manager.shouldStartTest = ({ id }) => Promise.resolve(id === '2');
         manager.shouldStopTest = ({ id }) => id === '3';
         manager.client.enterTest = () => Promise.resolve(true);
         manager.startTest = (test) => { startedTests.push(test); return Promise.resolve(test); };
@@ -245,7 +247,7 @@ export default describeModule('abtests/manager',
       });
       it('finds tests that pass local enter tests and calls `chooseTestGroup`', () => {
         manager.chooseTestGroup = () => 'A';
-        manager.shouldStartTest =  ({ id }) => id === '2';
+        manager.shouldStartTest =  ({ id }) => Promise.resolve(id === '2');
         manager.client.enterTest = () => Promise.resolve(true);
         return manager.getUpcomingTests([{ id: '1' }, { id: '2' }, { id: '3' }]).then((upcomingTests) => {
           chai.expect(upcomingTests.length).to.equal(1);
@@ -254,7 +256,7 @@ export default describeModule('abtests/manager',
       });
       it('finds tests that pass remote enter tests and calls `chooseTestGroup`', () => {
         manager.chooseTestGroup = () => '';
-        manager.shouldStartTest = () => true;
+        manager.shouldStartTest = () => Promise.resolve(true);
         manager.client.enterTest = (id) => id === '3' ? Promise.resolve(false) : Promise.resolve(true);
         return manager.getUpcomingTests([{ id: '1' }, { id: '2' }, { id: '3' }]).then((upcomingTests) => {
           chai.expect(upcomingTests.length).to.equal(2);
@@ -264,7 +266,7 @@ export default describeModule('abtests/manager',
       });
       it('finds tests that pass both local and remote enter tests and calls `chooseTestGroup`', () => {
         manager.chooseTestGroup = () => 'A';
-        manager.shouldStartTest =  ({ id }) => id === '2';
+        manager.shouldStartTest =  ({ id }) => Promise.resolve(id === '2');
         manager.client.enterTest = (id) => id === '3' ? Promise.reject() : Promise.resolve(true);
         return manager.getUpcomingTests([{ id: '1' }, { id: '2' }, { id: '3' }]).then((upcomingTests) => {
           chai.expect(upcomingTests.length).to.equal(1);
@@ -273,7 +275,7 @@ export default describeModule('abtests/manager',
       });
       it('does not enter tests for which remote call fails', () => {
         manager.chooseTestGroup = () => '';
-        manager.shouldStartTest = () => true;
+        manager.shouldStartTest = () => Promise.resolve(true);
         manager.client.enterTest = (id) => id === '3' ? Promise.reject() : Promise.resolve(true);
         return manager.getUpcomingTests([{ id: '1' }, { id: '2' }, { id: '3' }]).then((upcomingTests) => {
           chai.expect(upcomingTests.length).to.equal(2);
@@ -330,23 +332,36 @@ export default describeModule('abtests/manager',
 
         manager.isDemographicsMatch = (test) => {
           chai.expect(test.demographic).to.not.be.undefined;
-          return true;
+          return Promise.resolve(true);
         };
         manager.isTestActive = (test) => {
           chai.expect(test.status).to.not.be.undefined;
           return true;
         };
+        manager.isVersionMatch = () => true;
       });
 
       it('returns true if probability threshold is higher than random draw', () => {
         mockRandom = .4;
         mockTest2.probability = .5;
-        chai.expect(manager.shouldStartTest(mockTest2)).to.be.true;
+        return chai.expect(manager.shouldStartTest(mockTest2)).to.eventually.be.true;
       });
       it('returns false if probability threshold is lower than random draw', () => {
         mockRandom = .4;
         mockTest2.probability = .3;
-        chai.expect(manager.shouldStartTest(mockTest2)).to.be.false;
+        return chai.expect(manager.shouldStartTest(mockTest2)).to.eventually.be.false;
+      });
+      it('returns false if demographics do not match', () => {
+        mockRandom = .4;
+        mockTest2.probability = .5;
+        manager.isDemographicsMatch = () => Promise.resolve(false);
+        return chai.expect(manager.shouldStartTest(mockTest2)).to.eventually.be.false;
+      });
+      it('returns false if version does not match', () => {
+        mockRandom = .4;
+        mockTest2.probability = .5;
+        manager.isVersionMatch = () => false;
+        return chai.expect(manager.shouldStartTest(mockTest2)).to.eventually.be.false;
       });
     });
     describe('#shouldStopTest', () => {
@@ -419,100 +434,146 @@ export default describeModule('abtests/manager',
         chai.expect(manager.isTestActive(mockTest2)).to.be.false;
       });
     });
+    describe('#isVersionMatch', () => {
+      let manager;
+      let mockTest2;
+
+      beforeEach(function () {
+        const Manager = new this.module().default;
+        manager = new Manager();
+
+        mockTest2 = Object.assign({ }, mockTest1);
+      });
+
+      it('returns true for exact match', () => {
+        mockExtensionVersion = '1.0.0';
+        mockTest2.core_version = '1.0.0';
+        chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
+      });
+      it('returns true for partial match', () => {
+        mockExtensionVersion = '1.0.0';
+        mockTest2.core_version = '1.0';
+        chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
+        mockTest2.core_version = '1';
+        chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
+      });
+      it('returns false for no match', () => {
+        mockExtensionVersion = '1.0.0';
+        mockTest2.core_version = '2.0.0';
+        chai.expect(manager.isVersionMatch(mockTest2)).to.be.false;
+        mockTest2.core_version = '2.0';
+        chai.expect(manager.isVersionMatch(mockTest2)).to.be.false;
+        mockTest2.core_version = '2';
+        chai.expect(manager.isVersionMatch(mockTest2)).to.be.false;
+      });
+      it('returns false for missing extension version', () => {
+        mockExtensionVersion = null;
+        mockTest2.core_version = '2.0.0';
+        chai.expect(manager.isVersionMatch(mockTest2)).to.be.false;
+      });
+    });
     describe('#isDemographicsMatch', () => {
       let manager;
 
       beforeEach(function () {
         const Manager = new this.module().default;
         manager = new Manager();
+        manager.anolysis = {
+          action: () => Promise.resolve(JSON.stringify(mockUserDemographics)),
+        };
       });
 
       it('does not match non-existent factor', () => {
         mockUserDemographics = { platform: 'Desktop/Mac OS/10.12' };
-        chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ' } })).to.be.false;
+        return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ' } })).to.eventually.be.false;
+      });
+
+      it('does not fails if anolyis returns `null`', () => {
+        mockUserDemographics = null;
+        return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ' } })).to.eventually.be.false;
       });
 
       describe('with install date', () => {
         it('matches exact date', () => {
           mockUserDemographics = { install_date: '2017/04/28' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/28' } })).to.be.true;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/28' } })).to.eventually.eventually.be.true;
         });
         it('matches center date', () => {
           mockUserDemographics = { install_date: '2017/04/24' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28' } })).to.be.true;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28' } })).to.eventually.be.true;
         });
         it('matches start date', () => {
           mockUserDemographics = { install_date: '2017/04/20' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28' } })).to.be.true;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28' } })).to.eventually.be.true;
         });
         it('matches end date', () => {
           mockUserDemographics = { install_date: '2017/04/28' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28' } })).to.be.true;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28' } })).to.eventually.be.true;
         });
         it('does not match date before range', () => {
           mockUserDemographics = { install_date: '2017/04/19' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28' } })).to.be.false;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28' } })).to.eventually.be.false;
         });
         it('does not match date after range', () => {
           mockUserDemographics = { install_date: '2017/04/29' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28' } })).to.be.false;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28' } })).to.eventually.be.false;
         });
         it('does not match date before date', () => {
           mockUserDemographics = { install_date: '2017/04/19' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20' } })).to.be.false;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20' } })).to.eventually.be.false;
         });
         it('does not match date before date', () => {
           mockUserDemographics = { install_date: '2017/04/21' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20' } })).to.be.false;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20' } })).to.eventually.be.false;
         });
         it('matches date and other factor', () => {
           mockUserDemographics = { install_date: '2017/04/24', product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28', product: 'CLIQZ' } })).to.be.true;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28', product: 'CLIQZ' } })).to.eventually.be.true;
         });
       });
       describe('with one factor', () => {
         it('matches root', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ' } })).to.be.true;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ' } })).to.eventually.be.true;
         });
         it('matches partial path', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ/desktop' } })).to.be.true;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ/desktop' } })).to.eventually.be.true;
         });
         it('matches full path', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0' } })).to.be.true;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0' } })).to.eventually.be.true;
         });
         it('does not match root', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { product: 'Firefox' } })).to.be.false;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'Firefox' } })).to.eventually.be.false;
         });
         it('does not match node', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ/mobile' } })).to.be.false;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ/mobile' } })).to.eventually.be.false;
         });
       });
 
       describe('with multiple factors', () => {
         it('matches partial test specification', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0', platform: 'Desktop/Mac OS/10.12' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ' } })).to.be.true;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ' } })).to.eventually.be.true;
         });
         it('matches full test specification', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0', platform: 'Desktop/Mac OS/10.12' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ', platform: 'Desktop' } })).to.be.true;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ', platform: 'Desktop' } })).to.eventually.be.true;
         });
         it('does not match in one factor for full specification', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0', platform: 'Desktop/Mac OS/10.12' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ', platform: 'Mobile' } })).to.be.false;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ', platform: 'Mobile' } })).to.eventually.be.false;
         });
         it('does not match in one factor for partial specification', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0', platform: 'Desktop/Mac OS/10.12' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { product: 'Firefox' } })).to.be.false;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'Firefox' } })).to.eventually.be.false;
         });
         it('does not match in all factors', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0', platform: 'Desktop/Mac OS/10.12' };
-          chai.expect(manager.isDemographicsMatch({ demographic: { product: 'Firefox', platform: 'Mobile' } })).to.be.false;
+          return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'Firefox', platform: 'Mobile' } })).to.eventually.be.false;
         });
       });
     });

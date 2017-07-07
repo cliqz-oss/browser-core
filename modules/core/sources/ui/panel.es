@@ -142,10 +142,10 @@ export default class {
     );
   }
 
-  hide() {
+  hide({ force = false } = {}) {
     this.shouldBeOpen = false;
     utils.setTimeout(() => {
-      if (!this.shouldBeOpen) {
+      if (force || !this.shouldBeOpen) {
         maybe(this, 'wrapperPanel').then(panel => panel.hidePopup());
       }
     }, 300);
@@ -171,7 +171,7 @@ export default class {
   }
 
   detach() {
-    const panelui = this.panelUI();
+    const panelui = this.panel.parentElement;
     if (panelui) {
       panelui.removeChild(this.panel);
       this.destroyPanel();

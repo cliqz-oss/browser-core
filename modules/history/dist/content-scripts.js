@@ -36,7 +36,7 @@ registerContentScript('https://cliqz.com/search?q=*', function (window) {
 
       var p = window.document.createElement('p');
       // TODO: need translations
-      p.innerText = 'Search CLIQZ for: ';
+      p.innerText = 'Search Cliqz for: ';
       row.appendChild(p);
 
       var anchor = window.document.createElement('a');

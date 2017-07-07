@@ -14,11 +14,6 @@ const BTN_ID = 'mobilepairing_btn';
 
 export default {
   init() {
-    if (CliqzUtils.getPref('connect', false) === false) {
-      this.enabled = false;
-      return Promise.resolve();
-    }
-
     const pingpong = new PingPongApp();
     PeerComm.addObserver('PINGPONG', pingpong);
 
@@ -60,7 +55,6 @@ export default {
       },
     });
 
-    this.enabled = true;
     this.storage = new SimpleStorage();
 
     const observer = new PairingObserver();
@@ -78,11 +72,9 @@ export default {
       .then(() => PeerComm.init(this.storage));
   },
   unload() {
-    if (this.enabled) {
-      CustomizableUI.destroyWidget(BTN_ID);
-      PeerComm.unload();
-      this.storage.close();
-    }
+    CustomizableUI.destroyWidget(BTN_ID);
+    PeerComm.unload();
+    this.storage.close();
   },
 
   actions: {

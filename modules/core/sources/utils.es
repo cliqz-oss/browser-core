@@ -10,6 +10,7 @@ import CliqzLanguage from './language';
 import { isUrl, isIpv4Address, isIpv6Address } from './url';
 import random from './crypto/random';
 import { fetchFactory } from '../platform/fetch';
+import LRU from './LRU';
 
 var VERTICAL_ENCODINGS = {
     'people':'p',
@@ -26,6 +27,8 @@ var COLOURS = ['#ffce6d','#ff6f69','#96e397','#5c7ba1','#bfbfbf','#3b5598','#fbb
     LOGOS = ['wikipedia', 'google', 'facebook', 'youtube', 'duckduckgo', 'sternefresser', 'zalando', 'bild', 'web', 'ebay', 'gmx', 'amazon', 't-online', 'wiwo', 'wwe', 'weightwatchers', 'rp-online', 'wmagazine', 'chip', 'spiegel', 'yahoo', 'paypal', 'imdb', 'wikia', 'msn', 'autobild', 'dailymotion', 'hm', 'hotmail', 'zeit', 'bahn', 'softonic', 'handelsblatt', 'stern', 'cnn', 'mobile', 'aetv', 'postbank', 'dkb', 'bing', 'adobe', 'bbc', 'nike', 'starbucks', 'techcrunch', 'vevo', 'time', 'twitter', 'weatherunderground', 'xing', 'yelp', 'yandex', 'weather', 'flickr'],
     BRANDS_DATABASE = { domains: {}, palette: ["999"] };
 const schemeRE = /^(\S+?):(\/\/)?(.*)$/i;
+
+const urlDetailsCache = new LRU(10000);
 
 var CliqzUtils = {
   environment: CLIQZEnvironment,
@@ -68,7 +71,6 @@ var CliqzUtils = {
   CLIQZ_ONBOARDING: CLIQZEnvironment.CLIQZ_ONBOARDING,
   CLIQZ_ONBOARDING_URL: CLIQZEnvironment.CLIQZ_ONBOARDING_URL,
   BROWSER_ONBOARDING_PREF: CLIQZEnvironment.BROWSER_ONBOARDING_PREF,
-  BROWSER_ONBOARDING_STEP_PREF: CLIQZEnvironment.BROWSER_ONBOARDING_STEP_PREF,
   CLIQZ_NEW_TAB: CLIQZEnvironment.CLIQZ_NEW_TAB,
   CLIQZ_NEW_TAB_RESOURCE_URL: CLIQZEnvironment.CLIQZ_NEW_TAB_RESOURCE_URL,
 
@@ -92,7 +94,11 @@ var CliqzUtils = {
     CLIQZEnvironment.app = CliqzUtils.app;
     CliqzUtils.log('Initialized', 'CliqzUtils');
 
-    CliqzUtils.setLang(options.lang);
+    try {
+      CliqzUtils.setLang(options.lang);
+    } catch(e) {
+      // TODO: fix for ghostery
+    }
 
     CliqzUtils.tldExtractor = CLIQZEnvironment.tldExtractor || CliqzUtils.genericTldExtractor;
   },
@@ -281,6 +287,9 @@ var CliqzUtils = {
   },
   genericTldExtractor: tlds.getPublicSuffix,
   getDetailsFromUrl: function(originalUrl){
+    if (urlDetailsCache.has(originalUrl)) {
+      return urlDetailsCache.get(originalUrl);
+    }
     var [action, originalUrl] = CliqzUtils.cleanMozillaActions(originalUrl);
     // exclude protocol
     var url = originalUrl,
@@ -363,14 +372,17 @@ var CliqzUtils = {
     // find parts of hostname
     if (!isIPv4 && !isIPv6 && !isLocalhost) {
       try {
+        let hostWithoutTld = host;
         tld = CliqzUtils.tldExtractor(host);
 
-        // Get the domain name w/o subdomains and w/o TLD
-        name = host.slice(0, -(tld.length+1)).split('.').pop(); // +1 for the '.'
+        if (tld) {
+          hostWithoutTld = host.slice(0, -(tld.length + 1)); // +1 for the '.'
+        }
 
         // Get subdomains
-        var name_tld = name + "." + tld;
-        subdomains = host.slice(0, -name_tld.length).split(".").slice(0, -1);
+        subdomains = hostWithoutTld.split('.');
+        // Get the domain name w/o subdomains and w/o TLD
+        name = subdomains.pop();
 
         //remove www if exists
         // TODO: I don't think this is the right place to do this.
@@ -393,14 +405,8 @@ var CliqzUtils = {
     }
 
     var friendly_url = cleanHost + extra;
-    if (scheme){
-      if (scheme === 'about'){
-        friendly_url = originalUrl;
-      }
-      else if (scheme != 'http' && scheme != 'https'){
-        friendly_url = scheme + ":" + slashes + friendly_url;
-      }
-    }
+    if (scheme && scheme != 'http' && scheme != 'https')
+      friendly_url = scheme + ":" + slashes + friendly_url;
     //remove trailing slash from the end
     friendly_url = CliqzUtils.stripTrailingSlash(friendly_url);
 
@@ -425,6 +431,7 @@ var CliqzUtils = {
               port: port,
               friendly_url: friendly_url
         };
+    urlDetailsCache.set(originalUrl, urlDetails);
 
     return urlDetails;
   },

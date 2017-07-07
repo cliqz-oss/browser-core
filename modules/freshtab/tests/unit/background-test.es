@@ -237,6 +237,7 @@ export default describeModule("freshtab/background",
             return Promise.resolve([]);
           }
 
+          this.deps("freshtab/speed-dial").default.getValidUrl = url => url.startsWith("about:") ? null : url;
           this.deps("core/utils").default.stripTrailingSlash = url => url;
           this.deps("core/utils").default.tryEncodeURIComponent = url => url;
 
@@ -248,7 +249,6 @@ export default describeModule("freshtab/background",
             const url = "http://cliqz.com";
 
             return this.module().default.actions.addSpeedDial(url).then((newSpeedDial) => {
-              //throw new Error(JSON.stringify(newSpeedDial))
               const speedDials = JSON.parse(this.deps("core/utils").default.getPref("extensions.cliqzLocal.freshtab.speedDials"));
 
               chai.expect(speedDials.custom).to.deep.equal([
@@ -290,6 +290,16 @@ export default describeModule("freshtab/background",
             });
           });
 
+        });
+
+        context("speed dial url is invalid", function() {
+          it("should not add local pages (file:/// or about:)", function() {
+            const url = "about:config";
+
+            return this.module().default.actions.addSpeedDial(url).then((result) => {
+              chai.expect(result).to.deep.equal({ error: true, reason: 'invalid'});
+            });
+          });
         });
       });
 

@@ -1,7 +1,7 @@
 /* globals Components, Extension */
 /* globals sendAsyncMessage, removeMessageListener, addMessageListener */
 /* globals addEventListener, content */
-// CLIQZ pages communication channel
+// Cliqz pages communication channel
 var { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
@@ -132,7 +132,7 @@ function onDOMWindowCreated(ev) {
     try {
       message = JSON.parse(ev.data);
     } catch (e) {
-      // non CLIQZ or invalid message should be ignored
+      // non Cliqz or invalid message should be ignored
     }
 
     if (message.target !== "cliqz") {
@@ -260,11 +260,11 @@ function onDOMWindowCreated(ev) {
        matchesCurrentUrl = true;
      }
    }
-    var isGetHTML = msg.data.action === 'getHTML';
+    var isHumanWebUrl = ['getHTML', 'queryHTML'].indexOf(msg.data.action) >= 0;
     // TEMP: Human web decodes the URI for internal storage
     var isCurrentUrlBis = msg.data.url === decodeURIComponent(currentURL());
 
-    if (!matchesCurrentUrl || (isGetHTML && !isCurrentUrlBis)) {
+    if (!matchesCurrentUrl && (isHumanWebUrl && !isCurrentUrlBis)) {
       return;
     }
 

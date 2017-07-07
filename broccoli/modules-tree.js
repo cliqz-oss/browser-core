@@ -245,7 +245,7 @@ function getBrowserifyTree() {
       const options = {
         browserify: {
           entries: [rel],
-          debug: true,
+          debug: false,
         },
         outputFile: rel.replace(/\.browserify$/, '.js'),
         cache: true,
@@ -266,7 +266,7 @@ function getBrowserifyTree() {
     const options = {
       browserify: {
         entries: [rel],
-        debug: true,
+        debug: false,
       },
       outputFile: rel.replace(/\.browserify$/, '.js'),
       cache: true,

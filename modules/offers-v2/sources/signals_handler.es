@@ -83,6 +83,9 @@ export class SignalHandler {
     // the signal queue
     this.sigsToSend = {};
 
+    // dirty flag to save or not data
+    this.dbDirty = false;
+
     // load the persistent data
     this._removeOldSignals();
     this._loadPersistenceData();
@@ -90,6 +93,17 @@ export class SignalHandler {
     // set the interval timer method to send the signals
     this.sendIntervalTimer = null;
     this._startSendSignalsLoop(OffersConfigs.SIGNALS_OFFERS_FREQ_SECS);
+
+    // save signals in a frequent way
+    const self = this;
+    if (OffersConfigs.SIGNALS_LOAD_FROM_DB) {
+      this.saveInterval = utils.setInterval(() => {
+        if (self.dbDirty) {
+          self._savePersistenceData();
+        }
+      },
+      OffersConfigs.SIGNALS_AUTOSAVE_FREQ_SECS * 1000);
+    }
   }
 
   // destructor
@@ -101,6 +115,11 @@ export class SignalHandler {
     if (this.sendIntervalTimer) {
       utils.clearInterval(this.sendIntervalTimer);
       this.sendIntervalTimer = null;
+    }
+
+    if (this.saveInterval) {
+      utils.clearInterval(this.saveInterval);
+      delete this.saveInterval;
     }
   }
 
@@ -333,6 +352,9 @@ export class SignalHandler {
     // mark it as dirty
     sigInfo.be_sync = false;
 
+    // we mark the DB as dirty here
+    this.dbDirty = true;
+
     this._addSignalToBeSent(sigType, sigKey);
   }
 
@@ -408,7 +430,10 @@ export class SignalHandler {
 
     let self = this;
     try {
-      Object.keys(self.sigsToSend).forEach(function(signalType) {
+      const sigsKeysToSend = Object.keys(self.sigsToSend);
+      const numSignalsToSend = sigsKeysToSend.length;
+
+      sigsKeysToSend.forEach(function(signalType) {
         let container = self.sigsToSend[signalType];
         container.forEach(function(sigID) {
           let sigInfo = self._getSignalInfo(signalType, sigID);
@@ -438,22 +463,8 @@ export class SignalHandler {
             return;
           }
 
-          // now we have the data in the proper structure to be sent over telemetry
-          // and hpn
-          var signal = {
-            type: 'offers',
-            v : OffersConfigs.SIGNALS_VERSION,
-            ex_v: config.EXTENSION_VERSION,
-            is_developer: isDeveloper,
-            sig_type: signalType,
-            sent_ts: self._getMinuteTimestamp(),
-            data: sigDataToSend
-          };
-          utils.telemetry(signal);
-          linfo('sendSignalsToBE: telemetry: ' + JSON.stringify(signal));
+          // now we have the data in the proper structure to be sent over hpn
 
-          // #GR-294: sending also to the hpn proxy, we need to remove the telemetry
-          //          on the future once this is stable
           const hpnSignal = {
               action: OffersConfigs.SIGNALS_HPN_BE_ACTION,
               signal_id: sigID,
@@ -471,9 +482,27 @@ export class SignalHandler {
 
           const hpnStrSignal = JSON.stringify(hpnSignal);
           utils.httpPost(OffersConfigs.SIGNALS_HPN_BE_ADDR,
-                         success => {linfo('sendSignalsToBE: hpn signal sent')},
+                         success => {
+                          linfo('sendSignalsToBE: hpn signal sent');
+                          const telMonitorSignal = {
+                            type: 'offers_monitor',
+                            is_developer: isDeveloper,
+                            batch_total: numSignalsToSend,
+                            msg_delivered: true,
+                          };
+                          utils.telemetry(telMonitorSignal);
+                        },
                          hpnStrSignal,
-                         err => {lerr('sendSignalsToBE: error sending signal to hpn: ' + err)});
+                         err => {
+                          lerr('sendSignalsToBE: error sending signal to hpn: ' + err);
+                          const telMonitorSignal = {
+                            type: 'offers_monitor',
+                            is_developer: isDeveloper,
+                            batch_total: numSignalsToSend,
+                            msg_delivered: false,
+                          };
+                          utils.telemetry(telMonitorSignal);
+                        });
           linfo('sendSignalsToBE: hpn: ' + hpnStrSignal);
 
           // we mark the signal as sent to the BE
@@ -508,14 +537,20 @@ export class SignalHandler {
   _savePersistenceData() {
     // for testing comment the following check
     if (!OffersConfigs.SIGNALS_LOAD_FROM_DB) {
-      linfo('_savePersistenceData: skipping the loading');
+      linfo('_savePersistenceData: skipping the saving');
       return;
     }
+    // is db dirty?
+    if (!this.dbDirty) {
+      return;
+    }
+
     this.db.saveDocData(STORAGE_DB_DOC_ID,
       {
         sig_map: this.sigMap
       }
     );
+    this.dbDirty = false;
   }
 
   // load persistence data
@@ -534,6 +569,9 @@ export class SignalHandler {
       }
       // set the data
       self.sigMap = docData.sig_map;
+
+      // db is not dirty anymore
+      self.dbDirty = false;
 
       // remove old signals and add all the keys that are not sync with the BE yet
       const currentTS = Date.now();

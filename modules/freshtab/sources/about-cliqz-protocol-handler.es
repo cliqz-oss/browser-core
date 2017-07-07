@@ -4,7 +4,7 @@ import { Components, Services, XPCOMUtils } from '../platform/globals';
 export default class AboutCliqz {
 
   get classDescription() {
-    return 'CLIQZ New Tab Page';
+    return 'Cliqz New Tab Page';
   }
 
   get contractID() {

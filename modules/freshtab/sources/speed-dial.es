@@ -14,6 +14,22 @@ function getAlias(aUrl) {
 }
 
 export default class {
+  static getValidUrl(url) {
+    const ALLOWED_SCHEMES = ['http', 'https', 'ftp'];
+    let uri = utils.makeUri(url);
+
+    if (!uri) {
+      url = url.replace(/^:?\/*/,'');
+      url = `http://${url}`;
+      uri = utils.makeUri(url);
+    }
+
+    return uri &&
+      ALLOWED_SCHEMES.indexOf(uri.scheme) !== -1 && 
+      uri.spec ||
+      null;
+  }
+
   constructor(url, isCustom = true) {
     var details = utils.getDetailsFromUrl(url),
         logoDetails = utils.getLogoDetails(details);

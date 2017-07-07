@@ -14,7 +14,6 @@
     "showDataCollectionMessage": true,
     "antitrackingButton": true,
     "showNewBrandAlert": false,
-    "onBoardingVersion": "1.1",
     "controlCenterSecurity": true,
     "ENDPOINT_BLIND_SIGNER": "https://hpn-sign.cliqz.com/sign",
     "ENDPOINT_USER_REG": "https://hpn-sign.cliqz.com/register",
@@ -60,15 +59,15 @@
     "hpn",
     "control-center",
     "offers-v2",
+    "offers-cc",
     "browser-panel",
     "message-center",
     "offboarding",
     "notifications",
     "anolysis",
     "new-tab-button",
-    "abtests",
-
-    "onboarding"
+    "market-analysis",
+    "abtests"
   ],
   "subprojects": [
     "fresh-tab-frontend"

@@ -20,6 +20,7 @@ class PageLoadData {
     this.tps = {};
     this.redirects = [];
     this.ra = reloaded;
+    this.annotations = {};
 
     this.triggeringTree = {};
     this._plainObject = null;
@@ -322,6 +323,13 @@ class PageEventTracker {
 
   getOpenPages(cb) {
     return Object.keys(this._active).map(id => this._active[id]);
+  }
+
+  getAnnotations(tab) {
+    if (this._active[tab]) {
+      return this._active[tab].annotations;
+    }
+    return {};
   }
 }
 

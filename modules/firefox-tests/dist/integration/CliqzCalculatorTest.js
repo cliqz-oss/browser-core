@@ -21,7 +21,7 @@ TESTS.CliqzCalculatorTest = function() {
       });
 
       it('Results should have ID calc-answer, in localized format', function() {
-        expect(getResultString()).to.equal(getLocaliseString({'de': '6.666,4', 'default': '6,666.4'}));
+        expect(getResultString()).to.equal(getLocaliseString({'de': '6 666,4', 'default': '6 666.4'}));
       });
 
       xit('Should have copy message', function() {
@@ -37,11 +37,11 @@ TESTS.CliqzCalculatorTest = function() {
       });
 
       it('Results should have ID calc-answer, in localized format', function() {
-        expect(getResultString()).to.equal(getLocaliseString({'de': '1.000 mm', 'default': '1,000 mm'}));
+        expect(getResultString()).to.equal(getLocaliseString({'de': '1 000 mm', 'default': '1 000 mm'}));
       });
 
       xit('Should have base-unit conversion in localized format', function() {
-        expect(getUnitBaseString()).to.equal(getLocaliseString({'de': '1 m = 1.000 mm', 'default': '1 m = 1,000 mm'}));
+        expect(getUnitBaseString()).to.equal(getLocaliseString({'de': '1 m = 1 000 mm', 'default': '1 m = 1 000 mm'}));
       });
 
       xit('Should have copy message', function() {
@@ -83,7 +83,7 @@ TESTS.CliqzCalculatorTest = function() {
       });
 
       it('Results should have ID calc-answer, in localized format', function() {
-        expect(getResultString()).to.equal(getLocaliseString({'de': '6.444,4', 'default': '64,444'}));
+        expect(getResultString()).to.equal(getLocaliseString({'de': '6 444,4', 'default': '6 444.4'}));
       });
 
       xit('Should have copy message', function() {
@@ -91,15 +91,15 @@ TESTS.CliqzCalculatorTest = function() {
       });
     });
 
-    context("Calculator simple DE format - 1.500,2 + 2000,3", function() {
+    context("Calculator simple DE format - 1500.2 + 2000,3", function() {
       beforeEach(function() {
         respondWith({results: []});
-        fillIn("1.500,2 + 2000,3");
+        fillIn("1500.2 + 2000,3");
         return waitForPopup();
       });
 
       it('Results should have ID calc-answer, in localized format', function() {
-        expect(getResultString()).to.equal(getLocaliseString({'de': '3.500,5', 'default': '20,004.5'}));
+        expect(getResultString()).to.equal(getLocaliseString({'de': '3 500,5', 'default': '3 500.5'}));
       });
 
       xit('Should have copy message', function() {
@@ -107,15 +107,15 @@ TESTS.CliqzCalculatorTest = function() {
       });
     });
 
-    context("Calculator simple DE format - 10,2 + 1.000,00", function() {
+    context("Calculator simple DE format - 10,2 + 1 000,00", function() {
       beforeEach(function() {
         respondWith({results: []});
-        fillIn("10,2 + 1.000,00");
+        fillIn("10,2 + 1 000,00");
         return waitForPopup();
       });
 
       it('Results should have ID calc-answer, in localized format', function() {
-        expect(getResultString()).to.equal(getLocaliseString({'de': '1.010,2', 'default': '103'}));
+        expect(getResultString()).to.equal(getLocaliseString({'de': '1 010,2', 'default': '1 010.2'}));
       });
 
       xit('Should have copy message', function() {
@@ -123,15 +123,15 @@ TESTS.CliqzCalculatorTest = function() {
       });
     });
 
-    context("Calculator simple DE format - 1001,1 + 1.1", function() {
+    context("Calculator simple DE format - 12500 + 1250000", function() {
       beforeEach(function() {
         respondWith({results: []});
-        fillIn("1001,1 + 1.1");
+        fillIn("12500 + 1250000");
         return waitForPopup();
       });
 
       it('Results should have ID calc-answer, in localized format', function() {
-        expect(getResultString()).to.equal(getLocaliseString({'de': '1.012,1', 'default': '10,012.1'}));
+        expect(getResultString()).to.equal(getLocaliseString({'de': '1 262 500', 'default': '1 262 500'}));
       });
 
       xit('Should have copy message', function() {

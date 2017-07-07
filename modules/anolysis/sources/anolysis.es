@@ -36,7 +36,7 @@ export default class {
 
     // Storage for behavioral data (telemetry) and demographics (environment)
     this.behaviorStorage = new Storage(new Database('cliqz-anolysis-behavior'));
-    this.demographicsStorage = new Storage(new Database('cliqz-anolysis-demographics'));
+    this.aggregatedBehaviorStorage = new Storage(new Database('cliqz-anolysis-aggregated-behavior'));
 
     // Storage to keep track of what days have been aggregated and sent to
     // backend.
@@ -59,7 +59,6 @@ export default class {
     // reports safely at any point of time. The `getGID` method of this object
     // will be called before sending any telemetry to check for an existing GID.
     this.gidManager = new GIDManager(
-      this.demographicsStorage,
       { get: utils.getPref, set: utils.setPref, clear: utils.clearPref },
     );
   }
@@ -112,6 +111,10 @@ export default class {
   }
 
   stop() {
+    this.messageQueue.unload();
+    this.behaviorStorage.unload();
+    this.aggregatedBehaviorStorage.unload();
+
     if (this.onDemographicsRegistered) {
       this.onDemographicsRegistered.unsubscribe();
       this.onDemographicsRegistered = undefined;
@@ -124,8 +127,6 @@ export default class {
 
     utils.clearTimeout(this.generateAggregationSignalsTimeout);
     utils.clearTimeout(this.asyncMessageGeneration);
-
-    this.messageQueue.unload();
   }
 
   /**
@@ -140,6 +141,7 @@ export default class {
     return Promise.all([
       this.gidManager.reset(),
       this.messageQueue.destroy(),
+      this.behaviorStorage.destroy(),
     ]);
   }
 
@@ -173,7 +175,7 @@ export default class {
       this.behaviorStorage
         .deleteByTimespan({ to: getSynchronizedDate().subtract(1, 'months').format(DATE_FORMAT) })
         .catch(err => logger.error(`error deleting old behavior data: ${err}`)),
-      this.demographicsStorage
+      this.aggregatedBehaviorStorage
         .deleteByTimespan({ to: getSynchronizedDate().subtract(1, 'months').format(DATE_FORMAT) })
         .catch(err => logger.error(`error deleting old behavior data: ${err}`)),
     ]);
@@ -205,7 +207,9 @@ export default class {
         // Doc is updated by the `generateRetentionSignals` function to keep
         // track of the current activity, and avoid generating the signals
         // several times.
-        return this.retentionLogDB.put(doc).then(() => promise);
+        return this.retentionLogDB.put(doc)
+          .then(() => promise)
+          .then(() => this.messageQueue.flush());
       });
   }
 
@@ -220,6 +224,7 @@ export default class {
         .catch(() =>
           this.generateAndSendAnalysesSignalsForDay(formattedDate)
             .then(() => this.aggregationLogDB.put({ _id: formattedDate }))
+            .then(() => this.messageQueue.flush())
             .catch((ex) => {
               logger.error(`could not generate aggregated signals for day ${formattedDate}: ${ex}`);
             })
@@ -265,12 +270,12 @@ export default class {
 
         // Delete signals and only keep aggregation
         return this.behaviorStorage.deleteByTimespan(timespan)
-          .then(() => this.behaviorStorage.put({
+          .then(() => this.aggregatedBehaviorStorage.put({
             ts: date,
             _id: `aggregation_${date}`,
             aggregation,
           }))
-          .catch((err) => { logger.error(`error while inserting aggregatin ${err}`); })
+          .catch((err) => { logger.error(`error while inserting aggregation ${err}`); })
           .then(() => {
             // Extract AB Tests
             // This is not used at the moment, so let's not do useless work
@@ -331,9 +336,6 @@ export default class {
           logger.debug(`Signal is instantPush ${JSON.stringify(processedSignal)}`);
           return this.gidManager.getGID()
             .then((gid) => {
-              // Attach id to the message
-              processedSignal.id = schemaName;
-
               if (schema.needs_gid) {
                 processedSignal.meta.gid = gid;
               } else {
@@ -365,7 +367,7 @@ export default class {
         // if (!isInstantPush || isLegacy) {
         // This signal is stored and will be aggregated with other signals from
         // the same day to generate 'analyses' signals.
-        return this.behaviorStorage.put(processedSignal)
+        return this.behaviorStorage.put(processedSignal, true /* buffered */)
           .catch((ex) => { logger.error(`behavior exception ${ex}`); });
         // }
       });

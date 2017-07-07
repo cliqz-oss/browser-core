@@ -38,7 +38,6 @@ modules/antitracking/utils.es
 modules/antitracking/webrequest-context.es
 modules/antitracking/window.es
 modules/autocomplete/autocomplete.es
-modules/autocomplete/background.es
 modules/autocomplete/calculator.es
 modules/autocomplete/cliqz-backends.es
 modules/autocomplete/history-cluster.es
@@ -420,4 +419,5 @@ modules/dropdown/debug/fixtures/simple.es
 modules/dropdown/debug/fixtures/ui-cut-off.es
 modules/dropdown/debug/fixtures/weather.es
 modules/dropdown/debug/fixtures/youtube.es
+modules/dropdown/debug/fixtures/offers.es
 modules/dropdown/debug/index.es

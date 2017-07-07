@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Cliqz</title>
+        <!-- TODO  uncomment after development-->
+<!--         <link href="chrome://cliqz/content/onboarding-v3/styles/styles.css" rel="stylesheet">
+ -->
+        <script src="chrome://cliqz/content/bower_components/jquery/dist/jquery.min.js"></script>
+        <script src="chrome://cliqz/content/webextensions-shim.js"></script>
+        <script src="chrome://cliqz/content/onboarding-v3/js/app.js"></script>
+
+        <!-- TODO remove after development -->
+        <script>
+            let node = document.createElement('link');
+            node.rel = 'stylesheet';
+            node.href = 'chrome://cliqz/content/onboarding-v3/styles/styles.css?' + Math.floor(Math.random() * 99999);
+            document.getElementsByTagName('head')[0].appendChild(node);
+        </script>
+    </head>
+    <body>
+        <div id="cqb-container">
+            <a class="cqb-website" href="https://cliqz.com"></a>
+            <div class="content">
+                <h1 data-i18n="onboarding-welcome"></h1>
+                <p data-i18n="onboarding-text"></p>
+                <button id="cqb-start-btn"
+                   class="cqb-btn"
+                   data-i18n="onboarding-start-btn">
+                </button>
+
+                <ul class="clearfix">
+                    <li data-i18n="onboarding-fast"></li>
+                    &#8226;
+                    <li data-i18n="onboarding-private"></li>
+                    &#8226;
+                    <li data-i18n="onboarding-secure"></li>
+                </ul>
+            </div>
+        </div>
+    </body>
+</html>

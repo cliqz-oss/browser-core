@@ -1,5 +1,7 @@
 import messageContext from './message-context';
 import { sha1 } from '../../core/crypto/utils';
+import md5 from 'md5';
+import randBigInt from 'bigint';
 import userPK from './user-pk';
 import { parseDSKey } from './blind-signature';
 import config from '../../core/config';
@@ -19,12 +21,12 @@ self.onmessage = function(e) {
     const response = {};
     CliqzSecureMessage.sourceMap = e.data.sourcemap;
     CliqzSecureMessage.uPK = e.data.upk;
-    CliqzSecureMessage.queryProxyIP = e.data.queryproxyip;
+    const queryProxyUrl = e.data.queryProxyUrl;
     CliqzSecureMessage.dsPK = e.data.dspk;
     CliqzSecureMessage.secureLogger = e.data.sspk;
 
     const mc = new messageContext(msg);
-    mc.query().then( result => {
+    mc.query(queryProxyUrl).then( result => {
       response.res = result;
       response.uid = uid;
       response.type = 'instant';
@@ -95,6 +97,20 @@ self.onmessage = function(e) {
         response.result = result;
         postMessage(response);
       });
+  }
+
+  if (msgType === 'test-md5' || msgType === 'hw-md5') {
+    let _hash = md5.md5(e.data.msg);
+    const response = {};
+    response.result = _hash;
+    postMessage(response);
+  }
+
+  if (msgType === 'test-bigint' || msgType === 'hw-bigint') {
+    let rnd = randBigInt.randBigInt(1024, 1);
+    const response = {};
+    response.result = rnd;
+    postMessage(response);
   }
 
   if (msgType === 'test-rsa-sign') {

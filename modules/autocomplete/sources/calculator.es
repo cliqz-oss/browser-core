@@ -91,9 +91,7 @@ var CliqzCalculator = {
   },
   init() {
     const thousandsSeparator = utils.getLocalizedString('calculator-thousands-separator');
-    const decimalSeparator = utils.getLocalizedString('calculator-decimal-separator');
     this.thousandsRegex = new RegExp(`(\\d)\\${thousandsSeparator}(\\d)`, 'g');
-    this.decimalRegex = new RegExp(`(\\d)\\${decimalSeparator}(\\d)`, 'g');
   },
   shortenNumber: function(){
     // shorten numbers when needed
@@ -110,6 +108,7 @@ var CliqzCalculator = {
       }
       numRaw = Math.round(num1 * floatDec) / floatDec;
       num = numRaw.toLocaleString(utils.getLocalizedString('locale_lang_code'));
+      num = num.replace(this.thousandsRegex, '$1 $2'); // Use spaces as thousands separators
       resultSign = getEqualOperator(num1, num);
 
       this.CALCULATOR_RES = this.IS_UNIT_CONVERTER ? [num, this.UNIT_RES].join(" ") : num.toString();
@@ -122,8 +121,7 @@ var CliqzCalculator = {
       return ''; // Don't trigger calculator yet if the query is just a number
     }
     const operators = ['+', '-', '*', '/', '^', '='];
-    q = q.replace(this.thousandsRegex, '$1$2'); // Remove all thousands separators
-    q = q.replace(this.decimalRegex, '$1.$2'); // Replace all decimal separators by period
+    q = q.replace(/,/g, '.'); // Replace all commas by period
     q = q.replace(/ /g, ''); // Remove all spaces
     for (var i = 0; i < operators.length; i++) {
       if (q[q.length - 1] == operators[i]) {

@@ -5,12 +5,18 @@ $light-gray: #f5f5f5;
 @import 'partials/buttons';
 @import 'partials/location';
 
+$basic-font-size: 15px;
+$basic-line-height: (16 / 15) + 0em;
+
 #cliqz-dropdown {
+    font-family: "-mac-system", "-apple-system", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    font-weight: normal;
 
     @import 'results/sessions';
+    @import 'results/lotto';
 
-    font-size: 15px;
-    line-height: 1.07em;
+    font-size: $basic-font-size;
+    line-height: $basic-line-height;
     position: relative;
 
     * {
@@ -31,17 +37,12 @@ $light-gray: #f5f5f5;
         color: #2385e7;
     }
 
-    @font-face {
-        font-family: "-mac-system", "-apple-system", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-        font-weight: 300;
-    }
-
     & > div:first-child {
         padding-top: 4px;
     }
 
     & > div:last-child {
-        margin-bottom: 4px;
+        margin-bottom: 2px;
     }
 
     & > div {
@@ -49,7 +50,7 @@ $light-gray: #f5f5f5;
         padding-right: 4px;
 
         & > div:last-child {
-            padding-bottom: 6px;
+            padding-bottom: 2px;
         }
     }
 
@@ -195,15 +196,21 @@ $light-gray: #f5f5f5;
                 display: flex;
                 width: 100%;
 
+                .ad {
+                    font-size: 0.733em;
+                    line-height: ($basic-line-height / 0.733) + 0em;
+                    border: 1px solid #9D9D9D;
+                    color: #303030;
+                    border-radius: 2px;
+                    padding: 0 5px 1px 5px;
+                }
+
                 span {
                     @extend .ellipsis;
                     display: inline-block;
                     float: left;
                     margin-right: 5px;
                     max-width: 500px;
-
-                    /* temporary override to avoid cutting of some letters */
-                    line-height: 1.15em;
                 }
 
                 .divider {
@@ -216,7 +223,7 @@ $light-gray: #f5f5f5;
 
                     color: #1076D7;
                     font-size: 0.833em;
-                    line-height: (1.07 / 0.833) + 0em;
+                    line-height: ($basic-line-height / 0.833) + 0em;
                     max-width: 200px;
                     font-weight: 500;
                 }
@@ -228,7 +235,7 @@ $light-gray: #f5f5f5;
                 .description,
                 .divider {
                     font-size: 0.833em;
-                    line-height: (1.07 / 0.833) + 0em;
+                    line-height: ($basic-line-height / 0.833) + 0em;
                 }
             }
 
@@ -255,6 +262,10 @@ $light-gray: #f5f5f5;
             .abstract {
                 span {
                     color: white;
+                }
+
+                .ad {
+                    border-color: #fff;
                 }
 
                 .url,
@@ -360,6 +371,22 @@ $light-gray: #f5f5f5;
         }
         display: block;
         color: #383838;
+
+        &.result {
+            .abstract {
+                .divider, .url {
+                    display: none;
+                }
+            }
+
+            &.selected {
+                .abstract {
+                    .divider, .url {
+                        display: inline-block;
+                    }
+                }
+            }
+        }
     }
 
     .instant {

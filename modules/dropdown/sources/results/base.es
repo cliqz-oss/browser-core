@@ -2,6 +2,7 @@
 import events from '../../core/events';
 import utils from '../../core/utils';
 import { equals } from '../../core/url';
+import console from '../../core/console';
 
 export function getDeepResults(rawResult, type) {
   const deepResults = (rawResult.data && rawResult.data.deepResults) || [];
@@ -18,6 +19,7 @@ export default class BaseResult {
       ...{ data: {} },
       ...rawResult,
     };
+    this.actions = {};
 
     // throw if main result is duplicate
     // TODO: move deduplication to autocomplete module
@@ -78,7 +80,7 @@ export default class BaseResult {
   }
 
   get kind() {
-    return this.rawResult.data.kind || [];
+    return this.rawResult.data.kind || [''];
   }
 
   get title() {
@@ -109,7 +111,7 @@ export default class BaseResult {
   }
 
   get isCliqzAction() {
-    return !this.rawResult.url || this.rawResult.url.indexOf('cliqz-actions') === 0;
+    return this.rawResult.url && this.rawResult.url.indexOf('cliqz-actions') === 0;
   }
 
   get isAdult() {
@@ -133,11 +135,15 @@ export default class BaseResult {
   }
 
   get url() {
-    const url = this.rawResult.url;
+    let url = this.rawResult.url;
+    if (this.isAd && this.urlAd) {
+      url = this.urlAd;
+    }
+
     if (this.isActionSwitchTab) {
       return `moz-action:switchtab,${JSON.stringify({ url })}`;
     }
-    return this.rawResult.url;
+    return url;
   }
 
   get rawUrl() {
@@ -216,30 +222,48 @@ export default class BaseResult {
 
   get isAskingForLocation() {
     const extra = this.rawResult.data.extra || {};
-    return extra.no_location && this.rawResult.locationAssistant.isAskingForLocation;
+    return (extra.no_location || false) && this.actions.locationAssistant.isAskingForLocation;
   }
 
 
   get shareLocationButtons() {
-    if (!this.isAskingForLocation) {
-      return [];
-    }
-    const locationAssistant = this.rawResult.locationAssistant;
-    return locationAssistant.actions.map((action) => {
-      let additionalClassName = '';
-      if (action.actionName === 'allowOnce') {
-        additionalClassName = 'location-allow-once';
-      }
+    const locationAssistant = this.actions.locationAssistant;
+    if (!this._shareLocationButtons) {
+      this._shareLocationButtons = !this.isAskingForLocation ? [] :
+        locationAssistant.actions.map((action) => {
+          let additionalClassName = '';
+          if (action.actionName === 'allowOnce') {
+            additionalClassName = 'location-allow-once';
+          }
 
-      return new ShareLocationButton({
-        title: action.title,
-        url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: action.actionName })}`,
-        text: this.rawResult.text,
-        className: additionalClassName,
-        locationAssistant,
-        onButtonClick: this.rawResult.redoQuery,
-      });
-    });
+          const result = new ShareLocationButton({
+            title: action.title,
+            url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: action.actionName })}`,
+            text: this.rawResult.text,
+            className: additionalClassName,
+            locationAssistant,
+            onButtonClick: () => {
+              this.actions.getSnippet(this.query, this.rawResult)
+                .then((snippet) => {
+                  const newRawResult = Object.assign({}, this.rawResult);
+                  newRawResult.data.extra = Object.assign(
+                    {},
+                    newRawResult.data.extra,
+                    snippet.extra,
+                  );
+
+                  const newResult = new this.constructor(newRawResult);
+                  newResult.actions = this.actions;
+                  this.actions.replaceResult(this, newResult);
+                })
+                .catch(console.error);
+            }
+          });
+          result.actions = this.actions;
+          return result;
+        });
+    }
+    return this._shareLocationButtons;
   }
 
   get localResult() {
@@ -247,12 +271,14 @@ export default class BaseResult {
     if (!extra.address && !extra.phonenummber) {
       return null;
     }
-    return new LocalResult({
+    const result = new LocalResult({
       address: extra.address,
       phoneNumber: extra.phonenumber,
       mapUrl: extra.mu,
       mapImg: extra.map_img
     });
+    result.actions = this.actions;
+    return result;
   }
 
   get videoResults() {
@@ -267,6 +293,18 @@ export default class BaseResult {
     // }));
   }
 
+  get isAd() {
+    const data = this.rawResult.data || {};
+    const extra = data.extra || {};
+    return extra.is_ad && utils.getPref('offersDropdownSwitch', false);
+  }
+
+  get urlAd() {
+    const data = this.rawResult.data || {};
+    const extra = data.extra || {};
+    return extra.url_ad;
+  }
+
   get selectableResults() {
     return [
       ...(this.url ? [this] : []),
@@ -274,7 +312,6 @@ export default class BaseResult {
       ...(this.newsResults).slice(0, 3),
       ...(this.videoResults).slice(0, 3),
       ...this.internalResults.slice(0, this.internalResultsLimit),
-      ...(this.localResult ? this.localResult.internalResults : []),
     ];
   }
 
@@ -282,7 +319,8 @@ export default class BaseResult {
     return [
       ...this.selectableResults,
       ...this.imageResults,
-      ...this.anchorResults
+      ...this.anchorResults,
+      ...(this.localResult ? [...this.localResult.allResults] : []),
     ];
   }
 
@@ -307,13 +345,14 @@ export default class BaseResult {
       events.pub('ui:click-on-url', {
         url: href,
         query: this.query,
+        rawResult: this.rawResult,
       });
       // TODO: do not use global
       /* eslint-disable */
       window.CLIQZ.Core.urlbar.value = href;
       /* eslint-enable */
 
-      const newTab = ev.altKey || ev.metaKey || ev.ctrlKey;
+      const newTab = ev.altKey || ev.metaKey || ev.ctrlKey || ev.button === 1;
       if (!newTab) {
         // delegate to Firefox for full set of features like switch-to-tab
         window.CLIQZ.Core.urlbar.handleCommand(ev, 'current');
@@ -328,8 +367,9 @@ export default class BaseResult {
   /*
    * Lifecycle hook
    */
-  didRender() {
-
+  didRender(...args) {
+    const allButThisResult = this.allResults.slice(1);
+    allButThisResult.forEach(result => result.didRender(...args));
   }
 }
 
@@ -399,37 +439,99 @@ class LocalInfoResult extends BaseResult {
 class AnchorResult extends BaseResult {
 }
 
+class TextResult extends BaseResult {
+
+  get textType() {
+    return this.rawResult.textType;
+  }
+
+  get displayText() {
+    return this.rawResult.text;
+  }
+
+  click(window, href, ev) {
+    this.actions.copyToClipboard(this.rawResult.text);
+    const el = ev.target;
+    el.classList.add('copied');
+    setTimeout(() => {
+      el.classList.remove('copied');
+    }, 1000);
+  }
+}
+
 class LocalResult extends BaseResult {
   get address() {
-    return this.rawResult.address || {};
+    return this.rawResult.address || '';
   }
 
   get phoneNumber() {
-    return this.rawResult.phoneNumber || {};
+    return this.rawResult.phoneNumber || '';
   }
 
   get mapImg() {
-    return this.rawResult.mapImg || {};
+    return this.rawResult.mapImg || '';
   }
 
   get mapUrl() {
-    return this.rawResult.mapUrl || {};
+    return this.rawResult.mapUrl || '';
   }
 
-  get internalResults() {
-    if (!this.mapUrl || !this.mapImg) {
-      return [];
-    }
-    return [new LocalInfoResult({
+  get allResults() {
+    return [
+      this.mapResult,
+      ...this.textResults,
+    ];
+  }
+
+  get mapResult() {
+    return new LocalInfoResult({
       url: this.mapUrl,
       title: 'show-map',
       text: this.query,
       mapImg: this.mapImg,
-    })];
+    });
+  }
+
+  get textResults() {
+    if (!this._textResults) {
+      this._textResults = [];
+      if (this.address) {
+        const address = !this.address ? null : new TextResult({
+          url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: 'copyAddress' })}`,
+          text: this.address,
+          textType: 'local-address',
+        });
+        address.actions = this.actions;
+
+        this._textResults.push(address);
+      }
+
+      if (this.phoneNumber) {
+        const phone = new TextResult({
+          url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: 'copyPhoneNumber' })}`,
+          text: this.phoneNumber,
+          textType: 'local-phone',
+        });
+        phone.actions = this.actions;
+
+        this._textResults.push(phone);
+      }
+    }
+
+    return this._textResults;
   }
 }
 
 class ShareLocationButton extends BaseResult {
+
+  get elementId() {
+    if (!this._elementId) {
+      const id = Math.floor(Math.random() * 1000);
+      this._elementId = `result-share-location-${id}`;
+    }
+    return this._elementId;
+  }
+
   get displayUrl() {
     return this.rawResult.text;
   }
@@ -442,22 +544,23 @@ class ShareLocationButton extends BaseResult {
     return this.rawResult.className;
   }
 
-  click(window, href, ev) {
-    // Add loading spinner on the button
-    const el = ev.target;
-    const document = el.ownerDocument;
-    const loadingImg = document.createElement('div');
-    loadingImg.className = 'spinner';
-    el.appendChild(loadingImg);
+  didRender(dropdownElement) {
+    this.element = dropdownElement.querySelector(`#${this.elementId}`);
+    this.spinner = dropdownElement.ownerDocument.createElement('div');
+    this.spinner.className = 'spinner';
+  }
+
+  click(window, href) {
+    this.element.appendChild(this.spinner);
 
     const action = JSON.parse(href.split('cliqz-actions,')[1]);
-    const locationAssistant = this.rawResult.locationAssistant;
+    const locationAssistant = this.actions.locationAssistant;
     const actionName = action.actionName;
     if (!locationAssistant.hasAction(actionName)) {
       return;
     }
     locationAssistant[actionName]().then(() => {
       this.rawResult.onButtonClick();
-    });
+    }).catch(console.error);
   }
 }

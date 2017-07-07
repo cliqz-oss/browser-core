@@ -126,13 +126,16 @@ export default class {
   }
 
   onMouseMove(ev) {
+    if (this.lastTarget === ev.originalTarget) {
+      return;
+    }
+    this.lastTarget = ev.originalTarget;
+
     const now = Date.now();
-    if ((now - this.lastMouseMove) < 50) {
+    if ((now - this.lastMouseMove) < 10) {
       return;
     }
     this.lastMouseMove = now;
-
-    this.clearSelection();
 
     // TODO: merge with onMouseUp handler
     let resultElement;
@@ -150,6 +153,7 @@ export default class {
     const resultIndex = this.results.selectableResults.findIndex(r => equals(r.url, href));
 
     if (resultIndex !== -1) {
+      this.clearSelection();
       this.selectedIndex = resultIndex;
       this.updateSelection();
     }

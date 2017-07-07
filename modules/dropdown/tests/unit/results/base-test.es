@@ -4,6 +4,7 @@ export default describeModule('dropdown/results/base',
       '../../core/events': {},
       '../../core/utils': {},
       '../../core/url': {},
+      '../../core/console': {},
     };
   },
   function () {

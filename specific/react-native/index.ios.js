@@ -42,7 +42,7 @@ class ExtensionApp extends React.Component {
     return (
       <View style={styles.container}>
         <Text style={styles.welcome}>
-          Welcome to CLIQZ Mobile Native!!!!!
+          Welcome to Cliqz Mobile Native!!!!!
         </Text>
         {mods}
       </View>

@@ -5,6 +5,7 @@ let bundledFiles = {
   'antitracking/config.json': require('../antitracking/config.json'),
   'adblocker/mobile/checksums': require('../adblocker/mobile/checksums.json'),
   'antitracking-blocker/bugs_default.json': require('../antitracking-blocker/bugs_default.json'),
+  'antitracking/tracker_db.json': require('../antitracking/tracker_db.json'),
 };
 
 export function chromeUrlHandler(url, callback, onerror) {

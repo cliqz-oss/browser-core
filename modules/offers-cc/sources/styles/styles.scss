@@ -112,6 +112,10 @@ footer {
                 text-decoration: none;
                 vertical-align: middle;
 
+                &[openurl] {
+                    cursor: pointer;
+                }
+
                 &[href]:hover {
                     text-decoration: underline;
                 }

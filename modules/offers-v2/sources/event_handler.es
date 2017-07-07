@@ -33,7 +33,9 @@ export class EventHandler {
     events.sub('content:location-change', this.onTabLocChanged);
 
     this.beforeRequestListener = this.beforeRequestListener.bind(this)
-    WebRequest.onBeforeRequest.addListener(this.beforeRequestListener);
+    WebRequest.onBeforeRequest.addListener(this.beforeRequestListener, {
+      urls: ["*://*/*"],
+    });
   }
 
   //

@@ -58,7 +58,39 @@ export default background({
       });
       return promise;
     },
+    md5(s) {
+      let promise = new Promise( (resolve, reject) => {
+        let wCrypto = new CryptoWorker();
 
+        wCrypto.onmessage = function(e){
+          let result = e.data.result;
+          wCrypto.terminate();
+          resolve(result);
+        };
+
+        wCrypto.postMessage({
+          "msg": s,
+          "type":"hw-md5"
+        });
+      });
+      return promise;
+    },
+    randBigInt() {
+      let promise = new Promise( (resolve, reject) => {
+        let wCrypto = new CryptoWorker();
+
+        wCrypto.onmessage = function(e){
+          let result = e.data.result;
+          wCrypto.terminate();
+          resolve(result);
+        };
+
+        wCrypto.postMessage({
+          "type":"hw-bigint"
+        });
+      });
+      return promise;
+    },
     sendTelemetry(msg) {
       return CliqzSecureMessage.telemetry(msg);
     },
@@ -88,7 +120,7 @@ export default background({
           upk: CliqzSecureMessage.uPK,
           dspk: CliqzSecureMessage.dsPK,
           sspk: CliqzSecureMessage.secureLogger,
-          queryproxyip: CliqzSecureMessage.queryProxyIP,
+          queryProxyUrl: CliqzSecureMessage.queryProxyIP,
         });
       });
     }

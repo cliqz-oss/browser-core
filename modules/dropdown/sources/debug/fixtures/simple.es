@@ -28,27 +28,4 @@ export default {
       }
     ]
   },
-  'multi-random': {
-    query: 'cliqz',
-    results: [
-      {
-        "title": "Nightly Start Page",
-        "url": "about:home",
-        "description": "",
-        "originalUrl": "about:home",
-        "type": "favicon",
-        "text": "about:h",
-        "data": {
-          "kind": [
-            "H"
-          ],
-          "title": "Nightly Start Page",
-          "debug": "(history generic)!",
-          "localSource": "bookmark",
-          "template": "generic"
-        },
-        "maxNumberOfSlots": 3
-      }
-    ]
-  }
 };

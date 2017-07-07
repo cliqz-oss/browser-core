@@ -44,6 +44,19 @@
           ]]>
         </getter>
       </property>
+      <property name="oneOffSearchButtons">
+        <setter>
+          <![CDATA[
+            //mask default FF
+          ]]>
+        </setter>
+        <getter>
+          <![CDATA[
+            //mask default FF
+            return {};
+          ]]>
+        </getter>
+      </property>
       <method name="_invalidate">
         <body>
           <![CDATA[
@@ -59,14 +72,6 @@
         </body>
       </method>
       <method name="enableOneOffSearches">
-        <parameter name="enable"/>
-        <body>
-          <![CDATA[
-            //mask default FF
-          ]]>
-        </body>
-      </method>
-      <method name="oneOffSearchButtons">
         <parameter name="enable"/>
         <body>
           <![CDATA[

@@ -16,8 +16,8 @@ export default {
     "fr-language": "Français"
   },
   onboarding: {
-    "title": "Wouhou ! CLIQZ a été installé.",
-    "hdr-privacy": "Vous êtes en sûreté avec CLIQZ.",
+    "title": "Wouhou ! Cliqz a été installé.",
+    "hdr-privacy": "Vous êtes en sûreté avec Cliqz.",
     "txt-privacy1": "Notre innovation",
     "txt-privacy2": "Anti-Tracking & Anti-Phishing",
     "txt-privacy3": "technologies vous protègent ainsi que vos données personnelles.",
@@ -32,7 +32,7 @@ export default {
     "txt-homescreen2": "Écran d'accueil",
     "txt-homescreen3": "avec vos sites préférés et le meilleur de l'actualité.",
     "cta3": "Okay, Allons-y !",
-    "learn-more": "En savoir plus sur CLIQZ"
+    "learn-more": "En savoir plus sur Cliqz"
   },
   miniOnboarding: {
     "learn-more": "En savoir plus",
@@ -56,18 +56,18 @@ export default {
     "notifications-enable": "Activer les notifications"
   },
   urlBar: {
-    "search-address": "Rechercher ou saisir une adresse"
+    "search-address": "Rechercher dans Cliqz ou saisir une adresse"
   },
   news: {
     "read-more": "Lire plus",
     "breaking-news": "Breaking news :"
   },
   abtests: {
-    "feedback": "Questions ? Commentaires ? Contacter CLIQZ"
+    "feedback": "Questions ? Commentaires ? Contacter Cliqz"
   },
   notifications: {
-    "hdr-new-brand": "CLIQZ sera bientôt relooké!",
-    "txt-new-brand1": "Nous allons mettre à jour les icônes du navigateur CLIQZ ainsi que son aspect général.",
+    "hdr-new-brand": "Cliqz sera bientôt relooké!",
+    "txt-new-brand1": "Nous allons mettre à jour les icônes du navigateur Cliqz ainsi que son aspect général.",
     "cta-new-brand": "En savoir plus",
     "txt-new-brand2": "En savoir plus sur les changements précédents",
     "hdr-share-location": "Partager votre position signifie améliorer les résultats de recherche!",
@@ -89,7 +89,10 @@ export default {
     "cta-cliqz-connect": "Voici comment.",
     "hdr-win-no-support-message": "Support for Windows XP and Vista Ending",
     "txt-win-no-support-message": "Cliqz will end support for Windows XP and Windows Vista with the next update at the end of April. Find out how you can continue using Cliqz",
-    "cta-win-no-support-message": "here"
+    "cta-win-no-support-message": "here",
+    "hdr-new-search": "Nouvelle Recherche Cliqz",
+    "txt-new-search": "Compacte, épurée, directement depuis la barre d’adresse : La recherche Cliqz a été redessinée",
+    "cta-new-search": "En savoir plus..."
   },
   title: 'Nouvel onglet',
   settings: {

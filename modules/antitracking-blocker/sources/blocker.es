@@ -7,6 +7,8 @@ export default class {
   constructor(blocklist) {
     this.blocklist = blocklist || 'default';
     this.patterns = {};
+    this.bugs = {};
+    this.apps = {};
   }
 
   init() {
@@ -23,6 +25,12 @@ export default class {
 
   loadBugs(bugs) {
     this.patterns = bugs.patterns;
+    if (bugs.bugs) {
+      this.bugs = bugs.bugs;
+    }
+    if (bugs.apps) {
+      this.apps = bugs.apps;
+    }
   }
 
   unload() {
@@ -48,7 +56,7 @@ export default class {
       root = root[part];
       if (root.$) {
         console.log('blocklist', 'match host', hostPartsReversed.join('.'));
-        return true;
+        return root.$ || true;
       }
     }
     return false;
@@ -66,7 +74,12 @@ export default class {
       }
 
       if (root.$) {
-        match = Number.isInteger(root.$) || (root.$ || []).some(rule => `/${rule.path}` === path);
+        if (Number.isInteger(root.$)) {
+          match = root.$;
+        } else {
+          const findMatch = (root.$ || []).find(rule => path.indexOf(rule.path) === 1);
+          match = findMatch ? findMatch.id : false;
+        }
         if (match) {
           console.log('blocklist', 'match', hostPartsReversed.join('.'), path);
           break;
@@ -84,11 +97,19 @@ export default class {
   }
 
   checkBlockRules(state, _resp) {
-    if (this.ruleMatches(state.urlParts)) {
+    const match = this.ruleMatches(state.urlParts);
+    if (match) {
       const response = _resp;
       response.cancel = true;
       state.incrementStat('blocked_blocklist');
       state.incrementStat(`matched_blocklist_${this.blocklist}`);
+      if (Number.isInteger(match) && state.getPageAnnotations) {
+        const annotations = state.getPageAnnotations();
+        if (!annotations.apps) {
+          annotations.apps = new Set();
+        }
+        annotations.apps.add(match);
+      }
       return false;
     }
     return true;

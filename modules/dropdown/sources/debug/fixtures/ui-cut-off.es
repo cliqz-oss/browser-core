@@ -321,7 +321,43 @@ export default {
           ]
         },
         'maxNumberOfSlots': 1
+      },
+      {
+        "data": {
+          "description": "Sieh Dir Tweets zu #yesyeezy auf Twitter an. Sieh Dir an, was andere Leute sagen und nimm am Gespräch teil.",
+          "extra": {
+            "alternatives": [
+              "https://twitter.com/hashtag/yesyeezy?f=tweets"
+            ],
+            "language": {
+              "de": 1
+            },
+            "m_url": "https://mobile.twitter.com/hashtag/yesyeezy?f=tweets",
+            "mobile_links": {
+              "android": [
+                "android-app://com.twitter.android/twitter/hashtag/yesyeezy?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eandroidseo%7Ctwgr%5Ehashtag%7Ctwterm%5Eyesyeezy"
+              ]
+            }
+          },
+          "title": "Hashtag #yesyeezy auf Twitter",
+          "subType": {
+            "i": 2,
+            "cs": 0
+          },
+          "template": "generic",
+          "kind": [
+            "m|{\"i\":2,\"cs\":0}"
+          ],
+          "deepResults": []
+        },
+        "title": "Hashtag #yesyeezy auf Twitter",
+        "url": "https://twitter.com/hashtag/yesyeezy",
+        "description": "Sieh Dir Tweets zu #yesyeezy auf Twitter an. Sieh Dir an, was andere Leute sagen und nimm am Gespräch teil.",
+        "originalUrl": "https://twitter.com/hashtag/yesyeezy",
+        "type": "cliqz-results sources-m",
+        "text": "yesy",
+        "maxNumberOfSlots": 1
       }
-    ]
+    ],
   }
 }

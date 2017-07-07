@@ -1,7 +1,16 @@
 <div class="icons">
 
     <span class="logo" data-extra="logo"
-        {{#if logo}}style="{{logo.style}}"{{/if}}>
+        {{#if logo.style}}
+            style="{{logo.style}}"
+        {{else}}
+            {{#if isHistory}}
+                style="background-image: url('resource://cliqz/dropdown/images/blank.svg');
+                      text-indent: -10em;
+                      background-color:#fff;
+                      padding: 0.38em;"
+            {{/if}}
+        {{/if}}>
         {{logo.text}}
     </span>
     <span class="micro-logo" data-extra="logo"

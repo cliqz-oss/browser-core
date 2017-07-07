@@ -11,7 +11,7 @@ class AdultAnswerResult extends BaseResult {
 
   click(window, href) {
     const action = JSON.parse(href.split('cliqz-actions,')[1]);
-    const adultAssistant = this.rawResult.adultAssistant;
+    const adultAssistant = this.actions.adultAssistant;
     const actionName = action.actionName;
     if (!adultAssistant.hasAction(actionName)) {
       return;
@@ -29,21 +29,22 @@ export default class AdultQuestionResult extends BaseResult {
   }
 
   get internalResults() {
-    return this.rawResult.adultAssistant.actions.map((action) => {
+    return this.actions.adultAssistant.actions.map((action) => {
       let additionalClassName = '';
 
       if (action.actionName === 'allowOnce') {
         additionalClassName = 'adult-allow-once';
       }
 
-      return new AdultAnswerResult({
+      const result = new AdultAnswerResult({
         title: action.title,
         url: `cliqz-actions,${JSON.stringify({ type: 'adult', actionName: action.actionName })}`,
         text: this.rawResult.text,
         className: additionalClassName,
-        adultAssistant: this.rawResult.adultAssistant,
         onButtonClick: this.rawResult.onButtonClick,
       });
+      result.actions = this.actions;
+      return result;
     });
   }
 

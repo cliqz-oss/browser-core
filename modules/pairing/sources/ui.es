@@ -23,7 +23,7 @@ export default class PairingUI {
   }
 
   startPairing() {
-    PeerComm.startPairing('CLIQZ Desktop Browser');
+    PeerComm.startPairing('Cliqz Desktop Browser');
   }
 
   fetchTemplate(name) {
@@ -136,7 +136,7 @@ export default class PairingUI {
     const window = this.window;
 
     const deviceName = $('#browser-name').val() ||
-      `CLIQZ Browser on ${window.navigator.platform}`;
+      `Cliqz Browser on ${window.navigator.platform}`;
 
     const data = {
       deviceName,

@@ -130,7 +130,7 @@ export default class OfferProcessor {
   //     // was not created >= N days, etc
   //   }
   // }
-  addOffer(offerInfo) {
+  addOffer(offerInfo, originID = ORIGIN_ID) {
     // check offer validity
     if (!offerInfo ||
         !offerInfo.offer_id ||
@@ -182,13 +182,11 @@ export default class OfferProcessor {
     // to track we use the offer_id
     this.sigHandler.setCampaignSignal(offerObject.campaign_id,
                                       offerObject.offer_id,
-                                      ORIGIN_ID,
+                                      originID,
                                       ActionID.AID_OFFER_ADDED);
 
-    this.sigHandler.setCampaignSignal(offerObject.campaign_id,
-                                      offerObject.offer_id,
-                                      ORIGIN_ID,
-                                      ActionID.AID_OFFER_DISPLAYED);
+    // there should not be a displayed signal here, it should come from the real
+    // state.
 
     // broadcast the message
     const realStatesDest = this._getDestRealStatesForOffer(offerObject.offer_id);
@@ -257,15 +255,35 @@ export default class OfferProcessor {
 
   /**
    * will return a list of offers filtered and sorted as specified in args
-   * @param  {[type]} args [description]
+   * @param  {object} args
+   * <pre>
+   * {
+   *   // to filter entries using the following types of filters
+   *   filters: {
+   *     // will filter by real estate
+   *     by_rs_dest: 'real-estate-name',
+   *   }
+   * }
+   * </pre>
    * @return {[type]}      [description]
    */
-  getStoredOffers(/* args */) {
+  getStoredOffers(args) {
     // for this first version we will just return all the offers directly
     const self = this;
     const rawOffers = this.offersDB.getOffers();
     const result = [];
+    const filters = args ? args.filters : null;
     rawOffers.forEach((offerElement) => {
+      if (filters) {
+        // we should filter
+        if (filters.by_rs_dest && offerElement.offer.rs_dest) {
+          // check the real estate destination of the offer
+          if (!(filters.by_rs_dest in offerElement.offer.rs_dest)) {
+            // skip this one
+            return;
+          }
+        }
+      }
       result.push({
         offer_id: offerElement.offer_id,
         offer_info: offerElement.offer,
@@ -276,6 +294,84 @@ export default class OfferProcessor {
       });
     });
     return result;
+  }
+
+  /**
+   * This method will be called from externals (other modules) to generate a new
+   * offer on our system. This will bypass the trigger engine system.
+   * If the offer already exists nothing will be done.
+   * One example of use can be for example the dropdown that the offers are triggered
+   * from the search results and is not related with our system, but we still need
+   * to track the offer actions and more. For this purpose we will provide an API
+   * to generate offers from outside.
+   * @param  {object} args The argument containing the following information:
+   * <pre>
+   * {
+   *   // the one who is performing the call
+   *   origin: 'dropdown',
+   *
+   *   // for more information about what is the required offer data needed
+   *   // check:
+   *   // https://cliqztix.atlassian.net/wiki/pages/viewpage.action?pageId=89041894
+   *   {
+   *     data: {
+   *       offer_id: 'xyz',
+   *       campaign_id: 'c_id',
+   *       display_id: 'd_id',
+   *
+   *       // the rule information on how we should display this offer if any
+   *       rule_info: {
+   *         // ...
+   *       },
+   *
+   *       // the ui information how we should display this offer
+   *       ui_info: {
+   *         // ...
+   *       },
+   *
+   *       // the list of destinations (real estates) where this offer should be
+   *       // displayed
+   *       rs_dest: ['xyz1',...]
+   *     },
+   *     // ...
+   *   }
+   * }
+   * </pre>
+   * @return {Boolean} true on success (offer created) | false otherwise
+   */
+  createExternalOffer(args) {
+    if (!args || !args.origin || !args.data) {
+      lwarn('createExternalOffer: invalid arguments');
+      return false;
+    }
+    if (this.hasExternalOffer(args)) {
+      // already exists
+      return false;
+    }
+    return this.addOffer(args.data, args.origin);
+  }
+
+  /**
+   * Check if we have an offer present on the DB or not
+   * @param  {object}  The following data should be on the argument:
+   * <pre>
+   *
+   * {
+   *   data: {
+   *     // the offer id we want to check if exists or not
+   *     offer_id: 'xyz'
+   *   }
+   * }
+   * </pre>
+   * @return {Boolean}         true if we have | false otherwise.
+   */
+  hasExternalOffer(args) {
+    if (!args ||
+        !args.data ||
+        !args.data.offer_id) {
+      return false;
+    }
+    return this.offersDB.isOfferPresent(args.data.offer_id);
   }
 
   // /////////////////////////////////////////////////////////////////////////////
@@ -402,7 +498,7 @@ export default class OfferProcessor {
 
   _getDestRealStatesForOffer(offerID) {
     const offerObj = this.offersDB.getOfferObject(offerID);
-    if (!offerObj || !offerObj.rs_des) {
+    if (!offerObj || !offerObj.rs_dest) {
       return [];
     }
     return offerObj.rs_dest;
@@ -421,12 +517,20 @@ export default class OfferProcessor {
     // for now for backward compatibility we will hardcode this part here.
     // in the future we should adapt the ui (ghostery) to this new interface.
     if (isChromium && type === MessageType.MT_NEW_OFFER_ACTIVE) {
-      const offerInfoCpy = data;
+      const offerInfoCpy = data.offer_data;
+      linfo(`_publishMessage: sending offer active for offerID: ${offerInfoCpy.display_id}`);
       events.pub('msg_center:show_message', {
         id: offerInfoCpy.display_id,
         Message: offerInfoCpy.ui_info.template_data.title,
         Link: offerInfoCpy.ui_info.template_data.call_to_action.text,
-        LinkText: offerInfoCpy.ui_info.template_data.call_to_action.url
+        LinkText: offerInfoCpy.ui_info.template_data.call_to_action.url,
+        type: 'offers',
+        origin: 'cliqz',
+        data: {
+          offer_info: {
+            offer_id: data.offer_data.offer_id
+          }
+        }
       }, 'ghostery');
       return;
     }

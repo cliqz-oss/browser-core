@@ -6,7 +6,7 @@
 * @returns string with payload created.
 */
 
-import { md5 } from 'md5';
+import md5 from 'md5';
 // FIXME: remove circular dependency
 import CliqzSecureMessage, { localTemporalUniq } from './index';
 import userPK from './user-pk';
@@ -108,7 +108,7 @@ export default class {
 		var _this = this;
 		var msg = _this.jMessage;
     _this.endPoint = CliqzSecureMessage.sourceMap[this.action]["endpoint"];
-    _this.md5Hash = md5(this.action);
+    _this.md5Hash = md5.md5(this.action);
 		var promise = new Promise(function(resolve, reject){
 			try{
 				var hash = "";
@@ -342,7 +342,7 @@ export default class {
 			try{
 				// To protect from padding oracle attacks, we need to send the hash of
 				// mE.
-				var mI = md5(_this.mE); // replace it with web-crypto md5.
+				var mI = md5.md5(_this.mE); // replace it with web-crypto md5.
 				var messageToSign = _this.aesKey + ";" + _this.iv + ";endPoint;" + mI;
         _this.rsaEncrypt(messageToSign).then( encryptedResponse => {
           _this.signedKey = encryptedResponse;
@@ -536,14 +536,15 @@ export default class {
     return promise;
 
   }
-  query(){
+  query(queryProxyUrl) {
     let _this = this;
     let promise = new Promise(function(resolve, reject){
       _this.aesEncrypt().then( e => {
         return _this.signKey();
       }).then( e => {
         let data = {"mP":_this.getMP()};
-        return _http(CliqzSecureMessage.queryProxyIP)
+
+        return _http(queryProxyUrl)
             .post(JSON.stringify(data), "instant");
         }).then ( res => {
             // Got response, let's decrypt it.

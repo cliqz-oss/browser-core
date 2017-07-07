@@ -92,7 +92,7 @@ try {
 
         this.app.start();
       }.bind(this)).catch(function (e) {
-        dump('CLIQZ startup error: ' + e.name + ' -- ' + e.message + ' -- ' + e.stack + '\n')
+        dump('Cliqz startup error: ' + e.name + ' -- ' + e.message + ' -- ' + e.stack + '\n')
       });
     },
 

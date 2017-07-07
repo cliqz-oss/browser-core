@@ -25,7 +25,7 @@ export default Ember.Service.extend({
     const speedDials = new Map(
       store.peekAll('speed-dial').map(dial => {
         return [dial.get('id'), dial]
-      })
+      }).filter(([x, y]) => x !== null && y !== null)
     );
 
     return cliqz.getNotifications([...speedDials.keys()]).then(notifications => {

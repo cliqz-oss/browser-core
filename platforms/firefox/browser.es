@@ -177,7 +177,7 @@ export function setOurOwnPrefs() {
     .getService(Components.interfaces.nsIPrefService).getBranch('browser.urlbar.');
 
   if (utils.hasPref('maxRichResultsBackup')) {
-    // we reset CLIQZ change to "browser.urlbar.maxRichResults"
+    // we reset Cliqz change to "browser.urlbar.maxRichResults"
     utils.clearPref('maxRichResultsBackup');
     utils.clearPref('browser.urlbar.maxRichResults', '');
   }

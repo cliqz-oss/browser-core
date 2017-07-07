@@ -34,7 +34,7 @@ export default background({
 
   stop() {
     if (this.isRunning) {
-      this.clearInterval(this.runTimer);
+      utils.clearInterval(this.runTimer);
       this.isRunning = false;
     }
   },

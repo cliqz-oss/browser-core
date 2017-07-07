@@ -8,8 +8,8 @@ let error;
 let debug;
 
 if (isLoggingEnabled) {
-  log = console.log.bind(console, 'CLIQZ');
-  error = console.error.bind(console, 'CLIQZ error');
+  log = console.log.bind(console, 'Cliqz');
+  error = console.error.bind(console, 'Cliqz error');
   if (prefs.get('developer')) {
     debug = log;
   } else {

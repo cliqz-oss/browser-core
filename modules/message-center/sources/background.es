@@ -49,5 +49,9 @@ export default background({
     showMessage(handler, message) {
       this.messageCenter.showMessage(message, handler);
     },
+    hideMessage(handlerID, message) {
+      this.messageCenter.hideMessage(message, handlerID);
+    }
   },
 });
+

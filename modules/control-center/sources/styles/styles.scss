@@ -753,6 +753,8 @@ html {
         color: #000;
         text-decoration: none;
         cursor: pointer;
+        max-width: 305px;
+
         &.active {
             border-bottom: none;
             #arrow {

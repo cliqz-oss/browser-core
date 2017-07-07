@@ -10,7 +10,7 @@ import { equals } from '../core/url';
 import console from '../core/console';
 
 class ResultFactory {
-  static create(rawResult, allResultsFlat, options) {
+  static create(rawResult, allResultsFlat) {
     let Constructor = BaseResult;
 
     if (['custom', 'noResult'].indexOf(rawResult.data.template) >= 0) {
@@ -44,15 +44,16 @@ class ResultFactory {
       throw new Error('ignore');
     }
 
-    return new Constructor(Object.assign({}, rawResult, options), allResultsFlat);
+    return new Constructor(rawResult, allResultsFlat);
   }
 
-  static createAll(rawResults, options) {
+  static createAll(rawResults, actions = {}) {
     const all = rawResults.reduce(({ resultList, allResultsFlat }, rawResult) => {
       let result;
 
       try {
-        result = ResultFactory.create(rawResult, allResultsFlat, options);
+        result = ResultFactory.create(rawResult, allResultsFlat);
+        result.actions = actions;
       } catch (e) {
         if (['duplicate', 'ignore'].indexOf(e.message) >= 0) {
           // it is expected to have duplicates
@@ -76,14 +77,30 @@ class ResultFactory {
 }
 
 export default class Results {
-  constructor({ query, rawResults, queriedAt, sessionCountPromise, queryCliqz,
-    adultAssistant, locationAssistant }) {
+  constructor({
+    query,
+    rawResults,
+    queriedAt,
+    sessionCountPromise,
+    queryCliqz,
+    adultAssistant,
+    locationAssistant,
+    rerender,
+    getSnippet,
+    copyToClipboard,
+  } = {}) {
+    this.rerender = rerender;
     this.query = query;
     this.queriedAt = queriedAt;
-    this.results = ResultFactory.createAll(rawResults,
-      { redoQuery: queryCliqz.bind(null, this.query),
-        locationAssistant
-      });
+
+    const actions = {
+      locationAssistant,
+      adultAssistant,
+      replaceResult: this.replaceResult.bind(this),
+      getSnippet,
+      copyToClipboard,
+    };
+    this.results = ResultFactory.createAll(rawResults, actions);
 
     if (this.hasAdultResults) {
       if (adultAssistant.isBlockingAdult) {
@@ -94,7 +111,7 @@ export default class Results {
         this.addAdultQuestionResult({
           onButtonClick: queryCliqz.bind(null, this.query),
           adultAssistant,
-        });
+        }, actions);
       }
     }
 
@@ -154,6 +171,12 @@ export default class Results {
     this.results.unshift(result);
   }
 
+  replaceResult(oldResult, newResult) {
+    const index = this.indexOf(oldResult);
+    this.results.splice(index, 1, newResult);
+    this.rerender();
+  }
+
   insertAt(result, index) {
     this.results = [
       ...this.results.slice(0, index),
@@ -174,14 +197,13 @@ export default class Results {
     );
   }
 
-  addAdultQuestionResult({ onButtonClick, adultAssistant }) {
-    this.prepend(
-      new AdultQuestionResult({
-        text: this.query,
-        onButtonClick,
-        adultAssistant,
-      })
-    );
+  addAdultQuestionResult({ onButtonClick, adultAssistant }, actions = {}) {
+    const result = new AdultQuestionResult({
+      text: this.query,
+      onButtonClick,
+    });
+    result.actions = actions;
+    this.prepend(result);
   }
 
   get hasHistory() {

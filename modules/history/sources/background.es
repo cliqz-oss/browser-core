@@ -100,7 +100,7 @@ export default background({
 
       const place = {
         uri,
-        title: `${query} - CLIQZ Search`,
+        title: `${query} - Cliqz Search`,
         visits: [{
           visitDate: Date.now() * 1000,
           transitionType: Components.interfaces.nsINavHistoryService.TRANSITION_TYPED,

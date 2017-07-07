@@ -1,4 +1,155 @@
 export default {
+  'lotto-glueckspirale': {
+    query: 'glueckspirale',
+    results: [
+      {
+        'title':'Lotto aktuelle Lottozahlen 6 aus 49 Gewinnzahlen der Woche Lotto Quoten und Jackpot',
+        'url':'http://www.dielottozahlende.net/',
+        'description':'aktuelle Lottozahlen für Lotto 6 aus 49, Service Rund um das Lotto und das Lottospielen. Lottozahlen für Spiel77 und Super6 sowie für das Lotto Keno und die Glücksspirale. Nachrichten und News zum Lotto. Jackpo und Jackpotinfpormationen zum Lotto. Quoten und Gewinne für das Lotto',
+        'originalUrl':'http://www.dielottozahlende.net/',
+        'type':'cliqz-extra',
+        'text':'lotto',
+        'data':{
+          'deepResults':[
+            {
+              'type':'buttons',
+              'links':[
+                {
+                  'title':'Keno',
+                  'url':'http://www.dielottozahlende.net/lotto/keno/zahlen.html'
+                },
+                {
+                  'title':'Nachrichten',
+                  'url':'http://www.dielottozahlende.net/news/news.php'
+                },
+                {
+                  'title':'Lotto',
+                  'url':'http://www.dielottozahlende.net/lotto/lotto.html'
+                }
+              ]
+            }
+          ],
+          'description':'aktuelle Lottozahlen für Lotto 6 aus 49, Service Rund um das Lotto und das Lottospielen. Lottozahlen für Spiel77 und Super6 sowie für das Lotto Keno und die Glücksspirale. Nachrichten und News zum Lotto. Jackpo und Jackpotinfpormationen zum Lotto. Quoten und Gewinne für das Lotto',
+          'extra':{
+            'template': 'lotto',
+            'lotto_type':'glueckspirale',
+            'alternatives':[
+
+            ],
+            'language':{
+              'de':1
+            },
+            'og':{
+              'description':'aktuelle Lottozahlen für Lotto 6 aus 49, Service Rund um das Lotto und das Lottospielen. Lottozahlen für Spiel77 und Super6 sowie für das Lotto Keno und die Glücksspirale. Nachrichten und News zum Lotto. Jackpo und Jackpotinfpormationen zum Lotto. Quoten und Gewinne für das Lotto',
+              'image':'http://www.dielottozahlende.net/img/extern/dlzde_image_600x315.jpg',
+              'title':'dieLOTTOZAHLEN',
+              'type':'website'
+            },
+            'lotto_list': {
+              '2017-05-20':{
+                gs:{
+                  spieleinsatz:'4348307.50',
+                  quoten:[
+                    {
+                      klasse:1,
+                      beschreibung:'1 richtige Endziffern',
+                      anzahl:'83283.4',
+                      quote:'10.00',
+                      text:'',
+                      kurzbeschreibung:'1 Endz.'
+                    },
+                    {
+                      klasse:2,
+                      beschreibung:'2 richtige Endziffern',
+                      anzahl:'9300.8',
+                      quote:'20.00',
+                      text:'',
+                      kurzbeschreibung:'2 Endz.'
+                    },
+                    {
+                      klasse:3,
+                      beschreibung:'3 richtige Endziffern',
+                      anzahl:'1043.8',
+                      quote:'50.00',
+                      text:'',
+                      kurzbeschreibung:'3 Endz.'
+                    },
+                    {
+                      klasse:4,
+                      beschreibung:'4 richtige Endziffern',
+                      anzahl:'68.4',
+                      quote:'500.00',
+                      text:'',
+                      kurzbeschreibung:'4 Endz.'
+                    },
+                    {
+                      klasse:5,
+                      beschreibung:'5 richtige Endziffern',
+                      anzahl:'13.6',
+                      quote:'5000.00',
+                      text:'',
+                      kurzbeschreibung:'5 Endz.'
+                    },
+                    {
+                      klasse:6,
+                      beschreibung:'6 richtige Endziffern',
+                      anzahl:'4.0',
+                      quote:'100000.00',
+                      text:'',
+                      kurzbeschreibung:'6 Endz.'
+                    },
+                    {
+                      klasse:7,
+                      beschreibung:'7 richtige Endziffern',
+                      anzahl:'0.0',
+                      quote:'2010000.00',
+                      text:'7.500,00 EUR monatlich',
+                      kurzbeschreibung:'7 Endz.'
+                    }
+                  ],
+                  waehrung:'EUR',
+                  gewinnzahlen:[
+                    '2',
+                    '35',
+                    '964',
+                    '6261',
+                    '62011',
+                    [
+                      '004547',
+                      '357320'
+                    ],
+                    [
+                      '1567708',
+                      '1360505'
+                    ]
+                  ]
+                },
+                date:'2017-05-20',
+                year:'2017'
+              }
+            }
+          },
+          'friendlyUrl':'dielottozahlende.net',
+          'title':'Lotto aktuelle Lottozahlen 6 aus 49 Gewinnzahlen der Woche Lotto Quoten und Jackpot',
+          'subType':{
+            'class':'EntityGeneric',
+            'trigger_method':'rh_query',
+            'ez':'deprecated',
+            'i':0,
+            'cs':0
+          },
+          'trigger_urls':[
+            'dielottozahlende.net'
+          ],
+          'template':'lotto',
+          'kind':[
+            'X|{\'class\':\'EntityGeneric\',\'trigger_method\':\'rh_query\',\'ez\':\'deprecated\',\'i\':0,\'cs\':0}'
+          ]
+        },
+        'maxNumberOfSlots':1
+      }
+    ]
+  },
   'lotto-6aus49': {
     query: '6 aus 49',
     results: [
@@ -31,6 +182,8 @@ export default {
           ],
           'description':'aktuelle Lottozahlen für Lotto 6 aus 49, Service Rund um das Lotto und das Lottospielen. Lottozahlen für Spiel77 und Super6 sowie für das Lotto Keno und die Glücksspirale. Nachrichten und News zum Lotto. Jackpo und Jackpotinfpormationen zum Lotto. Quoten und Gewinne für das Lotto',
           'extra':{
+            'template': 'lotto',
+            'lotto_type':'6aus49',
             'alternatives':[
 
             ],
@@ -287,6 +440,8 @@ export default {
           ],
           'description':'aktuelle Lottozahlen für Lotto 6 aus 49, Service Rund um das Lotto und das Lottospielen. Lottozahlen für Spiel77 und Super6 sowie für das Lotto Keno und die Glücksspirale. Nachrichten und News zum Lotto. Jackpo und Jackpotinfpormationen zum Lotto. Quoten und Gewinne für das Lotto',
           'extra':{
+            'template': 'lotto',
+            'lotto_type':'eurojackpot',
             'alternatives':[
 
             ],
@@ -429,155 +584,6 @@ export default {
       }
     ]
   },
-  'lotto-gluecksspirale': {
-    query: 'gluecksspirale',
-    results: [
-      {
-        'title':'Lotto aktuelle Lottozahlen 6 aus 49 Gewinnzahlen der Woche Lotto Quoten und Jackpot',
-        'url':'http://www.dielottozahlende.net/',
-        'description':'aktuelle Lottozahlen für Lotto 6 aus 49, Service Rund um das Lotto und das Lottospielen. Lottozahlen für Spiel77 und Super6 sowie für das Lotto Keno und die Glücksspirale. Nachrichten und News zum Lotto. Jackpo und Jackpotinfpormationen zum Lotto. Quoten und Gewinne für das Lotto',
-        'originalUrl':'http://www.dielottozahlende.net/',
-        'type':'cliqz-extra',
-        'text':'lotto',
-        'data':{
-          'deepResults':[
-            {
-              'type':'buttons',
-              'links':[
-                {
-                  'title':'Keno',
-                  'url':'http://www.dielottozahlende.net/lotto/keno/zahlen.html'
-                },
-                {
-                  'title':'Nachrichten',
-                  'url':'http://www.dielottozahlende.net/news/news.php'
-                },
-                {
-                  'title':'Lotto',
-                  'url':'http://www.dielottozahlende.net/lotto/lotto.html'
-                }
-              ]
-            }
-          ],
-          'description':'aktuelle Lottozahlen für Lotto 6 aus 49, Service Rund um das Lotto und das Lottospielen. Lottozahlen für Spiel77 und Super6 sowie für das Lotto Keno und die Glücksspirale. Nachrichten und News zum Lotto. Jackpo und Jackpotinfpormationen zum Lotto. Quoten und Gewinne für das Lotto',
-          'extra':{
-            'alternatives':[
-
-            ],
-            'language':{
-              'de':1
-            },
-            'og':{
-              'description':'aktuelle Lottozahlen für Lotto 6 aus 49, Service Rund um das Lotto und das Lottospielen. Lottozahlen für Spiel77 und Super6 sowie für das Lotto Keno und die Glücksspirale. Nachrichten und News zum Lotto. Jackpo und Jackpotinfpormationen zum Lotto. Quoten und Gewinne für das Lotto',
-              'image':'http://www.dielottozahlende.net/img/extern/dlzde_image_600x315.jpg',
-              'title':'dieLOTTOZAHLEN',
-              'type':'website'
-            },
-            'lotto_list': {
-              '2017-05-20':{
-                gs:{
-                  spieleinsatz:'4348307.50',
-                  quoten:[
-                    {
-                      klasse:1,
-                      beschreibung:'1 richtige Endziffern',
-                      anzahl:'83283.4',
-                      quote:'10.00',
-                      text:'',
-                      kurzbeschreibung:'1 Endz.'
-                    },
-                    {
-                      klasse:2,
-                      beschreibung:'2 richtige Endziffern',
-                      anzahl:'9300.8',
-                      quote:'20.00',
-                      text:'',
-                      kurzbeschreibung:'2 Endz.'
-                    },
-                    {
-                      klasse:3,
-                      beschreibung:'3 richtige Endziffern',
-                      anzahl:'1043.8',
-                      quote:'50.00',
-                      text:'',
-                      kurzbeschreibung:'3 Endz.'
-                    },
-                    {
-                      klasse:4,
-                      beschreibung:'4 richtige Endziffern',
-                      anzahl:'68.4',
-                      quote:'500.00',
-                      text:'',
-                      kurzbeschreibung:'4 Endz.'
-                    },
-                    {
-                      klasse:5,
-                      beschreibung:'5 richtige Endziffern',
-                      anzahl:'13.6',
-                      quote:'5000.00',
-                      text:'',
-                      kurzbeschreibung:'5 Endz.'
-                    },
-                    {
-                      klasse:6,
-                      beschreibung:'6 richtige Endziffern',
-                      anzahl:'4.0',
-                      quote:'100000.00',
-                      text:'',
-                      kurzbeschreibung:'6 Endz.'
-                    },
-                    {
-                      klasse:7,
-                      beschreibung:'7 richtige Endziffern',
-                      anzahl:'0.0',
-                      quote:'2010000.00',
-                      text:'7.500,00 EUR monatlich',
-                      kurzbeschreibung:'7 Endz.'
-                    }
-                  ],
-                  waehrung:'EUR',
-                  gewinnzahlen:[
-                    '2',
-                    '35',
-                    '964',
-                    '6261',
-                    '62011',
-                    [
-                      '004547',
-                      '357320'
-                    ],
-                    [
-                      '1567708',
-                      '1360505'
-                    ]
-                  ]
-                },
-                date:'2017-05-20',
-                year:'2017'
-              }
-            }
-          },
-          'friendlyUrl':'dielottozahlende.net',
-          'title':'Lotto aktuelle Lottozahlen 6 aus 49 Gewinnzahlen der Woche Lotto Quoten und Jackpot',
-          'subType':{
-            'class':'EntityGeneric',
-            'trigger_method':'rh_query',
-            'ez':'deprecated',
-            'i':0,
-            'cs':0
-          },
-          'trigger_urls':[
-            'dielottozahlende.net'
-          ],
-          'template':'lotto',
-          'kind':[
-            'X|{\'class\':\'EntityGeneric\',\'trigger_method\':\'rh_query\',\'ez\':\'deprecated\',\'i\':0,\'cs\':0}'
-          ]
-        },
-        'maxNumberOfSlots':1
-      }
-    ]
-  },
   'lotto-keno': {
     query: 'keno',
     results: [
@@ -610,6 +616,8 @@ export default {
           ],
           'description':'aktuelle Lottozahlen für Lotto 6 aus 49, Service Rund um das Lotto und das Lottospielen. Lottozahlen für Spiel77 und Super6 sowie für das Lotto Keno und die Glücksspirale. Nachrichten und News zum Lotto. Jackpo und Jackpotinfpormationen zum Lotto. Quoten und Gewinne für das Lotto',
           'extra':{
+            'template': 'lotto',
+            'lotto_type':'keno',
             'alternatives':[
 
             ],

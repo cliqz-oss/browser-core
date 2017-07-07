@@ -3,19 +3,19 @@
 }
 
 .cliqz-control-center {
-    padding: 3px 4px 3px 32px;
+    padding: 3px 4px 3px 32px !important;
     color: transparent;
-    background-size: 20px;
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-image: url(../images/cc-active.svg);
+    background-size: 20px !important;
+    background-repeat: no-repeat !important;
+    background-position: center center !important;
+    background-image: url(../images/cc-active.svg) !important;
 }
 
 
 #nav-bar .cliqz-control-center {
     min-width: 55px;
     color: black;
-    background-position: 3px 0px;
+    background-position: 3px 0px !important;
 }
 
 .cliqz-control-center:after {
@@ -32,18 +32,18 @@
 }
 
 .cliqz-control-center[state="critical"] {
-    background-image: url(../images/cc-critical.svg);
+    background-image: url(../images/cc-critical.svg) !important;
 }
 
 .cliqz-control-center[state="inactive"] {
-    background-image: url(../images/cc-inactive.svg);
+    background-image: url(../images/cc-inactive.svg) !important;
 }
 
 .cliqz-control-center[state="off"] {
-    background-image: url(../images/cc-off.svg);
+    background-image: url(../images/cc-off.svg) !important;
     /* state off means there are no security features so no need for the badge text */
     min-width: 30px !important;
-    padding: 0px;
+    padding: 0px !important;
     color: transparent;
 }
 

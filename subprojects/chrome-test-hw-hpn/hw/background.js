@@ -9,7 +9,7 @@ if(manifest.version_name === "packaged"){
 }
 
 // For packaging as a standalone web extension.
-if(manifest.name === "CLIQZ search" || manifest.version_name === "standalone"){
+if(manifest.name === "Cliqz search" || manifest.version_name === "standalone"){
   contentScriptPath = "human-web/content.js";
 }
 

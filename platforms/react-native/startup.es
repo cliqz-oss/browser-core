@@ -17,6 +17,9 @@ const startup = loadPrefs().then(() => {
   return app.load();
 }).then(() => {
   bridge.registerAction('antitracking:getTrackerListForTab', CliqzAttrack.getTrackerListForTab);
+  bridge.registerAction('antitracking:getTrackerCategoriesForTab', (tabId) => {
+    return CliqzAttrack.getTabBlockingInfo(tabId).categories;
+  });
   bridge.registerAction('antitracking:isSourceWhitelisted', (domain) => {
     return CliqzAttrack.isSourceWhitelisted(domain)
   });

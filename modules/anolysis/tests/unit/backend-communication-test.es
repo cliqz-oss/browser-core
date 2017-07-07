@@ -34,6 +34,8 @@ const MOCK = {
   },
   'core/cliqz': {
     utils: {
+      setInterval() {},
+      setTimeout(cb) { cb(); },
       httpPost(url, resolve, payload, reject, timeout) {
         return httpPost(
           url,

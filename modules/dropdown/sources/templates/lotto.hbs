@@ -2,4 +2,47 @@
     {{> partials/logo}}
     {{> partials/abstract}}
 </a>
-{{> partials/buttons }}
+
+<div class="padded">
+  <div class="lotto">
+    <p class="lotto-date">{{ local 'lotto-gewinnzahlen' }} &#8226; {{ localeDate }}</p>
+    {{#each lottoResults}}
+      <div class="row">
+        <div class="lotto-item-wrapper {{ classNames }}">
+          {{#each result}}
+            <div class="item">
+              {{ this }}
+            </div>
+          {{/each}}
+        </div>
+        {{#if description}}
+          <span class="description">{{ local description }}</span>
+        {{/if}}
+        {{#if table}}
+          <div id="lotto-table">
+            <div class="table-head">
+              {{#each table.columns}}
+                <span>{{ local this }}</span>
+              {{/each}}
+            </div>
+            {{#each table.data}}
+              <div class="table-row">
+                {{#each this}}
+                    <span>
+                        {{#each this}}
+                            {{ this }}<br />
+                        {{else}}
+                            {{ this }}
+                        {{/each}}
+                    </span>
+                {{/each}}
+              </div>
+            {{/each}}
+          </div>
+        {{/if}}
+      </div>
+    {{/each}}
+  </div>
+</div>
+
+{{> partials/buttons}}

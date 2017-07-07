@@ -137,15 +137,29 @@ $(document).ready(() => {
     data: {}
   });
 
-  // link the click function here to the buttons
-  document.getElementById('cliqz-offers-cc').addEventListener('click', cqzOfferBtnClicked);
-
-  $('.cqz-close-hub').on('click', () => {
+  // open URL
+  $('#cliqz-offers-cc').on('click', '[openUrl]', (ev) => {
     sendMessageToWindow({
-      action: 'closePanel',
-      data: {}
+      action: 'openURL',
+      data: {
+        url: ev.currentTarget.getAttribute('openUrl'),
+        closePopup: ev.currentTarget.dataset.closepopup || true
+      }
     });
   });
+
+    // close panel
+  $('#cliqz-offers-cc').on('click', '.cqz-call-to-action .cqz-close-hub', () => {
+    sendMessageToWindow({
+      action: 'closePanel',
+      data: {
+        force: true
+      }
+    });
+  });
+
+  // link the click function here to the buttons
+  document.getElementById('cliqz-offers-cc').addEventListener('click', cqzOfferBtnClicked);
 
   $('.cqz-show-all-offers').on('click', () => {
     $('#cqz-vouchers-wrapper').addClass('show-all');
@@ -157,6 +171,13 @@ $(document).ready(() => {
   $('body').on('click', (e) => {
     const elm = $(e.target);
     // console.log('+++++ body click');
+
+    if (elm.hasClass('cqz-close-hub')) {
+      sendMessageToWindow({
+        action: 'closePanel',
+        data: {}
+      });
+    }
 
     if (elm.hasClass('cqz-close')) {
       const offersPosition = $('.cqz-vouchers').scrollTop() || 0;

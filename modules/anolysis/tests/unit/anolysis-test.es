@@ -58,6 +58,7 @@ export default describeModule('anolysis/anolysis',
         getPref() {},
         setPref() {},
         setTimeout(fun) { return fun(); },
+        setInterval() { },
         clearTimeout() { },
       },
     },
@@ -82,12 +83,13 @@ export default describeModule('anolysis/anolysis',
       parseABTests() { return []; },
     },
     'anolysis/signals-queue': {
-      default: class SignalQueue {},
+      default: class SignalQueue { flush() {} },
     },
     'anolysis/storage': {
       default: class Storage {
         getTypesByTimespan() { return Promise.resolve([]); }
         deleteByTimespan() { return Promise.resolve([]); }
+        flush() {}
       },
     },
     'anolysis/analyses': {
@@ -137,6 +139,7 @@ export default describeModule('anolysis/anolysis',
       it('generates retention from empty state', () => {
         mockDB({
           get() { return Promise.reject({ name: 'not_found' }); },
+          flush() {},
           put(doc) {
             chai.expect(doc).to.be.eql({
               _id: 'retention',
@@ -163,6 +166,7 @@ export default describeModule('anolysis/anolysis',
         };
 
         mockDB({
+          flush() {},
           get() {
             return Promise.resolve(state);
           },
@@ -183,6 +187,7 @@ export default describeModule('anolysis/anolysis',
       it('generates signals from empty state', () => {
         const db = [];
         mockDB({
+          flush() {},
           get() { return Promise.reject({ name: 'not_found' }); },
           put(doc) {
             db.push(doc);
@@ -233,6 +238,7 @@ export default describeModule('anolysis/anolysis',
         anolysis.handleTelemetrySignal = sinon.spy(() => {});
         const dbPut = sinon.spy(() => Promise.resolve());
         mockDB({
+          flush() {},
           get() { return Promise.resolve(); },
           put: dbPut,
         });

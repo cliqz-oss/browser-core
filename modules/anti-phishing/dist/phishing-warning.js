@@ -46,7 +46,7 @@ function format() {
     if (hw && hw.state.v[url]) {
       hw.state.v[url]['anti-phishing'] = 'safe_out';
     }
-    window.location.replace(CliqzUtils.CLIQZ_NEW_TAB);
+    window.location.replace('about:newtab');
   }
 
   // learn more

@@ -200,7 +200,7 @@ const CLIQZEnvironment = {
                 snippet:
                 {
                     text_line1: CE.getLocalizedString(isUrl ? 'noResultUrlNavigate' : 'noResultTitle'),
-                    // forwarding the query to the default search engine is not handled by CLIQZ but by Firefox
+                    // forwarding the query to the default search engine is not handled by Cliqz but by Firefox
                     // we should take care of this specific case differently on alternative platforms
                     text_line2: isUrl ? CE.getLocalizedString('noResultUrlSearch') : CE.getLocalizedString('noResultMessage', defaultName),
                     "search_engines": engines,

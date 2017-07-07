@@ -6,7 +6,6 @@
 }
 body {
     padding: 20px;
-    font-family: "-mac-system", "-apple-system", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
 }
 #cliqz-dropdown {
     border: 3px solid black;
@@ -14,5 +13,9 @@ body {
 </style>
 </head>
 <body>
-<script src="./debug.bundle.js"></script>
+    <script>
+        var script = document.createElement('script');
+        script.setAttribute('src', './debug.bundle.js?t='+Date.now());
+        document.body.appendChild(script);
+    </script>
 </body>
