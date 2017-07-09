@@ -192,8 +192,14 @@ export default background({
   },
 
   actions: {
-    notifyLocationChange(...args) {
-      events.pub('content:location-change', ...args);
+    notifyLocationChange(msg) {
+      const window = Window.getBrowserWindowContainingWindowWithId(
+        msg.windowTreeInformation.parentWindowID,
+      );
+      events.pub('content:location-change', {
+        ...msg,
+        windowId: window.id,
+      });
     },
     notifyStateChange(...args) {
       const ev = args[0];
@@ -344,8 +350,14 @@ export default background({
       }
       return Promise.resolve();
     },
-    recordMeta(url, meta) {
+    recordMeta(url, meta, windowId) {
+      const window = Window.getBrowserWindowContainingWindowWithId(windowId);
       events.pub("core:url-meta", url, meta);
+      events.pub("content:load", {
+        url,
+        meta,
+        windowId: window.id,
+      });
     },
     openFeedbackPage() {
       const window = utils.getWindow();

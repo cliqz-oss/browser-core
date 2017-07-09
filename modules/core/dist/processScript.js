@@ -114,10 +114,15 @@ function onDOMWindowCreated(ev) {
     windowTreeInformation = getWindowTreeInformation(window);
     windowId = windowTreeInformation.outerWindowID;
   } else {
+    var util = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+      .getInterface(Components.internal.nsIDOMWindowUtils);
+    windowId = util.outerWindowID;
+    /*
     var windowId = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
       var r = Math.random()*16|0, v = c === "x" ? r : (r&0x3|0x8);
       return v.toString(16);
     });
+    */
   }
 
   var onMessage = function (ev) {
@@ -405,7 +410,8 @@ function onDOMWindowCreated(ev) {
               ogTitle: ogTitle && ogTitle.content,
               ogDescription: ogDescription && ogDescription.content,
               ogImage: ogImage && ogImage.content
-            }
+            },
+            windowId
           ]
         }
       });
