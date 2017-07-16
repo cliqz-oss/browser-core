@@ -12,7 +12,9 @@ export default class Sidebar {
       'shortcut-key': shortcut,
       'shortcut-modifiers': 'control,os'
     };
-    this.actions = actions;
+    this.actions = Object.assign({}, actions, {
+      close: this.close.bind(this),
+    });
   }
 
   attach(window) {

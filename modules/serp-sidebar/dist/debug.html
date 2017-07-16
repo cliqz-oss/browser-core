@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Search Sidebar</title>
+        <link rel="stylesheet" href="./styles/sidebar.css" />
+    </head>
+    <body>
+        <script src="./sidebar.bundle.js"></script>
+        <script>
+            window.postMessage({
+                action: 'render',
+                args: [
+                    {
+                        serpUrl: 'https://google.com',
+                        currentUrl: 'https://cliqz.com/?q=1',
+                        results: [
+                            {
+                                url: 'https://cliqz.com',
+                                title: 'CLIQZ Browser for Desktop',
+                                description: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut'
+                            },
+                            {
+                                url: 'https://cliqz.com/?q=1',
+                                title: 'CLIQZ Browser for Desktop',
+                                description: 'At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren'
+                            },
+                            {
+                                url: 'https://cliqz.com',
+                                title: 'CLIQZ Browser for Desktop',
+                                description: 'no sea takimata sanctus est Lorem ipsum dolor sit amet',
+                            },
+                            {
+                                url: 'https://www.google.de/search?q=tete&client=ubuntu&hs=qUO&channel=fs&tbm=isch&tbo=u&source=univ&sa=X&ved=0ahUKEwiW5pjcyI3VAhWHshQKHSl5DRAQsAQIdg',
+                                title: 'CLIQZ Browser for Desktop',
+                                description: 'no sea takimata sanctus est Lorem ipsum dolor sit amet',
+                            },
+                        ],
+                    }
+                ]
+            }, '*');
+        </script>
+    </body>
+</html>

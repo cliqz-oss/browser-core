@@ -1,7 +1,26 @@
+<header>
+    <a id="back" href="{{serpUrl}}">
+        &laquo; go back search page
+    </a>
+    <button id="close">
+        &Chi;
+    </button>
+</header>
 <ul>
     {{#each results}}
         <li>
-            <a href="{{url}}">{{title}}</a>
+            <a href="{{url}}">
+                <span class="indicator">
+                    &raquo;
+                </span>
+                {{title}}
+            </a>
+            <span class="url">
+                {{url}}
+            </span>
+            <span class="description">
+                {{description}}
+            </span>
         </li>
     {{/each}}
 </ul>

@@ -3,6 +3,7 @@ import Sidebar from '../core/ui/sidebar';
 import config from '../core/config';
 import inject from '../core/kord/inject';
 import utils from '../core/utils';
+import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 
 const googleUrl = /\.google\..*?[#?&;]q=[^$&]+/; // regex for google query
 
@@ -12,6 +13,7 @@ export default windowWrapper({
 
   constructor({ window }) {
     const url = `${config.baseURL}serp-sidebar/index.html`;
+    this.cssUrl = `${config.baseURL}serp-sidebar/styles/xul.css`;
     this.window = window;
     this.sidebar = new Sidebar({
       url,
@@ -19,17 +21,19 @@ export default windowWrapper({
       title: 'Search Sidebar',
       shortcut: 's',
       actions: {
-        openLink: utils.openLink.bind(utils, this.window)
-      }
+        openLink: utils.openLink.bind(utils, this.window),
+      },
     });
     this.resultsCache = new Map();
   },
 
   init() {
+    addStylesheet(this.window.document, this.cssUrl);
     this.sidebar.attach(this.window);
   },
 
   unload() {
+    removeStylesheet(this.window.document, this.cssUrl);
     this.sidebar.close();
     this.sidebar.deattach(this.window);
   },
@@ -50,6 +54,7 @@ export default windowWrapper({
             args: [{
               results,
               currentUrl: url,
+              serpUrl: redirectRootUrl,
             }],
           });
         });
@@ -60,17 +65,23 @@ export default windowWrapper({
       if (!googleUrl.test(url)) {
         return;
       }
-      this.core.action('queryHTML', url, '#search h3 > a', 'href,innerText')
-        .then(results => {
-          if (!results) {
-            return;
-          }
 
-          this.resultsCache.set(url, results.map(r => ({
-            url: r.href,
-            title: r.innerText,
-          })));
-        });
+      Promise.all([
+        this.core.action('queryHTML', url, '#search h3 > a', 'href,innerText'),
+        this.core.action('queryHTML', url, '#search h3 + div > div > span', 'innerText'),
+      ]).then((res) => {
+        if (!res[0]) {
+          return;
+        }
+
+        const results = res[0].map((r, i) => ({
+          url: r.href,
+          title: r.innerText,
+          description: res[1][i],
+        }));
+
+        this.resultsCache.set(url, results)
+      });
     }
   },
 

@@ -1,0 +1,11 @@
+#sidebar-box[sidebarcommand="serp-sidebarbroadcaster"] {
+    #sidebar-header {
+        display: none;
+    }
+
+    & + #sidebar-splitter {
+        /*
+        display: none;
+        */
+    }
+}

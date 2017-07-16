@@ -1,8 +1,103 @@
-html, body {
-    background-color: white;
+$color-cliqz-blue: #00AEF0;
+$color-blue: #2B5993;
+$color-green: #67A73A;
+$color-black: #1A1A25;
+
+* {
+    outline: 0;
 }
 
-.selected {
-    background-color: black;
-    color: white;
+html, body {
+    background-color: white;
+    font-family: "-mac-system", "-apple-system", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    font-size: 18px;
+    line-height: 20px;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    height: 100%;
+}
+
+#container {
+    height: 100%;
+}
+
+header {
+    background-color: $color-cliqz-blue;
+    padding: 10px;
+
+    a {
+        font-weight: bold;
+        color: white;
+    }
+
+    button {
+        font-weight: bold;
+        color: white;
+        float: right;
+        border: 0px;
+        background: transparent;
+        border-left: 1px solid white;
+        display: inline-block;
+        padding: 3px 3px 3px 10px;
+        cursor: pointer;
+    }
+}
+
+ul {
+    margin: 0;
+    padding: 10px 0 0px 0;
+    overflow: auto;
+    list-style-type: none;
+    height: calc(100% - 50px);
+}
+
+li {
+    margin: 0;
+    padding: 10px 20px 10px 20px;
+    width: calc(100% - 40px);
+    word-wrap: break-word;
+
+    a, span {
+        display: block;
+    }
+
+    span {
+        font-size: 14px;
+        line-height: 16px;
+    }
+}
+
+
+a {
+    cursor: pointer;
+    color: $color-blue;
+    text-decoration: none;
+    position: relative;
+
+    .indicator {
+        position: absolute;
+        left: -13px;
+
+        font-size: 18px;
+        display: none;
+    }
+
+    &.selected {
+        .indicator {
+            display: inline-block;
+        }
+    }
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.url {
+    color: $color-green;
+}
+
+.description {
+    color: $color-black;
 }
