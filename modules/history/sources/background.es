@@ -155,6 +155,9 @@ export default background({
   },
 
   actions: {
+    getRedirectRootUrl(url) {
+      return this.getSourceUrl(url);
+    },
     getHistory({ frameStartsAt, frameEndsAt, limit, domain, query }) {
       let sessionLimit = limit;
       // Allow unlimited queries only for fixed time fames

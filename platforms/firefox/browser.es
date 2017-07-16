@@ -19,6 +19,18 @@ export class Window {
       .getInterface(Ci.nsIDOMWindowUtils);
     return util.outerWindowID;
   }
+
+  get tabs() {
+    return [...this.window.gBrowser.tabs];
+  }
+
+  static getBrowserWindowContainingWindowWithId(windowId) {
+    return mapWindows(w => new Window(w)).find(
+      w => w.tabs.find(
+        t => t.linkedBrowser.outerWindowID === windowId
+      )
+    )
+  }
 }
 
 export const currentURL = CliqzHumanWeb.currentURL;

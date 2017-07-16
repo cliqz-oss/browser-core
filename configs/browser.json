@@ -100,7 +100,8 @@
     "p2p",
     "pairing",
     "antitracking-blocker",
-    "green-ads"
+    "green-ads",
+    "serp-sidebar"
   ],
   "subprojects": [
     "fresh-tab-frontend"
