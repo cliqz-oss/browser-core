@@ -5,6 +5,7 @@
     "es6-promise/es6-promise.js",
     "core.js/client/core.min.js",
     "whatwg-fetch/fetch.js",
-    "mathjs/dist/math.min.js"
+    "mathjs/dist/math.min.js",
+    "moment/min/moment.min.js"
   ]
 }
