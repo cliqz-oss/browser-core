@@ -22,6 +22,12 @@ export default background({
 
   events: {
     'content:location-change': function onTabLocationChange({ url }) {
+      // create a telemetry signal for each location change
+      utils.telemetry({
+        'type': 'navigation',
+        'action': 'location_change',
+      });
+
       if (url === this.currentUrl || !this.lastResult) {
         return;
       }

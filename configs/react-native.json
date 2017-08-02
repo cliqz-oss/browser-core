@@ -19,10 +19,15 @@
   },
   "modules": [
     "core",
+    "core-cliqz",
     "autocomplete",
     "antitracking",
+    "freshtab",
     "antitracking-blocker",
     "adblocker",
     "static"
-  ]
+  ],
+  "react_components": {
+    "ExtensionApp": "./SearchUI"
+  }
 }

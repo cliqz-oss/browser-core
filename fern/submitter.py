@@ -2,6 +2,7 @@
 import json
 import requests
 import logging
+import os
 import sys
 from Crypto.Hash import SHA512
 
@@ -122,8 +123,6 @@ if __name__ == '__main__':
 
     parser = OptionParser()
     parser.add_option("-a", "--api-root", dest="api_root")
-    parser.add_option("-c", "--credentials-file", dest="credentials_file")
-    parser.add_option("-u", "--username", dest="username", default="balrogadmin")
     parser.add_option("-r", "--release-channel", dest="release_channel", default="browser_beta")
     parser.add_option("--addon-id", dest="addon_id")
     parser.add_option("--addon-version", dest="addon_version")
@@ -131,12 +130,14 @@ if __name__ == '__main__':
 
     options, args = parser.parse_args()
 
-    credentials = {}
-    execfile(options.credentials_file, credentials)
-    auth = (
-        options.username,
-        credentials['balrog_credentials'][options.username]
-    )
+
+    username = os.environ['BALROG_ADMIN']
+    password = os.environ['BALROG_PASSWORD']
+
+    if not username or not password:
+        raise RuntimeError("Could not run without username or/and password")
+
+    auth = (username, password)
 
     submitter = Submitter(
         release_name="SystemAddons-"+options.release_channel,

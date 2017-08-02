@@ -312,8 +312,6 @@ export default class {
             const testDateRange = moment.range(testFirstDate, testLastDate || testFirstDate);
 
             return testDateRange.contains(userDate);
-          } else if (factor === 'core_version') {
-            // TODO - get install date and parse it
           }
 
           return (userValue || '').startsWith(testValue);

@@ -37,14 +37,14 @@ $color-active-border: #0078CA;
     left: 0;
     flex: 0 0 auto;
     align-self: stretch;
-    background-color: #506275;
+    background-color: #607c85;
     width: 74px;
 
     a {
       margin-top: 20px;
       opacity: 0.4;
       padding: 0px;
-      height: 25px;
+      height: 24px;
       display: block;
 
       &.freshtab-button {
@@ -162,6 +162,7 @@ $color-active-border: #0078CA;
           border: 1px solid #D4D4D4;
           border-radius: 3px;
           width: 100%;
+          max-width: 100%;
         }
 
         .feedback-textarea:focus {

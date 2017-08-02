@@ -4,9 +4,6 @@ import CliqzADB,
        ADB_PREF_VALUES,
        ADB_PREF_OPTIMIZED,
        ADB_PREF } from './adblocker';
-import events from '../core/events';
-
-const DISMISSED_ALERTS = 'dismissedAlerts';
 
 export default class {
   constructor(settings) {
@@ -14,27 +11,9 @@ export default class {
   }
 
   init() {
-    this.showOnboarding();
   }
 
   unload() {
-  }
-
-  showOnboarding() {
-    const isInABTest = utils.getPref('cliqz-adb-onboarding-message', false);
-    const dismissedAlerts = JSON.parse(utils.getPref(DISMISSED_ALERTS, '{}'));
-    const messageType = 'adb-onboarding';
-    const isDismissed = dismissedAlerts[messageType] && dismissedAlerts[messageType].count >= 1;
-    if (isInABTest && !isDismissed) {
-      events.pub(
-        'msg_center:show_message',
-        {
-          id: messageType,
-          template: messageType,
-        },
-        'MESSAGE_HANDLER_FRESHTAB'
-      );
-    }
   }
 
   status() {

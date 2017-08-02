@@ -9,11 +9,14 @@ class PageStats {
     this.pageUrl = url;
     this.count = 0;
     this.blocked = new Map();
+    this.blockedDomains = new Set();
   }
 
   addBlockedUrl(url) {
     // retrieve company
     const domain = getGeneralDomain(URLInfo.get(url).hostname);
+    this.blockedDomains.add(domain);
+
     let company;
     // Re-use anti tracking company list for the moment.
     // TODO: Replace it with a proper ads company list later
@@ -51,13 +54,19 @@ class PageStats {
 class AdbStats {
   constructor() {
     this.pages = new Map();
+    this.tabs = new Map();
   }
 
-  addBlockedUrl(sourceUrl, url) {
-    if (!this.pages.get(sourceUrl)) {
-      this.addNewPage(sourceUrl);
+  addBlockedUrl(sourceUrl, url, tabId) {
+    if (!this.tabs.get(tabId)) {
+      this.tabs.set(tabId, new PageStats(sourceUrl));
     }
-    this.pages.get(sourceUrl).addBlockedUrl(url);
+    const page = this.tabs.get(tabId);
+
+    if (!this.pages.get(sourceUrl)) {
+      this.pages.set(sourceUrl, page);
+    }
+    page.addBlockedUrl(url);
   }
 
   addNewPage(sourceUrl) {

@@ -1,7 +1,7 @@
 import CliqzUtils from '../core/utils';
 import console from '../core/console';
 import ProxyFilter from '../platform/proxy-filter';
-import { getRandomIntInclusive }from './utils';
+import { getRandomIntInclusive } from './utils';
 import CliqzSecureMessage from './main';
 /*
 Picked up from unblock proxy.es
@@ -34,15 +34,23 @@ export default class extends ProxyFilter {
     if (!CliqzSecureMessage.proxyList) {
       return;
     }
-    const proxyIdx = getRandomIntInclusive(0,3);
-    const proxyIP = CliqzSecureMessage.proxyList[proxyIdx];
-    console.log("Proxying Query: " + proxyIP);
+    const proxyIdx = getRandomIntInclusive(0, CliqzSecureMessage.proxyList.length - 1);
+    const proxyHost = CliqzSecureMessage.proxyList[proxyIdx].dns
+    if (CliqzSecureMessage.debug) {
+      CliqzUtils.log("Proxying Query: " + proxyHost, CliqzSecureMessage.LOG_KEY);
+    }
 
-    if (CliqzSecureMessage.proxyInfoObj[proxyIP]) {
-      return CliqzSecureMessage.proxyInfoObj[proxyIP];
+    if (CliqzSecureMessage.proxyInfoObj[proxyHost]) {
+      return CliqzSecureMessage.proxyInfoObj[proxyHost];
     } else {
-      const ob = this.newProxy(this.method, proxyIP, this.port, null, 1000, null);
-      CliqzSecureMessage.proxyInfoObj[proxyIP] = ob;
+      const ob = this.newProxy({
+        type: this.method,
+        host: proxyHost,
+        port: this.port,
+        failoverTimeout: 1000,
+        failoverProxy: null
+      });
+      CliqzSecureMessage.proxyInfoObj[proxyHost] = ob;
       return ob;
     }
   }

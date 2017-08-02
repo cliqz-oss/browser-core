@@ -1,6 +1,9 @@
 export default describeModule("freshtab/background",
   function () {
     return {
+      "core/console" : {
+        log(){}
+      },
       "core/events": {
         default: {
           sub() {},
@@ -10,13 +13,14 @@ export default describeModule("freshtab/background",
       "freshtab/main": {
         default: {
           startup() {},
-          shutdown() { }
+          shutdown() {},
+          rollback() {},
         }
       },
       "freshtab/news": {
         default: { unload() {}, },
       },
-      "freshtab/history": {
+      "platform/freshtab/history": {
         default: { getTopUrls(limit) { } }
       },
       "core/utils": { default: {} },
@@ -34,6 +38,16 @@ export default describeModule("freshtab/background",
       },
       "core/browser": {
         forEachWindow: function () {}
+      },
+      "core/platform": {
+        isCliqzBrowser: true,
+      },
+      "core/prefs": {
+        default: {
+          get() {},
+          set() {},
+          has() {},
+        }
       }
     }
   },
@@ -56,10 +70,20 @@ export default describeModule("freshtab/background",
         this.module().default.unload();
       });
 
-      it("calls shutdown on FreshTab", function (done) {
-        const FreshTab = this.deps("freshtab/main").default;
-        FreshTab.shutdown = function () { done(); };
-        this.module().default.unload();
+      context('quick unload', function () {
+        it("calls shutdown on FreshTab", function (done) {
+          const FreshTab = this.deps("freshtab/main").default;
+          FreshTab.shutdown = function () { done(); };
+          this.module().default.unload({ quick: true });
+        });
+      });
+
+      context('non quick unload', function () {
+        it("calls rollback on FreshTab", function (done) {
+          const FreshTab = this.deps("freshtab/main").default;
+          FreshTab.rollback = function () { done(); };
+          this.module().default.unload({ quick: false });
+        });
       });
     });
 
@@ -105,13 +129,13 @@ export default describeModule("freshtab/background",
           }
         }
 
-        this.deps("core/utils").default.getPref = function(key, def) {
+        this.deps("core/prefs").default.get = function(key, def) {
           return prefs[key] || def;
         }
 
-        this.deps("core/utils").default.hasPref = function(key) { return key in prefs; }
+        this.deps("core/prefs").default.has = function(key) { return key in prefs; }
 
-        this.deps("core/utils").default.setPref = function(key, value) {
+        this.deps("core/prefs").default.set = function(key, value) {
           prefs[key] = value;
         }
 
@@ -121,7 +145,19 @@ export default describeModule("freshtab/background",
 
         this.deps("core/utils").default.getLogoDetails = function() { return ''; }
 
-        this.deps('freshtab/speed-dial').default.prototype = function (url, custom) {
+        this.deps("core/utils").default.getSearchEngines = () => {
+          return [
+            {
+              "name": "Google",
+              "alias": "#go",
+              "default": true,
+              "icon": "data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII=",
+              "base_url": "https://www.google.com/search?q=&ie=utf-8&oe=utf-8&client=firefox-b"
+            }
+          ];
+        };
+
+        this.deps('freshtab/speed-dial').default.prototype = function (url, searchEngines, custom) {
           this.title = url;
           this.url = url;
           this.displayTitle = url;
@@ -145,7 +181,7 @@ export default describeModule("freshtab/background",
         let history_results;
 
         beforeEach(function() {
-          const History = this.deps("freshtab/history").default;
+          const History = this.deps("platform/freshtab/history").default;
           history_results = [
               {"url":"http://cliqz.com/","title":"Cliqz","total_count":32341},
               {"url":"https://github.com","title":"Github navigation extension","total_count":2548},
@@ -176,7 +212,7 @@ export default describeModule("freshtab/background",
         });
 
         it('display manually added custom tiles', function() {
-          this.deps("core/utils").default.setPref("extensions.cliqzLocal.freshtab.speedDials", JSON.stringify({
+          this.deps("core/prefs").default.set("extensions.cliqzLocal.freshtab.speedDials", JSON.stringify({
             "custom": [
               { url: "https://yahoo.com/" },
               { url: "https://www.gmail.com/" }
@@ -191,7 +227,7 @@ export default describeModule("freshtab/background",
 
 
         it('do NOT display manually deleted history tiles', function() {
-          this.deps("core/utils").default.setPref("extensions.cliqzLocal.freshtab.speedDials", JSON.stringify({
+          this.deps("core/prefs").default.set("extensions.cliqzLocal.freshtab.speedDials", JSON.stringify({
             "history": {
               "171601621": { "hidden": true }
             },
@@ -208,7 +244,7 @@ export default describeModule("freshtab/background",
 
         it('do NOT display history tiles in 1st row when manually added to 2nd row', function() {
 
-          this.deps("core/utils").default.setPref("extensions.cliqzLocal.freshtab.speedDials", JSON.stringify({
+          this.deps("core/prefs").default.set("extensions.cliqzLocal.freshtab.speedDials", JSON.stringify({
             "custom": [
               {"url": "https://www.yahoo.com/"},
               {"url": "http://cliqz.com/"}
@@ -249,7 +285,7 @@ export default describeModule("freshtab/background",
             const url = "http://cliqz.com";
 
             return this.module().default.actions.addSpeedDial(url).then((newSpeedDial) => {
-              const speedDials = JSON.parse(this.deps("core/utils").default.getPref("extensions.cliqzLocal.freshtab.speedDials"));
+              const speedDials = JSON.parse(this.deps("core/prefs").default.get("extensions.cliqzLocal.freshtab.speedDials"));
 
               chai.expect(speedDials.custom).to.deep.equal([
                 { "url": url }
@@ -320,7 +356,7 @@ export default describeModule("freshtab/background",
               "custom": false
             }
             this.module().default.actions.removeSpeedDial(speedDial);
-            let speedDials = JSON.parse(this.deps("core/utils").default.getPref("extensions.cliqzLocal.freshtab.speedDials"));
+            let speedDials = JSON.parse(this.deps("core/prefs").default.get("extensions.cliqzLocal.freshtab.speedDials"));
             chai.expect(speedDials).to.deep.equal({
               "history":
                 {
@@ -333,7 +369,7 @@ export default describeModule("freshtab/background",
         context("custom speed dials already present", function() {
 
           it("remove custom speed dial", function() {
-            this.deps("core/utils").default.setPref("extensions.cliqzLocal.freshtab.speedDials", JSON.stringify({
+            this.deps("core/prefs").default.set("extensions.cliqzLocal.freshtab.speedDials", JSON.stringify({
               "custom": [
                 { "url": "http://cliqz.com/" },
                 { "url": "https://www.spiegel.com/" }
@@ -345,7 +381,7 @@ export default describeModule("freshtab/background",
               "custom": true
             }
             this.module().default.actions.removeSpeedDial(speedDial);
-            let speedDials = JSON.parse(this.deps("core/utils").default.getPref("extensions.cliqzLocal.freshtab.speedDials"));
+            let speedDials = JSON.parse(this.deps("core/prefs").default.get("extensions.cliqzLocal.freshtab.speedDials"));
             chai.expect(speedDials).to.deep.equal({
               "custom": [
                 { "url": "https://www.spiegel.com/" }

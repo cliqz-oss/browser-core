@@ -5,7 +5,6 @@
 
 import LoggingHandler from './logging_handler';
 import ActionID from './actions_defs';
-import { openNewTabAndSelect } from './utils';
 import FilterRulesEvaluator from './filter_rules_evaluator';
 import events from '../core/events';
 import { isChromium } from '../core/platform';
@@ -16,6 +15,10 @@ import OfferDB from './offers_db';
 // consts
 
 const MODULE_NAME = 'offer_processor';
+// the time we want to avoid any update on the DB for a particular offer. This cache
+// is not persistence on disk, meaning will be just an optimization to avoid multiple
+// updates everytime a offer is pushed.
+const MAX_OFFER_CACHE_TIME_MS = 60 * 60 * 1000;
 
 // TODO: remove this methods
 function linfo(msg) {
@@ -35,10 +38,7 @@ function lerr(msg) {
 }
 
 const MessageType = {
-  MT_NEW_OFFER_ACTIVE: 'offer-active',
-  MT_DISPLAY_OFFER: 'display-offer',
-  MT_CLOSE_OFFER: 'close-offer',
-  MT_OFFER_DEACTIVATED: 'offer-deactivated',
+  MT_PUSH_OFFER: 'push-offer',
   MT_REMOVE_OFFER: 'remove-offer',
   MT_OFFERS_STATE_CHANGED: 'offers-state-changed'
 };
@@ -56,14 +56,15 @@ export default class OfferProcessor {
     this.baseDB = baseDB;
     this.offersDB = offersDB;
 
-    // active offers (not mean being displayed)
-    this.activeOffers = new Set();
+    // local offer-ids cached (offer_id -> cachedTime)
+    this.offerUpdateCache = {};
+
 
     // filtering rules evaluator
     this.filterRuleEval = new FilterRulesEvaluator(this.offersDB);
 
     // the action function map for signals coming from the UI (not tracking)
-    // There will be 3 type of signals:
+    // There will be 2 type of signals:
     //  - (1) signals that are related to an offer and have some action on them (they
     //    change the status or any logic of the business).
     //  - (2) signals that are "actions" (telemtry) related to a particular offer but
@@ -72,10 +73,8 @@ export default class OfferProcessor {
     //    has no any effect on the main logic of offers.
     this.uiActionsMap = {
       // (1)
-      'call-to-action': this._uiFunCallToAction.bind(this),
-      'close-offer': this._uiFunCloseOffer.bind(this),
       'remove-offer': this._uiFunRemoveOffer.bind(this),
-      'offers-state-changed': this._uiFunOffersStateChanged.bind(this),
+      'change-offer-state': this._uiFunOffersStateChanged.bind(this),
       // (2)
       'offer-action-signal': this._uiFunOfferActionSignal.bind(this),
       // (3)
@@ -111,8 +110,11 @@ export default class OfferProcessor {
   // add / remove offers
 
   //
-  // @brief This method will add an offer to be displayed. We will apply here some
-  //        rules and logic to see if we should or not show a particular offer.
+  // @brief This method will be called everytime we should push an offer to the
+  //        real estates. We will do some checkings before like:
+  //         - proper format / fields.
+  //         - apply filtering rules.
+  //         - store it on DB if we don't have it, otherwise cache it and store it
   // @param offerInfo:
   // {
   //   offer_id: 'XX',
@@ -130,119 +132,82 @@ export default class OfferProcessor {
   //     // was not created >= N days, etc
   //   }
   // }
-  addOffer(offerInfo, originID = ORIGIN_ID) {
+  //
+  // @param origin will be the origin who is calling this method.
+  // @param newDisplayRule if the displayRule is different than the one the offer
+  //                       currently has
+  //
+  pushOffer(offerInfo, newDisplayRule = null, originID = ORIGIN_ID) {
     // check offer validity
     if (!offerInfo ||
         !offerInfo.offer_id ||
         !offerInfo.display_id ||
         !offerInfo.campaign_id) {
-      lwarn('addOffer: invalid offer or missing fields');
+      lwarn('pushOffer: invalid offer or missing fields');
       return false;
     }
 
-    // check the status of the current offer if there is one
-    if (this.isOfferActive(offerInfo.offer_id)) {
-      lwarn('addOffer: we already have this offer active..');
-      return false;
-    }
+    // this is the entry point for every place where we will create an offer.
+    // Everyone who creates an offer should call this method.
+    //
+    this.sigHandler.setCampaignSignal(offerInfo.campaign_id,
+                                      offerInfo.offer_id,
+                                      originID,
+                                      ActionID.AID_OFFER_TRIGGERED);
 
     // check if we should or should not show this offer
     if (!this._shouldShowOffer(offerInfo)) {
-      linfo(`addOffer: We should not show this offer with ID: ${offerInfo.offer_id}`);
+      linfo(`pushOffer: We should not show this offer with ID: ${offerInfo.offer_id}`);
+      this.sigHandler.setCampaignSignal(offerInfo.campaign_id,
+                                        offerInfo.offer_id,
+                                        originID,
+                                        ActionID.AID_OFFER_FILTERED);
       return false;
     }
 
-    // we then need to add the offer to the DB and mark it as active
-    if (this.offersDB.hasOfferData(offerInfo.offer_id)) {
-      // try to update it just in case
-      if (!this.offersDB.updateOfferObject(offerInfo.offer_id, offerInfo)) {
-        lerr(`addOffer: Error updating the offer to the DB: ${offerInfo.offer_id}`);
+    // check if it is cached so we add it or update it
+    if (!this._isOfferCached(offerInfo.offer_id)) {
+      // we then need to add the offer to the DB and mark it as active
+      if (this.offersDB.hasOfferData(offerInfo.offer_id)) {
+        // try to update it just in case
+        if (!this.offersDB.updateOfferObject(offerInfo.offer_id, offerInfo)) {
+          lerr(`pushOffer: Error updating the offer to the DB: ${offerInfo.offer_id}`);
+          return false;
+        }
+      } else if (!this.offersDB.addOfferObject(offerInfo.offer_id, offerInfo)) {
+        // it is a new one
+        // we cannot continue here since we depend on having the offer in the DB
+        lerr(`pushOffer: Error adding the offer to the DB: ${offerInfo.offer_id}`);
         return false;
       }
-    } else if (!this.offersDB.addOfferObject(offerInfo.offer_id, offerInfo)) {
-      // it is a new one
-      // we cannot continue here since we depend on having the offer in the DB
-      lerr(`addOffer: Error adding the offer to the DB: ${offerInfo.offer_id}`);
-      return false;
-    }
 
-    // make offer active
-    this.makeOfferActive(offerInfo.offer_id);
+      // cache the offer
+      this._cacheOffer(offerInfo.offer_id);
+    }
 
     // now we will publish the message notifying that we have a new offer
     const offerObject = this.offersDB.getOfferObject(offerInfo.offer_id);
-    const msgData = {
-      offer_id: offerObject.offer_id,
-      offer_data: offerObject
-    };
 
     // track some signals
-    this.offersDB.incOfferAction(offerObject.offer_id, ActionID.AID_OFFER_ADDED);
-
-    // to track we use the offer_id
+    this.offersDB.incOfferAction(offerObject.offer_id, ActionID.AID_OFFER_PUSHED);
     this.sigHandler.setCampaignSignal(offerObject.campaign_id,
                                       offerObject.offer_id,
                                       originID,
-                                      ActionID.AID_OFFER_ADDED);
-
-    // there should not be a displayed signal here, it should come from the real
-    // state.
+                                      ActionID.AID_OFFER_PUSHED);
 
     // broadcast the message
-    const realStatesDest = this._getDestRealStatesForOffer(offerObject.offer_id);
-    this._publishMessage(MessageType.MT_NEW_OFFER_ACTIVE, realStatesDest, msgData);
-    return true;
-  }
-
-  /**
-   * check if an offer is active or not
-   * @param  {[type]} offerID [description]
-   * @return {[type]}         [description]
-   */
-  isOfferActive(offerID) {
-    return this.activeOffers.has(offerID);
-  }
-  makeOfferActive(offerID) {
-    this.activeOffers.add(offerID);
-  }
-  makeOfferInactive(offerID) {
-    this.activeOffers.delete(offerID);
-  }
-
-  //
-  // @brief update the rule information for an offer
-  //
-  displayOffer(offerID, displayInfo) {
-    if (!offerID || !displayInfo) {
-      lwarn('displayOffer: offer ID or displayInfo nulls?');
-      return false;
-    }
-    if (!this.isOfferActive(offerID)) {
-      lwarn(`displayOffer: we dont have an offer with id: ${offerID}`);
-      return false;
+    let displayRule = newDisplayRule;
+    if (!displayRule) {
+      displayRule = offerObject.rule_info;
     }
 
-    const localOfferInfo = this.offersDB.getOfferObject(offerID);
-    if (!localOfferInfo || !this._shouldShowOffer(localOfferInfo)) {
-      linfo(`displayOffer: we should not show this offer with id: ${offerID}`);
-      return false;
-    }
-
-    // track this signal
-    const campaignID = this.offersDB.getCampaignID(offerID);
-    this.sigHandler.setCampaignSignal(campaignID,
-                                      offerID,
-                                      ORIGIN_ID,
-                                      ActionID.AID_OFFER_DISPLAYED);
-
-    // broadcast the message
-    const realStatesDest = this._getDestRealStatesForOffer(localOfferInfo.offer_id);
-    const data = {
-      offer_id: localOfferInfo.offer_id,
-      display_rule: displayInfo,
-      offer_data: localOfferInfo
+    const msgData = {
+      offer_id: offerObject.offer_id,
+      display_rule: displayRule,
+      offer_data: offerObject
     };
-    this._publishMessage(MessageType.MT_DISPLAY_OFFER, realStatesDest, data);
+    const realStatesDest = this._getDestRealStatesForOffer(offerObject.offer_id);
+    this._publishMessage(MessageType.MT_PUSH_OFFER, realStatesDest, msgData);
     return true;
   }
 
@@ -348,7 +313,7 @@ export default class OfferProcessor {
       // already exists
       return false;
     }
-    return this.addOffer(args.data, args.origin);
+    return this.pushOffer(args.data, null, args.origin);
   }
 
   /**
@@ -379,37 +344,37 @@ export default class OfferProcessor {
 
 
   /**
-   * will close and offer with the given id, this will make the offer inactive
-   * if it was
-   * @param  {[type]} offerID [description]
-   * @return {[type]}         [description]
+   * will check if we have an offer on memory recently added / updated on the DB.
+   * @param  {string}  offerID [description]
+   * @return {Boolean}         true if it is cached, false otherwise
    */
-  _closeOffer(offerID) {
-    const offerObj = this.offersDB.getOfferObject(offerID);
-    if (!offerObj) {
-      lwarn(`closeOffer: the offer ${offerID} is not on our DB`);
+  _isOfferCached(offerID) {
+    if (!offerID) {
       return false;
     }
-
-    // track signal
-    const campaignID = this.offersDB.getCampaignID(offerID);
-    this.sigHandler.setCampaignSignal(campaignID,
-                                      offerID,
-                                      ORIGIN_ID,
-                                      ActionID.AID_OFFER_CLOSED);
-
-    // we emit the event for the real states now
-    const realStatesDest = this._getDestRealStatesForOffer(offerID);
-    const data = { offer_id: offerID };
-    this._publishMessage(MessageType.MT_CLOSE_OFFER, realStatesDest, data);
-
-    if (this.isOfferActive(offerID)) {
-      this.makeOfferInactive(offerID);
-      // emit a message here
-      this._publishMessage(MessageType.MT_OFFER_DEACTIVATED, realStatesDest, data);
+    const cachedTime = this.offerUpdateCache[offerID];
+    if (!cachedTime) {
+      return false;
     }
-
+    const now = Date.now();
+    const diffTime = now - cachedTime;
+    if (diffTime > MAX_OFFER_CACHE_TIME_MS) {
+      delete this.offerUpdateCache[offerID];
+      return false;
+    }
+    // still cached
     return true;
+  }
+
+  /**
+   * will cache an offer id on memory with the current timestamp.
+   * @param  {[type]} offerID [description]
+   */
+  _cacheOffer(offerID) {
+    if (!offerID) {
+      return;
+    }
+    this.offerUpdateCache[offerID] = Date.now();
   }
 
   //
@@ -433,18 +398,12 @@ export default class OfferProcessor {
     this.sigHandler.setCampaignSignal(campaignID,
                                       offerID,
                                       ORIGIN_ID,
-                                      ActionID.AID_OFFER_REMOVED);
+                                      ActionID.AID_OFFER_DB_REMOVED);
 
     // we emit the event for the real states now
     const realStatesDest = this._getDestRealStatesForOffer(offerID);
     const data = { offer_id: offerID };
     this._publishMessage(MessageType.MT_REMOVE_OFFER, realStatesDest, data);
-
-    if (this.isOfferActive(offerID)) {
-      this.makeOfferInactive(offerID);
-      // emit a message here
-      this._publishMessage(MessageType.MT_OFFER_DEACTIVATED, realStatesDest, data);
-    }
 
     return true;
   }
@@ -516,84 +475,47 @@ export default class OfferProcessor {
   _publishMessage(type, destList, data) {
     // for now for backward compatibility we will hardcode this part here.
     // in the future we should adapt the ui (ghostery) to this new interface.
-    if (isChromium && type === MessageType.MT_NEW_OFFER_ACTIVE) {
-      const offerInfoCpy = data.offer_data;
-      linfo(`_publishMessage: sending offer active for offerID: ${offerInfoCpy.display_id}`);
-      events.pub('msg_center:show_message', {
-        id: offerInfoCpy.display_id,
-        Message: offerInfoCpy.ui_info.template_data.title,
-        Link: offerInfoCpy.ui_info.template_data.call_to_action.text,
-        LinkText: offerInfoCpy.ui_info.template_data.call_to_action.url,
-        type: 'offers',
-        origin: 'cliqz',
-        data: {
-          offer_info: {
-            offer_id: data.offer_data.offer_id
-          }
+    try {
+      if (isChromium && type === MessageType.MT_PUSH_OFFER) {
+        const offerInfoCpy = data.offer_data;
+        linfo(`_publishMessage: sending offer active for offerID: ${offerInfoCpy.display_id}`);
+        let urlsToShow = null;
+        if (data.offer_data.rule_info && data.offer_data.rule_info.url) {
+          urlsToShow = data.offer_data.rule_info.url;
         }
-      }, 'ghostery');
-      return;
-    }
+        events.pub('msg_center:show_message', {
+          id: offerInfoCpy.display_id,
+          Message: offerInfoCpy.ui_info.template_data.title,
+          Link: offerInfoCpy.ui_info.template_data.call_to_action.url,
+          LinkText: offerInfoCpy.ui_info.template_data.call_to_action.text,
+          type: 'offers',
+          origin: 'cliqz',
+          data: {
+            offer_info: {
+              offer_id: data.offer_data.offer_id,
+              offer_urls: urlsToShow
+            }
+          }
+        }, 'ghostery');
+        return;
+      }
 
-    // this will be the normal case
-    const message = {
-      origin: 'offers-core',
-      type,
-      dest: destList,
-      data,
-    };
-    events.pub('offers-send-ch', message);
+      // this will be the normal case
+      const message = {
+        origin: 'offers-core',
+        type,
+        dest: destList,
+        data,
+      };
+      events.pub('offers-send-ch', message);
+    } catch (err) {
+      lerr(`_publishMessage: something failed publishing the message ${JSON.stringify(err)}`);
+    }
   }
 
 
   // ///////////////////////////////////////////////////////////////////////////
   // actions from ui
-
-  _uiFunCallToAction(msg) {
-    // check offer
-    if (!msg.data || !msg.data.offer_id) {
-      lwarn(`_uiFunCallToAction: invalid format of the message: ${JSON.stringify(msg)}`);
-      return false;
-    }
-
-    // get the data
-    const offerID = msg.data.offer_id;
-    const campaignID = this.offersDB.getCampaignID(offerID);
-    const offerInfo = this.offersDB.getOfferObject(offerID);
-    if (!offerInfo) {
-      lwarn(`_uiFunCallToAction: we dont have an active offer with id: ${offerID}`);
-      return false;
-    }
-    // increment the signal here
-    linfo(`_uiFunCallToAction: called for offer id: ${offerID}`);
-    this.offersDB.incOfferAction(offerID, ActionID.AID_OFFER_CALL_TO_ACTION);
-    this.sigHandler.setCampaignSignal(campaignID,
-                                      offerID,
-                                      msg.origin,
-                                      ActionID.AID_OFFER_CALL_TO_ACTION);
-
-    // execute the action if we have one
-    if (offerInfo.action_info && offerInfo.action_info.on_click) {
-      openNewTabAndSelect(offerInfo.action_info.on_click);
-    } else {
-      linfo('_uiFunCallToAction: no action_info defined for this offer');
-    }
-    return true;
-  }
-
-  _uiFunCloseOffer(msg) {
-    if (!msg.data || !msg.data.offer_id) {
-      lwarn(`_uiFunCloseOffer: invalid format of the message: ${JSON.stringify(msg)}`);
-      return false;
-    }
-    const offerID = msg.data.offer_id;
-    const campaignID = this.offersDB.getCampaignID(offerID);
-    linfo(`_uiFunCloseOffer: called for offer id: ${offerID}`);
-    this.sigHandler.setCampaignSignal(campaignID, offerID, msg.origin, ActionID.AID_OFFER_CLOSED);
-    this.offersDB.incOfferAction(offerID, ActionID.AID_OFFER_CLOSED);
-
-    return this._closeOffer(offerID);
-  }
 
   _uiFunRemoveOffer(msg) {
     if (!msg.data || !msg.data.offer_id) {
@@ -621,7 +543,8 @@ export default class OfferProcessor {
       return false;
     }
     // we will send the new signal here depending on the action id:
-    this.sigHandler.setActionSignal(msg.data.action_id, msg.origin);
+    const counter = msg.data.counter ? msg.data.counter : 1;
+    this.sigHandler.setActionSignal(msg.data.action_id, msg.origin, counter);
 
     return true;
   }
@@ -686,8 +609,9 @@ export default class OfferProcessor {
     }
 
     // send signal and add it as action on the offer list
-    this.sigHandler.setCampaignSignal(campaignID, offerID, msg.origin, msg.data.action_id);
-    this.offersDB.incOfferAction(offerID, msg.data.action_id);
+    const counter = msg.data.counter ? msg.data.counter : 1;
+    this.sigHandler.setCampaignSignal(campaignID, offerID, msg.origin, msg.data.action_id, counter);
+    this.offersDB.incOfferAction(offerID, msg.data.action_id, counter);
 
     return true;
   }

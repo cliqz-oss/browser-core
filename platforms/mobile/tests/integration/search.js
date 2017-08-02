@@ -182,6 +182,77 @@ describe('Search View', function() {
     });
   });
 
+  context("Query Manipulation", function () {
+    var query = "   AMAZON   ";
+
+    beforeEach(function (done) {
+      this.timeout(10000);
+
+      contentWindow.addEventListener('imgLoadingDone', function () { done() });
+
+      var response = cliqzResponse(query, [
+        {
+          "q": "   AMAZON   ",
+          "url": "https://www.amazon.de/",
+          "trigger_method": "url",
+          "snippet": {
+            "friendlyUrl": "amazon.de",
+            "description": "Entdecken, shoppen und einkaufen bei Amazon.de: G\u00fcnstige Preise f\u00fcr Elektronik & Foto, Filme, Musik, B\u00fccher, Games, Spielzeug, Sportartikel, Drogerie & mehr bei Amazon.de",
+            "title": "!!!Fake title!!! Amazon.de: G\u00fcnstige Preise f\u00fcr Elektronik & Foto, Filme, Musik, B\u00fccher, Games, Spielzeug & mehr",
+            "extra": {
+              "og": {
+                "description": "Entdecken, shoppen und einkaufen bei Amazon.de: G\u00fcnstige Preise f\u00fcr Elektronik & Foto, Filme, Musik, B\u00fccher, Games, Spielzeug, Sportartikel, Drogerie & mehr bei Amazon.de"
+              },
+              "alternatives": [
+
+              ],
+              "language": {
+                "de": 1.0
+              }
+            },
+            "deepResults": [
+              {
+                "type": "buttons",
+                "links": [
+                  {
+                    "url": "https://partnernet.amazon.de",
+                    "title": "Partnerprogramm"
+                  },
+                  {
+                    "url": "https://payments.amazon.de?ld=AWREDEAPAFooter",
+                    "title": "Login und Bezahlen mit Amazon"
+                  }
+                ]
+              }
+            ]
+          },
+          "subType": {
+            "id": "-1884090464472778153",
+            "name": "amazon.de",
+            "class": "EntityGeneric"
+          },
+          "trigger": [
+            "amazon.de"
+          ],
+          "template": "generic",
+          "type": "rh"
+        }
+      ]);
+
+      mockHttp(contentWindow, /.*api\/v2\/results.*/, response);
+      
+      contentWindow.jsAPI.search(encodeURIComponent(query));
+    });
+
+    it("should render generic template", function () {
+      expect($("#cliqz-results")[0].innerHTML).to.contain('<!-- generic.tpl -->');
+    });
+
+    it("should heighlight lower case amazon", function () {
+      expect($("em")).to.have.lengthOf(3);
+    });
+  });
+
   context("Adult Filter", function () {
     var query = "titten";
 

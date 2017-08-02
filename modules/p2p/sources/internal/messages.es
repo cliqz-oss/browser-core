@@ -6,7 +6,9 @@ import random from '../../core/crypto/random';
 import { toUTF8, fromUTF8 } from '../../core/encoding';
 import constants from './constants';
 import { isArrayBuffer } from './utils';
+import utils from '../../core/utils';
 
+const { setTimeout, clearTimeout } = utils;
 
 function putInt(data, offset, num) {
   data[offset] = num >> 24;
@@ -160,13 +162,13 @@ class OutMessage {
     if (this.msgKiller) {
       this.cancelKiller();
     }
-    this.msgKiller = this.cliqzPeer.setTimeout(() => {
+    this.msgKiller = setTimeout(() => {
       this.kill();
     }, this.msgTimeout);
   }
 
   cancelKiller() {
-    this.cliqzPeer.clearTimeout(this.msgKiller);
+    clearTimeout(this.msgKiller);
   }
 
   kill(success) {
@@ -273,7 +275,7 @@ class InMessage {
             this.logDebug('Received last chunk ', this.msgId, chunkId);
             this.cliqzPeer.stats.inmsgs++;
             this.kill(true);
-            this.cliqzPeer.setTimeout(() => {
+            setTimeout(() => {
               // TODO: with big messages, this call seems to be expensive and was blocking the
               // last ack message
               // Setting this in a zero timeout seems to solve it, but probably should optimize
@@ -308,7 +310,7 @@ class InMessage {
     if (this.msgKiller) {
       this.cancelKiller();
     }
-    this.msgKiller = this.cliqzPeer.setTimeout(() => {
+    this.msgKiller = setTimeout(() => {
       this.kill();
     }, this.msgTimeout);
   }
@@ -320,7 +322,7 @@ class InMessage {
   }
 
   cancelKiller() {
-    this.cliqzPeer.clearTimeout(this.msgKiller);
+    clearTimeout(this.msgKiller);
   }
 
   kill(success) {

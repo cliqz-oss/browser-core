@@ -44,7 +44,7 @@ export default background({
     @param settings
   */
   init() {
-
+    this.offerSignalSent = new WeakMap();
   },
 
   unload() {
@@ -57,6 +57,36 @@ export default background({
 
   beforeBrowserShutdown() {
 
+  },
+
+  sendOfferShownSignals(offerResult) {
+    const offer = {
+      origin: 'dropdown',
+      data: offerResult.offerData,
+    };
+    return this.offers.action('createExternalOffer', offer).then(() => {
+      if (this.offerSignalSent.get(this.currentResults)) {
+        return Promise.resolve();
+      }
+      this.offerSignalSent.set(this.currentResults, true);
+      events.pub('offers-recv-ch', {
+        origin: 'dropdown',
+        type: 'offer-action-signal',
+        data: {
+          offer_id: offerResult.offerId,
+          action_id: 'offer_dsp_session'
+        }
+      });
+      events.pub('offers-recv-ch', {
+        origin: 'dropdown',
+        type: 'offer-action-signal',
+        data: {
+          offer_id: offerResult.offerId,
+          action_id: 'offer_shown'
+        }
+      });
+      return Promise.resolve();
+    }).catch(console.error);
   },
 
   get inOffersAB() {
@@ -76,22 +106,7 @@ export default background({
         const offersCreationPromises = this.currentResults
           .map(r => new OfferResult(r))
           .filter(r => r.shouldCountStats)
-          .map((offerResult) => {
-            const offer = {
-              origin: 'dropdown',
-              data: offerResult.offerData,
-            };
-            return this.offers.action('createExternalOffer', offer).then(() => {
-              events.pub('offers-recv-ch', {
-                origin: 'dropdown',
-                type: 'offer-action-signal',
-                data: {
-                  offer_id: offerResult.offerId,
-                  action_id: 'offer_shown'
-                }
-              });
-            }).catch(console.error);
-          });
+          .map(this.sendOfferShownSignals.bind(this));
         showsPromise = Promise.all(offersCreationPromises);
       } else {
         showsPromise = Promise.resolve();
@@ -114,12 +129,25 @@ export default background({
         });
       }, console.error);
     },
+
+    'core:urlbar_blur': function onBlur() {
+      if (!this.inOffersAB ||
+          !this.currentResults ||
+          this.offerSignalSent.get(this.currentResults)) {
+        return;
+      }
+      this.currentResults
+        .map(r => new OfferResult(r))
+        .filter(r => r.shouldCountStats)
+        .map(this.sendOfferShownSignals.bind(this));
+    },
+
     'ui:results': function onResults(rawResults) {
       if (!this.inOffersAB) {
         return;
       }
-
       this.currentResults = rawResults;
+      this.offerSignalSent.set(this.currentResults, false);
     },
   },
 

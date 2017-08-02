@@ -9,7 +9,7 @@ function getURL() {
   let match = url.match(/u=([^&]+)/);
 
   if (!match) {
-    return "";  // this should not happend though
+    return '';  // this should not happend though
   }
 
   url = decodeURIComponent(match[1]);

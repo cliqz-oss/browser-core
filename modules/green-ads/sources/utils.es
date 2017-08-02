@@ -2,7 +2,7 @@ import { URLInfo } from '../antitracking/url';
 import { getGeneralDomain } from '../antitracking/domain';
 
 
-export function extractGeneralDomain(url) {
+export function extractDomain(url) {
   if (!url) {
     return null;
   }
@@ -13,7 +13,12 @@ export function extractGeneralDomain(url) {
     return null;
   }
 
-  let hostname = urlParts.hostname;
+  return urlParts.hostname;
+}
+
+
+export function extractGeneralDomain(url) {
+  let hostname = extractDomain(url);
 
   if (hostname) {
     if (hostname.startsWith('www.')) {
@@ -27,6 +32,8 @@ export function extractGeneralDomain(url) {
 
 
 export function sanitiseUrl(url) {
+  if (!url) return url;
+
   // It can be an Ad id instead of a URL.
   if (url.indexOf('/') === -1) return url;
 
@@ -34,4 +41,16 @@ export function sanitiseUrl(url) {
   const secondSlash = urlParts.path.indexOf('/', 2);
   const truncatedPath = urlParts.path.substring(0, secondSlash > 0 ? secondSlash : undefined);
   return `//${urlParts.hostname}${truncatedPath}`;
+}
+
+
+export function sanitiseParents(parents) {
+  if (!parents) {
+    return parents;
+  }
+
+  return parents.map(parent => ({
+    id: parent.id,
+    url: sanitiseUrl(parent.url),
+  }));
 }

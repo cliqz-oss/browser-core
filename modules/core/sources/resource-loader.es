@@ -1,6 +1,6 @@
 import config from './config';
 import console from './console';
-import { utils } from './cliqz';
+import utils from './utils';
 import Storage from '../platform/resource-loader-storage';
 import TextDecoder from '../platform/text-decoder';
 
@@ -62,8 +62,13 @@ export class Resource {
   load() {
     return this.storage.load()
       .then((data) => {
-        // If TextDecoder is not available just use `data`
-        return (new TextDecoder()).decode(data) || data;
+        try {
+          // data might be a plain string in web extension case
+          // for react native the TextDecoder.decode returns an empty string
+          return (new TextDecoder()).decode(data) || data;
+        } catch (e) {
+          return data;
+        }
       })
       .then(data => this.parseData(data))
       .catch(() => this.updateFromURL(this.chromeURL))

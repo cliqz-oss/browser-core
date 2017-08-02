@@ -1,5 +1,6 @@
 import BaseResult from './base';
 import utils from '../../core/utils';
+import GenericResult from './generic';
 
 class LottoButton extends BaseResult {
   get displayUrl() {
@@ -15,7 +16,7 @@ class LottoButton extends BaseResult {
   }
 }
 
-export default class extends BaseResult {
+export default class extends GenericResult {
   get template() {
     return 'lotto';
   }
@@ -32,7 +33,7 @@ export default class extends BaseResult {
   }
 
   get locale() {
-    return utils.getLocalizedString('locale_lang_code');
+    return 'de-DE'; // Force to show German only
   }
 
   get localeDate() {

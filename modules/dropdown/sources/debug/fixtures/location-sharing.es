@@ -54,7 +54,7 @@ export default {
       }
     ]
   },
-  'local-result': {
+  'local': {
     query: 'rewe',
     results: [
       {

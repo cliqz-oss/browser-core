@@ -1,4 +1,5 @@
-import utils from 'core/utils';
+import config from '../core/config';
+import utils from '../core/utils';
 
 const ONE_MINUTE = 60 * 1000;
 
@@ -11,7 +12,7 @@ export default class {
     this.cacheName = cacheName;
     this.timerName = `${cacheName}_timer`;
     this.updateInterval = updateInterval;
-    this.localStore = utils.getLocalStorage(utils.CLIQZ_NEW_TAB_RESOURCE_URL);
+    this.localStore = utils.getLocalStorage(config.settings.NEW_TAB_URL);
     this.updateFunction = updateFunction;
 
     // remove old versions of the caches
@@ -26,6 +27,11 @@ export default class {
     if (updateAsynchronously) {
       this.updateTimer = utils.setTimeout(this.asynchronousUpdate.bind(this), 5 * 1000);
     }
+  }
+
+  reset() {
+    this.localStore.removeItem(this.cacheName);
+    this.localStore.removeItem(this.timerName);
   }
 
   asynchronousUpdate() {

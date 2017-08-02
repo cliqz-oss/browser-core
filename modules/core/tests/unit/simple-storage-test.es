@@ -43,7 +43,7 @@ export default describeModule('core/simple-storage',
           .then(() => {
             ss.set('test', [1, 2, 3, 4, 5]);
             ss.apply('test', 'push', 6, 7, 8, 9);
-            return ss.close();
+            return ss.flush().then(() => ss.close());
           })
           .then(() => {
             ss = new SimpleStorage();
@@ -53,7 +53,7 @@ export default describeModule('core/simple-storage',
             expect(JSON.stringify(ss.get('test'))).to.equal('[1,2,3,4,5,6,7,8,9]');
             ss.set('other', 5);
             ss.delete('test');
-            return ss.close();
+            return ss.flush().then(() => ss.close());
           })
           .then(() => {
             ss = new SimpleStorage();
@@ -66,7 +66,7 @@ export default describeModule('core/simple-storage',
             ss.set(['other', 'nested'], { nested: [] });
             ss.apply(['other', 'nested', 'nested'], 'push', 1, 2, 3);
             ss.apply(['other', 'nested', 'nested'], 'splice', 1, 1);
-            return ss.close();
+            return ss.flush().then(() => ss.close());
           })
           .then(() => {
             ss = new SimpleStorage();
@@ -74,7 +74,7 @@ export default describeModule('core/simple-storage',
           })
           .then(() => {
             expect(JSON.stringify(ss.get(['other', 'nested', 'nested']))).to.equal('[1,3]');
-            return ss.close();
+            return ss.flush().then(() => ss.close());
           });
       });
     });

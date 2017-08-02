@@ -106,7 +106,7 @@ $basic-line-height: (16 / 15) + 0em;
         margin-left: 10px;
         -moz-box-sizing: border-box;
         box-sizing: border-box;
-        border-radius: 50%;
+        border-radius: 2px;
         display: inline-block;
         line-height: 1.4em;
         text-align: center;
@@ -184,6 +184,7 @@ $basic-line-height: (16 / 15) + 0em;
             margin-left: 10px;
             width: 80%;
             overflow: hidden;
+            display: inline-flex;
 
             & > div {
                 float: left;
@@ -209,8 +210,11 @@ $basic-line-height: (16 / 15) + 0em;
                     @extend .ellipsis;
                     display: inline-block;
                     float: left;
+                    line-height: ($basic-line-height / 0.833) + 0em;
+
                     margin-right: 5px;
                     max-width: 500px;
+                    padding-right: 2px;
                 }
 
                 .divider {
@@ -245,6 +249,8 @@ $basic-line-height: (16 / 15) + 0em;
                 height: 46px;
                 border-radius: 3px;
                 padding-right: 10px;
+                display: flex;
+                flex: 0 0 auto;
 
                 img {
                     width: 100%;
@@ -274,6 +280,7 @@ $basic-line-height: (16 / 15) + 0em;
                     color: rgba(255, 255, 255, 0.8);
                 }
 
+                span.title,
                 .description,
                 .url {
                     max-width: 100%;
@@ -383,6 +390,7 @@ $basic-line-height: (16 / 15) + 0em;
                 .abstract {
                     .divider, .url {
                         display: inline-block;
+                        line-height: ($basic-line-height / 0.833) + 0em;
                     }
                 }
             }
@@ -463,6 +471,12 @@ $basic-line-height: (16 / 15) + 0em;
         }
     }
 
+    // .result.news {
+    //   .description {
+    //     display: none;
+    //   }
+    // }
+
     .result.calculator {
         .header {
             font-size: 1.66em;
@@ -506,6 +520,9 @@ $basic-line-height: (16 / 15) + 0em;
     }
 
     .news {
+        // .description {
+        //   display: none;
+        // }
         p {
             width: 0px;
         }
@@ -539,13 +556,30 @@ $basic-line-height: (16 / 15) + 0em;
                     line-height: 1.533em;
                 }
 
+                span.title {
+                  line-height: 1.733em;
+                }
+
+                .divider,
+                .url {
+                  line-height: (2) + 0em;
+                }
+
                 .description[data-extra='full-url'] {
                     display: none;
                 }
 
+                .description[data-extra='description'] {
+                  line-height: (1.133 / 0.97) + 0em;
+                }
+
+                span.published-at {
+                  text-transform: uppercase;
+                }
+
                 .subtitle {
                     font-size: 0.67em;
-                    line-height: (1.533 / 0.67) + 0em;
+                    line-height: (1.133 / 0.77) + 0em;
                     font-weight: 500;
 
                     &.attention {

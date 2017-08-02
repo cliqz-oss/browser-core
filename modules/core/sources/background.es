@@ -4,15 +4,12 @@ import console from "./console";
 import language from "./language";
 import config from "./config";
 import ProcessScriptManager from "../platform/process-script-manager";
-import HistoryManager from "./history-manager";
 import prefs from './prefs';
 import background from './base/background';
-import { Window, mapWindows, getLang } from '../platform/browser';
-import loadLogoDb from "../platform/load-logo-db";
-import { isFirefox } from "./platform";
-import Storage from './storage';
+import { Window, mapWindows } from '../platform/browser';
 import resourceManager from './resource-manager';
 import inject from './kord/inject';
+import { queryCliqz, openLink, openTab, getOpenTabs, getReminders } from '../platform/browser-actions';
 
 var lastRequestId = 0;
 var callbacks = {};
@@ -22,75 +19,22 @@ export default background({
   init(settings) {
     this.settings = settings;
     this.utils = utils;
-    utils.init({
-      lang: getLang(),
-    });
 
-    this.checkSession();
-    if(isFirefox){
-      language.init();
-      HistoryManager.init();
-    }
     utils.CliqzLanguage = language;
     this.dispatchMessage = this.dispatchMessage.bind(this);
 
     utils.bindObjectFunctions(this.actions, this);
-    loadLogoDb().then(utils.setLogoDb);
 
     this.mm = new ProcessScriptManager(this.dispatchMessage);
     this.mm.init();
 
-    // @TODO: mobile doesn't use utils.app
-    if (utils.app) {
-      this.report = utils.setTimeout(this.reportStartupTime.bind(this), 1000 * 60);
-    }
     resourceManager.init();
   },
 
   unload() {
-    utils.clearTimeout(this.report);
-    if (isFirefox) {
-      language.unload();
-      HistoryManager.unload();
-    }
     this.mm.unload();
     resourceManager.unload();
   },
-
-  reportStartupTime() {
-    const status = this.actions.status();
-    utils.telemetry({
-      type: 'startup',
-      modules: status.modules,
-    });
-  },
-
-  checkSession() {
-    if (!prefs.has('session')) {
-      const session = [
-        utils.rand(18),
-        utils.rand(6, '0123456789'),
-        '|',
-        utils.getDay(),
-        '|',
-        config.settings.channel || 'NONE',
-      ].join('');
-
-      utils.setTimeout(() => {
-        this.setSupportInfo();
-        if(config.settings.channel == 40){
-          this.browserDetection();
-        }
-      }, 30000);
-
-      prefs.set('session', session);
-      prefs.set('install_date', session.split('|')[1]);
-      prefs.set('new_session', true);
-    } else {
-      prefs.set('new_session', false);
-    }
-  },
-
 
   dispatchMessage(msg) {
     if (typeof msg.data.requestId === "number") {
@@ -127,6 +71,7 @@ export default background({
         action,
         module: moduleName,
         requestId,
+        windowId,
       });
     })
     .catch(console.error.bind(null, "Process Script", `${moduleName}/${action}`));
@@ -143,45 +88,6 @@ export default background({
     })
   },
 
-  setSupportInfo(status) {
-    const version = this.settings.version;
-    const host = prefs.get('distribution.id', '', '');
-    const hostVersion = prefs.get('distribution.version', '', '');
-    const info = JSON.stringify({
-      version,
-      host,
-      hostVersion,
-      country: utils.getPref('config_location', ''),
-      status: status || 'active',
-    });
-
-
-    try {
-      ['http://cliqz.com', 'https://cliqz.com'].forEach(url => {
-        const ls = new Storage(url);
-        ls.setItem('extension-info', info);
-      });
-    } catch(e) {
-      console.log('Error setting localstorage', e);
-    }
-
-  },
-
-  browserDetection() {
-    var pref = 'detection',
-        sites = ["https://www.ghostery.com", "https://ghostery.com"];
-
-    // make sure we only do it once
-    if(utils.getPref(pref, false) !== true){
-      utils.setPref(pref, true);
-
-      sites.forEach(function(url){
-          var ls = new Storage(url)
-          if (ls) ls.setItem("cliqz", true)
-      });
-    }
-  },
-
   events: {
     'core:tab_select': function onTabSelect({ url, isPrivate }) {
       events.pub('core.location_change', url, isPrivate);
@@ -192,6 +98,9 @@ export default background({
   },
 
   actions: {
+    notifyProcessInit(processId) {
+      events.pub('process:init', processId);
+    },
     notifyLocationChange(...args) {
       events.pub('content:location-change', ...args);
     },
@@ -320,11 +229,23 @@ export default background({
     },
 
     queryCliqz(query) {
-      let urlBar = utils.getWindow().document.getElementById("urlbar");
-      urlBar.mInputField.setUserInput('');
-      urlBar.focus();
-      urlBar.mInputField.focus();
-      urlBar.mInputField.setUserInput(query);
+      queryCliqz(query);
+    },
+
+    openLink(url) {
+      openLink(url);
+    },
+
+    openTab(tabId) {
+      openTab(tabId);
+    },
+
+    getOpenTabs() {
+      return getOpenTabs();
+    },
+
+    getReminders(domain) {
+      return getReminders(domain);
     },
 
     closePopup() {
@@ -384,7 +305,7 @@ export default background({
 
         utils.setTimeout(function () {
           delete callbacks[requestId];
-          reject();
+          reject(new Error('queryHTML timeout'));
         }, 1000);
       });
     },
@@ -431,18 +352,9 @@ export default background({
 
         utils.setTimeout(function () {
           delete callbacks[requestId];
-          reject();
+          reject(new Error('getCookie timeout'));
         }, 1000);
       });
     },
-
-    getPref(name, defVal) {
-      return prefs.get(name, defVal);
-    },
-
-    setPref(name, val) {
-      prefs.set(name, val);
-    },
-
   },
 });

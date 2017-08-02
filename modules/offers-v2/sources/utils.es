@@ -18,16 +18,6 @@ function isCLIQZBrowser(settings) {
   return settings.channel === "40";
 }
 
-// TODO: we can use utils.openTabInWindow()
-function openNewTabAndSelect(url) {
-  var currWindow = utils.getWindow();
-  if (!currWindow) {
-    return false;
-  }
-  utils.openTabInWindow(currWindow, url);
-  return true;
-}
-
 // generate a new UUID
 function generateUUID() {
   function s4() {
@@ -39,9 +29,18 @@ function generateUUID() {
     s4() + '-' + s4() + s4() + s4();
 }
 
+function timestamp() {
+  return Math.round(Date.now() / 1000);
+}
+
+function timestampMS() {
+  return Date.now();
+}
+
 export {
   loadFileFromChrome,
   isCLIQZBrowser,
-  openNewTabAndSelect,
-  generateUUID
+  generateUUID,
+  timestamp,
+  timestampMS,
 };

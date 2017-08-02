@@ -127,6 +127,9 @@ CLIQZEnvironment = {
     addEngineWithDetails: function(engine) {
       return;
     },
+    removeEngine: function(name) {
+      return;
+    },
     clickListener: function() {
       document.addEventListener('click', function(e) {
           var button = e.which || e.button;

@@ -1,4 +1,5 @@
 import console from "../core/console";
+import config from '../core/config';
 import prefs from "../core/prefs";
 import Storage from "../core/storage";
 import CliqzUtils from "../core/utils"
@@ -18,7 +19,6 @@ const CLIQZEnvironment = {
   RICH_HEADER: 'https://api.cliqz.com/api/v2/rich-header?path=/v2/map',
   LOG: 'https://stats.cliqz.com',
   TEMPLATES_PATH: 'modules/static/templates/',
-  LOCALE_PATH: 'modules/static/locale/',
   RERANKERS: [],
   RESULTS_TIMEOUT: 1000, // 1 second
   TEMPLATES: {'calculator': 1, 'clustering': 1, 'currency': 1, 'custom': 1, 'emphasis': 1, 'empty': 1,
@@ -130,9 +130,6 @@ const CLIQZEnvironment = {
      return template &&
             !CE.TEMPLATES[template]
   },
-  getBrandsDBUrl: function(version){
-    return 'https://cdn.cliqz.com/brands-database/database/' + version + '/data/database.json';
-  },
   setInterval: function(){ return setInterval.apply(null, arguments); },
   setTimeout: function(){ return setTimeout.apply(null, arguments); },
   clearTimeout: function(){ clearTimeout.apply(null, arguments); },
@@ -173,6 +170,8 @@ const CLIQZEnvironment = {
           //TODO: create the correct search URL
           return e.suggestionUrl.replace("{searchTerms}", q);
       }
+
+      e.urlDetails = CE.getDetailsFromUrl(e.searchForm);
 
       return e;
     });

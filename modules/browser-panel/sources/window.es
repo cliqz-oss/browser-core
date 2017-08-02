@@ -33,7 +33,8 @@ export default class {
     this.coreModule = inject.module('browser-panel');
 
     this.iframeHandlers = {
-      offersIFrameHandler: this.offersIFrameHandler.bind(this)
+      offersIFrameHandler: this.offersIFrameHandler.bind(this),
+      openUrlHandler: this.openURL.bind(this)
     };
 
     // integration of the new ui system here
@@ -83,7 +84,6 @@ export default class {
 
   hideIframe() {
     if (!this.iframe) {
-      lwarn('hideIframe:  no iframe found?');
       return;
     }
     this.iframe.style.width = '0';
@@ -97,7 +97,6 @@ export default class {
 
   showIframe() {
     if (!this.iframe) {
-      lwarn('showIframe: no iframe found?');
       return;
     }
     this.iframe.style.height = UI_IFRAME_HEIGHT_DEF;
@@ -219,7 +218,6 @@ export default class {
    * @return {[type]}         [description]
    */
   showElement(...args) {
-    // linfo(`showElement called with args: ${JSON.stringify(args)}`);
     if (args.length === 0) {
       return;
     }
@@ -240,7 +238,6 @@ export default class {
   }
 
   hideElement(...args) {
-    // linfo(`hideElement called with args: ${JSON.stringify(args)}`);
     if (args.length === 0) {
       return;
     }
@@ -274,7 +271,6 @@ export default class {
 
   setOfferID(offerID) {
     if (!this.iframe) {
-      lwarn('setOfferID: no iframe found?');
       return false;
     }
     this.rootDocElem = this.iframe.contentDocument || this.iframe.contentWindow.document;
@@ -282,7 +278,6 @@ export default class {
     this.rootDocElem = this.rootDocElem.getElementById('cqz-browser-panel-re');
 
     if (!this.rootDocElem) {
-      lwarn('setOfferID: no rootDocElem found?');
       return false;
     }
     this.rootDocElem.setAttribute('cliqzofferid', offerID);
@@ -293,7 +288,6 @@ export default class {
   //
   getCurrentOfferID() {
     if (!this.iframe) {
-      lwarn('getCurrentOfferID: no iframe found?');
       return null;
     }
     this.rootDocElem = this.iframe.contentDocument || this.iframe.contentWindow.document;
@@ -333,20 +327,6 @@ export default class {
       // is the same, do nothing?
       return;
     }
-    if (currentOfferID) {
-      // it is a different offer than the current one
-      this.sendToCoreUIHandler({
-        handler: 'offers',
-        data: {
-          origin: ORIGIN_NAME,
-          type: 'offer-action-signal',
-          data: {
-            action_id: 'offer_hide',
-            offer_id: currentOfferID,
-          }
-        }
-      });
-    }
 
     // set the current offer id
     this.setOfferID(offerID);
@@ -372,8 +352,6 @@ export default class {
   }
 
   hideOfferElementHandler() {
-    linfo('hideOfferElementHandler called');
-
     // delete old data
     if (this.lastDataToShow) {
       delete this.lastDataToShow;
@@ -389,20 +367,7 @@ export default class {
     }
 
     this.hideIframe();
-
-    this.sendToCoreUIHandler({
-      handler: 'offers',
-      data: {
-        origin: ORIGIN_NAME,
-        type: 'offer-action-signal',
-        data: {
-          action_id: 'offer_hide',
-          offer_id: offerID,
-        }
-      }
-    });
   }
-
 
   // Actions coming from the iframe
 
@@ -418,10 +383,13 @@ export default class {
     };
     // only for some cases we need to change the layout
     switch (data.element_id) {
-      case 'call-to-action':
-      case 'close-offer':
       case 'remove-offer':
         msgData.type = data.element_id;
+        break;
+      case 'more_about_cliqz':
+        msgData.type = 'action-signal';
+        msgData.data.action_id = data.element_id;
+        delete msgData.data.offer_id;
         break;
       default:
         // we add the action id
@@ -466,6 +434,15 @@ export default class {
 
     // now process the action with the given arguments
     this.offersActions[data.action](data.data);
+  }
+
+
+  openURL(data) {
+    if (!data || !data.data) {
+      return;
+    }
+    const tab = utils.openLink(this.window, data.data.url, true);
+    this.window.gBrowser.selectedTab = tab;
   }
 
 }

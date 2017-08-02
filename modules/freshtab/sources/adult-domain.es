@@ -1,5 +1,5 @@
-import { BloomFilterUtils } from 'platform/bloom-filter-utils';
-import console from 'core/console';
+import { BloomFilterUtils } from '../platform/bloom-filter-utils';
+import console from '../core/console';
 
 const ADULT_DOMAINS_BF_FILE_URI = 'chrome://cliqz/content/freshtab/adult-domains.bin';
 

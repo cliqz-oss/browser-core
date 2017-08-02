@@ -13,7 +13,7 @@ function getExtensionDirectory() {
 
 function WrappedHttpServer() {
   this.port = 60508;
-  this.domains = new Set(['cliqztest.com', 'cliqztest.de', 'www.cliqztest.com']);
+  this.domains = new Set(['cliqztest.com', 'cliqztest2.de', 'www.cliqztest.com']);
   this._s = null;
   this._testDirPrefix = [getExtensionDirectory(), 'chrome', 'content'];
 }

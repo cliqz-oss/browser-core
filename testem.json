@@ -3,7 +3,7 @@
     "launchers": {
       "Mocha": {
         "exe": "node",
-        "args": ["tests/mocha-node.js"],
+        "args": ["--icu-data-dir=node_modules/full-icu", "tests/mocha-node.js"],
         "protocol": "tap"
       },
       "ChromiumNoSandbox": {

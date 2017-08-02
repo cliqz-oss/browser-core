@@ -6,8 +6,14 @@
   "description": "Cliqz search",
   "icons": {
   },
+  "applications": {
+   "gecko": {
+     "id": "omnibox@cliqz.com"
+   }
+ },
   "incognito" : "split",
   "permissions": [
+    "history",
     "windows",
     "tabs",
     "http://*/*",
@@ -15,13 +21,23 @@
     "webRequest",
     "webNavigation",
     "storage",
-    "history"
+    "history",
+    "topSites"
   ],
   "background": {
     "scripts": [
       "modules/webextension-specific/app.bundle.js"
     ]
   },
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "chrome_url_overrides": {
+    "newtab": "modules/freshtab/home.html"
+  },
   "content_security_policy":
-    "connect-src http://*/* https://*/* http://*.google.com/*; object-src 'none'; script-src chrome://resources 'self' 'unsafe-eval'"
+    "connect-src * http://*/* https://*/* http://*.google.com/*; object-src 'none'; script-src chrome://resources 'self' 'unsafe-eval'"
 }

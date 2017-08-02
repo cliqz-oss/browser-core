@@ -26,6 +26,7 @@ if (process.argv[2] === "install") {
 
 function fern() {
 const program = require('commander');
+const execa = require('execa');
 const spaws = require('cross-spawn');
 const fs = require('fs');
 const wrench = require('wrench');
@@ -37,6 +38,7 @@ const path = require('path')
 const rimraf = require('rimraf');
 const chalk = require('chalk');
 const notifier = require('node-notifier');
+const copyDereferenceSync = require('copy-dereference').sync
 
 let CONFIG;
 let OUTPUT_PATH;
@@ -54,10 +56,16 @@ colors.setTheme({
   error: 'red'
 });
 
-// Install git hooks:
-let hookInstaller = spaws('git-hooks/install-hooks.sh');
-hookInstaller.stderr.on('data', data => console.log(data.toString()));
-hookInstaller.stdout.on('data', data => console.log(data.toString()));
+// Try to install git hooks:
+try {
+  execa.sync(
+    path.join('git-hooks', 'install-hooks.sh'),
+    [],
+    { stdio: 'inherit' }
+  );
+} catch(e) {
+  console.error('Cound not install git-hook', e);
+}
 
 function setConfigPath(configPath, buildIntoSubdir) {
   configPath = configPath || process.env['CLIQZ_CONFIG_PATH'] || './configs/jenkins.json'
@@ -77,7 +85,7 @@ function setConfigPath(configPath, buildIntoSubdir) {
 function buildFreshtabFrontEnd() {
   const configPath = process.env['CLIQZ_CONFIG_PATH'];
   var app = 'fresh-tab-frontend',
-      appPath = 'subprojects/' + app,
+      appPath = path.join('subprojects', app),
       shouldBuild = function() {
         if(CONFIG.subprojects.indexOf('fresh-tab-frontend') === -1) {
           return false;
@@ -96,7 +104,11 @@ function buildFreshtabFrontEnd() {
 
   rimraf.sync(appPath + 'dist', []);
   console.log(`Building Ember app: ${app}`);
-  var spawed = spaws.sync('./node_modules/ember-cli/bin/ember', ['build', '--output-path=dist', '--environment=production'], { stdio: 'inherit', stderr: 'inherit', cwd: appPath});
+  var spawed = execa.sync(
+    'ember',
+    ['build', '--output-path=dist', '--environment=production'],
+    { stdio: 'inherit', cwd: appPath}
+  );
   if(spawed.status === 1) {
     console.log(chalk.red('*** RUN `./fern.js install` to install missing Freshtab ember dependencies'));
     process.exit(1);
@@ -130,7 +142,6 @@ function getExtensionVersion(version) {
 program.command('install')
        .action(() => {
           isPackageInstalled('bower', '--silent', 'npm bower package missing, to install it run `npm install bower -g`');
-          isPackageInstalled('broccoli', '-V', 'npm broccoli-cli package is missing, to install it run `npm install broccoli-cli -g`');
 
           console.log(chalk.green('Installing project dependencies'));
           spaws.sync('bower', ['install'], { stdio: 'inherit', stderr: 'inherit'});
@@ -177,12 +188,22 @@ program.command('build [file]')
           getExtensionVersion(options.version).then(tag => {
             process.env.EXTENSION_VERSION = tag;
             assert(OUTPUT_PATH);
-            let child = spaws('broccoli', ['build', OUTPUT_PATH]);
-            child.stderr.on('data', data => console.log(data.toString()));
-            child.stdout.on('data', data => console.log(data.toString()));
-            child.on('close', code => {
-              console.log(code === 0 ? 'done - ' + (Date.now() - buildStart) +'ms' : '');
-            })
+
+            cleanupDefaultBuild();
+            const node = broccoli.loadBrocfile();
+            const builder = new broccoli.Builder(node, {
+              outputDir: OUTPUT_PATH
+            });
+            builder.build()
+              .then(() => {
+                copyDereferenceSync(builder.outputPath, OUTPUT_PATH);
+                console.log('Build successful');
+                process.exit(0);
+              })
+              .catch(err => {
+                console.error('Build error', err)
+                process.exit(1);
+              });
           });
        });
 
@@ -196,26 +217,29 @@ function cleanupDefaultBuild() {
     console.log("Won't remove output directory because it's outside of the repo.");
 }
 
-function createBuildWatcher() {
+function createBuildWatcher(port) {
   cleanupDefaultBuild();
   const node = broccoli.loadBrocfile();
   const builder = new broccoli.Builder(node, {
     outputDir: OUTPUT_PATH
   });
+
+  const watcher = new broccoli.Watcher(builder);
+
   // maybe we can run watcher without server
   // but then we will have to copy build artifacts to 'output' folder
-  const server = broccoli.server.serve(builder, {
-    port: 4300,
-    host: 'localhost'
-  });
+  const server = broccoli.server.serve(watcher, 'localhost', port || 4300);
+
   return server.watcher;
 }
+
 program.command('serve [file]')
        .option('--no-maps', 'disables source maps')
        .option('--version [version]', 'sets extension version', 'package')
        .option('--environment <environment>')
        .option('--freshtab', 'disables ember fresh-tab-frontend build')
        .option('--instrument-functions', 'enable function instrumentation for profiling')
+       .option('--port [port]', 'dev server port', 4300)
        .action((configPath, options) => {
           setConfigPath(configPath);
           process.env['CLIQZ_ENVIRONMENT'] = options.environment || 'development';
@@ -227,16 +251,28 @@ program.command('serve [file]')
           getExtensionVersion(options.version).then(tag => {
             process.env.EXTENSION_VERSION = tag;
 
-            const watcher = createBuildWatcher();
+            const watcher = createBuildWatcher(Number(options.port));
 
-            watcher.on('change', function() {
+            watcher.on('buildSuccess', function () {
+              rimraf.sync(OUTPUT_PATH);
+              copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
               notifier.notify({
                 title: "Fern",
                 message: "Build complete",
                 time: 1500
               });
             });
-          });
+
+            watcher.on('buildFailure', function (err) {
+              notifier.notify({
+                title: "Fern",
+                message: "Build error - "+err,
+                type: 'warn',
+                time: 3000
+              });
+            });
+
+          }).catch(console.error);
        });
 
 program.command('test [file]')
@@ -257,7 +293,9 @@ program.command('test [file]')
           }
 
           if (options.ci) {
-            watcher.on('change', function() {
+            watcher.on('buildSuccess', function() {
+              rimraf.sync(OUTPUT_PATH);
+              copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
               const Testem = require('testem');
               const testem = new Testem();
 
@@ -274,7 +312,9 @@ program.command('test [file]')
             });
           } else {
             let server;
-            watcher.on('change', function() {
+            watcher.on('buildSuccess', function() {
+              rimraf.sync(OUTPUT_PATH);
+              copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
               notifier.notify({
                 title: "Fern",
                 message: "Build complete",
@@ -342,12 +382,23 @@ program.command('react-dev [config]')
 
 program.command('react-bundle <platform> [config] [dest]')
       .description('create a react-native jsbundle')
-      .action((platform, config, dest) => {
+      .option('--no-dev', 'disables warning and error messages')
+      .action((platform, config, dest, cmdOptions) => {
         setConfigPath(config || 'configs/react-native.json');
-        var options = ['./node_modules/react-native/local-cli/cli.js', 'bundle',
-          '--platform', platform, '--entry-file', `${OUTPUT_PATH}/index.${platform}.js`,
-          '--bundle-output', dest || 'jsengine.bundle.js']
-        spaws.sync('node', options, { stdio: 'inherit', stderr: 'inherit'});
+        const shellOpts = { stdio: 'inherit', stderr: 'inherit'};
+        const bundleName = dest || 'jsengine.bundle.js';
+        var options = [
+          './node_modules/react-native/local-cli/cli.js','bundle',
+          '--platform', platform,
+          '--entry-file', `${OUTPUT_PATH}/index.${platform}.js`,
+          '--bundle-output', bundleName,
+          '--assets-dest', './',
+        ];
+        spaws.sync('node', options, shellOpts);
+        if (!cmdOptions.dev) {
+          // unset __DEV__ flag
+          spaws.sync('sed', ['-i', '', "s/\\(global.__DEV__ = \\)true/\\1false/", bundleName], shellOpts);
+        }
       });
 
 program.command('react-release <platform> <tag> [config]')
@@ -355,23 +406,28 @@ program.command('react-release <platform> <tag> [config]')
       .action((platform, tag, config) => {
         setConfigPath(config || 'configs/react-native.json');
         const shellOpts = { stdio: 'inherit', stderr: 'inherit'};
+        const bundleDir = `jsengine-${platform}-${tag}`;
+        const bundleName = 'jsengine.bundle.js';
+        const bundlePath = `${bundleDir}/${bundleName}`;
+        const archiveName = `jsengine.${platform}.${tag}.tar.gz`
+
+        spaws.sync('mkdir', [bundleDir]);
         // create bundle
-        const bundleName = `jsengine.bundle.${platform}.${tag}`;
         var options = ['./node_modules/react-native/local-cli/cli.js', 'bundle',
           '--platform', platform, '--entry-file', `${OUTPUT_PATH}/index.${platform}.js`,
-          '--bundle-output', bundleName]
+          '--bundle-output', bundlePath, '--assets-dest', bundleDir];
         spaws.sync('node', options, shellOpts);
-        // compress bundle
-        spaws.sync('gzip', [bundleName], shellOpts);
+        // unset __DEV__ flag
+        spaws.sync('sed', ['-i', '', "s/\\(global.__DEV__ = \\)true/\\1false/", bundlePath], shellOpts);
         // prepare package.json
-        const packageJsonName = `package.json.${platform}.${tag}`
-        spaws.sync('cp', ['package.json', packageJsonName], shellOpts);
+        spaws.sync('cp', ['package.json', `${bundleDir}/package.json`], shellOpts);
+        // create archive of bundle files
+        spaws.sync('tar', ['-C', bundleDir, '-czf', archiveName, './']);
         // push to s3
         const s3Bucket = 's3://cdn.cliqz.com/mobile/jsengine/';
-        spaws.sync('aws', ['s3', 'cp', packageJsonName, s3Bucket], shellOpts);
-        spaws.sync('aws', ['s3', 'cp', `${bundleName}.gz`, s3Bucket], shellOpts);
+        spaws.sync('aws', ['s3', 'cp', archiveName, s3Bucket], shellOpts);
         // cleanup
-        spaws.sync('rm', [packageJsonName, `${bundleName}.gz`, `${bundleName}.meta`], shellOpts);
+        // spaws.sync('rm', ['-R', archiveName, bundleDir], shellOpts);
       });
 
 program.parse(process.argv);

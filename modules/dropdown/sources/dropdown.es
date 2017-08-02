@@ -53,7 +53,8 @@ export default class {
   }
 
   selectResult(result) {
-    this.rootElement.querySelector(`a[href='${result.url}']`).classList.add('selected');
+    const el = [...this.rootElement.querySelectorAll('a')].find(a => equals(a.href, result.url));
+    el.classList.add('selected');
   }
 
   updateSelection() {
@@ -93,8 +94,18 @@ export default class {
   }
 
   onMouseUp(ev) {
-    const targetElement = ev.originalTarget;
+    let targetElement = ev.originalTarget;
+
+    if (targetElement.nodeType !== 1) {
+      targetElement = targetElement.parentElement;
+    }
+
     const resultElement = targetElement.closest('.result');
+
+    if (!resultElement) {
+      return;
+    }
+
     const extraElement = targetElement.closest('[data-extra]');
     const extra = extraElement ? extraElement.dataset.extra : null;
     const href = resultElement.href;
@@ -126,10 +137,17 @@ export default class {
   }
 
   onMouseMove(ev) {
-    if (this.lastTarget === ev.originalTarget) {
+    let targetElement = ev.originalTarget;
+
+    if (targetElement.nodeType !== 1) {
+      targetElement = targetElement.parentElement;
+    }
+
+    if (this.lastTarget === targetElement) {
       return;
     }
-    this.lastTarget = ev.originalTarget;
+
+    this.lastTarget = targetElement;
 
     const now = Date.now();
     if ((now - this.lastMouseMove) < 10) {
@@ -138,12 +156,7 @@ export default class {
     this.lastMouseMove = now;
 
     // TODO: merge with onMouseUp handler
-    let resultElement;
-    if (ev.originalTarget.classList.contains('result')) {
-      resultElement = ev.originalTarget;
-    } else {
-      resultElement = ev.originalTarget.closest('.result');
-    }
+    const resultElement = targetElement.closest('.result');
 
     if (!resultElement) {
       return;

@@ -1,9 +1,10 @@
 
-import controlOps from './operations/control'
-import triggerOps from './operations/trigger'
-import signalOps from './operations/signal'
-import historyOps from './operations/history'
-import displayOps from './operations/display'
+import controlOps from './operations/control';
+import triggerOps from './operations/trigger';
+import signalOps from './operations/signal';
+import historyOps from './operations/history';
+import displayOps from './operations/display';
+import { timestamp } from './utils';
 
 
 export default class OperationExecutor {
@@ -41,25 +42,13 @@ export default class OperationExecutor {
     var self = this;
 
     return new Promise((resolve, reject) => {
-      if(!operation || operation.length === 0) {
+      if(!operation) {
         resolve(true);
         return;
       }
-
-      // clone operation
-      operation = operation.slice();
-
-      var name = operation.shift();
-
-      var args = [];
-      if(operation.length > 0) {
-        args = operation.shift();
-      }
-
-      var ttl = 0;
-      if(operation.length > 0) {
-        ttl = operation.shift();
-      }
+      const name = operation.op_name;
+      const args = operation.args;
+      const ttl = operation.ttl;
 
       var opFunc = self.operations[name];
       if(!opFunc) {
@@ -69,13 +58,14 @@ export default class OperationExecutor {
       }
 
       // try to return cached result
-      var opKey = name + ':' + args.join(',');
+      const opKey = operation.hash_id;
 
       var result = undefined;
       if(ttl > 0) {
         result = self.isResultCached(opKey);
 
         if(result !== undefined) {
+          // self.eventLoop.environment.info('#OperationExecutor', '#value cached');
           resolve(result);
           return;
         }
@@ -83,11 +73,10 @@ export default class OperationExecutor {
 
       // execute
       self.evaluateArgs(args, context).then(args => {
-        opFunc.call(self, args, self.eventLoop, context).then(result => {
+        opFunc.call(self, args, self.eventLoop, context, operation.hash_id).then(result => {
           if(ttl > 0) {
             self.cacheResult(opKey, ttl, result);
           }
-
           resolve(result);
         }).catch(err => {
           reject(err);
@@ -98,23 +87,20 @@ export default class OperationExecutor {
     });
   }
 
-
   evaluateArgs(args, context) {
     var self = this;
 
     return new Promise((resolve, reject) => {
       var argsP = [];
-      for(var i = 0; i < args.length; i++) {
-        if(args[i].constructor === Array && args[i].length > 0 && self.operationPrefixRegexp.exec(args[i][0])) {
-          argsP.push(self.execute(args[i], context));
+      args.forEach((arg) => {
+        if (typeof arg === 'object' && arg.op_name) {
+          argsP.push(self.execute(arg, context));
+        } else if(typeof arg === 'string' && self.contextPrefixRegexp.exec(arg)) {
+          argsP.push(context[arg]);
+        } else {
+          argsP.push(arg);
         }
-        else if(typeof args[i] === 'string' && self.contextPrefixRegexp.exec(args[i])) {
-          argsP.push(context[args[i]]);
-        }
-        else {
-          argsP.push(args[i]);
-        }
-      }
+      });
 
       Promise.all(argsP).then(args => {
         resolve(args);
@@ -123,8 +109,6 @@ export default class OperationExecutor {
       });
     });
   }
-
-
 
   // Add condition result to the cache.
   cacheResult(opKey, ttl, result) {
@@ -139,7 +123,7 @@ export default class OperationExecutor {
     self.resultCache[opKey] = {
       result: result,
       ttl: ttl,
-      added_ts: self.timestamp()
+      added_ts: timestamp()
     }
   }
 
@@ -164,7 +148,7 @@ export default class OperationExecutor {
   expireCache() {
     var self = this;
 
-    var ts = self.timestamp();
+    var ts = timestamp();
 
     if(ts - this.lastExpireRun < 60000) {
       return;
@@ -180,11 +164,6 @@ export default class OperationExecutor {
     }
 
     self.lastExpireRun = ts;
-  }
-
-
-  timestamp() {
-    return Math.round(Date.now() / 1000);
   }
 
 }

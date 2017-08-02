@@ -1,7 +1,7 @@
 /* global window, document, draw */
 
 export function sendMessageToWindow(message) {
-  window.postMessage(JSON.stringify({
+  postMessage(JSON.stringify({
     target: 'cliqz-offers-cc',
     origin: 'iframe',
     message

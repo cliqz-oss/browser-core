@@ -163,9 +163,11 @@ export class EventHandler {
     }
 
     // we will do a further check here so we can avoid extra execution
-    if (!data.url || data.url.length === 0) {
+    if (!data.url || data.url.length === 0 || this.lastUrl === data.url) {
       return;
     }
+
+    this.lastUrl = data.url
 
     // else we emit the event here
     this.onLocationChangeHandler(data.url, data.referrer);

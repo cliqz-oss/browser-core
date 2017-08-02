@@ -591,48 +591,50 @@ class ContextSearch {
 
   /**
    * merge 2 arrays using original result score in asc order
+   * if there is no original score in either res1 or res2 - return always res1
    * @param res1
    * @param res2 - newer result
    * @returns {Array}
    */
 
   static mergeResults(res1, res2) {
-    const result = [];
+    let result = [];
     let p1 = 0;
     let p2 = 0;
     const urls = new Set();
-    while (true) {
-      if (p1 === res1.length) {
-        for (let i = p2; i < res2.length; i++) {
-          if (!urls.has(res2[i].url)) {
-            urls.add(res2[i].url);
-            result.push(res2[i]);
+    if (res1.length && res1[0].score && res2.length && res2[0].score) {
+      // we do traverse of arrays only if they both have score field, otherwise we would just take first result
+      while (p1 < res1.length || p2 < res2.length) {
+        if (p1 === res1.length) {
+          result = result.concat(res2.slice(p2).filter( function (element) {
+            return !this.has(element.url)
+          }, urls));
+          p2 = res2.length;
+          break;
+        }
+        if (p2 === res2.length) {
+          result = result.concat(res1.slice(p1).filter( function (element) {
+            return !this.has(element.url)
+          }, urls));
+          p1 = res1.length;
+          break;
+        }
+        if (res1[p1].score >= res2[p2].score) {
+          if (!urls.has(res1[p1].url)) {
+            urls.add(res1[p1].url);
+            result.push(res1[p1]);
           }
-        }
-        break;
-      }
-      if (p2 === res2.length) {
-        for (let i = p1; i < res1.length; i++) {
-          if (!urls.has(res1[i].url)) {
-            urls.add(res1[i].url);
-            result.push(res1[i]);
+          p1 += 1;
+        } else {
+          if (!urls.has(res2[p2].url)) {
+            urls.add(res2[p2].url);
+            result.push(res2[p2]);
           }
+          p2 += 1;
         }
-        break;
       }
-      if (res1[p1].score > res2[p2].score) {
-        if (!urls.has(res1[p1].url)) {
-          urls.add(res1[p1].url);
-          result.push(res1[p1]);
-        }
-        p1 += 1;
-      } else {
-        if (!urls.has(res2[p2].url)) {
-          urls.add(res2[p2].url);
-          result.push(res2[p2]);
-        }
-        p2 += 1;
-      }
+    } else {
+      result = result.concat(res1);
     }
     return result;
   }
@@ -843,21 +845,26 @@ class ContextSearch {
     this.savedQuery = query;
     let doubledResponse = false;
     const contextResults = [response[0].response.results];
-    const possibleQExt = this.getQExt(query, true);
 
-    if (response.length === 2) {
-      doubledResponse = true;
-      if (possibleQExt && !(possibleQExt in this.searchCache)) {
-        const doc = Object.create(null);
-        doc.timestamp = Date.now();
-        doc.results = response[1].response.results;
-        this.searchCache[possibleQExt] = doc;
+    // don't do expansion if query is less than 2 letter - too general
+    if (query.length > 2) {
+      const possibleQExt = this.getQExt(query, true);
+      utils.log(possibleQExt, "Context search expansion");
+
+      if (response.length === 2) {
+        doubledResponse = true;
+        if (possibleQExt && !(possibleQExt in this.searchCache)) {
+          const doc = Object.create(null);
+          doc.timestamp = Date.now();
+          doc.results = response[1].response.results;
+          this.searchCache[possibleQExt] = doc;
+        }
+        contextResults.push(response[1].response.results);
       }
-      contextResults.push(response[1].response.results);
-    }
-    else if (possibleQExt) {
-      doubledResponse = true;
-      contextResults.push(this.searchCache[possibleQExt].results);
+      else if (possibleQExt) {
+        doubledResponse = true;
+        contextResults.push(this.searchCache[possibleQExt].results);
+      }
     }
     let resC = null;
     if (doubledResponse) {

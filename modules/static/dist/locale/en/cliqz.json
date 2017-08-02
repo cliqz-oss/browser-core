@@ -1470,7 +1470,7 @@
       "message": "Connect"
     },
     "pairing-description": {
-      "message": "Connect Cliqz on your computer with Cliqz on your Android device. This will allow you to send websites or download YouTube videos from your desktop straight to your smartphone or tablet."
+      "message": "Connect Cliqz on your computer with Cliqz on your Android or iOS device. This will allow you to send tabs from your desktop to your mobile device. You can also directly download videos from your desktop browser to your mobile device."
     },
     "pairing-android-app": {
       "message": "https://play.google.com/store/apps/details?hl=en&id=com.cliqz.browser"
@@ -1478,17 +1478,32 @@
     "pairing-cliqz-for-android": {
       "message": "Cliqz for Android"
     },
+    "pairing-ios-app": {
+      "message": "https://itunes.apple.com/us/app/cliqz-browser/id1065837334"
+    },
+    "pairing-cliqz-for-ios": {
+      "message": "Cliqz for iOS"
+    },
     "pairing-video-title": {
       "message": "Download videos"
     },
-    "pairing-video-tip": {
-      "message": "Open a YouTube video.\nClick on the video download icon.\nSelect \"Send to mobile\"."
+    "pairing-video-tip1": {
+      "message": "Open a YouTube video."
+    },
+    "pairing-video-tip2": {
+      "message": "Click on the video download icon."
+    },
+    "pairing-video-tip3": {
+      "message": "Select \"Send to mobile\"."
     },
     "pairing-tab-title": {
       "message": "Send tabs"
     },
-    "pairing-tab-tip": {
-      "message": "Right-click on a tab or a website.\nSelect \"Send tab to mobile\"."
+    "pairing-tab-tip1": {
+      "message": "Right-click on a tab or a website."
+    },
+    "pairing-tab-tip2": {
+      "message": "Select \"Send tab to mobile\"."
     },
     "pairing-browser-pair-with": {
       "message": "This browser is now connected with:"
@@ -1503,13 +1518,25 @@
       "message": "Connect a mobile device"
     },
     "pairing-step1-title": {
-      "message": "Download Cliqz for Android from the Play Store."
+      "message": "Download Cliqz from the Play Store (Android) or the App Store (iOS)."
     },
     "pairing-step2-title": {
-      "message": "Open the Cliqz app on your mobile device. Go to the menu and select \"Connect\"."
+      "message": "Open the Cliqz app on your mobile device."
+    },
+    "pairing-step2-title-android": {
+      "message": "Android: Go to the menu and select \"Connect\"."
+    },
+    "pairing-step2-title-ios": {
+      "message": "iOS: Go to settings and select \"Connect\"."
     },
     "pairing-step3-title": {
-      "message": "Tap on (+) to start the QR code scanner."
+      "message": "Start the QR code scanner."
+    },
+    "pairing-step3-title-android": {
+      "message": "Android: Tap on (+)."
+    },
+    "pairing-step3-title-ios": {
+      "message": "iOS: Select \"Add Connection\"."
     },
     "pairing-step4-title": {
       "message": "Scan the QR code."
@@ -1533,7 +1560,7 @@
       "message": "Anzeige"
     },
     "offers-hub-title": {
-      "message": "Cliqz Offers:"
+      "message": "Cliqz Offers"
     },
     "offers-hub-show-all-offers-btn": {
       "message": "Previous offers"
@@ -1613,6 +1640,9 @@
     "signals-redirected-links": {
       "message": "Redirected links"
     },
+    "calculator-decimal-separator": {
+      "message": "."
+    },
     "calculator-thousands-separator": {
       "message": ","
     },
@@ -1658,5 +1688,85 @@
     "lotto-euro": {
       "message": "€"
     },
-    "TEST": "OK"
+    "lotto-no-guarantee": {
+      "message": "Alle Angaben ohne Gewähr"
+    },
+    "freshtab.app.speed-dials-row.history": {
+      "message": "Most visited"
+    },
+    "freshtab.app.speed-dials-row.custom": {
+      "message": "Favorites"
+    },
+    "freshtab.urlbar.placeholder": {
+      "message": "Search Cliqz or enter address"
+    },
+    "freshtab.app.speed-dial.removed": {
+      "message": "removed"
+    },
+    "freshtab.app.speed-dial.undo": {
+      "message": "Undo"
+    },
+    "freshtab.app.speed-dial.exists-already": {
+        "message": "Address already exists"
+    },
+    "freshtab.app.speed-dial.not-valid": {
+        "message": "Address is not valid"
+    },
+    "freshtab.app.speed-dial.add": {
+        "message": "Add"
+    },
+    "freshtab.app.speed-dial.input.placeholder": {
+        "message": "Enter address"
+    },
+    "freshtab.app.middle-box.new-cliqz-tab-hdr": {
+        "message": "It’s not only the inner values that count!"
+    },
+    "freshtab.app.middle-box.new-cliqz-tab-desc": {
+        "message": "Now you can change the style on Cliqz Tab."
+    },
+    "freshtab.app.middle-box.new-cliqz-tab-cta": {
+        "message": "TRY IT NOW"
+    },
+    "freshtab.app.news.breaking-news": {
+        "message": "Breaking"
+    },
+    "freshtab.app.news.read-more": {
+        "message": "Read more"
+    },
+    "freshtab.app.settings.header": {
+        "message": "Customize Cliqz Tab"
+    },
+    "freshtab.app.settings.background.label": {
+        "message": "Select background"
+    },
+    "freshtab.app.settings.most-visited.label": {
+        "message": "Most visited sites"
+    },
+    "freshtab.app.settings.most-visited.restore": {
+        "message": "Restore all"
+    },
+    "freshtab.app.settings.favorites.label": {
+        "message": "Favorites"
+    },
+    "freshtab.app.settings.search.label": {
+        "message": "Search bar"
+    },
+    "freshtab.app.settings.news.label": {
+        "message": "News"
+    },
+    "freshtab.app.settings.news.language.auto": {
+        "message": "Default"
+    },
+    "freshtab.app.settings.news.language.de": {
+        "message": "German media"
+    },
+    "freshtab.app.settings.news.language.en": {
+        "message": "UK & U.S. media"
+    },
+    "freshtab.app.settings.news.language.fr": {
+        "message": "French media"
+    },
+    "TEST": {
+        "message": "OK"
+    }
 }

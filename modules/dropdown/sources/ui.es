@@ -19,6 +19,7 @@ export default class {
     this.window = window;
     this.getSessionCount = getSessionCount;
     this.handleResults = this.handleResults.bind(this);
+    this.updateFirstResult = this.updateFirstResult.bind(this);
 
     this.ui = inject.module('ui');
     this.core = inject.module('core');
@@ -33,6 +34,11 @@ export default class {
   }
 
   init() {
+    this.window.gURLBar.addEventListener('keyup', this.updateFirstResult);
+  }
+
+  unload() {
+    this.window.gURLBar.removeEventListener('keyup', this.updateFirstResult);
   }
 
   selectAutocomplete() {
@@ -109,7 +115,8 @@ export default class {
             break;
           }
 
-          const result = this.dropdown.results.findSelectable(this.popup.urlbarVisibleValue);
+          const result = this.dropdown.results.findSelectable(urlbarValue) ||
+            this.dropdown.results.findSelectable(urlbarVisibleValue);
           if (result) {
             result.click(this.window, result.url, ev);
             break;
@@ -126,31 +133,30 @@ export default class {
         break;
       }
       case 'Delete':
-      case 'Backspace':
-        if (ev.metaKey || (ev.altKey && ev.ctrlKey)) {
+      case 'Backspace': {
+        if (!ev.shiftKey || ev.metaKey || (ev.altKey && ev.ctrlKey)) {
           break;
         }
-        if (ev.code === 'Delete' && ev.shiftKey) {
-          const selectedResult = this.dropdown.selectedResult;
-          if (!selectedResult.isDeletable) {
-            break;
-          }
-
-          const url = selectedResult.rawUrl;
-          HistoryManager.removeFromHistory(url);
-          if (selectedResult.isBookmark) {
-            HistoryManager.removeFromBookmarks(url);
-            removeFromHistorySignal({ withBookmarks: true });
-          } else {
-            removeFromHistorySignal({});
-          }
-
-          getTabsWithUrl(this.window, url).forEach(tab => closeTab(this.window, tab));
-
-          this.core.action('refreshPopup', this.dropdown.results.query);
-          preventDefault = true;
+        const selectedResult = this.dropdown.selectedResult;
+        if (!selectedResult.isDeletable) {
+          break;
         }
+
+        const url = selectedResult.rawUrl;
+        HistoryManager.removeFromHistory(url);
+        if (selectedResult.isBookmark) {
+          HistoryManager.removeFromBookmarks(url);
+          removeFromHistorySignal({ withBookmarks: true });
+        } else {
+          removeFromHistorySignal({});
+        }
+
+        getTabsWithUrl(this.window, url).forEach(tab => closeTab(this.window, tab));
+
+        this.core.action('refreshPopup', this.dropdown.results.query);
+        preventDefault = true;
         break;
+      }
       default: {
         preventDefault = false;
       }
@@ -164,13 +170,43 @@ export default class {
     this.popup = new Popup(this.window);
   }
 
+  updateFirstResult() {
+    const oldResults = this.dropdown.results;
+
+    if (!oldResults || this.dropdown.selectedIndex === -1) {
+      return;
+    }
+
+    const {
+      query,
+      rawResults,
+    } = this.popup.results();
+
+    if (
+      (oldResults.query !== query) &&
+      (
+        (oldResults.firstResult instanceof NavigateToResult) ||
+        (
+          (oldResults.firstResult instanceof SupplementarySearchResult) &&
+          (rawResults.length ? !rawResults[0].url : true)
+        )
+      )
+    ) {
+      oldResults.firstResult.rawResult.text = query;
+
+      this.dropdown.renderResults(oldResults);
+    }
+  }
+
   handleResults() {
     const {
       query,
       queriedAt,
       rawResults,
     } = this.popup.results();
+
     events.pub('ui:results', rawResults);
+
     const results = new Results({
       query,
       queriedAt,

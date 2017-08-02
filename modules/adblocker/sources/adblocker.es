@@ -70,6 +70,15 @@ function extractGeneralDomain(uri) {
 }
 
 
+function isSupportedProtocol(url) {
+  return (
+    url.startsWith('http://') ||
+    url.startsWith('https://') ||
+    url.startsWith('ws://') ||
+    url.startsWith('wss://'));
+}
+
+
 /* Wraps filter-based adblocking in a class. It has to handle both
  * the management of lists (fetching, updating) using a FiltersLoader
  * and the matching using a FilterEngine.
@@ -305,10 +314,10 @@ export class AdBlocker {
     if (this.blacklist.has(processedURL)) {
       this.blacklist.delete(processedURL);
       // TODO: It's better to have an API from humanweb to indicate if a url is private
-      existHW.then(this.logActionHW.bind(this, url, 'remove', domain));
+      existHW.then(this.logActionHW.bind(this, url, 'remove', domain), () => log('url does not exist in hw'));
     } else {
       this.blacklist.add(processedURL);
-      existHW.then(this.logActionHW.bind(this, url, 'add', domain));
+      existHW.then(this.logActionHW.bind(this, url, 'add', domain), () => log('url does not exist in hw'));
     }
 
     this.persistBlacklist();
@@ -479,13 +488,12 @@ const CliqzADB = {
         CliqzADB.adbStats.addNewPage(url);
       }
 
-      if (!adbEnabled() || !url) {
+      if (!adbEnabled() || !url || !isSupportedProtocol(url)) {
         return {};
       }
 
       const sourceUrl = requestContext.getSourceURL();
-
-      if (!sourceUrl || sourceUrl.startsWith('about:')) {
+      if (!sourceUrl || !isSupportedProtocol(sourceUrl)) {
         return {};
       }
 
@@ -502,7 +510,7 @@ const CliqzADB = {
         if (result.redirect) {
           return { redirectUrl: result.redirect };
         } else if (result.match) {
-          CliqzADB.adbStats.addBlockedUrl(sourceUrl, url);
+          CliqzADB.adbStats.addBlockedUrl(sourceUrl, url, requestDetails.tabId);
           return { cancel: true };
         }
       }

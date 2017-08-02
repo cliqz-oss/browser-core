@@ -10,6 +10,8 @@ import CliqzLanguage from './language';
 import { isUrl, isIpv4Address, isIpv6Address } from './url';
 import random from './crypto/random';
 import { fetchFactory } from '../platform/fetch';
+import { isWindows, isLinux, isMac } from './platform';
+import i18n, { getMessage, getLanguageFromLocale } from './i18n';
 import LRU from './LRU';
 
 var VERTICAL_ENCODINGS = {
@@ -41,13 +43,12 @@ var CliqzUtils = {
   TUTORIAL_URL:                   'https://cliqz.com/home/onboarding',
   UNINSTALL:                      'https://cliqz.com/home/offboarding',
   FEEDBACK:                       'https://cliqz.com/feedback/',
-  PREFERRED_LANGUAGE:             null,
   RESULTS_TIMEOUT:                CLIQZEnvironment.RESULTS_TIMEOUT,
 
   BRANDS_DATABASE: BRANDS_DATABASE,
 
   //will be updated from the mixer config endpoint every time new logos are generated
-  BRANDS_DATABASE_VERSION: 1483980213630,
+  BRANDS_DATABASE_VERSION: 1498491398528,
   GEOLOC_WATCH_ID:                null, // The ID of the geolocation watcher (function that updates cached geolocation on change)
   VERTICAL_TEMPLATES: {
         'n': 'news'    ,
@@ -66,25 +67,15 @@ var CliqzUtils = {
   MESSAGE_TEMPLATES: CLIQZEnvironment.MESSAGE_TEMPLATES,
   PARTIALS: CLIQZEnvironment.PARTIALS,
   SKIN_PATH: CLIQZEnvironment.SKIN_PATH,
-  LOCALE_PATH: CLIQZEnvironment.LOCALE_PATH,
   RERANKERS: CLIQZEnvironment.RERANKERS,
   CLIQZ_ONBOARDING: CLIQZEnvironment.CLIQZ_ONBOARDING,
   CLIQZ_ONBOARDING_URL: CLIQZEnvironment.CLIQZ_ONBOARDING_URL,
   BROWSER_ONBOARDING_PREF: CLIQZEnvironment.BROWSER_ONBOARDING_PREF,
-  CLIQZ_NEW_TAB: CLIQZEnvironment.CLIQZ_NEW_TAB,
-  CLIQZ_NEW_TAB_RESOURCE_URL: CLIQZEnvironment.CLIQZ_NEW_TAB_RESOURCE_URL,
-
   telemetryHandlers: [
     CLIQZEnvironment.telemetry
   ],
 
-  init: function(options) {
-    options = options || {};
-
-    if (!options.lang) {
-      return Promise.reject("lang missing");
-    }
-
+  init() {
     CLIQZEnvironment.gzip = gzip;
 
     // cutting cyclic dependency
@@ -94,28 +85,8 @@ var CliqzUtils = {
     CLIQZEnvironment.app = CliqzUtils.app;
     CliqzUtils.log('Initialized', 'CliqzUtils');
 
-    try {
-      CliqzUtils.setLang(options.lang);
-    } catch(e) {
-      // TODO: fix for ghostery
-    }
-
     CliqzUtils.tldExtractor = CLIQZEnvironment.tldExtractor || CliqzUtils.genericTldExtractor;
   },
-  getLanguageFromLocale: function(locale) {
-    return locale.match(/([a-z]+)(?:[-_]([A-Z]+))?/)[1];
-  },
-  SUPPORTED_LANGS: {'de':'de', 'en':'en', 'fr':'fr'},
-  getSupportedLanguage: function(lang) {
-    return CliqzUtils.SUPPORTED_LANGS[lang] || 'en';
-  },
-  setLang: function (locale) {
-    const lang = CliqzUtils.getLanguageFromLocale(locale);
-    const supportedLang = CliqzUtils.getSupportedLanguage(lang);
-    CliqzUtils.PREFERRED_LANGUAGE = locale;
-    CliqzUtils.getLocaleFile(supportedLang);
-  },
-
   isNumber: function(n){
       /*
       NOTE: this function can't recognize numbers in the form such as: "1.2B", but it can for "1e4". See specification for isFinite()
@@ -173,7 +144,7 @@ var CliqzUtils = {
         }
       }
     }
-    result.text = result.text || (baseCore.length > 1 ? ((baseCore[0].toUpperCase() + baseCore[1].toLowerCase())) : "")
+    result.text = result.text || `${baseCore[0] || ''}${baseCore[1] || ''}`.toLowerCase();
     result.backgroundColor = result.backgroundColor || BRANDS_DATABASE.palette[base.split("").reduce(function(a,b){ return a + b.charCodeAt(0) },0) % BRANDS_DATABASE.palette.length]
     var colorID = BRANDS_DATABASE.palette.indexOf(result.backgroundColor),
         buttonClass = BRANDS_DATABASE.buttons && colorID != -1 && BRANDS_DATABASE.buttons[colorID]?BRANDS_DATABASE.buttons[colorID]:10
@@ -306,7 +277,7 @@ var CliqzUtils = {
     const schemeMatch = schemeRE.exec(url);
     if (schemeMatch) {
       scheme = schemeMatch[1];
-      slashes = schemeMatch[2];
+      slashes = schemeMatch[2] || '';
       url = schemeMatch[3];
     }
     const ssl = scheme == 'https';
@@ -604,7 +575,7 @@ var CliqzUtils = {
            CliqzUtils.disableWikiDedup();
   },
 
-  getRichHeaderQueryString: function(q, loc, locale) {
+  getRichHeaderQueryString: function(q, loc) {
     let numberResults = 5;
     if (CliqzUtils.getPref('languageDedup', false)) {
       numberResults = 7;
@@ -615,7 +586,7 @@ var CliqzUtils = {
     return "&q=" + encodeURIComponent(q) + // @TODO: should start with &q=
             CliqzUtils.encodeSessionParams() +
             CliqzLanguage.stateToQueryString() +
-            CliqzUtils.encodeLocale(locale) +
+            CliqzUtils.encodeLocale() +
             CliqzUtils.encodeResultOrder() +
             CliqzUtils.encodeCountry() +
             CliqzUtils.encodeFilter() +
@@ -701,14 +672,8 @@ var CliqzUtils = {
       }
     }
   },
-  encodeLocale: function(locale) {
-    var preferred = (CliqzUtils.PREFERRED_LANGUAGE || "");
-    if(locale) {
-      preferred = locale;
-    }
-    // send browser language to the back-end
-    //return '&locale=' + (locale ? locale : (CliqzUtils.PREFERRED_LANGUAGE || ""));
-    return '&locale='+ preferred;
+  encodeLocale: function() {
+    return '&locale='+ CliqzUtils.PREFERRED_LANGUAGE || '';
   },
   encodeCountry: function() {
     return '&country=' + CliqzUtils.getPref('backend_country', 'de');
@@ -862,70 +827,38 @@ var CliqzUtils = {
   clearTimeout: CLIQZEnvironment.clearTimeout,
   clearInterval: CLIQZEnvironment.clearTimeout,
   Promise: CLIQZEnvironment.Promise,
-  locale: {},
-  currLocale: null,
-  getLocaleFile: function (locale) {
-    // locale file might not exist on mobile
-    if (CliqzUtils.LOCALE_PATH) {
-      const url = CliqzUtils.LOCALE_PATH + locale + '/cliqz.json';
-      // Synchronous request is depricated
-      const req = CliqzUtils.httpGet(url, null, null, null, null, true);
-      CliqzUtils.currLocale = locale;
-      CliqzUtils.locale.default = CliqzUtils.locale[locale] = JSON.parse(req.response);
-    }
+
+  /* i18n -- start */
+  // TODO: all those should be remove and used from i18n directly
+  get locale() {
+    return i18n.locale;
   },
-  getLocalizedString: function(key, substitutions){
-    if(!key) return '';
-
-    var str = key,
-        localMessages;
-
-    if (CliqzUtils.currLocale != null && CliqzUtils.locale[CliqzUtils.currLocale]
-            && CliqzUtils.locale[CliqzUtils.currLocale][key]) {
-        str = CliqzUtils.locale[CliqzUtils.currLocale][key].message;
-        localMessages = CliqzUtils.locale[CliqzUtils.currLocale];
-    } else if (CliqzUtils.locale.default && CliqzUtils.locale.default[key]) {
-        str = CliqzUtils.locale.default[key].message;
-        localMessages = CliqzUtils.locale.default;
-    }
-
-    if (!substitutions) {
-      substitutions = [];
-    }
-    if (!Array.isArray(substitutions)) {
-      substitutions = [substitutions];
-    }
-
-    function replacer(matched, index, dollarSigns) {
-      if (index) {
-        index = parseInt(index, 10) - 1;
-        return index in substitutions ? substitutions[index] : "";
-      } else {
-        // For any series of contiguous `$`s, the first is dropped, and
-        // the rest remain in the output string.
-        return dollarSigns;
-      }
-    }
-    return str.replace(/\$(?:([1-9]\d*)|(\$+))/g, replacer);
+  get currLocale() {
+    return i18n.currLocale;
   },
+  get PREFERRED_LANGUAGE() {
+    return i18n.PREFERRED_LANGUAGE;
+  },
+  get LOCALE_PATH() {
+    return i18n.LOCALE_PATH;
+  },
+  getLanguageFromLocale: getLanguageFromLocale,
+  getLocalizedString: getMessage,
   // gets all the elements with the class 'cliqz-locale' and adds
   // the localized string - key attribute - as content
   localizeDoc: function(doc){
     var locale = doc.getElementsByClassName('cliqz-locale');
     for(var i = 0; i < locale.length; i++){
         var el = locale[i];
-        el.textContent = CliqzUtils.getLocalizedString(el.getAttribute('key'));
+        el.textContent = getMessage(el.getAttribute('key'));
     }
   },
-  isWindows: function(){
-    return CLIQZEnvironment.OS.indexOf("win") === 0;
-  },
-  isMac: function(){
-    return CLIQZEnvironment.OS.indexOf("darwin") === 0;
-  },
-  isLinux: function() {
-    return CLIQZEnvironment.OS.indexOf("linux") === 0;
-  },
+  /* i18n -- end */
+  /* platform -- start */
+  isWindows,
+  isLinux,
+  isMac,
+  /* platform -- end */
   getWindow: CLIQZEnvironment.getWindow,
   getWindowID: CLIQZEnvironment.getWindowID,
   /**
@@ -1077,9 +1010,9 @@ var CliqzUtils = {
   isUnknownTemplate: CLIQZEnvironment.isUnknownTemplate,
   getEngineByName: CLIQZEnvironment.getEngineByName,
   addEngineWithDetails: CLIQZEnvironment.addEngineWithDetails,
+  removeEngine: CLIQZEnvironment.removeEngine,
   getEngineByAlias: CLIQZEnvironment.getEngineByAlias,
   getSearchEngines: CLIQZEnvironment.getSearchEngines,
-  blackListedEngines: CLIQZEnvironment.blackListedEngines,
   updateAlias: CLIQZEnvironment.updateAlias,
   openLink: CLIQZEnvironment.openLink,
   getCliqzPrefs() {

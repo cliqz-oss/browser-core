@@ -1,4 +1,4 @@
-import BaseResult from './results/base';
+import GenericResult from './results/generic';
 import CalculatorResult from './results/calculator';
 import CurrencyResult from './results/currency';
 import WeatherResult from './results/weather';
@@ -11,7 +11,7 @@ import console from '../core/console';
 
 class ResultFactory {
   static create(rawResult, allResultsFlat) {
-    let Constructor = BaseResult;
+    let Constructor = GenericResult;
 
     if (['custom', 'noResult'].indexOf(rawResult.data.template) >= 0) {
       throw new Error('ignore');
@@ -156,7 +156,7 @@ export default class Results {
   }
 
   findSelectable(href) {
-    return this.selectableResults.find(r => equals(r.url, href) || equals(r.rawUrl, href));
+    return this.selectableResults.find(r => equals(r.rawUrl, href) || equals(r.url, href));
   }
 
   indexOf(result) {

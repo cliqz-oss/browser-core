@@ -442,7 +442,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                 'set_cookie_set': 1,
               }
             },
-            'cliqztest.de': {
+            'cliqztest2.de': {
               '/proxyiframe.html': {
                 'c': 1,
                 'type_7': 1,

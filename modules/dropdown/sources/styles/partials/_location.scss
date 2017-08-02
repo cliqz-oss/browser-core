@@ -8,7 +8,7 @@
         box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.17);
 
         .local-map {
-            position: absolute;
+            position: absolute !important; /* result might override the position */
             background-image: url("resource://cliqz/dropdown/images/maps-icon.jpg");
             background-repeat: no-repeat;
             background-position: left top;

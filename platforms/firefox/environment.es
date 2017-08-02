@@ -1,8 +1,8 @@
-import console from 'core/console';
-import prefs from 'core/prefs';
-import utils from 'core/utils';
-import { promiseHttpHandler } from 'core/http';
-import { Components, Services } from "platform/globals";
+import console from '../core/console';
+import prefs from '../core/prefs';
+import utils from '../core/utils';
+import { promiseHttpHandler } from '../core/http';
+import { Components, Services } from '../platform/globals';
 
 try {
   Cu.import('resource://gre/modules/XPCOMUtils.jsm');
@@ -18,12 +18,9 @@ var CLIQZEnvironment = {
     RESULTS_PROVIDER: 'https://api.cliqz.com/api/v2/results?nrh=1&q=',
     RICH_HEADER: 'https://api.cliqz.com/api/v2/rich-header?path=/v2/map',
     LOG: 'https://stats.cliqz.com',
-    LOCALE_PATH: 'chrome://cliqz/content/static/locale/',
     TEMPLATES_PATH: 'chrome://cliqz/content/static/templates/',
     SKIN_PATH: 'chrome://cliqz/content/static/skin/',
     prefs: Cc['@mozilla.org/preferences-service;1'].getService(Ci.nsIPrefService).getBranch(''),
-    OS: Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS.toLowerCase(),
-    OS_VERSION: Services.sysinfo.getProperty("version"),
     RERANKERS: [],
     RESULTS_TIMEOUT: 1000, // 1 second
     TEMPLATES: {},
@@ -32,8 +29,6 @@ var CLIQZEnvironment = {
     CLIQZ_ONBOARDING: "about:onboarding",
     CLIQZ_ONBOARDING_URL: "chrome://cliqz/content/onboarding-v3/index.html",
     BASE_CONTENT_URL: "chrome://cliqz/content/",
-    CLIQZ_NEW_TAB: "about:cliqz",
-    CLIQZ_NEW_TAB_RESOURCE_URL: 'resource://cliqz/fresh-tab-frontend/index.html',
     BROWSER_ONBOARDING_PREF: "browserOnboarding",
 
     init: function(){},
@@ -267,6 +262,7 @@ var CLIQZEnvironment = {
             default: e === SEARCH_ENGINES.defaultEngine,
             icon: e.iconURI.spec,
             base_url: e.searchForm,
+            urlDetails: utils.getDetailsFromUrl(e.searchForm),
             getSubmissionForQuery: function(q){
               //TODO: create the correct search URL
               return e.getSubmission(q).uri.spec;
@@ -274,15 +270,7 @@ var CLIQZEnvironment = {
           };
         });
     },
-    blackListedEngines: function(scope) {
-      const engines = {
-        'freshtab': [
-          'Google Images',
-          'Google Maps'
-        ]
-      };
-      return engines[scope];
-    },
+
     updateAlias: function(name, newAlias) {
       Services.search.getEngineByName(name).alias = newAlias;
     },
@@ -301,6 +289,15 @@ var CLIQZEnvironment = {
         engine.method,
         engine.url
       );
+      if (engine.encoding) {
+        Services.search.getEngineByName(engine.name).wrappedJSObject._queryCharset = engine.encoding;
+      }
+    },
+    removeEngine: function(name) {
+      const engine = Services.search.getEngineByName(name);
+      if (engine) {
+        Services.search.removeEngine(engine);
+      }
     },
     // from ContextMenu
     openPopup: function(contextMenu, ev, x, y) {

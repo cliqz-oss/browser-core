@@ -29,6 +29,18 @@ module.exports = function(environment) {
     }
   };
 
+  /* CLIQZ CONFIG start */
+  const path = require('path');
+  const cliqzConfig = require(
+    path.join(
+      __dirname,
+      '../../..',
+      process.env['CLIQZ_CONFIG_PATH'] || './configs/browser.json'
+    )
+  );
+  ENV.cliqz = cliqzConfig;
+  /* CLIQZ CONFIG end */
+
   ENV.i18n = {
     defaultLocale: 'en'
   };
@@ -53,7 +65,7 @@ module.exports = function(environment) {
   }
 
   if (environment === 'production') {
-    ENV.rootURL = 'resource://cliqz/fresh-tab-frontend/';
+    ENV.rootURL = `${cliqzConfig.baseURL}fresh-tab-frontend/` || 'resource://cliqz/fresh-tab-frontend/';
   }
 
   return ENV;

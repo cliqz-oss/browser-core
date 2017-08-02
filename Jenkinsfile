@@ -33,6 +33,7 @@ node('ubuntu && docker && !gpu') {
   }
 
   properties([
+    [$class: 'JobRestrictionProperty'],
     disableConcurrentBuilds(),
     parameters(params)
   ])

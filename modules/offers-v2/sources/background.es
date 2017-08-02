@@ -53,6 +53,8 @@ export default background({
       OffersConfigs.SIGNALS_LOAD_FROM_DB = utils.getPref('offersLoadSignalsFromDB', false);
       // avoid loading storage data if needed
       OffersConfigs.LOAD_OFFERS_STORAGE_DATA = utils.getPref('offersSaveStorage', false);
+      // avoid loading db for signals
+      OffersConfigs.SEND_SIG_OP_SHOULD_LOAD = false;
     }
 
     if(utils.getPref('triggersBE')) {
@@ -101,7 +103,7 @@ export default background({
     this.eventHandler = new EventHandler();
 
     this.env = new ExtensionEnvironment();
-    this.el = new EventLoop(this.env);
+    this.el = new EventLoop(this.env, this.db);
 
     this.onUrlChange = this.onUrlChange.bind(this);
     this.eventHandler.subscribeUrlChange(this.onUrlChange);
@@ -148,6 +150,10 @@ export default background({
     if (this.offersDB) {
       this.offersDB.savePersistentData();
     }
+
+    if (this.el) {
+      this.el.destroy();
+    }
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -176,6 +182,10 @@ export default background({
 
     if (this.signalsHandler) {
       this.signalsHandler.savePersistenceData();
+    }
+
+    if (this.el) {
+      this.el.destroy();
     }
 
     //TODO: savePersistentData()
@@ -207,7 +217,7 @@ export default background({
           this.offerProc.savePersistenceData();
         }
       }
-    } 
+    }
   },
 
   actions: {

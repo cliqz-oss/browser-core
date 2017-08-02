@@ -1,15 +1,17 @@
 import utils from '../core/utils';
-import background from './background';
 
 export default class {
 
-  constructor(settings) {
-    this.window = settings.window;
+  constructor({ window, background }) {
+    this.background = background;
+    this.window = window;
   }
 
   init() {
-    if (background.CliqzSecureMessage) {
-      background.CliqzSecureMessage.initAtWindow(this.window);
+    if (this.background.CliqzSecureMessage) {
+      this.background.CliqzSecureMessage.initAtWindow(this.window);
+      this.window.CliqzSecureMessage = this.background.CliqzSecureMessage;
+      Object.assign(this.window.CliqzSecureMessage, this.background.actions);
     }
   }
 
@@ -17,7 +19,7 @@ export default class {
   }
 
   status() {
-    if (background.CliqzSecureMessage) {
+    if (this.background.CliqzSecureMessage) {
       return {
         visible: true,
         state: utils.getPref('hpn-query'),

@@ -1,4 +1,4 @@
-import { utils } from 'core/cliqz';
+import utils from 'core/utils';
 
 export function ChannelListener(headers) {
   this.headers = headers;

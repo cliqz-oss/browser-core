@@ -9,7 +9,7 @@ function FindProxyForURL(url, host)
 {
     // Use Proxy?
     if (localHostOrDomainIs(host, "cliqztest.com") || localHostOrDomainIs(host, "www.cliqztest.com")
-      || localHostOrDomainIs(host, "cliqztest.de")) {
+      || localHostOrDomainIs(host, "cliqztest2.de")) {
         return proxy;
     } else {
         return direct;

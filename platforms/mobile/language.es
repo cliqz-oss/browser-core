@@ -1,4 +1,4 @@
-import window from 'platform/window';
+import window from './window';
 var CliqzLanguage = {
   stateToQueryString: function () { return `&lang=${window.navigator.language.slice(0, 2)}`; }
 };

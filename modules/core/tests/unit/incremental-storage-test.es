@@ -72,7 +72,7 @@ export default describeModule('core/incremental-storage',
             storage.processEvent({ type: 'divide', value: 2 });
             storage.processEvent({ type: 'subtract', value: 2 });
             expect(storage.obj.value).to.equal(37);
-            return storage.close();
+            return storage.flush().then(() => storage.close());
           })
           .then(() => {
             storage = new IncrementalStorage();
@@ -82,7 +82,7 @@ export default describeModule('core/incremental-storage',
             storage.processEvent({ type: 'add', value: 5 });
             storage.processEvent({ type: 'multiply', value: 3 });
             expect(storage.obj.value).to.equal(126);
-            return storage.close();
+            return storage.flush().then(() => storage.close());
           })
           .then(() => {
             storage = new IncrementalStorage();
@@ -90,7 +90,7 @@ export default describeModule('core/incremental-storage',
           })
           .then(() => {
             expect(storage.obj.value).to.equal(126);
-            return storage.close();
+            return storage.flush().then(() => storage.close());
           });
       });
 
@@ -125,6 +125,7 @@ export default describeModule('core/incremental-storage',
               }, 2000);
             });
           })
+          .then(() => storage.flush())
           .then(() => storage.close())
           .then(() => {
             storage = new IncrementalStorage();
@@ -132,7 +133,7 @@ export default describeModule('core/incremental-storage',
           })
           .then(() => {
             expect(storage.obj.value).to.equal(37);
-            return storage.close();
+            return storage.flush().then(() => storage.close());
           });
       });
 
@@ -166,6 +167,7 @@ export default describeModule('core/incremental-storage',
               }, 2000);
             });
           })
+          .then(() => storage.flush())
           .then(() => storage.close())
           .then(() => {
             storage = new IncrementalStorage();
@@ -173,7 +175,7 @@ export default describeModule('core/incremental-storage',
           })
           .then(() => {
             expect(storage.obj.value).to.equal(37);
-            return storage.close();
+            return storage.flush().then(() => storage.close());
           });
       });
 
@@ -197,6 +199,7 @@ export default describeModule('core/incremental-storage',
               expect(storage.obj.value).to.equal(obj.value);
             }
           })
+          .then(() => storage.flush())
           .then(() => storage.close())
           .then(() => {
             storage = new IncrementalStorage();
@@ -204,7 +207,7 @@ export default describeModule('core/incremental-storage',
           })
           .then(() => {
             expect(storage.obj.value).to.equal(obj.value);
-            return storage.close();
+            return storage.flush().then(() => storage.close());
           })
           .then(() => {
             storage = new IncrementalStorage();
@@ -236,6 +239,7 @@ export default describeModule('core/incremental-storage',
               expect(storage.obj.value).to.equal(obj.value);
             }
           })
+          .then(() => storage.flush())
           .then(() => storage.close())
           .then(() => {
             storage = new IncrementalStorage();
@@ -243,7 +247,7 @@ export default describeModule('core/incremental-storage',
           })
           .then(() => {
             expect(storage.obj.value).to.equal(obj.value);
-            return storage.close();
+            return storage.flush().then(() => storage.close());
           });
       });
     });

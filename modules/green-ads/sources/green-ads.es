@@ -8,7 +8,9 @@ import { AdBlocker } from '../adblocker/adblocker';
 import PageLoad from './statistics';
 import logger from './logger';
 import SessionTracker from './sessions';
-import { sanitiseUrl, extractGeneralDomain } from './utils';
+import { isChipAdDependency } from './blocking';
+import { isDoubleclick, isOutbrain } from './advertisers';
+import { sanitiseUrl, extractDomain, extractGeneralDomain } from './utils';
 
 
 export default class {
@@ -38,12 +40,22 @@ export default class {
     this.adsClickedTabs = new Set();
 
     // Keep track of pages
+    this.tempPageLoads = {};
+
+    // Temporary mock, before the real tabTracker is received from antitracking.
+    this.tabTracker = {
+      getPageForTab() {},
+      getOpenPages() { return []; },
+    };
+
     this.antitracking.action('getTabTracker').then((tabTracker) => {
       this.tabTracker = tabTracker;
       this.tabTracker.addEventListener('stage', (tabId, page) => {
+        this.tempPageLoads[tabId] = undefined;
+
         if (page.greenads) {
           const msg = page.greenads.aggregate();
-          logger.debug(`Send telemetry for page ${msg.url}`, msg);
+          logger.debug(`Send telemetry for page ${msg.url}`);
           sendTelemetry({
             type: 'humanweb',
             action: 'greenads.page',
@@ -60,7 +72,7 @@ export default class {
   }
 
   initListeners() {
-    if (this.greenMode && this.onBeforeRequestListener === undefined) {
+    if (this.onBeforeRequestListener === undefined) {
       // onBeforeRequest will be used to block third party requests.
       this.onBeforeRequestListener = this.onBeforeRequest.bind(this);
       WebRequest.onBeforeRequest.addListener(
@@ -138,6 +150,11 @@ export default class {
     this.unloadAdblocker();
     this.unloadListeners();
     this.sessions.unload();
+  }
+
+  isFromAllowedAdvertiser(url) {
+    const hostGD = extractGeneralDomain(url);
+    return isDoubleclick(hostGD);
   }
 
   isUrlFromTracker(url) {
@@ -224,8 +241,6 @@ export default class {
       outerWindowID,
     } = windowTreeInformation;
 
-    logger.debug(`onStateChange ${originUrl} ${triggeringUrl} ${JSON.stringify(windowTreeInformation)} tabs ${JSON.stringify(this.tabs)}`);
-
     this.updateTabMappings(windowTreeInformation, originUrl);
 
     // Only consider main documents
@@ -265,7 +280,7 @@ export default class {
     }
 
     // Check if the domain is a tracker, and consider this as an ad.
-    if (this.isUrlFromTracker(originUrl) || this.isUrlFromTracker(triggeringUrl)) {
+    if (this.isFromAllowedAdvertiser(originUrl) || this.isFromAllowedAdvertiser(triggeringUrl)) {
       logger.debug(`locationChange isAd ${originWindowID} ${originUrl} ${triggeringUrl}`);
       this.adsClickedTabs.add(originWindowID);
       this.onAdClicked(
@@ -307,56 +322,89 @@ export default class {
       return {};
     }
 
-    if (this.greenMode) {
-      // Exceptions:
-      if (url.indexOf('amazon-adsystem.com/aax2/amzn_ads.js') !== -1) {
-        // Unbreak video playing
-        return {
-          redirectUrl: 'data:application/javascript;base64,KGZ1bmN0aW9uKCkgewppZiAoIGFtem5hZHMgKSB7CnJldHVybjsKfQp2YXIgdyA9IHdpbmRvdzsKdmFyIG5vb3BmbiA9IGZ1bmN0aW9uKCkgewo7Cn0uYmluZCgpOwp2YXIgYW16bmFkcyA9IHsKYXBwZW5kU2NyaXB0VGFnOiBub29wZm4sCmFwcGVuZFRhcmdldGluZ1RvQWRTZXJ2ZXJVcmw6IG5vb3BmbiwKYXBwZW5kVGFyZ2V0aW5nVG9RdWVyeVN0cmluZzogbm9vcGZuLApjbGVhclRhcmdldGluZ0Zyb21HUFRBc3luYzogbm9vcGZuLApkb0FsbFRhc2tzOiBub29wZm4sCmRvR2V0QWRzQXN5bmM6IG5vb3BmbiwKZG9UYXNrOiBub29wZm4sCmRldGVjdElmcmFtZUFuZEdldFVSTDogbm9vcGZuLApnZXRBZHM6IG5vb3BmbiwKZ2V0QWRzQXN5bmM6IG5vb3BmbiwKZ2V0QWRGb3JTbG90OiBub29wZm4sCmdldEFkc0NhbGxiYWNrOiBub29wZm4sCmdldERpc3BsYXlBZHM6IG5vb3BmbiwKZ2V0RGlzcGxheUFkc0FzeW5jOiBub29wZm4sCmdldERpc3BsYXlBZHNDYWxsYmFjazogbm9vcGZuLApnZXRLZXlzOiBub29wZm4sCmdldFJlZmVycmVyVVJMOiBub29wZm4sCmdldFNjcmlwdFNvdXJjZTogbm9vcGZuLApnZXRUYXJnZXRpbmc6IG5vb3BmbiwKZ2V0VG9rZW5zOiBub29wZm4sCmdldFZhbGlkTWlsbGlzZWNvbmRzOiBub29wZm4sCmdldFZpZGVvQWRzOiBub29wZm4sCmdldFZpZGVvQWRzQXN5bmM6IG5vb3BmbiwKZ2V0VmlkZW9BZHNDYWxsYmFjazogbm9vcGZuLApoYW5kbGVDYWxsQmFjazogbm9vcGZuLApoYXNBZHM6IG5vb3BmbiwKcmVuZGVyQWQ6IG5vb3BmbiwKc2F2ZUFkczogbm9vcGZuLApzZXRUYXJnZXRpbmc6IG5vb3BmbiwKc2V0VGFyZ2V0aW5nRm9yR1BUQXN5bmM6IG5vb3BmbiwKc2V0VGFyZ2V0aW5nRm9yR1BUU3luYzogbm9vcGZuLAp0cnlHZXRBZHNBc3luYzogbm9vcGZuLAp1cGRhdGVBZHM6IG5vb3Bmbgp9Owp3LmFtem5hZHMgPSBhbXpuYWRzOwp3LmFtem5fYWRzID0gdy5hbXpuX2FkcyB8fCBub29wZm47CncuYWF4X3dyaXRlID0gdy5hYXhfd3JpdGUgfHwgbm9vcGZuOwp3LmFheF9yZW5kZXJfYWQgPSB3LmFheF9yZW5kZXJfYWQgfHwgbm9vcGZuOwp9KSgpOwo='
-        };
-      }
+    const host = extractDomain(url);
+    const hostGD = extractGeneralDomain(url);
 
-      if (url.indexOf('hd-main.js') !== -1) {
-        // Unbreak video playing
-        return {
-          redirectUrl: 'data:application/javascript;base64,KGZ1bmN0aW9uKCl7CnZhciBsID0ge307CnZhciBub29wZm4gPSBmdW5jdGlvbigpIHsKOwp9Owp2YXIgcHJvcHMgPSBbCiIkaiIsIkFkIiwiQmQiLCJDZCIsIkRkIiwiRWQiLCJGZCIsIkdkIiwiSGQiLCJJZCIsIkpkIiwiTmoiLCJPYyIsIlBjIiwiUGUiLAoiUWMiLCJRZSIsIlJjIiwiUmUiLCJSaSIsIlNjIiwiVGMiLCJVYyIsIlZjIiwiV2MiLCJXZyIsIlhjIiwiWGciLCJZYyIsIllkIiwKImFkIiwiYWUiLCJiZCIsImJmIiwiY2QiLCJkZCIsImVkIiwiZWYiLCJlayIsImZkIiwiZmciLCJmaCIsImZrIiwiZ2QiLCJoZCIsCiJpZyIsImlqIiwiamQiLCJrZCIsImtlIiwibGQiLCJtZCIsIm1pIiwibmQiLCJvZCIsIm9oIiwicGQiLCJwZiIsInFkIiwicmQiLAoic2QiLCJ0ZCIsInVkIiwidmQiLCJ3ZCIsIndnIiwieGQiLCJ4aCIsInlkIiwiemQiLAoiJGQiLCIkZSIsIiRrIiwiQWUiLCJBZiIsIkFqIiwiQmUiLCJDZSIsIkRlIiwiRWUiLCJFayIsIkVvIiwiRXAiLCJGZSIsIkZvIiwKIkdlIiwiR2giLCJIayIsIkllIiwiSXAiLCJKZSIsIktlIiwiS2siLCJLcSIsIkxlIiwiTGgiLCJMayIsIk1lIiwiTW0iLCJOZSIsCiJPZSIsIlBlIiwiUWUiLCJSZSIsIlJwIiwiU2UiLCJUZSIsIlVlIiwiVmUiLCJWcCIsIldlIiwiWGQiLCJYZSIsIllkIiwiWWUiLAoiWmQiLCJaZSIsIlpmIiwiWmsiLCJhZSIsImFmIiwiYWwiLCJiZSIsImJmIiwiYmciLCJjZSIsImNwIiwiZGYiLCJkaSIsImVlIiwKImVmIiwiZmUiLCJmZiIsImdmIiwiZ20iLCJoZSIsImhmIiwiaWUiLCJqZSIsImpmIiwia2UiLCJrZiIsImtsIiwibGUiLCJsZiIsCiJsayIsIm1mIiwibWciLCJtbiIsIm5mIiwib2UiLCJvZiIsInBlIiwicGYiLCJwZyIsInFlIiwicWYiLCJyZSIsInJmIiwic2UiLAoic2YiLCJ0ZSIsInRmIiwidGkiLCJ1ZSIsInVmIiwidmUiLCJ2ZiIsIndlIiwid2YiLCJ3ZyIsIndpIiwieGUiLCJ5ZSIsInlmIiwKInlrIiwieWwiLCJ6ZSIsInpmIiwiemsiCl07CmZvciAodmFyIGkgPSAwOyBpIDwgcHJvcHMubGVuZ3RoOyBpKyspIHsKbFtwcm9wc1tpXV0gPSBub29wZm47Cn0Kd2luZG93LkwgPSB3aW5kb3cuSiA9IGw7Cn0pKCk7Cg=='
-        };
-      }
+    // Kill outbrain
+    if (isOutbrain(hostGD)) {
+      logger.log(`cancel ${url}`);
+      return { cancel: true };
+    }
 
-      if (url.indexOf('1x1-transparent.gif') !== -1) {
-        return {
-          redirectUrl: 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==',
-        };
-      }
-
-      if (url.indexOf('//www.kaltura.com') !== -1) {
-        // Unbreak thumbnails
+    // When in collect mode, we let a few ads through.
+    if (!this.greenMode) {
+      // Allow chip-deps?
+      if (isChipAdDependency(host, hostGD)) {
         return {};
       }
 
-      // We are on a chip.de page now
-      if (url.indexOf('chip.de') === -1) {
-        return { cancel: true };
+      // Allow double-click
+      if (isDoubleclick(hostGD)) {
+        return {};
       }
-
-      // Check host of the request
-      const hostGD = extractGeneralDomain(url);
-      if (hostGD !== 'chip.de') {
-        return { cancel: true };
-      }
-
-      // NOTE - disabled blocking using adblocker for now and rely on custom
-      // aggressive blocking for chip.de third party requests.
-      // Try to match the current request with the adblocker
-      // const result = this.adblocker.match(requestContext);
-
-      // if (result.redirect) {
-      //   return { redirectUrl: result.redirect };
-      // } else if (result.match) {
-      //   return { cancel: true };
-      // }
     }
 
+    // Exceptions:
+    // const response = isException(url);
+    // if (response !== null) {
+    //   logger.log(`exception ${url} ${JSON.stringify(response)}`);
+    //   return response;
+    // }
+
+    // const host = extractDomain(url);
+    // const hostGD = extractGeneralDomain(url);
+
+    // White-list selected advertisers
+    // if (!this.greenMode) {
+    //   if (isChipAdDependency(host, hostGD)) {
+    //     return {};
+    //   }
+
+    //   if (isCDN(host, hostGD)) {
+    //     return {};
+    //   }
+
+    //   if (isDoubleclick(hostGD)) {
+    //     logger.log(`doubleclick ${url}`);
+    //     return {};
+    //   }
+
+
+    //   // TODO - deal with other advertisers
+    // }
+
+    // Everything else should come from chip.de
+    // if (hostGD !== 'chip.de') {
+    //   logger.log(`cancel ${url}`);
+    //   return { cancel: true };
+    // }
+
+    // Check host of the request
+    // NOTE: this breaks some images, although images are fetched from
+    // It would be nice to be able to block chip ads, because they might bias
+    // the results of our green-ads (eg: we detect a chip ad clicked as a
+    // green ad clicked).
+    //
+    // chip.de, they might depend on ad-js.chip.de dependencies...
+    // const domain = extractDomain(url);
+    // if (domain === 'ad-js.chip.de') {
+    //   return { cancel: true };
+    // }
+
+    // NOTE - disabled blocking using adblocker for now and rely on custom
+    // aggressive blocking for chip.de third party requests.
+    // Try to match the current request with the adblocker
+    const result = this.adblocker.match(requestContext);
+
+    if (result.redirect) {
+      logger.log(`redirect ${url}`);
+      return { redirectUrl: result.redirect };
+    } else if (result.match) {
+      logger.log(`cancel ${url}`);
+      return { cancel: true };
+    }
+
+    logger.log(`allow ${url}`);
     return {};
   }
 
@@ -381,11 +429,9 @@ export default class {
     }
 
     // Check what the adblocker would do for this request
-    const result = this.adblocker.match(requestContext);
-    const wouldBeBlocked = (result.match || result.redirect) !== undefined;
-
-    const cpt = requestContext.getContentPolicyType();
     const url = requestContext.url;
+    const cpt = requestContext.getContentPolicyType();
+    const wouldBeBlocked = this.isFromAllowedAdvertiser(url);
 
     this.onRequestOpen(windowTreeInformation, sourceUrl, Date.now(), {
       url,
@@ -418,9 +464,8 @@ export default class {
     const cpt = requestContext.getContentPolicyType();
 
     // Check what the adblocker would do for this request
-    const result = this.adblocker.match(requestContext);
-    const wouldBeBlocked = (result.match || result.redirect) !== undefined;
-    const isFromTracker = this.isUrlFromTracker(url);
+    const wouldBeBlocked = this.isFromAllowedAdvertiser(url);
+    const isFromTracker = this.isFromAllowedAdvertiser(url);
 
     // Register statistics for this request
     this.onRequestResponse(windowTreeInformation, sourceUrl, Date.now(), {
@@ -469,17 +514,39 @@ export default class {
 
   getPage(windowTreeInformation, originUrl) {
     const tabId = windowTreeInformation.originWindowID;
-    const page = this.tabTracker.getPageForTab(tabId) || {};
+    const page = this.tabTracker.getPageForTab(tabId);
+    let greenadsPageStats;
 
-    // Create a new page if needed
-    if (page.greenads === undefined) {
-      page.greenads = new PageLoad(windowTreeInformation, originUrl, this.greenMode);
+    // It could be that tp_event takes more time to create the structure for
+    // this page since web request listeners are async (Should be solve with the
+    // global pipeline).
+    // In the meanwhile, we need to store a temporary instance of the PageLoad.
+    if (!page) {
+      if (this.tempPageLoads[tabId] !== undefined) {
+        greenadsPageStats = this.tempPageLoads[tabId];
+      } else {
+        // Create a new page if needed
+        greenadsPageStats = new PageLoad(windowTreeInformation, originUrl, this.greenMode);
+        this.tempPageLoads[tabId] = greenadsPageStats;
+      }
+    } else if (page.greenads === undefined) {
+      if (this.tempPageLoads[tabId] !== undefined) {
+        greenadsPageStats = this.tempPageLoads[tabId];
+        this.tempPageLoads[tabId] = undefined;
+        page.greenads = greenadsPageStats;
+      } else {
+        // Create a new page if needed
+        greenadsPageStats = new PageLoad(windowTreeInformation, originUrl, this.greenMode);
+        page.greenads = greenadsPageStats;
+      }
+    } else {
+      greenadsPageStats = page.greenads;
     }
 
     // Refresh last activity
-    page.greenads.lastActivity = Date.now();
+    greenadsPageStats.lastActivity = Date.now();
 
-    return page.greenads;
+    return greenadsPageStats;
   }
 
   //
@@ -571,12 +638,42 @@ export default class {
   // - ad over    (green ads + approx for normal ads)
 
   onNewFrame(windowTreeInformation, originUrl, timestamp, payload) {
-    this.getPage(windowTreeInformation, originUrl).onNewFrame(
+    const page = this.getPage(windowTreeInformation, originUrl);
+    page.onNewFrame(
       windowTreeInformation,
       originUrl,
       timestamp,
       payload
     );
+
+    // Detect iframes with canvas, from allowed ad servers;
+    payload.iframes.forEach((iframe) => {
+      if (!page.processedFrames.has(iframe.windowTreeInformation.outerWindowID)) {
+        page.processedFrames.add(iframe.windowTreeInformation.outerWindowID);
+
+        // Check href from advertiser
+        for (let i = 0; i < iframe.hrefs.length; i += 1) {
+          const href = iframe.hrefs[i];
+          if (this.isFromAllowedAdvertiser(href)) {
+            page.onAdShown(iframe.windowTreeInformation, href, Date.now(), {
+              kind: 'sponsoredLink',
+              parents: iframe.parents,
+            });
+            return;
+          }
+        }
+
+        // Check the presence of a canvas in the iframe
+        if (iframe.hasCanvas &&
+            iframe.src &&
+            this.isFromAllowedAdvertiser(iframe.src)) {
+          page.onAdShown(iframe.windowTreeInformation, iframe.src, Date.now(), {
+            kind: 'canvas',
+            parents: iframe.parents,
+          });
+        }
+      }
+    });
   }
 
   onAdClicked(windowTreeInformation, originUrl, url, timestamp) {
@@ -591,7 +688,6 @@ export default class {
   onAdShown(windowTreeInformation, originUrl, url, timestamp) {
     this.getPage(windowTreeInformation, originUrl).onAdShown(
       windowTreeInformation,
-      originUrl,
       url,
       timestamp,
     );

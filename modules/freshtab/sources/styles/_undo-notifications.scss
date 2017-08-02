@@ -1,0 +1,64 @@
+@mixin undo-notifications (
+    $cliqz-home-bg,
+    $cliqz-history-bg,
+    $cliqz-settings-bg,
+
+    $button-color,
+    $button-color-hover
+){
+    .undo-notification-box {
+      position: fixed;
+      right: 18px;
+      padding: 20px;
+      margin-top: 20px;
+      color: #666;
+      background: #fff;
+      border-radius: 2px;
+      box-shadow: 0px 1px 2px 0px rgba(0,0,0,0.24);
+      min-width: 380px;
+      z-index: 1000;
+      font-size: 12px;
+      transition: all;
+
+      .removed-dial {
+        white-space: nowrap;
+        overflow: hidden;
+        max-width: 150px;
+        text-overflow: ellipsis;
+        display: inline-block;
+        top: 3px;
+        position: relative;
+      }
+
+      button {
+        cursor: pointer;
+        border: 0;
+        background: transparent;
+
+        &.undo {
+          color: $button-color;
+          margin-left: 10px;
+          text-transform: uppercase;
+          font-weight: 500;
+
+          &:hover {
+            color: $button-color-hover;
+          }
+        }
+
+        &.close {
+          float: right;
+          clear: both;
+          color: #ccc;
+          background: url(../images/close_undo.png) no-repeat;
+          width: 15px;
+          height: 15px;
+          overflow: hidden;
+          text-indent: 100%;
+          white-space: nowrap;
+          position: relative;
+          top: 3px;
+        }
+      }
+    }
+}

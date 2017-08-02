@@ -111,12 +111,13 @@ modules/core/templates.es
 modules/core/tests/unit/anacron-test.es
 modules/core/tests/unit/resource-loader-test.es
 modules/core/tests/unit/templates-test.es
-modules/core/tlds.es
+modules/core/tlds-legacy.es
 modules/core/ui/panel.es
 modules/core/url.es
 modules/core/utils.es
 modules/core/webrequest.es
 modules/core/window.es
+modules/core-cliqz/background.es
 modules/expansions-provider/background.es
 modules/expansions-provider/expansions-provider.es
 modules/expansions-provider/window.es
@@ -128,8 +129,8 @@ modules/firefox-tests/background.es
 modules/firefox-tests/window.es
 modules/freshtab/background.es
 modules/freshtab/history.es
-modules/freshtab/main.es
 modules/freshtab/news-cache.es
+modules/freshtab/news-domains.es
 modules/freshtab/news.es
 modules/freshtab/speed-dial.es
 modules/freshtab/tests/unit/background-test.es
@@ -233,7 +234,6 @@ modules/offers-v2/operation_executor.es
 modules/offers-v2/operations/control.es
 modules/offers-v2/operations/display.es
 modules/offers-v2/operations/history.es
-modules/offers-v2/operations/signal.es
 modules/offers-v2/operations/trigger.es
 modules/offers-v2/regexp_cache.es
 modules/offers-v2/signals_handler.es
@@ -297,9 +297,6 @@ modules/static/background.es
 modules/static/main.es
 modules/static/tests/unit/locales-validation-test.es
 modules/static/window.es
-modules/telemetry-categories/background.es
-modules/telemetry-categories/reporter.es
-modules/telemetry-categories/window.es
 modules/telemetry-speed-dial/background.es
 modules/telemetry-speed-dial/window.es
 modules/theme/background.es
@@ -365,13 +362,12 @@ platforms/firefox/fs.es
 platforms/firefox/geolocation.es
 platforms/firefox/globals.es
 platforms/firefox/gzip.es
+platforms/firefox/freshtab/history.es
 platforms/firefox/history-manager.es
 platforms/firefox/language.es
 platforms/firefox/moment.es
 platforms/firefox/places-utils.es
-platforms/firefox/platform.es
 platforms/firefox/prefs.es
-platforms/firefox/process-script-manager.es
 platforms/firefox/profile-age.es
 platforms/firefox/public-suffix-list.es
 platforms/firefox/search-engines.es
@@ -421,3 +417,8 @@ modules/dropdown/debug/fixtures/weather.es
 modules/dropdown/debug/fixtures/youtube.es
 modules/dropdown/debug/fixtures/offers.es
 modules/dropdown/debug/index.es
+modules/autocomplete/debug/index.es
+modules/core/content.es
+modules/anti-phishing/content.es
+modules/adblocker/content.es
+modules/green-ads/content.es

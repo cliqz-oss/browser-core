@@ -277,7 +277,6 @@ export default class {
       // Add search history dropdown
       }).then(() => {
         this.reloadUrlbar();
-        this.urlbar.focus();
         this.initialized = true;
         this.elems.push(SearchHistory.insertBeforeElement(this.window));
 
@@ -285,10 +284,11 @@ export default class {
         // FF56+
         document.getAnonymousElementByAttribute(this.urlbar, 'anonid', 'go-button');
 
-        if(urlBarGo){
+        if (urlBarGo) {
           this._urlbarGoButtonClick = urlBarGo.getAttribute('onclick');
-          //we somehow break default FF -> on goclick the autocomplete doesnt get considered
-          urlBarGo.setAttribute('onclick', "CLIQZ.Core.windowModules.ui.urlbarGoClick(); " + this._urlbarGoButtonClick);
+          this._urlBarGo = urlBarGo;
+          // we somehow break default FF -> on goclick the autocomplete doesnt get considered
+          this._urlBarGo.setAttribute('onclick', `CLIQZ.Core.windowModules.ui.urlbarGoClick(); ${this._urlbarGoButtonClick}`);
         }
       });
   }
@@ -394,11 +394,16 @@ export default class {
   * @method reloadUrlbar
   */
   reloadUrlbar() {
-    const el = this.urlbar;
-    var oldVal = el.value;
+    const el = this.urlbar,
+          oldVal = el.value,
+          hadFocus = el.focused;
+
     if(el && el.parentNode) {
       el.parentNode.insertBefore(el, el.nextSibling);
       el.value = oldVal;
+      if(hadFocus){
+        el.focus();
+      }
     }
 
     this.applyAdditionalThemeStyles();
@@ -409,6 +414,7 @@ export default class {
 
     urlbar.style.maxWidth = '100%';
     urlbar.style.margin = '0px 0px';
+    urlbar.mInputField.placeholder = utils.getLocalizedString('freshtab.urlbar.placeholder');
   }
 
   /**
@@ -468,6 +474,7 @@ export default class {
 
     removeStylesheet(this.window.document, STYLESHEET_URL);
 
+
     this.urlbar.setAttribute('autocompletesearch', this._autocompletesearch);
     CliqzEvents.un_sub('ui:popup_hide', this.hidePopup);
 
@@ -487,6 +494,9 @@ export default class {
     this.window.gBrowser.tabContainer.removeEventListener("TabClose",
       this.tabRemoved, false);
 
+    if (this._urlBarGo) {
+      this._urlBarGo.setAttribute('onclick', this._urlbarGoButtonClick);
+    }
 
     var searchContainer = this.window.document.getElementById('search-container');
     if(this._searchContainer){

@@ -156,12 +156,12 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
 
     box-shadow: none !important;
     /* background: transparent !important; */
-    background: #fff !important;
+    background-color: #fff !important;
     -moz-border-start: 1px solid #d8d8d8 !important;
     padding-left: 7px;
     &:hover,
     &[focused="true"] {
-        background: #fff !important;;
+        background-color: #fff !important;;
     }
 
     .textbox-input {
@@ -178,7 +178,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
 }
 
 #urlbar .urlbar-input::-moz-selection {
-  background: #b1d6ff;
+  background-color: #b1d6ff;
 }
 
 
@@ -236,7 +236,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
         border-style: solid;
         border-radius: 0;
         border-color: $tab-border-color;
-        background: $tab-bg-color !important;
+        background-color: $tab-bg-color !important;
 
         .tab-label {
             font-size: 12px;
@@ -248,7 +248,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
         position: static !important;
 
         .tab-content {
-            background: $tab-selected-bg-color !important;
+            background-color: $tab-selected-bg-color !important;
         }
     }
 
@@ -283,7 +283,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
     background: none;
 
     &:hover {
-        background: $browser-top-bg-color !important;
+        background-color: $browser-top-bg-color !important;
     }
 }
 
@@ -309,7 +309,7 @@ tab {
 #TabsToolbar .toolbarbutton-1 > .toolbarbutton-menubutton-button:hover:not([disabled="true"]),
 .tabbrowser-arrowscrollbox > .scrollbutton-up:hover:not([disabled="true"]),
 .tabbrowser-arrowscrollbox > .scrollbutton-down:hover:not([disabled="true"]) {
-    background: $buttons-hover-color;
+    background-color: $buttons-hover-color;
     border-color: $buttons-hover-border-color;
 }
 
@@ -334,7 +334,7 @@ tab {
     margin-top: 0 !important;
     border-top-color: #fff !important;
     box-shadow: 0 2px 2px -2px rgba(0, 0, 0, 0.35) !important;
-    background: #fff !important;
+    background-color: #fff !important;
 }
 
 
@@ -383,7 +383,7 @@ notification[type="warning"] {
     border: none;
     color: #fff;
     font-size: 14px;
-    background: #fec621;
+    background-color: #fec621;
     letter-spacing: 0.4px;
 }
 
@@ -395,7 +395,7 @@ notification[type="warning"] > button {
     border-radius: 3px;
     text-shadow: none;
     box-shadow: none;
-    background: #4661ae;
+    background-color: #4661ae;
 }
 
 notification[type="warning"] .messageText {
@@ -537,7 +537,7 @@ toolbarbutton#cliqz-cc-btn {
 
     &:hover {
         border-color: $buttons-hover-border-color;
-        background: $buttons-hover-color;
+        background-color: $buttons-hover-color;
     }
 }
 
@@ -842,7 +842,7 @@ vbox[sidebarcommand=historybroadcaster] {
     box-shadow: none !important;
 
     &:hover {
-        background: $buttons-hover-color;
+        background-color: $buttons-hover-color;
     }
 
     .toolbarbutton-badge-stack {
@@ -956,7 +956,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper > #forward-button:hover:no
     border-color: transparent !important;
     box-shadow: none !important;
     border-radius: none !important;
-    background: $buttons-hover-color !important;
+    background-color: $buttons-hover-color !important;
 }
 
 //====== Icons Hover ACTIVE State (click) ====
@@ -976,7 +976,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper > #forward-button:hover:no
 :hover:active):not([disabled="true"]) > .toolbarbutton-badge-stack {
     box-shadow: none;
     border-color: #cecece;
-    background: #efefef;
+    background-color: #efefef;
 }
 
 //=== Border Customize Pannel
@@ -988,21 +988,30 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper > #forward-button:hover:no
 //=========================
 //===== TEST PILOT UI =====
 //=========================
-#cliqz-dropdown {
-    .result {
-        .icons {
-            width: 91px;
-        }
+#main-window[cliqzBrowser="true"] {
+    #cliqz-dropdown {
+        .result {
+            .icons {
+                width: 91px;
+            }
 
-        @media (max-width: 550px) {
-            .abstract {
-                max-width: 73%;
+            @media (max-width: 550px) {
+                .abstract {
+                    max-width: 73%;
+                }
             }
         }
-    }
 
-    .padded {
-        padding-left: 101px;
+        .history .buttons span.dot {
+            left: 82px;
+        }
+
+        .history.cluster span.timeline {
+            left: 84px;
+        }
+
+        .padded {
+            padding-left: 101px;
+        }
     }
 }
-

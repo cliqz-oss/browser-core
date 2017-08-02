@@ -5,6 +5,7 @@ import generic from './views/generic';
 import hq from './views/hq';
 import stocks from './views/stocks';
 import liveTicker from './views/liveTicker';
+import lotto from './views/lotto';
 
 export default {
   currency,
@@ -14,4 +15,5 @@ export default {
   hq,
   stocks,
   liveTicker,
+  lotto,
 };

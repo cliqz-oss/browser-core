@@ -7,6 +7,7 @@ function startup(aData, aReason) {
   Components.utils.import('resource://gre/modules/Services.jsm');
   Services.scriptloader.loadSubScript('chrome://cliqz/content/CLIQZ.js', global);
   CLIQZ = global.CLIQZ;
+  CLIQZ.global = global.global;
   CLIQZ.start(aData, aReason);
 }
 

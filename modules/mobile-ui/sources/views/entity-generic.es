@@ -1,2 +1,2 @@
-import generic from 'mobile-ui/views/generic';
+import generic from './generic';
 export default generic;

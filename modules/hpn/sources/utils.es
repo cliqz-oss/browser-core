@@ -2,13 +2,6 @@ import CliqzSecureMessage from './main';
 import console from '../core/console';
 
 /*
-Function to create http url
-*/
-export function createHttpUrl(host) {
-  return 'http://' + host + '/verify';
-}
-
-/*
 Converts given array to generator like object.
 */
 export function trkGen(_trk) {

@@ -4,12 +4,18 @@ import { StyleSheet, View, Text, Image } from 'react-native';
 import utils from '../../modules/core/utils';
 
 
-class Icon extends React.Component {
+export default class extends React.Component {
 
   render() {
     const url = this.props.url;
+    const width = this.props.width || 50;
+    const height = this.props.height || 50;
     const urlDetails = utils.getDetailsFromUrl(url);
-    const logoDetails = utils.getLogoDetails(urlDetails);
+    const logoDetails = this.props.logoDetails || utils.getLogoDetails(urlDetails);
+    if (!logoDetails) {
+      return null;
+    }
+
     if (logoDetails.backgroundImage) {
       const iconUrl = logoDetails.backgroundImage
                       .replace('url(', '')
@@ -17,15 +23,15 @@ class Icon extends React.Component {
                       .replace(/\$.*/, '$_192.png');
       return (
           <Image
-            style={{width: 50, height: 50}}
+            style={{width, height}}
             source={{uri: iconUrl}}
           />
-      )  
+      )
     } else {
       const text = logoDetails.text;
       const background = logoDetails.backgroundColor;
       const textColor = logoDetails.color;
-      const style = defaultIconStyle(textColor, background);
+      const style = defaultIconStyle(textColor, background, width, height);
       return (
         <View style={style.containter} >
           <Text style={style.text}>{text}</Text>
@@ -35,12 +41,12 @@ class Icon extends React.Component {
   }
 }
 
-const defaultIconStyle = function (textColor, backgroundColor) {
+const defaultIconStyle = function (textColor, backgroundColor, width, height) {
   backgroundColor = `#${backgroundColor}`;
   return StyleSheet.create({
     containter: {
-      width: 50,
-      height: 50,
+      width,
+      height,
       backgroundColor,
       justifyContent: 'center',
       alignItems: 'center',
@@ -49,7 +55,4 @@ const defaultIconStyle = function (textColor, backgroundColor) {
       color: textColor,
     }
   });
-
 }
-
-export default Icon;

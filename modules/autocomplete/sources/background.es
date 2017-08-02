@@ -68,6 +68,10 @@ export default background({
       search.search(query, cb);
     },
 
+    clearResultCache() {
+      Search.clearResultCache();
+    },
+
     /**
      * fetches extra info for result from rich header
      */

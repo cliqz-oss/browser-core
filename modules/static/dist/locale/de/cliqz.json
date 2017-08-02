@@ -1248,7 +1248,7 @@
       "message": "HTTPS bevorzugen"
     },
     "control-center-info-cliqz-tab": {
-      "message": "Auf neuen Tabs zeigt dir Cliqz Tab Schnellzugriffe für deine meist besuchten und favorisierten Websites und bringt dich mit aktuellen News flott auf den neuesten Stand."
+      "message": "Auf neuen Tabs zeigt dir Cliqz Tab Schnellzugriffe für deine meistbesuchten und favorisierten Websites und bringt dich mit aktuellen News flott auf den neuesten Stand."
     },
     "control-center-txt-cliqz-tab-desc": {
       "message": "Cliqz Tab zeigen"
@@ -1470,7 +1470,7 @@
       "message": "Connect"
     },
     "pairing-description": {
-      "message": "Verbinde Cliqz auf deinem Computer mit Cliqz auf deinem mobilen Gerät. Dann kannst du Websites und YouTube Videos direkt an dein Smartphone oder Tablet schicken."
+      "message": "Verbinde Cliqz auf deinem Computer mit Cliqz auf deinem Android oder iOS Gerät. Damit kannst du Tabs von deinem Computer auf den mobilen Browser schicken. Du kannst außerdem Videos direkt auf dein mobiles Gerät herunterladen."
     },
     "pairing-android-app": {
       "message": "https://play.google.com/store/apps/details?hl=de&id=com.cliqz.browser"
@@ -1478,17 +1478,32 @@
     "pairing-cliqz-for-android": {
       "message": "Cliqz für Android"
     },
+    "pairing-ios-app": {
+      "message": "https://itunes.apple.com/de/app/cliqz-browser-suchmaschine/id1065837334?mt=8"
+    },
+    "pairing-cliqz-for-ios": {
+      "message": "Cliqz für iOS"
+    },
     "pairing-video-title": {
       "message": "Videos herunterladen"
     },
-    "pairing-video-tip": {
-      "message": "Öffne ein YouTube Video.\nKlicke auf das Video Download Icon.\nWähle \"An mobiles Gerät senden\"."
+    "pairing-video-tip1": {
+      "message": "Öffne ein YouTube Video."
+    },
+    "pairing-video-tip2": {
+      "message": "Klicke auf das Video Download Icon."
+    },
+    "pairing-video-tip3": {
+      "message": "Wähle \"An mobiles Gerät senden\"."
     },
     "pairing-tab-title": {
       "message": "Tabs senden"
     },
-    "pairing-tab-tip": {
-      "message": "Klicke mit der rechten Maustaste auf einen Tab oder eine Website.\nWähle \"Tab an mobiles Gerät senden\"."
+    "pairing-tab-tip1": {
+      "message": "Klicke mit der rechten Maustaste auf einen Tab oder eine Website."
+    },
+    "pairing-tab-tip2": {
+      "message": "Wähle \"Tab an mobiles Gerät senden\"."
     },
     "pairing-browser-pair-with": {
       "message": "Dieser Browser ist jetzt verknüpft mit:"
@@ -1503,13 +1518,25 @@
       "message": "Mobiles Gerät verbinden"
     },
     "pairing-step1-title": {
-      "message": "Lade Cliqz für Android im Play Store herunter."
+      "message": "Lade dir Cliqz aus dem Play Store (Android) oder App Store (iOS) herunter."
     },
     "pairing-step2-title": {
-      "message": "Öffne die Cliqz App auf deinem mobilen Gerät. Wähle im Menü \"Connect\" aus."
+      "message": "Öffne die Cliqz App auf deinem mobilen Gerät."
+    },
+    "pairing-step2-title-android": {
+      "message": "Android: Gehe ins Menü und wähle \"Connect\" aus."
+    },
+    "pairing-step2-title-ios": {
+      "message": "iOS: Gehe zu den Einstellungen und wähle \"Connect\" aus."
     },
     "pairing-step3-title": {
-      "message": "Klicke auf (+) um den QR Code Scanner zu starten."
+      "message": "Starte den QR Code Scanner."
+    },
+    "pairing-step3-title-android": {
+      "message": "Android: Drücke auf (+)."
+    },
+    "pairing-step3-title-ios": {
+      "message": "iOS: Wähle \"Verbindung hinzufügen\"."
     },
     "pairing-step4-title": {
       "message": "Scanne den QR Code."
@@ -1533,7 +1560,7 @@
       "message": "Anzeige"
     },
     "offers-hub-title": {
-      "message": "Cliqz Offers:"
+      "message": "Cliqz Offers"
     },
     "offers-hub-show-all-offers-btn": {
       "message": "Frühere Angebote"
@@ -1575,7 +1602,7 @@
       "message": "Code kopiert"
     },
     "offers_hub_tooltip_new_offer": {
-      "message": "neues Angebot"
+      "message": "Neues Angebot"
     },
     "signals-humanweb-inactive-message": {
       "message": "Human Web ist nicht aktiviert"
@@ -1612,6 +1639,9 @@
     },
     "signals-redirected-links": {
       "message": "Weitergeleitete Links"
+    },
+    "calculator-decimal-separator": {
+      "message": ","
     },
     "calculator-thousands-separator": {
       "message": "."
@@ -1658,5 +1688,85 @@
     "lotto-euro": {
       "message": "€"
     },
-    "TEST": "OK"
+    "lotto-no-guarantee": {
+      "message": "Alle Angaben ohne Gewähr"
+    },
+    "freshtab.app.speed-dials-row.history": {
+      "message": "Meistbesucht"
+    },
+    "freshtab.app.speed-dials-row.custom": {
+      "message": "Favoriten"
+    },
+    "freshtab.urlbar.placeholder": {
+      "message": "In Cliqz suchen oder Adresse eingeben"
+    },
+    "freshtab.app.speed-dial.removed": {
+      "message": "wurde entfernt"
+    },
+    "freshtab.app.speed-dial.undo": {
+      "message": "Rückgängig"
+    },
+    "freshtab.app.speed-dial.exists-already": {
+        "message": "Adresse existiert bereits"
+    },
+    "freshtab.app.speed-dial.not-valid": {
+        "message": "Adresse ist nicht gültig"
+    },
+    "freshtab.app.speed-dial.add": {
+        "message": "Hinzufügen"
+    },
+    "freshtab.app.speed-dial.input.placeholder": {
+        "message": "Adresse eingeben"
+    },
+    "freshtab.app.middle-box.new-cliqz-tab-hdr": {
+        "message": "Nicht nur die inneren Werte zählen!"
+    },
+    "freshtab.app.middle-box.new-cliqz-tab-desc": {
+        "message": "Ab sofort kannst du Cliqz Tab für dich anpassen."
+    },
+    "freshtab.app.middle-box.new-cliqz-tab-cta": {
+        "message": "Probier es aus"
+    },
+    "freshtab.app.news.breaking-news": {
+        "message": "Eilmeldung:"
+    },
+    "freshtab.app.news.read-more": {
+        "message": "Weiterlesen"
+    },
+    "freshtab.app.settings.header": {
+        "message": "Cliqz Tab anpassen"
+    },
+    "freshtab.app.settings.background.label": {
+        "message": "Hintergrund wählen"
+    },
+    "freshtab.app.settings.most-visited.label": {
+        "message": "Meistbesuchte Seiten"
+    },
+    "freshtab.app.settings.most-visited.restore": {
+        "message": "Alle zurücksetzen"
+    },
+    "freshtab.app.settings.favorites.label": {
+        "message": "Favoriten"
+    },
+    "freshtab.app.settings.search.label": {
+        "message": "Suchleiste"
+    },
+    "freshtab.app.settings.news.label": {
+        "message": "Nachrichten"
+    },
+    "freshtab.app.settings.news.language.auto": {
+        "message": "Automatische Einstellung"
+    },
+    "freshtab.app.settings.news.language.de": {
+        "message": "Deutsche Medien"
+    },
+    "freshtab.app.settings.news.language.en": {
+        "message": "UK & U.S. Medien"
+    },
+    "freshtab.app.settings.news.language.fr": {
+        "message": "Französische Medien"
+    },
+    "TEST": {
+        "message": "OK"
+    }
 }

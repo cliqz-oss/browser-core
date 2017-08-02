@@ -1,5 +1,6 @@
 import { utils } from '../core/cliqz';
 import OffersConfigs from './offers_configs';
+import { timestamp } from './utils';
 
 
 export default class HistoryIndex {
@@ -38,7 +39,7 @@ export default class HistoryIndex {
 
     self.entries.push({
       url: url,
-      ts: self.timestamp()
+      ts: timestamp()
     });
 
     self.save();
@@ -50,10 +51,10 @@ export default class HistoryIndex {
 
     self.entries.splice(1000);
 
-    if(self.lastSaved === null || self.lastSaved < self.timestamp() - 5) {
+    if(self.lastSaved === null || self.lastSaved < timestamp() - 5) {
       self.localStorage.setItem('trigger_history', JSON.stringify(this.entries));
       self.eventLoop.environment.info("HistoryIndex", "Saved trigger history to local storage");
-      self.lastSaved = self.timestamp();
+      self.lastSaved = timestamp();
     }
   }
 
@@ -72,9 +73,4 @@ export default class HistoryIndex {
       self.eventLoop.environment.info("HistoryIndex", "Loading history disabled");
     }
   }
-
-  timestamp() {
-    return Math.round(Date.now() / 1000);
-  }
-
 }

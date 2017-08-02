@@ -1,7 +1,7 @@
 import inject from '../core/kord/inject';
-import FreshTab from './main';
+import NewTabPage from './main';
 import News from './news';
-import History from './history';
+import History from '../platform/freshtab/history';
 import utils from '../core/utils';
 import events from '../core/events';
 import SpeedDial from './speed-dial';
@@ -9,27 +9,41 @@ import AdultDomain from './adult-domain';
 import background from '../core/base/background';
 import { forEachWindow, mapWindows } from '../core/browser';
 import { queryActiveTabs } from '../core/tabs';
+import config from '../core/config';
+import { isCliqzBrowser } from '../core/platform';
+import prefs from '../core/prefs';
+import { dismissMessage, countMessageClick } from './actions/message';
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
-const DISMISSED_ALERTS = 'dismissedAlerts';
+const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
+
+const blackListedEngines = [
+  'Google Images',
+  'Google Maps'
+];
+
+const DEFAULT_COMPONENT_STATE = {
+  visible: true,
+};
+
+
 /**
-* @namespace freshtab
-* @class Background
-*/
+ * @namespace freshtab
+ * @class Background
+ */
 export default background({
   core: inject.module('core'),
   geolocation: inject.module('geolocation'),
   notifications: inject.module('notifications'),
+  messageCenter: inject.module('message-center'),
 
   /**
   * @method init
   */
   init(settings) {
-    FreshTab.startup(
-      settings.freshTabButton,
-      settings.channel,
-      settings.showNewBrandAlert,
-      settings.freshTabInitialState);
+    this.newTabPage = NewTabPage;
+
+    this.newTabPage.startup();
 
     this.adultDomainChecker = new AdultDomain();
     this.settings = settings;
@@ -38,60 +52,79 @@ export default background({
   /**
   * @method unload
   */
-  unload() {
+  unload({ quick = false } = {}) {
     News.unload();
-    FreshTab.shutdown();
+
+    if (quick) {
+      this.newTabPage.shutdown();
+    } else {
+      this.newTabPage.rollback();
+    }
   },
 
   isAdult(url) {
     return this.adultDomainChecker.isAdult(utils.getDetailsFromUrl(url).domain);
   },
 
+  get shouldShowNewBrandAlert() {
+    const isInABTest = prefs.get('freshtabNewBrand', false);
+    const isDismissed = prefs.get('freshtabNewBrandDismissed', false);
+    return config.settings.showNewBrandAlert && isInABTest && !isDismissed;
+  },
+
+  getComponentsState() {
+    const config = JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}'));
+
+    return {
+      historyDials: Object.assign({}, DEFAULT_COMPONENT_STATE, config.historyDials),
+      customDials:  Object.assign({}, DEFAULT_COMPONENT_STATE, config.customDials),
+      search:       Object.assign({}, DEFAULT_COMPONENT_STATE, config.search),
+      news:         Object.assign({}, DEFAULT_COMPONENT_STATE, config.news),
+      background:   Object.assign({}, { image: 'bg-default' }, config.background),
+    };
+  },
+
+  getNotifications() {
+    return this.notifications.action('hasActiveNotifications');
+  },
+
   actions: {
-    _hasActiveNotifications() {
-      return this.notifications.action('hasActiveNotifications').then((res) => {
-        return res;
-      });
-    },
-    _getNewsLanguage() {
-      return utils.getPref('news_language', 'de');
-    },
-    _showOnboarding() {
 
+    toggleComponent(component) {
+      const config = JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}'));
+      // component might be uninitialized
+      config[component] = Object.assign({}, DEFAULT_COMPONENT_STATE, config[component]);
+      config[component].visible = !config[component].visible;
+      prefs.set(FRESHTAB_CONFIG_PREF, JSON.stringify(config));
     },
 
-    _isBrowser() {
-      return FreshTab.isBrowser;
-    },
-    _showNewBrandAlert() {
-      const isInABTest = utils.getPref('freshtabNewBrand', false);
-      const isDismissed = utils.getPref('freshtabNewBrandDismissed', false);
-      return FreshTab.showNewBrandAlert && isInABTest && !isDismissed;
-    },
-    dismissMessage(messageId) {
-      try {
-        const dismissedAlerts = JSON.parse(utils.getPref(DISMISSED_ALERTS, '{}'));
-
-        if(!dismissedAlerts[messageId]) {
-          dismissedAlerts[messageId] = {
-            'scope': 'freshtab',
-            'count': 0
-          }
+    saveBackgroundImage(name) {
+      prefs.set(FRESHTAB_CONFIG_PREF, JSON.stringify({
+        ...JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}')),
+        background: {
+          image: name,
         }
-        dismissedAlerts[messageId]['count']++;
-        utils.setPref(DISMISSED_ALERTS, JSON.stringify(dismissedAlerts));
-        events.pub('msg_center:hide_message', { id: messageId }, 'MESSAGE_HANDLER_FRESHTAB');
-        utils.telemetry({
-          type: 'notification',
-          topic: messageId,
-          context: 'home',
-          action: 'click',
-          target: 'hide'
-        });
+      }));
+    },
 
-      } catch (e) {
-        utils.log(e, `Freshtab error setting ${message.id} dismiss pref`)
-      }
+    updateTopNewsCountry(country) {
+      prefs.set(FRESHTAB_CONFIG_PREF, JSON.stringify({
+        ...JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}')),
+        news: {
+          preferedCountry: country,
+        }
+      }));
+
+      News.resetTopNews();
+    },
+
+    dismissMessage,
+    countMessageClick,
+
+    checkForHistorySpeedDialsToRestore() {
+      const history = JSON.parse(prefs.get(DIALUPS, '{}', '')).history
+       || {};
+      return Object.keys(history).length > 0;
     },
 
     /**
@@ -99,9 +132,11 @@ export default background({
     * @method getSpeedDials
     */
     getSpeedDials() {
-      var dialUps = utils.hasPref(DIALUPS, '') ? JSON.parse(utils.getPref(DIALUPS, '', '')) : [],
+      var dialUps = prefs.has(DIALUPS, '') ? JSON.parse(prefs.get(DIALUPS, '', '')) : [],
           historyDialups = [],
           customDialups = dialUps.custom ? dialUps.custom : [];
+      const searchEngines = utils.getSearchEngines(blackListedEngines);
+
 
       historyDialups = History.getTopUrls().then(results => {
         utils.log("History", JSON.stringify(results));
@@ -148,7 +183,7 @@ export default background({
         });
 
         return results.map(function(r){
-          return new SpeedDial(r.url, false);
+          return new SpeedDial(r.url, searchEngines, false);
         });
       });
 
@@ -157,13 +192,25 @@ export default background({
       if(customDialups.length > 0) {
         utils.log(customDialups, "custom dialups");
         customDialups = customDialups.map(function(dialup) {
-          return new SpeedDial(utils.tryDecodeURIComponent(dialup.url), true);
+          return new SpeedDial(utils.tryDecodeURIComponent(dialup.url), searchEngines, true);
         });
       }
 
 
       //Promise all concatenate results and return
       return Promise.all([historyDialups, customDialups]).then(function(results){
+        // TODO EX-4276: uncomment when moving Freshtab to WebExtensions
+        // const urls = new Set();
+
+        // const history = results[0].filter((dial) => {
+        //   if (urls.has(dial.id)) {
+        //     return false;
+        //   } else {
+        //     urls.add(dial.id);
+        //     return true;
+        //   }
+        // });
+
         return {
           history: results[0],
           custom: results[1]
@@ -179,7 +226,7 @@ export default background({
     removeSpeedDial(item) {
       const isCustom = item.custom;
       const url = isCustom ? item.url : utils.hash(item.url);
-      const dialUps = JSON.parse(utils.getPref(DIALUPS, '{}', ''));
+      const dialUps = JSON.parse(prefs.get(DIALUPS, '{}', ''));
 
       if(isCustom) {
         dialUps.custom = dialUps.custom.filter(dialup => {
@@ -192,7 +239,7 @@ export default background({
         dialUps.history[url] = { hidden: true };
       }
 
-      utils.setPref(DIALUPS, JSON.stringify(dialUps), '');
+      prefs.set(DIALUPS, JSON.stringify(dialUps), '');
     },
 
     /**
@@ -211,6 +258,7 @@ export default background({
     addSpeedDial(url, index) {
       const urlToAdd = utils.stripTrailingSlash(url);
       const validUrl = SpeedDial.getValidUrl(urlToAdd);
+      const searchEngines = utils.getSearchEngines(blackListedEngines);
 
       function makeErrorObject(reason) {
         return {
@@ -234,7 +282,7 @@ export default background({
           throw "duplicate";
         }
       }).then(function(obj) {
-        var dialUps = JSON.parse(utils.getPref(DIALUPS, '{}', '')),
+        var dialUps = JSON.parse(prefs.get(DIALUPS, '{}', '')),
             details = utils.getDetailsFromUrl(url);
 
         if(!dialUps.custom) {
@@ -262,8 +310,8 @@ export default background({
           } else {
             dialUps.custom.push(dialup);
           }
-          utils.setPref(DIALUPS, JSON.stringify(dialUps), '');
-          return new SpeedDial(validUrl, true);
+          prefs.set(DIALUPS, JSON.stringify(dialUps), '');
+          return new SpeedDial(validUrl, searchEngines, true);
         }
       }).catch(reason => ({ error: true, reason: typeof reason === 'object' ? reason.toString() : reason }));
     },
@@ -273,7 +321,7 @@ export default background({
     * @method parseSpeedDials
     */
     parseSpeedDials() {
-      return JSON.parse(utils.getPref(DIALUPS, '{}', ''));
+      return JSON.parse(prefs.get(DIALUPS, '{}', ''));
     },
 
     /**
@@ -282,7 +330,7 @@ export default background({
     * @param dialUps object
     */
     saveSpeedDials(dialUps) {
-      utils.setPref(DIALUPS, JSON.stringify(dialUps), '');
+      prefs.set(DIALUPS, JSON.stringify(dialUps), '');
     },
 
     /**
@@ -306,12 +354,6 @@ export default background({
       this.actions.saveSpeedDials(dialUps);
       return this.actions.getSpeedDials();
     },
-
-    setNewsLanguage(language) {
-      utils.setPref('news_language', language);
-      this.actions.refreshFrontend();
-    },
-
     /**
     * Get list with top & personalized news
     * @method getNews
@@ -344,7 +386,6 @@ export default background({
           }))
         };
       });
-
     },
 
     /**
@@ -352,24 +393,21 @@ export default background({
     * @method getConfig
     */
     getConfig() {
-      var self = this,
-          isBrowser = self.actions._isBrowser();
-
-      var config = {
+      const configs = {
         locale: utils.PREFERRED_LANGUAGE,
-        showOnboarding: self.actions._showOnboarding(),
-        isBrowser: isBrowser,
-        showNewBrandAlert: self.actions._showNewBrandAlert(),
+        newTabUrl: config.settings.NEW_TAB_URL,
+        isBrowser: isCliqzBrowser,
+        showNewBrandAlert: this.shouldShowNewBrandAlert,
         messages: this.messages,
-        newsLanguage: self.actions._getNewsLanguage(),
-        isHistoryEnabled: isBrowser && utils.getPref('modules.history.enabled', false),
+        isHistoryEnabled: prefs.get('modules.history.enabled', false),
+        hasActiveNotifications: false,
+        componentsState: this.getComponentsState(),
       };
 
-      let hasActiveNotifications = self.actions._hasActiveNotifications();
-      return Promise.all([hasActiveNotifications]).then((res) => {
-        config.hasActiveNotifications = res[0];
-        return config;
-      })
+      return this.getNotifications().then(notifications => ({
+        ...configs,
+        hasActiveNotifications: notifications[0],
+      })).catch(() => configs);
     },
     /**
     * @method takeFullTour
@@ -391,7 +429,7 @@ export default background({
     * @method revertBack
     */
     revertBack() {
-      FreshTab.toggleState();
+      this.newTabPage.rollback();
     },
 
     getTabIndex() {
@@ -419,7 +457,7 @@ export default background({
         const tabs = [...window.gBrowser.tabs];
         tabs.forEach(tab => {
           const browser = tab.linkedBrowser;
-          if (browser.currentURI.spec === utils.CLIQZ_NEW_TAB_RESOURCE_URL) {
+          if (browser.currentURI.spec === config.settings.NEW_TAB_URL) {
             browser.reload();
           }
         });
@@ -431,7 +469,7 @@ export default background({
         const tabs = [...window.gBrowser.tabs];
         tabs.forEach(tab => {
           const browser = tab.linkedBrowser;
-          if (browser.currentURI.spec.indexOf(`${utils.CLIQZ_NEW_TAB_RESOURCE_URL}#/history`) >= 0) {
+          if (browser.currentURI.spec.indexOf(`${config.settings.NEW_TAB_URL}#/history`) >= 0) {
             browser.reload();
           }
         });
@@ -443,23 +481,25 @@ export default background({
   events: {
     "control-center:cliqz-tab": function () {
       // toggle notifications before toggling freshtab
-      if(FreshTab.isActive()) {
+      if(this.newTabPage.isActive) {
         events.pub('notifications:notifications-cleared');
+        this.newTabPage.rollback();
       } else {
         this.notifications.action('hasUnread').then( (res) => {
           if (res) {
             events.pub('notifications:new-notification');
           }
-        });
+        })
+        this.newTabPage.enableNewTabPage();
+        this.newTabPage.enableHomePage();
       }
-      FreshTab.toggleState();
     },
     "message-center:handlers-freshtab:new-message": function onNewMessage(message) {
       if( !(message.id in this.messages )) {
         this.messages[message.id] = message;
         this.core.action(
           'broadcastMessage',
-          utils.CLIQZ_NEW_TAB_RESOURCE_URL,
+          config.settings.NEW_TAB_URL,
           {
             action: 'addMessage',
             message: message,
@@ -468,11 +508,10 @@ export default background({
       }
     },
     "message-center:handlers-freshtab:clear-message": function onMessageClear(message) {
-
       delete this.messages[message.id];
       this.core.action(
         'broadcastMessage',
-        utils.CLIQZ_NEW_TAB_RESOURCE_URL,
+        config.settings.NEW_TAB_URL,
         {
           action: 'closeNotification',
           messageId: message.id,
@@ -495,7 +534,7 @@ export default background({
         ]);
       }, new Set())];
       const historyUrls = activeUrls
-        .filter(u => u.indexOf(`${utils.CLIQZ_NEW_TAB_RESOURCE_URL}#/history`) >= 0);
+        .filter(u => u.indexOf(`${config.settings.NEW_TAB_URL}#/history`) >= 0);
 
       historyUrls.forEach((url) => {
         this.core.action(

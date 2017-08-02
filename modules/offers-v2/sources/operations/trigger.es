@@ -1,5 +1,3 @@
-
-
 var ops = {};
 
 
@@ -49,7 +47,7 @@ function activate_subtriggers(args, eventLoop, context) {
     }
 
     var parentTriggerId = args[0];
-    var subtriggers = eventLoop.triggerCache.getSubtriggers(parentTriggerId)
+    var subtriggers = eventLoop.triggerCache.getSubtriggers(parentTriggerId);
     if(!subtriggers || subtriggers.length === 0) {
       // load from server
 
@@ -63,7 +61,9 @@ function activate_subtriggers(args, eventLoop, context) {
         var p = [];
         subtriggers.forEach(trigger => {
           eventLoop.triggerCache.addTrigger(trigger);
-          p.push(eventLoop.triggerMachine.run(trigger, context));
+          if (!eventLoop.triggerMachine.isTriggerBeingEvaluated(trigger)) {
+            p.push(eventLoop.triggerMachine.run(trigger, context));
+          }
         });
         eventLoop.triggerCache.setSubtriggers(parentTriggerId, subtriggers);
 
@@ -93,7 +93,7 @@ function activate_subtriggers(args, eventLoop, context) {
 };
 
 
-ops['$watch_requests'] = watch_requests;
-ops['$activate_subtriggers'] = activate_subtriggers;
+ops.$watch_requests = watch_requests;
+ops.$activate_subtriggers = activate_subtriggers;
 
 export default ops;

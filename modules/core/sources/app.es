@@ -101,8 +101,7 @@ export default class {
     // Load Config - Synchronous!
     utils.FEEDBACK_URL = `${utils.FEEDBACK}${this.version}-${config.settings.channel}`;
 
-    this.load()
-    .catch((e) => {
+    const backgroundLoadingPromise = this.load().catch((e) => {
       utils.log(e, 'Extension -- failed to init Cliqz App');
     });
 
@@ -124,6 +123,8 @@ export default class {
         this.loadIntoWindow(win);
       });
     });
+
+    return backgroundLoadingPromise;
   }
 
   stop(isShutdown, disable, telemetrySignal) {

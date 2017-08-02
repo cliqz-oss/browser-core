@@ -1,21 +1,14 @@
-#cliqz-cc-btn {
+#PanelUI-contents #wrapper-cliqz-cc-btn, #PanelUI-contents #cliqz-cc-btn {
+    vertical-align: top;
+}
+
+#nav-bar #cliqz-cc-btn {
     padding: 0;
 }
 
-.cliqz-control-center {
-    padding: 3px 4px 3px 32px !important;
-    color: transparent;
-    background-size: 20px !important;
-    background-repeat: no-repeat !important;
-    background-position: center center !important;
-    background-image: url(../images/cc-active.svg) !important;
-}
-
-
-#nav-bar .cliqz-control-center {
-    min-width: 55px;
-    color: black;
-    background-position: 3px 0px !important;
+/* Don't show the border for this button, show box shadow instead */
+#nav-bar #cliqz-cc-btn:-moz-any([open], [checked], :hover:active):not([disabled="true"]) > .cliqz-control-center {
+    border-color: transparent;
 }
 
 .cliqz-control-center:after {
@@ -31,15 +24,32 @@
     padding-left: 20px;
 }
 
-.cliqz-control-center[state="critical"] {
-    background-image: url(../images/cc-critical.svg) !important;
+#nav-bar, #PanelUI-mainView, #customization-container {
+    #cliqz-cc-btn .cliqz-control-center {
+        padding: 3px 4px 3px 32px !important;
+        color: transparent;
+        background-size: 20px !important;
+        background-repeat: no-repeat !important;
+        background-position: center center !important;
+        background-image: url(../images/cc-active.svg) !important;
+
+        &[state="inactive"] {
+            background-image: url(../images/cc-inactive.svg) !important;
+        }
+
+        &[state="critical"] {
+            background-image: url(../images/cc-critical.svg) !important;
+        }
+    }
 }
 
-.cliqz-control-center[state="inactive"] {
-    background-image: url(../images/cc-inactive.svg) !important;
+#nav-bar #cliqz-cc-btn .cliqz-control-center {
+    min-width: 55px;
+    color: black;
+    background-position: 3px 0px !important;
 }
 
-.cliqz-control-center[state="off"] {
+#cliqz-cc-btn .cliqz-control-center[state="off"] {
     background-image: url(../images/cc-off.svg) !important;
     /* state off means there are no security features so no need for the badge text */
     min-width: 30px !important;

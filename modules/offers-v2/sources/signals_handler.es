@@ -19,7 +19,6 @@ import { generateUUID } from './utils';
 const MODULE_NAME = 'signals_handler';
 const STORAGE_DB_DOC_ID = 'offers-signals';
 
-const DB_MAIN_FIELD = 'chrome://cliqz/content/offers-v2/signals_data.json';
 const DB_PREFIX = 'sig_hand_';
 const DB_SIGMAP_KEY = 'sig_map';
 
@@ -69,9 +68,15 @@ export class SignalHandler {
   //
   // additionally we will have types of signals that will be stored in different
   // containers. Each type of signal should be identified with a unique ID as well.
+  // @param sender is the interface to be use to sent messages, it will take:
+  //  sender.httpPost args: (url, success_callback, data, onerror_callback, timeout)
   //
-  constructor(offersDB) {
+  constructor(offersDB, sender) {
     this.db = new DBHelper(offersDB);
+    if (!sender) {
+      sender = utils;
+    }
+    this.sender = sender;
     // map from sig_type -> (sig_id -> sig_data)
     this.sigMap = {};
     // the builders
@@ -83,11 +88,14 @@ export class SignalHandler {
     // the signal queue
     this.sigsToSend = {};
 
+    // a mapping (signalType, signalKey) to the number of retries - sending signals to backend
+    // we don't want to retry sending a signal more than 3 times because of network error
+    this.signalSendingRetries = {};
+
     // dirty flag to save or not data
     this.dbDirty = false;
 
     // load the persistent data
-    this._removeOldSignals();
     this._loadPersistenceData();
 
     // set the interval timer method to send the signals
@@ -104,6 +112,36 @@ export class SignalHandler {
       },
       OffersConfigs.SIGNALS_AUTOSAVE_FREQ_SECS * 1000);
     }
+  }
+
+  _isMaximumNumRetriesReached(signalType, signalKey) {
+    if (signalType in this.signalSendingRetries &&
+      signalKey in this.signalSendingRetries[signalType]) {
+      const nRetries = this.signalSendingRetries[signalType][signalKey];
+      return nRetries >= OffersConfigs.MAX_RETRIES;
+    }
+    return false;
+  }
+
+  _removeNumRetriesRecord(signalType, signalKey) {
+    if (signalType in this.signalSendingRetries &&
+      signalKey in this.signalSendingRetries[signalType]) {
+      delete this.signalSendingRetries[signalType][signalKey];
+    }
+  }
+
+  _increaseNumRetriesRecord(signalType, signalKey) {
+    if (!(signalType in this.signalSendingRetries)) {
+      this.signalSendingRetries[signalType] = { [signalKey]: 1 };
+      return;
+    }
+
+    if (!(signalKey in this.signalSendingRetries[signalType])) {
+      this.signalSendingRetries[signalType][signalKey] = 1;
+      return;
+    }
+
+    this.signalSendingRetries[signalType][signalKey] += 1;
   }
 
   // destructor
@@ -124,7 +162,7 @@ export class SignalHandler {
   }
 
   savePersistenceData() {
-    this._savePersistenceData();
+    return this._savePersistenceData();
   }
 
 
@@ -168,15 +206,16 @@ export class SignalHandler {
   // @param oid     is the offer id
   // @param origID  is the origin id of the signal
   // @param sid     is the signal id
+  // @param count   is the number for which we want to increase the signal
   //
-  setCampaignSignal(cid, oid, origID, sid) {
+  setCampaignSignal(cid, oid, origID, sid, count = 1) {
     if (!cid || !oid || !origID || !sid) {
       lwarn('setCampaignSignal: invalid arguments?: ' +
             ' - cid: ' + cid +
             ' - oid: ' + oid +
             ' - origID: ' + origID +
             ' - sid: ' + sid);
-      return;
+      return false;
     }
     const sigType = 'campaign';
     const sigKey = cid;
@@ -184,7 +223,7 @@ export class SignalHandler {
     let sigInfo = this._getOrCreateSignal(sigType, sigKey);
     if (!sigInfo) {
       lerr('setCampaignSignal: cannot create or get campaign signal: ' + sigKey);
-      return;
+      return false;
     }
 
     // now we update the data here
@@ -215,12 +254,13 @@ export class SignalHandler {
     }
 
     // create or increment the given signal
-    addOrCreate(origin, sid, 1);
+    addOrCreate(origin, sid, count);
 
     // mark it as modified
     this._markSignalAsModified(sigType, sigKey);
 
-    linfo(`setCampaignSignal: new signal added: ${cid} - ${oid} - ${origID} - ${sid}`);
+    linfo(`setCampaignSignal: new signal added: ${cid} - ${oid} - ${origID} - ${sid} - +${count}`);
+    return true;
   }
 
   /**
@@ -228,6 +268,7 @@ export class SignalHandler {
    * to a particular offer or campaign id).
    * @param {string} actionID the action id (signal id)
    * @param {string} origID   the origin of the signal (who is producing it)
+   * @param count   is the number for which we want to increase the signal
    * @description The internal information will be stored in a different way,
    * <pre>
    * {
@@ -275,10 +316,10 @@ export class SignalHandler {
    *       }
    * </pre>
    */
-  setActionSignal(actionID, origID) {
+  setActionSignal(actionID, origID, count = 1) {
     if (!actionID || !origID) {
       lwarn(`setActionSignal: invalid arguments?: ${actionID} - ${origID}`);
-      return;
+      return false;
     }
     const sigType = 'action';
     const sigKey = origID;
@@ -286,7 +327,7 @@ export class SignalHandler {
     let sigInfo = this._getOrCreateSignal(sigType, sigKey);
     if (!sigInfo) {
       lerr(`setActionSignal: cannot create or get action signal: ${sigKey}`);
-      return;
+      return false;
     }
 
     // now we update the data here
@@ -305,12 +346,13 @@ export class SignalHandler {
     }
 
     // create or increment the given signal
-    addOrCreate(actions, actionID, 1);
+    addOrCreate(actions, actionID, count);
 
     // mark it as modified
     this._markSignalAsModified(sigType, sigKey);
 
-    linfo(`setActionSignal: new signal added: ${origID} - ${actionID}`);
+    linfo(`setActionSignal: new signal added: ${origID} - ${actionID} - +${count}`);
+    return true;
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -434,38 +476,45 @@ export class SignalHandler {
       const numSignalsToSend = sigsKeysToSend.length;
 
       sigsKeysToSend.forEach(function(signalType) {
-        let container = self.sigsToSend[signalType];
-        container.forEach(function(sigID) {
-          let sigInfo = self._getSignalInfo(signalType, sigID);
-          if (!sigInfo || !sigInfo.data) {
-            lerr('_sendSignalsToBE: we have a signal on the queue but the signal was removed?: ' +
-                 signalType + ' - ' + sigID + ' - ' + JSON.stringify(self.sigMap));
-            return;
-          }
-          let sigData = sigInfo.data;
-
-          // this will help us to avoid duplicated signals
-          if (sigInfo.be_sync) {
+        const container = self.sigsToSend[signalType];
+        const containerArr = [...container];
+        Object.keys(containerArr).forEach(function(i) {
+          const sigID = containerArr[i];
+          if (self._isMaximumNumRetriesReached(signalType, sigID)){
             return;
           }
 
-          // build the signal depending on the type
-          let builder = self.sigBuilder[signalType];
-          if (!builder) {
-            lerr('_sendSignalsToBE: we dont have a builder for the sigtype: ' + signalType);
-            return;
-          }
+          try {
+            let sigInfo = self._getSignalInfo(signalType, sigID);
+            if (!sigInfo || !sigInfo.data) {
+              lerr('_sendSignalsToBE: we have a signal on the queue but the signal was removed?: ' +
+                signalType + ' - ' + sigID + ' - ' + JSON.stringify(self.sigMap));
+              return;
+            }
+            let sigData = sigInfo.data;
 
-          let sigDataToSend = builder(sigID, sigInfo);
-          if (!sigDataToSend) {
-            lerr('_sendSignalsToBE: something happened building the signal. ' +
-                 'sigtype: ' + signalType + ' data: ' + JSON.stringify(sigInfo));
-            return;
-          }
+            // this will help us to avoid duplicated signals
+            if (sigInfo.be_sync) {
+              return;
+            }
 
-          // now we have the data in the proper structure to be sent over hpn
+            // build the signal depending on the type
+            let builder = self.sigBuilder[signalType];
+            if (!builder) {
+              lerr('_sendSignalsToBE: we dont have a builder for the sigtype: ' + signalType);
+              return;
+            }
 
-          const hpnSignal = {
+            let sigDataToSend = builder(sigID, sigInfo);
+            if (!sigDataToSend) {
+              lerr('_sendSignalsToBE: something happened building the signal. ' +
+                'sigtype: ' + signalType + ' data: ' + JSON.stringify(sigInfo));
+              return;
+            }
+
+            // now we have the data in the proper structure to be sent over hpn
+
+            const hpnSignal = {
               action: OffersConfigs.SIGNALS_HPN_BE_ACTION,
               signal_id: sigID,
               timestamp: self._getHpnTimeStamp(),
@@ -480,45 +529,63 @@ export class SignalHandler {
               }
             };
 
-          const hpnStrSignal = JSON.stringify(hpnSignal);
-          utils.httpPost(OffersConfigs.SIGNALS_HPN_BE_ADDR,
-                         success => {
-                          linfo('sendSignalsToBE: hpn signal sent');
-                          const telMonitorSignal = {
-                            type: 'offers_monitor',
-                            is_developer: isDeveloper,
-                            batch_total: numSignalsToSend,
-                            msg_delivered: true,
-                          };
-                          utils.telemetry(telMonitorSignal);
-                        },
-                         hpnStrSignal,
-                         err => {
-                          lerr('sendSignalsToBE: error sending signal to hpn: ' + err);
-                          const telMonitorSignal = {
-                            type: 'offers_monitor',
-                            is_developer: isDeveloper,
-                            batch_total: numSignalsToSend,
-                            msg_delivered: false,
-                          };
-                          utils.telemetry(telMonitorSignal);
-                        });
-          linfo('sendSignalsToBE: hpn: ' + hpnStrSignal);
-
-          // we mark the signal as sent to the BE
-          sigInfo.be_sync = true;
+            const hpnStrSignal = JSON.stringify(hpnSignal);
+            self.sender.httpPost(OffersConfigs.SIGNALS_HPN_BE_ADDR,
+              function (success) {
+                linfo('sendSignalsToBE: hpn signal sent');
+                const telMonitorSignal = {
+                  type: 'offers_monitor',
+                  is_developer: isDeveloper,
+                  batch_total: numSignalsToSend,
+                  msg_delivered: true,
+                };
+                utils.telemetry(telMonitorSignal);
+                self._removeFromSigsToSend(this.bindedST, this.bindedSID);
+                self._removeNumRetriesRecord(this.bindedST, this.bindedSID);
+              }.bind({ bindedST: signalType, bindedSID: sigID }),
+              hpnStrSignal,
+              function (err) {
+                lerr('sendSignalsToBE: error sending signal to hpn: ' + err);
+                const telMonitorSignal = {
+                  type: 'offers_monitor',
+                  is_developer: isDeveloper,
+                  batch_total: numSignalsToSend,
+                  msg_delivered: false,
+                };
+                utils.telemetry(telMonitorSignal);
+                self._increaseNumRetriesRecord(this.bindedST, this.bindedSID);
+              }.bind({ bindedST: signalType, bindedSID: sigID }));
+            linfo('sendSignalsToBE: hpn: ' + hpnStrSignal);
+          } catch (err) {
+            lerr('send one signal: something bad happened: ' + err);
+            self._removeFromSigsToSend(signalType, sigID);
+          }
         });
       });
     } catch (err) {
       lerr('sendSignalsToBE: something bad happened: ' + err);
+      // we still want to remove here the signals to avoid infinit loop error?
+      // this still means we will remove signals that will never reach the BE
+      delete self.sigsToSend;
+      self.sigsToSend = {};
     }
-
-    // we still want to remove here the signals to avoid infinit loop error?
-    // this still means we will remove signals that will never reach the BE
-    delete this.sigsToSend;
-    this.sigsToSend = {};
-
     return true;
+  }
+
+  _removeFromSigsToSend(signalType, signalID) {
+    const sInfo = this._getSignalInfo(signalType, signalID);
+    // we mark the signal as sent to the BE
+    sInfo.be_sync = true;
+    // if we don't mark the db dirty here we will not be able to know that
+    // was already sync
+    this.dbDirty = true;
+
+    if (signalType in this.sigsToSend) {
+      this.sigsToSend[signalType].delete(signalID);
+      if (this.sigsToSend[signalType].size === 0) {
+        delete this.sigsToSend[signalType];
+      }
+    }
   }
 
   // this method will configure the interval call to
@@ -538,19 +605,23 @@ export class SignalHandler {
     // for testing comment the following check
     if (!OffersConfigs.SIGNALS_LOAD_FROM_DB) {
       linfo('_savePersistenceData: skipping the saving');
-      return;
+      return Promise.resolve(true);
     }
     // is db dirty?
     if (!this.dbDirty) {
-      return;
+      return Promise.resolve(true);
     }
 
-    this.db.saveDocData(STORAGE_DB_DOC_ID,
-      {
-        sig_map: this.sigMap
-      }
-    );
-    this.dbDirty = false;
+    return new Promise((resolve, reject) => {
+      return this.db.saveDocData(STORAGE_DB_DOC_ID,
+        {
+          sig_map: this.sigMap
+        }
+      ).then(() => {
+        this.dbDirty = false;
+        resolve(true);
+      });
+    });
   }
 
   // load persistence data
@@ -558,71 +629,48 @@ export class SignalHandler {
     // for testing comment the following check
     if (!OffersConfigs.SIGNALS_LOAD_FROM_DB) {
       linfo('_loadPersistenceData: skipping the loading');
-      return true;
+      return Promise.resolve(true);
     }
 
     let self = this;
-    self.db.getDocData(STORAGE_DB_DOC_ID).then(docData => {
-      if (!docData || !docData.sig_map) {
-        lerr('_loadPersistenceData: something went wrong loading the data?');
-        return;
-      }
-      // set the data
-      self.sigMap = docData.sig_map;
+    return self.db.getDocData(STORAGE_DB_DOC_ID).then(docData => {
+        if (!docData || !docData.sig_map) {
+          lerr('_loadPersistenceData: something went wrong loading the data?');
+          return;
+        }
+        // set the data
+        self.sigMap = docData.sig_map;
 
-      // db is not dirty anymore
-      self.dbDirty = false;
+        // db is not dirty anymore
+        self.dbDirty = false;
 
-      // remove old signals and add all the keys that are not sync with the BE yet
-      const currentTS = Date.now();
-      Object.keys(self.sigMap).forEach((signalType) => {
-        const container = self.sigMap[signalType];
-        Object.keys(container).forEach((sigID) => {
-          const sigData = self._getSignalInfo(signalType, sigID);;
-          if (!sigData) {
-            return;
-          }
-          const timeDiff = (currentTS - sigData.modified_ts) / 1000;
-          if (timeDiff >= OffersConfigs.SIGNALS_OFFERS_EXPIRATION_SECS) {
-            // remove this signal
-            linfo('removing signal: ' + k + ' - data: ' + JSON.stringify(sigData));
-            delete container[k];
-            return;
-          }
-          if (!sigData.be_sync) {
-            self._addSignalToBeSent(signalType, sigID);
-            linfo('_loadPersistenceData: signal ' + sigID + ' added to be sent to BE');
-          }
+        // remove old signals and add all the keys that are not sync with the BE yet
+        const currentTS = Date.now();
+        Object.keys(self.sigMap).forEach((signalType) => {
+          const container = self.sigMap[signalType];
+          Object.keys(container).forEach((sigID) => {
+            const sigData = self._getSignalInfo(signalType, sigID);;
+            if (!sigData) {
+              return;
+            }
+            const timeDiff = (currentTS - sigData.modified_ts) / 1000;
+            if (timeDiff >= OffersConfigs.SIGNALS_OFFERS_EXPIRATION_SECS) {
+              // remove this signal
+              linfo('removing signal: ' + k + ' - data: ' + JSON.stringify(sigData));
+              delete container[k];
+              return;
+            }
+            if (!sigData.be_sync) {
+              self._addSignalToBeSent(signalType, sigID);
+              linfo('_loadPersistenceData: signal ' + sigID + ' added to be sent to BE');
+            }
+          });
         });
+        Promise.resolve(true);
+      }).catch(err => {
+        lerr('_loadPersistenceData: error loading the storage data...: ' + JSON.stringify(err));
+        Promise.resolve(false);
       });
-    }).catch(err => {
-      lerr('_loadPersistenceData: error loading the storage data...: ' + JSON.stringify(err));
-      return;
-    });
-
-
-  }
-
-  //
-  // transform old data if exists into the new one
-  //
-  _removeOldSignals() {
-    // We decided to not import old signals so we will just remove it from the
-    // user storage only for clearing it
-    let localStorage = utils.getLocalStorage(DB_MAIN_FIELD);
-    if (!localStorage) {
-      // we dont have it
-      linfo('_removeOldSignals: no old storage to remove');
-      return;
-    }
-
-    // we have it, remove it
-    try {
-      linfo('_removeOldSignals: clearing old storage');
-      localStorage.clear();
-    } catch(err) {
-      lerr('_removeOldSignals: something failed when removing the item of the DB: ' + err);
-    }
   }
 
   //////////////////////////////////////////////////////////////////////////////

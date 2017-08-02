@@ -30,6 +30,8 @@ const CliqzMarketAnalyzer = {
   maTable: {},
   // json file of regexes for checkouts & categories
   regexMappings: null,
+  // database is modified
+  dbModified: false,
 
   regexHelper: new RegexHelper(),
 
@@ -74,21 +76,25 @@ const CliqzMarketAnalyzer = {
         Object.keys(maStats).forEach((metric) => {
           if (metric === MAMetrics.CR1_IMP || metric === MAMetrics.CR2_IMP) {
             delete maStats[metric];
+            this.dbModified = true;
           }
 
           if (metric === MAMetrics.U_IMP) {
             maStats[MAMetrics.U_VISITOR] = maStats[metric];
             delete maStats[metric];
+            this.dbModified = true;
           }
 
           if (metric === MAMetrics.CR1_U_IMP) {
             maStats[MAMetrics.U_SHOPPER] = maStats[metric];
             delete maStats[metric];
+            this.dbModified = true;
           }
 
           if (metric === MAMetrics.CR2_U_IMP) {
             maStats[MAMetrics.U_POT_BUYER] = maStats[metric];
             delete maStats[metric];
+            this.dbModified = true;
           }
         });
       });
@@ -102,7 +108,6 @@ const CliqzMarketAnalyzer = {
     if (!(telemetryGroupStr in this.maTable)) {
       this.maTable[telemetryGroupStr] = {};
     }
-    let changed = false;
     const groupContainer = this.maTable[telemetryGroupStr];
     Object.keys(MATimeFrames).forEach((tfKey) => {
       const tf = MATimeFrames[tfKey];
@@ -110,11 +115,11 @@ const CliqzMarketAnalyzer = {
 
       if (!(todayTFStr in groupContainer)) {
         groupContainer[todayTFStr] = this._newTelemetryRecord();
-        changed = true;
+        this.dbModified = true;
       }
     });
 
-    if (changed) {
+    if (this.dbModified) {
       logger.debug('added telemetry stats');
       this._persistCurrentMATable();
     }
@@ -124,9 +129,12 @@ const CliqzMarketAnalyzer = {
    * persist current MATable
    */
   _persistCurrentMATable() {
-    logger.debug('saving the current MATable:');
-    logger.logObject(this.maTable);
-    this.dataAccessProvider.saveMATable(this.maTable);
+    if (this.dbModified) {
+      logger.debug('saving the current MATable:');
+      logger.logObject(this.maTable);
+      this.dataAccessProvider.saveMATable(this.maTable);
+      this.dbModified = false;
+    }
   },
 
   /**
@@ -144,14 +152,20 @@ const CliqzMarketAnalyzer = {
     // Looking for old stats in maTable
     // If has, send & remove the old stats
     Object.keys(self.maTable).forEach((maGroupStr) => {
+      const tfContainers = Object.keys(self.maTable[maGroupStr]);
+      if (tfContainers.length === 0) {
+        delete self.maTable[maGroupStr];
+        self.dbModified = true;
+        return;
+      }
+
       const [group, groupVal] = splitKeyVal(maGroupStr);
 
       // used for accumulating (tf, unique metrics) of signal
       // send only one signal (with unique metrics) per maGroup
       // subject to changes. This is the fight between privacy & performance
       const uniqueRecords = [];
-
-      Object.keys(self.maTable[maGroupStr]).forEach((timeFrameStr) => {
+      tfContainers.forEach((timeFrameStr) => {
         const [timeFrame, timeFrameVal] = splitKeyVal(timeFrameStr);
         const todayTFStr = joinKeyVal(timeFrame, todayTFs.getTFValue(timeFrame));
         if (todayTFStr) {
@@ -196,7 +210,7 @@ const CliqzMarketAnalyzer = {
           // also remove empty records
           if (self._isOldAndEmptyTFRecord(todayTFStr, timeFrameStr, maStats)) {
             delete self.maTable[maGroupStr][timeFrameStr];
-            self._persistCurrentMATable();
+            self.dbModified = true;
           }
         } else {
           logger.error(`Cannot parse todayTFStr for ${timeFrameStr}`);
@@ -212,6 +226,7 @@ const CliqzMarketAnalyzer = {
     if (signalsToSend.length > 0) {
       this._sendSignals(signalsToSend);
     }
+    self._persistCurrentMATable();
   },
 
   /**
@@ -253,6 +268,7 @@ const CliqzMarketAnalyzer = {
                 });
               });
             }
+            self.dbModified = true;
             self._persistCurrentMATable();
             self.sendSignalTO = utils.setTimeout(sendNextSignal, 1000);
           },
@@ -337,6 +353,7 @@ const CliqzMarketAnalyzer = {
     maGroups.forEach((maGroupStr) => {
       if (!(maGroupStr in this.maTable)) {
         this.maTable[maGroupStr] = {};
+        this.dbModified = true;
       }
       const groupContainer = this.maTable[maGroupStr];
       Object.keys(MATimeFrames).forEach((tfKey) => {
@@ -356,6 +373,7 @@ const CliqzMarketAnalyzer = {
           // never have stats for this time frame
           groupContainer[todayTFStr] = this._updateMetricRecord(domain, {}, metric, uniqueOnly);
         }
+        this.dbModified = true;
       });
     });
     this._persistCurrentMATable();

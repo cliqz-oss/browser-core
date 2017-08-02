@@ -187,13 +187,14 @@ def publish(beta='True', version=None, channel='browser', pre='True'):
 
     local("rm  %s" % latest_html_file_name)
 
-    credentials = {}
-    execfile("../fern/release-creds.txt", credentials)
-    auth = (
-        'balrogadmin',
-        credentials['balrog_credentials']['balrogadmin']
-    )
+    username = os.environ['BALROG_ADMIN']
+    password = os.environ['BALROG_PASSWORD']
 
+    if not username or not password:
+        raise RuntimeError("Could not run without username or/and password")
+
+    auth = (username, password)
+    
     from fern.submitter import Submitter
     submitter = Submitter(
         release_name="SystemAddons-"+upload_folder,
@@ -263,7 +264,7 @@ def comment_cleaner(path=None):
                         handler.truncate()
                         handler.write(js_comment_removal(content))
                 except:
-                    print 'ERROR', f
+                    print 'ERROR', root + '/' + f
                     raise
 
             else:

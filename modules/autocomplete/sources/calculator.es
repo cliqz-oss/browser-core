@@ -4,9 +4,9 @@
  */
 
 import mathLib from 'mathjs';
-import { utils } from "../core/cliqz";
-import Result from "./result";
-import { isFirefox } from "../core/platform";
+import utils from '../core/utils';
+import console from '../core/console';
+import Result from './result';
 
 
 // REF:
@@ -15,134 +15,230 @@ import { isFirefox } from "../core/platform";
 //      http://jsbin.com/duduru/1/edit?html,output
 
 
-function getEqualOperator(val, localizedStr){
-  var valStr = val.toString().replace(",","").replace(".",""),
-    normLocalizedStr = localizedStr.replace(",","").replace(".","");
-  return valStr === normLocalizedStr ? "=" : "\u2248";
+function getEqualOperator(val, localizedStr) {
+  const valStr = val.toString().replace(',', '').replace('.', '');
+  const normLocalizedStr = localizedStr.replace(',', '').replace('.', '');
+  return valStr === normLocalizedStr ? '=' : '\u2248';
 }
 
-var CliqzCalculator = {
+function NumberException(number) {
+  return {
+    name: 'NumberException',
+    message: `Invalid number: ${number}`,
+  };
+}
+
+function replaceAll(string, search, replacement) {
+  return string.split(search).join(replacement);
+}
+
+const CliqzCalculator = {
   CALCULATOR_RES: 0,
   UNIT_RES: '',
   IS_UNIT_CONVERTER: false,
   BASE_UNIT_CONVERTER: '',
+  CLEANED_QUERY: '',
   FLOAT_DEC: [100000, 100, 1],
   FLOAT_DEC_THRESHOLD: [99, 99999],
   ACCEPT_ERROR: 1e-8,
   UNIT_CONVERSION_DATA: {  // http://en.wikipedia.org/wiki/Conversion_of_units
     // http://www.convert-me.com/en/convert/length/
-    'LOCALIZE_KEYS': {'de-DE': 'names_de', 'en-US': 'names_en', 'default': 'names_de'},
-    'types': ['length', 'mass'],
-    'length': {
-      'base': 'm',
-      'units': [
-        {'val': 4828, 'names': ['lea', 'leuge', 'league', 'leagues']},
-        {'val': 0.3048006096012192, // this is US foot, there're IDIAN, CLA, BEN,...
-          'names': ['ft', 'foot', 'feet', 'fu\u00DF'],
-          'names_en': {'s': 'foot', 'p': 'feet'},
-          'names_de': {'s': 'fu\u00DF', 'p': 'fu\u00DF'}},
-        {'val': 0.0254, 'names': ['in', 'inch', 'inches', 'zoll']},
-        {'val': 1000, 'names': ['km', 'kilometer', 'kilometre', 'kilometres', 'kilometers']},
-        {'val': 1, 'names': ['m', 'meter', 'metre', 'metres', 'meters']},
-        {'val': 0.1, 'names': ['dm', 'decimeter', 'decimetre', 'decimeters', 'decimetres', 'dezimeter']},
-        {'val': 0.01, 'names': ['cm', 'centimeter', 'centimetre', 'centimetres', 'centimeters', 'zentimeter']},
-        {'val': 0.001, 'names': ['mm', 'millimeter', 'millimetre', 'millimetres', 'millimeters']},
-        {'val': 1e-6, 'names': ['micron', 'micrometer', 'micrometre', 'micrometres', 'micrometers', 'mikrometer']},
-        {'val': 1e-9, 'names': ['nm', 'nanometre', 'nanometre', 'nanometer', 'nanometers']},
-        {'val': 10000, 'names': ['mil']},  // this is Sweden and Norway unit
-        {'val': 1609.344,
-          'names': ['mil.', 'mi.', 'mile', 'miles', 'meile', 'meilen'],
-          'names_en': {'s': 'mile', 'p': 'miles'},
-          'names_de': {'s': 'meile', 'p': 'meilen'}},
-        {'val': 201.168, 'names': ['furlong', 'furlongs']},
-        {'val': 0.9144, 'names': ['yd', 'yard', 'yards']},
-        {'val': 2.54 * 1e-5, 'names': ['thou']},
-        {'val': 1.8288, 'names': ['fm', 'fathom', 'fathoms', 'faden', 'f\u00E4den']},
-        {'val': 5.0292, 'names': ['rd', 'rod', 'rods', 'rute', 'ruten']},
-        {'val': 0.1016, 'names': ['hand', 'hands', 'handbreit']},
-        {'val': 0.2286, 'names': ['span', 'spans', 'spanne', 'spannen']},
-        {'val': 5556, 'names': ['naut.leag', 'nautical league', 'naut.leags', 'nautical league']},
-        {'val': 1852, 'names': ['naut.mil', 'naut.mils', 'nautical mile', 'nautical miles', 'naut.meile', 'naut.meilen', 'nautische meile', 'nautische meilen']},
-        {'val': 1852.216, 'names': ['sm', 'Seemeile']},
-        {'val': 185.2, 'names': ['cbl', 'cable length', "cable'slength", 'Kabel', 'Kabellänge']}
+    LOCALIZE_KEYS: { 'de-DE': 'names_de', 'en-US': 'names_en', default: 'names_de' },
+    types: ['length', 'mass'],
+    length: {
+      base: 'm',
+      units: [
+        { val: 4828, names: ['lea', 'leuge', 'league', 'leagues'] },
+        { val: 0.3048006096012192, // this is US foot, there're IDIAN, CLA, BEN,...
+          names: ['ft', 'foot', 'feet', 'fu\u00DF'],
+          names_en: { s: 'foot', p: 'feet' },
+          names_de: { s: 'fu\u00DF', p: 'fu\u00DF' } },
+        { val: 0.0254, names: ['in', 'inch', 'inches', 'zoll'] },
+        { val: 1000, names: ['km', 'kilometer', 'kilometre', 'kilometres', 'kilometers'] },
+        { val: 1, names: ['m', 'meter', 'metre', 'metres', 'meters'] },
+        { val: 0.1, names: ['dm', 'decimeter', 'decimetre', 'decimeters', 'decimetres', 'dezimeter'] },
+        { val: 0.01, names: ['cm', 'centimeter', 'centimetre', 'centimetres', 'centimeters', 'zentimeter'] },
+        { val: 0.001, names: ['mm', 'millimeter', 'millimetre', 'millimetres', 'millimeters'] },
+        { val: 1e-6, names: ['micron', 'micrometer', 'micrometre', 'micrometres', 'micrometers', 'mikrometer'] },
+        { val: 1e-9, names: ['nm', 'nanometre', 'nanometre', 'nanometer', 'nanometers'] },
+        { val: 10000, names: ['mil'] },  // this is Sweden and Norway unit
+        { val: 1609.344,
+          names: ['mil.', 'mi.', 'mile', 'miles', 'meile', 'meilen'],
+          names_en: { s: 'mile', p: 'miles' },
+          names_de: { s: 'meile', p: 'meilen' } },
+        { val: 201.168, names: ['furlong', 'furlongs'] },
+        { val: 0.9144, names: ['yd', 'yard', 'yards'] },
+        { val: 2.54 * 1e-5, names: ['thou'] },
+        { val: 1.8288, names: ['fm', 'fathom', 'fathoms', 'faden', 'f\u00E4den'] },
+        { val: 5.0292, names: ['rd', 'rod', 'rods', 'rute', 'ruten'] },
+        { val: 0.1016, names: ['hand', 'hands', 'handbreit'] },
+        { val: 0.2286, names: ['span', 'spans', 'spanne', 'spannen'] },
+        { val: 5556, names: ['naut.leag', 'nautical league', 'naut.leags', 'nautical league'] },
+        { val: 1852, names: ['naut.mil', 'naut.mils', 'nautical mile', 'nautical miles', 'naut.meile', 'naut.meilen', 'nautische meile', 'nautische meilen'] },
+        { val: 1852.216, names: ['sm', 'Seemeile'] },
+        { val: 185.2, names: ['cbl', 'cable length', "cable'slength", 'Kabel', 'Kabellänge'] }
       ]
     },
-    'mass': {
-      "base": 'g',
-      'units': [
-        {'val': 102, 'names': ['kN', 'kn', 'kilonewton', 'kilonewtons']},
-        {'val': 1e9, 'names': ['kt', 'kilotonne', 'kilotonnes', 'kilotonnen']},
-        {'val': 1e6, 'names': ['t', 'tonne', 'tonnes', 'tonnen', 'metric ton', 'metric tons']},
-        {'val': 1e6, 'names': ['Mg', 'megagram', 'megagrams']},
-        {'val': 1000, 'names': ['kg', 'kilogram', 'kilograms', 'kilogramme', 'kilogrammes', 'kilogramm', 'kilogramms']},
-        {'val': 100, 'names': ['hg', 'hectogram', 'hectograms', 'hectogramme', 'hectogrammes', 'hectogramm', 'hectogramms']},
-        {'val': 10, 'names': ['dag', 'decagram', 'decagrams', 'decagramme', 'decagrammes', 'decagramm', 'decagramms']},
-        {'val': 1, 'names': ['g', 'gram', 'grams', 'gramme', 'grammes', 'gramm', 'gramms']},
-        {'val': 0.1, 'names': ['dg', 'decigram', 'decigrams', 'decigramme', 'decigrammes', 'decigramm', 'decigramms']},
-        {'val': 0.01, 'names': ['cg', 'centigram', 'centigrams', 'centigramme', 'centigrammes', 'centigramm', 'centigramms']},
-        {'val': 0.001, 'names': ['mg', 'milligram', 'milligrams', 'milligramme', 'milligrammes', 'milligramm', 'milligramms']},
-        {'val': 0.000001, 'names': ['mcg', 'microgram', 'micrograms', 'microgramme', 'microgrammes', 'microgramm', 'microgramms']},
-        {'val': 453.59237, 'names': ['lb', 'lbs', 'pound', 'pounds', 'pound-mass', 'pfund']},
-        {'val': 28.349523125, 'names': ['oz', 'ozs', 'ounce ', 'ounces', 'unze', 'unzen']},
-        {'val': 1.7718452, 'names': ['dr', 'dram', 'drams']},
-        {'val': 0.06479891, 'names': ['gr', 'grain', 'grains', 'Gran']}
+    mass: {
+      base: 'g',
+      units: [
+        { val: 102, names: ['kN', 'kn', 'kilonewton', 'kilonewtons'] },
+        { val: 1e9, names: ['kt', 'kilotonne', 'kilotonnes', 'kilotonnen'] },
+        { val: 1e6, names: ['t', 'tonne', 'tonnes', 'tonnen', 'metric ton', 'metric tons'] },
+        { val: 1e6, names: ['Mg', 'megagram', 'megagrams'] },
+        { val: 1000, names: ['kg', 'kilogram', 'kilograms', 'kilogramme', 'kilogrammes', 'kilogramm', 'kilogramms'] },
+        { val: 100, names: ['hg', 'hectogram', 'hectograms', 'hectogramme', 'hectogrammes', 'hectogramm', 'hectogramms'] },
+        { val: 10, names: ['dag', 'decagram', 'decagrams', 'decagramme', 'decagrammes', 'decagramm', 'decagramms'] },
+        { val: 1, names: ['g', 'gram', 'grams', 'gramme', 'grammes', 'gramm', 'gramms'] },
+        { val: 0.1, names: ['dg', 'decigram', 'decigrams', 'decigramme', 'decigrammes', 'decigramm', 'decigramms'] },
+        { val: 0.01, names: ['cg', 'centigram', 'centigrams', 'centigramme', 'centigrammes', 'centigramm', 'centigramms'] },
+        { val: 0.001, names: ['mg', 'milligram', 'milligrams', 'milligramme', 'milligrammes', 'milligramm', 'milligramms'] },
+        { val: 0.000001, names: ['mcg', 'microgram', 'micrograms', 'microgramme', 'microgrammes', 'microgramm', 'microgramms'] },
+        { val: 453.59237, names: ['lb', 'lbs', 'pound', 'pounds', 'pound-mass', 'pfund'] },
+        { val: 28.349523125, names: ['oz', 'ozs', 'ounce', 'ounces', 'unze', 'unzen'] },
+        { val: 1.7718452, names: ['dr', 'dram', 'drams'] },
+        { val: 0.06479891, names: ['gr', 'grain', 'grains', 'Gran'] }
       ]
     }
   },
   init() {
-    const thousandsSeparator = utils.getLocalizedString('calculator-thousands-separator');
-    this.thousandsRegex = new RegExp(`(\\d)\\${thousandsSeparator}(\\d)`, 'g');
+    this.thousandsSeparator = utils.getLocalizedString('calculator-thousands-separator');
+    this.decimalSeparator = utils.getLocalizedString('calculator-decimal-separator');
   },
-  shortenNumber: function(){
+  shortenNumber() {
     // shorten numbers when needed
     try {
-      var numRaw, num, num1, floatDec = 1, resultSign = "";
+      let num;
 
-      num1 = this.CALCULATOR_RES;
+      num = this.CALCULATOR_RES.toLocaleString(utils.getLocalizedString('locale_lang_code'), { maximumFractionDigits: 6 });
+      num = replaceAll(num, this.thousandsSeparator, ' '); // Use spaces as thousands separators
 
-      for (var i = 0; i < this.FLOAT_DEC_THRESHOLD.length; i++) {
-        if (Math.abs(num1) < this.FLOAT_DEC_THRESHOLD[i]) {
-          floatDec = this.FLOAT_DEC[i];
-          break;
+      return this.IS_UNIT_CONVERTER ? [num, this.UNIT_RES].join(' ') : num.toString();
+    } catch (err) { console.error(err); }
+    return this.CALCULATOR_RES;
+  },
+  isValidThousandsSeparator(number, separator) {
+    // More than one thousands separator, it should be thousands separator
+    const parts = number.split(separator);
+    if (parts.length === 1) {
+      return true; // There is no thousands separator
+    }
+    // Invalid thousands separator
+    if (parts[0].length > 3) {
+      return false; // Invalid thousands separator
+    }
+    // Invalid thousands separator
+    for (let i = 1; i < parts.length; i += 1) {
+      if (parts[i].length !== 3) { // Invalid thousands separator
+        return false;
+      }
+    }
+    return true;
+  },
+  standardize(number) {
+    let firstPart = ''; // Part before the first decimal separator
+    let secondPart = ''; // Part after the first decimal separator
+    // If there is (one or more) decimal separator
+    if (number.indexOf(this.decimalSeparator) > -1) {
+      secondPart = number.substring(number.indexOf(this.decimalSeparator) + 1);
+      // If there are more than two decimal separators, there should be no thousands separator
+      if (secondPart.indexOf(this.decimalSeparator) > -1 &&
+        number.indexOf(this.thousandsSeparator) > -1) {
+        throw NumberException(number);
+      }
+      // Thousands separator should come before decimal separator
+      if (secondPart.indexOf(this.thousandsSeparator) > -1) {
+        throw NumberException(number);
+      }
+      firstPart = number.substring(0, number.indexOf(this.decimalSeparator));
+      // Only one decimal separator => it's decimal separator
+      if (secondPart.indexOf(this.decimalSeparator) === -1) {
+        // First part contains thousands separator
+        if (firstPart.indexOf(this.thousandsSeparator) > -1) {
+          if (!this.isValidThousandsSeparator(firstPart, this.thousandsSeparator)) {
+            throw NumberException(number);
+          }
+          firstPart = replaceAll(firstPart, this.thousandsSeparator, '');
+        }
+        // Always use '.' as decimal separator for mathjs
+        return `${firstPart}.${secondPart}`;
+      }
+      // There are more than one decimal separators => could be thousands separator
+      if (!this.isValidThousandsSeparator(number, this.decimalSeparator)) {
+        throw NumberException(number);
+      }
+      // *** Decimal separator becomes thousands separator
+      return replaceAll(number, this.decimalSeparator, '');
+    }
+    // If there is no decimal separator
+    const parts = number.split(this.thousandsSeparator);
+    // There is only one thousands separator => could be decimal separator
+    if (parts.length === 2) {
+      if (parts[0].length > 3 || parts[1].length !== 3) {
+        // *** Thousands separator becomes decimal separator
+        return replaceAll(number, this.thousandsSeparator, '.');
+      }
+    }
+    if (!this.isValidThousandsSeparator(number, this.thousandsSeparator)) {
+      throw NumberException(number);
+    }
+    // All tests passed
+    return replaceAll(number, this.thousandsSeparator, '');
+  },
+  clean(query) {
+    let q = query;
+    // Don't trigger calculator yet if the query is just a number
+    if (!isNaN(q)) {
+      return '';
+    }
+    try {
+      // Remove all spaces
+      q = q.replace(/ /g, '');
+      const operators = ['+', '-', '*', '/', '^', '='];
+      // Remove the last operator
+      while (operators.indexOf(q[q.length - 1]) > -1) {
+        q = q.substr(0, q.length - 1);
+      }
+      let finalQuery = '';
+      let lastPosition = 0;
+      // Construct a query with cleaned numbers and operators
+      // And standardize them independently
+      for (let i = 0; i < q.length; i += 1) {
+        if (operators.indexOf(q[i]) > -1) {
+          const element = q.slice(lastPosition, i);
+          if (element) {
+            finalQuery += this.standardize(element);
+          }
+          lastPosition = i + 1;
+          finalQuery += q[i];
+        }
+        // Last number
+        if (i === q.length - 1 && lastPosition < i + 1) {
+          const element = q.slice(lastPosition, i + 1);
+          finalQuery += this.standardize(element);
         }
       }
-      numRaw = Math.round(num1 * floatDec) / floatDec;
-      num = numRaw.toLocaleString(utils.getLocalizedString('locale_lang_code'));
-      num = num.replace(this.thousandsRegex, '$1 $2'); // Use spaces as thousands separators
-      resultSign = getEqualOperator(num1, num);
+      return finalQuery;
+    } catch (e) {
+      return '';
+    }
+  },
 
-      this.CALCULATOR_RES = this.IS_UNIT_CONVERTER ? [num, this.UNIT_RES].join(" ") : num.toString();
-      return [resultSign, this.CALCULATOR_RES]
-    } catch (err) {}
-    return null
-  },
-  clean: function(q) {
-    if (!isNaN(q)) {
-      return ''; // Don't trigger calculator yet if the query is just a number
-    }
-    const operators = ['+', '-', '*', '/', '^', '='];
-    q = q.replace(/,/g, '.'); // Replace all commas by period
-    q = q.replace(/ /g, ''); // Remove all spaces
-    for (var i = 0; i < operators.length; i++) {
-      if (q[q.length - 1] == operators[i]) {
-        return q.substr(0, q.length-1); // Remove the last operator
-      }
-    }
-    return q;
-  },
-  calculate: function(q) {
+  calculate(q) {
     if (this.CALCULATOR_RES === null || this.CALCULATOR_RES === q) {
       return null;
     }
-    var expandedExpression = this.IS_UNIT_CONVERTER ? this.BASE_UNIT_CONVERTER : mathLib.parse(this.clean(q)).toString(),
-      resultSign = this.shortenNumber()[0];
+    const expandedExpression = this.IS_UNIT_CONVERTER ? this.CLEANED_QUERY
+      : replaceAll(mathLib.parse(this.clean(q)).toString(), '.', this.decimalSeparator);
+
+    this.CALCULATOR_RES = this.shortenNumber();
 
     return Result.cliqz(
       {
-        url: "",
-        q: q,
-        type: "rh",
-        subType: {type: 'calculator'},
+        url: '',
+        q,
+        type: 'rh',
+        subType: { type: 'calculator' },
         template: 'calculator',
         snippet: {
           title: this.CALCULATOR_RES,
@@ -158,77 +254,88 @@ var CliqzCalculator = {
     );
   },
 
-  find_unit_in_data: function(unit_) {
-    var self = this,
-      unit = unit_.toLowerCase(),
-      unitFound = null;
+  find_unit_in_data(unit_) {
+    const self = this;
+    const unit = unit_.toLowerCase();
+    let unitFound = null;
 
-    self.UNIT_CONVERSION_DATA.types.some(function(type) {
-      return self.UNIT_CONVERSION_DATA[type].units.some(function(item) {
-        if (item['names'].indexOf(unit) > -1 || item['names'].indexOf(unit_) > -1) {
+    self.UNIT_CONVERSION_DATA.types.some(type =>
+      self.UNIT_CONVERSION_DATA[type].units.some((item) => {
+        if (item.names.indexOf(unit) > -1 || item.names.indexOf(unit_) > -1) {
           unitFound = [type, true, item];
           return true;
         }
         return false;
-      });
-    });
-    return unitFound || ["", false, null];
+      })
+    );
+    return unitFound || ['', false, null];
   },
 
-  selectUnitTerms: function(unit_data, val) {
-
+  selectUnitTerms(unitData, val) {
     /*
-     *   + based on the value and the language preference, select unit name in suitable language and form (singular/plural)
+     *   + based on the value and the language preference,
+     *     select unit name in suitable language and form (singular/plural)
      */
-    var BROWSER_LANG = utils.getLocalizedString('locale_lang_code');
-    var noun_type = val === 1 ? 's' : 'p',
-      nameInfo = unit_data[CliqzCalculator.UNIT_CONVERSION_DATA.LOCALIZE_KEYS[BROWSER_LANG]]
-                  || unit_data[CliqzCalculator.UNIT_CONVERSION_DATA.LOCALIZE_KEYS['default']]
-                  || unit_data['names'],
-      name = nameInfo[noun_type];
+    const BROWSER_LANG = utils.getLocalizedString('locale_lang_code');
+    const nounType = val === 1 ? 's' : 'p';
+    const nameInfo = unitData[CliqzCalculator.UNIT_CONVERSION_DATA.LOCALIZE_KEYS[BROWSER_LANG]]
+                  || unitData[CliqzCalculator.UNIT_CONVERSION_DATA.LOCALIZE_KEYS.default]
+                  || unitData.names;
+    const name = nameInfo[nounType];
 
-    return name || unit_data['names']['0'] || "";
+    return name || unitData.names['0'] || '';
   },
 
-  isConverterSearch: function(q) {
+  isConverterSearch(q) {
     // --- Process query to recognize a unit-conversion query
     // ACCEPTED query types:
     //    1. a to b, e.g. cm to mm
-    var tmp = q.trim(),
-      paramList, unit1, unit2, idx, num, unit1Info;
+    let tmp = q.trim();
+    let unit1;
+    let idx;
+    let num;
+    let unit1Info;
     // Note: don't use regex match in replace function, e.g. tmp.replace(/ zu | in | im /g, ' to ')
     tmp = q.replace(' zu ', ' to ');
     tmp = tmp.replace(' im ', ' to ');
     tmp = tmp.replace(' in ', ' to ');
     tmp = tmp.replace(' into ', ' to ');  // this needs to be at the end
-    paramList = tmp.trim().split(' to ');
+    const paramList = tmp.trim().split(' to ');
 
-    if (paramList.length !== 2)
+    if (paramList.length !== 2) {
       return false;
-    unit2 = this.find_unit_in_data(paramList[1].trim());
+    }
+    const unit2 = this.find_unit_in_data(paramList[1].trim());
     if (unit2[1]) {
-      unit1 = paramList[0].replace(' ', '') + ' ';
+      unit1 = `${paramList[0].replace(' ', '')} `;
       idx = 0;
-      while (unit1[idx] === ',' || unit1[idx] === '.' || (unit1[idx] >= '0' && unit1[idx] <= '9'))
-        idx++;
+      while (unit1[idx] === ',' || unit1[idx] === '.' || (unit1[idx] >= '0' && unit1[idx] <= '9')) {
+        idx += 1;
+      }
       if (idx === 0) {
-        num = 1
+        num = 1;
       } else {
-        num = Number(unit1.slice(0, idx));
+        let numRaw = unit1.slice(0, idx);
+        try {
+          numRaw = this.standardize(numRaw);
+        } catch (e) {
+          return false;
+        }
+        num = Number(numRaw);
         if (isNaN(num)) {
-          return false
+          return false;
         }
       }
 
       unit1 = unit1.slice(idx, unit1.length).trim();
       unit1Info = this.find_unit_in_data(unit1);
       if (!unit1Info[1] || unit1Info[0] !== unit2[0]) {
-        return false
+        return false;
       }  // if not unit of the same type, e.g. 1km to g should not return result
 
       this.IS_UNIT_CONVERTER = true;
-      var cvRaw = unit1Info[2].val / unit2[2].val,
-        cv = cvRaw.toLocaleString(utils.getLocalizedString('locale_lang_code'));
+      const cvRaw = unit1Info[2].val / unit2[2].val;
+      const cv = cvRaw.toLocaleString(utils.getLocalizedString('locale_lang_code'));
       this.CALCULATOR_RES = num * cvRaw;
       this.UNIT_RES = CliqzCalculator.selectUnitTerms(unit2[2], this.CALCULATOR_RES);
       this.BASE_UNIT_CONVERTER = [
@@ -237,36 +344,43 @@ var CliqzCalculator = {
         getEqualOperator(cvRaw, cv),
         cv,
         CliqzCalculator.selectUnitTerms(unit2[2], this.CALCULATOR_RES, cvRaw)
-      ].join(" ");
+      ].join(' ');
+      num = num.toLocaleString(utils.getLocalizedString('locale_lang_code'));
+      num = replaceAll(num, this.thousandsSeparator, ' '); // Use spaces as thousands separators
+      this.CLEANED_QUERY = [
+        num,
+        unit1,
+      ].join(' ');
 
-      return true
+      return true;
     }
-    else {
-      return false
-    }
+    return false;
   },
 
-  isCalculatorSearch: function(q) {
+  isCalculatorSearch(q) {
     // filter out:
     // + too short query (avoid answering e, pi)
     // + automatically convert queries like '10cm
-    var tmp = this.clean(q)
-    if (tmp.length <= 2 || tmp.length > 150) {
+    if (this.isConverterSearch(q)) {
+      return true;
+    }
+    const tmp = this.clean(q);
+    // Don't trigger if query contains no operator
+    if (tmp.length <= 2 || tmp.length > 150 || !/\+|-|\*|\/|\^/.test(tmp)) {
       return false;
     }
 
     try {
       this.CALCULATOR_RES = mathLib.eval(tmp);
 
-      if (typeof(this.CALCULATOR_RES) === 'number') {
+      if (typeof (this.CALCULATOR_RES) === 'number') {
         this.IS_UNIT_CONVERTER = false;
-        return true
+        return true;
       }
+    } catch (err) {
+      return false;
     }
-    catch (err) {
-    }
-
-    return this.isConverterSearch(q);
+    return false;
   }
 };
 

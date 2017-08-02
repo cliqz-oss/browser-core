@@ -1,0 +1,21 @@
+services:
+  - docker
+
+script:
+  - docker build -q --build-arg UID=`id -u` --build-arg GID=`id -g` -t cliqz-oss/browser-core .
+  - docker run -v $(pwd):$(pwd) -w $(pwd) -t cliqz-oss/browser-core sh -c
+    "./fern.js install"
+
+before_deploy:
+  - docker run -v $(pwd):$(pwd) -w $(pwd) -t cliqz-oss/browser-core sh -c
+    "./fern.js build configs/ghostery.json; npm pack; mv browser-core-$TRAVIS_TAG.tgz ghostery-$TRAVIS_TAG.tgz"
+
+deploy:
+  api_key: $GITHUB_API_KEY
+  file_glob: true
+  file: ghostery-$TRAVIS_TAG.tgz
+  on:
+    tags: true
+    condition: $TRAVIS_TAG =~ ^7
+  provider: releases
+  skip_cleanup: true

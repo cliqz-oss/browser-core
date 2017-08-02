@@ -11,7 +11,8 @@ function toPx(pixels) {
   return `${pixels.toString()}px`;
 }
 
-const ORIGIN_NAME = 'offers-cc';
+
+let ORIGIN_NAME = 'offers-cc';
 const BTN_ID = 'cliqz-offers-cc-btn';
 const PANEL_ID = `${BTN_ID}-panel`;
 const firstRunPref = 'cliqz-offers-cc-initialized';
@@ -19,6 +20,12 @@ const BTN_LABEL = '';
 const TOOLTIP_LABEL = 'Cliqz';
 
 const offersHubTrigger = utils.getPref('offersHubTrigger', 'off');
+if (offersHubTrigger === 'tooltip') {
+  ORIGIN_NAME = 'offers-cc-tooltip';
+}
+
+let seenOffersObj = {};
+let autoTrigger = false;
 
 export default class {
   constructor(settings) {
@@ -38,7 +45,8 @@ export default class {
       resize: this.resizePopup.bind(this),
       sendTelemetry: this.sendTelemetry.bind(this),
       closePanel: this.closePanel.bind(this),
-      openURL: this.openURL.bind(this)
+      openURL: this.openURL.bind(this),
+      seenOffers: this.seenOffers.bind(this),
     };
     this.panel = new Panel(
       this.window,
@@ -48,50 +56,99 @@ export default class {
       false,
       this.actions,
       null,
-      this.onPopupHiding.bind(this)
+      this.onPopupHiding.bind(this),
+      this.onPopupShowing.bind(this),
     );
 
     this.onOffersCoreEvent = this.onOffersCoreEvent.bind(this);
   }
 
+  onPopupShowing() {
+    if (autoTrigger) {
+      const msg = {
+        type: 'action-signal',
+        data: {
+          action_id: 'hub_pop_up',
+        },
+      };
+      this.sendMessageToOffersCore(msg);
+    } else {
+      const msg = {
+        type: 'action-signal',
+        data: {
+          action_id: 'hub_open',
+        },
+      };
+      this.sendMessageToOffersCore(msg);
+    }
+  }
+
   onPopupHiding() {
     UITour.hideInfo(this.window);
     // check if we need to update the state of all the offers as old
-    if (this.panel.shownDurationTime <= 2000) {
+    if (this.panel.shownDurationTime <= 1000) {
       // nothing to do
       return null;
     }
 
     this.badge.setAttribute('state', '');
     // else we will change the state of all offers
-    const self = this;
-    const args = {
-      filters: {
-        by_rs_dest: ORIGIN_NAME
+
+    Object.keys(seenOffersObj).forEach((offer) => {
+      const msgSession = {
+        type: 'offer-action-signal',
+        data: {
+          action_id: 'offer_dsp_session',
+          offer_id: offer,
+        },
+      };
+      this.sendMessageToOffersCore(msgSession);
+
+      if (!autoTrigger) {
+        const msgPulled = {
+          type: 'offer-action-signal',
+          data: {
+            action_id: 'offer_pulled',
+            offer_id: offer,
+          },
+        };
+        this.sendMessageToOffersCore(msgPulled);
+      }
+
+      const msgShown = {
+        type: 'offer-action-signal',
+        data: {
+          action_id: 'offer_shown',
+          offer_id: offer,
+          counter: seenOffersObj[offer]
+        },
+      };
+      this.sendMessageToOffersCore(msgShown);
+    });
+
+    const msgState = {
+      type: 'change-offer-state',
+      // no data for now
+      data: {
+        offers_ids: Object.keys(seenOffersObj),
+        new_state: 'old'
       }
     };
-    return this.offersV2.action('getStoredOffers', args).then((recentData) => {
-      const offersIDs = [];
-      recentData.forEach((elem) => {
-        if (elem && elem.offer_id) {
-          offersIDs.push(elem.offer_id);
-        }
-      });
+    this.sendMessageToOffersCore(msgState);
 
-      // send the message with all the offers
-      // check the API documentation for proper formating this
-      const msg = {
-        type: 'offers-state-changed',
-        // no data for now
-        data: {
-          offers_ids: offersIDs,
-          new_state: 'old'
-        }
-      };
-      self.sendMessageToOffersCore(msg);
-    }).catch((e) => {
-      utils.log(e.message, '!!error');
-    });
+    const msg = {
+      type: 'action-signal',
+      data: {
+        action_id: 'hub_closed',
+      },
+    };
+    this.sendMessageToOffersCore(msg);
+
+    seenOffersObj = {};
+    autoTrigger = false;
+    // ORIGIN_NAME = 'offers-cc';
+
+    return null;
   }
 
   init() {
@@ -255,31 +312,8 @@ export default class {
     // we will do a "bridging" here from the current signals to the new API
     // format.
     let msg = null;
-    if (data.signal_type === 'button_pressed') {
-      // process the button pressed action, this actions have some impact or
-      // modification on the offers module (for example closing an offer / etc).
 
-      // we can have here the followings:
-      //  - call-to-action
-      //  - close-offer
-      //  - remove-offer
-      //
-      switch (data.element_id) {
-        case 'call-to-action':
-        case 'close-offer':
-        case 'remove-offer':
-          msg = {
-            type: data.element_id,
-            data: {
-              offer_id: data.offer_id
-            }
-          };
-          break;
-        default:
-          utils.log(`sendTelemetry: error: invalid button_pressed action: ${data.element_id}`);
-          break;
-      }
-    } else if (data.signal_type === 'action') {
+    if (data.signal_type === 'action-signal') {
       // This type of signals are just for tracking and information purposes,
       // will not change any logic on the offers module
       // This signals are not related to any offer, just "telemetry"
@@ -303,7 +337,16 @@ export default class {
           action_id: data.element_id
         },
       };
+    } else if (data.signal_type === 'remove-offer') {
+      msg = {
+        type: 'remove-offer',
+        data: {
+          offer_id: data.offer_id,
+        },
+      };
     }
+
+
     if (msg) {
       this.sendMessageToOffersCore(msg);
     } else {
@@ -325,8 +368,9 @@ export default class {
 
     this._getAllOffers().then(() => {
       switch (eventID) {
-        case 'offer-active': {
+        case 'push-offer': {
           // Auto open the panel
+          autoTrigger = true;
           this.badge.setAttribute('state', 'new-offers');
 
           if (offersHubTrigger === 'tooltip') {
@@ -336,8 +380,8 @@ export default class {
             const myOptions = {
               closeButtonCallback: () => {
                 const data = {
-                  signal_type: 'action',
-                  element_id: 'offer-tooltip-close-btn',
+                  signal_type: 'action-signal',
+                  element_id: 'tooltip_closed'
                 };
                 this.sendTelemetry(data);
               }
@@ -347,15 +391,31 @@ export default class {
               const offerTooltipTranslation = utils.getLocalizedString('offers_hub_tooltip_new_offer');
               UITour.showInfo(win, target, '', offerTooltipTranslation, '', '', myOptions);
               win.document.querySelector('#UITourTooltip[targetName=cliqz-offers]').addEventListener('click', (e) => {
-                UITour.hideInfo(this.window);
                 if (e.target.matches('#UITourTooltipClose')) {
                   return;
                 }
+                UITour.hideInfo(this.window);
+
+                const msg = {
+                  type: 'action-signal',
+                  data: {
+                    action_id: 'tooltip_clicked',
+                  },
+                };
+                this.sendMessageToOffersCore(msg);
 
                 this.badge.setAttribute('state', '');
                 this.openPanel();
               });
             });
+
+            const msg = {
+              type: 'action-signal',
+              data: {
+                action_id: 'tooltip_shown',
+              },
+            };
+            this.sendMessageToOffersCore(msg);
           } else {
             this.openPanel();
           }
@@ -370,10 +430,15 @@ export default class {
     });
   }
 
+  seenOffers(data) {
+    seenOffersObj = data;
+  }
+
   openPanel() {
     if (utils.getWindow() !== this.window) {
       return;
     }
+
     this.closePanel();
     this.panel.open(this.button);
   }

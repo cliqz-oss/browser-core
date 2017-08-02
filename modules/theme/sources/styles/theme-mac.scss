@@ -514,6 +514,12 @@ notification {
     z-index: 0;
 }
 
+#navigator-toolbox:-moz-window-inactive::after {
+    box-shadow: 0 0.13em 2px 0 rgba(0, 0, 0, 0.35);
+    margin-top: -3px !important;
+    border-top-style: solid;
+}
+
 #main-window:not([chromehidden~="toolbar"]) {
     min-width: 425px;
 }
@@ -716,28 +722,30 @@ vbox[sidebarcommand=historybroadcaster] {
 //=========================
 //===== TEST PILOT UI =====
 //=========================
-#cliqz-dropdown {
-    .result {
-        .icons {
-            width: 98px;
-        }
+#main-window[cliqzBrowser="true"] {
+    #cliqz-dropdown {
+        .result {
+            .icons {
+                width: 98px;
+            }
 
-        @media (max-width: 550px) {
-            .abstract {
-                max-width: 73%;
+            @media (max-width: 550px) {
+                .abstract {
+                    max-width: 73%;
+                }
             }
         }
-    }
 
-    .history .buttons span.dot {
-        left: 89px;
-    }
+        .history .buttons span.dot {
+            left: 89px;
+        }
 
-    .history.cluster span.timeline {
-        left: 91px;
-    }
+        .history.cluster span.timeline {
+            left: 91px;
+        }
 
-    .padded {
-        padding-left: 108px;
+        .padded {
+            padding-left: 108px;
+        }
     }
 }

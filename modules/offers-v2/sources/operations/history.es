@@ -1,7 +1,6 @@
-
+import { timestamp } from '../utils';
 
 let ops = {};
-
 
 /**
  * Will check in the history if there is any matching against a list of regular
@@ -52,7 +51,7 @@ function match_history(args, eventLoop, context) {
 
     resolve(numMatches);
   });
-};
+}
 
 /**
  * @deprecated this will be deprecated soon
@@ -107,13 +106,7 @@ function count_history_sessions(args, eventLoop, context) {
   });
 };
 
-
-function timestamp() {
-  return Math.round(Date.now() / 1000);
-}
-
-
-ops['$match_history'] = match_history;
-ops['$count_history_sessions'] = count_history_sessions;
+ops.$match_history = match_history;
+ops.$count_history_sessions = count_history_sessions;
 
 export default ops;

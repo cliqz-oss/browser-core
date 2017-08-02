@@ -27,7 +27,7 @@ export default class {
         ].join("."),
         open_stt, timeInfos = [],
         openingColors =  {
-          open: "#45C2CC",
+          open: "#00AEF0",
           closed: "#E64C66",
           open_soon: "#E64C66",
           close_soon: "#45C2CC"

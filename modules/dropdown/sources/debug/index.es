@@ -30,6 +30,7 @@ const Results = System.get('dropdown/results').default;
 const AdultAssistant = System.get('dropdown/adult-content-assistant').default;
 const LocationAssistant = System.get('dropdown/location-sharing-assistant').default;
 const NavigateToResult = System.get('dropdown/results/navigate-to').default;
+const SupplementarySearchResult = System.get('dropdown/results/supplementary-search').default;
 const stylesheet = document.createElement('link');
 stylesheet.setAttribute('rel', 'stylesheet');
 stylesheet.setAttribute('href', 'chrome://cliqz/content/dropdown/styles/styles.css?r='+Date.now())
@@ -60,9 +61,15 @@ function render(id, query, rawResults) {
   let adultAssistant = new AdultAssistant();
   let locationAssistant = new LocationAssistant({});
   const results = new Results({ query, rawResults, sessionCountPromise, queryCliqz, adultAssistant, locationAssistant });
-  results.prepend(
-    new NavigateToResult({ text: 'https://cliqz.com' })
-  );
+  if(query == 'query'){
+    results.prepend(
+      new SupplementarySearchResult({ text: query })
+    );
+  } else {
+    results.prepend(
+      new NavigateToResult({ text: 'https://cliqz.com' })
+    );
+  }
   dropdown.renderResults(results);
 }
 

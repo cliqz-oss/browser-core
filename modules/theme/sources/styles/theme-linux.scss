@@ -18,6 +18,12 @@ $url-bar-hover-bg-color: #fff;
 $url-bar-hover-border-color: #7aa8d9;
 $url-bar-hover-shadow: inset 0 0 2px #aec6de;
 
+/* Don't show the border for this button, show box shadow instead */
+#nav-bar #cliqz-cc-btn:-moz-any([open], [checked], :hover:active):not([disabled="true"]) > .cliqz-control-center {
+    background-color: transparent;
+    box-shadow: none;
+}
+
 #main-window:not([cliqzBrowser="true"]),
 #main-window:not([cliqzBrowser="true"]) * :root {
   --cliqz-close-image: url("../images/browser/linux/close.png");

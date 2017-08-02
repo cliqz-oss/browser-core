@@ -18,9 +18,14 @@ export default class {
   }
 
   status() {
+    var engines = [];
+    // CliqzResultProviders might be uninitialized
+    if(autocomplete.CliqzResultProviders){
+      engines = autocomplete.CliqzResultProviders.getSearchEngines();
+    }
     return {
       visible: true,
-      state: autocomplete.CliqzResultProviders.getSearchEngines(),
+      state: engines,
       supportedIndexCountries: autocomplete.CliqzSearchCountryProviders.getProviders()
     }
   }

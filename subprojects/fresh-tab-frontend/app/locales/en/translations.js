@@ -56,7 +56,7 @@ export default {
     "notifications-enable": "Enable notifications"
   },
   urlBar: {
-    "search-address": "Search Cliqz or enter URL"
+    "search-address": "Search Cliqz or enter address"
   },
   news: {
     "read-more": "Read more",

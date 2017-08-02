@@ -1,8 +1,6 @@
 import utils from "./utils";
 import events from "./events";
-import ABTests from "./ab-tests";
 import HistoryManager from "./history-manager";
-import { isMobile } from "./platform";
 
 export default class {
 
@@ -20,10 +18,6 @@ export default class {
     this.window.CliqzUtils = utils;
     this.window.CliqzEvents = events;
     this.window.CliqzHistoryManager = HistoryManager;
-    // Do not wait for AB to load
-    if (!isMobile) {
-      ABTests.check();
-    }
   }
 
   unload() {

@@ -60,6 +60,9 @@ function writeTestResultsToFile(testData) {
 
 
 var runner;
+
+mocha.setup({ ui: 'bdd', timeout: 30000 });
+
 var CliqzUtils = loadModule("core/utils"),
     CliqzABTests = loadModule("core/ab-tests"),
     CliqzHumanWeb = loadModule("human-web/human-web"),
@@ -72,32 +75,17 @@ var CliqzUtils = loadModule("core/utils"),
     browserMajorVersion = parseInt(getBrowserVersion().split('.')[0]),
     app = CliqzUtils.app;
 
-mocha.setup({ ui: 'bdd', timeout: 20000 });
-
-/**
- * If extension did not intialize properly we want to kill tests ASAP
- */
-if (!CliqzUtils) {
-  describe("CLIQZ Tests", function () {
-    it("initialize property", function () {
-      throw "CliqzUtils missing";
-    });
-    after(function () {
-      // Force end hook to fire
-      runner.emit('end');
-    });
-  });
-}
-
-injectTestHelpers(CliqzUtils);
-initHttpServer();
-
 function start() {
+
+CliqzUtils = loadModule("core/utils");
 
 if (!CliqzUtils.app.isFullyLoaded) {
   setTimeout(start, 2000);
   return;
 }
+
+injectTestHelpers(CliqzUtils);
+initHttpServer();
 
 // Load Tests and inject their dependencies
 Object.keys(window.TESTS).forEach(function (testName) {
@@ -210,4 +198,11 @@ runner.on('end', function () {
   if(getParameterByName('closeOnFinish') === "1") { closeBrowser(); }
 });
 }
-start()
+
+TESTS.TestToDos = function() {
+  describe('TODO', function() {
+    xit('green ads should be enabled');
+  });
+};
+
+start();

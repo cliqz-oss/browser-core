@@ -109,9 +109,6 @@ var CliqzABTests = {
         // It is safe to remove them as soon as the test is over.
         var rule_executed = true
         switch(abtest) {
-            case "1024_B":
-                CliqzUtils.setPref("categoryAssessment", true);
-                break;
             case "1028_A":
                 CliqzUtils.setPref("humanWeb", false);
                 break;
