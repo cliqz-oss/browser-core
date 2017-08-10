@@ -34,7 +34,6 @@ const DEFAULT_COMPONENT_STATE = {
 export default background({
   core: inject.module('core'),
   geolocation: inject.module('geolocation'),
-  notifications: inject.module('notifications'),
   messageCenter: inject.module('message-center'),
 
   /**
@@ -82,10 +81,6 @@ export default background({
       news:         Object.assign({}, DEFAULT_COMPONENT_STATE, config.news),
       background:   Object.assign({}, { image: 'bg-default' }, config.background),
     };
-  },
-
-  getNotifications() {
-    return this.notifications.action('hasActiveNotifications');
   },
 
   actions: {
@@ -393,21 +388,15 @@ export default background({
     * @method getConfig
     */
     getConfig() {
-      const configs = {
+      return {
         locale: utils.PREFERRED_LANGUAGE,
         newTabUrl: config.settings.NEW_TAB_URL,
         isBrowser: isCliqzBrowser,
         showNewBrandAlert: this.shouldShowNewBrandAlert,
         messages: this.messages,
         isHistoryEnabled: prefs.get('modules.history.enabled', false),
-        hasActiveNotifications: false,
         componentsState: this.getComponentsState(),
       };
-
-      return this.getNotifications().then(notifications => ({
-        ...configs,
-        hasActiveNotifications: notifications[0],
-      })).catch(() => configs);
     },
     /**
     * @method takeFullTour
@@ -480,16 +469,9 @@ export default background({
 
   events: {
     "control-center:cliqz-tab": function () {
-      // toggle notifications before toggling freshtab
       if(this.newTabPage.isActive) {
-        events.pub('notifications:notifications-cleared');
         this.newTabPage.rollback();
       } else {
-        this.notifications.action('hasUnread').then( (res) => {
-          if (res) {
-            events.pub('notifications:new-notification');
-          }
-        })
         this.newTabPage.enableNewTabPage();
         this.newTabPage.enableHomePage();
       }

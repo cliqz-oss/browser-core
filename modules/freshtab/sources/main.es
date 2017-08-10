@@ -46,13 +46,14 @@ export default {
   },
 
   enableNewTabPage() {
+    AboutCliqz.register();
     prefs.set(PREF_NEW_TAB_BUTTON_STATE, true);
     setNewTabPage(NEW_TAB_URL);
   },
 
   enableHomePage() {
     const homePageBackup = prefs.get(PREF_HOME_PAGE_BACKUP);
-
+    AboutCliqz.register();
     // If Home Page was already set once, we don't everwrite it again
     if (homePageBackup) {
       return;
@@ -60,7 +61,8 @@ export default {
 
     const currentHomePage = getHomePage();
 
-    prefs.set(PREF_NEW_TAB_BUTTON_STATE, currentHomePage);
+    prefs.set(PREF_HOME_PAGE_BACKUP, currentHomePage);
+    prefs.set(PREF_NEW_TAB_BUTTON_STATE, true);
 
     setHomePage(NEW_TAB_URL);
   },
@@ -71,11 +73,14 @@ export default {
    */
   rollback() {
     const homePageBackup = prefs.get(PREF_HOME_PAGE_BACKUP);
+    const currentHomePage = getHomePage();
 
     AboutCliqz.unregister();
 
-    if (homePageBackup) {
+    if ((currentHomePage === NEW_TAB_URL) && homePageBackup) {
       setHomePage(homePageBackup);
+    } else if (currentHomePage !== NEW_TAB_URL) {
+      prefs.set(PREF_HOME_PAGE_BACKUP, currentHomePage);
     }
 
     resetNewTabPage();

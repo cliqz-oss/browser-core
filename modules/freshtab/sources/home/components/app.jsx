@@ -61,9 +61,9 @@ class App extends React.Component {
   componentDidMount() {
     window.addEventListener('click', this.handleClick);
     Promise.all([
+      this.getNews(),
       this.getConfig(),
       this.getSpeedDials(),
-      this.getNews(),
     ]).then(() => this.onFinishedLoading());
   }
 

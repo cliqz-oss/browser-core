@@ -1734,7 +1734,7 @@
         "message": "Lire plus"
     },
     "freshtab.app.settings.header": {
-        "message": "Personnaliser Cliqz Tab"
+        "message": "Personnalisation"
     },
     "freshtab.app.settings.background.label": {
         "message": "Choisir un fond d'écran"
@@ -1752,16 +1752,16 @@
         "message": "Barre de recherche"
     },
     "freshtab.app.settings.news.label": {
-        "message": "Alertes"
+        "message": "Actualité"
     },
     "freshtab.app.settings.news.language.auto": {
         "message": "Paramètre par défaut"
     },
     "freshtab.app.settings.news.language.de": {
-        "message": "Médias allemands"
+        "message": "Édition allemande"
     },
     "freshtab.app.settings.news.language.en": {
-        "message": "Médias du Royaume-Uni et des États-Unis"
+        "message": "Édition anglophone"
     },
     "freshtab.app.settings.news.language.fr": {
         "message": "Médias français"

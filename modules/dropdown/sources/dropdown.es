@@ -85,7 +85,9 @@ export default class {
       anchor.setAttribute('onmousedown', 'return false;');
     });
     const resultElem = this.rootElement.querySelector('.result');
-    resultElem.classList.add('selected');
+    if (resultElem) {
+      resultElem.classList.add('selected');
+    }
 
     const historyResults = this.rootElement.querySelectorAll('.history');
     if (historyResults.length > 0) {

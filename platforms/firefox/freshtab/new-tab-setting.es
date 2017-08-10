@@ -1,6 +1,7 @@
 import { Components, XPCOMUtils, Services } from '../globals';
 import prefs from '../../core/prefs';
 import config from '../../core/config';
+import console from '../../core/console';
 
 const getNewTabService = () =>
   Components.classes['@mozilla.org/browser/aboutnewtab-service;1']
@@ -87,11 +88,11 @@ export class AboutCliqz {
   }
 
   static register() {
-    this.manager.registerFactory(
-      this.classID,
-      this.classDescription,
-      this.contractID,
-      this);
+    try {
+      this.manager.registerFactory(this.classID, this.classDescription, this.contractID, this);
+    } catch (e) {
+      console.log(e, 'Factory already exists');
+    }
   }
 
   static unregister() {

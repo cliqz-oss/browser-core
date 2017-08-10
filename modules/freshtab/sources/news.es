@@ -24,6 +24,8 @@ const hbasedNewsTypeKey = 'yournews';
 const prClBurdaNewsTypeKey = 'pr-cl-burda-news';
 const breakingNewsTypeKey = 'breaking-news';
 
+const NEWS_BACKENDS = ['de'];
+const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 
 function log(s) {
   coreUtils.log(s, 'CliqzFreshTabNews');
@@ -61,13 +63,30 @@ function checkNewsTypeForHbasedRequest(newsPlacingRecord){
         ||(newsPlacingRecord.type === prClBurdaNewsTypeKey);
 }
 
-function getNewsPreferedCountryParam(){
-  var ftConfig = JSON.parse(coreUtils.getPref('freshtabConfig', '{}'));
-  if(ftConfig && ftConfig.news && ftConfig.news.preferedCountry){
-    return '&news_edition=' + ftConfig.news.preferedCountry;
+function getNewsLanguage() {
+  const locale = coreUtils.PREFERRED_LANGUAGE;
+
+  for (var i = 0; i < NEWS_BACKENDS.length; i += 1) {
+    if (locale.indexOf(NEWS_BACKENDS[i]) !== -1) {
+      return NEWS_BACKENDS[i];
+    }
   }
 
-  return '';
+  // international news if the user uses and unsupported locale
+  return 'intl';
+}
+
+function getNewsPreferedCountryParam(){
+  var ftConfig = JSON.parse(coreUtils.getPref(FRESHTAB_CONFIG_PREF, '{}'));
+  if(!ftConfig.news || !ftConfig.news.preferedCountry){
+    ftConfig.news = Object.assign({}, ftConfig.news, {
+      preferedCountry: getNewsLanguage()
+    });
+
+    coreUtils.setPref(FRESHTAB_CONFIG_PREF, JSON.stringify(ftConfig));
+  }
+
+  return '&news_edition=' + ftConfig.news.preferedCountry;
 }
 
 function getTopNewsList() {
@@ -238,7 +257,10 @@ export function mergeToGlobalVisitCount(urlDesc, visitCount, globalVisitCount) {
     if (ifCountSubLevel(urlPathList, recursionLevel)) {
       const subDomain = urlPathList[recursionLevel];
 
-      subVisitCount[subDomain] = subVisitCount[subDomain] || { count: 0, sub: {} };
+      if(!(subVisitCount[subDomain] && 'count' in subVisitCount[subDomain])){
+        subVisitCount[subDomain] = { count: 0, sub: {} };
+      }
+
       subVisitCount[subDomain].count += vCount;
 
       recursionLevel += 1;
@@ -253,7 +275,10 @@ export function mergeToGlobalVisitCount(urlDesc, visitCount, globalVisitCount) {
   let urlPathList = urlDesc.path.split('/');
   const domain = urlDesc.cleanHost;
 
-  globalVisitCount[domain] = globalVisitCount[domain] || { count: 0, sub: {} };
+  if(!(globalVisitCount[domain] && 'count' in globalVisitCount[domain])){
+    globalVisitCount[domain] = { count: 0, sub: {} };
+  }
+
   globalVisitCount[domain].count += visitCount;
 
 

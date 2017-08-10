@@ -51,8 +51,8 @@ export default background({
 
   },
 
-  getSessionCount(query) {
-    return this.history.action('getSessionCount', query);
+  getSessionCount(/* query */) {
+    return 0; // this.history.action('getSessionCount', query);
   },
 
   beforeBrowserShutdown() {
