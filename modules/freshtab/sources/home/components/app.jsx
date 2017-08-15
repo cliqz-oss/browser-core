@@ -31,7 +31,8 @@ class App extends React.Component {
           search: {},
           news: {},
           background: {},
-        }
+        },
+        browserTheme: {},
       },
       dials: {
         history: [],
@@ -56,6 +57,7 @@ class App extends React.Component {
     this.undoRemoval = this.undoRemoval.bind(this);
     this.closeUndo = this.closeUndo.bind(this);
     this.toggleComponent = this.toggleComponent.bind(this);
+    this.toggleBrowserTheme = this.toggleBrowserTheme.bind(this);
   }
 
   componentDidMount() {
@@ -286,6 +288,13 @@ class App extends React.Component {
     });
   }
 
+  toggleBrowserTheme() {
+    cliqz.freshtab.toggleBrowserTheme();
+    const state = this.state;
+    state.config.browserTheme.enabled = !state.config.browserTheme.enabled;
+    this.setState(state);
+  }
+
   toggleComponent(component) {
     cliqz.freshtab.toggleComponent(component);
     const config = this.state.config;
@@ -382,8 +391,10 @@ class App extends React.Component {
             onBackgroundImageChanged={bg => this.onBackgroundImageChanged(bg)}
             onNewsSelectionChanged={country => this.onNewsSelectionChanged(country)}
             toggleComponent={this.toggleComponent}
+            toggleBrowserTheme={this.toggleBrowserTheme}
             isOpen={this.state.isSettingsOpen}
             componentsState={this.state.config.componentsState}
+            browserTheme={this.state.config.browserTheme}
             hasHistorySpeedDialsToRestore={this.state.hasHistorySpeedDialsToRestore}
             toggle={() => this.toggleSettings()}
             restoreHistorySpeedDials={() => this.restoreHistorySpeedDials()}

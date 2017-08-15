@@ -1,4 +1,5 @@
 import utils from '../core/utils';
+import prefs from '../core/prefs';
 import { addStylesheet, removeStylesheet } from "../core/helpers/stylesheet";
 
 /**
@@ -14,6 +15,23 @@ export default class {
     this.window = settings.window;
     // check for using theme from extension or it exist in browser
     this.useTheme = !this.window.document.documentElement.getAttribute("cliqzBrowser");
+    this.actions = {
+      addClass: (className) => {
+        this.windowNode.classList.add(className);
+      },
+      removeClass: (className) => {
+        this.windowNode.classList.remove(className);
+      },
+    }
+
+    const theme = prefs.get('freshtab.browserTheme.enabled', false);
+    if (theme) {
+      this.actions.addClass('cliqz-blue');
+    }
+  }
+
+  get windowNode() {
+    return this.window.document.getElementById('main-window');
   }
 
   /**

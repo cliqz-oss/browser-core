@@ -1,3 +1,4 @@
+
 $urlbar-holder: 33px;
 $urlbar-elms-height: 32px;
 $buttons-hover-color: #e7e7e7;
@@ -237,7 +238,6 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
 
 
 /*==== FF Color */
-
 #titlebar,
 #tab-view-deck,
 #titlebar-content,
@@ -666,3 +666,5 @@ toolbaritem[sdkstylewidget="true"] > toolbarbutton, [cui-areatype="menu-panel"]:
         list-style-image: var(--menupanel-list-style-image-2x);
     }
 }
+
+@import 'shared';
