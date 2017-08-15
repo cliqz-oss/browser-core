@@ -60,6 +60,14 @@ export default class Settings extends React.Component {
           </div>
 
           <div className="settings-row">
+            <span className="label">Browser theme</span>
+            <Switch
+              isChecked={this.props.browserTheme.enabled}
+              toggleComponent={() => this.props.toggleBrowserTheme()}
+            />
+          </div>
+
+          <div className="settings-row">
             <span className="label">{t('app.settings.background.label')}</span>
             <ul className="background-selection-list">
               <li>
@@ -181,4 +189,8 @@ Settings.propTypes = {
   toggleComponent: PropTypes.func,
   restoreHistorySpeedDials: PropTypes.func,
   hasHistorySpeedDialsToRestore: PropTypes.bool,
+  toggleBrowserTheme: PropTypes.func,
+  browserTheme: PropTypes.shape({
+    enabled: PropTypes.bool,
+  }),
 };

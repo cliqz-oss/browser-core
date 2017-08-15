@@ -35,6 +35,7 @@ export default background({
   core: inject.module('core'),
   geolocation: inject.module('geolocation'),
   messageCenter: inject.module('message-center'),
+  theme: inject.module('theme'),
 
   /**
   * @method init
@@ -394,9 +395,23 @@ export default background({
         isBrowser: isCliqzBrowser,
         showNewBrandAlert: this.shouldShowNewBrandAlert,
         messages: this.messages,
+        browserTheme: {
+          enabled: prefs.get('freshtab.browserTheme.enabled', false),
+        },
         isHistoryEnabled: prefs.get('modules.history.enabled', false),
         componentsState: this.getComponentsState(),
       };
+    },
+
+    toggleBrowserTheme() {
+      const enabled = prefs.get('freshtab.browserTheme.enabled', false);
+      const shouldEnable = !enabled;
+      prefs.set('freshtab.browserTheme.enabled', shouldEnable);
+      if (shouldEnable) {
+        this.theme.action('addClass', 'cliqz-blue');
+      } else {
+        this.theme.action('removeClass', 'cliqz-blue');
+      }
     },
     /**
     * @method takeFullTour
