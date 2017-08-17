@@ -57,17 +57,13 @@ node('docker') {
             $class: 'UsernamePasswordMultiBinding',
             credentialsId: '06ec4a34-9d01-46df-9ff8-64c79eda8b14',
             passwordVariable: 'AWS_SECRET_ACCESS_KEY',
-            usernameVariable: 'AWS_ACCESS_KEY_ID'],
-            usernamePassword(
-            credentialsId: '774bccf1-ae66-41e1-9f2e-f8efb4bedc21',
-            passwordVariable: 'BALROG_PASSWORD',
-            usernameVariable: 'BALROG_ADMIN')
-        ]) {
+            usernameVariable: 'AWS_ACCESS_KEY_ID']]) {
 
-            sh """#!/bin/bash
-               cd build
-               fab publish:beta=$CLIQZ_BETA,channel=$CLIQZ_CHANNEL,pre=$CLIQZ_PRE_RELEASE
-            """
+          sh """#!/bin/bash
+            cd build
+            fab publish:beta=$CLIQZ_BETA,channel=$CLIQZ_CHANNEL,pre=$CLIQZ_PRE_RELEASE
+          """
+
         }
       }
 

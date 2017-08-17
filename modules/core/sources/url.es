@@ -1,4 +1,4 @@
-import platformEquals, { isURI, URI } from '../platform/url';
+import { isURI } from '../platform/url';
 
 const UrlRegExp = /^(([a-z\d]([a-z\d-]*[a-z\d])?)\.)+[a-z]{2,}(\:\d+)?$/i;
 
@@ -64,26 +64,5 @@ export function isIpAddress(host) {
   return isIpv4Address(host) || isIpv6Address(host);
 }
 
-export function extractSimpleURI(url) {
-  return new URI(url);
-}
 
-export function equals(url1, url2) {
-  if (!url1 || !url2) {
-    return false;
-  }
-
-  if (url1 === url2) {
-    return true;
-  }
-
-  if (decodeURI(url1) === decodeURI(url2)) {
-    return true;
-  }
-
-  if (platformEquals(url1, url2)) {
-    return true;
-  }
-
-  return false;
-}
+export { default as equals } from '../platform/url';

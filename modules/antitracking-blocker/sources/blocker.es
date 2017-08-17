@@ -1,22 +1,12 @@
 import console from '../core/console';
 import md5 from '../antitracking/md5';
 import ResourceLoader from '../core/resource-loader';
-import { getBugOwner } from '../core/domain-info';
-
-export const BLOCK_MODE = ['BLOCK', 'ALLOW_SAFE', 'ALLOW_UNSAFE'].reduce(
-  (hash, val) => Object.assign(hash, { [val]: val }),
-  Object.create(null));
 
 export default class {
 
-  constructor(blocklist, defaultAction, categoryPolicies, companyPolicies) {
+  constructor(blocklist) {
     this.blocklist = blocklist || 'default';
-    this.defaultAction = BLOCK_MODE[defaultAction] || BLOCK_MODE.BLOCK;
     this.patterns = {};
-    this.bugs = {};
-    this.apps = {};
-    this.categoryPolicies = categoryPolicies;
-    this.companyPolicies = companyPolicies;
   }
 
   init() {
@@ -33,12 +23,6 @@ export default class {
 
   loadBugs(bugs) {
     this.patterns = bugs.patterns;
-    if (bugs.bugs) {
-      this.bugs = bugs.bugs;
-    }
-    if (bugs.apps) {
-      this.apps = bugs.apps;
-    }
   }
 
   unload() {
@@ -64,7 +48,7 @@ export default class {
       root = root[part];
       if (root.$) {
         console.log('blocklist', 'match host', hostPartsReversed.join('.'));
-        return root.$ || true;
+        return true;
       }
     }
     return false;
@@ -82,12 +66,7 @@ export default class {
       }
 
       if (root.$) {
-        if (Number.isInteger(root.$)) {
-          match = root.$;
-        } else {
-          const findMatch = (root.$ || []).find(rule => path.indexOf(rule.path) === 1);
-          match = findMatch ? findMatch.id : false;
-        }
+        match = Number.isInteger(root.$) || (root.$ || []).some(rule => `/${rule.path}` === path);
         if (match) {
           console.log('blocklist', 'match', hostPartsReversed.join('.'), path);
           break;
@@ -104,53 +83,14 @@ export default class {
     return match;
   }
 
-  checkBlockRules(_state, _response) {
-    const state = _state;
-    const response = _response;
-    const match = this.ruleMatches(state.urlParts);
-    if (match) {
-      state.blocklistMatch = true;
+  checkBlockRules(state, _resp) {
+    if (this.ruleMatches(state.urlParts)) {
+      const response = _resp;
+      response.cancel = true;
+      state.incrementStat('blocked_blocklist');
       state.incrementStat(`matched_blocklist_${this.blocklist}`);
-      if (Number.isInteger(match) && state.getPageAnnotations) {
-        state.app = match;
-        const annotations = state.getPageAnnotations();
-        if (!annotations.apps) {
-          annotations.apps = new Map();
-        }
-        if (!annotations.apps.has(match)) {
-          response.shouldIncrementCounter = true;
-          annotations.apps.set(match, false);
-        }
-        response.apps = annotations.apps.size;
-      }
+      return false;
     }
     return true;
   }
-
-  applyBlockRules(state, response) {
-    if (state.blocklistMatch) {
-      let action = this.defaultAction;
-      if (state.app) {
-        const company = getBugOwner(state.app);
-        // rule precedence: company > category > default
-        action = this.companyPolicies[state.name] || this.categoryPolicies[company.cat] || action;
-        const annotations = state.getPageAnnotations();
-        if (annotations.apps) {
-          annotations.apps.set(state.app, action);
-        }
-      }
-      switch (action) {
-        case BLOCK_MODE.BLOCK:
-          state.incrementStat('blocked_blocklist');
-          response.block();
-          return false;
-        case BLOCK_MODE.ALLOW_UNSAFE:
-          return false;
-        default:
-          return true;
-      }
-    }
-    return true;
-  }
-
 }

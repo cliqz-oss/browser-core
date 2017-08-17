@@ -86,8 +86,8 @@ export default describeModule('adblocker/filters-loader',
       default() {
       },
     },
-    'core/utils': {
-      default: {
+    'core/cliqz': {
+      utils: {
         setInterval() {},
         getPref(pref, defaultValue) {
           return defaultValue;

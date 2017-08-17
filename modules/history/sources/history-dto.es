@@ -184,10 +184,7 @@ function mergeMixer(h, mixer) {
         newHistory.domains[domain] = Object.assign({}, newHistory.domains[domain]);
         const baseUrl = newHistory.domains[domain].baseUrl;
         return mixer.getSnippet(baseUrl)
-          .then(({ snippet, links }) => {
-            newHistory.domains[domain].snippet = snippet;
-            newHistory.domains[domain].links = links;
-          })
+          .then((snippet) => { newHistory.domains[domain].snippet = snippet; })
           .catch(() => { newHistory.domains[domain].snippet = {}; });
       }),
     ).then(() => newHistory);
@@ -215,10 +212,7 @@ function mergeNews(h, richHeader) {
 export default function ({ places, activeTabs, queryDatabase, metaDatabase, mixer, richHeader }) {
   let history = createBaseStructure();
   history = mergePlaces(history, places);
-
-  if (activeTabs) {
-    history = mergeActiveTabs(history, activeTabs);
-  }
+  history = mergeActiveTabs(history, activeTabs);
 
   if (queryDatabase) {
     history = mergeQueryDatabase(history, queryDatabase);
@@ -229,13 +223,12 @@ export default function ({ places, activeTabs, queryDatabase, metaDatabase, mixe
   }
 
   if (mixer) {
-    history = mergeMixer(Promise.resolve(history), mixer);
+    history = mergeMixer(history, mixer);
   }
 
   if (richHeader) {
     history = mergeNews(history, richHeader);
   }
 
-  // return history;
-  return Promise.resolve(history);
+  return history;
 }

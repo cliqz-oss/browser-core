@@ -28,37 +28,21 @@ export default describeModule('static/main',
   () => {
     describe('Validate locale structure', () => {
       const localesPath = 'modules/static/dist/locale';
-      // Load all available locales
-      const langs = listLocales(localesPath);
-      const locales = langs.map(lang =>
-        readLocaleFile(`${localesPath}/${lang}/cliqz.json`)
-          .split('\n')
-          .slice(1, -2)
-      );
 
-      it('All locales keys have the mandatory "message" key', () => {
-        langs.map(lang => {
-          var locale = JSON.parse(readLocaleFile(`${localesPath}/${lang}/cliqz.json`));
-          Object.keys(locale).forEach(key => {
-            chai.expect(locale[key].message,
-              "message does not exist for key <"+ key + "> in the locale file for " + lang).to.exist;
-          })
-        });
-      });
+      it('All locales should have the same structure', () => {
+        // Load all available locales
+        const langs = listLocales(localesPath);
+        const locales = langs.map(lang =>
+          readLocaleFile(`${localesPath}/${lang}/cliqz.json`)
+            .split('\n')
+            .slice(1, -2)
+        );
 
-      it('All locales are valid JSON', () => {
-        langs.map(lang => {
-          JSON.parse(readLocaleFile(`${localesPath}/${lang}/cliqz.json`))
-        });
-      });
-
-      it('All locales have the same length', () => {
+        // Check that they have same length
         for (let i = 0; i < locales.length - 1; i += 1) {
           chai.expect(locales[i].length).to.equal(locales[i + 1].length);
         }
-      });
 
-      it('All locales have the same structure', () => {
         // Zip values of each languages
         const zipped = (rows => rows[0].map((_, c) => rows.map(row => row[c])))(locales);
 

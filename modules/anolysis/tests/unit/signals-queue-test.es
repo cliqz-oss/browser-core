@@ -41,8 +41,6 @@ export default describeModule('anolysis/signals-queue',
       beforeEach(function initDatabase() {
         db = new Map();
         storage = {
-          flush() {
-          },
           put(doc) {
             return Promise.resolve(db.set(doc._id, doc));
           },

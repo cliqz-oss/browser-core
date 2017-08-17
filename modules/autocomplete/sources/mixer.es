@@ -107,16 +107,8 @@ export default class Mixer {
                UrlCompare.sameUrls(first[0].val, second[0].val))
     {
       // Case 2: Simple history result
-      const localResult = first.shift();
-      const globalResult = second.shift();
-      globalResult.data.kind = [
-        ...(localResult.data.kind || []),
-        ...(globalResult.data.kind || []),
-      ];
-      first = [
-        globalResult,
-        ...first,
-      ];
+      first.shift();
+      first = [second.shift()].concat(first);
     }
 
     // Remove map result from first if exists in second

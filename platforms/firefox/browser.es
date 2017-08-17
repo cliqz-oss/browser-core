@@ -1,7 +1,13 @@
-import console from '../core/console';
-import prefs from '../core/prefs';
-import events from '../core/events';
-import { Services, Components } from './globals';
+import CliqzHumanWeb from 'human-web/human-web';
+import utils from 'core/utils';
+import events from 'core/events';
+
+const {
+  interfaces: Ci,
+  utils: Cu,
+} = Components;
+
+Cu.import('resource://gre/modules/Services.jsm');
 
 export class Window {
   constructor(window) {
@@ -9,10 +15,16 @@ export class Window {
   }
 
   get id() {
-    const util = this.window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-      .getInterface(Components.interfaces.nsIDOMWindowUtils);
+    const util = this.window.QueryInterface(Ci.nsIInterfaceRequestor)
+      .getInterface(Ci.nsIDOMWindowUtils);
     return util.outerWindowID;
   }
+}
+
+export const currentURL = CliqzHumanWeb.currentURL;
+
+export function contextFromEvent() {
+  return CliqzHumanWeb.contextFromEvent;
 }
 
 export function mapWindows(callback) {
@@ -138,7 +150,7 @@ export function removeWindowObserver(callback) {
 }
 
 export function reportError(e) {
-  Components.utils.reportError(e);
+  Cu.reportError(e);
 }
 
 export function mustLoadWindow(win) {
@@ -148,15 +160,15 @@ export function mustLoadWindow(win) {
 export function setInstallDatePref(extensionId) {
   // for legacy users who have not set install date on installation
   try {
-    if (!prefs.get('install_date')) {
-      Components.utils.import('resource://gre/modules/AddonManager.jsm');
+    if (!utils.getPref('install_date')) {
+      Cu.import('resource://gre/modules/AddonManager.jsm');
       AddonManager.getAddonByID(extensionId, (addon) => {
         const date = Math.floor(addon.installDate.getTime() / 86400000);
-        prefs.set('install_date', date);
+        utils.setPref('install_date', date);
       });
     }
   } catch (ex) {
-    console.log(ex.message, 'Extension.jsm: Unable to set install date -> ');
+    utils.log(ex.message, 'Extension.jsm: Unable to set install date -> ');
   }
 }
 
@@ -164,45 +176,33 @@ export function setOurOwnPrefs() {
   const urlBarPref = Components.classes['@mozilla.org/preferences-service;1']
     .getService(Components.interfaces.nsIPrefService).getBranch('browser.urlbar.');
 
-  if (prefs.has('maxRichResultsBackup')) {
-    // we reset Cliqz change to "browser.urlbar.maxRichResults"
-    prefs.clear('maxRichResultsBackup');
-    prefs.clear('browser.urlbar.maxRichResults', '');
+  if (utils.hasPref('maxRichResultsBackup')) {
+    // we reset CLIQZ change to "browser.urlbar.maxRichResults"
+    utils.clearPref('maxRichResultsBackup');
+    utils.clearPref('browser.urlbar.maxRichResults', '');
   }
 
   const unifiedComplete = urlBarPref.getPrefType('unifiedcomplete');
   if (unifiedComplete === 128 && urlBarPref.getBoolPref('unifiedcomplete')) {
-    prefs.set('unifiedcomplete', true);
+    utils.setPref('unifiedcomplete', true);
     urlBarPref.setBoolPref('unifiedcomplete', false);
-  }
-
-  // disable FF search hints from FF55 (and maybe above)
-  urlBarPref.setBoolPref('suggest.enabled', false);
-  urlBarPref.setIntPref('timesBeforeHidingSuggestionsHint', 0);
-  urlBarPref.setBoolPref('userMadeSearchSuggestionsChoice', true);
-  urlBarPref.setBoolPref('suggest.searches', false);
-
-  // telemetry-categories was removed in version X.18.Y
-  if(prefs.has('cat')){
-    prefs.clear('cat');
-    prefs.clear('catHistoryTime');
   }
 }
 
 /** Reset changed prefs on uninstall */
 export function resetOriginalPrefs() {
-  const cliqzBackup = prefs.get('maxRichResultsBackup');
+  const cliqzBackup = utils.getPref('maxRichResultsBackup');
   if (cliqzBackup) {
-    console.log('Loading maxRichResults backup...', 'utils.setOurOwnPrefs');
-    prefs.set('maxRichResults', prefs.get('maxRichResultsBackup'), 'browser.urlbar.');
-    prefs.clear('maxRichResultsBackup', 0);
+    utils.log('Loading maxRichResults backup...', 'utils.setOurOwnPrefs');
+    utils.setPref('maxRichResults', utils.getPref('maxRichResultsBackup'), 'browser.urlbar.');
+    utils.clearPref('maxRichResultsBackup', 0);
   } else {
-    console.log('maxRichResults backup does not exist; doing nothing.', 'utils.setOurOwnPrefs');
+    utils.log('maxRichResults backup does not exist; doing nothing.', 'utils.setOurOwnPrefs');
   }
 
-  if (prefs.get('unifiedcomplete', false)) {
-    prefs.set('unifiedcomplete', true, 'browser.urlbar.');
-    prefs.set('unifiedcomplete', false);
+  if (utils.getPref('unifiedcomplete', false)) {
+    utils.setPref('unifiedcomplete', true, 'browser.urlbar.');
+    utils.setPref('unifiedcomplete', false);
   }
 }
 
@@ -233,7 +233,7 @@ export function disableChangeEvents() {
 }
 
 export function getLang() {
-  return prefs.get('general.useragent.locale', 'en', '');
+  return utils.getPref('general.useragent.locale', 'en', '');
 }
 
 export function waitWindowReady(win) {

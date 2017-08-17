@@ -1197,11 +1197,11 @@ a
       color: #000
 
 .no__location
-  color: white
-  background-color: #00AEF0
+  color: #45C2CC
   margin: 0.5rem 5%
-  padding: 0.45rem 0 0.25rem
+  padding: 0.25rem 0
   overflow: hidden
+  border: 1px #45C2CC solid
   border-radius: 4px
   width: 90%
   text-align: center
@@ -1235,7 +1235,7 @@ a
     .local-distance
       text-align: center
       text-indent: -5px
-      color: #00AEF0
+      color: #45C2CC
   .local__details
     width: 90%
     margin: 0.5rem 0
@@ -1260,7 +1260,7 @@ a
         margin: auto
       .call-text
         margin-top: 5px
-        color: #00AEF0
+        color: #45C2CC
         white-space: nowrap
 
 #cliqz-message-container
@@ -1504,6 +1504,7 @@ h3.meta__url
 /* End of Old Stuff */
 
 body
+  background-color: #e8e8e8
   padding-bottom: 1rem
 
 .card
@@ -2101,66 +2102,3 @@ em
     margin: 0
     li
       margin: 0.5rem 0
-
-.lotto
-  display: inline-block
-  padding: 0 1rem 1rem
-  .lotto-date
-    font-size: 12px
-    margin-bottom: 5px
-  .row
-    display: block
-    padding: 5px 0 0
-    .lotto-item-wrapper
-        display: inline-block
-        .item
-          width: 2rem
-          height: 2rem
-          line-height: 2rem
-          display: inline-block
-          border: 1px solid #ccc
-          text-align: center
-          font-size: 1rem
-          font-weight: bold
-          margin-bottom: 0.2rem
-        &.circle
-          .item
-            border-radius: 50%
-            width: 2rem
-            height: 2rem
-            line-height: 2rem
-        &.normal
-          .item
-            width: auto
-            height: auto
-            line-height: normal
-            border: none
-            font-weight: normal
-            text-align: left
-        &.highlight-last
-          .item:last-child
-            background-color: #eee
-        &.bold-first
-          .item:first-child
-            padding-right: 0
-            margin-right: 0.5rem
-            font-weight: bold
-    .description
-      font-size: 12px
-      font-style: italic
-    #lotto-table
-      border-top: 1px solid #ccc
-      padding-top: 10px
-      &.hidden
-        display: none
-      .table-head
-        display: table-header-group
-      .table-row
-        display: table-row
-        font-size: 14px
-      span
-        display: table-cell
-        padding-right: 30px
-        padding-bottom: 10px
-      span:nth-child(2), span:nth-child(3), span:nth-child(4)
-        text-align: right

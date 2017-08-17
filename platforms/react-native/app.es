@@ -9,14 +9,12 @@ import coreBG from '../core/background';
 import attrackBG from '../antitracking/background';
 import adblockBG from '../adblocker/background';
 import attrackBlockerBG from '../antitracking-blocker/background';
-import historyBG from '../history/background';
 
 const backgrounds = {
   core: coreBG,
   antitracking: attrackBG,
   adblocker: adblockBG,
   'antitracking-blocker': attrackBlockerBG,
-  history: historyBG,
 };
 
 function shouldEnableModule(name) {
@@ -67,7 +65,7 @@ export default class {
               .catch(e => console.error('App', 'Error on loading module:', module.name, e));
           } catch (e) {
             console.error('App module:', `"${module.name}"`, ' -- something went wrong', e);
-            return Promise.reject(e);
+            return Promise.resolve();
           }
         } else {
           // TODO: should not be here

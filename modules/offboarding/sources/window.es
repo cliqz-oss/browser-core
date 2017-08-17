@@ -7,9 +7,9 @@ export default class {
   constructor({ window, settings }) {
     this.settings = settings;
     this.window = window;
-    this.coreCliqz = inject.module('core-cliqz');
+    this.core = inject.module('core');
 
-    // in case the extension runs in the Cliqz browser we could get fake uninstall
+    // in case the extension runs in the CLIQZ browser we could get fake uninstall
     // signals from the system addon updater so we must remove any offboarding page
     // see https://bugzilla.mozilla.org/show_bug.cgi?id=1351617
     if (settings.channel === '40') {
@@ -34,7 +34,7 @@ export default class {
     const version = this.settings.version;
     const window = this.window;
     if (window === utils.getWindow()) {
-      this.coreCliqz.action('setSupportInfo', 'disabled');
+      this.core.action('setSupportInfo', 'disabled');
       try {
         const UNINSTALL_PREF = 'uninstallVersion';
         const lastUninstallVersion = utils.getPref(UNINSTALL_PREF, '');

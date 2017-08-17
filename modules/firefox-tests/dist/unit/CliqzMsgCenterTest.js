@@ -7,7 +7,7 @@ TESTS.CliqzmessageCenterTestUnit = function (CliqzMsgCenter, CliqzUtils) {
     this.timeout(4000);
 
     var messageCenter, dropdownHandler,
-    freshtabHandlerTop, freshtabHandlerMiddle,
+    freshtabHandler,
     getMessage = function (id, location) {
       return {
         id: id,
@@ -40,9 +40,7 @@ TESTS.CliqzmessageCenterTestUnit = function (CliqzMsgCenter, CliqzUtils) {
     beforeEach(function() {
       messageCenter = new CliqzMsgCenter();
       dropdownHandler = messageCenter._messageHandlers.MESSAGE_HANDLER_DROPDOWN;
-      freshtabHandlerTop = messageCenter._messageHandlers.MESSAGE_HANDLER_FRESHTAB_TOP;
-      freshtabHandlerMiddle = messageCenter._messageHandlers.MESSAGE_HANDLER_FRESHTAB_MIDDLE;
-
+      freshtabHandler = messageCenter._messageHandlers.MESSAGE_HANDLER_FRESHTAB;
     });
 
     afterEach(function (done) {
@@ -58,7 +56,7 @@ TESTS.CliqzmessageCenterTestUnit = function (CliqzMsgCenter, CliqzUtils) {
     context('general tests', function () {
       it('should register all handlers', function() {
         chai.expect(messageCenter._messageHandlers).to.have.all.keys(
-          'MESSAGE_HANDLER_ALERT', 'MESSAGE_HANDLER_DROPDOWN', 'MESSAGE_HANDLER_FRESHTAB_TOP', 'MESSAGE_HANDLER_FRESHTAB_MIDDLE'
+          'MESSAGE_HANDLER_ALERT', 'MESSAGE_HANDLER_DROPDOWN', 'MESSAGE_HANDLER_FRESHTAB'
           );
       });
 

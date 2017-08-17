@@ -14,7 +14,7 @@ export default class {
   }
 
   // TODO: add documentation
-  newProxy(args) {
+  newProxy(...args) {
   }
 
   /**

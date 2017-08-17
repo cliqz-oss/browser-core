@@ -236,6 +236,11 @@ export default class {
 
       this.urlbar.setAttribute('pastetimeout', 0);
 
+      var urlBarGo = document.getElementById('urlbar-go-button');
+      this._urlbarGoButtonClick = urlBarGo.getAttribute('onclick');
+      //we somehow break default FF -> on goclick the autocomplete doesnt get considered
+      urlBarGo.setAttribute('onclick', "CLIQZ.Core.windowModules.ui.urlbarGoClick(); " + this._urlbarGoButtonClick);
+
       var popup = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "panel");
       this.popup = popup;
       this.window.CLIQZ.Core.popup = this.popup;
@@ -259,7 +264,7 @@ export default class {
       }.bind(this));
 
       //mock default FF function
-      this.popup.enableOneOffSearches = function() {};
+      this.popup.enableOneOffSearches = function() {}
 
       // make CMD/CTRL + K equal with CMD/CTRL + L
       this.searchShortcutElements = this.window.document.getElementById('mainKeyset').querySelectorAll('#key_search, #key_search2');
@@ -277,19 +282,9 @@ export default class {
       // Add search history dropdown
       }).then(() => {
         this.reloadUrlbar();
+        this.urlbar.focus();
         this.initialized = true;
         this.elems.push(SearchHistory.insertBeforeElement(this.window));
-
-        var urlBarGo = document.getElementById('urlbar-go-button') ||
-        // FF56+
-        document.getAnonymousElementByAttribute(this.urlbar, 'anonid', 'go-button');
-
-        if (urlBarGo) {
-          this._urlbarGoButtonClick = urlBarGo.getAttribute('onclick');
-          this._urlBarGo = urlBarGo;
-          // we somehow break default FF -> on goclick the autocomplete doesnt get considered
-          this._urlBarGo.setAttribute('onclick', `CLIQZ.Core.windowModules.ui.urlbarGoClick(); ${this._urlbarGoButtonClick}`);
-        }
       });
   }
 
@@ -394,16 +389,11 @@ export default class {
   * @method reloadUrlbar
   */
   reloadUrlbar() {
-    const el = this.urlbar,
-          oldVal = el.value,
-          hadFocus = el.focused;
-
+    const el = this.urlbar;
+    var oldVal = el.value;
     if(el && el.parentNode) {
       el.parentNode.insertBefore(el, el.nextSibling);
       el.value = oldVal;
-      if(hadFocus){
-        el.focus();
-      }
     }
 
     this.applyAdditionalThemeStyles();
@@ -414,7 +404,6 @@ export default class {
 
     urlbar.style.maxWidth = '100%';
     urlbar.style.margin = '0px 0px';
-    urlbar.mInputField.placeholder = utils.getLocalizedString('freshtab.urlbar.placeholder');
   }
 
   /**
@@ -475,6 +464,9 @@ export default class {
     removeStylesheet(this.window.document, STYLESHEET_URL);
 
 
+    this.elems.forEach(item => {
+      item && item.parentNode && item.parentNode.removeChild(item);
+    });
     this.urlbar.setAttribute('autocompletesearch', this._autocompletesearch);
     CliqzEvents.un_sub('ui:popup_hide', this.hidePopup);
 
@@ -494,19 +486,12 @@ export default class {
     this.window.gBrowser.tabContainer.removeEventListener("TabClose",
       this.tabRemoved, false);
 
-    if (this._urlBarGo) {
-      this._urlBarGo.setAttribute('onclick', this._urlbarGoButtonClick);
-    }
 
     var searchContainer = this.window.document.getElementById('search-container');
     if(this._searchContainer){
       searchContainer.setAttribute('class', this._searchContainer);
     }
     this.reloadUrlbar();
-
-    this.elems.forEach(item => {
-      item && item.parentNode && item.parentNode.removeChild(item);
-    });
 
     delete this.window.CLIQZ.UI;
   }
@@ -528,7 +513,7 @@ const urlbarEventHandlers = {
 
     if(this.urlbar.getAttribute('autocompletesearch').indexOf(ACproviderName) === -1){
       // BUMMER!! Something happened and our AC provider was overriden!
-      // trying to set it back while keeping the new value in case Cliqz
+      // trying to set it back while keeping the new value in case CLIQZ
       // gets disabled
       this._autocompletesearch = this.urlbar.getAttribute('autocompletesearch');
       this.urlbar.setAttribute('autocompletesearch', ACproviderName);

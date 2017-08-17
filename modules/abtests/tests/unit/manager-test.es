@@ -9,9 +9,6 @@ const MOCK = {
       error() {},
     },
   },
-  'abtests/demographics': {
-    default: () => mockExtensionVersion,
-  },
   'core/kord/inject': {
     default: {
       module() { return { action() {} }; }
@@ -74,7 +71,6 @@ const mockTest1 = {
 let mockUserDemographics = { };
 let mockSynchronizedDate = Moment(new Date(2017, 5, 1));
 let mockRandom = 0;
-let mockExtensionVersion = null;
 
 export default describeModule('abtests/manager',
   () => MOCK,
@@ -338,7 +334,6 @@ export default describeModule('abtests/manager',
           chai.expect(test.status).to.not.be.undefined;
           return true;
         };
-        manager.isVersionMatch = () => true;
       });
 
       it('returns true if probability threshold is higher than random draw', () => {
@@ -349,18 +344,6 @@ export default describeModule('abtests/manager',
       it('returns false if probability threshold is lower than random draw', () => {
         mockRandom = .4;
         mockTest2.probability = .3;
-        return chai.expect(manager.shouldStartTest(mockTest2)).to.eventually.be.false;
-      });
-      it('returns false if demographics do not match', () => {
-        mockRandom = .4;
-        mockTest2.probability = .5;
-        manager.isDemographicsMatch = () => Promise.resolve(false);
-        return chai.expect(manager.shouldStartTest(mockTest2)).to.eventually.be.false;
-      });
-      it('returns false if version does not match', () => {
-        mockRandom = .4;
-        mockTest2.probability = .5;
-        manager.isVersionMatch = () => false;
         return chai.expect(manager.shouldStartTest(mockTest2)).to.eventually.be.false;
       });
     });
@@ -434,44 +417,6 @@ export default describeModule('abtests/manager',
         chai.expect(manager.isTestActive(mockTest2)).to.be.false;
       });
     });
-    describe('#isVersionMatch', () => {
-      let manager;
-      let mockTest2;
-
-      beforeEach(function () {
-        const Manager = new this.module().default;
-        manager = new Manager();
-
-        mockTest2 = Object.assign({ }, mockTest1);
-      });
-
-      it('returns true for exact match', () => {
-        mockExtensionVersion = '1.0.0';
-        mockTest2.core_version = '1.0.0';
-        chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
-      });
-      it('returns true for partial match', () => {
-        mockExtensionVersion = '1.0.0';
-        mockTest2.core_version = '1.0';
-        chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
-        mockTest2.core_version = '1';
-        chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
-      });
-      it('returns false for no match', () => {
-        mockExtensionVersion = '1.0.0';
-        mockTest2.core_version = '2.0.0';
-        chai.expect(manager.isVersionMatch(mockTest2)).to.be.false;
-        mockTest2.core_version = '2.0';
-        chai.expect(manager.isVersionMatch(mockTest2)).to.be.false;
-        mockTest2.core_version = '2';
-        chai.expect(manager.isVersionMatch(mockTest2)).to.be.false;
-      });
-      it('returns false for missing extension version', () => {
-        mockExtensionVersion = null;
-        mockTest2.core_version = '2.0.0';
-        chai.expect(manager.isVersionMatch(mockTest2)).to.be.false;
-      });
-    });
     describe('#isDemographicsMatch', () => {
       let manager;
 
@@ -485,11 +430,6 @@ export default describeModule('abtests/manager',
 
       it('does not match non-existent factor', () => {
         mockUserDemographics = { platform: 'Desktop/Mac OS/10.12' };
-        return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ' } })).to.eventually.be.false;
-      });
-
-      it('does not fails if anolyis returns `null`', () => {
-        mockUserDemographics = null;
         return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ' } })).to.eventually.be.false;
       });
 

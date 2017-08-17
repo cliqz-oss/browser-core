@@ -16,9 +16,9 @@ export default class {
       mi = doc.createElement('menuitem'),
       prefix = 'history',
       str = {
-        'menu-label': 'Cliqz History',
+        'menu-label': 'CLIQZ History',
         'sidebar-url': this.historyUrl,
-        'sidebar-title': 'Cliqz History',
+        'sidebar-title': 'CLIQZ History',
         'menu-accesskey': 'h',
         'shortcut-key': 'h',
         'shortcut-modifiers': 'control,os'

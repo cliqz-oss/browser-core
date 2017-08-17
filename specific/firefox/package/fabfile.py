@@ -99,7 +99,7 @@ def package(beta='True', version=None, sign='False', channel='browser'):
 
     if sign == 'True':
         local("mv %s UNSIGNED_%s" % (output_file_name, output_file_name))
-        # signs the XPI with the Cliqz certificate
+        # signs the XPI with the CLIQZ certificate
 
         # look for xpi-sign report on the same level as navigation-extension
         local( ("python ../xpi-sign/xpisign.py "
@@ -187,14 +187,13 @@ def publish(beta='True', version=None, channel='browser', pre='True'):
 
     local("rm  %s" % latest_html_file_name)
 
-    username = os.environ['BALROG_ADMIN']
-    password = os.environ['BALROG_PASSWORD']
+    credentials = {}
+    execfile("../fern/release-creds.txt", credentials)
+    auth = (
+        'balrogadmin',
+        credentials['balrog_credentials']['balrogadmin']
+    )
 
-    if not username or not password:
-        raise RuntimeError("Could not run without username or/and password")
-
-    auth = (username, password)
-    
     from fern.submitter import Submitter
     submitter = Submitter(
         release_name="SystemAddons-"+upload_folder,
@@ -264,7 +263,7 @@ def comment_cleaner(path=None):
                         handler.truncate()
                         handler.write(js_comment_removal(content))
                 except:
-                    print 'ERROR', root + '/' + f
+                    print 'ERROR', f
                     raise
 
             else:

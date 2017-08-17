@@ -1,23 +1,14 @@
-import config from '../core/config';
+import FreshTab from './main';
 import prefs from '../core/prefs';
-import { isCliqzBrowser, isWindows, isPlatformAtLeastInVersion } from '../core/platform';
+import utils from '../core/utils';
+import events from '../core/events';
 
-const setupInitialPage = (window, url) => {
-  const urls = [
-    url,
-    `${url}#`,
-    `${url}#/`,
-  ];
-  const initialPages = window.gInitialPages || [];
-
-  urls.forEach((u) => {
-    const isInitialPage = initialPages.indexOf(u) >= 0;
-
-    if (!isInitialPage) {
-      initialPages.push(u);
-    }
-  });
-};
+const cliqzInitialPages = [
+  utils.CLIQZ_NEW_TAB_RESOURCE_URL,
+  utils.CLIQZ_NEW_TAB,
+  `${utils.CLIQZ_NEW_TAB_RESOURCE_URL}#`,
+  `${utils.CLIQZ_NEW_TAB_RESOURCE_URL}#/`,
+];
 
 /**
 * @namespace freshtab
@@ -27,10 +18,19 @@ export default class {
   * @class Window
   * @constructor
   */
-  constructor({ window, background }) {
-    this.background = background;
+  constructor(config) {
+    this.onInstall = prefs.get('new_session');
+    this.window = config.window;
+    this.showNewBrandAlert = config.settings.showNewBrandAlert;
 
-    setupInitialPage(window, config.settings.NEW_TAB_URL);
+    const initialPages = this.window.gInitialPages;
+    cliqzInitialPages.forEach((initialPage) => {
+      const isInitialPage = initialPages.indexOf(initialPage) >= 0;
+
+      if (!isInitialPage) {
+        initialPages.push(initialPage);
+      }
+    });
   }
 
   /**
@@ -46,34 +46,36 @@ export default class {
   status() {
     return {
       visible: true,
-      enabled: this.background.newTabPage.isActive,
+      enabled: FreshTab.isActive(),
     };
   }
 
   showOnboarding() {
-    this.showUnsupportedOsWarning();
-  }
-
-  showUnsupportedOsWarning() {
-    const dismissedAlerts = JSON.parse(prefs.get('dismissedAlerts', '{}'));
+    const dismissedAlerts = JSON.parse(utils.getPref('dismissedAlerts', '{}'));
     const messageType = 'windows-xp-vista-end-of-support';
     const isDismissed = dismissedAlerts[messageType] && dismissedAlerts[messageType].count >= 1;
 
-    if (isDismissed || !isWindows()) {
-      return;
-    }
+    let unsupportedOS = false;
 
-    if (isCliqzBrowser && isPlatformAtLeastInVersion('7.0')) {
-      return;
-    }
+    if (utils.isWindows() && FreshTab.isBrowser && !isDismissed) {
+      try {
+        if (parseFloat(utils.environment.OS_VERSION) <= 6.0) {
+          unsupportedOS = true;
+        }
+      } catch (e) {
+        utils.log('FreshTab: unable to decode OS version');
+      }
 
-    this.background.messageCenter.action(
-      'showMessage',
-      'MESSAGE_HANDLER_FRESHTAB',
-      {
-        id: messageType,
-        template: messageType,
-      },
-    );
+      if (unsupportedOS) {
+        events.pub(
+          'msg_center:show_message',
+          {
+            id: messageType,
+            template: messageType,
+          },
+          'MESSAGE_HANDLER_FRESHTAB'
+        );
+      }
+    }
   }
 }

@@ -1,7 +1,7 @@
 /* eslint no-underscore-dangle: off */
 /* global emit */
 
-import { utils } from '../core/cliqz';
+
 import md5 from '../core/helpers/md5';
 import logger from './logger';
 import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
@@ -10,15 +10,6 @@ import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
 export default class {
   constructor(database) {
     this.database = database;
-    this.buffer = [];
-
-    // Flush database every 2 seconds
-    this.flushInterval = utils.setInterval(
-      () => this.flush(),
-      2000
-    );
-
-    // Push document in bulk at a regular interval
 
     const designDoc = {
       _id: '_design/index',
@@ -38,27 +29,6 @@ export default class {
           limit: 0,
         });
       });
-  }
-
-  unload() {
-    this.flush();
-    utils.clearInterval(this.flushInterval);
-  }
-
-  flush() {
-    if (this.buffer.length > 0) {
-      const buffer = this.buffer;
-      this.buffer = [];
-      return this.database.bulkDocs(buffer);
-    }
-
-    return Promise.resolve();
-  }
-
-  bufferedPut(document) {
-    // Buffer put using a bulk operation
-    this.buffer.push(document);
-    return Promise.resolve(document);
   }
 
   getDocType(doc) {
@@ -91,7 +61,7 @@ export default class {
     return this.database.remove(doc);
   }
 
-  put(doc, buffered = false) {
+  put(doc) {
     const decoratedDoc = doc;
 
     // Add a timestamp
@@ -107,10 +77,9 @@ export default class {
     }
 
     // Insert/Update document
-    if (buffered) {
-      return this.bufferedPut(decoratedDoc);
-    }
-    return this.database.put(decoratedDoc).then(() => decoratedDoc);
+    return this.database.put(decoratedDoc)
+      .catch((ex) => { logger.error(`put exception ${ex} ${JSON.stringify(decoratedDoc)}`); })
+      .then(() => decoratedDoc);
   }
 
   getN(n) {
@@ -173,6 +142,6 @@ export default class {
           // Add a _deleted: true to each document to make sure they are deleted
           documents.map(doc => Object.assign(doc, { _deleted: true }))
         );
-      });
+      }).catch(err => logger.error(`could not deleteByTimespan ${err} ${err.stack}`));
   }
 }

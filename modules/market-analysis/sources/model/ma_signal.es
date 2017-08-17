@@ -14,31 +14,13 @@ const MATimeFrames = {
 };
 
 const MAMetrics = {
-  //------------------------------------------------------------
-  // per user metrics
-  //------------------------------------------------------------
-  U_VISITOR:    'uVisitor',    // unique visitor
-  U_REGISTRANT: 'uRegistrant', // unique registrant
-  U_SHOPPER:    'uShopper',    // unique shopper
-  U_POT_BUYER:  'uPotBuyer',   // unique potential buyer
-  U_BUYER:      'uBuyer',      // unique buyer
-
-  U_IMP:        'uImp',        // (unique visitor) deprecated, use U_VISITOR
-  CR1_IMP:      'cr1Imp',      // deprecated, to be removed
-  CR1_U_IMP:    'cr1UImp',     // (unique shopper) deprecated, use U_SHOPPER
-  CR2_IMP:      'cr2Imp',      // deprecated, to be removed
-  CR2_U_IMP:    'cr2UImp',     // (unique potential buyer) deprecated, use U_POT_BUYER
-
-  //------------------------------------------------------------
-  // per activity metrics
-  // based on session: x-seconds inactivity on a particular domain, or browser is closed
-  //------------------------------------------------------------
-  IMP:          'imp',         // an impression (5-second-session)
-  VISIT:        'v',           // a visit is at least an impression in 30-minute-session
-  REGISTRATION: 'reg',         // a registration (30-minute-session)
-  SHOPPING:     'sho',         // a shopping action (add item to basket, visit "my basket" page, ...) (5-minute-session)
-  CHECKOUT:     'chk',         // a checkout action (payment, coupons, shipping, ... pages) (30-minute-session)
-  TRANSACTION:  'tra',         // a successful transaction (30-minute-session)
+  VISIT:      'v',
+  IMP:        'imp',
+  U_IMP:      'uImp',
+  CR1_IMP:    'cr1Imp',
+  CR1_U_IMP:  'cr1UImp',
+  CR2_IMP:    'cr2Imp',
+  CR2_U_IMP:  'cr2UImp'
 };
 
 /**
@@ -56,25 +38,24 @@ class MASignalBuilder {
    *     "tlcat": "Home"
    *   },
    *   "tfs": {
-   *     "doy": "177"
+   *     "doy": 151,
+   *     "woy": 22,
+   *     "m": 5
    *   },
    *   "metrics": {
    *     "imp": 5,
-   *     "v": 1,
-   *     "reg": 1,
-   *     "sho": 1,
-   *     "chk": 1,
-   *     "tra": 1
+   *     "cr1Imp": 2,
+   *     "cr2Imp": 1
    *   }
    * }
    * @param  {String}     domain
    * @param  {String}     cat
    * @param  {String}     tlcat
-   * @param  {Number}     dayOfYearVal
+   * @param  {TimeFrames} timeframes
    * @param  {Object}     stats
    * @return {Object}
    */
-  static buildSignalForNonUniqueMetrics(domain, cat, tlcat, dayOfYearVal, stats) {
+  static buildSignalForNonUniqueMetrics(domain, cat, tlcat, timeframes, stats) {
     const dict = {};
     dict.isUniqueMetrics = false;
     const groupContainer = {};
@@ -84,22 +65,21 @@ class MASignalBuilder {
     dict.groups = groupContainer;
 
     const tfContainer = {};
-    tfContainer[MATimeFrames.DAY_OF_YEAR] = dayOfYearVal;
+    tfContainer[MATimeFrames.DAY_OF_YEAR] = timeframes.getTFValue(MATimeFrames.DAY_OF_YEAR);
+    tfContainer[MATimeFrames.WEEK_OF_YEAR] = timeframes.getTFValue(MATimeFrames.WEEK_OF_YEAR);
+    tfContainer[MATimeFrames.MONTH] = timeframes.getTFValue(MATimeFrames.MONTH);
     dict.tfs = tfContainer;
 
-    const metrics = [MAMetrics.IMP,
-      MAMetrics.VISIT,
-      MAMetrics.REGISTRATION,
-      MAMetrics.SHOPPING,
-      MAMetrics.CHECKOUT,
-      MAMetrics.TRANSACTION];
     const metricsContainer = {};
-    metrics.forEach((metric) => {
-      if (stats[metric]) {
-        metricsContainer[metric] = stats[metric];
-      }
-    });
-
+    if (stats[MAMetrics.IMP]) {
+      metricsContainer[MAMetrics.IMP] = stats[MAMetrics.IMP];
+    }
+    if (stats[MAMetrics.CR1_IMP]) {
+      metricsContainer[MAMetrics.CR1_IMP] = stats[MAMetrics.CR1_IMP];
+    }
+    if (stats[MAMetrics.CR2_IMP]) {
+      metricsContainer[MAMetrics.CR2_IMP] = stats[MAMetrics.CR2_IMP];
+    }
     dict.metrics = metricsContainer;
     return dict;
   }
@@ -110,42 +90,37 @@ class MASignalBuilder {
    * {
    *   "isUniqueMetrics": true,
    *   "group": {
-   *     "domain": "matratzen-concord.de"
+   *     "tlcat": "Home"
    *   },
-   *   "records": [{
-   *     "metrics": {
-   *       "uVisitor": 1,
-   *       "uRegistrant": 1,
-   *       "uPotBuyer": 1,
-   *       "uBuyer": 1,
-   *       "uShopper": 1
+   *   "records": [
+   *     {
+   *       "metrics": {
+   *         "uImp": 1,
+   *         "cr1UImp": 1
+   *       },
+   *       "tf": {
+   *         "doy": "151"
+   *       }
    *     },
-   *     "tf": {
-   *       "doy": "177"
-   *     }
-   *   }, {
-   *     "metrics": {
-   *       "uVisitor": 1,
-   *       "uRegistrant": 1,
-   *       "uPotBuyer": 1,
-   *       "uBuyer": 1,
-   *       "uShopper": 1
+   *     {
+   *       "metrics": {
+   *         "uImp": 1,
+   *         "cr1UImp": 1
+   *       },
+   *       "tf": {
+   *         "woy": "22"
+   *       }
    *     },
-   *     "tf": {
-   *       "woy": "26"
+   *     {
+   *       "metrics": {
+   *         "uImp": 1,
+   *         "cr1UImp": 1
+   *       },
+   *       "tf": {
+   *         "m": "5"
+   *       }
    *     }
-   *   }, {
-   *     "metrics": {
-   *       "uVisitor": 1,
-   *       "uRegistrant": 1,
-   *       "uPotBuyer": 1,
-   *       "uBuyer": 1,
-   *       "uShopper": 1
-   *     },
-   *     "tf": {
-   *       "m": "6"
-   *     }
-   *   }]
+   *   ]
    * }
    * @param  {String} group
    * @param  {String} groupVal

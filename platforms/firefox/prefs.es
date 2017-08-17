@@ -1,5 +1,4 @@
 const prefs = Services.prefs.getBranch('');
-const complexRegEx = /^chrome:\/\/.+\/locale\/.+\.properties/;
 
 function prefixPref(pref, prefix = 'extensions.cliqz.') {
   return `${prefix}${pref}`;
@@ -14,14 +13,14 @@ export function getPref(key, defaultValue, prefix) {
         let charVal = prefs.getCharPref(pref);
 
         // it might be a complex value
-        if (complexRegEx.test(charVal)) {
+        if (charVal === 'chrome://global/locale/intl.properties') {
           try {
             charVal = prefs.getComplexValue(
               pref,
               Components.interfaces.nsIPrefLocalizedString
             ).data;
           } catch (e) {
-            console.log(`Error fetching pref: ${pref}`);
+            CLIQZEnvironment.log(`Error fetching pref: ${pref}`);
           }
         }
 

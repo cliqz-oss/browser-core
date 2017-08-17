@@ -7,7 +7,7 @@
 </head>
 <body>
     <!--Load the client-side proxy script from a different origin-->
-    <iframe id="tp" src="http://cliqztest2.de:60508/proxyiframe.html" style="width:0px; height: 0px;" frameborder="0"></iframe>
+    <iframe id="tp" src="http://cliqztest.de:60508/proxyiframe.html" style="width:0px; height: 0px;" frameborder="0"></iframe>
     <script>
         // local get
         $.getJSON('/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134', function(data) {
@@ -35,7 +35,7 @@
                     callback : 'func',
                     uid : '04C2EAD03BAB7F5E-2E85855CF4C75134'
                 };
-                var originOfProxy = 'http://cliqztest2.de:60508';
+                var originOfProxy = 'http://cliqztest.de:60508';
 
                 var proxyWindow = $("#tp")[0].contentWindow;
                 proxyWindow.postMessage(proxyParameters, originOfProxy);

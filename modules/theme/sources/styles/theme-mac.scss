@@ -139,6 +139,10 @@ $url-bar-hover-shadow: inset 0 0 2px #aec6de;
     background: none;
 }
 
+.tabbrowser-tab:not([pinned]) {
+    max-width: 195px;
+}
+
 .tabbrowser-tab:hover > .tab-stack > .tab-background:not([visuallyselected="true"]) {
     background: none;
 }
@@ -157,6 +161,10 @@ $url-bar-hover-shadow: inset 0 0 2px #aec6de;
     background: transparent none repeat scroll 0% 0%;
 }
 
+#back-button {
+    border-right: 1px solid #e1e1e1 !important;
+}
+
 #forward-button,
 #back-button {
     width: 37px;
@@ -166,16 +174,11 @@ $url-bar-hover-shadow: inset 0 0 2px #aec6de;
     box-shadow: 0 0 0 0 transparent !important;
     border-radius: 0 !important;
     background-color: transparent !important;
-     border: none !important;
 
     &:hover:not(:-moz-lwtheme):not([disabled="true"]) {
         background-color: $buttons-hover-color !important;
         box-shadow: none !important;
     }
-}
-
-#back-button {
-    border-right: 1px solid #e1e1e1 !important;
 }
 
 window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
@@ -308,7 +311,6 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
             border-top: none;
             margin-top: 1px;
             background: $tab-selected-bg-color !important;
-            border-right: 1px solid $tab-border-color;
         }
     }
 
@@ -341,8 +343,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
 }
 
 .tabs-newtab-button {
-    margin: 0;
-    padding: 0;
+    margin: 0 0 0 2px !important;
     width: 30px;
     border: none !important;
     background: none !important;
@@ -397,7 +398,7 @@ toolbarbutton.bookmark-item:not(.subviewbutton):not(#bookmarks-menu-button),
 }
 
 #nav-bar-customization-target {
-    padding: 0;
+    padding: 0 4px 0 0;
 }
 
 
@@ -499,7 +500,6 @@ notification {
 
 #urlbar,
 .searchbar-textbox {
-    margin: 0;
     font-size: $url-bar-font-size;
 }
 
@@ -514,14 +514,12 @@ notification {
     z-index: 0;
 }
 
-#navigator-toolbox:-moz-window-inactive::after {
-    box-shadow: 0 0.13em 2px 0 rgba(0, 0, 0, 0.35);
-    margin-top: -3px !important;
-    border-top-style: solid;
-}
-
 #main-window:not([chromehidden~="toolbar"]) {
     min-width: 425px;
+}
+
+#PanelUI-button {
+    border-image-slice: 0;
 }
 
 #TabsToolbar .toolbarbutton-1 {
@@ -618,10 +616,7 @@ toolbarbutton#cliqz-cc-btn {
 }
 
 #PanelUI-button {
-    margin-inline-start: -1px;
-    padding-inline-start: 0;
-    border-image-slice: 0;
-    border-inline-start: 0;
+    margin-inline-start: 0;
 }
 
 #nav-bar #PanelUI-menu-button {
@@ -630,6 +625,7 @@ toolbarbutton#cliqz-cc-btn {
     margin: 0 0 0 1px !important;
     min-width: 37px !important;
     border-radius: 0 !important;;
+    border-left: 1px solid #ccc !important;
     box-shadow: none !important;
 
     &:hover {
@@ -638,20 +634,16 @@ toolbarbutton#cliqz-cc-btn {
 }
 
 #TabsToolbar {
-    padding-right: 24px; /*Reserve some space for dragging the window*/
+    padding-right: 60px; /*Reserve some space for dragging the window*/
     min-height: $tabs-height;
 }
 
 #navigator-toolbox:not([inFullscreen]) #tabbrowser-tabs {
-    -moz-margin-start: 12px; /*Move the tabs a bit right to have a clear space from the close-min-max buttons*/
+    -moz-margin-start: 6px; /*Move the tabs a bit right to have a clear space from the close-min-max buttons*/
 }
 
 .tabbrowser-tab:not([pinned]) {
-    -moz-box-flex: 100;
-    max-width: 210px;
-    min-width: 74px;
-    width: 0;
-    transition: min-width 250ms ease-out, max-width 230ms ease-out;
+    max-width: 236px;
 }
 
 .tab-close-button > .toolbarbutton-icon {
@@ -672,7 +664,7 @@ toolbarbutton#cliqz-cc-btn {
 }
 
 #navigator-toolbox:not([inFullscreen="true"]) #tabbrowser-tabs .tabbrowser-arrowscrollbox {
-    margin-inline-start: 37px;
+    margin-inline-start: 44px;
 }
 
 /* END TAB */
@@ -680,12 +672,12 @@ toolbarbutton#cliqz-cc-btn {
 /* BEGIN CUSTOMIZE UI */
 
 #customization-panelHolder #PanelUI-customize {
-    background-color: #00AEF0;
+    background-color: #36c0c0;
 }
 
 #customization-panelHolder #PanelUI-customize:hover,
 #customization-panelHolder #PanelUI-customize:hover:active {
-    background-color: #0078CA;
+    background-color: #3eadb5;
 }
 
 #main-window #customization-panel-container,
@@ -717,35 +709,4 @@ vbox[sidebarcommand=historybroadcaster] {
 //=== Border Customize Pannel
 #main-window[customize-entered] #browser-bottombox, #main-window[customize-entered] #navigator-toolbox > toolbar:not(#TabsToolbar), #main-window[customize-entered] #customization-container {
     border: none !important;
-}
-
-//=========================
-//===== TEST PILOT UI =====
-//=========================
-#main-window[cliqzBrowser="true"] {
-    #cliqz-dropdown {
-        .result {
-            .icons {
-                width: 98px;
-            }
-
-            @media (max-width: 550px) {
-                .abstract {
-                    max-width: 73%;
-                }
-            }
-        }
-
-        .history .buttons span.dot {
-            left: 89px;
-        }
-
-        .history.cluster span.timeline {
-            left: 91px;
-        }
-
-        .padded {
-            padding-left: 108px;
-        }
-    }
 }

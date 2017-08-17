@@ -2,9 +2,6 @@
 
 import random from '../../core/crypto/random';
 import constants from './constants';
-import utils from '../../core/utils';
-
-const { setTimeout } = utils;
 
 // CliqzPeerConnection: encapsulates a RTCDataChannel and RTCPeerConnection
 // TODO: everything that changes CliqzPeerConnection state should be done
@@ -81,7 +78,17 @@ export default class CliqzPeerConnection {
       }
     };
 
-    setTimeout(() => {
+    // this.connection.oniceconnectionstatechange = () => {
+    //   if (connection === this.connection) {
+    //     const state = this.connection.iceconnectionstate;
+    //     if (state === 'failed' || state === 'closed') {
+    //       this.log('Failed ice connection');
+    //       this.close();
+    //     }
+    //   }
+    // };
+
+    cliqzPeer.setTimeout(() => {
       if (this.status !== 'open') {
         this.close('timeout');
       }
@@ -364,7 +371,7 @@ export default class CliqzPeerConnection {
         } catch (e) {
           // Nothing
         }
-        setTimeout(() => {
+        this.cliqzPeer.setTimeout(() => {
           reject();
         }, this.healthCheckTimeout);
       });

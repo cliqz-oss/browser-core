@@ -1,2 +1,1 @@
-
-export default {};
+// not implemented on v8

@@ -273,11 +273,13 @@ export default {
         'maxNumberOfSlots': 3
       },
       {
+        template: 'result',
         title: 'test',
         url: 'https://cliqz.com',
         data: {},
       },
       {
+        template: 'result',
         title: 'cliqz(Browser Firefox)',
         url: 'https://cliqz.com',
         data: {},
@@ -1289,6 +1291,7 @@ export default {
           'maxNumberOfSlots': 1
         },
         {
+          template: 'result',
           title: 'test',
           url: 'https://sdsds.com',
           data: {

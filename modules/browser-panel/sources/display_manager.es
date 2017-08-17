@@ -2,7 +2,6 @@ import { forEachWindow } from '../platform/browser';
 import { queryActiveTabs } from '../core/tabs';
 import inject from '../../core/kord/inject';
 import logger from './logger';
-import { utils } from '../core/cliqz';
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
@@ -10,6 +9,9 @@ import { utils } from '../core/cliqz';
 const MODULE_NAME = 'bp-display-mngr';
 
 
+function linfo(msg) {
+  logger.debug(`${MODULE_NAME} ${msg}`);
+}
 function lwarn(msg) {
   logger.log(`${MODULE_NAME} ${msg}`);
 }
@@ -19,15 +21,13 @@ function lerr(msg) {
 
 export default class DisplayManager {
 
-  constructor(uiConnectorCb) {
+  constructor() {
     // we will have 2 maps to control where to display what
     // elementID -> {urls: set(urls), data: eData}
     // url -> elementID
     this.elemToUrlsMap = {};
     this.urlToElemMap = {};
     this.browserPanel = inject.module('browser-panel');
-    this.timersMap = {};
-    this.uiConnectorCb = uiConnectorCb;
   }
 
   destroy() {
@@ -58,23 +58,9 @@ export default class DisplayManager {
       return false;
     }
 
+    linfo(`displayElement: displaying element ${eID}`);
     let elemCont = this.elemToUrlsMap[eID];
     if (!elemCont) {
-      // we are displaying the element for the first time, we will emit an event
-      // here notifying this.
-      if (this.uiConnectorCb) {
-        this.uiConnectorCb({
-          handler: 'offers',
-          data: {
-            origin: 'browser-panel',
-            type: 'offer-action-signal',
-            data: {
-              action_id: 'offer_dsp_session',
-              offer_id: eID,
-            }
-          }
-        });
-      }
       elemCont = this.elemToUrlsMap[eID] = { urls: new Set(), data: eData };
     }
     elemCont.urls.add(eUrl);
@@ -87,11 +73,6 @@ export default class DisplayManager {
     // show the element in any of the current active tabs if any
     this._showOrHideElementOnActiveTabs();
 
-    // check if we need to add a timer or not for this element
-    if (eData.display_time_secs && !this._hasTimer(eID)) {
-      this._addTimer(eID, eData.display_time_secs);
-    }
-
     return true;
   }
 
@@ -100,7 +81,7 @@ export default class DisplayManager {
    * @param  {[type]} eID [description]
    * @return {[type]}     [description]
    */
-  removeElement(eID, timedOut = false) {
+  removeElement(eID) {
     if (!eID) {
       return;
     }
@@ -115,24 +96,7 @@ export default class DisplayManager {
     });
     delete this.elemToUrlsMap[eID];
 
-    // remove the timer if we have one
-    if (this._hasTimer(eID)) {
-      this._removeTimer(eID);
-    }
-
-    if (timedOut && this.uiConnectorCb) {
-      this.uiConnectorCb({
-        handler: 'offers',
-        data: {
-          origin: 'browser-panel',
-          type: 'offer-action-signal',
-          data: {
-            action_id: 'offer_timeout',
-            offer_id: eID,
-          }
-        }
-      });
-    }
+    linfo(`removeElement: element ${eID} removed`);
 
     // update the current tab if we have to
     this._showOrHideElementOnActiveTabs();
@@ -195,31 +159,9 @@ export default class DisplayManager {
     this.browserPanel.windowAction(win, 'hideElement', args);
   }
 
-  _hasTimer(elemID) {
-    return elemID && this.timersMap[elemID];
-  }
-
-  _addTimer(elemID, secs) {
-    if (!elemID || !secs || secs <= 0) {
-      return;
-    }
-    const currentTimer = this.timersMap[elemID];
-    if (currentTimer) {
-      this._removeTimer(elemID);
-    }
-    this.timersMap[elemID] = utils.setTimeout(() => {
-      this.removeElement(elemID, true); // this will remove the timer
-    }, secs * 1000);
-  }
-
-  _removeTimer(elemID) {
-    if (!elemID) {
-      return;
-    }
-    const currentTimer = this.timersMap[elemID];
-    if (currentTimer) {
-      utils.clearInterval(currentTimer);
-      delete this.timersMap[elemID];
+  _emitSignal(signalType, offerID, data) {
+    if (this.signalCallback) {
+      this.signalCallback({ signal_type: signalType, offer_id: offerID, data });
     }
   }
 

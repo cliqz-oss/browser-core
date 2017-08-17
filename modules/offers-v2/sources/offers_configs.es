@@ -37,25 +37,18 @@ var OffersConfigs = {
 
   // how often we want to send the signals related with the offers to the BE
   // ten minutes
-  SIGNALS_OFFERS_FREQ_SECS: 30,
+  SIGNALS_OFFERS_FREQ_SECS: 10 * 60,
   SIGNALS_HPN_BE_ADDR: 'https://offers-api.cliqz.com/api/v1/savesignal',
   SIGNALS_HPN_BE_ACTION: 'offers-signal',
   // the time we want to keep the signals (accumulating) from the last time
   // the signal was modified (#GR-298)
   SIGNALS_OFFERS_EXPIRATION_SECS: 60 * 60 * 24 * 60, //60 days?
   // the version number of the signal structure we are currently using
-  SIGNALS_VERSION: 3.1,
+  SIGNALS_VERSION: 3.0,
   // debug variable to load / not load the data from DB
   SIGNALS_LOAD_FROM_DB: true,
   // how frequent we want to save into DB
   SIGNALS_AUTOSAVE_FREQ_SECS: 2 * 60,
-  // maximum number of retries sending a signal
-  MAX_RETRIES: 3,
-
-  // adding configs values for the send_signal operation (EX-4976)
-  SEND_SIG_OP_AUTOSAVE_FREQ_SECS: 2 * 60,
-  SEND_SIG_OP_EXPIRATION_SECS: 60 * 60 * 24 * 60, //60 days?
-  SEND_SIG_OP_SHOULD_LOAD: true,
 
   //////////////////////////////////////////////////////////////////////////////
   // CONFIG / DEBUG variables

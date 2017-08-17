@@ -43,7 +43,6 @@ body {
     text-align: center;
     height: 100%;
     overflow: auto;
-    display: flex;
 
     .cqb-website {
         background-image: url(chrome://cliqz/content/onboarding-v3/images/cliqz.svg);
@@ -60,7 +59,7 @@ body {
     }
 
     .content {
-        margin: auto;
+        margin: 20vh 0 10vh;
 
         h1 {
             font-family: "Montserrat", sans-serif;
@@ -86,7 +85,7 @@ body {
         }
 
         .cqb-btn {
-            margin: 80px 0 90px;
+            margin: 80px 0 130px;
             font-family: "Montserrat", sans-serif;
             font-weight: 500;
             cursor: pointer;

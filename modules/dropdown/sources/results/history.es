@@ -1,12 +1,11 @@
 import { equals } from '../../core/url';
 import BaseResult from './base';
-import GenericResult from './generic';
 
 class HistoryResult extends BaseResult {
   get isHistory() { return true; }
 }
 
-export default class HistoryCluster extends GenericResult {
+export default class HistoryCluster extends BaseResult {
   constructor(rawResult, allResultsFlat = []) {
     super(rawResult, allResultsFlat);
 

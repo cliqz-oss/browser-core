@@ -1,19 +1,10 @@
 import inject from '../core/kord/inject';
 import utils from '../core/utils';
-import events from '../core/events';
 import HistoryManager from '../core/history-manager';
 import { getTabsWithUrl, closeTab } from '../core/tabs';
 import { dropdownContextMenuSignal } from './telemetry';
 import config from '../core/config';
 import { copyToClipboard } from '../core/clipboard';
-
-function reportClick(result) {
-  events.pub('ui:click-on-url', {
-    url: result.url,
-    query: result.query,
-    rawResult: result.rawResult,
-  });
-}
 
 export default class ContextMenu {
   constructor(window, rootElement) {
@@ -72,15 +63,15 @@ export default class ContextMenu {
     const menuItems = [
       {
         label: this.inPrivateWindow ? labels[`NEW_${PRIVATE_NAME}_TAB`] : labels.NEW_TAB,
-        command: this.openNewTab.bind(this, url, result),
+        command: this.openNewTab.bind(this, url),
       },
       ...(this.inPrivateWindow ? [] : [{
         label: labels.NEW_WINDOW,
-        command: this.openNewWindow.bind(this, url, result),
+        command: this.openNewWindow.bind(this, url),
       }]),
       {
         label: labels[`NEW_${PRIVATE_NAME}_WINDOW`],
-        command: this.openInPrivateWindow.bind(this, url, result),
+        command: this.openInPrivateWindow.bind(this, url),
       },
       {
         label: labels.COPY_URL,
@@ -124,22 +115,19 @@ export default class ContextMenu {
     return contextMenu;
   }
 
-  openNewWindow(url, result) {
+  openNewWindow(url) {
     utils.openLink(this.window, url, false, true);
     this.telemetry('open_new_window');
-    reportClick(result);
   }
 
-  openNewTab(url, result) {
+  openNewTab(url) {
     utils.openLink(this.window, url, true);
     this.telemetry('open_new_tab');
-    reportClick(result);
   }
 
-  openInPrivateWindow(url, result) {
+  openInPrivateWindow(url) {
     utils.openLink(this.window, url, false, false, true);
     this.telemetry('open_private_window');
-    reportClick(result);
   }
 
   copyURL(url) {

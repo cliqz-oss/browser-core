@@ -1,15 +1,9 @@
-import config from '../core/config';
 import History from '../platform/history/history';
 import background from '../core/base/background';
 import utils from '../core/utils';
 import { queryActiveTabs } from '../core/tabs';
 import createHistoryDTO from './history-dto';
 import { equals } from '../core/url';
-import MixerProxy from './mixer-proxy';
-import RichHeaderProxy from './rich-header-proxy';
-import LRU from '../core/LRU';
-import migrate from './history-migration';
-
 // import Database from '../core/database';
 // import MetaDatabase from './meta-database';
 
@@ -22,40 +16,28 @@ export default background({
   * @method init
   */
   init() {
-    this.mixer = new MixerProxy();
-    this.richHeader = new RichHeaderProxy();
     // const metaDB = new Database('cliqz-metas');
     // this.metaDatabase = new MetaDatabase(metaDB);
     this.history = History;
-    this.redirectMap = new LRU(100);
+    this.redirectMap = Object.create(null);
     this.sessionCounts = new Map();
-
-    this.dbMigration = migrate();
   },
 
   unload() {
-    this.dbMigration.dispose();
   },
 
   beforeBrowserShutdown() {
   },
 
-  getSourceUrl(url, path = []) {
-    const sourceUrl = this.redirectMap.get(url);
+  getSourceUrl(url) {
+    const sourceUrl = this.redirectMap[url];
+    // delete this.redirectMap[url];
 
     if (!sourceUrl) {
       return url;
     }
 
-    // Avoid loops, it is not perfect but must do for now
-    if (path.indexOf(sourceUrl) >= 0) {
-      return sourceUrl;
-    }
-
-    return this.getSourceUrl(sourceUrl, [
-      ...path,
-      sourceUrl,
-    ]);
+    return this.getSourceUrl(sourceUrl);
   },
 
   events: {
@@ -118,7 +100,7 @@ export default background({
 
       const place = {
         uri,
-        title: `${query} - Cliqz Search`,
+        title: `${query} - CLIQZ Search`,
         visits: [{
           visitDate: Date.now() * 1000,
           transitionType: Components.interfaces.nsINavHistoryService.TRANSITION_TYPED,
@@ -147,11 +129,21 @@ export default background({
     },
     'content:state-change': function onStateChange({ url, originalUrl, triggeringUrl }) {
       if (url && triggeringUrl) {
-        this.redirectMap.set(url, triggeringUrl);
+        this.redirectMap[url] = triggeringUrl;
+
+        // clean after some time
+        utils.setTimeout(() => {
+          delete this.redirectMap[url];
+        }, 1000);
       }
 
       if (originalUrl && triggeringUrl) {
-        this.redirectMap.set(originalUrl, triggeringUrl);
+        this.redirectMap[originalUrl] = triggeringUrl;
+
+        // clean after some time
+        utils.setTimeout(() => {
+          delete this.redirectMap[originalUrl];
+        }, 1000);
       }
     },
     'content:location-change': function onLocationChange({ url, triggeringUrl }) {
@@ -177,19 +169,17 @@ export default background({
         domain,
         query,
       }).then(({ places, from, to }) => {
-        // const activeTabs = queryActiveTabs ? queryActiveTabs(utils.getWindow()) : undefined;
-        const dtoP = createHistoryDTO({
+        const activeTabs = queryActiveTabs(utils.getWindow());
+
+        const dto = createHistoryDTO({
           places,
-          // mixer: this.mixer,
-          // activeTabs,
+          activeTabs,
         });
 
-        return dtoP.then(dto => (
-          Object.assign({
-            frameStartsAt: from,
-            frameEndsAt: to,
-          }, dto))
-        );
+        return Object.assign({
+          frameStartsAt: from,
+          frameEndsAt: to,
+        }, dto);
       });
     },
 
@@ -204,7 +194,7 @@ export default background({
     newTab() {
       const window = utils.getWindow();
       const activeTabs = queryActiveTabs(window);
-      const newTabUrl = config.settings.NEW_TAB_URL;
+      const newTabUrl = utils.CLIQZ_NEW_TAB;
       const freshTab = activeTabs.find(tab => tab.url === newTabUrl);
 
       if (freshTab) {
@@ -244,10 +234,6 @@ export default background({
         return sessionCount.promise;
       }
       return Promise.resolve();
-    },
-
-    getNews(domain) {
-      return this.richHeader.getNews(domain);
     },
   },
 });

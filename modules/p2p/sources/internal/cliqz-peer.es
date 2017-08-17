@@ -13,7 +13,6 @@ const OutMessage = _messages.OutMessage;
 const decodeChunk = _messages.decodeChunk;
 const decodeAck = _messages.decodeAck;
 const subtle = crypto.subtle;
-const { setTimeout, clearTimeout, setInterval, clearInterval } = CliqzUtils;
 
 function _closeSocket(socket) {
   const _socket = socket;
@@ -88,6 +87,10 @@ export default class CliqzPeer {
       this.logDebug = () => {};
     }
 
+    this.setTimeout = CliqzUtils.setTimeout.bind(CliqzUtils);
+    this.clearTimeout = CliqzUtils.clearTimeout.bind(CliqzUtils);
+    this.setInterval = CliqzUtils.setInterval.bind(CliqzUtils);
+    this.clearInterval = CliqzUtils.clearInterval.bind(CliqzUtils);
     /**
      * Our identifier, to be used by other peers to connect to us.
      * @type {String}
@@ -361,7 +364,7 @@ export default class CliqzPeer {
         });
       };
       tryCreateSocket();
-      this.signalingConnector = setInterval(tryCreateSocket, 1000);
+      this.signalingConnector = this.setInterval(tryCreateSocket, 1000);
     }
   }
 
@@ -375,7 +378,7 @@ export default class CliqzPeer {
   disableSignaling() {
     if (this.signalingEnabled) {
       this.signalingEnabled = false;
-      clearInterval(this.signalingConnector);
+      this.clearInterval(this.signalingConnector);
       this.signalingConnector = null;
       this.closeSocket();
     }
@@ -575,7 +578,7 @@ export default class CliqzPeer {
       try {
         const socket = new this.WebSocket(this.brokerUrl);
         this.socket = socket;
-        this.socketKiller = setTimeout(() => {
+        this.socketKiller = this.setTimeout(() => {
           if (this.socket === socket) {
             this.closeSocket();
           } else {
@@ -624,7 +627,7 @@ export default class CliqzPeer {
   closeSocket() {
     if (this.socket) {
       if (this.socketKiller) {
-        clearTimeout(this.socketKiller);
+        this.clearTimeout(this.socketKiller);
         this.socketKiller = null;
       }
       _closeSocket(this.socket);
@@ -667,23 +670,16 @@ export default class CliqzPeer {
       return Promise.resolve();
     }
     return Promise.resolve().then(() => (this.signalingEnabled ? this.createConnection() : null))
-    .then(() => {
-      if (!has(this.connections, requestedPeer)) {
-        this.logDebug('Trying to connect to peer', requestedPeer);
-        if (!has(this.connectionPromises, requestedPeer)) {
-          this.connectionPromises[requestedPeer] = {};
-          this.connectionPromises[requestedPeer].promise = new Promise((resolve, reject) => {
-            this.connectionPromises[requestedPeer].resolve = resolve;
-            this.connectionPromises[requestedPeer].reject = reject;
-          });
-        }
-        if (!has(this.pendingConnections, requestedPeer)) {
-          this._createConnection(requestedPeer, true);
-        }
-        return this.connectionPromises[requestedPeer].promise;
+    .then(() => new Promise((resolve, reject) => {
+      this.logDebug('Trying to connect to peer', requestedPeer);
+      if (!has(this.connectionPromises, requestedPeer)) {
+        this.connectionPromises[requestedPeer] = [];
       }
-      return null;
-    });
+      this.connectionPromises[requestedPeer].push([resolve, reject]);
+      if (!has(this.pendingConnections, requestedPeer)) {
+        this._createConnection(requestedPeer, true);
+      }
+    }));
   }
 
   /**
@@ -783,11 +779,8 @@ export default class CliqzPeer {
         this.connections[peer] = this.pendingConnections[peer];
         delete this.pendingConnections[peer];
         this.connectionRetries[peer] = 0;
-        if (has(this.connectionPromises, peer)) {
-          const promise = this.connectionPromises[peer];
-          delete this.connectionPromises[peer];
-          promise.resolve();
-        }
+        const promises = has(this.connectionPromises, peer) ? this.connectionPromises[peer] : [];
+        promises.splice(0, promises.length).forEach(p => p[0]()); // Resolve
         if (this.onconnect) {
           this.onconnect(peer);
         }
@@ -826,8 +819,7 @@ export default class CliqzPeer {
       };
       connection.onclose = (status) => {
         this.logDebug(`connection with ${peer} closed`, status);
-        const promise = this.connectionPromises[peer];
-        delete this.connectionPromises[peer];
+        const promises = has(this.connectionPromises, peer) ? this.connectionPromises[peer] : [];
         if (connection === this.pendingConnections[peer]) {
           delete this.pendingConnections[peer];
           this.connectionRetries[peer] = (this.connectionRetries[peer] || 0) + 1;
@@ -852,15 +844,13 @@ export default class CliqzPeer {
                 this.stats.inconnerror.noconnectivity += 1;
               }
             }
-            if (promise) {
-              promise.reject(`could not connect to ${peer}`); // Reject...
-            }
+            promises.splice(0, promises.length).forEach(p => p[1](`could not connect to ${peer}`)); // Reject...
           } else if (isLocal) {
             this._createConnection(peer, true);
           }
         } else if (connection === this.connections[peer]) {
           delete this.connections[peer];
-          if (promise) {
+          if (promises.length > 0) {
             this.logError('Connection promises should be empty here!');
           }
           if (this.ondisconnect) {
@@ -969,7 +959,7 @@ export default class CliqzPeer {
       if (route) {
         this.peerID = route;
         this.connectionStatus = 'routed';
-        clearTimeout(this.socketKiller);
+        this.clearTimeout(this.socketKiller);
         this.socketKiller = null;
         this.lastSocketTime = 0;
         this.socketRetrials = 0;
@@ -994,16 +984,11 @@ export default class CliqzPeer {
       const from = data.data.from;
       const id = data.data.id;
       if (data.data.error === 'no such route') {
-        if (from === CliqzPeer.pingName) {
-          clearTimeout(this.pingKiller);
-          this.pingKiller = null;
+        const conn = this._getPendingConnection(from);
+        if (conn) {
+          conn.noSuchRoute(id);
         } else {
-          const conn = this._getPendingConnection(from);
-          if (conn) {
-            conn.noSuchRoute(id);
-          } else {
-            this.logDebug(data, `received no_such_route_error for unexisting pending connection with ${from}`);
-          }
+          this.logDebug(data, `received no_such_route_error for unexisting pending connection with ${from}`);
         }
       } else {
         this.logError(data, 'unknown send_response');
@@ -1071,27 +1056,6 @@ export default class CliqzPeer {
     }
   }
 
-  static get pingTimeout() {
-    return 2000;
-  }
-
-  static get pingName() {
-    return '________________________________PING________________________________';
-  }
-
-  _ping() {
-    if (!this.lastPing || Date.now() - this.lastPing > CliqzPeer.pingTimeout) {
-      const socket = this.socket;
-      this.pingKiller = setTimeout(() => {
-        if (socket === this.socket) {
-          this.closeSocket();
-        }
-      }, CliqzPeer.pingTimeout);
-      this.lastPing = Date.now();
-      this._sendSignaling(CliqzPeer.pingName, '', 0);
-    }
-  }
-
   _sendSignaling(to, _data, id) {
     const pr = this.encryptSignaling ? this.encryptSignaling(_data, to) : Promise.resolve(_data);
     pr.then((data) => {
@@ -1099,7 +1063,6 @@ export default class CliqzPeer {
         this.onsignaling(to, { data, id, from: this.peerID });
       }
       if (this.signalingEnabled) {
-        this._ping(); // To detect "stale" socket, seen in some devices when you switch WIFI off/on
         this._sendSocket('send', {
           to,
           data,

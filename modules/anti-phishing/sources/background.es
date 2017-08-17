@@ -1,75 +1,49 @@
 import utils from '../core/utils';
-import CliqzAntiPhishing from './anti-phishing';
-import background from '../core/base/background';
-import inject from '../core/kord/inject';
-import * as datetime from 'antitracking/time';
-
-function addDataToUrl(...args) {
-  const hw = inject.module('human-web');
-  return hw.action('addDataToUrl', ...args);
-}
+import CliqzAntiPhishing from 'anti-phishing/anti-phishing';
+import CliqzHumanWeb from 'human-web/human-web';
 
 function updateBlackWhiteStatus(req, md5Prefix) {
-  const hour = datetime.getTime();
   const response = req.response;
   const blacklist = JSON.parse(response).blacklist;
   const whitelist = JSON.parse(response).whitelist;
-  const blackWhiteList = CliqzAntiPhishing.blackWhiteList.value;
-  if (!(blackWhiteList[md5Prefix])) {
-    blackWhiteList[md5Prefix] = {
-      h: hour,
-    };
+  if (!(md5Prefix in CliqzAntiPhishing.blackWhiteList)) {
+    CliqzAntiPhishing.blackWhiteList[md5Prefix] = {};
   }
   for (let i = 0; i < blacklist.length; i++) {
-    blackWhiteList[md5Prefix][blacklist[i][0]] = `black:${blacklist[i][1]}`;
+    CliqzAntiPhishing.blackWhiteList[md5Prefix][blacklist[i][0]] = `black:${blacklist[i][1]}`;
   }
   for (let i = 0; i < whitelist.length; i++) {
-    blackWhiteList[md5Prefix][whitelist[i]] = 'white';
+    CliqzAntiPhishing.blackWhiteList[md5Prefix][whitelist[i]] = 'white';
   }
-  CliqzAntiPhishing.blackWhiteList.setDirty();
 }
 
 function checkStatus(url, md5Prefix, md5Surfix) {
-  const blackWhiteList = CliqzAntiPhishing.blackWhiteList.value;
-  const bw = blackWhiteList[md5Prefix];
+  const bw = CliqzAntiPhishing.blackWhiteList[md5Prefix];
   const status = md5Surfix in bw && bw[md5Surfix].includes('black');
-  if (status) {
-    addDataToUrl(url, 'anti-phishing', 'block')
-    .catch(() => console.log('failed to update url', url));
+  if (status && CliqzHumanWeb && CliqzHumanWeb.state.v[url]) {
+    CliqzHumanWeb.state.v[url]['anti-phishing'] = 'block';
   }
   return status;
 }
 
-export default background({
+export default {
   init(/* settitng */) {
-    CliqzAntiPhishing.init();
   },
 
   unload() {
-    CliqzAntiPhishing.unload();
-  },
-
-  beforeBrowserShutdown() {
-    CliqzAntiPhishing.unload();
   },
 
   actions: {
     isPhishingURL(url) {
-      if(!CliqzAntiPhishing.isAntiPhishingActive()) {
-        return {
-          block: false,
-          type: 'phishingURL',
-        };
-      }
+      if(!CliqzAntiPhishing.isAntiPhishingActive()) return;
 
       const [md5Prefix, md5Surfix] = CliqzAntiPhishing.getSplitMd5(url);
 
       // check if whitelisted
-      const forceWhiteList = CliqzAntiPhishing.forceWhiteList.value;
-      if (md5Prefix in forceWhiteList) {
-        if (forceWhiteList[md5Prefix] === 2) {
+      if (md5Prefix in CliqzAntiPhishing.forceWhiteList) {
+        if (CliqzAntiPhishing.forceWhiteList[md5Prefix] === 2) {
           utils.setTimeout(() => {
-            delete forceWhiteList[md5Prefix];
+            delete CliqzAntiPhishing.forceWhiteList[md5Prefix];
           }, 1000);
         }
         return {
@@ -79,10 +53,7 @@ export default background({
       }
 
       // check cache
-      CliqzAntiPhishing.clearBWList();
-      const blackWhiteList = CliqzAntiPhishing.blackWhiteList.value;
-      if (blackWhiteList[md5Prefix] && blackWhiteList[md5Prefix][md5Surfix] &&
-      !blackWhiteList[md5Prefix][md5Surfix].startsWith('suspicious')) {
+      if (md5Prefix in CliqzAntiPhishing.blackWhiteList) {
         return {
           block: checkStatus(url, md5Prefix, md5Surfix),
           type: 'phishingURL',
@@ -106,32 +77,5 @@ export default background({
         });
       }
     },
-
-    activator(state, url) {
-      switch (state) {
-        case 'active':
-          CliqzAntiPhishing.removeForceWhitelist(url);
-          utils.setPref('cliqz-anti-phishing-enabled', true);
-          break;
-        case 'off_website':
-        case 'inactive':
-          utils.setPref('cliqz-anti-phishing-enabled', true);
-          CliqzAntiPhishing.whitelist(url);
-          break;
-        case 'critical':
-        case 'off_all':
-          CliqzAntiPhishing.removeForceWhitelist(url);
-          utils.setPref('cliqz-anti-phishing-enabled', false);
-          break;
-        default:
-          break
-      }
-    }
   },
-
-  events: {
-    'human-web:active-url': function onActiveUrl(...args) {
-      return CliqzAntiPhishing.onHwActiveURL(...args);
-    },
-  }
-});
+};

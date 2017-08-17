@@ -10,17 +10,16 @@ panel[viewId="cliqz-offers-cc-btn-panel"] .panel-mainview {
     width: 600px;
     //height: 400px;
 }
-#cliqz-offers-cc-btn {
-    padding: 0px;
-}
+
 .cliqz-offers-cc {
     position: relative;
-    padding: 10px 14px !important;
+    height: 31px;
+    padding: 8px 4px 0 32px;
     color: transparent;
-    background-repeat: no-repeat !important;
-    background-position: center center !important;;
-    background-size: 16px !important;
-    background-image: url(../images/offers-cc-icon.svg) !important;
+    background-repeat: no-repeat;
+    background-position: 8px 3px;
+    background-size: 20px;
+    background-image: url(../images/offers-cc-icon.svg);
 
     &[state="new-offers"] {
         &:before {

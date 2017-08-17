@@ -4,18 +4,12 @@ import { StyleSheet, View, Text, Image } from 'react-native';
 import utils from '../../modules/core/utils';
 
 
-export default class extends React.Component {
+class Icon extends React.Component {
 
   render() {
     const url = this.props.url;
-    const width = this.props.width || 50;
-    const height = this.props.height || 50;
     const urlDetails = utils.getDetailsFromUrl(url);
-    const logoDetails = this.props.logoDetails || utils.getLogoDetails(urlDetails);
-    if (!logoDetails) {
-      return null;
-    }
-
+    const logoDetails = utils.getLogoDetails(urlDetails);
     if (logoDetails.backgroundImage) {
       const iconUrl = logoDetails.backgroundImage
                       .replace('url(', '')
@@ -23,15 +17,15 @@ export default class extends React.Component {
                       .replace(/\$.*/, '$_192.png');
       return (
           <Image
-            style={{width, height}}
+            style={{width: 50, height: 50}}
             source={{uri: iconUrl}}
           />
-      )
+      )  
     } else {
       const text = logoDetails.text;
       const background = logoDetails.backgroundColor;
       const textColor = logoDetails.color;
-      const style = defaultIconStyle(textColor, background, width, height);
+      const style = defaultIconStyle(textColor, background);
       return (
         <View style={style.containter} >
           <Text style={style.text}>{text}</Text>
@@ -41,12 +35,12 @@ export default class extends React.Component {
   }
 }
 
-const defaultIconStyle = function (textColor, backgroundColor, width, height) {
+const defaultIconStyle = function (textColor, backgroundColor) {
   backgroundColor = `#${backgroundColor}`;
   return StyleSheet.create({
     containter: {
-      width,
-      height,
+      width: 50,
+      height: 50,
       backgroundColor,
       justifyContent: 'center',
       alignItems: 'center',
@@ -55,4 +49,7 @@ const defaultIconStyle = function (textColor, backgroundColor, width, height) {
       color: textColor,
     }
   });
+
 }
+
+export default Icon;

@@ -26,6 +26,19 @@ export default class EmptyEnvironment {
     // return promise
   }
 
+  addOffer(offerPayload) {
+  }
+
+  displayOffer(offerId, ruleInfo) {
+  }
+
+  removeOffer(offerId) {
+  }
+
+  isOfferActive(offerId) {
+    return false;
+  }
+
   offerStatus(offerId, key) {
     return undefined;
   }

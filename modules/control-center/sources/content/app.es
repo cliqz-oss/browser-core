@@ -133,36 +133,6 @@ $('#control-center').on('click', '[antiTrackingStatusChanger]', function(ev){
   });
 });
 
-$('#control-center').on('click', '[antiPhishingStatusChanger]', function(ev){
-  var state,
-      type = $(this).attr('data-type'), status;
-  if (type === 'switch') {
-    state = $(this).closest('.frame-container').attr('state');
-    //make this website default
-    var $switches = $(this).closest('.switches'),
-        options = $switches.find('.dropdown-content-option'),
-        defaultSelect = $switches.find('.dropdown-content-option[data-state="off_website"]');
-    options.removeClass('selected');
-    defaultSelect.addClass('selected');
-  } else {
-    state = $(this).attr('data-state');
-  }
-
-  if(isOnboarding()) {
-    return;
-  }
-
-  sendMessageToWindow({
-    action: 'anti-phishing-activator',
-    data: {
-      type: type,
-      state: state,
-      status: $(this).closest('.frame-container').attr('state'),
-      url: $(this).closest('.frame-container').attr('url'),
-    }
-  });
-});
-
 $('#control-center').on('click', '[adBlockerStatusChanger]', function(ev){
   var state,
       type = $(this).attr('data-type'),
@@ -241,10 +211,9 @@ function compile(obj) {
   return Object.keys(obj.companies)
       .map(function (companyName) {
         var domains = obj.companies[companyName];
-        const companySlug = obj.companyInfo[companyName].slug || companyName.replace(/ /g,"_").toLowerCase();
         var company = {
           name: companyName,
-          watchDogUrl: `https://apps.ghostery.com/apps/${companySlug}`,
+          watchDogName: companyName.replace(/ /g,"-"),
           domains: domains.map(function (domain) {
             var domainData = obj.trackers[domain];
             return {

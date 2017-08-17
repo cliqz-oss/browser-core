@@ -206,8 +206,4 @@ export default {
   trimNumbers(number) {
     return Math.round(number);
   },
-
-  escapeQuotations(str = '') {
-    return str.replace(/\'/g, '\\\'').replace(/\"/g, '\\\"');
-  },
 };

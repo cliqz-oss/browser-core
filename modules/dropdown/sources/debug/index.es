@@ -8,7 +8,6 @@ import AdultQuestion from './fixtures/adult-question';
 import LocationSharing from './fixtures/location-sharing';
 import UiCutOff from './fixtures/ui-cut-off';
 import Lotto from './fixtures/lotto';
-import Offers from './fixtures/offers';
 
 const tests = {
   ...SimpleResult,
@@ -21,7 +20,6 @@ const tests = {
   ...LocationSharing,
   ...UiCutOff,
   ...Lotto,
-  ...Offers,
 };
 Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
 const System = CLIQZ.System;
@@ -30,7 +28,6 @@ const Results = System.get('dropdown/results').default;
 const AdultAssistant = System.get('dropdown/adult-content-assistant').default;
 const LocationAssistant = System.get('dropdown/location-sharing-assistant').default;
 const NavigateToResult = System.get('dropdown/results/navigate-to').default;
-const SupplementarySearchResult = System.get('dropdown/results/supplementary-search').default;
 const stylesheet = document.createElement('link');
 stylesheet.setAttribute('rel', 'stylesheet');
 stylesheet.setAttribute('href', 'chrome://cliqz/content/dropdown/styles/styles.css?r='+Date.now())
@@ -61,15 +58,9 @@ function render(id, query, rawResults) {
   let adultAssistant = new AdultAssistant();
   let locationAssistant = new LocationAssistant({});
   const results = new Results({ query, rawResults, sessionCountPromise, queryCliqz, adultAssistant, locationAssistant });
-  if(query == 'query'){
-    results.prepend(
-      new SupplementarySearchResult({ text: query })
-    );
-  } else {
-    results.prepend(
-      new NavigateToResult({ text: 'https://cliqz.com' })
-    );
-  }
+  results.prepend(
+    new NavigateToResult({ text: 'https://cliqz.com' })
+  );
   dropdown.renderResults(results);
 }
 

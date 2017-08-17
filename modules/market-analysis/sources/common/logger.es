@@ -8,12 +8,12 @@ import MAConfigs from '../conf/ma_configs';
  */
 const logger = new Logger({
   useDump: false,
-  level: MAConfigs.LOG_LEVEL,
+  level: 'log',
   prefix: '[market-analysis]'
 });
 
 logger.logObject = (obj) => {
-  if (MAConfigs.IS_LOGGING_ENABLED) {
+  if (MAConfigs.IS_LOGGING_ENABELD) {
     // log object while keeping its state
     // since this is an expensive operation, we do it only if logging is enabled
     logger.debug(JSON.parse(JSON.stringify(obj)));

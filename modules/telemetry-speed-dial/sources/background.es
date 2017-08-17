@@ -103,7 +103,7 @@ export default background({
                   msg.action = 'speedial.missinglogos';
                   msg.payload = {'d': eachDomain[1]};
                   humanWeb.telemetry(msg);
-                  utils.log(`Logo for domain ${eachDomain} is missing`)
+                  console.log(`Logo for domain ${eachDomain} is missing`)
               });
               utils.setPref('checkLogos', '2');
             })

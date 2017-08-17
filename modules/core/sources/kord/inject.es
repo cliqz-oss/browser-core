@@ -4,15 +4,17 @@ let app;
 
 export class ModuleMissingError extends Error {
   constructor(moduleName) {
-    super(`module '${moduleName}' is missing`);
+    super();
     this.name = 'ModuleMissingError';
+    this.message = `module '${moduleName}' is missing`;
   }
 }
 
 export class ModuleDisabledError extends Error {
   constructor(moduleName) {
-    super(`module '${moduleName}' is disabled`);
+    super();
     this.name = 'ModuleDisabledError';
+    this.message = `module '${moduleName}' is disabled`;
   }
 }
 

@@ -33,6 +33,7 @@ var CLIQZEnvironment = {
   RESULTS_PROVIDER: 'https://api.cliqz.com/api/v2/results?q=',
   RICH_HEADER: 'https://api.cliqz.com/api/v2/rich-header?path=/v2/map',
   TEMPLATES_PATH: 'mobile-ui/templates/',
+  LOCALE_PATH: 'static/locale/',
   RESULTS_LIMIT: 3,
   RERANKERS: [],
   RESULTS_TIMEOUT: 60000, // 1 minute
@@ -41,8 +42,7 @@ var CLIQZEnvironment = {
       'entity-generic': true,
       'entity-video-1': true,
       'vod': true,
-      'movie-vod': true,
-      "lotto": true,
+      'movie-vod': true
   },
   PARTIALS: [
       'url',
@@ -61,6 +61,10 @@ var CLIQZEnvironment = {
      return template &&
             !CLIQZEnvironment.TEMPLATES[template] &&
             !CLIQZEnvironment.KNOWN_TEMPLATES.hasOwnProperty(template);
+  },
+  getBrandsDBUrl: function(version){
+    //TODO - consider the version !!
+    return 'static/brands_database.json'
   },
   resultsHandler: function (r) {
 
@@ -84,6 +88,8 @@ var CLIQZEnvironment = {
     e = decodeURIComponent(e);
 
     CLIQZEnvironment.setCurrentQuery(e);
+
+    e = e.toLowerCase().trim();
 
     CLIQZEnvironment.lastSearch = e;
 
@@ -141,8 +147,6 @@ var CLIQZEnvironment = {
     return storage.getObject('defaultSearchEngine', CLIQZEnvironment.GOOGLE_ENGINE);
   },
   addEngineWithDetails() {
-  },
-  removeEngine() {
   },
 };
 

@@ -117,10 +117,10 @@
         "message": "$1 (ouvrir dans un nouvel onglet)"
     },
     "whatIsCliqz":{
-        "message": "Qu'est-ce que Cliqz ?"
+        "message": "Qu'est-ce que CLIQZ ?"
     },
     "whatIsCliqzTry":{
-        "message": "Qu'est-ce que Cliqz ? <-- essayez-le, exemple : « météo Toulouse »"
+        "message": "Qu'est-ce que CLIQZ ? <-- essayez-le, exemple : « météo Toulouse »"
     },
     "btnPrivacyDashboard": {
         "message": "Panneau de transparence"
@@ -159,7 +159,7 @@
         "message": "Alerte de sécurité"
     },
     "anti-phishing-txt1": {
-        "message": "Cliqz a bloqué l'accès à "
+        "message": "CLIQZ a bloqué l'accès à "
     },
     "anti-phishing-txt2": {
         "message": " car il a été reporté comme étant un site de hameçonnage. Les sites de hameçonnage ont l'apparence de sites de confiance afin de vous soustraire vos identifiants, mots de passe et autres informations sensibles"
@@ -189,7 +189,7 @@
         "message": "Désactiver AdBlock Plus sur BILD.de"
     },
     "adblockbildWarning":{
-        "message": "Voulez-vous que Cliqz désactive AdBlock Plus sur BILD.de ? (AdBlock Plus restera actif sur tous les autres sites) "
+        "message": "Voulez-vous que CLIQZ désactive AdBlock Plus sur BILD.de ? (AdBlock Plus restera actif sur tous les autres sites) "
     },
     "urlBarLastSearch":{
         "message":"↵  "
@@ -276,7 +276,7 @@
         "message":"il y a $1 ans"
     },
     "onCalloutSameResult":{
-        "message":"Désolé de vous interrompre. Saviez-vous que vous pouviez obtenir le même résultat en utilisant Cliqz ?"
+        "message":"Désolé de vous interrompre. Saviez-vous que vous pouviez obtenir le même résultat en utilisant CLIQZ ?"
     },
     "onCalloutSameResultBtnOk":{
         "message":"J'ai compris !"
@@ -285,7 +285,7 @@
         "message":"Ne plus montrer."
     },
     "onCalloutSmartCliqz":{
-        "message":"Désolé de vous interrompre. Saviez-vous que vous pouviez obtenir le même résultat en utilisant Cliqz ?"
+        "message":"Désolé de vous interrompre. Saviez-vous que vous pouviez obtenir le même résultat en utilisant CLIQZ ?"
     },
     "onCalloutSmartCliqzBtnOk":{
         "message":"J'ai compris !"
@@ -303,7 +303,7 @@
         "message":"Ne plus montrer."
     },
     "onCalloutIntro":{
-        "message":"Ceci est votre nouvelle barre de saisie Cliqz"
+        "message":"Ceci est votre nouvelle barre de saisie CLIQZ"
     },
     "onCalloutIntroBtnStart":{
         "message":"Visite guidée"
@@ -321,16 +321,16 @@
        "message":"Montrer de nouveau"
     },
     "onCalloutTypeHere":{
-       "message":"Toutes les actions de Cliqz ont lieu dans votre barre d'adresse. Entrez-y simplement votre requête ou une adresse Web."
+       "message":"Toutes les actions de CLIQZ ont lieu dans votre barre d'adresse. Entrez-y simplement votre requête ou une adresse Web."
     },
     "onCalloutCliqzResults":{
-       "message":"Cliqz affiche les sites Web suggérés dans son menu au fur et à mesure que vous écrivez."
+       "message":"CLIQZ affiche les sites Web suggérés dans son menu au fur et à mesure que vous écrivez."
     },
     "onCalloutLandingPage":{
        "message":"Passez plus de temps où vous souhaitez aller ; Arrêtez de rechercher & commencez à surfer"
     },
     "onCalloutClickHere":{
-       "message":"Cliquer pour choisir un résultat de Cliqz"
+       "message":"Cliquer pour choisir un résultat de CLIQZ"
     },
     "onCalloutNowYou":{
        "message":"Commencer à surfer !"
@@ -339,37 +339,37 @@
        "message":"Entrer ici une requête ou une adresse Web"
     },
     "onMsgInstalled":{
-       "message":"Installation réussie ! Vous pouvez maintenant surfer avec Cliqz !"
+       "message":"Installation réussie ! Vous pouvez maintenant surfer avec CLIQZ !"
     },
     "onMsgDemoDone":{
         "message":"Essayez-le !"
     },
     "onMsgThankYou":{
-       "message":"Merci d'avoir installé Cliqz !"
+       "message":"Merci d'avoir installé CLIQZ !"
     },
     "onMsgExplanation":{
-       "message":"Cliqz vous permet de surfer directement à partir de la barre d'adresse."
+       "message":"CLIQZ vous permet de surfer directement à partir de la barre d'adresse."
     },
     "offRes_Cliqz":{
-        "message":"Cliqz"
+        "message":"CLIQZ"
     },
     "offRes_AboutCliqz":{
-        "message":"Cliqz - À propos de nous"
+        "message":"CLIQZ - À propos de nous"
     },
     "offRes_Privacy":{
-        "message":"Cliqz - Vie privée"
+        "message":"CLIQZ - Vie privée"
     },
     "offRes_Support":{
-        "message":"Cliqz - Support"
+        "message":"CLIQZ - Support"
     },
     "offRes_Team":{
-        "message":"Cliqz - L'équipe"
+        "message":"CLIQZ - L'équipe"
     },
     "offTitle":{
         "message":"le nouveau moyen pour surfer sereinement."
     },
     "offBtn":{
-        "message":"Essayez Cliqz !"
+        "message":"Essayez CLIQZ !"
     },
     "offMessage":{
         "message":"Entrez votre requête dans la barre d'adresse – Visualisez immédiatement les résultats"
@@ -651,7 +651,7 @@
         "message": "P/E ratio(ttm)"
     },
     "btnFreshTab": {
-      "message": "Activer Cliqz Tab"
+      "message": "Activer CLIQZ Tab"
     },
     "publish_date": {
         "message": "Publié le"
@@ -663,7 +663,7 @@
         "message": "Copié"
     },
     "updateMessage":{
-        "message": "Cliqz vient d'être mis à jour (vers sa version la plus récente)."
+        "message": "CLIQZ vient d'être mis à jour (vers sa version la plus récente)."
     },
     "updatePage":{
         "message": "Découvrir les nouveautés"
@@ -792,7 +792,7 @@
       "message": "Oubli"
     },
     "cMenuFeedback": {
-      "message": "Commentaires pour Cliqz"
+      "message": "Commentaires pour CLIQZ"
     },
     "cMenuRemoveFromHistory": {
       "message": "Enlever de l'historique"
@@ -963,7 +963,7 @@
       "message": "Veuillez vérifier puis réessayer."
     },
     "dataCollection": {
-      "message": "Afin d'améliorer votre expérience utilisateur lors de la recherche et de la navigation Web, Cliqz pour Firefox transfert anonymement des informations sur les requêtes et les sites visités aux serveurs Cliqz dans un parfait respect de votre vie privée."
+      "message": "Afin d'améliorer votre expérience utilisateur lors de la recherche et de la navigation Web, CLIQZ pour Firefox transfert anonymement des informations sur les requêtes et les sites visités aux serveurs Cliqz dans un parfait respect de votre vie privée."
     },
     "learnMore": {
       "message": "En savoir plus"
@@ -975,25 +975,25 @@
       "message": "Déclaration de confidentialité"
     },
     "humanWeb3": {
-      "message": "« Human Web » collecte les données d'utilisation de Cliqz anonymement et en parfait respect de votre vie privée."
+      "message": "« Human Web » collecte les données d'utilisation de CLIQZ anonymement et en parfait respect de votre vie privée."
     },
     "humanWeb4": {
       "message": "Un pour tous. Tous pour un. Ensemble pour un internet meilleur."
     },
     "humanWeb5": {
-      "message": "En utilisant Cliqz, vous bénéficiez de la connaissance de la communauté. La communauté des utilisateurs contribue – en tout anonymat – aux statistiques Web. Notre moteur de recherche utilise ces données afin de déterminer la pertinence, la fiabilité et la sécurité des sites Web. Nous appelons cette technologie, qui permet d'indexer le Web grâce à la communauté, « Human Web »."
+      "message": "En utilisant CLIQZ, vous bénéficiez de la connaissance de la communauté. La communauté des utilisateurs contribue – en tout anonymat – aux statistiques Web. Notre moteur de recherche utilise ces données afin de déterminer la pertinence, la fiabilité et la sécurité des sites Web. Nous appelons cette technologie, qui permet d'indexer le Web grâce à la communauté, « Human Web »."
     },
     "humanWeb6": {
-      "message": "La technologie « Human Web » de Cliqz calcule statistiquement le traffic des sites Web visités par tous les utilisateurs de la communauté « Human Web » par exemple : les adresses Web des sites (URLs) et le temps écoulé. Les données sont transférées en tout anonymat, sans référence aux informations personnelles ou à l'identité de l'utilisateur. Les adresses IP sont exclues automatiquement des données de « Human Web »."
+      "message": "La technologie « Human Web » de CLIQZ calcule statistiquement le traffic des sites Web visités par tous les utilisateurs de la communauté « Human Web » par exemple : les adresses Web des sites (URLs) et le temps écoulé. Les données sont transférées en tout anonymat, sans référence aux informations personnelles ou à l'identité de l'utilisateur. Les adresses IP sont exclues automatiquement des données de « Human Web »."
     },
     "humanWeb7": {
-      "message": "Aussi, en tout anonymat, et séparé des données du traffic Web, Cliqz pour Firefox enregistre les termes de recherche, saisis dans la barre d'adresse, des membres de la communauté. Chaque entrée saisie est évaluée comme étant un signal unique. Nous ne combinons jamais les données de differentes sources et n'essayons pas de reconstituer un quelconque profil utilisateur. De même, nous n'associons jamais les termes de recherche avec les données personnelles telles que l'adresse IP ou une adresse email."
+      "message": "Aussi, en tout anonymat, et séparé des données du traffic Web, CLIQZ pour Firefox enregistre les termes de recherche, saisis dans la barre d'adresse, des membres de la communauté. Chaque entrée saisie est évaluée comme étant un signal unique. Nous ne combinons jamais les données de differentes sources et n'essayons pas de reconstituer un quelconque profil utilisateur. De même, nous n'associons jamais les termes de recherche avec les données personnelles telles que l'adresse IP ou une adresse email."
     },
     "humanWeb8": {
       "message": "Participer à « Human Web » est optionnel"
     },
     "humanWeb9": {
-      "message": "Vous avez la possibilité de décider si Cliqz peut envoyer anonymement des données statistiques afin d'améliorer la pertinence et la sûreté du Web via « Human Web »."
+      "message": "Vous avez la possibilité de décider si CLIQZ peut envoyer anonymement des données statistiques afin d'améliorer la pertinence et la sûreté du Web via « Human Web »."
     },
     "humanWeb10": {
       "message": "Je participe à « Human Web »"
@@ -1179,7 +1179,7 @@
       "message": "Débloquer les vidéos YouTube"
     },
     "unblock_prompt": {
-      "message": "Souhaitez-vous que Cliqz débloque vos vidéos Youtube ?"
+      "message": "Souhaitez-vous que CLIQZ débloque vos vidéos Youtube ?"
     },
     "unblock_always": {
       "message": "Oui, toujours"
@@ -1194,7 +1194,7 @@
       "message": "Okay, nous essayons, mais n'arrivons pas à débloquer cette vidéo"
     },
     "context-menu-search-item": {
-      "message": "Rechercher « $1 » avec Cliqz"
+      "message": "Rechercher « $1 » avec CLIQZ"
     },
     "streaming": {
       "message": "Voir en streaming : "
@@ -1221,7 +1221,7 @@
       "message": "Entreprises traqueuses de cette page"
     },
     "control-center-info-trackers": {
-      "message": "Il est courant que des sites Web placent des traqueurs pour enregistrer les activités des utilisateurs. Cliqz bloque les données qui peuvent être utilisées afin de vous identifier avant que les traqueurs ne les obtiennent. La chiffre ici vous montre le nombre de données personnelles sécurisées par Cliqz. Cliquez dessus pour plus de détails."
+      "message": "Il est courant que des sites Web placent des traqueurs pour enregistrer les activités des utilisateurs. Cliqz bloque les données qui peuvent être utilisées afin de vous identifier avant que les traqueurs ne les obtiennent. La chiffre ici vous montre le nombre de données personnelles sécurisées par CLIQZ. Cliquez dessus pour plus de détails."
     },
     "control-center-info-phishing-title": {
       "message": "Anti-Phishing"
@@ -1338,7 +1338,7 @@
       "message": "Faire partie du « Human Web »"
     },
     "control-center-best-cliqz": {
-      "message": "Obtenir le meilleur de Cliqz"
+      "message": "Obtenir le meilleur de CLIQZ"
     },
     "control-center-transparency": {
       "message": "Panneau de transparence"
@@ -1470,7 +1470,7 @@
       "message": "Connect"
     },
     "pairing-description": {
-      "message": "Connectez Cliqz sur votre ordinateur avec Cliqz sur votre appareil Android ou iOS. Ainsi, vous pourrez envoyer des liens et télécharger des vidéos depuis votre ordinateur vers votre smartphone ou tablette."
+      "message": "Connectez Cliqz de votre ordinateur à votre mobile. Ceci vous permettra de partager des sites web ou de télécharger des vidéos Youtube depuis votre ordinateur directement vers votre mobile ou tablette."
     },
     "pairing-android-app": {
       "message": "https://play.google.com/store/apps/details?hl=fr&id=com.cliqz.browser"
@@ -1478,32 +1478,17 @@
     "pairing-cliqz-for-android": {
       "message": "Cliqz pour Android"
     },
-    "pairing-ios-app": {
-      "message": "https://itunes.apple.com/fr/app/cliqz-browser/id1065837334"
-    },
-    "pairing-cliqz-for-ios": {
-      "message": "Cliqz pour iOS"
-    },
     "pairing-video-title": {
       "message": "Télécharger des vidéos"
     },
-    "pairing-video-tip1": {
-      "message": "Sélectionner une vidéo Youtube."
-    },
-    "pairing-video-tip2": {
-      "message": "Cliquer sur l'icône de téléchargement de vidéo."
-    },
-    "pairing-video-tip3": {
-      "message": "Selectionner \"Envoyer au mobile.\"."
+    "pairing-video-tip": {
+      "message": "Sélectionner une vidéo Youtube.\nCliquer sur l'icône de téléchargement de vidéo.\nSelectionner \"Envoyer au mobile.\"."
     },
     "pairing-tab-title": {
       "message": "Envoyer des onglets."
     },
-    "pairing-tab-tip1": {
-      "message": "Clique-droit sur un onglet ou un site Web."
-    },
-    "pairing-tab-tip2": {
-      "message": "Sélectionner \"Envoyer au mobile\"."
+    "pairing-tab-tip": {
+      "message": "Clique-droit sur un onglet ou un site Web.\nSélectionner \"Envoyer au mobile\"."
     },
     "pairing-browser-pair-with": {
       "message": "Ce navigateur est maintenant connecté à :"
@@ -1518,28 +1503,16 @@
       "message": "Connecter un appareil mobile"
     },
     "pairing-step1-title": {
-      "message": "Téléchargez Cliqz depuis le Play Store (Android) ou l'App Store (iOS)."
+      "message": "Télécharger Cliqz pour Android depuis le Play Store."
     },
     "pairing-step2-title": {
-      "message": "Ouvrez Cliqz sur votre appareil."
-    },
-    "pairing-step2-title-android": {
-      "message": "Android: Ouvrez les Préférences et cliquez sur \"Connect\"."
-    },
-    "pairing-step2-title-ios": {
-      "message": "iOS: Ouvrez le Menu, cliquez sur Préférences et ensuite sur \"Connect\"."
+      "message": "Ouvrir l'application CLIQZ sur votre appareil mobile. Ouvrir le menu et sélectionner \"Connect\"."
     },
     "pairing-step3-title": {
-      "message": "Ouvrez le scanner."
-    },
-    "pairing-step3-title-android": {
-      "message": "Android: Cliquez sur (+)."
-    },
-    "pairing-step3-title-ios": {
-      "message": "iOS: Cliquez sur \"Ajouter connection\"."
+      "message": "Appuyer sur (+) pour lancer le scanneur de code QR."
     },
     "pairing-step4-title": {
-      "message": "Scannez le code QR."
+      "message": "Scanner le code QR."
     },
     "pairing-online": {
       "message": "CONNECTÉ"
@@ -1566,7 +1539,7 @@
       "message": "Offres récentes"
     },
     "offers-hub-welcome-title": {
-      "message": "Bienvenue dans Cliqz-Offres"
+      "message": "Bienvenue dans CLIQZ-Offres"
     },
     "offers-hub-welcome-text": {
       "message": "Ici, vous trouverez bientôt des annonces exclusives pour vous"
@@ -1581,7 +1554,7 @@
       "message": "Cette offre ne m'intéresse pas"
     },
     "offers-hub-feedaback-option2": {
-      "message": "Les offres de Cliqz-Offres ne m'intéressent pas"
+      "message": "Les offres de CLIQZ-Offres ne m'intéressent pas"
     },
     "offers-hub-feedaback-option3": {
       "message": "Aucune offre ne m'intéresse"
@@ -1593,16 +1566,13 @@
       "message": "Supprimer"
     },
     "offers-hub-about-cliqz-offers": {
-      "message": "Plus d'informations"
+      "message": "Plus d'informations à propos des offres de CLIQZ-Offres"
     },
     "offers-hub-powered-by": {
-      "message": "Fourni par Cliqz"
+      "message": "Fourni par CLIQZ"
     },
     "offers-hub-code-copy": {
       "message": "Code Copié"
-    },
-    "offers_hub_tooltip_new_offer": {
-      "message": "Nouvelle Offre"
     },
     "signals-humanweb-inactive-message": {
       "message": "Human Web n'est pas activé"
@@ -1639,9 +1609,6 @@
     },
     "signals-redirected-links": {
       "message": "Liens de redirection"
-    },
-    "calculator-decimal-separator": {
-      "message": ","
     },
     "calculator-thousands-separator": {
       "message": "."
@@ -1688,85 +1655,5 @@
     "lotto-euro": {
       "message": "€"
     },
-    "lotto-no-guarantee": {
-      "message": "Alle Angaben ohne Gewähr"
-    },
-    "freshtab.app.speed-dials-row.history": {
-      "message": "Les plus visités"
-    },
-    "freshtab.app.speed-dials-row.custom": {
-      "message": "Favoris"
-    },
-    "freshtab.urlbar.placeholder": {
-      "message": "Rechercher avec Cliqz ou saisir une adresse"
-    },
-    "freshtab.app.speed-dial.removed": {
-      "message": "a été retiré"
-    },
-    "freshtab.app.speed-dial.undo": {
-      "message": "Annuler"
-    },
-    "freshtab.app.speed-dial.exists-already": {
-        "message": "L'adresse existe déjà"
-    },
-    "freshtab.app.speed-dial.not-valid": {
-        "message": "Adresse non valide"
-    },
-    "freshtab.app.speed-dial.add": {
-        "message": "Ajouter"
-    },
-    "freshtab.app.speed-dial.input.placeholder": {
-        "message": "Entrer une adresse"
-    },
-    "freshtab.app.middle-box.new-cliqz-tab-hdr": {
-        "message": "Pour le plaisir des yeux!"
-    },
-    "freshtab.app.middle-box.new-cliqz-tab-desc": {
-        "message": "Il est désormais possible de personnaliser le style de votre Cliqz Tab."
-    },
-    "freshtab.app.middle-box.new-cliqz-tab-cta": {
-        "message": "Essayez-le maintenant"
-    },
-    "freshtab.app.news.breaking-news": {
-        "message": "Breaking news:"
-    },
-    "freshtab.app.news.read-more": {
-        "message": "Lire plus"
-    },
-    "freshtab.app.settings.header": {
-        "message": "Personnalisation"
-    },
-    "freshtab.app.settings.background.label": {
-        "message": "Choisir un fond d'écran"
-    },
-    "freshtab.app.settings.most-visited.label": {
-        "message": "Les plus visités"
-    },
-    "freshtab.app.settings.most-visited.restore": {
-        "message": "Tout restaurer"
-    },
-    "freshtab.app.settings.favorites.label": {
-        "message": "Favoris"
-    },
-    "freshtab.app.settings.search.label": {
-        "message": "Barre de recherche"
-    },
-    "freshtab.app.settings.news.label": {
-        "message": "Actualité"
-    },
-    "freshtab.app.settings.news.language.auto": {
-        "message": "Paramètre par défaut"
-    },
-    "freshtab.app.settings.news.language.de": {
-        "message": "Édition allemande"
-    },
-    "freshtab.app.settings.news.language.en": {
-        "message": "Édition anglophone"
-    },
-    "freshtab.app.settings.news.language.fr": {
-        "message": "Médias français"
-    },
-    "TEST": {
-        "message": "OK"
-    }
+    "TEST": "OK"
 }

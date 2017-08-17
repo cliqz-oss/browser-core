@@ -2,8 +2,8 @@
  * This module provides misc functions related to the FF history database.
  */
 
-import utils from '../core/utils';
-import CLIQZEnvironment from './environment';
+import utils from 'core/utils';
+import CLIQZEnvironment from 'platform/environment';
 
 Cu.import('resource://gre/modules/PlacesUtils.jsm');
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');

@@ -10,7 +10,7 @@ $basic-line-height: (16 / 15) + 0em;
 
 #cliqz-dropdown {
     font-family: "-mac-system", "-apple-system", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-    font-weight: normal;
+    font-weight: 300;
 
     @import 'results/sessions';
     @import 'results/lotto';
@@ -42,7 +42,7 @@ $basic-line-height: (16 / 15) + 0em;
     }
 
     & > div:last-child {
-        margin-bottom: 2px;
+        margin-bottom: 4px;
     }
 
     & > div {
@@ -50,7 +50,7 @@ $basic-line-height: (16 / 15) + 0em;
         padding-right: 4px;
 
         & > div:last-child {
-            padding-bottom: 2px;
+            padding-bottom: 6px;
         }
     }
 
@@ -106,7 +106,7 @@ $basic-line-height: (16 / 15) + 0em;
         margin-left: 10px;
         -moz-box-sizing: border-box;
         box-sizing: border-box;
-        border-radius: 2px;
+        border-radius: 50%;
         display: inline-block;
         line-height: 1.4em;
         text-align: center;
@@ -184,7 +184,6 @@ $basic-line-height: (16 / 15) + 0em;
             margin-left: 10px;
             width: 80%;
             overflow: hidden;
-            display: inline-flex;
 
             & > div {
                 float: left;
@@ -197,24 +196,12 @@ $basic-line-height: (16 / 15) + 0em;
                 display: flex;
                 width: 100%;
 
-                .ad {
-                    font-size: 0.733em;
-                    line-height: ($basic-line-height / 0.733) + 0em;
-                    border: 1px solid #9D9D9D;
-                    color: #303030;
-                    border-radius: 2px;
-                    padding: 0 5px 1px 5px;
-                }
-
                 span {
                     @extend .ellipsis;
                     display: inline-block;
                     float: left;
-                    line-height: ($basic-line-height / 0.833) + 0em;
-
                     margin-right: 5px;
                     max-width: 500px;
-                    padding-right: 2px;
                 }
 
                 .divider {
@@ -249,8 +236,6 @@ $basic-line-height: (16 / 15) + 0em;
                 height: 46px;
                 border-radius: 3px;
                 padding-right: 10px;
-                display: flex;
-                flex: 0 0 auto;
 
                 img {
                     width: 100%;
@@ -270,17 +255,12 @@ $basic-line-height: (16 / 15) + 0em;
                     color: white;
                 }
 
-                .ad {
-                    border-color: #fff;
-                }
-
                 .url,
                 .divider,
                 .description {
                     color: rgba(255, 255, 255, 0.8);
                 }
 
-                span.title,
                 .description,
                 .url {
                     max-width: 100%;
@@ -378,23 +358,6 @@ $basic-line-height: (16 / 15) + 0em;
         }
         display: block;
         color: #383838;
-
-        &.result {
-            .abstract {
-                .divider, .url {
-                    display: none;
-                }
-            }
-
-            &.selected {
-                .abstract {
-                    .divider, .url {
-                        display: inline-block;
-                        line-height: ($basic-line-height / 0.833) + 0em;
-                    }
-                }
-            }
-        }
     }
 
     .instant {
@@ -471,12 +434,6 @@ $basic-line-height: (16 / 15) + 0em;
         }
     }
 
-    // .result.news {
-    //   .description {
-    //     display: none;
-    //   }
-    // }
-
     .result.calculator {
         .header {
             font-size: 1.66em;
@@ -520,9 +477,6 @@ $basic-line-height: (16 / 15) + 0em;
     }
 
     .news {
-        // .description {
-        //   display: none;
-        // }
         p {
             width: 0px;
         }
@@ -556,30 +510,13 @@ $basic-line-height: (16 / 15) + 0em;
                     line-height: 1.533em;
                 }
 
-                span.title {
-                  line-height: 1.733em;
-                }
-
-                .divider,
-                .url {
-                  line-height: (2) + 0em;
-                }
-
                 .description[data-extra='full-url'] {
                     display: none;
                 }
 
-                .description[data-extra='description'] {
-                  line-height: (1.133 / 0.97) + 0em;
-                }
-
-                span.published-at {
-                  text-transform: uppercase;
-                }
-
                 .subtitle {
                     font-size: 0.67em;
-                    line-height: (1.133 / 0.77) + 0em;
+                    line-height: (1.533 / 0.67) + 0em;
                     font-weight: 500;
 
                     &.attention {

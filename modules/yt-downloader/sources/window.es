@@ -1,4 +1,4 @@
-import { findVideoLinks } from './main';
+import { findVideoLinks } from "yt-downloader/main";
 
 export default class {
   constructor(settings) {

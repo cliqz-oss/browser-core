@@ -1,8 +1,13 @@
-import { utils } from '../core/cliqz';
+import { utils } from 'core/cliqz';
 
-function getAlias(host, searchEngines) {
-  const engine = searchEngines.find(({ urlDetails }) => {
-    return host === urlDetails.host || host === urlDetails.domain;
+function getAlias(aUrl) {
+  const url = utils.getDetailsFromUrl(aUrl).host;
+  //EX-3916: blacklist google images and google maps on Freshtab speed-dials,
+  // so that Google search takes precedence
+  const blackListedEngines = utils.blackListedEngines('freshtab');
+  const engine = utils.getSearchEngines(blackListedEngines).find(engine => {
+    const urlDetails = utils.getDetailsFromUrl(engine.base_url);
+    return url === urlDetails.host || url === urlDetails.domain;
   }) || {};
 
   return engine.alias;
@@ -20,12 +25,12 @@ export default class {
     }
 
     return uri &&
-      ALLOWED_SCHEMES.indexOf(uri.scheme) !== -1 &&
+      ALLOWED_SCHEMES.indexOf(uri.scheme) !== -1 && 
       uri.spec ||
       null;
   }
 
-  constructor(url, searchEngines, isCustom = true) {
+  constructor(url, isCustom = true) {
     var details = utils.getDetailsFromUrl(url),
         logoDetails = utils.getLogoDetails(details);
     this.title = url;
@@ -39,7 +44,9 @@ export default class {
     this.url = url;
     this.displayTitle = details.cleanHost || details.friendly_url || url;
     this.custom = isCustom;
-    this.logo = logoDetails;
-    this.searchAlias = getAlias(details.host, searchEngines);
+    this.logo = utils.getLogoDetails(details);
+    this.searchAlias = getAlias(url);
   }
 }
+
+

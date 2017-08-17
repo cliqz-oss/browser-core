@@ -1,10 +1,2 @@
-System.register([], function (_export) {
-  'use strict';
-
-  return {
-    setters: [],
-    execute: function () {
-      _export('default', require('ytdl-core'));
-    }
-  };
-});
+global.ytdl = require('ytdl-core');
+global.getVideoID = require('ytdl-core/lib/util').getVideoID;

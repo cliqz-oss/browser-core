@@ -156,12 +156,12 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
 
     box-shadow: none !important;
     /* background: transparent !important; */
-    background-color: #fff !important;
+    background: #fff !important;
     -moz-border-start: 1px solid #d8d8d8 !important;
     padding-left: 7px;
     &:hover,
     &[focused="true"] {
-        background-color: #fff !important;;
+        background: #fff !important;;
     }
 
     .textbox-input {
@@ -178,7 +178,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
 }
 
 #urlbar .urlbar-input::-moz-selection {
-  background-color: #b1d6ff;
+  background: #b1d6ff;
 }
 
 
@@ -236,7 +236,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
         border-style: solid;
         border-radius: 0;
         border-color: $tab-border-color;
-        background-color: $tab-bg-color !important;
+        background: $tab-bg-color !important;
 
         .tab-label {
             font-size: 12px;
@@ -248,7 +248,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
         position: static !important;
 
         .tab-content {
-            background-color: $tab-selected-bg-color !important;
+            background: $tab-selected-bg-color !important;
         }
     }
 
@@ -262,11 +262,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
     }
 
     &:not([pinned]) {
-        -moz-box-flex: 100;
-        max-width: 210px;
-        min-width: 74px;
-        width: 0;
-        transition: min-width 250ms ease-out, max-width 230ms ease-out;
+        max-width: 235px;
     }
 
 
@@ -283,7 +279,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
     background: none;
 
     &:hover {
-        background-color: $browser-top-bg-color !important;
+        background: $browser-top-bg-color !important;
     }
 }
 
@@ -300,7 +296,7 @@ tab {
 .tabs-newtab-button,
 #TabsToolbar > #new-tab-button,
 #TabsToolbar > toolbarpaletteitem > #new-tab-button {
-    margin-left: 0px; /*To have some space (line) between new-tab button and opened tabs*/
+    margin-left: 3px; /*To have some space (line) between new-tab button and opened tabs*/
 }
 
 /*======== Many Tabs Nav ==========*/
@@ -309,7 +305,7 @@ tab {
 #TabsToolbar .toolbarbutton-1 > .toolbarbutton-menubutton-button:hover:not([disabled="true"]),
 .tabbrowser-arrowscrollbox > .scrollbutton-up:hover:not([disabled="true"]),
 .tabbrowser-arrowscrollbox > .scrollbutton-down:hover:not([disabled="true"]) {
-    background-color: $buttons-hover-color;
+    background: $buttons-hover-color;
     border-color: $buttons-hover-border-color;
 }
 
@@ -320,12 +316,6 @@ tab {
     display: none;
 }
 
-#main-window:not([sizemode="maximized"]) {
-    .tabbrowser-tab:first-child .tab-content {
-        border-width: 0 1px;
-    }
-}
-
 
 /*========== End Tabs =========*/
 
@@ -334,7 +324,7 @@ tab {
     margin-top: 0 !important;
     border-top-color: #fff !important;
     box-shadow: 0 2px 2px -2px rgba(0, 0, 0, 0.35) !important;
-    background-color: #fff !important;
+    background: #fff !important;
 }
 
 
@@ -348,7 +338,7 @@ toolbarbutton.bookmark-item:not(.subviewbutton):not(#bookmarks-menu-button),
 }
 
 #nav-bar-customization-target {
-    padding: 0;
+    padding: 0 4px 0 0;
 }
 .tabs-newtab-button > .toolbarbutton-icon {
     padding-top: 3px;
@@ -383,7 +373,7 @@ notification[type="warning"] {
     border: none;
     color: #fff;
     font-size: 14px;
-    background-color: #fec621;
+    background: #fec621;
     letter-spacing: 0.4px;
 }
 
@@ -395,7 +385,7 @@ notification[type="warning"] > button {
     border-radius: 3px;
     text-shadow: none;
     box-shadow: none;
-    background-color: #4661ae;
+    background: #4661ae;
 }
 
 notification[type="warning"] .messageText {
@@ -410,6 +400,10 @@ notification[type="warning"] .notification-inner {
 
 
 /* ======= Navigation Arrows Back Forth ======= */
+#back-button {
+    border-right: 1px solid #e1e1e1 !important;
+}
+
 #forward-button,
 #back-button {
     margin-left: 0 !important;
@@ -419,7 +413,6 @@ notification[type="warning"] .notification-inner {
     box-shadow: 0 0 0 0 transparent !important;
     background-color: transparent !important;
     padding: 0 2px !important; /*Later*/
-    border: none !important;
 
 
     &:hover:not(:-moz-lwtheme):not([disabled="true"])  {
@@ -433,13 +426,7 @@ notification[type="warning"] .notification-inner {
         border: none !important;
         border-radius: 0 !important;
         box-shadow: none !important;
-        transition: none !important;
     }
-}
-
-#back-button {
-    border-right: 1px solid #e1e1e1 !important;
-    margin-left: 1px !important;
 }
 
 #forward-button > .toolbarbutton-icon {
@@ -513,9 +500,6 @@ notification[type="warning"] .notification-inner {
 }
 
 #PanelUI-button {
-    margin-inline-start: 0;
-    padding-inline-start: 0;
-    border-inline-start: 0;
     border-image-slice: 0; /*Remove border on burger menu button*/
 }
 
@@ -537,7 +521,7 @@ toolbarbutton#cliqz-cc-btn {
 
     &:hover {
         border-color: $buttons-hover-border-color;
-        background-color: $buttons-hover-color;
+        background: $buttons-hover-color;
     }
 }
 
@@ -604,7 +588,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper > #urlbar > #identity-box 
 }
 
 #toolbar-menubar[autohide="false"] + #TabsToolbar {
-    padding-right: 37px !important;
+    padding-right: 10px !important;
 }
 
 #alltabs-button {
@@ -664,12 +648,6 @@ toolbar .toolbarbutton-1 > .toolbarbutton-menubutton-dropmarker[label='Bookmarks
     #identity-box {
         margin-top: -2px;
         margin-bottom: -2px;
-    }
-
-    .tabs-newtab-button {
-        .toolbarbutton-icon {
-            padding-top: 0;
-        }
     }
 
     :-moz-system-metric(windows-classic) {
@@ -740,6 +718,10 @@ toolbar .toolbarbutton-1 > .toolbarbutton-menubutton-dropmarker[label='Bookmarks
 
 
 @media (-moz-os-version: windows-win8) {
+    #forward-button > .toolbarbutton-icon {
+        padding: 6px !important;
+    }
+
     #urlbar, .searchbar-textbox {
         font-size: 1.29em;
         padding: 3px 0 !important;
@@ -802,12 +784,12 @@ toolbar .toolbarbutton-1 > .toolbarbutton-menubutton-dropmarker[label='Bookmarks
 /* BEGIN CUSTOMIZE UI */
 
 #customization-panelHolder #PanelUI-customize {
-    background-color: #00AEF0;
+    background-color: #45c2cc;
 }
 
 #customization-panelHolder #PanelUI-customize:hover,
 #customization-panelHolder #PanelUI-customize:hover:active {
-        background-color: #0078CA;
+        background-color: #3eadb5;
 }
 
 #main-window #customization-panel-container,
@@ -839,10 +821,11 @@ vbox[sidebarcommand=historybroadcaster] {
     border-radius: 0 !important;;
     height: $urlbar-elms-height !important;
     min-width: 36px !important;
+    border-left: 1px solid #ccc !important;
     box-shadow: none !important;
 
     &:hover {
-        background-color: $buttons-hover-color;
+        background: $buttons-hover-color;
     }
 
     .toolbarbutton-badge-stack {
@@ -890,17 +873,6 @@ vbox[sidebarcommand=historybroadcaster] {
         margin-bottom: -1px; /*Remove the border bottom of active tab*/
     }
 
-    .tabs-newtab-button {
-        &:hover {
-            filter: brightness(90%);
-        }
-
-        .toolbarbutton-icon {
-            padding-top: 0;
-        }
-    }
-
-
     #toolbar-menubar[autohide="false"] {
         padding-bottom: 0 !important;
     }
@@ -909,9 +881,9 @@ vbox[sidebarcommand=historybroadcaster] {
         padding-right: 4px !important;
     }
 
-    /*#forward-button {
-        padding-left: 0px !important;
-    }*/
+    //#forward-button {
+    //    padding-left: 0px !important;
+    //}
 
     #back-button > .toolbarbutton-icon,
     #forward-button > .toolbarbutton-icon {
@@ -956,7 +928,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper > #forward-button:hover:no
     border-color: transparent !important;
     box-shadow: none !important;
     border-radius: none !important;
-    background-color: $buttons-hover-color !important;
+    background: $buttons-hover-color !important;
 }
 
 //====== Icons Hover ACTIVE State (click) ====
@@ -976,42 +948,10 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper > #forward-button:hover:no
 :hover:active):not([disabled="true"]) > .toolbarbutton-badge-stack {
     box-shadow: none;
     border-color: #cecece;
-    background-color: #efefef;
+    background: #efefef;
 }
 
 //=== Border Customize Pannel
 #main-window[customize-entered] #browser-bottombox, #main-window[customize-entered] #navigator-toolbox > toolbar:not(#TabsToolbar), #main-window[customize-entered] #customization-container {
     border: none !important;
-}
-
-
-//=========================
-//===== TEST PILOT UI =====
-//=========================
-#main-window[cliqzBrowser="true"] {
-    #cliqz-dropdown {
-        .result {
-            .icons {
-                width: 91px;
-            }
-
-            @media (max-width: 550px) {
-                .abstract {
-                    max-width: 73%;
-                }
-            }
-        }
-
-        .history .buttons span.dot {
-            left: 82px;
-        }
-
-        .history.cluster span.timeline {
-            left: 84px;
-        }
-
-        .padded {
-            padding-left: 101px;
-        }
-    }
 }

@@ -7,7 +7,7 @@ export default class extends BaseResult {
   }
 
   get query() {
-    return (this.rawResult.data.extra || {}).expression || this.rawResult.text;
+    return this.rawResult.text;
   }
 
   get result() {

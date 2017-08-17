@@ -86,14 +86,14 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
         response.setHeader('Pragma', 'no-cache');
         response.setHeader('Expires', '0');
         var path = request.path.indexOf('.gif') > 0 ? 'test.gif' : 'test';
-        response.setHeader('Location', 'http://cliqztest2.de:'+ testServer.port +'/' + path + '?'+ request.queryString);
+        response.setHeader('Location', 'http://cliqztest.de:'+ testServer.port +'/' + path + '?'+ request.queryString);
       };
       testServer.registerPathHandler('/tracker302', redirect302);
       testServer.registerPathHandler('/tracker302.gif', redirect302);
     }
 
     function isTestServerAddress(u) {
-      return u.indexOf('favicon.ico') === -1 && ['localhost', '127.0.0.1', 'cliqztest2.de'].some( function(d) {
+      return u.indexOf('favicon.ico') === -1 && ['localhost', '127.0.0.1', 'cliqztest.de'].some( function(d) {
         return u.startsWith('http://' + d + ':' + testServer.port);
       });
     }
@@ -285,7 +285,7 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
       //     testInMainFrame(r, topic, md, 3);
       //     testResponseCode(r, topic, 302);
       //   },
-      //   'http://cliqztest2.de:60508/test.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+      //   'http://cliqztest.de:60508/test.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
       //     testInMainFrame(r, topic, md, 3);
       //     testResponseCode(r, topic);
       //   }
@@ -304,11 +304,11 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
           testInMainFrame(r, topic, md, 11);
           testResponseCode(r, topic);
         },
-        'http://cliqztest2.de:60508/proxyiframe.html': function(r, topic, md) {
+        'http://cliqztest.de:60508/proxyiframe.html': function(r, topic, md) {
           testIFrameDocument(r, topic, md);
           testResponseCode(r, topic);
         },
-        'http://cliqztest2.de:60508/bower_components/jquery/dist/jquery.js': function(r, topic, md) {
+        'http://cliqztest.de:60508/bower_components/jquery/dist/jquery.js': function(r, topic, md) {
           testInIFrame(r, topic, md, 2);
           testResponseCode(r, topic);
         },
@@ -325,7 +325,7 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
           chai.expect(r.type).to.equal(7);
           chai.expect(r.method).to.equal('GET');
           chai.expect(r.isPrivate).to.be.false;
-          chai.expect(r.originUrl).to.equal("http://cliqztest2.de:60508/proxyiframe.html");
+          chai.expect(r.originUrl).to.equal("http://cliqztest.de:60508/proxyiframe.html");
           chai.expect(r.source).to.equal(md.url);
           testResponseCode(r, topic);
         },

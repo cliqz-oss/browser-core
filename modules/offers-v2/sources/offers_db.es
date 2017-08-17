@@ -2,7 +2,6 @@ import LoggingHandler from './logging_handler';
 import OffersConfigs from './offers_configs';
 import DBHelper from './db_helper';
 import { utils } from '../core/cliqz';
-import { timestampMS } from './utils';
 
 
 const MODULE_NAME = 'offers_db';
@@ -57,10 +56,6 @@ class OfferDB {
     // temporary mapping counter to know when to remove a display or not
     this.displayIDCounter = {};
 
-    // we will dynamically keep track of which offers are related to a particular
-    // campaign id: campaign_id -> Set(offersIDs)
-    this.campaignToOffersMap = {};
-
     this.dbDirty = false;
 
     // save offers in a frequent way
@@ -83,7 +78,7 @@ class OfferDB {
   }
 
   savePersistentData() {
-    return this._savePersistentData();
+    this._savePersistentData();
   }
 
   loadPersistentData() {
@@ -102,6 +97,7 @@ class OfferDB {
    * {
    *   c_ts: when was created timestamp
    *   l_u_ts: when was last updated timestamp (any interaction).
+   *   removed: true | false depending if the offer was removed or not.
    * }
    * </pre>
    */
@@ -174,7 +170,7 @@ class OfferDB {
     container.removed = true;
 
     // last update
-    container.l_u_ts = timestampMS();
+    container.l_u_ts = Date.now();
 
     return true;
   }
@@ -249,7 +245,7 @@ class OfferDB {
 
     // update timestamp
     this._markOfferDirty(offerID);
-    container.l_u_ts = timestampMS();
+    container.l_u_ts = Date.now();
 
     return true;
   }
@@ -263,7 +259,7 @@ class OfferDB {
    *                             display map.
    * @return {boolean} true on success | false otherwise
    */
-  incOfferAction(offerID, actionID, incDisplay = true, count = 1) {
+  incOfferAction(offerID, actionID, incDisplay = true) {
     if (!offerID || !actionID) {
       lwarn('incOfferAction: invalid args');
       return false;
@@ -274,7 +270,7 @@ class OfferDB {
       return false;
     }
 
-    const now = timestampMS();
+    const now = Date.now();
     const offerObj = container.offer_obj;
     let actionCont = container.offer_actions[actionID];
     if (!actionCont) {
@@ -282,7 +278,7 @@ class OfferDB {
       actionCont = container.offer_actions[actionID] = this._createElementContainer();
       actionCont.count = 0;
     }
-    actionCont.count += count;
+    actionCont.count += 1;
     actionCont.l_u_ts = now;
 
     if (incDisplay) {
@@ -296,7 +292,7 @@ class OfferDB {
         displayCont = displayActionMap[actionID] = this._createElementContainer();
         displayCont.count = 0;
       }
-      displayCont.count += count;
+      displayCont.count += 1;
       displayCont.l_u_ts = now;
     }
 
@@ -351,7 +347,7 @@ class OfferDB {
       attrCont = offerAttr[attrID] = this._createElementContainer();
     }
 
-    const now = timestampMS();
+    const now = Date.now();
 
     attrCont.attr = data;
     attrCont.l_u_ts = now;
@@ -423,56 +419,6 @@ class OfferDB {
   }
 
   /**
-   * will return a set of all offers ids associated to a campaign, or null if no
-   * campaign is found
-   * @param  {[type]} campaignID [description]
-   * @return {[type]}            [description]
-   */
-  getCampaignOffers(campaignID) {
-    if (!campaignID) {
-      return null;
-    }
-    return this.campaignToOffersMap[campaignID];
-  }
-
-  /**
-   * this method will check on the given set of offers ids which is the offer
-   * that was latest updated and still on the DB (i/e not removed).
-   * @param  {[type]} offersIDsSet [description]
-   * @return {list}              sorted list (by latest updated offer) of objects
-   * with the following information:
-   * {
-   *   l_u_ts: ts,
-   *   offer_id: offer id,
-   *   campaign_id: cid,
-   * }
-   */
-  getLatestUpdatedOffer(offersIDsSet) {
-    if (!offersIDsSet) {
-      return null;
-    }
-
-    const sortedOffers = [];
-    const self = this;
-    offersIDsSet.forEach((oid) => {
-      const offerCont = self.dataIndex.offers_index[oid];
-      if (!offerCont || offerCont.removed === true || !offerCont.offer_obj) {
-        return;
-      }
-
-      sortedOffers.push({
-        offer_id: offerCont.offer_obj.offer_id,
-        campaign_id: offerCont.offer_obj.campaign_id,
-        last_update: offerCont.l_u_ts,
-      });
-    });
-    // we will sort using the last update field and putting the latest update
-    sortedOffers.sort((a, b) => b.last_update - a.last_update);
-
-    return sortedOffers;
-  }
-
-  /**
    * will retrieve all the offers we have applying filters and also sorting given
    * on the options argument.
    * @param  {object} opt containing the filter and sorting options:
@@ -528,7 +474,7 @@ class OfferDB {
    * </pre>
    */
   _createElementContainer() {
-    const now = timestampMS();
+    const now = Date.now();
     return {
       c_ts: now,
       l_u_ts: now,
@@ -578,7 +524,7 @@ class OfferDB {
    * </pre>
    */
   _createOfferContainer() {
-    const now = timestampMS();
+    const now = Date.now();
     return {
       c_ts: now,
       l_u_ts: now,
@@ -595,7 +541,7 @@ class OfferDB {
    */
   _removeOldEntries() {
     const self = this;
-    const now = timestampMS();
+    const now = Date.now();
     const expTimeMs = OffersConfigs.OFFERS_STORAGE_DEFAULT_TTS_SECS * 1000;
     let dirty = false;
     Object.keys(this.dataIndex.offers_index).forEach((offerID) => {
@@ -637,8 +583,6 @@ class OfferDB {
     } else {
       this.displayIDCounter[displayID] = 1;
     }
-
-    this._addOfferInCampaignMap(container.offer_obj);
 
     return true;
   }
@@ -682,21 +626,19 @@ class OfferDB {
   _savePersistentData() {
     if (!OffersConfigs.LOAD_OFFERS_STORAGE_DATA) {
       linfo('_savePersistentData: skipping saving offers DB');
-      return Promise.resolve(true);
+      return;
     }
 
     if (!this.dbDirty) {
-      return Promise.resolve(true);
+      return;
     }
 
-    return this.db.saveDocData(STORAGE_DB_DOC_ID,
+    this.db.saveDocData(STORAGE_DB_DOC_ID,
       {
         data_index: this.dataIndex
       }
-    ).then(() => {
-      this.dbDirty = false;
-      return Promise.resolve(true);
-    });
+    );
+    this.dbDirty = false;
   }
 
   /**
@@ -734,16 +676,6 @@ class OfferDB {
     });
   }
 
-  _addOfferInCampaignMap(offer) {
-    if (!offer || !offer.offer_id || !offer.campaign_id) {
-      return;
-    }
-    let cset = this.campaignToOffersMap[offer.campaign_id];
-    if (!cset) {
-      cset = this.campaignToOffersMap[offer.campaign_id] = new Set();
-    }
-    cset.add(offer.offer_id);
-  }
 
   // ///////////////////////////////////////////////////////////////////////////
   // DEBUG HELPER METHODS

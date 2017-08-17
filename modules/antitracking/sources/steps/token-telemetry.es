@@ -89,19 +89,19 @@ export default class {
     if (this.tokens[domain][firstParty] == null) this.tokens[domain][firstParty] = {'c': 0, 'kv': {}};
 
     this.tokens[domain][firstParty]['c'] =  (this.tokens[domain][firstParty]['c'] || 0) + 1;
-    keyTokens.forEach((kv) => {
-      const tok = kv.v;
-      const k = kv.k;
-      if (this.tokens[domain][firstParty]['kv'][k] == null) this.tokens[domain][firstParty]['kv'][k] = {};
-      if (this.tokens[domain][firstParty]['kv'][k][tok] == null) {
-        this.tokens[domain][firstParty]['kv'][k][tok] = {
-          c: 0,
-          k_len: kv.k_len,
-          v_len: kv.v_len
-        };
-      }
-      this.tokens[domain][firstParty]['kv'][k][tok].c += 1;
-    });
+    for (var kv of keyTokens) {
+        var tok = kv.v,
+            k = kv.k;
+        if (this.tokens[domain][firstParty]['kv'][k] == null) this.tokens[domain][firstParty]['kv'][k] = {};
+        if (this.tokens[domain][firstParty]['kv'][k][tok] == null) {
+            this.tokens[domain][firstParty]['kv'][k][tok] = {
+                c: 0,
+                k_len: kv.k_len,
+                v_len: kv.v_len
+            };
+        }
+        this.tokens[domain][firstParty]['kv'][k][tok].c += 1;
+    }
     this._tokens.setDirty();
   }
 

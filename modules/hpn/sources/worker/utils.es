@@ -76,6 +76,15 @@ function getRouteHashStr(obj, sourceMap) {
   return res.join('');
 }
 
+
+// TODO: remove this function - it has almost not value and a misleading name
+/*
+Function to create http url
+*/
+export function createHttpUrl(host){
+	return "http://" + host + "/verify";
+}
+
 /* This method will return the string based on mapping of which keys to use to hash for routing.
 */
 export function getRouteHash(msg){

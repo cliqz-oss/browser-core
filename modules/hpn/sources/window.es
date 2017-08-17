@@ -10,7 +10,7 @@ export default class {
   init() {
     if (this.background.CliqzSecureMessage) {
       this.background.CliqzSecureMessage.initAtWindow(this.window);
-      this.window.CliqzSecureMessage = this.background.CliqzSecureMessage;
+      this.window.CliqzSecureMessage = this.background.CliqzSecureMessage
       Object.assign(this.window.CliqzSecureMessage, this.background.actions);
     }
   }

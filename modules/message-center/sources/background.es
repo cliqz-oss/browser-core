@@ -1,7 +1,6 @@
 import background from "../core/base/background";
 import MessageCenter from "./message-center";
 import MessageHandlerBase from './handlers/base';
-import CliqzMsgTriggerLocal from "./triggers/local";
 
 /**
   @namespace <namespace>
@@ -15,8 +14,6 @@ export default background({
   */
   init(settings) {
     this.messageCenter = MessageCenter.getInstance();
-    const localTrigger = new CliqzMsgTriggerLocal();
-    localTrigger.init();
   },
 
   unload() {
@@ -48,9 +45,6 @@ export default background({
         }
       };
       this.messageCenter.registerMessageHandler(id, new NewMessageHandler());
-    },
-    getHandlers() {
-      return this.messageCenter.getHandlers();
     },
     showMessage(handler, message) {
       this.messageCenter.showMessage(message, handler);

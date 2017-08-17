@@ -1,11 +1,8 @@
 $color-black: #202020;
 $color-dark-gray: #414141;
-$color-highlight: #94E2FF;
+$color-dark-highlight: #45C2CC;
+$color-highlight: #B2EFF5;
 $color-highlight-shadow: rgba(0, 84, 101, 0.5);
-$color-cliqz: #00AEF0;
-$color-border: #D4D4D4;
-$color-delete-hover: #E64C66;
-$color-active-border: #0078CA;
 
 #history {
   font-family: -apple-system, BlinkMacSystemFont,
@@ -37,14 +34,14 @@ $color-active-border: #0078CA;
     left: 0;
     flex: 0 0 auto;
     align-self: stretch;
-    background-color: #607c85;
+    background-color: #506275;
     width: 74px;
 
     a {
       margin-top: 20px;
       opacity: 0.4;
       padding: 0px;
-      height: 24px;
+      height: 25px;
       display: block;
 
       &.freshtab-button {
@@ -120,7 +117,7 @@ $color-active-border: #0078CA;
         }
 
         #feedback-button:hover {
-          color: $color-cliqz;
+          color: #00869F;
         }
 
         #feedback-button:active {
@@ -153,20 +150,21 @@ $color-active-border: #0078CA;
           font-size: 12.5px;
           line-height: 18px;
           color: #fff;
-          background-color: $color-cliqz;
+          background-color: #35BBDA;
+          box-shadow: 1px #0085A6;
           border-radius: 5px;
+          -moz-box-shadow: 0px 1px 2px 0px rgba(0,133,166,1);
           box-shadow: 0px 1px 2px 0px rgba(0,133,166,1);
         }
 
         .feedback-textarea {
-          border: 1px solid #D4D4D4;
+          border: 2px solid #eee;
           border-radius: 3px;
           width: 100%;
-          max-width: 100%;
         }
 
         .feedback-textarea:focus {
-          border-color: #868686;
+          border-color: #37BCDB;
         }
 
 
@@ -214,30 +212,28 @@ $color-active-border: #0078CA;
 
         .submit-comment {
           margin-top: 10px;
-          border: 2px solid $color-cliqz;
+          border: 2px solid #37BCDB;
           border-radius: 5px;
           background-color: #fff;
-          color: $color-dark-gray;
           width: 100%;
           height: 30px;
         }
 
         .submit-comment:hover {
-          color: #000;
-          border-color: $color-active-border;
+          color: #00869F;
+          border-color: #00869F;
         }
 
         .submit-comment:active {
-          color: #E7ECEE;
-          border-color: $color-active-border;
-          background-color: $color-active-border;
+          color: #ccc;
+          border-color: #ccc;
         }
       }
 
     }
 
     #search {
-      border-left: 1px solid $color-border;
+      border-left: 1px solid #D4D4D4;
       background-color: #F7F7F7;
       flex: 1 1 auto;
       display: flex;
@@ -245,7 +241,7 @@ $color-active-border: #0078CA;
 
       header {
         flex: 0 0 auto;
-        border-bottom: 1px solid $color-border;
+        border-bottom: 1px solid #D4D4D4;
         padding: 15px;
 
         .clear-history-btn {
@@ -264,7 +260,7 @@ $color-active-border: #0078CA;
           color: #000;
           background-color: #fff;
           background-image: url(./images/trash-session-hover.svg);
-          border: 1px solid $color-delete-hover;
+          border: 1px solid #E64C66;
         }
       }
     }
@@ -298,25 +294,25 @@ $color-active-border: #0078CA;
       position: relative;
 
       input:focus, input:focus ~ label, input:focus ~ button {
-        border-color: #868686;
+        border-color: #575757;
       }
 
       &.is-active {
         input, label, button {
-          border-color: $color-cliqz;
+          border-color: $color-dark-highlight;
         }
 
         input:focus ~ label, input:focus ~ button {
-          border-color: $color-cliqz;
+          border-color: $color-dark-highlight;
         }
 
         label img {
-          color: $color-cliqz;
+          color: $color-dark-highlight;
         }
       }
 
       button {
-        border: solid $color-border;
+        border: solid #D4D4D4;
         border-width: 1px 1px 1px 0px;
         background-color: white;
         border-radius: 0 20px 20px 0;
@@ -339,7 +335,7 @@ $color-active-border: #0078CA;
         white-space: nowrap;
         float: left;
         margin-left: 5px;
-        border: solid $color-border;
+        border: solid #D4D4D4;
         border-width: 1px 0 1px 1px;
         border-radius: 20px 0 0 20px;
         background-color: white;
@@ -359,14 +355,14 @@ $color-active-border: #0078CA;
 
       input {
         order: 2;
-        border: solid $color-border;
+        border: solid #D4D4D4;
         border-width: 1px 0px 1px 0;
         background-color: white;
         padding: 5px 5px 5px 5px;
         flex: 1 1 auto;
         color: $color-black;
         &::-moz-placeholder {
-          color: #666;
+          color: #B3B3B3;
         }
       }
 
@@ -410,7 +406,7 @@ $color-active-border: #0078CA;
         }
 
         &.marked-for-deletion {
-          border-color: $color-delete-hover;
+          border-color: #E64C66;
         }
 
         .visits {
@@ -433,7 +429,7 @@ $color-active-border: #0078CA;
               background-color: #F7F7F7;
 
               .visit-content span {
-                color: #0078CA;
+                color: #00869F;
               }
 
               em {
@@ -487,7 +483,7 @@ $color-active-border: #0078CA;
             .keyword {
               box-sizing: content-box;
               float: left;
-              border: 1px solid $color-border;
+              border: 1px solid #D4D4D4;
               margin-right: 5px;
               font-weight: bold;
               line-height: 20px;
@@ -565,7 +561,7 @@ $color-active-border: #0078CA;
             }
 
             .delete-visit-btn:hover {
-              background-color: $color-delete-hover;
+              background-color: #E64C66;
               background-image:url('./images/trash-visit-hover.svg');
             }
 

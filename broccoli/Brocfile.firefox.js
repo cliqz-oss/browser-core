@@ -2,7 +2,7 @@
 var Funnel = require('broccoli-funnel');
 var MergeTrees = require('broccoli-merge-trees');
 var broccoliSource = require('broccoli-source');
-var concat = require('broccoli-concat');
+var concat = require('broccoli-sourcemap-concat');
 var writeFile = require('broccoli-file-creator');
 
 var WatchedDir = broccoliSource.WatchedDir;
@@ -67,6 +67,7 @@ if (cliqzConfig.environment !== 'production') {
 var firefox = new MergeTrees(firefoxOutputTrees);
 
 var configTree = util.injectConfig(firefox, config, 'cliqz.json', [
+  cliqzConfig.settings.id + '/chrome/content/core/processScript.js',
   cliqzConfig.settings.id + '/chrome/content/core/config.js',
   cliqzConfig.settings.id + '/install.rdf',
   cliqzConfig.settings.id + '/chrome/content/human-web/human-web.js',

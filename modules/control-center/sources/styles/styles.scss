@@ -1157,12 +1157,7 @@ html {
     background-image: url("../images/dropmarker.png");
     background-repeat: no-repeat;
     background-position: 95% center;
-    max-width: 150px;
-}
-
-.custom-dropdown option {
-    /* same padding as .custom-dropdown to avoid the move when the option changes */
-    padding: 1px 21px 1px 2px;
+    max-width: 125px;
 }
 
 .squaredFour {

@@ -48,7 +48,9 @@ export default class IncrementalStorage {
     if (this.isOpen) {
       this.isOpen = false;
       utils.clearTimeout(this.flushTimer);
-      this.setInitialState();
+      return this._flush()
+        .then(() => closeFD(this.journalFile))
+        .then(() => this.setInitialState());
     }
     return Promise.resolve();
   }
@@ -155,15 +157,14 @@ export default class IncrementalStorage {
       .then(() => renameFile(jn, j))
       .then(() => renameFile(sn, s))
       .catch((e) => {
-        if (this.isOpen) {
-          utils.log(e, 'FATAL: Snapshot error');
-          return this.recoverBadState();
-        }
-        return null;
+        // This should not happen
+        utils.log(e, 'FATAL: Snapshot error');
+        return this.recoverBadState();
       })
       .then(() => {
         this.scheduledSnapshot = false;
         this.acumTime = 0;
+        return this.obj;
       });
   }
   _flush() {
@@ -191,7 +192,7 @@ export default class IncrementalStorage {
           const resolve = this.flushResolver;
           this.flushTimer = this.flushPromise = this.flushResolver = null;
           resolve();
-          if (this.isOpen && this.toFlush.length > 0) {
+          if (this.toFlush.length > 0) {
             this.flush();
           }
         });

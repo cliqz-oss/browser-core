@@ -25,6 +25,9 @@ export function getBrowserMajorVersion() {
 
 export function setInstallDatePref() { }
 export function setOurOwnPrefs() { }
+export function getLang() {
+  return window.navigator.language;
+}
 export function enableChangeEvents() {}
 
 export function addWindowObserver() {}

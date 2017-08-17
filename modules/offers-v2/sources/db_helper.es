@@ -64,4 +64,6 @@ export default class DBHelper {
       lerr(`removeDocData: something happened removing the doc: ${docID} - err: ${err}`);
     });
   }
+
 }
+

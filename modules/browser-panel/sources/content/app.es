@@ -52,7 +52,7 @@ function cqzOfferBtnClicked(ev) {
     return;
   }
 
-  if (ev.target.getAttribute('data-cqz-of-btn-id') === 'code_copied') {
+  if (ev.target.getAttribute('data-cqz-of-btn-id') === 'copy-code') {
     const success = copy(ev.target);
 
     if (success) {
@@ -85,16 +85,6 @@ $(document).ready(() => {
 
   // link the click function here to the buttons
   document.getElementById('cqz-browser-panel-re').addEventListener('click', cqzOfferBtnClicked);
-
-   // open URL
-  $('#cqz-browser-panel-re').on('click', '[openUrl]', (ev) => {
-    sendMessageToWindow({
-      handler: 'openUrlHandler',
-      data: {
-        url: ev.currentTarget.getAttribute('openUrl')
-      }
-    });
-  });
 });
 
 function draw(data) {

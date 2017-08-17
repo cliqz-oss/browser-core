@@ -9,7 +9,6 @@ import background from './base/background';
 import { Window, mapWindows } from '../platform/browser';
 import resourceManager from './resource-manager';
 import inject from './kord/inject';
-import { queryCliqz, openLink, openTab, getOpenTabs, getReminders } from '../platform/browser-actions';
 
 var lastRequestId = 0;
 var callbacks = {};
@@ -34,6 +33,14 @@ export default background({
   unload() {
     this.mm.unload();
     resourceManager.unload();
+  },
+
+  reportStartupTime() {
+    const status = this.actions.status();
+    utils.telemetry({
+      type: 'startup',
+      modules: status.modules,
+    });
   },
 
   dispatchMessage(msg) {
@@ -71,7 +78,6 @@ export default background({
         action,
         module: moduleName,
         requestId,
-        windowId,
       });
     })
     .catch(console.error.bind(null, "Process Script", `${moduleName}/${action}`));
@@ -98,9 +104,6 @@ export default background({
   },
 
   actions: {
-    notifyProcessInit(processId) {
-      events.pub('process:init', processId);
-    },
     notifyLocationChange(...args) {
       events.pub('content:location-change', ...args);
     },
@@ -229,23 +232,11 @@ export default background({
     },
 
     queryCliqz(query) {
-      queryCliqz(query);
-    },
-
-    openLink(url) {
-      openLink(url);
-    },
-
-    openTab(tabId) {
-      openTab(tabId);
-    },
-
-    getOpenTabs() {
-      return getOpenTabs();
-    },
-
-    getReminders(domain) {
-      return getReminders(domain);
+      let urlBar = utils.getWindow().document.getElementById("urlbar");
+      urlBar.mInputField.setUserInput('');
+      urlBar.focus();
+      urlBar.mInputField.focus();
+      urlBar.mInputField.setUserInput(query);
     },
 
     closePopup() {
@@ -305,7 +296,7 @@ export default background({
 
         utils.setTimeout(function () {
           delete callbacks[requestId];
-          reject(new Error('queryHTML timeout'));
+          reject();
         }, 1000);
       });
     },
@@ -352,9 +343,18 @@ export default background({
 
         utils.setTimeout(function () {
           delete callbacks[requestId];
-          reject(new Error('getCookie timeout'));
+          reject();
         }, 1000);
       });
     },
+
+    getPref(name, defVal) {
+      return prefs.get(name, defVal);
+    },
+
+    setPref(name, val) {
+      prefs.set(name, val);
+    },
+
   },
 });

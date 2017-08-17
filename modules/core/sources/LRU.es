@@ -14,16 +14,6 @@ export default class LRU {
     this.reset();
   }
 
-  /*
-   * Check if value associated with `key` is stored in cache.
-   * Does not update position of the entry.
-   *
-   * @param key
-   */
-  has(key) {
-    return this.cache.has(key);
-  }
-
   /* Retrieve value associated with `key` from cache. If it doesn't
    * exist, return `undefined`, otherwise, update position of the
    * entry to "most recent seen".

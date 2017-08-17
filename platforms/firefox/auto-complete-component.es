@@ -1,5 +1,5 @@
-import utils from "../core/utils";
-import Search from "../autocomplete/search";
+import { utils } from "core/cliqz";
+import Search from "autocomplete/search";
 
 class ProviderAutoCompleteSearch {
   constructor() {

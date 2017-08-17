@@ -3,6 +3,7 @@
  */
 
 import LoggingHandler from './logging_handler';
+import ActionID from './actions_defs';
 import jsep from '../platform/lib/jsep';
 
 
@@ -38,15 +39,13 @@ export default class FilterRulesEvaluator {
     this.offersDB = offersDB;
     // filter actions
     this.filterEvalFunMap = {
-      eval_expression: this._evalExpression.bind(this),
-      generic_comparator: this._genericComparator.bind(this)
-    };
-    // predefined operators
-    this.operationsMap = {
-      '>=': this._gtOrEqTo.bind(this),
-      '<=': this._lsOrEqTo.bind(this),
-      '==': this._eqTo.bind(this),
-      '!=': this._notEqTo.bind(this)
+      not_closed_mt: this._notClosedMt.bind(this),
+      not_added_mt: this._notAddedMt.bind(this),
+      not_created_last_secs: this._notCreatedLastSecs.bind(this),
+      not_clicked_last_secs: this._notClickedLastSecs.bind(this),
+      not_timedout_mt: this._notTimedoutMt.bind(this),
+      not_diplayed_mt: this._notDisplayedMt.bind(this),
+      not_removed_last_secs: this._notRemovedLastSecs.bind(this)
     };
   }
 
@@ -58,19 +57,7 @@ export default class FilterRulesEvaluator {
   //                                API
   // ///////////////////////////////////////////////////////////////////////////
 
-  buildJsepRules(strRules) {
-    if (!strRules) {
-      return null;
-    }
-    try {
-      return jsep(strRules);
-    } catch (e) {
-      lerr(`jsep couldn't parse with error ${e}`);
-    }
-    return null;
-  }
-  shouldWeShowOffer(offerID, argRules) {
-    const rules = argRules;
+  shouldWeShowOffer(offerID, rules) {
     if (!offerID) {
       lwarn('shouldWeShowOffer: undefined offer ID');
       return false;
@@ -85,7 +72,9 @@ export default class FilterRulesEvaluator {
     // get the displayID as well
     const offerObj = this.offersDB.getOfferObject(offerID);
     const offerDisplayID = offerObj ? offerObj.display_id : null;
+
     linfo(`shouldWeShowOffer: rules[${offerID}]: ${JSON.stringify(rules)}`);
+
     /*
       depending on the version of the triggers the rules can be object or string
       object is the previous version and has structure: {
@@ -95,36 +84,38 @@ export default class FilterRulesEvaluator {
       string is the new format and should be used from now on
      */
 
-    // show if all the conditions are true
-    const self = this;
-    let someFailed = false;
-    Object.keys(rules).forEach((ruleName) => {
-      if (someFailed) {
-        return;
-      }
-      const ruleFun = self.filterEvalFunMap[ruleName];
-      if (!ruleFun) {
-        lwarn('shouldWeShowOffer: one of the rules specified on the offer is not ' +
-             `implemented. Filter Rule name: ${ruleName}. Skipping this one`);
-        return;
-      }
-      if (!rules.jsep_built) {
-        rules.jsep_built = self.buildJsepRules(rules[ruleName]);
-        if (!rules.jsep_built) {
-          someFailed = true;
+    if (rules.constructor === Object) {
+      linfo('shouldWeShowOffer: rules is Object: \t Using old expression eval function');
+      // show if all the conditions are true
+      const self = this;
+      let someFailed = false;
+      Object.keys(rules).forEach((ruleName) => {
+        if (someFailed) {
           return;
         }
-      }
+        const ruleFun = self.filterEvalFunMap[ruleName];
+        if (!ruleFun) {
+          lerr('shouldWeShowOffer: one of the rules specified on the offer is not ' +
+               `yet implemented. Filter Rule name: ${ruleName}. Skipping this one`);
+          return;
+        }
+        if (!ruleFun(offerID, offerDisplayID, rules[ruleName])) {
+          linfo(`shouldWeShowOffer: filter rule ${ruleName} didnt passed. We should ` +
+                `not show this offer with ID ${offerID}`);
+          someFailed = true;
+        }
+        // rule passed, check the next
+      });
 
-      if (!ruleFun(offerDisplayID, rules.jsep_built)) {
-        linfo(`shouldWeShowOffer: filter rule ${ruleName} didnt passed. We should ` +
-              `not show this offer with ID ${offerID}`);
-        someFailed = true;
-      }
-      // rule passed, check the next
-    });
+      return !someFailed;
+    } else if (rules.constructor === String) {
+      linfo('shouldWeShowOffer: rules is String: \t Using new expression eval function');
+      const expr = jsep(rules); // parse rules string and create AST
+      return this._evalExpression(expr);
+    }
 
-    return !someFailed;
+    lerr('shouldWeShowOffer: unknown rules format #shouldWeShowOffer');
+    return false;
   }
 
 
@@ -132,91 +123,147 @@ export default class FilterRulesEvaluator {
   //                            PRIVATE METHODS
   // ///////////////////////////////////////////////////////////////////////////
 
-  // Operators
-  _gtOrEqTo(leftArg, rightArg) {
-    linfo(`_gtOrEqTo: evaluating ${leftArg} >= ${rightArg}`);
-    return leftArg >= rightArg;
-  }
-
-  _lsOrEqTo(leftArg, rightArg) {
-    linfo(`_lsOrEqTo: evaluating ${leftArg} <= ${rightArg}`);
-    return leftArg <= rightArg;
-  }
-
-  _eqTo(leftArg, rightArg) {
-    linfo(`_eqTo: evaluating ${leftArg} === ${rightArg}`);
-    return leftArg === rightArg;
-  }
-
-  _notEqTo(leftArg, rightArg) {
-    linfo(`_notEqTo: evaluating ${leftArg} !== ${rightArg}`);
-    return leftArg !== rightArg;
-  }
-  /**
-   * Compares a given offer attribute to an input number
-   * @param  {[type]} offerDisplayID  [description]
-   * @param  {Object} args  contains the following 4 elements
-   * * @param {string} action_id offer's action involved
-   * * @param {string} att_type attribute to be evaluated (counter, c_ts, l_u_ts)
-   * * @param {string} operator one of these: '>=', '<=', '==', '!='
-   * * @param {integer} value numerical value to be compared to
-   * @return {boolean} true on success (show it) | false otherwise
-   * @version 1.0
-   */
-  _genericComparator(offerDisplayID, args) {
-    const operation = this.operationsMap[args.operator];
-    if (!operation) {
-      lwarn(`_genericComparator: This operation wasn't found ${args.operator}`);
-      return false;
-    }
-    const offerAction = this.offersDB.getOfferDisplayActionMeta(offerDisplayID,
-                                                                args.action_id);
-    if (!offerAction) {
+  _notClosedMt(offerID, offerDisplayID, notClosedMt) {
+    const timesClosed = this.offersDB.getOfferDisplayActionMeta(offerDisplayID,
+                                                                ActionID.AID_OFFER_CLOSED);
+    if (!timesClosed) {
       return true;
     }
-    if (args.att_type === 'counter') {
-      // compare counter of events
-      return operation(offerAction.count, args.value);
-    } else if (args.att_type === 'c_ts' || args.att_type === 'l_u_ts') {
-      // calculate the time diff assuming args.att_type has the right name,
-      // we could make a map to do this as well
-      const timeDelta = (Date.now() - offerAction[args.att_type]) / 1000;
-      return operation(timeDelta, args.value);
+
+    if (timesClosed.count >= notClosedMt) {
+      linfo(`_notClosedMt: offer closed more than ${notClosedMt} (${timesClosed.count})`);
+      return false;
     }
-    lwarn(`_genericComparator: unknown attribute '${args.att_type}'`);
-    return false;
+    return true;
   }
 
-  _evalExpression(offerDisplayID, expr) {
+  _notDisplayedMt(offerID, offerDisplayID, notDisplayedMt) {
+    const timesDisplayed = this.offersDB.getOfferDisplayActionMeta(offerDisplayID,
+                                                                   ActionID.AID_OFFER_DISPLAYED);
+    if (!timesDisplayed) {
+      return true;
+    }
+
+    if (timesDisplayed.count >= notDisplayedMt) {
+      linfo(`_notDisplayedMt: offer displayed more than ${notDisplayedMt} (${timesDisplayed.count})`);
+      return false;
+    }
+    return true;
+  }
+
+  _notAddedMt(offerID, offerDisplayID, notAddedMt) {
+    const timesAdded = this.offersDB.getOfferDisplayActionMeta(offerDisplayID,
+                                                               ActionID.AID_OFFER_ADDED);
+    if (!timesAdded) {
+      return true;
+    }
+
+    if (timesAdded.count >= notAddedMt) {
+      linfo(`_notAddedMt: offer added more than ${notAddedMt} (${timesAdded.count})`);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks when the offer was used (clicked) for the last time (if it was at all),
+   * and decides whether it should be shown again.
+   * @param  {[type]} offerID  [description]
+   * @param  {[type]} offerDisplayID  [description]
+   * @param  {integer} notClickedLastSecs  how much time (in sec) should pass before
+   *                                       showing an offer again after being clicked.
+   * @return {boolean} true on success (show it) | false otherwise
+   */
+  _notClickedLastSecs(offerID, offerDisplayID, notClickedLastSecs) {
+    const lastTimeClicked = this.offersDB.getOfferActionMeta(offerID,
+                                                             ActionID.AID_OFFER_CALL_TO_ACTION);
+    if (!lastTimeClicked) {
+      return true;
+    }
+    if (lastTimeClicked.l_u_ts) {
+      // calculate the time diff
+      const lastTimeClickedSecs = (Date.now() - lastTimeClicked.l_u_ts) / 1000;
+      if (lastTimeClickedSecs < notClickedLastSecs) {
+        linfo(`_notClickedLastSecs: the offer was clicked ${lastTimeClickedSecs}` +
+              ` seconds ago and the rule specifies: ${notClickedLastSecs}`);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  _notCreatedLastSecs(offerID, offerDisplayID, notCreatedLastSecs) {
+    const lastTimeAdded = this.offersDB.getOfferDisplayActionMeta(offerDisplayID,
+                                                                  ActionID.AID_OFFER_ADDED);
+    if (!lastTimeAdded) {
+      return true;
+    }
+
+    if (lastTimeAdded.l_u_ts) {
+      // calculate the time diff
+      const lastTimeShownSecs = (Date.now() - lastTimeAdded.l_u_ts) / 1000;
+      if (lastTimeShownSecs < notCreatedLastSecs) {
+        linfo(`_notCreatedLastSecs: the offer was shown ${lastTimeShownSecs}` +
+              ` seconds ago and the rule specifies: ${notCreatedLastSecs}`);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Checks when the offer was removed from a RE (like the Hub)
+   * for the last time (if it was at all), and decides whether it should be shown again.
+   * @param  {[type]} offerID  [description]
+   * @param  {[type]} offerDisplayID  [description]
+   * @param  {integer} notRemovedLastSecs  how much time (in sec) should pass before
+   *                                       showing an offer again after being removed.
+   * @return {boolean} true on success (show it) | false otherwise
+   */
+  _notRemovedLastSecs(offerID, offerDisplayID, notRemovedLastSecs) {
+    const lastTimeRemoved = this.offersDB.getOfferActionMeta(offerID,
+                                                             ActionID.AID_OFFER_REMOVED);
+    if (!lastTimeRemoved) {
+      return true;
+    }
+    if (lastTimeRemoved.l_u_ts) {
+      // calculate the time diff
+      const lastTimeRemovedSecs = (Date.now() - lastTimeRemoved.l_u_ts) / 1000;
+      if (lastTimeRemovedSecs < notRemovedLastSecs) {
+        linfo(`_notRemovedLastSecs: the offer was removed ${lastTimeRemovedSecs}` +
+          ` seconds ago and the rule specifies: ${notRemovedLastSecs}`);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  _notTimedoutMt(offerID, offerDisplayID, notTimedOutMt) {
+    const timedOutCount = this.offersDB.getOfferDisplayActionMeta(offerDisplayID,
+                                                                  ActionID.AID_OFFER_TIMEOUT);
+    if (!timedOutCount) {
+      return true;
+    }
+
+    if (timedOutCount.count >= notTimedOutMt) {
+      linfo(`_notTimedoutMt: offer timed out more than ${notTimedOutMt}` +
+            ` (${timedOutCount.count} )`);
+      return false;
+    }
+    return true;
+  }
+
+  _evalExpression(expr) {
     try {
+      linfo(`current expr ${JSON.stringify(expr)}`);
       if (expr.type === 'CallExpression') {
         const callee = expr.callee.name;
-        if (!this.filterEvalFunMap[callee]) {
-          lwarn(`_evalExpression: filter function ${callee} doesn't exist`);
-          return false;
-        }
-        if (expr.arguments.length < 4) {
-          lwarn(`_evalExpression: not enough arguments (${expr.arguments.length})`);
-          return false;
-        }
-        const args = {
-          action_id: expr.arguments[0].value,
-          att_type: expr.arguments[1].value,
-          operator: expr.arguments[2].value,
-          value: expr.arguments[3].value,
-        };
-        // if condition not fulfilled, save
-        if (!this.filterEvalFunMap[callee](offerDisplayID, args)) {
-          this.failed = args;
-          return false;
-        }
-        return true;
+        const args = expr.arguments[0].value;
+        return this.filterEvalFunMap[callee](args);
       } else if (expr.type === 'LogicalExpression' && expr.operator === '||') {
-        return (this._evalExpression(offerDisplayID, expr.left) ||
-                this._evalExpression(offerDisplayID, expr.right));
+        return this._evalExpression(expr.left) || this._evalExpression(expr.right);
       } else if (expr.type === 'LogicalExpression' && expr.operator === '&&') {
-        return (this._evalExpression(offerDisplayID, expr.left) &&
-                this._evalExpression(offerDisplayID, expr.right));
+        return this._evalExpression(expr.left) && this._evalExpression(expr.right);
       }
     } catch (e) {
       lerr(`expr failed: ${JSON.stringify(expr)}`);
@@ -226,3 +273,4 @@ export default class FilterRulesEvaluator {
     return false;
   }
 }
+

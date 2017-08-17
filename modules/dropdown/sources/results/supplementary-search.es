@@ -2,12 +2,6 @@ import BaseResult from './base';
 import utils from '../../core/utils';
 
 export default class SupplementarySearchResult extends BaseResult {
-  constructor(rawResult, allResultsFlat = []) {
-    super(rawResult, allResultsFlat);
-
-    this.engines = utils.getSearchEngines();
-    this.defaultSearchEngine = this.engines.find(se => se.default);
-  }
 
   get template() {
     return 'search';
@@ -55,13 +49,13 @@ export default class SupplementarySearchResult extends BaseResult {
       return engine;
     }
 
-    return this.defaultSearchEngine;
+    return utils.getDefaultSearchEngine();
   }
 
   // returns undefined if no token go detected
   getEngineByQuery() {
     const token = this.rawResult.text.split(' ')[0];
-    const engines = this.engines;
+    const engines = utils.getSearchEngines();
     return engines.find(e => e.alias === token);
   }
 

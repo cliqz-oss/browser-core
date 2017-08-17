@@ -45,6 +45,7 @@ export default Ember.Route.extend({
       isBrowser: config.isBrowser,
       showNewBrandAlert: config.showNewBrandAlert,
       messageCenter: this.get('messageCenter'),
+      newsLanguage: config.newsLanguage,
       hasActiveNotifications: config.hasActiveNotifications,
       isHistoryEnabled: config.isHistoryEnabled,
     });

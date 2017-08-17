@@ -1,20 +1,23 @@
 import CliqzUtils from '../core/utils';
-import PeerSlave from './peer-slave';
+import PeerComm from './main';
 import YoutubeApp from './apps/youtube';
 import TabsharingApp from './apps/tabsharing';
 import PingPongApp from './apps/pingpong';
 import SimpleStorage from '../core/simple-storage';
 import PairingObserver from './apps/pairing-observer';
-import background from '../core/base/background';
+
 
 // TODO: remove this!
 const CustomizableUI = Components.utils.import('resource:///modules/CustomizableUI.jsm', null).CustomizableUI;
 
 const BTN_ID = 'mobilepairing_btn';
 
-export default background({
+export default {
   init() {
-    const PeerComm = this.peerSlave = new PeerSlave();
+    if (CliqzUtils.getPref('connect', false) === false) {
+      this.enabled = false;
+      return Promise.resolve();
+    }
 
     const pingpong = new PingPongApp();
     PeerComm.addObserver('PINGPONG', pingpong);
@@ -35,14 +38,9 @@ export default background({
     });
     PeerComm.addObserver('YTDOWNLOADER', youtube);
 
-    const tabsharing = new TabsharingApp(() => {}, (tabs) => {
-      tabs.forEach((tab) => {
-        if (tab.isPrivate) {
-          CliqzUtils.openLink(CliqzUtils.getWindow(), tab.url, false, false, true);
-        } else {
-          CliqzUtils.openLink(CliqzUtils.getWindow(), tab.url, true);
-        }
-      });
+    const tabsharing = new TabsharingApp(() => {}, (tab) => {
+      CliqzUtils.log(`Received tab ${tab}`);
+      CliqzUtils.getWindow().gBrowser.addTab(tab);
     });
     PeerComm.addObserver('TABSHARING', tabsharing);
 
@@ -62,6 +60,7 @@ export default background({
       },
     });
 
+    this.enabled = true;
     this.storage = new SimpleStorage();
 
     const observer = new PairingObserver();
@@ -79,15 +78,16 @@ export default background({
       .then(() => PeerComm.init(this.storage));
   },
   unload() {
-    CustomizableUI.destroyWidget(BTN_ID);
-    this.peerSlave.unload();
-    this.storage.close();
-    this.storage = null;
+    if (this.enabled) {
+      CustomizableUI.destroyWidget(BTN_ID);
+      PeerComm.unload();
+      this.storage.close();
+    }
   },
 
   actions: {
     getPairingPeer() {
-      return this.peerSlave;
+      return PeerComm;
     }
   }
-});
+};

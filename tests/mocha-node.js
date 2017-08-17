@@ -113,7 +113,6 @@ function describeModule(moduleName, loadDeps, testFn) {
   function unloadModules() {
     System.delete(System.normalizeSync(moduleName));
     Object.keys(deps).forEach(mod => System.delete(mod));
-    Object.keys(deps).forEach(mod => System.delete(System.normalizeSync(mod)));
 
     // Unload remaining unmocked modules
     Object.keys(modules).forEach(name => {
@@ -122,8 +121,13 @@ function describeModule(moduleName, loadDeps, testFn) {
     });
   }
 
-  return new Promise(function (resolve, reject) {
+  return new Promise(function (resolve) {
     describe(moduleName, function () {
+      before(function () {
+      });
+
+      after(function () {
+      });
 
       beforeEach(function () {
         deps = loadDeps();
@@ -145,13 +149,7 @@ function describeModule(moduleName, loadDeps, testFn) {
         deps = {};
       });
 
-      try {
-        testFn.call(this);
-      } catch (e) {
-        it('unexpected error', function () {
-          throw e;
-        });
-      }
+      testFn.call(this);
       resolve();
     });
   });

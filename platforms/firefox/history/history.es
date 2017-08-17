@@ -201,7 +201,7 @@ function findLastVisitId(url, since) {
       LIMIT 1
     `,
     ['id'],
-  ).then(([{ id } = {}] = []) => id);
+  ).then(([{ id }]) => id);
 }
 
 // second * minute * hour * day * year
@@ -326,19 +326,8 @@ export default class {
   static markAsHidden(url) {
     return HistoryProvider.query(`
       UPDATE moz_places
-      SET hidden = 1, visit_count = 0
+      SET hidden = 1
       WHERE url = '${url}'
     `);
-  }
-
-  static migrate(version) {
-    if (version === 0) {
-      return HistoryProvider.query(`
-        UPDATE moz_places
-        SET hidden = 1, visit_count = 0
-        WHERE url LIKE "https://cliqz.com/search?q=%" AND visit_count > 0
-      `);
-    }
-    return Promise.resolve();
   }
 }

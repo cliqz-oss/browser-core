@@ -1,5 +1,4 @@
 import Ember from "ember";
-import config from "../../../config/environment";
 
 const VisitsProxy = Ember.ArrayProxy.extend({
   setup: function () {
@@ -101,10 +100,6 @@ export default Ember.Route.extend({
       });
       this.get('cliqz').showHistoryDeletionPopup();
     },
-    openHome() {
-      this.actions.sendTelemetry.call(this, 'home-click-history');
-      this.get('cliqz').openUrl(config.cliqz.settings.NEW_TAB_URL);
-    },
     sendTelemetry(name) {
       switch(name) {
         case 'home-click-history':
@@ -126,8 +121,6 @@ export default Ember.Route.extend({
             state: name
           });
           break;
-        default:
-          throw new Error("Unknown signal name: " + name)
       }
     }
   }

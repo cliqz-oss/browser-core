@@ -1,4 +1,4 @@
-export default describeModule('dropdown/results/generic',
+export default describeModule('dropdown/results/base',
   function () {
     return {
       '../../core/events': {},
@@ -8,10 +8,10 @@ export default describeModule('dropdown/results/generic',
     };
   },
   function () {
-    let GenericResult;
+    let BaseResult;
 
     beforeEach(function () {
-      GenericResult = this.module().default;
+      BaseResult = this.module().default;
     });
 
     context('with deep results', function () {
@@ -38,7 +38,7 @@ export default describeModule('dropdown/results/generic',
           let subResults;
 
           beforeEach(function () {
-            result = new GenericResult({
+            result = new BaseResult({
               text: 'hello world',
               data: {
                 deepResults: [

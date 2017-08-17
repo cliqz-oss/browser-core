@@ -1,3 +1,5 @@
+
+
 let ops = {};
 
 /**
@@ -6,7 +8,7 @@ let ops = {};
  * If the offer is not active it will be shown in the given real states.
  * @param  {string} url   the current url
  * @param  {object} offer  is the offer object itself
- * @return {Promise(Boolean)} true if display the offer, otherwise false
+ * @return {void} nothing
  * @version 1.0
  */
 function show_offer(args, eventLoop) {
@@ -16,18 +18,24 @@ function show_offer(args, eventLoop) {
       return;
     }
 
-    const url = args[0];
-    const offerInfo = args[1];
+    var url = args[0];
+    var offerInfo = args[1];
 
-    offerInfo.rule_info.type = "exact_match";
-    offerInfo.rule_info.url = [url];
+    offerInfo.rule_info["type"] = "exact_match";
+    offerInfo.rule_info["url"] = [url];
 
-    const env = eventLoop.environment;
+    var env = eventLoop.environment;
 
-    const result = env.pushOffer(offerInfo, offerInfo.rule_info);
-    resolve(result);
+    if(!env.isOfferActive(offerInfo.offer_id)) {
+      env.addOffer(offerInfo);
+    }
+    else {
+      env.displayOffer(offerInfo.offer_id, offerInfo.rule_info);
+    }
+
+    resolve();
   });
-}
+};
 
 /**
  * Offer added is a method used to check if an offer was added (is active) or not
@@ -49,13 +57,13 @@ function offer_added(args, eventLoop) {
     var seconds = args[1];
     var env = eventLoop.environment;
 
-    var signalTs = env.getOfferLastUpdate(offerId);
+    var signalTs = env.getOfferLastUpdate(offerId, "offer-added");
 
     var result = (signalTs > Date.now() - seconds * 1000);
 
     resolve(result);
   });
-}
+};
 
 
 /**
@@ -132,7 +140,7 @@ function show_ab_offer(args, eventLoop) {
       }
       accumPct += percentages[index];
       const normNum = accumPct * 10000;
-      if (abNum < normNum) {
+      if (abNum <= normNum) {
         // this is the selected one
         selectedOffer = offersList[index];
       }
@@ -148,16 +156,20 @@ function show_ab_offer(args, eventLoop) {
     selectedOffer.rule_info["type"] = "exact_match";
     selectedOffer.rule_info["url"] = [url];
 
-    const result = env.pushOffer(selectedOffer, selectedOffer.rule_info);
 
-    resolve(result);
+    if(!env.isOfferActive(selectedOffer.offer_id)) {
+      env.addOffer(selectedOffer);
+    } else {
+      env.displayOffer(selectedOffer.offer_id, selectedOffer.rule_info);
+    }
+    resolve();
   });
-}
+};
 
 // define all the methods here
-ops.$show_offer = show_offer;
-ops.$offer_added = offer_added;
-ops.$show_ab_offer = show_ab_offer;
+ops['$show_offer'] = show_offer;
+ops['$offer_added'] = offer_added;
+ops['$show_ab_offer'] = show_ab_offer;
 
 export default ops;
 

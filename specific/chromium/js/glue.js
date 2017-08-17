@@ -372,7 +372,7 @@ const stubs = {
           "id": "1",
           "searchUrl": "https://www.cliqz.com/q=%s",
           "base_url": "https://www.cliqz.com/q=%s",
-          "name": "Cliqz",
+          "name": "CLIQZ",
           "suggestionsUrl": "https://www.cliqz.com/q=%s"
         }], 0);
       },

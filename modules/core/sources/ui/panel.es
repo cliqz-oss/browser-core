@@ -2,7 +2,7 @@ import utils from '../utils';
 import maybe from '../helpers/maybe';
 
 export default class {
-  constructor(window, url, id, type, autohide = true, actions = {}, version = 0, onHidingCallback, onShowingCallback=null) {
+  constructor(window, url, id, type, autohide = true, actions = {}, version = 0, onHidingCallback) {
     this.window = window;
     this.document = this.window.document;
     this.url = url;
@@ -13,7 +13,7 @@ export default class {
     this.type = type;
     this.version = version;
 
-    this.onShowing = this.onShowing.bind(this, onShowingCallback);
+    this.onShowing = this.onShowing.bind(this);
     this.onHiding = this.onHiding.bind(this, onHidingCallback);
     this.onMouseOver = this.onMouseOver.bind(this);
     this.onMouseOut = this.onMouseOut.bind(this);
@@ -53,9 +53,9 @@ export default class {
       iframe.contentWindow.addEventListener('message', this.onMessage);
     }
 
-    iframe.addEventListener('load', onPopupReady.bind(this), true);
     iframe.setAttribute('type', 'content');
     iframe.setAttribute('src', this.url);
+    iframe.addEventListener('load', onPopupReady.bind(this), true);
 
     this.iframe = iframe;
   }
@@ -171,7 +171,7 @@ export default class {
   }
 
   detach() {
-    const panelui = this.panel.parentElement;
+    const panelui = this.panelUI();
     if (panelui) {
       panelui.removeChild(this.panel);
       this.destroyPanel();

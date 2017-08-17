@@ -10,7 +10,6 @@ import md5 from 'md5';
 // FIXME: remove circular dependency
 import CliqzSecureMessage, { localTemporalUniq } from './index';
 import userPK from './user-pk';
-import { getProxyVerifyUrl } from '../routing';
 
 import { sha1 } from '../../core/crypto/utils';
 
@@ -27,6 +26,7 @@ import {
   createPayloadBlindSignature,
   createPayloadProxy,
   getRouteHash,
+  createHttpUrl
 } from './utils';
 import { unBlindMessage, blindSignContext } from './blind-signature';
 import _http from './http-worker';
@@ -101,45 +101,45 @@ export default class {
   }
 
   log(msg){
-    // console.log("Message Context: " + msg);
+    console.log("Message Context: " + msg);
   }
 
-  getproxyCoordinator(){
-    const _this = this;
-    const msg = _this.jMessage;
+	getproxyCoordinator(){
+		var _this = this;
+		var msg = _this.jMessage;
     _this.endPoint = CliqzSecureMessage.sourceMap[this.action]["endpoint"];
     _this.md5Hash = md5.md5(this.action);
-    const promise = new Promise(function(resolve, reject) {
-      try {
-        const stringRouteHash = getRouteHash(msg);
-        sha1(stringRouteHash).then(hashM => {
+		var promise = new Promise(function(resolve, reject){
+			try{
+				var hash = "";
+				// var _msg = msg || this.orgMessage;
+				var stringRouteHash = getRouteHash(msg);
+				sha1(stringRouteHash)
+				.then(hashM => {
           _this.sha1 = hashM;
-          const dmC = hexToBinary(hashM)['result'].slice(0,13);
-          const routeHash = parseInt(dmC, 2);
-          _this.fullHash = hashM;
-          _this.dmC = dmC;
-          const totalProxies = 4096;
-          const modRoute = routeHash % totalProxies;
-          const proxy = CliqzSecureMessage.routeTable[modRoute];
-          const proxyUrl = getProxyVerifyUrl({
-            host: proxy.dns,
-            ip: proxy.ip,
-            supportsHttps: proxy.ssl
-          });
-          _this.proxyCoordinator = proxyUrl;
-          resolve(this);
-        })
-        .catch(err=>{
+					var dmC = hexToBinary(hashM)['result'].slice(0,13);
+					var routeHash = parseInt(dmC, 2);
+					_this.fullHash = hashM;
+					_this.dmC = dmC;
+					var totalProxies = 4096;
+					var modRoute = routeHash % totalProxies;
+					var proxyIP = createHttpUrl(CliqzSecureMessage.routeTable[modRoute]);
+					_this.proxyCoordinator = proxyIP;
+					resolve(this);
+				})
+				.catch(err=>{
           console.log("ERROR >> " + err);
-          reject(err);
-        })
-      }
-      catch(e){
-        reject(e);
-      }
-    })
-    return promise;
-  }
+					reject(err);
+				})
+
+
+			}
+			catch(e){
+				reject(e);
+			}
+		})
+		return promise;
+	}
 
 	/**
 	 * Method to generate an AES-CBC 128 bit key.

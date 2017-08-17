@@ -11,6 +11,7 @@ export default class CliqzMsgHandler {
     const messageAlready = this._messageQueue.some(msg => {
       return msg.id === message.id;
     });
+
     if(!messageAlready) {
       this._messageQueue.push(message);
       this._callbacks[message.id] = callback;

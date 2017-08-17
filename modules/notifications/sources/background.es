@@ -1,4 +1,3 @@
-import config from '../core/config';
 import inject from '../core/kord/inject';
 import utils from '../core/utils';
 import events from '../core/events';
@@ -55,7 +54,7 @@ export default background({
   broadcastMessage(action, message) {
     this.core.action(
       'broadcastMessage',
-      config.settings.NEW_TAB_URL,
+      utils.CLIQZ_NEW_TAB_RESOURCE_URL,
       {
         action: action,
         message

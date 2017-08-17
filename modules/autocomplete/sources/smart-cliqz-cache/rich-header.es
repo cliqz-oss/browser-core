@@ -19,7 +19,6 @@ export function getSmartCliqz(url) {
             message: url + ' not found on server'
           });
         } else {
-          smartCliqzData.subType = JSON.parse(smartCliqzData.subType);
           smartCliqz = Result.cliqz(smartCliqzData);
           utils.log('getSmartCliqz: done fetching for ' + url);
           resolve(smartCliqz);

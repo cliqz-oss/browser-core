@@ -25,18 +25,16 @@
                 </div>
 
                 {{#if template_data.call_to_action }}
-                    <div class="cqz-call-to-action">
-                        <a openurl="{{ template_data.call_to_action.url }}"
-                           class="cqz-btn cqz-close-hub"
-                           data-cqz-of-btn-id="offer_ca_action"
-                           data-cqz-of-btn-action-type="offer-action-signal"
-                           data-cqz-offer-id="{{ offer_id }}"
-                           target="{{ template_data.call_to_action.target }}"
-                           style="color: {{ template_data.styles.call-to-action-color }}; background: {{ template_data.styles.call-to-action-bg-color }}"
-                        >
-                            {{ template_data.call_to_action.text }}
-                        </a>
-                    </div>
+                <div class="cqz-call-to-action">
+                    <a href="#{{ template_data.call_to_action.url }}"
+                       class="cqz-btn cqz-close-hub"
+                       data-cqz-of-btn-id="call-to-action"
+                       data-cqz-offer-id="{{ offer_id }}"
+                       target="{{ template_data.call_to_action.target }}"
+                       style="color: {{ template_data.styles.call-to-action-color }}; background: {{ template_data.styles.call-to-action-bg-color }}">
+                        {{ template_data.call_to_action.text }}
+                    </a>
+                </div>
                 {{/if }}
 
 
@@ -46,21 +44,21 @@
                     </h1>
 
                     {{#if template_data.code }}
-                        <div class="cqz-offer-code-holder">
-                            <span class="cqz-offer-code-info" data-i18n="offers-hub-code-copy"></span>
-                            <span class="cqz-offer-code"
-                                  data-cqz-of-btn-id="code_copied"
-                                  data-cqz-offer-id="{{ offer_id }}"
-                                  data-cqz-of-btn-action-type="offer-action-signal"
-                            >{{ template_data.code  }}</span>
-                            <!-- Do not put {{ template_data.code  }} otherwise will bring empty spaces in COPY selection-->
-                        </div>
+                    <div class="cqz-offer-code-holder">
+                        <span class="cqz-offer-code-info" data-i18n="offers-hub-code-copy"></span>
+                        <span class="cqz-offer-code"
+                              data-cqz-of-btn-id="copy-code"
+                              data-cqz-offer-id="{{ offer_id }}"
+                              data-cqz-of-btn-action-type="offer-action-signal"
+                        >{{ template_data.code  }}</span>
+                        <!-- Do not put {{ template_data.code  }} otherwise will bring empty spaces in COPY selection-->
+                    </div>
                     {{/if }}
 
 
                     <div class="cqz-descr" style="color: {{ template_data.styles.description-color }}">
                         {{#if template_data.conditions }}
-                            {{ template_data.conditions }} <br>
+                        {{ template_data.conditions }} <br>
                         {{/if }}
                         {{ template_data.desc }}
                     </div>
@@ -69,7 +67,7 @@
             <span
                 class="cqz-close"
                 data-cqz-of-btn-id="close-offer-link"
-                data-cqz-of-btn-action-type="remove_offer_link"
+                data-cqz-of-btn-action-type="action"
                 data-cqz-offer-id="{{ offer_id }}"
             ></span>
         </div>

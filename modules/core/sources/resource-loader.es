@@ -1,6 +1,6 @@
 import config from './config';
 import console from './console';
-import utils from './utils';
+import { utils } from './cliqz';
 import Storage from '../platform/resource-loader-storage';
 import TextDecoder from '../platform/text-decoder';
 

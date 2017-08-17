@@ -2,7 +2,6 @@ import { getSmartCliqz } from './rich-header'
 import { utils } from '../../core/cliqz';
 import { mkdir } from '../../core/fs';
 import Cache from './cache';
-import console from '../../core/console';
 
 const CUSTOM_DATA_CACHE_FOLDER = 'cliqz';
 const CUSTOM_DATA_CACHE_FILE = CUSTOM_DATA_CACHE_FOLDER + '/smartcliqz-custom-data-cache.json';
@@ -37,7 +36,7 @@ export default class {
       // TODO: detect when loaded; allow save only afterwards
       this._customDataCache.load(CUSTOM_DATA_CACHE_FILE);
     }).catch((e) => {
-      console.error('init: unable to create cache folder:' + e);
+      this._log('init: unable to create cache folder:' + e);
     });
 
     this._isInitialized = true;
@@ -63,7 +62,7 @@ export default class {
         this._prepareCustomData(url);
       }
     } catch (e) {
-      console.error('store: error while customizing data: ' + e);
+      this._log('store: error while customizing data: ' + e);
     }
   }
   /**
@@ -91,7 +90,7 @@ export default class {
       this.store(smartCliqz);
       delete this._fetchLock[url];
     }, (e) => {
-      console.error('fetchAndStore: error while fetching data: ' +
+      this._log('fetchAndStore: error while fetching data: ' +
                  e.type + ' ' + e.message);
       delete this._fetchLock[url];
     });
@@ -111,7 +110,7 @@ export default class {
       try {
         this._customizeSmartCliqz(smartCliqz);
       } catch (e) {
-        console.error('retrieveCustomized: error while customizing data: ' + e);
+        this._log('retrieveCustomized: error while customizing data: ' + e);
       }
     }
 
@@ -311,7 +310,7 @@ export default class {
         this._log('_prepareCustomData: done preparing for ' + url);
         this._customDataCache.save(CUSTOM_DATA_CACHE_FILE);
       })
-      .catch(e => console.error('_prepareCustomData: error while fetching data: ' + e.message));
+      .catch(e => this._log('_prepareCustomData: error while fetching data: ' + e.message));
   }
 
   // checks if URL from history matches a category URL

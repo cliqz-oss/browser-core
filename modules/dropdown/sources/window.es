@@ -7,18 +7,15 @@ import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 const STYLESHEET_URL = 'chrome://cliqz/content/dropdown/styles/styles.css';
 
 export default class {
-  constructor(config) {
-    this.window = config.window;
-    this.background = config.background;
-    this.settings = config.settings;
+  constructor({ window, background }) {
+    this.window = window;
     this.ui = new UI(this.window, {
-      getSessionCount: this.background.getSessionCount.bind(this.background),
+      getSessionCount: background.getSessionCount.bind(background),
     });
 
     this.actions = {
       init: () => {
         this.window.CLIQZ.UI = this.ui;
-        this.ui.init();
       }
     };
   }
@@ -35,6 +32,5 @@ export default class {
   unload() {
     delete this.window.CLIQZ.UI;
     removeStylesheet(this.window.document, STYLESHEET_URL);
-    this.ui.unload();
   }
 }

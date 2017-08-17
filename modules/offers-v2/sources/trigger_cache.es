@@ -1,4 +1,4 @@
-import { timestamp } from './utils';
+
 
 export default class TriggerCache {
   constructor(eventLoop) {
@@ -17,7 +17,7 @@ export default class TriggerCache {
     self.expireCache();
 
     // need adding time for expiration using ttl
-    trigger._added_ts = timestamp();
+    trigger._added_ts = self.timestamp();
     trigger._subtriggers = null;
 
     self.triggerIndex[trigger.trigger_id] = trigger;
@@ -63,7 +63,7 @@ export default class TriggerCache {
   expireCache() {
     var self = this;
 
-    var ts = timestamp();
+    var ts = self.timestamp();
 
     if(ts - this.lastExpireRun < 60000) {
       return;
@@ -77,4 +77,10 @@ export default class TriggerCache {
 
     self.lastExpireRun = ts;
   }
+
+
+  timestamp() {
+    return Math.round(Date.now() / 1000);
+  }
+
 }

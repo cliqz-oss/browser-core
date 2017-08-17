@@ -1,4 +1,3 @@
-import config from '../core/config';
 import background from '../core/base/background';
 import utils from '../core/utils';
 
@@ -33,7 +32,7 @@ export default background({
     },
 
     finishOnboarding() {
-      utils.openLink(utils.getWindow(), config.settings.NEW_TAB_URL);
+      utils.openLink(utils.getWindow(), utils.CLIQZ_NEW_TAB);
     },
   },
 });

@@ -1,14 +1,22 @@
-#PanelUI-contents #wrapper-cliqz-cc-btn, #PanelUI-contents #cliqz-cc-btn {
-    vertical-align: top;
-}
-
-#nav-bar #cliqz-cc-btn {
+#cliqz-cc-btn {
     padding: 0;
 }
 
-/* Don't show the border for this button, show box shadow instead */
-#nav-bar #cliqz-cc-btn:-moz-any([open], [checked], :hover:active):not([disabled="true"]) > .cliqz-control-center {
-    border-color: transparent;
+.cliqz-control-center {
+    height: 31px;
+    padding: 8px 4px 0 32px;
+    color: transparent;
+    background-size: 20px;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(../images/cc-active.svg);
+}
+
+
+#nav-bar .cliqz-control-center {
+    min-width: 55px;
+    color: black;
+    background-position: 4px 5px;
 }
 
 .cliqz-control-center:after {
@@ -24,36 +32,19 @@
     padding-left: 20px;
 }
 
-#nav-bar, #PanelUI-mainView, #customization-container {
-    #cliqz-cc-btn .cliqz-control-center {
-        padding: 3px 4px 3px 32px !important;
-        color: transparent;
-        background-size: 20px !important;
-        background-repeat: no-repeat !important;
-        background-position: center center !important;
-        background-image: url(../images/cc-active.svg) !important;
-
-        &[state="inactive"] {
-            background-image: url(../images/cc-inactive.svg) !important;
-        }
-
-        &[state="critical"] {
-            background-image: url(../images/cc-critical.svg) !important;
-        }
-    }
+.cliqz-control-center[state="critical"] {
+    background-image: url(../images/cc-critical.svg);
 }
 
-#nav-bar #cliqz-cc-btn .cliqz-control-center {
-    min-width: 55px;
-    color: black;
-    background-position: 3px 0px !important;
+.cliqz-control-center[state="inactive"] {
+    background-image: url(../images/cc-inactive.svg);
 }
 
-#cliqz-cc-btn .cliqz-control-center[state="off"] {
-    background-image: url(../images/cc-off.svg) !important;
+.cliqz-control-center[state="off"] {
+    background-image: url(../images/cc-off.svg);
     /* state off means there are no security features so no need for the badge text */
     min-width: 30px !important;
-    padding: 0px !important;
+    padding: 0px;
     color: transparent;
 }
 

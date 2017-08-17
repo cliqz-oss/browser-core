@@ -2,7 +2,7 @@
 
 var osAPI = {
   OS: {},
-  init: function(skipIsReady) {
+  init: function() {
     if(window.webkit) {
       osAPI.OS.postMessage = window.webkit.messageHandlers.jsBridge.postMessage.bind(window.webkit.messageHandlers.jsBridge);
     } else if(window.jsBridge) {
@@ -13,9 +13,7 @@ var osAPI = {
     } else {
       osAPI.OS.postMessage = MockOS.postMessage;
     }
-    if (!skipIsReady) {
-      osAPI.isReady();
-    }
+    osAPI.isReady();
   },
   /**
     function: searchHistory
@@ -328,20 +326,6 @@ var osAPI = {
   notifyPairingSuccess: function(data) {
     var message = {
       action: 'notifyPairingSuccess',
-      data: data,
-    };
-    osAPI.OS.postMessage(message);
-  },
-  notifyTabError: function(data) {
-    var message = {
-      action: 'notifyTabError',
-      data: data,
-    };
-    osAPI.OS.postMessage(message);
-  },
-  notifyTabSuccess: function(data) {
-    var message = {
-      action: 'notifyTabSuccess',
       data: data,
     };
     osAPI.OS.postMessage(message);

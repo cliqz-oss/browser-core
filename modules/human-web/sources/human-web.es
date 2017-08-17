@@ -47,39 +47,9 @@ function getHTML(...args) {
   return core.action('getHTML', ...args);
 }
 
-function cleanFinalUrl(domain, href) {
-  /*
-  We need to get the final domain, there are 2 elements that we try to capture.
-
-  1. Which is mentioned in the key 'fu' in the scraping rules. It is not clean in all the cases.
-  For eg: That URL at times comes as aclk?. In this case we will try and fall back on data-preconnect-urls.
-
-  2. data-preconnect-urls: We are not using it as primary source, because at times, this contains the ad-server domain.
-  When we use this attribute, we need to ensure we do not send back the complete chain.
-
-  */
-
-  let cleanDomain = href;
-
-
-  // Parse domain from href.
-  let parsedLink = CliqzHumanWeb.parseURL(href);
-  if (parsedLink && parsedLink.hostname && parsedLink.hostname.indexOf('google') === -1 &&parsedLink.path.indexOf('aclk?') === -1) {
-    cleanDomain = parsedLink.hostname;
-  } else if (domain) {
-    if (domain.indexOf(',') > -1) {
-      cleanDomain = domain.split(',')[0];
-    } else {
-      cleanDomain = domain;
-    }
-  }
-  return cleanDomain;
-}
-
 var CliqzHumanWeb = {
-	adDetails: {},
     CHANNEL: '{{HW_CHANNEL}}',
-    VERSION: '2.6',
+    VERSION: '2.5',
     WAIT_TIME: 2000,
     LOG_KEY: 'humanweb',
     debug: false,
@@ -1582,7 +1552,6 @@ var CliqzHumanWeb = {
         QueryInterface: XPCOMUtils.generateQI(["nsIWebProgressListener", "nsISupportsWeakReference"]),
 
         onLocationChange: function(aProgress, aRequest, aURI) {
-
             // New location, means a page loaded on the top window, visible tab
             // Return if it's a private tab.
             if(aRequest && aRequest.isChannelPrivate !== undefined && aRequest.isChannelPrivate) {
@@ -1606,6 +1575,7 @@ var CliqzHumanWeb = {
 
             if (aURI.spec == this.tmpURL) return;
             this.tmpURL = aURI.spec;
+
 
             // This code looks obselete now, will remove in 1+ release.
             if (CliqzHumanWeb.ismRefresh){
@@ -1703,7 +1673,7 @@ var CliqzHumanWeb = {
 
                 if (CliqzHumanWeb.state['v'][activeURL] == null) {
                     //if ((requery.test(activeURL) || yrequery.test(activeURL) || brequery.test(activeURL) ) && !reref.test(activeURL)) {
-                    CliqzEvents.pub('human-web:active-url', {activeURL});
+
                     var se = CliqzHumanWeb.checkSearchURL(activeURL);
                     if (se > -1) {
                         utils.setTimeout(function(url) {
@@ -1711,17 +1681,7 @@ var CliqzHumanWeb = {
                             return;
                           }
 
-                          // If the search page is google, then let's get list of
-                          // all the ads.
-
-                          if ( se === 0) {
-                          	CliqzHumanWeb.getCD(url).then( doc => {
-                          		CliqzHumanWeb.detectAds(doc);
-                          	});
-                          }
-
                           CliqzHumanWeb.getCD(url).then( doc => {
-
                             CliqzHumanWeb.checkURL(doc, url, "normal");
                             CliqzHumanWeb.queryCache[url] = {
                               d: 0,
@@ -1889,6 +1849,7 @@ var CliqzHumanWeb = {
                     // wops, it exists on the active page, probably it comes from a back button or back
                     // from tab navigation
                     CliqzHumanWeb.state['v'][activeURL]['tend'] = null;
+                    CliqzEvents.pub('HW-activeURL:', {activeURL});
                 }
             }
         },
@@ -1973,7 +1934,6 @@ var CliqzHumanWeb = {
             CliqzHumanWeb.cleanHttpCache();
             CliqzHumanWeb.cleanDocCache();
             CliqzHumanWeb.cleanLinkCache();
-            CliqzHumanWeb.purgeAdLookUp();
         }
 
         if ((CliqzHumanWeb.counter/CliqzHumanWeb.tmult) % (1*60) == 0) {
@@ -4494,7 +4454,7 @@ var CliqzHumanWeb = {
         if (queryLikeURL &&
             (CliqzHumanWeb.isSuspiciousURL(query) || CliqzHumanWeb.dropLongURL(query))) {
             _log("Query is dangerous");
-            sanitisedQuery = "(PROTECTED)";
+            sanitisedQuery = "(PROTECTED)"
         };
 
         // Queries also appear on the URL, in which
@@ -4507,27 +4467,26 @@ var CliqzHumanWeb = {
             const urlPrivate = CliqzHumanWeb.bloomFilter.testSingle(md5(url));
             if (urlPrivate) {
                 _log("Url is already marked private");
-                url = "(PROTECTED)";
+                return;
             }
 
             // Check URL is suspicious
             if (CliqzHumanWeb.isSuspiciousURL(url)) {
                 _log("Url is suspicious");
-                url = CliqzHumanWeb.maskURL(url);
+                return;
             }
 
             // Check URL is dangerous, with strict DROPLONGURL.
             if (CliqzHumanWeb.dropLongURL(url, {strict: true})) {
                 _log("Url is dangerous");
-                url = CliqzHumanWeb.maskURL(url);
+                return;
             }
 
-            // Check for DNS
+            // Check for DNS.
             CliqzHumanWeb.isHostNamePrivate(url).then( res => {
                 if (res) {
                     _log("Private Domain");
-                    url = "(PROTECTED)";
-                    CliqzHumanWeb.sendResultTelemetry(query, url, data);
+                    return;
                 } else {
                     // Mask URL.
                     let maskedURL = CliqzHumanWeb.maskURL(url);
@@ -4896,144 +4855,6 @@ var CliqzHumanWeb = {
 
         return promise;
     },
-    onHeadersReceived: function(requestDetails) {
-      if (requestDetails.type === 6) {
-        CliqzHumanWeb.detectAdClick(requestDetails.url);
-      }
-    },
-    detectAds: function(doc) {
-    	/*
-    	  Ads can be in three different sections on the page.
-    	  1. Top vertical: Hotels in barcelona : .ads-ad
-    	  2. Side: Adidas shoes : .pla-unit-container
-    	  3. Bottom vertical : Hotels in barcelona (chrome): .ads-ad
-    	  4. Top horizontal: adidas shoes(firefox): .pla-unit-container
-
-		  For each ad on the page we need to find the following:
-
-		  1. URL that will be clicked.
-		  2. Final URL.
-
-		  cu: Click URL.
-    	*/
-
-
-    	// Let's define the detection rules.
-
-      let noAdsOnThisPage = 0;
-    	let detectAdRules = {
-    		query: {
-    			element: '#ires',
-    			attribute: 'data-async-context'
-    		},
-    		adSections: ['.ads-ad', '.pla-unit-container', '.pla-hovercard-content-ellip'],
-    		0: {
-    			cu: ".ad_cclk h3 a[id^='s0p'],.ad_cclk h3 a[id^='s3p']",
-    			fu: ".ad_cclk h3 a[id^='vs0p'],.ad_cclk h3 a[id^='vs3p']"
-    		},
-    		1: {
-    			cu: "a[id^='plaurlg']",
-    			fu: "a[id^='vplaurlg']"
-    		},
-    		2: {
-    			cu: "a[id^='plaurlh']",
-    			fu: "a[id^='vplaurlh']"
-    		}
-    	};
-
-
-    	// We need to detect the query too.
-    	let queryElement = doc.querySelector(detectAdRules.query.element);
-    	let query = "";
-
-    	if (queryElement) {
-    		query = queryElement.getAttribute(detectAdRules.query.attribute).replace('query:','');
-
-        try {
-          query = decodeURIComponent(query);
-        } catch(ee) {}
-
-        /*
-        Let's do a sanity check that the query is not suspicious.
-        If it's a suspicious query, and happens to serve an Ad which the user clicks,
-        we will send the payload but with query marked as protected.
-        */
-
-        if (CliqzHumanWeb.isSuspiciousQuery(query)) {
-          query = ' (PROTECTED) ';
-        }
-    	}
-
-    	// Let's iterate over each possible section of the ads.
-    	detectAdRules.adSections.forEach( (eachAdSection, idx) => {
-    		let adNodes;
-    		adNodes = Array.prototype.slice.call(doc.querySelectorAll(eachAdSection));
-
-    		adNodes.forEach( eachAd => {
-    			let cuRule = detectAdRules[idx]['cu'];
-    			let fuRule = detectAdRules[idx]['fu'];
-
-    			let ad = {}
-
-    			let clink = eachAd.querySelector(cuRule);
-    			let flink = eachAd.querySelector(fuRule);
-
-
-    			if (clink && flink) {
-    				let clickPattern = clink.href.split('aclk?')[1];
-
-	    			CliqzHumanWeb.adDetails[clickPattern] = {
-	    				ts: Date.now(),
-	    				query: query,
-	    				furl: cleanFinalUrl(flink.getAttribute('data-preconnect-urls'), flink.href) // At times there is a redirect chain, we only want the final domain.
-	    			};
-            noAdsOnThisPage++;
-	    		}
-
-    		});
-
-    	});
-
-    	_log(`>>>> Number of ads found on this page >>> ${noAdsOnThisPage}`);
-    },
-    detectAdClick: function(targetURL) {
-      // The first URL observed after clicking the ad has the pattern,
-      // google and aclk? in it.
-      if (targetURL.indexOf('google') > -1 && targetURL.indexOf('aclk?') > -1) {
-      	let clickedU = targetURL.split('aclk?')[1];
-      	if (CliqzHumanWeb.adDetails[clickedU]) {
-            let payload = {
-                action: 'ad-ctr',
-                'anti-duplicates': Math.floor(random() * 10000000),
-                type: 'humanweb',
-                channel: CliqzHumanWeb.CHANNEL,
-                payload: {
-                    ctry: CliqzHumanWeb.getCountryCode(),
-
-                }
-            }
-      		payload.payload.query = CliqzHumanWeb.adDetails[clickedU].query;
-      		payload.payload.domain = CliqzHumanWeb.adDetails[clickedU].furl;
-
-      		_log(`AD CTR Payload : ${JSON.stringify(payload)}`);
-          CliqzHumanWeb.telemetry(payload);
-      	}
-      }
-    },
-    purgeAdLookUp: function() {
-      // We should clean the ads in lookup table, keep it from growing too huge.
-      // Cleaning ads which are older than 15 minutes seems reasonable right now.
-
-      let ts = Date.now();
-      Object.keys(CliqzHumanWeb.adDetails).forEach( (item) => {
-        let adTS = CliqzHumanWeb.adDetails[item]['ts'];
-        let diff = (ts - adTS) / (1000 * 60);
-        if (diff > 15) {
-          delete CliqzHumanWeb.adDetails[item];
-        }
-      });
-
-    }
 };
 
 export default CliqzHumanWeb;

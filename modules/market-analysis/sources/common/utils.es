@@ -5,9 +5,8 @@
  * @return {String} date in string
  */
 function getHpnTimeStamp() {
-  // TODO: this is the copy function from `modules/offers-v2/signals_handler`
+  // TODO: this is the copy function from `../offers-v2/signals_handler` module
   // Since the method is not public for external modules, at the moment, we just copy the implementation
-  // Be aware that there might be problem with HPN
   return new Date().toISOString().slice(0, 10).replace(/-/g, '');
 }
 
@@ -35,15 +34,10 @@ function* generateItems(list) {
   for (var i = 0; i < list.length; i++) { yield list[i]; }
 }
 
-function now() {
-  return new Date();
-}
-
 export {
   getHpnTimeStamp,
   getTopLevelCategory,
   joinKeyVal,
   splitKeyVal,
-  generateItems,
-  now
+  generateItems
 };

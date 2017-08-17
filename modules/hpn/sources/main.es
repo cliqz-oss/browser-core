@@ -9,18 +9,15 @@ import config from '../core/config';
 import ResourceLoader from '../core/resource-loader';
 import { sendM } from './send-message';
 import * as hpnUtils from './utils';
-import console from '../core/console';
 import { overRideCliqzResults } from './http-handler-patch';
 import ProxyFilter from './proxy-filter';
 import CryptoWorker from './crypto-worker';
-import { createProxyList, getProxyVerifyUrl } from './routing';
 
 /* Global variables
 */
 let proxyCounter = 0;
 
 const CliqzSecureMessage = {
-  CHANNEL: config.settings.HPN_CHANNEL,
   VERSION: '0.1',
   LOG_KEY: 'securemessage',
   debug: false,
@@ -40,6 +37,7 @@ const CliqzSecureMessage = {
   LOOKUP_TABLE_PROVIDER: config.settings.ENDPOINT_LOOKUP_TABLE_PROVIDER,
   KEYS_PROVIDER: config.settings.ENDPOINT_KEYS_PROVIDER,
   proxyList: null,
+  proxyListLoader: null,
   proxyStats: {},
   PROXY_LIST_PROVIDER: config.settings.ENDPOINT_PROXY_LIST_PROVIDER,
   BLIND_SIGNER: config.settings.ENDPOINT_BLIND_SIGNER,
@@ -152,10 +150,25 @@ const CliqzSecureMessage = {
 
     this.sourceMapLoader.onUpdate(e => CliqzSecureMessage.sourceMap = e);
 
-    // Load lookuptable, which also contains the list of proxy list.
-    // Update every 5 minutes.
+    // Load proxy list. Update every 5 minutes.
+    this.proxyListLoader = new ResourceLoader(
+        ["hpn","proxylist.json"],
+        {
+          remoteURL: CliqzSecureMessage.PROXY_LIST_PROVIDER,
+          cron: 1 * 5 * 60 * 1000,
+          updateInterval: 1 * 5 * 60 * 1000,
+        }
+    );
+
+    this.proxyListLoader.load().then( e => {
+      CliqzSecureMessage.proxyList = e;
+    })
+
+    this.proxyListLoader.onUpdate(e => CliqzSecureMessage.proxyList = e);
+
+    // Load lookuptable. Update every 5 minutes.
     this.routeTableLoader = new ResourceLoader(
-        ["hpn","routeTableV2.json"],
+        ["hpn","routeTable.json"],
         {
           remoteURL: CliqzSecureMessage.LOOKUP_TABLE_PROVIDER,
           cron: 1 * 5 * 60 * 1000,
@@ -163,17 +176,11 @@ const CliqzSecureMessage = {
         }
     );
 
-    this.routeTableLoader.load().then(fullRouteTable => {
-      CliqzSecureMessage._updateRoutingInfo(fullRouteTable);
-    }).catch(e => {
-      if (CliqzSecureMessage.debug) {
-        console.error('Failed to update initial routeTable', e);
-      }
-    });
+    this.routeTableLoader.load().then( e => {
+      CliqzSecureMessage.routeTable = e;
+    })
 
-    this.routeTableLoader.onUpdate(fullRouteTable => {
-      CliqzSecureMessage._updateRoutingInfo(fullRouteTable);
-    });
+    this.routeTableLoader.onUpdate(e => CliqzSecureMessage.routeTable = e);
 
     CliqzSecureMessage.dsPK.pubKeyB64 = config.settings.KEY_DS_PUBKEY;
     CliqzSecureMessage.secureLogger.publicKeyB64 = config.settings.KEY_SECURE_LOGGER_PUBKEY;
@@ -194,6 +201,7 @@ const CliqzSecureMessage = {
     this.storage.saveLocalCheckTable();
     CliqzSecureMessage.pushTelemetry();
     this.sourceMapLoader.stop();
+    this.proxyListLoader.stop();
     this.routeTableLoader.stop();
     CliqzUtils.clearTimeout(CliqzSecureMessage.pacemakerId);
     this.storage.close();
@@ -201,18 +209,11 @@ const CliqzSecureMessage = {
   proxyIP: function () {
     if (!CliqzSecureMessage.proxyList) return;
 
-    if (proxyCounter >= CliqzSecureMessage.proxyList.length) {
-      proxyCounter = 0;
-    }
-    const proxy = CliqzSecureMessage.proxyList[proxyCounter];
-    const proxyUrl = getProxyVerifyUrl({
-      host: proxy.dns,
-      ip: proxy.ip,
-      supportsHttps: proxy.ssl
-    });
-    CliqzSecureMessage.queryProxyIP = proxyUrl;
+    if (proxyCounter >= CliqzSecureMessage.proxyList.length) proxyCounter = 0;
+    const url = hpnUtils.createHttpUrl(CliqzSecureMessage.proxyList[proxyCounter]);
+    CliqzSecureMessage.queryProxyIP = url;
     proxyCounter += 1;
-    return proxyUrl;
+    return url;
   },
   registerUser: function() {
     this.storage.loadKeys().then(userKey => {
@@ -244,12 +245,5 @@ const CliqzSecureMessage = {
       }
     });
   },
-
-  _updateRoutingInfo: function(fullRouteTable) {
-    CliqzSecureMessage.routeTable = fullRouteTable[CliqzSecureMessage.CHANNEL];
-    CliqzSecureMessage.proxyList = createProxyList(CliqzSecureMessage.routeTable);
-
-    CliqzUtils.log('Updated proxy list and routing table', CliqzSecureMessage.LOG_KEY);
-  }
 };
 export default CliqzSecureMessage;

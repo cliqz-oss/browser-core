@@ -2,6 +2,7 @@
 var Funnel = require('broccoli-funnel');
 var MergeTrees = require('broccoli-merge-trees');
 var broccoliSource = require('broccoli-source');
+var concat = require('broccoli-sourcemap-concat');
 var writeFile = require('broccoli-file-creator');
 
 var WatchedDir = broccoliSource.WatchedDir;

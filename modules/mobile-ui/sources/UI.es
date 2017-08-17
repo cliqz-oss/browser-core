@@ -33,17 +33,6 @@ var resultsBox = null,
     viewPager = null,
     FRAME = 'frame';
 
-const backgrounds = {
-                      ios: {
-                        standard: '#E7ECEE',
-                        incognito: '#1b1b1b',
-                      },
-                      android: {
-                        standard: '#E8E8E8',
-                        incognito: '#333333',
-                      }
-                    };
-
 var UI = {
     isIncognito: false,
     currentPage: 0,
@@ -56,10 +45,6 @@ var UI = {
     DelayedImageLoader: null,
     VIEWS: {},
     init: function () {
-
-      const userAgent = window.navigator.userAgent.toLowerCase();
-      UI.OS = /iphone|ipod|ipad/.test(userAgent) ? 'ios' : 'android';
-
 
       utils.RERANKERS.push(ErrorHandlerReranker);
 
@@ -106,7 +91,7 @@ var UI = {
     },
     setTheme: function (incognito = false) {
       UI.isIncognito = incognito;
-      window.document.body.style.backgroundColor = backgrounds[UI.OS][incognito ? 'incognito' : 'standard'];
+      window.document.body.style.backgroundColor = incognito ? '#333333' : '#E8E8E8';
     },
     results: function (r) {
       setCardCountPerPage(window.innerWidth);

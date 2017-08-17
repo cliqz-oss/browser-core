@@ -1,5 +1,5 @@
 import utils from '../core/cliqz';
-import NEWS_DOMAINS from '../freshtab/news-domains';
+import { NEWS_DOMAINS_LIST as NEWS_DOMAINS } from '../freshtab/news';
 
 export default class {
 

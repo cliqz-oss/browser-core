@@ -53,8 +53,7 @@ export default class {
   }
 
   selectResult(result) {
-    const el = [...this.rootElement.querySelectorAll('a')].find(a => equals(a.href, result.url));
-    el.classList.add('selected');
+    this.rootElement.querySelector(`a[href='${result.url}']`).classList.add('selected');
   }
 
   updateSelection() {
@@ -85,9 +84,7 @@ export default class {
       anchor.setAttribute('onmousedown', 'return false;');
     });
     const resultElem = this.rootElement.querySelector('.result');
-    if (resultElem) {
-      resultElem.classList.add('selected');
-    }
+    resultElem.classList.add('selected');
 
     const historyResults = this.rootElement.querySelectorAll('.history');
     if (historyResults.length > 0) {
@@ -96,18 +93,8 @@ export default class {
   }
 
   onMouseUp(ev) {
-    let targetElement = ev.originalTarget;
-
-    if (targetElement.nodeType !== 1) {
-      targetElement = targetElement.parentElement;
-    }
-
+    const targetElement = ev.originalTarget;
     const resultElement = targetElement.closest('.result');
-
-    if (!resultElement) {
-      return;
-    }
-
     const extraElement = targetElement.closest('[data-extra]');
     const extra = extraElement ? extraElement.dataset.extra : null;
     const href = resultElement.href;
@@ -139,17 +126,10 @@ export default class {
   }
 
   onMouseMove(ev) {
-    let targetElement = ev.originalTarget;
-
-    if (targetElement.nodeType !== 1) {
-      targetElement = targetElement.parentElement;
-    }
-
-    if (this.lastTarget === targetElement) {
+    if (this.lastTarget === ev.originalTarget) {
       return;
     }
-
-    this.lastTarget = targetElement;
+    this.lastTarget = ev.originalTarget;
 
     const now = Date.now();
     if ((now - this.lastMouseMove) < 10) {
@@ -158,7 +138,12 @@ export default class {
     this.lastMouseMove = now;
 
     // TODO: merge with onMouseUp handler
-    const resultElement = targetElement.closest('.result');
+    let resultElement;
+    if (ev.originalTarget.classList.contains('result')) {
+      resultElement = ev.originalTarget;
+    } else {
+      resultElement = ev.originalTarget.closest('.result');
+    }
 
     if (!resultElement) {
       return;

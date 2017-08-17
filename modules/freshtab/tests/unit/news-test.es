@@ -4,7 +4,6 @@ export default describeModule("freshtab/news",
   function () {
     return {
       "core/config": { default: { } },
-      "core/url": { extractSimpleURI: '[dynamic]' },
       "platform/language": { default: { } },
       "platform/places-utils": { default: { } },
       "freshtab/news-cache": { default: function () { } },
@@ -78,7 +77,7 @@ export default describeModule("freshtab/news",
 
         this.deps("core/utils").default.log = function() {};
 
-        this.deps("core/url").extractSimpleURI = function(url) {
+        this.deps("core/utils").default.getDetailsFromUrl = function(url) {
           var data = {
             "http://www.focus.de/politik/": {
               path: "/politik/",

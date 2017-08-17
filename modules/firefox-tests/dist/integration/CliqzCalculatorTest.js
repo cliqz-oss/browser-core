@@ -71,7 +71,71 @@ TESTS.CliqzCalculatorTest = function() {
 
 
       it('Result should show 0,621 meilen in German browser, and 0.621 miles in English browser', function() {
-        expect(getResultString()).to.equal(getLocaliseString({'de': '0,621371 meilen', 'default': '0.621371 miles'}));
+        expect(getResultString()).to.equal(getLocaliseString({'de': '0,621 meilen', 'default': '0.621 miles'}));
+      });
+    });
+
+    context("Calculator simple DE format - 2*3222,2", function() {
+      beforeEach(function() {
+        respondWith({results: []});
+        fillIn("2*3222,2");
+        return waitForPopup();
+      });
+
+      it('Results should have ID calc-answer, in localized format', function() {
+        expect(getResultString()).to.equal(getLocaliseString({'de': '6 444,4', 'default': '6 444.4'}));
+      });
+
+      xit('Should have copy message', function() {
+        expect($cliqzResults().find(".result").find("#calc-copy-msg")[0].textContent.trim()).to.exist;
+      });
+    });
+
+    context("Calculator simple DE format - 1500.2 + 2000,3", function() {
+      beforeEach(function() {
+        respondWith({results: []});
+        fillIn("1500.2 + 2000,3");
+        return waitForPopup();
+      });
+
+      it('Results should have ID calc-answer, in localized format', function() {
+        expect(getResultString()).to.equal(getLocaliseString({'de': '3 500,5', 'default': '3 500.5'}));
+      });
+
+      xit('Should have copy message', function() {
+        expect($cliqzResults().find(".result").find("#calc-copy-msg")[0].textContent.trim()).to.exist;
+      });
+    });
+
+    context("Calculator simple DE format - 10,2 + 1 000,00", function() {
+      beforeEach(function() {
+        respondWith({results: []});
+        fillIn("10,2 + 1 000,00");
+        return waitForPopup();
+      });
+
+      it('Results should have ID calc-answer, in localized format', function() {
+        expect(getResultString()).to.equal(getLocaliseString({'de': '1 010,2', 'default': '1 010.2'}));
+      });
+
+      xit('Should have copy message', function() {
+        expect($cliqzResults().find(".result").find("#calc-copy-msg")[0].textContent.trim()).to.exist;
+      });
+    });
+
+    context("Calculator simple DE format - 12500 + 1250000", function() {
+      beforeEach(function() {
+        respondWith({results: []});
+        fillIn("12500 + 1250000");
+        return waitForPopup();
+      });
+
+      it('Results should have ID calc-answer, in localized format', function() {
+        expect(getResultString()).to.equal(getLocaliseString({'de': '1 262 500', 'default': '1 262 500'}));
+      });
+
+      xit('Should have copy message', function() {
+        expect($cliqzResults().find(".result").find("#calc-copy-msg")[0].textContent.trim()).to.exist;
       });
     });
   });

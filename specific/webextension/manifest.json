@@ -1,19 +1,13 @@
 {
   "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC6xdwspdy7qcs6Nh5hfp5o3JAPwMGb7plR3fey1Ys3giIFAI7u0H7iJUeD6vojtZxubazL2dzeI//AXKn9JmZ1qfnSsQsM1pC9ZrxFeGy2cd/wyyI3HCs9xDIGQKxAmm+LrBc+6kcqTKbAMIEHTwGoX8O2e2u7oXsB/Rnm+ltPOQIDAQAB",
-  "name": "Cliqz search",
+  "name": "CLIQZ search",
   "version": "0.1",
   "manifest_version": 2,
-  "description": "Cliqz search",
+  "description": "CLIQZ search",
   "icons": {
   },
-  "applications": {
-   "gecko": {
-     "id": "omnibox@cliqz.com"
-   }
- },
   "incognito" : "split",
   "permissions": [
-    "history",
     "windows",
     "tabs",
     "http://*/*",
@@ -21,23 +15,13 @@
     "webRequest",
     "webNavigation",
     "storage",
-    "history",
-    "topSites"
+    "history"
   ],
   "background": {
     "scripts": [
       "modules/webextension-specific/app.bundle.js"
     ]
   },
-  "content_scripts": [
-    {
-      "matches": ["*://*/*"],
-      "js": ["content.js"]
-    }
-  ],
-  "chrome_url_overrides": {
-    "newtab": "modules/freshtab/home.html"
-  },
   "content_security_policy":
-    "connect-src * http://*/* https://*/* http://*.google.com/*; object-src 'none'; script-src chrome://resources 'self' 'unsafe-eval'"
+    "connect-src http://*/* https://*/* http://*.google.com/*; object-src 'none'; script-src chrome://resources 'self' 'unsafe-eval'"
 }

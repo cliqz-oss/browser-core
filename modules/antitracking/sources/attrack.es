@@ -21,7 +21,7 @@ import * as browser from '../platform/browser';
 import WebRequest from '../core/webrequest';
 import telemetry from './telemetry';
 import console from '../core/console';
-import domainInfo, { getDomainOwner } from '../core/domain-info';
+import domainInfo from '../core/domain-info';
 import Pipeline from './pipeline';
 import { checkInstalledPrivacyAddons } from '../platform/addon-check';
 import cleanLegacyDb from './legacy/database';
@@ -301,7 +301,7 @@ var CliqzAttrack = {
         steps.domChecker.parseCookies.bind(steps.domChecker),
         steps.tokenChecker.findBadTokens.bind(steps.tokenChecker),
         function checkHasBadTokens(state) {
-          return state.blocklistMatch || (state.badTokens.length > 0);
+          return (state.badTokens.length > 0)
         },
         steps.blockRules.applyBlockRules.bind(steps.blockRules),
         CliqzAttrack.isQSEnabled.bind(CliqzAttrack),
@@ -594,7 +594,6 @@ var CliqzAttrack = {
           requests: {safe: 0, unsafe: 0},
           trackers: {},
           companies: {},
-          companyInfo: {},
           ps: null
         };
 
@@ -643,14 +642,17 @@ var CliqzAttrack = {
         // add set cookie blocks to cookie blocked count
         result.trackers[dom].cookie_blocked += result.trackers[dom].set_cookie_blocked;
 
-        const company = getDomainOwner(dom);
-        result.companyInfo[company.name] = company;
-
-        if (!(company.name in result.companies)) {
-          result.companies[company.name] = [];
+        let tld = getGeneralDomain(dom),
+          company = tld;
+        // find the company behind this tracker. I
+        // If the first party is from a tracker company, then do not add the company so that the actual tlds will be shown in the list
+        if (tld in domainInfo.domainOwners && domainInfo.domainOwners[tld] !== firstPartyCompany) {
+          company = domainInfo.domainOwners[tld];
         }
-        result.companies[company.name].push(dom);
-
+        if (!(company in result.companies)) {
+          result.companies[company] = [];
+        }
+        result.companies[company].push(dom);
       });
 
       return result;
@@ -683,51 +685,6 @@ var CliqzAttrack = {
         acc[val.name] = (acc[val.name] || 0) + val.count;
         return acc
       }, {});
-    },
-    /**
-     * Returns bugIds for a tab (based on Ghostery schema)
-     */
-    getAppsForTab: function(tabId) {
-      const tabData = CliqzAttrack.tp_events._active[tabId];
-      if (!tabData) {
-        return {};
-      }
-      const bugs = {
-        known: {},
-        unknown: {}
-      };
-
-      function actionName(blocked, unsafe) {
-        if (blocked) {
-          return 'blocked';
-        }
-        if (unsafe) {
-          return 'unsafe';
-        }
-        return 'safe';
-      }
-
-      // blocked by antitracking blocker
-      if (tabData.annotations.apps) {
-        tabData.annotations.apps.forEach((action, app) => {
-          bugs.known[app] = actionName(action === 'BLOCK', action === 'ALLOW_UNSAFE');
-        });
-      }
-      // blocked/seen by antitracking
-      const info = CliqzAttrack.getTabBlockingInfo(tabId);
-      Object.keys(info.trackers).forEach((domain) => {
-        const tld = getGeneralDomain(domain);
-        const id = domainInfo.domains[tld];
-        const blocked = info.trackers[domain].tokens_removed > 0 || info.trackers[domain].blocked_blocklist > 0;
-        const unsafe = info.trackers[domain].bad_qs > 0;
-        if (id) {
-          bugs.known[id] = actionName(blocked || bugs.known[id] === true, unsafe);
-        } else {
-          bugs.unknown[tld] = actionName(blocked, unsafe);
-        }
-      });
-
-      return bugs;
     },
     /** Enables Attrack module with cookie, QS and referrer protection enabled.
      *  if module_only is set to true, will not set preferences for cookie, QS and referrer protection (for selective loading in AB tests)

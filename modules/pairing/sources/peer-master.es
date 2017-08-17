@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+/* global USERAGENT, window */
 
 import MessageStorage from './message-storage';
 import { sha256, rawEncryptRSA, toByteArray, deriveAESKey, fromByteArray, encryptStringAES, decryptStringAES } from '../core/crypto/utils';
@@ -8,6 +9,7 @@ import fetch from '../platform/fetch';
 import { encryptPairedMessage, decryptPairedMessage, ERRORS, getMessageTargets } from './shared';
 import { toBase64, fromHex } from '../core/encoding';
 import CliqzPeer from '../p2p/cliqz-peer';
+import inject from '../core/kord/inject';
 
 const PAIRING_ERRORS = {
   BAD_DEVICE_NAME: 2,
@@ -20,19 +22,8 @@ function has(obj, prop) {
 const maxSize = 5 * 1024 * 1024;
 
 export default class PeerMaster {
-  get lastVersion() {
-    return this.getStorage('lastVersion');
-  }
-  set lastVersion(version) {
-    this.setStorage('lastVersion', version);
-  }
-
-  get version() {
-    return 1;
-  }
-
-  constructor({ masterName = 'Cliqz Mobile Browser', debug = false }) {
-    this.masterName = masterName;
+  constructor(debug = false) {
+    this.p2p = inject.module('p2p');
     this.pushTime = 1000;
     this.debug = debug;
     this.apps = new Map();
@@ -113,19 +104,17 @@ export default class PeerMaster {
     });
   }
 
-  __addSlave(name, peerID, publicKey, randomToken, version) {
+  __addSlave(name, peerID, publicKey, randomToken) {
     const slave = {
       name,
       peerID,
       publicKey,
       randomToken,
-      version
     };
     this.slaves.push(slave);
     this.slavesById[slave.peerID] = slave;
     this.slavesByName[slave.name] = slave;
     this.setStorage('__slaves', this.slaves);
-    this.enableMasterPeerIfNeeded();
     return slave;
   }
 
@@ -153,13 +142,20 @@ export default class PeerMaster {
     })
     .catch(e => this.log(e));
   }
-  init(storage, window) {
+  init(storage) {
     if (this.isInit) {
       throw new Error('Module already init!');
     }
-    this.window = window;
     this.storage = storage;
     this.storagePrefix = 'PEERMASTER_';
+
+    if (!this.masterName) {
+      const info = typeof window !== 'undefined' && typeof USERAGENT !== 'undefined' ?
+        USERAGENT.analyze(window.navigator.userAgent) : { os: {}, device: {} };
+      const deviceInfo = info.device.full || 'CLIQZ Mobile Browser';
+      const osInfo = info.os.full ? ` (${info.os.full})` : '';
+      this.setStorage('masterName', `${deviceInfo}${osInfo}`);
+    }
 
     // to take into account message marshalling overhead
     this.msgStorage = new MessageStorage(storage, maxSize / 2);
@@ -188,11 +184,6 @@ export default class PeerMaster {
         }
       });
       this.checkMessagePusher();
-
-      if (this.version !== this.lastVersion) {
-        this.lastVersion = this.version;
-        this.notifyNewPeer(this.peerID);
-      }
     });
   }
 
@@ -228,11 +219,7 @@ export default class PeerMaster {
       utils.clearInterval(this.pushInterval);
       this.pushInterval = null;
       if (this.masterPeer) {
-        try {
-          this.masterPeer.destroy();
-        } catch (e) {
-          this.logError('Error destroying masterPeer', e);
-        }
+        this.masterPeer.destroy();
         this.masterPeer = null;
       }
       this.apps.forEach((app) => {
@@ -361,12 +348,15 @@ export default class PeerMaster {
     });
   }
 
+  get masterName() {
+    return this.getStorage('masterName');
+  }
+
   get devices() {
     return this.getTrustedDevices().map(x => ({
       id: x,
       name: x === this.peerID ? this.masterName : this.slavesById[x].name,
       publicKey: x === this.peerID ? this.publicKey : this.slavesById[x].publicKey,
-      version: x === this.peerID ? this.version : this.slavesById[x].version,
     }));
   }
 
@@ -424,8 +414,8 @@ export default class PeerMaster {
     }
   }
 
-  processPairingMessage(peerID, publicKey, deviceName, { randomToken }, version) {
-    this.log(`Registering Slave: ${deviceName} ${peerID} version ${version}`);
+  processPairingMessage(peerID, publicKey, deviceName, { randomToken }) {
+    this.log(`Registering Slave: ${deviceName} ${peerID}`);
     return sha256(publicKey)
     .then((h) => {
       // Error handling
@@ -440,7 +430,7 @@ export default class PeerMaster {
         this.__removeSlaveById(peerID);
         this.msgStorage.removePeer(peerID);
       }
-      this.__addSlave(uniqueDeviceName, peerID, publicKey, randomToken, version);
+      this.__addSlave(uniqueDeviceName, peerID, publicKey, randomToken);
       this.msgStorage.addPeer(peerID);
       this.removePairingDevice(peerID);
       const devices = this.devices;
@@ -464,12 +454,7 @@ export default class PeerMaster {
   }
 
   processMessageForMe(type, msg, source) {
-    if (type === '__VERSION') {
-      const device = this.slavesById[source];
-      device.version = msg;
-      this.setStorage('__slaves', this.slaves);
-      this.notifyNewPeer(source);
-    } else if (type === 'remove_peer') {
+    if (type === 'remove_peer') {
       // Special type, but we also allow for observers (for testing)
       this._removePeer(source);
     }
@@ -487,8 +472,8 @@ export default class PeerMaster {
       this.loadPairingAESKey(peerID)
       .then(aesKey => PeerMaster.receiveEncrypted(data, aesKey))
       .then((decrypted) => {
-        const [publicKey, deviceName, version] = decrypted;
-        return this.processPairingMessage(peerID, publicKey, deviceName, device, version);
+        const [publicKey, deviceName] = decrypted;
+        return this.processPairingMessage(peerID, publicKey, deviceName, device);
       })
       .catch((e) => {
         this.log('Error receiving pairing message', e);
@@ -512,7 +497,6 @@ export default class PeerMaster {
     return Promise.reject(new Error(`loadPairingAESKey: unknown peer ${peerID}`));
   }
 
-  // Assuming keypair is already generated
   enableMasterPeerIfNeeded() {
     const numPairing = Object.keys(this.pairingDevices).length;
     const numDevices = Object.keys(this.slaves).length;
@@ -544,8 +528,8 @@ export default class PeerMaster {
   }
 
   initPeer() {
-    this.masterPeer = new CliqzPeer(
-      this.window,
+    return this.p2p.action(
+      'createPeer',
       this.keypair,
       {
         DEBUG: this.debug,
@@ -553,27 +537,31 @@ export default class PeerMaster {
         maxMessageRetries: 0,
         signalingEnabled: false,
       },
-    );
+    )
+      .then((masterPeer) => {
+        this.masterPeer = masterPeer;
+        this.masterPeer.encryptSignaling = (data, peerID) =>
+          this.loadPairingAESKey(peerID)
+          .then(aesKey => PeerMaster.sendEncrypted(data, aesKey))
+          .catch(() => data);
 
-    this.masterPeer.encryptSignaling = (data, peerID) =>
-      this.loadPairingAESKey(peerID)
-      .then(aesKey => PeerMaster.sendEncrypted(data, aesKey))
-      .catch(() => data);
-
-    this.masterPeer.decryptSignaling = (data, peerID) =>
-      this.loadPairingAESKey(peerID)
-      .then(aesKey => PeerMaster.receiveEncrypted(data, aesKey))
-      .catch(() => data);
-    this.masterPeer.setMessageSizeLimit(maxSize);
+        this.masterPeer.decryptSignaling = (data, peerID) =>
+          this.loadPairingAESKey(peerID)
+          .then(aesKey => PeerMaster.receiveEncrypted(data, aesKey))
+          .catch(() => data);
+        this.masterPeer.setMessageSizeLimit(maxSize);
+      });
   }
 
   checkConnections() {
     if (this.masterPeer) {
-      this.getTrustedDevices().forEach((slaveID) => {
-        if (slaveID !== this.peerID) {
-          this.masterPeer.checkPeerConnection(slaveID)
-          .catch(() => {});
-        }
+      this.masterPeer.createConnection().then(() => {
+        this.getTrustedDevices().forEach((slaveID) => {
+          if (slaveID !== this.peerID) {
+            this.masterPeer.checkPeerConnection(slaveID)
+            .catch(() => {});
+          }
+        });
       });
     }
   }
@@ -725,12 +713,6 @@ export default class PeerMaster {
   getOnInitArgs(channel) {
     const self = this;
     const comm = {
-      getDeviceVersion(deviceID) {
-        if (self.isPaired) {
-          return self.devices.find(x => x.id === deviceID).version;
-        }
-        return null;
-      },
       send(msg, targets) {
         let t = targets;
         if (!t) {

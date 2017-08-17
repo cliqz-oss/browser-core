@@ -37,7 +37,9 @@
             <li class="vouchers active"  data-i18n="offers-hub-title"></li>
             <!--<li class="voucher-history">Recent</li>-->
         </ul>
-        <span class="cqz-close-hub"></span>
+        <span class="cqz-close-hub"
+              data-cqz-of-btn-id="close-hub"
+              data-cqz-of-btn-action-type="action"></span>
     </header>
 
     <section id="cqz-vouchers-wrapper" class="cqz-vouchers">
@@ -45,8 +47,8 @@
         <div class="cqz-vouchers-inner-holder">
             <ul id="cqz-new-vouchers-holder"></ul>
             <a class="cqz-show-all-offers"
-               data-cqz-of-btn-id="show_more_offers"
-               data-cqz-of-btn-action-type="action-signal"
+               data-cqz-of-btn-id="show-all-offers-btn"
+               data-cqz-of-btn-action-type="action"
                data-i18n="offers-hub-show-all-offers-btn"
             ></a>
             <ul id="cqz-recent-vouchers-holder"></ul>
@@ -64,19 +66,19 @@
                 <ul>
                     <li>
                         <label>
-                             <input type="radio" name="remove_feedback" value="feedback_option1">
+                             <input type="radio" name="remove_feedback" value="feedback-option1">
                              <span data-i18n="offers-hub-feedaback-option1"></span>
                         </label>
                     </li>
                     <li>
                         <label>
-                             <input type="radio" name="remove_feedback" value="feedback_option2">
+                             <input type="radio" name="remove_feedback" value="feedback-option2">
                               <span data-i18n="offers-hub-feedaback-option2"></span>
                         </label>
                     </li>
                     <li>
                         <label>
-                             <input type="radio" name="remove_feedback" value="feedback_option3">
+                             <input type="radio" name="remove_feedback" value="feedback-option3">
                               <span data-i18n="offers-hub-feedaback-option3"></span>
                         </label>
                     </li>
@@ -84,15 +86,13 @@
                 <p>
                     <a
                         class="cancel-feedback button"
-                        data-cqz-of-btn-id="remove_offer_cancel"
-                        data-cqz-of-btn-action-type="offer-action-signal"
-                        data-cqz-offer-id=""
+                        data-cqz-of-btn-id="close-offer-cancel"
+                        data-cqz-of-btn-action-type="action"
                         data-i18n="offers-hub-cancel"
                     ></a>
                     <a
                         class="remove-offer button"
-                        data-cqz-of-btn-id="offer_removed"
-                        data-cqz-of-btn-action-type="remove-offer"
+                        data-cqz-of-btn-id="remove-offer"
                         data-cqz-offer-id=""
                         data-i18n="offers-hub-remove"
                     ></a>
@@ -104,13 +104,11 @@
     <footer>
         <ul>
             <li>
-                <a
+                <a 
                    openurl="https://cliqz.com/desktop/cliqz-angebote"
                    class="cqz-power-by"
-
-                   data-cqz-of-btn-id="more_about_cliqz"
-                   data-cqz-of-btn-action-type="action-signal"
-
+                   data-cqz-of-btn-id="more-about-cliqz"
+                   data-cqz-of-btn-action-type="action"
                    data-i18n="offers-hub-about-cliqz-offers"
                    style="color: {{ styles.description-color }}"
                 ></a>

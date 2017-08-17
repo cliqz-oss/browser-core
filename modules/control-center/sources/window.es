@@ -1,4 +1,3 @@
-import config from '../core/config';
 import inject from '../core/kord/inject';
 import utils from '../core/utils';
 import events from '../core/events';
@@ -7,7 +6,6 @@ import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import UITour from '../platform/ui-tour';
 import Panel from '../core/ui/panel';
 import console from '../core/console';
-import { getMessage } from '../core/i18n';
 
 function toPx(pixels) {
   return `${pixels.toString()}px`;
@@ -43,7 +41,6 @@ export default class {
       resize: this.resizePopup.bind(this),
       'adb-optimized': this.adbOptimized.bind(this),
       'antitracking-activator': this.antitrackingActivator.bind(this),
-      'anti-phishing-activator': this.antiphishingActivator.bind(this),
       'adb-activator': this.adbActivator.bind(this),
       'antitracking-strict': this.antitrackingStrict.bind(this),
       'antitracking-clearcache': this.antitrackingClearCache.bind(this),
@@ -295,24 +292,6 @@ export default class {
     });
   }
 
-  antiphishingActivator(data) {
-    const ph = inject.module('anti-phishing');
-    ph.action('activator', data.state, data.url);
-
-    let state;
-    if (data.type === 'switch') {
-      state = data.state === 'active' ? 'on' : 'off';
-    } else {
-      state = data.state;
-    }
-    utils.telemetry({
-      type: TELEMETRY_TYPE,
-      target: `antiphishing_${data.type}`,
-      state,
-      action: 'click',
-    });
-  }
-
   setMockBadge(info) {
     this.updateBadge(info);
   }
@@ -414,30 +393,18 @@ export default class {
   // creates the static frame data without any module details
   // re-used for fast first render and onboarding
   getFrameData() {
-    let url = this.window.gBrowser.currentURI.spec;
+    const url = this.window.gBrowser.currentURI.spec;
     let friendlyURL = url;
     let isSpecialUrl = false;
-    let urlDetails = utils.getDetailsFromUrl(url);
+    const urlDetails = utils.getDetailsFromUrl(url);
 
     if (url.indexOf('about:') === 0) {
       friendlyURL = url;
       isSpecialUrl = true;
-    } else if (url.indexOf(config.settings.NEW_TAB_URL) === 0) {
+    } else if (url.indexOf(utils.CLIQZ_NEW_TAB_RESOURCE_URL) === 0) {
       friendlyURL = 'Cliqz Tab';
       isSpecialUrl = true;
-    } else if (url.indexOf(utils.CLIQZ_ONBOARDING_URL) === 0) {
-      friendlyURL = 'Cliqz';
-      isSpecialUrl = true;
-    } else if (url.startsWith('chrome://cliqz/content/anti-phishing/phishing-warning.html')) {
-      // in case this is a phishing site (and a warning is displayed),
-      // we need to get the actual url instead of the warning page
-      url = url.split('chrome://cliqz/content/anti-phishing/phishing-warning.html?u=')[1];
-      url = decodeURIComponent(url);
-      urlDetails = utils.getDetailsFromUrl(url);
-      isSpecialUrl = true;
-      friendlyURL = getMessage('anti-phishing-txt0');
     }
-
     return {
       activeURL: url,
       friendlyURL,
@@ -461,20 +428,19 @@ export default class {
     ).then((mData) => {
       const moduleData = mData;
       const ccData = this.getFrameData();
-      const states = [
-        moduleData.antitracking && moduleData.antitracking.state || 'critical',
-        moduleData['anti-phishing'] && moduleData['anti-phishing'].state || 'critical'
-      ];
 
       if (this.settings.controlCenterSecurity === true) {
-        if (states.includes('inactive')) {
+        if (moduleData['anti-phishing'] && !moduleData['anti-phishing'].active) {
           ccData.generalState = 'inactive';
         }
-        if (states.includes('critical')) {
+
+        if (!moduleData.antitracking) {
           ccData.generalState = 'critical';
+        } else if (!moduleData.antitracking.enabled && moduleData.antitracking.isWhitelisted) {
+          ccData.generalState = 'inactive';
         }
       } else {
-          ccData.generalState = 'off';
+        ccData.generalState = 'off';
       }
 
       moduleData.adult = { visible: true, state: utils.getAdultFilterState() };
@@ -577,7 +543,7 @@ export default class {
     button.classList.add('chromeclass-toolbar-additional')
 
     const div = doc.createElement('div');
-    div.setAttribute('class', 'cliqz-control-center toolbarbutton-icon');
+    div.setAttribute('class', 'cliqz-control-center');
     if (this.settings.controlCenterSecurity === true) {
       div.textContent = BTN_LABEL;
     } else {
@@ -587,9 +553,12 @@ export default class {
     button.appendChild(div);
 
     UITour.targets.set('cliqz', { query: '#cliqz-cc-btn', widgetName: 'cliqz-cc-btn', allowAdd: true });
-    button.addEventListener('command', () => {
-      this.panel.open(button);
-    }, false);
+    const promise = UITour.getTarget(this.window, 'cliqz');
+    promise.then(() => {
+      button.addEventListener('command', () => {
+        this.panel.open(button);
+      });
+    });
 
     ToolbarButtonManager.restorePosition(doc, button);
 

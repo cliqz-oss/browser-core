@@ -139,7 +139,7 @@ TESTS.CliqzUtilsTest = function (CliqzUtils) {
       it("Locale file should be loaded", function () {
         var locale = CliqzUtils.locale['default'] || CliqzUtils.locale[window.navigator.language];
         chai.expect(locale).to.be.ok;
-        chai.expect(locale.TEST.message).to.equal('OK');
+        chai.expect(locale.TEST).to.equal('OK');
       });
     });
 

@@ -5,47 +5,37 @@ var Funnel = require('broccoli-funnel');
 var MergeTrees = require('broccoli-merge-trees');
 var Babel = require('broccoli-babel-transpiler');
 var eslint = require('broccoli-lint-eslint');
+var compileSass = require('broccoli-sass-source-maps');
 var broccoliSource = require('broccoli-source');
 var watchify = require('broccoli-watchify');
 var WatchedDir = broccoliSource.WatchedDir;
 var UnwatchedDir = broccoliSource.UnwatchedDir;
+var broccoliHandlebars = require('broccoli-handlebars-precompiler');
+var concat = require('broccoli-sourcemap-concat');
+var SystemBuilder = require('broccoli-system-builder');
 const writeFile = require('broccoli-file-creator');
 
 var cliqzConfig = require('./config');
 const modulesList = require('./modules/modules-list');
-const contentScriptsImport = require('./modules/content-script-imports');
 
 var Instrument = require('./instrument');
-var helpers = require('./modules/helpers');
-var getBundlesTree = require('./modules/bundles-tree');
-var getHandlebarsTree = require('./modules/handlebars-tree');
-var getSassTree = require('./modules/sass-tree');
-var getDistTree = require('./modules/dist-tree');
-
-var walk = helpers.walk;
 
 const bowerComponents = new UnwatchedDir('bower_components');
 const modulesTree = new WatchedDir('modules');
+const subprojectsTree = new UnwatchedDir('subprojects');
 
-const babelModulePlugin = cliqzConfig.format === 'common' ?
-  'transform-es2015-modules-commonjs' :
-  'transform-es2015-modules-systemjs';
+const moduleFormat = cliqzConfig.format || 'system';
 
 var babelOptions = {
-  babelrc: false,
-  presets: ["airbnb"],
-  compact: false,
   sourceMaps: cliqzConfig.sourceMaps ? 'inline' : false,
-  filterExtensions: ['es', 'jsx'],
-  plugins: [
-    "transform-react-jsx",
-    babelModulePlugin,
-  ],
+  filterExtensions: ['es'],
+  modules: moduleFormat,
+  compact: false,
+  blacklist: ['regenerator'],
 };
 
 if (cliqzConfig.instrumentFunctions) {
-  // TODO: make sure this works
-  babelOptions.plugins.push(Instrument);
+  babelOptions.plugins = (babelOptions.plugins || []).concat(Instrument);
 }
 
 const eslintOptions = {
@@ -60,10 +50,13 @@ function getPlatformFunnel() {
 }
 
 
-function getPlatformTree() {
+function getPlatformTree(format) {
+  if (!format) {
+    format = moduleFormat;
+  }
   let platform = getPlatformFunnel();
 
-  platform = Babel(platform, Object.assign({}, babelOptions));
+  platform = Babel(platform, Object.assign({}, babelOptions, { modules: format }));
 
   return new Funnel(platform, {
     srcDir: cliqzConfig.platform,
@@ -71,6 +64,7 @@ function getPlatformTree() {
   });
 }
 
+// Attach subprojects
 var requiredBowerComponents = new Set();
 
 const moduleConfigs = cliqzConfig.modules.map(name => {
@@ -97,13 +91,15 @@ moduleConfigs.forEach( config => {
 
 function getSourceFunnel() {
   return new Funnel(modulesTree, {
-    include: cliqzConfig.modules.map(name => `${name}/sources/**/*.es`).concat(cliqzConfig.modules.map(name => `${name}/sources/**/*.jsx`)),
+    include: cliqzConfig.modules.map(name => `${name}/sources/**/*.es`),
     exclude: cliqzConfig.modules.map(name => `${name}/sources/**/*.browserify`),
     getDestinationPath(path) {
       return path.replace('/sources', '');
     }
   });
 }
+
+
 
 function testGenerator(relativePath, errors, extra) {
   let fileName = relativePath;
@@ -112,7 +108,7 @@ function testGenerator(relativePath, errors, extra) {
   }
 
   return `
-System.register("tests/${fileName.substr(0, fileName.lastIndexOf('.'))  + '.lint-test.js'}", [], function (_export) {
+  System.register("tests/${fileName.replace('.es', '.lint-test.js')}", [], function (_export) {
   "use strict";
 
   return {
@@ -165,7 +161,7 @@ function getLintTestsTree() {
       options: eslintOptions,
       testGenerator,
     });
-    esLinterTree.extensions = ['es', 'jsx'];
+    esLinterTree.extensions = ['es'];
 
     return new Funnel(esLinterTree, { destDir });
   };
@@ -179,10 +175,97 @@ function getLintTestsTree() {
   ]);
 }
 
+function walk(p, filter) {
+  let list = [];
+  fs.readdirSync(p)
+  .forEach((file) => {
+    const fullPath = path.join(p, file);
+    const stat = fs.statSync(fullPath);
+    if (stat.isDirectory()) {
+      list = list.concat(walk(fullPath, filter));
+    } else if (!filter || filter(fullPath)) {
+      list.push(fullPath);
+    }
+  });
+  return list;
+}
+
+function replaceFileExtension(filename) {
+  const filenameParts = filename.split('.');
+  filenameParts.pop();
+  filenameParts.push('js');
+  return filenameParts.join('.');
+}
+
+function getBundlesTree(modulesTree) {
+  const bundles = cliqzConfig.modules.map((moduleName) => {
+    const modulePath = path.join('modules', moduleName);
+    const inputFiles =  walk(modulePath,
+      fileName => fileName.endsWith('.bundle.es'));
+    const outputFiles = inputFiles.map((bundlePath) => {
+      const bundlePathParts = bundlePath.split("/")
+      let bundleName = bundlePathParts[bundlePathParts.length-1];
+      bundleName = replaceFileExtension(bundleName);
+
+      return new SystemBuilder(modulesTree, '/', moduleName + '/system.config.js', function(builder) {
+        const packages = {};
+
+        cliqzConfig.modules.concat('platform').forEach(module => {
+          packages[module] = {
+            defaultJSExtensions: true,
+            format: 'system',
+          };
+        });
+
+        const paths = {
+          'specific/*': './specific/'+cliqzConfig.platform+'/*',
+          'bower_components/*': './bower_components/*',
+          'node_modules/*': './node_modules/*',
+        };
+
+        cliqzConfig.modules.concat('platform').forEach(module => {
+          paths[module] = module;
+          paths[module+'/*'] = module+'/*';
+        });
+
+        paths['*'] = './node_modules/*';
+
+        builder.config({
+          transpiler: false,
+          packageConfigPaths: [
+            'node_modules/*/package.json',
+          ],
+          map: {
+            'plugin-json': 'node_modules/systemjs-plugin-json/json.js',
+          },
+          paths: paths,
+          meta: {
+            'specific/*': {
+              format: 'global',
+            },
+            'bower_components/*': {
+              format: 'global',
+            },
+            '*.json': {
+              loader: "plugin-json",
+            },
+          },
+          packages: packages,
+        });
+        const bundle = moduleName + '/' + bundleName;
+        return builder.buildStatic(bundle, bundle, {
+          sourceMaps: 'inline',
+        });
+      });
+    });
+
+    return new MergeTrees(outputFiles);
+  });
+  return new MergeTrees(bundles);
+}
 
 function getBrowserifyTree() {
   const browserifyTrees = [];
-  const basePath = path.join(__dirname, '..');
 
   // Browserify modules
   cliqzConfig.modules.forEach((name) => {
@@ -194,9 +277,6 @@ function getBrowserifyTree() {
         browserify: {
           entries: [rel],
           debug: false,
-          paths: [
-            path.join(basePath, 'node_modules'),
-          ],
         },
         outputFile: rel.replace(/\.browserify$/, '.js'),
         cache: true,
@@ -218,9 +298,6 @@ function getBrowserifyTree() {
       browserify: {
         entries: [rel],
         debug: false,
-        paths: [
-          path.join(basePath, 'node_modules'),
-        ],
       },
       outputFile: rel.replace(/\.browserify$/, '.js'),
       cache: true,
@@ -235,14 +312,16 @@ function getBrowserifyTree() {
   return new MergeTrees(browserifyTrees);
 }
 
-function getSourceTree() {
+function getSourceTree(format) {
+  if (!format) {
+    format = moduleFormat;
+  }
   let sources = getSourceFunnel();
   const config = writeFile('core/config.es', 'export default '+JSON.stringify(cliqzConfig, null, 2));
 
   sources = new MergeTrees([
     sources,
     config,
-    contentScriptsImport,
     new Funnel(modulesList, { destDir: 'core/app' }),
   ]);
 
@@ -253,13 +332,15 @@ function getSourceTree() {
     }
   });
 
+  const babelOpts = Object.assign({}, babelOptions, { modules: format });
+
   const transpiledSources = Babel(
     sources,
-    babelOptions
+    babelOpts
   );
   let transpiledModuleTestsTree = Babel(
     new Funnel(moduleTestsTree, { destDir: 'tests' }),
-    babelOptions
+    babelOpts
   );
 
   let sourceTrees = [
@@ -279,17 +360,124 @@ function getSourceTree() {
   );
 }
 
-const getEsTree = () => {
+function getSassTree() {
+  const sassTrees = [];
+  cliqzConfig.modules.filter( name => {
+    let modulePath = `modules/${name}`;
+
+    try {
+      fs.statSync(modulePath+"/sources/styles"); // throws if not found
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }).forEach(name => {
+    let modulePath = `modules/${name}`;
+
+    fs.readdirSync( modulePath+'/sources/styles').forEach(function (file) {
+      var extName = path.extname(file);
+
+      if ( (file.indexOf('_') === 0) ||
+           ['.sass', '.scss'].indexOf(extName) === -1 ) {
+        return;
+      }
+
+      var compiledCss = compileSass(
+        [modulePath+'/sources/styles'],
+        file,
+        file.replace(/\.(sass|scss)+$/, '.css'),
+        { sourceMap: cliqzConfig.sourceMaps }
+      );
+
+      sassTrees.push(new Funnel(compiledCss, { destDir: `${name}/styles` }));
+    });
+  });
+
+  return new MergeTrees(sassTrees);
+}
+
+function getDistTree() {
+  const distTrees = [
+    new Funnel(modulesTree, {
+      include: cliqzConfig.modules.map( name => `${name}/dist/**/*` ),
+      getDestinationPath(path) {
+        return path.replace("/dist", "");
+      }
+    })];
+  if (cliqzConfig.subprojects) {
+    distTrees.push(new Funnel(subprojectsTree, {
+      include: cliqzConfig.subprojects.map( name => `${name}/dist/**/*` ),
+      getDestinationPath(path) {
+        return path.replace("/dist", "");
+      }
+    }));
+  }
+  return new MergeTrees(distTrees);
+}
+
+function getHandlebarsTree() {
+  const trees = cliqzConfig.modules.filter( name => {
+    let modulePath = `modules/${name}`;
+
+    try {
+      fs.statSync(modulePath+"/sources/templates"); // throws if not found
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }).map(name => {
+    const tree = new Funnel(modulesTree, {
+      include: ["**/*.hbs"],
+      srcDir: `${name}/sources/templates`,
+      destDir: `${name}/templates`
+    });
+    return {
+      name: name,
+      tree: broccoliHandlebars(tree, {
+        srcDir: `${name}/templates`,
+        namespace: 'templates'
+      })
+    };
+  }).map(function (templatesTree) {
+    return concat(templatesTree.tree, {
+      outputFile: `${templatesTree.name}/templates.js`,
+      inputFiles: [
+        "**/*.js"
+      ],
+      header: `
+        'use strict';
+        System.register(['handlebars'], function (_export) {
+        if (typeof Handlebars === 'undefined') { var Handlebars; }
+        if (typeof templates === 'undefined') { var templates = {};}
+        return {
+            setters: [function (_handlebars) {
+              Handlebars = _handlebars['default'];
+            }],
+            execute: function () {
+      `,
+      footer: `
+              _export('default', templates);
+            }
+          };
+        });
+      `
+    });
+  })
+
+  return new MergeTrees(trees);
+}
+
+const getEsTree = (format) => {
   return new MergeTrees([
-    getPlatformTree(),
-    getSourceTree(),
-    getHandlebarsTree(modulesTree),
+    getPlatformTree(format),
+    getSourceTree(format),
+    getHandlebarsTree(),
   ]);
 }
-const esTree = getEsTree();
+const esTree = getEsTree(moduleFormat);
 
 const staticTree = new MergeTrees([
-  getDistTree(modulesTree),
+  getDistTree(),
   getSassTree(),
 ]);
 
@@ -302,7 +490,7 @@ const styleCheckTestsTree = cliqzConfig.environment === 'production' ?
 
 const bundlesTree = getBundlesTree(
   new MergeTrees([
-    esTree,
+    (moduleFormat === 'system') ? esTree : getEsTree('system'),
     staticTree,
   ])
 );

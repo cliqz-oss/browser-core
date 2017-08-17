@@ -53,8 +53,6 @@ export default background({
       OffersConfigs.SIGNALS_LOAD_FROM_DB = utils.getPref('offersLoadSignalsFromDB', false);
       // avoid loading storage data if needed
       OffersConfigs.LOAD_OFFERS_STORAGE_DATA = utils.getPref('offersSaveStorage', false);
-      // avoid loading db for signals
-      OffersConfigs.SEND_SIG_OP_SHOULD_LOAD = false;
     }
 
     if(utils.getPref('triggersBE')) {
@@ -77,6 +75,10 @@ export default background({
 
     // init the logging
     LoggingHandler.init();
+
+    // TODO: GR-137 && GR-140: temporary fix
+    this.onWindowClosed = this.onWindowClosed.bind(this);
+    events.sub('core.window_closed', this.onWindowClosed);
 
     // print the timestamp
     LoggingHandler.LOG_ENABLED &&
@@ -103,7 +105,7 @@ export default background({
     this.eventHandler = new EventHandler();
 
     this.env = new ExtensionEnvironment();
-    this.el = new EventLoop(this.env, this.db);
+    this.el = new EventLoop(this.env);
 
     this.onUrlChange = this.onUrlChange.bind(this);
     this.eventHandler.subscribeUrlChange(this.onUrlChange);
@@ -123,6 +125,9 @@ export default background({
                                         this.db,
                                         this.offersDB);
 
+    this.actions = {
+      getStoredOffers: this.getStoredOffers.bind(this),
+    };
     this.env.offerProcessor = this.offerProc;
     this.env.signalHandler = this.signalsHandler;
     this.env.offersDB = this.offersDB;
@@ -137,6 +142,9 @@ export default background({
       return;
     }
 
+    // TODO: GR-137 && GR-140: temporary fix
+    events.un_sub('core.window_closed', this.onWindowClosed);
+
     if (this.offerProc) {
       this.offerProc.destroy();
     }
@@ -149,10 +157,6 @@ export default background({
     }
     if (this.offersDB) {
       this.offersDB.savePersistentData();
-    }
-
-    if (this.el) {
-      this.el.destroy();
     }
   },
 
@@ -184,14 +188,22 @@ export default background({
       this.signalsHandler.savePersistenceData();
     }
 
-    if (this.el) {
-      this.el.destroy();
-    }
-
     //TODO: savePersistentData()
 
     LoggingHandler.LOG_ENABLED &&
     LoggingHandler.info(MODULE_NAME, 'background script unloaded');
+  },
+
+  //////////////////////////////////////////////////////////////////////////////
+  onWindowClosed(data) {
+    LoggingHandler.LOG_ENABLED &&
+    LoggingHandler.info(MODULE_NAME, 'window closed!!: remaining: ' + data.remaining);
+    // GR-147: if this is the last window then we just save everything here
+    if (data.remaining === 0) {
+      if (this.offerProc) {
+        this.offerProc.savePersistenceData();
+      }
+    }
   },
 
   onUrlChange(urlObj, url) {
@@ -208,30 +220,23 @@ export default background({
 
   //////////////////////////////////////////////////////////////////////////////
   events: {
-    'core.window_closed'({ remaining } = {}) {
-      LoggingHandler.LOG_ENABLED &&
-        LoggingHandler.info(MODULE_NAME, 'window closed!!: remaining: ' + remaining);
-      // GR-147: if this is the last window then we just save everything here
-      if (remaining === 0) {
-        if (this.offerProc) {
-          this.offerProc.savePersistenceData();
-        }
-      }
-    }
   },
 
   actions: {
-    getStoredOffers(args) {
-      return (this.offerProc) ? this.offerProc.getStoredOffers(args) : [];
-    },
-
-    createExternalOffer(args) {
-      return (this.offerProc) ? this.offerProc.createExternalOffer(args) : false;
-    },
-
-    hasExternalOffer(args) {
-      return (this.offerProc) ? this.offerProc.hasExternalOffer(args) : false;
-    }
   },
+
+  //////////////////////////////////////////////////////////////////////////////
+  // offers storage interfaces
+
+  //
+  // return the offers on the storage
+  //
+  getStoredOffers(args) {
+    return (this.offerProc) ? this.offerProc.getStoredOffers(args) : [];
+  },
+
+
+
+
 
 });

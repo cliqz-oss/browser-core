@@ -358,7 +358,7 @@ export default describeModule("autocomplete/mixer",
         mixer._cacheEZs([results[0]]);
 
         expect(saved).to.be.true;
-        expect(Object.keys(urls)).to.have.lengthOf(1);
+        expect(Object.keys(urls)).length.to.be(1);
         expect(urls[results[0].data.trigger_urls[0]]).to.be.true;
         expect(ezs[getUrlfunction(results[0])]).to.equal(results[0]);
       });
@@ -369,7 +369,7 @@ export default describeModule("autocomplete/mixer",
         mixer._cacheEZs(results);
 
         expect(saved).to.be.true;
-        expect(Object.keys(urls)).to.have.lengthOf(1);
+        expect(Object.keys(urls)).length.to.be(1);
         expect(urls[results[0].data.trigger_urls[0]]).to.be.true;
 
         // require first entry to have priority over the second
@@ -385,7 +385,7 @@ export default describeModule("autocomplete/mixer",
         mixer._cacheEZs(results);
 
         expect(saved).to.be.true;
-        expect(Object.keys(urls)).to.have.lengthOf(2);
+        expect(Object.keys(urls)).length.to.be(2);
         results.forEach(function(result) {
           expect(urls[result.data.trigger_urls[0]]).to.be.true;
           // expect(ezs[getUrlfunction(result)]).to.equal(result);

@@ -1,4 +1,4 @@
-import utils from './utils';
+import { utils } from './cliqz';
 import moment from '../platform/moment';
 import cronParser from './lib/cron-parser';
 

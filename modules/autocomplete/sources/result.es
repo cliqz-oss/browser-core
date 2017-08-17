@@ -87,11 +87,10 @@ var Result = {
     },
     cliqz: function(result, q){
         var resStyle;
-        result.snippet = result.snippet || {};
         if (!result.type) {
           result.type = 'bm'; // result.type will not be set if RH is down
         }
-        if (result.snippet.desc) {
+        if (result.snippet && result.snippet.desc) {
           // description will be called desc if RH is down
           result.snippet.description = result.snippet.desc;
         }
@@ -109,7 +108,7 @@ var Result = {
         });
 
         return Result.generic(
-            resStyle || '', //style
+            resStyle, //style
             result.url, //value
             result.image, //image -> favico
             result.snippet.title,

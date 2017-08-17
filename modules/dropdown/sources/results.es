@@ -1,4 +1,4 @@
-import GenericResult from './results/generic';
+import BaseResult from './results/base';
 import CalculatorResult from './results/calculator';
 import CurrencyResult from './results/currency';
 import WeatherResult from './results/weather';
@@ -11,7 +11,7 @@ import console from '../core/console';
 
 class ResultFactory {
   static create(rawResult, allResultsFlat) {
-    let Constructor = GenericResult;
+    let Constructor = BaseResult;
 
     if (['custom', 'noResult'].indexOf(rawResult.data.template) >= 0) {
       throw new Error('ignore');
@@ -87,7 +87,6 @@ export default class Results {
     locationAssistant,
     rerender,
     getSnippet,
-    copyToClipboard,
   } = {}) {
     this.rerender = rerender;
     this.query = query;
@@ -98,7 +97,6 @@ export default class Results {
       adultAssistant,
       replaceResult: this.replaceResult.bind(this),
       getSnippet,
-      copyToClipboard,
     };
     this.results = ResultFactory.createAll(rawResults, actions);
 
@@ -156,7 +154,7 @@ export default class Results {
   }
 
   findSelectable(href) {
-    return this.selectableResults.find(r => equals(r.rawUrl, href) || equals(r.url, href));
+    return this.selectableResults.find(r => equals(r.url, href) || equals(r.rawUrl, href));
   }
 
   indexOf(result) {

@@ -32,10 +32,7 @@ export default describeModule('anolysis/gid-manager',
       },
     },
     'core/cliqz': {
-      utils: {
-        setInterval() {},
-        setTimeout(cb) { cb(); },
-      },
+      utils: {},
     },
     'anolysis/backend-communication': {
       default: BACKEND_MOCK,
@@ -73,6 +70,9 @@ export default describeModule('anolysis/gid-manager',
 
         storage = {};
         gidManager = new GIDManager({
+          put() { return Promise.resolve(); },
+          getLastN() { return Promise.resolve([{ demographics: { a: 42 } }]); },
+        }, {
           get(name) { return storage[name]; },
           set(name, value) { storage[name] = value; },
         });
@@ -108,6 +108,9 @@ export default describeModule('anolysis/gid-manager',
 
         storage = {};
         gidManager = new GIDManager({
+          put() { return Promise.resolve(); },
+          getLastN() { return Promise.resolve([{ demographics: { a: 42 } }]); },
+        }, {
           get(name) { return storage[name]; },
           set(name, value) { storage[name] = value; },
         });
@@ -144,6 +147,9 @@ export default describeModule('anolysis/gid-manager',
 
         storage = {};
         gidManager = new GIDManager({
+          put() { return Promise.resolve(); },
+          getLastN() { return Promise.resolve([{ demographics: { a: 42 } }]); },
+        }, {
           get(name) { return storage[name]; },
           set(name, value) { storage[name] = value; },
         });
@@ -181,6 +187,9 @@ export default describeModule('anolysis/gid-manager',
 
         storage = {};
         gidManager = new GIDManager({
+          put() { return Promise.resolve(); },
+          getLastN() { return Promise.resolve([{ demographics: { a: 42 } }]); },
+        }, {
           get(name) { return storage[name]; },
           set(name, value) { storage[name] = value; },
         });
@@ -188,8 +197,14 @@ export default describeModule('anolysis/gid-manager',
 
       it('update granular demographics after 6 months', () => {
         // Simulate a new available demographics
-        const newDemographics = JSON.stringify({ new: 42 });
-        activeUserSignal = sinon.spy(() => Promise.resolve(newDemographics));
+        const newDemographics = { new: 42 };
+        const serializedNewDemographics = JSON.stringify(newDemographics);
+        gidManager.demographicsStorage = {
+          put() { return Promise.resolve(); },
+          getLastN() { return Promise.resolve([{ demographics: newDemographics }]); },
+        };
+
+        activeUserSignal = sinon.spy(() => Promise.resolve(serializedNewDemographics));
 
         // Simulate install for 6 months before
         const installDate = moment(CURRENT_DATE, DATE_FORMAT).subtract(6, 'month').format(DATE_FORMAT);
@@ -199,19 +214,17 @@ export default describeModule('anolysis/gid-manager',
           anolysisDemographics: 'demographics',
           anolysisLastGIDUpdate: installDate,
           anolysisGID: 'gid',
-          anolysisLatestDemographics: newDemographics,
         };
 
         return gidManager.handleActiveUserSignal('demographics')
-          .then(gid => chai.expect(gid).to.be.equal(newDemographics))
+          .then(gid => chai.expect(gid).to.be.equal(serializedNewDemographics))
           .then(() => chai.expect(activeUserSignal).to.have.been.calledOnce)
           .then(() => chai.expect(storage).to.be.eql({
             anolysisInstalled: installDate,
             anolysisLastAliveSignal: CURRENT_DATE,
-            anolysisDemographics: newDemographics,
+            anolysisDemographics: serializedNewDemographics,
             anolysisLastGIDUpdate: installDate,
             anolysisGID: 'gid',
-            anolysisLatestDemographics: newDemographics,
           }));
       });
     });
@@ -225,6 +238,9 @@ export default describeModule('anolysis/gid-manager',
 
         storage = {};
         gidManager = new GIDManager({
+          put() { return Promise.resolve(); },
+          getLastN() { return Promise.resolve([{ demographics: { a: 42 } }]); },
+        }, {
           get(name) { return storage[name]; },
           set(name, value) { storage[name] = value; },
         });
@@ -253,6 +269,22 @@ export default describeModule('anolysis/gid-manager',
 
       it('fails if no demographics available on first call', () => {
         newInstall = () => Promise.resolve();
+        gidManager.demographicsStorage = {
+          put() { return Promise.resolve(); },
+          getLastN() { return Promise.resolve([]); },
+        };
+
+        return gidManager.getGID()
+          .then(gid => chai.expect(gid).to.be.equal(''))
+          .then(() => chai.expect(storage).to.be.eql({}));
+      });
+
+      it('fails if call to storage fails on first call', () => {
+        newInstall = () => Promise.resolve();
+        gidManager.demographicsStorage = {
+          put() { return Promise.resolve(); },
+          getLastN() { return Promise.reject(); },
+        };
 
         return gidManager.getGID()
           .then(gid => chai.expect(gid).to.be.equal(''))

@@ -1,4 +1,4 @@
-import md5 from '../core/helpers/md5';
+import md5 from 'core/helpers/md5';
 
 const BITS_PER_BUCKET = 32;
 

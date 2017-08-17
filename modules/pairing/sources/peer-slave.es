@@ -316,9 +316,6 @@ export default class CliqzPairing {
       this.data.apply('devices', 'splice', idx, 1);
     }
     this.data.apply('devices', 'push', peer);
-    if (peer.id === this.deviceID) {
-      this.lastVersion = peer.version;
-    }
     if (this.ondeviceadded) {
       this.ondeviceadded(peer);
     }
@@ -347,15 +344,8 @@ export default class CliqzPairing {
     this.cancelPairing = false;
     this.peer.open();
     this.peer.addTrustedPeer(masterID);
-
-    const me = devices.find(x => x.id === this.deviceID);
-    this.lastVersion = me.version;
-
     this.peer.onconnect = (peerID) => {
       if (peerID === this.masterID && this.onmasterconnected) {
-        if (this.masterVersion >= 1 && this.version !== this.lastVersion) {
-          this.sendMessage(this.version, '__VERSION', [this.masterID]).catch(() => {});
-        }
         this.onmasterconnected();
       }
     };
@@ -390,17 +380,6 @@ export default class CliqzPairing {
     }
   }
 
-  get lastVersion() {
-    return this.data.get('lastVersion');
-  }
-  set lastVersion(version) {
-    this.data.set('lastVersion', version);
-  }
-
-  get version() {
-    return 1;
-  }
-
   generatePairingKey() {
     const token = randomBytes(15);
     this.randomToken = fromByteArray(token, 'b64');
@@ -411,7 +390,7 @@ export default class CliqzPairing {
     return this.loadPairingAESKey()
     .then(pairingAESKey =>
       CliqzPairing.sendEncrypted(
-        [this.peer.publicKey, this.pairingName, this.version],
+        [this.peer.publicKey, this.pairingName],
         pairingAESKey,
       ),
     )
@@ -506,7 +485,6 @@ export default class CliqzPairing {
     } else {
       this.log = () => {};
     }
-    this.logError = console.error.bind(console);
   }
 
   addObserver(channel, app) {
@@ -621,15 +599,6 @@ export default class CliqzPairing {
       startPairing: slaveName => self.startPairing(slaveName),
       unpair: () => self.unpair(),
       stopPairing: () => self.stopPairing(),
-      getDeviceVersion(deviceID) {
-        if (deviceID === this.deviceID) {
-          return self.version;
-        }
-        if (self.isPaired) {
-          return self.devices.find(x => x.id === deviceID).version;
-        }
-        return null;
-      },
       get devices() {
         return self.devices;
       },

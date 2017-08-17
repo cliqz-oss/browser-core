@@ -6,7 +6,6 @@ import { sendMessageToWindow } from './data';
 import templates from '../templates';
 
 Handlebars.partials = templates;
-let lastSeenElements = [];
 
 function resize() {
   const $controlCenter = $('#cliqz-offers-cc');
@@ -63,8 +62,7 @@ function cqzOfferBtnClicked(ev) {
     return;
   }
 
-
-  if (ev.target.getAttribute('data-cqz-of-btn-id') === 'code_copied') {
+  if (ev.target.getAttribute('data-cqz-of-btn-id') === 'copy-code') {
     const success = copy(ev.target);
 
     if (success) {
@@ -79,9 +77,9 @@ function cqzOfferBtnClicked(ev) {
   const sigType = ev.target.getAttribute('data-cqz-of-btn-action-type') || 'button_pressed';
 
 
-  if (data === 'offer_removed') {
+  if (data === 'remove-offer') {
     const feedbackElm = $(ev.target).parents('.cqz-remove-feedback').find('input[name=remove_feedback]:checked');
-    const offersFeedback = feedbackElm.val() || 'feedback_no';
+    const offersFeedback = feedbackElm.val() || 'feedback-no';
     // If you don't close the hub we have to reset the choice
     feedbackElm.prop('checked', false);
 
@@ -127,52 +125,6 @@ function draw(data) {
   localizeDocument();
   resize();
 }
-let scrollTimer;
-const shownElements = {};
-
-
-function scrollFinished() {
-  const parent = $('#cqz-vouchers-wrapper');
-  const parentTop = parent.offset().top;
-  const parentBottom = parent.offset().top + parent.height();
-
-  const currentSeenElements = [];
-  $('#cqz-vouchers-wrapper li:visible').each((i, el) => {
-    const elmTop = $(el).offset().top;
-    const elmBotttom = elmTop + $(el).height();
-    const offerId = $(el).data('offer-id');
-
-    if ((elmBotttom <= parentBottom) && (elmTop >= parentTop)) {
-      currentSeenElements.push(offerId);
-    }
-  });
-
-  const difference = currentSeenElements.filter(x => lastSeenElements.indexOf(x) === -1);
-
-  for (let i = 0; i < difference.length; i += 1) {
-    const offerId = difference[i];
-
-    if (shownElements[offerId]) {
-      shownElements[offerId] += 1;
-    } else {
-      shownElements[offerId] = 1;
-    }
-  }
-  lastSeenElements = currentSeenElements;
-
-  sendMessageToWindow({
-    action: 'seenOffers',
-    data: shownElements
-  });
-}
-
-function bodyScroll() {
-  if (scrollTimer) {
-    clearTimeout(scrollTimer);
-  }
-
-  scrollTimer = window.setTimeout(scrollFinished, 350);
-}
 
 // ====== GENERIC SETTING ACCORDION FUNCTIONALITY =========//
 $(document).ready(() => {
@@ -180,19 +132,10 @@ $(document).ready(() => {
   //   Handlebars.registerHelper(helperName, helpers[helperName]);
   // });
 
-  $('#cqz-vouchers-wrapper').scroll(() => {
-    bodyScroll();
-  });
-
-  bodyScroll();
-
   sendMessageToWindow({
     action: 'getEmptyFrameAndData',
     data: {}
   });
-
-  // link the click function here to the buttons
-  document.getElementById('cliqz-offers-cc').addEventListener('click', cqzOfferBtnClicked);
 
   // open URL
   $('#cliqz-offers-cc').on('click', '[openUrl]', (ev) => {
@@ -215,6 +158,9 @@ $(document).ready(() => {
     });
   });
 
+  // link the click function here to the buttons
+  document.getElementById('cliqz-offers-cc').addEventListener('click', cqzOfferBtnClicked);
+
   $('.cqz-show-all-offers').on('click', () => {
     $('#cqz-vouchers-wrapper').addClass('show-all');
     resize();
@@ -224,13 +170,12 @@ $(document).ready(() => {
   let offerElm = $();
   $('body').on('click', (e) => {
     const elm = $(e.target);
+    // console.log('+++++ body click');
 
     if (elm.hasClass('cqz-close-hub')) {
       sendMessageToWindow({
         action: 'closePanel',
-        data: {
-          force: true
-        }
+        data: {}
       });
     }
 
@@ -242,7 +187,7 @@ $(document).ready(() => {
       // Adjust the position of feedback form, when element is scrolled
       $('.cqz-remove-feedback').css('top', offersPosition);
 
-      $('.remove-offer, .cancel-feedback').attr('data-cqz-offer-id', offerID);
+      $('.remove-offer').attr('data-cqz-offer-id', offerID);
       resize();
     }
 

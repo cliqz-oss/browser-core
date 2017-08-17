@@ -10,12 +10,6 @@ const getCurrentMoment = () => moment('2017-01-01', DATE_FORMAT);
 
 export default describeModule('anolysis/storage',
   () => ({
-    'core/cliqz': {
-      utils: {
-        setInterval() {},
-        setTimeout(cb) { cb(); },
-      },
-    },
     'anolysis/synchronized-date': {
       DATE_FORMAT,
       default() {

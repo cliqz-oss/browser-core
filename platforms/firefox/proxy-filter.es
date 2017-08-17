@@ -19,17 +19,9 @@ export default class {
     this.pps.unregisterFilter(this);
   }
 
-  /**
-   * See https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIProtocolProxyService
-   */
-  newProxy(args) {
-    // Do not perform DNS lookups on the client, but on the proxy (server-side).
-    // Otherwise, it is hard to whitelist our services.
-    // (This option is equivalent to 'socks5h://' in curl).
-    const flags = Components.interfaces.nsIProxyInfo.TRANSPARENT_PROXY_RESOLVES_HOST;
-
-    return this.pps.newProxyInfo(args.type, args.host, args.port, flags,
-                                 args.failoverTimeout, args.failoverProxy);
+  // TODO: add documentation
+  newProxy(...args) {
+    return this.pps.newProxyInfo(...args);
   }
 
   /**

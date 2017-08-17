@@ -10,10 +10,6 @@ export default class extends BaseResult {
     return this.rawResult.data.extra.toAmount.main;
   }
 
-  get fromAmount() {
-    return this.rawResult.data.extra.fromAmount;
-  }
-
   get toCurrency() {
     return this.rawResult.data.extra.toCurrency;
   }
