@@ -84,8 +84,9 @@ export default {
     }
 
     resetNewTabPage();
-
-    prefs.set(PREF_NEW_TAB_BUTTON_STATE, false);
   },
 
+  setPersistentState(state) {
+    prefs.set(PREF_NEW_TAB_BUTTON_STATE, state);
+  }
 };

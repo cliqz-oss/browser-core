@@ -471,6 +471,7 @@ export default background({
     "control-center:cliqz-tab": function () {
       if(this.newTabPage.isActive) {
         this.newTabPage.rollback();
+        this.newTabPage.setPersistentState(false);
       } else {
         this.newTabPage.enableNewTabPage();
         this.newTabPage.enableHomePage();
