@@ -81,4 +81,6 @@ firefox = new MergeTrees([
 ], { overwrite: true });
 
 // Output
-module.exports = firefox;
+module.exports = new Funnel(firefox, {
+  exclude: cliqzConfig.sourceMaps ? [] : ['**/*.js.map'],
+});

@@ -1,6 +1,6 @@
 {
   "name": "browser-core",
-  "version": "2.19.2",
+  "version": "2.19.3",
   "description": "",
   "main": "build/index.js",
   "scripts": {
@@ -30,8 +30,8 @@
     "pouchdb-adapter-react-native-sqlite": "1.0.3",
     "pouchdb-react-native": "6.1.26",
     "prop-types": "15.5.10",
-    "react": "16.0.0-alpha.12",
-    "react-dom": "16.0.0-alpha.12",
+    "react": "15.4.0",
+    "react-dom": "15.6.1",
     "react-native": "0.46.3",
     "react-native-collapsible": "0.8.1",
     "react-native-fs": "2.3.3",
