@@ -1,0 +1,39 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Mocha Tests</title>
+  <link rel="stylesheet" type="text/css" href="../../bower_components/mocha/mocha.css"/>
+</head>
+<body>
+  <div id="mocha"></div>
+
+  <script type="text/javascript" src="../../bower_components/mocha/mocha.js"></script>
+  <script type="text/javascript" src="../../bower_components/chai/chai.js"></script>
+  <script type="text/javascript" src="../../bower_components/jquery/dist/jquery.js"></script>
+  <script type="text/javascript" src="../../bower_components/core.js/client/core.js"></script>
+
+  <script type="text/javascript" src="setup.js"></script>
+  <script type="text/javascript" src="test-server.js"></script>
+  <script type="text/javascript" src="utils.js"></script>
+
+  <script type="text/javascript" src="core-utils.bundle.js"></script>
+
+  <script type="text/javascript" src="antitracking-attrack.bundle.js"></script>
+  <script type="text/javascript" src="antitracking-qswhitelist.bundle.js"></script>
+  <script type="text/javascript" src="antitracking-test.bundle.js"></script>
+  <script type="text/javascript" src="antitracking-bloomfilter.bundle.js"></script>
+
+  <script type="text/javascript" src="webrequest-test.bundle.js"></script>
+
+  <!--
+
+  TODO - this one needs `source` and `originUrl` in webrequest
+  <script type="text/javascript" src="webrequest-leak.bundle.js"></script>
+  TODO - tricky to fix
+  <script type="text/javascript" src="webrequest-page.bundle.js"></script>
+  -->
+
+  <script type="text/javascript" src="run.js"></script>
+</body>
+</html>
+

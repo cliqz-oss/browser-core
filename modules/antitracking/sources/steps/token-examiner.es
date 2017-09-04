@@ -192,7 +192,7 @@ export default class {
       const cutoff = this.getPruneCutoff();
       const docs = results.rows.map(row => row.doc).map((_d) => {
         const doc = _d;
-        doc.tokens = this.pruneTokens(doc.tokens, cutoff);
+        doc.tokens = this.pruneTokens(doc.tokens || {}, cutoff);
         if (Object.keys(doc.tokens).length === 0) {
           doc._deleted = true;
         }

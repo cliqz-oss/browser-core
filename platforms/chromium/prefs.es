@@ -5,6 +5,7 @@ const storage = new Storage();
 
 export function getPref(pref, notFound) {
   const mypref = storage.getItem(pref);
+  console.log(`>>>>> getPref ${pref}`, mypref);
   if (mypref) {
     if (mypref === 'false') {
       return false;
@@ -21,6 +22,7 @@ export function getPref(pref, notFound) {
 }
 
 export function setPref(pref, val) {
+  console.log(`>>>>> setPref ${pref}`, val);
   storage.setItem(pref, val);
   events.pub('prefchange', pref);
 }

@@ -10,10 +10,6 @@ export default class extends BaseResult {
     return this.rawResult.data.extra.todayWeekday;
   }
 
-  get url() {
-    return null;
-  }
-
   get today() {
     const extra = this.rawResult.data.extra;
     return {
@@ -26,5 +22,17 @@ export default class extends BaseResult {
 
   get forecast() {
     return this.rawResult.data.extra.forecast;
+  }
+
+
+  get allResults() {
+    return [
+      this,
+      ...this.selectableResults,
+    ];
+  }
+
+  get selectableResults() {
+    return [];
   }
 }

@@ -1,8 +1,11 @@
 $color-black: #202020;
 $color-dark-gray: #414141;
-$color-dark-highlight: #45C2CC;
-$color-highlight: #B2EFF5;
+$color-highlight: #94E2FF;
 $color-highlight-shadow: rgba(0, 84, 101, 0.5);
+$color-cliqz: #00AEF0;
+$color-border: #D4D4D4;
+$color-delete-hover: #E64C66;
+$color-active-border: #0078CA;
 
 #history {
   font-family: -apple-system, BlinkMacSystemFont,
@@ -34,14 +37,14 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
     left: 0;
     flex: 0 0 auto;
     align-self: stretch;
-    background-color: #506275;
+    background-color: #607c85;
     width: 74px;
 
     a {
       margin-top: 20px;
       opacity: 0.4;
       padding: 0px;
-      height: 25px;
+      height: 24px;
       display: block;
 
       &.freshtab-button {
@@ -117,7 +120,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
         }
 
         #feedback-button:hover {
-          color: #00869F;
+          color: $color-cliqz;
         }
 
         #feedback-button:active {
@@ -150,21 +153,20 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
           font-size: 12.5px;
           line-height: 18px;
           color: #fff;
-          background-color: #35BBDA;
-          box-shadow: 1px #0085A6;
+          background-color: $color-cliqz;
           border-radius: 5px;
-          -moz-box-shadow: 0px 1px 2px 0px rgba(0,133,166,1);
           box-shadow: 0px 1px 2px 0px rgba(0,133,166,1);
         }
 
         .feedback-textarea {
-          border: 2px solid #eee;
+          border: 1px solid #D4D4D4;
           border-radius: 3px;
           width: 100%;
+          max-width: 100%;
         }
 
         .feedback-textarea:focus {
-          border-color: #37BCDB;
+          border-color: #868686;
         }
 
 
@@ -212,28 +214,30 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
 
         .submit-comment {
           margin-top: 10px;
-          border: 2px solid #37BCDB;
+          border: 2px solid $color-cliqz;
           border-radius: 5px;
           background-color: #fff;
+          color: $color-dark-gray;
           width: 100%;
           height: 30px;
         }
 
         .submit-comment:hover {
-          color: #00869F;
-          border-color: #00869F;
+          color: #000;
+          border-color: $color-active-border;
         }
 
         .submit-comment:active {
-          color: #ccc;
-          border-color: #ccc;
+          color: #E7ECEE;
+          border-color: $color-active-border;
+          background-color: $color-active-border;
         }
       }
 
     }
 
     #search {
-      border-left: 1px solid #D4D4D4;
+      border-left: 1px solid $color-border;
       background-color: #F7F7F7;
       flex: 1 1 auto;
       display: flex;
@@ -241,7 +245,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
 
       header {
         flex: 0 0 auto;
-        border-bottom: 1px solid #D4D4D4;
+        border-bottom: 1px solid $color-border;
         padding: 15px;
 
         .clear-history-btn {
@@ -260,7 +264,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
           color: #000;
           background-color: #fff;
           background-image: url(./images/trash-session-hover.svg);
-          border: 1px solid #E64C66;
+          border: 1px solid $color-delete-hover;
         }
       }
     }
@@ -294,25 +298,25 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
       position: relative;
 
       input:focus, input:focus ~ label, input:focus ~ button {
-        border-color: #575757;
+        border-color: #868686;
       }
 
       &.is-active {
         input, label, button {
-          border-color: $color-dark-highlight;
+          border-color: $color-cliqz;
         }
 
         input:focus ~ label, input:focus ~ button {
-          border-color: $color-dark-highlight;
+          border-color: $color-cliqz;
         }
 
         label img {
-          color: $color-dark-highlight;
+          color: $color-cliqz;
         }
       }
 
       button {
-        border: solid #D4D4D4;
+        border: solid $color-border;
         border-width: 1px 1px 1px 0px;
         background-color: white;
         border-radius: 0 20px 20px 0;
@@ -335,7 +339,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
         white-space: nowrap;
         float: left;
         margin-left: 5px;
-        border: solid #D4D4D4;
+        border: solid $color-border;
         border-width: 1px 0 1px 1px;
         border-radius: 20px 0 0 20px;
         background-color: white;
@@ -355,14 +359,14 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
 
       input {
         order: 2;
-        border: solid #D4D4D4;
+        border: solid $color-border;
         border-width: 1px 0px 1px 0;
         background-color: white;
         padding: 5px 5px 5px 5px;
         flex: 1 1 auto;
         color: $color-black;
         &::-moz-placeholder {
-          color: #B3B3B3;
+          color: #666;
         }
       }
 
@@ -406,7 +410,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
         }
 
         &.marked-for-deletion {
-          border-color: #E64C66;
+          border-color: $color-delete-hover;
         }
 
         .visits {
@@ -429,7 +433,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
               background-color: #F7F7F7;
 
               .visit-content span {
-                color: #00869F;
+                color: #0078CA;
               }
 
               em {
@@ -466,6 +470,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
             .logo {
               float: left;
               margin-right: 10px;
+              border-radius: 2px;
 
               height: 22px;
               width: 22px;
@@ -483,13 +488,14 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
             .keyword {
               box-sizing: content-box;
               float: left;
-              border: 1px solid #D4D4D4;
+              border: 1px solid $color-border;
               margin-right: 5px;
               font-weight: bold;
               line-height: 20px;
               display: inline-block;
               height: 20px;
-              padding: 0px 5px;
+              padding: 0 7px 0 5px;
+              border-radius: 12px;
               max-width: calc(100% - 12px);
               overflow-x: hidden;
 
@@ -561,7 +567,7 @@ $color-highlight-shadow: rgba(0, 84, 101, 0.5);
             }
 
             .delete-visit-btn:hover {
-              background-color: #E64C66;
+              background-color: $color-delete-hover;
               background-image:url('./images/trash-visit-hover.svg');
             }
 

@@ -1,4 +1,5 @@
 import TempSet from '../temp-set';
+import console from '../../core/console';
 
 /**
  * Caches 302 redirects so that we can ensure that the resulting request is properly
@@ -9,6 +10,7 @@ export default class {
   constructor() {
     this.redirectCache = new TempSet();
     this.cacheTimeout = 10000;
+    this.redirectTaggerCache = new TempSet();
   }
 
   isFromRedirect(url) {
@@ -17,7 +19,12 @@ export default class {
 
   checkRedirectStatus(state) {
     if (state.requestContext.channel.responseStatus === 302) {
-      const location = state.getResponseHeader('Location');
+      const location = state.requestContext.getResponseHeader('Location');
+      if (!location) {
+        // 302 without "Location" in header?
+        console.log(state, '302 without "Location" in header?');
+        return true;
+      }
       if (location.startsWith('/')) {
         // relative redirect
         const redirectUrl = `${state.urlParts.protocol}://${state.urlParts.hostname}${location}`;
@@ -28,5 +35,17 @@ export default class {
       }
     }
     return true;
+  }
+
+  checkRedirect(details) {
+    if (details.isRedirect) {
+      this.redirectTaggerCache.add(details.requestId, this.cacheTimeout);
+      return false;
+    }
+    return true;
+  }
+
+  confirmRedirect(details) {
+    return !(this.redirectTaggerCache.has(details.requestId) || details.hasRedirected);
   }
 }

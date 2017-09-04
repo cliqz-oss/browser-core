@@ -8,21 +8,29 @@ export default class {
   }
 
   init() {
-    // this.window.gBrowser.addProgressListener(CliqzAntiPhishing.listener);
-    events.sub('HW-activeURL:', CliqzAntiPhishing.onHwActiveURL);
   }
 
   unload() {
-    // this.window.gBrowser.removeProgressListener(CliqzAntiPhishing.listener);
-    events.un_sub('HW-activeURL:', CliqzAntiPhishing.onHwActiveURL);
   }
 
   status() {
-    if (utils.getPref('cliqz-anti-phishing', false)) {
-      return {
-        visible: true,
-        active: utils.getPref('cliqz-anti-phishing-enabled', false),
-      };
+    const currentURL = this.window.gBrowser.currentURI.spec;
+    const [md5Prefix, md5Surfix] = CliqzAntiPhishing.getSplitMd5(currentURL);
+    const isWhitelisted = CliqzAntiPhishing.isInWhitelist(currentURL);
+    const whitelistStatus = CliqzAntiPhishing.getUrlWhitelistStatus(currentURL);
+    const active = utils.getPref('cliqz-anti-phishing-enabled', true);
+    let state = 'active';
+    if (isWhitelisted && whitelistStatus !== CliqzAntiPhishing.WHITELISTED_TEMPORARY) {
+      state = 'inactive';
     }
+    if (!active) {
+      state = 'critical';
+    }
+    return {
+      visible: true,
+      active,
+      isWhitelisted,
+      state
+    };
   }
 }

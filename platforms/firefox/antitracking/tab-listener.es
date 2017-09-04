@@ -1,5 +1,5 @@
 import { isWindowActive } from 'platform/browser';
-import { events } from 'core/cliqz';
+import events from 'core/events';
 
 const tabsStatus = {};
 const cleanInterval = 1000 * 60 * 2;

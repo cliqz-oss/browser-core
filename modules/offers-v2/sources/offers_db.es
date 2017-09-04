@@ -1,28 +1,10 @@
-import LoggingHandler from './logging_handler';
+import logger from './common/offers_v2_logger';
 import OffersConfigs from './offers_configs';
 import DBHelper from './db_helper';
 import { utils } from '../core/cliqz';
+import { timestampMS } from './utils';
 
-
-const MODULE_NAME = 'offers_db';
 const STORAGE_DB_DOC_ID = 'offers-db';
-
-// TODO: remove this methods
-function linfo(msg) {
-  if (LoggingHandler.LOG_ENABLED) {
-    LoggingHandler.info(MODULE_NAME, msg);
-  }
-}
-function lwarn(msg) {
-  if (LoggingHandler.LOG_ENABLED) {
-    LoggingHandler.warning(MODULE_NAME, msg);
-  }
-}
-function lerr(msg) {
-  if (LoggingHandler.LOG_ENABLED) {
-    LoggingHandler.error(MODULE_NAME, msg);
-  }
-}
 
 /**
  * This class will be used to hold all the information related to offers locally.
@@ -56,6 +38,10 @@ class OfferDB {
     // temporary mapping counter to know when to remove a display or not
     this.displayIDCounter = {};
 
+    // we will dynamically keep track of which offers are related to a particular
+    // campaign id: campaign_id -> Set(offersIDs)
+    this.campaignToOffersMap = {};
+
     this.dbDirty = false;
 
     // save offers in a frequent way
@@ -73,12 +59,12 @@ class OfferDB {
     this.savePersistentData();
     if (this.saveInterval) {
       utils.clearInterval(this.saveInterval);
-      delete this.saveInterval;
+      this.saveInterval = null;
     }
   }
 
   savePersistentData() {
-    this._savePersistentData();
+    return this._savePersistentData();
   }
 
   loadPersistentData() {
@@ -97,7 +83,6 @@ class OfferDB {
    * {
    *   c_ts: when was created timestamp
    *   l_u_ts: when was last updated timestamp (any interaction).
-   *   removed: true | false depending if the offer was removed or not.
    * }
    * </pre>
    */
@@ -121,13 +106,13 @@ class OfferDB {
    */
   addOfferObject(offerID, offerData) {
     if (!this._isOfferValid(offerID, offerData)) {
-      lwarn(`addOfferObject: args invalid or data invalid: ${offerID} - ${offerData}`);
+      logger.warn(`addOfferObject: args invalid or data invalid: ${offerID} - ${offerData}`);
       return false;
     }
 
     let container = this.dataIndex.offers_index[offerID];
     if (container) {
-      lwarn(`addOfferObject: The offer id: ${offerID} already exists, will not add it here`);
+      logger.warn(`addOfferObject: The offer id: ${offerID} already exists, will not add it here`);
       return false;
     }
 
@@ -154,7 +139,7 @@ class OfferDB {
   removeOfferObject(offerID) {
     const container = this.dataIndex.offers_index[offerID];
     if (!container) {
-      lwarn(`removeOfferObject: The offer id: ${offerID} is not stored`);
+      logger.warn(`removeOfferObject: The offer id: ${offerID} is not stored`);
       return false;
     }
 
@@ -170,7 +155,7 @@ class OfferDB {
     container.removed = true;
 
     // last update
-    container.l_u_ts = Date.now();
+    container.l_u_ts = timestampMS();
 
     return true;
   }
@@ -220,12 +205,12 @@ class OfferDB {
   updateOfferObject(offerID, offerData) {
     const container = this.dataIndex.offers_index[offerID];
     if (!container) {
-      lwarn(`updateOfferObject: the offer with ID: ${offerID} is not present`);
+      logger.warn(`updateOfferObject: the offer with ID: ${offerID} is not present`);
       return false;
     }
     // check if the offer is valid and is the same
     if (!this._isOfferValid(offerID, offerData)) {
-      lwarn(`updateOfferObject: offer ${offerID} is not valid`);
+      logger.warn(`updateOfferObject: offer ${offerID} is not valid`);
       return false;
     }
 
@@ -235,7 +220,7 @@ class OfferDB {
       if (offerData.offer_id !== localOffer.offer_id ||
           offerData.campaign_id !== localOffer.campaign_id ||
           offerData.display_id !== localOffer.display_id) {
-        lwarn('updateOfferObject: the offer core data is not similar? not supported for now');
+        logger.warn('updateOfferObject: the offer core data is not similar? not supported for now');
         return false;
       }
     }
@@ -245,7 +230,7 @@ class OfferDB {
 
     // update timestamp
     this._markOfferDirty(offerID);
-    container.l_u_ts = Date.now();
+    container.l_u_ts = timestampMS();
 
     return true;
   }
@@ -259,18 +244,18 @@ class OfferDB {
    *                             display map.
    * @return {boolean} true on success | false otherwise
    */
-  incOfferAction(offerID, actionID, incDisplay = true) {
+  incOfferAction(offerID, actionID, incDisplay = true, count = 1) {
     if (!offerID || !actionID) {
-      lwarn('incOfferAction: invalid args');
+      logger.warn('incOfferAction: invalid args');
       return false;
     }
     const container = this.dataIndex.offers_index[offerID];
     if (!container) {
-      lwarn(`incOfferAction: The offer id: ${offerID} is not stored`);
+      logger.warn(`incOfferAction: The offer id: ${offerID} is not stored`);
       return false;
     }
 
-    const now = Date.now();
+    const now = timestampMS();
     const offerObj = container.offer_obj;
     let actionCont = container.offer_actions[actionID];
     if (!actionCont) {
@@ -278,7 +263,7 @@ class OfferDB {
       actionCont = container.offer_actions[actionID] = this._createElementContainer();
       actionCont.count = 0;
     }
-    actionCont.count += 1;
+    actionCont.count += count;
     actionCont.l_u_ts = now;
 
     if (incDisplay) {
@@ -292,7 +277,7 @@ class OfferDB {
         displayCont = displayActionMap[actionID] = this._createElementContainer();
         displayCont.count = 0;
       }
-      displayCont.count += 1;
+      displayCont.count += count;
       displayCont.l_u_ts = now;
     }
 
@@ -332,12 +317,12 @@ class OfferDB {
    */
   addOfferAttribute(offerID, attrID, data) {
     if (!offerID || !attrID) {
-      lwarn('addOfferAttribute: invalid args');
+      logger.warn('addOfferAttribute: invalid args');
       return false;
     }
     const container = this.dataIndex.offers_index[offerID];
     if (!container) {
-      lwarn(`addOfferAttribute: The offer id: ${offerID} is not stored`);
+      logger.warn(`addOfferAttribute: The offer id: ${offerID} is not stored`);
       return false;
     }
 
@@ -347,7 +332,7 @@ class OfferDB {
       attrCont = offerAttr[attrID] = this._createElementContainer();
     }
 
-    const now = Date.now();
+    const now = timestampMS();
 
     attrCont.attr = data;
     attrCont.l_u_ts = now;
@@ -367,12 +352,12 @@ class OfferDB {
    */
   getOfferAttribute(offerID, attrID) {
     if (!offerID || !attrID) {
-      lwarn('getOfferAttribute: invalid args');
+      logger.warn('getOfferAttribute: invalid args');
       return null;
     }
     const container = this.dataIndex.offers_index[offerID];
     if (!container) {
-      lwarn(`getOfferAttribute: The offer id: ${offerID} is not stored`);
+      logger.warn(`getOfferAttribute: The offer id: ${offerID} is not stored`);
       return null;
     }
 
@@ -416,6 +401,56 @@ class OfferDB {
       return null;
     }
     return container.offer_obj.campaign_id;
+  }
+
+  /**
+   * will return a set of all offers ids associated to a campaign, or null if no
+   * campaign is found
+   * @param  {[type]} campaignID [description]
+   * @return {[type]}            [description]
+   */
+  getCampaignOffers(campaignID) {
+    if (!campaignID) {
+      return null;
+    }
+    return this.campaignToOffersMap[campaignID];
+  }
+
+  /**
+   * this method will check on the given set of offers ids which is the offer
+   * that was latest updated and still on the DB (i/e not removed).
+   * @param  {[type]} offersIDsSet [description]
+   * @return {list}              sorted list (by latest updated offer) of objects
+   * with the following information:
+   * {
+   *   l_u_ts: ts,
+   *   offer_id: offer id,
+   *   campaign_id: cid,
+   * }
+   */
+  getLatestUpdatedOffer(offersIDsSet) {
+    if (!offersIDsSet) {
+      return null;
+    }
+
+    const sortedOffers = [];
+    const self = this;
+    offersIDsSet.forEach((oid) => {
+      const offerCont = self.dataIndex.offers_index[oid];
+      if (!offerCont || offerCont.removed === true || !offerCont.offer_obj) {
+        return;
+      }
+
+      sortedOffers.push({
+        offer_id: offerCont.offer_obj.offer_id,
+        campaign_id: offerCont.offer_obj.campaign_id,
+        last_update: offerCont.l_u_ts,
+      });
+    });
+    // we will sort using the last update field and putting the latest update
+    sortedOffers.sort((a, b) => b.last_update - a.last_update);
+
+    return sortedOffers;
   }
 
   /**
@@ -474,7 +509,7 @@ class OfferDB {
    * </pre>
    */
   _createElementContainer() {
-    const now = Date.now();
+    const now = timestampMS();
     return {
       c_ts: now,
       l_u_ts: now,
@@ -524,7 +559,7 @@ class OfferDB {
    * </pre>
    */
   _createOfferContainer() {
-    const now = Date.now();
+    const now = timestampMS();
     return {
       c_ts: now,
       l_u_ts: now,
@@ -541,7 +576,7 @@ class OfferDB {
    */
   _removeOldEntries() {
     const self = this;
-    const now = Date.now();
+    const now = timestampMS();
     const expTimeMs = OffersConfigs.OFFERS_STORAGE_DEFAULT_TTS_SECS * 1000;
     let dirty = false;
     Object.keys(this.dataIndex.offers_index).forEach((offerID) => {
@@ -551,7 +586,7 @@ class OfferDB {
       if (delta >= expTimeMs) {
         // we need to remove this.
         dirty = true;
-        linfo(`_removeOldEntries: removing old offer ${offerID} with delta time: ${delta}`);
+        logger.info(`_removeOldEntries: removing old offer ${offerID} with delta time: ${delta}`);
         self._removeIndexTablesForOffer(offerID);
         delete self.dataIndex.offers_index[offerID];
       }
@@ -571,7 +606,7 @@ class OfferDB {
   _updateIndexTablesForOffer(offerID) {
     const container = this.dataIndex.offers_index[offerID];
     if (!container) {
-      lwarn(`_updateIndexTablesForOffer: The offer id: ${offerID} is not stored`);
+      logger.warn(`_updateIndexTablesForOffer: The offer id: ${offerID} is not stored`);
       return false;
     }
     const displayID = container.offer_obj.display_id;
@@ -583,6 +618,8 @@ class OfferDB {
     } else {
       this.displayIDCounter[displayID] = 1;
     }
+
+    this._addOfferInCampaignMap(container.offer_obj);
 
     return true;
   }
@@ -596,7 +633,7 @@ class OfferDB {
   _removeIndexTablesForOffer(offerID) {
     const container = this.dataIndex.offers_index[offerID];
     if (!container) {
-      lwarn(`_removeIndexTablesForOffer: The offer id: ${offerID} is not stored`);
+      logger.warn(`_removeIndexTablesForOffer: The offer id: ${offerID} is not stored`);
       return false;
     }
     const displayID = container.offer_obj.display_id;
@@ -625,20 +662,22 @@ class OfferDB {
    */
   _savePersistentData() {
     if (!OffersConfigs.LOAD_OFFERS_STORAGE_DATA) {
-      linfo('_savePersistentData: skipping saving offers DB');
-      return;
+      logger.info('_savePersistentData: skipping saving offers DB');
+      return Promise.resolve(true);
     }
 
     if (!this.dbDirty) {
-      return;
+      return Promise.resolve(true);
     }
 
-    this.db.saveDocData(STORAGE_DB_DOC_ID,
+    return this.db.saveDocData(STORAGE_DB_DOC_ID,
       {
         data_index: this.dataIndex
       }
-    );
-    this.dbDirty = false;
+    ).then(() => {
+      this.dbDirty = false;
+      return Promise.resolve(true);
+    });
   }
 
   /**
@@ -647,14 +686,14 @@ class OfferDB {
    */
   _loadPersistentData() {
     if (!OffersConfigs.LOAD_OFFERS_STORAGE_DATA) {
-      linfo('_loadPersistenceData: skipping the load of storage data');
+      logger.info('_loadPersistenceData: skipping the load of storage data');
       return new Promise((resolve) => { resolve(true); });
     }
     const self = this;
     return new Promise((resolve) => {
       this.db.getDocData(STORAGE_DB_DOC_ID).then((docData) => {
         if (!docData || !docData.data_index) {
-          lerr('_loadPersistenceData: something went wrong loading the data?');
+          logger.error('_loadPersistenceData: something went wrong loading the data?');
           resolve(false);
           return;
         }
@@ -670,12 +709,22 @@ class OfferDB {
         self.dbDirty = false;
         resolve(true);
       }).catch((err) => {
-        lerr(`_loadPersistenceData: error loading the storage data...: ${JSON.stringify(err)}`);
+        logger.error(`_loadPersistenceData: error loading the storage data...: ${JSON.stringify(err)}`);
         resolve(false);
       });
     });
   }
 
+  _addOfferInCampaignMap(offer) {
+    if (!offer || !offer.offer_id || !offer.campaign_id) {
+      return;
+    }
+    let cset = this.campaignToOffersMap[offer.campaign_id];
+    if (!cset) {
+      cset = this.campaignToOffersMap[offer.campaign_id] = new Set();
+    }
+    cset.add(offer.offer_id);
+  }
 
   // ///////////////////////////////////////////////////////////////////////////
   // DEBUG HELPER METHODS
@@ -686,7 +735,7 @@ class OfferDB {
    * will remove the current database and store an empty element on the storage
    */
   __removePersistenLocalDB() {
-    linfo('__removePersistenLocalDB: removing current data and DB');
+    logger.info('__removePersistenLocalDB: removing current data and DB');
     this.dataIndex = {
       offers_index: {},
       display_id_index: {}

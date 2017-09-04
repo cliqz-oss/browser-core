@@ -1,14 +1,14 @@
 /* global chai */
 /* global describeModule */
 
-const PouchDB = System._nodeRequire('pouchdb');
+const PouchDB = require('pouchdb');
 
 export default describeModule('core/persistence/ordered-queue', 
   () => ({
     'platform/database': {
       default: (dbName, options) => {
         const globalOpts = {
-          db: System._nodeRequire('memdown'),
+          db: require('memdown'),
         }
         return new PouchDB(dbName, Object.assign(globalOpts, options));
       },

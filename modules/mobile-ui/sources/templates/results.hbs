@@ -18,7 +18,7 @@
                     {{#if url}}
                         <section class="share">
                             <p cliqz-action='stop-click-event-propagation'
-                                onclick="osAPI.shareCard('{{ url }}')"
+                                onclick="osAPI.shareCard('{{ escapeQuotations url }}')"
                                 >{{local 'mobile_share_card'}}: {{url}}</p>
                         </section>
                     {{/if}}

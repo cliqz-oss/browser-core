@@ -1,821 +1,557 @@
 import { URLInfo } from '../antitracking/url';
 
-import log from './utils';
-import parseList, { parseJSResource
-                  , serializeFilter
-                  , deserializeFilter } from './filters-parsing';
-import { matchNetworkFilter
-       , matchCosmeticFilter } from './filters-matching';
-import tlds from '../core/tlds';
+import logger from './logger';
+import { parseList, parseJSResource, NetworkFilter, CosmeticFilter } from './filters-parsing';
+import { matchNetworkFilter, matchCosmeticFilter } from './filters-matching';
+import { tokenize, fastHash, packInt32, fastStartsWith } from './utils';
+import networkFiltersOptimizer from './optimizer';
 
 
-const TOKEN_BLACKLIST = new Set([
-  'com',
-  'http',
-  'https',
-  'icon',
-  'images',
-  'img',
-  'js',
-  'net',
-  'news',
-  'www',
-]);
-
-
-function tokenizeHostname(hostname) {
-  return hostname.split('.')
-    .filter(token => (token &&
-                      !tlds.TLDs[token] &&
-                      !TOKEN_BLACKLIST.has(token)));
-}
-
-
-export function tokenizeURL(pattern) {
-  return (pattern.match(/[a-zA-Z0-9]+/g) || []).filter(token => token.length > 1);
-}
-
-
-class FuzzyIndex {
-  constructor(tokenizer, buildBucket, indexOnlyOne) {
-    // Define tokenizer
-    this.tokenizer = tokenizer;
-    if (this.tokenizer === undefined) {
-      this.tokenizer = (key, cb) => {
-        tokenizeURL(key).forEach(cb);
-      };
-    }
-
-    // Should we index with all tokens, or just one
-    this.indexOnlyOne = indexOnlyOne;
-
-    // Function used to create a new bucket
-    this.buildBucket = buildBucket;
-    if (this.buildBucket === undefined) {
-      this.buildBucket = () => [];
-    }
-
-    // {token -> list of values}
-    this.index = new Map();
-    this.size = 0;
-  }
-
-  get length() {
-    return this.size;
-  }
-
-  set(key, value) {
-    // Only true if we insert something (we have at least 1 token)
-    log(`SET ${key} => ${JSON.stringify(value)}`);
-    let inserted = false;
-    const insertValue = (token) => {
-      log(`FOUND TOKEN ${token}`);
-      if (!(this.indexOnlyOne && inserted)) {
-        inserted = true;
-        const bucket = this.index.get(token);
-        if (bucket === undefined) {
-          const newBucket = this.buildBucket(token);
-          newBucket.push(value);
-          this.index.set(token, newBucket);
-        } else {
-          bucket.push(value);
-        }
-      }
-    };
-
-    // Split tokens into good, common, tld
-    // common: too common tokens
-    // tld: corresponding to hostname extensions
-    // good: anything else
-    // TODO: What about trying to insert bigger tokens first?
-    const goodTokens = [];
-    const commonTokens = [];
-    const tldTokens = [];
-    this.tokenizer(key, (token) => {
-      if (TOKEN_BLACKLIST.has(token)) {
-        commonTokens.push(token);
-      } else if (tlds.TLDs[token]) {
-        tldTokens.push(token);
-      } else {
-        goodTokens.push(token);
-      }
-    });
-
-    // Try to insert
-    goodTokens.forEach(insertValue);
-    if (!inserted) {
-      tldTokens.forEach(insertValue);
-    }
-    if (!inserted) {
-      commonTokens.forEach(insertValue);
-    }
-
-    if (inserted) {
-      this.size += 1;
-    }
-
-    return inserted;
-  }
-
-  getFromKey(key) {
-    const buckets = [];
-    this.tokenizer(key, (token) => {
-      const bucket = this.index.get(token);
-      if (bucket !== undefined) {
-        log(`BUCKET ${token} size ${bucket.length}`);
-        buckets.push(bucket);
-      }
-    });
-    return buckets;
-  }
-
-  getFromTokens(tokens) {
-    const buckets = [];
-    tokens.forEach((token) => {
-      const bucket = this.index.get(token);
-      if (bucket !== undefined) {
-        log(`BUCKET ${token} size ${bucket.length}`);
-        buckets.push(bucket);
-      }
-    });
-    return buckets;
-  }
-}
-
-
-function serializeFuzzyIndex(fi, serializeBucket) {
-  const index = Object.create(null);
-  fi.index.forEach((value, key) => {
-    index[key] = serializeBucket(value);
-  });
-
-  return {
-    i: index,
-    o: fi.indexOnlyOne,
-    s: fi.size,
-  };
-}
-
-
-function deserializeFuzzyIndex(fi, serialized, deserializeBucket) {
-  const { i: index, o: indexOnlyOne, s: size } = serialized;
-  Object.keys(index).forEach((key) => {
-    const value = index[key];
-    fi.index.set(key, deserializeBucket(value));
-  });
-
-  fi.size = size;
-  fi.indexOnlyOne = indexOnlyOne;
-}
-
-
-/* A filter reverse index is the lowest level of optimization we apply on filter
- * matching. To avoid inspecting filters that have no chance of matching, we
- * dispatch them in an index { ngram -> list of filter }.
+/**
+ * Helper function used to serialize a bucket (one single entry of a
+ * ReverseIndex) into a string. Each entry is made of a `token` (used to index
+ * the bucket) and a list of filters.
  *
- * When we need to know if there is a match for an URL, we extract ngrams from it
- * and find all the buckets for which filters contains at list one of the ngram of
- * the URL. We then stop at the first match.
+ * The resulting serialization is formatted as follows:
+ * - The first two chars are the hash of the token (as returned by packInt32)
+ * - Each group of two chars following is a valid filter id (same format ^)
+ *
+ * eg: c1 c2 c3 c4 c5 c6 c7 c8
+ *     |---^ |---^ |---^ ^---^ is the id of the third filter ("c7c8")
+ *     |     |     ^ is the id of the second filter          ("c5c6")
+ *     |     ^ is the id of the first filter                 ("c3c4")
+ *     ^ is the hash of the token                            ("c1c2")
  */
-class FilterReverseIndex {
-  constructor(name, filters) {
-    // Name of this index (for debugging purpose)
-    this.name = name;
+function serializeBucket(token, filters) {
+  let bucketLine = token; // Line accumulator
+  //               ^ first 2 chars are the hashed key
 
-    // Remaining filters not stored in the index
-    this.miscFilters = [];
-    this.size = 0;
-
-    // Tokenizer used on patterns for fuzzy matching
-    this.tokenizer = (pattern, cb) => {
-      pattern.split(/[*^]/g).forEach((part) => {
-        tokenizeURL(part).forEach(cb);
-      });
-    };
-    this.index = new FuzzyIndex(this.tokenizer, undefined, true);
-
-    // Update index
-    if (filters) {
-      filters.forEach(this.push.bind(this));
-    }
+  for (let j = 0; j < filters.length; j += 1) {
+    bucketLine += filters[j].id;
   }
 
-  get length() {
-    return this.size;
-  }
-
-  push(filter) {
-    log(`REVERSE INDEX ${this.name} INSERT ${JSON.stringify(filter)}`);
-    this.size += 1;
-    let inserted = false;
-    if (filter.filterStr) {
-      inserted = this.index.set(filter.filterStr, filter);
-    }
-
-    if (!inserted) {
-      log(`${this.name} MISC FILTER ${JSON.stringify(filter)}`);
-      this.miscFilters.push(filter);
-    }
-  }
-
-  matchList(request, list, checkedFilters) {
-    for (let i = 0; i < list.length; i += 1) {
-      const filter = list[i];
-      if (!checkedFilters.has(filter.id)) {
-        checkedFilters.add(filter.id);
-        if (matchNetworkFilter(filter, request)) {
-          log(`INDEX ${this.name} MATCH ${JSON.stringify(filter)} ~= ${request.url}`);
-          return filter;
-        }
-      }
-    }
-    return null;
-  }
-
-  match(request, checkedFilters) {
-    // Keep track of filters checked
-    if (checkedFilters === undefined) {
-      checkedFilters = new Set();
-    }
-
-    const buckets = this.index.getFromTokens(request.tokens);
-
-    let match = null;
-    buckets.some((bucket) => {
-      log(`INDEX ${this.name} BUCKET => ${bucket.length}`);
-      const result = this.matchList(request, bucket, checkedFilters);
-      if (result !== null) {
-        match = result;
-        return true;
-      }
-      return false;
-    });
-    if (match) {
-      return match;
-    }
-
-    log(`INDEX ${this.name} ${this.miscFilters.length} remaining filters checked`);
-
-    // If no match found, check regexes
-    return this.matchList(request, this.miscFilters, checkedFilters);
-  }
-}
-
-
-function serializeFilterReverseIndex(fri) {
-  return {
-    n: fri.name,
-    s: fri.size,
-    m: fri.miscFilters.map(filter => filter.id),
-    i: serializeFuzzyIndex(fri.index, bucket => bucket.map(filter => filter.id)),
-  };
-}
-
-
-function deserializeFilterReverseIndex(serialized, filtersIndex) {
-  const { n: name, s: size, m: miscFilters, i: index } = serialized;
-  const fri = new FilterReverseIndex(name);
-  fri.size = size;
-  fri.miscFilters = miscFilters.map(id => filtersIndex[id]);
-  deserializeFuzzyIndex(fri.index, index, bucket => bucket.map(id => filtersIndex[id]));
-  return fri;
-}
-
-
-/* A Bucket manages a subsets of all the filters. To avoid matching too many
- * useless filters, there is a second level of dispatch here.
- *
- * [ hostname anchors (||filter) ]    [ remaining filters ]
- *
- * The first structure map { domain -> filters that apply only on domain }
- * as the `hostname anchors` only apply on a specific domain name.
- *
- * Each group of filters is stored in a Filter index that is the last level
- * of dispatch of our matching engine.
- */
-class FilterHostnameDispatch {
-
-  constructor(name, filters) {
-    // TODO: Dispatch also on:
-    // - fromImage
-    // - fromMedia
-    // - fromObject
-    // - fromObjectSubrequest
-    // - fromOther
-    // - fromPing
-    // - fromScript
-    // - fromStylesheet
-    // - fromXmlHttpRequest
-    // To avoid matching filter if request type doesn't match
-    // If we do it, we could simplify the match function of Filter
-
-    this.name = name;
-    this.size = 0;
-
-    // ||hostname filter
-    this.hostnameAnchors = new FuzzyIndex(
-      // Tokenize key
-      (hostname, cb) => {
-        tokenizeHostname(hostname).forEach(cb);
-      },
-      // Create a new empty bucket
-      token => new FilterReverseIndex(`${token}_${name}`),
-    );
-
-    // All other filters
-    this.filters = new FilterReverseIndex(this.name);
-
-    // Dispatch filters
-    if (filters !== undefined) {
-      filters.forEach(this.push.bind(this));
-    }
-
-    log(`${name} CREATE BUCKET: ${this.filters.length} filters +` +
-        `${this.hostnameAnchors.size} hostnames`);
-  }
-
-  get length() {
-    return this.size;
-  }
-
-  push(filter) {
-    this.size += 1;
-
-    let inserted = false;
-    if (filter.hostname) {
-      inserted = this.hostnameAnchors.set(filter.hostname, filter);
-    }
-
-    if (!inserted) {
-      this.filters.push(filter);
-    }
-  }
-
-  matchWithDomain(request, domain, checkedFilters) {
-    const buckets = this.hostnameAnchors.getFromKey(domain);
-    let match = null;
-    buckets.some((bucket) => {
-      if (bucket !== undefined) {
-        log(`${this.name} bucket try to match hostnameAnchors (${domain}/${bucket.name})`);
-        const result = bucket.match(request, checkedFilters);
-        if (result !== null) {
-          match = result
-          return true;
-        }
-        return false;
-      }
-    });
-    return match;
-  }
-
-  match(request, checkedFilters) {
-    if (checkedFilters === undefined) {
-      checkedFilters = new Set();
-    }
-
-    let result = this.matchWithDomain(request, request.hostname, checkedFilters);
-    if (result === null) {
-      // Try to find a match with remaining filters
-      log(`${this.name} bucket try to match misc`);
-      result = this.filters.match(request, checkedFilters);
-    }
-
-    return result;
-  }
-}
-
-
-function serializeFilterHostnameDispatch(fhd) {
-  return {
-    n: fhd.name,
-    s: fhd.size,
-    h: serializeFuzzyIndex(
-      fhd.hostnameAnchors,
-      bucket => serializeFilterReverseIndex(bucket),
-    ),
-    f: serializeFilterReverseIndex(fhd.filters),
-  };
-}
-
-
-function deserializeFilterHostnameDispatch(serialized, filtersIndex) {
-  const { n: name, s: size, h: hostnameAnchors, f: filters } = serialized;
-  const fhd = new FilterHostnameDispatch(name);
-  fhd.size = size;
-  fhd.filters = deserializeFilterReverseIndex(filters, filtersIndex);
-  deserializeFuzzyIndex(
-    fhd.hostnameAnchors,
-    hostnameAnchors,
-    bucket => deserializeFilterReverseIndex(bucket, filtersIndex),
-  );
-  return fhd;
-}
-
-
-class FilterSourceDomainDispatch {
-  constructor(name, filters) {
-    this.name = name;
-    this.size = 0;
-
-    // Dispatch on source domain
-    this.sourceDomainDispatch = new Map();
-    // Filters without source domain specified
-    this.miscFilters = new FilterHostnameDispatch(this.name);
-
-    if (filters) {
-      filters.forEach(this.push.bind(this));
-    }
-  }
-
-  get length() {
-    return this.size;
-  }
-
-  push(filter) {
-    this.size += 1;
-
-    if (filter.optNotDomains.length === 0 &&
-        filter.optDomains.length > 0) {
-      filter.optDomains.split('|').forEach((domain) => {
-        log(`SOURCE DOMAIN DISPATCH ${domain} filter: ${JSON.stringify(filter)}`);
-        const bucket = this.sourceDomainDispatch.get(domain);
-        if (bucket === undefined) {
-          const newIndex = new FilterHostnameDispatch(`${this.name}_${domain}`);
-          newIndex.push(filter);
-          this.sourceDomainDispatch.set(domain, newIndex);
-        } else {
-          bucket.push(filter);
-        }
-      });
-    } else {
-      this.miscFilters.push(filter);
-    }
-  }
-
-  match(request, checkedFilters) {
-    // Check bucket for source domain
-    const bucket = this.sourceDomainDispatch.get(request.sourceGD);
-    let result = null;
-    if (bucket !== undefined) {
-      log(`Source domain dispatch ${request.sourceGD} size ${bucket.length}`);
-      result = bucket.match(request, checkedFilters);
-    }
-
-    if (result === null) {
-      log(`Source domain dispatch misc size ${this.miscFilters.length}`);
-      result = this.miscFilters.match(request, checkedFilters);
-    }
-
-    return result;
-  }
-}
-
-
-function serializeSourceDomainDispatch(sdd) {
-  const sourceDomainDispatch = Object.create(null);
-  sdd.sourceDomainDispatch.forEach((value, key) => {
-    sourceDomainDispatch[key] = serializeFilterHostnameDispatch(value);
-  });
-
-  return {
-    sd: sourceDomainDispatch,
-    m: serializeFilterHostnameDispatch(sdd.miscFilters),
-    n: sdd.name,
-    s: sdd.size,
-  };
-}
-
-
-function deserializeSourceDomainDispatch(serialized, filtersIndex) {
-  const { sd: sourceDomainDispatch, m: miscFilters, n: name, s: size } = serialized;
-  const sdd = new FilterSourceDomainDispatch(name);
-
-  sdd.size = size;
-  sdd.miscFilters = deserializeFilterHostnameDispatch(miscFilters, filtersIndex);
-  Object.keys(sourceDomainDispatch).forEach((key) => {
-    const value = sourceDomainDispatch[key];
-    sdd.sourceDomainDispatch.set(key, deserializeFilterHostnameDispatch(value, filtersIndex));
-  });
-
-  return sdd;
+  return bucketLine;
 }
 
 
 /**
- * Dispatch cosmetics filters on selectors
+ * Helper function used to load a bucket from the serialized version returned by
+ * `serializeBucket`. Given as an argument is a line returned by
+ * `serializeBucket` as well as `filters` (a mapping from filters ids to the
+ * filters themselves) and `start` which is the index of the first filter id on
+ * the line (usually 0, except if the line does not has a token hash at the
+ * begining, as is the case with the special "wild-card bucket", a.k.a. the
+ * bucket with an empty token as a key).
  */
-class CosmeticBucket {
+function deserializeBucket(line, filters, start) {
+  const bucket = [];
+
+  // Get filters
+  for (let j = start; j < line.length; j += 2) {
+    const filterId = line.substr(j, 2);
+    bucket.push(filters[filterId]);
+  }
+
+  return {
+    filters: bucket,
+    hit: 0,
+    optimized: false,
+  };
+}
+
+
+/**
+ * Accelerating data structure based on a reverse token index. The creation of
+ * the index follows the following algorithm:
+ *   1. Tokenize each filter
+ *   2. Compute a histogram of frequency of each token (globally)
+ *   3. Select the best token for each filter (lowest frequency)
+ *
+ * By default, each filter is only indexed once, using its token having the
+ * lowest global frequency. This is to minimize the size of buckets.
+ *
+ * The ReverseIndex can be extended in two ways to provide more advanced
+ * features:
+ *   1. It is possible to provide an `optimizer` function, which takes as input
+ *   a list of filters (typically the content of a bucket) and returns another
+ *   list of filters (new content of the bucket), more compact/efficient. This
+ *   allows to dynamically optimize the filters and make matching time and memory
+ *   consumption lower. This optimization can be done ahead of time on all
+ *   buckets, or dynamically when a bucket is 'hot' (hit several times).
+ *
+ *   Currently this is only available for network filters.
+ *
+ *   2. Insert a filter multiple times (with multiple keys). It is sometimes
+ *   needed to insert the same filter at different keys. For this purpose it is
+ *   possible to provide the `multiKeys` options + a `getTokens` tokenizer
+ *   returning a list of list of tokens (instead of just a list of token).
+ *
+ *   For each set of tokens returned by the `getTokens` function, the filter
+ *   will be inserted once. This is currently used only for hostname dispatch of
+ *   cosmetic filters.
+ */
+class ReverseIndex {
+  constructor(filters, getTokens, { optimizer, multiKeys }) {
+    // Mapping from tokens to filters
+    this.index = Object.create(null);
+
+    this.optimizer = optimizer;
+    this.getTokens = getTokens;
+    this.multiKeys = multiKeys || false;
+
+    this.addFilters(filters || []);
+  }
+
+  /**
+   * Transforms the `index` attribute of the `ReverseIndex` instance into a
+   * serialized version (JSON-serializable Object). Other attributes are not
+   * serialized (optimizer, getTokens, multiKeys) and will have to be restored
+   * using the context (cf: `load` method of the `FiltersEngine`).
+   */
+  jsonify() {
+    /* eslint-disable no-continue */
+    const index = this.index;
+    const lines = [];
+
+    // The first entry of `lines` is the wildcard bucket (empty token)
+    const wildCardBucket = index[''];
+    if (wildCardBucket) {
+      lines.push(serializeBucket('', wildCardBucket.filters));
+    } else {
+      lines.push('');
+    }
+
+    // Serialize all other buckets (the ones having a non-empty token).
+    const tokens = Object.keys(index);
+    for (let i = 0; i < tokens.length; i += 1) {
+      const token = tokens[i];
+      if (token === '') { continue; }
+      lines.push(serializeBucket(token, index[token].filters));
+    }
+
+    return lines;
+  }
+
+  /**
+   * Given the result of the `jsonify` method of the `ReverseIndex`, restores
+   * its content *in-place* into the `index` attribute. The other attributes
+   * (optimizer, getTokens, multiKeys) are unchanged.
+   */
+  load(lines, filters) {
+    // Each line is one entry in the index (ie: one token and a list of filters)
+    const index = Object.create(null);
+
+    // Deserialize the wildcard bucket
+    const wildCardLine = lines[0];
+    if (wildCardLine !== '') {
+      index[''] = deserializeBucket(wildCardLine, filters, 0);
+    }
+
+    // Deserialize other buckets
+    for (let i = 1; i < lines.length; i += 1) {
+      const line = lines[i];
+      index[line.substr(0, 2)] = deserializeBucket(line, filters, 2);
+    }
+
+    this.index = index;
+  }
+
+  addFilters(filters) {
+    /* eslint-disable no-continue */
+    const length = filters.length;
+    const idToTokens = Object.create(null);
+    const histogram = Object.create(null);
+
+    // Update histogram with new tokens
+    for (let i = 0; i < filters.length; i += 1) {
+      const filter = filters[i];
+
+      // Deal with filters generating several sets of tokens
+      // (eg: cosmetic filters and their hostnames)
+      const multiTokens = this.multiKeys ? this.getTokens(filter) : [this.getTokens(filter)];
+
+      idToTokens[filter.id] = multiTokens;
+      for (let j = 0; j < multiTokens.length; j += 1) {
+        const tokens = multiTokens[j];
+        for (let k = 0; k < tokens.length; k += 1) {
+          const token = tokens[k];
+          histogram[token] = (histogram[token] || 0) + 1;
+        }
+      }
+    }
+
+    // For each filter, take the best token (least seen)
+    for (let i = 0; i < filters.length; i += 1) {
+      let wildCardInserted = false;
+      const filter = filters[i];
+      const multiTokens = idToTokens[filter.id];
+
+      for (let j = 0; j < multiTokens.length; j += 1) {
+        const tokens = multiTokens[j];
+
+        // Empty token is used as a wild-card
+        let bestToken = '';
+        let count = length;
+        for (let k = 0; k < tokens.length; k += 1) {
+          const token = tokens[k];
+          const tokenCount = histogram[token];
+          if (tokenCount < count) {
+            bestToken = token;
+            count = tokenCount;
+          }
+        }
+
+        // Only allow each filter to be present one time in the wildcard
+        if (bestToken === '') {
+          if (wildCardInserted) {
+            continue;
+          } else {
+            wildCardInserted = true;
+          }
+        }
+
+        // Add filter to the corresponding bucket
+        const bucket = this.index[bestToken];
+        if (bucket === undefined) {
+          this.index[bestToken] = {
+            hit: 0,
+            filters: [filter],
+            optimized: false,
+          };
+        } else {
+          bucket.filters.push(filter);
+        }
+      }
+    }
+  }
+
+  optimize(bucket) {
+    /* eslint-disable no-param-reassign */
+    // TODO - number of hits should depend on size of the bucket as payoff from
+    // big buckets will be higher than on small buckets.
+    if (this.optimizer && !bucket.optimized && bucket.hit >= 5) {
+      if (bucket.filters.length > 1) {
+        const t0 = Date.now();
+        const sizeBefore = bucket.filters.length;
+        bucket.filters = this.optimizer(bucket.filters);
+        const sizeAfter = bucket.filters.length;
+        const total = Date.now() - t0;
+        logger.log(`optimized index in ${total} ms (from ${sizeBefore} to ${sizeAfter} filters)`);
+      }
+
+      bucket.optimized = true;
+    }
+  }
+
+  /**
+   * If a bucket exist for the given `token`, call the callback on each filter
+   * found inside. An early termination mechanism is built-in, to stop iterating
+   * as soon as `false` is returned from the callback.
+   */
+  iterBucket(token, cb) {
+    const bucket = this.index[token];
+    if (bucket !== undefined) {
+      bucket.hit += 1;
+      this.optimize(bucket);
+
+      const filters = bucket.filters;
+      for (let k = 0; k < filters.length; k += 1) {
+        // Break the loop if the callback returns `false`
+        if (cb(filters[k]) === false) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Iterate on all filters found in buckets associated with the given list of
+   * tokens. The callback is called on each of them. Early termination can be
+   * achieved if the callback returns `false`.
+   */
+  iterMatchingFilters(tokens, cb) {
+    // Doing so will make sure that time to find a match is minimized over time
+    for (let j = 0; j < tokens.length; j += 1) {
+      if (this.iterBucket(tokens[j], cb) === false) {
+        return;
+      }
+    }
+
+    // Fallback to '' bucket if nothing was found before.
+    this.iterBucket('', cb);
+  }
+
+  /**
+   * Outputs a report of bucket sizes using the `logger`. This is mainly
+   * designed for debugging purposes.
+   */
+  report() {
+    const sizes = Object.create(null);
+    // Report size of buckets
+    Object.keys(this.index).forEach((token) => {
+      const bucket = this.index[token];
+      sizes[bucket.length] = (sizes[bucket.length] || 0) + 1;
+      if (bucket.length > 5) {
+        logger.log(`adblocker size bucket "${token}" => ${bucket.length}`);
+        bucket.forEach((f) => {
+          logger.log(`    ${f.pprint()} ${f.mask}`);
+        });
+      }
+    });
+
+    Object.keys(sizes).forEach((size) => {
+      const count = sizes[size];
+      logger.log(`adblocker sizes ${size} => ${count} buckets`);
+    });
+  }
+}
+
+
+/**
+ * Accelerating data structure for network filters matching. Makes use of the
+ * reverse index structure defined above.
+ */
+class NetworkFilterBucket {
   constructor(name, filters) {
     this.name = name;
-    this.size = 0;
-
-    this.miscFilters = [];
-    this.index = new FuzzyIndex(
-      (selector, cb) => {
-        selector.split(/[^#.\w_-]/g).filter(token => token.length > 0).forEach(cb);
-      },
+    this.index = new ReverseIndex(
+      filters,
+      filter => filter.getTokens(),
+      { optimizer: networkFiltersOptimizer },
     );
-
-    if (filters) {
-      filters.forEach(this.push.bind(this));
-    }
   }
 
-  get length() {
-    return this.size;
-  }
+  report() { this.index.report(); }
 
-  push(filter) {
-    this.size += 1;
-    const inserted = this.index.set(filter.selector, filter);
+  match(request) {
+    let match = null;
 
-    if (!inserted) {
-      this.miscFilters.push(filter);
-    }
-  }
-
-  /**
-   * Return element hiding rules and exception rules
-   * @param {string} hostname - domain of the page.
-   * @param {Array} nodeInfo - Array of tuples [id, tagName, className].
-  **/
-  getMatchingRules(hostname, nodeInfo) {
-    const rules = [];
-    const uniqIds = new Set();
-
-    // Deal with misc filters
-    this.miscFilters
-      .filter(rule => matchCosmeticFilter(rule, hostname))
-      .forEach((rule) => {
-        if (!uniqIds.has(rule.id)) {
-          rules.push(rule);
-          uniqIds.add(rule.id);
-        }
-      });
-
-    // Find other matching rules in engine
-    nodeInfo.forEach((node) => {
-      // [id, tagName, className] = node
-      node.forEach((token) => {
-        this.index.getFromKey(token).forEach((bucket) => {
-          bucket.forEach((rule) => {
-            if (!uniqIds.has(rule.id) && matchCosmeticFilter(rule, hostname)) {
-              rules.push(rule);
-              uniqIds.add(rule.id);
-            }
-          });
-        });
-      });
-    });
-
-    const matchingRules = {};
-    function addRule(rule, matchingHost, exception) {
-      const value = { rule, matchingHost, exception };
-      if (rule.selector in matchingRules) {
-        const oldMatchingHost = matchingRules[rule.selector].matchingHost;
-        if (matchingHost.length > oldMatchingHost.length) {
-          matchingRules[rule.selector] = value;
-        }
-      } else {
-        matchingRules[rule.selector] = value;
+    const checkMatch = (filter) => {
+      if (matchNetworkFilter(filter, request)) {
+        match = filter;
+        return false; // Break iteration
       }
-    }
 
-    // filter by hostname
-    rules.forEach((rule) => {
-      if (rule.hostnames.length === 0) {
-        addRule(rule, '', false);
-      } else {
-        rule.hostnames.forEach((h) => {
-          let exception = false;
-          if (h.startsWith('~')) {
-            exception = true;
-            h = h.substr(1);
-          }
-          if (rule.unhide) {
-            exception = true;
-          }
-          if (hostname === h || hostname.endsWith(`.${h}`)) {
-            addRule(rule, h, exception);
-          }
-        });
-      }
-    });
+      return true; // Continue iterating on buckets
+    };
 
-    return matchingRules;
+    this.index.iterMatchingFilters(request.tokens, checkMatch);
+    return match;
   }
 }
 
 
-function serializeCosmeticBucket(cb) {
-  return {
-    n: cb.name,
-    s: cb.size,
-    m: cb.miscFilters.map(filter => filter.id),
-    i: serializeFuzzyIndex(cb.index, bucket => bucket.map(filter => filter.id)),
-  };
-}
-
-
-function deserializeCosmeticBucket(serialized, filtersIndex) {
-  const { n: name, s: size, m: miscFilters, i: index } = serialized;
-  const cb = new CosmeticBucket(name);
-  cb.size = size;
-  cb.miscFilters = miscFilters.map(id => filtersIndex[id]);
-  deserializeFuzzyIndex(cb.index, index, bucket => bucket.map(id => filtersIndex[id]));
-  return cb;
-}
-
-
-class CosmeticEngine {
+class CosmeticFilterBucket {
   constructor(filters) {
-    this.size = 0;
-
-    this.miscFilters = new CosmeticBucket('misc');
-    this.cosmetics = new FuzzyIndex(
-      (hostname, cb) => {
-        tokenizeHostname(hostname).forEach(cb);
+    // This accelerating data structure is used to retrieve cosmetic filters for
+    // a given hostname. We only store filters having at least one hostname
+    // specified and we index each filter several time (one time per hostname).
+    this.hostnameIndex = new ReverseIndex(
+      (filters || []).filter(f => f.hasHostnames()),
+      (filter) => {
+        const multiTokens = [];
+        filter.getHostnames().forEach((h) => {
+          multiTokens.push(tokenize(h));
+        });
+        return multiTokens;
       },
-      token => new CosmeticBucket(`${token}_cosmetics`),
+      { multiKeys: true },
     );
 
-    if (filters) {
-      filters.forEach(filter => this.push(filter));
-    }
+    // Store cosmetic filters dispatched using their selector. This will allow a
+    // fast look-up when we need to get a set of rules to inject in a window,
+    // based on some node information.
+    this.selectorIndex = new ReverseIndex(
+      (filters || []).filter(f => !(f.isScriptBlock() || f.isScriptInject())),
+      filter => filter.getTokensSelector(),
+      {},
+    );
   }
 
-  get length() {
-    return this.size;
-  }
+  report() { }
 
-  push(filter) {
-    let inserted = false;
-    this.size += 1;
+  createContentScriptResponse(rules) {
+    const styles = [];
+    const scripts = [];
+    const blockedScripts = [];
 
-    if (filter.hostnames.length > 0) {
-      filter.hostnames.forEach((hostname) => {
-        inserted = this.cosmetics.set(hostname, filter) || inserted;
-      });
+    for (let i = 0; i < rules.length; i += 1) {
+      const rule = rules[i];
+      const selector = rule.getSelector();
+
+      if (rule.isScriptBlock()) {
+        blockedScripts.push(selector);
+      } else if (rule.isScriptInject()) {
+        scripts.push(selector);
+      } else {
+        styles.push(selector);
+      }
     }
 
-    if (!inserted) {
-      this.miscFilters.push(filter);
-    }
+    return {
+      styles,
+      scripts,
+      blockedScripts,
+      active: true,
+    };
   }
 
-  /**
-   * Return a list of potential cosmetics filters
-   *
-   * @param {string} url - url of the page.
-   * @param {Array} nodeInfo - Array of tuples [id, tagName, className].
-  **/
-  getMatchingRules(url, nodeInfo) {
-    const uniqIds = new Set();
+  filterExceptions(matches) {
+    const matchingRules = new Map();
+
+    for (let i = 0; i < matches.length; i += 1) {
+      const { rule, hostname } = matches[i];
+      const selector = rule.getSelector();
+      const isException = fastStartsWith(hostname, '~');
+      if (matchingRules.has(selector)) {
+        const otherRule = matchingRules.get(selector);
+
+        if (rule.isUnhide() ||
+          isException ||
+          hostname.length > otherRule.hostname.length) {
+          // Take the longest hostname
+          matchingRules.set(selector, {
+            rule,
+            isException,
+            hostname,
+          });
+        }
+      } else {
+        // Add rule
+        matchingRules.set(selector, {
+          rule,
+          isException,
+          hostname,
+        });
+      }
+    }
+
     const rules = [];
+    matchingRules.forEach(({ rule, isException }) => {
+      if (!isException && !rule.isUnhide()) {
+        rules.push(rule);
+      }
+    });
+
+    return rules;
+  }
+
+  getDomainRules(url, js) {
+    /* eslint-disable no-param-reassign, no-plusplus */
+    const t0 = Date.now();
+
     let hostname = URLInfo.get(url).hostname;
-    if (hostname.startsWith('www.')) {
+    if (fastStartsWith(hostname, 'www.')) {
       hostname = hostname.substr(4);
     }
-    log(`getMatchingRules ${url} => ${hostname} (${JSON.stringify(nodeInfo)})`);
 
-    // Check misc bucket
-    const miscMatchingRules = this.miscFilters.getMatchingRules(hostname, nodeInfo);
-
-    // Check hostname buckets
-    this.cosmetics.getFromKey(hostname).forEach((bucket) => {
-      log(`Found bucket ${bucket.size}`);
-      const matchingRules = bucket.getMatchingRules(hostname, nodeInfo);
-      Object.keys(matchingRules).forEach((selector) => {
-        const r = matchingRules[selector];
-        if (!r.exception && !uniqIds.has(r.rule.id)) {
-          rules.push(r.rule);
-          uniqIds.add(r.rule.id);
-        } else if (selector in miscMatchingRules) {  // handle exception rules
-          delete miscMatchingRules[selector];
-        }
-      });
-    });
-
-    Object.keys(miscMatchingRules).forEach((selector) => {
-      rules.push(miscMatchingRules[selector].rule);
-    });
-
-    log(`COSMETICS found ${rules.length} potential rules for ${url}`);
-    return rules;
-  }
-
-  /**
-   * Return all the cosmetic filters on a domain
-   *
-   * @param {string} url - url of the page
-  **/
-  getDomainRules(url, js) {
-    const hostname = URLInfo.get(url).hostname;
+    // Collect matching rules
     const rules = [];
-    const uniqIds = new Set();
-    log(`getDomainRules ${url} => ${hostname}`);
-    this.cosmetics.getFromKey(hostname).forEach((bucket) => {
-      bucket.index.index.forEach((value) => {
-        value.forEach((rule) => {
-          if (!uniqIds.has(rule.id)) {
-            // check if one of the preceeding rules has the same selector
-            const selectorMatched = rules.find(r => r.unhide !== rule.unhide && r.selector === rule.selector);
-            if (!selectorMatched) {
-              // if not then check if it should be added to the rules
-              if (rule.scriptInject) {
-                // make sure the selector was replaced by javascript
-                if (!rule.scriptReplaced) {
-                  if (rule.selector.indexOf(',') !== -1) {
-                    rule.scriptArguments = rule.selector.split(',').slice(1).map(String.trim);
-                    rule.selector = rule.selector.split(',')[0];
-                  }
-                  rule.selector = js.get(rule.selector);
-                  if (rule.scriptArguments) {
-                    rule.scriptArguments.forEach((e, idx) => {
-                      rule.selector = rule.selector.replace('{{' + ++idx + '}}', e);
-                    });
-                  }
-                  rule.scriptReplaced = true;
-                }
-              }
-              if (rule.selector) {
-                rules.push(rule);
-                uniqIds.add(rule.id);
-              }
-            } else {
-              // otherwise, then this implies that the two rules
-              // negating each others and should be removed
-              rules.splice(rules.indexOf(selectorMatched), 1);
-              uniqIds.add(rule.id);
-            }
+    const checkMatch = (rule) => {
+      const result = matchCosmeticFilter(rule, hostname);
+      if (result !== null) {
+        // Update script injection rule
+        if (rule.isScriptInject() && !rule.scriptReplaced) {
+          if (rule.getSelector().indexOf(',') !== -1) {
+            const parts = rule.getSelector().split(',');
+            rule.selector = parts[0];
+            rule.scriptArguments = parts.slice(1).map(String.trim);
           }
+
+          rule.selector = js.get(rule.getSelector());
+          if (rule.scriptArguments) {
+            rule.scriptArguments.forEach((e, idx) => {
+              rule.selector = rule.getSelector().replace(`{{${++idx}}}`, e);
+            });
+          }
+          rule.scriptReplaced = true;
+        }
+
+        rules.push({
+          rule,
+          hostname: result.hostname,
         });
-      });
-    });
-    return rules;
+      }
+
+      return true;
+    };
+
+    this.selectorIndex.iterMatchingFilters(tokenize(hostname), checkMatch);
+
+    const result = this.filterExceptions(rules);
+    const total = Date.now() - t0;
+    logger.debug(`cosmetic domain match ${total} ms`);
+
+    return result;
+  }
+
+  getMatchingRules(url, nodeInfo) {
+    const t0 = Date.now();
+
+    let hostname = URLInfo.get(url).hostname;
+    if (fastStartsWith(hostname, 'www.')) {
+      hostname = hostname.substr(4);
+    }
+
+    // Collect all selectors
+    const tokens = new Set();
+    for (let i = 0; i < nodeInfo.length; i += 1) {
+      const node = nodeInfo[i];
+      // For each attribute of the node: [id, tagName, className] = node
+      for (let j = 0; j < node.length; j += 1) {
+        tokens.add(packInt32(fastHash(node[j])));
+      }
+    }
+
+    // Collect matching rules
+    const rules = [];
+    const checkMatch = (rule) => {
+      const result = matchCosmeticFilter(rule, hostname);
+      if (result !== null) {
+        rules.push({
+          rule,
+          hostname: result.hostname,
+        });
+      }
+
+      return true;
+    };
+
+    this.selectorIndex.iterMatchingFilters([...tokens], checkMatch);
+
+    const result = this.filterExceptions(rules);
+    const total = Date.now() - t0;
+    logger.debug(`cosmetic rule matching ${total} ms (${tokens.size} tokens)`);
+
+    return result;
   }
 }
 
 
-function serializeCosmeticEngine(cosmetics) {
-  return {
-    s: cosmetics.size,
-    m: serializeCosmeticBucket(cosmetics.miscFilters),
-    c: serializeFuzzyIndex(cosmetics.cosmetics, serializeCosmeticBucket),
-  };
-}
+export default class FilterEngine {
+  constructor({ version, loadCosmeticFilters, loadNetworkFilters }) {
+    this.version = version;
+    this.loadCosmeticFilters = loadCosmeticFilters;
+    this.loadNetworkFilters = loadNetworkFilters;
 
-
-function deserializeCosmeticEngine(engine, serialized, filtersIndex) {
-  const { s: size, m: miscFilters, c: cosmetics } = serialized;
-  engine.size = size;
-  engine.miscFilters = deserializeCosmeticBucket(miscFilters, filtersIndex);
-  deserializeFuzzyIndex(
-    engine.cosmetics,
-    cosmetics,
-    bucket => deserializeCosmeticBucket(bucket, filtersIndex),
-  );
-}
-
-
-/* Manage a list of filters and match them in an efficient way.
- * To avoid inspecting to many filters for each request, we create
- * the following accelerating structure:
- *
- * [ Importants ]    [ Exceptions ] [ Redirect ] [ Remaining filters ]
- *
- * Each of theses is a `FilterHostnameDispatch`, which manage a subset of filters.
- *
- * Importants filters are not subject to exceptions, hence we try it first.
- * If no important filter matched, try to use the remaining filters bucket.
- * If we have a match, try to find an exception.
- */
-export default class {
-  constructor() {
-    this.lists = new Map();
+    this.lists = Object.create(null);
     this.resourceChecksum = null;
 
     this.size = 0;
     this.updated = false;
 
-    // *************** //
-    // Network filters //
-    // *************** //
-
     // @@filter
-    this.exceptions = new FilterSourceDomainDispatch('exceptions');
+    this.exceptions = new NetworkFilterBucket('exceptions');
     // $important
-    this.importants = new FilterSourceDomainDispatch('importants');
+    this.importants = new NetworkFilterBucket('importants');
     // $redirect
-    this.redirect = new FilterSourceDomainDispatch('redirect');
+    this.redirects = new NetworkFilterBucket('redirects');
     // All other filters
-    this.filters = new FilterSourceDomainDispatch('filters');
-
-    // ***************** //
-    // Cosmetic filters  //
-    // ***************** //
-
-    this.cosmetics = new CosmeticEngine();
+    this.filters = new NetworkFilterBucket('filters');
+    // Cosmetic filters
+    this.cosmetics = new CosmeticFilterBucket();
 
     // injections
     this.js = new Map();
@@ -823,15 +559,55 @@ export default class {
   }
 
   hasList(asset, checksum) {
-    if (this.lists.has(asset)) {
-      return this.lists.get(asset).checksum === checksum;
+    const list = this.lists[asset];
+    if (list !== undefined) {
+      return list.checksum === checksum;
     }
     return false;
   }
 
+  collectAllFilters() {
+    const allFilters = [];
+    const allExceptions = [];
+    const allRedirects = [];
+    const allImportants = [];
+    const allCosmetics = [];
+
+    let j;
+    const allLists = Object.keys(this.lists);
+    for (let i = 0; i < allLists.length; i += 1) {
+      const { filters
+            , exceptions
+            , importants
+            , redirects
+            , cosmetics } = this.lists[allLists[i]];
+
+      for (j = 0; j < filters.length; j += 1) { allFilters.push(filters[j]); }
+      for (j = 0; j < exceptions.length; j += 1) { allExceptions.push(exceptions[j]); }
+      for (j = 0; j < importants.length; j += 1) { allImportants.push(importants[j]); }
+      for (j = 0; j < redirects.length; j += 1) { allRedirects.push(redirects[j]); }
+      for (j = 0; j < cosmetics.length; j += 1) { allCosmetics.push(cosmetics[j]); }
+    }
+
+    return {
+      filters: allFilters,
+      exceptions: allExceptions,
+      redirects: allRedirects,
+      importants: allImportants,
+      cosmetics: allCosmetics,
+      size: (
+        allFilters.length +
+        allExceptions.length +
+        allImportants.length +
+        allRedirects.length +
+        allCosmetics.length
+      ),
+    };
+  }
+
   onUpdateResource(updates) {
-    updates.forEach((resource) => {
-      const { filters, checksum } = resource;
+    for (let i = 0; i < updates.length; i += 1) {
+      const { filters, checksum } = updates[i];
 
       // NOTE: Here we can only handle one resource file at a time.
       this.resourceChecksum = checksum;
@@ -852,7 +628,7 @@ export default class {
           });
         });
       });
-    });
+    }
   }
 
   onUpdateFilters(lists, debug = false) {
@@ -861,122 +637,88 @@ export default class {
       this.updated = true;
     }
 
-    // Check if one of the list is an update to an existing list
-    let update = false;
-    lists.forEach((list) => {
-      const { asset } = list;
-      if (this.lists.has(asset)) {
-        update = true;
-      }
-    });
-
     // Parse all filters and update `this.lists`
-    lists.forEach((list) => {
-      const { asset, filters, checksum } = list;
+    for (let i = 0; i < lists.length; i += 1) {
+      const { asset, filters, checksum } = lists[i];
+
+      // Parse and dispatch filters depending on type
+      const parsed = parseList(filters, {
+        debug,
+        loadCosmeticFilters: this.loadCosmeticFilters,
+        loadNetworkFilters: this.loadNetworkFilters,
+      });
+      const cosmetics = parsed.cosmeticFilters;
+      const networkFilters = parsed.networkFilters;
 
       // Network filters
       const miscFilters = [];
       const exceptions = [];
       const importants = [];
-      const redirect = [];
+      const redirects = [];
 
-      // Parse and dispatch filters depending on type
-      const parsed = parseList(filters, debug);
-
-      // Cosmetic filters
-      const cosmetics = parsed.cosmeticFilters;
-
-      parsed.networkFilters.forEach((filter) => {
-        if (filter.isException) {
+      // Dispatch filters into their bucket
+      for (let j = 0; j < networkFilters.length; j += 1) {
+        const filter = networkFilters[j];
+        if (filter.isException()) {
           exceptions.push(filter);
-        } else if (filter.isImportant) {
+        } else if (filter.isImportant()) {
           importants.push(filter);
-        } else if (filter.redirect) {
-          redirect.push(filter);
+        } else if (filter.isRedirect()) {
+          redirects.push(filter);
         } else {
           miscFilters.push(filter);
         }
-      });
+      }
 
-      this.lists.set(asset, {
+      this.lists[asset] = {
         checksum,
         filters: miscFilters,
         exceptions,
         importants,
-        redirect,
+        redirects,
         cosmetics,
-      });
-    });
-
-
-    // Update the engine with new rules
-
-    if (update) {
-      // If it's an update then recreate the whole engine
-      const allFilters = {
-        filters: [],
-        exceptions: [],
-        importants: [],
-        redirect: [],
-        cosmetics: [],
       };
-
-      let newSize = 0;
-      this.lists.forEach((list) => {
-        Object.keys(list)
-          .filter(key => list[key] instanceof Array)
-          .forEach((key) => {
-            list[key].forEach((filter) => {
-              newSize += 1;
-              allFilters[key].push(filter);
-            });
-          });
-      });
-
-      this.size = newSize;
-      this.filters = new FilterSourceDomainDispatch('filters', allFilters.filters);
-      this.exceptions = new FilterSourceDomainDispatch('exceptions', allFilters.exceptions);
-      this.importants = new FilterSourceDomainDispatch('importants', allFilters.importants);
-      this.redirect = new FilterSourceDomainDispatch('redirect', allFilters.redirect);
-      this.cosmetics = new CosmeticEngine(allFilters.cosmetics);
-    } else {
-      // If it's not an update, just add new lists in engine.
-      lists.forEach((list) => {
-        const { asset } = list;
-        const { filters
-              , exceptions
-              , importants
-              , redirect
-              , cosmetics } = this.lists.get(asset);
-
-        this.size += (filters.length +
-                      exceptions.length +
-                      redirect.length +
-                      importants.length +
-                      cosmetics.length);
-
-        filters.forEach(this.filters.push.bind(this.filters));
-        exceptions.forEach(this.exceptions.push.bind(this.exceptions));
-        importants.forEach(this.importants.push.bind(this.importants));
-        redirect.forEach(this.redirect.push.bind(this.redirect));
-        cosmetics.forEach(this.cosmetics.push.bind(this.cosmetics));
-      });
     }
+
+    // Re-create all buckets
+    const allFilters = this.collectAllFilters();
+
+    this.size = allFilters.size;
+    this.filters = new NetworkFilterBucket('filters', allFilters.filters);
+    this.exceptions = new NetworkFilterBucket('exceptions', allFilters.exceptions);
+    this.importants = new NetworkFilterBucket('importants', allFilters.importants);
+    this.redirects = new NetworkFilterBucket('redirects', allFilters.redirects);
+    this.cosmetics = new CosmeticFilterBucket(allFilters.cosmetics);
   }
 
   getCosmeticsFilters(url, nodes) {
-    return this.cosmetics.getMatchingRules(url, nodes);
+    if (!this.loadCosmeticFilters) {
+      return this.cosmetics.createContentScriptResponse([]);
+    }
+
+    return this.cosmetics.createContentScriptResponse(
+      this.cosmetics.getMatchingRules(url, nodes)
+    );
   }
 
   getDomainFilters(url) {
-    return this.cosmetics.getDomainRules(url, this.js);
+    if (!this.loadCosmeticFilters) {
+      return this.cosmetics.createContentScriptResponse([]);
+    }
+
+    return this.cosmetics.createContentScriptResponse(
+      this.cosmetics.getDomainRules(url, this.js)
+    );
   }
 
   match(request) {
-    log(`MATCH ${JSON.stringify(request)}`);
-    request.tokens = tokenizeURL(request.url);
+    if (!this.loadNetworkFilters) {
+      return { match: false };
+    }
 
-    const checkedFilters = new Set();
+    /* eslint-disable no-param-reassign */
+    request.tokens = tokenize(request.url);
+
     let result = null;
 
     // Check the filters in the following order:
@@ -984,24 +726,23 @@ export default class {
     // 2. redirection ($redirect=resource)
     // 3. normal filters
     // 4. exceptions
-    result = this.importants.match(request, checkedFilters);
+    result = this.importants.match(request);
 
     if (result === null) {
       // Check if there is a redirect or a normal match
-      result = this.redirect.match(request, checkedFilters);
+      result = this.redirects.match(request);
       if (result === null) {
-        result = this.filters.match(request, checkedFilters);
+        result = this.filters.match(request);
       }
 
       // If we found something, check for exceptions
       if (result !== null) {
-        if (this.exceptions.match(request, checkedFilters)) {
+        if (this.exceptions.match(request)) {
           result = null;
         }
       }
     }
 
-    log(`Total filters ${checkedFilters.size}`);
     if (result !== null) {
       if (result.redirect) {
         const { data, contentType } = this.resources.get(result.redirect);
@@ -1022,127 +763,135 @@ export default class {
 
     return { match: false };
   }
-}
 
+  /**
+   * Creates a string representation of the full engine. It can be stored
+   * on-disk for faster loading of the adblocker. The `load` method of a
+   * `FiltersEngine` instance can be used to restore the engine *in-place*.
+   */
+  stringify() {
+    // 1. Dump all lists with their filters
+    const serializedLists = Object.create(null);
 
-function checkEngineRec(serialized, validFilterIds) {
-  Object.keys(serialized)
-    .filter(key => key !== 's')
-    .forEach((key) => {
-      const value = serialized[key];
-      if (typeof value === 'number') {
-        if (validFilterIds[value] === undefined) {
-          throw new Error(`Filter ${serialized} was not found in serialized engine`);
-        }
-      } else if (typeof value === 'object') {
-        checkEngineRec(value, validFilterIds);
-      }
+    const assets = Object.keys(this.lists);
+    for (let i = 0; i < assets.length; i += 1) {
+      const asset = assets[i];
+      const {
+        checksum,
+        filters,
+        exceptions,
+        importants,
+        redirects,
+        cosmetics,
+      } = this.lists[asset];
+
+      serializedLists[asset] = {
+        checksum,
+        filters: filters.map(f => f.serialize()),
+        exceptions: exceptions.map(f => f.serialize()),
+        importants: importants.map(f => f.serialize()),
+        redirects: redirects.map(f => f.serialize()),
+        cosmetics: cosmetics.map(f => f.serialize()),
+      };
+    }
+
+    // 2. Dump all network filters buckets
+    const serializedBuckets = Object.create(null);
+    const buckets = [
+      this.filters,
+      this.exceptions,
+      this.importants,
+      this.redirects,
+    ];
+    for (let i = 0; i < buckets.length; i += 1) {
+      serializedBuckets[buckets[i].name] = buckets[i].index.jsonify();
+    }
+
+    // 3. Dump cosmetic filters buckets
+    serializedBuckets.cosmetics = {
+      hostname: this.cosmetics.hostnameIndex.jsonify(),
+      selector: this.cosmetics.selectorIndex.jsonify(),
+    };
+
+    return JSON.stringify({
+      version: this.version,
+      lists: serializedLists,
+      buckets: serializedBuckets,
     });
-}
-
-
-function serializedEngineSanityCheck(serialized) {
-  const { cosmetics
-        , filtersIndex
-        , exceptions
-        , importants
-        , redirect
-        , filters } = serialized;
-
-  [cosmetics, exceptions, importants, redirect, filters].forEach((bucket) => {
-    checkEngineRec(bucket, filtersIndex);
-  });
-}
-
-
-export function serializeFiltersEngine(engine, adbVersion, checkEngine = false) {
-  // Create a global index of filters to avoid redundancy
-  // From `engine.lists` create a mapping: uid => filter
-  const filters = Object.create(null);
-  engine.lists.forEach((entry) => {
-    Object.keys(entry)
-      .filter(key => entry[key] instanceof Array)
-      .forEach((key) => {
-        entry[key].forEach((filter) => {
-          filters[filter.id] = serializeFilter(filter);
-        });
-      });
-  });
-
-  // Serialize `engine.lists` but replacing each filter by its uid
-  const lists = Object.create(null);
-  engine.lists.forEach((entry, asset) => {
-    lists[asset] = { checksum: entry.checksum };
-    Object.keys(entry)
-      .filter(key => entry[key] instanceof Array)
-      .forEach((key) => {
-        lists[asset][key] = entry[key].map(filter => filter.id);
-      });
-  });
-
-
-  const serializedEngine = {
-    version: adbVersion,
-    cosmetics: serializeCosmeticEngine(engine.cosmetics),
-    filtersIndex: filters,
-    size: engine.size,
-    lists,
-    exceptions: serializeSourceDomainDispatch(engine.exceptions),
-    importants: serializeSourceDomainDispatch(engine.importants),
-    redirect: serializeSourceDomainDispatch(engine.redirect),
-    filters: serializeSourceDomainDispatch(engine.filters),
-  };
-
-  if (checkEngine) {
-    serializedEngineSanityCheck(serializedEngine);
   }
 
-  return serializedEngine;
-}
+  /**
+   * Given a valid serialized version of a `FiltersEngine` (as returned by the
+   * `stringify` method), restores the engine *in-place* (override all attribute
+   * byt the content of the serialized version).
+   *
+   * This method is faster (approximately 4x faster) than creating the engine
+   * from scratch (using the raw content of the filters lists).
+   */
+  load(stringified) {
+    const { version, lists, buckets } = JSON.parse(stringified);
 
+    if (version !== this.version) {
+      // If the version does not match, then we invalidate the engine and start fresh
+      return;
+    }
 
-export function deserializeFiltersEngine(engine, serialized, adbVersion, checkEngine = false) {
-  if (checkEngine) {
-    serializedEngineSanityCheck(serialized);
+    // 1. deserialize lists + filters
+    const networkFilters = Object.create(null); // mapping between id and filter
+    const cosmeticFilters = Object.create(null); // mapping between id and filter
+    const deserializedLists = Object.create(null); // engine.lists
+
+    const assets = Object.keys(lists);
+    const filtersKeys = ['filters', 'exceptions', 'redirects', 'importants'];
+
+    // Deserialize all assets
+    for (let i = 0; i < assets.length; i += 1) {
+      const asset = assets[i];
+      const list = lists[asset];
+      const deserializedList = Object.create(null);
+      deserializedList.checksum = list.checksum;
+
+      // Network filters
+      for (let j = 0; j < filtersKeys.length; j += 1) {
+        const key = filtersKeys[j];
+        const bucket = list[key];
+        const deserializedBucket = [];
+        for (let k = 0; k < bucket.length; k += 1) {
+          const filter = NetworkFilter.deserialize(bucket[k]);
+          networkFilters[filter.id] = filter;
+          deserializedBucket.push(filter);
+        }
+        deserializedList[key] = deserializedBucket;
+      }
+
+      // Cosmetic filters
+      const bucket = list.cosmetics;
+      const deserializedBucket = [];
+      for (let k = 0; k < bucket.length; k += 1) {
+        const filter = CosmeticFilter.deserialize(bucket[k]);
+        cosmeticFilters[filter.id] = filter;
+        deserializedBucket.push(filter);
+      }
+      deserializedList.cosmetics = deserializedBucket;
+
+      deserializedLists[asset] = deserializedList;
+    }
+
+    this.lists = deserializedLists;
+
+    // 2. deserialize buckets
+    this.filters.index.load(buckets.filters, networkFilters);
+    this.exceptions.index.load(buckets.exceptions, networkFilters);
+    this.importants.index.load(buckets.importants, networkFilters);
+    this.redirects.index.load(buckets.redirects, networkFilters);
+
+    this.cosmetics.hostnameIndex.load(
+      buckets.cosmetics.hostname,
+      cosmeticFilters
+    );
+    this.cosmetics.selectorIndex.load(
+      buckets.cosmetics.selector,
+      cosmeticFilters
+    );
   }
-
-  const { version
-        , cosmetics
-        , filtersIndex
-        , size
-        , lists
-        , exceptions
-        , importants
-        , redirect
-        , filters } = serialized;
-
-  if (version !== adbVersion) {
-    // If the version does not match, then we invalidate the engine and start fresh
-    return;
-  }
-
-  // Deserialize filters index
-  const filtersReverseIndex = Object.create(null);
-  Object.keys(filtersIndex).forEach((id) => {
-    filtersReverseIndex[id] = deserializeFilter(filtersIndex[id]);
-  });
-
-  // Deserialize engine.lists
-  Object.keys(lists).forEach((asset) => {
-    const entry = lists[asset];
-    Object.keys(entry)
-      .filter(key => entry[key] instanceof Array)
-      .forEach((key) => {
-        entry[key] = entry[key].map(id => filtersReverseIndex[id]);
-      });
-    engine.lists.set(asset, entry);
-  });
-
-  // Deserialize cosmetic engine and filters
-  deserializeCosmeticEngine(engine.cosmetics, cosmetics, filtersReverseIndex);
-  engine.exceptions = deserializeSourceDomainDispatch(exceptions, filtersReverseIndex);
-  engine.importants = deserializeSourceDomainDispatch(importants, filtersReverseIndex);
-  engine.redirect = deserializeSourceDomainDispatch(redirect, filtersReverseIndex);
-  engine.filters = deserializeSourceDomainDispatch(filters, filtersReverseIndex);
-  engine.size = size;
 }

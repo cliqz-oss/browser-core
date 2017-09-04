@@ -1,9 +1,15 @@
+import config from '../core/config';
 import History from '../platform/history/history';
 import background from '../core/base/background';
 import utils from '../core/utils';
 import { queryActiveTabs } from '../core/tabs';
 import createHistoryDTO from './history-dto';
 import { equals } from '../core/url';
+import MixerProxy from './mixer-proxy';
+import RichHeaderProxy from './rich-header-proxy';
+import LRU from '../core/LRU';
+import migrate from './history-migration';
+
 // import Database from '../core/database';
 // import MetaDatabase from './meta-database';
 
@@ -16,28 +22,40 @@ export default background({
   * @method init
   */
   init() {
+    this.mixer = new MixerProxy();
+    this.richHeader = new RichHeaderProxy();
     // const metaDB = new Database('cliqz-metas');
     // this.metaDatabase = new MetaDatabase(metaDB);
     this.history = History;
-    this.redirectMap = Object.create(null);
+    this.redirectMap = new LRU(100);
     this.sessionCounts = new Map();
+
+    this.dbMigration = migrate();
   },
 
   unload() {
+    this.dbMigration.dispose();
   },
 
   beforeBrowserShutdown() {
   },
 
-  getSourceUrl(url) {
-    const sourceUrl = this.redirectMap[url];
-    // delete this.redirectMap[url];
+  getSourceUrl(url, path = []) {
+    const sourceUrl = this.redirectMap.get(url);
 
     if (!sourceUrl) {
       return url;
     }
 
-    return this.getSourceUrl(sourceUrl);
+    // Avoid loops, it is not perfect but must do for now
+    if (path.indexOf(sourceUrl) >= 0) {
+      return sourceUrl;
+    }
+
+    return this.getSourceUrl(sourceUrl, [
+      ...path,
+      sourceUrl,
+    ]);
   },
 
   events: {
@@ -92,7 +110,11 @@ export default background({
     * @event ui:click-on-url
     * @param data
     */
-    'ui:click-on-url': function onResult({ query, url }) {
+    'ui:click-on-url': function onResult({ query, url, isPrivateWindow }) {
+      if (isPrivateWindow) {
+        return;
+      }
+
       const asyncHistory = Components.classes['@mozilla.org/browser/history;1']
                          .getService(Components.interfaces.mozIAsyncHistory);
       const queryUrl = `https://cliqz.com/search?q=${query}`;
@@ -100,7 +122,7 @@ export default background({
 
       const place = {
         uri,
-        title: `${query} - CLIQZ Search`,
+        title: `${query} - Cliqz Search`,
         visits: [{
           visitDate: Date.now() * 1000,
           transitionType: Components.interfaces.nsINavHistoryService.TRANSITION_TYPED,
@@ -129,21 +151,11 @@ export default background({
     },
     'content:state-change': function onStateChange({ url, originalUrl, triggeringUrl }) {
       if (url && triggeringUrl) {
-        this.redirectMap[url] = triggeringUrl;
-
-        // clean after some time
-        utils.setTimeout(() => {
-          delete this.redirectMap[url];
-        }, 1000);
+        this.redirectMap.set(url, triggeringUrl);
       }
 
       if (originalUrl && triggeringUrl) {
-        this.redirectMap[originalUrl] = triggeringUrl;
-
-        // clean after some time
-        utils.setTimeout(() => {
-          delete this.redirectMap[originalUrl];
-        }, 1000);
+        this.redirectMap.set(originalUrl, triggeringUrl);
       }
     },
     'content:location-change': function onLocationChange({ url, triggeringUrl }) {
@@ -169,17 +181,19 @@ export default background({
         domain,
         query,
       }).then(({ places, from, to }) => {
-        const activeTabs = queryActiveTabs(utils.getWindow());
-
-        const dto = createHistoryDTO({
+        // const activeTabs = queryActiveTabs ? queryActiveTabs(utils.getWindow()) : undefined;
+        const dtoP = createHistoryDTO({
           places,
-          activeTabs,
+          // mixer: this.mixer,
+          // activeTabs,
         });
 
-        return Object.assign({
-          frameStartsAt: from,
-          frameEndsAt: to,
-        }, dto);
+        return dtoP.then(dto => (
+          Object.assign({
+            frameStartsAt: from,
+            frameEndsAt: to,
+          }, dto))
+        );
       });
     },
 
@@ -194,7 +208,7 @@ export default background({
     newTab() {
       const window = utils.getWindow();
       const activeTabs = queryActiveTabs(window);
-      const newTabUrl = utils.CLIQZ_NEW_TAB;
+      const newTabUrl = config.settings.NEW_TAB_URL;
       const freshTab = activeTabs.find(tab => tab.url === newTabUrl);
 
       if (freshTab) {
@@ -234,6 +248,10 @@ export default background({
         return sessionCount.promise;
       }
       return Promise.resolve();
+    },
+
+    getNews(domain) {
+      return this.richHeader.getNews(domain);
     },
   },
 });

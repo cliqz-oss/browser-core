@@ -1,7 +1,6 @@
 
 const funnel = require('broccoli-funnel');
 const MergeTrees = require('broccoli-merge-trees');
-const concat = require('broccoli-sourcemap-concat');
 const replace = require('broccoli-string-replace');
 
 const appRoot = 'subprojects/chrome-test-hw-hpn/hw/';

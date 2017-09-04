@@ -1,0 +1,114 @@
+FROM node:7.10.1-stretch
+
+RUN npm install -g \
+  bower \
+  broccoli-cli \
+  phantomjs \
+  yuidocjs \
+  selleck
+
+RUN apt-get update && \
+  apt-get install -y \
+    awscli \
+    build-essential \
+    bzip2 \
+    ca-certificates \
+    chromium \
+    chromium-l10n \
+    dbus \
+    jq \
+    libasound2 \
+    libatk1.0-0 \
+    libav-tools \
+    libavcodec-extra57 \
+    libc6 \
+    libcairo-gobject2 \
+    libcairo2 \
+    libdbus-1-3 \
+    libdbus-glib-1-2 \
+    libfontconfig1 \
+    libfreetype6 \
+    libgcc1 \
+    libgdk-pixbuf2.0-0 \
+    libglib2.0-0 \
+    libgtk-3-0 \
+    libgtk2.0-0 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libstartup-notification0 \
+    libstdc++6 \
+    libx11-6 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxml2-utils \
+    libxrender1 \
+    libxt6 \
+    lsb-release \
+    menu \
+    openbox \
+    python-dev \
+    python-pip \
+    unzip \
+    wget \
+    x11vnc \
+    xauth \
+    xvfb \
+    zip \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --upgrade cffi
+RUN pip install \
+  fabric \
+  jinja2 \
+  awscli \
+  requests \
+  pycrypto \
+  argparse
+
+RUN cd /tmp && \
+  wget https://www.openssl.org/source/old/0.9.x/openssl-0.9.8zg.tar.gz && \
+  tar zxf openssl-0.9.8zg.tar.gz && \
+  cd openssl-0.9.8zg && \
+  ./config && \
+  make && \
+  make install
+ENV PATH "/usr/local/ssl/bin:$PATH"
+
+
+
+RUN mkdir /app
+RUN chown node:node -R /app
+
+# Prevent errors when running xvfb as node user
+RUN mkdir /tmp/.X11-unix \
+ && chmod 1777 /tmp/.X11-unix \
+ && chown root /tmp/.X11-unix
+
+# Expose port for VNC
+EXPOSE 5900
+
+USER node
+
+RUN wget https://ftp.mozilla.org/pub/firefox/releases/42.0/linux-x86_64/en-US/firefox-42.0.tar.bz2 -O /home/node/firefox.tar.bz2 \
+ && mkdir /home/node/firefox42 \
+ && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox42 \
+ && rm -f /home/node/firefox.tar.bz2
+
+RUN wget https://ftp.mozilla.org/pub/firefox/releases/52.0/linux-x86_64/en-US/firefox-52.0.tar.bz2 -O /home/node/firefox.tar.bz2 \
+ && mkdir /home/node/firefox52 \
+ && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox52 \
+ && rm -f /home/node/firefox.tar.bz2
+
+RUN wget https://chromedriver.storage.googleapis.com/2.31/chromedriver_linux64.zip -O /home/node/chromedriver_linux64.zip \
+ && unzip /home/node/chromedriver_linux64.zip -d /home/node \
+ && rm -f /home/node/chromedriver_linux64.zip
+
+COPY package.json /app/
+COPY bower.json /app/
+
+WORKDIR /app/
+
+RUN npm install
+RUN bower install

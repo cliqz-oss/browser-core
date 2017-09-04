@@ -2,6 +2,20 @@ import BaseResult from './base';
 import utils from '../../core/utils';
 
 export default class SupplementarySearchResult extends BaseResult {
+  constructor(rawResult, allResultsFlat = []) {
+    super(rawResult, allResultsFlat);
+
+    this.engines = utils.getSearchEngines();
+    this.defaultSearchEngine = this.engines.find(se => se.default);
+  }
+
+  click(...args) {
+    if (this.rawResult.data.source === 'Cliqz') {
+      this.actions.query(this.suggestion);
+    } else {
+      super.click(...args);
+    }
+  }
 
   get template() {
     return 'search';
@@ -9,7 +23,9 @@ export default class SupplementarySearchResult extends BaseResult {
 
   // it is not history but makes the background color to be light gray
   get isHistory() {
-    return true;
+    // it appears as history if its a default search result or
+    // as a regular result if its a suggestion
+    return this.defaultSearchResult;
   }
 
   get isDeletable() {
@@ -38,8 +54,16 @@ export default class SupplementarySearchResult extends BaseResult {
     return query;
   }
 
+  get suggestion() {
+    return this.rawResult.data.suggestion;
+  }
+
   get engine() {
-    return this.searchEngine.name;
+    return this.rawResult.data.source || this.searchEngine.name;
+  }
+
+  get defaultSearchResult() {
+    return this.rawResult.defaultSearchResult || false;
   }
 
   get searchEngine() {
@@ -49,21 +73,21 @@ export default class SupplementarySearchResult extends BaseResult {
       return engine;
     }
 
-    return utils.getDefaultSearchEngine();
+    return this.defaultSearchEngine;
   }
 
   // returns undefined if no token go detected
   getEngineByQuery() {
-    const token = this.rawResult.text.split(' ')[0];
-    const engines = utils.getSearchEngines();
+    const token = this.rawResult.data.suggestion.split(' ')[0];
+    const engines = this.engines;
     return engines.find(e => e.alias === token);
   }
 
   get url() {
-    return this.searchEngine.getSubmissionForQuery(this.query);
+    return this.searchEngine.getSubmissionForQuery(this.rawResult.data.suggestion);
   }
 
   get displayUrl() {
-    return this.rawResult.text;
+    return this.rawResult.data.suggestion;
   }
 }

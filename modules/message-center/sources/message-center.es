@@ -2,7 +2,8 @@ import CliqzUtils from "../core/utils";
 import CliqzEvents from "../core/events";
 import CliqzMsgHandlerAlert from "./handlers/alert";
 import CliqzMsgHandlerDropdown from "./handlers/dropdown";
-import CliqzMsgHandlerFreshtab from "./handlers/freshtab";
+import CliqzMsgHandlerFreshtabTop from "./handlers/freshtab-top";
+import CliqzMsgHandlerFreshtabMiddle from "./handlers/freshtab-middle";
 import CliqzMsgHandlerCallout from "./handlers/callout";
 
 /* ************************************************************************* */
@@ -14,6 +15,7 @@ function _log(msg) {
 
 function CliqzMsgCenter() {
   this._messageHandlers = {};
+
   this.showMessage = this.showMessage.bind(this);
   this.hideMessage = this.hideMessage.bind(this);
 
@@ -21,8 +23,10 @@ function CliqzMsgCenter() {
     new CliqzMsgHandlerDropdown());
   this.registerMessageHandler('MESSAGE_HANDLER_ALERT',
     new CliqzMsgHandlerAlert());
-  this.registerMessageHandler('MESSAGE_HANDLER_FRESHTAB',
-    new CliqzMsgHandlerFreshtab());
+  this.registerMessageHandler('MESSAGE_HANDLER_FRESHTAB_TOP',
+    new CliqzMsgHandlerFreshtabTop());
+  this.registerMessageHandler('MESSAGE_HANDLER_FRESHTAB_MIDDLE',
+    new CliqzMsgHandlerFreshtabMiddle());
 }
 
 CliqzMsgCenter.prototype = {
@@ -30,6 +34,10 @@ CliqzMsgCenter.prototype = {
 	registerMessageHandler: function (id, handler) {
 		this._messageHandlers[id] = handler;
 	},
+
+  getHandlers: function() {
+    return Object.keys(this._messageHandlers);
+  },
 
   showMessage: function (message, handlerId, callback) {
     var handler = this._messageHandlers[handlerId];
@@ -51,7 +59,6 @@ CliqzMsgCenter.prototype = {
 };
 
 CliqzMsgCenter.getInstance = function () {
-  CliqzUtils.log("!!Get instance")
   CliqzMsgCenter.getInstance.instance =
     CliqzMsgCenter.getInstance.instance || new CliqzMsgCenter();
   return CliqzMsgCenter.getInstance.instance;

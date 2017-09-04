@@ -99,7 +99,7 @@ def package(beta='True', version=None, sign='False', channel='browser'):
 
     if sign == 'True':
         local("mv %s UNSIGNED_%s" % (output_file_name, output_file_name))
-        # signs the XPI with the CLIQZ certificate
+        # signs the XPI with the Cliqz certificate
 
         # look for xpi-sign report on the same level as navigation-extension
         local( ("python ../xpi-sign/xpisign.py "
@@ -155,6 +155,15 @@ def publish(beta='True', version=None, channel='browser', pre='True'):
 
     local("aws s3 cp %s %s --acl public-read" % (output_file_name, path_to_s3))
 
+    # upload an unpacked version also
+    output_file_name_unpacked = output_file_name.replace('.xpi', '.unpacked.xpi')
+    local("unzip %s -d %s" % (output_file_name, PATH_TO_EXTENSION_TEMP))
+    with lcd(PATH_TO_EXTENSION_TEMP):
+        local("zip -r0 ../%s -r *" % output_file_name_unpacked)
+    local("aws s3 cp %s %s --acl public-read" % (output_file_name_unpacked, path_to_s3))
+    local("rm -fr %s" % PATH_TO_EXTENSION_TEMP)
+    # end upload an unpacked version also
+
     env = Environment(loader=FileSystemLoader('templates'))
     manifest_template = env.get_template(update_manifest_file_name)
 
@@ -187,12 +196,13 @@ def publish(beta='True', version=None, channel='browser', pre='True'):
 
     local("rm  %s" % latest_html_file_name)
 
-    credentials = {}
-    execfile("../fern/release-creds.txt", credentials)
-    auth = (
-        'balrogadmin',
-        credentials['balrog_credentials']['balrogadmin']
-    )
+    username = os.environ['BALROG_ADMIN']
+    password = os.environ['BALROG_PASSWORD']
+
+    if not username or not password:
+        raise RuntimeError("Could not run without username or/and password")
+
+    auth = (username, password)
 
     from fern.submitter import Submitter
     submitter = Submitter(
@@ -245,7 +255,10 @@ def comment_cleaner(path=None):
         'Validations.js',
         'humanweb.html',
         'freshtab.html',
-        'processScript.js'
+        'processScript.js',
+        'query_handler.js',
+        'funnel-cake.html',
+        'funnel-cake-mozilla.html'
     ]
 
     print 'CommentCleaner - Start'
@@ -263,7 +276,7 @@ def comment_cleaner(path=None):
                         handler.truncate()
                         handler.write(js_comment_removal(content))
                 except:
-                    print 'ERROR', f
+                    print 'ERROR', root + '/' + f
                     raise
 
             else:

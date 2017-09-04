@@ -34,6 +34,10 @@ export default class {
     this.failureTimeout = 1000 * 60;
   }
 
+  flush() {
+    return this.storage.flush();
+  }
+
   init() {
     return this.storage
       .deleteByTimespan({ to: getSynchronizedDate().subtract(1, 'months').format(DATE_FORMAT) })
@@ -180,6 +184,6 @@ export default class {
       attempts: 0,
       type: 'anolysisSignal',
       _id: md5(JSON.stringify(signal))
-    });
+    }, true /* buffered */);
   }
 }

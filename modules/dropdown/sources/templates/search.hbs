@@ -4,7 +4,13 @@
     </div>
     <div class="abstract">
         <p>
-            <span class="strong">{{query}}</span>
+            <span class="strong">
+                {{#if defaultSearchResult}}
+                    {{suggestion}}
+                {{else}}
+                    {{emphasis suggestion query 1 true}}
+                {{/if}}
+            </span>
             {{#if query}}
                 <span class="divider">&#8212;</span>
             {{/if}}

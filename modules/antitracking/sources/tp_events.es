@@ -1,6 +1,4 @@
 import { utils } from '../core/cliqz';
-import background from './background';
-import CliqzAttrack from './attrack';
 import md5 from './md5';
 import { sameGeneralDomain } from './domain';
 import * as browser from '../platform/browser';
@@ -20,6 +18,7 @@ class PageLoadData {
     this.tps = {};
     this.redirects = [];
     this.ra = reloaded;
+    this.annotations = {};
 
     this.triggeringTree = {};
     this._plainObject = null;
@@ -255,18 +254,22 @@ class PageEventTracker {
   // Will run at a period specifed by tp_events._clean_interval, unless force_clean is true
   // If force_stage is true, will stage all tabs, otherwise will only stage inactive.
   commit(force_clean, force_stage) {
-      var now = (new Date()).getTime();
-      if(now - this._last_clean > this._clean_interval || force_clean == true) {
-          for(let k in this._active) {
-              browser.checkIsWindowActive(k).then(active => {
-                if(!active || force_stage == true) {
-                  if (this.debug) utils.log('Stage tab '+k, 'tp_events');
-                  this.stage(k);
-                }
-              });
-          }
-          this._last_clean = now;
-      }
+    var now = (new Date()).getTime();
+    if (now - this._last_clean > this._clean_interval || force_clean === true) {
+      this._last_clean = now;
+      return Promise.all(
+        Object.keys(this._active).map(tabId =>
+          browser.checkIsWindowActive(tabId).then((active) => {
+            if (!active || force_stage === true) {
+              if (this.debug) utils.log(`Stage tab ${tabId}`, 'tp_events');
+              this.stage(tabId);
+            }
+          })
+        )
+      );
+    }
+
+    return Promise.resolve();
   }
 
   // Push staged PageLoadData to human web.
@@ -322,6 +325,13 @@ class PageEventTracker {
 
   getOpenPages(cb) {
     return Object.keys(this._active).map(id => this._active[id]);
+  }
+
+  getAnnotations(tab) {
+    if (this._active[tab]) {
+      return this._active[tab].annotations;
+    }
+    return {};
   }
 }
 

@@ -1,17 +1,23 @@
-import { Components } from './globals';
+import { Components, Services } from './globals';
 
 export default {
   isMobile: false,
   isFirefox: true,
   isChromium: false,
-  platformName: "firefox",
+  platformName: 'firefox',
 };
 
-export function isPlatformAtLeastInVersion(version) {
-  const appInfo = Components.classes['@mozilla.org/xre/app-info;1']
-    .getService(Components.interfaces.nsIXULAppInfo);
+const appInfo = Components.classes['@mozilla.org/xre/app-info;1'];
+
+export function isPlatformAtLeastInVersion(minVersion) {
+  const hostVersion = appInfo.getService(Components.interfaces.nsIXULAppInfo).version;
   const versionChecker = Components.classes['@mozilla.org/xpcom/version-comparator;1']
     .getService(Components.interfaces.nsIVersionComparator);
 
-  return versionChecker.compare(appInfo.version, version) >= 0;
+  return versionChecker.compare(hostVersion, minVersion) >= 0;
 }
+
+export const OS = appInfo
+  .getService(Components.interfaces.nsIXULRuntime)
+  .OS.toLowerCase();
+export const OS_VERSION = Services.sysinfo.getProperty('version');

@@ -1,0 +1,13 @@
+<div class="clearfix notificationsCon" {{action 'notificationClick'}}>
+	<div class="close">
+		<a href="#" {{action 'dismiss'}}><img src="./assets/images/close_icon.svg" /></a>
+	</div>
+	<img {{action 'logoClick' bubbles=false}} class="logo" width="40px" src="./assets/images/new-cliqz.png" />
+
+	<div class="text fullWidth">
+		<h1>{{t 'notifications.hdr-new-search'}}</h1>
+		<p>{{t 'notifications.txt-new-search'}}
+			<a href="#" {{action 'openNewSearchPage' 'https://cliqz.com/magazine/cliqz-fuer-desktop-neues-design-sorgt-fuer-mehr-uebersicht' bubbles=false}}>{{t 'notifications.cta-new-search'}}</a> 
+		</p>
+	</div>
+</div>

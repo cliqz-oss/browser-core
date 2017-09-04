@@ -77,7 +77,7 @@ function getExitsUrl() {
 
 export default class {
 
-  constructor(antitracking, p2p) {
+  constructor(antitracking, webRequestPipeline, p2p) {
     // Use a local socks proxy to be able to 'hack' the HTTP lifecycle
     // inside Firefox. This allows us to proxy some requests in a peer
     // to peer fashion using WebRTC.
@@ -104,6 +104,7 @@ export default class {
 
     // External dependencies
     this.antitracking = antitracking;
+    this.webRequestPipeline = webRequestPipeline;
     this.p2p = p2p;
 
     // Policies for when to proxy and when to block exit requests
@@ -187,9 +188,8 @@ export default class {
 
     // Insert step as soon as context (urlParts) is available
     if (this.shouldProxyAll) {
-      return this.antitracking.action('addPipelineStep', {
+      return this.webRequestPipeline.action('addPipelineStep', 'open', {
         name: 'checkShouldProxyAll',
-        stages: ['open'],
         after: ['determineContext'],
         fn: (state) => {
           // Here we must perform some additional checks so that the proxying
@@ -212,12 +212,13 @@ export default class {
       });
     }
 
-    // Insert step immediately after `isTrack` information is available.
+    // Insert step immediately after antitracking pipeline.
+    // TODO: at some point we might need to add the steps from antitracking to
+    // the webrequest pipeline individually.
     if (this.shouldProxyTrackers) {
-      return this.antitracking.action('addPipelineStep', {
+      return this.webRequestPipeline.action('addPipelineStep', 'open', {
         name: 'checkShouldProxyTrackers',
-        stages: ['open'],
-        after: ['findBadTokens'],
+        after: ['antitracking.open'],
         fn: this.checkShouldProxyRequest.bind(this),
       });
     }
@@ -252,8 +253,8 @@ export default class {
 
     // If steps were not present in the pipeline, this will just be ignored
     return Promise.all([
-      this.antitracking.action('removePipelineStep', 'checkShouldProxyTrackers'),
-      this.antitracking.action('removePipelineStep', 'checkShouldProxyAll'),
+      this.webRequestPipeline.action('removePipelineStep', 'open', 'checkShouldProxyTrackers'),
+      this.webRequestPipeline.action('removePipelineStep', 'open', 'checkShouldProxyAll'),
     ]).catch(() => {}); // This should not fail
   }
 

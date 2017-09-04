@@ -9,7 +9,7 @@ function getURL() {
   let match = url.match(/u=([^&]+)/);
 
   if (!match) {
-    return "";  // this should not happend though
+    return '';  // this should not happend though
   }
 
   url = decodeURIComponent(match[1]);
@@ -46,7 +46,7 @@ function format() {
     if (hw && hw.state.v[url]) {
       hw.state.v[url]['anti-phishing'] = 'safe_out';
     }
-    window.location.replace(CliqzUtils.CLIQZ_NEW_TAB);
+    window.location.replace('about:newtab');
   }
 
   // learn more
@@ -62,7 +62,7 @@ function format() {
     if (hw && hw.state.v[url]) {
       hw.state.v[url]['anti-phishing'] = 'report';
     }
-    CliqzAntiPhishing.whitelist(url, 2);
+    CliqzAntiPhishing.whitelistTemporary(url);
     window.location.replace(url);
   }
 
@@ -73,7 +73,7 @@ function format() {
     if (hw && hw.state.v[url]) {
       hw.state.v[url]['anti-phishing'] = 'report';
     }
-    CliqzAntiPhishing.whitelist(url, 1);
+    CliqzAntiPhishing.markAsSafe(url);
     window.location.replace(url);
   }
 }

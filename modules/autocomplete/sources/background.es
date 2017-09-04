@@ -35,9 +35,9 @@ export default background({
     Search.clearResultCache = this.resultCache.clear.bind(this.resultCache);
     this.autocomplete = autocomplete;
     this.autocomplete.setup();
+    autocomplete.CliqzSearchCountryProviders = new CliqzSearchCountryProviders();
     return onReady().then(() => {
       autocomplete.CliqzResultProviders = new ResultProviders();
-      autocomplete.CliqzSearchCountryProviders = new CliqzSearchCountryProviders();
       AutocompleteBackground.init();
       if (isFirefox) {
         environment.RERANKERS.push(new WikipediaDeduplication());
@@ -66,6 +66,10 @@ export default background({
     search(query, cb) {
       const search = new Search();
       search.search(query, cb);
+    },
+
+    clearResultCache() {
+      Search.clearResultCache();
     },
 
     /**

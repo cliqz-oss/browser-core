@@ -145,26 +145,44 @@ export class AttrackBloomFilter extends QSWhitelistBase {
   }
 
   isTrackerDomain(domain) {
+    if (!this.isReady()) {
+      return false;
+    }
     return this.bloomFilter.testSingle('d' + domain);
   }
 
   isSafeKey(domain, key) {
+    if (!this.isReady()) {
+      return true;
+    }
     return (!this.isUnsafeKey(domain, key)) && (this.bloomFilter.testSingle('k' + domain + key) || super.isSafeKey(domain, key));
   }
 
   isSafeToken(domain, token) {
+    if (!this.isReady()) {
+      return true;
+    }
     return this.bloomFilter.testSingle('t' + domain + token);
   }
 
   isUnsafeKey(domain, token) {
+    if (!this.isReady()) {
+      return false;
+    }
     return this.bloomFilter.testSingle('u' + domain + token);
   }
 
   addDomain(domain) {
+    if (!this.isReady()) {
+      return;
+    }
     this.bloomFilter.addSingle('d' + domain);
   }
 
   addSafeKey(domain, key, valueCount) {
+    if (!this.isReady()) {
+      return;
+    }
     if (this.isUnsafeKey(domain, key)) {
       return;
     }
@@ -173,11 +191,16 @@ export class AttrackBloomFilter extends QSWhitelistBase {
   }
 
   addUnsafeKey(domain, token) {
+    if (!this.isReady()) {
+      return;
+    }
     this.bloomFilter.addSingle('u' + domain + token);
   }
 
   addSafeToken(domain, token) {
-    utils.log([domain, token]);
+    if (!this.isReady()) {
+      return;
+    }
     if (token === '') {
       this.addDomain(domain);
     } else {
@@ -192,7 +215,7 @@ export class AttrackBloomFilter extends QSWhitelistBase {
   }
 
   update() {
-    this._config.updateFromRemote().then(this.checkUpdate.bind(this)).then(() => {
+    return this._config.updateFromRemote().then(this.checkUpdate.bind(this)).then(() => {
       this.lastUpdate = datetime.getTime();
     });
   }

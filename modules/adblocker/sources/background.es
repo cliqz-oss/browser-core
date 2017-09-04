@@ -9,7 +9,6 @@ import CliqzADB,
         ADB_USER_LANG_OVERRIDE,
         adbEnabled } from './adblocker';
 import inject from '../core/kord/inject';
-import FilterEngine from './filters-engine';
 
 
 function isAdbActive(url) {
@@ -77,7 +76,7 @@ export default background({
       if (pref === ADB_USER_LANG || pref === ADB_USER_LANG_OVERRIDE) {
         if (CliqzADB.adblockInitialized) {
           // change in user lang pref, reload the filters
-          CliqzADB.adBlocker.engine = new FilterEngine();
+          CliqzADB.adBlocker.resetEngine();
           CliqzADB.adBlocker.listsManager.initLists();
           CliqzADB.adBlocker.listsManager.load();
         }
@@ -87,40 +86,37 @@ export default background({
 
   actions: {
     // handles messages coming from process script
-    nodes(url, nodes) {
+    getCosmeticsForNodes(url, nodes) {
       if (!isAdbActive(url)) {
-        return {
-          rules: [],
-          active: false,
-        };
-      }
-      const candidates = CliqzADB.adBlocker.engine.getCosmeticsFilters(url, nodes);
-      return {
-        rules: candidates.map(rule => rule.selector),
-        active: true,
-      };
-    },
-
-    url(url) {
-      if (!isAdbActive(url)) {
-        return {
-          scripts: [],
-          sytles: [],
-          type: 'domain-rules',
-          active: false,
-        };
+        return { active: false };
       }
 
-      const candidates = CliqzADB.adBlocker.engine.getDomainFilters(url);
-      return {
-        styles: candidates
-          .filter(rule => !rule.scriptInject && !rule.scriptBlock)
-          .map(rule => rule.selector),
-        scripts: candidates.filter(rule => rule.scriptInject).map(rule => rule.selector),
-        scriptBlock: candidates.filter(rule => rule.scriptBlock).map(rule => rule.selector),
-        type: 'domain-rules',
-        active: true,
-      };
+      return CliqzADB.adBlocker.engine.getCosmeticsFilters(url, nodes);
     },
+
+    getCosmeticsForDomain(url) {
+      if (!isAdbActive(url)) {
+        return { active: false };
+      }
+
+      return CliqzADB.adBlocker.engine.getDomainFilters(url);
+    },
+
+    getAdBlockInfo(url) {
+      return CliqzADB.adbStats.report(url);
+    },
+
+    isDomainInBlacklist(domain) {
+      if (CliqzADB.adBlocker) {
+        return CliqzADB.adBlocker.isDomainInBlacklist(domain);
+      }
+      return false;
+    },
+
+    toggleUrl(url, domain) {
+      if (CliqzADB.adBlocker) {
+        CliqzADB.adBlocker.toggleUrl(url, domain);
+      }
+    }
   },
 });

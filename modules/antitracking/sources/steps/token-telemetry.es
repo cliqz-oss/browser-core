@@ -55,8 +55,10 @@ function anonymizeTrackerTokens(trackerData) {
 
 export default class {
 
-  constructor(telemetry) {
+  constructor(telemetry, qsWhitelist, config) {
     this.telemetry = telemetry;
+    this.qsWhitelist = qsWhitelist;
+    this.config = config;
     this.tokens = {};
     this._tokens = new persist.AutoPersistentObject("tokens", (v) => this.tokens = v, 60000);
   }
@@ -78,71 +80,108 @@ export default class {
     if (keyTokens.length > 0) {
       const domain = md5(state.urlParts.hostname).substr(0, 16);
       const firstParty = md5(state.sourceUrlParts.hostname).substr(0, 16);
-      this._saveKeyTokens(domain, keyTokens, firstParty);
+      const generalDomain = md5(state.urlParts.generalDomain).substr(0, 16);
+      this._saveKeyTokens(domain, keyTokens, firstParty, generalDomain);
     }
     return true;
   }
 
-  _saveKeyTokens(domain, keyTokens, firstParty) {
-    // anything here should already be hash
-    if (this.tokens[domain] == null) this.tokens[domain] = {lastSent: datetime.getTime()};
-    if (this.tokens[domain][firstParty] == null) this.tokens[domain][firstParty] = {'c': 0, 'kv': {}};
-
-    this.tokens[domain][firstParty]['c'] =  (this.tokens[domain][firstParty]['c'] || 0) + 1;
-    for (var kv of keyTokens) {
-        var tok = kv.v,
-            k = kv.k;
-        if (this.tokens[domain][firstParty]['kv'][k] == null) this.tokens[domain][firstParty]['kv'][k] = {};
-        if (this.tokens[domain][firstParty]['kv'][k][tok] == null) {
-            this.tokens[domain][firstParty]['kv'][k][tok] = {
-                c: 0,
-                k_len: kv.k_len,
-                v_len: kv.v_len
-            };
-        }
-        this.tokens[domain][firstParty]['kv'][k][tok].c += 1;
+  _touchToken(key, firstParty) {
+    if (!(key in this.tokens)) {
+      this.tokens[key] = {
+        lastSent: datetime.getTime()
+      };
     }
+    if (!(firstParty in this.tokens[key])) {
+      this.tokens[key][firstParty] = {
+        c: 0,
+        kv: {}
+      };
+    }
+  }
+
+  _saveKeyTokens(domain, keyTokens, firstParty, generalDomain) {
+    // anything here should already be hash
+    const dkSafe = domain;
+    const dkUnsafe = `${domain}_unsafe`;
+    const isTracker = this.qsWhitelist.isTrackerDomain(generalDomain);
+
+    keyTokens.forEach((kv) => {
+      const tok = kv.v;
+      const k = kv.k;
+      // put token in safe bucket if: value is short, domain is not a tracker,
+      // or key or value is whitelisted
+      const safe = kv.v_len < this.config.shortTokenLength ||
+                   !isTracker ||
+                   this.qsWhitelist.isSafeKey(generalDomain, k) ||
+                   this.qsWhitelist.isSafeToken(generalDomain, tok);
+      const dk = safe ? dkSafe : dkUnsafe;
+      this._touchToken(dk, firstParty);
+      if (this.tokens[dk][firstParty].kv[k] == null) {
+        this.tokens[dk][firstParty].kv[k] = {};
+      }
+      if (this.tokens[dk][firstParty].kv[k][tok] == null) {
+        this.tokens[dk][firstParty].kv[k][tok] = {
+          c: 0,
+          k_len: kv.k_len,
+          v_len: kv.v_len
+        };
+      }
+      this.tokens[dk][firstParty].kv[k][tok].c += 1;
+    });
     this._tokens.setDirty();
   }
 
   sendTokens() {
-    // send tokens every 5 minutes
-    let data = {},
-        hour = datetime.getTime(),
-        limit = Math.floor(Object.keys(this.tokens).length / 12) || 1;
+    // send a batch for safe tokens, and one for unsafe
+    const domainKeyIsSafe = key => !key.endsWith('_unsafe');
+    this._sendTokenBatch(domainKeyIsSafe);
+    this._sendTokenBatch(key => !domainKeyIsSafe(key));
+  }
+
+  _sendTokenBatch(keyFilter) {
+    const data = {};
+    const hour = datetime.getTime();
+    const domainKeys = Object.keys(this.tokens).filter(keyFilter);
+    const limit = Math.floor(domainKeys.length / 12) || 1;
 
     // sort tracker keys by lastSent, i.e. send oldest data first
-    let sortedTrackers = Object.keys(this.tokens).sort((a, b) => {
-        return parseInt(this.tokens[a].lastSent || 0) - parseInt(this.tokens[b].lastSent || 0)
-    });
+    const sortedTrackers = domainKeys.sort((a, b) =>
+      parseInt(this.tokens[a].lastSent || 0, 10) - parseInt(this.tokens[b].lastSent || 0, 10)
+    );
 
     for (let i in sortedTrackers) {
-        let tracker = sortedTrackers[i];
+      const dk = sortedTrackers[i];
+      const tokenData = this.tokens[dk];
+      // remove the suffix (i.e. '_unsafe')
+      const domain = dk.substring(0, 16);
 
-        if (limit > 0 && Object.keys(data).length > limit) {
-            break;
-        }
+      if (limit > 0 && Object.keys(data).length > limit) {
+        break;
+      }
 
-        let tokenData = this.tokens[tracker];
-        if (!(tokenData.lastSent) || tokenData.lastSent < hour) {
-            delete(tokenData.lastSent);
-            data[tracker] = anonymizeTrackerTokens(tokenData);
-            delete(this.tokens[tracker]);
+      if (!(domain in data) && (!(tokenData.lastSent) || tokenData.lastSent < hour)) {
+        delete tokenData.lastSent;
+        const dataPayload = anonymizeTrackerTokens(tokenData);
+        delete this.tokens[dk];
+        if (Object.keys(dataPayload).length > 0) {
+          data[domain] = dataPayload;
         }
+      }
     }
 
     if (Object.keys(data).length > 0) {
-        splitTelemetryData(data, 20000).map((d) => {
-            const msg = {
-                'type': this.telemetry.msgType,
-                'action': 'attrack.tokens',
-                'payload': d
-            };
-            this.telemetry({
-              message: msg,
-              compress: true,
-            });
+      splitTelemetryData(data, 20000).forEach((d) => {
+        const msg = {
+          type: this.telemetry.msgType,
+          action: 'attrack.tokens',
+          payload: d
+        };
+        this.telemetry({
+          message: msg,
+          compress: true,
         });
+      });
     }
     this._tokens.setDirty();
   }

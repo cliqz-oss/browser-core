@@ -2,7 +2,7 @@
 /* global describeModule */
 
 
-const fs = System._nodeRequire('fs');
+const fs = require('fs');
 
 
 function readFile(path) {
@@ -82,19 +82,22 @@ export default describeModule('adblocker/filters-loader',
       ADB_USER_LANG: 'cliqz-adb-lang',
       ADB_USER_LANG_OVERRIDE: 'cliqz-adb-lang-override',
     },
-    'adblocker/utils': {
-      default() {
+    'adblocker/logger': {
+      default: {
+        debug() {},
+        log() {},
+        error() {},
       },
     },
-    'core/cliqz': {
-      utils: {
+    'core/utils': {
+      default: {
         setInterval() {},
         getPref(pref, defaultValue) {
           return defaultValue;
         },
         setPref() {},
         httpGet(url, callback) {
-          let content = '';
+          let content = 'filter';
           if (url.startsWith('https://cdn.cliqz.com/adblocking/') && url.indexOf('/allowed-lists.json') !== -1) {
             if (isMobile) {
               content = readFile('modules/adblocker/tests/unit/data/allowed-lists-mobile.json');

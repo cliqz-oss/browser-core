@@ -1,13 +1,20 @@
 /* global PouchDB */
 import environment from "platform/environment";
 import console from "platform/console";
+import window from "platform/window-api";
 
 Cu.importGlobalProperties(['indexedDB', 'XMLHttpRequest']);
 
 // https://loune.net/2015/02/pouchdb-for-firefox-addon-sdk/
 const global = {
   indexedDB,
-  IDBKeyRange, //global anyway, exporting to be sure
+  get IDBKeyRange() {
+    if (typeof IDBKeyRange !== 'undefined') {
+      return IDBKeyRange;
+    } else {
+      return window().IDBKeyRange;
+    }
+  },
   btoa,        //global anyway, exporting to be sure
   atob,        //global anyway, exporting to be sure
   escape,      //global anyway, exporting to be sure

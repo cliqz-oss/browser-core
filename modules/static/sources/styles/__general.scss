@@ -200,14 +200,16 @@
     overflow: hidden;
     max-width: 220px;
     margin: -2px 7px 0px 0px;
+    position: relative;
 }
 
 .cliqz-urlbar-Last-search-container[channel='40'] {
     line-height: 24px;
 
     .cliqz-urlbar-Last-search {
-        height: 24px;
-        line-height: 22px;
+        height: 22px;
+        line-height: 19px;
+        font-size: 15px;
     }
 }
 
@@ -215,11 +217,33 @@
     overflow: hidden;
     max-width: 200px;
     line-height: 17px;
-    padding: 0 6px 0 6px;
-    color: #fff;
+    padding: 0 8px 0 24px;
+    color: #5F7C86;
     text-overflow: ellipsis;
     border-radius: 1px;
-    background-color: grey;
+    background: #F2F6F7;
+    border: 1px solid #BCC8CD;
+    border-radius: 15px;
+
+    &:before {
+        width: 14px;
+        height: 14px;
+        content: url("../skin/search-icon.svg");
+        position: absolute;
+        top: 3px;
+        left: 7px;
+    }
+
+    &:hover {
+        background: #2385E7;
+        color: #fff;
+        border: 1px solid #2385E7;
+        cursor: pointer;
+
+        &:before {
+            content: url("../skin/search-icon-inverted.svg");
+        }
+    }
 }
 
 /* ====== End Last Search ====== */

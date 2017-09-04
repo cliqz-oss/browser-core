@@ -1,8 +1,9 @@
 import utils from '../utils';
 import maybe from '../helpers/maybe';
+import console from '../../core/console';
 
 export default class {
-  constructor(window, url, id, type, autohide = true, actions = {}, version = 0, onHidingCallback) {
+  constructor(window, url, id, type, autohide = true, actions = {}, version = 0, onHidingCallback, onShowingCallback=null) {
     this.window = window;
     this.document = this.window.document;
     this.url = url;
@@ -13,7 +14,7 @@ export default class {
     this.type = type;
     this.version = version;
 
-    this.onShowing = this.onShowing.bind(this);
+    this.onShowing = this.onShowing.bind(this, onShowingCallback);
     this.onHiding = this.onHiding.bind(this, onHidingCallback);
     this.onMouseOver = this.onMouseOver.bind(this);
     this.onMouseOut = this.onMouseOut.bind(this);
@@ -53,16 +54,22 @@ export default class {
       iframe.contentWindow.addEventListener('message', this.onMessage);
     }
 
+    iframe.addEventListener('load', onPopupReady.bind(this), true);
     iframe.setAttribute('type', 'content');
     iframe.setAttribute('src', this.url);
-    iframe.addEventListener('load', onPopupReady.bind(this), true);
 
     this.iframe = iframe;
   }
 
   sendMessage(message) {
-    const json = JSON.stringify(message);
-    this.iframe.contentWindow.postMessage(json, '*');
+    try {
+      const json = JSON.stringify(message);
+      if (this.iframe && this.iframe.contentWindow) {
+        this.iframe.contentWindow.postMessage(json, '*');
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   onMessage(event) {
@@ -171,7 +178,7 @@ export default class {
   }
 
   detach() {
-    const panelui = this.panelUI();
+    const panelui = this.panel.parentElement;
     if (panelui) {
       panelui.removeChild(this.panel);
       this.destroyPanel();

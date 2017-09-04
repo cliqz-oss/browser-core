@@ -1,5 +1,4 @@
-import background from './background';
-import CliqzAttrack from './attrack';
+import AttrackBG from './background';
 import { utils, events } from '../core/cliqz';
 import { URLInfo } from './url';
 import inject from '../core/kord/inject';
@@ -25,11 +24,11 @@ function onLocationChange(ev) {
 }
 
 function onPrefChange(pref) {
-  if (pref == CliqzAttrack.ENABLE_PREF && CliqzAttrack.isEnabled() != this.enabled) {
-    if (CliqzAttrack.isEnabled()) {
-      CliqzAttrack.initWindow(this.window);
+  if (pref == AttrackBG.attrack.ENABLE_PREF && AttrackBG.attrack.isEnabled() != this.enabled) {
+    if (AttrackBG.attrack.isEnabled()) {
+      AttrackBG.attrack.initWindow(this.window);
     }
-    this.enabled = CliqzAttrack.isEnabled();
+    this.enabled = AttrackBG.attrack.isEnabled();
   }
 };
 
@@ -46,7 +45,7 @@ export default class {
 
   init() {
     events.sub("core.location_change", this.onLocationChange);
-    this.onPrefChange(CliqzAttrack.ENABLE_PREF);
+    this.onPrefChange(AttrackBG.attrack.ENABLE_PREF);
     events.sub("prefchange", this.onPrefChange);
   }
 
@@ -57,7 +56,7 @@ export default class {
   }
 
   getBadgeData(info) {
-    if (CliqzAttrack.isSourceWhitelisted(info.hostname)) {
+    if (AttrackBG.attrack.isSourceWhitelisted(info.hostname)) {
       // do not display number if site is whitelisted
       return 0;
     } else {
@@ -68,35 +67,40 @@ export default class {
   updateBadge() {
     if (this.window !== utils.getWindow()) { return; }
 
-    this.controlCenter.windowAction(
-      this.window,
-      'setBadge',
-      this.getBadgeData(CliqzAttrack.getCurrentTabBlockingInfo())
-    );
+    AttrackBG.attrack.getCurrentTabBlockingInfo()
+      .then((info) => {
+        this.controlCenter.windowAction(
+          this.window,
+          'setBadge',
+          this.getBadgeData(info)
+        );
+      });
   }
 
   status() {
     const url = URLInfo.get(this.window.gBrowser.currentURI.spec);
-    var info = CliqzAttrack.getCurrentTabBlockingInfo(this.window.gBrowser),
-        ps = info.ps,
-        hostname = url ? url.hostname : '',
-        isWhitelisted = CliqzAttrack.isSourceWhitelisted(hostname),
-        enabled = utils.getPref('modules.antitracking.enabled', true) && !isWhitelisted;
+    return AttrackBG.attrack.getCurrentTabBlockingInfo(this.window.gBrowser)
+      .then((info) => {
+        const ps = info.ps;
+        const hostname = url ? url.hostname : '';
+        const isWhitelisted = AttrackBG.attrack.isSourceWhitelisted(hostname);
+        const enabled = utils.getPref('modules.antitracking.enabled', true) && !isWhitelisted;
 
-    return {
-      visible: true,
-      strict: utils.getPref('attrackForceBlock', false),
-      hostname: hostname,
-      cookiesCount: info.cookies.blocked,
-      requestsCount: info.requests.unsafe,
-      totalCount: info.cookies.blocked + info.requests.unsafe,
-      badgeData: this.getBadgeData(info),
-      enabled: enabled,
-      isWhitelisted: isWhitelisted || enabled,
-      reload: info.reload || false,
-      trackersList: info,
-      ps: ps,
-      state: enabled ? 'active' : isWhitelisted ? 'inactive' : 'critical'
-    }
+        return {
+          visible: true,
+          strict: utils.getPref('attrackForceBlock', false),
+          hostname,
+          cookiesCount: info.cookies.blocked,
+          requestsCount: info.requests.unsafe,
+          totalCount: info.cookies.blocked + info.requests.unsafe,
+          badgeData: this.getBadgeData(info),
+          enabled,
+          isWhitelisted: isWhitelisted || enabled,
+          reload: info.reload || false,
+          trackersList: info,
+          ps,
+          state: enabled ? 'active' : (isWhitelisted ? 'inactive' : 'critical')
+        };
+      });
   }
-};
+}

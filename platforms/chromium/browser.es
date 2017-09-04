@@ -1,4 +1,5 @@
-import { window } from './globals';
+import { window, chrome } from './globals';
+
 export class Window {
   constructor(window) {
     this.window = window;
@@ -25,9 +26,6 @@ export function getBrowserMajorVersion() {
 
 export function setInstallDatePref() { }
 export function setOurOwnPrefs() { }
-export function getLang() {
-  return window.navigator.language;
-}
 export function enableChangeEvents() {}
 
 export function addWindowObserver() {}
@@ -41,4 +39,84 @@ export function mustLoadWindow() {
 
 export function waitWindowReady(win) {
   return Promise.resolve();
+}
+
+export function newTab(url, active = false) {
+  return new Promise((resolve) => {
+    chrome.tabs.create(
+      { url, active },
+      (tab) => { console.error('new tab', tab); resolve(tab.id); },
+    );
+  });
+}
+
+
+export function closeTab(tabId) {
+  return new Promise((resolve) => {
+    chrome.tabs.remove(Number(tabId), resolve);
+  });
+}
+
+
+export function updateTab(tabId, url) {
+  return new Promise((resolve) => {
+    chrome.tabs.update(Number(tabId), { url }, resolve);
+  });
+}
+
+
+export function getUrlForTab(tabId) {
+  return new Promise((resolve) => {
+    chrome.tabs.get(Number(tabId), (result) => {
+      if (chrome.runtime.lastError) {
+        resolve(false);
+      } else {
+        resolve(result.url);
+      }
+    });
+  });
+}
+
+
+export function getActiveTab() {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.query({ active: true }, (result) => {
+      const tab = result[0];
+      if (tab) {
+        resolve({
+          id: tab.id,
+          url: tab.url,
+        });
+      } else {
+        reject('Result of query for active tab is undefined');
+      }
+    });
+  });
+}
+
+
+export function checkIsWindowActive(tabId) {
+  if (Number(tabId) < 0) return Promise.resolve(false);
+
+  return new Promise((resolve) => {
+    chrome.tabs.get(Number(tabId), (result) => {
+      if (chrome.runtime.lastError) {
+        console.error('Error while checking tab', chrome.runtime.lastError);
+        resolve(false);
+      } else {
+        console.error(`<<<< check tab ${tabId}`, result);
+        resolve(true);
+      }
+    });
+  });
+}
+
+
+export function getCookies(url) {
+  return new Promise((resolve) => {
+    chrome.cookies.getAll(
+      { url },
+      cookies => resolve(cookies.map(c => c.value).join(';'))
+    );
+  });
 }

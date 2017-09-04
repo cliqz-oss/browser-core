@@ -89,14 +89,23 @@ export default class extends QSWhitelistBase {
   }
 
   isSafeKey(domain, key) {
+    if (!this.isReady()) {
+      return true;
+    }
     return (!this.isUnsafeKey(domain, key)) && domain in this.safeKeys.value && key in this.safeKeys.value[domain];
   }
 
   isUnsafeKey(domain, key) {
+    if (!this.isReady()) {
+      return false;
+    }
     return this.isTrackerDomain(domain) && domain in this.unsafeKeys.value && key in this.unsafeKeys.value[domain];
   }
 
   addSafeKey(domain, key, valueCount) {
+    if (!this.isReady()) {
+      return;
+    }
     if (this.isUnsafeKey(domain, key)) {
       return;  // keys in the unsafekey list should not be added to safekey list
     }
@@ -109,14 +118,23 @@ export default class extends QSWhitelistBase {
   }
 
   isTrackerDomain(domain) {
+    if (!this.isReady()) {
+      return false;
+    }
     return domain in this.trackerDomains.value;
   }
 
   isSafeToken(domain, token) {
+    if (!this.isReady()) {
+      return true;
+    }
     return this.isTrackerDomain(domain) && token in this.safeTokens.value;
   }
 
   addSafeToken(domain, token) {
+    if (!this.isReady()) {
+      return;
+    }
     this.trackerDomains.value[domain] = true;
     if (token && token !== '') {
       this.safeTokens.value[token] = true;
@@ -124,6 +142,9 @@ export default class extends QSWhitelistBase {
   }
 
   addUnsafeKey(domain, key) {
+    if (!this.isReady()) {
+      return;
+    }
     if (!(domain in this.unsafeKeys.value)) {
       this.unsafeKeys.value[domain] = {};
     }

@@ -5,7 +5,7 @@ const FS = {
 };
 
 // Cannot call require here, so caller must inject 'path' nodejs module
-function FSBuilder(NodeJSPathModule) {
+module.exports = function FSBuilder(NodeJSPathModule) {
   const Path = NodeJSPathModule;
 
   function getFullPath(filePath) {
@@ -102,6 +102,4 @@ function FSBuilder(NodeJSPathModule) {
     },
   };
   return fs;
-}
-
-export default FSBuilder;
+};

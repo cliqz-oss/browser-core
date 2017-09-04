@@ -8,12 +8,16 @@ var prefs = Components.classes['@mozilla.org/preferences-service;1']
         .getService(Components.interfaces.nsIPrefBranch);
 /** Gets the absolute path to the Cliqz extension's root directory */
 function getExtensionDirectory() {
-  return JSON.parse(prefs.getCharPref('extensions.xpiState'))['app-profile']['cliqz@cliqz.com'].d;
+  try {
+    return JSON.parse(prefs.getCharPref('extensions.xpiState'))['app-profile']['cliqz@cliqz.com'].d;
+  } catch (e) {
+    return JSON.parse(prefs.getCharPref('extensions.xpiState'))['app-temporary']['cliqz@cliqz.com'].d;
+  }
 }
 
 function WrappedHttpServer() {
   this.port = 60508;
-  this.domains = new Set(['cliqztest.com', 'cliqztest.de', 'www.cliqztest.com']);
+  this.domains = new Set(['cliqztest.com', 'cliqztest2.de', 'www.cliqztest.com']);
   this._s = null;
   this._testDirPrefix = [getExtensionDirectory(), 'chrome', 'content'];
 }

@@ -1,5 +1,5 @@
 # TODO
-# {"filter": "example.org##.selector", "compiled": {"supported": true, "selector": ".selector"}}
+# {"filter": "example.org##.selector", "compiled": {"selector": ".selector"}}
 
 # Supported/Not supported
 {"filter": "example.org#$#.selector", "compiled": {"supported": false}}
@@ -22,19 +22,20 @@
 {"filter": "#@#script:contains(test)", "compiled": {"supported": false}}
 
 # Unhide
-{"filter": "example.org#@#.selector", "compiled": {"unhide": true, "supported": true}}
-{"filter": "example.org##.selector", "compiled": {"unhide": false, "supported": true}}
-{"filter": "##.selector", "compiled": {"unhide": false, "supported": true}}
+{"filter": "example.org#@#.selector", "compiled": {"unhide": true}}
+{"filter": "example.org##.selector", "compiled": {"unhide": false}}
+{"filter": "##.selector", "compiled": {"unhide": false}}
 
 # Hostnames
-{"filter": "example.org##.selector", "compiled": {"hostnames": ["example.org"], "supported": true}}
+{"filter": "example.org##.selector", "compiled": {"hostnames": "example.org"}}
+{"filter": "example.org,cliqz.com##.selector", "compiled": {"hostnames": "example.org,cliqz.com"}}
 
 # Selector
-{"filter": "example.org##.selector", "compiled": {"selector": ".selector", "supported": true}}
-{"filter": "example.org#@#.selector", "compiled": {"selector": ".selector", "supported": true}}
-{"filter": "##.selector", "compiled": {"selector": ".selector", "supported": true}}
+{"filter": "example.org##.selector", "compiled": {"selector": ".selector"}}
+{"filter": "example.org#@#.selector", "compiled": {"selector": ".selector"}}
+{"filter": "##.selector", "compiled": {"selector": ".selector"}}
 
 # Script injection
-{"filter": "example.org##script:contains(/^\s*?window\.__AB__/)", "compiled": {"selector": "^\s*?window\.__AB__", "supported": true, "scriptBlock": true}}
-{"filter": "##script:contains(/regex/)", "compiled": {"selector": "regex", "supported": true, "scriptBlock": true}}
-{"filter": "example.org##script:inject(noeval.js)", "compiled": {"selector": "noeval.js", "supported": true, "scriptInject": true}}
+{"filter": "example.org##script:contains(/^\s*?window\.__AB__/)", "compiled": {"selector": "^\s*?window\.__AB__", "scriptBlock": true}}
+{"filter": "##script:contains(/regex/)", "compiled": {"selector": "regex", "scriptBlock": true}}
+{"filter": "example.org##script:inject(noeval.js)", "compiled": {"selector": "noeval.js", "scriptInject": true}}

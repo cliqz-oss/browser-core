@@ -1,7 +1,9 @@
-import CliqzHumanWeb from '../human-web/human-web';
 import utils from '../core/utils';
 import md5 from '../core/helpers/md5';
 import inject from '../core/kord/inject';
+import fetch from '../platform/fetch';
+import { LazyPersistentObject } from '../antitracking/persistent-state';
+import * as datetime from '../antitracking/time';
 
 function queryHTML(...args) {
   const core = inject.module('core');
@@ -11,6 +13,11 @@ function queryHTML(...args) {
 function getHTML(...args) {
   const core = inject.module('core');
   return core.action('getHTML', ...args);
+}
+
+function addDataToUrl(...args) {
+  const hw = inject.module('human-web');
+  return hw.action('addDataToUrl', ...args);
 }
 
 function checkPassword(url, callback) {
@@ -88,12 +95,11 @@ function checkScript(url, callback) {
         return null;
       }
 
-      const req = Components.classes['@mozilla.org/xmlextras/xmlhttprequest;1'].createInstance();
-      req.open('GET', src, false);
-      req.send('null');
-
-      const script = req.responseText;
-      return checkSingleScript(script);
+      return fetch(src)
+      .then(response => response.text())
+      .then(text => {
+        return checkSingleScript(text);
+      });
     });
 
     if (suspicious) {
@@ -106,16 +112,6 @@ function checkScript(url, callback) {
       callback(url, 'script');
     }
   });
-}
-
-function notifyHumanWeb(p) {
-  const url = p.url;
-  const status = p.status;
-  try {
-    CliqzHumanWeb.state.v[url].isMU = status;
-  } catch (e) {
-    console.log(`error while change hw state for ${url} ${e}`);
-  }
 }
 
 function checkSuspicious(url, callback) {
@@ -136,9 +132,54 @@ function getDomainMd5(url) {
  * @namespace anti-phishing
  */
 const CliqzAntiPhishing = {
+  WHITELISTED_NONE: 0,
+  WHITELISTED_SAFE: 1,
+  WHITELISTED_TEMPORARY: 2,
+  WHITELISTED_PERMANENTLY: 3,
   BW_URL: 'https://antiphishing.cliqz.com/api/bwlist?md5=',
-  forceWhiteList: {},
-  blackWhiteList: {},
+  DELAY: 24,
+  forceWhiteList: new LazyPersistentObject('anti-phishing-fw'),
+  blackWhiteList: new LazyPersistentObject('anti-phishing-bw'),
+
+  init() {
+    CliqzAntiPhishing.blackWhiteList.load();
+    CliqzAntiPhishing.clearBWList();
+    CliqzAntiPhishing.forceWhiteList.load();
+  },
+
+  clearBWList() {
+    const bwList = CliqzAntiPhishing.blackWhiteList.value;
+    const hour = datetime.newUTCDate();
+    hour.setHours(hour.getHours() - CliqzAntiPhishing.DELAY);
+    const hourCutoff = datetime.hourString(hour);
+
+    for (const prefix in bwList) {
+      if ('h' in bwList[prefix]) {
+        if (bwList[prefix].h < hourCutoff) {
+          delete bwList[prefix];
+          CliqzAntiPhishing.blackWhiteList.setDirty();
+        }
+      } else {
+        // this one does not have a timestampe, suppose it's out of date
+        delete bwList[prefix];
+        CliqzAntiPhishing.blackWhiteList.setDirty();
+      }
+    }
+  },
+
+  unload() {
+    CliqzAntiPhishing.saveLists();
+  },
+
+  clear() {
+    CliqzAntiPhishing.clearBlackWhitelist();
+    CliqzAntiPhishing.clearForceWhitelist();
+  },
+
+  saveLists() {
+    CliqzAntiPhishing.blackWhiteList.save();
+    CliqzAntiPhishing.forceWhiteList.save();
+  },
 
   getSplitMd5(url) {
     const urlMd5 = getDomainMd5(url);
@@ -149,40 +190,85 @@ const CliqzAntiPhishing = {
 
   onHwActiveURL(msg) {
     const url = msg.activeURL;
+    const [md5Prefix, md5Surfix] = CliqzAntiPhishing.getSplitMd5(url);
+    if (CliqzAntiPhishing.blackWhiteList[md5Prefix] &&
+      CliqzAntiPhishing.blackWhiteList[md5Prefix][md5Surfix]) {
+      // don't update if the status is already set
+      return;
+    }
     checkSuspicious(url, CliqzAntiPhishing.updateSuspiciousStatus);
   },
 
   whitelist(url, tp) {
+    tp = tp || CliqzAntiPhishing.WHITELISTED_PERMANENTLY;
     const md5Prefix = CliqzAntiPhishing.getSplitMd5(url)[0];
-    CliqzAntiPhishing.forceWhiteList[md5Prefix] = tp;
+    const forceWhiteList = CliqzAntiPhishing.forceWhiteList.value;
+    forceWhiteList[md5Prefix] = tp;
+    CliqzAntiPhishing.forceWhiteList.setDirty();
+  },
+
+  whitelistTemporary(url) {
+    CliqzAntiPhishing.whitelist(url, CliqzAntiPhishing.WHITELISTED_TEMPORARY);
+  },
+
+  markAsSafe(url) {
+    CliqzAntiPhishing.whitelist(url, CliqzAntiPhishing.WHITELISTED_SAFE);
+  },
+
+  getUrlWhitelistStatus(url) {
+    const md5Prefix = CliqzAntiPhishing.getSplitMd5(url)[0];
+    const forceWhiteList = CliqzAntiPhishing.forceWhiteList.value;
+    return forceWhiteList[md5Prefix] || CliqzAntiPhishing.WHITELISTED_NONE;
+  },
+
+  isInWhitelist(url) {
+    return CliqzAntiPhishing.getUrlWhitelistStatus(url) !==
+      CliqzAntiPhishing.WHITELISTED_NONE;
+  },
+
+  removeForceWhitelist(url) {
+    const md5Prefix = CliqzAntiPhishing.getSplitMd5(url)[0];
+    const forceWhiteList = CliqzAntiPhishing.forceWhiteList.value;
+    if (md5Prefix in forceWhiteList) {
+      delete forceWhiteList[md5Prefix];
+      CliqzAntiPhishing.forceWhiteList.setDirty();
+    }
+  },
+
+  clearForceWhitelist() {
+    CliqzAntiPhishing.forceWhiteList.value = {};
+    CliqzAntiPhishing.forceWhiteList.setDirty();
+  },
+
+  clearBlackWhitelist() {
+    CliqzAntiPhishing.blackWhiteList.value = {};
+    CliqzAntiPhishing.blackWhiteList.setDirty();
+  },
+
+  isInABTest() {
+    return utils.getPref('cliqz-anti-phishing', false)
   },
 
   isAntiPhishingActive() {
-    return utils.getPref('cliqz-anti-phishing-enabled', false);
+    return utils.getPref('cliqz-anti-phishing-enabled', true);
   },
 
   updateSuspiciousStatus(url, status) {
+    const blackWhiteList = CliqzAntiPhishing.blackWhiteList.value;
     const [md5Prefix, md5Surfix] = CliqzAntiPhishing.getSplitMd5(url);
-    if (!(md5Prefix in CliqzAntiPhishing.blackWhiteList)) {
-      CliqzAntiPhishing.blackWhiteList[md5Prefix] = {};
-    }
-    if (CliqzAntiPhishing.blackWhiteList[md5Prefix][md5Surfix]) {
+
+    if (blackWhiteList[md5Prefix] && blackWhiteList[md5Prefix][md5Surfix]) {
       // don't update if the status is already set
       return;
     }
-    CliqzAntiPhishing.blackWhiteList[md5Prefix][md5Surfix] = `suspicious:${status}`;
-    if (CliqzHumanWeb) {
-      const p = {
-        url,
-        status,
-      };
 
-      if (CliqzHumanWeb.state.v[url]) {
-        notifyHumanWeb(p);
-      } else {
-        utils.setTimeout(notifyHumanWeb, 1000, p);
-      }
+    if (!(blackWhiteList[md5Prefix])) {
+      blackWhiteList[md5Prefix] = {};
     }
+
+    blackWhiteList[md5Prefix][md5Surfix] = `suspicious:${status}`;
+    CliqzAntiPhishing.blackWhiteList.setDirty();
+    addDataToUrl(url, 'isMU', status).catch(() => console.log('failed to update url', url));
   },
 };
 

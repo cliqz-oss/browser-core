@@ -24,7 +24,7 @@
 				<em:description>
 					Schneller zu Suchergebnissen, direkt als Auswahlmenü im Browser. Schon beim Eintippen der Suchanfrage werden Ihnen in Echtzeit Resultate und Website-Vorschläge unter der Adressleiste angezeigt. Da Cliqz keine personenbezogenen Daten sammelt oder Benutzerprofile anlegt, bleibt Ihre Suche privat.
 				</em:description>
-				<em:homepageURL>https://testpilot.firefox.com/experiments/cliqz</em:homepageURL>
+				<em:homepageURL>{{rdfHomepageURL}}</em:homepageURL>
 			</Description>
 		</em:localized>
 		<em:description>
@@ -35,8 +35,8 @@
 
 			<Description>
 				<em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
-				<em:minVersion>36.0</em:minVersion>
-				<em:maxVersion>54.*</em:maxVersion>
+				<em:minVersion>42.0</em:minVersion>
+				<em:maxVersion>56.*</em:maxVersion>
 
 			</Description>
 		</em:targetApplication>

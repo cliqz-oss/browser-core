@@ -411,35 +411,6 @@ export default Ember.Service.extend({
     }), '*');
   },
 
-  getNewsLanguage() {
-    let promise = new Promise( (resolve) => {
-      this.callbacks.getNewsLanguage = resolve;
-    });
-
-    window.postMessage(JSON.stringify({
-      target: 'cliqz',
-      module: 'freshtab',
-      action: 'getNewsLanguage'
-    }), "*");
-
-    return DS.PromiseObject.create({ promise });
-  },
-
-  setNewsLanguage(language) {
-    let promise = new Promise( resolve => {
-      this.callbacks.setNewsLanguage = resolve;
-    });
-
-    window.postMessage(JSON.stringify({
-      target: "cliqz",
-      module: "freshtab",
-      "action": "setNewsLanguage",
-      "args": [language]
-    }), "*");
-
-    return DS.PromiseObject.create({ promise });
-  },
-
   sendTelemetry(msg) {
     this.callbacks.sendTelemetry = () => {};
     window.postMessage(JSON.stringify({

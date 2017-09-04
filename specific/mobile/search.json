@@ -1,5 +1,5 @@
 {
-  "name": "CLIQZ Search",
+  "name": "Cliqz Search",
   "xwalk_version": "0.0.1",
   "start_url": "file:///android_asset/search/index.html",
   "xwalk_hosts": [

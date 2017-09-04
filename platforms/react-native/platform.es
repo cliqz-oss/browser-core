@@ -1,4 +1,5 @@
 import { NativeModules } from 'react-native';
+import config from '../core/config';
 
 let userAgent = {};
 if (NativeModules.IOSConstants) {
@@ -13,13 +14,14 @@ if (NativeModules.IOSConstants) {
   // android?
   userAgent = {
     systemName: 'android',
-  }
+  };
 }
 
 export default {
   isMobile: true,
   isFirefox: false,
   isChromium: false,
-  platformName: "mobile",
+  platformName: 'mobile',
   userAgent,
+  channel: config.settings.channel,
 };

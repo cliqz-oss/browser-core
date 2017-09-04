@@ -2,7 +2,7 @@
 /* global describeModule */
 
 
-const moment = System._nodeRequire('moment');
+const moment = require('moment');
 
 const DATE_FORMAT = 'YYYY-MM-DD';
 const DAY_FORMAT = 'YYYY-DDD';

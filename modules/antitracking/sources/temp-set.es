@@ -1,6 +1,6 @@
 import utils from '../core/utils';
 
-/** Set like class whose members are removed after a specifie
+/** Set like class whose members are removed after a specific amount of time
 */
 export default class {
 
@@ -37,5 +37,4 @@ export default class {
     this._timeouts.clear();
     this._items.clear();
   }
-
-};
+}

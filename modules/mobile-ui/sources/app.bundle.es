@@ -11,6 +11,7 @@ import config from '../core/config';
 
 /* modules */
 import core from '../core/index';
+import cliqz from '../core-cliqz/index';
 import dev from '../mobile-dev/index';
 import autocomplete from '../autocomplete/index';
 import ui from '../mobile-ui/index';
@@ -35,6 +36,7 @@ window.document.addEventListener('DOMContentLoaded', function () {
     }
   }).then(() => Promise.all([
     loadModule(autocomplete),
+    loadModule(cliqz),
     loadModule(ui),
   ])).then(
     () => osAPI.init()

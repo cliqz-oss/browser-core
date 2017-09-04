@@ -8,7 +8,7 @@
         box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.17);
 
         .local-map {
-            position: absolute;
+            position: absolute !important; /* result might override the position */
             background-image: url("resource://cliqz/dropdown/images/maps-icon.jpg");
             background-repeat: no-repeat;
             background-position: left top;
@@ -35,13 +35,46 @@
             }
 
             .local-address, .local-phone {
-                margin-top: 4px;
+                background-repeat: no-repeat;
+                background-position: 0 9px;
                 margin-right: 20px;
+                margin-top: 4px;
+                padding-left: 15px;
+                padding-top: 6px;
+
+                .result {
+                    padding: 0;
+                    display: inline-block;
+                    text-decoration: none;
+                    color: #000;
+
+                    &:hover {
+                        cursor: copy;
+                        background-color: #B4D5FF;
+                    }
+
+                    &.copied {
+                        -moz-animation:    copy_animation 0.5s 1;
+                        animation-timing-function: ease-in-out;
+                    }
+
+                    @-moz-keyframes copy_animation {
+                      0%   { opacity: 0; }
+                      100% { opacity: 1; }
+                    }
+                }
             }
 
             .local-address {
+                background-image: url("resource://cliqz/dropdown/images/s-grey-location.svg");
+                background-size: 8px 10px;
                 min-width: 300px;
                 max-width: 600px;
+            }
+
+            .local-phone {
+                background-image: url("resource://cliqz/dropdown/images/s-grey-phone.svg");
+                background-size: 10px;
             }
         }
     }

@@ -1,23 +1,20 @@
 import CliqzUtils from '../core/utils';
-import PeerComm from './main';
+import PeerSlave from './peer-slave';
 import YoutubeApp from './apps/youtube';
 import TabsharingApp from './apps/tabsharing';
 import PingPongApp from './apps/pingpong';
 import SimpleStorage from '../core/simple-storage';
 import PairingObserver from './apps/pairing-observer';
-
+import background from '../core/base/background';
 
 // TODO: remove this!
 const CustomizableUI = Components.utils.import('resource:///modules/CustomizableUI.jsm', null).CustomizableUI;
 
 const BTN_ID = 'mobilepairing_btn';
 
-export default {
+export default background({
   init() {
-    if (CliqzUtils.getPref('connect', false) === false) {
-      this.enabled = false;
-      return Promise.resolve();
-    }
+    const PeerComm = this.peerSlave = new PeerSlave();
 
     const pingpong = new PingPongApp();
     PeerComm.addObserver('PINGPONG', pingpong);
@@ -38,9 +35,14 @@ export default {
     });
     PeerComm.addObserver('YTDOWNLOADER', youtube);
 
-    const tabsharing = new TabsharingApp(() => {}, (tab) => {
-      CliqzUtils.log(`Received tab ${tab}`);
-      CliqzUtils.getWindow().gBrowser.addTab(tab);
+    const tabsharing = new TabsharingApp(() => {}, (tabs) => {
+      tabs.forEach((tab) => {
+        if (tab.isPrivate) {
+          CliqzUtils.openLink(CliqzUtils.getWindow(), tab.url, false, false, true);
+        } else {
+          CliqzUtils.openLink(CliqzUtils.getWindow(), tab.url, true);
+        }
+      });
     });
     PeerComm.addObserver('TABSHARING', tabsharing);
 
@@ -60,7 +62,6 @@ export default {
       },
     });
 
-    this.enabled = true;
     this.storage = new SimpleStorage();
 
     const observer = new PairingObserver();
@@ -78,16 +79,15 @@ export default {
       .then(() => PeerComm.init(this.storage));
   },
   unload() {
-    if (this.enabled) {
-      CustomizableUI.destroyWidget(BTN_ID);
-      PeerComm.unload();
-      this.storage.close();
-    }
+    CustomizableUI.destroyWidget(BTN_ID);
+    this.peerSlave.unload();
+    this.storage.close();
+    this.storage = null;
   },
 
   actions: {
     getPairingPeer() {
-      return PeerComm;
+      return this.peerSlave;
     }
   }
-};
+});

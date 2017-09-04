@@ -9,7 +9,7 @@ export default class {
   logMainDocument(state) {
     const requestContext = state.requestContext;
     if (state.requestContext.isFullPage()) {
-      this.tpEvents.onFullPage(state.urlParts, requestContext.getOuterWindowID(), requestContext.isChannelPrivate());
+      this.tpEvents.onFullPage(state.urlParts, state.tabId, requestContext.isChannelPrivate());
       // if (CliqzAttrack.isTrackerTxtEnabled()) {
       //   TrackerTXT.get(url_parts).update();
       // }
@@ -26,6 +26,7 @@ export default class {
       this.tpEvents.incrementStat(request, statName, c || 1);
     }
     state.incrementStat = incrementStat;
+    state.getPageAnnotations = this.tpEvents.getAnnotations.bind(this.tpEvents, state.tabId);
 
     // add triggeringPrinciple info
     const pageLoad = this.tpEvents._active[state.tabId];

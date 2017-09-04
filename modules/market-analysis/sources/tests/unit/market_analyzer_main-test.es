@@ -2,8 +2,15 @@
 /* global describeModule */
 /* global require */
 /* eslint-disable func-names */
-import { MAMetrics, MATimeFrames } from 'market-analysis/model/ma_signal';
-import { joinKeyVal } from 'market-analysis/common/utils';
+
+let now = new Date();
+function setNow(date) {
+  now = date;
+}
+
+function mockNow() {
+  return now;
+}
 
 export default describeModule('market-analysis/market_analyzer_main',
   () => ({
@@ -30,9 +37,14 @@ export default describeModule('market-analysis/market_analyzer_main',
     },
     'market-analysis/common/logger': {
       default: {
+        log: () => {},
         debug: () => {},
-        logObject: () => {}
+        logObject: () => {},
+        error: (msg) => { throw new Error(msg); }
       }
+    },
+    'market-analysis/common/now': {
+      default: mockNow,
     },
     'market-analysis/conf/ma_configs': {
       default: {
@@ -51,43 +63,60 @@ export default describeModule('market-analysis/market_analyzer_main',
   () => {
     describe('Market Analyzer object', () => {
       let CliqzMarketAnalyzer;
-      const todayTimeFrames = { doy: 153, m: 6, woy: 22 };
-      const todayDOYStr = joinKeyVal(MATimeFrames.DAY_OF_YEAR,
-        todayTimeFrames.doy);
-      const todayWOYStr = joinKeyVal(MATimeFrames.WEEK_OF_YEAR,
-        todayTimeFrames.woy);
-      const todayMStr = joinKeyVal(MATimeFrames.MONTH,
-        todayTimeFrames.m);
+      let todayTimeFrames;
+      let todayDOYStr;
+      let todayWOYStr;
+      let todayMStr;
+      let joinKeyVal;
+      let MAMetrics;
+      let MATimeFrames;
 
       beforeEach(function () {
-        CliqzMarketAnalyzer = this.module().default;
-        CliqzMarketAnalyzer.maTable = {};
-        CliqzMarketAnalyzer.regexMappings = {
-          'amazon.de': {
-            regexes: {
-              cr1: ['amazon\\.de/basket', 'amazon\\.de/buy'],
-              cr2: ['amazon\\.de/thankyou'],
-              v: ['.']
+        return this.system.import('market-analysis/model/ma_signal').then((mod) => {
+          MAMetrics = mod.MAMetrics;
+          MATimeFrames = mod.MATimeFrames;
+        })
+        .then(() => this.system.import('market-analysis/common/utils'))
+        .then((mod) => {
+          joinKeyVal = mod.joinKeyVal;
+        })
+        .then(() => {
+          todayTimeFrames = { doy: 153, m: 6, woy: 22 };
+          todayDOYStr = joinKeyVal(MATimeFrames.DAY_OF_YEAR, todayTimeFrames.doy);
+          todayWOYStr = joinKeyVal(MATimeFrames.WEEK_OF_YEAR, todayTimeFrames.woy);
+          todayMStr = joinKeyVal(MATimeFrames.MONTH, todayTimeFrames.m);
+
+          CliqzMarketAnalyzer = this.module().default;
+          CliqzMarketAnalyzer.maTable = {};
+          CliqzMarketAnalyzer.regexMappings = {
+            'amazon.de': {
+              regexes: {
+                v: ['.'],
+                reg: ['amazon\\.de/register'],
+                sho: ['amazon\\.de/basket', 'amazon\\.de/buy'],
+                chk: ['amazon\\.de/checkout'],
+                tra: ['amazon\\.de/thankyou']
+              },
+              cat: 'eCommerce.Misc'
             },
-            cat: 'eCommerce.Misc'
-          },
-          'saturn.de': {
-            regexes: {
-              cr1: ['saturn\\.de/basket', 'saturn\\.de/buy'],
-              cr2: ['saturn\\.de/thankyou'],
-              v: ['.']
+            'saturn.de': {
+              regexes: {
+                v: ['.'],
+                sho: ['saturn\\.de/basket', 'saturn\\.de/buy'],
+                tra: ['saturn\\.de/thankyou']
+              },
+              cat: 'eCommerce.Electronics'
             },
-            cat: 'eCommerce.Electronics'
-          },
-          'booking.com': {
-            regexes: {
-              cr1: ['booking\\.com/book'],
-              cr2: ['booking\\.com/confirmation'],
-              v: ['.']
-            },
-            cat: 'Travel.Hotel'
-          }
-        };
+            'booking.com': {
+              regexes: {
+                v: ['.'],
+                sho: ['booking\\.com/book'],
+                tra: ['booking\\.com/confirmation']
+              },
+              cat: 'Travel.Hotel'
+            }
+          };
+        });
       });
 
       it('check _addTelemetryStats function', () => {
@@ -101,7 +130,7 @@ export default describeModule('market-analysis/market_analyzer_main',
           chai.expect(CliqzMarketAnalyzer.maTable['tel|any']).property(tfStr);
 
           const expectedMetric = {};
-          expectedMetric[MAMetrics.U_IMP] = 1;
+          expectedMetric[MAMetrics.U_VISITOR] = 1;
           chai.expect(CliqzMarketAnalyzer.maTable['tel|any'][tfStr]).eql(expectedMetric);
         });
       });
@@ -112,137 +141,245 @@ export default describeModule('market-analysis/market_analyzer_main',
       });
 
       it('behaviour test for matchURL - count first impression', () => {
+        setNow(new Date());
         CliqzMarketAnalyzer.matchURL('amazon.de');
         const expected = {
           'domain|amazon.de': {
-            [todayDOYStr]: { [MAMetrics.IMP]: 1, [MAMetrics.U_IMP]: 1 },
-            [todayWOYStr]: { [MAMetrics.U_IMP]: 1 },
-            [todayMStr]: { [MAMetrics.U_IMP]: 1 }
+            [todayDOYStr]: { [MAMetrics.IMP]: 1, [MAMetrics.VISIT]: 1, [MAMetrics.U_VISITOR]: 1 },
+            [todayWOYStr]: { [MAMetrics.U_VISITOR]: 1 },
+            [todayMStr]: { [MAMetrics.U_VISITOR]: 1 }
           },
           'cat|eCommerce.Misc': {
-            [todayDOYStr]: { [MAMetrics.U_IMP]: 1 },
-            [todayWOYStr]: { [MAMetrics.U_IMP]: 1 },
-            [todayMStr]: { [MAMetrics.U_IMP]: 1 }
+            [todayDOYStr]: { [MAMetrics.U_VISITOR]: 1 },
+            [todayWOYStr]: { [MAMetrics.U_VISITOR]: 1 },
+            [todayMStr]: { [MAMetrics.U_VISITOR]: 1 }
           },
           'tlcat|eCommerce': {
-            [todayDOYStr]: { [MAMetrics.U_IMP]: 1 },
-            [todayWOYStr]: { [MAMetrics.U_IMP]: 1 },
-            [todayMStr]: { [MAMetrics.U_IMP]: 1 }
+            [todayDOYStr]: { [MAMetrics.U_VISITOR]: 1 },
+            [todayWOYStr]: { [MAMetrics.U_VISITOR]: 1 },
+            [todayMStr]: { [MAMetrics.U_VISITOR]: 1 }
           }
         };
         chai.expect(CliqzMarketAnalyzer.maTable).eql(expected);
       });
 
       it('behaviour test for matchURL - count multiple impression', () => {
+        setNow(new Date());
         CliqzMarketAnalyzer.matchURL('amazon.de');
+        now.setSeconds(now.getSeconds() + 2);
         CliqzMarketAnalyzer.matchURL('amazon.de');
+        now.setSeconds(now.getSeconds() + 3);
         CliqzMarketAnalyzer.matchURL('amazon.de');
 
         const expected = {
           'domain|amazon.de': {
-            [todayDOYStr]: { [MAMetrics.IMP]: 3, [MAMetrics.U_IMP]: 1 },
-            [todayWOYStr]: { [MAMetrics.U_IMP]: 1 },
-            [todayMStr]: { [MAMetrics.U_IMP]: 1 }
+            [todayDOYStr]: { [MAMetrics.IMP]: 3, [MAMetrics.VISIT]: 1, [MAMetrics.U_VISITOR]: 1 },
+            [todayWOYStr]: { [MAMetrics.U_VISITOR]: 1 },
+            [todayMStr]: { [MAMetrics.U_VISITOR]: 1 }
           },
           'cat|eCommerce.Misc': {
-            [todayDOYStr]: { [MAMetrics.U_IMP]: 1 },
-            [todayWOYStr]: { [MAMetrics.U_IMP]: 1 },
-            [todayMStr]: { [MAMetrics.U_IMP]: 1 }
+            [todayDOYStr]: { [MAMetrics.U_VISITOR]: 1 },
+            [todayWOYStr]: { [MAMetrics.U_VISITOR]: 1 },
+            [todayMStr]: { [MAMetrics.U_VISITOR]: 1 }
           },
           'tlcat|eCommerce': {
-            [todayDOYStr]: { [MAMetrics.U_IMP]: 1 },
-            [todayWOYStr]: { [MAMetrics.U_IMP]: 1 },
-            [todayMStr]: { [MAMetrics.U_IMP]: 1 }
+            [todayDOYStr]: { [MAMetrics.U_VISITOR]: 1 },
+            [todayWOYStr]: { [MAMetrics.U_VISITOR]: 1 },
+            [todayMStr]: { [MAMetrics.U_VISITOR]: 1 }
+          }
+        };
+        chai.expect(CliqzMarketAnalyzer.maTable).eql(expected);
+      });
+
+      it('behaviour test for matchURL - count multiple visits', () => {
+        setNow(new Date());
+        CliqzMarketAnalyzer.matchURL('amazon.de');
+        now.setMinutes(now.getMinutes() + 20);
+        CliqzMarketAnalyzer.matchURL('amazon.de');
+        now.setMinutes(now.getMinutes() + 30);
+        CliqzMarketAnalyzer.matchURL('amazon.de');
+
+        const expected = {
+          'domain|amazon.de': {
+            [todayDOYStr]: { [MAMetrics.IMP]: 3, [MAMetrics.VISIT]: 2, [MAMetrics.U_VISITOR]: 1 },
+            [todayWOYStr]: { [MAMetrics.U_VISITOR]: 1 },
+            [todayMStr]: { [MAMetrics.U_VISITOR]: 1 }
+          },
+          'cat|eCommerce.Misc': {
+            [todayDOYStr]: { [MAMetrics.U_VISITOR]: 1 },
+            [todayWOYStr]: { [MAMetrics.U_VISITOR]: 1 },
+            [todayMStr]: { [MAMetrics.U_VISITOR]: 1 }
+          },
+          'tlcat|eCommerce': {
+            [todayDOYStr]: { [MAMetrics.U_VISITOR]: 1 },
+            [todayWOYStr]: { [MAMetrics.U_VISITOR]: 1 },
+            [todayMStr]: { [MAMetrics.U_VISITOR]: 1 }
+          }
+        };
+        chai.expect(CliqzMarketAnalyzer.maTable).eql(expected);
+      });
+
+      it('behaviour test for matchURL - count multiple checkouts', () => {
+        setNow(new Date());
+        CliqzMarketAnalyzer.matchURL('amazon.de');
+        now.setMinutes(now.getMinutes() + 2);
+        CliqzMarketAnalyzer.matchURL('amazon.de/basket');
+        now.setMinutes(now.getMinutes() + 3);
+        CliqzMarketAnalyzer.matchURL('amazon.de/basket');
+        now.setMinutes(now.getMinutes() + 5);
+        CliqzMarketAnalyzer.matchURL('amazon.de/basket');
+
+        const expected = {
+          'domain|amazon.de': {
+            [todayDOYStr]: {
+              [MAMetrics.IMP]: 4,
+              [MAMetrics.VISIT]: 1,
+              [MAMetrics.SHOPPING]: 1,
+              [MAMetrics.U_VISITOR]: 1,
+              [MAMetrics.U_SHOPPER]: 1
+            },
+            [todayWOYStr]: { [MAMetrics.U_VISITOR]: 1, [MAMetrics.U_SHOPPER]: 1 },
+            [todayMStr]: { [MAMetrics.U_VISITOR]: 1, [MAMetrics.U_SHOPPER]: 1 }
+          },
+          'cat|eCommerce.Misc': {
+            [todayDOYStr]: { [MAMetrics.U_VISITOR]: 1, [MAMetrics.U_SHOPPER]: 1 },
+            [todayWOYStr]: { [MAMetrics.U_VISITOR]: 1, [MAMetrics.U_SHOPPER]: 1 },
+            [todayMStr]: { [MAMetrics.U_VISITOR]: 1, [MAMetrics.U_SHOPPER]: 1 }
+          },
+          'tlcat|eCommerce': {
+            [todayDOYStr]: { [MAMetrics.U_VISITOR]: 1, [MAMetrics.U_SHOPPER]: 1 },
+            [todayWOYStr]: { [MAMetrics.U_VISITOR]: 1, [MAMetrics.U_SHOPPER]: 1 },
+            [todayMStr]: { [MAMetrics.U_VISITOR]: 1, [MAMetrics.U_SHOPPER]: 1 }
           }
         };
         chai.expect(CliqzMarketAnalyzer.maTable).eql(expected);
       });
 
       it('behaviour test for matchURL - count multiple impression with all regexes', () => {
+        setNow(new Date());
         CliqzMarketAnalyzer.matchURL('amazon.de');
         CliqzMarketAnalyzer.matchURL('amazon.de');
         CliqzMarketAnalyzer.matchURL('amazon.de');
+        now.setMinutes(now.getMinutes() + 2);
+        CliqzMarketAnalyzer.matchURL('amazon.de/register');
+        now.setMinutes(now.getMinutes() + 2);
         CliqzMarketAnalyzer.matchURL('amazon.de/basket');
+        now.setMinutes(now.getMinutes() + 5);
         CliqzMarketAnalyzer.matchURL('amazon.de/basket');
+        now.setMinutes(now.getMinutes() + 1);
+        CliqzMarketAnalyzer.matchURL('amazon.de/checkout');
+        now.setMinutes(now.getMinutes() + 1);
         CliqzMarketAnalyzer.matchURL('amazon.de/thankyou');
 
         let expected;
         expected = {
           [todayDOYStr]: {
-            [MAMetrics.IMP]: 6,
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_IMP]: 2,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1,
+            [MAMetrics.IMP]: 8,
+            [MAMetrics.VISIT]: 1,
+            [MAMetrics.REGISTRATION]: 1,
+            [MAMetrics.SHOPPING]: 1,
+            [MAMetrics.CHECKOUT]: 1,
+            [MAMetrics.TRANSACTION]: 1,
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_REGISTRANT]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_POT_BUYER]: 1,
+            [MAMetrics.U_BUYER]: 1,
           },
           [todayWOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_REGISTRANT]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_POT_BUYER]: 1,
+            [MAMetrics.U_BUYER]: 1
           },
           [todayMStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_REGISTRANT]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_POT_BUYER]: 1,
+            [MAMetrics.U_BUYER]: 1
           }
         };
         chai.expect(CliqzMarketAnalyzer.maTable['domain|amazon.de']).eql(expected);
 
         expected = {
           [todayDOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_REGISTRANT]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_POT_BUYER]: 1,
+            [MAMetrics.U_BUYER]: 1
           },
           [todayWOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_REGISTRANT]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_POT_BUYER]: 1,
+            [MAMetrics.U_BUYER]: 1
           },
           [todayMStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_REGISTRANT]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_POT_BUYER]: 1,
+            [MAMetrics.U_BUYER]: 1
           }
         };
         chai.expect(CliqzMarketAnalyzer.maTable['cat|eCommerce.Misc']).eql(expected);
 
         expected = {
           [todayDOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_REGISTRANT]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_POT_BUYER]: 1,
+            [MAMetrics.U_BUYER]: 1
           },
           [todayWOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_REGISTRANT]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_POT_BUYER]: 1,
+            [MAMetrics.U_BUYER]: 1
           },
           [todayMStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_REGISTRANT]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_POT_BUYER]: 1,
+            [MAMetrics.U_BUYER]: 1
           }
         };
         chai.expect(CliqzMarketAnalyzer.maTable['tlcat|eCommerce']).eql(expected);
       });
 
       it('behaviour test for matchURL - count multiple impression & domains with all regexes', () => {
+        setNow(new Date());
         CliqzMarketAnalyzer.matchURL('amazon.de');
+        now.setSeconds(now.getSeconds() + 5);
         CliqzMarketAnalyzer.matchURL('amazon.de');
+        now.setSeconds(now.getSeconds() + 5);
         CliqzMarketAnalyzer.matchURL('amazon.de');
+        now.setSeconds(now.getSeconds() + 5);
         CliqzMarketAnalyzer.matchURL('saturn.de');
+        now.setMinutes(now.getMinutes() + 1);
         CliqzMarketAnalyzer.matchURL('saturn.de');
+        now.setMinutes(now.getMinutes() + 1);
         CliqzMarketAnalyzer.matchURL('booking.com');
-
+        now.setMinutes(now.getMinutes() + 1);
         CliqzMarketAnalyzer.matchURL('amazon.de/basket');
+        now.setMinutes(now.getMinutes() + 5);
         CliqzMarketAnalyzer.matchURL('amazon.de/basket');
+        now.setMinutes(now.getMinutes() + 1);
         CliqzMarketAnalyzer.matchURL('amazon.de/thankyou');
 
+        now.setMinutes(now.getMinutes() + 1);
         CliqzMarketAnalyzer.matchURL('saturn.de/basket');
 
+        now.setMinutes(now.getMinutes() + 1);
         CliqzMarketAnalyzer.matchURL('booking.com/book');
+        now.setMinutes(now.getMinutes() + 1);
         CliqzMarketAnalyzer.matchURL('booking.com/confirmation');
 
         chai.expect(Object.keys(CliqzMarketAnalyzer.maTable).length).eql(8);
@@ -251,21 +388,23 @@ export default describeModule('market-analysis/market_analyzer_main',
         expected = {
           [todayDOYStr]: {
             [MAMetrics.IMP]: 6,
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_IMP]: 2,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1,
+            [MAMetrics.VISIT]: 1,
+            [MAMetrics.SHOPPING]: 1,
+            [MAMetrics.TRANSACTION]: 1,
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_BUYER]: 1,
+
           },
           [todayWOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_BUYER]: 1
           },
           [todayMStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_BUYER]: 1
           }
         };
         chai.expect(CliqzMarketAnalyzer.maTable['domain|amazon.de']).eql(expected);
@@ -273,17 +412,18 @@ export default describeModule('market-analysis/market_analyzer_main',
         expected = {
           [todayDOYStr]: {
             [MAMetrics.IMP]: 3,
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
+            [MAMetrics.VISIT]: 1,
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.SHOPPING]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
           },
           [todayWOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
           },
           [todayMStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
           }
         };
         chai.expect(CliqzMarketAnalyzer.maTable['domain|saturn.de']).eql(expected);
@@ -291,113 +431,114 @@ export default describeModule('market-analysis/market_analyzer_main',
         expected = {
           [todayDOYStr]: {
             [MAMetrics.IMP]: 3,
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1,
+            [MAMetrics.VISIT]: 1,
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.SHOPPING]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.TRANSACTION]: 1,
+            [MAMetrics.U_BUYER]: 1,
           },
           [todayWOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_BUYER]: 1
           },
           [todayMStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_BUYER]: 1
           }
         };
         chai.expect(CliqzMarketAnalyzer.maTable['domain|booking.com']).eql(expected);
 
         expected = {
           [todayDOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_BUYER]: 1
           },
           [todayWOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_BUYER]: 1
           },
           [todayMStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_BUYER]: 1
           }
         };
         chai.expect(CliqzMarketAnalyzer.maTable['cat|eCommerce.Misc']).eql(expected);
 
         expected = {
           [todayDOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1
           },
           [todayWOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1
           },
           [todayMStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1
           }
         };
         chai.expect(CliqzMarketAnalyzer.maTable['cat|eCommerce.Electronics']).eql(expected);
 
         expected = {
           [todayDOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_BUYER]: 1
           },
           [todayWOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_BUYER]: 1
           },
           [todayMStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_BUYER]: 1
           }
         };
         chai.expect(CliqzMarketAnalyzer.maTable['cat|Travel.Hotel']).eql(expected);
 
         expected = {
           [todayDOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_BUYER]: 1
           },
           [todayWOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_BUYER]: 1
           },
           [todayMStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_BUYER]: 1
           }
         };
         chai.expect(CliqzMarketAnalyzer.maTable['tlcat|eCommerce']).eql(expected);
 
         expected = {
           [todayDOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_BUYER]: 1
           },
           [todayWOYStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_BUYER]: 1
           },
           [todayMStr]: {
-            [MAMetrics.U_IMP]: 1,
-            [MAMetrics.CR1_U_IMP]: 1,
-            [MAMetrics.CR2_U_IMP]: 1
+            [MAMetrics.U_VISITOR]: 1,
+            [MAMetrics.U_SHOPPER]: 1,
+            [MAMetrics.U_BUYER]: 1
           }
         };
         chai.expect(CliqzMarketAnalyzer.maTable['tlcat|Travel']).eql(expected);

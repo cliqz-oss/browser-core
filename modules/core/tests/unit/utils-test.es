@@ -4,12 +4,6 @@ export default describeModule("core/utils",
       '../platform/environment': {
         default: {},
       },
-      system: {
-        default: {},
-      },
-      './url': {
-        isUrl() {},
-      },
       './console': {
         default: {}
       },
@@ -19,12 +13,6 @@ export default describeModule("core/utils",
         }
       },
       './storage': {
-        default: {}
-      },
-      './gzip': {
-        default: {}
-      },
-      './language': {
         default: {}
       },
       './events': {
@@ -39,11 +27,35 @@ export default describeModule("core/utils",
         httpHandler: {},
         promiseHttpHandler: {}
       },
+      './gzip': {
+        default: {}
+      },
+      './language': {
+        default: {}
+      },
+      './url': {
+        isUrl() {},
+        isIpv4Address() {},
+        isIpv6Address() {},
+      },
       './crypto/random': {
         default: Math.random.bind(Math),
       },
       '../platform/fetch': {
         fetchFactory() {},
+      },
+      './platform': {
+        isWindows: false,
+        isLinux: false,
+        isMac: false,
+      },
+      './i18n': {
+        default: {},
+        getMessage() {},
+        getLanguageFromLocale() {},
+      },
+      './LRU': {
+        default: function () {},
       },
     };
   },

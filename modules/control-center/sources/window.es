@@ -1,33 +1,27 @@
+import config from '../core/config';
 import inject from '../core/kord/inject';
 import utils from '../core/utils';
 import events from '../core/events';
-import ToolbarButtonManager from './ToolbarButtonManager';
-import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
-import UITour from '../platform/ui-tour';
-import Panel from '../core/ui/panel';
 import console from '../core/console';
-
-function toPx(pixels) {
-  return `${pixels.toString()}px`;
-}
+import { getMessage } from '../core/i18n';
 
 const BTN_ID = 'cliqz-cc-btn';
-const PANEL_ID = `${BTN_ID}-panel`;
-const firstRunPref = 'cliqz-cc-initialized';
-const BTN_LABEL = 0;
-const TOOLTIP_LABEL = 'Cliqz';
 const TELEMETRY_TYPE = 'control_center';
 const TRIQZ_URL = 'https://cliqz.com/tips';
 
 export default class {
-  constructor(config) {
-    this.window = config.window;
+  constructor({ window, background, settings }) {
+    this.window = window;
+    this.toolbarButton = background.toolbarButton;
+    this.pageAction = background.pageAction;
+
     this.controlCenter = inject.module('control-center');
-    this.settings = config.settings;
-    this.channel = config.settings.channel;
-    this.cssUrl = 'chrome://cliqz/content/control-center/styles/xul.css';
+    this.settings = settings;
+    this.channel = settings.channel;
+    this.ICONS = settings.ICONS;
+    this.BACKGROUNDS = settings.BACKGROUNDS;
     this.createFFhelpMenu = this.createFFhelpMenu.bind(this);
-    this.helpMenu = config.window.document.getElementById('menu_HelpPopup');
+    this.helpMenu = window.document.getElementById('menu_HelpPopup');
     this.geolocation = inject.module('geolocation');
     this.core = inject.module('core');
     this.actions = {
@@ -41,6 +35,7 @@ export default class {
       resize: this.resizePopup.bind(this),
       'adb-optimized': this.adbOptimized.bind(this),
       'antitracking-activator': this.antitrackingActivator.bind(this),
+      'anti-phishing-activator': this.antiphishingActivator.bind(this),
       'adb-activator': this.adbActivator.bind(this),
       'antitracking-strict': this.antitrackingStrict.bind(this),
       'antitracking-clearcache': this.antitrackingClearCache.bind(this),
@@ -54,27 +49,27 @@ export default class {
       'type-filter': this.typeFilter.bind(this),
     };
 
-    this.panel = new Panel(
-      this.window,
-      'chrome://cliqz/content/control-center/index.html',
-      PANEL_ID,
-      'control-center',
-      false,
-      this.actions,
-      1 // telemetry version
-    );
+    this.toolbarButton.addWindow(window, this.actions);
+
+    if (this.pageAction) {
+      this.pageAction.addWindow(window, this.actions);
+
+      const pageActionBtn = window.document.getElementById(this.pageAction.id);
+      window.document.getElementById('urlbar-icons').appendChild(pageActionBtn);
+    }
   }
 
   init() {
-    this.panel.attach();
-    // stylesheet for control center button
-    addStylesheet(this.window.document, this.cssUrl);
-
-    this.addCCbutton();
-    setTimeout(this.actions.refreshState, 100);
     events.sub('core.location_change', this.actions.refreshState);
 
+    if (utils.getPref('toolbarButtonPositionSet', false) === false) {
+      this.toolbarButton.setPositionBeforeElement('bookmarks-menu-button');
+      utils.setPref('toolbarButtonPositionSet', true);
+    }
+
     this.updateFFHelpMenu();
+
+    setTimeout(this.setState.bind(this), 0, 'active');
   }
 
   updateFFHelpMenu() {
@@ -139,11 +134,10 @@ export default class {
   }
 
   unload() {
-    this.panel.detach();
-    removeStylesheet(this.window.document, this.cssUrl);
-    events.un_sub('core.location_change', this.actions.refreshState);
+    this.toolbarButton.removeWindow(this.window);
+    this.pageAction && this.pageAction.removeWindow(this.window);
 
-    this.button.parentElement.removeChild(this.button);
+    events.un_sub('core.location_change', this.actions.refreshState);
 
     // remove custom items from the Help Menu
     const nodes = this.helpMenu.querySelectorAll('.cliqz-item');
@@ -253,20 +247,7 @@ export default class {
   }
 
   searchIndexCountry(data) {
-    function rerender(target, n) {
-      target.classList.toggle('forceRerender');
-
-      if (n >= 0) {
-        utils.setTimeout(rerender, 10, target, n - 1);
-      }
-    }
-
     events.pub('control-center:setDefault-indexCountry', data.defaultCountry);
-
-    // changing the search index triggers an update of the UI module
-    // which reloads the urlbar which makes the control center crazy
-    // -> we need to trigger a rerender to avoid having it empty
-    rerender(this.panel.panel.children[0], 10);
 
     utils.telemetry({
       type: TELEMETRY_TYPE,
@@ -292,12 +273,32 @@ export default class {
     });
   }
 
+  antiphishingActivator(data) {
+    const ph = inject.module('anti-phishing');
+    ph.action('activator', data.state, data.url);
+
+    let state;
+    if (data.type === 'switch') {
+      state = data.state === 'active' ? 'on' : 'off';
+    } else {
+      state = data.state;
+    }
+    utils.telemetry({
+      type: TELEMETRY_TYPE,
+      target: `antiphishing_${data.type}`,
+      state,
+      action: 'click',
+    });
+  }
+
   setMockBadge(info) {
     this.updateBadge(info);
   }
 
   updateBadge(info) {
-    this.badge.textContent = info;
+    if (info !== undefined) {
+      this.toolbarButton.setBadgeText(this.window, `${info}`);
+    }
   }
 
   setBadge(info) {
@@ -325,7 +326,8 @@ export default class {
   }
 
   setState(state) {
-    this.badge.setAttribute('state', state);
+    this.toolbarButton.setIcon(this.window, this.ICONS[state]);
+    this.toolbarButton.setBadgeBackgroundColor(this.window, this.BACKGROUNDS[state]);
   }
 
   updatePref(data) {
@@ -344,8 +346,13 @@ export default class {
           template: 'share-location'
         });
         break;
-      default:
-        utils.setPref(data.pref, data.value, '' /* full pref name required! */);
+      default: {
+        let prefValue = data.value;
+        if (data.prefType === 'boolean') {
+          prefValue = (prefValue === 'true');
+        }
+        utils.setPref(data.pref, prefValue, '' /* full pref name required! */);
+      }
     }
 
     utils.telemetry({
@@ -372,13 +379,11 @@ export default class {
         try {
           const murl = utils.getPref('moncomp_endpoint', '') + this.window.gBrowser.selectedBrowser.currentURI.spec;
           utils.openTabInWindow(this.window, murl);
-          this.panel.hide();
         } catch (err) { console.log(err); }
         break;
       }
       default: {
         const tab = utils.openLink(this.window, data.url, true);
-        if (data.closePopup === true) this.panel.hide();
         this.window.gBrowser.selectedTab = tab;
       }
     }
@@ -393,18 +398,30 @@ export default class {
   // creates the static frame data without any module details
   // re-used for fast first render and onboarding
   getFrameData() {
-    const url = this.window.gBrowser.currentURI.spec;
+    let url = this.window.gBrowser.currentURI.spec;
     let friendlyURL = url;
     let isSpecialUrl = false;
-    const urlDetails = utils.getDetailsFromUrl(url);
+    let urlDetails = utils.getDetailsFromUrl(url);
 
     if (url.indexOf('about:') === 0) {
       friendlyURL = url;
       isSpecialUrl = true;
-    } else if (url.indexOf(utils.CLIQZ_NEW_TAB_RESOURCE_URL) === 0) {
+    } else if (url.indexOf(config.settings.NEW_TAB_URL) === 0) {
       friendlyURL = 'Cliqz Tab';
       isSpecialUrl = true;
+    } else if (url.indexOf(utils.CLIQZ_ONBOARDING_URL) === 0) {
+      friendlyURL = 'Cliqz';
+      isSpecialUrl = true;
+    } else if (url.startsWith('chrome://cliqz/content/anti-phishing/phishing-warning.html')) {
+      // in case this is a phishing site (and a warning is displayed),
+      // we need to get the actual url instead of the warning page
+      url = url.split('chrome://cliqz/content/anti-phishing/phishing-warning.html?u=')[1];
+      url = decodeURIComponent(url);
+      urlDetails = utils.getDetailsFromUrl(url);
+      isSpecialUrl = true;
+      friendlyURL = getMessage('anti-phishing-txt0');
     }
+
     return {
       activeURL: url,
       friendlyURL,
@@ -416,8 +433,8 @@ export default class {
       generalState: 'active',
       feedbackURL: utils.FEEDBACK_URL,
       debug: utils.getPref('showConsoleLogs', false),
-      amo: this.settings.channel !== '40',
-      securityON: this.settings.controlCenterSecurity
+      amo: this.settings.channel === '04',
+      funnelCake: this.settings.id === 'funnelcake@cliqz.com'
     };
   }
 
@@ -428,25 +445,25 @@ export default class {
     ).then((mData) => {
       const moduleData = mData;
       const ccData = this.getFrameData();
+      const states = [
+        (moduleData.antitracking && moduleData.antitracking.state) || 'critical'
+        //,(moduleData['anti-phishing'] && moduleData['anti-phishing'].state) || 'critical'
+      ];
 
-      if (this.settings.controlCenterSecurity === true) {
-        if (moduleData['anti-phishing'] && !moduleData['anti-phishing'].active) {
-          ccData.generalState = 'inactive';
-        }
-
-        if (!moduleData.antitracking) {
-          ccData.generalState = 'critical';
-        } else if (!moduleData.antitracking.enabled && moduleData.antitracking.isWhitelisted) {
-          ccData.generalState = 'inactive';
-        }
-      } else {
-        ccData.generalState = 'off';
+      if (states.indexOf('inactive') !== -1) {
+        ccData.generalState = 'inactive';
+      }
+      if (states.indexOf('critical') !== -1) {
+        ccData.generalState = 'critical';
       }
 
       moduleData.adult = { visible: true, state: utils.getAdultFilterState() };
       if (utils.hasPref('browser.privatebrowsing.apt', '') && this.settings.channel === '40') {
         moduleData.apt = { visible: true, state: utils.getPref('browser.privatebrowsing.apt', false, '') };
       }
+
+      moduleData.dnt = { enabled: utils.getPref('dnt', false) };
+      moduleData.searchProxy = { enabled: utils.getPref('hpn-query', false) };
 
       ccData.module = moduleData;
 
@@ -519,56 +536,18 @@ export default class {
   }
 
   sendMessageToPopup(message) {
-    this.panel.sendMessage({
+    const msg = {
       target: 'cliqz-control-center',
       origin: 'window',
       message,
-    });
-  }
-
-  addCCbutton() {
-    const doc = this.window.document;
-    const firstRunPrefVal = utils.getPref(firstRunPref, false);
-    if (!firstRunPrefVal) {
-      utils.setPref(firstRunPref, true);
-
-      ToolbarButtonManager.setDefaultPosition(BTN_ID, 'nav-bar', 'bookmarks-menu-button');
-    }
-
-    const button = doc.createElement('toolbarbutton');
-    button.setAttribute('id', BTN_ID);
-    button.setAttribute('label', TOOLTIP_LABEL);
-    button.setAttribute('tooltiptext', TOOLTIP_LABEL);
-    button.classList.add('toolbarbutton-1')
-    button.classList.add('chromeclass-toolbar-additional')
-
-    const div = doc.createElement('div');
-    div.setAttribute('class', 'cliqz-control-center');
-    if (this.settings.controlCenterSecurity === true) {
-      div.textContent = BTN_LABEL;
-    } else {
-      // default state for Control center without security features is 'off'
-      div.setAttribute('state', 'off');
-    }
-    button.appendChild(div);
-
-    UITour.targets.set('cliqz', { query: '#cliqz-cc-btn', widgetName: 'cliqz-cc-btn', allowAdd: true });
-    const promise = UITour.getTarget(this.window, 'cliqz');
-    promise.then(() => {
-      button.addEventListener('command', () => {
-        this.panel.open(button);
-      });
-    });
-
-    ToolbarButtonManager.restorePosition(doc, button);
-
-    this.badge = div;
-    this.button = button;
+    };
+    this.toolbarButton.sendMessage(this.window, msg);
+    this.pageAction && this.pageAction.sendMessage(this.window, msg);
   }
 
   resizePopup({ width, height }) {
-    this.panel.iframe.style.width = toPx(width);
-    this.panel.iframe.style.height = toPx(height);
+    this.toolbarButton.resizePopup(this.window, { width, height });
+    this.pageAction && this.pageAction.resizePopup(this.window, { width, height });
   }
 
   sendTelemetry(data) {

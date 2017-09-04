@@ -1,42 +1,24 @@
-import utils from 'core/utils';
-import events from 'core/events';
+import config from '../core/config';
+import utils from '../core/utils';
+import { Components } from './globals';
 
-const PROCESS_SCRIPT_URL = 'chrome://cliqz/content/core/processScript.js';
-const FRAME_SCRIPT_URL = 'chrome://cliqz/content/core/frameScript.js';
+const PROCESS_SCRIPT_URL = `${config.baseURL}platform/process-script.bundle.js`;
+const FRAME_SCRIPT_URL = `${config.baseURL}core/frameScript.js`;
 
-class BaseProcessScriptLoader {
-
+export default class ProcessScriptManager {
   constructor(dispatcher) {
     this.dispatchMessage = dispatcher;
-  }
-
-  init() {
-    this.addMessageListener("cliqz", this.dispatchMessage);
-  }
-
-  unload() {
-    this.removeMessageListener("cliqz", this.dispatchMessage);
-  }
-
-}
-
-/**
- * Firefox >= 38
- */
-class ProcessScriptManager extends BaseProcessScriptLoader {
-  constructor(dispatcher) {
-    super(dispatcher);
     this.timestamp = Date.now();
   }
 
   get ppmm() {
-    return Cc["@mozilla.org/parentprocessmessagemanager;1"]
-        .getService(Ci.nsIProcessScriptLoader);
+    return Components.classes['@mozilla.org/parentprocessmessagemanager;1']
+        .getService(Components.interfaces.nsIProcessScriptLoader);
   }
 
   get gmm() {
-    return Cc["@mozilla.org/globalmessagemanager;1"]
-      .getService(Ci.nsIMessageListenerManager);
+    return Components.classes['@mozilla.org/globalmessagemanager;1']
+      .getService(Components.interfaces.nsIMessageListenerManager);
   }
 
   get processScriptUrl() {
@@ -53,13 +35,13 @@ class ProcessScriptManager extends BaseProcessScriptLoader {
     utils.setTimeout(this.ppmm.loadProcessScript.bind(this.ppmm, this.processScriptUrl, true), 0);
     utils.setTimeout(this.gmm.loadFrameScript.bind(this.gmm, this.frameScriptUrl, true), 0);
 
-    super.init();
+    this.addMessageListener('cliqz', this.dispatchMessage);
   }
 
   unload() {
-    super.unload();
-    this.broadcast("cliqz:core", "unload");
-    this.broadcast("cliqz:process-script", "unload");
+    this.removeMessageListener('cliqz', this.dispatchMessage);
+    this.broadcast('cliqz:core', 'unload');
+    this.broadcast('cliqz:process-script', 'unload');
     this.ppmm.removeDelayedProcessScript(this.processScriptUrl);
     this.gmm.removeDelayedFrameScript(this.frameScriptUrl);
   }
@@ -79,46 +61,3 @@ class ProcessScriptManager extends BaseProcessScriptLoader {
     this.gmm.removeMessageListener(channel, cb);
   }
 }
-
-/**
- * Firefox < 38
- * instead of process script message manager uses CliqzEvents
- */
-class GlobalProcessScriptManager extends BaseProcessScriptLoader {
-  init() {
-    super.init();
-    Services.scriptloader.loadSubScript(PROCESS_SCRIPT_URL);
-  }
-
-  unload() {
-    Cu.unload(PROCESS_SCRIPT_URL);
-    super.unload();
-  }
-
-  broadcast(channel, msg) {
-    events.pub(`process-script-${channel}`, { data: msg });
-  }
-
-  addMessageListener(channel, cb) {
-    events.sub(`process-script-${channel}`, cb);
-  }
-
-  removeMessageListener(channel, cb) {
-    events.un_sub(`process-script-${channel}`, cb);
-  }
-}
-
-const appInfo = Cc["@mozilla.org/xre/app-info;1"]
-      .getService(Ci.nsIXULAppInfo);
-const versionChecker = Cc["@mozilla.org/xpcom/version-comparator;1"]
-      .getService(Ci.nsIVersionComparator);
-
-let Manager;
-
-if (versionChecker.compare(appInfo.version, "38.0") >= 0) {
-  Manager = ProcessScriptManager;
-} else {
-  Manager = GlobalProcessScriptManager;
-}
-
-export default Manager;

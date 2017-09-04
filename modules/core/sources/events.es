@@ -13,7 +13,6 @@
  */
 
 import console from "./console";
-import CliqzUtils from "./utils";
 
 var CliqzEvents = CliqzEvents || {
   //use a javascript object to push the message ids and the callbacks
@@ -29,14 +28,12 @@ var CliqzEvents = CliqzEvents || {
 
     const callbacks = (CliqzEvents.cache[id] || []).map(ev => {
       return new Promise(resolve => {
-        CliqzUtils.setTimeout(function () {
-          try {
-            ev.apply(null, args);
-          } catch(e) {
-            console.error(`CliqzEvents error: ${id}`, e);
-          }
-          resolve();
-        }, 0);
+        try {
+          ev.apply(null, args);
+        } catch(e) {
+          console.error(`CliqzEvents error: ${id}`, e);
+        }
+        resolve();
       });
     });
 

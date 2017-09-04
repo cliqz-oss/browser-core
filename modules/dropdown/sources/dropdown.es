@@ -4,15 +4,16 @@ import { clickSignal } from './telemetry';
 import ContextMenu from './context-menu';
 
 export default class {
-  constructor(element, window) {
+  constructor(element, window, extensionID) {
     this.rootElement = element;
     this.window = window;
+    this.extensionID = extensionID;
     this.onMouseUp = this.onMouseUp.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
   }
 
   init() {
-    this.rootElement.innerHTML = templates.main();
+    this.rootElement.innerHTML = templates.main(this.extensionID);
     this.dropdownElement.addEventListener('mouseup', this.onMouseUp);
     this.dropdownElement.addEventListener('mousemove', this.onMouseMove);
     this.contextMenu = new ContextMenu(this.window, this.dropdownElement);
@@ -53,7 +54,8 @@ export default class {
   }
 
   selectResult(result) {
-    this.rootElement.querySelector(`a[href='${result.url}']`).classList.add('selected');
+    const el = [...this.rootElement.querySelectorAll('a')].find(a => equals(a.href, result.url));
+    el.classList.add('selected');
   }
 
   updateSelection() {
@@ -69,6 +71,7 @@ export default class {
     // Render and insert templates
     const html = templates.results({ results: results.results });
     this.dropdownElement.innerHTML = html;
+    this.dropdownElement.style.maxHeight = `${this.window.innerHeight - 140}px`;
 
     // Nofify results that have been rendered
     results.results.forEach((result) => {
@@ -84,7 +87,9 @@ export default class {
       anchor.setAttribute('onmousedown', 'return false;');
     });
     const resultElem = this.rootElement.querySelector('.result');
-    resultElem.classList.add('selected');
+    if (resultElem) {
+      resultElem.classList.add('selected');
+    }
 
     const historyResults = this.rootElement.querySelectorAll('.history');
     if (historyResults.length > 0) {
@@ -93,8 +98,18 @@ export default class {
   }
 
   onMouseUp(ev) {
-    const targetElement = ev.originalTarget;
-    const resultElement = targetElement.closest('.result');
+    let targetElement = ev.originalTarget;
+
+    if (targetElement.nodeType !== 1) {
+      targetElement = targetElement.parentElement;
+    }
+
+    const resultElement = targetElement.closest('a.result');
+
+    if (!resultElement) {
+      return;
+    }
+
     const extraElement = targetElement.closest('[data-extra]');
     const extra = extraElement ? extraElement.dataset.extra : null;
     const href = resultElement.href;
@@ -126,10 +141,17 @@ export default class {
   }
 
   onMouseMove(ev) {
-    if (this.lastTarget === ev.originalTarget) {
+    let targetElement = ev.originalTarget;
+
+    if (targetElement.nodeType !== 1) {
+      targetElement = targetElement.parentElement;
+    }
+
+    if (this.lastTarget === targetElement) {
       return;
     }
-    this.lastTarget = ev.originalTarget;
+
+    this.lastTarget = targetElement;
 
     const now = Date.now();
     if ((now - this.lastMouseMove) < 10) {
@@ -138,14 +160,10 @@ export default class {
     this.lastMouseMove = now;
 
     // TODO: merge with onMouseUp handler
-    let resultElement;
-    if (ev.originalTarget.classList.contains('result')) {
-      resultElement = ev.originalTarget;
-    } else {
-      resultElement = ev.originalTarget.closest('.result');
-    }
+    const resultElement = targetElement.closest('.result');
 
     if (!resultElement) {
+      this.clearSelection();
       return;
     }
 
@@ -156,6 +174,8 @@ export default class {
       this.clearSelection();
       this.selectedIndex = resultIndex;
       this.updateSelection();
+    } else {
+      this.clearSelection();
     }
   }
 }

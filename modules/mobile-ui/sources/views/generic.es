@@ -1,4 +1,5 @@
 import LocalView from './local-data-sc';
+import LottoView from './lotto';
 
 export class GenericResult {
 
@@ -25,6 +26,10 @@ export default class Generic {
       new LocalView().enhanceResults(data.extra);
     }
 
+    if (data.subType && data.subType.class === 'EntityLotto') {
+      new LottoView().enhanceResults(data.extra);
+    }
+
     data.screen = screen;
     Object.setPrototypeOf(data, GenericResult.prototype);
 
@@ -33,7 +38,7 @@ export default class Generic {
     let partials = [];
     const headerTypes = ['logo', 'urlDetails', 'title'];
     const mediaTypes = ['images', 'videos', 'news'];
-    const specificTypes = ['local-data-sc', 'movie', 'movie-vod', 'recipeRD', 'liveTicker', 'ligaEZ1Game', 'ligaEZTable'];
+    const specificTypes = ['local-data-sc', 'movie', 'movie-vod', 'recipeRD', 'liveTicker', 'ligaEZ1Game', 'ligaEZTable', 'lotto'];
 
     headerTypes.forEach(partial => partials.push({type: partial, data: data[partial], historyStyle: data.historyStyle}));
 

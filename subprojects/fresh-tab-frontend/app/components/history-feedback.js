@@ -65,6 +65,7 @@ export default Ember.Component.extend({
           comments: comments.trim(),
         });
       }
+      this.set('comments', '');
       this.set('currentFeedbackStep', 3);
       Ember.run.later(() => {
         this.set('currentFeedbackStep', 0);
@@ -77,6 +78,7 @@ export default Ember.Component.extend({
           comments: comments.trim(),
         });
       }
+      this.set('moreComments', '');
       this.set('currentFeedbackStep', 3);
       Ember.run.later(() => {
         this.set('currentFeedbackStep', 0);

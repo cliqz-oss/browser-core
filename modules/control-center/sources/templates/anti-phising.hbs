@@ -1,48 +1,85 @@
 {{#if module.anti-phishing.visible}}
-<div class="antiphishing frame-container" stop-navigation state="{{#if module.anti-phishing.active}}active{{ else }}inactive{{/if}}" inactiveState="inactive">
+<div class="antiphishing frame-container"
+  stop-navigation
+  state="{{ module.anti-phishing.state }}"
+  inactiveState="inactive"
+  url="{{ activeURL }}">
   <div class="title">
     <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
       <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
-        <ellipse id="Oval-2" fill="#D0D0D0" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
+        <ellipse id="Oval-2" fill="#999" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
         <text id="i-copy" font-family="AmericanTypewriter-Bold, American Typewriter" font-size="11.2" font-weight="bold" fill="#FFFFFF">
           <tspan x="5.50934774" y="11.3937579">i</tspan>
         </text>
       </g>
     </svg>
-    <div class="tooltip right">
+    <div class="tooltip right top-right">
       <span class="title" data-i18n="control-center-info-phishing-title"></span>
       <span data-i18n="control-center-info-phishing"></span>
     </div>
     <span>Anti-Phishing</span>
     <svg id="smallarrow" width="10px" height="15px" viewBox="1131 409 10 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
       <defs></defs>
-      <polyline id="Path-164-Copy-153" stroke="#7D7D7D" stroke-width="2.5999999" fill="none" opacity="0.44" points="1133.19742 410.787186 1139.09434 416.693941 1133.42806 422.369666"></polyline>
+      <polyline id="Path-164-Copy-153" stroke="#4D4D4D" stroke-width="2.5999999" fill="none" points="1133.19742 410.787186 1139.09434 416.693941 1133.42806 422.369666"></polyline>
     </svg>
-  </div>
-  <div class="switches">
-    <!--======= Switch ======-->
-    <span>
-      <span class="cqz-switch" updatePref='extensions.cliqz.cliqz-anti-phishing-enabled'>
-          <span class="cqz-switch-box"></span>
+    <div class="switches">
+      <span invisible-on-state="active" class="new-dropdown">
+        <button class="dropdown-btn">
+           <span class="dropdown-content-option-text"
+                 visible-on-state="inactive"
+                 data-i18n="control-center-this-domain"></span>
+
+           <span class="dropdown-content-option-text"
+                 visible-on-state="critical"
+                 data-i18n="control-center-all-sites"></span>
+
+          <svg class="arr" width="12px" height="7px" viewBox="96 10 12 7" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+              <defs></defs>
+              <polyline id="fill" id="Path-164-Copy-93" stroke="none" fill="#A2A2A2" fill-rule="evenodd" opacity="0.554279384" transform="translate(102.166470, 13.884133) rotate(90.000000) translate(-102.166470, -13.884133) " points="99.218006 8.09289333 105.114934 13.999648 99.4486516 19.6753727"></polyline>
+          </svg>
+        </button>
+
+        <div class="new-dropdown-content" {{#if funnelCake}}style="top: -56px;"{{/if}}>
+          <a class="dropdown-content-option {{#if module.anti-phishing.isWhitelisted }}selected{{/if}}"
+             data-i18n="control-center-this-domain"
+             value="this"
+             data-type="off_select"
+             data-state="off_website"
+             antiPhishingStatusChanger>
+          </a>
+
+          <a class="dropdown-content-option  {{#unless module.anti-phishing.isWhitelisted }} selected {{/unless}}"
+             data-i18n="control-center-all-sites"
+             value="all"
+             data-type = "off_select"
+             data-state="off_all"
+             antiPhishingStatusChanger>
+           </a>
+        </div>
       </span>
-      <span visible-on-state="active" data-i18n="control-center-switch-on"></span>
-      <span visible-on-state="inactive" data-i18n="control-center-switch-off"></span>
-    </span>
-    <select class="dropdown-scope" visible-on-state="inactive" style="display: none">
-      <option selected data-i18n="control-center-this-site" value="this"></option>
-      <option data-i18n="control-center-all-sites" value="all"></option>
-    </select>
+      <span>
+        <span visible-on-state="active" data-i18n="control-center-switch-on"></span>
+        <span invisible-on-state="active" data-i18n="control-center-switch-off"></span>
+        <span
+          class="cqz-switch"
+          data-type="switch"
+          antiPhishingStatusChanger>
+          <span class="cqz-switch-box"></span>
+        </span>
+      </span>
+    </div>
   </div>
 </div>
 <div class="active-window-phishing">
   <div id="report">
     <span id="status" data-i18n="control-center-phishing-deceptive-not"></span>
-    <svg data-target="antiphish_details_close" class="cross" width="21px" height="21px" viewBox="623 233 21 21" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-      <defs></defs>
-      <g id="Group" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(625.000000, 235.000000)" stroke-linecap="round">
-        <path d="M0.6,0.635192349 L15.6119957,15.647188" id="Line" stroke="#FFFFFF" stroke-width="2.5"></path>
-        <path d="M0.6,0.635192349 L15.6119957,15.647188" id="Line-Copy-47" stroke="#FFFFFF" stroke-width="2.5" transform="translate(8.400000, 8.435192) scale(-1, 1) translate(-8.400000, -8.435192) "></path>
-      </g>
+    <svg data-target="antiphish_details_close" class="cross" width="10px" height="16px" viewBox="0 0 10 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <defs></defs>
+        <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round">
+            <g id="Cliqz-Privacy-Center-3" transform="translate(-674.000000, -290.000000)" stroke-width="2.5999999" stroke="#00ADEF">
+                <polyline id="Path-164-Copy-183" transform="translate(679.041295, 298.019115) scale(-1, 1) translate(-679.041295, -298.019115) " points="676.092831 292.227875 681.989759 298.13463 676.323476 303.810354"></polyline>
+            </g>
+        </g>
     </svg>
     <span id="line">
       <span id="report-button">
@@ -52,7 +89,7 @@
     <svg id="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
       <defs></defs>
       <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
-        <ellipse id="Oval-2" fill="#D0D0D0" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
+        <ellipse id="Oval-2" fill="#999" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
         <text id="i-copy" font-family="AmericanTypewriter-Bold, American Typewriter" font-size="11.2" font-weight="bold" fill="#FFFFFF">
           <tspan x="5.50934774" y="11.3937579">i</tspan>
         </text>

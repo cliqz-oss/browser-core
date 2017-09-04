@@ -1,3 +1,4 @@
+import config from '../core/config';
 import CLIQZEnvironment from "../platform/environment";
 import console from "./console";
 import prefs from "./prefs";
@@ -7,9 +8,11 @@ import tlds from "./tlds";
 import { httpHandler, promiseHttpHandler } from './http';
 import gzip from './gzip';
 import CliqzLanguage from './language';
-import { isUrl, isIpv4Address, isIpv6Address } from './url';
+import * as url from './url';
 import random from './crypto/random';
 import { fetchFactory } from '../platform/fetch';
+import { isWindows, isLinux, isMac } from './platform';
+import i18n, { getMessage, getLanguageFromLocale } from './i18n';
 
 var VERTICAL_ENCODINGS = {
     'people':'p',
@@ -25,7 +28,7 @@ var VERTICAL_ENCODINGS = {
 var COLOURS = ['#ffce6d','#ff6f69','#96e397','#5c7ba1','#bfbfbf','#3b5598','#fbb44c','#00b2e5','#b3b3b3','#99cccc','#ff0027','#999999'],
     LOGOS = ['wikipedia', 'google', 'facebook', 'youtube', 'duckduckgo', 'sternefresser', 'zalando', 'bild', 'web', 'ebay', 'gmx', 'amazon', 't-online', 'wiwo', 'wwe', 'weightwatchers', 'rp-online', 'wmagazine', 'chip', 'spiegel', 'yahoo', 'paypal', 'imdb', 'wikia', 'msn', 'autobild', 'dailymotion', 'hm', 'hotmail', 'zeit', 'bahn', 'softonic', 'handelsblatt', 'stern', 'cnn', 'mobile', 'aetv', 'postbank', 'dkb', 'bing', 'adobe', 'bbc', 'nike', 'starbucks', 'techcrunch', 'vevo', 'time', 'twitter', 'weatherunderground', 'xing', 'yelp', 'yandex', 'weather', 'flickr'],
     BRANDS_DATABASE = { domains: {}, palette: ["999"] };
-const schemeRE = /^(\S+?):(\/\/)?(.*)$/i;
+
 
 var CliqzUtils = {
   environment: CLIQZEnvironment,
@@ -38,13 +41,12 @@ var CliqzUtils = {
   TUTORIAL_URL:                   'https://cliqz.com/home/onboarding',
   UNINSTALL:                      'https://cliqz.com/home/offboarding',
   FEEDBACK:                       'https://cliqz.com/feedback/',
-  PREFERRED_LANGUAGE:             null,
   RESULTS_TIMEOUT:                CLIQZEnvironment.RESULTS_TIMEOUT,
 
   BRANDS_DATABASE: BRANDS_DATABASE,
 
   //will be updated from the mixer config endpoint every time new logos are generated
-  BRANDS_DATABASE_VERSION: 1483980213630,
+  BRANDS_DATABASE_VERSION: 1498491398528,
   GEOLOC_WATCH_ID:                null, // The ID of the geolocation watcher (function that updates cached geolocation on change)
   VERTICAL_TEMPLATES: {
         'n': 'news'    ,
@@ -63,25 +65,15 @@ var CliqzUtils = {
   MESSAGE_TEMPLATES: CLIQZEnvironment.MESSAGE_TEMPLATES,
   PARTIALS: CLIQZEnvironment.PARTIALS,
   SKIN_PATH: CLIQZEnvironment.SKIN_PATH,
-  LOCALE_PATH: CLIQZEnvironment.LOCALE_PATH,
   RERANKERS: CLIQZEnvironment.RERANKERS,
   CLIQZ_ONBOARDING: CLIQZEnvironment.CLIQZ_ONBOARDING,
   CLIQZ_ONBOARDING_URL: CLIQZEnvironment.CLIQZ_ONBOARDING_URL,
   BROWSER_ONBOARDING_PREF: CLIQZEnvironment.BROWSER_ONBOARDING_PREF,
-  CLIQZ_NEW_TAB: CLIQZEnvironment.CLIQZ_NEW_TAB,
-  CLIQZ_NEW_TAB_RESOURCE_URL: CLIQZEnvironment.CLIQZ_NEW_TAB_RESOURCE_URL,
-
   telemetryHandlers: [
     CLIQZEnvironment.telemetry
   ],
 
-  init: function(options) {
-    options = options || {};
-
-    if (!options.lang) {
-      return Promise.reject("lang missing");
-    }
-
+  init() {
     CLIQZEnvironment.gzip = gzip;
 
     // cutting cyclic dependency
@@ -91,28 +83,8 @@ var CliqzUtils = {
     CLIQZEnvironment.app = CliqzUtils.app;
     CliqzUtils.log('Initialized', 'CliqzUtils');
 
-    try {
-      CliqzUtils.setLang(options.lang);
-    } catch(e) {
-      // TODO: fix for ghostery
-    }
-
     CliqzUtils.tldExtractor = CLIQZEnvironment.tldExtractor || CliqzUtils.genericTldExtractor;
   },
-  getLanguageFromLocale: function(locale) {
-    return locale.match(/([a-z]+)(?:[-_]([A-Z]+))?/)[1];
-  },
-  SUPPORTED_LANGS: {'de':'de', 'en':'en', 'fr':'fr'},
-  getSupportedLanguage: function(lang) {
-    return CliqzUtils.SUPPORTED_LANGS[lang] || 'en';
-  },
-  setLang: function (locale) {
-    const lang = CliqzUtils.getLanguageFromLocale(locale);
-    const supportedLang = CliqzUtils.getSupportedLanguage(lang);
-    CliqzUtils.PREFERRED_LANGUAGE = locale;
-    CliqzUtils.getLocaleFile(supportedLang);
-  },
-
   isNumber: function(n){
       /*
       NOTE: this function can't recognize numbers in the form such as: "1.2B", but it can for "1e4". See specification for isFinite()
@@ -170,7 +142,7 @@ var CliqzUtils = {
         }
       }
     }
-    result.text = result.text || (baseCore.length > 1 ? ((baseCore[0].toUpperCase() + baseCore[1].toLowerCase())) : "")
+    result.text = result.text || `${baseCore[0] || ''}${baseCore[1] || ''}`.toLowerCase();
     result.backgroundColor = result.backgroundColor || BRANDS_DATABASE.palette[base.split("").reduce(function(a,b){ return a + b.charCodeAt(0) },0) % BRANDS_DATABASE.palette.length]
     var colorID = BRANDS_DATABASE.palette.indexOf(result.backgroundColor),
         buttonClass = BRANDS_DATABASE.buttons && colorID != -1 && BRANDS_DATABASE.buttons[colorID]?BRANDS_DATABASE.buttons[colorID]:10
@@ -251,20 +223,7 @@ var CliqzUtils = {
   hash: function(s){
     return s.split('').reduce(function(a,b){ return (((a<<4)-a)+b.charCodeAt(0)) & 0xEFFFFFF}, 0)
   },
-  cleanMozillaActions: function(url = ''){
-    if(url.indexOf("moz-action:") == 0) {
-        var [, action, url] = url.match(/^moz-action:([^,]+),(.*)$/);
-        try {
-          // handle cases like: moz-action:visiturl,{"url": "..."}
-          const mozActionUrl = JSON.parse(url).url;
-          if (mozActionUrl) {
-            url = decodeURIComponent(mozActionUrl);
-          }
-        } catch (e) {
-        }
-    }
-    return [action, url];
-  },
+  cleanMozillaActions: url.cleanMozillaActions,
   cleanUrlProtocol: function(url, cleanWWW){
     if (!url)
       return '';
@@ -283,170 +242,20 @@ var CliqzUtils = {
     return url;
   },
   genericTldExtractor: tlds.getPublicSuffix,
-  getDetailsFromUrl: function(originalUrl){
-    var [action, originalUrl] = CliqzUtils.cleanMozillaActions(originalUrl);
-    // exclude protocol
-    var url = originalUrl,
-        scheme = '',
-        slashes = '',
-        name = '',
-        tld = '',
-        subdomains = [],
-        path = '',
-        query ='',
-        fragment = '';
-
-    // remove scheme
-    const schemeMatch = schemeRE.exec(url);
-    if (schemeMatch) {
-      scheme = schemeMatch[1];
-      slashes = schemeMatch[2];
-      url = schemeMatch[3];
-    }
-    const ssl = scheme == 'https';
-
-    // separate hostname from path, etc. Could be separated from rest by /, ? or #
-    var host = url.split(/[\/\#\?]/)[0].toLowerCase();
-    var path = url.replace(host,'');
-
-    // separate username:password@ from host
-    var userpass_host = host.split('@');
-    if(userpass_host.length > 1)
-      host = userpass_host[1];
-
-    // Parse Port number
-    var port = "";
-
-    var isIPv4 = isIpv4Address(host);
-    var isIPv6 = isIpv6Address(host);
-
-    var indexOfColon = host.indexOf(":");
-    if ((!isIPv6 || isIPv4) && indexOfColon >= 0) {
-      port = host.substr(indexOfColon+1);
-      host = host.substr(0,indexOfColon);
-    }
-    else if (isIPv6) {
-      // If an IPv6 address has a port number, it will be right after a closing bracket ] : format [ip_v6]:port
-      var endOfIP = host.indexOf(']:');
-      if (endOfIP >= 0) {
-        port = host.split(']:')[1];
-        host = host.split(']:')[0].replace('[','').replace(']','');
-      }
-    }
-
-    // extract query and fragment from url
-    var query = '';
-    var query_idx = path.indexOf('?');
-    if(query_idx != -1) {
-      query = path.substr(query_idx+1);
-    }
-
-    var fragment = '';
-    var fragment_idx = path.indexOf('#');
-    if(fragment_idx != -1) {
-      fragment = path.substr(fragment_idx+1);
-    }
-
-    // remove query and fragment from path
-    path = path.replace('?' + query, '');
-    path = path.replace('#' + fragment, '');
-    query = query.replace('#' + fragment, '');
-
-    // extra - all path, query and fragment
-    var extra = path;
-    if(query)
-      extra += "?" + query;
-    if(fragment)
-      extra += "#" + fragment;
-
-    isIPv4 = isIpv4Address(host);
-    isIPv6 = isIpv6Address(host);
-    var isLocalhost = CliqzUtils.isLocalhost(host, isIPv4, isIPv6);
-
-    // find parts of hostname
-    if (!isIPv4 && !isIPv6 && !isLocalhost) {
-      try {
-        let hostWithoutTld = host;
-        tld = CliqzUtils.tldExtractor(host);
-
-        if (tld) {
-          hostWithoutTld = host.slice(0, -(tld.length + 1)); // +1 for the '.'
-        }
-
-        // Get subdomains
-        subdomains = hostWithoutTld.split('.');
-        // Get the domain name w/o subdomains and w/o TLD
-        name = subdomains.pop();
-
-        //remove www if exists
-        // TODO: I don't think this is the right place to do this.
-        //       Disabled for now, but check there are no issues.
-        // host = host.indexOf('www.') == 0 ? host.slice(4) : host;
-      } catch(e){
-        name = "";
-        host = "";
-        //CliqzUtils.log('WARNING Failed for: ' + originalUrl, 'CliqzUtils.getDetailsFromUrl');
-      }
-    }
-    else {
-      name = isLocalhost ? "localhost" : "IP";
-    }
-
-    // remove www from beginning, we need cleanHost in the friendly url
-    var cleanHost = host;
-    if(host.toLowerCase().indexOf('www.') == 0) {
-      cleanHost = host.slice(4);
-    }
-
-    var friendly_url = cleanHost + extra;
-    if (scheme && scheme != 'http' && scheme != 'https')
-      friendly_url = scheme + ":" + slashes + friendly_url;
-    //remove trailing slash from the end
-    friendly_url = CliqzUtils.stripTrailingSlash(friendly_url);
-
-    //Handle case where we have only tld for example http://cliqznas
-    if(cleanHost === tld) {
-      name = tld;
-    }
-
-    var urlDetails = {
-              scheme: scheme ? scheme + ':' : '',
-              name: name,
-              domain: tld ? name + '.' + tld : '',
-              tld: tld,
-              subdomains: subdomains,
-              path: path,
-              query: query,
-              fragment: fragment,
-              extra: extra,
-              host: host,
-              cleanHost: cleanHost,
-              ssl: ssl,
-              port: port,
-              friendly_url: friendly_url
-        };
-
-    return urlDetails;
-  },
+  getDetailsFromUrl: url.getDetailsFromUrl,
+  stripTrailingSlash: url.stripTrailingSlash,
+  isUrl: url.isUrl,
   stripTrailingSlash: function(str) {
     if(str.substr(-1) === '/') {
         return str.substr(0, str.length - 1);
     }
     return str;
   },
-  isUrl,
   // Checks if the given string is a valid IPv4 addres
-  isIPv4: isIpv4Address,
-  isIPv6: isIpv6Address,
+  isIPv4: url.isIpv4Address,
+  isIPv6: url.isIpv6Address,
 
-  isLocalhost: function(host, isIPv4, isIPv6) {
-    if (host == "localhost") return true;
-    if (isIPv4 && host.substr(0,3) == "127") return true;
-    if (isIPv6 && host == "::1") return true;
-
-    return false;
-
-  },
+  isLocalhost: url.isLocalhost,
   // checks if a value represents an url which is a seach engine
   isSearch: function(value){
     if (CliqzUtils.isUrl(value)) {
@@ -597,7 +406,7 @@ var CliqzUtils = {
            CliqzUtils.disableWikiDedup();
   },
 
-  getRichHeaderQueryString: function(q, loc, locale) {
+  getRichHeaderQueryString: function(q, loc) {
     let numberResults = 5;
     if (CliqzUtils.getPref('languageDedup', false)) {
       numberResults = 7;
@@ -608,7 +417,7 @@ var CliqzUtils = {
     return "&q=" + encodeURIComponent(q) + // @TODO: should start with &q=
             CliqzUtils.encodeSessionParams() +
             CliqzLanguage.stateToQueryString() +
-            CliqzUtils.encodeLocale(locale) +
+            CliqzUtils.encodeLocale() +
             CliqzUtils.encodeResultOrder() +
             CliqzUtils.encodeCountry() +
             CliqzUtils.encodeFilter() +
@@ -618,14 +427,9 @@ var CliqzUtils = {
   },
 
   getBackendResults: function(q) {
-    if (!CliqzUtils.getPref('cliqzBackendProvider.enabled', true)) {
-      return Promise.resolve({
-        response: {
-          results: [],
-        },
-        query: q
-      });
-    }
+    const url = CliqzUtils.RESULTS_PROVIDER + CliqzUtils.getResultsProviderQueryString(q);
+    const fetch = fetchFactory();
+    const suggestionChoice = CliqzUtils.getPref('suggestionChoice', 0);
 
     CliqzUtils._sessionSeq++;
 
@@ -635,15 +439,72 @@ var CliqzUtils = {
     }
     CliqzUtils._queryLastDraw = 0; // reset last Draw - wait for the actual draw
     CliqzUtils._queryLastLength = q.length;
-    const url = CliqzUtils.RESULTS_PROVIDER + CliqzUtils.getResultsProviderQueryString(q);
 
-    const fetch = fetchFactory();
-    return fetch(url)
+    const backendPromise = fetch(url)
       .then(res => res.json())
-      .then(response => ({
-        response,
-        query: q
-      }));
+      .then(response => {
+        if(response.results.length > 0 || !config.settings.suggestions) {
+
+          if (suggestionChoice === 1) {
+            if (response.suggestions && response.suggestions.length > 0) {
+              response.results = response.results.concat([{
+                  url: 'https://cliqz.com/q=' + q,
+                  template: 'inline-suggestion',
+                  type: 'suggestion',
+                  snippet: {
+                    suggestions: response.suggestions.filter(r => r !== q),
+                    source: 'Cliqz'
+                  }
+                }]);
+            }
+          }
+
+          return {
+            response,
+            query: q
+          }
+        } else {
+          return CliqzUtils.getSuggestions(q);
+        }
+      });
+
+    if (suggestionChoice <= 1) {
+      return backendPromise;
+    } else {
+      return Promise.all([backendPromise, CliqzUtils.getSuggestions(q)]).then(values => {
+        const searchResults = values[0].response.results || [];
+        const googleSuggestions = values[1].response.results || [];
+
+        return {
+          query: q,
+          response: {
+            results: searchResults.concat(googleSuggestions)
+          }
+        }
+      })
+    }
+  },
+
+  getSuggestions: function(q) {
+    const searchDataType = 'application/x-suggestions+json';
+    const defaultEngine = CliqzUtils.getDefaultSearchEngine();
+    return fetch(defaultEngine.getSubmissionForQuery(q, searchDataType))
+      .then(res => res.json())
+      .then(response => {
+        return {
+          response: {
+            results: response[1].filter(r => r !== q).map(q => {
+              return {
+                url: defaultEngine.getSubmissionForQuery(q),
+                template: 'suggestion',
+                type: 'suggestion',
+                snippet: { suggestion: q }
+              }
+            })
+          },
+          query: response[0]
+        }
+      })
   },
 
   // IP driven configuration
@@ -694,14 +555,8 @@ var CliqzUtils = {
       }
     }
   },
-  encodeLocale: function(locale) {
-    var preferred = (CliqzUtils.PREFERRED_LANGUAGE || "");
-    if(locale) {
-      preferred = locale;
-    }
-    // send browser language to the back-end
-    //return '&locale=' + (locale ? locale : (CliqzUtils.PREFERRED_LANGUAGE || ""));
-    return '&locale='+ preferred;
+  encodeLocale: function() {
+    return '&locale='+ CliqzUtils.PREFERRED_LANGUAGE || '';
   },
   encodeCountry: function() {
     return '&country=' + CliqzUtils.getPref('backend_country', 'de');
@@ -729,7 +584,9 @@ var CliqzUtils = {
     return '&count=' + count;
   },
   enncodeQuerySuggestionParam: function () {
-    const suggestionsEnabled = CliqzUtils.getPref("suggestionsEnabled", false);
+    const suggestionsEnabled = CliqzUtils.getPref("suggestionsEnabled", false) ||
+      CliqzUtils.getPref("suggestionChoice", 0) === 1;
+
     return `&suggest=${suggestionsEnabled ? 1 : 0}`;
   },
   encodeResultType: function(type){
@@ -738,6 +595,7 @@ var CliqzUtils = {
     else if(type.indexOf('cliqz-pattern') == 0) return ['C'];
     else if(type === 'cliqz-extra') return ['X'];
     else if(type === 'cliqz-series') return ['S'];
+    else if(type === 'cliqz-suggestion') return ['Z'];
 
     else if(type.indexOf('bookmark') == 0 ||
             type.indexOf('tag') == 0) return ['B'].concat(CliqzUtils.encodeCliqzResultType(type));
@@ -787,7 +645,8 @@ var CliqzUtils = {
   },
 
   encodeLocation: function(specifySource, lat, lng) {
-    let locationPref = CliqzUtils.getPref('share_location', 'ask');
+    // default geolocation 'yes' for funnelCake - 'ask' for everything else
+    let locationPref = CliqzUtils.getPref('share_location', config.settings.geolocation || 'ask');
     if (locationPref === 'showOnce') {
       locationPref = 'ask';
     }
@@ -855,70 +714,38 @@ var CliqzUtils = {
   clearTimeout: CLIQZEnvironment.clearTimeout,
   clearInterval: CLIQZEnvironment.clearTimeout,
   Promise: CLIQZEnvironment.Promise,
-  locale: {},
-  currLocale: null,
-  getLocaleFile: function (locale) {
-    // locale file might not exist on mobile
-    if (CliqzUtils.LOCALE_PATH) {
-      const url = CliqzUtils.LOCALE_PATH + locale + '/cliqz.json';
-      // Synchronous request is depricated
-      const req = CliqzUtils.httpGet(url, null, null, null, null, true);
-      CliqzUtils.currLocale = locale;
-      CliqzUtils.locale.default = CliqzUtils.locale[locale] = JSON.parse(req.response);
-    }
+
+  /* i18n -- start */
+  // TODO: all those should be remove and used from i18n directly
+  get locale() {
+    return i18n.locale;
   },
-  getLocalizedString: function(key, substitutions){
-    if(!key) return '';
-
-    var str = key,
-        localMessages;
-
-    if (CliqzUtils.currLocale != null && CliqzUtils.locale[CliqzUtils.currLocale]
-            && CliqzUtils.locale[CliqzUtils.currLocale][key]) {
-        str = CliqzUtils.locale[CliqzUtils.currLocale][key].message;
-        localMessages = CliqzUtils.locale[CliqzUtils.currLocale];
-    } else if (CliqzUtils.locale.default && CliqzUtils.locale.default[key]) {
-        str = CliqzUtils.locale.default[key].message;
-        localMessages = CliqzUtils.locale.default;
-    }
-
-    if (!substitutions) {
-      substitutions = [];
-    }
-    if (!Array.isArray(substitutions)) {
-      substitutions = [substitutions];
-    }
-
-    function replacer(matched, index, dollarSigns) {
-      if (index) {
-        index = parseInt(index, 10) - 1;
-        return index in substitutions ? substitutions[index] : "";
-      } else {
-        // For any series of contiguous `$`s, the first is dropped, and
-        // the rest remain in the output string.
-        return dollarSigns;
-      }
-    }
-    return str.replace(/\$(?:([1-9]\d*)|(\$+))/g, replacer);
+  get currLocale() {
+    return i18n.currLocale;
   },
+  get PREFERRED_LANGUAGE() {
+    return i18n.PREFERRED_LANGUAGE;
+  },
+  get LOCALE_PATH() {
+    return i18n.LOCALE_PATH;
+  },
+  getLanguageFromLocale: getLanguageFromLocale,
+  getLocalizedString: getMessage,
   // gets all the elements with the class 'cliqz-locale' and adds
   // the localized string - key attribute - as content
   localizeDoc: function(doc){
     var locale = doc.getElementsByClassName('cliqz-locale');
     for(var i = 0; i < locale.length; i++){
         var el = locale[i];
-        el.textContent = CliqzUtils.getLocalizedString(el.getAttribute('key'));
+        el.textContent = getMessage(el.getAttribute('key'));
     }
   },
-  isWindows: function(){
-    return CLIQZEnvironment.OS.indexOf("win") === 0;
-  },
-  isMac: function(){
-    return CLIQZEnvironment.OS.indexOf("darwin") === 0;
-  },
-  isLinux: function() {
-    return CLIQZEnvironment.OS.indexOf("linux") === 0;
-  },
+  /* i18n -- end */
+  /* platform -- start */
+  isWindows,
+  isLinux,
+  isMac,
+  /* platform -- end */
   getWindow: CLIQZEnvironment.getWindow,
   getWindowID: CLIQZEnvironment.getWindowID,
   /**
@@ -1006,7 +833,8 @@ var CliqzUtils = {
       }
     };
 
-    data[CliqzUtils.getPref('share_location', 'ask')].selected = true;
+    // default geolocation 'yes' for funnelCake - 'ask' for everything else
+    data[CliqzUtils.getPref('share_location', config.settings.geolocation || 'ask')].selected = true;
 
     return data;
   },
@@ -1041,7 +869,6 @@ var CliqzUtils = {
     results = regex.exec(location.search);
     return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
   },
-  addEventListenerToElements: CLIQZEnvironment.addEventListenerToElements,
   search: CLIQZEnvironment.search,
   distance: function(lon1, lat1, lon2 = CliqzUtils.USER_LNG, lat2 = CliqzUtils.USER_LAT) {
     /** Converts numeric degrees to radians */
@@ -1070,9 +897,9 @@ var CliqzUtils = {
   isUnknownTemplate: CLIQZEnvironment.isUnknownTemplate,
   getEngineByName: CLIQZEnvironment.getEngineByName,
   addEngineWithDetails: CLIQZEnvironment.addEngineWithDetails,
+  removeEngine: CLIQZEnvironment.removeEngine,
   getEngineByAlias: CLIQZEnvironment.getEngineByAlias,
   getSearchEngines: CLIQZEnvironment.getSearchEngines,
-  blackListedEngines: CLIQZEnvironment.blackListedEngines,
   updateAlias: CLIQZEnvironment.updateAlias,
   openLink: CLIQZEnvironment.openLink,
   getCliqzPrefs() {

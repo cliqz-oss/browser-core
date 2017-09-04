@@ -1,0 +1,26 @@
+<a class="result" href="{{ url }}">
+    {{> partials/logo}}
+    {{> partials/abstract}}
+</a>
+
+{{> partials/buttons}}
+
+{{#if this.subResult}}
+    <a class="result soccer-title" href="{{this.subResult.url}}">
+        <span class="padded">{{this.subResult.title}}</span>
+        <span class="soccer-domain divider">—</span>
+        <span class="soccer-domain">{{ local 'soccer-api-provider' }}</span>
+    </a>
+{{/if}}
+<div class="padded soccer">
+    <div class="wrapper">
+
+        <div class="table">
+            {{#each ligaEZ1Game}}
+                {{> partials/ticker}}
+            {{/each}}
+        </div>
+
+    </div>
+    <p class="powered-by">{{ local 'soccer-powered-by' }}</p>
+</div>

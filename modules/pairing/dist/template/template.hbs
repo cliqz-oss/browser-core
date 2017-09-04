@@ -12,14 +12,21 @@
                             <div class="content-left">
                                 <img id="video-downloader-img" />
                                 <p class="sub-header">{{i18n.videoDownloaderTitle}}</p>
-                                <p class="extra-info">{{i18n.videoDownloaderTip}}</p>
+                                <p class="extra-info">
+                                    <span>{{i18n.videoDownloaderTip1}}</span><br />
+                                    <span>{{i18n.videoDownloaderTip2}}</span><br />
+                                    <span>{{i18n.videoDownloaderTip3}}</span>
+                                </p>
                             </div>
                         </div>
                         <div class="column width-50-percent">
                             <div class="content-right">
                                 <img id="send-tab-img" />
                                 <p class="sub-header">{{i18n.sendTabTitle}}</p>
-                                <p class="extra-info">{{i18n.sendTabTip}}</p>
+                                <p class="extra-info">
+                                    <span>{{i18n.sendTabTip1}}</span>
+                                    <span>{{i18n.sendTabTip2}}</span>
+                                </p>
                             </div>
                         </div>
                         <div class="clear-row">&nbsp;</div>
@@ -46,13 +53,29 @@
                 <div class="content-left">
                     <p class="sub-header">{{i18n.pairingScanTitle}}</p>
                     <div class="row">
-                        <p> <span class="sub-header">1.</span> {{i18n.pairingStep1Title}}</p>
-                        <div class="width-40-percent image-button btn-google-play">
+                        <p>
+                            <span class="sub-header">1.</span>
+                            <span>{{i18n.pairingStep1Title}}</span>
+                        </p>
+                        <div class="image-button btn-google-play">
                             <a id="playstore-btn" target="_blank" href="{{i18n.androidApp}}">{{i18n.cliqzForAndroid}}</a>
                         </div>
+                        <div class="image-button btn-apple-store">
+                            <a id="appstore-btn" target="_blank" href="{{i18n.iOSApp}}">{{i18n.cliqzForIOS}}</a>
+                        </div>
                     </div>
-                    <p> <span class="sub-header">2.</span> {{i18n.pairingStep2Title}}</p>
-                    <p class="spacer"> <span class="sub-header">3.</span> {{i18n.pairingStep3Title}}</p>
+                    <p>
+                        <span class="sub-header">2.</span>
+                        <span>{{i18n.pairingStep2Title}}</span><br />
+                        <span>{{i18n.pairingStep2TitleAndroid}}</span><br />
+                        <span>{{i18n.pairingStep2TitleIOS}}</span>
+                    </p>
+                    <p class="spacer">
+                        <span class="sub-header">3.</span>
+                        <span>{{i18n.pairingStep3Title}}</span><br />
+                        <span>{{i18n.pairingStep3TitleAndroid}}</span><br />
+                        <span>{{i18n.pairingStep3TitleIOS}}</span>
+                    </p>
                     <p class="spacer"> <span class="sub-header">4.</span> {{i18n.pairingStep4Title}}</p>
                 </div>
             </div>

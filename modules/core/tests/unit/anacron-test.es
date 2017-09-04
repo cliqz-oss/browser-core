@@ -1,5 +1,5 @@
 
-const moment = System._nodeRequire('moment');
+const moment = require('moment');
 
 export default describeModule("core/anacron",
   function () {

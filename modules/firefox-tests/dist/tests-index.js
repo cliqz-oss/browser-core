@@ -45,13 +45,6 @@ function writeToFile(content, filename) {
 }
 
 
-function writeLogsToFile(logs) {
-  var version = getBrowserVersion();
-  var filename = 'logs-' + version + '.json';
-  writeToFile(JSON.stringify(logs), filename);
-}
-
-
 function writeTestResultsToFile(testData) {
   var version = getBrowserVersion();
   var filename = 'mocha-report-' + version + '.xml';
@@ -60,6 +53,13 @@ function writeTestResultsToFile(testData) {
 
 
 var runner;
+
+mocha.setup({
+  ui: 'bdd',
+  timeout: 30000,
+  reporter: TAP
+});
+
 var CliqzUtils = loadModule("core/utils"),
     CliqzABTests = loadModule("core/ab-tests"),
     CliqzHumanWeb = loadModule("human-web/human-web"),
@@ -72,32 +72,17 @@ var CliqzUtils = loadModule("core/utils"),
     browserMajorVersion = parseInt(getBrowserVersion().split('.')[0]),
     app = CliqzUtils.app;
 
-mocha.setup({ ui: 'bdd', timeout: 20000 });
-
-/**
- * If extension did not intialize properly we want to kill tests ASAP
- */
-if (!CliqzUtils) {
-  describe("CLIQZ Tests", function () {
-    it("initialize property", function () {
-      throw "CliqzUtils missing";
-    });
-    after(function () {
-      // Force end hook to fire
-      runner.emit('end');
-    });
-  });
-}
-
-injectTestHelpers(CliqzUtils);
-initHttpServer();
-
 function start() {
+
+CliqzUtils = loadModule("core/utils");
 
 if (!CliqzUtils.app.isFullyLoaded) {
   setTimeout(start, 2000);
   return;
 }
+
+injectTestHelpers(CliqzUtils);
+initHttpServer();
 
 // Load Tests and inject their dependencies
 Object.keys(window.TESTS).forEach(function (testName) {
@@ -164,50 +149,36 @@ afterEach(function () {
 window.focus();
 
 
-// Capture console logs
-var logs = [];
-var theConsoleListener = {
-  observe:function( aMessage ) {
-    logs.push(aMessage);
-  },
-  QueryInterface: function (iid) {
-    if (!iid.equals(Components.interfaces.nsIConsoleListener) &&
-        !iid.equals(Components.interfaces.nsISupports)) {
-      throw Components.results.NS_ERROR_NO_INTERFACE;
-    }
-    return this;
-  }
-};
-
-var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"]
-    .getService(Components.interfaces.nsIConsoleService);
-aConsoleService.registerListener(theConsoleListener);
-
-
 // Init Mocha runner
 var runner =  mocha.run();
 
-var XMLReport = '<?xml version="1.0" encoding="UTF-8"?>';
+// var XMLReport = '<?xml version="1.0" encoding="UTF-8"?>';
 
-Mocha.reporters.XUnit.prototype.write = function (line) {
-  var version = getBrowserVersion();
-
-  //append project="ff-version" in the test report for jenkins purposes
-  if(line.indexOf('<testsuite') !== -1) {
-    var line_parts = line.split(" ");
-    line_parts.splice(1, 0, 'package="' + 'ff-' + version + '"');
-    line = line_parts.join(" ");
-  }
-
-  XMLReport += line;
-};
-
-new Mocha.reporters.XUnit(runner, {});
+// Mocha.reporters.XUnit.prototype.write = function (line) {
+//   var version = getBrowserVersion();
+//
+//   //append project="ff-version" in the test report for jenkins purposes
+//   if(line.indexOf('<testsuite') !== -1) {
+//     var line_parts = line.split(" ");
+//     line_parts.splice(1, 0, 'package="' + 'ff-' + version + '"');
+//     line = line_parts.join(" ");
+//   }
+//
+//   XMLReport += line;
+// };
+//
+//
 
 runner.on('end', function () {
-  writeTestResultsToFile(XMLReport);
-  writeLogsToFile(logs);
-  if(getParameterByName('closeOnFinish') === "1") { closeBrowser(); }
+  if (getParameterByName('closeOnFinish') === "1") { closeBrowser(); }
 });
+
 }
-start()
+
+TESTS.TestToDos = function() {
+  describe('TODO', function() {
+    xit('green ads should be enabled');
+  });
+};
+
+start();

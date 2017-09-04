@@ -1,12 +1,12 @@
 import { isIpAddress } from './url';
 import tlds from '../platform/tldjs';
+import TLDs from './tlds-legacy';
 
 // Re-export symbols from `tldjs`
 const getDomain = tlds.getDomain.bind(tlds);
 const getPublicSuffix = tlds.getPublicSuffix.bind(tlds);
 const getSubdomain = tlds.getSubdomain.bind(tlds);
 const tldExists = tlds.tldExists.bind(tlds);
-const TLDs = tlds.rules;
 
 //
 // Efficient implementation of get general domain with built-in caching.
@@ -35,6 +35,10 @@ function _extractDomain(url) {
 
   if (domain.startsWith('www.')) {
     domain = domain.substring(4);
+  }
+
+  if (domain.endsWith('.')) {
+    domain = domain.substring(0, domain.length - 1);
   }
 
   return domain;
@@ -77,6 +81,10 @@ class SuffixTreeDomainCache {
     const cacheResult = this.lookup(hostname);
     if (cacheResult) {
       return cacheResult;
+    }
+
+    if (hostname === 'localhost') {
+      return hostname;
     }
 
     // If it's a valid IP address, we return it.
@@ -161,5 +169,5 @@ export default {
   getDomain,
   getSubdomain,
   tldExists,
-  TLDs,
+  TLDs
 };

@@ -1,10 +1,10 @@
 "use strict";
 const Funnel = require('broccoli-funnel');
 const MergeTrees = require('broccoli-merge-trees');
-const concat = require('broccoli-sourcemap-concat');
 const cliqzConfig = require('./config');
 const modules = require('./modules-tree');
 const writeFile = require('broccoli-file-creator');
+const concat = require('broccoli-concat');
 
 // input trees
 const mobileSpecific  = new Funnel('specific/mobile', { exclude: ['skin/sass/**/*', '*.py'] });

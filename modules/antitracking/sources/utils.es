@@ -1,5 +1,8 @@
 import { toBase64 } from '../core/encoding';
 import { compress } from '../core/gzip';
+import { VERSION } from './config';
+import { getHourTimestamp } from './time';
+
 
 export function compressionAvailable() {
   return compress !== false;
@@ -54,4 +57,12 @@ export function cleanTimestampCache(cacheObj, timeout, currTime) {
       delete cacheObj[k];
     }
   });
+}
+
+
+export function generateAttrackPayload(data, ts, qsVersion) {
+  const extraAttrs = qsVersion;
+  extraAttrs.ver = VERSION;
+  ts = ts || getHourTimestamp();
+  return generatePayload(data, ts, false, extraAttrs);
 }

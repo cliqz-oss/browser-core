@@ -2,7 +2,7 @@
 
 Components.utils.import('resource://gre/modules/XPCOMUtils.jsm');
 Components.utils.import('resource://gre/modules/Services.jsm');
-Components.utils.importGlobalProperties(['TextEncoder', 'TextDecoder', 'btoa', 'atob']);
+Components.utils.importGlobalProperties(['TextEncoder', 'TextDecoder', 'btoa', 'atob', 'XMLHttpRequest']);
 
 var global = {
   Cc: Components.classes,
@@ -17,7 +17,10 @@ var global = {
   TextDecoder: TextDecoder,
   btoa: btoa,
   atob: atob,
+  XMLHttpRequest: XMLHttpRequest,
+  location: { protocol: 'https://' },
 };
+global.global = global;
 
 try {
   Components.utils.importGlobalProperties(['crypto']);
@@ -29,14 +32,6 @@ try {
 (function (exports) {
   function loadTimers() {
     Services.scriptloader.loadSubScript('chrome://cliqz/content/runloop.js', global);
-  }
-
-  function loadPromise() {
-    Services.scriptloader.loadSubScript('chrome://cliqz/content/bower_components/es6-promise/es6-promise.js', global);
-    global.Promise = global.ES6Promise.Promise;
-    global.Promise._setScheduler(function (flush) {
-      return global.setTimeout(flush, 1);
-    });
   }
 
   function loadSystem() {
@@ -60,16 +55,15 @@ try {
     var context = {};
     Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm', context);
     context.CLIQZ.System = global.System;
-    global.System.import('core/utils').then(function (module) {
-      context.CLIQZ.CliqzUtils = module.default;
-    });
     global.System.import('core/events').then(function (module) {
       context.CLIQZ.CliqzEvents = module.default;
+    });
+    global.System.import('core/utils').then(function (module) {
+      context.CLIQZ.CliqzUtils = module.default;
     });
   }
 
   loadTimers();
-  loadPromise();
   loadSystem();
   loadLibs();
 
@@ -92,7 +86,7 @@ try {
 
         this.app.start();
       }.bind(this)).catch(function (e) {
-        dump('CLIQZ startup error: ' + e.name + ' -- ' + e.message + ' -- ' + e.stack + '\n')
+        dump('Cliqz startup error: ' + e.name + ' -- ' + e.message + ' -- ' + e.stack + e +'\n')
       });
     },
 

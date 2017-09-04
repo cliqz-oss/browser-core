@@ -3,10 +3,10 @@
 /* global describeModule */
 
 
-const PouchDB = System._nodeRequire('pouchdb');
-const UAParser = System._nodeRequire('ua-parser-js');
-const moment = System._nodeRequire('moment');
-const fs = System._nodeRequire('fs');
+const PouchDB = require('pouchdb');
+const UAParser = require('ua-parser-js');
+const moment = require('moment');
+const fs = require('fs');
 
 const CURRENT_DATE = '2017-01-01';
 const DATE_FORMAT = 'YYYY-MM-DD';
@@ -74,7 +74,7 @@ function testAnalysis(analysisName, signals, expected) {
 
   // Mock handling of telemetry signals
   anolysis.messageQueue.push = sinon.spy((s) => {
-    if (s.id === analysisName) {
+    if (s.type === analysisName) {
       const newSignal = Object.create(null);
 
       Object.keys(s.behavior)
@@ -88,6 +88,7 @@ function testAnalysis(analysisName, signals, expected) {
   });
 
   return Promise.all(signals.map(signal => anolysis.handleTelemetrySignal(signal)))
+    .then(() => anolysis.behaviorStorage.flush())
     .then(() => anolysis.generateAndSendAnalysesSignalsForDay(CURRENT_DATE))
     .then(() => chai.expect(telemetrySignals).to.be.eql(expected));
 }
@@ -138,6 +139,7 @@ export default describeModule('anolysis/anolysis',
         },
         setPref() {},
         setTimeout(fun) { return fun(); },
+        setInterval() {},
         clearTimeout() { },
       },
     },
@@ -148,7 +150,7 @@ export default describeModule('anolysis/anolysis',
 
           this.db = new PouchDB(
             dbName,
-            { db: System._nodeRequire('memdown') });
+            { db: require('memdown') });
 
           openedDB.push(this.db);
         }
@@ -170,6 +172,9 @@ export default describeModule('anolysis/anolysis',
         allDocs(...args) {
           return this.db.allDocs(...args);
         }
+        bulkDocs(...args) {
+          return this.db.bulkDocs(...args);
+        }
       },
     },
     'anolysis/simple-statistics': {
@@ -189,7 +194,7 @@ export default describeModule('anolysis/anolysis',
       },
     },
     'anolysis/signals-queue': {
-      default: class SignalQueue { },
+      default: class SignalQueue { flush() {} },
     },
     'anolysis/logger': {
       default: {

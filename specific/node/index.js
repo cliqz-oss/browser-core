@@ -2,7 +2,7 @@
 var app, modules = {};
 
 if(window.navigator.cookieEnabled){
-  var App = require('./core/app');
+  var App = require('./core/app').default;
 
   app = new App({});
 

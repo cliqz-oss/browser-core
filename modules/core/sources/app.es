@@ -102,7 +102,7 @@ export default class {
     utils.FEEDBACK_URL = `${utils.FEEDBACK}${this.version}-${config.settings.channel}`;
 
     const backgroundLoadingPromise = this.load().catch((e) => {
-      utils.log(e, 'Extension -- failed to init CLIQZ App');
+      utils.log(e, 'Extension -- failed to init Cliqz App');
     });
 
     // TODO: could be nicer
@@ -150,14 +150,14 @@ export default class {
      */
 
     if (disable && config.settings.channel === '40') {
-      // in the CLIQZ browser the extension runns as a system addon and
+      // in the Cliqz browser the extension runns as a system addon and
       // the user cannot disable or uninstall it. Therefore we do not need
       // to consider an uninstall signal.
       //
       // we need this override to avoid an issue in FF52. Please check:
       // https://bugzilla.mozilla.org/show_bug.cgi?id=1351617
       //
-      // TODO: find a nicer way to detect if this runs in the CLIQZ browser
+      // TODO: find a nicer way to detect if this runs in the Cliqz browser
       disable = false;
     }
 
@@ -266,7 +266,7 @@ export default class {
   }
 
   loadWindow(window) {
-    // TODO: remove CLIQZ from window
+    // TODO: remove Cliqz from window
     if (!window.CLIQZ) {
       const CLIQZ = {
         app: this,

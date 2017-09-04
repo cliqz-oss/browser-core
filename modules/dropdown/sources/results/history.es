@@ -1,11 +1,12 @@
 import { equals } from '../../core/url';
 import BaseResult from './base';
+import GenericResult from './generic';
 
 class HistoryResult extends BaseResult {
   get isHistory() { return true; }
 }
 
-export default class HistoryCluster extends BaseResult {
+export default class HistoryCluster extends GenericResult {
   constructor(rawResult, allResultsFlat = []) {
     super(rawResult, allResultsFlat);
 
@@ -61,6 +62,11 @@ export default class HistoryCluster extends BaseResult {
       ...this.results,
       ...this.internalResults.slice(0, this.internalResultsLimit),
     ];
+  }
+
+  get internalResultsLogo() {
+    const internalResults = this.internalResults || [];
+    return internalResults.length > 0 ? this.logo : null;
   }
 }
 

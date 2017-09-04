@@ -1,7 +1,8 @@
 /* eslint { "no-return-assign": "off" } */
 
-import inject from '../core/kord/inject';
+import getExtensionVersion from './demographics';
 import getSynchronizedDate from '../anolysis/synchronized-date';
+import inject from '../core/kord/inject';
 import logger from './logger';
 import moment from '../platform/moment';
 import momentRange from '../platform/moment-range';
@@ -13,11 +14,12 @@ momentRange.extendMoment(moment);
 const MODULE_STORAGE_RUNNING_KEY = 'abtests.running';
 const MODULE_STORAGE_COMPLETED_KEY = 'abtests.completed';
 // visible to other modules
-const SHARED_STORAGE_KEY = 'abtests.running';
+const SHARED_STORAGE_KEY = 'abtests_running';
 const DATE_FORMAT = 'YYYY/MM/DD';
 
 const has = (obj, prop) => Object.prototype.hasOwnProperty.call(obj, prop);
 const now = () => getSynchronizedDate().format(DATE_FORMAT);
+
 
 // TODO:
 // * support unlimited treatment lengths (?)
@@ -57,10 +59,10 @@ export default class {
     return Promise.all([
       this.moduleStorage.set(MODULE_STORAGE_RUNNING_KEY,
         this.runningTests),
-      this.sharedStorage.set(SHARED_STORAGE_KEY,
-        Object.keys(this.runningTests).map(id => `${id}_${this.runningTests[id].group}`)),
       this.moduleStorage.set(MODULE_STORAGE_COMPLETED_KEY,
         this.completedTests),
+      this.sharedStorage.set(SHARED_STORAGE_KEY,
+        JSON.stringify(Object.keys(this.runningTests).map(id => `${id}_${this.runningTests[id].group}`))),
     ]);
   }
 
@@ -228,7 +230,7 @@ export default class {
    * @returns {Boolean} - True, if the test should be started.
    */
   shouldStartTest(test) {
-    if (!this.isTestActive(test)) {
+    if (!this.isTestActive(test) || !this.isVersionMatch(test)) {
       return Promise.resolve(false);
     }
 
@@ -278,6 +280,18 @@ export default class {
   }
 
   /*
+   * Checks if the client's extension version matches the extension version
+   * required by the test.
+   *
+   * @param {Object} - The test.
+   * @returns {Boolean} – True, if the extension version matches.
+   */
+  isVersionMatch(test) {
+    const version = getExtensionVersion();
+    return (version || '').startsWith(test.core_version);
+  }
+
+  /*
    * Uses Anolysis' demographics to check for match.
    *
    * @param {Object} test - The test.
@@ -285,7 +299,7 @@ export default class {
    */
   isDemographicsMatch(test) {
     return this.anolysis.action('getCurrentDemographics')
-      .then(userDemographics => JSON.parse(userDemographics))
+      .then(userDemographics => JSON.parse(userDemographics) || {})
       .then(userDemographics =>
         Object.keys(test.demographic).every((factor) => {
           const userValue = userDemographics[factor];
@@ -299,6 +313,7 @@ export default class {
 
             return testDateRange.contains(userDate);
           }
+
           return (userValue || '').startsWith(testValue);
         })
       );

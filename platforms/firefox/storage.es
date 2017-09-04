@@ -3,20 +3,23 @@
  * browser lifecycle. On some older versions like 2x it may even crash
  * entire process.
  */
-export default function (url) {
+export default function (url = "chrome://cliqz/") {
   const uri = Services.io.newURI(url, '', null);
-  const principalFunction = Components.classes['@mozilla.org/scriptsecuritymanager;1']
-    .getService(Components.interfaces.nsIScriptSecurityManager)
-    .getNoAppCodebasePrincipal;
+  const ssm = Components.classes['@mozilla.org/scriptsecuritymanager;1']
+    .getService(Components.interfaces.nsIScriptSecurityManager);
 
-  // TODO: need proper comment
-  if (typeof principalFunction !== 'function') {
-    return undefined;
-  }
+  const principal = ssm.createCodebasePrincipal(uri, {});
 
-  const principal = principalFunction(uri);
   const dsm = Components.classes['@mozilla.org/dom/localStorage-manager;1']
     .getService(Components.interfaces.nsIDOMStorageManager);
 
-  return dsm.getLocalStorageForPrincipal(principal, '');
+  if(dsm.getLocalStorageForPrincipal){
+    return dsm.getLocalStorageForPrincipal(principal, '');
+  } else {
+    // FF57 +
+    const win = Components.classes['@mozilla.org/appshell/window-mediator;1']
+      .getService(Ci.nsIWindowMediator).getMostRecentWindow("navigator:browser");
+
+    return dsm.createStorage(win, principal, '');
+  }
 }

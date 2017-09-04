@@ -1,18 +1,22 @@
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, ScrollView, Text } from 'react-native';
 import utils from '../modules/core/utils';
 
-import { width, height, cardWidth } from '../styles/CardStyle';
+import { cardWidth, cardsGap, vpWidth } from '../styles/CardStyle';
 import Generic from './Generic';
+import Link from './Link';
 
 class Card extends React.Component {
 
   render() {
     const result = this.props.result;
+    // link doesn't propagate from child views
     return (
-      <View style={styles.container}>
-        <Generic result={result} />
-      </View>
+      <Link to={result.val} openLink={this.props.openLink}>
+        <ScrollView style={styles.container} keyboardDismissMode='on-drag'>
+          <Generic result={result} />
+        </ScrollView>
+      </Link>
     )
   }
 }
@@ -20,6 +24,10 @@ class Card extends React.Component {
 var styles = StyleSheet.create({
     container: {
       backgroundColor: '#FFFFFF',
+      paddingLeft: 10,
+      paddingRight: 10,
+      width: vpWidth,
+      // marginRight: cardsGap,
     },
   });
 

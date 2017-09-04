@@ -2,8 +2,8 @@
 /* global describeModule */
 
 
-const PouchDB = System._nodeRequire('pouchdb');
-const moment = System._nodeRequire('moment');
+const PouchDB = require('pouchdb');
+const moment = require('moment');
 
 const DATE_FORMAT = 'YYYY-MM-DD';
 const getCurrentMoment = () => moment('2017-01-01', DATE_FORMAT);
@@ -12,6 +12,12 @@ const getFormattedCurrentDate = () => getCurrentMoment().format(DATE_FORMAT);
 
 export default describeModule('anolysis/storage',
   () => ({
+    'core/cliqz': {
+      utils: {
+        setTimeout(cb) { cb(); },
+        setInterval() {},
+      },
+    },
     'anolysis/synchronized-date': {
       DATE_FORMAT,
       default() {
@@ -31,7 +37,7 @@ export default describeModule('anolysis/storage',
     let storage;
 
     beforeEach(function initDatabase() {
-      database = new PouchDB('cliqz-test-anolysis-integration-storage', { db: System._nodeRequire('memdown') });
+      database = new PouchDB('cliqz-test-anolysis-integration-storage', { db: require('memdown') });
       const Storage = this.module().default;
       storage = new Storage(database);
     });
@@ -120,7 +126,7 @@ export default describeModule('anolysis/storage',
           .then(() => storage.deleteByTimespan(timespan))
           .then(() => storage.getByTimespan({ from: 0, to: 1000 }))
           .then((records) => {
-            chai.expect(records).to.have.length.of(0);
+            chai.expect(records).to.have.lengthOf(0);
           });
       });
       it('should delete some records given (complete) timespan', () => {
@@ -136,7 +142,7 @@ export default describeModule('anolysis/storage',
           .then(() => storage.deleteByTimespan(timespan))
           .then(() => storage.getByTimespan({ from: 0, to: 1000 }))
           .then((documents) => {
-            chai.expect(documents).to.have.length.of(2);
+            chai.expect(documents).to.have.lengthOf(2);
             chai.expect(documents[0].ts).to.equal(1);
             chai.expect(documents[1].ts).to.equal(200);
           });

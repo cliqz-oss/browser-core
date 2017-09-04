@@ -107,8 +107,16 @@ export default class Mixer {
                UrlCompare.sameUrls(first[0].val, second[0].val))
     {
       // Case 2: Simple history result
-      first.shift();
-      first = [second.shift()].concat(first);
+      const localResult = first.shift();
+      const globalResult = second.shift();
+      globalResult.data.kind = [
+        ...(localResult.data.kind || []),
+        ...(globalResult.data.kind || []),
+      ];
+      first = [
+        globalResult,
+        ...first,
+      ];
     }
 
     // Remove map result from first if exists in second
@@ -356,11 +364,18 @@ export default class Mixer {
       results[1] = simple;
     }
 
-    // Only show a maximum 3 BM results
-    var cliqzRes = 0;
+    // Only show a maximum 3 BM results and 3 suggestions
+    var cliqzRes = 0, suggestions = 0;
     results = results.filter(function(r) {
-      if (r.style.indexOf('cliqz-results ') === 0) cliqzRes++;
-      return cliqzRes <= 3;
+      if (r.style.indexOf('cliqz-results ') === 0) {
+        cliqzRes++;
+        return cliqzRes <= 3;
+      }
+      if (r.style.indexOf('cliqz-suggestion') === 0) {
+        suggestions++;
+        return suggestions <= 3;
+      }
+      return true;
     });
 
     //TODO Refactor (EX-4497: Old dropdown cleanup)

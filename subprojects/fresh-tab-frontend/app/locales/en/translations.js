@@ -16,8 +16,8 @@ export default {
     "fr-language": "French"
   },
   onboarding: {
-    "title": "Woohoo! CLIQZ has been successfully installed.",
-    "hdr-privacy": "You are safe with CLIQZ.",
+    "title": "Woohoo! Cliqz has been successfully installed.",
+    "hdr-privacy": "You are safe with Cliqz.",
     "txt-privacy1": "Our innovative",
     "txt-privacy2": "Anti-Tracking & -Phishing",
     "txt-privacy3": "technologies protect you and your privacy.",
@@ -32,7 +32,7 @@ export default {
     "txt-homescreen2": "Homescreen",
     "txt-homescreen3": "with your favorite websites and trending news.",
     "cta3": "OK, let's go!",
-    "learn-more": "Learn more about CLIQZ"
+    "learn-more": "Learn more about Cliqz"
   },
   miniOnboarding: {
     "learn-more": "Learn more",
@@ -56,18 +56,18 @@ export default {
     "notifications-enable": "Enable notifications"
   },
   urlBar: {
-    "search-address": "Search or enter address"
+    "search-address": "Search Cliqz or enter address"
   },
   news: {
     "read-more": "Read more",
     "breaking-news": "Breaking news:"
   },
   abtests: {
-    "feedback": "Questions? Comments? Contact CLIQZ"
+    "feedback": "Questions? Comments? Contact Cliqz"
   },
   notifications: {
-    "hdr-new-brand": "CLIQZ is about to get a new look!",
-    "txt-new-brand1": "We are going to update the CLIQZ browser icon and overall branding soon.",
+    "hdr-new-brand": "Cliqz is about to get a new look!",
+    "txt-new-brand1": "We are going to update the Cliqz browser icon and overall branding soon.",
     "cta-new-brand": "Learn more",
     "txt-new-brand2": "about this and the latest changes",
     "hdr-share-location": "Location sharing means better search results!",
@@ -89,7 +89,10 @@ export default {
     "cta-cliqz-connect": "Here is how.",
     "hdr-win-no-support-message": "Support for Windows XP and Vista Ending",
     "txt-win-no-support-message": "Find out how you can continue using Cliqz",
-    "cta-win-no-support-message": "here"
+    "cta-win-no-support-message": "here",
+    "hdr-new-search": "New Cliqz Search",
+    "txt-new-search": "Compact, clean, straight from the address bar: Cliqz' instant search got a facelift.",
+    "cta-new-search": "Learn more..."
   },
   title: 'New Tab',
   settings: {

@@ -2,6 +2,7 @@
   "platform": "mobile",
   "testsBasePath": "./build",
   "testem_launchers": ["Mocha", "Chrome"],
+  "baseURL": "./",
   "settings": {},
   "modules": [
     "core",
@@ -15,5 +16,17 @@
     "pairing",
     "mobile-pairing",
     "static"
-  ]
+  ],
+  "bundles": [
+    "mobile-ui/app.bundle.js",
+    "mobile-history/app.bundle.js"
+  ],
+  "system": {
+    "map": {
+      "mathjs": "bower_components/mathjs/dist/math.min.js",
+      "hammer": "bower_components/hammerjs/hammer.js",
+      "jquery": "bower_components/jquery/dist/jquery.min.js",
+      "handlebars": "bower_components/handlebars/handlebars.js"
+    }
+  }
 }

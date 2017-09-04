@@ -30,4 +30,30 @@ export default {
   enableChangeEvents,
 
   disableChangeEvents,
+
+  /**
+   * Set a value of type object in preferences db
+   * @param {string}  pref - preference identifier
+   */
+  getObject(key) {
+    return JSON.parse(this.get(key, '{}'));
+  },
+
+  /**
+   * Set a value in preferences db
+   * @param {string}  pref - preference identifier
+   * @param {object|function}
+   */
+  setObject(key, value) {
+    if (value instanceof Function) {
+      const prevValue = this.getObject(key);
+      const newValue = value(prevValue);
+      this.setObject(key, newValue);
+    } else if (typeof value === 'object') {
+      this.set(key, JSON.stringify(value));
+    } else {
+      throw new TypeError();
+    }
+  },
+
 };

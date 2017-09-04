@@ -1,6 +1,7 @@
-import RNFS from 'react-native-fs';
+// import RNFS from 'react-native-fs';
+import { AsyncStorage } from 'react-native';
 
-const BASEDIR = RNFS.DocumentDirectoryPath;
+const PREFIX = "@fs:"
 
 function getFullPath(filePath) {
   if (typeof filePath === 'string') {
@@ -9,20 +10,28 @@ function getFullPath(filePath) {
   return filePath.join('_');
 }
 
+function getKey(filePath) {
+  return `${PREFIX}${getFullPath(filePath)}`;
+}
+
 export function readFile(filePath) {
-  const fileName = getFullPath(filePath);
-  return RNFS.readFile(BASEDIR + '/' + fileName);
+  const key = getKey(filePath);
+  return AsyncStorage.getItem(key).then((value) => {
+    if (value === null) {
+      return Promise.reject();
+    }
+    return Promise.resolve(value);
+  });
 }
 
 export function writeFile(filePath, data) {
-  const fileName = getFullPath(filePath);
+  const key = getKey(filePath);
   if ( typeof data !== 'string') {
     data = JSON.stringify(data);
   }
-  // fs.writeFile(getFullPath(filePath), data);
-  return RNFS.writeFile(BASEDIR + '/' + fileName, data);
+  return AsyncStorage.setItem(key, data);
 }
 
-export function mkdir(dirPath) {
+export function mkdir() {
   return Promise.resolve();
 }

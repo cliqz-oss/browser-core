@@ -3,16 +3,20 @@
 DEPS.CliqzAttrackIntegrationTest = ["core/utils"];
 TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
   var System = CliqzUtils.getWindow().CLIQZ.System,
-      CliqzAttrack = System.get("antitracking/attrack").default,
+      attrackBG = System.get("antitracking/background").default,
       CliqzHumanWeb = System.get("human-web/human-web").default,
       persist = System.get("antitracking/persistent-state"),
       AttrackBloomFilter = System.get("antitracking/bloom-filter").AttrackBloomFilter,
       BloomFilter = System.get("antitracking/bloom-filter").BloomFilter,
       QSWhitelist = System.get("antitracking/qs-whitelists").default,
       datetime = System.get("antitracking/time"),
-      trackertxt = System.get("antitracking/tracker-txt");
+      trackertxt = System.get("antitracking/tracker-txt"),
+      pipeline = System.get('webrequest-pipeline/background').default;
+
   // make sure that module is loaded (default it is not initialised on extension startup)
   CliqzUtils.setPref('modules.antitracking.enabled', true);
+
+  var CliqzAttrack = attrackBG.attrack;
 
   describe('CliqzAttrack_integration', function() {
     this.retries(1);
@@ -117,25 +121,25 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
       CliqzAttrack.config.cookieEnabled = false;
       CliqzAttrack.config.qsEnabled = false;
       // clean tp_events
-      CliqzAttrack.tp_events.commit(true);
-      CliqzAttrack.tp_events._active = {};
-      CliqzAttrack.tp_events._staged = [];
-      // clean up attrack caches
-      CliqzAttrack.recentlyModified.clear();
-      CliqzAttrack.disabled_sites.clear();
+      return CliqzAttrack.tp_events.commit(true).then(() => {
+        CliqzAttrack.tp_events._active = {};
+        CliqzAttrack.tp_events._staged = [];
+        // clean up attrack caches
+        CliqzAttrack.recentlyModified.clear();
+        CliqzAttrack.disabled_sites.clear();
 
-      // create 'up-to-date' whitelist
-      CliqzAttrack.qs_whitelist = new QSWhitelist();
-      CliqzAttrack.qs_whitelist.lastUpdate[0] = hour;
-      CliqzAttrack.qs_whitelist.lastUpdate[1] = hour;
-      CliqzAttrack.qs_whitelist.lastUpdate[2] = hour;
-      CliqzAttrack.qs_whitelist.lastUpdate[3] = hour;
+        // create 'up-to-date' whitelist
+        CliqzAttrack.qs_whitelist = new QSWhitelist();
+        CliqzAttrack.qs_whitelist.lastUpdate[0] = hour;
+        CliqzAttrack.qs_whitelist.lastUpdate[1] = hour;
+        CliqzAttrack.qs_whitelist.lastUpdate[2] = hour;
+        CliqzAttrack.qs_whitelist.lastUpdate[3] = hour;
 
-      // enable token removal
-      trackertxt.setDefaultTrackerTxtRule('replace');
+        // enable token removal
+        trackertxt.setDefaultTrackerTxtRule('replace');
 
-      console.log("----- TEST ----");
-      CliqzAttrack.initPipeline();
+        console.log("----- TEST ----");
+      })// .then(() => CliqzAttrack.initPipeline());
     });
 
     afterEach(function() {
@@ -442,7 +446,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                 'set_cookie_set': 1,
               }
             },
-            'cliqztest.de': {
+            'cliqztest2.de': {
               '/proxyiframe.html': {
                 'c': 1,
                 'type_7': 1,
@@ -912,7 +916,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
         context("Bloom filter disabled", function() {
           beforeEach(function() {
             CliqzAttrack.config.bloomFilterEnabled = false;
-            CliqzAttrack.initPipeline();
+            // CliqzAttrack.initPipeline();
           });
           describe('QS blocking enabled', QSBlocking);
         });
@@ -925,7 +929,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
             CliqzAttrack.qs_whitelist.bloomFilter = new BloomFilter('0000000000000000000', 5);
             CliqzAttrack.qs_whitelist.lastUpdate = hour;
 
-            CliqzAttrack.initPipeline();
+            // CliqzAttrack.initPipeline();
           });
           afterEach(function() {
             CliqzAttrack.config.bloomFilterEnabled = false;
@@ -942,12 +946,13 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
         testpage = 'localsafekey.html';
 
       beforeEach(function() {
+        CliqzAttrack = attrackBG.attrack;
         CliqzAttrack.config.qsEnabled = true;
         CliqzAttrack.config.safekeyValuesThreshold = 2;
         return waitFor(function() {
           return CliqzAttrack.qs_whitelist && CliqzAttrack.qs_whitelist.isReady();
         }).then(function() {
-          CliqzAttrack.initPipeline();
+          return pipeline.init().then(() => CliqzAttrack.initPipeline());
         });
       });
 

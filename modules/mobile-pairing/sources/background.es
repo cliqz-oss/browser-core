@@ -1,16 +1,27 @@
-import CliqzMasterComm from './cliqz-master-comm';
+/* global osAPI, window */
+
+import PeerMaster from '../pairing/peer-master';
 import YoutubeApp from '../pairing/apps/youtube';
 import TabsharingApp from '../pairing/apps/tabsharing';
 import PingPongApp from '../pairing/apps/pingpong';
 import PairingObserver from '../pairing/apps/pairing-observer';
 import CliqzUtils from '../core/utils';
+import background from '../core/base/background';
+import UserAgent from 'useragent.js';
 
-export default {
+export default background({
   init() {
+    const info = UserAgent.analyze(window.navigator.userAgent);
+    const deviceInfo = info.device.full || 'CLIQZ Mobile Browser';
+    const osInfo = info.os.full ? ` (${info.os.full})` : '';
+    const masterName = `${deviceInfo}${osInfo}`;
+    this.peerMaster = new PeerMaster({ masterName });
+    const CliqzMasterComm = this.peerMaster;
+
     const pingpong = new PingPongApp(
       () => {},
-      (source) => CliqzUtils.log(`Received PING from ${source}`),
-      (source) => CliqzUtils.log(`Received PONG from ${source}`)
+      source => CliqzUtils.log(`Received PING from ${source}`),
+      source => CliqzUtils.log(`Received PONG from ${source}`)
     );
     CliqzMasterComm.addObserver('PINGPONG', pingpong);
 
@@ -48,7 +59,7 @@ export default {
       }
     }, 1000 * 300);
 
-    return CliqzMasterComm.init(window.localStorage)
+    return CliqzMasterComm.init(window.localStorage, window)
     .then(() => {
       try {
         osAPI.deviceARN('setDeviceARN');
@@ -59,6 +70,6 @@ export default {
   },
   unload() {
     CliqzUtils.clearInterval(this.arnChecker);
-    CliqzMasterComm.unload();
+    this.peerMaster.unload();
   },
-};
+});

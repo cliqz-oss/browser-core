@@ -1,25 +1,72 @@
 <div class="lock"></div>
-{{#if securityON }}
+{{#unless funnelCake }}
     <header class="header">
       <div class="title">
         <span data-i18n="control-center-othersettings"></span>
         {{> support }}
       </div>
     </header>
-{{/if}}
+{{/unless}}
 <div class="accordion">
   <div class="accordion-section">
-    <a class="accordion-section-title {{#unless securityON }}active{{/unless}}"
-       href="#accordion-1"
-       data-target="quicksearch">
+    <a class="accordion-section-title {{#if funnelCake}}active{{/if}}"
+       href="#accordion-2"
+       data-target="moresearch">
       <svg id="arrow" width="13px" height="13px" viewBox="1017 657 13 13" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <defs></defs>
-        <polygon class="arrow" stroke="none" fill="#838383" fill-rule="evenodd" transform="translate(1023.344411, 663.208565) rotate(45.000000) translate(-1023.344411, -663.208565) " points="1018.95691 660.49484 1027.73191 658.821065 1026.05814 667.596065"></polygon>
+        <polygon id="Rectangle" stroke="none" fill="#838383" fill-rule="evenodd" transform="translate(1023.344411, 663.208565) rotate(45.000000) translate(-1023.344411, -663.208565) " points="1018.95691 660.49484 1027.73191 658.821065 1026.05814 667.596065"></polygon>
       </svg>
-      <span data-i18n="control-center-quicksearch"></span>
+      <span data-i18n="control-center-searchoptions"></span>
     </a>
-    <div id="accordion-1" class="accordion-section-content {{#unless securityON }}open{{/unless}}"
-         {{#unless securityON }}style="display: block;"{{/unless}}>
+    {{#if funnelCake }}
+        <header class="header no-border">
+          <div class="search-settings-title">
+            <span data-i18n="control-center-searchoptions"></span>
+          </div>
+        </header>
+    {{/if}}
+    <div id="accordion-2" class="accordion-section-content {{#if funnelCake}}open{{/if}}">
+      {{#if module.autocomplete.visible}}
+      <span class="bullet">
+        <span data-i18n="control-center-search-engine"></span>
+        <select complementarySearchChanger
+                class="custom-dropdown"
+                data-target="complementary_search">
+          {{#each module.autocomplete.state}}
+            <option {{#if default }}selected{{/if}} value="{{ name }}">
+            {{#if alias }}[{{ alias }}] {{/if}}
+            {{ name }}</option>
+          {{/each}}
+        </select>
+      </span>
+      {{/if}}
+
+      <span class="bullet">
+        <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <defs></defs>
+          <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
+            <ellipse id="Oval-2" fill="#999" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
+            <text id="i-copy" font-family="AmericanTypewriter-Bold, American Typewriter" font-size="11.2" font-weight="bold" fill="#FFFFFF">
+              <tspan x="5.50934774" y="11.3937579">i</tspan>
+            </text>
+          </g>
+        </svg>
+        <div class="tooltip explicit right">
+          <span class="title" data-i18n="control-center-info-explicit-title"></span>
+          <span data-i18n="control-center-info-explicit"></span>
+        </div>
+        <span data-i18n="control-center-explicit"></span>
+
+        <select class="custom-dropdown"
+                updatePref="extensions.cliqz.adultContentFilter"
+                data-target="search_adult">
+          {{#each module.adult.state}}
+            <option {{#if selected }}selected{{/if}} value="{{ @key }}" >{{ name }}</option>
+          {{/each}}
+        </select>
+
+      </span>
+
       {{# if module.geolocation.visible }}
       <span class="bullet">
         <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -31,7 +78,7 @@
             </text>
           </g>
         </svg>
-        <div class="tooltip share-location {{#if securityON}}top{{else}}right{{/if}}">
+        <div class="tooltip share-location right">
           <span class="title" data-i18n="control-center-info-share-location-title"></span>
           <span data-i18n="control-center-info-share-location"></span>
         </div>
@@ -46,93 +93,9 @@
           {{/each}}
         </select>
 
-
-        <span class="location-more" openUrl="https://cliqz.com/support/local-results" data-i18n="control-center-info-share-location-link"></span>
-      </span>
-      {{/if}}
-      <span class="bullet">
-        <span data-i18n="control-center-explicit"></span>
-
-        <select class="custom-dropdown"
-                updatePref="extensions.cliqz.adultContentFilter"
-                data-target="search_adult">
-          {{#each module.adult.state}}
-            <option {{#if selected }}selected{{/if}} value="{{ @key }}" >{{ name }}</option>
-          {{/each}}
-        </select>
-
-      </span>
-      {{#if module.hpn.visible }}
-      <span class="bullet"
-            state="{{#if module.hpn.state}}active{{ else }}inactive{{/if}}"
-            inactiveState="inactive">
-        <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-          <defs></defs>
-          <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
-            <ellipse id="Oval-2" fill="#999" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
-            <text id="i-copy" font-family="AmericanTypewriter-Bold, American Typewriter" font-size="11.2" font-weight="bold" fill="#FFFFFF">
-              <tspan x="5.50934774" y="11.3937579">i</tspan>
-            </text>
-          </g>
-        </svg>
-        <div class="tooltip top proxy">
-          <span class="title" data-i18n="control-center-info-hpn-title"></span>
-          <span data-i18n="control-center-info-hpn"></span>
-        </div>
-        <span>
-          <span class="cqz-switch-label"
-                updatePref='extensions.cliqz.hpn-query'
-                data-i18n="control-center-proxy"
-                data-target="search_proxy">
-          </span>
-          <span class="switches-grey">
-            <span class="cqz-switch-grey"
-                  updatePref='extensions.cliqz.hpn-query'
-                  data-target="search_proxy">
-              <span class="cqz-switch-box-grey">
-              </span>
-            </span>
-            <span class="cqz-switch-label" updatePref='extensions.cliqz.hpn-query' visible-on-state="active" data-i18n="control-center-switch-on"></span>
-            <span class="cqz-switch-label" updatePref='extensions.cliqz.hpn-query' visible-on-state="inactive" data-i18n="control-center-switch-off"></span>
-          </span>
-        </span>
-      </span>
-      {{/if}}
-    </div>
-  </div>
-  <div class="accordion-section">
-    <a class="accordion-section-title"
-       href="#accordion-2"
-       data-target="moresearch">
-      <svg id="arrow" width="13px" height="13px" viewBox="1017 657 13 13" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-        <defs></defs>
-        <polygon id="Rectangle" stroke="none" fill="#838383" fill-rule="evenodd" transform="translate(1023.344411, 663.208565) rotate(45.000000) translate(-1023.344411, -663.208565) " points="1018.95691 660.49484 1027.73191 658.821065 1026.05814 667.596065"></polygon>
-      </svg>
-      <span data-i18n="control-center-searchoptions"></span>
-
-      <span id="tips"
-        data-i18n="control-center-tips"
-        {{#if amo}}
-          openUrl="https://cliqz.com/tips-firefox"
-        {{else}}
-          openUrl="https://cliqz.com/tips"
-        {{/if}}
-      </span>
-
-    </a>
-    <div id="accordion-2" class="accordion-section-content">
-      {{#if module.autocomplete.visible}}
-      <span class="bullet">
-        <span data-i18n="control-center-search-engine"></span>
-        <select complementarySearchChanger
-                class="custom-dropdown"
-                data-target="complementary_search">
-          {{#each module.autocomplete.state}}
-            <option {{#if default }}selected{{/if}} value="{{ name }}">
-            {{#if alias }}[{{ alias }}] {{/if}}
-            {{ name }}</option>
-          {{/each}}
-        </select>
+        {{#unless funnelCake}}
+          <span class="location-more" openUrl="https://cliqz.com/support/local-results" data-i18n="control-center-info-share-location-link"></span>
+        {{/unless}}
       </span>
       {{/if}}
 
@@ -151,26 +114,36 @@
       </span>
       {{/if}}
 
+      {{#if module.hpn.visible }}
       <span class="bullet"
-            openUrl="https://cliqz.com/report-url"
-            data-target="report_url">
-        <span data-i18n="control-center-report-url"></span>
-        <svg class="bulletarrow" width="9px" height="12px" viewBox="175 40 9 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            state="{{#if module.hpn.state}}active{{ else }}inactive{{/if}}"
+            inactiveState="inactive">
+        <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
           <defs></defs>
-          <polyline id="Path-164-Copy-140" stroke="#7D7D7D" stroke-width="1.5999999" fill="none" opacity="0.554279384" points="176 41 181.896928 46.9067547 176.230646 52.5824794"></polyline>
+          <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
+            <ellipse id="Oval-2" fill="#999" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
+            <text id="i-copy" font-family="AmericanTypewriter-Bold, American Typewriter" font-size="11.2" font-weight="bold" fill="#FFFFFF">
+              <tspan x="5.50934774" y="11.3937579">i</tspan>
+            </text>
+          </g>
         </svg>
-      </span>
-
-      {{#if module.privacy-dashboard.visible }}
-        <span class="bullet"
-              openUrl="about:transparency"
-              data-target="search_transparency">
-          <span data-i18n="control-center-transparency"></span>
-          <svg class="bulletarrow" width="9px" height="12px" viewBox="175 40 9 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-            <defs></defs>
-            <polyline id="Path-164-Copy-140" stroke="#7D7D7D" stroke-width="1.5999999" fill="none" opacity="0.554279384" points="176 41 181.896928 46.9067547 176.230646 52.5824794"></polyline>
-          </svg>
+        <div class="tooltip right proxy">
+          <span class="title" data-i18n="control-center-info-hpn-title"></span>
+          <span data-i18n="control-center-info-hpn"></span>
+        </div>
+        <span>
+          <span class="cqz-switch-label"
+                data-i18n="control-center-proxy">
+          </span>
+          <select class="custom-dropdown"
+                  updatePref="extensions.cliqz.hpn-query"
+                  updatePrefType="boolean"
+                  data-target="search_proxy">
+                <option {{#if module.searchProxy.enabled}}selected{{/if}} value="true" data-i18n="control-center-enabled"></option>
+                <option {{#unless module.searchProxy.enabled}}selected{{/unless}} value="false" data-i18n="control-center-disabled"></option>
+          </select>
         </span>
+      </span>
       {{/if}}
 
       {{#if module.type-filter}}
@@ -231,28 +204,39 @@
               </text>
             </g>
           </svg>
-          <div class="tooltip top">
+          <div class="tooltip right human-web">
             <span class="title" data-i18n="control-center-info-hw-title"></span>
             <span data-i18n="control-center-info-hw"></span>
           </div>
           <span class="cqz-switch-label"
-                updatePref="extensions.cliqz.dnt"
-                data-i18n="control-center-humanweb"
-                data-target="search_humanweb">
+                data-i18n="control-center-humanweb">
           </span>
-          <span class="switches-grey">
-            <span class="cqz-switch-grey"
-                  updatePref='extensions.cliqz.dnt'
+          <select class="custom-dropdown"
+                  updatePref="extensions.cliqz.dnt"
                   data-target="search_humanweb">
-              <span class="cqz-switch-box-grey"></span>
-            </span>
-            <span class="cqz-switch-label" updatePref="extensions.cliqz.dnt" visible-on-state="active" data-i18n="control-center-switch-on"></span>
-            <span class="cqz-switch-label" updatePref="extensions.cliqz.dnt" visible-on-state="inactive" data-i18n="control-center-switch-off"></span>
-          </span>
+                <option {{#unless module.dnt.enabled}}selected{{/unless}} value="enabled" data-i18n="control-center-enabled"></option>
+                <option {{#if module.dnt.enabled}}selected{{/if}} value="disabled" data-i18n="control-center-disabled"></option>
+          </select>
         </span>
       {{/if }}
+
+      {{#if module.privacy-dashboard.visible }}
+        <span class="bullet">
+          <span data-i18n="control-center-transparency"></span>
+          <button
+            openUrl="about:transparency"
+            data-target="search_transparency"
+            data-i18n="control-center-open">
+          </button>
+          <svg class="bulletarrow" width="9px" height="12px" viewBox="175 40 9 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <defs></defs>
+            <polyline id="Path-164-Copy-140" stroke="#7D7D7D" stroke-width="1.5999999" fill="none" opacity="0.554279384" points="176 41 181.896928 46.9067547 176.230646 52.5824794"></polyline>
+          </svg>
+        </span>
+      {{/if}}
     </div>
   </div>
+  {{#if showHistorySettings}}
   <div class="accordion-section">
     <a class="accordion-section-title"
        href="#accordion-3"
@@ -264,19 +248,25 @@
       <span data-i18n="control-center-history-options"></span>
     </a>
     <div id="accordion-3" class="accordion-section-content">
-      <span class="bullet"
-            openUrl="history"
-            data-target="history_showall">
+      <span class="bullet">
         <span data-i18n="control-center-show-history"></span>
+        <button
+            openUrl="history"
+            data-target="history_showall"
+            data-i18n="control-center-open">
+        </button>
         <svg class="bulletarrow" width="9px" height="12px" viewBox="175 40 9 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
           <defs></defs>
           <polyline id="Path-164-Copy-140" stroke="#7D7D7D" stroke-width="1.5999999" fill="none" opacity="0.554279384" points="176 41 181.896928 46.9067547 176.230646 52.5824794"></polyline>
         </svg>
       </span>
-      <span class="bullet"
-            openUrl="forget_history"
-            data-target="history_forget">
+      <span class="bullet">
         <span data-i18n="control-center-forget-history"></span>
+        <button
+            openUrl="forget_history"
+            data-target="history_forget"
+            data-i18n="control-center-open">
+        </button>
         <svg class="bulletarrow" width="9px" height="12px" viewBox="175 40 9 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
           <defs></defs>
           <polyline id="Path-164-Copy-140" stroke="#7D7D7D" stroke-width="1.5999999" fill="none" opacity="0.554279384" points="176 41 181.896928 46.9067547 176.230646 52.5824794"></polyline>
@@ -295,26 +285,23 @@
               </text>
             </g>
           </svg>
-          <div class="tooltip top forget-mode">
+          <div class="tooltip right forget-mode">
             <span class="title" data-i18n="control-center-info-forget-mode-title"></span>
             <span data-i18n="control-center-info-forget-mode"></span>
           </div>
           <span class="cqz-switch-label"
-                data-i18n="control-center-forget-mode"
-                updatePref='browser.privatebrowsing.apt'
-                data-target="history_autoforget">
+                data-i18n="control-center-forget-mode">
           </span>
-          <span class="switches-grey">
-            <span class="cqz-switch-grey"
+          <select class="custom-dropdown"
                   updatePref='browser.privatebrowsing.apt'
+                  updatePrefType="boolean"
                   data-target="history_autoforget">
-              <span class="cqz-switch-box-grey"></span>
-            </span>
-          </span>
-          <span class="cqz-switch-label" updatePref='browser.privatebrowsing.apt' visible-on-state="active" data-i18n="control-center-switch-on"></span>
-          <span class="cqz-switch-label" updatePref='browser.privatebrowsing.apt' visible-on-state="inactive" data-i18n="control-center-switch-off"></span>
+                <option {{#if module.apt.state}}selected{{/if}} value="true" data-i18n="control-center-enabled"></option>
+                <option {{#unless module.apt.state}}selected{{/unless}} value="false" data-i18n="control-center-disabled"></option>
+          </select>
         </span>
       {{/if}}
     </div>
+    {{/if}}
   </div>
 </div>

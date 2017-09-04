@@ -49,7 +49,7 @@ export default class {
     this.loadedTabs = {};
     this.linksRecorded = {};// cache when we recorded links for each url
     this.linksFromDom = {};
-    this.cookiesFromDom = {}
+    this.cookiesFromDom = {};
   }
 
   init() {
@@ -106,13 +106,13 @@ export default class {
     const now = Date.now();
     const lastQuery = this.linksRecorded[url] || 0;
     if (now - lastQuery < DOM_CHECK_PERIOD) {
-      return
+      return;
     }
     this.linksRecorded[url] = now;
     return Promise.all([
 
       core.actions.getCookie(url).then(
-        cookie => self.cookiesFromDom[url] = cookie
+        (cookie) => { self.cookiesFromDom[url] = cookie; }
       ),
 
       Promise.all([
@@ -129,7 +129,7 @@ export default class {
 
         self.linksFromDom[url] = hrefSet;
       })
-    ]);
+    ]).catch(() => {});
   }
 
   clearDomLinks() {

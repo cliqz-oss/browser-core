@@ -1,21 +1,5 @@
-import utils from 'core/utils';
 import getYoutubeID from 'video-downloader/utils/get-youtube-id';
-
-Components.utils.importGlobalProperties(['XMLHttpRequest']);
-
-const global = {
-  XMLHttpRequest,
-  location: { protocol: 'https://' },
-  setTimeout: utils.setTimeout,
-  clearTimeout: utils.clearTimeout,
-  setInterval: utils.setInterval,
-  clearInterval: utils.clearInterval,
-};
-global.window = global;
-
-Services.scriptloader.loadSubScript('chrome://cliqz/content/video-downloader/lib/ytdl-core.js', global);
-
-const getInfo = global.ytdl.getInfo.bind(global.ytdl);
+import getInfo from '../lib/ytdl-core';
 
 // This takes a bit, not perfect... Will it be blocked if too much traffic?
 function handleFormats(formats) {

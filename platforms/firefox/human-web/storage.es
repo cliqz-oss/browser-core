@@ -557,8 +557,7 @@ export default class {
         if (aReason != Components.interfaces.mozIStorageStatementCallback.REASON_FINISHED) {
           this.humanWeb.log("SQL canceled or aborted");
           callback(true);
-        }
-        else {
+        } else {
           if (res.length == 1) {
             if (res[0].ref!='' && res[0].ref!=null) {
               // the urls already exists in the DB, it has been seen before
@@ -586,7 +585,7 @@ export default class {
             callback(true);
           }
         }
-      }.bind(this)
+      },
     });
   }
 

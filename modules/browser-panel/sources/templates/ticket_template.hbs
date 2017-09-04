@@ -23,20 +23,18 @@
 
         {{#if call_to_action }}
             <div class="cqz-call-to-action">
-                <a href="#{{ call_to_action.url }}"
+                <a openUrl="{{ call_to_action.url }}"
                    class="cqz-btn"
-                   data-cqz-of-btn-id="call-to-action"
-                   target="{{ call_to_action.target }}"
+                   data-cqz-of-btn-id="offer_ca_action"
                     style="color: {{ styles.call-to-action-color }}; background: {{ styles.call-to-action-bg-color }}">
                     {{ call_to_action.text }}
                 </a>
                 <a class="cqz-power-by"
-                   data-cqz-of-btn-id="more-about-offer"
                    style="color: {{ styles.description-color }}">
                     <i style="margin-top: 0;">
                         <svg id="Layer_1" width="16" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 99.8 99.72"><title>Cliqz logo 2016_2</title><polygon points="80.36 74.39 99.8 67.89 46.08 46 67.97 99.72 74.47 80.28 92.65 98.46 98.54 92.57 80.36 74.39"/><path d="M76.25,106.34a29.4,29.4,0,1,1,29.4-29.4c0,0.18,0,.36,0,0.54l19.27,7.85A49.42,49.42,0,1,0,84.53,125.6l-7.85-19.28Z" transform="translate(-26.88 -27.58)"/></svg>
                     </i>
-                    Bereitgestellt von CLIQZ
+                    Bereitgestellt von Cliqz
                 </a>
             </div>
         {{/if }}
@@ -49,7 +47,7 @@
             {{#if code }}
                 <div class="cqz-offer-code-holder">
                     <span class="cqz-offer-code-info">Code kopiert</span>
-                    <span class="cqz-offer-code" data-cqz-of-btn-id="copy-code">{{ code }}</span>
+                    <span class="cqz-offer-code" data-cqz-of-btn-id="code_copied">{{ code }}</span>
                 </div>
             {{/if }}
 
@@ -60,10 +58,9 @@
                 {{/if }}
                 {{ desc }}
             </div>
-            <a href="https://cliqz.com/desktop/cliqz-angebote"
-               target="_blank"
+            <a openUrl="https://cliqz.com/desktop/cliqz-angebote"
                class="cqz-power-by"
-               data-cqz-of-btn-id="more-about-cliqz"
+               data-cqz-of-btn-id="more_about_cliqz"
                style="color: {{ styles.description-color }}">
                 <i>
                     <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
@@ -78,9 +75,9 @@
                         c13.468-11.463,33.435-11.215,44.6,0.553C328.843,149.066,326.98,167.902,313.516,179.372z"/>
                     </svg>
                 </i>
-                Mehr Informationen über CLIQZ Offers
+                Mehr Informationen über Cliqz Offers
             </a>
         </div>
     </div>
 </div>
-<span class="cqz-close" data-cqz-of-btn-id="close-offer"></span>
+<span class="cqz-close" data-cqz-of-btn-id="offer_closed"></span>

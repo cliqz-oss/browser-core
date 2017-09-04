@@ -1,7 +1,7 @@
 import ResourceLoader, { Resource, UpdateCallbackHandler } from '../core/resource-loader';
 import Language from '../core/language';
 import { platformName } from '../core/platform';
-import log from './utils';
+import logger from './logger';
 
 // Disk persisting
 const RESOURCES_PATH = ['adblocker'];
@@ -14,8 +14,14 @@ const ONE_HOUR = 60 * ONE_MINUTE;
 
 
 // URLs to fetch block lists
-const BASE_URL = 'https://cdn.cliqz.com/adblocking/latest-filters/';
-const EOL = '\n';
+// We need to map the platformName to the names we use in the adblocker lists:
+// - mobile has been moved to a non-standard path
+// - firefox is currently used for any browser (including chromium), it should
+//   be renamed to 'browser' in the future, or 'firefox', 'chromium', etc.
+//   should simply be aliases for 'browser'.
+const PLATFORM = platformName === 'mobile' ? 'mobile-new' : (platformName || 'firefox');
+const CDN_URL = 'https://cdn.cliqz.com/adblocking';
+const BASE_URL = `${CDN_URL}/latest-filters/`;
 
 
 function stripProtocol(url) {
@@ -50,7 +56,7 @@ class FiltersList {
       .load()
       .then(this.updateList.bind(this))
       .catch((e) => {
-        log(`exception while loading ${this.assetName} ${e} ${e.stack}`);
+        logger.error(`exception while loading ${this.assetName} ${e} ${e.stack}`);
       });
   }
 
@@ -59,7 +65,7 @@ class FiltersList {
       .updateFromRemote()
       .then(this.updateList.bind(this))
       .catch((e) => {
-        log(`exception while updating ${this.assetName} ${e} ${e.stack}`);
+        logger.error(`exception while updating ${this.assetName} ${e} ${e.stack}`);
       });
   }
 
@@ -77,10 +83,11 @@ class FiltersList {
   }
 
   updateList(data) {
-    const filters = data.split(EOL);
-    if (filters.length > 0) {
-      return filters;
+    const trimmed = data.trim();
+    if (trimmed.length > 0) {
+      return trimmed;
     }
+
     return undefined;
   }
 }
@@ -99,7 +106,7 @@ export default class extends UpdateCallbackHandler {
 
     // Resource managing the allowed lists for the adblocker
     this.allowedListsLoader = new ResourceLoader(
-      RESOURCES_PATH.concat(platformName, 'checksums'),
+      RESOURCES_PATH.concat(PLATFORM, 'checksums'),
       {
         cron: 24 * ONE_HOUR,
         updateInterval: 15 * ONE_MINUTE,
@@ -122,9 +129,7 @@ export default class extends UpdateCallbackHandler {
   }
 
   remoteURL() {
-    // mobile has been moved to a non-standard path
-    const path = platformName === 'mobile' ? 'mobile-new' : platformName;
-    return `https://cdn.cliqz.com/adblocking/${path}/allowed-lists.json?t=${parseInt(Date.now() / 60 / 60 / 1000, 10)}`;
+    return `${CDN_URL}/${PLATFORM}/allowed-lists.json?t=${parseInt(Date.now() / 60 / 60 / 1000, 10)}`;
   }
 
   stop() {
@@ -136,7 +141,7 @@ export default class extends UpdateCallbackHandler {
       .load()
       .then(this.updateChecksums.bind(this))
       .catch((e) => {
-        log(`exception while loading allowed lists ${e} ${e.stack}`);
+        logger.error(`exception while loading allowed lists ${e} ${e.stack}`);
       });
   }
 
@@ -144,7 +149,7 @@ export default class extends UpdateCallbackHandler {
     return this.allowedListsLoader
       .updateFromRemote()
       .catch((e) => {
-        log(`exception while updating allowed lists ${e} ${e.stack}`);
+        logger.error(`exception while updating allowed lists ${e} ${e.stack}`);
       });
   }
 
@@ -170,7 +175,10 @@ export default class extends UpdateCallbackHandler {
       return overrides;
     }
 
-    return Language.state();
+    if (Language.state) {
+      return Language.state();
+    }
+    return 'en';
   }
 
   updateChecksums(allowedLists) {
@@ -230,7 +238,7 @@ export default class extends UpdateCallbackHandler {
           .load()
           .then((filters) => {
             // Ignore any empty list
-            if (filters) {
+            if (filters !== undefined) {
               return {
                 asset,
                 filters,
@@ -253,7 +261,7 @@ export default class extends UpdateCallbackHandler {
             .updateFromChecksum(checksum)
             .then((filters) => {
               // Ignore any empty list
-              if (filters) {
+              if (filters !== undefined) {
                 return {
                   asset,
                   filters,

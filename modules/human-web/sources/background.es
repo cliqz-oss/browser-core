@@ -3,6 +3,7 @@ import background from "../core/base/background";
 import HumanWeb from "./human-web";
 import { legacy as hs } from "../platform/history-service";
 import inject from "../core/kord/inject";
+import WebRequest from '../core/webrequest';
 
 /**
 * @namespace human-web
@@ -44,13 +45,19 @@ export default background({
     } else {
       this.enabled = false;
     }
+
+    WebRequest.onHeadersReceived.addListener( HumanWeb.onHeadersReceived, {
+      urls: ["*://*/*"],
+    }, ['responseHeaders']);
   },
 
   unload() {
     if (this.enabled) {
+      WebRequest.onHeadersReceived.removeListener( HumanWeb.onHeadersReceived )
       hs.removeObserver(HumanWeb.historyObserver);
       HumanWeb.unloadAtBrowser();
       HumanWeb.unload();
+
     }
   },
 
@@ -68,8 +75,8 @@ export default background({
       HumanWeb.queryCache[data.url] = {
         d: 1,
         q: data.query,
-        t: data.type,
-        pt: data.positionType,
+        t: data.isPrivateResult ? 'othr' : 'cl',
+        pt: data.positionType || '',
       };
     },
      /**
@@ -128,10 +135,15 @@ export default background({
      */
     addDataToUrl(url, key, data) {
       if (HumanWeb.state.v[url]) {
-        HumanWeb.state.v[url][key] = Object.keys(data).reduce((acc, val) => {
-          acc[val] = data[val];
-          return acc;
-        }, HumanWeb.state.v[url][key] || {});
+        if (typeof(data) === 'string') {
+          // simply update the value if it's a string
+          HumanWeb.state.v[url][key] = data;
+        } else {
+          HumanWeb.state.v[url][key] = Object.keys(data).reduce((acc, val) => {
+            acc[val] = data[val];
+            return acc;
+          }, HumanWeb.state.v[url][key] || {});
+        }
         return Promise.resolve();
       }
       return Promise.reject();

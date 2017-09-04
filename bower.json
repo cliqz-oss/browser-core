@@ -15,7 +15,6 @@
     "anonpatterns": "https://cdn.cliqz.com/human-web/patterns-anon",
     "md5": "https://cdn.cliqz.com/cliqz-crypto/md5.js",
     "mathjs": "1.0.1",
-    "es6-promise": "3.2.2",
     "system.js": "0.19.39",
     "hammerjs": "2.0.8",
     "simple-statistics": "1.0.1",
@@ -24,9 +23,9 @@
     "moment-range": "https://cdnjs.cloudflare.com/ajax/libs/moment-range/3.0.3/moment-range.js",
     "whatwg-fetch": "1.0.0",
     "qrcode.js": "https://github.com/davidshimjs/qrcodejs.git#04f46c6a0708418cb7b96fc563eacae0fbf77674",
-    "useragent.js": "https://github.com/zsxsoft/useragent.js.git#2fc1a6b48322a275f556318b026c8b9c4ecdc00e",
     "pako": "1.0.3",
-    "tablesorter": "jquery.tablesorter#^2.28.9"
+    "tablesorter": "jquery.tablesorter#^2.28.9",
+    "chai-dom": "1.5.0"
   },
   "devDependencies": {
     "mocha": "cliqz-oss/mocha#2.5.0",

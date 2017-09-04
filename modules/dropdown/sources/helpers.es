@@ -42,7 +42,7 @@ function countRemovedChars(indexes, lBound, hBound) {
 
 export default {
   take(array, number) {
-    return array.slice(0, number);
+    return array.slice(0, number || array.length);
   },
 
   even(value, options) {

@@ -19,10 +19,27 @@
   },
   "modules": [
     "core",
+    "core-cliqz",
     "autocomplete",
+    "webrequest-pipeline",
     "antitracking",
+    "freshtab",
     "antitracking-blocker",
     "adblocker",
     "static"
-  ]
+  ],
+  "react_components": {
+    "ExtensionApp": "./SearchUI"
+  },
+  "resources": {
+    "bundling": "assets",
+    "include": [
+      "core/logo-database.json",
+      "antitracking/prob.json",
+      "antitracking/config.json",
+      "antitracking/tracker_db_v2.json",
+      "antitracking-blocker/bugs_default.json",
+      "adblocker/mobile/checksums.json"
+    ]
+  }
 }

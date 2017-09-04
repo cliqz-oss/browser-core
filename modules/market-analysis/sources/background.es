@@ -17,13 +17,20 @@ export default background({
   init() {
     if (MAConfigs.IS_ENABLED) {
       CliqzMarketAnalyzer.init();
-      this.initialized = true;
       // The content of this file is subject to change
       // The file is shipped together with the releases
       const url = 'chrome://cliqz/content/market-analysis/mappings.json';
       utils.httpGet(url, (res) => {
         CliqzMarketAnalyzer.regexMappings = JSON.parse(res.response);
+        this.initialized = true;
         logger.log('>>> Loaded mappings.json <<<');
+
+        // log configurations:
+        if (MAConfigs.LOG_LEVEL === 'debug') {
+          logger.log(`Backend Addresss: ${MAConfigs.SIGNALS_BE_ADDR}`);
+          logger.log(`Signal version: ${MAConfigs.SIGNALS_VERSION}`);
+          logger.log(`Send Signal Interval (s) : ${MAConfigs.SIGNALS_SEND_INTERVAL_SECS}`);
+        }
       });
     }
   },

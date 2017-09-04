@@ -1,280 +1,283 @@
+/* eslint-disable no-param-reassign */
+
 /*
  * This module prevents user from 3rd party tracking
  */
-import inject from '../core/kord/inject';
-import pacemaker from './pacemaker';
+import { utils, events } from '../core/cliqz';
+import inject, { ModuleDisabledError } from '../core/kord/inject';
+
+import * as browser from '../platform/browser';
+import * as datetime from './time';
 import * as persist from './persistent-state';
-import TempSet from './temp-set';
 import PageEventTracker from './tp_events';
+import Pipeline from '../webrequest-pipeline/pipeline';
+import QSWhitelist from './qs-whitelists';
+import TempSet from './temp-set';
+import cleanLegacyDb from './legacy/database';
 import md5 from './md5';
-import { URLInfo, shuffle } from './url';
-import { getGeneralDomain } from './domain';
+import pacemaker from './pacemaker';
+import telemetry from './telemetry';
+import { AttrackBloomFilter } from './bloom-filter';
 import { HashProb } from './hash';
 import { TrackerTXT, getDefaultTrackerTxtRule } from './tracker-txt';
-import { AttrackBloomFilter } from './bloom-filter';
-import * as datetime from './time';
-import QSWhitelist from './qs-whitelists';
-import { utils, events } from '../core/cliqz';
-import ResourceLoader from '../core/resource-loader';
-import { compressionAvailable, compressJSONToBase64, generatePayload } from './utils';
-import * as browser from '../platform/browser';
-import WebRequest from '../core/webrequest';
-import telemetry from './telemetry';
+import { URLInfo, shuffle } from './url';
+import { VERSION, MIN_BROWSER_VERSION } from './config';
 import console from '../core/console';
-import domainInfo from '../core/domain-info';
-import Pipeline from './pipeline';
+import domainInfo, { getDomainOwner, getBugOwner } from '../core/domain-info';
 import { checkInstalledPrivacyAddons } from '../platform/addon-check';
-import cleanLegacyDb from './legacy/database';
+import { compressionAvailable, compressJSONToBase64, generateAttrackPayload } from './utils';
+import { getGeneralDomain } from './domain';
 
-import { determineContext, skipInternalProtocols, checkSameGeneralDomain } from './steps/context';
-import PageLogger from './steps/page-logger';
-import TokenExaminer from './steps/token-examiner';
-import TokenTelemetry from './steps/token-telemetry';
-import DomChecker from './steps/dom-checker';
-import TokenChecker from './steps/token-checker';
 import BlockRules from './steps/block-rules';
 import CookieContext from './steps/cookie-context';
+import DomChecker from './steps/dom-checker';
+import PageLogger from './steps/page-logger';
 import RedirectTagger from './steps/redirect-tagger';
 import SubdomainChecker from './steps/subdomain-check';
+import TokenChecker from './steps/token-checker';
+import TokenExaminer from './steps/token-examiner';
+import TokenTelemetry from './steps/token-telemetry';
+import { skipInternalProtocols, checkSameGeneralDomain } from './steps/check-context';
 
-var countReload = false;
 
-function queryHTML(...args) {
-  const core = inject.module('core');
-  return core.action('queryHTML', ...args);
-}
+export default class CliqzAttrack {
+  constructor() {
+    this.VERSION = VERSION;
+    this.MIN_BROWSER_VERSION = MIN_BROWSER_VERSION;
+    this.LOG_KEY = 'attrack';
+    this.debug = false;
+    this.msgType = 'attrack';
+    this.similarAddon = false;
+    this.tp_events = null;
+    this.recentlyModified = new TempSet();
+    this.disabled_sites = new Set();
+    this.DISABLED_SITES_PREF = 'attrackSourceDomainWhitelist';
 
-function getCookie(...args) {
-  const core = inject.module('core');
-  return core.action('getCookie', ...args);
-}
+    // Web request pipelines
+    this.webRequestPipeline = inject.module('webrequest-pipeline');
+    this.pipelineSteps = {};
+    this.pipelines = {};
+  }
 
-var CliqzAttrack = {
-    VERSION: '0.98',
-    MIN_BROWSER_VERSION: 35,
-    LOG_KEY: 'attrack',
-    debug: false,
-    msgType:'attrack',
-    similarAddon: false,
-    tp_events: null,
-    recentlyModified: new TempSet(),
-    pipelineSteps: {},
-    obfuscate: function(s, method) {
-        // used when action != 'block'
-        // default is a placeholder
-        switch(method) {
-        case 'empty':
-            return '';
-        case 'replace':
-            return shuffle(s);
-        case 'same':
-            return s;
-        case 'placeholder':
-            return CliqzAttrack.config.placeHolder;
-        default:
-            return CliqzAttrack.config.placeHolder;
-        }
-    },
-    visitCache: {},
-    getPrivateValues: function(window) {
-        // creates a list of return values of functions may leak private info
-        var p = {};
-        // var navigator = utils.getWindow().navigator;
-        var navigator = window.navigator;
-        // plugins
-        for (var i = 0; i < navigator.plugins.length; i++) {
-            var name = navigator.plugins[i].name;
-            if (name.length >= 8) {
-                p[name] = true;
-            }
-        }
-        CliqzAttrack.privateValues = p;
-    },
-    httpopenObserver: function(requestDetails) {
-      const response =  CliqzAttrack.pipeline.execute('open', requestDetails);
-      // annotate source of this block
-      if (response.cancel || response.redirectUrl) {
-        response.source = 'ATTRACK';
+  obfuscate(s, method) {
+    // used when action != 'block'
+    // default is a placeholder
+    switch (method) {
+      case 'empty':
+        return '';
+      case 'replace':
+        return shuffle(s);
+      case 'same':
+        return s;
+      case 'placeholder':
+        return this.config.placeHolder;
+      default:
+        return this.config.placeHolder;
+    }
+  }
+
+  getPrivateValues(window) {
+    // creates a list of return values of functions may leak private info
+    const p = {};
+    // var navigator = utils.getWindow().navigator;
+    const navigator = window.navigator;
+    // plugins
+    for (let i = 0; i < navigator.plugins.length; i += 1) {
+      const name = navigator.plugins[i].name;
+      if (name.length >= 8) {
+        p[name] = true;
       }
-      return response;
-    },
-    httpResponseObserver: function(requestDetails) {
-      return CliqzAttrack.pipeline.execute('response', requestDetails);
-    },
-    httpmodObserver: function(requestDetails) {
-      return CliqzAttrack.pipeline.execute('modify', requestDetails);
-    },
-    getDefaultRule: function() {
-        if (CliqzAttrack.isForceBlockEnabled()) {
-            return 'block';
-        } else {
-            return getDefaultTrackerTxtRule();
-        }
-    },
-    isEnabled: function() {
-        return CliqzAttrack.config.enabled;
-    },
-    isCookieEnabled: function(source_hostname) {
-        if (source_hostname != undefined && CliqzAttrack.isSourceWhitelisted(source_hostname)) {
-            return false;
-        }
-        return CliqzAttrack.config.cookieEnabled;
-    },
-    isQSEnabled: function() {
-        return CliqzAttrack.config.qsEnabled;
-    },
-    isFingerprintingEnabled: function() {
-        return CliqzAttrack.config.fingerprintEnabled;
-    },
-    isReferrerEnabled: function() {
-        return CliqzAttrack.config.referrerEnabled;
-    },
-    isTrackerTxtEnabled: function() {
-        return CliqzAttrack.config.trackerTxtEnabled;
-    },
-    isBloomFilterEnabled: function() {
-        return CliqzAttrack.config.bloomFilterEnabled;
-    },
-    isForceBlockEnabled: function() {
-        return CliqzAttrack.config.forceBlockEnabled;
-    },
-    initPacemaker: function() {
-        const two_mins = 2 * 60 * 1000;
+    }
+    this.privateValues = p;
+  }
 
-        // create a constraint which returns true when the time changes at the specified fidelity
-        function timeChangeConstraint(name, fidelity) {
-            if (fidelity == "day") fidelity = 8;
-            else if(fidelity == "hour") fidelity = 10;
-            return function (task) {
-                var timestamp = datetime.getTime().slice(0, fidelity),
-                    lastHour = persist.getValue(name + "lastRun") || timestamp;
-                persist.setValue(name +"lastRun", timestamp);
-                return timestamp != lastHour;
-            };
-        }
+  getDefaultRule() {
+    if (this.isForceBlockEnabled()) {
+      return 'block';
+    }
 
-        // pacemaker.register(CliqzAttrack.updateConfig, 3 * 60 * 60 * 1000);
+    return getDefaultTrackerTxtRule();
+  }
 
-        // if the hour has changed
-        pacemaker.register(CliqzAttrack.hourChanged, two_mins, timeChangeConstraint("hourChanged", "hour"));
+  isEnabled() {
+    return this.config.enabled;
+  }
 
-        pacemaker.register(function tp_event_commit() {
-            CliqzAttrack.tp_events.commit();
-            CliqzAttrack.tp_events.push();
-        }, two_mins);
+  isCookieEnabled(sourceHostname) {
+    if (sourceHostname !== undefined && this.isSourceWhitelisted(sourceHostname)) {
+      return false;
+    }
+    return this.config.cookieEnabled;
+  }
 
-    },
-    telemetry: function({ message, raw = false, compress = false, ts = undefined }) {
-      if (!message.type) {
-        message.type = telemetry.msgType;
+  isQSEnabled() {
+    return this.config.qsEnabled;
+  }
+
+  isFingerprintingEnabled() {
+    return this.config.fingerprintEnabled;
+  }
+
+  isReferrerEnabled() {
+    return this.config.referrerEnabled;
+  }
+
+  isTrackerTxtEnabled() {
+    return this.config.trackerTxtEnabled;
+  }
+
+  isBloomFilterEnabled() {
+    return this.config.bloomFilterEnabled;
+  }
+
+  isForceBlockEnabled() {
+    return this.config.forceBlockEnabled;
+  }
+
+  initPacemaker() {
+    const twoMinutes = 2 * 60 * 1000;
+
+    // create a constraint which returns true when the time changes at the specified fidelity
+    const timeChangeConstraint = (name, fidelity) => {
+      if (fidelity === 'day') fidelity = 8;
+      else if (fidelity === 'hour') fidelity = 10;
+      return () => {
+        const timestamp = datetime.getTime().slice(0, fidelity);
+        const lastHour = persist.getValue(`${name}lastRun`) || timestamp;
+        persist.setValue(`${name}lastRun`, timestamp);
+        return timestamp !== lastHour;
+      };
+    };
+
+    // pacemaker.register(this.updateConfig, 3 * 60 * 60 * 1000);
+
+    // if the hour has changed
+    pacemaker.register(
+      this.hourChanged.bind(this),
+      twoMinutes,
+      timeChangeConstraint('hourChanged', 'hour'));
+
+    pacemaker.register(() => {
+      this.tp_events.commit();
+      this.tp_events.push();
+    }, twoMinutes);
+  }
+
+  telemetry({ message, raw = false, compress = false, ts = undefined }) {
+    if (!message.type) {
+      message.type = telemetry.msgType;
+    }
+    if (raw !== true) {
+      message.payload = generateAttrackPayload(message.payload, ts, this.qs_whitelist.getVersion());
+    }
+    if (compress === true && compressionAvailable()) {
+      message.compressed = true;
+      message.payload = compressJSONToBase64(message.payload);
+    }
+    telemetry.telemetry(message);
+  }
+
+  /** Global module initialisation.
+  */
+  init(config) {
+    this.config = config;
+    // disable for older browsers
+    if (browser.getBrowserMajorVersion() < this.MIN_BROWSER_VERSION) {
+      return Promise.resolve();
+    }
+
+    // Replace getWindow functions with window object used in init.
+    if (this.debug) console.log('Init function called:', this.LOG_KEY);
+
+    if (!this.hashProb) {
+      this.hashProb = new HashProb();
+    }
+
+    // load all caches:
+    // Large dynamic caches are loaded via the persist module, which will
+    // lazily propegate changes back to the browser's sqlite database.
+    // Large static caches (e.g. token whitelist) are loaded from sqlite
+    // Smaller caches (e.g. update timestamps) are kept in prefs
+
+    this.qs_whitelist = this.isBloomFilterEnabled() ? new AttrackBloomFilter() : new QSWhitelist();
+    const initPromises = [];
+    initPromises.push(this.qs_whitelist.init());
+
+    // force clean requestKeyValue
+    events.sub('attrack:safekeys_updated', (version, forceClean) => {
+      if (forceClean && this.pipelineSteps.tokenExaminer) {
+        this.pipelineSteps.tokenExaminer.clearCache();
       }
-      if (raw !== true) {
-        message.payload = CliqzAttrack.generateAttrackPayload(message.payload, ts);
-      }
-      if (compress === true && compressionAvailable()) {
-        message.compressed = true;
-        message.payload = compressJSONToBase64(message.payload);
-      }
-      telemetry.telemetry(message);
-    },
-    /** Global module initialisation.
-     */
-    init: function(config) {
-        this.config = config;
-        // disable for older browsers
-        if (browser.getBrowserMajorVersion() < CliqzAttrack.MIN_BROWSER_VERSION) {
-            return;
-        }
+    });
 
-        // Replace getWindow functions with window object used in init.
-        if (CliqzAttrack.debug) utils.log("Init function called:", CliqzAttrack.LOG_KEY);
+    this.checkInstalledAddons();
 
-        if (!CliqzAttrack.hashProb) {
-          CliqzAttrack.hashProb = new HashProb();
-        }
+    this.initPacemaker();
+    pacemaker.start();
 
-        // load all caches:
-        // Large dynamic caches are loaded via the persist module, which will lazily propegate changes back
-        // to the browser's sqlite database.
-        // Large static caches (e.g. token whitelist) are loaded from sqlite
-        // Smaller caches (e.g. update timestamps) are kept in prefs
+    try {
+      this.disabled_sites = new Set(JSON.parse(utils.getPref(this.DISABLED_SITES_PREF, '[]')));
+    } catch (e) {
+      this.disabled_sites = new Set();
+    }
 
-        CliqzAttrack.qs_whitelist = CliqzAttrack.isBloomFilterEnabled() ? new AttrackBloomFilter() : new QSWhitelist();
-        const initPromises = [];
-        initPromises.push(CliqzAttrack.qs_whitelist.init());
-
-        // force clean requestKeyValue
-        events.sub("attrack:safekeys_updated", (version, forceClean) => {
-            if (forceClean && CliqzAttrack.pipelineSteps.tokenExaminer) {
-                CliqzAttrack.pipelineSteps.tokenExaminer.clearCache();
-            }
+    this.tp_events = new PageEventTracker((payloadData) => {
+      // take telemetry data to be pushed and add module metadata
+      const enabled = {
+        qs: this.isQSEnabled(),
+        cookie: this.isCookieEnabled(),
+        bloomFilter: this.isBloomFilterEnabled(),
+        trackTxt: this.isTrackerTxtEnabled(),
+        forceBlock: this.isForceBlockEnabled(),
+      };
+      const updateInTime = this.qs_whitelist.isUpToDate();
+      payloadData.forEach((pageload) => {
+        const payl = {
+          data: [pageload],
+          ver: this.VERSION,
+          conf: enabled,
+          addons: this.similarAddon,
+          updateInTime,
+        };
+        this.telemetry({
+          message: { type: telemetry.msgType, action: 'attrack.tp_events', payload: payl },
+          raw: true,
         });
+      });
+    });
 
-        CliqzAttrack.checkInstalledAddons();
+    initPromises.push(this.initPipeline());
 
-        CliqzAttrack.initPacemaker();
-        pacemaker.start();
+    // cleanup legacy database
+    cleanLegacyDb();
 
-        WebRequest.onBeforeRequest.addListener(CliqzAttrack.httpopenObserver, undefined, ['blocking', 'requestHeaders']);
-        WebRequest.onBeforeSendHeaders.addListener(CliqzAttrack.httpmodObserver, undefined, ['blocking', 'requestHeaders']);
-        WebRequest.onHeadersReceived.addListener(CliqzAttrack.httpResponseObserver, undefined, ['responseHeaders']);
+    return Promise.all(initPromises);
+  }
 
-        try {
-            CliqzAttrack.disabled_sites = new Set(JSON.parse(utils.getPref(CliqzAttrack.DISABLED_SITES_PREF, "[]")));
-        } catch(e) {
-            CliqzAttrack.disabled_sites = new Set();
-        }
-
-        CliqzAttrack.tp_events = new PageEventTracker((payloadData) => {
-          // take telemetry data to be pushed and add module metadata
-          const enabled = {
-            'qs': CliqzAttrack.isQSEnabled(),
-            'cookie': CliqzAttrack.isCookieEnabled(),
-            'bloomFilter': CliqzAttrack.isBloomFilterEnabled(),
-            'trackTxt': CliqzAttrack.isTrackerTxtEnabled(),
-            'forceBlock': CliqzAttrack.isForceBlockEnabled(),
-          };
-          const updateInTime = CliqzAttrack.qs_whitelist.isUpToDate();
-          payloadData.forEach((pageload) => {
-            const payl = {
-              'data': [pageload],
-              'ver': CliqzAttrack.VERSION,
-              'conf': enabled,
-              'addons': CliqzAttrack.similarAddon,
-              'updateInTime': updateInTime,
-            }
-            CliqzAttrack.telemetry({
-              message: {'type': telemetry.msgType, 'action': 'attrack.tp_events', 'payload': payl},
-              raw: true,
-            });
-          });
-        });
-
-        CliqzAttrack.initPipeline();
-
-        // cleanup legacy database
-        cleanLegacyDb();
-
-        return Promise.all(initPromises);
-    },
-    initPipeline: function() {
-      CliqzAttrack.unloadPipeline();
-      const pipeline = CliqzAttrack.pipeline;
-
-      // initialise classes which are used as steps in listeners
+  initPipeline() {
+    return this.unloadPipeline().then(() => {
+      // Initialise classes which are used as steps in listeners
       const steps = {
-        pageLogger: new PageLogger(CliqzAttrack.tp_events),
-        tokenExaminer: new TokenExaminer(CliqzAttrack.qs_whitelist, this.config),
-        tokenTelemetry: new TokenTelemetry(CliqzAttrack.telemetry),
+        pageLogger: new PageLogger(this.tp_events),
+        tokenExaminer: new TokenExaminer(this.qs_whitelist, this.config),
+        tokenTelemetry: new TokenTelemetry(
+          this.telemetry.bind(this),
+          this.qs_whitelist,
+          this.config),
         domChecker: new DomChecker(),
-        tokenChecker: new TokenChecker(CliqzAttrack.qs_whitelist, {}, CliqzAttrack.hashProb, CliqzAttrack.config, CliqzAttrack.telemetry),
-        blockRules: new BlockRules(CliqzAttrack.config),
-        cookieContext: new CookieContext(CliqzAttrack.config, CliqzAttrack.tp_events),
+        tokenChecker: new TokenChecker(
+          this.qs_whitelist,
+          {},
+          this.hashProb,
+          this.config,
+          this.telemetry),
+        blockRules: new BlockRules(this.config),
+        cookieContext: new CookieContext(this.config, this.tp_events),
         redirectTagger: new RedirectTagger(),
-        subdomainChecker: new SubdomainChecker(CliqzAttrack.config),
+        subdomainChecker: new SubdomainChecker(this.config),
       };
 
-      CliqzAttrack.pipelineSteps = steps;
+      this.pipelineSteps = steps;
 
       // initialise step objects
       Object.keys(steps).forEach((key) => {
@@ -285,462 +288,546 @@ var CliqzAttrack = {
       });
 
       // create pipeline for on open request
-      pipeline.addAll(['open'], [
-        CliqzAttrack.qs_whitelist.isReady.bind(CliqzAttrack.qs_whitelist),
-        determineContext,
-        steps.pageLogger.logMainDocument.bind(steps.pageLogger),
-        skipInternalProtocols,
-        checkSameGeneralDomain,
-        CliqzAttrack.cancelRecentlyModified.bind(CliqzAttrack),
-        steps.subdomainChecker.checkBadSubdomain.bind(steps.subdomainChecker),
-        steps.tokenExaminer.examineTokens.bind(steps.tokenExaminer),
-        steps.tokenTelemetry.extractKeyTokens.bind(steps.tokenTelemetry),
-        steps.pageLogger.attachStatCounter.bind(steps.pageLogger),
-        steps.pageLogger.logRequestMetadata.bind(steps.pageLogger),
-        steps.domChecker.checkDomLinks.bind(steps.domChecker),
-        steps.domChecker.parseCookies.bind(steps.domChecker),
-        steps.tokenChecker.findBadTokens.bind(steps.tokenChecker),
-        function checkHasBadTokens(state) {
-          return (state.badTokens.length > 0)
-        },
-        steps.blockRules.applyBlockRules.bind(steps.blockRules),
-        CliqzAttrack.isQSEnabled.bind(CliqzAttrack),
-        function checkSourceWhitelisted(state) {
-          if (CliqzAttrack.isSourceWhitelisted(state.sourceUrlParts.hostname)) {
+      this.pipelines.open = new Pipeline('attrack.open', [
+        [steps.redirectTagger.checkRedirect.bind(steps.redirectTagger), 'redirectTagger.checkRedirect'],
+        [function checkIsMainDocument(state) {
+          return !state.requestContext.isFullPage();
+        }, 'checkIsMainDocument'],
+        [skipInternalProtocols, 'skipInternalProtocols'],
+        [checkSameGeneralDomain, 'checkSameGeneralDomain'],
+        [this.cancelRecentlyModified.bind(this), 'cancelRecentlyModified'],
+        [steps.subdomainChecker.checkBadSubdomain.bind(steps.subdomainChecker), 'subdomainChecker.checkBadSubdomain'],
+        [steps.tokenExaminer.examineTokens.bind(steps.tokenExaminer), 'tokenExaminer.examineTokens'],
+        [steps.tokenTelemetry.extractKeyTokens.bind(steps.tokenTelemetry), 'tokenTelemetry.extractKeyTokens'],
+        [steps.pageLogger.attachStatCounter.bind(steps.pageLogger), 'pageLogger.attachStatCounter'],
+        [steps.pageLogger.logRequestMetadata.bind(steps.pageLogger), 'pageLogger.logRequestMetadata'],
+        [steps.domChecker.checkDomLinks.bind(steps.domChecker), 'domChecker.checkDomLinks'],
+        [steps.domChecker.parseCookies.bind(steps.domChecker), 'domChecker.parseCookies'],
+        [steps.tokenChecker.findBadTokens.bind(steps.tokenChecker), 'tokenChecker.findBadTokens'],
+        [function checkShouldBlock(state) {
+          return state.badTokens.length > 0 && this.qs_whitelist.isUpToDate();
+        }.bind(this), 'checkShouldBlock'],
+        [this.isQSEnabled.bind(this), 'isQSEnabled'],
+        [steps.blockRules.applyBlockRules.bind(steps.blockRules), 'blockRules.applyBlockRules'],
+        [function checkSourceWhitelisted(state) {
+          if (this.isSourceWhitelisted(state.sourceUrlParts.hostname)) {
             state.incrementStat('source_whitelisted');
             return false;
           }
           return true;
-        },
-        function checkShouldBlock(state) {
-          return state.badTokens.length > 0 && CliqzAttrack.qs_whitelist.isUpToDate();
-        },
-        CliqzAttrack.applyBlock.bind(CliqzAttrack),
+        }.bind(this), 'checkSourceWhitelisted'],
+        [this.applyBlock.bind(this), 'applyBlock'],
       ]);
 
       // create pipeline for on modify request
-      pipeline.addAll(['modify'], [
-        determineContext,
-        steps.cookieContext.assignCookieTrust.bind(steps.cookieContext),
-        function checkIsMainDocument(state) {
-          return !state.requestContext.isFullPage();
-        },
-        skipInternalProtocols,
-        checkSameGeneralDomain,
-        steps.subdomainChecker.checkBadSubdomain.bind(steps.subdomainChecker),
-        steps.pageLogger.attachStatCounter.bind(steps.pageLogger),
-        function catchMissedOpenListener(state, response) {
-          if ((state.reqLog && state.reqLog.c === 0) || steps.redirectTagger.isFromRedirect(state.url)) {
-            // take output from httpopenObserver and copy into our response object
-            const openResponse = CliqzAttrack.httpopenObserver(state) || {};
-            Object.keys(openResponse).forEach((k) => {
-              response[k] = openResponse[k];
-            });
+      this.pipelines.modify = new Pipeline('attrack.modify', [
+        [steps.cookieContext.assignCookieTrust.bind(steps.cookieContext), 'cookieContext.assignCookieTrust'],
+        [steps.redirectTagger.confirmRedirect.bind(steps.redirectTagger), 'redirectTagger.confirmRedirect'],
+        [steps.pageLogger.logMainDocument.bind(steps.pageLogger), 'pageLogger.logMainDocument'],
+        [skipInternalProtocols, 'skipInternalProtocols'],
+        [checkSameGeneralDomain, 'checkSameGeneralDomain'],
+        [steps.subdomainChecker.checkBadSubdomain.bind(steps.subdomainChecker), 'subdomainChecker.checkBadSubdomain'],
+        [steps.pageLogger.attachStatCounter.bind(steps.pageLogger), 'pageLogger.attachStatCounter'],
+        [function catchMissedOpenListener(state, response) {
+          if ((state.reqLog && state.reqLog.c === 0) ||
+              steps.redirectTagger.isFromRedirect(state.url)) {
+            // take output from 'open' pipeline and copy into our response object
+            this.pipelines.open.execute(state, response);
           }
           return true;
-        },
-        function overrideUserAgent(state, response) {
-          if (CliqzAttrack.config.overrideUserAgent === true) {
+        }.bind(this), 'catchMissedOpenListener'],
+        [function overrideUserAgent(state, response) {
+          if (this.config.overrideUserAgent === true) {
             const domainHash = state.urlParts.generalDomainHash;
-            if (CliqzAttrack.qs_whitelist.isTrackerDomain(domainHash)) {
-              response.requestHeaders = response.requestHeaders || [];
-              response.requestHeaders.push({name: 'User-Agent', value: 'CLIQZ'});
+            if (this.qs_whitelist.isTrackerDomain(domainHash)) {
+              response.modifyHeader('User-Agent', 'CLIQZ');
               state.incrementStat('override_user_agent');
             }
           }
           return true;
-        },
-        function checkHasCookie(state) {
+        }.bind(this), 'overrideUserAgent'],
+        [function checkHasCookie(state) {
           state.cookieData = state.requestContext.getCookieData();
-          if (state.cookieData && state.cookieData.length>5) {
+          if (state.cookieData && state.cookieData.length > 5) {
             state.incrementStat('cookie_set');
             return true;
-          } else {
-            return false;
           }
-        },
-        CliqzAttrack.checkIsCookieWhitelisted.bind(CliqzAttrack),
-        steps.cookieContext.checkCookieTrust.bind(steps.cookieContext),
-        steps.cookieContext.checkVisitCache.bind(steps.cookieContext),
-        steps.cookieContext.checkContextFromEvent.bind(steps.cookieContext),
-        function shouldBlockCookie(state) {
-          const shouldBlock = CliqzAttrack.isCookieEnabled(state.sourceUrlParts.hostname);
+          return false;
+        }, 'checkHasCookie'],
+        [this.checkIsCookieWhitelisted.bind(this), 'checkIsCookieWhitelisted'],
+        [steps.cookieContext.checkCookieTrust.bind(steps.cookieContext), 'cookieContext.checkCookieTrust'],
+        [steps.cookieContext.checkVisitCache.bind(steps.cookieContext), 'cookieContext.checkVisitCache'],
+        [steps.cookieContext.checkContextFromEvent.bind(steps.cookieContext), 'cookieContext.checkContextFromEvent'],
+        [function shouldBlockCookie(state) {
+          const shouldBlock = this.isCookieEnabled(state.sourceUrlParts.hostname);
           if (!shouldBlock) {
             state.incrementStat('bad_cookie_sent');
           }
           return shouldBlock;
-        },
-        function blockCookie(state, response) {
+        }.bind(this), 'shouldBlockCookie'],
+        [function blockCookie(state, response) {
           state.incrementStat('cookie_blocked');
           state.incrementStat('cookie_block_tp1');
-          response.requestHeaders = response.requestHeaders || [];
-          response.requestHeaders.push({name: 'Cookie', value: ''});
-          response.requestHeaders.push({name: CliqzAttrack.config.cliqzHeader, value: ' '});
+          response.modifyHeader('Cookie', '');
+          response.modifyHeader(this.config.cliqzHeader, ' ');
           return true;
-        },
+        }.bind(this), 'blockCookie'],
       ]);
 
       // create pipeline for on response received
-      pipeline.addAll(['response'], [
-        CliqzAttrack.qs_whitelist.isReady.bind(CliqzAttrack.qs_whitelist),
-        determineContext,
-        function checkMainDocumentRedirects(state) {
+      this.pipelines.response = new Pipeline('attrack.response', [
+        [function checkMainDocumentRedirects(state) {
           if (state.requestContext.isFullPage()) {
-            if ([300, 301, 302, 303, 307].indexOf(state.requestContext.channel.responseStatus) >= 0) {
+            if ([300, 301, 302, 303, 307].indexOf(state.responseStatus) >= 0) {
               // redirect, update location for tab
               // if no redirect location set, stage the tab id so we don't get false data
-              let redirect_url = state.requestContext.getResponseHeader("Location");
-              let redirect_url_parts = URLInfo.get(redirect_url) || {};
+              const redirectUrl = state.requestContext.getResponseHeader('Location');
+              const redirectUrlParts = URLInfo.get(redirectUrl) || {};
               // if redirect is relative, use source domain
-              if (!redirect_url_parts.hostname) {
-                redirect_url_parts.hostname = state.urlParts.hostname;
-                redirect_url_parts.path = redirect_url;
+              if (!redirectUrlParts.hostname) {
+                redirectUrlParts.hostname = state.urlParts.hostname;
+                redirectUrlParts.path = redirectUrl;
               }
-              CliqzAttrack.tp_events.onRedirect(redirect_url_parts, state.requestContext.getOuterWindowID(), state.requestContext.isChannelPrivate());
+              this.tp_events.onRedirect(
+                redirectUrlParts,
+                state.tabId,
+                state.requestContext.isChannelPrivate()
+              );
             }
             return false;
           }
           return true;
-        },
-        skipInternalProtocols,
-        function skipBadSource(state) {
+        }.bind(this), 'checkMainDocumentRedirects'],
+        [skipInternalProtocols, 'skipInternalProtocols'],
+        [function skipBadSource(state) {
           return state.sourceUrl !== '' && state.sourceUrl.indexOf('about:') === -1;
-        },
-        checkSameGeneralDomain,
-        steps.redirectTagger.checkRedirectStatus.bind(steps.redirectTagger),
-        steps.pageLogger.attachStatCounter.bind(steps.pageLogger),
-        function logResponseStats(state) {
+        }, 'skipBadSource'],
+        [checkSameGeneralDomain, 'checkSameGeneralDomain'],
+        [steps.redirectTagger.checkRedirectStatus.bind(steps.redirectTagger), 'redirectTagger.checkRedirectStatus'],
+        [steps.pageLogger.attachStatCounter.bind(steps.pageLogger), 'pageLogger.attachStatCounter'],
+        [function logResponseStats(state) {
           if (state.incrementStat) {
             state.incrementStat('resp_ob');
-            state.incrementStat('content_length', parseInt(state.requestContext.getResponseHeader('Content-Length')) || 0);
-            state.incrementStat(`status_${state.requestContext.channel.responseStatus}`)
+            state.incrementStat('content_length', parseInt(state.requestContext.getResponseHeader('Content-Length'), 10) || 0);
+            state.incrementStat(`status_${state.requestContext.channel.responseStatus}`);
             state.incrementStat(state.requestContext.isCached ? 'cached' : 'not_cached');
           }
           return true;
-        },
-        function checkSetCookie(state) {
+        }, 'logResponseStats'],
+        [function checkSetCookie(state) {
           // if there is a set-cookie header, continue
-          const setCookie = state.requestContext.getResponseHeader("Set-Cookie");
+          const setCookie = state.requestContext.getResponseHeader('Set-Cookie');
           if (setCookie) {
             state.incrementStat('set_cookie_set');
             return true;
           }
           return false;
-        },
-        function shouldBlockCookie(state) {
-          return CliqzAttrack.isCookieEnabled(state.sourceUrlParts.hostname);
-        },
-        CliqzAttrack.checkIsCookieWhitelisted.bind(CliqzAttrack),
-        steps.cookieContext.checkCookieTrust.bind(steps.cookieContext),
-        steps.cookieContext.checkVisitCache.bind(steps.cookieContext),
-        steps.cookieContext.checkContextFromEvent.bind(steps.cookieContext),
-        function blockSetCookie(state, response) {
-          response.responseHeaders = [{name: 'Set-Cookie', value: ''}];
+        }, 'checkSetCookie'],
+        [function shouldBlockCookie(state) {
+          return this.isCookieEnabled(state.sourceUrlParts.hostname);
+        }.bind(this), 'shouldBlockCookie'],
+        [this.checkIsCookieWhitelisted.bind(this), 'checkIsCookieWhitelisted'],
+        [steps.cookieContext.checkCookieTrust.bind(steps.cookieContext), 'cookieContext.checkCookieTrust'],
+        [steps.cookieContext.checkVisitCache.bind(steps.cookieContext), 'cookieContext.checkVisitCache'],
+        [steps.cookieContext.checkContextFromEvent.bind(steps.cookieContext), 'cookieContext.checkContextFromEvent'],
+        [function blockSetCookie(state, response) {
+          response.modifyHeader('Set-Cookie', '');
           state.incrementStat('set_cookie_blocked');
           return true;
-        },
+        }, 'blockSetCookie'],
       ]);
-    },
-    unloadPipeline: function() {
-      Object.keys(CliqzAttrack.pipelineSteps || {}).forEach((key) => {
-        const step = CliqzAttrack.pipelineSteps[key];
-        if (step.unload) {
-          step.unload();
+
+      // Add steps to the global web request pipeline
+      return Promise.all(Object.keys(this.pipelines).map(stage =>
+        this.webRequestPipeline.action('addPipelineStep',
+          stage,
+          {
+            fn: (...args) => this.pipelines[stage].execute(...args),
+            name: `antitracking.${stage}`,
+          }
+        )
+      ));
+    });
+  }
+
+  unloadPipeline() {
+    Object.keys(this.pipelineSteps || {}).forEach((key) => {
+      const step = this.pipelineSteps[key];
+      if (step.unload) {
+        step.unload();
+      }
+    });
+
+    Object.keys(this.pipelines).forEach((stage) => {
+      this.pipelines[stage].unload();
+    });
+
+    // Remove steps to the global web request pipeline
+    // NOTE: this is async but the result can be ignored when the extension is
+    // unloaded. This is because the background from webrequest-pipeline has
+    // a synchronous `unload` method which will clean up everything anyway.
+    // But if we reload only the antitracking module, we need to be sure we
+    // removed the steps before we try to add them again.
+    return Promise.all(Object.keys(this.pipelines).map(stage =>
+      this.webRequestPipeline.action('removePipelineStep',
+        stage,
+        `antitracking.${stage}`)
+    )).then(() => {
+      this.pipelines = {};
+    });
+  }
+
+  /** Per-window module initialisation
+  */
+  initWindow(window) {
+    if (browser.getBrowserMajorVersion() < this.MIN_BROWSER_VERSION) {
+      return;
+    }
+    this.getPrivateValues(window);
+  }
+
+  unload() {
+    // don't need to unload if disabled
+    if (browser.getBrowserMajorVersion() >= this.MIN_BROWSER_VERSION) {
+      // Check is active usage, was sent
+
+      // force send tab telemetry data
+      // NOTE - this is an async operation
+      this.tp_events.commit(true, true);
+      this.tp_events.push(true);
+
+      this.qs_whitelist.destroy();
+
+      pacemaker.stop();
+
+      this.unloadPipeline().catch((err) => {
+        if (err.name === ModuleDisabledError.name) {
+          console.log('attrack', 'cannot unload: webrequest-pipeline was already unloaded');
+          return Promise.resolve();
         }
+        return Promise.reject(err);
       });
-      CliqzAttrack.pipeline = new Pipeline();
-    },
-    /** Per-window module initialisation
-     */
-    initWindow: function(window) {
-        if (browser.getBrowserMajorVersion() < CliqzAttrack.MIN_BROWSER_VERSION) {
-            return;
-        }
-        CliqzAttrack.getPrivateValues(window);
-    },
-    unload: function() {
-        // don't need to unload if disabled
-        if (browser.getBrowserMajorVersion() < CliqzAttrack.MIN_BROWSER_VERSION) {
-            return;
-        }
-        //Check is active usage, was sent
 
-        // force send tab telemetry data
-        CliqzAttrack.tp_events.commit(true, true);
-        CliqzAttrack.tp_events.push(true);
+      events.clean_channel('attrack:safekeys_updated');
+    }
+  }
 
-        CliqzAttrack.qs_whitelist.destroy();
+  checkInstalledAddons() {
+    checkInstalledPrivacyAddons().then((adds) => {
+      this.similarAddon = adds;
+    }).catch(() => {
+      // rejection expected on platforms which do not support addon check
+    });
+  }
 
-        WebRequest.onBeforeRequest.removeListener(CliqzAttrack.httpopenObserver);
-        WebRequest.onBeforeSendHeaders.removeListener(CliqzAttrack.httpmodObserver);
-        WebRequest.onHeadersReceived.removeListener(CliqzAttrack.httpResponseObserver);
+  hourChanged() {
+    // trigger other hourly events
+    events.pub('attrack:hour_changed');
+  }
 
-        pacemaker.stop();
+  isInWhitelist(domain) {
+    if (!this.config.cookieWhitelist) return false;
+    const keys = this.config.cookieWhitelist;
+    for (let i = 0; i < keys.length; i += 1) {
+      const ind = domain.indexOf(keys[i]);
+      if (ind >= 0) {
+        if ((ind + keys[i].length) === domain.length) return true;
+      }
+    }
+    return false;
+  }
 
-        CliqzAttrack.unloadPipeline();
+  cancelRecentlyModified(state, response) {
+    const sourceTab = state.tabId;
+    const url = state.url;
+    if (this.recentlyModified.contains(sourceTab + url)) {
+      this.recentlyModified.delete(sourceTab + url);
+      response.block();
+      return false;
+    }
+    return true;
+  }
 
-        events.clean_channel("attrack:safekeys_updated");
-    },
-    checkInstalledAddons: function() {
-      checkInstalledPrivacyAddons().then((adds) => {
-        CliqzAttrack.similarAddon = adds;
-      }).catch((e) => {
-        // rejection expected on platforms which do not support addon check
-      });
-    },
-    generateAttrackPayload: function(data, ts) {
-        const extraAttrs = CliqzAttrack.qs_whitelist.getVersion();
-        extraAttrs.ver = CliqzAttrack.VERSION;
-        ts = ts || datetime.getHourTimestamp();
-        return generatePayload(data, ts, false, extraAttrs);
-    },
-    hourChanged: function() {
-        // trigger other hourly events
-        events.pub("attrack:hour_changed");
-    },
-    isInWhitelist: function(domain) {
-        if(!CliqzAttrack.config.cookieWhitelist) return false;
-        var keys = CliqzAttrack.config.cookieWhitelist;
-        for(var i=0;i<keys.length;i++) {
-            var ind = domain.indexOf(keys[i]);
-            if (ind>=0) {
-                if ((ind+keys[i].length) == domain.length) return true;
-            }
-        }
-        return false;
-    },
-    cancelRecentlyModified: function(state, response) {
-      const sourceTab = state.requestContext.getOriginWindowID();
-      const url = state.url;
-      if (CliqzAttrack.recentlyModified.contains(sourceTab + url)) {
-        CliqzAttrack.recentlyModified.delete(sourceTab + url);
-        response.cancel = true;
+  applyBlock(state, response) {
+    const badTokens = state.badTokens;
+    let rule = this.getDefaultRule();
+    const trackerTxt = TrackerTXT.get(state.sourceUrlParts);
+
+    if (!this.isForceBlockEnabled() && this.isTrackerTxtEnabled()) {
+      if (trackerTxt.last_update === null) {
+        // The first update is not ready yet for this first party, allow it
+        state.incrementStat(`tracker.txt_not_ready${rule}`);
         return false;
       }
-      return true;
-    },
-    applyBlock: function(state, response) {
-      const badTokens = state.badTokens;
-      var rule = CliqzAttrack.getDefaultRule(),
-          _trackerTxt = TrackerTXT.get(state.sourceUrlParts);
-      if (!CliqzAttrack.isForceBlockEnabled() && CliqzAttrack.isTrackerTxtEnabled()) {
-          if (_trackerTxt.last_update === null) {
-              // The first update is not ready yet for this first party, allow it
-              state.incrementStat('tracker.txt_not_ready' + rule);
-              return;
+      rule = trackerTxt.getRule(state.urlParts.hostname);
+    }
+
+    if (this.debug) {
+      console.log('ATTRACK', rule, 'URL:', state.urlParts.hostname, state.urlParts.path, 'TOKENS:', badTokens);
+    }
+
+    if (rule === 'block') {
+      state.incrementStat(`token_blocked_${rule}`);
+      response.block();
+      return false;
+    }
+
+    let tmpUrl = state.requestContext.url;
+    for (let i = 0; i < badTokens.length; i += 1) {
+      if (tmpUrl.indexOf(badTokens[i]) < 0) {
+        badTokens[i] = encodeURIComponent(badTokens[i]);
+      }
+      tmpUrl = tmpUrl.replace(badTokens[i], this.obfuscate(badTokens[i], rule));
+    }
+
+    // In case unsafe tokens were in the hostname, the URI is not valid
+    // anymore and we can cancel the request.
+    if (!tmpUrl.startsWith(`${state.urlParts.protocol}://${state.urlParts.hostname}`)) {
+      response.block();
+      return false;
+    }
+
+    state.incrementStat(`token_blocked_${rule}`);
+
+    // TODO: do this nicer
+    // if (this.pipelineSteps.trackerProxy && this.pipelineSteps.trackerProxy.shouldProxy(tmpUrl)) {
+    //     state.incrementStat('proxy');
+    // }
+    this.recentlyModified.add(state.tabId + state.url, 30000);
+    this.recentlyModified.add(state.tabId + tmpUrl, 30000);
+
+    response.redirectTo(tmpUrl);
+    response.modifyHeader(this.config.cliqzHeader, ' ');
+    return true;
+  }
+
+  checkIsCookieWhitelisted(state) {
+    if (this.isInWhitelist(state.urlParts.hostname)) {
+      const stage = state.responseStatus !== undefined ? 'set_cookie' : 'cookie';
+      state.incrementStat(`${stage}_allow_whitelisted`);
+      return false;
+    }
+    return true;
+  }
+
+  /** Get info about trackers and blocking done in a specified tab.
+   *
+   *  Returns an object describing anti-tracking actions for this page, with keys as follows:
+   *    cookies: 'allowed' and 'blocked' counts.
+   *    requests: 'safe' and 'unsafe' counts. 'Unsafe' means that unsafe data
+   *      was seen in a request to a tracker.
+   *    trackers: more detailed information about each tracker. Object with
+   *      keys being tracker domain and values more detailed blocking data.
+   */
+  getTabBlockingInfo(tabId, url) {
+    const result = {
+      tab: tabId,
+      hostname: '',
+      path: '',
+      cookies: { allowed: 0, blocked: 0 },
+      requests: { safe: 0, unsafe: 0 },
+      trackers: {},
+      companies: {},
+      companyInfo: {},
+      ps: null
+    };
+
+    // ignore special tabs
+    if (url && (url.indexOf('about') === 0 || url.indexOf('chrome') === 0)) {
+      result.error = 'Special tab';
+      return Promise.resolve(result);
+    }
+
+    if (!(tabId in this.tp_events._active)) {
+      // no tp event, but 'active' tab = must reload for data
+      // otherwise -> system tab
+      return browser.checkIsWindowActive(tabId)
+        .then((active) => {
+          if (active) {
+            result.reload = true;
           }
-          rule = _trackerTxt.getRule(state.urlParts.hostname);
-      }
-      if (CliqzAttrack.debug) {
-        console.log('ATTRACK', rule, 'URL:', state.urlParts.hostname, state.urlParts.path, 'TOKENS:', badTokens);
-      }
-      if (rule == 'block') {
-          state.incrementStat('token_blocked_' + rule);
-          response.cancel = true;
-          return false;
-      } else {
-          var tmp_url = state.requestContext.url;
-          for (var i = 0; i < badTokens.length; i++) {
-              if (tmp_url.indexOf(badTokens[i]) < 0) {
-                  badTokens[i] = encodeURIComponent(badTokens[i])
-              }
-              tmp_url = tmp_url.replace(badTokens[i], CliqzAttrack.obfuscate(badTokens[i], rule));
-          }
 
-          // In case unsafe tokens were in the hostname, the URI is not valid
-          // anymore and we can cancel the request.
-          if (!tmp_url.startsWith(state.urlParts.protocol + '://' + state.urlParts.hostname)) {
-            response.cancel = true;
-            return false;
-          }
-
-          state.incrementStat('token_blocked_' + rule);
-
-          // TODO: do this nicer
-          // if (CliqzAttrack.pipelineSteps.trackerProxy && CliqzAttrack.pipelineSteps.trackerProxy.shouldProxy(tmp_url)) {
-          //     state.incrementStat('proxy');
-          // }
-          CliqzAttrack.recentlyModified.add(state.requestContext.getOriginWindowID() + state.url, 30000);
-          CliqzAttrack.recentlyModified.add(state.requestContext.getOriginWindowID() + tmp_url, 30000);
-
-          response.redirectUrl = tmp_url;
-          response.requestHeaders = response.requestHeaders || [];
-          response.requestHeaders.push({name: CliqzAttrack.config.cliqzHeader, value: ' '})
-          return true;
-      }
-    },
-    checkIsCookieWhitelisted: function(state) {
-      if (CliqzAttrack.isInWhitelist(state.urlParts.hostname)) {
-        const stage = state.responseStatus !== undefined ? 'set_cookie' : 'cookie';
-        state.incrementStat(`${stage}_allow_whitelisted`);
-        return false;
-      }
-      return true;
-    },
-    /** Get info about trackers and blocking done in a specified tab.
-     *
-     *  Returns an object describing anti-tracking actions for this page, with keys as follows:
-     *    cookies: 'allowed' and 'blocked' counts.
-     *    requests: 'safe' and 'unsafe' counts. 'Unsafe' means that unsafe data was seen in a request to a tracker.
-     *    trackers: more detailed information about each tracker. Object with keys being tracker domain and values
-     *        more detailed blocking data.
-     */
-    getTabBlockingInfo: function(tabId, url) {
-      var result = {
-          tab: tabId,
-          hostname: '',
-          path: '',
-          cookies: {allowed: 0, blocked: 0},
-          requests: {safe: 0, unsafe: 0},
-          trackers: {},
-          companies: {},
-          ps: null
-        };
-
-      // ignore special tabs
-      if (url && (url.indexOf('about') == 0 || url.indexOf('chrome') == 0)) {
-        result.error = 'Special tab';
-        return result;
-      }
-
-      if (!(tabId in CliqzAttrack.tp_events._active)) {
-        // no tp event, but 'active' tab = must reload for data
-        // otherwise -> system tab
-        if (browser.isWindowActive(tabId)) {
-          result.reload = true;
-        }
-        result.error = 'No Data';
-        return result;
-      }
-
-      var tabData = CliqzAttrack.tp_events._active[tabId],
-        plain_data = tabData.asPlainObject(),
-        trackers = Object.keys(tabData.tps).filter(function(domain) {
-          return CliqzAttrack.qs_whitelist.isTrackerDomain(md5(getGeneralDomain(domain)).substring(0, 16))
-            || plain_data.tps[domain].blocked_blocklist > 0;
-        }),
-        firstPartyCompany = domainInfo.domainOwners[getGeneralDomain(tabData.hostname)];
-      result.hostname = tabData.hostname;
-      result.path = tabData.path;
-
-      trackers.forEach(function(dom) {
-        result.trackers[dom] = {};
-        ['c', 'cookie_set', 'cookie_blocked', 'bad_cookie_sent', 'bad_qs', 'set_cookie_blocked', 'blocked_blocklist'].forEach(function (k) {
-          result.trackers[dom][k] = plain_data.tps[dom][k] || 0;
+          result.error = 'No Data';
+          return result;
         });
-        // actual block count can be in several different signals, depending on configuration. Aggregate them into one.
-        result.trackers[dom].tokens_removed = ['empty', 'replace', 'placeholder', 'block'].reduce((cumsum, action) => {
-            return cumsum + (plain_data.tps[dom]['token_blocked_' + action] || 0);
-        }, 0);
-        result.trackers[dom].tokens_removed += plain_data.tps[dom]['blocked_blocklist'] || 0;
+    }
 
-        result.cookies.allowed += result.trackers[dom].cookie_set - result.trackers[dom].cookie_blocked;
-        result.cookies.blocked += result.trackers[dom].cookie_blocked + result.trackers[dom].set_cookie_blocked;
-        result.requests.safe += result.trackers[dom].c - result.trackers[dom].tokens_removed;
-        result.requests.unsafe += result.trackers[dom].tokens_removed;
+    const tabData = this.tp_events._active[tabId];
+    const plainData = tabData.asPlainObject();
+    const trackers = Object.keys(tabData.tps).filter(domain => Promise.resolve(
+      this.qs_whitelist.isTrackerDomain(md5(getGeneralDomain(domain)).substring(0, 16)) ||
+      plainData.tps[domain].blocked_blocklist > 0
+    ));
 
-        // add set cookie blocks to cookie blocked count
-        result.trackers[dom].cookie_blocked += result.trackers[dom].set_cookie_blocked;
+    // const firstPartyCompany = domainInfo.domainOwners[getGeneralDomain(tabData.hostname)];
+    result.hostname = tabData.hostname;
+    result.path = tabData.path;
 
-        let tld = getGeneralDomain(dom),
-          company = tld;
-        // find the company behind this tracker. I
-        // If the first party is from a tracker company, then do not add the company so that the actual tlds will be shown in the list
-        if (tld in domainInfo.domainOwners && domainInfo.domainOwners[tld] !== firstPartyCompany) {
-          company = domainInfo.domainOwners[tld];
-        }
-        if (!(company in result.companies)) {
-          result.companies[company] = [];
-        }
-        result.companies[company].push(dom);
+    trackers.forEach((dom) => {
+      result.trackers[dom] = {};
+      ['c', 'cookie_set', 'cookie_blocked', 'bad_cookie_sent', 'bad_qs', 'set_cookie_blocked', 'blocked_blocklist'].forEach((k) => {
+        result.trackers[dom][k] = plainData.tps[dom][k] || 0;
       });
 
-      return result;
-    },
-    getCurrentTabBlockingInfo: function(_gBrowser) {
-      var tabId, urlForTab;
-      try {
-        var gBrowser = _gBrowser || utils.getWindow().gBrowser,
-            selectedBrowser = gBrowser.selectedBrowser;
-        // on FF < 38 selectBrowser.outerWindowID is undefined, so we get the windowID from _loadContext
-        tabId = selectedBrowser.outerWindowID || selectedBrowser._loadContext.DOMWindowID;
-        urlForTab = selectedBrowser.currentURI.spec;
-      } catch (e) {
+      // actual block count can be in several different signals, depending on
+      // configuration. Aggregate them into one.
+      result.trackers[dom].tokens_removed = ['empty', 'replace', 'placeholder', 'block'].reduce(
+        (cumsum, action) => cumsum + (plainData.tps[dom][`token_blocked_${action}`] || 0), 0
+      );
+      result.trackers[dom].tokens_removed += plainData.tps[dom].blocked_blocklist || 0;
+
+      result.cookies.allowed += (
+        result.trackers[dom].cookie_set - result.trackers[dom].cookie_blocked
+      );
+      result.cookies.blocked += (
+        result.trackers[dom].cookie_blocked + result.trackers[dom].set_cookie_blocked
+      );
+      result.requests.safe += result.trackers[dom].c - result.trackers[dom].tokens_removed;
+      result.requests.unsafe += result.trackers[dom].tokens_removed;
+
+      // add set cookie blocks to cookie blocked count
+      result.trackers[dom].cookie_blocked += result.trackers[dom].set_cookie_blocked;
+
+      const company = getDomainOwner(dom);
+      result.companyInfo[company.name] = company;
+
+      if (!(company.name in result.companies)) {
+        result.companies[company.name] = [];
       }
-      return CliqzAttrack.getTabBlockingInfo(tabId, urlForTab);
-    },
-    getTrackerListForTab: function(tabId) {
-      const info = CliqzAttrack.getTabBlockingInfo(tabId);
+      result.companies[company.name].push(dom);
+    });
+
+    return Promise.resolve(result);
+  }
+
+  getCurrentTabBlockingInfo(window) {
+    return browser.getActiveTab(window)
+      .then(({ id, url }) => this.getTabBlockingInfo(id, url));
+  }
+
+  getTrackerListForTab(tabId) {
+    return this.getTabBlockingInfo(tabId).then((info) => {
       const revComp = {};
-      Object.keys(info.companies).forEach(comp => {
-        info.companies[comp].forEach(domain => {
+      Object.keys(info.companies).forEach((comp) => {
+        info.companies[comp].forEach((domain) => {
           revComp[domain] = comp;
         });
       });
-      return Object.keys(info.trackers).map(domain => {
+      return Object.keys(info.trackers).map((domain) => {
         const name = revComp[domain] || getGeneralDomain(domain);
-        const count = info.trackers[domain].tokens_removed || 0
-        return {name, count};
+        const count = info.trackers[domain].tokens_removed || 0;
+        return { name, count };
       }).reduce((acc, val) => {
         acc[val.name] = (acc[val.name] || 0) + val.count;
-        return acc
+        return acc;
       }, {});
-    },
-    /** Enables Attrack module with cookie, QS and referrer protection enabled.
-     *  if module_only is set to true, will not set preferences for cookie, QS and referrer protection (for selective loading in AB tests)
-     */
-    enableModule: function(module_only) {
-      if (CliqzAttrack.isEnabled()) {
-          return;
-      }
-      CliqzAttrack.config.setPref('enabled', true);
-      if (!module_only) {
-        CliqzAttrack.config.setPref('cookieEnabled', true);
-        CliqzAttrack.config.setPref('qsEnabled', true);
-      }
-    },
-    /** Disables anti-tracking immediately.
-     */
-    disableModule: function() {
-      utils.setPref(CliqzAttrack.config.PREFS.enabled, false);
-    },
-    disabled_sites: new Set(),
-    DISABLED_SITES_PREF: "attrackSourceDomainWhitelist",
-    saveSourceDomainWhitelist: function() {
-      utils.setPref(CliqzAttrack.DISABLED_SITES_PREF,
-        JSON.stringify(Array.from(CliqzAttrack.disabled_sites)));
-    },
-    isSourceWhitelisted: function(hostname) {
-        return CliqzAttrack.disabled_sites.has(hostname);
-    },
-    addSourceDomainToWhitelist: function(domain) {
-      CliqzAttrack.disabled_sites.add(domain);
-      // also send domain to humanweb
-      CliqzAttrack.telemetry({
-        message: {
-          'type': telemetry.msgType,
-          'action': 'attrack.whitelistDomain',
-          'payload': domain
-        },
-        raw: true,
-      });
-      CliqzAttrack.saveSourceDomainWhitelist();
-    },
-    removeSourceDomainFromWhitelist: function(domain) {
-      CliqzAttrack.disabled_sites.delete(domain);
-      CliqzAttrack.saveSourceDomainWhitelist();
-    },
-    onUrlbarFocus(){
-      countReload = true;
-    },
-    clearCache: function() {
-      if (CliqzAttrack.pipelineSteps.tokenExaminer) {
-        CliqzAttrack.pipelineSteps.tokenExaminer.clearCache();
-      }
-      if (CliqzAttrack.pipelineSteps.tokenChecker) {
-        CliqzAttrack.pipelineSteps.tokenChecker.tokenDomain.clear();
-      }
-    },
-};
+    });
+  }
 
-export default CliqzAttrack;
+  /**
+   * Returns bugIds for a tab (based on Ghostery schema)
+   */
+  getAppsForTab(tabId) {
+    const tabData = this.tp_events._active[tabId];
+    if (!tabData) {
+      return Promise.reject();
+    }
+    const apps = {
+      known: {},
+      unknown: {}
+    };
+
+    function actionName(blocked, unsafe) {
+      if (blocked) {
+        return 'blocked';
+      }
+      if (unsafe) {
+        return 'unsafe';
+      }
+      return 'safe';
+    }
+
+    // blocked by antitracking blocker
+    if (tabData.annotations.apps) {
+      tabData.annotations.apps.forEach((action, app) => {
+        apps.known[getBugOwner(app)] = actionName(action === 'BLOCK', action === 'ALLOW_UNSAFE');
+      });
+    }
+    // blocked/seen by antitracking
+    return this.getTabBlockingInfo(tabId).then((info) => {
+      Object.keys(info.trackers).forEach((domain) => {
+        const tld = getGeneralDomain(domain);
+        const id = domainInfo.domains[tld];
+        const blocked = info.trackers[domain].tokens_removed > 0 ||
+          info.trackers[domain].blocked_blocklist > 0;
+        const unsafe = info.trackers[domain].bad_qs > 0;
+        if (id) {
+          apps.known[id] = actionName(blocked || apps.known[id] === true, unsafe);
+        } else {
+          apps.unknown[tld] = actionName(blocked, unsafe);
+        }
+      });
+
+      return apps;
+    });
+  }
+
+  /** Enables Attrack module with cookie, QS and referrer protection enabled.
+   *  if module_only is set to true, will not set preferences for cookie, QS
+   *  and referrer protection (for selective loading in AB tests)
+   */
+  enableModule(moduleOnly) {
+    if (this.isEnabled()) {
+      return;
+    }
+
+    this.config.setPref('enabled', true);
+    if (!moduleOnly) {
+      this.config.setPref('cookieEnabled', true);
+      this.config.setPref('qsEnabled', true);
+    }
+  }
+
+  /** Disables anti-tracking immediately.
+  */
+  disableModule() {
+    utils.setPref(this.config.PREFS.enabled, false);
+  }
+
+  saveSourceDomainWhitelist() {
+    utils.setPref(this.DISABLED_SITES_PREF,
+      JSON.stringify(Array.from(this.disabled_sites)));
+  }
+
+  isSourceWhitelisted(hostname) {
+    return this.disabled_sites.has(hostname);
+  }
+
+  addSourceDomainToWhitelist(domain) {
+    this.disabled_sites.add(domain);
+    // also send domain to humanweb
+    this.telemetry({
+      message: {
+        type: telemetry.msgType,
+        action: 'attrack.whitelistDomain',
+        payload: domain
+      },
+      raw: true,
+    });
+    this.saveSourceDomainWhitelist();
+  }
+
+  removeSourceDomainFromWhitelist(domain) {
+    this.disabled_sites.delete(domain);
+    this.saveSourceDomainWhitelist();
+  }
+
+  clearCache() {
+    if (this.pipelineSteps.tokenExaminer) {
+      this.pipelineSteps.tokenExaminer.clearCache();
+    }
+    if (this.pipelineSteps.tokenChecker) {
+      this.pipelineSteps.tokenChecker.tokenDomain.clear();
+    }
+  }
+}

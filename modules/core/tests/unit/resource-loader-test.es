@@ -15,8 +15,8 @@ const MOCK = {
       }
     },
   },
-  'core/cliqz': {
-    utils: {
+  'core/utils': {
+    default: {
       setInterval() {},
       getPref(pref, defaultValue) {
         return defaultValue;

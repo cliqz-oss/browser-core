@@ -117,10 +117,10 @@
         "message": "$1 (in neuem Tab öffnen)"
     },
     "whatIsCliqz":{
-        "message": "Was ist CLIQZ?"
+        "message": "Was ist Cliqz?"
     },
     "whatIsCliqzTry":{
-        "message": "Was ist CLIQZ? <-- probier es jetzt selbst und gib z.B. 'Mario Gotze' ein!"
+        "message": "Was ist Cliqz? <-- probier es jetzt selbst und gib z.B. 'Mario Gotze' ein!"
     },
     "btnPrivacyDashboard": {
         "message": "Transparenz Cockpit"
@@ -159,7 +159,7 @@
         "message": "Sicherheits-Warnung"
     },
     "anti-phishing-txt1": {
-        "message": "CLIQZ hat den Zugriff auf ("
+        "message": "Cliqz hat den Zugriff auf ("
     },
     "anti-phishing-txt2": {
         "message": ") blockiert, weil diese Seite als Phishing-Website gemeldet wurde. Phishing-Websites geben vor, vertrauenswürdig zu sein, damit du deine Anmeldedaten, dein Passwort oder andere vertrauliche Informationen preisgibst."
@@ -189,7 +189,7 @@
         "message": "AdBlock Plus auf BILD.de deaktivieren"
     },
     "adblockbildWarning":{
-        "message": "Möchtest du, dass CLIQZ AdBlock Plus auf BILD.de deaktiviert? (Auf allen anderen Seiten bleibt AdBlock Plus aktiviert)"
+        "message": "Möchtest du, dass Cliqz AdBlock Plus auf BILD.de deaktiviert? (Auf allen anderen Seiten bleibt AdBlock Plus aktiviert)"
     },
     "urlBarLastSearch":{
         "message":"↵  "
@@ -303,7 +303,7 @@
         "message":"Nicht mehr zeigen."
     },
     "onCalloutIntro":{
-        "message":"Hier ist Deine neue CLIQZ-Suchleiste"
+        "message":"Hier ist Deine neue Cliqz-Suchleiste"
     },
     "onCalloutIntroBtnStart":{
         "message":"Demo starten"
@@ -321,16 +321,16 @@
         "message":"Demo nochmal ansehen"
     },
     "onCalloutTypeHere":{
-        "message":"CLIQZ funktioniert in deiner Adressleiste – gib Deine Suche oder Webadresse einfach hier ein"
+        "message":"Cliqz funktioniert in deiner Adressleiste – gib Deine Suche oder Webadresse einfach hier ein"
     },
     "onCalloutCliqzResults":{
         "message":"Deine Webseiten-Vorschläge erscheinen sofort hier"
     },
     "onCalloutLandingPage":{
-        "message":"Mit CLIQZ direkt am Ziel--schneller suchen, länger surfen"
+        "message":"Mit Cliqz direkt am Ziel--schneller suchen, länger surfen"
     },
     "onCalloutClickHere":{
-        "message":"Klick hier um einen CLIQZ-Vorschlag auszuwählen"
+        "message":"Klick hier um einen Cliqz-Vorschlag auszuwählen"
     },
     "onCalloutNowYou":{
         "message":"Surf jetzt los!"
@@ -339,31 +339,31 @@
         "message":"Gib Deine Suche oder Webadresse einfach hier ein..."
     },
     "onMsgInstalled":{
-        "message":"Installation erfolgreich! Ab jetzt surfst Du mit CLIQZ!"
+        "message":"Installation erfolgreich! Ab jetzt surfst Du mit Cliqz!"
     },
     "onMsgDemoDone":{
-        "message":"Probier CLIQZ gleich mal aus!"
+        "message":"Probier Cliqz gleich mal aus!"
     },
     "onMsgThankYou":{
-        "message":"Danke, dass Du CLIQZ installiert hast!"
+        "message":"Danke, dass Du Cliqz installiert hast!"
     },
     "onMsgExplanation":{
-        "message":"CLIQZ verwandelt Deine Adressleiste in Deinen persönlichen Assistenten durch's Web."
+        "message":"Cliqz verwandelt Deine Adressleiste in Deinen persönlichen Assistenten durch's Web."
     },
     "offRes_Cliqz":{
-        "message":"CLIQZ"
+        "message":"Cliqz"
     },
     "offRes_AboutCliqz":{
-        "message":"CLIQZ - über uns"
+        "message":"Cliqz - über uns"
     },
     "offRes_Privacy":{
-        "message":"CLIQZ - Datenschutz"
+        "message":"Cliqz - Datenschutz"
     },
     "offRes_Support":{
-        "message":"CLIQZ - Support"
+        "message":"Cliqz - Support"
     },
     "offRes_Team":{
-        "message":"CLIQZ - Team"
+        "message":"Cliqz - Team"
     },
     "offTitle":{
         "message":"die neue Art, durch’s Web zu navigieren"
@@ -651,7 +651,7 @@
         "message": "KGV (ttm)"
     },
     "btnFreshTab": {
-      "message": "CLIQZ Tab aktivieren"
+      "message": "Cliqz Tab aktivieren"
     },
     "publish_date": {
         "message": "Veröffentlichungsdatum"
@@ -663,7 +663,7 @@
         "message": "kopiert"
     },
     "updateMessage":{
-        "message": "Mit CLIQZ surfst du ab jetzt noch schneller, noch direkter und noch smarter."
+        "message": "Mit Cliqz surfst du ab jetzt noch schneller, noch direkter und noch smarter."
     },
     "updatePage":{
         "message": "Mehr erfahren"
@@ -792,7 +792,7 @@
       "message": "Vergessen"
     },
     "cMenuFeedback": {
-      "message": "Feedback an CLIQZ"
+      "message": "Feedback an Cliqz"
     },
     "cMenuRemoveFromHistory": {
       "message": "Aus Chronik entfernen"
@@ -963,7 +963,7 @@
       "message": "Bitte überprüfe die Internet-Verbindung."
     },
     "dataCollection": {
-      "message": "CLIQZ for Firefox übermittelt anonyme Daten über Web-Suchen und Website-Besuche an Server von Cliqz um die Such- und Browser-Funktionen zu verbessern."
+      "message": "Cliqz for Firefox übermittelt anonyme Daten über Web-Suchen und Website-Besuche an Server von Cliqz um die Such- und Browser-Funktionen zu verbessern."
     },
     "learnMore": {
       "message": "Mehr erfahren"
@@ -981,19 +981,19 @@
       "message": "Einer für alle. Alle für einen. Gemeinsam für ein besseres Internet. "
     },
     "humanWeb5": {
-      "message": "CLIQZ basiert auf der Weisheit der Masse. Die Gemeinschaft der Nutzer trägt auf vollständig anonyme Weise statistische Daten zusammen. Und mit diesem Daten bewertet unsere Suchtechnologie die Relevanz und Sicherheit von Websites. Die selbst entwickelte Technologie, mithilfe der Nutzer das Internet zu indexieren, nennen wir Human Web. Als Teilnehmer am Human Web trägst du zu einem sichereren Web und zu besseren Suchergebnissen bei."
+      "message": "Cliqz basiert auf der Weisheit der Masse. Die Gemeinschaft der Nutzer trägt auf vollständig anonyme Weise statistische Daten zusammen. Und mit diesem Daten bewertet unsere Suchtechnologie die Relevanz und Sicherheit von Websites. Die selbst entwickelte Technologie, mithilfe der Nutzer das Internet zu indexieren, nennen wir Human Web. Als Teilnehmer am Human Web trägst du zu einem sichereren Web und zu besseren Suchergebnissen bei."
     },
     "humanWeb6": {
       "message": "Die Human Web-Technologie berechnet statistische Web-Traffic-Daten, also z.B. URLs (Website-Adressen) und Verweildauern auf Websites, die von der Gesamtheit jener Nutzer besucht werden, die am Human Web teilnehmen. Dies geschieht völlig anonym, ohne Bezug zu personenbezogenen Daten. IP-Adressen werden automatisch aus den Human Web-Datensätzen gelöscht."
     },
     "humanWeb7": {
-      "message": "Getrennt von diesen Web-Traffic-Daten speichert CLIQZ, ebenfalls völlig anonym, was die Gesamtheit der Nutzer im Web sucht und was sie in die kombinierte Such- und Adresszeile oben im Browserfenster eingibt. Diese Eingaben und Website-Besuche werden jeweils ausschließlich als Einzelereignis ausgewertet. Eine Verkettung von Daten aus mehreren Eingaben sowie Besuchen und damit theoretisch mögliche Rückschlüsse auf Nutzer findet nicht statt. Human Web verknüpft auch niemals personenbezogene Daten (z.B. IP-Adresse oder Email-Adresse) mit irgendwelchen Ereignissen."
+      "message": "Getrennt von diesen Web-Traffic-Daten speichert Cliqz, ebenfalls völlig anonym, was die Gesamtheit der Nutzer im Web sucht und was sie in die kombinierte Such- und Adresszeile oben im Browserfenster eingibt. Diese Eingaben und Website-Besuche werden jeweils ausschließlich als Einzelereignis ausgewertet. Eine Verkettung von Daten aus mehreren Eingaben sowie Besuchen und damit theoretisch mögliche Rückschlüsse auf Nutzer findet nicht statt. Human Web verknüpft auch niemals personenbezogene Daten (z.B. IP-Adresse oder Email-Adresse) mit irgendwelchen Ereignissen."
     },
     "humanWeb8": {
       "message": "Die Teilnahme am Human Web ist optional"
     },
     "humanWeb9": {
-      "message": "Du kannst bestimmen, ob Human Web von dir die oben beschriebenen anonymen statistischen Daten zur Verbesserung von CLIQZ sammeln darf."
+      "message": "Du kannst bestimmen, ob Human Web von dir die oben beschriebenen anonymen statistischen Daten zur Verbesserung von Cliqz sammeln darf."
     },
     "humanWeb10": {
       "message": "Ich nehme am Human Web teil"
@@ -1014,7 +1014,7 @@
       "message": "Gegenwärtig sind deine persönlichen Daten auf dieser Seite Dritten zugänglich."
     },
     "attrack-headline-deactivate": {
-      "message": "Der CLIQZ Privatsphären-Schutz ist ausgeschaltet. Private Daten sind nun Dritten zugänglich."
+      "message": "Der Cliqz Privatsphären-Schutz ist ausgeschaltet. Private Daten sind nun Dritten zugänglich."
     },
     "attrack-headline-reload": {
       "message": "Für sicheres Browsen bitte Seite neu laden"
@@ -1179,7 +1179,7 @@
       "message": "Unblock content"
     },
     "unblock_prompt": {
-      "message": "Soll CLIQZ versuchen, blockierte Youtube-Videos zu öffnen?"
+      "message": "Soll Cliqz versuchen, blockierte Youtube-Videos zu öffnen?"
     },
     "unblock_always": {
       "message": "Ja, immer"
@@ -1194,7 +1194,7 @@
       "message": "OK, wir haben es versucht. Leider können wir das Video im Moment nicht zugänglich machen"
     },
     "context-menu-search-item": {
-      "message": "CLIQZ-Suche nach \"$1\""
+      "message": "Cliqz-Suche nach \"$1\""
     },
     "streaming": {
       "message": "Stream Jetzt: "
@@ -1202,17 +1202,29 @@
     "lyrics": {
       "message": "Lyrics: "
     },
+    "control-center-icon-tooltip": {
+        "message": "Control Center"
+    },
+    "control-center-action-tooltip": {
+        "message": "Suche einstellen"
+    },
     "control-center-txt-header": {
       "message": "Deine Daten sind geschützt"
     },
+    "control-center-txt-header-funnelcake": {
+      "message": "Ihre Daten sind geschützt"
+    },
     "control-center-txt-header-not": {
       "message": "Deine Daten sind nicht geschützt"
+    },
+    "control-center-txt-header-not-funnelcake": {
+      "message": "Ihre Daten sind nicht geschützt"
     },
     "control-center-datapoints": {
       "message": "Persönliche Daten wurden entfernt"
     },
     "control-center-datapoints-inactive": {
-      "message": "Deaktiviert für diese Website"
+      "message": "Deaktiviert für diese Domain"
     },
     "control-center-datapoints-off": {
       "message": "Deaktiviert für alle Websites"
@@ -1221,19 +1233,19 @@
       "message": "Tracking Unternehmen auf dieser Seite"
     },
     "control-center-info-trackers": {
-      "message": "Auf fast allen Websites zeichnen integrierte Tracker deine Aktivitäten im Web auf. Cliqz unterbindet die Daten, anhand derer du identifiziert werden könntest, bevor sie an die Tracking-Dienste gesendet werden. Wie viele einzelne Daten das sind, sagt dir die Zahl. Klick auf das Feld um nähere Details zu sehen."
+      "message": "Integrierte Tracker zeichnen auf fast allen Websites Nutzer-Aktivitäten auf. Anti-Tracking verhindert, dass Daten, anhand derer einzelne Nutzer identifiziert werden könnten, an diese Tracking Dienste gesendet werden. Die Zahl zeigt die Menge der blockierten Datensätze auf der aktiven Seite."
     },
     "control-center-info-phishing-title": {
       "message": "Anti-Phishing"
     },
     "control-center-info-phishing": {
-      "message": "Potentiell betrügerische Websites, die es auf deine Passwörter und Kontodaten abgesehen haben, werden mit der Anti-Phishing Technologie vorzeitig erkannt und blockiert."
+      "message": "Betrügerische Websites, die es auf Passwörter und Kontodaten abgesehen haben, werden mit der Anti-Phishing Technologie vorzeitig erkannt und blockiert."
     },
     "control-center-info-ads-title": {
       "message": "Werbeblocker"
     },
     "control-center-info-ads": {
-      "message": "Die integrierte Funktion zum „Ausschalten“ von Werbung ist aktuell noch in der Entwicklungs-Phase (BETA). Schon jetzt kann Werbung generell oder nur auf einer bestimmten Website blockiert oder zugelassen werden. Ein „fairer“ Modus, der Werbung nur nach bestimmten Kriterien zulässt, ist in Planung."
+      "message": "Mit dieser Funktion können Werbungen generell oder nur für bestimmte Websites ausgeblendet werden."
     },
     "control-center-txt-privacy-cc": {
       "message": "Schütze deine Privatsphäre"
@@ -1242,13 +1254,13 @@
       "message": "Cliqz schützt deine persönlichen Daten aktiv vor dem Zugriff durch Tracker."
     },
     "control-center-info-https": {
-      "message": "Diese Funktion erhöht die Sicherheit beim Surfen, indem sie immer verschlüsselte HTTPS Verbindungen zu Websites anfordert, wenn das möglich ist. Cliqz hat dazu den quelloffenen Service HTTPS Everywhere standardmäßig integriert."
+      "message": "Diese Funktion erhöht die Sicherheit beim Surfen, indem sie immer verschlüsselte HTTPS Verbindungen zu Seiten anfordert, wenn das möglich ist. Wir haben dafür den quelloffenen Service HTTPS Everywhere eingebunden."
     },
     "control-center-info-https-title": {
       "message": "HTTPS bevorzugen"
     },
     "control-center-info-cliqz-tab": {
-      "message": "Auf neuen Tabs zeigt dir Cliqz Tab Schnellzugriffe für deine meist besuchten und favorisierten Websites und bringt dich mit aktuellen News flott auf den neuesten Stand."
+      "message": "Auf neuen Tabs zeigt dir Cliqz Tab Schnellzugriffe für deine meistbesuchten und favorisierten Websites und bringt dich mit aktuellen News flott auf den neuesten Stand."
     },
     "control-center-txt-cliqz-tab-desc": {
       "message": "Cliqz Tab zeigen"
@@ -1263,25 +1275,31 @@
       "message": "Human Web"
     },
     "control-center-info-hw": {
-      "message": "Cliqz arbeitet mit anonymisierten Daten über Suchanfragen und Website-Besuchen, die von der Gemeinschaft der Nutzer geschaffen werden. Die Technologie, die diese Daten erhebt und daraus einen Web-Index aufbaut, nennen wir Human Web."
+      "message": "Die Human Web Technologie erhebt komplett anonymisierte Daten über Suchanfragen und Website-Besuche von der Gemeinschaft der Nutzer. Sie bildet daraus den Web-Index, der die Suchfunktion speist."
     },
     "control-center-info-forget-mode-title": {
       "message": "Automatischer Vergessen Modus"
     },
     "control-center-info-forget-mode": {
-      "message": "Websites, die bekannt sind für nicht-jugendfreie Inhalte, werden automatisch in einem Vergessen Tab geöffnet. Das heißt, Besuche dieser Seiten werden nicht in der Chronik gespeichert."
+      "message": "Websites mit nicht-jugendfreien Inhalten werden automatisch in einem Vergessen Tab geöffnet. Das heißt, Besuche dieser Seiten werden nicht in der Chronik gespeichert."
     },
     "control-center-info-share-location-title": {
-      "message": "Standort Teilen"
+      "message": "Standort teilen"
     },
     "control-center-info-share-location": {
-      "message": "Cliqz kann jetzt auch nach Ergebnissen in deiner Nähe suchen. Genauere Suchergebnisse erhältst du, wenn du <strong>Immer</strong> Standort teilen auswählst. Deine Standort-Information dient nur der automatischen Verbesserung deiner Suchergebnisse und wird niemals weitergegeben oder anderweitig verwendet."
+      "message": "Die relevantesten Suchergebnisse werden gezeigt, wenn \"Standort teilen\" auf <strong>\"Immer\"</strong> eingestellt ist. Die Standort-Daten dienen dabei nur der automatischen Verbesserung der Suchergebnisse und werden niemals anderweitig verwendet."
     },
     "control-center-info-share-location-link": {
       "message": "Mehr erfahren"
     },
+    "control-center-info-explicit-title": {
+      "message": "18+ Seiten blockieren"
+    },
+    "control-center-info-explicit": {
+      "message": "Sollen Websites, die Pornographie oder Gewalt beinhalten, aus den Suchergebnissen ausgeschlossen werden?"
+    },
     "control-center-adblock-title": {
-      "message": "Werbeblocker [BETA]"
+      "message": "Werbeblocker"
     },
     "control-center-adblock-description": {
       "message": "Werbungen wurden geblockt"
@@ -1307,6 +1325,9 @@
     "control-center-othersettings": {
       "message": "Andere Einstellungen"
     },
+    "control-center-footer": {
+      "message": "BEREITGESTELLT VON CLIQZ"
+    },
     "control-center-quicksearch": {
       "message": "Sichere Schnell-Suche"
     },
@@ -1314,13 +1335,13 @@
       "message": "Standort teilen"
     },
     "control-center-explicit": {
-      "message": "Nicht-jugendfreie Seiten in Suche blockieren"
+      "message": "18+ Seiten blockieren"
     },
     "control-center-proxy": {
       "message": "Suche über Proxy"
     },
     "control-center-searchoptions": {
-      "message": "Mehr Suchoptionen"
+      "message": "Sucheinstellungen"
     },
     "control-center-search-engine": {
       "message": "Ergänzende Suchmaschine"
@@ -1329,16 +1350,16 @@
       "message": "Suchergebnisse für"
     },
     "control-center-report-url": {
-      "message": "Website melden"
+      "message": "URL melden"
     },
     "control-center-tips": {
       "message": "Tipps"
     },
     "control-center-humanweb": {
-      "message": "Am Human Web teilnehmen"
+      "message": "Human Web"
     },
     "control-center-best-cliqz": {
-      "message": "Hol dir das Beste aus CLIQZ"
+      "message": "Hol dir das Beste aus Cliqz"
     },
     "control-center-transparency": {
       "message": "Transparenz Monitor"
@@ -1437,19 +1458,19 @@
       "message": "Blockiert zum Schutz Deiner Privatssphäre"
     },
     "transparency_blocked2": {
-      "message": "Wird von CLIQZ empfangen"
+      "message": "Wird von Cliqz empfangen"
     },
     "transparency_content_title": {
       "message": "Transparenz Cockpit"
     },
     "transparency_content": {
-      "message": "Deine Privatsphäre ist uns heilig. CLIQZ erhebt keine persönlichen Daten. Damit du überprüfen kannst, welche Daten bei der Nutzung des CLIQZ-Browser generiert werden, haben wir das Transparenz Cockpit entwickelt. Dieses zeigt Dir in Echtzeit, die Daten, die wir erhalten. Um deine Privatsphäre zu schützen, werden manche Daten blockiert. Das heißt, sie veranlassen entweder gar nicht erst den Browser (z.B. Geo-Daten, sofern diese nicht erlaubt wurden) oder werden nicht weiterverarbeit bzw. mit anderen Daten kombiniert. Mach dir dein eigenes Bild!"
+      "message": "Deine Privatsphäre ist uns heilig. Cliqz erhebt keine persönlichen Daten. Damit du überprüfen kannst, welche Daten bei der Nutzung des Cliqz-Browser generiert werden, haben wir das Transparenz Cockpit entwickelt. Dieses zeigt Dir in Echtzeit, die Daten, die wir erhalten. Um deine Privatsphäre zu schützen, werden manche Daten blockiert. Das heißt, sie veranlassen entweder gar nicht erst den Browser (z.B. Geo-Daten, sofern diese nicht erlaubt wurden) oder werden nicht weiterverarbeit bzw. mit anderen Daten kombiniert. Mach dir dein eigenes Bild!"
     },
     "transparency_search_title": {
-      "message": "Deine Suche bei CLIQZ"
+      "message": "Deine Suche bei Cliqz"
     },
     "transparency_search_content": {
-      "message": "Hier siehst du Daten über die Suchanfragen und Adressen, die du über die CLIQZ-Suche eingibst. Diese Informationen helfen uns, dein Sucherlebnis zu optimieren. Wie du sehen kannst, beinhalten diese Daten keinerlei persönliche Information. Für CLIQZ bist du anonym. Du hast die Möglichkeit, Suchen über CLIQZ über ein Proxy-Netzwerk laufen zu lassen um Deine Privatssphäre noch stärker zu schützen. Weitere Informationen findest du <a target='_blank' href='https://cliqz.com/whycliqz/transparency#your-search'>hier</a>."
+      "message": "Hier siehst du Daten über die Suchanfragen und Adressen, die du über die Cliqz-Suche eingibst. Diese Informationen helfen uns, dein Sucherlebnis zu optimieren. Wie du sehen kannst, beinhalten diese Daten keinerlei persönliche Information. Für Cliqz bist du anonym. Du hast die Möglichkeit, Suchen über Cliqz über ein Proxy-Netzwerk laufen zu lassen um Deine Privatssphäre noch stärker zu schützen. Weitere Informationen findest du <a target='_blank' href='https://cliqz.com/whycliqz/transparency#your-search'>hier</a>."
     },
     "transparency_humanweb_title": {
       "message": "Human Web"
@@ -1461,7 +1482,7 @@
       "message": "Telemetrie"
     },
     "transparency_telemetry_content": {
-      "message": "Telemetrie umfasst alle Daten, die die Verwendung und Leistung des Browsers und seiner Funktionen betreffen. Wir nutzen diese Daten, um CLIQZ fortlaufend verbessern zu können. Daten die in diesen Bereich fallen, beinhalten z.B. die Browserversion oder die Zeit, bis die Ergebnisse angezeigt werden. Die Telemetriedaten  enthalten keinerlei Information über Suchanfragen, Suchergebnisse oder besuchte Webseiten. Weitere Information findest du <a target='_blank' href='https://cliqz.com/whycliqz/transparency#telemetry'>hier</a>."
+      "message": "Telemetrie umfasst alle Daten, die die Verwendung und Leistung des Browsers und seiner Funktionen betreffen. Wir nutzen diese Daten, um Cliqz fortlaufend verbessern zu können. Daten die in diesen Bereich fallen, beinhalten z.B. die Browserversion oder die Zeit, bis die Ergebnisse angezeigt werden. Die Telemetriedaten  enthalten keinerlei Information über Suchanfragen, Suchergebnisse oder besuchte Webseiten. Weitere Information findest du <a target='_blank' href='https://cliqz.com/whycliqz/transparency#telemetry'>hier</a>."
     },
     "transparency_activity_buttons": {
       "message": "Aktuell keine Aktivität"
@@ -1470,7 +1491,7 @@
       "message": "Connect"
     },
     "pairing-description": {
-      "message": "Verbinde Cliqz auf deinem Computer mit Cliqz auf deinem mobilen Gerät. Dann kannst du Websites und YouTube Videos direkt an dein Smartphone oder Tablet schicken."
+      "message": "Verbinde Cliqz auf deinem Computer mit Cliqz auf deinem Android oder iOS Gerät. Damit kannst du Tabs von deinem Computer auf den mobilen Browser schicken. Du kannst außerdem Videos direkt auf dein mobiles Gerät herunterladen."
     },
     "pairing-android-app": {
       "message": "https://play.google.com/store/apps/details?hl=de&id=com.cliqz.browser"
@@ -1478,17 +1499,32 @@
     "pairing-cliqz-for-android": {
       "message": "Cliqz für Android"
     },
+    "pairing-ios-app": {
+      "message": "https://itunes.apple.com/de/app/cliqz-browser-suchmaschine/id1065837334?mt=8"
+    },
+    "pairing-cliqz-for-ios": {
+      "message": "Cliqz für iOS"
+    },
     "pairing-video-title": {
       "message": "Videos herunterladen"
     },
-    "pairing-video-tip": {
-      "message": "Öffne ein YouTube Video.\nKlicke auf das Video Download Icon.\nWähle \"An mobiles Gerät senden\"."
+    "pairing-video-tip1": {
+      "message": "Öffne ein YouTube Video."
+    },
+    "pairing-video-tip2": {
+      "message": "Klicke auf das Video Download Icon."
+    },
+    "pairing-video-tip3": {
+      "message": "Wähle \"An mobiles Gerät senden\"."
     },
     "pairing-tab-title": {
       "message": "Tabs senden"
     },
-    "pairing-tab-tip": {
-      "message": "Klicke mit der rechten Maustaste auf einen Tab oder eine Website.\nWähle \"Tab an mobiles Gerät senden\"."
+    "pairing-tab-tip1": {
+      "message": "Klicke mit der rechten Maustaste auf einen Tab oder eine Website."
+    },
+    "pairing-tab-tip2": {
+      "message": "Wähle \"Tab an mobiles Gerät senden\"."
     },
     "pairing-browser-pair-with": {
       "message": "Dieser Browser ist jetzt verknüpft mit:"
@@ -1503,13 +1539,25 @@
       "message": "Mobiles Gerät verbinden"
     },
     "pairing-step1-title": {
-      "message": "Lade Cliqz für Android im Play Store herunter."
+      "message": "Lade dir Cliqz aus dem Play Store (Android) oder App Store (iOS) herunter."
     },
     "pairing-step2-title": {
-      "message": "Öffne die Cliqz App auf deinem mobilen Gerät. Wähle im Menü \"Connect\" aus."
+      "message": "Öffne die Cliqz App auf deinem mobilen Gerät."
+    },
+    "pairing-step2-title-android": {
+      "message": "Android: Gehe ins Menü und wähle \"Connect\" aus."
+    },
+    "pairing-step2-title-ios": {
+      "message": "iOS: Gehe zu den Einstellungen und wähle \"Connect\" aus."
     },
     "pairing-step3-title": {
-      "message": "Klicke auf (+) um den QR Code Scanner zu starten."
+      "message": "Starte den QR Code Scanner."
+    },
+    "pairing-step3-title-android": {
+      "message": "Android: Drücke auf (+)."
+    },
+    "pairing-step3-title-ios": {
+      "message": "iOS: Wähle \"Verbindung hinzufügen\"."
     },
     "pairing-step4-title": {
       "message": "Scanne den QR Code."
@@ -1533,13 +1581,13 @@
       "message": "Anzeige"
     },
     "offers-hub-title": {
-      "message": "CLIQZ OFFERS:"
+      "message": "MyOffrz"
     },
     "offers-hub-show-all-offers-btn": {
       "message": "Frühere Angebote"
     },
     "offers-hub-welcome-title": {
-      "message": "Willkommen bei CLIQZ Offers"
+      "message": "Willkommen!"
     },
     "offers-hub-welcome-text": {
       "message": "Hier findest du in Kürze exklusive Angebote für dich."
@@ -1554,7 +1602,7 @@
       "message": "Ich habe keine Interesse an diesem Angebot"
     },
     "offers-hub-feedaback-option2": {
-      "message": "Ich habe keine Interesse an CLIQZ Offers"
+      "message": "Ich habe keine Interesse an Cliqz Offers"
     },
     "offers-hub-feedaback-option3": {
       "message": "Ich bin an keinem Angebot interessiert"
@@ -1566,13 +1614,16 @@
       "message": "Entfernen"
     },
     "offers-hub-about-cliqz-offers": {
-      "message": "Mehr Informationen über CLIQZ Offers"
+      "message": "Mehr Informationen"
     },
     "offers-hub-powered-by": {
-      "message": "Bereitgestellt von CLIQZ"
+      "message": "Bereitgestellt von Cliqz"
     },
     "offers-hub-code-copy": {
       "message": "Code kopiert"
+    },
+    "offers_hub_tooltip_new_offer": {
+      "message": "Neues Angebot"
     },
     "signals-humanweb-inactive-message": {
       "message": "Human Web ist nicht aktiviert"
@@ -1609,6 +1660,9 @@
     },
     "signals-redirected-links": {
       "message": "Weitergeleitete Links"
+    },
+    "calculator-decimal-separator": {
+      "message": ","
     },
     "calculator-thousands-separator": {
       "message": "."
@@ -1655,5 +1709,139 @@
     "lotto-euro": {
       "message": "€"
     },
-    "TEST": "OK"
+    "no-guarantee": {
+      "message": "Alle Angaben ohne Gewähr"
+    },
+    "freshtab.app.speed-dials-row.history": {
+      "message": "Meistbesucht"
+    },
+    "freshtab.app.speed-dials-row.custom": {
+      "message": "Favoriten"
+    },
+    "freshtab.urlbar.placeholder": {
+      "message": "In Cliqz suchen oder Adresse eingeben"
+    },
+    "freshtab.app.speed-dial.removed": {
+      "message": "wurde entfernt"
+    },
+    "freshtab.app.speed-dial.undo": {
+      "message": "Rückgängig"
+    },
+    "freshtab.app.speed-dial.exists-already": {
+        "message": "Adresse existiert bereits"
+    },
+    "freshtab.app.speed-dial.not-valid": {
+        "message": "Adresse ist nicht gültig"
+    },
+    "freshtab.app.speed-dial.add": {
+        "message": "Hinzufügen"
+    },
+    "freshtab.app.speed-dial.input.placeholder": {
+        "message": "Adresse eingeben"
+    },
+    "freshtab.app.middle-box.new-cliqz-tab-hdr": {
+        "message": "Nicht nur die inneren Werte zählen!"
+    },
+    "freshtab.app.middle-box.new-cliqz-tab-desc": {
+        "message": "Ab sofort kannst du Cliqz Tab für dich anpassen."
+    },
+    "freshtab.app.middle-box.new-cliqz-tab-cta": {
+        "message": "Probier es aus"
+    },
+    "freshtab.app.news.breaking-news": {
+        "message": "Eilmeldung:"
+    },
+    "freshtab.app.news.read-more": {
+        "message": "Weiterlesen"
+    },
+    "freshtab.app.settings.header": {
+        "message": "Cliqz Tab anpassen"
+    },
+    "freshtab.app.settings.background.label": {
+        "message": "Hintergrund wählen"
+    },
+    "freshtab.app.settings.most-visited.label": {
+        "message": "Meistbesuchte Seiten"
+    },
+    "freshtab.app.settings.most-visited.restore": {
+        "message": "Alle zurücksetzen"
+    },
+    "freshtab.app.settings.favorites.label": {
+        "message": "Favoriten"
+    },
+    "freshtab.app.settings.search.label": {
+        "message": "Suchleiste"
+    },
+    "freshtab.app.settings.news.label": {
+        "message": "Nachrichten"
+    },
+    "freshtab.app.settings.news.language.auto": {
+        "message": "Automatische Einstellung"
+    },
+    "freshtab.app.settings.news.language.de": {
+        "message": "Deutsche Medien"
+    },
+    "freshtab.app.settings.news.language.en": {
+        "message": "UK & U.S. Medien"
+    },
+    "freshtab.app.settings.news.language.fr": {
+        "message": "Französische Medien"
+    },
+    "control-center-enabled": {
+        "message": "Aktiviert"
+    },
+    "control-center-disabled": {
+        "message": "Deaktiviert"
+    },
+    "control-center-open": {
+        "message": "Öffnen"
+    },
+    "soccer-table-rank": {
+        "message": "Platz"
+    },
+    "soccer-table-teams": {
+        "message": "Mannschaft"
+    },
+    "soccer-table-played": {
+        "message": "Spiele"
+    },
+    "soccer-table-won": {
+        "message": "Siege"
+    },
+    "soccer-table-lost": {
+        "message": "Verloren"
+    },
+    "soccer-table-drawn": {
+        "message": "Remis"
+    },
+    "soccer-table-goals": {
+        "message": "Tore+/-"
+    },
+    "soccer-table-goal-diff": {
+        "message": "Tordiff"
+    },
+    "soccer-table-points": {
+        "message": "Punkte"
+    },
+    "soccer-table-qualified": {
+        "message": "Qualifiziert"
+    },
+    "soccer-ticker-week": {
+        "message": "Spieltag"
+    },
+    "soccer-powered-by": {
+        "message": "Powered by Kicker Online"
+    },
+    "soccer-api-provider": {
+        "message": "kicker.de"
+    },
+    "source": {
+        "message": "Quelle"
+    },
+    "updated": {
+        "message": "Aktualisiert"
+    },
+    "TEST": {
+        "message": "OK"
+    }
 }

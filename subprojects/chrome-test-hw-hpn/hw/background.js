@@ -9,7 +9,7 @@ if(manifest.version_name === "packaged"){
 }
 
 // For packaging as a standalone web extension.
-if(manifest.name === "CLIQZ search" || manifest.version_name === "standalone"){
+if(manifest.name === "Cliqz search" || manifest.version_name === "standalone"){
   contentScriptPath = "human-web/content.js";
 }
 
@@ -46,6 +46,7 @@ function observeResponse(requestDetails){
 }
 
 function observeRedirect(requestDetails){
+    CliqzHumanWeb.detectAdClick(requestDetails.url);
     for (var i = 0; i < requestDetails.responseHeaders.length; ++i) {
       if (requestDetails.responseHeaders[i].name === 'Location') {
         CliqzHumanWeb.httpCache[requestDetails.url] = {'status': 301, 'time': CliqzHumanWeb.counter, 'location': requestDetails.responseHeaders[i].value};
@@ -282,6 +283,12 @@ function onMessageListener(info, sender, sendResponse) {
     else if(info.action == "copy"){
       CliqzHumanWeb.captureCopyPage(ev);
     }
+  } else if (info.type === 'ad-ctr') {
+    let ads = info.ads;
+    CliqzUtils.log(`>>>> No of ads found on this page >>> ${Object.keys(ads).length}`);
+    Object.keys(ads).forEach( eachAd => {
+      CliqzHumanWeb.adDetails[eachAd] = ads[eachAd];
+    });
   }
 }
 function tabListener(tabId, changeInfo, tab) {

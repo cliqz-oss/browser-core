@@ -2,14 +2,12 @@
  * This module provides misc functions related to the FF history database.
  */
 
-import utils from 'core/utils';
-import CLIQZEnvironment from 'platform/environment';
+import utils from '../core/utils';
+import CLIQZEnvironment from './environment';
 
 Cu.import('resource://gre/modules/PlacesUtils.jsm');
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 
-
-Components.utils.import('chrome://cliqzmodules/content/CliqzPlacesAutoComplete.jsm');
 var browserHistory = Cc['@mozilla.org/browser/nav-history-service;1'].getService(Components.interfaces.nsIBrowserHistory),
     bookmarkService = Cc["@mozilla.org/browser/nav-bookmarks-service;1"].getService(Components.interfaces.nsINavBookmarksService);
 

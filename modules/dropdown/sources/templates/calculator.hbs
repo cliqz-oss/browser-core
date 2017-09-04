@@ -1,9 +1,15 @@
-<div class="result instant calculator">
+<div class="instant calculator" >
     <div class="header padded">
-        {{query}} = <span id="calc-answer">{{result}}</span>
+      <a 
+        id="calc-answer"
+        class="result"
+        href="{{ url }}"
+      >
+        ={{result}}
+        <span class="tooltip">
+          {{local 'Click anywhere to copy'}}
+        </span>
+      </a>
+      
     </div>
-
-{{!--      <p class="subtitle padded">
-        Click to copy the result
-    </p> --}}
 </div>

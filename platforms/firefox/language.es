@@ -4,7 +4,7 @@
  *
  */
 
-import utils from "core/utils";
+import utils from '../core/utils';
 
 // we keep a different preferences namespace than cliqz so that it does not get
 // removed after a re-install or sent during a logging signal
@@ -14,27 +14,12 @@ var CliqzLanguage = {
     LOG_KEY: 'CliqzLanguage',
     LOCALE_HASH: 333,
     currentState: {},
-    useragentPrefs: Components.classes['@mozilla.org/preferences-service;1']
-        .getService(Components.interfaces.nsIPrefService).getBranch('general.useragent.'),
-
-    _locale: null,
     cron: 24*60 * 60 * 1000, // default one day
     checkInterval: 5 * 60 * 1000, // default 5 min
     removeHashId: null,
 
     getLocale: function(){
-        if(!CliqzLanguage._locale){
-            var locale = null;
-            try {
-                // linux systems
-                // https://bugzilla.mozilla.org/show_bug.cgi?id=438031
-                locale = CliqzLanguage.useragentPrefs.getComplexValue('locale',Components.interfaces.nsIPrefLocalizedString).data
-            } catch(e){
-                locale = CliqzLanguage.useragentPrefs.getCharPref('locale')
-            }
-            CliqzLanguage._locale = CliqzLanguage.normalizeLocale(locale);
-        }
-        return CliqzLanguage._locale;
+        return CliqzLanguage.normalizeLocale(utils.getPref('general.useragent.locale', '', ''));
     },
 
     // load from the about:config settings

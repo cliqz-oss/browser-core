@@ -1,18 +1,30 @@
 {
-    "__COMMENT__": "https://github.com/drewzboto/grunt-connect-proxy/issues/70 npm install grunt-connect-proxy@0.1.10",
     "launchers": {
-      "Mocha": {
+      "unit-node": {
         "exe": "node",
-        "args": ["tests/mocha-node.js"],
+        "args": ["--icu-data-dir=node_modules/full-icu", "tests/runners/unit-node.js"],
         "protocol": "tap"
       },
-      "ChromiumNoSandbox": {
-        "protocol": "browser",
-        "exe": "chromium",
-        "args": ["--user-data-dir=/tmp/testem.chromium", "--no-default-browser-check", "--no-first-run", "--ignore-certificate-errors", "--no-sandbox", "--test-type", "--disable-renderer-backgrounding", "--disable-background-timer-throttling"]
+      "firefox-web-ext": {
+        "exe": "node",
+        "args": ["tests/runners/firefox-web-ext.js"],
+        "protocol": "tap"
+      },
+      "firefox-selenium": {
+        "exe": "node",
+        "args": ["tests/runners/firefox-selenium.js"],
+        "protocol": "tap"
+      },
+      "chromium-selenium": {
+        "exe": "node",
+        "args": ["tests/runners/chromium-selenium.js"],
+        "protocol": "tap"
       }
     },
-    "launch_in_dev": ["Mocha"],
-    "launch_in_ci": ["Mocha"],
+    "browser_args": {
+      "chromium": [
+        "--no-sandbox"
+      ]
+    },
     "test_page": "tests/index.mustache"
 }

@@ -1,75 +1,72 @@
 <div class="lock"></div>
-{{#if securityON }}
-    <header id="header" state="{{ generalState }}">
-     {{> header }}
-    </header>
-
-    <div id="currentsite">
-        <h3 class="truncate">
-
-            {{#if isSpecialUrl}}
-                <span class="dark">{{ friendlyURL }}</span>
-            {{else}}
-                <span class="dark">{{ domain }}</span><span>{{ extraUrl }}</span>
-            {{/if}}
-        </h3>
-    </div>
-
-    <div id="settings" class="settings-section clearfix">
-
-      <div id="anti-tracking"
-           data-section="antitrack"
-           class="antitracker setting"
-           data-target="attrack">
-        {{> anti-tracking}}
+<div class="{{#if funnelCake}}funnel-cake{{/if}} {{#if amo}}amo{{/if}}">
+{{#if showSecuritySettings}}
+  <header id="header" state="{{ generalState }}">
+   {{> header }}
+  </header>
+  <div id="currentsite">
+      <h3 class="truncate">
+          {{#if isSpecialUrl}}
+              <span class="dark">{{ friendlyURL }}</span>
+          {{else}}
+              <span class="dark">{{ domain }}</span><span>{{ extraUrl }}</span>
+          {{/if}}
+      </h3>
+      <div class="reportsite"
+          openUrl="https://cliqz.com/report-url"
+          data-target="report_url"
+          data-i18n="control-center-report-url">
       </div>
+  </div>
 
-      {{#if amo}}
-          <div id="amo-privacy-cc"
-               class="privacy-cc setting"
-               data-target="privacy-cc"
-               data-section="privacy-cc">
-            {{> amo-privacy-cc }}
-          </div>
-      {{else}}
-        <div id="ad-blocking"
-             class="adblock setting"
-             data-target="adblock">
-            {{> ad-blocking }}
-        </div>
-      {{/if}}
+  <div id="settings" class="settings-section clearfix">
+    <div id="anti-tracking"
+         data-section="antitrack"
+         class="antitracker setting"
+         data-target="attrack">
+      {{> anti-tracking}}
+    </div>
 
-      <div id="anti-phising"
-           data-section="antiphish"
-           class="antiphishing setting"
-           data-target="antiphish">
-        {{> anti-phising}}
+    <div id="ad-blocking"
+         class="adblock setting"
+         data-target="adblock">
+        {{> ad-blocking }}
+    </div>
+
+    <div id="anti-phising"
+         data-section="antiphish"
+         class="antiphishing setting"
+         data-target="antiphish">
+      {{> anti-phising}}
+    </div>
+    {{#if amo}}
+      <div class="setting"
+           id="cliqz-tab"
+           data-section="cliqz-tab"
+           data-target="cliqz-tab">
+        {{> cliqz-tab module.freshtab }}
       </div>
-
-      {{#if amo}}
-        <div class="setting"
-             id="cliqz-tab"
-             data-section="cliqz-tab"
-             data-target="cliqz-tab">
-          {{> cliqz-tab module.freshtab }}
-        </div>
-      {{else}}
-        <div id="https"
-             class="setting"
-             data-section="https"
-             data-target="https">
-          {{> https module.https-everywhere}}
-        </div>
-      {{/if}}
+    {{/if}}
+    <div id="https"
+         class="setting"
+         data-section="https"
+         data-target="https">
+      {{> https module.https-everywhere}}
     </div>
-{{ else }}
-    <div id="settings" class="settings-section clearfix securityOFF">
-        <span class="headline">Control Center</span>
-        {{> support }}
-        {{> cliqz-tab-button module.freshtab}}
-    </div>
+  </div>
 {{/if}}
 
-<section id="othersettings" class="{{#unless securityON}}securityOFF{{/unless}}">
-  {{> other-settings }}
-</section>
+{{#if showOtherSettings}}
+  <section id="othersettings">
+    {{> other-settings }}
+  </section>
+{{/if}}
+{{#if funnelCake}}
+<header class="footer">
+  <div class="title">
+    <span data-i18n="control-center-footer"></span>
+    {{> support }}
+  </div>
+</header>
+{{/if}}
+</div>

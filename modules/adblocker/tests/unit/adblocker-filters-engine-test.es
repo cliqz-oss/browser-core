@@ -2,7 +2,7 @@
 /* global describeModule */
 
 
-const fs = System._nodeRequire('fs');
+const fs = require('fs');
 
 
 function readFile(path) {
@@ -37,14 +37,15 @@ function loadTestCases(path) {
 }
 
 
+const FILTER_ENGINE_OPTIONS = {
+  version: 42,
+  loadNetworkFilters: true,
+  loadCosmeticFilters: true,
+};
+
+
 export default describeModule('adblocker/filters-engine',
   () => ({
-    'adblocker/utils': {
-      default: () => {
-        // const message = `[adblock] ${msg}`;
-        // console.log(message);
-      },
-    },
     'platform/url': {},
     'core/utils': {
       default: {
@@ -53,12 +54,17 @@ export default describeModule('adblocker/filters-engine',
     'core/platform': {
       platformName: 'firefox',
     },
+    'adblocker/logger': {
+      default: {
+        debug() {},
+        log() {},
+        error() {},
+      },
+    },
   }),
   () => {
     describe('Test cosmetic engine', () => {
       let FilterEngine;
-      let serializeEngine;
-      let deserializeEngine;
       let engine = null;
       const cosmeticsPath = 'modules/adblocker/tests/unit/data/cosmetics.txt';
       const cosmeticMatches = 'modules/adblocker/tests/unit/data/cosmetics_matching.txt';
@@ -67,48 +73,46 @@ export default describeModule('adblocker/filters-engine',
       beforeEach(function initializeCosmeticEngine() {
         this.timeout(30000);
         FilterEngine = this.module().default;
-        serializeEngine = this.module().serializeFiltersEngine;
-        deserializeEngine = this.module().deserializeFiltersEngine;
 
         if (engine === null) {
-          engine = new FilterEngine();
-          const filters = loadLinesFromFile(cosmeticsPath);
+          engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
+          const filters = readFile(cosmeticsPath);
 
           // Try update mechanism of filter engine
           engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 1 }], true);
           engine.onUpdateFilters([{ filters, asset: 'list2', checksum: 1 }], true);
           engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 2 }], true);
-          engine.onUpdateFilters([{ filters: [], asset: 'list2', checksum: 2 }], true);
+          engine.onUpdateFilters([{ filters: '', asset: 'list2', checksum: 2 }], true);
 
           // Serialize and deserialize engine
-          const serialized = JSON.stringify(serializeEngine(engine, undefined, true));
-          engine = new FilterEngine();
-          deserializeEngine(engine, JSON.parse(serialized), undefined, true);
+          const serialized = engine.stringify();
+          engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
+          engine.load(serialized);
 
           // Try to update after deserialization
           engine.onUpdateFilters([{ filters, asset: 'list3', checksum: 1 }], true);
           engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 3 }], true);
-          engine.onUpdateFilters([{ filters: [], asset: 'list3', checksum: 2 }], true);
+          engine.onUpdateFilters([{ filters: '', asset: 'list3', checksum: 2 }], true);
         }
       });
 
       loadCosmeticsTestCases(cosmeticMatches).forEach((testCase) => {
-        it(`matches url: ${testCase.url}`,
+        it(`matches nodes: ${testCase.url}`,
             () => new Promise((resolve, reject) => {
               const shouldMatch = new Set(testCase.matches);
               const shouldNotMatch = new Set(testCase.misMatches);
-              const rules = engine.getCosmeticsFilters(testCase.url, [testCase.node]);
-              chai.expect(shouldMatch.size).to.equal(rules.length);
+              const rules = engine.cosmetics.getMatchingRules(testCase.url, [testCase.node]);
+              chai.expect(rules.length).to.equal(shouldMatch.size);
               rules.forEach((rule) => {
                 if (!shouldMatch.has(rule.rawLine)) {
                   reject(`Expected node ${testCase.url} + ` +
                          `${JSON.stringify(testCase.node)}` +
-                         ` to match ${rule.rawLine}`);
+                         ` to match ${rule.rawLine} ${JSON.stringify(rule)}`);
                 }
                 if (shouldNotMatch.has(rule.rawLine)) {
                   reject(`Expected node ${testCase.url} + ` +
                          `${JSON.stringify(testCase.node)}` +
-                         ` not to match ${rule.rawLine}`);
+                         ` not to match ${rule.rawLine} ${JSON.stringify(rule)}`);
                 }
               });
               resolve();
@@ -121,8 +125,8 @@ export default describeModule('adblocker/filters-engine',
             () => new Promise((resolve, reject) => {
               const shouldMatch = new Set(testCase.matches);
               const shouldNotMatch = new Set(testCase.misMatches);
-              const rules = engine.getDomainFilters(testCase.url);
-              chai.expect(shouldMatch.size).to.equal(rules.length);
+              const rules = engine.cosmetics.getDomainRules(testCase.url, engine.js);
+              chai.expect(rules.length).to.equal(shouldMatch.size);
               rules.forEach((rule) => {
                 if (!shouldMatch.has(rule.rawLine)) {
                   reject(`Expected node ${testCase.url} ` +
@@ -141,30 +145,27 @@ export default describeModule('adblocker/filters-engine',
 
     describe('Test filter engine one filter at a time', () => {
       let FilterEngine;
-      let serializeEngine;
-      let deserializeEngine;
       let engine = null;
       const matchingPath = 'modules/adblocker/tests/unit/data/filters_matching.txt';
 
       beforeEach(function importFilterEngine() {
         FilterEngine = this.module().default;
-        serializeEngine = this.module().serializeFiltersEngine;
-        deserializeEngine = this.module().deserializeFiltersEngine;
       });
 
       loadTestCases(matchingPath).forEach((testCase) => {
         it(`matches ${testCase.filter} correctly`,
            () => new Promise((resolve, reject) => {
              // Create filter engine with only one filter
-             engine = new FilterEngine();
+             engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
              engine.onUpdateFilters([{
-               filters: [testCase.filter],
+               asset: 'tests',
+               filters: testCase.filter,
              }]);
 
              // Serialize and deserialize engine
-             const serialized = JSON.stringify(serializeEngine(engine, undefined, true));
-             engine = new FilterEngine();
-             deserializeEngine(engine, JSON.parse(serialized), undefined, true);
+             const serialized = engine.stringify();
+             engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
+             engine.load(serialized);
 
              // Check should match
              try {
@@ -173,8 +174,7 @@ export default describeModule('adblocker/filters-engine',
                }
                resolve();
              } catch (ex) {
-               console.log(`STACK TRACE ${ex.stack}`);
-               reject(`Encountered exception ${ex} while matching ` +
+               reject(`Encountered exception ${ex} ${ex.stack} while matching ` +
                  `${testCase.filter} against ${testCase.url}`);
              }
            }),
@@ -184,8 +184,6 @@ export default describeModule('adblocker/filters-engine',
 
     describe('Test filter engine all filters', () => {
       let FilterEngine;
-      let serializeEngine;
-      let deserializeEngine;
       let engine = null;
 
       // Load test cases
@@ -193,34 +191,29 @@ export default describeModule('adblocker/filters-engine',
       const testCases = loadTestCases(matchingPath);
 
       // Load filters
-      const filters = [];
+      let filters = [];
       testCases.forEach((testCase) => {
         filters.push(testCase.filter);
       });
+      filters = filters.join('\n');
 
       beforeEach(function initializeFilterEngine() {
         if (engine === null) {
           this.timeout(20000);
           FilterEngine = this.module().default;
-          serializeEngine = this.module().serializeFiltersEngine;
-          deserializeEngine = this.module().deserializeFiltersEngine;
-          engine = new FilterEngine();
+
+          engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
 
           // Try update mechanism of filter engine
-          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 1 }]);
-          engine.onUpdateFilters([{ filters, asset: 'list2', checksum: 1 }]);
-          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 2 }]);
-          engine.onUpdateFilters([{ filters: [], asset: 'list2', checksum: 2 }]);
+          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 1 }], true);
+          engine.onUpdateFilters([{ filters, asset: 'list2', checksum: 1 }], true);
+          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 2 }], true);
+          engine.onUpdateFilters([{ filters: '', asset: 'list2', checksum: 2 }], true);
 
           // Serialize and deserialize engine
-          const serialized = JSON.stringify(serializeEngine(engine, undefined, true));
-          engine = new FilterEngine();
-          deserializeEngine(engine, JSON.parse(serialized, undefined, true));
-
-          // Try to update after deserialization
-          engine.onUpdateFilters([{ filters, asset: 'list3', checksum: 1 }]);
-          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 3 }]);
-          engine.onUpdateFilters([{ filters: [], asset: 'list3', checksum: 2 }]);
+          const serialized = engine.stringify();
+          engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
+          engine.load(serialized);
         }
       });
 
@@ -234,7 +227,7 @@ export default describeModule('adblocker/filters-engine',
                }
                resolve();
              } catch (ex) {
-               reject(`Encountered exception ${ex} while matching ` +
+               reject(`Encountered exception ${ex} ${ex.stack} while matching ` +
                  `${testCase.filter} against ${testCase.url}`);
              }
            }),
@@ -244,8 +237,6 @@ export default describeModule('adblocker/filters-engine',
 
     describe('Test filter engine should not match', () => {
       let FilterEngine;
-      let serializeEngine;
-      let deserializeEngine;
       let engine = null;
       const filterListPath = 'modules/adblocker/tests/unit/data/filters_list.txt';
       const notMatchingPath = 'modules/adblocker/tests/unit/data/filters_not_matching.txt';
@@ -254,16 +245,14 @@ export default describeModule('adblocker/filters-engine',
         if (engine === null) {
           this.timeout(20000);
           FilterEngine = this.module().default;
-          serializeEngine = this.module().serializeFiltersEngine;
-          deserializeEngine = this.module().deserializeFiltersEngine;
 
-          engine = new FilterEngine();
-          engine.onUpdateFilters([{ filters: loadLinesFromFile(filterListPath) }]);
+          engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
+          engine.onUpdateFilters([{ filters: readFile(filterListPath) }], true);
 
           // Serialize and deserialize engine
-          const serialized = JSON.stringify(serializeEngine(engine, undefined, true));
-          engine = new FilterEngine();
-          deserializeEngine(engine, JSON.parse(serialized), undefined, true);
+          const serialized = engine.stringify();
+          engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
+          engine.load(serialized);
         }
       });
 
@@ -277,7 +266,7 @@ export default describeModule('adblocker/filters-engine',
                }
                resolve();
              } catch (ex) {
-               reject(`Encountered exception ${ex} while matching ` +
+               reject(`Encountered exception ${ex} ${ex.stack} while matching ` +
                  `${testCase.filter} against ${testCase.url}`);
              }
            }),
@@ -287,8 +276,6 @@ export default describeModule('adblocker/filters-engine',
 
     describe('Test filter engine should redirect', () => {
       let FilterEngine;
-      let serializeEngine;
-      let deserializeEngine;
       let engine = null;
       const filterListPath = 'modules/adblocker/tests/unit/data/filters_list.txt';
       const notMatchingPath = 'modules/adblocker/tests/unit/data/filters_redirect.txt';
@@ -297,18 +284,18 @@ export default describeModule('adblocker/filters-engine',
       beforeEach(function initializeFilterEngine() {
         if (engine === null) {
           this.timeout(20000);
-          FilterEngine = this.module().default;
-          serializeEngine = this.module().serializeFiltersEngine;
-          deserializeEngine = this.module().deserializeFiltersEngine;
 
-          engine = new FilterEngine();
-          engine.onUpdateFilters([{ filters: loadLinesFromFile(filterListPath) }]);
+          FilterEngine = this.module().default;
+
+          engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
+          engine.onUpdateFilters([{ filters: readFile(filterListPath) }], true);
+          engine.onUpdateResource([{ filters: readFile(resourcesPath) }]);
 
           // Serialize and deserialize engine
-          const serialized = JSON.stringify(serializeEngine(engine, undefined, true));
-          engine = new FilterEngine();
-          deserializeEngine(engine, JSON.parse(serialized), undefined, true);
-          engine.onUpdateResource([{ filters: loadLinesFromFile(resourcesPath) }]);
+          const serialized = engine.stringify();
+          engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
+          engine.load(serialized);
+          engine.onUpdateResource([{ filters: readFile(resourcesPath) }]);
         }
       });
 
@@ -324,8 +311,7 @@ export default describeModule('adblocker/filters-engine',
                }
                resolve();
              } catch (ex) {
-               console.log(ex.stack);
-               reject(`Encountered exception ${ex} while checking redirect ` +
+               reject(`Encountered exception ${ex} ${ex.stack} while checking redirect ` +
                  `${testCase.redirect} against ${testCase.url}`);
              }
            }),

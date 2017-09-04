@@ -10,6 +10,9 @@ export default describeModule('core/tlds',
       default: {
       },
     },
+    'tldjs': {
+      default: require('tldjs'),
+    },
   }),
   () => {
     let tlds;

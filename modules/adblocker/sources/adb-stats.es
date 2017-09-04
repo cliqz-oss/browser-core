@@ -1,5 +1,5 @@
 import { getGeneralDomain } from '../antitracking/domain';
-import { isTabURL } from '../platform/browser';
+import { checkIsWindowActive } from '../platform/browser';
 import { URLInfo } from '../antitracking/url';
 import domainInfo from '../core/domain-info';
 
@@ -7,24 +7,27 @@ import domainInfo from '../core/domain-info';
 class PageStats {
   constructor(url) {
     this.pageUrl = url;
+    this.hostGD = getGeneralDomain(URLInfo.get(url).hostname);
     this.count = 0;
     this.blocked = new Map();
+    this.blockedDomains = new Set();
   }
 
   addBlockedUrl(url) {
     // retrieve company
     const domain = getGeneralDomain(URLInfo.get(url).hostname);
+    this.blockedDomains.add(domain);
+
     let company;
-    // Re-use anti tracking company list for the moment.
-    // TODO: Replace it with a proper ads company list later
     if (domain in domainInfo.domainOwners) {
       company = domainInfo.domainOwners[domain];
-    } else if (domain === getGeneralDomain(URLInfo.get(this.pageUrl).hostname)) {
+    } else if (domain === this.hostGD) {
       company = 'First party';
     } else {
       company = domain;
     }
-    if (this.blocked.get(company)) {
+
+    if (this.blocked.has(company)) {
       if (!this.blocked.get(company).has(url)) {
         this.count += 1;
       }
@@ -50,24 +53,36 @@ class PageStats {
 
 class AdbStats {
   constructor() {
-    this.pages = new Map();
+    this.tabs = new Map();
   }
 
-  addBlockedUrl(sourceUrl, url) {
-    if (!this.pages.get(sourceUrl)) {
-      this.addNewPage(sourceUrl);
+  addBlockedUrl(sourceUrl, url, tabId) {
+    let page;
+    if (!this.tabs.has(tabId)) {
+      page = this.addNewPage(sourceUrl, tabId);
+    } else {
+      page = this.tabs.get(tabId);
     }
-    this.pages.get(sourceUrl).addBlockedUrl(url);
-  }
 
-  addNewPage(sourceUrl) {
-    this.pages.set(sourceUrl, new PageStats(sourceUrl));
-  }
-
-  report(url) {
-    if (this.pages.get(url)) {
-      return this.pages.get(url).report();
+    // If it's a new url in an existing tab
+    if (sourceUrl !== page.pageUrl) {
+      page = this.addNewPage(sourceUrl, tabId);
     }
+
+    page.addBlockedUrl(url);
+  }
+
+  addNewPage(sourceUrl, tabId) {
+    const page = new PageStats(sourceUrl);
+    this.tabs.set(tabId, page);
+    return page;
+  }
+
+  report(tabId) {
+    if (this.tabs.has(tabId)) {
+      return this.tabs.get(tabId).report();
+    }
+
     return {
       totalCount: 0,
       advertisersList: {},
@@ -75,11 +90,18 @@ class AdbStats {
   }
 
   clearStats() {
-    this.pages.forEach((value, key) => {
-      if (!isTabURL(key)) {
-        this.pages.delete(key);
-      }
+    const promises = [];
+
+    // Delete stats of closed tabs
+    this.tabs.forEach((pageStats, tabId) => {
+      promises.push(checkIsWindowActive(tabId).then((active) => {
+        if (active) {
+          this.tabs.delete(tabId);
+        }
+      }));
     });
+
+    return Promise.all(promises);
   }
 }
 

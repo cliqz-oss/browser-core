@@ -1,10 +1,14 @@
 import prefs from '../core/prefs';
+import config from '../core/config';
 
 const PREF = 'share_location';
 const STATE_ALLOW_ONCE = 'showOnce';
 const STATE_ALLOW = 'yes';
 const STATE_BLOCK = 'no';
-const STATE_DEFAULT = 'ask';
+const STATE_ASK = 'ask';
+
+// geolocation 'yes' for funnelCake - 'ask' for everything else
+const STATE_DEFAULT = config.settings.geolocation || STATE_ASK;
 
 const getPref = prefs.get.bind(prefs, PREF, STATE_DEFAULT);
 const setPref = prefs.set.bind(prefs, PREF);
@@ -28,7 +32,7 @@ export default class {
   }
 
   get isAskingForLocation() {
-    return getPref() === STATE_DEFAULT;
+    return getPref() === STATE_ASK;
   }
 
   block() {

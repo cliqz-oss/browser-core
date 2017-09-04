@@ -16,23 +16,23 @@ export default {
     "fr-language": "Französisch"
   },
   onboarding: {
-    "title": "Juhuuu! CLIQZ wurde erfolgreich installiert.",
-    "hdr-privacy": "Mit CLIQZ bist du sicher.",
+    "title": "Juhuuu! Cliqz wurde erfolgreich installiert.",
+    "hdr-privacy": "Mit Cliqz bist du sicher.",
     "txt-privacy1": "Unsere innovativen",
     "txt-privacy2": "Anti-Tracking & -Phishing",
     "txt-privacy3": "Funktionen schützen deine persönlichen Daten.",
     "cta1": "Weiter",
     "hdr-search": "Schnell-Suche",
-    "txt-search1": "Während du tippst, schlägt CLIQZ dir Websites vor. Klick einfach auf einen",
+    "txt-search1": "Während du tippst, schlägt Cliqz dir Websites vor. Klick einfach auf einen",
     "txt-search2": "Vorschlag",
     "txt-search3": ".",
     "cta2": "Weiter...",
     "hdr-homescreen": "Deine top Websites und News",
-    "txt-homescreen1": "Auf dem CLIQZ",
+    "txt-homescreen1": "Auf dem Cliqz",
     "txt-homescreen2": "Homescreen",
     "txt-homescreen3": "siehst du Direktlinks zu deinen Lieblingsseiten und Nachrichten.",
     "cta3": "Und los geht‘s!",
-    "learn-more": "Mehr über CLIQZ erfahren"
+    "learn-more": "Mehr über Cliqz erfahren"
   },
   miniOnboarding: {
     "learn-more": "Mehr erfahren",
@@ -43,11 +43,11 @@ export default {
     "address": "Adresse eingeben",
     "exists-already": "Bereits vorhanden",
     "not-valid": "Keine gültige url",
-    "history-sites": "Meist besucht",
+    "history-sites": "Meistbesucht",
     "custom-sites": "Favoriten",
     "add-favorite": "Favoriten hinzufügen",
     "topsite-remove": "Entfernen",
-    "reset-all": "Alle meist besuchten Seiten anzeigen",
+    "reset-all": "Alle meistbesuchten Seiten anzeigen",
     "undo": "Rückgängig",
     "search-on": "Suche auf",
     "shortcuts-one-removed": "Seite wurde entfernt",
@@ -56,18 +56,18 @@ export default {
     "notifications-enable": "Benachrichtigungen aktivieren",
   },
   urlBar: {
-    "search-address": "Suche oder Adresse eingeben"
+    "search-address": "In Cliqz suchen oder Adresse eingeben"
   },
   news: {
     "read-more": "Weiterlesen",
     "breaking-news": "Eilmeldung:"
   },
   abtests: {
-    "feedback": "Fragen? Anmerkungen? CLIQZ kontaktieren"
+    "feedback": "Fragen? Anmerkungen? Cliqz kontaktieren"
   },
   notifications: {
-    "hdr-new-brand": "CLIQZ bekommt einen neuen Look!",
-    "txt-new-brand1": "In Kürze werden wir das CLIQZ Browser Logo aktualisieren.",
+    "hdr-new-brand": "Cliqz bekommt einen neuen Look!",
+    "txt-new-brand1": "In Kürze werden wir das Cliqz Browser Logo aktualisieren.",
     "cta-new-brand": "Erfahre mehr",
     "txt-new-brand2": "darüber und zu den neuesten Änderungen",
     "hdr-share-location": "Mit geteiltem Standort erhältst du bessere Suchergebnisse!",
@@ -89,7 +89,10 @@ export default {
     "cta-cliqz-connect": "So gehts.",
     "hdr-win-no-support-message": "Unterstützung für Windows XP und Vista Endet",
     "txt-win-no-support-message": "Wie du Cliqz weiter nutzen kannst, erfährst du",
-    "cta-win-no-support-message": "hier"
+    "cta-win-no-support-message": "hier",
+    "hdr-new-search": "Neue Cliqz-Suche",
+    "txt-new-search": "Kompakt, übersichtlich, direkt aus der Adressleiste: die Schnell-Suche hat ab sofort ein rumdum neues Design.",
+    "cta-new-search": "Mehr dazu..."
   },
   title: 'Neuer Tab',
   settings: {
@@ -99,7 +102,7 @@ export default {
     "tooltip-mail-notifications": "Auf Cliqz Tab kannst du über neue E-Mails benachrichtigt werden. Dazu muss dein E-Mail-Anbieter unter deinen Top Sites sein und du musst in das E-Mail Konto eingeloggt sein. Dann wirst du auf Cliqz Tab und auf der Neuer Tab Schaltfläche auf neue E-Mails hingewiesen. Aktuell ist diese Funktion nur für Gmail (mail.google.com) verfügbar.",
     "hdr-news-feed": "Nachrichten",
     "txt-top-news-edition": "Top Nachrichten Edition",
-    "tooltip-top-news": "Die Auswahl der Top Nachrichten basiert ausschließlich auf der Sprache deines CLIQZ Browsers. Du kannst hier eine andere Sprachausgabe wählen.",
+    "tooltip-top-news": "Die Auswahl der Top Nachrichten basiert ausschließlich auf der Sprache deines Cliqz Browsers. Du kannst hier eine andere Sprachausgabe wählen.",
     "send-us-feedback": "Feedback schicken"
   },
   history: {

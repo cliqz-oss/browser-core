@@ -103,22 +103,10 @@ describe("Control Center App", function () {
   })
 
   context("antitracking", function () {
-
-    context("security off", function () {
-      beforeEach(() => {
-        return subject.pushData();
-      });
-
-      it("does not render antitracking box", function () {
-        chai.expect(subject.query('#anti-tracking')).to.be.null;
-      });
-    });
-
     context("with security on", function () {
       context("with antitracking on", function() {
         beforeEach(() => {
           return subject.pushData({
-            securityON: true,
             onboarding: false,
             generalState: "active",
             module: {
@@ -166,7 +154,6 @@ describe("Control Center App", function () {
       context("with antitracking off", function() {
         beforeEach(() => {
           return subject.pushData({
-            securityON: true,
             onboarding: false,
             generalState: "active",
             module: {
@@ -215,21 +202,10 @@ describe("Control Center App", function () {
   });
 
   context("adblocking", function() {
-    context("security off", function () {
-      beforeEach(() => {
-        return subject.pushData();
-      });
-
-      it("does not render adblocking box", function () {
-        chai.expect(subject.query('#ad-blocking')).to.be.null;
-      });
-    });
-
     context("with security on and antitracking off", function () {
       context("with adblocking", function() {
         beforeEach(() => {
           return subject.pushData({
-            securityON: true,
             onboarding: false,
             generalState: "active",
             module: {

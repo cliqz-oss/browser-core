@@ -61,10 +61,10 @@ export default background({
   antitracking: inject.module('antitracking'),
   core: inject.module('core'),
 
-  enabled() { return greenAdsEnabled(); },
+  enabled() { return true; },
 
   init() {
-    if (this.enabled()) {
+    if (greenAdsEnabled()) {
       logger.log(`init background (state: ${getGreenadsState()})`);
       // TODO - get info about adblocker and antitracking in a reliable way
       this.greenAds = new GreenAds(
@@ -83,6 +83,12 @@ export default background({
         this.actions.updateProcessScripts({
           getInventory: true,
         });
+      });
+
+      // initialise process script state
+      this.actions.updateProcessScripts({
+        getMode: true,
+        getInventory: true,
       });
 
       return this.greenAds.init();
@@ -121,6 +127,13 @@ export default background({
   },
 
   events: {
+    'process:init': function onNewProcess(processId) {
+      this.actions.updateProcessScripts({
+        processId,
+        getInventory: true,
+        getMode: true
+      });
+    },
     /**
      * Monitor preference changes in about:config and check if we should
      * enable or disable this module.
@@ -262,8 +275,9 @@ export default background({
         target = `${target}-${processId}`;
       }
 
+      const data = Object.create(null);
+
       // Optionally update inventory
-      let inventory;
       if (getInventory) {
         // Get inventory
         logger.debug('Get Inventory called');
@@ -273,7 +287,7 @@ export default background({
         logger.debug(`>> Inventory length: ${ads.length}\n`);
         logger.debug(`>> Token length: ${Object.keys(tokens).length}\n`);
 
-        inventory = {
+        data.inventory = {
           maxAds: 3,
           tokens,
           ads,
@@ -282,17 +296,21 @@ export default background({
       }
 
       // Optionally update mode
-      let mode;
       if (getMode) {
-        mode = getGreenadsState();
+        data.mode = getGreenadsState();
       }
 
       // Push the update
       this.core.action('broadcast',
         target,
         {
-          mode,
-          inventory,
+          action: 'updateStore',
+          args: [
+            {
+              module: 'green-ads',
+              data,
+            }
+          ]
         },
       );
     },
@@ -393,20 +411,19 @@ export default background({
     // Mimic adblocker's actions
     // handles messages coming from process script
     url(url) {
-      if (getGreenadsState() !== GREENADS_STATE.GREEN) {
-        return {
-          scripts: [],
-          scriptBlock: [],
-          type: 'domain-rules',
-          active: false,
-        };
+      if (getGreenadsState() === GREENADS_STATE.DISABLED) {
+        return { active: false };
       }
 
       const candidates = this.greenAds.adblocker.engine.getDomainFilters(url);
       return {
-        scripts: candidates.filter(rule => rule.scriptInject).map(rule => rule.selector),
-        scriptBlock: candidates.filter(rule => rule.scriptBlock).map(rule => rule.selector),
-        type: 'domain-rules',
+        scripts: candidates
+          .filter(rule => rule.isScriptInject())
+          .map(rule => rule.getSelector()),
+        blockedScripts: candidates
+          .filter(rule => rule.isScriptBlock())
+          .map(rule => rule.getSelector()),
+        styles: [],
         active: true,
       };
     },

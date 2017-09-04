@@ -1,6 +1,7 @@
 import Dropdown from './dropdown';
 import Results from './results';
 import Popup from './popup';
+import events from '../core/events';
 import inject from '../core/kord/inject';
 import SupplementarySearchResult from './results/supplementary-search';
 import HistoryManager from '../core/history-manager';
@@ -10,13 +11,16 @@ import { enterSignal, removeFromHistorySignal } from './telemetry';
 import AdultAssistant from './adult-content-assistant';
 import LocationAssistant from './location-sharing-assistant';
 import { getTabsWithUrl, closeTab } from '../core/tabs';
+import { copyToClipboard } from '../core/clipboard';
 
 export default class {
 
-  constructor(window, { getSessionCount }) {
+  constructor(window, id, { getSessionCount }) {
     this.window = window;
+    this.extensionID = id;
     this.getSessionCount = getSessionCount;
     this.handleResults = this.handleResults.bind(this);
+    this.updateFirstResult = this.updateFirstResult.bind(this);
 
     this.ui = inject.module('ui');
     this.core = inject.module('core');
@@ -31,6 +35,11 @@ export default class {
   }
 
   init() {
+    this.window.gURLBar.addEventListener('keyup', this.updateFirstResult);
+  }
+
+  unload() {
+    this.window.gURLBar.removeEventListener('keyup', this.updateFirstResult);
   }
 
   selectAutocomplete() {
@@ -40,9 +49,11 @@ export default class {
   }
 
   sessionEnd() {
-    this.dropdown.selectedIndex = -1;
-    this.adultAssistant.resetAllowOnce();
-    this.locationAssistant.resetAllowOnce();
+    if (this.dropdown) { // this might be called before the initiaization
+      this.dropdown.selectedIndex = -1;
+      this.adultAssistant.resetAllowOnce();
+      this.locationAssistant.resetAllowOnce();
+    }
   }
 
   keyDown(ev) {
@@ -105,6 +116,13 @@ export default class {
             break;
           }
 
+          const result = this.dropdown.results.findSelectable(urlbarValue) ||
+            this.dropdown.results.findSelectable(urlbarVisibleValue);
+          if (result) {
+            result.click(this.window, result.url, ev);
+            break;
+          }
+
           if (this.dropdown.selectedIndex > 0) {
             const selectedResult = this.dropdown.results.get(this.dropdown.selectedIndex);
             selectedResult.click(this.window, selectedResult.url, ev);
@@ -116,31 +134,30 @@ export default class {
         break;
       }
       case 'Delete':
-      case 'Backspace':
-        if (ev.metaKey || (ev.altKey && ev.ctrlKey)) {
+      case 'Backspace': {
+        if (!ev.shiftKey || ev.metaKey || (ev.altKey && ev.ctrlKey)) {
           break;
         }
-        if (ev.code === 'Delete' && ev.shiftKey) {
-          const selectedResult = this.dropdown.selectedResult;
-          if (!selectedResult.isDeletable) {
-            break;
-          }
-
-          const url = selectedResult.rawUrl;
-          HistoryManager.removeFromHistory(url);
-          if (selectedResult.isBookmark) {
-            HistoryManager.removeFromBookmarks(url);
-            removeFromHistorySignal({ withBookmarks: true });
-          } else {
-            removeFromHistorySignal({});
-          }
-
-          getTabsWithUrl(this.window, url).forEach(tab => closeTab(this.window, tab));
-
-          this.core.action('refreshPopup', this.dropdown.results.query);
-          preventDefault = true;
+        const selectedResult = this.dropdown.selectedResult;
+        if (!selectedResult.isDeletable) {
+          break;
         }
+
+        const url = selectedResult.rawUrl;
+        HistoryManager.removeFromHistory(url);
+        if (selectedResult.isBookmark) {
+          HistoryManager.removeFromBookmarks(url);
+          removeFromHistorySignal({ withBookmarks: true });
+        } else {
+          removeFromHistorySignal({});
+        }
+
+        getTabsWithUrl(this.window, url).forEach(tab => closeTab(this.window, tab));
+
+        this.core.action('refreshPopup', this.dropdown.results.query);
+        preventDefault = true;
         break;
+      }
       default: {
         preventDefault = false;
       }
@@ -149,9 +166,37 @@ export default class {
   }
 
   main(element) {
-    this.dropdown = new Dropdown(element, this.window);
+    this.dropdown = new Dropdown(element, this.window, this.extensionID);
     this.dropdown.init();
     this.popup = new Popup(this.window);
+  }
+
+  updateFirstResult() {
+    const oldResults = this.dropdown.results;
+
+    if (!oldResults || this.dropdown.selectedIndex === -1) {
+      return;
+    }
+
+    const {
+      query,
+      rawResults,
+    } = this.popup.results();
+
+    if (
+      (oldResults.query !== query) &&
+      (
+        (oldResults.firstResult instanceof NavigateToResult) ||
+        (
+          (oldResults.firstResult instanceof SupplementarySearchResult) &&
+          (rawResults.length ? !rawResults[0].url : true)
+        )
+      )
+    ) {
+      oldResults.firstResult.rawResult.text = query;
+
+      this.dropdown.renderResults(oldResults);
+    }
   }
 
   handleResults() {
@@ -160,6 +205,9 @@ export default class {
       queriedAt,
       rawResults,
     } = this.popup.results();
+
+    events.pub('ui:results', rawResults);
+
     const results = new Results({
       query,
       queriedAt,
@@ -170,6 +218,7 @@ export default class {
       locationAssistant: this.locationAssistant,
       rerender: () => this.dropdown.renderResults(results),
       getSnippet: this.autocomplete.action.bind(this.autocomplete, 'getSnippet'),
+      copyToClipboard,
     });
     const queryIsUrl = isUrl(results.query);
     const queryIsNotEmpty = query.trim() !== '';
@@ -192,7 +241,13 @@ export default class {
         );
       } else if (queryIsNotEmpty) {
         results.prepend(
-          new SupplementarySearchResult({ text: results.query })
+          new SupplementarySearchResult({
+            text: results.query,
+            defaultSearchResult: true,
+            data: {
+              suggestion: results.query
+            }
+          })
         );
       }
     }

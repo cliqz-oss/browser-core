@@ -17,6 +17,35 @@ var __CliqzHumanWeb = function() { // (_export) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    function cleanFinalUrl(domain, href) {
+      /*
+      We need to get the final domain, there are 2 elements that we try to capture.
+
+      1. Which is mentioned in the key 'fu' in the scraping rules. It is not clean in all the cases.
+      For eg: That URL at times comes as aclk?. In this case we will try and fall back on data-preconnect-urls.
+
+      2. data-preconnect-urls: We are not using it as primary source, because at times, this contains the ad-server domain.
+      When we use this attribute, we need to ensure we do not send back the complete chain.
+
+      */
+
+      let cleanDomain = href;
+
+
+      // Parse domain from href.
+      let parsedLink = CliqzHumanWeb.parseURL(href);
+      if (parsedLink && parsedLink.hostname && parsedLink.hostname.indexOf('google') === -1 && parsedLink.path.indexOf('aclk?') === -1) {
+        cleanDomain = parsedLink.hostname;
+      } else if (domain) {
+        if (domain.indexOf(',') > -1) {
+          cleanDomain = domain.split(',')[0];
+        } else {
+          cleanDomain = domain;
+        }
+      }
+      return cleanDomain;
+    }
+
     return {
         setters: [function (_humanWebBloomFilter) {
             CliqzBloomFilter = _humanWebBloomFilter["default"];
@@ -38,8 +67,10 @@ var __CliqzHumanWeb = function() { // (_export) {
             falsePositive = 0.01;
             bloomFilterNHashes = 7;
             CliqzHumanWeb = {
+                ads: [],
+                adDetails: {},
                 CHANNEL: channel,
-                VERSION: '2.5',
+                VERSION: '2.6',
                 WAIT_TIME: 2000,
                 LOG_KEY: 'humanweb',
                 debug: false,
@@ -1631,6 +1662,7 @@ var __CliqzHumanWeb = function() { // (_export) {
                         CliqzHumanWeb.cleanLinkCache();
                         CliqzHumanWeb.cleanQueryMapping();
                         CliqzHumanWeb.cleanDomain2IP();
+                        CliqzHumanWeb.purgeAdLookUp();
                     }
 
 
@@ -4092,6 +4124,51 @@ var __CliqzHumanWeb = function() { // (_export) {
                             delete CliqzHumanWeb.domain2IP[key];
                         }
                     }
+                },
+                detectAdClick: function(targetURL) {
+                  // The first URL observed after clicking the ad has the pattern,
+                  // google and aclk? in it.
+
+                  if (targetURL.indexOf('google') > -1 && targetURL.indexOf('aclk?') > -1) {
+                    let clickedU = targetURL.split('aclk?')[1];
+                    if (CliqzHumanWeb.adDetails[clickedU]) {
+                        let payload = {
+                            action: 'ad-ctr',
+                            'anti-duplicates': Math.floor(CliqzHumanWeb.cryptoRandom() * 10000000),
+                            type: 'humanweb',
+                            channel: CliqzHumanWeb.CHANNEL,
+                            payload: {
+                                ctry: CliqzHumanWeb.getCountryCode(),
+                            }
+                        }
+
+                        let query = CliqzHumanWeb.adDetails[clickedU].query;
+                        if (CliqzHumanWeb.isSuspiciousQuery(query)) {
+                          query = ' (PROTECTED) ';
+                        }
+
+                        payload.payload.query = query;
+                        payload.payload.domain = cleanFinalUrl(CliqzHumanWeb.adDetails[clickedU].furl[0], CliqzHumanWeb.adDetails[clickedU].furl[1]);
+
+                        CliqzUtils.log(`AD CTR Payload : ${JSON.stringify(payload)}`);
+                        CliqzHumanWeb.telemetry(payload);
+                    }
+                  }
+                },
+                purgeAdLookUp: function() {
+                  // We should clean the ads in lookup table, keep it from growing too huge.
+                  // Cleaning ads which are older than 15 minutes seems reasonable right now.
+
+                  let ts = Date.now();
+                  Object.keys(CliqzHumanWeb.adDetails).forEach( (item) => {
+                    let adTS = CliqzHumanWeb.adDetails[item]['ts'];
+                    let diff = (ts - adTS) / (1000 * 60);
+
+                    if (diff > 15) {
+                      delete CliqzHumanWeb.adDetails[item];
+                    }
+                  });
+
                 }
             };
 

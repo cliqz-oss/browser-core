@@ -4,6 +4,8 @@ import { messageHandler, sendMessageToWindow } from './data';
 import helpers from './helpers';
 import templates from '../templates';
 
+var isAction = location.search.replace('?pageAction=', '') === 'true';
+
 Handlebars.partials = templates;
 var slideUp = $.fn.slideUp;
 var slideDown = $.fn.slideDown;
@@ -85,6 +87,10 @@ $('#control-center').on('click', '[data-function]', function(ev){
   });
 });
 
+$('#control-center').on('click', function(ev) {
+  $('.new-dropdown-content').removeClass('visible');
+});
+
 $('#control-center').on('change', '[complementarySearchChanger]', function(ev) {
   sendMessageToWindow({
     action: 'complementary-search',
@@ -102,6 +108,16 @@ $('#control-center').on('change', '[searchIndexCountryChanger]', function(ev) {
     }
   });
 });
+
+$('#control-center').on('click', '[cliqzTabStatusChanger]', function(ev) {
+  sendMessageToWindow({
+    action: 'cliqz-tab',
+    data: {
+      status: $(this).closest('.frame-container').attr('state') == 'active'
+    }
+  });
+});
+
 
 $('#control-center').on('click', '[antiTrackingStatusChanger]', function(ev){
   var state,
@@ -129,6 +145,36 @@ $('#control-center').on('click', '[antiTrackingStatusChanger]', function(ev){
       state: state,
       status: $(this).closest('.frame-container').attr('state'),
       hostname: $(this).closest('.frame-container').attr('hostname'),
+    }
+  });
+});
+
+$('#control-center').on('click', '[antiPhishingStatusChanger]', function(ev){
+  var state,
+      type = $(this).attr('data-type'), status;
+  if (type === 'switch') {
+    state = $(this).closest('.frame-container').attr('state');
+    //make this website default
+    var $switches = $(this).closest('.switches'),
+        options = $switches.find('.dropdown-content-option'),
+        defaultSelect = $switches.find('.dropdown-content-option[data-state="off_website"]');
+    options.removeClass('selected');
+    defaultSelect.addClass('selected');
+  } else {
+    state = $(this).attr('data-state');
+  }
+
+  if(isOnboarding()) {
+    return;
+  }
+
+  sendMessageToWindow({
+    action: 'anti-phishing-activator',
+    data: {
+      type: type,
+      state: state,
+      status: $(this).closest('.frame-container').attr('state'),
+      url: $(this).closest('.frame-container').attr('url'),
     }
   });
 });
@@ -179,13 +225,14 @@ $('#control-center').on('change', 'select[updatePref]', function(ev){
     data: {
       pref: ev.currentTarget.getAttribute('updatePref'),
       value: ev.currentTarget.value,
-      target: ev.currentTarget.getAttribute('data-target')
+      target: ev.currentTarget.getAttribute('data-target'),
+      prefType: ev.currentTarget.getAttribute('updatePrefType'),
     }
   });
 });
 
 function updateGeneralState() {
-  var stateElements = document.querySelectorAll('.frame-container.anti-tracking, .frame-container.antiphishing');
+  var stateElements = document.querySelectorAll('.frame-container.anti-tracking');
   var states = [].map.call(stateElements, function(el) {
     return el.getAttribute('state');
   }), state = 'active';
@@ -211,9 +258,10 @@ function compile(obj) {
   return Object.keys(obj.companies)
       .map(function (companyName) {
         var domains = obj.companies[companyName];
+        const companySlug = obj.companyInfo[companyName].slug || companyName.replace(/ /g,"_").toLowerCase();
         var company = {
           name: companyName,
-          watchDogName: companyName.replace(/ /g,"-"),
+          watchDogUrl: `https://apps.ghostery.com/apps/${companySlug}`,
           domains: domains.map(function (domain) {
             var domainData = obj.trackers[domain];
             return {
@@ -269,6 +317,8 @@ function compileAdblockInfo(data) {
 }
 
 function draw(data){
+  var emptyFrame = Object.keys(data.module) == 0;
+
   if(data.onboarding) {
     document.getElementById('control-center').classList.add('onboarding');
     if(data.module.antitracking && data.module.antitracking.totalCount === 1) {
@@ -305,22 +355,19 @@ function draw(data){
   }
 
   if(data.debug){
-    console.log('Drawing: ', data);
+    console.log('Drawing: ', data, JSON.stringify(data));
   }
+
+  // in the funnelCake build other settings are only visible in the browser-action popup
+  data.showOtherSettings = data.funnelCake ? isAction : true;
+  // in the funnelCake build security settings are only visible in the normal popup
+  data.showSecuritySettings = data.funnelCake ? !isAction : true;
+  // history settings are hidden in teh funnelCake build
+  data.showHistorySettings = !data.funnelCake;
+  // tipps button is hidden for funnelcake page-action popup
+  data.showTipps = data.funnelCake ? isAction : true;
 
   document.getElementById('control-center').innerHTML = templates['template'](data)
-  if(data.securityON){
-    document.getElementById('anti-phising').innerHTML = templates['anti-phising'](data);
-    document.getElementById('anti-tracking').innerHTML = templates['anti-tracking'](data);
-
-    if(data.amo) {
-      document.getElementById('amo-privacy-cc').innerHTML = templates['amo-privacy-cc']();
-      document.getElementById('cliqz-tab').innerHTML = templates['cliqz-tab'](data.module.freshtab);
-    } else {
-      document.getElementById('ad-blocking').innerHTML = templates['ad-blocking'](data);
-      document.getElementById('https').innerHTML = templates['https'](data);
-    }
-  }
 
   function close_setting_accordion_section() {
     $('.setting-accordion .accordion-active-title').removeClass('active');
@@ -403,11 +450,16 @@ function draw(data){
   });
 
   $('[start-navigation]').on('click', function() {
-    var $main = $(this).closest('#control-center'),
-        $settings = $('#settings'),
-        $othersettings = $main.find('#othersettings'),
-        $setting = $(this).closest('.setting'),
-        $target = $setting.attr('data-target');
+    const $main = $(this).closest('#control-center');
+    const $settings = $('#settings');
+    const $othersettings = $main.find('#othersettings');
+    const $setting = $(this).closest('.setting');
+    const $target = $setting.attr('data-target');
+    const $container = $(this).closest('.frame-container');
+
+    if ($container.attr('state') !== 'active') {
+      return; // Disable clicking on inactive module
+    }
 
     sendMessageToWindow({
       action: 'sendTelemetry',
@@ -420,6 +472,7 @@ function draw(data){
     $settings.addClass('open');
     $setting.addClass('active');
     $othersettings.css('display', 'none');
+    resize();
   });
 
   $('.cross').click(function(e) {
@@ -434,6 +487,7 @@ function draw(data){
         action: 'click'
       }
     });
+    resize();
   });
 
   $('.cqz-switch-label, .cqz-switch-grey').click(function() {
@@ -487,28 +541,30 @@ function draw(data){
     updateGeneralState();
   });
 
-  $('.dropdown-btn').on('click', function() {
+  $('.dropdown-btn').on('click', function(ev) {
+    $('.new-dropdown-content').not($(this).next('.new-dropdown-content')).removeClass('visible');
     $(this).next('.new-dropdown-content').toggleClass('visible');
+    ev.stopPropagation();
   });
 
   $('.dropdown-content-option').on('click', function(ev) {
-      var state = $(this).attr('value'),
-          target = $(this).closest('.frame-container'),
-          option = '.dropdown-content-option',
-          content = '.new-dropdown-content',
-          $this = $(this);
+    var state = $(this).attr('value'),
+        target = $(this).closest('.frame-container'),
+        option = '.dropdown-content-option',
+        content = '.new-dropdown-content',
+        $this = $(this);
 
-      target.attr('state', state === 'all' ?
-        'critical' : target.attr('inactiveState'));
+    target.attr('state', state === 'all' ?
+      'critical' : target.attr('inactiveState'));
 
-      $this.siblings(option).each(function(index, elem) {
-        $(elem).removeClass('selected')
-      });
-      $this.addClass('selected')
-      $this.parent(content).toggleClass('visible');
-
-      updateGeneralState()
+    $this.siblings(option).each(function(index, elem) {
+      $(elem).removeClass('selected');
     });
+    $this.addClass('selected');
+    $this.parent(content).toggleClass('visible');
+
+    updateGeneralState();
+  });
 
   $('.pause').click(function () {
     // TODO
@@ -520,7 +576,10 @@ function draw(data){
   });
 
   localizeDocument();
-  resize();
+
+  if (!emptyFrame) {
+    resize();
+  }
 }
 
 window.draw = draw;

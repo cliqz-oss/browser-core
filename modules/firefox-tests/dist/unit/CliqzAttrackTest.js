@@ -26,14 +26,13 @@ var wait_until_server_up = function (testUrl, count, callback) {
 DEPS.AttrackTest = ["core/utils"];
 TESTS.AttrackTest = function (CliqzUtils) {
     var System = CliqzUtils.getWindow().CLIQZ.System,
-        CliqzAttrack = System.get("antitracking/attrack").default,
         HashProb = System.get('antitracking/hash').HashProb,
         hp = new HashProb(),
         persist = System.get("antitracking/persistent-state"),
         AttrackBloomFilter = System.get("antitracking/bloom-filter").AttrackBloomFilter,
         datetime = System.get("antitracking/time"),
         pacemaker = System.get("antitracking/pacemaker").default;
-
+    var CliqzAttrack;
 
     var module_enabled = CliqzUtils.getPref('modules.antitracking.enabled', false);
     // make sure that module is loaded (default it is not initialised on extension startup)
@@ -47,10 +46,15 @@ TESTS.AttrackTest = function (CliqzUtils) {
     after(function() {
       // restart pacemaker
       pacemaker.start();
+      CliqzUtils.setPref('modules.antitracking.enabled', module_enabled);
     });
 
     describe('platform/browser', function() {
         var browser = System.get('platform/browser');
+
+        beforeEach(function() {
+          CliqzAttrack = System.get('antitracking/background').default.attrack;
+        })
 
         describe('isWindowActive', function() {
 
@@ -70,8 +74,10 @@ TESTS.AttrackTest = function (CliqzUtils) {
                     testServer.registerPathHandler('/', function(req, res) {
                         res.write('<html><body><p>Hello world</p></body></html');
                     });
-                    CliqzAttrack.tp_events._active = {};
+                    CliqzAttrack = System.get('antitracking/background').default.attrack;
 
+                    // clear active tabs
+                    CliqzAttrack.tp_events._active = {};
                     // get tab id from tp_events (assumption that this is correct)
                     wait_until_server_up('http://cliqztest.com:60508/', 5, function() {
                       tabs.push(gBrowser.addTab("http://cliqztest.com:60508"));
@@ -143,6 +149,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
                     page_load;
 
                 beforeEach(function(done) {
+                    CliqzAttrack = System.get('antitracking/background').default.attrack;
                     testServer.registerPathHandler('/', function(req, res) {
                         res.write('<html><body><p>Hello world</p></body></html');
                     });
@@ -216,9 +223,9 @@ TESTS.AttrackTest = function (CliqzUtils) {
 
                     beforeEach(function() {
                         var wait = waitFor( function() {
-                          return gBrowser.getBrowserForTab(tabs[0]).currentURI.spec === "http://cliqztest.de:60508/"
+                          return gBrowser.getBrowserForTab(tabs[0]).currentURI.spec === "http://cliqztest2.de:60508/"
                         });
-                        gBrowser.getBrowserForTab(tabs[0]).loadURI("http://cliqztest.de:60508/");
+                        gBrowser.getBrowserForTab(tabs[0]).loadURI("http://cliqztest2.de:60508/");
                         return wait;
                     });
 
@@ -246,7 +253,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
                             var tabUrls = Object.keys(CliqzAttrack.tp_events._active).map(function(tab_id) {
                               return CliqzAttrack.tp_events._active[tab_id].url;
                             });
-                            chai.expect(tabUrls).to.contain("http://cliqztest.de:60508/");
+                            chai.expect(tabUrls).to.contain("http://cliqztest2.de:60508/");
                             chai.expect(tabUrls).to.contain("http://localhost:60508/privacy#saferWeb");
                           });
                         });
@@ -261,22 +268,23 @@ TESTS.AttrackTest = function (CliqzUtils) {
               var prefs = Components.classes['@mozilla.org/preferences-service;1'].getService(Components.interfaces.nsIPrefBranch);
 
               beforeEach(function(done) {
+                CliqzAttrack = System.get('antitracking/background').default.attrack;
                 server_port = testServer.port;
                 // 302 redirect case
                 testServer.registerPathHandler('/302', function(request, response) {
                   response.setStatusLine(request.httpVersion, 302, 'Redirect');
-                  response.setHeader('Location', 'http://cliqztest.de:'+ server_port +'/target');
+                  response.setHeader('Location', 'http://cliqztest2.de:'+ server_port +'/target');
                   response.write("<html><body></body></html>");
                 });
                 // 303 redirect case
                 testServer.registerPathHandler('/303', function(request, response) {
                   response.setStatusLine(request.httpVersion, 303, 'Redirect');
-                  response.setHeader('Location', 'http://cliqztest.de:'+ server_port +'/target');
+                  response.setHeader('Location', 'http://cliqztest2.de:'+ server_port +'/target');
                   response.write("<html><body></body></html>");
                 });
                 // js redirect case
                 testServer.registerPathHandler('/js', function(request, response) {
-                  response.write("<html><body><script>window.location=\"http://cliqztest.de:"+ server_port +"/target\"</script></body></html>")
+                  response.write("<html><body><script>window.location=\"http://cliqztest2.de:"+ server_port +"/target\"</script></body></html>")
                 });
                 testServer.registerPathHandler('/target', function(request, response) {
                   hit_target = true;
@@ -302,7 +310,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
                         console.log(CliqzAttrack.tp_events._active);
                         chai.expect(Object.keys(CliqzAttrack.tp_events._active)).to.have.length(1);
                         var tabid = Object.keys(CliqzAttrack.tp_events._active)[0];
-                        chai.expect(CliqzAttrack.tp_events._active[tabid].hostname).to.equal("cliqztest.de");
+                        chai.expect(CliqzAttrack.tp_events._active[tabid].hostname).to.equal("cliqztest2.de");
                         if (kind != 'js') {
                           // check original is in redirect chain
                           chai.expect(CliqzAttrack.tp_events._active[tabid].redirects).to.have.length(1);

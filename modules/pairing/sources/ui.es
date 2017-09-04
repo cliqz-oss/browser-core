@@ -1,8 +1,9 @@
 import CliqzHandlebars from 'handlebars';
 import PairingObserver from 'pairing/apps/pairing-observer';
-import PeerComm from 'pairing/main';
+import Pairing from 'pairing/background';
 import utils from 'core/utils';
 
+const PeerComm = Pairing.peerSlave;
 const i18n = utils.getLocalizedString.bind(utils);
 
 const images = {
@@ -23,7 +24,7 @@ export default class PairingUI {
   }
 
   startPairing() {
-    PeerComm.startPairing('CLIQZ Desktop Browser');
+    PeerComm.startPairing('Cliqz Desktop Browser');
   }
 
   fetchTemplate(name) {
@@ -136,7 +137,7 @@ export default class PairingUI {
     const window = this.window;
 
     const deviceName = $('#browser-name').val() ||
-      `CLIQZ Browser on ${window.navigator.platform}`;
+      `Cliqz Browser on ${window.navigator.platform}`;
 
     const data = {
       deviceName,
@@ -144,24 +145,41 @@ export default class PairingUI {
 
     data.i18n = {
       title: i18n('pairing-title'),
-
       description: i18n('pairing-description'),
+
       androidApp: i18n('pairing-android-app'),
       cliqzForAndroid: i18n('pairing-cliqz-for-android'),
+
+      iOSApp: i18n('pairing-ios-app'),
+      cliqzForIOS: i18n('pairing-cliqz-for-ios'),
+
       videoDownloaderTitle: i18n('pairing-video-title'),
-      videoDownloaderTip: i18n('pairing-video-tip'),
+      videoDownloaderTip1: i18n('pairing-video-tip1'),
+      videoDownloaderTip2: i18n('pairing-video-tip2'),
+      videoDownloaderTip3: i18n('pairing-video-tip3'),
+
       sendTabTitle: i18n('pairing-tab-title'),
-      sendTabTip: i18n('pairing-tab-tip'),
+      sendTabTip1: i18n('pairing-tab-tip1'),
+      sendTabTip2: i18n('pairing-tab-tip2'),
+
       pairingBrowserPairWith: i18n('pairing-browser-pair-with'),
       onDisconnectedTip: i18n('pairing-on-disconnected-tip'),
       contactSupport: i18n('pairing-contact-support'),
+
       pairingStep1Title: i18n('pairing-step1-title'),
+
       pairingStep2Title: i18n('pairing-step2-title'),
+      pairingStep2TitleAndroid: i18n('pairing-step2-title-android'),
+      pairingStep2TitleIOS: i18n('pairing-step2-title-ios'),
+
       pairingStep3Title: i18n('pairing-step3-title'),
+      pairingStep3TitleAndroid: i18n('pairing-step3-title-android'),
+      pairingStep3TitleIOS: i18n('pairing-step3-title-ios'),
+
       pairingStep4Title: i18n('pairing-step4-title'),
+
       pairingScanTitle: i18n('pairing-scan-title'),
       pairingErrorMessage: i18n('pairing-error-message'),
-
 
       unpair: i18n('pairing-unpair'),
     };
@@ -189,6 +207,16 @@ export default class PairingUI {
         view: 'connect',
         action: 'click',
         target: 'playstore',
+      });
+    });
+
+    $('#appstore-btn').click(() => {
+      utils.telemetry({
+        type: 'settings',
+        version: 1,
+        view: 'connect',
+        action: 'click',
+        target: 'appstore',
       });
     });
 

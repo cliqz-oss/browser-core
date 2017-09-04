@@ -51,114 +51,8 @@ const CHANNELS = {
 };
 
 
-const CORRECT_VERSION_PART = /^\d+$/;
-const CORRECT_OPTIONAL_PART = /^\w+$/;
-
-
 function isString(value) {
   return (typeof value === 'string' || value instanceof String);
-}
-
-
-// Parse version in format A.B.C.1bN
-// TODO: Add unit tests to make sure any extension version
-// is parsed successfully by this function.
-function parseExtensionVersion(version) {
-  /* eslint no-param-reassign: off */
-
-  // Caused by a bug in versions, at some point
-  if (version === '3.9.0-beta.3') {
-    version = '3.9.0';
-  }
-
-  const parts = version.split('.');
-
-  while (parts.length < 3) {
-    parts.push('0');
-  }
-
-  let correctFormat = true;
-  for (let i = 0; i < 3; i += 1) {
-    if (!CORRECT_VERSION_PART.test(parts[i])) {
-      correctFormat = false;
-    }
-  }
-
-  // Check optional part x.y.z.optional
-  if (parts.length > 3) {
-    if (parts.length > 4) {
-      correctFormat = false;
-    } else if (!CORRECT_OPTIONAL_PART.test(parts[3])) {
-      correctFormat = false;
-    }
-  }
-
-  if (correctFormat) {
-    return parts;
-  }
-
-  return null;
-}
-
-
-// Parse version_dist in format A.B.C
-function parseVersionDistDesktop(versionDist) {
-  const parsed = parseExtensionVersion(versionDist);
-  if (parsed !== null) {
-    if (parsed.length === 3) {
-      return parsed;
-    }
-  }
-
-  return null;
-}
-
-
-function parseVersionDistAndroid(versionDist) {
-  const splitted = versionDist.split('.');
-  if (splitted.length === 3) {
-    const parsedVersion = [splitted[0], splitted[1]];
-    const underscoreSplitted = splitted[2].split('_');
-    if (underscoreSplitted.length === 2) {
-      underscoreSplitted.forEach((part) => {
-        parsedVersion.push(part);
-      });
-    } else {
-      parsedVersion.push(splitted[2]);
-    }
-
-    return parsedVersion;
-  }
-
-  return null;
-}
-
-
-function parseVersionDistiOS(versionDist) {
-  const spaceSplitted = versionDist.split(' ');
-  if (spaceSplitted.length === 2) {
-    const version = spaceSplitted[0];
-    const ext = spaceSplitted[1];
-    const parsedVersion = version.split('.');
-    if (parsedVersion.length === 3) {
-      parsedVersion.push(ext.slice(1, ext.length - 1));
-      return parsedVersion;
-    }
-  }
-
-  return null;
-}
-
-
-function parseVersionHostAvira(versionHost) {
-  const parsed = parseExtensionVersion(versionHost);
-  if (parsed !== null) {
-    if (parsed.length === 4) {
-      return parsed;
-    }
-  }
-
-  return null;
 }
 
 
@@ -241,16 +135,10 @@ export default class {
     logger.debug('parse demographics');
     const channel = signal.channel || this.settings.channel;
 
-    // Resulting demographic factors
-    let coreVersion = '';
-    let distribution = '';
-    let installDate = '';
-    let platform = '';
-    let product = '';
-
     // ---------------------------------------------------------------------- //
     // Parse distribution
     // ---------------------------------------------------------------------- //
+    let distribution = `Other/c=${channel || ''} d=${signal.distribution || ''}`;
     if (signal.distribution !== undefined && isString(signal.distribution)) {
       const rawDistribution = signal.distribution;
 
@@ -320,15 +208,15 @@ export default class {
         distribution = 'third-party/app store/PlayStore';
       } else if (rawDistribution === '' && CHANNELS.APP_STORE.has(channel)) {
         distribution = 'third-party/app store/AppStore';
-      } else {
-        distribution = `Other/c=${channel} d=${rawDistribution}`;
       }
     }
+
     logger.debug(`distribution ${JSON.stringify(distribution)}`);
 
     // ---------------------------------------------------------------------- //
     // Parse installDate
     // ---------------------------------------------------------------------- //
+    let installDate = `Other/${signal.install_date || ''}`;
     if (signal.install_date) {
       const installDateMs = signal.install_date * 86400000;
       const momentInstallDate = moment(installDateMs);
@@ -350,6 +238,7 @@ export default class {
     // ---------------------------------------------------------------------- //
     // Parse platform
     // ---------------------------------------------------------------------- //
+    let platform = `Other/${signal.agent}`;
     if (signal.agent) {
       this.uaParser.setUA(signal.agent);
 
@@ -386,8 +275,6 @@ export default class {
         shouldAppendVersion = true;
       } else if (osName !== undefined) {
         platform = `Other/${osName}`;
-      } else {
-        platform = 'Other';
       }
 
       // Ignore architecture and truncate version if needed
@@ -413,12 +300,8 @@ export default class {
     // ---------------------------------------------------------------------- //
     // Parse product
     // ---------------------------------------------------------------------- //
+    let product = `Other/${channel || ''}`; // Default value
     try {
-      let parsedVersion = null;
-      const version = signal.version;
-      const versionDist = signal.version_dist;
-      const versionHost = signal.version_host;
-
       // Try to convert channel to an int
       // channel < 40 is extension.
       let intChannel = null;
@@ -432,7 +315,6 @@ export default class {
       if (channel === '40') {
         const prefix = 'CLIQZ/desktop';
         // Desktop browser
-        parsedVersion = parseVersionDistDesktop(versionDist);
         if (platform.includes('Windows')) {
           product = `${prefix}/Cliqz for Windows`;
         } else if (platform.includes('Mac')) {
@@ -443,49 +325,20 @@ export default class {
       } else if (intChannel !== null && intChannel < 40) {
         // Navigation extension
         product = 'CLIQZ/add-on/Cliqz for Firefox';
-        parsedVersion = parseExtensionVersion(version);
       } else if (CHANNELS.PLAY_STORE.has(channel)) {
         product = 'CLIQZ/mobile/Cliqz for Android';
-        parsedVersion = parseVersionDistAndroid(versionDist);
       } else if (CHANNELS.APP_STORE.has(channel)) {
         product = 'CLIQZ/mobile/Cliqz for iOS';
-        parsedVersion = parseVersionDistiOS(versionDist);
       } else if (channel === 'CH50') {
         product = 'third-party/desktop/Avira Scout';
-        parsedVersion = parseVersionHostAvira(versionHost);
       } else if (channel === 'MA10') {
-        // TODO: Version?
         product = 'third-party/mobile/Telefonica';
-      } else {
-        product = `Other/${channel}`;
       }
 
-      if (parsedVersion) {
-        product = `${product}/${parsedVersion.join('.')}`;
-      }
       logger.debug(`product ${JSON.stringify(product)}`);
     } catch (ex) {
       /* Wrong data for product */
       logger.error(`exception ${ex} ${ex.stack}`);
-    }
-
-    // ---------------------------------------------------------------------- //
-    // Core version
-    // ---------------------------------------------------------------------- //
-    const version = signal.version;
-    try {
-      const parsedVersion = parseExtensionVersion(version);
-      if (parsedVersion !== null) {
-        coreVersion = parsedVersion.join('.');
-      }
-    } catch (ex) {
-      /* Ignore exception */
-    }
-
-    // Still send the version if parsing failed, but
-    // put it in the `Other` branch of the tree.
-    if (coreVersion === '') {
-      coreVersion = `Other/${version}`;
     }
 
     // ---------------------------------------------------------------------- //
@@ -499,7 +352,6 @@ export default class {
       // are most of the time unique (or with low cardinality), and will
       // be discarded by the safe reporting algorithm.
       // abtests,
-      core_version: coreVersion,
       distribution,
       install_date: installDate,
       platform,

@@ -1,17 +1,20 @@
-import BaseResult from './results/base';
+import GenericResult from './results/generic';
 import CalculatorResult from './results/calculator';
 import CurrencyResult from './results/currency';
 import WeatherResult from './results/weather';
 import HistoryCluster from './results/history';
 import SessionsResult from './results/sessions';
 import AdultQuestionResult from './results/adult-question';
+import SupplementarySearchResult from './results/supplementary-search';
+import Suggestions from './results/suggestions';
 import LottoResult from './results/lotto';
+import SoccerResult from './results/soccer';
 import { equals } from '../core/url';
 import console from '../core/console';
 
 class ResultFactory {
   static create(rawResult, allResultsFlat) {
-    let Constructor = BaseResult;
+    let Constructor = GenericResult;
 
     if (['custom', 'noResult'].indexOf(rawResult.data.template) >= 0) {
       throw new Error('ignore');
@@ -34,6 +37,18 @@ class ResultFactory {
 
     if (rawResult.data.template === 'lotto') {
       Constructor = LottoResult;
+    }
+
+    if (rawResult.data.template === 'suggestion') {
+      Constructor = SupplementarySearchResult;
+    }
+
+    if (rawResult.data.template === 'inline-suggestion') {
+      Constructor = Suggestions;
+    }
+
+    if (rawResult.data.subType && rawResult.data.subType.class === 'SoccerEZ') {
+      Constructor = SoccerResult;
     }
 
     if (rawResult.data.urls) {
@@ -87,6 +102,7 @@ export default class Results {
     locationAssistant,
     rerender,
     getSnippet,
+    copyToClipboard,
   } = {}) {
     this.rerender = rerender;
     this.query = query;
@@ -97,6 +113,8 @@ export default class Results {
       adultAssistant,
       replaceResult: this.replaceResult.bind(this),
       getSnippet,
+      copyToClipboard,
+      query: queryCliqz,
     };
     this.results = ResultFactory.createAll(rawResults, actions);
 
@@ -154,7 +172,7 @@ export default class Results {
   }
 
   findSelectable(href) {
-    return this.selectableResults.find(r => equals(r.url, href) || equals(r.rawUrl, href));
+    return this.selectableResults.find(r => equals(r.rawUrl, href) || equals(r.url, href));
   }
 
   indexOf(result) {

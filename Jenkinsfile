@@ -1,253 +1,241 @@
 #!/bin/env groovy
 
-def gitCommit = ''
+@Library('cliqz-shared-library@v1.2') _
 
+if (job.hasNewerQueuedJobs()) {
+    error('Has Jobs in queue, aborting')
+}
 
-node('ubuntu && docker && !gpu') {
-  stage('checkout') {
-    checkout scm
-  }
-
-  helpers = load 'build-helpers.groovy'
-
-  props = helpers.entries([
-    'DOCKER_REGISTRY_URL': 'https://141047255820.dkr.ecr.us-east-1.amazonaws.com',
-    'AWS_REGION': 'us-east-1'
-  ])
-
-  params = []
-
-  for (int i = 0; i < props.size(); i++) {
-    def prop  = props.get(i)
-    def propName = prop[0]
-    def propValue = prop[1]
-    def binding = getBinding()
-
-    if (!binding.hasVariable(propName)) {
-      binding.setVariable(propName, propValue)
-    }
-
-    params.push(
-      string(defaultValue: propValue, description: '', name: propName)
-    )
-  }
-
-  properties([
+properties([
+    [$class: 'JobRestrictionProperty'],
     disableConcurrentBuilds(),
-    parameters(params)
-  ])
+    parameters([
+        string(name: 'DOCKER_REGISTRY_URL', defaultValue: '141047255820.dkr.ecr.us-east-1.amazonaws.com'),
+        string(name: 'AWS_REGION', defaultValue: 'us-east-1'),
+    ]),
+])
 
-  if (helpers.hasNewerQueuedJobs()) {
-    error("Has Jobs in queue, aborting")
-  }
+def matrix = [
+    'browser: unit': [
+        'gpu': false,
+        'testParams': 'configs/browser.json -l unit-node',
+    ],
+    'mobile: unit': [
+        'gpu': false,
+        'testParams': 'configs/mobile.json -l unit-node',
+    ],
+    'react-native: unit': [
+        'gpu': false,
+        'testParams': 'configs/react-native.json -l unit-node',
+    ],
+    'webextension: unit': [
+        'gpu': false,
+        'testParams': 'configs/webextension.json -l unit-node',
+    ],
+    'amo: unit': [
+        'gpu': false,
+        'testParams': 'configs/amo.json -l unit-node',
+    ],
+    'browser: content': [
+        'gpu': true,
+        'testParams': 'configs/browser.json -l chromium',
+    ],
+    'mobile: content': [
+        'gpu': true,
+        'testParams': 'configs/mobile.json -l chromium',
+    ],
+    'firefox 42': [
+        'gpu': true,
+        'testParams': 'configs/jenkins.json -l firefox-selenium --firefox ~/firefox42/firefox/firefox',
+    ],
+    'firefox 52': [
+        'gpu': true,
+        'testParams': 'configs/jenkins.json -l firefox-web-ext --firefox ~/firefox52/firefox/firefox',
+    ],
+    'chromium': [
+        'gpu': true,
+        'testParams': 'configs/cliqzium.json -l chromium-selenium',
+    ],
+]
 
-  if (helpers.hasWipLabel()) {
-    error "Branch is wip"
-  }
+String triggeringCommitHash = github.getCommitHash()
+String currentCommitHash
+String codeDockerImage
 
-  gitCommit = helpers.getGitCommit()
-
-  // stash dockerfile for use on other nodes without checkout
-  stash name: "test-helpers", includes: "build-helpers.groovy,run_tests_testem.sh"
-
-  def imgName = "navigation-extension/base"
-
-  sh "`aws ecr get-login --region=$AWS_REGION`"
-
-  docker.withRegistry(DOCKER_REGISTRY_URL) {
-    timeout(60) {
-      def image = docker.image(imgName)
-      image.pull()
-      docker.image(image.imageName()).inside() {
-
-        helpers.withCache {
-          stage('fern install') {
-            sh './fern.js install'
-          }
-
-          // mobile build and stash
-          withEnv(['CLIQZ_CONFIG_PATH=./configs/mobile.json']) {
-            stage('fern build mobile') {
-              sh './fern.js build > /dev/null'
-              // stage built files for mobile testem test
-              stash name: "mobile-testem-build", includes: "node_modules/fetch-mock/es5/,bower_components/,build/,tests/,testem.json"
-            }
-          }
-
-          // desktop build & test
-          withEnv(['CLIQZ_CONFIG_PATH=./configs/jenkins.json']) {
-            stage('fern build desktop') {
-              sh './fern.js build > /dev/null'
-              // stage built files for mobile testem test
-              stash name: "content-testem-build", includes: "bower_components/,build/,tests/,testem.json"
-            }
-
-            stage('fern test') {
-              sh 'rm -rf unittest-report.xml'
-              try {
-                sh './fern.js test --ci unittest-report.xml > /dev/null'
-              } catch(err) {
-                print "TESTS FAILED"
-                currentBuild.result = "FAILURE"
-              } finally {
-                step([
-                  $class: 'JUnitResultArchiver',
-                  allowEmptyResults: false,
-                  testResults: 'unittest-report.xml',
-                ])
-              }
-            }
-          }
-
-          stage('fresh-tab-frontend tests') {
-            helpers.reportStatusToGithub 'fresh-tab-frontend', gitCommit, "pending", {
-              try {
-                sh 'rm -rf subprojects/fresh-tab-frontend/ember-report.xml'
-                sh '''
-                  cd subprojects/fresh-tab-frontend
-                  ember test ci --silent > ember-report.xml
-                '''
-                return 'subprojects/fresh-tab-frontend/ember-report.xml'
-              } catch(err) {
-                print "Ember TESTS FAILED"
-                currentBuild.result = "FAILURE"
-                throw err
-              } finally {
-                step([
-                  $class: 'JUnitResultArchiver',
-                  allowEmptyResults: false,
-                  testResults: 'subprojects/fresh-tab-frontend/ember-report.xml',
-                ])
-              }
-            }
-          }
-        }
-
-        stage('package') {
-          sh """
-            cd build
-            fab package:beta=True,version=${gitCommit}
-          """
-        }
-      }
+def setGithubCommitStatus(commit, context, status, message) {
+    withCredentials([[
+        $class: 'StringBinding',
+        credentialsId: '5d3e0a3c-2490-491b-8a67-aa5eab2f27f2',
+        variable: 'GITHUB_TOKEN'
+    ]]) {
+        github.setCommitStatus(
+            env.GITHUB_TOKEN,
+            'cliqz/navigation-extension',
+            commit,
+            context,
+            status,
+            message
+        )
     }
-  }
-
-  stage('publish artifacts') {
-    archive "build/Cliqz.${gitCommit}.xpi"
-    archive 'run_tests.sh'
-  }
-
 }
 
-stage('tests') {
-  // Define version of firefox we want to test
-  // Full list here: https://ftp.mozilla.org/pub/firefox/releases/
-  // The extension will be tested on each specified firefox version in parallel
-  def stepsForParallel = [:]
-  def firefoxVersions = helpers.firefoxVersions
-
-  for (int i = 0; i < firefoxVersions.size(); i++) {
-    def entry = firefoxVersions.get(i)
-    def version = entry[0]
-    def url = entry[1]
-    stepsForParallel['Firefox ' + version] = {
-      build(
-        job: 'cliqz/navigation-extension/nav-ext-browser-matrix-v4',
-        parameters: [
-          string(name: 'FIREFOX_VERSION', value: version),
-          string(name: 'TRIGGERING_BUILD_NUMBER', value: env.BUILD_NUMBER),
-          string(name: 'TRIGGERING_JOB_NAME', value: env.JOB_NAME),
-        ]
-      )
-    }
-  }
-
-  stepsForParallel['testem mobile'] = {
-    node('ubuntu-docker-gpu') {
-      def HOST = sh(returnStdout: true, script: '/sbin/ifconfig eth0 | grep "inet addr:" | cut -d: -f2 | awk \'{ print $1}\'').trim()
-      def NUMBER = env.BUILD_NUMBER.padLeft(5, "00000")
-      def VNC_PORT = "20${NUMBER[-3..-1]}"
-
-      // load files for test into workspace
-      unstash "mobile-testem-build"
-      unstash "test-helpers"
-
-      def helpers = load 'build-helpers.groovy'
-      def imgName = "navigation-extension/testem"
-
-      sh "`aws ecr get-login --region=$AWS_REGION`"
-
-      docker.withRegistry(DOCKER_REGISTRY_URL) {
-        timeout(20) {
-          def image = docker.image(imgName)
-          image.pull()
-          docker.image(image.imageName()).inside("-p $VNC_PORT:5900 --device /dev/nvidia0 --device /dev/nvidiactl") {
-            helpers.reportStatusToGithub 'testem mobile', gitCommit, "VNC $HOST:$VNC_PORT", {
-              sh 'rm -rf report.xml'
-              try {
-                sh './run_tests_testem.sh'
-                return 'report.xml'
-              } catch(err) {
-                print "TESTS FAILED"
-                currentBuild.result = "FAILURE"
-                throw err
-              } finally {
-                step([
-                  $class: 'JUnitResultArchiver',
-                  allowEmptyResults: false,
-                  testResults: 'report.xml',
-                ])
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  stepsForParallel['testem desktop content'] = {
-    node('ubuntu-docker-gpu') {
-      def HOST = sh(returnStdout: true, script: '/sbin/ifconfig eth0 | grep "inet addr:" | cut -d: -f2 | awk \'{ print $1}\'').trim()
-      def NUMBER = env.BUILD_NUMBER.padLeft(5, "00000")
-      def VNC_PORT = "21${NUMBER[-3..-1]}"
-
-      // load files for test into workspace
-      unstash "content-testem-build"
-      unstash "test-helpers"
-
-      def helpers = load 'build-helpers.groovy'
-      def imgName = "navigation-extension/testem"
-
-      sh "`aws ecr get-login --region=$AWS_REGION`"
-
-      docker.withRegistry(DOCKER_REGISTRY_URL) {
-        timeout(20) {
-          def image = docker.image(imgName)
-          image.pull()
-          docker.image(image.imageName()).inside("-p $VNC_PORT:5900 --device /dev/nvidia0 --device /dev/nvidiactl") {
-            helpers.reportStatusToGithub 'testem desktop content', gitCommit, "VNC $HOST:$VNC_PORT", {
-              sh 'rm -rf report.xml'
-              try {
-                sh './run_tests_testem.sh'
-                return 'report.xml'
-              } catch(err) {
-                print "TESTS FAILED"
-                currentBuild.result = "FAILURE"
-                throw err
-              } finally {
-                step([
-                  $class: 'JUnitResultArchiver',
-                  allowEmptyResults: false,
-                  testResults: 'report.xml',
-                ])
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  parallel stepsForParallel
+parallel helpers.entries(matrix).collectEntries {
+    [(it[0]): {
+        setGithubCommitStatus(triggeringCommitHash, it[0], 'pending', 'penging')
+    }]
 }
+
+node('docker') {
+    stage('checkout') {
+        def scmInfo = checkout scm
+        currentCommitHash = scmInfo.GIT_COMMIT
+        codeDockerImage = "navigation-extension/tests:${currentCommitHash}"
+    }
+
+    def dockerfileChecksum = sh(returnStdout: true, script: 'md5sum Dockerfile.ci | cut -d" " -f1').trim()
+    def packageJsonChecksum = sh(returnStdout: true, script: 'md5sum package.json | cut -d" " -f1').trim()
+    def bowerJsonChecksum = sh(returnStdout: true, script: 'md5sum bower.json | cut -d" " -f1').trim()
+    def dockerTag = "${dockerfileChecksum}-${packageJsonChecksum}-${bowerJsonChecksum}"
+
+    // authorize docker deamon to access registry
+    sh "`aws ecr get-login --region=${params.AWS_REGION}`"
+
+    docker.withRegistry("https://${params.DOCKER_REGISTRY_URL}") {
+
+        stage('prepare docker base image') {
+            ansiColor('xterm') {
+                def baseImageName = "navigation-extension/build:${dockerTag}"
+
+                try {
+                    def image = docker.image(baseImageName)
+                    image.pull()
+                } catch (e) {
+                    print e
+                    def baseImage = docker.build(
+                        baseImageName,
+                        '-f Dockerfile.ci .'
+                    )
+                    baseImage.push dockerTag
+                }
+            }
+        }
+
+        stage('prepare docker code image') {
+            writeFile file: 'Dockerfile.code', text: """
+                FROM ${params.DOCKER_REGISTRY_URL}/navigation-extension/build:${dockerTag}
+                ADD . /app/
+            """
+
+            def codeImage = docker.build(
+                codeDockerImage,
+                '-f Dockerfile.code .'
+            )
+            codeImage.push currentCommitHash
+        }
+
+    }
+}
+
+def test(Map m) {
+    def context = m.context
+    def testParams = m.testParams
+    def gpu = m.gpu
+    def getCodeDockerImage = m.getCodeDockerImage
+    def getTriggeringCommitHash = m.getTriggeringCommitHash
+
+    def nodeLabels = gpu ? 'docker && gpu' : 'docker'
+
+    return {
+        node(nodeLabels) {
+            def codeDockerImage = getCodeDockerImage()
+            def triggeringCommitHash = getTriggeringCommitHash()
+            def HOST = helpers.getIp()
+            def VNC_PORT = helpers.getFreePort(lower: 20000, upper: 20999)
+            def dockerParams = "-p ${VNC_PORT}:5900"
+
+            if (gpu) {
+                dockerParams += ' --device /dev/nvidia0 --device /dev/nvidiactl'
+            }
+
+            // authorize docker deamon to access registry
+            sh "`aws ecr get-login --region=${params.AWS_REGION}`"
+
+            docker.withRegistry("https://${params.DOCKER_REGISTRY_URL}") {
+                def image = docker.image(codeDockerImage)
+
+                stage('tests: get image') {
+                    image.pull()
+                }
+
+                docker.image(image.imageName()).inside(dockerParams) {
+
+                    setGithubCommitStatus(
+                        triggeringCommitHash,
+                        context,
+                        'pending',
+                        "VNC ${HOST}:${VNC_PORT}"
+                    )
+
+                    stage('tests: run') {
+                        def report
+                        def hasErrors
+
+                        try {
+                            sh """#!/bin/bash
+                                set -x
+
+                                cd /app
+                                rm -f report.xml
+
+                                export DISPLAY=:0
+                                Xvfb \$DISPLAY -screen 0 1024x768x24 -ac &
+                                openbox&
+
+                                x11vnc -storepasswd vnc /tmp/vncpass
+                                x11vnc -rfbport 5900 -rfbauth /tmp/vncpass -forever > /dev/null 2>&1 &
+
+                                ./fern.js test ${testParams} --ci report.xml > /dev/null; true
+
+                                cp report.xml ${env.WORKSPACE}
+                            """
+
+                            Map r = xunit.parse('/app/report.xml')
+                            report = "tests: ${r.tests}, failures: ${r.failures}"
+                            hasErrors = r.failures != '0'
+
+                            //xunit.setJUnitPackageName(context, 'report.xml', 'report.xml')
+
+                            junit(
+                                allowEmptyResults: true,
+                                healthScaleFactor: 0.0,
+                                testResults: 'report.xml'
+                            )
+                        } catch (e) {
+                            report = e
+                            hasErrors = true
+                        }
+
+                        setGithubCommitStatus(
+                            triggeringCommitHash,
+                            context,
+                            hasErrors ? 'failure' : 'success',
+                            report
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+def stepsForParallel = helpers.entries(matrix).collectEntries {
+    [(it[0]): test(
+        context: it[0],
+        testParams: it[1]['testParams'],
+        gpu: it[1]['gpu'],
+        getCodeDockerImage: { codeDockerImage },
+        getTriggeringCommitHash: { triggeringCommitHash }
+    )]
+}
+
+parallel stepsForParallel

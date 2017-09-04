@@ -21,4 +21,15 @@
           openUrl="{{ feedbackURL }}"
           data-target="info_help">
     </span>
+    {{#if showTipps}}
+    &#8226;
+      <span id="tips"
+        data-i18n="control-center-tips"
+        {{#if amo}}
+          openUrl="https://cliqz.com/tips-firefox"
+        {{else}}
+          openUrl="https://cliqz.com/tips"
+        {{/if}}>
+      </span>
+    {{/if}}
 </span>

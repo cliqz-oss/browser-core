@@ -8,16 +8,26 @@ $light-gray: #f5f5f5;
 $basic-font-size: 15px;
 $basic-line-height: (16 / 15) + 0em;
 
+#cliqz-dropdown[data-extension-id='funnelcake@cliqz.com'] {
+    .logo {
+        /* round logos for funnelcake*/
+        border-radius: 50%;
+    }
+}
+
 #cliqz-dropdown {
     font-family: "-mac-system", "-apple-system", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-    font-weight: 300;
+    font-weight: normal;
 
     @import 'results/sessions';
     @import 'results/lotto';
+    @import 'results/soccer';
 
     font-size: $basic-font-size;
     line-height: $basic-line-height;
     position: relative;
+
+    overflow-y: auto;
 
     * {
         box-sizing: border-box;
@@ -50,7 +60,7 @@ $basic-line-height: (16 / 15) + 0em;
         padding-right: 4px;
 
         & > div:last-child {
-            padding-bottom: 6px;
+            padding-bottom: 2px;
         }
     }
 
@@ -91,10 +101,57 @@ $basic-line-height: (16 / 15) + 0em;
         padding-left: 70px;
     }
 
+    .no-icon {
+        padding-left: 60px;
+    }
+
     .images {
 
         .result {
             padding: 0;
+        }
+    }
+
+    .suggestions {
+        padding-top: 10px;
+        padding-right: 0px;
+        padding-bottom: 10px;
+        border-top: 0.5px solid #EAEAEA;
+        height: 45px;
+        margin-left: -4px;
+        margin-right: -4px;
+
+        .result {
+            float: left;
+            border: 1px solid #E3E3E3;
+            border-radius: 27px;
+            padding: 5px 12px 4px 5px;
+            margin-right: 11px;
+            text-decoration: none;
+            color: black;
+            font-weight: bold;
+
+            em {
+                font-weight: normal;
+            }
+
+            .icons {
+                width: 20px;
+
+                .icon {
+                    margin-top: 0;
+                    margin-right: 4px;
+                    margin-left: 1px;
+                }
+            }
+
+            &.selected, &.selected:visited {
+                border-color: #2385E7;
+            }
+
+            &:first-child {
+                margin-left: 4px;
+            }
         }
     }
 
@@ -106,7 +163,7 @@ $basic-line-height: (16 / 15) + 0em;
         margin-left: 10px;
         -moz-box-sizing: border-box;
         box-sizing: border-box;
-        border-radius: 50%;
+        border-radius: 2px;
         display: inline-block;
         line-height: 1.4em;
         text-align: center;
@@ -170,7 +227,7 @@ $basic-line-height: (16 / 15) + 0em;
                 }
 
                 &.search {
-                    background-image: url("chrome://global/skin/icons/autocomplete-search.svg#search-icon");
+                    background-image: url("../images/search-loupe-black.svg");
                 }
 
                 &.history-tool {
@@ -184,6 +241,7 @@ $basic-line-height: (16 / 15) + 0em;
             margin-left: 10px;
             width: 80%;
             overflow: hidden;
+            display: inline-flex;
 
             & > div {
                 float: left;
@@ -196,12 +254,24 @@ $basic-line-height: (16 / 15) + 0em;
                 display: flex;
                 width: 100%;
 
+                .ad {
+                    font-size: 0.733em;
+                    line-height: ($basic-line-height / 0.733) + 0em;
+                    border: 1px solid #9D9D9D;
+                    color: #303030;
+                    border-radius: 2px;
+                    padding: 0 5px 1px 5px;
+                }
+
                 span {
                     @extend .ellipsis;
                     display: inline-block;
                     float: left;
+                    line-height: ($basic-line-height / 0.833) + 0em;
+
                     margin-right: 5px;
                     max-width: 500px;
+                    padding-right: 2px;
                 }
 
                 .divider {
@@ -236,6 +306,8 @@ $basic-line-height: (16 / 15) + 0em;
                 height: 46px;
                 border-radius: 3px;
                 padding-right: 10px;
+                display: flex;
+                flex: 0 0 auto;
 
                 img {
                     width: 100%;
@@ -255,21 +327,20 @@ $basic-line-height: (16 / 15) + 0em;
                     color: white;
                 }
 
+                .ad {
+                    border-color: #fff;
+                }
+
                 .url,
                 .divider,
                 .description {
                     color: rgba(255, 255, 255, 0.8);
                 }
-
-                .description,
-                .url {
-                    max-width: 100%;
-                }
             }
 
             .icons {
                 .icon.search {
-                    background-image: url("chrome://global/skin/icons/autocomplete-search.svg#search-icon-inverted");
+                    background-image: url("../images/search-loupe-white.svg");
                     background-repeat: no-repeat;
                 }
 
@@ -353,18 +424,69 @@ $basic-line-height: (16 / 15) + 0em;
     }
 
     .search {
+        /* for supplementary search results we have bold the oposite way */
+        font-weight: bold;
+        em {
+            font-weight: normal;
+        }
+
         &:visited {
             color: #383838;
         }
         display: block;
         color: #383838;
+
+        &.result {
+            .abstract {
+                .divider, .url {
+                    visibility: hidden;
+                }
+            }
+
+            &.selected {
+                .abstract {
+                    .divider, .url {
+                        visibility: visible;
+                    }
+                }
+            }
+        }
     }
 
     .instant {
 
         .header {
+            padding-bottom: 8px;
+            cursor: pointer;
             &:after {
                 @extend .clearfix;
+            }
+
+            &:hover .tooltip {
+                opacity: 1;
+                top:-8px;
+                cursor: pointer;
+            }
+
+            a {
+                position: relative;
+            }
+
+            .tooltip {
+                background-color: #7e7e7e;
+                border-radius: 4px;
+                color: #fff;
+                display: block;
+                font-size: 10px;
+                font-weight: 400;
+                left: 0px;
+                line-height: 1;
+                opacity: 0;
+                padding: 3px 4px;
+                position: absolute;
+                text-align: center;
+                text-transform: uppercase;
+                top: 0;
             }
         }
 
@@ -374,8 +496,18 @@ $basic-line-height: (16 / 15) + 0em;
         }
 
         .subtitle {
-            color: #9f9f9f;
-            margin: 6px 0;
+            color: #999999;
+            font-size: 0.733em;
+        }
+
+        .source-link {
+            color: #999999;
+            display: inline-block;
+            padding: 0;
+
+            &:hover {
+                color: #2385e7;
+            }
         }
 
         .selected {
@@ -384,10 +516,18 @@ $basic-line-height: (16 / 15) + 0em;
     }
 
     .result.weather {
+        margin-bottom: 6px;
         .forecast {
-            margin: 10px 0 10px 70px;
+            margin: 0px 0 10px 70px;
+
             &:after {
                 @extend .clearfix;
+            }
+
+            .forecast-container {
+                box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.17);
+                display: inline-block;
+                padding: 15px 0px 0px 10px;
             }
 
             .weather-item {
@@ -397,11 +537,21 @@ $basic-line-height: (16 / 15) + 0em;
                 text-align: center;
             }
         }
+
+        .source {
+            color: #999999;
+            font-size: 11px;
+            position: relative;
+            top: 18px;
+
+            .source-container {
+                float: right;
+            }
+        }
     }
 
     .history .result,
     .result.search,
-    .result.calculator,
     .result.history {
         @extend .clearfix;
 
@@ -434,10 +584,20 @@ $basic-line-height: (16 / 15) + 0em;
         }
     }
 
-    .result.calculator {
+    // .result.news {
+    //   .description {
+    //     display: none;
+    //   }
+    // }
+
+    .calculator {
         .header {
             font-size: 1.66em;
             font-weight: normal;
+
+            a {
+                color: #000;
+            }
         }
 
         .logo {
@@ -477,6 +637,9 @@ $basic-line-height: (16 / 15) + 0em;
     }
 
     .news {
+        // .description {
+        //   display: none;
+        // }
         p {
             width: 0px;
         }
@@ -510,13 +673,30 @@ $basic-line-height: (16 / 15) + 0em;
                     line-height: 1.533em;
                 }
 
+                span.title {
+                  line-height: 1.733em;
+                }
+
+                .divider,
+                .url {
+                  line-height: (2) + 0em;
+                }
+
                 .description[data-extra='full-url'] {
                     display: none;
                 }
 
+                .description[data-extra='description'] {
+                  line-height: (1.133 / 0.97) + 0em;
+                }
+
+                span.published-at {
+                  text-transform: uppercase;
+                }
+
                 .subtitle {
                     font-size: 0.67em;
-                    line-height: (1.533 / 0.67) + 0em;
+                    line-height: (1.133 / 0.77) + 0em;
                     font-weight: 500;
 
                     &.attention {
@@ -531,3 +711,93 @@ $basic-line-height: (16 / 15) + 0em;
         }
     }
 }
+
+/*** STYLES FOR PAGE ACTION BUTTON ***/
+
+#nav-bar {
+    #urlbar {
+        toolbarbutton {
+            &#page-action-browser-action {
+                margin: 0;
+                padding: 0;
+                margin-right: -4px;
+                height: auto;
+
+                &.toolbarbutton-1 {
+
+                    > .toolbarbutton-badge-stack {
+                        padding: 0 8px;
+
+                        .toolbarbutton-icon {
+                            max-width: 12px;
+                        }
+                    }
+
+                    &:hover, &[open] {
+                        border-color: transparent;
+                        box-shadow: none;
+                        background: none;
+                    }
+                }
+            }
+
+            &.toolbarbutton-1 {
+                > .toolbarbutton-badge-stack {
+                    border-color: transparent;
+                    box-shadow: none;
+                    background: none;
+                }
+
+                :hover {
+                    border-color: transparent;
+                    box-shadow: none;
+                    background: none;
+                }
+            }
+
+            &:hover {
+                .toolbarbutton-icon {
+                    opacity: 0.6;
+                }
+            }
+            @media (-moz-os-version: windows-win7), (-moz-os-version: windows-win8), (-moz-os-version: windows-win10) {
+                .toolbarbutton-icon {
+                    opacity: 0.6;
+                }
+                &#page-action-browser-action:hover {
+                    list-style-image: url(resource://cliqz/control-center/images/search-settings-blue.png) !important;
+                    --webextension-menupanel-image: url(resource://cliqz/control-center/images/search-settings-blue.png) !important;
+                    --webextension-menupanel-image-2x: url(resource://cliqz/control-center/images/search-settings-blue.png) !important;
+                    --webextension-toolbar-image: url(resource://cliqz/control-center/images/search-settings-blue.png) !important;
+                    --webextension-toolbar-image-2x: url(resource://cliqz/control-center/images/search-settings-blue.png) !important;
+                }
+
+            }
+        }
+    }
+
+    #customizationui-widget-multiview {
+        panelview#PanelUI-webext-page-action-browser-action-view:not([extension]),
+        panelview#PanelUI-webext-control-center-browser-action-view:not([extension]) {
+            max-width: 400px;
+        }
+    }
+
+    /* dropdown width in FF42*/
+    #customizationui-widget-panel .panel-mainview {
+        max-width: 400px;
+    }
+}
+
+#PanelUI-mainView {
+    toolbarbutton#control-center-browser-action {
+        &.toolbarbutton-1 {
+            > .toolbarbutton-badge-stack {
+                .toolbarbutton-icon {
+                    list-style-image: var(--webextension-menupanel-image, inherit);
+                }
+            }
+        }
+    }
+}
+

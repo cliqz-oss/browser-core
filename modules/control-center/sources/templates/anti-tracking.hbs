@@ -8,91 +8,110 @@
     <div class="title">
       <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
-          <ellipse id="Oval-2" fill="#D0D0D0" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
+          <ellipse id="Oval-2" fill="#999" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
           <text id="i-copy" font-family="AmericanTypewriter-Bold, American Typewriter" font-size="11.2" font-weight="bold" fill="#FFFFFF">
             <tspan x="5.50934774" y="11.3937579">i</tspan>
           </text>
         </g>
       </svg>
-      <div class="tooltip right">
+      <div class="tooltip right anti-tracking">
         <span class="title">Anti-Tracking</span>
         <span data-i18n="control-center-info-trackers"></span>
       </div>
 
-      <span start-navigation>Anti-Tracking</span>
-      <svg start-navigation id="smallarrow" width="10px" height="15px" viewBox="1131 409 10 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-        <defs></defs>
-        <polyline id="Path-164-Copy-153" stroke="#7D7D7D" stroke-width="2.5999999" fill="none" opacity="0.44" points="1133.19742 410.787186 1139.09434 416.693941 1133.42806 422.369666"></polyline>
-      </svg>
-    </div>
+      <span class="hover-highlighted" start-navigation>Anti-Tracking</span>
+      <svg start-navigation id="smallarrow" width="10px" height="16px" viewBox="0 0 10 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <defs></defs>
+            <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round">
+                <g id="Cliqz-Privacy-Center-3" transform="translate(-674.000000, -290.000000)" stroke-width="2.5999999" stroke="#4D4D4D">
+                    <polyline id="Path-164-Copy-183" points="676.092831 292.227875 681.989759 298.13463 676.323476 303.810354"></polyline>
+                </g>
+            </g>
+        </svg>
+      <div class="switches">
+        <span invisible-on-state="active" class="new-dropdown">
+          <button class="dropdown-btn">
+             <span class="dropdown-content-option-text"
+                   visible-on-state="inactive"
+                   data-i18n="control-center-this-domain"></span>
 
-    <div start-navigation class="counter" id="antitracker-counter">
-      <svg id="shield" width="38px" height="44px" viewBox="-1 0 38 44" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-        <defs></defs>
-        <path class="fill" d="M18.0059,0.375 C18.0059,0.375 13.1119,9.034 1.3039,9.034 C0.8799,9.034 0.4479,9.023 0.0059,9 L0.0049,9 C-0.1111,8.998 1.6699,34.772 18.0059,44 C34.3409,34.773 36.1219,9 36.0069,9 L36.0059,9 C35.5649,9.023 35.1319,9.034 34.7079,9.034 C22.8979,9.034 18.0059,0.375 18.0059,0.375 M32.4389,12.139 C31.4659,18.564 28.1719,33.281 18.0059,40.233 C7.8339,33.279 4.5449,18.563 3.5729,12.139 C10.6619,11.534 15.3369,8.172 18.0059,5.47 C20.6739,8.172 25.3499,11.534 32.4389,12.139 Z"
-          id="Fill-1" stroke="none" fill="#2CBA64" fill-rule="evenodd"></path>
-      </svg>
-      <span id="count">{{ module.antitracking.totalCount }}</span>
-    </div>
+             <span class="dropdown-content-option-text"
+                   visible-on-state="critical"
+                   data-i18n="control-center-all-sites"></span>
 
-    <p class="description" start-navigation visible-on-state="active" data-i18n="control-center-datapoints"></p>
-    <p class="description" start-navigation visible-on-state="inactive" data-i18n="control-center-datapoints-inactive"></p>
-    <p class="description" start-navigation visible-on-state="critical" data-i18n="control-center-datapoints-off"></p>
-    <div class="switches">
-      <!--======= Switch ======-->
-      <span>
-        <span
-            class="cqz-switch"
-            data-type = 'switch'
-            antiTrackingStatusChanger>
-          <span class="cqz-switch-box"></span>
+            <svg class="arr" width="12px" height="7px" viewBox="96 10 12 7" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                <defs></defs>
+                <polyline id="fill" id="Path-164-Copy-93" stroke="none" fill="#A2A2A2" fill-rule="evenodd" opacity="0.554279384" transform="translate(102.166470, 13.884133) rotate(90.000000) translate(-102.166470, -13.884133) " points="99.218006 8.09289333 105.114934 13.999648 99.4486516 19.6753727"></polyline>
+            </svg>
+          </button>
+
+          <div class="new-dropdown-content">
+            <a class="dropdown-content-option {{#if module.antitracking.isWhitelisted }}selected{{/if}}"
+               data-i18n="control-center-this-domain"
+               value="this"
+               data-type="off_select"
+               data-state="off_website"
+               antiTrackingStatusChanger>
+            </a>
+
+
+
+            <a class="dropdown-content-option  {{#unless module.antitracking.isWhitelisted }} selected {{/unless}}"
+               data-i18n="control-center-all-sites"
+               value="all"
+               data-type = "off_select"
+               data-state="off_all"
+               antiTrackingStatusChanger>
+             </a>
+          </div>
         </span>
-        <span visible-on-state="active" data-i18n="control-center-switch-on"></span>
-        <span visible-on-state="inactive" data-i18n="control-center-switch-off"></span>
-        <span visible-on-state="critical" data-i18n="control-center-switch-off"></span>
-      </span>
-
-
-
-
-      <span invisible-on-state="active" class="new-dropdown">
-        <button class="dropdown-btn">
-           <span class="dropdown-content-option-text"
-                 visible-on-state="inactive"
-                 data-i18n="control-center-this-domain"></span>
-
-           <span class="dropdown-content-option-text"
-                 visible-on-state="critical"
-                 data-i18n="control-center-all-sites"></span>
-
-          <svg class="arr" width="12px" height="7px" viewBox="96 10 12 7" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-              <defs></defs>
-              <polyline id="fill" id="Path-164-Copy-93" stroke="none" fill="#A2A2A2" fill-rule="evenodd" opacity="0.554279384" transform="translate(102.166470, 13.884133) rotate(90.000000) translate(-102.166470, -13.884133) " points="99.218006 8.09289333 105.114934 13.999648 99.4486516 19.6753727"></polyline>
-          </svg>
-        </button>
-
-        <div class="new-dropdown-content">
-          <a class="dropdown-content-option {{#if module.antitracking.isWhitelisted }}selected{{/if}}"
-             data-i18n="control-center-this-domain"
-             value="this"
-             data-type="off_select"
-             data-state="off_website"
-             antiTrackingStatusChanger>
-          </a>
-
-
-
-          <a class="dropdown-content-option  {{#unless module.antitracking.isWhitelisted }} selected {{/unless}}"
-             data-i18n="control-center-all-sites"
-             value="all"
-             data-type = "off_select"
-             data-state="off_all"
-             antiTrackingStatusChanger>
-           </a>
-        </div>
-      </span>
-
+        <span>
+          <span visible-on-state="active" data-i18n="control-center-switch-on"></span>
+          <span visible-on-state="inactive" data-i18n="control-center-switch-off"></span>
+          <span visible-on-state="critical" data-i18n="control-center-switch-off"></span>
+          <span
+              class="cqz-switch"
+              data-type = 'switch'
+              antiTrackingStatusChanger>
+            <span class="cqz-switch-box"></span>
+          </span>
+        </span>
+      </div>
     </div>
+    </div>
+    <div class="settings-section-row">
+      <div start-navigation class="counter" id="antitracker-counter">
+        <svg id="shield" width="32px" height="39px" viewBox="0 0 32 39" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <defs>
+                <polygon id="path-1" points="0 35.2 0 0.3 28.8094585 0.3 28.8094585 35.2 14.4047293 35.2"></polygon>
+            </defs>
+            <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                <g id="anti-tracking-Gshield-dropdown">
+                    <rect id="Rectangle-12" fill-opacity="0.0143229167" fill="#FFFFFF" fill-rule="nonzero" x="0.44057291" y="0.808292" width="31" height="38"></rect>
+                    <g id="Group-3-Copy-36" transform="translate(1.291065, 2.808292)">
+                        <g id="Fill-1-Clipped">
+                            <mask id="mask-2" fill="white">
+                                <use xlink:href="#path-1"></use>
+                            </mask>
+                            <g id="path-1"></g>
+                            <path d="M14.40472,0.3 C14.40472,0.3 10.48952,7.2272 1.04312,7.2272 C0.70392,7.2272 0.35832,7.2184 0.00472,7.2 L0.00392,7.2 C-0.08888,7.1984 1.33592,27.8176 14.40472,35.2 C27.47272,27.8184 28.89752,7.2 28.80552,7.2 L28.80472,7.2 C28.45192,7.2184 28.10552,7.2272 27.76632,7.2272 C18.31832,7.2272 14.40472,0.3 14.40472,0.3 L14.40472,0.3 Z M25.95112,9.7112 C25.17272,14.8512 22.53752,26.6248 14.40472,32.1864 C6.26712,26.6232 3.63592,14.8504 2.85832,9.7112 C8.52952,9.2272 12.26952,6.5376 14.40472,4.376 C16.53912,6.5376 20.27992,9.2272 25.95112,9.7112 Z" id="Fill-1" stroke="#54BF30" stroke-width="0.4" fill="#54BF30" fill-rule="nonzero" mask="url(#mask-2)"></path>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </svg>
+        <span id="count"">
+          <span visible-on-state="active">{{ module.antitracking.totalCount }}</span>
+          <span visible-on-state="inactive">0</span>
+          <span visible-on-state="critical">0</span>
+        </span>
+
+      </div>
+      <div class="row-text">
+        <p class="description" start-navigation visible-on-state="active" data-i18n="control-center-datapoints"></p>
+        <p class="description" start-navigation visible-on-state="inactive" data-i18n="control-center-datapoints-inactive"></p>
+        <p class="description" start-navigation visible-on-state="critical" data-i18n="control-center-datapoints-off"></p>
+      </div>
   </div>
   <div class="active-window-tracking">
     {{> active-anti-tracking }}

@@ -62,4 +62,7 @@ const webRequest = {
 
 bridge.registerAction('webRequest', webRequest.onBeforeRequest._trigger.bind(webRequest.onBeforeRequest));
 
+// extra response property to indicate that the ghostery counter should be increase
+export const VALID_RESPONSE_PROPERTIES = ['shouldIncrementCounter'];
+
 export default webRequest;

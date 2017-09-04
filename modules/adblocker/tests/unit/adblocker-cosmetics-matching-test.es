@@ -26,14 +26,13 @@ const TEST_CASES = [
 export default describeModule('adblocker/filters-matching',
   () => ({
     'platform/url': {},
-    'adblocker/utils': {
-      default: () => {
-        // const message = `[adblock] ${msg}`;
-        // console.log(message);
+    'core/utils': {},
+    'adblocker/logger': {
+      default: {
+        debug() {},
+        log() {},
+        error() {},
       },
-    },
-    'core/cliqz': {
-      utils: {},
     },
   }),
   () => {
@@ -46,7 +45,6 @@ export default describeModule('adblocker/filters-matching',
           matchCosmeticFilter = this.module().matchCosmeticFilter;
         });
 
-
         TEST_CASES.forEach((testCase) => {
           const hostname = testCase.hostname;
           const hostnames = testCase.hostnames;
@@ -54,12 +52,20 @@ export default describeModule('adblocker/filters-matching',
             () => new Promise((resolve, reject) => {
               try {
                 const match = matchCosmeticFilter(
-                  { supported: true, hostnames },
+                  {
+                    hasHostnames() { return true; },
+                    getHostnames() {
+                      return hostnames;
+                    }
+                  },
                   hostname);
-                chai.expect(match).to.equal(testCase.match);
+                if (testCase.match) {
+                  chai.expect(match).to.not.equal(null);
+                } else {
+                  chai.expect(match).to.equal(null);
+                }
               } catch (ex) {
-                console.log(`${ex} ${ex.stack}`);
-                reject(`Expected ${hostname} ~= ${JSON.stringify(hostnames)} == ${testCase.match}`);
+                reject(`Expected ${hostname} ~= ${JSON.stringify(hostnames)} == ${testCase.match} (${ex})`);
               }
               resolve();
             })

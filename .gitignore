@@ -7,6 +7,7 @@ tests.tap
 tests.xml
 addon.env
 jsconfig.json
+package-lock.json
 
 # ignore invisible files
 .Trashes
@@ -27,6 +28,8 @@ firefox-autoconfigs
 generic/static/styles/css/
 npm.err
 npm-debug.log
+testem.log
+report.xml
 
 /certs
 /xpi-sign
@@ -35,3 +38,8 @@ subprojects/**/dist
 /docs
 mocha.log
 /guides/build_docs
+chromedriver
+results.xml
+jsengine.bundle.js
+jsengine.bundle.js.meta
+

@@ -9,6 +9,8 @@ import background from './base/background';
 import { Window, mapWindows } from '../platform/browser';
 import resourceManager from './resource-manager';
 import inject from './kord/inject';
+import { getCookies } from '../platform/browser';
+import { queryCliqz, openLink, openTab, getOpenTabs, getReminders } from '../platform/browser-actions';
 
 var lastRequestId = 0;
 var callbacks = {};
@@ -33,14 +35,6 @@ export default background({
   unload() {
     this.mm.unload();
     resourceManager.unload();
-  },
-
-  reportStartupTime() {
-    const status = this.actions.status();
-    utils.telemetry({
-      type: 'startup',
-      modules: status.modules,
-    });
   },
 
   dispatchMessage(msg) {
@@ -78,6 +72,7 @@ export default background({
         action,
         module: moduleName,
         requestId,
+        windowId,
       });
     })
     .catch(console.error.bind(null, "Process Script", `${moduleName}/${action}`));
@@ -104,6 +99,9 @@ export default background({
   },
 
   actions: {
+    notifyProcessInit(processId) {
+      events.pub('process:init', processId);
+    },
     notifyLocationChange(...args) {
       events.pub('content:location-change', ...args);
     },
@@ -232,11 +230,23 @@ export default background({
     },
 
     queryCliqz(query) {
-      let urlBar = utils.getWindow().document.getElementById("urlbar");
-      urlBar.mInputField.setUserInput('');
-      urlBar.focus();
-      urlBar.mInputField.focus();
-      urlBar.mInputField.setUserInput(query);
+      queryCliqz(query);
+    },
+
+    openLink(url) {
+      openLink(url);
+    },
+
+    openTab(tabId) {
+      openTab(tabId);
+    },
+
+    getOpenTabs() {
+      return getOpenTabs();
+    },
+
+    getReminders(domain) {
+      return getReminders(domain);
     },
 
     closePopup() {
@@ -296,7 +306,7 @@ export default background({
 
         utils.setTimeout(function () {
           delete callbacks[requestId];
-          reject();
+          reject(new Error('queryHTML timeout'));
         }, 1000);
       });
     },
@@ -325,36 +335,29 @@ export default background({
     },
 
     getCookie(url) {
-      const requestId = lastRequestId++,
-        documents = [];
+      return getCookies(url)
+        .catch(() => {
+          const requestId = lastRequestId++;
 
-      this.mm.broadcast("cliqz:core", {
-        action: "getCookie",
-        url,
-        args: [],
-        requestId
-      });
+          this.mm.broadcast("cliqz:core", {
+            action: "getCookie",
+            url,
+            args: [],
+            requestId
+          });
 
-      return new Promise( (resolve, reject) => {
-        callbacks[requestId] = function (attributeValues) {
-          delete callbacks[requestId];
-          resolve(attributeValues);
-        };
+          return new Promise((resolve, reject) => {
+            callbacks[requestId] = function (attributeValues) {
+              delete callbacks[requestId];
+              resolve(attributeValues);
+            };
 
-        utils.setTimeout(function () {
-          delete callbacks[requestId];
-          reject();
-        }, 1000);
-      });
+            utils.setTimeout(function () {
+              delete callbacks[requestId];
+              reject(new Error('getCookie timeout'));
+            }, 1000);
+          });
+        });
     },
-
-    getPref(name, defVal) {
-      return prefs.get(name, defVal);
-    },
-
-    setPref(name, val) {
-      prefs.set(name, val);
-    },
-
   },
 });

@@ -67,8 +67,8 @@ export default background({
       HumanWeb.queryCache[data.url] = {
         d: 1,
         q: data.query,
-        t: data.type,
-        pt: data.positionType,
+        t: data.isPrivateResult ? 'othr' : 'cl',
+        pt: data.positionType || '',
       };
     },
      /**

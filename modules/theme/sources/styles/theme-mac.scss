@@ -139,10 +139,6 @@ $url-bar-hover-shadow: inset 0 0 2px #aec6de;
     background: none;
 }
 
-.tabbrowser-tab:not([pinned]) {
-    max-width: 195px;
-}
-
 .tabbrowser-tab:hover > .tab-stack > .tab-background:not([visuallyselected="true"]) {
     background: none;
 }
@@ -161,10 +157,6 @@ $url-bar-hover-shadow: inset 0 0 2px #aec6de;
     background: transparent none repeat scroll 0% 0%;
 }
 
-#back-button {
-    border-right: 1px solid #e1e1e1 !important;
-}
-
 #forward-button,
 #back-button {
     width: 37px;
@@ -174,11 +166,16 @@ $url-bar-hover-shadow: inset 0 0 2px #aec6de;
     box-shadow: 0 0 0 0 transparent !important;
     border-radius: 0 !important;
     background-color: transparent !important;
+    border: none !important;
 
     &:hover:not(:-moz-lwtheme):not([disabled="true"]) {
         background-color: $buttons-hover-color !important;
         box-shadow: none !important;
     }
+}
+
+#back-button {
+    border-right: 1px solid #e1e1e1 !important;
 }
 
 window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
@@ -208,7 +205,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
     border-bottom-color: transparent !important;
     box-shadow: none !important;
     background: $url-bar-bg-color !important;
-    padding-left:7px;
+    padding-left: 4px;
 
     * {
         box-sizing: border-box;
@@ -311,6 +308,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
             border-top: none;
             margin-top: 1px;
             background: $tab-selected-bg-color !important;
+            border-right: 1px solid $tab-border-color;
         }
     }
 
@@ -343,7 +341,8 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
 }
 
 .tabs-newtab-button {
-    margin: 0 0 0 2px !important;
+    margin: 0;
+    padding: 0;
     width: 30px;
     border: none !important;
     background: none !important;
@@ -352,6 +351,7 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
     .toolbarbutton-icon {
         padding-top: 8px;
         padding-bottom: 3px;
+        border-width: 0 7px;
     }
 }
 
@@ -375,10 +375,26 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper {
     border-top-color: #d1d0d3 !important;
     border-bottom: none !important; // 1px solid #e3e3e3 !important;
     background: #f6f6f6 !important;
-}
 
-#forward-button > .toolbarbutton-icon {
-    margin: 0;
+    #forward-button > .toolbarbutton-icon {
+        margin: 0;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        border-right-style: none;
+    }
+
+    #back-button > .toolbarbutton-icon {
+        border: none;
+        background: none;
+        padding-left: 3px;
+    }
+
+    #forward-button, #back-button {
+        &.toolbarbutton-1:-moz-any([open], [checked], :hover:active):not([disabled="true"]) > .toolbarbutton-icon {
+            box-shadow: none !important;
+            background: none;
+        }
+    }
 }
 
 #PersonalToolbar {
@@ -398,7 +414,7 @@ toolbarbutton.bookmark-item:not(.subviewbutton):not(#bookmarks-menu-button),
 }
 
 #nav-bar-customization-target {
-    padding: 0 4px 0 0;
+    padding: 0;
 }
 
 
@@ -500,6 +516,7 @@ notification {
 
 #urlbar,
 .searchbar-textbox {
+    margin: 0;
     font-size: $url-bar-font-size;
 }
 
@@ -514,12 +531,14 @@ notification {
     z-index: 0;
 }
 
-#main-window:not([chromehidden~="toolbar"]) {
-    min-width: 425px;
+#navigator-toolbox:-moz-window-inactive::after {
+    box-shadow: 0 0.13em 2px 0 rgba(0, 0, 0, 0.35);
+    margin-top: -3px !important;
+    border-top-style: solid;
 }
 
-#PanelUI-button {
-    border-image-slice: 0;
+#main-window:not([chromehidden~="toolbar"]) {
+    min-width: 425px;
 }
 
 #TabsToolbar .toolbarbutton-1 {
@@ -528,8 +547,7 @@ notification {
 
 #nav-bar .toolbarbutton-1:not(#back-button):not(#forward-button),
 toolbarbutton#cliqz-cc-btn {
-    margin-top: 0;
-    margin-bottom: 0;
+    margin: 0;
     border-radius: 0;
     padding: 0;
     border-left: 1px solid transparent;
@@ -616,7 +634,10 @@ toolbarbutton#cliqz-cc-btn {
 }
 
 #PanelUI-button {
-    margin-inline-start: 0;
+    margin-inline-start: -1px;
+    padding-inline-start: 0;
+    border-image-slice: 0;
+    border-inline-start: 0;
 }
 
 #nav-bar #PanelUI-menu-button {
@@ -625,7 +646,6 @@ toolbarbutton#cliqz-cc-btn {
     margin: 0 0 0 1px !important;
     min-width: 37px !important;
     border-radius: 0 !important;;
-    border-left: 1px solid #ccc !important;
     box-shadow: none !important;
 
     &:hover {
@@ -634,16 +654,18 @@ toolbarbutton#cliqz-cc-btn {
 }
 
 #TabsToolbar {
-    padding-right: 60px; /*Reserve some space for dragging the window*/
+    padding-right: 36px; /*Reserve some space for dragging the window*/
     min-height: $tabs-height;
 }
 
 #navigator-toolbox:not([inFullscreen]) #tabbrowser-tabs {
-    -moz-margin-start: 6px; /*Move the tabs a bit right to have a clear space from the close-min-max buttons*/
+    -moz-margin-start: 12px; /*Move the tabs a bit right to have a clear space from the close-min-max buttons*/
 }
 
 .tabbrowser-tab:not([pinned]) {
-    max-width: 236px;
+    -moz-box-flex: 100;
+    max-width: 210px;
+    min-width: 74px;
 }
 
 .tab-close-button > .toolbarbutton-icon {
@@ -664,7 +686,7 @@ toolbarbutton#cliqz-cc-btn {
 }
 
 #navigator-toolbox:not([inFullscreen="true"]) #tabbrowser-tabs .tabbrowser-arrowscrollbox {
-    margin-inline-start: 44px;
+    margin-inline-start: 14px;
 }
 
 /* END TAB */
@@ -672,12 +694,12 @@ toolbarbutton#cliqz-cc-btn {
 /* BEGIN CUSTOMIZE UI */
 
 #customization-panelHolder #PanelUI-customize {
-    background-color: #36c0c0;
+    background-color: #00AEF0;
 }
 
 #customization-panelHolder #PanelUI-customize:hover,
 #customization-panelHolder #PanelUI-customize:hover:active {
-    background-color: #3eadb5;
+    background-color: #0078CA;
 }
 
 #main-window #customization-panel-container,
@@ -709,4 +731,35 @@ vbox[sidebarcommand=historybroadcaster] {
 //=== Border Customize Pannel
 #main-window[customize-entered] #browser-bottombox, #main-window[customize-entered] #navigator-toolbox > toolbar:not(#TabsToolbar), #main-window[customize-entered] #customization-container {
     border: none !important;
+}
+
+//=========================
+//===== TEST PILOT UI =====
+//=========================
+#main-window[cliqzBrowser="true"] {
+    #cliqz-dropdown {
+        .result {
+            .icons {
+                width: 98px;
+            }
+
+            @media (max-width: 550px) {
+                .abstract {
+                    max-width: 73%;
+                }
+            }
+        }
+
+        .history .buttons span.dot {
+            left: 89px;
+        }
+
+        .history.cluster span.timeline {
+            left: 91px;
+        }
+
+        .padded {
+            padding-left: 108px;
+        }
+    }
 }

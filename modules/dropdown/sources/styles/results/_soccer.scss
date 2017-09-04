@@ -1,0 +1,144 @@
+@import 'tabs.scss';
+
+$cliqz-blue: #00AEF0;
+$cliqz-dark-blue: #0078CA;
+
+.result.soccer-title {
+    color: $cliqz-dark-blue;
+    text-decoration: none;
+    line-height: 1.33em;
+    padding: 0.33em 5px 0.33em 0;
+
+    .divider {
+        margin: 0 5px;
+    }
+
+    .soccer-domain {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.833em;
+        line-height: 1.28051em;
+        max-width: 200px;
+        font-weight: 500;
+    }
+}
+
+.soccer {
+    padding-bottom: 1px;
+
+    .wrapper {
+        display: inline-block;
+        box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.17);
+        margin-bottom: 3px;
+        margin-top: 4px;
+
+        .table {
+            display:table;
+
+            .table-header {
+                display: table-header-group;
+
+                .table-cell {
+                    display:table-cell;
+                    padding: 10px;
+                    font-size: 12.5px;
+                }
+            }
+
+            .table-row {
+                text-decoration: none;
+                display:table-row;
+                color: #000;
+
+                .table-cell {
+                    display:table-cell;
+                    padding: 5px 7px;
+                    vertical-align: middle;
+
+                    .league-logo {
+                        width: 50px;
+                        height: 30px;
+                        opacity: 0.5;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                        background-position: center center;
+                    }
+
+                    &.club-logo {
+                        text-align: center;
+
+                        img {
+                            display: inline-block;
+                            width: auto;
+                            height: 30px;
+                            vertical-align: middle;
+                        }
+                    }
+                }
+
+                &.result {
+
+                    .table-cell {
+                        &.fixed-width {
+                            width: 145px;
+                            max-width: 145px;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                        }
+
+                        &.host {
+                            text-align: right;
+                        }
+
+                        &.scored {
+                            text-align: center;
+                            min-width: 50px;
+
+                            &.live {
+                                span {
+                                    padding: 3px 5px;
+                                    box-shadow: inset 0px 0px 5px 0px rgba(0, 0, 0, 0.17);
+                                }
+                            }
+                        }
+
+                        &.time {
+                            width: 150px;
+                            font-size: 12.5px;
+                            padding-left: 20px;
+                        }
+
+                        span.is-live {
+                            padding: 2px 3px;
+                            color: #fff;
+                            border-radius: 2px;
+                            font-size: 11px;
+                            background-color: #4ed833;
+                        }
+                    }
+
+                    &:hover {
+                        .table-cell {
+                            background-color: #F2F2F2;
+                            text-decoration: none;
+                        }
+                    }
+                }
+
+                &:not(:last-child) {
+                    .table-cell {
+                        border-bottom: 1px solid #eee;
+                    }
+                }
+            }
+        }
+    }
+
+    .powered-by {
+        font-size: 11px;
+        color: #DBDBDB;
+    }
+}
+
+
+

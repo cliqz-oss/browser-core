@@ -1,9 +1,7 @@
 
 
 export default class RegexpCache {
-  constructor(eventLoop) {
-    this.eventLoop = eventLoop;
-
+  constructor() {
     this.compiledRegexp = {};
     this.compiledRegexpCount = 0;
   }

@@ -60,5 +60,10 @@ class Bridge {
   }
 }
 
-const bridge = new Bridge();
+let bridge = {
+  registerAction() {}
+};
+if (nativeBridge) {
+  bridge = new Bridge();
+}
 export default bridge;

@@ -1,0 +1,173 @@
+@import 'configs.scss';
+@import 'themes.scss';
+@import 'undo-notifications.scss';
+@import 'speed-dials.scss';
+@import 'url-bar.scss';
+@import 'news.scss';
+@import 'settings.scss';
+@import 'switch.scss';
+@import 'middle-notifications.scss';
+
+
+@mixin container($config, $theme)
+{
+    $base-configs: map-get($config, base);
+    $speed-dials-configs: map-merge($base-configs, map-get($config, speed-dials));
+    $url-bar-configs: map-merge($base-configs, map-get($config, url-bar));
+    $news-configs: map-get($config, news);
+    $middle-notifications-configs: map-get($config, middle-notifications);
+
+    $base-theme: map-get($theme, base);
+    $speed-dials-theme: map-get($theme, speed-dials);
+    $url-bar-theme: map-get($theme, url-bar);
+    $news-theme: map-get($theme, news);
+    $middle-notifications-theme: map-merge(map-get($theme, middle-notifications), $base-theme);
+
+    display: flex;
+    min-height: 100vh;
+
+    .aside {
+        flex: 0 0 map-get($base-configs, aside-width);
+
+        & > a, & > button {
+            display: block;
+            margin: 20px auto;
+            width: 24px;
+            height: 24px;
+            opacity: 0.4;
+            color: transparent;
+            font-size: 0px;
+            text-decoration: none;
+            border: 0;
+            cursor: pointer;
+
+            &#cliqz-home {
+                opacity: 0.8;
+                background: map-get($base-theme, cliqz-home-bg);
+            }
+
+            &#cliqz-history {
+                background: map-get($base-theme, cliqz-history-bg);
+            }
+
+            &#settings-btn {
+                background: map-get($base-theme, cliqz-settings-bg);
+            }
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+
+        /* SPECIAL CASE: SIDE-BAR BUTTONS ON SMALL SCREENS */
+        @media only screen and (max-width: 507px) {
+            a, button {
+                display: none;
+            }
+        }
+
+        @media only screen and (min-width: 508px) and (max-width: 648px) {
+            a, button {
+                margin-left: 13px;
+                margin-right: 13px;
+            }
+        }
+
+        @include settings(map-get($base-theme, cliqz-settings-bg));
+    }
+
+    #main-content {
+        display: flex;
+        flex: 1;
+        justify-content: center;
+        max-width: 100%;
+
+        .fixed-container {
+            max-width: map-get($base-configs, container-width);
+            display: flex;
+            flex: 1;
+            justify-content: space-evenly;
+            align-items: center;
+            flex-direction: column;
+
+            > section {
+                width: 100%;
+                text-align: center;
+            }
+
+            @include speed-dials(map-merge($speed-dials-configs, $speed-dials-theme)...);
+            @include url-bar(map-merge($url-bar-configs, $url-bar-theme)...);
+            @include news(map-merge($news-configs, $news-theme)...);
+            @include middle-notifications(map-merge($middle-notifications-configs, $middle-notifications-theme)...);
+        }
+    }
+}
+
+@mixin responsive($theme) {
+    @media only screen and (max-width: 649px) {
+        $config: map-get($configs, xsmall);
+        @include container($config, $theme);
+    }
+    @media only screen and (min-width: 650px) and (max-width: 919px) {
+        $config: map-get($configs, small);
+        @include container($config, $theme);
+    }
+    @media only screen and (min-width: 920px) and (max-width: 1023px) {
+        $config: map-get($configs, xmedium);
+        @include container($config, $theme);
+    }
+    @media only screen and (min-width: 1024px) and (max-width: 1599px) {
+        $config: map-get($configs, medium);
+        @include container($config, $theme);
+    }
+    @media only screen and (min-width: 1600px) {
+        $config: map-get($configs, large);
+        @include container($config, $theme);
+    }
+}
+
+* {
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+    font-family: "-mac-system", "-apple-system", "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    outline: none;
+}
+
+html {
+    position: relative;
+    overflow-x: hidden;
+    width: 100vw;
+}
+
+button::-moz-focus-inner {
+     border: 0;
+}
+
+body {
+    background: #f7f7f7 no-repeat center center fixed;
+    background-size: cover;
+
+    #app {
+        $light-theme: map-get($themes, light);
+
+        @include responsive($light-theme);
+        @include undo-notifications(map-get($light-theme, base)...);
+    }
+
+    &.theme-bg-light {
+        background-image: url(https://cdn.cliqz.com/extension/newtab/background/light.jpg);
+    }
+
+    &.theme-bg-dark {
+        background-color: #0E213F;
+        background-image: url(https://cdn.cliqz.com/extension/newtab/background/dark.jpg);
+
+        #app {
+            $dark-theme: map-get($themes, dark);
+
+            @include responsive($dark-theme);
+            @include undo-notifications(map-get($dark-theme, base)...);
+        }
+    }
+}

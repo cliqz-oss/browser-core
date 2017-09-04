@@ -1,9 +1,11 @@
 <div id="history">
   <nav>
-    <span {{action 'sendTelemetry'}}>
-      {{#link-to 'freshtab.index' class='freshtab-button'}}
-      {{/link-to}}
-    </span>
+    <a
+      href="{{ model.config.newTabUrl }}"
+      class="freshtab-button"
+      {{action 'openHome'}}
+      >
+    </a>
     {{#link-to 'freshtab.history.index' class="history-button"}}
     {{/link-to}}
   </nav>

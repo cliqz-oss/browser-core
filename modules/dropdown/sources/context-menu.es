@@ -1,10 +1,21 @@
 import inject from '../core/kord/inject';
 import utils from '../core/utils';
+import events from '../core/events';
 import HistoryManager from '../core/history-manager';
 import { getTabsWithUrl, closeTab } from '../core/tabs';
 import { dropdownContextMenuSignal } from './telemetry';
 import config from '../core/config';
 import { copyToClipboard } from '../core/clipboard';
+
+function reportClick(window, result) {
+  events.pub('ui:click-on-url', {
+    url: result.url,
+    query: result.query,
+    rawResult: result.rawResult,
+    isPrivateWindow: utils.isPrivate(window),
+    isPrivateResult: utils.isPrivateResultType(result.kind)
+  });
+}
 
 export default class ContextMenu {
   constructor(window, rootElement) {
@@ -63,15 +74,15 @@ export default class ContextMenu {
     const menuItems = [
       {
         label: this.inPrivateWindow ? labels[`NEW_${PRIVATE_NAME}_TAB`] : labels.NEW_TAB,
-        command: this.openNewTab.bind(this, url),
+        command: this.openNewTab.bind(this, url, result),
       },
       ...(this.inPrivateWindow ? [] : [{
         label: labels.NEW_WINDOW,
-        command: this.openNewWindow.bind(this, url),
+        command: this.openNewWindow.bind(this, url, result),
       }]),
       {
         label: labels[`NEW_${PRIVATE_NAME}_WINDOW`],
-        command: this.openInPrivateWindow.bind(this, url),
+        command: this.openInPrivateWindow.bind(this, url, result),
       },
       {
         label: labels.COPY_URL,
@@ -83,9 +94,7 @@ export default class ContextMenu {
       }] : []),
       {
         label: labels.FEEDBACK,
-        command: this.openFeedback.bind(this, result.kind),
-        class: 'menuitem-iconic',
-        icon: `url(${utils.SKIN_PATH}cliqz.png)`,
+        command: this.openFeedback.bind(this, result.kind)
       }];
 
     return menuItems;
@@ -101,12 +110,6 @@ export default class ContextMenu {
     this.createMenuItems(result).forEach((item) => {
       const menuItem = doc.createElement('menuitem');
       menuItem.setAttribute('label', item.label);
-      if (item.class) {
-        menuItem.setAttribute('class', item.class);
-      }
-      if (item.icon) {
-        menuItem.style.listStyleImage = item.icon;
-      }
       menuItem.addEventListener('command', item.command, false);
       menuItem.addEventListener('mouseup', e => e.stopPropagation(), false);
       contextMenu.appendChild(menuItem);
@@ -115,19 +118,22 @@ export default class ContextMenu {
     return contextMenu;
   }
 
-  openNewWindow(url) {
+  openNewWindow(url, result) {
     utils.openLink(this.window, url, false, true);
     this.telemetry('open_new_window');
+    reportClick(this.window, result);
   }
 
-  openNewTab(url) {
+  openNewTab(url, result) {
     utils.openLink(this.window, url, true);
     this.telemetry('open_new_tab');
+    reportClick(this.window, result);
   }
 
-  openInPrivateWindow(url) {
+  openInPrivateWindow(url, result) {
     utils.openLink(this.window, url, false, false, true);
     this.telemetry('open_private_window');
+    reportClick(this.window, result);
   }
 
   copyURL(url) {

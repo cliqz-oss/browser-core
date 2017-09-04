@@ -1,67 +1,166 @@
 
-import tlds from '../core/tlds';
+import tlds from '../core/tlds-legacy';
+import { fastStartsWith } from './utils';
 
 
-// Some content policy types used in filters
-const CPT = {
-  TYPE_OTHER: 1,
-  TYPE_SCRIPT: 2,
-  TYPE_IMAGE: 3,
-  TYPE_STYLESHEET: 4,
-  TYPE_OBJECT: 5,
-  TYPE_SUBDOCUMENT: 7,
-  TYPE_PING: 10,
-  TYPE_XMLHTTPREQUEST: 11,
-  TYPE_OBJECT_SUBREQUEST: 12,
-  TYPE_MEDIA: 15,
-  TYPE_WEBSOCKET: 16,
-};
+// ---------------------------------------------------------------------------
+// Specialize network filters (for more efficient matching)
+// ---------------------------------------------------------------------------
 
 
-function checkContentPolicy(filter, cpt) {
-  // Check content policy type only if at least one content policy has
-  // been specified in the options.
-  if (!filter.fromAny) {
-    const options = [
-      [filter.fromSubdocument, CPT.TYPE_SUBDOCUMENT],
-      [filter.fromImage, CPT.TYPE_IMAGE],
-      [filter.fromMedia, CPT.TYPE_MEDIA],
-      [filter.fromObject, CPT.TYPE_OBJECT],
-      [filter.fromObjectSubrequest, CPT.TYPE_OBJECT_SUBREQUEST],
-      [filter.fromOther, CPT.TYPE_OTHER],
-      [filter.fromPing, CPT.TYPE_PING],
-      [filter.fromScript, CPT.TYPE_SCRIPT],
-      [filter.fromStylesheet, CPT.TYPE_STYLESHEET],
-      [filter.fromWebsocket, CPT.TYPE_WEBSOCKET],
-      [filter.fromXmlHttpRequest, CPT.TYPE_XMLHTTPREQUEST],
-    ];
+// pattern
+function checkPatternPlainFilter(filter, { url }) {
+  return url.indexOf(filter.getFilter()) !== -1;
+}
 
-    // If content policy type `option` is specified in filter filter,
-    // then the policy type of the request must match.
-    // - If more than one policy type is valid, we must find at least one
-    // - If we found a blacklisted policy type we can return `false`
-    let foundValidCP = null;
-    for (let i = 0; i < options.length; i += 1) {
-      const [option, policyType] = options[i];
 
-      // Found a fromX matching the origin policy of the request
-      if (option === true) {
-        if (cpt === policyType) {
-          foundValidCP = true;
-          break;
-        } else {
-          foundValidCP = false;
-        }
-      }
+// pattern|
+function checkPatternRightAnchorFilter(filter, { url }) {
+  return url.endsWith(filter.getFilter());
+}
 
-      // This rule can't be used with filter policy type
-      if (option === false && cpt === policyType) {
-        return false;
-      }
+
+// |pattern
+function checkPatternLeftAnchorFilter(filter, { url }) {
+  return fastStartsWith(url, filter.getFilter());
+}
+
+
+// |pattern|
+function checkPatternLeftRightAnchorFilter(filter, { url }) {
+  return url === filter.getFilter();
+}
+
+
+// pattern*^
+function checkPatternRegexFilter(filter, { url }) {
+  return filter.getRegex().test(url);
+}
+
+
+function isAnchoredByHostname(filterHostname, hostname) {
+  const matchIndex = hostname.indexOf(filterHostname);
+  // Either start at beginning of hostname or be preceded by a '.'
+  return (matchIndex === 0 || (matchIndex > 0 && hostname[matchIndex - 1] === '.'));
+}
+
+
+// ||pattern*^
+function checkPatternHostnameAnchorRegexFilter(filter, { url, hostname }) {
+  if (isAnchoredByHostname(filter.getHostname(), hostname)) {
+    return checkPatternRegexFilter(filter, { url });
+  }
+
+  return false;
+}
+
+
+// ||pattern|
+function checkPatternHostnameRightAnchorFilter(filter, { url, hostname }) {
+  if (isAnchoredByHostname(filter.getHostname(), hostname)) {
+    // Since this is not a regex, the filter pattern must follow the hostname
+    // with nothing in between. So we extract the part of the URL following
+    // after hostname and will perform the matching on it.
+    const urlAfterHostname = url.substring(
+      url.indexOf(filter.getHostname()) + filter.getHostname().length
+    );
+
+    // Since it must follow immediatly after the hostname and be a suffix of
+    // the URL, we conclude that filter must be equal to the part of the
+    // url following the hostname.
+    return filter.getFilter() === urlAfterHostname;
+  }
+
+  return false;
+}
+
+
+// ||pattern
+function checkPatternHostnameAnchorFilter(filter, { url, hostname }) {
+  if (isAnchoredByHostname(filter.getHostname(), hostname)) {
+    // Since this is not a regex, the filter pattern must follow the hostname
+    // with nothing in between. So we extract the part of the URL following
+    // after hostname and will perform the matching on it.
+    const urlAfterHostname = url.substring(
+      url.indexOf(filter.getHostname()) + filter.getHostname().length
+    );
+
+    // Otherwise, it should only be a prefix of the URL.
+    return fastStartsWith(urlAfterHostname, filter.getFilter());
+  }
+
+  return false;
+}
+
+
+/**
+ * Specialize a network filter depending on its type. It allows for more
+ * efficient matching function.
+ */
+function checkPattern(filter, request) {
+  if (filter.isHostnameAnchor()) {
+    if (filter.isRegex()) {
+      return checkPatternHostnameAnchorRegexFilter(filter, request);
+    } else if (filter.isRightAnchor()) {
+      return checkPatternHostnameRightAnchorFilter(filter, request);
     }
+    return checkPatternHostnameAnchorFilter(filter, request);
+  } else if (filter.isRegex()) {
+    return checkPatternRegexFilter(filter, request);
+  } else if (filter.isLeftAnchor() && filter.isRightAnchor()) {
+    return checkPatternLeftRightAnchorFilter(filter, request);
+  } else if (filter.isLeftAnchor()) {
+    return checkPatternLeftAnchorFilter(filter, request);
+  } else if (filter.isRightAnchor()) {
+    return checkPatternRightAnchorFilter(filter, request);
+  }
 
-    // Couldn't find any policy origin matching the request
-    if (foundValidCP === false) {
+  return checkPatternPlainFilter(filter, request);
+}
+
+
+function checkOptions(filter, request) {
+  // This is really cheap and should be done first
+  if (!filter.isCptAllowed(request.cpt)) {
+    return false;
+  }
+
+  // Source
+  const sHost = request.sourceHostname;
+  const sHostGD = request.sourceGD;
+
+  // Url endpoint
+  const hostGD = request.hostGD;
+  const isFirstParty = (sHostGD === hostGD);
+
+  // Check option $third-party
+  // source domain and requested domain must be different
+  if (!filter.firstParty() && isFirstParty) {
+    return false;
+  }
+
+  // $~third-party
+  // source domain and requested domain must be the same
+  if (!filter.thirdParty() && !isFirstParty) {
+    return false;
+  }
+
+  // URL must be among these domains to match
+  if (filter.hasOptDomains()) {
+    const optDomains = filter.getOptDomains();
+    if (optDomains.size > 0 &&
+        !(optDomains.has(sHostGD) ||
+          optDomains.has(sHost))) {
+      return false;
+    }
+  }
+
+  // URL must not be among these domains to match
+  if (filter.hasOptNotDomains()) {
+    const optNotDomains = filter.getOptNotDomains();
+    if (optNotDomains.size > 0 &&
+        (optNotDomains.has(sHostGD) ||
+         optNotDomains.has(sHost))) {
       return false;
     }
   }
@@ -70,99 +169,8 @@ function checkContentPolicy(filter, cpt) {
 }
 
 
-function checkOptions(filter, request) {
-  // Source
-  const sHost = request.sourceHostname;
-  const sHostGD = request.sourceGD;
-
-  // Url endpoint
-  const hostGD = request.hostGD;
-
-  // Check option $third-party
-  // source domain and requested domain must be different
-  if ((filter.firstParty === false || filter.thirdParty === true) && sHostGD === hostGD) {
-    return false;
-  }
-
-  // $~third-party
-  // source domain and requested domain must be the same
-  if ((filter.firstParty === true || filter.thirdParty === false) && sHostGD !== hostGD) {
-    return false;
-  }
-
-  // URL must be among these domains to match
-  if (filter.optDomains.size > 0 &&
-      !(filter.optDomains.has(sHostGD) ||
-        filter.optDomains.has(sHost))) {
-    return false;
-  }
-
-  // URL must not be among these domains to match
-  if (filter.optNotDomains.size > 0 &&
-      (filter.optNotDomains.has(sHostGD) ||
-       filter.optNotDomains.has(sHost))) {
-    return false;
-  }
-
-  if (!checkContentPolicy(filter, request.cpt)) {
-    return false;
-  }
-
-  return true;
-}
-
-
-function checkPattern(filter, request) {
-  const url = request.url;
-  const host = request.hostname;
-
-  if (filter.isHostnameAnchor) {
-    const matchIndex = host.indexOf(filter.hostname);
-    // Either start at beginning of hostname or be preceded by a '.'
-    if ((matchIndex > 0 && host[matchIndex - 1] === '.') || matchIndex === 0) {
-      if (filter.isRegex) {
-        // If it's a regex, it should match somewhere in the URL
-        return filter.regex.test(url);
-      }
-
-      // Since this is not a regex, the filter pattern must follow the hostname
-      // with nothing in between. So we extract the part of the URL following
-      // after hostname and will perform the matching on it.
-      const urlAfterHostname = url.substring(url.indexOf(filter.hostname) + filter.hostname.length);
-      if (filter.isRightAnchor) {
-        // Since it must follow immediatly after the hostname and be a suffix of
-        // the URL, we conclude that filterStr must be equal to the part of the
-        // url following the hostname.
-        return filter.filterStr === urlAfterHostname;
-      }
-
-      // Otherwise, it should only be a prefix of the URL.
-      return urlAfterHostname.startsWith(filter.filterStr);
-    }
-  } else {
-    if (filter.isRegex) {
-      return filter.regex.test(url);
-    } else if (filter.isLeftAnchor && filter.isRightAnchor) {
-      return url === filter.filterStr;
-    } else if (filter.isLeftAnchor) {
-      return url.startsWith(filter.filterStr);
-    } else if (filter.isRightAnchor) {
-      return url.endsWith(filter.filterStr);
-    }
-
-    return url.indexOf(filter.filterStr) !== -1;
-  }
-
-  return false;
-}
-
-
 export function matchNetworkFilter(filter, request) {
-  if (!checkOptions(filter, request)) {
-    return false;
-  }
-
-  return checkPattern(filter, request);
+  return checkOptions(filter, request) && checkPattern(filter, request);
 }
 
 
@@ -171,9 +179,14 @@ export function matchNetworkFilter(filter, request) {
  * subdomain of hostnamePattern.
  */
 function checkHostnamesPartialMatch(hostname, hostnamePattern) {
-  if (hostname.endsWith(hostnamePattern)) {
-    const patternIndex = hostname.indexOf(hostnamePattern);
-    if (patternIndex === 0 || (patternIndex !== -1 && hostname.charAt(patternIndex - 1) === '.')) {
+  let pattern = hostnamePattern;
+  if (fastStartsWith(hostnamePattern, '~')) {
+    pattern = pattern.substr(1);
+  }
+
+  if (hostname.endsWith(pattern)) {
+    const patternIndex = hostname.length - pattern.length;
+    if (patternIndex === 0 || (hostname[patternIndex - 1] === '.')) {
       return true;
     }
   }
@@ -189,21 +202,27 @@ function checkHostnamesPartialMatch(hostname, hostnamePattern) {
  * https://github.com/gorhill/uBlock/wiki/Static-filter-syntax#entity-based-cosmetic-filters
  */
 function matchHostname(hostname, hostnamePattern) {
-  const globIndex = hostnamePattern.indexOf('.*');
-  if (globIndex === (hostnamePattern.length - 2)) {
+  if (hostnamePattern.endsWith('.*')) {
     // Match entity:
-    const entity = hostnamePattern.substring(0, globIndex);
+    const entity = hostnamePattern.slice(0, -2);
 
     // Ignore TLDs suffix
-    const parts = hostname.split('.').reverse();
-    let i = 0;
-    while (i < parts.length && tlds.TLDs[parts[i]]) {
-      i += 1;
+    // TODO - we should use getPublicSuffix for that, but it's currently very
+    // slow because of the implementation of tld.js
+    const parts = hostname.split('.');
+    let i = parts.length - 1;
+    for (; i >= 0; i -= 1) {
+      const value = tlds[parts[i]];
+      if (!(value === 'cc' || value === 'na')) {
+        break;
+      }
     }
 
-    // Check if we have a match
-    if (i < parts.length) {
-      return checkHostnamesPartialMatch(parts.splice(i).reverse().join('.'), entity);
+    if (i >= 0) {
+      // Check if we have a match
+      return checkHostnamesPartialMatch(
+        parts.slice(0, i + 1).join('.'),
+        entity);
     }
 
     return false;
@@ -213,24 +232,19 @@ function matchHostname(hostname, hostnamePattern) {
 }
 
 
-function matchHostnames(hostname, hostnames) {
-  // If there is no constraint, then this is a match
-  if (hostnames.length === 0) {
-    return true;
-  }
-
-  return hostnames.some(hn => matchHostname(hostname, hn));
-}
-
-
 export function matchCosmeticFilter(filter, hostname) {
-  let result = false;
+  // Check hostnames
+  if (filter.hasHostnames() && hostname) {
+    const hostnames = filter.getHostnames();
+    for (let i = 0; i < hostnames.length; i += 1) {
+      if (matchHostname(hostname, hostnames[i])) {
+        return { hostname: hostnames[i] };
+      }
+    }
 
-  if (filter.hostnames.length > 0 && hostname) {
-    result = matchHostnames(hostname, filter.hostnames);
-  } else {
-    result = true;
+    // No hostname match
+    return null;
   }
 
-  return result;
+  return { hostname: '' };
 }

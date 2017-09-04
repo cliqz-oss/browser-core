@@ -38,6 +38,56 @@ function handleError(e) {
   };
 }
 
+class HistoryCache {
+  constructor(size) {
+    this.cache = [];
+    this.lastQuery = '';
+    this.maxSize = size;
+  }
+
+  add(results, query){
+    // reset the cache is query changes completely
+    if(query.indexOf(this.lastQuery) === -1 && this.lastQuery.indexOf(query) === -1){
+      this.cache = [];
+    }
+
+    // limit cache size by reducing oldest 25% of results
+    if(this.cache.length > this.maxSize){
+      this.cache = this.cache.slice(0, this.maxSize - this.maxSize * 1/4);
+    }
+
+    this.lastQuery = query;
+
+    // we reverse the results array as we are prepending all
+    // the new unique results at the beginning of the cache
+    results.reverse().forEach((r) => {
+      const exists = this.cache.some(function(c){
+        return c.value === r.value;
+      });
+
+      if(!exists) this.cache.unshift(r);
+    })
+
+    // console.log("History cache new state", this.cache, query);
+  }
+
+  search(query) {
+    const queryParts = query.toLowerCase().split(' ');
+
+    return {
+      query: query,
+      ready: true, // this function is only called as last resort - so we need to consider it final result
+      results: this.cache.filter(function(r){
+        const querySpace = r.value.toLowerCase() + ' ' + r.comment.toLowerCase();
+
+        // filter out all the results which do not contain the query
+        return queryParts.some((queryPart) => querySpace.indexOf(queryPart) !== -1)
+      })
+    };
+  }
+}
+
+
 class ProviderAutoCompleteResultCliqz {
   constructor(searchString, searchResult, defaultIndex, errorDescription) {
     this._searchString = searchString;
@@ -77,7 +127,7 @@ class ProviderAutoCompleteResultCliqz {
 export default class Search {
   constructor({ successCode } = {}) {
     this.TIMEOUT = 1000;
-    this.HISTORY_TIMEOUT = 400;
+    this.HISTORY_TIMEOUT = 500;
     this.REFETCH_MAX_ATTEMPTS = 10; // How many times should we try fetching incomplete (promised) results before giving up?
     this.REFETCH_DELAY = 100; // delay before refetch
 
@@ -99,6 +149,8 @@ export default class Search {
       during: this.TIMEOUT,
       after: 30
     }
+
+    this.cache = new HistoryCache(500);
   }
 
   search(searchString, callback) {
@@ -118,6 +170,7 @@ export default class Search {
           all: null
       };
       this.userRerankers = {};
+      this.historyCacheHit = false;
 
       console.log('search: ' + searchString, CliqzAutocomplete.LOG_KEY);
 
@@ -205,7 +258,6 @@ export default class Search {
       if(searchString.trim().length){
           this.getSearchResults(searchString).then(this.cliqzResultFetcher);
 
-          // if spell correction, no suggestions
           if (this.spellCheck.state.on && !this.spellCheck.state.override) {
               this.suggestionsRecieved = true;
               // change the wrong string to the real wrong string
@@ -220,8 +272,6 @@ export default class Search {
 
               //TODO: extract spell corrector out of CliqzAutocomplete
               if(urlbar)urlbar.mInputField.value = searchString;
-          } else {
-              //utils.getSuggestions(searchString, this.cliqzSuggestionFetcher);
           }
           utils.clearTimeout(this.resultsTimer);
           this.resultsTimer = utils.setTimeout(this.pushTimeoutCallback, utils.RESULTS_TIMEOUT, this.searchString);
@@ -372,19 +422,31 @@ export default class Search {
     return afterResults;
   }
 
-  historyTimeoutCallback(params) {
+  historyTimeoutCallback(query) {
       console.log('History timeout', CliqzAutocomplete.LOG_KEY);
       this.historyTimeout = true;
 
-      // push all the history results we managed to when the timeout occured
+      // if we do not have any history results we try our luck and search in cache
+      if(!this.historyResults || !this.historyResults.results || this.historyResults.results.length === 0){
+        const cacheData = this.cache.search(query);
+        if(cacheData.results.length > 0){
+          console.log("History cache hit", cacheData, this.historyResults);
+
+          this.historyResults = cacheData;
+          this.historyCacheHit = true;
+        }
+      }
       if (this.historyResults) {
-          historyCluster.addFirefoxHistory(this.historyResults);
+        historyCluster.addFirefoxHistory(this.historyResults);
       } else {
-          this.pushResults(this.searchString);
+        this.pushResults(this.searchString);
       }
   }
 
   onHistoryDone(result) {
+      // delay the cache update
+      setTimeout(this.cache.add.bind(this.cache), 0, result.results, result.query);
+
       if(!this.startTime) {
           return; // no current search, just discard
       }
@@ -656,6 +718,7 @@ export default class Search {
 
   sendResultsSignal(obj, instant) {
       var results = obj.mixedResults._results;
+
       var action = {
           type: 'activity',
           action: 'results',
@@ -674,6 +737,7 @@ export default class Search {
           backend_params: obj.cliqzResultsParams,
           proxied: utils.getPref('hpn-query', false),
           client_cached: Boolean(obj.client_cached),
+          history_cache_hit: obj.historyCacheHit,
           v: 1,
       };
 

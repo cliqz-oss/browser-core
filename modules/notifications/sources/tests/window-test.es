@@ -6,11 +6,6 @@ export default describeModule("notifications/window",
           module() { return { action() {} }; }
         }
       },
-      'freshtab/main': {
-        default: {
-          isActive() {}
-        }
-      }
     };
   },
   function() {
@@ -25,8 +20,7 @@ export default describeModule("notifications/window",
 
       context('with Freshtab active', function () {
         beforeEach(function () {
-          const freshtab = this.deps('freshtab/main').default;
-          sinon.stub(freshtab, 'isActive', () => true)
+          subject.freshtab.isReady = () => Promise.resolve();
         });
 
         it('calls action: notifications/updateUnreadStatus', function() {

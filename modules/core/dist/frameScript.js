@@ -1,5 +1,6 @@
 var { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
+
 try {
   Components.utils.import("resource://gre/modules/Console.jsm");
 } catch(e) {
@@ -27,6 +28,36 @@ function send(payload) {
   });
 }
 
+
+function getWindowId(window) {
+  return window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+    .getInterface(Components.interfaces.nsIDOMWindowUtils).outerWindowID;
+}
+
+
+function getWindowTreeInformation(window) {
+  var currentWindow = window;
+
+  // Keep track of window IDs
+  var currentId = getWindowId(window);
+  var windowId = currentId;
+  var parentId = currentId;
+
+  while (currentId !== getWindowId(currentWindow.parent)) {
+    // Go up one level
+    parentId = currentId;
+    currentWindow = currentWindow.parent;
+    currentId = getWindowId(currentWindow);
+  }
+
+  return {
+    originWindowID: currentId,
+    parentWindowID: parentId,
+    outerWindowID: windowId,
+  };
+}
+
+
 function LocationObserver(webProgress) {
   this.webProgress = webProgress;
   this.previousURIMap = new WeakMap();
@@ -48,14 +79,34 @@ LocationObserver.prototype.stop = function () {
 };
 
 LocationObserver.prototype.onLocationChange = function onLocationChange(aWebProgress, aRequest, aURI, aFlags) {
-  if ( !aWebProgress.isTopLevel ) {
+  var windowTreeInformation;
+  var window = null;
+  var domWindowId;
+
+  if (!aWebProgress.isTopLevel ||
+      aWebProgress.sandboxFlags !== 0) {
+    // Ignore "location change" events from non-toplevel frames or sandboxed documents.
+    // For example "about:newtab" creates sandboxed browsers to capture page 
+    // screenshots, which is falsely detected as "location change", see EX-5218.
     return;
   }
 
-  var windowTreeInformation;
-  windowTreeInformation = getWindowTreeInformation(aWebProgress.DOMWindow);
+  try {
+    window = aWebProgress.DOMWindow;
+  } catch (ex) {
+    /* NS_ERROR_FAILURE - Indicates that there is no associated DOM window. */
+  }
 
-  var window = aWebProgress.DOMWindow;
+  try {
+    domWindowId = aWebProgress.DOMWindowID;
+  } catch (ex) {
+    /* NS_NOINTERFACE */
+  }
+
+  if (window !== null) {
+    windowTreeInformation = getWindowTreeInformation(window);
+  }
+
   var document = aWebProgress.document;
   var isSameDocument = false;
 
@@ -98,10 +149,8 @@ LocationObserver.prototype.onLocationChange = function onLocationChange(aWebProg
     flags: aFlags,
     isLoadingDocument: aWebProgress.isLoadingDocument,
     isSameDocument: isSameDocument,
-    domWindowId: aWebProgress.DOMWindowID
+    domWindowId: domWindowId,
   };
-
-  //log('msg location change', JSON.stringify(msg, null, 2))
 
   send({
     module: 'core',
@@ -111,39 +160,25 @@ LocationObserver.prototype.onLocationChange = function onLocationChange(aWebProg
 };
 
 
-function getWindowId(window) {
-  return window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-    .getInterface(Components.interfaces.nsIDOMWindowUtils).outerWindowID;
-}
+LocationObserver.prototype.onStateChange = function onStateChange(aWebProgress, aRequest, aStateFlag, aStatus) {
+  var triggeringURL, originalURL, windowTreeInformation, domWindowId;
+  var window = null;
 
-
-function getWindowTreeInformation(window) {
-  var currentWindow = window;
-
-  // Keep track of window IDs
-  var currentId = getWindowId(window);
-  var windowId = currentId;
-  var parentId = currentId;
-
-  while (currentId !== getWindowId(currentWindow.parent)) {
-    // Go up one level
-    parentId = currentId;
-    currentWindow = currentWindow.parent;
-    currentId = getWindowId(currentWindow);
+  try {
+    window = aWebProgress.DOMWindow;
+  } catch (ex) {
+    /* NS_ERROR_FAILURE - Indicates that there is no associated DOM window. */
   }
 
-  return {
-    originWindowID: currentId,
-    parentWindowID: parentId,
-    outerWindowID: windowId,
-  };
-}
+  try {
+    domWindowId = aWebProgress.DOMWindowID;
+  } catch (ex) {
+    /* NS_NOINTERFACE */
+  }
 
-
-LocationObserver.prototype.onStateChange = function onStateChange(aWebProgress, aRequest, aStateFlag, aStatus) {
-  var triggeringURL, originalURL, windowTreeInformation;
-
-  windowTreeInformation = getWindowTreeInformation(aWebProgress.DOMWindow);
+  if (window !== null) {
+    windowTreeInformation = getWindowTreeInformation(window);
+  }
 
   if (!aRequest) {
     return;
@@ -173,7 +208,7 @@ LocationObserver.prototype.onStateChange = function onStateChange(aWebProgress, 
     isValid: (aStateFlag & FLAGS.STATE_START) && !aStatus,
     isNewPage: (FLAGS.STATE_START & aStateFlag) &&
       (FLAGS.STATE_IS_DOCUMENT & aStateFlag),
-    windowID: aWebProgress.DOMWindowID,
+    windowID: domWindowId,
     windowTreeInformation: windowTreeInformation,
   };
 
@@ -185,8 +220,6 @@ LocationObserver.prototype.onStateChange = function onStateChange(aWebProgress, 
     args: [msg]
   });
 };
-
-//log('new')
 
 var webProgress = this.docShell
   .QueryInterface(Ci.nsIInterfaceRequestor)

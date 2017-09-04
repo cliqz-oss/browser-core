@@ -2,7 +2,6 @@
 import events from '../../core/events';
 import utils from '../../core/utils';
 import { equals } from '../../core/url';
-import console from '../../core/console';
 
 export function getDeepResults(rawResult, type) {
   const deepResults = (rawResult.data && rawResult.data.deepResults) || [];
@@ -59,12 +58,10 @@ export default class BaseResult {
           links,
         };
       });
-
-    this.internalResultsLimit = 4;
   }
 
   get template() {
-    return 'result';
+    return 'generic';
   }
 
   get query() {
@@ -111,7 +108,7 @@ export default class BaseResult {
   }
 
   get isCliqzAction() {
-    return !this.rawResult.url || this.rawResult.url.indexOf('cliqz-actions') === 0;
+    return this.rawResult.url && this.rawResult.url.indexOf('cliqz-actions') === 0;
   }
 
   get isAdult() {
@@ -135,11 +132,15 @@ export default class BaseResult {
   }
 
   get url() {
-    const url = this.rawResult.url;
-    if (this.isActionSwitchTab) {
-      return `moz-action:switchtab,${JSON.stringify({ url })}`;
+    let url = this.rawResult.url;
+    if (this.isAd && this.urlAd) {
+      url = this.urlAd;
     }
-    return this.rawResult.url;
+
+    if (this.isActionSwitchTab) {
+      return `moz-action:switchtab,${JSON.stringify({ url: encodeURI(url) })}`;
+    }
+    return url;
   }
 
   get rawUrl() {
@@ -158,156 +159,42 @@ export default class BaseResult {
     return this.rawResult.image;
   }
 
-  // cannot limit here - inheriting results may like to have filtering
-  get internalResults() {
-    if (this.isAskingForLocation) { // Hide these buttons when asking for location sharing
-      return [];
-    }
-    const deepLinks = getDeepResults(this.rawResult, 'buttons');
-    return deepLinks.map(({ url, title }) => new InternalResult({
-      url,
-      title,
-      text: this.query,
-    }));
+  get source() {
+    const urlDetails = utils.getDetailsFromUrl(this.rawUrl);
+    return urlDetails.domain;
   }
 
-  get imageResults() {
-    const deepLinks = getDeepResults(this.rawResult, 'images');
-    return deepLinks.map(({ image, extra }) => new ImageResult({
-      url: (extra && extra.original_image) || image,
-      thumbnail: image,
-      text: this.query,
-    }));
+  get updated() {
+    // TODO get if from backend
+    return '2017.07.26 at 16:00';
   }
 
-  get anchorResults() {
-    const deepLinks = getDeepResults(this.rawResult, 'simple_links');
-    return deepLinks.map(({ url, title }) => new AnchorResult({
-      url,
-      title,
-      text: this.query,
-    }));
+  get isAd() {
+    const data = this.rawResult.data || {};
+    const extra = data.extra || {};
+    return extra.is_ad && utils.getPref('offersDropdownSwitch', false);
   }
 
-  get newsResults() {
-    const deepLinks = getDeepResults(this.rawResult, 'news');
-    return deepLinks.map(({ url, title, extra = {} } = {}) => new NewsResult({
-      url,
-      title,
-      thumbnail: extra.thumbnail,
-      creation_time: extra.creation_timestamp,
-      tweet_count: extra.tweet_count,
-      showLogo: this.url && (
-        utils.getDetailsFromUrl(this.url).domain !==
-        utils.getDetailsFromUrl(url).domain
-      ),
-      text: this.query,
-    }));
-  }
-
-  /**
-   * To be used with the `with` statement in the template
-   */
-  get shareLocationButtonsWrapper() {
-    return {
-      internalResults: this.shareLocationButtons,
-      internalResultsLimit: 3,
-      logo: null
-    };
-  }
-
-  get isAskingForLocation() {
-    const extra = this.rawResult.data.extra || {};
-    return (extra.no_location || false) && this.actions.locationAssistant.isAskingForLocation;
-  }
-
-
-  get shareLocationButtons() {
-    const locationAssistant = this.actions.locationAssistant;
-    if (!this._shareLocationButtons) {
-      this._shareLocationButtons = !this.isAskingForLocation ? [] :
-        locationAssistant.actions.map((action) => {
-          let additionalClassName = '';
-          if (action.actionName === 'allowOnce') {
-            additionalClassName = 'location-allow-once';
-          }
-
-          const result = new ShareLocationButton({
-            title: action.title,
-            url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: action.actionName })}`,
-            text: this.rawResult.text,
-            className: additionalClassName,
-            locationAssistant,
-            onButtonClick: () => {
-              this.actions.getSnippet(this.query, this.rawResult)
-                .then((snippet) => {
-                  const newRawResult = Object.assign({}, this.rawResult);
-                  newRawResult.data.extra = Object.assign(
-                    {},
-                    newRawResult.data.extra,
-                    snippet.extra,
-                  );
-
-                  const newResult = new this.constructor(newRawResult);
-                  newResult.actions = this.actions;
-                  this.actions.replaceResult(this, newResult);
-                })
-                .catch(console.error);
-            }
-          });
-          result.actions = this.actions;
-          return result;
-        });
-    }
-    return this._shareLocationButtons;
-  }
-
-  get localResult() {
-    const extra = this.rawResult.data.extra || {};
-    if (!extra.address && !extra.phonenummber) {
-      return null;
-    }
-    return new LocalResult({
-      address: extra.address,
-      phoneNumber: extra.phonenumber,
-      mapUrl: extra.mu,
-      mapImg: extra.map_img
-    });
-  }
-
-  get videoResults() {
-    return [];
-    // const deepLinks = getDeepResults(this.rawResult, 'videos');
-    // return deepLinks.map(({ url, title, extra }) => new VideoResult({
-    //   url,
-    //   title,
-    //   thumbnail: extra.thumbnail,
-    //   duration: extra.duration,
-    //   views: extra.views
-    // }));
+  get urlAd() {
+    const data = this.rawResult.data || {};
+    const extra = data.extra || {};
+    return extra.url_ad;
   }
 
   get selectableResults() {
     return [
       ...(this.url ? [this] : []),
-      ...(this.shareLocationButtons),
-      ...(this.newsResults).slice(0, 3),
-      ...(this.videoResults).slice(0, 3),
-      ...this.internalResults.slice(0, this.internalResultsLimit),
     ];
   }
 
   get allResults() {
     return [
       ...this.selectableResults,
-      ...this.imageResults,
-      ...this.anchorResults,
-      ...(this.localResult ? this.localResult.internalResults : []),
     ];
   }
 
   findResultByUrl(href) {
-    return this.allResults.find(r => equals(r.url, href) || equals(r.rawUrl, href));
+    return this.allResults.find(r => equals(r.rawUrl, href) || equals(r.url, href));
   }
 
   hasUrl(href) {
@@ -324,22 +211,25 @@ export default class BaseResult {
 
   click(window, href, ev) {
     if (equals(href, this.url)) {
-      events.pub('ui:click-on-url', {
-        url: href,
-        query: this.query,
-      });
-      // TODO: do not use global
-      /* eslint-disable */
-      window.CLIQZ.Core.urlbar.value = href;
-      /* eslint-enable */
-
       const newTab = ev.altKey || ev.metaKey || ev.ctrlKey || ev.button === 1;
       if (!newTab) {
+        // TODO: do not use global
+        /* eslint-disable */
+        window.CLIQZ.Core.urlbar.value = href;
+        /* eslint-enable */
         // delegate to Firefox for full set of features like switch-to-tab
         window.CLIQZ.Core.urlbar.handleCommand(ev, 'current');
       } else {
         utils.openLink(window, this.rawUrl, true, false, false, false);
       }
+
+      events.pub('ui:click-on-url', {
+        url: this.rawResult.url,
+        query: this.query,
+        rawResult: this.rawResult,
+        isPrivateWindow: utils.isPrivate(window),
+        isPrivateResult: utils.isPrivateResultType(this.kind)
+      });
     } else {
       this.findResultByUrl(href).click(window, href, ev);
     }
@@ -351,144 +241,5 @@ export default class BaseResult {
   didRender(...args) {
     const allButThisResult = this.allResults.slice(1);
     allButThisResult.forEach(result => result.didRender(...args));
-  }
-}
-
-class ThumbnailBlock extends BaseResult {
-  get logo() {
-    if (this.rawResult.showLogo) {
-      return super.logo;
-    }
-
-    return null;
-  }
-
-  get thumbnail() {
-    return this.rawResult.thumbnail;
-  }
-
-  get friendlyUrl() {
-    return null;
-    // TODO fix responsive behaviour when adding url
-    // if (this.rawResult.showLogo) {
-    //   return super.friendlyUrl;
-    // }
-  }
-}
-
-
-class NewsResult extends ThumbnailBlock {
-
-
-  get tweetCount() {
-    return this.rawResult.tweet_count;
-  }
-
-  get publishedAt() {
-    return this.rawResult.creation_time;
-  }
-}
-
-/*
-class VideoResult extends ThumbnailBlock {
-
-  get videoViews() {
-    return this.rawResult.views;
-  }
-
-  get duration() {
-    return this.rawResult.duration;
-  }
-}
-*/
-
-class ImageResult extends BaseResult {
-  get thumbnail() {
-    return this.rawResult.thumbnail;
-  }
-}
-
-class InternalResult extends BaseResult {
-}
-
-class LocalInfoResult extends BaseResult {
-  get mapImg() {
-    return this.rawResult.mapImg;
-  }
-}
-
-class AnchorResult extends BaseResult {
-}
-
-class LocalResult extends BaseResult {
-  get address() {
-    return this.rawResult.address || {};
-  }
-
-  get phoneNumber() {
-    return this.rawResult.phoneNumber || {};
-  }
-
-  get mapImg() {
-    return this.rawResult.mapImg || {};
-  }
-
-  get mapUrl() {
-    return this.rawResult.mapUrl || {};
-  }
-
-  get internalResults() {
-    if (!this.mapUrl || !this.mapImg) {
-      return [];
-    }
-    return [new LocalInfoResult({
-      url: this.mapUrl,
-      title: 'show-map',
-      text: this.query,
-      mapImg: this.mapImg,
-    })];
-  }
-}
-
-class ShareLocationButton extends BaseResult {
-
-  get elementId() {
-    if (!this._elementId) {
-      const id = Math.floor(Math.random() * 1000);
-      this._elementId = `result-share-location-${id}`;
-    }
-    return this._elementId;
-  }
-
-  get displayUrl() {
-    return this.rawResult.text;
-  }
-
-  get className() {
-    return this.rawResult.className;
-  }
-
-  get elementClassName() {
-    return this.rawResult.className;
-  }
-
-  didRender(dropdownElement) {
-    this.element = dropdownElement.querySelector(`#${this.elementId}`);
-    this.spinner = dropdownElement.ownerDocument.createElement('div');
-    this.spinner.className = 'spinner';
-  }
-
-  click(window, href) {
-    this.element.appendChild(this.spinner);
-
-    const action = JSON.parse(href.split('cliqz-actions,')[1]);
-    const locationAssistant = this.actions.locationAssistant;
-    const actionName = action.actionName;
-    if (!locationAssistant.hasAction(actionName)) {
-      return;
-    }
-    locationAssistant[actionName]().then(() => {
-      this.rawResult.onButtonClick();
-    }).catch(console.error);
   }
 }

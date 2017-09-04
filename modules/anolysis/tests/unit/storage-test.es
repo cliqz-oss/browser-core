@@ -2,7 +2,7 @@
 /* global describeModule */
 
 
-const moment = System._nodeRequire('moment');
+const moment = require('moment');
 
 const DATE_FORMAT = 'YYYY-MM-DD';
 const getCurrentMoment = () => moment('2017-01-01', DATE_FORMAT);
@@ -10,6 +10,12 @@ const getCurrentMoment = () => moment('2017-01-01', DATE_FORMAT);
 
 export default describeModule('anolysis/storage',
   () => ({
+    'core/cliqz': {
+      utils: {
+        setInterval() {},
+        setTimeout(cb) { cb(); },
+      },
+    },
     'anolysis/synchronized-date': {
       DATE_FORMAT,
       default() {

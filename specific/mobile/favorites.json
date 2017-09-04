@@ -1,5 +1,5 @@
 {
-  "name": "CLIQZ Favorites",
+  "name": "Cliqz Favorites",
   "xwalk_version": "0.0.1",
   "start_url": "file:///android_asset/search/favorites.html",
   "xwalk_hosts": [

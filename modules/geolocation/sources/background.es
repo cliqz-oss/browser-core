@@ -4,6 +4,7 @@ import utils from '../core/utils';
 import events from '../core/events';
 import getGeo from "../core/geolocation";
 import inject from "../core/kord/inject";
+import config from '../core/config';
 
 // If the computer wakes up from a sleep that was longer than this many milliseconds, we update geolocation.
 const GEOLOCATION_UPDATE_MIN_WAIT = 3600 * 1000;
@@ -120,8 +121,8 @@ export default background({
 
   actions: {
     getGeo() {
-      if (utils.getPref('share_location') !== 'yes'
-        && utils.getPref('share_location') !== 'showOnce') {
+      if (utils.getPref('share_location', config.settings.geolocation || 'ask') !== 'yes'
+        && utils.getPref('share_location', config.settings.geolocation || 'ask') !== 'showOnce') {
         return Promise.reject("No permission to get user's location");
       }
       const telemetryEvent = {

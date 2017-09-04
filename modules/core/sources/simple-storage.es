@@ -50,7 +50,13 @@ export default class SimpleStorage {
 
   close() {
     if (!this.inMemory) {
-      return this.istorage.close();
+      this.istorage.close();
+    }
+  }
+
+  flush() {
+    if (!this.inMemory) {
+      return this.istorage.flush();
     }
     return Promise.resolve();
   }

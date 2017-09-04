@@ -50,7 +50,7 @@ export default describeModule("autocomplete/result-providers",
     describe('custom search - #team', function(){
       it('should return #team result', function(){
         const team = resultProviders.customizeQuery('#team'),
-          expected = {"updatedQ":"#team","engineName":"CLIQZ","queryURI":"https://cliqz.com/team/","code":"#"}
+          expected = {"updatedQ":"#team","engineName":"Cliqz","queryURI":"https://cliqz.com/team/","code":"#"}
         chai.expect(team).to.deep.equal(expected);
       });
     });

@@ -1,9 +1,8 @@
 import * as persist from './persistent-state';
 import * as datetime from './time';
-import { events } from '../core/cliqz';
-import CliqzAttrack from './attrack';
+import { generateAttrackPayload } from './utils';
 import pacemaker from './pacemaker';
-import telemetry  from './telemetry';
+import telemetry from './telemetry';
 
 const safeKeyExpire = 7;
 
@@ -126,7 +125,7 @@ export default class {
       }
     }
     if(Object.keys(dts).length > 0) {
-      var payl = CliqzAttrack.generateAttrackPayload(dts, hour, false, true);
+      var payl = generateAttrackPayload(dts, hour, this.getVersion());
       telemetry.telemetry({'type': telemetry.msgType, 'action': 'attrack.safekey', 'payload': payl});
     }
   }

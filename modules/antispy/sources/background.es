@@ -23,18 +23,16 @@ export default background({
 
     this.suspiciousChecker = new SuspiciousUrlCheck(this.telemetry);
     return this.suspiciousChecker.init().then(
-      () => this.antitracking.action('addPipelineStep', {
+      () => this.antitracking.action('addPipelineStep', 'open', {
         name: 'checkIsSuspicious',
-        stages: ['open'],
-        after: ['determineContext', 'checkSameGeneralDomain', 'attachStatCounter'],
+        after: ['checkSameGeneralDomain', 'pageLogger.attachStatCounter'],
         fn: this.suspiciousChecker.checkIsSuspicious.bind(this.suspiciousChecker),
       }),
     );
   },
 
   unload() {
-    this.antitracking.action('removePipelineStep', 'checkIsSuspicious');
+    this.antitracking.action('removePipelineStep', 'open', 'checkIsSuspicious');
     this.suspiciousChecker.unload();
   },
-
 });

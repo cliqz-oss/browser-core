@@ -1,12 +1,15 @@
 import HeaderInfoVisitor from 'platform/antitracking/header-info-visitor';
 import * as browser from 'platform/browser';
-import { utils } from 'core/cliqz';
+import utils from 'core/utils';
 import { getTabsForURL } from 'platform/antitracking/tab-listener';
 
 // An abstraction layer for extracting contextual information
 // from the HttpChannel on various Firefox versions.
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 var nsIHttpChannel = Ci.nsIHttpChannel;
+
+const prefs = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService)
+  .getBranch('network.http.')
 
 // Class to manage the window tree and resolve origin tab and url for pages
 class WindowTree {
@@ -119,6 +122,12 @@ function HttpRequestContext(subject) {
   this._parsedURL = undefined;
   this._legacy_source = undefined;
   this.source = this.getSourceURL();
+  this.redirectionLimit = subject.redirectionLimit;
+  this.hasRedirected = false;
+
+  if (this.redirectionLimit < prefs.getIntPref('redirection-limit')) {
+    this.hasRedirected = true;
+  }
 
   this.oriWin = this.getOriginWindowID();
   this.cpt = this.getContentPolicyType();

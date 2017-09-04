@@ -1,9 +1,9 @@
 {
     "whatIsCliqz":{
-        "message": "Cos'è CLIQZ?"
+        "message": "Cos'è Cliqz?"
     },
     "whatIsCliqzTry":{
-        "message": "Cos'è CLIQZ? <-- scoprilo digitando ad esempio: 'meteo roma'"
+        "message": "Cos'è Cliqz? <-- scoprilo digitando ad esempio: 'meteo roma'"
     },
     "settings":{
         "message": "Impostazioni"

@@ -1,20 +1,20 @@
+import logger from './common/offers_v2_logger';
 import { utils, events } from '../core/cliqz';
 import background from '../core/base/background';
 import OffersConfigs from './offers_configs';
-import LoggingHandler from './logging_handler';
-import ExtensionEnvironment from './environments/extension_environment';
-import EventLoop from './event_loop';
-import { EventHandler } from './event_handler';
+import EventHandler from './event_handler';
 import OfferProcessor from './offer_processor';
 import {SignalHandler} from './signals_handler';
 import Database from '../core/database';
 import OfferDB from './offers_db';
-
+import TriggerMachineExecutor from './trigger_machine/trigger_machine_executor';
+import RegexpCache from './regexp_cache';
+import RegexpHelper from './regex_helper';
+import HistoryIndex from './history_index';
+import QueryHandler from './query_handler';
 
 ////////////////////////////////////////////////////////////////////////////////
 // consts
-
-const MODULE_NAME = 'background';
 
 export default background({
 
@@ -31,11 +31,8 @@ export default background({
     //
     // enable logging into the console
     if (utils.getPref('offersLogsEnabled', false)) {
-      LoggingHandler.LOG_ENABLED = true;
-    }
-    // enable logs in file
-    if (utils.getPref('offersFileLogsEnabled', false)) {
-      LoggingHandler.SAVE_TO_FILE = true;
+      OffersConfigs.LOG_LEVEL = 'debug';
+      OffersConfigs.LOG_ENABLED = true;
     }
 
     // check if we need to set dev flags or not
@@ -44,8 +41,8 @@ export default background({
       // new ui system
       OffersConfigs.LOAD_OFFERS_STORAGE_DATA = false;
       // enable logs?
-      LoggingHandler.LOG_ENABLED = true;
-      LoggingHandler.SAVE_TO_FILE = true;
+      OffersConfigs.LOG_LEVEL = 'debug';
+      OffersConfigs.LOG_ENABLED = true;
 
       // enable trigger history
       OffersConfigs.LOAD_TRIGGER_HISTORY_DATA = false;
@@ -53,6 +50,8 @@ export default background({
       OffersConfigs.SIGNALS_LOAD_FROM_DB = utils.getPref('offersLoadSignalsFromDB', false);
       // avoid loading storage data if needed
       OffersConfigs.LOAD_OFFERS_STORAGE_DATA = utils.getPref('offersSaveStorage', false);
+      // avoid loading db for signals
+      OffersConfigs.SEND_SIG_OP_SHOULD_LOAD = false;
     }
 
     if(utils.getPref('triggersBE')) {
@@ -66,31 +65,16 @@ export default background({
     if(utils.getPref('offersOverrideTimeout')) {
       OffersConfigs.OFFERS_OVERRIDE_TIMEOUT = utils.getPref('offersOverrideTimeout');
     }
-
-
-
-    // init the logging
-    LoggingHandler.init();
-    LoggingHandler.LOG_ENABLED && LoggingHandler.info(MODULE_NAME, 'init');
-
-    // init the logging
-    LoggingHandler.init();
-
-    // TODO: GR-137 && GR-140: temporary fix
-    this.onWindowClosed = this.onWindowClosed.bind(this);
-    events.sub('core.window_closed', this.onWindowClosed);
-
-    // print the timestamp
-    LoggingHandler.LOG_ENABLED &&
-    LoggingHandler.info(MODULE_NAME,
-      '\n\n' +
+    logger.init();
+    logger.info('\n\n' +
       '------------------------------------------------------------------------\n' +
       '                           NEW SESSION STARTED\n' +
       'Version: ' + OffersConfigs.CURRENT_VERSION + '\n' +
       'timestamp: ' + Date.now() + '\n' +
-      'LoggingHandler.LOG_ENABLED: ' + LoggingHandler.LOG_ENABLED + '\n' +
-      'LoggingHandler.SAVE_TO_FILE: ' + LoggingHandler.SAVE_TO_FILE + '\n' +
+      'OffersConfigs.LOG_LEVEL: ' + OffersConfigs.LOG_LEVEL + '\n' +
       'dev_flag: ' + utils.getPref('offersDevFlag', false) + '\n' +
+      'triggersBE: ' + OffersConfigs.BACKEND_URL + '\n' +
+      'offersTelemetryFreq: ' + OffersConfigs.SIGNALS_OFFERS_FREQ_SECS + '\n' +
       '------------------------------------------------------------------------\n'
       );
 
@@ -102,21 +86,11 @@ export default background({
     this.offersDB = new OfferDB(this.db);
 
     // create the event handler
-    this.eventHandler = new EventHandler();
-
-    this.env = new ExtensionEnvironment();
-    this.el = new EventLoop(this.env);
+    this.queryHandler = new QueryHandler(this.db);
+    this.eventHandler = new EventHandler(this.queryHandler);
 
     this.onUrlChange = this.onUrlChange.bind(this);
     this.eventHandler.subscribeUrlChange(this.onUrlChange);
-
-    this.onHttpRequest = this.onHttpRequest.bind(this);
-    this.env.watchDomain = function(domain) {
-      if(self.eventHandler.subscribeHttpReq(self.onHttpRequest, domain)) {
-        LoggingHandler.LOG_ENABLED &&
-        LoggingHandler.info(MODULE_NAME, "Subscribed to all HTTP requests for domain " + domain);
-      }
-    };
 
     // for the new ui system
     this.signalsHandler = new SignalHandler(this.db);
@@ -125,12 +99,19 @@ export default background({
                                         this.db,
                                         this.offersDB);
 
-    this.actions = {
-      getStoredOffers: this.getStoredOffers.bind(this),
+    // create the trigger machine executor
+    this.globObjects = {
+      regex_cache: new RegexpCache(),
+      regex_helper: new RegexpHelper(),
+      db: this.db,
+      offer_processor: this.offerProc,
+      signals_handler: this.signalsHandler,
+      event_handler: this.eventHandler,
+      offers_db: this.offersDB,
+      history_index: new HistoryIndex(this.db),
+      query_handler: this.queryHandler
     };
-    this.env.offerProcessor = this.offerProc;
-    this.env.signalHandler = this.signalsHandler;
-    this.env.offersDB = this.offersDB;
+    this.triggerMachineExecutor = new TriggerMachineExecutor(this.globObjects);
 
     // to be checked on unload
     this.initialized = true;
@@ -142,8 +123,18 @@ export default background({
       return;
     }
 
-    // TODO: GR-137 && GR-140: temporary fix
-    events.un_sub('core.window_closed', this.onWindowClosed);
+    if (this.triggerMachineExecutor) {
+      this.triggerMachineExecutor.destroy();
+      this.triggerMachineExecutor = null;
+    }
+
+    if (this.globObjects) {
+      if (this.globObjects.history_index) {
+        this.globObjects.history_index.savePersistentData();
+        this.globObjects.history_index.destroy();
+      }
+      this.globObjects = null;
+    }
 
     if (this.offerProc) {
       this.offerProc.destroy();
@@ -153,7 +144,7 @@ export default background({
     }
     if (this.eventHandler) {
       this.eventHandler.destroy();
-      delete this.eventHandler;
+      this.eventHandler = null;
     }
     if (this.offersDB) {
       this.offersDB.savePersistentData();
@@ -172,8 +163,12 @@ export default background({
       return;
     }
 
-    LoggingHandler.LOG_ENABLED &&
-    LoggingHandler.info(MODULE_NAME, 'unloading background');
+    logger.info('unloading background');
+
+    if (this.triggerMachineExecutor) {
+      this.triggerMachineExecutor.destroy();
+      this.triggerMachineExecutor = null;
+    }
 
     if (this.offerProc) {
       this.offerProc.savePersistenceData();
@@ -188,55 +183,51 @@ export default background({
       this.signalsHandler.savePersistenceData();
     }
 
-    //TODO: savePersistentData()
-
-    LoggingHandler.LOG_ENABLED &&
-    LoggingHandler.info(MODULE_NAME, 'background script unloaded');
-  },
-
-  //////////////////////////////////////////////////////////////////////////////
-  onWindowClosed(data) {
-    LoggingHandler.LOG_ENABLED &&
-    LoggingHandler.info(MODULE_NAME, 'window closed!!: remaining: ' + data.remaining);
-    // GR-147: if this is the last window then we just save everything here
-    if (data.remaining === 0) {
-      if (this.offerProc) {
-        this.offerProc.savePersistenceData();
-      }
+    if (this.globObjects.history_index) {
+      this.globObjects.history_index.savePersistentData();
     }
+
+    //TODO: savePersistentData()
+    logger.info('background script unloaded');
   },
 
   onUrlChange(urlObj, url) {
-    if(url) {
-      this.env.emitUrlChange(url, urlObj);
+    if (!url || !this.triggerMachineExecutor) {
+      return;
     }
-  },
-
-  onHttpRequest(reqObj) {
-    if(reqObj && reqObj.req_obj && reqObj.req_obj.url) {
-      this.env.emitUrlChange(reqObj.req_obj.url);
-    }
+    const data = {
+      url,
+      urlObj,
+      queryInfo: this.queryHandler.normalize(url, urlObj.domain)
+    };
+    this.triggerMachineExecutor.processUrlChange(data);
   },
 
   //////////////////////////////////////////////////////////////////////////////
   events: {
+    'core.window_closed': ({ remaining } = {}) => {
+      logger.info('window closed!!: remaining: ' + remaining);
+      // GR-147: if this is the last window then we just save everything here
+      if (remaining === 0) {
+        if (this.offerProc) {
+          this.offerProc.savePersistenceData();
+        }
+      }
+    }
   },
 
   actions: {
+    getStoredOffers(args) {
+      return (this.offerProc) ? this.offerProc.getStoredOffers(args) : [];
+    },
+
+    createExternalOffer(args) {
+      return (this.offerProc) ? this.offerProc.createExternalOffer(args) : false;
+    },
+
+    hasExternalOffer(args) {
+      return (this.offerProc) ? this.offerProc.hasExternalOffer(args) : false;
+    }
   },
-
-  //////////////////////////////////////////////////////////////////////////////
-  // offers storage interfaces
-
-  //
-  // return the offers on the storage
-  //
-  getStoredOffers(args) {
-    return (this.offerProc) ? this.offerProc.getStoredOffers(args) : [];
-  },
-
-
-
-
 
 });

@@ -1,283 +1,391 @@
-import log from '../adblocker/utils';
-import { platformName } from '../core/platform';
+/* eslint-disable no-bitwise */
+/* eslint-disable key-spacing */
+/* eslint-disable no-multi-spaces */
+
+import logger from './logger';
+import { tokenize
+       , tokenizeCSS
+       , fastHash
+       , fastStartsWith
+       , fastStartsWithFrom
+       , packInt32
+       , unpackInt32 } from './utils';
 
 
-// Uniq ID generator
-let uidGen = 0;
-function getUID() {
-  return uidGen++;
+// Notes regarding performance:
+//
+// * At the moment, V8 will deoptimize functions in which a compound is made.
+// eg: myVar += 1
+// The performance would be better with: myVar = myVar + 1
+//
+// * We tried to make everything monomorphic (a variable always holds values of
+// the same type, a function always takes arguments of the same type, etc.),
+// which is important to let the JIT optimize and specialize the code.
+//
+// * 17% of the time is spent in parseNetworkFilter.
+//
+// * 22% of the time is spent in String.startsWith
+// * 18% of the time is spent in String.split
+// * 15% of the time is spent in String.indexOf
+// * 11% of the time is spent in String.toLowerCase
+// * 5% of the time is spent in string equality
+
+
+/* **************************************************************************
+ *  Bitwise helpers
+ * **************************************************************************/
+
+
+function getBit(n, mask) {
+  return !!(n & mask);
 }
 
 
+function setBit(n, mask) {
+  return n | mask;
+}
+
+
+function clearBit(n, mask) {
+  return n & ~mask;
+}
+
+
+/**
+ * Masks used to store options of cosmetic filters in a bitmask.
+ */
 const COSMETICS_MASK = {
-  unhide: 0,
-  scriptInject: 1,
-  scriptReplaced: 2,
-  scriptBlock: 3,
+  unhide:               1 << 0,
+  scriptInject:         1 << 1,
+  scriptBlock:          1 << 2,
 };
 
 
+/**
+ * Masks used to store options of network filters in a bitmask.
+ */
 const NETWORK_FILTER_MASK = {
-  thirdParty: 0,
-  firstParty: 1,
-  fromAny: 2,
-  fromImage: 3,
-  fromMedia: 4,
-  fromObject: 5,
-  fromObjectSubrequest: 6,
-  fromOther: 7,
-  fromPing: 8,
-  fromScript: 9,
-  fromStylesheet: 10,
-  fromSubdocument: 11,
-  fromWebsocket: 12,
-  fromXmlHttpRequest: 13,
-  isImportant: 14,
-  matchCase: 15,
+  // Content Policy Type
+  fromImage:            1 << 0,
+  fromMedia:            1 << 1,
+  fromObject:           1 << 2,
+  fromObjectSubrequest: 1 << 3,
+  fromOther:            1 << 4,
+  fromPing:             1 << 5,
+  fromScript:           1 << 6,
+  fromStylesheet:       1 << 7,
+  fromSubdocument:      1 << 8,
+  fromWebsocket:        1 << 9,
+  fromXmlHttpRequest:   1 << 10,
+  isImportant:          1 << 11,
+  matchCase:            1 << 12,
 
-  // Kind of pattern
-  isHostname: 16,
-  isPlain: 17,
-  isRegex: 18,
-  isLeftAnchor: 19,
-  isRightAnchor: 20,
-  isHostnameAnchor: 21,
-  isException: 22,
+  // Kind of patterns
+  thirdParty:           1 << 13,
+  firstParty:           1 << 14,
+  isHostname:           1 << 15,
+  isPlain:              1 << 16,
+  isRegex:              1 << 17,
+  isLeftAnchor:         1 << 18,
+  isRightAnchor:        1 << 19,
+  isHostnameAnchor:     1 << 20,
+  isException:          1 << 21,
 };
+
+
+/**
+ * Mask used when a network filter can be applied on any content type.
+ */
+const FROM_ANY = (
+    NETWORK_FILTER_MASK.fromImage
+  | NETWORK_FILTER_MASK.fromMedia
+  | NETWORK_FILTER_MASK.fromObject
+  | NETWORK_FILTER_MASK.fromObjectSubrequest
+  | NETWORK_FILTER_MASK.fromOther
+  | NETWORK_FILTER_MASK.fromPing
+  | NETWORK_FILTER_MASK.fromScript
+  | NETWORK_FILTER_MASK.fromStylesheet
+  | NETWORK_FILTER_MASK.fromSubdocument
+  | NETWORK_FILTER_MASK.fromWebsocket
+  | NETWORK_FILTER_MASK.fromXmlHttpRequest
+);
+
+
+/**
+ * Map content type value to mask the corresponding mask.
+ */
+const CPT_TO_MASK = {
+  1:  NETWORK_FILTER_MASK.fromOther,
+  2:  NETWORK_FILTER_MASK.fromScript,
+  3:  NETWORK_FILTER_MASK.fromImage,
+  4:  NETWORK_FILTER_MASK.fromStylesheet,
+  5:  NETWORK_FILTER_MASK.fromObject,
+  7:  NETWORK_FILTER_MASK.fromSubdocument,
+  10: NETWORK_FILTER_MASK.fromPing,
+  11: NETWORK_FILTER_MASK.fromXmlHttpRequest,
+  12: NETWORK_FILTER_MASK.fromObjectSubrequest,
+  15: NETWORK_FILTER_MASK.fromMedia,
+  16: NETWORK_FILTER_MASK.fromWebsocket,
+};
+
+
+/* **************************************************************************
+ *  Cosmetic filters parsing
+ * **************************************************************************/
 
 
 const SEPARATOR = /[/^*]/;
 
 
-function getBit(n, offset) {
-  return (n >> offset) & 1;
-}
+export class CosmeticFilter {
+  constructor(mask, selector, hostnames, id) {
+    this.id = id;
+    this.mask = mask;
+    this.selector = selector;
+    this.hostnames = hostnames;
 
-
-function setBit(n, offset) {
-  return n | (1 << offset);
-}
-
-
-function clearBit(n, offset) {
-  return n & ~(1 << offset);
-}
-
-
-function isBitSet(n, i) {
-  return getBit(n, i) === 1;
-}
-
-
-function isBitNotSet(n, i) {
-  return getBit(n, i) === 0;
-}
-
-
-export function serializeFilter(filter) {
-  const serialized = Object.assign(Object.create(null), filter);
-
-  // Remove useless attributes
-  serialized.id = undefined;
-  if (serialized._r !== undefined) {
-    serialized._r = undefined;
-  }
-  if (serialized._nds !== undefined) {
-    serialized._nds = undefined;
-  }
-  if (serialized._ds !== undefined) {
-    serialized._ds = undefined;
+    // Lazily set when needed
+    this.scriptArguments = null;
+    this.scriptReplaced = false;
+    this.hostnamesArray = null;
+    this.rawLine = null;
   }
 
-  return serialized;
-}
+  isCosmeticFilter() { return true; }
+  isNetworkFilter() { return false; }
 
+  /**
+   * Given an object returned by the `serialize` method, re-create an instance
+   * of the CosmeticFilter class, using the same values.
+   */
+  static deserialize(serialized) {
+    const [selector, hostnames] = serialized.substr(4).split('|');
+    const mask = unpackInt32(serialized);
+    const id = serialized.substr(2, 2);
 
-export function deserializeFilter(serialized) {
-  let filter;
-  if (serialized._m !== undefined) {
-    filter = new CosmeticFilter();
-  } else {
-    filter = new NetworkFilter();
+    return new CosmeticFilter(
+      mask,
+      selector,
+      hostnames,
+      id,
+    );
   }
 
-  // Copy remaining keys from serialized to filter
-  Object.assign(filter, serialized);
-
-  // Assign a new id to the filter
-  filter.id = getUID();
-
-  return filter;
-}
-
-
-class CosmeticFilter {
-  constructor(line, sharpIndex) {
-    // The following fields are used as internal representation for the
-    // filter, but should not be used directly. Please use getters to
-    // access public property.
-    // this._s  == selector
-    // this._h  == hostnames
-
-    // Mask to store attributes
-    // Each flag (unhide, scriptInject, etc.) takes only 1 bit
-    // at a specific offset defined in COSMETICS_MASK.
-    // cf: COSMETICS_MASK for the offset of each property
-    this._m = 0;
-    this.setMask(COSMETICS_MASK.unhide, false);
-    this.setMask(COSMETICS_MASK.scriptInject, false);
-    this.setMask(COSMETICS_MASK.scriptReplaced, false);
-    this.setMask(COSMETICS_MASK.scriptBlock, false);
-
-    // Parse filter if given as argument
-    if (line !== undefined) {
-      this.id = getUID();
-      this.supported = true;
-      this.isCosmeticFilter = true;
-
-      this.parse(line, sharpIndex);
-    }
+  /**
+   * Creates a more compact representation of this filter, as an object.
+   */
+  serialize() {
+    /* eslint-disable prefer-template */
+    return (
+      packInt32(this.mask)
+      + this.id
+      + this.selector
+      + '|' + this.hostnames
+    );
   }
 
-  set selector(value) {
-    this._s = value;
+  /**
+   * Create a more human-readable version of this filter. It is mainly used for
+   * debugging purpose, as it will expand the values stored in the bit mask.
+   */
+  pprint() {
+    return {
+      id: this.id,
+      selector: this.selector,
+      hostnames: this.hostnames,
+      unhide: this.isUnhide(),
+      scriptInject: this.isScriptInject(),
+      scriptBlock: this.isScriptBlock(),
+    };
   }
 
-  get selector() {
-    return this._s || '';
-  }
-
-  set hostnames(value) {
-    this._h = value;
-  }
-
-  get hostnames() {
-    return this._h || [];
-  }
-
-  set unhide(value) {
-    this.setMask(COSMETICS_MASK.unhide, value);
-  }
-
-  get unhide() {
-    return this.queryMask(COSMETICS_MASK.unhide);
-  }
-
-  set scriptInject(value) {
-    this.setMask(COSMETICS_MASK.scriptInject, value);
-  }
-
-  get scriptInject() {
-    return this.queryMask(COSMETICS_MASK.scriptInject);
-  }
-
-  set scriptReplaced(value) {
-    this.setMask(COSMETICS_MASK.scriptReplaced, value);
-  }
-
-  get scriptReplaced() {
-    return this.queryMask(COSMETICS_MASK.scriptReplaced);
-  }
-
-  set scriptBlock(value) {
-    this.setMask(COSMETICS_MASK.scriptBlock, value);
-  }
-
-  get scriptBlock() {
-    return this.queryMask(COSMETICS_MASK.scriptBlock);
-  }
-
-  queryMask(offset) {
-    return getBit(this._m, offset) === 1;
-  }
-
-  setMask(offset, value) {
-    if (value) {
-      this._m = setBit(this._m, offset);
-    } else {
-      this._m = clearBit(this._m, offset);
-    }
-  }
-
-  parse(line, sharpIndex) {
-    const afterSharpIndex = sharpIndex + 1;
-    let suffixStartIndex = afterSharpIndex + 1;
-
-    // hostname1,hostname2#@#.selector
-    //                    ^^ ^
-    //                    || |
-    //                    || suffixStartIndex
-    //                    |afterSharpIndex
-    //                    sharpIndex
-
-    // Check if unhide
-    if (line[afterSharpIndex] === '@') {
-      this.setMask(COSMETICS_MASK.unhide, true);
-      suffixStartIndex += 1;
+  getTokensSelector() {
+    if (this.isScriptInject() || this.isScriptBlock()) {
+      return [];
     }
 
-    // Parse hostnames
-    if (sharpIndex > 0) {
-      this.hostnames = line.substring(0, sharpIndex).split(',');
+    // Only keep the part after the last '>'
+    const sepIndex = this.selector.lastIndexOf('>');
+    if (sepIndex !== -1) {
+      return tokenizeCSS(this.selector.substr(sepIndex));
     }
 
-    // Parse selector
-    this.selector = line.substring(suffixStartIndex);
+    return tokenizeCSS(this.selector);
+  }
 
-    // Deal with script:inject and script:contains
-    if (this.selector.startsWith('script:')) {
-      // this.selector
-      //      script:inject(.......)
-      //                    ^      ^
-      //   script:contains(/......./)
-      //                    ^      ^
-      //    script:contains(selector[, args])
-      //           ^        ^               ^^
-      //           |        |          |    ||
-      //           |        |          |    |this.selector.length
-      //           |        |          |    scriptSelectorIndexEnd
-      //           |        |          |scriptArguments
-      //           |        scriptSelectorIndexStart
-      //           scriptMethodIndex
-      const scriptMethodIndex = 'script:'.length;
-      let scriptSelectorIndexStart = scriptMethodIndex;
-      let scriptSelectorIndexEnd = this.selector.length - 1;
+  getSelector() {
+    return this.selector;
+  }
 
-      if (this.selector.startsWith('inject(', scriptMethodIndex)) {
-        this.scriptInject = true;
-        scriptSelectorIndexStart += 'inject('.length;
-      } else if (this.selector.startsWith('contains(', scriptMethodIndex)) {
-        this.scriptBlock = true;
-        scriptSelectorIndexStart += 'contains('.length;
+  hasHostnames() {
+    return !!this.hostnames;
+  }
 
-        // If it's a regex
-        if (this.selector[scriptSelectorIndexStart] === '/'
-            && this.selector[scriptSelectorIndexEnd - 1] === '/') {
-          scriptSelectorIndexStart += 1;
-          scriptSelectorIndexEnd -= 1;
+  getHostnames() {
+    if (this.hostnamesArray === null) {
+      // Sort them from longer hostname to shorter.
+      // This is to make sure that we will always start by the most specific
+      // when matching.
+      this.hostnamesArray = this.hostnames.split(',').sort((h1, h2) => {
+        if (h1.length > h2.length) {
+          return -1;
+        } else if (h1.length < h2.length) {
+          return 1;
         }
-      }
 
-      this.selector = this.selector.substring(scriptSelectorIndexStart, scriptSelectorIndexEnd);
+        return 0;
+      });
     }
 
-    // Exceptions
-    if (this.selector === null ||
-        this.selector.length === 0 ||
-        this.selector.endsWith('}') ||
-        this.selector.indexOf('##') !== -1 ||
-        (this.unhide && this.hostnames.length === 0)) {
-      this.supported = false;
-    }
+    return this.hostnamesArray;
+  }
+
+  isUnhide() {
+    return getBit(this.mask, COSMETICS_MASK.unhide);
+  }
+
+  isScriptInject() {
+    return getBit(this.mask, COSMETICS_MASK.scriptInject);
+  }
+
+  isScriptBlock() {
+    return getBit(this.mask, COSMETICS_MASK.scriptBlock);
   }
 }
 
 
-function isRegex(filter, start, end) {
-  const starIndex = filter.indexOf('*', start);
-  const separatorIndex = filter.indexOf('^', start);
-  return ((starIndex !== -1 && starIndex < end) ||
-          (separatorIndex !== -1 && separatorIndex < end));
+/**
+ * Given a line that we know contains a cosmetic filter, create a CosmeticFiler
+ * instance out of it. This function should be *very* efficient, as it will be
+ * used to parse tens of thousands of lines.
+ */
+function parseCosmeticFilter(line, sharpIndex) {
+  const id = packInt32(fastHash(line));
+
+  // Mask to store attributes
+  // Each flag (unhide, scriptInject, etc.) takes only 1 bit
+  // at a specific offset defined in COSMETICS_MASK.
+  // cf: COSMETICS_MASK for the offset of each property
+  let mask = 0;
+  let selector = '';
+  // Coma-separated list of hostnames
+  let hostnames = '';
+
+  // Start parsing the line
+  const afterSharpIndex = sharpIndex + 1;
+  let suffixStartIndex = afterSharpIndex + 1;
+
+  // hostname1,hostname2#@#.selector
+  //                    ^^ ^
+  //                    || |
+  //                    || suffixStartIndex
+  //                    |afterSharpIndex
+  //                    sharpIndex
+
+  // Check if unhide
+  if (line[afterSharpIndex] === '@') {
+    mask = setBit(mask, COSMETICS_MASK.unhide);
+    suffixStartIndex += 1;
+  }
+
+  // Parse hostnames
+  if (sharpIndex > 0) {
+    hostnames = line.substring(0, sharpIndex);
+  }
+
+  // Parse selector
+  // TODO - avoid the double call to substring
+  selector = line.substr(suffixStartIndex);
+
+  // Deal with script:inject and script:contains
+  if (fastStartsWith(selector, 'script:')) {
+    //      script:inject(.......)
+    //                    ^      ^
+    //   script:contains(/......./)
+    //                    ^      ^
+    //    script:contains(selector[, args])
+    //           ^        ^               ^^
+    //           |        |          |    ||
+    //           |        |          |    |selector.length
+    //           |        |          |    scriptSelectorIndexEnd
+    //           |        |          |scriptArguments
+    //           |        scriptSelectorIndexStart
+    //           scriptMethodIndex
+    const scriptMethodIndex = 'script:'.length;
+    let scriptSelectorIndexStart = scriptMethodIndex;
+    let scriptSelectorIndexEnd = selector.length - 1;
+
+    if (fastStartsWithFrom(selector, 'inject(', scriptMethodIndex)) {
+      mask = setBit(mask, COSMETICS_MASK.scriptInject);
+      scriptSelectorIndexStart += 'inject('.length;
+    } else if (fastStartsWithFrom(selector, 'contains(', scriptMethodIndex)) {
+      mask = setBit(mask, COSMETICS_MASK.scriptBlock);
+      scriptSelectorIndexStart += 'contains('.length;
+
+      // If it's a regex
+      if (selector[scriptSelectorIndexStart] === '/'
+          && selector[scriptSelectorIndexEnd - 1] === '/') {
+        scriptSelectorIndexStart += 1;
+        scriptSelectorIndexEnd -= 1;
+      }
+    }
+
+    selector = selector.substring(scriptSelectorIndexStart, scriptSelectorIndexEnd);
+  }
+
+  // Exceptions
+  if (selector === null ||
+      selector.length === 0 ||
+      selector.endsWith('}') ||
+      selector.indexOf('##') !== -1 ||
+      (getBit(mask, COSMETICS_MASK.unhide) && hostnames.length === 0)) {
+    return null;
+  }
+
+  return new CosmeticFilter(mask, selector, hostnames, id);
+}
+
+
+/* **************************************************************************
+ *  Network filters parsing
+ * **************************************************************************/
+
+
+/**
+ * Compiles a filter pattern to a regex. This is only performed *lazily* for
+ * filters containing at least a * or ^ symbol. Because Regexes are expansive,
+ * we try to convert some patterns to plain filters.
+ */
+function compileRegex(filterStr, isRightAnchor, isLeftAnchor, matchCase) {
+  let filter = filterStr;
+
+  // Escape special regex characters: |.$+?{}()[]\
+  filter = filter.replace(/([|.$+?{}()[\]\\])/g, '\\$1');
+
+  // * can match anything
+  filter = filter.replace(/\*/g, '.*');
+  // ^ can match any separator or the end of the pattern
+  filter = filter.replace(/\^/g, '(?:[^\\w\\d_.%-]|$)');
+
+  // Should match end of url
+  if (isRightAnchor) {
+    filter = `${filter}$`;
+  }
+
+  if (isLeftAnchor) {
+    filter = `^${filter}`;
+  }
+
+  try {
+    if (matchCase) {
+      return new RegExp(filter);
+    }
+    return new RegExp(filter, 'i');
+  } catch (ex) {
+    logger.error(`failed to compile regex ${filter} with error ${ex} ${ex.stack}`);
+    // Regex will always fail
+    return { test() { return false; } };
+  }
 }
 
 
@@ -287,355 +395,415 @@ function isRegex(filter, start, end) {
 //  - popunder
 //  - generichide
 //  - genericblock
-class NetworkFilter {
-  constructor(line) {
-    // The following fields can be added later but are `undefined` by default
-    // They should be accessed via the corresponding get/set methods
-    // this._f     == filterStr
-    // this._r     == regex
-    // this._d     == optDomains
-    // this._nd    == optNotDomains
+export class NetworkFilter {
+  constructor(mask, filter, optDomains, optNotDomains, redirect, hostname, id) {
+    this.id = id;
 
-    // Represent options as bitmasks
-    // check if value is null
-    this._m1 = 0;
-    // check if value is true/false
-    this._m2 = 0;
+    // Makes sure each field has a proper default value
+    this.mask = mask                   || 0;
+    this.filter = filter               || '';
+    this.optDomains = optDomains       || '';
+    this.optNotDomains = optNotDomains || '';
+    this.redirect = redirect           || '';
+    this.hostname = hostname           || '';
 
-    this.setMask(NETWORK_FILTER_MASK.fromAny);
-
-    if (line !== undefined) {
-      // Assign an id to the filter
-      this.id = getUID();
-
-      this.supported = true;
-      this.isNetworkFilter = true;
-      this.isComment = false;
-
-      this.parse(line);
-    }
+    // Lazy attributes
+    this.regex = null;
+    this.optDomainsSet = null;
+    this.optNotDomainsSet = null;
+    this.tokens = null;
+    this.rawLine = null; // Set only in debug mode
   }
 
-  parse(line) {
-    let filterIndexStart = 0;
-    let filterIndexEnd = line.length;
+  isCosmeticFilter() { return false; }
+  isNetworkFilter() { return true; }
 
-    // @@filter == Exception
-    this.setMask(NETWORK_FILTER_MASK.isException, line.startsWith('@@'));
-    if (this.isException) {
-      filterIndexStart += 2;
-    }
+  /**
+   * Create a NetworkFilter instance from the compact representation given by
+   * the serialize() method. It also takes care of giving a default value of the
+   * right type to each optional field.
+   */
+  static deserialize(serialized) {
+    const [
+      filter,
+      hostname,
+      optDomains,
+      optNotDomains,
+      redirect
+    ] = serialized.substr(4).split('`');
+    const mask = unpackInt32(serialized);
+    const id = serialized.substr(2, 2);
 
-    // filter$options == Options
-    // ^     ^
-    // |     |
-    // |     optionsIndex
-    // filterIndexStart
-    const optionsIndex = line.indexOf('$', filterIndexStart);
-    if (optionsIndex !== -1) {
-      // Parse options and set flags
-      filterIndexEnd = optionsIndex;
-      this.parseOptions(line.substring(optionsIndex + 1));
-    }
-
-    if (this.supported) {
-      // Identify kind of pattern
-
-      // Deal with hostname pattern
-      if (line.startsWith('127.0.0.1')) {
-        this.hostname = line.substring(line.lastIndexOf(' ') + 1);
-        this._f = '';
-        this.setMask(NETWORK_FILTER_MASK.isHostname);
-        this.setMask(NETWORK_FILTER_MASK.isPlain);
-        this.setMask(NETWORK_FILTER_MASK.isRegex, 0);
-        this.setMask(NETWORK_FILTER_MASK.isHostnameAnchor);
-      } else {
-        if (line.charAt(filterIndexEnd - 1) === '|') {
-          this.setMask(NETWORK_FILTER_MASK.isRightAnchor);
-          filterIndexEnd -= 1;
-        }
-
-        if (line.startsWith('||', filterIndexStart)) {
-          this.setMask(NETWORK_FILTER_MASK.isHostnameAnchor);
-          filterIndexStart += 2;
-        } else if (line.charAt(filterIndexStart) === '|') {
-          this.setMask(NETWORK_FILTER_MASK.isLeftAnchor);
-          filterIndexStart += 1;
-        }
-
-        // If pattern ends with "*", strip it as it often can be
-        // transformed into a "plain pattern" this way.
-        // TODO: add a test
-        if (line.charAt(filterIndexEnd - 1) === '*' &&
-            (filterIndexEnd - filterIndexStart) > 1) {
-          filterIndexEnd -= 1;
-        }
-
-        // Is regex?
-        this.setMask(NETWORK_FILTER_MASK.isRegex, isRegex(line, filterIndexStart, filterIndexEnd));
-        this.setMask(NETWORK_FILTER_MASK.isPlain, !this.isRegex);
-
-        // Extract hostname to match it more easily
-        // NOTE: This is the most common case of filters
-        if (this.isPlain && this.isHostnameAnchor) {
-          // Look for next /
-          const slashIndex = line.indexOf('/', filterIndexStart);
-          if (slashIndex !== -1) {
-            this.hostname = line.substring(filterIndexStart, slashIndex);
-            filterIndexStart = slashIndex;
-          } else {
-            this.hostname = line.substring(filterIndexStart, filterIndexEnd);
-            this._f = '';
-          }
-        } else if (this.isRegex && this.isHostnameAnchor) {
-          // Split at the first '/', '*' or '^' character to get the hostname
-          // and then the pattern.
-          const firstSeparator = line.search(SEPARATOR);
-
-          if (firstSeparator !== -1) {
-            this.hostname = line.substring(filterIndexStart, firstSeparator);
-            filterIndexStart = firstSeparator;
-            this.setMask(NETWORK_FILTER_MASK.isRegex, isRegex(line, filterIndexStart, filterIndexEnd));
-            this.setMask(NETWORK_FILTER_MASK.isPlain, !this.isRegex);
-
-            if ((filterIndexEnd - filterIndexStart) === 1 &&
-                line.charAt(filterIndexStart) === '^') {
-              this._f = '';
-              this.setMask(NETWORK_FILTER_MASK.isPlain);
-              this.setMask(NETWORK_FILTER_MASK.isRegex, 0);
-            }
-          }
-        }
-      }
-
-      // Strip www from hostname if present
-      if (this.isHostnameAnchor && this.hostname.startsWith('www.')) {
-        this.hostname = this.hostname.slice(4);
-      }
-
-      if (this._f === undefined) {
-        this._f = line.substring(filterIndexStart, filterIndexEnd) || undefined;
-      }
-
-      // Compile Regex
-      if (this.isRegex) {
-        // If this is a regex, the `compileRegex` will be lazily called when first needed
-        // using the lazy getter `get regex()` of this class.
-      } else {
-        if (this.hostname) {
-          this.hostname = this.hostname.toLowerCase();
-        }
-        if (this._f) {
-          this._f = this._f.toLowerCase();
-        }
-      }
-    }
-
-    // Remove it if it's empty
-    if (!this._f) {
-      this._f = undefined;
-    }
+    return new NetworkFilter(
+      mask,
+      filter,
+      optDomains,
+      optNotDomains,
+      redirect,
+      hostname,
+      id,
+    );
   }
 
-  queryMask(cptCode) {
-    if (isBitNotSet(this._m1, cptCode)) {
-      return null;
-    }
-    return isBitSet(this._m2, cptCode);
+  /**
+   * Creates a more compact representation of the network filter. All attributes
+   * with no value (eg: redirect) are defaulted to undefined and will be omitted
+   * from the serialized version of the filter.
+   */
+  serialize() {
+    /* eslint-disable prefer-template */
+    return (
+      packInt32(this.mask)
+      + this.id
+      + this.filter
+      + '`' + this.hostname
+      + '`' + this.optDomains
+      + '`' + this.optNotDomains
+      + '`' + this.redirect
+    );
   }
 
-  setMask(cptCode, value = 1) {
-    this._m1 = setBit(this._m1, cptCode);
-    if (value) {
-      this._m2 = setBit(this._m2, cptCode);
+  /**
+   * Creates a human-readable representation of the this.
+   */
+  pprint() {
+    let filter = '';
+
+    if (this.isException()) { filter += '@@'; }
+    if (this.isHostnameAnchor()) { filter += '||'; }
+    if (this.isLeftAnchor()) { filter += '|'; }
+
+    if (!this.isRegex()) {
+      if (this.hasHostname()) {
+        filter += this.getHostname();
+        filter += '^';
+      }
+      filter += this.getFilter();
     } else {
-      this._m2 = clearBit(this._m2, cptCode);
+      // Visualize the compiled regex
+      filter += this.getRegex().source;
     }
+
+    // Options
+    const options = [];
+
+    if (!this.fromAny()) {
+      if (this.fromImage()) { options.push('image'); }
+      if (this.fromMedia()) { options.push('media'); }
+      if (this.fromObject()) { options.push('object'); }
+      if (this.fromObjectSubrequest()) { options.push('object-subrequest'); }
+      if (this.fromOther()) { options.push('other'); }
+      if (this.fromPing()) { options.push('ping'); }
+      if (this.fromScript()) { options.push('script'); }
+      if (this.fromStylesheet()) { options.push('stylesheet'); }
+      if (this.fromSubdocument()) { options.push('subdocument'); }
+      if (this.fromWebsocket()) { options.push('websocket'); }
+      if (this.fromXmlHttpRequest()) { options.push('xmlhttprequest'); }
+    }
+
+    if (this.isImportant()) { options.push('important'); }
+    if (this.redirect) { options.push(`redirect=${this.redirect}`); }
+    if (this.firstParty() !== this.thirdParty()) {
+      if (this.firstParty()) { options.push('first-party'); }
+      if (this.thirdParty()) { options.push('third-party'); }
+    }
+
+    if (this.hasOptDomains() || this.hasOptNotDomains()) {
+      const domains = [];
+      this.getOptDomains().forEach(d => domains.push(d));
+      this.getOptNotDomains().forEach(nd => domains.push(`~${nd}`));
+      options.push(`domain=${domains.join('|')}`);
+    }
+
+    if (options.length > 0) {
+      filter += `$${options.join(',')}`;
+    }
+
+    if (this.isRightAnchor()) { filter += '|'; }
+
+    return filter;
   }
 
-  get optNotDomains() {
-    if (this._nds === undefined) {
-      if (!this._nd) {
-        this._nds = new Set();
-      } else if (typeof this._nd === 'string') {
-        this._nds = new Set(this._nd.split('|'));
+  getTokens() {
+    return tokenize(this.getFilter()).concat(tokenize(this.getHostname()));
+  }
+
+  hasOptDomains() { return !!this.optDomains; }
+
+  getOptNotDomains() {
+    if (this.optNotDomainsSet === null) {
+      if (this.optNotDomains) {
+        this.optNotDomainsSet = new Set(this.optNotDomains.split('|'));
+      } else {
+        this.optNotDomainsSet = new Set();
       }
     }
 
-    return this._nds;
+    return this.optNotDomainsSet;
   }
 
-  get optDomains() {
-    if (this._ds === undefined) {
-      if (!this._d) {
-        this._ds = new Set();
-      } else if (typeof this._d === 'string') {
-        this._ds = new Set(this._d.split('|'));
+  hasOptNotDomains() { return !!this.optNotDomains; }
+
+  getOptDomains() {
+    if (this.optDomainsSet === null) {
+      if (this.optDomains) {
+        this.optDomainsSet = new Set(this.optDomains.split('|'));
+      } else {
+        this.optDomainsSet = new Set();
       }
     }
 
-    return this._ds;
+    return this.optDomainsSet;
   }
 
-  get regex() {
-    if (this._r === undefined) {
-      this._r = this.compileRegex(this._f);
+  getMask() {
+    return this.mask;
+  }
+
+  isRedirect() {
+    return !!this.redirect;
+  }
+
+  getRedirect() {
+    return this.redirect;
+  }
+
+  hasHostname() {
+    return !!this.hostname;
+  }
+
+  getHostname() {
+    return this.hostname;
+  }
+
+  getFilter() {
+    return this.filter;
+  }
+
+  /**
+   * Special method, should only be used by the filter optimizer
+   */
+  setRegex(re) {
+    this.regex = re;
+    this.mask = setBit(this.mask, NETWORK_FILTER_MASK.isRegex);
+    this.mask = clearBit(this.mask, NETWORK_FILTER_MASK.isPlain);
+  }
+
+  getRegex() {
+    if (this.regex === null) {
+      this.regex = compileRegex(
+        this.filter,
+        this.isRightAnchor(),
+        this.isLeftAnchor(),
+        this.matchCase(),
+      );
     }
 
-    return this._r;
+    return this.regex;
   }
 
-  set hostname(value) {
-    this._h = value;
-  }
-
-  get hostname() {
-    return this._h;
-  }
-
-  set filterStr(value) {
-    this._f = value;
-  }
-
-  get filterStr() {
-    return this._f || '';
-  }
-
-  get isException() {
-    return this.queryMask(NETWORK_FILTER_MASK.isException) === true;
-  }
-
-  get isHostnameAnchor() {
-    return this.queryMask(NETWORK_FILTER_MASK.isHostnameAnchor) === true;
-  }
-
-  get isRightAnchor() {
-    return this.queryMask(NETWORK_FILTER_MASK.isRightAnchor) === true;
-  }
-
-  get isLeftAnchor() {
-    return this.queryMask(NETWORK_FILTER_MASK.isLeftAnchor) === true;
-  }
-
-  get matchCase() {
-    return this.queryMask(NETWORK_FILTER_MASK.matchCase) === true;
-  }
-
-  get isImportant() {
-    return this.queryMask(NETWORK_FILTER_MASK.isImportant) === true;
-  }
-
-  get isRegex() {
-    return this.queryMask(NETWORK_FILTER_MASK.isRegex) === true;
-  }
-
-  get isPlain() {
-    return this.queryMask(NETWORK_FILTER_MASK.isPlain) === true;
-  }
-
-  get isHostname() {
-    return this.queryMask(NETWORK_FILTER_MASK.isHostname) === true;
-  }
-
-  get fromAny() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromAny) === true;
-  }
-
-  get thirdParty() {
-    return this.queryMask(NETWORK_FILTER_MASK.thirdParty);
-  }
-
-  get firstParty() {
-    return this.queryMask(NETWORK_FILTER_MASK.firstParty);
-  }
-
-  get fromImage() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromImage);
-  }
-
-  get fromMedia() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromMedia);
-  }
-
-  get fromObject() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromObject);
-  }
-
-  get fromObjectSubrequest() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromObjectSubrequest);
-  }
-
-  get fromOther() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromOther);
-  }
-
-  get fromPing() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromPing);
-  }
-
-  get fromScript() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromScript);
-  }
-
-  get fromStylesheet() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromStylesheet);
-  }
-
-  get fromSubdocument() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromSubdocument);
-  }
-
-  get fromWebsocket() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromWebsocket);
-  }
-
-  get fromXmlHttpRequest() {
-    return this.queryMask(NETWORK_FILTER_MASK.fromXmlHttpRequest);
-  }
-
-  compileRegex(filterStr) {
-    let filter = filterStr;
-
-    // Escape special regex characters: |.$+?{}()[]\
-    filter = filter.replace(/([|.$+?{}()[\]\\])/g, '\\$1');
-
-    // * can match anything
-    filter = filter.replace(/\*/g, '.*');
-    // ^ can match any separator or the end of the pattern
-    filter = filter.replace(/\^/g, '(?:[^\\w\\d_.%-]|$)');
-
-    // Should match end of url
-    if (this.isRightAnchor) {
-      filter = `${filter}$`;
+  /**
+   * Check if this filter should apply to a request with this content type.
+   */
+  isCptAllowed(cpt) {
+    const mask = CPT_TO_MASK[cpt];
+    if (mask !== undefined) {
+      return getBit(this.mask, mask);
     }
 
-    if (this.isLeftAnchor) {
-      filter = `^${filter}`;
-    }
-
-    try {
-      if (this.matchCase) {
-        return new RegExp(filter);
-      }
-      return new RegExp(filter, 'i');
-    } catch (ex) {
-      log(`failed to compile regex ${filter} with error ${ex} ${ex.stack}`);
-      // Regex will always fail
-      return { test() { return false; } };
-    }
+    return false;
   }
 
-  parseOptions(rawOptions) {
+  isException() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.isException);
+  }
+
+  isHostnameAnchor() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.isHostnameAnchor);
+  }
+
+  isRightAnchor() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.isRightAnchor);
+  }
+
+  isLeftAnchor() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.isLeftAnchor);
+  }
+
+  matchCase() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.matchCase);
+  }
+
+  isImportant() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.isImportant);
+  }
+
+  isRegex() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.isRegex);
+  }
+
+  isPlain() {
+    return !getBit(this.mask, NETWORK_FILTER_MASK.isRegex);
+  }
+
+  isHostname() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.isHostname);
+  }
+
+  fromAny() {
+    return (this.mask & FROM_ANY) === FROM_ANY;
+  }
+
+  thirdParty() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.thirdParty);
+  }
+
+  firstParty() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.firstParty);
+  }
+
+  fromImage() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.fromImage);
+  }
+
+  fromMedia() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.fromMedia);
+  }
+
+  fromObject() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.fromObject);
+  }
+
+  fromObjectSubrequest() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.fromObjectSubrequest);
+  }
+
+  fromOther() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.fromOther);
+  }
+
+  fromPing() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.fromPing);
+  }
+
+  fromScript() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.fromScript);
+  }
+
+  fromStylesheet() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.fromStylesheet);
+  }
+
+  fromSubdocument() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.fromSubdocument);
+  }
+
+  fromWebsocket() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.fromWebsocket);
+  }
+
+  fromXmlHttpRequest() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.fromXmlHttpRequest);
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+// Filter parsing
+// ---------------------------------------------------------------------------
+
+
+function setNetworkMask(mask, m, value) {
+  if (value) {
+    return setBit(mask, m);
+  }
+
+  return clearBit(mask, m);
+}
+
+
+/**
+ * Check if the sub-string contained between the indices start and end is a
+ * regex filter (it contains a '*' or '^' char). Here we are limited by the
+ * capability of javascript to check the presence of a pattern between two
+ * indices (same for Regex...).
+ * // TODO - we could use sticky regex here
+ */
+function checkIsRegex(filter, start, end) {
+  const starIndex = filter.indexOf('*', start);
+  const separatorIndex = filter.indexOf('^', start);
+  return ((starIndex !== -1 && starIndex < end) ||
+          (separatorIndex !== -1 && separatorIndex < end));
+}
+
+
+/**
+ * Parse a line containing a network filter into a NetworkFilter object.
+ * This must be *very* efficient.
+ */
+function parseNetworkFilter(rawLine) {
+  let line = rawLine;
+  // Compute id of the filter
+  const id = packInt32(fastHash(line));
+
+  // Transform |http:// to |http:
+  // Transform |https:// to |https:
+  if (fastStartsWith(line, '|http://')) {
+    line = line.replace('|http://', '|http:');
+  } else if (fastStartsWith(line, '|https://')) {
+    line = line.replace('|https://', '|https:');
+  }
+
+  // Represent options as a bitmask
+  let mask = NETWORK_FILTER_MASK.thirdParty | NETWORK_FILTER_MASK.firstParty;
+
+  // Get rid of those and just return `null` when possible
+  let filter = null;
+  let optDomains = '';
+  let optNotDomains = '';
+  let redirect = null;
+  let hostname = null;
+
+  // Check if this filter had at least one option constraining the acceptable
+  // content policy type. If this remains false, then the filter will have the
+  // value of FROM_ANY and will be applied on any request.
+  let hasCptOption = false;
+
+  // Start parsing
+  let filterIndexStart = 0;
+  let filterIndexEnd = line.length;
+
+  // @@filter == Exception
+  if (fastStartsWith(line, '@@')) {
+    filterIndexStart += 2;
+    mask = setBit(mask, NETWORK_FILTER_MASK.isException);
+  }
+
+  // filter$options == Options
+  // ^     ^
+  // |     |
+  // |     optionsIndex
+  // filterIndexStart
+  const optionsIndex = line.indexOf('$', filterIndexStart);
+  if (optionsIndex !== -1) {
+    // Parse options and set flags
+    filterIndexEnd = optionsIndex;
+
+    // --------------------------------------------------------------------- //
+    // parseOptions
     // TODO: This could be implemented without string copy,
     // using indices, like in main parsing functions.
-    rawOptions.split(',').forEach((rawOption) => {
+    const rawOptions = line.substr(optionsIndex + 1);
+    const options = rawOptions.split(',');
+    for (let i = 0; i < options.length; i += 1) {
+      const rawOption = options[i];
       let negation = false;
       let option = rawOption;
 
       // Check for negation: ~option
-      if (option.startsWith('~')) {
+      if (fastStartsWith(option, '~')) {
         negation = true;
-        option = option.substring(1);
+        option = option.substr(1);
       } else {
         negation = false;
       }
@@ -650,127 +818,258 @@ class NetworkFilter {
 
       switch (option) {
         case 'domain': {
-          const optDomains = [];
-          const optNotDomains = [];
+          const optDomainsArray = [];
+          const optNotDomainsArray = [];
 
-          optionValues.forEach((value) => {
+          for (let j = 0; j < optionValues.length; j += 1) {
+            const value = optionValues[j];
             if (value) {
-              if (value.startsWith('~')) {
-                optNotDomains.push(value.substring(1));
+              if (fastStartsWith(value, '~')) {
+                optNotDomainsArray.push(value.substr(1));
               } else {
-                optDomains.push(value);
+                optDomainsArray.push(value);
               }
             }
-          });
-
-          if (optDomains.length > 0) {
-            this._d = optDomains.join('|');
           }
-          if (optNotDomains.length > 0) {
-            this._nd = optNotDomains.join('|');
+
+          if (optDomainsArray.length > 0) {
+            optDomains = optDomainsArray.join('|');
+          }
+
+          if (optNotDomainsArray.length > 0) {
+            optNotDomains = optNotDomainsArray.join('|');
           }
 
           break;
         }
         case 'image':
-          this.setMask(NETWORK_FILTER_MASK.fromImage, !negation);
+          hasCptOption = true;
+          mask = setNetworkMask(mask, NETWORK_FILTER_MASK.fromImage, !negation);
           break;
         case 'media':
-          this.setMask(NETWORK_FILTER_MASK.fromMedia, !negation);
+          hasCptOption = true;
+          mask = setNetworkMask(mask, NETWORK_FILTER_MASK.fromMedia, !negation);
           break;
         case 'object':
-          this.setMask(NETWORK_FILTER_MASK.fromObject, !negation);
+          hasCptOption = true;
+          mask = setNetworkMask(mask, NETWORK_FILTER_MASK.fromObject, !negation);
           break;
         case 'object-subrequest':
-          this.setMask(NETWORK_FILTER_MASK.fromObjectSubrequest, !negation);
+          hasCptOption = true;
+          mask = setNetworkMask(mask, NETWORK_FILTER_MASK.fromObjectSubrequest, !negation);
           break;
         case 'other':
-          this.setMask(NETWORK_FILTER_MASK.fromOther, !negation);
+          hasCptOption = true;
+          mask = setNetworkMask(mask, NETWORK_FILTER_MASK.fromOther, !negation);
           break;
         case 'ping':
-          this.setMask(NETWORK_FILTER_MASK.fromPing, !negation);
+          hasCptOption = true;
+          mask = setNetworkMask(mask, NETWORK_FILTER_MASK.fromPing, !negation);
           break;
         case 'script':
-          this.setMask(NETWORK_FILTER_MASK.fromScript, !negation);
+          hasCptOption = true;
+          mask = setNetworkMask(mask, NETWORK_FILTER_MASK.fromScript, !negation);
           break;
         case 'stylesheet':
-          this.setMask(NETWORK_FILTER_MASK.fromStylesheet, !negation);
+          hasCptOption = true;
+          mask = setNetworkMask(mask, NETWORK_FILTER_MASK.fromStylesheet, !negation);
           break;
         case 'subdocument':
-          this.setMask(NETWORK_FILTER_MASK.fromSubdocument, !negation);
+          hasCptOption = true;
+          mask = setNetworkMask(mask, NETWORK_FILTER_MASK.fromSubdocument, !negation);
           break;
         case 'xmlhttprequest':
-          this.setMask(NETWORK_FILTER_MASK.fromXmlHttpRequest, !negation);
+          hasCptOption = true;
+          mask = setNetworkMask(mask, NETWORK_FILTER_MASK.fromXmlHttpRequest, !negation);
+          break;
+        case 'websocket':
+          hasCptOption = true;
+          mask = setNetworkMask(mask, NETWORK_FILTER_MASK.fromWebsocket, !negation);
           break;
         case 'important':
           // Note: `negation` should always be `false` here.
-          this.setMask(NETWORK_FILTER_MASK.isImportant, 1);
+          if (negation) {
+            return null;
+          }
+
+          mask = setBit(mask, NETWORK_FILTER_MASK.isImportant);
           break;
         case 'match-case':
           // Note: `negation` should always be `false` here.
-          // TODO: Include in bitmask
-          this.setMask(NETWORK_FILTER_MASK.matchCase, 1);
+          if (negation) {
+            return null;
+          }
+
+          mask = setBit(mask, NETWORK_FILTER_MASK.matchCase);
           break;
         case 'third-party':
-          this.setMask(NETWORK_FILTER_MASK.thirdParty, !negation);
+          if (negation) {
+            // ~third-party means we should clear the flag
+            mask = clearBit(mask, NETWORK_FILTER_MASK.thirdParty);
+          } else {
+            // third-party means ~first-party
+            mask = clearBit(mask, NETWORK_FILTER_MASK.firstParty);
+          }
           break;
         case 'first-party':
-          this.setMask(NETWORK_FILTER_MASK.firstParty, !negation);
-          break;
-        case 'websocket':
-          this.setMask(NETWORK_FILTER_MASK.fromWebsocket, !negation);
+          if (negation) {
+            // ~first-party means we should clear the flag
+            mask = clearBit(mask, NETWORK_FILTER_MASK.firstParty);
+          } else {
+            // first-party means ~third-party
+            mask = clearBit(mask, NETWORK_FILTER_MASK.thirdParty);
+          }
           break;
         case 'collapse':
           break;
         case 'redirect':
           // Negation of redirection doesn't make sense
-          this.supported = !negation;
+          if (negation) {
+            return null;
+          }
+
           // Ignore this filter if no redirection resource is specified
           if (optionValues.length === 0) {
-            this.supported = false;
-          } else {
-            this.redirect = optionValues[0];
+            return null;
           }
+
+          redirect = optionValues[0];
           break;
-        // Disable this filter if any other option is encountered
         default:
           // Disable this filter if we don't support all the options
-          this.supported = false;
+          return null;
       }
-    });
-
-    // Check if any of the fromX flag is set
-    const fromAny = (
-      this.fromImage === null &&
-      this.fromMedia === null &&
-      this.fromObject === null &&
-      this.fromObjectSubrequest === null &&
-      this.fromOther === null &&
-      this.fromPing === null &&
-      this.fromScript === null &&
-      this.fromStylesheet === null &&
-      this.fromSubdocument === null &&
-      this.fromWebsocket === null &&
-      this.fromXmlHttpRequest === null);
-    this.setMask(NETWORK_FILTER_MASK.fromAny, fromAny);
+    }
+    // End of option parsing
+    // --------------------------------------------------------------------- //
   }
+
+  // Apply mask to the internal state.
+  if (hasCptOption === false) {
+    mask = setBit(mask, FROM_ANY);
+  }
+
+  // Identify kind of pattern
+
+  // Deal with hostname pattern
+  if (fastStartsWith(line, '127.0.0.1')) {
+    hostname = line.substr(line.lastIndexOf(' ') + 1);
+    filter = '';
+    mask = clearBit(mask, NETWORK_FILTER_MASK.isRegex);
+    mask = setBit(mask, NETWORK_FILTER_MASK.isHostname);
+    mask = setBit(mask, NETWORK_FILTER_MASK.isHostnameAnchor);
+  } else {
+    // TODO - can we have an out-of-bound here? (source: V8 profiler)
+    if (line.charAt(filterIndexEnd - 1) === '|') {
+      mask = setBit(mask, NETWORK_FILTER_MASK.isRightAnchor);
+      filterIndexEnd -= 1;
+    }
+
+    if (fastStartsWithFrom(line, '||', filterIndexStart)) {
+      mask = setBit(mask, NETWORK_FILTER_MASK.isHostnameAnchor);
+      filterIndexStart += 2;
+    } else if (line.charAt(filterIndexStart) === '|') {
+      mask = setBit(mask, NETWORK_FILTER_MASK.isLeftAnchor);
+      filterIndexStart += 1;
+    }
+
+    // If pattern ends with "*", strip it as it often can be
+    // transformed into a "plain pattern" this way.
+    // TODO: add a test
+    if (line.charAt(filterIndexEnd - 1) === '*' &&
+        (filterIndexEnd - filterIndexStart) > 1) {
+      filterIndexEnd -= 1;
+    }
+
+    // Is regex?
+    const isRegex = checkIsRegex(line, filterIndexStart, filterIndexEnd);
+    mask = setNetworkMask(mask, NETWORK_FILTER_MASK.isRegex, isRegex);
+
+    const isHostnameAnchor = getBit(mask, NETWORK_FILTER_MASK.isHostnameAnchor);
+
+    // Extract hostname to match it more easily
+    // NOTE: This is the most common case of filters
+    if (!isRegex && isHostnameAnchor) {
+      // Look for next /
+      const slashIndex = line.indexOf('/', filterIndexStart);
+      if (slashIndex !== -1) {
+        hostname = line.substring(filterIndexStart, slashIndex);
+        filterIndexStart = slashIndex;
+      } else {
+        hostname = line.substring(filterIndexStart, filterIndexEnd);
+        filter = '';
+      }
+    } else if (isRegex && isHostnameAnchor) {
+      // Split at the first '/', '*' or '^' character to get the hostname
+      // and then the pattern.
+      // TODO - this could be made more efficient if we could match between two
+      // indices. Once again, we have to do more work than is really needed.
+      const firstSeparator = line.search(SEPARATOR);
+
+      if (firstSeparator !== -1) {
+        hostname = line.substring(filterIndexStart, firstSeparator);
+        filterIndexStart = firstSeparator;
+        if ((filterIndexEnd - filterIndexStart) === 1 &&
+            line.charAt(filterIndexStart) === '^') {
+          filter = '';
+          mask = clearBit(mask, NETWORK_FILTER_MASK.isRegex);
+        } else {
+          mask = setNetworkMask(
+            mask,
+            NETWORK_FILTER_MASK.isRegex,
+            checkIsRegex(line, filterIndexStart, filterIndexEnd));
+        }
+      }
+    }
+  }
+
+  // Strip www from hostname if present
+  if (getBit(mask, NETWORK_FILTER_MASK.isHostnameAnchor) && fastStartsWith(hostname, 'www.')) {
+    hostname = hostname.slice(4);
+  }
+
+  if (filter === null) {
+    filter = line.substring(filterIndexStart, filterIndexEnd).toLowerCase();
+  }
+
+  if (hostname !== null) {
+    hostname = hostname.toLowerCase();
+  }
+
+  return new NetworkFilter(
+    mask,
+    filter,
+    optDomains,
+    optNotDomains,
+    redirect,
+    hostname,
+    id
+  );
 }
 
 
 const SPACE = /\s/;
-export function parseFilter(line) {
+
+
+/**
+ * Takes a string, and try to parse a filter out of it. This can be either:
+ *  - NetworkFilter
+ *  - CosmeticFilter
+ *  - something else (comment, etc.), in which case it returns null.
+ */
+export function parseFilter(line, loadNetworkFilters, loadCosmeticFilters) {
   // Ignore comments
   if (line.length === 1
       || line.charAt(0) === '!'
       || (line.charAt(0) === '#' && SPACE.test(line.charAt(1)))
-      || line.startsWith('[Adblock')) {
-    return { supported: false, isComment: true };
+      || fastStartsWith(line, '[Adblock')) {
+    return null;
   }
 
   // Ignore Adguard cosmetics
   // `$$`
   if (line.indexOf('$$') !== -1) {
-    return { supported: false };
+    return null;
   }
 
   // Check if filter is cosmetics
@@ -781,91 +1080,79 @@ export function parseFilter(line) {
     // Ignore Adguard cosmetics
     // `#$#` `#@$#`
     // `#%#` `#@%#`
-    if (line.startsWith(/* #@$# */ '@$#', afterSharpIndex)
-        || line.startsWith(/* #@%# */ '@%#', afterSharpIndex)
-        || line.startsWith(/* #%# */ '%#', afterSharpIndex)
-        || line.startsWith(/* #$# */ '$#', afterSharpIndex)) {
-      return { supported: false };
-    } else if (line.startsWith(/* ## */'#', afterSharpIndex)
-        || line.startsWith(/* #@# */ '@#', afterSharpIndex)) {
-      // Parse supported cosmetic filter
-      // `##` `#@#`
-      if (platformName === 'mobile') {
-        // We don't support cosmetics filters on mobile, so no need
-        // to parse them, store them, etc.
-        // This will reduce both: loading time, memory footprint, and size of
-        // the serialized index on disk.
-        return { supported: false };
+    if (fastStartsWithFrom(line, /* #@$# */ '@$#', afterSharpIndex)
+        || fastStartsWithFrom(line, /* #@%# */ '@%#', afterSharpIndex)
+        || fastStartsWithFrom(line, /* #%# */ '%#', afterSharpIndex)
+        || fastStartsWithFrom(line, /* #$# */ '$#', afterSharpIndex)) {
+      return null;
+    } else if (fastStartsWithFrom(line, /* ## */'#', afterSharpIndex)
+        || fastStartsWithFrom(line, /* #@# */ '@#', afterSharpIndex)) {
+      if (!loadCosmeticFilters) {
+        return null;
       }
 
-      return new CosmeticFilter(line, sharpIndex);
+      // Parse supported cosmetic filter
+      // `##` `#@#`
+      return parseCosmeticFilter(line, sharpIndex);
     }
   }
 
-  // Everything else is a network filter
-  return new NetworkFilter(line);
-}
-
-
-export default function parseList(list, debug = false) {
-  try {
-    const networkFilters = [];
-    const cosmeticFilters = [];
-
-    list.forEach((line) => {
-      if (line) {
-        const filter = parseFilter(line.trim());
-        if (filter.supported && !filter.isComment) {
-          if (filter.isNetworkFilter) {
-            // Delete temporary attributes
-            if (!debug) {
-              filter.supported = undefined;
-              filter.isNetworkFilter = undefined;
-              filter.isComment = undefined;
-            } else {
-              filter.rawLine = line;
-            }
-
-            networkFilters.push(filter);
-          } else {
-            // Delete temporary attributes
-            if (!debug) {
-              filter.supported = undefined;
-              filter.isCosmeticFilter = undefined;
-            } else {
-              filter.rawLine = line;
-            }
-
-            cosmeticFilters.push(filter);
-          }
-        }
-      }
-    });
-
-    return {
-      networkFilters,
-      cosmeticFilters,
-    };
-  } catch (ex) {
-    log(`ERROR WHILE PARSING ${typeof list} ${ex} ${ex.stack}`);
+  if (!loadNetworkFilters) {
     return null;
   }
+
+  // Everything else is a network filter
+  return parseNetworkFilter(line);
 }
 
 
-export function parseJSResource(lines) {
+export function parseList(data, { loadNetworkFilters, loadCosmeticFilters, debug }) {
+  const networkFilters = [];
+  const cosmeticFilters = [];
+  const lines = data.split('\n');
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i].trim();
+
+    if (line.length > 0) {
+      const filter = parseFilter(line, loadNetworkFilters, loadCosmeticFilters);
+
+      if (filter !== null) {
+        // In debug mode, keep the original line
+        if (debug) {
+          filter.rawLine = line;
+        }
+
+        if (filter.isNetworkFilter()) {
+          networkFilters.push(filter);
+        } else if (filter.isCosmeticFilter()) {
+          cosmeticFilters.push(filter);
+        }
+      }
+    }
+  }
+
+  return {
+    networkFilters,
+    cosmeticFilters,
+  };
+}
+
+
+export function parseJSResource(data) {
   let state = 'end';
   let tmpContent = '';
   let type = null;
   let name = '';
   const parsed = new Map();
+  const lines = data.split('\n');
   lines.forEach((line) => {
-    line = line.trim();
-    if (line.startsWith('#')) {
+    const trimmed = line.trim();
+    if (fastStartsWith(trimmed, '#')) {
       state = 'comment';
-    } else if (!line.trim()) {
+    } else if (!trimmed) {
       state = 'end';
-    } else if (state !== 'content' && !type && line.split(' ').length === 2) {
+    } else if (state !== 'content' && !type && trimmed.split(' ').length === 2) {
       state = 'title';
     } else {
       state = 'content';
@@ -884,10 +1171,10 @@ export function parseJSResource(lines) {
       case 'comment':
         break;
       case 'title':
-        [name, type] = line.split(' ');
+        [name, type] = trimmed.split(' ');
         break;
       case 'content':
-        tmpContent += `${line}\n`;
+        tmpContent += `${trimmed}\n`;
         break;
       default:
     }

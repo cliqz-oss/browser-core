@@ -51,3 +51,7 @@ export function isTabURL() {
 export function getBrowserMajorVersion() {
   return 100;
 }
+
+export function getCookies() {
+  return Promise.reject('Not implemented');
+}

@@ -1,6 +1,6 @@
 import config from './config';
 import console from './console';
-import { utils } from './cliqz';
+import utils from './utils';
 import Storage from '../platform/resource-loader-storage';
 import TextDecoder from '../platform/text-decoder';
 
@@ -116,7 +116,7 @@ export class Resource {
         const parsed = JSON.parse(data);
         return Promise.resolve(parsed);
       } catch (e) {
-        return Promise.reject(`parseData: failed with exception ${e}`);
+        return Promise.reject(`parseData: failed with exception ${e} ${data}`);
       }
     }
 
