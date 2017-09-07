@@ -7,7 +7,7 @@
   "settings": {
     "id": "description_test@cliqz.com",
     "name": "Cliqz",
-    "channel": "FF01",
+    "channel": "FF02",
     "homepageURL": "https://cliqz.com/",
     "updateURL": "https://s3.amazonaws.com/cdncliqz/update/description_test@cliqz.com/latest.rdf",
     "freshTabButton": true,
