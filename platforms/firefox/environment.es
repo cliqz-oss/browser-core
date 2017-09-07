@@ -264,7 +264,14 @@ var CLIQZEnvironment = {
             base_url: e.searchForm,
             urlDetails: utils.getDetailsFromUrl(e.searchForm),
             getSubmissionForQuery: function(q, type){
-              return e.getSubmission(q, type).uri.spec;
+              const submission = e.getSubmission(q, type);
+              // some engines cannot create submissions for all types
+              // eg 'application/x-suggestions+json'
+              if (submission) {
+                return submission.uri.spec;
+              } else {
+                return null
+              }
             }
           };
         });

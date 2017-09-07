@@ -8,7 +8,8 @@ $light-gray: #f5f5f5;
 $basic-font-size: 15px;
 $basic-line-height: (16 / 15) + 0em;
 
-#cliqz-dropdown[data-extension-id='funnelcake@cliqz.com'] {
+#cliqz-dropdown[data-extension-id='funnelcake@cliqz.com'],
+#cliqz-dropdown[data-extension-id='description_test@cliqz.com'] {
     .logo {
         /* round logos for funnelcake*/
         border-radius: 50%;
@@ -40,7 +41,7 @@ $basic-line-height: (16 / 15) + 0em;
 
     em {
         font-style: normal;
-        font-weight: bold;
+        font-weight: 600;
     }
 
     a {
@@ -71,7 +72,7 @@ $basic-line-height: (16 / 15) + 0em;
     }
 
     .strong {
-        font-weight: bold;
+        font-weight: 600;
     }
 
     .ellipsis {
@@ -129,7 +130,7 @@ $basic-line-height: (16 / 15) + 0em;
             margin-right: 11px;
             text-decoration: none;
             color: black;
-            font-weight: bold;
+            font-weight: 600;
 
             em {
                 font-weight: normal;
@@ -150,7 +151,7 @@ $basic-line-height: (16 / 15) + 0em;
             }
 
             &:first-child {
-                margin-left: 4px;
+                margin-left: 1px;
             }
         }
     }

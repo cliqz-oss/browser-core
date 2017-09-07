@@ -20,7 +20,7 @@ export default {
     });
     this.toolbarButton.build();
 
-    if (this.settings.id === 'funnelcake@cliqz.com') {
+    if (this.settings.id === 'funnelcake@cliqz.com' || this.settings.id === 'description_test@cliqz.com') {
       this.pageAction = new ToolbarButton({
         widgetId: 'page-action',
         default_title: getMessage('control-center-action-tooltip'),

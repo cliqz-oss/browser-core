@@ -488,23 +488,33 @@ var CliqzUtils = {
   getSuggestions: function(q) {
     const searchDataType = 'application/x-suggestions+json';
     const defaultEngine = CliqzUtils.getDefaultSearchEngine();
-    return fetch(defaultEngine.getSubmissionForQuery(q, searchDataType))
-      .then(res => res.json())
-      .then(response => {
-        return {
-          response: {
-            results: response[1].filter(r => r !== q).map(q => {
-              return {
-                url: defaultEngine.getSubmissionForQuery(q),
-                template: 'suggestion',
-                type: 'suggestion',
-                snippet: { suggestion: q }
-              }
-            })
-          },
-          query: response[0]
-        }
-      })
+    const submissionUrl = defaultEngine.getSubmissionForQuery(q, searchDataType);
+
+    if (submissionUrl) {
+      return fetch(defaultEngine.getSubmissionForQuery(q, searchDataType))
+        .then(res => res.json())
+        .then(response => {
+          return {
+            response: {
+              results: response[1].filter(r => r !== q).map(q => {
+                return {
+                  url: defaultEngine.getSubmissionForQuery(q),
+                  template: 'suggestion',
+                  type: 'suggestion',
+                  snippet: { suggestion: q }
+                }
+              })
+            },
+            query: response[0]
+          }
+        });
+    } else {
+      // there is no suggestion URL for the default search Engine
+      return Promise.resolve({
+        response: { results: [] },
+        query: q
+      });
+    }
   },
 
   // IP driven configuration

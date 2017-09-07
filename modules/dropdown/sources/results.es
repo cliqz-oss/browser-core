@@ -131,6 +131,11 @@ export default class Results {
       }
     }
 
+    if (this.hasCalculatorResults || this.hasCurrencyResults) {
+      // we should filter out suggestions if we have calculatpr or currency results
+      this.results = this.results.filter(result => !result.isSuggestion);
+    }
+
     if (this.hasHistory && sessionCountPromise) {
       // TEMP: this.addSessionsResult(sessionCountPromise);
     }
@@ -228,5 +233,13 @@ export default class Results {
 
   get hasAdultResults() {
     return this.results.some(r => r.isAdult);
+  }
+
+  get hasCalculatorResults() {
+    return this.results.some(r => r.isCalculator);
+  }
+
+  get hasCurrencyResults() {
+    return this.results.some(r => r.isCurrency);
   }
 }

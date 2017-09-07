@@ -1211,14 +1211,8 @@
     "control-center-txt-header": {
       "message": "Deine Daten sind geschützt"
     },
-    "control-center-txt-header-funnelcake": {
-      "message": "Ihre Daten sind geschützt"
-    },
     "control-center-txt-header-not": {
       "message": "Deine Daten sind nicht geschützt"
-    },
-    "control-center-txt-header-not-funnelcake": {
-      "message": "Ihre Daten sind nicht geschützt"
     },
     "control-center-datapoints": {
       "message": "Persönliche Daten wurden entfernt"

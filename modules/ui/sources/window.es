@@ -417,7 +417,7 @@ export default class {
     urlbar.style.maxWidth = '100%';
     urlbar.style.margin = '0px 0px';
 
-    if (this.settings.id !== 'funnelcake@cliqz.com') {
+    if (this.settings.id !== 'funnelcake@cliqz.com' && this.settings.id !== 'description_test@cliqz.com') {
       urlbar.mInputField.placeholder = utils.getLocalizedString('freshtab.urlbar.placeholder');
     }
   }

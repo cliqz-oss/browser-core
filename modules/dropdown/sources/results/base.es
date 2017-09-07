@@ -117,6 +117,21 @@ export default class BaseResult {
     return extra.adult;
   }
 
+  get isCalculator() {
+    const data = this.rawResult.data || {};
+    return data.template === 'calculator';
+  }
+
+  get isCurrency() {
+    const data = this.rawResult.data || {};
+    return data.template === 'currency';
+  }
+
+  get isSuggestion() {
+    const data = this.rawResult.data || {};
+    return data.template === 'suggestion';
+  }
+
   get icon() {
     let icon;
 

@@ -434,7 +434,7 @@ export default class {
       feedbackURL: utils.FEEDBACK_URL,
       debug: utils.getPref('showConsoleLogs', false),
       amo: this.settings.channel === '04',
-      funnelCake: this.settings.id === 'funnelcake@cliqz.com'
+      funnelCake: this.settings.id === 'funnelcake@cliqz.com' || this.settings.id === 'description_test@cliqz.com'
     };
   }
 

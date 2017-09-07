@@ -51,7 +51,9 @@ export default class {
   }
 
   clear() {
-    setPref(STATE_DEFAULT);
+    // clear is alwasy called from the "ask" state
+    // so we should revert back to that
+    setPref(STATE_ASK);
     this.resetGeoLocation();
     return Promise.resolve();
   }

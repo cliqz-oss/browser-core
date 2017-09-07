@@ -1211,13 +1211,7 @@
     "control-center-txt-header": {
       "message": "Your data is protected"
     },
-    "control-center-txt-header-funnelcake": {
-      "message": "Your data is protected"
-    },
     "control-center-txt-header-not": {
-      "message": "Your data is not protected"
-    },
-    "control-center-txt-header-not-funnelcake": {
       "message": "Your data is not protected"
     },
     "control-center-datapoints": {

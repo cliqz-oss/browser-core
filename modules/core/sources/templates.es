@@ -144,25 +144,6 @@ function registerHelpers(){
       return 'cqz-result-h3';
     });
 
-    Handlebars.registerHelper('recipe_rd_template', function(data_richData) {
-        var minimalData = data_richData
-                          && typeof(data_richData["cook_time"]) !== "undefined"
-                          && typeof(data_richData["numportion"]) !== "undefined"
-                          && typeof(data_richData["total_review"]) !== "undefined";
-
-        // is the only result in the show list
-        return (CliqzUtils.autocomplete.lastResult._results.length === 1 && minimalData);
-    });
-
-    Handlebars.registerHelper('cpgame_movie_rd_template', function(data_richData) {
-        if(!CliqzUtils.autocomplete.lastResult) return false;
-
-        var minimalData_pcgame = data_richData && ((typeof(data_richData["image"]) !== "undefined" ) || (typeof(data_richData["game_cat"]) !== "undefined" && typeof(data_richData["rating"]) !== "undefined" && typeof(data_richData["categories"]) !== "undefined" ));
-        var minimalData_movie = data_richData && ((typeof(data_richData["image"]) !== "undefined" ) || (data_richData["director"] && data_richData["director"]["title"]) || (data_richData["length"] &&  data_richData["length"] !== "_") || (data_richData["categories"]));
-
-        return (minimalData_pcgame || minimalData_movie); // is the only result in the show list
-    });
-
     Handlebars.registerHelper('image_rd_specification', function(richData){
         return richData['superType'] === "movie" ? "50px" : "76px";
     });

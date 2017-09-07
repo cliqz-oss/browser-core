@@ -158,7 +158,7 @@ export default class Search {
 
       CliqzAutocomplete.lastQueryTime = Date.now();
       CliqzAutocomplete.lastDisplayTime = null;
-      CliqzAutocomplete.lastResult = null;
+//      CliqzAutocomplete.lastResult = null;
       CliqzAutocomplete.lastSuggestions = null;
       this.oldPushLength = 0;
       this.customResults = null;
