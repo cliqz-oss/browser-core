@@ -47,9 +47,6 @@
       "off": "#999999"
     }
   },
-  "default_prefs" : {
-    "focusUrlbar": 1
-  },
   "modules": [
     "core",
     "core-cliqz",
@@ -60,17 +57,13 @@
     "geolocation",
     "ui",
     "human-web",
-    "anti-phishing",
     "context-menu",
-    "webrequest-pipeline",
-    "antitracking",
     "performance",
     "hpn",
     "control-center",
     "offers-v2",
     "browser-panel",
-    "message-center",
-    "offboarding"
+    "message-center"
   ],
   "system": {
     "map": {

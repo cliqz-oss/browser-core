@@ -717,6 +717,14 @@ $basic-line-height: (16 / 15) + 0em;
 
 #nav-bar {
     #urlbar {
+        /* we need this for FF56 and bellow only*/
+        #urlbar-icons {
+            toolbarbutton#page-action-browser-action {
+                .toolbarbutton-icon {
+                    max-width: 12px;
+                }
+            }
+        }
         toolbarbutton {
             &#page-action-browser-action {
                 margin: 0;
@@ -728,10 +736,6 @@ $basic-line-height: (16 / 15) + 0em;
 
                     > .toolbarbutton-badge-stack {
                         padding: 0 8px;
-
-                        .toolbarbutton-icon {
-                            max-width: 12px;
-                        }
                     }
 
                     &:hover, &[open] {

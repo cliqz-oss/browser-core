@@ -84,17 +84,29 @@ export default class {
 
   loadIntoWindow(win) {
     if (!win) return;
-
-    waitWindowReady(win) // This takes a lot to fulfill...
-      .then(() => {
-        if (mustLoadWindow(win)) {
-          return this.loadWindow(win);
-        }
-        return null;
-      })
-      .catch((e) => {
-        console.log(e, 'Extension filed loaded window modules');
-      });
+    // wait one second before starting window modules
+    win.setTimeout(() => {
+      waitWindowReady(win) // This takes a lot to fulfill...
+        .then(() => {
+          if (mustLoadWindow(win)) {
+            return this.loadWindow(win);
+          } else {
+            if (config.settings.id === 'funnelcake@cliqz.com' &&
+              win.location.href === 'chrome://browser/content/aboutDialog.xul') {
+              win.setTimeout(function(doc){
+                const privacyLink = doc.querySelectorAll('.bottom-link')[2];
+                if (privacyLink) {
+                  privacyLink.setAttribute('href', 'https://www.mozilla.org/de/privacy/firefox-cliqz/');
+                }
+              }, 100, win.document)
+            }
+          }
+          return null;
+        })
+        .catch((e) => {
+          console.log(e, 'Extension filed loaded window modules');
+        });
+      }, 1000);
   }
 
   start() {

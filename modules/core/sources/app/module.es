@@ -110,7 +110,7 @@ export default class Module {
 
     const loadingStartedAt = Date.now();
     const settings = this.settings;
-    return Promise.resolve(this.windowModule)
+    const moduleWinInstance = Promise.resolve(this.windowModule)
       .then(WindowModule => new WindowModule({
         settings,
         window,
@@ -133,6 +133,17 @@ export default class Module {
         rejecter(e);
         throw e;
       });
+
+    return new Promise(resolve => {
+      if (['control-center', 'ui'].indexOf(this.name) === -1) {
+        // wait up to 5 seconds to initialize window part for each module
+        window.requestIdleCallback(() => {
+          resolve(moduleWinInstance);
+        }, { timeout: 5000 })
+      } else {
+        resolve(moduleWinInstance);
+      }
+    });
   }
 
   unloadWindow(window, { disable } = {}) {
