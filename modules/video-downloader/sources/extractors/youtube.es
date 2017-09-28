@@ -1,5 +1,6 @@
-import getYoutubeID from 'video-downloader/utils/get-youtube-id';
-import getInfo from '../lib/ytdl-core';
+import getInfo from '../../platform/video-downloader/lib/ytdl-core';
+import getYoutubeID from '../utils/get-youtube-id';
+
 
 // This takes a bit, not perfect... Will it be blocked if too much traffic?
 function handleFormats(formats) {

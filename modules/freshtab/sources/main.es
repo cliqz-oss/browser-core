@@ -11,17 +11,18 @@ import {
 } from '../platform/freshtab/new-tab-setting';
 
 const NEW_TAB_URL = config.settings.NEW_TAB_URL;
-const PREF_NEW_TAB_BUTTON_STATE = 'freshTabState';
+const PREF_NEW_TAB_BUTTON_STATE = 'freshtab.state';
 const PREF_HOME_PAGE_BACKUP = 'backup.homepage';
 
 export default {
 
   get isActive() {
-    if (platform.isCliqzBrowser || !config.settings.freshTabButton) {
+    if (platform.isCliqzBrowser) {
       return true;
     }
 
-    return prefs.get(PREF_NEW_TAB_BUTTON_STATE);
+    // default state for freshtab is active (opt-out)
+    return prefs.get(PREF_NEW_TAB_BUTTON_STATE, true);
   },
 
   startup() {

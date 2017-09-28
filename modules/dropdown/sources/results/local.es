@@ -1,5 +1,6 @@
 import BaseResult from './base';
 import console from '../../core/console';
+import utils from '../../core/utils';
 
 class LocalInfoResult extends BaseResult {
   get mapImg() {
@@ -72,20 +73,50 @@ export class ShareLocationButton extends BaseResult {
 
 
 export default class LocalResult extends BaseResult {
+  get extra() {
+    return this.rawResult.extra || {};
+  }
+
   get address() {
-    return this.rawResult.address || '';
+    const address = this.extra.address || '';
+
+    if (!address) {
+      return null;
+    }
+
+    const addressResult = new TextResult({
+      url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: 'copyAddress' })}`,
+      text: address,
+      textType: 'local-address',
+    });
+    addressResult.actions = this.actions;
+
+    return addressResult;
   }
 
   get phoneNumber() {
-    return this.rawResult.phoneNumber || '';
+    const phone = this.extra.phonenumber || '';
+
+    if (!phone) {
+      return null;
+    }
+
+    const phoneResult = new TextResult({
+      url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: 'copyPhoneNumber' })}`,
+      text: phone,
+      textType: 'local-phone',
+    });
+    phoneResult.actions = this.actions;
+
+    return phoneResult;
   }
 
   get mapImg() {
-    return this.rawResult.mapImg || '';
+    return this.extra.map_img || '';
   }
 
   get mapUrl() {
-    return this.rawResult.mapUrl || '';
+    return this.extra.mu || '';
   }
 
   get allResults() {
@@ -108,28 +139,104 @@ export default class LocalResult extends BaseResult {
     if (!this._textResults) {
       this._textResults = [];
       if (this.address) {
-        const address = !this.address ? null : new TextResult({
-          url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: 'copyAddress' })}`,
-          text: this.address,
-          textType: 'local-address',
-        });
-        address.actions = this.actions;
-
-        this._textResults.push(address);
+        this._textResults.push(this.address);
       }
 
       if (this.phoneNumber) {
-        const phone = new TextResult({
-          url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: 'copyPhoneNumber' })}`,
-          text: this.phoneNumber,
-          textType: 'local-phone',
-        });
-        phone.actions = this.actions;
-
-        this._textResults.push(phone);
+        this._textResults.push(this.phoneNumber);
       }
     }
 
     return this._textResults;
+  }
+
+  get distance() {
+    if (this.extra.lat && this.extra.lon) {
+      const distance = utils.distance(this.extra.lon, this.extra.lat) * 1000;
+      if (distance > -1) {
+        return distance;
+      }
+    }
+
+    return null;
+  }
+
+  get ratingImg() {
+    const rating = this.extra.rating;
+    if (!rating) {
+      return null;
+    }
+
+    const ratingStars = Math.max(0, Math.min(Math.round(rating), 5));
+    return `https://cdn.cliqz.com/extension/EZ/richresult/stars${ratingStars}.svg`;
+  }
+
+  parseTime(timeStr) {  // e.g. timeStr: 10.30
+    const time = timeStr.split('.');
+    return {
+      hours: parseInt(time[0], 10) || 0,
+      minutes: parseInt(time[1], 10) || 0,
+    };
+  }
+
+  get openingStatus() {
+    const openingHours = this.extra.opening_hours;
+    if (!openingHours) {
+      return null;
+    }
+
+    const OPENING_COLORS = {
+      open: '#A6A6A6',
+      closed: '#E64C66',
+      open_soon: '#A6A6A6',
+      close_soon: '#E64C66',
+    };
+
+    let openStatus;
+    const timeInfos = [];
+
+    openingHours.filter(el => el.open && el.close)
+      .forEach((el) => {
+        if (openStatus && openStatus !== 'closed') {
+          return;
+        }
+
+        timeInfos.push(`${el.open.time.replace('.', ':')}—${el.close.time.replace('.', ':')}`);
+
+        const openTime = this.parseTime(el.open.time);
+        const closeTime = this.parseTime(el.close.time);
+        const closesNextDay = el.close.day !== el.open.day;
+        /** Difference in minutes from opening/closing times to current time **/
+        const t = new Date();
+        const minutesFrom = {
+          opening: (60 * (t.getHours() - openTime.hours))
+                    + (t.getMinutes() - openTime.minutes),
+          /* If it closes the next day, we need to subtract 24 hours from the hour difference */
+          closing: (60 * (t.getHours() - closeTime.hours - (closesNextDay ? 24 : 0)))
+                    + (t.getMinutes() - closeTime.minutes),
+        };
+
+        if (minutesFrom.opening > 0 && minutesFrom.closing < 0) {
+          openStatus = 'open';
+          if (minutesFrom.closing > -60) {
+            openStatus = 'close_soon';
+          }
+        } else {
+          openStatus = 'closed';
+          if (minutesFrom.opening > -60 && minutesFrom.opening < 0) {
+            openStatus = 'open_soon';
+          }
+        }
+      });
+
+    if (openStatus) {
+      return {
+        color: OPENING_COLORS[openStatus],
+        sttText: openStatus,
+        timeInfo: timeInfos.join(', '),
+      };
+    }
+
+    return null;
   }
 }

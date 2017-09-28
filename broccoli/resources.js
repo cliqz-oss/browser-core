@@ -1,3 +1,5 @@
+"use strict";
+
 const writeFile = require('broccoli-file-creator');
 const Funnel = require('broccoli-funnel');
 const config = require('./config');
@@ -9,12 +11,17 @@ let fileContents = '';
 if (config.resources && config.resources.bundling === 'require') {
   const pathVariable = path => path.replace('/', '_').replace('.', '_').replace('-', '_');
   const assets = config.resources.include.map(path => [pathVariable(path), path]);
-  const importStatements = assets.map(([varName, resourceName]) => {
+  const importStatements = assets.map(args => {
+    const varName = args.varName;
+    const resourceName = args.resourcePath;
     const resourcePath = `./modules/${resourceName}`;
     return `import ${varName} from '${resourcePath}';`;
   }).join('\n');
-  const resourcesList = assets.map(([varName, resourceName]) => `'${resourceName}': ${varName}`)
-    .join(',\n');
+  const resourcesList = assets.map(args => {
+    const varName = args.varName;
+    const resourceName = args.resourcePath;
+    return `'${resourceName}': ${varName}`;
+  }).join(',\n');
 
   fileContents += importStatements;
   fileContents += '\n';

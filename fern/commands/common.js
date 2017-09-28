@@ -11,39 +11,6 @@ const chalk = require('chalk');
 let CONFIG;
 let OUTPUT_PATH;
 
-function buildFreshtabFrontEnd() {
-  const configPath = process.env['CLIQZ_CONFIG_PATH'];
-  var app = 'fresh-tab-frontend',
-      appPath = path.join('subprojects', app),
-      shouldBuild = function() {
-        if(CONFIG.subprojects.indexOf('fresh-tab-frontend') === -1) {
-          return false;
-        }
-        if(!fs.existsSync(path.join(appPath, 'dist'))) {
-          return true;
-        }
-        if(process.env['CLIQZ_FRESHTAB'] !== 'undefined') {
-          return true;
-        }
-        return false;
-      };
-  if(!shouldBuild()) {
-    return
-  }
-
-  rimraf.sync(appPath + 'dist', []);
-  console.log(`Building Ember app: ${app}`);
-  var spawed = execa.sync(
-    'ember',
-    ['build', '--output-path=dist', '--environment=production'],
-    { stdio: 'inherit', cwd: appPath}
-  );
-  if(spawed.status === 1) {
-    console.log(chalk.red('*** RUN `./fern.js install` to install missing Freshtab ember dependencies'));
-    process.exit(1);
-  }
-}
-
 function getExtensionVersion(version) {
   return new Promise(resolve => {
     switch (version) {
@@ -107,7 +74,6 @@ function createBuildWatcher(port) {
 }
 
 module.exports = {
-  buildFreshtabFrontEnd: buildFreshtabFrontEnd,
   createBuildWatcher: createBuildWatcher,
   getExtensionVersion: getExtensionVersion,
   setConfigPath: setConfigPath,

@@ -5,31 +5,46 @@
 
 {{> partials/buttons}}
 
-{{#if this.subResult}}
-    <a class="result soccer-title" href="{{this.subResult.url}}">
-        <span class="padded">{{this.subResult.title}}</span>
+{{#if subResult}}
+    <a class="result soccer-title" href="{{subResult.url}}">
+        <span class="padded">{{subResult.title}}</span>
         <span class="soccer-domain divider">—</span>
         <span class="soccer-domain">{{ local 'soccer-api-provider' }}</span>
     </a>
 {{/if}}
 <div class="soccer padded">
-    <div class="wrapper" style="position: relative">
+    <div class="wrapper dropdown-tabs">
         <div class="background-placeholder"></div>
         {{#each liveTicker}}
-            <input type="radio" name="tabs" id="tab-{{@index}}" {{#if this.isCurrent}}checked="checked"{{/if}}/>
-            <label for="tab-{{@index}}">{{ local 'soccer-ticker-week' }} {{this.round}}</label>
+            <input class="tab-radio-input" type="radio" name="tabs" id="tab-{{@index}}" {{#if isCurrent}}checked="checked"{{/if}}/>
+            <label class="tab-label" for="tab-{{@index}}" onclick="(function(e) {
+            document.getElementById('tab-{{@index}}').checked = 'checked';
+            e.preventDefault(); e.stopPropagation(); })(event)">{{round}}</label>
         {{/each}}
         {{#each liveTicker}}
             <div id="tab-block-{{@index}}"
                  class="tab-block"
             >
                 <div class="table">
-                    {{#each this.allResults}}
+                    {{#each (take allResults ../itemsLimit) }}
                         {{> partials/ticker}}
                     {{/each}}
                 </div>
             </div>
         {{/each}}
     </div>
-    <p class="powered-by">{{ local 'soccer-powered-by' }}</p>
+    <div>
+        {{#if expandButton.show}}
+            <a class="result expand-btn" href="{{expandButton.url}}">
+                {{local expandButton.title}}
+            </a>
+        {{/if}}
+
+        <a class="result powered-by" href="{{poweredByResult.url}}">
+            {{local poweredByResult.title}}
+        </a>
+
+    </div>
 </div>
+
+{{> partials/news-injection}}

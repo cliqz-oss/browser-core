@@ -1,8 +1,8 @@
 'use strict';
 
-function DelayedImageLoader(selector) {
-  this.DELAY = 500;
-  this.BANDWITH = 2;
+function DelayedImageLoader(selector, delay, bandwidth) {
+  this.DELAY = !isNaN(delay) ? delay : 500;
+  this.BANDWITH = bandwidth > 0 ? bandwidth : 2;
 
   this.selector = selector;
 }

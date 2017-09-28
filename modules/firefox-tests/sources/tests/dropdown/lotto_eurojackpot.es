@@ -73,7 +73,7 @@ export default function () {
     ];
     let resultElement;
 
-    beforeEach(function () {
+    before(function () {
       respondWith({ results });
       fillIn('eurojackpot');
       return waitForPopup().then(function () {

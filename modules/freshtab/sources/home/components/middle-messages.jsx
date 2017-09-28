@@ -21,9 +21,12 @@ export default class MiddleMessages extends React.Component {
     cliqz.freshtab.dismissMessage(messageId, handler);
     cliqz.storage.setState((prevState) => {
       const prev = prevState;
-      delete prev.messages[messageId];
+      const messages = {
+        ...prev.messages,
+      };
+      delete messages[messageId];
       return {
-        messages: prev.messages
+        messages,
       };
     });
   }

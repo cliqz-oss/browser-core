@@ -1,28 +1,16 @@
-import { utils } from 'core/cliqz';
-import ToolbarButtonManager from 'video-downloader/ToolbarButtonManager';
-import { isVideoURL, getVideoInfo } from 'video-downloader/video-downloader';
+import { utils } from '../core/cliqz';
+import ToolbarButtonManager from './ToolbarButtonManager';
+import { isVideoURL, getVideoInfo, getFormats } from './video-downloader';
 import Panel from '../core/ui/panel';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
-import CliqzEvents from 'core/events';
-import console from 'core/console';
+import CliqzEvents from '../core/events';
+import console from '../core/console';
 
-const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
-Cu.import("resource://gre/modules/Downloads.jsm");
+const events = CliqzEvents;
+const DISMISSED_ALERTS = 'dismissedAlerts';
 
 function toPx(pixels) {
   return `${pixels.toString()}px`;
-}
-
-function getSize(contentLength) {
-  let size = parseInt(contentLength, 10);
-  if (size >= 1073741824) {
-    size = `${parseFloat((size / 1073741824).toFixed(1))} GB`;
-  } else if (size >= 1048576) {
-    size = `${parseFloat((size / 1048576).toFixed(1))} MB`;
-  } else {
-    size = `${parseFloat((size / 1024).toFixed(1))} KB`;
-  }
-  return size;
 }
 
 const BTN_ID = 'cliqz-vd-btn';
@@ -33,7 +21,28 @@ const TELEMETRY_VERSION = 1;
 const TELEMETRY_TYPE = 'video_downloader';
 
 export default class UI {
-  constructor(PeerComm, window) {
+  showOnboarding() {
+    const isInABTest = utils.getPref('extOnboardVideoDownloader', false);
+    const isBrowser = this.settings.channel === '40';
+    const dismissedAlerts = JSON.parse(utils.getPref(DISMISSED_ALERTS, '{}'));
+    const messageType = 'video-downloader';
+    const isDismissed = dismissedAlerts[messageType] && dismissedAlerts[messageType].count >= 1;
+    if (isBrowser && isInABTest && !isDismissed) {
+      events.pub(
+        'msg_center:show_message',
+        {
+          id: 'video-downloader',
+          template: 'video-downloader',
+        },
+        'MESSAGE_HANDLER_FRESHTAB'
+      );
+    }
+  }
+  constructor(PeerComm, window, settings) {
+    this.settings = settings;
+    const { utils: Cu } = Components;
+    const { Downloads } = Cu.import('resource://gre/modules/Downloads.jsm');
+    this.Downloads = Downloads;
     this.PeerComm = PeerComm;
     this.window = window;
     this.cssUrl = 'chrome://cliqz/content/video-downloader/styles/xul.css';
@@ -45,7 +54,7 @@ export default class UI {
       resize: this.resizePopup.bind(this),
       sendToMobile: this.sendToMobile.bind(this),
       hidePopup: this.hidePopup.bind(this),
-      "sendTelemetry": this.sendTelemetry.bind(this),
+      sendTelemetry: this.sendTelemetry.bind(this),
       download: this.download.bind(this),
     };
 
@@ -67,15 +76,16 @@ export default class UI {
     this.addVDbutton();
 
     CliqzEvents.sub('core.location_change', this.actions.checkForVideoLink);
-    CliqzEvents.sub("core.tab_state_change", this.actions.checkForVideoLink);
+    CliqzEvents.sub('core.tab_state_change', this.actions.checkForVideoLink);
+    this.showOnboarding();
   }
 
   unload() {
     this.panel.detach();
     removeStylesheet(this.window.document, this.cssUrl);
     this.button.parentElement.removeChild(this.button);
-    CliqzEvents.un_sub("core.tab_state_change", this.actions.checkForVideoLink);
-    CliqzEvents.un_sub("core.location_change", this.actions.checkForVideoLink);
+    CliqzEvents.un_sub('core.tab_state_change', this.actions.checkForVideoLink);
+    CliqzEvents.un_sub('core.location_change', this.actions.checkForVideoLink);
   }
 
   resizePopup({ width, height }) {
@@ -91,7 +101,7 @@ export default class UI {
   }
 
   showButton(isCustomizing) {
-    if(isCustomizing) {
+    if (isCustomizing) {
       this.button.setAttribute('class',
         'cliqz-video-downloader customizing toolbarbutton-1 chromeclass-toolbar-additional');
     } else {
@@ -182,7 +192,7 @@ export default class UI {
 
     const url = this.getCurrentUrl();
 
-    const isCustomizing = this.window.document.documentElement.hasAttribute("customizing");
+    const isCustomizing = this.window.document.documentElement.hasAttribute('customizing');
 
     if (isVideoURL(url)) {
       this.showButton();
@@ -234,51 +244,19 @@ export default class UI {
       return null;
     })
     .then(() => getVideoInfo(url))
-    .then(info => {
-      if (info.formats.length > 0) {
-        const videos = [];
-        let audio;
-        const videosOnly = [];
-        let videoForPairing = {};
-        info.formats.forEach(item => {
-          if (item.size === 0) {
-            return;
-          }
-          if (item.type.includes('audio/mp4')) {
-            audio = {
-              name: `M4A ${item.audioBitrate}kbps Audio Only`,
-              size: getSize(item.size),
-              url: item.url,
-              title: info.title,
-              format: 'm4a',
-            };
-          } else if (item.container === 'mp4') {
-            const video = {
-              name: `${item.container.toUpperCase()} ${item.resolution}`,
-              size: getSize(item.size),
-              url: item.url,
-              title: info.title,
-              format: item.container,
-            };
-
-            if (item.audioBitrate !== null) {
-              videos.push(video);
-            } else {
-              video.name = `${video.name} Video Only`;
-              video.class = 'hidden';
-              videosOnly.push(video);
-            }
-          }
-        });
-        if (videos.length > 0) {
-          videoForPairing = videos[videos.length - 1];
-        }
-        videos.push(audio);
+    .then((info) => {
+      const formats = getFormats(info);
+      const videos = formats.filter(x => x.isVideo);
+      let videoForPairing = {};
+      if (videos.length > 0) {
+        videoForPairing = videos[videos.length - 1];
+      }
+      if (formats.length > 0) {
         const result = {
           pairingAvailable: !!this.PeerComm,
           isPaired: this.PeerComm && this.PeerComm.isPaired,
           videoForPairing,
-          formats: videos.concat(videosOnly),
+          formats,
         };
         if (result.formats.length > 0) {
           this.sendMessageToPopup({
@@ -349,7 +327,7 @@ export default class UI {
       version: TELEMETRY_VERSION,
       target: 'download',
       action: 'click',
-      format: format
+      format,
     });
 
     const nsIFilePicker = Ci.nsIFilePicker;
@@ -357,24 +335,24 @@ export default class UI {
     fp.defaultString = filename;
 
     const pos = filename.lastIndexOf('.');
-    const extension = (pos >- 1) ? filename.substring(pos + 1) : '*';
-    fp.appendFilter((extension === 'm4a') ? 'Audio' : 'Video', '*.' + extension);
+    const extension = (pos > -1) ? filename.substring(pos + 1) : '*';
+    fp.appendFilter((extension === 'm4a') ? 'Audio' : 'Video', `*.${extension}`);
 
-    const windowMediator = Cc['@mozilla.org/appshell/window-mediator;1'].
-    getService(Ci.nsIWindowMediator);
+    const windowMediator = Cc['@mozilla.org/appshell/window-mediator;1']
+      .getService(Ci.nsIWindowMediator);
     const window = windowMediator.getMostRecentWindow(null);
 
     fp.init(window, null, nsIFilePicker.modeSave);
     const fileBox = fp.show();
     if ((fileBox === nsIFilePicker.returnOK) || (fileBox === nsIFilePicker.returnReplace)) {
       let download;
-      const downloadPromise = Downloads.createDownload({
-          source: url,
-          target: fp.file
-        });
+      const downloadPromise = this.Downloads.createDownload({
+        source: url,
+        target: fp.file
+      });
 
       Promise.all([
-        Downloads.getList(Downloads.ALL),
+        this.Downloads.getList(this.Downloads.ALL),
         downloadPromise,
       ]).then(([list, d]) => {
         download = d;
@@ -386,21 +364,20 @@ export default class UI {
           type: TELEMETRY_TYPE,
           version: TELEMETRY_VERSION,
           action: 'download',
-          size: size,
+          size,
           is_success: true
         });
-      }, e => {
+      }, () => {
         utils.telemetry({
           type: TELEMETRY_TYPE,
           version: TELEMETRY_VERSION,
           action: 'download',
-          size: size,
+          size,
           is_success: false
         });
       }).then(() => {
         download.finalize(true);
       });
-
     } else {
       utils.telemetry({
         type: TELEMETRY_TYPE,

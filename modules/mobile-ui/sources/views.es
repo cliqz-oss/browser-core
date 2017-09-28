@@ -2,18 +2,21 @@ import currency from './views/currency';
 import entityGeneric from './views/entity-generic';
 import localDataSc from './views/local-data-sc';
 import generic from './views/generic';
-import hq from './views/hq';
-import stocks from './views/stocks';
 import liveTicker from './views/liveTicker';
+import soccerTable from './views/soccerTable';
+import soccerTeam from './views/soccerTeam';
 import lotto from './views/lotto';
+import soccer from './views/soccer';
 
 export default {
   currency,
   'entity-generic': entityGeneric,
-  'local-data-sc': localDataSc,
+  EntityLocal: localDataSc,
   generic,
-  hq,
-  stocks,
   liveTicker,
+  ligaEZTable: soccerTable,
+  ligaEZGroup: soccerTable,
+  ligaEZ1Game: soccerTeam,
   lotto,
+  soccer,
 };

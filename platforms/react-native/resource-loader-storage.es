@@ -31,8 +31,6 @@ export default class Storage {
       return getBundle(getBundlePath(this.filePath)).then((ret) => {
         console.log('resource loader', this.filePath, 'found in assets');
         return ret;
-      }).catch(() => {
-        console.log('resource loader', this.filePath, 'not found in assets');
       });
     });
   }

@@ -1,1 +1,1 @@
-export { inflate, deflate } from 'platform/zlib';
+export { inflate, deflate } from '../platform/zlib';

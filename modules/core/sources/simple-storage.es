@@ -1,4 +1,4 @@
-import IncrementalStorage from 'core/incremental-storage';
+import IncrementalStorage from './incremental-storage';
 
 // This used to be an automatically persisting JSON object implemented using a Proxy object, but
 // Proxy implementation was removed for compatibility reasons. Now it can be used in the

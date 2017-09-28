@@ -1,0 +1,30 @@
+<div class="table">
+    <div class="table-header">
+        <div class="table-cell">{{ header.rank }}</div>
+        <div class="table-cell"></div>
+        <div class="table-cell">{{ header.club }}</div>
+        <div class="table-cell">{{ header.played }}</div>
+        <div class="table-cell">{{ header.won }}</div>
+        <div class="table-cell">{{ header.lost }}</div>
+        <div class="table-cell">{{ header.drawn }}</div>
+        <div class="table-cell">{{ header.goals }}</div>
+        <div class="table-cell">{{ header.goalsDiff }}</div>
+        <div class="table-cell">{{ header.points }}</div>
+    </div>
+    {{#each (take data rowsLimit) }}
+        <div class="table-row">
+            <div class="table-cell">{{rank}}</div>
+            <div class="table-cell club-logo">
+                <div style="background-image:url({{logo}})"></div>
+            </div>
+            <div class="table-cell club-name">{{club}}</div>
+            <div class="table-cell">{{played}}</div>
+            <div class="table-cell">{{won}}</div>
+            <div class="table-cell">{{lost}}</div>
+            <div class="table-cell">{{drawn}}</div>
+            <div class="table-cell">{{goals}}</div>
+            <div class="table-cell">{{goalsDiff}}</div>
+            <div class="table-cell">{{points}}</div>
+        </div>
+    {{/each}}
+</div>

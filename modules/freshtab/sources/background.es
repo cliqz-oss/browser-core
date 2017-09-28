@@ -36,6 +36,8 @@ export default background({
   geolocation: inject.module('geolocation'),
   messageCenter: inject.module('message-center'),
 
+  requiresServices: ['logos'],
+
   /**
   * @method init
   */
@@ -69,6 +71,10 @@ export default background({
     const isInABTest = prefs.get('freshtabNewBrand', false);
     const isDismissed = prefs.get('freshtabNewBrandDismissed', false);
     return config.settings.showNewBrandAlert && isInABTest && !isDismissed;
+  },
+
+  get showOffers() {
+    return prefs.get('cliqzTabOffersNotification', false);
   },
 
   getComponentsState() {
@@ -393,6 +399,7 @@ export default background({
         newTabUrl: config.settings.NEW_TAB_URL,
         isBrowser: isCliqzBrowser,
         showNewBrandAlert: this.shouldShowNewBrandAlert,
+        showOffers: this.showOffers,
         messages: this.messages,
         isHistoryEnabled: prefs.get('modules.history.enabled', false) && config.settings.HISTORY_URL,
         componentsState: this.getComponentsState(),

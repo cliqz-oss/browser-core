@@ -1,16 +1,15 @@
 import background from '../core/base/background';
 import utils from '../core/utils';
-import { isFirefox } from '../core/platform';
+import { isFirefox, isMobile } from '../core/platform';
 import language from "../core/language";
 import prefs from '../core/prefs';
 import HistoryManager from '../core/history-manager';
-import loadLogoDb from '../platform/load-logo-db';
 import inject from '../core/kord/inject';
 import config from "../core/config";
 import Storage from '../core/storage';
 
 export default background({
-  init(settings) {
+  init(settings = {}) {
     this.settings = settings;
     utils.bindObjectFunctions(this.actions, this);
 
@@ -25,10 +24,7 @@ export default background({
       HistoryManager.init();
     }
 
-    loadLogoDb().then(utils.setLogoDb);
-
-    // @TODO: mobile doesn't use utils.app
-    if (utils.app) {
+    if (!isMobile) {
       this.report = utils.setTimeout(this.reportStartupTime.bind(this), 1000 * 60);
     }
 

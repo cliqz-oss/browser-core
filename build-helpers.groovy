@@ -78,8 +78,6 @@ def withCache(Closure body=null) {
   def cleanCache = {
     sh 'rm -fr node_modules'
     sh 'rm -fr bower_components'
-    sh 'rm -fr ./subprojects/fresh-tab-frontend/node_modules'
-    sh 'rm -fr ./subprojects/fresh-tab-frontend/bower_components'
   }
 
   try {
@@ -87,10 +85,6 @@ def withCache(Closure body=null) {
     // Main dependencies
     sh 'cp -fr /home/jenkins/node_modules .'
     sh 'cp -fr /home/jenkins/bower_components .'
-
-    // Freshtab dependencies
-    sh 'cp -fr /home/jenkins/freshtab/node_modules subprojects/fresh-tab-frontend/'
-    sh 'cp -fr /home/jenkins/freshtab/bower_components subprojects/fresh-tab-frontend/'
 
     body()
   } finally {

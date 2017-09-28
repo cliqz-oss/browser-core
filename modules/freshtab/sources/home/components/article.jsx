@@ -62,6 +62,7 @@ class Article extends React.Component {
         onClick={ev => newsClickSignal(ev, this.props.article.type, this.absoluteIndex)}
         onMouseEnter={this.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
+        data-index={this.props.index}
       >
         <div className="header">
           <Logo logo={this.props.article.logo} />
@@ -78,8 +79,10 @@ class Article extends React.Component {
             </span>
           }
           {
-            this.truncate(this.props.article.title,
-            this.props.maxChars - 40)
+            this.truncate(
+              this.props.article.title,
+              this.props.maxChars - 20
+            )
           }
         </div>
         <div className="news-description">

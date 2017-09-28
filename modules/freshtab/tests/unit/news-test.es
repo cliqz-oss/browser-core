@@ -5,7 +5,7 @@ export default describeModule("freshtab/news",
     return {
       "core/config": { default: { } },
       "core/url": { extractSimpleURI: '[dynamic]' },
-      "platform/language": { default: { } },
+      "core/language": { default: { } },
       "platform/places-utils": { default: { } },
       "freshtab/news-cache": { default: function () { } },
       "core/utils": {
@@ -110,7 +110,7 @@ export default describeModule("freshtab/news",
 
         this.deps("core/utils").default.log = function(mes){ console.log(mes); };
 
-        this.deps("platform/language").default.stateToQueryString = function() {return '&lang=en';};
+        this.deps("core/language").default.stateToQueryString = function() {return '&lang=en';};
 
         this.deps("core/utils").default.getLocalStorage = function (locale_storage) {
           return {

@@ -1,4 +1,5 @@
 import { equals } from '../../core/url';
+import prefs from '../../core/prefs';
 import BaseResult from './base';
 import GenericResult from './generic';
 
@@ -67,6 +68,14 @@ export default class HistoryCluster extends GenericResult {
   get internalResultsLogo() {
     const internalResults = this.internalResults || [];
     return internalResults.length > 0 ? this.logo : null;
+  }
+
+  // only include news in history cluster for new mixer
+  get newsResults() {
+    if (prefs.get('searchMode', 'autocomplete') !== 'search') {
+      return [];
+    }
+    return super.newsResults;
   }
 }
 

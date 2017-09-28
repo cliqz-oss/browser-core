@@ -88,7 +88,7 @@ export default function () {
     ];
     let resultElement;
 
-    beforeEach(function () {
+    before(function () {
       respondWith({ results });
       fillIn('keno');
       return waitForPopup().then(function () {

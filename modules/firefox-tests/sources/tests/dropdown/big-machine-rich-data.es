@@ -116,7 +116,7 @@ export default function () {
     ];
     let resultElement;
 
-    beforeEach(function () {
+    before(function () {
       respondWith({ results });
       fillIn('github');
       return waitForPopup().then(function () {

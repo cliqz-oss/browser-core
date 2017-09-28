@@ -1,0 +1,13 @@
+{
+  "platform": "node",
+  "brocfile": "node.Brocfile.js",
+  "format": "common",
+  "settings": {
+  },
+  "default_prefs" : {
+  },
+  "modules": [
+    "core",
+    "search"
+  ]
+}

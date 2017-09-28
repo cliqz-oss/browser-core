@@ -1,4 +1,4 @@
-import { equals } from '../core/url';
+import { equals, isCliqzAction } from '../core/url';
 import templates from './templates';
 import { clickSignal } from './telemetry';
 import ContextMenu from './context-menu';
@@ -102,7 +102,7 @@ export default class {
       targetElement = targetElement.parentElement;
     }
 
-    const resultElement = targetElement.closest('a.result');
+    const resultElement = targetElement.closest('.result');
 
     if (!resultElement) {
       return;
@@ -118,9 +118,15 @@ export default class {
       this.rootElement.clientHeight,
     ];
     const result = this.results.find(href);
+    if (!result) {
+      return;
+    }
 
     if (ev.button === 2) {
-      const subresult = result.findResultByUrl(href) || result;
+      let subresult = result.findResultByUrl(href) || result;
+      if (isCliqzAction(subresult.url)) {
+        subresult = result;
+      }
       this.contextMenu.show(subresult, { x: ev.screenX, y: ev.screenY });
     } else {
       result.click(this.window, href, ev);
@@ -162,6 +168,10 @@ export default class {
 
     if (!resultElement) {
       this.clearSelection();
+      return;
+    }
+
+    if (resultElement.classList.contains('non-selectable')) {
       return;
     }
 

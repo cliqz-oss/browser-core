@@ -1,9 +1,8 @@
-@import 'tabs.scss';
-
 $cliqz-blue: #00AEF0;
 $cliqz-dark-blue: #0078CA;
 
 .result.soccer-title {
+    margin-top: 2px;
     color: $cliqz-dark-blue;
     text-decoration: none;
     line-height: 1.33em;
@@ -38,7 +37,7 @@ $cliqz-dark-blue: #0078CA;
                 display: table-header-group;
 
                 .table-cell {
-                    display:table-cell;
+                    display: table-cell;
                     padding: 10px;
                     font-size: 12.5px;
                 }
@@ -46,13 +45,29 @@ $cliqz-dark-blue: #0078CA;
 
             .table-row {
                 text-decoration: none;
-                display:table-row;
+                display: table-row;
                 color: #000;
 
                 .table-cell {
-                    display:table-cell;
+                    display: table-cell;
                     padding: 5px 7px;
                     vertical-align: middle;
+
+                    &.fixed-width {
+                        width: 130px;
+                        max-width: 130px;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+
+                    &.club-name {
+                        width: 150px;
+                        max-width: 150px;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
 
                     .league-logo {
                         width: 50px;
@@ -66,11 +81,13 @@ $cliqz-dark-blue: #0078CA;
                     &.club-logo {
                         text-align: center;
 
-                        img {
+                        div {
                             display: inline-block;
-                            width: auto;
+                            width: 30px;
                             height: 30px;
-                            vertical-align: middle;
+                            background-repeat: no-repeat;
+                            background-position: center;
+                            background-size: contain;
                         }
                     }
                 }
@@ -78,13 +95,7 @@ $cliqz-dark-blue: #0078CA;
                 &.result {
 
                     .table-cell {
-                        &.fixed-width {
-                            width: 145px;
-                            max-width: 145px;
-                            white-space: nowrap;
-                            overflow: hidden;
-                            text-overflow: ellipsis;
-                        }
+                        box-sizing: content-box;
 
                         &.host {
                             text-align: right;
@@ -103,7 +114,7 @@ $cliqz-dark-blue: #0078CA;
                         }
 
                         &.time {
-                            width: 150px;
+                            width: 135px;
                             font-size: 12.5px;
                             padding-left: 20px;
                         }
@@ -134,9 +145,212 @@ $cliqz-dark-blue: #0078CA;
         }
     }
 
+    .expand-btn {
+        display: inline-block;
+        color: #545454;
+        font-size: 0.833em;
+        line-height: 1.28051em;
+        text-decoration: none;
+        background-image: url(resource://cliqz/dropdown/images/expand.svg);
+        background-repeat: no-repeat;
+        background-size: 6px 10px;
+        background-position: 0 center;
+        padding: 2px 10px 2px 12px;
+
+        &:hover {
+            color: #0078CA;
+        }
+    }
+
     .powered-by {
-        font-size: 11px;
+        display: inline-block;
         color: #DBDBDB;
+        font-size: 11px;
+        line-height: 1.28051em;
+        text-decoration: none;
+
+        &:hover {
+            color: #0078CA;
+        }
+    }
+}
+
+.news-injection-title {
+    padding: 5px 0;
+    font-size: 15px;
+    color: #000;
+}
+
+.news-injection {
+    margin-bottom: 8px;
+
+    .news {
+        display: flex;
+
+        .result {
+            margin-right: 4px;
+
+            .icons {
+                display: none;
+            }
+
+            .abstract {
+
+                width: 100%;
+                margin-left: 0;
+
+                .thumbnail {
+                    display: block;
+                    padding-right: 0;
+                    width: auto;
+                    max-width: 83px;
+                    height: 62px;
+                    overflow: hidden;
+                    border-bottom-right-radius: 0;
+                    border-top-right-radius: 0;
+                    border-bottom-left-radius: 3px;
+                    border-top-left-radius: 3px;
+
+
+                    img {
+                        width: auto;
+                    }
+                }
+
+                .content {
+                    border: 1px solid #CFE6FF;
+                    border-bottom-right-radius: 3px;
+                    border-top-right-radius: 3px;
+                    position: relative;
+                    padding: 5px 0 8px 10px;
+                    height: 62px;
+
+                    p {
+                        span {
+                            &.title {
+                                font-size: 0.833em;
+                                font-weight: 500;
+                                line-height: 1.3em;
+                            }
+
+                            &.url {
+                                position: absolute;
+                                bottom: 5px;
+                                left: 10px;
+                                line-height: 1.4em;
+                            }
+
+                            &.published-at {
+                                position: absolute;
+                                bottom: 5px;
+                                right: 2px;
+                                max-width: 100px;
+                            }
+
+                            &.divider, &.description {
+                                display: none;
+                            }
+                        }
+                    }
+                }
+            }
+            &.selected {
+                background-color: transparent;
+                .abstract {
+                    .content {
+                        background-color: #2385E7;
+                        border-color: #2385E7;
+
+                        p {
+                            span {
+                                &.published-at {
+                                    color: rgba(255, 255, 255, 0.8);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    &.column-2 {
+        .news {
+            .result {
+                .abstract {
+                    .content {
+                        p {
+                            span {
+                                max-width: 238px;
+
+                                &.title {
+                                    white-space: unset;
+                                    position: relative;
+                                    max-height: 2.4em;
+                                    font-weight: 400;
+
+                                    &:after {
+                                        content: "";
+                                        text-align: right;
+                                        position: absolute;
+                                        bottom: 0;
+                                        right: 0;
+                                        width: 20%;
+                                        height: 1.3em;
+                                        background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1) 50%);
+                                    }
+                                }
+
+                                &.url {
+                                    max-width: 160px;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                &.selected {
+                    .abstract {
+                        .content {
+                            p {
+                                span {
+                                    &.title {
+                                        &:after {
+                                            background: linear-gradient(to right, rgba(43, 108, 229, 0), #2385e7 50%);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    &.column-1 {
+        .news {
+            .result {
+                .abstract {
+                    .content {
+                        p {
+                            span {
+                                max-width: 580px;
+
+                                &.description {
+                                    display: inline-block;
+                                    line-height: 1.26804em;
+                                }
+
+                                &.url {
+                                    max-width: 250px;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

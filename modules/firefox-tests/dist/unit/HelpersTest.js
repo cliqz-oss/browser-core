@@ -25,7 +25,7 @@ TESTS.UtilsTest = function (CliqzUtils) {
         expect(
           md5('日本')
         ).to.equal(
-          'a222250c5cf64e38ca56cfbe39ba06f0'
+          '4dbed2e657457884e67137d3514119b3'
         );
       });
     });

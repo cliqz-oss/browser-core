@@ -20,8 +20,16 @@ export function getLang() {
 }
 
 export function getBrowserMajorVersion() {
-  const raw = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
-  return raw ? parseInt(raw[2], 10) : false;
+  let raw = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
+  let majorVer = raw ? parseInt(raw[2], 10) : false;
+  // Platform `chromium` is used for ghostery build,
+  // but it can run in different browsers (chrome, firefox ...)
+  if (!majorVer) {
+    // try firefox
+    raw = navigator.userAgent.match(/Firefox\/([0-9]+)\./);
+    majorVer = raw ? parseInt(raw[1], 10) : false;
+  }
+  return majorVer;
 }
 
 export function setInstallDatePref() { }
@@ -45,7 +53,7 @@ export function newTab(url, active = false) {
   return new Promise((resolve) => {
     chrome.tabs.create(
       { url, active },
-      (tab) => { console.error('new tab', tab); resolve(tab.id); },
+      (tab) => { resolve(tab.id); },
     );
   });
 }
@@ -69,7 +77,7 @@ export function getUrlForTab(tabId) {
   return new Promise((resolve) => {
     chrome.tabs.get(Number(tabId), (result) => {
       if (chrome.runtime.lastError) {
-        resolve(false);
+        resolve(null);
       } else {
         resolve(result.url);
       }
@@ -99,12 +107,10 @@ export function checkIsWindowActive(tabId) {
   if (Number(tabId) < 0) return Promise.resolve(false);
 
   return new Promise((resolve) => {
-    chrome.tabs.get(Number(tabId), (result) => {
+    chrome.tabs.get(Number(tabId), () => {
       if (chrome.runtime.lastError) {
-        console.error('Error while checking tab', chrome.runtime.lastError);
         resolve(false);
       } else {
-        console.error(`<<<< check tab ${tabId}`, result);
         resolve(true);
       }
     });

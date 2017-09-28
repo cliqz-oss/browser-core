@@ -4,14 +4,14 @@
   "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
   "testem_launchers": ["unit-node", "Chrome"],
   "testem_launchers_ci": ["unit-node"],
+  "pack": "cd build && fab package",
+  "publish": "cd build && fab publish:beta=$CLIQZ_BETA,channel=$CLIQZ_CHANNEL,pre=$CLIQZ_PRE_RELEASE",
   "settings": {
     "id": "cliqz@cliqz.com",
     "name": "Cliqz",
     "channel": "04",
     "homepageURL": "https://cliqz.com/",
-    "freshTabButton": true,
     "freshTabNews": true,
-    "freshTabInitialState": false,
     "showDataCollectionMessage": true,
     "antitrackingButton": true,
     "showNewBrandAlert": false,
@@ -75,7 +75,9 @@
   "system": {
     "map": {
       "bigint": "bower_components/bigint/index.js",
-      "md5": "bower_components/md5/index.js"
+      "md5": "bower_components/md5/index.js",
+      "react": "node_modules/react/cjs/react.production.min.js",
+      "react-dom": "node_modules/react-dom/cjs/react-dom.production.min.js"
     },
     "packages": {
       "object-assign": {

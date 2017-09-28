@@ -68,6 +68,9 @@ const testServer = {
   getHits() {
     return getHits();
   },
+  hasHit(endpoint) {
+    return getHits().then(hits => hits[endpoint] !== undefined);
+  },
   reset() {
     return reset();
   },

@@ -1,9 +1,12 @@
 /* global window */
 import Spanan from 'spanan';
+import { CHROME_MSG_SOURCE, isCliqzContentScriptMsg } from '../../core/content/helpers';
+import checkIfChromeReady from './ready-promise';
 
 function createSpananForModule(moduleName) {
   return new Spanan(({ uuid, functionName, args }) => {
     const message = {
+      source: CHROME_MSG_SOURCE,
       target: 'cliqz',
       module: moduleName,
       action: functionName,
@@ -20,6 +23,7 @@ class Cliqz {
   constructor() {
     const freshtab = createSpananForModule('freshtab');
     const core = createSpananForModule('core');
+    const offersV2 = createSpananForModule('offers-v2');
     const cliqz = this;
 
     this.export = Spanan.export;
@@ -74,22 +78,28 @@ class Cliqz {
     };
 
     const onMessage = (message) => {
+      if (!isCliqzContentScriptMsg(message)) {
+        return;
+      }
       Spanan.dispatch({
         uuid: message.requestId,
         returnedValue: message.response
       });
     };
 
-    chrome.runtime.onMessage.addListener(onMessage);
-    window.addEventListener('message', onPostMessage);
+    checkIfChromeReady().then(() => {
+      chrome.runtime.onMessage.addListener(onMessage);
+      window.addEventListener('message', onPostMessage);
 
-    window.addEventListener('unload', () => {
-      chrome.runtime.onMessage.removeListener(onMessage);
-      window.removeEventListener('message', onPostMessage);
+      window.addEventListener('unload', () => {
+        chrome.runtime.onMessage.removeListener(onMessage);
+        window.removeEventListener('message', onPostMessage);
+      });
     });
 
     this.freshtab = freshtab.createProxy();
     this.core = core.createProxy();
+    this.offersV2 = offersV2.createProxy();
   }
 
   static getInstance() {

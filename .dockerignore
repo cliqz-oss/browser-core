@@ -1,4 +1,11 @@
-node_modules/*
-bower_components/*
-tmp/*
 .git/*
+bower_components/*
+chromedriver
+chromedriver_linux64.zip
+ext.zip
+node_modules/*
+report.xml
+subprojects/fresh-tab-frontend/bower_components/*
+subprojects/fresh-tab-frontend/node_modules/*
+testem.log
+tmp/*

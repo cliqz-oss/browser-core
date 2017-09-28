@@ -1,4 +1,4 @@
-import PairingObserver from 'pairing/apps/pairing-observer';
+import PairingObserver from './pairing-observer';
 
 export default class PingPong extends PairingObserver {
   constructor(changeCallback, pingCallback, pongCallback) {

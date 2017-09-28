@@ -19,7 +19,6 @@ const BrowserActions = NativeModules.BrowserActions || {
   queryCliqz: unsupportedError,
   openTab: unsupportedError,
   getReminders: unsupportedError,
-  executeNativeAction: unsupportedError,
   getOpenTabs: () => [],
 };
 
@@ -42,5 +41,3 @@ export let queryCliqz = BrowserActions.queryCliqz;
 export let openTab = BrowserActions.openTab;
 export let getOpenTabs = BrowserActions.getOpenTabs;
 export let getReminders = BrowserActions.getReminders;
-export const executeNativeAction = BrowserActions.executeNativeAction;
-

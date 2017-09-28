@@ -49,6 +49,7 @@ import md5 from '../antitracking/md5';
 import * as datetime from '../antitracking/time';
 import coreBG from '../core/background';
 import Config from '../antitracking/config';
+import { updateDefaultTrackerTxtRule } from '../antitracking/tracker-txt';
 
 // Mock webrequest listener
 import { setGlobal } from '../core/kord/inject';
@@ -67,6 +68,7 @@ describe('Test Attrack listeners', function() {
 
   beforeEach(function() {
     // Try to mock app
+    WebRequestPipeline.unload();
     return WebRequestPipeline.init({})
       .then(() => setGlobal({
         availableModules: {
@@ -102,7 +104,7 @@ describe('Test Attrack listeners', function() {
   });
 
   afterEach(function() {
-    return attrack.tp_events.commit()
+    return attrack.tp_events.commit(true)
       .then(() => {
         utils.setPref('attrackBlockCookieTracking', initialCookie);
         utils.setPref('attrackRemoveQueryStringTracking', initialCookie);
@@ -337,6 +339,8 @@ describe('Test Attrack listeners', function() {
       attrack.qs_whitelist.addSafeToken(md5('tracker.com').substring(0, 16), '');
       attrack.config.tokenDomainCountThreshold = 0; // block first time
       utils.setPref('attrackDefaultAction', 'placeholder');
+      updateDefaultTrackerTxtRule();
+      WebRequestPipeline.unload();
       return WebRequestPipeline.init()
         .then(() => attrack.initPipeline());
     });

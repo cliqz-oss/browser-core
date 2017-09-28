@@ -15,9 +15,14 @@ export default class {
     if (!shouldShowOnboarding()) {
       return;
     }
-    const oldTab = this.window.gBrowser.selectedTab;
-    utils.openLink(this.window, utils.CLIQZ_ONBOARDING_URL, true);
-    this.window.gBrowser.removeTab(oldTab);
+
+    // gBrowser.addTab silently fails if it is called too
+    // close to browser window initialization
+    setTimeout((win) => {
+      const oldTab = win.gBrowser.selectedTab;
+      utils.openLink(win, utils.CLIQZ_ONBOARDING_URL, true);
+      win.gBrowser.removeTab(oldTab);
+    }, 100, this.window);
   }
 
   unload() {

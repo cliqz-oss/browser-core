@@ -161,6 +161,10 @@ def publish(beta='True', version=None, channel='browser', pre='True'):
     with lcd(PATH_TO_EXTENSION_TEMP):
         local("zip -r0 ../%s -r *" % output_file_name_unpacked)
     local("aws s3 cp %s %s --acl public-read" % (output_file_name_unpacked, path_to_s3))
+
+    local("cp %s latest.unpacked.xpi" % output_file_name_unpacked)
+    local("aws s3 cp latest.unpacked.xpi %s --acl public-read" % path_to_s3)
+
     local("rm -fr %s" % PATH_TO_EXTENSION_TEMP)
     # end upload an unpacked version also
 
@@ -250,7 +254,7 @@ def comment_cleaner(path=None):
 
     target = ['js', 'jsm', 'html']
 
-    exclude_dirs = ['node_modules', 'bower_components', 'extern', 'fresh-tab-frontend']
+    exclude_dirs = ['node_modules', 'bower_components', 'extern', 'cliqz-history']
     ignore = [
         'Validations.js',
         'humanweb.html',
@@ -258,7 +262,8 @@ def comment_cleaner(path=None):
         'processScript.js',
         'query_handler.js',
         'funnel-cake.html',
-        'funnel-cake-mozilla.html'
+        'funnel-cake-mozilla.html',
+        'ytdl-core.js'
     ]
 
     print 'CommentCleaner - Start'

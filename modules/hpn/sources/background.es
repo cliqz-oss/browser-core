@@ -20,7 +20,7 @@ export default background({
       this.enabled = true;
       this.CliqzSecureMessage = CliqzSecureMessage;
       CliqzSecureMessage.init();
-      CliqzSecureMessage.wCrypto = new CryptoWorker();
+      CliqzSecureMessage.wCrypto = new CryptoWorker('httpHandler');
       CliqzSecureMessage.wCrypto.onmessage = function (e) {
         if (e.data.type === 'instant') {
           const callback = CliqzSecureMessage.queriesID[e.data.uid];

@@ -1,48 +1,107 @@
 import CliqzSecureMessage from './main';
 import CryptoWorker from './crypto-worker';
 
-// Using this function it is easier to see if the push of message failed.
-const sendMessage = function (ww, m) {
-  try {
-    ww.postMessage({
-      msg: m,
-      type: 'telemetry',
-      sourcemap: CliqzSecureMessage.sourceMap,
-      upk: CliqzSecureMessage.uPK,
-      dspk: CliqzSecureMessage.dsPK,
-      sspk: CliqzSecureMessage.secureLogger,
-      routetable: CliqzSecureMessage.routeTable,
-      localTemporalUniq: CliqzSecureMessage.localTemporalUniq,
-    });
-  } catch (e) {
+export default class MessageSender {
+
+  constructor(args = {}) {
+    // by default, use CryptoWorker and the global CliqzSecureMessage
+    // (unless overwritten by tests)
+    const CryptoWorkerImpl = args.CryptoWorker || CryptoWorker;
+    this._CliqzSecureMessage = args._CliqzSecureMessage || CliqzSecureMessage;
+
+    this.log('MessageSender: starting crypto worker');
+    this.cryptoWorker = new CryptoWorkerImpl('message-sender');
+
+    // in the beginning, there are no pending communications
+    this.pendingCommunications = Promise.resolve();
   }
-};
 
-/*
-This will send the messages inside the trk one at a time. This uses a generator expression.
+  stop({ quick } = { quick: false }) {
+    const killWorker = () => {
+      const worker = this.cryptoWorker;
+      if (worker) {
+        this.log('MessageSender: stopping crypto worker');
+        delete this.cryptoWorker;
+        worker.terminate();
+      }
+    };
 
-Will return a Promise which resolves to an array, one for each sent message:
-its value will be null if everything was ok,
-and a string indicating the error message otherwise (useful for testing)
-*/
-export function sendM(m, sent = []) {
-  const sendMessageWCrypto = new CryptoWorker();
-  sendMessage(sendMessageWCrypto, m);
-
-  sendMessageWCrypto.onmessage = (e) => {
-    if (e.data.type === 'telemetry') {
-      CliqzSecureMessage.localTemporalUniq = e.data.localTemporalUniq;
-      CliqzSecureMessage.storage.saveLocalCheckTable();
-    }
-
-    const nextMsg = CliqzSecureMessage.nextMessage();
-    if (nextMsg) {
-      sendMessage(sendMessageWCrypto, nextMsg);
+    if (quick) {
+      killWorker();
+      return Promise.resolve();
     } else {
-      // Queue is empty hence dump the local temp queue to disk.
-      CliqzSecureMessage.storage.saveLocalCheckTable();
-      sendMessageWCrypto.terminate();
-      return sent;
+      return this.pendingCommunications.then(killWorker, killWorker);
     }
-  };
-};
+  }
+
+  /**
+   * This will sequentially send all given messages.
+   *
+   * Returns a promise that allows to wait for the operation
+   * to complete.
+   */
+  send(messages) {
+    messages.forEach(msg => this._sendSingleMessage(msg));
+
+    // There is no real error handling, so we ignore rejected
+    // promises. Also avoid Promise.all, as we do not want
+    // fail-fast behavior.
+    return this.pendingCommunications.then(() => {}, () => {});
+  }
+
+  _sendSingleMessage(message) {
+    const prevPendingSends = this.pendingCommunications;
+    this.pendingCommunications = new Promise((resolve, reject) => {
+
+      const _CliqzSecureMessage = this._CliqzSecureMessage;
+      const postMessage = () => {
+
+        if (!this.cryptoWorker) {
+          this.log('Discarding message, as the web worker is already stopped.');
+          reject();
+        }
+
+        // At this point, we know that the worker is idle,
+        // so we can overwrite "onmessage".
+        this.cryptoWorker.onmessage = (e) => {
+          if (e.data.type === 'telemetry') {
+            _CliqzSecureMessage.localTemporalUniq = e.data.localTemporalUniq;
+            _CliqzSecureMessage.storage.saveLocalCheckTable();
+          }
+
+          resolve();
+        };
+
+        // Passes one message to the web worker, which does the actual sending.
+        try {
+          this.cryptoWorker.postMessage({
+            msg: message,
+            type: 'telemetry',
+            sourcemap: _CliqzSecureMessage.sourceMap,
+            upk: _CliqzSecureMessage.uPK,
+            dspk: _CliqzSecureMessage.dsPK,
+            sspk: _CliqzSecureMessage.secureLogger,
+            routetable: _CliqzSecureMessage.routeTable,
+            localTemporalUniq: _CliqzSecureMessage.localTemporalUniq,
+          });
+        } catch (e) {
+          this.log('Failed to send message', e);
+          reject(e);
+        }
+      }
+
+      // Wait until all pending messages are sent. Here, it does not
+      // matter if sending was successful or not. In both cases,
+      // continue with sending the message to the web worker, which
+      // will do the actual work (cryptography + HTTP request).
+      return prevPendingSends.then(postMessage).catch(postMessage);
+    });
+    return this.pendingCommunications;
+  }
+
+  log(...message) {
+    if (this._CliqzSecureMessage.debug) {
+      console.log(...message);
+    }
+  }
+}

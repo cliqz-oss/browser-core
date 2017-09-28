@@ -5,7 +5,7 @@ import {
 } from '../core/cliqz';
 import coreUtils from '../core/utils';
 import {extractSimpleURI} from '../core/url';
-import coreLanguage from '../platform/language';
+import coreLanguage from '../core/language';
 import PlacesUtils from '../platform/places-utils';
 
 import NewsCache from './news-cache';

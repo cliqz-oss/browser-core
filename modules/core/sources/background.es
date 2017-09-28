@@ -11,15 +11,23 @@ import resourceManager from './resource-manager';
 import inject from './kord/inject';
 import { getCookies } from '../platform/browser';
 import { queryCliqz, openLink, openTab, getOpenTabs, getReminders } from '../platform/browser-actions';
+import loadLogoDb from '../platform/load-logo-db';
 
 var lastRequestId = 0;
 var callbacks = {};
 
 export default background({
 
-  init(settings) {
+  providesServices: {
+    'logos': () => {
+      return loadLogoDb().then(utils.setLogoDb);
+    },
+  },
+
+  init(settings, app) {
     this.settings = settings;
     this.utils = utils;
+    this.app = app;
 
     utils.CliqzLanguage = language;
     this.dispatchMessage = this.dispatchMessage.bind(this);
@@ -57,7 +65,7 @@ export default background({
       windowId = msg.data.windowId;
     const origin = msg.data.origin;
 
-    const module = utils.app.availableModules[moduleName];
+    const module = this.app.availableModules[moduleName];
     if (!module) {
       console.error("Process Script", `${moduleName}/${action}`, "Module not available");
       return;
@@ -83,10 +91,10 @@ export default background({
   },
 
   getWindowStatusFromModules(win){
-    return config.modules.map((moduleName) => {
-      var module = win.CLIQZ.Core.windowModules[moduleName];
-      return module && module.status ? module.status() : null;
-    })
+    return this.app.modules().map((module) => {
+      const windowModule = module.getWindowModule(win);
+      return windowModule && windowModule.status ? windowModule.status() : null;
+    });
   },
 
   events: {
@@ -155,17 +163,16 @@ export default background({
       events.pub(evtChannel, ...args);
     },
     restart() {
-      return utils.app.extensionRestart();
+      return this.app.extensionRestart();
     },
     status() {
-      const availableModules = utils.app.availableModules;
+      const availableModules = this.app.availableModules;
       const modules = config.modules.reduce((hash, moduleName) => {
         const module = availableModules[moduleName];
         const windowWrappers = mapWindows(window => new Window(window));
         const windows = windowWrappers.reduce((hash, win) => {
-          const windowModule = module.windows[win.id] || {};
           hash[win.id] = {
-            loadingTime: windowModule.loadingTime,
+            loadingTime: module.getLoadingTime(win.window),
           };
           return hash;
         }, Object.create(null));
@@ -190,6 +197,7 @@ export default background({
       this.mm.broadcast(`window-${windowId}`, {
         payload,
         module,
+        windowId,
       });
     },
     broadcastMessage(url, message) {
@@ -279,10 +287,10 @@ export default background({
       window.gBrowser.selectedTab = tab;
     },
     enableModule(moduleName) {
-      return utils.app.enableModule(moduleName);
+      return this.app.enableModule(moduleName);
     },
     disableModule(moduleName) {
-      utils.app.disableModule(moduleName);
+      this.app.disableModule(moduleName);
     },
     resizeWindow(width, height) {
       utils.getWindow().resizeTo(width, height);

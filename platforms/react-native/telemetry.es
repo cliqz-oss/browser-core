@@ -19,7 +19,7 @@ class PushScheduler {
     this.pushAllowed = false;
 
     // get and listen on netinfo changes
-    NetInfo.fetch().done(this.onConnectivityChange.bind(this));
+    NetInfo.fetch().then(this.onConnectivityChange.bind(this));
     NetInfo.addEventListener('change', this.onConnectivityChange.bind(this));
   }
 
@@ -59,7 +59,7 @@ class PushScheduler {
 
   isTelemetryPermitted() {
     return new Promise((resolve, reject) => {
-      NetInfo.fetch().done((status) => {
+      NetInfo.fetch().then((status) => {
         if (status === 'wifi' || status === 'WIFI') {
           resolve();
         } else {

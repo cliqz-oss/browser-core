@@ -1,5 +1,5 @@
 // for tests
-if (typeof Components === "undefined") {
+if (typeof Components === "undefined" || typeof Components.utils === "undefined") {
   Components = {
     fake: true,
     utils: {

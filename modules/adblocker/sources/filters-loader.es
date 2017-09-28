@@ -35,6 +35,7 @@ function stripProtocol(url) {
   return result;
 }
 
+
 class FiltersList {
   constructor(checksum, asset, remoteURL) {
     this.checksum = checksum;
@@ -96,12 +97,11 @@ class FiltersList {
 /* Class responsible for loading, persisting and updating filters lists.
  */
 export default class extends UpdateCallbackHandler {
-
-  constructor(adbLang, adbLangOverride) {
+  constructor(useCountryLists, adbLangOverride) {
     super();
 
     // Manage country-specific lists preferences
-    this.adbLang = adbLang;
+    this.useCountryLists = useCountryLists;
     this.adbLangOverride = adbLangOverride;
 
     // Resource managing the allowed lists for the adblocker
@@ -153,39 +153,44 @@ export default class extends UpdateCallbackHandler {
       });
   }
 
+  getLoadedAssets() {
+    return new Set([...this.lists.keys()]);
+  }
+
   // Private API
   userOverrides() {
     const langOverride = this.adbLangOverride;
     if (typeof langOverride === 'string' && langOverride !== '') {
       return langOverride.split(';');
     }
-    return [];
+
+    return null;
   }
 
   userLang() {
-    // check if language specific filters are disabled
-    if (!this.adbLang) {
-      // ADB_USER_LANG default is set to true to keep the current behavior
+    // Check if language specific filters are disabled
+    if (!this.useCountryLists) {
       return [];
     }
 
-    // check if language override exists
+    // check if language override exists (use even if empty)
     const overrides = this.userOverrides();
-    if (overrides.length > 0) {
+    if (overrides !== null) {
       return overrides;
     }
 
     if (Language.state) {
       return Language.state();
     }
-    return 'en';
+
+    return ['en'];
   }
 
   updateChecksums(allowedLists) {
     // Update URL with current timestamp to play well with caching
     this.allowedListsLoader.resource.remoteURL = this.remoteURL();
 
-    const filtersLists = [];
+    const filtersLists = new Map();
 
     this.availableLang = new Set();
     this.loadedLang = new Set();
@@ -204,7 +209,7 @@ export default class extends UpdateCallbackHandler {
         const filterRemoteURL = BASE_URL + assetName;
 
         if (lang === null || userLang.indexOf(lang) !== -1) {
-          filtersLists.push({
+          filtersLists.set(asset, {
             checksum,
             asset,
             remoteURL: filterRemoteURL,
@@ -223,6 +228,14 @@ export default class extends UpdateCallbackHandler {
   updateLists(filtersLists) {
     const updatedLists = [];
 
+    // Remove loaded lists that are not part of the filtersList
+    [...this.lists.keys()].forEach((asset) => {
+      if (!filtersLists.has(asset)) {
+        this.lists.delete(asset);
+      }
+    });
+
+    // Update loaded list from new checksums
     filtersLists.forEach((newList) => {
       const { checksum, asset, remoteURL, key } = newList;
       const isFiltersList = key !== 'js_resources';

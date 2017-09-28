@@ -65,5 +65,12 @@ let bridge = {
 };
 if (nativeBridge) {
   bridge = new Bridge();
+
+  nativeBridge.events.forEach((event) => {
+    events.subscribe(event, (...args) => {
+      nativeBridge.pushEvent(event, args);
+    });
+  });
 }
+
 export default bridge;

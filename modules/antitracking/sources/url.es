@@ -1,117 +1,57 @@
 import md5 from './md5';
-import MapCache from './fixed-size-cache';
+import MapCache from '../core/helpers/fixed-size-cache';
 import { getGeneralDomain } from './domain';
 import unquotedJsonParse from './parsers/unquoted-json-parser';
+import fastUrl from '../core/fast-url-parser';
 
-function parseHostname(hostname) {
-  var o = {'hostname': null, 'username': '', 'password': '', 'port': null};
-
-  var h = hostname;
-  var v = hostname.split('@');
-  if (v.length > 1) {
-    var w = v[0].split(':');
-    o['username'] = w[0];
-    o['password'] = w[1];
-    h = v[1];
-  }
-
-  v = h.split(':');
-  if (v.length > 1) {
-    o['hostname'] = v[0];
-    o['port'] = parseInt(v[1]);
-  }
-  else {
-    o['hostname'] = v[0];
-    o['port'] = 80;
-  }
-
-  return o;
-}
-
+/*  Parse a URL string into a set of sub-components, namely:
+ - protocol
+ - username
+ - password
+ - hostname
+ - port
+ - path
+ - parameters (semicolon separated key-values before the query string)
+ - query (? followed by & separated key-values)
+ - fragment (after the #)
+ Given a valid string url, this function returns an object with the above
+ keys, each with the value of that component, or empty string if it does not
+ appear in the url.
+ */
 function parseURL(url) {
-  /*  Parse a URL string into a set of sub-components, namely:
-   - protocol
-   - username
-   - password
-   - hostname
-   - port
-   - path
-   - parameters (semicolon separated key-values before the query string)
-   - query (? followed by & separated key-values)
-   - fragment (after the #)
-   Given a valid string url, this function returns an object with the above
-   keys, each with the value of that component, or empty string if it does not
-   appear in the url.
-
-   Additionally, any key-value pairs found in the parameters, query and fragment
-   components are extracted into objects in 'parameter_keys', query_keys' and
-   'fragment_keys' respectively.
-   */
-  var o = {};
-
-  var v = url.split('://');
-  if (v.length >= 2) {
-
-    o['protocol'] = v[0];
-    o['hostname'] = '';
-    o['port'] = '';
-    o['username'] = '';
-    o['password'] = '';
-    o['path'] = '/';
-    o['query'] = '';
-    o['parameters'] = '';
-    o['fragment'] = '';
-    o['host'] = '';
-    var s = v.slice(1, v.length).join('://');
-
-    let state = 'host';
-    for(let i=0; i<s.length; i++) {
-      let c = s.charAt(i);
-      // check for special characters which can change parser state
-      if(c == '#' && ['host', 'path', 'query', 'parameters'].indexOf(state) >= 0) {
-        // begin fragment
-        state = 'fragment';
-        continue;
-      } else if(c == '?' && ['host', 'path', 'parameters'].indexOf(state) >= 0) {
-        // begin query string
-        state = 'query';
-        continue;
-      } else if(c == ';' && ['host', 'path'].indexOf(state) >= 0) {
-        // begin parameter string
-        state = 'parameters';
-        continue;
-      } else if(c == '/' && state == 'host') {
-        // from host we could go into any next state
-        state = 'path';
-        continue;
-      }
-
-      // add character to key based on state
-      o[state] += c;
-    }
-
-    if (o['host'] == '') return null;
-
-    var oh = parseHostname(o['host']);
-    ['hostname', 'port', 'username', 'password'].forEach(function(k) {
-      o[k] = oh[k];
-    });
-    delete o['host'];
-
-    if (state != 'path') {
-      o['query_keys'] = getParametersQS(o['query']);
-      o['parameter_keys'] = getParametersQS(o['parameters']);
-      o['fragment_keys'] = getParametersQS(o['fragment']);
-    } else {
-      o['query_keys'] = {};
-      o['parameter_keys'] = {};
-      o['fragment_keys'] = {};
-    }
-
-  } else {
+  const urlobj = fastUrl.parse(url, false, false, true);
+  if (!urlobj._protocol || !urlobj.slashes || 
+    !urlobj.host && urlobj._port < 0 && !urlobj.auth) {
     return null;
   }
-  return o;
+  const port = urlobj._port < 0 ? 80 : urlobj._port;
+  let username = '', password = '';
+  if (urlobj.auth) {
+    [username, password] = urlobj.auth.split(':');
+  }
+  let path = urlobj.pathname || '/';
+  let query = urlobj.search !== null ? urlobj.search.slice(1) : '';
+  let parameters = '';
+  if (urlobj.pathname !== null) {
+    const parametersIndex = urlobj.pathname.indexOf(';');
+    if (parametersIndex !== -1) {
+      path = path.slice(0, parametersIndex);
+      parameters = urlobj.pathname.slice(parametersIndex + 1);
+    }
+  }
+  let fragment = urlobj.hash !== null ? urlobj.hash.slice(1) : '';
+  return {
+    urlString: url,
+    protocol: urlobj._protocol,
+    hostname: urlobj.hostname,
+    port: port,
+    username: username,
+    password: password,
+    path: path,
+    query: query,
+    parameters: parameters,
+    fragment: fragment,
+  };
 };
 
 function isMaybeJson(v) {
@@ -178,16 +118,16 @@ function getParametersQS(qs) {
         quotes += c;
       }
     }
-    if(c == '=' && state == 'key' && k.length > 0) {
+    if(c === '=' && state === 'key' && k.length > 0) {
       state = 'value';
       continue;
     } else if((c === '&' || c === ';') && quotes === '') {
-      if(state == 'value') {
+      if(state === 'value') {
         state = 'key';
         // in case the same key already exists
         v = dURIC(v);
         _updateQS(k, v);
-      } else if(state == 'key' && k.length > 0) {
+      } else if(state === 'key' && k.length > 0) {
         // key with no value, set value='true'
         res[k] = 'true';
       }
@@ -204,11 +144,11 @@ function getParametersQS(qs) {
       break;
     }
   }
-  if(state == 'value') {
+  if(state === 'value') {
     state = 'key';
     v = dURIC(v);
     _updateQS(k, v);
-  } else if(state == 'key' && k.length > 0) {
+  } else if(state === 'key' && k.length > 0) {
     res[k] = 'true';
   }
 
@@ -292,6 +232,10 @@ function getHeaderMD5(headers) {
  URLInfo class: holds a parsed URL.
  */
 
+function urlGetFromCache(url) {
+  return urlCache.get(url);
+}
+
 const urlCache = new MapCache(function(url) { return new Url(url); }, 100);
 
 /** Factory getter for URLInfo. URLInfo are cached in a LRU cache. */
@@ -299,7 +243,7 @@ const URLInfo = {
   get: function(url) {
     if (!url) return "";
     try {
-      return urlCache.get(url);
+      return urlGetFromCache(url);
     } catch(e) {
       return null;
     }
@@ -313,9 +257,7 @@ class Url {
     // add attributes from parseURL to this object
     const parsed = parseURL(urlString);
     if (parsed) {
-      Object.keys(parsed).forEach((k) => {
-        this[k] = parsed[k];
-      });
+      Object.assign(this, parsed);
     } else {
       throw new Error(`invalid url: ${urlString}`);
     }
@@ -336,7 +278,34 @@ class Url {
     return this.urlString;
   }
 
+  get query_keys() {
+    if (this._query_keys) {
+      return this._query_keys;
+    }
+    this._query_keys = getParametersQS(this.query);
+    return this._query_keys;
+  }
+
+  get parameter_keys() {
+    if (this._parameter_keys) {
+      return this._parameter_keys;
+    }
+    this._parameter_keys = getParametersQS(this.parameters);
+    return this._parameter_keys;
+  }
+
+  get fragment_keys() {
+    if (this._fragment_keys) {
+      return this._fragment_keys;
+    }
+    this._fragment_keys = getParametersQS(this.fragment);
+    return this._fragment_keys;
+  }
+
   getKeyValues() {
+    if (this._kvList) {
+      return this._kvList;
+    }
     var kvList = [];
     for (let kv of [this.query_keys, this.parameter_keys]) {
       for (let key in kv) {
@@ -350,20 +319,26 @@ class Url {
         }
       }
     }
+    this._kvList = kvList;
     return kvList;
   }
 
   getKeyValuesMD5() {
-    const kvList = this.getKeyValues();
-    return kvList.map(function (kv) {
+    if (this._kvMD5List) {
+      return this._kvMD5List;
+    }
+    const kvList = this.getKeyValues().map(function (kv) {
       // ensure v is stringy
-      const vStr = String(kv.v);
-      kv.k_len = kv.k.length;
-      kv.v_len = vStr.length;
-      kv.k = md5(kv.k);
-      kv.v = md5(vStr);
-      return kv;
+      const vStr = '' + kv.v;
+      return {
+        k_len: kv.k.length,
+        v_len: vStr.length,
+        k: md5(kv.k),
+        v: md5(kv)
+      };
     });
+    this._kvMD5List = kvList;
+    return kvList;
   }
 
 }

@@ -1,4 +1,4 @@
-import { registerContentScript } from '../core/content/helpers';
+import { registerContentScript, CHROME_MSG_SOURCE } from '../core/content/helpers';
 
 registerContentScript('https://cliqz.com/search?q=*', (window, chrome, windowId) => {
   const URLSearchParams = window.URLSearchParams;
@@ -8,6 +8,7 @@ registerContentScript('https://cliqz.com/search?q=*', (window, chrome, windowId)
 
   function queryCliqz(q) {
     chrome.runtime.sendMessage({
+      source: CHROME_MSG_SOURCE,
       windowId,
       payload: {
         module: 'core',

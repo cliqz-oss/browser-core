@@ -4,12 +4,14 @@
 
 import utils from '../core/utils';
 import CLIQZEnvironment from './environment';
+import { Components, XPCOMUtils } from './globals';
+
+const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
 Cu.import('resource://gre/modules/PlacesUtils.jsm');
-Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 
-var browserHistory = Cc['@mozilla.org/browser/nav-history-service;1'].getService(Components.interfaces.nsIBrowserHistory),
-    bookmarkService = Cc["@mozilla.org/browser/nav-bookmarks-service;1"].getService(Components.interfaces.nsINavBookmarksService);
+var browserHistory = Cc['@mozilla.org/browser/nav-history-service;1'].getService(Ci.nsIBrowserHistory),
+    bookmarkService = Cc["@mozilla.org/browser/nav-bookmarks-service;1"].getService(Ci.nsINavBookmarksService);
 
 var CliqzHistoryManager = {
   init: function() {
@@ -143,7 +145,7 @@ var CliqzHistoryManager = {
       try {
         CliqzHistoryManager.historyService = Components
           .classes['@mozilla.org/browser/nav-history-service;1']
-          .getService(Components.interfaces.nsINavHistoryService);
+          .getService(Ci.nsINavHistoryService);
       } catch (e) {
         utils.log('unable to get history service: ' + e);
       }
@@ -155,7 +157,7 @@ var CliqzHistoryManager = {
       try {
         CliqzHistoryManager.ioService =
           Components.classes['@mozilla.org/network/io-service;1']
-          .getService(Components.interfaces.nsIIOService);
+          .getService(Ci.nsIIOService);
       } catch (e) {
         utils.log('unable to get IO service: ' + e);
       }

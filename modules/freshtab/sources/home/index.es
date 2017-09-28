@@ -2,8 +2,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './components/app';
+import checkIfChromeReady from './ready-promise';
 
-ReactDOM.render(
-  React.createElement(App, {}, null),
-  document.getElementById('root')
-);
+
+checkIfChromeReady().then(() => {
+  ReactDOM.render(
+    React.createElement(App, {}, null),
+    document.getElementById('root')
+  );
+});

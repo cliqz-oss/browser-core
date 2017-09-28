@@ -25,26 +25,27 @@ export default class extends React.Component {
   constructor(props) {
     super(props);
     this.state = { image: null };
-    const uri = this.props.source.uri;
+    this.addToQueue(props);
+  }
+
+  addToQueue({ source: { uri }}) {
     if (!uri || uri.substr(-4) === '.svg') {
       return;
     }
     queue.push({
       uri,
       onFetch: () => this.setState({ image: <Image {...this.props} /> }),
-    })
-  }
-
-  componentDidMount() {
+    });
     if (!isActive) {
       isActive = true;
       pull();
     }
   }
 
-  componentWillUnmount() {
+  componentWillReceiveProps(nextProps) {
     isActive = false;
     queue = [];
+    this.addToQueue(nextProps);
   }
 
   render() {

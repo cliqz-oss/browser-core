@@ -694,7 +694,7 @@ a
     padding: 8px
     &.single
       background-color: #F7F7F7
-      border-radius: 4px
+      border-radius: 5px
     .news_domain
       font-size: 0.75rem
       color: #4A90E2
@@ -712,13 +712,14 @@ a
       -webkit-box-orient: vertical
     .twitter_snippet
       padding: 0 8px
-      font-size: 14px
+      font-size: 0.75rem
       line-height: 15px
       color: rgba(0,0,0,0.38)
       .tweet_count
         color: #49C0F2
         display: inline
         font-size: 0.75rem
+        margin-right: 0.5rem
         img
           height: 10px
     .main__image
@@ -1320,22 +1321,36 @@ a
   line-height: 1.5rem
 
 .ez-liga-tableHeader
+  margin: 0 1rem
   table
-    padding: 0 1rem
+    background: #F5F5F5
     width: 100%
     max-width: 100%
+    padding: 0.5rem
+    margin-bottom: 0.5rem
+    border-radius: 5px
     th
+      text-align: left
+      font-weight: 700
+      font-size: 1rem
+      padding-bottom: 0.25rem
+    tr.group-section
       text-align: left
       font-weight: 300
       font-size: 12px
       color: #999
-    td
+      word-break: keep-all
+    tr.ranking-section
       text-align: left
       font-size: 12px
       padding: 0
       margin: 0
       color: #333
       font-weight: 700
+      .ranks
+        word-break: keep-all
+      .team-name
+        padding-right: 5px
       &.small
         font-size: 12px
         font-weight: 400
@@ -1801,15 +1816,17 @@ body
        border-top: 1px #EDECEC solid
   .share
     border-top: 1px #EDECEC solid
-    text-align: center
-    padding: 0.25rem 1.5rem
-    font-size: 0.5rem
     display: block
-    color: rgba(0,0,0,0.38)
-    a
-      color: rgba(0,0,0,0.62)
-      text-decoration: none
-    p
+    color: #CECECE
+    padding: 0 1.5rem
+    text-align: center
+    line-height: 2rem
+    img
+      height: 1rem
+      vertical-align: middle
+    span
+      font-size: 0.75rem
+      vertical-align: middle
       white-space: nowrap
       text-overflow: ellipsis
       overflow: hidden
@@ -1846,7 +1863,10 @@ body
         text-overflow: ellipsis
         overflow: hidden
   .soccer__result
-    padding: 0 1rem
+    margin: 0.5rem 1rem
+    padding: 0.5rem
+    background: #F5F5F5
+    border-radius: 5px
     h5
       font-size: 1rem
       line-height: 1.5rem
@@ -1862,12 +1882,11 @@ body
       padding: 0
       margin: 1rem 0
       width: 100%
-      .ez-liga-score
-        font-weight: 700
-      .ez-liga-vs
-        font-weight: 700
-        width: 40px
+      .team-name
+        width: 40%
       .score
+        font-weight: 700
+        width: 19%
         text-align: center
       tr
         td:last-child
@@ -2007,44 +2026,53 @@ em
   font-style: normal
 
 .bundesliga
+  margin: 0 1rem
   .card__incard
-    padding: 1rem
+    padding: 0.5rem 0
   .card__incard__item
     width: 50%
     float: left
     box-sizing: border-box
-    padding: 0rem 0.1rem 0.2rem
+    padding: 0 0.5rem 0.5rem 0
     .card__incard__content
       background-color: #f5f5f5
-      padding: 0.25rem 0.5rem
-      border-radius: 0.25rem
+      padding: 0.5rem
+      position: relative
+      text-align: center
+      border-radius: 5px
       h4
         font-size: 0.75rem
-        font-weight: 500
+        font-weight: bold
         padding: 0
         margin: 0
-        line-height: 1.5rem
         white-space: nowrap
         text-overflow: ellipsis
-        height: 1.5rem
         overflow: hidden
       .score
         font-size: 1rem
         line-height: 1.5rem
-        font-weight: 700
+        font-weight: bold
         color: #000
+        width: 100%
+        position: relative
+        .live-indicator
+          position: absolute
+          right: 4%
+          top: 33%
+          width: 0.5rem
+          height: 0.5rem
+          border-radius: 50%
+          &.cqz-live
+            background: #37D247
         span
           font-size: 0.5rem
           color: #999
-          font-weight: 500
           line-height: 1.5rem
   h2
-    font-size: 0.75rem
+    font-size: 1rem
     line-height: 1.5rem
-    padding: 0 1rem
     margin: 0
     font-weight: 700
-    border-bottom: 1px rgba(0,0,0,0.05) solid
     background-color: #fff
   table
     width: 100%
@@ -2164,3 +2192,38 @@ em
         padding-bottom: 10px
       span:nth-child(2), span:nth-child(3), span:nth-child(4)
         text-align: right
+
+
+.subscribe_button
+  background-color: grey
+  color: white
+  line-height: 1.5rem
+  font-size: 0.75rem
+  text-align: center
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+  border-radius: 5px
+  margin-top: 10px
+  font-weight: bold
+  &.subscribe
+    background-color: red
+.action-note
+  font-size: 0.75rem
+  margin-top: 0.25rem
+  color: #CECECE
+.no-subscribe
+  margin-top: 10px
+  height: 1.5rem
+  overflow: hidden
+  div
+    color: #999
+    font-size: 0.6rem
+    line-height: 0.75rem
+  .text
+    vertical-align: middle
+    line-height: 1.5rem
+  &.already-subscribed
+    text-align: left
+  &.game-ended
+    text-align: center

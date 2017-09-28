@@ -376,6 +376,7 @@ export default class {
   checkLocalUniq(){
     let _this = this;
     let promise = new Promise(function(resolve, reject){
+
       // Check for local temporal uniquness
       var uniqKey = _this.dmC;
       if(localTemporalUniq && Object.keys(localTemporalUniq).indexOf(uniqKey) > -1) {
@@ -466,7 +467,7 @@ export default class {
               .then(response => {
                 _this.bsResponse = JSON.parse(response);
                 resolve(this);
-              });
+              }).catch(reject);
     });
     return promise;
   }
@@ -537,23 +538,18 @@ export default class {
 
   }
   query(queryProxyUrl) {
-    let _this = this;
-    let promise = new Promise(function(resolve, reject){
-      _this.aesEncrypt().then( e => {
-        return _this.signKey();
-      }).then( e => {
-        let data = {"mP":_this.getMP()};
-
-        return _http(queryProxyUrl)
-            .post(JSON.stringify(data), "instant");
-        }).then ( res => {
-            // Got response, let's decrypt it.
-            _this.aesDecrypt(JSON.parse(res)["data"]).then( decryptedRes => {
-              resolve(decryptedRes);
-            });
-        }).catch( err => _this.log(err));
-    });
-    return promise;
+    return this.aesEncrypt()
+      .then(() => this.signKey())
+      .then(() => {
+        const data = {"mP": this.getMP()};
+        return _http(queryProxyUrl).post(JSON.stringify(data), "instant");
+      }).then(res => {
+        // Got response, let's decrypt it.
+        return this.aesDecrypt(JSON.parse(res)["data"]);
+      }).catch(err => {
+        this.log(err);
+        return Promise.reject(err);
+      });
   }
 
   encryptedTelemetry(){

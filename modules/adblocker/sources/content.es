@@ -1,4 +1,4 @@
-import { registerContentScript } from '../core/content/helpers';
+import { registerContentScript, CHROME_MSG_SOURCE, isCliqzContentScriptMsg } from '../core/content/helpers';
 import CosmeticsInjection from './cosmetics-injection';
 import logger from './logger';
 
@@ -14,6 +14,7 @@ registerContentScript('http*', (window, chrome, windowId) => {
    */
   const backgroundAction = (action, ...args) => {
     chrome.runtime.sendMessage({
+      source: CHROME_MSG_SOURCE,
       windowId,
       payload: {
         module: 'adblocker',
@@ -41,7 +42,8 @@ registerContentScript('http*', (window, chrome, windowId) => {
   };
 
   const onMessage = (msg) => {
-    if (msg.windowId === windowId && msg && msg.response) {
+    if (isCliqzContentScriptMsg(msg) && msg.windowId === windowId &&
+        msg.response && msg.module === 'adblocker') {
       cosmeticsInjection.handleResponseFromBackground(msg.response);
     }
   };

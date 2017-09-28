@@ -76,16 +76,28 @@ function exportAESKey(key) {
   return crypto.subtle.exportKey('raw', key)
   .then(_key => fromArrayBuffer(_key, 'hex'));
 }
-function importRSAKey(pk, pub = true, h = 'SHA-256') {
+function importRSAKey(pk, pub = true, h = 'SHA-256', algorithm = 'RSA-OAEP') {
+  let uses;
+  if (pub) {
+    if (algorithm === 'RSA-OAEP') {
+      uses = ['wrapKey', 'encrypt'];
+    } else {
+      uses = ['verify'];
+    }
+  } else if (algorithm === 'RSA-OAEP') {
+    uses = ['unwrapKey', 'decrypt'];
+  } else {
+    uses = ['sign'];
+  }
   return crypto.subtle.importKey(
     pub ? 'spki' : 'pkcs8',
     fromBase64(pk),
     {
-      name: 'RSA-OAEP',
+      name: algorithm,
       hash: { name: h },
     },
     false,
-    pub ? ['wrapKey', 'encrypt'] : ['unwrapKey', 'decrypt'],
+    uses,
   );
 }
 function wrapAESKey(aesKey, publicKey) {
@@ -183,6 +195,36 @@ function sha1(s) {
   return hash('SHA-1', s);
 }
 
+function generateRSAKeypair(bits = 2048) {
+  return crypto.subtle.generateKey(
+    {
+      name: 'RSASSA-PKCS1-v1_5',
+      modulusLength: bits,
+      publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
+      hash: { name: 'SHA-256' },
+    },
+        true,
+        ['sign', 'verify'],
+    )
+    .then(key => Promise.all([
+      crypto.subtle.exportKey(
+          'spki',
+          key.publicKey,
+      )
+      .then(toBase64),
+      crypto.subtle.exportKey(
+          'pkcs8',
+          key.privateKey,
+      )
+      .then(toBase64),
+    ]));
+}
+
+function signRSA(privateKey, data) {
+  const _data = typeof data === 'string' ? toUTF8(data) : data;
+  return crypto.subtle.sign({ name: 'RSASSA-PKCS1-v1_5' }, privateKey, _data).then(toHex);
+}
+
 export {
   hash,
   sha256,
@@ -209,5 +251,7 @@ export {
   deriveAESKey,
   sha1,
   exportPrivateKey,
-  exportPublicKey
+  exportPublicKey,
+  generateRSAKeypair,
+  signRSA
 };

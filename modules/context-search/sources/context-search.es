@@ -219,7 +219,8 @@ class ContextSearch {
         words = urlHelpers.urlStripProtocol(inputString).toLowerCase().split(/[/\.\-_]+/);
       }
       if (type === 't' || type === 'b') {
-        words = inputString.trim().toLowerCase().split(/[^\w\u00C0-\u024f]+/);
+        words = inputString.trim().toLowerCase().split(/[^\w\u00C0-\u024f]+/)
+        .filter(word => word.length > 0);
       }
     }
     return words;
@@ -370,7 +371,8 @@ class ContextSearch {
       trimmed.startsWith('about:') ||
       trimmed.startsWith('view-source:') ||
       trimmed.startsWith('file:') ||
-      trimmed.startsWith('chrome:')
+      trimmed.startsWith('chrome:')||
+      trimmed.startsWith('resource:')
     );
   }
 

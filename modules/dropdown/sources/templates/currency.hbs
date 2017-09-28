@@ -1,12 +1,23 @@
-<div class="result instant currency" >
+<div class="instant currency" >
     <div class="header padded">
         <p class="title">
-            <span>={{toSymbol}}{{toAmount}}</span>
+            <a
+                class="result"
+                href="{{ currencyCopyResult.url }}"
+            >
+                = {{currencyCopyResult.toAmount}} {{currencyCopyResult.toCurrencyName}}
+                <span class="tooltip">
+                    {{local 'Click anywhere to copy'}}
+                </span>
+            </a>
         </p>
         <p class="subtitle">
             <span>
                 {{multiplyer}} {{fromCurrency}} = {{conversionRate}} {{toCurrency}} {{local 'no_legal_disclaimer'}}
                 &#183; {{> partials/source}}
+                {{#if updated}}
+                    &#183; {{> partials/timestamp}}
+                {{/if}}
             </span>
         </p>
     </div>

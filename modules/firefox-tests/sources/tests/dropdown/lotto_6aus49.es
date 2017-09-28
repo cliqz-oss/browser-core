@@ -82,7 +82,7 @@ export default function () {
     ];
     let resultElement;
 
-    beforeEach(function () {
+    before(function () {
       respondWith({ results });
       fillIn('6 aus 49');
       return waitForPopup().then(function () {

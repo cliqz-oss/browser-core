@@ -10,9 +10,7 @@
     "channel": "99",
     "homepageURL": "https://cliqz.com/",
     "updateURL": "https://s3.amazonaws.com/cdncliqz/update/browser/latest.rdf",
-    "freshTabButton": false,
     "freshTabNews": true,
-    "freshTabInitialState": true,
     "unblockUI": true,
     "showDataCollectionMessage": true,
     "antitrackingButton": true,
@@ -34,6 +32,7 @@
     "HW_CHANNEL": "cliqz",
     "HPN_CHANNEL": "cliqz",
     "NEW_TAB_URL": "resource://cliqz/freshtab/home.html",
+    "HISTORY_URL": "resource://cliqz/cliqz-history/index.html#/",
     "ICONS": {
       "active": "resource://cliqz/control-center/images/cc-active.svg",
       "inactive": "resource://cliqz/control-center/images/cc-inactive.svg",
@@ -50,6 +49,7 @@
   "default_prefs" : {
     "modules.context-search.enabled": false,
     "modules.type-filter.enabled": false,
+    "modules.anolysis.enabled": false,
     "modules.antitracking-blocker.enabled": false,
     "modules.green-ads.enabled": false
   },
@@ -88,7 +88,6 @@
     "moncomp",
     "type-filter",
     "history",
-    "telemetry-speed-dial",
     "offers-cc",
     "video-downloader",
     "market-analysis",
@@ -100,19 +99,31 @@
     "campaign-manager",
     "firefox-tests",
     "antispy",
-    "perf"
+    "perf",
+    "search",
+    "offers-debug"
   ],
-  "subprojects": [
-    "fresh-tab-frontend"
-  ],
+  "subprojects": [{
+    "src": "node_modules/cliqz-history/dist",
+    "dest": "cliqz-history"
+  }],
   "system": {
     "map": {
+      "handlebars": "bower_components/handlebars/handlebars.js",
       "bigint": "bower_components/bigint/index.js",
-      "md5": "bower_components/md5/index.js"
+      "mathjs": "bower_components/mathjs/dist/math.min.js",
+      "md5": "bower_components/md5/index.js",
+      "react": "node_modules/react/cjs/react.production.min.js",
+      "react-dom": "node_modules/react-dom/cjs/react-dom.production.min.js"
     },
     "packages": {
       "object-assign": {
         "main": "./index.js"
+      },
+      "modules": {
+        "map": {
+          "./platform/tldjs": "node_modules/tldjs/index.js"
+        }
       }
     }
   }

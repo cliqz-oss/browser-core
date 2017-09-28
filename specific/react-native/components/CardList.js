@@ -10,7 +10,7 @@ class CardList extends React.Component {
 
   componentWillUpdate() {
     if (this.scrollView) {
-      setTimeout(() => this.scrollView.scrollTo({ x: 0, y: 0 }) , 0);
+      this.scrollView.scrollTo({ x: 0, y: 0 });
     }
   }
 

@@ -1,11 +1,23 @@
 <div class="abstract">
-    {{#if thumbnail}}
-        <div class="thumbnail">
-            <img src="{{thumbnail}}" data-extra="image" />
-        </div>
-    {{/if}}
+    {{#exists thumbnail}}
+        {{#if thumbnail}}
+            <div class="thumbnail">
+                <img src="{{thumbnail}}" data-extra="image" />
+                {{#if duration}}
+                    <span class="duration">&#9658; {{duration}}</span>
+                {{/if}}
+            </div>
+        {{else}}
+            <div class="thumbnail">
+                <span class="mask"></span>
+                <span class="no-thumbnail" {{#if logoDetails.style}}style="{{logoDetails.style}}"{{/if}}>
+                    {{logoDetails.text}}
+                </span>
+            </div>
+        {{/if}}
+    {{/exists}}
 
-    <div>
+    <div class="content">
         <p>
             <span data-extra="title" class="title">{{emphasis title query 2 true}}</span>
             {{#if friendlyUrl}}

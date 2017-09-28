@@ -2,27 +2,36 @@
 {{#with data}}
     <section class="secondary">
         <div class="ez-liga-tableHeader">
-          <table>
-            <thead>
-                 <th></th>
-                 <th>Mannschaft</th>
-                 <th class="small">SP</th>
-                 <th class="small">TD</th>
-                 <th class="small bold">PKT</th>
-            </thead>
+          {{#each groups}}
+            <table>
+              {{#if group}}
+                <thead>
+                    <th></th>
+                    <th>{{group}}</th>
+                </thead>
+              {{/if}}
 
-            <tbody>
-                {{#ranking}}
-                <tr>
-                    <td>{{rank}}.</td>
-                    <td>{{club}}</td>
-                    <td class="small">{{SP}}</td>
-                    <td class="small">{{TD}}</td>
-                    <td class="small bold">{{PKT}}</td>
-                </tr>
-                {{/ranking}}
-            </tbody>
-          </table>
+              <tbody>
+                  <tr class="group-section">
+                    <td></td>
+                    <td>Mannschaft</td>
+                    <td class="small">SP</td>
+                    <td class="small">TD</td>
+                    <td class="small bold">PKT</td>
+                  </tr>
+                  {{#each ranking}}
+                  <tr class="ranking-section">
+                      <td class="ranks">{{rank}}.</td>
+                      <td class="team-name">{{club}}</td>
+                      <td class="small">{{SP}}</td>
+                      <td class="small">{{TD}}</td>
+                      <td class="small bold">{{PKT}}</td>
+                  </tr>
+                  {{/each}}
+              </tbody>
+            </table>
+          {{/each}}
+          {{> subscribe-button league}}
         </div>
     </section>
 {{/with}}

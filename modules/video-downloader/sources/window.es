@@ -1,13 +1,11 @@
-import { utils, events } from 'core/cliqz';
 import inject from '../core/kord/inject';
 import UI from './ui';
-
-const DISMISSED_ALERTS = 'dismissedAlerts';
+import config from '../core/config';
 
 export default class {
-  constructor(config) {
-    this.window = config.window;
-    this.settings = config.settings;
+  constructor(_config) {
+    this.window = _config.window;
+    this.settings = _config.settings;
   }
 
   init() {
@@ -16,36 +14,19 @@ export default class {
     // If not, we pass a null value.
     // So this video-downloader module could work
     // with/without 'pairing' module.
-    inject.module('pairing').action('getPairingPeer')
-    .catch(() => {})
-    .then((peerComm) => {
-      this.UI = new UI(peerComm, this.window);
-      this.UI.init();
-      this.showOnboarding();
-    });
+    if (config.platform === 'firefox') {
+      inject.module('pairing').action('getPairingPeer')
+      .catch(() => {})
+      .then((peerComm) => {
+        this.UI = new UI(peerComm, this.window, this.settings);
+        this.UI.init();
+      });
+    }
   }
 
   unload() {
     if (this.UI) {
       this.UI.unload();
-    }
-  }
-
-  showOnboarding() {
-    const isInABTest = utils.getPref('extOnboardVideoDownloader', false);
-    const isBrowser = this.settings.channel === '40';
-    const dismissedAlerts = JSON.parse(utils.getPref(DISMISSED_ALERTS, '{}'));
-    const messageType = 'video-downloader';
-    const isDismissed = dismissedAlerts[messageType] && dismissedAlerts[messageType].count >= 1;
-    if (isBrowser && isInABTest && !isDismissed) {
-      events.pub(
-        'msg_center:show_message',
-        {
-          id: 'video-downloader',
-          template: 'video-downloader',
-        },
-        'MESSAGE_HANDLER_FRESHTAB'
-      );
     }
   }
 }

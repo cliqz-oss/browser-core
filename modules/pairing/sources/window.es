@@ -1,7 +1,6 @@
-import { utils } from 'core/cliqz';
+import { utils } from '../core/cliqz';
 import inject from '../core/kord/inject';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
-import ContextMenu from '../context-menu/context-menu';
 import Pairing from './background';
 
 const STYLESHEET_URL = 'chrome://cliqz/content/pairing/css/burger_menu.css';
@@ -33,6 +32,7 @@ export default class {
   constructor(settings) {
     this.window = settings.window;
     this.config = settings;
+    this.contextMenu = inject.module('context-menu');
   }
   /**
   * @method init
@@ -41,8 +41,10 @@ export default class {
     this.peerComm = Pairing.peerSlave;
     this.showOnboarding();
     addStylesheet(this.window.document, STYLESHEET_URL);
-    this.initPageMenu(); // Right-click on page content
-    this.initTabMenu(); // Right-click on tab title
+    return Promise.all([
+      this.initPageMenu(), // Right-click on page content
+      this.initTabMenu(), // Right-click on tab title
+    ]);
   }
 
   sendTab(data) {
@@ -70,100 +72,112 @@ export default class {
     const window = this.window;
     const contextMenu = window.document.getElementById('contentAreaContextMenu');
     this.builtInSearchItem = window.document.getElementById('context-searchselect');
-    this.pageMenu = new ContextMenu(config, contextMenu, this.builtInSearchItem);
 
-    this.pageMenu._onPopupShowing = (ev) => {
-      utils.telemetry({
-        type: 'context_menu',
-        action: 'open',
-        context: 'webpage',
+    // TODO: this should probably be refactored somehow
+    return this.contextMenu.windowAction(window, 'makeContextMenu', config, contextMenu, this.builtInSearchItem)
+      .then((pageMenu) => {
+        this.pageMenu = pageMenu;
+        this.pageMenu._onPopupShowing = (ev) => {
+          if (ev.target !== contextMenu) {
+            return;
+          }
+          utils.telemetry({
+            type: 'context_menu',
+            action: 'open',
+            context: 'webpage',
+          });
+
+          if (this.window.gContextMenu === undefined) {
+            // we need to find a solution for e10s
+            return;
+          }
+
+          const tabPos = this.window.gBrowser.tabContainer.selectedIndex;
+          const tabData = getTabData(this.window, tabPos);
+
+          const isLink = this.window.gContextMenu.onLink;
+          let url = ''; // Display "Send to mobile" option based on this url
+          if (isLink) {
+            delete tabData.title;
+            tabData.url = url = this.window.gContextMenu.getLinkURL();
+          } else { // No text selected
+            url = this.window.gBrowser.currentURI.spec;
+          }
+
+          if (!isValidURL(url)) return; // Do not show the "Send to mobile" option
+          // Pairing menu
+          const beforeElem = this.window.document.getElementById('context-bookmarklink');
+          const isEnabled = this.peerComm.isPaired;
+
+          const onclick = isEnabled ? () => {
+            this.sendTab(tabData);
+            utils.telemetry({
+              type: 'context_menu',
+              version: 1,
+              view: 'web_page',
+              action: 'click',
+              target: 'send_to_mobile',
+            });
+          } : undefined;
+          this.pageMenu.addMenuItem({
+            label: utils.getLocalizedString('pairing-send-tab-to-mobile'),
+            onclick,
+            beforeElem,
+            disabled: !isEnabled,
+          });
+          this.pageMenu.addSeparator({ beforeElem });
+        };
+        this.pageMenu.init();
       });
-      if (ev.target !== contextMenu) {
-        return;
-      }
-
-      if (this.window.gContextMenu === undefined) {
-        // we need to find a solution for e10s
-        return;
-      }
-
-      const tabPos = this.window.gBrowser.tabContainer.selectedIndex;
-      const tabData = getTabData(this.window, tabPos);
-
-      const isLink = this.window.gContextMenu.onLink;
-      let url = ''; // Display "Send to mobile" option based on this url
-      if (isLink) {
-        delete tabData.title;
-        tabData.url = url = this.window.gContextMenu.getLinkURL();
-      } else { // No text selected
-        url = this.window.gBrowser.currentURI.spec;
-      }
-
-      if (!isValidURL(url)) return; // Do not show the "Send to mobile" option
-      // Pairing menu
-      const beforeElem = this.window.document.getElementById('context-bookmarklink');
-      const isEnabled = this.peerComm.isPaired;
-
-      const onclick = isEnabled ? () => {
-        this.sendTab(tabData);
-        utils.telemetry({
-          type: 'context_menu',
-          version: 1,
-          view: 'web_page',
-          action: 'click',
-          target: 'send_to_mobile',
-        });
-      } : undefined;
-      this.pageMenu.addMenuItem({
-        label: utils.getLocalizedString('pairing-send-tab-to-mobile'),
-        onclick,
-        beforeElem,
-        disabled: !isEnabled,
-      });
-      this.pageMenu.addSeparator({ beforeElem });
-    };
-    this.pageMenu.init();
   }
 
   initTabMenu() {
     const config = this.config;
     const window = this.window;
     const contextMenu = window.document.getElementById('tabContextMenu');
-    this.tabMenu = new ContextMenu(config, contextMenu);
-
-    this.tabMenu._onPopupShowing = () => {
-      const tabPos = this.window.TabContextMenu.contextTab._tPos;
-      const tabData = getTabData(this.window, tabPos);
-      const beforeElem = this.window.document.getElementById('context_openTabInWindow');
-      const isEnabled = this.peerComm.isPaired &&
-        isValidURL(tabData.url);
-      const onclick = isEnabled ? () => {
-        this.sendTab(tabData);
-        utils.telemetry({
-          type: 'context_menu',
-          version: 1,
-          view: 'tab_title',
-          action: 'click',
-          target: 'send_to_mobile',
-        });
-      } : undefined;
-      this.tabMenu.addMenuItem({
-        label: utils.getLocalizedString('pairing-send-tab-to-mobile'),
-        onclick,
-        beforeElem,
-        disabled: !isEnabled,
+    return this.contextMenu.windowAction(window, 'makeContextMenu', config, contextMenu)
+      .then((_contextMenu) => {
+        this.tabMenu = _contextMenu;
+        this.tabMenu._onPopupShowing = (ev) => {
+          if (ev.target !== contextMenu) {
+            return;
+          }
+          const tabPos = this.window.TabContextMenu.contextTab._tPos;
+          const tabData = getTabData(this.window, tabPos);
+          const beforeElem = this.window.document.getElementById('context_openTabInWindow');
+          const isEnabled = this.peerComm.isPaired &&
+            isValidURL(tabData.url);
+          const onclick = isEnabled ? () => {
+            this.sendTab(tabData);
+            utils.telemetry({
+              type: 'context_menu',
+              version: 1,
+              view: 'tab_title',
+              action: 'click',
+              target: 'send_to_mobile',
+            });
+          } : undefined;
+          this.tabMenu.addMenuItem({
+            label: utils.getLocalizedString('pairing-send-tab-to-mobile'),
+            onclick,
+            beforeElem,
+            disabled: !isEnabled,
+          });
+        };
+        this.tabMenu.init();
       });
-    };
-    this.tabMenu.init();
   }
 
   unloadPageMenu() {
-    this.pageMenu.unload();
-    this.builtInSearchItem.removeAttribute('hidden');
+    if (this.pageMenu) {
+      this.pageMenu.unload();
+    }
   }
 
   unloadTabMenu() {
-    this.tabMenu.unload();
+    if (this.tabMenu) {
+      this.tabMenu.unload();
+    }
   }
 
   unload() {

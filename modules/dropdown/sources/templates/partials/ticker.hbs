@@ -1,23 +1,23 @@
-<a class="table-row result" href="{{url}}">
+<a class="table-row result non-selectable" href="{{url}}">
     <div class="table-cell club-logo">
-        <img src="{{this.hostLogo}}" alt="" />
+        <div style="background-image:url({{hostLogo}})"></div>
     </div>
-    <div class="table-cell host fixed-width">{{emphasis this.host query 2 true}}</div>
-    <div class="table-cell scored {{#if this.isLive}}live{{/if}}">
-        <span>{{this.scored}}</span>
+    <div class="table-cell host fixed-width">{{emphasis host query 2 true}}</div>
+    <div class="table-cell scored {{#if isLive}}live{{/if}}">
+        <span>{{scored}}</span>
     </div>
-    <div class="table-cell fixed-width">{{emphasis this.guest query 2 true}}</div>
+    <div class="table-cell fixed-width">{{emphasis guest query 2 true}}</div>
     <div class="table-cell club-logo">
-        <img src="{{this.guestLogo}}" alt="" />
+        <div style="background-image:url({{guestLogo}})"></div>
     </div>
-    <div class="table-cell time">{{this.gameTime}}</div>
+    <div class="table-cell time">{{gameTime}}</div>
     <div class="table-cell">
-        {{#if this.isLive}}
+        {{#if isLive}}
             <span class="is-live">Live</span>
         {{/if}}
     </div>
     <div class="table-cell">
-        <div class="league-logo" style="background-image: url({{this.leagueLogo}})" title="{{this.leagueName}}">
+        <div class="league-logo" style="background-image: url({{leagueLogo}})" title="{{leagueName}}">
         </div>
     </div>
 </a>

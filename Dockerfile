@@ -14,7 +14,7 @@ RUN apt-get update && \
     python-dev \
     python-pip \
     zip
-    
+
 RUN pip install --upgrade cffi
 RUN pip install \
   fabric \
@@ -48,9 +48,3 @@ USER jenkins
 COPY package.json /home/jenkins/
 COPY bower.json /home/jenkins/
 RUN cd /home/jenkins/ && npm install && bower install
-
-# Freshtab
-RUN mkdir /home/jenkins/freshtab
-COPY subprojects/fresh-tab-frontend/package.json /home/jenkins/freshtab
-COPY subprojects/fresh-tab-frontend/bower.json /home/jenkins/freshtab
-RUN cd /home/jenkins/freshtab && npm install && bower install

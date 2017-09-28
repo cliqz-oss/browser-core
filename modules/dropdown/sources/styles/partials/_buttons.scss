@@ -2,6 +2,7 @@
     .buttons {
         padding: 2px 0 2px 0px;
         font-size: 13px;
+        display: inline-block;
 
         &:after {
             @extend .clearfix;
@@ -25,8 +26,6 @@
                 border-color: #2385E7;
             }
         }
-
-
 
         .result {
             height: auto;

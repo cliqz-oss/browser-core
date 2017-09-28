@@ -3,6 +3,7 @@ import * as datetime from './time';
 import { generateAttrackPayload } from './utils';
 import pacemaker from './pacemaker';
 import telemetry from './telemetry';
+import { utils } from '../core/cliqz';
 
 const safeKeyExpire = 7;
 
@@ -16,9 +17,15 @@ export default class {
   }
 
   init() {
-    return this.safeKeys.load().then(() => {
-      pacemaker.register(this._hourlyPruneAndSend.bind(this), 60 * 60 * 1000);
-    });
+    // local safekeys are optional, don't block loading remote lists
+    const win = utils.getWindow();
+    if (win && win.requestIdleCallback) {
+      win.requestIdleCallback(() => this.safeKeys.load(), {timeout: 2000});
+    } else {
+      utils.setTimeout(this.safeKeys.load.bind(this), 2000);
+    }
+    pacemaker.register(this._hourlyPruneAndSend.bind(this), 60 * 60 * 1000);
+    return Promise.resolve();
   }
 
   destroy() {

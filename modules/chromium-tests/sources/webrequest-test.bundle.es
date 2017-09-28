@@ -55,7 +55,7 @@ describe('WebRequest', function () {
 
     beforeEach(function (done) {
       testServer.registerPathHandler('/', helloWorld)
-        .then(() => utils.httpGet(url, () => { done(); }, done));
+        .then(() => utils.httpGet(url, () => { done(); }, done, 30 * 1000));
     });
 
     it('calls each topic once', () => {
@@ -159,37 +159,36 @@ describe('WebRequest', function () {
       WebRequest.onBeforeRequest.removeListener(block);
     });
 
-    it('blocks the http request', function(done) {
-      var serverHit = false;
-
-      testServer.registerPathHandler('/block', helloWorld);
+    it('blocks the http request', function() {
       requestSeen = false;
-      newTab(url)
+      return testServer.registerPathHandler('/block', helloWorld)
+        .then(() => newTab(url))
         .then(() => waitFor(() => requestSeen))
-        .then(function() {
-          testServer.getHits()
-            .then((hits) => {
-              // No hit on server
-              chai.expect(hits).to.be.empty;
+        .then(() => testServer.getHits())
+        .then(function (hits) {
+          // No hit on server
+          chai.expect(hits).to.be.empty;
 
-              // subsequent topics do not see request
-              for (var topic of [onBeforeSendHeaders, onHeadersReceived]) {
-                var reqs = topic.filter( function(req) { return req.url === url });
-                chai.expect(reqs.length).to.eql(0);
-              }
-              done();
-            });
+          // subsequent topics do not see request
+          for (var topic of [onBeforeSendHeaders, onHeadersReceived]) {
+            var reqs = topic.filter( function(req) { return req.url === url });
+            chai.expect(reqs.length).to.eql(0);
+          }
         });
     });
   });
 
   context('listener returns redirectUrl', function () {
     let requestSeen = false;
+    let redirectSeen = false;
     const baseUrl = testServer.getBaseUrl();
+    const redirectUrl = testServer.getBaseUrl('redirect');
     const redirect = (req) => {
-      if (req.url.indexOf(baseUrl) !== -1) {
+      if (req.url.indexOf(redirectUrl) !== -1) {
+        redirectSeen = true;
+      } else if (req.url.indexOf(baseUrl) !== -1) {
         requestSeen = true;
-        return { redirectUrl: testServer.getBaseUrl('redirect') };
+        return { redirectUrl };
       }
 
       return {};
@@ -203,22 +202,20 @@ describe('WebRequest', function () {
       WebRequest.onBeforeRequest.removeListener(redirect);
     });
 
-    it('redirects to specified url', (done) => {
-      testServer.registerPathHandler('/', helloWorld);
-      //  hitBase = true;
-      testServer.registerPathHandler('/redirect', helloWorld);
-      //  hitRedirect = true;
-
+    it('redirects to specified url', () => {
       requestSeen = false;
-      newTab(testServer.getBaseUrl())
-        .then(() => {
-            waitFor(() => requestSeen).then(() => {
-              testServer.getHits().then((hits) => {
-                chai.expect(Object.keys(hits)).to.be.eql(['/redirect']);
-                done();
-              });
-            });
-        });
+      redirectSeen = false;
+
+      return Promise.all([
+        testServer.registerPathHandler('/', helloWorld),
+        testServer.registerPathHandler('/redirect', helloWorld),
+      ])
+      .then(() => newTab(testServer.getBaseUrl()))
+      .then(() => waitFor(() => requestSeen && redirectSeen))
+      .then(() => testServer.getHits())
+      .then(function (hits) {
+        chai.expect(Object.keys(hits)).to.be.eql(['/redirect']);
+      });
     });
   });
 
@@ -244,15 +241,15 @@ describe('WebRequest', function () {
       requestSeen = false;
       WebRequest.onBeforeSendHeaders.addListener(changeHeaders, { urls: [url] }, ['blocking', 'requestHeaders']);
       testServer.registerPathHandler('/', helloWorld)
-        .then(() => utils.httpGet(url, () => { done(); }, done));
+        .then(() => utils.httpGet(url, () => { done(); }, done, 30 * 1000));
     });
 
     afterEach(() => {
       WebRequest.onBeforeSendHeaders.removeListener(changeHeaders);
     });
 
-    it('modifies headers of the request', function (done) {
-      waitFor(() => requestSeen)
+    it('modifies headers of the request', function () {
+      return waitFor(() => requestSeen)
         .then(() => testServer.getHits())
         .then((hits) => {
           const reqs = onBeforeSendHeaders.filter(req => req.url === url);
@@ -271,9 +268,7 @@ describe('WebRequest', function () {
           // modified header
           chai.expect(headers).to.have.property('accept-encoding');
           chai.expect(headers['accept-encoding']).to.equal('gzip');
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 });

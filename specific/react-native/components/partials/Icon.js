@@ -27,7 +27,7 @@ export default class extends React.Component {
             source={{uri: iconUrl}}
           />
       )
-    } else {
+    } else if (logoDetails.backgroundColor) {
       const text = logoDetails.text;
       const background = logoDetails.backgroundColor;
       const textColor = logoDetails.color;
@@ -37,6 +37,8 @@ export default class extends React.Component {
           <Text style={style.text}>{text}</Text>
         </View>
       )
+    } else {
+      return null;
     }
   }
 }

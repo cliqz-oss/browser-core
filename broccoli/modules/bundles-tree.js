@@ -5,6 +5,7 @@ const SystemBuilder = require('broccoli-systemjs');
 const MergeTrees = require('broccoli-merge-trees');
 const Funnel = require('broccoli-funnel');
 const SourceMaps = require('broccoli-source-map');
+const deepAssign = require('deep-assign');
 
 const cliqzConfig = require('../config');
 const helpers = require('./helpers');
@@ -82,7 +83,7 @@ function getBundlesTree(modulesTree) {
         loader: 'plugin-json',
       },
     }, cliqzConfigSystem.meta || {}),
-    packages: Object.assign({
+    packages: deepAssign({
       [prefix]: {
         defaultJSExtensions: true,
       },

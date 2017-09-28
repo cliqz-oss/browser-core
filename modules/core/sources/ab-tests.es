@@ -431,6 +431,12 @@ var CliqzABTests = {
             case "1109_B":
                 CliqzUtils.setPref("offersDropdownSwitch", true);
                 break;
+            case "1110_A":
+                CliqzUtils.setPref("cliqzTabOffersNotification", false);
+                break;
+            case "1110_B":
+                CliqzUtils.setPref("cliqzTabOffersNotification", true);
+                break;
             default:
                 rule_executed = false;
         }
@@ -711,6 +717,10 @@ var CliqzABTests = {
             case "1109_A":
             case "1109_B":
                 CliqzUtils.clearPref("offersDropdownSwitch");
+                break;
+            case "1110_A":
+            case "1110_B":
+                CliqzUtils.clearPref("cliqzTabOffersNotification");
                 break;
             default:
                 rule_executed = false;

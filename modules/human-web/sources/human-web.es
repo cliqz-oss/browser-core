@@ -4887,7 +4887,7 @@ var CliqzHumanWeb = {
 
                             if(original.t.startsWith('red')) {
                                 let redPos = original.t.split(':')[1];
-                                if(!r) msg.payload.red[redPos] = maskURLStrict(original.url);
+                                if(!r) msg.payload.red[redPos] = CliqzHumanWeb.maskURLStrict(original.url);
                             }
                         });
                         _log("All urls in the message:" + JSON.stringify(msg));

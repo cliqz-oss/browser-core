@@ -1,0 +1,11 @@
+System.register([], function (_export) {
+  "use strict";
+  var forge = require('node-forge');
+  forge.options.usePureJavaScript = true;
+  _export("default", forge);
+
+  return {
+    setters: [],
+    execute: function () {}
+  };
+});

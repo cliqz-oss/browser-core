@@ -1,9 +1,11 @@
+/* global document */
 
 function generateDiagnosis() {
-  const adb = Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm').CLIQZ.System.get('adblocker/adblocker');
+  const System = Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm').CLIQZ.System;
+  const adb = System.get('adblocker/adblocker');
   const adblocker = adb.default.adBlocker;
-  const utils = Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm').CLIQZ.System.get('core/utils').default;
-  const lang = Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm').CLIQZ.System.get('core/language').default;
+  const utils = System.get('core/utils').default;
+  const lang = System.get('core/language').default;
   let content = [];
   let elt;
 
@@ -17,14 +19,30 @@ function generateDiagnosis() {
 
   if (adblocker === null) {
     elt = document.getElementById('adb-warning');
-    content.push(['<h1>Adblocker is currently disabled</h1>']);
+    content.push('<h1>Adblocker is currently disabled</h1>');
     elt.innerHTML = content.join('\n');
     return;
   }
 
+  // Enable verbose diagnosis
+  adblocker.diagnosisEnabled = true;
+
+  // Display blocking logs
+  elt = document.getElementById('adb-logger');
+  content = ['<h1>Adblocker blocking logger</h1>'];
+  adblocker.blockingLogger.forEach((logs, sourceUrl) => {
+    content.push('<table style="width:100%">');
+    content.push(`<caption><br>${sourceUrl}</br></caption>`);
+    logs.forEach((log) => {
+      content.push(log);
+    });
+    content.push('</table>');
+  });
+  elt.innerHTML = content.join('\n');
+
   // Display logs
   elt = document.getElementById('adb-logs');
-  content.push(['<h1>Adblocker logs</h1>']);
+  content = ['<h1>Adblocker logs</h1>'];
   adblocker.logs.forEach((log) => {
     content.push(`<div>${log}</div><br/>`);
   });
@@ -51,13 +69,13 @@ function generateDiagnosis() {
   content.push(`<div>${adblocker.engine.size} filters loaded</div>`);
   content.push(`<div>exceptions = ${adblocker.engine.exceptions.size} </div>`);
   content.push(`<div>importants = ${adblocker.engine.importants.size} </div>`);
-  content.push(`<div>redirects = ${adblocker.engine.redirect.size} </div>`);
+  content.push(`<div>redirects = ${adblocker.engine.redirects.size} </div>`);
   content.push(`<div>other network filters = ${adblocker.engine.filters.size} </div>`);
 
   content.push(`<div>network filters = ${
     adblocker.engine.exceptions.size
     + adblocker.engine.importants.size
-    + adblocker.engine.redirect.size
+    + adblocker.engine.redirects.size
     + adblocker.engine.filters.size
   } </div>`);
   content.push(`<div>cosmetics filters = ${adblocker.engine.cosmetics.size} </div>`);
@@ -67,7 +85,8 @@ function generateDiagnosis() {
   content.push(`<div>checksum = ${adblocker.engine.resourceChecksum}</div>`);
 
     // Display loaded lists
-  adblocker.engine.lists.forEach((value, key) => {
+  Object.keys(adblocker.engine.lists).forEach((key) => {
+    const value = adblocker.engine.lists[key];
     content.push(`<h2>${key}</h2>`);
     content.push(`<div>checksum = ${value.checksum}</div>`);
     Object.keys(value).forEach((k) => {
@@ -80,18 +99,17 @@ function generateDiagnosis() {
 
   // Language
   elt = document.getElementById('adb-lang');
-  content = ['<h1>User Language</h1>']
+  content = ['<h1>User Language</h1>'];
 
   // current loaded language
   content.push('<h2>ADB language prefs</h2>');
-  content.push(`<div>Language filters enabled (${adb.ADB_USER_LANG}): ${utils.getPref(adb.ADB_USER_LANG, true)}</div>`);
-  content.push(`<div>Language filters override (${adb.ADB_USER_LANG_OVERRIDE}): ${utils.getPref(adb.ADB_USER_LANG_OVERRIDE, '')} </div>`);
-  content.push('<h2>User language</h2>');
-  content.push(`<div>${lang.state().join(', ')}</div>`);
-  content.push('<h2>Loaded language</h2>');
-  content.push(`<div>${[...adblocker.listsManager.loadedLang].join(', ')}</div>`);
-  content.push('<h2>Available language</h2>');
-  content.push(`<div>${[...adblocker.listsManager.availableLang].join(', ')}</div>`);
+  content.push(`<div>User-specified country filters (${adb.ADB_USER_LANG}): ${utils.getPref(adb.ADB_USER_LANG, '')}</div>`);
+  content.push('<h2>User languages</h2>');
+  content.push(`<div>${lang.state().join(';')}</div>`);
+  content.push('<h2>Loaded languages</h2>');
+  content.push(`<div>${['en (default)', ...adblocker.listsManager.loadedLang].join(';')}</div>`);
+  content.push('<h2>Available languages</h2>');
+  content.push(`<div>${[...adblocker.listsManager.availableLang].join(';')}</div>`);
   elt.innerHTML = content.join('\n');
 }
 

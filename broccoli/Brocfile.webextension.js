@@ -4,13 +4,22 @@ const Funnel = require('broccoli-funnel');
 const MergeTrees = require('broccoli-merge-trees');
 
 const modules = require('./modules-tree');
+const cliqzConfig = require('./config');
 
 const specificTree = new Source.WatchedDir('specific/webextension');
 
-const sourceTree = new MergeTrees([
+const sourceTrees = [
   modules.modules,
   modules.bundles,
-], { overwrite: true });
+];
+
+if (cliqzConfig.environment !== 'production') {
+  sourceTrees.push(modules.contentTests);
+}
+
+const sourceTree = new MergeTrees(sourceTrees, {
+  overwrite: true
+});
 
 const modulesTree = new Funnel(
   new MergeTrees([

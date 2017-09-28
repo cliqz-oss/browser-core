@@ -10,22 +10,26 @@ const cliqzConfig = require('../config');
 var UnwatchedDir = broccoliSource.UnwatchedDir;
 
 module.exports = function getDistTree(modulesTree) {
-  const subprojectsTree = new UnwatchedDir('subprojects');
-  const distTrees = [
+  const modulesTrees = [
     new Funnel(modulesTree, {
       include: cliqzConfig.modules.map( name => `${name}/dist/**/*` ),
       getDestinationPath(path) {
         return path.replace("/dist", "");
       }
     })];
-  if (cliqzConfig.subprojects) {
-    distTrees.push(new Funnel(subprojectsTree, {
-      include: cliqzConfig.subprojects.map( name => `${name}/dist/**/*` ),
-      getDestinationPath(path) {
-        return path.replace("/dist", "");
-      }
-    }));
-  }
+
+  const distTrees = modulesTrees.concat(
+    (cliqzConfig.subprojects || []).map(
+      subproject => new Funnel(
+        new UnwatchedDir(subproject.src), 
+        {
+          include: ['**/*'],
+          destDir: subproject.dest
+        }
+      )
+    )
+  );
+
   return new MergeTrees(distTrees);
 }
 

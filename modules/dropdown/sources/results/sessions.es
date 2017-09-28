@@ -9,13 +9,11 @@ const sessionsUrl = query => ([
 
 export default class extends BaseResult {
 
-  constructor(rawResult, countPromise) {
+  constructor(rawResult) {
     super({
       url: sessionsUrl(rawResult.query),
       ...rawResult,
     });
-
-    this.countPromise = countPromise;
   }
 
   get elementId() {
@@ -36,15 +34,6 @@ export default class extends BaseResult {
 
   get isDeletable() {
     return false;
-  }
-
-  didRender(dropdownElement) {
-    this.countPromise.then((count) => {
-      const el = dropdownElement.querySelector(`#${this.elementId}`);
-      if (el) {
-        el.querySelector('.count').innerText = count;
-      }
-    });
   }
 
   click(window, href, ev) {

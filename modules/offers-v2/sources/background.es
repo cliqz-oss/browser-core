@@ -1,10 +1,10 @@
 import logger from './common/offers_v2_logger';
-import { utils, events } from '../core/cliqz';
+import { utils } from '../core/cliqz';
 import background from '../core/base/background';
 import OffersConfigs from './offers_configs';
 import EventHandler from './event_handler';
 import OfferProcessor from './offer_processor';
-import {SignalHandler} from './signals_handler';
+import { SignalHandler } from './signals_handler';
 import Database from '../core/database';
 import OfferDB from './offers_db';
 import TriggerMachineExecutor from './trigger_machine/trigger_machine_executor';
@@ -13,14 +13,12 @@ import RegexpHelper from './regex_helper';
 import HistoryIndex from './history_index';
 import QueryHandler from './query_handler';
 
-////////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////
 // consts
 
 export default background({
 
-  init(settings) {
-    var self = this;
-
+  init(/* settings */) {
     // check if we need to do something or not
     if (!utils.getPref('offers2FeatureEnabled', false)) {
       this.initialized = false;
@@ -54,28 +52,28 @@ export default background({
       OffersConfigs.SEND_SIG_OP_SHOULD_LOAD = false;
     }
 
-    if(utils.getPref('triggersBE')) {
+    if (utils.getPref('triggersBE')) {
       OffersConfigs.BACKEND_URL = utils.getPref('triggersBE');
     }
 
     // set some extra variables
-    if(utils.getPref('offersTelemetryFreq')) {
+    if (utils.getPref('offersTelemetryFreq')) {
       OffersConfigs.SIGNALS_OFFERS_FREQ_SECS = utils.getPref('offersTelemetryFreq');
     }
-    if(utils.getPref('offersOverrideTimeout')) {
+    if (utils.getPref('offersOverrideTimeout')) {
       OffersConfigs.OFFERS_OVERRIDE_TIMEOUT = utils.getPref('offersOverrideTimeout');
     }
     logger.init();
-    logger.info('\n\n' +
-      '------------------------------------------------------------------------\n' +
-      '                           NEW SESSION STARTED\n' +
-      'Version: ' + OffersConfigs.CURRENT_VERSION + '\n' +
-      'timestamp: ' + Date.now() + '\n' +
-      'OffersConfigs.LOG_LEVEL: ' + OffersConfigs.LOG_LEVEL + '\n' +
-      'dev_flag: ' + utils.getPref('offersDevFlag', false) + '\n' +
-      'triggersBE: ' + OffersConfigs.BACKEND_URL + '\n' +
-      'offersTelemetryFreq: ' + OffersConfigs.SIGNALS_OFFERS_FREQ_SECS + '\n' +
-      '------------------------------------------------------------------------\n'
+    logger.info(`\n\n
+      ------------------------------------------------------------------------
+                                  NEW SESSION STARTED
+      Version: ${OffersConfigs.CURRENT_VERSION}
+      timestamp: ${Date.now()}
+      OffersConfigs.LOG_LEVEL: ${OffersConfigs.LOG_LEVEL}
+      dev_flag: ${utils.getPref('offersDevFlag', false)}
+      triggersBE: ${OffersConfigs.BACKEND_URL}
+      offersTelemetryFreq: ${OffersConfigs.SIGNALS_OFFERS_FREQ_SECS}
+      '------------------------------------------------------------------------\n`
       );
 
     // create the DB to be used over all offers module
@@ -117,7 +115,7 @@ export default background({
     this.initialized = true;
   },
 
-  //////////////////////////////////////////////////////////////////////////////
+  // ///////////////////////////////////////////////////////////////////////////
   unload() {
     if (this.initialized === false) {
       return;
@@ -151,12 +149,12 @@ export default background({
     }
   },
 
-  //////////////////////////////////////////////////////////////////////////////
+  // ///////////////////////////////////////////////////////////////////////////
   start() {
     // nothing to do
   },
 
-  //////////////////////////////////////////////////////////////////////////////
+  // ///////////////////////////////////////////////////////////////////////////
   beforeBrowserShutdown() {
     // check if we have the feature  enabled
     if (this.initialized === false) {
@@ -187,7 +185,7 @@ export default background({
       this.globObjects.history_index.savePersistentData();
     }
 
-    //TODO: savePersistentData()
+    // TODO: savePersistentData()
     logger.info('background script unloaded');
   },
 
@@ -203,17 +201,20 @@ export default background({
     this.triggerMachineExecutor.processUrlChange(data);
   },
 
-  //////////////////////////////////////////////////////////////////////////////
+  // ///////////////////////////////////////////////////////////////////////////
   events: {
-    'core.window_closed': ({ remaining } = {}) => {
-      logger.info('window closed!!: remaining: ' + remaining);
+    'core.window_closed': function coreWinClose({ remaining } = {}) {
+      logger.info(`window closed!!: remaining: ${remaining}`);
       // GR-147: if this is the last window then we just save everything here
       if (remaining === 0) {
         if (this.offerProc) {
           this.offerProc.savePersistenceData();
         }
       }
-    }
+    },
+    'offers-recv-ch': function onRealEstateMessage(message) {
+      this.offerProc.processRealEstateMessage(message);
+    },
   },
 
   actions: {
@@ -227,6 +228,10 @@ export default background({
 
     hasExternalOffer(args) {
       return (this.offerProc) ? this.offerProc.hasExternalOffer(args) : false;
+    },
+
+    processRealEstateMessage(message) {
+      this.offerProc.processRealEstateMessage(message);
     }
   },
 

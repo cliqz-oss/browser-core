@@ -1,7 +1,8 @@
 import CliqzHandlebars from 'handlebars';
-import PairingObserver from 'pairing/apps/pairing-observer';
-import Pairing from 'pairing/background';
-import utils from 'core/utils';
+import PairingObserver from './apps/pairing-observer';
+import Pairing from './background';
+import utils from '../core/utils';
+import { getDeviceName } from '../platform/device-info';
 
 const PeerComm = Pairing.peerSlave;
 const i18n = utils.getLocalizedString.bind(utils);
@@ -24,7 +25,7 @@ export default class PairingUI {
   }
 
   startPairing() {
-    PeerComm.startPairing('Cliqz Desktop Browser');
+    PeerComm.startPairing(getDeviceName());
   }
 
   fetchTemplate(name) {

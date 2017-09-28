@@ -7,7 +7,7 @@ import Storage from '../platform/hpn/storage';
 import CliqzUtils from '../core/utils';
 import config from '../core/config';
 import ResourceLoader from '../core/resource-loader';
-import { sendM } from './send-message';
+import MessageSender from './send-message';
 import * as hpnUtils from './utils';
 import console from '../core/console';
 import { overRideCliqzResults } from './http-handler-patch';
@@ -101,27 +101,22 @@ const CliqzSecureMessage = {
     }
   },
   _telemetry_req: null,
-  _telemetry_sending: [],
+
   telemetry_MAX_SIZE: 500,
   previousDataPost: null,
   pushMessage : [],
   routeHashTable: null,
-  eacemakerId: null,
   queryProxyIP: null,
   performance: null,
+
   pushTelemetry: function() {
-    CliqzSecureMessage._telemetry_sending = CliqzSecureMessage.trk.splice(0);
-    CliqzSecureMessage.pushMessage = hpnUtils.trkGen(CliqzSecureMessage._telemetry_sending);
-    const nextMsg = CliqzSecureMessage.nextMessage();
-    if (nextMsg) {
-      return sendM(nextMsg);
-    }
-    return Promise.resolve([]);
-  },
-  nextMessage: function() {
-    if (CliqzSecureMessage._telemetry_sending.length > 0) {
-      return CliqzSecureMessage._telemetry_sending[CliqzSecureMessage.pushMessage.next().value];
-    }
+    // Take all available messages from the "trk" queue and send them.
+    //
+    // It is crucial that messages are sent sequentially, otherwise, we
+    // will have race conditions due to the use of global variables
+    // in CliqzSecureMessage messages sequentially, too.
+    const unprocessedMessages = CliqzSecureMessage.trk.splice(0);
+    return CliqzSecureMessage.messageSender.send(unprocessedMessages);
   },
   initAtWindow: function(window) {
   },
@@ -188,11 +183,30 @@ const CliqzSecureMessage = {
 
     CliqzSecureMessage.queryProxyFilter = new ProxyFilter();
     CliqzSecureMessage.queryProxyFilter.init();
+
+    this.messageSender = new MessageSender();
   },
   unload: function() {
     CliqzSecureMessage.queryProxyFilter.unload();
     this.storage.saveLocalCheckTable();
-    CliqzSecureMessage.pushTelemetry();
+
+    // TODO: Sending messages like this does not work
+    // as the shutdown will be faster than sending the
+    // messages. As a result, messages are not sent
+    // the web worker is not closed.
+    //
+    // const messageSender_ = this.messageSender;
+    // CliqzSecureMessage.pushTelemetry().then(() => {
+    //   messageSender_.stop();
+    // }).catch((e) => {
+    //   messageSender_.stop({ quick: true });
+    // });
+    //
+    // As a workaround, make no attempt to send messages
+    // (as it will not succeed anyway) but at least
+    // terminate the worker.
+    this.messageSender.stop({ quick: true });
+
     this.sourceMapLoader.stop();
     this.routeTableLoader.stop();
     CliqzUtils.clearTimeout(CliqzSecureMessage.pacemakerId);

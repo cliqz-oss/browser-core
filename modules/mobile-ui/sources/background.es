@@ -4,6 +4,8 @@ import background from '../core/base/background';
 import events from '../core/events';
 
 export default background({
+  requiresServices: ['logos'],
+
   enabled() {
     return true;
   },

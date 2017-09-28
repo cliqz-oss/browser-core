@@ -48,7 +48,7 @@ const CliqzRedirect = {
   },
 
   removeHttpObserver() {
-    WebRequest.onHeadersReceived.removeListener(CliqzRedirect.httpObserver.observeActivity, undefined, ['responseHeaders']);
+    WebRequest.onHeadersReceived.removeListener(CliqzRedirect.httpObserver.observeActivity);
   },
 
   unload() {

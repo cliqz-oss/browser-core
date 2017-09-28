@@ -3,6 +3,9 @@
 
 export default describeModule('antitracking/domain',
   () => ({
+    'tldjs': {
+      default: require('tldjs'),
+    },
     'core/console': {
       default: console,
     },

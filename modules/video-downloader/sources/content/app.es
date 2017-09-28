@@ -1,8 +1,8 @@
-import helpers from 'video-downloader/content/helpers';
-import { messageHandler, sendMessageToWindow } from 'video-downloader/content/data';
+import helpers from './helpers';
+import { messageHandler, sendMessageToWindow } from './data';
 import $ from 'jquery';
 import Handlebars from 'handlebars';
-import templates from 'video-downloader/templates';
+import templates from '../templates';
 
 Handlebars.partials = templates;
 

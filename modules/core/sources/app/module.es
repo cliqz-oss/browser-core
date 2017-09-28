@@ -1,63 +1,92 @@
-import { Window } from '../../platform/browser';
 import console from '../console';
 import modules from './modules';
-
-function prepareBackgroundReadyPromise() {
-  this.backgroundReadyPromise = new Promise((resolve, reject) => {
-    this.backgroundReadyPromiseResolver = resolve;
-    this.backgroundReadyPromiseRejecter = reject;
-  });
-}
+import DefaultWeakMap from './default-weak-map';
+import Defer from './defer';
+import Service from './service';
 
 export default class Module {
   constructor(name, settings) {
     this.name = name;
-    this.isEnabled = false;
-    this.isLoading = false;
     this.loadingTime = null;
     this.settings = settings;
-    this.windows = Object.create(null);
-    prepareBackgroundReadyPromise.call(this);
+    this._bgReadyDefer = new Defer();
+    this._state = 'disabled';
+    this._windows = new DefaultWeakMap(() => ({
+      windowModule: null,
+      loadingDefer: new Defer(),
+      loadingTime: null,
+      loadingStarted: false
+    }));
+  }
+
+  get providedServices() {
+    if (this._services) {
+      return this._services;
+    }
+
+    this._services = Object.create(null);
+
+    Object.keys(this.backgroundModule.providesServices || {})
+      .forEach((serviceName) => {
+        const initializer = this.backgroundModule.providesServices[serviceName];
+        this._services[serviceName] = new Service(initializer);
+      });
+
+    return this._services;
+  }
+
+  get requiredServices() {
+    return this.backgroundModule.requiresServices || [];
   }
 
   isReady() {
-    return this.backgroundReadyPromise;
-  }
-
-  preload() {
-    this.isLoading = true;
+    return this._bgReadyDefer.promise;
   }
 
   get backgroundModule() {
     return modules[this.name].Background;
   }
 
-  get windowModule() {
+  get WindowModule() {
     return modules[this.name].Window;
   }
 
-  enable() {
-    console.log('Module', this.name, 'start loading');
-    const loadingStartedAt = Date.now();
+  get isEnabled() {
+    return this._state === 'enabled';
+  }
+
+  get isEnabling() {
+    return this._state === 'enabling';
+  }
+
+  get isDisabled() {
+    return this._state === 'disabled';
+  }
+
+  enable(app = null) {
     if (this.isEnabled) {
-      throw new Error('Module already enabled');
+      throw new Error(`Module ${this.name} already enabled`);
     }
-    if (!this.isLoading) {
-      throw new Error('Module not flagged as loading');
+    if (this.isEnabling) {
+      throw new Error(`Module ${this.name} is already starting`);
     }
+    console.log('Module', this.name, 'start loading');
+    this._state = 'enabling';
+    const loadingStartedAt = Date.now();
     return Promise.resolve(this.backgroundModule)
       .then((background) => {
         this.background = background;
-        return background.init(this.settings);
+        return background.init(this.settings, app);
       })
       .then(() => {
-        this.isEnabled = true;
+        this._state = 'enabled';
         this.loadingTime = Date.now() - loadingStartedAt;
         console.log('Module: ', this.name, ' -- Background loaded');
-        this.backgroundReadyPromiseResolver();
+        this._bgReadyDefer.resolve();
       })
       .catch((e) => {
-        this.backgroundReadyPromiseRejecter(e);
+        this._state = 'disabled';
+        this._bgReadyDefer.reject();
         throw e;
       });
   }
@@ -73,10 +102,9 @@ export default class Module {
       quickShutdown.call(background);
     } else {
       background.unload();
-      this.isEnabled = false;
-      this.isLoading = false;
+      this._state = 'disabled';
       this.loadingTime = null;
-      prepareBackgroundReadyPromise.call(this);
+      this._bgReadyDefer = new Defer();
     }
     console.log('Module', this.name, 'unloading finished');
   }
@@ -85,82 +113,69 @@ export default class Module {
    * return window module
    */
   loadWindow(window) {
-    if (!this.isLoading) {
+    if (this.isDisabled) {
       return Promise.reject('cannot load window of disabled module');
     }
-    let resolver;
-    let rejecter;
-    const loadingPromise = new Promise((resolve, reject) => {
-      resolver = resolve;
-      rejecter = reject;
-    });
-    const win = new Window(window);
-
-    if (this.windows[win.id]) {
-      console.log('Module window:', `"${this.name}"`, 'already loaded');
-      return Promise.resolve();
+    const windowModuleState = this._windows.get(window);
+    const { loadingDefer, loadingStarted } = windowModuleState;
+    if (loadingStarted) {
+      console.log('Module window:', `"${this.name}"`, 'already being loaded');
+      return loadingDefer.promise;
     }
-    const mutWindow = window;
-    mutWindow.CLIQZ.Core.windowModules[this.name] = true;
 
-    this.windows[win.id] = {
-      loadingPromise,
-    };
     console.log('Module window:', `"${this.name}"`, 'loading started');
-
+    windowModuleState.loadingStarted = true;
     const loadingStartedAt = Date.now();
-    const settings = this.settings;
-    const moduleWinInstance = Promise.resolve(this.windowModule)
-      .then(WindowModule => new WindowModule({
-        settings,
+    return Promise.all([
+      new this.WindowModule({
+        settings: this.settings,
         window,
         background: this.backgroundModule,
-      }))
-      .then((module) => {
-        win.window.CLIQZ.Core.windowModules[this.name] = module;
-        return this.isReady()
-          .then(() => module.init())
-          .then(() => module);
-      })
-      .then((windowModule) => {
-        this.windows[win.id] = {
-          loadingTime: Date.now() - loadingStartedAt,
-        };
-        win.window.CLIQZ.Core.windowModules[this.name] = windowModule;
-        resolver();
-      })
-      .catch((e) => {
-        rejecter(e);
-        throw e;
-      });
-
-    return new Promise(resolve => {
-      if (['control-center', 'ui'].indexOf(this.name) === -1) {
-        // wait up to 5 seconds to initialize window part for each module
-        window.requestIdleCallback(() => {
-          resolve(moduleWinInstance);
-        }, { timeout: 5000 })
-      } else {
-        resolve(moduleWinInstance);
-      }
+      }),
+      this.isReady()
+    ])
+    .then(([windowModule]) => {
+      windowModuleState.windowModule = windowModule;
+      return windowModule.init();
+    })
+    .then(() => {
+      windowModuleState.loadingTime = Date.now() - loadingStartedAt;
+      console.log('Module window:', `"${this.name}"`, 'loading finished');
+      loadingDefer.resolve();
+      return loadingDefer.promise;
+    })
+    .catch((e) => {
+      loadingDefer.reject(e);
+      throw e;
     });
   }
 
+  getWindowModule(window) {
+    return this._windows.get(window).windowModule;
+  }
+
+  getWindowLoadingPromise(window) {
+    return this._windows.get(window).loadingDefer.promise;
+  }
+
+  getLoadingTime(window) {
+    return this._windows.get(window).loadingTime;
+  }
+
   unloadWindow(window, { disable } = {}) {
-    const win = new Window(window);
-    const windowModule = window.CLIQZ.Core.windowModules[this.name];
+    const windowModule = this.getWindowModule(window);
     if (!windowModule) {
       return;
     }
 
     if (disable && windowModule.disable) {
       console.log('Module window', `"${this.name}"`, 'disabling');
-      window.CLIQZ.Core.windowModules[this.name].disable();
+      windowModule.disable();
     }
+
     console.log('Module window', `"${this.name}"`, 'unloading');
-    window.CLIQZ.Core.windowModules[this.name].unload();
-    delete win.window.CLIQZ.Core.windowModules[this.name];
-    delete this.windows[win.id];
+    windowModule.unload();
+    this._windows.delete(window);
     console.log('Module window', `"${this.name}"`, 'unloading finished');
   }
 

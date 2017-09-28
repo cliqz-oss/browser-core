@@ -1,7 +1,9 @@
 import { registerContentScript
        , throttle
        , getWindowTreeInformation
-       , getWindowId } from '../core/content/helpers';
+       , getWindowId
+       , CHROME_MSG_SOURCE
+       , isCliqzContentScriptMsg } from '../core/content/helpers';
 import store from '../core/content/store';
 import logger from './logger';
 
@@ -217,6 +219,7 @@ function greenAdsListenerOnAdDivs(args) {
   forEachAdPlacement(window, (element) => {
     const sendEvent = (action, extra) => {
       send({
+        source: CHROME_MSG_SOURCE,
         windowId,
         payload: {
           module: 'green-ads',
@@ -275,6 +278,7 @@ function greenAdsCollectIframesRec(args) {
   }, true);
 
   send({
+    source: CHROME_MSG_SOURCE,
     windowId,
     payload: {
       module: 'green-ads',
@@ -661,6 +665,7 @@ function greenAdsInsertChipAds({ url, window, send, windowId, windowTreeInformat
 
       const sendEvent = (action, extra) => {
         send({
+          source: CHROME_MSG_SOURCE,
           windowId,
           payload: {
             module: 'green-ads',
@@ -752,6 +757,7 @@ function greenAdsOnDOMCreated(args) {
 
   if (originWindowID === outerWindowID) {
     send({
+      source: CHROME_MSG_SOURCE,
       windowId,
       payload: {
         module: 'green-ads',
@@ -795,6 +801,7 @@ function greenAdsOnDOMLoaded(args) {
 
   if (originWindowID === outerWindowID) {
     send({
+      source: CHROME_MSG_SOURCE,
       windowId,
       payload: {
         module: 'green-ads',
@@ -854,6 +861,7 @@ function greenAdsOnFullLoad(args) {
   } = windowTreeInformation;
 
   send({
+    source: CHROME_MSG_SOURCE,
     windowId,
     payload: {
       module: 'green-ads',
@@ -936,6 +944,9 @@ registerContentScript('http://*.chip.de/*', (window, chrome, windowId) => {
   };
 
   const onMessage = (msg) => {
+    if (!isCliqzContentScriptMsg(msg)) {
+      return;
+    }
     greenAdsOnMessageReceived({ msg, window });
   };
 

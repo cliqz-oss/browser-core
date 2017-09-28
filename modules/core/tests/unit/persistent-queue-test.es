@@ -3,7 +3,7 @@
 
 const PouchDB = require('pouchdb');
 
-export default describeModule('core/persistence/ordered-queue', 
+export default describeModule('core/persistence/ordered-queue',
   () => ({
     'platform/database': {
       default: (dbName, options) => {
@@ -12,7 +12,13 @@ export default describeModule('core/persistence/ordered-queue',
         }
         return new PouchDB(dbName, Object.assign(globalOpts, options));
       },
-    }
+    },
+    'core/utils': {
+      default: {},
+    },
+    'core/console': {
+      default: {},
+    },
   }),
   () => {
     let OrderedQueue;
@@ -68,7 +74,7 @@ export default describeModule('core/persistence/ordered-queue',
           .then(() => queue.offer('a', 1))
           .then(() => queue.length())
           .then((len) => {
-            chai.expect(len).to.equal(1);  
+            chai.expect(len).to.equal(1);
           })
         });
 
@@ -137,7 +143,7 @@ export default describeModule('core/persistence/ordered-queue',
           },
           returnedCount: 2,
         }
-      ] 
+      ]
 
       describe('#peek', () => {
 

@@ -12,16 +12,22 @@ export default class RegexpCache {
     var self = this;
 
     var re = self.compiledRegexp[pattern];
-    if(!re) {
-      re = new RegExp(pattern);
-      if(self.compiledRegexpCount++ < 2500) {
-        self.compiledRegexp[pattern] = re;
-        self.compiledRegexpCount++;
-      }
-      else {
-        self.compiledRegexpCount = {};
-      }
+    if (re) {
+      return re;
     }
+
+    try {
+      re = new RegExp(pattern);
+    } catch (e) {
+      re = null;
+    }
+    if(self.compiledRegexpCount > 2500) {
+      // reset cache completely.... TODO: improve this
+      self.compiledRegexp = {};
+      self.compiledRegexpCount = 0;
+    }
+    self.compiledRegexp[pattern] = re;
+    self.compiledRegexpCount++;
 
     return re;
   }

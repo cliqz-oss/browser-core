@@ -18,6 +18,7 @@ import bigMachineWithRichDataTests from './tests/dropdown/big-machine-rich-data'
 import geoWithoutLocalTests from './tests/dropdown/geo_without_consent';
 import geoWithLocalTests from './tests/dropdown/geo_yes';
 import adultQuestionTests from './tests/dropdown/adult-question';
+import offersTests from './tests/dropdown/offers';
 
 TESTS.DropdownTests = function () {
   describe('dropdown', function () {
@@ -36,5 +37,6 @@ TESTS.DropdownTests = function () {
     geoWithoutLocalTests();
     geoWithLocalTests();
     adultQuestionTests();
+    offersTests();
   });
 };

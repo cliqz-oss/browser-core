@@ -53,32 +53,37 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
         QSWhitelist = System.get('antitracking/qs-whitelists').default,
         md5 = System.get('antitracking/md5').default,
         datetime = System.get('antitracking/time');
-    const attrack = attrackBG.attrack;
+
+    function getAttrack() {
+      return System.get('antitracking/background').default.attrack;
+    }
 
     var initialCookie = true,
         initialQS = true;
 
     beforeEach(function() {
       // clean, mocked QSWhitelist
-      attrack.qs_whitelist = new QSWhitelist();
-      attrack.qs_whitelist.isUpToDate = function() { return true };
-      attrack.qs_whitelist.isReady = function() { return true };
+      getAttrack().qs_whitelist = new QSWhitelist();
+      getAttrack().qs_whitelist.isUpToDate = function() { return true };
+      getAttrack().qs_whitelist.isReady = function() { return true };
 
       initialCookie = CliqzUtils.getPref('attrackBlockCookieTracking');
       initialQS = CliqzUtils.getPref('attrackRemoveQueryStringTracking');
-      attrack.config.cookieEnabled = false;
-      attrack.config.qsEnabled = false;
+      getAttrack().config.cookieEnabled = false;
+      getAttrack().config.qsEnabled = false;
 
-      attrack.recentlyModified.clear();
+      getAttrack().recentlyModified.clear();
 
+      pipeline.unload();
       return pipeline.init()
-        .then(() => attrack.initPipeline());
+        .then(() => getAttrack().initPipeline());
     });
 
     after(function() {
-      attrack.tp_events.commit();
-      CliqzUtils.setPref('attrackBlockCookieTracking', initialCookie);
-      CliqzUtils.setPref('attrackRemoveQueryStringTracking', initialCookie);
+      return getAttrack().tp_events.commit(true).then(() => {
+        CliqzUtils.setPref('attrackBlockCookieTracking', initialCookie);
+        CliqzUtils.setPref('attrackRemoveQueryStringTracking', initialCookie);
+      });
     });
 
     function simulatePageLoad(pageSpec) {
@@ -111,7 +116,7 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
 
           describe('cookie blocking disabled', function() {
             beforeEach(function() {
-              attrack.config.cookieEnabled = false;
+              getAttrack().config.cookieEnabled = false;
             });
 
             it('allows all cookies', function() {
@@ -123,7 +128,7 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
 
           describe('cookie blocking enabled', function() {
             beforeEach(function() {
-              attrack.config.cookieEnabled = true;
+              getAttrack().config.cookieEnabled = true;
             });
 
             it('blocks third party cookies', function() {
@@ -142,11 +147,11 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
             context('anti-tracking disabled for source domain', function() {
 
               beforeEach(function() {
-                attrack.addSourceDomainToWhitelist('localhost');
+                getAttrack().addSourceDomainToWhitelist('localhost');
               });
 
               afterEach(function() {
-                attrack.removeSourceDomainFromWhitelist('localhost');
+                getAttrack().removeSourceDomainFromWhitelist('localhost');
               });
 
               it('allows all cookies on whitelisted site', function() {
@@ -161,11 +166,11 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
             context('anti-tracking disabled for other domain', function() {
 
               beforeEach(function() {
-                attrack.addSourceDomainToWhitelist('cliqztest2.de');
+                getAttrack().addSourceDomainToWhitelist('cliqztest2.de');
               });
 
               afterEach(function() {
-                attrack.removeSourceDomainFromWhitelist('cliqztest2.de');
+                getAttrack().removeSourceDomainFromWhitelist('cliqztest2.de');
               });
 
               it('still blocks cookies on other domains', function() {
@@ -188,7 +193,7 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
         context('QS blocking', function() {
 
           beforeEach(function() {
-            attrack.config.qsEnabled = true;
+            getAttrack().config.qsEnabled = true;
           });
 
           it('allows query strings on domains not in the tracker list', function() {
@@ -203,12 +208,13 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
                 tracker_hash = md5('127.0.0.1').substring(0, 16);
 
             beforeEach(function() {
-              attrack.qs_whitelist.addSafeToken(tracker_hash, "");
-              attrack.config.tokenDomainCountThreshold = 2;
+              getAttrack().qs_whitelist.addSafeToken(tracker_hash, "");
+              getAttrack().config.tokenDomainCountThreshold = 2;
+              pipeline.unload();
               return pipeline.init()
-                .then(() => attrack.initPipeline())
+                .then(() => getAttrack().initPipeline())
                 .then(() => {
-                  attrack.pipelineSteps.tokenChecker.tokenDomain.clear();
+                  getAttrack().pipelineSteps.tokenChecker.tokenDomain.clear();
                 });
             });
 
@@ -232,7 +238,7 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
               }
 
               beforeEach(function() {
-                attrack.config.tokenDomainCountThreshold = 0;
+                getAttrack().config.tokenDomainCountThreshold = 0;
               });
 
               it('blocks long tokens on tracker domain', function() {
@@ -248,7 +254,7 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
               });
 
               it('does not block if safekey',  function() {
-                attrack.qs_whitelist.addSafeKey(tracker_hash, key);
+                getAttrack().qs_whitelist.addSafeKey(tracker_hash, key);
 
                 var responses = simulatePageLoad(reqs);
                 responses.onBeforeRequest.forEach(expectNoModification);
@@ -256,8 +262,8 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
               });
 
               it('blocks if key listed as unsafe', function() {
-                attrack.qs_whitelist.addSafeKey(tracker_hash, key);
-                attrack.qs_whitelist.addUnsafeKey(tracker_hash, key);
+                getAttrack().qs_whitelist.addSafeKey(tracker_hash, key);
+                getAttrack().qs_whitelist.addUnsafeKey(tracker_hash, key);
 
                 var responses = simulatePageLoad(reqs);
                 responses.onBeforeRequest.forEach(expectThirdPartyBlock);
@@ -272,7 +278,7 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
 
               it('does not block if whitelisted token', function() {
                 var tok = md5(uid);
-                attrack.qs_whitelist.addSafeToken(tracker_hash, tok);
+                getAttrack().qs_whitelist.addSafeToken(tracker_hash, tok);
 
                 var responses = simulatePageLoad(reqs);
                 responses.onBeforeRequest.forEach(expectNoModification);
@@ -282,11 +288,11 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
               context('anti-tracking disabled for source domain', function() {
 
                 beforeEach(function() {
-                  attrack.addSourceDomainToWhitelist('localhost');
+                  getAttrack().addSourceDomainToWhitelist('localhost');
                 });
 
                 afterEach(function() {
-                  attrack.removeSourceDomainFromWhitelist('localhost');
+                  getAttrack().removeSourceDomainFromWhitelist('localhost');
                 });
 
                 it('allows all tokens on whitelisted site', function() {
@@ -306,11 +312,12 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
       var uid = '04C2EAD03BAB7F5E-2E85855CF4C75134';
 
       beforeEach(function() {
-        attrack.config.qsEnabled = true;
-        attrack.qs_whitelist.addSafeToken(md5('tracker.com').substring(0, 16), '');
-        attrack.config.tokenDomainCountThreshold = 0; // block first time
+        getAttrack().config.qsEnabled = true;
+        getAttrack().qs_whitelist.addSafeToken(md5('tracker.com').substring(0, 16), '');
+        getAttrack().config.tokenDomainCountThreshold = 0; // block first time
+        pipeline.unload();
         return pipeline.init()
-          .then(() => attrack.initPipeline());
+          .then(() => getAttrack().initPipeline());
       });
 
       it('removes all occurances of uid in the request', function() {
@@ -325,9 +332,9 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
           originUrl: '',
           source: '',
         });
-        expect(mainDoc).to.not.have.property('cancel');
-        expect(mainDoc).to.not.have.property('redirectUrl');
-        expect(mainDoc).to.not.have.property('requestHeaders');
+        chai.expect(mainDoc).to.not.have.property('cancel');
+        chai.expect(mainDoc).to.not.have.property('redirectUrl');
+        chai.expect(mainDoc).to.not.have.property('requestHeaders');
         var response = pipeline.onBeforeRequest({
           tabId: 34,
           frameId: 34,
@@ -357,9 +364,9 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
           originUrl: '',
           source: '',
         });
-        expect(mainDoc).to.not.have.property('cancel');
-        expect(mainDoc).to.not.have.property('redirectUrl');
-        expect(mainDoc).to.not.have.property('requestHeaders');
+        chai.expect(mainDoc).to.not.have.property('cancel');
+        chai.expect(mainDoc).to.not.have.property('redirectUrl');
+        chai.expect(mainDoc).to.not.have.property('requestHeaders');
         var response = pipeline.onBeforeRequest({
           tabId: 34,
           frameId: 34,

@@ -2,7 +2,7 @@
 TrackerTXT: caching rules for tracker.txt
  */
 
-import MapCache from './fixed-size-cache';
+import MapCache from '../core/helpers/fixed-size-cache';
 import { getTime } from './time';
 import { utils } from '../core/cliqz';
 

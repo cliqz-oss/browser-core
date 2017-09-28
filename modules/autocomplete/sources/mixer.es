@@ -3,7 +3,7 @@
  *
  */
 
-import { utils } from "../core/cliqz";
+import utils from "../core/utils";
 import Result from "./result";
 import UrlCompare from "./url-compare";
 import prefs from "../core/prefs";

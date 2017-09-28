@@ -38,7 +38,7 @@ if (grep) {
   mochaOptions.grep = grep;
 }
 const mocha = new Mocha(mochaOptions);
-const baseDir = cliqzConfig.testsBasePath;
+const baseDir = cliqzConfig.testsBasePath || './build';
 
 log(`baseDir ${baseDir}`);
 
@@ -188,4 +188,6 @@ global.sinon = sinon;
 
 
 // Trigger tests
-walker.on('end', function () { mocha.run(); });
+walker.on('end', function () {
+  mocha.run();
+});

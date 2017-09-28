@@ -1,15 +1,17 @@
 <div class="instant calculator" >
     <div class="header padded">
-      <a 
-        id="calc-answer"
-        class="result"
-        href="{{ url }}"
-      >
-        ={{result}}
-        <span class="tooltip">
-          {{local 'Click anywhere to copy'}}
-        </span>
-      </a>
-      
+      <p class="title">
+        <a
+          id="calc-answer"
+          class="result"
+          href="{{ url }}"
+        >
+          = {{result}}
+          <span class="tooltip">
+            {{local 'Click anywhere to copy'}}
+          </span>
+        </a>
+    </p>
+
     </div>
 </div>

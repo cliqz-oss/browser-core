@@ -77,7 +77,7 @@ export default background({
         if (CliqzADB.adblockInitialized) {
           // change in user lang pref, reload the filters
           CliqzADB.adBlocker.resetEngine();
-          CliqzADB.adBlocker.listsManager.initLists();
+          CliqzADB.adBlocker.resetLists();
           CliqzADB.adBlocker.listsManager.load();
         }
       }
@@ -104,6 +104,10 @@ export default background({
 
     getAdBlockInfo(url) {
       return CliqzADB.adbStats.report(url);
+    },
+
+    getAdBlockInfoForTab(tabId) {
+      return CliqzADB.adbStats.reportTab(tabId);
     },
 
     isDomainInBlacklist(domain) {

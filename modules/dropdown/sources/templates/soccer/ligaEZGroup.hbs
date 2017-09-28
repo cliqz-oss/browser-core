@@ -1,0 +1,47 @@
+<a class="result" href="{{ url }}">
+    {{> partials/logo}}
+    {{> partials/abstract}}
+</a>
+
+{{> partials/buttons}}
+
+{{#if subResult}}
+    <a class="result soccer-title" href="{{subResult.url}}">
+        <span class="padded">{{subResult.title}}</span>
+        <span class="soccer-domain divider">—</span>
+        <span class="soccer-domain">{{ local 'soccer-api-provider' }}</span>
+    </a>
+{{/if}}
+<div class="soccer padded">
+    <div class="wrapper dropdown-tabs">
+        <div class="background-placeholder"></div>
+        {{#each ligaEZGroup}}
+            <input class="tab-radio-input" type="radio" name="tabs" id="tab-{{@index}}" {{#if @first}}checked="checked"{{/if}}/>
+            <label class="tab-label" for="tab-{{@index}}" onclick="(function(e) {
+            document.getElementById('tab-{{@index}}').checked = 'checked';
+            e.preventDefault(); e.stopPropagation(); })(event)">{{groupName}}</label>
+        {{/each}}
+        {{#each ligaEZGroup}}
+            <div id="tab-block-{{@index}}"
+                 class="tab-block"
+            >
+                {{#with ligaEZTable}}
+                    {{> partials/liga-table}}
+                {{/with}}
+            </div>
+        {{/each}}
+    </div>
+    <div>
+        {{#if expandButton.show}}
+            <a class="result expand-btn" href="{{expandButton.url}}">
+                {{local expandButton.title}}
+            </a>
+        {{/if}}
+
+        <a class="result powered-by" href="{{poweredByResult.url}}">
+            {{local poweredByResult.title}}
+        </a>
+    </div>
+</div>
+
+{{> partials/news-injection}}

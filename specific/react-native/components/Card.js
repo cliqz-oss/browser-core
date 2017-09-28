@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, ScrollView, Text } from 'react-native';
 import utils from '../modules/core/utils';
-
+import events from '../modules/core/events';
 import { cardWidth, cardsGap, vpWidth } from '../styles/CardStyle';
 import Generic from './Generic';
 import Link from './Link';
@@ -13,7 +13,7 @@ class Card extends React.Component {
     // link doesn't propagate from child views
     return (
       <Link to={result.val} openLink={this.props.openLink}>
-        <ScrollView style={styles.container} keyboardDismissMode='on-drag'>
+        <ScrollView style={styles.container} onTouchStart={() => events.pub('mobile-search:hideKeyboard')}>
           <Generic result={result} />
         </ScrollView>
       </Link>

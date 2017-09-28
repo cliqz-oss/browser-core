@@ -89,6 +89,16 @@ class AdbStats {
     };
   }
 
+  reportTab(tabId) {
+    if (this.tabs.get(tabId)) {
+      return this.tabs.get(tabId).report();
+    }
+    return {
+      totalCount: 0,
+      advertisersList: {}
+    };
+  }
+
   clearStats() {
     const promises = [];
 

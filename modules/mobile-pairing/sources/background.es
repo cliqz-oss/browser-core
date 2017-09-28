@@ -1,20 +1,17 @@
-/* global osAPI, window */
-
 import PeerMaster from '../pairing/peer-master';
 import YoutubeApp from '../pairing/apps/youtube';
 import TabsharingApp from '../pairing/apps/tabsharing';
 import PingPongApp from '../pairing/apps/pingpong';
 import PairingObserver from '../pairing/apps/pairing-observer';
 import CliqzUtils from '../core/utils';
+import LocalStorage from '../platform/storage';
+import osAPI from '../platform/os-api';
 import background from '../core/base/background';
-import UserAgent from 'useragent.js';
+import { getDeviceName } from '../platform/device-info';
 
 export default background({
   init() {
-    const info = UserAgent.analyze(window.navigator.userAgent);
-    const deviceInfo = info.device.full || 'CLIQZ Mobile Browser';
-    const osInfo = info.os.full ? ` (${info.os.full})` : '';
-    const masterName = `${deviceInfo}${osInfo}`;
+    const masterName = getDeviceName();
     this.peerMaster = new PeerMaster({ masterName });
     const CliqzMasterComm = this.peerMaster;
 
@@ -47,29 +44,58 @@ export default background({
     });
     observer.onpairingerror = (error) => {
       osAPI.notifyPairingError({ error });
+      osAPI.pushPairingData(CliqzMasterComm.pairingData);
     };
     observer.ondeviceadded = (data) => {
       osAPI.notifyPairingSuccess(data);
+      osAPI.pushPairingData(CliqzMasterComm.pairingData);
     };
     CliqzMasterComm.addObserver('__MOBILEUI', observer);
 
-    this.arnChecker = CliqzUtils.setInterval(() => {
-      if (CliqzMasterComm.isInit) {
-        osAPI.deviceARN('setDeviceARN');
-      }
-    }, 1000 * 300);
+    const storage = new LocalStorage('__MOBILE_PAIRING');
+    const storagePromise = typeof storage.load === 'function' ? storage.load() : Promise.resolve();
 
-    return CliqzMasterComm.init(window.localStorage, window)
-    .then(() => {
-      try {
-        osAPI.deviceARN('setDeviceARN');
-      } catch (e) {
-        CliqzUtils.log('Error setting device arn', e);
-      }
-    });
+    return storagePromise
+    .then(() => CliqzMasterComm.init(storage));
+    // .then(() => {
+      // TODO: reimplement this
+      // try {
+      //   osAPI.deviceARN('setDeviceARN');
+      // } catch (e) {
+      //   CliqzUtils.log('Error setting device arn', e);
+      // }
+    // });
   },
   unload() {
-    CliqzUtils.clearInterval(this.arnChecker);
     this.peerMaster.unload();
   },
+
+  actions: {
+    checkConnections() {
+      this.peerMaster.checkConnections();
+    },
+    receiveQRValue(data) {
+      this.peerMaster.qrCodeValue(data);
+    },
+    requestPairingData() {
+      osAPI.pushPairingData(this.peerMaster.pairingData);
+      this.actions.checkConnections();
+    },
+    unpairDevice(deviceID) {
+      this.peerMaster.unpair(deviceID);
+    },
+    renameDevice(peerId, newName) {
+      this.peerMaster.changeDeviceName(peerId, newName);
+    },
+    sendTabs(peerID, tabs) {
+      const name = (this.peerMaster.slaves.find(x => x.peerID === peerID) || {}).name;
+      this.peerMaster.getObserver('TABSHARING').sendTab(tabs, peerID)
+        .then(() => {
+          osAPI.notifyTabSuccess({ peerID, name, msg: tabs });
+        })
+        .catch(() => {
+          osAPI.notifyTabError({ peerID, name, msg: tabs });
+        });
+    },
+  }
 });

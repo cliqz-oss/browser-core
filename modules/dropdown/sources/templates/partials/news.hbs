@@ -1,6 +1,6 @@
 {{#if newsResults}}
     <div class="news thumbnail-blocks">
-        {{#each (take newsResults internalResultsLimit)}}
+        {{#each (take newsResults newsResultsLimit)}}
             {{> generic }}
         {{/each}}
     </div>

@@ -8,6 +8,7 @@ import fetch from '../platform/fetch';
 import { encryptPairedMessage, decryptPairedMessage, ERRORS, getMessageTargets } from './shared';
 import { toBase64, fromHex } from '../core/encoding';
 import CliqzPeer from '../p2p/cliqz-peer';
+import inject from '../core/kord/inject';
 
 const PAIRING_ERRORS = {
   BAD_DEVICE_NAME: 2,
@@ -32,7 +33,12 @@ export default class PeerMaster {
   }
 
   constructor({ masterName = 'Cliqz Mobile Browser', debug = false }) {
+    this.p2p = inject.module('p2p');
     this.masterName = masterName;
+    if (!this.masterName) {
+      this.masterName = 'CLIQZ Mobile Browser';
+    }
+
     this.pushTime = 1000;
     this.debug = debug;
     this.apps = new Map();
@@ -153,11 +159,10 @@ export default class PeerMaster {
     })
     .catch(e => this.log(e));
   }
-  init(storage, window) {
+  init(storage) {
     if (this.isInit) {
       throw new Error('Module already init!');
     }
-    this.window = window;
     this.storage = storage;
     this.storagePrefix = 'PEERMASTER_';
 
@@ -544,8 +549,7 @@ export default class PeerMaster {
   }
 
   initPeer() {
-    this.masterPeer = new CliqzPeer(
-      this.window,
+    return this.p2p.action('createPeer',
       this.keypair,
       {
         DEBUG: this.debug,
@@ -553,18 +557,18 @@ export default class PeerMaster {
         maxMessageRetries: 0,
         signalingEnabled: false,
       },
-    );
-
-    this.masterPeer.encryptSignaling = (data, peerID) =>
-      this.loadPairingAESKey(peerID)
-      .then(aesKey => PeerMaster.sendEncrypted(data, aesKey))
-      .catch(() => data);
-
-    this.masterPeer.decryptSignaling = (data, peerID) =>
-      this.loadPairingAESKey(peerID)
-      .then(aesKey => PeerMaster.receiveEncrypted(data, aesKey))
-      .catch(() => data);
-    this.masterPeer.setMessageSizeLimit(maxSize);
+    ).then((peer) => {
+      this.masterPeer = peer;
+      this.masterPeer.encryptSignaling = (data, peerID) =>
+        this.loadPairingAESKey(peerID)
+        .then(aesKey => PeerMaster.sendEncrypted(data, aesKey))
+        .catch(() => data);
+      this.masterPeer.decryptSignaling = (data, peerID) =>
+        this.loadPairingAESKey(peerID)
+        .then(aesKey => PeerMaster.receiveEncrypted(data, aesKey))
+        .catch(() => data);
+      this.masterPeer.setMessageSizeLimit(maxSize);
+    });
   }
 
   checkConnections() {

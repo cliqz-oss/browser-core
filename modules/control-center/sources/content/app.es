@@ -317,7 +317,7 @@ function compileAdblockInfo(data) {
 }
 
 function draw(data){
-  var emptyFrame = Object.keys(data.module) == 0;
+  var emptyFrame = Object.keys(data.module || {}) === 0;
 
   if(data.onboarding) {
     document.getElementById('control-center').classList.add('onboarding');

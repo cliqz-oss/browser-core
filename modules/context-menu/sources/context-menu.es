@@ -54,9 +54,12 @@ export default class ContextMenu {
   * @method unload
   */
   unload() {
-    this.removeMenuItems();
-    this.contextMenu.removeEventListener('popupshowing', this.onPopupShowing);
-    this.contextMenu.removeEventListener('popupHiding', this.onPopupHiding);
+    if (!this.unloaded) {
+      this.unloaded = true;
+      this.removeMenuItems();
+      this.contextMenu.removeEventListener('popupshowing', this.onPopupShowing);
+      this.contextMenu.removeEventListener('popupHiding', this.onPopupHiding);
+    }
   }
 
   /**

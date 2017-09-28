@@ -47,22 +47,17 @@ class MatchHistoryExpr extends Expression {
   }
 
   getExprValue(ctx) {
-    const ts = timestamp();
-
     if (!this.regexesListCache) {
       // we get all the regexes first
       this.regexesListCache = [];
       for (let i = 0; i < this.patterns.length; i += 1) {
-        this.regexesListCache.push(this.data.regex_cache.getRegexp(this.patterns[i]));
+        const r = this.data.regex_cache.getRegexp(this.patterns[i]);
+        if (r !== null) {
+          this.regexesListCache.push(r);
+        }
       }
     }
 
-    // now we ask for the cached versions
-    const opID = this.getHashID();
-    const numMatches = this.data.history_index.countHistoryEntries(ts - this.start,
-                                                                   ts - this.end,
-                                                                   this.regexesListCache,
-                                                                   opID);
     // add current url to history, if it matches same patterns
     const currUlr = ctx['#url'];
     if (currUlr) {
@@ -75,6 +70,13 @@ class MatchHistoryExpr extends Expression {
       }
     }
 
+    // now we ask for the cached versions
+    const opID = this.getHashID();
+    const ts = timestamp();
+    const numMatches = this.data.history_index.countHistoryEntries(ts - this.start,
+                                                                   ts - this.end,
+                                                                   this.regexesListCache,
+                                                                   opID);
     return Promise.resolve(numMatches);
   }
 }

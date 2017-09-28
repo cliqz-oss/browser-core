@@ -126,7 +126,7 @@ export default function () {
     ];
     let resultElement;
 
-    beforeEach(function () {
+    before(function () {
       respondWith({ results });
       fillIn('bild');
       return waitForPopup().then(function () {

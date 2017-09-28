@@ -53,7 +53,15 @@ export default {
     }
   },
 
-  emphasis(text, q, minQueryLength, cleanControlChars) {
+  exists(variable, options) {
+    if (typeof variable !== 'undefined') {
+        return options.fn(this);
+    } else {
+        return options.inverse(this);
+    }
+  },
+
+  emphasis(text = '', q = '', minQueryLength, cleanControlChars) {
     if(!q) return text;
     q = q.trim();
 
@@ -129,6 +137,30 @@ export default {
         if (seconds < slot[0])
             return utils.getLocalizedString(slot[1], parseInt(seconds / slot[2]))
     return '';
+  },
+
+  agoDuration(duration, options) {
+    if(!duration) return '';
+    var seconds = parseInt(duration),
+        i=0, slot;
+
+    while (slot = AGO_CEILINGS[i++])
+        if (seconds < slot[0])
+            return utils.getLocalizedString(slot[1], parseInt(seconds / slot[2]))
+    return '';
+  },
+
+  distance(meters) {
+    let distance;
+    let unit;
+    if (meters < 1000) {
+      distance = meters.toFixed(0);
+      unit = 'm';
+    } else {
+      distance = (meters / 1000).toFixed(1);
+      unit = 'km';
+    }
+    return `${distance} ${unit}`;
   }
 
 

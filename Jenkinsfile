@@ -52,6 +52,14 @@ def matrix = [
         'gpu': true,
         'testParams': 'configs/jenkins.json -l firefox-web-ext --firefox ~/firefox52/firefox/firefox',
     ],
+    'firefox 55': [
+        'gpu': true,
+        'testParams': 'configs/jenkins.json -l firefox-web-ext --firefox ~/firefox55/firefox/firefox',
+    ],
+    'firefox stresstest (52)': [
+        'gpu': true,
+        'testParams': 'configs/jenkins.json -l firefox-web-ext-stresstest --firefox ~/firefox52/firefox/firefox',
+    ],
     'chromium': [
         'gpu': true,
         'testParams': 'configs/cliqzium.json -l chromium-selenium',
@@ -81,11 +89,11 @@ def setGithubCommitStatus(commit, context, status, message) {
 
 parallel helpers.entries(matrix).collectEntries {
     [(it[0]): {
-        setGithubCommitStatus(triggeringCommitHash, it[0], 'pending', 'penging')
+        setGithubCommitStatus(triggeringCommitHash, it[0], 'pending', 'pending')
     }]
 }
 
-node('docker') {
+node('docker && !gpu') {
     stage('checkout') {
         def scmInfo = checkout scm
         currentCommitHash = scmInfo.GIT_COMMIT
@@ -143,7 +151,7 @@ def test(Map m) {
     def getCodeDockerImage = m.getCodeDockerImage
     def getTriggeringCommitHash = m.getTriggeringCommitHash
 
-    def nodeLabels = gpu ? 'docker && gpu' : 'docker'
+    def nodeLabels = gpu ? 'docker && gpu' : 'docker && !gpu'
 
     return {
         node(nodeLabels) {
@@ -154,7 +162,7 @@ def test(Map m) {
             def dockerParams = "-p ${VNC_PORT}:5900"
 
             if (gpu) {
-                dockerParams += ' --device /dev/nvidia0 --device /dev/nvidiactl'
+                dockerParams += ' --device /dev/nvidia0 --device /dev/nvidiactl --cpus=2'
             }
 
             // authorize docker deamon to access registry
@@ -176,53 +184,56 @@ def test(Map m) {
                         "VNC ${HOST}:${VNC_PORT}"
                     )
 
-                    stage('tests: run') {
-                        def report
-                        def hasErrors
+                    timeout(35) {
+                        stage('tests: run') {
+                            def report
+                            def hasErrors
 
-                        try {
-                            sh """#!/bin/bash
-                                set -x
+                            try {
+                                sh """#!/bin/bash
+                                    set -x
 
-                                cd /app
-                                rm -f report.xml
+                                    cd /app
+                                    rm -f report.xml
 
-                                export DISPLAY=:0
-                                Xvfb \$DISPLAY -screen 0 1024x768x24 -ac &
-                                openbox&
+                                    export DISPLAY=:0
+                                    Xvfb \$DISPLAY -screen 0 1024x768x24 -ac &
+                                    openbox&
 
-                                x11vnc -storepasswd vnc /tmp/vncpass
-                                x11vnc -rfbport 5900 -rfbauth /tmp/vncpass -forever > /dev/null 2>&1 &
+                                    x11vnc -storepasswd vnc /tmp/vncpass
+                                    x11vnc -rfbport 5900 -rfbauth /tmp/vncpass -forever > /dev/null 2>&1 &
 
-                                ./fern.js test ${testParams} --ci report.xml > /dev/null; true
+                                    ./fern.js test ${testParams} --ci report.xml > /dev/null; true
 
-                                cp report.xml ${env.WORKSPACE}
-                            """
+                                    cp report.xml ${env.WORKSPACE}
+                                """
 
-                            Map r = xunit.parse('/app/report.xml')
-                            report = "tests: ${r.tests}, failures: ${r.failures}"
-                            hasErrors = r.failures != '0'
+                                Map r = xunit.parse('/app/report.xml')
+                                if (!r.containsKey('errors')) {
+                                  r.errors = '0'
+                                }
+                                report = "tests: ${r.tests}, failures: ${r.failures}, errors: ${r.errors}"
+                                hasErrors = (r.failures != '0') || (r.errors != '0')
 
-                            //xunit.setJUnitPackageName(context, 'report.xml', 'report.xml')
+                                junit(
+                                    allowEmptyResults: true,
+                                    healthScaleFactor: 0.0,
+                                    testResults: 'report.xml'
+                                )
+                            } catch (e) {
+                                report = e
+                                hasErrors = true
+                            }
 
-                            junit(
-                                allowEmptyResults: true,
-                                healthScaleFactor: 0.0,
-                                testResults: 'report.xml'
+                            setGithubCommitStatus(
+                                triggeringCommitHash,
+                                context,
+                                hasErrors ? 'failure' : 'success',
+                                report
                             )
-                        } catch (e) {
-                            report = e
-                            hasErrors = true
-                        }
-
-                        setGithubCommitStatus(
-                            triggeringCommitHash,
-                            context,
-                            hasErrors ? 'failure' : 'success',
-                            report
-                        )
-                    }
-                }
+                        } // end stage
+                    } // end timeout
+                } // end docker
             }
         }
     }

@@ -1,6 +1,6 @@
 import events from '../core/events';
 import { chrome } from './globals';
-import utils from "../core/utils";
+import { CHROME_MSG_SOURCE, isCliqzContentScriptMsg } from "../core/content/helpers";
 
 export default class {
 
@@ -16,6 +16,10 @@ export default class {
     });
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (!isCliqzContentScriptMsg(message)) {
+        return;
+      }
+
       const messageId = sender.tab.id;
       if (message.payload) {
         this.dispatch({
@@ -40,6 +44,11 @@ export default class {
   }
 
   broadcast(channel, msg) {
+    msg = {
+      ...msg,
+      source: CHROME_MSG_SOURCE
+    };
+
     if (channel === 'cliqz:core') {
       chrome.windows.getAll({populate:true}, function(windows){
         windows.forEach(function(window){

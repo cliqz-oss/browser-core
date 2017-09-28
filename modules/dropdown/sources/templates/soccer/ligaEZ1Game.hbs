@@ -5,9 +5,9 @@
 
 {{> partials/buttons}}
 
-{{#if this.subResult}}
-    <a class="result soccer-title" href="{{this.subResult.url}}">
-        <span class="padded">{{this.subResult.title}}</span>
+{{#if subResult}}
+    <a class="result soccer-title" href="{{subResult.url}}">
+        <span class="padded">{{subResult.title}}</span>
         <span class="soccer-domain divider">—</span>
         <span class="soccer-domain">{{ local 'soccer-api-provider' }}</span>
     </a>
@@ -16,11 +16,23 @@
     <div class="wrapper">
 
         <div class="table">
-            {{#each ligaEZ1Game}}
+            {{#each (take ligaEZ1Game itemsLimit) }}
                 {{> partials/ticker}}
             {{/each}}
         </div>
 
     </div>
-    <p class="powered-by">{{ local 'soccer-powered-by' }}</p>
+    <div>
+        {{#if expandButton.show}}
+            <a class="result expand-btn" href="{{expandButton.url}}">
+                {{local expandButton.title}}
+            </a>
+        {{/if}}
+
+        <a class="result powered-by" href="{{poweredByResult.url}}">
+            {{local poweredByResult.title}}
+        </a>
+    </div>
 </div>
+
+{{> partials/news-injection}}

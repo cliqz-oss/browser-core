@@ -18,7 +18,8 @@ export default function (url = "chrome://cliqz/") {
   } else {
     // FF57 +
     const win = Components.classes['@mozilla.org/appshell/window-mediator;1']
-      .getService(Ci.nsIWindowMediator).getMostRecentWindow("navigator:browser");
+      .getService(Components.interfaces.nsIWindowMediator)
+      .getMostRecentWindow("navigator:browser");
 
     return dsm.createStorage(win, principal, '');
   }

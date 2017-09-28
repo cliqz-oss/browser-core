@@ -21,14 +21,20 @@ export default class {
     this.version = version;
     this.extensionId = extensionId;
     this.availableModules = Object.create(null);
+
+    this.services = Object.create(null);
     config.modules.forEach((moduleName) => {
-      this.availableModules[moduleName] = new Module(
+      const module = new Module(
         moduleName,
         Object.assign({}, config.settings, { version })
       );
+      this.availableModules[moduleName] = module;
+
+      // Keep reference to all module services by their name
+      // Currently last one wins
+      Object.assign(this.services, module.providedServices);
     });
 
-    utils.app = this;
     utils.extensionVersion = version;
     setGlobal(this);
     this.prefchangeEventListener = subscribe('prefchange', this.onPrefChange, this);
@@ -84,41 +90,24 @@ export default class {
 
   loadIntoWindow(win) {
     if (!win) return;
-    // wait one second before starting window modules
-    win.setTimeout(() => {
-      waitWindowReady(win) // This takes a lot to fulfill...
-        .then(() => {
-          if (mustLoadWindow(win)) {
-            return this.loadWindow(win);
-          } else {
-            if (config.settings.id === 'funnelcake@cliqz.com' &&
-              win.location.href === 'chrome://browser/content/aboutDialog.xul') {
-              win.setTimeout(function(doc){
-                const privacyLink = doc.querySelectorAll('.bottom-link')[2];
-                if (privacyLink) {
-                  privacyLink.setAttribute('href', 'https://www.mozilla.org/de/privacy/firefox-cliqz/');
-                }
-              }, 100, win.document)
-            }
-          }
-          return null;
-        })
-        .catch((e) => {
-          console.log(e, 'Extension filed loaded window modules');
-        });
-      }, 1000);
+
+    waitWindowReady(win) // This takes a lot to fulfill...
+      .then(() => {
+        if (mustLoadWindow(win)) {
+          return this.loadWindow(win);
+        }
+        return null;
+      })
+      .catch((e) => {
+        console.log(e, 'Extension filed loaded window modules');
+      });
   }
 
   start() {
     // Load Config - Synchronous!
     utils.FEEDBACK_URL = `${utils.FEEDBACK}${this.version}-${config.settings.channel}`;
 
-    const backgroundLoadingPromise = this.load().catch((e) => {
-      utils.log(e, 'Extension -- failed to init Cliqz App');
-    });
-
-    // TODO: could be nicer
-    this.availableModules.core.isReady().then(() => {
+    return this.load().then(() => {
       enableChangeEvents();
       this.windowWatcher = (win, event) => {
         if (event === 'opened') {
@@ -135,8 +124,6 @@ export default class {
         this.loadIntoWindow(win);
       });
     });
-
-    return backgroundLoadingPromise;
   }
 
   stop(isShutdown, disable, telemetrySignal) {
@@ -230,17 +217,29 @@ export default class {
     resetOriginalPrefs();
   }
 
+  prepareServices(serviceNames) {
+    return Promise.all(
+      serviceNames.map(
+        // service is initialized only once, so calling init multiple times is fine
+        serviceName => this.services[serviceName].init()
+      )
+    );
+  }
+
+  /*
+   * Enable module and it dependant services
+   * Module will not load if dependant services fail to initialize
+   */
   loadModule(module) {
-    try {
-      if (module.isEnabled) {
-        return Promise.resolve();
-      }
-      return module.enable()
-        .catch(e => console.error('App', 'Error on loading module:', module.name, e));
-    } catch (e) {
-      console.error('App module:', `"${module.name}"`, ' -- something went wrong', e);
+    if (module.isEnabled) {
       return Promise.resolve();
     }
+
+    return this.prepareServices(module.requiredServices).then(
+      () => module.enable(this)
+        .catch(e => console.error('App', 'Error on loading module:', module.name, e)),
+      e => console.error('App', 'Error on loading services', e)
+    );
   }
 
   load() {
@@ -249,15 +248,24 @@ export default class {
     const allModules = this.modules();
     const core = allModules.find(x => x.name === 'core');
     const modules = allModules.filter(x => x.name !== 'core' && shouldEnableModule(x.name));
+    const requiredServices = [...new Set(
+      modules
+        .map(m => m.requiredServices)
+        .reduce((all, s) => [...all, ...s], [])
+    )];
 
-    core.preload();
-    modules.forEach(x => x.preload());
-
-    return this.loadModule(core)
+    return this.prepareServices(requiredServices)
+    // do not break App startup on failing services, modules will have to
+    // deal with the problem as they like
+    .catch(e => console.log('App', 'error on loading services', e))
+    // we load core first before any other module
+    .then(() => this.loadModule(core))
+    // loading of modules should be paralellized as much as possible
     .then(() => Promise.all(modules.map(x => this.loadModule(x))))
     .then(() => {
       console.log('App', 'Loading modules -- all loaded');
-    }).catch((e) => {
+    })
+    .catch((e) => {
       console.error('App', 'Loading modules failed', e);
     });
   }
@@ -282,9 +290,7 @@ export default class {
     if (!window.CLIQZ) {
       const CLIQZ = {
         app: this,
-        Core: {
-          windowModules: {},
-        }, // TODO: remove and all clients
+        Core: { }, // TODO: remove and all clients
       };
 
       // legacy code for bootstrap addon - remove it when bundling is there
@@ -299,23 +305,22 @@ export default class {
     }
 
     const core = this.modules().find(x => x.name === 'core');
-    const modules = this.modules().filter(x => x.name !== 'core');
+    const modules = this.modules().filter(x => x.name !== 'core' && !x.isDisabled);
 
     return core.loadWindow(window)
-    .then(() => modules.filter(x => x.isLoading))
-    .then(mods => Promise.all(
-      mods.map(
-        mod => mod.loadWindow(window)
-          .catch(e => console.error('App', 'error loading window module', mod.name, e))
-      )
-    ))
-    .then(() => {
-      console.log('App', 'Window loaded');
-      this.isFullyLoaded = true;
-    })
-    .catch((e) => {
-      console.error('App window', 'Error loading (should not happen!)', e);
-    });
+      .then(() => Promise.all(
+        modules.map(
+          mod => mod.loadWindow(window)
+            .catch(e => console.error('App', 'error loading window module', mod.name, e))
+        )
+      ))
+      .then(() => {
+        console.log('App', 'Window loaded');
+        this.isFullyLoaded = true;
+      })
+      .catch((e) => {
+        console.error('App window', 'Error loading (should not happen!)', e);
+      });
   }
 
   unloadWindow(window, data) {
@@ -361,7 +366,6 @@ export default class {
   }
 
   // use in runtime not startup
-  // TODO: check this is working fine with new module loading
   enableModule(moduleName) {
     const module = this.availableModules[moduleName];
 
@@ -369,17 +373,16 @@ export default class {
       return Promise.resolve();
     }
 
-    if (module.isLoading) {
-      return module.isReady();
-    }
+    // TODO: move this into the loadModule
+    const moduleEnabled = module.isEnabling ? module.isReady() : this.loadModule(module);
 
-    module.preload();
-    module.enable();
-    return Promise.all(
-      mapWindows(module.loadWindow.bind(module))
-    ).then(() => {
-      prefs.set(`modules.${moduleName}.enabled`, true);
-    });
+    return moduleEnabled
+      .then(() => Promise.all(
+        mapWindows(module.loadWindow.bind(module))
+      ))
+      .then(() => {
+        prefs.set(`modules.${moduleName}.enabled`, true);
+      });
   }
 
   // use in runtime not startup

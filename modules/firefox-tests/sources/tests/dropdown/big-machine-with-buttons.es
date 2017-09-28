@@ -114,7 +114,7 @@ export default function () {
     ];
     let resultElement;
 
-    beforeEach(function () {
+    before(function () {
       respondWith({ results });
       fillIn('google');
       return waitForPopup().then(function () {

@@ -14,7 +14,7 @@ function key(line) {
 
 function listLocales(localesPath) {
   return fs.readdirSync(localesPath)
-    .filter(file => !file.startsWith('__'));
+    .filter(file => !file.startsWith('__') && !file.startsWith('.'));
 }
 
 
@@ -30,11 +30,16 @@ export default describeModule('static/main',
       const localesPath = 'modules/static/dist/locale';
       // Load all available locales
       const langs = listLocales(localesPath);
-      const locales = langs.map(lang =>
-        readLocaleFile(`${localesPath}/${lang}/cliqz.json`)
-          .split('\n')
-          .slice(1, -2)
-      );
+      let locales;
+
+      beforeEach(function () {
+        locales = langs.map(lang =>
+          readLocaleFile(`${localesPath}/${lang}/cliqz.json`)
+            .split('\n')
+            .slice(1, -2)
+        );
+
+      });
 
       it('All locales keys have the mandatory "message" key', () => {
         langs.map(lang => {

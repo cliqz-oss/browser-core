@@ -5,6 +5,11 @@
         "args": ["--icu-data-dir=node_modules/full-icu", "tests/runners/unit-node.js"],
         "protocol": "tap"
       },
+      "firefox-web-ext-stresstest": {
+        "exe": "node",
+        "args": ["tests/runners/firefox-web-ext-stresstest.js"],
+        "protocol": "tap"
+      },
       "firefox-web-ext": {
         "exe": "node",
         "args": ["tests/runners/firefox-web-ext.js"],

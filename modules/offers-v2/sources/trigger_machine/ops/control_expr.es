@@ -370,9 +370,14 @@ class MatchExpr extends Expression {
 
   getExprValue(ctx) {
     return this.text.evalExpr(ctx).then((text) => {
-      const matched = this.patterns.some(
-        pattern => this.data.regex_cache.getRegexp(pattern).test(text)
-      );
+      let matched = false;
+      for (let i = 0; i < this.patterns.length; i += 1) {
+        const regex = this.data.regex_cache.getRegexp(this.patterns[i]);
+        if (regex !== null && regex.test(text)) {
+          matched = true;
+          break;
+        }
+      }
       return Promise.resolve(matched);
     });
   }

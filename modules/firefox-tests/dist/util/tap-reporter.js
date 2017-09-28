@@ -34,11 +34,11 @@ function TAP (runner, opts) {
     failures++;
     // log('not ok %d %s', n, title(test));
     log('not ok ', n, ' ', title(test));
-    if (err.stack) {
-      log(err.stack.replace(/^/gm, '  '));
-    }
     if (err.message) {
       log(err.message.replace(/^/gm, '  '));
+    }
+    if (err.stack) {
+      log(err.stack.replace(/^/gm, '  '));
     }
   });
 

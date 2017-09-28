@@ -46,6 +46,14 @@ export default class {
   }
 
   confirmRedirect(details) {
-    return !(this.redirectTaggerCache.has(details.requestId) || details.hasRedirected);
+    if (this.redirectTaggerCache.has(details.requestId)) {
+      return false;
+    }
+
+    if (details.requestContext.isFullPage() && details.hasRedirected) {
+      return false;
+    }
+
+    return true;
   }
 }

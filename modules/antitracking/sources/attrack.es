@@ -4,7 +4,7 @@
  * This module prevents user from 3rd party tracking
  */
 import { utils, events } from '../core/cliqz';
-import inject, { ModuleDisabledError } from '../core/kord/inject';
+import inject from '../core/kord/inject';
 
 import * as browser from '../platform/browser';
 import * as datetime from './time';
@@ -158,8 +158,9 @@ export default class CliqzAttrack {
       timeChangeConstraint('hourChanged', 'hour'));
 
     pacemaker.register(() => {
-      this.tp_events.commit();
-      this.tp_events.push();
+      this.tp_events.commit().then(() => {
+        this.tp_events.push();
+      });
     }, twoMinutes);
   }
 
@@ -290,9 +291,7 @@ export default class CliqzAttrack {
       // create pipeline for on open request
       this.pipelines.open = new Pipeline('attrack.open', [
         [steps.redirectTagger.checkRedirect.bind(steps.redirectTagger), 'redirectTagger.checkRedirect'],
-        [function checkIsMainDocument(state) {
-          return !state.requestContext.isFullPage();
-        }, 'checkIsMainDocument'],
+        [steps.pageLogger.logMainDocument.bind(steps.pageLogger), 'pageLogger.logMainDocument'],
         [skipInternalProtocols, 'skipInternalProtocols'],
         [checkSameGeneralDomain, 'checkSameGeneralDomain'],
         [this.cancelRecentlyModified.bind(this), 'cancelRecentlyModified'],
@@ -323,7 +322,9 @@ export default class CliqzAttrack {
       this.pipelines.modify = new Pipeline('attrack.modify', [
         [steps.cookieContext.assignCookieTrust.bind(steps.cookieContext), 'cookieContext.assignCookieTrust'],
         [steps.redirectTagger.confirmRedirect.bind(steps.redirectTagger), 'redirectTagger.confirmRedirect'],
-        [steps.pageLogger.logMainDocument.bind(steps.pageLogger), 'pageLogger.logMainDocument'],
+        [function checkIsMainDocument(state) {
+          return !state.requestContext.isFullPage();
+        }, 'checkIsMainDocument'],
         [skipInternalProtocols, 'skipInternalProtocols'],
         [checkSameGeneralDomain, 'checkSameGeneralDomain'],
         [steps.subdomainChecker.checkBadSubdomain.bind(steps.subdomainChecker), 'subdomainChecker.checkBadSubdomain'],
@@ -444,6 +445,7 @@ export default class CliqzAttrack {
           {
             fn: (...args) => this.pipelines[stage].execute(...args),
             name: `antitracking.${stage}`,
+            after: ['determineContext'],
           }
         )
       ));
@@ -500,13 +502,7 @@ export default class CliqzAttrack {
 
       pacemaker.stop();
 
-      this.unloadPipeline().catch((err) => {
-        if (err.name === ModuleDisabledError.name) {
-          console.log('attrack', 'cannot unload: webrequest-pipeline was already unloaded');
-          return Promise.resolve();
-        }
-        return Promise.reject(err);
-      });
+      this.unloadPipeline();
 
       events.clean_channel('attrack:safekeys_updated');
     }
@@ -548,7 +544,8 @@ export default class CliqzAttrack {
     return true;
   }
 
-  applyBlock(state, response) {
+  applyBlock(state, _response) {
+    const response = _response;
     const badTokens = state.badTokens;
     let rule = this.getDefaultRule();
     const trackerTxt = TrackerTXT.get(state.sourceUrlParts);
@@ -569,6 +566,7 @@ export default class CliqzAttrack {
     if (rule === 'block') {
       state.incrementStat(`token_blocked_${rule}`);
       response.block();
+      response.shouldIncrementCounter = true;
       return false;
     }
 

@@ -42,4 +42,4 @@ chromedriver
 results.xml
 jsengine.bundle.js
 jsengine.bundle.js.meta
-
+.node-persist

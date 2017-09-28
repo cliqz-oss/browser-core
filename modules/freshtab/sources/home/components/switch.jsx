@@ -5,7 +5,7 @@ export default class Switch extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isChecked: null
+      isChecked: false
     };
     this._handleChange = this._handleChange.bind(this);
   }

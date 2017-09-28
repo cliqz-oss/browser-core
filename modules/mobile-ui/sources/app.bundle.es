@@ -29,6 +29,8 @@ const loadModule = (module) => {
 
 window.document.addEventListener('DOMContentLoaded', function () {
   loadModule(core).then(() => {
+    return core.Background.providesServices.logos();
+  }).then(() => {
     if (config.environment !== 'production') {
       return loadModule(dev);
     } else {

@@ -113,7 +113,9 @@ const FROM_ANY = (
 
 /**
  * Map content type value to mask the corresponding mask.
+ * ref: https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIContentPolicy
  */
+// TODO: Handle `font` = 14 (only one filter with this cpt option)
 const CPT_TO_MASK = {
   1:  NETWORK_FILTER_MASK.fromOther,
   2:  NETWORK_FILTER_MASK.fromScript,
@@ -126,6 +128,7 @@ const CPT_TO_MASK = {
   12: NETWORK_FILTER_MASK.fromObjectSubrequest,
   15: NETWORK_FILTER_MASK.fromMedia,
   16: NETWORK_FILTER_MASK.fromWebsocket,
+  21: NETWORK_FILTER_MASK.fromImage, // TYPE_IMAGESET
 };
 
 
@@ -748,11 +751,18 @@ function parseNetworkFilter(rawLine) {
 
   // Transform |http:// to |http:
   // Transform |https:// to |https:
+  // Transform |ws:// to |http:
+  // Transform |wss:// to |https:
   if (fastStartsWith(line, '|http://')) {
     line = line.replace('|http://', '|http:');
   } else if (fastStartsWith(line, '|https://')) {
     line = line.replace('|https://', '|https:');
+  } else if (fastStartsWith(line, '|ws://')) {
+    line = line.replace('|ws://', '|http:');
+  } else if (fastStartsWith(line, '|wss://')) {
+    line = line.replace('|wss://', '|https:');
   }
+
 
   // Represent options as a bitmask
   let mask = NETWORK_FILTER_MASK.thirdParty | NETWORK_FILTER_MASK.firstParty;

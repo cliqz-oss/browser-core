@@ -1,3 +1,5 @@
+"use strict";
+
 var Funnel = require('broccoli-funnel');
 var MergeTrees = require('broccoli-merge-trees');
 var writeFile = require('broccoli-file-creator');

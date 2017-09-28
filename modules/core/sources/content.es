@@ -2,7 +2,8 @@
 import config from '../core/config';
 // Load content scripts from modules
 import '../module-content-script';
-import { getWindowId, getWindowTreeInformation, runContentScripts, throttle } from '../core/content/helpers';
+import { getWindowId, getWindowTreeInformation, runContentScripts,
+  throttle, CHROME_MSG_SOURCE, isCliqzContentScriptMsg } from '../core/content/helpers';
 
 if (typeof windowId === 'undefined') {
   window.windowId = getWindowId();
@@ -74,6 +75,7 @@ try {
     }
 
     chrome.runtime.sendMessage({
+      source: CHROME_MSG_SOURCE,
       origin: 'content',
       windowId: windowId,
       payload: message
@@ -180,6 +182,7 @@ try {
     }
 
     chrome.runtime.sendMessage({
+      source: CHROME_MSG_SOURCE,
       origin: 'content',
       payload: payload,
       requestId: msg.requestId
@@ -189,6 +192,7 @@ try {
   function proxyWindowEvent(action) {
     return function (ev) {
       chrome.runtime.sendMessage({
+        source: CHROME_MSG_SOURCE,
         windowId: windowId,
         payload: {
           module: 'core',
@@ -207,7 +211,21 @@ try {
   }
 
   let onMouseDown = function (ev) {
+    const linksSrc = []
+    if (window.parent !== window) {
+      // collect srcipt links only for frames
+      if (window.document && window.document.scripts) {
+        for (let i = 0; i < window.document.scripts.length; i += 1) {
+          const src = window.document.scripts[i].src;
+          if (src.startsWith('http')) {
+            linksSrc.push(src);
+          }
+        }
+      }
+    }
+
     chrome.runtime.sendMessage({
+      source: CHROME_MSG_SOURCE,
       windowId: windowId,
       payload: {
         module: 'core',
@@ -221,7 +239,8 @@ try {
               href: ev.target.href,
               parentNode: {
                 href: ev.target.parentNode.href
-              }
+              },
+              linksSrc
             }
           },
           getContextHTML(ev)
@@ -239,6 +258,7 @@ try {
 
     if (isTopWindow && lang) {
       chrome.runtime.sendMessage({
+        source: CHROME_MSG_SOURCE,
         windowId: windowId,
         payload: {
           module: 'core',
@@ -260,6 +280,7 @@ try {
 
     if (isTopWindow) {
       chrome.runtime.sendMessage({
+        source: CHROME_MSG_SOURCE,
         windowId: windowId,
         payload: {
           module: 'core',
@@ -280,6 +301,9 @@ try {
   };
 
   function onBackgroundMessage(message) {
+    if (!isCliqzContentScriptMsg(message)) {
+      return;
+    }
     if (message.windowId === windowId) {
       onCallback(message);
     } else {

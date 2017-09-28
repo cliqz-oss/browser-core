@@ -1,6 +1,7 @@
 import config from '../core/config';
 import utils from '../core/utils';
 import { Components } from './globals';
+import { CHROME_MSG_SOURCE } from '../core/content/helpers';
 
 const PROCESS_SCRIPT_URL = `${config.baseURL}platform/process-script.bundle.js`;
 const FRAME_SCRIPT_URL = `${config.baseURL}core/frameScript.js`;
@@ -47,6 +48,14 @@ export default class ProcessScriptManager {
   }
 
   broadcast(channel, msg) {
+    /* eslint-disable no-param-reassign */
+    if (typeof msg === 'object') {
+      msg = {
+        ...msg,
+        source: CHROME_MSG_SOURCE
+      };
+    }
+
     this.ppmm.broadcastAsyncMessage(channel, msg);
     this.gmm.broadcastAsyncMessage(channel, msg);
   }

@@ -26,26 +26,25 @@ if (process.argv[2] === "install") {
 
 function fern() {
 const program = require('commander');
-const execa = require('execa');
 const spaws = require('cross-spawn');
 const fs = require('fs');
 const wrench = require('wrench');
 const walk = require('walk');
 const colors = require('colors');
 const broccoli = require('broccoli');
-const Testem = require('testem')
 const path = require('path')
 const rimraf = require('rimraf');
 const chalk = require('chalk');
 const notifier = require('node-notifier');
 const copyDereferenceSync = require('copy-dereference').sync
-const copy = require('recursive-copy');
+const untildify = require('untildify');
+const Reporter = require('./fern/reporter');
 
 const common = require('./fern/commands/common');
 require('./fern/commands/serve');
+require('./fern/commands/pack');
 
 const setConfigPath = common.setConfigPath;
-const buildFreshtabFrontEnd = common.buildFreshtabFrontEnd;
 const getExtensionVersion = common.getExtensionVersion;
 const createBuildWatcher = common.createBuildWatcher;
 const cleanupDefaultBuild = common.cleanupDefaultBuild;
@@ -78,9 +77,6 @@ program.command('install')
           console.log(chalk.green('Installing project dependencies'));
           spaws.sync('bower', ['install'], { stdio: 'inherit', stderr: 'inherit'});
 
-          console.log(chalk.green('Installing ember freshtab dependencies'));
-          spaws.sync('npm', ['install'], { stdio: 'inherit', stderr: 'inherit', cwd: 'subprojects/fresh-tab-frontend'});
-          spaws.sync('bower', ['install'], { stdio: 'inherit', stderr: 'inherit', cwd: 'subprojects/fresh-tab-frontend'});
           console.log(chalk.green('DONE!'))
        });
 
@@ -100,7 +96,6 @@ program.command('addon-id [file]')
 program.command('build [file]')
        .option('--no-maps', 'disables source maps')
        .option('--version [version]', 'sets extension version', 'package')
-       .option('--freshtab', 'enables ember fresh-tab-frontend build')
        .option('--environment <environment>')
        .option('--to-subdir', 'build into a subdirectory named after the config')
        .option('--instrument-functions', 'enable function instrumentation for profiling')
@@ -112,11 +107,9 @@ program.command('build [file]')
 
           process.env['CLIQZ_ENVIRONMENT'] = options.environment || 'development';
           process.env['CLIQZ_SOURCE_MAPS'] = options.maps;
-          process.env['CLIQZ_FRESHTAB'] = options.freshtab;
           process.env['CLIQZ_INSTRUMENT_FUNCTIONS'] = options.instrumentFunctions || '';
 
           console.log("Starting build");
-          buildFreshtabFrontEnd();
           cleanupDefaultBuild();
 
           getExtensionVersion(options.version).then(tag => {
@@ -188,10 +181,10 @@ program.command('test [file]')
          }
 
          if (options.firefox) {
-           process.env["FIREFOX_PATH"] = options.firefox;
+           process.env["FIREFOX_PATH"] = untildify(options.firefox);
          }
 
-         process.env["OUTPUT_PATH"] = OUTPUT_PATH;
+         process.env["OUTPUT_PATH"] = untildify(OUTPUT_PATH);
 
          const Testem = require('testem');
          const testem = new Testem();
@@ -208,7 +201,7 @@ program.command('test [file]')
                 host: 'localhost',
                 port: '4200',
                 launch: launchers || (CONFIG['testem_launchers_ci'] || []).join(','),
-                reporter: 'xunit',
+                reporter: Reporter,
                 report_file: options.ci
               });
             });
@@ -228,7 +221,7 @@ program.command('test [file]')
                   host: 'localhost',
                   port: '4200',
                   launch: launchers || (CONFIG['testem_launchers'] || []).join(','),
-                  reporter: 'xunit',
+                  reporter: Reporter,
                   report_file: options.ci
                 });
                 isRunning = true;
@@ -279,58 +272,6 @@ program.command('react-dev [config]')
         const options = ['./node_modules/react-native/local-cli/cli.js', 'start',
                          '--projectRoots', projectRoots.join(',')]
         spaws.sync('node', options, { stdio: 'inherit', stderr: 'inherit'});
-      });
-
-function createReactNativeBundle(bundleDir, platform, dev) {
-  const shellOpts = { stdio: 'inherit', stderr: 'inherit' };
-  const bundleName = 'jsengine.bundle.js';
-  const bundlePath = `${bundleDir}/${bundleName}`;
-  const outDirInsideRepo = bundleDir.indexOf(__dirname) === 0;
-  console.log(bundleDir, outDirInsideRepo);
-  if (outDirInsideRepo) {
-    rimraf.sync(bundleDir);
-  }
-  // create bundle
-  var options = ['./node_modules/react-native/local-cli/cli.js', 'unbundle',
-    '--platform', platform, '--entry-file', `${OUTPUT_PATH}/index.${platform}.js`,
-    '--bundle-output', bundlePath, '--assets-dest', bundleDir, '--dev', dev === true];
-  console.log(options);
-  spaws.sync('node', options, shellOpts);
-
-  // prepare package.json
-  spaws.sync('cp', ['package.json', `${bundleDir}/package.json`], shellOpts);
-  // move bundled assets over
-  return copy(`${OUTPUT_PATH}/assets`, `${bundleDir}/assets`, { overwrite: true });
-}
-
-program.command('react-bundle <platfocrm> [config] [dest]')
-      .description('create a react-native jsbundle')
-      .option('--dev', 'disables warning and error messages')
-      .action((platform, config, dest, cmdOptions) => {
-        setConfigPath(config || 'configs/react-native.json');
-        const shellOpts = { stdio: 'inherit', stderr: 'inherit' };
-        const bundleDir = path.resolve(dest || 'jsengineBundle');
-        spaws.sync('./fern.js', ['build', config], shellOpts);
-        createReactNativeBundle(bundleDir, platform, cmdOptions.dev);
-      });
-
-program.command('react-release <platform> <tag> [config]')
-      .description('deploy a react bundle to the CDN')
-      .action((platform, tag, config) => {
-        setConfigPath(config || 'configs/react-native.json');
-        const shellOpts = { stdio: 'inherit', stderr: 'inherit' };
-        const bundleDir = path.resolve(`jsengine-${platform}-${tag}`);
-        const archiveName = `jsengine.${platform}.${tag}.tar.gz`;
-
-        createReactNativeBundle(bundleDir, platform, false).then(() => {
-          // create archive of bundle files
-          spaws.sync('tar', ['-C', bundleDir, '-czf', archiveName, './'], shellOpts);
-          // push to s3
-          const s3Bucket = 's3://cdn.cliqz.com/mobile/jsengine/';
-          spaws.sync('aws', ['s3', 'cp', archiveName, s3Bucket], shellOpts);
-          // cleanup
-          spaws.sync('rm', ['-R', archiveName, bundleDir], shellOpts);
-        });
       });
 
 program.parse(process.argv);

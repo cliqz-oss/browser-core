@@ -3,11 +3,36 @@
         <div class="local-result-wrapper clearfix">
             <a href="{{ mapResult.url }}" class="result local-map" data-extra="map"></a>
             <div class="local-info">
-                {{#each textResults}}
-                    <div class="{{ textType }}">
-                        <a class="result" href="{{ url }}">{{ displayText }}</a>
+                {{#if address}}
+                    <div class="local-address">
+                        <a class="result" href="{{ address.url }}">{{ address.displayText }}</a>
+                        {{#if distance}}
+                            &#183;
+                            <span>
+                                {{distance distance}}
+                            </span>
+                        {{/if}}
                     </div>
-                {{/each}}
+                {{/if}}
+                {{#if phoneNumber}}
+                    <div class="local-phone">
+                        <a class="result" href="{{ phoneNumber.url }}">{{ phoneNumber.displayText }}</a>
+                    </div>
+                {{/if}}
+                <div class="other-info">
+                    {{#if openingStatus}}
+                        &#183;
+                        <span>
+                            {{openingStatus.timeInfo}}
+                        </span>
+                        <span extra="open-hour" style="color: {{openingStatus.color}}">
+                            {{local openingStatus.sttText}}
+                        </span>
+                    {{/if}}
+                    {{#if ratingImg}}
+                        <img class="rating-img" width="90" src="{{ratingImg}}" alt="" />
+                    {{/if}}
+                </div>
             </div>
         </div>
     </div>

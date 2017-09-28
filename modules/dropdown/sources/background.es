@@ -39,6 +39,8 @@ export default background({
   history: inject.module('history'),
   offers: inject.module('offers-v2'),
 
+  requiresServices: ['logos'],
+
   /**
     @method init
     @param settings

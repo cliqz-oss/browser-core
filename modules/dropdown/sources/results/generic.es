@@ -4,6 +4,7 @@ import console from '../../core/console';
 import BaseResult, { getDeepResults } from './base';
 import LocalResult, { ShareLocationButton } from './local';
 import NewsResult from './news';
+import VideoResult from './video';
 
 class ImageResult extends BaseResult {
   get thumbnail() {
@@ -12,6 +13,9 @@ class ImageResult extends BaseResult {
 }
 
 class InternalResult extends BaseResult {
+}
+
+class SocialResult extends BaseResult {
 }
 
 class AnchorResult extends BaseResult {
@@ -33,6 +37,16 @@ export default class GenericResult extends BaseResult {
     return deepLinks.map(({ url, title }) => new InternalResult({
       url,
       title,
+      text: this.query,
+    }));
+  }
+
+  get socialResults() {
+    const deepLinks = getDeepResults(this.rawResult, 'social');
+
+    return deepLinks.map(({ url, image }) => new SocialResult({
+      url,
+      image,
       text: this.query,
     }));
   }
@@ -73,6 +87,17 @@ export default class GenericResult extends BaseResult {
     }));
   }
 
+  get videoResults() {
+    const deepLinks = getDeepResults(this.rawResult, 'videos');
+    return deepLinks.map(({ url, title, extra }) => new VideoResult({
+      url,
+      title,
+      thumbnail: extra.thumbnail,
+      duration: extra.duration,
+      views: extra.views
+    }));
+  }
+
   /**
    * To be used with the `with` statement in the template
    */
@@ -94,6 +119,7 @@ export default class GenericResult extends BaseResult {
       ...super.selectableResults,
       ...(this.shareLocationButtons),
       ...(this.newsResults).slice(0, 3),
+      ...(this.videoResults).slice(0, 3),
       ...this.internalResults.slice(0, this.internalResultsLimit),
     ];
   }
@@ -101,6 +127,7 @@ export default class GenericResult extends BaseResult {
   get allResults() {
     return [
       ...super.allResults,
+      ...this.socialResults,
       ...this.imageResults,
       ...this.anchorResults,
       ...(this.localResult ? [...this.localResult.allResults] : []),
@@ -156,10 +183,7 @@ export default class GenericResult extends BaseResult {
     }
 
     const result = new LocalResult({
-      address: extra.address,
-      phoneNumber: extra.phonenumber,
-      mapUrl: extra.mu,
-      mapImg: extra.map_img,
+      extra,
       text: this.query,
     });
 

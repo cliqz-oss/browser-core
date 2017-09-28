@@ -2,9 +2,11 @@
   "platform": "react-native",
   "format": "common",
   "baseURL": "chrome://cliqz/content/",
+  "pack": "npm pack",
+  "publish": "aws s3 cp browser-core-$VERSION.tgz s3://cdncliqz/update/react-native_beta/$VERSION/$GIT_COMMIT.tgz --acl public-read && aws s3 cp s3://cdncliqz/update/react-native_beta/$VERSION/$GIT_COMMIT.tgz s3://cdncliqz/update/react-native_beta/$VERSION/latest.tgz --acl public-read",
   "settings": {
     "antitrackingButton": false,
-    "telemetryProvider": "platform",
+    "AT_TELEMETRY_PROVIDER": "platform",
     "channel": "MI00",
     "RESULTS_PROVIDER": "https://api.cliqz.com/api/v2/results?q=",
     "RICH_HEADER": "https://api.cliqz.com/api/v2/rich-header?path=/v2/map",
@@ -15,7 +17,8 @@
     "attrackBloomFilter": true,
     "attrackForceBlock": true,
     "cliqz-adb-disk-cache": false,
-    "cliqz-adb-abtest": true
+    "cliqz-adb-abtest": true,
+    "modules.pairing.enabled": false
   },
   "modules": [
     "core",
@@ -26,7 +29,11 @@
     "freshtab",
     "antitracking-blocker",
     "adblocker",
-    "static"
+    "static",
+    "p2p",
+    "pairing",
+    "mobile-pairing",
+    "video-downloader"
   ],
   "react_components": {
     "ExtensionApp": "./SearchUI"

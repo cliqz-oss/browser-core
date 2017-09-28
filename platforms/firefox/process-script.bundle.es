@@ -3,7 +3,7 @@
 import { Services } from '../platform/globals';
 import store from '../core/content/store';
 import config from '../core/config';
-import { getWindowId } from '../core/content/helpers';
+import { getWindowId, CHROME_MSG_SOURCE } from '../core/content/helpers';
 import { getMessage } from '../core/i18n';
 
 const send = sendAsyncMessage.bind(null, 'cliqz');
@@ -51,6 +51,7 @@ const DocumentManager = {
         runtime: {
           sendMessage(message) {
             send({
+              source: CHROME_MSG_SOURCE,
               origin: 'content',
               windowId,
               payload: message,
@@ -79,7 +80,10 @@ const DocumentManager = {
     const chrome = {
       runtime: {
         sendMessage(message) {
-          send(message);
+          send({
+            ...message,
+            source: CHROME_MSG_SOURCE
+          });
         },
         onMessage: {
           addListener(listener) {
@@ -101,6 +105,21 @@ const DocumentManager = {
 
 DocumentManager.init();
 
+/**
+ * Load to already existing documents. It is important for extension updates
+ * and some race conditions during browser startup.
+ */
+const windowEnumerator = Services.ww.getWindowEnumerator();
+while (windowEnumerator.hasMoreElements()) {
+  const window = windowEnumerator.getNext();
+  try {
+    DocumentManager.observe({ defaultView: window });
+  } catch (e) {
+    // the only exception expected here is if the window would not be fully
+    // elevated to full nsIDomWindow. Need to tests this code more.
+  }
+}
+
 // Create a new processScriptId
 const processId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
   /* eslint-disable */
@@ -116,6 +135,7 @@ send({
     args: [
       processId
     ],
+    source: CHROME_MSG_SOURCE
   },
 });
 

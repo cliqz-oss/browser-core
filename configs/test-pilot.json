@@ -10,9 +10,7 @@
     "channel": "TP02",
     "updateURL": "https://testpilot.firefox.com/files/testpilot@cliqz.com/updates.json",
     "homepageURL": "https://testpilot.firefox.com/experiments/cliqz",
-    "freshTabButton": true,
     "freshTabNews": false,
-    "freshTabInitialState": true,
     "showDataCollectionMessage": true,
     "antitrackingButton": true,
     "showNewBrandAlert": false,
@@ -51,7 +49,8 @@
     "freshtab",
     "offboarding"
   ],
-  "subprojects": [
-    "fresh-tab-frontend"
-  ]
+  "subprojects": [{
+    "src": "node_modules/cliqz-history/dist",
+    "dest": "cliqz-history"
+  }]
 }

@@ -128,29 +128,27 @@ export default class {
       // create a Map of key => set(values) from the url data
       const cachedKvs = this.requestKeyValue.get(tracker) || new Map();
       const reachedThreshold = new Set();
-      const kvs = state.urlParts.getKeyValues().filter(kv => (
-        kv.v.length >= this.config.shortTokenLength && !this.qsWhitelist.isSafeKey(tracker, md5(kv.k))
-      )).reduce((hash, kv) => {
+      const kvs = state.urlParts.getKeyValues().reduce((hash, kv) => {
+        if (kv.v.length < this.config.shortTokenLength || this.qsWhitelist.isSafeKey(tracker, md5(kv.k))) {
+          return hash;
+        }
         const key = this.hashTokens ? md5(kv.k) : kv.k;
         const tok = this.hashTokens ? md5(kv.v) : kv.v;
         if (!hash.has(key)) {
           hash.set(key, new TokenSet());
         }
         hash.get(key).add(tok, today);
-        if (hash.get(key).size() > this.config.safekeyValuesThreshold) {
+        // whitelist any keys which reached the threshold
+        if (!reachedThreshold.has(key) && hash.get(key).size() > this.config.safekeyValuesThreshold) {
           reachedThreshold.add(key);
+          if (this.config.debugMode) {
+            console.log('Add safekey', state.urlParts.generalDomain, key, kvs.get(key));
+          }
+          this.qsWhitelist.addSafeKey(tracker, this.hashTokens ? key : md5(key),
+                                      this.config.safekeyValuesThreshold);
         }
         return hash;
       }, cachedKvs);
-
-      // whitelist any keys which reached the threshold
-      reachedThreshold.forEach((key) => {
-        if (this.config.debugMode) {
-          console.log('Add safekey', state.urlParts.generalDomain, key, kvs.get(key));
-        }
-        this.qsWhitelist.addSafeKey(tracker, this.hashTokens ? key : md5(key),
-                                    this.config.safekeyValuesThreshold);
-      });
 
       // push updated cache
       this.requestKeyValue.set(tracker, kvs);

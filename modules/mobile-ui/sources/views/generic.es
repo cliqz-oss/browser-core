@@ -1,5 +1,4 @@
-import LocalView from './local-data-sc';
-import LottoView from './lotto';
+import views from '../views';
 
 export class GenericResult {
 
@@ -22,13 +21,12 @@ export class GenericResult {
 export default class Generic {
 
   enhanceResults(data, screen) {
-    if (data.subType && data.subType.class === 'EntityLocal') {
-      new LocalView().enhanceResults(data.extra);
-    }
 
-    if (data.subType && data.subType.class === 'EntityLotto') {
-      new LottoView().enhanceResults(data.extra);
+    let View = views[data.subType && data.subType.class];
+    if (!View && data.template !== 'generic') {
+      View = views[data.template];
     }
+    View && new View().enhanceResults(data.extra);
 
     data.screen = screen;
     Object.setPrototypeOf(data, GenericResult.prototype);
@@ -38,7 +36,7 @@ export default class Generic {
     let partials = [];
     const headerTypes = ['logo', 'urlDetails', 'title'];
     const mediaTypes = ['images', 'videos', 'news'];
-    const specificTypes = ['local-data-sc', 'movie', 'movie-vod', 'recipeRD', 'liveTicker', 'ligaEZ1Game', 'ligaEZTable', 'lotto'];
+    const specificTypes = ['local-data-sc', 'movie', 'movie-vod', 'recipeRD', 'liveTicker', 'ligaEZ1Game', 'ligaEZTable', 'ligaEZGroup', 'lotto'];
 
     headerTypes.forEach(partial => partials.push({type: partial, data: data[partial], historyStyle: data.historyStyle}));
 
@@ -81,6 +79,9 @@ export default class Generic {
     // filter empty deep results
     data.partials = partials.filter(partial => !partial.links || partial.links.length);
 
-    data.partials.forEach(partial => partial.query = data.query);
+    data.partials.forEach(partial => {
+      partial.query = data.query;
+      partial.domain = data.urlDetails && data.urlDetails.domain;
+    });
   }
 }

@@ -47,6 +47,23 @@ export function throttle(window, fn, threshhold) {
   };
 }
 
+
+/**
+ * Get the url of the top window.
+ */
+export function getDocumentUrl(window) {
+  let currentUrl = window.location.href;
+  let currentWindow = window;
+
+  while (currentUrl !== currentWindow.parent.document.documentURI) {
+    currentUrl = currentWindow.parent.document.documentURI;
+    currentWindow = currentWindow.parent;
+  }
+
+  return currentUrl;
+}
+
+
 export function getWindowTreeInformation(window) {
   let currentWindow = window;
 
@@ -67,4 +84,10 @@ export function getWindowTreeInformation(window) {
     parentWindowID: parentId,
     outerWindowID: windowId,
   };
+}
+
+export const CHROME_MSG_SOURCE = 'cliqz-content-script';
+
+export function isCliqzContentScriptMsg(msg) {
+  return msg.source && msg.source === CHROME_MSG_SOURCE;
 }

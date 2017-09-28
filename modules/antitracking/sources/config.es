@@ -86,6 +86,7 @@ export default class {
     const versionCheckLoader = new ResourceLoader(['antitracking', 'versioncheck.json'], {
       remoteURL: this.versionCheckUrl,
       cron: 1000 * 60 * 60 * 12,
+      remoteOnly: true
     });
     resourceManager.addResourceLoader(versionCheckLoader, this._updateVersionCheck.bind(this));
 

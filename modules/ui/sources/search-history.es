@@ -92,6 +92,9 @@ var CliqzSearchHistory = {
     },
 
     showLastQuery: function(q, window){
+        if (utils.isOnPrivateTab(window)) {
+            return;
+        }
         var window_id = utils.getWindowID(window),
             lq = this.windows[window_id].lastSearchElement;
 

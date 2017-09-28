@@ -7,6 +7,7 @@ import ViewPager from "specific/js/libs/viewpager.js"
 import DelayedImageLoader from './DelayedImageLoader';
 import window from "../platform/window";
 import utils from '../core/utils';
+import { mobilePlatformName } from "../platform/platform";
 
 const ErrorHandlerReranker = {
   name: 'error-handler-reranker',
@@ -31,7 +32,8 @@ var resultsBox = null,
     PEEK = 25,
     currentResultsCount = 0,
     viewPager = null,
-    FRAME = 'frame';
+    FRAME = 'frame',
+    IMG_SELECTOR = '#cliqz-results img[data-src], #cliqz-results div[data-style], #cliqz-results span[data-style]';
 
 const backgrounds = {
                       ios: {
@@ -39,8 +41,8 @@ const backgrounds = {
                         incognito: '#1b1b1b',
                       },
                       android: {
-                        standard: '#E8E8E8',
-                        incognito: '#333333',
+                        standard: '#E7ECEE',
+                        incognito: '#1b1b1b',
                       }
                     };
 
@@ -56,10 +58,6 @@ var UI = {
     DelayedImageLoader: null,
     VIEWS: {},
     init: function () {
-
-      const userAgent = window.navigator.userAgent.toLowerCase();
-      UI.OS = /iphone|ipod|ipad/.test(userAgent) ? 'ios' : 'android';
-
 
       utils.RERANKERS.push(ErrorHandlerReranker);
 
@@ -84,19 +82,38 @@ var UI = {
       UI.CARD_WIDTH = window.innerWidth  -  2 * PEEK;
       UI.CARD_WIDTH /= UI.nCardsPerPage;
     },
+    onlyHistoryResults: function (results) {
+      return results.every(result => result.style.includes('favicon') || result.style.includes('cliqz-pattern'));
+    },
     renderResults: function(r) {
       if (!viewPager) {
         viewPager = UI.initViewpager();
       }
 
+      if (imgLoader) imgLoader.stop();
+
+      let framesScroll = [];
       if (UI.lastSearch !== r._searchString) {
         UI.currentPage = 0;
         viewPager.goToIndex(UI.currentPage);
+        imgLoader = new UI.DelayedImageLoader(IMG_SELECTOR);
+      } else if (UI.onlyHistoryResults(r._results)) {
+        // ignore history while just updating the view
+        // for the same result
+        return;
+      } else {
+        const frames = window.document.getElementsByClassName(FRAME);
+        [...frames].forEach(frame => framesScroll.push(frame.scrollTop));
+        imgLoader = new UI.DelayedImageLoader(IMG_SELECTOR, 0, 10);
       }
 
       UI.lastSearch = r._searchString;
 
       const renderedResults = UI.results(r);
+
+      const frames = window.document.getElementsByClassName(FRAME);
+      [...frames].forEach(frame => frame.scrollTop = framesScroll.shift());
+      imgLoader.start();
 
       UI.lastResults = renderedResults;
 
@@ -106,7 +123,7 @@ var UI = {
     },
     setTheme: function (incognito = false) {
       UI.isIncognito = incognito;
-      window.document.body.style.backgroundColor = backgrounds[UI.OS][incognito ? 'incognito' : 'standard'];
+      window.document.body.style.backgroundColor = backgrounds[mobilePlatformName][incognito ? 'incognito' : 'standard'];
     },
     results: function (r) {
       setCardCountPerPage(window.innerWidth);
@@ -140,13 +157,7 @@ var UI = {
 
       var query = currentResults.searchString || '';
 
-      if (imgLoader) imgLoader.stop();
-
       redrawDropdown(CLIQZ.templates.results(currentResults), query);
-
-
-      imgLoader = new UI.DelayedImageLoader('#cliqz-results img[data-src], #cliqz-results div[data-style], #cliqz-results span[data-style]');
-      imgLoader.start();
 
       currentResultsCount = enhancedResults.length;
 

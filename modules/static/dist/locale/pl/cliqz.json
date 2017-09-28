@@ -584,6 +584,9 @@
     "history_results_cluster": {
       "message":"My Top Hits"
     },
+    "results_found_in_history": {
+        "message": "Show results found in history"
+    },
     "adultInfo": {
         "message": "Websites with explicit content have been blocked automatically. Continue blocking?"
     },
@@ -1130,6 +1133,12 @@
     "mobile_share_card": {
       "message": "Udostępnij tę kartę"
     },
+    "mobile_card_shared_via": {
+      "message": "Shared via Cliqz Browser for $1"
+    },
+    "mobile_card_look_shared_via": {
+      "message": "Hey! Look at this sreenshot shared via Cliqz Browser"
+    },
     "mobile_reconnecting_msg": {
       "message": "Ponowne nawiązywanie utraconego połączenia internetowego"
     },
@@ -1175,6 +1184,30 @@
     "mobile_calc_copy_ans":{
         "message": "Dotknij gdziekolwiek aby skopiować"
     },
+    "mobile_soccer_subscribe":{
+        "message": "Subscribe"
+    },
+    "mobile_soccer_unsubscribe":{
+        "message": "Unsubscribe"
+    },
+    "mobile_soccer_subscribe_team":{
+        "message": "Do not miss any goal for $1 and subscibe to the free livescore service!"
+    },
+    "mobile_soccer_subscribe_league":{
+        "message": "Do not miss any goal for $1 and subscibe to the free livescore service!"
+    },
+    "mobile_soccer_subscribe_league_done":{
+        "message": "You are always up-to-date. You are subscribed to all games for $1."
+    },
+    "mobile_soccer_game_ended":{
+        "message": "Game ended"
+    },
+    "mobile_soccer_subscribed_to_one":{
+        "message": "You are already subscribed to one of the teams."
+    },
+    "mobile_soccer_subscribed_to_both":{
+        "message": "You are already subscribed to these teams."
+    },
     "unblock_menu_option": {
       "message": "Unblock YouTube Videos"
     },
@@ -1203,10 +1236,7 @@
       "message": "Lyrics: "
     },
     "control-center-icon-tooltip": {
-        "message": "Control Center"
-    },
-    "control-center-action-tooltip": {
-        "message": "Search settings"
+        "message": "Cliqz Control Center"
     },
     "control-center-txt-header": {
       "message": "Your data is protected"
@@ -1790,39 +1820,6 @@
     "control-center-open": {
         "message": "Open"
     },
-    "soccer-table-rank": {
-        "message": "Rank"
-    },
-    "soccer-table-teams": {
-        "message": "Teams"
-    },
-    "soccer-table-played": {
-        "message": "Played"
-    },
-    "soccer-table-won": {
-        "message": "Won"
-    },
-    "soccer-table-lost": {
-        "message": "Lost"
-    },
-    "soccer-table-drawn": {
-        "message": "Drawn"
-    },
-    "soccer-table-goals": {
-        "message": "Goals+/-"
-    },
-    "soccer-table-goal-diff": {
-        "message": "Goal diff"
-    },
-    "soccer-table-points": {
-        "message": "Points"
-    },
-    "soccer-table-qualified": {
-        "message": "Qualified"
-    },
-    "soccer-ticker-week": {
-        "message": "Week"
-    },
     "soccer-powered-by": {
         "message": "Powered by Kicker Online"
     },
@@ -1834,6 +1831,15 @@
     },
     "updated": {
         "message": "Updated"
+    },
+    "soccer-news-title": {
+        "message": "News"
+    },
+    "soccer-expand-button": {
+        "message": "Show more"
+    },
+    "freshtab.app.offer.info": {
+        "message": "More Info"
     },
     "TEST": {
         "message": "OK"

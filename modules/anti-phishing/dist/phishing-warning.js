@@ -1,12 +1,12 @@
-let telemetry = {
+var telemetry = {
   type: 'anti-phishing',
   action: 'click',
   target: null
-}
+};
 
 function getURL() {
-  let url = document.documentURI;
-  let match = url.match(/u=([^&]+)/);
+  var url = document.documentURI;
+  var match = url.match(/u=([^&]+)/);
 
   if (!match) {
     return '';  // this should not happend though
@@ -18,16 +18,17 @@ function getURL() {
 
 function format() {
   Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
-	let CliqzUtils = CLIQZ.CliqzUtils;
-  let hw = CLIQZ.System.get('human-web/human-web').default;
-  let CliqzAntiPhishing = CLIQZ.System.get('anti-phishing/anti-phishing').default;
+	var CliqzUtils = CLIQZ.CliqzUtils;
+  var hw = CLIQZ.System.get('human-web/human-web').default;
+  var CliqzAntiPhishing = CLIQZ.System.get('anti-phishing/anti-phishing').default;
+  var config = CLIQZ.System.get('core/config').default;
 
 
   // get phishing url
-  let url = getURL();
+  var url = getURL();
 
   // urlbar
-  let urlbar = CliqzUtils.getWindow().document.getElementById('urlbar');
+  var urlbar = CliqzUtils.getWindow().document.getElementById('urlbar');
 	urlbar.textValue = url;
 	urlbar.value = url;
 	urlbar.mInputField.value = url;
@@ -46,7 +47,7 @@ function format() {
     if (hw && hw.state.v[url]) {
       hw.state.v[url]['anti-phishing'] = 'safe_out';
     }
-    window.location.replace('about:newtab');
+    window.location.replace(config.settings.NEW_TAB_URL);
   }
 
   // learn more

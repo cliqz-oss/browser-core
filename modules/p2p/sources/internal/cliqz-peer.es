@@ -1,18 +1,15 @@
-import { toBase64, fromBase64, toHex, toUTF8 } from '../../core/encoding';
 import CliqzUtils from '../../core/utils';
-import crypto from '../../platform/crypto';
 import CliqzPeerConnection from './cliqz-peer-connection';
 import logger from './logger';
 import constants from './constants';
 import { has, isArrayBuffer } from './utils';
-import { privateKeytoKeypair } from '../../core/crypto/pkcs-conversion';
+import { importRSAKey, signRSA, generateRSAKeypair } from '../../core/crypto/utils';
 import * as _messages from './messages';
 
 const InMessage = _messages.InMessage;
 const OutMessage = _messages.OutMessage;
 const decodeChunk = _messages.decodeChunk;
 const decodeAck = _messages.decodeAck;
-const subtle = crypto.subtle;
 const { setTimeout, clearTimeout, setInterval, clearInterval } = CliqzUtils;
 
 function _closeSocket(socket) {
@@ -390,14 +387,6 @@ export default class CliqzPeer {
   }
 
   /**
-  * Converts a given privateKey (base64 encoded, PKCS#1 format) to the
-  * same keypair format returned by the promise of {@link module:global#CliqzPeer.generateKeypair}.
-  */
-  static privateKeytoKeypair(privateKey) {
-    return privateKeytoKeypair(privateKey);
-  }
-
-  /**
   * Returns a promise which will resolve to an array with two strings: [publicKey, privateKey],
   * which can easily be persisted. This can be used as an alternative to
   * a string PeerID in {@link module:global#CliqzPeer},
@@ -405,28 +394,7 @@ export default class CliqzPeer {
   * base64 encoded: publicKey in 'spki' format and private key in 'pkcs8', as defined in WebCrypto
   */
   static generateKeypair() {
-    return subtle.generateKey(
-      {
-        name: 'RSASSA-PKCS1-v1_5',
-        modulusLength: 2048,
-        publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
-        hash: { name: 'SHA-256' },
-      },
-          true,
-          ['sign', 'verify'],
-      )
-      .then(key => Promise.all([
-        subtle.exportKey(
-                  'spki',
-                  key.publicKey,
-              )
-              .then(keydata => toBase64(keydata)),
-        subtle.exportKey(
-                  'pkcs8',
-                  key.privateKey,
-              )
-              .then(keydata => toBase64(keydata)),
-      ]));
+    return generateRSAKeypair();
   }
 
   _setInitialState() {
@@ -946,18 +914,9 @@ export default class CliqzPeer {
     const data = JSON.parse(event.data);
     if (data.type === 'challenge') {
       if (this.privateKey) {
-        subtle.importKey(
-          'pkcs8', // can be "jwk" (public or private), "spki" (public only), or "pkcs8" (private only)
-          fromBase64(this.privateKey),
-          {   // these are the algorithm options
-            name: 'RSASSA-PKCS1-v1_5',
-            hash: { name: 'SHA-256' }, //can be "SHA-1", "SHA-256", "SHA-384", or "SHA-512"
-          },
-          false, // whether the key is extractable (i.e. can be used in exportKey)
-          ['sign'], // "verify" for public key import, "sign" for private key imports
-        )
-        .then(privateKey => subtle.sign({ name: 'RSASSA-PKCS1-v1_5' }, privateKey, toUTF8(data.data).buffer))
-        .then(signature => this._sendSocket('connect', { authLogin: true, publicKey: this.publicKey, signature: toHex(signature) }))
+        importRSAKey(this.privateKey, false, 'SHA-256', 'RSASSA-PKCS1-v1_5')
+        .then(privateKey => signRSA(privateKey, data.data))
+        .then(signature => this._sendSocket('connect', { authLogin: true, publicKey: this.publicKey, signature }))
         .catch(e => this.logError(e));
       } else {
         this.stats.signalingfailedconn += 1;

@@ -1,4 +1,5 @@
-import { utils, events } from "../core/cliqz";
+import events from "../core/events";
+import utils from "../core/utils";
 import { isFirefox } from "../core/platform";
 import SmartCliqzCache from './smart-cliqz-cache/smart-cliqz-cache';
 import TriggerUrlCache from './smart-cliqz-cache/trigger-url-cache';
@@ -9,7 +10,6 @@ import Mixer from "./mixer";
 import SpellCheck from "./spell-check";
 import console from "../core/console";
 import { handleQuerySuggestions } from '../platform/query-suggestions';
-import historySearch from '../platform/history/search';
 
 class TimeoutError extends Error {}
 
@@ -154,6 +154,10 @@ export default class Search {
   }
 
   search(searchString, callback) {
+      if (utils.getPref('searchMode', 'autocomplete') !== 'autocomplete') {
+        return;
+      }
+
       events.pub('autocomplete:search', searchString);
 
       CliqzAutocomplete.lastQueryTime = Date.now();
@@ -259,7 +263,7 @@ export default class Search {
           this.getSearchResults(searchString).then(this.cliqzResultFetcher);
 
           if (this.spellCheck.state.on && !this.spellCheck.state.override) {
-              this.suggestionsRecieved = true;
+            this.mixedResults.suggestionsRecieved = true;
               // change the wrong string to the real wrong string
               for (var p in this.spellCheck.state.correctBack) {
                   if (this.wrongSearchString.indexOf(this.spellCheck.state.correctBack[p]) == -1) {
@@ -285,7 +289,7 @@ export default class Search {
       this.historyTimer = utils.setTimeout(this.historyTimeoutCallback, this.HISTORY_TIMEOUT, this.searchString);
       this.historyTimeout = false;
       // trigger history search
-      historySearch(searchString, this.onHistoryDone.bind(this));
+      CliqzAutocomplete.historySearch(searchString, this.onHistoryDone.bind(this));
 
       var hist_search_type = utils.getPref('hist_search_type', 0);
       if (hist_search_type != 0) {
@@ -517,7 +521,7 @@ export default class Search {
 
   // checks if all the results are ready or if the timeout is exceeded
   pushResults(q) {
-      if(q == this.searchString && this.startTime != null){ // be sure this is not a delayed result
+      if(q == this.searchString && (this.startTime != null || this.waitingForPromise)){ // be sure this is not a delayed result
         var now = Date.now();
 
        if((now > this.startTime + utils.RESULTS_TIMEOUT) || // do we have a timeout or
@@ -614,8 +618,8 @@ export default class Search {
            Now json.results contains only ready results & NEW promises
            (promises from the previous result set were removed)
         */
-        this.waitingForPromise = false;
         this.cliqzResultFetcher({response: json, query: q}, attemptsSoFar);
+        this.waitingForPromise = false;
       }, data);
     }
   }

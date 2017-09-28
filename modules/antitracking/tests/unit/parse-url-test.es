@@ -1,6 +1,9 @@
 // Specs for URLs to test:
 // "url" specifies the input url
 // "url_parts" specifies the expected output values
+
+const fastUrlParser = require('fast-url-parser');
+
 var plain_urls = [
 {
     "url": "https://cliqz.com",
@@ -656,6 +659,9 @@ export default describeModule('antitracking/url',
     './md5': {},
     './domain': {
       getGeneralDomain() {}
+    },
+    '../core/fast-url-parser': {
+      default: fastUrlParser
     }
   }),
   () => {
@@ -679,31 +685,6 @@ export default describeModule('antitracking/url',
               });
           });
         });
-
-        function testSpecArray(name, spec) {
-          describe(name, function() {
-            spec.forEach(function(testcase) {
-              var url_desc = testcase['url'];
-              if(url_desc.length > 180) url_desc = url_desc.substring(0, 180) + '...';
-              it(url_desc, function() {
-                var expected = fillInSpec(testcase['url_parts']);
-                var actual = testFn(testcase['url']);
-                Object.keys(expected).forEach((attr) => {
-                  chai.expect(actual[attr]).to.deep.equal(expected[attr]);
-                });
-                // chai.expect(testFn(testcase['url'])).to.deep.equal();
-              });
-            });
-          });
-        };
-
-        // test examples
-        testSpecArray('plain urls', plain_urls);
-        testSpecArray('query strings', query_strings);
-        testSpecArray('parameter strings', parameters);
-        testSpecArray('fragment strings', fragments);
-        testSpecArray('combined', combined);
-        testSpecArray('special', special);
       });
 
     describe('URLInfo', () => {
@@ -712,6 +693,32 @@ export default describeModule('antitracking/url',
       beforeEach(function() {
         urlInfo = this.module().URLInfo;
       });
+
+      function testSpecArray(name, spec) {
+        describe(name, function() {
+          spec.forEach(function(testcase) {
+            var url_desc = testcase['url'];
+            if(url_desc.length > 180) url_desc = url_desc.substring(0, 180) + '...';
+            it(url_desc, function() {
+              var expected = fillInSpec(testcase['url_parts']);
+              var actual = urlInfo.get(testcase['url']);
+              Object.keys(expected).forEach((attr) => {
+                chai.expect(actual[attr]).to.deep.equal(expected[attr]);
+              });
+              // chai.expect(testFn(testcase['url'])).to.deep.equal();
+            });
+          });
+        });
+      };
+
+      // test examples
+      testSpecArray('plain urls', plain_urls);
+      testSpecArray('plain urls', plain_urls);
+      testSpecArray('query strings', query_strings);
+      testSpecArray('parameter strings', parameters);
+      testSpecArray('fragment strings', fragments);
+      testSpecArray('combined', combined);
+      testSpecArray('special', special);
 
       describe('get', function() {
         it('returns empty string if argument is falsy', () => {

@@ -59,16 +59,9 @@ export default class OfferProcessor {
 
     // signal handler
     this.sigHandler = sigHandler;
-
-    // listen for messages on the channel
-    this._processRealStateMessage = this._processRealStateMessage.bind(this);
-    events.sub('offers-recv-ch', this._processRealStateMessage);
   }
 
   destroy() {
-    // unsubscribe
-    events.un_sub('offers-recv-ch', this._processRealStateMessage);
-
     if (this.sigHandler) {
       this.sigHandler.destroy();
     }
@@ -203,6 +196,9 @@ export default class OfferProcessor {
    *   filters: {
    *     // will filter by real estate
    *     by_rs_dest: 'real-estate-name',
+   *     // this flag will be used to ensure that we have the real estate destination
+   *     // listed. This is a fix for EX-5468, we will need to change this later
+   *     ensure_has_dest: true / false,
    *   }
    * }
    * </pre>
@@ -217,6 +213,11 @@ export default class OfferProcessor {
     rawOffers.forEach((offerElement) => {
       if (filters) {
         // we should filter
+        if (filters.ensure_has_dest &&
+            (!offerElement.offer.rs_dest || (offerElement.offer.rs_dest.length === 0))) {
+          // skip this one, since doesn't contain real estate destinations
+          return;
+        }
         if (filters.by_rs_dest && offerElement.offer.rs_dest) {
           // check the real estate destination of the offer
           if (offerElement.offer.rs_dest.indexOf(filters.by_rs_dest) < 0) {
@@ -391,7 +392,7 @@ export default class OfferProcessor {
    *                      For more information check the documentation
    * @return {[type]}     [description]
    */
-  _processRealStateMessage(msg) {
+  processRealEstateMessage(msg) {
     // message:
     // {
     //    origin: who is sending it,
@@ -400,14 +401,14 @@ export default class OfferProcessor {
     // }
 
     if (!msg || !msg.origin || !msg.type || !msg.data) {
-      logger.error('_processRealStateMessage: invalid message format, discarding it');
+      logger.error('ProcessRealEstateMessage: invalid message format, discarding it');
       return false;
     }
 
     // check if we have the associated function
     const handlerFun = this.uiActionsMap[msg.type];
     if (!handlerFun) {
-      logger.warn(`_processRealStateMessage: we cannot process the message type ${msg.type}`);
+      logger.warn(`ProcessRealEstateMessage: we cannot process the message type ${msg.type}`);
       return false;
     }
 

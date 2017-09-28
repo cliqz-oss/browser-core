@@ -15,13 +15,15 @@
                     id='cqz-result-box-{{ @index }}'
                     >
                         {{>(lookup . 'vertical')}}
-                    {{#if url}}
-                        <section class="share">
-                            <p cliqz-action='stop-click-event-propagation'
-                                onclick="osAPI.shareCard('{{ escapeQuotations url }}')"
-                                >{{local 'mobile_share_card'}}: {{url}}</p>
-                        </section>
-                    {{/if}}
+                    
+                      <section class="share">
+                          <img class="share-card-icon" src="skin/img/share_card.png"></img>
+                          <span id="share-card" class="share-card-text" cliqz-action='stop-click-event-propagation'
+                                onclick="osAPI.shareCardHtml({{ @index }}, '{{ escapeQuotations data.title }}')"
+                          >
+                            {{local 'mobile_share_card'}}
+                          </span>
+                      </section>
                 </div>
             </div>
             <br>

@@ -77,12 +77,13 @@ export default describeModule('adblocker/filters-engine',
         if (engine === null) {
           engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
           const filters = readFile(cosmeticsPath);
+          const loadedAssets = new Set(['list1', 'list2', 'list3']);
 
           // Try update mechanism of filter engine
-          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 1 }], true);
-          engine.onUpdateFilters([{ filters, asset: 'list2', checksum: 1 }], true);
-          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 2 }], true);
-          engine.onUpdateFilters([{ filters: '', asset: 'list2', checksum: 2 }], true);
+          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 1 }], loadedAssets, true);
+          engine.onUpdateFilters([{ filters, asset: 'list2', checksum: 1 }], loadedAssets, true);
+          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 2 }], loadedAssets, true);
+          engine.onUpdateFilters([{ filters: '', asset: 'list2', checksum: 2 }], loadedAssets, true);
 
           // Serialize and deserialize engine
           const serialized = engine.stringify();
@@ -90,9 +91,9 @@ export default describeModule('adblocker/filters-engine',
           engine.load(serialized);
 
           // Try to update after deserialization
-          engine.onUpdateFilters([{ filters, asset: 'list3', checksum: 1 }], true);
-          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 3 }], true);
-          engine.onUpdateFilters([{ filters: '', asset: 'list3', checksum: 2 }], true);
+          engine.onUpdateFilters([{ filters, asset: 'list3', checksum: 1 }], loadedAssets, true);
+          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 3 }], loadedAssets, true);
+          engine.onUpdateFilters([{ filters: '', asset: 'list3', checksum: 2 }], loadedAssets, true);
         }
       });
 
@@ -160,7 +161,7 @@ export default describeModule('adblocker/filters-engine',
              engine.onUpdateFilters([{
                asset: 'tests',
                filters: testCase.filter,
-             }]);
+             }], new Set(['tests']));
 
              // Serialize and deserialize engine
              const serialized = engine.stringify();
@@ -202,13 +203,15 @@ export default describeModule('adblocker/filters-engine',
           this.timeout(20000);
           FilterEngine = this.module().default;
 
+          const loadedAssets = new Set(['list1', 'list2']);
+
           engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
 
           // Try update mechanism of filter engine
-          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 1 }], true);
-          engine.onUpdateFilters([{ filters, asset: 'list2', checksum: 1 }], true);
-          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 2 }], true);
-          engine.onUpdateFilters([{ filters: '', asset: 'list2', checksum: 2 }], true);
+          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 1 }], loadedAssets, true);
+          engine.onUpdateFilters([{ filters, asset: 'list2', checksum: 1 }], loadedAssets, true);
+          engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 2 }], loadedAssets, true);
+          engine.onUpdateFilters([{ filters: '', asset: 'list2', checksum: 2 }], loadedAssets, true);
 
           // Serialize and deserialize engine
           const serialized = engine.stringify();
@@ -247,7 +250,11 @@ export default describeModule('adblocker/filters-engine',
           FilterEngine = this.module().default;
 
           engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
-          engine.onUpdateFilters([{ filters: readFile(filterListPath) }], true);
+          engine.onUpdateFilters(
+            [{ asset: 'asset', filters: readFile(filterListPath) }],
+            new Set(['asset']),
+            true,
+          );
 
           // Serialize and deserialize engine
           const serialized = engine.stringify();
@@ -288,7 +295,11 @@ export default describeModule('adblocker/filters-engine',
           FilterEngine = this.module().default;
 
           engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
-          engine.onUpdateFilters([{ filters: readFile(filterListPath) }], true);
+          engine.onUpdateFilters(
+            [{ asset: 'asset', filters: readFile(filterListPath) }],
+            new Set(['asset']),
+            true,
+          );
           engine.onUpdateResource([{ filters: readFile(resourcesPath) }]);
 
           // Serialize and deserialize engine

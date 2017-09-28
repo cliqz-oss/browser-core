@@ -48,6 +48,7 @@ export class Resource {
     this.filePath = ['cliqz', ...this.name];
     this.chromeURL = options.chromeURL || `${config.baseURL}${this.name.join('/')}`;
     this.storage = new Storage(this.filePath);
+    this.remoteOnly = options.remoteOnly || false;
   }
 
   /**
@@ -71,8 +72,13 @@ export class Resource {
         }
       })
       .then(data => this.parseData(data))
-      .catch(() => this.updateFromURL(this.chromeURL))
-      .catch(() => this.updateFromRemote());
+      .catch(() => {
+        if (this.remoteOnly) {
+          return Promise.reject('Should update only from remote');
+        } else {
+          return this.updateFromURL(this.chromeURL);
+        }
+      }).catch(() => this.updateFromRemote());
   }
 
   /**

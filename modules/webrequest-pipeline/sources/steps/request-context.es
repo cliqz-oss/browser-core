@@ -15,7 +15,7 @@ export default class {
     tabs.onRemoved.addListener(this.pageStore.onTabRemoved);
 
     windows.onCreated.addListener(this.pageStore.onWindowCreated);
-    windows.onRemoved.addListener(this.pageStore.onwindowRemoved);
+    windows.onRemoved.addListener(this.pageStore.onWindowRemoved);
   }
 
   unload() {
@@ -24,7 +24,7 @@ export default class {
     tabs.onRemoved.removeListener(this.pageStore.onTabRemoved);
 
     windows.onCreated.removeListener(this.pageStore.onWindowCreated);
-    windows.onRemoved.removeListener(this.pageStore.onwindowRemoved);
+    windows.onRemoved.removeListener(this.pageStore.onWindowRemoved);
   }
 
   execute(state) {

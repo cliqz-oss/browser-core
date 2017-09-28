@@ -1,5 +1,6 @@
 /* global Handlebars */
 import utils from '../../core/utils';
+import { mobilePlatformName } from '../../platform/platform';
 
 const AGO_CEILINGS =
   [
@@ -94,7 +95,7 @@ export default {
   },
   /* eslint-disable */
   /* @TODO fix it!!! */
-  emphasis(text, q, minQueryLength, cleanControlChars) {
+  emphasis(text, q, minQueryLength, cleanControlChars, singleWord) {
     // lucian: questionable solution performance wise
     // strip out all the control chars
     // eg :text = "... \u001a"
@@ -105,7 +106,10 @@ export default {
     if(!text || !q || q.length < (minQueryLength || 2)) return text;
 
     var map = Array(text.length),
-        tokens = q.toLowerCase().split(/\s+|\.+/).filter(function(t) { return t && t.length>1; }),
+        tokens = 
+          singleWord ?
+            [q.toLowerCase()] :
+            q.toLowerCase().split(/\s+|\.+/).filter(t => t && t.length > 1),
         lowerText = text.toLowerCase(),
         out, high = false;
 
@@ -210,4 +214,8 @@ export default {
   escapeQuotations(str = '') {
     return str.replace(/\'/g, '\\\'').replace(/\"/g, '\\\"');
   },
+
+  isIos(options) {
+    return mobilePlatformName === 'ios' ? options.fn(this) : options.inverse(this);
+  }
 };

@@ -1,5 +1,6 @@
 // TODO: remove dependency on autocomplete
 import autocomplete from '../autocomplete/autocomplete';
+import prefs from '../core/prefs';
 
 export default class {
   constructor(window) {
@@ -28,11 +29,23 @@ export default class {
     return urlbar.mInputField.value;
   }
 
+  get urlbarSelectionRange() {
+    const urlbar = this.element.mInput;
+    return {
+      selectionStart: urlbar.selectionStart,
+      selectionEnd: urlbar.selectionEnd
+    };
+  }
+
+  get isNewSearchMode() {
+    return prefs.get('searchMode', 'autocomplete') !== 'autocomplete';
+  }
+
   results() {
     const ctrl = this.element.mInput.controller;
     const resultCount = this.element._matchCount;
     const lastRes = autocomplete.lastResult;
-    const rawResults = Array(resultCount).fill().map((_, i) => {
+    return Array(resultCount).fill().map((_, i) => {
       const data = (lastRes && lastRes.getDataAt(i)) || {};
       const rawResult = {
         title: ctrl.getCommentAt(i),
@@ -46,12 +59,23 @@ export default class {
       };
       return rawResult;
     });
+  }
 
-    return {
-      query: this.query,
-      queriedAt: autocomplete.lastQueryTime,
-      rawResults,
-    };
+  open() {
+    if (!this.isNewSearchMode) {
+      return;
+    }
+    this.element.openAutocompletePopup(
+     this.window.gURLBar,
+     this.window.gURLBar
+    );
+  }
+
+  close() {
+    if (!this.isNewSearchMode) {
+      return;
+    }
+    this.element.closePopup();
   }
 
   execBrowserCommandHandler(...args) {

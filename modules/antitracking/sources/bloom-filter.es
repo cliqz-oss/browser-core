@@ -112,20 +112,31 @@ export class AttrackBloomFilter extends QSWhitelistBase {
   }
 
   init() {
-    // check every 10s
+    // check every 10min
     pacemaker.register(this.update.bind(this), 10 * 60 * 1000);
+    const initPromises = [];
+    initPromises.push(super.init());
+    // if we already have a bloomFilter, leave the update to this.update
+    if (!this.bloomFilter) {
+      // To make the start up fast, we try to take local copy first
+      // and then mock the config file with current date
+      const dt = datetime.getTime();
+      const major = `${dt.substr(0, 4)}-${dt.substr(4, 2)}-${dt.substr(6, 2)}`;
+      const minor = 0;
+      const bloomFile = new Resource(['antitracking', 'bloom_filter.json'], {
+        remoteOnly: true // ignore chrome url
+      });
+      const loadBloomFile = () => bloomFile.load()
+        .then(bf => this.updateFilter(bf, 'local', minor))
+        .catch((e) => {
+          bloomFile.remoteURL = `${this.baseURL}${major}/${minor}.gz`;
+          bloomFile.updateFromRemote()
+            .then(bf => this.updateFilter(bf, major, minor))
+        }).catch(() => this.update())
+      initPromises.push(loadBloomFile());
+    }
 
-    return Promise.all([
-      super.init(),
-
-      // try remote update before local
-      this._config.updateFromRemote().catch(() => {
-        return this._config.load();
-      }).then(this.checkUpdate.bind(this))
-        .then(() => {
-          this.lastUpdate = datetime.getTime();
-        }, (e) => {utils.log(e)})
-    ]);
+    return Promise.all(initPromises);
   }
 
   destroy() {
@@ -220,36 +231,37 @@ export class AttrackBloomFilter extends QSWhitelistBase {
     });
   }
 
-  remoteUpdate(major, minor) {
-    var url = this.baseURL + major + '/' + minor + '.gz',
-        self = this;
-
-    let updateFilter = function(bf) {
-      if (minor !== 0) {
-          self.bloomFilter.update(bf.bkt);
-      } else {
-          self.bloomFilter = new BloomFilter(bf.bkt, bf.k);
-      }
-      self.version.major = major;
-      self.version.minor = minor;
-      return Promise.resolve();
+  updateFilter(bf, major, minor) {
+    if (minor !== 0) {
+        this.bloomFilter.update(bf.bkt);
+    } else {
+        this.bloomFilter = new BloomFilter(bf.bkt, bf.k);
+    }
+    this.version = {
+      major,
+      minor
     };
+    return Promise.resolve();
+  }
+
+  remoteUpdate(major, minor) {
+    var url = this.baseURL + major + '/' + minor + '.gz';
 
     // load the filter, if possible from the CDN, otherwise grab a cached local version
     if (major === 'local') {
-      return this.loadFromLocal().then(updateFilter);
+      return this.loadFromLocal().then(bf => this.updateFilter(bf, major, minor));
     } else if (minor === 0) {
       const bloomFile = new Resource(['antitracking', 'bloom_filter.json'], {
         remoteURL: url
       });
       return bloomFile.updateFromRemote()
         .catch(() => this.loadFromLocal())
-        .then(updateFilter);
+        .then(bf => this.updateFilter(bf, major, minor));
     } else {
       return utils.promiseHttpHandler('GET', url, undefined, 10000)
         .then((req) => JSON.parse(req.response))
         .catch(() => this.loadFromLocal())
-        .then(updateFilter);
+        .then(bf => this.updateFilter(bf, major, minor));
     }
   }
 

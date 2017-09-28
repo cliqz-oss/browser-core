@@ -10,6 +10,7 @@ const MAX_HISTORY_RECORDS = OffersConfigs.TRIGGER_HISTORY_MAX_RECORDS;
 export default class HistoryIndex {
   constructor(db) {
     this.cachedCounts = new Map();
+    this.entries = [];
     this.load(db);
   }
 
@@ -29,11 +30,11 @@ export default class HistoryIndex {
         if (!self.entries) {
           self.entries = [];
         }
-        logger.info("Loaded trigger history from local storage. Num entries: " + self.entries.length);
+        logger.info(`Loaded trigger history from local storage. Num entries: ${self.entries.length}`);
       });
     } else {
       self.entries = [];
-      logger.info("Loading history disabled");
+      logger.info('Loading history disabled');
     }
     this._save();
   }
@@ -50,7 +51,6 @@ export default class HistoryIndex {
     if (!(leftIdx === -1 || rightIdx === -1 || leftIdx > rightIdx)) {
       result = this.entries.slice(leftIdx, rightIdx + 1);
     }
-    logger.info("history query returned " + result.length + " entries");
 
     return result;
   }
@@ -71,8 +71,8 @@ export default class HistoryIndex {
   countHistoryEntries(start, end, regexList, id) {
     let entriesToProcess = [];
     const cache = this.cachedCounts.get(id);
-    let iStartCache = 0;
-    let iEndCache = 0;
+    let iStartCache = -1;
+    let iEndCache = -1;
     let counts = 0;
     if (cache) {
       iStartCache = this._leftMostIndex(cache.t_start);
@@ -91,22 +91,23 @@ export default class HistoryIndex {
     const notIntersected = iEndCache < leftIdx || rightIdx < iStartCache;
     const cacheIsEmbedded = leftIdx <= iStartCache && iEndCache <= rightIdx;
     const intervalIsEmbedded = iStartCache <= leftIdx && rightIdx <= iEndCache;
-    const isCacheRequiredForIntersection = (function() {
+    const isCacheRequiredForIntersection = () => {
       const leftCount = iStartCache < leftIdx ? leftIdx - iStartCache : 0;
       const rightCount = rightIdx > iEndCache ? rightIdx - iEndCache : 0;
       return (iEndCache - leftIdx) > (leftCount + rightCount);
-    })();
+    };
+    isCacheRequiredForIntersection();
 
     /**
      * Count a number of matches for a given set of triggers and a given set of History Entries
      * @param {[Object]} entriesForProcessing
      * @returns {number} number of matches
      */
-    function countMatches (entriesForProcessing) {
+    function countMatches(entriesForProcessing) {
       return entriesForProcessing
         .map(e => regexList.filter(r => r.test(e.url)))
-        .reduce((all, arr)=> ([...all, ...arr]), [])
-        .length
+        .reduce((all, arr) => ([...all, ...arr]), [])
+        .length;
     }
 
     if (notIntersected) {
@@ -115,36 +116,37 @@ export default class HistoryIndex {
       if (iStartCache - iEndCache > 0) {
         entriesToProcess = this.entries.slice(leftIdx, rightIdx + 1);
       } else if (iStartCache === leftIdx && iEndCache < rightIdx) {
-        entriesToProcess = this. entries.slice(iEndCache, rightIdx+1);
+        entriesToProcess = this.entries.slice(iEndCache + 1, rightIdx + 1);
       } else if (iEndCache === rightIdx && iStartCache > leftIdx) {
-        entriesToProcess = this.entries.slice(leftIdx, iStartCache + 1);
-      } else if (iStartCache > leftIdx && iEndCache < rightIdx ) {
-        entriesToProcess = this.entries.slice(leftIdx, iStartCache + 1).concat(this.entries.slice(iEndCache, rightIdx + 1));
+        entriesToProcess = this.entries.slice(leftIdx, iStartCache);
+      } else if (iStartCache > leftIdx && iEndCache < rightIdx) {
+        entriesToProcess = this.entries.slice(leftIdx, iStartCache)
+          .concat(this.entries.slice(iEndCache + 1, rightIdx + 1));
       } else {
         entriesToProcess = [];
       }
-
       if (entriesToProcess.length !== 0) {
-        counts = counts + countMatches(entriesToProcess);
+        counts += countMatches(entriesToProcess);
       }
     } else if (intervalIsEmbedded) {
       if (isCacheRequiredForIntersection) {
-        if (iStartCache === leftIdx && iEndCache !== rightIdx) {
-          entriesToProcess = this.entries.slice(rightIdx, iEndCache + 1)
-        } else if (iEndCache === rightIdx && iStartCache !== leftIdx) {
-          entriesToProcess = this.entries(iStartCache, leftIdx + 1);
+        if (iStartCache === leftIdx && iEndCache > rightIdx) {
+          entriesToProcess = this.entries.slice(rightIdx + 1, iEndCache + 1);
+        } else if (iEndCache === rightIdx && iStartCache < leftIdx) {
+          entriesToProcess = this.entries.slice(iStartCache, leftIdx);
         } else {
-          entriesToProcess = this.entries.slice(iStartCache, leftIdx + 1).concat(this.entries.slice(rightIdx, iEndCache + 1));
+          entriesToProcess = this.entries.slice(iStartCache, leftIdx)
+            .concat(this.entries.slice(rightIdx + 1, iEndCache + 1));
         }
-        counts = counts - countMatches(entriesToProcess);
+        counts -= countMatches(entriesToProcess);
       } else {
         entriesToProcess = this.entries.slice(leftIdx, rightIdx + 1);
         counts = countMatches(entriesToProcess);
       }
     } else {
-      counts = countMatches(this.entries.slice(leftIdx, rightIdx +1));
+      counts = countMatches(this.entries.slice(leftIdx, rightIdx + 1));
     }
-    this.cachedCounts.set(id, {t_start: start, t_end: end, count:counts});
+    this.cachedCounts.set(id, { t_start: start, t_end: end, count: counts });
     return counts;
   }
 
@@ -168,7 +170,7 @@ export default class HistoryIndex {
     let low = 0;
     let high = nEntries - 1;
     while (low <= high) {
-      const mid = low + (high - low)/2|0;
+      const mid = Math.floor(low + ((high - low) / 2));
       if (this.entries[mid].ts >= leftBoundTS) {
         high = mid - 1;
       } else {
@@ -197,7 +199,7 @@ export default class HistoryIndex {
     let low = 0;
     let high = nEntries - 1;
     while (low <= high) {
-      const mid = low + (high - low)/2|0;
+      const mid = Math.floor(low + ((high - low) / 2));
       if (this.entries[mid].ts > rightBoundTS) {
         high = mid - 1;
       } else {
@@ -208,16 +210,16 @@ export default class HistoryIndex {
   }
 
   addUrl(url, context) {
-    const self = this;
+    /* eslint-disable no-param-reassign */
 
     if (context._urlAddedToHistory) {
       return;
     }
     context._urlAddedToHistory = true;
 
-    logger.info("URL added to history: " + url);
+    logger.info(`URL added to history: ${url}`);
 
-    self.entries.push({
+    this.entries.push({
       url,
       ts: timestamp()
     });

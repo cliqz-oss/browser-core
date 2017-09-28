@@ -9,6 +9,14 @@ export default class NewsResult extends BaseResult {
     return null;
   }
 
+  get logoDetails() {
+    if (this.thumbnail === '') {
+      return super.logo;
+    }
+
+    return null;
+  }
+
   get thumbnail() {
     return this.rawResult.thumbnail;
   }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableHighlight } from 'react-native';
-import { executeNativeAction } from '../modules/platform/browser-actions';
+import events from '../modules/core/events';
 
 export default class extends React.Component {
 
@@ -11,9 +11,10 @@ export default class extends React.Component {
       const extra = this.extra || 'other';
       // TODO: telemetry
       console.log('open link', url, extra);
-      this.openLink(url);
+      // openLink(url);
+      events.pub('mobile-search:openUrl', url);
     } else if (action) {
-      executeNativeAction(action, this.actionParams);
+      events.pub('mobile-search:copyValue', ...this.actionParams);
     }
   }
   render() {

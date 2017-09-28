@@ -1,0 +1,9 @@
+{{#if socialResults}}
+    <div class='social-buttons {{#unless internalResults}}padded{{/unless}}'>
+        {{#each socialResults}}
+            <a class="result social-icon" href="{{ url }}">
+                <div style="background-image:url({{ image }})"></div>
+            </a>
+        {{/each}}
+    </div>
+{{/if}}

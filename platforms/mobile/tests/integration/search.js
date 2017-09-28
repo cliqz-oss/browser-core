@@ -413,7 +413,7 @@ describe('Search View', function() {
   });
 
   context("FC Bayern", function () {
-    var query = "fcbayern";
+    var query = "FC Bayern";
 
     beforeEach(function (done) {
       this.timeout(10000);
@@ -429,20 +429,24 @@ describe('Search View', function() {
             "description": "Willkommen auf dem offiziellen Internetportal des FC Bayern M\u00fcnchen! Hier gibt es aktuelle News, Spielberichte, FCB.tv-Videos, Online-Shop, FCB Erlebniswelt u.v.m. Klicken Sie rein!",
             "title": "!!!Fake title!!! FC Bayern M\u00fcnchen - Offizielle Website",
             "extra": {
-              "scored": "",
-              "status": "scheduled",
-              "GUESS": "FK Rostow",
-              "finalScore": "",
-              "club": "Bayern M\u00fcnchen",
-              "gameTime": "Dienstag 13 September, 20:45",
-              "halfTimeScore": "",
-              "spielTag": "Vorrunde, 1. Spieltag",
-              "live_url": "http://www.kicker.de/news/fussball/chleague/spielrunde/champions-league/2016-17/1/3685885/spielinfo_bayern-muenchen-14_fk-rostov-1574.html",
-              "HOST": "Bayern M\u00fcnchen",
-              "location": null,
-              "isLive": false,
-              "gameUtcTimestamp": 1473792300.0,
-              "leagueName": "Champions League"
+              "matches": [
+                {
+                  "scored": "",
+                  "status": "scheduled",
+                  "GUESS": "FK Rostow",
+                  "finalScore": "",
+                  "club": "Bayern M\u00fcnchen",
+                  "gameTime": "Dienstag 13 September, 20:45",
+                  "halfTimeScore": "",
+                  "spielTag": "Vorrunde, 1. Spieltag",
+                  "live_url": "http://www.kicker.de/news/fussball/chleague/spielrunde/champions-league/2016-17/1/3685885/spielinfo_bayern-muenchen-14_fk-rostov-1574.html",
+                  "HOST": "Bayern M\u00fcnchen",
+                  "location": null,
+                  "isLive": false,
+                  "gameUtcTimestamp": 1473792300.0,
+                  "leagueName": "Champions League"
+                }
+              ]
             },
             "deepResults": [
               {
@@ -472,7 +476,8 @@ describe('Search View', function() {
                   {
                     "url": "http://www.stern.de/sport/fussball/bundesliga/fc-bayern-muenchen-von-loeschung-bedroht--jurist-sieht-rechtsformverfehlung-7049122.html",
                     "extra": {
-                      "discovery_timestamp": 1473403816,
+                      "domain": "stern.de",
+                      "creation_timestamp": 1473403816,
                       "score": 8.215074,
                       "source_name": "stern.de",
                       "tweet_count": "6",
@@ -513,7 +518,7 @@ describe('Search View', function() {
 
     it("should have the latest results smart card", function () {
       expect($('.soccer__result')).to.have.length(1);
-      expect($('.meta__legend')).to.have.length(1);
+      expect($('.meta__legend')).to.have.length(2);
     });
   });
 });

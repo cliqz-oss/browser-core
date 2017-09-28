@@ -584,6 +584,9 @@
     "history_results_cluster": {
       "message":"Mes sites les plus visités"
     },
+    "results_found_in_history": {
+        "message": "Afficher les résultats provenant de l'historique"
+    },
     "adultInfo": {
         "message": "Certains résultats à caractère pornographique ont été automatiquement bloqués. Souhaitez-vous maintenir le bloquage ?"
     },
@@ -1130,6 +1133,12 @@
     "mobile_share_card": {
       "message": "Partager cette carte"
     },
+    "mobile_card_shared_via": {
+      "message": "Partagée avec Cliqz pour $1"
+    },
+    "mobile_card_look_shared_via": {
+      "message": "Tiens ! J'ai pris une capture d'écran avec Cliqz"
+    },
     "mobile_reconnecting_msg": {
       "message": "Rétablir la connexion internet"
     },
@@ -1175,6 +1184,30 @@
     "mobile_calc_copy_ans":{
         "message": "Taper n'importe où pour copier"
     },
+    "mobile_soccer_subscribe":{
+        "message": "S'abonner"
+    },
+    "mobile_soccer_unsubscribe":{
+        "message": "Se désinscrire"
+    },
+    "mobile_soccer_subscribe_team":{
+        "message": "($1) minute par minute, ne ratez plus aucun but ! Abonnez-vous au service gratuit de livescore !"
+    },
+    "mobile_soccer_subscribe_league":{
+        "message": "Ne ratez plus aucun but de la $1, abonnez-vous au service gratuit de livescore !"
+    },
+    "mobile_soccer_subscribe_league_done":{
+        "message": "Vous serez toujours au courant. Vous vous êtes abonné·e à tous les match de $1."
+    },
+    "mobile_soccer_game_ended":{
+        "message": "Match terminé"
+    },
+    "mobile_soccer_subscribed_to_one":{
+        "message": "Vous êtes abonné·e à cette équipe."
+    },
+    "mobile_soccer_subscribed_to_both":{
+        "message": "Vous êtes abonné·e à ces équipes."
+    },
     "unblock_menu_option": {
       "message": "Débloquer les vidéos YouTube"
     },
@@ -1203,10 +1236,7 @@
       "message": "Paroles : "
     },
     "control-center-icon-tooltip": {
-        "message": "Control Center"
-    },
-    "control-center-action-tooltip": {
-        "message": "Options de recherche"
+        "message": "Cliqz Control Center"
     },
     "control-center-txt-header": {
       "message": "Vos données sont protégées"
@@ -1287,7 +1317,7 @@
       "message": "Lire"
     },
     "control-center-info-explicit-title": {
-      "message": "Masquer résultats porno"
+      "message": "Bloquer contenus explicites"
     },
     "control-center-info-explicit": {
       "message": "Désirez-vous masquer les résultats de recherche comportant des contenus explicites ?"
@@ -1329,7 +1359,7 @@
       "message": "Partager ma position"
     },
     "control-center-explicit": {
-      "message": "Masquer résultats porno"
+      "message": "Bloquer contenus explicites"
     },
     "control-center-proxy": {
       "message": "Recherche par proxy"
@@ -1437,7 +1467,7 @@
       "message": "Envoyer vers téléphone"
     },
     "video-downloader-unsupported-format": {
-      "message": "Désolé! Nous n'arrivons pas à télécharger cette video."
+      "message": "Désolé ! Nous n'arrivons pas à télécharger cette video."
     },
     "transparency_html_title": {
       "message": "Cliqz | Panneau de Transparence"
@@ -1734,7 +1764,7 @@
         "message": "Entrer une adresse"
     },
     "freshtab.app.middle-box.new-cliqz-tab-hdr": {
-        "message": "Pour le plaisir des yeux!"
+        "message": "Pour le plaisir des yeux !"
     },
     "freshtab.app.middle-box.new-cliqz-tab-desc": {
         "message": "Il est désormais possible de personnaliser le style de votre Cliqz Tab."
@@ -1788,40 +1818,7 @@
         "message": "Désactivé"
     },
     "control-center-open": {
-        "message": "Ouvert"
-    },
-    "soccer-table-rank": {
-        "message": "N°"
-    },
-    "soccer-table-teams": {
-        "message": "Clubs"
-    },
-    "soccer-table-played": {
-        "message": "Matchs"
-    },
-    "soccer-table-won": {
-        "message": "Gagnés"
-    },
-    "soccer-table-lost": {
-        "message": "Perdus"
-    },
-    "soccer-table-drawn": {
-        "message": "Nuls"
-    },
-    "soccer-table-goals": {
-        "message": "Buts"
-    },
-    "soccer-table-goal-diff": {
-        "message": "Diff. buts"
-    },
-    "soccer-table-points": {
-        "message": "Points"
-    },
-    "soccer-table-qualified": {
-        "message": "Qualifié"
-    },
-    "soccer-ticker-week": {
-        "message": "Journée"
+        "message": "Ouvrir"
     },
     "soccer-powered-by": {
         "message": "Powered by Kicker Online"
@@ -1834,6 +1831,15 @@
     },
     "updated": {
         "message": "Mise à jour"
+    },
+    "soccer-news-title": {
+        "message": "Actualité"
+    },
+    "soccer-expand-button": {
+        "message": "Afficher plus"
+    },
+    "freshtab.app.offer.info": {
+        "message": "More Info"
     },
     "TEST": {
         "message": "OK"

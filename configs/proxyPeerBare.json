@@ -2,7 +2,7 @@
   "platform": "firefox",
   "baseURL": "resource://cliqz/",
   "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
-  "testem_launchers": ["Mocha"],
+  "testem_launchers": ["unit-node"],
   "settings": {
     "id": "cliqz@cliqz.com",
     "name": "Cliqz",
@@ -10,9 +10,7 @@
     "homepageURL": "https://cliqz.com/",
     "updateURL": "https://s3.amazonaws.com/cdncliqz/update/browser/latest.rdf",
     "updateURLbeta": "https://s3.amazonaws.com/cdncliqz/update/browser_beta/latest.rdf",
-    "freshTabButton": false,
     "freshTabNews": false,
-    "freshTabInitialState": false,
     "unblockUI": false,
     "cliqzOnboarding": false,
     "helpMenus": false,
@@ -52,6 +50,5 @@
     "webrequest-pipeline",
     "antitracking",
     "proxyPeer"
-  ],
-  "subprojects": []
+  ]
 }

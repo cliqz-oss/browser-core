@@ -29,7 +29,7 @@ export default class extends React.Component {
           source={{uri: thumbnail}}
           style={styles.image} />
         <View style={styles.body}>
-          <Text numberOfLines={nLines}>{link.title}</Text>
+          <Text style={styles.text} numberOfLines={nLines}>{link.title}</Text>
           {tweetCount && 
             <View>
               <Image
@@ -60,6 +60,9 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 2
+  },
+  text: {
+    color: 'black'
   },
   twitter: {
     width: 5,

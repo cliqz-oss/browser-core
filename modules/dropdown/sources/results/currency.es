@@ -1,4 +1,24 @@
 import BaseResult from './base';
+import utils from '../../core/utils';
+import { copyToClipboard } from '../../core/clipboard';
+
+class CurrencyCopyResult {
+  constructor({ toAmount, toCurrencyName, actions }) {
+    this.toAmount = toAmount;
+    this.toCurrencyName = toCurrencyName;
+    this.actions = actions;
+  }
+
+  get url() {
+    return `cliqz-actions,${JSON.stringify({ type: 'currency', actionName: 'copy' })}`;
+  }
+
+  click() {
+    copyToClipboard(this.toAmount);
+    this.actions.updateTooltip(utils.getLocalizedString('Copied'));
+    utils.setTimeout(() => this.actions.hideTooltip(), 1000);
+  }
+}
 
 export default class extends BaseResult {
 
@@ -16,6 +36,11 @@ export default class extends BaseResult {
 
   get toCurrency() {
     return this.rawResult.data.extra.toCurrency;
+  }
+
+  get toCurrencyName() {
+    const extra = this.rawResult.data.extra;
+    return extra.toCurrencyName || this.toCurrency;
   }
 
   // FIXME: symbols not displayed (encoding issue?)
@@ -43,11 +68,45 @@ export default class extends BaseResult {
     return this.rawResult.data.extra.mConversionRate;
   }
 
+  get currencyCopyResult() {
+    if (this._currencyCopyResult) {
+      return this._currencyCopyResult;
+    }
+
+    this._currencyCopyResult = new CurrencyCopyResult({
+      toAmount: this.rawResult.data.extra.toAmount.main,
+      toCurrencyName: this.toCurrencyName,
+      actions: {
+        updateTooltip: this.updateTooltip.bind(this),
+        hideTooltip: this.hideTooltip.bind(this),
+      },
+    });
+
+    return this._currencyCopyResult;
+  }
+
   get allResults() {
-    return [this];
+    return [
+      this,
+      this.currencyCopyResult,
+    ];
   }
 
   get selectableResults() {
     return [];
   }
+
+  didRender($dropdown) {
+    this.$currency = $dropdown.querySelector('.currency');
+    this.$tooltip = this.$currency.querySelector('.tooltip');
+  }
+
+  updateTooltip(text) {
+    this.$tooltip.innerText = text;
+  }
+
+  hideTooltip() {
+    this.$tooltip.style.display = 'none';
+  }
+
 }

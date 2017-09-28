@@ -180,6 +180,7 @@
 
         .dial-plus {
             padding: 0;
+            height: calc(#{$dial-height} + 8px);
 
             .hideAddForm {
                 background: url(../images/delete-icon.svg) no-repeat center center;

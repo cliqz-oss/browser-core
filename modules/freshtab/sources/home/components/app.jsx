@@ -9,6 +9,7 @@ import Urlbar from './urlbar';
 import News from './news';
 import Settings from './settings';
 import MessageCenter from './message-center';
+import OfferMiddleMessages from './middle-messages-offers';
 import t from '../i18n';
 import UndoDialRemoval from './undo-dial-removal';
 import { historyClickSignal, settingsClickSignal, homeConfigsStatusSignal } from '../services/telemetry/home';
@@ -19,6 +20,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.freshtab = cliqz.freshtab;
+    this.offersV2 = cliqz.offersV2;
     cliqz.setStorage({
       setState: this.setState.bind(this)
     });
@@ -37,6 +39,7 @@ class App extends React.Component {
         history: [],
         custom: []
       },
+      offers: [],
       news: {
         version: '',
         data: [],
@@ -60,11 +63,15 @@ class App extends React.Component {
 
   componentDidMount() {
     window.addEventListener('click', this.handleClick);
+
     Promise.all([
       this.getNews(),
       this.getConfig(),
       this.getSpeedDials(),
-    ]).then(() => this.onFinishedLoading());
+    ]).then(() => {
+      this.getOffers();
+      this.onFinishedLoading();
+    });
   }
 
   componentWillUnmount() {
@@ -155,6 +162,21 @@ class App extends React.Component {
     });
   }
 
+  getOffers() {
+    if (!this.state.config.showOffers) {
+      return false;
+    }
+
+    const args = {
+      filters: {
+        by_rs_dest: 'cliqz-tab',
+        ensure_has_dest: true
+      }
+    };
+
+    return this.offersV2.getStoredOffers(args).then(offers => this.setState({ offers }));
+  }
+
   /*
    * theme is also set inside of home.html
    */
@@ -166,7 +188,7 @@ class App extends React.Component {
       return;
     }
 
-    document.body.classList.forEach((className) => {
+    document.body.className.split(' ').forEach((className) => {
       if (className.indexOf('theme-') === 0) {
         classList.remove(className);
       }
@@ -221,11 +243,11 @@ class App extends React.Component {
     const dialType = isCustom ? 'custom' : 'history';
     const newItems = this.state.dials[dialType].filter(item => item !== dial);
 
-    const obj = this.state.dials;
-    obj[dialType] = newItems;
-
     this.setState({
-      dials: obj
+      dials: {
+        ...this.state.dials,
+        [dialType]: newItems
+      }
     });
 
     this.freshtab.removeSpeedDial(dial);
@@ -289,10 +311,21 @@ class App extends React.Component {
   toggleComponent(component) {
     cliqz.freshtab.toggleComponent(component);
     const config = this.state.config;
-    const oldState = config.componentsState[component].visible;
-    config.componentsState[component].visible = !oldState;
-    settingsComponentsToggleSignal(component, oldState);
-    this.setState({ config });
+    const componentState = config.componentsState[component];
+
+    settingsComponentsToggleSignal(component, this.state);
+    this.setState({
+      config: {
+        ...config,
+        componentsState: {
+          ...config.componentsState,
+          [component]: {
+            ...componentState,
+            visible: !componentState.visible
+          }
+        },
+      },
+    });
   }
 
   render() {
@@ -355,18 +388,25 @@ class App extends React.Component {
               </section>
             }
 
-            <section id="section-url-bar">
-              { this.state.config.componentsState.search.visible &&
-                <Urlbar
-                  ref={(c) => { this.urlbarElem = c; }}
-                  visible={this.state.config.componentsState.search.visible}
-                />
-              }
+            <section id="section-middle">
+              <div id="section-url-bar">
+                { this.state.config.componentsState.search.visible &&
+                  <Urlbar
+                    ref={(c) => { this.urlbarElem = c; }}
+                    visible={this.state.config.componentsState.search.visible}
+                  />
+                }
+              </div>
               <MessageCenter
                 position="middle"
                 messages={this.state.messages}
                 handleLinkClick={msg => this.onMessageClicked(msg)}
               />
+
+              {(this.state.offers.length > 0) &&
+                <OfferMiddleMessages offers={this.state.offers} />
+              }
+
             </section>
 
             { this.state.config.componentsState.news.visible &&

@@ -124,7 +124,8 @@ export default class News extends React.Component {
                 >
                   <Article
                     article={article}
-                    index={index}
+                    index={(this._pagination.state.pager.pageSize
+                      * (this._pagination.state.pager.currentPage - 1)) + index}
                     currentPage={this._pagination.state.pager.currentPage}
                     pageSize={this._pagination.state.pager.pageSize}
                     maxChars={this.state.articleCharsLimit}

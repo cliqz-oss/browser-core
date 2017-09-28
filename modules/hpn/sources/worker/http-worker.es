@@ -24,8 +24,8 @@ export default function (url) {
             resolve(this.response);
           } else {
             // Performs the function "reject" when this.status is different than 2xx
-
-            reject(this.statusText);
+            let errorMessage = this.statusText || `Request failed with status ${client.status}`;
+            reject(errorMessage);
           }
         };
         client.onerror = function () {

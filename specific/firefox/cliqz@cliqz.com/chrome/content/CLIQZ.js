@@ -32,12 +32,17 @@ try {
 (function (exports) {
   function loadTimers() {
     Services.scriptloader.loadSubScript('chrome://cliqz/content/runloop.js', global);
+    exports._global.setTimeout = global.setTimeout;
+    exports._global.setInterval = global.setInterval;
+    exports._global.clearInterval = global.clearInterval;
+    exports._global.clearTimeout = global.clearTimeout;
   }
 
   function loadSystem() {
     Services.scriptloader.loadSubScript('chrome://cliqzmodules/content/extern/system-polyfill.js', global);
     global.System.baseURL = 'chrome://cliqz/content/';
     global.System.normalizeSync = function (modName) { return modName; };
+    global.System.set('global', { default: exports._global });
   }
 
   // TODO: should be loaded via modules that require those

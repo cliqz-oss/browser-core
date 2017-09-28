@@ -1,9 +1,7 @@
 const fs = require('fs');
 const spawn = require('child_process').spawn;
-const path = require('path');
 
 const archiver = require('archiver');
-const selenium = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const logging = require('selenium-webdriver/lib/logging');
 
@@ -12,54 +10,57 @@ function runSeleniumTests() {
   // console.log('Running selenium tests...');
 
   // Prepare chromium webdriver
-  const chromeOptions = new chrome.Options();
-  chromeOptions.addExtensions(path.join(__dirname, 'ext.zip'));
-  chromeOptions.addArguments('--temp-profile --no-sandbox');
+  const chromeOptions = new chrome.Options()
+    .addArguments('--no-sandbox')
+    .addExtensions('/app/ext.zip');
 
-  // Enable verbose logging
-  const prefs = new logging.Preferences();
-  prefs.setLevel(logging.Type.BROWSER, logging.Level.ALL);
+  const service = new chrome.ServiceBuilder('./chromedriver').build();
+  const driver = new chrome.Driver(chromeOptions, service);
 
-  const caps = selenium.Capabilities.chrome();
-  caps.setLoggingPrefs(prefs);
-
-  // Create webdriver
-  const driver = new selenium.Builder()
-    .forBrowser('chrome')
-    .withCapabilities(caps)
-    .setChromeOptions(chromeOptions)
-    .build();
-
+  // Run mock http server needed for tests
   const server = spawn('node', ['./tests/test-server.js']);
+
   let logInterval;
 
   const tearDown = () => {
-    driver.quit();
-    server.kill();
     clearInterval(logInterval);
+    server.kill();
+    try {
+      driver.quit().catch(() => { /* Browser already killed */ });
+    } catch (ex) {
+      /* Ignore any other exception */
+    }
   };
 
   // Graceful shutdown
   process.on('SIGTERM', tearDown);
 
-  // Run mock http server needed for tests
   driver.get('chrome-extension://ekfhhggnbajmjdmgihoageagkeklhema/modules/chromium-tests/test.html');
 
   // Get logs from firefox
   logInterval = setInterval(
     () => {
-      driver.manage().logs().get(logging.Type.BROWSER).then((entries) => {
-        entries.forEach((entry) => {
-          const message = entry.message;
-          if (message.includes('TAP:  END')) {
-            tearDown();
-          } else if (message.includes('TAP:  ')) {
-            const index = message.indexOf('TAP:  ');
-            const cleaned = message.substr(index + 6).replace(/[\s"]+$/g, '');
-            console.log(cleaned);
-          }
+      // Check if the browser is closed
+      driver.getTitle()
+        .then(() => {
+          // Browser is open
+          driver.manage().logs().get(logging.Type.BROWSER).then((entries) => {
+            entries.forEach((entry) => {
+              const message = entry.message;
+              if (message.includes('TAP:  END')) {
+                tearDown();
+              } else if (message.includes('TAP:  ')) {
+                const index = message.indexOf('TAP:  ');
+                const cleaned = message.substr(index + 6).replace(/[\s"]+$/g, '');
+                console.log(cleaned);
+              }
+            });
+          });
+        })
+        .catch(() => {
+          // Browser is closed
+          tearDown();
         });
-      });
     },
     1000
   );
@@ -69,7 +70,7 @@ function runSeleniumTests() {
 function main() {
   // Package chromium extension into a zip archive
   // console.log('Package extension...')
-  const output = fs.createWriteStream(path.join(__dirname, 'ext.zip'));
+  const output = fs.createWriteStream('/app/ext.zip');
   const archive = archiver('zip', {
     zlib: { level: 1 } // Sets the compression level.
   });

@@ -12,9 +12,11 @@ export default class extends React.Component {
     if (!this.props.urls || !this.props.urls.length) {
       return null;
     }
+    // some urls are not http urls
+    const urls = this.props.urls.filter(data => data.href.startsWith('http'));
     return <View>
       <Title title='History Results' />
-      {this.props.urls.slice(0, 3).map(this.displayUrls)}
+      {urls.map(this.displayUrls)}
     </View>
   }
 

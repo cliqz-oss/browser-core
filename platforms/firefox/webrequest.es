@@ -1,7 +1,6 @@
 import { HttpRequestContext } from 'platform/antitracking/http-request-context';
 import { ChannelListener } from 'platform/antitracking/channel-listener';
 import utils from 'core/utils';
-import console from 'core/console';
 import * as tabListener from 'platform/antitracking/tab-listener';
 
 Cu.import("resource://gre/modules/Services.jsm");

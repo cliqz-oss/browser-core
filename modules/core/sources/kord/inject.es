@@ -1,5 +1,3 @@
-import { Window } from '../browser';
-
 let app;
 
 export class ModuleMissingError extends Error {
@@ -21,40 +19,35 @@ class ModuleWrapper {
     this.moduleName = moduleName;
   }
 
+  get module() {
+    return app.availableModules[this.moduleName];
+  }
+
   isWindowReady(window) {
-    const win = new Window(window);
-    return this.isReady().then(() => {
-      const module = app.availableModules[this.moduleName];
-      return module.windows[win.id].loadingPromise;
-    });
+    return this.isReady().then(() => this.module.getWindowLoadingPromise(window));
   }
 
   isReady() {
-    const module = app.availableModules[this.moduleName];
-
-    if (!module) {
+    if (!this.module) {
       return Promise.reject(new ModuleMissingError(this.moduleName));
     }
 
-    if (!module.isEnabled && !module.isLoading) {
+    if (this.module.isDisabled) {
       return Promise.reject(new ModuleDisabledError(this.moduleName));
     }
 
-    return module.isReady();
+    return this.module.isReady();
   }
 
   action(actionName, ...args) {
     return this.isReady()
-      .then(() => {
-        const module = app.availableModules[this.moduleName];
-        return module.background.actions[actionName](...args);
-      });
+      .then(() => this.module.background.actions[actionName](...args));
   }
 
   windowAction(window, actionName, ...args) {
     return this.isWindowReady(window).then(() => {
-      const module = window.CLIQZ.Core.windowModules[this.moduleName];
-      const action = module.actions[actionName];
+      const windowModule = this.module.getWindowModule(window);
+      const action = windowModule.actions[actionName];
       return Promise.resolve(action(...args));
     });
   }

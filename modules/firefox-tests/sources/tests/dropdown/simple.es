@@ -16,7 +16,7 @@ export default function () {
     ];
     let resultElement;
 
-    beforeEach(function () {
+    before(function () {
       respondWith({ results });
       fillIn('test');
       return waitForPopup().then(function () {

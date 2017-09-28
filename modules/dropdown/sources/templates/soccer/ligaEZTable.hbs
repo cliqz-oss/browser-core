@@ -5,44 +5,29 @@
 
 {{> partials/buttons}}
 
-{{#if this.subResult}}
-    <a class="result soccer-title" href="{{this.subResult.url}}">
-        <span class="padded">{{this.subResult.title}}</span>
+{{#if subResult}}
+    <a class="result soccer-title" href="{{subResult.url}}">
+        <span class="padded">{{subResult.title}}</span>
         <span class="soccer-domain divider">—</span>
         <span class="soccer-domain">{{ local 'soccer-api-provider' }}</span>
     </a>
 {{/if}}
 <div class="padded soccer">
     <div class="wrapper">
-        <div class="table">
-            <div class="table-header">
-                <div class="table-cell">{{ local 'soccer-table-rank' }}</div>
-                <div class="table-cell"></div>
-                <div class="table-cell">{{ local 'soccer-table-teams' }}</div>
-                <div class="table-cell">{{ local 'soccer-table-played' }}</div>
-                <div class="table-cell">{{ local 'soccer-table-won' }}</div>
-                <div class="table-cell">{{ local 'soccer-table-lost' }}</div>
-                <div class="table-cell">{{ local 'soccer-table-drawn' }}</div>
-                <div class="table-cell">{{ local 'soccer-table-goals' }}</div>
-                <div class="table-cell">{{ local 'soccer-table-goal-diff' }}</div>
-                <div class="table-cell">{{ local 'soccer-table-points' }}</div>
-            </div>
-            {{#each ligaEZTable}}
-                <div class="table-row">
-                    <div class="table-cell">{{this.rank}}</div>
-                    <div class="table-cell club-logo"><img src="{{this.logo}}" alt="" /></div>
-                    <div class="table-cell">{{this.club}}</div>
-                    <div class="table-cell">{{this.played}}</div>
-                    <div class="table-cell">{{this.won}}</div>
-                    <div class="table-cell">{{this.lost}}</div>
-                    <div class="table-cell">{{this.drawn}}</div>
-                    <div class="table-cell">{{this.goals}}</div>
-                    <div class="table-cell">{{this.goalsDiff}}</div>
-                    <div class="table-cell">{{this.points}}</div>
-                </div>
-            {{/each}}
-        </div>
+        {{#with ligaEZTable}}
+            {{> partials/liga-table}}
+        {{/with}}
     </div>
-    <p class="powered-by">{{ local 'soccer-powered-by' }}</p>
+    <div>
+        {{#if expandButton.show}}
+            <a class="result expand-btn" href="{{expandButton.url}}">
+                {{local expandButton.title}}
+            </a>
+        {{/if}}
+
+        <a class="result powered-by" href="{{poweredByResult.url}}">
+            {{local poweredByResult.title}}
+        </a>
+    </div>
 </div>
 

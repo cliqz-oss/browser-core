@@ -1,7 +1,6 @@
 import platformEquals, { isURI, URI } from '../platform/url';
-import LRU from './LRU';
 import tlds from './tlds';
-
+import MapCache from './helpers/fixed-size-cache';
 
 const UrlRegExp = /^(([a-z\d]([a-z\d-]*[a-z\d])?)\.)+[a-z]{2,}(\:\d+)?$/i;
 
@@ -101,6 +100,9 @@ export function equals(url1, url2) {
   return false;
 }
 
+export function isCliqzAction(url) {
+  return url.match(/^cliqz-actions,/);
+}
 
 export function cleanMozillaActions(url = '') {
   if(url.indexOf("moz-action:") == 0) {
@@ -125,13 +127,7 @@ export function stripTrailingSlash(str) {
   return str;
 }
 
-
-const urlDetailsCache = new LRU(10000);
-
-export function getDetailsFromUrl(originalUrl) {
-  if (urlDetailsCache.has(originalUrl)) {
-    return urlDetailsCache.get(originalUrl);
-  }
+function _getDetailsFromUrl(originalUrl) {
   var [action, originalUrl] = cleanMozillaActions(originalUrl);
   // exclude protocol
   var url = originalUrl,
@@ -273,7 +269,12 @@ export function getDetailsFromUrl(originalUrl) {
     port: port,
     friendly_url: friendly_url
   };
-  urlDetailsCache.set(originalUrl, urlDetails);
 
   return urlDetails;
+}
+
+const urlDetailsCache = new MapCache(_getDetailsFromUrl, 50);
+
+export function getDetailsFromUrl(url) {
+  return urlDetailsCache.get(url);
 }

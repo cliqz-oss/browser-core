@@ -1,7 +1,18 @@
 'use strict';
 var app, modules = {};
 
-if(window.navigator.cookieEnabled){
+var storageCheck = function() {
+  try {
+    localStorage.setItem('test', true);
+    localStorage.removeItem('test');
+    window.indexedDB;
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+if(window.navigator.cookieEnabled && storageCheck()){
   var App = require('./core/app').default;
 
   app = new App({});
@@ -15,10 +26,10 @@ if(window.navigator.cookieEnabled){
 
 module.exports = {
   start: function () {
-    if(window.navigator.cookieEnabled){
+    if(window.navigator.cookieEnabled && storageCheck()){
       return app.start();
     } else {
-      Promise.reject('Cookies are disabled');
+      Promise.reject('Cookies or localStorage are disabled');
     }
 
   },

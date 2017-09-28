@@ -210,15 +210,42 @@ var osAPI = {
     osAPI.OS.postMessage(message);
   },
   /**
-    function: shareCard
-    description: sends card url to the OS
-    params: cardUrl as string
-    message data: cardUrl as string
-  */
-  shareCard: function(cardUrl) {
+    function: shareCardHtml
+    description: sends card html to the OS
+    params: cardIndex as number
+    params: cardTitle as number
+    message data: html as string
+    message data: height as number
+    message data: width as number
+   */
+  shareCardHtml: function (cardIndex, cardTitle) {
+    var original = document.getElementById('cqz-result-box-' + cardIndex);
+    if (!original) {
+      return;
+    }
+    var titleExtra = CliqzUtils.getLocalizedString('mobile_card_look_shared_via');
+    var title = cardTitle ? titleExtra + ':\n' + cardTitle : titleExtra + '.';
+    var html = original.cloneNode(true);
+    var img = html.getElementsByClassName('share-card-icon')[0];
+    var text = html.getElementsByClassName('share-card-text')[0];
+    if (window.webkit) {
+      // ios
+      img.src = 'skin/img/cliqz-logo-ios.png';
+      text.innerText = CliqzUtils.getLocalizedString('mobile_card_shared_via', 'iOS')
+    } else {
+      img.src = 'skin/img/cliqz-logo-android.png';
+      text.innerText = CliqzUtils.getLocalizedString('mobile_card_shared_via', 'Android')
+    }
+    var height = original.clientHeight;
+    var width = original.clientWidth;
     var message = {
       action: "shareCard",
-      data: cardUrl
+      data: {
+        html: CLIQZ.templates['share-card-template'](html.outerHTML),
+        height: height,
+        width: width,
+        title: title
+      }
     };
     osAPI.OS.postMessage(message);
     CliqzUtils.telemetry({
@@ -254,6 +281,42 @@ var osAPI = {
     };
     osAPI.OS.postMessage(message);
   },
+  /**
+    function: subscribeToNotifications
+    description: subscribes to football game, team or league
+    @param: {string} type - type of subscription (soccer, weather, ...etc)
+    @param: {string} subtype - subtype of subscription (team, league, game, ...etc)
+    @param: {string} id - id of team, leage or game
+  */
+  subscribeToNotifications: function(type, subtype, id) {
+    var message = {
+      action: "subscribeToNotifications",
+      data: {
+        type: type,
+        subtype: subtype,
+        id: id
+      }
+    };
+    osAPI.OS.postMessage(message);
+  },
+  /**
+    function: unsubscribeToNotifications
+    description: unsubscribes to football game, team or league
+    @param: {string} type - type of subscription (soccer, weather, ...etc)
+    @param: {string} subtype - subtype of subscription (team, league, game, ...etc)
+    @param: {string} id - id of team, leage or game
+  */
+  unsubscribeToNotifications: function(type, subtype, id) {
+    var message = {
+      action: "unsubscribeToNotifications",
+      data: {
+        type: type,
+        subtype: subtype,
+        id: id
+      }
+    };
+    osAPI.OS.postMessage(message);
+  },
 
   /**
     function: notifyYoutubeVideoUrls
@@ -270,7 +333,7 @@ var osAPI = {
   },
 
   /**
-    function: showQuerySuggestions
+    function: shareCard
     description: sends the query suggestions to native
     @param: {string} query - query
     @param: {array} suggestions - suggestions

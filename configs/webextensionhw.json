@@ -28,8 +28,6 @@
     "core",
     "hpn"
   ],
-  "subprojects": [
-  ],
   "system": {
     "map": {
       "bigint": "bower_components/bigint/index.js",

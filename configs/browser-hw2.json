@@ -2,8 +2,8 @@
   "platform": "firefox",
   "baseURL": "resource://cliqz/",
   "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
-  "testem_launchers": ["Mocha", "Chrome"],
-  "testem_launchers_ci": ["Mocha"],
+  "testem_launchers": ["unit-node", "Chrome"],
+  "testem_launchers_ci": ["unit-node"],
   "settings": {
     "id": "cliqz@cliqz.com",
     "name": "Cliqz",
@@ -11,9 +11,7 @@
     "homepageURL": "https://cliqz.com/",
     "updateURL": "https://s3.amazonaws.com/cdncliqz/update/browser/latest.rdf",
     "updateURLbeta": "https://s3.amazonaws.com/cdncliqz/update/browser_beta/latest.rdf",
-    "freshTabButton": false,
     "freshTabNews": true,
-    "freshTabInitialState": true,
     "unblockUI": false,
     "showDataCollectionMessage": false,
     "antitrackingButton": true,
@@ -72,7 +70,6 @@
     "moncomp",
     "type-filter",
     "history",
-    "telemetry-speed-dial",
     "offboarding",
     "offers-v2",
     "video-downloader",
@@ -80,7 +77,8 @@
     "proxyPeer",
     "pairing"
   ],
-  "subprojects": [
-    "fresh-tab-frontend"
-  ]
+  "subprojects": [{
+    "src": "node_modules/cliqz-history/dist",
+    "dest": "cliqz-history"
+  }]
 }

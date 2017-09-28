@@ -1,41 +1,40 @@
-
-
-/**
- * Get the url of the top window.
- */
-function getDocumentUrl(url, window) {
-  let currentWindow = window;
-  let currentUrl = url;
-
-  while (currentUrl !== currentWindow.parent.document.documentURI) {
-    currentUrl = currentWindow.parent.document.documentURI;
-    currentWindow = currentWindow.parent;
-  }
-
-  return currentUrl;
-}
-
-
-function isMainDocument(url, window) {
-  return url === window.parent.document.documentURI;
-}
+import { getDocumentUrl } from '../core/content/helpers';
 
 
 function injectCSSRule(rule, doc) {
   const css = doc.createElement('style');
   css.type = 'text/css';
   css.id = 'cliqz-adblokcer-css-rules';
-  doc.getElementsByTagName('head')[0].appendChild(css);
+  const parent = doc.head || doc.documentElement;
+  parent.appendChild(css);
   css.appendChild(doc.createTextNode(rule));
 }
 
 
 function injectScript(s, doc) {
+  // Wrap script so that it removes itself when the execution is over.
+  const autoRemoveScript = `
+    ${s}
+
+    (function() {
+      var currentScript = document.currentScript;
+      var parent = currentScript && currentScript.parentNode;
+
+      if (parent) {
+        parent.removeChild(currentScript);
+      }
+    })();
+  `;
+
+  // Create node
   const script = doc.createElement('script');
   script.type = 'text/javascript';
   script.id = 'cliqz-adblocker-script';
-  script.textContent = s;
-  doc.getElementsByTagName('head')[0].appendChild(script);
+  script.appendChild(doc.createTextNode(autoRemoveScript));
+
+  // Insert node
+  const parent = doc.head || doc.documentElement;
+  parent.appendChild(script);
 }
 
 
@@ -64,13 +63,20 @@ function blockScript(filter, document) {
  */
 export default class {
   constructor(url, window, backgroundAction) {
-    this.documentUrl = getDocumentUrl(url, window);
+    this.documentUrl = getDocumentUrl(window);
     this.url = url;
     this.window = window;
     this.backgroundAction = backgroundAction;
 
     this.mutationObserver = null;
     this.injectedRules = new Set();
+    this.injectedScripts = new Set();
+    this.blockedScripts = new Set();
+
+    // Get domain rules as soon as possible
+    if (this.isMainDocument()) {
+      this.backgroundAction('getCosmeticsForDomain', this.url);
+    }
   }
 
   unload() {
@@ -83,6 +89,10 @@ export default class {
     }
   }
 
+  isMainDocument() {
+    return this.window === this.window.parent;
+  }
+
   /**
    * When one or several mutations occur in the window, extract caracteristics
    * (node name, class, tag) from the modified nodes and request matching
@@ -90,9 +100,24 @@ export default class {
    */
   onMutation(mutations) {
     let targets = new Set(mutations.map(m => m.target).filter(t => t));
+
+    // TODO - it might be necessary to inject scripts, CSS and block scripts
+    // from here into iframes with no src. We could first inject/block
+    // everything already present in `this.injectedRules`,
+    // `this.injectedScripts` and `this.blockedScripts`. Then we could register
+    // the iframe to be subjected to the same future injections as the current
+    // window.
+    //   targets.forEach((target) => {
+    //     if (target.localName === 'iframe') {}
+    //     if (target.childElementCount !== 0) {
+    //       const iframes = target.getElementsByTagName('iframe');
+    //       if (iframes.length !== 0) {}
+    //     }
+    //   });
+
     if (targets.size > 100) {
       // In case there are too many mutations we will only check once the whole document
-      targets = new Set([this.window.document]);
+      targets = new Set([this.window.document.body]);
     }
 
     if (targets.size === 0) {
@@ -135,15 +160,10 @@ export default class {
   }
 
   onDOMContentLoaded() {
-     // Request rules for domain
-    if (isMainDocument(this.url, this.window)) {
-      this.backgroundAction('getCosmeticsForDomain', this.url);
-    }
-
     // TODO - is this necessary? Can a cosmetic filter apply to an element of
     // the DOM?
     // Trigger sending of the cosmetic fitlers for the full page
-    // this.onMutation([{ target: this.window.document }]);
+    // this.onMutation([{ target: this.window.document.body }]);
 
     // attach mutation obsever in case new nodes are added
     this.mutationObserver = new this.window.MutationObserver(
@@ -156,31 +176,34 @@ export default class {
   }
 
   handleRules(rules) {
+    /* eslint-disable no-continue */
     const rulesToInject = [];
 
-    // Check which rules should be injected in the page
-    // TODO - this check could be remoted all together. It would make the
-    // injection faster at the price of injecting more CSS rules (some of which
-    // could be useless).
-    rules.forEach((rule) => {
+    // Check which rules should be injected in the page.
+    for (let i = 0; i < rules.length; i += 1) {
+      const rule = rules[i];
+
       if (!this.injectedRules.has(rule)) {
         // Check if the selector would match
         try {
           if (!this.window.document.querySelector(rule)) {
-            return;
+            continue;
           }
         } catch (e) {  // invalid selector
-          return;
+          continue;
         }
 
         this.injectedRules.add(rule);
         rulesToInject.push(` :root ${rule}`);
       }
-    });
+    }
 
     // Inject selected rules
     if (rulesToInject.length > 0) {
-      injectCSSRule(`${rulesToInject.join(' ,')} {display:none !important;}`, this.window.document);
+      injectCSSRule(
+        `${rulesToInject.join(' ,')} {display:none !important;}`,
+        this.window.document
+      );
     }
   }
 
@@ -191,14 +214,22 @@ export default class {
     }
 
     // Inject scripts
-    scripts.forEach((script) => {
-      injectScript(script, this.window.document);
-    });
+    for (let i = 0; i < scripts.length; i += 1) {
+      const script = scripts[i];
+      if (!this.injectedScripts.has(script)) {
+        injectScript(script, this.window.document);
+        this.injectedScripts.add(script);
+      }
+    }
 
     // Block scripts
-    blockedScripts.forEach((script) => {
-      blockScript(script, this.window.document);
-    });
+    for (let i = 0; i < blockedScripts.length; i += 1) {
+      const script = blockedScripts[i];
+      if (!this.blockedScripts.has(script)) {
+        blockScript(script, this.window.document);
+        this.blockedScripts.add(script);
+      }
+    }
 
     this.handleRules(styles);
   }

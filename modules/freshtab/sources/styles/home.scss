@@ -7,7 +7,7 @@
 @import 'settings.scss';
 @import 'switch.scss';
 @import 'middle-notifications.scss';
-
+@import 'offers-middle-notifications.scss';
 
 @mixin container($config, $theme)
 {
@@ -16,12 +16,14 @@
     $url-bar-configs: map-merge($base-configs, map-get($config, url-bar));
     $news-configs: map-get($config, news);
     $middle-notifications-configs: map-get($config, middle-notifications);
+    $offer-middle-notifications-configs: map-get($config, offer-middle-notifications);
 
     $base-theme: map-get($theme, base);
     $speed-dials-theme: map-get($theme, speed-dials);
     $url-bar-theme: map-get($theme, url-bar);
     $news-theme: map-get($theme, news);
     $middle-notifications-theme: map-merge(map-get($theme, middle-notifications), $base-theme);
+    $offer-middle-notifications-theme: map-get($theme, offer-middle-notifications);
 
     display: flex;
     min-height: 100vh;
@@ -36,7 +38,7 @@
             height: 24px;
             opacity: 0.4;
             color: transparent;
-            font-size: 0px;
+            font-size: 0;
             text-decoration: none;
             border: 0;
             cursor: pointer;
@@ -95,10 +97,17 @@
                 text-align: center;
             }
 
+            #section-middle {
+                margin-top: map-get($base-configs, section-padding);
+                margin-bottom: map-get($base-configs, section-padding);
+            } 
+
             @include speed-dials(map-merge($speed-dials-configs, $speed-dials-theme)...);
             @include url-bar(map-merge($url-bar-configs, $url-bar-theme)...);
             @include news(map-merge($news-configs, $news-theme)...);
             @include middle-notifications(map-merge($middle-notifications-configs, $middle-notifications-theme)...);
+
+            @include offer-middle-notifications(map-merge($offer-middle-notifications-configs, $offer-middle-notifications-theme)...);
         }
     }
 }
@@ -107,6 +116,15 @@
     @media only screen and (max-width: 649px) {
         $config: map-get($configs, xsmall);
         @include container($config, $theme);
+
+        #main-content .fixed-container .offer-middle-notification.middle-notification-box {
+            .content {
+                h1 {
+                    font-size: 13px;
+                    font-weight: bold;
+                }
+            }
+        }
     }
     @media only screen and (min-width: 650px) and (max-width: 919px) {
         $config: map-get($configs, small);

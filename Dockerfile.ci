@@ -1,5 +1,7 @@
 FROM node:7.10.1-stretch
 
+ARG DEBIAN_FRONTEND=noninteractive
+
 RUN npm install -g \
   bower \
   broccoli-cli \
@@ -29,6 +31,7 @@ RUN apt-get update && \
     libfontconfig1 \
     libfreetype6 \
     libgcc1 \
+    libgconf-2-4 \
     libgdk-pixbuf2.0-0 \
     libglib2.0-0 \
     libgtk-3-0 \
@@ -55,16 +58,16 @@ RUN apt-get update && \
     x11vnc \
     xauth \
     xvfb \
-    zip \
- && rm -rf /var/lib/apt/lists/*
+    zip
 
-RUN pip install --upgrade cffi
-RUN pip install \
-  fabric \
-  jinja2 \
-  awscli \
-  requests \
-  pycrypto \
+RUN pip install --upgrade setuptools
+RUN pip install cffi==1.10.0
+RUN pip install     \
+  Fabric==1.13.2    \
+  Jinja2==2.9.6     \
+  awscli==1.11.135  \
+  pycrypto==2.6.1   \
+  requests==2.18.4  \
   argparse
 
 RUN cd /tmp && \
@@ -75,7 +78,6 @@ RUN cd /tmp && \
   make && \
   make install
 ENV PATH "/usr/local/ssl/bin:$PATH"
-
 
 
 RUN mkdir /app
@@ -96,14 +98,22 @@ RUN wget https://ftp.mozilla.org/pub/firefox/releases/42.0/linux-x86_64/en-US/fi
  && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox42 \
  && rm -f /home/node/firefox.tar.bz2
 
-RUN wget https://ftp.mozilla.org/pub/firefox/releases/52.0/linux-x86_64/en-US/firefox-52.0.tar.bz2 -O /home/node/firefox.tar.bz2 \
+RUN wget https://ftp.mozilla.org/pub/firefox/releases/52.0.2/linux-x86_64/en-US/firefox-52.0.2.tar.bz2 -O /home/node/firefox.tar.bz2 \
  && mkdir /home/node/firefox52 \
  && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox52 \
  && rm -f /home/node/firefox.tar.bz2
 
-RUN wget https://chromedriver.storage.googleapis.com/2.31/chromedriver_linux64.zip -O /home/node/chromedriver_linux64.zip \
- && unzip /home/node/chromedriver_linux64.zip -d /home/node \
- && rm -f /home/node/chromedriver_linux64.zip
+RUN wget https://ftp.mozilla.org/pub/firefox/releases/55.0.2/linux-x86_64/en-US/firefox-55.0.2.tar.bz2 -O /home/node/firefox.tar.bz2 \
+ && mkdir /home/node/firefox55 \
+ && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox55 \
+ && rm -f /home/node/firefox.tar.bz2
+
+# Get chrome driver
+RUN wget --no-verbose -O /tmp/chromedriver_linux64.zip https://chromedriver.storage.googleapis.com/2.31/chromedriver_linux64.zip \
+  && rm -rf /app/chromedriver \
+  && unzip /tmp/chromedriver_linux64.zip -d /app \
+  && rm /tmp/chromedriver_linux64.zip \
+  && chmod 755 /app/chromedriver
 
 COPY package.json /app/
 COPY bower.json /app/

@@ -13,7 +13,8 @@ function reportClick(window, result) {
     query: result.query,
     rawResult: result.rawResult,
     isPrivateWindow: utils.isPrivate(window),
-    isPrivateResult: utils.isPrivateResultType(result.kind)
+    isPrivateResult: utils.isPrivateResultType(result.kind),
+    isFromAutocompletedURL: false
   });
 }
 

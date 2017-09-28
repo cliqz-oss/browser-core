@@ -1,5 +1,5 @@
 import {utils} from '../core/cliqz';
-import MapCache from './fixed-size-cache';
+import MapCache from '../core/helpers/fixed-size-cache';
 import * as datetime from './time';
 
 var privacyScoreURL = 'https://anti-tracking.cliqz.com/api/v1/score?';

@@ -2,6 +2,39 @@ import BaseResult from './base';
 import GenericResult from './generic';
 import utils from '../../core/utils';
 
+const LIMIT = {
+  ligaEZ1Game: {
+    rowsLimit: 2,
+    maxRowsLimit: 10,
+  },
+  liveTicker: {
+    rowsLimit: 2,
+    maxRowsLimit: 10,
+  },
+  ligaEZTable: {
+    rowsLimit: 6,
+    maxRowsLimit: 20,
+  },
+  ligaEZGroup: {
+    rowsLimit: 4,
+    maxRowsLimit: 4,
+  },
+};
+
+class ExpandButton extends BaseResult {
+  get displayUrl() {
+    return this.rawResult.text;
+  }
+
+  get show() {
+    return this.rawResult.show;
+  }
+
+  click() {
+    this.rawResult.onClick();
+  }
+}
+
 class LiveTickerResult extends BaseResult {
   get locale() {
     return utils.getLocalizedString('locale_lang_code');
@@ -64,10 +97,6 @@ class LiveTickerResult extends BaseResult {
   get leagueName() {
     return this.rawResult.match.leagueName;
   }
-
-  get url() {
-    return this.rawResult.match.live_url;
-  }
 }
 
 class LiveTickerRound extends GenericResult {
@@ -82,6 +111,8 @@ class LiveTickerRound extends GenericResult {
   get allResults() {
     return this.rawResult.week.matches.map(match => new LiveTickerResult({
       match,
+      text: this.rawResult.text,
+      url: match.live_url,
     }));
   }
 }
@@ -116,7 +147,7 @@ class TableItemResult extends BaseResult {
   }
 
   get goals() {
-    return `${this.rawResult.item.T}-${this.rawResult.item.GT}`;
+    return this.rawResult.item.goals;
   }
 
   get goalsDiff() {
@@ -129,6 +160,50 @@ class TableItemResult extends BaseResult {
 
   get qualified() {
     return 'resource://cliqz/dropdown/images/champions-league.png';
+  }
+}
+
+class TableResult extends BaseResult {
+  get tableHeader() {
+    const infoList = this.rawResult.infoList;
+
+    return {
+      rank: infoList.rank,
+      club: infoList.club,
+      played: infoList.SP,
+      won: infoList.S,
+      lost: infoList.N,
+      drawn: infoList.U,
+      goals: infoList.goals,
+      goalsDiff: infoList.TD,
+      points: infoList.PKT,
+    };
+  }
+
+  get tableData() {
+    const results = this.rawResult.ranking.map(item => new TableItemResult({
+      item,
+    }));
+
+    return results;
+  }
+
+  get table() {
+    return {
+      header: this.tableHeader,
+      data: this.tableData,
+      rowsLimit: this.rawResult.itemsLimit,
+    };
+  }
+}
+
+class TableGroup extends BaseResult {
+  get groupName() {
+    return this.rawResult.groupName;
+  }
+
+  get ligaEZTable() {
+    return this.rawResult.ligaEZTable;
   }
 }
 
@@ -147,8 +222,19 @@ export default class extends GenericResult {
       allResultsFlat.push(rawResult.data.extra.url);
     }
 
-    this.internalResultsLimit = 3;
+    this.internalResultsLimit = 4;
+    this.newsResultsLimit = 2;
+    this.itemsLimit = this.rowsLimit;
   }
+
+  get rowsLimit() {
+    return LIMIT[this.currentSubTemplate].rowsLimit;
+  }
+
+  get maxRowsLimit() {
+    return LIMIT[this.currentSubTemplate].maxRowsLimit;
+  }
+
   get template() {
     return `soccer/${this.currentSubTemplate}`;
   }
@@ -165,6 +251,8 @@ export default class extends GenericResult {
     return [
       ...this.selectableResults,
       ...this.soccerResults,
+      this.expandButton,
+      this.poweredByResult,
     ];
   }
 
@@ -173,7 +261,7 @@ export default class extends GenericResult {
       ...(this.url ? [this] : []),
       ...(super.internalResults).slice(0, this.internalResultsLimit),
       ...(this.subResult ? [this.subResult] : []),
-      // ...(super.newsResults).slice(0, this.internalResultsLimit), // Disabled news for now
+      ...(super.newsResults).slice(0, this.newsResultsLimit),
     ];
   }
 
@@ -187,11 +275,11 @@ export default class extends GenericResult {
       case 'liveTicker':
         results = this.liveTicker
                     .map(round => round.allResults)
-                    .reduce((arr, el) => [...arr, ...el]
-                    , []);
+                    .reduce((arr, el) => [...arr, ...el], []);
         break;
       case 'ligaEZTable':
-        results = this.ligaEZTable;
+      case 'ligaEZGroup':
+        results = [];
         break;
       default:
         results = [];
@@ -203,7 +291,8 @@ export default class extends GenericResult {
   get ligaEZ1Game() {
     const results = this.extra.matches.map(match => new LiveTickerResult({
       match,
-      text: this.rawResult.text,
+      text: this.query,
+      url: match.live_url,
     }));
 
     return results;
@@ -214,14 +303,31 @@ export default class extends GenericResult {
       round: week.round,
       isCurrent: week.isCurrent,
       week,
+      text: this.query,
     }));
 
     return results;
   }
 
   get ligaEZTable() {
-    const results = this.extra.ranking.map(item => new TableItemResult({
-      item,
+    const result = new TableResult({
+      ranking: this.extra.ranking,
+      infoList: this.extra.info_list,
+      itemsLimit: this.itemsLimit,
+    });
+
+    return result.table;
+  }
+
+  get ligaEZGroup() {
+    const results = this.extra.groups.map(item => new TableGroup({
+      groupName: item.group,
+      group: item,
+      ligaEZTable: new TableResult({
+        ranking: item.ranking,
+        infoList: item.info_list,
+        itemsLimit: this.itemsLimit,
+      }).table,
     }));
 
     return results;
@@ -235,6 +341,40 @@ export default class extends GenericResult {
     return new SoccerSubResult({
       url: this.extra.url,
       title: this.extra.title,
+      text: this.query,
+    });
+  }
+
+  get newsAvailable() {
+    return super.newsResults.length > 0;
+  }
+
+  get numberOfNews() {
+    if (super.newsResults.length >= this.newsResultsLimit) {
+      return this.newsResultsLimit;
+    }
+
+    return super.newsResults.length;
+  }
+
+  get expandButton() {
+    return new ExpandButton({
+      title: 'soccer-expand-button',
+      url: `cliqz-actions,${JSON.stringify({ type: 'soccer', actionName: 'expand' })}`,
+      text: this.rawResult.text,
+      show: this.itemsLimit !== this.maxRowsLimit,
+      onClick: () => {
+        this.itemsLimit = this.maxRowsLimit;
+        this.actions.replaceResult(this, this);
+      }
+    });
+  }
+
+  get poweredByResult() {
+    return new BaseResult({
+      url: 'http://www.kicker.de/',
+      title: 'soccer-powered-by',
+      text: this.query,
     });
   }
 }

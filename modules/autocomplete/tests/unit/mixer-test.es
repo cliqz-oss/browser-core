@@ -4,8 +4,8 @@ export default describeModule("autocomplete/mixer",
   function () {
     return {
       "autocomplete/url-complete": { default: {} },
-      "core/cliqz": {
-        utils: {
+      "core/utils": {
+        default: {
           setTimeout,
           log: console.log.bind(console),
           encodeSources() { return []; },
@@ -466,7 +466,7 @@ export default describeModule("autocomplete/mixer",
 
         smartCliqzCache.retrieveAndUpdate = smartCliqzCache.retrieve;
 
-        this.deps("core/cliqz").utils.generalizeUrl = () => "cliqz.com";
+        this.deps("core/utils").default.generalizeUrl = () => "cliqz.com";
         mixer = new (this.module().default)({
           smartCliqzCache,
           triggerUrlCache,

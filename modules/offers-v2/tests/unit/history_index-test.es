@@ -12,11 +12,11 @@ export default describeModule('offers-v2/history_index',
   () => ({
     'offers-v2/common/offers_v2_logger': {
       default: {
-        debug: () => {},
-        error: () => {},
-        info: () => {},
-        log: () => {},
-        warn: () => {},
+        debug: (x) => {console.log(x);},
+        error: (x) => {console.error(x);},
+        info: (x) => {console.log(x);},
+        log: (x) => {console.log(x);},
+        warn: (x) => {console.error(x);},
         logObject: () => {},
       }
     },
@@ -82,6 +82,27 @@ export default describeModule('offers-v2/history_index',
           })
         ]);
       });
+
+      function addHistoryData(hh, d) {
+        d.forEach((e) => {
+          mockedTS = e.ts;
+          hh.addUrl(e.url, {});
+        });
+      }
+      function countMatches(d, pp, start, end) {
+        let count = 0;
+        d.forEach((e) => {
+          if (e.ts >= start && e.ts <= end) {
+            pp.forEach((pattern) => {
+              const r = new RegExp(pattern);
+              if (r.test(e.url)) {
+                count += 1;
+              }
+            });
+          }
+        });
+        return count;
+      }
 
       describe('private binary search functions', function () {
         let historyIndex;
@@ -171,9 +192,7 @@ export default describeModule('offers-v2/history_index',
       describe('countHistoryEntries', function () {
         let historyIndex;
         const db = {};
-        beforeEach(function () {
-          historyIndex = new HistoryIndex(db);
-          historyIndex.entries = [
+        const ENTRIES = [
             { url: '0', ts: 2 },
             { url: '1', ts: 3 },
             { url: '1', ts: 4 },
@@ -185,7 +204,35 @@ export default describeModule('offers-v2/history_index',
             { url: '1', ts: 8 },
             { url: '8', ts: 9 },
           ];
-          historyIndex.cachedCounts.set(12345, {t_start:4, t_end: 6, count: 0});
+
+        beforeEach(function () {
+          historyIndex = new HistoryIndex(db);
+          addHistoryData(historyIndex, ENTRIES);
+          //historyIndex.cachedCounts.set(12345, {t_start:4, t_end: 6, count: 0});
+        });
+
+        function checkRange(start, end, p, id) {
+          chai.expect(historyIndex.countHistoryEntries(start, end, p, id),
+                      `checking range: [${start}, ${end}] failed`)
+                      .eql(countMatches(historyIndex.entries, p, start, end))
+        }
+
+        it('last entry test', function () {
+          const pattern = /8/;
+          historyIndex.entries = [
+            { url: '8', ts: 9 },
+          ];
+          const id = 12345;
+          chai.expect(historyIndex.countHistoryEntries(0, 9, [pattern], id)).eql(1);
+        });
+
+        it('last entry test', function () {
+          const pattern = /8/;
+          historyIndex.entries = [
+            { url: '8', ts: 9 },
+          ];
+          const id = 12345;
+          chai.expect(historyIndex.countHistoryEntries(9, 9, [pattern], id)).eql(1);
         });
 
         it('incorrect time range', function () {
@@ -204,7 +251,7 @@ export default describeModule('offers-v2/history_index',
         });
 
         it('no matches' , function () {
-          const pattern = /1/;
+          const pattern = /0/;
           const id = 12345;
           chai.expect(historyIndex.countHistoryEntries(4, 7, [pattern], id)).eql(0);
         });
@@ -233,6 +280,7 @@ export default describeModule('offers-v2/history_index',
         });
 
         it('disjoint sets', function () {
+          console.log('TEST START HERE');
           const pattern = /1/;
           const id = 12345;
           chai.expect(historyIndex.countHistoryEntries(0, 6, [pattern], id)).eql(2);
@@ -283,6 +331,143 @@ export default describeModule('offers-v2/history_index',
           historyIndex.countHistoryEntries(1, 8, [p1,p2], id);
           chai.expect(historyIndex.countHistoryEntries(1, 8, [p1,p2], id)).eql(4);
         });
+
+        // deep tests
+        it('/counthistory deep tests', function () {
+          const baseTS = 100;
+          const entries = [
+            { url: 'http://amazon1.com', ts: baseTS + 1 },
+            { url: 'http://amazon2.com', ts: baseTS + 2 },
+            { url: 'http://amazon3.com', ts: baseTS + 3 },
+            { url: 'http://amazon4.com', ts: baseTS + 4 },
+            { url: 'http://amazon5.com', ts: baseTS + 5 },
+            { url: 'http://amazon6.com', ts: baseTS + 6 },
+            { url: 'http://amazon7.com', ts: baseTS + 7 },
+            { url: 'http://amazon8.com', ts: baseTS + 8 },
+            { url: 'http://amazon9.com', ts: baseTS + 9 },
+          ];
+          const patterns = [
+            /amazon1/,
+            /amazon2/,
+            /amazon3/
+          ];
+          addHistoryData(historyIndex, entries);
+          // historyIndex.countHistoryEntries(baseTS + 0, baseTS + 8, patterns, 'x');
+          chai.expect(historyIndex.countHistoryEntries(baseTS + 0, baseTS + 8, patterns, 'x'), '0 to 8').eql(3);
+          chai.expect(historyIndex.countHistoryEntries(baseTS + 0, baseTS + 9, patterns, 'x'), '0 to 9').eql(3);
+          chai.expect(historyIndex.countHistoryEntries(baseTS + 0, baseTS + 7, patterns, 'x'), '0 to 7').eql(3);
+          chai.expect(historyIndex.countHistoryEntries(baseTS + 0, baseTS + 6, patterns, 'x'), '0 to 6').eql(3);
+          chai.expect(historyIndex.countHistoryEntries(baseTS + 1, baseTS + 7, patterns, 'x'), '1 to 7').eql(3);
+          chai.expect(historyIndex.countHistoryEntries(baseTS + 2, baseTS + 7, patterns, 'x'), '2 to 7').eql(2);
+          chai.expect(historyIndex.countHistoryEntries(baseTS + 3, baseTS + 7, patterns, 'x'), '3 to 7').eql(1);
+          chai.expect(historyIndex.countHistoryEntries(baseTS + 4, baseTS + 7, patterns, 'x'), '4 to 7').eql(0);
+        });
+
+        it('/counthistory jumping tests', function () {
+          const baseTS = 100;
+          const entries = [
+            { url: 'http://amazon1.com', ts: baseTS + 1 },
+            { url: 'http://amazon2.com', ts: baseTS + 2 },
+            { url: 'http://amazon1.com', ts: baseTS + 3 },
+            { url: 'http://amazon4.com', ts: baseTS + 4 },
+            { url: 'http://amazon1.com', ts: baseTS + 5 },
+            { url: 'http://amazon6.com', ts: baseTS + 6 },
+            { url: 'http://amazon1.com', ts: baseTS + 7 },
+            { url: 'http://amazon8.com', ts: baseTS + 8 },
+            { url: 'http://amazon1.com', ts: baseTS + 9 },
+            { url: 'http://amazon9.com', ts: baseTS + 10 },
+            { url: 'http://amazon1.com', ts: baseTS + 11 },
+            { url: 'http://amazon9.com', ts: baseTS + 12 },
+
+          ];
+          const patterns = [
+            /amazon1/,
+            /amazon22/,
+            /amazon32/
+          ];
+          addHistoryData(historyIndex, entries);
+          for (let i = 0; i < 10; i += 2) {
+            chai.expect(historyIndex.countHistoryEntries(baseTS + i, baseTS + i + 1, patterns, 'x')).eql(1);
+          }
+          for (let i = 0; i < 10; i += 4) {
+            chai.expect(historyIndex.countHistoryEntries(baseTS + i, baseTS + i + 4, patterns, 'x')).eql(2);
+          }
+          for (let i = 0; i < 6; i += 6) {
+            chai.expect(historyIndex.countHistoryEntries(baseTS + i, baseTS + i + 6, patterns, 'x')).eql(3);
+          }
+        });
+
+        it('/counthistory no intersection', function () {
+          const p = [/1/, /2/];
+          const id = 999;
+          chai.expect(historyIndex.countHistoryEntries(0, 5, p, id)).eql(3);
+          chai.expect(historyIndex.countHistoryEntries(6, 11, p, id)).eql(1);
+          chai.expect(historyIndex.countHistoryEntries(0, 5, p, id)).eql(3);
+          chai.expect(historyIndex.countHistoryEntries(6, 11, p, id)).eql(1);
+        });
+
+        it('/counthistory increasing cache', function () {
+          const p = [/1/, /2/];
+          const id = 999;
+           chai.expect(historyIndex.countHistoryEntries(4, 4, p, id)).eql(2);
+          chai.expect(historyIndex.countHistoryEntries(3, 6, p, id)).eql(3);
+          chai.expect(historyIndex.countHistoryEntries(2, 7, p, id)).eql(3);
+          chai.expect(historyIndex.countHistoryEntries(0, 9, p, id)).eql(4);
+        });
+
+        it('/counthistory decreasing cache', function () {
+          const p = [/1/, /2/];
+          const id = 999;
+          const ranges = [
+            [0, 10],
+            [2, 9],
+            [3, 8],
+            [4, 7],
+            [6, 6]
+          ];
+          ranges.forEach(r => checkRange(r[0], r[1], p, id));
+        });
+
+        it('/overlaping moving ranges', function () {
+          const p = [/1/, /2/];
+          const id = 999;
+          let ranges = [];
+          for (let overlap = 0; overlap < 10; overlap += 1) {
+            for (let i = 0; i < 10; i += 1) {
+              ranges.push([i, i-overlap]);
+            }
+          }
+          ranges.forEach(r => checkRange(r[0], r[1], p, id));
+        });
+
+        it('/increasing moving ranges', function () {
+          const p = [/1/, /2/];
+          const id = 999;
+          // add some extra data
+          const totalNewEntries = 100;
+          const possibilities = 10;
+          mockedTS = ENTRIES[ENTRIES.length - 1].ts + 1;
+          for (let i = 0; i < totalNewEntries; i += 1) {
+            const url = `${Math.floor(Math.random() * possibilities)}`;
+            mockedTS += 1;
+            historyIndex.addUrl(url, {});
+          }
+          console.log(historyIndex);
+          const numEntries = totalNewEntries + ENTRIES.length;
+          const mid = numEntries / 2;
+          for (let i = 0; i < numEntries; i += 1) {
+            const start = mid - numEntries;
+            const end = mid + numEntries;
+            checkRange(start, end, p, id);
+          }
+          for (let i = 0; i < numEntries; i += 1) {
+            const start = mid - numEntries;
+            const end = mid + numEntries;
+            checkRange(start, end, p, id);
+          }
+        });
+
+
       });
     });
   }

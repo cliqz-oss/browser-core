@@ -1,0 +1,42 @@
+.dropdown-tabs {
+    position: relative;
+
+    .background-placeholder {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 27px;
+        background-color: #DADADA;
+        width: 100%;
+    }
+
+    input.tab-radio-input {
+        position: absolute;
+        top: 0;
+        left: -9999px;
+    }
+
+    label.tab-label {
+        position: relative;
+        font-size: 12px;
+        padding: 6px 10px;
+        vertical-align: -moz-middle-with-baseline;
+    }
+
+    .tab-block {
+        display: none;
+        padding-top: 5px;
+    }
+
+    [id^="tab"]:checked + label {
+        background: #fff;
+    }
+
+    @for $i from 0 through 7 {
+        [id="tab-#{$i}"]:checked ~ [id="tab-block-#{$i}"]
+        {
+            display: block;
+        }
+    }
+}
+

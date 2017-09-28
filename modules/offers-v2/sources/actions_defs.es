@@ -43,6 +43,8 @@ const ActionID = {
   // when the user press on "More about cliqz offers" button, this is not related
   // usually to an offer, but can be associated (depending the real state).
   AID_OFFER_MORE_ABT_CLIQZ: 'more_about_cliqz',
+  // when the user hovers over offer conditions (tooltip)
+  AID_OFFER_MORE_INFO: 'offer_more_info',
   // when the user press on the main offer button (call to action).
   AID_OFFER_CALL_TO_ACTION: 'offer_ca_action',
   // whenever the user clicks on the real estate "copy code" part.

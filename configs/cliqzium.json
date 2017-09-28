@@ -21,8 +21,7 @@
     "HPN_CHANNEL": "cliqz"
   },
   "default_prefs": {
-    "showConsoleLogs": true,
-    "cliqz-adb": true
+    "showConsoleLogs": true
   },
   "modules": [
     "core",
@@ -34,8 +33,7 @@
     "expansions-provider",
     "antitracking",
     "webrequest-pipeline",
-    "chromium-tests",
-    "adblocker"
+    "chromium-tests"
   ],
   "bundles": [
     "hpn/worker.bundle.js",

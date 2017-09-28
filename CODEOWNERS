@@ -4,10 +4,12 @@
 configs/* @luciancor
 
 # please keep module list sorted
+modules/adblocker/* @remusao @zhonghao-cliqz
 modules/anolysis/* @remusao
 modules/anti-phishing/* @zhonghao-cliqz
 modules/antitracking/* @sammacbeth @zhonghao-cliqz @remusao
 modules/autocomplete/* @dominik-s @luciancor
+modules/chromium-tests/* @remusao @zhonghao-cliqz
 modules/control-center/* @mai-cliqz @giota-cliqz
 modules/core/* @chrmod @luciancor
 modules/dropdown/* @chrmod @giota-cliqz
@@ -25,7 +27,7 @@ modules/offers-cc/* @gabriel-cliqz @giota-cliqz
 modules/offers-v2/* @agustin-cliqz @salvador-cliqz @khoa-cliqz @VladPrytula
 modules/p2p/* @alex-cliqz
 modules/pairing/* @alex-cliqz
-modules/proxyPeer/* @alex-cliqz
+modules/proxyPeer/* @alex-cliqz @remusao
 modules/search/* @dominik-s
 modules/theme/* @gabriel-cliqz
 modules/video-download/* @mai-cliqz
@@ -45,6 +47,8 @@ specific/react-native/* @sammacbeth
 # Build tools
 broccoli/* @chrmod
 fern/* @chrmod
-tests/* @chrmod
+tests/* @chrmod @remusao
+Dockerfile.ci @chrmod @remusao
+run_tests_in_docker.sh @remusao
 Jenkinsfile @chrmod
 Jenkinsfile.publich @chrmod

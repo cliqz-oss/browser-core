@@ -20,6 +20,17 @@ describe('WebRequest Leak Test', function () {
     onHeadersReceived.push(req);
   }
 
+  function setupTabs(page1, page2) {
+    return newTab(page1)
+      .then(tab =>
+        waitFor(() => onBeforeRequest.some(req => req.url.endsWith('leaktest.html')))
+          .then(() => updateTab(tab, page2))
+      )
+      .then(() =>
+        waitFor(() => onBeforeRequest.some(req => req.url.endsWith('2E85855CF4C75134')))
+      );
+  }
+
   beforeEach(function () {
     onBeforeRequest = [];
     onBeforeSendHeaders = [];
@@ -45,57 +56,40 @@ describe('WebRequest Leak Test', function () {
     WebRequest.onHeadersReceived.removeListener(onHeadersReceiveCtr);
   });
 
-  it('does not leak requests across pages', (done) => {
+  it('does not leak requests across pages', function () {
     const page1 = testServer.getBaseUrl('static/leaktest.html');
     const page2 = testServer.getBaseUrl('static/thirdpartyscript.html');
 
-    newTab(page1).then((tabId) => {
-      setTimeout(() => {
-        updateTab(tabId, page2).then(() => {
-          setTimeout(() => {
-            for (const ind in onBeforeRequest) {
-              const req = onBeforeRequest[ind];
-              if(req.url.endsWith('test')) { // this is the onunload request in page1
-                chai.expect(req.originUrl).to.equal(page1);
-                chai.expect(req.source).to.equal(page1);
-              } else if(req.url.endsWith('2E85855CF4C75134')) { // this is a request from page2
-                chai.expect(req.originUrl).to.equal(page2);
-                chai.expect(req.source).to.equal(page2);
-              }
-            }
-            done();
-          }, 300);
-        });
-      }, 500);
+    return setupTabs(page1, page2).then(() => {
+      onBeforeRequest.forEach((req) => {
+        if (req.url.endsWith('test')) { // this is the onunload request in page1
+          chai.expect(req.originUrl).to.equal(page1);
+          chai.expect(req.source).to.equal(page1);
+        } else if (req.url.endsWith('2E85855CF4C75134')) { // this is a request from page2
+          chai.expect(req.originUrl).to.equal(page2);
+          chai.expect(req.source).to.equal(page2);
+        }
+      });
     });
   });
 
-  it('does not leak iframe request across pages', function(done) {
+  it('does not leak iframe request across pages', function() {
     var baseUrl = 'http://localhost:3000';
     var page1 = baseUrl + '/leaktestiframe.html';
     var page2 = baseUrl + '/thirdpartyscript.html';
     var iframe = baseUrl + '/leaktest.html';
 
-    newTab(page1).then((tabId) => {
-      setTimeout(function() {
-        updateTab(tabId, page2).then(() => {
-          setTimeout(function() {
-            for(var ind in onBeforeRequest) {
-              var req = onBeforeRequest[ind];
-              console.log(req);
-              if(req.url.endsWith('test')) { // this is the onunload request in page1
-                chai.expect(req.originUrl).to.equal(iframe);
-                // TODO: get this to properly resolve previous page
-                chai.expect(req.source).to.equal(iframe);
-              } else if(req.url.endsWith('2E85855CF4C75134')) { // this is a request from page2
-                chai.expect(req.originUrl).to.equal(page2);
-                chai.expect(req.source).to.equal(page2);
-              }
-            }
-            done();
-          }, 300);
-        })
-      }, 500);
+    return setupTabs(page1, page2).then(() => {
+      onBeforeRequest.forEach((req) => {
+        if (req.url.endsWith('test')) { // this is the onunload request in page1
+          chai.expect(req.originUrl).to.equal(iframe);
+          // TODO: get this to properly resolve previous page
+          chai.expect(req.source).to.equal(iframe);
+        } else if (req.url.endsWith('2E85855CF4C75134')) { // this is a request from page2
+          chai.expect(req.originUrl).to.equal(page2);
+          chai.expect(req.source).to.equal(page2);
+        }
+      });
     });
   })
 });

@@ -71,7 +71,7 @@ export function fastStartsWithFrom(haystack, needle, start) {
 function isDigit(ch) {
   // 48 == '0'
   // 57 == '9'
-  return ch >= 48 & ch <= 57;
+  return ch >= 48 && ch <= 57;
 }
 
 

@@ -180,8 +180,9 @@ export default class BaseResult {
   }
 
   get updated() {
-    // TODO get if from backend
-    return '2017.07.26 at 16:00';
+    const data = this.rawResult.data || {};
+    const extra = data.extra || {};
+    return extra.last_updated_ago;
   }
 
   get isAd() {
@@ -239,11 +240,12 @@ export default class BaseResult {
       }
 
       events.pub('ui:click-on-url', {
-        url: this.rawResult.url,
+        url: this.url,
         query: this.query,
         rawResult: this.rawResult,
         isPrivateWindow: utils.isPrivate(window),
-        isPrivateResult: utils.isPrivateResultType(this.kind)
+        isPrivateResult: utils.isPrivateResultType(this.kind),
+        isFromAutocompletedURL: this.isAutocompleted && ev.constructor.name === 'KeyboardEvent',
       });
     } else {
       this.findResultByUrl(href).click(window, href, ev);

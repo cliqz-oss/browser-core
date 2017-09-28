@@ -24,7 +24,7 @@ export default function () {
     let resultElement1;
     let resultElement2;
 
-    beforeEach(function () {
+    before(function () {
       respondWith({ results });
       fillIn('ro');
       return waitForPopup().then(function () {

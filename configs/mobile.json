@@ -1,7 +1,7 @@
 {
   "platform": "mobile",
   "testsBasePath": "./build",
-  "testem_launchers": ["Mocha", "Chrome"],
+  "testem_launchers": ["unit-node", "Chrome"],
   "baseURL": "./",
   "settings": {},
   "modules": [

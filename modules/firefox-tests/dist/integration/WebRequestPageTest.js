@@ -4,6 +4,7 @@ DEPS.WebRequestPageTest = ["core/utils"];
 TESTS.WebRequestPageTest = function(CliqzUtils) {
   var System = CliqzUtils.getWindow().CLIQZ.System,
       webrequest = System.get('core/webrequest').default;
+  var browser = System.get('platform/browser');
 
   describe('WebRequest example pages', function() {
     var wrCollector = {
@@ -15,7 +16,10 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
           collector[t + 'Ctr'] = function(req) {
             collector[t].push(req);
           };
-          webrequest[t].addListener(collector[t + 'Ctr']);
+          webrequest[t].addListener(
+            collector[t + 'Ctr'],
+            { urls: ['http://*'] }
+          );
         });
       },
       tearDown: function() {
@@ -378,79 +382,91 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
           expectedUrls = pageTests[testPage];
 
         it('determines correct request metadata', function() {
-          CliqzUtils.getWindow().gBrowser.addTab(url);
-          return waitFor(function() {
-            var testReqs = wrCollector.onHeadersReceived.filter( (req) => { return isTestServerAddress(req.url) });
-            return testReqs.length >= Object.keys(expectedUrls).length;
-          }).then(function() {
-            var testState = {
-              testPage,
-              url
-            };
-            for (var topic of wrCollector.topics) {
-              var reqs = wrCollector[topic].filter( function(req) { return isTestServerAddress(req.url) }).reduce(function(hash, r) {
-                hash[r.url] = r;
-                return hash;
-              }, Object.create(null));
-              for (var seenUrl of Object.keys(expectedUrls)) {
-                chai.expect(reqs).to.have.property(seenUrl);
-                expectedUrls[seenUrl](reqs[seenUrl], topic, testState);
+          return browser.newTab(url)
+            .then(() => waitFor(() => {
+              var testReqs = wrCollector.onHeadersReceived.filter(
+                req => isTestServerAddress(req.url)
+              ).map(req => req.url);
+              testReqs = new Set(testReqs);
+              return Object.keys(expectedUrls).every(url => testReqs.has(url));
+              // return testReqs.length >= Object.keys(expectedUrls).length;
+            }))
+            .then(function() {
+              var testState = {
+                testPage,
+                url
               };
-            }
-          });
+              for (var topic of wrCollector.topics) {
+                var reqs = wrCollector[topic].filter( function(req) { return isTestServerAddress(req.url) }).reduce(function(hash, r) {
+                  hash[r.url] = r;
+                  return hash;
+                }, Object.create(null));
+                for (var seenUrl of Object.keys(expectedUrls)) {
+                  chai.expect(reqs).to.have.property(seenUrl);
+                  // console.log(testState, 'testState');
+                  expectedUrls[seenUrl](reqs[seenUrl], topic, testState);
+                }
+              }
+            });
         });
 
         function testRewrite(skipLengthTest) {
           block = false;
           reqsReceived = [];
-          CliqzUtils.getWindow().gBrowser.addTab(url);
-          var nExpected = Object.keys(expectedUrls).filter((url) => url.indexOf('/test') > 0).length;
-          return waitFor(function() {
-            var testReqs = wrCollector.onHeadersReceived.filter( (req) => { return isTestServerAddress(req.url) });
-            return reqsReceived.length >= 2;
-          }).then(function() {
-            if (!skipLengthTest) {
-              chai.expect(reqsReceived).to.have.length(2);
-            }
-            for (var req of reqsReceived) {
-              // EXCEPTION: onBeforeRequest missed for image redirect
-              if (req.host === 'localhost') {
-                chai.expect(req.qs).to.contain(uid);
-              } else {
-                chai.expect(req.qs).to.not.contain(uid);
+          return browser.newTab(url).then(function () {
+            var nExpected = Object.keys(expectedUrls).filter((url) => url.indexOf('/test') > 0).length;
+            return waitFor(function() {
+              var testReqs = wrCollector.onHeadersReceived.filter( (req) => { return isTestServerAddress(req.url) });
+              return reqsReceived.length >= 2;
+            }).then(function() {
+              if (!skipLengthTest) {
+                chai.expect(reqsReceived).to.have.length(2);
               }
-            }
+              for (var req of reqsReceived) {
+                // EXCEPTION: onBeforeRequest missed for image redirect
+                if (req.host === 'localhost') {
+                  chai.expect(req.qs).to.contain(uid);
+                } else {
+                  chai.expect(req.qs).to.not.contain(uid);
+                }
+              }
+            });
           });
         }
 
         function testBlock() {
           block = true;
           reqsReceived = [];
-          CliqzUtils.getWindow().gBrowser.addTab(url);
-          var nExpected = Object.keys(expectedUrls).filter((url) => url.indexOf('/test') > 0).length;
-          return waitFor(function() {
-            var testReqs = wrCollector.onHeadersReceived.filter( (req) => { return isTestServerAddress(req.url) });
-            return reqsReceived.length >= 1;
-          }).then(function() {
-            chai.expect(reqsReceived).to.have.length(1);
-            for (var req of reqsReceived) {
-              // EXCEPTION: onBeforeRequest missed for image redirect
-              if (req.host === 'localhost') {
-                chai.expect(req.qs).to.contain(uid);
-              } else {
-                chai.assert(false);
+          return browser.newTab(url).then(function () {
+            var nExpected = Object.keys(expectedUrls).filter((url) => url.indexOf('/test') > 0).length;
+            return waitFor(function() {
+              var testReqs = wrCollector.onHeadersReceived.filter( (req) => { return isTestServerAddress(req.url) });
+              return reqsReceived.length >= 1;
+            }).then(function() {
+              chai.expect(reqsReceived).to.have.length(1);
+              for (var req of reqsReceived) {
+                // EXCEPTION: onBeforeRequest missed for image redirect
+                if (req.host === 'localhost') {
+                  chai.expect(req.qs).to.contain(uid);
+                } else {
+                  chai.assert(false);
+                }
               }
-            }
+            });
           });
         }
 
 
-        context('onBeforeRequest', function() {
-          beforeEach(function() {
-            webrequest.onBeforeRequest.addListener(urlRewriter, undefined, ['blocking']);
+        context('onBeforeRequest', function () {
+          beforeEach(function () {
+            webrequest.onBeforeRequest.addListener(
+              urlRewriter,
+              { urls: ['http://*'] },
+              ['blocking']
+            );
           });
 
-          afterEach(function() {
+          afterEach(function () {
             webrequest.onBeforeRequest.removeListener(urlRewriter);
           });
 
@@ -470,7 +486,11 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
 
         context('onBeforeSendHeaders', function() {
           beforeEach(function() {
-            webrequest.onBeforeSendHeaders.addListener(urlRewriter, undefined, ['blocking']);
+            webrequest.onBeforeSendHeaders.addListener(
+              urlRewriter,
+              { urls: ['http://*'] },
+              ['blocking']
+            );
           });
 
           afterEach(function() {

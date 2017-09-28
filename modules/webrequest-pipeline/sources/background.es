@@ -35,9 +35,17 @@ function createResponse() {
 
 
 export default background({
+  initialized: false,
+
   enabled() { return true; },
 
   init() {
+    if (this.initialized) {
+      return;
+    }
+
+    this.initialized = true;
+
     this.requestContext = new RequestContextStep();
     const requestContextStep = [
       (...args) => this.requestContext.execute(...args),
@@ -56,17 +64,17 @@ export default background({
 
     WebRequest.onBeforeRequest.addListener(
       this.onBeforeRequestListener,
-      { urls: ['*://*/*'] },
+      { urls: ['<all_urls>'] },
       ['blocking'],
     );
     WebRequest.onBeforeSendHeaders.addListener(
       this.onBeforeSendHeadersListener,
-      { urls: ['*://*/*'] },
+      { urls: ['<all_urls>'] },
       ['blocking', 'requestHeaders']
     );
     WebRequest.onHeadersReceived.addListener(
       this.onHeadersReceivedListener,
-      { urls: ['*://*/*'] },
+      { urls: ['<all_urls>'] },
       ['responseHeaders']
     );
   },
@@ -90,12 +98,17 @@ export default background({
   },
 
   unload() {
+    if (!this.initialized) {
+      return;
+    }
+
     WebRequest.onBeforeRequest.removeListener(this.onBeforeRequestListener);
     WebRequest.onBeforeSendHeaders.removeListener(this.onBeforeSendHeadersListener);
     WebRequest.onHeadersReceived.removeListener(this.onHeadersReceivedListener);
 
-    this.pipelines = {};
     this.requestContext.unload();
+    this.pipelines = {};
+    this.initialized = false;
   },
 
   events: {

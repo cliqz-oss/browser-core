@@ -138,36 +138,41 @@ export default class {
                   return false;
               }
           }
+          // last try, guess the possible domain from script src;
+          if (!this.contextFromEvent.cGD && this.contextFromEvent.possibleCGD.has(hostGD)) {
+            this.visitCache[`${tabId}:${hostGD}`] = time;
+            state.incrementStat(`${stage}_allow_userinit_same_script_gd`);
+            return false;
+          }
       }
     }
     return true;
   }
 
+  extractPossilbeContextGD (links) {
+    return new Set(links.forEach(link => URLInfo.get(link).generalDomain));
+  }
+
   setContextFromEvent(ev, contextHTML) {
+    let cGD = null;
+    let pageGD = null;
+    let html = contextHTML || '';
     try {
-      const cGD = URLInfo.get(ev.target.baseURI).generalDomain;
-      const pageGD = currentGD();
-      if (contextHTML) {
-        // don't log the event if it's not 3rd party
-        if (!pageGD || cGD === pageGD) {
-          return;
-        }
-        this.contextFromEvent = {
-          html: contextHTML,
-          ts: Date.now(),
-          cGD,
-          pageGD,
-        };
-      } else {
-        this.contextFromEvent = {
-          html: '',
-          ts: Date.now(),
-          cGD,
-          pageGD,
-        };
-      }
+      cGD = URLInfo.get(ev.target.baseURI).generalDomain;
+      pageGD = currentGD();
     } catch (ee) {
-      this.contextFromEvent = null;
     }
+    if (!pageGD || cGD === pageGD) {
+      return;
+    }
+    // Try to guess the possible domain from scripts src
+    const possibleCGD = this.extractPossilbeContextGD(ev.target.linksSrc);
+    this.contextFromEvent = {
+      html,
+      ts: Date.now(),
+      cGD,
+      pageGD,
+      possibleCGD
+    };
   }
 }

@@ -21,6 +21,16 @@ export default class {
   constructor(config) {
     this.config = config;
     this.window = config.window;
+    this.menus = [];
+    this.actions = {
+      makeContextMenu: this.makeContextMenu.bind(this),
+    };
+  }
+
+  makeContextMenu(...args) {
+    const menu = new ContextMenu(...args);
+    this.menus.push(menu);
+    return menu;
   }
 
   /**
@@ -37,6 +47,8 @@ export default class {
   */
   unload() {
     this.unloadPageMenu();
+    this.menus.forEach(menu => menu.unload());
+    this.menus = [];
   }
 
   initPageMenu() {

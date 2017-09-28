@@ -110,14 +110,14 @@ export default background({
     * @event ui:click-on-url
     * @param data
     */
-    'ui:click-on-url': function onResult({ query, url, isPrivateWindow }) {
-      if (isPrivateWindow) {
+    'ui:click-on-url': function onResult({ query, url, isPrivateWindow, isFromAutocompletedURL }) {
+      if (isPrivateWindow || !url || isFromAutocompletedURL) {
         return;
       }
 
       const asyncHistory = Components.classes['@mozilla.org/browser/history;1']
                          .getService(Components.interfaces.mozIAsyncHistory);
-      const queryUrl = `https://cliqz.com/search?q=${query}`;
+      const queryUrl = `https://cliqz.com/search?q=${encodeURIComponent(query)}`;
       const uri = Services.io.newURI(queryUrl, null, null);
 
       const place = {
@@ -134,7 +134,7 @@ export default background({
         handleResult: () => {},
         handleCompletion: () => {
           utils.setTimeout(() => {
-            History.fillFromVisit(url, encodeURI(queryUrl));
+            History.fillFromVisit(url, queryUrl);
           }, 2000);
 
           History.markAsHidden(queryUrl);
@@ -205,18 +205,21 @@ export default background({
       utils.getWindow().gBrowser.selectTabAtIndex(index);
     },
 
-    newTab() {
+    newTab(inCurrentTab = false) {
       const window = utils.getWindow();
-      const activeTabs = queryActiveTabs(window);
       const newTabUrl = config.settings.NEW_TAB_URL;
-      const freshTab = activeTabs.find(tab => tab.url === newTabUrl);
+      const activeTabs = queryActiveTabs(window);
 
-      if (freshTab) {
-        window.gBrowser.selectTabAtIndex(freshTab.index);
-      } else {
-        const tab = utils.openLink(window, newTabUrl, true);
-        window.gBrowser.selectedTab = tab;
+      if (!inCurrentTab) {
+        const freshTab = activeTabs.find(tab => tab.url === newTabUrl);
+        if (freshTab) {
+          window.gBrowser.selectTabAtIndex(freshTab.index);
+          return;
+        }
       }
+
+      const tab = utils.openLink(window, newTabUrl, !inCurrentTab);
+      window.gBrowser.selectedTab = tab;
     },
 
     recordMeta(/* url, meta */) {

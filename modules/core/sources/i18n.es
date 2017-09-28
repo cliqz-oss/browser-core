@@ -1,16 +1,7 @@
 import { getLang } from '../platform/browser';
 import config from './config';
 import getLocaleObject from '../platform/locale-strings';
-
-const SUPPORTED_LANGS = ['de', 'en', 'fr'];
-
-const getSupportedLanguage = (lang) => {
-  if (SUPPORTED_LANGS.indexOf(lang) !== -1) {
-    return lang;
-  }
-
-  return 'en';
-};
+import getSupportedLanguage from '../platform/language/supported-langs';
 
 export const getLanguageFromLocale = locale => locale.match(/([a-z]+)(?:[-_]([A-Z]+))?/)[1];
 

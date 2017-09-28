@@ -175,10 +175,9 @@ class PageEventTracker {
     // previous request finished. Move to staged
     const prevPage = this.stage(tab_id);
     // create new page load entry for tab
-    if(url && url.hostname && tab_id > 0 && !this.ignore.has(url.hostname)) {
-
+    if(url && url.hostname && Number(tab_id) > 0 && !this.ignore.has(url.hostname)) {
       // check if it is a reload of the same page
-      const reloaded = prevPage && url.toString() === prevPage.url && Date.now() - prevPage.s < 30000;
+      const reloaded = (prevPage && url.toString() === prevPage.url && Date.now() - prevPage.s < 30000) || false;
 
       this._active[tab_id] = new PageLoadData(url, isPrivate || false, reloaded || false);
       return this._active[tab_id];
@@ -253,7 +252,7 @@ class PageEventTracker {
   // Periodically stage any tabs which are no longer active.
   // Will run at a period specifed by tp_events._clean_interval, unless force_clean is true
   // If force_stage is true, will stage all tabs, otherwise will only stage inactive.
-  commit(force_clean, force_stage) {
+  commit(force_clean = false, force_stage = false) {
     var now = (new Date()).getTime();
     if (now - this._last_clean > this._clean_interval || force_clean === true) {
       this._last_clean = now;

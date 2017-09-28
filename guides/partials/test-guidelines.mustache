@@ -158,7 +158,7 @@ on the `offers-v2` module folder, which contains a class named `OfferDB`.
 
       beforeEach(function () {
         OfferProcessor = this.module().default;
-        return System.import('offers-v2/offers_db').then((mod) => {
+        return this.system.import('offers-v2/offers_db').then((mod) => {
           OfferDB = mod.default;
         });
       });

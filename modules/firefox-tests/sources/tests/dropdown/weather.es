@@ -96,7 +96,7 @@ export default function () {
     ];
     let resultElement;
 
-    beforeEach(function () {
+    before(function () {
       respondWith({ results });
       fillIn('wetter Mun');
       return waitForPopup().then(function () {

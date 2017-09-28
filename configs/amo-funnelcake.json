@@ -10,9 +10,7 @@
     "channel": "FC01",
     "homepageURL": "https://cliqz.com/",
     "updateURL": "https://s3.amazonaws.com/cdncliqz/update/funnelcake@cliqz.com/latest.rdf",
-    "freshTabButton": true,
     "freshTabNews": true,
-    "freshTabInitialState": false,
     "showDataCollectionMessage": true,
     "antitrackingButton": true,
     "showNewBrandAlert": false,
@@ -47,6 +45,9 @@
       "off": "#999999"
     }
   },
+  "default_prefs" : {
+    "focusUrlbar": 1
+  },
   "modules": [
     "core",
     "core-cliqz",
@@ -57,18 +58,24 @@
     "geolocation",
     "ui",
     "human-web",
+    "anti-phishing",
     "context-menu",
+    "webrequest-pipeline",
+    "antitracking",
     "performance",
     "hpn",
     "control-center",
     "offers-v2",
     "browser-panel",
-    "message-center"
+    "message-center",
+    "offboarding"
   ],
   "system": {
     "map": {
       "bigint": "bower_components/bigint/index.js",
-      "md5": "bower_components/md5/index.js"
+      "md5": "bower_components/md5/index.js",
+      "react": "node_modules/react/cjs/react.production.min.js",
+      "react-dom": "node_modules/react-dom/cjs/react-dom.production.min.js"
     },
     "packages": {
       "object-assign": {

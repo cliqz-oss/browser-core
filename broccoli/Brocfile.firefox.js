@@ -2,7 +2,6 @@
 var Funnel = require('broccoli-funnel');
 var MergeTrees = require('broccoli-merge-trees');
 var broccoliSource = require('broccoli-source');
-var concat = require('broccoli-concat');
 var writeFile = require('broccoli-file-creator');
 
 var WatchedDir = broccoliSource.WatchedDir;
@@ -39,7 +38,7 @@ var firefoxTree = new MergeTrees([
   new Funnel(config,              { destDir: 'chrome/content'}),
   new Funnel(firefoxLibs,         { destDir: 'modules/extern' }),
   new Funnel(modules.bower,       { destDir: 'chrome/content/bower_components' }),
-  src,
+  new Funnel(modules.modules,     { destDir: 'chrome/content' }),
   new Funnel(modules.static,      { destDir: 'chrome/content' }),
   new Funnel(modules.styleTests,  { destDir: 'chrome/content' }),
   new Funnel(modules.bundles,     { destDir: 'chrome/content' }),
@@ -52,16 +51,7 @@ var firefoxOutputTrees = [
 
 // TODO: move to modules-tree
 if (cliqzConfig.environment !== 'production') {
-  var contentTestsTree = new Funnel(modules.modules, {
-    include: ['tests/*/content/**/*']
-  });
-  var contentTests = concat(contentTestsTree, {
-    header: ";System = { register: function () {arguments[1]().execute(); }};",
-    inputFiles: "**/*.js",
-    outputFile: 'tests/tests.js',
-    allowNone: true
-  })
-  firefoxOutputTrees.push(contentTests);
+  firefoxOutputTrees.push(modules.contentTests);
 }
 
 var firefox = new MergeTrees(firefoxOutputTrees);

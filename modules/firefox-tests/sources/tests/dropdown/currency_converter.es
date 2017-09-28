@@ -1,4 +1,4 @@
-/* global it, expect, respondWith, fillIn, waitForPopup, $cliqzResults */
+/* global it, expect, respondWith, fillIn, waitForPopup, $cliqzResults, getLocaliseString */
 /* eslint func-names: ["error", "never"] */
 /* eslint prefer-arrow-callback: "off" */
 /* eslint no-unused-expressions: "off" */
@@ -23,7 +23,8 @@ export default function () {
                 main: 1.1465,
               },
               toCurrency: 'USD',
-              toSymbol: '$'
+              toSymbol: '$',
+              toCurrencyName: 'United States dollars'
             },
             friendlyUrl: 'xe.com/de/currencyconverter/convert'
           },
@@ -44,17 +45,18 @@ export default function () {
         fillIn('1 euro to usd');
         return waitForPopup().then(function () {
           const resultsContainer = $cliqzResults()[0];
-          resultElement = resultsContainer.querySelector('.result.instant');
+          resultElement = resultsContainer.querySelector('.currency');
         });
       });
 
       it('renders correct result', function () {
         const titleSelector = '.title';
+        const extra = results[0].snippet.extra;
         expect(resultElement).to.contain(titleSelector);
-        const answer = results[0].snippet.extra.toAmount.main;
-        const toSymbol = results[0].snippet.extra.toSymbol;
+        const answer = extra.toAmount.main;
+        const toCurrency = extra.toCurrencyName || extra.toCurrency;
         expect(resultElement).to.contain(titleSelector)
-          .to.have.text(`=${toSymbol}${answer}`);
+          .to.have.text(`= ${answer} ${toCurrency}`);
       });
 
       it('renders correct subtitle', function () {
@@ -63,8 +65,29 @@ export default function () {
         const fromCurrency = results[0].snippet.extra.fromCurrency;
         const toCurrency = results[0].snippet.extra.toCurrency;
         const conversion = results[0].snippet.extra.mConversionRate;
-        expect(resultElement).to.contain(subtitleSelector)
-          .to.have.text(`1 ${fromCurrency} = ${conversion} ${toCurrency} without guarantee`);
+        const noGuarantee = getLocaliseString({
+          de: 'Ohne Gewähr',
+          default: 'without guarantee'
+        });
+        expect(resultElement.querySelector(subtitleSelector).textContent.trim().split('\n')[0].trim())
+          .to.equal(`1 ${fromCurrency} = ${conversion} ${toCurrency} ${noGuarantee}`);
+      });
+
+      it('renders source', function () {
+        const subtitleSelector = '.subtitle';
+        expect(resultElement).to.contain(subtitleSelector);
+        const source = getLocaliseString({
+          de: 'Quelle',
+          default: 'Source'
+        });
+        expect(resultElement.querySelector(subtitleSelector).textContent.trim().split('\n')[1].trim())
+          .to.equal(`· ${source}: xe.com`);
+      });
+
+      it('source link is correct', function () {
+        const sourceSelector = '.source-link';
+        expect(resultElement).to.contain(sourceSelector);
+        expect(resultElement.querySelector('.source-link').href).to.equal(results[0].url);
       });
     });
   });

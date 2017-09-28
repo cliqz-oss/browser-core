@@ -4,8 +4,8 @@ export default describeModule("autocomplete/search",
   function () {
     return {
       "autocomplete/url-complete": { default: {} },
-      "core/cliqz": {
-        utils: {
+      "core/utils": {
+        default: {
           setTimeout,
           log: console.log.bind(console),
           encodeSources() { return []; },

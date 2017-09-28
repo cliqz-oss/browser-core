@@ -50,7 +50,7 @@ function _getDomainOwner(dom) {
 export function getDomainOwner(dom) {
   return _getDomainOwner(dom) || {
     name: psl.getGeneralDomain(dom),
-    category: 'unknown',
+    cat: 'unknown',
   };
 }
 

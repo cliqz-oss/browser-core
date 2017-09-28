@@ -1,0 +1,28 @@
+.time {
+    padding-top: 0.6em;
+
+    p {
+        &:first-child {
+            font-size: 1.6em;
+            line-height: 1.33em;
+        }
+
+        &:last-child {
+            color: #999999;
+            font-size: 0.733em;
+            padding-bottom: 7px;
+
+            .result {
+                color: #999999;
+                display: inline-block;
+                text-decoration: none;
+                padding: 0;
+                text-transform: lowercase;
+
+                &:hover {
+                    color: #2385e7;
+                }
+            }
+        }
+    }
+}

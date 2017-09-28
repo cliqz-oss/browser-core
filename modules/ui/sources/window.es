@@ -231,6 +231,7 @@ export default class {
       this.window.CLIQZ.settings = this.settings;
 
       CliqzEvents.sub('ui:popup_hide', this.hidePopup);
+      CliqzEvents.sub('ui:click-on-url', this.showLastQuery.bind(this));
 
       this.window.CLIQZ.UI.autocompleteQuery = this.autocompleteQuery.bind(this);
 
@@ -288,7 +289,7 @@ export default class {
           this._urlbarGoButtonClick = urlBarGo.getAttribute('onclick');
           this._urlBarGo = urlBarGo;
           // we somehow break default FF -> on goclick the autocomplete doesnt get considered
-          this._urlBarGo.setAttribute('onclick', `CLIQZ.Core.windowModules.ui.urlbarGoClick(); ${this._urlbarGoButtonClick}`);
+          this._urlBarGo.addEventListener('click', this.urlbarGoClick);
         }
 
         this.applyAdditionalThemeStyles();
@@ -463,6 +464,10 @@ export default class {
     this.window.CLIQZ.Core.popup.hidePopup();
   }
 
+  showLastQuery(event) {
+    SearchHistory.lastQuery(this.window);
+  }
+
   urlbarEvent(ev) {
     var action = {
       type: 'activity',
@@ -490,6 +495,7 @@ export default class {
 
     this.urlbar.setAttribute('autocompletesearch', this._autocompletesearch);
     CliqzEvents.un_sub('ui:popup_hide', this.hidePopup);
+    CliqzEvents.un_sub('ui:click-on-url', this.showLastQuery);
 
     this.urlbar.setAttribute('autocompletepopup', this._autocompletepopup);
 
@@ -508,7 +514,7 @@ export default class {
       this.tabRemoved, false);
 
     if (this._urlBarGo) {
-      this._urlBarGo.setAttribute('onclick', this._urlbarGoButtonClick);
+      this._urlBarGo.removeEventListener('click', this.urlbarGoClick);
     }
 
     var searchContainer = this.window.document.getElementById('search-container');
@@ -587,8 +593,6 @@ const urlbarEventHandlers = {
 
     // force a dropdown close on urlbar blur
     this.window.CLIQZ.Core.popup.hidePopup();
-
-    SearchHistory.lastQuery(this.window);
 
     this.urlbarEvent('blur');
 

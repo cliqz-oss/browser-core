@@ -25,7 +25,8 @@
     "qrcode.js": "https://github.com/davidshimjs/qrcodejs.git#04f46c6a0708418cb7b96fc563eacae0fbf77674",
     "pako": "1.0.3",
     "tablesorter": "jquery.tablesorter#^2.28.9",
-    "chai-dom": "1.5.0"
+    "chai-dom": "1.5.0",
+    "Rx.min": "https://unpkg.com/rxjs/bundles/Rx.min.js"
   },
   "devDependencies": {
     "mocha": "cliqz-oss/mocha#2.5.0",

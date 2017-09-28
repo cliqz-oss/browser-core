@@ -192,6 +192,8 @@ const CliqzCalculator = {
       return '';
     }
     try {
+      // Replace all ' x ' with '*' for multiply triggering
+      q = q.replace(/ x /g, '*');
       // Remove all spaces
       q = q.replace(/ /g, '');
       const operators = ['+', '-', '*', '/', '^', '='];
@@ -218,6 +220,12 @@ const CliqzCalculator = {
           finalQuery += this.standardize(element);
         }
       }
+
+      // Check if the query is just a number again
+      if (!isNaN(finalQuery)) {
+        return '';
+      }
+
       return finalQuery;
     } catch (e) {
       return '';

@@ -1,9 +1,10 @@
 'use strict';
 
 var CLIQZ;
+var _global = this;
 
 function startup(aData, aReason) {
-  var global = {};
+  var global = { _global: _global };
   Components.utils.import('resource://gre/modules/Services.jsm');
   Services.scriptloader.loadSubScript('chrome://cliqz/content/CLIQZ.js', global);
   CLIQZ = global.CLIQZ;

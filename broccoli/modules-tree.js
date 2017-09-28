@@ -10,6 +10,7 @@ var watchify = require('broccoli-watchify');
 var WatchedDir = broccoliSource.WatchedDir;
 var UnwatchedDir = broccoliSource.UnwatchedDir;
 const writeFile = require('broccoli-file-creator');
+const concat = require('broccoli-concat');
 
 var cliqzConfig = require('./config');
 const modulesList = require('./modules/modules-list');
@@ -279,14 +280,30 @@ function getSourceTree() {
   );
 }
 
-const getEsTree = () => {
-  return new MergeTrees([
-    getPlatformTree(),
-    getSourceTree(),
-    getHandlebarsTree(modulesTree),
-  ]);
-}
-const esTree = getEsTree();
+const sourceTree = new MergeTrees([
+  getPlatformTree(),
+  getSourceTree(),
+  getHandlebarsTree(modulesTree),
+]);
+
+const esTree = new Funnel(sourceTree, {
+  exclude: ['tests/*/content/**/*']
+});
+
+function getContentTestsTree(tree) {
+  const contentTestsTree = new Funnel(tree, {
+    include: ['tests/*/content/**/*']
+  });
+
+  return concat(contentTestsTree, {
+    header: ';System = { register: function () {arguments[1]().execute(); }};',
+    inputFiles: '**/*.js',
+    outputFile: 'tests/tests.js',
+    allowNone: true
+  });
+};
+
+const contentTestTree = getContentTestsTree(sourceTree);
 
 const staticTree = new MergeTrees([
   getDistTree(modulesTree),
@@ -313,4 +330,5 @@ module.exports = {
   bower: bowerTree,
   bundles: bundlesTree,
   styleTests: styleCheckTestsTree,
+  contentTests: contentTestTree,
 };

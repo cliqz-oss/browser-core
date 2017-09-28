@@ -6,6 +6,7 @@
     $news-height,
     $news-box-height,
     $news-box-max-width,
+    $news-font-size,
 
     $news-dash-span-bg-color,
     $news-dash-span-bg-color-active,
@@ -121,7 +122,7 @@
                     }
 
                     .news-title {
-                        font-size: 17px;
+                        font-size: $news-font-size;
                         font-weight: 500;
                         color: $news-title-color;
                         padding: 7px 25px;

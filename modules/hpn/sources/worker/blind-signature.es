@@ -45,32 +45,28 @@ function h2d(s) {
 
 export function parseDSKey(){
     // Parse key contents.
-    var _this = this;
-    return new Promise(function(resolve, reject){
-        crypto.subtle.importKey(
-         'spki',
-          fromBase64(CliqzSecureMessage.dsPK.pubKeyB64),
-          {
-            name: 'RSA-OAEP',
-            hash: { name: 'SHA-1' }
-          },
-          true,
-          ['encrypt']
-        ).then( key=> {
-          crypto.subtle.exportKey("jwk", key).then(
-              function(key) {
+    return crypto.subtle.importKey('spki',
+                                   fromBase64(CliqzSecureMessage.dsPK.pubKeyB64),
+                                   {
+                                     name: 'RSA-OAEP',
+                                     hash: { name: 'SHA-1' }
+                                   },
+                                   true,
+                                   ['encrypt'])
+         .then(key => crypto.subtle.exportKey("jwk", key))
+         .then(key => {
                 // base64url-decode modulus
-                var modulus = base64UrlDecode(key.n);
+                const modulus = base64UrlDecode(key.n);
                 CliqzSecureMessage.dsPK["n"] = h2d(toHex(modulus));
                 // base64url-decode exponent
-                var exponent = base64UrlDecode(key.e);
+                const exponent = base64UrlDecode(key.e);
                 CliqzSecureMessage.dsPK["e"] = '' + h2d(toHex(exponent));
-                resolve();
                 // modulus and exponent are now Uint8Arrays
           })
-          .catch(err => console.log(err));
-        });
-    });
+          .catch(err => {
+            console.error(err);
+            return Promise.reject(err);
+          });
 }
 
 export function unBlindMessage(blindSignedMessage, unBlinder){

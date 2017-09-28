@@ -1,3 +1,5 @@
+/* global window */
+
 function injectTestHelpers(CliqzUtils) {
   var chrome = CliqzUtils.getWindow();
   var urlBar = chrome.CLIQZ.Core.urlbar;
@@ -28,6 +30,36 @@ function injectTestHelpers(CliqzUtils) {
     registerInterval(interval);
 
     return promise;
+  };
+
+  window.waitForAsync = function waitForAsync(fn) {
+    return fn()
+      .then((value) => {
+        if (value) {
+          return Promise.resolve();
+        }
+        return Promise.reject();
+      })
+      .catch(() => new Promise((resolve) => {
+        setTimeout(
+          () => {
+            resolve(waitForAsync(fn));
+          },
+          250
+        );
+      }));
+  };
+
+  window.wait_until_server_up = function wait_until_server_up(testUrl, count, callback) {
+    if (count <= 0) {
+      callback("Failed to start server");
+      return;
+    }
+    CliqzUtils.httpGet(testUrl, callback, function () {
+      setTimeout(function () {
+        wait_until_server_up(testUrl, count - 1, callback);
+      }, 100);
+    })
   };
 
   window.registerInterval = function registerInterval(interval) {
@@ -71,6 +103,16 @@ function injectTestHelpers(CliqzUtils) {
     };
   };
 
+  window.withHistory = function withHistory(res) {
+    CliqzAutocomplete.historySearch = function (q, cb) {
+      cb({
+        query: q,
+        results: res,
+        ready: true // SUCCESS https://dxr.mozilla.org/mozilla-central/source/toolkit/components/autocomplete/nsIAutoCompleteResult.idl#17
+      });
+    };
+  };
+
   window.$cliqzResults = function $cliqzResults() {
     return $(chrome.document.getElementById("cliqz-dropdown"));
   };
@@ -98,6 +140,12 @@ function injectTestHelpers(CliqzUtils) {
           CliqzUtils.setTimeout(resolve, 200);
         });
       });
+  };
+
+  window.sleep = function (ms) {
+    return new Promise((resolve) => {
+      CliqzUtils.setTimeout(resolve, ms);
+    });
   };
 
   window.getLocaliseString = function(targets) {

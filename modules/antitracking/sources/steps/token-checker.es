@@ -121,12 +121,13 @@ export default class {
     const sourceDomain = source_url_parts.generalDomainHash
     var badTokens = [];
 
-    const longCookies = Object.keys(cookievalue).filter((c) => c.length >= this.config.shortTokenLength)
+    const longCookies = Object.keys(cookievalue).filter((c) => c.length >= this.config.shortTokenLength);
+    const privateValues = Object.keys(this.privateValues);
 
     // check for each kv in the url
     const tokenStatus = url_parts.getKeyValues().map((kv) => {
       const key = kv.k;
-      const tok = String(kv.v);
+      const tok = '' + kv.v;
 
       // ignore short values
       if (tok.length < this.config.shortTokenLength) {
@@ -150,7 +151,7 @@ export default class {
       // check for cookie or private values - presence of these override the global
       // safe key and token lists
       const cookieMatch = longCookies.some(tokenMatches);
-      const privateMatch = Object.keys(this.privateValues).some(tokenMatches);
+      const privateMatch = privateValues.some(tokenMatches);
       const overrideGlobalLists = cookieMatch || privateMatch;
 
       if (!overrideGlobalLists && this.qsWhitelist.isSafeKey(trackerDomain, md5(key))) {

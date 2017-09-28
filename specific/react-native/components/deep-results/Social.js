@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, TouchableHighlight, Image, View } from 'react-native';
-import Icon from '../partials/Icon';
+import VectorDrawable from '../custom/VectorDrawable';
 
 
 export default class extends React.Component {
@@ -19,13 +19,11 @@ export default class extends React.Component {
   }
 
   displayLink(link) {
+    const imageName = link.image.slice(link.image.lastIndexOf('/') + 1, -4);
     return <TouchableHighlight key={link.url}>
-      {/*this should be an image*/}
-      <View>
-        <Icon
-          url={link.url}
-          style={styles.image} />
-      </View>
+      <VectorDrawable
+        src={imageName}
+        style={styles.image} />
     </TouchableHighlight>
   }
 }

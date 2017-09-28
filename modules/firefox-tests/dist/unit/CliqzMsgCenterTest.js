@@ -32,7 +32,7 @@ TESTS.CliqzmessageCenterTestUnit = function (CliqzMsgCenter, CliqzUtils) {
         ],
         text: 'Der CLIQZ browser ist besser als Firefox.'
       };
-    }, ui = function () { return CliqzUtils.getWindow().CLIQZ.UI; },
+    },
     core = function () {
       return CliqzUtils.getWindow().CLIQZ.Core;
     };
@@ -47,12 +47,6 @@ TESTS.CliqzmessageCenterTestUnit = function (CliqzMsgCenter, CliqzUtils) {
 
     afterEach(function (done) {
       setTimeout(done, 100);
-    });
-
-    context('debug', function() {
-      it('CLIQZ.UI should exist', function() {
-        chai.expect(CliqzUtils.getWindow().CLIQZ.UI).to.not.be.undefined;
-      });
     });
 
     context('general tests', function () {

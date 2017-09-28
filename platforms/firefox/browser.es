@@ -3,6 +3,7 @@ import prefs from '../core/prefs';
 import events from '../core/events';
 import { Services, Components } from './globals';
 
+
 export class Window {
   constructor(window) {
     this.window = window;
@@ -14,6 +15,7 @@ export class Window {
     return util.outerWindowID;
   }
 }
+
 
 export function mapWindows(callback) {
   const enumerator = Services.wm.getEnumerator('navigator:browser');
@@ -28,6 +30,7 @@ export function mapWindows(callback) {
   }
   return results;
 }
+
 
 export function forEachWindow(callback) {
   mapWindows(callback);
@@ -68,52 +71,29 @@ export function getBrowserMajorVersion() {
 /** Returns true if the give windowID represents an open browser tab's windowID.
  */
 export function isWindowActive(windowID) {
-  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+  const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
       .getService(Components.interfaces.nsIWindowMediator);
-  var browserEnumerator = wm.getEnumerator("navigator:browser");
-  // ensure an integer as getBrowserForOuterWindowID() is type sensitive
-  var int_id = parseInt(windowID);
-  if(int_id <= 0) return false;
+  const browserEnumerator = wm.getEnumerator('navigator:browser');
+
+  // the windowID should be an integer
+  const numId = Number(windowID);
+  if (numId <= 0) {
+    return false;
+  }
 
   while (browserEnumerator.hasMoreElements()) {
-    var browserWin = browserEnumerator.getNext();
-    var tabbrowser = browserWin.gBrowser;
+    const browserWin = browserEnumerator.getNext();
+    const tabbrowser = browserWin.gBrowser;
 
     // check if tab is open in this window
-    // on FF>=39 wm.getOuterWindowWithId() behaves differently to on FF<=38 for closed tabs so we first try
-    // gBrowser.getBrowserForOuterWindowID which works on FF>=39, and fall back to wm.getOuterWindowWithId()
-    // for older versions.
-    try {
-      var win = tabbrowser.getBrowserForOuterWindowID(int_id)
-      // check for http URI.
-      if (win !== undefined) {
-        return win.currentURI && (win.currentURI.schemeIs('http') || win.currentURI.schemeIs('https'))
-      }
-    } catch(e) {
-      let tabwindow;
-      try {
-        tabwindow = wm.getOuterWindowWithId(int_id);
-      } catch(e) {
-        // if getOuterWindowWithId randomly fails, keep the tab
-        return true;
-      }
-      if(tabwindow == null) {
-        return false;
-      } else {
-        try {
-          // check for http URI.
-          if (tabwindow.document.documentURI.substring(0, 4) === 'http') {
-            let contents = tabwindow.content || tabwindow._content;
-            return true;
-          } else {
-            return false;
-          }
-        } catch(ee) {
-          return false;
-        }
-      }
+    const win = tabbrowser.getBrowserForOuterWindowID(numId);
+
+    // check for http URI.
+    if (win !== undefined) {
+      return win.currentURI && (win.currentURI.schemeIs('http') || win.currentURI.schemeIs('https'));
     }
   }
+
   return false;
 }
 
@@ -149,8 +129,8 @@ export function setInstallDatePref(extensionId) {
   // for legacy users who have not set install date on installation
   try {
     if (!prefs.get('install_date')) {
-      Components.utils.import('resource://gre/modules/AddonManager.jsm');
-      AddonManager.getAddonByID(extensionId, (addon) => {
+      const am = Components.utils.import('resource://gre/modules/AddonManager.jsm');
+      am.AddonManager.getAddonByID(extensionId, (addon) => {
         const date = Math.floor(addon.installDate.getTime() / 86400000);
         prefs.set('install_date', date);
       });
@@ -183,9 +163,14 @@ export function setOurOwnPrefs() {
   urlBarPref.setBoolPref('suggest.searches', false);
 
   // telemetry-categories was removed in version X.18.Y
-  if(prefs.has('cat')){
+  if (prefs.has('cat')) {
     prefs.clear('cat');
     prefs.clear('catHistoryTime');
+  }
+
+  // freshtab is optOut since 2.20.1
+  if (prefs.has('freshTabState')) {
+    prefs.clear('freshTabState');
   }
 }
 
@@ -237,7 +222,7 @@ export function getLang() {
 }
 
 export function waitWindowReady(win) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     if (!win.document || win.document.readyState !== 'complete') {
       win.addEventListener('load', function loader() {
         win.removeEventListener('load', loader, false);
@@ -253,9 +238,9 @@ export function waitWindowReady(win) {
 
 
 export function getActiveTab() {
-  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+  const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
       .getService(Components.interfaces.nsIWindowMediator);
-  const window = wm.getMostRecentWindow("navigator:browser");
+  const window = wm.getMostRecentWindow('navigator:browser');
   return new Promise((resolve, reject) => {
     // Extract id of the current tab
     let tabId;
@@ -277,4 +262,99 @@ export function getActiveTab() {
 
 export function getCookies() {
   return Promise.reject('Not implemented');
+}
+
+
+function waitForAsync(fn, depth = 200) {
+  if (depth <= 0) {
+    return Promise.resolve('waitForAsync max depth');
+  }
+
+  return fn()
+    .then((value) => {
+      if (value) {
+        return Promise.resolve();
+      }
+      return Promise.reject();
+    })
+    .catch(() => new Promise((resolve) => {
+      setTimeout(
+        () => {
+          resolve(waitForAsync(fn, depth - 1));
+        },
+        100
+      );
+    }));
+}
+
+
+function getCurrentgBrowser() {
+  return Cc['@mozilla.org/appshell/window-mediator;1']
+    .getService(Ci.nsIWindowMediator)
+    .getMostRecentWindow('navigator:browser')
+    .gBrowser;
+}
+
+
+export function newTab(url, check = true) {
+  const gBrowser = getCurrentgBrowser();
+  const tab = gBrowser.addTab(url);
+  let tabId = null;
+
+  if (!check) {
+    tabId = tab.linkedBrowser ? tab.linkedBrowser.outerWindowID : null;
+    return Promise.resolve(tabId);
+  }
+
+  return waitForAsync(() => {
+    // This might be caused by a blocked main document request
+    if (tab.linkedBrowser === null) {
+      return Promise.resolve(false);
+    }
+
+    tabId = tab.linkedBrowser.outerWindowID;
+
+    if (tabId === null) {
+      return Promise.resolve(false);
+    }
+
+    return checkIsWindowActive(tabId);
+  }).then(() => tabId);
+}
+
+
+export function closeTab(tabId) {
+  const numTabId = Number(tabId);
+  const gBrowser = getCurrentgBrowser();
+  const tabToRemove = [...gBrowser.tabs].find(tab =>
+    numTabId === tab.linkedBrowser.outerWindowID
+  );
+
+  if (tabToRemove === undefined) {
+    return Promise.reject(`Could not find tab ${tabId}`);
+  }
+
+  // Remove tab
+  gBrowser.removeTab(tabToRemove);
+
+  return waitForAsync(() => Promise.resolve(!isWindowActive(numTabId)));
+}
+
+
+export function updateTab(tabId, url) {
+  const numTabId = Number(tabId);
+  const gBrowser = getCurrentgBrowser();
+  const tabToUpdate = [...gBrowser.tabs].find(tab =>
+    numTabId === tab.linkedBrowser.outerWindowID
+  );
+
+  if (tabToUpdate === undefined) {
+    return Promise.reject(`Could not find tab ${tabId}`);
+  }
+
+  gBrowser.getBrowserForTab(tabToUpdate).loadURI(url);
+
+  return waitForAsync(() => Promise.resolve(
+    gBrowser.getBrowserForTab(tabToUpdate).currentURI.spec === url
+  ));
 }

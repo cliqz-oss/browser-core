@@ -3,23 +3,35 @@
 Components.utils.import('chrome://cliqz/content/firefox-tests/content/extern/httpd.js');
 Components.utils.import('resource://gre/modules/FileUtils.jsm');
 Components.utils.import('resource://gre/modules/osfile.jsm');
+var AddonManager = Components.utils.import('resource://gre/modules/AddonManager.jsm');
 
 var prefs = Components.classes['@mozilla.org/preferences-service;1']
         .getService(Components.interfaces.nsIPrefBranch);
 /** Gets the absolute path to the Cliqz extension's root directory */
 function getExtensionDirectory() {
-  try {
-    return JSON.parse(prefs.getCharPref('extensions.xpiState'))['app-profile']['cliqz@cliqz.com'].d;
-  } catch (e) {
-    return JSON.parse(prefs.getCharPref('extensions.xpiState'))['app-temporary']['cliqz@cliqz.com'].d;
-  }
+  return new Promise(function (resolve) {
+    try {
+      resolve(JSON.parse(prefs.getCharPref('extensions.xpiState'))['app-profile']['cliqz@cliqz.com'].d);
+    } catch (e1) {
+      try {
+        resolve(JSON.parse(prefs.getCharPref('extensions.xpiState'))['app-temporary']['cliqz@cliqz.com'].d);
+      } catch (e2) {
+        AddonManager.AddonManager.getAddonByID(
+          'cliqz@cliqz.com',
+          function (addon) {
+            resolve(addon.getResourceURI('').path);
+          }
+        );
+      }
+    }
+  });
 }
 
 function WrappedHttpServer() {
   this.port = 60508;
   this.domains = new Set(['cliqztest.com', 'cliqztest2.de', 'www.cliqztest.com']);
   this._s = null;
-  this._testDirPrefix = [getExtensionDirectory(), 'chrome', 'content'];
+  this._testDirPrefix = null;
 }
 
 WrappedHttpServer.prototype = {
@@ -99,6 +111,17 @@ function initHttpServer() {
       proxyType = prefs.getIntPref('network.proxy.type');
     }
     prefs.setIntPref('network.proxy.type', 2);
+
+    // create and start http server, and register shutdown on window unload.
+    return getExtensionDirectory()
+      .then(function (extensionDirectory) {
+        testServer._testDirPrefix = [extensionDirectory, 'chrome', 'content'];
+        testServer._start();
+        window.onunload = testServer._stop.bind(testServer);
+      })
+      .catch(function (ex) {
+        console.error('ERROR', ex);
+      })
   });
 
   after(function() {
@@ -115,10 +138,7 @@ function initHttpServer() {
     }
   });
 
-  // create and start http server, and register shutdown on window unload.
   testServer = new WrappedHttpServer();
-  testServer._start();
-  window.onunload = testServer._stop.bind(testServer);
 
   // clear server handlers automatically after each test.
   afterEach(function() {

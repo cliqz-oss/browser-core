@@ -1,5 +1,5 @@
 import console from '../core/console';
-
+import { chrome } from '../platform/globals';
 
 export default class {
   constructor() {

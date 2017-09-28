@@ -1,5 +1,6 @@
 import GenericResult from './results/generic';
 import CalculatorResult from './results/calculator';
+import TimeResult from './results/time';
 import CurrencyResult from './results/currency';
 import WeatherResult from './results/weather';
 import HistoryCluster from './results/history';
@@ -9,22 +10,28 @@ import SupplementarySearchResult from './results/supplementary-search';
 import Suggestions from './results/suggestions';
 import LottoResult from './results/lotto';
 import SoccerResult from './results/soccer';
+import FlightResult from './results/flight';
 import { equals } from '../core/url';
 import console from '../core/console';
+import NavigateToResult from './results/navigate-to';
 
 class ResultFactory {
   static create(rawResult, allResultsFlat) {
     let Constructor = GenericResult;
-
     if (['custom', 'noResult'].indexOf(rawResult.data.template) >= 0) {
       throw new Error('ignore');
     }
 
     if (rawResult.data.template === 'calculator') {
       if (rawResult.data.extra.ez_type) {
-        throw new Error('ignore');
+        if (rawResult.data.extra.ez_type === 'time') {
+          Constructor = TimeResult;
+        } else {
+          throw new Error('ignore');
+        }
+      } else {
+        Constructor = CalculatorResult;
       }
-      Constructor = CalculatorResult;
     }
 
     if (rawResult.data.template === 'currency') {
@@ -47,8 +54,15 @@ class ResultFactory {
       Constructor = Suggestions;
     }
 
-    if (rawResult.data.subType && rawResult.data.subType.class === 'SoccerEZ') {
+    if (rawResult.data.template === 'ligaEZ1Game' ||
+        rawResult.data.template === 'ligaEZTable' ||
+        rawResult.data.template === 'ligaEZGroup' ||
+        rawResult.data.template === 'liveTicker') {
       Constructor = SoccerResult;
+    }
+
+    if (rawResult.data.template === 'flight') {
+      Constructor = FlightResult;
     }
 
     if (rawResult.data.urls) {
@@ -57,6 +71,14 @@ class ResultFactory {
 
     if (rawResult.type === 'cliqz-pattern' && !rawResult.data.urls) {
       throw new Error('ignore');
+    }
+
+    if (rawResult.type === 'navigate-to') {
+      Constructor = NavigateToResult;
+    }
+
+    if (rawResult.type === 'supplementary-search') {
+      Constructor = SupplementarySearchResult;
     }
 
     return new Constructor(rawResult, allResultsFlat);
@@ -96,7 +118,6 @@ export default class Results {
     query,
     rawResults,
     queriedAt,
-    sessionCountPromise,
     queryCliqz,
     adultAssistant,
     locationAssistant,
@@ -136,8 +157,8 @@ export default class Results {
       this.results = this.results.filter(result => !result.isSuggestion);
     }
 
-    if (this.hasHistory && sessionCountPromise) {
-      // TEMP: this.addSessionsResult(sessionCountPromise);
+    if (this.hasHistory) {
+      // this.addSessionsResult();
     }
 
     this.displayedAt = Date.now();
@@ -206,11 +227,11 @@ export default class Results {
     ];
   }
 
-  addSessionsResult(countPromise) {
+  addSessionsResult() {
     const firstNonHistoryIndex = this.results.findIndex(r => !r.isHistory);
     const sessionResult = new SessionsResult({
       query: this.query,
-    }, countPromise);
+    });
 
     this.insertAt(
       sessionResult,

@@ -46,7 +46,7 @@ var CliqzUtils = {
   BRANDS_DATABASE: BRANDS_DATABASE,
 
   //will be updated from the mixer config endpoint every time new logos are generated
-  BRANDS_DATABASE_VERSION: 1498491398528,
+  BRANDS_DATABASE_VERSION: 1502005705085,
   GEOLOC_WATCH_ID:                null, // The ID of the geolocation watcher (function that updates cached geolocation on change)
   VERTICAL_TEMPLATES: {
         'n': 'news'    ,
@@ -488,33 +488,23 @@ var CliqzUtils = {
   getSuggestions: function(q) {
     const searchDataType = 'application/x-suggestions+json';
     const defaultEngine = CliqzUtils.getDefaultSearchEngine();
-    const submissionUrl = defaultEngine.getSubmissionForQuery(q, searchDataType);
-
-    if (submissionUrl) {
-      return fetch(defaultEngine.getSubmissionForQuery(q, searchDataType))
-        .then(res => res.json())
-        .then(response => {
-          return {
-            response: {
-              results: response[1].filter(r => r !== q).map(q => {
-                return {
-                  url: defaultEngine.getSubmissionForQuery(q),
-                  template: 'suggestion',
-                  type: 'suggestion',
-                  snippet: { suggestion: q }
-                }
-              })
-            },
-            query: response[0]
-          }
-        });
-    } else {
-      // there is no suggestion URL for the default search Engine
-      return Promise.resolve({
-        response: { results: [] },
-        query: q
-      });
-    }
+    return fetch(defaultEngine.getSubmissionForQuery(q, searchDataType))
+      .then(res => res.json())
+      .then(response => {
+        return {
+          response: {
+            results: response[1].filter(r => r !== q).map(q => {
+              return {
+                url: defaultEngine.getSubmissionForQuery(q),
+                template: 'suggestion',
+                type: 'suggestion',
+                snippet: { suggestion: q }
+              }
+            })
+          },
+          query: response[0]
+        }
+      })
   },
 
   // IP driven configuration
@@ -842,9 +832,13 @@ var CliqzUtils = {
         selected: false
       }
     };
+    var currentState = CliqzUtils.getPref('share_location', config.settings.geolocation || 'ask');
+    if (currentState === 'showOnce') {
+      currentState = 'ask';
+    }
 
     // default geolocation 'yes' for funnelCake - 'ask' for everything else
-    data[CliqzUtils.getPref('share_location', config.settings.geolocation || 'ask')].selected = true;
+    data[currentState].selected = true;
 
     return data;
   },
@@ -916,8 +910,12 @@ var CliqzUtils = {
     function filterer(entry) {
         // avoid privay leaking prefs ('backup').
         // avoid irrelevant deep prefs (something.otherthing.x.y)
+        // avoid prefs sending domains.
         // allow 'enabled' prefs
-        return ((entry.indexOf('.') == -1 && entry.indexOf('backup') == -1)
+        return (( entry.indexOf('.') == -1 &&
+                  entry.indexOf('backup') == -1 &&
+                  entry.indexOf('attrackSourceDomainWhitelist') == -1
+                )
                 || entry.indexOf('.enabled') != -1);
       }
 

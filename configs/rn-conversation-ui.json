@@ -5,7 +5,7 @@
   "settings": {
     "antitrackingButton": false,
     "freshTabNews": true,
-    "telemetryProvider": "platform",
+    "AT_TELEMETRY_PROVIDER": "platform",
     "RICH_HEADER": "https://api.cliqz.com/api/v2/rich-header?path=/v2/map"
   },
   "default_prefs" : {

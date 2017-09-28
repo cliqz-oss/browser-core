@@ -175,6 +175,22 @@ function exportPrivateKey(key) {
   });
   return buffer.toBase64();
 }
+function exportPublicKeySimple(key) {
+  const origValues = [key.n, key.e];
+  const values = origValues.map(x => padIfSigned(fromBase64(fromBase64url(x))));
+  const buffer = new ByteBuffer(2000);
+
+  buffer.pushByte(0x30); // SEQUENCE
+  const numBytes = values.reduce((a, x) => a + bytesToEncode(x.length), 0);
+  pushLength(buffer, numBytes);
+
+  values.forEach((x) => {
+    buffer.pushByte(0x02); // INTEGER
+    pushLength(buffer, x.length);
+    buffer.pushBytes(x);
+  });
+  return buffer.toBase64();
+}
 /* RSAPublicKey ::= SEQUENCE {
     modulus           INTEGER,  -- n
     publicExponent    INTEGER   -- e
@@ -320,6 +336,20 @@ function importPublicKey(data) {
   return __importKey(buffer, ['n', 'e']);
 }
 
+function importPrivateKeyPKCS8(data) {
+  const buffer = new ByteBuffer(0);
+  buffer.setData(fromBase64(data));
+  buffer.readByte();
+  readLength(buffer);
+  buffer.readBytes(3);
+  buffer.readBytes(15);
+  buffer.readByte();
+  readLength(buffer);
+  const res = __importKey(buffer, ['version', 'n', 'e', 'd', 'p', 'q', 'dp', 'dq', 'qi']);
+  delete res.version;
+  return res;
+}
+
 function importPrivateKey(data) {
   const res = _importKey(data, ['version', 'n', 'e', 'd', 'p', 'q', 'dp', 'dq', 'qi']);
   delete res.version;
@@ -331,5 +361,6 @@ function privateKeytoKeypair(privateKey) {
   return [exportPublicKeySPKI(key), exportPrivateKeyPKCS8(key)];
 }
 
-export { exportPrivateKeyPKCS8, exportPrivateKey, exportPublicKey, exportPublicKeySPKI,
-  importPublicKey, importPrivateKey, privateKeytoKeypair };
+export { importPrivateKeyPKCS8, exportPrivateKeyPKCS8, exportPrivateKey, exportPublicKey,
+  exportPublicKeySPKI, importPublicKey, importPrivateKey, privateKeytoKeypair,
+  exportPublicKeySimple };

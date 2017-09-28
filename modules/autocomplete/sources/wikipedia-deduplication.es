@@ -2,7 +2,7 @@
  * This modules implements reranking of results using user specific data
  */
 import { utils } from "../core/cliqz";
-import language from "../platform/language";
+import language from "../core/language";
 
 
 var CliqzWikipediaDeduplication = {

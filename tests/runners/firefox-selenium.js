@@ -6,6 +6,7 @@ const selenium = require('selenium-webdriver');
 const firefox = require('selenium-webdriver/firefox');
 const logging = require('selenium-webdriver/lib/logging');
 
+const autoConfig = require('./autoconfig.js').settings;
 
 // PATHS
 const prefix = path.join(process.env.OUTPUT_PATH, '..');
@@ -20,6 +21,12 @@ const firefoxBin = path.join(firefoxDir, 'firefox');
 
 function runSeleniumTests() {
   const profile = new firefox.Profile(profileDir);
+
+  // Configure profile
+  Object.keys(autoConfig).forEach((pref) => {
+    console.log(`Set pref ${pref} to ${autoConfig[pref]}`);
+    // profile.setPreference(pref, autoConfig[pref]);
+  });
 
   // Prepare chromium webdriver
   const firefoxOptions = new firefox.Options()
@@ -43,52 +50,53 @@ function runSeleniumTests() {
   let logInterval;
 
   const tearDown = () => {
-    driver.quit();
     clearInterval(logInterval);
+    try {
+      driver.quit().catch(() => { /* Browser already killed */ });
+    } catch (ex) {
+      /* Ignore any other exception */
+    }
   };
 
   // Graceful shutdown
   process.on('SIGTERM', tearDown);
 
-  // Run mock http server needed for tests
   driver.get('resource://cliqz/firefox-tests/run-testem.html');
 
   // Get logs from firefox
   logInterval = setInterval(
     () => {
-      driver.manage().logs().get(logging.Type.BROWSER).then((entries) => {
-        entries.forEach((entry) => {
-          const message = entry.message;
-          if (message.startsWith('TAP:  END')) {
-            console.log('TEAR DOWN');
-            tearDown();
-          } else if (message.startsWith('TAP:  ')) {
-            console.log(message.substr(6).trim());
-          }
+      // Check if the browser is closed
+      driver.getTitle()
+        .then(() => {
+          // browser is open
+          driver.manage().logs().get(logging.Type.BROWSER).then((entries) => {
+            entries.forEach((entry) => {
+              const message = entry.message;
+              if (message.startsWith('TAP:  ')) {
+                console.log(message
+                  .substr(6)                        // Remove 'TAP:  ' prefix
+                  .split('\n')                      // Remove empty lines
+                  .filter(l => l.trim().length > 0) // ^
+                  .map((line) => {
+                    if (line.startsWith('TAP:  ')) {
+                      return line.substr(6);
+                    }
+                    return line;
+                  })
+                  .join('\n')
+                );
+              }
+            });
+          });
+        })
+        .catch(() => {
+          // browser is closed
+          tearDown();
         });
-      });
     },
     1000
   );
-}
-
-
-function copyFile(source, target, cb) {
-  let cbCalled = false;
-  const done = (err) => {
-    if (!cbCalled) {
-      cb(err);
-      cbCalled = true;
-    }
-  };
-
-  const rd = fs.createReadStream(source);
-  rd.on('error', done);
-
-  const wr = fs.createWriteStream(target);
-  wr.on('error', done);
-  wr.on('close', done);
-  rd.pipe(wr);
 }
 
 
@@ -100,10 +108,6 @@ function main() {
 
   rimraf.sync(profileDir);
   fs.mkdirSync(profileDir);
-
-  // Configure firefox globally
-  copyFile('firefox-autoconfigs/autoconfig.js', `${firefoxDir}/defaults/pref/autoconfig.js`, () => {});
-  copyFile('firefox-autoconfigs/firefox.cfg', `${firefoxDir}/firefox.cfg`, () => {});
 
   // Install Cliqz extension
   fs.copySync(`${buildDir}/cliqz@cliqz.com`, `${extensionsDir}/cliqz@cliqz.com`);

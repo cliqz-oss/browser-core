@@ -2,9 +2,11 @@
 
 import utils from '../core/utils';
 import events from '../core/events';
+import window from '../platform/window';
 
 const mockedFavorites = []; // JSON.parse('[{\"title\":\"T-Online Navigationshilfe\",\"timestamp\":1465203184868,\"url\":\"http://navigationshilfe1.t-online.de/dnserror?url=http://goo.om/\"},{\"title\":\"HELLO! Online: celebrity & royal news, magazine, babies, weddings, style\",\"timestamp\":1465203192872,\"url\":\"http://www.hellomagazine.com/\"}]').reverse();
 let mockedHistory = []; // JSON.parse('[{\"title\":\"HELLO! Online: celebrity & royal news, magazine, babies, weddings, style\",\"timestamp\":1465203194431.158,\"id\":3,\"favorite\":false,\"url\":\"http://www.hellomagazine.com/\"},{\"title\":\"T-Online Navigationshilfe\",\"timestamp\":1465203182810.896,\"id\":2,\"favorite\":false,\"url\":\"http://navigationshilfe1.t-online.de/dnserror?url=http://goo.om/\"},{\"title\":\"Spekulationen um Rückzug: Gauck kündigt Erklärung für 12 Uhr an - SPIEGEL ONLINE - Nachrichten - Politik\",\"timestamp\":1465203157183.131,\"id\":1,\"favorite\":false,\"url\":\"http://m.spiegel.de/politik/deutschland/a-1096014.html#spRedirectedFrom=www&referrrer=\"}]').reverse();
+const subscriptions = {};
 function clbk(f, args, test) {
   if (test && !window.sinonLoaded) {
     setTimeout(clbk, 100, f, args, test);
@@ -14,6 +16,9 @@ function clbk(f, args, test) {
 }
 function searchHistory(q) {
   return { results: mockedHistory, query: q };
+}
+function shareCard({ html }) {
+  window.document.write(html);
 }
 function getHistoryItems() {
   return mockedHistory;
@@ -30,6 +35,7 @@ function isReady() {
     incognito: false,
     showConsoleLogs: true,
     suggestionsEnabled: true,
+    subscriptions,
   });
   events.pub('mobile-browser:urlbar-focus');
   // notify tests
@@ -76,11 +82,22 @@ function setFavorites(data) {
     }
   });
 }
-function shareCard() {}
 function shareLocation() {
   jsAPI.search(CliqzAutocomplete.lastSearch, true, 48.1517832, 11.6200855);
 }
-
+function subscribeToNotifications({ type, subtype, id }) {
+  if (!subscriptions[type]) {
+    subscriptions[type] = {};
+  }
+  subscriptions[type][subtype] ? subscriptions[type][subtype].push(id) : (subscriptions[type][subtype] = [id]);
+  events.pub('mobile-browser:notify-preferences', { subscriptions });
+  jsAPI.search(CliqzAutocomplete.lastSearch, !!CliqzUtils.USER_LAT, CliqzUtils.USER_LAT, CliqzUtils.USER_LNG);
+}
+function unsubscribeToNotifications({ type, subtype, id }) {
+  subscriptions[type][subtype].splice(subscriptions[type][subtype].indexOf(id), 1);
+  events.pub('mobile-browser:notify-preferences', { subscriptions });
+  jsAPI.search(CliqzAutocomplete.lastSearch, !!CliqzUtils.USER_LAT, CliqzUtils.USER_LAT, CliqzUtils.USER_LNG);
+}
 const MockOS = {
   postMessage(message) {
     let dataBack;
@@ -125,14 +142,20 @@ const MockOS = {
       case 'setFavorites':
         setFavorites(message.data);
         break;
-      case 'shareCard':
-        shareCard(message.data);
-        break;
       case 'shareLocation':
         shareLocation();
         break;
       case 'showQuerySuggestions':
         showQuerySuggestions();
+        break;
+      case 'shareCard':
+        shareCard(message.data);
+        break;
+      case 'subscribeToNotifications':
+        subscribeToNotifications(message.data);
+        break;
+      case 'unsubscribeToNotifications':
+        unsubscribeToNotifications(message.data);
         break;
       default:
         break;

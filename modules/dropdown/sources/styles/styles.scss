@@ -3,7 +3,9 @@ $light-gray: #f5f5f5;
 @import 'partials/images';
 @import 'partials/anchors';
 @import 'partials/buttons';
+@import 'partials/social-buttons';
 @import 'partials/location';
+@import 'partials/tabs.scss';
 
 $basic-font-size: 15px;
 $basic-line-height: (16 / 15) + 0em;
@@ -23,6 +25,20 @@ $basic-line-height: (16 / 15) + 0em;
     @import 'results/sessions';
     @import 'results/lotto';
     @import 'results/soccer';
+    @import 'results/time';
+    @import 'results/flight';
+
+    .category {
+        font-size: 140%;
+        text-transform: uppercase;
+        color: white;
+        background-color: #BFCBD6;
+        padding: 10px;
+        padding-bottom: 10px !important;
+        margin-bottom: 2px;
+        display: inline-block;
+        border-radius: 2px;
+    }
 
     font-size: $basic-font-size;
     line-height: $basic-line-height;
@@ -309,12 +325,50 @@ $basic-line-height: (16 / 15) + 0em;
                 padding-right: 10px;
                 display: flex;
                 flex: 0 0 auto;
+                position: relative;
+
+                .duration {
+                    position: absolute;
+                    bottom: 0;
+                    right: 11px;
+                    font-size: 9px;
+                    color: #fff;
+                    background-color: rgba(0, 0, 0, 0.6);
+                    padding: 1px 2px;
+                }
 
                 img {
                     width: 100%;
                     height: 100%;
                     background-position: center center;
                     background-size: cover;
+                }
+
+                .mask {
+                    position: absolute;
+                    top: 0;
+                    right: 10px;
+                    bottom: 0;
+                    left: 0;
+                    background-color: rgba(0, 0, 0, 0.3);
+                }
+
+                .no-thumbnail {
+                    width: 100%;
+                    height: 100%;
+                    background-repeat: no-repeat;
+                    background-position: center center;
+                    background-size: 20%;
+                }
+            }
+        }
+
+        &.non-default-search {
+            margin-top: 3px;
+
+            .abstract {
+                p {
+                    font-size: 14px;
                 }
             }
         }
@@ -457,43 +511,45 @@ $basic-line-height: (16 / 15) + 0em;
     .instant {
 
         .header {
-            padding-bottom: 8px;
+            padding-bottom: 7px;
             cursor: pointer;
             &:after {
                 @extend .clearfix;
             }
 
-            &:hover .tooltip {
-                opacity: 1;
-                top:-8px;
-                cursor: pointer;
-            }
+            .title {
+                font-size: 1.6em;
+                line-height: 1.33em;
 
-            a {
-                position: relative;
-            }
+                .result {
+                    padding: 8px 0 0;
+                    color: #000;
+                    position: relative;
+                }
 
-            .tooltip {
-                background-color: #7e7e7e;
-                border-radius: 4px;
-                color: #fff;
-                display: block;
-                font-size: 10px;
-                font-weight: 400;
-                left: 0px;
-                line-height: 1;
-                opacity: 0;
-                padding: 3px 4px;
-                position: absolute;
-                text-align: center;
-                text-transform: uppercase;
-                top: 0;
-            }
-        }
+                &:hover .tooltip {
+                    opacity: 1;
+                    top:-3px;
+                    cursor: pointer;
+                }
 
-        .title {
-            font-size: 1.6em;
-            line-height: 1.33em;
+                .tooltip {
+                    background-color: #7e7e7e;
+                    border-radius: 2px;
+                    color: #fff;
+                    display: block;
+                    font-size: 9px;
+                    font-weight: 400;
+                    left: 0px;
+                    line-height: 1;
+                    opacity: 0;
+                    padding: 2px 4px;
+                    position: absolute;
+                    text-align: center;
+                    text-transform: uppercase;
+                    top: 0;
+                }
+            }
         }
 
         .subtitle {
@@ -519,7 +575,7 @@ $basic-line-height: (16 / 15) + 0em;
     .result.weather {
         margin-bottom: 6px;
         .forecast {
-            margin: 0px 0 10px 70px;
+            margin-bottom: 10px;
 
             &:after {
                 @extend .clearfix;
@@ -592,15 +648,6 @@ $basic-line-height: (16 / 15) + 0em;
     // }
 
     .calculator {
-        .header {
-            font-size: 1.66em;
-            font-weight: normal;
-
-            a {
-                color: #000;
-            }
-        }
-
         .logo {
             box-shadow: none;
         }
@@ -665,6 +712,10 @@ $basic-line-height: (16 / 15) + 0em;
                         &.attention, &.normal {
                             color: white;
                         }
+
+                        &.video-views {
+                            color: rgba(255, 255, 255, 0.8);
+                        }
                     }
                 }
             }
@@ -707,6 +758,10 @@ $basic-line-height: (16 / 15) + 0em;
                     &.normal {
                         color: #404040;
                     }
+
+                    &.video-views {
+                        color: #969696;
+                    }
                 }
             }
         }
@@ -717,14 +772,6 @@ $basic-line-height: (16 / 15) + 0em;
 
 #nav-bar {
     #urlbar {
-        /* we need this for FF56 and bellow only*/
-        #urlbar-icons {
-            toolbarbutton#page-action-browser-action {
-                .toolbarbutton-icon {
-                    max-width: 12px;
-                }
-            }
-        }
         toolbarbutton {
             &#page-action-browser-action {
                 margin: 0;
@@ -736,6 +783,10 @@ $basic-line-height: (16 / 15) + 0em;
 
                     > .toolbarbutton-badge-stack {
                         padding: 0 8px;
+
+                        .toolbarbutton-icon {
+                            max-width: 12px;
+                        }
                     }
 
                     &:hover, &[open] {
@@ -806,3 +857,14 @@ $basic-line-height: (16 / 15) + 0em;
     }
 }
 
+#PanelUI-mainView {
+    toolbarbutton#control-center-browser-action {
+        &.toolbarbutton-1 {
+            > .toolbarbutton-badge-stack {
+                .toolbarbutton-icon {
+                    list-style-image: var(--webextension-menupanel-image, inherit);
+                }
+            }
+        }
+    }
+}

@@ -19,7 +19,6 @@ export default class {
     this.window = window;
     this.extensionID = id;
     this.getSessionCount = getSessionCount;
-    this.handleResults = this.handleResults.bind(this);
     this.updateFirstResult = this.updateFirstResult.bind(this);
 
     this.ui = inject.module('ui');
@@ -123,19 +122,24 @@ export default class {
             break;
           }
 
-          if (this.dropdown.selectedIndex > 0) {
+          if (this.dropdown.selectedIndex >= 0) {
             const selectedResult = this.dropdown.results.get(this.dropdown.selectedIndex);
             selectedResult.click(this.window, selectedResult.url, ev);
             break;
           }
         }
 
+        this.popup.close();
         this.popup.execBrowserCommandHandler(ev, isNewTab ? 'tab' : 'current');
         break;
       }
       case 'Delete':
       case 'Backspace': {
         if (!ev.shiftKey || ev.metaKey || (ev.altKey && ev.ctrlKey)) {
+          const { selectionStart, selectionEnd } = this.popup.urlbarSelectionRange;
+          if (selectionStart !== selectionEnd) {
+            this.core.action('refreshPopup', this.dropdown.results.query);
+          }
           break;
         }
         const selectedResult = this.dropdown.selectedResult;
@@ -178,41 +182,33 @@ export default class {
       return;
     }
 
-    const {
-      query,
-      rawResults,
-    } = this.popup.results();
+    const query = this.popup.query;
 
     if (
       (oldResults.query !== query) &&
       (
         (oldResults.firstResult instanceof NavigateToResult) ||
-        (
-          (oldResults.firstResult instanceof SupplementarySearchResult) &&
-          (rawResults.length ? !rawResults[0].url : true)
-        )
+        (oldResults.firstResult instanceof SupplementarySearchResult)
       )
     ) {
       oldResults.firstResult.rawResult.text = query;
 
       this.dropdown.renderResults(oldResults);
+      this.popup.open();
     }
   }
 
-  handleResults() {
-    const {
-      query,
-      queriedAt,
-      rawResults,
-    } = this.popup.results();
-
+  render({
+    query,
+    queriedAt,
+    rawResults,
+  }) {
     events.pub('ui:results', rawResults);
 
     const results = new Results({
       query,
       queriedAt,
       rawResults,
-      sessionCountPromise: this.getSessionCount(query),
       queryCliqz: this.core.action.bind(this.core, 'queryCliqz'),
       adultAssistant: this.adultAssistant,
       locationAssistant: this.locationAssistant,
@@ -224,6 +220,7 @@ export default class {
     const queryIsNotEmpty = query.trim() !== '';
     const firstResult = results.firstResult;
     let didAutocomplete;
+    let hasInstantResults;
 
     if (results.firstResult) {
       didAutocomplete = this.autocompleteQuery(
@@ -231,10 +228,12 @@ export default class {
         firstResult.title,
       );
       firstResult.isAutocompleted = didAutocomplete;
+      hasInstantResults = firstResult.rawResult.type === 'navigate-to' ||
+        firstResult.rawResult.type === 'supplementary-search';
     }
 
     // TODO move these to mixer (EX-4497: Old dropdown cleanup)
-    if (!didAutocomplete) {
+    if (!didAutocomplete && !hasInstantResults) {
       if (queryIsUrl) {
         results.prepend(
           new NavigateToResult({ text: results.query })
@@ -252,5 +251,6 @@ export default class {
       }
     }
     this.dropdown.renderResults(results);
+    this.popup.open();
   }
 }

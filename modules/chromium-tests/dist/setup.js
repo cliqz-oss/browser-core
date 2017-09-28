@@ -69,4 +69,5 @@ mocha.setup({
   ui: 'bdd',
   reporter: TAP,
   ignoreLeaks: true,
+  timeout: 40000,
 });

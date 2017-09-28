@@ -7,7 +7,8 @@ import { utils, events } from "../core/cliqz";
 import historyCluster from "./history-cluster";
 import Result from "./result";
 import resultProviders from "./result-providers";
-import language from "../platform/language";
+import language from "../core/language";
+import historySearch from '../platform/history/search';
 
 var CliqzAutocomplete = {
     LOG_KEY: 'CliqzAutocomplete',
@@ -32,6 +33,7 @@ var CliqzAutocomplete = {
         highlightFirstElement: false,
         hm: null,
         currentAutoLoadURL: null,
+        historySearch,
       });
     },
     getResultsOrder: function(results){

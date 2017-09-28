@@ -22,6 +22,7 @@ export default background({
   */
   init(settings) {
     // Create new attrack class
+    this.settings = settings;
     this.attrack = new Attrack();
 
     if (browser.getBrowserMajorVersion() < MIN_BROWSER_VERSION) {
@@ -33,13 +34,14 @@ export default background({
       utils.setPref('attrackRemoveQueryStringTracking', true);
     }
 
-    this.enabled = false;
+    // indicates if the antitracking background is initiated
+    this.enabled = true;
     this.clickCache = {};
 
     utils.bindObjectFunctions(this.popupActions, this);
 
     // inject configured telemetry module
-    telemetry.loadFromProvider(settings.telemetryProvider || 'human-web');
+    telemetry.loadFromProvider(settings.AT_TELEMETRY_PROVIDER || 'human-web', settings.HW_CHANNEL);
 
     // load config
     this.config = new Config({});
@@ -51,6 +53,7 @@ export default background({
   */
   unload() {
     if (browser.getBrowserMajorVersion() < MIN_BROWSER_VERSION) {
+      this.enabled = false;
       return;
     }
 
@@ -123,6 +126,15 @@ export default background({
 
         return stats;
       });
+    },
+    isEnabled() {
+      return this.enabled;
+    },
+    disable() {
+      this.unload();
+    },
+    enable() {
+      this.init(this.settings);
     }
   },
 
@@ -133,7 +145,7 @@ export default background({
     * @param cb Callback
     */
     toggleAttrack(args, cb) {
-      var currentState = utils.getPref('modules.antitracking.enabled');
+      var currentState = utils.getPref('modules.antitracking.enabled', true);
 
       if (currentState) {
         this.attrack.disableModule();

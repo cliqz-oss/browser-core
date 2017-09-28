@@ -1,0 +1,279 @@
+$green-color: #47b625;
+$red-color: #d95559;
+
+.flight-status {
+    color: #a6a6a6;
+    font-size: 12px;
+    max-width: 500px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.strike-through {
+    text-decoration: line-through;
+}
+
+.flight-details {
+    position: relative;
+    display: inline-block;
+    min-width: 500px;
+    max-width: 500px;
+    box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.17);
+    padding: 10px 12px;
+    margin: 0px 0 18px 70px;
+
+    .flight-status {
+        font-size: 0.833em;
+
+        & > span:first-child {
+            text-transform: uppercase;
+        }
+    }
+
+    .flight-flex-container {
+        display: flex;
+        margin:8px 0;
+
+        span {
+            font-weight: 500;
+            position: relative;
+            top: 3px;
+        }
+
+        .flight-progress-container {
+            position: relative;
+            width: 224px;
+            margin: 0 12px 0 8px;
+
+            .flight-progress {
+                position: relative;
+                overflow: hidden;
+                height: 23px;
+                padding-right: 26px;
+
+                .flight-progress-bar {
+                    position: relative;
+                    background: #C9C9C9;
+                    background-size: 26px 23px;
+                    width: 26px;
+                    height: 23px;
+
+                    &::after,
+                    &::before {
+                        content: "";
+                        width: 99999px;
+                        height: 1px;
+                        background: #C9C9C9;
+                        display: block;
+                        position: absolute;
+                        top: 11px;
+                        z-index: -1;
+                    }
+
+                    &::before {
+                        right: 0;
+                        background-color: inherit;
+                    }
+                }
+            }
+        }
+    }
+
+    .flight-timestamp {
+        position: absolute;
+        bottom: -18px;
+        right: 0;
+    }
+
+    /* GREEN STATUS */
+    &[status="scheduled"],
+    &[status="on_time"],
+    &[status="arrived"] {
+        .flight-status > span:first-child {
+            color: $green-color;
+        }
+        .flight-progress-bar::before {
+            background-color: $green-color !important;
+        }
+    }
+
+    &[status="on_time"] {
+        .flight-progress-bar {
+            background: url('../images/plane-green.svg') no-repeat 0 0px !important;
+        }
+
+        .estimate-arrival-time,
+        .estimate-depart-time {
+            color: $green-color !important;
+        }
+    }
+
+    &[status="arrived"],
+    &[status="scheduled"] {
+        .flight-progress-bar {
+            background: url('../images/plane-green-outline.svg') no-repeat -1px -1px !important;
+        }
+
+        .arrival-time {
+            color: $green-color;
+        }
+    }
+
+    &[status="arrived"] {
+        .actual-time {
+            color: $green-color;
+        }
+    }
+
+    /* GREY STATUS */
+    &[status="no_info"] {
+        .flight-progress {
+            max-width: 455px;
+        }
+
+        .flight-progress-bar {
+            background: transparent !important;
+        }
+
+        .flight-progress-bar::after {
+            border-bottom: 1px dashed #999999;
+            background: transparent !important;
+            top: 10px !important;
+        }
+
+        .flight-progress-bar::before {
+            top: 10px !important;
+        }
+    }
+
+    /* RED STATUS */
+    &[status="delayed"],
+    &[status="diverted"],
+    &[status="cancelled"] {
+        .flight-status > span:first-child {
+            color: $red-color;
+        }
+        .flight-progress-bar::before {
+            background: $red-color !important;
+        }
+
+        .actual-arrival-city {
+            color: $red_color;
+        }
+    }
+
+    &[status="delayed"],
+    &[status="diverted"] {
+        .flight-progress-bar {
+            background: url('../images/plane-red.svg') no-repeat 0 0px !important;
+        }
+
+        .arrival-time,
+        .depart-time {
+            color: $red-color !important;
+        }
+    }
+
+    &[status="cancelled"] {
+        .flight-progress-bar {
+            background: url('../images/plane-red-outline.svg') no-repeat -1px -1px !important;
+        }
+
+        .estimate-arrival-time,
+        .estimate-depart-time {
+            color: $red-color !important;
+        }
+    }
+
+    .depart-arrival {
+        color: #545454;
+        clear: left;
+        font-size: 12.5px;
+
+        .depart, .arrival {
+            float: left;
+            width: 200px;
+            max-width: calc(50% - 5px);
+            overflow: hidden;
+        }
+
+        .arrival {
+            float: right;
+        }
+
+        .bold {
+            font-weight: 500;
+            color: #333333;
+        }
+    }
+}
+
+
+/*** OLD IMPLEMENTATION **/
+
+.plane-position-plane-img {
+    position: relative;
+    top: -15px;
+    float: left;
+    width: 30px;
+    margin-top: 7px;
+    margin-right: 5px;
+}
+.plane-position-bar {
+    overflow: hidden;
+    max-width: 428px;
+    height: 10px;
+    margin-top: 15px;
+    padding-right: 10px
+}
+.plane-position-dot {
+    position: relative;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #74d463;
+    z-index: 2;
+}
+.plane-position-dot::after,
+.plane-position-dot::before {
+    content: "";
+    width: 99999px;
+    height: 2px;
+    background: #C9C9C9;
+    display: block;
+    position: absolute;
+    top: 4px;
+    z-index: 1;
+}
+.plane-position-dot::before {
+    right: 0;
+    background-color: inherit;
+    z-index: 3;
+}
+
+/** end OLD IMPLEMENTATION **/
+@media only screen and (max-width: 638px) {
+    .flight-details {
+        min-width: 300px;
+
+        .flight-status {
+            max-width: 275px;
+        }
+
+        .flight-flex-container .flight-progress-container {
+            width: 200px;
+        }
+
+        .depart-arrival {
+            .depart, .arrival {
+                float: none;
+            }
+
+            .arrival {
+                margin-top: 20px;
+            }
+        }
+    }
+}

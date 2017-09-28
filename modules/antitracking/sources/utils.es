@@ -1,8 +1,13 @@
 import { toBase64 } from '../core/encoding';
 import { compress } from '../core/gzip';
-import { VERSION } from './config';
+import { VERSION, DEFAULTS} from './config';
 import { getHourTimestamp } from './time';
+import utils from '../core/utils';
 
+
+function getCountryCode() {
+    return utils.getPref('config_location', '--');
+}
 
 export function compressionAvailable() {
   return compress !== false;
@@ -63,6 +68,7 @@ export function cleanTimestampCache(cacheObj, timeout, currTime) {
 export function generateAttrackPayload(data, ts, qsVersion) {
   const extraAttrs = qsVersion;
   extraAttrs.ver = VERSION;
+  extraAttrs.ctry = getCountryCode();
   ts = ts || getHourTimestamp();
   return generatePayload(data, ts, false, extraAttrs);
 }

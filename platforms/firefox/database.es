@@ -12,6 +12,9 @@ const global = {
     if (typeof IDBKeyRange !== 'undefined') {
       return IDBKeyRange;
     } else {
+      // in FF 57 IDBKeyRange is undefined in the bootstrapped context
+      // we should use a getter as the window() might not be initialized
+      // early in the browser startup process
       return window().IDBKeyRange;
     }
   },
@@ -34,11 +37,8 @@ const global = {
 
 const pouchUrl = "chrome://cliqz/content/bower_components/pouchdb/dist/pouchdb.js";
 
-export default function (dbName, options) {
-  if (!global.global.PouchDB) {
-    Services.scriptloader.loadSubScriptWithOptions(pouchUrl, {
-      target: global
-    });
-  }
-  return new global.global.PouchDB(dbName, options);
-}
+Services.scriptloader.loadSubScriptWithOptions(pouchUrl, {
+  target: global
+});
+
+export default global.global.PouchDB;

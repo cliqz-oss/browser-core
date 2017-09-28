@@ -584,6 +584,9 @@
     "history_results_cluster": {
       "message":"Besuchte Seiten"
     },
+    "results_found_in_history": {
+        "message": "Ergebnisse in der Chronik anzeigen"
+    },
     "adultInfo": {
         "message": "Websites mit nicht-jugendfreien Inhalten wurden automatisch geblockt. Weiterhin blockieren?"
     },
@@ -1130,6 +1133,12 @@
     "mobile_share_card": {
       "message": "Diese Karte teilen"
     },
+    "mobile_card_shared_via": {
+      "message": "Geteilt mit Cliqz Browser für $1"
+    },
+    "mobile_card_look_shared_via": {
+      "message": "Hey! Schau dir den Screenshot aus dem Cliqz Browser an"
+    },
     "mobile_reconnecting_msg": {
       "message": "Internetverbindung wird wieder hergestellt"
     },
@@ -1175,6 +1184,30 @@
     "mobile_calc_copy_ans":{
         "message": "Antippen zum Kopieren"
     },
+    "mobile_soccer_subscribe":{
+        "message": "Abonnieren"
+    },
+    "mobile_soccer_unsubscribe":{
+        "message": "Nicht mehr Abonnieren"
+    },
+    "mobile_soccer_subscribe_team":{
+        "message": "Verpasse kein Tor und abonniere den kostenlosen Bundesliga Live-Ticker für $1!"
+    },
+    "mobile_soccer_subscribe_league":{
+        "message": "Verpasse kein Tor und abonniere den kostenlosen Live-Ticker für $1!"
+    },
+    "mobile_soccer_subscribe_league_done":{
+        "message": "Du bist immer auf dem Laufenden. Alle Spiele für $1 sind abonniert."
+    },
+    "mobile_soccer_game_ended":{
+        "message": "Spiel beendet"
+    },
+    "mobile_soccer_subscribed_to_one":{
+        "message": "Du hast eines dieser Teams abonniert."
+    },
+    "mobile_soccer_subscribed_to_both":{
+        "message": "Du hast diese Teams abonniert."
+    },
     "unblock_menu_option": {
       "message": "Unblock content"
     },
@@ -1203,10 +1236,7 @@
       "message": "Lyrics: "
     },
     "control-center-icon-tooltip": {
-        "message": "Control Center"
-    },
-    "control-center-action-tooltip": {
-        "message": "Suche einstellen"
+        "message": "Cliqz Control Center"
     },
     "control-center-txt-header": {
       "message": "Deine Daten sind geschützt"
@@ -1790,39 +1820,6 @@
     "control-center-open": {
         "message": "Öffnen"
     },
-    "soccer-table-rank": {
-        "message": "Platz"
-    },
-    "soccer-table-teams": {
-        "message": "Mannschaft"
-    },
-    "soccer-table-played": {
-        "message": "Spiele"
-    },
-    "soccer-table-won": {
-        "message": "Siege"
-    },
-    "soccer-table-lost": {
-        "message": "Verloren"
-    },
-    "soccer-table-drawn": {
-        "message": "Remis"
-    },
-    "soccer-table-goals": {
-        "message": "Tore+/-"
-    },
-    "soccer-table-goal-diff": {
-        "message": "Tordiff"
-    },
-    "soccer-table-points": {
-        "message": "Punkte"
-    },
-    "soccer-table-qualified": {
-        "message": "Qualifiziert"
-    },
-    "soccer-ticker-week": {
-        "message": "Spieltag"
-    },
     "soccer-powered-by": {
         "message": "Powered by Kicker Online"
     },
@@ -1834,6 +1831,15 @@
     },
     "updated": {
         "message": "Aktualisiert"
+    },
+    "soccer-news-title": {
+        "message": "Nachrichten"
+    },
+    "soccer-expand-button": {
+        "message": "Mehr zeigen"
+    },
+    "freshtab.app.offer.info": {
+        "message": "Mehr Info"
     },
     "TEST": {
         "message": "OK"

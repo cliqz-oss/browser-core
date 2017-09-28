@@ -1,4 +1,5 @@
-import inject from '../core/kord/inject';
+import inject, { ModuleDisabledError } from '../core/kord/inject';
+import console from '../core/console';
 import background from '../core/base/background';
 import SuspiciousUrlCheck from './suspicious-url-check';
 
@@ -32,7 +33,15 @@ export default background({
   },
 
   unload() {
-    this.antitracking.action('removePipelineStep', 'open', 'checkIsSuspicious');
+    this.antitracking.action('removePipelineStep', 'open', 'checkIsSuspicious')
+      .catch((err) => {
+        if (err.name === ModuleDisabledError.name) {
+          console.log('antispy', 'cannot unload: antitracking was already unloaded');
+          return Promise.resolve();
+        }
+        return Promise.reject(err);
+      });
+
     this.suspiciousChecker.unload();
   },
 });

@@ -12,6 +12,7 @@ import config from '../core/config';
 
 /* modules */
 import core from '../core/index';
+import cliqz from '../core-cliqz/index';
 import dev from '../mobile-dev/index';
 import history from '../mobile-history/index';
 import window from '../platform/window';
@@ -32,12 +33,16 @@ const loadModule = (name, module) => {
 
 window.document.addEventListener('DOMContentLoaded', function () {
   loadModule('core', core).then(() => {
+    return core.Background.providesServices.logos();
+  }).then(() => {
     if (config.environment !== 'production') {
       return loadModule('dev', dev);
     } else {
       return Promise.resolve();
     }
   }).then(
+    () => loadModule('cliqz', cliqz)
+  ).then(
     () => loadModule('history', history)
   ).then(
     () => osAPI.init()

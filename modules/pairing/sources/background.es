@@ -8,14 +8,15 @@ import PairingObserver from './apps/pairing-observer';
 import background from '../core/base/background';
 
 // TODO: remove this!
-const CustomizableUI = Components.utils.import('resource:///modules/CustomizableUI.jsm', null).CustomizableUI;
+let CustomizableUI;
 
 const BTN_ID = 'mobilepairing_btn';
 
 export default background({
   init() {
-    const PeerComm = this.peerSlave = new PeerSlave();
+    CustomizableUI = Components.utils.import('resource:///modules/CustomizableUI.jsm', null).CustomizableUI;
 
+    const PeerComm = this.peerSlave = new PeerSlave();
     const pingpong = new PingPongApp();
     PeerComm.addObserver('PINGPONG', pingpong);
 

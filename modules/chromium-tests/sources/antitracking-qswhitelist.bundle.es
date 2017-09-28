@@ -21,6 +21,7 @@ before(function() {
 });
 
 beforeEach(() => {
+  WebRequestPipeline.unload();
   return WebRequestPipeline.init()
     .then(() => setGlobal({
       availableModules: {
@@ -174,9 +175,7 @@ describe('QSWhitelist', function() {
       });
 
       it('returns true', function() {
-        return waitFor(function() {
-          return whitelist.isUpToDate();
-        });
+        return waitFor(() => whitelist.isUpToDate());
       });
     });
 
@@ -222,7 +221,6 @@ describe('QSWhitelist', function() {
     context('load token and tracker lists', function() {
 
       beforeEach( function() {
-        this.timeout(25000)
         var today = datetime.getTime();
         whitelist._loadRemoteTokenWhitelist();
         whitelist._loadRemoteTrackerDomainList();
@@ -245,7 +243,7 @@ describe('QSWhitelist', function() {
         mock_safekey_url = '/safekey.json',
         mock_safekey_hash = '3e82cf3535f01bfb960e826f1ad8ec2d';
 
-    beforeEach(function() {
+    beforeEach(function () {
       mock_safekey_url = testServer.getBaseUrl('safekey.json');
       whitelist.SAFE_KEY_URL = mock_safekey_url;
       persist.setValue('safeKeyExtVersion', '');
@@ -269,14 +267,11 @@ describe('QSWhitelist', function() {
 
     it('loads remote safekeys', function() {
       whitelist._loadRemoteSafeKey();
-      waitFor(function() {
+      return waitFor(function() {
         return persist.getValue('safeKeyExtVersion', '').length > 0;
       }).then(function() {
-        try {
-          chai.expect(persist.getValue('safeKeyExtVersion')).to.equal(mock_safekey_hash);
-          chai.expect(whitelist.isSafeKey('f528764d624db129', '924a8ceeac17f54d3be3f8cdf1c04eb2'));
-          done();
-        } catch(e) { done(e); }
+        chai.expect(persist.getValue('safeKeyExtVersion')).to.equal(mock_safekey_hash);
+        chai.expect(whitelist.isSafeKey('f528764d624db129', '924a8ceeac17f54d3be3f8cdf1c04eb2'));
       });
     });
 

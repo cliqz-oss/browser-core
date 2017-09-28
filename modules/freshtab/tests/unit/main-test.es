@@ -4,8 +4,7 @@ export default describeModule('freshtab/main',
       'core/config': {
         default: {
           settings: {
-            NEW_TAB_URL: '',
-            freshTabButton: false,
+            NEW_TAB_URL: ''
           }
         },
       },

@@ -4,6 +4,13 @@ import utils from '../core/utils';
 import { promiseHttpHandler } from '../core/http';
 import { Components, Services } from '../platform/globals';
 
+// TODO: please just use Components
+const {
+  utils: Cu,
+  interfaces: Ci,
+  classes: Cc,
+} = Components;
+
 try {
   Cu.import('resource://gre/modules/XPCOMUtils.jsm');
   Cu.import('resource://gre/modules/NewTabUtils.jsm');
@@ -264,14 +271,7 @@ var CLIQZEnvironment = {
             base_url: e.searchForm,
             urlDetails: utils.getDetailsFromUrl(e.searchForm),
             getSubmissionForQuery: function(q, type){
-              const submission = e.getSubmission(q, type);
-              // some engines cannot create submissions for all types
-              // eg 'application/x-suggestions+json'
-              if (submission) {
-                return submission.uri.spec;
-              } else {
-                return null
-              }
+              return e.getSubmission(q, type).uri.spec;
             }
           };
         });
@@ -287,6 +287,11 @@ var CLIQZEnvironment = {
       return CLIQZEnvironment.getSearchEngines().find(engine => { return engine.name === name; });
     },
     addEngineWithDetails: function(engine) {
+      const existedEngine = Services.search.getEngineByName(engine.name);
+      if (existedEngine) {
+        return;
+      }
+
       Services.search.addEngineWithDetails(
         engine.name,
         engine.iconURL,
@@ -299,10 +304,21 @@ var CLIQZEnvironment = {
         Services.search.getEngineByName(engine.name).wrappedJSObject._queryCharset = engine.encoding;
       }
     },
+    /*
+      We want to remove the search engine in order to update it by addEngineWithDetails function
+      If the search engines are stored in user profile, we can remove them
+    */
     removeEngine: function(name) {
-      const engine = Services.search.getEngineByName(name);
+      let engine = Services.search.getEngineByName(name);
       if (engine) {
         Services.search.removeEngine(engine);
+      }
+      // Check if the engine has been removed or not
+      engine = Services.search.getEngineByName(name);
+      // If not, search engines cannot be removed since they are stored in global location
+      // removeEngine will just hide the engine, we can restore it by unhiding it
+      if (engine) {
+        engine.hidden = false;
       }
     },
     // from ContextMenu

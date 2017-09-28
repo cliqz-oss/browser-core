@@ -1,4 +1,5 @@
 import { URLInfo } from '../antitracking/url';
+import { getGeneralDomain } from '../antitracking/domain';
 
 import logger from './logger';
 import { parseList, parseJSResource, NetworkFilter, CosmeticFilter } from './filters-parsing';
@@ -478,7 +479,7 @@ class CosmeticFilterBucket {
       return true;
     };
 
-    this.selectorIndex.iterMatchingFilters(tokenize(hostname), checkMatch);
+    this.hostnameIndex.iterMatchingFilters(tokenize(hostname), checkMatch);
 
     const result = this.filterExceptions(rules);
     const total = Date.now() - t0;
@@ -527,6 +528,52 @@ class CosmeticFilterBucket {
 
     return result;
   }
+}
+
+
+function processRawRequest(request) {
+  // Extract hostname
+  const url = request.url.toLowerCase();
+  const urlParts = URLInfo.get(url);
+  let hostname = urlParts.hostname;
+  if (fastStartsWith(hostname, 'www.')) {
+    hostname = hostname.substr(4);
+  }
+  const hostGD = getGeneralDomain(hostname);
+
+  // Process source url
+  const sourceUrl = request.sourceUrl;
+  let sourceHostname = '';
+  let sourceGD = '';
+  const sourceParts = URLInfo.get(sourceUrl);
+
+  // It can happen when source is not a valid URL, then we simply
+  // leave `sourceHostname` and `sourceGD` as empty strings to allow
+  // some filter matching on the request URL itself.
+  if (sourceParts) {
+    sourceHostname = sourceParts.hostname.toLowerCase();
+    if (sourceHostname) {
+      if (fastStartsWith(sourceHostname, 'www.')) {
+        sourceHostname = sourceHostname.substr(4);
+      }
+      sourceGD = getGeneralDomain(sourceHostname);
+    }
+  }
+
+  // Wrap informations needed to match the request
+  return {
+    tokens: tokenize(url),
+    // Request
+    url,
+    cpt: request.cpt,
+    // Source
+    sourceUrl,
+    sourceHostname,
+    sourceGD,
+    // Endpoint
+    hostname,
+    hostGD,
+  };
 }
 
 
@@ -631,7 +678,15 @@ export default class FilterEngine {
     }
   }
 
-  onUpdateFilters(lists, debug = false) {
+  onUpdateFilters(lists, loadedAssets, debug = false) {
+    // Remove assets if needed
+    Object.keys(this.lists).forEach((asset) => {
+      if (!loadedAssets.has(asset)) {
+        delete this.lists[asset];
+        this.updated = true;
+      }
+    });
+
     // Mark the engine as updated, so that it will be serialized on disk
     if (lists.length > 0) {
       this.updated = true;
@@ -711,15 +766,18 @@ export default class FilterEngine {
     );
   }
 
-  match(request) {
+  match(rawRequest) {
     if (!this.loadNetworkFilters) {
       return { match: false };
     }
 
-    /* eslint-disable no-param-reassign */
-    request.tokens = tokenize(request.url);
+    // Transforms { url, sourceUrl, cpt } into a more complete request context
+    // containing domains, general domains and tokens for this request. This
+    // context will be used during the matching in the engine.
+    const request = processRawRequest(rawRequest);
 
     let result = null;
+    let exception = null;
 
     // Check the filters in the following order:
     // 1. $important (not subject to exceptions)
@@ -737,10 +795,19 @@ export default class FilterEngine {
 
       // If we found something, check for exceptions
       if (result !== null) {
-        if (this.exceptions.match(request)) {
+        exception = this.exceptions.match(request);
+        if (exception !== null) {
           result = null;
         }
       }
+    }
+
+    // If there is a match
+    let filter;
+    if (result !== null) {
+      filter = result.pprint();
+    } else if (exception !== null) {
+      filter = exception.pprint();
     }
 
     if (result !== null) {
@@ -754,14 +821,22 @@ export default class FilterEngine {
         }
 
         return {
+          filter,
           match: true,
           redirect: dataUrl.trim(),
         };
       }
-      return { match: true };
+      return {
+        filter,
+        match: true
+      };
     }
 
-    return { match: false };
+    return {
+      filter,
+      match: false,
+      exception: exception !== null
+    };
   }
 
   /**

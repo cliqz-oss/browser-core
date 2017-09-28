@@ -35,7 +35,7 @@ export default function () {
     ];
     let resultElement;
 
-    beforeEach(function () {
+    before(function () {
       respondWith({ results });
       fillIn('rewe');
       return waitForPopup().then(function () {

@@ -31,6 +31,14 @@ function getWord(data, offset) {
   return (data[offset] << 8) | data[offset + 1];
 }
 
+// In IOS, it seems that slice is not available for TypedArrays...
+function slice(x, ...args) {
+  if (x.slice) {
+    return x.slice(...args);
+  }
+  return new Uint8Array(Array.prototype.slice.apply(x, [...args]));
+}
+
 // Aux
 function decodeMessage(buffer) {
   let data = new Uint8Array(buffer);
@@ -40,7 +48,7 @@ function decodeMessage(buffer) {
   if (type & constants.JSON_MSG_FLAG) {
     data = JSON.parse(fromUTF8(data.subarray(2 + labelSize)));
   } else {
-    data = data.slice(2 + labelSize);
+    data = slice(data, 2 + labelSize);
   }
   return {
     data,
@@ -66,7 +74,7 @@ function encodeMessage(data, label) {
     if (data && isArrayBuffer(data.buffer)) {
       // data is an ArrayBufferView, slice it just in case it is smaller
       // than the underlying buffer...
-      data = data.slice().buffer;
+      data = slice(data).buffer;
     } else {
       data = toUTF8(JSON.stringify(data)).buffer;
       type |= constants.JSON_MSG_FLAG;

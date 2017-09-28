@@ -33,7 +33,11 @@ var jsAPI = {
     CLIQZ.UI && CLIQZ.UI.setTheme(prefs.incognito);
     for (var key in prefs) {
       if (prefs.hasOwnProperty(key)) {
-        CliqzUtils.setPref(key, prefs[key]);
+        if (typeof prefs[key] === "object") {
+          CliqzUtils.getLocalStorage().setObject(key, prefs[key]);
+        } else {
+          CliqzUtils.setPref(key, prefs[key]);
+        }
       }
     }
   },

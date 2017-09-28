@@ -1,0 +1,91 @@
+<div class='result instant'>
+
+    <div class="header no-icon">
+      <div class="abstract">
+        <span class="title">{{name}}</span>
+      </div>
+    </div>
+
+     <div class="flight-details" status="{{flightStatus}}">
+
+      <div class="flight-status">
+        <span>{{status}}</span>
+        {{#if statusDetail}}
+          <span> &#183; {{statusDetail}}</span>
+        {{/if}}
+      </div>
+
+      <div class="flight-flex-container">
+        <span class="depart-city">
+          {{departure.locationShortcut}}
+        </span>
+        <div class="flight-progress-container">
+
+          <div class="flight-progress">
+              <div class="flight-progress-bar" style="left:{{ planePosition }}%"></div>
+          </div>
+        </div>
+        <span class="arrival-city {{#if arrival.actualLocation}} strike-through {{/if}}">
+          {{arrival.locationShortcut}}
+        </span>
+        &#160;
+        <span class="actual-arrival-city">
+          {{arrival.actualLocation}}
+        </span>
+      </div>
+
+      <div class="depart-arrival">
+        <div class="depart">
+          <div>
+             {{departure.locationName}}
+             {{#if showDepartureScheduledTime}}
+              <span
+                class="estimate-depart-time bold {{#if departure.actualTime}} strike-through {{/if}}"
+              >
+                {{departure.scheduledTime}}
+              </span>
+            {{/if}}
+
+            <span class="depart-time">
+              {{departure.actualTime}}
+            </span>
+          </div>
+
+          <div>{{departure.estimateActualDate}} </div>
+          <div class="bold">
+            {{local 'Terminal'}} {{departure.terminal}}
+            &#183; {{local 'Gate'}} {{departure.gate}}
+          </div>
+        </div>
+
+        <div class="arrival">
+          <div>
+            {{arrival.locationName}}
+              {{#if showArrivalScheduledTime}}
+                <span
+                  class="estimate-arrival-time bold {{#if arrival.actualTime}} strike-through {{/if}}"
+                >
+                  {{arrival.scheduledTime}}
+                </span>
+              {{/if}}
+              <span class="arrival-time">
+                {{arrival.actualTime}}
+              </span>
+          </div>
+          <div>{{arrival.estimateActualDate}} </div>
+          <div class="bold">
+            {{local 'Terminal'}} {{arrival.terminal}}
+            &#183; {{local 'Gate'}} {{arrival.gate}}
+          </div>
+        </div>
+      </div>
+        <p class="subtitle flight-timestamp">
+            <span>
+                {{> partials/source}}
+                {{#if updated}}
+                    &#183; {{> partials/timestamp}}
+                {{/if}}
+            </span>
+        </p>
+    </div>
+</div>

@@ -33,6 +33,7 @@ $configs: (
             news-height: 175px,
             news-box-height: 118px,
             news-box-max-width: 375px,
+            news-font-size: 16px,
         ),
         middle-notifications: (
             box-size: 375px,
@@ -40,6 +41,11 @@ $configs: (
             middle-icon-bg-size: 22px,
             middle-content-padding-left: 20px,
             middle-icon-margin-top: -3px,
+        ),
+        offer-middle-notifications: (
+            offer-mn-code-font-size: 10px,
+            offer-mn-code-wrapper-size: 120px,
+            offer-mn-action-section-padding-left: 15px,
         ),
     ),
 
@@ -77,6 +83,7 @@ $configs: (
             news-height: 185px,
             news-box-height: 118px,
             news-box-max-width: 446px,
+            news-font-size: 16px,
         ),
         middle-notifications: (
             box-size: 436px,
@@ -84,6 +91,11 @@ $configs: (
             middle-icon-bg-size: 22px,
             middle-content-padding-left: 20px,
             middle-icon-margin-top: -3px,
+        ),
+        offer-middle-notifications: (
+            offer-mn-code-font-size: 14px,
+            offer-mn-code-wrapper-size: 140px,
+            offer-mn-action-section-padding-left: 15px,
         ),
     ),
 
@@ -104,8 +116,8 @@ $configs: (
             logo-line-height: 28px,
             logo-padding: 11px 4px,
             delete-button-position-right: 27px,
-            add-dial-form-submit-margin: 12px,
-            add-dial-form-error-position: -20px,
+            add-dial-form-submit-margin: 10px,
+            add-dial-form-error-position: -28px,
         ),
         url-bar: (
             search-size: 677px,
@@ -121,6 +133,7 @@ $configs: (
             news-height: 175px,
             news-box-height: 116px,
             news-box-max-width: 333px,
+            news-font-size: 16px,
         ),
         middle-notifications: (
             box-size: 677px,
@@ -128,6 +141,11 @@ $configs: (
             middle-icon-bg-size: 25px,
             middle-content-padding-left: 14px,
             middle-icon-margin-top: -3px,
+        ),
+        offer-middle-notifications: (
+            offer-mn-code-font-size: 16px,
+            offer-mn-code-wrapper-size: 155px,
+            offer-mn-action-section-padding-left: 25px,
         ),
     ),
 
@@ -148,7 +166,7 @@ $configs: (
             logo-line-height: 28px,
             logo-padding: 11px 4px,
             delete-button-position-right: 35px,
-            add-dial-form-submit-margin: 12px,
+            add-dial-form-submit-margin: 10px,
             add-dial-form-error-position: -20px,
         ),
         url-bar: (
@@ -165,6 +183,7 @@ $configs: (
             news-height: 195px,
             news-box-height: 134px,
             news-box-max-width: 477px,
+            news-font-size: 16px,
         ),
         middle-notifications: (
             box-size: 477px,
@@ -172,6 +191,11 @@ $configs: (
             middle-icon-bg-size: 25px,
             middle-content-padding-left: 14px,
             middle-icon-margin-top: -3px,
+        ),
+        offer-middle-notifications: (
+            offer-mn-code-font-size: 14px,
+            offer-mn-code-wrapper-size: 140px,
+            offer-mn-action-section-padding-left: 15px,
         ),
     ),
 
@@ -209,6 +233,7 @@ $configs: (
             news-height: 175px,
             news-box-height: 115px,
             news-box-max-width: 764px,
+            news-font-size: 17px,
         ),
         middle-notifications: (
             box-size: 764px,
@@ -216,6 +241,11 @@ $configs: (
             middle-icon-bg-size: 25px,
             middle-content-padding-left: 14px,
             middle-icon-margin-top: -3px,
+        ),
+        offer-middle-notifications: (
+            offer-mn-code-font-size: 14px,
+            offer-mn-code-wrapper-size: 140px,
+            offer-mn-action-section-padding-left: 15px,
         ),
     ),
 );
