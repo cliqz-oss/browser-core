@@ -478,11 +478,12 @@ export default background({
     "control-center:cliqz-tab": function () {
       if(this.newTabPage.isActive) {
         this.newTabPage.rollback();
-        this.newTabPage.setPersistentState(false);
       } else {
         this.newTabPage.enableNewTabPage();
         this.newTabPage.enableHomePage();
       }
+
+      this.newTabPage.setPersistentState(!this.newTabPage.isActive);
     },
     "message-center:handlers-freshtab:new-message": function onNewMessage(message) {
       if( !(message.id in this.messages )) {

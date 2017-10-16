@@ -168,8 +168,10 @@ export function setOurOwnPrefs() {
     prefs.clear('catHistoryTime');
   }
 
-  // freshtab is optOut since 2.20.1
+  // freshtab is optOut since 2.20.3 for new users
+  // we migrate the old ones
   if (prefs.has('freshTabState')) {
+    prefs.set('freshtab.state', prefs.get('freshTabState'));
     prefs.clear('freshTabState');
   }
 }

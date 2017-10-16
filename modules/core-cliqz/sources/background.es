@@ -70,6 +70,11 @@ export default background({
       prefs.set('session', session);
       prefs.set('install_date', session.split('|')[1]);
       prefs.set('new_session', true);
+
+      if (!prefs.has('freshtab.state')) {
+        // freshtab is opt-out since 2.20.3
+        prefs.set('freshtab.state', true);
+      }
     } else {
       prefs.set('new_session', false);
     }
