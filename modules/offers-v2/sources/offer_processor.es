@@ -453,30 +453,6 @@ export default class OfferProcessor {
     // for now for backward compatibility we will hardcode this part here.
     // in the future we should adapt the ui (ghostery) to this new interface.
     try {
-      if (isChromium && type === MessageType.MT_PUSH_OFFER) {
-        const offerInfoCpy = data.offer_data;
-        logger.info(`_publishMessage: sending offer active for offerID: ${offerInfoCpy.display_id}`);
-        let urlsToShow = null;
-        if (data.offer_data.rule_info && data.offer_data.rule_info.url) {
-          urlsToShow = data.offer_data.rule_info.url;
-        }
-        events.pub('msg_center:show_message', {
-          id: offerInfoCpy.display_id,
-          Message: offerInfoCpy.ui_info.template_data.title,
-          Link: offerInfoCpy.ui_info.template_data.call_to_action.url,
-          LinkText: offerInfoCpy.ui_info.template_data.call_to_action.text,
-          type: 'offers',
-          origin: 'cliqz',
-          data: {
-            offer_info: {
-              offer_id: data.offer_data.offer_id,
-              offer_urls: urlsToShow
-            }
-          }
-        }, 'ghostery');
-        return;
-      }
-
       // this will be the normal case
       const message = {
         origin: 'offers-core',
@@ -484,6 +460,12 @@ export default class OfferProcessor {
         dest: destList,
         data,
       };
+
+      if (isChromium && type === MessageType.MT_PUSH_OFFER) {
+        events.pub('msg_center:show_message', message, 'ghostery');
+        return;
+      }
+
       events.pub('offers-send-ch', message);
     } catch (err) {
       logger.error(`_publishMessage: something failed publishing the message ${JSON.stringify(err)}`);

@@ -6,7 +6,8 @@ import platform, {
 } from '../platform/platform';
 
 export {
-  isPlatformAtLeastInVersion
+  isPlatformAtLeastInVersion,
+  isCliqzAtLeastInVersion
 } from '../platform/platform';
 
 export function notImplemented() {

@@ -2,7 +2,7 @@ import Logger from '../core/logger';
 
 
 export default Logger({
-  useDump: true,
-  level: 'debug',
+  useDump: false,
+  level: 'error',
   prefix: '[GreenAds]',
 });

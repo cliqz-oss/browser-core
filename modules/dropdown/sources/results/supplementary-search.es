@@ -43,12 +43,12 @@ export default class SupplementarySearchResult extends BaseResult {
     return 'search';
   }
 
-  get query() {
+  get displayText() {
     const engine = this.getEngineByQuery();
-    const query = this.rawResult.text;
+    const query = this.suggestion || this.rawResult.text;
 
-    if (engine) {
-      return query.split(' ').slice(1).join(' ');
+    if (engine && engine.alias) {
+      return query.replace(engine.alias, '').trim();
     }
 
     return query;
@@ -84,7 +84,7 @@ export default class SupplementarySearchResult extends BaseResult {
   }
 
   get url() {
-    return this.searchEngine.getSubmissionForQuery(this.rawResult.data.suggestion);
+    return this.searchEngine.getSubmissionForQuery(this.displayText);
   }
 
   get displayUrl() {

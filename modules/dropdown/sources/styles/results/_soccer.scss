@@ -8,6 +8,15 @@ $cliqz-dark-blue: #0078CA;
     line-height: 1.33em;
     padding: 0.33em 5px 0.33em 0;
 
+    .padded {
+        max-width: 70%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: inline-block;
+        vertical-align: bottom;
+    }
+
     .divider {
         margin: 0 5px;
     }
@@ -22,6 +31,7 @@ $cliqz-dark-blue: #0078CA;
 }
 
 .soccer {
+    display: inline-block;
     padding-bottom: 1px;
 
     .wrapper {
@@ -238,6 +248,7 @@ $cliqz-dark-blue: #0078CA;
                                 bottom: 5px;
                                 left: 10px;
                                 line-height: 1.4em;
+                                width: 50%;
                             }
 
                             &.published-at {
@@ -245,10 +256,16 @@ $cliqz-dark-blue: #0078CA;
                                 bottom: 5px;
                                 right: 2px;
                                 max-width: 100px;
+                                width: 40%;
+                                text-align: right;
                             }
 
                             &.divider, &.description {
                                 display: none;
+                            }
+
+                            &.url[data-extra="url"] {
+                                visibility: visible;
                             }
                         }
                     }
@@ -286,7 +303,7 @@ $cliqz-dark-blue: #0078CA;
                                 &.title {
                                     white-space: unset;
                                     position: relative;
-                                    max-height: 2.4em;
+                                    max-height: 2.6em;
                                     font-weight: 400;
 
                                     &:after {

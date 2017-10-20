@@ -275,7 +275,9 @@ export default class Search {
               console.log(CliqzAutocomplete.lastSuggestions, 'spellcorr');
 
               //TODO: extract spell corrector out of CliqzAutocomplete
-              if(urlbar)urlbar.mInputField.value = searchString;
+              if (urlbar) {
+                urlbar.mInputField.setUserInput(searchString);
+              }
           }
           utils.clearTimeout(this.resultsTimer);
           this.resultsTimer = utils.setTimeout(this.pushTimeoutCallback, utils.RESULTS_TIMEOUT, this.searchString);

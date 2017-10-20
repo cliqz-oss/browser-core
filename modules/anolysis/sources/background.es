@@ -55,7 +55,7 @@ function instantiateAnolysis(settings) {
   if (versionWasUpdated()) {
     logger.log('reset anolysis state because of update');
     return anolysis.reset()
-      .then(() => anolysis.stop())
+      .then(() => anolysis.unload())
       .then(() => storeNewVersionInPrefs())
       .then(() => new Anolysis(settings));
   }
@@ -68,14 +68,40 @@ function instantiateAnolysis(settings) {
  * Manages new telemetry.
  */
 export default background({
+  isRunning: false,
+  settings: {},
+
   enabled() { return true; },
 
   init(settings) {
-    this.isRunning = false;
-    this.settings = settings;
+    if (settings !== undefined) {
+      this.settings = settings;
+    }
 
-    // Initialize the module - we only do that if a sync date is available
-    if (isTelemetryEnabled() && getSynchronizedDate() !== null) {
+    if (!isTelemetryEnabled()) {
+      return Promise.resolve();
+    }
+
+    if (getSynchronizedDate() === null) {
+      // TODO - temporary signal for debugging purpose. This allows us to detect
+      // users not having anolysis enabled because `config_ts` is not available.
+      utils.telemetry({
+        type: 'anolysis.no_sync_time_available',
+      });
+
+      // If `config_ts` arrives later, we can delay the loading of anolysis
+      this.onPrefChange = events.subscribe('prefchange', (pref) => {
+        if (pref === 'config_ts') {
+          this.onPrefChange.unsubscribe();
+          this.onPrefChange = undefined;
+
+          // Init anolysis
+          this.init(this.settings);
+        }
+      });
+    } else {
+      // Initialize the module - we only do that if a sync date is available
+
       // TODO - send ping_anolysis signal with legacy telemetry system
       // This is only meant for testing purposes and will be remove in
       // the future.
@@ -83,8 +109,26 @@ export default background({
         type: 'anolysis.start_init',
       });
 
-      return this.start();
+      return this.start()
+        .then(() => {
+          // TODO - send ping_anolysis signal with legacy telemetry system
+          // This is only meant for testing purposes and will be remove in
+          // the future.
+          utils.telemetry({
+            type: 'anolysis.start_end',
+          });
+        })
+        .catch((ex) => {
+          // TODO - send ping_anolysis signal with legacy telemetry system
+          // This is only meant for testing purposes and will be remove in
+          // the future.
+          utils.telemetry({
+            type: 'anolysis.start_exception',
+            exception: `${ex}`,
+          });
+        });
     }
+
     return Promise.resolve();
   },
 
@@ -107,28 +151,10 @@ export default background({
       utils.telemetryHandlers.push(this.telemetryHandler);
 
       return this.actions.registerSchemas(telemetrySchemas)
-        .then(() => { this.anolysis.init(); })
+        .then(() => this.anolysis.init())
         .then(() => {
           this.isRunning = true;
-          utils.log('started', 'anon');
           events.pub('anolysis:initialized');
-        })
-        .then(() => {
-          // TODO - send ping_anolysis signal with legacy telemetry system
-          // This is only meant for testing purposes and will be remove in
-          // the future.
-          utils.telemetry({
-            type: 'anolysis.start_end',
-          });
-        })
-        .catch((ex) => {
-          // TODO - send ping_anolysis signal with legacy telemetry system
-          // This is only meant for testing purposes and will be remove in
-          // the future.
-          utils.telemetry({
-            type: 'anolysis.start_exception',
-            exception: `${ex}`,
-          });
         });
     });
   },
@@ -138,18 +164,21 @@ export default background({
 
     this.isRunning = false;
 
+    if (this.onPrefChange) {
+      this.onPrefChange.unsubscribe();
+      this.onPrefChange = undefined;
+    }
+
     // TODO - this will be removed when the telemetry function makes use of this
     // module exclusively.
     // Unsubscribe telemetry listener
     const index = utils.telemetryHandlers.indexOf(this.telemetryHandler);
-    if (index > -1) {
+    if (index !== -1) {
       utils.telemetryHandlers.splice(index, 1);
       delete this.telemetryHandler;
     }
 
-    this.anolysis.stop();
-
-    utils.log('stopped', 'anon');
+    this.anolysis.unload();
   },
 
   unload(quick) {
@@ -190,8 +219,8 @@ export default background({
     'prefchange'(pref) {
       if (pref !== ENABLE_PREF) return;
 
-      if (utils.getPref(ENABLE_PREF, false)) {
-        this.start();
+      if (isTelemetryEnabled()) {
+        this.init(this.settings);
       } else {
         this.stop();
       }
@@ -200,12 +229,13 @@ export default background({
 
   actions: {
     registerSchemas(schemas) {
-      return this.anolysis.registerSchemas(schemas);
+      return Promise.resolve()
+        .then(() => this.anolysis.registerSchemas(schemas));
     },
 
     handleTelemetrySignal(signal, schemaName) {
       if (!this.anolysis) {
-        return null;
+        return Promise.resolve();
       }
       return this.anolysis.handleTelemetrySignal(signal, schemaName);
     },

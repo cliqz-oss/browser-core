@@ -39,9 +39,11 @@ export default class {
   }
 
   init() {
-    return this.storage
-      .deleteByTimespan({ to: getSynchronizedDate().subtract(1, 'months').format(DATE_FORMAT) })
-      .catch(err => logger.error(`error deleting old messages from queue: ${err}`))
+    return this.storage.init()
+      .then(() => this.storage.deleteByTimespan({
+        to: getSynchronizedDate().subtract(1, 'months').format(DATE_FORMAT)
+      }))
+      .catch(err => logger.error('error deleting old messages from queue:', err))
       .then(() => {
         // Trigger sending of next batch
         this.startListening();
@@ -62,7 +64,7 @@ export default class {
 
   sleep(time) {
     return new Promise((resolve) => {
-      logger.debug(`signal queue sleeps for ${time} ms`);
+      logger.debug('signal queue sleeps for', time, 'ms');
       this.sleepTimeout = utils.setTimeout(
         resolve,
         time,
@@ -86,7 +88,7 @@ export default class {
             return this.sleep(this.sendInterval);
           })
           .catch((err) => {
-            logger.error(`error while sending batch ${err}`);
+            logger.error('error while sending batch', err);
             // In case of error, sleep for longer and increase the timeout
             const timeout = this.failureTimeout;
             this.failureTimeout *= 5;
@@ -98,22 +100,49 @@ export default class {
   }
 
   /**
-   * Try to send a new batch of signals to the backend:
-   * 1. Get a batch of signals from the queue
-   * 2. Try to send it
-   * 3. Sleep before next batch
+   * Try to send a given signal to the backend.
+   *  - If it *succeeds*, then remove the document from the persistent queue.
+   *  - If it *fails*, then increment the `attempts` counter. If the attempts is
+   *  greater than the maximum allowed, we drop the message completely.
    */
-  processNextBatch(size) {
-    return this.getNextBatch(size)
-      .then(batch => this.sendBatch(batch));
-  }
+  sendSignal(doc) {
+    const signal = doc.signal;
 
+    if (signal) {
+      logger.debug('send signal', signal);
+      return Backend.sendSignal(signal)
+        .then(() =>
+          this.storage.remove(doc)
+            .catch((err) => { logger.error('signal-queue could not delete message', doc, err); })
+        )
+        .catch((ex) => {
+          // We don't remove the document from the db since it will be retried
+          // later. This way we avoid loosing signals because of server's
+          // errors.
+          const reason = `failed to send signal with exception ${ex} [${doc.attempts}]`;
+          let resultPromise;
 
-  /**
-   * Get the next batch of documents to be sent to the backend.
-   */
-  getNextBatch(size) {
-    return this.storage.getN(size).catch(() => []);
+          // Check number of attempts and remove if > this.maxAttempts
+          if (doc.attempts !== undefined && Number(doc.attempts) < this.maxAttempts) {
+            /* eslint-disable no-param-reassign */
+            doc.attempts += 1;
+            resultPromise = this.storage.put(doc);
+          } else {
+            // Otherwise, remove the document from the queue
+            resultPromise = this.storage.remove(doc)
+              .catch(err => logger.error('could not remove failed signal', doc, err))
+              .then(() => logger.error('removed failed signal', doc));
+          }
+
+          // Returns a failed promise to notify a failure
+          return resultPromise.then(() => Promise.reject(reason));
+        });
+    }
+
+    // If signal was undefined, remove the document from the queue
+    return this.storage.remove(doc)
+      .catch(err => logger.error('signal-queue could not remove undefined signal', doc, err))
+      .then(() => Promise.reject('doc.signal is undefined', doc));
   }
 
   /**
@@ -121,7 +150,7 @@ export default class {
    * as soon as we have a failure.
    */
   sendBatch(batch) {
-    if (batch.length > 0) {
+    if (batch && batch.length > 0) {
       // Try to send first signal, then send the rest.
       const doc = batch[0];
       return this.sendSignal(doc)
@@ -132,46 +161,25 @@ export default class {
   }
 
   /**
-   * Try to send a given signal to the backend.
-   *  - If it *succeeds*, then remove the document from the persistent queue.
-   *  - If it *fails*, then increment the `attempts` counter. If the attempts is
-   *  greater than the maximum allowed, we drop the message completely.
+   * Get the next batch of documents to be sent to the backend.
    */
-  sendSignal(doc) {
-    const signal = doc.signal;
+  getNextBatch(size) {
+    return this.storage.getN(size)
+      .catch((ex) => {
+        logger.error('signal-queue could not get next batch', ex);
+        return []; // Returns empty batch
+      });
+  }
 
-    if (signal !== undefined) {
-      logger.debug(`send signal ${JSON.stringify(signal)}`);
-      return Backend.sendSignal(signal)
-        .then(() => this.storage.remove(doc).catch(() => { /* Ignore */ }))
-        .catch((ex) => {
-          // We don't remove the document from the db since it will be retried
-          // later. This way we avoid loosing signals because of server's
-          // errors.
-          const reason = `failed to send signal with exception ${ex} [${doc.attempts}]`;
-          let resultPromise;
-
-          // Check number of attempts and remove if >= 3
-          if (doc.attempts !== undefined && doc.attempts < this.maxAttempts) {
-            /* eslint-disable no-param-reassign */
-            doc.attempts += 1;
-            resultPromise = this.storage.put(doc);
-          } else {
-            // Otherwise, remove the document from the queue
-            resultPromise = this.storage.remove(doc)
-              .catch(() => logger.error(`could not remove failed signal ${JSON.stringify(doc)}`))
-              .then(() => logger.error(`removed failed signal ${JSON.stringify(doc)}`));
-          }
-
-          // Returns a failed promise to notify a failure
-          return resultPromise.then(() => Promise.reject(reason));
-        });
-    }
-
-    // If signal was undefined, remove the document from the queue
-    return this.storage.remove(doc)
-      .catch(() => {})
-      .then(() => Promise.reject(`doc.signal is undefined: ${JSON.stringify(doc)}`));
+  /**
+   * Try to send a new batch of signals to the backend:
+   * 1. Get a batch of signals from the queue
+   * 2. Try to send it
+   * 3. Sleep before next batch
+   */
+  processNextBatch(size) {
+    return this.getNextBatch(size)
+      .then(batch => this.sendBatch(batch));
   }
 
   /**

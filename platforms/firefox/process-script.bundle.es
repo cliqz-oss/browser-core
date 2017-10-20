@@ -46,7 +46,8 @@ const DocumentManager = {
       removeMessageListener('cliqz:core', onMessage);
     });
 
-    if (window.location.href.indexOf(config.baseURL) === 0) {
+    if (window.location.href.indexOf(config.baseURL) === 0 ||
+        window.location.href.indexOf('chrome://cliqz') === 0) {
       const safeChrome = {
         runtime: {
           sendMessage(message) {
@@ -112,11 +113,24 @@ DocumentManager.init();
 const windowEnumerator = Services.ww.getWindowEnumerator();
 while (windowEnumerator.hasMoreElements()) {
   const window = windowEnumerator.getNext();
-  try {
-    DocumentManager.observe({ defaultView: window });
-  } catch (e) {
-    // the only exception expected here is if the window would not be fully
-    // elevated to full nsIDomWindow. Need to tests this code more.
+
+  if (window.gBrowser && window.gBrowser.tabs) {
+    // this is a browser (chrome) window so we need to inject the
+    // content scripts in all openend tabs
+    window.gBrowser.tabs.forEach((tab) => {
+      try {
+        DocumentManager.observe(tab.linkedBrowser.contentDocument);
+      } catch (e) {
+        // failed to load into existing window
+      }
+    });
+  } else {
+    // this is a content window so we need to inject content scripts directly
+    try {
+      DocumentManager.observe(window.document);
+    } catch (e) {
+        // failed to load into existing window
+    }
   }
 }
 

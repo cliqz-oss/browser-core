@@ -1469,6 +1469,18 @@
     "video-downloader-unsupported-format": {
       "message": "Désolé ! Nous n'arrivons pas à télécharger cette video."
     },
+    "video-downloader-uitour-title": {
+      "message": "Video Downloader"
+    },
+    "video-downloader-uitour-description": {
+      "message": "Regardez cette vidéo hors ligne. Téléchargez-la vers votre ordinateur or votre périphérique."
+    },
+    "video-downloader-uitour-btn-try": {
+      "message": "D'accord"
+    },
+    "video-downloader-uitour-btn-skip": {
+      "message": "Plus tard"
+    },
     "transparency_html_title": {
       "message": "Cliqz | Panneau de Transparence"
     },
@@ -1694,6 +1706,9 @@
     "show-location-and-contact": {
       "message": "Afficher résultat local et contact"
     },
+    "show-location-and-contact-cinema": {
+      "message": "Afficher les cinémas près de moi"
+    },
     "always-show-location": {
       "message": "Afficher toujours"
     },
@@ -1772,6 +1787,15 @@
     "freshtab.app.middle-box.new-cliqz-tab-cta": {
         "message": "Essayez-le maintenant"
     },
+    "freshtab.app.middle-box.blue-theme-hdr": {
+        "message": "Allez le Bleu!"
+    },
+    "freshtab.app.middle-box.blue-theme-desc": {
+        "message": "Cliqz a désormais une barre d'onglets bleue ainsi qu'un merveilleux paysage des Alpes comme fond d'écran."
+    },
+    "freshtab.app.middle-box.blue-theme-cta": {
+        "message": "Personnalisez-le dès maintenant"
+    },
     "freshtab.app.news.breaking-news": {
         "message": "Breaking news:"
     },
@@ -1782,7 +1806,7 @@
         "message": "Personnalisation"
     },
     "freshtab.app.settings.background.label": {
-        "message": "Choisir un fond d'écran"
+        "message": "Fond d'écran"
     },
     "freshtab.app.settings.most-visited.label": {
         "message": "Les plus visités"
@@ -1809,7 +1833,7 @@
         "message": "Édition anglophone"
     },
     "freshtab.app.settings.news.language.fr": {
-        "message": "Médias français"
+        "message": "Édition française"
     },
     "control-center-enabled": {
         "message": "Activé"
@@ -1837,6 +1861,27 @@
     },
     "soccer-expand-button": {
         "message": "Afficher plus"
+    },
+    "cinema-expand-button": {
+        "message": "Montrer plus"
+    },
+    "cinema-movie-director": {
+        "message": "Régisseur"
+    },
+    "cinema-movie-reviews": {
+        "message": "Critiques"
+    },
+    "cinema-movie-cast": {
+        "message": "Casting"
+    },
+    "cinema-movie-full-cast": {
+        "message": "Casting complet et équipe technique"
+    },
+    "cinema-movie-trailer": {
+        "message": "Bande-annonce"
+    },
+    "cinema-movie-showtimes": {
+        "message": "Séances"
     },
     "freshtab.app.offer.info": {
         "message": "More Info"

@@ -121,7 +121,7 @@ describe('Fresh tab search UI', function () {
     action: 'getConfig',
     response: {
       locale: 'en-US',
-      newTabUrl: 'resource://cliqz/freshtab/home.html',
+      newTabUrl: 'chrome://cliqz/content/freshtab/home.html',
       isBrowser: false,
       showNewBrandAlert: false,
       messages: {},
@@ -148,7 +148,7 @@ describe('Fresh tab search UI', function () {
   };
   let subject;
 
-  beforeEach(function () {
+  before(function () {
     subject = new Subject();
     subject.respondsWith({
       module: 'core',
@@ -188,16 +188,42 @@ describe('Fresh tab search UI', function () {
   })
 
   afterEach(function () {
-    subject.unload();
     clearIntervals();
   });
 
-  describe('when set to be visible', function () {
-    beforeEach(function () {
+  context('renders search area', function () {
+    before(function () {
+      subject.respondsWith(defaultConfig);
+      return subject.load();
+    });
+
+    after(function () {
+      subject.unload();
+    });
+
+    it('with an input field', function () {
+      const inputSelector = '#section-url-bar div.search input';
+      chai.expect(subject.query(inputSelector)).to.exist;
+      chai.expect(subject.query(inputSelector).type).to.equal('text');
+    });
+
+    it('with a background with Q icon', function () {
+      const inputSelector = '#section-url-bar div.search input';
+      chai.expect(subject.getComputedStyle(inputSelector).backgroundImage)
+        .to.contain('cliqz_icon2_1024.svg');
+    });
+  });
+
+  context('when set to be visible', function () {
+    before(function () {
       const configVisible = clone(defaultConfig);
       configVisible.response.componentsState.search.visible = true;
       subject.respondsWith(configVisible);
       return subject.load();
+    });
+
+    after(function () {
+      subject.unload();
     });
 
     it('has the visibility switch turned on', function () {
@@ -213,12 +239,16 @@ describe('Fresh tab search UI', function () {
     });
   });
 
-  describe('when set to not be visible', function () {
-    beforeEach(function () {
+  context('when set to not be visible', function () {
+    before(function () {
       const configNotVisible = clone(defaultConfig);
       configNotVisible.response.componentsState.search.visible = false;
       subject.respondsWith(configNotVisible);
       return subject.load();
+    });
+
+    after(function () {
+      subject.unload();
     });
 
     it('has the visibility switch turned off', function () {
@@ -236,24 +266,7 @@ describe('Fresh tab search UI', function () {
     });
   });
 
-  describe('renders search area', function () {
-    beforeEach(function () {
-      subject.respondsWith(defaultConfig);
-      return subject.load();
-    });
 
-    it('with an input field', function () {
-      const inputSelector = '#section-url-bar div.search input';
-      chai.expect(subject.query(inputSelector)).to.exist;
-      chai.expect(subject.query(inputSelector).type).to.equal('text');
-    });
-
-    it('with a background with Q icon', function () {
-      const inputSelector = '#section-url-bar div.search input';
-      chai.expect(subject.getComputedStyle(inputSelector).backgroundImage)
-        .to.contain('cliqz_icon2_1024.svg');
-    });
-  });
 
 
 });

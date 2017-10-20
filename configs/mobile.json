@@ -3,7 +3,9 @@
   "testsBasePath": "./build",
   "testem_launchers": ["unit-node", "Chrome"],
   "baseURL": "./",
-  "settings": {},
+  "settings": {
+    "CONFIG_PROVIDER": "https://api.cliqz.com/api/v1/config"
+  },
   "modules": [
     "core",
     "core-cliqz",

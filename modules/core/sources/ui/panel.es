@@ -74,9 +74,7 @@ export default class {
 
   onMessage(event) {
     const data = JSON.parse(event.data);
-    if ((data.target === 'cliqz-control-center' &&
-       data.origin === 'iframe') || (data.target === 'cliqz-offers-cc' &&
-       data.origin === 'iframe') || (data.target === 'cliqz-video-downloader' && data.origin === 'iframe')) {
+    if (data.target === 'cliqz-offers-cc' && data.origin === 'iframe') {
       const message = data.message;
       this.actions[message.action](message.data);
     }

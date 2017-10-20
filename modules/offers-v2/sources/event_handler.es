@@ -240,7 +240,7 @@ export default class EventHandler {
     // this is for temporary backward compatibility, we should remove this
     let cbAllHttpReq = this.callbacksMap['http_req_all'];
     if (cbAllHttpReq.length > 0) {
-      this._publish(cbAllHttpReq, { req_obj: requestObj });
+      this._publish(cbAllHttpReq, { reqObj: requestObj });
     }
     // check if we have a domain for this
     const urlInfo = utils.getDetailsFromUrl(requestObj.url);
@@ -257,7 +257,7 @@ export default class EventHandler {
       }
 
       // we have callbacks then we call them
-      this._publish(callbacks, { req_obj: requestObj, urlObj: urlInfo });
+      this._publish(callbacks, { reqObj: requestObj, urlObj: urlInfo });
     }
   }
 

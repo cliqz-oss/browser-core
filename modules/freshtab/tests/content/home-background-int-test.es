@@ -53,6 +53,7 @@ class Subject {
           const response = this.modules[module].actions[action];
           listeners.forEach(l => {
             l({
+              action,
               response,
               type: 'response',
               requestId,
@@ -115,18 +116,21 @@ class Subject {
 }
 
 describe('Fresh tab background interactions', function () {
-  const defaultBgSelector = 'body.theme-bg-default';
+  const blueBgSelector = 'img[data-bg="bg-blue"]';
   const darkBgSelector = 'img[data-bg="bg-dark"]';
   const lightBgSelector = 'img[data-bg="bg-light"]';
+  const bgSwitch = '.switch[name="background"]';
+
   const defaultConfig = {
     module: 'freshtab',
     action: 'getConfig',
     response: {
       locale: 'en-US',
-      newTabUrl: 'resource://cliqz/freshtab/home.html',
+      newTabUrl: 'chrome://cliqz/content/freshtab/home.html',
       isBrowser: false,
       showNewBrandAlert: false,
       messages: {},
+      isBlueBackgroundSupported: true,
       isHistoryEnabled: true,
       hasActiveNotifications: false,
       componentsState: {
@@ -150,6 +154,8 @@ describe('Fresh tab background interactions', function () {
     },
   };
   let subject;
+  let messages;
+  let listener;
 
   beforeEach(function () {
     subject = new Subject();
@@ -186,60 +192,127 @@ describe('Fresh tab background interactions', function () {
   });
 
   describe('clicking on a dark icon', function () {
-    const activeBgImage = 'img[data-bg="bg-dark"]';
 
     beforeEach(function () {
       return subject.load().then(() => {
+        // Keep track of received messages
+        messages = new Map();
+        listener = function (msg) {
+          if (!messages.has(msg.action)) {
+            messages.set(msg.action, []);
+          }
+
+          messages.get(msg.action).push(msg);
+        };
+        subject.chrome.runtime.onMessage.addListener(listener);
+
+        subject.query(bgSwitch).click();
         subject.query(darkBgSelector).click();
-        return waitFor(() => subject.query(activeBgImage));
+        return waitFor(() => subject.query('body.theme-bg-dark'));
       });
     });
 
+    afterEach(function () {
+      subject.chrome.runtime.onMessage.removeListener(listener);
+    });
+
     it('changes bg to dark', function () {
-      chai.expect(subject.getComputedStyle(darkBgSelector)).to.exist;
+      chai.expect(subject.query('body').className).to.contain('theme-bg-dark');
     });
 
     it('changes settings selection to dark bg', function () {
-      chai.expect(subject.query(activeBgImage).className).to.contain('active');
+      chai.expect(subject.query(darkBgSelector).className).to.contain('active');
+      chai.expect(subject.query(lightBgSelector).className).to.not.contain('active');
+      chai.expect(subject.query(blueBgSelector).className).to.not.contain('active');
+    });
+
+    it('sends a "saveBackgroundImage" message twice', function () {
+      chai.expect(messages.has('saveBackgroundImage')).to.equal(true);
+      chai.expect(messages.get('saveBackgroundImage').length).to.equal(2);
     });
   });
 
   describe('clicking on a light icon', function () {
-    const activeBgImage = 'img[data-bg="bg-light"]';
 
     beforeEach(function () {
       return subject.load().then(() => {
+        // Keep track of received messages
+        messages = new Map();
+        listener = function (msg) {
+          if (!messages.has(msg.action)) {
+            messages.set(msg.action, []);
+          }
+
+          messages.get(msg.action).push(msg);
+        };
+        subject.chrome.runtime.onMessage.addListener(listener);
+
+        subject.query(bgSwitch).click();
         subject.query(lightBgSelector).click();
-        return waitFor(() => subject.query(activeBgImage));
+        return waitFor(() => subject.query('body.theme-bg-light'));
       });
     });
 
+    afterEach(function () {
+      subject.chrome.runtime.onMessage.removeListener(listener);
+    });
+
     it('changes bg to light', function () {
-      chai.expect(subject.getComputedStyle(lightBgSelector)).to.exist;
+      chai.expect(subject.query('body').className).to.contain('theme-bg-light');
     });
 
     it('changes settings selection to light bg', function () {
-      chai.expect(subject.query(activeBgImage).className).to.contain('active');
+      chai.expect(subject.query(darkBgSelector).className).to.not.contain('active');
+      chai.expect(subject.query(lightBgSelector).className).to.contain('active');
+      chai.expect(subject.query(blueBgSelector).className).to.not.contain('active');
+    });
+
+    it('sends a "saveBackgroundImage" message twice', function () {
+      chai.expect(messages.has('saveBackgroundImage')).to.equal(true);
+      chai.expect(messages.get('saveBackgroundImage').length).to.equal(2);
     });
 
   });
 
-  describe('clicking on a default icon', function () {
-    const activeBgImage = 'img[data-bg="bg-default"]';
+
+  describe('clicking on a blue icon', function () {
 
     beforeEach(function () {
       return subject.load().then(() => {
-        subject.query(defaultBgSelector).click();
-        return waitFor(() => subject.query(activeBgImage));
+        // Keep track of received messages
+        messages = new Map();
+        listener = function (msg) {
+          if (!messages.has(msg.action)) {
+            messages.set(msg.action, []);
+          }
+
+          messages.get(msg.action).push(msg);
+        };
+        subject.chrome.runtime.onMessage.addListener(listener);
+        subject.query(bgSwitch).click();
+        subject.query(blueBgSelector).click();
+        return waitFor(() => subject.query('body.theme-bg-blue'));
+
       });
     });
 
-    it('changes bg to default', function () {
-      chai.expect(subject.getComputedStyle(defaultBgSelector)).to.exist;
+    afterEach(function () {
+      subject.chrome.runtime.onMessage.removeListener(listener);
     });
 
-    it('changes settings selection to default bg', function () {
-      chai.expect(subject.query(activeBgImage).className).to.contain('active');
+    it('changes bg to blue', function () {
+      chai.expect(subject.query('body').className).to.contain('theme-bg-blue');
+    });
+
+    it('changes settings selection to blue bg', function () {
+      chai.expect(subject.query(darkBgSelector).className).to.not.contain('active');
+      chai.expect(subject.query(lightBgSelector).className).to.not.contain('active');
+      chai.expect(subject.query(blueBgSelector).className).to.contain('active');
+    });
+
+    it('sends a "saveBackgroundImage" message twice', function () {
+      chai.expect(messages.has('saveBackgroundImage')).to.equal(true);
+      chai.expect(messages.get('saveBackgroundImage').length).to.equal(2);
     });
   });
 

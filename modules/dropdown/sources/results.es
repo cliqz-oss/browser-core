@@ -11,9 +11,11 @@ import Suggestions from './results/suggestions';
 import LottoResult from './results/lotto';
 import SoccerResult from './results/soccer';
 import FlightResult from './results/flight';
+import MovieCinemaResult from './results/movie-cinema';
 import { equals } from '../core/url';
 import console from '../core/console';
 import NavigateToResult from './results/navigate-to';
+import NewsStory from './results/news-story';
 
 class ResultFactory {
   static create(rawResult, allResultsFlat) {
@@ -46,6 +48,12 @@ class ResultFactory {
       Constructor = LottoResult;
     }
 
+    if (rawResult.data.template === 'movieEZ' ||
+        rawResult.data.template === 'cinemaEZ' ||
+        rawResult.data.template === 'movie') {
+      Constructor = MovieCinemaResult;
+    }
+
     if (rawResult.data.template === 'suggestion') {
       Constructor = SupplementarySearchResult;
     }
@@ -59,6 +67,10 @@ class ResultFactory {
         rawResult.data.template === 'ligaEZGroup' ||
         rawResult.data.template === 'liveTicker') {
       Constructor = SoccerResult;
+    }
+
+    if (rawResult.data.template === 'news') {
+      Constructor = NewsStory;
     }
 
     if (rawResult.data.template === 'flight') {
@@ -157,8 +169,8 @@ export default class Results {
       this.results = this.results.filter(result => !result.isSuggestion);
     }
 
-    if (this.hasHistory) {
-      // this.addSessionsResult();
+    if (this.hasHistory && (this.query !== '')) {
+      this.addSessionsResult();
     }
 
     this.displayedAt = Date.now();
@@ -228,7 +240,9 @@ export default class Results {
   }
 
   addSessionsResult() {
-    const firstNonHistoryIndex = this.results.findIndex(r => !r.isHistory);
+    const firstHistoryIndex = this.results.findIndex(r => r.isHistory);
+    const firstNonHistoryIndex = firstHistoryIndex +
+      this.results.slice(firstHistoryIndex).findIndex(r => !r.isHistory);
     const sessionResult = new SessionsResult({
       query: this.query,
     });

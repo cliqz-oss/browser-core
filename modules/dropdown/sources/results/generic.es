@@ -94,7 +94,8 @@ export default class GenericResult extends BaseResult {
       title,
       thumbnail: extra.thumbnail,
       duration: extra.duration,
-      views: extra.views
+      views: extra.views,
+      text: this.query,
     }));
   }
 

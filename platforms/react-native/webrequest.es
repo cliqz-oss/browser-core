@@ -27,6 +27,7 @@ const webRequest = {
     },
 
     _trigger(requestInfo) {
+      requestInfo.sourceUrl = requestInfo.source;
       // getter for request headers
       requestInfo.getRequestHeader = function(header) {
         return requestInfo.requestHeaders[header];
@@ -62,7 +63,44 @@ const webRequest = {
 
 bridge.registerAction('webRequest', webRequest.onBeforeRequest._trigger.bind(webRequest.onBeforeRequest));
 
+
 // extra response property to indicate that the ghostery counter should be increase
-export const VALID_RESPONSE_PROPERTIES = ['shouldIncrementCounter'];
+// TODO - is 'shouldIncrementCounter' allowed for all events?
+export const VALID_RESPONSE_PROPERTIES = {
+  onBeforeRequest: [
+    'cancel',
+    'redirectUrl',
+    'shouldIncrementCounter',
+  ],
+  onBeforeSendHeaders: [
+    'cancel',
+    'requestHeaders',
+    'shouldIncrementCounter',
+  ],
+  onSendHeaders: [
+    'shouldIncrementCounter',
+  ],
+  onHeadersReceived: [
+    'redirectUrl',
+    'responseHeaders',
+    'shouldIncrementCounter',
+  ],
+  onAuthRequired: [
+    'cancel',
+    'shouldIncrementCounter',
+  ],
+  onResponseStarted: [
+    'shouldIncrementCounter',
+  ],
+  onBeforeRedirect: [
+    'shouldIncrementCounter',
+  ],
+  onCompleted: [
+    'shouldIncrementCounter',
+  ],
+  onErrorOccurred: [
+  ],
+};
+
 
 export default webRequest;

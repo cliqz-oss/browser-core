@@ -89,13 +89,13 @@ class Subject {
   }
 }
 
-describe("Anti-Phishing UI browser", function () {
+function antiphishingUiTests(amo) {
   let subject;
 
   before(function () {
     subject = new Subject();
     return subject.load();
-  })
+  });
 
   after(function () {
     subject.unload();
@@ -173,7 +173,7 @@ describe("Anti-Phishing UI browser", function () {
       },
       generalState: 'active',
       feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: false,
+      amo: amo,
       funnelCake: false
     };
 
@@ -225,7 +225,7 @@ describe("Anti-Phishing UI browser", function () {
       },
       generalState: 'active',
       feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: false,
+      amo: amo,
       funnelCake: false
     };
 
@@ -279,7 +279,7 @@ describe("Anti-Phishing UI browser", function () {
       },
       generalState: 'active',
       feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: false,
+      amo: amo,
       funnelCake: false
     };
 
@@ -311,4 +311,12 @@ describe("Anti-Phishing UI browser", function () {
       chai.expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [visible-on-state="critical"][data-i18n="control-center-all-sites"]').textContent.trim()).to.equal('control-center-all-sites');
     });
   });
+};
+
+describe("Anti-Phishing UI browser", function () {
+  antiphishingUiTests(false);
+});
+
+describe('AMO Anti-Phishing UI tests', function () {
+  antiphishingUiTests(true);
 })

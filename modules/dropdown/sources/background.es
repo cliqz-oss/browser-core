@@ -32,7 +32,8 @@ class OfferResult {
 }
 
 /**
-  @namespace <namespace>
+  @namespace dropdown
+  @module dropdown
   @class Background
  */
 export default background({

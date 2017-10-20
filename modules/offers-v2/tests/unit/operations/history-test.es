@@ -107,6 +107,9 @@ export default describeModule('offers-v2/trigger_machine/ops/history_expr',
           this.lastUrl = url;
           this.context = context;
         }
+        hasUrl(context) {
+          return false;
+        }
         countHistoryEntries(s, e, p, id) {
           let c = 0;
           this.start = s;
@@ -295,20 +298,20 @@ export default describeModule('offers-v2/trigger_machine/ops/history_expr',
         });
 
         it('/simple checks exists but different value', () => {
-          ctx = { '#url': 'https://amazon.de/basket' };
+          ctx = { '#lc_url': 'https://amazon.de/basket' };
           let o = ['$match_history', [60, 2, 'amazon.de/basket']];
           mockedTimestamp = Date.now() / 1000;
           return buildAndExec(o, ctx).then((r) => {
             chai.expect(r).eql(0);
             chai.expect(historyIdxMock.start).eql(mockedTimestamp - 60);
             chai.expect(historyIdxMock.end).eql(mockedTimestamp - 2);
-            chai.expect(historyIdxMock.context).eql({ '#url': 'https://amazon.de/basket' });
+            chai.expect(historyIdxMock.context).eql({ '#lc_url': 'https://amazon.de/basket' });
             chai.expect(historyIdxMock.lastUrl).eql('https://amazon.de/basket');
           });
         });
 
         it('/not in history', () => {
-          ctx = { '#url': 'https://ebay.de/basket' };
+          ctx = { '#lc_url': 'https://ebay.de/basket' };
           let o = ['$match_history', [60, 2, 'amazon.de/basket']];
           historyIdxMock.ret = [{ url: 'https://www.ebay.de/basket' }];
           mockedTimestamp = Date.now() / 1000;
@@ -323,7 +326,7 @@ export default describeModule('offers-v2/trigger_machine/ops/history_expr',
         });
 
         it('/pattern doesn\'t match', () => {
-          ctx = { '#url': 'https://ebay.de/basket' };
+          ctx = { '#lc_url': 'https://ebay.de/basket' };
           let o = ['$match_history', [60, 2, 'ebay.de/basket']];
           historyIdxMock.ret = ['https://www.ebay.de/basket']; // invalid format
           mockedTimestamp = Date.now() / 1000;
@@ -331,7 +334,7 @@ export default describeModule('offers-v2/trigger_machine/ops/history_expr',
             chai.expect(r).eql(0);
             chai.expect(historyIdxMock.start).eql(mockedTimestamp - 60);
             chai.expect(historyIdxMock.end).eql(mockedTimestamp - 2);
-            chai.expect(historyIdxMock.context).eql({ '#url': 'https://ebay.de/basket' });
+            chai.expect(historyIdxMock.context).eql({ '#lc_url': 'https://ebay.de/basket' });
             chai.expect(historyIdxMock.lastUrl).eql('https://ebay.de/basket');
           });
         });
@@ -348,7 +351,7 @@ export default describeModule('offers-v2/trigger_machine/ops/history_expr',
         //   });
 
         //   return Promise.all([
-        //     op.call(this, [60, 2, 'ebay.de/basket'], eventLoop, { '#url': 'https://amazon.de/basket' }).then(
+        //     op.call(this, [60, 2, 'ebay.de/basket'], eventLoop, { '#lc_url': 'https://amazon.de/basket' }).then(
         //       (result) => {
         //         chai.expect(r).eql(0);
         //         chai.expect(resultHookedFunc).eql(undefined);
@@ -361,7 +364,7 @@ export default describeModule('offers-v2/trigger_machine/ops/history_expr',
         // });
 
         it('/in history/one record', () => {
-          ctx = { '#url': 'https://amazon.de/basket' };
+          ctx = { '#lc_url': 'https://amazon.de/basket' };
           let o = ['$match_history', [60, 2, 'amazon.de/basket']];
           historyIdxMock.ret = [{ url: 'https://amazon.de/basket' }];
           mockedTimestamp = Date.now() / 1000;
@@ -369,13 +372,13 @@ export default describeModule('offers-v2/trigger_machine/ops/history_expr',
             chai.expect(r).eql(1);
             chai.expect(historyIdxMock.start).eql(mockedTimestamp - 60);
             chai.expect(historyIdxMock.end).eql(mockedTimestamp - 2);
-            chai.expect(historyIdxMock.context).eql({ '#url': 'https://amazon.de/basket' });
+            chai.expect(historyIdxMock.context).eql({ '#lc_url': 'https://amazon.de/basket' });
             chai.expect(historyIdxMock.lastUrl).eql('https://amazon.de/basket');
           });
         });
 
         it('/in history/three records', () => {
-          ctx = { '#url': 'https://amazon.de/basket' };
+          ctx = { '#lc_url': 'https://amazon.de/basket' };
           let o = ['$match_history', [60, 2, 'amazon.de/basket']];
           historyIdxMock.ret = [
                 { url: 'https://ebay.de/basket/step1' },
@@ -387,13 +390,13 @@ export default describeModule('offers-v2/trigger_machine/ops/history_expr',
             chai.expect(r).eql(3);
             chai.expect(historyIdxMock.start).eql(mockedTimestamp - 60);
             chai.expect(historyIdxMock.end).eql(mockedTimestamp - 2);
-            chai.expect(historyIdxMock.context).eql({ '#url': 'https://amazon.de/basket' });
+            chai.expect(historyIdxMock.context).eql({ '#lc_url': 'https://amazon.de/basket' });
             chai.expect(historyIdxMock.lastUrl).eql('https://amazon.de/basket');
           });
         });
 
         it('/in history/multiple patterns/four records', () => {
-          ctx = { '#url': 'https://amazon.de/basket' };
+          ctx = { '#lc_url': 'https://amazon.de/basket' };
           let o = ['$match_history', [60, 2, 'ebay.de', 'amazon.de/basket']];
           historyIdxMock.ret = [
                 { url: 'https://ebay.de/basket/step1' },
@@ -405,7 +408,7 @@ export default describeModule('offers-v2/trigger_machine/ops/history_expr',
             chai.expect(r).eql(4);
             chai.expect(historyIdxMock.start).eql(mockedTimestamp - 60);
             chai.expect(historyIdxMock.end).eql(mockedTimestamp - 2);
-            chai.expect(historyIdxMock.context).eql({ '#url': 'https://amazon.de/basket' });
+            chai.expect(historyIdxMock.context).eql({ '#lc_url': 'https://amazon.de/basket' });
             chai.expect(historyIdxMock.lastUrl).eql('https://amazon.de/basket');
           });
         });

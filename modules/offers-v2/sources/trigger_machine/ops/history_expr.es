@@ -59,8 +59,8 @@ class MatchHistoryExpr extends Expression {
     }
 
     // add current url to history, if it matches same patterns
-    const currUlr = ctx['#url'];
-    if (currUlr) {
+    const currUlr = ctx['#lc_url'];
+    if (currUlr && !this.data.history_index.hasUrl(ctx)) {
       for (let i = 0; i < this.regexesListCache.length; i += 1) {
         const re = this.regexesListCache[i];
         if (re && re.test(currUlr)) {

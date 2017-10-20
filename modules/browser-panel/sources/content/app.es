@@ -95,6 +95,13 @@ $(document).ready(() => {
       }
     });
   });
+
+  const conditionsHolder = $('#cqz-browser-panel-re .descr-read-more');
+  const conditionsSize = $('.text-holder', conditionsHolder).text().length;
+
+  if (conditionsSize >= 250) {
+    conditionsHolder.addClass('size-l');
+  }
 });
 
 function draw(data) {

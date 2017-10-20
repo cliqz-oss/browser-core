@@ -1,10 +1,14 @@
-import { utils } from '../core/cliqz';
-import CliqzADB,
-     { adbABTestEnabled,
-       ADB_PREF_VALUES,
-       ADB_PREF_OPTIMIZED,
-       ADB_PREF } from './adblocker';
 import { getActiveTab } from '../platform/browser';
+
+import { utils } from '../core/cliqz';
+
+import CliqzADB, {
+  adbABTestEnabled,
+  ADB_PREF_VALUES,
+  ADB_PREF_OPTIMIZED,
+  ADB_PREF
+} from './adblocker';
+
 
 export default class {
   constructor({ window }) {
@@ -30,8 +34,9 @@ export default class {
 
       // Check if adblocker is disabled on this page
       if (isCorrectUrl && CliqzADB.adblockInitialized) {
-        disabledForDomain = CliqzADB.adBlocker.isDomainInBlacklist(url);
-        disabledForUrl = CliqzADB.adBlocker.isUrlInBlacklist(url);
+        const whitelist = CliqzADB.urlWhitelist.getState(url);
+        disabledForDomain = whitelist.hostname;
+        disabledForUrl = whitelist.url;
       }
 
       const report = CliqzADB.adbStats.report(id);

@@ -4,19 +4,6 @@ import events from '../core/events';
 import { Services, Components } from './globals';
 
 
-export class Window {
-  constructor(window) {
-    this.window = window;
-  }
-
-  get id() {
-    const util = this.window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-      .getInterface(Components.interfaces.nsIDOMWindowUtils);
-    return util.outerWindowID;
-  }
-}
-
-
 export function mapWindows(callback) {
   const enumerator = Services.wm.getEnumerator('navigator:browser');
   const results = [];
@@ -31,6 +18,22 @@ export function mapWindows(callback) {
   return results;
 }
 
+export class Window {
+  constructor(window) {
+    this.window = window;
+  }
+
+  get id() {
+    const util = this.window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+      .getInterface(Components.interfaces.nsIDOMWindowUtils);
+    return util.outerWindowID;
+  }
+
+  static findById(windowId) {
+    const windows = mapWindows(w => new Window(w));
+    return windows.find(w => w.id === windowId);
+  }
+}
 
 export function forEachWindow(callback) {
   mapWindows(callback);
@@ -168,10 +171,8 @@ export function setOurOwnPrefs() {
     prefs.clear('catHistoryTime');
   }
 
-  // freshtab is optOut since 2.20.3 for new users
-  // we migrate the old ones
+  // freshtab is optOut since 2.20.1
   if (prefs.has('freshTabState')) {
-    prefs.set('freshtab.state', prefs.get('freshTabState'));
     prefs.clear('freshTabState');
   }
 }
@@ -229,7 +230,13 @@ export function waitWindowReady(win) {
       win.addEventListener('load', function loader() {
         win.removeEventListener('load', loader, false);
         if (mustLoadWindow(win)) {
-          resolve(win);
+          if (win.requestIdleCallback) {
+            win.requestIdleCallback(() => {
+              resolve(win);
+            }, { timeout: 1000 });
+          } else {
+            resolve(win);
+          }
         }
       }, false);
     } else {

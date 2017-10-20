@@ -15,14 +15,21 @@ export default class BackgroundImage extends React.Component {
   render() {
     /* eslint-disable jsx-a11y/no-static-element-interactions */
     return (
-      <img
-        role="presentation"
-        onClick={this.selectBackground}
-        data-bg={this.props.bg}
-        width="71"
-        src={this.props.src}
-        className={this.props.isActive ? 'active' : ''}
-      />
+      <div onClick={this.selectBackground}>
+        <img
+          role="presentation"
+          data-bg={this.props.bg}
+          width="71"
+          src={this.props.src}
+          className={this.props.isActive ? 'active' : ''}
+        />
+        <span className="selected-img">
+          <img
+            role="presentation"
+            src="./images/bg-check.svg"
+          />
+        </span>
+      </div>
     );
     /* eslint-enable jsx-a11y/no-static-element-interactions */
   }

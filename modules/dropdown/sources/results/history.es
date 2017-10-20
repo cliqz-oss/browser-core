@@ -2,6 +2,7 @@ import { equals } from '../../core/url';
 import prefs from '../../core/prefs';
 import BaseResult from './base';
 import GenericResult from './generic';
+import LottoResult from './lotto';
 
 class HistoryResult extends BaseResult {
   get isHistory() { return true; }
@@ -76,6 +77,16 @@ export default class HistoryCluster extends GenericResult {
       return [];
     }
     return super.newsResults;
+  }
+
+  // only include lotto in history cluster for new mixer
+  get lottoResults() {
+    if (prefs.get('searchMode', 'autocomplete') !== 'search') {
+      return [];
+    }
+
+    const lottoResult = new LottoResult(this.rawResult);
+    return lottoResult.lottoResults;
   }
 }
 

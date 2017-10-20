@@ -91,6 +91,7 @@
             justify-content: space-evenly;
             align-items: center;
             flex-direction: column;
+            overflow: auto;
 
             > section {
                 width: 100%;
@@ -100,7 +101,7 @@
             #section-middle {
                 margin-top: map-get($base-configs, section-padding);
                 margin-bottom: map-get($base-configs, section-padding);
-            } 
+            }
 
             @include speed-dials(map-merge($speed-dials-configs, $speed-dials-theme)...);
             @include url-bar(map-merge($url-bar-configs, $url-bar-theme)...);
@@ -180,12 +181,103 @@ body {
     &.theme-bg-dark {
         background-color: #0E213F;
         background-image: url(https://cdn.cliqz.com/extension/newtab/background/dark.jpg);
+    }
 
+    &.theme-bg-blue {
+        background-color: #00adf3;
+        background-image: url(https://cdn.cliqz.com/extension/newtab/background/alps.jpg);
+    }
+
+    &.theme-bg-dark,
+    &.theme-bg-blue {
         #app {
             $dark-theme: map-get($themes, dark);
 
             @include responsive($dark-theme);
             @include undo-notifications(map-get($dark-theme, base)...);
+        }
+    }
+
+    &.theme-bg-blue {
+        #app {
+
+            .aside {
+                & > a, & > button {
+                    &#settings-btn,
+                    &#cliqz-home,
+                    &#cliqz-history {
+                        opacity: 0.75;
+                    }
+
+                    &#settings-btn:hover,
+                    &#cliqz-home:hover,
+                    &#cliqz-history:hover {
+                        opacity: 1;
+                    }
+                }
+            }
+            #main-content {
+                .fixed-container {
+
+                    .dial-header {
+                        color: rgba(255, 255, 255, 0.8);
+                        text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
+                    }
+
+                    .dials-row {
+                        .dial {
+                            .title {
+                                color: rgba(255, 255, 255, 0.9);
+                                text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.6);
+                            }
+
+                            button.plus-dial-icon {
+                                opacity: 0.55;
+
+                                &:hover {
+                                    opacity: 0.7;
+                                }
+                            }
+
+                            .logo {
+                                box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.25);
+                            }
+
+                            &:hover {
+                                .logo {
+                                    box-shadow: 0px 3px 8px 0px rgba(0, 0, 0, 0.25);
+                                }
+                            }
+                        }
+                    }
+
+                    #section-middle {
+                        .middle-notification-box {
+                            background-color: rgba(0, 0, 0, 0.2);
+                        }
+                    }
+
+                    #section-news {
+                        .news-pagination {
+                            .dash span {
+                                background-color: rgba(255, 255, 255, 0.4);
+                            }
+
+                            .dash.active span {
+                                background-color: rgba(255, 255, 255, 0.8);
+                            }
+
+                            .dash.active:hover span {
+                                background-color: rgba(255, 255, 255, 1);
+                            }
+
+                        }
+                        .news-container .news-content .box {
+                            background-color: rgba(0, 0, 0, 0.5)
+                        }
+                    }
+                }
+            }
         }
     }
 }

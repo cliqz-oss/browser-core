@@ -52,9 +52,9 @@ def matrix = [
         'gpu': true,
         'testParams': 'configs/jenkins.json -l firefox-web-ext --firefox ~/firefox52/firefox/firefox',
     ],
-    'firefox 55': [
+    'firefox 56': [
         'gpu': true,
-        'testParams': 'configs/jenkins.json -l firefox-web-ext --firefox ~/firefox55/firefox/firefox',
+        'testParams': 'configs/jenkins.json -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
     ],
     'firefox stresstest (52)': [
         'gpu': true,
@@ -106,7 +106,7 @@ node('docker && !gpu') {
     def dockerTag = "${dockerfileChecksum}-${packageJsonChecksum}-${bowerJsonChecksum}"
 
     // authorize docker deamon to access registry
-    sh "`aws ecr get-login --region=${params.AWS_REGION}`"
+    sh "`aws ecr get-login --no-include-email --region=${params.AWS_REGION}`"
 
     docker.withRegistry("https://${params.DOCKER_REGISTRY_URL}") {
 
@@ -166,7 +166,7 @@ def test(Map m) {
             }
 
             // authorize docker deamon to access registry
-            sh "`aws ecr get-login --region=${params.AWS_REGION}`"
+            sh "`aws ecr get-login --no-include-email --region=${params.AWS_REGION}`"
 
             docker.withRegistry("https://${params.DOCKER_REGISTRY_URL}") {
                 def image = docker.image(codeDockerImage)

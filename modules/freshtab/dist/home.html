@@ -7,9 +7,33 @@
     </head>
     <body>
         <script>
-            var theme = localStorage.theme;
-            if (theme) {
+            try {
+                var ftConfig = 'extensions.cliqz.freshtabConfig',
+                    theme = 'bg-blue';
+
+                Components.utils.import('resource://gre/modules/Services.jsm');
+                if (Services.prefs.getPrefType(ftConfig) == 32) { // pref exists and its char
+                    try {
+                        var config = JSON.parse(Services.prefs.getCharPref(ftConfig));
+
+                        if(config && config.background && config.background.image){
+                            theme =  config.background.image;
+                        }
+                    } catch(e) {
+                        console.log('Freshtab error (unexpected config) :', e);
+                    }
+                }
+
                 document.body.classList.add('theme-'+theme);
+
+                // stop button remains active in Firefox 56
+                const chromeWindow = Services.wm.getMostRecentWindow('navigator:browser')
+                const reloadButton = chromeWindow.document.getElementById('reload-button');
+                if (reloadButton) {
+                    reloadButton.removeAttribute('displaystop');
+                }
+            } catch(e) {
+                console.log('Freshtab error:', e);
             }
         </script>
         <div id="root"></div>

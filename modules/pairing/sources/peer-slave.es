@@ -1,8 +1,8 @@
 /* eslint-disable camelcase */
 import CliqzUtils from '../core/utils';
-import { fromByteArray, sha256, encryptStringAES, decryptStringAES, toByteArray, deriveAESKey, randomBytes } from '../core/crypto/utils';
+import { fromByteArray, sha256, encryptStringAES, decryptStringAES, toByteArray, deriveAESKey, randomBytes, generateRSAKeypair } from '../core/crypto/utils';
 import console from '../core/console';
-import { encryptPairedMessage, decryptPairedMessage, ERRORS } from './shared';
+import { encryptPairedMessage, decryptPairedMessage, ERRORS, VERSION } from './shared';
 import CliqzPeer from '../p2p/cliqz-peer';
 import fetch from '../platform/fetch';
 import { fromBase64 } from '../core/encoding';
@@ -37,17 +37,17 @@ export default class CliqzPairing {
   }
 
   generateKeypair() {
-    if (this.keypair) {
-      return Promise.resolve();
-    }
-    return CliqzPeer.generateKeypair()
-      .then(keypair =>
-        sha256(keypair[0])
-          .then((deviceID) => {
-            this.deviceID = deviceID;
-            this.keypair = keypair;
-          })
-      );
+    return Promise.resolve()
+      // TODO: remove generateRSAKeypair when sure that mobile (peer-master) version will be >= 2
+      .then(() => (this.keypair || generateRSAKeypair()))
+      .then((keypair) => {
+        this.keypair = keypair;
+        this.secret = this.keypair[0];
+        return sha256(this.secret);
+      })
+      .then((deviceID) => {
+        this.deviceID = deviceID;
+      });
   }
 
   stopPairing() {
@@ -105,7 +105,7 @@ export default class CliqzPairing {
       .catch(() =>
         this.wakeUpMaster()
         .then(() => new Promise(resolve => CliqzUtils.setTimeout(resolve, 3000)))
-        .then(() => this.peer.checkPeerConnection(this.masterID)),
+        .then(() => this.peer.checkPeerConnection(this.masterID))
       );
     }
     return Promise.reject();
@@ -163,6 +163,20 @@ export default class CliqzPairing {
     this.data.set('keypair', x);
   }
 
+  get secret() {
+    return this.data.get('secret');
+  }
+  set secret(x) {
+    this.data.set('secret', x);
+  }
+
+  get publicKey() {
+    return this.keypair[0];
+  }
+  get privateKey() {
+    return this.keypair[1];
+  }
+
   get masterName() {
     if (this.isPaired) {
       return this.devices.find(x => x.id === this.masterID).name;
@@ -194,10 +208,11 @@ export default class CliqzPairing {
     return encryptStringAES(JSON.stringify(message), aesKey);
   }
 
-  sendPaired(message, targets) {
-    const devices = targets.map(x => this.findDevice(x)).filter(x => x);
+  sendPaired(message, t) {
+    const devices = this.devices.filter(x => t.indexOf(x.id) !== -1);
+    const onlyCompress = devices.every(x => x.version >= 2);
     return this.checkMasterConnection() // TODO: we shouldn't do this for all messages, traffic!
-    .then(() => encryptPairedMessage(message, devices))
+    .then(() => encryptPairedMessage(message, devices, onlyCompress))
     .then(encrypted => this.peer.send(this.masterID, encrypted));
   }
 
@@ -245,7 +260,7 @@ export default class CliqzPairing {
 
   onPairedMessage(data, label, peerID) {
     if (peerID === this.masterID) {
-      const decMsg = d => decryptPairedMessage(d, this.deviceID, this.peer.privateKey);
+      const decMsg = d => decryptPairedMessage(d, this.deviceID, this.privateKey);
       const receiveMessage = (({ msg, type, source }) => {
         try {
           this.receiveMessage(msg, type, source);
@@ -336,6 +351,10 @@ export default class CliqzPairing {
   }
 
   setPaired(masterID, devices, noTrigger) {
+    if (this.destroyed) {
+      return;
+    }
+
     this.status = CliqzPairing.STATUS_PAIRED;
     this.masterID = masterID;
     this.devices = devices;
@@ -371,6 +390,9 @@ export default class CliqzPairing {
   }
 
   setUnpaired(noTrigger) {
+    if (this.destroyed) {
+      return;
+    }
     this.status = CliqzPairing.STATUS_UNPAIRED;
     this.peer.close();
     this.pairingAESKey = null;
@@ -398,7 +420,7 @@ export default class CliqzPairing {
   }
 
   get version() {
-    return 1;
+    return VERSION;
   }
 
   generatePairingKey() {
@@ -411,7 +433,7 @@ export default class CliqzPairing {
     return this.loadPairingAESKey()
     .then(pairingAESKey =>
       CliqzPairing.sendEncrypted(
-        [this.peer.publicKey, this.pairingName, this.version],
+        [this.publicKey, this.pairingName, this.version],
         pairingAESKey,
       ),
     )
@@ -428,6 +450,9 @@ export default class CliqzPairing {
   }
 
   setPairing(slaveName) {
+    if (this.destroyed) {
+      return;
+    }
     this.status = CliqzPairing.STATUS_PAIRING;
     this.pairingRemaining = this.pairingTimeout;
     this.pairingName = slaveName;
@@ -469,7 +494,7 @@ export default class CliqzPairing {
 
   initPeer() {
     return this.p2p.action('createPeer',
-      this.keypair,
+      [this.secret, ''],
       {
         DEBUG: this.debug,
         ordered: true,
@@ -555,7 +580,7 @@ export default class CliqzPairing {
     this.onmasterconnected = null;
     this.onmasterdisconnected = null;
 
-    this.generateKeypair()
+    return this.generateKeypair()
       .then(() => !this.isUnloaded && this.initPeer())
       .then(() => {
         if (this.isUnloaded) {
@@ -563,7 +588,7 @@ export default class CliqzPairing {
         }
         if (this.masterID) {
           this.setPaired(this.masterID, this.devices, true);
-          this.checkMasterConnection();
+          this.checkMasterConnection().catch(() => {});
         } else {
           this.setUnpaired(true);
         }

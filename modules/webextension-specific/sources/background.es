@@ -1,7 +1,8 @@
 import background from '../core/base/background';
 
 /**
-  @namespace <namespace>
+  @namespace webextension-specific
+  @module webextension-specific
   @class Background
  */
 export default background({

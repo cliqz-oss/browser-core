@@ -362,7 +362,7 @@ export default class extends GenericResult {
       title: 'soccer-expand-button',
       url: `cliqz-actions,${JSON.stringify({ type: 'soccer', actionName: 'expand' })}`,
       text: this.rawResult.text,
-      show: this.itemsLimit !== this.maxRowsLimit,
+      show: this.itemsLimit < this.maxRowsLimit,
       onClick: () => {
         this.itemsLimit = this.maxRowsLimit;
         this.actions.replaceResult(this, this);
@@ -376,5 +376,9 @@ export default class extends GenericResult {
       title: 'soccer-powered-by',
       text: this.query,
     });
+  }
+
+  get groupTableHeader() {
+    return this.extra.group_name;
   }
 }

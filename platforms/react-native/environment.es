@@ -29,6 +29,9 @@ var CLIQZEnvironment = {
   addEngineWithDetails: function() {
 
   },
+  restoreHiddenSearchEngines: function() {
+
+  },
   isUnknownTemplate: function() {},
   log: console.log,
   getWindow() {},

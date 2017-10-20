@@ -16,7 +16,8 @@ function lwarn(msg) {
 // }
 
 /**
-  @namespace <namespace>
+  @namespace browser-panel
+  @module browser-panel
   @class Background
  */
 export default background({

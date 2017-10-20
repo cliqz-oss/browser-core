@@ -3,7 +3,13 @@
 
 export default describeModule('core/helpers/serial-executor',
   () => ({
-    'core/console': { default: console },
+    'core/console': {
+      default: {
+        debug() {},
+        log() {},
+        error() {},
+      },
+    },
     'core/utils': {
       default: {
         setTimeout,

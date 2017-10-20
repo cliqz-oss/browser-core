@@ -15,13 +15,9 @@ export default class {
   }
 
   init() {
-    if (!this.enabled() || !background.enabled) {
+    if (!this.enabled() || !background.active) {
       return;
     }
-
-    HumanWeb.init(this.window);
-
-    this.window.gBrowser.addProgressListener(HumanWeb.listener);
 
     this._dataCollectionTimer = utils.setTimeout(this.showDataCollectionMessage.bind(this), 1000);
   }
@@ -33,27 +29,13 @@ export default class {
 
     utils.clearTimeout(this._dataCollectionTimer);
 
-    this.window.gBrowser.removeProgressListener(HumanWeb.listener);
-
-    let tabs = Array.prototype.slice.apply(this.window.gBrowser.tabContainer.childNodes);
-    tabs.forEach( tab => {
-      const currentBrowser = this.window.gBrowser.getBrowserForTab(tab);
-      try {
-        currentBrowser.contentDocument.removeEventListener("keypress",  HumanWeb.captureKeyPressPage,true);
-        currentBrowser.contentDocument.removeEventListener("mousemove", HumanWeb.captureMouseMovePage,true);
-        currentBrowser.contentDocument.removeEventListener("mousedown", HumanWeb.captureMouseClickPage,true);
-        currentBrowser.contentDocument.removeEventListener("scroll",    HumanWeb.captureScrollPage,true);
-        currentBrowser.contentDocument.removeEventListener("copy",      HumanWeb.captureCopyPage,true);
-      } catch(e) {}
-    });
-
     if(this.notification){
       this.notification.close();
     }
   }
 
   status() {
-    if(background.enabled) {
+    if(background.active) {
       return {
         visible: true,
         state: !utils.getPref('dnt', false)
@@ -68,6 +50,7 @@ export default class {
    *   2 - ignored
    *   3 - learn more
    */
+  // TODO: migrate to message-manager
   showDataCollectionMessage() {
     if (!this.settings.showDataCollectionMessage ||
        utils.getPref('dataCollectionMessageState', 0) !== 0) {

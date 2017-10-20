@@ -37,34 +37,56 @@ function common({ results, result, clickedResult, url }) {
   return signal;
 }
 
-export function enterSignal({ dropdown, newTab }) {
-  const results = dropdown.results;
-  const index = dropdown.selectedIndex;
-  const clickedResult = dropdown.results.get(index);
-  const result = dropdown.results.find(clickedResult.url);
+function generateCommonStub({ query }) {
+  return {
+    current_position: 0,
+    display_time: null,
+    local_source: '',
+    query_length: query.length,
+    reaction_time: null,
+    result_order: [],
+  };
+}
 
-  if (result.isCliqzAction) return;
+export function enterSignal({ result, results, clickedResult, query, newTab }) {
+  const hasResults = (
+    result &&
+    clickedResult &&
+    results &&
+    results.query === query
+  );
 
-  const isAutocompleted = result.isAutocompleted;
-  const commonParts = common({ results, result, clickedResult, url: clickedResult.url });
+  if (hasResults && result.isCliqzAction) {
+    return;
+  }
+
+  const commonParts = hasResults ?
+    common({ results, result, clickedResult, url: clickedResult.url }) :
+    generateCommonStub({ query });
+
   const enterSpecificParts = {
     action: 'result_enter',
     new_tab: newTab,
   };
 
-  if (result instanceof SupplementarySearchResult) {
-    // TODO: use result.kind
-    enterSpecificParts.position_type = ['inbar_query'];
-  } else if (result instanceof NavigateToResult) {
-    // TODO: use result.kind
-    enterSpecificParts.position_type = ['inbar_url'];
-  }
-
-  if (isAutocompleted) {
-    enterSpecificParts.position_type = ['inbar_url'];
-    enterSpecificParts.source = commonParts.position_type;
-    enterSpecificParts.autocompleted = true;
-    enterSpecificParts.autocompleted_length = result.url.length;
+  if (hasResults) {
+    if (result instanceof SupplementarySearchResult) {
+      // TODO: use result.kind
+      enterSpecificParts.position_type = ['inbar_query'];
+    } else if (result instanceof NavigateToResult) {
+      // TODO: use result.kind
+      enterSpecificParts.position_type = ['inbar_url'];
+    }
+    if (result.isAutocompleted) {
+      enterSpecificParts.position_type = ['inbar_url'];
+      enterSpecificParts.source = commonParts.position_type;
+      enterSpecificParts.autocompleted = true;
+      enterSpecificParts.autocompleted_length = result.url.length;
+    }
+  } else {
+    const isUrl = utils.isUrl(query);
+    enterSpecificParts.position_type = isUrl ? ['inbar_url'] : ['inbar_query'];
+    enterSpecificParts.search = isUrl && utils.isSearch(query);
   }
 
   const signal = Object.assign({}, commonParts, enterSpecificParts);

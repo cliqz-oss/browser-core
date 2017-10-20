@@ -22,6 +22,32 @@ function onReady() {
   });
 }
 
+const _getSnippet = (url, data) => fetch(url, { method: 'PUT', body: data })
+  .then(r => r.json())
+  .then((response) => {
+    const snippet = response.results[0].snippet;
+    if (!snippet) {
+      throw new Error('unknown');
+    }
+    if (snippet && snippet.friendlyUrl === 'n/a') {
+      throw new Error('n/a');
+    }
+    return snippet;
+  });
+
+const getSnippetPromise = (url, data, retry = 0) => {
+  if (retry === 0) {
+    return Promise.reject();
+  }
+
+  return _getSnippet(url, data).catch((e) => {
+    if (e.message === 'n/a') {
+      return getSnippetPromise(url, data, retry - 1);
+    }
+
+    return Promise.reject();
+  });
+};
 
 export default background({
 
@@ -97,13 +123,8 @@ export default background({
           }
         ],
       };
-      return new Promise((resolve) => {
-        utils.httpPut(url, resolve, JSON.stringify(resultData));
-      }).then((request) => {
-        const response = JSON.parse(request.response);
-        const results = response.results;
-        return results[0].snippet;
-      });
+
+      return getSnippetPromise(url, JSON.stringify(resultData), 10);
     },
   },
 

@@ -3,9 +3,9 @@ import { StyleSheet, View, Text, TouchableHighlight } from 'react-native';
 import { vpWidth, vpHeight } from '../../styles/CardStyle';
 
 import Link from '../Link';
-import PoweredByKicker from '../partials/PoweredByKicker';
+import SoccerComponent from '../SoccerComponent';
 
-export default class extends React.Component {
+export default class extends SoccerComponent {
 
 
   displayMatches(matches) {
@@ -31,13 +31,12 @@ export default class extends React.Component {
     </View>
   }
 
-  render() {
+  get content() {
     const data = this.props.data;
     const matchList = (data.matches || []).map(this.displayMatchDay.bind(this));
       
     return <View style={styles.container}>
         { matchList }
-        <PoweredByKicker />
       </View>
   }
 }

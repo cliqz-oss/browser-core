@@ -53,6 +53,7 @@ class Subject {
           const response = this.modules[module].actions[action];
           listeners.forEach(l => {
             l({
+              action,
               response,
               type: 'response',
               requestId,
@@ -119,6 +120,7 @@ describe('Fresh tab interactions with settings switches', function () {
   const settingsPanelSelector = '#settings-panel';
   const settingsRowSelector = '#settings-panel div.settings-row';
   const settingsSwitchSelector = 'div.switch-container input.switch';
+  const backgroundAreaSelector = 'ul.background-selection-list';
   const mostVisitedAreaSelector = '#section-most-visited';
   const favoritesAreaSelector = '#section-favorites';
   const searchAreaSelector = 'div.search';
@@ -128,12 +130,15 @@ describe('Fresh tab interactions with settings switches', function () {
     action: 'getConfig',
     response: {
       locale: 'en-US',
-      newTabUrl: 'resource://cliqz/freshtab/home.html',
+      newTabUrl: 'chrome://cliqz/content/freshtab/home.html',
       isBrowser: false,
       showNewBrandAlert: false,
       messages: {},
       isHistoryEnabled: true,
       hasActiveNotifications: false,
+      blueTheme: false,
+      isBlueBackgroundSupported: true,
+      isBlueThemeSupported: true,
       componentsState: {
         historyDials: {
           visible: false
@@ -155,7 +160,11 @@ describe('Fresh tab interactions with settings switches', function () {
     },
   };
   let subject;
+  let messages;
+  let listener;
   let allSettingsRows;
+  let cliqzThemeSwitch;
+  let backgroundSwitch;
   let mostVisitedSwitch;
   let favoritesSwitch;
   let searchSwitch;
@@ -259,14 +268,75 @@ describe('Fresh tab interactions with settings switches', function () {
     beforeEach(function () {
       subject.respondsWith(allHiddenConfig);
       return subject.load().then(() => {
+        // Keep track of received messages
+        messages = new Map();
+        listener = function (msg) {
+          if (!messages.has(msg.action)) {
+            messages.set(msg.action, []);
+          }
+
+          messages.get(msg.action).push(msg);
+        };
+        subject.chrome.runtime.onMessage.addListener(listener);
+
         allSettingsRows = subject.queryAll(settingsRowSelector);
-        mostVisitedSwitch = allSettingsRows[1].querySelector(settingsSwitchSelector);
-        favoritesSwitch = allSettingsRows[2].querySelector(settingsSwitchSelector);
-        searchSwitch = allSettingsRows[3].querySelector(settingsSwitchSelector);
-        newsSwitch = allSettingsRows[4].querySelector(settingsSwitchSelector);
+        cliqzThemeSwitch = allSettingsRows[0].querySelector(settingsSwitchSelector);
+        backgroundSwitch = allSettingsRows[1].querySelector(settingsSwitchSelector);
+        mostVisitedSwitch = allSettingsRows[2].querySelector(settingsSwitchSelector);
+        favoritesSwitch = allSettingsRows[3].querySelector(settingsSwitchSelector);
+        searchSwitch = allSettingsRows[4].querySelector(settingsSwitchSelector);
+        newsSwitch = allSettingsRows[5].querySelector(settingsSwitchSelector);
 
         subject.query(settingsButtonSelector).click();
         return waitFor(() => subject.query(settingsPanelSelector).classList.contains('visible'));
+      });
+    });
+
+    afterEach(function () {
+      subject.chrome.runtime.onMessage.removeListener(listener);
+    });
+
+    describe('clicking on the background selection switch', function () {
+      beforeEach(function () {
+        backgroundSwitch.click();
+        return waitFor(() => subject.query(backgroundAreaSelector));
+      });
+
+      it('flips the background selection switch to active', function () {
+        chai.expect(backgroundSwitch).to.have.property('checked', true);
+      });
+
+      it('leaves other switches unchanged', function () {
+        chai.expect(cliqzThemeSwitch).to.have.property('checked', false);
+        chai.expect(mostVisitedSwitch).to.have.property('checked', false);
+        chai.expect(favoritesSwitch).to.have.property('checked', false);
+        chai.expect(searchSwitch).to.have.property('checked', false);
+        chai.expect(newsSwitch).to.have.property('checked', false);
+      });
+
+      it('keeps the settings panel open', function () {
+        chai.expect(subject.query(settingsPanelSelector)).to.exist;
+        chai.expect(subject.query(settingsPanelSelector).className).to.contain('visible');
+      });
+
+      it('shows the settings area with background thumbnails', function () {
+        chai.expect(subject.query(backgroundAreaSelector)).to.exist;
+      });
+
+      it('changes background to blue', function () {
+        chai.expect(subject.query('body').className).to.contain('theme-bg-blue');
+      });
+
+      it('leaves all FT areas hidden', function () {
+        chai.expect(subject.query(mostVisitedAreaSelector)).to.not.exist;
+        chai.expect(subject.query(favoritesAreaSelector)).to.not.exist;
+        chai.expect(subject.query(newsAreaSelector)).to.not.exist;
+        chai.expect(subject.query(searchAreaSelector)).to.not.exist
+      });
+
+      it('sends a "saveBackgroundImage" message', function () {
+        chai.expect(messages.has('saveBackgroundImage')).to.equal(true);
+        chai.expect(messages.get('saveBackgroundImage').length).to.equal(1);
       });
     });
 
@@ -281,6 +351,8 @@ describe('Fresh tab interactions with settings switches', function () {
       });
 
       it('leaves other switches unchanged', function () {
+        chai.expect(cliqzThemeSwitch).to.have.property('checked', false);
+        chai.expect(backgroundSwitch).to.have.property('checked', false);
         chai.expect(favoritesSwitch).to.have.property('checked', false);
         chai.expect(searchSwitch).to.have.property('checked', false);
         chai.expect(newsSwitch).to.have.property('checked', false);
@@ -300,6 +372,11 @@ describe('Fresh tab interactions with settings switches', function () {
         chai.expect(subject.query(newsAreaSelector)).to.not.exist;
         chai.expect(subject.query(searchAreaSelector)).to.not.exist
       });
+
+      it('sends a "toggleComponent" message', function () {
+        chai.expect(messages.has('toggleComponent')).to.equal(true);
+        chai.expect(messages.get('toggleComponent').length).to.equal(1);
+      });
     });
 
     describe('clicking on the favorites switch', function () {
@@ -313,6 +390,8 @@ describe('Fresh tab interactions with settings switches', function () {
       });
 
       it('leaves other switches unchanged', function () {
+        chai.expect(cliqzThemeSwitch).to.have.property('checked', false);
+        chai.expect(backgroundSwitch).to.have.property('checked', false);
         chai.expect(mostVisitedSwitch).to.have.property('checked', false);
         chai.expect(searchSwitch).to.have.property('checked', false);
         chai.expect(newsSwitch).to.have.property('checked', false);
@@ -332,6 +411,11 @@ describe('Fresh tab interactions with settings switches', function () {
         chai.expect(subject.query(newsAreaSelector)).to.not.exist;
         chai.expect(subject.query(searchAreaSelector)).to.not.exist
       });
+
+      it('sends a "toggleComponent" message', function () {
+        chai.expect(messages.has('toggleComponent')).to.equal(true);
+        chai.expect(messages.get('toggleComponent').length).to.equal(1);
+      });
     });
 
     describe('clicking on the search switch', function () {
@@ -345,6 +429,8 @@ describe('Fresh tab interactions with settings switches', function () {
       });
 
       it('leaves other switches unchanged', function () {
+        chai.expect(cliqzThemeSwitch).to.have.property('checked', false);
+        chai.expect(backgroundSwitch).to.have.property('checked', false);
         chai.expect(mostVisitedSwitch).to.have.property('checked', false);
         chai.expect(favoritesSwitch).to.have.property('checked', false);
         chai.expect(newsSwitch).to.have.property('checked', false);
@@ -364,6 +450,11 @@ describe('Fresh tab interactions with settings switches', function () {
         chai.expect(subject.query(favoritesAreaSelector)).to.not.exist;
         chai.expect(subject.query(newsAreaSelector)).to.not.exist;
       });
+
+      it('sends a "toggleComponent" message', function () {
+        chai.expect(messages.has('toggleComponent')).to.equal(true);
+        chai.expect(messages.get('toggleComponent').length).to.equal(1);
+      });
     });
 
     describe('clicking on the news switch', function () {
@@ -377,6 +468,8 @@ describe('Fresh tab interactions with settings switches', function () {
       });
 
       it('leaves other switches unchanged', function () {
+        chai.expect(cliqzThemeSwitch).to.have.property('checked', false);
+        chai.expect(backgroundSwitch).to.have.property('checked', false);
         chai.expect(mostVisitedSwitch).to.have.property('checked', false);
         chai.expect(favoritesSwitch).to.have.property('checked', false);
         chai.expect(searchSwitch).to.have.property('checked', false);
@@ -393,11 +486,14 @@ describe('Fresh tab interactions with settings switches', function () {
 
       it('shows news sources seletion', function () {
         const newsDeLanguageSelector = '#news-radio-selector-2';
-        const newsIntlLanguageSelector = '#news-radio-selector-3';
+        const newsFrLanguageSelector = '#news-radio-selector-3';
+        const newsIntlLanguageSelector = '#news-radio-selector-4';
         const newsDeLanguage = subject.query(newsDeLanguageSelector);
+        const newsFrLanguage = subject.query(newsFrLanguageSelector);
         const newsIntlLanguage = subject.query(newsIntlLanguageSelector);
 
         chai.expect(newsDeLanguage).to.exist;
+        chai.expect(newsFrLanguage).to.exist;
         chai.expect(newsIntlLanguage).to.exist;
       });
 
@@ -406,10 +502,17 @@ describe('Fresh tab interactions with settings switches', function () {
         chai.expect(subject.query(favoritesAreaSelector)).to.not.exist;
         chai.expect(subject.query(searchAreaSelector)).to.not.exist
       });
+
+      it('sends a "toggleComponent" message', function () {
+        chai.expect(messages.has('toggleComponent')).to.equal(true);
+        chai.expect(messages.get('toggleComponent').length).to.equal(1);
+      });
     });
 
     describe('clicking on all switches', function () {
       beforeEach(function () {
+        cliqzThemeSwitch.click();
+        backgroundSwitch.click();
         mostVisitedSwitch.click();
         favoritesSwitch.click();
         searchSwitch.click();
@@ -424,7 +527,17 @@ describe('Fresh tab interactions with settings switches', function () {
         chai.expect(subject.query(newsAreaSelector)).to.exist;
       });
 
+      it('shows the settings area with background thumbnails', function () {
+        chai.expect(subject.query(backgroundAreaSelector)).to.exist;
+      });
+
+      it('changes background to blue', function () {
+        chai.expect(subject.query('body').className).to.contain('theme-bg-blue');
+      });
+
       it('changes state of all switches', function () {
+        chai.expect(cliqzThemeSwitch).to.have.property('checked', true);
+        chai.expect(backgroundSwitch).to.have.property('checked', true);
         chai.expect(mostVisitedSwitch).to.have.property('checked', true);
         chai.expect(favoritesSwitch).to.have.property('checked', true);
         chai.expect(searchSwitch).to.have.property('checked', true);
@@ -434,6 +547,16 @@ describe('Fresh tab interactions with settings switches', function () {
       it('keeps the settings panel open', function () {
         chai.expect(subject.query(settingsPanelSelector)).to.exist;
         chai.expect(subject.query(settingsPanelSelector).className).to.contain('visible');
+      });
+
+      it('sends four "toggleComponent" messages', function () {
+        chai.expect(messages.has('toggleComponent')).to.equal(true);
+        chai.expect(messages.get('toggleComponent').length).to.equal(4);
+      });
+
+      it('sends a "saveBackgroundImage" message', function () {
+        chai.expect(messages.has('saveBackgroundImage')).to.equal(true);
+        chai.expect(messages.get('saveBackgroundImage').length).to.equal(1);
       });
 
       describe('then closing and opening the panel', function () {
@@ -447,6 +570,8 @@ describe('Fresh tab interactions with settings switches', function () {
         });
 
         it('keeps all switches state as active', function () {
+          chai.expect(cliqzThemeSwitch).to.have.property('checked', true);
+          chai.expect(backgroundSwitch).to.have.property('checked', true);
           chai.expect(mostVisitedSwitch).to.have.property('checked', true);
           chai.expect(favoritesSwitch).to.have.property('checked', true);
           chai.expect(searchSwitch).to.have.property('checked', true);
@@ -459,6 +584,14 @@ describe('Fresh tab interactions with settings switches', function () {
           chai.expect(subject.query(searchAreaSelector)).to.exist;
           chai.expect(subject.query(newsAreaSelector)).to.exist;
         });
+
+        it('keeps showing the settings area with background thumbnails', function () {
+          chai.expect(subject.query(backgroundAreaSelector)).to.exist;
+        });
+
+        it('keeps background as blue', function () {
+          chai.expect(subject.query('body').className).to.contain('theme-bg-blue');
+        });
       });
     });
   });
@@ -466,6 +599,10 @@ describe('Fresh tab interactions with settings switches', function () {
   describe('for all areas being visible', function () {
     beforeEach(function () {
       const allVisibleConfig = clone(allHiddenConfig);
+      allVisibleConfig.response.blueTheme = true;
+      allVisibleConfig.response.isBlueBackgroundSupported = true;
+      allVisibleConfig.response.isBlueThemeSupported = true;
+      allVisibleConfig.response.componentsState.background.image = 'bg-blue';
       allVisibleConfig.response.componentsState.historyDials.visible = true;
       allVisibleConfig.response.componentsState.customDials.visible = true;
       allVisibleConfig.response.componentsState.search.visible = true;
@@ -473,13 +610,75 @@ describe('Fresh tab interactions with settings switches', function () {
       subject.respondsWith(allVisibleConfig);
 
       return subject.load().then(() => {
+        // Keep track of received messages
+        messages = new Map();
+        listener = function (msg) {
+          if (!messages.has(msg.action)) {
+            messages.set(msg.action, []);
+          }
+
+          messages.get(msg.action).push(msg);
+        };
+        subject.chrome.runtime.onMessage.addListener(listener);
+
         allSettingsRows = subject.queryAll(settingsRowSelector);
-        mostVisitedSwitch = allSettingsRows[1].querySelector(settingsSwitchSelector);
-        favoritesSwitch = allSettingsRows[2].querySelector(settingsSwitchSelector);
-        searchSwitch = allSettingsRows[3].querySelector(settingsSwitchSelector);
-        newsSwitch = allSettingsRows[4].querySelector(settingsSwitchSelector);
+        cliqzThemeSwitch = allSettingsRows[0].querySelector(settingsSwitchSelector);
+        backgroundSwitch = allSettingsRows[1].querySelector(settingsSwitchSelector);
+        /* allSettingsRows[2] contains only bg thumbnails */
+        mostVisitedSwitch = allSettingsRows[3].querySelector(settingsSwitchSelector);
+        favoritesSwitch = allSettingsRows[4].querySelector(settingsSwitchSelector);
+        searchSwitch = allSettingsRows[5].querySelector(settingsSwitchSelector);
+        newsSwitch = allSettingsRows[6].querySelector(settingsSwitchSelector);
         subject.query(settingsButtonSelector).click();
         return waitFor(() => subject.query(settingsPanelSelector));
+      });
+    });
+
+    afterEach(function () {
+      subject.chrome.runtime.onMessage.removeListener(listener);
+    });
+
+    describe('clicking on the background selection switch', function () {
+      beforeEach(function () {
+        backgroundSwitch.click();
+        return waitFor(() => !subject.query(backgroundAreaSelector));
+      });
+
+      it('flips the background selection switch to inactive', function () {
+        chai.expect(backgroundSwitch).to.have.property('checked', false);
+      });
+
+      it('leaves other switches unchanged', function () {
+        chai.expect(cliqzThemeSwitch).to.have.property('checked', true);
+        chai.expect(mostVisitedSwitch).to.have.property('checked', true);
+        chai.expect(favoritesSwitch).to.have.property('checked', true);
+        chai.expect(searchSwitch).to.have.property('checked', true);
+        chai.expect(newsSwitch).to.have.property('checked', true);
+      });
+
+      it('keeps the settings panel open', function () {
+        chai.expect(subject.query(settingsPanelSelector)).to.exist;
+        chai.expect(subject.query(settingsPanelSelector).className).to.contain('visible');
+      });
+
+      it('hides the settings area with background thumbnails', function () {
+        chai.expect(subject.query(backgroundAreaSelector)).to.not.exist;
+      });
+
+      it('changes background to empty', function () {
+        chai.expect(subject.query('body').className).to.contain('theme-bg-default');
+      });
+
+      it('leaves all FT areas visible', function () {
+        chai.expect(subject.query(mostVisitedAreaSelector)).to.exist;
+        chai.expect(subject.query(favoritesAreaSelector)).to.exist;
+        chai.expect(subject.query(newsAreaSelector)).to.exist;
+        chai.expect(subject.query(searchAreaSelector)).to.exist
+      });
+
+      it('sends a "saveBackgroundImage" message', function () {
+        chai.expect(messages.has('saveBackgroundImage')).to.equal(true);
+        chai.expect(messages.get('saveBackgroundImage').length).to.equal(1);
       });
     });
 
@@ -494,6 +693,8 @@ describe('Fresh tab interactions with settings switches', function () {
       });
 
       it('leaves other switches unchanged', function () {
+        chai.expect(cliqzThemeSwitch).to.have.property('checked', true);
+        chai.expect(backgroundSwitch).to.have.property('checked', true);
         chai.expect(favoritesSwitch).to.have.property('checked', true);
         chai.expect(searchSwitch).to.have.property('checked', true);
         chai.expect(newsSwitch).to.have.property('checked', true);
@@ -514,6 +715,11 @@ describe('Fresh tab interactions with settings switches', function () {
         chai.expect(subject.query(searchAreaSelector)).to.exist
       });
 
+      it('sends a "toggleComponent" message', function () {
+        chai.expect(messages.has('toggleComponent')).to.equal(true);
+        chai.expect(messages.get('toggleComponent').length).to.equal(1);
+      });
+
     });
 
     describe('clicking on the favorites switch', function () {
@@ -527,6 +733,8 @@ describe('Fresh tab interactions with settings switches', function () {
       });
 
       it('leaves other switches unchanged', function () {
+        chai.expect(cliqzThemeSwitch).to.have.property('checked', true);
+        chai.expect(mostVisitedSwitch).to.have.property('checked', true);
         chai.expect(mostVisitedSwitch).to.have.property('checked', true);
         chai.expect(searchSwitch).to.have.property('checked', true);
         chai.expect(newsSwitch).to.have.property('checked', true);
@@ -546,6 +754,11 @@ describe('Fresh tab interactions with settings switches', function () {
         chai.expect(subject.query(newsAreaSelector)).to.exist;
         chai.expect(subject.query(searchAreaSelector)).to.exist
       });
+
+      it('sends a "toggleComponent" message', function () {
+        chai.expect(messages.has('toggleComponent')).to.equal(true);
+        chai.expect(messages.get('toggleComponent').length).to.equal(1);
+      });
     });
 
     describe('clicking on the search switch', function () {
@@ -559,6 +772,8 @@ describe('Fresh tab interactions with settings switches', function () {
       });
 
       it('leaves other switches unchanged', function () {
+        chai.expect(cliqzThemeSwitch).to.have.property('checked', true);
+        chai.expect(mostVisitedSwitch).to.have.property('checked', true);
         chai.expect(mostVisitedSwitch).to.have.property('checked', true);
         chai.expect(favoritesSwitch).to.have.property('checked', true);
         chai.expect(newsSwitch).to.have.property('checked', true);
@@ -578,6 +793,11 @@ describe('Fresh tab interactions with settings switches', function () {
         chai.expect(subject.query(favoritesAreaSelector)).to.exist;
         chai.expect(subject.query(newsAreaSelector)).to.exist;
       });
+
+      it('sends a "toggleComponent" message', function () {
+        chai.expect(messages.has('toggleComponent')).to.equal(true);
+        chai.expect(messages.get('toggleComponent').length).to.equal(1);
+      });
     });
 
     describe('clicking on the news switch', function () {
@@ -591,6 +811,8 @@ describe('Fresh tab interactions with settings switches', function () {
       });
 
       it('leaves other switches unchanged', function () {
+        chai.expect(cliqzThemeSwitch).to.have.property('checked', true);
+        chai.expect(mostVisitedSwitch).to.have.property('checked', true);
         chai.expect(mostVisitedSwitch).to.have.property('checked', true);
         chai.expect(favoritesSwitch).to.have.property('checked', true);
         chai.expect(searchSwitch).to.have.property('checked', true);
@@ -607,11 +829,14 @@ describe('Fresh tab interactions with settings switches', function () {
 
       it('hides news sources selection', function () {
         const newsDeLanguageSelector = '#news-radio-selector-2';
-        const newsIntlLanguageSelector = '#news-radio-selector-3';
+        const newsFrLanguageSelector = '#news-radio-selector-3';
+        const newsIntlLanguageSelector = '#news-radio-selector-4';
         const newsDeLanguage = subject.query(newsDeLanguageSelector);
+        const newsFrLanguage = subject.query(newsFrLanguageSelector);
         const newsIntlLanguage = subject.query(newsIntlLanguageSelector);
 
         chai.expect(newsDeLanguage).to.not.exist;
+        chai.expect(newsFrLanguage).to.not.exist;
         chai.expect(newsIntlLanguage).to.not.exist;
       });
 
@@ -620,10 +845,17 @@ describe('Fresh tab interactions with settings switches', function () {
         chai.expect(subject.query(favoritesAreaSelector)).to.exist;
         chai.expect(subject.query(searchAreaSelector)).to.exist
       });
+
+      it('sends a "toggleComponent" message', function () {
+        chai.expect(messages.has('toggleComponent')).to.equal(true);
+        chai.expect(messages.get('toggleComponent').length).to.equal(1);
+      });
     });
 
     describe('clicking on all switches', function () {
       beforeEach(function () {
+        cliqzThemeSwitch.click();
+        backgroundSwitch.click();
         mostVisitedSwitch.click();
         favoritesSwitch.click();
         searchSwitch.click();
@@ -631,14 +863,24 @@ describe('Fresh tab interactions with settings switches', function () {
         return waitFor(() => !subject.query(newsAreaSelector));
       });
 
-      it('hides all areas', function () {
+      it('hides all FT areas', function () {
         chai.expect(subject.query(mostVisitedAreaSelector)).to.not.exist;
         chai.expect(subject.query(favoritesAreaSelector)).to.not.exist;
         chai.expect(subject.query(searchAreaSelector)).to.not.exist;
         chai.expect(subject.query(newsAreaSelector)).to.not.exist;
       });
 
+      it('hides the settings area with background thumbnails', function () {
+        chai.expect(subject.query(backgroundAreaSelector)).to.not.exist;
+      });
+
+      it('changes background to empty', function () {
+        chai.expect(subject.query('body').className).to.contain('theme-bg-default');
+      });
+
       it('changes state of all switches', function () {
+        chai.expect(cliqzThemeSwitch).to.have.property('checked', false);
+        chai.expect(mostVisitedSwitch).to.have.property('checked', false);
         chai.expect(mostVisitedSwitch).to.have.property('checked', false);
         chai.expect(favoritesSwitch).to.have.property('checked', false);
         chai.expect(searchSwitch).to.have.property('checked', false);
@@ -648,6 +890,16 @@ describe('Fresh tab interactions with settings switches', function () {
       it('keeps the settings panel open', function () {
         chai.expect(subject.query(settingsPanelSelector)).to.exist;
         chai.expect(subject.query(settingsPanelSelector).className).to.contain('visible');
+      });
+
+      it('sends four "toggleComponent" messages', function () {
+        chai.expect(messages.has('toggleComponent')).to.equal(true);
+        chai.expect(messages.get('toggleComponent').length).to.equal(4);
+      });
+
+      it('sends a "saveBackgroundImage" message', function () {
+        chai.expect(messages.has('saveBackgroundImage')).to.equal(true);
+        chai.expect(messages.get('saveBackgroundImage').length).to.equal(1);
       });
 
       describe('then closing and opening the panel', function () {
@@ -661,10 +913,20 @@ describe('Fresh tab interactions with settings switches', function () {
         });
 
         it('keeps all switches state as inactive', function () {
+          chai.expect(cliqzThemeSwitch).to.have.property('checked', false);
+          chai.expect(backgroundSwitch).to.have.property('checked', false);
           chai.expect(mostVisitedSwitch).to.have.property('checked', false);
           chai.expect(favoritesSwitch).to.have.property('checked', false);
           chai.expect(searchSwitch).to.have.property('checked', false);
           chai.expect(newsSwitch).to.have.property('checked', false);
+        });
+
+        it('keeps hiding the settings area with background thumbnails', function () {
+          chai.expect(subject.query(backgroundAreaSelector)).to.not.exist;
+        });
+
+        it('keeps background as empty', function () {
+          chai.expect(subject.query('body').className).to.contain('theme-bg-default');
         });
 
         it('keeps hiding all areas', function () {
@@ -678,13 +940,14 @@ describe('Fresh tab interactions with settings switches', function () {
   });
 
   describe('with only news area visible', function () {
+    const newsDeLanguageSelector = '#news-radio-selector-2';
+    const newsFrLanguageSelector = '#news-radio-selector-3';
+    const newsIntlLanguageSelector = '#news-radio-selector-4';
+    let newsDeLanguage;
+    let newsFrLanguage;
+    let newsIntlLanguage;
 
     describe('and DE as default source', function () {
-      const newsDeLanguageSelector = '#news-radio-selector-2';
-      const newsIntlLanguageSelector = '#news-radio-selector-3';
-      let newsDeLanguage;
-      let newsIntlLanguage;
-
       beforeEach(function () {
         const newsShownConfigDe = clone(allHiddenConfig);
         newsShownConfigDe.response.componentsState.news.visible = true;
@@ -692,20 +955,38 @@ describe('Fresh tab interactions with settings switches', function () {
         subject.respondsWith(newsShownConfigDe);
 
         return subject.load().then(() => {
+          // Keep track of received messages
+          messages = new Map();
+          listener = function (msg) {
+            if (!messages.has(msg.action)) {
+              messages.set(msg.action, []);
+            }
+
+            messages.get(msg.action).push(msg);
+          };
+          subject.chrome.runtime.onMessage.addListener(listener);
+
           allSettingsRows = subject.queryAll(settingsRowSelector);
-          mostVisitedSwitch = allSettingsRows[1].querySelector(settingsSwitchSelector);
-          favoritesSwitch = allSettingsRows[2].querySelector(settingsSwitchSelector);
-          searchSwitch = allSettingsRows[3].querySelector(settingsSwitchSelector);
-          newsSwitch = allSettingsRows[4].querySelector(settingsSwitchSelector);
+          cliqzThemeSwitch = allSettingsRows[0].querySelector(settingsSwitchSelector);
+          backgroundSwitch = allSettingsRows[1].querySelector(settingsSwitchSelector);
+          mostVisitedSwitch = allSettingsRows[2].querySelector(settingsSwitchSelector);
+          favoritesSwitch = allSettingsRows[3].querySelector(settingsSwitchSelector);
+          searchSwitch = allSettingsRows[4].querySelector(settingsSwitchSelector);
+          newsSwitch = allSettingsRows[5].querySelector(settingsSwitchSelector);
 
           subject.query(settingsButtonSelector).click();
           return waitFor(() => subject.query(settingsPanelSelector).classList.contains('visible'));
         });
       });
 
-      describe('clicking on the other news source', function () {
+      afterEach(function () {
+        subject.chrome.runtime.onMessage.removeListener(listener);
+      });
+
+      describe('clicking on the international news source', function () {
         beforeEach(function () {
           newsDeLanguage = subject.query(newsDeLanguageSelector);
+          newsFrLanguage = subject.query(newsFrLanguageSelector);
           newsIntlLanguage = subject.query(newsIntlLanguageSelector);
           subject.query(newsIntlLanguageSelector).click();
           return waitFor(() => newsIntlLanguage.checked);
@@ -713,10 +994,13 @@ describe('Fresh tab interactions with settings switches', function () {
 
         it('changes news source selection to INTL', function () {
           chai.expect(newsDeLanguage).to.have.property('checked', false);
+          chai.expect(newsFrLanguage).to.have.property('checked', false);
           chai.expect(newsIntlLanguage).to.have.property('checked', true);
         });
 
         it('leaves other panel switches unchanged', function () {
+          chai.expect(cliqzThemeSwitch).to.have.property('checked', false);
+          chai.expect(backgroundSwitch).to.have.property('checked', false);
           chai.expect(mostVisitedSwitch).to.have.property('checked', false);
           chai.expect(favoritesSwitch).to.have.property('checked', false);
           chai.expect(searchSwitch).to.have.property('checked', false);
@@ -737,11 +1021,19 @@ describe('Fresh tab interactions with settings switches', function () {
           chai.expect(subject.query(favoritesAreaSelector)).to.not.exist;
           chai.expect(subject.query(searchAreaSelector)).to.not.exist;
         });
+
+        it('sends a "updateTopNewsCountry" and a "getNews" messages', function () {
+          chai.expect(messages.has('updateTopNewsCountry')).to.equal(true);
+          chai.expect(messages.get('updateTopNewsCountry').length).to.equal(1);
+          chai.expect(messages.has('getNews')).to.equal(true);
+          chai.expect(messages.get('getNews').length).to.equal(1);
+        });
       });
 
       describe('clicking on the already selected news source', function () {
         beforeEach(function () {
           newsDeLanguage = subject.query(newsDeLanguageSelector);
+          newsFrLanguage = subject.query(newsFrLanguageSelector);
           newsIntlLanguage = subject.query(newsIntlLanguageSelector);
           subject.query(newsDeLanguageSelector).click();
           return waitFor(() => newsDeLanguage.checked);
@@ -749,10 +1041,13 @@ describe('Fresh tab interactions with settings switches', function () {
 
         it('keeps news source selection to DE', function () {
           chai.expect(newsDeLanguage).to.have.property('checked', true);
+          chai.expect(newsFrLanguage).to.have.property('checked', false);
           chai.expect(newsIntlLanguage).to.have.property('checked', false);
         });
 
         it('leaves other panel switches unchanged', function () {
+          chai.expect(cliqzThemeSwitch).to.have.property('checked', false);
+          chai.expect(backgroundSwitch).to.have.property('checked', false);
           chai.expect(mostVisitedSwitch).to.have.property('checked', false);
           chai.expect(favoritesSwitch).to.have.property('checked', false);
           chai.expect(searchSwitch).to.have.property('checked', false);
@@ -773,37 +1068,55 @@ describe('Fresh tab interactions with settings switches', function () {
           chai.expect(subject.query(favoritesAreaSelector)).to.not.exist;
           chai.expect(subject.query(searchAreaSelector)).to.not.exist;
         });
+
+        it('does not send any "updateTopNewsCountry" and "getNews" messages', function () {
+          chai.expect(messages.has('updateTopNewsCountry')).to.equal(false);
+          chai.expect(messages.has('getNews')).to.equal(false);
+        });
       });
 
     });
 
-    describe('and INTL as default source', function () {
-      const newsDeLanguageSelector = '#news-radio-selector-2';
-      const newsIntlLanguageSelector = '#news-radio-selector-3';
-      let newsDeLanguage;
-      let newsIntlLanguage;
-
+    describe('and FR as default source', function () {
       beforeEach(function () {
-        const newsShownConfigIntl = clone(allHiddenConfig);
-        newsShownConfigIntl.response.componentsState.news.visible = true;
-        newsShownConfigIntl.response.componentsState.news.preferedCountry = 'intl';
-        subject.respondsWith(newsShownConfigIntl);
+        const newsShownConfigFr = clone(allHiddenConfig);
+        newsShownConfigFr.response.componentsState.news.visible = true;
+        newsShownConfigFr.response.componentsState.news.preferedCountry = 'fr';
+        subject.respondsWith(newsShownConfigFr);
 
         return subject.load().then(() => {
+          // Keep track of received messages
+          messages = new Map();
+          listener = function (msg) {
+            if (!messages.has(msg.action)) {
+              messages.set(msg.action, []);
+            }
+
+            messages.get(msg.action).push(msg);
+          };
+          subject.chrome.runtime.onMessage.addListener(listener);
+
           allSettingsRows = subject.queryAll(settingsRowSelector);
-          mostVisitedSwitch = allSettingsRows[1].querySelector(settingsSwitchSelector);
-          favoritesSwitch = allSettingsRows[2].querySelector(settingsSwitchSelector);
-          searchSwitch = allSettingsRows[3].querySelector(settingsSwitchSelector);
-          newsSwitch = allSettingsRows[4].querySelector(settingsSwitchSelector);
+          cliqzThemeSwitch = allSettingsRows[0].querySelector(settingsSwitchSelector);
+          backgroundSwitch = allSettingsRows[1].querySelector(settingsSwitchSelector);
+          mostVisitedSwitch = allSettingsRows[2].querySelector(settingsSwitchSelector);
+          favoritesSwitch = allSettingsRows[3].querySelector(settingsSwitchSelector);
+          searchSwitch = allSettingsRows[4].querySelector(settingsSwitchSelector);
+          newsSwitch = allSettingsRows[5].querySelector(settingsSwitchSelector);
 
           subject.query(settingsButtonSelector).click();
           return waitFor(() => subject.query(settingsPanelSelector).classList.contains('visible'));
         });
       });
 
-      describe('clicking on the other news source', function () {
+      afterEach(function () {
+        subject.chrome.runtime.onMessage.removeListener(listener);
+      });
+
+      describe('clicking on the German news source', function () {
         beforeEach(function () {
           newsDeLanguage = subject.query(newsDeLanguageSelector);
+          newsFrLanguage = subject.query(newsFrLanguageSelector);
           newsIntlLanguage = subject.query(newsIntlLanguageSelector);
           subject.query(newsDeLanguageSelector).click();
           return waitFor(() => newsDeLanguage.checked);
@@ -811,10 +1124,13 @@ describe('Fresh tab interactions with settings switches', function () {
 
         it('changes news source selection to DE', function () {
           chai.expect(newsDeLanguage).to.have.property('checked', true);
+          chai.expect(newsFrLanguage).to.have.property('checked', false);
           chai.expect(newsIntlLanguage).to.have.property('checked', false);
         });
 
         it('leaves other panel switches unchanged', function () {
+          chai.expect(cliqzThemeSwitch).to.have.property('checked', false);
+          chai.expect(backgroundSwitch).to.have.property('checked', false);
           chai.expect(mostVisitedSwitch).to.have.property('checked', false);
           chai.expect(favoritesSwitch).to.have.property('checked', false);
           chai.expect(searchSwitch).to.have.property('checked', false);
@@ -835,11 +1151,148 @@ describe('Fresh tab interactions with settings switches', function () {
           chai.expect(subject.query(favoritesAreaSelector)).to.not.exist;
           chai.expect(subject.query(searchAreaSelector)).to.not.exist;
         });
+
+        it('sends a "updateTopNewsCountry" and a "getNews" messages', function () {
+          chai.expect(messages.has('updateTopNewsCountry')).to.equal(true);
+          chai.expect(messages.get('updateTopNewsCountry').length).to.equal(1);
+          chai.expect(messages.has('getNews')).to.equal(true);
+          chai.expect(messages.get('getNews').length).to.equal(1);
+        });
       });
 
       describe('clicking on the already selected news source', function () {
         beforeEach(function () {
           newsDeLanguage = subject.query(newsDeLanguageSelector);
+          newsFrLanguage = subject.query(newsFrLanguageSelector);
+          newsIntlLanguage = subject.query(newsIntlLanguageSelector);
+          subject.query(newsFrLanguageSelector).click();
+          return waitFor(() => newsFrLanguage.checked);
+        });
+
+        it('keeps news source selection to FR', function () {
+          chai.expect(newsDeLanguage).to.have.property('checked', false);
+          chai.expect(newsFrLanguage).to.have.property('checked', true);
+          chai.expect(newsIntlLanguage).to.have.property('checked', false);
+        });
+
+        it('leaves other panel switches unchanged', function () {
+          chai.expect(cliqzThemeSwitch).to.have.property('checked', false);
+          chai.expect(backgroundSwitch).to.have.property('checked', false);
+          chai.expect(mostVisitedSwitch).to.have.property('checked', false);
+          chai.expect(favoritesSwitch).to.have.property('checked', false);
+          chai.expect(searchSwitch).to.have.property('checked', false);
+          chai.expect(newsSwitch).to.have.property('checked', true);
+        });
+
+        it('keeps the settings panel open', function () {
+          chai.expect(subject.query(settingsPanelSelector)).to.exist;
+          chai.expect(subject.query(settingsPanelSelector).className).to.contain('visible');
+        });
+
+        it('keeps the FT area with news visible', function () {
+          chai.expect(subject.query(newsAreaSelector)).to.exist;
+        });
+
+        it('leaves other areas hidden', function () {
+          chai.expect(subject.query(mostVisitedAreaSelector)).to.not.exist;
+          chai.expect(subject.query(favoritesAreaSelector)).to.not.exist;
+          chai.expect(subject.query(searchAreaSelector)).to.not.exist;
+        });
+
+        it('does not send any "updateTopNewsCountry" and "getNews" messages', function () {
+          chai.expect(messages.has('updateTopNewsCountry')).to.equal(false);
+          chai.expect(messages.has('getNews')).to.equal(false);
+        });
+      });
+    });
+
+    describe('and INTL as default source', function () {
+      beforeEach(function () {
+        const newsShownConfigIntl = clone(allHiddenConfig);
+        newsShownConfigIntl.response.componentsState.news.visible = true;
+        newsShownConfigIntl.response.componentsState.news.preferedCountry = 'intl';
+        subject.respondsWith(newsShownConfigIntl);
+
+        return subject.load().then(() => {
+          // Keep track of received messages
+          messages = new Map();
+          listener = function (msg) {
+            if (!messages.has(msg.action)) {
+              messages.set(msg.action, []);
+            }
+
+            messages.get(msg.action).push(msg);
+          };
+          subject.chrome.runtime.onMessage.addListener(listener);
+
+          allSettingsRows = subject.queryAll(settingsRowSelector);
+          cliqzThemeSwitch = allSettingsRows[0].querySelector(settingsSwitchSelector);
+          backgroundSwitch = allSettingsRows[1].querySelector(settingsSwitchSelector);
+          mostVisitedSwitch = allSettingsRows[2].querySelector(settingsSwitchSelector);
+          favoritesSwitch = allSettingsRows[3].querySelector(settingsSwitchSelector);
+          searchSwitch = allSettingsRows[4].querySelector(settingsSwitchSelector);
+          newsSwitch = allSettingsRows[5].querySelector(settingsSwitchSelector);
+
+          subject.query(settingsButtonSelector).click();
+          return waitFor(() => subject.query(settingsPanelSelector).classList.contains('visible'));
+        });
+      });
+
+      afterEach(function () {
+        subject.chrome.runtime.onMessage.removeListener(listener);
+      });
+
+      describe('clicking on the French news source', function () {
+        beforeEach(function () {
+          newsDeLanguage = subject.query(newsDeLanguageSelector);
+          newsFrLanguage = subject.query(newsFrLanguageSelector);
+          newsIntlLanguage = subject.query(newsIntlLanguageSelector);
+          subject.query(newsFrLanguageSelector).click();
+          return waitFor(() => newsFrLanguage.checked);
+        });
+
+        it('changes news source selection to FR', function () {
+          chai.expect(newsDeLanguage).to.have.property('checked', false);
+          chai.expect(newsFrLanguage).to.have.property('checked', true);
+          chai.expect(newsIntlLanguage).to.have.property('checked', false);
+        });
+
+        it('leaves other panel switches unchanged', function () {
+          chai.expect(cliqzThemeSwitch).to.have.property('checked', false);
+          chai.expect(backgroundSwitch).to.have.property('checked', false);
+          chai.expect(mostVisitedSwitch).to.have.property('checked', false);
+          chai.expect(favoritesSwitch).to.have.property('checked', false);
+          chai.expect(searchSwitch).to.have.property('checked', false);
+          chai.expect(newsSwitch).to.have.property('checked', true);
+        });
+
+        it('keeps the settings panel open', function () {
+          chai.expect(subject.query(settingsPanelSelector)).to.exist;
+          chai.expect(subject.query(settingsPanelSelector).className).to.contain('visible');
+        });
+
+        it('keeps the FT area with news visible', function () {
+          chai.expect(subject.query(newsAreaSelector)).to.exist;
+        });
+
+        it('leaves other areas hidden', function () {
+          chai.expect(subject.query(mostVisitedAreaSelector)).to.not.exist;
+          chai.expect(subject.query(favoritesAreaSelector)).to.not.exist;
+          chai.expect(subject.query(searchAreaSelector)).to.not.exist;
+        });
+
+        it('sends a "updateTopNewsCountry" and a "getNews" messages', function () {
+          chai.expect(messages.has('updateTopNewsCountry')).to.equal(true);
+          chai.expect(messages.get('updateTopNewsCountry').length).to.equal(1);
+          chai.expect(messages.has('getNews')).to.equal(true);
+          chai.expect(messages.get('getNews').length).to.equal(1);
+        });
+      });
+
+      describe('clicking on the already selected news source', function () {
+        beforeEach(function () {
+          newsDeLanguage = subject.query(newsDeLanguageSelector);
+          newsFrLanguage = subject.query(newsFrLanguageSelector);
           newsIntlLanguage = subject.query(newsIntlLanguageSelector);
           subject.query(newsIntlLanguageSelector).click();
           return waitFor(() => newsIntlLanguage.checked);
@@ -847,10 +1300,13 @@ describe('Fresh tab interactions with settings switches', function () {
 
         it('keeps news source selection to INTL', function () {
           chai.expect(newsDeLanguage).to.have.property('checked', false);
+          chai.expect(newsFrLanguage).to.have.property('checked', false);
           chai.expect(newsIntlLanguage).to.have.property('checked', true);
         });
 
         it('leaves other panel switches unchanged', function () {
+          chai.expect(cliqzThemeSwitch).to.have.property('checked', false);
+          chai.expect(backgroundSwitch).to.have.property('checked', false);
           chai.expect(mostVisitedSwitch).to.have.property('checked', false);
           chai.expect(favoritesSwitch).to.have.property('checked', false);
           chai.expect(searchSwitch).to.have.property('checked', false);
@@ -871,9 +1327,12 @@ describe('Fresh tab interactions with settings switches', function () {
           chai.expect(subject.query(favoritesAreaSelector)).to.not.exist;
           chai.expect(subject.query(searchAreaSelector)).to.not.exist;
         });
+
+        it('does not send any "updateTopNewsCountry" and "getNews" messages', function () {
+          chai.expect(messages.has('updateTopNewsCountry')).to.equal(false);
+          chai.expect(messages.has('getNews')).to.equal(false);
+        });
       });
-
     });
-
   });
 });

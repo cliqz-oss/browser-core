@@ -4,6 +4,7 @@ import Switch from './switch';
 import BackgroundImage from './background-image';
 import t from '../i18n';
 import { settingsCloseSignal, settingsBackgroundSelectSignal } from '../services/telemetry/settings';
+import { NO_BG } from '../services/background-image';
 
 export default class Settings extends React.Component {
   constructor(props) {
@@ -59,9 +60,40 @@ export default class Settings extends React.Component {
             <h1>{t('app.settings.header')}</h1>
           </div>
 
+          {this.props.isBlueThemeSupported &&
+            <div className="settings-row">
+              <span className="label">Cliqz Theme</span>
+              <Switch
+                name="blueTheme"
+                isChecked={this.props.blueTheme}
+                toggleComponent={() => this.props.toggleBlueTheme()}
+              />
+            </div>
+          }
+
           <div className="settings-row">
             <span className="label">{t('app.settings.background.label')}</span>
+            <Switch
+              name="background"
+              isChecked={this.state.componentsState.background.image !== NO_BG}
+              toggleComponent={() => this.props.toggleBackground()}
+            />
+          </div>
+          {this.state.componentsState.background.image === NO_BG ? '' :
+          <div className="settings-row">
             <ul className="background-selection-list">
+              {this.props.isBlueBackgroundSupported &&
+                <li>
+                  <BackgroundImage
+                    onBackgroundImageChanged={this.onBackgroundImageChanged}
+                    bg="bg-blue"
+                    src="./images/bg-alps-thumbnail.png"
+                    isActive={this.state.componentsState.background.image === 'bg-blue' ||
+                      !this.state.componentsState.background.image
+                    }
+                  />
+                </li>
+              }
               <li>
                 <BackgroundImage
                   onBackgroundImageChanged={this.onBackgroundImageChanged}
@@ -78,18 +110,9 @@ export default class Settings extends React.Component {
                   isActive={this.state.componentsState.background.image === 'bg-dark'}
                 />
               </li>
-              <li>
-                <BackgroundImage
-                  onBackgroundImageChanged={this.onBackgroundImageChanged}
-                  bg="bg-default"
-                  src="./images/no-bg-thumbnail.png"
-                  isActive={this.state.componentsState.background.image === 'bg-default' ||
-                    !this.state.componentsState.background.image
-                  }
-                />
-              </li>
             </ul>
           </div>
+          }
 
           <div className="settings-row">
             <span className="label">{t('app.settings.most-visited.label')}</span>
@@ -155,6 +178,20 @@ export default class Settings extends React.Component {
                       tabIndex="-1"
                       name="news"
                       id="news-radio-selector-3"
+                      value="fr"
+                      checked={this.state.componentsState.news.preferedCountry === 'fr'}
+                      onChange={this.onNewsSelectionChanged}
+                    />
+                    {t('app.settings.news.language.fr')}
+                  </label>
+                </div>
+                <div className="radio">
+                  <label htmlFor="news-radio-selector-4">
+                    <input
+                      type="radio"
+                      tabIndex="-1"
+                      name="news"
+                      id="news-radio-selector-4"
                       value="intl"
                       checked={this.state.componentsState.news.preferedCountry === 'intl'}
                       onChange={this.onNewsSelectionChanged}
@@ -178,7 +215,12 @@ Settings.propTypes = {
   onNewsSelectionChanged: PropTypes.func,
   toggle: PropTypes.func,
   isOpen: PropTypes.bool,
+  blueTheme: PropTypes.bool,
+  isBlueThemeSupported: PropTypes.func,
+  isBlueBackgroundSupported: PropTypes.func,
   toggleComponent: PropTypes.func,
+  toggleBlueTheme: PropTypes.func,
+  toggleBackground: PropTypes.func,
   restoreHistorySpeedDials: PropTypes.func,
   hasHistorySpeedDialsToRestore: PropTypes.bool,
 };

@@ -2,8 +2,6 @@ import utils from '../core/utils';
 import pacemaker from "./pacemaker";
 import sto from "../platform/antitracking/storage";
 
-const LOG_KEY = "attrack-persist";
-
 /** Load data from the attrack sqlite table.
     From CliqzAttrack.loadRecord
  */

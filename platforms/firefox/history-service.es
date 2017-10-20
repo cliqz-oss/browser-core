@@ -45,7 +45,7 @@ export default {
       observers.set(callback, observer);
       history.addObserver(observer, false);
     },
-    removedListener(callback) {
+    removeListener(callback) {
       if (observers.has(callback)) {
         const observer = observers.get(callback);
         history.removeObserver(observer);

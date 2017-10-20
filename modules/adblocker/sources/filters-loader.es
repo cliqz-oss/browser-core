@@ -1,3 +1,7 @@
+// TODO - this could be moved in `core/adblocker-base` if we refactor it in a
+// nicer way to make it more generic. Currently it's really coupled to our Cliqz
+// CDN and the way we distribute lists.
+
 import ResourceLoader, { Resource, UpdateCallbackHandler } from '../core/resource-loader';
 import Language from '../core/language';
 import { platformName } from '../core/platform';
@@ -11,6 +15,9 @@ const RESOURCES_PATH = ['adblocker'];
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
+
+// language factor
+const LANG_FACTOR = 20;
 
 
 // URLs to fetch block lists
@@ -180,7 +187,24 @@ export default class extends UpdateCallbackHandler {
     }
 
     if (Language.state) {
-      return Language.state();
+      // the most used language is always loaded,
+      // for the rest, only if they reach a proportion of the most used one
+      const userLang = [];
+      const langDist = Language.state(true);
+      // langDist: [['de', 0.001], ... ]
+
+      if (langDist.length > 0) {
+        // add most used language
+        userLang.push(langDist[0][0]);
+        const mostUsedCount = langDist[0][1];
+
+        // check the rest
+        langDist.shift(0);
+        langDist.filter(langVal => langVal[1] < mostUsedCount * LANG_FACTOR)
+          .map(langVal => userLang.push(langVal[0]));
+      }
+
+      return userLang;
     }
 
     return ['en'];

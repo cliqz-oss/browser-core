@@ -2,7 +2,8 @@ import background from '../core/base/background';
 import { utils } from '../core/cliqz';
 
 /**
-  @namespace <namespace>
+  @namespace offers-cc
+  @module offers-cc
   @class Background
  */
 export default background({

@@ -72,8 +72,8 @@ class PageLoadData {
     if (triggeredBy.indexOf('://') > 0) {
       let triggerDomain = triggeredBy.split('://')[1];
       // if trigger is same as page, hide as 'first party'
-      if (triggerDomain === this.hostname) {
-        triggerDomain = "first party";
+      if (sameGeneralDomain(triggerDomain, this.hostname)) {
+        triggerDomain = 'first party';
       }
       // if triggered by self, don't add
       if (sameGeneralDomain(triggerDomain, host)) {

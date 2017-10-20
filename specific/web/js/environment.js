@@ -127,6 +127,9 @@ CLIQZEnvironment = {
     addEngineWithDetails: function(engine) {
       return;
     },
+    restoreHiddenSearchEngines: function() {
+      return;
+    },
     removeEngine: function(name) {
       return;
     },

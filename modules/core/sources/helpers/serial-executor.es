@@ -2,8 +2,13 @@ import utils from '../utils';
 import console from '../console';
 
 /**
+ * @module core
+ * @namespace core
+ */
+
+/**
  * Executor which consumes asynchronous (Promise) tasks serially.
- * @namespace core/helpers
+ *
  * @class SerialExecutor
  */
 export default class {
@@ -31,6 +36,8 @@ export default class {
 
   /**
    *  Start the executor. By default this is done automatically on task submission.
+   *
+   *  @method start
    */
   start() {
     if (this._running) {
@@ -45,6 +52,9 @@ export default class {
   /**
    * Execute all the tasks in the queue. This is called recursively to consume all queue elements
    * from beginning to end.
+   *
+   * @method _consumeQueue
+   * @private
    */
   _consumeQueue() {
     if (this._tasks.length === 0) {

@@ -15,12 +15,12 @@ import UndoDialRemoval from './undo-dial-removal';
 import { historyClickSignal, settingsClickSignal, homeConfigsStatusSignal } from '../services/telemetry/home';
 import { deleteUndoSignal, undoCloseSignal } from '../services/telemetry/speed-dial';
 import { settingsRestoreTopSitesSignal, settingsComponentsToggleSignal, newsSelectionChangeSignal } from '../services/telemetry/settings';
+import { DEFAULT_BG, FALLBACK_BG, NO_BG } from '../services/background-image';
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.freshtab = cliqz.freshtab;
-    this.offersV2 = cliqz.offersV2;
     cliqz.setStorage({
       setState: this.setState.bind(this)
     });
@@ -33,6 +33,8 @@ class App extends React.Component {
           search: {},
           news: {},
           background: {},
+          blueTheme: false,
+          isBrowser: false
         }
       },
       dials: {
@@ -59,6 +61,8 @@ class App extends React.Component {
     this.undoRemoval = this.undoRemoval.bind(this);
     this.closeUndo = this.closeUndo.bind(this);
     this.toggleComponent = this.toggleComponent.bind(this);
+    this.toggleBlueTheme = this.toggleBlueTheme.bind(this);
+    this.toggleBackground = this.toggleBackground.bind(this);
   }
 
   componentDidMount() {
@@ -68,8 +72,8 @@ class App extends React.Component {
       this.getNews(),
       this.getConfig(),
       this.getSpeedDials(),
+      this.getOffers()
     ]).then(() => {
-      this.getOffers();
       this.onFinishedLoading();
     });
   }
@@ -163,32 +167,22 @@ class App extends React.Component {
   }
 
   getOffers() {
-    if (!this.state.config.showOffers) {
-      return false;
-    }
-
-    const args = {
-      filters: {
-        by_rs_dest: 'cliqz-tab',
-        ensure_has_dest: true
-      }
-    };
-
-    return this.offersV2.getStoredOffers(args).then(offers => this.setState({ offers }));
+    return this.freshtab.getOffers().then((offers = []) => {
+      this.setState({ offers });
+    });
   }
 
   /*
    * theme is also set inside of home.html
    */
   updateTheme(bg) {
-    localStorage.theme = bg;
     const classList = document.body.classList;
 
     if (classList.contains(`theme-${bg}`)) {
       return;
     }
 
-    document.body.className.split(' ').forEach((className) => {
+    document.body.classList.forEach((className) => {
       if (className.indexOf('theme-') === 0) {
         classList.remove(className);
       }
@@ -312,8 +306,7 @@ class App extends React.Component {
     cliqz.freshtab.toggleComponent(component);
     const config = this.state.config;
     const componentState = config.componentsState[component];
-
-    settingsComponentsToggleSignal(component, this.state);
+    settingsComponentsToggleSignal(component, componentState.visible);
     this.setState({
       config: {
         ...config,
@@ -326,6 +319,35 @@ class App extends React.Component {
         },
       },
     });
+  }
+
+  toggleBlueTheme() {
+    const oldState = this.state.config.blueTheme;
+    settingsComponentsToggleSignal('cliqzTheme', oldState);
+    cliqz.freshtab.toggleBlueTheme();
+    this.setState({
+      config: {
+        ...this.state.config,
+        blueTheme: !this.state.config.blueTheme
+      },
+    });
+  }
+
+  _hasNoBg() {
+    return this.state.config.componentsState.background.image === NO_BG;
+  }
+
+  toggleBackground() {
+    const oldState = this.state.config.componentsState.background.image;
+    const isOn = (oldState !== NO_BG);
+    settingsComponentsToggleSignal('background', isOn);
+    let newBg;
+    if (this._hasNoBg()) {
+      newBg = this.state.config.isBlueBackgroundSupported ? DEFAULT_BG : FALLBACK_BG;
+    } else {
+      newBg = NO_BG;
+    }
+    this.onBackgroundImageChanged(newBg);
   }
 
   render() {
@@ -397,11 +419,14 @@ class App extends React.Component {
                   />
                 }
               </div>
-              <MessageCenter
-                position="middle"
-                messages={this.state.messages}
-                handleLinkClick={msg => this.onMessageClicked(msg)}
-              />
+
+              {(this.state.offers.length === 0) &&
+                <MessageCenter
+                  position="middle"
+                  messages={this.state.messages}
+                  handleLinkClick={msg => this.onMessageClicked(msg)}
+                />
+              }
 
               {(this.state.offers.length > 0) &&
                 <OfferMiddleMessages offers={this.state.offers} />
@@ -422,6 +447,12 @@ class App extends React.Component {
             onBackgroundImageChanged={bg => this.onBackgroundImageChanged(bg)}
             onNewsSelectionChanged={country => this.onNewsSelectionChanged(country)}
             toggleComponent={this.toggleComponent}
+            toggleBlueTheme={this.toggleBlueTheme}
+            blueTheme={this.state.config.blueTheme}
+            isBlueThemeSupported={this.state.config.isBlueThemeSupported}
+            toggleBackground={this.toggleBackground}
+            isBlueBackgroundSupported={this.state.config.isBlueBackgroundSupported}
+            isBrowser={this.state.config.isBrowser}
             isOpen={this.state.isSettingsOpen}
             componentsState={this.state.config.componentsState}
             hasHistorySpeedDialsToRestore={this.state.hasHistorySpeedDialsToRestore}

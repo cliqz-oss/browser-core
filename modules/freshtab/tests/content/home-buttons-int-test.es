@@ -121,7 +121,7 @@ describe('Fresh tab buttons interactions', function () {
     action: 'getConfig',
     response: {
       locale: 'en-US',
-      newTabUrl: 'resource://cliqz/freshtab/home.html',
+      newTabUrl: 'chrome://cliqz/content/freshtab/home.html',
       isBrowser: false,
       showNewBrandAlert: false,
       messages: {},

@@ -193,10 +193,12 @@ export default background({
     if (!url || !this.triggerMachineExecutor) {
       return;
     }
+    const lwUrl = url.toLowerCase();
     const data = {
       url,
       urlObj,
-      queryInfo: this.queryHandler.normalize(url, urlObj.domain)
+      queryInfo: this.queryHandler.normalize(url, urlObj.domain),
+      lowerCaseUrl: lwUrl
     };
     this.triggerMachineExecutor.processUrlChange(data);
   },

@@ -49,20 +49,28 @@ export default class {
       'type-filter': this.typeFilter.bind(this),
     };
 
-    this.toolbarButton.addWindow(window, this.actions);
+    if (this.toolbarButton) {
+      this.toolbarButton.addWindow(window, this.actions);
+    }
 
     if (this.pageAction) {
       this.pageAction.addWindow(window, this.actions);
 
       const pageActionBtn = window.document.getElementById(this.pageAction.id);
-      window.document.getElementById('urlbar-icons').appendChild(pageActionBtn);
+      const pageActionButtons =
+        // Firefox 56 and bellow
+        window.document.getElementById('urlbar-icons') ||
+        // Firefox 57 and above
+        window.document.getElementById('page-action-buttons');
+
+      pageActionButtons.appendChild(pageActionBtn);
     }
   }
 
   init() {
     events.sub('core.location_change', this.actions.refreshState);
 
-    if (utils.getPref('toolbarButtonPositionSet', false) === false) {
+    if (utils.getPref('toolbarButtonPositionSet', false) === false && this.toolbarButton) {
       this.toolbarButton.setPositionBeforeElement('bookmarks-menu-button');
       utils.setPref('toolbarButtonPositionSet', true);
     }
@@ -134,7 +142,7 @@ export default class {
   }
 
   unload() {
-    this.toolbarButton.removeWindow(this.window);
+    this.toolbarButton && this.toolbarButton.removeWindow(this.window);
     this.pageAction && this.pageAction.removeWindow(this.window);
 
     events.un_sub('core.location_change', this.actions.refreshState);
@@ -296,7 +304,7 @@ export default class {
   }
 
   updateBadge(info) {
-    if (info !== undefined) {
+    if (this.toolbarButton && info !== undefined) {
       this.toolbarButton.setBadgeText(this.window, `${info}`);
     }
   }
@@ -326,8 +334,10 @@ export default class {
   }
 
   setState(state) {
-    this.toolbarButton.setIcon(this.window, this.ICONS[state]);
-    this.toolbarButton.setBadgeBackgroundColor(this.window, this.BACKGROUNDS[state]);
+    if (this.toolbarButton) {
+      this.toolbarButton.setIcon(this.window, this.ICONS[state]);
+      this.toolbarButton.setBadgeBackgroundColor(this.window, this.BACKGROUNDS[state]);
+    }
   }
 
   updatePref(data) {
@@ -541,12 +551,12 @@ export default class {
       origin: 'window',
       message,
     };
-    this.toolbarButton.sendMessage(this.window, msg);
+    this.toolbarButton && this.toolbarButton.sendMessage(this.window, msg);
     this.pageAction && this.pageAction.sendMessage(this.window, msg);
   }
 
   resizePopup({ width, height }) {
-    this.toolbarButton.resizePopup(this.window, { width, height });
+    this.toolbarButton && this.toolbarButton.resizePopup(this.window, { width, height });
     this.pageAction && this.pageAction.resizePopup(this.window, { width, height });
   }
 

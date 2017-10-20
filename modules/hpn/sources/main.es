@@ -89,8 +89,7 @@ const CliqzSecureMessage = {
   trkTimer: null,
   telemetry: function(msg, instantPush) {
     if (!CliqzSecureMessage || // might be called after the module gets unloaded
-        CliqzUtils.getPref('dnt', false) ||
-        CliqzUtils.isPrivate(CliqzUtils.getWindow())) return;
+        CliqzUtils.getPref('dnt', false)) return;
 
     if (msg) CliqzSecureMessage.trk.push(msg);
     CliqzUtils.clearTimeout(CliqzSecureMessage.trkTimer);

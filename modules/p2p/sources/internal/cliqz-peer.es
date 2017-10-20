@@ -1,4 +1,5 @@
 import CliqzUtils from '../../core/utils';
+import { nextTick } from '../../core/decorators';
 import CliqzPeerConnection from './cliqz-peer-connection';
 import logger from './logger';
 import constants from './constants';
@@ -634,7 +635,7 @@ export default class CliqzPeer {
     if (has(this.connections, requestedPeer)) {
       return Promise.resolve();
     }
-    return Promise.resolve().then(() => (this.signalingEnabled ? this.createConnection() : null))
+    return nextTick(() => (this.signalingEnabled ? this.createConnection() : null))
     .then(() => {
       if (!has(this.connections, requestedPeer)) {
         this.logDebug('Trying to connect to peer', requestedPeer);
@@ -1008,8 +1009,8 @@ export default class CliqzPeer {
   _onSocketOpen() {
     this.logDebug('socket.onopen');
     this.connectionStatus = 'open';
-    if (this.privateKey) {
-      this._sendSocket('connect', { authLogin: true });
+    if (this.publicKey) {
+      this._sendSocket('connect', { authLogin: true, secret: this.publicKey });
     } else {
       this._sendSocket('connect', { route: this.peerID });
     }

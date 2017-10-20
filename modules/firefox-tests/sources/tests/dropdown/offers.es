@@ -46,7 +46,7 @@ export default function () {
     let resultElement;
     let offerElement;
 
-    beforeEach(function () {
+    before(function () {
       CliqzUtils.setPref('offersDropdownSwitch', true);
       respondWith({ results });
       withHistory([]);

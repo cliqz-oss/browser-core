@@ -1,0 +1,14 @@
+<a class="result" href="{{ url }}">
+    {{> partials/logo}}
+    {{> partials/abstract}}
+</a>
+
+<div class="movie-cinema">
+{{#if isMovieEZ}}
+    {{> partials/movie}}
+{{else}}
+    {{> partials/local}}
+{{/if}}
+    {{> partials/share-location}}
+    {{> partials/show-time}}
+</div>

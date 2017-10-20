@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableHighlight } from 'react-native';
 import { cardWidth } from '../../styles/CardStyle';
-import VectorDrawable from '../custom/VectorDrawable';
+import NativeDrawable from '../custom/NativeDrawable';
 
 export default class extends React.Component {
 
@@ -10,7 +10,7 @@ export default class extends React.Component {
     return <View key={day.weekday} style={styles.dayWrapper}>
         <Text style={styles.text}>{day.weekday}</Text>
         <Text style={styles.text}>max.  {day.max} / min. {day.min}</Text>
-        <VectorDrawable src={imageName} style={styles.dayIcon} />
+        <NativeDrawable src={'ic_ez_' + imageName} style={styles.dayIcon} />
       </View>
   }
 

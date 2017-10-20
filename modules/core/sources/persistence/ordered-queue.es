@@ -4,9 +4,15 @@ import Database from '../database';
 import DocumentBatch from './document-batch';
 
 /**
+ * @module core
+ * @submodule core.persistence
+ * @namespace core
+ */
+
+/**
  * A persistent Queue which maintains element ordering by provided
  * sort keys. Supports element query from both ends.
- * @namespace core/persistence
+ *
  * @class OrderedQueue
  */
 export default class {
@@ -29,6 +35,7 @@ export default class {
    * Add a value to the queue with the specified sort value.
    * If key already exists in the queue, this is a noop. Setting `overwrite` to
    * true overrides this behaviour.
+   * @method offer
    * @param {String} key
    * @param {Any}    sortValue
    * @param {Bool}   overwrite (optional) default false
@@ -50,6 +57,9 @@ export default class {
     });
   }
 
+  /**
+   * @method offer
+   */
   length() {
     // doc count will be one more than queue length due to design doc
     return this.db.info().then(stats => Math.max(stats.doc_count - 1, 0));
@@ -57,6 +67,7 @@ export default class {
 
   /**
    * Fetch entries from the queue (in order)
+   * @method peek
    * @param {Object} opts Options to query:
    *    - `limit` limit maximum number of results
    *    - `descending` to reverse ordering

@@ -23,15 +23,6 @@ function onLocationChange(ev) {
   }.bind(this), 2000);
 }
 
-function onPrefChange(pref) {
-  if (pref == AttrackBG.attrack.ENABLE_PREF && AttrackBG.attrack.isEnabled() != this.enabled) {
-    if (AttrackBG.attrack.isEnabled()) {
-      AttrackBG.attrack.initWindow(this.window);
-    }
-    this.enabled = AttrackBG.attrack.isEnabled();
-  }
-};
-
 export default class {
 
   constructor(config) {
@@ -39,24 +30,20 @@ export default class {
     this.controlCenter = inject.module('control-center');
 
     this.onLocationChange = onLocationChange.bind(this);
-    this.onPrefChange = onPrefChange.bind(this);
     this.enabled = false;
   }
 
   init() {
     events.sub("core.location_change", this.onLocationChange);
-    this.onPrefChange(AttrackBG.attrack.ENABLE_PREF);
-    events.sub("prefchange", this.onPrefChange);
   }
 
   unload() {
     events.un_sub("core.location_change", this.onLocationChange);
     utils.clearInterval(this.interval);
-    events.un_sub("prefchange", this.onPrefChange);
   }
 
   getBadgeData(info) {
-    if (AttrackBG.attrack.isSourceWhitelisted(info.hostname)) {
+    if (AttrackBG.attrack.urlWhitelist.isWhitelisted(info.hostname)) {
       // do not display number if site is whitelisted
       return 0;
     } else {
@@ -83,7 +70,7 @@ export default class {
       .then((info) => {
         const ps = info.ps;
         const hostname = url ? url.hostname : '';
-        const isWhitelisted = AttrackBG.attrack.isSourceWhitelisted(hostname);
+        const isWhitelisted = AttrackBG.attrack.urlWhitelist.isWhitelisted(hostname);
         const enabled = utils.getPref('modules.antitracking.enabled', true) && !isWhitelisted;
 
         return {

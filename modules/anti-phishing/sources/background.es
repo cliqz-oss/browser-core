@@ -2,7 +2,7 @@ import utils from '../core/utils';
 import CliqzAntiPhishing from './anti-phishing';
 import background from '../core/base/background';
 import inject from '../core/kord/inject';
-import * as datetime from 'antitracking/time';
+import * as datetime from '../antitracking/time';
 
 function addDataToUrl(...args) {
   const hw = inject.module('human-web');

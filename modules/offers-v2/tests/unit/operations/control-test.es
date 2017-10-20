@@ -637,6 +637,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         let ctx;
         beforeEach(function () {
           ctx = {};
+          // ctx = {'#lc_url': 'https://amazon.com/basket'};
           prefRetVal = {};
         });
 
@@ -661,16 +662,19 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/simple check doesnt match', () => {
+          ctx = {'#lc_url': 'https://amazon.com/basket'};
           let o = ['$match', ['https://amazon.com/basket', 'amazon.de/basket']];
           return testCase(o, false, ctx);
         });
 
         it('/simple check matches', () => {
+          ctx = {'#lc_url': 'https://amazon.de/basket'};
           let o = ['$match', ['https://amazon.de/basket', 'amazon.de/basket']];
           return testCase(o, true, ctx);
         });
 
         it('/simple check matches in the third position', () => {
+          ctx = {'#lc_url': 'https://amazon.com/basket'};
           let o = ['$match', ['https://amazon.com/basket', 'amazon.de/basket', 'amazon.de', 'amazon.com']];
           return testCase(o, true, ctx);
         });
@@ -757,7 +761,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           }]
         }];
 
-        it('/simple checks no query_info', () => {
+        it('/simple checks query_info is valid', () => {
           ctx = { '#query_info': { query: 'test', origin: 'google.de' } };
           let o = ['$match_query', testArgs];
           return testCase(o, true, ctx);

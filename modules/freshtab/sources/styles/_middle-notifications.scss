@@ -29,6 +29,15 @@
 
         &.notification {
             border: 1px solid #00aef0;
+
+            &:after {
+                clear: both;
+                content: " ";
+                display: block;
+                font-size: 0;
+                height: 0;
+                visibility: hidden;
+            }
         }
 
         .close {
@@ -42,6 +51,7 @@
         }
 
         .icon {
+            float: left;
             background: no-repeat center top;
             background-size: $middle-icon-bg-size;
             width: $middle-icon-size;
@@ -52,7 +62,8 @@
         }
 
         .content {
-            display: inline-block;
+            float: left;
+            width: calc(100% - 90px);
             color: $middle-box-content-color;
             padding-left: $middle-content-padding-left;
 
@@ -79,6 +90,5 @@
                 }
             }
         }
-
     }
 }

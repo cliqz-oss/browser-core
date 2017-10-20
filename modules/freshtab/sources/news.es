@@ -24,7 +24,7 @@ const hbasedNewsTypeKey = 'yournews';
 const prClBurdaNewsTypeKey = 'pr-cl-burda-news';
 const breakingNewsTypeKey = 'breaking-news';
 
-const NEWS_BACKENDS = ['de'];
+const NEWS_BACKENDS = ['de', 'fr'];
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 
 function log(s) {

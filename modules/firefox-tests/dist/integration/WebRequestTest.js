@@ -65,10 +65,10 @@ TESTS.WebRequestTest = function(CliqzUtils) {
         for (var topic of [onBeforeRequest, onBeforeSendHeaders]) {
           var reqs = topic.filter( function(req) { return req.url === url });
           var req = reqs[0];
-          chai.expect(req.responseStatus).to.be.undefined;
+          chai.expect(req.statusCode).to.be.undefined;
         }
         var req = onHeadersReceived.filter( function(req) { return req.url === url })[0];
-        chai.expect(req.responseStatus).to.equal(200);
+        chai.expect(req.statusCode).to.equal(200);
       });
 
     });
@@ -106,10 +106,10 @@ TESTS.WebRequestTest = function(CliqzUtils) {
         for (var topic of [onBeforeRequest, onBeforeSendHeaders]) {
           var reqs = topic.filter( function(req) { return req.url === url });
           var req = reqs[0];
-          chai.expect(req.responseStatus).to.be.undefined;
+          chai.expect(req.statusCode).to.be.undefined;
         }
         var req = onHeadersReceived.filter( function(req) { return req.url === url })[0];
-        chai.expect(req.responseStatus).to.equal(200);
+        chai.expect(req.statusCode).to.equal(200);
       });
 
       it('all listeners get same tabId', function() {

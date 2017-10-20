@@ -97,7 +97,6 @@ export default describeModule("freshtab/news",
               cleanHost: "meduza.io"
             }
           };
-          console.log(`extractSimpleURI ${url} ${JSON.stringify(data[url])}`);
           return data[url];
         };
 

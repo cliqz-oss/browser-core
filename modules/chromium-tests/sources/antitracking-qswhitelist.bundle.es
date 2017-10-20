@@ -24,7 +24,7 @@ beforeEach(() => {
   WebRequestPipeline.unload();
   return WebRequestPipeline.init()
     .then(() => setGlobal({
-      availableModules: {
+      modules: {
         'webrequest-pipeline': {
           isEnabled: true,
           isReady() { return Promise.resolve(true); },

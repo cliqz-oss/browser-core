@@ -3,6 +3,9 @@ let mockPrefs = {};
 
 export default describeModule('antitracking/config', 
   () => ({
+    // 'core/events': {
+    //   default: {}
+    // },
     './persistent-state': {
       getValue: (p, d) => (mockPrefs[p] || d),
     },

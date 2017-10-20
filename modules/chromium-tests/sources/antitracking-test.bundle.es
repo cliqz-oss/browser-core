@@ -65,7 +65,7 @@ beforeEach(function () {
   WebRequestPipeline.unload();
   return WebRequestPipeline.init({})
     .then(() => setGlobal({
-      availableModules: {
+      modules: {
         'webrequest-pipeline': {
           isEnabled: true,
           isReady() { return Promise.resolve(true); },
@@ -599,47 +599,47 @@ describe('attrack list update', function() {
 describe('isSourceWhitelisted', function() {
 
   it('returns false for non whitelisted domain', function() {
-    chai.expect(attrack.isSourceWhitelisted('example.com')).to.be.false;
+    chai.expect(attrack.urlWhitelist.isWhitelisted('example.com')).to.be.false;
   });
 
-  describe('addSourceDomainToWhitelist', function() {
+  describe('add domain to url whitelist', function() {
 
     afterEach(function() {
-      attrack.removeSourceDomainFromWhitelist('example.com');
+      attrack.urlWhitelist.changeState('example.com', 'hostname', 'remove');
     });
 
     it('adds a source domain to the whitelist', function() {
-      attrack.addSourceDomainToWhitelist('example.com');
-      chai.expect(attrack.isSourceWhitelisted('example.com')).to.be.true;
+      attrack.urlWhitelist.changeState('example.com', 'hostname', 'add');
+      chai.expect(attrack.urlWhitelist.isWhitelisted('example.com')).to.be.true;
     });
 
     it('does not add any other domains to the whitelist', function() {
-      attrack.addSourceDomainToWhitelist('example.com');
-      chai.expect(attrack.isSourceWhitelisted('www.example.com')).to.be.false;
+      attrack.urlWhitelist.changeState('example.com', 'hostname', 'add');
+      chai.expect(attrack.urlWhitelist.isWhitelisted('another.example.com')).to.be.false;
     });
 
   });
 
-  describe('removeSourceDomainFromWhitelist', function() {
+  describe('remove domain from url whitelist', function() {
 
     afterEach(function() {
-      attrack.removeSourceDomainFromWhitelist('example.com');
-      attrack.removeSourceDomainFromWhitelist('www.example.com');
+      attrack.urlWhitelist.changeState('example.com', 'hostname', 'remove');
+      attrack.urlWhitelist.changeState('another.example.com', 'hostname', 'remove');
     });
 
     it('removes a domain from the whitelist', function() {
-      attrack.addSourceDomainToWhitelist('example.com');
-      attrack.removeSourceDomainFromWhitelist('example.com');
-      chai.expect(attrack.isSourceWhitelisted('example.com')).to.be.false;
+      attrack.urlWhitelist.changeState('example.com', 'hostname', 'add');
+      attrack.urlWhitelist.changeState('example.com', 'hostname', 'remove');
+      chai.expect(attrack.urlWhitelist.isWhitelisted('example.com')).to.be.false;
     });
 
     it('does not remove other domains', function() {
-      attrack.addSourceDomainToWhitelist('example.com');
-      attrack.addSourceDomainToWhitelist('www.example.com');
-      attrack.removeSourceDomainFromWhitelist('example.com');
+      attrack.urlWhitelist.changeState('example.com', 'hostname', 'add');
+      attrack.urlWhitelist.changeState('another.example.com', 'hostname', 'add');
+      attrack.urlWhitelist.changeState('example.com', 'hostname', 'remove');
 
-      chai.expect(attrack.isSourceWhitelisted('example.com')).to.be.false;
-      chai.expect(attrack.isSourceWhitelisted('www.example.com')).to.be.true;
+      chai.expect(attrack.urlWhitelist.isWhitelisted('example.com')).to.be.false;
+      chai.expect(attrack.urlWhitelist.isWhitelisted('another.example.com')).to.be.true;
     });
   });
 });

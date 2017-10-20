@@ -1,10 +1,20 @@
 /**
+ * @module core
+ * @submodule core.persistence
+ * @namespace core
+ */
+
+/**
  * Helper class for a batch response from pouch db
- * @namespace core/persistence
+ *
  * @class DocumentBatch
  */
 export default class DocumentBatch {
 
+  /**
+   * @constructor
+   * @param {object} db
+   */
   constructor(db, docs) {
     this.db = db;
     this.docs = docs;
@@ -12,7 +22,9 @@ export default class DocumentBatch {
 
   /**
    * Get the raw documents from this batch
-   * @returns {Array<Object>}
+   *
+   * @method getDocs
+   * @returns {Object[]}
    */
   getDocs() {
     return this.docs.rows.map(row => row.doc);
@@ -20,7 +32,9 @@ export default class DocumentBatch {
 
   /**
    * Get rows returned from query
-   * @returns {Array<Object>}
+   *
+   * @method getRows
+   * @returns {Object[]}
    */
   getRows() {
     return this.docs.rows;
@@ -28,6 +42,7 @@ export default class DocumentBatch {
 
   /**
    * Delete all the rows in this batch from the database
+   * @method delete
    * @returns {Promise}
    */
   delete() {

@@ -85,10 +85,14 @@ $(document).on('click', '#download-links li', function(e) {
 });
 
 $(document).on('click', '#pairing-dashboard', function(){
+  sendMessageToWindow({
+    action: 'openConnectPage',
+    data: {}
+  });
   hidePopup();
 });
 
-function hidePopup () {
+function hidePopup() {
   sendMessageToWindow({
     action: 'hidePopup',
     data: {}

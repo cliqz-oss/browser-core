@@ -10,17 +10,17 @@ const DOUBLECLICK_DOMAINS = new Set([
   'tcp.googlesyndication.com',
 
   // Necessary? TODO
-  '2mdn.net',
+  // '2mdn.net',
   // 'google.com',
   // 'gstatic.com',
-  'ad-srv.net',
+  // 'ad-srv.net',
 
-  'ad.zanox.com',
-  'zanox.com',
-  'adcell.de',
-  'ssl.upcdn.com',
-  'upcdn.com',
-  'hse24.de',
+  // 'ad.zanox.com',
+  // 'zanox.com',
+  // 'adcell.de',
+  // 'ssl.upcdn.com',
+  // 'upcdn.com',
+  // 'hse24.de',
   // 'youtube.com',
 ]);
 

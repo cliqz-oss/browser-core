@@ -67,7 +67,7 @@ function describeModule(moduleName, loadDeps, testFn) {
     defaultJSExtensions: true,
     baseURL,
     meta: {
-      '*': { format: 'register' },
+      '*': { format: cliqzConfig.format === 'common' ? 'cjs' : 'register' },
     },
   });
 
@@ -94,6 +94,9 @@ function describeModule(moduleName, loadDeps, testFn) {
   function loadModules() {
     const depsRewrite = Object.assign(Object.create(null), deps);
     Object.keys(deps).forEach(function (dep) {
+      if (cliqzConfig.format === 'common') {
+        deps[dep].__esModule = true;
+      }
       Object.keys(deps[dep]).forEach(function (key) {
         if (deps[dep][key] === '[dynamic]') {
           depsRewrite[dep][key] = function () {

@@ -66,7 +66,9 @@ function getFormats(info) {
         }
       }
     });
-    videos.push(audio);
+    if (audio) {
+      videos.push(audio);
+    }
     return videos.concat(videosOnly);
   }
   return [];

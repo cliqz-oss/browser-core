@@ -16,6 +16,30 @@ function objectExtend(target, obj) {
   return target;
 }
 
+const isMovieTemplate = (template) => {
+  return (template === 'movieEZ' ||
+          template === 'cinemaEZ' ||
+          template === 'movie');
+};
+
+const allowOnlyOneMovie = (results) => {
+  let hasMovie = false;
+  return results.map((r) => {
+    if (isMovieTemplate(r.data.template) && hasMovie) {
+      return {
+        ...r,
+        data: {
+          ...r.data,
+          template: 'generic',
+        }
+      };
+    } else if (isMovieTemplate(r.data.template)) {
+      hasMovie = true;
+    }
+    return r;
+  });
+};
+
 // enriches data kind
 function kindEnricher(newKindParams, kind) {
   var parts = kind.split('|'),
@@ -341,7 +365,9 @@ export default class Mixer {
     // start with the richer result
     r = this._deduplicateResults(history, cliqz);
     // Prepare results: history (first) then backend results (second)
-  results = customResults.concat(r.first).concat(r.second);
+    results = customResults.concat(r.first).concat(r.second);
+
+    results = allowOnlyOneMovie(results);
 
     utils.log('only_history:' + only_history +
               ' history:' + history.length +

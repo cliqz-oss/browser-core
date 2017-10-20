@@ -124,6 +124,22 @@ export default class BrowserAction {
     }
   }
 
+  showPopup(window) {
+    const node = window.document.getElementById(this.id);
+    window.PanelUI.showSubView(
+      this.viewId,
+      node,
+      this.defaults.area,
+    );
+  }
+
+  hidePopup(window) {
+    const node = window.document.querySelector(`[viewId=${this.viewId}]`);
+    if (node) {
+      node.hidePopup();
+    }
+  }
+
   shutdown() {
     CustomizableUI.destroyWidget(this.id);
   }

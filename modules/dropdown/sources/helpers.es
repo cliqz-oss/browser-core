@@ -151,6 +151,10 @@ export default {
   },
 
   distance(meters) {
+    if (!meters) {
+      return null;
+    }
+
     let distance;
     let unit;
     if (meters < 1000) {
@@ -162,6 +166,4 @@ export default {
     }
     return `${distance} ${unit}`;
   }
-
-
-}
+};

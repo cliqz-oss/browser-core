@@ -5,67 +5,20 @@ import { registerContentScript
        , CHROME_MSG_SOURCE
        , isCliqzContentScriptMsg } from '../core/content/helpers';
 import store from '../core/content/store';
+import CosmeticsInjection from '../core/adblocker-base/cosmetics-injection';
 import logger from './logger';
 
 // import { getGeneralDomain } from '../core/tlds';
 
 
-// TODO - remove as soon as we can import `../core/tlds` directly.
-function _extractDomain(url) {
-  let domain = url;
-
-  // We need to check that the index is <= because this protocol could appear
-  // as a value of a parameter in the URL.
-  const indexOfProtocol = url.indexOf('://');
-  if (indexOfProtocol !== -1 && indexOfProtocol <= 6) {
-    domain = url.substring(indexOfProtocol + 3);
-  }
-
-  const indexOfSlash = domain.indexOf('/');
-  if (indexOfSlash !== -1) {
-    domain = domain.substring(0, indexOfSlash);
-  }
-
-  if (domain.startsWith('www.')) {
-    domain = domain.substring(4);
-  }
-
-  return domain;
+function isChipDomain(url, window) {
+  const parser = window.document.createElement('a');
+  parser.href = url;
+  return parser.hostname.endsWith('chip.de');
 }
 
-
-function isChipDomain(url) {
-  // return getGeneralDomain(documentUrl) === 'chip.de';
-  const domain = _extractDomain(url);
-  return domain.indexOf('chip.de') !== -1;
-}
-
-
-/* TEMPORARY port of adblocker content-script injection into green-ads
- *
- */
 
 let selectedAds;
-
-
-function greenAdsInjectScript(s, doc) {
-  const script = doc.createElement('script');
-  script.type = 'text/javascript';
-  script.id = 'cliqz-adblocker-script';
-  script.textContent = s;
-  doc.getElementsByTagName('head')[0].appendChild(script);
-}
-
-
-function greenAdsBlockScript(filter, document) {
-  const fRegex = new RegExp(filter);
-  document.addEventListener('beforescriptexecute', (ev) => {
-    if (fRegex.test(ev.target.textContent)) {
-      ev.preventDefault();
-      ev.stopPropagation();
-    }
-  });
-}
 
 
 /** *************************************************************************\
@@ -160,7 +113,8 @@ function injectCSS(window, id, content) {
   const css = document.createElement('style');
   css.type = 'text/css';
   css.id = id;
-  document.getElementsByTagName('head')[0].appendChild(css);
+  const parent = document.head || document.documentElement;
+  parent.appendChild(css);
   css.appendChild(document.createTextNode(content));
 }
 
@@ -261,6 +215,19 @@ function greenAdsCollectIframesRec(args) {
   // Inspect frames contained in this window
   const iframes = [];
 
+  if (url !== documentUrl) {
+    iframes.push({
+      windowTreeInformation,
+      hasCanvas: window.document.querySelector('canvas'),
+      hrefs: [...window.document.querySelectorAll('a')]
+          .map(a => a.href)       // Select only href
+          .filter(href => href),  // Keep only non-empty ones
+      src: url,
+      id: '',
+      parents,
+    });
+  }
+
   // Collect visible iframes (having a defined `src` attribute) + metadata
   forEachVisibleFrame(window.document, (iframe) => {
     if (iframe.contentDocument.body !== null) {
@@ -271,6 +238,7 @@ function greenAdsCollectIframesRec(args) {
           .map(a => a.href)       // Select only href
           .filter(href => href),  // Keep only non-empty ones
         src: iframe.src,
+        id: iframe.id || '',
         parents: getWindowParents(iframe.contentWindow),
         readyState: iframe.contentDocument.readyState,
       });
@@ -715,34 +683,6 @@ function greenAdsInsertChipAds({ url, window, send, windowId, windowTreeInformat
  ****************************************************************************/
 
 
-function greenAdsOnMessageReceived({ msg, window }) {
-  if (msg && msg.payload && msg.module === 'green-ads') {
-    // Mark detected ads with red + transparency
-    // injectCSS(window, 'cliqz-ads-css-rules-highlight', `
-    //   body {
-    //     opacity: 0.5;
-    //     background-color: red;
-    //     content: " ";
-    //     z-index: 10;
-    //     display: block;
-    //     position: absolute;
-    //     height: 100%;
-    //     top: 0;
-    //     left: 0;
-    //     right: 0;
-    //   }
-    // `);
-  }
-
-  // Trigger adblocker injection
-  if (msg && msg.response && msg.response.type === 'domain-rules') {
-    if (!msg.response.active) return;
-    msg.response.scripts.forEach(s => greenAdsInjectScript(s, window.document));
-    msg.response.scriptBlock.forEach(s => greenAdsBlockScript(s, window.document));
-  }
-}
-
-
 function greenAdsOnDOMCreated(args) {
   const { window
         , send
@@ -751,11 +691,11 @@ function greenAdsOnDOMCreated(args) {
         , mode
         , documentUrl } = args;
   const {
-    originWindowID,
-    outerWindowID,
+    tabId,
+    frameId,
   } = windowTreeInformation;
 
-  if (originWindowID === outerWindowID) {
+  if (tabId === frameId) {
     send({
       source: CHROME_MSG_SOURCE,
       windowId,
@@ -795,11 +735,11 @@ function greenAdsOnDOMLoaded(args) {
     throttle } = args;
 
   var {
-    originWindowID,
-    outerWindowID,
+    tabId,
+    frameId,
   } = windowTreeInformation;
 
-  if (originWindowID === outerWindowID) {
+  if (tabId === frameId) {
     send({
       source: CHROME_MSG_SOURCE,
       windowId,
@@ -856,8 +796,8 @@ function greenAdsOnFullLoad(args) {
     throttle } = args;
 
   const {
-    originWindowID,
-    outerWindowID,
+    tabId,
+    frameId,
   } = windowTreeInformation;
 
   send({
@@ -879,7 +819,7 @@ function greenAdsOnFullLoad(args) {
     return;
   }
 
-  if (originWindowID === outerWindowID) {
+  if (tabId === frameId) {
     greenAdsListenerOnAdDivs({
       documentUrl,
       window,
@@ -912,11 +852,32 @@ registerContentScript('http://*.chip.de/*', (window, chrome, windowId) => {
   const { documentUrl } = getUrlsToTop(url, window);
 
   // Make sure the the top level url has chip.de as a general domain
-  if (!isChipDomain(documentUrl)) {
+  if (!isChipDomain(documentUrl, window)) {
     return;
   }
 
+  /**
+   * Helper used to trigger action from the adblocker's background:
+   * @param {string} action - name of the action found in the background.
+   * @param {array} args - arguments to forward to the action.
+   */
+  const backgroundAction = (action, ...args) => {
+    chrome.runtime.sendMessage({
+      windowId,
+      payload: {
+        module: 'green-ads',
+        action,
+        args,
+      }
+    });
+  };
+
+  // Inject and block scripts in the page
+  const cosmeticsInjection = new CosmeticsInjection(url, window, backgroundAction);
+
   const onReady = () => {
+    cosmeticsInjection.onDOMContentLoaded();
+
     greenAdsOnDOMLoaded({
       documentUrl,
       inventory: config.inventory,
@@ -947,7 +908,14 @@ registerContentScript('http://*.chip.de/*', (window, chrome, windowId) => {
     if (!isCliqzContentScriptMsg(msg)) {
       return;
     }
-    greenAdsOnMessageReceived({ msg, window });
+
+    if (msg && msg.module === 'green-ads' && msg.windowId === windowId) {
+      if (msg.action === 'getCosmeticsForNodes' || msg.action === 'getCosmeticsForDomain') {
+        cosmeticsInjection.handleResponseFromBackground(msg.response);
+      } else if (msg.payload && msg.payload.ad === true) {
+        // logger.log('content msg', JSON.stringify(msg));
+      }
+    }
   };
 
   const onUnload = () => {

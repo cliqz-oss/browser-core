@@ -11,7 +11,7 @@ import CliqzLanguage from './language';
 import * as url from './url';
 import random from './crypto/random';
 import { fetchFactory } from '../platform/fetch';
-import { isWindows, isLinux, isMac } from './platform';
+import { isWindows, isLinux, isMac, isMobile } from './platform';
 import i18n, { getMessage, getLanguageFromLocale } from './i18n';
 
 var VERTICAL_ENCODINGS = {
@@ -36,11 +36,13 @@ var CliqzUtils = {
   RICH_HEADER:                    CLIQZEnvironment.RICH_HEADER,
   RESULTS_PROVIDER_LOG:           'https://api.cliqz.com/api/v1/logging?q=',
   RESULTS_PROVIDER_PING:          'https://api.cliqz.com/ping',
-  CONFIG_PROVIDER:                'https://api.cliqz.com/api/v1/config',
   SAFE_BROWSING:                  'https://safe-browsing.cliqz.com',
   TUTORIAL_URL:                   'https://cliqz.com/home/onboarding',
   UNINSTALL:                      'https://cliqz.com/home/offboarding',
   FEEDBACK:                       'https://cliqz.com/feedback/',
+  get FEEDBACK_URL() {
+    return `${this.FEEDBACK}${this.VERSION}-${config.settings.channel}`;
+  },
   RESULTS_TIMEOUT:                CLIQZEnvironment.RESULTS_TIMEOUT,
 
   BRANDS_DATABASE: BRANDS_DATABASE,
@@ -397,6 +399,7 @@ var CliqzUtils = {
            CliqzUtils.encodeSessionParams() +
            CliqzLanguage.stateToQueryString() +
            CliqzUtils.encodeLocale() +
+           CliqzUtils.encodePlatform() +
            CliqzUtils.encodeResultOrder() +
            CliqzUtils.encodeCountry() +
            CliqzUtils.encodeFilter() +
@@ -418,6 +421,7 @@ var CliqzUtils = {
             CliqzUtils.encodeSessionParams() +
             CliqzLanguage.stateToQueryString() +
             CliqzUtils.encodeLocale() +
+            CliqzUtils.encodePlatform() +
             CliqzUtils.encodeResultOrder() +
             CliqzUtils.encodeCountry() +
             CliqzUtils.encodeFilter() +
@@ -443,7 +447,7 @@ var CliqzUtils = {
     const backendPromise = fetch(url)
       .then(res => res.json())
       .then(response => {
-        if(response.results.length > 0 || !config.settings.suggestions) {
+        if(response.results && (response.results.length > 0 || !config.settings.suggestions)) {
 
           if (suggestionChoice === 1) {
             if (response.suggestions && response.suggestions.length > 0) {
@@ -506,39 +510,6 @@ var CliqzUtils = {
         }
       })
   },
-
-  // IP driven configuration
-  fetchAndStoreConfig(){
-    return new Promise(resolve => {
-      CliqzUtils.httpGet(CliqzUtils.CONFIG_PROVIDER,
-        function(res){
-          if(res && res.response){
-            try {
-              var config = JSON.parse(res.response);
-              for(var k in config){
-                if (typeof config[k] == 'object') {
-                  CliqzUtils.setPref('config_' + k, JSON.stringify(config[k]));
-                } else {
-                  CliqzUtils.setPref('config_' + k, config[k]);
-                }
-              }
-
-              // we only set the prefered backend once at first start
-              if (CliqzUtils.getPref('backend_country', '') === '') {
-                // we fallback to german results if we did not decode the location
-                CliqzUtils.setDefaultIndexCountry(CliqzUtils.getPref('config_location', 'de'));
-              }
-            } catch(e){
-              CliqzUtils.log(e);
-            }
-          }
-          resolve();
-        },
-        resolve, //on error the callback still needs to be called
-        10000
-      );
-    });
-  },
   setDefaultIndexCountry: function(country) {
     var supportedCountries = JSON.parse(CliqzUtils.getPref("config_backends", '["de"]'));
     if(supportedCountries.indexOf(country) !== -1){
@@ -554,6 +525,9 @@ var CliqzUtils = {
         CliqzUtils.setPref('backend_country', 'us')
       }
     }
+  },
+  encodePlatform: function() {
+    return '&platform=' + (isMobile ? '1' : '0');
   },
   encodeLocale: function() {
     return '&locale='+ CliqzUtils.PREFERRED_LANGUAGE || '';
@@ -901,6 +875,7 @@ var CliqzUtils = {
   isUnknownTemplate: CLIQZEnvironment.isUnknownTemplate,
   getEngineByName: CLIQZEnvironment.getEngineByName,
   addEngineWithDetails: CLIQZEnvironment.addEngineWithDetails,
+  restoreHiddenSearchEngines: CLIQZEnvironment.restoreHiddenSearchEngines,
   removeEngine: CLIQZEnvironment.removeEngine,
   getEngineByAlias: CLIQZEnvironment.getEngineByAlias,
   getSearchEngines: CLIQZEnvironment.getSearchEngines,

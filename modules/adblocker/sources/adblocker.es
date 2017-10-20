@@ -1,28 +1,31 @@
-import { utils, events } from '../core/cliqz';
-import inject from '../core/kord/inject';
-import console from '../core/console';
-
-import { URLInfo } from '../antitracking/url';
-import { getGeneralDomain } from '../antitracking/domain';
-
-import { LazyPersistentObject } from '../antitracking/persistent-state';
 import LRUCache from '../core/helpers/fixed-size-cache';
+import console from '../core/console';
+import events from '../core/events';
+import inject from '../core/kord/inject';
+import prefs from '../core/prefs';
+import tlds from '../core/tlds';
+import UrlWhitelist from '../core/url-whitelist';
 
-import logger from './logger';
-import { fastStartsWith } from './utils';
-import FilterEngine from '../adblocker/filters-engine';
-import FiltersLoader from '../adblocker/filters-loader';
-import AdbStats from '../adblocker/adb-stats';
+// TODO - remove: only need setTimeout, setInterval
+import utils from '../core/utils';
 
 import { Resource } from '../core/resource-loader';
 import { platformName } from '../core/platform';
+
+import FilterEngine from '../core/adblocker-base/filters-engine';
+import { fastStartsWith } from '../core/adblocker-base/utils';
+
+import AdbStats from './adb-stats';
+import FiltersLoader from './filters-loader';
+import logger from './logger';
+
 
 // Disk persisting
 const SERIALIZED_ENGINE_PATH = ['adblocker', 'engine.json'];
 
 
 // adb version
-export const ADB_VERSION = 7;
+export const ADB_VERSION = 8;
 
 // Preferences
 export const ADB_DISK_CACHE = 'cliqz-adb-disk-cache';
@@ -38,7 +41,7 @@ export const ADB_USER_LANG = 'cliqz-adb-lang';
 
 
 export function adbABTestEnabled() {
-  return utils.getPref(ADB_ABTEST_PREF, false);
+  return prefs.get(ADB_ABTEST_PREF, false);
 }
 
 
@@ -47,19 +50,8 @@ export function adbEnabled() {
   // 1 = Enabled
   return (
     adbABTestEnabled() &&
-    utils.getPref(ADB_PREF, ADB_PREF_VALUES.Disabled) !== ADB_PREF_VALUES.Disabled
+    prefs.get(ADB_PREF, ADB_PREF_VALUES.Disabled) !== ADB_PREF_VALUES.Disabled
   );
-}
-
-
-function extractGeneralDomain(uri) {
-  const url = uri.toLowerCase();
-  const urlParts = URLInfo.get(url);
-  let hostname = urlParts.hostname;
-  if (fastStartsWith(hostname, 'www.')) {
-    hostname = hostname.substr(4);
-  }
-  return getGeneralDomain(hostname);
 }
 
 
@@ -115,7 +107,7 @@ const DEFAULT_OPTIONS = {
  * and the matching using a FilterEngine.
  */
 export class AdBlocker {
-  constructor(humanWeb, options) {
+  constructor(options) {
     // Get options
     const { onDiskCache
           , loadNetworkFilters
@@ -124,7 +116,6 @@ export class AdBlocker {
 
     this.useCountryList = useCountryList;
     this.onDiskCache = onDiskCache;
-    this.humanWeb = humanWeb;
     this.loadNetworkFilters = loadNetworkFilters;
     this.loadCosmeticFilters = loadCosmeticFilters;
 
@@ -137,10 +128,6 @@ export class AdBlocker {
 
     this.listsManager = null;
     this.resetLists();
-
-    // Blacklists to disable adblocking on certain domains/urls
-    this.blacklist = new Set();
-    this.blacklistPersist = new LazyPersistentObject('adb-blacklist');
   }
 
   log(msg) {
@@ -150,11 +137,11 @@ export class AdBlocker {
     console.log(msg, 'adblocker');
   }
 
-  logBlocking(httpContext, isAd, totalTime) {
+  logBlocking(request, isAd, totalTime) {
     // Only enabled when the diagnosis page is opened
     if (this.diagnosisEnabled) {
-      if (httpContext.cpt === 6 || !this.blockingLogger.has(httpContext.sourceUrl)) {
-        this.blockingLogger.set(httpContext.sourceUrl, [`<tr>
+      if (request.cpt === 6 || !this.blockingLogger.has(request.sourceUrl)) {
+        this.blockingLogger.set(request.sourceUrl, [`<tr>
           <th>Time</th>
           <th>Blocked</th>
           <th>Redirect</th>
@@ -173,14 +160,14 @@ export class AdBlocker {
         color = '#ff5050';
       }
 
-      this.blockingLogger.get(httpContext.sourceUrl).push(`<tr
+      this.blockingLogger.get(request.sourceUrl).push(`<tr
         style="background: ${color}">
         <td>${totalTime}</td>
         <td>${!!isAd.match}</td>
         <td>${!!isAd.redirect}</td>
         <td>${isAd.filter || ''}</td>
-        <td>${CPT_TO_NAME[httpContext.cpt] || httpContext.cpt}</td>
-        <td>${httpContext.url}</td>
+        <td>${CPT_TO_NAME[request.cpt] || request.cpt}</td>
+        <td>${request.url}</td>
       </tr>`);
     }
   }
@@ -194,7 +181,7 @@ export class AdBlocker {
     // whenever a new version of the rules is available.
     this.listsManager = new FiltersLoader(
       this.useCountryList,
-      utils.getPref(ADB_USER_LANG, null)
+      prefs.get(ADB_USER_LANG, null)
     );
     this.listsManager.onUpdate((updates) => {
       // -------------------- //
@@ -209,15 +196,24 @@ export class AdBlocker {
         return false;
       });
 
+      let serializedEngine = null;
       if (filtersLists.length > 0) {
         const startFiltersUpdate = Date.now();
-        this.engine.onUpdateFilters(filtersLists, this.listsManager.getLoadedAssets());
+        serializedEngine = this.engine.onUpdateFilters(
+          filtersLists,
+          this.listsManager.getLoadedAssets(),
+          this.onDiskCache,
+        );
         this.log(`Engine updated with ${filtersLists.length} lists` +
                  ` (${Date.now() - startFiltersUpdate} ms)`);
       } else {
         // Call the method with an empty list + the list of loaded filters to
         // trigger clean-up of removed lists if needed.
-        this.engine.onUpdateFilters([], this.listsManager.getLoadedAssets());
+        serializedEngine = this.engine.onUpdateFilters(
+          [],
+          this.listsManager.getLoadedAssets(),
+          this.onDiskCache,
+        );
       }
 
       // ---------------------- //
@@ -243,22 +239,19 @@ export class AdBlocker {
       this.initCache();
 
       // Serialize new version of the engine on disk if needed
-      if (this.onDiskCache) {
-        if (this.engine.updated) {
-          const t0 = Date.now();
-          new Resource(SERIALIZED_ENGINE_PATH, { dataType: 'plain' })
-            .persist(this.engine.stringify())
-            .then(() => {
-              const totalTime = Date.now() - t0;
-              this.log(`Serialized filters engine on disk (${totalTime} ms)`);
-              this.engine.updated = false;
-            })
-            .catch((e) => {
-              this.log(`Failed to serialize filters engine on disk ${e}`);
-            });
-        } else {
-          this.log('Engine has not been updated, do not serialize');
-        }
+      if (serializedEngine !== null) {
+        const t0 = Date.now();
+        new Resource(SERIALIZED_ENGINE_PATH, { dataType: 'plain' })
+          .persist(serializedEngine)
+          .then(() => {
+            const totalTime = Date.now() - t0;
+            this.log(`Serialized filters engine on disk (${totalTime} ms)`);
+          })
+          .catch((e) => {
+            this.log(`Failed to serialize filters engine on disk ${e}`);
+          });
+      } else {
+        this.log('Engine has not been updated, do not serialize');
       }
     });
   }
@@ -281,7 +274,7 @@ export class AdBlocker {
     this.cache = new LRUCache(
       this.engine.match.bind(this.engine),       // Compute result
       1000,                                      // Maximum number of entries
-      request => getGeneralDomain(request.sourceUrl) + request.url, // Select key
+      request => tlds.getGeneralDomain(request.sourceUrl) + request.url, // Select key
     );
   }
 
@@ -319,12 +312,7 @@ export class AdBlocker {
   init() {
     this.initCache();
 
-    return this.blacklistPersist.load().then((value) => {
-      // Set value
-      if (value.urls !== undefined) {
-        this.blacklist = new Set(value.urls);
-      }
-    }).then(() => this.loadEngineFromDisk())
+    return this.loadEngineFromDisk()
       .then(() => this.listsManager.load())
       .then(() => {
         // Update check should be performed after a short while
@@ -340,98 +328,16 @@ export class AdBlocker {
     this.listsManager.stop();
   }
 
-  persistBlacklist() {
-    this.blacklistPersist.setValue({ urls: [...this.blacklist.values()] });
-  }
 
-  addToBlacklist(url) {
-    this.blacklist.add(url);
-    this.persistBlacklist();
-  }
-
-  removeFromBlacklist(url) {
-    this.blacklist.delete(url);
-    this.persistBlacklist();
-  }
-
-  isInBlacklist(request) {
-    return (this.isUrlInBlacklist(request.sourceUrl) ||
-            this.blacklist.has(request.sourceGD));
-  }
-
-  isDomainInBlacklist(url) {
-    // Should all this domain stuff be extracted into a function?
-    // Why is utils.detDetailsFromUrl not used?
-    let hostname = url;
-    try {
-      hostname = extractGeneralDomain(url);
-    } catch (e) {
-      // In case of ill-formed URL, just do a normal loopup
-    }
-
-    return this.blacklist.has(hostname);
-  }
-
-  isUrlInBlacklist(url) {
-    const processedURL = utils.cleanUrlProtocol(url, true);
-    return this.blacklist.has(processedURL);
-  }
-
-  logActionHW(url, action, domain) {
-    let type = 'url';
-    if (domain) {
-      type = 'domain';
-    }
-    const data = {};
-    data[action] = type;
-    return this.humanWeb.action('addDataToUrl', url, 'adblocker_blacklist', data);
-  }
-
-  toggleUrl(url, domain) {
-    let processedURL = url;
-    if (domain) {
-      try {
-        processedURL = extractGeneralDomain(processedURL);
-      } catch (e) {
-        // If there is no general domain to be extracted, it means the URL is
-        // not correct. Hence we can just ignore it. (eg: about:config).
-        return;
-      }
-    } else {
-      processedURL = utils.cleanUrlProtocol(processedURL, true);
-    }
-
-    const checkProcessing = this.humanWeb.action('isProcessingUrl', url);
-    checkProcessing.catch(() => {
-      logger.error('no humanweb -> black/whitelist will not be logged');
-    });
-    const existHW = checkProcessing.then((exists) => {
-      if (exists) {
-        return Promise.resolve();
-      }
-      return Promise.reject();
-    });
-    if (this.blacklist.has(processedURL)) {
-      this.blacklist.delete(processedURL);
-      // TODO: It's better to have an API from humanweb to indicate if a url is private
-      existHW.then(this.logActionHW.bind(this, url, 'remove', domain), () => logger.error('url does not exist in hw'));
-    } else {
-      this.blacklist.add(processedURL);
-      existHW.then(this.logActionHW.bind(this, url, 'add', domain), () => logger.error('url does not exist in hw'));
-    }
-
-    this.persistBlacklist();
-  }
-
-  /* @param {Object} httpContext - Context of the request { url, sourceUrl, cpt }
+  /* @param {Object} request - Context of the request { url, sourceUrl, cpt }
    */
-  match(httpContext) {
+  match(request) {
     const t0 = Date.now();
-    const isAd = this.cache.get(httpContext);
+    const isAd = this.cache.get(request);
     const totalTime = Date.now() - t0;
 
     // Keeps track of altered requests (only if the diagnosis page is opened)
-    this.logBlocking(httpContext, isAd, totalTime);
+    this.logBlocking(request, isAd, totalTime);
 
     return isAd;
   }
@@ -444,26 +350,48 @@ const CliqzADB = {
   MIN_BROWSER_VERSION: 35,
   timers: [],
   webRequestPipeline: inject.module('webrequest-pipeline'),
+  urlWhitelist: new UrlWhitelist('adb-blacklist'),
+  humanWeb: null,
+
+  logActionHW(url, action, type) {
+    const checkProcessing = CliqzADB.humanWeb.action('isProcessingUrl', url);
+    checkProcessing.catch(() => {
+      logger.log('no humanweb -> black/whitelist will not be logged');
+    });
+    const existHW = checkProcessing.then((exists) => {
+      if (exists) {
+        return Promise.resolve();
+      }
+      return Promise.reject();
+    });
+    existHW.then(() => {
+      const data = {};
+      data[action] = type;
+      return CliqzADB.humanWeb.action('addDataToUrl', url, 'adblocker_blacklist', data);
+    }, () => logger.log('url does not exist in hw'));
+  },
 
   init(humanWeb) {
+    CliqzADB.humanWeb = humanWeb;
     // Set `cliqz-adb` default to 'Disabled'
-    if (utils.getPref(ADB_PREF, null) === null) {
-      utils.setPref(ADB_PREF, ADB_PREF_VALUES.Disabled);
+    if (prefs.get(ADB_PREF, null) === null) {
+      prefs.set(ADB_PREF, ADB_PREF_VALUES.Disabled);
     }
 
     const initAdBlocker = () => {
       CliqzADB.adblockInitialized = true;
-      CliqzADB.adBlocker = new AdBlocker(humanWeb, {
-        onDiskCache: utils.getPref(ADB_DISK_CACHE, DEFAULT_OPTIONS.onDiskCache),
-        useCountryList: utils.getPref(ADB_USER_LANG, DEFAULT_OPTIONS.useCountryList),
+      CliqzADB.adBlocker = new AdBlocker({
+        onDiskCache: prefs.get(ADB_DISK_CACHE, DEFAULT_OPTIONS.onDiskCache),
+        useCountryList: prefs.get(ADB_USER_LANG, DEFAULT_OPTIONS.useCountryList),
       });
 
       return CliqzADB.adBlocker.init().then(() => {
         CliqzADB.initPacemaker();
         return CliqzADB.webRequestPipeline.action('addPipelineStep',
-          'open',
+          'onBeforeRequest',
           {
             name: 'adblocker',
+            spec: 'blocking',
             fn: CliqzADB.adblockerPipelineStep,
           },
         );
@@ -482,7 +410,8 @@ const CliqzADB = {
     });
 
     if (adbEnabled()) {
-      return initAdBlocker();
+      return CliqzADB.urlWhitelist.init()
+        .then(() => initAdBlocker());
     }
 
     return Promise.resolve();
@@ -496,7 +425,7 @@ const CliqzADB = {
 
       CliqzADB.unloadPacemaker();
 
-      CliqzADB.webRequestPipeline.action('removePipelineStep', 'open', 'adblocker');
+      CliqzADB.webRequestPipeline.action('removePipelineStep', 'onBeforeRequest', 'adblocker');
     }
 
     // If this is full unload, we also remove the pref listener
@@ -523,8 +452,7 @@ const CliqzADB = {
       return true;
     }
 
-    const requestContext = state.requestContext;
-    const url = requestContext.url;
+    const url = state.url;
 
 
     if (!url || !isSupportedProtocol(url)) {
@@ -532,7 +460,7 @@ const CliqzADB = {
     }
 
     // This is the Url
-    const sourceUrl = requestContext.getSourceURL() || '';
+    const sourceUrl = state.sourceUrl || '';
     if (!isSupportedProtocol(sourceUrl)) {
       return true;
     }
@@ -545,8 +473,7 @@ const CliqzADB = {
 
     // We do it here because the Adblocker might be used by other modules
     // (like green-ads), and they should not be subjected to whitelists.
-    const sourceGD = extractGeneralDomain(sourceUrl);
-    if (CliqzADB.adBlocker.isInBlacklist({ sourceUrl, sourceGD })) {
+    if (CliqzADB.urlWhitelist.isWhitelisted(sourceUrl)) {
       return true;
     }
 
@@ -561,6 +488,7 @@ const CliqzADB = {
     } else if (result.match) {
       CliqzADB.adbStats.addBlockedUrl(sourceUrl, url, state.tabId);
       response.block();
+      // TODO - should we stop the pipeline?
       return false;
     }
 

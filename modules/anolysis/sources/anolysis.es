@@ -3,9 +3,9 @@
 import moment from '../platform/moment';
 
 import { utils } from '../core/cliqz';
-import Database from '../core/database';
 import events from '../core/events';
 import { randomInt } from '../core/crypto/random';
+import PouchDB from '../core/database';
 
 import BehaviorAggregator from './aggregator';
 import GIDManager from './gid-manager';
@@ -20,8 +20,6 @@ import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
 
 export default class {
   constructor(settings) {
-    this.settings = settings;
-
     // Store available schemas for telemetry signals.
     // New schemas can be added using 'registerSchemas', which is
     // needed before they can be used using the telemetry function.
@@ -32,18 +30,18 @@ export default class {
     // demographics, create legacy signals if no schema is provided, check
     // telemetry schema if provided. It will also handle instantPush signals so
     // that they are sent straight away.
-    this.preprocessor = new Preprocessor(this.settings);
+    this.preprocessor = new Preprocessor(settings);
 
-    // Storage for behavioral data (telemetry) and demographics (environment)
-    this.behaviorStorage = new Storage(new Database('cliqz-anolysis-behavior'));
-    this.aggregatedBehaviorStorage = new Storage(new Database('cliqz-anolysis-aggregated-behavior'));
-
-    // Storage to keep track of what days have been aggregated and sent to
-    // backend.
-    this.aggregationLogDB = new Database('cliqz-anolysis-aggregation-log');
+    // Storage for behavioral data (telemetry): granular (before aggregation)
+    // and aggregated (once the signals have been generated and sent)
+    this.behaviorStorage = new Storage('cliqz-anolysis-behavior');
+    this.aggregatedBehaviorStorage = new Storage('cliqz-anolysis-aggregated-behavior');
 
     // Storage to keep track of when retention signals have been generated and sent.
-    this.retentionLogDB = new Database('cliqz-anolysis-retention-log');
+    this.retentionLogDB = new PouchDB('cliqz-anolysis-retention-log', {
+      revs_limit: 1,          // Don't keep track of all revisions of a document
+      auto_compaction: true,  // Get rid of deleted revisions
+    });
 
     // This is used to aggregate telemetry signals over 1 day. The result is
     // passed as an argument to the different analyses to generate telemetry
@@ -53,7 +51,7 @@ export default class {
     // Async message queue used to send telemetry signals to the backend
     // (telemetry server). It is persisted on disk, and will make sure that
     // messages are sent by batch, so that we can control the throughput.
-    this.messageQueue = new SignalQueue(new Storage(new Database('cliqz-anolysis-signals')));
+    this.messageQueue = new SignalQueue(new Storage('cliqz-anolysis-signals'));
 
     // Manage demographics and safe group ids. This will ensure that the user
     // reports safely at any point of time. The `getGID` method of this object
@@ -68,24 +66,32 @@ export default class {
     this.onDemographicsRegistered = events.subscribe(
       'anolysis:demographics_registered',
       () => {
-        // Stop listening to this event
-        this.onDemographicsRegistered.unsubscribe();
-        this.onDemographicsRegistered = undefined;
+        // It can happen that the extension restarts when the event is sent,
+        // which could result in `this.onDemographicsRegistered` being
+        // `undefined` because `unload` would be called just before.
+        if (this.onDemographicsRegistered !== undefined) {
+          // Stop listening to this event
+          this.onDemographicsRegistered.unsubscribe();
+          this.onDemographicsRegistered = undefined;
 
-        // This can be run async since calling two times the same method will
-        // resolve to the same Promise object. It's not returned there to not
-        // delay the loading of the module.
-        this.gidManager.init();
+          // This can be run async since calling two times the same method will
+          // resolve to the same Promise object. It's not returned here to not
+          // delay the loading of the module.
+          this.gidManager.init();
 
-        // 1. Trigger sending of retention signals if needed
-        // This can be done as soon as possible, the first time
-        // the user starts the browser, at most once a day.
-        //
-        // 2. Then we check previous days (30 days max) to aggregate and send
-        // telemetry if the user was not active. This task is async and will try to
-        // not overload the browser.
-        this.sendRetentionSignals()
-          .then(() => this.generateAnalysesSignalsFromAggregation());
+          // 1. Trigger sending of retention signals if needed
+          // This can be done as soon as possible, the first time
+          // the user starts the browser, at most once a day.
+          //
+          // 2. Then we check previous days (30 days max) to aggregate and send
+          // telemetry if the user was not active. This task is async and will try to
+          // not overload the browser.
+          this.sendRetentionSignals()
+            .then(() => {
+              logger.log('Generate aggregated signals');
+              return this.generateAnalysesSignalsFromAggregation();
+            });
+        }
       },
     );
 
@@ -97,24 +103,21 @@ export default class {
         const newValue = utils.getPref('config_ts');
         if (newValue !== currentDate) {
           currentDate = newValue;
+          logger.log('Generate aggregated signals (new day)', currentDate, newValue);
           this.generateAnalysesSignalsFromAggregation();
         }
       }
     });
 
-    // This will delete older signals async
-    // We don't need to wait for this.
-    Promise.all([
-      this.removeOldDataFromDB(),
+    // Init different storages
+    return Promise.all([
+      this.aggregatedBehaviorStorage.init(),
+      this.behaviorStorage.init(),
       this.messageQueue.init(),
-    ]);
+    ]).then(() => this.removeOldDataFromDB());
   }
 
-  stop() {
-    this.messageQueue.unload();
-    this.behaviorStorage.unload();
-    this.aggregatedBehaviorStorage.unload();
-
+  unload() {
     if (this.onDemographicsRegistered) {
       this.onDemographicsRegistered.unsubscribe();
       this.onDemographicsRegistered = undefined;
@@ -127,6 +130,13 @@ export default class {
 
     utils.clearTimeout(this.generateAggregationSignalsTimeout);
     utils.clearTimeout(this.asyncMessageGeneration);
+
+    // Unload storage
+    return Promise.all([
+      this.aggregatedBehaviorStorage.unload(),
+      this.behaviorStorage.unload(),
+      this.messageQueue.unload(),
+    ]);
   }
 
   /**
@@ -146,45 +156,44 @@ export default class {
   }
 
   registerSchemas(schemas) {
-    return new Promise((resolve, reject) => {
-      Object.keys(schemas).forEach((name) => {
-        const schema = schemas[name];
-        logger.log(`Register schema ${name}`);
-        // TODO: Perform some checks on `schema`.
-        // - allowed fields
-        // - missing information
+    Object.keys(schemas).forEach((name) => {
+      const schema = schemas[name];
+      logger.log('Register schema', name);
+      // TODO: Perform some checks on `schema`.
+      // - allowed fields
+      // - missing information
 
-        // TODO: What happens if it already exists:
-        // - replace
-        // - error
-        // - ignore
-        if (!this.availableSchemas.has(name)) {
-          this.availableSchemas.set(name, schema);
-        } else {
-          reject(`Schema ${name} already exists with value ${JSON.stringify(schema)}`);
-        }
-      });
-
-      resolve();
+      // TODO: What happens if it already exists:
+      // - replace
+      // - error
+      // - ignore
+      if (!this.availableSchemas.has(name)) {
+        this.availableSchemas.set(name, schema);
+      } else {
+        throw new Error(`Schema ${name} already exists with value ${JSON.stringify(schema)}`);
+      }
     });
   }
 
+  /**
+   * Get rid of data older than 30 days.
+   */
   removeOldDataFromDB() {
-    // Get rid of data older than 30 days
     return Promise.all([
       this.behaviorStorage
         .deleteByTimespan({ to: getSynchronizedDate().subtract(1, 'months').format(DATE_FORMAT) })
-        .catch(err => logger.error(`error deleting old behavior data: ${err}`)),
+        .catch(err => logger.error('error deleting old behavior data:', err)),
       this.aggregatedBehaviorStorage
         .deleteByTimespan({ to: getSynchronizedDate().subtract(1, 'months').format(DATE_FORMAT) })
-        .catch(err => logger.error(`error deleting old behavior data: ${err}`)),
+        .catch(err => logger.error('error deleting old behavior data:', err)),
     ]);
   }
 
   sendRetentionSignals() {
     return this.retentionLogDB.get('retention')
       .catch((err) => {
-        // Create default document
+        // Create default document if this is the first time that retention
+        // signals are generated.
         if (err.name === 'not_found') {
           return {
             _id: 'retention',
@@ -195,16 +204,17 @@ export default class {
         }
 
         // On other error we just re-throw the error
+        logger.error('Error while checking if retention was already sent', err);
         throw err;
       })
       .then((doc) => {
-        logger.log(`generate retention signals ${JSON.stringify(doc)}\n`);
+        logger.log('generate retention signals', doc);
         const promise = Promise.all(generateRetentionSignals(doc).map(([schema, signal]) => {
-          logger.debug(`Retention signal ${JSON.stringify(signal)} (${schema})`);
+          logger.debug('Retention signal', signal, schema);
           return this.handleTelemetrySignal(signal, schema);
         }));
 
-        // Doc is updated by the `generateRetentionSignals` function to keep
+        // `doc` is updated by the `generateRetentionSignals` function to keep
         // track of the current activity, and avoid generating the signals
         // several times.
         return this.retentionLogDB.put(doc)
@@ -219,25 +229,30 @@ export default class {
 
     const checkPast = (formattedDate) => {
       const date = moment(formattedDate, DATE_FORMAT);
-      return this.aggregationLogDB.get(formattedDate)
+      return this.aggregatedBehaviorStorage.get(formattedDate)
         .then(() => { /* We already processed this day before, do nothing */ })
-        .catch(() =>
-          this.generateAndSendAnalysesSignalsForDay(formattedDate)
-            .then(() => this.aggregationLogDB.put({ _id: formattedDate }))
-            .then(() => this.messageQueue.flush())
-            .catch((ex) => {
-              logger.error(`could not generate aggregated signals for day ${formattedDate}: ${ex}`);
-            })
-        ).then(() => {
+        .catch((err) => {
+          if (err.name === 'not_found') {
+            // If we did not process `formattedDate` already, let's do it
+            return this.generateAndSendAnalysesSignalsForDay(formattedDate)
+              .catch((ex) => {
+                logger.error('Could not generate aggregated signals for day', formattedDate, ex);
+              });
+          }
+
+          logger.error('Error while checking if day was already aggregated', formattedDate, err);
+          throw err;
+        }).then(() => {
           // Recursively check previous day until we reach `stopDay`
           if (stopDay.isBefore(date, 'day')) {
             // Wait a few seconds between each aggregation, to not overload the
             // browser.
+            // NOTE: This could be done in a worker, asynchronously.
             return new Promise((resolve, reject) => {
               this.generateAggregationSignalsTimeout = utils.setTimeout(
                 () => checkPast(date.subtract(1, 'days').format(DATE_FORMAT))
-                  .catch(() => reject())
-                  .then(() => resolve()),
+                  .catch(reject)
+                  .then(resolve),
                 5000);
             });
           }
@@ -250,58 +265,70 @@ export default class {
   }
 
   /**
-   * This function is triggered by anacron every day, once a day (and can be
-   * triggered later if it was missed for a given day). It will read one day
-   * of behavioral signals, aggregate it, and then invoke different analyses
-   * to generate messages to be sent to the backend. The messages will be
-   * stored temporarily in a queue (persisted on disk), and then sent async.
+   * This function is triggered every day, once a day (and can be triggered
+   * later if it was missed for a given day). It will read one day of behavioral
+   * signals, aggregate it, and then invoke different analyses to generate
+   * messages to be sent to the backend. The messages will be stored temporarily
+   * in a queue (persisted on disk), and then sent async.
    */
   generateAndSendAnalysesSignalsForDay(date) {
     // 1. Aggregate messages for one day
     const timespan = { from: date, to: date };
     return this.behaviorStorage.getTypesByTimespan(timespan)
       .then((records) => {
+        const numberOfSignals = Object.keys(records).length;
+        logger.log('generateSignals', date, numberOfSignals);
+
+        let aggregation = {};
+        const signals = [];
+
         // Ignore days with no records
-        if (records.length === 0) return Promise.resolve();
+        if (numberOfSignals > 0) {
+          const t0 = Date.now();
+          aggregation = this.behaviorAggregator.aggregate(records);
+          const total = Date.now() - t0;
 
-        const t0 = Date.now();
-        const aggregation = this.behaviorAggregator.aggregate(records);
-        const total = Date.now() - t0;
+          // Extract AB Tests
+          // This is not used at the moment, so let's not do useless work
+          // const abtests = new Set(parseABTests(utils.getPref('ABTests')));
 
-        // Delete signals and only keep aggregation
-        return this.behaviorStorage.deleteByTimespan(timespan)
-          .then(() => this.aggregatedBehaviorStorage.put({
-            ts: date,
-            _id: `aggregation_${date}`,
-            aggregation,
-          }))
-          .catch((err) => { logger.error(`error while inserting aggregation ${err}`); })
-          .then(() => {
-            // Extract AB Tests
-            // This is not used at the moment, so let's not do useless work
-            // const abtests = new Set(parseABTests(utils.getPref('ABTests')));
-
-            // 3. Generate messages for each analysis
-            logger.log(`generateSignals ${date}`);
-            return Promise.all(analyses.map((analysis) => {
-              logger.debug(`generateSignals for ${analysis.name}`);
-              return Promise.all(analysis.generateSignals(aggregation /* , abtests */)
-                .map((signal) => {
-                  logger.debug(`Signal for ${analysis.name} ${JSON.stringify(signal)}`);
-                  return this.handleTelemetrySignal(
-                    Object.assign(signal, {
-                      meta: {
-                        date,
-                        // TODO: This will be removed in the future. The aggregation
-                        // time could also be sent separately in its own signal.
-                        aggregation_time: total,
-                      },
-                    }),
-                    analysis.name,
-                  );
-                }));
-            }));
+          analyses.forEach((analysis) => {
+            logger.debug('generateSignals for', analysis.name);
+            analysis.generateSignals(aggregation /* , abtests */).forEach((signal) => {
+              signals.push({
+                analysis: analysis.name,
+                signal: Object.assign(signal, {
+                  meta: {
+                    date,
+                    // TODO: This will be removed in the future. The aggregation
+                    // time could also be sent separately in its own signal.
+                    aggregation_time: total,
+                  },
+                }),
+              });
+            });
           });
+        }
+
+        // Push all signals to telemetry queue
+        return Promise.all(signals.map(
+          signal => this.handleTelemetrySignal(signal.signal, signal.analysis)
+            .catch(err => logger.error('could not push message into queue', signal, err))
+        ))
+        .then(() => this.messageQueue.flush().catch(ex => logger.error('error while flushing', date, ex)))
+        .then(() => Promise.all([
+          // Delete behavioral data for this day
+          this.behaviorStorage.deleteByTimespan(timespan)
+            .catch((err) => {
+              logger.error('Error while deleting behavior data', date, err);
+            }),
+
+          // Store aggregation
+          this.aggregatedBehaviorStorage.put({ ts: date, _id: date, aggregation })
+            .catch((err) => {
+              logger.error('Error while inserting aggregation', date, err);
+            })
+        ]));
       });
   }
 
@@ -314,7 +341,8 @@ export default class {
    * @param {Object} signal - The telemetry signal.
    */
   handleTelemetrySignal(signal, schemaName) {
-    logger.debug(`handleTelemetrySignal ${schemaName} ${JSON.stringify(signal)}`);
+    logger.debug('handleTelemetrySignal', schemaName, signal);
+
     // Try to fetch the schema definition from the name.
     let schema;
     if (schemaName !== undefined) {
@@ -333,18 +361,20 @@ export default class {
         if (isDemographics) {
           return this.gidManager.updateDemographics(processedSignal);
         } else if (isInstantPush && !isLegacy) {
-          logger.debug(`Signal is instantPush ${JSON.stringify(processedSignal)}`);
-          return this.gidManager.getGID()
-            .then((gid) => {
-              if (schema.needs_gid) {
-                processedSignal.meta.gid = gid;
-              } else {
-                // NOTE: If `gid` is empty, it's also fine, as we still want
-                // to receive signals for users not having a safe GID. In
-                // this case, such users will form a group on their own.
-                processedSignal.meta.gid = '';
-              }
+          logger.debug('Signal is instantPush', processedSignal);
 
+          return (schema.needs_gid ? this.gidManager.getGID() : Promise.resolve(''))
+            .then((gid) => {
+              // NOTE: If `gid` is empty, it's also fine, as we still want
+              // to receive signals for users not having a safe GID. In
+              // this case, such users will form a group on their own.
+              processedSignal.meta.gid = gid;
+
+              // TODO - it might be enough to hash the signal + date of
+              // generation to detect exact duplicates (could be done in the
+              // backend). But this seed can allow us to detect issues in
+              // the client.
+              //
               // We add a random seed to each message to allow deduplication
               // from the backend. This should not be a privacy concern, as each
               // message will include a different number.
@@ -355,12 +385,14 @@ export default class {
               // as we test both telemetry systems side by side, to
               // be able to compare results meaningfully.
               processedSignal.meta.session = utils.getPref('session');
+
               processedSignal.meta.date = (
-                processedSignal.meta.date
-                || getSynchronizedDate().format(DATE_FORMAT));
+                processedSignal.meta.date ||
+                getSynchronizedDate().format(DATE_FORMAT)
+              );
 
               // Push signal to be sent as soon as possible.
-              this.messageQueue.push(processedSignal);
+              return this.messageQueue.push(processedSignal);
             });
         }
 
@@ -368,7 +400,7 @@ export default class {
         // This signal is stored and will be aggregated with other signals from
         // the same day to generate 'analyses' signals.
         return this.behaviorStorage.put(processedSignal, true /* buffered */)
-          .catch((ex) => { logger.error(`behavior exception ${ex}`); });
+          .catch((ex) => { logger.error('behavior exception', ex); });
         // }
       });
   }

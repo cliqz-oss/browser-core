@@ -6,7 +6,8 @@ import logger from './common/logger';
 import CliqzMarketAnalyzer from './market_analyzer_main';
 
 /**
-  @namespace <namespace>
+  @namespace marker-analysis
+  @module marker-analysis
   @class Background
  */
 export default background({

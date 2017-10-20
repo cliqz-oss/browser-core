@@ -59,6 +59,7 @@ export default class MessageSender {
         if (!this.cryptoWorker) {
           this.log('Discarding message, as the web worker is already stopped.');
           reject();
+          return;
         }
 
         // At this point, we know that the worker is idle,

@@ -1,40 +1,3 @@
-#PanelUI-contents #wrapper-cliqz-vd-btn, #PanelUI-contents #cliqz-vd-btn {
-    vertical-align: top;
-}
-
-#cliqz-vd-btn {
-    padding: 0;
-}
-
-.cliqz-video-downloader {
-    height: 31px;
-    padding: 8px 4px 0 23px;
-    color: transparent;
-    background-size: auto 14px;
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-image: url(../images/video-downloader.svg);
-}
-
-#customizationui-widget-panel[viewId="cliqz-vd-btn-panel"] .panel-arrowcontent {
-    --panel-arrowcontent-background: #fff;
-}
-
-.hidden {
-    display: none;
-}
-
-#cliqz-vd-btn.customizing {
-    -moz-animation:    none;
-    animation:         none;
-}
-
-#cliqz-vd-btn {
-    -moz-animation:    cliqz_animation 1s 1; /* Fx 2+ */
-    animation:         cliqz_animation 1s 1; /* IE 10+, Fx 29+ */
-    animation-timing-function: ease-out;
-}
-
 @-moz-keyframes cliqz_animation {
   0%   { opacity: 0; background-color: #0086A1; }
   100% { opacity: 1; background-color: transparent; }
@@ -43,4 +6,154 @@
 @keyframes cliqz_animation {
   0%   { opacity: 0; background-color: #0086A1; }
   100% { opacity: 1; background-color: transparent; }
+}
+
+#nav-bar #urlbar {
+    #video-downloader-page-action-browser-action {
+        -moz-animation:    cliqz_animation 1s 1; /* Fx 2+ */
+        animation:         cliqz_animation 1s 1; /* IE 10+, Fx 29+ */
+        animation-timing-function: ease-out;
+
+        .toolbarbutton-badge-stack {
+            padding: 4px;
+        }
+
+        &:hover {
+            border-color: transparent;
+
+            .toolbarbutton-badge-stack {
+                .toolbarbutton-icon {
+                    opacity: 1;
+                }
+            }
+        }
+    }
+}
+
+/*
+ * UI TOUR CUSTOMIZATION
+ */
+$cliqz-blue-color: #00AEF0;
+
+#UITourTooltip[targetName='video-downloader'] {
+    .panel-arrow {
+        position: relative;
+        margin-top: 5px;
+        margin-bottom: -13px;
+        width: 18px;
+        height: 18px;
+        background: $cliqz-blue-color;
+        transform: rotate(45deg);
+        list-style-image: none;
+    }
+
+    .panel-arrowcontent {
+        margin-right: 0;
+        padding-left: 16px;
+        padding-right: 16px;
+        position: relative;
+        color: #fff;
+        background: $cliqz-blue-color;
+        box-shadow: none;
+        border: none;
+        border-radius: unset;
+    }
+
+    #UITourTooltipBody {
+        #UITourTooltipIcon {
+            margin-top: 0;
+            width: 24px;
+            height: 24px;
+        }
+
+        #UITourTooltipTitle {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        #UITourTooltipDescription {
+            font-size: 14px;
+            line-height: 18px;
+            font-weight: 400;
+            max-width: 22rem;
+        }
+    }
+
+    #UITourTooltipButtons {
+        background-color: transparent;
+        border-top: none;
+        -moz-box-pack: start;
+        padding: 7px 16px 18px 50px;
+        margin-left: -16px;
+
+        .button-primary {
+            margin: 0;
+            padding-left: 8px;
+            padding-right: 10px;
+            background-color: #fff;
+            color: $cliqz-blue-color;
+            border-color: #fff;
+            cursor: pointer;
+
+            .button-text {
+                font-size: 14px;
+                font-weight: 600;
+                margin-inline-start: 0;
+                margin-inline-end: 0;
+            }
+
+            &:hover {
+                background-color: $cliqz-blue-color;
+                color: #fff;
+            }
+        }
+
+        .button-link {
+            padding: 4px 10px 4px 8px;
+            margin: 0 0 0 10px;
+            color: #fff;
+            min-width: 20px;
+            border-radius: 3px;
+            border: 1px solid transparent;
+            cursor: pointer;
+
+            .button-text {
+                font-size: 14px;
+            }
+
+            &:hover {
+                border-color: #fff;
+            }
+        }
+    }
+
+    .close-icon {
+        cursor: pointer;
+        list-style-image: url('resource://cliqz/video-downloader/images/close-icon.svg');
+        opacity: 0.6;
+        -moz-image-region: rect(0, 16px, 16px, 0);
+
+        &:hover {
+            opacity: 1;
+            -moz-image-region: rect(0, 16px, 16px, 0);
+        }
+    }
+
+    @media (-moz-os-version: windows-xp), (-moz-os-version: windows-vista),
+    (-moz-os-version: windows-win7), (-moz-os-version: windows-win8), (-moz-os-version: windows-win10) {
+        .panel-arrowcontent {
+            padding-right: 10px;
+        }
+
+        #UITourTooltipBody {
+            #UITourTooltipDescription {
+                padding-right: 6px;
+            }
+        }
+
+        .close-icon {
+            margin-inline-end: -10px;
+            margin-top: -10px;
+        }
+    }
 }

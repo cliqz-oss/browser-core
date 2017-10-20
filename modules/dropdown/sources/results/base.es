@@ -209,8 +209,12 @@ export default class BaseResult {
     ];
   }
 
+  isUrlMatch(href) {
+    return equals(this.rawUrl, href) || equals(this.url, href);
+  }
+
   findResultByUrl(href) {
-    return this.allResults.find(r => equals(r.rawUrl, href) || equals(r.url, href));
+    return this.allResults.find(r => r.isUrlMatch(href));
   }
 
   hasUrl(href) {
@@ -226,7 +230,7 @@ export default class BaseResult {
   }
 
   click(window, href, ev) {
-    if (equals(href, this.url)) {
+    if (this.isUrlMatch(href)) {
       const newTab = ev.altKey || ev.metaKey || ev.ctrlKey || ev.button === 1;
       if (!newTab) {
         // TODO: do not use global

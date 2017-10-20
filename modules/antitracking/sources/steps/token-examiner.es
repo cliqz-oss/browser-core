@@ -119,7 +119,7 @@ export default class {
 
   examineTokens(state) {
     // do not do anything for private tabs and non-tracker domains
-    if (!state.requestContext.isChannelPrivate() && this.qsWhitelist.isTrackerDomain(state.urlParts.generalDomainHash)) {
+    if (!state.isPrivate && this.qsWhitelist.isTrackerDomain(state.urlParts.generalDomainHash)) {
       const day = datetime.newUTCDate();
       const today = datetime.dateString(day);
 

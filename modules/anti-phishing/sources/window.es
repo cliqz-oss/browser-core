@@ -1,6 +1,6 @@
-import utils from 'core/utils';
-import events from 'core/events';
-import CliqzAntiPhishing from 'anti-phishing/anti-phishing';
+import utils from '../core/utils';
+import events from '../core/events';
+import CliqzAntiPhishing from './anti-phishing';
 
 export default class {
   constructor(settings) {

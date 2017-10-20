@@ -1,5 +1,6 @@
 import console from '../console';
 import store from '../../platform/store';
+import { nextTick } from '../decorators';
 
 const listeners = new Set();
 
@@ -7,7 +8,7 @@ export default {
   update({ module, data }) {
     store[module] = Object.assign(store[module] || data, data);
 
-    Promise.resolve().then(() => {
+    nextTick(() => {
       listeners.forEach((l) => {
         try {
           l(module);

@@ -40,7 +40,7 @@ program.command('serve [file]')
             customPrefs: {
               'extensions.cliqz.showConsoleLogs': true,
             },
-            startUrl: 'resource://cliqz/freshtab/home.html',
+            startUrl: 'about:cliqz',
           };
 
           console.log('Fern start');

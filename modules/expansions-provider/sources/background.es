@@ -3,7 +3,8 @@ import ExpansionsProvider from "expansions-provider/expansions-provider";
 import utils from 'core/utils'
 
 /**
-  @namespace <namespace>
+  @namespace epansions-provider
+  @module epansions-provider
   @class Background
  */
 export default background({

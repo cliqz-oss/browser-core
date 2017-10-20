@@ -3,14 +3,17 @@ Cu.import("resource://gre/modules/AddonManager.jsm");
 const genericPrefs = Components.classes['@mozilla.org/preferences-service;1']
         .getService(Components.interfaces.nsIPrefBranch);
 
-const similarAddonNames = {
-  "Adblock Plus": true,
-  "Ghostery": true,
-  "Lightbeam": true,
-  "Disconnect": true,
-  "BetterPrivacy": true,
-  "NoScript": true
-}
+const similarAddonNames = new Set([
+  "Adblock Plus",
+  "AdBlock",
+  "Ghostery",
+  "Lightbeam",
+  "Disconnect",
+  "BetterPrivacy",
+  "NoScript",
+  "Privacy Badger",
+  "uBlock Origin",
+]);
 
 /**
  * Gets an indicator of the privacy addons installed on this profile.
@@ -20,8 +23,8 @@ const similarAddonNames = {
  */
 export function checkInstalledPrivacyAddons() {
   return auditInstalledAddons().then((addons) => {
-    const privacyAddons = addons.filter((a) => a.name in similarAddonNames);
-    if(privacyAddons.length === 0) {
+    const privacyAddons = addons.filter(a => similarAddonNames.has(a.name));
+    if(privacyAddons.length === 1) {
       return privacyAddons[0].name;
     } else {
       return privacyAddons.length > 1;

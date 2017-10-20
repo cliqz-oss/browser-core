@@ -13,6 +13,7 @@
  */
 
 import console from "./console";
+import { nextTick } from './decorators';
 
 var CliqzEvents = CliqzEvents || {
   //use a javascript object to push the message ids and the callbacks
@@ -27,13 +28,10 @@ var CliqzEvents = CliqzEvents || {
     const args = Array.prototype.slice.call(arguments, 1);
 
     const callbacks = (CliqzEvents.cache[id] || []).map(ev => {
-      return new Promise(resolve => {
-        try {
-          ev.apply(null, args);
-        } catch(e) {
-          console.error(`CliqzEvents error: ${id}`, e);
-        }
-        resolve();
+      return nextTick(() => {
+        ev.apply(null, args);
+      }).catch(e => {
+        console.error(`CliqzEvents error: ${id}`, e);
       });
     });
 
@@ -90,7 +88,7 @@ var CliqzEvents = CliqzEvents || {
 
   un_sub: function (id, fn) {
     if (!CliqzEvents.cache[id] || CliqzEvents.cache[id].length === 0) {
-      console.error("Trying to unsubscribe event that had no subscribers")
+      console.error(id, "Trying to unsubscribe event that had no subscribers")
       return;
     }
 
@@ -98,7 +96,7 @@ var CliqzEvents = CliqzEvents || {
     if (index > -1) {
       CliqzEvents.cache[id].splice(index, 1);
     } else {
-      console.error("Trying to unsubscribe an unknown listener");
+      console.error(id, "Trying to unsubscribe an unknown listener");
     }
   },
 

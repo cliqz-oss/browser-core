@@ -2,6 +2,12 @@
 
 const internalProtocols = new Set(['chrome', 'resource', 'moz-extension']);
 
+
+export function skipInvalidSource(state) {
+  return state.sourceUrlParts !== null;
+}
+
+
 export function skipInternalProtocols(state) {
   if (state.sourceUrlParts && internalProtocols.has(state.sourceUrlParts.protocol)) {
     return false;
@@ -12,8 +18,13 @@ export function skipInternalProtocols(state) {
   return true;
 }
 
+
 export function checkSameGeneralDomain(state) {
   const gd1 = state.urlParts.generalDomain;
   const gd2 = state.sourceUrlParts.generalDomain;
-  return gd1 !== gd2 && gd1 !== null && gd2 !== null && gd1.split('.')[0] !== gd2.split('.')[0];
+  return (
+    gd1 !== undefined && gd1 !== null &&
+    gd2 !== undefined && gd2 !== null &&
+    gd1 !== gd2 && gd1.split('.')[0] !== gd2.split('.')[0]
+  );
 }

@@ -37,7 +37,7 @@ const seedPromise = Promise.resolve()
 const startup = Promise.all([seedPromise, loadPrefs()]).then(() => {
   app = new App();
   // register background actions
-  Object.keys(app.availableModules)
+  Object.keys(app.modules)
   .filter(mod => modules[mod].Background &&
                  modules[mod].Background.actions)
   .forEach((mod) => {
@@ -48,7 +48,7 @@ const startup = Promise.all([seedPromise, loadPrefs()]).then(() => {
       bridge.registerAction(`${mod}:${action}`, injectedModule.action.bind(injectedModule, action));
     });
   });
-  return app.load();
+  return app.start();
 }).then(() => {
   bridge.registerAction('core:getPref', (prefname, defaultValue) =>
     getPref(prefname, defaultValue));

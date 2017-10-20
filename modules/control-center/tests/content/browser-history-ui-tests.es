@@ -293,4 +293,98 @@ describe("History options browser", function () {
       });
     });
   });
+});
+
+describe('AMO History options tests', function () {
+  let subject;
+
+  beforeEach(function () {
+    subject = new Subject();
+    return subject.load();
+  })
+
+  afterEach(function () {
+    subject.unload();
+    clearIntervals();
+  });
+
+  function historySectionTests() {
+    it('history section appeared', function () {
+      chai.expect(subject.query('.accordion #accordion-3.accordion-section-content.open')).to.exist;
+    });
+
+    it('renders "History options"', function () {
+      const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-3"] [data-i18n="control-center-history-options"]';
+      chai.expect(subject.query(titleSelector)).to.exist;
+      chai.expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-history-options');
+    });
+
+    it('renders arrow for history options', function () {
+      const arrowSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-3"] #arrow';
+      chai.expect(subject.query(arrowSelector)).to.exist;
+    });
+
+    it('renders two options', function () {
+      chai.expect(subject.queryAll('.accordion #accordion-3 .bullet').length).to.equal(2);
+    });
+
+    it('renders "Show all history"', function () {
+      const historySelector = '.accordion #accordion-3 .bullet [data-i18n="control-center-show-history"]';
+      chai.expect(subject.query(historySelector)).to.exist;
+      chai.expect(subject.query(historySelector).textContent.trim()).to.equal('control-center-show-history');
+    });
+
+    it('renders button "Open" for "Show all history"', function () {
+      const buttonSelector = '.accordion #accordion-3 .bullet [openurl="history"]';
+      chai.expect(subject.query(buttonSelector)).to.exist;
+      chai.expect(subject.query(buttonSelector).textContent.trim()).to.equal('control-center-open');
+    });
+
+    it('renders "Forget history"', function () {
+      const forgetSelector = '.accordion #accordion-3 .bullet [data-i18n="control-center-forget-history"]';
+      chai.expect(subject.query(forgetSelector)).to.exist;
+      chai.expect(subject.query(forgetSelector).textContent.trim()).to.equal('control-center-forget-history');
+    });
+
+    it('renders button "Open" for "Forget history"', function () {
+      const buttonSelector = '.accordion #accordion-3 .bullet [openurl="forget_history"]';
+      chai.expect(subject.query(buttonSelector)).to.exist;
+      chai.expect(subject.query(buttonSelector).textContent.trim()).to.equal('control-center-open');
+    });
+  };
+
+  const data = {
+    activeURL: 'http://www.spiegel.de/',
+    friendlyURL: 'http://www.spiegel.de/',
+    isSpecialUrl: false,
+    domain: 'spiegel.de',
+    extraUrl: '',
+    hostname: 'www.spiegel.de',
+    module: {
+      antitracking: {
+        visible: false,
+      },
+    },
+    generalState: 'active',
+    feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
+    amo: true,
+    funnelCake: false
+  };
+
+  beforeEach(() => {
+    return subject.pushData(data);
+  });
+
+  it('history section exists', function () {
+    chai.expect(subject.query('#othersettings .accordion [data-target="history"]')).to.exist;
+  });
+
+  describe('click on the history section', function () {
+    beforeEach(function () {
+      subject.query('#othersettings .accordion [data-target="history"]').click();
+      return waitFor(() => subject.query('.accordion .accordion-section-title[href="#accordion-3"]').classList.contains('active'));
+    });
+
+    historySectionTests();
+  });
 })

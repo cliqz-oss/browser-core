@@ -7,6 +7,7 @@ export default class extends React.Component {
   _onPress() {
     const url = this.to;
     const action = this.actionName;
+    const params = this.actionParams || [];
     if (url) {
       const extra = this.extra || 'other';
       // TODO: telemetry
@@ -14,7 +15,7 @@ export default class extends React.Component {
       // openLink(url);
       events.pub('mobile-search:openUrl', url);
     } else if (action) {
-      events.pub('mobile-search:copyValue', ...this.actionParams);
+      events.pub(action, ...params);
     }
   }
   render() {

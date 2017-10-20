@@ -1,3 +1,5 @@
+@import 'shared';
+
 $urlbar-holder: 33px;
 $urlbar-elms-height: 32px;
 $buttons-hover-color: #e7e7e7;
@@ -6,7 +8,7 @@ $browser-top-bg-color: #ccc;
 
 $tab-border-color: #afafaf;
 $tab-selected-bg-color: #fff;
-$tab-hover-bg-color: #ccc;
+$tab-hover-bg-color: #bababa;
 $tab-bg-color: rgba(255, 255, 255, 0.1);
 $tab-font-size: 12px;
 $pin-tab-width: 37px;
@@ -24,7 +26,7 @@ $url-bar-hover-shadow: inset 0 0 2px #aec6de;
   --cliqz-font-lato-regular: url("chrome://cliqz/content/static/skin/fonts/Lato-Regular.ttf");
   --cliqz-loading-image: url("../images/browser/linux/loading.png");
   --cliqz-menuPanel-svg: url("../images/browser/linux/menuPanel.svg");
-  --cliqz-newtab-image: url("../images/browser/linux/newtab.png");
+  --cliqz-newtab-image: url("../images/browser/linux/newtab.svg");
   --cliqz-toolbar-image: url("../images/browser/linux/Toolbar.png");
   --cliqz-toolbar-image-2x: url("../images/browser/linux/Toolbar@2x.png");
   --cliqz-urlbar-arrow-image: url("../images/browser/linux/urlbar-arrow.png");
@@ -39,12 +41,28 @@ $url-bar-hover-shadow: inset 0 0 2px #aec6de;
   --cliqz-font-lato-regular: url("Lato-Regular.ttf");
   --cliqz-loading-image: url("loading.png");
   --cliqz-menuPanel-svg: url("menuPanel.svg");
-  --cliqz-newtab-image: url("newtab.png");
+  --cliqz-newtab-image: url("newtab.svg");
   --cliqz-toolbar-image: url("../Toolbar.png");
   --cliqz-toolbar-image-2x: url("../Toolbar@2x.png");
   --cliqz-urlbar-arrow-image: url("urlbar-arrow.png");
   --cliqz-urlbar-arrow-image-2x: url("urlbar-arrow@2x.png");
 }
+
+#main-window.cliqz-blue:not([cliqzBrowser="true"]),
+#main-window.cliqz-blue:not([cliqzBrowser="true"]) * :root {
+  --cliqz-close-image: url("../images/browser/blue_theme/linux/close.png");
+  --cliqz-close-image-2x: url("../images/browser/blue_theme/linux/close@2x.png");
+  --cliqz-newtab-image: url("../images/browser/blue_theme/linux/newtab.svg");
+  --cliqz-newtab-image-2x: url("../images/browser/blue_theme/linux/newtab@2x.png");
+}
+
+#main-window.cliqz-blue[cliqzBrowser="true"],
+#main-window.cliqz-blue[cliqzBrowser="true"] * :root {
+    --cliqz-close-image: url("close_blue.png");
+    --cliqz-close-image-2x: url("close_blue@2x.png");
+    --cliqz-newtab-image: url("newtab_blue.svg");
+}
+
 
 @font-face {
     font-family: "Lato";
@@ -522,6 +540,10 @@ notification[type="warning"] .messageText {
     }
     &[pinned] {
         width: $pin-tab-width;
+
+        .tab-content .tab-text {
+            display: none;
+        }
     }
 }
 
@@ -561,6 +583,10 @@ notification[type="warning"] .messageText {
     .toolbarbutton-icon {
         padding-top: 5px;
         padding-bottom: 3px;
+    }
+
+    &:hover {
+        background-color: $tab-hover-bg-color !important;
     }
 }
 

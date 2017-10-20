@@ -39,11 +39,10 @@ class Bridge {
     const call = fn(...(args || []));
     call.then((ret) => {
       nativeBridge.replyToAction(id, {result: ret});
-    });
-    call.catch((e) => {
+    }, (e) => {
       console.log('onAction err', e);
       nativeBridge.replyToAction(id, {error: 'exception when running action'});
-    })
+    });
   }
 
   onEvent({event, args}) {
@@ -66,7 +65,7 @@ let bridge = {
 if (nativeBridge) {
   bridge = new Bridge();
 
-  nativeBridge.events.forEach((event) => {
+  (nativeBridge.events || []).forEach((event) => {
     events.subscribe(event, (...args) => {
       nativeBridge.pushEvent(event, args);
     });

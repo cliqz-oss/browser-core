@@ -22,31 +22,11 @@ export function runContentScripts(window, chrome, windowId) {
       try {
         contentScript(window, chrome, windowId);
       } catch (e) {
-        window.console.error('CLIQZ content-script failed', e);
+        window.console.error(`CLIQZ content-script failed: ${e} ${e.stack}`);
       }
     });
   });
 }
-
-export function throttle(window, fn, threshhold) {
-  let last;
-  let timer;
-  return (...args) => {
-    const now = Date.now();
-    if (last && now < last + threshhold) {
-      // reset timeout
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => {
-        last = now;
-        fn(...args);
-      }, threshhold);
-    } else {
-      last = now;
-      fn(...args);
-    }
-  };
-}
-
 
 /**
  * Get the url of the top window.
@@ -70,19 +50,19 @@ export function getWindowTreeInformation(window) {
   // Keep track of window IDs
   let currentId = getWindowId(window);
   const windowId = currentId;
-  let parentId;
+  let parentFrameId;
 
   while (currentId !== getWindowId(currentWindow.parent)) {
     // Go up one level
-    parentId = currentId;
+    parentFrameId = currentId;
     currentWindow = currentWindow.parent;
     currentId = getWindowId(currentWindow);
   }
 
   return {
-    originWindowID: currentId,
-    parentWindowID: parentId,
-    outerWindowID: windowId,
+    tabId: currentId,
+    parentFrameId,
+    frameId: windowId,
   };
 }
 

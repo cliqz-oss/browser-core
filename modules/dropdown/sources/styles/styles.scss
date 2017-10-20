@@ -27,6 +27,8 @@ $basic-line-height: (16 / 15) + 0em;
     @import 'results/soccer';
     @import 'results/time';
     @import 'results/flight';
+    @import 'results/movie-cinema';
+    @import 'results/news-story';
 
     .category {
         font-size: 140%;
@@ -688,6 +690,16 @@ $basic-line-height: (16 / 15) + 0em;
         // .description {
         //   display: none;
         // }
+        .result {
+            .abstract {
+                .content {
+                    .divider, .url[data-extra="url"] {
+                        visibility: hidden;
+                    }
+                }
+            }
+        }
+
         p {
             width: 0px;
         }
@@ -765,6 +777,16 @@ $basic-line-height: (16 / 15) + 0em;
                 }
             }
         }
+
+        &.videos {
+            .result {
+                .abstract {
+                    .divider, .url[data-extra="url"] {
+                        visibility: hidden;
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -772,6 +794,14 @@ $basic-line-height: (16 / 15) + 0em;
 
 #nav-bar {
     #urlbar {
+        /* we need this for FF56 and bellow only*/
+        #urlbar-icons {
+            toolbarbutton#page-action-browser-action {
+                .toolbarbutton-icon {
+                    max-width: 12px;
+                }
+            }
+        }
         toolbarbutton {
             &#page-action-browser-action {
                 margin: 0;
@@ -783,10 +813,6 @@ $basic-line-height: (16 / 15) + 0em;
 
                     > .toolbarbutton-badge-stack {
                         padding: 0 8px;
-
-                        .toolbarbutton-icon {
-                            max-width: 12px;
-                        }
                     }
 
                     &:hover, &[open] {

@@ -24,8 +24,9 @@ export default background({
 
     this.suspiciousChecker = new SuspiciousUrlCheck(this.telemetry);
     return this.suspiciousChecker.init().then(
-      () => this.antitracking.action('addPipelineStep', 'open', {
+      () => this.antitracking.action('addPipelineStep', 'onBeforeRequest', {
         name: 'checkIsSuspicious',
+        spec: 'blocking',
         after: ['checkSameGeneralDomain', 'pageLogger.attachStatCounter'],
         fn: this.suspiciousChecker.checkIsSuspicious.bind(this.suspiciousChecker),
       }),
@@ -33,7 +34,7 @@ export default background({
   },
 
   unload() {
-    this.antitracking.action('removePipelineStep', 'open', 'checkIsSuspicious')
+    this.antitracking.action('removePipelineStep', 'onBeforeRequest', 'checkIsSuspicious')
       .catch((err) => {
         if (err.name === ModuleDisabledError.name) {
           console.log('antispy', 'cannot unload: antitracking was already unloaded');

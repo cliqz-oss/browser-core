@@ -9,6 +9,7 @@ var CLIQZEnvironment = {
   getDefaultSearchEngine() {
     return { name: 'google', url: 'http://www.google.com/search?q=' };
   },
+  restoreHiddenSearchEngines() {},
   historySearch() {},
   RERANKERS: [],
   //TODO: remove this dependency

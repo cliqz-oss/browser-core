@@ -6,6 +6,7 @@ export default class {
   constructor(_config) {
     this.window = _config.window;
     this.settings = _config.settings;
+    this.background = _config.background;
   }
 
   init() {
@@ -18,7 +19,7 @@ export default class {
       inject.module('pairing').action('getPairingPeer')
       .catch(() => {})
       .then((peerComm) => {
-        this.UI = new UI(peerComm, this.window, this.settings);
+        this.UI = new UI(peerComm, this.window, this.settings, this.background);
         this.UI.init();
       });
     }

@@ -160,7 +160,7 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
       chai.expect(r.method).to.equal('GET');
       chai.expect(r.isPrivate).to.be.false;
       chai.expect(r.originUrl).to.equal(md.url);
-      chai.expect(r.source).to.equal(md.url);
+      chai.expect(r.sourceUrl).to.equal(md.url);
     }
 
     function testInIFrame(r, topic, md, type) {
@@ -172,15 +172,15 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
       chai.expect(r.isPrivate).to.be.false;
       // source refers to top level url, origin is the iframe url
       chai.expect(r.originUrl).to.not.equal(md.url);
-      chai.expect(r.source).to.equal(md.url);
+      chai.expect(r.sourceUrl).to.equal(md.url);
     }
 
     function testResponseCode(r, topic, code) {
       code = code || 200;
       if (topic === 'onHeadersReceived') {
-        chai.expect(r.responseStatus).to.equal(code);
+        chai.expect(r.statusCode).to.equal(code);
       } else {
-        chai.expect(r.responseStatus).to.be.undefined;
+        chai.expect(r.statusCode).to.be.undefined;
       }
     }
 
@@ -330,7 +330,7 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
           chai.expect(r.method).to.equal('GET');
           chai.expect(r.isPrivate).to.be.false;
           chai.expect(r.originUrl).to.equal("http://cliqztest2.de:60508/proxyiframe.html");
-          chai.expect(r.source).to.equal(md.url);
+          chai.expect(r.sourceUrl).to.equal(md.url);
           testResponseCode(r, topic);
         },
         'http://127.0.0.1:60508/bower_components/jquery/dist/jquery.js': function(r, topic, md) {
@@ -342,7 +342,7 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
           chai.expect(r.method).to.equal('GET');
           chai.expect(r.isPrivate).to.be.false;
           chai.expect(r.originUrl).to.equal("http://127.0.0.1:60508/iframe2.html");
-          chai.expect(r.source).to.equal(md.url);
+          chai.expect(r.sourceUrl).to.equal(md.url);
           testResponseCode(r, topic);
         },
         'http://127.0.0.1:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
@@ -353,7 +353,7 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
           chai.expect(r.method).to.equal('GET');
           chai.expect(r.isPrivate).to.be.false;
           chai.expect(r.originUrl).to.equal("http://127.0.0.1:60508/iframe2.html");
-          chai.expect(r.source).to.equal(md.url);
+          chai.expect(r.sourceUrl).to.equal(md.url);
           testResponseCode(r, topic);
         }
       }

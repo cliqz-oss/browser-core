@@ -11,6 +11,7 @@ const GEOLOCATION_UPDATE_MIN_WAIT = 3600 * 1000;
 
 /**
   @namespace geolocation
+  @module geolocation
   @class Background
  */
 export default background({

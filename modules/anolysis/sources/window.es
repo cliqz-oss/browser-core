@@ -41,6 +41,7 @@ export default class {
   unload() {
     if (this.onPrefChangeEvent) {
       this.onPrefChangeEvent.unsubscribe();
+      this.onPrefChangeEvent = undefined;
     }
   }
 }

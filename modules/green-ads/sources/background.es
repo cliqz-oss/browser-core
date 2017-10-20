@@ -1,8 +1,9 @@
 import background from '../core/base/background';
-import { utils } from '../core/cliqz';
 import events from '../core/events';
 import inject from '../core/kord/inject';
+import tlds from '../core/tlds';
 import { promiseHttpHandler } from '../core/http';
+import { utils } from '../core/cliqz';
 
 import GreenAds from './green-ads';
 import logger from './logger';
@@ -57,39 +58,52 @@ export function greenAdsEnabled() {
 }
 
 
+function isGreenMode() {
+  return getGreenadsState() === GREENADS_STATE.GREEN;
+}
+
+
 export default background({
   antitracking: inject.module('antitracking'),
+  webRequestPipeline: inject.module('webrequest-pipeline'),
   core: inject.module('core'),
 
   enabled() { return true; },
 
-  init() {
+  initImpl() {
+    this.sendTimeout = null;
+    this.greenAds = null;
+    this.inventory = null;
+
     if (greenAdsEnabled()) {
       logger.log(`init background (state: ${getGreenadsState()})`);
-      // TODO - get info about adblocker and antitracking in a reliable way
+
+      // Init greenads both in `green` and `collect` mode.
       this.greenAds = new GreenAds(
         getGreenadsState() === GREENADS_STATE.GREEN,  /* is in green mode? */
-        () => false,                                  /* adblocker enabled? */
-        () => false,                                  /* antitracking enabled? */
         this.antitracking,                            /* give proxy to antitracking */
+        this.webRequestPipeline,
         this.sendTelemetry.bind(this),
       );
 
-      this.inventory = new Inventory();
+      // Only load the inventory in `green` mode
+      if (isGreenMode()) {
+        this.inventory = new Inventory();
 
-      // When a new version of the inventory is available, broadcast it to all
-      // process scripts.
-      this.inventory.onUpdate(() => {
+        // When a new version of the inventory is available, broadcast it to all
+        // process scripts.
+        this.inventory.onUpdate(() => {
+          this.actions.updateProcessScripts({
+            getInventory: true,
+          });
+        });
+
+        // initialise process script state
         this.actions.updateProcessScripts({
+          getMode: true,
           getInventory: true,
         });
-      });
-
-      // initialise process script state
-      this.actions.updateProcessScripts({
-        getMode: true,
-        getInventory: true,
-      });
+      }
 
       return this.greenAds.init();
     }
@@ -97,21 +111,34 @@ export default background({
     return Promise.resolve();
   },
 
-  unload() {
+  init() {
+    return this.initImpl();
+  },
+
+  unloadImpl() {
+    const promises = [];
+
     if (this.greenAds) {
-      const unloadAdBlocker = !greenAdsEnabled();
-      this.greenAds.unload(unloadAdBlocker);
-      this.greenAds = undefined;
+      promises.push(this.greenAds.unload());
+      this.greenAds = null;
     }
 
     if (this.inventory) {
-      this.inventory.unload();
-      this.inventory = undefined;
+      promises.push(this.inventory.unload());
+      this.inventory = null;
     }
+
+    utils.clearTimeout(this.sendTimeout);
+
+    return Promise.all(promises);
+  },
+
+  unload() {
+    return this.unloadImpl();
   },
 
   shouldProxyAction(url) {
-    if (this.greenAds === undefined) {
+    if (this.greenAds === null) {
       return false;
     }
 
@@ -120,7 +147,7 @@ export default background({
 
   sendTelemetry(message) {
     // delay push by 20s to not interfer with current activity
-    utils.setTimeout(() => {
+    this.sendTimeout = utils.setTimeout(() => {
       promiseHttpHandler('POST', TELEMETRY_ENDPOINT,
         JSON.stringify(message), 10000, true);
     }, 20000);
@@ -128,11 +155,13 @@ export default background({
 
   events: {
     'process:init': function onNewProcess(processId) {
-      this.actions.updateProcessScripts({
-        processId,
-        getInventory: true,
-        getMode: true
-      });
+      if (greenAdsEnabled()) {
+        this.actions.updateProcessScripts({
+          processId,
+          getInventory: true,
+          getMode: true
+        });
+      }
     },
     /**
      * Monitor preference changes in about:config and check if we should
@@ -140,19 +169,24 @@ export default background({
      */
     prefchange(pref) {
       if (pref === 'cliqz-adb' || pref === GREENADS_PREF) {
-        if (!greenAdsEnabled()) {
-          this.unload();
-        } else if (!this.greenAds) {
-          this.init();
-        } else {
-          this.greenAds.toggle(getGreenadsState() === GREENADS_STATE.GREEN);
-        }
+        return this.unloadImpl()
+          .then(() => this.actions.updateProcessScripts({
+            getMode: true,
+          }))
+          .then(() => {
+            if (greenAdsEnabled()) {
+              return this.initImpl();
+            }
 
-        // Broadcast new mode to all processes
-        this.actions.updateProcessScripts({
-          getMode: true,
-        });
+            return Promise.resolve();
+          })
+          .then(() => {
+            // Broadcast new mode to all processes
+            events.pub('greenads:reloaded');
+          });
       }
+
+      return Promise.resolve();
     },
     'core:mouse-down': function onMouseDown(ev) {
       if (!this.greenAds) return;
@@ -251,10 +285,11 @@ export default background({
       logger.debug(`tab_select ${url}`);
       if (url.indexOf('about:') !== 0) {
         const selectedBrowser = utils.getWindow().gBrowser.selectedBrowser;
-        const tabId = selectedBrowser.outerWindowID;
+        const tabId = selectedBrowser.frameId;
         const windowTreeInformation = {
-          outerWindowID: tabId,
-          originWindowID: tabId,
+          tabId,
+          parentFrameId: tabId,
+          frameId: tabId,
         };
         logger.debug(`tab_select found URL ${JSON.stringify(windowTreeInformation)} ${url}`);
         this.greenAds.touchTab(windowTreeInformation, url);
@@ -268,7 +303,7 @@ export default background({
      */
     updateProcessScripts({ processId, getInventory, getMode }) {
       // Only when green-ads is enabled
-      if (!this.greenAds || !this.inventory) return;
+      if (!greenAdsEnabled()) { return; }
 
       let target = 'cliqz:process-script';
       if (processId) {
@@ -278,7 +313,7 @@ export default background({
       const data = Object.create(null);
 
       // Optionally update inventory
-      if (getInventory) {
+      if (getInventory && this.inventory) {
         // Get inventory
         logger.debug('Get Inventory called');
         const ads = this.inventory.getInventory();
@@ -321,16 +356,13 @@ export default background({
     onDOMCreated(windowTreeInformation, originUrl, timestamp) {
       if (this.shouldProxyAction(originUrl)) {
         events.pub(
-          'chip:start_load',
+          'greenads:start_load',
           windowTreeInformation,
           originUrl,
           timestamp,
         );
 
         this.greenAds.onDOMCreated(windowTreeInformation, originUrl, timestamp);
-
-        // Trigger adblocker injection
-        return this.actions.url(originUrl);
       }
 
       return {};
@@ -342,7 +374,7 @@ export default background({
     onFullLoad(windowTreeInformation, originUrl, timestamp) {
       if (!this.shouldProxyAction(originUrl)) return;
       events.pub(
-        'chip:end_load',
+        'greenads:end_load',
         windowTreeInformation,
         originUrl,
         timestamp,
@@ -388,11 +420,11 @@ export default background({
       this.greenAds.onAdClicked(windowTreeInformation, originUrl, url, timestamp);
     },
 
-    highlightAd(outerWindowID) {
+    highlightAd(frameId) {
       if (getGreenadsState() === GREENADS_STATE.COLLECT) {
         return this.core.action('broadcastMessageToWindow',
-          { ping: true },
-          outerWindowID,
+          { ad: true },
+          frameId,
           'green-ads',
         );
       }
@@ -405,27 +437,30 @@ export default background({
       return this.greenAds.aggregate();
     },
 
-    // TODO - find a better way, since this is copy/paste from
-    // adblocker/background.es
-    //
-    // Mimic adblocker's actions
-    // handles messages coming from process script
-    url(url) {
+    getCosmeticsForNodes(url, nodes) {
       if (getGreenadsState() === GREENADS_STATE.DISABLED) {
         return { active: false };
       }
 
-      const candidates = this.greenAds.adblocker.engine.getDomainFilters(url);
-      return {
-        scripts: candidates
-          .filter(rule => rule.isScriptInject())
-          .map(rule => rule.getSelector()),
-        blockedScripts: candidates
-          .filter(rule => rule.isScriptBlock())
-          .map(rule => rule.getSelector()),
-        styles: [],
-        active: true,
-      };
+      const cosmetics = this.greenAds.adblocker.engine.getCosmeticsFilters(
+        tlds.extractHostname(url),
+        nodes
+      );
+      cosmetics.styles = [];
+
+      return cosmetics;
+    },
+    getCosmeticsForDomain(url) {
+      if (getGreenadsState() === GREENADS_STATE.DISABLED) {
+        return { active: false };
+      }
+
+      const cosmetics = this.greenAds.adblocker.engine.getDomainFilters(
+        tlds.extractHostname(url)
+      );
+      cosmetics.styles = [];
+
+      return cosmetics;
     },
   },
 });

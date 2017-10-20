@@ -127,7 +127,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
         getAttrack().tp_events._staged = [];
         // clean up attrack caches
         getAttrack().recentlyModified.clear();
-        getAttrack().disabled_sites.clear();
+        getAttrack().urlWhitelist.whitelist.clear();
 
         // create 'up-to-date' whitelist
         getAttrack().qs_whitelist = new QSWhitelist();
@@ -573,11 +573,11 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
             context('anti-tracking disabled for source domain', function() {
 
               beforeEach(function() {
-                getAttrack().addSourceDomainToWhitelist('localhost');
+                getAttrack().urlWhitelist.changeState('localhost', 'hostname', 'add');
               });
 
               afterEach(function() {
-                getAttrack().removeSourceDomainFromWhitelist('localhost');
+                getAttrack().urlWhitelist.changeState('localhost', 'hostname', 'remove');
               });
 
               it('allows all cookies on whitelisted site', testAllowsAllCookies);
@@ -823,11 +823,11 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
               context('anti-tracking disabled for source domain', function() {
 
                 beforeEach(function() {
-                  getAttrack().addSourceDomainToWhitelist('localhost');
+                  getAttrack().urlWhitelist.changeState('localhost', 'hostname', 'add');
                 });
 
                 afterEach(function() {
-                  getAttrack().removeSourceDomainFromWhitelist('localhost');
+                  getAttrack().urlWhitelist.changeState('localhost', 'hostname', 'remove');
                 });
 
                 it('allows all tokens on whitelisted site', function(done) {

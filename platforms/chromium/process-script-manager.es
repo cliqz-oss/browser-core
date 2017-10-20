@@ -9,10 +9,16 @@ export default class {
   }
 
   init() {
-    chrome.webNavigation.onCommitted.addListener(({ url }) => {
-      events.pub('content:location-change', {
-        url,
-      });
+
+    chrome.webNavigation.onCommitted.addListener(({ url, frameId, transitionType }) => {
+      // We should only forward main_document URLs for on-location change.
+      if (frameId === 0) {
+        events.pub('content:location-change', {
+          url,
+          frameId,
+          transitionType
+        });
+      }
     });
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -24,8 +30,8 @@ export default class {
       if (message.payload) {
         this.dispatch({
           data: {
-            windowId: messageId,
             ...message,
+            windowId: messageId
           }
         });
       } else {

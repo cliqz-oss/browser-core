@@ -74,7 +74,7 @@ export default class {
 
   extractKeyTokens(state) {
     // ignore private requests
-    if(state.requestContext.isChannelPrivate()) return true;
+    if(state.isPrivate) return true;
 
     const keyTokens = state.urlParts.getKeyValuesMD5();
     if (keyTokens.length > 0) {

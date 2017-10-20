@@ -10,12 +10,14 @@ import background from '../core/base/background';
 import { forEachWindow, mapWindows } from '../core/browser';
 import { queryActiveTabs } from '../core/tabs';
 import config from '../core/config';
-import { isCliqzBrowser } from '../core/platform';
+import { isCliqzBrowser, isCliqzAtLeastInVersion } from '../core/platform';
 import prefs from '../core/prefs';
 import { dismissMessage, countMessageClick } from './actions/message';
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
+const BLUE_THEME_PREF  = 'freshtab.blueTheme.enabled';
+const DEVELOPER_FLAG_PREF = 'developer';
 
 const blackListedEngines = [
   'Google Images',
@@ -26,8 +28,21 @@ const DEFAULT_COMPONENT_STATE = {
   visible: true,
 };
 
+const historyWhitelist = [
+  config.settings.NEW_TAB_URL,
+  config.settings.HISTORY_URL
+];
+
+if (config.settings.frameScriptWhitelist) {
+  historyWhitelist.push(...config.settings.frameScriptWhitelist);
+}
+
+function isHistoryDependentPage(url) {
+  return historyWhitelist.some(u => url.indexOf(u) === 0);
+}
 
 /**
+ * @module freshtab
  * @namespace freshtab
  * @class Background
  */
@@ -35,7 +50,8 @@ export default background({
   core: inject.module('core'),
   geolocation: inject.module('geolocation'),
   messageCenter: inject.module('message-center'),
-
+  theme: inject.module('theme'),
+  offersV2: inject.module('offers-v2'),
   requiresServices: ['logos'],
 
   /**
@@ -77,15 +93,42 @@ export default background({
     return prefs.get('cliqzTabOffersNotification', false);
   },
 
+  get blueTheme() {
+    return prefs.get(BLUE_THEME_PREF, false);
+  },
+
+  /**
+  * Blue theme is supported only for CLIQZ users above 1.16.0
+  **/
+  get isBlueThemeSupported() {
+    const CLIQZ_1_16_OR_ABOVE  = isCliqzAtLeastInVersion('1.16.0');
+    return isCliqzBrowser && CLIQZ_1_16_OR_ABOVE || prefs.get(DEVELOPER_FLAG_PREF, false);
+  },
+
+  /*
+  * Blue background is supported for all AMO users
+  * and CLIQZ users above 1.16.0
+  **/
+  get isBlueBackgroundSupported() {
+    let isSupported = true;
+    if (isCliqzBrowser && !isCliqzAtLeastInVersion("1.16.0")) {
+      isSupported = false;
+    }
+    return isSupported || prefs.get(DEVELOPER_FLAG_PREF, false);
+  },
+
   getComponentsState() {
     const config = JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}'));
-
+    let defaultBg = 'bg-default';
+    if (this.isBlueBackgroundSupported) {
+      defaultBg = 'bg-blue';
+    }
     return {
       historyDials: Object.assign({}, DEFAULT_COMPONENT_STATE, config.historyDials),
       customDials:  Object.assign({}, DEFAULT_COMPONENT_STATE, config.customDials),
       search:       Object.assign({}, DEFAULT_COMPONENT_STATE, config.search),
       news:         Object.assign({}, DEFAULT_COMPONENT_STATE, config.news),
-      background:   Object.assign({}, { image: 'bg-default' }, config.background),
+      background:   Object.assign({}, { image: defaultBg }, config.background),
     };
   },
 
@@ -390,21 +433,68 @@ export default background({
     },
 
     /**
+    * Get offers
+    * @method getOffers
+    */
+    getOffers() {
+      if(!this.showOffers) {
+        return;
+      }
+      const args = {
+        filters: {
+          by_rs_dest: 'cliqz-tab',
+          ensure_has_dest: true
+        }
+      };
+
+      return this.offersV2.action('getStoredOffers', args);
+    },
+
+    /**
     * Get configuration regarding locale, onBoarding and browser
     * @method getConfig
     */
     getConfig() {
+      let blueTheme = this.blueTheme;
       return {
         locale: utils.PREFERRED_LANGUAGE,
         newTabUrl: config.settings.NEW_TAB_URL,
         isBrowser: isCliqzBrowser,
+        blueTheme: this.blueTheme,
+        isBlueThemeSupported: this.isBlueThemeSupported,
+        isBlueBackgroundSupported: this.isBlueBackgroundSupported,
         showNewBrandAlert: this.shouldShowNewBrandAlert,
-        showOffers: this.showOffers,
         messages: this.messages,
         isHistoryEnabled: prefs.get('modules.history.enabled', false) && config.settings.HISTORY_URL,
         componentsState: this.getComponentsState(),
       };
     },
+
+    /**
+    * @method toggleBlueTheme
+    */
+    toggleBlueTheme() {
+      // toggle blue class only on FF for testing.
+      // Cliqz browser listens for pref change and takes care of toggling the class
+      if (prefs.get(DEVELOPER_FLAG_PREF, false)) {
+        this.actions.toggleBlueClassForFFTesting();
+      }
+
+      if(this.blueTheme) {
+        prefs.set(BLUE_THEME_PREF, false);
+      } else {
+        prefs.set(BLUE_THEME_PREF, true);
+      }
+    },
+
+    toggleBlueClassForFFTesting() {
+      if (this.blueTheme) {
+        this.theme.action('removeBlueClass');
+      } else {
+        this.theme.action('addBlueClass')
+      }
+    },
+
     /**
     * @method takeFullTour
     */
@@ -460,12 +550,12 @@ export default background({
       });
     },
 
-    refreshHistoryUI() {
+    refreshHistoryDependentPages() {
       forEachWindow(window => {
         const tabs = [...window.gBrowser.tabs];
         tabs.forEach(tab => {
           const browser = tab.linkedBrowser;
-          if (browser.currentURI.spec.indexOf(`${config.settings.NEW_TAB_URL}#/history`) >= 0) {
+          if (isHistoryDependentPage(browser.currentURI.spec)) {
             browser.reload();
           }
         });
@@ -478,12 +568,11 @@ export default background({
     "control-center:cliqz-tab": function () {
       if(this.newTabPage.isActive) {
         this.newTabPage.rollback();
+        this.newTabPage.setPersistentState(false);
       } else {
         this.newTabPage.enableNewTabPage();
         this.newTabPage.enableHomePage();
       }
-
-      this.newTabPage.setPersistentState(!this.newTabPage.isActive);
     },
     "message-center:handlers-freshtab:new-message": function onNewMessage(message) {
       if( !(message.id in this.messages )) {
@@ -515,17 +604,16 @@ export default background({
       });
     },
     "history:cleared": function onHistoryCleared() {
-      this.actions.refreshHistoryUI();
+      this.actions.refreshHistoryDependentPages();
     },
     "history:removed": function onHistoryRemoved(urls) {
-      const activeUrls = [...mapWindows(w => w).map(queryActiveTabs).reduce((aUrls, aTabs) => {
+      const historyUrls = [...mapWindows(w => w).map(queryActiveTabs).reduce((aUrls, aTabs) => {
         return new Set([
           ...urls,
           ...aTabs.map(t => t.url),
         ]);
-      }, new Set())];
-      const historyUrls = activeUrls
-        .filter(u => u.indexOf(`${config.settings.NEW_TAB_URL}#/history`) >= 0);
+      }, new Set())]
+      .filter(isHistoryDependentPage);
 
       historyUrls.forEach((url) => {
         this.core.action(

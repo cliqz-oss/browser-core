@@ -134,7 +134,7 @@ export default class QueryHandler {
    *                                order and all filter tokens are not
    *                                present in the normalized query]
    */
-  matchTokens(tokenData, timeRange = 0) {
+  matchTokens(tokenData, timeRange) {
     // get list of timestamps for the contained words
     // use contained list to grab the set of timestamps
     let finalSetTS = new Set();
@@ -179,7 +179,9 @@ export default class QueryHandler {
     // and check if the resulting set, if it is not empty and is in the TimeRange
 
     let threshold = -1;
-    threshold = timestampMS() - timeRange;
+    if (timeRange > 0) {
+      threshold = timestampMS() - timeRange;
+    }
     const inTheRange = [...finalSetTS].filter(x => x > threshold);
 
     return inTheRange.length > 0;

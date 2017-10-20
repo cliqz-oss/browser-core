@@ -8,8 +8,21 @@ const DATE_FORMAT = 'YYYY-MM-DD';
 const getCurrentMoment = () => moment('2017-01-01', DATE_FORMAT);
 
 
+let mockPut = () => Promise.resolve();
+let mockQuery = () => Promise.resolve();
+let mockBulkDocs = () => Promise.resolve();
+
+
 export default describeModule('anolysis/storage',
   () => ({
+    'core/database': {
+      default: class Database {
+        put(...args) { return mockPut(...args); }
+        query(...args) { return mockQuery(...args); }
+        bulkDocs(...args) { return mockBulkDocs(...args); }
+        post() { return Promise.resolve(); }
+      }
+    },
     'core/cliqz': {
       utils: {
         setInterval() {},
@@ -31,21 +44,15 @@ export default describeModule('anolysis/storage',
     },
   }),
   () => {
-    let database;
     let storage;
     beforeEach(function resetStorageMock() {
-      database = {
-        put: () => Promise.resolve(),
-        post: () => Promise.resolve(),
-        query: () => Promise.resolve(),
-      };
       const Storage = this.module().default;
-      storage = new Storage(database);
+      storage = new Storage('');
     });
     describe('#put', () => {
       it('should set timestamp (if not provided) of record and put record into database', () => {
         let record;
-        database.put = (_record) => {
+        mockPut = (_record) => {
           record = _record;
           return Promise.resolve();
         };
@@ -59,7 +66,7 @@ export default describeModule('anolysis/storage',
       });
       it('should not set timestamp (if provided) of record and put record into database', () => {
         let record;
-        database.put = (_record) => {
+        mockPut = (_record) => {
           record = _record;
           return Promise.resolve();
         };
@@ -76,7 +83,7 @@ export default describeModule('anolysis/storage',
       it('should query database with correct index & timespan and extract documents', () => {
         let index;
         let params;
-        database.query = (_index, _params) => {
+        mockQuery = (_index, _params) => {
           index = _index;
           params = _params;
           return Promise.resolve({
@@ -105,14 +112,14 @@ export default describeModule('anolysis/storage',
     describe('#deleteByTimespan', () => {
       it('should query database with correct documents & timespan', () => {
         let documents = [];
-        database.query = () => Promise.resolve({
+        mockQuery = () => Promise.resolve({
           rows: [
             { doc: { behavior: { type: 'type_A', value: 1 } } },
             { doc: { behavior: { type: 'type_B', value: 1 } } },
             { doc: { behavior: { type: 'type_A', value: 2 } } },
           ],
         });
-        database.bulkDocs = (_documents) => {
+        mockBulkDocs = (_documents) => {
           documents = _documents;
           return Promise.resolve(documents);
         };
@@ -129,7 +136,7 @@ export default describeModule('anolysis/storage',
       it('should query database with correct index & timespan and group records by type', () => {
         let index;
         let params;
-        database.query = (_index, _params) => {
+        mockQuery = (_index, _params) => {
           index = _index;
           params = _params;
           return Promise.resolve({

@@ -1,7 +1,8 @@
 import background from '../core/base/background';
 
 /**
-  @namespace <namespace>
+  @namespace offers-debug
+  @module offers-debug
   @class Background
  */
 export default background({

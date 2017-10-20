@@ -15,6 +15,7 @@ export default class {
   * DNS Filter for unblocking YT videos
   * @class Youtube
   * @namespace unblock
+  * @module unblock
   * @constructor
   */
   constructor() {

@@ -3,12 +3,22 @@
 
 export default describeModule('antitracking/steps/check-context',
   () => ({
+    'core/cliqz': {
+      utils: {
+        setTimeout(fn) { fn(); },
+      },
+    },
     'core/console': {
-      default: console,
+      default: {
+        debug() {},
+        log() {},
+        error() {},
+      },
     },
     'platform/url': {
-    }
-  }), () => {
+    },
+  }),
+  () => {
     describe('checkSameGeneralDomain', () => {
       let checkSameGeneralDomain;
 

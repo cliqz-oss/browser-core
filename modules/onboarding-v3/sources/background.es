@@ -3,7 +3,8 @@ import background from '../core/base/background';
 import utils from '../core/utils';
 
 /**
-  @namespace <namespace>
+  @namespace onboarding-v3
+  @module onboarding-v3
   @class Background
  */
 export default background({

@@ -3,6 +3,7 @@ import modules from './modules';
 import DefaultWeakMap from './default-weak-map';
 import Defer from './defer';
 import Service from './service';
+import inject from '../kord/inject';
 
 export default class Module {
   constructor(name, settings) {
@@ -63,15 +64,12 @@ export default class Module {
     return this._state === 'disabled';
   }
 
-  enable(app = null) {
-    if (this.isEnabled) {
-      throw new Error(`Module ${this.name} already enabled`);
-    }
-    if (this.isEnabling) {
-      throw new Error(`Module ${this.name} is already starting`);
-    }
-    console.log('Module', this.name, 'start loading');
+  markAsEnabling() {
     this._state = 'enabling';
+  }
+
+  enable(app = null) {
+    console.log('Module', this.name, 'start loading');
     const loadingStartedAt = Date.now();
     return Promise.resolve(this.backgroundModule)
       .then((background) => {
@@ -183,5 +181,13 @@ export default class Module {
     return {
       isEnabled: this.isEnabled,
     };
+  }
+
+  action(name, ...args) {
+    return inject.module(this.name).action(name, ...args);
+  }
+
+  windowAction(window, name, ...args) {
+    return inject.module(this.name).windowAction(window, name, ...args);
   }
 }

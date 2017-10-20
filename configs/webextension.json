@@ -38,12 +38,14 @@
   },
   "default_prefs" : {
     "modules.context-search.enabled": false,
-    "modules.type-filter.enabled": false
+    "modules.type-filter.enabled": false,
+    "showConsoleLogs": true,
+    "humanWeb": true
   },
   "modules": [
     "core",
     "core-cliqz",
-    "human-web2",
+    "human-web",
     "static",
     "webextension-specific",
     "hpn",

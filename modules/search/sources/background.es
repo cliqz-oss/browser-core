@@ -1,7 +1,8 @@
 import background from '../core/base/background';
 
 /**
-  @namespace <namespace>
+  @namespace search
+  @module search
   @class Background
  */
 export default background({

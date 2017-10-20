@@ -12,19 +12,17 @@ import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 
 const STYLESHEET_URL = 'chrome://cliqz/content/dropdown/styles/styles.css';
 
-function getResults(popup) {
-  const ctrl = popup.element.mInput.controller;
-  const resultCount = popup.element._matchCount;
-  const lastRes = autocomplete.lastResult;
-  const rawResults = Array(resultCount).fill().map((_, i) => {
-    const data = (lastRes && lastRes.getDataAt(i)) || {};
+function getResults(ctrl) {
+  const query = autocomplete.lastSearch.trim();
+  const rawResults = Array(ctrl.matchCount).fill().map((_, i) => {
+    const data = ctrl.getDataAt(i) || {};
     const rawResult = {
       title: ctrl.getCommentAt(i),
       url: ctrl.getValueAt(i),
-      description: (lastRes && lastRes.getDataAt(i) && lastRes.getDataAt(i).description) || '',
+      description: data.description || '',
       originalUrl: ctrl.getValueAt(i),
       type: ctrl.getStyleAt(i),
-      text: popup.query,
+      text: query,
       data,
       maxNumberOfSlots: (i === 0 ? 3 : 1),
     };
@@ -32,7 +30,7 @@ function getResults(popup) {
   });
 
   return {
-    query: popup.query,
+    query,
     queriedAt: autocomplete.lastQueryTime,
     rawResults,
   };
@@ -55,7 +53,14 @@ export default class {
           if (prefs.get('searchMode', 'autocomplete') !== 'autocomplete') {
             return;
           }
-          const results = getResults(this.ui.popup);
+
+          const ctrl = autocomplete.lastResult;
+
+          if (!ctrl) {
+            return;
+          }
+
+          const results = getResults(ctrl);
           this.ui.render(results);
         };
         this.isReady = true;

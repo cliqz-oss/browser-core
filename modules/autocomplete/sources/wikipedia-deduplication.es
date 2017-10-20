@@ -188,8 +188,9 @@ export default class WikipediaDedupReranker {
     this.name = 'lang_deduplication'
   }
   afterResults(_, backendResults) {
-    var reranked = CliqzWikipediaDeduplication.doRerank(backendResults.response.results);
-    var response = Object.assign({}, backendResults.response, {
+    var response = backendResults.response || {};
+    var reranked = CliqzWikipediaDeduplication.doRerank(response.results);
+    response = Object.assign({}, response, {
       results: reranked.response,
       telemetrySignal: reranked.telemetrySignal
     });

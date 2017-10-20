@@ -10,7 +10,7 @@ export default class extends React.Component {
 
   render() {
     const data = this.props.data;
-    return <Link actionName='copyvalue' actionParams={[ data.answer ]}>
+    return <Link actionName='mobile-search:copyValue' actionParams={[ data.answer ]}>
       <View>
         <Title title={getMessage('calculator')} />
         <Text style={styles.body}>{data.answer}</Text>

@@ -30,13 +30,15 @@ export default background({
 
     return this.blockEngine.init().then(() => {
       const steps = [
-        this.antitracking.action('addPipelineStep', 'open', {
+        this.antitracking.action('addPipelineStep', 'onBeforeRequest', {
           name: STEP_NAME,
+          spec: 'blocking',
           after: ['checkSameGeneralDomain', 'pageLogger.attachStatCounter', 'pageLogger.logRequestMetadata'],
           fn: this.blockEngine.checkBlockRules.bind(this.blockEngine),
         }),
-        this.antitracking.action('addPipelineStep', 'open', {
+        this.antitracking.action('addPipelineStep', 'onBeforeRequest', {
           name: `${STEP_NAME}Apply`,
+          spec: 'blocking',
           before: ['checkShouldBlock'],
           fn: this.blockEngine.applyBlockRules.bind(this.blockEngine),
         })
@@ -47,8 +49,8 @@ export default background({
 
   unload() {
     Promise.all([
-      this.antitracking.action('removePipelineStep', 'open', STEP_NAME),
-      this.antitracking.action('removePipelineStep', 'open', `${STEP_NAME}Apply`),
+      this.antitracking.action('removePipelineStep', 'onBeforeRequest', STEP_NAME),
+      this.antitracking.action('removePipelineStep', 'onBeforeRequest', `${STEP_NAME}Apply`),
     ]).catch((err) => {
       if (err.name === ModuleDisabledError.name) {
         console.log('antitracking-blocker', 'cannot unload: antitracking was already unloaded');

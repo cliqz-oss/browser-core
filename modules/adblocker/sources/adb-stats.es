@@ -1,7 +1,9 @@
-import { getGeneralDomain } from '../antitracking/domain';
 import { checkIsWindowActive } from '../platform/browser';
-import { URLInfo } from '../antitracking/url';
+
 import domainInfo from '../core/domain-info';
+
+import { getGeneralDomain } from '../antitracking/domain';
+import { URLInfo } from '../antitracking/url';
 
 
 class PageStats {

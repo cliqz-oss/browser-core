@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <title>Video Downloader</title>
     <link rel="stylesheet" href="styles/styles.css">
-    <script src="../webextensions-shim.js"></script>
     <script src="../bower_components/system.js/dist/system.js"></script>
     <script src="../bower_components/handlebars/handlebars.js"></script>
     <script>
@@ -15,7 +14,16 @@
         }
       });
       System.set('handlebars', System.newModule({default: Handlebars}));
-      System.baseURL = System._loader.baseURL = "chrome://cliqz/content/";
+      if (typeof Components !== "undefined") {
+        System.baseURL = System._loader.baseURL = "resource://cliqz/";
+      } else {
+        var chrome = {
+            i18n: {
+                getMessage(k) { return k; }
+            }
+        }
+        System.baseURL  = '../'
+      }
       System.import("video-downloader/content/app");
     </script>
   </head>

@@ -1,8 +1,5 @@
-import WebRequest from '../core/webrequest';
-
 import md5 from '../antitracking/md5';
 
-import WebRequestContext from '../webrequest-pipeline/webrequest-context';
 import { AdBlocker } from '../adblocker/adblocker';
 
 import PageLoad from './statistics';
@@ -14,10 +11,8 @@ import { sanitiseUrl, extractDomain, extractGeneralDomain } from './utils';
 
 
 export default class {
-  constructor(greenMode, isAdbActive, isAntitrackingActive, antitracking, sendTelemetry) {
-    // Getters to check state of adblocker and antitracking
-    this.isAdbActive = isAdbActive;
-    this.isAntitrackingActive = isAntitrackingActive;
+  constructor(greenMode, antitracking, webRequestPipeline, sendTelemetry) {
+    this.webRequestPipeline = webRequestPipeline;
     this.antitracking = antitracking;
     this.qsWhitelist = null;
 
@@ -25,12 +20,11 @@ export default class {
     this.greenMode = greenMode;
 
     // Create adblocker
-    this.adblocker = new AdBlocker({ action() { return Promise.resolve(); } }, {
-      useCountryList: false,
-    });
+    this.adblocker = new AdBlocker(
+      { action() { return Promise.resolve(); } },
+      { useCountryList: false }
+    );
 
-    // Keep a mapping between URLs and tabIds
-    this.tabIdToUrl = new Map();
     this.tabs = [];
 
     // Keep track of what window ids we consider as ads clicked
@@ -53,7 +47,7 @@ export default class {
 
         if (page.greenads) {
           const msg = page.greenads.aggregate();
-          logger.debug(`Send telemetry for page ${msg.url}`);
+          logger.debug('Send telemetry for page', msg.url, msg);
           sendTelemetry({
             type: 'humanweb',
             action: 'greenads.page',
@@ -63,21 +57,22 @@ export default class {
       });
     });
 
-    // TODO - persist history of the user?
-    // visits to chip.de domain: number of time.
-    // Could be done with history tool probably?
     this.sessions = new SessionTracker(['chip.de'], this.greenMode, sendTelemetry);
   }
 
   initListeners() {
+    const promises = [];
+
     if (this.onBeforeRequestListener === undefined) {
       // onBeforeRequest will be used to block third party requests.
       this.onBeforeRequestListener = this.onBeforeRequest.bind(this);
-      WebRequest.onBeforeRequest.addListener(
-        this.onBeforeRequestListener,
-        undefined,
-        ['blocking'],
-      );
+      promises.push(this.webRequestPipeline.action('addPipelineStep',
+        'open',
+        {
+          name: 'greenads.open',
+          fn: this.onBeforeRequestListener,
+        },
+      ));
     }
 
     // onBeforeSendHeaders is used to collect statistics on requests.
@@ -85,39 +80,49 @@ export default class {
     // captured by the former (eg: 302 moved temporarily).
     if (this.onBeforeSendHeadersListener === undefined) {
       this.onBeforeSendHeadersListener = this.onBeforeSendHeaders.bind(this);
-      WebRequest.onBeforeSendHeaders.addListener(
-        this.onBeforeSendHeadersListener,
-        undefined,
-        [],
-      );
+      promises.push(this.webRequestPipeline.action('addPipelineStep',
+        'modify',
+        {
+          name: 'greenads.modify',
+          fn: this.onBeforeSendHeadersListener,
+        },
+      ));
     }
 
     // onHeadersReceived is used to collect statistics about responses.
     if (this.onHeadersReceivedListener === undefined) {
       this.onHeadersReceivedListener = this.onHeadersReceived.bind(this);
-      WebRequest.onHeadersReceived.addListener(
-        this.onHeadersReceivedListener,
-        undefined,
-        [],
-      );
+      promises.push(this.webRequestPipeline.action('addPipelineStep',
+        'response',
+        {
+          name: 'greenads.response',
+          fn: this.onHeadersReceivedListener,
+        },
+      ));
     }
+
+    return Promise.all(promises);
   }
 
   unloadListeners() {
+    const promises = [];
+
     if (this.onBeforeRequestListener) {
-      WebRequest.onBeforeRequest.removeListener(this.onBeforeRequestListener);
+      promises.push(this.webRequestPipeline.action('removePipelineStep', 'open', 'greenads.open'));
       this.onBeforeRequestListener = undefined;
     }
 
     if (this.onBeforeSendHeadersListener) {
-      WebRequest.onBeforeSendHeaders.removeListener(this.onBeforeSendHeadersListener);
+      promises.push(this.webRequestPipeline.action('removePipelineStep', 'modify', 'greenads.modify'));
       this.onBeforeSendHeadersListener = undefined;
     }
 
     if (this.onHeadersReceivedListener) {
-      WebRequest.onHeadersReceived.removeListener(this.onHeadersReceivedListener);
+      promises.push(this.webRequestPipeline.action('removePipelineStep', 'response', 'greenads.response'));
       this.onHeadersReceivedListener = undefined;
     }
+
+    return Promise.all(promises);
   }
 
   initAdblocker() {
@@ -129,8 +134,8 @@ export default class {
   }
 
   init() {
-    this.sessions.init();
     return Promise.all([
+      this.sessions.init(),
       this.initListeners(),
       this.initAdblocker(),
       this.antitracking.action('getWhitelist')
@@ -138,16 +143,12 @@ export default class {
     ]);
   }
 
-  toggle(greenMode) {
-    this.greenMode = greenMode;
-    this.initListeners();
-    this.sessions.toggleState(greenMode);
-  }
-
   unload() {
-    this.unloadAdblocker();
-    this.unloadListeners();
-    this.sessions.unload();
+    return Promise.all([
+      this.unloadAdblocker(),
+      this.unloadListeners(),
+      this.sessions.unload(),
+    ]);
   }
 
   isFromAllowedAdvertiser(url) {
@@ -164,12 +165,33 @@ export default class {
     return false;
   }
 
-  shouldProceedWithUrl(url) {
-    return extractGeneralDomain(url) === 'chip.de';
+  wouldBeBlocked(url, sourceUrl, cpt = 6) {
+    const result = this.adblocker.match({
+      sourceUrl,
+      url,
+      cpt,
+    });
+
+    return (result.match || result.exception);
   }
 
-  updateTabMappings(windowTreeInformation, originUrl) {
-    this.tabIdToUrl.set(windowTreeInformation.originWindowID, originUrl);
+  isProbablyAdvertiser(url, sourceUrl, cpt) {
+    return (
+      this.isFromAllowedAdvertiser(url) ||
+      this.wouldBeBlocked(url, sourceUrl, cpt)
+    );
+  }
+
+  isTrackerOrAdvertiser(url, sourceUrl, cpt) {
+    return this.isProbablyAdvertiser(url, sourceUrl, cpt) || this.isUrlFromTracker(url);
+  }
+
+  /**
+   * Check if we should register events coming from `url` (currently check if
+   * the domain is chip.de.
+   */
+  shouldProceedWithUrl(url) {
+    return extractGeneralDomain(url) === 'chip.de';
   }
 
   /* Tab activity book-keeping
@@ -194,15 +216,15 @@ export default class {
    * The latest element of the `this.tabs` array is always the latest active.
    */
   touchTab(windowTreeInformation, url) {
-    const { originWindowID } = windowTreeInformation;
+    const { tabId } = windowTreeInformation;
 
     const isCollectedPage = this.shouldProceedWithUrl(url);
     const event = {
       // The event always counts for the main document
       windowTreeInformation: {
-        originWindowID,
-        parentWindowID: originWindowID,
-        outerWindowID: originWindowID,
+        tabId,
+        parentFrameId: tabId,
+        frameId: tabId,
       },
       url,
       isCollectedPage,
@@ -213,7 +235,7 @@ export default class {
       this.tabs.push(event);
     } else {
       const lastEvent = this.tabs[this.tabs.length - 1];
-      if (lastEvent.windowTreeInformation.originWindowID !== originWindowID) {
+      if (lastEvent.windowTreeInformation.tabId !== tabId) {
         this.tabs.push(event);
       } else {
         lastEvent.timestamp = Date.now();
@@ -235,59 +257,65 @@ export default class {
 
   onStateChange(windowTreeInformation, originUrl, triggeringUrl) {
     const {
-      originWindowID,
-      outerWindowID,
+      tabId,
+      frameId,
     } = windowTreeInformation;
-
-    this.updateTabMappings(windowTreeInformation, originUrl);
+    logger.debug(`adCheck ${tabId} ${frameId} ${originUrl} ${triggeringUrl}`);
 
     // Only consider main documents
-    if (originWindowID !== outerWindowID) {
-      logger.debug(`adCheck should be main document only ${originWindowID} !== ${outerWindowID}`);
+    if (tabId !== frameId) {
+      logger.log(`adCheck should be main document only ${tabId} !== ${frameId}`);
       return;
     }
 
     if (!(originUrl || triggeringUrl)) {
-      logger.debug('adCheck !originUrl && !triggeringUrl');
+      logger.log('adCheck !originUrl && !triggeringUrl');
       return;
     }
 
     const lastActiveTab = this.getLastActiveTab();
     if (lastActiveTab === null) {
-      logger.debug('adCheck lastActiveTab === null');
+      logger.log('adCheck lastActiveTab === null');
       return;
     }
 
     // Check if the tab is different
-    if (originWindowID === lastActiveTab.windowTreeInformation.originWindowID ||
-        !lastActiveTab.isCollectedPage) {
-      logger.debug(`adCheck tab is not different ${originWindowID} ${JSON.stringify(lastActiveTab)}`);
+    if (tabId === lastActiveTab.windowTreeInformation.tabId) {
+      logger.log(`adCheck tab is not different ${tabId} !== ${lastActiveTab.windowTreeInformation.tabId}`);
+      return;
+    }
+
+    // Check if the latest active tab was from a collected domain
+    if (!lastActiveTab.isCollectedPage) {
+      logger.log('adCheck last tab is not collected', lastActiveTab);
       return;
     }
 
     // Check if the last user action was close enough
     if (lastActiveTab.timestamp < (Date.now() - 10000)) {
-      logger.debug(`adCheck last action of user was too long ago ${Date.now() - lastActiveTab.timestamp} ${JSON.stringify(lastActiveTab)}`);
+      logger.log('adCheck last action of user was too long ago', Date.now() - lastActiveTab.timestamp, lastActiveTab);
       return;
     }
 
     // Comes from a tab which we already count as ad click
-    if (this.adsClickedTabs.has(originWindowID)) {
-      logger.debug('adCheck already count as an Ad');
+    if (this.adsClickedTabs.has(tabId)) {
+      logger.log('adCheck already count as an Ad');
       return;
     }
 
     // Check if the domain is a tracker, and consider this as an ad.
-    if (this.isFromAllowedAdvertiser(originUrl) || this.isFromAllowedAdvertiser(triggeringUrl)) {
-      logger.debug(`locationChange isAd ${originWindowID} ${originUrl} ${triggeringUrl}`);
-      this.adsClickedTabs.add(originWindowID);
+    const sourceUrl = lastActiveTab.url;
+    if (this.isTrackerOrAdvertiser(originUrl, sourceUrl) ||
+        this.isTrackerOrAdvertiser(triggeringUrl, sourceUrl)) {
+      logger.log(`adCheck locationChange isAd ${tabId} ${originUrl} ${triggeringUrl}`);
+      this.adsClickedTabs.add(tabId);
       this.onAdClicked(
         lastActiveTab.windowTreeInformation,
         lastActiveTab.url,
         originUrl,
         Date.now());
     } else {
-      logger.debug(`locationChange NOT AD ${originWindowID} ${originUrl} ${triggeringUrl}`);
+      logger.log(`adCheck locationChange NOT AD ${tabId} ${originUrl} ${triggeringUrl}`);
     }
   }
 
@@ -299,25 +327,18 @@ export default class {
    * - on response
    */
 
-  onBeforeRequest(requestInfo) {
-    const requestContext = new WebRequestContext(requestInfo);
-    const sourceUrl = requestContext.getSourceURL();
-    const url = requestContext.url;
+  onBeforeRequest(state, response) {
+    const tabUrl = state.sourceUrl;
+    const url = state.url;
     const windowTreeInformation = {
-      originWindowID: requestContext.getOriginWindowID(),
-      parentWindowID: requestContext.getParentWindowID(),
-      outerWindowID: requestContext.getOuterWindowID(),
+      tabId: state.tabId,
+      parentFrameId: state.parentFrameId,
+      frameId: state.frameId,
     };
 
-    this.updateTabMappings(windowTreeInformation, sourceUrl);
-
     // Only consider chip.de for this experiment
-    if (!this.shouldProceedWithUrl(sourceUrl)) {
-      return {};
-    }
-
-    if (requestContext.isFullPage()) {
-      return {};
+    if (!this.shouldProceedWithUrl(tabUrl)) {
+      return true;
     }
 
     const host = extractDomain(url);
@@ -326,158 +347,143 @@ export default class {
     // Kill outbrain
     if (isOutbrain(hostGD)) {
       logger.log(`cancel ${url}`);
-      return { cancel: true };
+      response.block();
+      return false;
     }
 
     // When in collect mode, we let a few ads through.
     if (!this.greenMode) {
       // Allow chip-deps?
       if (isChipAdDependency(host, hostGD)) {
-        return {};
+        return true;
       }
 
       // Allow double-click
-      if (isDoubleclick(hostGD)) {
-        return {};
+      const page = this.getPage(windowTreeInformation, tabUrl);
+      const cpt = state.type;
+      if (page.whitelistedFrames.has(windowTreeInformation.frameId) ||
+          page.whitelistedFrames.has(windowTreeInformation.parentFrameId)) {
+        return true;
+      } else if (isDoubleclick(hostGD)) {
+        if (cpt === 7) {
+          logger.debug('update whitelist 7', url, windowTreeInformation.frameId);
+          page.whitelistedFrames.add(windowTreeInformation.frameId);
+        }
+
+        return true;
       }
     }
 
-    // Exceptions:
-    // const response = isException(url);
-    // if (response !== null) {
-    //   logger.log(`exception ${url} ${JSON.stringify(response)}`);
-    //   return response;
-    // }
+    if (state.type === 6) {
+      return true;
+    }
 
-    // const host = extractDomain(url);
-    // const hostGD = extractGeneralDomain(url);
-
-    // White-list selected advertisers
-    // if (!this.greenMode) {
-    //   if (isChipAdDependency(host, hostGD)) {
-    //     return {};
-    //   }
-
-    //   if (isCDN(host, hostGD)) {
-    //     return {};
-    //   }
-
-    //   if (isDoubleclick(hostGD)) {
-    //     logger.log(`doubleclick ${url}`);
-    //     return {};
-    //   }
-
-
-    //   // TODO - deal with other advertisers
-    // }
-
-    // Everything else should come from chip.de
-    // if (hostGD !== 'chip.de') {
-    //   logger.log(`cancel ${url}`);
-    //   return { cancel: true };
-    // }
-
-    // Check host of the request
-    // NOTE: this breaks some images, although images are fetched from
-    // It would be nice to be able to block chip ads, because they might bias
-    // the results of our green-ads (eg: we detect a chip ad clicked as a
-    // green ad clicked).
-    //
-    // chip.de, they might depend on ad-js.chip.de dependencies...
-    // const domain = extractDomain(url);
-    // if (domain === 'ad-js.chip.de') {
-    //   return { cancel: true };
-    // }
+    // Apply the adblocker on the rest!
     const result = this.adblocker.match({
-      sourceURL: sourceUrl,
+      sourceUrl: tabUrl,
       url,
-      cpt: requestContext.getContentPolicyType(),
-      method: requestContext.method,
+      cpt: state.type,
     });
 
     if (result.redirect) {
-      logger.log(`redirect ${url}`);
-      return { redirectUrl: result.redirect };
+      response.redirectTo(result.redirect);
+      return false;
     } else if (result.match) {
-      logger.log(`cancel ${url}`);
-      return { cancel: true };
+      response.block();
+      return false;
     }
 
-    logger.log(`allow ${url}`);
-    return {};
+    return true;
   }
 
-  onBeforeSendHeaders(requestInfo) {
-    const requestContext = new WebRequestContext(requestInfo);
-    const sourceUrl = requestContext.getSourceURL();
+  onBeforeSendHeaders(state) {
+    const tabUrl = state.sourceUrl;
+    const parentUrl = state.originUrl;
+    const url = state.url;
+    const cpt = state.type;
     const windowTreeInformation = {
-      originWindowID: requestContext.getOriginWindowID(),
-      parentWindowID: requestContext.getParentWindowID(),
-      outerWindowID: requestContext.getOuterWindowID(),
+      tabId: state.tabId,
+      parentFrameId: state.parentFrameId,
+      frameId: state.frameId,
     };
 
     // Only consider chip.de for this experiment
-    if (!this.shouldProceedWithUrl(sourceUrl)) {
-      return {};
+    if (!this.shouldProceedWithUrl(tabUrl)) {
+      return true;
     }
 
-    if (requestContext.isFullPage()) {
-      this.updateTabMappings(windowTreeInformation, sourceUrl);
-      this.onNewLoadingDocument(windowTreeInformation, sourceUrl, Date.now());
-      return {};
+    if (cpt === 6) {
+      return true;
     }
 
     // Check what the adblocker would do for this request
-    const url = requestContext.url;
-    const cpt = requestContext.getContentPolicyType();
-    const wouldBeBlocked = this.isFromAllowedAdvertiser(url);
+    const isAdvertiser = this.isProbablyAdvertiser(url, tabUrl, cpt);
 
-    this.onRequestOpen(windowTreeInformation, sourceUrl, Date.now(), {
+    // If we are in a subdocument, check if we should whitelist the iframe
+    if (windowTreeInformation.tabId !== windowTreeInformation.frameId) {
+      const page = this.getPage(windowTreeInformation, tabUrl);
+      if (this.isFromAllowedAdvertiser(url)) {
+        logger.debug('update whitelist 1', url, windowTreeInformation.frameId);
+        page.whitelistedFrames.add(windowTreeInformation.frameId);
+      } else if (this.isFromAllowedAdvertiser(parentUrl)) {
+        logger.debug('update whitelist 2', parentUrl, windowTreeInformation.frameId, windowTreeInformation.parentFrameId, windowTreeInformation, state);
+        page.whitelistedFrames.add(windowTreeInformation.frameId);
+        if (windowTreeInformation.parentFrameId !== windowTreeInformation.tabId) {
+          logger.debug('update whitelist 2', windowTreeInformation.parentFrameId);
+          page.whitelistedFrames.add(windowTreeInformation.parentFrameId);
+        }
+      }
+    }
+
+    this.onRequestOpen(windowTreeInformation, tabUrl, Date.now(), {
       url,
-      sourceUrl,
+      parentUrl,
       cpt,
-      wouldBeBlocked,
+      isAdvertiser,
     });
 
-    return {};
+    return true;
   }
 
-  onHeadersReceived(requestInfo) {
-    const requestContext = new WebRequestContext(requestInfo);
-    const sourceUrl = requestContext.getSourceURL();
+  onHeadersReceived(state) {
+    const tabUrl = state.sourceUrl;
+    const parentUrl = state.originUrl;
+    const url = state.url;
+    const cpt = state.type;
+    const headers = state.responseHeaders;
     const windowTreeInformation = {
-      originWindowID: requestContext.getOriginWindowID(),
-      parentWindowID: requestContext.getParentWindowID(),
-      outerWindowID: requestContext.getOuterWindowID(),
+      tabId: state.tabId,
+      parentFrameId: state.parentFrameId,
+      frameId: state.frameId,
     };
 
-    this.updateTabMappings(windowTreeInformation, sourceUrl);
-
     // Only consider chip.de for this experiment
-    if (!this.shouldProceedWithUrl(sourceUrl)) {
-      return {};
+    if (!this.shouldProceedWithUrl(tabUrl)) {
+      return true;
     }
 
-    const headers = requestInfo.responseHeaders;
-    const url = requestContext.url;
-    const cpt = requestContext.getContentPolicyType();
+    const page = this.getPage(windowTreeInformation, tabUrl);
 
-    // Check what the adblocker would do for this request
-    const wouldBeBlocked = this.isFromAllowedAdvertiser(url);
-    const isFromTracker = this.isFromAllowedAdvertiser(url);
+    const isAdvertiser = this.isProbablyAdvertiser(url, tabUrl, cpt);
+    const isAdvertiserFrame = (
+      state.tabId !== state.frameId && (
+        page.whitelistedFrames.has(windowTreeInformation.frameId) ||
+        page.whitelistedFrames.has(windowTreeInformation.parentFrameId)
+      )
+    );
 
     // Register statistics for this request
-    this.onRequestResponse(windowTreeInformation, sourceUrl, Date.now(), {
+    this.onRequestResponse(windowTreeInformation, tabUrl, Date.now(), {
       url,
-      sourceUrl,
+      parentUrl,
       cpt,
       headers,
-      wouldBeBlocked,
-      isFromTracker,
-      isCached: requestInfo.isCached,
+      isAdvertiser,
+      isAdvertiserFrame,
+      isCached: state.isCached,
     });
 
-    return {};
+    return true;
   }
 
   /* Page loading book-keeping
@@ -502,17 +508,13 @@ export default class {
     });
   }
 
-  getPageID({ originWindowID }, originUrl) {
-    return `${originWindowID}_${originUrl}`;
-  }
-
-  hasPage({ originWindowID }) {
-    const page = this.tabTracker.getPageForTab(originWindowID);
+  hasPage({ tabId }) {
+    const page = this.tabTracker.getPageForTab(tabId);
     return page !== undefined && page.greenads;
   }
 
   getPage(windowTreeInformation, originUrl) {
-    const tabId = windowTreeInformation.originWindowID;
+    const tabId = windowTreeInformation.tabId;
     const page = this.tabTracker.getPageForTab(tabId);
     let greenadsPageStats;
 
@@ -597,17 +599,8 @@ export default class {
 
   // Web request events
   //
-  // - new loading document
   // - onRequestOpen
   // - onRequestResponse
-
-  onNewLoadingDocument(windowTreeInformation, originUrl, timestamp) {
-    this.getPage(windowTreeInformation, originUrl).onNewLoadingDocument(
-      windowTreeInformation,
-      originUrl,
-      timestamp
-    );
-  }
 
   onRequestOpen(windowTreeInformation, originUrl, timestamp, payload) {
     // payload: { originUrl, sourceUrl, cpt, isAd }
@@ -638,6 +631,40 @@ export default class {
 
   onNewFrame(windowTreeInformation, originUrl, timestamp, payload) {
     const page = this.getPage(windowTreeInformation, originUrl);
+
+    // Check if one of the iframes is from double click or is a sub-iframe of a
+    // doubleclick iframe and update the list of whitelisted iframes.
+    payload.iframes.forEach((iframe) => {
+      const windowId = iframe.windowTreeInformation.frameId;
+      if (!page.whitelistedFrames.has(windowId)) {
+        if (iframe.src && this.isFromAllowedAdvertiser(iframe.src)) {
+          logger.debug(`found doubleclick iframe ${windowId}`);
+          logger.debug('update whitelist 3', iframe.src, windowId);
+          page.whitelistedFrames.add(windowId);
+        } else if (iframe.id.startsWith('google_ads')) {
+          logger.debug(`found doubleclick iframe ${windowId}`);
+          logger.debug('update whitelist 4 (iframe id)', windowId);
+          page.whitelistedFrames.add(windowId);
+        } else {
+          // Check all parents
+          iframe.parents.forEach((parent) => {
+            if (!page.whitelistedFrames.has(parent.id) &&
+                this.isFromAllowedAdvertiser(parent.url)) {
+              logger.debug('update whitelist 5', parent.url, parent.id);
+              logger.debug(`found doubleclick iframe ${parent.id}`);
+              page.whitelistedFrames.add(parent.id);
+            }
+
+            if (page.whitelistedFrames.has(parent.id)) {
+              logger.debug(`found doubleclick iframe ${windowId}`);
+              logger.debug('update whitelist 6', parent.id, windowId);
+              page.whitelistedFrames.add(windowId);
+            }
+          });
+        }
+      }
+    });
+
     page.onNewFrame(
       windowTreeInformation,
       originUrl,
@@ -647,8 +674,8 @@ export default class {
 
     // Detect iframes with canvas, from allowed ad servers;
     payload.iframes.forEach((iframe) => {
-      if (!page.processedFrames.has(iframe.windowTreeInformation.outerWindowID)) {
-        page.processedFrames.add(iframe.windowTreeInformation.outerWindowID);
+      if (!page.processedFrames.has(iframe.windowTreeInformation.frameId)) {
+        page.processedFrames.add(iframe.windowTreeInformation.frameId);
 
         // Check href from advertiser
         for (let i = 0; i < iframe.hrefs.length; i += 1) {

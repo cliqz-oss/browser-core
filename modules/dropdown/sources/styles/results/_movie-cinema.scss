@@ -1,0 +1,208 @@
+.movie-cinema {
+    display: inline-block;
+
+    .result {
+        display: inline-block;
+        text-decoration: none;
+        padding: 0;
+    }
+
+    .movie {
+        display: inline-block;
+        position: relative;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.17);
+        width: 100%;
+        min-width: 450px;
+        font-size: 0.833em;
+        line-height: 1.28451em;
+        white-space: nowrap;
+
+        .image {
+            display: inline-block;
+            width: 73px;
+            height: 108px;
+            background-repeat: no-repeat;
+            background-position: left top;
+            background-size: cover;
+            vertical-align: top;
+        }
+
+        .info {
+            display: inline-block;
+            vertical-align: top;
+            padding: 9px 20px 8px 5px;
+
+            .rating-img {
+                display: inline-block;
+                margin-left: -4px;
+                width: 100px;
+                height: 18px;
+                background-repeat: no-repeat;
+                background-position: center center;
+                background-size: contain;
+                vertical-align: -2px;
+            }
+
+            .score {
+                span:first-child {
+                    font-size: 16px;
+                    color: rgb(249, 192, 0);
+                }
+                span:last-child {
+                    color: #aaa;
+                }
+            }
+
+            .director {
+                margin-top: 6px;
+            }
+
+            .stars {
+                margin-top: 2px;
+
+                .stars-list {
+                    display: inline-block;
+                    max-width: 300px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    vertical-align: text-bottom;
+                }
+            }
+
+            .trailer {
+                display: inline-block;
+                margin-top: 4px;
+
+                .trailer-icon {
+                    display: inline-block;
+                    margin-right: 4px;
+                    width: 27px;
+                    height: 27px;
+                    background-image: url(resource://cliqz/dropdown/images/play-icon-triangle.svg);
+                    background-repeat: no-repeat;
+                    background-position: 9px center;
+                    background-size: 40%;
+                    border: 1px solid #CFE6FF;
+                    border-radius: 50%;
+                    vertical-align: -8px;
+                }
+
+                &:hover {
+                    .trailer-icon {
+                        border-color: #2385E7;
+                        cursor: pointer;
+                    }
+                }
+            }
+
+
+        }
+    }
+
+    .show-time {
+        font-size: 0.833em;
+        line-height: 1.28451em;
+
+        .title {
+            padding: 10px 0 5px;
+            font-size: 15px;
+
+            img {
+                vertical-align: bottom;
+            }
+        }
+
+        .wrapper {
+            display: inline-block;
+            box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.17);
+            margin-bottom: 3px;
+            margin-top: 4px;
+            width: 100%;
+            max-width: 800px;
+            padding-right: 10px;
+
+            .table {
+                display:table;
+                font-size: 12.5px;
+
+                .show-time-row {
+                    display: table-row;
+
+                    .table-cell {
+                        display: table-cell;
+                    }
+
+                    .cinema-info {
+                        max-width: 220px;
+                        padding: 10px;
+                        color: #545454;
+
+                        & > span {
+                            display: block;
+                            max-width: 200px;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                        }
+
+                        .distance {
+                            color: red;
+                        }
+                    }
+
+                    .show-time-info {
+                        max-width: 350px;
+
+                        .show-time-span {
+                            position: relative;
+                            margin-right: 10px;
+
+                            .result {
+                                padding-bottom: 4px;
+                                width: 72px;
+
+                                span {
+                                    text-transform: uppercase;
+                                    font-size: 8px;
+                                    color: #aaa;
+
+                                    &:last-child {
+                                        margin-left: -1px;
+                                    }
+                                }
+                            }
+
+                            &:last-child {
+                                margin-right: 0;
+                            }
+                        }
+                    }
+
+                    &:after {
+                        clear: both;
+                    }
+                }
+            }
+        }
+
+        .expand-btn {
+            display: inline-block;
+            color: #545454;
+            font-size: 0.833em;
+            line-height: 1.28051em;
+            text-decoration: none;
+            background-image: url(resource://cliqz/dropdown/images/expand.svg);
+            background-repeat: no-repeat;
+            background-size: 6px 10px;
+            background-position: 0 center;
+            padding: 2px 10px 2px 12px;
+
+            &:hover {
+                color: #0078CA;
+            }
+        }
+    }
+}

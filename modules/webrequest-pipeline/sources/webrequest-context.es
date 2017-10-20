@@ -1,59 +1,134 @@
+import { URLInfo } from '../antitracking/url';
+
+
 const TYPE_LOOKUP = {
   // maps string (web-ext) to int (FF cpt)
-  main_frame: 6,
-  sub_frame: 7,
-  stylesheet: 4,
+  other: 1,
   script: 2,
   image: 3,
-  font: 14,
-  object: 12,
-  xmlhttprequest: 11,
+  stylesheet: 4,
+  object: 5,
+  main_frame: 6,
+  sub_frame: 7,
+  xbl: 9,
   ping: 10,
-  csp_report: 17,
+  xmlhttprequest: 11,
+  object_subrequest: 12,
+  xml_dtd: 13,
+  font: 14,
   media: 15,
   websocket: 16,
-  other: 1
+  csp_report: 17,
+  xslt: 18,
+  beacon: 19,
+  imageset: 21,
+  web_manifest: 22,
 };
 
 
-export default class {
+function createHeadersGetter(headers) {
+  const headersMap = new Map();
 
-  constructor(requestDetails) {
-    this.details = requestDetails;
-    this.url = requestDetails.url;
-    this.method = requestDetails.method;
-    this.channel = {
-      responseStatus: requestDetails.responseStatus || requestDetails.statusCode
-    };
-    this.isCached = requestDetails.isCached;
+  for (let i = 0; i < headers.length; i += 1) {
+    const header = headers[i];
+    headersMap.set(header.name.toLowerCase(), header.value);
   }
 
-  getInnerWindowID() {
-    return this.details.frameId;
-  }
+  return headersMap;
+}
 
-  getOuterWindowID() {
-    return this.details.frameId;
-  }
 
-  getParentWindowID() {
-    return this.details.parentFrameId || this.details.frameId;
-  }
+/**
+ * Implements WebRequest Context API
+ */
+class WebRequestContext {
+  constructor(details) {
+    // WebRequest API
+    this.requestId = details.requestid;
 
-  getLoadingDocument() {
-    return this.details.originUrl;
-  }
+    // Frame ids: tabId -> parentFrameId -> frameId
+    this.frameId = details.frameId;
+    this.parentFrameId = details.parentFrameId;
+    this.tabId = details.tabId;
 
-  getContentPolicyType() {
-    if (typeof this.details.type === 'string') {
-      return TYPE_LOOKUP[this.details.type];
+    // Urls:  sourceUrl -> originUrl -> url
+    this.url = details.url;
+    this._urlParts = null;
+    this.originUrl = details.originUrl;
+    this._originUrlParts = null;
+    this.sourceUrl = details.sourceUrl;
+    this._sourceUrlParts = null;
+
+    this.trigger = details.trigger || details.originUrl;
+
+    // Content type
+    this.type = details.type;
+    if (typeof details.type === 'string') {
+      this.type = TYPE_LOOKUP[details.type];
     }
 
-    return this.details.type;
+    // Headers
+    this.requestHeaders = details.requestHeaders;
+    this._requestHeadersMap = null;
+    this.responseHeaders = details.responseHeaders;
+    this._responseHeadersMap = null;
+
+    // Extra metadata
+    this.isRedirect = details.isRedirect;
+    this.statusCode = details.statusCode;
+    this.fromCache = details.fromCache;
+  }
+
+  get urlParts() {
+    if (this._urlParts === null) {
+      this._urlParts = URLInfo.get(this.url);
+    }
+
+    return this._urlParts;
+  }
+
+  get originUrlParts() {
+    if (this._originUrlParts === null) {
+      this._originUrlParts = URLInfo.get(this.originUrl);
+    }
+
+    return this._originUrlParts;
+  }
+
+  get sourceUrlParts() {
+    if (this._sourceUrlParts === null) {
+      this._sourceUrlParts = URLInfo.get(this.sourceUrl);
+    }
+
+    return this._sourceUrlParts;
+  }
+
+  getRequestHeader(name) {
+    if (this.requestHeaders) {
+      if (this._requestHeadersMap === null) {
+        this._requestHeadersMap = createHeadersGetter(this.requestHeaders);
+      }
+
+      return this._requestHeadersMap.get(name.toLowerCase());
+    }
+
+    return undefined;
+  }
+
+  getResponseHeader(name) {
+    if (this.responseHeaders) {
+      if (this._responseHeadersMap === null) {
+        this._responseHeadersMap = createHeadersGetter(this.responseHeaders);
+      }
+
+      return this._responseHeadersMap.get(name.toLowerCase());
+    }
+
+    return undefined;
   }
 
   isFullPage() {
-    return this.getContentPolicyType() === 6;
+    return this.type === 6;
   }
 
   getCookieData() {
@@ -64,56 +139,10 @@ export default class {
     return this.getRequestHeader('Referer');
   }
 
-  getSourceURL() {
-    return this.details.source;
-  }
-
-  getRequestHeader(header) {
-    if (this.details.getRequestHeader) {
-      return this.details.getRequestHeader(header);
-    }
-
-    const headers = this.details.requestHeaders;
-    for (let i = 0; i < headers.length; i += 1) {
-      if (headers[i].name === header) {
-        return headers[i].value;
-      }
-    }
-
-    return null;
-  }
-
-  getResponseHeader(header) {
-    if (this.details.getResponseHeader) {
-      return this.details.getResponseHeader(header);
-    }
-
-    const headers = this.details.responseHeaders;
-    for (let i = 0; i < headers.length; i += 1) {
-      if (headers[i].name === header || headers[i].name === header.toLowerCase()) {
-        return headers[i].value;
-      }
-    }
-
-    return null;
-  }
-
-  getOriginWindowID() {
-    return this.details.tabId;
-  }
-
-  isChannelPrivate() {
-    return this.details.isPrivate;
-  }
-
-  getPostData() {
-    return this.details.getPostData();
-  }
-
   getWindowDepth() {
     let windowDepth = 0;
-    if (this.getInnerWindowID() !== this.getOriginWindowID()) {
-      if (this.getOriginWindowID() === this.getParentWindowID()) {
+    if (this.frameId !== this.tabId) {
+      if (this.frameId === this.parentFrameId) {
         // frame in document
         windowDepth = 1;
       } else {
@@ -122,5 +151,27 @@ export default class {
       }
     }
     return windowDepth;
+  }
+}
+
+
+/**
+ * Implements Legacy API on top of WebRequestContext
+ */
+export default class LegacyContext extends WebRequestContext {
+  get cpt() {
+    return this.type;
+  }
+
+  get tabUrl() {
+    return this.sourceUrl;
+  }
+
+  get responseStatus() {
+    return this.statusCode;
+  }
+
+  get isCached() {
+    return this.fromCache;
   }
 }

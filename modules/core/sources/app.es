@@ -5,7 +5,7 @@ import Module from './app/module';
 import { setGlobal } from './kord';
 import console from './console';
 import utils from './utils';
-import { mapWindows, forEachWindow, addWindowObserver,
+import { Window, mapWindows, forEachWindow, addWindowObserver,
   removeWindowObserver, reportError, mustLoadWindow, setInstallDatePref,
   setOurOwnPrefs, resetOriginalPrefs, enableChangeEvents,
   disableChangeEvents, waitWindowReady } from '../platform/browser';
@@ -15,20 +15,46 @@ function shouldEnableModule(name) {
   return !prefs.has(pref) || prefs.get(pref) === true;
 }
 
+/**
+ * @module core
+ * @namespace core
+ */
+
+/**
+ * @class App
+ */
 export default class {
 
+  /**
+   * @constructor
+   * @param {object} config
+   */
   constructor({ version, extensionId } = {}) {
+    /**
+     * @property {string} version
+     */
     this.version = version;
+    utils.VERSION = this.version;
+    /**
+     * @property {string} extensionId
+     */
     this.extensionId = extensionId;
-    this.availableModules = Object.create(null);
+    /**
+     * @property {object} modules
+     */
+    this.modules = Object.create(null);
 
+    /**
+     * @property {object} services
+     */
     this.services = Object.create(null);
+
     config.modules.forEach((moduleName) => {
       const module = new Module(
         moduleName,
         Object.assign({}, config.settings, { version })
       );
-      this.availableModules[moduleName] = module;
+      this.modules[moduleName] = module;
 
       // Keep reference to all module services by their name
       // Currently last one wins
@@ -38,9 +64,15 @@ export default class {
     utils.extensionVersion = version;
     setGlobal(this);
     this.prefchangeEventListener = subscribe('prefchange', this.onPrefChange, this);
+    this.isRunning = false;
   }
 
-  // should be used only for testing!
+  /**
+   * should be used only for testing!
+   *
+   * @method extensionRestart
+   * @param {function} changes - function called between stop and start
+   */
   extensionRestart(changes) {
     // unload windows
     forEachWindow((win) => {
@@ -68,6 +100,10 @@ export default class {
     });
   }
 
+  /**
+   * @method unloadIntoWindow
+   * @private
+   */
   unloadFromWindow(win, data) {
     // unload core even if the window closes to allow all modules to do their cleanup
     if (!mustLoadWindow(win)) {
@@ -88,13 +124,25 @@ export default class {
     }
   }
 
+  /**
+   * @method loadIntoWindow
+   * @private
+   */
   loadIntoWindow(win) {
     if (!win) return;
-
     waitWindowReady(win) // This takes a lot to fulfill...
       .then(() => {
         if (mustLoadWindow(win)) {
           return this.loadWindow(win);
+        } else if (config.settings.id === 'funnelcake@cliqz.com' &&
+          win.location.href === 'chrome://browser/content/aboutDialog.xul') {
+          // should be removed after the funnelcake experiment
+          win.setTimeout((doc) => {
+            const privacyLink = doc.querySelectorAll('.bottom-link')[2];
+            if (privacyLink) {
+              privacyLink.setAttribute('href', 'https://www.mozilla.org/de/privacy/firefox-cliqz/');
+            }
+          }, 100, win.document);
         }
         return null;
       })
@@ -103,9 +151,19 @@ export default class {
       });
   }
 
+  /**
+   * Starts the Cliqz App.
+   * Loads all required services, module backgrounds and module windows.
+   * Setup window observer to load window module into all future windows.
+   *
+   * Modules that are marked as disabled will not be loaded. To mark a module
+   * as disabled set a preference `modules.<moduleName>.enabled` to `false`.
+   *
+   * @method start
+   * @returns {Promise}
+   */
   start() {
-    // Load Config - Synchronous!
-    utils.FEEDBACK_URL = `${utils.FEEDBACK}${this.version}-${config.settings.channel}`;
+    this.isRunning = true;
 
     return this.load().then(() => {
       enableChangeEvents();
@@ -126,7 +184,16 @@ export default class {
     });
   }
 
+  /**
+   * Stops the Cliqz App
+   *
+   * @method stop
+   * @params {boolean} isShutdown
+   * @params {boolean} disable
+   * @params {string} telemetrySignal
+   */
   stop(isShutdown, disable, telemetrySignal) {
+    this.isRunning = false;
     // NOTE: Disable this warning locally since the solution is hacky anyway.
     /* eslint-disable no-param-reassign */
 
@@ -135,7 +202,7 @@ export default class {
       action: telemetrySignal
     }, true /* force push */);
 
-    /**
+    /*
      *
      *  There are different reasons on which extension does shutdown:
      *  https://developer.mozilla.org/en-US/Add-ons/Bootstrapped_extensions#Reason_constants
@@ -181,14 +248,14 @@ export default class {
     disableChangeEvents();
   }
 
-  modules() {
-    const modules = this.availableModules;
+  get moduleList() {
+    const modules = this.modules;
     return Object.keys(modules).map(moduleName => modules[moduleName]);
   }
 
   enabledModules() {
     return config.modules
-    .map(name => this.availableModules[name])
+    .map(name => this.modules[name])
     .filter(module => module.isEnabled);
   }
 
@@ -226,14 +293,20 @@ export default class {
     );
   }
 
-  /*
+  /**
    * Enable module and it dependant services
    * Module will not load if dependant services fail to initialize
+   *
+   * @method loadModule
+   * @private
    */
   loadModule(module) {
-    if (module.isEnabled) {
-      return Promise.resolve();
+    if (module.isEnabled || module.isEnabling) {
+      console.log('App', 'loadModule', 'module already loaded');
+      return module.isReady();
     }
+
+    module.markAsEnabling();
 
     return this.prepareServices(module.requiredServices).then(
       () => module.enable(this)
@@ -242,10 +315,13 @@ export default class {
     );
   }
 
+  /**
+   * Triggers module loading
+   */
   load() {
     console.log('App', 'Loading modules started');
     this.setupPrefs();
-    const allModules = this.modules();
+    const allModules = this.moduleList;
     const core = allModules.find(x => x.name === 'core');
     const modules = allModules.filter(x => x.name !== 'core' && shouldEnableModule(x.name));
     const requiredServices = [...new Set(
@@ -255,19 +331,23 @@ export default class {
     )];
 
     return this.prepareServices(requiredServices)
-    // do not break App startup on failing services, modules will have to
-    // deal with the problem as they like
-    .catch(e => console.log('App', 'error on loading services', e))
-    // we load core first before any other module
-    .then(() => this.loadModule(core))
-    // loading of modules should be paralellized as much as possible
-    .then(() => Promise.all(modules.map(x => this.loadModule(x))))
-    .then(() => {
-      console.log('App', 'Loading modules -- all loaded');
-    })
-    .catch((e) => {
-      console.error('App', 'Loading modules failed', e);
-    });
+      // do not break App startup on failing services, modules will have to
+      // deal with the problem as they like
+      .catch(e => console.log('App', 'error on loading services', e))
+      // we load core first before any other module
+      .then(() => this.loadModule(core))
+      // loading of modules should be paralellized as much as possible
+      .then(() => {
+        // do not return - we trigger module loading and let window loading to
+        // start as soon as possible
+        Promise.all(modules.map(x => this.loadModule(x)))
+          .then(() => {
+            console.log('App', 'Loading modules -- all loaded');
+          })
+          .catch((e) => {
+            console.error('App', 'Loading modules failed', e);
+          });
+      });
   }
 
   unload({ quick } = { quick: false }) {
@@ -289,6 +369,7 @@ export default class {
     // TODO: remove Cliqz from window
     if (!window.CLIQZ) {
       const CLIQZ = {
+        startedAt: Date.now(),
         app: this,
         Core: { }, // TODO: remove and all clients
       };
@@ -304,8 +385,8 @@ export default class {
       });
     }
 
-    const core = this.modules().find(x => x.name === 'core');
-    const modules = this.modules().filter(x => x.name !== 'core' && !x.isDisabled);
+    const core = this.moduleList.find(x => x.name === 'core');
+    const modules = this.moduleList.filter(x => x.name !== 'core' && !x.isDisabled);
 
     return core.loadWindow(window)
       .then(() => Promise.all(
@@ -316,6 +397,10 @@ export default class {
       ))
       .then(() => {
         console.log('App', 'Window loaded');
+        const windowId = new Window(window).id;
+        events.pub('app:window-loaded', { windowId });
+        window.CLIQZ.loadedAt = Date.now();
+        window.CLIQZ.loadingTime = window.CLIQZ.loadedAt - window.CLIQZ.startedAt;
         this.isFullyLoaded = true;
       })
       .catch((e) => {
@@ -347,29 +432,40 @@ export default class {
       return;
     }
 
-    const isEnabled = prefs.get(pref) === true;
+    const shouldEnable = prefs.get(pref) === true;
+    const shouldDisable = !shouldEnable;
     const moduleName = prefParts.pop();
-    const module = this.availableModules[moduleName];
+    const module = this.modules[moduleName];
 
     if (!module) {
       // pref for non-existing module - just ignore
       return;
     }
 
-    if (isEnabled === true && !module.isEnabled) {
+    if (shouldEnable && module.isDisabled) {
       this.enableModule(module.name);
-    } else if (isEnabled === false && module.isEnabled) {
+    } else if (shouldDisable && !module.isDisabled) {
       this.disableModule(module.name);
     } else {
       // prefchange tends to fire with no change - just ignore
     }
   }
 
-  // use in runtime not startup
+  /**
+   * Enabled module background and then load into all windows.
+   * Returns early if module is already enabled.
+   *
+   * It sets the `modules.<moduleName>.enabled` pref to true.
+   *
+   * @method enableModule
+   * @params {string} moduleName - name of the module
+   * @returns {Promise}
+   */
   enableModule(moduleName) {
-    const module = this.availableModules[moduleName];
+    const module = this.modules[moduleName];
+    prefs.set(`modules.${moduleName}.enabled`, true);
 
-    if (module.isEnabled) {
+    if (module.isEnabled || !this.isRunning) {
       return Promise.resolve();
     }
 
@@ -379,26 +475,33 @@ export default class {
     return moduleEnabled
       .then(() => Promise.all(
         mapWindows(module.loadWindow.bind(module))
-      ))
-      .then(() => {
-        prefs.set(`modules.${moduleName}.enabled`, true);
-      });
+      ));
   }
 
-  // use in runtime not startup
-  // TODO: check this is working fine with new module loading
+  /**
+   * Disable module windows and then the background.
+   * Does nothing if module is already disabled.
+   *
+   * It sets the `modules.<moduleName>.enabled` pref to false. So if called
+   * before startup, it will prevent module start.
+   *
+   * @todo check this is working fine with new module loading
+   *
+   * @method disableModule
+   * @param {string} moduleName - name of a module
+   * @returns {Promise}
+   */
   disableModule(moduleName) {
-    const module = this.availableModules[moduleName];
+    const module = this.modules[moduleName];
+    prefs.set(`modules.${moduleName}.enabled`, false);
 
-    if (!module.isEnabled) {
-      return Promise.resolve();
+    if (module.isDisabled || !this.isRunning) {
+      return;
     }
 
     // TODO: what if it was loading? Can we stop it?
 
     forEachWindow(module.unloadWindow.bind(module));
     module.disable();
-    prefs.set(`modules.${moduleName}.enabled`, false);
-    return Promise.resolve();
   }
 }

@@ -3,7 +3,8 @@ import config from '../core/config';
 // Load content scripts from modules
 import '../module-content-script';
 import { getWindowId, getWindowTreeInformation, runContentScripts,
-  throttle, CHROME_MSG_SOURCE, isCliqzContentScriptMsg } from '../core/content/helpers';
+  CHROME_MSG_SOURCE, isCliqzContentScriptMsg } from '../core/content/helpers';
+import { throttle } from '../core/decorators';
 
 if (typeof windowId === 'undefined') {
   window.windowId = getWindowId();
@@ -152,19 +153,21 @@ try {
       return;
     }
 
+    if (msg.action === 'getHTML') {
+      msg.url = decodeURIComponent(msg.url);
+    }
 
     let matchesCurrentUrl = msg.url === currentURL();
-   // wild card for cliqz URLS
-   if(msg.url && msg.url.indexOf('resource://cliqz') === 0){
-     if(currentURL().indexOf(msg.url) === 0){
-       matchesCurrentUrl = true;
-     }
-   }
-    let isGetHTML = msg.action === 'getHTML';
-    // TEMP: Human web decodes the URI for internal storage
-    let isCurrentUrlBis = msg.url === decodeURIComponent(currentURL());
+    // wild card for cliqz URLS
+    if(msg.url &&
+        (msg.url.indexOf('resource://cliqz') === 0 ||
+         msg.url.indexOf('chrome://cliqz') === 0)) {
+      if(currentURL().indexOf(msg.url) === 0){
+        matchesCurrentUrl = true;
+      }
+    }
 
-    if (!matchesCurrentUrl && (isGetHTML && !isCurrentUrlBis)) {
+    if (!matchesCurrentUrl) {
       return;
     }
 
@@ -223,6 +226,16 @@ try {
         }
       }
     }
+    let node = ev.target;
+    if (node.nodeType !== 1) {
+      node = node.parentNode;
+    }
+
+    let href = null;
+
+    if (node.closest('a[href]')) {
+      href = node.closest('a[href]').getAttribute('href');
+    }
 
     chrome.runtime.sendMessage({
       source: CHROME_MSG_SOURCE,
@@ -243,7 +256,8 @@ try {
               linksSrc
             }
           },
-          getContextHTML(ev)
+          getContextHTML(ev),
+          href
         ]
       }
     });

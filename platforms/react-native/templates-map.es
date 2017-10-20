@@ -4,13 +4,15 @@ import Videos from '../../components/deep-results/Videos';
 import SimpleLinks from '../../components/deep-results/SimpleLinks';
 import Social from '../../components/deep-results/Social';
 import Streaming from '../../components/deep-results/Streaming';
-import Soccer1Game from '../../components/extras/Soccer1Game';
+import SoccerTeam from '../../components/extras/SoccerTeam';
 import SoccerTable from '../../components/extras/SoccerTable';
 import LiveTicker from '../../components/extras/LiveTicker';
 import Calculator from '../../components/extras/Calculator';
 import Recipe from '../../components/extras/Recipe';
 import Lotto from '../../components/extras/Lotto';
 import Weather from '../../components/extras/Weather';
+import Currency from '../../components/extras/Currency';
+import Local from '../../components/extras/Local';
 
 
 export const headersMap = {
@@ -25,13 +27,16 @@ export const footersMap = {
 }
 
 export const extrasMap = {
-  ligaEZ1Game: Soccer1Game,
+  ligaEZ1Game: SoccerTeam,
   ligaEZTable: SoccerTable,
+  ligaEZGroup: SoccerTable,
   liveTicker: LiveTicker,
   calculator: Calculator,
   recipeRD: Recipe,
   lotto: Lotto,
   weatherEZ: Weather,
+  currency: Currency,
+  'local-data-sc': Local,
 }
 
 

@@ -18,8 +18,8 @@ export default class {
   }
 
   checkRedirectStatus(state) {
-    if (state.requestContext.channel.responseStatus === 302) {
-      const location = state.requestContext.getResponseHeader('Location');
+    if (state.responseStatus === 302) {
+      const location = state.getResponseHeader('Location');
       if (!location) {
         // 302 without "Location" in header?
         console.log(state, '302 without "Location" in header?');
@@ -50,7 +50,7 @@ export default class {
       return false;
     }
 
-    if (details.requestContext.isFullPage() && details.hasRedirected) {
+    if (details.isFullPage() && details.isRedirect) {
       return false;
     }
 

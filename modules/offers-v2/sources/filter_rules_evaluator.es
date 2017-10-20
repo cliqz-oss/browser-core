@@ -59,7 +59,6 @@ export default class FilterRulesEvaluator {
     // get the displayID as well
     const offerObj = this.offersDB.getOfferObject(offerID);
     const offerDisplayID = offerObj ? offerObj.display_id : null;
-    logger.info(`shouldWeShowOffer: rules[${offerID}]: ${JSON.stringify(rules)}`);
     /*
       depending on the version of the triggers the rules can be object or string
       object is the previous version and has structure: {

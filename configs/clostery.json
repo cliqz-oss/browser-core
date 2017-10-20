@@ -4,7 +4,7 @@
   "baseURL": "chrome://cliqz/content/",
   "settings": {
     "antitrackingButton": false,
-    "AT_TELEMETRY_PROVIDER": "platform",
+    "ATTRACK_TELEMETRY_PROVIDER": "platform",
     "channel": "clostery",
     "HPN_CHANNEL": "ghostery"
   },

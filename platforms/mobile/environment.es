@@ -137,6 +137,8 @@ var CLIQZEnvironment = {
   },
   addEngineWithDetails() {
   },
+  restoreHiddenSearchEngines() {
+  },
   removeEngine() {
   },
 };

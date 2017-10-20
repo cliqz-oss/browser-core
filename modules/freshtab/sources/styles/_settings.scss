@@ -113,14 +113,40 @@
 
                 li {
                     display: inline-block;
-                    padding: 10px 5px 5px 0;
+                    padding: 0 5px;
+                    position: relative;
+                    cursor: pointer;
+
+                    &:first-child {
+                        padding: 0;
+
+                        .selected-img {
+                            left: 23px !important;
+                        }
+                    }
+
+                    &:hover {
+                       .selected-img {
+                            display: block;
+                       } 
+                    }
+
+                    .selected-img {
+                        position: absolute;
+                        top: 8px;
+                        left: 28px;
+                        display: none;
+                        img {
+                            box-shadow: none !important;
+ 
+                        }
+                    }
 
                     img {
-                        /*border: 2px solid transparent;*/
                         box-shadow: 0px 0px 2px 0px rgba(0,0,0,0.15);
 
-                        &.active {
-                            border: 2px solid #00b0f2;
+                        &.active + .selected-img {
+                            display: block;
                         }
                     }
                 }

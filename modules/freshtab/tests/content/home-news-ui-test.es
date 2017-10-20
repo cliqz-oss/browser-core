@@ -1,5 +1,3 @@
-/* global getLocaliseString */
-
 const clone = o => JSON.parse(JSON.stringify(o));
 
 function wait(time) {
@@ -52,7 +50,6 @@ class Subject {
           }
         },
         sendMessage: ({ module, action, requestId }) => {
-          // console.log('ACTION CALLED', module, action)
           const response = this.modules[module].actions[action];
           listeners.forEach(l => {
             l({
@@ -128,7 +125,7 @@ describe('Fresh tab news UI', function () {
     action: 'getConfig',
     response: {
       locale: 'en-US',
-      newTabUrl: 'resource://cliqz/freshtab/home.html',
+      newTabUrl: 'chrome://cliqz/content/freshtab/home.html',
       isBrowser: false,
       showNewBrandAlert: false,
       messages: {},
@@ -241,7 +238,8 @@ describe('Fresh tab news UI', function () {
     const settingsRowSelector = '#settings-panel div.settings-row';
     const settingsSwitchSelector = 'div.switch-container input.switch';
     const newsDeLanguageSelector = '#news-radio-selector-2';
-    const newsIntlLanguageSelector = '#news-radio-selector-3';
+    const newsFrLanguageSelector = '#news-radio-selector-3';
+    const newsIntlLanguageSelector = '#news-radio-selector-4';
 
     beforeEach(function () {
       subject.respondsWith({
@@ -300,14 +298,34 @@ describe('Fresh tab news UI', function () {
 
       it('has the German option selected', function () {
         const newsDeLanguage = subject.query(newsDeLanguageSelector);
+        const newsFrLanguage = subject.query(newsFrLanguageSelector);
         const newsIntlLanguage = subject.query(newsIntlLanguageSelector);
         chai.expect(newsDeLanguage).to.have.property('checked', true);
+        chai.expect(newsFrLanguage).to.have.property('checked', false);
         chai.expect(newsIntlLanguage).to.have.property('checked', false);
       });
 
     });
 
-    describe('when set to use non-German sources', function () {
+    describe('when set to use French sources', function () {
+      beforeEach(function () {
+        const configNewsIntl = clone(defaultConfig);
+        configNewsIntl.response.componentsState.news.preferedCountry = 'fr';
+        subject.respondsWith(configNewsIntl);
+        return subject.load(1025);
+      });
+
+      it('has the French option selected', function () {
+        const newsDeLanguage = subject.query(newsDeLanguageSelector);
+        const newsFrLanguage = subject.query(newsFrLanguageSelector);
+        const newsIntlLanguage = subject.query(newsIntlLanguageSelector);
+        chai.expect(newsDeLanguage).to.have.property('checked', false);
+        chai.expect(newsFrLanguage).to.have.property('checked', true);
+        chai.expect(newsIntlLanguage).to.have.property('checked', false);
+      });
+    });
+
+    describe('when set to use international sources', function () {
       beforeEach(function () {
         const configNewsIntl = clone(defaultConfig);
         configNewsIntl.response.componentsState.news.preferedCountry = 'intl';
@@ -315,10 +333,12 @@ describe('Fresh tab news UI', function () {
         return subject.load(1025);
       });
 
-      it('has the non-German option selected', function () {
+      it('has the international option selected', function () {
         const newsDeLanguage = subject.query(newsDeLanguageSelector);
+        const newsFrLanguage = subject.query(newsFrLanguageSelector);
         const newsIntlLanguage = subject.query(newsIntlLanguageSelector);
         chai.expect(newsDeLanguage).to.have.property('checked', false);
+        chai.expect(newsFrLanguage).to.have.property('checked', false);
         chai.expect(newsIntlLanguage).to.have.property('checked', true);
       });
     });

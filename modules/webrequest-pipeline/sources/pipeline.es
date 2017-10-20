@@ -1,4 +1,6 @@
-import console from '../core/console';
+import { utils } from '../core/cliqz';
+import logger from './logger';
+
 
 /**
  * Handles a set of function pipelines. These pipelines start with an initial state
@@ -14,22 +16,27 @@ export default class {
    * Pipeline constructor. Creates an empty pipeline with the default
    * stages (open, modify and response).
    */
-  constructor(name, steps) {
-    this.debug = false;
-    this.logKey = name;
+  constructor(name, steps = []) {
+    this.name = name;
+
+    // Optional timing collection
+    this.collectTimings = false;
+    this.timings = Object.create(null);
+    logger.debug('timings', this.name, this.timings);
 
     // Init empty pipeline
     this.unload();
 
-    // If given, add steps to the pipeline
-    if (steps) {
-      this.addAll(steps);
-    }
+    this.addAll(steps);
+  }
+
+  get length() {
+    return this.pipeline.length;
   }
 
   unload() {
     this.pipeline = [];
-    this.stepFns = {};
+    this.stepFns = new Map();
   }
 
   /**
@@ -37,25 +44,30 @@ export default class {
    * @param {Function} fn     function to add
    * @param {String}   name   (optional) infered from function if undefined
    */
-  add(fn, name) {
+  add({ fn, name, spec }) {
     if (!name) {
-      throw new Error('Every step of the pipeline should be given a name');
+      throw new Error(`Every step of the pipeline should be given a name in ${this.name}`);
     }
 
-    // relax function duplication contraint here
-    const resFn = this.stepFns[name] || fn;
+    if (!spec) {
+      throw new Error(`Every step of the pipeline should be given a spec ${name} in ${this.name}`);
+    }
 
-    return this.addPipelineStep({ name, fn: resFn });
+    return this.addPipelineStep({
+      name,
+      fn, // TODO: needed? this.stepFns.get(name) || fn, // Relax function duplication constraint
+      spec: spec || 'all',
+    });
   }
 
   /**
    * Bulk add functions to stages
    * @param {Array.<Function>} fns
    */
-  addAll(fns) {
-    fns.forEach(([fn, name]) => {
-      this.add(fn, name);
-    });
+  addAll(steps) {
+    for (let i = 0; i < steps.length; i += 1) {
+      this.add(steps[i]);
+    }
   }
 
   /**
@@ -74,13 +86,13 @@ export default class {
    * @param {Array.<String>} options.before array of step names for which this step should be
    * put before
    */
-  addPipelineStep({ name, fn, after, before }) {
+  addPipelineStep({ name, fn, after, before, spec }) {
     // check if step already exists
-    if (this.stepFns[name] && this.stepFns[name] !== fn) {
-      throw new Error(`trying to overwrite existing stepFn ${name} in ${this.logKey}`);
+    if (this.stepFns.has(name)) {
+      throw new Error(`trying to overwrite existing stepFn ${name} in ${this.name}`);
     }
 
-    this.stepFns[name] = fn;
+    this.stepFns.set(name, { fn, spec });
     const afterArr = after || [];
     const beforeArr = before || [];
 
@@ -124,33 +136,70 @@ export default class {
     }
 
     // remove from function map
-    delete this.stepFns[name];
+    this.stepFns.delete(name);
   }
 
   /**
    * Runs the pipeline for the name stage, using the specified initial state
    * @param  {Object} initialState State passed to the pipeline
    */
-  execute(state, response) {
-    let i = 0;
-    for (; i < this.pipeline.length; i += 1) {
+  execute(webRequestContext, response, canAlterRequest = true) {
+    for (let i = 0; i < this.pipeline.length; i += 1) {
+      const name = this.pipeline[i];
+      const { fn, spec } = this.stepFns.get(name);
+      const t0 = Date.now();
+      let cont;
+
+      // Execute step
       try {
-        const cont = this.stepFns[this.pipeline[i]](state, response);
-        if (!cont) {
-          if (this.debug) {
-            console.log(this.logKey, state.url, 'Break at', (this.pipeline[i] || 'end'));
-          }
-          break;
-          // TODO - do we want to allow a step/pipeline to disrupt other
-          // steps/pipeline (potentially from other modules)?
-          // return cont;
+        switch (spec) {
+          case 'break':
+            cont = fn(webRequestContext);
+            break;
+          case 'annotate':
+            cont = fn(webRequestContext);
+            break;
+          case 'collect':
+            utils.setTimeout(
+              () => fn(webRequestContext),
+              0,
+            );
+            break;
+          case 'blocking':
+            if (canAlterRequest) {
+              cont = fn(webRequestContext, response);
+            }
+            break;
+          default:
+            throw new Error(`Invalid spec for step ${name} in pipeline ${this.name}`);
         }
       } catch (e) {
-        console.error(this.logKey, state.url, 'Step exception', e, e.stack);
+        logger.error(this.name, webRequestContext.url, 'Step exception', e, e.stack);
         break;
       }
-    }
 
-    return true;
+      // [Optional] Keep track of timings for pipeline steps
+      if (this.collectTimings) {
+        const total = Date.now() - t0;
+        if (this.timings[name] === undefined) {
+          this.timings[name] = Object.create(null);
+        }
+
+        this.timings[name][total] = (this.timings[name][total] || 0) + 1;
+      }
+
+      // Handle early termination of the pipeline
+      if (cont === false) {
+        logger.debug(this.name, webRequestContext.url, 'Break at', name);
+        break;
+        // TODO - do we want to allow a step/pipeline to disrupt other
+        // steps/pipeline (potentially from other modules)?
+        // return cont;
+        //
+        // We need to think about that as we might not want
+        // Adblocker/Ghostery or other module doing blocking of requests to
+        // prevent data collection (which should happen async)
+      }
+    }
   }
 }

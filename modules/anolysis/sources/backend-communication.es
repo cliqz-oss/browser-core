@@ -33,7 +33,7 @@ const TELEMETRY_BACKEND_URL = 'https://anolysis-telemetry.cliqz.com/collect';
 
 
 function sendDemographics(demographics, endpoint) {
-  logger.log(`${endpoint} ${demographics}`);
+  logger.debug(endpoint, demographics);
   return post(`${GID_BACKEND_URL}/${endpoint}`, { id: demographics })
     .then((result) => {
       // Extract id returned by the backend. This is important because both
@@ -115,7 +115,7 @@ function activeUserSignal(demographics) {
  * in the future.
  */
 function updateGID(demographics) {
-  logger.log(`updateDemographics ${demographics}`);
+  logger.log('updateDemographics', demographics);
   const hash = md5(demographics);
 
   // TODO: What is the right size?
@@ -124,7 +124,7 @@ function updateGID(demographics) {
   // Send a prefix of the hash to the backend
   return post(`${GID_BACKEND_URL}/update_gid`, { hash_prefix: prefix })
     .then((data) => {
-      logger.log(`updateGID response ${JSON.stringify(data)}`);
+      logger.log('updateGID response', data);
       if (data.candidates) {
         const candidates = data.candidates;
         let gid = null;
@@ -150,7 +150,7 @@ function updateGID(demographics) {
  * Sends a behavioral signal to the backend
  */
 function sendSignal(signal) {
-  logger.log(`sendSignal ${JSON.stringify(signal)}`);
+  logger.log('sendSignal', signal);
   return post(TELEMETRY_BACKEND_URL, signal);
 }
 

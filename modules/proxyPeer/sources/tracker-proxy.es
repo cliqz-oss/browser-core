@@ -188,8 +188,9 @@ export default class {
 
     // Insert step as soon as context (urlParts) is available
     if (this.shouldProxyAll) {
-      return this.webRequestPipeline.action('addPipelineStep', 'open', {
+      return this.webRequestPipeline.action('addPipelineStep', 'onBeforeRequest', {
         name: 'checkShouldProxyAll',
+        spec: 'blocking',
         after: ['determineContext'],
         fn: (state) => {
           // Here we must perform some additional checks so that the proxying
@@ -205,9 +206,6 @@ export default class {
           if (!(isSignalingServer || isPeersServer || isExitsServer) && proxyIsPermitted) {
             this.checkShouldProxyRequest(state);
           }
-
-          // We will never interrupt the antitracking pipeline from this step.
-          return true;
         },
       });
     }
@@ -216,9 +214,10 @@ export default class {
     // TODO: at some point we might need to add the steps from antitracking to
     // the webrequest pipeline individually.
     if (this.shouldProxyTrackers) {
-      return this.webRequestPipeline.action('addPipelineStep', 'open', {
+      return this.webRequestPipeline.action('addPipelineStep', 'onBeforeRequest', {
         name: 'checkShouldProxyTrackers',
-        after: ['antitracking.open'],
+        spec: 'blocking', // Can be done async
+        after: ['antitracking.onBeforeRequest'],
         fn: this.checkShouldProxyRequest.bind(this),
       });
     }
@@ -253,8 +252,8 @@ export default class {
 
     // If steps were not present in the pipeline, this will just be ignored
     return Promise.all([
-      this.webRequestPipeline.action('removePipelineStep', 'open', 'checkShouldProxyTrackers'),
-      this.webRequestPipeline.action('removePipelineStep', 'open', 'checkShouldProxyAll'),
+      this.webRequestPipeline.action('removePipelineStep', 'onBeforeRequest', 'checkShouldProxyTrackers'),
+      this.webRequestPipeline.action('removePipelineStep', 'onBeforeRequest', 'checkShouldProxyAll'),
     ]).catch(() => {}); // This should not fail
   }
 

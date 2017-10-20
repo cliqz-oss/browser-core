@@ -1,24 +1,17 @@
 import { utils } from '../core/cliqz';
-import ToolbarButtonManager from './ToolbarButtonManager';
 import { isVideoURL, getVideoInfo, getFormats } from './video-downloader';
-import Panel from '../core/ui/panel';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
+import config from '../core/config';
 import CliqzEvents from '../core/events';
 import console from '../core/console';
+import UITour from '../platform/ui-tour';
 
 const events = CliqzEvents;
 const DISMISSED_ALERTS = 'dismissedAlerts';
 
-function toPx(pixels) {
-  return `${pixels.toString()}px`;
-}
-
-const BTN_ID = 'cliqz-vd-btn';
-const PANEL_ID = `${BTN_ID}-panel`;
-const firstRunPref = 'cliqz-vd-initialized';
-const TOOLTIP_LABEL = 'Cliqz Video Downloader';
 const TELEMETRY_VERSION = 1;
 const TELEMETRY_TYPE = 'video_downloader';
+const UI_TOUR_ID = 'video-downloader';
 
 export default class UI {
   showOnboarding() {
@@ -38,14 +31,14 @@ export default class UI {
       );
     }
   }
-  constructor(PeerComm, window, settings) {
+  constructor(PeerComm, window, settings, background) {
     this.settings = settings;
     const { utils: Cu } = Components;
     const { Downloads } = Cu.import('resource://gre/modules/Downloads.jsm');
     this.Downloads = Downloads;
     this.PeerComm = PeerComm;
     this.window = window;
-    this.cssUrl = 'chrome://cliqz/content/video-downloader/styles/xul.css';
+    this.cssUrl = `${config.baseURL}video-downloader/styles/xul.css`;
 
     this.actions = {
       getVideoLinks: this.getVideoLinks.bind(this),
@@ -53,69 +46,180 @@ export default class UI {
       checkForVideoLink: this.checkForVideoLink.bind(this),
       resize: this.resizePopup.bind(this),
       sendToMobile: this.sendToMobile.bind(this),
-      hidePopup: this.hidePopup.bind(this),
       sendTelemetry: this.sendTelemetry.bind(this),
       download: this.download.bind(this),
+      hidePopup: background.pageAction.hidePopup.bind(background.pageAction, window),
+      openConnectPage: this.openConnectPage.bind(this),
     };
 
-    this.panel = new Panel(
-      this.window,
-      'chrome://cliqz/content/video-downloader/index.html',
-      PANEL_ID,
-      TELEMETRY_TYPE,
-      false,
-      this.actions,
-      TELEMETRY_VERSION
-    );
+    this.background = background;
+
+    this.pageAction = background.pageAction;
+    this.pageAction.addWindow(window, this.actions);
+    this.pageActionBtn = window.document.getElementById(this.pageAction.id);
+    this.onButtonClicked = this.onButtonClicked.bind(this);
+    this.pageActionBtn.addEventListener('click', this.onButtonClicked);
+    const pageActionButtons =
+      // Firefox 56 and bellow
+      window.document.getElementById('urlbar-icons') ||
+      // Firefox 57 and above
+      window.document.getElementById('page-action-buttons');
+
+    pageActionButtons.appendChild(this.pageActionBtn);
   }
 
   init() {
-    this.panel.attach();
     // stylesheet for control center button
     addStylesheet(this.window.document, this.cssUrl);
-    this.addVDbutton();
 
     CliqzEvents.sub('core.location_change', this.actions.checkForVideoLink);
     CliqzEvents.sub('core.tab_state_change', this.actions.checkForVideoLink);
     this.showOnboarding();
+    UITour.targets.set(UI_TOUR_ID, { query: `#${this.pageAction.id}`, widgetName: this.pageAction.id, allowAdd: true });
+    this.hideButton(); // Don't show the button when user opens a new window
   }
 
   unload() {
-    this.panel.detach();
     removeStylesheet(this.window.document, this.cssUrl);
-    this.button.parentElement.removeChild(this.button);
     CliqzEvents.un_sub('core.tab_state_change', this.actions.checkForVideoLink);
     CliqzEvents.un_sub('core.location_change', this.actions.checkForVideoLink);
+    UITour.targets.delete(UI_TOUR_ID);
+    this.pageActionBtn.removeEventListener('click', this.onButtonClicked);
+    this.pageAction.removeWindow(this.window);
   }
 
   resizePopup({ width, height }) {
-    this.panel.iframe.style.width = toPx(width);
-    this.panel.iframe.style.height = toPx(height);
-
-    this.panel.iframe.contentDocument.body.style.margin = 0;
-    this.panel.iframe.contentDocument.body.style.overflowX = 'hidden';
+    this.pageAction.resizePopup(this.window, { width, height });
   }
 
-  hidePopup() {
-    this.panel.hide();
+  openConnectPage() {
+    utils.openLink(this.window, 'about:preferences#connect', true, false, false, true);
   }
 
-  showButton(isCustomizing) {
-    if (isCustomizing) {
-      this.button.setAttribute('class',
-        'cliqz-video-downloader customizing toolbarbutton-1 chromeclass-toolbar-additional');
-    } else {
-      this.button.setAttribute('class',
-        'cliqz-video-downloader toolbarbutton-1 chromeclass-toolbar-additional');
+  maybeShowingUITour() {
+    if (this.background.isUITourDismissed) {
+      return;
+    }
+
+    const promise = UITour.getTarget(this.window, UI_TOUR_ID);
+    const icon = `${config.baseURL}video-downloader/images/video-downloader-uitour.svg`;
+    const title = utils.getLocalizedString('video-downloader-uitour-title');
+    const text = utils.getLocalizedString('video-downloader-uitour-description');
+    const btnTryLabel = utils.getLocalizedString('video-downloader-uitour-btn-try');
+    const btnSkipLabel = utils.getLocalizedString('video-downloader-uitour-btn-skip');
+    const buttons = [
+      {
+        label: btnTryLabel,
+        style: 'primary',
+        callback: () => {
+          utils.telemetry({
+            type: 'notification',
+            version: TELEMETRY_VERSION,
+            topic: 'video_downloader',
+            view: 'urlbar',
+            action: 'click',
+            target: 'try_now',
+          });
+
+          utils.setTimeout(() => {
+            this.showPopup();
+          }, 1000);
+
+          this.hideUITour();
+          this.background.actions.closeUITour(false);
+        }
+      },
+      {
+        label: btnSkipLabel,
+        style: 'link',
+        callback: () => {
+          utils.telemetry({
+            type: 'notification',
+            version: TELEMETRY_VERSION,
+            topic: 'video_downloader',
+            view: 'urlbar',
+            action: 'click',
+            target: 'later',
+          });
+
+          this.hideUITour();
+          this.background.actions.closeUITour(true);
+        }
+      }
+    ];
+    const options = {
+      closeButtonCallback: () => {
+        utils.telemetry({
+          type: 'notification',
+          version: TELEMETRY_VERSION,
+          topic: 'video_downloader',
+          view: 'urlbar',
+          action: 'click',
+          target: 'dismiss',
+        });
+
+        this.hideUITour();
+        this.background.actions.closeUITour(false);
+      }
+    };
+
+    promise.then((target) => {
+      utils.telemetry({
+        type: 'notification',
+        version: TELEMETRY_VERSION,
+        topic: 'video_downloader',
+        view: 'urlbar',
+        action: 'show',
+      });
+
+      UITour.showInfo(this.window, target, title, text, icon, buttons, options);
+      UITour.showHighlight(this.window, target, 'wobble');
+    }).catch((e) => {
+      console.log(e);
+    });
+  }
+
+  hideUITour() {
+    try {
+      UITour.hideInfo(this.window);
+      UITour.hideHighlight(this.window);
+    } catch (e) {
+      // Expected exception when the UITour is not showing
     }
   }
 
+  showPopup() {
+    this.pageAction.showPopup(this.window);
+  }
+
+  showButton() {
+    const pageActionBtn = this.window.document.getElementById(this.pageAction.id);
+    if (pageActionBtn.style.display === 'block') {
+      return;
+    }
+    pageActionBtn.style.display = 'block';
+
+    this.maybeShowingUITour();
+  }
+
   hideButton() {
-    this.button.setAttribute('class',
-      'hidden toolbarbutton-1 chromeclass-toolbar-additional');
+    const pageActionBtn = this.window.document.getElementById(this.pageAction.id);
+    if (pageActionBtn.style.display === 'none') {
+      return;
+    }
+    pageActionBtn.style.display = 'none';
+
+    this.hideUITour();
+  }
+
+  onButtonClicked() {
+    this.hideUITour();
+    this.background.actions.closeUITour(false);
   }
 
   sendToMobile({ url, format, title, resend }) {
+    this.background.actions.closeUITour(false);
+
     if (resend) {
       utils.telemetry({
         type: TELEMETRY_TYPE,
@@ -186,51 +290,13 @@ export default class UI {
   }
 
   checkForVideoLink() {
-    if (!this.button) {
-      return;
-    }
-
     const url = this.getCurrentUrl();
-
-    const isCustomizing = this.window.document.documentElement.hasAttribute('customizing');
 
     if (isVideoURL(url)) {
       this.showButton();
-    } else if (isCustomizing) {
-      this.showButton(true);
     } else {
       this.hideButton();
     }
-  }
-
-  addVDbutton() {
-    const doc = this.window.document;
-    const firstRunPrefVal = utils.getPref(firstRunPref, false);
-    if (!firstRunPrefVal) {
-      utils.setPref(firstRunPref, true);
-      ToolbarButtonManager.setDefaultPosition(BTN_ID, 'nav-bar', 'bookmarks-menu-button');
-    }
-
-    const button = doc.createElement('toolbarbutton');
-    button.setAttribute('id', BTN_ID);
-    button.setAttribute('label', TOOLTIP_LABEL);
-    button.setAttribute('tooltiptext', TOOLTIP_LABEL);
-    button.classList.add('toolbarbutton-1');
-    button.classList.add('chromeclass-toolbar-additional');
-
-    const div = doc.createElement('div');
-    div.setAttribute('class', 'cliqz-video-downloader');
-    button.appendChild(div);
-
-    button.addEventListener('command', () => {
-      this.panel.open(button);
-    });
-
-    ToolbarButtonManager.restorePosition(doc, button);
-
-    this.badge = div;
-    this.button = button;
-    this.button.setAttribute('class', 'hidden');
   }
 
   // used for a first faster rendering
@@ -246,7 +312,7 @@ export default class UI {
     .then(() => getVideoInfo(url))
     .then((info) => {
       const formats = getFormats(info);
-      const videos = formats.filter(x => x.isVideo);
+      const videos = formats.filter(x => x.isVideoAudio);
       let videoForPairing = {};
       if (videos.length > 0) {
         videoForPairing = videos[videos.length - 1];
@@ -314,14 +380,18 @@ export default class UI {
   }
 
   sendMessageToPopup(message) {
-    this.panel.sendMessage({
+    const msg = {
       target: 'cliqz-video-downloader',
       origin: 'window',
       message,
-    });
+    };
+
+    this.pageAction.sendMessage(this.window, msg);
   }
 
   download({ url, filename, size, format }) {
+    this.background.actions.closeUITour(false);
+
     utils.telemetry({
       type: TELEMETRY_TYPE,
       version: TELEMETRY_VERSION,

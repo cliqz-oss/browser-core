@@ -48,6 +48,14 @@ export default class Offer extends React.Component {
     return offerTpl.call_to_action.url.match('^(?:https?:)?(?://)?(?:[^@\n]+@)?(?:www.)?([^:/\n]+)')[1];
   }
 
+  get anchorClasses() {
+    const offerTpl = this.props.offer.offer_info.ui_info.template_data;
+    return [
+      'cta-btn',
+      offerTpl.call_to_action.text.length > 13 ? 'small-font' : '',
+    ].join(' ');
+  }
+
   render() {
     const offer = this.props.offer;
     const offerTpl = this.props.offer.offer_info.ui_info.template_data;
@@ -85,12 +93,14 @@ export default class Offer extends React.Component {
 
             <a
               href={offerTpl.call_to_action.url}
-              className="cta-btn"
+              className={this.anchorClasses}
               target="_blank"
               rel="noopener noreferrer"
               onClick={this.handleVoucherClick}
             >
-              {offerTpl.call_to_action.text}
+              <span>
+                {offerTpl.call_to_action.text}
+              </span>
             </a>
           </div>
 

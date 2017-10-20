@@ -14,26 +14,26 @@ import Reminders from '../modules/history/reminders';
 
 
 const queryCliqz = (app, navigation, query="") => {
-  app.availableModules.core.background.actions.queryCliqz(query);
+  app.modules.core.background.actions.queryCliqz(query);
   return false;
 };
 
 const openUrl = (app, navigation, url) => {
-  app.availableModules.core.background.actions.openLink(url);
+  app.modules.core.background.actions.openLink(url);
   return false;
 };
 
 const openTab = (app, tabId) => {
-  app.availableModules.core.background.actions.openTab(tabId);
+  app.modules.core.background.actions.openTab(tabId);
   return false;
 };
 
 const getOpenTabs = (app) => {
-  return app.availableModules.core.background.actions.getOpenTabs();
+  return app.modules.core.background.actions.getOpenTabs();
 };
 
 const getReminders = (app, domain) => {
-  return app.availableModules.core.background.actions.getReminders(domain);
+  return app.modules.core.background.actions.getReminders(domain);
 };
 
 class HistorySync {
@@ -152,12 +152,12 @@ export default class extends React.Component {
   componentDidMount() {
     startup.then((app) => {
       this.app = app;
-      const getHistory = this.app.availableModules.history.background.actions.getHistory;
+      const getHistory = this.app.modules.history.background.actions.getHistory;
       this.historySync = new HistorySync(getHistory, this.setState.bind(this));
       this.historySync.start();
       this.news = [];
       this.newsByDomain = {};
-      this.app.availableModules.freshtab.background.actions.getNews().then((result, error) => {
+      this.app.modules.freshtab.background.actions.getNews().then((result, error) => {
         this.news = result
       });
     });

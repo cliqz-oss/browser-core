@@ -6,9 +6,9 @@
         <p>
             <span class="strong">
                 {{#if defaultSearchResult}}
-                    {{suggestion}}
+                    {{displayText}}
                 {{else}}
-                    {{emphasis suggestion query 1 true}}
+                    {{emphasis displayText query 1 true}}
                 {{/if}}
             </span>
             {{#if query}}

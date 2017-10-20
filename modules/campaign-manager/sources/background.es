@@ -3,7 +3,8 @@ import CampaignManager from "campaign-manager/campaign-manager";
 import background from "core/base/background";
 
 /**
-  @namespace <namespace>
+  @namespace campaign-manager
+  @module campaign-manager
   @class Background
  */
 export default background({

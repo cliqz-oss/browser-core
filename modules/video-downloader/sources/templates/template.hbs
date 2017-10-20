@@ -20,15 +20,15 @@
 
         {{#if pairingAvailable}}
         <div class="pairing-wrapper">
-            {{#if isPaired}}
+        {{#if isPaired}}
             <img id="sending-status" src="images/send-to-mobile.svg" />
             <a href="#" data-href="{{videoForPairing.url}}" data-title="{{videoForPairing.title}}" data-format="{{videoForPairing.format}}" id="send-to-mobile-btn"><span data-i18n="video-downloader-send-to-mobile"></span></a>
             <img id="pairing-status" src="images/pair-icon-light.svg" />
-            {{else}}
+        {{else}}
             <img src="images/send-to-mobile-disabled.svg" />
             <a class="disabled" href="#" data-href="{{videoForPairing.url}}" data-title="{{videoForPairing.title}}" data-format="{{videoForPairing.format}}" id="send-to-mobile-btn"><span data-i18n="video-downloader-send-to-mobile"></span></a>
-            <a id="pairing-dashboard" href="about:preferences#connect" target="_blank"><img id="pairing-status" src="images/pair-icon.svg" /></a>
-            {{/if}}
+            <a id="pairing-dashboard" href="#"><img id="pairing-status" src="images/pair-icon.svg" /></a>
+        {{/if}}
             <span class="video-size">{{videoForPairing.size}}</span>
         </div>
         {{/if}}

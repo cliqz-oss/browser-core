@@ -114,6 +114,7 @@ modules/core/utils.es
 modules/core/webrequest.es
 modules/core/window.es
 modules/core-cliqz/background.es
+modules/core-cliqz/content.es
 modules/expansions-provider/background.es
 modules/expansions-provider/expansions-provider.es
 modules/expansions-provider/window.es
@@ -172,11 +173,11 @@ modules/human-web/background.es
 modules/human-web/bloom-filter.es
 modules/human-web/human-web.es
 modules/human-web/window.es
-modules/human-web2/background.es
-modules/human-web2/bloom-filter.es
-modules/human-web2/human-web.es
-modules/human-web2/window.es
+modules/human-web/content.es
 platforms/firefox/human-web/storage.es
+platforms/chromium/human-web/storage.es
+platforms/firefox/human-web/doublefetch.es
+platforms/chromium/human-web/doublefetch.es
 modules/message-center/background.es
 modules/message-center/handlers/alert.es
 modules/message-center/handlers/base.es
@@ -407,6 +408,8 @@ modules/dropdown/debug/fixtures/youtube.es
 modules/dropdown/debug/fixtures/offers.es
 modules/dropdown/debug/fixtures/suggestions.es
 modules/dropdown/debug/fixtures/time.es
+modules/dropdown/debug/fixtures/movie-cinema.es
+modules/dropdown/debug/fixtures/news-story.es
 modules/dropdown/debug/index.es
 modules/autocomplete/debug/index.es
 modules/core/content.es
@@ -437,3 +440,4 @@ platforms/chromium/history/search.es
 platforms/chromium/freshtab/history.es
 platforms/chromium/freshtab/new-tab-setting.es
 platforms/chromium/content/helpers.es
+modules/pairing/tests/unit/encrypt-paired-test.es

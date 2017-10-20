@@ -345,21 +345,21 @@ class LtExpr extends Expression {
 class MatchExpr extends Expression {
   constructor(data) {
     super(data);
-    this.text = null;
     this.patterns = null;
   }
 
   isBuilt() {
-    return this.text && this.patterns;
+    return !!this.patterns;
   }
 
   build() {
     if (!this.data.raw_op.args || this.data.raw_op.args.length < 2) {
       throw new Error('MatchExpr invalid args');
     }
-    this.text = this.data.exp_builder.createExp(this.data.raw_op.args[0]);
     // we must ensure that is a list here, if not will fail
     this.patterns = [];
+    // 04.10.2017 This loop starts from 1 to be compatible with the current trigger version,
+    // we have to coordinate with new trigger version and change this.
     for (let i = 1; i < this.data.raw_op.args.length; i += 1) {
       this.patterns.push(this.data.raw_op.args[i]);
     }
@@ -369,17 +369,16 @@ class MatchExpr extends Expression {
   }
 
   getExprValue(ctx) {
-    return this.text.evalExpr(ctx).then((text) => {
-      let matched = false;
-      for (let i = 0; i < this.patterns.length; i += 1) {
-        const regex = this.data.regex_cache.getRegexp(this.patterns[i]);
-        if (regex !== null && regex.test(text)) {
-          matched = true;
-          break;
-        }
+    const currUlr = ctx['#lc_url'];
+    let matched = false;
+    for (let i = 0; i < this.patterns.length; i += 1) {
+      const regex = this.data.regex_cache.getRegexp(this.patterns[i]);
+      if (regex !== null && regex.test(currUlr)) {
+        matched = true;
+        break;
       }
-      return Promise.resolve(matched);
-    });
+    }
+    return Promise.resolve(matched);
   }
 }
 
@@ -531,6 +530,7 @@ class MatchQueryExpr extends Expression {
   constructor(data) {
     super(data);
     this.normalizedArgs = null;
+    this.timeRange = null;
   }
 
   isBuilt() {
@@ -545,6 +545,7 @@ class MatchQueryExpr extends Expression {
     if (!args.keywords_list) {
       throw new Error('MatchQueryExpr invalid args');
     }
+    this.timeRange = Number(args.time_range);
     const normalizedKeywordData = [];
     args.keywords_list.forEach((rawTokenData) => {
       normalizedKeywordData.push(
@@ -567,7 +568,7 @@ class MatchQueryExpr extends Expression {
     }
 
     const thereIsAMatch = this.normalizedArgs.some(
-      tokenData => this.data.query_handler.matchTokens(tokenData, this.normalizedArgs.time_range)
+      tokenData => this.data.query_handler.matchTokens(tokenData, this.timeRange)
     );
 
     return Promise.resolve(thereIsAMatch);

@@ -198,7 +198,7 @@ export default class {
       logger.debug('try to get latest demographics from storage');
       const candidate = this.getLatestDemographics();
       if (candidate !== undefined) {
-        logger.log(`registerDemographicsFirstTime returns ${candidate}`);
+        logger.log('registerDemographicsFirstTime returns', candidate);
         return Promise.resolve(candidate);
       }
 
@@ -284,7 +284,7 @@ export default class {
   }
 
   updateClientState(demographics) {
-    logger.debug(`update client state from ${this.currentState(demographics)} ${demographics}`);
+    logger.debug('update client state from', this.currentState(demographics), demographics);
     switch (this.currentState(demographics)) {
       case CLIENT_STATE.REAPPEARING_USER:
         return this.handleReappearingUser(demographics);
@@ -328,7 +328,7 @@ export default class {
       })
       .catch((ex) => {
         // TODO: This could be a security problem for the user
-        logger.error(`Could not send newInstall signal ${ex}`);
+        logger.error('Could not send newInstall signal', ex);
 
         return '';
       });
@@ -349,7 +349,7 @@ export default class {
       })
       .catch((ex) => {
         // TODO: This could be a security problem for the user
-        logger.error(`Could not send reappearingUser signal ${ex}`);
+        logger.error('Could not send reappearingUser signal', ex);
 
         return '';
       });
@@ -359,7 +359,7 @@ export default class {
     logger.debug('handleUpdate');
     return Backend.updateGID(demographics)
       .then((gid) => {
-        logger.log(`success handleUpdate ${gid}`);
+        logger.log('success handleUpdate', gid);
         this.setLastGIDUpdateDate(getSynchronizedDate().format(DATE_FORMAT));
         this.setCurrentGID(gid);
 
@@ -410,7 +410,7 @@ export default class {
    * Handle new demographics for the user. This should not happen very often.
    */
   updateDemographics(demographics) {
-    logger.debug(`updateDemographics ${JSON.stringify(demographics)}`);
+    logger.debug('updateDemographics', demographics);
     this.setLatestDemographics(JSON.stringify(demographics.demographics));
     return this.init()
       .then(() => events.pub('anolysis:demographics_registered'));
@@ -449,7 +449,7 @@ export default class {
         return '';
       })
       .catch((ex) => {
-        logger.error(`Exception ${ex} ${ex.stack}`);
+        logger.error('Exception', ex, ex.stack);
       });
   }
 }

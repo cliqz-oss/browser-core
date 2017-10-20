@@ -1,4 +1,7 @@
 import { registerContentScript, CHROME_MSG_SOURCE } from '../core/content/helpers';
+
+// This is needed for now, else get's in circular dependecy and fails to load content script.
+import console from '../core/console';
 import prefs from '../core/prefs';
 
 const SPECIAL_KEYS = [8, 9, 13, 16, 17, 18, 19, 20, 27, 33, 34, 35, 36, 37, 38, 39, 40, 91, 224];

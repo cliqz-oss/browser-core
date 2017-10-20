@@ -1,10 +1,15 @@
+import tabs from '../platform/tabs';
+import windows from '../platform/windows';
+
 import console from '../core/console';
 import { chrome } from '../platform/globals';
+
 
 export default class {
   constructor() {
     this.tabs = {};
     this.windows = {};
+
     this.onTabCreated = this.onTabCreated.bind(this);
     this.onTabUpdated = this.onTabUpdated.bind(this);
     this.onTabRemoved = this.onTabRemoved.bind(this);
@@ -12,11 +17,34 @@ export default class {
     this.onWindowRemoved = this.onWindowRemoved.bind(this);
   }
 
-  onFullPage(details) {
+  init() {
+    tabs.onCreated.addListener(this.onTabCreated);
+    tabs.onUpdated.addListener(this.onTabUpdated);
+    tabs.onRemoved.addListener(this.onTabRemoved);
+
+    windows.onCreated.addListener(this.onWindowCreated);
+    windows.onRemoved.addListener(this.onwindowRemoved);
+  }
+
+  unload() {
+    tabs.onCreated.removeListener(this.onTabCreated);
+    tabs.onUpdated.removeListener(this.onTabUpdated);
+    tabs.onRemoved.removeListener(this.onTabRemoved);
+
+    windows.onCreated.removeListener(this.onWindowCreated);
+    windows.onRemoved.removeListener(this.onwindowRemoved);
+  }
+
+  onFullPage({ tabId, url, isPrivate, requestId }) {
     // update last request id from the tab
-    if (this.tabs[details.tabId]) {
-      this.tabs[details.tabId].lastRequestId = details.requestId;
+    if (this.tabs[tabId] === undefined) {
+      this.tabs[tabId] = {
+        url,
+        isPrivate,
+      };
     }
+
+    this.tabs[tabId].lastRequestId = requestId;
   }
 
   isRedirect(details) {

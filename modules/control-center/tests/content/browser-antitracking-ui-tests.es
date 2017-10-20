@@ -89,7 +89,7 @@ class Subject {
   }
 }
 
-describe("Anti-Tracking UI browser", function () {
+function antitrackingUiTests(amo) {
   let subject;
 
   before(function () {
@@ -186,7 +186,7 @@ describe("Anti-Tracking UI browser", function () {
       },
       generalState: 'active',
       feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: false,
+      amo: amo,
       funnelCake: false
     };
 
@@ -264,7 +264,7 @@ describe("Anti-Tracking UI browser", function () {
       },
       generalState: 'inactive',
       feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: false,
+      amo: amo,
       funnelCake: false
     };
 
@@ -359,7 +359,7 @@ describe("Anti-Tracking UI browser", function () {
       },
       generalState: 'critical',
       feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: false,
+      amo: amo,
       funnelCake: false
     };
 
@@ -436,4 +436,12 @@ describe("Anti-Tracking UI browser", function () {
       chai.expect(subject.query('#anti-tracking #antitracker-counter #count [visible-on-state="critical"]').textContent.trim()).to.equal('0');
     });
   });
+}
+
+describe('Anti-Tracking UI browser', function () {
+  antitrackingUiTests(false);
+});
+
+describe('AMO Anti-Tracking UI tests', function () {
+  antitrackingUiTests(true);
 })

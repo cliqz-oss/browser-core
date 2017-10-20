@@ -40,7 +40,7 @@ export default function () {
       ];
       let resultElement;
 
-      beforeEach(function () {
+      before(function () {
         respondWith({ results });
         fillIn('1 euro to usd');
         return waitForPopup().then(function () {

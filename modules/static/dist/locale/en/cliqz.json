@@ -1137,7 +1137,7 @@
       "message": "Shared via Cliqz Browser for $1"
     },
     "mobile_card_look_shared_via": {
-      "message": "Hey! Look at this sreenshot shared via Cliqz Browser"
+      "message": "Hey! Look at this screenshot shared via Cliqz Browser"
     },
     "mobile_reconnecting_msg": {
       "message": "Re-establishing lost internet connection"
@@ -1469,6 +1469,18 @@
     "video-downloader-unsupported-format": {
       "message": "Sorry! We are not able to download this video."
     },
+    "video-downloader-uitour-title": {
+      "message": "Video Downloader"
+    },
+    "video-downloader-uitour-description": {
+      "message": "Watch this video offline. Download it to your computer or mobile device."
+    },
+    "video-downloader-uitour-btn-try": {
+      "message": "Try now"
+    },
+    "video-downloader-uitour-btn-skip": {
+      "message": "Later"
+    },
     "transparency_html_title": {
       "message": "Cliqz | Transparency Cockpit"
     },
@@ -1694,6 +1706,9 @@
     "show-location-and-contact": {
       "message": "Show location & contact now"
     },
+    "show-location-and-contact-cinema": {
+      "message": "Show cinemas near me"
+    },
     "always-show-location": {
       "message": "Always show"
     },
@@ -1772,6 +1787,15 @@
     "freshtab.app.middle-box.new-cliqz-tab-cta": {
         "message": "TRY IT NOW"
     },
+    "freshtab.app.middle-box.blue-theme-hdr": {
+        "message": "Blue is beautiful!"
+    },
+    "freshtab.app.middle-box.blue-theme-desc": {
+        "message": "Cliqz now has a blue tab bar and a beautiful panorama of the Alps as a background image."
+    },
+    "freshtab.app.middle-box.blue-theme-cta": {
+        "message": "Customize now"
+    },
     "freshtab.app.news.breaking-news": {
         "message": "Breaking"
     },
@@ -1782,7 +1806,7 @@
         "message": "Customize Cliqz Tab"
     },
     "freshtab.app.settings.background.label": {
-        "message": "Select background"
+        "message": "Background"
     },
     "freshtab.app.settings.most-visited.label": {
         "message": "Most visited sites"
@@ -1837,6 +1861,27 @@
     },
     "soccer-expand-button": {
         "message": "Show more"
+    },
+    "cinema-expand-button": {
+        "message": "More"
+    },
+    "cinema-movie-director": {
+        "message": "Director"
+    },
+    "cinema-movie-reviews": {
+        "message": "Reviews"
+    },
+    "cinema-movie-cast": {
+        "message": "Cast"
+    },
+    "cinema-movie-full-cast": {
+        "message": "Full cast and crew"
+    },
+    "cinema-movie-trailer": {
+        "message": "Trailer"
+    },
+    "cinema-movie-showtimes": {
+        "message": "Showtimes"
     },
     "freshtab.app.offer.info": {
         "message": "More Info"

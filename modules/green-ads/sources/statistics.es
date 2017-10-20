@@ -2,6 +2,7 @@
 
 import logger from './logger';
 import moment from '../platform/moment';
+import background from './background';
 import { sanitiseUrl, sanitiseParents } from './utils';
 
 
@@ -9,12 +10,12 @@ import { sanitiseUrl, sanitiseParents } from './utils';
  * Defines a page load. (URL + Tab ID)
  */
 export default class PageLoad {
-  constructor(windowTreeInformation, originUrl, greenMode) {
-    logger.debug(`new PageLoad ${JSON.stringify(windowTreeInformation)} ${originUrl}`);
+  constructor(windowTreeInformation, tabUrl, greenMode) {
+    logger.debug('new PageLoad', windowTreeInformation, tabUrl);
     // Create document tree data structure. It will keep track of various
     // statistics about the current loading page.
-    this.outerWindowID = windowTreeInformation.outerWindowID;
-    this.originUrl = originUrl;
+    this.frameId = windowTreeInformation.frameId;
+    this.tabUrl = tabUrl;
 
     this.greenMode = greenMode;
 
@@ -38,13 +39,14 @@ export default class PageLoad {
 
     // Keep track of processed iframes
     this.processedFrames = new Set();
+    this.whitelistedFrames = new Set();
 
     // Frame for the main document
     this.mainFrame = new FrameContext(windowTreeInformation, 6, false);
 
     // Mapping of existing frames
     this.frames = Object.create(null);
-    this.frames[windowTreeInformation.outerWindowID] = this.mainFrame;
+    this.frames[windowTreeInformation.frameId] = this.mainFrame;
   }
 
   aggregate() {
@@ -52,7 +54,7 @@ export default class PageLoad {
       version: 2,
       ts: moment().format('YYYYMMDD'),
       green: this.greenMode,
-      url: sanitiseUrl(this.originUrl),
+      url: sanitiseUrl(this.tabUrl),
       timings: {
         // Relative timings
         timeToMainDocument: this.mainDocumentLoad - this.loadingStarts,
@@ -90,77 +92,77 @@ export default class PageLoad {
     const parents = [];
     let currentFrame = frame;
 
-    while (currentFrame.outerWindowID !== this.outerWindowID) {
+    while (currentFrame.frameId !== this.frameId) {
       parents.push({
-        id: currentFrame.outerWindowID,
+        id: currentFrame.frameId,
         url: currentFrame.src,
       });
 
       // Go up one level
-      const parentID = currentFrame.parentWindowID;
+      const parentID = currentFrame.parentFrameId;
       if (!parentID) break;
       currentFrame = this.getFrame(parentID);
     }
 
     parents.push({
-      id: this.outerWindowID,
-      url: this.originUrl,
+      id: this.frameId,
+      url: this.tabUrl,
     });
 
     return parents;
   }
 
   forEachFrame(cb) {
-    Object.keys(this.frames).forEach((originUrl) => {
-      cb(this.frames[originUrl]);
+    Object.keys(this.frames).forEach((url) => {
+      cb(this.frames[url]);
     });
   }
 
-  hasFrame(outerWindowID) {
-    return this.frames[outerWindowID] !== undefined;
+  hasFrame(frameId) {
+    return this.frames[frameId] !== undefined;
   }
 
-  getFrame(outerWindowID) {
-    return this.frames[outerWindowID];
+  getFrame(frameId) {
+    return this.frames[frameId];
   }
 
-  setFrame({ originWindowID, outerWindowID, parentWindowID }, frameContext) {
-    let parentFrame = this.frames[parentWindowID];
+  setFrame({ tabId, frameId, parentFrameId }, frameContext) {
+    let parentFrame = this.frames[parentFrameId];
     if (frameContext.src === 'about:srcdoc') {
       // TODO - here we might need to have the full list of window ids to the
-      // top and take the first that is different from `outerWindowID`.
-      parentFrame = this.frames[originWindowID];
+      // top and take the first that is different from `frameId`.
+      parentFrame = this.frames[tabId];
     }
 
-    this.frames[outerWindowID] = frameContext;
+    this.frames[frameId] = frameContext;
 
     if (parentFrame === undefined) {
-      logger.error(`DocumentTree ERROR no parent frame ${parentWindowID} available: ${JSON.stringify(Object.keys(this.frames))}`);
+      logger.error('DocumentTree ERROR no parent frame available', parentFrameId, Object.keys(this.frames));
       return frameContext;
     }
 
-    // Inherit the wouldBeBlocked attribute from parent to child
-    if (parentFrame.wouldBeBlocked && !frameContext.wouldBeBlocked) {
-      frameContext.wouldBeBlocked = true;
+    // Inherit the isAdvertiser attribute from parent to child
+    if (parentFrame.isAdvertiser && !frameContext.isAdvertiser) {
+      frameContext.isAdvertiser = true;
     }
 
     if (parentFrame.isAd) {
       frameContext.isAd = true;
     }
 
-    parentFrame.children[outerWindowID] = frameContext;
+    parentFrame.children[frameId] = frameContext;
 
     return frameContext;
   }
 
   makeFrames(ids) {
     let currentID = ids[ids.length - 1].id;
-    const originWindowID = currentID;
+    const tabId = currentID;
     let nextID;
     let nextUrl;
 
     if (!this.hasFrame(currentID)) {
-      logger.error(`Could not find origin frame in makeFrames ${JSON.stringify(ids)}`);
+      logger.error('Could not find origin frame in makeFrames', ids);
     }
 
     for (let i = ids.length - 2; i >= 0; i -= 1) {
@@ -169,9 +171,9 @@ export default class PageLoad {
       if (nextID !== currentID) {
         if (!this.hasFrame(nextID)) {
           const windowTreeInformation = {
-            originWindowID,
-            parentWindowID: currentID,
-            outerWindowID: nextID,
+            tabId,
+            parentFrameId: currentID,
+            frameId: nextID,
           };
 
           // Create a new frame
@@ -215,31 +217,31 @@ export default class PageLoad {
    *
    */
 
-  onUserActivity(windowTreeInformation, originUrl, timestamp, action) {
+  onUserActivity(windowTreeInformation, tabUrl, timestamp, action) {
     this.userActivity.push({
       action,
       timestamp,
     });
   }
 
-  onDOMCreated(windowTreeInformation, originUrl, timestamp) {
+  onDOMCreated(windowTreeInformation, tabUrl, timestamp) {
     this.DOMCreated = timestamp;
   }
 
-  onDOMLoaded(windowTreeInformation, originUrl, timestamp) {
+  onDOMLoaded(windowTreeInformation, tabUrl, timestamp) {
     this.DOMLoaded = timestamp;
   }
 
-  onFullLoad(windowTreeInformation, originUrl, timestamp) {
+  onFullLoad(windowTreeInformation, tabUrl, timestamp) {
     this.fullLoad = timestamp;
   }
 
   onAdShown(windowTreeInformation, url, timestamp, extra) {
-    const frame = this.getFrame(windowTreeInformation.outerWindowID);
+    const frame = this.getFrame(windowTreeInformation.frameId);
 
     if (!frame.isAd) {
       // Do not count the main document as an ad
-      if (windowTreeInformation.originWindowID !== windowTreeInformation.outerWindowID) {
+      if (windowTreeInformation.tabId !== windowTreeInformation.frameId) {
         frame.isAd = true;
         frame.forEachDescendant((f) => { f.isAd = true; });
       }
@@ -248,23 +250,23 @@ export default class PageLoad {
       frame.adLinks.push(url);
 
       // Signal ad shown to background
-      // background.actions.highlightAd(windowTreeInformation.outerWindowID);
+      background.actions.highlightAd(windowTreeInformation.frameId);
 
       const payload = Object.assign({
         timestamp,
         timeToLoad: timestamp - this.loadingStarts,
         url: sanitiseUrl(url),
-        mainFrame: windowTreeInformation.originWindowID === windowTreeInformation.outerWindowID,
+        mainFrame: windowTreeInformation.tabId === windowTreeInformation.frameId,
       }, extra);
       payload.parents = sanitiseParents(payload.parents || []);
 
-      logger.debug(`adShown ${JSON.stringify(payload)}`);
+      logger.log('adShown', payload);
       this.adShown.push(payload);
     }
   }
 
-  onAdOver(windowTreeInformation, originUrl, url, timestamp) {
-    logger.debug(`adOver ${JSON.stringify(windowTreeInformation)} ${originUrl} ${url} ${timestamp}`);
+  onAdOver(windowTreeInformation, tabUrl, url, timestamp) {
+    logger.debug('adOver', windowTreeInformation, tabUrl, url, timestamp);
     this.adOver.push({
       timestamp,
       timeToOver: timestamp - this.loadingStarts,
@@ -272,8 +274,8 @@ export default class PageLoad {
     });
   }
 
-  onAdClicked(windowTreeInformation, originUrl, url, timestamp) {
-    logger.debug(`adClicked ${JSON.stringify(windowTreeInformation)} ${originUrl} ${url} ${timestamp}`);
+  onAdClicked(windowTreeInformation, tabUrl, url, timestamp) {
+    logger.log('adClicked', windowTreeInformation, tabUrl, url, timestamp);
     this.adClicked.push({
       timestamp,
       timeToClick: timestamp - this.loadingStarts,
@@ -281,40 +283,29 @@ export default class PageLoad {
     });
   }
 
-  onNewLoadingDocument(windowTreeInformation, originUrl, timestamp) {
-    this.mainDocumentLoad = timestamp;
-
-    // Create request context for main loading document
-    const frameContext = this.getFrame(windowTreeInformation.outerWindowID);
-    frameContext.setRequest(
-      originUrl,
-      new RequestContext(originUrl, 6, false),
-    );
-  }
-
   /**
    * This method is called when the process script detected the creation of a
    * new window for a given document. We then try to attach the new information
    * to existing frames.
    */
-  onNewFrame(windowTreeInformation, originUrl, timestamp, payload) {
+  onNewFrame(windowTreeInformation, tabUrl, timestamp, payload) {
     const { parents, iframes, url } = payload;
     const {
-      originWindowID,
-      outerWindowID,
+      tabId,
+      frameId,
     } = windowTreeInformation;
 
-    logger.debug(`newFrame ${JSON.stringify({
+    logger.debug('newFrame', {
       windowTreeInformation,
       payload,
-      originUrl,
+      tabUrl,
       timestamp,
-    })}`);
+    });
 
     // Update iframe metadata found in content script
-    if (outerWindowID !== originWindowID) {
+    if (frameId !== tabId) {
       this.makeFrames(parents);
-      const frame = this.getFrame(outerWindowID);
+      const frame = this.getFrame(frameId);
       frame.src = url;
     }
 
@@ -323,7 +314,7 @@ export default class PageLoad {
     iframes.forEach((iframe) => {
       // Create intermediary frames if needed
       this.makeFrames(iframe.parents);
-      const frame = this.getFrame(iframe.windowTreeInformation.outerWindowID);
+      const frame = this.getFrame(iframe.windowTreeInformation.frameId);
 
       // Update metadata of the iframe
       frame.src = iframe.src;
@@ -331,36 +322,36 @@ export default class PageLoad {
     });
   }
 
-  onRequestOpen(windowTreeInformation, originUrl, timestamp, payload) {
-    const { outerWindowID } = windowTreeInformation;
+  onRequestOpen(windowTreeInformation, tabUrl, timestamp, payload) {
+    const { frameId } = windowTreeInformation;
     const {
       url,
       cpt,
-      wouldBeBlocked,
+      isAdvertiser,
     } = payload;
 
     let frameContext;
 
     // Create a new frame if needed
-    if (!this.hasFrame(outerWindowID)) {
+    if (!this.hasFrame(frameId)) {
       frameContext = this.setFrame(
         windowTreeInformation,
-        new FrameContext(windowTreeInformation, url, wouldBeBlocked));
+        new FrameContext(windowTreeInformation, url, isAdvertiser));
     } else {
       // Update metadata
-      frameContext = this.getFrame(outerWindowID);
-      frameContext.wouldBeBlocked = wouldBeBlocked;
+      frameContext = this.getFrame(frameId);
+      frameContext.isAdvertiser = isAdvertiser;
       frameContext.src = url;
     }
 
     // Create a new context for the current request
     const requestContext = frameContext.setRequest(
       url,
-      new RequestContext(url, cpt, wouldBeBlocked)
+      new RequestContext(url, cpt, isAdvertiser)
     );
 
     // Check if the current frame is probably an ad
-    if ((wouldBeBlocked || frameContext.wouldBeBlocked) &&
+    if ((isAdvertiser || frameContext.isAdvertiser) &&
         frameContext.getNumberOfRequests() > 1 && (
           cpt !== 1 &&  // == OTHER
           cpt !== 3 &&  // == IMAGE (dealt with in response Observer)
@@ -373,16 +364,16 @@ export default class PageLoad {
       requestContext.isAd = true;
 
       // Register a adShown event
-      logger.debug(`shown ad from open ${JSON.stringify({
+      logger.debug('shown ad from open', {
         windowTreeInformation,
         payload,
-        originUrl,
-      })}`);
+        tabUrl,
+      });
 
       // If we are in the main window, we can count several ads
       if (frameContext.isMainFrame) {
         // Only count iframe ads
-        // this.onAdShown(windowTreeInformation, originUrl, timestamp, url);
+        // this.onAdShown(windowTreeInformation, tabUrl, timestamp, url);
       } else if (!frameContext.isAd) {
         // Only count one ad per iframe
         frameContext.isAd = true;
@@ -395,80 +386,84 @@ export default class PageLoad {
     }
   }
 
-  onRequestResponse(windowTreeInformation, originUrl, timestamp, payload) {
-    const { outerWindowID } = windowTreeInformation;
+  onRequestResponse(windowTreeInformation, tabUrl, timestamp, payload) {
+    const { frameId } = windowTreeInformation;
     const {
       cpt,
       headers,
       isCached,
-      sourceUrl,
       url,
-      wouldBeBlocked,
-      isFromTracker,
+      isAdvertiser,
+      isAdvertiserFrame,
     } = payload;
 
-    const frameContext = this.getFrame(outerWindowID);
+    const frameContext = this.getFrame(frameId);
 
     // Refresh last activity
     frameContext.endLoad = Date.now();
+
+    // Extract content type to be sure it's an image
+    let contentType;
+    for (let i = 0; i < headers.length; i += 1) {
+      const header = headers[i];
+      if (header.name.toLowerCase() === 'content-type') {
+        contentType = header.value;
+        break;
+      }
+    }
 
     // Extract content size if present
     let contentLength = 0;
     for (let i = 0; i < headers.length; i += 1) {
       const header = headers[i];
-      if (header.name === 'Content-Length') {
+      if (header.name.toLowerCase() === 'content-length') {
         contentLength = Number(header.value);
         break;
       }
+    }
+
+    if (cpt === 6) {
+      return;
     }
 
     if (!frameContext.hasRequest(url)) {
       if (cpt === 7) {
         // This case could be that the `iframe` is present in the HTML and not
         // created by a request. Hence we never see it in the request opener.
-        logger.debug(`[observeResponse] created new frame/request: ${JSON.stringify({
-          url,
-          originUrl,
-          sourceUrl,
-          cpt,
-          headers,
-          windowTreeInformation,
-        })}`);
+        logger.log('[observeResponse] created new frame/request', url, windowTreeInformation, payload);
 
         const newFrame = this.setFrame(
           windowTreeInformation,
-          new FrameContext(windowTreeInformation, url, wouldBeBlocked));
+          new FrameContext(windowTreeInformation, url, isAdvertiser));
 
         const newRequest = newFrame.setRequest(
           url,
-          new RequestContext(url, cpt, wouldBeBlocked));
+          new RequestContext(url, cpt, isAdvertiser));
 
         newRequest.contentLength = contentLength;
         return;
       }
 
-      logger.debug(`[observeResponse] request not found: ${JSON.stringify({
-        url,
-        originUrl,
-        sourceUrl,
-        cpt,
-        headers,
-        windowTreeInformation,
-      })}`);
+      logger.error('[observeResponse] request not found', url, windowTreeInformation, payload);
       return;
     }
 
     // Update metadata for this URL
     const requestContext = frameContext.getRequest(url);
+    requestContext.isCached = isCached;
     if (!isCached) {
       requestContext.contentLength = contentLength;
     }
-    requestContext.isCached = isCached;
+
+    if (cpt === 3 && contentType !== undefined && !contentType.startsWith('image')) {
+      logger.log('cpt is 3 but not image', contentType, url, payload);
+      return;
+    }
 
     // If it's an image, check if it's a tracking pixel
     if (cpt === 3) {
-      if (contentLength > 1000 || contentLength === undefined) {
-        logger.debug(`image found ${contentLength} ${cpt} ${url}`);
+      if (contentLength >= 1000) {
+        logger.log(`image found ${contentLength} ${cpt} ${url}`);
 
         // Hacky tracking pixel removal
         // NOTE - at the moment, some of them can be seen as ad (because they are
@@ -477,37 +472,30 @@ export default class PageLoad {
             url.indexOf('1x1_default.gif') !== -1 ||
             url.indexOf('1x1_Pixel.png') !== -1) {
           requestContext.isTrackingPixel = true;
-          logger.debug(`probably pixel ${contentLength} ${url}`);
+          logger.log(`probably pixel ${contentLength} ${url}`);
           return;
         }
 
         // NOTE: We also take into account missing content length as a tracking
         // pixel would probably never be cached.
         if (frameContext.isMainFrame) {
-          if (isFromTracker) {
-            logger.debug(`shown ad from response (main doc) ${JSON.stringify({
-              windowTreeInformation,
-              payload,
-              originUrl,
-            })}`);
+          if (isAdvertiser) {
+            logger.log('shown ad from response (main doc)', url, windowTreeInformation, payload);
             this.onAdShown(windowTreeInformation, url, timestamp, {
               // Extra
               kind: 'image',
               imageSize: contentLength,
               parents: [],
             });
+          } else {
+            logger.log('main frame img not ads?', url, isAdvertiser, cpt);
           }
-        } else if (requestContext.wouldBeBlocked) {
+        } else if (requestContext.isAdvertiser || isAdvertiserFrame) {
           requestContext.isAd = true;
           requestContext.isTrackingPixel = false;
 
-          logger.debug(`shown ad from response ${JSON.stringify({
-            windowTreeInformation,
-            payload,
-            originUrl,
-          })}`);
-
           if (!frameContext.isAd) {
+            logger.log('shown ad from response', url, windowTreeInformation, payload);
             this.onAdShown(windowTreeInformation, url, timestamp, {
               // Extra
               kind: 'image',
@@ -518,7 +506,9 @@ export default class PageLoad {
         }
       } else {
         requestContext.isTrackingPixel = true;
-        logger.debug(`probably pixel ${contentLength} ${url}`);
+        if (contentLength > 100) {
+          logger.log(`probably pixel ${contentLength} ${url}`, requestContext);
+        }
       }
     }
   }
@@ -528,16 +518,16 @@ export default class PageLoad {
 /* Keeps track of metadata on a specific iframe (or main document window)
  */
 class FrameContext {
-  constructor({ outerWindowID, parentWindowID }, url, wouldBeBlocked) {
-    logger.debug(`new FrameContext ${outerWindowID} ${url} ${wouldBeBlocked}`);
+  constructor({ frameId, parentFrameId }, url, isAdvertiser) {
+    logger.debug(`new FrameContext ${frameId} ${url} ${isAdvertiser}`);
 
     this.src = url;
-    this.outerWindowID = outerWindowID;
-    this.parentWindowID = parentWindowID;
-    this.isMainFrame = outerWindowID === parentWindowID;
+    this.frameId = frameId;
+    this.parentFrameId = parentFrameId;
+    this.isMainFrame = frameId === parentFrameId;
 
     this.iframe = Object.create(null);
-    this.wouldBeBlocked = wouldBeBlocked;
+    this.isAdvertiser = isAdvertiser;
 
     this.isAd = false;
     this.adLinks = [];
@@ -643,7 +633,6 @@ class FrameContext {
   }
 
   setRequest(url, requestContext) {
-    logger.log(`setRequest ${url}`);
     this.requests[url] = requestContext;
     return requestContext;
   }
@@ -653,11 +642,11 @@ class FrameContext {
 /* Keep track of metadata on a request
  */
 class RequestContext {
-  constructor(url, cpt, wouldBeBlocked) {
-    logger.debug(`new RequestContext ${url} ${cpt} ${wouldBeBlocked}`);
+  constructor(url, cpt, isAdvertiser) {
+    logger.debug(`new RequestContext ${url} ${cpt} ${isAdvertiser}`);
     this.url = url;
     this.cpt = cpt;
-    this.wouldBeBlocked = wouldBeBlocked;
+    this.isAdvertiser = isAdvertiser;
 
     // Will be set either on request open, or headers received
     this.isCached = null;
@@ -672,7 +661,7 @@ class RequestContext {
       url: this.url,
       cpt: this.cpt,
       isAd: this.isAd,
-      wouldBeBlocked: this.wouldBeBlocked,
+      isAdvertiser: this.isAdvertiser,
       isTrackingPixel: this.isTrackingPixel,
       contentLength: this.contentLength,
     };

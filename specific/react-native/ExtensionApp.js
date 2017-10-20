@@ -27,7 +27,7 @@ export default class extends React.Component {
     startup.then((app) => {
       this.app = app;
       global.app = app;
-      const modules = this.app.modules().map((m) => ({
+      const modules = this.app.moduleList.map((m) => ({
         name: m.name,
         isEnabled: m.isEnabled,
         loadingTime: m.loadingTime,

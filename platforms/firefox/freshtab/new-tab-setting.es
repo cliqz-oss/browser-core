@@ -38,7 +38,10 @@ export function getHomePage() {
 
 export function migrate() {
   // migrate old homepage url to new one
-  if (getHomePage() === 'about:cliqz') {
+  const currentHompage = getHomePage();
+  if (currentHompage === 'about:cliqz' ||
+      // we moved from the resource url to chrome url in X.21.Y
+      currentHompage === 'resource://cliqz/freshtab/home.html') {
     setHomePage(config.settings.NEW_TAB_URL);
   }
 }

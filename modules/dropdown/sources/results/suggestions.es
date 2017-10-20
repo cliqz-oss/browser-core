@@ -1,5 +1,6 @@
 import BaseResult from './base';
 import GenericResult from './generic';
+import { equals } from '../../core/url';
 
 class Suggestion extends BaseResult {
   get displayText() {
@@ -15,9 +16,18 @@ class Suggestion extends BaseResult {
   }
 }
 
-export default class SupplementarySearchResult extends GenericResult {
+export default class SuggestionsResult extends GenericResult {
   constructor(rawResult, allResultsFlat = []) {
     super(rawResult, allResultsFlat);
+
+    this.rawResult.data.suggestions = this.rawResult.data.suggestions.filter((s) => {
+      const url = `https://cliqz.com/search?q=${s}`;
+      if (allResultsFlat.some(u => equals(u, url))) {
+        return false;
+      }
+      allResultsFlat.push(url);
+      return true;
+    });
 
     this.suggestionsLimit = 3;
   }

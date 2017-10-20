@@ -16,6 +16,8 @@ export default background({
   // Injected in window.es
   // controlCenter: inject.module('control-center'),
 
+  requiresServices: ['cliqz-config'],
+
   /**
   * @method init
   * @param settings
@@ -41,7 +43,11 @@ export default background({
     utils.bindObjectFunctions(this.popupActions, this);
 
     // inject configured telemetry module
-    telemetry.loadFromProvider(settings.AT_TELEMETRY_PROVIDER || 'human-web', settings.HW_CHANNEL);
+    // do not initiate if disabled from config
+    if (!settings.DISABLE_ATTRACK_TELEMETRY) {
+      telemetry.loadFromProvider(settings.ATTRACK_TELEMETRY_PROVIDER || 'human-web', settings.HW_CHANNEL);
+    }
+
 
     // load config
     this.config = new Config({});
@@ -90,15 +96,6 @@ export default background({
     getTabTracker() {
       return this.attrack.tp_events;
     },
-    isSourceWhitelisted(domain) {
-      return this.attrack.isSourceWhitelisted(domain);
-    },
-    addSourceDomainToWhitelist(domain) {
-      return this.attrack.addSourceDomainToWhitelist(domain);
-    },
-    removeSourceDomainFromWhitelist(domain) {
-      return this.attrack.removeSourceDomainFromWhitelist(domain);
-    },
     getTrackerListForTab(tab) {
       return this.attrack.getTrackerListForTab(tab);
     },
@@ -135,6 +132,31 @@ export default background({
     },
     enable() {
       this.init(this.settings);
+    },
+
+    isWhitelisted(url) {
+      return this.attrack.urlWhitelist.isWhitelisted(url);
+    },
+
+    changeWhitelistState(url, type, action) {
+      return this.attrack.urlWhitelist.changeState(url, type, action);
+    },
+
+    getWhitelistState(url) {
+      return this.attrack.urlWhitelist.getState(url);
+    },
+
+    // legacy api for mobile
+    isSourceWhitelisted(domain) {
+      return this.actions.isWhitelisted(domain);
+    },
+
+    addSourceDomainToWhitelist(domain) {
+      return this.actions.changeWhitelistState(domain, 'hostname', 'add');
+    },
+
+    removeSourceDomainFromWhitelist(domain) {
+      return this.actions.changeWhitelistState(domain, 'hostname', 'remove');
     }
   },
 
@@ -170,13 +192,12 @@ export default background({
     */
     toggleWhiteList(args, cb) {
       var hostname = args.hostname;
-      if (this.attrack.isSourceWhitelisted(hostname)) {
-        this.attrack.removeSourceDomainFromWhitelist(hostname);
+      if (this.attrack.urlWhitelist.isWhitelisted(hostname)) {
         this.popupActions.telemetry( { action: 'click', target: 'unwhitelist_domain'} );
       } else {
-        this.attrack.addSourceDomainToWhitelist(hostname);
         this.popupActions.telemetry( { action: 'click', target: 'whitelist_domain'} );
       }
+      this.attrack.urlWhitelist.changeState(hostname, 'hostname', 'toggle');
       cb();
     },
 
@@ -237,20 +258,19 @@ export default background({
       domChecker.clearDomLinks();
     },
     "antitracking:whitelist:add": function (hostname) {
-      this.attrack.addSourceDomainToWhitelist(hostname);
+      this.attrack.urlWhitelist.changeState(hostname, 'hostname', 'add');
+      this.attrack.logWhitelist(hostname);
       this.popupActions.telemetry({
         action: 'click',
         target: 'whitelist_domain'
       });
     },
     "antitracking:whitelist:remove": function (hostname) {
-      if (this.attrack.isSourceWhitelisted(hostname)){
-        this.attrack.removeSourceDomainFromWhitelist(hostname);
-        this.popupActions.telemetry({
-          action: 'click',
-          target: 'unwhitelist_domain'
-        });
-      }
+      this.attrack.urlWhitelist.changeState(hostname, 'hostname', 'remove');
+      this.popupActions.telemetry({
+        action: 'click',
+        target: 'unwhitelist_domain'
+      });
     },
     "control-center:antitracking-strict": function () {
       utils.setPref('attrackForceBlock', !utils.getPref('attrackForceBlock', false));

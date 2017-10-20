@@ -60,6 +60,10 @@ class CliqzResultProviders {
     CliqzCalculator.init();
   }
   manageProviders() {
+    if (utils.getPref('restoredDefaultSearchEnginesOnce', false) == false && utils.restoreHiddenSearchEngines) {
+      utils.restoreHiddenSearchEngines();
+      utils.setPref('restoredDefaultSearchEnginesOnce', true);
+    }
 
     var newProviderAdded = this.addCustomProviders();
 

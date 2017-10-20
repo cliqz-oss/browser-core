@@ -4,7 +4,8 @@ import MessageHandlerBase from './handlers/base';
 import CliqzMsgTriggerLocal from "./triggers/local";
 
 /**
-  @namespace <namespace>
+  @namespace message-center
+  @module message-center
   @class Background
  */
 export default background({

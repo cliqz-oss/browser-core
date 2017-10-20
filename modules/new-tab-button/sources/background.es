@@ -4,7 +4,8 @@ import utils from '../core/utils';
 import inject from '../core/kord/inject';
 
 /**
-  @namespace <namespace>
+  @namespace new-tab-button
+  @module new-tab-button
   @class Background
  */
 export default background({

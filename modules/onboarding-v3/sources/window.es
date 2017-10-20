@@ -22,6 +22,12 @@ export default class {
       const oldTab = win.gBrowser.selectedTab;
       utils.openLink(win, utils.CLIQZ_ONBOARDING_URL, true);
       win.gBrowser.removeTab(oldTab);
+
+      // stop button remains active in Firefox 56
+      const reloadButton = win.document.getElementById('reload-button');
+      if (reloadButton) {
+        reloadButton.removeAttribute('displaystop');
+      }
     }, 100, this.window);
   }
 

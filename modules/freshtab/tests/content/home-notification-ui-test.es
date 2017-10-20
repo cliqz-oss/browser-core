@@ -134,7 +134,7 @@ describe('Fresh tab notification UI', function () {
     action: 'getConfig',
     response: {
       locale: 'en-US',
-      newTabUrl: 'resource://cliqz/freshtab/home.html',
+      newTabUrl: 'chrome://cliqz/content/freshtab/home.html',
       isBrowser: false,
       showNewBrandAlert: false,
       messages: mockMessage,
@@ -162,7 +162,7 @@ describe('Fresh tab notification UI', function () {
   };
   let subject;
 
-  beforeEach(function () {
+  before(function () {
     subject = new Subject();
     subject.respondsWith({
       module: 'core',
@@ -189,16 +189,25 @@ describe('Fresh tab notification UI', function () {
         news: []
       }
     });
-  })
+
+    subject.respondsWith({
+      module: 'freshtab',
+      action: 'getOffers',
+      response: []
+    });
+  });
 
   afterEach(function () {
-    subject.unload();
     clearIntervals();
   });
 
   context('when one notification message is available', function () {
-    beforeEach(function() {
+    before(function() {
       return subject.load();
+    });
+
+    after(function () {
+      subject.unload();
     });
 
     it('the area with notification is visible', function () {
@@ -244,11 +253,15 @@ describe('Fresh tab notification UI', function () {
   });
 
   context('when no messages are available', function () {
-    beforeEach(function () {
+    before(function () {
       const configNotVisible = clone(defaultConfig);
       configNotVisible.response.messages = [];
       subject.respondsWith(configNotVisible);
       return subject.load();
+    });
+
+    after(function () {
+      subject.unload();
     });
 
     it('the area with notification is not visible', function () {
@@ -257,10 +270,4 @@ describe('Fresh tab notification UI', function () {
     });
 
   });
-
-  /* TODO */
-  /* context('when two notification messages are available', function () {
-
-  }); */
-
 });

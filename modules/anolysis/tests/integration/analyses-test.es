@@ -112,7 +112,7 @@ export default describeModule('anolysis/anolysis',
     },
     'core/events': {
       default: {
-        subscript() {
+        subscribe() {
           return {
             unsubscribe() {},
           };
@@ -194,13 +194,16 @@ export default describeModule('anolysis/anolysis',
       },
     },
     'anolysis/signals-queue': {
-      default: class SignalQueue { flush() {} },
+      default: class SignalQueue {
+        init() { return Promise.resolve(); }
+        flush() { return Promise.resolve(); }
+      },
     },
     'anolysis/logger': {
       default: {
         debug() {},
         log() {},
-        error() {},
+        error(...args) { console.log('ERROR', ...args); },
       },
     },
   }),
@@ -208,6 +211,7 @@ export default describeModule('anolysis/anolysis',
     beforeEach(function importAnolysis() {
       const Anolysis = this.module().default;
       anolysis = new Anolysis();
+      return anolysis.init();
     });
 
     afterEach(() => Promise.all(openedDB.map(d => d.destroy())).then(() => {

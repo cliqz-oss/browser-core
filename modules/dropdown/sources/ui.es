@@ -6,12 +6,13 @@ import inject from '../core/kord/inject';
 import SupplementarySearchResult from './results/supplementary-search';
 import HistoryManager from '../core/history-manager';
 import NavigateToResult from './results/navigate-to';
-import { isUrl } from '../core/url';
+import { isUrl, equals } from '../core/url';
 import { enterSignal, removeFromHistorySignal } from './telemetry';
 import AdultAssistant from './adult-content-assistant';
 import LocationAssistant from './location-sharing-assistant';
 import { getTabsWithUrl, closeTab } from '../core/tabs';
 import { copyToClipboard } from '../core/clipboard';
+import { nextTick } from '../core/decorators';
 
 export default class {
 
@@ -57,9 +58,17 @@ export default class {
 
   keyDown(ev) {
     let preventDefault = false;
+    const isModifierPressed = ev.altKey || ev.metaKey || ev.ctrlKey;
 
-    // no popup, so no interactions
-    if (this.popupClosed) {
+    // no popup, so no interactions, unless Enter is pressed.
+    // report telemetry signal in this case.
+    if (this.popupClosed !== false) {
+      if (ev.code === 'Enter' || ev.code === 'NumpadEnter') {
+        enterSignal({
+          query: this.window.gURLBar.textValue,
+          newTab: isModifierPressed,
+        });
+      }
       return false;
     }
 
@@ -97,40 +106,43 @@ export default class {
       }
       case 'Enter':
       case 'NumpadEnter': {
-        const isNewTab = ev.altKey || ev.metaKey || ev.ctrlKey;
+        const isNewTab = isModifierPressed;
+        let clickedResult = null;
         preventDefault = true;
-        enterSignal({
-          dropdown: this.dropdown,
-          newTab: isNewTab,
-        });
 
         if (this.popup.query === this.dropdown.results.query) {
           const urlbarValue = this.popup.urlbarValue;
           const urlbarVisibleValue = this.popup.urlbarVisibleValue;
           const firstResult = this.dropdown.results.firstResult;
-          if ((urlbarValue !== urlbarVisibleValue)
-            && (this.popup.query === urlbarValue)
-            && firstResult.isAutocompleted) {
-            this.dropdown.results.firstResult.click(this.window, firstResult.url, ev);
-            break;
-          }
 
-          const result = this.dropdown.results.findSelectable(urlbarValue) ||
-            this.dropdown.results.findSelectable(urlbarVisibleValue);
-          if (result) {
-            result.click(this.window, result.url, ev);
-            break;
-          }
-
-          if (this.dropdown.selectedIndex >= 0) {
-            const selectedResult = this.dropdown.results.get(this.dropdown.selectedIndex);
-            selectedResult.click(this.window, selectedResult.url, ev);
-            break;
-          }
+          // find clicked result
+          clickedResult =
+            // check if it is a first autocompleted result
+            (urlbarValue !== urlbarVisibleValue &&
+            this.popup.query === urlbarValue &&
+            firstResult.isAutocompleted && firstResult) ||
+            // find result by urlbar value
+            this.dropdown.results.findSelectable(urlbarValue) ||
+            this.dropdown.results.findSelectable(urlbarVisibleValue) ||
+            // find by selected index
+            (this.dropdown.selectedIndex >= 0 &&
+             this.dropdown.results.get(this.dropdown.selectedIndex));
         }
 
-        this.popup.close();
-        this.popup.execBrowserCommandHandler(ev, isNewTab ? 'tab' : 'current');
+        enterSignal({
+          query: this.popup.query,
+          result: this.dropdown.selectedResult,
+          clickedResult,
+          results: this.dropdown.results,
+          newTab: isNewTab,
+        });
+
+        if (clickedResult) {
+          clickedResult.click(this.window, clickedResult.url, ev);
+        } else {
+          this.popup.close();
+          this.popup.execBrowserCommandHandler(ev, isNewTab ? 'tab' : 'current');
+        }
         break;
       }
       case 'Delete':
@@ -138,7 +150,14 @@ export default class {
         if (!ev.shiftKey || ev.metaKey || (ev.altKey && ev.ctrlKey)) {
           const { selectionStart, selectionEnd } = this.popup.urlbarSelectionRange;
           if (selectionStart !== selectionEnd) {
-            this.core.action('refreshPopup', this.dropdown.results.query);
+            // wait for next tick so urlbarValue to contain the query after deletion
+            nextTick(() => {
+              const urlbarValue = this.popup.urlbarValue.trim();
+              if (urlbarValue === '') {
+                return;
+              }
+              this.core.action('refreshPopup', urlbarValue);
+            });
           }
           break;
         }
@@ -230,6 +249,10 @@ export default class {
       firstResult.isAutocompleted = didAutocomplete;
       hasInstantResults = firstResult.rawResult.type === 'navigate-to' ||
         firstResult.rawResult.type === 'supplementary-search';
+    } else {
+      // if no results found make sure we clear autocompleted
+      // query in urlbar (see EX-5648)
+      this.autocompleteQuery('', '');
     }
 
     // TODO move these to mixer (EX-4497: Old dropdown cleanup)
@@ -239,15 +262,18 @@ export default class {
           new NavigateToResult({ text: results.query })
         );
       } else if (queryIsNotEmpty) {
-        results.prepend(
-          new SupplementarySearchResult({
-            text: results.query,
-            defaultSearchResult: true,
-            data: {
-              suggestion: results.query
-            }
-          })
-        );
+        const supplementaryResult = new SupplementarySearchResult({
+          text: results.query,
+          defaultSearchResult: true,
+          data: {
+            suggestion: this.popup.query
+          }
+        });
+
+        // Added SupplementarySearch might be a duplicate of the one from
+        // search suggestions (see EX-5321). Make sure we removed them.
+        results.results = results.results.filter(r => !equals(supplementaryResult.url, r.url));
+        results.prepend(supplementaryResult);
       }
     }
     this.dropdown.renderResults(results);

@@ -1188,7 +1188,7 @@
         "message": "Abonnieren"
     },
     "mobile_soccer_unsubscribe":{
-        "message": "Nicht mehr Abonnieren"
+        "message": "Abo kündigen"
     },
     "mobile_soccer_subscribe_team":{
         "message": "Verpasse kein Tor und abonniere den kostenlosen Bundesliga Live-Ticker für $1!"
@@ -1469,6 +1469,18 @@
     "video-downloader-unsupported-format": {
       "message": "Sorry! Wir können das Video leider nicht herunterladen."
     },
+    "video-downloader-uitour-title": {
+      "message": "Video Downloader"
+    },
+    "video-downloader-uitour-description": {
+      "message": "Schaue dir das Video offline an. Lade es auf deinen Computer oder dein mobiles Gerät herunter."
+    },
+    "video-downloader-uitour-btn-try": {
+      "message": "Jetzt ausprobieren"
+    },
+    "video-downloader-uitour-btn-skip": {
+      "message": "Später"
+    },
     "transparency_html_title": {
       "message": "Cliqz | Transparenz Cockpit"
     },
@@ -1694,6 +1706,9 @@
     "show-location-and-contact": {
       "message": "Ort & Kontakt jetzt anzeigen"
     },
+    "show-location-and-contact-cinema": {
+      "message": "Kinos in meiner Nähe anzeigen"
+    },
     "always-show-location": {
       "message": "Immer anzeigen"
     },
@@ -1772,6 +1787,15 @@
     "freshtab.app.middle-box.new-cliqz-tab-cta": {
         "message": "Probier es aus"
     },
+    "freshtab.app.middle-box.blue-theme-hdr": {
+        "message": "Mach doch mal blau!"
+    },
+    "freshtab.app.middle-box.blue-theme-desc": {
+        "message": "Cliqz hat jetzt eine Tableiste in schönem Blau. Zudem gibt es ein entspannendes Alpenpanorama als neuen Hintergrund."
+    },
+    "freshtab.app.middle-box.blue-theme-cta": {
+        "message": "Jetzt anpassen"
+    },
     "freshtab.app.news.breaking-news": {
         "message": "Eilmeldung:"
     },
@@ -1782,7 +1806,7 @@
         "message": "Cliqz Tab anpassen"
     },
     "freshtab.app.settings.background.label": {
-        "message": "Hintergrund wählen"
+        "message": "Hintergrund"
     },
     "freshtab.app.settings.most-visited.label": {
         "message": "Meistbesuchte Seiten"
@@ -1837,6 +1861,27 @@
     },
     "soccer-expand-button": {
         "message": "Mehr zeigen"
+    },
+    "cinema-expand-button": {
+        "message": "Mehr anzeigen"
+    },
+    "cinema-movie-director": {
+        "message": "Regisseur (in)"
+    },
+    "cinema-movie-reviews": {
+        "message": "Bewertungen"
+    },
+    "cinema-movie-cast": {
+        "message": "Besetzung"
+    },
+    "cinema-movie-full-cast": {
+        "message": "Volle Besetzung"
+    },
+    "cinema-movie-trailer": {
+        "message": "Trailer abspielen"
+    },
+    "cinema-movie-showtimes": {
+        "message": "Spielzeiten"
     },
     "freshtab.app.offer.info": {
         "message": "Mehr Info"

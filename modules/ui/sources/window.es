@@ -230,8 +230,8 @@ export default class {
       this.window.CLIQZ.Core.urlbar = this.urlbar;
       this.window.CLIQZ.settings = this.settings;
 
-      CliqzEvents.sub('ui:popup_hide', this.hidePopup);
-      CliqzEvents.sub('ui:click-on-url', this.showLastQuery.bind(this));
+      this.popupHideEvent = CliqzEvents.subscribe('ui:popup_hide', this.hidePopup);
+      this.clickOnUrlEvent = CliqzEvents.subscribe('ui:click-on-url', this.showLastQuery.bind(this));
 
       this.window.CLIQZ.UI.autocompleteQuery = this.autocompleteQuery.bind(this);
 
@@ -239,6 +239,7 @@ export default class {
 
       var popup = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "panel");
       this.popup = popup;
+      this.popup.oneOffSearchButtons = () => {};
       this.window.CLIQZ.Core.popup = this.popup;
       popup.setAttribute("type", 'autocomplete-richlistbox');
       popup.setAttribute("noautofocus", 'true');
@@ -397,14 +398,38 @@ export default class {
   * @method reloadUrlbar
   */
   reloadUrlbar() {
-    const el = this.urlbar,
-          oldVal = el.value,
-          hadFocus = el.focused;
+    const el = this.urlbar;
+    const oldVal = el.value;
+    const hadFocus = el.focused;
+    const popup = this.window.gURLBar.popup;
 
-    if(el && el.parentNode) {
+    const onFocus = () => {
+      el.removeEventListener('focus', onFocus);
+
+      if (this.urlbar.getAttribute('autocompletesearch').indexOf(ACproviderName) === -1) {
+        return;
+      }
+
+      // close the old popup if it is open
+      popup.closePopup();
+
+      this.window.CLIQZ.Core.popup = this.popup;
+
+      // redo search query
+      if (oldVal) {
+        inject.module('autocomplete').isReady().then(() => {
+          inject.module('core').action('queryCliqz', oldVal);
+        });
+      };
+    };
+
+    if (el && el.parentNode) {
+      el.blur();
       el.parentNode.insertBefore(el, el.nextSibling);
       el.value = oldVal;
-      if(hadFocus){
+
+      if (hadFocus) {
+        el.addEventListener('focus', onFocus);
         el.focus();
       }
     }
@@ -488,14 +513,22 @@ export default class {
   }
 
   unload() {
-    if(!this.initialized) return;
+    if (!this.initialized) return;
 
     removeStylesheet(this.window.document, STYLESHEET_URL);
 
 
     this.urlbar.setAttribute('autocompletesearch', this._autocompletesearch);
-    CliqzEvents.un_sub('ui:popup_hide', this.hidePopup);
-    CliqzEvents.un_sub('ui:click-on-url', this.showLastQuery);
+
+    if (this.popupHideEvent) {
+      this.popupHideEvent.unsubscribe();
+      this.popupHideEvent = undefined;
+    }
+
+    if (this.clickOnUrlEvent) {
+      this.clickOnUrlEvent.unsubscribe();
+      this.clickOnUrlEvent = undefined;
+    }
 
     this.urlbar.setAttribute('autocompletepopup', this._autocompletepopup);
 
@@ -538,14 +571,6 @@ const urlbarEventHandlers = {
   * @event focus
   */
   focus: function(ev) {
-    if(utils.ACproviderInitialized == undefined){
-      // try once to force the initialization of the AC provider
-      this.urlbar.blur();
-      setTimeout(function(urlbar){ urlbar.focus() }, 0, this.urlbar);
-      utils.ACproviderInitialized = true;
-      return;
-    }
-
     if(this.urlbar.getAttribute('autocompletesearch').indexOf(ACproviderName) === -1){
       // BUMMER!! Something happened and our AC provider was overriden!
       // trying to set it back while keeping the new value in case Cliqz

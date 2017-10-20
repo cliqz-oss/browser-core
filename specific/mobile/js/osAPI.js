@@ -224,7 +224,7 @@ var osAPI = {
       return;
     }
     var titleExtra = CliqzUtils.getLocalizedString('mobile_card_look_shared_via');
-    var title = cardTitle ? titleExtra + ':\n' + cardTitle : titleExtra + '.';
+    var title = cardTitle ? titleExtra + ':\n\n' + cardTitle : titleExtra + '.';
     var html = original.cloneNode(true);
     var img = html.getElementsByClassName('share-card-icon')[0];
     var text = html.getElementsByClassName('share-card-text')[0];

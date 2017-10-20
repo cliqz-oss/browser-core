@@ -7,9 +7,8 @@ export default class {
   }
 
   logMainDocument(state) {
-    const requestContext = state.requestContext;
-    if (state.requestContext.isFullPage()) {
-      this.tpEvents.onFullPage(state.urlParts, state.tabId, requestContext.isChannelPrivate());
+    if (state.isFullPage()) {
+      this.tpEvents.onFullPage(state.urlParts, state.tabId, state.isPrivate);
       // if (CliqzAttrack.isTrackerTxtEnabled()) {
       //   TrackerTXT.get(url_parts).update();
       // }
@@ -20,7 +19,7 @@ export default class {
 
   attachStatCounter(state) {
     const urlParts = state.urlParts;
-    const request = this.tpEvents.get(state.url, urlParts, state.sourceUrl, state.sourceUrlParts, state.requestContext.getOriginWindowID());
+    const request = this.tpEvents.get(state.url, urlParts, state.sourceUrl, state.sourceUrlParts, state.tabId);
     state.reqLog = request;
     const incrementStat = (statName, c) => {
       this.tpEvents.incrementStat(request, statName, c || 1);
@@ -56,7 +55,7 @@ export default class {
       incrementStat('has_post');
     }
     const displayContentType = (contentType) => (!contentType ? 'unknown': '' + contentType);
-    incrementStat('type_' + displayContentType(state.requestContext.getContentPolicyType()));
+    incrementStat('type_' + displayContentType(state.cpt));
 
     // log protocol (secure or not)
     const isHTTP = protocol => protocol === "http" || protocol === "https"
@@ -64,7 +63,7 @@ export default class {
     incrementStat('scheme_' + scheme);
 
     // find frame depth
-    incrementStat('window_depth_' + state.requestContext.getWindowDepth());
+    incrementStat('window_depth_' + state.getWindowDepth());
 
     return true;
   }

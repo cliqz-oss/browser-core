@@ -10,15 +10,19 @@ const DD_HEIGHT = {
 export default {
   init(settings) {
     this.settings = settings;
-    this.toolbarButton = new ToolbarButton({
-      widgetId: 'control-center',
-      default_title: getMessage('control-center-icon-tooltip'),
-      default_popup: 'resource://cliqz/control-center/index.html',
-      badgeBackgroundColor: '#471647',
-      badgeText: '0',
-      defaultHeight: DD_HEIGHT[this.settings.channel] || 246
-    });
-    this.toolbarButton.build();
+
+    // we need to hide the toolbarBuuton in the FunnelCake build
+    if (this.settings.id !== 'funnelcake@cliqz.com') {
+      this.toolbarButton = new ToolbarButton({
+        widgetId: 'control-center',
+        default_title: getMessage('control-center-icon-tooltip'),
+        default_popup: 'resource://cliqz/control-center/index.html',
+        badgeBackgroundColor: '#471647',
+        badgeText: '0',
+        defaultHeight: DD_HEIGHT[this.settings.channel] || 246
+      });
+      this.toolbarButton.build();
+    }
 
     if (this.settings.id === 'funnelcake@cliqz.com' || this.settings.id === 'description_test@cliqz.com') {
       this.pageAction = new ToolbarButton({
@@ -33,7 +37,9 @@ export default {
   },
 
   unload() {
-    this.toolbarButton.shutdown();
+    if (this.toolbarButton) {
+      this.toolbarButton.shutdown();
+    }
 
     if (this.pageAction) {
       this.pageAction.shutdown();

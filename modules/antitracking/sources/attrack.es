@@ -5,6 +5,7 @@
  */
 import { utils, events } from '../core/cliqz';
 import inject from '../core/kord/inject';
+import UrlWhitelist from '../core/url-whitelist';
 
 import * as browser from '../platform/browser';
 import * as datetime from './time';
@@ -37,7 +38,7 @@ import SubdomainChecker from './steps/subdomain-check';
 import TokenChecker from './steps/token-checker';
 import TokenExaminer from './steps/token-examiner';
 import TokenTelemetry from './steps/token-telemetry';
-import { skipInternalProtocols, checkSameGeneralDomain } from './steps/check-context';
+import { skipInternalProtocols, skipInvalidSource, checkSameGeneralDomain } from './steps/check-context';
 
 
 export default class CliqzAttrack {
@@ -50,8 +51,8 @@ export default class CliqzAttrack {
     this.similarAddon = false;
     this.tp_events = null;
     this.recentlyModified = new TempSet();
-    this.disabled_sites = new Set();
     this.DISABLED_SITES_PREF = 'attrackSourceDomainWhitelist';
+    this.urlWhitelist = new UrlWhitelist('attrack-url-whitelist');
 
     // Web request pipelines
     this.webRequestPipeline = inject.module('webrequest-pipeline');
@@ -103,8 +104,8 @@ export default class CliqzAttrack {
     return this.config.enabled;
   }
 
-  isCookieEnabled(sourceHostname) {
-    if (sourceHostname !== undefined && this.isSourceWhitelisted(sourceHostname)) {
+  isCookieEnabled(url) {
+    if (url !== undefined && this.urlWhitelist.isWhitelisted(url)) {
       return false;
     }
     return this.config.cookieEnabled;
@@ -201,8 +202,10 @@ export default class CliqzAttrack {
     // Smaller caches (e.g. update timestamps) are kept in prefs
 
     this.qs_whitelist = this.isBloomFilterEnabled() ? new AttrackBloomFilter() : new QSWhitelist();
+
     const initPromises = [];
     initPromises.push(this.qs_whitelist.init());
+    initPromises.push(this.urlWhitelist.init());
 
     // force clean requestKeyValue
     events.sub('attrack:safekeys_updated', (version, forceClean) => {
@@ -216,12 +219,6 @@ export default class CliqzAttrack {
     this.initPacemaker();
     pacemaker.start();
 
-    try {
-      this.disabled_sites = new Set(JSON.parse(utils.getPref(this.DISABLED_SITES_PREF, '[]')));
-    } catch (e) {
-      this.disabled_sites = new Set();
-    }
-
     this.tp_events = new PageEventTracker((payloadData) => {
       // take telemetry data to be pushed and add module metadata
       const enabled = {
@@ -233,13 +230,11 @@ export default class CliqzAttrack {
       };
       const updateInTime = this.qs_whitelist.isUpToDate();
       payloadData.forEach((pageload) => {
-        const payl = {
-          data: [pageload],
-          ver: this.VERSION,
+        const payl = generateAttrackPayload([pageload], undefined, {
           conf: enabled,
           addons: this.similarAddon,
           updateInTime,
-        };
+        });
         this.telemetry({
           message: { type: telemetry.msgType, action: 'attrack.tp_events', payload: payl },
           raw: true,
@@ -288,164 +283,367 @@ export default class CliqzAttrack {
         }
       });
 
-      // create pipeline for on open request
-      this.pipelines.open = new Pipeline('attrack.open', [
-        [steps.redirectTagger.checkRedirect.bind(steps.redirectTagger), 'redirectTagger.checkRedirect'],
-        [steps.pageLogger.logMainDocument.bind(steps.pageLogger), 'pageLogger.logMainDocument'],
-        [skipInternalProtocols, 'skipInternalProtocols'],
-        [checkSameGeneralDomain, 'checkSameGeneralDomain'],
-        [this.cancelRecentlyModified.bind(this), 'cancelRecentlyModified'],
-        [steps.subdomainChecker.checkBadSubdomain.bind(steps.subdomainChecker), 'subdomainChecker.checkBadSubdomain'],
-        [steps.tokenExaminer.examineTokens.bind(steps.tokenExaminer), 'tokenExaminer.examineTokens'],
-        [steps.tokenTelemetry.extractKeyTokens.bind(steps.tokenTelemetry), 'tokenTelemetry.extractKeyTokens'],
-        [steps.pageLogger.attachStatCounter.bind(steps.pageLogger), 'pageLogger.attachStatCounter'],
-        [steps.pageLogger.logRequestMetadata.bind(steps.pageLogger), 'pageLogger.logRequestMetadata'],
-        [steps.domChecker.checkDomLinks.bind(steps.domChecker), 'domChecker.checkDomLinks'],
-        [steps.domChecker.parseCookies.bind(steps.domChecker), 'domChecker.parseCookies'],
-        [steps.tokenChecker.findBadTokens.bind(steps.tokenChecker), 'tokenChecker.findBadTokens'],
-        [function checkShouldBlock(state) {
-          return state.badTokens.length > 0 && this.qs_whitelist.isUpToDate();
-        }.bind(this), 'checkShouldBlock'],
-        [this.isQSEnabled.bind(this), 'isQSEnabled'],
-        [steps.blockRules.applyBlockRules.bind(steps.blockRules), 'blockRules.applyBlockRules'],
-        [function checkSourceWhitelisted(state) {
-          if (this.isSourceWhitelisted(state.sourceUrlParts.hostname)) {
-            state.incrementStat('source_whitelisted');
-            return false;
-          }
-          return true;
-        }.bind(this), 'checkSourceWhitelisted'],
-        [this.applyBlock.bind(this), 'applyBlock'],
-      ]);
-
-      // create pipeline for on modify request
-      this.pipelines.modify = new Pipeline('attrack.modify', [
-        [steps.cookieContext.assignCookieTrust.bind(steps.cookieContext), 'cookieContext.assignCookieTrust'],
-        [steps.redirectTagger.confirmRedirect.bind(steps.redirectTagger), 'redirectTagger.confirmRedirect'],
-        [function checkIsMainDocument(state) {
-          return !state.requestContext.isFullPage();
-        }, 'checkIsMainDocument'],
-        [skipInternalProtocols, 'skipInternalProtocols'],
-        [checkSameGeneralDomain, 'checkSameGeneralDomain'],
-        [steps.subdomainChecker.checkBadSubdomain.bind(steps.subdomainChecker), 'subdomainChecker.checkBadSubdomain'],
-        [steps.pageLogger.attachStatCounter.bind(steps.pageLogger), 'pageLogger.attachStatCounter'],
-        [function catchMissedOpenListener(state, response) {
-          if ((state.reqLog && state.reqLog.c === 0) ||
-              steps.redirectTagger.isFromRedirect(state.url)) {
-            // take output from 'open' pipeline and copy into our response object
-            this.pipelines.open.execute(state, response);
-          }
-          return true;
-        }.bind(this), 'catchMissedOpenListener'],
-        [function overrideUserAgent(state, response) {
-          if (this.config.overrideUserAgent === true) {
-            const domainHash = state.urlParts.generalDomainHash;
-            if (this.qs_whitelist.isTrackerDomain(domainHash)) {
-              response.modifyHeader('User-Agent', 'CLIQZ');
-              state.incrementStat('override_user_agent');
+      // ----------------------------------- \\
+      // create pipeline for onBeforeRequest \\
+      // ----------------------------------- \\
+      this.pipelines.onBeforeRequest = new Pipeline('antitracking.onBeforeRequest', [
+        {
+          name: 'redirectTagger.checkRedirect',
+          spec: 'break',
+          fn: state => steps.redirectTagger.checkRedirect(state),
+        },
+        {
+          name: 'pageLogger.logMainDocument',
+          spec: 'break',
+          fn: state => steps.pageLogger.logMainDocument(state),
+        },
+        {
+          name: 'skipInvalidSource',
+          spec: 'break',
+          fn: skipInvalidSource,
+        },
+        {
+          name: 'skipInternalProtocols',
+          spec: 'break',
+          fn: skipInternalProtocols,
+        },
+        {
+          name: 'checkSameGeneralDomain',
+          spec: 'break',
+          fn: checkSameGeneralDomain,
+        },
+        {
+          name: 'cancelRecentlyModified',
+          spec: 'blocking',
+          fn: (state, response) => this.cancelRecentlyModified(state, response),
+        },
+        {
+          name: 'subdomainChecker.checkBadSubdomain',
+          spec: 'blocking',
+          fn: (state, response) => steps.subdomainChecker.checkBadSubdomain(state, response),
+        },
+        {
+          name: 'tokenExaminer.examineTokens',
+          spec: 'collect', // TODO - global state
+          fn: state => steps.tokenExaminer.examineTokens(state),
+        },
+        {
+          name: 'tokenTelemetry.extractKeyTokens',
+          spec: 'collect', // TODO - global state
+          fn: state => steps.tokenTelemetry.extractKeyTokens(state),
+        },
+        {
+          name: 'pageLogger.attachStatCounter',
+          spec: 'annotate',
+          fn: state => steps.pageLogger.attachStatCounter(state),
+        },
+        {
+          name: 'pageLogger.logRequestMetadata',
+          spec: 'collect', // TODO - global state
+          fn: state => steps.pageLogger.logRequestMetadata(state),
+        },
+        {
+          name: 'domChecker.checkDomLinks',
+          spec: 'collect', // TODO - global state
+          fn: state => steps.domChecker.checkDomLinks(state),
+        },
+        {
+          name: 'domChecker.parseCookies',
+          spec: 'annotate',
+          fn: state => steps.domChecker.parseCookies(state),
+        },
+        {
+          name: 'tokenChecker.findBadTokens',
+          spec: 'annotate',
+          fn: state => steps.tokenChecker.findBadTokens(state),
+        },
+        {
+          name: 'checkSourceWhitelisted',
+          spec: 'break',
+          fn: (state) => {
+            if (this.urlWhitelist.isWhitelisted(state.sourceUrlParts.hostname)) {
+              state.incrementStat('source_whitelisted');
+              return false;
             }
-          }
-          return true;
-        }.bind(this), 'overrideUserAgent'],
-        [function checkHasCookie(state) {
-          state.cookieData = state.requestContext.getCookieData();
-          if (state.cookieData && state.cookieData.length > 5) {
-            state.incrementStat('cookie_set');
             return true;
-          }
-          return false;
-        }, 'checkHasCookie'],
-        [this.checkIsCookieWhitelisted.bind(this), 'checkIsCookieWhitelisted'],
-        [steps.cookieContext.checkCookieTrust.bind(steps.cookieContext), 'cookieContext.checkCookieTrust'],
-        [steps.cookieContext.checkVisitCache.bind(steps.cookieContext), 'cookieContext.checkVisitCache'],
-        [steps.cookieContext.checkContextFromEvent.bind(steps.cookieContext), 'cookieContext.checkContextFromEvent'],
-        [function shouldBlockCookie(state) {
-          const shouldBlock = this.isCookieEnabled(state.sourceUrlParts.hostname);
-          if (!shouldBlock) {
-            state.incrementStat('bad_cookie_sent');
-          }
-          return shouldBlock;
-        }.bind(this), 'shouldBlockCookie'],
-        [function blockCookie(state, response) {
-          state.incrementStat('cookie_blocked');
-          state.incrementStat('cookie_block_tp1');
-          response.modifyHeader('Cookie', '');
-          response.modifyHeader(this.config.cliqzHeader, ' ');
-          return true;
-        }.bind(this), 'blockCookie'],
+          },
+        },
+        {
+          name: 'checkShouldBlock',
+          spec: 'break',
+          fn: state => state.badTokens.length > 0 && this.qs_whitelist.isUpToDate(),
+        },
+        {
+          name: 'isQSEnabled',
+          spec: 'break',
+          fn: () => this.isQSEnabled(),
+        },
+        {
+          name: 'blockRules.applyBlockRules',
+          spec: 'blocking',
+          fn: (state, response) => steps.blockRules.applyBlockRules(state, response),
+        },
+        {
+          name: 'applyBlock',
+          spec: 'blocking',
+          fn: (state, response) => this.applyBlock(state, response),
+        },
       ]);
 
-      // create pipeline for on response received
-      this.pipelines.response = new Pipeline('attrack.response', [
-        [function checkMainDocumentRedirects(state) {
-          if (state.requestContext.isFullPage()) {
-            if ([300, 301, 302, 303, 307].indexOf(state.responseStatus) >= 0) {
-              // redirect, update location for tab
-              // if no redirect location set, stage the tab id so we don't get false data
-              const redirectUrl = state.requestContext.getResponseHeader('Location');
-              const redirectUrlParts = URLInfo.get(redirectUrl) || {};
-              // if redirect is relative, use source domain
-              if (!redirectUrlParts.hostname) {
-                redirectUrlParts.hostname = state.urlParts.hostname;
-                redirectUrlParts.path = redirectUrl;
+
+      // --------------------------------------- \\
+      // create pipeline for onBeforeSendHeaders \\
+      // --------------------------------------- \\
+      this.pipelines.onBeforeSendHeaders = new Pipeline('antitracking.onBeforeSendHeaders', [
+        {
+          name: 'cookieContext.assignCookieTrust',
+          spec: 'collect', // TODO - global state
+          fn: state => steps.cookieContext.assignCookieTrust(state),
+        },
+        {
+          name: 'redirectTagger.confirmRedirect',
+          spec: 'break',
+          fn: state => steps.redirectTagger.confirmRedirect(state),
+        },
+        {
+          name: 'checkIsMainDocument',
+          spec: 'break',
+          fn: state => !state.isFullPage(),
+        },
+        {
+          name: 'skipInvalidSource',
+          spec: 'break',
+          fn: skipInvalidSource,
+        },
+        {
+          name: 'skipInternalProtocols',
+          spec: 'break',
+          fn: skipInternalProtocols,
+        },
+        {
+          name: 'checkSameGeneralDomain',
+          spec: 'break',
+          fn: checkSameGeneralDomain,
+        },
+        {
+          name: 'subdomainChecker.checkBadSubdomain',
+          spec: 'blocking',
+          fn: (state, response) => steps.subdomainChecker.checkBadSubdomain(state, response),
+        },
+        {
+          name: 'pageLogger.attachStatCounter',
+          spec: 'annotate',
+          fn: state => steps.pageLogger.attachStatCounter(state),
+        },
+        {
+          name: 'catchMissedOpenListener',
+          spec: 'blocking',
+          fn: (state, response) => {
+            if ((state.reqLog && state.reqLog.c === 0) ||
+                steps.redirectTagger.isFromRedirect(state.url)) {
+              // take output from 'open' pipeline and copy into our response object
+              this.pipelines.onBeforeRequest.execute(state, response);
+            }
+          },
+        },
+        {
+          name: 'overrideUserAgent',
+          spec: 'blocking',
+          fn: (state, response) => {
+            if (this.config.overrideUserAgent === true) {
+              const domainHash = state.urlParts.generalDomainHash;
+              if (this.qs_whitelist.isTrackerDomain(domainHash)) {
+                response.modifyHeader('User-Agent', 'CLIQZ');
+                state.incrementStat('override_user_agent');
               }
-              this.tp_events.onRedirect(
-                redirectUrlParts,
-                state.tabId,
-                state.requestContext.isChannelPrivate()
-              );
+            }
+          },
+        },
+        {
+          name: 'checkHasCookie',
+          spec: 'break',
+          fn: (state) => {
+            state.cookieData = state.getCookieData();
+            if (state.cookieData && state.cookieData.length > 5) {
+              state.incrementStat('cookie_set');
+              return true;
             }
             return false;
+          },
+        },
+        {
+          name: 'checkIsCookieWhitelisted',
+          spec: 'break',
+          fn: state => this.checkIsCookieWhitelisted(state),
+        },
+        {
+          name: 'cookieContext.checkCookieTrust',
+          spec: 'break',
+          fn: state => steps.cookieContext.checkCookieTrust(state),
+        },
+        {
+          name: 'cookieContext.checkVisitCache',
+          spec: 'break',
+          fn: state => steps.cookieContext.checkVisitCache(state),
+        },
+        {
+          name: 'cookieContext.checkContextFromEvent',
+          spec: 'break',
+          fn: state => steps.cookieContext.checkContextFromEvent(state),
+        },
+        {
+          name: 'shouldBlockCookie',
+          spec: 'break',
+          fn: (state) => {
+            const shouldBlock = this.isCookieEnabled(state.sourceUrlParts.hostname);
+            if (!shouldBlock) {
+              state.incrementStat('bad_cookie_sent');
+            }
+            return shouldBlock;
           }
-          return true;
-        }.bind(this), 'checkMainDocumentRedirects'],
-        [skipInternalProtocols, 'skipInternalProtocols'],
-        [function skipBadSource(state) {
-          return state.sourceUrl !== '' && state.sourceUrl.indexOf('about:') === -1;
-        }, 'skipBadSource'],
-        [checkSameGeneralDomain, 'checkSameGeneralDomain'],
-        [steps.redirectTagger.checkRedirectStatus.bind(steps.redirectTagger), 'redirectTagger.checkRedirectStatus'],
-        [steps.pageLogger.attachStatCounter.bind(steps.pageLogger), 'pageLogger.attachStatCounter'],
-        [function logResponseStats(state) {
-          if (state.incrementStat) {
-            state.incrementStat('resp_ob');
-            state.incrementStat('content_length', parseInt(state.requestContext.getResponseHeader('Content-Length'), 10) || 0);
-            state.incrementStat(`status_${state.requestContext.channel.responseStatus}`);
-            state.incrementStat(state.requestContext.isCached ? 'cached' : 'not_cached');
-          }
-          return true;
-        }, 'logResponseStats'],
-        [function checkSetCookie(state) {
-          // if there is a set-cookie header, continue
-          const setCookie = state.requestContext.getResponseHeader('Set-Cookie');
-          if (setCookie) {
-            state.incrementStat('set_cookie_set');
-            return true;
-          }
-          return false;
-        }, 'checkSetCookie'],
-        [function shouldBlockCookie(state) {
-          return this.isCookieEnabled(state.sourceUrlParts.hostname);
-        }.bind(this), 'shouldBlockCookie'],
-        [this.checkIsCookieWhitelisted.bind(this), 'checkIsCookieWhitelisted'],
-        [steps.cookieContext.checkCookieTrust.bind(steps.cookieContext), 'cookieContext.checkCookieTrust'],
-        [steps.cookieContext.checkVisitCache.bind(steps.cookieContext), 'cookieContext.checkVisitCache'],
-        [steps.cookieContext.checkContextFromEvent.bind(steps.cookieContext), 'cookieContext.checkContextFromEvent'],
-        [function blockSetCookie(state, response) {
-          response.modifyHeader('Set-Cookie', '');
-          state.incrementStat('set_cookie_blocked');
-          return true;
-        }, 'blockSetCookie'],
+        },
+        {
+          name: 'blockCookie',
+          spec: 'blocking',
+          fn: (state, response) => {
+            state.incrementStat('cookie_blocked');
+            state.incrementStat('cookie_block_tp1');
+            response.modifyHeader('Cookie', '');
+            response.modifyHeader(this.config.cliqzHeader, ' ');
+          },
+        }
       ]);
+
+
+      // ------------------------------------- \\
+      // create pipeline for onHeadersReceived \\
+      // ------------------------------------- \\
+      this.pipelines.onHeadersReceived = new Pipeline('antitracking.onHeadersReceived', [
+        {
+          name: 'checkMainDocumentRedirects',
+          spec: 'break',
+          fn: (state) => {
+            if (state.isFullPage()) {
+              if ([300, 301, 302, 303, 307].indexOf(state.responseStatus) !== -1) {
+                // redirect, update location for tab
+                // if no redirect location set, stage the tab id so we don't get false data
+                const redirectUrl = state.getResponseHeader('Location');
+                const redirectUrlParts = URLInfo.get(redirectUrl) || {};
+                // if redirect is relative, use source domain
+                if (!redirectUrlParts.hostname) {
+                  redirectUrlParts.hostname = state.urlParts.hostname;
+                  redirectUrlParts.path = redirectUrl;
+                }
+                this.tp_events.onRedirect(
+                  redirectUrlParts,
+                  state.tabId,
+                  state.isPrivate,
+                );
+              }
+              return false;
+            }
+            return true;
+          },
+        },
+        {
+          name: 'skipInvalidSource',
+          spec: 'break',
+          fn: skipInvalidSource,
+        },
+        {
+          name: 'skipInternalProtocols',
+          spec: 'break',
+          fn: skipInternalProtocols,
+        },
+        {
+          name: 'skipBadSource',
+          spec: 'break',
+          fn: state => state.sourceUrl && state.sourceUrl !== '' && state.sourceUrl.indexOf('about:') === -1,
+        },
+        {
+          name: 'checkSameGeneralDomain',
+          spec: 'break',
+          fn: checkSameGeneralDomain,
+        },
+        {
+          name: 'redirectTagger.checkRedirectStatus',
+          spec: 'break',
+          fn: state => steps.redirectTagger.checkRedirectStatus(state),
+        },
+        {
+          name: 'pageLogger.attachStatCounter',
+          spec: 'annotate',
+          fn: state => steps.pageLogger.attachStatCounter(state),
+        },
+        {
+          name: 'logResponseStats',
+          spec: 'collect',
+          fn: (state) => {
+            if (state.incrementStat) {
+              state.incrementStat('resp_ob');
+              state.incrementStat('content_length', parseInt(state.getResponseHeader('Content-Length'), 10) || 0);
+              state.incrementStat(`status_${state.responseStatus}`);
+              state.incrementStat(state.isCached ? 'cached' : 'not_cached');
+            }
+          },
+        },
+        {
+          name: 'checkSetCookie',
+          spec: 'break',
+          fn: (state) => {
+            // if there is a set-cookie header, continue
+            const setCookie = state.getResponseHeader('Set-Cookie');
+            if (setCookie) {
+              state.incrementStat('set_cookie_set');
+              return true;
+            }
+            return false;
+          },
+        },
+        {
+          name: 'shouldBlockCookie',
+          spec: 'break',
+          fn: state => this.isCookieEnabled(state.sourceUrlParts.hostname),
+        },
+        {
+          name: 'checkIsCookieWhitelisted',
+          spec: 'break',
+          fn: state => this.checkIsCookieWhitelisted(state),
+        },
+        {
+          name: 'cookieContext.checkCookieTrust',
+          spec: 'break',
+          fn: state => steps.cookieContext.checkCookieTrust(state),
+        },
+        {
+          name: 'cookieContext.checkVisitCache',
+          spec: 'break',
+          fn: state => steps.cookieContext.checkVisitCache(state),
+        },
+        {
+          name: 'cookieContext.checkContextFromEvent',
+          spec: 'break',
+          fn: state => steps.cookieContext.checkContextFromEvent(state),
+        },
+        {
+          name: 'blockSetCookie',
+          spec: 'blocking',
+          fn: (state, response) => {
+            response.modifyHeader('Set-Cookie', '');
+            state.incrementStat('set_cookie_blocked');
+          },
+        },
+      ]);
+
 
       // Add steps to the global web request pipeline
       return Promise.all(Object.keys(this.pipelines).map(stage =>
         this.webRequestPipeline.action('addPipelineStep',
           stage,
           {
-            fn: (...args) => this.pipelines[stage].execute(...args),
             name: `antitracking.${stage}`,
-            after: ['determineContext'],
+            spec: 'blocking',
+            fn: (...args) => this.pipelines[stage].execute(...args),
           }
         )
       ));
@@ -570,9 +768,9 @@ export default class CliqzAttrack {
       return false;
     }
 
-    let tmpUrl = state.requestContext.url;
+    let tmpUrl = state.url;
     for (let i = 0; i < badTokens.length; i += 1) {
-      if (tmpUrl.indexOf(badTokens[i]) < 0) {
+      if (tmpUrl.indexOf(badTokens[i]) === -1) {
         badTokens[i] = encodeURIComponent(badTokens[i]);
       }
       tmpUrl = tmpUrl.replace(badTokens[i], this.obfuscate(badTokens[i], rule));
@@ -792,32 +990,15 @@ export default class CliqzAttrack {
     utils.setPref(this.config.PREFS.enabled, false);
   }
 
-  saveSourceDomainWhitelist() {
-    utils.setPref(this.DISABLED_SITES_PREF,
-      JSON.stringify(Array.from(this.disabled_sites)));
-  }
-
-  isSourceWhitelisted(hostname) {
-    return this.disabled_sites.has(hostname);
-  }
-
-  addSourceDomainToWhitelist(domain) {
-    this.disabled_sites.add(domain);
-    // also send domain to humanweb
+  logWhitelist(payload) {
     this.telemetry({
       message: {
         type: telemetry.msgType,
         action: 'attrack.whitelistDomain',
-        payload: domain
+        payload
       },
       raw: true,
     });
-    this.saveSourceDomainWhitelist();
-  }
-
-  removeSourceDomainFromWhitelist(domain) {
-    this.disabled_sites.delete(domain);
-    this.saveSourceDomainWhitelist();
   }
 
   clearCache() {

@@ -1,7 +1,11 @@
-import { registerContentScript, CHROME_MSG_SOURCE, isCliqzContentScriptMsg } from '../core/content/helpers';
-import CosmeticsInjection from './cosmetics-injection';
-import logger from './logger';
+import {
+  registerContentScript,
+  CHROME_MSG_SOURCE,
+  isCliqzContentScriptMsg,
+} from '../core/content/helpers';
 
+import CosmeticsInjection from '../core/adblocker-base/cosmetics-injection';
+import platform from '../platform/platform';
 
 registerContentScript('http*', (window, chrome, windowId) => {
   const url = window.location.href;
@@ -42,7 +46,10 @@ registerContentScript('http*', (window, chrome, windowId) => {
   };
 
   const onMessage = (msg) => {
-    if (isCliqzContentScriptMsg(msg) && msg.windowId === windowId &&
+    // On chromium platform the windowid is a fake on (always === 1),
+    // instead the message is sent to the tab through `tabs.sendMessage`
+    const sameSourceWindow = msg.windowId === windowId || platform.isChromium;
+    if (isCliqzContentScriptMsg(msg) && sameSourceWindow &&
         msg.response && msg.module === 'adblocker') {
       cosmeticsInjection.handleResponseFromBackground(msg.response);
     }

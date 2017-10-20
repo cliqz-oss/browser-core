@@ -3,8 +3,7 @@ import events from '../core/events';
 
 import { getGreenadsState
        , toggleGreenAdsPref
-       , GREENADS_STATE
-       , GREENADS_PREF } from './background';
+       , GREENADS_STATE } from './background';
 import logger from './logger';
 
 
@@ -77,14 +76,15 @@ export default class {
     this.box.addEventListener('click', () => {
       try {
         toggleGreenAdsPref();
+        const { tabId } = getTabInfo(this.window);
+        this.timings.set(tabId, { start: 0, mode: getGreenadsState() });
+        this.updateLabel();
       } catch (ex) {
         logger.error(`onClick exception ${ex} ${ex.stack}`);
       }
     });
 
-    events.sub('prefchange', (pref) => {
-      if (pref !== GREENADS_PREF) return;
-
+    this.onReload = events.subscribe('greenads:reloaded', () => {
       const { tabId } = getTabInfo(this.window);
       if (this.timings.has(tabId)) {
         this.timings.delete(tabId);
@@ -92,19 +92,19 @@ export default class {
           () => {
             reloadCurrentTab(this.window);
           },
-          0,
+          50,
         );
       }
     });
 
     // Listen to events: tab changes, load starts, load ends
-    events.sub('chip:start_load', (windowTreeInformation, originUrl, timestamp) => {
+    this.onStartLoading = events.subscribe('greenads:start_load', (windowTreeInformation, originUrl, timestamp) => {
       const {
-        originWindowID,
-        outerWindowID,
+        tabId,
+        frameId,
       } = windowTreeInformation;
 
-      if (originWindowID !== outerWindowID) {
+      if (tabId !== frameId) {
         return;
       }
 
@@ -115,10 +115,10 @@ export default class {
         mode: getGreenadsState(),
       };
 
-      this.timings.set(originWindowID, state);
+      this.timings.set(tabId, state);
       state.cb = utils.setInterval(
         () => {
-          state.current += 100;
+          state.current = Date.now() - state.start;
           this.updateLabel();
         },
         100
@@ -126,24 +126,24 @@ export default class {
       this.updateLabel();
     });
 
-    events.sub('chip:end_load', (windowTreeInformation, originUrl, timestamp) => {
+    this.onStopLoading = events.subscribe('greenads:end_load', (windowTreeInformation, originUrl, timestamp) => {
       const {
-        originWindowID,
-        outerWindowID,
+        tabId,
+        frameId,
       } = windowTreeInformation;
 
-      if (!this.timings.has(originWindowID)) {
+      if (!this.timings.has(tabId)) {
         return;
       }
 
-      if (originWindowID !== outerWindowID) {
+      if (tabId !== frameId) {
         return;
       }
 
-      const { start, cb, mode } = this.timings.get(originWindowID);
+      const { start, cb, mode } = this.timings.get(tabId);
       utils.clearInterval(cb);
 
-      this.timings.set(originWindowID, {
+      this.timings.set(tabId, {
         start,
         end: timestamp,
         total: timestamp - start,
@@ -152,7 +152,7 @@ export default class {
       this.updateLabel();
     });
 
-    events.sub('core:tab_select', () => {
+    this.onTabSelect = events.subscribe('core:tab_select', () => {
       this.updateLabel();
     });
   }
@@ -174,5 +174,23 @@ export default class {
   }
 
   unload() {
+    if (this.box) {
+      this.box.parentElement.removeChild(this.box);
+      this.box = null;
+    }
+
+    // Unsubscribe pref listeners
+    if (this.onReload) {
+      this.onReload.unsubscribe();
+    }
+    if (this.onStartLoading) {
+      this.onStartLoading.unsubscribe();
+    }
+    if (this.onStopLoading) {
+      this.onStopLoading.unsubscribe();
+    }
+    if (this.onTabSelect) {
+      this.onTabSelect.unsubscribe();
+    }
   }
 }

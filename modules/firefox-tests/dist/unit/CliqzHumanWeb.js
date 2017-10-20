@@ -4,6 +4,8 @@ DEPS.HumanWebTest = ["core/utils", "human-web/human-web"];
 TESTS.HumanWebTest = function (CliqzUtils, CliqzHumanWeb) {
     // var System = CliqzUtils.getWindow().CLIQZ.System,
     //    CliqzHumanWeb = System.get("human-web/human-web").default;
+    var testPrivateUrl = "https://somerandomprivatedomain.com";
+    CliqzHumanWeb.setAsPrivate(testPrivateUrl);
 
 	describe('human-web.isHash', function() {
         var not_hash = ['',
@@ -101,6 +103,40 @@ TESTS.HumanWebTest = function (CliqzUtils, CliqzHumanWeb) {
 		allowed.forEach( e => {
 			it("'" + e + "' is allowed", function () {
 				expect(CliqzHumanWeb.sanitizeCounrtyCode(e)).to.equal(e);
+			});
+		});
+
+		describe('human-web.bloomfilter', function() {
+			var testPrivateUrl = "https://somerandomprivatedomain.com";
+			var testPublicUrl = "https://somerandompublicdomain.com";
+
+
+			it(testPrivateUrl + " is private ", function () {
+				CliqzHumanWeb.isAlreadyMarkedPrivate(testPrivateUrl, e => {
+
+					expect(e.private).to.equal(1);
+				});
+			});
+
+			it(testPublicUrl + " is public ", function () {
+				CliqzHumanWeb.isAlreadyMarkedPrivate(testPublicUrl, e => {
+
+					expect(e.private).to.equal(0);
+				});
+			});
+		});
+
+		describe('human-web.storage', function() {
+			it("storage test", function (done) {
+				CliqzHumanWeb.db.saveRecordTelemetry('unit-test', 'test', (result) => {
+					CliqzHumanWeb.db.loadRecordTelemetry('unit-test', function(data) {
+						if (data && data === 'test') {
+							done();
+						} else {
+							done('storage test-failed')
+						}
+					});
+				});
 			});
 		});
 	});

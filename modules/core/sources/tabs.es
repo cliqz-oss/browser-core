@@ -11,6 +11,10 @@ export function pinTab(window, tab) {
 }
 
 export function queryActiveTabs(window) {
+  if (window.gBrowser === null) {
+    return [];
+  }
+
   const selectedBrowser = window.gBrowser.selectedBrowser;
   return Array.prototype.map.call(window.gBrowser.tabs, (tab, index) => ({
     index,

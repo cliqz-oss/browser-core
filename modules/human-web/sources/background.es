@@ -1,77 +1,102 @@
-import utils from "../core/utils";
-import background from "../core/base/background";
-import HumanWeb from "./human-web";
-import { legacy as hs } from "../platform/history-service";
-import inject from "../core/kord/inject";
+import utils from '../core/utils';
+import background from '../core/base/background';
+import HumanWeb from './human-web';
+import history from '../core/history-service';
+import inject from '../core/kord/inject';
 import WebRequest from '../core/webrequest';
+import { isFirefox, isPlatformAtLeastInVersion } from '../core/platform';
 
 /**
 * @namespace human-web
 * @class Background
 */
 export default background({
+  requiresServices: ['cliqz-config'],
+
   hpn: inject.module('hpn'),
   /**
   * @method enabled
   * @return pref
   */
-  enabled(settings) {
-    return utils.getPref("humanWeb", false);
+  enabled() {
+    return utils.getPref("humanWeb", false)
+           && !utils.getPref("dnt", false)
   },
+
 
   /**
   * @method init
   */
   init(settings) {
-    let FF48_OR_ABOVE = false;
+    const FF48_OR_ABOVE = isPlatformAtLeastInVersion('48.0');
 
-    try {
-      const appInfo = Components.classes['@mozilla.org/xre/app-info;1']
-        .getService(Components.interfaces.nsIXULAppInfo);
-      const versionChecker = Components.classes['@mozilla.org/xpcom/version-comparator;1']
-        .getService(Components.interfaces.nsIVersionComparator);
-
-      if (versionChecker.compare(appInfo.version, '48.0') >= 0) {
-        FF48_OR_ABOVE = true;
-      }
-    } catch (e) { utils.log(e); }
-
-    if (FF48_OR_ABOVE) {
-      this.enabled = true;
-      HumanWeb.initAtBrowser();
-      HumanWeb.hpn = this.hpn;
-      utils.bindObjectFunctions(this.actions, this);
-      hs.addObserver(HumanWeb.historyObserver, false);
+    if (isFirefox && !FF48_OR_ABOVE) {
+      this.active = false;
     } else {
-      this.enabled = false;
-    }
+      HumanWeb.hpn = this.hpn;
 
-    WebRequest.onHeadersReceived.addListener( HumanWeb.onHeadersReceived, {
-      urls: ["*://*/*"],
-    }, ['responseHeaders']);
+      if (this.enabled()) {
+        HumanWeb.init();
+      // if (!utils.getPref('dnt', false)) {
+        WebRequest.onHeadersReceived.addListener(HumanWeb.httpObserver.observeActivity, {
+          urls: ['*://*/*'],
+        }, ['responseHeaders']);
+
+
+        // If it's chrome, we need to add a domain2IP dict.
+        // Need to move it to a more platform friendly place.
+
+        if (WebRequest.onCompleted) {
+          WebRequest.onCompleted.addListener(this.domain2IP, { urls: ['http://*/*', 'https://*/*'], tabId: -1 });
+        }
+      }
+
+      utils.bindObjectFunctions(this.actions, this);
+
+      if (history && history.onVisitRemoved) {
+        history.onVisitRemoved.addListener(HumanWeb.onVisitRemoved);
+      }
+
+      this.humanWeb = HumanWeb;
+      this.active = true;
+    }
   },
 
   unload() {
-    if (this.enabled) {
-      WebRequest.onHeadersReceived.removeListener( HumanWeb.onHeadersReceived )
-      hs.removeObserver(HumanWeb.historyObserver);
-      HumanWeb.unloadAtBrowser();
-      HumanWeb.unload();
+    if (this.active) {
+      if (history && history.onVisitRemoved) {
+        history.onVisitRemoved.removeListener(HumanWeb.onVisitRemoved);
+      }
 
+      WebRequest.onHeadersReceived.removeListener(HumanWeb.httpObserver.observeActivity);
+      if (WebRequest.onCompleted) {
+        WebRequest.onCompleted.removeListener(this.domain2IP);
+      }
+      HumanWeb.unload();
     }
   },
 
   beforeBrowserShutdown() {
-    if (this.enabled) {
+    if (this.active) {
       HumanWeb.unload();
     }
   },
 
+  domain2IP(requestDetails) {
+    if (requestDetails && requestDetails.ip) {
+      const domain = HumanWeb.parseURL(requestDetails.url).hostname;
+      HumanWeb.domain2IP[domain] = { ip: requestDetails.ip, ts: Date.now() };
+    }
+  },
+
   events: {
+    'human-web:sanitize-result-telemetry': function () {
+      return HumanWeb.sanitizeResultTelemetry.apply(HumanWeb, arguments);
+    },
     /**
     * @event ui:click-on-url
     */
-    "ui:click-on-url": function (data) {
+    'ui:click-on-url': function (data) {
       HumanWeb.queryCache[data.url] = {
         d: 1,
         q: data.query,
@@ -82,7 +107,7 @@ export default background({
      /**
     * @event control-center:toggleHumanWeb
     */
-    "control-center:toggleHumanWeb": function() {
+    'control-center:toggleHumanWeb': function() {
       // 1. we turn off HumanWeb module
       utils.setPref('modules.human-web.enabled', false);
 
@@ -95,20 +120,26 @@ export default background({
         utils.setPref('modules.human-web.enabled', true);
       }, 0);
     },
-    "core:mouse-down": function onMouseDown() {
+    'core:mouse-down': function onMouseDown() {
       HumanWeb.captureMouseClickPage.apply(HumanWeb, arguments);
     },
-    "core:key-press": function onKeyPress() {
+    'core:key-press': function onKeyPress() {
       HumanWeb.captureKeyPressPage.apply(HumanWeb, arguments);
     },
-    "core:mouse-move": function onMouseMove() {
+    'core:mouse-move': function onMouseMove() {
       HumanWeb.captureMouseMovePage.apply(HumanWeb, arguments);
     },
-    "core:scroll": function onScroll() {
+    'core:scroll': function onScroll() {
       HumanWeb.captureScrollPage.apply(HumanWeb, arguments);
     },
-    "core:copy": function onCopy() {
+    'core:copy': function onCopy() {
       HumanWeb.captureCopyPage.apply(HumanWeb, arguments);
+    },
+    'content:location-change': function onLocationChange({ isPrivate, isLoadingDocument, url, referrer, frameId }) {
+      // Only forward it to the onLocation change if the frameID is type 0.
+
+      // We need to find a better way, to not trigger on-location change for requests which are not main_document.
+      HumanWeb.listener.onLocationChange.apply(HumanWeb.listener, arguments);
     }
   },
 
@@ -135,15 +166,10 @@ export default background({
      */
     addDataToUrl(url, key, data) {
       if (HumanWeb.state.v[url]) {
-        if (typeof(data) === 'string') {
-          // simply update the value if it's a string
-          HumanWeb.state.v[url][key] = data;
-        } else {
-          HumanWeb.state.v[url][key] = Object.keys(data).reduce((acc, val) => {
-            acc[val] = data[val];
-            return acc;
-          }, HumanWeb.state.v[url][key] || {});
-        }
+        HumanWeb.state.v[url][key] = Object.keys(data).reduce((acc, val) => {
+          acc[val] = data[val];
+          return acc;
+        }, HumanWeb.state.v[url][key] || {});
         return Promise.resolve();
       }
       return Promise.reject();
@@ -151,6 +177,30 @@ export default background({
 
     telemetry(payload, instantPush) {
       HumanWeb.telemetry(payload, instantPush);
+    },
+
+    contentScriptTopAds(message) {
+      // console.log('>>>>> HELLO 2 >>>> ');
+    },
+
+    contentScriptHTML(message) {
+      // console.log('>>>>> HELLO HTML >>>> ');
+    },
+
+    jsRedirect(message) {
+      HumanWeb.httpCache[message.message.url] = {
+        status: 301,
+        time: HumanWeb.counter,
+        location: message.message.location
+      };
+    },
+
+    adClick(message) {
+      const ads = message.ads;
+      Object.keys(ads).forEach((eachAd) => {
+        HumanWeb.adDetails[eachAd] = ads[eachAd];
+      });
     }
+
   }
-})
+});

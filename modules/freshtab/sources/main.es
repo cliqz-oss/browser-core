@@ -21,7 +21,8 @@ export default {
       return true;
     }
 
-    return prefs.get(PREF_NEW_TAB_BUTTON_STATE, false);
+    // default state for freshtab is active (opt-out)
+    return prefs.get(PREF_NEW_TAB_BUTTON_STATE, true);
   },
 
   startup() {
@@ -47,6 +48,7 @@ export default {
 
   enableNewTabPage() {
     AboutCliqz.register();
+    prefs.set(PREF_NEW_TAB_BUTTON_STATE, true);
     setNewTabPage(NEW_TAB_URL);
   },
 

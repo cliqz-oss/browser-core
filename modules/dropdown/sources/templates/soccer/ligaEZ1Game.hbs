@@ -12,27 +12,28 @@
         <span class="soccer-domain">{{ local 'soccer-api-provider' }}</span>
     </a>
 {{/if}}
-<div class="padded soccer">
-    <div class="wrapper">
+<div class="padded">
+    <div class="soccer">
+        <div class="wrapper">
 
-        <div class="table">
-            {{#each (take ligaEZ1Game itemsLimit) }}
-                {{> partials/ticker}}
-            {{/each}}
+            <div class="table">
+                {{#each (take ligaEZ1Game itemsLimit) }}
+                    {{> partials/ticker}}
+                {{/each}}
+            </div>
+
         </div>
+        <div>
+            {{#if expandButton.show}}
+                <a class="result expand-btn" href="{{expandButton.url}}">
+                    {{local expandButton.title}}
+                </a>
+            {{/if}}
 
-    </div>
-    <div>
-        {{#if expandButton.show}}
-            <a class="result expand-btn" href="{{expandButton.url}}">
-                {{local expandButton.title}}
+            <a class="result powered-by" href="{{poweredByResult.url}}">
+                {{local poweredByResult.title}}
             </a>
-        {{/if}}
-
-        <a class="result powered-by" href="{{poweredByResult.url}}">
-            {{local poweredByResult.title}}
-        </a>
+        </div>
+        {{> partials/news-injection}}
     </div>
 </div>
-
-{{> partials/news-injection}}

@@ -12,7 +12,7 @@ function runSeleniumTests() {
   // Prepare chromium webdriver
   const chromeOptions = new chrome.Options()
     .addArguments('--no-sandbox')
-    .addExtensions('/app/ext.zip');
+    .addExtensions('./ext.zip');
 
   const service = new chrome.ServiceBuilder('./chromedriver').build();
   const driver = new chrome.Driver(chromeOptions, service);
@@ -70,7 +70,7 @@ function runSeleniumTests() {
 function main() {
   // Package chromium extension into a zip archive
   // console.log('Package extension...')
-  const output = fs.createWriteStream('/app/ext.zip');
+  const output = fs.createWriteStream('./ext.zip');
   const archive = archiver('zip', {
     zlib: { level: 1 } // Sets the compression level.
   });

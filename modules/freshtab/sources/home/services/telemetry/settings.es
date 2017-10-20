@@ -25,7 +25,7 @@ export function settingsBackgroundSelectSignal(bg) {
   const BACKGROUNDS = {
     'bg-light': 'light',
     'bg-dark': 'dark',
-    'bg-default': 'none',
+    'bg-blue': 'alps',
   };
 
   const state = BACKGROUNDS[bg];
@@ -33,7 +33,7 @@ export function settingsBackgroundSelectSignal(bg) {
   telemetry({
     ...settingsBaseSignal,
     action: 'click',
-    target: 'background',
+    target: 'background_image',
     state,
   });
 }
@@ -44,6 +44,8 @@ export function settingsComponentsToggleSignal(component, oldState) {
     customDials: 'favorites',
     search: 'search_bar',
     news: 'news',
+    cliqzTheme: 'cliqz_theme',
+    background: 'background'
   };
 
   const target = COMPONENTS[component];

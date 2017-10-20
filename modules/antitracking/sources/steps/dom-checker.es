@@ -89,7 +89,7 @@ export default class {
     }
     // merge with cookies in the header of this request
     try {
-      for(var c in getCookieValues(state.requestContext.getRequestHeader('Cookie'), state.url)) {
+      for(var c in getCookieValues(state.getRequestHeader('Cookie'), state.url)) {
         cookievalue[c] = true;
       }
     } catch(e) {}

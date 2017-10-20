@@ -103,9 +103,9 @@ RUN wget https://ftp.mozilla.org/pub/firefox/releases/52.0.2/linux-x86_64/en-US/
  && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox52 \
  && rm -f /home/node/firefox.tar.bz2
 
-RUN wget https://ftp.mozilla.org/pub/firefox/releases/55.0.2/linux-x86_64/en-US/firefox-55.0.2.tar.bz2 -O /home/node/firefox.tar.bz2 \
- && mkdir /home/node/firefox55 \
- && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox55 \
+RUN wget https://ftp.mozilla.org/pub/firefox/releases/56.0/linux-x86_64/en-US/firefox-56.0.tar.bz2 -O /home/node/firefox.tar.bz2 \
+ && mkdir /home/node/firefox56 \
+ && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox56 \
  && rm -f /home/node/firefox.tar.bz2
 
 # Get chrome driver

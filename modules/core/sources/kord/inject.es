@@ -20,7 +20,7 @@ class ModuleWrapper {
   }
 
   get module() {
-    return app.availableModules[this.moduleName];
+    return app.modules[this.moduleName];
   }
 
   isWindowReady(window) {

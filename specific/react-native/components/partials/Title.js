@@ -5,7 +5,17 @@ import { StyleSheet, View, Text } from 'react-native';
 class Title extends React.Component {
 
   render() {
-    return <Text numberOfLines={2} style={style(false).title}>{this.props.title}</Text>;
+    const meta = this.props.meta;
+    return <View>
+        <Text numberOfLines={2} style={style(false).title}>
+          {this.props.title}
+        </Text>
+        { !!meta &&
+          <Text numberOfLines={1} style={style().meta}>
+            {meta}
+          </Text>
+        }
+      </View>;
   }
 }
 
@@ -16,6 +26,10 @@ const style = function (isHistory) {
       fontWeight: 'bold',
       fontSize: 15,
       marginTop: 10,
+    },
+    meta: {
+      color: '#448100',
+      fontSize: 10,
     }
   });
 }

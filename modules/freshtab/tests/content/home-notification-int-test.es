@@ -53,6 +53,7 @@ class Subject {
           const response = this.modules[module].actions[action];
           listeners.forEach(l => {
             l({
+              action,
               response,
               type: 'response',
               requestId,
@@ -148,7 +149,7 @@ describe('Fresh tab interactions with notifications', function () {
     action: 'getConfig',
     response: {
       locale: 'en-US',
-      newTabUrl: 'resource://cliqz/freshtab/home.html',
+      newTabUrl: 'chrome://cliqz/content/freshtab/home.html',
       isBrowser: false,
       showNewBrandAlert: false,
       messages: someMessage,
@@ -175,6 +176,8 @@ describe('Fresh tab interactions with notifications', function () {
     },
   };
   let subject;
+  let messages;
+  let listener;
 
   beforeEach(function () {
     subject = new Subject();
@@ -203,7 +206,13 @@ describe('Fresh tab interactions with notifications', function () {
         news: []
       }
     });
-  })
+
+    subject.respondsWith({
+      module: 'freshtab',
+      action: 'getOffers',
+      response: []
+    });
+  });
 
   afterEach(function () {
     subject.unload();
@@ -213,7 +222,23 @@ describe('Fresh tab interactions with notifications', function () {
   context('when one notification message is available', function () {
     beforeEach(function() {
 
-      return subject.load();
+      return subject.load()
+        .then(function () {
+          // Keep track of received messages
+          messages = new Map();
+          listener = function (msg) {
+            if (!messages.has(msg.action)) {
+              messages.set(msg.action, []);
+            }
+
+            messages.get(msg.action).push(msg);
+          };
+          subject.chrome.runtime.onMessage.addListener(listener);
+        });
+    });
+
+    afterEach(function () {
+      subject.chrome.runtime.onMessage.removeListener(listener);
     });
 
     describe('clicking on a notification icon', function () {
@@ -286,6 +311,11 @@ describe('Fresh tab interactions with notifications', function () {
       it('closes notification area', function () {
         chai.expect(subject.query(notificationAreaSelector)).to.not.exist;
       });
+
+      it('sends a "dismissMessage" message', function () {
+        chai.expect(messages.has('dismissMessage')).to.equal(true);
+        chai.expect(messages.get('dismissMessage').length).to.equal(1);
+      });
     });
 
     describe('clicking on a notification call to action button once', function () {
@@ -303,6 +333,11 @@ describe('Fresh tab interactions with notifications', function () {
 
       it('keeps notification area open', function () {
         chai.expect(subject.query(notificationAreaSelector)).to.exist;
+      });
+
+      it('sends a "countMessageClick" message', function () {
+        chai.expect(messages.has('countMessageClick')).to.equal(true);
+        chai.expect(messages.get('countMessageClick').length).to.equal(1);
       });
     });
 
@@ -324,6 +359,11 @@ describe('Fresh tab interactions with notifications', function () {
 
       it('keeps notification area open', function () {
         chai.expect(subject.query(notificationAreaSelector)).to.exist;
+      });
+
+      it('sends two "countMessageClick" messages', function () {
+        chai.expect(messages.has('countMessageClick')).to.equal(true);
+        chai.expect(messages.get('countMessageClick').length).to.equal(2);
       });
     });
 

@@ -43,13 +43,12 @@ export default class extends React.Component {
   }
 }
 
-const defaultIconStyle = function (textColor, backgroundColor, width, height) {
-  backgroundColor = `#${backgroundColor}`;
+const defaultIconStyle = function (textColor, backgroundHex = '000', width, height) {
   return StyleSheet.create({
     containter: {
       width,
       height,
-      backgroundColor,
+      backgroundColor: `#${backgroundHex}`,
       justifyContent: 'center',
       alignItems: 'center',
     },

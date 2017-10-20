@@ -50,7 +50,6 @@ class Subject {
           }
         },
         sendMessage: ({ module, action, requestId }) => {
-          // console.log('ACTION CALLED', module, action)
           const response = this.modules[module].actions[action];
           listeners.forEach(l => {
             l({
@@ -162,7 +161,7 @@ describe('Fresh tab favorites UI', function () {
     action: 'getConfig',
     response: {
       locale: 'en-US',
-      newTabUrl: 'resource://cliqz/freshtab/home.html',
+      newTabUrl: 'chrome://cliqz/content/freshtab/home.html',
       isBrowser: false,
       showNewBrandAlert: false,
       messages: {},
@@ -265,6 +264,55 @@ describe('Fresh tab favorites UI', function () {
       it('with no visible dials', function () {
         chai.expect(subject.query(favoritesAreaSelector)).to.not.exist;
       });
+    });
+  });
+
+  context('when a "+" button has been clicked', function () {
+    const favoritesPlusBtnSelector = 'button.plus-dial-icon';
+    const addFormSelector = 'form.addDialForm';
+
+    beforeEach(function () {
+      subject.respondsWith({
+        module: 'freshtab',
+        action: 'getSpeedDials',
+        response: favoritesResponse[0],
+      });
+
+      subject.respondsWith(defaultConfig);
+
+      return subject.load().then(() => {
+        subject.query(favoritesPlusBtnSelector).click();
+        return waitFor(() => (subject.query(addFormSelector)));
+      });
+    });
+
+    describe('renders add form', function () {
+      it('successfully', function () {
+        chai.expect(subject.query('#section-favorites form.addDialForm')).to.exist;
+      });
+
+      it('with an existing close button', function () {
+        chai.expect(subject.query('#section-favorites button.hideAddForm')).to.exist;
+      });
+
+      it('with an existing URL field', function () {
+        chai.expect(subject.query('#section-favorites input.addUrl')).to.exist;
+      });
+
+      it('with an URL field with correct placeholder', function () {
+        chai.expect(subject.query('#section-favorites input.addUrl').placeholder)
+          .to.equal('freshtab.app.speed-dial.input.placeholder');
+      });
+
+      it('with an existing CTA button', function () {
+        chai.expect(subject.query('#section-favorites button.submit')).to.exist;
+      });
+
+      it('with a CTA button with correct label', function () {
+        chai.expect(subject.query('#section-favorites button.submit'))
+          .to.have.text('freshtab.app.speed-dial.add');
+      });
+
     });
   });
 

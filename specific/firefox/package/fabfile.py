@@ -262,7 +262,9 @@ def comment_cleaner(path=None):
         'processScript.js',
         'query_handler.js',
         'funnel-cake.html',
+        'funnel-cake-cliqz.html',
         'funnel-cake-mozilla.html',
+        'funnel-cake-firefox.html',
         'ytdl-core.js'
     ]
 

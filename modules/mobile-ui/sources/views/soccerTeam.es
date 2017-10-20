@@ -12,8 +12,8 @@ export default class extends Soccer {
   */
   enhanceResults(data) {
     const { soccer: { team = [] } = {} } = prefs.getObject('subscriptions');
-    const gameData = data.matches && data.matches.slice(0, 2);
-    if (gameData && gameData[0]) {
+    const gameData = data.matches && data.matches.slice(0, 2).reverse();
+    if (gameData[0]) {
       data.gameData = gameData;
       data.team = {
         id: gameData[0].teamId,

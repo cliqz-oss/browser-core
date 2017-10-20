@@ -46,211 +46,38 @@ export default class {
     return this.dbConn || this.init();
   }
 
-  addURLtoDB(url, ref, paylobj) {
-    var tt = new Date().getTime();
-    var se = this.humanWeb.checkSearchURL(url);
-    if (se > -1 ){
-      return
-    }
 
-    //Check if url is in hashtable
-    var ft = 1;
-    var privateHash = false;
-    this.humanWeb.getPageFromHashTable(url, function(_res) {
-      if (_res) {
-        if(_res['private'] == 1 ){
-          privateHash = true;
-        }
-        else{
-          ft = 0;
-        }
-      }
-      else{
-        // we never seen it, let's add it
-        paylobj['ft'] = true;
-      }
-    })
-
-    // Need to add if canonical is seen before or not.
-    // This is helpful, becuase now we replace the url with canonical incase of dropLongUrl(url) => true.
-    // Hence, in the event log, lot of URL's look ft => true.
-
-    if(paylobj['x'] && paylobj['x']['canonical_url'] && paylobj['x']['canonical_url'] != url){
-      this.getCanUrlFromHashTable(paylobj['x']['canonical_url'], function(_res) {
-        if (_res) {
-          paylobj['csb'] = true;
-        }
-      })
-    }
-
-
-    var stmt = this.dbConn.createStatement("SELECT url, checked, ft, private, payload FROM usafe WHERE url = :url");
-    stmt.params.url = url;
-
-    var res = [];
-    stmt.executeAsync({
-      handleResult: (aResultSet) => {
-        for (let row = aResultSet.getNextRow(); row; row = aResultSet.getNextRow()) {
-          res.push({'url': row.getResultByName("url"), 'checked': row.getResultByName("checked"), 'ft' :row.getResultByName('ft'), 'private' :row.getResultByName('private'), 'payload' :row.getResultByName('payload') });
-        }
-      },
-      handleError: (aError) => {
-        this.humanWeb.log("SQL error: " + aError.message);
-      },
-      handleCompletion: (aReason) => {
-        if (aReason != Components.interfaces.mozIStorageStatementCallback.REASON_FINISHED) {
-          this.humanWeb.log("SQL canceled or aborted");
-        }
-        else {
-          if (res.length == 0 && !privateHash ){
-            var setPrivate = false;
-            var st = this.dbConn.createStatement("INSERT INTO usafe (url,ref,last_visit,first_visit, reason, private, checked,payload, ft) VALUES (:url, :ref, :last_visit, :first_visit, :reason, :private, :checked, :payload, :ft)");
-            st.params.url = url;
-            st.params.ref = ref;
-            st.params.last_visit = tt;
-            st.params.first_visit = tt;
-            st.params.ft = ft;
-            st.params.payload = JSON.stringify(paylobj || {});
-
-            if (paylobj['x']==null) {
-              // page data structure is empty, so no need to double fetch, is private
-              st.params.checked = 1;
-              st.params.private = 1;
-              st.params.reason = 'empty page data';
-              setPrivate = true;
-              this.humanWeb.log("Setting private because empty page data");
-            }
-            else if (this.humanWeb.isSuspiciousURL(url)) {
-              // if the url looks private already add it already as checked and private
-              st.params.checked = 1;
-              st.params.private = 1;
-              st.params.reason = 'susp. url';
-              setPrivate = true;
-              this.humanWeb.log("Setting private because suspiciousURL");
-            }
-            else {
-              if (this.humanWeb.httpCache401[url]) {
-                st.params.checked = 1;
-                st.params.private = 1;
-                st.params.reason = '401';
-                setPrivate = true;
-                this.humanWeb.log("Setting private because of 401");
-              }
-              else {
-                st.params.checked = 0;
-                st.params.private = 0;
-                st.params.reason = '';
-                setPrivate = false;
-              }
-            }
-
-            //while (st.executeStep()) {};
-            st.executeAsync({
-              handleError: (aError) => {
-                this.humanWeb.log("SQL error: " + aError.message);
-              },
-              handleCompletion: (aReason) => {
-                if(this.humanWeb.debug){
-                  this.humanWeb.log("Insertion success add urltoDB");
-                }
-              }
-            });
-
-            if(setPrivate){
-              this.humanWeb.setAsPrivate(url);
-            }
-          }
-          else if(res.length > 0){
-            if (res[0]['checked']==0) {
-              //Need to aggregate the engagement metrics.
-              var metricsBefore = JSON.parse(res[0]['payload'])['e'];
-              var metricsAfter = paylobj['e'];
-              paylobj['e'] = this.humanWeb.aggregateMetrics(metricsBefore, metricsAfter);
-
-              //Since not checked it is still the ft.
-              if(res[0]['ft']==1){
-                paylobj['ft'] = true;
-              }
-              var st = this.dbConn.createStatement("UPDATE usafe SET last_visit = :last_visit, payload = :payload WHERE url = :url");
-              st.params.url = url;
-              st.params.last_visit = tt;
-              st.params.payload = JSON.stringify(paylobj || {});
-              //while (st.executeStep()) {};
-              st.executeAsync({
-                handleError: (aError) => {
-                  this.humanWeb.log("SQL error: " + aError.message);
-                },
-                handleCompletion: (aReason) => {
-                  if(this.humanWeb.debug){
-                    this.humanWeb.log("Insertion success");
-                  }
-                }
-              });
-              paylobj['e'] = {'cp': 0, 'mm': 0, 'kp': 0, 'sc': 0, 'md': 0};
-            }
-            else{
-              if (res[0]['checked']==1 && res[0]['private'] == 0) {
-                //Need to aggregate the engagement metrics.
-                var metricsBefore = res[0]['payload']['e'];
-                var metricsAfter = paylobj['e'];
-                paylobj['e'] = this.humanWeb.aggregateMetrics(metricsBefore, metricsAfter);
-
-                var st = this.dbConn.createStatement("UPDATE usafe SET last_visit = :last_visit, payload = :payload, checked = :checked WHERE url = :url");
-                st.params.url = url;
-                st.params.last_visit = tt;
-                st.params.payload = JSON.stringify(paylobj || {});
-                st.params.checked = 0;
-                //while (st.executeStep()) {};
-                st.executeAsync({
-                  handleError: (aError) => {
-                    this.humanWeb.log("SQL error: " + aError.message);
-                  },
-                  handleCompletion: (aReason) => {
-                    if(this.humanWeb.debug){
-                      this.humanWeb.log("Insertion success");
-                    }
-                  }
-                });
-                paylobj['e'] = {'cp': 0, 'mm': 0, 'kp': 0, 'sc': 0, 'md': 0};
-              }
-            }
-          }
-        }
-      }
-    });
-  }
-
-  removeUnsafe(url) {
+  removeUnsafe(url, callback) {
     var st = this.dbConn.createStatement("DELETE from usafe WHERE url = :url");
     st.params.url = url;
     //while (st.executeStep()) {};
     st.executeAsync({
       handleError: (aError) => {
         this.humanWeb.log("SQL error: " + aError.message);
+        callback(false);
       },
       handleCompletion: (aReason) => {
         if(this.humanWeb.debug){
           this.humanWeb.log("Delete success");
+          callback(true);
         }
       }
     });
   }
 
-  listOfUnchecked(cap, sec_old, fixed_url, callback) {
+  getListOfUnchecked(cap, sec_old, fixed_url, callback) {
     var tt = new Date().getTime();
     var stmt = null;
     if (fixed_url == null) {
       // all urls
-      stmt = this.dbConn.createAsyncStatement("SELECT url, payload FROM usafe WHERE last_visit < :last_visit and private = :private and checked = :checked LIMIT :cap;");
+      stmt = this.dbConn.createAsyncStatement("SELECT url, payload FROM usafe WHERE last_visit < :last_visit LIMIT :cap;");
     }
     else {
-      stmt = this.dbConn.createAsyncStatement("SELECT url, payload FROM usafe WHERE last_visit < :last_visit and url = :url and private = :private and checked = :checked LIMIT :cap;");
+      stmt = this.dbConn.createAsyncStatement("SELECT url, payload FROM usafe WHERE last_visit < :last_visit and url = :url LIMIT :cap;");
       stmt.params.url = fixed_url;
     }
     stmt.params.last_visit = (tt - sec_old*1000);
-    stmt.params.private = 0;
     stmt.params.cap = cap;
-    stmt.params.checked = 0;
 
     var res = [];
     stmt.executeAsync({
@@ -276,76 +103,7 @@ export default class {
     });
   }
 
-  processUnchecks(listOfUncheckedUrls) {
-    var url_pagedocPair = {};
-
-    for(var i=0;i<listOfUncheckedUrls.length;i++) {
-      var url = listOfUncheckedUrls[i][0];
-      var page_doc = listOfUncheckedUrls[i][1];
-      var page_struct_before = page_doc['x'];
-      url_pagedocPair[url] = page_doc;
-
-      this.isPrivate(url, 0,function(isPrivate) {
-        if (isPrivate) {
-          var st = this.dbConn.createStatement("UPDATE usafe SET reason = :reason, checked = :checked, private = :private , ft = :ft WHERE url = :url");
-          st.params.url = url;
-          st.params.checked = 1;
-          st.params.private = 1;
-          st.params.ft = 0;
-          st.params.reason = 'priv. st.';
-          //while (st.executeStep()) {};
-          st.executeAsync({
-            handleError: (aError) => {
-              this.humanWeb.log("SQL error: " + aError.message);
-            },
-            handleCompletion: (aReason) => {
-              if(this.humanWeb.debug){
-                this.humanWeb.log("Insertion success private");
-              }
-            }
-          });
-          this.humanWeb.log("Marking as private via is private");
-          this.humanWeb.setAsPrivate(url);
-        }
-        else {
-          this.humanWeb.log("Going for double fetch: " + url);
-
-          // only do doubleFetch for the same url 3 times in a row
-          // (set up as this.humanWeb.MAX_NUMBER_DOUBLEFETCH_ATTEMPS).
-          // If more attemps are tried then the url is marked as private.
-          // Prevent infinite loop if the doubleFetch causes the browser
-          // to crash (issue #2213)
-          //
-          this.loadRecord('last-double-fetch', function(data) {
-            var obj = null;
-            if (data==null) obj = {'url': url, 'count': 1};
-            else {
-              obj = JSON.parse(data);
-              if (obj.url!=url) obj = {'url': url, 'count': 1};
-              else {
-                try {
-                  obj['count'] += 1;
-                } catch(err) {
-                  obj['count'] = 1;
-                }
-              }
-            }
-            this.saveRecord('last-double-fetch', JSON.stringify(obj));
-
-            if (obj.count > this.humanWeb.MAX_NUMBER_DOUBLEFETCH_ATTEMPS) {
-              this.humanWeb.setAsPrivate(url);
-            }
-            else {
-              this.humanWeb.doubleFetch(url, url_pagedocPair[url]);
-            }
-          });
-
-        }
-      });
-    }
-  }
-
-  saveRecord(id, data) {
+  saveRecordTelemetry(id, data, callback) {
     if(!(this.dbConn)) return;
     var st = this.dbConn.createStatement("INSERT OR REPLACE INTO telemetry (id,data) VALUES (:id, :data)");
     st.params.id = id;
@@ -356,17 +114,19 @@ export default class {
         if(this.humanWeb && this.humanWeb.debug){
           this.humanWeb.log("SQL error: " + aError.message);
         }
+        callback(false);
       },
       handleCompletion: (aReason) => {
         if(this.humanWeb && this.humanWeb.debug){
           this.humanWeb.log("Insertion success save record");
         }
+        callback(true);
       }
     });
 
   }
 
-  loadRecord(id, callback) {
+  loadRecordTelemetry(id, callback) {
     var stmt = this.dbConn.createAsyncStatement("SELECT id, data FROM telemetry WHERE id = :id;");
     stmt.params.id = id;
 
@@ -503,38 +263,12 @@ export default class {
     this.SQL("delete from usafe");
   }
 
-  getCanUrlFromHashTable(canUrl, callback) {
-    var res = [];
-    var st = this.dbConn.createStatement("SELECT * FROM hashcans WHERE hash = :hash");
-    st.params.hash = (md5(canUrl)).substring(0,16);
-    st.executeAsync({
-      handleResult: (aResultSet) => {
-        for (let row = aResultSet.getNextRow(); row; row = aResultSet.getNextRow()) {
-          res.push({"hash": row.getResultByName("hash")});
-        }
-      },
-      handleError: (aError) => {
-        this.humanWeb.log("SQL error: " + aError.message);
-        callback(true);
-      },
-      handleCompletion: (aReason) => {
-        if (aReason != Components.interfaces.mozIStorageStatementCallback.REASON_FINISHED) {
-          this.humanWeb.log("SQL canceled or aborted");
-          callback(null);
-        }
-        else {
-          if (res.length == 1) {
-            callback(res[0]);
-          }
-          else {
-            callback(null);
-          }
-        }
-      }
-    });
-  }
-
   isPrivate(url, depth, callback) {
+
+    // This needs to be rewritten.
+    callback(false);
+    return;
+    /*
     // returns 1 is private (because of checked, of because the referrer is private)
     // returns 0 if public
     // returns -1 if not checked yet, handled as public in this cases,
@@ -587,6 +321,7 @@ export default class {
         }
       },
     });
+    */
   }
 
   createTable(){
@@ -632,5 +367,67 @@ export default class {
           return char;
       }
     });
+  }
+
+  saveURL(url, newObj, callback) {
+    let st = this.dbConn.createStatement("INSERT INTO usafe (url,ref,last_visit,first_visit, payload, ft) VALUES (:url, :ref, :last_visit, :first_visit, :payload, :ft)");
+    st.params.url = newObj.url;
+    st.params.ref = newObj.ref;
+    st.params.last_visit = newObj.last_visit;
+    st.params.first_visit = newObj.first_visit;
+    st.params.ft = newObj.ft;
+    st.params.payload = JSON.stringify(newObj.payload);
+
+    st.executeAsync({
+      handleError: (aError) => {
+        this.humanWeb.log("SQL error: " + aError.message);
+      },
+      handleCompletion: (aReason) => {
+        if(this.humanWeb.debug){
+          this.humanWeb.log("Insertion success add urltoDB");
+        }
+        callback();
+      }
+    });
+  }
+
+  updateURL(url, newObj, callback) {
+    let st = this.dbConn.createStatement("UPDATE usafe SET last_visit = :last_visit, payload = :payload WHERE url = :url");
+    st.params.url = newObj.url;
+    st.params.last_visit = newObj.last_visit;
+    st.params.payload = JSON.stringify(newObj.payload);
+    //while (st.executeStep()) {};
+    st.executeAsync({
+      handleError: (aError) => {
+        this.humanWeb.log("SQL error: " + aError.message);
+      },
+      handleCompletion: (aReason) => {
+        if(this.humanWeb.debug){
+          this.humanWeb.log("updated success");
+        }
+        callback();
+      }
+    });
+  }
+
+  getURL(url, callback) {
+    let stmt = this.dbConn.createStatement("SELECT url, ft,  payload FROM usafe WHERE url = :url");
+    stmt.params.url = url;
+
+    let res = [];
+    stmt.executeAsync({
+      handleResult: (aResultSet) => {
+        for (let row = aResultSet.getNextRow(); row; row = aResultSet.getNextRow()) {
+          res.push({'url': row.getResultByName("url"), 'ft' :row.getResultByName('ft'), 'payload' :row.getResultByName('payload') });
+        }
+      },
+      handleError: (aError) => {
+        this.humanWeb.log("SQL error: " + aError.message);
+      },
+      handleCompletion: (aReason) => {
+        this.humanWeb.log(">> Completed >>> ");
+        callback(res);
+      }
+    })
   }
 }

@@ -41,19 +41,19 @@ function getWindowTreeInformation(window) {
   // Keep track of window IDs
   var currentId = getWindowId(window);
   var windowId = currentId;
-  var parentId = currentId;
+  var parentFrameId;
 
   while (currentId !== getWindowId(currentWindow.parent)) {
     // Go up one level
-    parentId = currentId;
+    parentFrameId = currentId;
     currentWindow = currentWindow.parent;
     currentId = getWindowId(currentWindow);
   }
 
   return {
-    originWindowID: currentId,
-    parentWindowID: parentId,
-    outerWindowID: windowId,
+    tabId: currentId,
+    parentFrameId,
+    frameId: windowId,
   };
 }
 

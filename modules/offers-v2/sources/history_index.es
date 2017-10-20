@@ -225,6 +225,10 @@ export default class HistoryIndex {
     });
   }
 
+  hasUrl(context) {
+    return !!context._urlAddedToHistory;
+  }
+
   savePersistentData() {
     if (OffersConfigs.LOAD_TRIGGER_HISTORY_DATA) {
       this.entries = this.entries.splice(-MAX_HISTORY_RECORDS);

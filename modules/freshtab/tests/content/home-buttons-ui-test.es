@@ -48,7 +48,6 @@ class Subject {
           }
         },
         sendMessage: ({ module, action, requestId }) => {
-          console.log('ACTION CALLED', module, action)
           const response = this.modules[module].actions[action];
           listeners.forEach(l => {
             l({
@@ -107,19 +106,20 @@ describe('Fresh tab buttons UI', function () {
   const settingsButtonSelector = '#settings-btn';
   let subject;
 
-  beforeEach(function () {
+  before(function () {
     subject = new Subject();
     subject.respondsWith({
       module: 'core',
       action: 'sendTelemetry',
       response: ''
     });
+
     subject.respondsWith({
       module: 'freshtab',
       action: 'getConfig',
       response: {
         locale: 'en-US',
-        newTabUrl: 'resource://cliqz/freshtab/home.html',
+        newTabUrl: 'chrome://cliqz/content/freshtab/home.html',
         isBrowser: false,
         showNewBrandAlert: false,
         messages: {},
@@ -144,6 +144,7 @@ describe('Fresh tab buttons UI', function () {
         }
       },
     });
+
     subject.respondsWith({
       module: 'freshtab',
       action: 'getSpeedDials',
@@ -179,16 +180,19 @@ describe('Fresh tab buttons UI', function () {
   })
 
   afterEach(function () {
-    subject.unload();
     clearIntervals();
   });
 
 
   context('rendered in wide window', function () {
 
-    beforeEach(function () {
+    before(function () {
       return subject.load(900);
     })
+
+    after(function () {
+      subject.unload();
+    });
 
     describe('renders home icon', function () {
       it('successfully', function () {
@@ -206,7 +210,7 @@ describe('Fresh tab buttons UI', function () {
 
       it('with correct link', function () {
         chai.expect(subject.query(homeButtonSelector).href)
-          .to.equal('resource://cliqz/freshtab/home.html');
+          .to.equal('chrome://cliqz/content/freshtab/home.html');
       });
     });
 
@@ -246,9 +250,13 @@ describe('Fresh tab buttons UI', function () {
   });
 
   context('rendered in narrow window', function () {
-    beforeEach(function () {
+    before(function () {
       return subject.load(300);
     })
+
+    after(function () {
+      subject.unload();
+    });
 
     describe('renders home icon', function () {
       it('successfully', function () {

@@ -1,9 +1,36 @@
-import WebRequest, { VALID_RESPONSE_PROPERTIES as EXTRA_PROPERTIES } from '../platform/webrequest';
+export { default, VALID_RESPONSE_PROPERTIES } from '../platform/webrequest';
 
-// valid response properties as per webrequest Spec
-const SPEC_RESPONSE_PROPERTIES = ['cancel', 'redirectUrl', 'requestHeaders',
-  'responseHeaders', 'authCredentials'];
 
-export const VALID_RESPONSE_PROPERTIES = SPEC_RESPONSE_PROPERTIES.concat(EXTRA_PROPERTIES || []);
-
-export default WebRequest;
+// TODO - should this be in platform instead?
+// Firefox and Chrome still have differencies
+export const EXTRA_INFO_SPEC = {
+  onBeforeRequest: [
+    'blocking',
+    // 'requestBody',
+  ],
+  onBeforeSendHeaders: [
+    'blocking',
+    'requestHeaders',
+  ],
+  onSendHeaders: [
+    'requestHeaders', // Chrome only?
+  ],
+  onHeadersReceived: [
+    'blocking',
+    'responseHeaders',
+  ],
+  onAuthRequired: [
+    'blocking',
+    'responseHeaders', // Chrome only?
+  ],
+  onResponseStarted: [
+    'responseHeaders', // Chrome only?
+  ],
+  onBeforeRedirect: [
+    'responseHeaders', // Chrome only?
+  ],
+  onCompleted: [
+    'responseHeaders', // Chrome only?
+  ],
+  onErrorOccurred: [],
+};

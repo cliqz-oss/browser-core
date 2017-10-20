@@ -15,8 +15,8 @@ export default class Switch extends React.Component {
   }
 
   _handleChange() {
-    this.setState({ isChecked: !this.state.isChecked });
     this.props.toggleComponent();
+    this.setState({ isChecked: !this.state.isChecked });
   }
 
   render() {
@@ -26,6 +26,7 @@ export default class Switch extends React.Component {
           htmlFor="switch"
         >
           <input
+            name={this.props.name}
             checked={this.state.isChecked}
             onChange={this._handleChange}
             className="switch"
@@ -44,5 +45,6 @@ export default class Switch extends React.Component {
 }
 
 Switch.propTypes = {
-  toggleComponent: PropTypes.func
+  toggleComponent: PropTypes.func,
+  name: PropTypes.string
 };

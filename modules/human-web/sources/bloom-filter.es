@@ -1,14 +1,7 @@
-'use strict';
+import md5 from "../core/helpers/md5";
 /*
  * The module for bloom filter
  */
-
-var converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
-      .createInstance(Components.interfaces.nsIScriptableUnicodeConverter),
-    ch = Cc["@mozilla.org/security/hash;1"]
-      .createInstance(Components.interfaces.nsICryptoHash);
-
-converter.charset = 'UTF-8';
 
 function toHexString(charCode) {
   return ("0" + charCode.toString(16)).slice(-2);
@@ -110,26 +103,7 @@ var CliqzBloomFilter = {
   debug: 'true',
   BLOOM_FILTER_CONFIG: 'https://cdn.cliqz.com/bloom_filter',
   hash: function(str, alg) {
-    switch(alg){
-    case "sha1":
-      ch.init(ch.SHA1);
-      break;
-    case "sha256":
-      ch.init(ch.SHA256);
-      break;
-    case "sha384":
-      ch.init(ch.SHA384);
-      break;
-    case "SHA512":
-      ch.init(ch.SHA512);
-      break;
-    default:  // md5, (CliqzHumanweb._md5 is faster)
-      ch.init(ch.MD5);
-    }
-    var data = converter.convertToByteArray(str);
-    ch.update(data, data.length);
-    var hashed = ch.finish(false);
-    return Object.keys(hashed).map( i => toHexString(hashed.charCodeAt(i)) ).join('');
+    return md5(str);
   },
   fnv32a: function(str) {
     var FNV1_32A_INIT = 0x811c9dc5;

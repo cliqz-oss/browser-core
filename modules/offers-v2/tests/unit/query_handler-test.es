@@ -189,8 +189,8 @@ export default describeModule('offers-v2/query_handler',
               filtered: [],
             };
             const timeRange = -1000000;
-
-            chai.expect(qHandler.matchTokens(tokenData, timeRange)).to.equal(false);
+            // since negative time range is ignored, a match must be detected
+            chai.expect(qHandler.matchTokens(tokenData, timeRange)).to.equal(true);
           });
 
 

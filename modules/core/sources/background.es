@@ -1,9 +1,9 @@
 import events from './events';
-import utils from "./utils";
-import console from "./console";
-import language from "./language";
-import config from "./config";
-import ProcessScriptManager from "../platform/process-script-manager";
+import utils from './utils';
+import console from './console';
+import language from './language';
+import config from './config';
+import ProcessScriptManager from '../platform/process-script-manager';
 import prefs from './prefs';
 import background from './base/background';
 import { Window, mapWindows } from '../platform/browser';
@@ -11,18 +11,19 @@ import resourceManager from './resource-manager';
 import inject from './kord/inject';
 import { getCookies } from '../platform/browser';
 import { queryCliqz, openLink, openTab, getOpenTabs, getReminders } from '../platform/browser-actions';
-import loadLogoDb from '../platform/load-logo-db';
+import providesServices from './services';
 
 var lastRequestId = 0;
 var callbacks = {};
 
+/**
+ * @module core
+ * @namespace core
+ * @class Background
+ */
 export default background({
 
-  providesServices: {
-    'logos': () => {
-      return loadLogoDb().then(utils.setLogoDb);
-    },
-  },
+  providesServices,
 
   init(settings, app) {
     this.settings = settings;
@@ -46,7 +47,7 @@ export default background({
   },
 
   dispatchMessage(msg) {
-    if (typeof msg.data.requestId === "number") {
+    if (typeof msg.data.requestId === 'number') {
       if (msg.data.requestId in callbacks) {
         this.handleResponse(msg);
       }
@@ -65,9 +66,9 @@ export default background({
       windowId = msg.data.windowId;
     const origin = msg.data.origin;
 
-    const module = this.app.availableModules[moduleName];
+    const module = this.app.modules[moduleName];
     if (!module) {
-      console.error("Process Script", `${moduleName}/${action}`, "Module not available");
+      console.error('Process Script', `${moduleName}/${action}`, 'Module not available');
       return;
     }
 
@@ -83,16 +84,16 @@ export default background({
         windowId,
       });
     })
-    .catch(console.error.bind(null, "Process Script", `${moduleName}/${action}`));
+    .catch(console.error.bind(null, 'Process Script', `${moduleName}/${action}`));
   },
 
   handleResponse(msg) {
     callbacks[msg.data.requestId].apply(null, [msg.data.payload]);
   },
 
-  getWindowStatusFromModules(win){
-    return this.app.modules().map((module) => {
-      const windowModule = module.getWindowModule(win);
+  getWindowStatusFromModules(win) {
+    return Object.keys(this.app.modules).map((module) => {
+      const windowModule = this.app.modules[module].getWindowModule(win);
       return windowModule && windowModule.status ? windowModule.status() : null;
     });
   },
@@ -166,9 +167,9 @@ export default background({
       return this.app.extensionRestart();
     },
     status() {
-      const availableModules = this.app.availableModules;
+      const appModules = this.app.modules;
       const modules = config.modules.reduce((hash, moduleName) => {
-        const module = availableModules[moduleName];
+        const module = appModules[moduleName];
         const windowWrappers = mapWindows(window => new Window(window));
         const windows = windowWrappers.reduce((hash, win) => {
           hash[win.id] = {
@@ -201,8 +202,8 @@ export default background({
       });
     },
     broadcastMessage(url, message) {
-      this.mm.broadcast("cliqz:core", {
-        action: "postMessage",
+      this.mm.broadcast('cliqz:core', {
+        action: 'postMessage',
         url,
         args: [JSON.stringify(message)],
       });
@@ -230,8 +231,8 @@ export default background({
         return this.actions.queryCliqz(query);
       }
       const doc = utils.getWindow().document;
-      const urlBar = doc.getElementById("urlbar");
-      const dropmarker = doc.getAnonymousElementByAttribute(urlBar, "anonid", "historydropmarker");
+      const urlBar = doc.getElementById('urlbar');
+      const dropmarker = doc.getAnonymousElementByAttribute(urlBar, 'anonid', 'historydropmarker');
       setTimeout(() => {
         dropmarker.click();
       }, 0);
@@ -264,7 +265,7 @@ export default background({
     },
 
     setUrlbar(value) {
-      let urlBar = utils.getWindow().document.getElementById("urlbar")
+      let urlBar = utils.getWindow().document.getElementById('urlbar')
       urlBar.mInputField.value = value;
     },
     recordLang(url, lang) {
@@ -275,7 +276,7 @@ export default background({
       return Promise.resolve();
     },
     recordMeta(url, meta) {
-      events.pub("core:url-meta", url, meta);
+      events.pub('core:url-meta', url, meta);
     },
     openFeedbackPage() {
       const window = utils.getWindow();
@@ -299,8 +300,8 @@ export default background({
       const requestId = lastRequestId++,
         documents = [];
 
-      this.mm.broadcast("cliqz:core", {
-        action: "queryHTML",
+      this.mm.broadcast('cliqz:core', {
+        action: 'queryHTML',
         url,
         args: [selector, attribute],
         requestId
@@ -323,8 +324,8 @@ export default background({
       const requestId = lastRequestId++,
         documents = [];
 
-      this.mm.broadcast("cliqz:core", {
-        action: "getHTML",
+      this.mm.broadcast('cliqz:core', {
+        action: 'getHTML',
         url,
         args: [],
         requestId
@@ -347,8 +348,8 @@ export default background({
         .catch(() => {
           const requestId = lastRequestId++;
 
-          this.mm.broadcast("cliqz:core", {
-            action: "getCookie",
+          this.mm.broadcast('cliqz:core', {
+            action: 'getCookie',
             url,
             args: [],
             requestId

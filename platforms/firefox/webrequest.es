@@ -23,7 +23,7 @@ var observer = {
       return;
     }
 
-    let requestInfo = {
+    const requestInfo = {
       url: requestContext.url,
       method: requestContext.method,
       frameId: requestContext.getOuterWindowID(),
@@ -31,14 +31,15 @@ var observer = {
       tabId: requestContext.getOriginWindowID() || -1,
       type: requestContext.getContentPolicyType(),
       originUrl: requestContext.getLoadingDocument(),
-      responseStatus: topic.startsWith('http-on-examine-') ? requestContext.channel.responseStatus : undefined,
+      sourceUrl: requestContext.getSourceURL(),
+      statusCode: topic.startsWith('http-on-examine-') ? requestContext.channel.responseStatus : undefined,
       // the following are not in the standard WebRequest API
       isPrivate: requestContext.isChannelPrivate(),
-      isCached: topic === 'http-on-examine-cached-response',
-      source: requestContext.getSourceURL(),
+      fromCache: topic === 'http-on-examine-cached-response',
       trigger: requestContext.getTriggeringPrincipal(),
-      hasRedirected: requestContext.hasRedirected,
-    }
+      isRedirect: requestContext.hasRedirected,
+    };
+
     // use getters for headers
     requestInfo.getRequestHeader = requestContext.getRequestHeader.bind(requestContext);
     requestInfo.getResponseHeader = requestContext.getResponseHeader.bind(requestContext);
@@ -196,5 +197,32 @@ var webRequest = {
   onHeadersReceived: new TopicListener(['http-on-examine-response', 'http-on-examine-cached-response'])
 };
 
-export const VALID_RESPONSE_PROPERTIES = [];
+export const VALID_RESPONSE_PROPERTIES = {
+  onBeforeRequest: [
+    'cancel',
+    'redirectUrl',
+  ],
+  onBeforeSendHeaders: [
+    'cancel',
+    'requestHeaders',
+  ],
+  onSendHeaders: [
+  ],
+  onHeadersReceived: [
+    'redirectUrl',
+    'responseHeaders',
+  ],
+  onAuthRequired: [
+    'cancel',
+  ],
+  onResponseStarted: [
+  ],
+  onBeforeRedirect: [
+  ],
+  onCompleted: [
+  ],
+  onErrorOccurred: [
+  ],
+};
+
 export default webRequest;

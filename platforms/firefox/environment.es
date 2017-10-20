@@ -304,6 +304,28 @@ var CLIQZEnvironment = {
         Services.search.getEngineByName(engine.name).wrappedJSObject._queryCharset = engine.encoding;
       }
     },
+    /* eslint no-param-reassign: ["error", { "props": false }] */
+    restoreHiddenSearchEngines: function() {
+      // YouTube - special case
+      const SEARCH_ENGINE_ALIAS = {
+        youtube: '#yt',
+        'youtube-de': '#yt',
+      };
+
+      Services.search.getEngines().forEach((e) => {
+        if (e.hidden === true) {
+          e.hidden = false;
+          // Restore the alias as well
+          if (!e.alias && e.identifier) {
+            if (SEARCH_ENGINE_ALIAS[e.identifier]) {
+              e.alias = SEARCH_ENGINE_ALIAS[e.identifier];
+            } else {
+              e.alias = `#${e.identifier.toLowerCase().substring(0, 2)}`;
+            }
+          }
+        }
+      });
+    },
     /*
       We want to remove the search engine in order to update it by addEngineWithDetails function
       If the search engines are stored in user profile, we can remove them

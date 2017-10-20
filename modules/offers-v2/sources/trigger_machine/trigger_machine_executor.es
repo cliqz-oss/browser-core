@@ -85,8 +85,7 @@ export default class TriggerMachineExecutor {
   processWatchReqCallback(data, cbArgs) {
     if (!data ||
         !data.reqObj ||
-        !data.reqObj.req_obj ||
-        !data.reqObj.req_obj.url ||
+        !data.reqObj.url ||
         !cbArgs ||
         !cbArgs.trigger_id) {
       // invalid call?
@@ -94,15 +93,18 @@ export default class TriggerMachineExecutor {
       return;
     }
 
+    const lwUrl = data.reqObj.url.toLowerCase();
+
     // we check here if the trigger still exists
     const trigger = this.triggerMachine.getTriggerByID(cbArgs.trigger_id);
     if (!trigger) {
       return;
     }
     const d = {
-      url: data.reqObj.req_obj.url,
+      url: data.reqObj.url,
       urlObj: data.urlObj,
       trigger_id: cbArgs.trigger_id,
+      lowerCaseUrl: lwUrl
     };
     this.processUrlChange(d, 'req');
   }
@@ -120,7 +122,8 @@ export default class TriggerMachineExecutor {
     try {
       // we process the event now
       const ctx = {
-        '#url': data.url
+        '#url': data.url,
+        '#lc_url': data.lowerCaseUrl
       };
       if (data.urlObj) {
         ctx['#domain'] = data.urlObj.domain;

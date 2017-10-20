@@ -72,8 +72,7 @@ export default class {
    * @return {Boolean}          false if the request host is in the suspicious patterns list and
    * the action is 'block', true otherwise.
    */
-  checkIsSuspicious(state, r) {
-    const response = r;
+  checkIsSuspicious(state, response) {
     const hostParts = state.urlParts.hostname.split('.').reverse();
     const trail = [];
     let node = this.suspiciousPatterns;
@@ -95,7 +94,7 @@ export default class {
             break;
           case 'block':
             console.log('ATTRACK', 'block suspicious', trail);
-            response.cancel = true;
+            response.block();
             state.incrementStat('suspicious_blocked');
             return false;
           default: // unreachable

@@ -158,6 +158,10 @@ export default class LocalResult extends BaseResult {
       }
     }
 
+    if (this.extra.distance) {
+      return this.extra.distance;
+    }
+
     return null;
   }
 
@@ -205,27 +209,37 @@ export default class LocalResult extends BaseResult {
 
         const openTime = this.parseTime(el.open.time);
         const closeTime = this.parseTime(el.close.time);
-        const closesNextDay = el.close.day !== el.open.day;
-        /** Difference in minutes from opening/closing times to current time **/
         const t = new Date();
-        const minutesFrom = {
-          opening: (60 * (t.getHours() - openTime.hours))
-                    + (t.getMinutes() - openTime.minutes),
-          /* If it closes the next day, we need to subtract 24 hours from the hour difference */
-          closing: (60 * (t.getHours() - closeTime.hours - (closesNextDay ? 24 : 0)))
-                    + (t.getMinutes() - closeTime.minutes),
+        const minutes = {
+          opening: (60 * openTime.hours) + openTime.minutes,
+          closing: (60 * closeTime.hours) + closeTime.minutes,
         };
 
-        if (minutesFrom.opening > 0 && minutesFrom.closing < 0) {
-          openStatus = 'open';
-          if (minutesFrom.closing > -60) {
+        const now = (60 * t.getHours()) + t.getMinutes();
+
+        openStatus = 'closed';
+
+        if (minutes.opening < minutes.closing) {
+          if (minutes.opening <= now && now <= (minutes.closing - 60)) {
+            openStatus = 'open';
+          }
+
+          if ((minutes.closing - 60) < now && now < minutes.closing) {
             openStatus = 'close_soon';
           }
         } else {
-          openStatus = 'closed';
-          if (minutesFrom.opening > -60 && minutesFrom.opening < 0) {
-            openStatus = 'open_soon';
+          if (minutes.opening <= now || (minutes.closing - 60) >= now) {
+            openStatus = 'open';
           }
+
+          if (minutes.closing > now && now > (minutes.closing - 60)) {
+            openStatus = 'close_soon';
+          }
+        }
+
+        const difference = (((minutes.opening - now) % 1440) + 1440) % 1440;
+        if (difference < 60) {
+          openStatus = 'open_soon';
         }
       });
 

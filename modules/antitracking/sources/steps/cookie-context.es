@@ -65,8 +65,8 @@ export default class {
   }
 
   assignCookieTrust(state) {
-    if (state.requestContext.isFullPage() && state.requestContext.getReferrer()) {
-      const referrer = URLInfo.get(state.requestContext.getReferrer());
+    if (state.isFullPage() && state.getReferrer()) {
+      const referrer = URLInfo.get(state.getReferrer());
       const trustedHost = state.urlParts.hostname;
       const trustedOn = referrer.hostname;
 
@@ -150,16 +150,17 @@ export default class {
   }
 
   extractPossilbeContextGD (links) {
-    return new Set(links.forEach(link => URLInfo.get(link).generalDomain));
+    return new Set(links.map(link => URLInfo.get(link).generalDomain));
   }
 
   setContextFromEvent(ev, contextHTML) {
     let cGD = null;
     let pageGD = null;
     let html = contextHTML || '';
+
     try {
-      cGD = URLInfo.get(ev.target.baseURI).generalDomain;
       pageGD = currentGD();
+      cGD = URLInfo.get(ev.target.baseURI).generalDomain;
     } catch (ee) {
     }
     if (!pageGD || cGD === pageGD) {
