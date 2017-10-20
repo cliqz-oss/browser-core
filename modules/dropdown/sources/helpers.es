@@ -165,5 +165,13 @@ export default {
       unit = 'km';
     }
     return `${distance} ${unit}`;
+  },
+
+  concatLocale(prefix, locale) {
+    if (!prefix) {
+      return locale;
+    }
+
+    return `${prefix}-${locale}`;
   }
 };

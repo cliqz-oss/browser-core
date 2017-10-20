@@ -9,9 +9,11 @@ import Database from '../core/database';
 import OfferDB from './offers_db';
 import TriggerMachineExecutor from './trigger_machine/trigger_machine_executor';
 import RegexpCache from './regexp_cache';
-import RegexpHelper from './regex_helper';
 import HistoryIndex from './history_index';
 import QueryHandler from './query_handler';
+import FeatureHandler from './features/feature-handler';
+import PatternMatchingHandler from './pattern-matching/pattern-matching-handler';
+
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
@@ -97,17 +99,22 @@ export default background({
                                         this.db,
                                         this.offersDB);
 
+    // init the features here
+    this.featureHandler = new FeatureHandler();
+    this.patternMatchingHandler = new PatternMatchingHandler(this.featureHandler);
+
     // create the trigger machine executor
     this.globObjects = {
       regex_cache: new RegexpCache(),
-      regex_helper: new RegexpHelper(),
       db: this.db,
       offer_processor: this.offerProc,
       signals_handler: this.signalsHandler,
       event_handler: this.eventHandler,
       offers_db: this.offersDB,
       history_index: new HistoryIndex(this.db),
-      query_handler: this.queryHandler
+      query_handler: this.queryHandler,
+      feature_handler: this.featureHandler,
+      pattern_matching_handler: this.patternMatchingHandler,
     };
     this.triggerMachineExecutor = new TriggerMachineExecutor(this.globObjects);
 
@@ -146,6 +153,10 @@ export default background({
     }
     if (this.offersDB) {
       this.offersDB.savePersistentData();
+    }
+    if (this.featureHandler) {
+      this.featureHandler.unload();
+      this.featureHandler = null;
     }
   },
 
@@ -189,18 +200,17 @@ export default background({
     logger.info('background script unloaded');
   },
 
-  onUrlChange(urlObj, url) {
-    if (!url || !this.triggerMachineExecutor) {
+  onUrlChange(urlData) {
+    if (!urlData || !this.triggerMachineExecutor) {
       return;
     }
-    const lwUrl = url.toLowerCase();
     const data = {
-      url,
-      urlObj,
-      queryInfo: this.queryHandler.normalize(url, urlObj.domain),
-      lowerCaseUrl: lwUrl
+      url_data: urlData,
+      queryInfo: this.queryHandler.normalize(urlData.getRawUrl(), urlData.getDomain()),
     };
     this.triggerMachineExecutor.processUrlChange(data);
+    // keep this url on memory
+    this.patternMatchingHandler.trackTokenizedUrlOnMem(urlData.getPatternRequest());
   },
 
   // ///////////////////////////////////////////////////////////////////////////

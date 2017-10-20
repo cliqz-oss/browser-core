@@ -151,12 +151,22 @@ export default describeModule('human-web/content',
         checkDetectedAds(loadFixture('coffee-ads'));
       });
 
-      it('should find nothing on a Google results page without ads', function () {
-        checkDetectedAds(loadFixture('page-with-no-ads'));
+      it('should find nothing on a Google results page without ads (2017-09-21)', function () {
+        checkDetectedAds(loadFixture('page-with-no-ads-2017-09-21'));
       });
 
-      it('should find all flight ads on the Google results page of "flight paris to london"', function () {
-        checkDetectedAds(loadFixture('flight-page'));
+      it('should find nothing on a Google results page without ads (2017-10-19)', function () {
+        checkDetectedAds(loadFixture('page-with-no-ads-2017-10-19'));
+      });
+
+      it('should find all flight ads on the Google results page of "flight paris to london" (2017-09-21)', function () {
+        checkDetectedAds(loadFixture('flight-page-2017-09-21'));
+      });
+
+      // TODO: sponsored links for flights are currently not detected
+      // (They are a special case, as there is also no 'aclk' links on the page.)
+      it('(status quo) sponsored links for flights are not detected (searching for "flight paris to london") (2017-10-19)', function () {
+        checkDetectedAds(loadFixture('flight-page-2017-10-19'));
       });
 
       it('Android user agent: page without ads', function () {

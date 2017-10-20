@@ -105,6 +105,31 @@
                     label, input {
                         cursor: pointer;
                     }
+
+                    padding: 2px 0px 1px 0px;
+
+                    &.focused {
+                        border-radius: 10px;
+                        opacity: 57%;
+                        margin-right: 26px;
+                        margin-left: -2px;
+                        padding-left: 2px;
+                        animation-name: animationFrames;
+                        animation-duration: 2s;
+                        animation-iteration-count: infinite;
+                    }
+
+                    @keyframes animationFrames{
+                      0% {
+                        background-color: rgba(00, 174, 240, 0.10); /* $color-cliqz-blue */
+                      }
+                      50% {
+                        background-color: rgba(00, 174, 240, 0.30); /* $color-cliqz-blue */
+                      }
+                      100% {
+                        background-color: rgba(00, 174, 240, 0.10); /* $color-cliqz-blue */
+                      }
+                    }
                 }
             }
 
@@ -128,7 +153,7 @@
                     &:hover {
                        .selected-img {
                             display: block;
-                       } 
+                       }
                     }
 
                     .selected-img {
@@ -138,7 +163,7 @@
                         display: none;
                         img {
                             box-shadow: none !important;
- 
+
                         }
                     }
 

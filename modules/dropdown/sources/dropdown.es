@@ -123,24 +123,19 @@ export default class {
     }
 
     if (ev.button === 2) {
-      let subresult = result.findResultByUrl(href) || result;
-      if (isCliqzAction(subresult.url)) {
-        subresult = result;
-      }
+      const subresult = isCliqzAction(href) ? result : result.findResultByUrl(href);
       this.contextMenu.show(subresult, { x: ev.screenX, y: ev.screenY });
     } else {
       result.click(this.window, href, ev);
 
-      if (!result.isCliqzAction) {
-        clickSignal({
-          extra,
-          coordinates,
-          results: this.results,
-          result,
-          url: href,
-          newTab: ev.altKey || ev.metaKey || ev.ctrlKey,
-        });
-      }
+      clickSignal({
+        extra,
+        coordinates,
+        results: this.results,
+        result,
+        url: href,
+        newTab: ev.altKey || ev.metaKey || ev.ctrlKey,
+      });
     }
   }
 

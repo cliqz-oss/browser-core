@@ -9,9 +9,6 @@
 // TODO - Simplify the API of NetworkFilter to expose less information +
 // integrate the matching directly. We can then easily create different
 // sub-class of network filters depending on the kind of patterns we have.
-
-
-import console from '../console';
 import { tokenize
        , tokenizeCSS
        , fastHash
@@ -419,16 +416,12 @@ function compileRegex(filterStr, isRightAnchor, isLeftAnchor, matchCase) {
     filter = `^${filter}`;
   }
 
-  try {
-    if (matchCase) {
-      return new RegExp(filter);
-    }
-    return new RegExp(filter, 'i');
-  } catch (ex) {
-    console.error(`failed to compile regex ${filter} with error ${ex} ${ex.stack}`);
-    // Regex will always fail
-    return { test() { return false; } };
+  // we will throw an exception if it fails. We need to remove the console
+  // dependency here since we need to use it in the workers
+  if (matchCase) {
+    return new RegExp(filter);
   }
+  return new RegExp(filter, 'i');
 }
 
 

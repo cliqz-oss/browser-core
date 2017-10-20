@@ -19,5 +19,8 @@ export function normalizeAclkUrl(url) {
   //
   // For background information about the "ved" code, see
   // https://deedpolloffice.com/blog/articles/decoding-ved-parameter
-  return parts[1].replace(/ved=.*&/, '');
+  const noVed = parts[1].replace(/ved=.*&/, '');
+
+  // TODO: hack, needs to be replaced by a more robust solution
+  return noVed.replace(/&q=&adurl=$/, '').replace(/&adurl=&q=$/, '');
 }

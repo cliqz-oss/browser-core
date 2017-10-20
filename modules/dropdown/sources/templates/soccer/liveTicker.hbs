@@ -18,9 +18,7 @@
             <div class="background-placeholder"></div>
             {{#each liveTicker}}
                 <input class="tab-radio-input" type="radio" name="tabs" id="tab-{{@index}}" {{#if isCurrent}}checked="checked"{{/if}}/>
-                <label class="dropdown-tab-label" for="tab-{{@index}}" onclick="(function(e) {
-                document.getElementById('tab-{{@index}}').checked = 'checked';
-                e.preventDefault(); e.stopPropagation(); })(event)">{{round}}</label>
+                <label class="dropdown-tab-label" for="tab-{{@index}}">{{round}}</label>
             {{/each}}
             {{#each liveTicker}}
                 <div id="tab-block-{{@index}}"

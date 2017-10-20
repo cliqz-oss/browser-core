@@ -345,6 +345,20 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
             chai.expect(evtHandlerMock.lastDomName).eql('amazon.com');
           });
         });
+
+        it('/double registration works', () => {
+          let o = ['$watch_requests', ['amazon.com']];
+          return testCase(o, true, ctx).then(() => {
+            // check that the request was called
+            chai.expect(evtHandlerMock.lastDomName).eql('amazon.com');
+            evtHandlerMock.lastDomName = '';
+            return testCase(o, true, ctx).then(() => {
+              // check that the request was called
+              chai.expect(evtHandlerMock.lastDomName).eql('amazon.com');
+            });
+          });
+        });
+
       });
 
     //   /**

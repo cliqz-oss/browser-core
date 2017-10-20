@@ -81,10 +81,10 @@ export function parseDom(url, window, windowId) {
         element: '#ires',
         attribute: 'data-async-context'
       },
-      adSections: ['.ads-ad', '.pla-unit-container', '.pla-hovercard-content-ellip'],
+      adSections: ['.ads-ad', '.pla-unit-container', '.pla-hovercard-content-ellip', '.cu-container tr'],
       0: {
-        cu: ".ad_cclk h3 a[id^='s0p'],.ad_cclk h3 a[id^='s3p']",
-        fu: ".ad_cclk h3 a[id^='vs0p'],.ad_cclk h3 a[id^='vs3p']"
+        cu: ".ad_cclk h3 a[id^='s0p'],.ad_cclk h3 a[id^='n1s0p'],.ad_cclk h3 a[id^='s3p']",
+        fu: ".ad_cclk h3 a[id^='vs0p'],.ad_cclk h3 a[id^='vn1s0p'],.ad_cclk h3 a[id^='vs3p']"
       },
       1: {
         cu: "a[id^='plaurlg']",
@@ -93,6 +93,10 @@ export function parseDom(url, window, windowId) {
       2: {
         cu: "a[id^='plaurlh']",
         fu: "a[id^='vplaurlh']"
+      },
+      3: {
+        cu: "a[id^='plaurlt']",
+        fu: "a[id^='vplaurlt']"
       }
     };
 

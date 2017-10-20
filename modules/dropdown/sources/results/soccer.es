@@ -364,6 +364,14 @@ export default class extends GenericResult {
       text: this.rawResult.text,
       show: this.itemsLimit < this.maxRowsLimit,
       onClick: () => {
+        const signal = {
+          type: 'results',
+          action: 'click',
+          view: 'SoccerEZ',
+          target: 'show_more',
+        };
+        utils.telemetry(signal);
+
         this.itemsLimit = this.maxRowsLimit;
         this.actions.replaceResult(this, this);
       }
@@ -380,5 +388,33 @@ export default class extends GenericResult {
 
   get groupTableHeader() {
     return this.extra.group_name;
+  }
+
+  didRender($dropdown) {
+    super.didRender($dropdown);
+
+    $dropdown.querySelectorAll('.soccer .dropdown-tab-label').forEach((label) => {
+      label.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const input = $dropdown.querySelector(`#${e.target.getAttribute('for')}`);
+
+        if (!input) {
+          return;
+        }
+
+        input.checked = 'checked';
+
+        const signal = {
+          type: 'results',
+          action: 'click',
+          view: 'SoccerEZ',
+          target: 'tab',
+          index: e.target.getAttribute('for').substr(4),
+        };
+        utils.telemetry(signal);
+      });
+    });
   }
 }

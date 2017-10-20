@@ -5,7 +5,7 @@
         {{/if}}
         {{#each (take internalResults internalResultsLimit)}}
             <a id="{{elementId}}" class="result btn {{className}}" href="{{ url }}">
-                {{local title}}
+                {{local (concatLocale ../localePrefix title)}}
             </a>
         {{/each}}
     </div>

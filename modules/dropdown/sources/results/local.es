@@ -65,6 +65,20 @@ export class ShareLocationButton extends BaseResult {
     if (!locationAssistant.hasAction(actionName)) {
       return;
     }
+
+    const signal = {
+      type: 'results',
+      action: 'click',
+      view: 'local',
+    };
+    if (actionName === 'allowOnce') {
+      signal.target = 'share_location_once';
+      utils.telemetry(signal);
+    } else if (actionName === 'allow') {
+      signal.target = 'share_location_always';
+      utils.telemetry(signal);
+    }
+
     locationAssistant[actionName]().then(() => {
       this.rawResult.onButtonClick();
     }).catch(console.error);

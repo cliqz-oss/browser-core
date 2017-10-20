@@ -39,6 +39,10 @@ class ModuleWrapper {
     return this.module.isReady();
   }
 
+  isEnabled() {
+    return !!(this.module && !this.module.isDisabled);
+  }
+
   action(actionName, ...args) {
     return this.isReady()
       .then(() => this.module.background.actions[actionName](...args));

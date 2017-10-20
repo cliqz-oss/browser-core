@@ -34,6 +34,26 @@ export default describeModule('human-web/ad-detection',
         expect(key1).to.equal(key2);
       });
 
+      it('should ignore "adurl" and "q" parameters', function () {
+        const url1 = 'https://www.googleadservices.com/pagead/aclk?sa=L&ai=DChcSEwjJt6z20PrWAhUiKNMKHfvTB4kYABAAGgJ3Yg&ohost=www.google.de&cid=CAASEuRobxFBtt0g1nfQpKP2P2hE6Q&sig=AOD64_0B3ktCajIy1rkz-mH2AO8PDPAmug&adurl=&q=';
+        const url2 = 'https://www.googleadservices.com/pagead/aclk?sa=L&ai=DChcSEwjJt6z20PrWAhUiKNMKHfvTB4kYABAAGgJ3Yg&ohost=www.google.de&cid=CAASEuRobxFBtt0g1nfQpKP2P2hE6Q&sig=AOD64_0B3ktCajIy1rkz-mH2AO8PDPAmug&q=&adurl=';
+
+        const key1 = normalizeAclkUrl(url1);
+        const key2 = normalizeAclkUrl(url2);
+
+        expect(key1).to.equal(key2);
+      });
+
+      it('should not rely on the order of "adurl" and "q" parameters', function () {
+        const url1 = 'https://www.googleadservices.com/pagead/aclk?sa=L&ai=DChcSEwjo8OmgzPrWAhXuCtMKHQbaAt0YABAAGgJ3Yg&ohost=www.google.de&cid=CAASEuRovOsq8jYWW7VzZbLgEFV4vw&sig=AOD64_2K3umt-jl0hvOZeZXWExyyAWAfjw&q=&ved=0ahUKEwjareagzPrWAhVBvhQKHeCCDzEQ0QwIZA&adurl=';
+        const url2 = 'https://www.googleadservices.com/pagead/aclk?sa=L&ai=DChcSEwjo8OmgzPrWAhXuCtMKHQbaAt0YABAAGgJ3Yg&ohost=www.google.de&cid=CAASEuRovOsq8jYWW7VzZbLgEFV4vw&sig=AOD64_2K3umt-jl0hvOZeZXWExyyAWAfjw&adurl=&ved=0ahUKEwjareagzPrWAhVBvhQKHeCCDzEQ0QwIZA&q=';
+
+        const key1 = normalizeAclkUrl(url1);
+        const key2 = normalizeAclkUrl(url2);
+
+        expect(key1).to.equal(key2);
+      });
+
       it('should map different ads to different normalized strings', function () {
         const urls = [
           'https://www.googleadservices.com/pagead/aclk?sa=L&ai=DChcSEwjyu42VwLPWAhUQnhsKHYgzAZcYABAAGgJ3bA&ohost=www.google.de&cid=CAASEuRopco2XerPuHClGWTnWaddQg&sig=AOD64_0iZf149HO9tmAdBuXWsYrMVIF9xQ&q=&ved=0ahUKEwirx4qVwLPWAhXHXBQKHXDqCTEQ0QwIKA&adurl=',

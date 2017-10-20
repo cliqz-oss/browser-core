@@ -437,6 +437,12 @@ var CliqzABTests = {
             case "1110_B":
                 CliqzUtils.setPref("cliqzTabOffersNotification", true);
                 break;
+            case "1111_A":
+                CliqzUtils.setPref("modules.history-analyzer.enabled", false);
+                break;
+            case "1111_B":
+                CliqzUtils.setPref("modules.history-analyzer.enabled", true);
+                break;
             default:
                 rule_executed = false;
         }
@@ -721,6 +727,10 @@ var CliqzABTests = {
             case "1110_A":
             case "1110_B":
                 CliqzUtils.clearPref("cliqzTabOffersNotification");
+                break;
+            case "1111_A":
+            case "1111_B":
+                CliqzUtils.setPref("modules.history-analyzer.enabled", false);
                 break;
             default:
                 rule_executed = false;

@@ -74,12 +74,17 @@ export default describeModule('offers-v2/event_handler',
       }
     },
     'platform/globals': {
-    }
+    },
     // 'core/crypto/random': {
     // },
-    // 'platform/console': {
-    //   default: {}
-    // },
+    'platform/console': {
+      default: {}
+    },
+    'core/prefs': {
+      default: {
+        get: function(x,y) { return y; }
+      }
+    }
   }),
   () => {
     describe('#event_handler', function() {
@@ -130,7 +135,7 @@ export default describeModule('offers-v2/event_handler',
 
         it('/url change event calls appropiate callback', function () {
           let counter = 0;
-          const cb = (urlObj, url, args) => {
+          const cb = (urlData, args) => {
             counter += 1;
           };
           eh.subscribeUrlChange(cb, null);
@@ -140,20 +145,19 @@ export default describeModule('offers-v2/event_handler',
 
         it('/url change event calls appropiate callback with proper arguments', function () {
           let counter = 0;
-          let lastUrl = null;
-          let lastUrlObj = null;
+          let lastUrlData = null;
           let lastArgs = null;
-          const cb = (urlObj, url, args) => {
+          const cb = (urlData, args) => {
             counter += 1;
-            lastUrl = url;
-            lastUrlObj = urlObj;
+            lastUrlData = urlData;
             lastArgs = args;
           };
           eh.subscribeUrlChange(cb, {x:1, y: 2, z: 3});
           simLocChange('http://www.amazon.com/');
           chai.expect(counter).eql(1);
-          chai.expect(lastUrl).eql('http://www.amazon.com/');
-          chai.expect(lastUrlObj.domain).eql('amazon.com');
+          chai.expect(lastUrlData).to.exist;
+          chai.expect(lastUrlData.getRawUrl()).eql('http://www.amazon.com/');
+          chai.expect(lastUrlData.getDomain()).eql('amazon.com');
           chai.expect(lastArgs).eql({x:1, y: 2, z: 3});
         });
 

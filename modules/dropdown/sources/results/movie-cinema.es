@@ -1,6 +1,7 @@
 import BaseResult from './base';
 import GenericResult from './generic';
 import LocalResult from './local';
+import utils from '../../core/utils';
 
 class ExpandButton extends BaseResult {
   get displayUrl() {
@@ -41,8 +42,12 @@ class ShowTimeInfo extends BaseResult {
 }
 
 class ShowTimeRow extends GenericResult {
+  get resultType() {
+    return this.rawResult.type;
+  }
+
   get cinemaInfo() {
-    if (this.rawResult.type === 'movie') {
+    if (this.resultType === 'movie') {
       return {
         name: this.rawResult.row.name,
         distance: this.rawResult.row.distance ? this.rawResult.row.distance : null,
@@ -54,7 +59,7 @@ class ShowTimeRow extends GenericResult {
   }
 
   get movieInfo() {
-    if (this.rawResult.type === 'cinema') {
+    if (this.resultType === 'cinema') {
       return {
         title: this.rawResult.row.title || '',
       };
@@ -241,10 +246,6 @@ export default class extends GenericResult {
     return this._apiData.city;
   }
 
-  get isAskingForLocation() {
-    return (this._extra.no_location || false) && this.actions.locationAssistant.isAskingForLocation;
-  }
-
   get localResult() {
     const cinemaInfo = this._cinemaData;
     if (cinemaInfo.mu && cinemaInfo.address) {
@@ -260,14 +261,11 @@ export default class extends GenericResult {
     return null;
   }
 
-  get shareLocationButtons() {
-    super.shareLocationButtons.forEach((button) => {
-      if (button.title === 'show-location-and-contact') {
-        const btn = button;
-        btn.rawResult.title = 'show-location-and-contact-cinema';
-      }
-    });
-    return super.shareLocationButtons;
+  get shareLocationButtonsWrapper() {
+    return {
+      ...super.shareLocationButtonsWrapper,
+      localePrefix: 'cinema',
+    };
   }
 
   get showTimeResults() {
@@ -286,6 +284,14 @@ export default class extends GenericResult {
       text: this.rawResult.text,
       show: this.showTimesLimit < this.maxRowsLimit,
       onClick: () => {
+        const signal = {
+          type: 'results',
+          action: 'click',
+          view: 'EntityMovie',
+          target: 'show_more',
+        };
+        utils.telemetry(signal);
+
         this.showTimesLimit = this.maxRowsLimit;
         this.actions.replaceResult(this, this);
       }
@@ -313,5 +319,32 @@ export default class extends GenericResult {
       ...this.showTimeResults,
       this.expandButton,
     ];
+  }
+
+  didRender($dropdown) {
+    super.didRender($dropdown);
+
+    $dropdown.querySelectorAll('.movie-cinema .dropdown-tab-label').forEach((label) => {
+      label.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const input = $dropdown.querySelector(`#${e.target.getAttribute('for')}`);
+
+        if (!input) {
+          return;
+        }
+
+        input.checked = 'checked';
+
+        const signal = {
+          type: 'results',
+          action: 'click',
+          view: 'EntityMovie',
+          target: 'tab',
+          index: e.target.getAttribute('for').substr(4),
+        };
+        utils.telemetry(signal);
+      });
+    });
   }
 }

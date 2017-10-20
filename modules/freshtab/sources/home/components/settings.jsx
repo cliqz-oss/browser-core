@@ -171,7 +171,7 @@ export default class Settings extends React.Component {
                     {t('app.settings.news.language.de')}
                   </label>
                 </div>
-                <div className="radio">
+                <div className={this.props.focusNews ? 'focused radio' : 'radio'}>
                   <label htmlFor="news-radio-selector-3">
                     <input
                       type="radio"
@@ -215,6 +215,7 @@ Settings.propTypes = {
   onNewsSelectionChanged: PropTypes.func,
   toggle: PropTypes.func,
   isOpen: PropTypes.bool,
+  focusNews: PropTypes.bool,
   blueTheme: PropTypes.bool,
   isBlueThemeSupported: PropTypes.func,
   isBlueBackgroundSupported: PropTypes.func,

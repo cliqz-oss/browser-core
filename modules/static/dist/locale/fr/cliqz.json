@@ -1623,10 +1623,10 @@
       "message": "Offres récentes"
     },
     "offers-hub-welcome-title": {
-      "message": "Bienvenue dans Cliqz-Offres"
+      "message": "Bienvenue dans MyOffrz"
     },
     "offers-hub-welcome-text": {
-      "message": "Ici, vous trouverez bientôt des annonces exclusives pour vous"
+      "message": "Ici vous pourrez découvrir une nouvelle offre chaque semaine,<br /> ainsi que des bon plans sélectionnés rien que pour vous !"
     },
     "offers-hub-feedback-title": {
       "message": "Vos commentaires nous importent"
@@ -1638,7 +1638,7 @@
       "message": "Cette offre ne m'intéresse pas"
     },
     "offers-hub-feedaback-option2": {
-      "message": "Les offres de Cliqz-Offres ne m'intéressent pas"
+      "message": "Les offres de MyOffrz ne m'intéressent pas"
     },
     "offers-hub-feedaback-option3": {
       "message": "Aucune offre ne m'intéresse"
@@ -1706,10 +1706,13 @@
     "show-location-and-contact": {
       "message": "Afficher résultat local et contact"
     },
-    "show-location-and-contact-cinema": {
+    "cinema-show-location-and-contact": {
       "message": "Afficher les cinémas près de moi"
     },
     "always-show-location": {
+      "message": "Afficher toujours"
+    },
+    "cinema-always-show-location": {
       "message": "Afficher toujours"
     },
     "show-map": {
@@ -1795,6 +1798,15 @@
     },
     "freshtab.app.middle-box.blue-theme-cta": {
         "message": "Personnalisez-le dès maintenant"
+    },
+    "freshtab.app.middle-box.french-news-hdr": {
+        "message": "Lisez Top News en français dès maintenant !"
+    },
+    "freshtab.app.middle-box.french-news-desc": {
+        "message": "L'édition française de Top News sélectionne les informations les plus importantes, parmis les journaux les plus respectés en France."
+    },
+    "freshtab.app.middle-box.french-news-cta": {
+        "message": "Essayez dès maintenant !"
     },
     "freshtab.app.news.breaking-news": {
         "message": "Breaking news:"

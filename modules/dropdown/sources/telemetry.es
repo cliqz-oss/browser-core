@@ -1,5 +1,5 @@
 import utils from '../core/utils';
-import { equals } from '../core/url';
+import { equals, isCliqzAction } from '../core/url';
 import SupplementarySearchResult from './results/supplementary-search';
 import NavigateToResult from './results/navigate-to';
 
@@ -96,6 +96,10 @@ export function enterSignal({ result, results, clickedResult, query, newTab }) {
 
 
 export function clickSignal({ extra, coordinates, results, result, url, newTab }) {
+  if (isCliqzAction(url)) {
+    return;
+  }
+
   const clickedResult = result.findResultByUrl(url);
   if (clickedResult) {
     const commonPart = common({ results, result, clickedResult, url });

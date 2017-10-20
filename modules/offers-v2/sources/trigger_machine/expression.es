@@ -25,7 +25,6 @@ export default class Expression {
    *
    *   // the regex cache handler
    *   regex_cache: regexpCache,
-   *   regex_helper: regexHelper,
    *
    *   // the trigger cache
    *   trigger_cache: triggerCache,

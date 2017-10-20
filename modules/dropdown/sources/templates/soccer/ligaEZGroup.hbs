@@ -21,9 +21,7 @@
             {{/if}}
             {{#each ligaEZGroup}}
                 <input class="tab-radio-input" type="radio" name="tabs" id="tab-{{@index}}" {{#if @first}}checked="checked"{{/if}}/>
-                <label class="dropdown-tab-label" for="tab-{{@index}}" onclick="(function(e) {
-                document.getElementById('tab-{{@index}}').checked = 'checked';
-                e.preventDefault(); e.stopPropagation(); })(event)">{{groupName}}</label>
+                <label class="dropdown-tab-label" for="tab-{{@index}}">{{groupName}}</label>
             {{/each}}
             {{#each ligaEZGroup}}
                 <div id="tab-block-{{@index}}"

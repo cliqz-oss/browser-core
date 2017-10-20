@@ -14,7 +14,6 @@ export default class ExpressionBuilder {
    * @param  {[type]} globalObjs [description]
    * {
    *   regex_cache: regexpCache,
-   *   regex_helper: regexHelper,
    *   trigger_cache: triggerCache,
    *   trigger_machine: triggerMachine,
    *   offer_processor: offerProcessor,
@@ -143,7 +142,6 @@ export default class ExpressionBuilder {
       parent_trigger: parentTrigger,
       exp_builder: this,
       regex_cache: this.globObjs.regex_cache,
-      regex_helper: this.globObjs.regex_helper,
       trigger_cache: this.globObjs.trigger_cache,
       trigger_machine: this.globObjs.trigger_machine,
       offer_processor: this.globObjs.offer_processor,
@@ -155,7 +153,9 @@ export default class ExpressionBuilder {
       url_signal_db: this.globObjs.url_signal_db,
       trigger_machine_executor: this.globObjs.trigger_machine_executor,
       query_handler: this.globObjs.query_handler,
-      expression_cache: this.globObjs.expression_cache
+      expression_cache: this.globObjs.expression_cache,
+      feature_handler: this.globObjs.feature_handler,
+      pattern_matching_handler: this.globObjs.pattern_matching_handler,
     };
     const Builder = this.buildMap.ops[opName];
     return new Builder(buildData);

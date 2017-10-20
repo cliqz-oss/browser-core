@@ -84,27 +84,21 @@ export default class TriggerMachineExecutor {
    */
   processWatchReqCallback(data, cbArgs) {
     if (!data ||
-        !data.reqObj ||
-        !data.reqObj.url ||
+        !data.url_data ||
         !cbArgs ||
         !cbArgs.trigger_id) {
       // invalid call?
       logger.warn('processWatchReqCallback: invalid args');
       return;
     }
-
-    const lwUrl = data.reqObj.url.toLowerCase();
-
     // we check here if the trigger still exists
     const trigger = this.triggerMachine.getTriggerByID(cbArgs.trigger_id);
     if (!trigger) {
       return;
     }
     const d = {
-      url: data.reqObj.url,
-      urlObj: data.urlObj,
       trigger_id: cbArgs.trigger_id,
-      lowerCaseUrl: lwUrl
+      url_data: data.url_data
     };
     this.processUrlChange(d, 'req');
   }
@@ -122,19 +116,13 @@ export default class TriggerMachineExecutor {
     try {
       // we process the event now
       const ctx = {
-        '#url': data.url,
-        '#lc_url': data.lowerCaseUrl
-      };
-      if (data.urlObj) {
-        ctx['#domain'] = data.urlObj.domain;
-        ctx['#url_data'] = this.globObjs.regex_helper.buildUrlMatchData({
-          url: data.url,
-          domain: data.urlObj.domain
-        });
-
+        '#url': data.url_data.getRawUrl(),
+        '#lc_url': data.url_data.getLowercaseUrl(),
+        '#domain': data.url_data.getDomain(),
+        '#url_data': data.url_data,
         // adding the referrer as context information
-        ctx['#referrer'] = data.urlObj.referrer;
-      }
+        '#referrer': data.url_data.getReferrer()
+      };
 
       // add the query handler info
       ctx['#query_info'] = data.queryInfo;
@@ -143,7 +131,7 @@ export default class TriggerMachineExecutor {
       if (data.trigger_id) {
         trigger = this.triggerMachine.getTriggerByID(data.trigger_id);
       }
-      logger.info(`processing new event for url: ${data.url}`);
+      logger.info(`processing new event for url: ${data.url_data.getRawUrl()}`);
       if (trigger) {
         return this.triggerMachine.run(trigger, ctx);
       }

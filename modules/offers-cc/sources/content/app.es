@@ -205,13 +205,22 @@ $(document).ready(() => {
     });
   });
 
-    // close panel
-  $('#cliqz-offers-cc').on('click', '.cqz-call-to-action .cqz-close-hub', () => {
+  // Close panel, use offer
+  $('#cliqz-offers-cc').on('click', '.cqz-call-to-action .cqz-close-hub', (e) => {
+    e.stopPropagation();
     sendMessageToWindow({
       action: 'closePanel',
       data: {
-        force: true
+        force: true,
+        used: true,
       }
+    });
+  });
+
+  // Remove offer
+  $('#cliqz-offers-cc').on('click', '.cqz-ticket-offer .cqz-close', () => {
+    sendMessageToWindow({
+      action: 'removeOffer',
     });
   });
 
@@ -229,7 +238,8 @@ $(document).ready(() => {
       sendMessageToWindow({
         action: 'closePanel',
         data: {
-          force: true
+          force: true,
+          close: true,
         }
       });
     }

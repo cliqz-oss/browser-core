@@ -8,18 +8,16 @@ way for the offers module.
 import logger from './common/offers_v2_logger';
 import { utils, events } from '../core/cliqz';
 import WebRequest from '../core/webrequest';
+import UrlData from './common/url_data';
+
 
 export default class EventHandler {
-
 
   constructor() {
     // the list of callbacks we will handle.
     this.callbacksMap = {
       url_change: [],
-      query_search: [],
-      http_req: {},
-
-      http_req_all: [], // this should be removed on the future! we should use more specific ones
+      http_req: {}
     };
 
     this.onTabLocChanged = this.onTabLocChanged.bind(this);
@@ -57,24 +55,6 @@ export default class EventHandler {
   }
   unsubscribeUrlChange(cb) {
     this._unsubscribeCallback('url_change', cb);
-  }
-
-  //
-  // @brief subscribe to get events when new queries are being performed.
-  // @note
-  //    The event emitted will be:
-  //  {
-  //    'real_query' : q,
-  //    'engine' : X,     // this is the code specifying where the query was performed
-  //                      // for example (cliqz bar, google, etc).
-  //
-  //  }
-  //
-  subscribeQuerySearch(cb, cargs = null) {
-    this.callbacksMap['query_search'].push({ cb, cargs });
-  }
-  unsubscribeQuerySearch(cb) {
-    this._unsubscribeCallback('query_search', cb);
   }
 
   //
@@ -149,18 +129,6 @@ export default class EventHandler {
     return this.callbacksMap['http_req'][domainName].some(e => e.cb === cb);
   }
 
-
-  //
-  // @brief temporary (for backward compatibility) function that should be
-  //        removed on the future so we use the one specifying  the domain.
-  //
-  subscribeAllHttpReq(cb, cargs = null) {
-    this.callbacksMap['http_req_all'].push({ cb, cargs });
-  }
-  unsubscribeAllHttpReq(cb) {
-    this._unsubscribeCallback('http_req_all', cb);
-  }
-
   //////////////////////////////////////////////////////////////////////////////
   //                          PRIVATE METHODS
   //////////////////////////////////////////////////////////////////////////////
@@ -210,18 +178,17 @@ export default class EventHandler {
       return;
     }
 
-    const u = utils.getDetailsFromUrl(url);
-
     // now we add the referrer to the url
+    let referrerName = null;
     if (referrer) {
       var referrerUrlDetails = utils.getDetailsFromUrl(referrer);
-      u['referrer'] = referrerUrlDetails.name;
-    } else {
-      u['referrer'] = '';
+      referrerName = referrerUrlDetails.name;
     }
 
+    const urlData = new UrlData(url, referrerName);
+
     try {
-      this._publish(this.callbacksMap['url_change'], u, url);
+      this._publish(this.callbacksMap['url_change'], urlData);
     } catch (e) {
       // log this error, is nasty, something went wrong
       logger.error('Exception catched when processing a new event: ' + e);
@@ -237,18 +204,9 @@ export default class EventHandler {
       return;
     }
 
-    // this is for temporary backward compatibility, we should remove this
-    let cbAllHttpReq = this.callbacksMap['http_req_all'];
-    if (cbAllHttpReq.length > 0) {
-      this._publish(cbAllHttpReq, { reqObj: requestObj });
-    }
     // check if we have a domain for this
-    const urlInfo = utils.getDetailsFromUrl(requestObj.url);
-    if (!urlInfo) {
-      return;
-    }
-    const domainName = urlInfo.domain;
-
+    const urlData = new UrlData(requestObj.url);
+    const domainName = urlData.getDomain();
     // check if we have the associated domain
     if(domainName && this.callbacksMap['http_req']) {
       var callbacks = this.callbacksMap['http_req'][domainName];
@@ -257,7 +215,7 @@ export default class EventHandler {
       }
 
       // we have callbacks then we call them
-      this._publish(callbacks, { reqObj: requestObj, urlObj: urlInfo });
+      this._publish(callbacks, { reqObj: requestObj, url_data: urlData });
     }
   }
 

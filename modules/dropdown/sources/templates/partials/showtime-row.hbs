@@ -16,7 +16,7 @@
     <div class="show-time-info table-cell">
     {{#each showTimes}}
         <span class="show-time-span">
-            <a class="result" href="{{url}}">{{displayTime}}
+            <a class="result" data-extra="showtime_row_{{@../index}}" href="{{url}}">{{displayTime}}
                 {{#if movieLanguage}}
                     <span>{{movieLanguage}}</span>
                 {{/if}}

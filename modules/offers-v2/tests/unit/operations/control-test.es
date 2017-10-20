@@ -78,10 +78,10 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
     'offers-v2/common/offers_v2_logger': {
       default: {
         debug: () => {},
-        error: () => {},
-        info: (...args) => { hookedResultOfLoggerInfo = args; },
+        error: (...args) => {console.error(...args)},
+        info: (...args) => { console.log(args); hookedResultOfLoggerInfo = args; },
         log: () => {},
-        warn: () => {},
+        warn: () => { console.error(...args); },
         logObject: () => {},
       }
     },
@@ -101,6 +101,97 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         }
      }
     },
+    'offers-v2/features/feature-handler': {
+      default: class {
+        constructor() {
+          this.features = {};
+        }
+        clear() {
+          this.features = {};
+        }
+        addFeaturesToCheck(featureList) {}
+
+        isFeatureAvailable(featureName) {
+          return !!this.features[featureName];
+        }
+        getFeature(featureName) {
+          return this.features[featureName];
+        }
+        dumpFeaturesData() {}
+      }
+    },
+    'offers-v2/pattern-matching/pattern-matching-handler': {
+      default: class {
+        constructor() {
+          this.clear();
+        }
+        setitMatchesResult(r) { this.itMatchesResult = r; }
+        itMatches(tokenizedURL, patternObj) {
+          this.lastTokenizedURL = tokenizedURL;
+          this.lastPatternObj = patternObj;
+          return this.itMatchesResult;
+        }
+        countHistoryMatches(query, patternObj) {
+          console.log('### HEREE', query);
+          this.lastQuery = query;
+          this.lastPatternObj = patternObj;
+          return this.countHistoryMatchesResult;
+        }
+        clear() {
+          this.lastTokenizedURL = null;
+          this.lastPatternObj = null;
+          this.lastQuery = null;
+          this.itMatchesResult = false;
+          this.countHistoryMatchesResult = 0;
+        }
+      }
+    },
+    'offers-v2/common/url_data': {
+      default: class {
+        constructor(url) {
+          this.rawUrl = url;
+        }
+        hasReferrer() { return false; }
+        getReferrer() { return ''; }
+        getRawUrl() { return this.rawUrl; }
+        getLowercaseUrl() { return this.rawUrl.toLowerCase() ;}
+        getUrlDetails() { return {}; }
+        getDomain() { return ''; }
+        getPatternRequest() { return this.rawUrl; }
+      }
+    },
+    'offers-v2/features/geo_checker': {
+      default: class {
+        constructor() {
+          this.clear();
+        }
+        clear() {
+          this.locs = null;
+          this.lastLocCheck = [];
+          this.isSameLocationRet = true;
+        }
+        isLocAvailable() {
+          return this.loc !== null;
+        }
+        isAvailable() {
+          return this.isLocAvailable();
+        }
+        updateLocation(data) { }
+        updateCity(city) { }
+        updateCountry(country) { }
+        checkLocByCoords(coords, dKm) {
+          // TODO: implement this when required
+          return false;
+        }
+        isSameLocation(loc) {
+          this.lastLocCheck.push(loc);
+          return this.isSameLocationRet;
+        }
+      }
+    }
+
+
+
   }),
   () => {
     describe('/control operations', () => {
@@ -112,6 +203,12 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
       let exprBuilder;
       let RegexpCache;
       let QHandlerMock;
+      let FeatureHandler;
+      let GeoCheckerMock;
+      let geoMock;
+      let featureHandlerMock;
+      let patternMatchMock;
+      let UrlData;
 
       function buildOp(obj) {
         return exprBuilder.createExp(obj);
@@ -120,7 +217,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
       function testCase(op, expectedVal, ctx) {
         const e = buildOp(op);
         return e.evalExpr(ctx).then((result) => {
-          chai.expect(result).to.eq(expectedVal);
+          chai.expect(result).eql(expectedVal);
         });
       }
 
@@ -129,10 +226,20 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         prefMock = this.deps('core/prefs').default;
         RegexpCache = this.deps('offers-v2/regexp_cache').default;
         QHandlerMock = this.deps('offers-v2/query_handler').default;
+        FeatureHandler = this.deps('offers-v2/features/feature-handler').default;
+        GeoCheckerMock = this.deps('offers-v2/features/geo_checker').default;
+        const PatternMatchingHandlerMock = this.deps('offers-v2/pattern-matching/pattern-matching-handler').default;
+        UrlData = this.deps('offers-v2/common/url_data').default;
+        patternMatchMock = new PatternMatchingHandlerMock();
+        featureHandlerMock = new FeatureHandler();
+        geoMock = new GeoCheckerMock();
         prefRetVal = {};
         buildDataGen = {
           regex_cache: new RegexpCache(),
-          query_handler: new QHandlerMock()
+          query_handler: new QHandlerMock(),
+          geo_checker: geoMock,
+          feature_handler: featureHandlerMock,
+          pattern_matching_handler: patternMatchMock,
         };
         return this.system.import('offers-v2/trigger_machine/exp_builder').then((mod) => {
           ExpressionBuilder = mod.default;
@@ -793,6 +900,549 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           return testCase(o, false, ctx).catch(err => {
             chai.expect(err).to.exist;
           });
+        });
+
+      });
+
+      //  *
+      //  * ==================================================
+      //  * is_feature_enabled operation
+      //  * ==================================================
+
+      describe('/is_feature_enabled', () => {
+        let op;
+        let ctx;
+        beforeEach(function () {
+          ctx = {};
+          prefRetVal = {};
+          featureHandlerMock.clear();
+        });
+
+        it('/invalid args call', () => {
+          let o = ['$is_feature_enabled', []];
+          op = buildOp(o);
+          return op.evalExpr(ctx).then((result) => {
+            chai.assert.fail(result, 'error');
+          }).catch((err) => {
+            chai.expect(err).to.exist;
+          });
+        });
+
+        it('/invalid args call 2', () => {
+          let o = ['$is_feature_enabled', [{}]];
+          op = buildOp(o);
+          return op.evalExpr(ctx).then((result) => {
+            chai.assert.fail(result, 'error');
+          }).catch((err) => {
+            chai.expect(err).to.exist;
+          });
+        });
+
+        it('/simple check feature doesnt exists', () => {
+          let o = ['$is_feature_enabled', [{name: 'feature_test_not_exists'}]];
+          featureHandlerMock.features = {feature_test: false};
+          return testCase(o, false, ctx);
+        });
+
+        it('/simple check feature exists but dissabled', () => {
+          let o = ['$is_feature_enabled', [{name: 'feature_test'}]];
+          featureHandlerMock.features = {feature_test: false};
+          return testCase(o, false, ctx);
+        });
+
+        it('/simple check feature exists and enabled', () => {
+          let o = ['$is_feature_enabled', [{name: 'feature_test'}]];
+          featureHandlerMock.features = {feature_test: true, feature_test_2: false};
+          return testCase(o, true, ctx);
+        });
+
+      });
+
+
+      //  *
+      //  * ==================================================
+      //  * pattern_match operation
+      //  * ==================================================
+
+      describe('/pattern_match', () => {
+        let op;
+        let ctx;
+        const SAMPLE_URL = 'http://www.amazon.com';
+
+        beforeEach(function () {
+          ctx = {
+            '#url_data': new UrlData(SAMPLE_URL),
+          };
+          prefRetVal = {};
+          featureHandlerMock.clear();
+          patternMatchMock.clear();
+        });
+
+        function testInvalidArg(context, operation) {
+          const op = buildOp(operation);
+          return op.evalExpr(context).then((result) => {
+            chai.assert.fail(result, 'error');
+          }).catch((err) => {
+            chai.expect(err).to.exist;
+          });
+        }
+
+        it('/invalid args call', () => {
+          let o = ['$pattern_match', []];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args call 2', () => {
+          let o = ['$pattern_match', [{}]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for current url 1', () => {
+          let o = ['$pattern_match', [{match_current: true}]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for current url 2', () => {
+          const arg = {
+            match_current: true,
+            patterns: {},
+          };
+          let o = ['$pattern_match', [arg]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for current url 3', () => {
+          const arg = {
+            match_current: true,
+            patterns: {
+              pid: 'x',
+            },
+          };
+          let o = ['$pattern_match', [arg]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for current url 4', () => {
+          const arg = {
+            match_current: true,
+            patterns: {
+              p_list: ['x']
+            },
+          };
+          let o = ['$pattern_match', [arg]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for history 1', () => {
+          let o = ['$pattern_match', [{match_current: false}]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for history 2', () => {
+          const arg = {
+            match_current: false,
+            patterns: {},
+          };
+          let o = ['$pattern_match', [arg]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for history 3', () => {
+          const arg = {
+            match_current: false,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            },
+          };
+          let o = ['$pattern_match', [arg]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for history min_matches_expected > 0', () => {
+          const arg = {
+            match_current: false,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            },
+            min_matches_expected: -1,
+            till_secs: 4,
+            since_secs: 19,
+          };
+          let o = ['$pattern_match', [arg]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for history till_secs < since_secs', () => {
+          const arg = {
+            match_current: false,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            },
+            min_matches_expected: 1,
+            till_secs: 29,
+            since_secs: 19,
+          };
+          let o = ['$pattern_match', [arg]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/simple test for current url true case', () => {
+          const arg = {
+            match_current: true,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            }
+          };
+          let o = ['$pattern_match', [arg]];
+          patternMatchMock.setitMatchesResult(true);
+          return testCase(o, true, ctx).then(() => {
+            chai.expect(patternMatchMock.lastTokenizedURL).eql(SAMPLE_URL);
+            chai.expect(patternMatchMock.lastPatternObj).eql(arg.patterns);
+          });
+        });
+
+        it('/simple test for current url false acse', () => {
+          const arg = {
+            match_current: true,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            }
+          };
+          let o = ['$pattern_match', [arg]];
+          patternMatchMock.setitMatchesResult(false);
+          return testCase(o, false, ctx).then(() => {
+            chai.expect(patternMatchMock.lastTokenizedURL).eql(SAMPLE_URL);
+            chai.expect(patternMatchMock.lastPatternObj).eql(arg.patterns);
+          });
+        });
+
+        // this.lastTokenizedURL = null;
+        // this.lastPatternObj = null;
+        // this.lastQuery = null;
+        // this.itMatchesResult = false;
+        // this.countHistoryMatchesResult = 0;
+
+        // test some history
+        it('/simple history case not reach minimum', () => {
+          const arg = {
+            match_current: false,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            },
+            min_matches_expected: 1,
+            till_secs: 10,
+            since_secs: 19,
+          };
+          const expectedQuery = {
+            since_secs: 19,
+            till_secs: 10,
+          };
+          let o = ['$pattern_match', [arg]];
+          patternMatchMock.countHistoryMatchesResult = 0;
+          return testCase(o, false, ctx).then(() => {
+            chai.expect(patternMatchMock.lastQuery).eql(expectedQuery);
+            chai.expect(patternMatchMock.lastPatternObj).eql(arg.patterns);
+          });
+        });
+
+        it('/simple history case reaches the minimum', () => {
+          const arg = {
+            match_current: false,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            },
+            min_matches_expected: 1,
+            till_secs: 10,
+            since_secs: 19,
+          };
+          const expectedQuery = {
+            since_secs: 19,
+            till_secs: 10,
+          };
+          let o = ['$pattern_match', [arg]];
+          patternMatchMock.countHistoryMatchesResult = 1;
+          return testCase(o, true, ctx).then(() => {
+            chai.expect(patternMatchMock.lastQuery).eql(expectedQuery);
+            chai.expect(patternMatchMock.lastPatternObj).eql(arg.patterns);
+          });
+        });
+
+        it('/simple history case reaches the minimum 2', () => {
+          const arg = {
+            match_current: false,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            },
+            min_matches_expected: 1,
+            till_secs: 10,
+            since_secs: 19,
+          };
+          const expectedQuery = {
+            since_secs: 19,
+            till_secs: 10,
+          };
+          let o = ['$pattern_match', [arg]];
+          patternMatchMock.countHistoryMatchesResult = 10;
+          return testCase(o, true, ctx).then(() => {
+            chai.expect(patternMatchMock.lastQuery).eql(expectedQuery);
+            chai.expect(patternMatchMock.lastPatternObj).eql(arg.patterns);
+          });
+        });
+
+        it('/simple history case cache works the minimum', () => {
+          const arg = {
+            match_current: false,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            },
+            cache_if_match_value_secs: 9999,
+            min_matches_expected: 1,
+            till_secs: 10,
+            since_secs: 19,
+          };
+          const expectedQuery = {
+            since_secs: 19,
+            till_secs: 10,
+          };
+          let o = ['$pattern_match', [arg]];
+          patternMatchMock.countHistoryMatchesResult = 1;
+          const e = buildOp(o);
+          return e.evalExpr(ctx).then((result) => {
+            chai.expect(result).to.eq(true);
+
+            chai.expect(patternMatchMock.lastQuery).eql(expectedQuery);
+            chai.expect(patternMatchMock.lastPatternObj).eql(arg.patterns);
+            patternMatchMock.countHistoryMatchesResult = 0;
+
+            // still the value is cached
+            patternMatchMock.lastQuery = null;
+            patternMatchMock.lastPatternObj = null;
+            return e.evalExpr(ctx).then((result) => {
+              chai.expect(result).to.eq(true);
+              chai.expect(patternMatchMock.lastPatternObj).eql(null);
+              chai.expect(patternMatchMock.lastQuery).eql(null);
+            });
+          });
+        });
+
+
+      });
+
+      /**
+       * ==================================================
+       * geo_check operation tests
+       * ==================================================
+       */
+      describe('/geo_check', () => {
+        let op;
+        let ctx;
+        beforeEach(function () {
+          ctx = {};
+          prefRetVal = {};
+          geoMock.clear();
+          featureHandlerMock.clear();
+        });
+
+        it('/missing arguments 1', () => {
+          let o = ['$geo_check'];
+          featureHandlerMock.features = {geo: geoMock};
+          return testCase(o, false, ctx).catch(err => {
+            chai.expect(err).to.exist;
+          });
+        });
+
+        it('/missing arguments 2', () => {
+          const args = [];
+          let o = ['$geo_check', args];
+          featureHandlerMock.features = {geo: geoMock};
+          return testCase(o, false, ctx).catch(err => {
+            chai.expect(err).to.exist;
+          });
+        });
+
+        it('/missing arguments 3', () => {
+          const args = [{}];
+          let o = ['$geo_check', args];
+          featureHandlerMock.features = {geo: geoMock};
+          return testCase(o, false, ctx).catch(err => {
+            chai.expect(err).to.exist;
+          });
+        });
+
+        it('/missing arguments 4', () => {
+          const args = [{coords: {}}];
+          let o = ['$geo_check', args];
+          featureHandlerMock.features = {geo: geoMock};
+          return testCase(o, false, ctx).catch(err => {
+            chai.expect(err).to.exist;
+          });
+        });
+
+        it('/missing arguments 5', () => {
+          const args = [{locs: {}}];
+          let o = ['$geo_check', args];
+          featureHandlerMock.features = {geo: geoMock};
+          return testCase(o, false, ctx).catch(err => {
+            chai.expect(err).to.exist;
+          });
+        });
+
+        it('/missing arguments 6', () => {
+          const args = [{coords: {}, main_check: 'locs'}];
+          let o = ['$geo_check', args];
+          featureHandlerMock.features = {geo: geoMock};
+          return testCase(o, false, ctx).catch(err => {
+            chai.expect(err).to.exist;
+          });
+        });
+
+        it('/missing arguments 7', () => {
+          const args = [{locs: {}, main_check: 'coords'}];
+          let o = ['$geo_check', args];
+          featureHandlerMock.features = {geo: geoMock};
+          return testCase(o, false, ctx).catch(err => {
+            chai.expect(err).to.exist;
+          });
+        });
+
+        it('/missing arguments 8', () => {
+          const args = [{coords: {}, locs: {}, main_check: 'whatever'}];
+          let o = ['$geo_check', args];
+          featureHandlerMock.features = {geo: geoMock};
+          return testCase(o, false, ctx).catch(err => {
+            chai.expect(err).to.exist;
+          });
+        });
+
+        it('/locs works for 1', () => {
+          const args = [{
+            locs: {
+              de: {
+                munich: ['123']
+              }
+            },
+            main_check: 'locs'
+          }];
+
+          geoMock.isSameLocationRet = true;
+          let o = ['$geo_check', args];
+          featureHandlerMock.features = {geo: geoMock};
+          return testCase(o, true, ctx).then(() => {
+            const expected = {country: 'de', city: 'munich', zip: '123'};
+            chai.expect(geoMock.lastLocCheck).eql([expected]);
+          });
+        });
+
+        it('/we only check one if first match', () => {
+          const args = [{
+            locs: {
+              de: {
+                munich: ['123', '234', '456']
+              }
+            },
+            main_check: 'locs'
+          }];
+
+          geoMock.isSameLocationRet = true;
+          let o = ['$geo_check', args];
+          featureHandlerMock.features = {geo: geoMock};
+          return testCase(o, true, ctx).then(() => {
+            const expected = [
+              {country: 'de', city: 'munich', zip: '123'}
+            ];
+            chai.expect(geoMock.lastLocCheck).eql(expected);
+          });
+        });
+
+        it('/we multiple if none match', () => {
+          const args = [{
+            locs: {
+              de: {
+                berlin: ['456', '8989'],
+                munich: ['123', '234', '456']
+              }
+            },
+            main_check: 'locs'
+          }];
+
+          geoMock.isSameLocationRet = false;
+          let o = ['$geo_check', args];
+          featureHandlerMock.features = {geo: geoMock};
+          return testCase(o, false, ctx).then(() => {
+            const expected = [
+              {country: 'de', city: 'berlin', zip: '456'},
+              {country: 'de', city: 'berlin', zip: '8989'},
+              {country: 'de', city: 'munich', zip: '123'},
+              {country: 'de', city: 'munich', zip: '234'},
+              {country: 'de', city: 'munich', zip: '456'}
+            ];
+            chai.expect(geoMock.lastLocCheck).eql(expected);
+          });
+        });
+
+        it('/check city works', () => {
+          const args = [{
+            locs: {
+              de: {
+                berlin: [],
+                munich: null,
+              }
+            },
+            main_check: 'locs'
+          }];
+
+          geoMock.isSameLocationRet = false;
+          let o = ['$geo_check', args];
+          featureHandlerMock.features = {geo: geoMock};
+          return testCase(o, false, ctx).then(() => {
+            const expected = [
+              {country: 'de', city: 'berlin'},
+              {country: 'de', city: 'munich'},
+            ];
+            chai.expect(geoMock.lastLocCheck).eql(expected);
+          });
+        });
+
+        it('/feature disabled works', () => {
+          const args = [{
+            locs: {
+              de: {
+                munich: ['123', '234', '456']
+              }
+            },
+            main_check: 'locs'
+          }];
+
+          let o = ['$geo_check', args];
+          featureHandlerMock.features = {};
+          return testCase(o, false, ctx);
         });
 
       });

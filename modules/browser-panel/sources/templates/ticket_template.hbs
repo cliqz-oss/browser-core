@@ -29,6 +29,12 @@
         </div>
 
         {{#if call_to_action }}
+            <span
+                class="logo-click"
+                openUrl="{{ call_to_action.url }}"
+                data-cqz-of-btn-id="offer_description"
+            >
+            </span>
             <div class="cqz-call-to-action">
                 <a openUrl="{{ call_to_action.url }}"
                    class="cqz-btn"
@@ -63,7 +69,12 @@
                 </div>
             {{/if }}
 
-            <div class="cqz-descr" style="color: {{ styles.description-color }}">
+            <div
+                openUrl="{{ call_to_action.url }}"
+                data-cqz-of-btn-id="offer_description"
+                class="cqz-descr"
+                style="color: {{ styles.description-color }}"
+            >
                 {{ desc }}
             </div>
         </div>

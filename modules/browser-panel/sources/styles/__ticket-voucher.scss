@@ -30,6 +30,15 @@
         background-position: 20px 50%;
     }
 
+    .logo-click {
+        cursor: pointer;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 170px;
+        height: 100%;
+    }
+
     .cqz-logo-holder {
         overflow: hidden;
         float: left;
@@ -124,6 +133,7 @@
         }
 
         .cqz-descr {
+            cursor: pointer;
             overflow: hidden;
             font-size: 14px;
             line-height: 1.2em;
@@ -379,6 +389,10 @@
             padding-right: 150px;
             background-size: 70px auto;
             background-position: 10px 50%;
+
+            .logo-click {
+                width: 100px;
+            }
 
             .cqz-logo-holder {
                 margin-left: -100px;

@@ -9,6 +9,12 @@
         >
             <div class="cqz-offer-holder"
                  style="background-color: {{ template_data.styles.background }}; background-image: url({{ template_data.logo_url }});">
+                <span
+                    class="logo-click"
+                    openurl="{{ template_data.call_to_action.url }}"
+                    data-cqz-of-btn-id="offer_description"
+                >
+                </span>
                 <div class="cqz-logo-holder">
                     {{#if template_data.logo_url }}
                         <!--<img src="{{ template_data.logo_url }}" alt=""/>-->
@@ -41,7 +47,13 @@
 
 
                 <div class="cqz-content-holder">
-                    <h1 class="cqz-title" style="color: {{ template_data.styles.title-color }}">
+                    <h1
+                        class="cqz-title"
+                        style="color: {{ template_data.styles.title-color }}"
+                        openurl="{{ template_data.call_to_action.url }}"
+                        data-cqz-of-btn-id="offer_title"
+                        data-cqz-of-btn-action-type="offer-action-signal"
+                    >
                         {{ template_data.title }}
                     </h1>
 
@@ -58,7 +70,13 @@
                     {{/if }}
 
 
-                    <div class="cqz-descr" style="color: {{ template_data.styles.description-color }}">
+                    <div
+                        class="cqz-descr"
+                        style="color: {{ template_data.styles.description-color }}"
+                        openurl="{{ template_data.call_to_action.url }}"
+                        data-cqz-of-btn-id="offer_description"
+                        data-cqz-of-btn-action-type="offer-action-signal"
+                    >
                         {{#if template_data.conditions }}
                             {{ template_data.conditions }} <br>
                         {{/if }}

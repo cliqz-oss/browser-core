@@ -1626,7 +1626,7 @@
       "message": "Welcome!"
     },
     "offers-hub-welcome-text": {
-      "message": "Soon you'll find exclusive offers here for you"
+      "message": "Here you'll find a new offer every week and<br /> additional offers just for you."
     },
     "offers-hub-feedback-title": {
       "message": "Your feedback is important to us"
@@ -1638,7 +1638,7 @@
       "message": "I'm not interested in this offer"
     },
     "offers-hub-feedaback-option2": {
-      "message": "I'm not interested in Cliqz Offers"
+      "message": "I'm not interested in MyOffrz"
     },
     "offers-hub-feedaback-option3": {
       "message": "I'm not interested in any kind of offers"
@@ -1659,7 +1659,7 @@
       "message": "Code Copied"
     },
     "offers_hub_tooltip_new_offer": {
-      "message": "new Offer"
+      "message": "You have a new offer"
     },
     "signals-humanweb-inactive-message": {
       "message": "Human Web is not activated"
@@ -1706,10 +1706,13 @@
     "show-location-and-contact": {
       "message": "Show location & contact now"
     },
-    "show-location-and-contact-cinema": {
+    "cinema-show-location-and-contact": {
       "message": "Show cinemas near me"
     },
     "always-show-location": {
+      "message": "Always show"
+    },
+    "cinema-always-show-location": {
       "message": "Always show"
     },
     "show-map": {
@@ -1795,6 +1798,15 @@
     },
     "freshtab.app.middle-box.blue-theme-cta": {
         "message": "Customize now"
+    },
+    "freshtab.app.middle-box.french-news-hdr": {
+        "message": "Lisez Top News en français dès maintenant !"
+    },
+    "freshtab.app.middle-box.french-news-desc": {
+        "message": "L'édition française de Top News sélectionne les informations les plus importantes, parmis les journaux les plus respectés en France."
+    },
+    "freshtab.app.middle-box.french-news-cta": {
+        "message": "Essayez dès maintenant !"
     },
     "freshtab.app.news.breaking-news": {
         "message": "Breaking"

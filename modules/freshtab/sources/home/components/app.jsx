@@ -49,6 +49,7 @@ class App extends React.Component {
       removedDials: [],
       messages: {},
       isSettingsOpen: false,
+      focusNews: false,
       hasHistorySpeedDialsToRestore: false,
     };
 
@@ -94,6 +95,10 @@ class App extends React.Component {
       if (action === 'settings') {
         this.toggleSettings();
       }
+      if (action === 'settings&news') {
+        this.toggleSettings();
+        this.focusNews();
+      }
     }
   }
 
@@ -122,6 +127,7 @@ class App extends React.Component {
 
     // TODO: state object is too deep - we should squash it
     this.setState(prevState => ({
+      focusNews: false,
       config: {
         ...prevState.config,
         componentsState: {
@@ -209,6 +215,10 @@ class App extends React.Component {
   toggleSettings() {
     if (!this.state.isSettingsOpen) {
       settingsClickSignal();
+    } else {
+      this.setState({
+        focusNews: false,
+      });
     }
 
     this.setState({
@@ -217,6 +227,12 @@ class App extends React.Component {
 
     this.freshtab.checkForHistorySpeedDialsToRestore()
       .then(has => this.setState({ hasHistorySpeedDialsToRestore: has }));
+  }
+
+  focusNews() {
+    this.setState({
+      focusNews: true,
+    });
   }
 
   handleClick(el) {
@@ -454,6 +470,7 @@ class App extends React.Component {
             isBlueBackgroundSupported={this.state.config.isBlueBackgroundSupported}
             isBrowser={this.state.config.isBrowser}
             isOpen={this.state.isSettingsOpen}
+            focusNews={this.state.focusNews}
             componentsState={this.state.config.componentsState}
             hasHistorySpeedDialsToRestore={this.state.hasHistorySpeedDialsToRestore}
             toggle={() => this.toggleSettings()}
