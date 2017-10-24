@@ -240,7 +240,16 @@ var CliqzHistoryManager = {
   },
   isBookmarked: function(url) {
     const uri = CliqzHistoryManager.makeURI(url);
-    return bookmarkService.isBookmarked(uri);
+    if (bookmarkService.isBookmarked) {
+      return Promise.resolve(bookmarkService.isBookmarked(uri));
+    } else {
+      // isBookmarked is obsolete since Firefox 57
+      return PlacesUtils.bookmarks.fetch({url: url})
+        .then((res) => {
+          return res !== null;
+        })
+    }
+
   }
 };
 

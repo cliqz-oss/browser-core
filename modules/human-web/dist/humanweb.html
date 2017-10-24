@@ -152,7 +152,7 @@
         CliqzUtils.localizeDoc(document);
 
         function clickHW(cb){
-            CliqzUtils.setPref('dnt', !cb.checked);
+            CliqzUtils.setPref('humanWebOptOut', !cb.checked);
 
             CliqzUtils.telemetry({
               type: 'humanWebStatus',
@@ -162,7 +162,7 @@
 
         var cb = document.getElementById('enableHumanWeb');
 
-        cb.checked = !CliqzUtils.getPref('dnt');
+        cb.checked = !CliqzUtils.getPref('humanWebOptOut');
     </script>
   </body>
 </html>

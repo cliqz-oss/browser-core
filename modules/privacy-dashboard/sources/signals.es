@@ -288,7 +288,7 @@ const Signals = {
   getSignalsToDashboard() {
     const info = {};
     Object.keys(SignalListener.SigCache).forEach((sigType) => {
-      if (sigType === 'hw' && utils.getPref('dnt') === true) {
+      if (sigType === 'hw' && utils.getPref('humanWebOptOut') === true) {
         info[sigType] = [{
           name: '',
           val: local('signals-humanweb-inactive-message'),

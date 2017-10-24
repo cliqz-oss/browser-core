@@ -32,9 +32,13 @@ export default class ContextMenu {
    * @public
    */
   show(result, { x, y }) {
-    const contextMenu = this.createMenu(result);
-    utils.openPopup(contextMenu, {}, x, y);
-    dropdownContextMenuSignal({ action: 'open' });
+    const url = utils.cleanMozillaActions(result.url)[1];
+
+    HistoryManager.isBookmarked(url).then((isBookmarked) => {
+      const contextMenu = this.createMenu(result, url, isBookmarked);
+      utils.openPopup(contextMenu, {}, x, y);
+      dropdownContextMenuSignal({ action: 'open' });
+    });
   }
 
   getLocalizedStrings() {
@@ -54,10 +58,8 @@ export default class ContextMenu {
     };
   }
 
-  createMenuItems(result) {
-    const url = utils.cleanMozillaActions(result.url)[1];
+  createMenuItems(result, url, isBookmarked) {
     const labels = this.labels;
-    const isBookmarked = HistoryManager.isBookmarked(url);
     const openedTabs = getTabsWithUrl(this.window, url);
     const isOpened = !!openedTabs.length;
     const isCliqzBrowser = config.settings.channel === '40';
@@ -101,14 +103,14 @@ export default class ContextMenu {
     return menuItems;
   }
 
-  createMenu(result) {
+  createMenu(result, url, isBookmarked) {
     const doc = this.window.document;
     const contextMenu = doc.createElement('menupopup');
 
     this.rootElement.appendChild(contextMenu);
     contextMenu.setAttribute('id', 'dropdownContextMenu');
 
-    this.createMenuItems(result).forEach((item) => {
+    this.createMenuItems(result, url, isBookmarked).forEach((item) => {
       const menuItem = doc.createElement('menuitem');
       menuItem.setAttribute('label', item.label);
       menuItem.addEventListener('command', item.command, false);

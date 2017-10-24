@@ -212,10 +212,10 @@
                 data-i18n="control-center-humanweb">
           </span>
           <select class="custom-dropdown"
-                  updatePref="extensions.cliqz.dnt"
+                  updatePref="extensions.cliqz.humanWebOptOut"
                   data-target="search_humanweb">
-                <option {{#unless module.dnt.enabled}}selected{{/unless}} value="enabled" data-i18n="control-center-enabled"></option>
-                <option {{#if module.dnt.enabled}}selected{{/if}} value="disabled" data-i18n="control-center-disabled"></option>
+                <option {{#unless module.humanWebOptOut}}selected{{/unless}} value="enabled" data-i18n="control-center-enabled"></option>
+                <option {{#if module.humanWebOptOut}}selected{{/if}} value="disabled" data-i18n="control-center-disabled"></option>
           </select>
         </span>
       {{/if }}

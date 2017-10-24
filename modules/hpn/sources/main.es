@@ -89,7 +89,7 @@ const CliqzSecureMessage = {
   trkTimer: null,
   telemetry: function(msg, instantPush) {
     if (!CliqzSecureMessage || // might be called after the module gets unloaded
-        CliqzUtils.getPref('dnt', false)) return;
+        CliqzUtils.getPref('humanWebOptOut', false)) return;
 
     if (msg) CliqzSecureMessage.trk.push(msg);
     CliqzUtils.clearTimeout(CliqzSecureMessage.trkTimer);

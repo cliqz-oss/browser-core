@@ -145,7 +145,7 @@ const CliqzHumanWeb = {
     safeQuorumProvider: null,
     getAllOpenPages: getAllOpenPages,
     prefs: {
-        dnt: false,
+        humanWebOptOut: false,
         config_ts: null,
         config_location: null,
     },
@@ -2031,7 +2031,7 @@ const CliqzHumanWeb = {
     lastActive: null,
     lastActiveAll: null,
     init: function() {
-        if(utils.getPref("dnt", false)) return;
+        if(utils.getPref("humanWebOptOut", false)) return;
 
         utils.hw = this;
 
@@ -2352,7 +2352,7 @@ const CliqzHumanWeb = {
     },
     telemetry: function(msg, instantPush) {
         if (!CliqzHumanWeb || //might be called after the module gets unloaded
-            utils.getPref('dnt', false) ||
+            utils.getPref('humanWebOptOut', false) ||
             utils.isPrivate(utils.getWindow())) return;
 
 

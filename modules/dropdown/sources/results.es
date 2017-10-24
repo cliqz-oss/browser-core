@@ -16,6 +16,7 @@ import { equals } from '../core/url';
 import console from '../core/console';
 import NavigateToResult from './results/navigate-to';
 import NewsStory from './results/news-story';
+import { isCliqzBrowser } from '../core/platform';
 
 class ResultFactory {
   static create(rawResult, allResultsFlat) {
@@ -169,7 +170,7 @@ export default class Results {
       this.results = this.results.filter(result => !result.isSuggestion);
     }
 
-    if (this.hasHistory && (this.query !== '')) {
+    if (isCliqzBrowser && this.hasHistory && (this.query !== '')) {
       this.addSessionsResult();
     }
 

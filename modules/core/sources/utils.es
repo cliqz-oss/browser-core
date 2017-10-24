@@ -585,6 +585,13 @@ var CliqzUtils = {
   //eg types: [ "H", "m" ], [ "H|instant", "X|11" ]
   isPrivateResultType: function(type) {
     var onlyType = type[0].split('|')[0];
+    var hasCluster = type.find(function(a){ return a.split('|')[0] === 'C'; });
+
+    if (hasCluster) {
+      // we want to be extra carefull and do not send back any cluster information
+      return true;
+    }
+
     return 'HBTCS'.indexOf(onlyType) != -1 && type.length == 1;
   },
   // cliqz type = "cliqz-results sources-XXXXX" or "favicon sources-XXXXX" if combined with history

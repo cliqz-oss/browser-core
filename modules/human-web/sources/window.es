@@ -10,7 +10,7 @@ export default class {
 
   enabled() {
     return utils.getPref("humanWeb", false)
-           && !utils.getPref("dnt", false)
+           && !utils.getPref("humanWebOptOut", false)
            && !utils.isPrivate(this.window);
   }
 
@@ -38,7 +38,7 @@ export default class {
     if(background.active) {
       return {
         visible: true,
-        state: !utils.getPref('dnt', false)
+        state: !utils.getPref('humanWebOptOut', false)
       }
     }
   }

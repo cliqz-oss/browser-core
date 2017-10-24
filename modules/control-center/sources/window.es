@@ -342,7 +342,7 @@ export default class {
 
   updatePref(data) {
     switch (data.pref) {
-      case 'extensions.cliqz.dnt':
+      case 'extensions.cliqz.humanWebOptOut':
         events.pub('control-center:toggleHumanWeb');
         break;
       case 'extensions.cliqz.share_location':
@@ -472,7 +472,7 @@ export default class {
         moduleData.apt = { visible: true, state: utils.getPref('browser.privatebrowsing.apt', false, '') };
       }
 
-      moduleData.dnt = { enabled: utils.getPref('dnt', false) };
+      moduleData.humanWebOptOut = utils.getPref('humanWebOptOut', false);
       moduleData.searchProxy = { enabled: utils.getPref('hpn-query', false) };
 
       ccData.module = moduleData;

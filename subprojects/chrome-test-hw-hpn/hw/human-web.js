@@ -2009,7 +2009,7 @@ var __CliqzHumanWeb = function() { // (_export) {
                     });
                 },
                 init: function init(window) {
-                    // if (CliqzUtils.getPref("dnt", false)) return;
+                    // if (CliqzUtils.getPref("humanWebOptOut", false)) return;
 
                     // Load prefs from local storage.
                     CliqzUtils.loadPrefs();

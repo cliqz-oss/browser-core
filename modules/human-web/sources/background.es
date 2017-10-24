@@ -20,7 +20,7 @@ export default background({
   */
   enabled() {
     return utils.getPref("humanWeb", false)
-           && !utils.getPref("dnt", false)
+           && !utils.getPref("humanWebOptOut", false)
   },
 
 
@@ -37,7 +37,7 @@ export default background({
 
       if (this.enabled()) {
         HumanWeb.init();
-      // if (!utils.getPref('dnt', false)) {
+      // if (!utils.getPref('humanWebOptOut', false)) {
         WebRequest.onHeadersReceived.addListener(HumanWeb.httpObserver.observeActivity, {
           urls: ['*://*/*'],
         }, ['responseHeaders']);
@@ -112,7 +112,7 @@ export default background({
       utils.setPref('modules.human-web.enabled', false);
 
       // 2. change the pref
-      utils.setPref('dnt', !utils.getPref('dnt', false));
+      utils.setPref('humanWebOptOut', !utils.getPref('humanWebOptOut', false));
 
       // we need to avoid the throttle on prefs
       utils.setTimeout(function() {

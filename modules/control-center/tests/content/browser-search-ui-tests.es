@@ -567,7 +567,7 @@ describe("Search options UI browser", function () {
               () => subject.messages.find(message => message.message.action === "updatePref")
             ).then(
               message => {
-                chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.dnt");
+                chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.humanWebOptOut");
                 chai.expect(message).to.have.deep.property("message.data.value", `${currentValue}`);
                 chai.expect(message).to.have.deep.property("message.data.target", "search_humanweb");
               }

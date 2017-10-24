@@ -2,15 +2,46 @@
 // This should be moved to UI as soon as it will be moved from dist to sources
 import background from 'core/base/background';
 import { utils, events } from 'core/cliqz';
+import prefs from 'core/prefs';
 
 const DISMISSED_ALERTS = 'dismissedAlerts';
+const SEARCH_BAR_ID = 'search-container';
+const showSearchBar = 'dontHideSearchBar';
 
 export default background({
   init(settings) {
+    // we use CustomizableUI since 2.21.1
+    prefs.clear('defaultSearchBarPosition');
+    prefs.clear('defaultSearchBarPositionNext');
+
+
+    if (!prefs.get(showSearchBar, false)) {
+      // we always hide the saerch bar when Cliqz starts
+      // as long as the user did not move it somewhere visible (showSearchBar pref)
+      let CustomizableUI = Components.utils.import('resource:///modules/CustomizableUI.jsm', null).CustomizableUI;
+      CustomizableUI.removeWidgetFromArea(SEARCH_BAR_ID);
+    }
   },
 
   unload() {
+    this.restoreSearchBar();
+  },
 
+  beforeBrowserShutdown() {
+    this.restoreSearchBar();
+  },
+
+  restoreSearchBar() {
+    let CustomizableUI = Components.utils.import('resource:///modules/CustomizableUI.jsm', null).CustomizableUI;
+    if (CustomizableUI.getPlacementOfWidget(SEARCH_BAR_ID) !== null) {
+      // if the user moves the searchbar - we let him in full control
+      prefs.set(showSearchBar, true);
+    } else {
+      // we always try to restore the searchbar close to the urlbar
+      // both at shutdown and uninstall
+      const urlbarPlacement = CustomizableUI.getPlacementOfWidget('urlbar-container');
+      CustomizableUI.addWidgetToArea(SEARCH_BAR_ID, CustomizableUI.AREA_NAVBAR, urlbarPlacement.position + 1);
+    }
   },
 
 

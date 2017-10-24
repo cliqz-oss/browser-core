@@ -175,6 +175,12 @@ export function setOurOwnPrefs() {
   if (prefs.has('freshTabState')) {
     prefs.clear('freshTabState');
   }
+
+  // use a more suggestive name for human web opt out
+  if (prefs.has('dnt')) {
+    prefs.set('humanWebOptOut', prefs.get('dnt'));
+    prefs.clear('dnt');
+  }
 }
 
 /** Reset changed prefs on uninstall */
