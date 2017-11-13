@@ -3,7 +3,8 @@
 @import "_voucher";
 
 html {
-    overflow: hidden;
+    overflow-y: hidden;
+    overflow-x: auto;
     height: 100%;
 }
 
@@ -15,7 +16,7 @@ body {
 #cliqz-offers-cc {
     overflow: hidden;
     position: relative;
-    width: 100%;
+    width: 550px;
 }
 
 header {

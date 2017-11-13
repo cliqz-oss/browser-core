@@ -1,6 +1,7 @@
 import BaseResult from './base';
 import GenericResult from './generic';
 import utils from '../../core/utils';
+import config from '../../core/config';
 
 const LIMIT = {
   ligaEZ1Game: {
@@ -159,7 +160,7 @@ class TableItemResult extends BaseResult {
   }
 
   get qualified() {
-    return 'resource://cliqz/dropdown/images/champions-league.png';
+    return `${config.baseURL}dropdown/images/champions-league.png`;
   }
 }
 

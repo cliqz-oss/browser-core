@@ -1,5 +1,7 @@
 #!/bin/env groovy
 
+currentBuild.description = params.CLIQZ_CHANNEL + " " + params.COMMIT_ID
+
 node('docker') {
   stage('checkout') {
     checkout scm
@@ -26,7 +28,7 @@ node('docker') {
           }
 
           stage('fern build') {
-            sh './fern.js build --environment=production'
+            sh './fern.js build --environment=production --no-maps'
           }
 
           stage('npm run doc') {

@@ -1,9 +1,10 @@
 {
   "platform": "firefox",
-  "baseURL": "resource://cliqz/",
-  "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
-  "testem_launchers": ["unit-node", "Chrome"],
+  "baseURL": "chrome://cliqz/content/",
+  "testsBasePath": "./build/cliqz@cliqz.com/chrome/content", "testem_launchers": ["unit-node", "Chrome"],
   "testem_launchers_ci": ["unit-node"],
+  "pack": "cd build && fab package",
+  "publish": "cd build && fab publish:beta=$CLIQZ_BETA,channel=$CLIQZ_CHANNEL,pre=$CLIQZ_PRE_RELEASE",
   "settings": {
     "id": "description_test@cliqz.com",
     "name": "Cliqz",
@@ -33,10 +34,10 @@
     "HPN_CHANNEL": "cliqz",
     "NEW_TAB_URL": "chrome://cliqz/content/freshtab/home.html",
     "ICONS": {
-      "active": "resource://cliqz/control-center/images/privacy-shield-active.svg",
-      "inactive": "resource://cliqz/control-center/images/privacy-shield-inactive.svg",
-      "critical": "resource://cliqz/control-center/images/privacy-shield-inactive.svg",
-      "off": "resource://cliqz/control-center/images/privacy-shield-inactive.svg"
+      "active": "control-center/images/privacy-shield-active.svg",
+      "inactive": "control-center/images/privacy-shield-inactive.svg",
+      "critical": "control-center/images/privacy-shield-inactive.svg",
+      "off": "control-center/images/privacy-shield-inactive.svg"
     },
     "BACKGROUNDS": {
       "active": "#999999",

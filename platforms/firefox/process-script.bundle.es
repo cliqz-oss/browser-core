@@ -29,12 +29,16 @@ const DocumentManager = {
 
     const onMessage = (incomingMessage) => {
       listeners.forEach((l) => {
-        const unsafeMessage = Components.utils.cloneInto({
-          ...incomingMessage.data,
-          type: 'response',
-        }, window);
+        try {
+          const unsafeMessage = Components.utils.cloneInto({
+            ...incomingMessage.data,
+            type: 'response',
+          }, window);
 
-        l(unsafeMessage);
+          l(unsafeMessage);
+        } catch (e) {
+          // don't throw if any of the listeners thrown
+        }
       });
     };
 
@@ -46,8 +50,11 @@ const DocumentManager = {
       removeMessageListener('cliqz:core', onMessage);
     });
 
-    if (window.location.href.indexOf(config.baseURL) === 0 ||
-        window.location.href.indexOf('chrome://cliqz') === 0) {
+    if (
+      window.location.href.indexOf('resource://cliqz') === 0 ||
+      window.location.href.indexOf('chrome://cliqz') === 0 ||
+      window.location.href.indexOf(config.settings.NEW_TAB_URL) === 0
+    ) {
       const safeChrome = {
         runtime: {
           sendMessage(message) {
@@ -169,6 +176,7 @@ addMessageListener(`cliqz:process-script-${processId}`, msg => dispatchMessage(m
  */
 addMessageListener('cliqz:process-script', function ps(msg) {
   if (msg.data === 'unload') {
+    store.unload();
     DocumentManager.uninit();
     removeMessageListener('cliqz:process-script', ps);
     removeMessageListener(`cliqz:process-script-${processId}`, dispatchMessage);

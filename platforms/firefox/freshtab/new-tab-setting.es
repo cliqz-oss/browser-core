@@ -38,10 +38,14 @@ export function getHomePage() {
 
 export function migrate() {
   // migrate old homepage url to new one
-  const currentHompage = getHomePage();
-  if (currentHompage === 'about:cliqz' ||
-      // we moved from the resource url to chrome url in X.21.Y
-      currentHompage === 'resource://cliqz/freshtab/home.html') {
+  const currentHomepage = getHomePage();
+  if (
+    currentHomepage === 'about:cliqz' ||
+    // we moved from the resource url to chrome url in X.21.0
+    // we moved from chrome url to https url in X.21.3 and X.22.X
+    currentHomepage === 'chrome://cliqz/content/freshtab/home.html' ||
+    currentHomepage === 'resource://cliqz/freshtab/home.html'
+  ) {
     setHomePage(config.settings.NEW_TAB_URL);
   }
 }

@@ -1714,9 +1714,6 @@ const CliqzHumanWeb = {
               });
 
 
-            // Should not be required
-            CliqzHumanWeb.db.ensureConnection();
-
             CliqzHumanWeb.cleanHttpCache();
             CliqzHumanWeb.cleanDocCache();
             CliqzHumanWeb.cleanLinkCache();
@@ -1828,12 +1825,28 @@ const CliqzHumanWeb = {
         }
     },
     unload: function() {
-        //Check is active usage, was sent
-        CliqzHumanWeb.checkActiveUsage();
-        // send all the data
-        CliqzHumanWeb.pushTelemetry();
+      //Check is active usage, was sent
+      CliqzHumanWeb.checkActiveUsage();
+      // send all the data
+      CliqzHumanWeb.pushTelemetry();
+
+      if (CliqzHumanWeb.pacemakerId) {
         utils.clearTimeout(CliqzHumanWeb.pacemakerId);
+        CliqzHumanWeb.pacemakerId = undefined;
+      }
+      if (CliqzHumanWeb.trkTimer) {
         utils.clearTimeout(CliqzHumanWeb.trkTimer);
+        CliqzHumanWeb.trkTimer = undefined;
+      }
+
+      if (CliqzHumanWeb.rsNormal) {
+        CliqzHumanWeb.rsNormal.stop();
+        CliqzHumanWeb.rsNormal = undefined;
+      }
+      if (CliqzHumanWeb.rsStrict) {
+        CliqzHumanWeb.rsStrict.stop();
+        CliqzHumanWeb.rsStrict = undefined;
+      }
     },
     currentURL: function() {
         return getActiveTab().then(({ url }) => CliqzHumanWeb.cleanCurrentUrl(url));
@@ -2031,7 +2044,10 @@ const CliqzHumanWeb = {
     lastActive: null,
     lastActiveAll: null,
     init: function() {
-        if(utils.getPref("humanWebOptOut", false)) return;
+      return Promise.resolve().then(() => {
+        if(utils.getPref("humanWebOptOut", false)) {
+          return;
+        }
 
         utils.hw = this;
 
@@ -2041,90 +2057,113 @@ const CliqzHumanWeb = {
            "maskU":CliqzHumanWeb.refineMaskUrl
         };
 
-
         _log("Init function called:")
         CliqzHumanWeb.log = _log;
-        CliqzHumanWeb.db = new Storage(CliqzHumanWeb);
-        CliqzHumanWeb.db.init();
+        return Promise.resolve()
+            .then(() => {
+              if (CliqzHumanWeb.db) {
+                _log('Closing database connections...');
+                return CliqzHumanWeb.db.asyncClose()
+                  .then(() => {
+                    CliqzHumanWeb.db = undefined;
+                    _log('Closing database connections...done');
+                  })
+                  .catch(e => _log(e));
+              } else {
+                return Promise.resolve();
+              }
+            }).then(() => {
+              const db = new Storage(CliqzHumanWeb);
+              return db.init().then(() => {
+                CliqzHumanWeb.db = db;
+                _log('Successfully connected to database');
+              });
+            })
+            .then(() => {
+              CliqzHumanWeb.dns = new dns(CliqzHumanWeb);
+              if (CliqzHumanWeb.state == null) {
+                  CliqzHumanWeb.state = {};
+              }
 
-        CliqzHumanWeb.dns = new dns(CliqzHumanWeb);
-        if (CliqzHumanWeb.state == null) {
-            CliqzHumanWeb.state = {};
-        }
+              if (CliqzHumanWeb.actionStats == null) {
+                CliqzHumanWeb.loadActionStats();
+              }
+              if (CliqzHumanWeb.actionStatsLastSent == null) {
+                CliqzHumanWeb.loadActionStatsLastSent();
+              }
 
+              // Load bloom filter
+              if(!CliqzHumanWeb.bloomFilter){
+                CliqzHumanWeb.loadBloomFilter();
+              }
 
-        if (CliqzHumanWeb.pacemakerId==null) {
-            CliqzHumanWeb.pacemakerId = utils.setInterval(CliqzHumanWeb.pacemaker, CliqzHumanWeb.tpace, null);
-        }
+              // Load strict queries
+              CliqzHumanWeb.loadStrictQueries();
+              CliqzHumanWeb.rsNormal = new ResourceLoader(
+                  ["human-web","patterns"],
+                  {
+                      chromeURL: config.baseURL + "bower_components/patterns/index",
+                      remoteURL : CliqzHumanWeb.patternsURL,
+                      cron: 1 * 20 * 60 * 1000,
+                  }
+              );
 
+              const promises = [];
+              promises.push(CliqzHumanWeb.rsNormal.load().then(e => {
+                CliqzHumanWeb.loadContentExtraction(e, "normal")
+              }));
+              CliqzHumanWeb.rsNormal.onUpdate(e => CliqzHumanWeb.loadContentExtraction(e, "normal"));
 
-        if (CliqzHumanWeb.actionStats==null) CliqzHumanWeb.loadActionStats();
-        if (CliqzHumanWeb.actionStatsLastSent==null) CliqzHumanWeb.loadActionStatsLastSent();
+              CliqzHumanWeb.rsStrict = new ResourceLoader(
+                  ["human-web","patterns-anon"],
+                  {
+                      chromeURL: config.baseURL + "/bower_components/anonpatterns/index",
+                      remoteURL : CliqzHumanWeb.anonPatternsURL,
+                      cron: 1 * 20 * 60 * 1000,
+                  }
+              );
 
-        // Load bloom filter
-        if(!CliqzHumanWeb.bloomFilter){
-            CliqzHumanWeb.loadBloomFilter();
-        }
+              promises.push(CliqzHumanWeb.rsStrict.load().then(e => {
+                CliqzHumanWeb.loadContentExtraction(e, "strict")
+              }));
 
-        // Load strict queries
-        CliqzHumanWeb.loadStrictQueries();
-        let rsNormal = new ResourceLoader(
-            ["human-web","patterns"],
-            {
-                chromeURL: config.baseURL + "bower_components/patterns/index",
-                remoteURL : CliqzHumanWeb.patternsURL,
-                cron: 1 * 20 * 60 * 1000,
-            }
+              CliqzHumanWeb.rsStrict.onUpdate( e => CliqzHumanWeb.loadContentExtraction(e, "strict"));
 
-        );
-        rsNormal.load().then( e => {
-          CliqzHumanWeb.loadContentExtraction(e, "normal")
-        });
-        rsNormal.onUpdate( e => CliqzHumanWeb.loadContentExtraction(e, "normal"));
+              // Load config from the backend
+              promises.push(CliqzHumanWeb.fetchSafeQuorumConfig());
 
-        let rsStrict = new ResourceLoader(
-            ["human-web","patterns-anon"],
-            {
-                chromeURL: config.baseURL + "/bower_components/anonpatterns/index",
-                remoteURL : CliqzHumanWeb.anonPatternsURL,
-                cron: 1 * 20 * 60 * 1000,
-            }
+              // Load quorum bloom filter
+              CliqzHumanWeb.loadQuorumBloomFilter();
 
-        );
+              // Load active usage stats.
+              if (CliqzHumanWeb.activeUsage === null) {
+                  CliqzHumanWeb.db.loadRecordTelemetry('activeUsage', (data) => {
+                      if (data === null) {
+                          CliqzHumanWeb.activeUsage = {};
+                      } else {
+                          CliqzHumanWeb.activeUsage = JSON.parse(data);
+                      }
+                  });
+              }
 
-        rsStrict.load().then( e => {
-          CliqzHumanWeb.loadContentExtraction(e, "strict")
-        });
+              // Check last alive signal sent.
+              CliqzHumanWeb.db.loadRecordTelemetry('activeUsageLastSent', (data) => {
+                  if (data === null) {
+                      // Means we have never sent the signal.
+                      CliqzHumanWeb.saveActiveUsageTime();
+                  } else {
+                      _log(`Active usage last sent  from db as ${data}`);
+                      CliqzHumanWeb.activeUsageLastSent = parseInt(data);
+                  }
+              });
 
-        rsStrict.onUpdate( e => CliqzHumanWeb.loadContentExtraction(e, "strict"));
-
-        // Load config from the backend
-        CliqzHumanWeb.fetchSafeQuorumConfig();
-
-        // Load quorum bloom filter
-        CliqzHumanWeb.loadQuorumBloomFilter();
-
-        // Load active usage stats.
-        if (CliqzHumanWeb.activeUsage === null) {
-            CliqzHumanWeb.db.loadRecordTelemetry('activeUsage', (data) => {
-                if (data === null) {
-                    CliqzHumanWeb.activeUsage = {};
-                } else {
-                    CliqzHumanWeb.activeUsage = JSON.parse(data);
+              return Promise.all(promises).then(() => {
+                if (CliqzHumanWeb.pacemakerId == null) {
+                  CliqzHumanWeb.pacemakerId = utils.setInterval(CliqzHumanWeb.pacemaker, CliqzHumanWeb.tpace, null);
                 }
+              });
             });
-        }
-
-        // Check last alive signal sent.
-        CliqzHumanWeb.db.loadRecordTelemetry('activeUsageLastSent', (data) => {
-            if (data === null) {
-                // Means we have never sent the signal.
-                CliqzHumanWeb.saveActiveUsageTime();
-            } else {
-                _log(`Active usage last sent  from db as ${data}`);
-                CliqzHumanWeb.activeUsageLastSent = parseInt(data);
-            }
-        });
+      });
     },
     state: {'v': {}, 'm': [], '_id': Math.floor( Math.random() * 1000 ) },
     hashCode: function(s) {
@@ -3746,20 +3785,25 @@ const CliqzHumanWeb = {
         CliqzHumanWeb.dumpQuorumBloomFilter();
     },
     fetchSafeQuorumConfig: function(){
+      return new Promise((resolve, reject) => {
         //Load latest config.
         utils.httpGet(CliqzHumanWeb.SAFE_QUORUM_PROVIDER,
           function success(req){
-            if(!CliqzHumanWeb) return;
+            if(CliqzHumanWeb) {
                 try {
                     let resp = JSON.parse(req.response);
                     CliqzHumanWeb.keyExpire = resp.expiry * (24 * 60 * 60 * 1000); // Backend sends it in days;
                     CliqzHumanWeb.oc = resp.oc;
                     CliqzHumanWeb.quorumThreshold = resp.threshold;
                 } catch(e){};
+             }
+             resolve();
           },
           function error(res){
-            _log('Error loading config. ')
+            _log('Error loading config. ');
+            resolve();
           }, 5000);
+      });
     },
     getCountryCode: function() {
         let ctryCode = utils.getPref('config_location', null);
@@ -3894,6 +3938,13 @@ const CliqzHumanWeb = {
         return promise;
     },
     addURLtoDB: function (url, ref, paylobj) {
+      if (!CliqzHumanWeb.db) {
+        // TODO: This seems to happen with the content script during startup
+        //       while the module is still initializing.
+        //       In principle, it could be solved by waiting on the initialization.
+        _log(`WARNING: Cannot add url ${url}, as the database is not connected.`);
+        return;
+      }
 
       /*
       1. Check if the given URL is a search URL,

@@ -23,14 +23,14 @@ export default class {
   }
 
   unload() {
-    if (!this.enabled()) {
-      return;
+    if (this._dataCollectionTimer) {
+      utils.clearTimeout(this._dataCollectionTimer);
+      this._dataCollectionTimer = undefined;
     }
-
-    utils.clearTimeout(this._dataCollectionTimer);
 
     if(this.notification){
       this.notification.close();
+      this.notification = undefined;
     }
   }
 

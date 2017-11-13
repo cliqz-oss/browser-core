@@ -335,7 +335,7 @@ export default class {
 
   setState(state) {
     if (this.toolbarButton) {
-      this.toolbarButton.setIcon(this.window, this.ICONS[state]);
+      this.toolbarButton.setIcon(this.window, config.baseURL + this.ICONS[state]);
       this.toolbarButton.setBadgeBackgroundColor(this.window, this.BACKGROUNDS[state]);
     }
   }

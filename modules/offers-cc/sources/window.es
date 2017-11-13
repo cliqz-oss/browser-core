@@ -5,6 +5,7 @@ import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import Panel from '../core/ui/panel';
 import background from './background';
 import UITour from '../platform/ui-tour';
+import config from '../core/config';
 import { getMessage } from '../core/i18n';
 
 
@@ -475,7 +476,7 @@ export default class {
 
             promise.then((target) => {
               const title = utils.getLocalizedString('offers_hub_tooltip_new_offer');
-              const icon = 'resource://cliqz/offers-cc/images/offers-cc-icon-white.svg';
+              const icon = `${config.baseURL}offers-cc/images/offers-cc-icon-white.svg`;
 
               UITour.showInfo(win, target, title, '', icon, '', myOptions);
               this.isUITourOpening = true;

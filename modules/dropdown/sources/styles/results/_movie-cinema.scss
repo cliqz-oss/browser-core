@@ -81,7 +81,7 @@
                     margin-right: 4px;
                     width: 27px;
                     height: 27px;
-                    background-image: url(resource://cliqz/dropdown/images/play-icon-triangle.svg);
+                    background-image: url(chrome://cliqz/content/dropdown/images/play-icon-triangle.svg);
                     background-repeat: no-repeat;
                     background-position: 9px center;
                     background-size: 40%;
@@ -96,6 +96,25 @@
                         cursor: pointer;
                     }
                 }
+
+                &.disabled {
+                    .trailer-icon {
+                        background-image: url(chrome://cliqz/content/dropdown/images/play-icon-triangle-grey.svg);
+                        border-color: #ccc;
+                     }
+
+                    &:hover {
+                        .trailer-icon {
+                            border-color: #ccc;
+                            cursor: unset;
+                        }
+                    }
+
+                    span {
+                        color: #ccc;
+                        -moz-user-select: none;
+                    }
+                }
             }
 
 
@@ -105,6 +124,13 @@
     .show-time {
         font-size: 0.833em;
         line-height: 1.28451em;
+
+        .location-icon {
+           background: url-prefix("dropdown/images/location-icon.svg");
+           display: inline-block;
+           width: 13px;
+           height: 17px;
+        }
 
         .title {
             padding: 10px 0 5px;
@@ -194,7 +220,7 @@
             font-size: 0.833em;
             line-height: 1.28051em;
             text-decoration: none;
-            background-image: url(resource://cliqz/dropdown/images/expand.svg);
+            background-image: url(chrome://cliqz/content/dropdown/images/expand.svg);
             background-repeat: no-repeat;
             background-size: 6px 10px;
             background-position: 0 center;

@@ -1,5 +1,5 @@
 import console from '../console';
-import store from '../../platform/store';
+import store, { unload as unloadStore } from '../../platform/store';
 import { nextTick } from '../decorators';
 
 const listeners = new Set();
@@ -29,5 +29,11 @@ export default {
 
   removeListener(listener) {
     listeners.delete(listener);
+  },
+
+  unload() {
+    if (unloadStore) {
+      unloadStore();
+    }
   },
 };

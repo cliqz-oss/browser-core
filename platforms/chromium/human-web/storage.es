@@ -65,15 +65,15 @@ export default class {
   }
 
   init() {
-    return this.dbConn;
+    return Promise.resolve(this.dbConn);
   }
 
-  ensureConnection() {
-    this.getDBConn();
+  asyncClose() {
+    return Promise.resolve();
   }
 
   getDBConn() {
-    return this.dbConn || this.init();
+    return this.dbConn;
   }
 
   saveRecordTelemetry(id, data, callback) {

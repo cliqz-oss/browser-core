@@ -334,7 +334,7 @@ class Url {
         k_len: kv.k.length,
         v_len: vStr.length,
         k: md5(kv.k),
-        v: md5(kv)
+        v: md5(vStr)
       };
     });
     this._kvMD5List = kvList;

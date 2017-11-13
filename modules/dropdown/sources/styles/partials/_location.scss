@@ -10,7 +10,7 @@
 
         .local-map {
             position: absolute !important; /* result might override the position */
-            background-image: url("resource://cliqz/dropdown/images/maps-icon.jpg");
+            background-image: url-prefix("dropdown/images/maps-icon.jpg");
             background-repeat: no-repeat;
             background-position: left top;
             background-size: cover;
@@ -67,7 +67,7 @@
 
             .local-address {
                 margin-right: 20px;
-                background-image: url("resource://cliqz/dropdown/images/s-grey-location.svg");
+                background-image: url-prefix("dropdown/images/s-grey-location.svg");
                 background-size: 8px 10px;
                 min-width: 300px;
                 max-width: 600px;
@@ -79,7 +79,7 @@
 
             .local-phone {
                 display: inline-block;
-                background-image: url("resource://cliqz/dropdown/images/s-grey-phone.svg");
+                background-image: url-prefix("dropdown/images/s-grey-phone.svg");
                 background-size: 10px;
             }
 
@@ -98,21 +98,21 @@
         .buttons {
             .result.btn {
                 &.location-allow-once {
-                    background-image: url("resource://cliqz/dropdown/images/location-icon.svg");
+                    background-image: url-prefix("dropdown/images/location-icon.svg");
                     background-repeat: no-repeat;
                     background-position: 5px center;
                     padding-left: 28px;
                     max-width: 250px;
 
                     &.selected {
-                        background-image: url("resource://cliqz/dropdown/images/location-icon-hover.svg");
+                        background-image: url-prefix("dropdown/images/location-icon-hover.svg");
                     }
                 }
 
                 .spinner {
                     display: inline-block;
                     margin-left: 2px;
-                    background-image: url("resource://cliqz/dropdown/images/small-spinner_square.gif");
+                    background-image: url-prefix("dropdown/images/small-spinner_square.gif");
                     background-repeat: no-repeat;
                     width: 20px;
                     height: 6px;

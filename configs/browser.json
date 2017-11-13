@@ -40,10 +40,10 @@
     "HISTORY_URL": "resource://cliqz/cliqz-history/index.html#/",
     "modules.history.search-path": "cliqz-history/index.html#/?query=",
     "ICONS": {
-      "active": "resource://cliqz/control-center/images/cc-active.svg",
-      "inactive": "resource://cliqz/control-center/images/cc-inactive.svg",
-      "critical": "resource://cliqz/control-center/images/cc-critical.svg",
-      "off": "resource://cliqz/control-center/images/cc-off.svg"
+      "active": "control-center/images/cc-active.svg",
+      "inactive": "control-center/images/cc-inactive.svg",
+      "critical": "control-center/images/cc-critical.svg",
+      "off": "control-center/images/cc-off.svg"
     },
     "BACKGROUNDS": {
       "active": "#471647",

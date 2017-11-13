@@ -103,14 +103,14 @@
 }
 
 #lotto-expand-button {
-    background-image: url("resource://cliqz/dropdown/images/expand-button.svg");
+    background-image: url-prefix("dropdown/images/expand-button.svg");
     background-repeat: no-repeat;
     background-size: 6px 10px;
     background-position: 4px center;
     padding-left: 16px !important;
 
     &.selected {
-        background-image: url("resource://cliqz/dropdown/images/expand-button-white.svg");
+        background-image: url-prefix("dropdown/images/expand-button-white.svg");
     }
 }
 

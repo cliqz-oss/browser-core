@@ -19,7 +19,6 @@ export default background({
   },
 
   unload() {
-
   },
 
   beforeBrowserShutdown() {

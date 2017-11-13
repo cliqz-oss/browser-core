@@ -1,4 +1,5 @@
 import ToolbarButton from '../core/ui/toolbar-button';
+import config from '../core/config';
 import { getMessage } from '../core/i18n';
 
 const DD_HEIGHT = {
@@ -16,7 +17,7 @@ export default {
       this.toolbarButton = new ToolbarButton({
         widgetId: 'control-center',
         default_title: getMessage('control-center-icon-tooltip'),
-        default_popup: 'resource://cliqz/control-center/index.html',
+        default_popup: `${config.baseURL}control-center/index.html`,
         badgeBackgroundColor: '#471647',
         badgeText: '0',
         defaultHeight: DD_HEIGHT[this.settings.channel] || 246
@@ -28,8 +29,8 @@ export default {
       this.pageAction = new ToolbarButton({
         widgetId: 'page-action',
         default_title: getMessage('control-center-icon-tooltip'),
-        default_popup: 'resource://cliqz/control-center/index.html',
-        default_icon: 'resource://cliqz/control-center/images/search-settings-black.png',
+        default_popup: `${config.baseURL}control-center/index.html`,
+        default_icon: `${config.baseURL}control-center/images/search-settings-black.png`,
         defaultHeight: 251
       }, true);
       this.pageAction.build();

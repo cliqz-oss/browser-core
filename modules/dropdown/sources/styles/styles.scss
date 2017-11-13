@@ -1,5 +1,6 @@
 $light-gray: #f5f5f5;
 
+@import 'helpers';
 @import 'partials/images';
 @import 'partials/anchors';
 @import 'partials/buttons';
@@ -196,6 +197,13 @@ $basic-line-height: (16 / 15) + 0em;
         box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.1);
     }
 
+    .logo-blank {
+        background-image: url-prefix("dropdown/images/blank.svg");
+        text-indent: -10em;
+        background-color:#fff;
+        padding: 0.38em;
+    }
+
     .history.last {
         border-bottom: 1px solid #e1e1e1;
         padding-bottom: 4px;
@@ -238,11 +246,11 @@ $basic-line-height: (16 / 15) + 0em;
                 margin-top: 2px;
 
                 &.switchtab {
-                    background-image: url("resource://cliqz/static/skin/urlbar-tab.svg#tab");
+                    background-image: url-prefix("static/skin/urlbar-tab.svg#tab");
                 }
 
                 &.bookmark {
-                    background-image: url("resource://cliqz/static/skin/urlbar-star.svg#star");
+                    background-image: url-prefix("static/skin/urlbar-star.svg#star");
                 }
 
                 &.search {
@@ -250,7 +258,7 @@ $basic-line-height: (16 / 15) + 0em;
                 }
 
                 &.history-tool {
-                    background-image: url("resource://cliqz/dropdown/images/history_tool_grey.svg");
+                    background-image: url-prefix("dropdown/images/history_tool_grey.svg");
                 }
             }
         }
@@ -402,7 +410,7 @@ $basic-line-height: (16 / 15) + 0em;
                 }
 
                 .icon.history-tool {
-                    background-image: url("resource://cliqz/dropdown/images/history_tool_white.svg");
+                    background-image: url-prefix("dropdown/images/history_tool_white.svg");
                 }
 
             }
@@ -673,13 +681,13 @@ $basic-line-height: (16 / 15) + 0em;
                 }
 
                 &.adult-allow-once {
-                    background-image: url("resource://cliqz/dropdown/images/adult-icon.svg");
+                    background-image: url-prefix("dropdown/images/adult-icon.svg");
                     background-repeat: no-repeat;
                     background-position: 5px center;
                     padding-left: 28px;
 
                     &.selected {
-                        background-image: url("resource://cliqz/dropdown/images/adult-icon-hover.svg");
+                        background-image: url-prefix("dropdown/images/adult-icon-hover.svg");
                     }
                 }
             }
@@ -847,11 +855,11 @@ $basic-line-height: (16 / 15) + 0em;
                     opacity: 0.6;
                 }
                 &#page-action-browser-action:hover {
-                    list-style-image: url(resource://cliqz/control-center/images/search-settings-blue.png) !important;
-                    --webextension-menupanel-image: url(resource://cliqz/control-center/images/search-settings-blue.png) !important;
-                    --webextension-menupanel-image-2x: url(resource://cliqz/control-center/images/search-settings-blue.png) !important;
-                    --webextension-toolbar-image: url(resource://cliqz/control-center/images/search-settings-blue.png) !important;
-                    --webextension-toolbar-image-2x: url(resource://cliqz/control-center/images/search-settings-blue.png) !important;
+                    list-style-image: url-prefix("control-center/images/search-settings-blue.png") !important;
+                    --webextension-menupanel-image: url-prefix("control-center/images/search-settings-blue.png") !important;
+                    --webextension-menupanel-image-2x: url-prefix("control-center/images/search-settings-blue.png") !important;
+                    --webextension-toolbar-image: url-prefix("control-center/images/search-settings-blue.png") !important;
+                    --webextension-toolbar-image-2x: url-prefix("control-center/images/search-settings-blue.png") !important;
                 }
 
             }

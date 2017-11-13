@@ -15,7 +15,7 @@
       });
       System.set('handlebars', System.newModule({default: Handlebars}));
       if (typeof Components !== "undefined") {
-        System.baseURL = System._loader.baseURL = "resource://cliqz/";
+        System.baseURL = System._loader.baseURL = "./";
       } else {
         var chrome = {
             i18n: {
@@ -24,7 +24,7 @@
         }
         System.baseURL  = '../'
       }
-      System.import("video-downloader/content/app");
+      System.import("./content/app");
     </script>
   </head>
   <body>

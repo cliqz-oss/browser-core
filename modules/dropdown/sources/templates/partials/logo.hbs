@@ -1,14 +1,14 @@
 <div class="icons">
 
-    <span class="logo" data-extra="logo"
+    <span data-extra="logo"
         {{#if logo.style}}
             style="{{logo.style}}"
+            class="logo"
         {{else}}
             {{#if isHistory}}
-                style="background-image: url('resource://cliqz/dropdown/images/blank.svg');
-                      text-indent: -10em;
-                      background-color:#fff;
-                      padding: 0.38em;"
+                class="logo logo-blank"
+            {{else}}
+                class="logo"
             {{/if}}
         {{/if}}>
         {{logo.text}}

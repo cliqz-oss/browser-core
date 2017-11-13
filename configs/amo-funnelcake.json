@@ -1,6 +1,6 @@
 {
   "platform": "firefox",
-  "baseURL": "resource://cliqz/",
+  "baseURL": "chrome://cliqz/content/",
   "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
   "testem_launchers": ["unit-node", "Chrome"],
   "testem_launchers_ci": ["unit-node"],
@@ -34,10 +34,10 @@
     "NEW_TAB_URL": "chrome://cliqz/content/freshtab/home.html",
     "DISABLE_ATTRACK_TELEMETRY": false,
     "ICONS": {
-      "active": "resource://cliqz/control-center/images/privacy-shield-active.svg",
-      "inactive": "resource://cliqz/control-center/images/privacy-shield-inactive.svg",
-      "critical": "resource://cliqz/control-center/images/privacy-shield-inactive.svg",
-      "off": "resource://cliqz/control-center/images/privacy-shield-inactive.svg"
+      "active": "control-center/images/privacy-shield-active.svg",
+      "inactive": "control-center/images/privacy-shield-inactive.svg",
+      "critical": "control-center/images/privacy-shield-inactive.svg",
+      "off": "control-center/images/privacy-shield-inactive.svg"
     },
     "BACKGROUNDS": {
       "active": "#999999",

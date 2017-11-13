@@ -22,11 +22,11 @@
       });
       System.set('handlebars', System.newModule({default: Handlebars}));
       if (!Components.fake) {
-        System.baseURL = System._loader.baseURL = "chrome://cliqz/content/";
+        System.baseURL = System._loader.baseURL = "./";
       } else {
         System.baseURL  = '../'
       }
-      System.import("offers-cc/content/app");
+      System.import("./content/app");
     </script>
 </head>
 <body>

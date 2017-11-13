@@ -1,6 +1,7 @@
 import autocomplete from "./autocomplete";
 import { utils } from "../core/cliqz";
 import { isFirefox } from "../core/platform";
+import config from '../core/config';
 
 export default class SpellCheck {
     constructor() {
@@ -9,7 +10,7 @@ export default class SpellCheck {
       this.resetState();
       if (isFirefox && utils.getPref('backend_country', 'de') == 'de') {
           utils.log('Initializing', 'SpellChecker');
-          utils.loadResource('chrome://cliqz/content/spell_check.list', this.loadRecords.bind(this));
+          utils.loadResource(`${config.baseURL}spell_check.list`, this.loadRecords.bind(this));
       }
     }
     resetState() {

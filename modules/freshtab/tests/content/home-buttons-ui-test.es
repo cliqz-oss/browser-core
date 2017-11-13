@@ -99,7 +99,6 @@ class Subject {
     this.modules[module].actions[action] = response;
   }
 }
-
 describe('Fresh tab buttons UI', function () {
   const homeButtonSelector = '#cliqz-home';
   const historyButtonSelector = '#cliqz-history';
@@ -229,7 +228,7 @@ describe('Fresh tab buttons UI', function () {
 
       it('with correct link', function () {
         chai.expect(subject.query(historyButtonSelector).href)
-          .to.contain('resource://cliqz/cliqz-history/index.html');
+          .to.contain("resource://cliqz/cliqz-history/index.html#/");
       });
     });
 

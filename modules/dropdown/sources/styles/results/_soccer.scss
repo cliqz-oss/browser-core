@@ -161,7 +161,7 @@ $cliqz-dark-blue: #0078CA;
         font-size: 0.833em;
         line-height: 1.28051em;
         text-decoration: none;
-        background-image: url(resource://cliqz/dropdown/images/expand.svg);
+        background-image: url-prefix("dropdown/images/expand.svg");
         background-repeat: no-repeat;
         background-size: 6px 10px;
         background-position: 0 center;

@@ -19,7 +19,7 @@ export default background({
   * @return pref
   */
   enabled() {
-    return utils.getPref("humanWeb", false)
+    return utils.getPref("humanWeb", true)
            && !utils.getPref("humanWebOptOut", false)
   },
 
@@ -32,54 +32,71 @@ export default background({
 
     if (isFirefox && !FF48_OR_ABOVE) {
       this.active = false;
-    } else {
+      return Promise.resolve();
+    }
+
+    return Promise.resolve().then(() => {
       HumanWeb.hpn = this.hpn;
 
+      let pendingInit;
       if (this.enabled()) {
-        HumanWeb.init();
-      // if (!utils.getPref('humanWebOptOut', false)) {
-        WebRequest.onHeadersReceived.addListener(HumanWeb.httpObserver.observeActivity, {
-          urls: ['*://*/*'],
-        }, ['responseHeaders']);
+        pendingInit = HumanWeb.init().then(() => {
 
+          this.onHeadersReceivedListener = (...args) => HumanWeb.httpObserver.observeActivity(...args);
+          WebRequest.onHeadersReceived.addListener(this.onHeadersReceivedListener, {
+            urls: ['*://*/*'],
+          }, ['responseHeaders']);
 
-        // If it's chrome, we need to add a domain2IP dict.
-        // Need to move it to a more platform friendly place.
+          // If it's chrome, we need to add a domain2IP dict.
+          // Need to move it to a more platform friendly place.
+          if (WebRequest.onCompleted) {
+            this.domain2IPListener = (...args) => this.domain2IP(...args);
+            WebRequest.onCompleted.addListener(this.domain2IPListener, { urls: ['http://*/*', 'https://*/*'], tabId: -1 });
+          }
+        });
+      } else {
+        pendingInit = Promise.resolve();
+      }
 
-        if (WebRequest.onCompleted) {
-          WebRequest.onCompleted.addListener(this.domain2IP, { urls: ['http://*/*', 'https://*/*'], tabId: -1 });
+      return pendingInit.then(() => {
+        utils.bindObjectFunctions(this.actions, this);
+
+        if (history && history.onVisitRemoved) {
+          this.onVisitRemovedListener = (...args) => HumanWeb.onVisitRemoved(...args);
+          history.onVisitRemoved.addListener(this.onVisitRemovedListener);
         }
-      }
 
-      utils.bindObjectFunctions(this.actions, this);
-
-      if (history && history.onVisitRemoved) {
-        history.onVisitRemoved.addListener(HumanWeb.onVisitRemoved);
-      }
-
-      this.humanWeb = HumanWeb;
-      this.active = true;
-    }
+        this.humanWeb = HumanWeb;
+        this.active = true;
+      });
+    });
   },
 
   unload() {
     if (this.active) {
-      if (history && history.onVisitRemoved) {
-        history.onVisitRemoved.removeListener(HumanWeb.onVisitRemoved);
+      this.active = false;
+
+      if (this.onVisitRemovedListener) {
+        history.onVisitRemoved.removeListener(this.onVisitRemovedListener);
+        this.onVisitRemovedListener = undefined;
       }
 
-      WebRequest.onHeadersReceived.removeListener(HumanWeb.httpObserver.observeActivity);
-      if (WebRequest.onCompleted) {
-        WebRequest.onCompleted.removeListener(this.domain2IP);
+      if (this.onHeadersReceivedListener) {
+        WebRequest.onHeadersReceived.removeListener(this.onHeadersReceivedListener);
+        this.onHeadersReceivedListener = undefined;
       }
+
+      if (this.domain2IPListener) {
+        WebRequest.onCompleted.removeListener(this.domain2IPListener);
+        this.domain2IPListener = undefined;
+      }
+
       HumanWeb.unload();
     }
   },
 
   beforeBrowserShutdown() {
-    if (this.active) {
-      HumanWeb.unload();
-    }
+    HumanWeb.unload();
   },
 
   domain2IP(requestDetails) {

@@ -1,8 +1,10 @@
+import config from '../core/config';
+
 export default class {
   constructor(settings) {
     this.window = settings.window;
     this.historyUrl = settings.settings['history-ui-url'] ||
-      'chrome://cliqz/content/fresh-tab-frontend/index.html#/history-sidebar';
+      `${config.baseURL}fresh-tab-frontend/index.html#/history-sidebar`
 
   }
 

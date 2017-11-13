@@ -25,8 +25,7 @@ export default class {
 
     if ( FileUtils.getFile("ProfD", ["cliqz.dbhumanweb"]).exists() ) {
       if (this.dbConn==null) {
-        this.dbConn = Services.storage.openDatabase(FileUtils.getFile("ProfD", ["cliqz.dbhumanweb"]))
-
+        this.dbConn = Services.storage.openDatabase(FileUtils.getFile("ProfD", ["cliqz.dbhumanweb"]));
       }
       this.createTable();
     } else {
@@ -34,18 +33,29 @@ export default class {
       this.createTable();
     }
 
-    return this.dbConn;
+    return Promise.resolve(this.dbConn);
   }
 
-  // Ensuring the dbConn is not null.
-  ensureConnection() {
-    this.getDBConn();
+  asyncClose() {
+    if (this.dbConn) {
+      return new Promise((resolve, reject) => {
+        try {
+          this.dbConn.asyncClose(() => {
+            this.dbConn = null;
+            resolve();
+          });
+        } catch (e) {
+          reject(e);
+        }
+      });
+    } else {
+      return Promise.resolve();
+    }
   }
 
   getDBConn(){
-    return this.dbConn || this.init();
+    return this.dbConn;
   }
-
 
   removeUnsafe(url, callback) {
     var st = this.dbConn.createStatement("DELETE from usafe WHERE url = :url");
@@ -351,11 +361,16 @@ export default class {
                 data VARCHAR(1000000) \
             )";
 
-    (this.dbConn.executeSimpleSQLAsync || this.dbConn.executeSimpleSQL)(usafe);
-    (this.dbConn.executeSimpleSQLAsync || this.dbConn.executeSimpleSQL)(hash_usafe);
-    (this.dbConn.executeSimpleSQLAsync || this.dbConn.executeSimpleSQL)(hash_cans);
-    (this.dbConn.executeSimpleSQLAsync || this.dbConn.executeSimpleSQL)(telemetry);
-
+    // TODO: Used to be asynchronous. In principle, there is no need
+    // to use synchronous APIs here, but when using asynchronous APIs,
+    // it should be changed, so that the function returns a promise.
+    //
+    // Once the profile exists, this operation is quite cheap (~1ms).
+    //
+    this.dbConn.executeSimpleSQL(usafe);
+    this.dbConn.executeSimpleSQL(hash_usafe);
+    this.dbConn.executeSimpleSQL(hash_cans);
+    this.dbConn.executeSimpleSQL(telemetry);
   }
 
   escapeSQL(str) {

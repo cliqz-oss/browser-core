@@ -1,3 +1,7 @@
+@function url-prefix($url){
+  @return url("chrome://cliqz/content/" + $url)
+}
+
 #customizationui-widget-multiview panelview#cliqz-offers-cc-btn-panel {
     max-width: 100% !important;
 }
@@ -11,8 +15,6 @@
 panelmultiview[mainViewId="cliqz-offers-cc-btn-panel"] > .panel-viewcontainer > .panel-viewstack > .panel-mainview:not([panelid="PanelUI-popup"]),
 panel[viewId="cliqz-offers-cc-btn-panel"] .panel-mainview {
     max-width: 50em !important;
-    width: 600px;
-    //height: 400px;
 }
 #cliqz-offers-cc-btn {
     padding: 0px;
@@ -42,5 +44,11 @@ panel[viewId="cliqz-offers-cc-btn-panel"] .panel-mainview {
 }
 
 #customizationui-widget-panel[viewId="cliqz-offers-cc-btn-panel"] .panel-arrowcontent {
+    padding: 0;
+}
+
+/* FF57 fix white spaces on top and bottom */
+
+#cliqz-offers-cc-btn-panel .panel-subview-body {
     padding: 0;
 }

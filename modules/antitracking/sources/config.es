@@ -7,7 +7,7 @@ import utils from '../core/utils';
 const VERSIONCHECK_URL = 'https://cdn.cliqz.com/anti-tracking/whitelist/versioncheck.json';
 const CONFIG_URL = 'https://cdn.cliqz.com/anti-tracking/config.json';
 
-export const VERSION = '0.100';
+export const VERSION = '0.101';
 export const MIN_BROWSER_VERSION = 35;
 
 export const DEFAULTS = {

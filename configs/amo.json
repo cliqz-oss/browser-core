@@ -1,6 +1,6 @@
 {
   "platform": "firefox",
-  "baseURL": "resource://cliqz/",
+  "baseURL": "chrome://cliqz/content/",
   "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
   "testem_launchers": ["unit-node", "Chrome"],
   "testem_launchers_ci": ["unit-node"],
@@ -33,10 +33,10 @@
     "HPN_CHANNEL": "cliqz",
     "NEW_TAB_URL": "chrome://cliqz/content/freshtab/home.html",
     "ICONS": {
-      "active": "resource://cliqz/control-center/images/cc-active.svg",
-      "inactive": "resource://cliqz/control-center/images/cc-inactive.svg",
-      "critical": "resource://cliqz/control-center/images/cc-critical.svg",
-      "off": "resource://cliqz/control-center/images/cc-off.svg"
+      "active": "control-center/images/cc-active.svg",
+      "inactive": "control-center/images/cc-inactive.svg",
+      "critical": "control-center/images/cc-critical.svg",
+      "off": "control-center/images/cc-off.svg"
     },
     "BACKGROUNDS": {
       "active": "#471647",

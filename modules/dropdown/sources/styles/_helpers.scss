@@ -1,0 +1,3 @@
+@function url-prefix($url){
+  @return url("chrome://cliqz/content/" + $url)
+}
