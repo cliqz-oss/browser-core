@@ -28,9 +28,10 @@ const ORIGIN_ID = 'processor';
 export default class OfferProcessor {
 
   //
-  constructor(sigHandler, baseDB, offersDB) {
+  constructor(sigHandler, baseDB, offersDB, offersStatusHandler) {
     this.baseDB = baseDB;
     this.offersDB = offersDB;
+    this.offersStatusHandler = offersStatusHandler;
 
     // local offer-ids cached (offer_id -> cachedTime)
     this.offerUpdateCache = {};
@@ -113,6 +114,12 @@ export default class OfferProcessor {
         !offerInfo.display_id ||
         !offerInfo.campaign_id) {
       logger.warn('pushOffer: invalid offer or missing fields');
+      return false;
+    }
+
+    // check if the offer is obsolete or not, if thats the case we directly skip
+    // this step
+    if (this._isOfferObsolete(offerInfo.offer_id)) {
       return false;
     }
 
@@ -210,6 +217,7 @@ export default class OfferProcessor {
     const rawOffers = this.offersDB.getOffers();
     const result = [];
     const filters = args ? args.filters : null;
+
     rawOffers.forEach((offerElement) => {
       if (filters) {
         // we should filter
@@ -236,6 +244,22 @@ export default class OfferProcessor {
       });
     });
     return result;
+  }
+
+  /**
+   * This method will update all the current offers we have on the DB and remove
+   * the ones that are obsolete using the offers-status-handler.
+   * @return {[type]} [description]
+   */
+  updateOffersStatus() {
+    const rawOffers = this.offersDB.getOffers();
+    rawOffers.forEach((offerElement) => {
+      // EX-5923: we will need to remove all the offers that are obsolete
+      if (this._isOfferObsolete(offerElement.offer_id)) {
+        // remove this from the database without emitting any signal
+        this.offersDB.removeOfferObject(offerElement.offer_id);
+      }
+    });
   }
 
   /**
@@ -341,6 +365,11 @@ export default class OfferProcessor {
     }
     // still cached
     return true;
+  }
+
+  // check if an offer is obsolete or not
+  _isOfferObsolete(offerID) {
+    return this.offersStatusHandler.getOfferStatus(offerID) === 'obsolete';
   }
 
   /**
@@ -471,7 +500,6 @@ export default class OfferProcessor {
       logger.error(`_publishMessage: something failed publishing the message ${JSON.stringify(err)}`);
     }
   }
-
 
   // ///////////////////////////////////////////////////////////////////////////
   // actions from ui

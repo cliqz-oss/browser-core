@@ -141,7 +141,7 @@ class AndExpr extends Expression {
     // now we should build each operation
     const opList = [];
     this.data.raw_op.args.forEach((opArg) => {
-      opList.push(this.data.exp_builder.createExp(opArg));
+      opList.push(this.data.exp_builder.createExp(opArg, this.data.parent_trigger));
     });
     this.ops = opList;
   }
@@ -214,7 +214,8 @@ class NotExpr extends Expression {
     if (!this.data.raw_op.args || this.data.raw_op.args.length === 0) {
       throw new Error('NotExpr invalid args');
     }
-    this.exprToNegate = this.data.exp_builder.createExp(this.data.raw_op.args[0]);
+    this.exprToNegate = this.data.exp_builder.createExp(this.data.raw_op.args[0],
+                                                        this.data.parent_trigger);
   }
 
   destroy() {
@@ -248,8 +249,10 @@ class EqExpr extends Expression {
     if (!this.data.raw_op.args || this.data.raw_op.args.length < 2) {
       throw new Error('EqExpr invalid args');
     }
-    this.lExpr = this.data.exp_builder.createExp(this.data.raw_op.args[0]);
-    this.rExpr = this.data.exp_builder.createExp(this.data.raw_op.args[1]);
+    this.lExpr = this.data.exp_builder.createExp(this.data.raw_op.args[0],
+                                                 this.data.parent_trigger);
+    this.rExpr = this.data.exp_builder.createExp(this.data.raw_op.args[1],
+                                                 this.data.parent_trigger);
   }
 
   destroy() {
@@ -284,8 +287,10 @@ class GtExpr extends Expression {
     if (!this.data.raw_op.args || this.data.raw_op.args.length < 2) {
       throw new Error('GtExpr invalid args');
     }
-    this.lExpr = this.data.exp_builder.createExp(this.data.raw_op.args[0]);
-    this.rExpr = this.data.exp_builder.createExp(this.data.raw_op.args[1]);
+    this.lExpr = this.data.exp_builder.createExp(this.data.raw_op.args[0],
+                                                 this.data.parent_trigger);
+    this.rExpr = this.data.exp_builder.createExp(this.data.raw_op.args[1],
+                                                 this.data.parent_trigger);
   }
 
   destroy() {
@@ -320,8 +325,10 @@ class LtExpr extends Expression {
     if (!this.data.raw_op.args || this.data.raw_op.args.length < 2) {
       throw new Error('LtExpr invalid args');
     }
-    this.lExpr = this.data.exp_builder.createExp(this.data.raw_op.args[0]);
-    this.rExpr = this.data.exp_builder.createExp(this.data.raw_op.args[1]);
+    this.lExpr = this.data.exp_builder.createExp(this.data.raw_op.args[0],
+                                                 this.data.parent_trigger);
+    this.rExpr = this.data.exp_builder.createExp(this.data.raw_op.args[1],
+                                                 this.data.parent_trigger);
   }
 
   destroy() {

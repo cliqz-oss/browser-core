@@ -1430,6 +1430,24 @@
     "control-center-clear-trCache": {
       "message": "Tracking Cache leeren"
     },
+    "control-center-offers-options": {
+      "message": "MyOffrz Optionen"
+    },
+    "control-center-offers-show": {
+      "message": "MyOffrz anzeigen"
+    },
+    "control-center-offers-show-info": {
+      "message": "Sichere dir attraktive Rabatte und Schnäppchen! MyOffrz zeigt dir nur Angebote, wenn sie für dich nützlich sind. MyOffrz wurde auf Basis höchster Datenschutzstandards entwickelt. Es werden keine personenbezogenen Daten auf Servern gespeichert."
+    },
+    "control-center-offers-location": {
+      "message": "MyOffrz in der Nähe anzeigen"
+    },
+    "control-center-offers-location-info": {
+      "message": "Verpasse keine Angebote in deiner Nähe! Gib deinen Standort auf Stadt- oder Kreisebene frei, um lokale Angebote angezeigt zu bekommen. Dein Standort wird nicht auf Servern gespeichert, sondern nur lokal auf deinem Computer verwendet."
+    },
+    "control-center-offers-conditions": {
+      "message": "Konditionen"
+    },
     "download": {
       "message": "Herunterladen von: "
     },

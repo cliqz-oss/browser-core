@@ -1,6 +1,5 @@
 {
   "bower_components": [
-    "pouchdb/dist/pouchdb.js",
     "system.js/dist/system.js",
     "jquery/dist/jquery.min.js"
   ]

@@ -4,8 +4,6 @@
   "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
   "testem_launchers": ["unit-node", "Chrome"],
   "testem_launchers_ci": ["unit-node"],
-  "pack": "cd build && fab package",
-  "publish": "cd build && fab publish:beta=$CLIQZ_BETA,channel=$CLIQZ_CHANNEL,pre=$CLIQZ_PRE_RELEASE",
   "settings": {
     "id": "funnelcake@cliqz.com",
     "name": "Cliqz",

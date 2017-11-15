@@ -16,8 +16,8 @@
         }
       });
       System.set('handlebars', System.newModule({default: Handlebars}));
-      System.baseURL = System._loader.baseURL = "./";
-      System.import("./content/app");
+      System.baseURL = System._loader.baseURL = "chrome://cliqz/content/";
+      System.import("browser-panel/content/app");
     </script>
   </head>
   <body>

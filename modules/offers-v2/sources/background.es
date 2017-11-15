@@ -13,6 +13,7 @@ import HistoryIndex from './history_index';
 import QueryHandler from './query_handler';
 import FeatureHandler from './features/feature-handler';
 import PatternMatchingHandler from './pattern-matching/pattern-matching-handler';
+import OfferStatusHandler from './offers-status-handler';
 
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -95,9 +96,13 @@ export default background({
     // for the new ui system
     this.signalsHandler = new SignalHandler(this.db);
 
+    const oStatusHandler = new OfferStatusHandler();
+
     this.offerProc = new OfferProcessor(this.signalsHandler,
                                         this.db,
-                                        this.offersDB);
+                                        this.offersDB,
+                                        oStatusHandler);
+    oStatusHandler.setStatusChangedCallback(this.offerProc.updateOffersStatus.bind(this.offerProc));
 
     // init the features here
     this.featureHandler = new FeatureHandler();
@@ -115,6 +120,7 @@ export default background({
       query_handler: this.queryHandler,
       feature_handler: this.featureHandler,
       pattern_matching_handler: this.patternMatchingHandler,
+      offers_status_handler: oStatusHandler,
     };
     this.triggerMachineExecutor = new TriggerMachineExecutor(this.globObjects);
 

@@ -1430,6 +1430,24 @@
     "control-center-clear-trCache": {
       "message": "Clear Tracking Cache"
     },
+    "control-center-offers-options": {
+      "message": "MyOffrz Options"
+    },
+    "control-center-offers-show": {
+      "message": "Show MyOffrz"
+    },
+    "control-center-offers-show-info": {
+      "message": "Receive attractive discounts and bargains! MyOffrz only shows relevant content to you. It is developed according to the most stringent data privacy standards. None of your personal data is stored on any server."
+    },
+    "control-center-offers-location": {
+      "message": "Show local MyOffrz"
+    },
+    "control-center-offers-location-info": {
+      "message": "Don’t miss any local offers! Your location is used on a city or district level. It is not stored on any server, and is only used locally on your computer."
+    },
+    "control-center-offers-conditions": {
+      "message": "Conditions"
+    },
     "download": {
       "message": "Download from: "
     },

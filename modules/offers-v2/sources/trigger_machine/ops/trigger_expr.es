@@ -44,18 +44,21 @@ class WatchRequestsExpr extends Expression {
   }
 
   getExprValue(/* ctx */) {
-    const cb = this.data.trigger_machine_executor.processWatchReqCallback;
-    if (this.data.event_handler.isHttpReqDomainSubscribed(cb, this.domain)) {
-      // finish here
-      return Promise.resolve(true);
+    try {
+      const cb = this.data.trigger_machine_executor.processWatchReqCallback;
+      if (this.data.event_handler.isHttpReqDomainSubscribed(cb, this.domain)) {
+        // finish here
+        return Promise.resolve(true);
+      }
+
+      // we add it and set the CB info
+      const cbArgs = {
+        trigger_id: this.data.parent_trigger.trigger_id
+      };
+      this.data.event_handler.subscribeHttpReq(cb, this.domain, cbArgs);
+    } catch (e) {
+      logger.error('Something happened when trying to subscribe the watch request', e);
     }
-
-    // we add it and set the CB info
-    const cbArgs = {
-      trigger_id: this.data.parent_trigger.trigger_id
-    };
-    this.data.event_handler.subscribeHttpReq(cb, this.domain, cbArgs);
-
     return Promise.resolve(true);
   }
 }

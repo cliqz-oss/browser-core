@@ -182,6 +182,91 @@
     }
 }
 
+.descr-read-more {
+    position: relative;
+    color: #ccc;
+    font-size: 12px;
+    cursor: default;
+
+    .hover-wrapper {
+        display: none;
+        position: absolute;
+        left: -10px;
+        bottom: 25px;
+        width: 250px;
+        padding: 8px;
+        border-radius: 5px;
+        border: 1px solid #999;
+        background: #dfdfdf;
+        font-size: 12px;
+        color: #333;
+
+        .text-holder {
+            overflow: auto;
+            display: block;
+            width: 100%;
+            max-height: 64px;
+        }
+    }
+
+    &.size-l .hover-wrapper {
+        width: 40vw;
+        font-size: 11px;
+    }
+
+    i {
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+        margin-top: -2px;
+        vertical-align: middle;
+
+        svg {
+            fill: #ccc;
+            max-width: 100%;
+            max-height: 100%;
+            margin-right: 8px;
+        }
+    }
+
+    &:hover {
+        &:after {
+            display: block;
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200%;
+        }
+
+        .hover-wrapper {
+            display: block;
+        }
+    }
+
+    .hover-wrapper:before,
+    .hover-wrapper:after {
+        display: block;
+        content: '';
+        position: absolute;
+        bottom: -7px;
+        left: 10px;
+        width: 0;
+        height: 0;
+        border-left: 7px solid transparent;
+        border-right: 7px solid transparent;
+
+        border-top: 7px solid #999;
+    }
+
+    .hover-wrapper:after {
+        bottom: -5px;
+        border-top-color: #dfdfdf;
+        z-index: 100;
+    }
+}
+
 .cqz-ticket-offer.cqz-no-call-to-action {
     .cqz-offer-holder {
         padding-right: 20px;

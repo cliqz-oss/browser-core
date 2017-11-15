@@ -48,6 +48,13 @@ export default describeModule('offers-v2/offer_processor',
         logObject: () => {},
       }
     },
+    'offers-v2/offers-status-handler': {
+      default: class {
+        getOfferStatus(offerID) {
+          return 'active';
+        }
+      }
+    },
     'core/platform': {
       isChromium: false
     },
@@ -203,9 +210,12 @@ export default describeModule('offers-v2/offer_processor',
       let events;
       let SignalHandler;
       let ActionID;
+      let OfferStatusHandler;
+
       beforeEach(function () {
         OfferProcessor = this.module().default;
         SignalHandler = this.deps('offers-v2/signals_handler').default;
+        OfferStatusHandler = this.deps('offers-v2/offers-status-handler').default;
         events = this.deps('core/events').default;
         return Promise.all([
           this.system.import('offers-v2/offers_db'),
@@ -225,10 +235,13 @@ export default describeModule('offers-v2/offer_processor',
           let sigh;
           // the filtering rule evaluator moc
           let fre;
+          // the offer status handler
+          let osh;
           beforeEach(function () {
             db = new OfferDB({});
             sigh = new SignalHandler(db);
-            op = new OfferProcessor(sigh, null, db);
+            osh = new OfferStatusHandler();
+            op = new OfferProcessor(sigh, null, db, osh);
             fre = op.filterRuleEval;
             // clear all
             events.clearAll();

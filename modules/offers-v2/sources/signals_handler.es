@@ -448,7 +448,7 @@ export class SignalHandler {
     try {
       GID = JSON.parse(String(GID));
     } catch (err) {
-      logger.error('sendSignalsToBE: GID is undefined');
+      logger.log('sendSignalsToBE: GID is undefined');
       GID = 'undefined';
     }
 

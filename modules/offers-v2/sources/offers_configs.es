@@ -22,13 +22,13 @@ var OffersConfigs = {
   OFFER_INFORMATION_URL: 'https://cliqz.com/products/cliqz-for-desktop/cliqz-angebote',
 
   // the time we want to track the signals after they were created
-  OFFERS_HISTORY_LIVE_TIME_SECS: 60 * 60 * 24 * 60,
+  OFFERS_HISTORY_LIVE_TIME_SECS: 20 * 60 * 24 * 60,
 
   // trigger specific browser history
   LOAD_TRIGGER_HISTORY_DATA: true,
   TRIGGER_HISTORY_DATA: isChromium ? undefined : 'chrome://cliqz/content/offers-v2/trigger_history.json',
   // the current trigger engine version
-  TRIGGER_ENGINE_VERSION: '3',
+  TRIGGER_ENGINE_VERSION: '4',
 
   // offer storage
   LOAD_OFFERS_STORAGE_DATA: true,
