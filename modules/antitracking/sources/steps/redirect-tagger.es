@@ -38,7 +38,7 @@ export default class {
   }
 
   checkRedirect(details) {
-    if (details.isRedirect) {
+    if (details.isRedirect && details.requestId !== undefined) {
       this.redirectTaggerCache.add(details.requestId, this.cacheTimeout);
       return false;
     }
@@ -46,7 +46,7 @@ export default class {
   }
 
   confirmRedirect(details) {
-    if (this.redirectTaggerCache.has(details.requestId)) {
+    if (details.requestId !== undefined && this.redirectTaggerCache.has(details.requestId)) {
       return false;
     }
 

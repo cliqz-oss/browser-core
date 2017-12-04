@@ -1,11 +1,12 @@
 .news-story {
     .result {
         .icons {
-            margin-top: 21px;
+            margin-top: 27px;
         }
 
         .abstract {
-            padding: 3px 0;
+            margin-left: 5px;
+            padding: 6px 0 5px 5px;
 
             .thumbnail {
                 display: block;
@@ -17,6 +18,8 @@
                 border-radius: 0;
                 border-bottom-left-radius: 3px;
                 border-top-left-radius: 3px;
+                box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.17);
+                clip-path: inset(-5px 0px -5px -5px);
 
                 img {
                     width: auto;

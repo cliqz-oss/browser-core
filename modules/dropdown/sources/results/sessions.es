@@ -2,7 +2,7 @@ import BaseResult from './base';
 import config from '../../core/config';
 
 const sessionsUrl = query => ([
-  config.baseURL,
+  config.settings.HISTORY_URL,
   config.settings['modules.history.search-path'],
   encodeURIComponent(query),
 ].join(''));
@@ -11,13 +11,13 @@ export default class extends BaseResult {
 
   constructor(rawResult) {
     super({
-      url: sessionsUrl(rawResult.query),
       ...rawResult,
+      url: sessionsUrl(rawResult.text),
     });
   }
 
   get elementId() {
-    return `result-sessions-${this.rawResult.query}`;
+    return `result-sessions-${this.rawResult.text}`;
   }
 
   get template() {
@@ -25,7 +25,7 @@ export default class extends BaseResult {
   }
 
   get displayUrl() {
-    return this.rawResult.query;
+    return this.rawResult.text;
   }
 
   get isHistory() {

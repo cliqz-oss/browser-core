@@ -1,7 +1,7 @@
 System.register([], function (_export) {
   "use strict";
 
-  _export('default', require('cron-parser/lib/parser'));
+  _export('default', require('cron-parser'));
 
   return {
     setters: [],

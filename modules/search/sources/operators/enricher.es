@@ -1,3 +1,4 @@
+import logger from '../logger';
 import { getMainLink } from './normalize';
 
 // TODO: should this be a RX subject? A pipeline step? Maybe a hot observable?
@@ -49,6 +50,9 @@ class Enricher {
         } else {
           return result;
         }
+
+        logger.debug(`Enrich '${url}' (cached: ${this.cache.has(url)})`,
+          result, match);
 
         const updated = {
           ...result,

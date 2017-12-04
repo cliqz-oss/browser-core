@@ -233,6 +233,10 @@ export default background({
       }
       msg.type = 'antitracking';
       utils.telemetry(msg);
+    },
+
+    setConfigOption(prefName, value) {
+      this.config.setPref(prefName, value);
     }
   },
 

@@ -1,6 +1,6 @@
-import Campaign from "campaign-manager/campaign";
-import CampaignManager from "campaign-manager/campaign-manager";
-import background from "core/base/background";
+import Campaign from "./campaign";
+import CampaignManager from "./campaign-manager";
+import background from "../core/base/background";
 
 /**
   @namespace campaign-manager

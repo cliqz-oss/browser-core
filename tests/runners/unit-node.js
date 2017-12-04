@@ -3,7 +3,7 @@
 
 'use strict';
 
-const walk = require('walk');
+const glob = require('glob');
 const systemjs = require('systemjs');
 const Mocha = require('mocha');
 const fs = require('fs');
@@ -45,21 +45,15 @@ log(`baseDir ${baseDir}`);
 const baseURL = baseDir + (cliqzConfig.platform === 'mobile' ? '/dev' : '');
 
 const testFiles = [];
-const walker = walk.walk(baseDir);
 
-walker.on('file', function (root, state, next) {
-  const testPath = `${root}/${state.name}`;
-  if (state.name.endsWith('-test.js')) {
-    if (fgrep && testPath.indexOf(fgrep) < 0) {
-      next();
-      return;
-    }
-    testFiles.push(testPath);
-    mocha.addFile(testPath);
+glob.sync(baseDir + '/**/tests/**/unit/**/*-test.js').forEach(function (path) {
+  if (fgrep && path.indexOf(fgrep) === -1) {
+    return;
   }
-  next();
-});
 
+  testFiles.push(path);
+  mocha.addFile(path);
+});
 
 function describeModule(moduleName, loadDeps, testFn) {
   const localSystem = new systemjs.constructor();
@@ -189,8 +183,4 @@ global.describeModule = describeModule;
 global.chai = chai;
 global.sinon = sinon;
 
-
-// Trigger tests
-walker.on('end', function () {
-  mocha.run();
-});
+mocha.run();

@@ -4,19 +4,19 @@
  * This module prevents user from 3rd party tracking
  */
 import { utils, events } from '../core/cliqz';
-import inject from '../core/kord/inject';
+import inject, { ModuleDisabledError } from '../core/kord/inject';
 import UrlWhitelist from '../core/url-whitelist';
 
 import * as browser from '../platform/browser';
 import * as datetime from './time';
-import * as persist from './persistent-state';
+import * as persist from '../core/persistent-state';
 import PageEventTracker from './tp_events';
 import Pipeline from '../webrequest-pipeline/pipeline';
 import QSWhitelist from './qs-whitelists';
 import TempSet from './temp-set';
 import cleanLegacyDb from './legacy/database';
 import md5 from './md5';
-import pacemaker from './pacemaker';
+import pacemaker from '../core/pacemaker';
 import telemetry from './telemetry';
 import { AttrackBloomFilter } from './bloom-filter';
 import { HashProb } from './hash';
@@ -201,7 +201,8 @@ export default class CliqzAttrack {
     // Large static caches (e.g. token whitelist) are loaded from sqlite
     // Smaller caches (e.g. update timestamps) are kept in prefs
 
-    this.qs_whitelist = this.isBloomFilterEnabled() ? new AttrackBloomFilter() : new QSWhitelist();
+    this.qs_whitelist = this.isBloomFilterEnabled() ? new AttrackBloomFilter(this.config) :
+      new QSWhitelist(this.config);
 
     const initPromises = [];
     initPromises.push(this.qs_whitelist.init());
@@ -240,7 +241,7 @@ export default class CliqzAttrack {
           raw: true,
         });
       });
-    });
+    }, this.config);
 
     initPromises.push(this.initPipeline());
 
@@ -268,7 +269,7 @@ export default class CliqzAttrack {
           this.config,
           this.telemetry),
         blockRules: new BlockRules(this.config),
-        cookieContext: new CookieContext(this.config, this.tp_events),
+        cookieContext: new CookieContext(this.config, this.tp_events, this.qs_whitelist),
         redirectTagger: new RedirectTagger(),
         subdomainChecker: new SubdomainChecker(this.config),
       };
@@ -323,16 +324,6 @@ export default class CliqzAttrack {
           fn: (state, response) => steps.subdomainChecker.checkBadSubdomain(state, response),
         },
         {
-          name: 'tokenExaminer.examineTokens',
-          spec: 'collect', // TODO - global state
-          fn: state => steps.tokenExaminer.examineTokens(state),
-        },
-        {
-          name: 'tokenTelemetry.extractKeyTokens',
-          spec: 'collect', // TODO - global state
-          fn: state => steps.tokenTelemetry.extractKeyTokens(state),
-        },
-        {
           name: 'pageLogger.attachStatCounter',
           spec: 'annotate',
           fn: state => steps.pageLogger.attachStatCounter(state),
@@ -341,6 +332,28 @@ export default class CliqzAttrack {
           name: 'pageLogger.logRequestMetadata',
           spec: 'collect', // TODO - global state
           fn: state => steps.pageLogger.logRequestMetadata(state),
+        },
+        {
+          name: 'checkExternalBlocking',
+          spec: 'blocking',
+          fn: (state, response) => {
+            if (response.cancel === true) {
+              state.incrementStat('blocked_external');
+              response.shouldIncrementCounter = true;
+              return false;
+            }
+            return true;
+          },
+        },
+        {
+          name: 'tokenExaminer.examineTokens',
+          spec: 'collect', // TODO - global state
+          fn: state => steps.tokenExaminer.examineTokens(state),
+        },
+        {
+          name: 'tokenTelemetry.extractKeyTokens',
+          spec: 'collect', // TODO - global state
+          fn: state => steps.tokenTelemetry.extractKeyTokens(state),
         },
         {
           name: 'domChecker.checkDomLinks',
@@ -528,11 +541,10 @@ export default class CliqzAttrack {
                 // redirect, update location for tab
                 // if no redirect location set, stage the tab id so we don't get false data
                 const redirectUrl = state.getResponseHeader('Location');
-                const redirectUrlParts = URLInfo.get(redirectUrl) || {};
+                let redirectUrlParts = URLInfo.get(redirectUrl) || {};
                 // if redirect is relative, use source domain
                 if (!redirectUrlParts.hostname) {
-                  redirectUrlParts.hostname = state.urlParts.hostname;
-                  redirectUrlParts.path = redirectUrl;
+                  redirectUrlParts = URLInfo.get(`${state.urlParts.toString()}${redirectUrl}`);
                 }
                 this.tp_events.onRedirect(
                   redirectUrlParts,
@@ -672,6 +684,13 @@ export default class CliqzAttrack {
       this.webRequestPipeline.action('removePipelineStep',
         stage,
         `antitracking.${stage}`)
+        .catch((err) => {
+          if (err.name === ModuleDisabledError.name) {
+            console.log('antitracking', 'cannot unload: webrequest-pipeline was already unloaded');
+            return Promise.resolve();
+          }
+          return err;
+        })
     )).then(() => {
       this.pipelines = {};
     });
@@ -870,7 +889,8 @@ export default class CliqzAttrack {
       result.trackers[dom].tokens_removed = ['empty', 'replace', 'placeholder', 'block'].reduce(
         (cumsum, action) => cumsum + (plainData.tps[dom][`token_blocked_${action}`] || 0), 0
       );
-      result.trackers[dom].tokens_removed += plainData.tps[dom].blocked_blocklist || 0;
+      result.trackers[dom].tokens_removed += plainData.tps[dom].blocked_blocklist || 0 +
+        plainData.tps[dom].blocked_external || 0;
 
       result.cookies.allowed += (
         result.trackers[dom].cookie_set - result.trackers[dom].cookie_blocked

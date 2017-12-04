@@ -21,7 +21,7 @@ function replaceFileExtension(filename) {
 
 function getBundlesTree(modulesTree) {
   const prefix = 'modules';
-  const bundleFiles = cliqzConfig.bundles || [];
+  const bundleFiles = cliqzConfig.bundles;
 
   let allBundleFiles = [].concat(
     // modules
@@ -47,11 +47,19 @@ function getBundlesTree(modulesTree) {
     })
   );
 
-  const exludedBundleFiles = bundleFiles.length === 0 ? [] : allBundleFiles.filter(f => bundleFiles.indexOf(f) === -1);
+  let excludedBundleFiles;
+
+  if (!bundleFiles) {
+    excludedBundleFiles = [];
+  } else if (bundleFiles.length === 0) {
+    excludedBundleFiles = ['**/*'];
+  } else {
+    excludedBundleFiles = allBundleFiles.filter(f => bundleFiles.indexOf(f) === -1);
+  }
 
   const input = new Funnel(modulesTree, {
     destDir: prefix,
-    exclude: exludedBundleFiles,
+    exclude: excludedBundleFiles,
   });
 
   const cliqzConfigSystem = cliqzConfig.system || {};
@@ -94,7 +102,7 @@ function getBundlesTree(modulesTree) {
     new SystemBuilder(input, {
       systemConfig,
       builderConfig: {
-        sourceMaps: 'inline',
+        sourceMaps: cliqzConfig.PRODUCTION ? false : 'inline'
       }
     }),
     {
@@ -102,7 +110,7 @@ function getBundlesTree(modulesTree) {
     }
   );
 
-  return new SourceMapExtractor(output);
+  return output;
 }
 
 module.exports = getBundlesTree;

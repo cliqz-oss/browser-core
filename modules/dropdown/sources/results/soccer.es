@@ -237,11 +237,15 @@ export default class extends GenericResult {
   }
 
   get template() {
-    return `soccer/${this.currentSubTemplate}`;
+    return 'soccer';
   }
 
   get currentSubTemplate() {
     return this.rawResult.data.template;
+  }
+
+  get currentPartial() {
+    return `partials/soccer/${this.currentSubTemplate}`;
   }
 
   get extra() {

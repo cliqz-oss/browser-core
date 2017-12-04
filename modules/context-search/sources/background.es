@@ -1,6 +1,6 @@
-import { utils } from 'core/cliqz';
-import background from 'core/base/background';
-import ContextSearch from 'context-search/context-search';
+import { utils } from '../core/cliqz';
+import background from '../core/base/background';
+import ContextSearch from './context-search';
 
 /**
  * @namespace context-search

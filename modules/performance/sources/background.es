@@ -1,5 +1,5 @@
-import utils from 'core/utils';
-import background from 'core/base/background';
+import utils from '../core/utils';
+import background from '../core/base/background';
 
 const regexGoogleRef = /\.google\..*?\/(?:url|aclk)\?/;
 const regexGoogleQuery = /\.google\..*?[#?&;]q=[^$&]+/;

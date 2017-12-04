@@ -13,23 +13,23 @@
 }
 
 #nav-bar #urlbar {
-    #video-downloader-page-action-browser-action {
+    #video-downloader-page-action {
+        margin: 0;
+        padding: 0 9px;
+        margin-inline-start: 5px;
+        background-image: url('resource://cliqz/video-downloader/images/video-downloader.svg');
+        background-position: center center;
+        background-size: 16px auto;
+        background-repeat: no-repeat;
+        width: 32px;
+        height: 22px;
+
         -moz-animation:    cliqz_animation 1s 1; /* Fx 2+ */
         animation:         cliqz_animation 1s 1; /* IE 10+, Fx 29+ */
         animation-timing-function: ease-out;
 
-        .toolbarbutton-badge-stack {
-            padding: 4px;
-        }
-
-        &:hover {
-            border-color: transparent;
-
-            .toolbarbutton-badge-stack {
-                .toolbarbutton-icon {
-                    opacity: 1;
-                }
-            }
+        &:hover, &[open="true"] {
+            background-color: #e7e7e7;
         }
     }
 }

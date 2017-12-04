@@ -48,7 +48,7 @@ const html = funnel(appRoot, {
 const outputList = [html];
 
 // IMPORTANT: adding required keys to manifest for Chravira to work
-if (cliqzConfig.environment === 'production') {
+if (cliqzConfig.PRODUCTION) {
   // path relative to ./fern folder
   const manifestPath = '../specific/chromium/manifest.json';
   const originalManifest = require(manifestPath);

@@ -1,8 +1,11 @@
 DEPS.AttrackBloomFilterTest = ["core/utils"];
 TESTS.AttrackBloomFilterTest = function (CliqzUtils) {
-  var System = CliqzUtils.getWindow().CLIQZ.System,
-      { AttrackBloomFilter, BloomFilter } = System.get('antitracking/bloom-filter'),
-      md5 = System.get('antitracking/md5').default;
+  var CLIQZ = CliqzUtils.getWindow().CLIQZ
+  if (!CLIQZ.app.modules.antitracking) {
+    return;
+  }
+  var { AttrackBloomFilter, BloomFilter } = getModule('antitracking/bloom-filter'),
+      md5 = getModule('antitracking/md5').default;
 
   describe('AttrackBloomFilter', function() {
     var whitelist;
@@ -93,7 +96,7 @@ TESTS.AttrackBloomFilterTest = function (CliqzUtils) {
             response.write(mock_bloom_filter_config);
           });
 
-          whitelist = new AttrackBloomFilter('http://localhost:' + testServer.port + '/bloom_filter/config', 'http://localhost:' + testServer.port + '/bloom_filter/');
+          whitelist = new AttrackBloomFilter(null, 'http://localhost:' + testServer.port + '/bloom_filter/config', 'http://localhost:' + testServer.port + '/bloom_filter/');
 
           whitelist.update();
         });

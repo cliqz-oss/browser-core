@@ -7,7 +7,7 @@ import events from '../core/events';
 import SpeedDial from './speed-dial';
 import AdultDomain from './adult-domain';
 import background from '../core/base/background';
-import { forEachWindow, mapWindows } from '../core/browser';
+import { forEachWindow, mapWindows, Window } from '../core/browser';
 import { queryActiveTabs } from '../core/tabs';
 import config from '../core/config';
 import { isCliqzBrowser, isCliqzAtLeastInVersion } from '../core/platform';
@@ -51,6 +51,7 @@ export default background({
   geolocation: inject.module('geolocation'),
   messageCenter: inject.module('message-center'),
   theme: inject.module('theme'),
+  ui: inject.module('ui'),
   offersV2: inject.module('offers-v2'),
   requiresServices: ['logos'],
 
@@ -90,7 +91,9 @@ export default background({
   },
 
   get showOffers() {
-    return prefs.get('cliqzTabOffersNotification', false);
+    const offersEnabled = (prefs.get('offers2FeatureEnabled', false) && prefs.get('offers2UserEnabled', false));
+    const cliqzTabOfferEnabled = prefs.get('cliqzTabOffersNotification', false);
+    return offersEnabled && cliqzTabOfferEnabled;
   },
 
   get blueTheme() {
@@ -221,9 +224,14 @@ export default background({
           return url.indexOf('https://cliqz.com/search?q=') === 0;
         }
 
+        function isMozUrl(url) {
+          return url.startsWith("moz-extension://");
+        }
+
         results = results.filter(history => {
           return !isDeleted(history.hashedUrl) && !isCustom(history.url)
-                  && !this.isAdult(history.url) && !isCliqz(history.url);
+                  && !this.isAdult(history.url) && !isCliqz(history.url)
+                  && !isMozUrl(history.url);
         });
 
         return results.map(function(r){
@@ -419,8 +427,8 @@ export default background({
 
         return {
           version: topNewsVersion,
-          news: newsList.map( r => ({
-            title: r.short_title || r.title,
+          news: newsList.map(r => ({
+            title: r.title_hyphenated || r.title,
             description: r.description,
             displayUrl: utils.getDetailsFromUrl(r.url).cleanHost || r.title,
             logo: utils.getLogoDetails(utils.getDetailsFromUrl(r.url)),
@@ -454,8 +462,18 @@ export default background({
     * Get configuration regarding locale, onBoarding and browser
     * @method getConfig
     */
-    getConfig() {
-      let blueTheme = this.blueTheme;
+    getConfig(sender) {
+      const windowWrapper = Window.findByTabId(sender.tab.id);
+
+      // cleanup urlbar value if it has visible url
+      // and set it on focus if missing
+      if (windowWrapper) {
+        this.ui.windowAction(windowWrapper.window, 'setUrlbarValue', '', {
+          match: config.settings.NEW_TAB_URL,
+          focus: true,
+        });
+      }
+
       return {
         locale: utils.PREFERRED_LANGUAGE,
         newTabUrl: config.settings.NEW_TAB_URL,
@@ -495,21 +513,6 @@ export default background({
       }
     },
 
-    /**
-    * @method takeFullTour
-    */
-    takeFullTour() {
-      var onboardingWindow = utils.getWindow().CLIQZ.System.get("onboarding/window").default;
-      new onboardingWindow({settings: {}, window: utils.getWindow()}).fullTour();
-
-      utils.telemetry({
-        "type": "onboarding",
-        "product": "cliqz",
-        "action": "click",
-        "action_target": "tour",
-        "version": 1.0
-      });
-    },
     /**
     * revert back to old "new tab"
     * @method revertBack
@@ -568,11 +571,12 @@ export default background({
     "control-center:cliqz-tab": function () {
       if(this.newTabPage.isActive) {
         this.newTabPage.rollback();
-        this.newTabPage.setPersistentState(false);
       } else {
         this.newTabPage.enableNewTabPage();
         this.newTabPage.enableHomePage();
       }
+
+      this.newTabPage.setPersistentState(!this.newTabPage.isActive);
     },
     "message-center:handlers-freshtab:new-message": function onNewMessage(message) {
       if( !(message.id in this.messages )) {

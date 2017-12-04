@@ -96,7 +96,7 @@ function importRSAKey(pk, pub = true, h = 'SHA-256', algorithm = 'RSA-OAEP') {
       name: algorithm,
       hash: { name: h },
     },
-    false,
+    true,
     uses,
   );
 }

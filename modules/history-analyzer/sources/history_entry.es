@@ -115,6 +115,10 @@ export default class HistoryEntry {
     return dayEntry;
   }
 
+  getLastAccessedTimestamp() {
+    return this.data.info.last_accessed_ts;
+  }
+
   /**
    * will create an object containing the days in the given list (or null if we
    * do not have it) with the following information:

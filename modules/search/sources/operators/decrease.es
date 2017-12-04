@@ -1,6 +1,7 @@
 import { getMainLink } from './normalize';
-import { utils } from '../../core/cliqz';
 
+/* eslint-disable */
+// TODO: remove eslint-disable
 const TYPES = new Map([
   [1, 'only-answer'],
   [2, 'overview'],
@@ -34,7 +35,6 @@ const decrease = (results) => {
     }));
 
   // TODO: enforce rich data rules
-  utils.log('rich data counts', counts);
 
   return results;
 };
@@ -49,3 +49,4 @@ export default ({ results, ...response }) => ({
   results: decrease(results),
   ...response,
 });
+/* eslint-enable */

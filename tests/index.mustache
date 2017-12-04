@@ -18,7 +18,9 @@
   </head>
   <body>
     <div id="mocha"></div>
-    <script src="/build/tests/tests.js"></script>
+    {{#serve_files}}
+    <script src="/{{src}}"></script>
+    {{/serve_files}}
     <script>
       mocha.run();
     </script>

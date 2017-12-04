@@ -1,13 +1,14 @@
 import utils from '../core/utils';
 import prefs from '../core/prefs';
-import { addStylesheet, removeStylesheet } from "../core/helpers/stylesheet";
+import console from '../core/console';
+import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import inject from '../core/kord/inject';
-import { isCliqzBrowser, isPlatformAtLeastInVersion } from '../core/platform';
+import { isPlatformAtLeastInVersion } from '../core/platform';
+import config from '../core/config';
 
 const DEVELOPER_FLAG_PREF = 'developer';
 const BLUE_THEME_PREF  = 'freshtab.blueTheme.enabled';
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
-const BLUE_THEME_CLASS = 'cliqz-blue';
 
 /**
 * @namespace theme
@@ -21,17 +22,15 @@ export default class {
   constructor(settings) {
     this.window = settings.window;
     // check for using theme from extension or it exist in browser
-    this.useTheme = !this.window.document.documentElement.getAttribute("cliqzBrowser");
+    this.useTheme = !this.window.document.documentElement.getAttribute('cliqzBrowser');
     this.theme = inject.module('theme');
     this.actions = {
       addClass: this.addClass.bind(this),
       removeClass: this.removeClass.bind(this)
-    }
-
+    };
     if (prefs.get(DEVELOPER_FLAG_PREF, false)) {
       this.toggleBlueThemeForFFTesting();
     }
-
   }
 
   get windowNode() {
@@ -41,10 +40,7 @@ export default class {
   toggleBlueThemeForFFTesting() {
     const config = prefs.getObject(FRESHTAB_CONFIG_PREF);
     const background = config.background || {};
-    const CLIQZ_1_16_OR_ABOVE  = isPlatformAtLeastInVersion('1.16.0');
-    if(!CLIQZ_1_16_OR_ABOVE) {
-      return;
-    }
+    
     if (prefs.get(BLUE_THEME_PREF, false) || !Object.keys(background).length) {
       this.theme.action('addBlueClass');
       prefs.set(BLUE_THEME_PREF, true);
@@ -61,16 +57,15 @@ export default class {
     }
   }
 
-
-
   themeUrl() {
     let url;
+    const ff57 = isPlatformAtLeastInVersion('57.0') ? 'ff57-' : '';
     if (utils.isWindows()) {
-      url = 'chrome://cliqz/content/theme/styles/theme-win.css';
+      url = `${config.baseURL}theme/styles/${ff57}theme-win.css`;
     } else if (utils.isMac()) {
-      url = 'chrome://cliqz/content/theme/styles/theme-mac.css';
+      url = `${config.baseURL}theme/styles/${ff57}theme-mac.css`;
     } else if (utils.isLinux()) {
-      url = 'chrome://cliqz/content/theme/styles/theme-linux.css';
+      url = `${config.baseURL}theme/styles/${ff57}theme-linux.css`;
     }
     return url;
   }

@@ -1,7 +1,10 @@
 const webExt = require('web-ext');
 const path = require('path');
+const fs = require('fs');
 
 const autoConfig = require('./autoconfig.js').settings;
+const configFilePath = process.env.CLIQZ_CONFIG_PATH;
+const cliqzConfig = JSON.parse(fs.readFileSync(configFilePath));
 
 const OUTPUT_PATH = process.env.OUTPUT_PATH;
 const FIREFOX_PATH = process.env.FIREFOX_PATH;
@@ -10,8 +13,8 @@ const FIREFOX_PATH = process.env.FIREFOX_PATH;
 function run(entrypoint = 'resource://cliqz/firefox-tests/run-testem.html') {
   const options = {
     noReload: true,
-    sourceDir: path.join(OUTPUT_PATH, 'cliqz@cliqz.com'),
-    artifactsDir: path.join(OUTPUT_PATH, 'cliqz@cliqz.com'),
+    sourceDir: path.join(OUTPUT_PATH, cliqzConfig.settings.id),
+    artifactsDir: path.join(OUTPUT_PATH, cliqzConfig.settings.id),
     startUrl: entrypoint,
     customPrefs: autoConfig,
   };

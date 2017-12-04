@@ -72,6 +72,7 @@ export default describeModule('anolysis/signals-queue',
 
         return queue.push({ signal: 1 })
           .then(() => queue.push({ signal: 2 }))
+          .then(() => { queue.initialized = true; })
           .then(() => queue.processNextBatch(1))
           .then(() => chai.expect(db.size).to.equal(1))
           .then(() => chai.expect(sendSignal).to.have.been.calledOnce);
@@ -82,6 +83,7 @@ export default describeModule('anolysis/signals-queue',
 
         return queue.push({ signal: 1 })
           .then(() => queue.push({ signal: 2 }))
+          .then(() => { queue.initialized = true; })
           .then(() => queue.processNextBatch(2))
           .then(() => chai.expect(db.size).to.equal(0))
           .then(() => chai.expect(sendSignal).to.have.been.calledTwice);
@@ -92,6 +94,7 @@ export default describeModule('anolysis/signals-queue',
 
         return queue.push({ signal: 1 })
           .then(() => queue.push({ signal: 2 }))
+          .then(() => { queue.initialized = true; })
           .then(() => chai.expect(queue.processNextBatch(2)).to.be.rejected)
           .then(() => chai.expect(db.size).to.equal(2))
           .then(() => chai.expect(sendSignal).to.have.been.calledOnce);

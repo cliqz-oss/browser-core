@@ -1,14 +1,15 @@
 import ToolbarButton from '../core/ui/toolbar-button';
 import config from '../core/config';
 import { getMessage } from '../core/i18n';
+import background from '../core/base/background';
 
 const DD_HEIGHT = {
   'FC01': 246, // funnelcake
   '04': 379,   // amo
-  '40': 419.   // Q browser
-}
+  '40': 419,   // Q browser
+};
 
-export default {
+export default background({
   init(settings) {
     this.settings = settings;
 
@@ -49,5 +50,11 @@ export default {
 
   beforeBrowserShutdown() {
 
-  }
-};
+  },
+  events: {
+
+  },
+  actions: {
+
+  },
+});

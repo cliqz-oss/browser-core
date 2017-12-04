@@ -17,15 +17,9 @@ DEPS.WebCryptoTest = ["core/utils"];
 TESTS.WebCryptoTest = function(CliqzUtils) {
   var subtle;
   var encoding;
-  var System = CliqzUtils.getWindow().CLIQZ.System;
   beforeEach(function() {
-    return System.import('core/encoding').then(function(mod) {
-      encoding = mod;
-      return System.import('core/crypto/subtle-polyfill');
-    })
-    .then(function(mod) {
-      subtle = mod.default;
-    });
+    encoding = getModule('core/encoding');
+    subtle = getModule('core/crypto/subtle-polyfill').default;
   });
   describe('WebCrypto polyfill', function() {
     this.timeout(60000);

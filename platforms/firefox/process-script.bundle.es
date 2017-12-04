@@ -8,14 +8,64 @@ import { getMessage } from '../core/i18n';
 
 const send = sendAsyncMessage.bind(null, 'cliqz');
 
+/**
+ * Run function for all existing documents.
+ */
+function forEachTab(fn) {
+  const windowEnumerator = Services.ww.getWindowEnumerator();
+  while (windowEnumerator.hasMoreElements()) {
+    const window = windowEnumerator.getNext();
+
+    if (window.gBrowser && window.gBrowser.tabs) {
+      // this is a browser (chrome) window so we need to inject the
+      // content scripts in all openend tabs
+      window.gBrowser.tabs.forEach((tab) => {
+        try {
+          fn(tab.linkedBrowser.contentDocument);
+        } catch (e) {
+          // failed to load into existing window
+        }
+      });
+    } else {
+      // this is a content window so we need to inject content scripts directly
+      try {
+        fn(window.document);
+      } catch (e) {
+          // failed to load into existing window
+      }
+    }
+  }
+}
+
 const DocumentManager = {
 
   init() {
+    this._windowsInfo = new WeakMap();
     Services.obs.addObserver(this, 'document-element-inserted', false);
+    forEachTab(this.observe.bind(this));
   },
 
   uninit() {
+    forEachTab(this.cleanup.bind(this));
     Services.obs.removeObserver(this, 'document-element-inserted');
+  },
+
+  cleanup(document) {
+    const window = document && document.defaultView;
+    if (!document || !document.location ||
+      !window || !this._windowsInfo.has(window)) {
+      return;
+    }
+    const info = this._windowsInfo.get(window);
+
+    removeMessageListener(`window-${info.windowId}`, info.onMessage);
+    removeMessageListener('cliqz:core', info.onMessage);
+
+    if (info.unsafeWindow) {
+      delete info.unsafeWindow.chrome;
+    }
+
+    info.onUnload();
   },
 
   observe(document) {
@@ -26,29 +76,37 @@ const DocumentManager = {
 
     const windowId = getWindowId(window);
     const listeners = new Set();
+    let unsafeWindow = null;
 
     const onMessage = (incomingMessage) => {
       listeners.forEach((l) => {
-        try {
-          const unsafeMessage = Components.utils.cloneInto({
-            ...incomingMessage.data,
-            type: 'response',
-          }, window);
+        const unsafeMessage = Components.utils.cloneInto({
+          ...incomingMessage.data,
+          type: 'response',
+        }, window);
 
-          l(unsafeMessage);
-        } catch (e) {
-          // don't throw if any of the listeners thrown
-        }
+        l(unsafeMessage);
       });
     };
 
     addMessageListener('cliqz:core', onMessage);
     addMessageListener(`window-${windowId}`, onMessage);
 
-    window.addEventListener('unload', () => {
+    const onUnload = () => {
       removeMessageListener(`window-${windowId}`, onMessage);
       removeMessageListener('cliqz:core', onMessage);
-    });
+      this._windowsInfo.delete(window);
+    };
+
+    window.addEventListener('unload', onUnload);
+
+    const sender = {
+      url: window.location.href,
+      tab: {
+        id: getWindowId(window.top),
+        url: window.top.location.href,
+      },
+    };
 
     if (
       window.location.href.indexOf('resource://cliqz') === 0 ||
@@ -63,6 +121,7 @@ const DocumentManager = {
               origin: 'content',
               windowId,
               payload: message,
+              sender,
             });
           },
           onMessage: {
@@ -79,7 +138,7 @@ const DocumentManager = {
         },
       };
 
-      const unsafeWindow = Components.utils.waiveXrays(window);
+      unsafeWindow = Components.utils.waiveXrays(window);
       unsafeWindow.chrome = Components.utils.cloneInto(safeChrome, window, {
         cloneFunctions: true
       });
@@ -90,6 +149,7 @@ const DocumentManager = {
         sendMessage(message) {
           send({
             ...message,
+            sender,
             source: CHROME_MSG_SOURCE
           });
         },
@@ -108,38 +168,17 @@ const DocumentManager = {
       chrome,
       windowId,
     });
+
+    this._windowsInfo.set(window, {
+      windowId,
+      onMessage,
+      unsafeWindow,
+      onUnload,
+    });
   }
 };
 
 DocumentManager.init();
-
-/**
- * Load to already existing documents. It is important for extension updates
- * and some race conditions during browser startup.
- */
-const windowEnumerator = Services.ww.getWindowEnumerator();
-while (windowEnumerator.hasMoreElements()) {
-  const window = windowEnumerator.getNext();
-
-  if (window.gBrowser && window.gBrowser.tabs) {
-    // this is a browser (chrome) window so we need to inject the
-    // content scripts in all openend tabs
-    window.gBrowser.tabs.forEach((tab) => {
-      try {
-        DocumentManager.observe(tab.linkedBrowser.contentDocument);
-      } catch (e) {
-        // failed to load into existing window
-      }
-    });
-  } else {
-    // this is a content window so we need to inject content scripts directly
-    try {
-      DocumentManager.observe(window.document);
-    } catch (e) {
-        // failed to load into existing window
-    }
-  }
-}
 
 // Create a new processScriptId
 const processId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {

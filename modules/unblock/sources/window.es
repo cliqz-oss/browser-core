@@ -1,4 +1,4 @@
-import CliqzUnblock from 'unblock/main';
+import CliqzUnblock from './main';
 
 export default class {
   /**

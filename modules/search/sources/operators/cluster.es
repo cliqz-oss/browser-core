@@ -3,10 +3,9 @@ import { clean, getMainLink } from './normalize';
 const group = (a, b) =>
   a.set(b.domain, [...(a.get(b.domain) || []), b]);
 
-const makeHeader = (domain, template) => clean({
+const makeHeader = (domain, scheme = 'http') => clean({
   title: domain,
-  url: domain,
-  template,
+  url: `${scheme}://${domain}`,
   meta: {
     level: 0,
     type: 'main',
@@ -34,7 +33,14 @@ const cluster = (({ results, ...response }) => {
 
       const main = grouped
         .find(result => getMainLink(result).meta.url === domain);
-      const header = (main && getMainLink(main)) || makeHeader(domain, null);
+      const isHttps = grouped
+        .every(result => getMainLink(result).url.startsWith('https'));
+      // TODO: can we use HTTPs everywhere to determine if a domain supports https?
+      const scheme = isHttps ? 'https' : 'http';
+      // TODO: there is a chance that the domain on its own does not exist
+      //       (in particular without 'www')
+      const header = (main && getMainLink(main)) || makeHeader(domain, scheme);
+      // TODO: set `kind`
       const rest = grouped
         .filter(result => getMainLink(result).meta.url !== domain);
 

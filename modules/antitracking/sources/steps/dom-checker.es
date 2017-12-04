@@ -1,4 +1,4 @@
-import pacemaker from '../pacemaker';
+import pacemaker from '../../core/pacemaker';
 import core from '../../core/background';
 import { dURIC } from '../url';
 import { isTabURL } from '../../platform/browser';

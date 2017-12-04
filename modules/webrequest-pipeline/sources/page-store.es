@@ -23,7 +23,7 @@ export default class {
     tabs.onRemoved.addListener(this.onTabRemoved);
 
     windows.onCreated.addListener(this.onWindowCreated);
-    windows.onRemoved.addListener(this.onwindowRemoved);
+    windows.onRemoved.addListener(this.onWindowRemoved);
   }
 
   unload() {
@@ -32,7 +32,7 @@ export default class {
     tabs.onRemoved.removeListener(this.onTabRemoved);
 
     windows.onCreated.removeListener(this.onWindowCreated);
-    windows.onRemoved.removeListener(this.onwindowRemoved);
+    windows.onRemoved.removeListener(this.onWindowRemoved);
   }
 
   onFullPage({ tabId, url, isPrivate, requestId }) {

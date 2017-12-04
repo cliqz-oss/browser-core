@@ -2,9 +2,8 @@
 
 DEPS.WebRequestPageTest = ["core/utils"];
 TESTS.WebRequestPageTest = function(CliqzUtils) {
-  var System = CliqzUtils.getWindow().CLIQZ.System,
-      webrequest = System.get('core/webrequest').default;
-  var browser = System.get('platform/browser');
+  var webrequest = getModule('core/webrequest').default;
+  var browser = getModule('core/browser');
 
   describe('WebRequest example pages', function() {
     var wrCollector = {

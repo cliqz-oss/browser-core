@@ -25,6 +25,7 @@ export default class {
 
     // Send signals by chunks, at regular intervals
     // Make throughput customizable
+    this.initialized = false;
     this.batchSize = 5;
     this.sendInterval = 15 * 1000;
     this.maxAttempts = 5;
@@ -51,6 +52,7 @@ export default class {
   }
 
   unload() {
+    this.initialized = false;
     utils.clearInterval(this.interval);
     utils.clearTimeout(this.sleepTimeout);
   }
@@ -76,11 +78,15 @@ export default class {
    * Send signals by batch.
    */
   startListening() {
-    let previousBatch = Promise.resolve();
+    let ongoingBatch = false;
+    this.initialized = true;
     this.interval = utils.setInterval(
       () => {
-        previousBatch = previousBatch
-          .then(() => this.processNextBatch(this.batchSize))
+        // Only try to send a new batch if the signal queue is initialized and
+        // we are not already sending a batch
+        if (!ongoingBatch && this.initialized) {
+          ongoingBatch = true;
+          this.processNextBatch(this.batchSize)
           .then(() => {
             // Reset failure timeout after we could send a batch successfuly
             this.failureTimeout = 1000 * 60;
@@ -88,12 +94,19 @@ export default class {
             return this.sleep(this.sendInterval);
           })
           .catch((err) => {
-            logger.error('error while sending batch', err);
-            // In case of error, sleep for longer and increase the timeout
-            const timeout = this.failureTimeout;
-            this.failureTimeout *= 5;
-            return this.sleep(timeout);
-          });
+            if (this.initialized) {
+              logger.error('error while sending batch', err);
+              // In case of error, sleep for longer and increase the timeout
+              const timeout = this.failureTimeout;
+              this.failureTimeout *= 5;
+              return this.sleep(timeout);
+            }
+
+            return Promise.resolve();
+          })
+          .catch(() => {})
+          .then(() => { ongoingBatch = false; });
+        }
       },
       this.sendInterval,
     );
@@ -106,6 +119,11 @@ export default class {
    *  greater than the maximum allowed, we drop the message completely.
    */
   sendSignal(doc) {
+    // Check if the message queue is currently initialized before sending anything
+    if (!this.initialized) {
+      return Promise.reject('signal-queue has been unloaded, cancel message sending');
+    }
+
     const signal = doc.signal;
 
     if (signal) {

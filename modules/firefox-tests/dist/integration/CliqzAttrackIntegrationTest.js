@@ -2,23 +2,26 @@
 
 DEPS.CliqzAttrackIntegrationTest = ["core/utils"];
 TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
-  var System = CliqzUtils.getWindow().CLIQZ.System,
-      attrackBG = System.get("antitracking/background").default,
-      CliqzHumanWeb = System.get("human-web/human-web").default,
-      persist = System.get("antitracking/persistent-state"),
-      AttrackBloomFilter = System.get("antitracking/bloom-filter").AttrackBloomFilter,
-      BloomFilter = System.get("antitracking/bloom-filter").BloomFilter,
-      QSWhitelist = System.get("antitracking/qs-whitelists").default,
-      datetime = System.get("antitracking/time"),
-      trackertxt = System.get("antitracking/tracker-txt"),
-      pipeline = System.get('webrequest-pipeline/background').default;
-  var browser = System.get('platform/browser');
+  var CLIQZ = CliqzUtils.getWindow().CLIQZ;
+  if (!CLIQZ.app.modules.antitracking) {
+    return;
+  }
+  var attrackBG = getModule("antitracking/background").default,
+      CliqzHumanWeb = getModule("human-web/human-web").default,
+      persist = getModule("core/persistent-state"),
+      AttrackBloomFilter = getModule("antitracking/bloom-filter").AttrackBloomFilter,
+      BloomFilter = getModule("antitracking/bloom-filter").BloomFilter,
+      QSWhitelist = getModule("antitracking/qs-whitelists").default,
+      datetime = getModule("antitracking/time"),
+      trackertxt = getModule("antitracking/tracker-txt"),
+      pipeline = getModule('webrequest-pipeline/background').default;
+  var browser = getModule('core/browser');
 
   // make sure that module is loaded (default it is not initialised on extension startup)
   CliqzUtils.setPref('modules.antitracking.enabled', true);
 
   function getAttrack() {
-    return System.get('antitracking/background').default.attrack;
+    return getModule('antitracking/background').default.attrack;
   }
 
   describe('CliqzAttrack_integration', function() {

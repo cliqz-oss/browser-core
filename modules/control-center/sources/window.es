@@ -65,6 +65,8 @@ export default class {
 
       pageActionButtons.appendChild(pageActionBtn);
     }
+
+    this.hasAntitracking = (new Set(config.modules)).has('antitracking');
   }
 
   init() {
@@ -314,7 +316,6 @@ export default class {
   }
 
   updateState(state) {
-
     // set the state of the current window
     this.setState(state);
 
@@ -356,10 +357,18 @@ export default class {
           template: 'share-location'
         });
         break;
+      case 'extensions.https_everywhere.globalEnabled':
+        events.pub('control-center:toggleHttpsEverywhere', {
+          newState: data.value
+        });
+        break;
       default: {
         let prefValue = data.value;
         if (data.prefType === 'boolean') {
           prefValue = (prefValue === 'true');
+        }
+        if (data.prefType === 'integer') {
+          prefValue = parseInt(prefValue);
         }
         utils.setPref(data.pref, prefValue, '' /* full pref name required! */);
       }
@@ -456,9 +465,18 @@ export default class {
       const moduleData = mData;
       const ccData = this.getFrameData();
       const states = [
-        (moduleData.antitracking && moduleData.antitracking.state) || 'critical'
+        // If antitracking module is included, show critical when we get no antitracking state. Otherwise show active
+        this.hasAntitracking ? (moduleData.antitracking && moduleData.antitracking.state) || 'critical' : 'active'
         //,(moduleData['anti-phishing'] && moduleData['anti-phishing'].state) || 'critical'
       ];
+      // antitracking disabled
+      if (this.hasAntitracking && !moduleData.antitracking) {
+        moduleData.antitracking = {
+          visible: true,
+          state: 'critical',
+          totalCount: 0
+        };
+      }
 
       if (states.indexOf('inactive') !== -1) {
         ccData.generalState = 'inactive';
@@ -531,7 +549,7 @@ export default class {
         action: 'pushData',
         data,
       });
-      this.updateBadge(data.module.antitracking.badgeData);
+      this.updateBadge(data.module.antitracking ? data.module.antitracking.badgeData : 0);
     }).catch(e => utils.log(e.toString(), 'getData error'));
   }
 

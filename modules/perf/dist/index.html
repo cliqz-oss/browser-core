@@ -29,9 +29,14 @@
   </div>
 
   <script>
-    Components.utils.import("chrome://cliqzmodules/content/CLIQZ.jsm");
-    var perf = CLIQZ.System.get('perf/background').default;
-    var perfData = perf.getPerf();
+    function getWindow() {
+      var wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
+                          .getService(Components.interfaces.nsIWindowMediator);
+      return wm.getMostRecentWindow("navigator:browser");
+    }
+
+    const CLIQZ = getWindow().CLIQZ;
+    var perfData = CLIQZ._perfData;
     var data = Object.keys(perfData).map(x => [x, perfData[x]]).sort((a, b) => b[1].max - a[1].max);
     data.forEach((x) => {
       var key = x[0];

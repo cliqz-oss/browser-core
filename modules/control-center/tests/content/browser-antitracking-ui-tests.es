@@ -1,95 +1,17 @@
-function wait(time) {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
+import {
+  wait,
+  registerInterval,
+  clearIntervals,
+  waitFor,
+  Subject
+} from './helpers';
 
-let intervals = [];
-function registerInterval(interval) {
-  intervals.push(interval);
-}
-
-function clearIntervals() {
-  intervals.forEach(interval => clearInterval(interval));
-  intervals = [];
-}
-
-function waitFor(fn) {
-  var resolver, rejecter, promise = new Promise(function (res, rej) {
-    resolver = res;
-    rejecter = rej;
-  });
-
-  function check() {
-    const result = fn();
-    if (result) {
-      clearInterval(interval);
-      resolver(result);
-    }
-  }
-
-  var interval = setInterval(check, 50);
-  check();
-  registerInterval(interval);
-
-  return promise;
-}
-
-class Subject {
-  constructor() {
-    this.messages = [];
-  }
-
-  load() {
-    this.iframe = document.createElement('iframe');
-    this.iframe.src = '/build/cliqz@cliqz.com/chrome/content/control-center/index.html';
-    this.iframe.width = 455;
-    this.iframe.height = 500;
-    document.body.appendChild(this.iframe)
-
-    return new Promise(resolve => {
-      this.iframe.contentWindow.addEventListener('load', () => resolve());
-    }).then(() => {
-
-      this.iframe.contentWindow.addEventListener('message', ev => {
-        var data = JSON.parse(ev.data);
-        this.messages.push(data);
-      });
-
-      return waitFor(() => {
-        return this.messages.length === 1
-      })
-    });
-  }
-
-  unload() {
-    document.body.removeChild(this.iframe);
-  }
-
-  query(selector) {
-    return this.iframe.contentWindow.document.querySelector(selector);
-  }
-
-  queryAll(selector) {
-    return this.iframe.contentWindow.document.querySelectorAll(selector);
-  }
-
-  pushData(data = {}) {
-    this.iframe.contentWindow.postMessage(JSON.stringify({
-      target: 'cliqz-control-center',
-      origin: 'window',
-      message:  {
-        action: 'pushData',
-        data,
-      }
-    }), "*");
-    return wait(500);
-  }
-
-  getComputedStyle(selector) {
-    return this.iframe.contentWindow.getComputedStyle(this.query(selector));
-  }
-}
+import {generateDataOn, generateDataOffSite, generateDataOffAll} from './fixtures/antitracking';
 
 function antitrackingUiTests(amo) {
+  const dataOn = generateDataOn(amo);
+  const dataOffSite = generateDataOffSite(amo);
+  const dataOffAll = generateDataOffAll(amo);
   let subject;
 
   before(function () {
@@ -161,42 +83,12 @@ function antitrackingUiTests(amo) {
   })
 
   describe('anti-tracking on', function () {
-    const data = {
-      activeURL: 'http://www.spiegel.de/',
-      friendlyURL: 'http://www.spiegel.de/',
-      isSpecialUrl: false,
-      domain: 'spiegel.de',
-      extraUrl: '',
-      hostname: 'www.spiegel.de',
-      module: {
-        antitracking: {
-          visible: true,
-          strict: false,
-          hostname: 'www.spiegel.de',
-          cookiesCount: 54,
-          requestsCount: 0,
-          totalCount: 54,
-          badgeData: 54,
-          enabled: true,
-          isWhitelisted: true,
-          reload: false,
-          ps: null,
-          state: 'active'
-        },
-      },
-      generalState: 'active',
-      feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: amo,
-      funnelCake: false
-    };
-
     before(() => {
-      return subject.pushData(data);
+      return subject.pushData(dataOn);
     });
 
     headerProtected();
-
-    antiTrackingUiTests(data);
+    antiTrackingUiTests(dataOn);
 
     it('renders correct colour of switch', function () {
       chai.expect(subject.getComputedStyle('#anti-tracking .cqz-switch-box').background).to.contain('rgb(0, 173, 239)');
@@ -234,42 +126,13 @@ function antitrackingUiTests(amo) {
       chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [visible-on-state="active"]').display).to.not.equal('none');
       chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [visible-on-state="inactive"]').display).to.equal('none');
       chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [visible-on-state="critical"]').display).to.equal('none');
-      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [visible-on-state="active"]').textContent.trim()).to.equal(data.module.antitracking.totalCount.toString());
+      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [visible-on-state="active"]').textContent.trim()).to.equal(dataOn.module.antitracking.totalCount.toString());
     });
   });
 
   describe('anti-tracking off for the particular website', function () {
-    const data = {
-      activeURL: 'http://www.spiegel.de/',
-      friendlyURL: 'http://www.spiegel.de/',
-      isSpecialUrl: false,
-      domain: 'spiegel.de',
-      extraUrl: '',
-      hostname: 'www.spiegel.de',
-      module: {
-        antitracking: {
-          visible: true,
-          strict: false,
-          hostname: 'www.spiegel.de',
-          cookiesCount: 54,
-          requestsCount: 0,
-          totalCount: 54,
-          badgeData: 54,
-          enabled: false,
-          isWhitelisted: true,
-          reload: false,
-          ps: null,
-          state: 'inactive'
-        },
-      },
-      generalState: 'inactive',
-      feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: amo,
-      funnelCake: false
-    };
-
     before(() => {
-      return subject.pushData(data);
+      return subject.pushData(dataOffSite);
     });
 
     context('control center header', function () {
@@ -297,7 +160,7 @@ function antitrackingUiTests(amo) {
       });
     });
 
-    antiTrackingUiTests(data);
+    antiTrackingUiTests(dataOffSite);
 
     it('renders correct colour of switch', function () {
       chai.expect(subject.getComputedStyle('#anti-tracking .cqz-switch-box').background).to.contain('rgb(246, 112, 87)');
@@ -343,28 +206,8 @@ function antitrackingUiTests(amo) {
   });
 
   describe('anti-tracking off for all websites', function () {
-    const data = {
-      activeURL: 'http://www.spiegel.de/',
-      friendlyURL: 'http://www.spiegel.de/',
-      isSpecialUrl: false,
-      domain: 'spiegel.de',
-      extraUrl: '',
-      hostname: 'www.spiegel.de',
-      module: {
-        antitracking: {
-          visible: true,
-          totalCount: 0,
-          state: 'critical'
-        },
-      },
-      generalState: 'critical',
-      feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: amo,
-      funnelCake: false
-    };
-
     before(() => {
-      return subject.pushData(data);
+      return subject.pushData(dataOffAll);
     });
 
     context('control center header', function () {
@@ -392,7 +235,7 @@ function antitrackingUiTests(amo) {
       });
     });
 
-    antiTrackingUiTests(data);
+    antiTrackingUiTests(dataOffAll);
 
     it('renders correct colour of switch', function () {
       chai.expect(subject.getComputedStyle('#anti-tracking .cqz-switch-box').background).to.contain('rgb(246, 112, 87)');
@@ -438,10 +281,10 @@ function antitrackingUiTests(amo) {
   });
 }
 
-describe('Anti-Tracking UI browser', function () {
+describe('Control Center: Anti-Tracking UI browser', function () {
   antitrackingUiTests(false);
 });
 
-describe('AMO Anti-Tracking UI tests', function () {
+describe('Control Center: AMO, Anti-Tracking UI tests', function () {
   antitrackingUiTests(true);
 })

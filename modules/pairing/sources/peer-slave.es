@@ -4,9 +4,9 @@ import { fromByteArray, sha256, encryptStringAES, decryptStringAES, toByteArray,
 import console from '../core/console';
 import { encryptPairedMessage, decryptPairedMessage, ERRORS, VERSION } from './shared';
 import CliqzPeer from '../p2p/cliqz-peer';
-import fetch from '../platform/fetch';
 import { fromBase64 } from '../core/encoding';
 import inject from '../core/kord/inject';
+import { getDeviceName } from '../platform/device-info';
 
 // This class has the responsibility of handling the desktop-mobile pairing
 // (from the desktop side).
@@ -84,9 +84,9 @@ export default class CliqzPairing {
       .then(() => this.setUnpaired());
   }
 
-  startPairing(slaveName) {
+  startPairing(slaveName = getDeviceName()) {
     if (this.status !== CliqzPairing.STATUS_UNPAIRED) {
-      throw new Error('Only can start pairing if PeerComm status is unpaired');
+      return;
     }
     this.setPairing(slaveName);
   }
@@ -101,14 +101,27 @@ export default class CliqzPairing {
 
   checkMasterConnection() {
     if (this.status === CliqzPairing.STATUS_PAIRED) {
-      return this.peer.checkPeerConnection(this.masterID)
-      .catch(() =>
-        this.wakeUpMaster()
-        .then(() => new Promise(resolve => CliqzUtils.setTimeout(resolve, 3000)))
-        .then(() => this.peer.checkPeerConnection(this.masterID))
-      );
+      return this.peer.checkPeerConnection(this.masterID);
     }
     return Promise.reject();
+  }
+
+  get pairingInfo() {
+    if (!this.isInit) {
+      return {
+        isInit: false,
+      };
+    }
+    return {
+      isPaired: this.isPaired,
+      isPairing: this.isPairing,
+      isUnpaired: this.isUnpaired,
+      masterName: this.masterName,
+      deviceName: this.deviceName,
+      isMasterConnected: this.isMasterConnected,
+      pairingToken: this.pairingToken,
+      isInit: true,
+    };
   }
 
   get isMasterConnected() {
@@ -182,14 +195,6 @@ export default class CliqzPairing {
       return this.devices.find(x => x.id === this.masterID).name;
     }
     return null;
-  }
-
-  get arn() {
-    return this.data.get('arn');
-  }
-
-  set arn(x) {
-    return this.data.set('arn', x);
   }
 
   get randomToken() {
@@ -305,32 +310,19 @@ export default class CliqzPairing {
         this.removePeer(source);
       }
     } else if (type === '__NEWARN') {
-      this.arn = msg;
+      // noop
     } else if (this.onmessage) {
       this.onmessage(msg, source, type);
     }
   }
 
-  wakeUpMaster() {
-    const arn = this.arn;
-    if (arn) {
-      return fetch('https://p2p-pusher.cliqz.com/push', {
-        method: 'post',
-        body: JSON.stringify({ token: arn }),
-        headers: new Headers({
-          'Content-Type': 'application/json',
-        }),
-      });
-    }
-    return Promise.reject(new Error('no arn found'));
-  }
-
   addPeer(peer) {
     const idx = this.devices.findIndex(x => x.id === peer.id);
     if (idx >= 0) {
-      this.data.apply('devices', 'splice', idx, 1);
+      this.devices.splice(idx, 1);
     }
-    this.data.apply('devices', 'push', peer);
+    this.devices.push(peer);
+    this.data.set('devices', this.devices);
     if (peer.id === this.deviceID) {
       this.lastVersion = peer.version;
     }
@@ -343,7 +335,8 @@ export default class CliqzPairing {
     const idx = this.devices.findIndex(x => x.id === id);
     if (idx >= 0) {
       const rem = this.devices[idx];
-      this.data.apply('devices', 'splice', idx, 1);
+      this.devices.splice(idx, 1);
+      this.data.set('devices', this.devices);
       if (this.ondeviceremoved) {
         this.ondeviceremoved(rem);
       }
@@ -406,7 +399,6 @@ export default class CliqzPairing {
     this.pairingMaster = null;
     this.randomToken = null;
     this.cancelPairing = false;
-    this.arn = null;
     if (this.onunpaired && !noTrigger) {
       this.onunpaired();
     }

@@ -1,12 +1,10 @@
-'use strict';
-
 /*
  * Functions to handle collecting to selecting / preparing signals for the dashboard
  */
 
-import { utils, events } from 'core/cliqz';
-import environment from 'platform/environment';
-import CliqzHumanWeb from 'human-web/human-web';
+import { utils, events } from '../core/cliqz';
+import environment from '../platform/environment';
+import CliqzHumanWeb from '../human-web/human-web';
 
 let streamMode = false;
 

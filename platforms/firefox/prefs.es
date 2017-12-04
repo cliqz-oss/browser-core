@@ -1,3 +1,4 @@
+import { Services } from './globals';
 const prefs = Services.prefs.getBranch('');
 const complexRegEx = /^chrome:\/\/.+\/locale\/.+\.properties/;
 

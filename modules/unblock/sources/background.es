@@ -1,7 +1,7 @@
-import CliqzUnblock from 'unblock/main';
-import YoutubeUnblocker from 'unblock/youtube';
-import background from "core/base/background";
-import { utils, events } from "core/cliqz";
+import CliqzUnblock from './main';
+import YoutubeUnblocker from './youtube';
+import background from "../core/base/background";
+import { utils, events } from "../core/cliqz";
 
 /**
 * @class Background

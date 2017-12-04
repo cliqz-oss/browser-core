@@ -48,7 +48,7 @@ export class PersistentDataHandler extends BasicDataHolder {
   load() {
     return this.db.get(this.docID).then((docData) => {
       if (!docData || !docData.data) {
-        logger.error('load data from DB: something went wrong loading the data?');
+        logger.log('empty data from DB, probably not yet created?');
         return Promise.resolve(false);
       }
 
@@ -57,7 +57,9 @@ export class PersistentDataHandler extends BasicDataHolder {
       this.dataDirty = false;
       return Promise.resolve(true);
     }).catch((err) => {
-      logger.error('load: error loading the storage data...:', err);
+      if (err && err.status && err.status !== 404) {
+        logger.log('load: error loading the storage data...:', err);
+      }
       return Promise.resolve(false);
     });
   }

@@ -1437,13 +1437,13 @@
       "message": "MyOffrz anzeigen"
     },
     "control-center-offers-show-info": {
-      "message": "Sichere dir attraktive Rabatte und Schnäppchen! MyOffrz zeigt dir nur Angebote, wenn sie für dich nützlich sind. MyOffrz wurde auf Basis höchster Datenschutzstandards entwickelt. Es werden keine personenbezogenen Daten auf Servern gespeichert."
+      "message": "Sichere dir attraktive Rabatte und Schnäppchen! MyOffrz zeigt dir nur Angebote, wenn sie für dich nützlich sind. MyOffrz erfüllt höchste Datenschutzstandards. Es werden keine personenbezogene Daten auf Servern gespeichert."
     },
     "control-center-offers-location": {
       "message": "MyOffrz in der Nähe anzeigen"
     },
     "control-center-offers-location-info": {
-      "message": "Verpasse keine Angebote in deiner Nähe! Gib deinen Standort auf Stadt- oder Kreisebene frei, um lokale Angebote angezeigt zu bekommen. Dein Standort wird nicht auf Servern gespeichert, sondern nur lokal auf deinem Computer verwendet."
+      "message": "Verpasse keine Angebote in deiner Nähe! Wenn du die Option aktivierst, registriert MyOffrz, in welcher Region du dich gerade aufhältst. Diese Information ist nötig, um dir lokale Angebote anzuzeigen. Sie wird nicht auf Servern gespeichert."
     },
     "control-center-offers-conditions": {
       "message": "Konditionen"
@@ -1650,13 +1650,13 @@
       "message": "Dein Feedback ist uns wichtig"
     },
     "offers-hub-feedaback-sub-title": {
-      "message": "Warum hast du das Angebot entfernt:"
+      "message": "Warum hast du das Angebot entfernt?"
     },
     "offers-hub-feedaback-option1": {
-      "message": "Ich habe keine Interesse an diesem Angebot"
+      "message": "Ich habe kein Interesse an diesem Angebot"
     },
     "offers-hub-feedaback-option2": {
-      "message": "Ich habe keine Interesse an MyOffrz"
+      "message": "Ich habe kein Interesse an MyOffrz"
     },
     "offers-hub-feedaback-option3": {
       "message": "Ich bin an keinem Angebot interessiert"
@@ -1665,7 +1665,7 @@
       "message": "Abbrechen"
     },
     "offers-hub-remove": {
-      "message": "Entfernen"
+      "message": "Angebot entfernen"
     },
     "offers-hub-about-cliqz-offers": {
       "message": "Mehr Informationen"

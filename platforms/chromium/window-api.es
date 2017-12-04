@@ -1,5 +1,5 @@
 import { window } from './globals';
 
 export default function () {
-  return window;
+  return Promise.resolve(window);
 }

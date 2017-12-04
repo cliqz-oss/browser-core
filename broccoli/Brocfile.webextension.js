@@ -13,10 +13,6 @@ const sourceTrees = [
   modules.bundles,
 ];
 
-if (cliqzConfig.environment !== 'production') {
-  sourceTrees.push(modules.contentTests);
-}
-
 const sourceTree = new MergeTrees(sourceTrees, {
   overwrite: true
 });

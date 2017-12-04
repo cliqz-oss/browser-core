@@ -19,7 +19,7 @@ export function getRequest(url) {
       return;
     }
     req.overrideMimeType('text/html');
-    req.channel.loadFlags |= Ci.nsIRequest.LOAD_ANONYMOUS;
+    req.channel.loadFlags |= Components.interfaces.nsIRequest.LOAD_ANONYMOUS;
     //  req.withCredentials = false;
     //  req.setRequestHeader("Authorization", "true");
 

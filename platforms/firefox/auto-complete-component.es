@@ -1,5 +1,6 @@
 import utils from "../core/utils";
 import Search from "../autocomplete/search";
+import { Components, XPCOMUtils } from './globals';
 
 class ProviderAutoCompleteSearch {
   constructor() {
@@ -20,12 +21,12 @@ class ProviderAutoCompleteSearch {
 
 class AutocompleteComponent {
   constructor() {
-    this.reg = Cm.QueryInterface(Ci.nsIComponentRegistrar);
+    this.reg = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
     this.FFcontract = {
       classID: Components.ID('{59a99d57-b4ad-fa7e-aead-da9d4f4e77c8}'),
       classDescription : 'Cliqz',
       contractID: '@mozilla.org/autocomplete/search;1?name=cliqz-results',
-      QueryInterface: XPCOMUtils.generateQI([ Ci.nsIAutoCompleteSearch ])
+      QueryInterface: XPCOMUtils.generateQI([ Components.interfaces.nsIAutoCompleteSearch ])
     };
   }
 
@@ -35,7 +36,7 @@ class AutocompleteComponent {
         this.reg.contractIDToCID(this.FFcontract.contractID),
         this.reg.getClassObjectByContractID(
           this.FFcontract.contractID,
-          Ci.nsISupports
+          Components.interfaces.nsISupports
         )
       );
     } catch(e) {

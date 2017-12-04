@@ -119,10 +119,10 @@ export default class {
           annotations.apps = new Map();
         }
         if (!annotations.apps.has(match)) {
-          response.shouldIncrementCounter = true;
           annotations.apps.set(match, false);
         }
         response.apps = annotations.apps.size;
+        response.shouldIncrementCounter = true;
       }
     }
     return true;

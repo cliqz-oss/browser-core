@@ -43,6 +43,7 @@ function checkStatus(url, md5Prefix, md5Surfix) {
 export default background({
   init(/* settitng */) {
     CliqzAntiPhishing.init();
+    this.CliqzAntiPhishing = CliqzAntiPhishing;
   },
 
   unload() {

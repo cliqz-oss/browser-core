@@ -1,7 +1,7 @@
 import { utils } from './cliqz';
 import { getPref, clearPref } from './prefs';
 import tlds from './tlds';
-import { LazyPersistentObject } from '../antitracking/persistent-state';
+import { LazyPersistentObject } from '../core/persistent-state';
 import Logger from './logger';
 
 

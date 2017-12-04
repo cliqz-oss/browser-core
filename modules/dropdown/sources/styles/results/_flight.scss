@@ -103,9 +103,8 @@ $red-color: #d95559;
             background: url('../images/plane-green.svg') no-repeat 0 0px !important;
         }
 
-        .estimate-arrival-time,
-        .estimate-depart-time {
-            color: $green-color !important;
+        .flight-progress-bar[style="left:100%"] {
+            background: url('../images/plane-green-outline.svg') no-repeat 0 0px !important;
         }
     }
 
@@ -114,9 +113,11 @@ $red-color: #d95559;
         .flight-progress-bar {
             background: url('../images/plane-green-outline.svg') no-repeat -1px -1px !important;
         }
+    }
 
+    &[status="arrived"] {
         .arrival-time {
-            color: $green-color;
+            color: $green-color !important;
         }
     }
 
@@ -124,6 +125,11 @@ $red-color: #d95559;
         .actual-time {
             color: $green-color;
         }
+    }
+
+    .strike-through + .arrival-time.early,
+    .strike-through + .depart-time.early {
+        color: $green-color !important;
     }
 
     /* GREY STATUS */
@@ -168,10 +174,11 @@ $red-color: #d95559;
         .flight-progress-bar {
             background: url('../images/plane-red.svg') no-repeat 0 0px !important;
         }
+    }
 
-        .arrival-time,
-        .depart-time {
-            color: $red-color !important;
+    &[status="delayed"] {
+        .flight-progress-bar[style="left:0%"] {
+            background: url('../images/plane-red-outline.svg') no-repeat 0 0px !important;
         }
     }
 
@@ -184,6 +191,11 @@ $red-color: #d95559;
         .estimate-depart-time {
             color: $red-color !important;
         }
+    }
+
+    .strike-through + .arrival-time.late,
+    .strike-through + .depart-time.late {
+        color: $red-color !important;
     }
 
     .depart-arrival {
@@ -204,7 +216,14 @@ $red-color: #d95559;
 
         .bold {
             font-weight: 500;
+        }
+
+        .depart-time,
+        .estimate-depart-time,
+        .arrival-time,
+        .estimate-arrival-time {
             color: #333333;
+            font-weight: bold;
         }
     }
 }

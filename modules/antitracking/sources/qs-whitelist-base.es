@@ -1,9 +1,10 @@
-import * as persist from './persistent-state';
+import * as persist from '../core/persistent-state';
 import * as datetime from './time';
 import { generateAttrackPayload } from './utils';
-import pacemaker from './pacemaker';
+import pacemaker from '../core/pacemaker';
 import telemetry from './telemetry';
 import { utils } from '../core/cliqz';
+import { TELEMETRY } from './config';
 
 const safeKeyExpire = 7;
 
@@ -12,7 +13,8 @@ const safeKeyExpire = 7;
  */
 export default class {
 
-  constructor() {
+  constructor(config) {
+    this.config = config;
     this.safeKeys = new persist.LazyPersistentObject('safeKey');
   }
 
@@ -109,6 +111,10 @@ export default class {
   }
 
   _sendSafeKeys() {
+    // check if we should send telemetry
+    if (this.config.telemetryMode === TELEMETRY.DISABLED) {
+      return;
+    }
     // get only keys from local key
     var hour = datetime.getTime(),
       day = hour.substring(0, 8);

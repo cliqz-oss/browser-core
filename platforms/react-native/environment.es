@@ -8,7 +8,7 @@ var CLIQZEnvironment = {
   RESULTS_LIMIT: config.settings.RESULTS_LIMIT,
   RESULTS_TIMEOUT: config.settings.RESULTS_TIMEOUT,
   getDefaultSearchEngine() {
-    return prefs.get('engine', { name: 'google', url: 'http://www.google.com/search?q=' });
+    return prefs.get('engine', { name: 'google', url: 'https://www.google.com/search?q=' });
   },
   setDefaultSearchEngine(engine) {
     prefs.set('engine', engine);
@@ -35,6 +35,8 @@ var CLIQZEnvironment = {
   isUnknownTemplate: function() {},
   log: console.log,
   getWindow() {},
+  isOnPrivateTab() { return false; },
+  isPrivate() { return false; },
   httpHandler: function(method, url, callback, onerror, timeout, data) {
     var wrappedCallback = (cb) => {
       return (resp) => {

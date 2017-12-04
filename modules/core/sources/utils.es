@@ -13,6 +13,7 @@ import random from './crypto/random';
 import { fetchFactory } from '../platform/fetch';
 import { isWindows, isLinux, isMac, isMobile } from './platform';
 import i18n, { getMessage, getLanguageFromLocale } from './i18n';
+import historySearch from '../platform/history/search';
 
 var VERTICAL_ENCODINGS = {
     'people':'p',
@@ -48,7 +49,7 @@ var CliqzUtils = {
   BRANDS_DATABASE: BRANDS_DATABASE,
 
   //will be updated from the mixer config endpoint every time new logos are generated
-  BRANDS_DATABASE_VERSION: 1502005705085,
+  BRANDS_DATABASE_VERSION: 1509099586511,
   GEOLOC_WATCH_ID:                null, // The ID of the geolocation watcher (function that updates cached geolocation on change)
   VERTICAL_TEMPLATES: {
         'n': 'news'    ,
@@ -429,11 +430,17 @@ var CliqzUtils = {
             CliqzUtils.encodeResultCount(numberResults) +
             CliqzUtils.disableWikiDedup();
   },
+  // used in testing only
+  fetchFactory() {
+    return fetchFactory();
+  },
 
   getBackendResults: function(q) {
     const url = CliqzUtils.RESULTS_PROVIDER + CliqzUtils.getResultsProviderQueryString(q);
-    const fetch = fetchFactory();
+    const fetch = CliqzUtils.fetchFactory();
     const suggestionChoice = CliqzUtils.getPref('suggestionChoice', 0);
+    const isOldMixer = CliqzUtils.getPref('searchMode', 'autocomplete') === 'autocomplete';
+    const isPrivateMode = CliqzUtils.isPrivateMode();
 
     CliqzUtils._sessionSeq++;
 
@@ -449,7 +456,7 @@ var CliqzUtils = {
       .then(response => {
         if(response.results && (response.results.length > 0 || !config.settings.suggestions)) {
 
-          if (suggestionChoice === 1) {
+          if (suggestionChoice === 1 && !isPrivateMode) {
             if (response.suggestions && response.suggestions.length > 0) {
               response.results = response.results.concat([{
                   url: 'https://cliqz.com/q=' + q,
@@ -467,14 +474,19 @@ var CliqzUtils = {
             response,
             query: q
           }
-        } else {
+        } else if (config.settings.suggestions && (suggestionChoice === 2)) {
           return CliqzUtils.getSuggestions(q);
+        } else {
+          return {
+            response: {
+              results: [],
+            },
+            query: q
+          };
         }
       });
 
-    if (suggestionChoice <= 1) {
-      return backendPromise;
-    } else {
+    if (isOldMixer && (suggestionChoice > 1) && !isPrivateMode) {
       return Promise.all([backendPromise, CliqzUtils.getSuggestions(q)]).then(values => {
         const searchResults = values[0].response.results || [];
         const googleSuggestions = values[1].response.results || [];
@@ -487,11 +499,16 @@ var CliqzUtils = {
         }
       })
     }
+
+    return backendPromise;
   },
+
+  historySearch,
 
   getSuggestions: function(q) {
     const searchDataType = 'application/x-suggestions+json';
     const defaultEngine = CliqzUtils.getDefaultSearchEngine();
+    const fetch = CliqzUtils.fetchFactory();
     return fetch(defaultEngine.getSubmissionForQuery(q, searchDataType))
       .then(res => res.json())
       .then(response => {
@@ -583,9 +600,13 @@ var CliqzUtils = {
     return type; //should never happen
   },
   //eg types: [ "H", "m" ], [ "H|instant", "X|11" ]
-  isPrivateResultType: function(type) {
+  isPrivateResultType: function(type = []) {
+    if (type.length === 0) {
+      return false;
+    }
+
     var onlyType = type[0].split('|')[0];
-    var hasCluster = type.find(function(a){ return a.split('|')[0] === 'C'; });
+    var hasCluster = type.some(function(a){ return a.split('|')[0] === 'C'; });
 
     if (hasCluster) {
       // we want to be extra carefull and do not send back any cluster information
@@ -654,7 +675,22 @@ var CliqzUtils = {
           return VERTICAL_ENCODINGS[s] || s;
       });
   },
+  /**
+   * @deprecated - use isPrivateMode instead
+   * @todo - add deprecation logging in 1.23
+   */
   isPrivate: CLIQZEnvironment.isPrivate,
+  /**
+   * @deprecated - use isPrivateMode instead
+   * @todo - add deprecation logging in 1.23
+   */
+  isOnPrivateTab: CLIQZEnvironment.isOnPrivateTab,
+  isPrivateMode(win) {
+    if (!win) {
+      win = CliqzUtils.getWindow();
+    }
+    return CliqzUtils.isPrivate(win) || CliqzUtils.isOnPrivateTab(win);
+  },
   telemetry: function () {
     const args = arguments;
     CliqzUtils.telemetryHandlers.forEach(handler => handler.apply(null, args));
@@ -875,7 +911,6 @@ var CliqzUtils = {
   getDefaultSearchEngine: CLIQZEnvironment.getDefaultSearchEngine,
   copyResult: CLIQZEnvironment.copyResult,
   openPopup: CLIQZEnvironment.openPopup,
-  isOnPrivateTab: CLIQZEnvironment.isOnPrivateTab,
   getAllCliqzPrefs: CLIQZEnvironment.getAllCliqzPrefs,
   isDefaultBrowser: CLIQZEnvironment.isDefaultBrowser,
   setDefaultSearchEngine: CLIQZEnvironment.setDefaultSearchEngine,

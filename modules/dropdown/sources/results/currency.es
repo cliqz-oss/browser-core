@@ -2,28 +2,14 @@ import BaseResult from './base';
 import utils from '../../core/utils';
 import { copyToClipboard } from '../../core/clipboard';
 
-class CurrencyCopyResult {
-  constructor({ toAmount, toCurrencyName, actions }) {
-    this.toAmount = toAmount;
-    this.toCurrencyName = toCurrencyName;
-    this.actions = actions;
-  }
-
-  get url() {
-    return `cliqz-actions,${JSON.stringify({ type: 'currency', actionName: 'copy' })}`;
-  }
-
-  click() {
-    copyToClipboard(this.toAmount);
-    this.actions.updateTooltip(utils.getLocalizedString('Copied'));
-    utils.setTimeout(() => this.actions.hideTooltip(), 1000);
-  }
-}
-
 export default class extends BaseResult {
 
   get template() {
     return 'currency';
+  }
+
+  get url() {
+    return `cliqz-actions,${JSON.stringify({ type: 'currency', actionName: 'copy' })}`;
   }
 
   get toAmount() {
@@ -68,27 +54,9 @@ export default class extends BaseResult {
     return this.rawResult.data.extra.mConversionRate;
   }
 
-  get currencyCopyResult() {
-    if (this._currencyCopyResult) {
-      return this._currencyCopyResult;
-    }
-
-    this._currencyCopyResult = new CurrencyCopyResult({
-      toAmount: this.rawResult.data.extra.toAmount.main,
-      toCurrencyName: this.toCurrencyName,
-      actions: {
-        updateTooltip: this.updateTooltip.bind(this),
-        hideTooltip: this.hideTooltip.bind(this),
-      },
-    });
-
-    return this._currencyCopyResult;
-  }
-
   get allResults() {
     return [
-      this,
-      this.currencyCopyResult,
+      this
     ];
   }
 
@@ -109,4 +77,18 @@ export default class extends BaseResult {
     this.$tooltip.style.display = 'none';
   }
 
+  click() {
+    copyToClipboard(this.toAmount);
+    this.$tooltip.innerText = utils.getLocalizedString('Copied');
+    setTimeout(() => {
+      this.$tooltip.style.display = 'none';
+    }, 1000);
+  }
+
+  get sourceWrapper() {
+    return {
+      url: this.rawUrl,
+      source: this.source,
+    };
+  }
 }

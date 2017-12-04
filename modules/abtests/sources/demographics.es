@@ -7,7 +7,7 @@ const CORRECT_OPTIONAL_PART = /^\w+$/;
 /*
  * Parse version in format A.B.C.1bN.
  */
-export default function getExtensionVersion() {
+export default function getCoreVersion() {
   let version = utils.extensionVersion;
 
   // Caused by a bug in versions, at some point

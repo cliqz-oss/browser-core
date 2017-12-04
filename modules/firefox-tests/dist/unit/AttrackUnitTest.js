@@ -43,15 +43,18 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
   }
 
   describe('Test Attrack listeners', function() {
-    var System = CliqzUtils.getWindow().CLIQZ.System,
-        attrackBG = System.get('antitracking/background').default,
-        pipeline = System.get('webrequest-pipeline/background').default,
-        QSWhitelist = System.get('antitracking/qs-whitelists').default,
-        md5 = System.get('antitracking/md5').default,
-        datetime = System.get('antitracking/time');
+    var CLIQZ = CliqzUtils.getWindow().CLIQZ;
+    if (!CLIQZ.app.antitracking) {
+      return;
+    }
+    var attrackBG = getModule('antitracking/background').default,
+        pipeline = getModule('webrequest-pipeline/background').default,
+        QSWhitelist = getModule('antitracking/qs-whitelists').default,
+        md5 = getModule('antitracking/md5').default,
+        datetime = getModule('antitracking/time');
 
     function getAttrack() {
-      return System.get('antitracking/background').default.attrack;
+      return getModule('antitracking/background').default.attrack;
     }
 
     var initialCookie = true,

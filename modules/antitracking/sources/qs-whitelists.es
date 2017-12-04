@@ -1,4 +1,4 @@
-import * as persist from './persistent-state';
+import * as persist from '../core/persistent-state';
 import * as datetime from './time';
 import { utils, events } from '../core/cliqz';
 import md5 from './md5';
@@ -8,8 +8,8 @@ const updateExpire = 48;
 
 export default class extends QSWhitelistBase {
 
-  constructor() {
-    super();
+  constructor(config) {
+    super(config);
     this.safeTokens = new persist.LazyPersistentObject('tokenExtWhitelist');
     this.trackerDomains = new persist.LazyPersistentObject('trackerDomains');
     this.unsafeKeys = new persist.LazyPersistentObject('unsafeKey');

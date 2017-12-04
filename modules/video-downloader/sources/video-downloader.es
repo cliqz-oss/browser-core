@@ -1,4 +1,5 @@
 import Youtube from './extractors/youtube';
+import sanitizeFilename from '../platform/lib/sanitize-filename';
 
 const EXTRACTORS = [
   Youtube,
@@ -37,32 +38,28 @@ function getFormats(info) {
       if (item.size === 0) {
         return;
       }
-      if (item.type.includes('audio/mp4')) {
-        audio = {
-          name: `M4A ${item.audioBitrate}kbps Audio Only`,
+      if (item.container === 'm4a' || item.container === 'mp4') {
+        const media = {
           size: getSize(item.size),
           url: item.url,
-          title: info.title,
-          format: 'm4a',
-          isAudio: true,
-        };
-      } else if (item.container === 'mp4') {
-        const video = {
-          name: `${item.container.toUpperCase()} ${item.resolution}`,
-          size: getSize(item.size),
-          url: item.url,
-          title: info.title,
+          title: sanitizeFilename(info.title, { replacement: ' ' }).slice(0, 250),
           format: item.container,
         };
-
-        if (item.audioBitrate !== null) {
-          video.isVideoAudio = true;
-          videos.push(video);
+        if (item.container === 'm4a') {
+          media.name = `M4A ${item.audioBitrate}kbps Audio Only`;
+          media.isAudio = true;
+          audio = media;
         } else {
-          video.isVideoOnly = true;
-          video.name = `${video.name} Video Only`;
-          video.class = 'hidden';
-          videosOnly.push(video);
+          media.name = `${item.container.toUpperCase()} ${item.resolution}`;
+          if (item.audioBitrate !== null) {
+            media.isVideoAudio = true;
+            videos.push(media);
+          } else {
+            media.isVideoOnly = true;
+            media.name = `${media.name} Video Only`;
+            media.class = 'hidden';
+            videosOnly.push(media);
+          }
         }
       }
     });

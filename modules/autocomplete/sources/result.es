@@ -157,52 +157,6 @@ var Result = {
         if(entry.autocompleted) ret.autocompleted = true;
         return ret;
     },
-    // check if a result should be kept in final result list
-    isValid: function (url, urlparts) {
-
-        // Google Filters
-        if(urlparts.name.toLowerCase() == "google" &&
-           urlparts.subdomains.length > 0 && urlparts.subdomains[0].toLowerCase() == "www" &&
-           (urlparts.extra.indexOf("/search") != -1 || // "/search?" for regular SERPS and ".*/search/.*" for maps
-            urlparts.extra.indexOf("/url?") == 0 ||    // www.google.*/url? - for redirects
-            urlparts.extra.indexOf("q=") != -1 )) {    // for instant search results
-            log("Discarding result page from history: " + url)
-            return false;
-        }
-        // Bing Filters
-        // Filter all like:
-        //    www.bing.com/search?
-        if(urlparts.name.toLowerCase() == "bing" && urlparts.extra.indexOf("q=") != -1) {
-            log("Discarding result page from history: " + url)
-            return false;
-        }
-        // Yahoo filters
-        // Filter all like:
-        //   search.yahoo.com/search
-        //   *.search.yahooo.com/search - for international 'de.search.yahoo.com'
-        //   r.search.yahoo.com - for redirects 'r.search.yahoo.com'
-        if(urlparts.name.toLowerCase() == "yahoo" &&
-           ((urlparts.subdomains.length == 1 && urlparts.subdomains[0].toLowerCase() == "search" && urlparts.path.indexOf("/search") == 0) ||
-            (urlparts.subdomains.length == 2 && urlparts.subdomains[1].toLowerCase() == "search" && urlparts.path.indexOf("/search") == 0) ||
-            (urlparts.subdomains.length == 2 && urlparts.subdomains[0].toLowerCase() == "r" && urlparts.subdomains[1].toLowerCase() == "search"))) {
-            log("Discarding result page from history: " + url)
-            return false;
-        }
-
-        // Ignore bitly redirections
-        if (url.search(/http(s?):\/\/bit\.ly\/.*/i) === 0) {
-            log("Discarding result page from history: " + url)
-            return false;
-        }
-
-        // Ignore Twitter redirections
-        if (url.search(/http(s?):\/\/t\.co\/.*/i) === 0) {
-            log("Discarding result page from history: " + url)
-            return false;
-        }
-
-        return true;
-    },
     getOgImage: function(og) {
         if(og && og.image){
             var image = { src: og.image };

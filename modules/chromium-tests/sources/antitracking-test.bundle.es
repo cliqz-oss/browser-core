@@ -9,7 +9,7 @@ import Attrack from '../antitracking/attrack';
 import Config from '../antitracking/config';
 import { HashProb } from '../antitracking/hash';
 import { AttrackBloomFilter } from '../antitracking/bloom-filter';
-import pacemaker from '../antitracking/pacemaker';
+import pacemaker from '../core/pacemaker';
 import { URLInfo, parseURL } from '../antitracking/url';
 import { getGeneralDomain } from '../antitracking/domain';
 import { trackerRuleParser, TrackerTXT, getDefaultTrackerTxtRule } from '../antitracking/tracker-txt';
@@ -573,7 +573,7 @@ describe('attrack list update', function() {
     var bloomFilter;
 
     beforeEach(function() {
-      bloomFilter = new AttrackBloomFilter(mock_bloom_filter_config_url, mock_bloom_filter_base_url);
+      bloomFilter = new AttrackBloomFilter(null, mock_bloom_filter_config_url, mock_bloom_filter_base_url);
     });
 
     it ('bloom filter init', function() {

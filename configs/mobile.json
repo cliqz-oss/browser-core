@@ -20,6 +20,7 @@
     "static"
   ],
   "bundles": [
+    "core/content-tests.bundle.js",
     "mobile-ui/app.bundle.js",
     "mobile-history/app.bundle.js"
   ],

@@ -343,6 +343,7 @@ export default class {
 
     const host = extractDomain(url);
     const hostGD = extractGeneralDomain(url);
+    const cpt = state.cpt;
 
     // Kill outbrain
     if (isOutbrain(hostGD)) {
@@ -360,7 +361,6 @@ export default class {
 
       // Allow double-click
       const page = this.getPage(windowTreeInformation, tabUrl);
-      const cpt = state.type;
       if (page.whitelistedFrames.has(windowTreeInformation.frameId) ||
           page.whitelistedFrames.has(windowTreeInformation.parentFrameId)) {
         return true;
@@ -374,7 +374,7 @@ export default class {
       }
     }
 
-    if (state.type === 6) {
+    if (cpt === 6) {
       return true;
     }
 
@@ -382,7 +382,7 @@ export default class {
     const result = this.adblocker.match({
       sourceUrl: tabUrl,
       url,
-      cpt: state.type,
+      cpt,
     });
 
     if (result.redirect) {
@@ -400,7 +400,7 @@ export default class {
     const tabUrl = state.sourceUrl;
     const parentUrl = state.originUrl;
     const url = state.url;
-    const cpt = state.type;
+    const cpt = state.cpt;
     const windowTreeInformation = {
       tabId: state.tabId,
       parentFrameId: state.parentFrameId,

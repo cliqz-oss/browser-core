@@ -34,7 +34,11 @@ export default class SimpleDB {
     return this.db.get(docID)
       .then(doc => doc.docData)
       .catch((err) => {
-        this.logger.error(`getDocData: error getting doc ${docID} with err: `, err);
+        if (err && err.status && err.status !== 404) {
+          this.logger.error(`getDocData: error getting doc ${docID} with err: `, err);
+        } else {
+          this.logger.log(`missing DB entry for docID ${docID}`);
+        }
         return null;
       });
   }
@@ -49,7 +53,11 @@ export default class SimpleDB {
       this.logger.log(`removeDocData: doc ${docID} removed properly`);
     }).catch((err) => {
       // nothing to do there
-      this.logger.error(`removeDocData: something happened removing the doc: ${docID} - err:`, err);
+      if (err && err.status && err.status !== 404) {
+        this.logger.error(`removeDocData: something happened removing the doc: ${docID} - err:`, err);
+      } else {
+        this.logger.log(`missing DB entry for docID ${docID}`);
+      }
     });
   }
 }

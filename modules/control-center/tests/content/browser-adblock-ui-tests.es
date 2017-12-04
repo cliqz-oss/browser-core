@@ -1,101 +1,20 @@
-function wait(time) {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
+import {
+  wait,
+  registerInterval,
+  clearIntervals,
+  waitFor,
+  Subject
+} from './helpers';
 
-let intervals = [];
-function registerInterval(interval) {
-  intervals.push(interval);
-}
+import {dataOn, dataOffPage, dataOffSite, dataOffAll} from './fixtures/adblocker';
 
-function clearIntervals() {
-  intervals.forEach(interval => clearInterval(interval));
-  intervals = [];
-}
-
-function waitFor(fn) {
-  var resolver, rejecter, promise = new Promise(function (res, rej) {
-    resolver = res;
-    rejecter = rej;
-  });
-
-  function check() {
-    const result = fn();
-    if (result) {
-      clearInterval(interval);
-      resolver(result);
-    }
-  }
-
-  var interval = setInterval(check, 50);
-  check();
-  registerInterval(interval);
-
-  return promise;
-}
-
-class Subject {
-  constructor() {
-    this.messages = [];
-  }
-
-  load() {
-    this.iframe = document.createElement('iframe');
-    this.iframe.src = '/build/cliqz@cliqz.com/chrome/content/control-center/index.html';
-    this.iframe.width = 455;
-    this.iframe.height = 500;
-    document.body.appendChild(this.iframe)
-
-    return new Promise(resolve => {
-      this.iframe.contentWindow.addEventListener('load', () => resolve());
-    }).then(() => {
-
-      this.iframe.contentWindow.addEventListener('message', ev => {
-        var data = JSON.parse(ev.data);
-        this.messages.push(data);
-      });
-
-      return waitFor(() => {
-        return this.messages.length === 1
-      })
-    });
-  }
-
-  unload() {
-    document.body.removeChild(this.iframe);
-  }
-
-  query(selector) {
-    return this.iframe.contentWindow.document.querySelector(selector);
-  }
-
-  queryAll(selector) {
-    return this.iframe.contentWindow.document.querySelectorAll(selector);
-  }
-
-  pushData(data = {}) {
-    this.iframe.contentWindow.postMessage(JSON.stringify({
-      target: 'cliqz-control-center',
-      origin: 'window',
-      message:  {
-        action: 'pushData',
-        data,
-      }
-    }), "*");
-    return wait(500);
-  }
-
-  getComputedStyle(selector) {
-    return this.iframe.contentWindow.getComputedStyle(this.query(selector));
-  }
-}
-
-describe("Ad-Block UI browser", function () {
+describe("Control Center: Ad-Block UI browser", function () {
   let subject;
 
   before(function () {
     subject = new Subject();
     return subject.load();
-  })
+  });
 
   after(function () {
     subject.unload();
@@ -159,46 +78,16 @@ describe("Ad-Block UI browser", function () {
 
   it('loads', function () {
     chai.expect(true).to.eql(true);
-  })
+  });
 
   describe('ad-blocker on', function () {
-    const data = {
-      activeURL: 'http://www.spiegel.de/',
-      friendlyURL: 'http://www.spiegel.de/',
-      isSpecialUrl: false,
-      domain: 'spiegel.de',
-      extraUrl: '',
-      hostname: 'www.spiegel.de',
-      module: {
-        antitracking: {
-          visible: false,
-        },
-        adblocker: {
-          visible: true,
-          enabled: true,
-          optimized: false,
-          disabledForUrl: false,
-          disabledForDomain: false,
-          disabledEverywhere: false,
-          totalCount: 12,
-          advertisersList: {},
-          state: "active",
-          off_state: "off_website"
-        },
-      },
-      generalState: 'active',
-      feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: false,
-      funnelCake: false
-    };
 
     before(() => {
-      return subject.pushData(data);
+      return subject.pushData(dataOn);
     });
 
     headerProtected();
-
-    adBlockerUiTests(data);
+    adBlockerUiTests(dataOn);
 
     it('renders correct colour of switch', function () {
       chai.expect(subject.getComputedStyle('#ad-blocking .cqz-switch-box').background).to.contain('rgb(0, 173, 239)');
@@ -238,49 +127,25 @@ describe("Ad-Block UI browser", function () {
 
     it('renders correct amount of blocked ads', function () {
       const adsNumberSelector = '#ad-blocking .counter #count';
+      const adsNumberActiveSelector = adsNumberSelector + ' [visible-on-state="active"]';
+      const adsNumberOffSelector = adsNumberSelector + ' [visible-on-state="off"]';
       chai.expect(subject.query(adsNumberSelector)).to.exist;
-      chai.expect(subject.query(adsNumberSelector).textContent.trim()).to.equal(data.module.adblocker.totalCount.toString());
+      chai.expect(subject.query(adsNumberActiveSelector)).to.exist;
+      chai.expect(subject.query(adsNumberOffSelector)).to.exist;
+      chai.expect(subject.query(adsNumberActiveSelector).textContent.trim()).to.equal(dataOn.module.adblocker.totalCount.toString());
+      chai.expect(subject.getComputedStyle(adsNumberActiveSelector).display).to.not.equal('none');
+      chai.expect(subject.getComputedStyle(adsNumberOffSelector).display).to.equal('none');
+      //chai.expect(subject.query(adsNumberOffSelector).textContent.trim()).to.equal('0');
     });
   });
 
   describe('ad-blocker off for the particular page', function () {
-    const data = {
-      activeURL: 'http://www.spiegel.de/',
-      friendlyURL: 'http://www.spiegel.de/',
-      isSpecialUrl: false,
-      domain: 'spiegel.de',
-      extraUrl: '',
-      hostname: 'www.spiegel.de',
-      module: {
-        antitracking: {
-          visible: false,
-        },
-        adblocker: {
-          visible: true,
-          enabled: false,
-          optimized: false,
-          disabledForUrl: true,
-          disabledForDomain: false,
-          disabledEverywhere: false,
-          totalCount: 12,
-          advertisersList: {},
-          state: "off",
-          off_state: "off_website"
-        },
-      },
-      generalState: 'active',
-      feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: false,
-      funnelCake: false
-    };
-
     before(() => {
-      return subject.pushData(data);
+      return subject.pushData(dataOffPage);
     });
 
     headerProtected();
-
-    adBlockerUiTests(data);
+    adBlockerUiTests(dataOffPage);
 
     it('renders correct colour of switch', function () {
       chai.expect(subject.getComputedStyle('#ad-blocking .cqz-switch-box').background).to.contain('rgb(246, 112, 87)');
@@ -333,49 +198,24 @@ describe("Ad-Block UI browser", function () {
 
     it('renders correct amount of blocked ads', function () {
       const adsNumberSelector = '#ad-blocking .counter #count';
+      const adsNumberActiveSelector = adsNumberSelector + ' [visible-on-state="active"]';
+      const adsNumberOffSelector = adsNumberSelector + ' [visible-on-state="off"]';
       chai.expect(subject.query(adsNumberSelector)).to.exist;
-      chai.expect(subject.query(adsNumberSelector).textContent.trim()).to.equal(data.module.adblocker.totalCount.toString());
+      chai.expect(subject.query(adsNumberActiveSelector)).to.exist;
+      chai.expect(subject.query(adsNumberOffSelector)).to.exist;
+      chai.expect(subject.getComputedStyle(adsNumberActiveSelector).display).to.equal('none');
+      chai.expect(subject.getComputedStyle(adsNumberOffSelector).display).to.not.equal('none');
+      chai.expect(subject.query(adsNumberOffSelector).textContent.trim()).to.equal('0');
     });
   });
 
   describe('ad-blocker off for the particular domain', function () {
-    const data = {
-      activeURL: 'http://www.spiegel.de/',
-      friendlyURL: 'http://www.spiegel.de/',
-      isSpecialUrl: false,
-      domain: 'spiegel.de',
-      extraUrl: '',
-      hostname: 'www.spiegel.de',
-      module: {
-        antitracking: {
-          visible: false,
-        },
-        adblocker: {
-          visible: true,
-          enabled: false,
-          optimized: false,
-          disabledForUrl: false,
-          disabledForDomain: true,
-          disabledEverywhere: false,
-          totalCount: 12,
-          advertisersList: {},
-          state: "off",
-          off_state: "off_domain"
-        },
-      },
-      generalState: 'active',
-      feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: false,
-      funnelCake: false
-    };
-
     before(() => {
-      return subject.pushData(data);
+      return subject.pushData(dataOffSite);
     });
 
     headerProtected();
-
-    adBlockerUiTests(data);
+    adBlockerUiTests(dataOffSite);
 
     it('renders correct colour of switch', function () {
       chai.expect(subject.getComputedStyle('#ad-blocking .cqz-switch-box').background).to.contain('rgb(246, 112, 87)');
@@ -428,49 +268,24 @@ describe("Ad-Block UI browser", function () {
 
     it('renders correct amount of blocked ads', function () {
       const adsNumberSelector = '#ad-blocking .counter #count';
+      const adsNumberActiveSelector = adsNumberSelector + ' [visible-on-state="active"]';
+      const adsNumberOffSelector = adsNumberSelector + ' [visible-on-state="off"]';
       chai.expect(subject.query(adsNumberSelector)).to.exist;
-      chai.expect(subject.query(adsNumberSelector).textContent.trim()).to.equal(data.module.adblocker.totalCount.toString());
+      chai.expect(subject.query(adsNumberActiveSelector)).to.exist;
+      chai.expect(subject.query(adsNumberOffSelector)).to.exist;
+      chai.expect(subject.getComputedStyle(adsNumberActiveSelector).display).to.equal('none');
+      chai.expect(subject.getComputedStyle(adsNumberOffSelector).display).to.not.equal('none');
+      chai.expect(subject.query(adsNumberOffSelector).textContent.trim()).to.equal('0');
     });
   });
 
   describe('ad-blocker off for all websites', function () {
-    const data = {
-      activeURL: 'http://www.spiegel.de/',
-      friendlyURL: 'http://www.spiegel.de/',
-      isSpecialUrl: false,
-      domain: 'spiegel.de',
-      extraUrl: '',
-      hostname: 'www.spiegel.de',
-      module: {
-        antitracking: {
-          visible: false,
-        },
-        adblocker: {
-          visible: true,
-          enabled: false,
-          optimized: false,
-          disabledForUrl: false,
-          disabledForDomain: false,
-          disabledEverywhere: true,
-          totalCount: 12,
-          advertisersList: {},
-          state: "off",
-          off_state: "off_all"
-        },
-      },
-      generalState: 'active',
-      feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: false,
-      funnelCake: false
-    };
-
     before(() => {
-      return subject.pushData(data);
+      return subject.pushData(dataOffAll);
     });
 
     headerProtected();
-
-    adBlockerUiTests(data);
+    adBlockerUiTests(dataOffAll);
 
     it('renders correct colour of switch', function () {
       chai.expect(subject.getComputedStyle('#ad-blocking .cqz-switch-box').background).to.contain('rgb(246, 112, 87)');
@@ -523,8 +338,14 @@ describe("Ad-Block UI browser", function () {
 
     it('renders correct amount of blocked ads', function () {
       const adsNumberSelector = '#ad-blocking .counter #count';
+      const adsNumberActiveSelector = adsNumberSelector + ' [visible-on-state="active"]';
+      const adsNumberOffSelector = adsNumberSelector + ' [visible-on-state="off"]';
       chai.expect(subject.query(adsNumberSelector)).to.exist;
-      chai.expect(subject.query(adsNumberSelector).textContent.trim()).to.equal(data.module.adblocker.totalCount.toString());
+      chai.expect(subject.query(adsNumberActiveSelector)).to.exist;
+      chai.expect(subject.query(adsNumberOffSelector)).to.exist;
+      chai.expect(subject.getComputedStyle(adsNumberActiveSelector).display).to.equal('none');
+      chai.expect(subject.getComputedStyle(adsNumberOffSelector).display).to.not.equal('none');
+      chai.expect(subject.query(adsNumberOffSelector).textContent.trim()).to.equal('0');
     });
   });
 })

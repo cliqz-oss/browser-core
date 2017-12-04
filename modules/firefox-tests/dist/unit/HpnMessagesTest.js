@@ -2,7 +2,7 @@
 
 var expect = chai.expect;
 TESTS.HPNMessagesTest = function (CliqzUtils) {
-	var CliqzSecureMessage = CliqzUtils.getWindow().CLIQZ.System.get("hpn/main").default;
+	var CliqzSecureMessage = getModule("hpn/main").default;
 	function makeSampleMessage() {
 		return `{"action": "test-message", "type": "humanweb", "ver": "0", "anti-duplicates": ${Math.floor(Math.random() * 1000000000)}, "payload": {"t": "${getTodayDateMinutes()}"}, "ts": "${getTodayDate()}"}`;
 	}

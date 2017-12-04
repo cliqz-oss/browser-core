@@ -133,6 +133,10 @@ const CliqzCalculator = {
         return false;
       }
     }
+
+    if (parts[0] === '0') {
+      return false;
+    }
     return true;
   },
   standardize(number) {
@@ -174,7 +178,7 @@ const CliqzCalculator = {
     const parts = number.split(this.thousandsSeparator);
     // There is only one thousands separator => could be decimal separator
     if (parts.length === 2) {
-      if (parts[0].length > 3 || parts[1].length !== 3) {
+      if (parts[0].length > 3 || parts[1].length !== 3 || parts[0] === '0') {
         // *** Thousands separator becomes decimal separator
         return replaceAll(number, this.thousandsSeparator, '.');
       }

@@ -2,7 +2,7 @@ import utils from '../core/utils';
 import md5 from '../core/helpers/md5';
 import inject from '../core/kord/inject';
 import fetch from '../platform/fetch';
-import { LazyPersistentObject } from '../antitracking/persistent-state';
+import { LazyPersistentObject } from '../core/persistent-state';
 import * as datetime from '../antitracking/time';
 
 function queryHTML(...args) {

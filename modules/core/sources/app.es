@@ -5,6 +5,7 @@ import Module from './app/module';
 import { setGlobal } from './kord';
 import console from './console';
 import utils from './utils';
+import { debugModules } from '../platform/globals';
 import { Window, mapWindows, forEachWindow, addWindowObserver,
   removeWindowObserver, reportError, mustLoadWindow, setInstallDatePref,
   setOurOwnPrefs, resetOriginalPrefs, enableChangeEvents,
@@ -60,6 +61,8 @@ export default class {
       // Currently last one wins
       Object.assign(this.services, module.providedServices);
     });
+
+    this.debugModules = debugModules;
 
     utils.extensionVersion = version;
     setGlobal(this);
@@ -147,7 +150,7 @@ export default class {
         return null;
       })
       .catch((e) => {
-        console.log(e, 'Extension filed loaded window modules');
+        console.error(e, 'Extension filed loaded window modules');
       });
   }
 
@@ -373,11 +376,6 @@ export default class {
         app: this,
         Core: { }, // TODO: remove and all clients
       };
-
-      // legacy code for bootstrap addon - remove it when bundling is there
-      if (typeof System === 'object') {
-        CLIQZ.System = System;
-      }
 
       Object.defineProperty(window, 'CLIQZ', {
         configurable: true,

@@ -36,13 +36,8 @@
 
         Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
 
-        Promise.all([
-          CLIQZ.System.import("core/utils"),
-          CLIQZ.System.import("core/ab-tests"),
-        ]).then(function (modules) {
-
-        var CliqzUtils = modules[0].default;
-        var CliqzABTests = modules[1].default;
+        var CliqzUtils = CLIQZ.CliqzUtils;
+        var CliqzABTests = CliqzUtils.getWindow().CliqzABTests;
 
         var current = CliqzABTests.getCurrent();
 
@@ -164,7 +159,6 @@
                 showTest(t);
             }
         }
-        });
     </script>
 </body>
 </html>

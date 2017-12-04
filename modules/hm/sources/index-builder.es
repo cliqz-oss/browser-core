@@ -1,11 +1,11 @@
-import TableChangeObserver from 'hm/table-change-observer';
-import IncrementalStorage from 'core/incremental-storage';
-import SimpleStorage from 'core/simple-storage';
+import TableChangeObserver from './table-change-observer';
+import IncrementalStorage from '../core/incremental-storage';
+import SimpleStorage from '../core/simple-storage';
 import { ngrams, len, comp_url, is_search_url, normalize,
- url_norm, zip, has } from 'hm/helpers';
-import GatherData from 'hm/gather-data';
-import md5 from 'core/helpers/md5';
-import CliqzUtils from 'core/utils';
+ url_norm, zip, has } from './helpers';
+import GatherData from './gather-data';
+import md5 from '../core/helpers/md5';
+import CliqzUtils from '../core/utils';
 
 Components.utils.import('resource://gre/modules/PlacesUtils.jsm');
 

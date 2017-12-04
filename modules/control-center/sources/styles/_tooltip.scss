@@ -118,6 +118,24 @@
               top: 71px;
             }
           }
+
+          &.offers-main {
+            top: 45px;
+            width: 340px;
+
+            &:before {
+              top: 123px;
+            }
+          }
+
+          &.offers-location {
+            top: 46px;
+            width: 309px;
+
+            &:before {
+              top: 150px;
+            }
+          }
       }
 
       strong {

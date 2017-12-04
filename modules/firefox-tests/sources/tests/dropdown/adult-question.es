@@ -1,28 +1,17 @@
-/* global it, expect, respondWith, fillIn, waitForPopup, $cliqzResults, getLocaliseString */
+/* global it, expect, respondWith, fillIn, waitForPopup,
+$cliqzResults, getLocaliseString, CliqzUtils */
 /* eslint func-names: ["error", "never"] */
 /* eslint prefer-arrow-callback: "off" */
 /* eslint no-unused-expressions: "off" */
 
+import results from './fixtures/resultsAdultQuestion';
+
 export default function () {
   context('adult question', function () {
-    const results = [
-      {
-        url: 'http://www.xvideos.com/',
-        snippet: {
-          extra: {
-            adult: true,
-            alternatives: [],
-            language: {}
-          },
-          title: 'Free Porn Videos - XVIDEOS.COM'
-        },
-        c_url: 'http://www.xvideos.com/',
-        type: 'bm'
-      }
-    ];
     let resultElement;
 
     before(function () {
+      CliqzUtils.setPref('adultContentFilter', 'moderate');
       respondWith({ results });
       fillIn('xvideos');
       return waitForPopup().then(function () {

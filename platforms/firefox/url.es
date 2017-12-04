@@ -22,7 +22,9 @@ export class URI {
     return cleanHost;
   }
   get path() {
-    return this.uri.path;
+    // Services.io.newURI().path changed in Fx 57 and returns undefined
+    // in case there is no path. It was returning '/' in Fx56 and bellow
+    return this.uri.path || '/';
   }
 }
 

@@ -57,6 +57,11 @@ export default describeModule("core/utils",
       './LRU': {
         default: function () {},
       },
+      '../platform/history/search' : {
+        default: {
+          historySearch() {},
+        },
+      },
     };
   },
   function () {

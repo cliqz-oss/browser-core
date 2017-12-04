@@ -3,30 +3,20 @@
 <head>
     <meta charset="utf-8">
     <title>Offers Control Center</title>
-    <!--<link href="styles/styles.css" rel="stylesheet">-->
     <script>
         var node = document.createElement("link");
         node.rel = "stylesheet";
         node.href = 'styles/styles.css?' + Math.floor(Math.random() * 999999999);
         document.getElementsByTagName("head")[0].appendChild(node);
     </script>
-    <script src="../webextensions-shim.js"></script>
-    <script src="../bower_components/system.js/dist/system.js"></script>
-    <script src="../bower_components/handlebars/handlebars.js"></script>
     <script>
-      System.config({
-        defaultJSExtensions: true,
-        map: {
-          jquery: '../bower_components/jquery/dist/jquery.min.js',
-        }
-      });
-      System.set('handlebars', System.newModule({default: Handlebars}));
-      if (!Components.fake) {
-        System.baseURL = System._loader.baseURL = "./";
-      } else {
-        System.baseURL  = '../'
+      if (typeof Components === "undefined") {
+        window.chrome = {
+            i18n: {
+                getMessage(k) { return k; }
+            }
+        };
       }
-      System.import("./content/app");
     </script>
 </head>
 <body>
@@ -105,7 +95,7 @@
         <ul>
             <li>
                 <a
-                   openurl="https://cliqz.com/magazine/myoffrz-box"
+                   openurl="https://cliqz.com/myoffrz"
                    class="cqz-power-by"
 
                    data-cqz-of-btn-id="more_about_cliqz"
@@ -129,5 +119,6 @@
         </ul>
     </footer>
 </div>
+<script src="../offers-cc/offers-cc.bundle.js"></script>
 </body>
 </html>

@@ -1,7 +1,9 @@
-import HeaderInfoVisitor from 'platform/antitracking/header-info-visitor';
-import * as browser from 'platform/browser';
-import utils from 'core/utils';
-import { getTabsForURL } from 'platform/antitracking/tab-listener';
+import HeaderInfoVisitor from './header-info-visitor';
+import * as browser from '../browser';
+import utils from '../../core/utils';
+import { getTabsForURL } from './tab-listener';
+import { Components } from '../globals';
+
 
 // An abstraction layer for extracting contextual information
 // from the HttpChannel on various Firefox versions.

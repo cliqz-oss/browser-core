@@ -10,10 +10,6 @@
     <title data-i18n="transparency_html_title"></title>
     <!-- Cliqz CSS -->
     <link rel="stylesheet" href="chrome://cliqz/content/privacy-dashboard/css/styles.css"/>
-
-    <script src="chrome://cliqz/content/bower_components/jquery/dist/jquery.js"></script>
-    <script type='text/javascript' src="chrome://cliqz/content/privacy-dashboard/js/main.js"></script>
-
 </head>
 <body>
 
@@ -71,19 +67,17 @@
 	</div>
     <script>
         // small functionality to allow this page internationalization (i18n)
-        Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
-        var CliqzUtils = CLIQZ.CliqzUtils;
         function localizeDocument() {
-            Array.prototype.forEach.call(document.querySelectorAll('[data-i18n]'), el => {
-                var elArgs = el.dataset.i18n.split(','),
-                    key = elArgs.shift();
-
-                el.innerHTML = CliqzUtils.getLocalizedString(key, elArgs);
+            Array.from(document.querySelectorAll('[data-i18n]'))
+              .forEach((el) => {
+                const elArgs = el.dataset.i18n.split(',');
+                const key = elArgs.shift();
+                el.innerHTML = chrome.i18n.getMessage(key, elArgs);
             });
         }
         localizeDocument();
     </script>
-
+    <script type="text/javascript" src="./dashboard.bundle.js"></script>
 </body>
 
 </html>

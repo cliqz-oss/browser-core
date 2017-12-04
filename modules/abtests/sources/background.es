@@ -1,4 +1,5 @@
 import background from '../core/base/background';
+import getCoreVersion from './demographics';
 import Client from './client';
 import Manager from './manager';
 import { ModuleStorage, SharedStorage } from './storage';
@@ -52,6 +53,47 @@ export default background({
   },
 
   actions: {
-
+    isRunning() {
+      return this.isRunning;
+    },
+    start() {
+      return this.start();
+    },
+    stop() {
+      return this.stop();
+    },
+    getCompletedTests() {
+      return this.manager.completedTests;
+    },
+    getRunningTests() {
+      return this.manager.runningTests;
+    },
+    getDemographics() {
+      return this.manager.anolysis.action('getCurrentDemographics');
+    },
+    getCoreVersion() {
+      return getCoreVersion();
+    },
+    getAvailableTests() {
+      return this.manager.client.getAvailableTests();
+    },
+    loadTests() {
+      return this.manager.loadTests();
+    },
+    saveTests() {
+      return this.manager.saveTests();
+    },
+    updateTests() {
+      return this.manager.updateTests();
+    },
+    startTest(test, group) {
+      return this.manager.startTest({ ...test, group });
+    },
+    stopTest(test) {
+      return this.manager.stopTest(test);
+    },
+    removeTest(test) {
+      delete this.manager.completedTests[test.id];
+    },
   },
 });

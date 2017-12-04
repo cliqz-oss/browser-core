@@ -1,0 +1,9 @@
+{{#if ligaEZ1Game}}
+    <div class="wrapper">
+        <div class="table">
+            {{#each (take ligaEZ1Game itemsLimit) }}
+                {{> partials/soccer/ticker}}
+            {{/each}}
+        </div>
+    </div>
+{{/if}}

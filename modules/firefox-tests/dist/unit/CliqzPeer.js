@@ -19,15 +19,17 @@ function mockSignaling(p1, p2) {
 
 DEPS.CliqzPeerTest = ["core/utils"];
 TESTS.CliqzPeerTest = function(CliqzUtils) {
+  var CLIQZ = CliqzUtils.getWindow().CLIQZ;
+  if (!CLIQZ.app.modules.p2p) {
+    return;
+  }
+
   describe('CliqzPeer', function() {
     this.timeout(10000);
 
     var p2p;
     beforeEach(function () {
-      return CliqzUtils.getWindow().CLIQZ.System.import('core/kord/inject').then(function (mod) {
-        var inject = mod.default;
-        p2p = inject.module('p2p');
-      });
+      p2p = CliqzUtils.getWindow().CLIQZ.app.modules.p2p;
     });
 
     describe('simple functionality', function () {

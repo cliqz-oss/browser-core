@@ -16,8 +16,9 @@ export default class {
    * Pipeline constructor. Creates an empty pipeline with the default
    * stages (open, modify and response).
    */
-  constructor(name, steps = []) {
+  constructor(name, steps = [], isBreakable = true) {
     this.name = name;
+    this.isBreakable = isBreakable;
 
     // Optional timing collection
     this.collectTimings = false;
@@ -51,6 +52,10 @@ export default class {
 
     if (!spec) {
       throw new Error(`Every step of the pipeline should be given a spec ${name} in ${this.name}`);
+    }
+
+    if (spec === 'break' && !this.isBreakable) {
+      throw new Error(`Cannot add a break step '${name}' to an unbreakable pipline`);
     }
 
     return this.addPipelineStep({
@@ -190,15 +195,13 @@ export default class {
 
       // Handle early termination of the pipeline
       if (cont === false) {
-        logger.debug(this.name, webRequestContext.url, 'Break at', name);
-        break;
-        // TODO - do we want to allow a step/pipeline to disrupt other
-        // steps/pipeline (potentially from other modules)?
-        // return cont;
-        //
-        // We need to think about that as we might not want
-        // Adblocker/Ghostery or other module doing blocking of requests to
-        // prevent data collection (which should happen async)
+        if (this.isBreakable) {
+          logger.debug(this.name, webRequestContext.url, 'Break at', name);
+          break;
+        }
+        // we only reach here if the pipeline is not breakable:
+        // show a warning that we ignored the break
+        logger.debug(this.name, webRequestContext.url, 'ignoring attempted break of unbreakable pipeline at', name);
       }
     }
   }

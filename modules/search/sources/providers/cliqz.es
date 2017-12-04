@@ -1,9 +1,9 @@
 import Rx from '../../platform/lib/rxjs';
-import { fetch as f } from '../../core/http';
 import utils from '../../core/utils';
 import BaseProvider from './base';
+import { getResponse } from '../responses';
 
-const mapResults = results =>
+const mapResults = ({ results, q }) =>
   results.map((result) => {
     const snippet = result.snippet || {};
     return {
@@ -12,7 +12,7 @@ const mapResults = results =>
       originalUrl: result.url,
       title: snippet.title,
       type: result.type,
-      text: results.q,
+      text: q,
       description: snippet.description,
       provider: 'cliqz',
       data: {
@@ -29,16 +29,13 @@ export default class Cliqz extends BaseProvider {
   }
 
   fetch(query) {
-    const url = utils.RESULTS_PROVIDER +
-      utils.getResultsProviderQueryString(query);
-
-    return f(url)
-      .then(res => res.json());
+    return utils.getBackendResults(query)
+      .then(e => e.response);
   }
 
-  search(query) {
+  search(query, config) {
     if (!query) {
-      return this.empty;
+      return this.getEmptySearch(config);
     }
     // if (this.cache.has(query)) {
     //   return Rx.Observable
@@ -51,13 +48,16 @@ export default class Cliqz extends BaseProvider {
 
     return Rx.Observable
       .fromPromise(this.fetch(query))
-      .map(results => ({
-        results: mapResults(results.results),
-        state: 'done',
-        provider: this.id,
-      }))
+      .map(response => getResponse(
+        this.id,
+        config,
+        query,
+        mapResults(response),
+        'done',
+      ))
       // .do(results => this.cache.set(query, results))
-      .delay(0);
+      .delay(0)
+      .let(this.getOperators(config, query));
       // .flatMap(results =>
       //   Rx.Observable.from(results));
   }

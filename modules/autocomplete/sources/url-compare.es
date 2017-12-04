@@ -12,6 +12,10 @@ var UrlCompare = {
   // Compare two URLs and return true if same or differing only by
   // country code in subdomain or path.
   sameUrls: function(url1, url2) {
+      if (!url1 || !url2) {
+        return false;
+      }
+
       // Get generalized representation of each url
       var keys1 = UrlCompare._extractKeys(url1, '');
       var keys2 = UrlCompare._extractKeys(url2, '');

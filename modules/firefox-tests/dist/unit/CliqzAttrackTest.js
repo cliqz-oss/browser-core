@@ -3,18 +3,21 @@
 
 DEPS.AttrackTest = ["core/utils"];
 TESTS.AttrackTest = function (CliqzUtils) {
-    var System = CliqzUtils.getWindow().CLIQZ.System,
-        HashProb = System.get('antitracking/hash').HashProb,
+    var CLIQZ = CliqzUtils.getWindow().CLIQZ;
+    if (!CLIQZ.app.antitracking) {
+      return;
+    }
+    var HashProb = getModule('antitracking/hash').HashProb,
         hp = new HashProb(),
-        persist = System.get("antitracking/persistent-state"),
-        AttrackBloomFilter = System.get("antitracking/bloom-filter").AttrackBloomFilter,
-        datetime = System.get("antitracking/time"),
-        pipeline = System.get('webrequest-pipeline/background').default,
-        pacemaker = System.get("antitracking/pacemaker").default;
-    var browser = System.get('platform/browser');
+        persist = getModule("core/persistent-state"),
+        AttrackBloomFilter = getModule("antitracking/bloom-filter").AttrackBloomFilter,
+        datetime = getModule("antitracking/time"),
+        pipeline = getModule('webrequest-pipeline/background').default,
+        pacemaker = getModule("core/pacemaker").default;
+    var browser = getModule('core/browser');
 
     function getAttrack() {
-      return System.get('antitracking/background').default.attrack;
+      return getModule('antitracking/background').default.attrack;
     }
 
     // make sure that module is loaded
@@ -37,7 +40,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
       pacemaker.start();
     });
 
-    describe('platform/browser', function() {
+    describe('core/browser', function() {
         describe('isWindowActive', function() {
             it('returns false for none existant tab ids', function() {
                 chai.expect(browser.isWindowActive(-1)).to.be.false;
@@ -99,7 +102,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
 
     describe('CliqzAttack.tp_events', function() {
 
-        var urlInfo = CliqzUtils.getWindow().CLIQZ.System.get('antitracking/url').URLInfo;
+        var urlInfo = getModule('antitracking/url').URLInfo;
 
         describe('Integration', function() {
             var win = CliqzUtils.getWindow(),
@@ -535,7 +538,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
 
     describe('CliqzAttrack.getGeneralDomain', function() {
 
-        var getGeneralDomain = CliqzUtils.getWindow().CLIQZ.System.get('antitracking/domain').getGeneralDomain;
+        var getGeneralDomain = getModule('antitracking/domain').getGeneralDomain;
         var spec = {
           'cliqz.com': ['cliqz.com', 'www.cliqz.com', 'a.b.cliqz.com'],
           'example.co.uk': ['example.co.uk', 'test.example.co.uk'],
@@ -656,7 +659,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
     describe('Tracking.txt', function() {
 
         it ('parse rules correctly', function() {
-            var parser = CliqzUtils.getWindow().CLIQZ.System.get('antitracking/tracker-txt').trackerRuleParser,
+            var parser = getModule('antitracking/tracker-txt').trackerRuleParser,
                 txt = 'R site1.com empty\nR   site2.com\tplaceholder\nnot a rule',
                 rules = [];
             parser(txt, rules);
@@ -664,7 +667,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
         });
 
         it ('ignore comments', function() {
-            var parser = CliqzUtils.getWindow().CLIQZ.System.get('antitracking/tracker-txt').trackerRuleParser,
+            var parser = getModule('antitracking/tracker-txt').trackerRuleParser,
                 txt = '# comment\n! pass\nR site1.com empty\nR site2.com placeholder\nnot a rule',
                 rules = [];
             parser(txt, rules);
@@ -672,9 +675,9 @@ TESTS.AttrackTest = function (CliqzUtils) {
         });
 
         it ('apply correct rule to 3rd party', function() {
-            var TT = CliqzUtils.getWindow().CLIQZ.System.get('antitracking/tracker-txt'),
+            var TT = getModule('antitracking/tracker-txt').default,
                 txt = '# comment\n! pass\nR aaa.site1.com empty\nR site1.com placeholder\nnot a rule',
-                parseURL = CliqzUtils.getWindow().CLIQZ.System.get("antitracking/url").parseURL,
+                parseURL = getModule("antitracking/url").parseURL,
                 r = TT.TrackerTXT.get(parseURL('http://www.google.com/'));
             TT.trackerRuleParser(txt, r.rules);
             r.status = 'update';

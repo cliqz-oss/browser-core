@@ -3,7 +3,7 @@ import { events } from '../core/cliqz';
 import Database from '../core/database';
 import console from '../core/console';
 import { migrateTokenDomain } from './legacy/database';
-import pacemaker from './pacemaker';
+import pacemaker from '../core/pacemaker';
 
 const DAYS_EXPIRE = 7;
 const DB_NAME = 'cliqz-attrack-token-domain';

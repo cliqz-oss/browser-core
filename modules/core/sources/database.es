@@ -4,20 +4,15 @@ import utils from './utils';
 
 export const dbs = new Map();
 
-export default class extends Database {
-  constructor(name, ...rest) {
-    const info = dbs.get(name) || {
-      name,
-      createdAt: Date.now(),
-      instances: 0,
-    };
-    info.instances = info.instances += 1;
-    dbs.set(name, info);
-    super(name, ...rest);
-  }
-
-  // does not make sesne to close indexeddb
-  close() {}
+export default function DB(name, ...rest) {
+  const info = dbs.get(name) || {
+    name,
+    createdAt: Date.now(),
+    instances: 0,
+  };
+  info.instances = info.instances += 1;
+  dbs.set(name, info);
+  return Database(name, ...rest);
 }
 
 

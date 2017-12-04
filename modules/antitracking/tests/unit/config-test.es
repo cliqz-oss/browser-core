@@ -1,12 +1,12 @@
 
 let mockPrefs = {};
 
-export default describeModule('antitracking/config', 
+export default describeModule('antitracking/config',
   () => ({
     // 'core/events': {
     //   default: {}
     // },
-    './persistent-state': {
+    'core/persistent-state': {
       getValue: (p, d) => (mockPrefs[p] || d),
     },
     'core/resource-loader': {
@@ -75,6 +75,6 @@ export default describeModule('antitracking/config',
         chai.expect(() => config.setPref('unknown', true)).to.throw(Error);
       });
     })
-    
+
   }
 );

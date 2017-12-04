@@ -12,21 +12,13 @@
 // egrep 'pattern-hm' * -R | egrep -v ^build
 
 
-import { ngrams, url_norm, comp_url, normalize } from 'hm/helpers';
-import IndexBuilder from 'hm/index-builder';
-import CliqzUtils from 'core/utils';
+import { ngrams, url_norm, comp_url, normalize } from './helpers';
+import IndexBuilder from './index-builder';
+import CliqzUtils from '../core/utils';
+import { Components, Services, XPCOMUtils } from '../platform/globals';
 
-const { utils: Cu } = Components;
-
-Components.utils.import('resource://gre/modules/Services.jsm');
 Components.utils.import('resource://gre/modules/FileUtils.jsm');
 Components.utils.import('resource://gre/modules/NetUtil.jsm');
-
-Cu.import('resource://gre/modules/XPCOMUtils.jsm');
-
-// for dummies:
-// var CliqzHM = CliqzUtils.getWindow().CLIQZ.System.get("hm/main").default;
-//
 
 const CliqzHM = {
   VERSION: '0.1',

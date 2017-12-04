@@ -15,6 +15,7 @@ const concat = require('broccoli-concat');
 var cliqzConfig = require('./config');
 const modulesList = require('./modules/modules-list');
 const contentScriptsImport = require('./modules/content-script-imports');
+const contentTestsImport = require('./modules/content-tests-imports');
 
 var Instrument = require('./instrument');
 var helpers = require('./modules/helpers');
@@ -41,7 +42,7 @@ var babelOptions = {
   plugins: [
     "transform-react-jsx",
     babelModulePlugin,
-  ],
+  ].concat(cliqzConfig.babelPlugins || []),
 };
 
 if (cliqzConfig.instrumentFunctions) {
@@ -244,6 +245,7 @@ function getSourceTree() {
     sources,
     config,
     contentScriptsImport,
+    contentTestsImport,
     new Funnel(modulesList, { destDir: 'core/app' }),
   ]);
 
@@ -267,15 +269,21 @@ function getSourceTree() {
     getBrowserifyTree(),
     transpiledSources,
   ];
-  if ((cliqzConfig.environment !== 'production') &&
+  if ((!cliqzConfig.PRODUCTION) &&
       (cliqzConfig.testem_launchers || []).length) {
     sourceTrees.push(transpiledModuleTestsTree);
+  }
+
+  const exclude = ["**/*.jshint.js"];
+
+  if (cliqzConfig.PRODUCTION) {
+    exclude.push("**/content-tests.bundle*");
   }
 
   return new Funnel(
     new MergeTrees(sourceTrees), //, { overwrite: true }),
     {
-      exclude: ["**/*.jshint.js"]
+      exclude: exclude
     }
   );
 }
@@ -286,25 +294,6 @@ const sourceTree = new MergeTrees([
   getHandlebarsTree(modulesTree),
 ]);
 
-const esTree = new Funnel(sourceTree, {
-  exclude: ['tests/*/content/**/*']
-});
-
-function getContentTestsTree(tree) {
-  const contentTestsTree = new Funnel(tree, {
-    include: ['tests/*/content/**/*']
-  });
-
-  return concat(contentTestsTree, {
-    header: ';System = { register: function () {arguments[1]().execute(); }};',
-    inputFiles: '**/*.js',
-    outputFile: 'tests/tests.js',
-    allowNone: true
-  });
-};
-
-const contentTestTree = getContentTestsTree(sourceTree);
-
 const staticTree = new MergeTrees([
   getDistTree(modulesTree),
   getSassTree(),
@@ -314,21 +303,20 @@ const bowerTree = new MergeTrees([
   new Funnel(bowerComponents, { include: Array.from(requiredBowerComponents) }),
 ]);
 
-const styleCheckTestsTree = cliqzConfig.environment === 'production' ?
+const styleCheckTestsTree = cliqzConfig.PRODUCTION ?
   new MergeTrees([]) : getLintTestsTree();
 
 const bundlesTree = getBundlesTree(
   new MergeTrees([
-    esTree,
+    sourceTree,
     staticTree,
   ])
 );
 
 module.exports = {
   static: staticTree,
-  modules: esTree,
+  modules: sourceTree,
   bower: bowerTree,
   bundles: bundlesTree,
   styleTests: styleCheckTestsTree,
-  contentTests: contentTestTree,
 };

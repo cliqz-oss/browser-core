@@ -2,6 +2,7 @@ import console from "../core/console";
 import prefs from "../core/prefs";
 import Storage from "../core/storage";
 import CliqzUtils from "../core/utils";
+import osAPI from "./os-api";
 
 //TODO: get rid of me!
 var lastSucceededUrl;
@@ -50,7 +51,7 @@ var CLIQZEnvironment = {
       'EZ-category',
       'rd-h3-w-rating',
   ],
-  GOOGLE_ENGINE: {name:'Google', url: 'http://www.google.com/search?q='},
+  GOOGLE_ENGINE: {name:'Google', url: 'https://www.google.com/search?q='},
   //TODO: check if calling the bridge for each telemetry point is expensive or not
   telemetry: function(msg) {
     msg.ts = Date.now();

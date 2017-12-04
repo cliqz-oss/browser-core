@@ -19,13 +19,16 @@ console.log(cliqzConfig);
 var v8 = new MergeTrees([
   new Funnel(modules.static, { destDir: 'modules' }),
   new Funnel(modules.modules, { destDir: 'modules' }),
+  new Funnel(modules.bundles, { destDir: 'modules' }),
   new Funnel(modules.bower, { destDir: 'modules/bower_components'}),
   new Funnel(config,  { destDir: 'config'}),
   new Funnel('specific/react-native'),
   new Funnel(components),
   new Funnel(resources),
-]);
+], { overwrite: true });
+
+const mobileImages = new Funnel('specific/mobile/skin/img', { destDir: 'modules/mobile-cards/img'});
 
 var configTree = util.injectConfig(v8, config, 'cliqz.json', ['modules/core/config.js']);
 
-module.exports = new MergeTrees([v8, configTree], { overwrite: true });
+module.exports = new MergeTrees([v8, configTree, mobileImages], { overwrite: true });

@@ -1,95 +1,17 @@
-function wait(time) {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
+import {
+  wait,
+  registerInterval,
+  clearIntervals,
+  waitFor,
+  Subject
+} from './helpers';
 
-let intervals = [];
-function registerInterval(interval) {
-  intervals.push(interval);
-}
+import {generateDataOn, generateDataOffSite, generateDataOffAll} from './fixtures/antiphishing';
 
-function clearIntervals() {
-  intervals.forEach(interval => clearInterval(interval));
-  intervals = [];
-}
-
-function waitFor(fn) {
-  var resolver, rejecter, promise = new Promise(function (res, rej) {
-    resolver = res;
-    rejecter = rej;
-  });
-
-  function check() {
-    const result = fn();
-    if (result) {
-      clearInterval(interval);
-      resolver(result);
-    }
-  }
-
-  var interval = setInterval(check, 50);
-  check();
-  registerInterval(interval);
-
-  return promise;
-}
-
-class Subject {
-  constructor() {
-    this.messages = [];
-  }
-
-  load() {
-    this.iframe = document.createElement('iframe');
-    this.iframe.src = '/build/cliqz@cliqz.com/chrome/content/control-center/index.html';
-    this.iframe.width = 455;
-    this.iframe.height = 500;
-    document.body.appendChild(this.iframe)
-
-    return new Promise(resolve => {
-      this.iframe.contentWindow.addEventListener('load', () => resolve());
-    }).then(() => {
-
-      this.iframe.contentWindow.addEventListener('message', ev => {
-        var data = JSON.parse(ev.data);
-        this.messages.push(data);
-      });
-
-      return waitFor(() => {
-        return this.messages.length === 1
-      })
-    });
-  }
-
-  unload() {
-    document.body.removeChild(this.iframe);
-  }
-
-  query(selector) {
-    return this.iframe.contentWindow.document.querySelector(selector);
-  }
-
-  queryAll(selector) {
-    return this.iframe.contentWindow.document.querySelectorAll(selector);
-  }
-
-  pushData(data = {}) {
-    this.iframe.contentWindow.postMessage(JSON.stringify({
-      target: 'cliqz-control-center',
-      origin: 'window',
-      message:  {
-        action: 'pushData',
-        data,
-      }
-    }), "*");
-    return wait(500);
-  }
-
-  getComputedStyle(selector) {
-    return this.iframe.contentWindow.getComputedStyle(this.query(selector));
-  }
-}
-
-describe("Anti-Phishing interaction browser", function () {
+function antiphishingInteractionTests(amo) {
+  const dataOn = generateDataOn(amo);
+  const dataOffSite = generateDataOffSite(amo);
+  const dataOffAll = generateDataOffAll(amo);
   let subject;
 
   beforeEach(function () {
@@ -119,32 +41,8 @@ describe("Anti-Phishing interaction browser", function () {
   })
 
   describe("with antiphishing on", function() {
-    const data = {
-      activeURL: 'http://www.spiegel.de/',
-      friendlyURL: 'http://www.spiegel.de/',
-      isSpecialUrl: false,
-      domain: 'spiegel.de',
-      extraUrl: '',
-      hostname: 'www.spiegel.de',
-      module: {
-        'antitracking': {
-          visible: false,
-        },
-        'anti-phishing': {
-          visible: true,
-          active: true,
-          isWhitelisted: true,
-          state: 'active'
-        },
-      },
-      generalState: 'active',
-      feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: false,
-      funnelCake: false
-    };
-
     beforeEach(() => {
-      return subject.pushData(data);
+      return subject.pushData(dataOn);
     })
 
     it("renders antiphishing box", function () {
@@ -164,7 +62,7 @@ describe("Anti-Phishing interaction browser", function () {
             chai.expect(message).to.have.deep.property("message.data.type", "switch");
             chai.expect(message).to.have.deep.property("message.data.state", "inactive");
             chai.expect(message).to.have.deep.property("message.data.status", "inactive");
-            chai.expect(message).to.have.deep.property("message.data.url", data.activeURL);
+            chai.expect(message).to.have.deep.property("message.data.url", dataOn.activeURL);
           }
         );
       });
@@ -172,32 +70,8 @@ describe("Anti-Phishing interaction browser", function () {
   });
 
   describe("with antiphishing off for this domain", function() {
-    const data = {
-      activeURL: 'http://www.spiegel.de/',
-      friendlyURL: 'http://www.spiegel.de/',
-      isSpecialUrl: false,
-      domain: 'spiegel.de',
-      extraUrl: '',
-      hostname: 'www.spiegel.de',
-      module: {
-        'antitracking': {
-          visible: false,
-        },
-        'anti-phishing': {
-          visible: true,
-          active: true,
-          isWhitelisted: true,
-          state: 'inactive'
-        },
-      },
-      generalState: 'active',
-      feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: false,
-      funnelCake: false
-    };
-
     beforeEach(() => {
-      return subject.pushData(data);
+      return subject.pushData(dataOffSite);
     })
 
     it('renders antiphishing box', function () {
@@ -217,7 +91,7 @@ describe("Anti-Phishing interaction browser", function () {
             chai.expect(message).to.have.deep.property('message.data.type', 'switch');
             chai.expect(message).to.have.deep.property('message.data.state', 'active');
             chai.expect(message).to.have.deep.property('message.data.status', 'active');
-            chai.expect(message).to.have.deep.property('message.data.url', data.activeURL);
+            chai.expect(message).to.have.deep.property('message.data.url', dataOffSite.activeURL);
           }
         );
       });
@@ -252,7 +126,7 @@ describe("Anti-Phishing interaction browser", function () {
               chai.expect(message).to.have.deep.property('message.data.type', 'off_select');
               chai.expect(message).to.have.deep.property('message.data.state', 'off_all');
               chai.expect(message).to.have.deep.property('message.data.status', 'critical');
-              chai.expect(message).to.have.deep.property('message.data.url', data.activeURL);
+              chai.expect(message).to.have.deep.property('message.data.url', dataOffSite.activeURL);
             }
           );
         });
@@ -261,32 +135,8 @@ describe("Anti-Phishing interaction browser", function () {
   });
 
   describe('with antiphishing off for all websites', function() {
-    const data = {
-      activeURL: 'http://www.spiegel.de/',
-      friendlyURL: 'http://www.spiegel.de/',
-      isSpecialUrl: false,
-      domain: 'spiegel.de',
-      extraUrl: '',
-      hostname: 'www.spiegel.de',
-      module: {
-        'antitracking': {
-          visible: false,
-        },
-        'anti-phishing': {
-          visible: true,
-          active: false,
-          isWhitelisted: false,
-          state: 'critical'
-        },
-      },
-      generalState: 'active',
-      feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: false,
-      funnelCake: false
-    };
-
     beforeEach(() => {
-      return subject.pushData(data);
+      return subject.pushData(dataOffAll);
     })
 
     it('renders antiphishing box', function () {
@@ -306,7 +156,7 @@ describe("Anti-Phishing interaction browser", function () {
             chai.expect(message).to.have.deep.property('message.data.type', 'switch');
             chai.expect(message).to.have.deep.property('message.data.state', 'active');
             chai.expect(message).to.have.deep.property('message.data.status', 'active');
-            chai.expect(message).to.have.deep.property('message.data.url', data.activeURL);
+            chai.expect(message).to.have.deep.property('message.data.url', dataOffAll.activeURL);
           }
         );
       });
@@ -330,7 +180,7 @@ describe("Anti-Phishing interaction browser", function () {
 
       context('click on "This domain"', function () {
         updateGeneralStateTest('#anti-phising .new-dropdown .new-dropdown-content .dropdown-content-option[value="this"]');
-        
+
         it('sends message to deactivate antiphishing', function () {
           subject.query('#anti-phising .new-dropdown .new-dropdown-content .dropdown-content-option[value="this"]').click();
 
@@ -341,11 +191,20 @@ describe("Anti-Phishing interaction browser", function () {
               chai.expect(message).to.have.deep.property('message.data.type', 'off_select');
               chai.expect(message).to.have.deep.property('message.data.state', 'off_website');
               chai.expect(message).to.have.deep.property('message.data.status', 'inactive');
-              chai.expect(message).to.have.deep.property('message.data.url', data.activeURL);
+              chai.expect(message).to.have.deep.property('message.data.url', dataOffAll.activeURL);
             }
           );
         });
       });
     });
   });
+};
+
+describe("Control center: Anti-Phishing interaction browser", function () {
+  antiphishingInteractionTests(false);
 });
+
+
+describe('Control Center: AMO Anti-Phishing Interaction tests', function () {
+  antiphishingInteractionTests(true);
+})

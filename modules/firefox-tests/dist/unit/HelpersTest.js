@@ -3,7 +3,7 @@
 var expect = chai.expect;
 DEPS.UtilsTest = ["core/utils"];
 TESTS.UtilsTest = function (CliqzUtils) {
-  var md5 = CliqzUtils.getWindow().CLIQZ.System.get('core/helpers/md5').default;
+  var md5 = getModule('core/helpers/md5').default;
   describe('MD5 Hex-encoding', function () {
       it('should create a hex-encoded MD5 hash of an ASCII value', function () {
         expect(

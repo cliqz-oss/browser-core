@@ -53,12 +53,12 @@ const startup = Promise.all([seedPromise, loadPrefs()]).then(() => {
   bridge.registerAction('core:getPref', (prefname, defaultValue) =>
     getPref(prefname, defaultValue));
   bridge.registerAction('core:setPref', setPref);
+  bridge.registerAction('getLogoDetails',
+    url => utils.getLogoDetails(utils.getDetailsFromUrl(url))
+  );
 
-  return Promise.resolve(app);
-}).then(() => {
-  // get config
   InteractionManager.runAfterInteractions(utils.fetchAndStoreConfig);
-  return Promise.resolve(app);
+  return app;
 });
 
 export default startup;

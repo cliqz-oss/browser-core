@@ -4,11 +4,8 @@
 </a>
 
 <div class="movie-cinema">
-{{#if isMovieEZ}}
-    {{> partials/movie}}
-{{else}}
+    {{> partials/movie-cinema/movie}}
     {{> partials/local}}
-{{/if}}
     {{> partials/share-location}}
-    {{> partials/show-time}}
+    {{> partials/movie-cinema/show-time}}
 </div>

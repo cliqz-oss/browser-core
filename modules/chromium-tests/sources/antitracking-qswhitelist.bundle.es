@@ -2,12 +2,12 @@
 
 import { events } from '../core/cliqz';
 import * as datetime from '../antitracking/time';
-import * as persist from '../antitracking/persistent-state';
+import * as persist from '../core/persistent-state';
 import Attrack from '../antitracking/attrack';
 import Config from '../antitracking/config';
 import QSWhitelist from '../antitracking/qs-whitelists';
 import md5 from '../antitracking/md5';
-import pacemaker from '../antitracking/pacemaker';
+import pacemaker from '../core/pacemaker';
 
 import inject, { setGlobal } from '../core/kord/inject';
 import WebRequestPipeline from '../webrequest-pipeline/background';

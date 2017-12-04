@@ -1,5 +1,5 @@
-import { utils } from 'core/cliqz';
-import background from 'core/base/background';
+import { utils } from '../core/cliqz';
+import background from '../core/base/background';
 
 class TypeRemover {
   constructor() {

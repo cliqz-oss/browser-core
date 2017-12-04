@@ -12,7 +12,7 @@
         <ul id="download-links">
             {{#each formats}}
             <li class="{{this.class}}">
-                <p data-href="{{this.url}}" target="_blank" data-format="{{this.name}}" download="{{this.title}}.{{this.format}}">{{this.name}} <span class="video-size">{{this.size}}</span></p>
+                <p data-href="{{this.url}}" target="_blank" data-format="{{this.name}}" data-origin="{{../origin}}" download="{{this.title}}.{{this.format}}">{{this.name}} <span class="video-size">{{this.size}}</span></p>
             </li>
             {{/each}}
         </ul>

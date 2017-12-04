@@ -17,7 +17,7 @@ import { getAllOpenPages } from '../platform/human-web/opentabs';
 import fastUrl from '../core/fast-url-parser';
 import { normalizeAclkUrl } from './ad-detection';
 import { getActiveTab } from '../platform/browser';
-import { getRequest } from '../platform/human-web/doublefetch';
+import DoublefetchHandler from './doublefetch-handler';
 
 let refineFuncMappings;
 
@@ -82,6 +82,7 @@ const CliqzHumanWeb = {
     debug: false,
     httpCache: {},
     httpCache401: {},
+    domParser: null,
     queryCache: {},
     privateCache: {},
     UrlsCache :false,
@@ -91,6 +92,7 @@ const CliqzHumanWeb = {
     rel_part_len:18,
     rel_segment_len:15,
     doubleFetchTimeInSec: 3600,
+    MAX_NUMBER_DOUBLEFETCH_ATTEMPS: 3,
     can_urls: {},
     deadFiveMts: 5,
     deadTwentyMts: 20,
@@ -618,10 +620,11 @@ const CliqzHumanWeb = {
     auxIsAlive: function() {
         return true;
     },
+
     auxGetPageData: function(url, page_data, original_url, onsuccess, onerror) {
-      getRequest(url)
-        .then((text) =>{
-          const doc = this.createDoc(text);
+      CliqzHumanWeb.doublefetchHandler.anonymousHttpGet(url)
+        .then(CliqzHumanWeb.createDoc)
+        .then((doc) => {
           const x = CliqzHumanWeb.getPageData(url, doc);
 
           CliqzHumanWeb.docCache[url] = {
@@ -1423,17 +1426,22 @@ const CliqzHumanWeb = {
       return getDoc(url);
     },
     createDoc(html) {
-      const window = getWindowApi();
-      const parser = new window.DOMParser();
-      return parser.parseFromString(html, "text/html");
+      if (CliqzHumanWeb.domParser) {
+        return Promise.resolve(
+            CliqzHumanWeb.domParser.parseFromString(html, "text/html")
+        );
+      }
+
+      return getWindowApi().then((wAPI) => {
+        CliqzHumanWeb.domParser = new wAPI.DOMParser();
+        return CliqzHumanWeb.domParser.parseFromString(html, "text/html");
+      })
     },
     getCD(url) {
       var _this = this;
-      return CliqzHumanWeb.getHTML(url).then( html => {
-        const doc = CliqzHumanWeb.createDoc(html);
+      return CliqzHumanWeb.getHTML(url)
         // monkey patching the doc so it looks like regular document element
-        return doc;
-      });
+        .then(CliqzHumanWeb.createDoc);
     },
     listener: {
         tmpURL: undefined,
@@ -1847,6 +1855,8 @@ const CliqzHumanWeb = {
         CliqzHumanWeb.rsStrict.stop();
         CliqzHumanWeb.rsStrict = undefined;
       }
+
+      CliqzHumanWeb.doublefetchHandler.unload();
     },
     currentURL: function() {
         return getActiveTab().then(({ url }) => CliqzHumanWeb.cleanCurrentUrl(url));
@@ -2043,6 +2053,9 @@ const CliqzHumanWeb = {
     lastEv: {},
     lastActive: null,
     lastActiveAll: null,
+
+    doublefetchHandler: new DoublefetchHandler(),
+
     init: function() {
       return Promise.resolve().then(() => {
         if(utils.getPref("humanWebOptOut", false)) {
@@ -2109,6 +2122,8 @@ const CliqzHumanWeb = {
               );
 
               const promises = [];
+              promises.push(CliqzHumanWeb.doublefetchHandler.init());
+
               promises.push(CliqzHumanWeb.rsNormal.load().then(e => {
                 CliqzHumanWeb.loadContentExtraction(e, "normal")
               }));
@@ -2117,7 +2132,7 @@ const CliqzHumanWeb = {
               CliqzHumanWeb.rsStrict = new ResourceLoader(
                   ["human-web","patterns-anon"],
                   {
-                      chromeURL: config.baseURL + "/bower_components/anonpatterns/index",
+                      chromeURL: config.baseURL + "bower_components/anonpatterns/index",
                       remoteURL : CliqzHumanWeb.anonPatternsURL,
                       cron: 1 * 20 * 60 * 1000,
                   }
@@ -3938,14 +3953,6 @@ const CliqzHumanWeb = {
         return promise;
     },
     addURLtoDB: function (url, ref, paylobj) {
-      if (!CliqzHumanWeb.db) {
-        // TODO: This seems to happen with the content script during startup
-        //       while the module is still initializing.
-        //       In principle, it could be solved by waiting on the initialization.
-        _log(`WARNING: Cannot add url ${url}, as the database is not connected.`);
-        return;
-      }
-
       /*
       1. Check if the given URL is a search URL,
       We do not want to save search URLs in the DB,

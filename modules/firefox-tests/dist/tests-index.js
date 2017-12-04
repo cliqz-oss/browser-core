@@ -6,8 +6,17 @@ Cu.import("resource://gre/modules/FileUtils.jsm");
 Cu.import('chrome://cliqzmodules/content/CLIQZ.jsm');
 
 function loadModule(moduleName) {
-  console.log(moduleName)
-  return CLIQZ.System.get(moduleName).default;
+  const mod = getWindow().CLIQZ.app.debugModules[moduleName];
+  if (!mod) {
+    throw new Error (`${moduleName} is not found`);
+  }
+  return mod;
+}
+
+function getWindow() {
+  const wm = Cc['@mozilla.org/appshell/window-mediator;1']
+              .getService(Ci.nsIWindowMediator);
+  return wm.getMostRecentWindow("navigator:browser");
 }
 
 function getBrowserVersion() {
@@ -60,13 +69,14 @@ mocha.setup({
   reporter: TAP
 });
 
-var CliqzUtils = loadModule("core/utils"),
-    CliqzABTests = loadModule("core/ab-tests"),
-    CliqzHumanWeb = loadModule("human-web/human-web"),
-    CliqzAutocomplete = loadModule("autocomplete/autocomplete"),
-    chrome = CliqzUtils.getWindow(),
+var win = getWindow(),
+    CliqzUtils = loadModule("core/utils").default,
+    CliqzABTests = loadModule("core/ab-tests").default,
+    CliqzHumanWeb = loadModule("human-web/human-web").default,
+    CliqzAutocomplete = loadModule("autocomplete/autocomplete").default,
     telemetry,
-    getBackendResults,
+    fetchFactory,
+    getSuggestions,
     historySearch,
     fetchAndStoreConfig,
     fetchAndStoreHM,
@@ -76,21 +86,21 @@ var CliqzUtils = loadModule("core/utils"),
 
 function start() {
 // Try to get app
-app = chrome.CLIQZ ? chrome.CLIQZ.app : null;
+app = win.CLIQZ ? win.CLIQZ.app : null;
 
-CliqzUtils = loadModule("core/utils");
 if (app === null || !app.isFullyLoaded) {
   setTimeout(start, 1000);
   return;
 }
 
-injectTestHelpers(CliqzUtils);
+injectTestHelpers(CliqzUtils, loadModule);
 initHttpServer();
 
 
 function changes() {
-  getBackendResults = CliqzUtils.getBackendResults;
-  historySearch = CliqzAutocomplete.historySearch;
+  fetchFactory = CliqzUtils.fetchFactory;
+  getSuggestions = CliqzUtils.getSuggestions;
+  historySearch = CliqzUtils.historySearch;
 
   fetchAndStoreHM = CliqzHumanWeb.fetchAndStoreConfig;
   CliqzHumanWeb.fetchAndStoreConfig = function () {};
@@ -123,7 +133,12 @@ Object.keys(window.TESTS).forEach(function (testName) {
       modules;
 
   if (moduleNames !== undefined) {
-    modules = moduleNames.map(loadModule);
+    try {
+      modules = moduleNames.map(loadModule).map(module => module.default);
+    } catch(e) {
+      console.error("module loading error - skiping tests");
+      return;
+    }
   }
 
   if ('MIN_BROWSER_VERSION' in testFunction && browserMajorVersion < testFunction.MIN_BROWSER_VERSION) {
@@ -134,30 +149,45 @@ Object.keys(window.TESTS).forEach(function (testName) {
 });
 
 
-var reloadExtensionBetweenTests = getParameterByName('forceExtensionReload') === '1';
+var reloadExtensionCounterInc = Number(getParameterByName('forceExtensionReload'));
+var reloadExtensionCounter = 0;
 var beforeEachAction = function (changes) { changes(); return Promise.resolve(); };
-if (reloadExtensionBetweenTests) {
-  beforeEachAction = app.extensionRestart.bind(app);
+
+if (reloadExtensionCounterInc) {
+  beforeEachAction = function (changes) {
+    if (window.preventRestarts) {
+      return;
+    }
+    if (reloadExtensionCounter >= 1) {
+      reloadExtensionCounter = 0;
+      return app.extensionRestart(changes);
+    } else {
+      reloadExtensionCounter += reloadExtensionCounterInc;
+      return Promise.resolve().then(() => changes());
+    }
+  }
 }
 
 
 beforeEach(function () {
-  window.closeAllTabs(chrome.gBrowser);
+  window.closeAllTabs(win.gBrowser);
   return beforeEachAction(changes);
 });
 
 afterEach(function () {
   CliqzUtils.telemetry = telemetry;
-  CliqzUtils.getBackendResults = getBackendResults;
-  CliqzAutocomplete.historySearch = historySearch;
+  CliqzUtils.fetchFactory = fetchFactory;
+  CliqzUtils.getSuggestions = getSuggestions;
+  CliqzUtils.historySearch = historySearch;
   CliqzUtils.fetchAndStoreConfig = fetchAndStoreConfig;
   CliqzHumanWeb.fetchAndStoreConfig = fetchAndStoreHM;
   CliqzABTests.check = abCheck;
 
   // clear urlbar
-  fillIn("");
+  setUserInput("");
   // if we don't blur, there can be problems with old results appearing...
-  chrome.gURLBar.blur();
+  win.gURLBar.blur();
+  win.gURLBar.mInputField.blur();
 
   // clean waitFor side effects
   clearIntervals();
@@ -197,6 +227,5 @@ TESTS.TestToDos = function() {
     xit('green ads should be enabled');
   });
 };
-
 
 start();

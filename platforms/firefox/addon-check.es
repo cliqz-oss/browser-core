@@ -1,4 +1,6 @@
-Cu.import("resource://gre/modules/AddonManager.jsm");
+import { Components } from './globals';
+
+Components.utils.import("resource://gre/modules/AddonManager.jsm");
 
 const genericPrefs = Components.classes['@mozilla.org/preferences-service;1']
         .getService(Components.interfaces.nsIPrefBranch);

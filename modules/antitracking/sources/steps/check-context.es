@@ -1,6 +1,6 @@
 
 
-const internalProtocols = new Set(['chrome', 'resource', 'moz-extension']);
+const internalProtocols = new Set(['chrome', 'resource', 'moz-extension', 'chrome-extension']);
 
 
 export function skipInvalidSource(state) {

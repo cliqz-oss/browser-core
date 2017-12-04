@@ -83,19 +83,25 @@ const NETWORK_FILTER_MASK = {
   fromSubdocument:      1 << 8,
   fromWebsocket:        1 << 9,
   fromXmlHttpRequest:   1 << 10,
-  isImportant:          1 << 11,
-  matchCase:            1 << 12,
+  fromFetch:            1 << 11,
+  fromDTD:              1 << 12,
+  fromFont:             1 << 13,
+  fromXLST:             1 << 14,
+  fromBeacon:           1 << 15,
+  fromCSP:              1 << 16,
+  isImportant:          1 << 17,
+  matchCase:            1 << 18,
 
   // Kind of patterns
-  thirdParty:           1 << 13,
-  firstParty:           1 << 14,
-  isHostname:           1 << 15,
-  isPlain:              1 << 16,
-  isRegex:              1 << 17,
-  isLeftAnchor:         1 << 18,
-  isRightAnchor:        1 << 19,
-  isHostnameAnchor:     1 << 20,
-  isException:          1 << 21,
+  thirdParty:           1 << 19,
+  firstParty:           1 << 20,
+  isHostname:           1 << 21,
+  isPlain:              1 << 22,
+  isRegex:              1 << 23,
+  isLeftAnchor:         1 << 24,
+  isRightAnchor:        1 << 25,
+  isHostnameAnchor:     1 << 26,
+  isException:          1 << 27,
 };
 
 
@@ -114,6 +120,12 @@ const FROM_ANY = (
   | NETWORK_FILTER_MASK.fromSubdocument
   | NETWORK_FILTER_MASK.fromWebsocket
   | NETWORK_FILTER_MASK.fromXmlHttpRequest
+  | NETWORK_FILTER_MASK.fromFetch
+  | NETWORK_FILTER_MASK.fromDTD
+  | NETWORK_FILTER_MASK.fromFont
+  | NETWORK_FILTER_MASK.fromXLST
+  | NETWORK_FILTER_MASK.fromBeacon
+  | NETWORK_FILTER_MASK.fromCSP
 );
 
 
@@ -121,7 +133,6 @@ const FROM_ANY = (
  * Map content type value to mask the corresponding mask.
  * ref: https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIContentPolicy
  */
-// TODO: Handle `font` = 14 (only one filter with this cpt option)
 const CPT_TO_MASK = {
   1:  NETWORK_FILTER_MASK.fromOther,
   2:  NETWORK_FILTER_MASK.fromScript,
@@ -132,8 +143,14 @@ const CPT_TO_MASK = {
   10: NETWORK_FILTER_MASK.fromPing,
   11: NETWORK_FILTER_MASK.fromXmlHttpRequest,
   12: NETWORK_FILTER_MASK.fromObjectSubrequest,
+  13: NETWORK_FILTER_MASK.fromDTD,
+  14: NETWORK_FILTER_MASK.fromFont,
   15: NETWORK_FILTER_MASK.fromMedia,
   16: NETWORK_FILTER_MASK.fromWebsocket,
+  17: NETWORK_FILTER_MASK.fromCSP,
+  18: NETWORK_FILTER_MASK.fromXLST,
+  19: NETWORK_FILTER_MASK.fromBeacon,
+  20: NETWORK_FILTER_MASK.fromFetch,
   21: NETWORK_FILTER_MASK.fromImage, // TYPE_IMAGESET
 };
 
@@ -560,6 +577,7 @@ export class NetworkFilter {
       if (this.fromSubdocument()) { options.push('subdocument'); }
       if (this.fromWebsocket()) { options.push('websocket'); }
       if (this.fromXmlHttpRequest()) { options.push('xmlhttprequest'); }
+      if (this.fromFont()) { options.push('font'); }
     }
 
     if (this.isImportant()) { options.push('important'); }
@@ -757,6 +775,10 @@ export class NetworkFilter {
   fromXmlHttpRequest() {
     return getBit(this.mask, NETWORK_FILTER_MASK.fromXmlHttpRequest);
   }
+
+  fromFont() {
+    return getBit(this.mask, NETWORK_FILTER_MASK.fromFont);
+  }
 }
 
 
@@ -944,6 +966,10 @@ function parseNetworkFilter(rawLine) {
         case 'websocket':
           hasCptOption = true;
           mask = setNetworkMask(mask, NETWORK_FILTER_MASK.fromWebsocket, !negation);
+          break;
+        case 'font':
+          hasCptOption = true;
+          mask = setNetworkMask(mask, NETWORK_FILTER_MASK.fromFont, !negation);
           break;
         case 'important':
           // Note: `negation` should always be `false` here.

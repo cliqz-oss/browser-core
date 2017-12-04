@@ -15,9 +15,11 @@ export default class {
         onLookupComplete(request, record, status) {
           if (!Components.isSuccessCode(status)) {
             reject();
-          } else {
+          } else if (record) {
             const address = record.getNextAddrAsString();
             resolve(address);
+          } else {
+            reject();
           }
         },
       }, null);

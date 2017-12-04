@@ -1,5 +1,5 @@
-import PrivacyRep from 'privacy-dashboard/main';
-import { utils } from 'core/cliqz';
+import PrivacyRep from './main';
+import { utils } from '../core/cliqz';
 /**
 * @namespace privacy-dashboard
 * @class Window

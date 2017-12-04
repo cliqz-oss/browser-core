@@ -1,0 +1,13 @@
+<span>
+    Automatic hourly updates:
+    {{#if isRunning}}
+        on
+    {{else}}
+        off
+    {{/if}}
+</span>
+{{#if isRunning}}
+    <div id="stop" class="button">Stop</div>
+{{else}}
+    <div id="start" class="button">Start</div>
+{{/if}}

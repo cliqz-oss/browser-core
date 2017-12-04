@@ -1,8 +1,12 @@
 DEPS.WindowTree = ["core/utils"];
 TESTS.WindowTree = function(CliqzUtils) {
-  var System = CliqzUtils.getWindow().CLIQZ.System,
-      WindowTree = System.get('platform/antitracking/http-request-context').WindowTree;
-
+  let WindowTree;
+  try {
+    WindowTree = getModule('antitracking/http-request-context').WindowTree;
+  } catch (e) {
+    // no antitracking module, nothing to test
+    return;
+  }
 
   describe('http-request-context.WindowTree', function() {
 

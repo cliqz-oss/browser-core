@@ -1,16 +1,28 @@
 /* global window */
 
-function injectTestHelpers(CliqzUtils) {
-  var chrome = CliqzUtils.getWindow();
-  var urlBar = chrome.CLIQZ.Core.urlbar;
-  var popup = chrome.CLIQZ.Core.popup;
+function injectTestHelpers(CliqzUtils, loadModule) {
+  var win = CliqzUtils.getWindow();
+  var urlBar = win.CLIQZ.Core.urlbar;
+  var popup = win.CLIQZ.Core.popup;
   var lang = CliqzUtils.getLocalizedString('locale_lang_code');
 
-  window.fillIn = function fillIn(text) {
+  window.setUserInput = function setUserInput(text) {
     popup.mPopupOpen = false;
     urlBar.focus();
     urlBar.mInputField.focus();
     urlBar.mInputField.setUserInput(text);
+  };
+
+  window.getModule = loadModule;
+
+  window.fillIn = function fillIn(text) {
+    setUserInput(text);
+    urlBar.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+  };
+
+  window.fillIn = function fillIn(text) {
+    setUserInput(text);
+    urlBar.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
   };
 
   window.waitFor = function waitFor(fn) {
@@ -93,18 +105,50 @@ function injectTestHelpers(CliqzUtils) {
   };
   */
 
-  window.respondWith = function respondWith(res) {
-    CliqzUtils.getBackendResults = function (q) {
+  window.respondWithSuggestions = function respondWithSuggestions (options) {
+    options = options || {};
+    CliqzUtils.getSuggestions = function () {
       return Promise.resolve({
-        response: res,
-        query: q,
-        status: 200
+        query: options.query,
+        response: {
+          results: options.results,
+        }
       });
     };
   };
 
+  window.respondWith = function respondWith(res) {
+    function getQuery(url) {
+      var a = document.createElement('a');
+      a.setAttribute('href', url);
+
+      var params = new URLSearchParams(a.search);
+      var queries = params.getAll('q');
+      return queries[queries.length - 1];
+    }
+
+    var response = {
+      results: res.results,
+      suggestions: res.suggestions,
+    };
+
+    CliqzUtils.fetchFactory = function () {
+      return function fetch(url) {
+        return Promise.resolve({
+          json() {
+            return Promise.resolve(
+              Object.assign(response, {
+                q: getQuery(url),
+              })
+            );
+          },
+        });
+      }
+    };
+  };
+
   window.withHistory = function withHistory(res) {
-    CliqzAutocomplete.historySearch = function (q, cb) {
+    CliqzUtils.historySearch = function (q, cb) {
       cb({
         query: q,
         results: res,
@@ -114,16 +158,16 @@ function injectTestHelpers(CliqzUtils) {
   };
 
   window.$cliqzResults = function $cliqzResults() {
-    return $(chrome.document.getElementById("cliqz-dropdown"));
+    return $(win.document.getElementById("cliqz-dropdown"));
   };
 
   window.$cliqzMessageContainer = function $cliqzResults() {
-    return $(chrome.document.getElementById("cliqz-message-container"));
+    return $(win.document.getElementById("cliqz-message-container"));
   }
 
   window.waitForPopup = function () {
     return waitFor(function () {
-      var popup = chrome.document.getElementById("PopupAutoCompleteRichResultCliqz");
+      var popup = win.document.getElementById("PopupAutoCompleteRichResultCliqz");
       return popup && popup.mPopupOpen === true;
     }).then(function () {
       return new Promise(function (resolve) {
@@ -137,7 +181,7 @@ function injectTestHelpers(CliqzUtils) {
         return $cliqzResults().find(".cqz-result-box").length > 0;
       }).then(function () {
         return new Promise(function (resolve) {
-          CliqzUtils.setTimeout(resolve, 200);
+          CliqzUtils.setTimeout(resolve, 250);
         });
       });
   };
@@ -155,7 +199,6 @@ function injectTestHelpers(CliqzUtils) {
   window.closeAllTabs = function(gBrowser) {
     var nonChromeTabs = Array.prototype.filter.call(gBrowser.tabContainer.childNodes, function(tab) {
       var currentBrowser = gBrowser.getBrowserForTab(tab);
-      console.log(currentBrowser);
       return currentBrowser && currentBrowser.currentURI && ! currentBrowser.currentURI.spec.startsWith('chrome://')
     });
     nonChromeTabs.forEach( function(tab) {

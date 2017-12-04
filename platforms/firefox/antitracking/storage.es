@@ -1,5 +1,5 @@
-import getDbConn from 'platform/sqlite';
-import CliqzUtils from 'core/utils';
+import getDbConn from '../sqlite';
+import CliqzUtils from '../../core/utils';
 
 const LOG_KEY = "storage-sqlite";
 let dbConn;

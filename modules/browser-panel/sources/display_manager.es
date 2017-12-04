@@ -1,6 +1,6 @@
 import { forEachWindow } from '../platform/browser';
 import { queryActiveTabs } from '../core/tabs';
-import inject from '../../core/kord/inject';
+import inject from '../core/kord/inject';
 import logger from './logger';
 import { utils } from '../core/cliqz';
 

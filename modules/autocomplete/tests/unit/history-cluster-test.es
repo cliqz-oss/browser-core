@@ -2,6 +2,10 @@ export default describeModule("autocomplete/history-cluster",
   function () {
     return {
       "core/cliqz": { utils: {} },
+      "core/search-engines": {
+        isSearchEngineResult: () => true,
+        isValidUrl: () => true,
+      },
       "autocomplete/result": { default: {} },
       "core/history-manager": { default: {} },
     }

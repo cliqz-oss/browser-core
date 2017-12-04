@@ -1,6 +1,6 @@
 /* eslint { "no-return-assign": "off" } */
 
-import getExtensionVersion from './demographics';
+import getCoreVersion from './demographics';
 import getSynchronizedDate from '../anolysis/synchronized-date';
 import inject from '../core/kord/inject';
 import logger from './logger';
@@ -280,14 +280,14 @@ export default class {
   }
 
   /*
-   * Checks if the client's extension version matches the extension version
+   * Checks if the client's core version matches the core version
    * required by the test.
    *
    * @param {Object} - The test.
-   * @returns {Boolean} – True, if the extension version matches.
+   * @returns {Boolean} – True, if the core version matches.
    */
   isVersionMatch(test) {
-    const version = getExtensionVersion();
+    const version = getCoreVersion();
     return (version || '').startsWith(test.core_version);
   }
 

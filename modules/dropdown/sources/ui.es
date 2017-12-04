@@ -16,11 +16,12 @@ import { nextTick } from '../core/decorators';
 
 export default class {
 
-  constructor(window, id, { getSessionCount }) {
+  constructor(window, id, { getSessionCount, searchMode }) {
     this.window = window;
     this.extensionID = id;
     this.getSessionCount = getSessionCount;
     this.updateFirstResult = this.updateFirstResult.bind(this);
+    this.searchMode = searchMode;
 
     this.ui = inject.module('ui');
     this.core = inject.module('core');
@@ -35,10 +36,16 @@ export default class {
   }
 
   init() {
+    if (this.searchMode !== 'autocomplete') {
+      return;
+    }
     this.window.gURLBar.addEventListener('keyup', this.updateFirstResult);
   }
 
   unload() {
+    if (this.searchMode !== 'autocomplete') {
+      return;
+    }
     this.window.gURLBar.removeEventListener('keyup', this.updateFirstResult);
   }
 
@@ -234,6 +241,7 @@ export default class {
       rerender: () => this.dropdown.renderResults(results),
       getSnippet: this.autocomplete.action.bind(this.autocomplete, 'getSnippet'),
       copyToClipboard,
+      isNewSearchMode: this.popup.isNewSearchMode
     });
     const queryIsUrl = isUrl(results.query);
     const queryIsNotEmpty = query.trim() !== '';
@@ -255,8 +263,8 @@ export default class {
       this.autocompleteQuery('', '');
     }
 
-    // TODO move these to mixer (EX-4497: Old dropdown cleanup)
-    if (!didAutocomplete && !hasInstantResults) {
+    // TODO remove this after switching to a new mixer completely
+    if (!this.popup.isNewSearchMode && !didAutocomplete && !hasInstantResults) {
       if (queryIsUrl) {
         results.prepend(
           new NavigateToResult({ text: results.query })

@@ -53,7 +53,7 @@ export default background({
       this.historyInterface = null;
     }
     if (this.db) {
-      // TODO: should we close it?
+      this.db.close();
       this.db = null;
     }
     if (this.historyHandler) {
@@ -122,6 +122,10 @@ export default background({
       this.resultsCache.set(q.pid, defer);
       this.historyHandler.addQuery(q);
       return defer.promise;
+    },
+
+    removeEntry(pid) {
+      this.historyHandler.removeEntry(pid);
     },
   },
 

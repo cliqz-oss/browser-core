@@ -2,7 +2,7 @@
   @return url("chrome://cliqz/content/" + $url)
 }
 
-#customizationui-widget-multiview panelview#cliqz-offers-cc-btn-panel {
+#customizationui-widget-multiview panelview#PanelUI-webext-offers-cc-browser-action-view {
     max-width: 100% !important;
 }
 
@@ -12,33 +12,30 @@
     background-position: 4px 5px;
 }
 
-panelmultiview[mainViewId="cliqz-offers-cc-btn-panel"] > .panel-viewcontainer > .panel-viewstack > .panel-mainview:not([panelid="PanelUI-popup"]),
-panel[viewId="cliqz-offers-cc-btn-panel"] .panel-mainview {
+#PanelUI-popup #PanelUI-multiView #PanelUI-webext-offers-cc-browser-action-view, // TODO @mai do we need this?
+panel[viewId="PanelUI-webext-offers-cc-browser-action-view"] .panel-mainview {
     max-width: 50em !important;
 }
+
+#pageActionPanel panelview#PanelUI-webext-offers-cc-browser-action-view,
+#widget-overflow panelview#PanelUI-webext-offers-cc-browser-action-view {
+    max-width: 550px;
+}
+
 #cliqz-offers-cc-btn {
     padding: 0px;
 }
-.cliqz-offers-cc {
-    position: relative;
-    padding: 10px 14px !important;
-    color: transparent;
-    background-repeat: no-repeat !important;
-    background-position: center center !important;;
-    background-size: 16px !important;
-    background-image: url(../images/offers-cc-icon.svg) !important;
-
+#offers-cc-browser-action {
     &[state="new-offers"] {
-        &:before {
-            content: "";
+        .toolbarbutton-badge {
             display: block;
-            position: absolute;
-            top: 1px;
-            left: calc(50% + 4px);
+            min-width: 8px;
             width: 8px;
             height: 8px;
             border-radius: 50%;
             background: #fd001e;
+            margin: 0 !important;
+            margin-inline-end: -4px !important;
         }
     }
 }
@@ -47,8 +44,7 @@ panel[viewId="cliqz-offers-cc-btn-panel"] .panel-mainview {
     padding: 0;
 }
 
-/* FF57 fix white spaces on top and bottom */
-
-#cliqz-offers-cc-btn-panel .panel-subview-body {
-    padding: 0;
+/* FORCE THE POPUP'S TOP ARROW TO BE BLUE */
+panel[viewId="PanelUI-webext-offers-cc-browser-action-view"] .panel-arrowcontainer .panel-arrow {
+    list-style-image: var(--panel-arrow-image-vertical, url-prefix("offers-cc/images/panelarrow-vertical.png"));
 }

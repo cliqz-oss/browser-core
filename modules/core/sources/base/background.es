@@ -8,12 +8,14 @@ function completeAssign(target, ...sources) {
       return descriptors;
     }, {});
     // by default, Object.assign copies enumerable Symbols too
-    Object.getOwnPropertySymbols(source).forEach(sym => {
-      let descriptor = Object.getOwnPropertyDescriptor(source, sym);
-      if (descriptor.enumerable) {
-        descriptors[sym] = descriptor;
-      }
-    });
+    if (typeof Symbol !== 'undefined') {
+      Object.getOwnPropertySymbols(source).forEach(sym => {
+        let descriptor = Object.getOwnPropertyDescriptor(source, sym);
+        if (descriptor.enumerable) {
+          descriptors[sym] = descriptor;
+        }
+      });
+    }
     Object.defineProperties(target, descriptors);
   });
   return target;

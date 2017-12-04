@@ -1,24 +1,10 @@
 import { utils } from '../core/cliqz';
 import inject from '../core/kord/inject';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
-import Pairing from './background';
+import background from './background';
 
 const STYLESHEET_URL = 'chrome://cliqz/content/pairing/css/burger_menu.css';
 const DISMISSED_ALERTS = 'dismissedAlerts';
-
-function isValidURL(url) {
-  return url.indexOf('https:') === 0 || url.indexOf('http:') === 0;
-}
-
-function getTabData(window, tabPos) {
-  const selectedBrowser = window.gBrowser.getBrowserAtIndex(tabPos);
-  const url = selectedBrowser.currentURI.spec;
-  const title = window.gBrowser.tabs[tabPos].label;
-  const isPrivateWindow = utils.isPrivate(window);
-  const isPrivateTab = selectedBrowser.loadContext.usePrivateBrowsing;
-  const isPrivate = isPrivateWindow || isPrivateTab;
-  return { url, title, isPrivate };
-}
 
 /**
 * @namespace pairing
@@ -38,33 +24,13 @@ export default class {
   * @method init
   */
   init() {
-    this.peerComm = Pairing.peerSlave;
+    this.peerComm = background.peerSlave;
     this.showOnboarding();
     addStylesheet(this.window.document, STYLESHEET_URL);
     return Promise.all([
       this.initPageMenu(), // Right-click on page content
       this.initTabMenu(), // Right-click on tab title
     ]);
-  }
-
-  sendTab(data) {
-    this.peerComm.getObserver('TABSHARING').sendTab([data], this.peerComm.masterID)
-    .then(() => {
-      utils.telemetry({
-        type: 'connect',
-        version: 1,
-        action: 'send_tab',
-        is_success: true,
-      });
-    })
-    .catch(() => {
-      utils.telemetry({
-        type: 'connect',
-        version: 1,
-        action: 'send_tab',
-        is_success: false,
-      });
-    });
   }
 
   initPageMenu() {
@@ -93,7 +59,7 @@ export default class {
           }
 
           const tabPos = this.window.gBrowser.tabContainer.selectedIndex;
-          const tabData = getTabData(this.window, tabPos);
+          const tabData = background.getTabData(this.window, tabPos);
 
           const isLink = this.window.gContextMenu.onLink;
           let url = ''; // Display "Send to mobile" option based on this url
@@ -104,13 +70,13 @@ export default class {
             url = this.window.gBrowser.currentURI.spec;
           }
 
-          if (!isValidURL(url)) return; // Do not show the "Send to mobile" option
+          if (!background.isValidURL(url)) return; // Do not show the "Send to mobile" option
           // Pairing menu
           const beforeElem = this.window.document.getElementById('context-bookmarklink');
           const isEnabled = this.peerComm.isPaired;
 
           const onclick = isEnabled ? () => {
-            this.sendTab(tabData);
+            background.sendTab(tabData);
             utils.telemetry({
               type: 'context_menu',
               version: 1,
@@ -143,12 +109,12 @@ export default class {
             return;
           }
           const tabPos = this.window.TabContextMenu.contextTab._tPos;
-          const tabData = getTabData(this.window, tabPos);
+          const tabData = background.getTabData(this.window, tabPos);
           const beforeElem = this.window.document.getElementById('context_openTabInWindow');
           const isEnabled = this.peerComm.isPaired &&
-            isValidURL(tabData.url);
+            background.isValidURL(tabData.url);
           const onclick = isEnabled ? () => {
-            this.sendTab(tabData);
+            background.sendTab(tabData);
             utils.telemetry({
               type: 'context_menu',
               version: 1,

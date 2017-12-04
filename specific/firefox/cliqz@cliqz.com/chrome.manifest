@@ -1,3 +1,5 @@
 content cliqz chrome/content/
 content cliqzmodules modules/
-resource cliqz chrome/content/
+
+manifest resource-legacy.manifest platformversion<=56.*
+manifest resource.manifest platformversion>=57

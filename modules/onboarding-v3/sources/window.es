@@ -1,5 +1,5 @@
-import utils from 'core/utils';
-import { shouldShowOnboarding } from 'core/onboarding';
+import utils from '../core/utils';
+import { shouldShowOnboarding } from '../core/onboarding';
 
 export default class {
   constructor(settings) {
@@ -24,6 +24,7 @@ export default class {
       win.gBrowser.removeTab(oldTab);
 
       // stop button remains active in Firefox 56
+      // TODO: remove this after EX-5858 is resolved
       const reloadButton = win.document.getElementById('reload-button');
       if (reloadButton) {
         reloadButton.removeAttribute('displaystop');

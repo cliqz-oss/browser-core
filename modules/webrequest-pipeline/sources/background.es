@@ -150,7 +150,7 @@ export default background({
     const extraInfoSpec = EXTRA_INFO_SPEC[event];
 
     // Create pipeline step
-    const pipeline = new Pipeline(`webRequestPipeline.${event}`, []);
+    const pipeline = new Pipeline(`webRequestPipeline.${event}`, [], false);
 
     // Register listener for this event
     const listener = (details) => {

@@ -1,9 +1,12 @@
 /* global PouchDB */
-import environment from "platform/environment";
-import console from "platform/console";
-import window from "platform/window-api";
+import environment from './environment';
+import console from './console';
+import getWindowAPIAsync from './window-api';
+import { Components, Services } from '../platform/globals';
 
-Cu.importGlobalProperties(['indexedDB', 'XMLHttpRequest']);
+let windowAPI = {
+  IDBKeyRange: null
+};
 
 // https://loune.net/2015/02/pouchdb-for-firefox-addon-sdk/
 const global = {
@@ -15,7 +18,7 @@ const global = {
       // in FF 57 IDBKeyRange is undefined in the bootstrapped context
       // we should use a getter as the window() might not be initialized
       // early in the browser startup process
-      return window().IDBKeyRange;
+      return windowAPI.IDBKeyRange;
     }
   },
   btoa,        //global anyway, exporting to be sure
@@ -35,10 +38,63 @@ const global = {
   },
 };
 
-const pouchUrl = "chrome://cliqz/content/bower_components/pouchdb/dist/pouchdb.js";
+let pouchPromise;
+const PROXY_WHITELIST = [
+  'put',
+  'post',
+  'get',
+  'remove',
+  'bulkDocs',
+  'allDocs',
+  'putAttachment',
+  'getAttachment',
+  'removeAttachment',
+  'createIndex',
+  'find',
+  'explain',
+  'getIndexes',
+  'deleteIndex',
+  'findIndexes',
+  'query',
+  'viewCleanup',
+  'info',
+  'compact',
+  'revsDiff',
+  'bulkGet',
+  'close',
+  'destroy',
+];
 
-Services.scriptloader.loadSubScriptWithOptions(pouchUrl, {
-  target: global
-});
+export default function Database(...props) {
 
-export default global.global.PouchDB;
+  if (!pouchPromise) {
+    pouchPromise = getWindowAPIAsync().then((wAPI) => {
+      windowAPI = wAPI;
+
+      const pouchUrl = 'chrome://cliqz/content/bower_components/pouchdb/dist/pouchdb.js';
+      Services.scriptloader.loadSubScriptWithOptions(pouchUrl, {
+        target: global
+      });
+
+      return global.global.PouchDB;
+    });
+  }
+
+  let pouch;
+  const pouchInstance = pouchPromise.then((Pouch) => {
+    pouch = new Pouch(...props);
+  });
+
+  const pouchProxy = new Proxy({}, {
+    get(target, name) {
+      if (PROXY_WHITELIST.indexOf(name) !== -1) {
+        return function(...args) {
+          return pouchInstance.then(() => pouch[name](...args));
+        }
+      }
+      return (pouch || target)[name];
+    }
+  });
+
+  return pouchProxy;
+}

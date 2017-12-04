@@ -1,9 +1,8 @@
-// From https://github.com/regexhq/youtube-regex/blob/master/index.js
-const regex = /(?:youtube\.com\/\S*(?:(?:\/e(?:mbed))?\/|watch\/?\?(?:\S*?&?v=))|youtu\.be\/)([a-zA-Z0-9_-]{6,11})/g;
+// From https://stackoverflow.com/questions/2964678/jquery-youtube-url-validation-with-regex
+const regex = /^(?:https?:\/\/)?(?:(?:www|m)\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
 
 export default function (url) {
-  const match = regex.exec(url);
-  regex.lastIndex = 0;
+  const match = url && url.match(regex);
   if (match) {
     return match[1];
   }

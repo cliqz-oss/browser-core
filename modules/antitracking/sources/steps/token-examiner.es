@@ -4,7 +4,7 @@ import Database from '../../core/database';
 import console from '../../core/console';
 import SerialExecutor from '../../core/helpers/serial-executor';
 import utils from '../../core/utils';
-import pacemaker from '../pacemaker';
+import pacemaker from '../../core/pacemaker';
 
 class TokenSet {
 

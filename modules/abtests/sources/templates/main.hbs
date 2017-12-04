@@ -1,0 +1,24 @@
+<h1>AB Tests</h1>
+  <h2>Local Properties</h2>
+  <p>The following properties determine which AB tests to enter.</p>
+  <h3>Demographics</h3>
+    <div id="demographics"></div>
+  <h3>Core Version</h3>
+    <div id="core-version"></div>
+  <h2>Tests</h2>
+    <h3>Running Tests</h3>
+      <p>All currently running tests. Manually stopping a test will <em>not</em> notify the backend.</p>
+      <table id="active-tests"></table>
+    <h3>Available Tests</h3>
+      <p>All tests available from the backend. Manually starting a test will <em>not</em> test for demographics or version and will <em>not</em> notify the backend.</p>
+      <table id="available-tests"></table>
+    <h3>Completed Tests</h3>
+      <p>Completed tests will not be re-started.</p>
+      <table id="completed-tests"></table>
+  <h2>Actions</h2>
+    <div id="refresh" class="button">Refresh All</div>
+    <div id="update-tests" class="button">Update Tests from Backend</div>
+    <div id="load-tests" class="button">Load Test State from Local Storage</div>
+    <div id="save-tests" class="button">Save Test State to Local Storage</div>
+    <div id="controls"></div>
+    <a href="https://aristotle.cliqz.com/">Backend Admin</a>

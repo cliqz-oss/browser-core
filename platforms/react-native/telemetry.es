@@ -3,7 +3,7 @@ import { utils } from '../core/cliqz';
 import { fetch, Request } from './fetch';
 import Database from '../core/database';
 import { NetInfo } from 'react-native';
-import platform from './platform';
+import ua from './user-agent';
 
 const VERSION = '2.2';
 const QUEUE_MAX_SIZE= 100;
@@ -196,8 +196,8 @@ function msgSanitize(msg) {
 function hwTelemetry(msg, instantPush) {
   msg.ver = VERSION;
   msg.platform = "mobile";
-  msg.userAgent = platform.userAgent.systemName;
-  msg.channel = platform.channel;
+  msg.userAgent = ua.OS;
+  msg.channel = ua.channel;
   msg = msgSanitize(msg);
   if (!msg) {
     return;

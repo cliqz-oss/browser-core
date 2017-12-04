@@ -9,6 +9,7 @@ const clean = result => ({
   extra: result.extra,
   image: result.image,
   kind: result.kind,
+  style: result.style,
   provider: result.provider,
   template: result.template,
   suggestion: result.suggestion,
@@ -17,6 +18,8 @@ const clean = result => ({
   type: result.type,
   meta: {
     ...result.meta,
+    isIncomplete: result._incomplete,
+    triggerMethod: result.trigger_method,
     domain: getDetailsFromUrl(result.url || '').domain,
     url: urlStripProtocol(result.url || ''),
   }
@@ -28,7 +31,7 @@ const clean = result => ({
  *
  * @param {Object} result - The result.
  */
-// TODO: just collect all non 'deepResults' data keys instrad of naming them explicitly
+// TODO: just collect all non 'deepResults' data keys instead of naming them explicitly
 const normalize = ({ data: { deepResults = [], extra = {}, kind, template, suggestion } = {},
 ...result }) => ({
   links: [

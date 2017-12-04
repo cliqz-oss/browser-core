@@ -173,5 +173,5 @@ export default {
     }
 
     return `${prefix}-${locale}`;
-  }
+  },
 };

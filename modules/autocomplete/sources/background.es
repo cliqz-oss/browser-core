@@ -1,12 +1,10 @@
 import utils from '../core/utils';
-import environment from '../platform/environment';
 import { isFirefox } from '../core/platform';
 import autocomplete from './autocomplete';
 import historyCluster from './history-cluster';
 import ResultProviders from './result-providers';
 import CliqzSearchCountryProviders from './cliqz-backends';
 import Result from './result';
-import WikipediaDeduplication from './wikipedia-deduplication';
 import { background as AutocompleteBackground } from '../platform/auto-complete-component';
 import background from '../core/base/background';
 import Search from './search';
@@ -65,9 +63,6 @@ export default background({
     return onReady().then(() => {
       autocomplete.CliqzResultProviders = new ResultProviders();
       AutocompleteBackground.init();
-      if (isFirefox) {
-        environment.RERANKERS.push(new WikipediaDeduplication());
-      }
 
       autocomplete.CliqzHistoryCluster = historyCluster;
 

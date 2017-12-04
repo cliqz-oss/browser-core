@@ -58,6 +58,7 @@ export default background({
 
   handleRequest(msg) {
     const payload = msg.data.payload;
+    const sender = msg.data.sender;
     // TODO: remove this check. messages without a payload should never be sent
     if (!payload) {
       return;
@@ -73,7 +74,7 @@ export default background({
     }
 
     // inject the required module, then call the requested action
-    inject.module(moduleName).action(action, ...(args || []))
+    inject.module(moduleName).action(action, ...[...(args || []), sender])
     .then((response) => {
       this.mm.broadcast(`window-${windowId}`, {
         origin,

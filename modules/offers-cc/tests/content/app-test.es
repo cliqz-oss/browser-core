@@ -225,8 +225,12 @@ describe('Offers Hub App', function() {
 
     it('renders description', function () {
       chai.expect(subject.query(`${selector} .cqz-descr`)).to.exist;
-      chai.expect((subject.query(`${selector} .cqz-descr`).textContent.trim().split('\n'))[0].trim()).to.equal(`${element.template_data.conditions}`);
-      chai.expect((subject.query(`${selector} .cqz-descr`).textContent.trim().split('\n'))[1].trim()).to.equal(`${element.template_data.desc}`);
+      chai.expect(subject.query(`${selector} .cqz-descr`).textContent.trim()).to.equal(element.template_data.desc);
+    });
+
+    it('renders conditions', function () {
+      chai.expect(subject.query(`${selector} .descr-read-more .text-holder`)).to.exist;
+      chai.expect(subject.query(`${selector} .descr-read-more .text-holder`).textContent.trim()).to.equal(element.template_data.conditions);
     });
 
     it('renders logo', function () {

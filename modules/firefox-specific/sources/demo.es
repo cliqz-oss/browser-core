@@ -12,7 +12,7 @@
  *
  */
 
-import utils from 'core/utils';
+import utils from '../core/utils';
 
 var PROXY_ID = "cliqzDemoProxy",
 	FAKE_CURSOR_ID = "CliqzDemoCursor",

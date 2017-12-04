@@ -5,9 +5,33 @@ export class Window {
   }
 }
 
-export function mapWindows() {
-  return [];
+export function mapWindows(cb) {
+  return [cb(window)];
 }
+
+export function forEachWindow(cb) {
+  cb(window);
+};
+
+export function setInstallDatePref() {
+}
+
+export function mustLoadWindow() {
+  return true;
+};
+
+export function waitWindowReady() {
+  return Promise.resolve();
+}
+
+export function setOurOwnPrefs() {
+}
+
+export function enableChangeEvents() {
+};
+
+export function addWindowObserver() {
+};
 
 export function getLang() {
   return window.navigator.language || window.navigator.userLanguage || 'en';

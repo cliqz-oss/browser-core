@@ -29,7 +29,7 @@ const program = require('commander');
 const spaws = require('cross-spawn');
 const fs = require('fs');
 const wrench = require('wrench');
-const walk = require('walk');
+const glob = require('glob');
 const colors = require('colors');
 const broccoli = require('broccoli');
 const path = require('path')
@@ -37,11 +37,10 @@ const rimraf = require('rimraf');
 const chalk = require('chalk');
 const notifier = require('node-notifier');
 const copyDereferenceSync = require('copy-dereference').sync
-const untildify = require('untildify');
-const Reporter = require('./fern/reporter');
 
 const common = require('./fern/commands/common');
 require('./fern/commands/serve');
+require('./fern/commands/test');
 require('./fern/commands/pack');
 
 const setConfigPath = common.setConfigPath;
@@ -95,6 +94,7 @@ program.command('addon-id [file]')
 
 program.command('build [file]')
        .option('--no-maps', 'disables source maps')
+       .option('--no-debug', 'disables debug pages')
        .option('--version [version]', 'sets extension version', 'package')
        .option('--environment <environment>')
        .option('--to-subdir', 'build into a subdirectory named after the config')
@@ -107,6 +107,7 @@ program.command('build [file]')
 
           process.env['CLIQZ_ENVIRONMENT'] = options.environment || 'development';
           process.env['CLIQZ_SOURCE_MAPS'] = options.maps;
+          process.env['CLIQZ_SOURCE_DEBUG'] = options.debug;
           process.env['CLIQZ_INSTRUMENT_FUNCTIONS'] = options.instrumentFunctions || '';
 
           console.log("Starting build");
@@ -159,79 +160,6 @@ program.command('test-webext')
          });
        });
 
-program.command('test [file]')
-       .option('--ci [output]', 'Starts Testem in CI mode')
-       .option('--grep [pattern]', 'only run tests matching <pattern>')
-       .option('--fgrep [pattern]', 'only run tests with file names matching <pattern>')
-       .option('--firefox [firefox]', 'firefox path', 'nightly')
-       .option('-l --launchers [launchers]', 'comma separted list of launchers')
-       .action( (configPath, options) => {
-         "use strict";
-         const cfg = setConfigPath(configPath);
-         const CONFIG = cfg.CONFIG;
-         const OUTPUT_PATH = cfg.OUTPUT_PATH;
-         const watcher = createBuildWatcher();
-
-         if (options.grep) {
-           process.env["MOCHA_GREP"] = options.grep;
-         }
-
-         if (options.fgrep) {
-           process.env["MOCHA_FGREP"] = options.fgrep;
-         }
-
-         if (options.firefox) {
-           process.env["FIREFOX_PATH"] = untildify(options.firefox);
-         }
-
-         process.env["OUTPUT_PATH"] = untildify(OUTPUT_PATH);
-
-         const Testem = require('testem');
-         const testem = new Testem();
-         const launchers = options.launchers;
-         let isRunning = false;
-
-          if (options.ci) {
-            watcher.on('buildSuccess', function() {
-              rimraf.sync(OUTPUT_PATH);
-              copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
-
-              testem.startCI({
-                debug: true,
-                host: 'localhost',
-                port: '4200',
-                launch: launchers || (CONFIG['testem_launchers_ci'] || []).join(','),
-                reporter: Reporter,
-                report_file: options.ci
-              });
-            });
-          } else {
-            let server;
-            watcher.on('buildSuccess', function() {
-              rimraf.sync(OUTPUT_PATH);
-              copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
-              notifier.notify({
-                title: "Fern",
-                message: "Build complete",
-                time: 1500
-              });
-              if (!isRunning) {
-                testem.startDev({
-                  debug: true,
-                  host: 'localhost',
-                  port: '4200',
-                  launch: launchers || (CONFIG['testem_launchers'] || []).join(','),
-                  reporter: Reporter,
-                  report_file: options.ci
-                });
-                isRunning = true;
-              } else {
-                testem.restart();
-              }
-            });
-          }
-       });
-
 program.command('generate <type> <moduleName>')
        .description('available types: module')
        .action((type, moduleName) => {
@@ -240,26 +168,23 @@ program.command('generate <type> <moduleName>')
            return;
          }
 
-        const modulePath = `modules/${moduleName}`;
+         const modulePath = `modules/${moduleName}`;
 
-        try {
-          fs.lstatSync(modulePath);
+         try {
+           fs.lstatSync(modulePath);
 
-          // lstatSync throws error if Directory does not exist, which is
-          // the only situation that generator can work.
-          console.log(e);
-          console.error(`Error: module '${moduleName}' already exists`);
-          return;
-        } catch (e) {
-        }
+           // lstatSync throws error if Directory does not exist, which is
+           // the only situation that generator can work.
+           console.log(e);
+           console.error(`Error: module '${moduleName}' already exists`);
+           return;
+         } catch (e) {
+         }
 
-        wrench.copyDirSyncRecursive('fern/templates/module', modulePath);
+         wrench.copyDirSyncRecursive('fern/templates/module', modulePath);
 
-        console.log('installing module');
-        walk.walk(modulePath).on('file', (root, stat, next) => {
-          console.log('  create'.info, `${root}/${stat.name}`);
-          next();
-        });
+         console.log('installing module');
+         glob.sync(modulePath+'/**/*').forEach(path => console.log('  created'.info, path));
        });
 
 program.command('react-dev [config]')

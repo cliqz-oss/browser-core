@@ -8,10 +8,14 @@ const merge = (responses) => {
     return [];
   }
 
+  const last = responses.slice(-1)[0];
+
   return {
     results: Array.concat(...responses.map(response => response.results)),
-    state: responses[0].state,
-    provider: responses[0].provider,
+    state: last.state,
+    provider: last.provider,
+    // config is set on new search (focus), thus is the same for all providers
+    config: last.config,
   };
 };
 

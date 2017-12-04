@@ -1,12 +1,12 @@
-let telemetry = {
+var telemetry = {
   type: 'anti-phishing',
   action: 'click',
   target: null
-}
+};
 
 function getURL() {
-  let url = document.documentURI;
-  let match = url.match(/u=([^&]+)/);
+  var url = document.documentURI;
+  var match = url.match(/u=([^&]+)/);
 
   if (!match) {
     return '';  // this should not happend though
@@ -18,18 +18,19 @@ function getURL() {
 
 function format() {
   Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
-	let CliqzUtils = CLIQZ.CliqzUtils;
-  let hw = CLIQZ.System.get('human-web/human-web').default;
-  let CliqzAntiPhishing = CLIQZ.System.get('anti-phishing/anti-phishing').default;
-  let config = CLIQZ.System.get('core/config').default;
-  let freshtab = CLIQZ.System.get('freshtab/main').default;
 
+  // bundling made System imports obsolete so temporary
+  // moving towards a more "nasty" way of importing
+  var CliqzUtils = CLIQZ.CliqzUtils;
+  var hw = CLIQZ.app.modules['human-web'].background.humanWeb;
+  var CliqzAntiPhishing = CLIQZ.app.modules['anti-phishing'].background.CliqzAntiPhishing;
+  var freshtab = CLIQZ.app.modules['freshtab'] && CLIQZ.app.modules['freshtab'].background;
 
   // get phishing url
-  let url = getURL();
+  var url = getURL();
 
   // urlbar
-  let urlbar = CliqzUtils.getWindow().document.getElementById('urlbar');
+  var urlbar = CliqzUtils.getWindow().document.getElementById('urlbar');
 	urlbar.textValue = url;
 	urlbar.value = url;
 	urlbar.mInputField.value = url;
@@ -48,9 +49,9 @@ function format() {
     if (hw && hw.state.v[url]) {
       hw.state.v[url]['anti-phishing'] = 'safe_out';
     }
-    let safeUrl;
-    if (freshtab && freshtab.isActive) {
-      safeUrl = config.settings.NEW_TAB_URL;
+    var safeUrl;
+    if (freshtab && freshtab.newTabPage && freshtab.newTabPage.isActive) {
+      safeUrl = CLIQZ.config.settings.NEW_TAB_URL;
     } else {
       safeUrl = 'about:newtab';
     }

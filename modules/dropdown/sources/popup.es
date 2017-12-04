@@ -42,10 +42,14 @@ export default class {
     if (!this.isNewSearchMode) {
       return;
     }
-    this.element.openAutocompletePopup(
-     this.window.gURLBar,
-     this.window.gURLBar
-    );
+    const navBar = this.window.document.querySelector('#nav-bar');
+
+    // without this ESC does not revert to the page url
+    this.element.mInput = this.urlbar;
+
+    this.element.width = this.window.innerWidth;
+
+    this.element.openPopup(navBar, 'after_start', 0, 0, false, true);
   }
 
   close() {

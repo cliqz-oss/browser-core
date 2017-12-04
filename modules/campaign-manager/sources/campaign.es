@@ -1,5 +1,5 @@
-import CliqzUtils from "core/utils";
-import CliqzEvents from "core/events";
+import CliqzUtils from "../core/utils";
+import CliqzEvents from "../core/events";
 
 function CliqzCampaign(id, data) {
   this.PREF_PREFIX = 'msgs.';

@@ -3,17 +3,10 @@
 /* eslint prefer-arrow-callback: "off" */
 /* eslint no-unused-expressions: "off" */
 
+import results from './fixtures/resultsSimple';
+
 export default function () {
   context('for single generic result', function () {
-    const results = [
-      {
-        url: 'royalgames.com',
-        snippet: {
-          title: 'Spielen - Kostenlose Spiele Spielen',
-          description: 'Kostenlose Spiele spielen, Kartenspiele, Puzzlespiele, Wortspiele, Actionspiele, Brettspiele, Sportspiele, Denkspiele, Strategiespiele und Flashspiele bei Royalgames.com.',
-        },
-      }
-    ];
     let resultElement;
 
     before(function () {

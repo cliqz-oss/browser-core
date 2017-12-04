@@ -1,5 +1,6 @@
 // TODO: Remove AsyncStorage import - this should be in platform
-import { AsyncStorage } from 'react-native';
+// import { AsyncStorage } from 'react-native';
+/* global AsyncStorage */
 import events from '../core/events';
 import { URLInfo } from '../antitracking/url';
 

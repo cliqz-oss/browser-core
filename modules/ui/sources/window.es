@@ -1,13 +1,14 @@
-import { utils } from "core/cliqz";
-import autocomplete from "autocomplete/autocomplete";
-import CliqzHandlebars from "core/templates";
-import CliqzEvents from "core/events";
+import { utils } from "../core/cliqz";
+import autocomplete from "../autocomplete/autocomplete";
+import CliqzHandlebars from "../core/templates";
+import CliqzEvents from "../core/events";
 import SearchHistory from "./search-history";
 import { addStylesheet, removeStylesheet } from "../core/helpers/stylesheet";
 import placesUtils from '../platform/places-utils';
 import console from '../core/console';
 import inject from '../core/kord/inject';
 import Background from './background';
+import urlbarEventHandlers from './urlbar-events';
 
 const ACproviderName = 'cliqz-results';
 
@@ -81,15 +82,38 @@ export default class {
     this.elems = [];
     this.settings = settings.settings;
     this.window = settings.window;
-    this.urlbar = this.window.document.getElementById('urlbar');
+    this.urlbar = this.window.gURLBar;
     this.urlbarGoClick = this.urlbarGoClick.bind(this);
     this.hidePopup = this.hidePopup.bind(this);
     this.initialized = false;
     this.window.CLIQZ.UI = {};
     this.actions = {
-      setUrlbarValue: (value, visibleValue) => {
-        this.urlbar.value = value;
-        this.urlbar.mInputField.value = visibleValue || value;
+      setUrlbarValue: (value, options = {}) => {
+        let opts = typeof options === 'object' ?
+          options :
+          { visibleValue: options };
+
+        let ifMatches = opts.match || (() => true);
+
+        if (ifMatches instanceof RegExp) {
+          const re = ifMatches;
+          ifMatches = s => !!s.match(re);
+        } else if (typeof ifMatches !== 'function') {
+          const m = ifMatches.toString();
+          ifMatches = s => m === s;
+        }
+
+        if (ifMatches(this.urlbar.value)) {
+          this.urlbar.value = value;
+        }
+
+        if (ifMatches(this.urlbar.mInputField.value)) {
+          this.urlbar.mInputField.value = opts.visibleValue || value;
+        }
+
+        if (opts.focus) {
+          this.urlbar.mInputField.focus();
+        }
       },
       syncUrlbarValue: () => {
         this.urlbar.value = this.urlbar.mInputField.value;
@@ -465,140 +489,6 @@ export default class {
     delete this.window.CLIQZ.UI;
   }
 }
-
-const urlbarEventHandlers = {
-  /**
-  * Urlbar focus event
-  * @event focus
-  */
-  focus: function(ev) {
-    if(this.urlbar.getAttribute('autocompletesearch').indexOf(ACproviderName) === -1){
-      // BUMMER!! Something happened and our AC provider was overriden!
-      // trying to set it back while keeping the new value in case Cliqz
-      // gets disabled
-      this._autocompletesearch = this.urlbar.getAttribute('autocompletesearch');
-      this.urlbar.setAttribute('autocompletesearch', ACproviderName);
-      this.reloadUrlbar();
-      this.urlbar.blur();
-      setTimeout(function(urlbar){ urlbar.focus() }, 0, this.urlbar);
-      return;
-    }
-
-    //try to 'heat up' the connection
-    utils.pingCliqzResults();
-
-    autocomplete.lastFocusTime = Date.now();
-    SearchHistory.hideLastQuery(this.window);
-    utils.setSearchSession(utils.rand(32));
-    this.urlbarEvent('focus');
-
-    if(utils.getPref('newUrlFocus') == true && this.urlbar.value.trim().length > 0) {
-      var urlbar = this.urlbar.mInputField.value;
-      var search = urlbar;
-      if (utils.isUrl(search)) {
-        search = search.replace("www.", "");
-        if(search.indexOf("://") != -1) search = search.substr(search.indexOf("://")+3);
-        if(search.indexOf("/") != -1) search = search.split("/")[0];
-      }
-      this.urlbar.mInputField.setUserInput(search);
-      this.popup._openAutocompletePopup(this.urlbar, this.urlbar);
-      this.urlbar.mInputField.value = urlbar;
-    }
-  },
-  /**
-  * Urlbar blur event
-  * @event blur
-  * @param ev
-  */
-  blur: function(ev) {
-    if (autocomplete.spellCheck){
-      autocomplete.spellCheck.resetState();
-    }
-    // reset this flag as it can block the dropdown from opening
-    autocomplete.isPopupOpen = false;
-
-    // force a dropdown close on urlbar blur
-    this.window.CLIQZ.Core.popup.hidePopup();
-
-    this.urlbarEvent('blur');
-
-    autocomplete.lastFocusTime = null;
-    this.window.CLIQZ.UI.sessionEnd();
-  },
-  /**
-  * Urlbar keypress event
-  * @event keypress
-  * @param ev
-  */
-  keypress: function(ev) {
-    if (!ev.ctrlKey && !ev.altKey && !ev.metaKey) {
-      var urlbar = this.urlbar;
-      if (urlbar.mInputField.selectionEnd !== urlbar.mInputField.selectionStart &&
-          urlbar.mInputField.value[urlbar.mInputField.selectionStart] == String.fromCharCode(ev.charCode)) {
-        // prevent the redraw in urlbar but send the search signal
-        var query = urlbar.value,
-            old = urlbar.mInputField.value,
-            start = urlbar.mInputField.selectionStart;
-        query = query.slice(0, urlbar.selectionStart) + String.fromCharCode(ev.charCode);
-        urlbar.mInputField.setUserInput(query);
-        urlbar.mInputField.value = old;
-        urlbar.mInputField.setSelectionRange(start+1, urlbar.mInputField.value.length);
-        ev.preventDefault();
-      }
-    }
-  },
-  /**
-  * Urlbar drop event
-  * @event drop
-  * @param ev
-  */
-  drop: function(ev){
-    var dTypes = ev.dataTransfer.types;
-    if (dTypes.indexOf && dTypes.indexOf("text/plain") !== -1 ||
-      dTypes.contains && dTypes.contains("text/plain") !== -1) {
-      // open dropdown on text drop
-      var inputField = this.urlbar.mInputField, val = inputField.value;
-      inputField.setUserInput('');
-      inputField.setUserInput(val);
-
-      utils.telemetry({
-        type: 'activity',
-        action: 'textdrop'
-      });
-    }
-  },
-  keydown(ev) {
-    autocomplete._lastKey = ev.keyCode;
-    let cancel;
-    try {
-      cancel = this.window.CLIQZ.UI.keyDown(ev);
-    } catch(e) {
-      console.error(e);
-      throw e;
-    }
-    if (cancel) {
-      ev.preventDefault();
-      ev.stopImmediatePropagation();
-    }
-  },
-  /**
-  * Urlbar paste event
-  * @event paste
-  * @param ev
-  */
-  paste: function(ev){
-    //wait for the value to change
-    this.window.setTimeout(function(){
-      // ensure the lastSearch value is always correct although paste event has 1 second throttle time.
-      autocomplete.lastSearch = ev.target.value;
-      utils.telemetry({
-        type: 'activity',
-        action: 'paste',
-        current_length: ev.target.value.length
-      });
-    }, 0);
-  }
-};
 
 const popupEventHandlers = {
   /**

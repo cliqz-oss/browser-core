@@ -18,12 +18,18 @@ import OfferStatusHandler from './offers-status-handler';
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
+const USER_ENABLED = 'offers2UserEnabled';
+const OFFERS_CC_ENABLED = 'modules.offers-cc.enabled';
 
 export default background({
 
-  init(/* settings */) {
+  init() {
+    this.softInit();
+  },
+
+  softInit(/* settings */) {
     // check if we need to do something or not
-    if (!utils.getPref('offers2FeatureEnabled', false)) {
+    if (!utils.getPref('offers2FeatureEnabled', false) || !utils.getPref(USER_ENABLED, true)) {
       this.initialized = false;
       return;
     }
@@ -130,6 +136,10 @@ export default background({
 
   // ///////////////////////////////////////////////////////////////////////////
   unload() {
+    this.softUnload();
+  },
+
+  softUnload() {
     if (this.initialized === false) {
       return;
     }
@@ -164,6 +174,8 @@ export default background({
       this.featureHandler.unload();
       this.featureHandler = null;
     }
+
+    this.initialized = false;
   },
 
   // ///////////////////////////////////////////////////////////////////////////
@@ -232,6 +244,17 @@ export default background({
     },
     'offers-recv-ch': function onRealEstateMessage(message) {
       this.offerProc.processRealEstateMessage(message);
+    },
+    prefchange: function onPrefChange(pref) {
+      if (pref === USER_ENABLED) {
+        if (utils.getPref(USER_ENABLED, true) === true) {
+          utils.setPref(OFFERS_CC_ENABLED, true);
+          this.softInit();
+        } else {
+          utils.setPref(OFFERS_CC_ENABLED, false);
+          this.softUnload();
+        }
+      }
     },
   },
 

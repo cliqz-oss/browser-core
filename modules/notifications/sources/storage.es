@@ -1,5 +1,5 @@
 import Storage from '../core/storage';
-import equal from './lib/deep-equal';
+import equal from '../platform/lib/deep-equal';
 
 export default class {
   constructor() {

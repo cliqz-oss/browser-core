@@ -28,37 +28,48 @@ export default background({
   * @method init
   */
   init(settings) {
-    const FF48_OR_ABOVE = isPlatformAtLeastInVersion('48.0');
+    // Protection: By default, skip all human web listeners.
+    // Only allow it if the user has not opted out
+    // and if human web is fully initialized.
+    //
+    // (Note: Opt-out is clear, but the reason why it is also disabled
+    //  during initialization is mainly to prevent any race conditions
+    //  that we would otherwise had to deal with. Startup should
+    //  not take too long, anyway.)
+    this.collecting = false;
 
+    this.humanWeb = HumanWeb;
+    HumanWeb.hpn = this.hpn;
+
+    const FF48_OR_ABOVE = isPlatformAtLeastInVersion('48.0');
     if (isFirefox && !FF48_OR_ABOVE) {
       this.active = false;
       return Promise.resolve();
     }
 
     return Promise.resolve().then(() => {
-      HumanWeb.hpn = this.hpn;
 
-      let pendingInit;
-      if (this.enabled()) {
-        pendingInit = HumanWeb.init().then(() => {
-
-          this.onHeadersReceivedListener = (...args) => HumanWeb.httpObserver.observeActivity(...args);
-          WebRequest.onHeadersReceived.addListener(this.onHeadersReceivedListener, {
-            urls: ['*://*/*'],
-          }, ['responseHeaders']);
-
-          // If it's chrome, we need to add a domain2IP dict.
-          // Need to move it to a more platform friendly place.
-          if (WebRequest.onCompleted) {
-            this.domain2IPListener = (...args) => this.domain2IP(...args);
-            WebRequest.onCompleted.addListener(this.domain2IPListener, { urls: ['http://*/*', 'https://*/*'], tabId: -1 });
-          }
-        });
-      } else {
-        pendingInit = Promise.resolve();
+      if (!this.enabled()) {
+        // The module is technically loaded, but human web will not collect any data.
+        this.active = true;
+        this.collecting = false;
+        return;
       }
 
-      return pendingInit.then(() => {
+      return HumanWeb.init().then(() => {
+
+        this.onHeadersReceivedListener = (...args) => HumanWeb.httpObserver.observeActivity(...args);
+        WebRequest.onHeadersReceived.addListener(this.onHeadersReceivedListener, {
+          urls: ['*://*/*'],
+        }, ['responseHeaders']);
+
+        // If it's chrome, we need to add a domain2IP dict.
+        // Need to move it to a more platform friendly place.
+        if (WebRequest.onCompleted) {
+          this.domain2IPListener = (...args) => this.domain2IP(...args);
+          WebRequest.onCompleted.addListener(this.domain2IPListener, { urls: ['http://*/*', 'https://*/*'], tabId: -1 });
+        }
+
         utils.bindObjectFunctions(this.actions, this);
 
         if (history && history.onVisitRemoved) {
@@ -66,13 +77,15 @@ export default background({
           history.onVisitRemoved.addListener(this.onVisitRemovedListener);
         }
 
-        this.humanWeb = HumanWeb;
         this.active = true;
+        this.collecting = true;
       });
     });
   },
 
   unload() {
+    this.collecting = false;
+
     if (this.active) {
       this.active = false;
 
@@ -114,12 +127,14 @@ export default background({
     * @event ui:click-on-url
     */
     'ui:click-on-url': function (data) {
-      HumanWeb.queryCache[data.url] = {
-        d: 1,
-        q: data.query,
-        t: data.isPrivateResult ? 'othr' : 'cl',
-        pt: data.positionType || '',
-      };
+      if (this.collecting) {
+        HumanWeb.queryCache[data.url] = {
+          d: 1,
+          q: data.query,
+          t: data.isPrivateResult ? 'othr' : 'cl',
+          pt: data.positionType || '',
+        };
+      }
     },
      /**
     * @event control-center:toggleHumanWeb
@@ -138,25 +153,37 @@ export default background({
       }, 0);
     },
     'core:mouse-down': function onMouseDown() {
-      HumanWeb.captureMouseClickPage.apply(HumanWeb, arguments);
+      if (this.collecting) {
+        HumanWeb.captureMouseClickPage.apply(HumanWeb, arguments);
+      }
     },
     'core:key-press': function onKeyPress() {
-      HumanWeb.captureKeyPressPage.apply(HumanWeb, arguments);
+      if (this.collecting) {
+        HumanWeb.captureKeyPressPage.apply(HumanWeb, arguments);
+      }
     },
     'core:mouse-move': function onMouseMove() {
-      HumanWeb.captureMouseMovePage.apply(HumanWeb, arguments);
+      if (this.collecting) {
+        HumanWeb.captureMouseMovePage.apply(HumanWeb, arguments);
+      }
     },
     'core:scroll': function onScroll() {
-      HumanWeb.captureScrollPage.apply(HumanWeb, arguments);
+      if (this.collecting) {
+        HumanWeb.captureScrollPage.apply(HumanWeb, arguments);
+      }
     },
     'core:copy': function onCopy() {
-      HumanWeb.captureCopyPage.apply(HumanWeb, arguments);
+      if (this.collecting) {
+        HumanWeb.captureCopyPage.apply(HumanWeb, arguments);
+      }
     },
     'content:location-change': function onLocationChange({ isPrivate, isLoadingDocument, url, referrer, frameId }) {
-      // Only forward it to the onLocation change if the frameID is type 0.
+      if (this.collecting) {
+        // Only forward it to the onLocation change if the frameID is type 0.
 
-      // We need to find a better way, to not trigger on-location change for requests which are not main_document.
-      HumanWeb.listener.onLocationChange.apply(HumanWeb.listener, arguments);
+        // We need to find a better way, to not trigger on-location change for requests which are not main_document.
+        HumanWeb.listener.onLocationChange.apply(HumanWeb.listener, arguments);
+      }
     }
   },
 

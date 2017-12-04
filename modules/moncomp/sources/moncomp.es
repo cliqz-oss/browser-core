@@ -1,9 +1,7 @@
-import { utils } from 'core/cliqz';
+import { utils } from '../core/cliqz';
+import { Components, Services, XPCOMUtils } from '../platform/globals';
 
-Components.utils.import('resource://gre/modules/Services.jsm');
 Components.utils.import('resource://gre/modules/FileUtils.jsm');
-
-Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 
 var nsIAO = Components.interfaces.nsIHttpActivityObserver;
 var nsIHttpChannel = Components.interfaces.nsIHttpChannel;

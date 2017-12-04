@@ -1,11 +1,7 @@
 import CliqzCalculator from '../../autocomplete/calculator';
 import Rx from '../../platform/lib/rxjs';
 import BaseProvider from './base';
-
-const empty = {
-  results: [],
-  state: 'done',
-};
+import { getResponse } from '../responses';
 
 export default class Calculator extends BaseProvider {
   constructor() {
@@ -13,26 +9,23 @@ export default class Calculator extends BaseProvider {
     CliqzCalculator.init();
   }
 
-  search(query) {
+  search(query, config) {
     if (!query) {
-      return this.empty;
+      return this.getEmptySearch(config);
     }
 
     const result = CliqzCalculator.isCalculatorSearch(query) &&
       CliqzCalculator.calculate(query);
 
     if (!result) {
-      return Rx.Observable.from([empty]);
+      return this.getEmptySearch(config);
     }
     result.provider = 'calculator';
     result.template = 'calculator';
 
     return Rx.Observable
-      .from([{
-        results: [result],
-        state: 'done',
-        provider: this.id,
-      }])
-      .delay(1);
+      .from([getResponse(this.id, config, query, [result], 'done')])
+      .delay(1)
+      .let(this.getOperators(config, query));
   }
 }

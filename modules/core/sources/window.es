@@ -1,6 +1,7 @@
 import utils from "./utils";
 import events from "./events";
 import HistoryManager from "./history-manager";
+import CliqzABTests from "./ab-tests";
 
 export default class {
 
@@ -17,6 +18,7 @@ export default class {
     this.window.CLIQZEnvironment = utils.environment;
     this.window.CliqzUtils = utils;
     this.window.CliqzEvents = events;
+    this.window.CliqzABTests = CliqzABTests;
     this.window.CliqzHistoryManager = HistoryManager;
   }
 

@@ -3,7 +3,7 @@ import config from '../core/config';
 // Load content scripts from modules
 import '../module-content-script';
 import { getWindowId, getWindowTreeInformation, runContentScripts,
-  CHROME_MSG_SOURCE, isCliqzContentScriptMsg } from '../core/content/helpers';
+  CHROME_MSG_SOURCE, isCliqzContentScriptMsg, getDocumentUrl } from '../core/content/helpers';
 import { throttle } from '../core/decorators';
 
 if (typeof windowId === 'undefined') {
@@ -148,7 +148,7 @@ try {
       return;
     }
 
-    if (msg === 'unload') {
+    if (msg.action === 'unload') {
       stop();
       return;
     }
@@ -226,6 +226,7 @@ try {
         }
       }
     }
+    let parentURI = getDocumentUrl(window);
     let node = ev.target;
     if (node.nodeType !== 1) {
       node = node.parentNode;
@@ -253,7 +254,8 @@ try {
               parentNode: {
                 href: ev.target.parentNode.href
               },
-              linksSrc
+              linksSrc,
+              parentURI
             }
           },
           getContextHTML(ev),

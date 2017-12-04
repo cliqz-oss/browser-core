@@ -2,6 +2,7 @@ import { utils } from '../core/cliqz';
 import md5 from './md5';
 import { sameGeneralDomain } from './domain';
 import * as browser from '../platform/browser';
+import { TELEMETRY } from './config';
 
 // Class to hold a page load and third party urls loaded by this page.
 class PageLoadData {
@@ -155,7 +156,7 @@ var stats = ['c'];
 
 class PageEventTracker {
 
-  constructor(telemetryCallback) {
+  constructor(telemetryCallback, config) {
     this.debug = false;
     this._active = {};
     this._old_tab_idx = {};
@@ -166,6 +167,7 @@ class PageEventTracker {
     this._last_push = 0;
     this.ignore = new Set(['self-repair.mozilla.org']);
     this.pushTelemetry = telemetryCallback;
+    this.config = config;
     this.listeners = new Map();
   }
   // Called when a url is loaded on windowID source.
@@ -186,14 +188,14 @@ class PageEventTracker {
     }
   }
 
-  onRedirect(url_parts, tab_id, isPrivate) {
+  onRedirect(url, tab_id, isPrivate) {
       if(tab_id in this._active) {
           let prev = this._active[tab_id];
-          this._active[tab_id] = new PageLoadData(url_parts, isPrivate, prev.ra || false);
+          this._active[tab_id] = new PageLoadData(url, isPrivate, prev.ra || false);
           this._active[tab_id].redirects = prev.redirects;
           this._active[tab_id].redirects.push(prev.hostname);
       } else {
-          this.onFullPage(url_parts, tab_id, isPrivate);
+          this.onFullPage(url, tab_id, isPrivate);
       }
   }
 
@@ -273,29 +275,28 @@ class PageEventTracker {
 
   // Push staged PageLoadData to human web.
   // Will run at a period specified by tp_events._push_interval, unless force_push is true.
-  push(force_push) {
-      var now = (new Date()).getTime();
-      if(this._staged.length > 0 && (now - this._last_push > this._push_interval || force_push == true)) {
-          // convert staged objects into simple objects, and aggregate.
-          // then filter out ones with bad data (undefined hostname or no third parties)
-          var payload_data = this._staged.filter(function(pl) {
-            // remove private tabs
-            return !pl.private;
-          }).map(function(item) {
-              return item.asPlainObject();
-          }).filter(function(item) {
-              return item['hostname'].length > 0 && Object.keys(item['tps']).length > 0;
-          });
+  push(forcePush) {
+    const now = (new Date()).getTime();
+    if (this._staged.length > 0 && (now - this._last_push > this._push_interval ||
+      forcePush === true)) {
+      // convert staged objects into simple objects, and aggregate.
+      // then filter out ones with bad data (undefined hostname or no third parties)
+      const payloadData = this._staged.filter(pl => !pl.private)
+      .map(item => item.asPlainObject())
+      .filter(item =>
+        item.hostname.length > 0 && Object.keys(item.tps).length > 0
+      );
 
-          // if we still have some data, send the telemetry
-          if(payload_data.length > 0) {
-              if (this.debug) utils.log('Pushing data for '+ payload_data.length +' requests', 'tp_events');
-              this.pushTelemetry(payload_data);
-          }
-          this._staged = [];
-          this._old_tab_idx = {};
-          this._last_push = now;
+      // if we still have some data, send the telemetry
+      // if telemetryMode is 0, don't actually send it
+      if (payloadData.length > 0 && this.config.telemetryMode !== TELEMETRY.DISABLED) {
+        if (this.debug) utils.log(`Pushing data for ${payloadData.length} requests`, 'tp_events');
+        this.pushTelemetry(payloadData);
       }
+      this._staged = [];
+      this._old_tab_idx = {};
+      this._last_push = now;
+    }
   }
 
   incrementStat(req_log, stat_key, n) {

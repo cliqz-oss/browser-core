@@ -289,6 +289,11 @@ var CLIQZEnvironment = {
     addEngineWithDetails: function(engine) {
       const existedEngine = Services.search.getEngineByName(engine.name);
       if (existedEngine) {
+        // Update the engine alias in case it has been removed
+        if (!existedEngine.alias) {
+          existedEngine.alias = engine.key;
+        }
+
         return;
       }
 

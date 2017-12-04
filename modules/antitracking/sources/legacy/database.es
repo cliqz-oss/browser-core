@@ -1,5 +1,5 @@
 import console from '../../core/console';
-import { deletePersistantObject, LazyPersistentObject } from '../persistent-state';
+import { deletePersistantObject, LazyPersistentObject } from '../../core/persistent-state';
 import utils from '../../core/utils';
 import Database from '../../core/database';
 

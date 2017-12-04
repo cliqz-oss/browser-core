@@ -46,15 +46,18 @@
               </span>
             {{/if}}
 
-            <span class="depart-time">
+            <span class="depart-time
+                  {{#if earlyDeparture}} early
+                  {{else if lateDeparture}} late
+                  {{/if}}"
+            >
               {{departure.actualTime}}
             </span>
           </div>
 
           <div>{{departure.estimateActualDate}} </div>
           <div class="bold">
-            {{local 'Terminal'}} {{departure.terminal}}
-            &#183; {{local 'Gate'}} {{departure.gate}}
+            {{departure.terminal}} &#183; {{departure.gate}}
           </div>
         </div>
 
@@ -68,14 +71,17 @@
                   {{arrival.scheduledTime}}
                 </span>
               {{/if}}
-              <span class="arrival-time">
+              <span class="arrival-time
+                    {{#if earlyArrival}} early
+                    {{else if lateArrival}} late
+                    {{/if}}"
+              >
                 {{arrival.actualTime}}
               </span>
           </div>
           <div>{{arrival.estimateActualDate}} </div>
           <div class="bold">
-            {{local 'Terminal'}} {{arrival.terminal}}
-            &#183; {{local 'Gate'}} {{arrival.gate}}
+            {{arrival.terminal}} &#183; {{arrival.gate}}
           </div>
         </div>
       </div>

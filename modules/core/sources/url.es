@@ -143,7 +143,7 @@ function _getDetailsFromUrl(originalUrl) {
     tld = '',
     subdomains = [],
     path = '',
-    query ='',
+    query = '',
     fragment = '';
 
   // remove scheme

@@ -1,24 +1,14 @@
 import { URLInfo } from '../url';
-import { sameGeneralDomain } from '../domain';
-import { utils } from '../../core/cliqz';
+import { sameGeneralDomain, getGeneralDomain } from '../domain';
 import { cleanTimestampCache } from '../utils';
-import pacemaker from '../pacemaker';
-
-// moved from cookie-checker
-function currentGD() {
-  const currwin = utils.getWindow();
-  let gd = null;
-  if (currwin && currwin.gBrowser) {
-    const url = currwin.gBrowser.selectedBrowser.currentURI.spec;
-    gd = URLInfo.get(url).generalDomain;
-  }
-  return gd;
-}
+import pacemaker from '../../core/pacemaker';
+import md5 from '../md5';
 
 export default class {
-  constructor(config, pageMeta) {
+  constructor(config, pageMeta, qsWhitelist) {
     this.config = config;
     this.pageMeta = pageMeta;
+    this.qsWhitelist = qsWhitelist;
     this.visitCache = {};
     this.contextFromEvent = null;
     this.timeAfterLink = 5*1000;
@@ -55,6 +45,10 @@ export default class {
 
   _addTrustLink(fromFirstParty, toThirdParty) {
     if (sameGeneralDomain(fromFirstParty, toThirdParty)) {
+      return;
+    }
+    // don't trust trackers
+    if (this.qsWhitelist.isTrackerDomain(md5(getGeneralDomain(toThirdParty)).substring(0, 16))) {
       return;
     }
     const key = `${fromFirstParty}:${toThirdParty}`;
@@ -159,7 +153,7 @@ export default class {
     let html = contextHTML || '';
 
     try {
-      pageGD = currentGD();
+      pageGD = URLInfo.get(ev.target.parentURI).generalDomain;
       cGD = URLInfo.get(ev.target.baseURI).generalDomain;
     } catch (ee) {
     }

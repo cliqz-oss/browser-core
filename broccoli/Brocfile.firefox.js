@@ -32,16 +32,22 @@ var src = new Funnel(modules.modules, {
   exclude: ['tests/*/content/**/*']
 });
 
-
-var firefoxTree = new MergeTrees([
+const trees = [
   firefoxSpecific,
   new Funnel(config,              { destDir: 'chrome/content'}),
   new Funnel(firefoxLibs,         { destDir: 'modules/extern' }),
   new Funnel(modules.bower,       { destDir: 'chrome/content/bower_components' }),
-  new Funnel(modules.modules,     { destDir: 'chrome/content' }),
   new Funnel(modules.static,      { destDir: 'chrome/content' }),
-  new Funnel(modules.styleTests,  { destDir: 'chrome/content' }),
-  new Funnel(modules.bundles,     { destDir: 'chrome/content' }),
+  new Funnel(modules.styleTests,  { destDir: 'chrome/content' })
+];
+
+if (!cliqzConfig.PRODUCTION) {
+  trees.push(new Funnel(modules.modules,      { destDir: 'chrome/content' }));
+}
+
+var firefoxTree = new MergeTrees([
+  ...trees,
+  new Funnel(modules.bundles,     { destDir: 'chrome/content' })
 ], { overwrite: true } );
 
 var firefoxOutputTrees = [
@@ -49,17 +55,10 @@ var firefoxOutputTrees = [
   firefoxPackage,
 ];
 
-// TODO: move to modules-tree
-if (cliqzConfig.environment !== 'production') {
-  firefoxOutputTrees.push(modules.contentTests);
-}
-
 var firefox = new MergeTrees(firefoxOutputTrees);
 
 var configTree = util.injectConfig(firefox, config, 'cliqz.json', [
-  cliqzConfig.settings.id + '/chrome/content/core/config.js',
   cliqzConfig.settings.id + '/install.rdf',
-  cliqzConfig.settings.id + '/chrome/content/human-web/human-web.js',
   'templates/install.rdf',
   'templates/latest.rdf',
   'fabfile.py'
@@ -70,7 +69,17 @@ firefox = new MergeTrees([
   configTree
 ], { overwrite: true });
 
+const exclude = [];
+
+if (!cliqzConfig.sourceMaps) {
+  exclude.push('**/*.js.map');
+}
+
+if (!cliqzConfig.debugPages) {
+  exclude.push('**/debug/**/*');
+  exclude.push('**/*debug*');
+}
 // Output
 module.exports = new Funnel(firefox, {
-  exclude: cliqzConfig.sourceMaps ? [] : ['**/*.js.map'],
+  exclude,
 });

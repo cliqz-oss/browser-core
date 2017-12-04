@@ -584,6 +584,9 @@ $basic-line-height: (16 / 15) + 0em;
 
     .result.weather {
         margin-bottom: 6px;
+        .header {
+            cursor: default;
+        }
         .forecast {
             margin-bottom: 10px;
 
@@ -891,14 +894,11 @@ $basic-line-height: (16 / 15) + 0em;
     }
 }
 
-#PanelUI-mainView {
-    toolbarbutton#control-center-browser-action {
-        &.toolbarbutton-1 {
-            > .toolbarbutton-badge-stack {
-                .toolbarbutton-icon {
-                    list-style-image: var(--webextension-menupanel-image, inherit);
-                }
-            }
-        }
-    }
+.toolbarbutton-badge {
+    background-color: #471647;
+}
+
+#pageActionPanel panelview#PanelUI-webext-control-center-browser-action-view,
+#widget-overflow panelview#PanelUI-webext-control-center-browser-action-view {
+    max-width: 400px;
 }

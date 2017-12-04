@@ -38,11 +38,8 @@ const utf8 = new Uint8Array([229, 155, 155, 229, 183, 157, 232, 143, 156, 229, 1
 DEPS.EncodingTest = ["core/utils"];
 TESTS.EncodingTest = function(CliqzUtils) {
   var encoding;
-  var System = CliqzUtils.getWindow().CLIQZ.System;
   beforeEach( function() {
-    return System.import('core/encoding').then( function(mod) {
-      encoding = mod;
-    });
+      encoding = getModule('core/encoding');
   });
   describe('encoding', function() {
     it('base64', function() {

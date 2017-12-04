@@ -4,54 +4,10 @@
 /* eslint prefer-arrow-callback: 'off' */
 /* eslint no-unused-expressions: 'off' */
 
+import results from './fixtures/resultsFlightNoInfo';
+
 export default function () {
   context('for flight results without information', function () {
-    const results = [
-      {
-        url: 'http://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?id=934356486\u0026airlineCode=SWU\u0026flightNumber=353',
-        score: 0,
-        snippet: {
-          extra: {
-            depart_arrive: [
-              {
-                terminal: '-',
-                gate: '-',
-                location_name: 'London',
-                location_short_name: 'LON',
-                time_color: '',
-                estimate_actual_date: 'fr.. 22 september',
-                estimate_actual_time: '09:15',
-              },
-              {
-                estimate_actual_date: 'fr.. 22 september',
-                estimate_actual_time: '11:45',
-                terminal: '-',
-                gate: '-',
-                location_name: 'Genf',
-                location_short_name: 'GVA',
-                time_color: ''
-              }
-            ],
-            flight_name: 'SWISS Flug 353',
-            flight_status: 'no_info',
-            plane_icon: '',
-            plane_position: '',
-            status: 'No information',
-            status_color: 'grey',
-            status_detail: ''
-          },
-          friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do'
-        },
-        type: 'rh',
-        subType: {
-          class: 'EntityFlight',
-          id: '-5358826846182975827',
-          name: 'flightStatus'
-        },
-        template: 'flight',
-        trigger_method: 'query'
-      }
-    ];
     const locale = CliqzUtils.locale.default || CliqzUtils.locale[window.navigator.language];
     let resultElement;
 
@@ -131,18 +87,12 @@ export default function () {
             .to.contain.text(results[0].snippet.extra.depart_arrive[i].estimate_actual_time);
         });
 
-        it('renders a terminal label and terminal info', function () {
+        it('renders a terminal terminal / gate info', function () {
           chai.expect(flightTerminalItem).to.exist;
-          chai.expect(flightTerminalItem).to.contain.text(locale.Terminal.message);
           chai.expect(flightTerminalItem)
-            .to.contain.text(results[0].snippet.extra.depart_arrive[i].terminal);
-        });
-
-        it('renders a gate label and gate info', function () {
-          chai.expect(flightTerminalItem).to.exist;
-          chai.expect(flightTerminalItem).to.contain.text(locale.Gate.message);
+            .to.contain.text(results[0].snippet.extra.depart_arrive[i].terminal_full);
           chai.expect(flightTerminalItem)
-            .to.contain.text(results[0].snippet.extra.depart_arrive[i].gate);
+            .to.contain.text(results[0].snippet.extra.depart_arrive[i].gate_full);
         });
       });
     });

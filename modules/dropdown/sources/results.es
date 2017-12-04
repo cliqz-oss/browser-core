@@ -16,7 +16,7 @@ import { equals } from '../core/url';
 import console from '../core/console';
 import NavigateToResult from './results/navigate-to';
 import NewsStory from './results/news-story';
-import { isCliqzBrowser } from '../core/platform';
+import config from '../core/config';
 
 class ResultFactory {
   static create(rawResult, allResultsFlat) {
@@ -63,6 +63,10 @@ class ResultFactory {
       Constructor = Suggestions;
     }
 
+    if (rawResult.data.template === 'sessions') {
+      Constructor = SessionsResult;
+    }
+
     if (rawResult.data.template === 'ligaEZ1Game' ||
         rawResult.data.template === 'ligaEZTable' ||
         rawResult.data.template === 'ligaEZGroup' ||
@@ -99,21 +103,16 @@ class ResultFactory {
 
   static createAll(rawResults, actions = {}) {
     const all = rawResults.reduce(({ resultList, allResultsFlat }, rawResult) => {
-      let result;
-
       try {
-        result = ResultFactory.create(rawResult, allResultsFlat);
+        const result = ResultFactory.create(rawResult, allResultsFlat);
         result.actions = actions;
+        resultList.push(result);
       } catch (e) {
         if (['duplicate', 'ignore'].indexOf(e.message) >= 0) {
           // it is expected to have duplicates
         } else {
           throw e;
         }
-      }
-
-      if (result) {
-        resultList.push(result);
       }
 
       return {
@@ -137,10 +136,12 @@ export default class Results {
     rerender,
     getSnippet,
     copyToClipboard,
+    isNewSearchMode
   } = {}) {
     this.rerender = rerender;
     this.query = query;
     this.queriedAt = queriedAt;
+    this.isNewSearchMode = isNewSearchMode;
 
     const actions = {
       locationAssistant,
@@ -170,7 +171,7 @@ export default class Results {
       this.results = this.results.filter(result => !result.isSuggestion);
     }
 
-    if (isCliqzBrowser && this.hasHistory && (this.query !== '')) {
+    if (config.settings.HISTORY_URL && !this.isNewSearchMode && this.hasHistory && (this.query !== '')) {
       this.addSessionsResult();
     }
 
@@ -245,7 +246,7 @@ export default class Results {
     const firstNonHistoryIndex = firstHistoryIndex +
       this.results.slice(firstHistoryIndex).findIndex(r => !r.isHistory);
     const sessionResult = new SessionsResult({
-      query: this.query,
+      text: this.query
     });
 
     this.insertAt(

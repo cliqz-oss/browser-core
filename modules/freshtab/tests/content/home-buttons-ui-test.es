@@ -1,104 +1,10 @@
-function wait(time) {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
+import {
+  clearIntervals,
+  Subject,
+  defaultConfig,
+  CONFIG,
+} from './helpers';
 
-let intervals = [];
-function registerInterval(interval) {
-  intervals.push(interval);
-}
-
-function clearIntervals() {
-  intervals.forEach(interval => clearInterval(interval));
-  intervals = [];
-}
-
-function waitFor(fn) {
-  var resolver, rejecter, promise = new Promise(function (res, rej) {
-    resolver = res;
-    rejecter = rej;
-  });
-
-  function check() {
-    const result = fn();
-    if (result) {
-      clearInterval(interval);
-      resolver(result);
-    }
-  }
-
-  var interval = setInterval(check, 50);
-  check();
-  registerInterval(interval);
-
-  return promise;
-}
-
-class Subject {
-  constructor() {
-    this.modules = {};
-    const listeners = new Set();
-    this.chrome = {
-      runtime: {
-        onMessage: {
-          addListener(listener) {
-            listeners.add(listener);
-          },
-          removeListener(listener) {
-            listeners.delete(listener);
-          }
-        },
-        sendMessage: ({ module, action, requestId }) => {
-          const response = this.modules[module].actions[action];
-          listeners.forEach(l => {
-            l({
-              response,
-              type: 'response',
-              requestId,
-              source: 'cliqz-content-script'
-            });
-          })
-        }
-      },
-      i18n: {
-        getMessage: k => k,
-      }
-    }
-  }
-
-  load(width) {
-    this.iframe = document.createElement('iframe');
-    this.iframe.src = '/build/cliqz@cliqz.com/chrome/content/freshtab/home.html';
-    this.iframe.width = width;
-    this.iframe.height = 500;
-    document.body.appendChild(this.iframe)
-
-    return new Promise(resolve => {
-      this.iframe.contentWindow.chrome = this.chrome;
-      this.iframe.contentWindow.addEventListener('load', () => resolve());
-    });
-  }
-
-  unload() {
-    document.body.removeChild(this.iframe);
-  }
-
-  query(selector) {
-    return this.iframe.contentWindow.document.querySelector(selector);
-  }
-
-  queryAll(selector) {
-    return this.iframe.contentWindow.document.querySelectorAll(selector);
-  }
-
-  getComputedStyle(selector) {
-    return this.iframe.contentWindow.getComputedStyle(this.query(selector));
-  }
-
-  respondsWith({ module, action, response, requestId }) {
-    this.modules[module] = this.modules[module] || { actions: {} };
-    this.modules[module].actions[action] = response;
-  }
-}
 describe('Fresh tab buttons UI', function () {
   const homeButtonSelector = '#cliqz-home';
   const historyButtonSelector = '#cliqz-history';
@@ -113,36 +19,7 @@ describe('Fresh tab buttons UI', function () {
       response: ''
     });
 
-    subject.respondsWith({
-      module: 'freshtab',
-      action: 'getConfig',
-      response: {
-        locale: 'en-US',
-        newTabUrl: 'chrome://cliqz/content/freshtab/home.html',
-        isBrowser: false,
-        showNewBrandAlert: false,
-        messages: {},
-        isHistoryEnabled: true,
-        hasActiveNotifications: false,
-        componentsState: {
-          historyDials: {
-            visible: false
-          },
-          customDials: {
-            visible: false
-          },
-          search: {
-            visible: false
-          },
-          news: {
-            visible: false
-          },
-          background: {
-            image: 'bg-dark'
-          }
-        }
-      },
-    });
+    subject.respondsWith(defaultConfig);
 
     subject.respondsWith({
       module: 'freshtab',
@@ -175,19 +52,16 @@ describe('Fresh tab buttons UI', function () {
         news: []
       }
     });
+  });
 
-  })
-
-  afterEach(function () {
+  after(function () {
     clearIntervals();
   });
 
-
   context('rendered in wide window', function () {
-
     before(function () {
-      return subject.load(900);
-    })
+      return subject.load();
+    });
 
     after(function () {
       subject.unload();
@@ -209,7 +83,7 @@ describe('Fresh tab buttons UI', function () {
 
       it('with correct link', function () {
         chai.expect(subject.query(homeButtonSelector).href)
-          .to.equal('chrome://cliqz/content/freshtab/home.html');
+          .to.equal(CONFIG.settings.NEW_TAB_URL);
       });
     });
 
@@ -228,7 +102,7 @@ describe('Fresh tab buttons UI', function () {
 
       it('with correct link', function () {
         chai.expect(subject.query(historyButtonSelector).href)
-          .to.contain("resource://cliqz/cliqz-history/index.html#/");
+          .to.contain(CONFIG.settings.HISTORY_URL);
       });
     });
 
@@ -245,13 +119,12 @@ describe('Fresh tab buttons UI', function () {
         chai.expect(subject.query(settingsButtonSelector)).to.have.text('Settings');
       });
     });
-
   });
 
   context('rendered in narrow window', function () {
     before(function () {
-      return subject.load(300);
-    })
+      return subject.load({ iframeWidth: 300 });
+    });
 
     after(function () {
       subject.unload();

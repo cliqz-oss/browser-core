@@ -12,6 +12,10 @@ export default class Module {
     this.settings = settings;
     this._bgReadyDefer = new Defer();
     this._state = 'disabled';
+    this._stat = {
+      init: 0,
+      load: 0
+    };
     this._windows = new DefaultWeakMap(() => ({
       windowModule: null,
       loadingDefer: new Defer(),
@@ -124,6 +128,7 @@ export default class Module {
     console.log('Module window:', `"${this.name}"`, 'loading started');
     windowModuleState.loadingStarted = true;
     const loadingStartedAt = Date.now();
+    let initStartedAt;
     return Promise.all([
       new this.WindowModule({
         settings: this.settings,
@@ -133,11 +138,15 @@ export default class Module {
       this.isReady()
     ])
     .then(([windowModule]) => {
+      initStartedAt = Date.now();
       windowModuleState.windowModule = windowModule;
       return windowModule.init();
     })
     .then(() => {
+      windowModuleState.initTime = Date.now() - initStartedAt;
       windowModuleState.loadingTime = Date.now() - loadingStartedAt;
+      this._stat.init += windowModuleState.initTime;
+      this._stat.load += windowModuleState.loadingTime;
       console.log('Module window:', `"${this.name}"`, 'loading finished');
       loadingDefer.resolve();
       return loadingDefer.promise;
@@ -158,6 +167,10 @@ export default class Module {
 
   getLoadingTime(window) {
     return this._windows.get(window).loadingTime;
+  }
+
+  getInitTime(window) {
+    return this._windows.get(window).initTime;
   }
 
   unloadWindow(window, { disable } = {}) {

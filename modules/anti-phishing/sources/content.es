@@ -25,7 +25,7 @@ registerContentScript('http*', (window, chrome, windowId) => {
       return;
     }
 
-    let WARNINGURL = `${config.baseURL}anti-phishing/phishing-warning.html?u=`;
+    let WARNINGURL = `chrome://cliqz/content/anti-phishing/phishing-warning.html?u=`;
     // On chromium platform the windowid is a fake on (always === 1),
     // instead the message is sent to the tab through `tabs.sendMessage`
     const sameSourceWindow = msg.windowId === windowId || platform.isChromium;

@@ -54,6 +54,22 @@ export default class FlightResult extends BaseResult {
     return this.arrival.scheduledTime !== this.arrival.actualTime;
   }
 
+  get earlyDeparture() {
+    return this.departure.actualTime < this.departure.scheduledTime;
+  }
+
+  get lateDeparture() {
+    return this.departure.actualTime > this.departure.scheduledTime;
+  }
+
+  get earlyArrival() {
+    return this.arrival.actualTime < this.arrival.scheduledTime;
+  }
+
+  get lateArrival() {
+    return this.arrival.actualTime > this.arrival.scheduledTime;
+  }
+
   get departure() {
     const depart = this._flightDetails['0'];
     return {
@@ -63,8 +79,8 @@ export default class FlightResult extends BaseResult {
       scheduledTime: depart.scheduled_time,
       scheduledDate: depart.scheduled_date,
       actualTime: depart.estimate_actual_time,
-      terminal: depart.terminal,
-      gate: depart.gate
+      terminal: depart.terminal_full,
+      gate: depart.gate_full
     };
   }
 
@@ -78,8 +94,8 @@ export default class FlightResult extends BaseResult {
       scheduledTime: arrival.scheduled_time,
       scheduledDate: arrival.scheduled_date,
       actualTime: arrival.estimate_actual_time,
-      terminal: arrival.terminal,
-      gate: arrival.gate
+      terminal: arrival.terminal_full,
+      gate: arrival.gate_full
     };
   }
 

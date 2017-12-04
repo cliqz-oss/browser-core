@@ -1,0 +1,28 @@
+$primary-color: #00AEF0;
+$secondary-color: #607c85;
+
+@font-face {
+  font-family: "-mac-system", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-weight: 300;
+}
+
+th {
+    text-align: left;
+    padding: 0px 3px;
+}
+
+
+#ab-tests {
+  font-family: "-mac-system", "-apple-system", "Helvetica Neue", Helvetica, Arial, "Segoe UI", "Lucida Grande", sans;
+  font-weight: 300;
+}
+
+.button {
+  border: 1px solid $secondary-color;
+  border-radius: 2px;
+  background-color: $primary-color;
+  color: #FFF;
+  cursor: pointer;
+  display: inline-block;
+  padding: 0px 3px;
+}

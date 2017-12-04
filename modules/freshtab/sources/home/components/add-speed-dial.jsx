@@ -55,7 +55,7 @@ export default class AddSpeedDial extends React.Component {
   handleSubmit(event) {
     event.preventDefault();
     addFormSubmitSignal();
-    const url = this.state.value && this.state.value.trim();
+    const url = this.input.value.trim();
     if (!url) {
       return;
     }
@@ -121,7 +121,14 @@ export default class AddSpeedDial extends React.Component {
               placeholder={t('app.speed-dial.input.placeholder')}
               value={this.state.value}
               onChange={this.handleChange}
-              ref={input => input && input.focus()}
+              ref={(el) => {
+                // TODO: Fix me
+                if (!el) {
+                  return;
+                }
+                this.input = el;
+                this.input.focus();
+              }}
             />
 
             <button className="submit" type="submit">

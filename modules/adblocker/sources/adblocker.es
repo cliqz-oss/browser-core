@@ -25,7 +25,7 @@ const SERIALIZED_ENGINE_PATH = ['adblocker', 'engine.json'];
 
 
 // adb version
-export const ADB_VERSION = 8;
+export const ADB_VERSION = 9;
 
 // Preferences
 export const ADB_DISK_CACHE = 'cliqz-adb-disk-cache';
@@ -393,6 +393,7 @@ const CliqzADB = {
             name: 'adblocker',
             spec: 'blocking',
             fn: CliqzADB.adblockerPipelineStep,
+            before: ['antitracking.onBeforeRequest'],
           },
         );
       });

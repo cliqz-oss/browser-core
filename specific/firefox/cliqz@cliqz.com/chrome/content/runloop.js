@@ -3,7 +3,7 @@
 var _timers = [];
 
 function _setTimer(func, timeout, type, args) {
-  var timer = Cc['@mozilla.org/timer;1'].createInstance(Ci.nsITimer);
+  var timer = Components.classes['@mozilla.org/timer;1'].createInstance(Components.interfaces.nsITimer);
   _timers.push(timer);
 
   var event = {
@@ -14,7 +14,7 @@ function _setTimer(func, timeout, type, args) {
       // be sure the setInterval instances do not get canceled and removed
       // loosing all the references of a setInterval allows the garbage
       // collector to stop the interval
-      if (Ci && type == Ci.nsITimer.TYPE_ONE_SHOT){
+      if (Components.interfaces && type == Components.interfaces.nsITimer.TYPE_ONE_SHOT){
         _removeTimerRef && _removeTimerRef(timer);
       }
     },
@@ -33,11 +33,11 @@ function _removeTimerRef(timer) {
 }
 
 function setInterval(func, timeout) {
-  return _setTimer(func, timeout, Ci.nsITimer.TYPE_REPEATING_PRECISE, [].slice.call(arguments, 2));
+  return _setTimer(func, timeout, Components.interfaces.nsITimer.TYPE_REPEATING_PRECISE, [].slice.call(arguments, 2));
 }
 
 function setTimeout(func, timeout) {
-  return _setTimer(func, timeout, Ci.nsITimer.TYPE_ONE_SHOT, [].slice.call(arguments, 2));
+  return _setTimer(func, timeout, Components.interfaces.nsITimer.TYPE_ONE_SHOT, [].slice.call(arguments, 2));
 }
 
 function clearTimeout(timer) {

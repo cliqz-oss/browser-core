@@ -1,10 +1,13 @@
 import { utils } from '../core/cliqz';
 import { isVideoURL, getVideoInfo, getFormats } from './video-downloader';
+import Panel from '../core/ui/panel';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import config from '../core/config';
 import CliqzEvents from '../core/events';
 import console from '../core/console';
 import UITour from '../platform/ui-tour';
+import History from '../platform/history/history';
+import { Components } from '../platform/globals';
 
 const events = CliqzEvents;
 const DISMISSED_ALERTS = 'dismissedAlerts';
@@ -12,6 +15,8 @@ const DISMISSED_ALERTS = 'dismissedAlerts';
 const TELEMETRY_VERSION = 1;
 const TELEMETRY_TYPE = 'video_downloader';
 const UI_TOUR_ID = 'video-downloader';
+const BUTTON_ID = 'video-downloader-page-action';
+const PANEL_ID = 'video-downloader-panel';
 
 export default class UI {
   showOnboarding() {
@@ -33,8 +38,7 @@ export default class UI {
   }
   constructor(PeerComm, window, settings, background) {
     this.settings = settings;
-    const { utils: Cu } = Components;
-    const { Downloads } = Cu.import('resource://gre/modules/Downloads.jsm');
+    const { Downloads } = Components.utils.import('resource://gre/modules/Downloads.jsm');
     this.Downloads = Downloads;
     this.PeerComm = PeerComm;
     this.window = window;
@@ -48,34 +52,53 @@ export default class UI {
       sendToMobile: this.sendToMobile.bind(this),
       sendTelemetry: this.sendTelemetry.bind(this),
       download: this.download.bind(this),
-      hidePopup: background.pageAction.hidePopup.bind(background.pageAction, window),
+      hidePopup: this.hidePopup.bind(this),
       openConnectPage: this.openConnectPage.bind(this),
     };
 
     this.background = background;
 
-    this.pageAction = background.pageAction;
-    this.pageAction.addWindow(window, this.actions);
-    this.pageActionBtn = window.document.getElementById(this.pageAction.id);
-    this.onButtonClicked = this.onButtonClicked.bind(this);
-    this.pageActionBtn.addEventListener('click', this.onButtonClicked);
-    const pageActionButtons =
+    this.panel = new Panel({
+      window: this.window,
+      url: `${config.baseURL}video-downloader/index.html`,
+      id: PANEL_ID,
+      type: TELEMETRY_TYPE,
+      autohide: false,
+      actions: this.actions,
+      version: TELEMETRY_VERSION,
+      onShowingCallback: () => {
+        this.pageActionBtn.setAttribute('open', 'true');
+      },
+      onHidingCallback: () => {
+        this.pageActionBtn.removeAttribute('open');
+      },
+      defaultWidth: 300,
+      defaultHeight: 115,
+    });
+
+    this.pageActionButtons =
       // Firefox 56 and bellow
       window.document.getElementById('urlbar-icons') ||
       // Firefox 57 and above
       window.document.getElementById('page-action-buttons');
 
-    pageActionButtons.appendChild(this.pageActionBtn);
+    this.pageActionBtn = window.document.createElement('div');
+    this.pageActionBtn.id = BUTTON_ID; // Use id to style this button
+    this.onButtonClicked = this.onButtonClicked.bind(this);
+
+    this.pageActionBtn.addEventListener('click', this.onButtonClicked);
+    this.pageActionButtons.appendChild(this.pageActionBtn);
   }
 
   init() {
+    this.panel.attach();
     // stylesheet for control center button
     addStylesheet(this.window.document, this.cssUrl);
 
     CliqzEvents.sub('core.location_change', this.actions.checkForVideoLink);
     CliqzEvents.sub('core.tab_state_change', this.actions.checkForVideoLink);
     this.showOnboarding();
-    UITour.targets.set(UI_TOUR_ID, { query: `#${this.pageAction.id}`, widgetName: this.pageAction.id, allowAdd: true });
+    UITour.targets.set(UI_TOUR_ID, { query: `#${BUTTON_ID}`, widgetName: BUTTON_ID, allowAdd: true });
     this.hideButton(); // Don't show the button when user opens a new window
   }
 
@@ -84,12 +107,14 @@ export default class UI {
     CliqzEvents.un_sub('core.tab_state_change', this.actions.checkForVideoLink);
     CliqzEvents.un_sub('core.location_change', this.actions.checkForVideoLink);
     UITour.targets.delete(UI_TOUR_ID);
+
     this.pageActionBtn.removeEventListener('click', this.onButtonClicked);
-    this.pageAction.removeWindow(this.window);
+    this.pageActionButtons.removeChild(this.pageActionBtn);
+    this.panel.detach();
   }
 
   resizePopup({ width, height }) {
-    this.pageAction.resizePopup(this.window, { width, height });
+    this.panel.resizePopup({ width, height });
   }
 
   openConnectPage() {
@@ -189,32 +214,42 @@ export default class UI {
   }
 
   showPopup() {
-    this.pageAction.showPopup(this.window);
+    this.panel.open(this.pageActionBtn);
+  }
+
+  hidePopup() {
+    this.panel.hide();
   }
 
   showButton() {
-    const pageActionBtn = this.window.document.getElementById(this.pageAction.id);
-    if (pageActionBtn.style.display === 'block') {
+    if (this.pageActionBtn.style.display === 'block') {
       return;
     }
-    pageActionBtn.style.display = 'block';
+    this.pageActionBtn.style.display = 'block';
 
     this.maybeShowingUITour();
   }
 
   hideButton() {
-    const pageActionBtn = this.window.document.getElementById(this.pageAction.id);
-    if (pageActionBtn.style.display === 'none') {
+    if (this.pageActionBtn.style.display === 'none') {
       return;
     }
-    pageActionBtn.style.display = 'none';
+    this.pageActionBtn.style.display = 'none';
 
     this.hideUITour();
   }
 
   onButtonClicked() {
+    utils.telemetry({
+      type: TELEMETRY_TYPE,
+      version: TELEMETRY_VERSION,
+      target: 'icon',
+      action: 'click',
+    });
+
     this.hideUITour();
     this.background.actions.closeUITour(false);
+    this.panel.open(this.pageActionBtn);
   }
 
   sendToMobile({ url, format, title, resend }) {
@@ -267,13 +302,16 @@ export default class UI {
   }
 
   getCurrentUrl() {
-    const url = this.window.gBrowser.currentURI.spec;
-    let friendlyURL = url;
+    return this.window.gBrowser.currentURI.spec;
+  }
+
+  getCurrentFriendlyUrl() {
+    let friendlyURL = this.getCurrentUrl();
     try {
       // try to clean the url
-      friendlyURL = utils.stripTrailingSlash(utils.cleanUrlProtocol(url, true));
+      friendlyURL = utils.stripTrailingSlash(utils.cleanUrlProtocol(friendlyURL, true));
     } catch (e) {
-      utils.log(url, e);
+      utils.log(friendlyURL, e);
     }
 
     return friendlyURL;
@@ -290,7 +328,7 @@ export default class UI {
   }
 
   checkForVideoLink() {
-    const url = this.getCurrentUrl();
+    const url = this.getCurrentFriendlyUrl();
 
     if (isVideoURL(url)) {
       this.showButton();
@@ -301,7 +339,7 @@ export default class UI {
 
   // used for a first faster rendering
   getVideoLinks() {
-    const url = this.getCurrentUrl();
+    const url = this.getCurrentFriendlyUrl();
     Promise.resolve()
     .then(() => {
       if (this.PeerComm) {
@@ -323,6 +361,7 @@ export default class UI {
           isPaired: this.PeerComm && this.PeerComm.isPaired,
           videoForPairing,
           formats,
+          origin: encodeURI(this.getCurrentUrl())
         };
         if (result.formats.length > 0) {
           this.sendMessageToPopup({
@@ -386,10 +425,10 @@ export default class UI {
       message,
     };
 
-    this.pageAction.sendMessage(this.window, msg);
+    this.panel.sendMessage(msg);
   }
 
-  download({ url, filename, size, format }) {
+  download({ url, filename, size, format, origin }) {
     this.background.actions.closeUITour(false);
 
     utils.telemetry({
@@ -400,60 +439,64 @@ export default class UI {
       format,
     });
 
-    const nsIFilePicker = Ci.nsIFilePicker;
-    const fp = Cc['@mozilla.org/filepicker;1'].createInstance(nsIFilePicker);
+    const nsIFilePicker = Components.interfaces.nsIFilePicker;
+    const fp = Components.classes['@mozilla.org/filepicker;1'].createInstance(nsIFilePicker);
     fp.defaultString = filename;
 
     const pos = filename.lastIndexOf('.');
     const extension = (pos > -1) ? filename.substring(pos + 1) : '*';
     fp.appendFilter((extension === 'm4a') ? 'Audio' : 'Video', `*.${extension}`);
 
-    const windowMediator = Cc['@mozilla.org/appshell/window-mediator;1']
-      .getService(Ci.nsIWindowMediator);
+    const windowMediator = Components.classes['@mozilla.org/appshell/window-mediator;1']
+      .getService(Components.interfaces.nsIWindowMediator);
     const window = windowMediator.getMostRecentWindow(null);
 
     fp.init(window, null, nsIFilePicker.modeSave);
-    const fileBox = fp.show();
-    if ((fileBox === nsIFilePicker.returnOK) || (fileBox === nsIFilePicker.returnReplace)) {
-      let download;
-      const downloadPromise = this.Downloads.createDownload({
-        source: url,
-        target: fp.file
-      });
+    fp.open((rv) => {
+      if ((rv === nsIFilePicker.returnOK) || (rv === nsIFilePicker.returnReplace)) {
+        let download;
+        const downloadPromise = this.Downloads.createDownload({
+          source: url,
+          target: fp.file
+        });
 
-      Promise.all([
-        this.Downloads.getList(this.Downloads.ALL),
-        downloadPromise,
-      ]).then(([list, d]) => {
-        download = d;
-        download.start();
-        list.add(download);
-        return download.whenSucceeded();
-      }).then(() => {
+        Promise.all([
+          this.Downloads.getList(this.Downloads.ALL),
+          downloadPromise,
+        ]).then(([list, d]) => {
+          download = d;
+          download.start();
+          list.add(download);
+          if (origin) {
+            History.fillFromVisit(url, origin);
+          }
+          return download.whenSucceeded();
+        }).then(() => {
+          utils.telemetry({
+            type: TELEMETRY_TYPE,
+            version: TELEMETRY_VERSION,
+            action: 'download',
+            size,
+            is_success: true
+          });
+        }, () => {
+          utils.telemetry({
+            type: TELEMETRY_TYPE,
+            version: TELEMETRY_VERSION,
+            action: 'download',
+            size,
+            is_success: false
+          });
+        }).then(() => {
+          download.finalize(true);
+        });
+      } else {
         utils.telemetry({
           type: TELEMETRY_TYPE,
           version: TELEMETRY_VERSION,
-          action: 'download',
-          size,
-          is_success: true
+          action: 'download_cancel',
         });
-      }, () => {
-        utils.telemetry({
-          type: TELEMETRY_TYPE,
-          version: TELEMETRY_VERSION,
-          action: 'download',
-          size,
-          is_success: false
-        });
-      }).then(() => {
-        download.finalize(true);
-      });
-    } else {
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        version: TELEMETRY_VERSION,
-        action: 'download_cancel',
-      });
-    }
+      }
+    });
   }
 }

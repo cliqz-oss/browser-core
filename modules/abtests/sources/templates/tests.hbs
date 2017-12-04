@@ -1,0 +1,79 @@
+<tr>
+    <th colspan="3">Test</th>
+    <th colspan="2">Client Setting</th>
+    <th colspan="8">Static Properties</th>
+    <th>Actions</th>
+</tr>
+<tr>
+    <th>Id</th>
+    <th>Name</th>
+    <th>Description</th>
+
+    <th>Started On</th>
+    <th>Assigned Group</th>
+
+    <th>Available Groups</th>
+    <th>Required Core Version</th>
+    <th>Required Demographics</th>
+    <th>Start Date</th>
+    <th>End Date</th>
+    <th>Treatment Length</th>
+    <th>Enter Probability</th>
+    <th>Status (Server-Side)</th>
+
+    <th></th>
+
+</tr>
+{{#each tests}}
+<tr>
+    <td>{{id}}</td>
+    <td>{{name}}</td>
+    <td>{{description}}</td>
+
+    <td>{{started}}</td>
+    <td>{{group}}</td>
+
+    <td>
+        {{#each groups}}
+            <div>
+                {{@key}}:
+                {{#each this}}
+                    {{@key}}: {{this}}
+                {{/each}}
+            </div>
+        {{/each}}
+    </td>
+    <td>
+        {{> version core_version}}
+    </td>
+    <td>
+        {{> demographics demographic}}
+    </td>
+    <td>{{start_date}}</td>
+    <td>{{end_date}}</td>
+    <td>{{treatment_length}}</td>
+    <td>{{probability}}</td>
+    <td>{{status}}</td>
+
+    <td>
+        {{#if ../options.showStart}}
+            <select class="start-test-group">
+                {{#each groups}}
+                    <option value="{{@key}}">{{@key}}</option>
+                {{/each}}
+            </select>
+            <div class="button start-test" data-test-id="{{id}}">Start</div>
+        {{/if}}
+        {{#if ../options.showStop}}
+            <div class="button stop-test" data-test-id="{{id}}">Stop</div>
+        {{/if}}
+        {{#if ../options.showRemove}}
+            <div class="button remove-test" data-test-id="{{id}}">Remove</div>
+        {{/if}}
+    </td>
+</tr>
+{{else}}
+<tr>
+    <td colspan="13">No tests</td>
+</tr>
+{{/each}}

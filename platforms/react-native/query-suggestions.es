@@ -1,8 +1,8 @@
 import { getPref } from './prefs';
+import { NativeModules } from 'react-native';
 
-export function handleQuerySuggestions(query, suggestions) {
-  if (suggestions && getPref("suggestionsEnabled", false)) {
-    // TODO: send to native
-    // osAPI.showQuerySuggestions(query, suggestions);
+export function handleQuerySuggestions(query, suggestions = []) {
+  if (NativeModules.QuerySuggestion && getPref("suggestionsEnabled", false)) {
+    NativeModules.QuerySuggestion.showQuerySuggestions(query, suggestions);
   }
 }

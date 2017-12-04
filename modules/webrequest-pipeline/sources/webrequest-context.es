@@ -25,6 +25,9 @@ const TYPE_LOOKUP = {
   web_manifest: 22,
 };
 
+const TYPE_LOOKUP_REVERSE = Object.keys(TYPE_LOOKUP)
+  .reduce((obj, key) => Object.assign(obj, { [TYPE_LOOKUP[key]]: key }), {});
+
 
 function createHeadersGetter(headers) {
   const headersMap = new Map();
@@ -43,8 +46,13 @@ function createHeadersGetter(headers) {
  */
 class WebRequestContext {
   constructor(details) {
-    // WebRequest API
-    this.requestId = details.requestid;
+    // The following are NOT supported in bootstrap extension
+    this.requestId = details.requestId;
+    this.timeStamp = details.timeStamp;
+    this.method = details.method;
+    this.ip = details.ip;
+    this.error = details.error;
+    this.proxyInfo = details.proxyInfo;  // FF web-ext only
 
     // Frame ids: tabId -> parentFrameId -> frameId
     this.frameId = details.frameId;
@@ -62,9 +70,13 @@ class WebRequestContext {
     this.trigger = details.trigger || details.originUrl;
 
     // Content type
+    // We should still use the interger type (cpt) from LegacyContext
     this.type = details.type;
     if (typeof details.type === 'string') {
-      this.type = TYPE_LOOKUP[details.type];
+      this.typeInt = TYPE_LOOKUP[details.type];
+    } else {
+      this.typeInt = this.type;
+      this.type = TYPE_LOOKUP_REVERSE[details.type];
     }
 
     // Headers
@@ -128,7 +140,7 @@ class WebRequestContext {
   }
 
   isFullPage() {
-    return this.type === 6;
+    return this.type === 'main_frame';
   }
 
   getCookieData() {
@@ -160,7 +172,7 @@ class WebRequestContext {
  */
 export default class LegacyContext extends WebRequestContext {
   get cpt() {
-    return this.type;
+    return this.typeInt;
   }
 
   get tabUrl() {

@@ -8,6 +8,8 @@ import cliqz from '../cliqz';
 import t from '../i18n';
 import { sendOffersMessage } from '../services/offers';
 
+import { offerShowSignal, offerClickSignal } from '../services/telemetry/offers';
+
 function Code(props) {
   if (props.code) {
     return (
@@ -30,6 +32,7 @@ export default class Offer extends React.Component {
   handleVoucherClick() {
     const offer = this.props.offer;
     sendOffersMessage(offer.offer_id, 'offer_ca_action');
+    offerClickSignal('use');
   }
 
   handleCloseClick() {
@@ -41,6 +44,7 @@ export default class Offer extends React.Component {
     }));
 
     sendOffersMessage(offerId, 'offer_removed', 'remove-offer');
+    offerClickSignal('remove');
   }
 
   get domain() {
@@ -59,6 +63,8 @@ export default class Offer extends React.Component {
   render() {
     const offer = this.props.offer;
     const offerTpl = this.props.offer.offer_info.ui_info.template_data;
+    offerShowSignal();
+
 
     return (
       /* eslint-disable jsx-a11y/no-static-element-interactions */

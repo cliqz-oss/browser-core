@@ -10,7 +10,7 @@ const MOCK = {
     },
   },
   'abtests/demographics': {
-    default: () => mockExtensionVersion,
+    default: () => mockCoreVersion,
   },
   'core/kord/inject': {
     default: {
@@ -74,7 +74,7 @@ const mockTest1 = {
 let mockUserDemographics = { };
 let mockSynchronizedDate = Moment(new Date(2017, 5, 1));
 let mockRandom = 0;
-let mockExtensionVersion = null;
+let mockCoreVersion = null;
 
 export default describeModule('abtests/manager',
   () => MOCK,
@@ -446,19 +446,19 @@ export default describeModule('abtests/manager',
       });
 
       it('returns true for exact match', () => {
-        mockExtensionVersion = '1.0.0';
+        mockCoreVersion = '1.0.0';
         mockTest2.core_version = '1.0.0';
         chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
       });
       it('returns true for partial match', () => {
-        mockExtensionVersion = '1.0.0';
+        mockCoreVersion = '1.0.0';
         mockTest2.core_version = '1.0';
         chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
         mockTest2.core_version = '1';
         chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
       });
       it('returns false for no match', () => {
-        mockExtensionVersion = '1.0.0';
+        mockCoreVersion = '1.0.0';
         mockTest2.core_version = '2.0.0';
         chai.expect(manager.isVersionMatch(mockTest2)).to.be.false;
         mockTest2.core_version = '2.0';
@@ -466,8 +466,8 @@ export default describeModule('abtests/manager',
         mockTest2.core_version = '2';
         chai.expect(manager.isVersionMatch(mockTest2)).to.be.false;
       });
-      it('returns false for missing extension version', () => {
-        mockExtensionVersion = null;
+      it('returns false for missing core version', () => {
+        mockCoreVersion = null;
         mockTest2.core_version = '2.0.0';
         chai.expect(manager.isVersionMatch(mockTest2)).to.be.false;
       });

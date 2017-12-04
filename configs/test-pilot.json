@@ -4,8 +4,6 @@
   "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
   "testem_launchers": ["unit-node", "Chrome"],
   "testem_launchers_ci": ["unit-node"],
-  "pack": "cd build && fab package",
-  "publish": "cd build && fab publish:beta=$CLIQZ_BETA,channel=$CLIQZ_CHANNEL,pre=$CLIQZ_PRE_RELEASE",
   "settings": {
     "id": "testpilot@cliqz.com",
     "name": "Cliqz Test Pilot",
@@ -58,11 +56,10 @@
   "system": {
     "map": {
       "handlebars": "bower_components/handlebars/handlebars.js",
+      "jquery": "bower_components/jquery/dist/jquery.js",
       "bigint": "bower_components/bigint/index.js",
       "mathjs": "bower_components/mathjs/dist/math.min.js",
-      "md5": "bower_components/md5/index.js",
-      "react": "node_modules/react/cjs/react.production.min.js",
-      "react-dom": "node_modules/react-dom/cjs/react-dom.production.min.js"
+      "md5": "bower_components/md5/index.js"
     },
     "packages": {
       "object-assign": {
@@ -71,6 +68,29 @@
       "modules": {
         "map": {
           "./platform/tldjs": "node_modules/tldjs/index.js"
+        },
+        "meta": {
+          "./platform/lib/zlib.js": {
+            "format": "system"
+          },
+          "./core/lib/cron-parser.js": {
+            "format": "system"
+          },
+          "./platform/lib/dexie.js": {
+            "format": "system"
+          },
+          "./platform/fast-url-parser.js": {
+            "format": "system"
+          },
+          "./platform/lib/deep-equal.js": {
+            "format": "system"
+          },
+          "./platform/lib/jsep.js": {
+            "format": "system"
+          },
+          "./platform/lib/node-forge.js": {
+            "format": "system"
+          }
         }
       }
     }

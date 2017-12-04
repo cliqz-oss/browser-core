@@ -104,7 +104,10 @@
                 </g>
             </g>
         </svg>
-        <span id="count">{{ module.adblocker.totalCount }}</span>
+        <span id="count"">
+          <span visible-on-state="active">{{ module.adblocker.totalCount }}</span>
+          <span visible-on-state="off">0</span>
+        </span>
       </div>
       <div class="row-text">
           <p class="description" start-navigation data-i18n="control-center-adblock-description" visible-on-state="active"></p>

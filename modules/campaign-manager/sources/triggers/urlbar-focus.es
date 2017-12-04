@@ -1,5 +1,5 @@
-import TriggerBase from "campaign-manager/triggers/base";
-import CliqzEvents from "core/events";
+import TriggerBase from "./base";
+import CliqzEvents from "../../core/events";
 
 export default class extends TriggerBase {
   constructor() {

@@ -1,5 +1,5 @@
-import { utils } from 'core/cliqz';
-import CliqzMonComp from 'moncomp/moncomp';
+import { utils } from '../core/cliqz';
+import CliqzMonComp from './moncomp';
 
 export default class {
   constructor(settings) {

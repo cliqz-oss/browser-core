@@ -5,8 +5,23 @@
 export default describeModule('hpn/send-message',
   function () {
     return {
+      '../core/console': {
+        default: console,
+      },
       './main': { default: {} },
       './crypto-worker': { default: {} },
+      '../core/kord/inject': {
+        default: {
+          module() {
+            return {
+              action() {},
+              isEnabled() {
+                return false;
+              },
+            };
+          },
+        }
+      },
     };
   },
 

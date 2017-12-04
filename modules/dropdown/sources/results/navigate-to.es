@@ -34,7 +34,7 @@ export default class NavigateToResult extends BaseResult {
   }
 
   get kind() {
-    return 'navigate-to';
+    return ['navigate-to'];
   }
 
   get url() {

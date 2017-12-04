@@ -50,8 +50,8 @@ export default background({
   },
 
   events: {
-    'content:location-change': function onLocationChange({ url }) {
-      if (this.initialized) {
+    'content:location-change': function onLocationChange({ url, isPrivate }) {
+      if (this.initialized && !isPrivate) {
         CliqzMarketAnalyzer.matchURL(url);
       }
     }

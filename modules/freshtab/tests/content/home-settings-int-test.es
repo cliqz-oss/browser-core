@@ -1,175 +1,34 @@
-const clone = o => JSON.parse(JSON.stringify(o));
-
-function wait(time) {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
-
-let intervals = [];
-function registerInterval(interval) {
-  intervals.push(interval);
-}
-
-function clearIntervals() {
-  intervals.forEach(interval => clearInterval(interval));
-  intervals = [];
-}
-
-function waitFor(fn) {
-  var resolver, rejecter, promise = new Promise(function (res, rej) {
-    resolver = res;
-    rejecter = rej;
-  });
-
-  function check() {
-    const result = fn();
-    if (result) {
-      clearInterval(interval);
-      resolver(result);
-    }
-  }
-
-  var interval = setInterval(check, 50);
-  check();
-  registerInterval(interval);
-
-  return promise;
-}
-
-class Subject {
-  constructor() {
-    this.modules = {};
-    const listeners = new Set();
-    this.chrome = {
-      runtime: {
-        onMessage: {
-          addListener(listener) {
-            listeners.add(listener);
-          },
-          removeListener(listener) {
-            listeners.delete(listener);
-          }
-        },
-        sendMessage: ({ module, action, requestId }) => {
-          const response = this.modules[module].actions[action];
-          listeners.forEach(l => {
-            l({
-              action,
-              response,
-              type: 'response',
-              requestId,
-              source: 'cliqz-content-script'
-            });
-          })
-        }
-      },
-      i18n: {
-        getMessage: k => k,
-      }
-    }
-  }
-
-  load() {
-    this.iframe = document.createElement('iframe');
-    this.iframe.src = '/build/cliqz@cliqz.com/chrome/content/freshtab/home.html';
-    this.iframe.width = 900;
-    this.iframe.height = 500;
-    document.body.appendChild(this.iframe)
-
-    return new Promise(resolve => {
-      this.iframe.contentWindow.chrome = this.chrome;
-      this.iframe.contentWindow.addEventListener('load', () => resolve());
-    });
-  }
-
-  unload() {
-    document.body.removeChild(this.iframe);
-  }
-
-  query(selector) {
-    return this.iframe.contentWindow.document.querySelector(selector);
-  }
-
-  queryAll(selector) {
-    return this.iframe.contentWindow.document.querySelectorAll(selector);
-  }
-
-  pushData(data = {}) {
-    this.iframe.contentWindow.postMessage(JSON.stringify({
-      target: 'cliqz-freshtab',
-      origin: 'window',
-      message:  {
-        action: 'pushData',
-        data,
-      }
-    }), '*');
-    return wait(500);
-  }
-
-  getComputedStyle(selector) {
-    return this.iframe.contentWindow.getComputedStyle(this.query(selector));
-  }
-
-  respondsWith({ module, action, response, requestId }) {
-    this.modules[module] = this.modules[module] || { actions: {} };
-    this.modules[module].actions[action] = response;
-  }
-}
+import {
+  clone,
+  clearIntervals,
+  waitFor,
+  Subject,
+  defaultConfig,
+} from './helpers';
 
 describe('Fresh tab interactions with settings switches', function () {
   const settingsButtonSelector = '#settings-btn';
   const settingsPanelSelector = '#settings-panel';
-  const settingsRowSelector = '#settings-panel div.settings-row';
-  const settingsSwitchSelector = 'div.switch-container input.switch';
   const backgroundAreaSelector = 'ul.background-selection-list';
   const mostVisitedAreaSelector = '#section-most-visited';
   const favoritesAreaSelector = '#section-favorites';
   const searchAreaSelector = 'div.search';
   const newsAreaSelector = '#section-news';
-  const allHiddenConfig = {
-    module: 'freshtab',
-    action: 'getConfig',
-    response: {
-      locale: 'en-US',
-      newTabUrl: 'chrome://cliqz/content/freshtab/home.html',
-      isBrowser: false,
-      showNewBrandAlert: false,
-      messages: {},
-      isHistoryEnabled: true,
-      hasActiveNotifications: false,
-      blueTheme: false,
-      isBlueBackgroundSupported: true,
-      isBlueThemeSupported: true,
-      componentsState: {
-        historyDials: {
-          visible: false
-        },
-        customDials: {
-          visible: false
-        },
-        search: {
-          visible: false
-        },
-        news: {
-          visible: false,
-          preferedCountry: 'de'
-        },
-        background: {
-          image: 'bg-default'
-        }
-      }
-    },
-  };
+  const cliqzThemeTxt = 'Cliqz Theme';
+  const bgLabelTxt = 'freshtab.app.settings.background.label';
+  const mostVisitedLabelTxt = 'freshtab.app.settings.most-visited.label';
+  const favoritesLabelTxt = 'freshtab.app.settings.favorites.label';
+  const searchOptionsTxt = 'freshtab.app.settings.search.label';
+  const newsOptionsTxt = 'freshtab.app.settings.news.label';
   let subject;
   let messages;
   let listener;
-  let allSettingsRows;
   let cliqzThemeSwitch;
   let backgroundSwitch;
   let mostVisitedSwitch;
   let favoritesSwitch;
   let searchSwitch;
   let newsSwitch;
-  let settingsPanel;
 
   beforeEach(function () {
     subject = new Subject();
@@ -185,13 +44,13 @@ describe('Fresh tab interactions with settings switches', function () {
       response: {
         history: [
           {
-            title: `https://this.test.title`,
-            id: `this.test.id`,
-            url: `https://this.test.domain`,
-            displayTitle: `t0`,
+            title: 'https://this.test.title',
+            id: 'this.test.id',
+            url: 'https://this.test.domain',
+            displayTitle: 't0',
             custom: false,
             logo: {
-              text: `0`,
+              text: '0',
               backgroundColor: 'c3043e',
               buttonsClass: 'cliqz-brands-button-1',
               style: 'background-color: #c3043e;color:#fff;'
@@ -256,17 +115,19 @@ describe('Fresh tab interactions with settings switches', function () {
         ]
       }
     });
-
-  })
+  });
 
   afterEach(function () {
-    subject.unload();
     clearIntervals();
   });
 
   describe('for all areas being hidden', function () {
     beforeEach(function () {
-      subject.respondsWith(allHiddenConfig);
+      const withBlueBgConfig = clone(defaultConfig);
+      withBlueBgConfig.response.isBlueBackgroundSupported = true;
+      withBlueBgConfig.response.isBlueThemeSupported = true;
+      withBlueBgConfig.response.componentsState.background.image = 'bg-default';
+      subject.respondsWith(withBlueBgConfig);
       return subject.load().then(() => {
         // Keep track of received messages
         messages = new Map();
@@ -279,13 +140,17 @@ describe('Fresh tab interactions with settings switches', function () {
         };
         subject.chrome.runtime.onMessage.addListener(listener);
 
-        allSettingsRows = subject.queryAll(settingsRowSelector);
-        cliqzThemeSwitch = allSettingsRows[0].querySelector(settingsSwitchSelector);
-        backgroundSwitch = allSettingsRows[1].querySelector(settingsSwitchSelector);
-        mostVisitedSwitch = allSettingsRows[2].querySelector(settingsSwitchSelector);
-        favoritesSwitch = allSettingsRows[3].querySelector(settingsSwitchSelector);
-        searchSwitch = allSettingsRows[4].querySelector(settingsSwitchSelector);
-        newsSwitch = allSettingsRows[5].querySelector(settingsSwitchSelector);
+        cliqzThemeSwitch = subject.queryByI18n(cliqzThemeTxt).querySelector('input.switch');
+        backgroundSwitch = subject.queryByI18n(bgLabelTxt)
+          .querySelector('input.switch');
+        mostVisitedSwitch = subject.queryByI18n(mostVisitedLabelTxt)
+          .querySelector('input.switch');
+        favoritesSwitch = subject.queryByI18n(favoritesLabelTxt)
+          .querySelector('input.switch');
+        searchSwitch = subject.queryByI18n(searchOptionsTxt)
+          .querySelector('input.switch');
+        newsSwitch = subject.queryByI18n(newsOptionsTxt)
+          .querySelector('input.switch');
 
         subject.query(settingsButtonSelector).click();
         return waitFor(() => subject.query(settingsPanelSelector).classList.contains('visible'));
@@ -294,6 +159,64 @@ describe('Fresh tab interactions with settings switches', function () {
 
     afterEach(function () {
       subject.chrome.runtime.onMessage.removeListener(listener);
+      subject.unload();
+    });
+
+    describe('clicking on the Cliqz theme switch', function () {
+      beforeEach(function () {
+        cliqzThemeSwitch.click();
+      });
+
+      it('flips the theme selection switch to active', function () {
+        chai.expect(cliqzThemeSwitch).to.have.property('checked', true);
+      });
+
+      it('leaves other switches unchanged', function () {
+        chai.expect(backgroundSwitch).to.have.property('checked', false);
+        chai.expect(mostVisitedSwitch).to.have.property('checked', false);
+        chai.expect(favoritesSwitch).to.have.property('checked', false);
+        chai.expect(searchSwitch).to.have.property('checked', false);
+        chai.expect(newsSwitch).to.have.property('checked', false);
+      });
+
+      it('keeps the settings panel open', function () {
+        chai.expect(subject.query(settingsPanelSelector)).to.exist;
+        chai.expect(subject.query(settingsPanelSelector).className).to.contain('visible');
+      });
+
+      it('leaves all FT areas hidden', function () {
+        chai.expect(subject.query(mostVisitedAreaSelector)).to.not.exist;
+        chai.expect(subject.query(favoritesAreaSelector)).to.not.exist;
+        chai.expect(subject.query(newsAreaSelector)).to.not.exist;
+        chai.expect(subject.query(searchAreaSelector)).to.not.exist;
+      });
+
+      it('sends a "toggleBlueTheme" message', function () {
+        chai.expect(messages.has('toggleBlueTheme')).to.equal(true);
+        chai.expect(messages.get('toggleBlueTheme').length).to.equal(1);
+      });
+
+      it('sends a "settings > cliqz_theme > click" telemetry signal', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'settings') &&
+              (item.args[0].target === 'cliqz_theme') &&
+              (item.args[0].action === 'click') &&
+              (item.args[0].state === 'on')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
+      });
     });
 
     describe('clicking on the background selection switch', function () {
@@ -331,12 +254,34 @@ describe('Fresh tab interactions with settings switches', function () {
         chai.expect(subject.query(mostVisitedAreaSelector)).to.not.exist;
         chai.expect(subject.query(favoritesAreaSelector)).to.not.exist;
         chai.expect(subject.query(newsAreaSelector)).to.not.exist;
-        chai.expect(subject.query(searchAreaSelector)).to.not.exist
+        chai.expect(subject.query(searchAreaSelector)).to.not.exist;
       });
 
       it('sends a "saveBackgroundImage" message', function () {
         chai.expect(messages.has('saveBackgroundImage')).to.equal(true);
         chai.expect(messages.get('saveBackgroundImage').length).to.equal(1);
+      });
+
+      it('sends a "settings > background > click" telemetry signal', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'settings') &&
+              (item.args[0].target === 'background') &&
+              (item.args[0].action === 'click') &&
+              (item.args[0].state === 'on')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
       });
     });
 
@@ -370,12 +315,34 @@ describe('Fresh tab interactions with settings switches', function () {
       it('leaves other areas hidden', function () {
         chai.expect(subject.query(favoritesAreaSelector)).to.not.exist;
         chai.expect(subject.query(newsAreaSelector)).to.not.exist;
-        chai.expect(subject.query(searchAreaSelector)).to.not.exist
+        chai.expect(subject.query(searchAreaSelector)).to.not.exist;
       });
 
       it('sends a "toggleComponent" message', function () {
         chai.expect(messages.has('toggleComponent')).to.equal(true);
         chai.expect(messages.get('toggleComponent').length).to.equal(1);
+      });
+
+      it('sends a "settings > topsites > click" telemetry signal', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'settings') &&
+              (item.args[0].target === 'topsites') &&
+              (item.args[0].action === 'click') &&
+              (item.args[0].state === 'on')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
       });
     });
 
@@ -409,12 +376,34 @@ describe('Fresh tab interactions with settings switches', function () {
       it('leaves other areas hidden', function () {
         chai.expect(subject.query(mostVisitedAreaSelector)).to.not.exist;
         chai.expect(subject.query(newsAreaSelector)).to.not.exist;
-        chai.expect(subject.query(searchAreaSelector)).to.not.exist
+        chai.expect(subject.query(searchAreaSelector)).to.not.exist;
       });
 
       it('sends a "toggleComponent" message', function () {
         chai.expect(messages.has('toggleComponent')).to.equal(true);
         chai.expect(messages.get('toggleComponent').length).to.equal(1);
+      });
+
+      it('sends a "settings > favorites > click" telemetry signal', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'settings') &&
+              (item.args[0].target === 'favorites') &&
+              (item.args[0].action === 'click') &&
+              (item.args[0].state === 'on')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
       });
     });
 
@@ -454,6 +443,28 @@ describe('Fresh tab interactions with settings switches', function () {
       it('sends a "toggleComponent" message', function () {
         chai.expect(messages.has('toggleComponent')).to.equal(true);
         chai.expect(messages.get('toggleComponent').length).to.equal(1);
+      });
+
+      it('sends a "settings > search_bar > click" telemetry signal', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'settings') &&
+              (item.args[0].target === 'search_bar') &&
+              (item.args[0].action === 'click') &&
+              (item.args[0].state === 'on')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
       });
     });
 
@@ -500,12 +511,34 @@ describe('Fresh tab interactions with settings switches', function () {
       it('leaves other areas hidden', function () {
         chai.expect(subject.query(mostVisitedAreaSelector)).to.not.exist;
         chai.expect(subject.query(favoritesAreaSelector)).to.not.exist;
-        chai.expect(subject.query(searchAreaSelector)).to.not.exist
+        chai.expect(subject.query(searchAreaSelector)).to.not.exist;
       });
 
       it('sends a "toggleComponent" message', function () {
         chai.expect(messages.has('toggleComponent')).to.equal(true);
         chai.expect(messages.get('toggleComponent').length).to.equal(1);
+      });
+
+      it('sends a "settings > news > click" telemetry signal', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'settings') &&
+              (item.args[0].target === 'news') &&
+              (item.args[0].action === 'click') &&
+              (item.args[0].state === 'on')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
       });
     });
 
@@ -554,6 +587,34 @@ describe('Fresh tab interactions with settings switches', function () {
         chai.expect(messages.get('toggleComponent').length).to.equal(4);
       });
 
+      it('sends five "settings > XXX > click" telemetry signals', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'settings') &&
+              (
+                (item.args[0].target === 'background') ||
+                (item.args[0].target === 'topsites') ||
+                (item.args[0].target === 'favorites') ||
+                (item.args[0].target === 'search_bar') ||
+                (item.args[0].target === 'news')
+              ) &&
+              (item.args[0].action === 'click') &&
+              (item.args[0].state === 'on')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(5);
+      });
+
       it('sends a "saveBackgroundImage" message', function () {
         chai.expect(messages.has('saveBackgroundImage')).to.equal(true);
         chai.expect(messages.get('saveBackgroundImage').length).to.equal(1);
@@ -563,7 +624,7 @@ describe('Fresh tab interactions with settings switches', function () {
         beforeEach(function () {
           subject.query('button.close').click();
           return waitFor(() => !subject.query(settingsPanelSelector).classList.contains('visible'))
-            .then(function () {
+            .then(() => {
               subject.query(settingsButtonSelector).click();
               return waitFor(() => subject.query(settingsPanelSelector).classList.contains('visible'));
             });
@@ -598,7 +659,7 @@ describe('Fresh tab interactions with settings switches', function () {
 
   describe('for all areas being visible', function () {
     beforeEach(function () {
-      const allVisibleConfig = clone(allHiddenConfig);
+      const allVisibleConfig = clone(defaultConfig);
       allVisibleConfig.response.blueTheme = true;
       allVisibleConfig.response.isBlueBackgroundSupported = true;
       allVisibleConfig.response.isBlueThemeSupported = true;
@@ -621,14 +682,17 @@ describe('Fresh tab interactions with settings switches', function () {
         };
         subject.chrome.runtime.onMessage.addListener(listener);
 
-        allSettingsRows = subject.queryAll(settingsRowSelector);
-        cliqzThemeSwitch = allSettingsRows[0].querySelector(settingsSwitchSelector);
-        backgroundSwitch = allSettingsRows[1].querySelector(settingsSwitchSelector);
-        /* allSettingsRows[2] contains only bg thumbnails */
-        mostVisitedSwitch = allSettingsRows[3].querySelector(settingsSwitchSelector);
-        favoritesSwitch = allSettingsRows[4].querySelector(settingsSwitchSelector);
-        searchSwitch = allSettingsRows[5].querySelector(settingsSwitchSelector);
-        newsSwitch = allSettingsRows[6].querySelector(settingsSwitchSelector);
+        cliqzThemeSwitch = subject.queryByI18n(cliqzThemeTxt).querySelector('input.switch');
+        backgroundSwitch = subject.queryByI18n(bgLabelTxt)
+          .querySelector('input.switch');
+        mostVisitedSwitch = subject.queryByI18n(mostVisitedLabelTxt)
+          .querySelector('input.switch');
+        favoritesSwitch = subject.queryByI18n(favoritesLabelTxt)
+          .querySelector('input.switch');
+        searchSwitch = subject.queryByI18n(searchOptionsTxt)
+          .querySelector('input.switch');
+        newsSwitch = subject.queryByI18n(newsOptionsTxt)
+          .querySelector('input.switch');
         subject.query(settingsButtonSelector).click();
         return waitFor(() => subject.query(settingsPanelSelector));
       });
@@ -636,6 +700,64 @@ describe('Fresh tab interactions with settings switches', function () {
 
     afterEach(function () {
       subject.chrome.runtime.onMessage.removeListener(listener);
+      subject.unload();
+    });
+
+    describe('clicking on the Cliqz theme switch', function () {
+      beforeEach(function () {
+        cliqzThemeSwitch.click();
+      });
+
+      it('flips the theme selection switch to active', function () {
+        chai.expect(cliqzThemeSwitch).to.have.property('checked', false);
+      });
+
+      it('leaves other switches unchanged', function () {
+        chai.expect(backgroundSwitch).to.have.property('checked', true);
+        chai.expect(mostVisitedSwitch).to.have.property('checked', true);
+        chai.expect(favoritesSwitch).to.have.property('checked', true);
+        chai.expect(searchSwitch).to.have.property('checked', true);
+        chai.expect(newsSwitch).to.have.property('checked', true);
+      });
+
+      it('keeps the settings panel open', function () {
+        chai.expect(subject.query(settingsPanelSelector)).to.exist;
+        chai.expect(subject.query(settingsPanelSelector).className).to.contain('visible');
+      });
+
+      it('leaves all FT areas visible', function () {
+        chai.expect(subject.query(mostVisitedAreaSelector)).to.exist;
+        chai.expect(subject.query(favoritesAreaSelector)).to.exist;
+        chai.expect(subject.query(newsAreaSelector)).to.exist;
+        chai.expect(subject.query(searchAreaSelector)).to.exist;
+      });
+
+      it('sends a "toggleBlueTheme" message', function () {
+        chai.expect(messages.has('toggleBlueTheme')).to.equal(true);
+        chai.expect(messages.get('toggleBlueTheme').length).to.equal(1);
+      });
+
+      it('sends a "settings > cliqz_theme > click" telemetry signal', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'settings') &&
+              (item.args[0].target === 'cliqz_theme') &&
+              (item.args[0].action === 'click') &&
+              (item.args[0].state === 'off')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
+      });
     });
 
     describe('clicking on the background selection switch', function () {
@@ -673,12 +795,34 @@ describe('Fresh tab interactions with settings switches', function () {
         chai.expect(subject.query(mostVisitedAreaSelector)).to.exist;
         chai.expect(subject.query(favoritesAreaSelector)).to.exist;
         chai.expect(subject.query(newsAreaSelector)).to.exist;
-        chai.expect(subject.query(searchAreaSelector)).to.exist
+        chai.expect(subject.query(searchAreaSelector)).to.exist;
       });
 
       it('sends a "saveBackgroundImage" message', function () {
         chai.expect(messages.has('saveBackgroundImage')).to.equal(true);
         chai.expect(messages.get('saveBackgroundImage').length).to.equal(1);
+      });
+
+      it('sends a "settings > background > click" telemetry signal', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'settings') &&
+              (item.args[0].target === 'background') &&
+              (item.args[0].action === 'click') &&
+              (item.args[0].state === 'off')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
       });
     });
 
@@ -712,7 +856,7 @@ describe('Fresh tab interactions with settings switches', function () {
       it('leaves other areas visible', function () {
         chai.expect(subject.query(favoritesAreaSelector)).to.exist;
         chai.expect(subject.query(newsAreaSelector)).to.exist;
-        chai.expect(subject.query(searchAreaSelector)).to.exist
+        chai.expect(subject.query(searchAreaSelector)).to.exist;
       });
 
       it('sends a "toggleComponent" message', function () {
@@ -720,6 +864,27 @@ describe('Fresh tab interactions with settings switches', function () {
         chai.expect(messages.get('toggleComponent').length).to.equal(1);
       });
 
+      it('sends a "settings > topsites > click" telemetry signal', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'settings') &&
+              (item.args[0].target === 'topsites') &&
+              (item.args[0].action === 'click') &&
+              (item.args[0].state === 'off')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
+      });
     });
 
     describe('clicking on the favorites switch', function () {
@@ -752,12 +917,34 @@ describe('Fresh tab interactions with settings switches', function () {
       it('leaves other areas visible', function () {
         chai.expect(subject.query(mostVisitedAreaSelector)).to.exist;
         chai.expect(subject.query(newsAreaSelector)).to.exist;
-        chai.expect(subject.query(searchAreaSelector)).to.exist
+        chai.expect(subject.query(searchAreaSelector)).to.exist;
       });
 
       it('sends a "toggleComponent" message', function () {
         chai.expect(messages.has('toggleComponent')).to.equal(true);
         chai.expect(messages.get('toggleComponent').length).to.equal(1);
+      });
+
+      it('sends a "settings > favorites > click" telemetry signal', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'settings') &&
+              (item.args[0].target === 'favorites') &&
+              (item.args[0].action === 'click') &&
+              (item.args[0].state === 'off')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
       });
     });
 
@@ -797,6 +984,28 @@ describe('Fresh tab interactions with settings switches', function () {
       it('sends a "toggleComponent" message', function () {
         chai.expect(messages.has('toggleComponent')).to.equal(true);
         chai.expect(messages.get('toggleComponent').length).to.equal(1);
+      });
+
+      it('sends a "settings > search_bar > click" telemetry signal', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'settings') &&
+              (item.args[0].target === 'search_bar') &&
+              (item.args[0].action === 'click') &&
+              (item.args[0].state === 'off')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
       });
     });
 
@@ -843,12 +1052,34 @@ describe('Fresh tab interactions with settings switches', function () {
       it('leaves other areas visible', function () {
         chai.expect(subject.query(mostVisitedAreaSelector)).to.exist;
         chai.expect(subject.query(favoritesAreaSelector)).to.exist;
-        chai.expect(subject.query(searchAreaSelector)).to.exist
+        chai.expect(subject.query(searchAreaSelector)).to.exist;
       });
 
       it('sends a "toggleComponent" message', function () {
         chai.expect(messages.has('toggleComponent')).to.equal(true);
         chai.expect(messages.get('toggleComponent').length).to.equal(1);
+      });
+
+      it('sends a "settings > news > click" telemetry signal', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'settings') &&
+              (item.args[0].target === 'news') &&
+              (item.args[0].action === 'click') &&
+              (item.args[0].state === 'off')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
       });
     });
 
@@ -897,6 +1128,34 @@ describe('Fresh tab interactions with settings switches', function () {
         chai.expect(messages.get('toggleComponent').length).to.equal(4);
       });
 
+      it('sends five "settings > XXX > click" telemetry signals', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'settings') &&
+              (
+                (item.args[0].target === 'background') ||
+                (item.args[0].target === 'topsites') ||
+                (item.args[0].target === 'favorites') ||
+                (item.args[0].target === 'search_bar') ||
+                (item.args[0].target === 'news')
+              ) &&
+              (item.args[0].action === 'click') &&
+              (item.args[0].state === 'off')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(5);
+      });
+
       it('sends a "saveBackgroundImage" message', function () {
         chai.expect(messages.has('saveBackgroundImage')).to.equal(true);
         chai.expect(messages.get('saveBackgroundImage').length).to.equal(1);
@@ -906,7 +1165,7 @@ describe('Fresh tab interactions with settings switches', function () {
         beforeEach(function () {
           subject.query('button.close').click();
           return waitFor(() => !subject.query(settingsPanelSelector).classList.contains('visible'))
-            .then(function () {
+            .then(() => {
               subject.query(settingsButtonSelector).click();
               return waitFor(() => subject.query(settingsPanelSelector).classList.contains('visible'));
             });
@@ -949,7 +1208,10 @@ describe('Fresh tab interactions with settings switches', function () {
 
     describe('and DE as default source', function () {
       beforeEach(function () {
-        const newsShownConfigDe = clone(allHiddenConfig);
+        const newsShownConfigDe = clone(defaultConfig);
+        newsShownConfigDe.response.isBlueBackgroundSupported = true;
+        newsShownConfigDe.response.isBlueThemeSupported = true;
+        newsShownConfigDe.response.componentsState.background.image = 'bg-default';
         newsShownConfigDe.response.componentsState.news.visible = true;
         newsShownConfigDe.response.componentsState.news.preferedCountry = 'de';
         subject.respondsWith(newsShownConfigDe);
@@ -966,13 +1228,17 @@ describe('Fresh tab interactions with settings switches', function () {
           };
           subject.chrome.runtime.onMessage.addListener(listener);
 
-          allSettingsRows = subject.queryAll(settingsRowSelector);
-          cliqzThemeSwitch = allSettingsRows[0].querySelector(settingsSwitchSelector);
-          backgroundSwitch = allSettingsRows[1].querySelector(settingsSwitchSelector);
-          mostVisitedSwitch = allSettingsRows[2].querySelector(settingsSwitchSelector);
-          favoritesSwitch = allSettingsRows[3].querySelector(settingsSwitchSelector);
-          searchSwitch = allSettingsRows[4].querySelector(settingsSwitchSelector);
-          newsSwitch = allSettingsRows[5].querySelector(settingsSwitchSelector);
+          cliqzThemeSwitch = subject.queryByI18n(cliqzThemeTxt).querySelector('input.switch');
+          backgroundSwitch = subject.queryByI18n(bgLabelTxt)
+            .querySelector('input.switch');
+          mostVisitedSwitch = subject.queryByI18n(mostVisitedLabelTxt)
+            .querySelector('input.switch');
+          favoritesSwitch = subject.queryByI18n(favoritesLabelTxt)
+            .querySelector('input.switch');
+          searchSwitch = subject.queryByI18n(searchOptionsTxt)
+            .querySelector('input.switch');
+          newsSwitch = subject.queryByI18n(newsOptionsTxt)
+            .querySelector('input.switch');
 
           subject.query(settingsButtonSelector).click();
           return waitFor(() => subject.query(settingsPanelSelector).classList.contains('visible'));
@@ -981,6 +1247,7 @@ describe('Fresh tab interactions with settings switches', function () {
 
       afterEach(function () {
         subject.chrome.runtime.onMessage.removeListener(listener);
+        subject.unload();
       });
 
       describe('clicking on the international news source', function () {
@@ -1028,6 +1295,28 @@ describe('Fresh tab interactions with settings switches', function () {
           chai.expect(messages.has('getNews')).to.equal(true);
           chai.expect(messages.get('getNews').length).to.equal(1);
         });
+
+        it('sends a "settings > news_language > click" telemetry signal', function () {
+          chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+          const telemetrySignals = messages.get('sendTelemetry');
+          let signalExist = false;
+          let count = 0;
+
+          telemetrySignals.forEach(function (item) {
+            if ((item.args[0].type === 'home') &&
+                (item.args[0].view === 'settings') &&
+                (item.args[0].target === 'news_language') &&
+                (item.args[0].action === 'click') &&
+                (item.args[0].state === 'intl')) {
+                  signalExist = true;
+                  count += 1;
+            }
+          });
+
+          chai.expect(signalExist).to.be.true;
+          chai.expect(count).to.equal(1);
+        });
       });
 
       describe('clicking on the already selected news source', function () {
@@ -1073,13 +1362,37 @@ describe('Fresh tab interactions with settings switches', function () {
           chai.expect(messages.has('updateTopNewsCountry')).to.equal(false);
           chai.expect(messages.has('getNews')).to.equal(false);
         });
-      });
 
+        it('does not send a "settings > news_language > click" telemetry signal', function () {
+          chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+          const telemetrySignals = messages.get('sendTelemetry');
+          let signalExist = false;
+          let count = 0;
+
+          telemetrySignals.forEach(function (item) {
+            if ((item.args[0].type === 'home') &&
+                (item.args[0].view === 'settings') &&
+                (item.args[0].target === 'news_language') &&
+                (item.args[0].action === 'click') &&
+                (item.args[0].state === 'intl')) {
+                  signalExist = true;
+                  count += 1;
+            }
+          });
+
+          chai.expect(signalExist).to.be.false;
+          chai.expect(count).to.equal(0);
+        });
+      });
     });
 
     describe('and FR as default source', function () {
       beforeEach(function () {
-        const newsShownConfigFr = clone(allHiddenConfig);
+        const newsShownConfigFr = clone(defaultConfig);
+        newsShownConfigFr.response.isBlueBackgroundSupported = true;
+        newsShownConfigFr.response.isBlueThemeSupported = true;
+        newsShownConfigFr.response.componentsState.background.image = 'bg-default';
         newsShownConfigFr.response.componentsState.news.visible = true;
         newsShownConfigFr.response.componentsState.news.preferedCountry = 'fr';
         subject.respondsWith(newsShownConfigFr);
@@ -1096,13 +1409,17 @@ describe('Fresh tab interactions with settings switches', function () {
           };
           subject.chrome.runtime.onMessage.addListener(listener);
 
-          allSettingsRows = subject.queryAll(settingsRowSelector);
-          cliqzThemeSwitch = allSettingsRows[0].querySelector(settingsSwitchSelector);
-          backgroundSwitch = allSettingsRows[1].querySelector(settingsSwitchSelector);
-          mostVisitedSwitch = allSettingsRows[2].querySelector(settingsSwitchSelector);
-          favoritesSwitch = allSettingsRows[3].querySelector(settingsSwitchSelector);
-          searchSwitch = allSettingsRows[4].querySelector(settingsSwitchSelector);
-          newsSwitch = allSettingsRows[5].querySelector(settingsSwitchSelector);
+          cliqzThemeSwitch = subject.queryByI18n(cliqzThemeTxt).querySelector('input.switch');
+          backgroundSwitch = subject.queryByI18n(bgLabelTxt)
+            .querySelector('input.switch');
+          mostVisitedSwitch = subject.queryByI18n(mostVisitedLabelTxt)
+            .querySelector('input.switch');
+          favoritesSwitch = subject.queryByI18n(favoritesLabelTxt)
+            .querySelector('input.switch');
+          searchSwitch = subject.queryByI18n(searchOptionsTxt)
+            .querySelector('input.switch');
+          newsSwitch = subject.queryByI18n(newsOptionsTxt)
+            .querySelector('input.switch');
 
           subject.query(settingsButtonSelector).click();
           return waitFor(() => subject.query(settingsPanelSelector).classList.contains('visible'));
@@ -1111,6 +1428,7 @@ describe('Fresh tab interactions with settings switches', function () {
 
       afterEach(function () {
         subject.chrome.runtime.onMessage.removeListener(listener);
+        subject.unload();
       });
 
       describe('clicking on the German news source', function () {
@@ -1158,6 +1476,28 @@ describe('Fresh tab interactions with settings switches', function () {
           chai.expect(messages.has('getNews')).to.equal(true);
           chai.expect(messages.get('getNews').length).to.equal(1);
         });
+
+        it('sends a "settings > news_language > click" telemetry signal', function () {
+          chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+          const telemetrySignals = messages.get('sendTelemetry');
+          let signalExist = false;
+          let count = 0;
+
+          telemetrySignals.forEach(function (item) {
+            if ((item.args[0].type === 'home') &&
+                (item.args[0].view === 'settings') &&
+                (item.args[0].target === 'news_language') &&
+                (item.args[0].action === 'click') &&
+                (item.args[0].state === 'de')) {
+                  signalExist = true;
+                  count += 1;
+            }
+          });
+
+          chai.expect(signalExist).to.be.true;
+          chai.expect(count).to.equal(1);
+        });
       });
 
       describe('clicking on the already selected news source', function () {
@@ -1203,12 +1543,37 @@ describe('Fresh tab interactions with settings switches', function () {
           chai.expect(messages.has('updateTopNewsCountry')).to.equal(false);
           chai.expect(messages.has('getNews')).to.equal(false);
         });
+
+        it('does not send a "settings > news_language > click" telemetry signal', function () {
+          chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+          const telemetrySignals = messages.get('sendTelemetry');
+          let signalExist = false;
+          let count = 0;
+
+          telemetrySignals.forEach(function (item) {
+            if ((item.args[0].type === 'home') &&
+                (item.args[0].view === 'settings') &&
+                (item.args[0].target === 'news_language') &&
+                (item.args[0].action === 'click') &&
+                (item.args[0].state === 'de')) {
+                  signalExist = true;
+                  count += 1;
+            }
+          });
+
+          chai.expect(signalExist).to.be.false;
+          chai.expect(count).to.equal(0);
+        });
       });
     });
 
     describe('and INTL as default source', function () {
       beforeEach(function () {
-        const newsShownConfigIntl = clone(allHiddenConfig);
+        const newsShownConfigIntl = clone(defaultConfig);
+        newsShownConfigIntl.response.isBlueBackgroundSupported = true;
+        newsShownConfigIntl.response.isBlueThemeSupported = true;
+        newsShownConfigIntl.response.componentsState.background.image = 'bg-default';
         newsShownConfigIntl.response.componentsState.news.visible = true;
         newsShownConfigIntl.response.componentsState.news.preferedCountry = 'intl';
         subject.respondsWith(newsShownConfigIntl);
@@ -1225,13 +1590,17 @@ describe('Fresh tab interactions with settings switches', function () {
           };
           subject.chrome.runtime.onMessage.addListener(listener);
 
-          allSettingsRows = subject.queryAll(settingsRowSelector);
-          cliqzThemeSwitch = allSettingsRows[0].querySelector(settingsSwitchSelector);
-          backgroundSwitch = allSettingsRows[1].querySelector(settingsSwitchSelector);
-          mostVisitedSwitch = allSettingsRows[2].querySelector(settingsSwitchSelector);
-          favoritesSwitch = allSettingsRows[3].querySelector(settingsSwitchSelector);
-          searchSwitch = allSettingsRows[4].querySelector(settingsSwitchSelector);
-          newsSwitch = allSettingsRows[5].querySelector(settingsSwitchSelector);
+          cliqzThemeSwitch = subject.queryByI18n(cliqzThemeTxt).querySelector('input.switch');
+          backgroundSwitch = subject.queryByI18n(bgLabelTxt)
+            .querySelector('input.switch');
+          mostVisitedSwitch = subject.queryByI18n(mostVisitedLabelTxt)
+            .querySelector('input.switch');
+          favoritesSwitch = subject.queryByI18n(favoritesLabelTxt)
+            .querySelector('input.switch');
+          searchSwitch = subject.queryByI18n(searchOptionsTxt)
+            .querySelector('input.switch');
+          newsSwitch = subject.queryByI18n(newsOptionsTxt)
+            .querySelector('input.switch');
 
           subject.query(settingsButtonSelector).click();
           return waitFor(() => subject.query(settingsPanelSelector).classList.contains('visible'));
@@ -1240,6 +1609,7 @@ describe('Fresh tab interactions with settings switches', function () {
 
       afterEach(function () {
         subject.chrome.runtime.onMessage.removeListener(listener);
+        subject.unload();
       });
 
       describe('clicking on the French news source', function () {
@@ -1287,6 +1657,28 @@ describe('Fresh tab interactions with settings switches', function () {
           chai.expect(messages.has('getNews')).to.equal(true);
           chai.expect(messages.get('getNews').length).to.equal(1);
         });
+
+        it('sends a "settings > news_language > click" telemetry signal', function () {
+          chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+          const telemetrySignals = messages.get('sendTelemetry');
+          let signalExist = false;
+          let count = 0;
+
+          telemetrySignals.forEach(function (item) {
+            if ((item.args[0].type === 'home') &&
+                (item.args[0].view === 'settings') &&
+                (item.args[0].target === 'news_language') &&
+                (item.args[0].action === 'click') &&
+                (item.args[0].state === 'fr')) {
+                  signalExist = true;
+                  count += 1;
+            }
+          });
+
+          chai.expect(signalExist).to.be.true;
+          chai.expect(count).to.equal(1);
+        });
       });
 
       describe('clicking on the already selected news source', function () {
@@ -1331,6 +1723,28 @@ describe('Fresh tab interactions with settings switches', function () {
         it('does not send any "updateTopNewsCountry" and "getNews" messages', function () {
           chai.expect(messages.has('updateTopNewsCountry')).to.equal(false);
           chai.expect(messages.has('getNews')).to.equal(false);
+        });
+
+        it('does not send a "settings > news_language > click" telemetry signal', function () {
+          chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+          const telemetrySignals = messages.get('sendTelemetry');
+          let signalExist = false;
+          let count = 0;
+
+          telemetrySignals.forEach(function (item) {
+            if ((item.args[0].type === 'home') &&
+                (item.args[0].view === 'settings') &&
+                (item.args[0].target === 'news_language') &&
+                (item.args[0].action === 'click') &&
+                (item.args[0].state === 'fr')) {
+                  signalExist = true;
+                  count += 1;
+            }
+          });
+
+          chai.expect(signalExist).to.be.false;
+          chai.expect(count).to.equal(0);
         });
       });
     });

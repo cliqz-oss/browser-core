@@ -2,10 +2,10 @@ var expect = chai.expect;
 
 DEPS.HumanWebTest = ["core/utils", "human-web/human-web"];
 TESTS.HumanWebTest = function (CliqzUtils, CliqzHumanWeb) {
-    // var System = CliqzUtils.getWindow().CLIQZ.System,
-    //    CliqzHumanWeb = System.get("human-web/human-web").default;
-    var testPrivateUrl = "https://somerandomprivatedomain.com";
+  var testPrivateUrl = "https://somerandomprivatedomain.com";
+  beforeEach(function () {
     CliqzHumanWeb.setAsPrivate(testPrivateUrl);
+  });
 
 	describe('human-web.isHash', function() {
         var not_hash = ['',

@@ -4,47 +4,11 @@
 /* eslint prefer-arrow-callback: 'off' */
 /* eslint no-unused-expressions: 'off' */
 
-export default function () {
+import historyResults from './fixtures/historyResultsHistoryCluster';
+
+export default function ({ hasHistoryUrl }) {
   context('for a history cluster', function () {
     const results = [];
-    const historyResults = [
-      {
-        style: 'favicon',
-        value: 'https://www.amazon.de/',
-        image: '',
-        comment: 'Amazon.de: Günstige Preise für Elektronik & Foto, Filme, Musik, Bücher, Games, Spielzeug & mehr',
-        label: '',
-      },
-      {
-        style: 'favicon',
-        value: 'https://partnernet.amazon.de/gp/associates/join/landing/',
-        image: '',
-        comment: 'Amazon.de Partnerprogramm: Geld verdienen mit Links.',
-        label: '',
-      },
-      {
-        style: 'favicon',
-        value: 'https://partnernet.amazon.de/gp/redirect.html/ref=amb_link_83440093_2?ie=UTF8&location=https%3A%2F%2Fpartnernet.amazon.de%2Fgp%2Fassociates%2Fpromo%2Fprime%3Frw_useCurrentProtocol%3D1&source=standards&token=A1F93D1185D18A701F4B5CED24D7B8091318DDFF&pf_rd_m=A3JWKAKR8XB7XF&pf_rd_s=assoc-right-1&pf_rd_r=&pf_rd_t=501&pf_rd_p=&pf_rd_i=assoc_join_menu',
-        image: '',
-        comment: 'Angebote',
-        label: '',
-      },
-      {
-        style: 'favicon',
-        value: 'https://partnernet.amazon.de/gp/associates/promo/prime?rw_useCurrentProtocol=1',
-        image: '',
-        comment: 'Amazon.de PartnerNet',
-        label: '',
-      },
-      {
-        style: 'favicon',
-        value: 'https://www.amazon.de/gp/site-directory',
-        image: '',
-        comment: 'Prime testen',
-        label: '',
-      },
-    ];
-
     let resultElement;
 
     before(function () {
@@ -57,7 +21,6 @@ export default function () {
     });
 
     describe('renders a history cluster', function () {
-      const clusterElementSelector = 'div.history.cluster:not(.last) a.result';
       const win = CliqzUtils.getWindow();
 
       it('successfully', function () {
@@ -67,18 +30,28 @@ export default function () {
       });
 
       it('with correct amount of cluster elements', function () {
+        let clusterElementSelector;
+
+        if (hasHistoryUrl) {
+          clusterElementSelector = 'div.history.cluster:not(.last) a.result';
+        } else {
+          clusterElementSelector = 'div.history.cluster a.result';
+        }
+
         const clusterElements = resultElement.querySelectorAll(clusterElementSelector);
         chai.expect(clusterElements.length).to.equal(historyResults.length);
       });
 
-      it('with an existing option to search in history', function () {
-        const clusterSearchSelector = 'div.history.cluster.last a.result';
-        const clusterSearchItem = resultElement.querySelectorAll(clusterSearchSelector);
-        chai.expect(clusterSearchItem).to.exist;
-      });
+      if (hasHistoryUrl) {
+        it('with an existing option to search in history', function () {
+          const clusterSearchSelector = 'div.history.cluster.last a.result';
+          const clusterSearchItem = resultElement.querySelectorAll(clusterSearchSelector);
+          chai.expect(clusterSearchItem).to.exist;
+        });
+      }
 
       context('when first element', function () {
-        const clusterParentSelector = 'div.history.cluster:not(.last) a.result:not(.history-cluster)';
+        const clusterParentSelector = 'div.history.cluster a.result:not(.history-cluster):not(.sessions)';
 
         it('renders as the only one parent', function () {
           const clusterParentItems = resultElement.querySelectorAll(clusterParentSelector);
@@ -86,7 +59,7 @@ export default function () {
         });
 
         it('renders as the only element with a website icon', function () {
-          const clusterParentIconSelector = 'div.history.cluster:not(.last) a.result:not(.history-cluster) span.logo';
+          const clusterParentIconSelector = 'div.history.cluster a.result:not(.history-cluster):not(.sessions) span.logo';
           const clusterParentIconItems = resultElement.querySelectorAll(clusterParentIconSelector);
 
           chai.expect(clusterParentIconItems.length).to.equal(1);
@@ -96,7 +69,7 @@ export default function () {
         });
 
         it('renders with an existing and correct description', function () {
-          const clusterParentDescSelector = 'div.history.cluster:not(.last) a.result:not(.history-cluster) span.title';
+          const clusterParentDescSelector = 'div.history.cluster a.result:not(.history-cluster) span.title';
           const clusterParentDescItem = resultElement.querySelector(clusterParentDescSelector);
           chai.expect(clusterParentDescItem).to.exist;
           chai.expect(clusterParentDescItem)
@@ -104,7 +77,7 @@ export default function () {
         });
 
         it('renders with an existing and correct domain', function () {
-          const clusterParentDomainSelector = 'div.history.cluster:not(.last) a.result:not(.history-cluster) span.url';
+          const clusterParentDomainSelector = 'div.history.cluster a.result:not(.history-cluster) span.url';
           const clusterParentDomainItem = resultElement.querySelector(clusterParentDomainSelector);
           chai.expect(clusterParentDomainItem).to.exist;
           chai.expect(clusterParentDomainItem).to.have.text('amazon.de');
@@ -121,7 +94,13 @@ export default function () {
       });
 
       context('when other elements', function () {
-        const clusterIconSelector = 'div.history.cluster:not(.last) a.history-cluster';
+        let clusterIconSelector;
+
+        if (hasHistoryUrl) {
+          clusterIconSelector = 'div.history.cluster:not(.last) a.history-cluster';
+        } else {
+          clusterIconSelector = 'div.history.cluster a.history-cluster';
+        }
 
         it('render with existing and correct cluster icons', function () {
           const clusterIconItems = resultElement.querySelectorAll(clusterIconSelector);
@@ -134,7 +113,7 @@ export default function () {
         });
 
         it('render with existing and correct descriptions', function () {
-          const clusterDescSelector = 'div.history.cluster:not(.last) a.history-cluster span.title';
+          const clusterDescSelector = 'div.history.cluster a.history-cluster span.title';
           const clusterDescItem = resultElement.querySelectorAll(clusterDescSelector);
 
           [...clusterDescItem].forEach(function (element, i) {

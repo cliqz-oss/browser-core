@@ -20,13 +20,13 @@ export default background({
 
   actions: {
     addClass(className) {
-      forEachWindow(window => {
+      forEachWindow((window) => {
         this.theme.windowAction(window, 'addClass', className);
       });
     },
 
     removeClass(className) {
-      forEachWindow(window => {
+      forEachWindow((window) => {
         this.theme.windowAction(window, 'removeClass', className);
       });
     },
@@ -42,7 +42,7 @@ export default background({
 
     toggleBlueTheme(enabled) {
       if (enabled) {
-        this.actions.removeBlueClass();  
+        this.actions.removeBlueClass();
       } else {
         this.actions.addBlueClass();
       }

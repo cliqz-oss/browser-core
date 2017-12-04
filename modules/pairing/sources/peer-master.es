@@ -1,12 +1,11 @@
 /* eslint-disable camelcase */
 
 import MessageStorage from './message-storage';
-import { sha256, rawEncryptRSA, toByteArray, deriveAESKey, fromByteArray, encryptStringAES, decryptStringAES } from '../core/crypto/utils';
+import { sha256, toByteArray, deriveAESKey, fromByteArray, encryptStringAES, decryptStringAES } from '../core/crypto/utils';
 import console from '../core/console';
 import utils from '../core/utils';
-import fetch from '../platform/fetch';
 import { encryptPairedMessage, decryptPairedMessage, ERRORS, getMessageTargets, dummyKeypair, VERSION } from './shared';
-import { toBase64, fromHex } from '../core/encoding';
+import { toBase64 } from '../core/encoding';
 import CliqzPeer from '../p2p/cliqz-peer';
 import inject from '../core/kord/inject';
 import crypto from '../platform/crypto';
@@ -104,10 +103,6 @@ export default class PeerMaster {
     return {
       devices: slaves.concat(pairing),
     };
-  }
-
-  get arn() {
-    return this.getStorage('arn');
   }
 
   __unloadSlaves() {
@@ -331,28 +326,6 @@ export default class PeerMaster {
     return 7;
   }
 
-  static encryptARN(arn, publicKey) {
-    const ts = Math.floor(Date.now() / 1000) + (PeerMaster.EXPIRY_DAYS * 3600 * 24);
-    const data = new Uint8Array(20);
-    const hexArn = arn.replace(/-/g, '');
-    if (hexArn.length !== 32) {
-      return Promise.reject(new Error('arn length is not 32'));
-    }
-    data.set(fromHex(hexArn));
-    new DataView(data.buffer).setInt32(16, ts, true);
-    const cleanPK = publicKey.split('\n').filter(x => x.trim() && !x.includes('-')).join('');
-    return rawEncryptRSA(data, cleanPK)
-    .then(x => toBase64(x));
-  }
-
-  setDeviceARN(arn) {
-    if (arn && this.peerID) {
-      this.setStorage('arn', arn);
-      const ids = this.devices.map(x => x.id).filter(x => x !== this.peerID);
-      this.notifyARN(ids);
-    }
-  }
-
   pushMessage(msg, source, type, targets) {
     const t = targets;
     if (!t || t.length === 0) {
@@ -379,27 +352,6 @@ export default class PeerMaster {
   notifyNewPeer(peerID) {
     const devices = this.slaves.map(slave => slave.peerID);
     this.pushMessage(this.devices.find(x => x.id === peerID), peerID, '__NEWPEER', devices);
-    this.notifyARN([peerID]);
-  }
-
-  notifyARN(deviceIDS) {
-    const arn = this.arn;
-    if (arn && this.peerID) {
-      Promise.resolve()
-      .then(() => {
-        if (this._pusherPK) {
-          return this._pusherPK;
-        }
-        return fetch('https://p2p-pusher.cliqz.com/pk')
-        .then(response => response.json())
-        .then(({ publicKey }) => {
-          this._pusherPK = publicKey;
-          return publicKey;
-        });
-      })
-      .then(publicKey => PeerMaster.encryptARN(arn, publicKey))
-      .then(token => this.pushMessage(token, this.peerID, '__NEWARN', deviceIDS));
-    }
   }
 
   changeDeviceName(peerID, newName) {

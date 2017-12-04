@@ -1,119 +1,10 @@
-const clone = o => JSON.parse(JSON.stringify(o));
-
-function wait(time) {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
-
-let intervals = [];
-function registerInterval(interval) {
-  intervals.push(interval);
-}
-
-function clearIntervals() {
-  intervals.forEach(interval => clearInterval(interval));
-  intervals = [];
-}
-
-function waitFor(fn) {
-  var resolver, rejecter, promise = new Promise(function (res, rej) {
-    resolver = res;
-    rejecter = rej;
-  });
-
-  function check() {
-    const result = fn();
-    if (result) {
-      clearInterval(interval);
-      resolver(result);
-    }
-  }
-
-  var interval = setInterval(check, 50);
-  check();
-  registerInterval(interval);
-
-  return promise;
-}
-
-class Subject {
-  constructor() {
-    this.modules = {};
-    const listeners = new Set();
-    this.chrome = {
-      runtime: {
-        onMessage: {
-          addListener(listener) {
-            listeners.add(listener);
-          },
-          removeListener(listener) {
-            listeners.delete(listener);
-          }
-        },
-        sendMessage: ({ module, action, requestId }) => {
-          const response = this.modules[module].actions[action];
-          listeners.forEach(l => {
-            l({
-              action,
-              response,
-              type: 'response',
-              requestId,
-              source: 'cliqz-content-script'
-            });
-          })
-        }
-      },
-      i18n: {
-        getMessage: k => k,
-      }
-    }
-  }
-
-  load() {
-    this.iframe = document.createElement('iframe');
-    this.iframe.src = '/build/cliqz@cliqz.com/chrome/content/freshtab/home.html';
-    this.iframe.width = 900;
-    this.iframe.height = 500;
-    document.body.appendChild(this.iframe)
-
-    return new Promise(resolve => {
-      this.iframe.contentWindow.chrome = this.chrome;
-      this.iframe.contentWindow.addEventListener('load', () => resolve());
-    });
-  }
-
-  unload() {
-    document.body.removeChild(this.iframe);
-  }
-
-  query(selector) {
-    return this.iframe.contentWindow.document.querySelector(selector);
-  }
-
-  queryAll(selector) {
-    return this.iframe.contentWindow.document.querySelectorAll(selector);
-  }
-
-  pushData(data = {}) {
-    this.iframe.contentWindow.postMessage(JSON.stringify({
-      target: 'cliqz-freshtab',
-      origin: 'window',
-      message:  {
-        action: 'pushData',
-        data,
-      }
-    }), '*');
-    return wait(500);
-  }
-
-  getComputedStyle(selector) {
-    return this.iframe.contentWindow.getComputedStyle(this.query(selector));
-  }
-
-  respondsWith({ module, action, response, requestId }) {
-    this.modules[module] = this.modules[module] || { actions: {} };
-    this.modules[module].actions[action] = response;
-  }
-}
+import {
+  clone,
+  clearIntervals,
+  waitFor,
+  Subject,
+  defaultConfig,
+} from './helpers';
 
 describe('Fresh tab interactions with notifications', function () {
   const notificationAreaSelector = 'div.notification';
@@ -133,51 +24,21 @@ describe('Fresh tab interactions with notifications', function () {
     },
   };
   const otherMessage = {
-      id: 'doubleNotification',
-      active: true,
-      type: 'notification',
-      title: 'Title 2',
-      description: 'Description 2',
-      icon: 'settings-icon_blue.svg',
-      cta_text: 'TRY IT NOW 2',
-      cta_url: 'home-action:settings',
-      handler: 'MESSAGE_HANDLER_FRESHTAB_MIDDLE',
-      position: 'middle'
-  };
-  const defaultConfig = {
-    module: 'freshtab',
-    action: 'getConfig',
-    response: {
-      locale: 'en-US',
-      newTabUrl: 'chrome://cliqz/content/freshtab/home.html',
-      isBrowser: false,
-      showNewBrandAlert: false,
-      messages: someMessage,
-      isHistoryEnabled: true,
-      hasActiveNotifications: false,
-      componentsState: {
-        historyDials: {
-          visible: false
-        },
-        customDials: {
-          visible: false
-        },
-        search: {
-          visible: false
-        },
-        news: {
-          visible: true,
-          preferedCountry: 'de'
-        },
-        background: {
-          image: 'bg-default'
-        }
-      }
-    },
+    id: 'doubleNotification',
+    active: true,
+    type: 'notification',
+    title: 'Title 2',
+    description: 'Description 2',
+    icon: 'settings-icon_blue.svg',
+    cta_text: 'TRY IT NOW 2',
+    cta_url: 'home-action:settings',
+    handler: 'MESSAGE_HANDLER_FRESHTAB_MIDDLE',
+    position: 'middle'
   };
   let subject;
   let messages;
   let listener;
+  let newsConfig;
 
   beforeEach(function () {
     subject = new Subject();
@@ -187,7 +48,10 @@ describe('Fresh tab interactions with notifications', function () {
       response: ''
     });
 
-    subject.respondsWith(defaultConfig);
+    newsConfig = clone(defaultConfig);
+    newsConfig.response.componentsState.news.visible = true;
+    newsConfig.response.messages = someMessage;
+    subject.respondsWith(newsConfig);
 
     subject.respondsWith({
       module: 'freshtab',
@@ -215,30 +79,28 @@ describe('Fresh tab interactions with notifications', function () {
   });
 
   afterEach(function () {
-    subject.unload();
     clearIntervals();
   });
 
   context('when one notification message is available', function () {
-    beforeEach(function() {
+    beforeEach(function () {
+      return subject.load().then(() => {
+        // Keep track of received messages
+        messages = new Map();
+        listener = function (msg) {
+          if (!messages.has(msg.action)) {
+            messages.set(msg.action, []);
+          }
 
-      return subject.load()
-        .then(function () {
-          // Keep track of received messages
-          messages = new Map();
-          listener = function (msg) {
-            if (!messages.has(msg.action)) {
-              messages.set(msg.action, []);
-            }
-
-            messages.get(msg.action).push(msg);
-          };
-          subject.chrome.runtime.onMessage.addListener(listener);
-        });
+          messages.get(msg.action).push(msg);
+        };
+        subject.chrome.runtime.onMessage.addListener(listener);
+      });
     });
 
     afterEach(function () {
       subject.chrome.runtime.onMessage.removeListener(listener);
+      subject.unload();
     });
 
     describe('clicking on a notification icon', function () {
@@ -298,7 +160,7 @@ describe('Fresh tab interactions with notifications', function () {
     describe('clicking on a close button', function () {
       const notificationCloseSelector = 'div.notification div.close';
 
-      beforeEach(function() {
+      beforeEach(function () {
         subject.query(notificationCloseSelector).click();
         return waitFor(() => !subject.query(notificationAreaSelector));
       });
@@ -315,6 +177,27 @@ describe('Fresh tab interactions with notifications', function () {
       it('sends a "dismissMessage" message', function () {
         chai.expect(messages.has('dismissMessage')).to.equal(true);
         chai.expect(messages.get('dismissMessage').length).to.equal(1);
+      });
+
+      it('sends a "message > close > click" telemetry signal', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'message') &&
+              (item.args[0].target === 'close') &&
+              (item.args[0].action === 'click')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
       });
     });
 
@@ -339,6 +222,47 @@ describe('Fresh tab interactions with notifications', function () {
         chai.expect(messages.has('countMessageClick')).to.equal(true);
         chai.expect(messages.get('countMessageClick').length).to.equal(1);
       });
+
+      it('sends a "message > try > click" telemetry signal', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'message') &&
+              (item.args[0].target === 'try') &&
+              (item.args[0].action === 'click')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
+      });
+
+      it('sends a "settings > click" telemetry signal', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].target === 'settings') &&
+              (item.args[0].action === 'click')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
+      });
     });
 
     describe('clicking on a notification call to action button twice', function () {
@@ -346,7 +270,7 @@ describe('Fresh tab interactions with notifications', function () {
 
       beforeEach(function () {
         subject.query(notificationCtaSelector).click();
-        return waitFor(() => subject.query(notificationAreaSelector)).then(function () {
+        return waitFor(() => subject.query(notificationAreaSelector)).then(() => {
           subject.query(notificationCtaSelector).click();
           return waitFor(() => subject.query(notificationAreaSelector));
         });
@@ -365,6 +289,47 @@ describe('Fresh tab interactions with notifications', function () {
         chai.expect(messages.has('countMessageClick')).to.equal(true);
         chai.expect(messages.get('countMessageClick').length).to.equal(2);
       });
+
+      it('sends two "message > try > click" telemetry signals', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item, i) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'message') &&
+              (item.args[0].target === 'try') &&
+              (item.args[0].action === 'click')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(2);
+      });
+
+      it('sends a "settings > click" telemetry signal', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+
+        const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
+        let count = 0;
+
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].target === 'settings') &&
+              (item.args[0].action === 'click')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
+
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
+      });
     });
 
     describe('simulating 3rd click on the call to action button', function () {
@@ -382,20 +347,6 @@ describe('Fresh tab interactions with notifications', function () {
         chai.expect(subject.query(notificationAreaSelector)).to.not.exist;
       });
     });
-
-    describe('refreshing Fresh Tab', function () {
-      const homeIconSelector = '#cliqz-home';
-
-      beforeEach(function () {
-        subject.query(homeIconSelector).click();
-        return waitFor(() => subject.query(homeIconSelector));
-      });
-
-      it('keeps notification area open', function () {
-        chai.expect(subject.query(notificationAreaSelector)).to.exist;
-      });
-    });
-
   });
 
   context('when no notification is displayed', function () {
@@ -404,6 +355,11 @@ describe('Fresh tab interactions with notifications', function () {
       oneNotificationConfig.response.messages = {};
       subject.respondsWith(oneNotificationConfig);
       return subject.load();
+    });
+
+    afterEach(function () {
+      subject.chrome.runtime.onMessage.removeListener(listener);
+      subject.unload();
     });
 
     describe('simulating adding a new notification from message-center', function () {

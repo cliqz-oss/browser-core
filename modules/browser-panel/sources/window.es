@@ -2,14 +2,14 @@ import { utils } from '../core/cliqz';
 import console from '../core/console';
 import inject from '../core/kord/inject';
 import background from './background';
+import config from '../core/config';
 
 const MODULE_NAME = 'browser-panel-window';
 const ORIGIN_NAME = 'browser-panel';
 const UI_IFRAME_WIDTH_DEF = '100%';
 const UI_IFRAME_HEIGHT_DEF = '200px';
 const UI_IFRAME_ELEM_ID = 'cqz-b-p-iframe';
-const UI_IFRAME_SRC_DEF = 'chrome://cliqz/content/browser-panel/index.html';
-
+const UI_IFRAME_SRC_DEF = `${config.baseURL}browser-panel/index.html`;
 
 function linfo(msg) {
   console.log(`[info] ${msg}`, MODULE_NAME);
@@ -65,7 +65,8 @@ export default class {
       return;
     }
 
-    if (utils.isPrivate(this.window)) {
+    this.isPrivateWindow = utils.isPrivate(this.window) || utils.isOnPrivateTab(this.window);
+    if (this.isPrivateWindow) {
       linfo('we are in private mode, avoid any logic here');
     }
   }
@@ -101,6 +102,13 @@ export default class {
     }
     this.iframe.style.height = UI_IFRAME_HEIGHT_DEF;
     this.iframe.style.width = UI_IFRAME_WIDTH_DEF;
+
+    const signal = {
+      type: 'offrz',
+      view: 'bar',
+      action: 'show'
+    };
+    utils.telemetry(signal);
   }
 
   //
@@ -305,6 +313,11 @@ export default class {
   // Actions coming from the core
 
   showOfferElementHandler(aOfferData) {
+    // if it is private do nothing
+    if (this.isPrivateWindow) {
+      return;
+    }
+
     if (!aOfferData.offer_id ||
         !aOfferData.offer_data ||
         !aOfferData.offer_data.ui_info ||
@@ -352,6 +365,10 @@ export default class {
   }
 
   hideOfferElementHandler() {
+    if (this.isPrivateWindow) {
+      return;
+    }
+
     // delete old data
     if (this.lastDataToShow) {
       delete this.lastDataToShow;
@@ -434,6 +451,16 @@ export default class {
 
     // now process the action with the given arguments
     this.offersActions[data.action](data.data);
+
+    if (data.data.element_id === 'offer_closed') {
+      const signal = {
+        type: 'offrz',
+        view: 'bar',
+        action: 'remove',
+        target: 'remove',
+      };
+      utils.telemetry(signal);
+    }
   }
 
 
@@ -443,6 +470,20 @@ export default class {
     }
     const tab = utils.openLink(this.window, data.data.url, true);
     this.window.gBrowser.selectedTab = tab;
+
+    // Send telemetry for all call to action elements
+    const elId = data.data.elId;
+    if (elId) {
+      if (elId === 'offer_description' && elId === 'offer_ca_action' && elId === 'offer_title' && elId === 'offer_logo') {
+        const signal = {
+          type: 'offrz',
+          view: 'bar',
+          action: 'click',
+          target: 'use',
+        };
+        utils.telemetry(signal);
+      }
+    }
   }
 
 }

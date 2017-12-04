@@ -15,12 +15,18 @@ const prototype = {
   extra: {},
   image: undefined,
   kind: undefined,
+  style: undefined,
   provider: undefined,
   template: undefined,
   suggestion: undefined,
   text: undefined,
   type: undefined,
-  meta: undefined,
+  meta: {
+    isIncomplete: undefined,
+    triggerMethod: undefined,
+    domain: undefined,
+    url: undefined,
+  },
 };
 
 export default describeModule('search/operators/normalize',
@@ -43,18 +49,20 @@ export default describeModule('search/operators/normalize',
 
         const normalized = {
           links: [
-            Object.assign(prototype, {
+            {
+              ...prototype,
               provider: 'instant',
               text: 'query',
               title: 'STRIPPED_URL',
               type: 'supplementary-search',
               meta: {
+                ...prototype.meta,
                 level: 0,
                 type: 'main',
                 url: 'STRIPPED_URL',
                 domain: 'domain',
               },
-            }),
+            },
           ]
         };
 

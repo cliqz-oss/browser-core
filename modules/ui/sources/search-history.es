@@ -4,8 +4,8 @@
  *
  */
 
-import utils from 'core/utils';
-import config from "core/config";
+import utils from '../core/utils';
+import config from "../core/config";
 
 /* Responsible for managing the 'Letzte Eingabe' button/dropdown. */
 var CliqzSearchHistory = {

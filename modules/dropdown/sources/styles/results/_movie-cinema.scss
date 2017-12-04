@@ -199,6 +199,12 @@
                                         margin-left: -1px;
                                     }
                                 }
+
+                                &[disabled="true"] {
+                                    color: #545454;
+                                    pointer-events: none;
+                                    cursor: default;
+                                }
                             }
 
                             &:last-child {

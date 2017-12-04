@@ -1,0 +1,59 @@
+{{#if isMovieEZ}}
+    <div class="padded">
+        <div class="movie">
+            {{#if imageUrl}}
+                <div class="image" style="background-image: url({{imageUrl}})"></div>
+            {{/if}}
+            <div class="info">
+                <p>
+                    {{#if ratingInfo}}
+                        <span class="rating-img" style="background-image: url({{ratingInfo.img}})"></span>
+                        <span class="score">
+                            <span>{{ratingInfo.score}}</span>
+                            <span>/ {{ratingInfo.scale}}</span>
+                        </span>
+                    {{/if}}
+                    {{#if reviewsInfo}}
+                        <a class="result reviews" href="{{reviewsInfo.url}}">{{reviewsInfo.nVote}} {{local reviewsInfo.title}}</a>
+                    {{/if}}
+                </p>
+                <p class="director">
+                    {{#if directorInfo}}
+                        <span>{{directorInfo.title}}:</span>
+                        <a class="result" href="{{directorInfo.url}}">{{directorInfo.name}}</a>
+                    {{/if}}
+                </p>
+                <p class="stars">
+                    {{#if starsInfo}}
+                        <span>{{local 'cinema-movie-cast'}}:</span>
+                        <span class="stars-list">
+                        {{#each starsInfo}}
+                            <span>
+                                {{this}}{{#unless @last}},{{else}} &#183;{{/unless}}
+                            </span>
+                        {{/each}}
+                        </span>
+                    {{/if}}
+                    <span>
+                        <a class="result" href="{{fullCastInfo.url}}">{{local fullCastInfo.title}}</a>
+                    </span>
+                </p>
+                {{#if trailerInfo}}
+                    <div class="trailer">
+                        <a class="result" href="{{trailerInfo.url}}">
+                            <div class="trailer-icon"></div>
+                            <span>{{local trailerInfo.title}}</span>
+                        </a>
+                    </div>
+                {{else}}
+                    <div class="trailer disabled">
+                        <span>
+                            <div class="trailer-icon"></div>
+                            <span>{{local 'cinema-movie-trailer'}}</span>
+                        </span>
+                    </div>
+                {{/if}}
+            </div>
+        </div>
+    </div>
+{{/if}}

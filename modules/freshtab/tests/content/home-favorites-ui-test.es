@@ -1,107 +1,12 @@
-const clone = o => JSON.parse(JSON.stringify(o));
+import {
+  clone,
+  clearIntervals,
+  waitFor,
+  Subject,
+  defaultConfig,
+} from './helpers';
 
-function wait(time) {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
-
-let intervals = [];
-function registerInterval(interval) {
-  intervals.push(interval);
-}
-
-function clearIntervals() {
-  intervals.forEach(interval => clearInterval(interval));
-  intervals = [];
-}
-
-function waitFor(fn) {
-  var resolver, rejecter, promise = new Promise(function (res, rej) {
-    resolver = res;
-    rejecter = rej;
-  });
-
-  function check() {
-    const result = fn();
-    if (result) {
-      clearInterval(interval);
-      resolver(result);
-    }
-  }
-
-  var interval = setInterval(check, 50);
-  check();
-  registerInterval(interval);
-
-  return promise;
-}
-
-class Subject {
-  constructor() {
-    this.modules = {};
-    const listeners = new Set();
-    this.chrome = {
-      runtime: {
-        onMessage: {
-          addListener(listener) {
-            listeners.add(listener);
-          },
-          removeListener(listener) {
-            listeners.delete(listener);
-          }
-        },
-        sendMessage: ({ module, action, requestId }) => {
-          const response = this.modules[module].actions[action];
-          listeners.forEach(l => {
-            l({
-              response,
-              type: 'response',
-              requestId,
-              source: 'cliqz-content-script'
-            });
-          })
-        }
-      },
-      i18n: {
-        getMessage: k => k,
-      }
-    }
-  }
-
-  load() {
-    this.iframe = document.createElement('iframe');
-    this.iframe.src = '/build/cliqz@cliqz.com/chrome/content/freshtab/home.html';
-    this.iframe.width = 900;
-    this.iframe.height = 500;
-    document.body.appendChild(this.iframe)
-
-    return new Promise(resolve => {
-      this.iframe.contentWindow.chrome = this.chrome;
-      this.iframe.contentWindow.addEventListener('load', () => resolve());
-    });
-  }
-
-  unload() {
-    document.body.removeChild(this.iframe);
-  }
-
-  query(selector) {
-    return this.iframe.contentWindow.document.querySelector(selector);
-  }
-
-  queryAll(selector) {
-    return this.iframe.contentWindow.document.querySelectorAll(selector);
-  }
-
-  getComputedStyle(selector) {
-    return this.iframe.contentWindow.getComputedStyle(this.query(selector));
-  }
-
-  respondsWith({ module, action, response, requestId }) {
-    this.modules[module] = this.modules[module] || { actions: {} };
-    this.modules[module].actions[action] = response;
-  }
-}
-const favoritesDial = (i) => ({
+const favoritesDial = i => ({
   title: `https://this${i}.test.title`,
   id: `this${i}.test.id`,
   url: `https://this${i}.test.domain`,
@@ -156,37 +61,8 @@ describe('Fresh tab favorites UI', function () {
       custom: [0, 1, 2, 3, 4, 5, 6].map(favoritesDial)
     },
   ];
-  const defaultConfig = {
-    module: 'freshtab',
-    action: 'getConfig',
-    response: {
-      locale: 'en-US',
-      newTabUrl: 'chrome://cliqz/content/freshtab/home.html',
-      isBrowser: false,
-      showNewBrandAlert: false,
-      messages: {},
-      isHistoryEnabled: true,
-      hasActiveNotifications: false,
-      componentsState: {
-        historyDials: {
-          visible: false
-        },
-        customDials: {
-          visible: true
-        },
-        search: {
-          visible: false
-        },
-        news: {
-          visible: false
-        },
-        background: {
-          image: 'bg-default'
-        }
-      }
-    },
-  };
   let subject;
+  let favConfig;
 
   beforeEach(function () {
     subject = new Subject();
@@ -195,7 +71,6 @@ describe('Fresh tab favorites UI', function () {
       action: 'sendTelemetry',
       response: ''
     });
-
     subject.respondsWith({
       module: 'freshtab',
       action: 'getNews',
@@ -204,33 +79,37 @@ describe('Fresh tab favorites UI', function () {
         news: []
       }
     });
+
+    favConfig = clone(defaultConfig);
+    favConfig.response.componentsState.customDials.visible = true;
   });
 
   afterEach(function () {
-    subject.unload();
     clearIntervals();
   });
 
   describe('renders area', function () {
+    const settingsRowSelector = '#settings-panel div.settings-row';
+    const settingsSwitchSelector = 'div.switch-container input.switch';
+
     context('when set to be visible', function () {
       beforeEach(function () {
-        const configVisible = clone(defaultConfig);
-        configVisible.response.componentsState.customDials.visible = true;
-        subject.respondsWith(configVisible);
-
         subject.respondsWith({
           module: 'freshtab',
           action: 'getSpeedDials',
           response: favoritesResponse[0],
         });
+        subject.respondsWith(favConfig);
         return subject.load();
       });
 
+      afterEach(function () {
+        subject.unload();
+      });
+
       it('with the visibility switch turned on', function () {
-        const settingsRowSelector = '#settings-panel div.settings-row';
-        const settingsSwitchSelector = 'div.switch-container input.switch';
         const allSettingsRows = subject.queryAll(settingsRowSelector);
-        chai.expect(allSettingsRows[2].querySelector(settingsSwitchSelector))
+        chai.expect(allSettingsRows[4].querySelector(settingsSwitchSelector))
           .to.have.property('checked', true);
       });
 
@@ -241,23 +120,22 @@ describe('Fresh tab favorites UI', function () {
 
     context('when set to not be visible', function () {
       beforeEach(function () {
-        const configNotVisible = clone(defaultConfig);
-        configNotVisible.response.componentsState.customDials.visible = false;
-        subject.respondsWith(configNotVisible);
-
         subject.respondsWith({
           module: 'freshtab',
           action: 'getSpeedDials',
           response: favoritesResponse[0],
         });
+        subject.respondsWith(defaultConfig);
         return subject.load();
       });
 
+      afterEach(function () {
+        subject.unload();
+      });
+
       it('with the visibility switch turned off', function () {
-        const settingsRowSelector = '#settings-panel div.settings-row';
-        const settingsSwitchSelector = 'div.switch-container input.switch';
         const allSettingsRows = subject.queryAll(settingsRowSelector);
-        chai.expect(allSettingsRows[2].querySelector(settingsSwitchSelector))
+        chai.expect(allSettingsRows[4].querySelector(settingsSwitchSelector))
           .to.have.property('checked', false);
       });
 
@@ -277,13 +155,15 @@ describe('Fresh tab favorites UI', function () {
         action: 'getSpeedDials',
         response: favoritesResponse[0],
       });
-
-      subject.respondsWith(defaultConfig);
-
+      subject.respondsWith(favConfig);
       return subject.load().then(() => {
         subject.query(favoritesPlusBtnSelector).click();
         return waitFor(() => (subject.query(addFormSelector)));
       });
+    });
+
+    afterEach(function () {
+      subject.unload();
     });
 
     describe('renders add form', function () {
@@ -312,7 +192,6 @@ describe('Fresh tab favorites UI', function () {
         chai.expect(subject.query('#section-favorites button.submit'))
           .to.have.text('freshtab.app.speed-dial.add');
       });
-
     });
   });
 
@@ -326,13 +205,15 @@ describe('Fresh tab favorites UI', function () {
         action: 'getSpeedDials',
         response: favoritesResponse[0],
       });
-
-      subject.respondsWith(defaultConfig);
-
+      subject.respondsWith(favConfig);
       return subject.load().then(() => {
         subject.query(favoritesDeleteSelector).click();
         return waitFor(() => subject.query(undoBoxSelector));
       });
+    });
+
+    afterEach(function () {
+      subject.unload();
     });
 
     describe('renders undo popup message', function () {
@@ -371,14 +252,16 @@ describe('Fresh tab favorites UI', function () {
             action: 'getSpeedDials',
             response: favoritesResponse[i],
           });
-
-          subject.respondsWith(defaultConfig);
-
+          subject.respondsWith(favConfig);
           return subject.load().then(() => {
             amountFavoritesFromData = favoritesResponse[i].custom.length;
             favoritesTiles = subject.queryAll(favoritesItemSelector);
           });
-        })
+        });
+
+        afterEach(function () {
+          subject.unload();
+        });
 
         describe('renders area', function () {
           it('with an existing label', function () {
@@ -409,7 +292,7 @@ describe('Fresh tab favorites UI', function () {
             it('is not rendered when the row is full', function () {
               chai.expect(subject.query(favoritesPlusSelector)).to.not.exist;
             });
-          };
+          }
         });
 
         describe('renders each element', function () {
@@ -437,7 +320,7 @@ describe('Fresh tab favorites UI', function () {
           });
 
           it('with existing and correct link titles', function () {
-            let favoritesItemsDials = subject.queryAll(favoritesItemSelector);
+            const favoritesItemsDials = subject.queryAll(favoritesItemSelector);
 
             [...favoritesItemsDials].forEach(function (item, j) {
               chai.expect(item.title).to.exist;
@@ -473,9 +356,7 @@ describe('Fresh tab favorites UI', function () {
               chai.expect(item).to.exist;
             });
           });
-
         });
-
       });
     });
   });

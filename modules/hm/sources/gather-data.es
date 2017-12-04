@@ -1,5 +1,5 @@
-import CliqzUtils from 'core/utils';
-import { len, btoa_safe } from 'hm/helpers';
+import CliqzUtils from '../core/utils';
+import { len, btoa_safe } from './helpers';
 
 Components.utils.import('resource://gre/modules/PlacesUtils.jsm');
 const Ci = Components.interfaces;

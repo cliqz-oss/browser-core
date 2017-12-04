@@ -1,5 +1,6 @@
 import { BloomFilter } from './bloom-filter';
-Cu.import('resource://gre/modules/FileUtils.jsm');
+import { Components, Services } from './globals';
+Components.utils.import('resource://gre/modules/FileUtils.jsm');
 
 const HEAD_SIG = 0x43514246;  // ASCII 'CQBF' - CliQz Bloom Filter
 const FORMAT_VERSION = 1;
@@ -14,8 +15,8 @@ const iOService = Components.classes['@mozilla.org/network/io-service;1']
                 .getService(Components.interfaces.nsIIOService);
 
 function openFileInputStream(file) {
-  let inStream = Cc['@mozilla.org/network/file-input-stream;1'].
-     createInstance(Ci.nsIFileInputStream);
+  let inStream = Components.classes['@mozilla.org/network/file-input-stream;1'].
+     createInstance(Components.interfaces.nsIFileInputStream);
   inStream.init(file, FileUtils.MODE_RDONLY, 0, inStream.CLOSE_ON_EOF);
   return inStream;
 }
@@ -23,8 +24,8 @@ function openFileInputStream(file) {
 function openUriInputStream(aURI) {
   const uri = iOService.newURI(aURI, null, null);
   const principal = Services.scriptSecurityManager.getSystemPrincipal();
-  const aSecurityFlags = Ci.nsILoadInfo.SEC_ALLOW_CROSS_ORIGIN_DATA_IS_NULL;
-  const aContentPolicyType = Ci.nsIContentPolicy.TYPE_OTHER;
+  const aSecurityFlags = Components.interfaces.nsILoadInfo.SEC_ALLOW_CROSS_ORIGIN_DATA_IS_NULL;
+  const aContentPolicyType = Components.interfaces.nsIContentPolicy.TYPE_OTHER;
   const channel = iOService.newChannelFromURI2(uri,
                                              null,      // aLoadingNode
                                              principal,
@@ -49,8 +50,8 @@ export let BloomFilterUtils = {
     }
 
     try {
-      const binStream = Cc['@mozilla.org/binaryinputstream;1']
-          .createInstance(Ci.nsIBinaryInputStream);
+      const binStream = Components.classes['@mozilla.org/binaryinputstream;1']
+          .createInstance(Components.interfaces.nsIBinaryInputStream);
       binStream.setInputStream(fStream);
       if (binStream.available() > FILE_MAX_SIZE)
         throw new Error(ERRORS.FILE_TOO_BIG);
@@ -85,15 +86,15 @@ export let BloomFilterUtils = {
    * @param {nsIFile} file - pointer to the bloom filter data file.
    */
   saveToFile(filter, version, file) {
-    let foStream = Cc['@mozilla.org/network/file-output-stream;1']
-        .createInstance(Ci.nsIFileOutputStream);
+    let foStream = Components.classes['@mozilla.org/network/file-output-stream;1']
+        .createInstance(Components.interfaces.nsIFileOutputStream);
     const openFlags = FileUtils.MODE_WRONLY | FileUtils.MODE_CREATE |
         FileUtils.MODE_TRUNCATE;
     const permFlags = parseInt('0666', 8);
     foStream.init(file, openFlags, permFlags, 0);
     try {
-      let binStream = Cc['@mozilla.org/binaryoutputstream;1']
-          .createInstance(Ci.nsIBinaryOutputStream);
+      let binStream = Components.classes['@mozilla.org/binaryoutputstream;1']
+          .createInstance(Components.interfaces.nsIBinaryOutputStream);
       binStream.setOutputStream(foStream);
 
       // Write header:
@@ -124,8 +125,8 @@ const OPEN_FLAGS = {
 
 function stringFromStream(inStream, encoding) {
   const streamSize = inStream.available();
-  const convStream = Cc['@mozilla.org/intl/converter-input-stream;1']
-      .createInstance(Ci.nsIConverterInputStream);
+  const convStream = Components.classes['@mozilla.org/intl/converter-input-stream;1']
+      .createInstance(Components.interfaces.nsIConverterInputStream);
   convStream.init(inStream, encoding || 'UTF-8', streamSize,
       convStream.DEFAULT_REPLACEMENT_CHARACTER);
   try {

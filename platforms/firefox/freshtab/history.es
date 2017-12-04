@@ -1,5 +1,5 @@
-import HistoryManager from 'core/history-manager';
-import CliqzUtils from 'core/utils';
+import HistoryManager from '../../core/history-manager';
+import CliqzUtils from '../../core/utils';
 
 const CliqzFreshTabHistory = {
   /**

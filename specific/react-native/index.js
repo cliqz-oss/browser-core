@@ -1,9 +1,7 @@
-import 'babel-polyfill';
-
-const startup = require('./modules/platform/startup');
+const startup = require('./modules/platform/startup').default;
 const components = require('./components');
 
 module.exports = {
-  startup: startup.default,
+  startup,
   components: components.default,
 };

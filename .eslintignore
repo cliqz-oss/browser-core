@@ -52,7 +52,6 @@ modules/autocomplete/tests/unit/result-providers-test.es
 modules/autocomplete/tests/unit/search-test.es
 modules/autocomplete/tests/unit/url-compare-test.es
 modules/autocomplete/url-compare.es
-modules/autocomplete/wikipedia-deduplication.es
 modules/autocomplete/window.es
 modules/campaign-manager/background.es
 modules/campaign-manager/campaign-manager.es
@@ -164,11 +163,8 @@ modules/hpn/background.es
 modules/hpn/http-handler-patch.es
 modules/hpn/main.es
 modules/hpn/proxy-filter.es
-modules/hpn/send-message.es
 modules/hpn/utils.es
 modules/hpn/window.es
-modules/https-everywhere/background.es
-modules/https-everywhere/window.es
 modules/human-web/background.es
 modules/human-web/bloom-filter.es
 modules/human-web/human-web.es

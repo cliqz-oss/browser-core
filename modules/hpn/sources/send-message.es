@@ -1,9 +1,12 @@
 import CliqzSecureMessage from './main';
 import CryptoWorker from './crypto-worker';
+import inject from '../core/kord/inject';
+import console from '../core/console';
 
 export default class MessageSender {
 
   constructor(args = {}) {
+    this.hpnv2 = inject.module('hpnv2');
     // by default, use CryptoWorker and the global CliqzSecureMessage
     // (unless overwritten by tests)
     const CryptoWorkerImpl = args.CryptoWorker || CryptoWorker;
@@ -29,9 +32,8 @@ export default class MessageSender {
     if (quick) {
       killWorker();
       return Promise.resolve();
-    } else {
-      return this.pendingCommunications.then(killWorker, killWorker);
     }
+    return this.pendingCommunications.then(killWorker, killWorker);
   }
 
   /**
@@ -41,7 +43,16 @@ export default class MessageSender {
    * to complete.
    */
   send(messages) {
-    messages.forEach(msg => this._sendSingleMessage(msg));
+    messages.forEach((_msg) => {
+      const msg = _msg;
+      if (this.hpnv2.isEnabled()) {
+        if (msg && typeof msg === 'object') {
+          msg.hpnv2 = true;
+        }
+        this.hpnv2.action('send', msg).catch(() => {});
+      }
+      this._sendSingleMessage(msg);
+    });
 
     // There is no real error handling, so we ignore rejected
     // promises. Also avoid Promise.all, as we do not want
@@ -52,10 +63,8 @@ export default class MessageSender {
   _sendSingleMessage(message) {
     const prevPendingSends = this.pendingCommunications;
     this.pendingCommunications = new Promise((resolve, reject) => {
-
       const _CliqzSecureMessage = this._CliqzSecureMessage;
       const postMessage = () => {
-
         if (!this.cryptoWorker) {
           this.log('Discarding message, as the web worker is already stopped.');
           reject();
@@ -89,7 +98,7 @@ export default class MessageSender {
           this.log('Failed to send message', e);
           reject(e);
         }
-      }
+      };
 
       // Wait until all pending messages are sent. Here, it does not
       // matter if sending was successful or not. In both cases,

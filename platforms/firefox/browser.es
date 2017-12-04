@@ -33,6 +33,11 @@ export class Window {
     const windows = mapWindows(w => new Window(w));
     return windows.find(w => w.id === windowId);
   }
+
+  static findByTabId(tabId) {
+    const windows = mapWindows(w => new Window(w));
+    return windows.find(w => w.window.gBrowser.selectedBrowser.outerWindowID === tabId);
+  }
 }
 
 export function forEachWindow(callback) {
@@ -171,8 +176,10 @@ export function setOurOwnPrefs() {
     prefs.clear('catHistoryTime');
   }
 
-  // freshtab is optOut since 2.20.1
+  // freshtab is optOut since 2.20.3 for new users
+  // we migrate the old ones
   if (prefs.has('freshTabState')) {
+    prefs.set('freshtab.state', prefs.get('freshTabState'));
     prefs.clear('freshTabState');
   }
 
@@ -304,8 +311,8 @@ function waitForAsync(fn, depth = 200) {
 
 
 function getCurrentgBrowser() {
-  return Cc['@mozilla.org/appshell/window-mediator;1']
-    .getService(Ci.nsIWindowMediator)
+  return Components.classes['@mozilla.org/appshell/window-mediator;1']
+    .getService(Components.interfaces.nsIWindowMediator)
     .getMostRecentWindow('navigator:browser')
     .gBrowser;
 }
@@ -372,4 +379,8 @@ export function updateTab(tabId, url) {
   return waitForAsync(() => Promise.resolve(
     gBrowser.getBrowserForTab(tabToUpdate).currentURI.spec === url
   ));
+}
+
+export function getStartupInfo() {
+  return Services.startup.getStartupInfo();
 }

@@ -1,8 +1,8 @@
-import { utils } from 'core/cliqz';
-import { queryActiveTabs } from 'core/tabs';
-import * as urlHelpers from 'core/url';
-import { forEachWindow } from 'platform/browser';
-import CliqzHumanWeb from 'human-web/human-web';
+import { utils } from '../core/cliqz';
+import { queryActiveTabs } from '../core/tabs';
+import * as urlHelpers from '../core/url';
+import { forEachWindow } from '../platform/browser';
+import CliqzHumanWeb from '../human-web/human-web';
 
 // TODO:
 // what to do with private pages and words
@@ -15,7 +15,7 @@ class ContextSearch {
     this.docCache = Object.create(null);
     this.wordMap = Object.create(null);
     this.checkOldEntriesId = null;
-    this.sendMessageIntervalId = null;
+    // this.sendMessageIntervalId = null;
     this.dropOldHashesId = null;
     this.checkClosedTabsId = null;
     this.messages = [];
@@ -28,7 +28,7 @@ class ContextSearch {
     this.totalCounters = { A: 0, B: 0, C: 0, D: 0 };
     this.totalCountersFirst = { A: 0, B: 0, C: 0, D: 0 };
 
-    this.sendMessageInterval = 4 * 60 * 1000; // default 4 min
+    // this.sendMessageInterval = 4 * 60 * 1000; // default 4 min
     this.checkClosedTabs = 5 * 60 * 1000; // default 5 min
     this.checkOldEntries = 30 * 60 * 1000; // default 30 min
     this.oldEntriesTTL = 60 * 60 * 1000; // default 60 min
@@ -111,10 +111,10 @@ class ContextSearch {
       this.dropOldHashesId = utils.setInterval(this.dropDeletedHashes.bind(this),
         this.dropOldHashes);
     }
-    if (this.sendMessageIntervalId == null) {
-      this.sendMessageIntervalId = utils.setInterval(this.sendMessage.bind(this),
-        this.sendMessageInterval);
-    }
+    // if (this.sendMessageIntervalId == null) {
+    //   this.sendMessageIntervalId = utils.setInterval(this.sendMessage.bind(this),
+    //     this.sendMessageInterval);
+    // }
   }
 
   unload() {
@@ -130,13 +130,13 @@ class ContextSearch {
       utils.clearInterval(this.dropOldHashesId);
       this.dropOldHashesId = null;
     }
-    if (this.sendMessageIntervalId !== null) {
-      if (this.messages.length !== 0) {
-        this.sendMessage();
-      }
-      utils.clearInterval(this.sendMessageIntervalId);
-      this.sendMessageIntervalId = null;
-    }
+    // if (this.sendMessageIntervalId !== null) {
+    //   if (this.messages.length !== 0) {
+    //     this.sendMessage();
+    //   }
+    //   utils.clearInterval(this.sendMessageIntervalId);
+    //   this.sendMessageIntervalId = null;
+    // }
   }
 
   getAllOpenUrls() {
@@ -269,6 +269,7 @@ class ContextSearch {
     });
   }
 
+  // not used in current production
   sendMessage() {
     // create total numbers message
     let s = 0;
@@ -518,26 +519,6 @@ class ContextSearch {
           });
           first = false;
         });
-        const message = {
-          type: 'humanweb',
-          action: 'usercontext',
-          payload: {
-            // url,
-            result: 'distribution',
-            distribution: result,
-          },
-        };
-        this.messages.push(message);
-      } else {
-        const message = {
-          type: 'humanweb',
-          action: 'usercontext',
-          payload: {
-            result: 'not found',
-            // url,
-          },
-        };
-        this.messages.push(message);
       }
     }
   }

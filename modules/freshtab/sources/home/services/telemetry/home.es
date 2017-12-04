@@ -1,5 +1,15 @@
 import telemetry from './base';
 
+let start = 0;
+let focusTotalTime = 0;
+let displayTotalTime = 0;
+let focusStart;
+let blurStart = 0;
+let focusTime = 0;
+let blurCount = 0;
+let unloadingStarted = false;
+let focus = true;
+
 export function historyClickSignal() {
   telemetry({
     type: 'home',
@@ -16,7 +26,7 @@ export function settingsClickSignal() {
   });
 }
 
-export function homeConfigsStatusSignal(state) {
+export function homeConfigsStatusSignal(state, tabIndex) {
   const newsTypes = state.news.data.reduce((hash, curr) => {
     let newsType = `${curr.type}_count`;
     newsType = newsType.replace(/-/g, ''); // remove '-'' from breaking-news
@@ -25,6 +35,15 @@ export function homeConfigsStatusSignal(state) {
     news[newsType] += 1;
     return news;
   }, {});
+
+  start = new Date().getTime();
+  focusStart = start;
+
+  telemetry({
+    type: 'home',
+    action: 'focus',
+    home_id: tabIndex
+  });
 
   telemetry(Object.assign({
     type: 'home',
@@ -36,4 +55,47 @@ export function homeConfigsStatusSignal(state) {
     is_search_bar_on: state.config.componentsState.search.visible,
     is_news_on: state.config.componentsState.news.visible,
   }, newsTypes));
+}
+
+export function sendHomeUnloadSignal({ tabIndex }) {
+  if (unloadingStarted) {
+    return;
+  }
+  unloadingStarted = true;
+  displayTotalTime = new Date().getTime() - start;
+  focusTotalTime += new Date().getTime() - focusStart;
+  telemetry({
+    type: 'home',
+    action: 'hide',
+    display_time: displayTotalTime,
+    focus_time: focusTotalTime,
+    blur_count: blurCount,
+    home_id: tabIndex
+  });
+}
+
+export function sendHomeBlurSignal({ tabIndex }) {
+  focus = false;
+  blurStart = new Date().getTime();
+  focusTotalTime += blurStart - focusStart;
+  focusTime = blurStart - focusStart;
+  blurCount += 1;
+  telemetry({
+    type: 'home',
+    action: 'blur',
+    focus_time: focusTime,
+    home_id: tabIndex
+  });
+}
+
+export function sendHomeFocusSignal({ tabIndex }) {
+  if (focus) {
+    return;
+  }
+  focusStart = new Date().getTime();
+  telemetry({
+    type: 'home',
+    action: 'focus',
+    home_id: tabIndex
+  });
 }

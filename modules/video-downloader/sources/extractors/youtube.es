@@ -20,7 +20,6 @@ function handleFormats(formats) {
         'container',
         'encoding',
         'resolution',
-        'type',
         'url',
       ];
       const output = {};
@@ -28,7 +27,7 @@ function handleFormats(formats) {
       output.size = parseInt(size, 10);
       return output;
     })
-    .filter(x => (x.type && x.container)),
+    .filter(x => x.container === 'm4a' || (x.resolution && x.container)),
   );
 }
 

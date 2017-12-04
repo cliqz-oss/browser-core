@@ -1,95 +1,17 @@
-function wait(time) {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
+import {
+  wait,
+  registerInterval,
+  clearIntervals,
+  waitFor,
+  Subject
+} from './helpers';
 
-let intervals = [];
-function registerInterval(interval) {
-  intervals.push(interval);
-}
-
-function clearIntervals() {
-  intervals.forEach(interval => clearInterval(interval));
-  intervals = [];
-}
-
-function waitFor(fn) {
-  var resolver, rejecter, promise = new Promise(function (res, rej) {
-    resolver = res;
-    rejecter = rej;
-  });
-
-  function check() {
-    const result = fn();
-    if (result) {
-      clearInterval(interval);
-      resolver(result);
-    }
-  }
-
-  var interval = setInterval(check, 50);
-  check();
-  registerInterval(interval);
-
-  return promise;
-}
-
-class Subject {
-  constructor() {
-    this.messages = [];
-  }
-
-  load() {
-    this.iframe = document.createElement('iframe');
-    this.iframe.src = '/build/cliqz@cliqz.com/chrome/content/control-center/index.html';
-    this.iframe.width = 455;
-    this.iframe.height = 500;
-    document.body.appendChild(this.iframe)
-
-    return new Promise(resolve => {
-      this.iframe.contentWindow.addEventListener('load', () => resolve());
-    }).then(() => {
-
-      this.iframe.contentWindow.addEventListener('message', ev => {
-        var data = JSON.parse(ev.data);
-        this.messages.push(data);
-      });
-
-      return waitFor(() => {
-        return this.messages.length === 1
-      })
-    });
-  }
-
-  unload() {
-    document.body.removeChild(this.iframe);
-  }
-
-  query(selector) {
-    return this.iframe.contentWindow.document.querySelector(selector);
-  }
-
-  queryAll(selector) {
-    return this.iframe.contentWindow.document.querySelectorAll(selector);
-  }
-
-  pushData(data = {}) {
-    this.iframe.contentWindow.postMessage(JSON.stringify({
-      target: 'cliqz-control-center',
-      origin: 'window',
-      message:  {
-        action: 'pushData',
-        data,
-      }
-    }), "*");
-    return wait(500);
-  }
-
-  getComputedStyle(selector) {
-    return this.iframe.contentWindow.getComputedStyle(this.query(selector));
-  }
-}
+import {generateDataOn, generateDataOffSite, generateDataOffAll} from './fixtures/antiphishing';
 
 function antiphishingUiTests(amo) {
+  const dataOn = generateDataOn(amo);
+  const dataOffSite = generateDataOffSite(amo);
+  const dataOffAll = generateDataOffAll(amo);
   let subject;
 
   before(function () {
@@ -153,36 +75,11 @@ function antiphishingUiTests(amo) {
   })
 
   describe('anti-phishing on', function () {
-    const data = {
-      activeURL: 'http://www.spiegel.de/',
-      friendlyURL: 'http://www.spiegel.de/',
-      isSpecialUrl: false,
-      domain: 'spiegel.de',
-      extraUrl: '',
-      hostname: 'www.spiegel.de',
-      module: {
-        'antitracking': {
-          visible: false,
-        },
-        'anti-phishing': {
-          visible: true,
-          active: true,
-          isWhitelisted: true,
-          state: 'active'
-        },
-      },
-      generalState: 'active',
-      feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: amo,
-      funnelCake: false
-    };
-
     before(() => {
-      return subject.pushData(data);
+      return subject.pushData(dataOn);
     });
 
     headerProtected();
-
     antiPhishingUiTests();
 
     it('dropdown is invisible', function () {
@@ -205,36 +102,11 @@ function antiphishingUiTests(amo) {
   });
 
   describe('anti-phishing off for particular domain', function () {
-    const data = {
-      activeURL: 'http://www.spiegel.de/',
-      friendlyURL: 'http://www.spiegel.de/',
-      isSpecialUrl: false,
-      domain: 'spiegel.de',
-      extraUrl: '',
-      hostname: 'www.spiegel.de',
-      module: {
-        'antitracking': {
-          visible: false,
-        },
-        'anti-phishing': {
-          visible: true,
-          active: true,
-          isWhitelisted: true,
-          state: 'inactive'
-        },
-      },
-      generalState: 'active',
-      feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: amo,
-      funnelCake: false
-    };
-
     before(() => {
-      return subject.pushData(data);
+      return subject.pushData(dataOffSite);
     });
 
     headerProtected();
-
     antiPhishingUiTests();
 
     it('renders correct colour of switch', function () {
@@ -259,36 +131,13 @@ function antiphishingUiTests(amo) {
   });
 
   describe('anti-phishing off for all websites', function () {
-    const data = {
-      activeURL: 'http://www.spiegel.de/',
-      friendlyURL: 'http://www.spiegel.de/',
-      isSpecialUrl: false,
-      domain: 'spiegel.de',
-      extraUrl: '',
-      hostname: 'www.spiegel.de',
-      module: {
-        'antitracking': {
-          visible: false,
-        },
-        'anti-phishing': {
-          visible: true,
-          active: false,
-          isWhitelisted: false,
-          state: 'critical'
-        },
-      },
-      generalState: 'active',
-      feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: amo,
-      funnelCake: false
-    };
+
 
     before(() => {
-      return subject.pushData(data);
+      return subject.pushData(dataOffAll);
     });
 
     headerProtected();
-
     antiPhishingUiTests();
 
     it('renders correct colour of switch', function () {
@@ -313,10 +162,10 @@ function antiphishingUiTests(amo) {
   });
 };
 
-describe("Anti-Phishing UI browser", function () {
+describe("Control Center: Anti-Phishing UI browser", function () {
   antiphishingUiTests(false);
 });
 
-describe('AMO Anti-Phishing UI tests', function () {
+describe('Control Center: AMO, Anti-Phishing UI tests', function () {
   antiphishingUiTests(true);
 })

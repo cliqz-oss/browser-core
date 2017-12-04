@@ -16,6 +16,10 @@ properties([
 ])
 
 def matrix = [
+    'jenkins: unit': [
+        'gpu': false,
+        'testParams': 'configs/jenkins.json -l unit-node',
+    ],
     'browser: unit': [
         'gpu': false,
         'testParams': 'configs/browser.json -l unit-node',
@@ -55,6 +59,10 @@ def matrix = [
     'firefox 56': [
         'gpu': true,
         'testParams': 'configs/jenkins.json -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
+    ],
+    'funnelcake 56': [
+        'gpu': true,
+        'testParams': 'configs/jenkins-funnelcake.json -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
     ],
     'firefox stresstest (52)': [
         'gpu': true,

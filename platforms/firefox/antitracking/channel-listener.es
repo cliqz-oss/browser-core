@@ -1,4 +1,5 @@
-import utils from 'core/utils';
+import utils from '../../core/utils';
+import { Components, XPCOMUtils } from '../globals';
 
 export function ChannelListener(headers) {
   this.headers = headers;
@@ -7,10 +8,10 @@ export function ChannelListener(headers) {
 ChannelListener.prototype = {
 
   QueryInterface: XPCOMUtils.generateQI([
-    Ci.nsIStreamListener,
-    Ci.nsIRequestObserver,
-    Ci.nsIInterfaceRequestor,
-    Ci.nsIChannelEventSink,
+    Components.interfaces.nsIStreamListener,
+    Components.interfaces.nsIRequestObserver,
+    Components.interfaces.nsIInterfaceRequestor,
+    Components.interfaces.nsIChannelEventSink,
   ]),
 
   // nsIInterfaceRequestor

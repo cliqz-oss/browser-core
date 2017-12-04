@@ -248,48 +248,8 @@ def clean():
 
 @task
 def comment_cleaner(path=None):
-    if path is None:
-        print 'Nothing to clean'
-        return
-
-    target = ['js', 'jsm', 'html']
-
-    exclude_dirs = ['node_modules', 'bower_components', 'extern', 'cliqz-history']
-    ignore = [
-        'Validations.js',
-        'humanweb.html',
-        'freshtab.html',
-        'processScript.js',
-        'query_handler.js',
-        'funnel-cake.html',
-        'funnel-cake-cliqz.html',
-        'funnel-cake-mozilla.html',
-        'funnel-cake-firefox.html',
-        'ytdl-core.js'
-    ]
-
-    print 'CommentCleaner - Start'
-    ext_root = os.path.dirname(os.path.realpath(__file__)) + '/' + path
-    for root, dirs, files in os.walk(ext_root, topdown=True):
-        # ignore exclude_dirs - http://stackoverflow.com/a/19859907
-        dirs[:] = [d for d in dirs if d not in exclude_dirs]
-        for f in files:
-            if f.split('.')[-1] in target and f not in ignore:
-                print 'X',
-                try:
-                    with open(root + '/' + f, 'r+') as handler:
-                        content = handler.read()
-                        handler.seek(0)
-                        handler.truncate()
-                        handler.write(js_comment_removal(content))
-                except:
-                    print 'ERROR', root + '/' + f
-                    raise
-
-            else:
-                print '.',
-    print
-    print 'CommentCleaner - Done'
+    print 'CommentCleaner - Skipped'
+    return
 
 
 def js_comment_removal(s):

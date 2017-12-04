@@ -32,8 +32,7 @@ var CliqzAutocomplete = {
         lastFocusTime: null,
         highlightFirstElement: false,
         hm: null,
-        currentAutoLoadURL: null,
-        historySearch,
+        currentAutoLoadURL: null
       });
     },
     getResultsOrder: function(results){

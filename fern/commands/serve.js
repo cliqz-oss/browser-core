@@ -14,6 +14,7 @@ const createBuildWatcher = common.createBuildWatcher;
 
 program.command('serve [file]')
        .option('--no-maps', 'disables source maps')
+       .option('--no-debug', 'disables debug pages')
        .option('--version [version]', 'sets extension version', 'package')
        .option('--environment <environment>')
        .option('--instrument-functions', 'enable function instrumentation for profiling')
@@ -27,6 +28,7 @@ program.command('serve [file]')
           const OUTPUT_PATH = cfg.OUTPUT_PATH;
           process.env['CLIQZ_ENVIRONMENT'] = options.environment || 'development';
           process.env['CLIQZ_SOURCE_MAPS'] = options.maps;
+          process.env['CLIQZ_SOURCE_DEBUG'] = options.debug;
           process.env['CLIQZ_INSTRUMENT_FUNCTIONS'] = options.instrumentFunctions || '';
 
           const addonID = CONFIG.settings.id || 'cliqz@cliqz.com';
@@ -38,7 +40,12 @@ program.command('serve [file]')
             firefox: options.firefox,
             keepProfileChanges: options.firefoxKeepChanges || false,
             customPrefs: {
+              'browser.startup.page': 3,
               'extensions.cliqz.showConsoleLogs': true,
+              'extensions.cliqz.developer': true,
+              'security.sandbox.content.level': 2,
+              'extensions.legacy.enabled': true,
+              'lightweightThemes.selectedThemeID': 'firefox-compact-light@mozilla.org',
             },
             startUrl: 'about:cliqz',
           };

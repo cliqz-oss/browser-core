@@ -31,7 +31,7 @@ export default describeModule('pairing/shared',
           };
         },
       },
-      'platform/zlib': {
+      'platform/lib/zlib': {
         deflate: (x) => zlib.deflateSync(Buffer.from(x)),
         inflate: (x) => zlib.inflateSync(Buffer.from(x)),
       },

@@ -1,9 +1,22 @@
 import utils from '../utils';
 import maybe from '../helpers/maybe';
 import console from '../../core/console';
+import getContainer from '../../platform/ui/helpers';
 
 export default class {
-  constructor(window, url, id, type, autohide = true, actions = {}, version = 0, onHidingCallback, onShowingCallback=null) {
+  constructor({
+      window,
+      url,
+      id,
+      type,
+      autohide = true,
+      actions = {},
+      version = 0,
+      onHidingCallback = null,
+      onShowingCallback = null,
+      defaultWidth = 0,
+      defaultHeight = 0,
+    } = {}) {
     this.window = window;
     this.document = this.window.document;
     this.url = url;
@@ -19,6 +32,9 @@ export default class {
     this.onMouseOver = this.onMouseOver.bind(this);
     this.onMouseOut = this.onMouseOut.bind(this);
     this.onMessage = this.onMessage.bind(this);
+
+    this.defaultWidth = defaultWidth;
+    this.defaultHeight = defaultHeight;
   }
 
   createPanel() {
@@ -74,7 +90,7 @@ export default class {
 
   onMessage(event) {
     const data = JSON.parse(event.data);
-    if (data.target === 'cliqz-offers-cc' && data.origin === 'iframe') {
+    if (data.target === 'cliqz-video-downloader' && data.origin === 'iframe') {
       const message = data.message;
       this.actions[message.action](message.data);
     }
@@ -93,47 +109,51 @@ export default class {
   onShowing(cb) {
     this.createIframe();
     this.panel.querySelector('vbox').appendChild(this.iframe);
+
     utils.telemetry({
       type: this.type,
       version: this.version,
-      target: 'icon',
-      action: 'click',
+      action: 'show',
     });
-    this.startShowingAt = new Date();
+    this.startShowingAt = Date.now();
 
     // TODO: need a better way to attach those events
     utils.setTimeout(() => {
-      maybe(this, 'wrapperPanel').then(panel => {
+      maybe(this, 'wrapperPanel').then((panel) => {
         panel.addEventListener('mouseover', this.onMouseOver);
       });
-      maybe(this, 'wrapperPanel').then(panel => {
+      maybe(this, 'wrapperPanel').then((panel) => {
         panel.addEventListener('mouseout', this.onMouseOut);
       });
     }, 200);
 
-    if (typeof cb === "function") {
+    if (typeof cb === 'function') {
       cb();
     }
+
+    this.resizePopup({
+      width: this.defaultWidth,
+      height: this.defaultHeight,
+    });
   }
 
   onHiding(cb) {
     this.panel.querySelector('vbox').removeChild(this.iframe);
-    let shownDurationTime = new Date() - this.startShowingAt;
+    this.shownDurationTime = Date.now() - this.startShowingAt;
     utils.telemetry({
       type: this.type,
       version: this.version,
       action: 'hide',
-      show_duration: shownDurationTime
+      show_duration: this.shownDurationTime,
     });
 
-    this.shownDurationTime = shownDurationTime;
-    if (typeof cb === "function") {
+    if (typeof cb === 'function') {
       cb();
     }
-    maybe(this, 'wrapperPanel').then(panel => {
+    maybe(this, 'wrapperPanel').then((panel) => {
       panel.removeEventListener('mouseover', this.onMouseOver);
     });
-    maybe(this, 'wrapperPanel').then(panel => {
+    maybe(this, 'wrapperPanel').then((panel) => {
       panel.removeEventListener('mouseout', this.onMouseOut);
     });
   }
@@ -156,6 +176,11 @@ export default class {
     }, 300);
   }
 
+  resizePopup({ width, height }) {
+    this.iframe.style.width = `${width}px`;
+    this.iframe.style.height = `${height}px`;
+  }
+
   destroyPanel() {
     delete this.panel;
   }
@@ -165,12 +190,12 @@ export default class {
   }
 
   panelUI() {
-    return this.document.getElementById('PanelUI-multiView');
+    return getContainer(this.document);
   }
 
   attach() {
     this.createPanel();
-    maybe(this, 'panelUI').then(panelui => {
+    maybe(this, 'panelUI').then((panelui) => {
       panelui.appendChild(this.panel);
     });
   }

@@ -55,6 +55,9 @@ export default class {
 
   selectResult(result) {
     const el = [...this.rootElement.querySelectorAll('a')].find(a => equals(a.href, result.url));
+    if (!el) {
+      return;
+    }
     el.classList.add('selected');
   }
 

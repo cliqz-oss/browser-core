@@ -1,5 +1,5 @@
-import CliqzHM from 'hm/main';
-import CliqzUtils from 'core/utils';
+import CliqzHM from './main';
+import CliqzUtils from '../core/utils';
 
 export default {
   init() {

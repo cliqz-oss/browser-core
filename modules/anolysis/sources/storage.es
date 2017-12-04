@@ -32,9 +32,9 @@ export default class {
       _id: '_design/index',
       views: {
         by_ts: {
-          map: function map(doc) {
+          map: `function map(doc) {
             emit(doc.ts);
-          }.toString(),
+          }`,
         },
       },
     };

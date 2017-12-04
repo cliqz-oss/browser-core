@@ -20,6 +20,9 @@ export default describeModule("autocomplete/mixer",
           get() {},
           set() {}
         }
+      },
+      "core/platform": {
+        isMobile: false,
       }
     }
   },

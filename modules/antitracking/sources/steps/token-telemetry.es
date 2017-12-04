@@ -1,8 +1,9 @@
 import md5 from '../md5';
 import * as datetime from '../time';
-import * as persist from '../persistent-state';
+import * as persist from '../../core/persistent-state';
 import { splitTelemetryData } from '../utils';
-import pacemaker from '../pacemaker';
+import pacemaker from '../../core/pacemaker';
+import { TELEMETRY } from '../config';
 
 /**
  * Add padding characters to the left of the given string.
@@ -105,6 +106,12 @@ export default class {
     const dkSafe = domain;
     const dkUnsafe = `${domain}_unsafe`;
     const isTracker = this.qsWhitelist.isTrackerDomain(generalDomain);
+
+    // telemetryMode 0: collect nothing, telemetryMode 1: collect only for tracker domains
+    if (this.config.telemetryMode === TELEMETRY.DISABLED ||
+       (this.config.telemetryMode === TELEMETRY.TRACKERS_ONLY && !isTracker)) {
+      return;
+    }
 
     keyTokens.forEach((kv) => {
       const tok = kv.v;

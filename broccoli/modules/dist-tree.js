@@ -23,7 +23,7 @@ module.exports = function getDistTree(modulesTree) {
       subproject => new Funnel(
         new UnwatchedDir(subproject.src), 
         {
-          include: ['**/*'],
+          include: subproject.include || ['**/*'],
           destDir: subproject.dest
         }
       )

@@ -1,4 +1,4 @@
-import * as persist from './persistent-state';
+import * as persist from '../core/persistent-state';
 import events from '../core/events';
 import ResourceLoader from '../core/resource-loader';
 import resourceManager from '../core/resource-manager';
@@ -10,6 +10,12 @@ const CONFIG_URL = 'https://cdn.cliqz.com/anti-tracking/config.json';
 export const VERSION = '0.101';
 export const MIN_BROWSER_VERSION = 35;
 
+export const TELEMETRY = {
+  DISABLED: 0,
+  TRACKERS_ONLY: 1,
+  ALL: 2,
+};
+
 export const DEFAULTS = {
   safekeyValuesThreshold: 4,
   shortTokenLength: 6,
@@ -19,6 +25,7 @@ export const DEFAULTS = {
   cookieEnabled: true,
   qsEnabled: true,
   bloomFilterEnabled: true,
+  telemetryMode: TELEMETRY.ALL,
 };
 
 export const PREFS = {
@@ -32,6 +39,7 @@ export const PREFS = {
   forceBlockEnabled: 'attrackForceBlock',
   overrideUserAgent: 'attrackOverrideUserAgent',
   cookieTrustReferers: 'attrackCookieTrustReferers',
+  telemetryMode: 'attrackTelemetryMode',
 };
 
 /**

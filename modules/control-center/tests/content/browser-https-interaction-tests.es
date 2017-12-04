@@ -1,95 +1,14 @@
-function wait(time) {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
+import {
+  wait,
+  registerInterval,
+  clearIntervals,
+  waitFor,
+  Subject
+} from './helpers';
 
-let intervals = [];
-function registerInterval(interval) {
-  intervals.push(interval);
-}
+import {dataOn, dataOff} from './fixtures/https-everywhere';
 
-function clearIntervals() {
-  intervals.forEach(interval => clearInterval(interval));
-  intervals = [];
-}
-
-function waitFor(fn) {
-  var resolver, rejecter, promise = new Promise(function (res, rej) {
-    resolver = res;
-    rejecter = rej;
-  });
-
-  function check() {
-    const result = fn();
-    if (result) {
-      clearInterval(interval);
-      resolver(result);
-    }
-  }
-
-  var interval = setInterval(check, 50);
-  check();
-  registerInterval(interval);
-
-  return promise;
-}
-
-class Subject {
-  constructor() {
-    this.messages = [];
-  }
-
-  load() {
-    this.iframe = document.createElement('iframe');
-    this.iframe.src = '/build/cliqz@cliqz.com/chrome/content/control-center/index.html';
-    this.iframe.width = 455;
-    this.iframe.height = 500;
-    document.body.appendChild(this.iframe)
-
-    return new Promise(resolve => {
-      this.iframe.contentWindow.addEventListener('load', () => resolve());
-    }).then(() => {
-
-      this.iframe.contentWindow.addEventListener('message', ev => {
-        var data = JSON.parse(ev.data);
-        this.messages.push(data);
-      });
-
-      return waitFor(() => {
-        return this.messages.length === 1
-      })
-    });
-  }
-
-  unload() {
-    document.body.removeChild(this.iframe);
-  }
-
-  query(selector) {
-    return this.iframe.contentWindow.document.querySelector(selector);
-  }
-
-  queryAll(selector) {
-    return this.iframe.contentWindow.document.querySelectorAll(selector);
-  }
-
-  pushData(data = {}) {
-    this.iframe.contentWindow.postMessage(JSON.stringify({
-      target: 'cliqz-control-center',
-      origin: 'window',
-      message:  {
-        action: 'pushData',
-        data,
-      }
-    }), "*");
-    return wait(500);
-  }
-
-  getComputedStyle(selector) {
-    return this.iframe.contentWindow.getComputedStyle(this.query(selector));
-  }
-}
-
-describe('HTTPS Everywhere interaction browser', function () {
+describe('Control Center: HTTPS Everywhere interaction browser', function () {
   let subject;
 
   beforeEach(function () {
@@ -119,30 +38,8 @@ describe('HTTPS Everywhere interaction browser', function () {
   })
 
   describe('with https everywhere on', function () {
-    const data = {
-      activeURL: 'http://www.spiegel.de/',
-      friendlyURL: 'http://www.spiegel.de/',
-      isSpecialUrl: false,
-      domain: 'spiegel.de',
-      extraUrl: '',
-      hostname: 'www.spiegel.de',
-      module: {
-        antitracking: {
-          visible: false,
-        },
-        'https-everywhere': {
-          visible: true,
-          active: true
-        },
-      },
-      generalState: 'active',
-      feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: false,
-      funnelCake: false
-    };
-
     beforeEach(() => {
-      return subject.pushData(data);
+      return subject.pushData(dataOn);
     });
 
     it('renders https box', function () {
@@ -169,30 +66,8 @@ describe('HTTPS Everywhere interaction browser', function () {
   });
 
   describe('with https everywhere off', function () {
-    const data = {
-      activeURL: 'http://www.spiegel.de/',
-      friendlyURL: 'http://www.spiegel.de/',
-      isSpecialUrl: false,
-      domain: 'spiegel.de',
-      extraUrl: '',
-      hostname: 'www.spiegel.de',
-      module: {
-        antitracking: {
-          visible: false,
-        },
-        'https-everywhere': {
-          visible: true,
-          active: false
-        },
-      },
-      generalState: 'active',
-      feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
-      amo: false,
-      funnelCake: false
-    };
-
     beforeEach(() => {
-      return subject.pushData(data);
+      return subject.pushData(dataOff);
     });
 
     it('renders https box', function () {
@@ -201,7 +76,7 @@ describe('HTTPS Everywhere interaction browser', function () {
 
     describe('click on https switch', function () {
       updateGeneralStateTest('#https .cqz-switch-box');
-      
+
       it('sends message to activate https', function () {
         subject.query('#https .cqz-switch-box').click();
 

@@ -91,6 +91,7 @@ describe('AttrackBloomFilter', function() {
           testServer.registerPathHandler('/bloom_filter/config', mock_bloom_filter_config),
         ]).then(() => {
           whitelist = new AttrackBloomFilter(
+            null,
             testServer.getBaseUrl('bloom_filter/config'),
             testServer.getBaseUrl('bloom_filter/')
           );

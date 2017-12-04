@@ -1,9 +1,8 @@
-import { HttpRequestContext } from 'platform/antitracking/http-request-context';
-import { ChannelListener } from 'platform/antitracking/channel-listener';
-import utils from 'core/utils';
-import * as tabListener from 'platform/antitracking/tab-listener';
-
-Cu.import("resource://gre/modules/Services.jsm");
+import { HttpRequestContext } from './antitracking/http-request-context';
+import { ChannelListener } from './antitracking/channel-listener';
+import utils from '../core/utils';
+import * as tabListener from './antitracking/tab-listener';
+import { Components, Services } from '../platform/globals';
 
 var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService),
     nsIHttpChannel = Components.interfaces.nsIHttpChannel;

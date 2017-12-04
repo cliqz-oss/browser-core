@@ -1,6 +1,6 @@
 import md5 from './md5';
 import * as datetime from './time';
-import pacemaker from './pacemaker';
+import pacemaker from '../core/pacemaker';
 import QSWhitelistBase from './qs-whitelist-base';
 import { utils } from '../core/cliqz';
 import { Resource } from '../core/resource-loader';
@@ -99,8 +99,8 @@ const UPDATE_EXPIRY_HOURS = 48;
 
 export class AttrackBloomFilter extends QSWhitelistBase {
 
-  constructor(configURL = BLOOMFILTER_CONFIG, baseURL = BLOOMFILTER_BASE_URL) {
-    super();
+  constructor(config, configURL = BLOOMFILTER_CONFIG, baseURL = BLOOMFILTER_BASE_URL) {
+    super(config);
     this.lastUpdate = '0';
     this.bloomFilter = null;
     this.version = null;
@@ -128,9 +128,9 @@ export class AttrackBloomFilter extends QSWhitelistBase {
       });
       const loadBloomFile = () => bloomFile.load()
         .then(bf => this.updateFilter(bf, 'local', minor))
-        .catch((e) => {
+        .catch(() => {
           bloomFile.remoteURL = `${this.baseURL}${major}/${minor}.gz`;
-          bloomFile.updateFromRemote()
+          return bloomFile.updateFromRemote()
             .then(bf => this.updateFilter(bf, major, minor))
         }).catch(() => this.update())
       initPromises.push(loadBloomFile());

@@ -42,6 +42,10 @@
     "showConsoleLogs": true,
     "humanWeb": true
   },
+  "bundles": [
+    "webextension-specific/app.bundle.js",
+    "hpn/worker.bundle.js"
+  ],
   "modules": [
     "core",
     "core-cliqz",

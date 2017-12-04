@@ -1,7 +1,7 @@
-import ProxyService from 'unblock/proxy';
-import RequestListener from 'unblock/request-listener';
-import ProxyManager from 'unblock/proxy-manager';
-import { utils, events } from 'core/cliqz';
+import ProxyService from './proxy';
+import RequestListener from './request-listener';
+import ProxyManager from './proxy-manager';
+import { utils, events } from '../core/cliqz';
 
 const MODE_ASK = "ask";
 const MODE_ALWAYS = "always";

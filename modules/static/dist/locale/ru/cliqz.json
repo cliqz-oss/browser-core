@@ -1389,7 +1389,7 @@
       "message": "Transparency Monitor"
     },
     "control-center-history-options": {
-      "message": "History options"
+      "message": "History Options"
     },
     "control-center-show-history": {
       "message": "Show all history"
@@ -1578,7 +1578,7 @@
       "message": "Right-click on a tab or a website."
     },
     "pairing-tab-tip2": {
-      "message": "Select \"Send tab to mobile\"."
+      "message": "Select \"Send Tab to Mobile\"."
     },
     "pairing-browser-pair-with": {
       "message": "This browser is now connected with:"
@@ -1626,7 +1626,7 @@
       "message": "Disconnect"
     },
     "pairing-send-tab-to-mobile": {
-      "message": "Send tab to mobile"
+      "message": "Send Tab to Mobile"
     },
     "pairing-send-video-to-mobile-retry": {
       "message": "Send again"
@@ -1650,7 +1650,7 @@
       "message": "Your feedback is important to us"
     },
     "offers-hub-feedaback-sub-title": {
-      "message": "Why have you removed this offer:"
+      "message": "Why did you remove this offer?"
     },
     "offers-hub-feedaback-option1": {
       "message": "I'm not interested in this offer"
@@ -1665,7 +1665,7 @@
       "message": "Cancel"
     },
     "offers-hub-remove": {
-      "message": "Remove"
+      "message": "Remove offer"
     },
     "offers-hub-about-cliqz-offers": {
       "message": "More information"

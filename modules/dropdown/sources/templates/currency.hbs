@@ -3,9 +3,9 @@
         <p class="title">
             <a
                 class="result"
-                href="{{ currencyCopyResult.url }}"
+                href="{{ url }}"
             >
-                = {{currencyCopyResult.toAmount}} {{currencyCopyResult.toCurrencyName}}
+                = {{toAmount}} {{toCurrencyName}}
                 <span class="tooltip">
                     {{local 'Click anywhere to copy'}}
                 </span>
@@ -14,7 +14,9 @@
         <p class="subtitle">
             <span>
                 {{multiplyer}} {{fromCurrency}} = {{conversionRate}} {{toCurrency}} {{local 'no_legal_disclaimer'}}
-                &#183; {{> partials/source}}
+                {{#with sourceWrapper}}
+                    &#183; {{> partials/source}}
+                {{/with}}
                 {{#if updated}}
                     &#183; {{> partials/timestamp}}
                 {{/if}}

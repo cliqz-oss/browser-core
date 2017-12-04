@@ -1,14 +1,13 @@
 /* global CLIQZ, window, document */
 import Rx from '../../platform/lib/rxjs';
-import mixed from '../search';
+import search from '../search';
+import background from '../background';
 import createUrlbarObservable from '../observables/urlbar';
-
-Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
-const System = CLIQZ.System;
-const Dropdown = System.get('dropdown/dropdown').default;
-const Results = System.get('dropdown/results').default;
-const AdultAssistant = System.get('dropdown/adult-content-assistant').default;
-const LocationAssistant = System.get('dropdown/location-sharing-assistant').default;
+import DEFAULT_CONFIG from '../config';
+import Results from '../../dropdown/results';
+import AdultAssistant from '../../dropdown/adult-content-assistant';
+import LocationAssistant from '../../dropdown/location-sharing-assistant';
+import Dropdown from '../../dropdown/dropdown';
 
 const $ = window.document.querySelector.bind(window.document);
 
@@ -34,7 +33,7 @@ window.addEventListener('load', () => {
     .fromEvent($urlbar, 'focus')
     .share();
 
-  const mix = mixed(query, focus);
+  const mix = search(query, focus, background.providers, DEFAULT_CONFIG);
 
   const dropdown = new Dropdown($results, window);
 

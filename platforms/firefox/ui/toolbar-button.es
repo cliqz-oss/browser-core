@@ -1,8 +1,11 @@
 import { Components } from '../globals';
+import utils from '../../core/utils';
+import getContainer from './helpers';
 
 const { CustomizableUI } = Components.utils.import('resource:///modules/CustomizableUI.jsm', null);
 
 const XUL_NS = 'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul';
+
 
 export default class BrowserAction {
 
@@ -25,6 +28,9 @@ export default class BrowserAction {
     };
 
     this.windows = new WeakMap();
+
+    this.telemetryType = options.widgetId;
+    this.telemetryVersion = 1;
   }
 
   build() {
@@ -42,7 +48,7 @@ export default class BrowserAction {
         view.id = this.viewId;
         view.setAttribute('flex', '1');
 
-        document.getElementById('PanelUI-multiView').appendChild(view);
+        getContainer(document).appendChild(view);
       },
 
       onDestroyed: (document) => {
@@ -62,10 +68,22 @@ export default class BrowserAction {
       },
 
       onViewShowing: (event) => {
+        this.startShowingAt = Date.now();
+        utils.telemetry({
+          type: this.telemetryType,
+          version: this.telemetryVersion,
+          action: 'show',
+        });
+
         const doc = event.target.ownerDocument;
         const win = doc.defaultView;
-        const view = doc.getElementById(this.viewId);
+        const windowProxy = this.getWindowProxy(win);
 
+        if (windowProxy.hooks.onViewShowing) {
+          windowProxy.hooks.onViewShowing(event);
+        }
+
+        const view = doc.getElementById(this.viewId);
         const iframe = win.document.createElement('iframe');
         iframe.setAttribute('id', `${this.id}-iframe`);
         iframe.setAttribute('type', 'content');
@@ -81,7 +99,6 @@ export default class BrowserAction {
           this.dispatchAction(win, data);
         };
 
-        const windowProxy = this.getWindowProxy(win);
         windowProxy.onMessage = onMessage;
 
         iframe.addEventListener('load', function onReady() {
@@ -99,16 +116,46 @@ export default class BrowserAction {
       },
 
       onViewHiding: (event) => {
+        this.shownDurationTime = Date.now() - this.startShowingAt;
+        utils.telemetry({
+          type: this.telemetryType,
+          version: this.telemetryVersion,
+          action: 'hide',
+          show_duration: this.shownDurationTime,
+        });
+
         const doc = event.target.ownerDocument;
         const win = doc.defaultView;
+        const windowProxy = this.getWindowProxy(win);
+
+        if (windowProxy.hooks.onViewHiding) {
+          windowProxy.hooks.onViewHiding(event);
+        }
+
         const view = doc.getElementById(this.viewId);
         const iframe = view.querySelector('iframe');
 
-        const windowProxy = this.getWindowProxy(win);
         const onMessage = windowProxy.onMessage;
 
         iframe.contentWindow.removeEventListener('message', onMessage);
         view.removeChild(iframe);
+      },
+
+      onClick: (event) => {
+        const doc = event.target.ownerDocument;
+        const win = doc.defaultView;
+        const windowProxy = this.getWindowProxy(win);
+
+        if (windowProxy.hooks.onClick) {
+          windowProxy.hooks.onClick(event);
+        }
+
+        utils.telemetry({
+          type: this.telemetryType,
+          version: this.telemetryVersion,
+          target: 'icon',
+          action: 'click',
+        });
       },
     });
 
@@ -148,9 +195,10 @@ export default class BrowserAction {
     return this.windows.get(window);
   }
 
-  addWindow(window, actions) {
+  addWindow(window, actions, hooks = {}) {
     this.windows.set(window, {
       actions,
+      hooks,
     });
   }
 
@@ -175,12 +223,17 @@ export default class BrowserAction {
     let newHeight = height;
     const iframe = window.document.getElementById(`${this.id}-iframe`);
     if (iframe) {
-      const view = iframe.parentElement;
-      if (view.getAttribute('mainview') !== 'true') {
+      const widgetPlacement = CustomizableUI.getPlacementOfWidget(this.id) || {};
+
+      if (widgetPlacement.area === 'PanelUI-contents') {
         newHeight += 17; // 17px for scrollbar;
+      } else if (widgetPlacement.area === 'widget-overflow-fixed-list') {
+        newHeight += 40; // 40px for the panel-header;
       }
+
       iframe.style.width = `${width}px`;
       iframe.style.height = `${newHeight}px`;
+      const view = iframe.parentElement;
       view.setAttribute('style', `height: ${newHeight}px; max-height: ${newHeight}px;`);
     }
   }

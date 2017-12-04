@@ -772,6 +772,12 @@ vbox[sidebarcommand=historybroadcaster] {
 #navigator-toolbox[inFullscreen="true"] > #TabsToolbar {
     padding-top: 0;
     margin-top: -3px;
+
+    .tabbrowser-tab {
+        &:first-child .tab-content {
+            border-left-width: 0;
+        }
+    }
 }
 
 //=== Border Customize Pannel

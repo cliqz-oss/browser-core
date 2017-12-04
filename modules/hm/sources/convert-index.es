@@ -1,5 +1,5 @@
-import { ngrams, len, comp_url, is_search_url, btoa_safe, atob_safe, normalize, items, zip, range, dict, url_norm, has } from 'hm/helpers';
-import md5 from 'core/helpers/md5';
+import { ngrams, len, comp_url, is_search_url, btoa_safe, atob_safe, normalize, items, zip, range, dict, url_norm, has } from './helpers';
+import md5 from '../core/helpers/md5';
 
 // Data is an array of arrays. Internal arrays are:
 // [moz_places, moz_inputhistory, moz_historyvisits, urltitles, urldescriptions, visits]

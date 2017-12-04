@@ -7,10 +7,14 @@ import { processRawRequest } from '../core/adblocker-base/filters-engine';
 import { PersistentDataHandler, BasicDataHolder } from './persistent-helpers';
 import TaskHandler from './task-handler';
 import TaskExecutor from './task-executor';
+import { timestamp } from './time_utils';
 
 // how frequently we will check for the current status of the task and proceed
 // with the next ones if we have some for any reason
 const PROCESS_INTERVAL_TIME_MS = 15 * 1000; // 15 seconds?
+// for how much time we want to store the data after the last time we saw an
+// access to it (someone use it basically)
+const MAX_DATA_TIME_PERSIST_MS = 15 * 24 * 60 * 60 * 1000;
 
 // cache globals
 const CACHE_DOC_ID = 'ha-hientries_cache';
@@ -32,6 +36,12 @@ class CacheHandler {
     this.c.set(id, v);
     this.dh.markDataDirty();
   }
+  delete(id) {
+    if (this.c.has(id)) {
+      this.c.delete(id);
+      this.dh.markDataDirty();
+    }
+  }
   get cache() { return this.c; }
 
   save() {
@@ -51,9 +61,18 @@ class CacheHandler {
     return this.dh.load().then(() => {
       this.c = new Map();
       const entriesKeys = Object.keys(this.dh.data);
+      const now = timestamp();
       for (let i = 0; i < entriesKeys.length; i += 1) {
         const k = entriesKeys[i];
-        this.c.set(k, new HistoryEntry(this.dh.data[k]));
+        const historyEntry = new HistoryEntry(this.dh.data[k]);
+        // check if the history entry is too old
+        const lastAccessedTs = historyEntry.getLastAccessedTimestamp();
+        if ((now - lastAccessedTs) <= MAX_DATA_TIME_PERSIST_MS) {
+          this.c.set(k, historyEntry);
+        } else {
+          logger.log(`discarding old entry ${k}`);
+          this.dh.markDataDirty();
+        }
       }
       // clear
       this.dh.data = {};
@@ -215,6 +234,17 @@ export default class HistoryHandler {
     // update the status of the executor to check if the task expired or finished
     this.taskExecutor.updateStatus();
     return true;
+  }
+
+  /**
+   * will remove the data we have associated to a given pid
+   */
+  removeEntry(pid) {
+    if (!this.hasEntryInCache(pid)) {
+      return;
+    }
+    this.entriesCache.delete(pid);
+    this.entriesCache.save();
   }
 
   /**

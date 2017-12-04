@@ -1650,7 +1650,7 @@
       "message": "Vos commentaires nous importent"
     },
     "offers-hub-feedaback-sub-title": {
-      "message": "Pourquoi avez-vous refusé l'offre:"
+      "message": "Pourquoi avez-vous refusé l'offre ?"
     },
     "offers-hub-feedaback-option1": {
       "message": "Cette offre ne m'intéresse pas"
@@ -1665,7 +1665,7 @@
       "message": "Annuler"
     },
     "offers-hub-remove": {
-      "message": "Supprimer"
+      "message": "Supprimer l'offre"
     },
     "offers-hub-about-cliqz-offers": {
       "message": "Plus d'informations"

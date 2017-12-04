@@ -1,25 +1,13 @@
-import ToolbarButtonManager from 'control-center/ToolbarButtonManager';
 import inject from '../core/kord/inject';
 import { utils, events } from '../core/cliqz';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
-import Panel from '../core/ui/panel';
 import background from './background';
 import UITour from '../platform/ui-tour';
 import config from '../core/config';
-import { getMessage } from '../core/i18n';
-
-
-function toPx(pixels) {
-  return `${pixels.toString()}px`;
-}
-
+import { isPlatformAtLeastInVersion } from '../core/platform';
 
 let ORIGIN_NAME = 'offers-cc';
-const BTN_ID = 'cliqz-offers-cc-btn';
-const PANEL_ID = `${BTN_ID}-panel`;
-const firstRunPref = 'cliqz-offers-cc-initialized';
-const BTN_LABEL = '';
-const TOOLTIP_LABEL = getMessage('offers-hub-title');
+const UI_TOUR_ID = 'cliqz-offers';
 
 const offersHubTrigger = utils.getPref('offersHubTrigger', 'off');
 if (offersHubTrigger === 'tooltip') {
@@ -38,11 +26,10 @@ export default class {
     this.window = settings.window;
     this.settings = settings.settings;
     this.channel = settings.settings.channel;
-    this.cssUrl = 'chrome://cliqz/content/offers-cc/styles/xul.css';
+    this.cssUrl = `${config.baseURL}offers-cc/styles/xul.css`;
     this.offersV2 = inject.module('offers-v2');
 
     this.actions = {
-      getData: this.getData.bind(this),
       getEmptyFrameAndData: this.getEmptyFrameAndData.bind(this),
       resize: this.resizePopup.bind(this),
       sendTelemetry: this.sendTelemetry.bind(this),
@@ -51,21 +38,58 @@ export default class {
       openURL: this.openURL.bind(this),
       seenOffers: this.seenOffers.bind(this),
     };
-    this.panel = new Panel(
-      this.window,
-      'chrome://cliqz/content/offers-cc/index.html',
-      PANEL_ID,
-      'offers-cc',
-      false,
-      this.actions,
-      null,
-      this.onPopupHiding.bind(this),
-      this.onPopupShowing.bind(this),
-    );
 
     this.onOffersCoreEvent = this.onOffersCoreEvent.bind(this);
-    this.handleTooltipClicked = this.handleTooltipClicked.bind(this);
+    this.onTooltipClicked = this.onTooltipClicked.bind(this);
     this.onEvent = this.onEvent.bind(this);
+
+    this.toolbarButton = background.toolbarButton;
+    this.toolbarButton.addWindow(this.window, this.actions, {
+      onClick: this.onButtonClicked.bind(this),
+      onViewShowing: this.onPopupShowing.bind(this),
+      onViewHiding: this.onPopupHiding.bind(this),
+    });
+
+    this.toolbarButtonElement = this.window.document.getElementById(this.toolbarButton.id);
+  }
+
+  init() {
+    if (!background.is_enabled) {
+      return;
+    }
+
+    // stylesheet for offers-cc button
+    addStylesheet(this.window.document, this.cssUrl);
+    events.sub('offers-send-ch', this.onOffersCoreEvent);
+    UITour.targets.set(UI_TOUR_ID, { query: `#${this.toolbarButton.id}`, widgetName: this.toolbarButton.id, allowAdd: true });
+  }
+
+  unload() {
+    if (!background.is_enabled) {
+      return;
+    }
+    events.un_sub('offers-send-ch', this.onOffersCoreEvent);
+    UITour.targets.delete(UI_TOUR_ID);
+    removeStylesheet(this.window.document, this.cssUrl);
+    // Remove the tooltip listener if the tooltip has been closed unexpectedly
+    // (when another tooltip shows)
+    if (this.tooltipEventListenerAdded) {
+      this.removeTooltipEventListener();
+    }
+  }
+
+  addTooltipEventListener() {
+    this.window.document.querySelector('#UITourTooltip')
+                                    .addEventListener('click', this.onTooltipClicked);
+    this.window.addEventListener('blur', this.onEvent);
+    this.window.addEventListener('click', this.onEvent);
+  }
+
+  removeTooltipEventListener() {
+    this.window.document.querySelector('#UITourTooltip')
+                        .removeEventListener('click', this.onTooltipClicked);
+    this.window.removeEventListener('blur', this.onEvent);
+    this.window.removeEventListener('click', this.onEvent);
   }
 
   onEvent() {
@@ -76,7 +100,14 @@ export default class {
     this.hideUITour();
   }
 
-  handleTooltipClicked(e) {
+  onTooltipClicked(e) {
+    // Check if user click on this offer tooltip or not
+    const tooltipSelector = '#UITourTooltip[targetName=cliqz-offers]';
+    const offerTooltip = this.window.document.querySelector(tooltipSelector);
+    if (!offerTooltip || (offerTooltip && !offerTooltip.contains(e.target))) {
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
 
@@ -102,8 +133,22 @@ export default class {
     };
     this.sendMessageToOffersCore(msg);
 
-    this.badge.setAttribute('state', '');
+    this.toolbarButtonElement.setAttribute('state', '');
     this.openPanel();
+  }
+
+  onButtonClicked() {
+    if (this.isUITourOpening) {
+      background.actions.closeUITour();
+    }
+    this.hideUITour();
+    const signal = {
+      type: 'offrz',
+      view: 'box',
+      action: 'click',
+      target: 'icon',
+    };
+    utils.telemetry(signal);
   }
 
   onPopupShowing() {
@@ -137,13 +182,12 @@ export default class {
   }
 
   onPopupHiding() {
-    // check if we need to update the state of all the offers as old
-    if (this.panel.shownDurationTime <= 1000) {
+    if (this.toolbarButton.shownDurationTime <= 1000) {
       // nothing to do
       return null;
     }
 
-    this.badge.setAttribute('state', '');
+    this.toolbarButtonElement.setAttribute('state', '');
     // else we will change the state of all offers
 
     Object.keys(seenOffersObj).forEach((offer) => {
@@ -203,36 +247,6 @@ export default class {
     return null;
   }
 
-  init() {
-    if (!background.is_enabled) {
-      return;
-    }
-
-    this.panel.attach();
-    // stylesheet for control center button
-    addStylesheet(this.window.document, this.cssUrl);
-    this.addCCbutton();
-    events.sub('offers-send-ch', this.onOffersCoreEvent);
-    this.window.addEventListener('blur', this.onEvent);
-    this.window.addEventListener('click', this.onEvent);
-  }
-
-  unload() {
-    if (!background.is_enabled) {
-      return;
-    }
-    events.un_sub('offers-send-ch', this.onOffersCoreEvent);
-    this.window.removeEventListener('blur', this.onEvent);
-    this.window.removeEventListener('click', this.onEvent);
-    this.button.parentElement.removeChild(this.button);
-    removeStylesheet(this.window.document, this.cssUrl);
-    this.panel.detach();
-  }
-
-  getData() {
-
-  }
-
   // used for a first faster rendering
   getEmptyFrameAndData() {
     const self = this;
@@ -242,65 +256,21 @@ export default class {
         data: aData
       });
     });
-    // this.getData();
   }
 
 
   sendMessageToPopup(aMessage) {
-    this.panel.sendMessage({
+    const msg = {
       target: 'cliqz-offers-cc',
       origin: 'window',
       message: aMessage
-    });
-  }
+    };
 
-
-  addCCbutton() {
-    const doc = this.window.document;
-    const firstRunPrefVal = utils.getPref(firstRunPref, false);
-    if (!firstRunPrefVal) {
-      utils.setPref(firstRunPref, true);
-      ToolbarButtonManager.setDefaultPosition(BTN_ID, 'nav-bar', 'bookmarks-menu-button');
-    }
-
-    const button = doc.createElement('toolbarbutton');
-    button.setAttribute('id', BTN_ID);
-    button.setAttribute('label', TOOLTIP_LABEL);
-    button.setAttribute('tooltiptext', TOOLTIP_LABEL);
-    button.classList.add('toolbarbutton-1');
-    button.classList.add('chromeclass-toolbar-additional');
-    this.button = button;
-
-    const div = doc.createElement('div');
-    div.setAttribute('class', 'cliqz-offers-cc toolbarbutton-icon');
-    div.textContent = BTN_LABEL;
-    button.appendChild(div);
-
-    button.addEventListener('command', () => {
-      this.panel.open(button);
-
-      if (this.isUITourOpening) {
-        background.actions.closeUITour();
-      }
-      this.hideUITour();
-      const signal = {
-        type: 'offrz',
-        view: 'box',
-        action: 'click',
-        target: 'icon',
-      };
-      utils.telemetry(signal);
-    });
-
-    ToolbarButtonManager.restorePosition(doc, button);
-
-    this.badge = div;
-    this.button = button;
+    this.toolbarButton.sendMessage(this.window, msg);
   }
 
   resizePopup({ width, height }) {
-    this.panel.iframe.style.width = toPx(width);
-    this.panel.iframe.style.height = toPx(height);
+    this.toolbarButton.resizePopup(this.window, { width, height });
   }
 
   _getAllOffers() {
@@ -424,6 +394,11 @@ export default class {
   // subscribe to the storage events
   //
   onOffersCoreEvent(event) {
+    // Ignore the event if this is not the most recent active window
+    if (this.window !== utils.getWindow()) {
+      return;
+    }
+
     // check if we need to discard the event or not
     if (event.dest && event.dest.length > 0 && (event.dest.indexOf(ORIGIN_NAME) < 0)) {
       // we should not process this message
@@ -437,7 +412,7 @@ export default class {
         case 'push-offer': {
           // Auto open the panel
           autoTrigger = true;
-          this.badge.setAttribute('state', 'new-offers');
+          this.toolbarButtonElement.setAttribute('state', 'new-offers');
 
           if (offersHubTrigger === 'tooltip') {
             const signal = {
@@ -446,7 +421,7 @@ export default class {
               action: 'show',
             };
 
-            const buttonArea = this.window.CustomizableUI.getWidget(BTN_ID).areaType;
+            const buttonArea = this.window.CustomizableUI.getWidget(this.toolbarButton.id).areaType;
 
             if (buttonArea === 'toolbar') {
               signal.location = 'toolbar';
@@ -457,12 +432,11 @@ export default class {
             }
             utils.telemetry(signal);
 
-            if (signal.location !== 'toolbar') {
-              return; // Don't show the tooltip if the button is not on the toolbar
+            if (signal.location === 'hidden') {
+              return; // Don't show the tooltip if the button is on the palette
             }
 
-            UITour.targets.set('cliqz-offers', { query: '#cliqz-offers-cc-btn', widgetName: 'cliqz-offers-cc-btn', allowAdd: true });
-            const promise = UITour.getTarget(this.window, 'cliqz-offers');
+            const promise = UITour.getTarget(this.window, UI_TOUR_ID);
             const win = this.window;
             const myOptions = {
               closeButtonCallback: () => {
@@ -478,11 +452,15 @@ export default class {
               const title = utils.getLocalizedString('offers_hub_tooltip_new_offer');
               const icon = `${config.baseURL}offers-cc/images/offers-cc-icon-white.svg`;
 
+              if (buttonArea === 'menu-panel' && !isPlatformAtLeastInVersion('57.0')) {
+                this.window.PanelUI.show();
+              }
+
+              UITour.hideHighlight(win); // Hide any visible highlight
               UITour.showInfo(win, target, title, '', icon, '', myOptions);
               this.isUITourOpening = true;
               if (!this.tooltipEventListenerAdded) {
-                this.window.document.querySelector('#UITourTooltip[targetName=cliqz-offers]')
-                                    .addEventListener('click', this.handleTooltipClicked);
+                this.addTooltipEventListener();
                 this.tooltipEventListenerAdded = true;
               }
 
@@ -517,29 +495,25 @@ export default class {
       return;
     }
 
-    this.closePanel();
-    this.panel.open(this.button);
+    this.window.PanelUI.panel.setAttribute('noautohide', 'false');
+    this.toolbarButton.showPopup(this.window);
   }
 
-  closePanel(data = {}) {
+  closePanel() {
     const signal = {
       type: 'offrz',
       view: 'box',
       action: 'click',
+      target: 'close',
     };
 
-    if (data.used) {
-      signal.target = 'use';
-    } else if (data.close) {
-      signal.target = 'close';
-    }
-
-    if (signal.target) {
-      utils.telemetry(signal);
-    }
+    utils.telemetry(signal);
 
     this.hideUITour();
-    this.panel.hide({ force: data.force });
+    this.toolbarButton.hidePopup(this.window);
+    if (this.window.PanelUI.panel.state === 'open') {
+      this.window.PanelUI.showMainView();
+    }
   }
 
   removeOffer() {
@@ -554,8 +528,20 @@ export default class {
   }
 
   openURL(data) {
+    if (data.isCallToAction) {
+      const signal = {
+        type: 'offrz',
+        view: 'box',
+        action: 'click',
+        target: 'use',
+      };
+
+      utils.telemetry(signal);
+    }
     const tab = utils.openLink(this.window, data.url, true);
-    if (data.closePopup === true) this.panel.hide({ force: true });
+    if (data.closePopup === true) {
+      this.toolbarButton.hidePopup(this.window);
+    }
     this.window.gBrowser.selectedTab = tab;
   }
 
@@ -565,10 +551,12 @@ export default class {
     }
 
     try {
-      UITour.hideInfo(this.window);
+      if (this.window.PanelUI.panel.state !== 'open') {
+        UITour.hideInfo(this.window);
+      }
+
       this.isUITourOpening = false;
-      this.window.document.querySelector('#UITourTooltip[targetName=cliqz-offers]')
-                        .removeEventListener('click', this.handleTooltipClicked);
+      this.removeTooltipEventListener();
       this.tooltipEventListenerAdded = false;
     } catch (e) {
       // Expected exception when the UITour is not showing

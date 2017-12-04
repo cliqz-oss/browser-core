@@ -7,6 +7,7 @@ import utils from "../core/utils";
 import Result from "./result";
 import UrlCompare from "./url-compare";
 import prefs from "../core/prefs";
+import { isMobile } from "../core/platform";
 
 function objectExtend(target, obj) {
   Object.keys(obj).forEach(function(key) {
@@ -367,7 +368,9 @@ export default class Mixer {
     // Prepare results: history (first) then backend results (second)
     results = customResults.concat(r.first).concat(r.second);
 
-    results = allowOnlyOneMovie(results);
+    if (!isMobile) {
+      results = allowOnlyOneMovie(results);
+    }
 
     utils.log('only_history:' + only_history +
               ' history:' + history.length +

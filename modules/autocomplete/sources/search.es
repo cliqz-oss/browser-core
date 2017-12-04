@@ -1,5 +1,6 @@
 import events from "../core/events";
 import utils from "../core/utils";
+import { isValidUrl } from "../core/search-engines";
 import { isFirefox } from "../core/platform";
 import SmartCliqzCache from './smart-cliqz-cache/smart-cliqz-cache';
 import TriggerUrlCache from './smart-cliqz-cache/trigger-url-cache';
@@ -155,6 +156,24 @@ export default class Search {
 
   search(searchString, callback) {
       if (utils.getPref('searchMode', 'autocomplete') !== 'autocomplete') {
+        // if there is a query, the new mixer (search module) always has some
+        // results, thus here we push a dummy result so Firefox thinks it
+        // should render something.
+        if (!searchString.trim()) {
+          return;
+        }
+
+        const results = new ProviderAutoCompleteResultCliqz(
+          this.searchString,
+          this.successCode,
+          -2, // blocks autocomplete
+          ''
+        );
+
+        results.setResults([{}]);
+
+        callback(results);
+
         return;
       }
 
@@ -291,7 +310,7 @@ export default class Search {
       this.historyTimer = utils.setTimeout(this.historyTimeoutCallback, this.HISTORY_TIMEOUT, this.searchString);
       this.historyTimeout = false;
       // trigger history search
-      CliqzAutocomplete.historySearch(searchString, this.onHistoryDone.bind(this));
+      utils.historySearch(searchString, this.onHistoryDone.bind(this), utils.isPrivate(window));
 
       var hist_search_type = utils.getPref('hist_search_type', 0);
       if (hist_search_type != 0) {
@@ -337,8 +356,7 @@ export default class Search {
         if (!title || title == 'N/A') {
           title = utils.generalizeUrl(url);
         }
-
-        if (title.length > 0 && url.length > 0 && Result.isValid(url, utils.getDetailsFromUrl(url))) {
+        if (title.length > 0 && url.length > 0 && isValidUrl(url)) {
           var item = {
             url: url,
             title: title,

@@ -6,6 +6,7 @@ export default class {
   constructor(settings) {
     this.window = settings.window;
     this.settings = settings.settings;
+    this.window.CliqzHumanWeb = HumanWeb;
   }
 
   enabled() {

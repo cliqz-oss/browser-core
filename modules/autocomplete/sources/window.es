@@ -7,6 +7,7 @@ import {Window as AutocompleteWindow} from "../platform/auto-complete-component"
 export default class {
   constructor(settings) {
     this.window = settings.window;
+    this.window.CliqzAutocomplete = autocomplete;
   }
 
   init() {

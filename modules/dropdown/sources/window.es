@@ -27,7 +27,7 @@ function getResults(ctrl) {
       maxNumberOfSlots: (i === 0 ? 3 : 1),
     };
     return rawResult;
-  });
+  }).filter(r => r.url !== null);
 
   return {
     query,
@@ -44,6 +44,7 @@ export default class {
     this.settings = config.settings;
     this.ui = new UI(this.window, this.settings.id, {
       getSessionCount: this.background.getSessionCount.bind(this.background),
+      searchMode: prefs.get('searchMode', 'autocomplete'),
     });
     this.isReady = false;
 
@@ -91,10 +92,12 @@ export default class {
       return;
     }
 
+    const query = this.window.gURLBar.mController.searchString.trim();
+
     this.ui.render({
       rawResults: results,
       queriedAt: Date.now(),
-      query: this.window.gURLBar.mController.searchString,
+      query,
     });
   }
 

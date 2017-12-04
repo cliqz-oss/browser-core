@@ -1,6 +1,5 @@
 /* global window */
 /* global document */
-/* global localStorage */
 import React from 'react';
 import CONFIG from '../../../core/config';
 import cliqz from '../cliqz';
@@ -12,7 +11,8 @@ import MessageCenter from './message-center';
 import OfferMiddleMessages from './middle-messages-offers';
 import t from '../i18n';
 import UndoDialRemoval from './undo-dial-removal';
-import { historyClickSignal, settingsClickSignal, homeConfigsStatusSignal } from '../services/telemetry/home';
+import { historyClickSignal, settingsClickSignal, homeConfigsStatusSignal, sendHomeUnloadSignal, sendHomeBlurSignal, sendHomeFocusSignal } from '../services/telemetry/home';
+import localStorage from '../services/storage';
 import { deleteUndoSignal, undoCloseSignal } from '../services/telemetry/speed-dial';
 import { settingsRestoreTopSitesSignal, settingsComponentsToggleSignal, newsSelectionChangeSignal } from '../services/telemetry/settings';
 import { DEFAULT_BG, FALLBACK_BG, NO_BG } from '../services/background-image';
@@ -68,6 +68,12 @@ class App extends React.Component {
 
   componentDidMount() {
     window.addEventListener('click', this.handleClick);
+    cliqz.freshtab.getTabIndex().then((tabIndex) => {
+      this.tabIndex = tabIndex;
+      window.addEventListener('beforeunload', () => sendHomeUnloadSignal({ tabIndex }));
+      window.addEventListener('blur', () => sendHomeBlurSignal({ tabIndex }));
+      window.addEventListener('focus', () => sendHomeFocusSignal({ tabIndex }));
+    });
 
     Promise.all([
       this.getNews(),
@@ -81,6 +87,9 @@ class App extends React.Component {
 
   componentWillUnmount() {
     window.removeEventListener('click', this.handleClick);
+    window.removeEventListener('beforeunload', sendHomeUnloadSignal);
+    window.removeEventListener('blur', sendHomeBlurSignal);
+    window.removeEventListener('focus', sendHomeFocusSignal);
   }
 
   onHistoryClick() {
@@ -144,7 +153,7 @@ class App extends React.Component {
   }
 
   onFinishedLoading() {
-    homeConfigsStatusSignal(this.state);
+    homeConfigsStatusSignal(this.state, this.tabIndex);
   }
 
   getConfig() {
@@ -182,13 +191,14 @@ class App extends React.Component {
    * theme is also set inside of home.html
    */
   updateTheme(bg) {
+    localStorage.setItem('theme', bg);
     const classList = document.body.classList;
 
     if (classList.contains(`theme-${bg}`)) {
       return;
     }
 
-    document.body.classList.forEach((className) => {
+    document.body.className.split(' ').forEach((className) => {
       if (className.indexOf('theme-') === 0) {
         classList.remove(className);
       }
@@ -274,16 +284,28 @@ class App extends React.Component {
   }
 
   addSpeedDial(dial, index) {
+    const dialType = dial.custom ? 'custom' : 'history';
+    const oldDials = this.state.dials[dialType];
+    let dials;
+
     if (index === undefined) {
-      this.state.dials.custom.push(dial);
-    } else if (dial.custom) {
-      this.state.dials.custom.splice(index, 0, dial);
+      dials = [
+        ...oldDials,
+        dial,
+      ];
     } else {
-      this.state.dials.history.splice(index, 0, dial);
+      dials = [
+        ...oldDials.slice(0, index),
+        dial,
+        ...oldDials.slice(index),
+      ];
     }
 
     this.setState({
-      dials: this.state.dials
+      dials: {
+        ...this.state.dials,
+        [dialType]: dials,
+      },
     });
   }
 

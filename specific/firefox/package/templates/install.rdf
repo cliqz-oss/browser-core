@@ -7,6 +7,7 @@
 		<em:version>{{ version }}</em:version>
 
 		<em:type>2</em:type>
+		<em:unpack>false</em:unpack>
 		<em:creator>feedback@cliqz.com</em:creator>
 		<em:bootstrap>true</em:bootstrap>
     <em:multiprocessCompatible>true</em:multiprocessCompatible>
@@ -36,7 +37,7 @@
 			<Description>
 				<em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
 				<em:minVersion>42.0</em:minVersion>
-				<em:maxVersion>57.*</em:maxVersion>
+				<em:maxVersion>58.*</em:maxVersion>
 
 			</Description>
 		</em:targetApplication>

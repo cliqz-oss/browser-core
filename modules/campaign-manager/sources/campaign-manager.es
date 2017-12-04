@@ -1,7 +1,7 @@
-import CliqzEvents from "core/events";
-import CliqzUtils from "core/utils";
-import CliqzCampaign from "campaign-manager/campaign";
-import CliqzCampaignTriggerUrlbarFocus from "campaign-manager/triggers/urlbar-focus";
+import CliqzEvents from "../core/events";
+import CliqzUtils from "../core/utils";
+import CliqzCampaign from "./campaign";
+import CliqzCampaignTriggerUrlbarFocus from "./triggers/urlbar-focus";
 
 
 function CliqzCampaignManager() {

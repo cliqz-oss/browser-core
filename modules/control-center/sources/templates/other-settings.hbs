@@ -303,5 +303,73 @@
       {{/if}}
     </div>
     {{/if}}
+
+    {{#if module.offers-v2.showSettings}}
+    <!-- offrz menu -->
+    <div class="accordion-section">
+      <a class="accordion-section-title"
+         href="#accordion-4"
+         data-target="offerz">
+        <svg id="arrow" width="13px" height="13px" viewBox="1017 657 13 13" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <defs></defs>
+          <polygon id="Rectangle-546-Copy-11" stroke="none" fill="#838383" fill-rule="evenodd" transform="translate(1023.344411, 663.208565) rotate(45.000000) translate(-1023.344411, -663.208565) " points="1018.95691 660.49484 1027.73191 658.821065 1026.05814 667.596065"></polygon>
+        </svg>
+        <span data-i18n="control-center-offers-options"></span>
+      </a>
+      <div id="accordion-4" class="accordion-section-content">
+        <span class="bullet">
+          <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <defs></defs>
+          <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
+            <ellipse id="Oval-2" fill="#999" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
+            <text id="i-copy" font-family="AmericanTypewriter-Bold, American Typewriter" font-size="11.2" font-weight="bold" fill="#FFFFFF">
+              <tspan x="5.50934774" y="11.3937579">i</tspan>
+            </text>
+          </g>
+          </svg>
+          <div class="tooltip offers-main right">
+            <span class="title" data-i18n="control-center-offers-show"></span>
+            <span data-i18n="control-center-offers-show-info"></span>
+          </div>
+          <span data-i18n="control-center-offers-show"></span>
+          <span class="location-more"
+                openUrl="https://cliqz.com/myoffrz"
+                data-target="offerz_main_learn_more"
+                data-i18n="control-center-info-share-location-link">
+          </span>
+          <select class="custom-dropdown"
+                  updatePref="extensions.cliqz.offers2UserEnabled"
+                  updatePrefType="boolean"
+                  data-target="offerz_main">
+                <option {{#if module.offers-v2.userEnabled}}selected{{/if}} value="true" data-i18n="control-center-enabled"></option>
+                <option {{#unless module.offers-v2.userEnabled}}selected{{/unless}} value="false" data-i18n="control-center-disabled"></option>
+          </select>
+        </span>
+        <span class="bullet">
+          <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <defs></defs>
+          <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
+            <ellipse id="Oval-2" fill="#999" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
+            <text id="i-copy" font-family="AmericanTypewriter-Bold, American Typewriter" font-size="11.2" font-weight="bold" fill="#FFFFFF">
+              <tspan x="5.50934774" y="11.3937579">i</tspan>
+            </text>
+          </g>
+          </svg>
+          <div class="tooltip offers-location right">
+            <span class="title" data-i18n="control-center-offers-location"></span>
+            <span data-i18n="control-center-offers-location-info"></span>
+          </div>
+          <span data-i18n="control-center-offers-location"></span>
+          <select class="custom-dropdown"
+                  updatePref="extensions.cliqz.offers_location"
+                  updatePrefType="integer"
+                  data-target="offerz_location">
+                <option {{#if module.offers-v2.locationEnabled}}selected{{/if}} value="1" data-i18n="control-center-enabled"></option>
+                <option {{#unless module.offers-v2.locationEnabled}}selected{{/unless}} value="0" data-i18n="control-center-disabled"></option>
+          </select>
+        </span>
+      </div>
+    <!-- end offerz -->
+    {{/if}}
   </div>
 </div>

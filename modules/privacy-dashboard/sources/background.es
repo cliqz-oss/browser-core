@@ -1,4 +1,4 @@
-import PrivacyRep from 'privacy-dashboard/main';
+import PrivacyRep from './main';
 
 /**
 * @namespace privacy-dashboard

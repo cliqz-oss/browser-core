@@ -8,9 +8,11 @@ var cliqzConfig     = JSON.parse(fs.readFileSync(configFilePath));
 
 // build environment
 cliqzConfig.environment = process.env.CLIQZ_ENVIRONMENT || 'development';
+cliqzConfig.PRODUCTION = cliqzConfig.environment === 'production';
 
 // source maps
 cliqzConfig.sourceMaps = process.env.CLIQZ_SOURCE_MAPS == 'false' ? false : true;
+cliqzConfig.debugPages = process.env.CLIQZ_SOURCE_DEBUG == 'false' ? false : true;
 
 cliqzConfig.EXTENSION_VERSION = process.env.EXTENSION_VERSION;
 

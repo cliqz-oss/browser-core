@@ -1,153 +1,13 @@
 /* global it, expect, chai, respondWith, fillIn, waitForPopup,
-$cliqzResults, CliqzUtils, window */
+$cliqzResults, CliqzUtils, window, getComputedStyle */
 /* eslint func-names: ['error', 'never'] */
 /* eslint prefer-arrow-callback: 'off' */
 /* eslint no-unused-expressions: 'off' */
 
+import results from './fixtures/resultsSoccerLiveTicker';
+
 export default function () {
-  context('for a soccer live ticker results', function () {
-    const results = [
-      {
-        url: 'http://liveticker.bundesliga.de/',
-        score: 1117,
-        snippet: {
-          description: 'Alle Spiele, alle Tore, offizielle Spieldaten, aktuelle Statistiken und Spielverläufe, Liga-Radio, Blitztabelle und Torjäger im Liveticker von bundesliga.de.',
-          extra: {
-            spielTag: '5. Spieltag',
-            title: '1. Bundesliga Spieltag - Spielplan - Ergebnisse',
-            url: 'http://www.kicker.de/news/fussball/bundesliga/spieltag/1-bundesliga/livekonferenz.html',
-            weeks: [
-              {
-                isCurrent: false,
-                matches: [],
-                round: 'Spieltag 3',
-                spielTag: '3. Spieltag'
-              },
-              {
-                isCurrent: false,
-                matches: [],
-                round: 'Spieltag 4',
-                spielTag: '4. Spieltag'
-              },
-              {
-                isCurrent: true,
-                matches: [
-                  {
-                    GUESS: 'VfB Stuttgart',
-                    HOST: 'Bor. Mönchengladbach',
-                    club: null,
-                    finalScore: '2 : 0',
-                    gameDate: 'Dienstag, 19. August',
-                    gameId: '3827627',
-                    gameTime: '18:30',
-                    gameUtcTimestamp: 1505838600,
-                    guestId: '11',
-                    guestLogo: 'https://cdn.cliqz.com/extension/bundesliga/teams/60x60/VfB-Stuttgart.png',
-                    halfTimeScore: '0 : 0',
-                    hostId: '15',
-                    hostLogo: 'https://cdn.cliqz.com/extension/bundesliga/teams/60x60/Bor-Moenchengladbach.png',
-                    id: '3827627',
-                    isLive: false,
-                    isScheduled: false,
-                    leagueId: '1',
-                    leagueLogo: 'https://cdn.cliqz.com/extension/bundesliga/leagues-bw/60x80/1.-Bundesliga.png',
-                    leagueName: '1. Bundesliga',
-                    live_url: 'http://www.kicker.de/news/fussball/bundesliga/spieltag/1-bundesliga/2017-18/5/3827627/spielbericht_borussia-mgladbach-15_vfb-stuttgart-11.html',
-                    location: 'Borussia-Park',
-                    scored: '2 : 0',
-                    spielTag: '5. Spieltag',
-                    status: 'FINISHED',
-                    teamId: ''
-                  },
-                  {
-                    GUESS: 'Werder Bremen',
-                    HOST: 'VfL Wolfsburg',
-                    club: null,
-                    finalScore: '1 : 1',
-                    gameDate: 'Dienstag, 19. August',
-                    gameId: '3827632',
-                    gameTime: '20:30',
-                    gameUtcTimestamp: 1505845800,
-                    guestId: '4',
-                    guestLogo: 'https://cdn.cliqz.com/extension/bundesliga/teams/60x60/Werder-Bremen.png',
-                    halfTimeScore: '1 : 0',
-                    hostId: '24',
-                    hostLogo: 'https://cdn.cliqz.com/extension/bundesliga/teams/60x60/VfL-Wolfsburg.png',
-                    id: '3827632',
-                    isLive: false,
-                    isScheduled: false,
-                    leagueId: '1',
-                    leagueLogo: 'https://cdn.cliqz.com/extension/bundesliga/leagues-bw/60x80/1.-Bundesliga.png',
-                    leagueName: '1. Bundesliga',
-                    live_url: 'http://www.kicker.de/news/fussball/bundesliga/spieltag/1-bundesliga/2017-18/5/3827632/spielbericht_vfl-wolfsburg-24_werder-bremen-4.html',
-                    location: 'Volkswagen-Arena',
-                    scored: '1 : 1',
-                    spielTag: '5. Spieltag',
-                    status: 'FINISHED',
-                    teamId: ''
-                  },
-                  {
-                    GUESS: 'RB Leipzig',
-                    HOST: 'FC Augsburg',
-                    club: null,
-                    finalScore: '1 : 0',
-                    gameDate: 'Dienstag, 19. August',
-                    gameId: '3827629',
-                    gameTime: '20:30',
-                    gameUtcTimestamp: 1505845800,
-                    guestId: '15778',
-                    guestLogo: 'https://cdn.cliqz.com/extension/bundesliga/teams/60x60/RB-Leipzig.png',
-                    halfTimeScore: '1 : 0',
-                    hostId: '91',
-                    hostLogo: 'https://cdn.cliqz.com/extension/bundesliga/teams/60x60/FC-Augsburg.png',
-                    id: '3827629',
-                    isLive: false,
-                    isScheduled: false,
-                    leagueId: '1',
-                    leagueLogo: 'https://cdn.cliqz.com/extension/bundesliga/leagues-bw/60x80/1.-Bundesliga.png',
-                    leagueName: '1. Bundesliga',
-                    live_url: 'http://www.kicker.de/news/fussball/bundesliga/spieltag/1-bundesliga/2017-18/5/3827629/spielbericht_fc-augsburg-91_rasenballsport-leipzig-15778.html',
-                    location: 'WWK-Arena',
-                    scored: '1 : 0',
-                    spielTag: '5. Spieltag',
-                    status: 'FINISHED',
-                    teamId: ''
-                  },
-                ],
-                round: 'Spieltag 5',
-                spielTag: '5. Spieltag'
-              },
-              {
-                isCurrent: false,
-                matches: [],
-                round: 'Spieltag 6',
-                spielTag: '6. Spieltag'
-              },
-              {
-                isCurrent: false,
-                matches: [],
-                round: 'Spieltag 7',
-                spielTag: '7. Spieltag'
-              }
-            ]
-          },
-          friendlyUrl: 'liveticker.bundesliga.de',
-          title: 'bundesliga.de | Liveticker Bundesliga |'
-        },
-        c_url: 'http://liveticker.bundesliga.de/',
-        type: 'rh',
-        subType: {
-          class: 'SoccerEZ',
-          id: '-8768299853491462719',
-          name: 'LIVETICKER: 1. Bundesliga'
-        },
-        template: 'liveTicker',
-        trigger: [
-          'liveticker.bundesliga.de'
-        ],
-        trigger_method: 'url'
-      },
-    ];
+  context('for soccer live ticker results', function () {
     const locale = CliqzUtils.locale.default || CliqzUtils.locale[window.navigator.language];
     let resultElement;
 
@@ -196,8 +56,6 @@ export default function () {
 
     describe('renders a results table', function () {
       const soccerTableRowSelector = 'div.soccer a.table-row.result';
-      const win = CliqzUtils.getWindow();
-
       let soccerTableRowItem;
 
       beforeEach(function () {
@@ -300,11 +158,11 @@ export default function () {
             const soccerTeamLogoItem = row.querySelectorAll(soccerTeamLogoSelector);
             chai.expect(soccerTeamLogoItem.length).to.equal(2);
 
-            chai.expect(win.getComputedStyle(row
+            chai.expect(getComputedStyle(row
               .querySelectorAll(soccerTeamLogoSelector)[0]).backgroundImage)
               .to.contain(results[0].snippet.extra.weeks[2].matches[i].hostLogo);
 
-            chai.expect(win.getComputedStyle(row
+            chai.expect(getComputedStyle(row
               .querySelectorAll(soccerTeamLogoSelector)[1]).backgroundImage)
               .to.contain(results[0].snippet.extra.weeks[2].matches[i].guestLogo);
           });
@@ -335,7 +193,7 @@ export default function () {
           [...soccerTableRowItem].forEach(function (row, i) {
             const soccerLeagueLogoItem = row.querySelector(soccerLeagueLogoSelector);
             chai.expect(soccerLeagueLogoItem).to.exist;
-            chai.expect(win.getComputedStyle(row
+            chai.expect(getComputedStyle(row
               .querySelector(soccerLeagueLogoSelector)).backgroundImage)
               .to.contain(results[0].snippet.extra.weeks[2].matches[i].leagueLogo);
           });
