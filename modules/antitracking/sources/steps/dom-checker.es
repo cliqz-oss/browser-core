@@ -8,7 +8,7 @@ const DOM_CHECK_PERIOD = 1000;
 
 // from CliqzAttrack.getCookieValues
 function getCookieValues(c, url) {
-  if (c == null) {
+  if (c === null) {
       return {};
   }
   var v = 0, cookies = {};

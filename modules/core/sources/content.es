@@ -51,13 +51,8 @@ try {
   const currentURL = () => window.location.href;
   const url = currentURL();
 
-
   let onMessage = function (ev) {
     let href = ev.target.location.href;
-
-    if (!whitelist.some(function (url) { return href.indexOf(url) === 0; }) ) {
-      return;
-    }
 
     let message = {};
 
@@ -65,6 +60,10 @@ try {
       message = JSON.parse(ev.data);
     } catch (e) {
       // non Cliqz or invalid message should be ignored
+    }
+
+    if (!whitelist.some(function (url) { return href.indexOf(url) === 0; }) ) {
+      return;
     }
 
     if (message.target !== 'cliqz') {
@@ -226,7 +225,7 @@ try {
         }
       }
     }
-    let parentURI = getDocumentUrl(window);
+
     let node = ev.target;
     if (node.nodeType !== 1) {
       node = node.parentNode;
@@ -255,7 +254,6 @@ try {
                 href: ev.target.parentNode.href
               },
               linksSrc,
-              parentURI
             }
           },
           getContextHTML(ev),
@@ -327,14 +325,14 @@ try {
     }
   }
 
-  runContentScripts(window, chrome, windowId);
+  window.addEventListener('message', onMessage);
 
   const onKeyPress = throttle(window, proxyWindowEvent('recordKeyPress'), 250);
   const onMouseMove = throttle(window, proxyWindowEvent('recordMouseMove'), 250);
   const onScroll = throttle(window, proxyWindowEvent('recordScroll'), 250);
   const onCopy = throttle(window, proxyWindowEvent('recordCopy'), 250);
 
-  window.addEventListener('message', onMessage);
+
   window.addEventListener('keypress', onKeyPress);
   window.addEventListener('mousemove', onMouseMove);
   window.addEventListener('mousedown', onMouseDown);
@@ -342,6 +340,8 @@ try {
   window.addEventListener('copy', onCopy);
   window.addEventListener('DOMContentLoaded', onReady);
   chrome.runtime.onMessage.addListener(onBackgroundMessage);
+
+  runContentScripts(window, chrome, windowId);
 
   function stop(ev) {
     if (ev && (ev.target !== window.document)) {

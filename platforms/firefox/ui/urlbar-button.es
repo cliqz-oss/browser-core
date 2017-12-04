@@ -12,13 +12,11 @@ try {
       id,
       title,
       iconURL,
-      shownInUrlbar = false,
       wantsIframe = false,
       subview = false,
       _insertBeforeActionID = null,
       tooltip = '',
       onCommand = emptyFunc,
-      onIframeShown = emptyFunc,
       onShowingInPanel = emptyFunc,
     } = {}) {
       this.id = `${id}-page-action`;
@@ -27,13 +25,11 @@ try {
         id,
         title,
         iconURL,
-        shownInUrlbar,
         wantsIframe,
         subview,
         _insertBeforeActionID,
         tooltip,
         onCommand,
-        onIframeShown,
         onShowingInPanel,
       };
     }

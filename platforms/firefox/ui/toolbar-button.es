@@ -101,8 +101,8 @@ export default class BrowserAction {
 
         windowProxy.onMessage = onMessage;
 
-        iframe.addEventListener('load', function onReady() {
-          iframe.removeEventListener('load', onReady, true);
+        iframe.addEventListener('DOMContentLoaded', function onReady() {
+          iframe.removeEventListener('DOMContentLoaded', onReady, true);
           iframe.contentWindow.addEventListener('message', onMessage);
         }, true);
 

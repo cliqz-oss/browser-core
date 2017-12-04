@@ -28,22 +28,6 @@ export function runContentScripts(window, chrome, windowId) {
   });
 }
 
-/**
- * Get the url of the top window.
- */
-export function getDocumentUrl(window) {
-  let currentUrl = window.location.href;
-  let currentWindow = window;
-
-  while (currentUrl !== currentWindow.parent.document.documentURI) {
-    currentUrl = currentWindow.parent.document.documentURI;
-    currentWindow = currentWindow.parent;
-  }
-
-  return currentUrl;
-}
-
-
 export function getWindowTreeInformation(window) {
   let currentWindow = window;
 

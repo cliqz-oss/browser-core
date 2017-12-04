@@ -86,7 +86,8 @@ export default background({
 
   actions: {
     // handles messages coming from process script
-    getCosmeticsForNodes(url, nodes) {
+    getCosmeticsForNodes(nodes, sender) {
+      const url = sender.tab.url;
       if (!isAdbActive(url)) {
         return { active: false };
       }

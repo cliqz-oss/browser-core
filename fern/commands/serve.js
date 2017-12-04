@@ -31,6 +31,14 @@ program.command('serve [file]')
           process.env['CLIQZ_SOURCE_DEBUG'] = options.debug;
           process.env['CLIQZ_INSTRUMENT_FUNCTIONS'] = options.instrumentFunctions || '';
 
+          let customPrefs = {};
+
+          try {
+            customPrefs = require('../../.custom-prefs.json');
+          } catch (e) {
+            // .custom-prefs.json is optional so it is fine if it is missing
+          }
+
           const addonID = CONFIG.settings.id || 'cliqz@cliqz.com';
           const webExtOptions = {
             noReload: true,
@@ -39,14 +47,14 @@ program.command('serve [file]')
             firefoxProfile: options.firefoxProfile,
             firefox: options.firefox,
             keepProfileChanges: options.firefoxKeepChanges || false,
-            customPrefs: {
+            customPrefs: Object.assign({
               'browser.startup.page': 3,
               'extensions.cliqz.showConsoleLogs': true,
               'extensions.cliqz.developer': true,
               'security.sandbox.content.level': 2,
               'extensions.legacy.enabled': true,
               'lightweightThemes.selectedThemeID': 'firefox-compact-light@mozilla.org',
-            },
+            }, customPrefs),
             startUrl: 'about:cliqz',
           };
 

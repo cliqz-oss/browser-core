@@ -2,7 +2,6 @@
 
 import $ from 'jquery';
 import Handlebars from 'handlebars';
-import { sendMessageToWindow } from './content/data';
 import templates from './templates';
 
 Handlebars.partials = templates;
@@ -175,10 +174,7 @@ function bodyScroll() {
 }
 
 // ====== GENERIC SETTING ACCORDION FUNCTIONALITY =========//
-$(document).ready(() => {
-  // Object.keys(helpers).forEach(function (helperName) {
-  //   Handlebars.registerHelper(helperName, helpers[helperName]);
-  // });
+$(window).on("load",() => {
 
   $('#cqz-vouchers-wrapper').scroll(() => {
     bodyScroll();
@@ -267,6 +263,33 @@ $(document).ready(() => {
   });
 });
 
+function sendMessageToWindow(message) {
+  postMessage(JSON.stringify({
+    target: 'cliqz-offers-cc',
+    origin: 'iframe',
+    message
+  }), '*');
+}
 
-window.draw = draw;
+function messageHandler(message) {
+  switch (message.action) {
+    case 'pushData': {
+      draw(message.data);
+    }
+      break;
+    default: {
+      // nothing to do
+    }
+  }
+}
+
+
+window.addEventListener('message', (ev) => {
+  const data = JSON.parse(ev.data);
+  if (data.target === 'cliqz-offers-cc' &&
+     data.origin === 'window') {
+    messageHandler(data.message);
+  }
+});
+
 

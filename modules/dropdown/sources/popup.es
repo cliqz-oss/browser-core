@@ -38,7 +38,23 @@ export default class {
     return prefs.get('searchMode', 'autocomplete') !== 'autocomplete';
   }
 
+  setDropdownPadding() {
+    const urlbarRect = this.urlbar.getBoundingClientRect();
+    const extraPadding = 10;
+    let actualPadding = extraPadding + Math.round(urlbarRect.left || urlbarRect.x || 0);
+
+    // Reset padding when there is a big space on the left of the urlbar
+    // or when the browser's window is too narrow
+    if (actualPadding > 500 || this.window.innerWidth < 650) {
+      actualPadding = 50;
+    }
+    const dropdown = this.element.querySelector('#cliqz-dropdown');
+    dropdown.style.setProperty('--url-padding-start', `${actualPadding}px`);
+  }
+
   open() {
+    this.setDropdownPadding();
+
     if (!this.isNewSearchMode) {
       return;
     }

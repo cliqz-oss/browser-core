@@ -464,26 +464,10 @@ export default class {
     ).then((mData) => {
       const moduleData = mData;
       const ccData = this.getFrameData();
-      const states = [
-        // If antitracking module is included, show critical when we get no antitracking state. Otherwise show active
-        this.hasAntitracking ? (moduleData.antitracking && moduleData.antitracking.state) || 'critical' : 'active'
-        //,(moduleData['anti-phishing'] && moduleData['anti-phishing'].state) || 'critical'
-      ];
-      // antitracking disabled
-      if (this.hasAntitracking && !moduleData.antitracking) {
-        moduleData.antitracking = {
-          visible: true,
-          state: 'critical',
-          totalCount: 0
-        };
-      }
-
-      if (states.indexOf('inactive') !== -1) {
-        ccData.generalState = 'inactive';
-      }
-      if (states.indexOf('critical') !== -1) {
-        ccData.generalState = 'critical';
-      }
+      // If antitracking module is included, show critical when we get no antitracking state.
+      // Otherwise show active.
+      ccData.generalState = this.hasAntitracking ?
+        (moduleData.antitracking && moduleData.antitracking.state) || 'critical' : 'active';
 
       moduleData.adult = { visible: true, state: utils.getAdultFilterState() };
       if (utils.hasPref('browser.privatebrowsing.apt', '') && this.settings.channel === '40') {

@@ -5,8 +5,8 @@ import Manager from './manager';
 import { ModuleStorage, SharedStorage } from './storage';
 import { utils } from '../core/cliqz';
 
-// one hour
-const UPDATE_INTERVAL = 60 * 60 * 1000;
+// half an hour
+const UPDATE_INTERVAL = 30 * 60 * 1000;
 
 /**
   @namespace abtests
@@ -27,16 +27,23 @@ export default background({
 
   start() {
     if (!this.isRunning) {
-      this.runTimer = utils.setInterval(
-        () => this.manager.updateTests(), UPDATE_INTERVAL);
       this.isRunning = true;
+      this.updateTests();
     }
   },
 
   stop() {
     if (this.isRunning) {
-      utils.clearInterval(this.runTimer);
       this.isRunning = false;
+      utils.clearTimeout(this.runTimer);
+    }
+  },
+
+  updateTests() {
+    this.manager.updateTests();
+    if (this.isRunning) {
+      this.runTimer = utils.setTimeout(
+        this.updateTests.bind(this), UPDATE_INTERVAL);
     }
   },
 

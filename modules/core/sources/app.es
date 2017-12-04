@@ -9,7 +9,8 @@ import { debugModules } from '../platform/globals';
 import { Window, mapWindows, forEachWindow, addWindowObserver,
   removeWindowObserver, reportError, mustLoadWindow, setInstallDatePref,
   setOurOwnPrefs, resetOriginalPrefs, enableChangeEvents,
-  disableChangeEvents, waitWindowReady } from '../platform/browser';
+  disableChangeEvents, waitWindowReady,
+  addSessionRestoreObserver, removeSessionRestoreObserver } from '../platform/browser';
 
 function shouldEnableModule(name) {
   const pref = `modules.${name}.enabled`;
@@ -49,6 +50,11 @@ export default class {
      * @property {object} services
      */
     this.services = Object.create(null);
+
+    /**
+     * @property {WeakSet} loadedWindows
+     */
+    this.loadedWindows = new WeakSet();
 
     config.modules.forEach((moduleName) => {
       const module = new Module(
@@ -131,8 +137,15 @@ export default class {
    * @method loadIntoWindow
    * @private
    */
-  loadIntoWindow(win) {
+  loadIntoWindow(win, source) {
+    console.log('window loading -> source:', source);
     if (!win) return;
+    if (this.loadedWindows.has(win)) {
+      console.log('window loading -> stop: already loaded');
+      return;
+    }
+    this.loadedWindows.add(win);
+
     waitWindowReady(win) // This takes a lot to fulfill...
       .then(() => {
         if (mustLoadWindow(win)) {
@@ -172,7 +185,7 @@ export default class {
       enableChangeEvents();
       this.windowWatcher = (win, event) => {
         if (event === 'opened') {
-          this.loadIntoWindow(win);
+          this.loadIntoWindow(win, 'windowWatcher');
         } else if (event === 'closed') {
           this.unloadFromWindow(win);
         }
@@ -182,8 +195,17 @@ export default class {
 
       // Load into currently open windows
       forEachWindow((win) => {
-        this.loadIntoWindow(win);
+        this.loadIntoWindow(win, 'existing window');
       });
+
+      this.sessionRestoreObserver = () => {
+        // Load into all the open windows after session restore hits
+        forEachWindow((win) => {
+          this.loadIntoWindow(win, 'session restore');
+        });
+      };
+
+      addSessionRestoreObserver(this.sessionRestoreObserver);
     });
   }
 
@@ -247,6 +269,7 @@ export default class {
     }
 
     removeWindowObserver(this.windowWatcher);
+    removeSessionRestoreObserver(this.sessionRestoreObserver);
 
     disableChangeEvents();
   }

@@ -1016,35 +1016,3 @@ window:not([chromehidden~="toolbar"]) #urlbar-wrapper > #forward-button:hover:no
 #main-window[customize-entered] #browser-bottombox, #main-window[customize-entered] #navigator-toolbox > toolbar:not(#TabsToolbar), #main-window[customize-entered] #customization-container {
     border: none !important;
 }
-
-
-//=========================
-//===== TEST PILOT UI =====
-//=========================
-#main-window[cliqzBrowser="true"] {
-    #cliqz-dropdown {
-        .result {
-            .icons {
-                width: 91px;
-            }
-
-            @media (max-width: 550px) {
-                .abstract {
-                    max-width: 73%;
-                }
-            }
-        }
-
-        .history .buttons span.dot {
-            left: 82px;
-        }
-
-        .history.cluster span.timeline {
-            left: 84px;
-        }
-
-        .padded {
-            padding-left: 101px;
-        }
-    }
-}

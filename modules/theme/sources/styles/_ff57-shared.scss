@@ -35,6 +35,28 @@ $cliqz-blue-color: #00ADEF;
             }
         }
     }
+
+    &[uidensity="touch"] {
+        #navigator-toolbox {
+            /* TABS TOOLBAR */
+            #TabsToolbar:-moz-lwtheme-darktext {
+                #tabbrowser-tabs {
+                    .tabbrowser-tab:not([pinned="true"]) {
+                        /* Always show close tab button on touch density */
+                        .tab-content {
+                            .tab-close-button {
+                                display: unset;
+                            }
+                        }
+                    }
+                }
+            }
+
+            #urlbar, .searchbar-textbox {
+                min-height: 36px;
+            }
+        }
+    }
 }
 
 #navigator-toolbox {
@@ -99,7 +121,7 @@ $cliqz-blue-color: #00ADEF;
                     border-left-width: 0.5px;
                 }
 
-                // Don't show close button on hover when tab is pinned
+                // Don't show close button on hover or when tab is pinned
                 &:hover, &[visuallyselected="true"] {
                     &:not([pinned="true"]) {
                         .tab-content {

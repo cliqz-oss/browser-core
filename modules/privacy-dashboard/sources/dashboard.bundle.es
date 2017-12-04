@@ -1,7 +1,10 @@
-/* global window, document, localizeDocument */
-import CliqzEvents from '../core/events';
-import CliqzPrivacyRep from './main';
+/* global window, document, localizeDocument, CLIQZ */
 import templates from './templates';
+
+Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+const utils = CLIQZ.CliqzUtils;
+const CliqzEvents = utils.getWindow().CliqzEvents;
+const CliqzPrivacyRep = CLIQZ.app.modules['privacy-dashboard'].background.CliqzPrivacyRep;
 
 const template = templates.data_list;
 const SIG_TYPES = {

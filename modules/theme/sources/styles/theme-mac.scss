@@ -784,34 +784,3 @@ vbox[sidebarcommand=historybroadcaster] {
 #main-window[customize-entered] #browser-bottombox, #main-window[customize-entered] #navigator-toolbox > toolbar:not(#TabsToolbar), #main-window[customize-entered] #customization-container {
     border: none !important;
 }
-
-//=========================
-//===== TEST PILOT UI =====
-//=========================
-#main-window[cliqzBrowser="true"] {
-    #cliqz-dropdown {
-        .result {
-            .icons {
-                width: 98px;
-            }
-
-            @media (max-width: 550px) {
-                .abstract {
-                    max-width: 73%;
-                }
-            }
-        }
-
-        .history .buttons span.dot {
-            left: 89px;
-        }
-
-        .history.cluster span.timeline {
-            left: 91px;
-        }
-
-        .padded {
-            padding-left: 108px;
-        }
-    }
-}

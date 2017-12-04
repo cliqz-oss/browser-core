@@ -34,11 +34,11 @@
     "offersLogsEnabled": true,
     "showConsoleLogs": false,
     "cliqz-adb": true,
-    "cliqz-adb-abtest": false,
+    "cliqz-adb-abtest": true,
     "attrackBloomFilter": true,
     "humanWeb": true,
     "cliqz-anti-phishing": true,
-    "cliqz-anti-phishing-enabled": false,
+    "cliqz-anti-phishing-enabled": true,
     "attrackRemoveQueryStringTracking": false,
     "attrackTelemetryMode": 0
   },

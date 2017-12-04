@@ -26,19 +26,21 @@ export default class {
         return;
       }
 
-      const messageId = sender.tab.id;
+      const windowId = sender.tab.id;
       if (message.payload) {
         this.dispatch({
           data: {
             ...message,
-            windowId: messageId
+            sender,
+            windowId,
           }
         });
       } else {
         this.dispatch({
           data: {
             payload: message,
-            windowId: messageId,
+            sender,
+            windowId,
           }
         });
       }

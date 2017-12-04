@@ -53,7 +53,7 @@ export default class {
   }
 
   /*
-   * Saves test to persistent storage.
+   * Saves tests to persistent storage.
    */
   saveTests() {
     return Promise.all([

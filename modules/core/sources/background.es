@@ -95,7 +95,14 @@ export default background({
   getWindowStatusFromModules(win) {
     return Object.keys(this.app.modules).map((module) => {
       const windowModule = this.app.modules[module].getWindowModule(win);
-      return windowModule && windowModule.status ? windowModule.status() : null;
+      const backgroundModule = this.app.modules[module].backgroundModule;
+
+      if (windowModule && windowModule.status) {
+        return windowModule.status();
+      } else if (backgroundModule && backgroundModule.status) {
+        return backgroundModule.status();
+      }
+      return null;
     });
   },
 
@@ -112,8 +119,14 @@ export default background({
     notifyProcessInit(processId) {
       events.pub('process:init', processId);
     },
-    notifyLocationChange(...args) {
-      events.pub('content:location-change', ...args);
+    notifyLocationChange(msg) {
+      const windowWrapper = Window.findByTabId(msg.domWindowId);
+      const locationChangeMesssage = {
+        ...msg,
+        windowId: windowWrapper ? windowWrapper.id : null,
+      };
+
+      events.pub('content:location-change', locationChangeMesssage);
     },
     notifyStateChange(...args) {
       const ev = args[0];

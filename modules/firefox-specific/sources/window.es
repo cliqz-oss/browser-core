@@ -24,6 +24,7 @@ export default class {
         const msg = {
           windowId: win.id,
           url: browser.currentURI.spec,
+          tabId: browser.outerWindowID,
           isPrivate: browser.loadContext.usePrivateBrowsing,
         };
         return [msg];

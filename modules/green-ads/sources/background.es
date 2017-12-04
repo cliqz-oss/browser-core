@@ -437,7 +437,8 @@ export default background({
       return this.greenAds.aggregate();
     },
 
-    getCosmeticsForNodes(url, nodes) {
+    getCosmeticsForNodes(nodes, sender) {
+      const url = sender.tab.url;
       if (getGreenadsState() === GREENADS_STATE.DISABLED) {
         return { active: false };
       }

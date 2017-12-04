@@ -160,8 +160,8 @@ export function parseDom(url, window, windowId) {
 registerContentScript('http*', (window, chrome, windowId) => {
   const url = window.location.href;
 
-  // Only ad for main pages.
-  if (window.parent && url === window.parent.document.documentURI) {
+  // Only add for main pages.
+  if (window.top === window) {
     window.addEventListener('DOMContentLoaded', () => {
       parseDom(url, window, windowId);
     });

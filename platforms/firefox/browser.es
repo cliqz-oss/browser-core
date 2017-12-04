@@ -125,6 +125,19 @@ export function removeWindowObserver(callback) {
   }
 }
 
+const sessionRestoreObservers = new Set();
+export function addSessionRestoreObserver(callback) {
+  sessionRestoreObservers.add(callback);
+  Services.obs.addObserver(callback, 'sessionstore-windows-restored', false);
+}
+
+export function removeSessionRestoreObserver(callback) {
+  const observer = sessionRestoreObservers.has(callback);
+  if (observer) {
+    Services.obs.removeObserver(observer, 'sessionstore-windows-restored', false);
+  }
+}
+
 export function reportError(e) {
   Components.utils.reportError(e);
 }
@@ -259,10 +272,17 @@ export function waitWindowReady(win) {
 }
 
 
-export function getActiveTab() {
-  const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
-      .getService(Components.interfaces.nsIWindowMediator);
-  const window = wm.getMostRecentWindow('navigator:browser');
+export function getActiveTab(w) {
+  let window = w;
+  if (!w) {
+    const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
+        .getService(Components.interfaces.nsIWindowMediator);
+    window = wm.getMostRecentWindow('navigator:browser');
+
+    if (!window) {
+      return Promise.reject('No open window available');
+    }
+  }
   return new Promise((resolve, reject) => {
     // Extract id of the current tab
     let tabId;

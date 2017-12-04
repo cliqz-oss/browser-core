@@ -836,6 +836,7 @@ export default class CliqzAttrack {
    */
   getTabBlockingInfo(tabId, url) {
     const result = {
+      url,
       tab: tabId,
       hostname: '',
       path: '',
@@ -848,7 +849,9 @@ export default class CliqzAttrack {
     };
 
     // ignore special tabs
-    if (url && (url.indexOf('about') === 0 || url.indexOf('chrome') === 0)) {
+    if (url && (url.startsWith('about') ||
+                url.startsWith('chrome') ||
+                url.startsWith('resource'))) {
       result.error = 'Special tab';
       return Promise.resolve(result);
     }

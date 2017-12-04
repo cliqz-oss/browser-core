@@ -4,6 +4,8 @@ import DefaultWeakMap from './default-weak-map';
 import Defer from './defer';
 import Service from './service';
 import inject from '../kord/inject';
+import { Window } from '../../platform/browser';
+
 
 export default class Module {
   constructor(name, settings) {
@@ -133,6 +135,7 @@ export default class Module {
       new this.WindowModule({
         settings: this.settings,
         window,
+        windowId: (new Window(window)).id,
         background: this.backgroundModule,
       }),
       this.isReady()

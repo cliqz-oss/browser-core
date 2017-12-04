@@ -1658,6 +1658,9 @@ const CliqzHumanWeb = {
                     } catch(ee) {}
                 }
             }
+        })
+        .catch((e) => {
+            _log('Error fetching fetching the currentURL: ' + e);
         });
 
 
@@ -1718,7 +1721,10 @@ const CliqzHumanWeb = {
             let counter = CliqzHumanWeb.counter;
             CliqzHumanWeb.currentURL()
               .then( (activeURL) => {
-                    _log('Pacemaker: ' + counter/CliqzHumanWeb.tmult + ' ' + activeURL);
+                _log('Pacemaker: ' + counter/CliqzHumanWeb.tmult + ' ' + activeURL);
+              })
+              .catch((e) => {
+                _log('Error fetching fetching the currentURL: ' + e);
               });
 
 

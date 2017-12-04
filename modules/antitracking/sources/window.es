@@ -6,15 +6,19 @@ import inject from '../core/kord/inject';
 const CliqzUtils = utils;
 const CliqzEvents = events;
 
-function onLocationChange(ev) {
+function onLocationChange({ url, windowId, tabId }) {
+  if (this.windowId !== windowId) {
+    return;
+  }
+
   if(this.interval) { utils.clearInterval(this.interval); }
 
   var counter = 8;
 
-  this.updateBadge();
+  this.updateBadge({ tabId, url });
 
   this.interval = utils.setInterval(function () {
-    this.updateBadge();
+    this.updateBadge({ tabId, url });
 
     counter -= 1;
     if (counter <= 0) {
@@ -25,8 +29,9 @@ function onLocationChange(ev) {
 
 export default class {
 
-  constructor(config) {
-    this.window = config.window;
+  constructor({ window, windowId }) {
+    this.window = window;
+    this.windowId = windowId;
     this.controlCenter = inject.module('control-center');
 
     this.onLocationChange = onLocationChange.bind(this);
@@ -34,11 +39,14 @@ export default class {
   }
 
   init() {
-    events.sub("core.location_change", this.onLocationChange);
+    this.onLocationChangeSubscription = events.subscribe("content:location-change",
+      ({ windowId, url, windowTreeInformation: { tabId }}) => this.onLocationChange({ windowId, url, tabId }));
+    this.onTabSelect = events.subscribe('core:tab_select', this.onLocationChange);
   }
 
   unload() {
-    events.un_sub("core.location_change", this.onLocationChange);
+    this.onLocationChangeSubscription.unsubscribe();
+    this.onTabSelect.unsubscribe();
     utils.clearInterval(this.interval);
   }
 
@@ -51,10 +59,8 @@ export default class {
     }
   }
 
-  updateBadge() {
-    if (this.window !== utils.getWindow()) { return; }
-
-    AttrackBG.attrack.getCurrentTabBlockingInfo()
+  updateBadge({ tabId, url }) {
+    AttrackBG.attrack.getTabBlockingInfo(tabId, url)
       .then((info) => {
         this.controlCenter.windowAction(
           this.window,
@@ -65,9 +71,9 @@ export default class {
   }
 
   status() {
-    const url = URLInfo.get(this.window.gBrowser.currentURI.spec);
-    return AttrackBG.attrack.getCurrentTabBlockingInfo(this.window.gBrowser)
+    return AttrackBG.attrack.getCurrentTabBlockingInfo(this.window)
       .then((info) => {
+        const url = URLInfo.get(info.url);
         const ps = info.ps;
         const hostname = url ? url.hostname : '';
         const isWhitelisted = AttrackBG.attrack.urlWhitelist.isWhitelisted(hostname);

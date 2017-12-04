@@ -117,14 +117,6 @@ $basic-line-height: (16 / 15) + 0em;
         }
     }
 
-    .padded {
-        padding-left: 70px;
-    }
-
-    .no-icon {
-        padding-left: 60px;
-    }
-
     .images {
 
         .result {
@@ -797,6 +789,38 @@ $basic-line-height: (16 / 15) + 0em;
                     }
                 }
             }
+        }
+    }
+}
+
+//===========================
+//===== DYNAMIC PADDING =====
+//===========================
+
+#main-window {
+    #cliqz-dropdown {
+        & > div, & > div > .thumbnail-blocks {
+            & > .result {
+                & > .icons {
+                    width: calc(var(--url-padding-start) + 9px);
+                }
+
+                & > .abstract {
+                    max-width: calc(90% - var(--url-padding-start));
+                }
+            }
+        }
+
+        .history .buttons span.dot {
+            left: var(--url-padding-start);
+        }
+
+        .history.cluster span.timeline {
+            left: calc(var(--url-padding-start) + 2px);
+        }
+
+        .padded {
+            padding-left: calc(var(--url-padding-start) + 19px);
         }
     }
 }

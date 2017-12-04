@@ -67,6 +67,20 @@ Examples:
 * `./fern.js build ./configs/browser.json`
 * `./fern.js build ./configs/mobile.json`
 
+##Custom prefs
+
+If you want to load your browser with predefined prefs all you have to do is create a .custom-prefs.json file in the root folder and add your custom prefs there. 
+
+Example:
+```
+{
+  "extensions.cliqz.triggersBE": " http://10.1.21.104",
+  "extensions.cliqz.offers2FeatureEnabled": true,
+  "extensions.cliqz.offersDevFlag": true,
+  "extensions.cliqz.offersHubTrigger": "auto"
+}
+```
+
 ## Testing
 
 you need to build extension with `./fern.js serve ./configs/jenkins.json` configuration file in order to run tests.

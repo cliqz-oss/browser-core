@@ -240,6 +240,16 @@ export default background({
     }
   },
 
+  status() {
+    const enabled = utils.getPref('modules.antitracking.enabled', true);
+    return {
+      visible: true,
+      strict: utils.getPref('attrackForceBlock', false),
+      state: enabled ? 'active' : 'critical',
+      totalCount: 0,
+    };
+  },
+
   events: {
     "prefchange": function onPrefChange(pref) {
       if (pref === DEFAULT_ACTION_PREF) {

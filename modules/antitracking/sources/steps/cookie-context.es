@@ -147,13 +147,13 @@ export default class {
     return new Set(links.map(link => URLInfo.get(link).generalDomain));
   }
 
-  setContextFromEvent(ev, contextHTML) {
+  setContextFromEvent(ev, contextHTML, herf, sender) {
     let cGD = null;
     let pageGD = null;
     let html = contextHTML || '';
 
     try {
-      pageGD = URLInfo.get(ev.target.parentURI).generalDomain;
+      pageGD = URLInfo.get(sender.tab.url).generalDomain;
       cGD = URLInfo.get(ev.target.baseURI).generalDomain;
     } catch (ee) {
     }

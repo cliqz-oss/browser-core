@@ -1,12 +1,9 @@
 <div class='result instant'>
-
-    <div class="header no-icon">
-      <div class="abstract">
-        <span class="title">{{name}}</span>
-      </div>
+  <div class="padded">
+    <div class="header">
+      <span class="title">{{name}}</span>
     </div>
-
-     <div class="flight-details" status="{{flightStatus}}">
+    <div class="flight-details" status="{{flightStatus}}">
 
       <div class="flight-status">
         <span>{{status}}</span>
@@ -85,13 +82,14 @@
           </div>
         </div>
       </div>
-        <p class="subtitle flight-timestamp">
-            <span>
-                {{> partials/source}}
-                {{#if updated}}
-                    &#183; {{> partials/timestamp}}
-                {{/if}}
-            </span>
-        </p>
+      <p class="subtitle flight-timestamp">
+          <span>
+              {{> partials/source}}
+              {{#if updated}}
+                  &#183; {{> partials/timestamp}}
+              {{/if}}
+          </span>
+      </p>
     </div>
+  </div>
 </div>

@@ -1,6 +1,3 @@
-import { getDocumentUrl } from '../content/helpers';
-
-
 function injectCSSRule(rule, doc) {
   const css = doc.createElement('style');
   css.type = 'text/css';
@@ -63,7 +60,6 @@ function blockScript(filter, document) {
  */
 export default class {
   constructor(url, window, backgroundAction) {
-    this.documentUrl = getDocumentUrl(window);
     this.url = url;
     this.window = window;
     this.backgroundAction = backgroundAction;
@@ -155,7 +151,7 @@ export default class {
 
     // Send node info to background to request corresponding cosmetic filters
     if (nodeInfo.size > 0) {
-      this.backgroundAction('getCosmeticsForNodes', this.documentUrl, [[...nodeInfo]]);
+      this.backgroundAction('getCosmeticsForNodes', [[...nodeInfo]]);
     }
   }
 

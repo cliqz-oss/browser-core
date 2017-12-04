@@ -32,8 +32,11 @@
       &:not([visuallyselected="true"]) {
 
         .tab-close-button:hover {
-          background: #0074a2;
-          border-radius: 4px;
+
+
+          .toolbarbutton-icon {
+            background-color: #0074a2;
+          }
         }
 
         .toolbarbutton-icon {
