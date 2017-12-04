@@ -472,9 +472,9 @@ export default class {
     this.window.gBrowser.selectedTab = tab;
 
     // Send telemetry for all call to action elements
-    const elId = data.data.elId;
+    const elId = data.data.el_id;
     if (elId) {
-      if (elId === 'offer_description' && elId === 'offer_ca_action' && elId === 'offer_title' && elId === 'offer_logo') {
+      if (elId === 'offer_description' || elId === 'offer_ca_action' || elId === 'offer_title' || elId === 'offer_logo') {
         const signal = {
           type: 'offrz',
           view: 'bar',

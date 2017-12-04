@@ -83,7 +83,7 @@ export default class DoublefetchHandler {
   anonymousHttpGet(url) {
     this._stats.callsToAnonymousHttpGet += 1;
 
-    return this._pendingInit.catch(logger.error).then(() => {
+    return this._pendingInit.catch(logger.debug).then(() => {
       const requestStartedAt = new Date();
       this._purgeObsoleteRequests(requestStartedAt);
 
@@ -102,7 +102,7 @@ export default class DoublefetchHandler {
       const requestPromise = getRequest(url);
       entry.requestPromise = requestPromise;
 
-      requestPromise.catch(logger.error).then(() => {
+      requestPromise.catch(logger.debug).then(() => {
         const elapsedMs = new Date() - requestStartedAt;
         logger.debug(`doublefetch for ${entry.url} completed after ${elapsedMs / 1000} seconds.`);
         this._stats.httpRequests.finished += 1;
@@ -213,7 +213,7 @@ export default class DoublefetchHandler {
   }
 
   init() {
-    this._pendingInit = this._pendingInit.catch(logger.error).then(() => {
+    this._pendingInit = this._pendingInit.catch(logger.debug).then(() => {
       if (this._state === State.INITIALIZING) {
         throw new Error('Assertion failed: After all pending operation have finished, ' +
                         'we must never end up in the INITIALIZING state');
