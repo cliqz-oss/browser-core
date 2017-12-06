@@ -51,6 +51,8 @@ export class ShareLocationButton extends BaseResult {
   }
 
   didRender(dropdownElement) {
+    super.didRender(dropdownElement); // TODO @mai do we need this?
+
     this.element = dropdownElement.querySelector(`#${this.elementId}`);
     this.spinner = dropdownElement.ownerDocument.createElement('div');
     this.spinner.className = 'spinner';

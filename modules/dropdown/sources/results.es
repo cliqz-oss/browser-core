@@ -6,6 +6,7 @@ import WeatherResult from './results/weather';
 import HistoryCluster from './results/history';
 import SessionsResult from './results/sessions';
 import AdultQuestionResult from './results/adult-question';
+import OffersResult from './results/offer';
 import SupplementarySearchResult from './results/supplementary-search';
 import Suggestions from './results/suggestions';
 import LottoResult from './results/lotto';
@@ -17,9 +18,10 @@ import console from '../core/console';
 import NavigateToResult from './results/navigate-to';
 import NewsStory from './results/news-story';
 import config from '../core/config';
+import * as offersConfig from './offer-assistant';
 
 class ResultFactory {
-  static create(rawResult, allResultsFlat) {
+  static create(rawResult, allResultsFlat, configs) {
     let Constructor = GenericResult;
     if (['custom', 'noResult'].indexOf(rawResult.data.template) >= 0) {
       throw new Error('ignore');
@@ -47,6 +49,10 @@ class ResultFactory {
 
     if (rawResult.data.template === 'lotto') {
       Constructor = LottoResult;
+    }
+
+    if (rawResult.data.template === 'offer') {
+      Constructor = OffersResult;
     }
 
     if (rawResult.data.template === 'movieEZ' ||
@@ -98,13 +104,19 @@ class ResultFactory {
       Constructor = SupplementarySearchResult;
     }
 
-    return new Constructor(rawResult, allResultsFlat);
+    return new Constructor(rawResult, allResultsFlat, configs);
   }
 
   static createAll(rawResults, actions = {}) {
     const all = rawResults.reduce(({ resultList, allResultsFlat }, rawResult) => {
       try {
-        const result = ResultFactory.create(rawResult, allResultsFlat);
+        const result = ResultFactory.create(rawResult, allResultsFlat, {
+          offers: {
+            isEnabled: offersConfig.isUserEnabled(),
+            nonOrganicStyle: offersConfig.getNonOrganicOfferStyle(),
+            organicStyle: offersConfig.getOrganicOfferStyle(),
+          }
+        });
         result.actions = actions;
         resultList.push(result);
       } catch (e) {

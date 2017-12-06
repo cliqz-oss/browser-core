@@ -23,7 +23,6 @@ const now = () => getSynchronizedDate().format(DATE_FORMAT);
 
 // TODO:
 // * support unlimited treatment lengths (?)
-// * create simple UI to manage/test AB tests locally
 
 /*
  * Manages AB tests. Requires `anolysis` to be running (for
@@ -189,25 +188,46 @@ export default class {
    * @returns {Object[]} - The list of tests to start.
    */
   getUpcomingTests(newTests) {
-    return Promise.all(newTests.map(test =>
-      // (1) check locally
-      this.shouldStartTest(test)
-        .then((shouldStartTest) => {
-          if (!shouldStartTest) {
-            return { test, success: false };
-          }
+    return Promise.all(
+      // (1) check (locally) which tests should start
+      newTests.map(test =>
+        this.shouldStartTest(test)
+        .then(shouldStart => ({ test, shouldStart })))
+      )
+      .then((reports) => {
+        const pendingTests = {};
+        const upcomingTests =
+          reports
+            // (2) remove tests that should not start
+            .filter(({ shouldStart }) => shouldStart)
+            .map(({ test }) => test)
+            // (3) remove competing tests
+            .filter((test) => {
+              const isCompeting = this.isTestCompeting(test, {
+                ...pendingTests,
+                ...this.runningTests,
+                ...this.completedTests,
+              });
+              if (!isCompeting) {
+                pendingTests[test.id] = test;
+              }
+              return !isCompeting;
+            })
+            // (4) assign test groups
+            .map(test => ({ ...test, group: this.chooseTestGroup(test) }));
 
-          // (2) check remote
-          const group = this.chooseTestGroup(test);
-          return this.client.enterTest(test.id, group)
-            .then(success => ({ test: { ...test, group }, success }))
-            // catch errors so that Promise.all does not stop
-            .catch(() => ({ test, success: false }));
-        })
-    ))
-    .then(reports => reports
-      .filter(report => report.success)
-      .map(report => report.test));
+        // (5) check (remotely) which tests can be entered
+        return Promise.all(
+          upcomingTests.map(test =>
+            this.client.enterTest(test.id, test.group)
+            .then(success => ({ test, success }))
+            .catch(() => ({ test, success: false }))
+          ));
+      })
+      // (6) remove tests that were not entered
+      .then(reports => reports
+        .filter(({ success }) => success)
+        .map(({ test }) => test));
   }
 
   /*
@@ -288,7 +308,7 @@ export default class {
    */
   isVersionMatch(test) {
     const version = getCoreVersion();
-    return (version || '').startsWith(test.core_version);
+    return (version || '').startsWith(test.core_version || '');
   }
 
   /*
@@ -317,5 +337,24 @@ export default class {
           return (userValue || '').startsWith(testValue);
         })
       );
+  }
+
+  /*
+   * Checks if this test is competing because it lists another test as
+   * competing or it is listed as competing by another test.
+   *
+   * @param {Object} test - The test.
+   * @returns {Boolean} - True, if the test is competing.
+   */
+  isTestCompeting(test, otherTests) {
+    // check if current tests lists a competing test
+    const isListing = (test.competitors || [])
+      .some(id => has(otherTests, id));
+
+    // check if current test is listed as competing
+    const isListed = Object.keys(otherTests).some(key =>
+        (otherTests[key].competitors || []).some(id => id === test.id));
+
+    return isListing || isListed;
   }
 }

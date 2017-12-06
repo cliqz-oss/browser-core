@@ -134,7 +134,7 @@ export function addSessionRestoreObserver(callback) {
 export function removeSessionRestoreObserver(callback) {
   const observer = sessionRestoreObservers.has(callback);
   if (observer) {
-    Services.obs.removeObserver(observer, 'sessionstore-windows-restored', false);
+    Services.obs.removeObserver(callback, 'sessionstore-windows-restored', false);
   }
 }
 

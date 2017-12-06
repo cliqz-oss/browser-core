@@ -17,6 +17,7 @@ class Urlbar extends React.Component {
     };
 
     this.handleKeyDown = this.handleKeyDown.bind(this);
+    this.handlePaste = this.handlePaste.bind(this);
   }
 
   componentDidMount() {
@@ -35,6 +36,24 @@ class Urlbar extends React.Component {
     this.textInput.removeEventListener('blur', urlBarBlurSignal);
   }
 
+  _queryCliqz(input) {
+    cliqz.core.queryCliqz(input);
+
+    cliqz.core.sendTelemetry({
+      type: 'home',
+      action: 'search_keystroke'
+    });
+
+    setTimeout(() => {
+      this.textInput.value = '';
+      this.textInput.style.visibility = 'hidden';
+    }, 0);
+  }
+
+  handlePaste(ev) {
+    ev.clipboardData.items[0].getAsString(text => this._queryCliqz(text));
+  }
+
   handleKeyDown(ev) {
     const value = ev.target.value;
     let input = SPECIAL_KEYS.indexOf(ev.which) > -1 ? '' : ev.key;
@@ -51,21 +70,11 @@ class Urlbar extends React.Component {
       ev.preventDefault();
     }
 
-    if (!input) {
+    if (!input || ev.metaKey || ev.ctrlKey) {
       return;
     }
 
-    cliqz.core.queryCliqz(input);
-
-    cliqz.core.sendTelemetry({
-      type: 'home',
-      action: 'search_keystroke'
-    });
-
-    setTimeout(() => {
-      this.textInput.value = '';
-      this.textInput.style.visibility = 'hidden';
-    }, 0);
+    this._queryCliqz(input);
   }
 
   render() {
@@ -79,6 +88,7 @@ class Urlbar extends React.Component {
           ref={(input) => { this.textInput = input; }}
           placeholder={t('urlbar.placeholder')}
           onKeyDown={this.handleKeyDown}
+          onPaste={this.handlePaste}
         />
       </div>
     );

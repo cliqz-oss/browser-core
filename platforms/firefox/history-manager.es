@@ -4,14 +4,12 @@
 
 import utils from '../core/utils';
 import CLIQZEnvironment from './environment';
-import { Components, XPCOMUtils } from './globals';
+import { Components } from './globals';
+import PlacesUtils from './places-utils';
 
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
-Cu.import('resource://gre/modules/PlacesUtils.jsm');
-
-var browserHistory = Cc['@mozilla.org/browser/nav-history-service;1'].getService(Ci.nsIBrowserHistory),
-    bookmarkService = Cc["@mozilla.org/browser/nav-bookmarks-service;1"].getService(Ci.nsINavBookmarksService);
+var bookmarkService = Cc["@mozilla.org/browser/nav-bookmarks-service;1"].getService(Ci.nsINavBookmarksService);
 
 var CliqzHistoryManager = {
   init: function() {
@@ -223,8 +221,7 @@ var CliqzHistoryManager = {
   },
   removeFromHistory: function(url) {
     try {
-      const uri = CliqzHistoryManager.makeURI(url);
-      browserHistory.removePage(uri);
+      PlacesUtils.history.remove(url);
     } catch(e) {
       utils.log(e.message, 'Error removing entry from history');
     }

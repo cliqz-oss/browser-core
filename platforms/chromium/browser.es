@@ -38,6 +38,10 @@ export function enableChangeEvents() {}
 
 export function addWindowObserver() {}
 export function removeWindowObserver() {}
+
+export function addSessionRestoreObserver() {}
+export function removeSessionRestoreObserver() {}
+
 export function forEachWindow(cb) {
   mapWindows().forEach(cb);
 }

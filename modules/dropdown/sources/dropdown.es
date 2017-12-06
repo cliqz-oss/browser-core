@@ -17,6 +17,7 @@ export default class {
     this.dropdownElement.addEventListener('mouseup', this.onMouseUp);
     this.dropdownElement.addEventListener('mousemove', this.onMouseMove);
     this.contextMenu = new ContextMenu(this.window, this.dropdownElement);
+    this.dropdownElement.style.setProperty('--url-padding-start', '50px');
   }
 
   get dropdownElement() {

@@ -6,6 +6,7 @@
 
 import utils from '../core/utils';
 import config from "../core/config";
+import { isPlatformAtLeastInVersion } from '../core/platform';
 
 /* Responsible for managing the 'Letzte Eingabe' button/dropdown. */
 var CliqzSearchHistory = {
@@ -96,10 +97,13 @@ var CliqzSearchHistory = {
             return;
         }
         var window_id = utils.getWindowID(window),
-            lq = this.windows[window_id].lastSearchElement;
+            lq = this.windows[window_id].lastSearchElement,
+            lqContainer = this.windows[window_id].searchHistoryContainer;
 
-        this.windows[window_id].searchHistoryContainer.className = 'cliqz-urlbar-Last-search-container';
-        this.windows[window_id].searchHistoryContainer.setAttribute('channel', config.settings.channel);
+        lqContainer.className = 'cliqz-urlbar-Last-search-container';
+        lqContainer.setAttribute('channel', config.settings.channel);
+        lqContainer.setAttribute('min-browser-version-is-58', isPlatformAtLeastInVersion('58.0'));
+
         lq.textContent = q;
         lq.tooltipText = q;
         lq.query = q;

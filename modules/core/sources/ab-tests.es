@@ -389,15 +389,6 @@ var CliqzABTests = {
             case "1103_C":
                CliqzUtils.setPref("offersDropdownAdPosition", 'right');
                break;
-            case "1104_A":
-               CliqzUtils.setPref("offersHubTrigger", 'off');
-               break;
-            case "1104_B":
-               CliqzUtils.setPref("offersHubTrigger", 'auto');
-               break;
-            case "1104_C":
-               CliqzUtils.setPref("offersHubTrigger", 'tooltip');
-               break;
              case "1105_A":
                 CliqzUtils.setPref('offersBrowserPanelEnableSwitch', false);
                 break;

@@ -9,8 +9,21 @@ class OfferResult {
     this.rawResult = rawResult;
   }
 
+  get _extra() {
+    return this.rawResult.data.extra || {};
+  }
+
+  get isAd() {
+    return this._extra.is_ad;
+  }
+
+  get isInjected() {
+    const offerData = this._extra.offers_data || {};
+    return offerData.is_injected;
+  }
+
   get isOffer() {
-    return this.rawResult.data && this.rawResult.data.extra && this.rawResult.data.extra.is_ad;
+    return this.isAd || this.isInjected;
   }
 
   get isHistory() {
@@ -23,11 +36,28 @@ class OfferResult {
   }
 
   get offerId() {
-    return this.offerData.offer_id;
+    const offerData = this._extra.offers_data.data || {};
+    const campaignId = this.isAd ? '001' : '002';
+    const prefName = `myoffrz.experiments.${campaignId}`;
+    const style = utils.getPref(`${prefName}.style`, 'plain');
+    const position = utils.getPref(`${prefName}.position`, 'first');
+
+    if (this.isAd) {
+      return `${offerData.offer_id}_${campaignId}_${style}_${position}`;
+    }
+
+    return `${offerData.offer_id}_${campaignId}_${style}`;
   }
 
   get offerData() {
-    return this.rawResult.data.extra.offers_data.data;
+    const data = Object.assign(
+      {},
+      {
+        ...this.rawResult.data.extra.offers_data.data,
+        offer_id: this.offerId,
+      }
+    );
+    return data;
   }
 }
 
@@ -93,7 +123,7 @@ export default background({
   },
 
   get inOffersAB() {
-    return utils.getPref('offersDropdownSwitch', false);
+    return utils.getPref('offers2UserEnabled', true) && utils.getPref('offersDropdownSwitch', false);
   },
 
   events: {

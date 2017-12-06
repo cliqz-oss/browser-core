@@ -23,10 +23,10 @@ export default class BaseResult {
     // throw if main result is duplicate
     // TODO: move deduplication to autocomplete module
     if (this.rawResult.url) {
-      if (allResultsFlat.some(url => equals(url, this.rawResult.url))) {
+      if (allResultsFlat.some(url => equals(url, this.url))) {
         throw new Error('duplicate');
       } else {
-        allResultsFlat.push(this.rawResult.url);
+        allResultsFlat.push(this.url);
       }
     }
 

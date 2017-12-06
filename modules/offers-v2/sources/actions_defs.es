@@ -16,6 +16,10 @@ const ActionID = {
   // whenever the offer will be broadcasted / pushed to all the real estates when
   // the offers should be displayed (before, known as offer_added / offer_displayed).
   AID_OFFER_PUSHED: 'offer_pushed',
+  // Notification type when an offer is pushed to the Reward box (Hub or offers-cc)
+  // it can be a small tooltip, or full pop-up of the window
+  AID_OFFER_NOTIF_T: 'offer_notif_tooltip',
+  AID_OFFER_NOTIF_P: 'offer_notif_popup',
   // whenever the offer is filtered out by a filter rule info
   AID_OFFER_FILTERED: 'offer_filtered',
   // this signal will be sent every time a new "display" session ENDS on the given

@@ -91,7 +91,7 @@ export default background({
   },
 
   get showOffers() {
-    const offersEnabled = (prefs.get('offers2FeatureEnabled', false) && prefs.get('offers2UserEnabled', false));
+    const offersEnabled = (prefs.get('offers2FeatureEnabled', false) && prefs.get('offers2UserEnabled', true));
     const cliqzTabOfferEnabled = prefs.get('cliqzTabOffersNotification', false);
     return offersEnabled && cliqzTabOfferEnabled;
   },

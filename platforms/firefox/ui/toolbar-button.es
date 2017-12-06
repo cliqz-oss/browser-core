@@ -224,16 +224,15 @@ export default class BrowserAction {
     const iframe = window.document.getElementById(`${this.id}-iframe`);
     if (iframe) {
       const widgetPlacement = CustomizableUI.getPlacementOfWidget(this.id) || {};
-
+      const view = iframe.parentElement;
       if (widgetPlacement.area === 'PanelUI-contents') {
         newHeight += 17; // 17px for scrollbar;
-      } else if (widgetPlacement.area === 'widget-overflow-fixed-list') {
+      } else if (widgetPlacement.area === 'widget-overflow-fixed-list' || !view.classList.contains('cui-widget-panelview')) {
         newHeight += 40; // 40px for the panel-header;
       }
 
       iframe.style.width = `${width}px`;
       iframe.style.height = `${newHeight}px`;
-      const view = iframe.parentElement;
       view.setAttribute('style', `height: ${newHeight}px; max-height: ${newHeight}px;`);
     }
   }

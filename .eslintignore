@@ -402,6 +402,7 @@ modules/dropdown/debug/fixtures/ui-cut-off.es
 modules/dropdown/debug/fixtures/weather.es
 modules/dropdown/debug/fixtures/youtube.es
 modules/dropdown/debug/fixtures/offers.es
+modules/dropdown/debug/fixtures/offer.es
 modules/dropdown/debug/fixtures/suggestions.es
 modules/dropdown/debug/fixtures/time.es
 modules/dropdown/debug/fixtures/movie-cinema.es

@@ -80,12 +80,16 @@ const DocumentManager = {
 
     const onMessage = (incomingMessage) => {
       listeners.forEach((l) => {
-        const unsafeMessage = Components.utils.cloneInto({
-          ...incomingMessage.data,
-          type: 'response',
-        }, window);
+        try {
+          const unsafeMessage = Components.utils.cloneInto({
+            ...incomingMessage.data,
+            type: 'response',
+          }, window);
 
-        l(unsafeMessage);
+          l(unsafeMessage);
+        } catch (e) {
+          // don't throw if any of the listeners thrown
+        }
       });
     };
 

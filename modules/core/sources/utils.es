@@ -453,7 +453,18 @@ var CliqzUtils = {
 
     const backendPromise = fetch(url)
       .then(res => res.json())
-      .then(response => {
+      .then((response) => {
+        // Logic for offer experiment
+        if (prefs.get('myoffrz.experiments.001.position', 'first') === 'last') {
+          const offerResults = response.results.filter(r => r.template === 'offer');
+          const nonOfferResults = response.results.filter(r => r.template !== 'offer');
+
+          response.results = [
+            ...nonOfferResults,
+            ...offerResults,
+          ];
+        }
+
         if(response.results && (response.results.length > 0 || !config.settings.suggestions)) {
 
           if (suggestionChoice === 1 && !isPrivateMode) {

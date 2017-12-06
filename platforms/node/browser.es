@@ -33,6 +33,15 @@ export function setOurOwnPrefs() {
 export function addWindowObserver() {
 }
 
+export function removeWindowObserver() {
+}
+
+export function addSessionRestoreObserver() {
+}
+
+export function removeSessionRestoreObserver() {
+}
+
 export function mapWindows(fn) {
   return [];
 }

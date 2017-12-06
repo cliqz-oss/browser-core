@@ -273,7 +273,7 @@ export default describeModule('abtests/manager',
           chai.expect(upcomingTests[0]).to.deep.equal({ id: '2', group: 'A' });
         });
       });
-      it('does not enter tests for which remote call fails', () => {
+      it('excludes tests for which remote call fails', () => {
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
         manager.client.enterTest = (id) => id === '3' ? Promise.reject() : Promise.resolve(true);
@@ -281,6 +281,77 @@ export default describeModule('abtests/manager',
           chai.expect(upcomingTests.length).to.equal(2);
           chai.expect(upcomingTests[0].id).to.equal('1');
           chai.expect(upcomingTests[1].id).to.equal('2');
+        });
+      });
+      it('excludes test if running test lists it as competitor', () => {
+        manager.chooseTestGroup = () => '';
+        manager.shouldStartTest = () => Promise.resolve(true);
+        manager.client.enterTest = () => Promise.resolve(true);
+        manager.runningTests = { '2': { id: '2', competitors: ['1'] } };
+        return manager.getUpcomingTests([{ id: '1' }, { id: '3' }]).then((upcomingTests) => {
+          chai.expect(upcomingTests.length).to.equal(1);
+          chai.expect(upcomingTests[0].id).to.equal('3');
+        });
+      });
+      it('excludes test if it lists running test as competitor', () => {
+        manager.chooseTestGroup = () => '';
+        manager.shouldStartTest = () => Promise.resolve(true);
+        manager.client.enterTest = () => Promise.resolve(true);
+        manager.runningTests = { '2': { id: '2' } };
+        return manager.getUpcomingTests([{ id: '1', competitors: ['2'] }, { id: '3' }]).then((upcomingTests) => {
+          chai.expect(upcomingTests.length).to.equal(1);
+          chai.expect(upcomingTests[0].id).to.equal('3');
+        });
+      });
+      it('excludes test if completed test lists it as competitor', () => {
+        manager.chooseTestGroup = () => '';
+        manager.shouldStartTest = () => Promise.resolve(true);
+        manager.client.enterTest = () => Promise.resolve(true);
+        manager.completedTests = { '2': { id: '2', competitors: ['1'] } };
+        return manager.getUpcomingTests([{ id: '1' }, { id: '3' }]).then((upcomingTests) => {
+          chai.expect(upcomingTests.length).to.equal(1);
+          chai.expect(upcomingTests[0].id).to.equal('3');
+        });
+      });
+      it('excludes test if it lists completed test as competitor', () => {
+        manager.chooseTestGroup = () => '';
+        manager.shouldStartTest = () => Promise.resolve(true);
+        manager.client.enterTest = () => Promise.resolve(true);
+        manager.completedTests = { '2': { id: '2' } };
+        return manager.getUpcomingTests([{ id: '1', competitors: ['2'] }, { id: '3' }]).then((upcomingTests) => {
+          chai.expect(upcomingTests.length).to.equal(1);
+          chai.expect(upcomingTests[0].id).to.equal('3');
+        });
+      });
+      it('excludes test that is listed by an earlier new test as competitor', () => {
+        manager.chooseTestGroup = () => '';
+        manager.shouldStartTest = () => Promise.resolve(true);
+        manager.client.enterTest = () => Promise.resolve(true);
+        return manager.getUpcomingTests([{ id: '1', competitors: ['2'] }, { id: '2' }]).then((upcomingTests) => {
+          chai.expect(upcomingTests.length).to.equal(1);
+          chai.expect(upcomingTests[0].id).to.equal('1');
+        });
+      });
+      it('excludes test that lists an earlier new test as competitor', () => {
+        manager.chooseTestGroup = () => '';
+        manager.shouldStartTest = () => Promise.resolve(true);
+        manager.client.enterTest = () => Promise.resolve(true);
+        return manager.getUpcomingTests([{ id: '1' }, { id: '2', competitors: ['1'] }, { id: '3' }]).then((upcomingTests) => {
+          chai.expect(upcomingTests.length).to.equal(2);
+          chai.expect(upcomingTests[0].id).to.equal('1');
+          chai.expect(upcomingTests[1].id).to.equal('3');
+        });
+      });
+      it('does not exlude tests if they are not competing', () => {
+        manager.chooseTestGroup = () => '';
+        manager.shouldStartTest = () => Promise.resolve(true);
+        manager.client.enterTest = () => Promise.resolve(true);
+        manager.runningTests = { '1': { id: '1', competitors: ['11'] } };
+        manager.completedTests = { '2': { id: '2', competitors: ['12']  } };
+        return manager.getUpcomingTests([{ id: '3', competitors: ['13'] }, { id: '4' }]).then((upcomingTests) => {
+          chai.expect(upcomingTests.length).to.equal(2);
+          chai.expect(upcomingTests[0].id).to.equal('3');
+          chai.expect(upcomingTests[1].id).to.equal('4');
         });
       });
     });
@@ -339,6 +410,7 @@ export default describeModule('abtests/manager',
           return true;
         };
         manager.isVersionMatch = () => true;
+        manager.isTestCompeting = () => false;
       });
 
       it('returns true if probability threshold is higher than random draw', () => {
@@ -434,6 +506,58 @@ export default describeModule('abtests/manager',
         chai.expect(manager.isTestActive(mockTest2)).to.be.false;
       });
     });
+    describe('#isTestCompeting', () => {
+      let manager;
+      let mockTest2;
+
+      beforeEach(function () {
+        const Manager = new this.module().default;
+        manager = new Manager();
+
+        mockTest2 = Object.assign({ }, mockTest1);
+      });
+
+      it('returns false if current test has no competitor field', () => {
+        chai.expect(manager.isTestCompeting(mockTest2, {})).to.be.false;
+      });
+      it('returns false if all others tests have no competitor fields', () => {
+        const tests = { '1': { id: '1' }, '2': { id: '2' }}
+        mockTest2.competitors = [];
+        chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.false;
+      });
+      it('returns false if some others tests have no competitor fields', () => {
+        const tests = { '1': { id: '1', competitors: [] }, '2': { id: '2' }};
+        mockTest2.competitors = [];
+        chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.false;
+      });
+      it('returns false if current test does not list competing tests', () => {
+        mockTest2.competitors = ['0'];
+        const tests = { '1': { id: '1', competitors: [] }, '2': { id: '2', competitors: [] }};
+        chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.false;
+      });
+      it('returns false if current test is not listed by others tests as competing', () => {
+        mockTest2.competitors = ['0'];
+        const tests = { '1': { id: '1', competitors: ['10'] }, '2': { id: '2', competitors: ['11'] }};
+        chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.false;
+      });
+      it('returns true if current test lists another test as competing', () => {
+        mockTest2.competitors = ['1'];
+        const tests = { '1': { id: '1', competitors: [] }, '2': { id: '2', competitors: [] }};
+        chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.true;
+      });
+      it('returns true if current test is listed as competing by another test', () => {
+        mockTest2.id = '0'
+        mockTest2.competitors = [];
+        const tests = { '1': { id: '1', competitors: ['0'] }, '2': { id: '2', competitors: [] }};
+        chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.true;
+      });
+      it('returns true if current lists and is listed as competing', () => {
+        mockTest2.id = '0'
+        mockTest2.competitors = ['1'];
+        const tests = { '1': { id: '1', competitors: [] }, '2': { id: '2', competitors: ['0'] }};
+        chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.true;
+      });
+    });
     describe('#isVersionMatch', () => {
       let manager;
       let mockTest2;
@@ -466,10 +590,19 @@ export default describeModule('abtests/manager',
         mockTest2.core_version = '2';
         chai.expect(manager.isVersionMatch(mockTest2)).to.be.false;
       });
-      it('returns false for missing core version', () => {
+      it('returns false for missing core version in client', () => {
         mockCoreVersion = null;
         mockTest2.core_version = '2.0.0';
         chai.expect(manager.isVersionMatch(mockTest2)).to.be.false;
+      });
+      it('returns true for missing core version in test', () => {
+        mockCoreVersion = '1.0.0';
+        mockTest2.core_version = '';
+        chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
+        mockTest2.core_version = null;
+        chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
+        delete mockTest2.core_version
+        chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
       });
     });
     describe('#isDemographicsMatch', () => {

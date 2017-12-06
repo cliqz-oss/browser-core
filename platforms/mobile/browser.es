@@ -33,6 +33,15 @@ export function enableChangeEvents() {
 export function addWindowObserver() {
 };
 
+export function removeWindowObserver() {
+};
+
+export function addSessionRestoreObserver() {
+}
+
+export function removeSessionRestoreObserver() {
+}
+
 export function getLang() {
   return window.navigator.language || window.navigator.userLanguage || 'en';
 }

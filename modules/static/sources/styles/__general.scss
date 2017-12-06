@@ -203,6 +203,10 @@
     position: relative;
 }
 
+.cliqz-urlbar-Last-search-container[min-browser-version-is-58='true'] {
+    margin: 3px 6px 3px 0px;
+}
+
 .cliqz-urlbar-Last-search-container[channel='40'] {
     line-height: 24px;
 

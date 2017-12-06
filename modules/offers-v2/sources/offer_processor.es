@@ -6,6 +6,7 @@ import logger from './common/offers_v2_logger';
 import ActionID from './actions_defs';
 import FilterRulesEvaluator from './filter_rules_evaluator';
 import events from '../core/events';
+import prefs from '../core/prefs';
 import { isChromium } from '../core/platform';
 
 
@@ -24,9 +25,10 @@ const MessageType = {
 
 const ORIGIN_ID = 'processor';
 
+const FILTERS_OFF = 'offersFiltersOff';
+
 // /////////////////////////////////////////////////////////////////////////////
 export default class OfferProcessor {
-
   //
   constructor(sigHandler, baseDB, offersDB, offersStatusHandler) {
     this.baseDB = baseDB;
@@ -458,7 +460,7 @@ export default class OfferProcessor {
     }
     const rules = offerInfo.filter_info;
     const offerID = offerInfo.offer_id;
-    return this.filterRuleEval.shouldWeShowOffer(offerID, rules);
+    return prefs.get(FILTERS_OFF, false) || this.filterRuleEval.shouldWeShowOffer(offerID, rules);
   }
 
   _getDestRealStatesForOffer(offerID) {

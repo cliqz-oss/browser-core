@@ -1,0 +1,20 @@
+{{#if offerResult}}
+<div class="injected-offer clearfix padded">
+    <div class="wrapper">
+        {{#if offerResult.showThumbnail}}
+        <div class="thumbnail">
+            <img src="{{offerResult.thumbnail}}" data-extra="image" />
+        </div>
+        {{/if}}
+        <div class="offer-content">
+            <a class="result non-selectable offer-title" href="{{ offerResult.offerSource.url }}" data-extra="use">
+                {{ offerResult.offerSource.title }}
+            </a>
+            <div class="offer-code">
+                <span class="ad-label">Anzeige</span>
+                {{> partials/offer/promo-code}}
+            </div>
+        </div>
+    </div>
+</div>
+{{/if}}

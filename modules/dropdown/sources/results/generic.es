@@ -3,6 +3,7 @@ import console from '../../core/console';
 
 import BaseResult, { getDeepResults } from './base';
 import LocalResult, { ShareLocationButton } from './local';
+import { OfferResult } from './offer';
 import NewsResult from './news';
 import VideoResult from './video';
 
@@ -22,9 +23,14 @@ class AnchorResult extends BaseResult {
 }
 
 export default class GenericResult extends BaseResult {
-  constructor(...args) {
-    super(...args);
+  constructor(rawResult, allResultsFlat, { offers } = {}) {
+    super(rawResult, allResultsFlat);
     this.internalResultsLimit = 4;
+
+    if (offers) {
+      this.offerStyle = offers.organicStyle;
+      this.offerEnabled = offers.isEnabled;
+    }
   }
 
    // cannot limit here - inheriting results may like to have filtering
@@ -132,6 +138,7 @@ export default class GenericResult extends BaseResult {
       ...this.imageResults,
       ...this.anchorResults,
       ...(this.localResult ? [...this.localResult.allResults] : []),
+      ...(this.offerResult ? [...this.offerResult.allResults] : []),
     ];
   }
 
@@ -162,7 +169,12 @@ export default class GenericResult extends BaseResult {
                     snippet.extra,
                   );
 
-                  const newResult = new this.constructor(newRawResult);
+                  const newResult = new this.constructor(newRawResult, [], {
+                    offers: {
+                      isEnabled: this.offerEnabled,
+                      organicStyle: this.offerStyle,
+                    }
+                  });
                   newResult.actions = this.actions;
                   this.actions.replaceResult(this, newResult);
                 })
@@ -185,6 +197,23 @@ export default class GenericResult extends BaseResult {
 
     const result = new LocalResult({
       extra,
+      text: this.query,
+    });
+
+    result.actions = this.actions;
+    return result;
+  }
+
+  get offerResult() {
+    const extra = this.rawResult.data.extra || {};
+    const offerData = extra.offers_data || {};
+    if (this.isAd || !offerData.is_injected || !this.offerEnabled) {
+      return null;
+    }
+
+    const result = new OfferResult({
+      offerData,
+      showThumbnail: this.offerStyle === 'rich',
       text: this.query,
     });
 

@@ -6,13 +6,8 @@ import UITour from '../platform/ui-tour';
 import config from '../core/config';
 import { isPlatformAtLeastInVersion } from '../core/platform';
 
-let ORIGIN_NAME = 'offers-cc';
+const ORIGIN_NAME = 'offers-cc';
 const UI_TOUR_ID = 'cliqz-offers';
-
-const offersHubTrigger = utils.getPref('offersHubTrigger', 'off');
-if (offersHubTrigger === 'tooltip') {
-  ORIGIN_NAME = 'offers-cc-tooltip';
-}
 
 let seenOffersObj = {};
 let autoTrigger = false;
@@ -406,6 +401,8 @@ export default class {
     }
     // we also have event data: event.data;
     const eventID = event.type;
+    const offersHubTrigger = event.data.offer_data.ui_info.notif_type || 'tooltip';
+    const offerID = event.data.offer_data.offer_id;
 
     this._getAllOffers().then(() => {
       switch (eventID) {
@@ -414,12 +411,30 @@ export default class {
           autoTrigger = true;
           this.toolbarButtonElement.setAttribute('state', 'new-offers');
 
-          if (offersHubTrigger === 'tooltip') {
+          const notifMsg = {
+            type: 'offer-action-signal'
+          };
+
+          if (offersHubTrigger === 'pop-up') {
+            notifMsg.data = {
+              action_id: 'offer_notif_popup',
+              offer_id: offerID
+            };
+            this.sendMessageToOffersCore(notifMsg);
+            this.openPanel();
+          } else { // Open tooltip by default
+            notifMsg.data = {
+              action_id: 'offer_notif_tooltip',
+              offer_id: offerID
+            };
+
             const signal = {
               type: 'offrz',
               view: 'box_tooltip',
               action: 'show',
             };
+
+            this.sendMessageToOffersCore(notifMsg);
 
             const buttonArea = this.window.CustomizableUI.getWidget(this.toolbarButton.id).areaType;
 
@@ -472,14 +487,14 @@ export default class {
               };
               this.sendMessageToOffersCore(msg);
             }).catch(() => {});
-          } else {
-            this.openPanel();
           }
-        }
           break;
-        default:
+        }
+
+        default: {
           utils.log('invalid event from core type', eventID);
           break;
+        }
       }
     }).catch((err) => {
       utils.log('======= event: error: ', err);
