@@ -21,6 +21,12 @@ export default class extends React.Component {
     return this.subscribedToTeam;
   }
 
+  get actionMessage() {
+    return this.isSubscribed ?
+      getMessage('mobile_soccer_subscribe_league_done', this.teamName) :
+      getMessage('mobile_soccer_subscribe_team', this.teamName);
+  }
+
   updateSubscriptionData() {
     const data = this.props.data;
     return this.getSubscriptionData(data.matches)
@@ -37,8 +43,8 @@ export default class extends React.Component {
     }
     this.subtype = 'team';
     this.id = matches[0].teamId;
+    this.teamName = matches[0].club;
     this.isValid = Boolean(matches[0].teamId);
-    this.actionMessage = getMessage('mobile_soccer_subscribe_team', matches[0].club);
 
     return isSubscribedToTeam(this.id)
     .then(subscribedToTeam => {
@@ -95,7 +101,7 @@ export default class extends React.Component {
       return null;
     }
     // show games in reverse order (live or next game first)
-    return matches.reverse().map(this.displayGame.bind(this));
+    return matches.map(this.displayGame.bind(this)).reverse();
   }
 
   render() {

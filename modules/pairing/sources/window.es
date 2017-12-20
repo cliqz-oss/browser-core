@@ -10,7 +10,7 @@ const DISMISSED_ALERTS = 'dismissedAlerts';
 * @namespace pairing
 * @class Window
 */
-export default class {
+export default class Win {
   /**
   * @constructor
   */
@@ -65,7 +65,8 @@ export default class {
           let url = ''; // Display "Send to mobile" option based on this url
           if (isLink) {
             delete tabData.title;
-            tabData.url = url = this.window.gContextMenu.getLinkURL();
+            url = this.window.gContextMenu.getLinkURL();
+            tabData.url = url;
           } else { // No text selected
             url = this.window.gBrowser.currentURI.spec;
           }

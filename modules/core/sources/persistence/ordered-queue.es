@@ -15,7 +15,7 @@ import DocumentBatch from './document-batch';
  *
  * @class OrderedQueue
  */
-export default class {
+export default class OrderedQueue {
 
   constructor(name) {
     this.db = new Database(name, { auto_compaction: true });

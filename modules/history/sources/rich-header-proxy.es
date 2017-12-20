@@ -1,8 +1,7 @@
-import utils from '../core/cliqz';
+import utils from '../core/utils';
 import NEWS_DOMAINS from '../freshtab/news-domains';
 
-export default class {
-
+export default class RichHeaderProxy {
   constructor() {
     this.newsCache = Object.create(null);
   }

@@ -1,7 +1,7 @@
 import utils from '../core/utils';
 import History from '../platform/history/history';
 import Anacron from '../core/anacron';
-import moment from '../platform/moment';
+import moment from '../platform/lib/moment';
 import logger from './logger';
 import { sanitiseUrl } from './utils';
 

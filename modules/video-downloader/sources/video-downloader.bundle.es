@@ -6,6 +6,8 @@ import helpers from './content/helpers';
 import { sendMessageToWindow } from './content/data';
 import templates from './templates';
 
+Handlebars.partials = templates;
+
 function localizeDocument() {
   Array.from(document.querySelectorAll('[data-i18n]')).forEach((el) => {
     const elArgs = el.dataset.i18n.split(',');
@@ -46,55 +48,74 @@ $(() => {
   });
 });
 
-$(document).on('click', '#more-formats-btn', (e) => {
+let lastClickedId;
+
+$(document).on('click', 'ul.vd-tabs li', function itemClick(e) {
   e.stopPropagation();
-  $('#download-links .hidden').attr('class', '');
-  $('#more-formats-btn').css('display', 'none');
-  resize();
+  const tabId = $(this).attr('data-tab');
+  if (tabId === lastClickedId) {
+    return;
+  }
+
+  lastClickedId = tabId;
+
   sendMessageToWindow({
     action: 'sendTelemetry',
     data: {
       action: 'click',
-      target: 'more_formats'
+      target: tabId,
     }
   });
+
+  $('ul.vd-tabs li').removeClass('active');
+  $(this).addClass('active');
+
+  $('#vd-tab-content').attr('class', tabId);
+  resize();
 });
 
-$(document).on('click', '#send-to-mobile-btn', function btnClick(e) {
+$(document).on('click', '.link-button', function btnClick(e) {
   e.stopPropagation();
-  const $this = $(this);
-  const resend = $('#send-to-mobile-btn').text() ===
-    chrome.i18n.getMessage('pairing-send-video-to-mobile-retry');
-  const dataToSend = {
-    url: $this.attr('data-href'),
-    title: $this.attr('data-title'),
-    format: $this.attr('data-format'),
-    resend,
-  };
-  $this.attr('class', 'disabled');
-  sendMessageToWindow({
-    action: 'sendToMobile',
-    data: dataToSend,
-  });
+  const selectedItem = $("#download-links input[type='radio']:checked")[0];
+  const url = selectedItem.dataset.href;
+  const filename = selectedItem.value;
+  const title = selectedItem.dataset.title;
+  const type = selectedItem.dataset.type;
+  const size = selectedItem.dataset.size;
+  const format = selectedItem.dataset.format.toLowerCase().replace(' ', '_');
+  const origin = decodeURI(selectedItem.dataset.origin);
+  const buttonId = $(this)[0].id;
+
+  if (buttonId === 'download-desktop') {
+    sendMessageToWindow({
+      action: 'download',
+      data: {
+        url,
+        filename,
+        size,
+        format,
+        origin,
+      }
+    });
+  } else if (buttonId === 'download-mobile') {
+    sendMessageToWindow({
+      action: 'sendToMobile',
+      data: {
+        url,
+        title,
+        type,
+        format,
+      }
+    });
+
+    $('#sending-status').addClass('show');
+    setTimeout(() => {
+      $('#sending-status').removeClass('show');
+    }, 5000);
+  }
 });
 
-$(document).on('click', '#download-links li', function itemClick(e) {
-  e.stopPropagation();
-  const $p = $(this).find('p');
-  sendMessageToWindow({
-    action: 'download',
-    data: {
-      url: $p.attr('data-href'),
-      filename: $p.attr('download'),
-      size: $(this).find('span').text(),
-      format: $p.attr('data-format').toLowerCase().replace(' ', '_'),
-      origin: decodeURI($p.attr('data-origin'))
-    }
-  });
-  hidePopup();
-});
-
-$(document).on('click', '#pairing-dashboard', () => {
+$(document).on('click', '.connect-page-link', () => {
   sendMessageToWindow({
     action: 'openConnectPage',
     data: {}
@@ -103,15 +124,8 @@ $(document).on('click', '#pairing-dashboard', () => {
 });
 
 function draw(data) {
-  if (data.sendingStatus) {
-    if (data.sendingStatus === 'success') {
-      $('#sending-status').attr('src', 'images/checkbox-green.svg');
-    } else {
-      $('#sending-status').attr('src', 'images/checkbox-red.svg');
-
-      $('#send-to-mobile-btn').removeClass('disabled');
-      $('#send-to-mobile-btn').text(chrome.i18n.getMessage('pairing-send-video-to-mobile-retry'));
-    }
+  if (data.hidePairingIframe) {
+    $('#connect-iframe').addClass('hidden');
   } else {
     $('#video-downloader').html(templates.template(data));
   }

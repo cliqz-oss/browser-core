@@ -34,7 +34,7 @@ const seedPromise = Promise.resolve()
     }
   });
 
-const startup = Promise.all([seedPromise, loadPrefs()]).then(() => {
+const startup = Promise.all([seedPromise]).then(() => {
   app = new App();
   // register background actions
   Object.keys(app.modules)

@@ -7,7 +7,7 @@ import helpers from './content/helpers';
 /**
 * @namespace mobile-history
 */
-export default class {
+export default class Win {
   /**
   * @class Window
   * @constructor

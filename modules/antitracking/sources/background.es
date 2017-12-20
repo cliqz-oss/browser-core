@@ -157,7 +157,19 @@ export default background({
 
     removeSourceDomainFromWhitelist(domain) {
       return this.actions.changeWhitelistState(domain, 'hostname', 'remove');
-    }
+    },
+
+    setConfigOption(prefName, value) {
+      this.config.setPref(prefName, value);
+    },
+
+    pause() {
+      this.config.paused = true;
+    },
+
+    resume() {
+      this.config.paused = false;
+    },
   },
 
   popupActions: {
@@ -233,10 +245,6 @@ export default background({
       }
       msg.type = 'antitracking';
       utils.telemetry(msg);
-    },
-
-    setConfigOption(prefName, value) {
-      this.config.setPref(prefName, value);
     }
   },
 

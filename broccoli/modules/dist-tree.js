@@ -20,13 +20,21 @@ module.exports = function getDistTree(modulesTree) {
 
   const distTrees = modulesTrees.concat(
     (cliqzConfig.subprojects || []).map(
-      subproject => new Funnel(
-        new UnwatchedDir(subproject.src), 
-        {
-          include: subproject.include || ['**/*'],
-          destDir: subproject.dest
-        }
-      )
+      subproject => 
+          new Funnel(
+            new UnwatchedDir(subproject.src), 
+            {
+              include: subproject.include || ['**/*'],
+              destDir: subproject.dest,
+              getDestinationPath(filename) {
+                filename = filename.replace('.development', '');
+                filename = filename.replace('.production.min', '');
+                return filename;
+              }
+            }
+          )
+          
+        
     )
   );
 

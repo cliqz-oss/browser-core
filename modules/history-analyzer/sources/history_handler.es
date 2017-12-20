@@ -7,7 +7,7 @@ import { processRawRequest } from '../core/adblocker-base/filters-engine';
 import { PersistentDataHandler, BasicDataHolder } from './persistent-helpers';
 import TaskHandler from './task-handler';
 import TaskExecutor from './task-executor';
-import { timestamp } from './time_utils';
+import { timestamp } from '../core/time';
 
 // how frequently we will check for the current status of the task and proceed
 // with the next ones if we have some for any reason
@@ -148,7 +148,6 @@ export default class HistoryHandler {
       this.worker.terminate();
       this.worker = null;
     }
-    this.entriesCache.save();
   }
 
   loadPersistentData() {
@@ -398,7 +397,11 @@ export default class HistoryHandler {
     }
 
     // save the cache
-    this.entriesCache.save();
+    try {
+      this.entriesCache.save().catch();
+    } catch (e) {
+      logger.error('Something went very bad when storing the data on pouchdb', e);
+    }
 
     return true;
   }

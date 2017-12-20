@@ -1,4 +1,4 @@
-/* global it, expect, chai, chai-dom, respondWith, fillIn,waitForPopup,
+/* global it, chai, respondWith, fillIn,waitForPopup,
    $cliqzResults, getLocaliseString */
 /* eslint func-names: ['error', 'never'] */
 /* eslint prefer-arrow-callback: 'off' */

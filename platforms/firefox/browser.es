@@ -132,8 +132,8 @@ export function addSessionRestoreObserver(callback) {
 }
 
 export function removeSessionRestoreObserver(callback) {
-  const observer = sessionRestoreObservers.has(callback);
-  if (observer) {
+  if (sessionRestoreObservers.has(callback)) {
+    sessionRestoreObservers.delete(callback);
     Services.obs.removeObserver(callback, 'sessionstore-windows-restored', false);
   }
 }
@@ -146,18 +146,10 @@ export function mustLoadWindow(win) {
   return win.location.href === 'chrome://browser/content/browser.xul';
 }
 
-export function setInstallDatePref(extensionId) {
+export function setInstallDatePref(date) {
   // for legacy users who have not set install date on installation
-  try {
-    if (!prefs.get('install_date')) {
-      const am = Components.utils.import('resource://gre/modules/AddonManager.jsm');
-      am.AddonManager.getAddonByID(extensionId, (addon) => {
-        const date = Math.floor(addon.installDate.getTime() / 86400000);
-        prefs.set('install_date', date);
-      });
-    }
-  } catch (ex) {
-    console.log(ex.message, 'Extension.jsm: Unable to set install date -> ');
+  if (!prefs.get('install_date')) {
+    prefs.set('install_date', date);
   }
 }
 
@@ -278,7 +270,6 @@ export function getActiveTab(w) {
     const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
         .getService(Components.interfaces.nsIWindowMediator);
     window = wm.getMostRecentWindow('navigator:browser');
-
     if (!window) {
       return Promise.reject('No open window available');
     }
@@ -403,4 +394,31 @@ export function updateTab(tabId, url) {
 
 export function getStartupInfo() {
   return Services.startup.getStartupInfo();
+}
+
+const migrationObservers = new Map();
+export function addMigrationObserver(callback) {
+  const obs = {
+    init() {
+      Services.obs.addObserver(this, 'Migration:Ended', false);
+      migrationObservers.set(callback, this);
+    },
+
+    uninit() {
+      Services.obs.removeObserver(this, 'Migration:Ended');
+      migrationObservers.delete(callback);
+    },
+
+    observe(subject, topic, data) {
+      callback(subject, topic, data);
+    }
+  };
+  obs.init();
+}
+
+export function removeMigrationObserver(callback) {
+  const obs = migrationObservers.get(callback);
+  if (obs) {
+    obs.uninit();
+  }
 }

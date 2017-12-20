@@ -2,7 +2,7 @@ import utils from '../core/utils';
 
 /** Set like class whose members are removed after a specific amount of time
 */
-export default class {
+export default class TempSet {
 
   constructor() {
     this._items = new Set();

@@ -1,6 +1,6 @@
 import { NativeModules } from 'react-native';
 
-export function handleAutoCompletion(url = '', query = '') {
+export default function handleAutoCompletion(url = '', query = '') {
   if (!NativeModules.AutoCompletion) {
     return;
   }

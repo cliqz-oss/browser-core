@@ -73,7 +73,7 @@ function digest(params, data) {
   return Promise.reject(new Error('subtle.digest: unknown params'));
 }
 
-function importKey(type, data, { name, length = 256 }/* , extractable , usages*/) {
+function importKey(type, data, { name, length = 256 }/* , extractable , usages */) {
   if (type === 'raw') {
     if (name === 'AES-GCM') {
       const _data = toByteArray(data);
@@ -201,7 +201,7 @@ function generateKey({
   length = null,
   modulusLength = null,
   publicExponent = null
-}/* , extractable , usages*/) {
+}/* , extractable , usages */) {
   if (name === 'AES-GCM') {
     return Promise.resolve({
       name,

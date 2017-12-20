@@ -1,4 +1,4 @@
-import { getDateFromDateKey, getTodayDayKey, timestamp } from './time_utils';
+import { getDateFromDateKey, getTodayDayKey, timestamp } from '../core/time';
 import logger from './logger';
 
 export default class HistoryInterface {

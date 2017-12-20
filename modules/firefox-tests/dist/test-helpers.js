@@ -5,6 +5,8 @@ function injectTestHelpers(CliqzUtils, loadModule) {
   var urlBar = win.CLIQZ.Core.urlbar;
   var popup = win.CLIQZ.Core.popup;
   var lang = CliqzUtils.getLocalizedString('locale_lang_code');
+  var TIP = Components.classes['@mozilla.org/text-input-processor;1'].
+    createInstance(Components.interfaces.nsITextInputProcessor);
 
   window.setUserInput = function setUserInput(text) {
     popup.mPopupOpen = false;
@@ -17,16 +19,18 @@ function injectTestHelpers(CliqzUtils, loadModule) {
 
   window.fillIn = function fillIn(text) {
     setUserInput(text);
-    urlBar.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
   };
 
-  window.fillIn = function fillIn(text) {
-    setUserInput(text);
-    urlBar.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+  window.fastFillIn = function fastFillIn(text) {
+    urlBar.focus();
+    urlBar.mInputField.focus();
+    urlBar.mInputField.setUserInput(text);
   };
 
-  window.waitFor = function waitFor(fn) {
-  	var resolver, rejecter, promise = new Promise(function (res, rej) {
+  window.waitFor = function waitFor(fn, until) {
+  	var resolver;
+    var rejecter;
+    var promise = new Promise(function (res, rej) {
       resolver = res;
       rejecter = rej;
     });
@@ -37,9 +41,13 @@ function injectTestHelpers(CliqzUtils, loadModule) {
         resolver()
       }
     }
-    var interval = setInterval(check, 250);
+    var interval = setInterval(check, 100);
     check();
     registerInterval(interval);
+
+    if (until) {
+      setTimeout(rejecter, until);
+    }
 
     return promise;
   };
@@ -92,6 +100,18 @@ function injectTestHelpers(CliqzUtils, loadModule) {
     });
     el.dispatchEvent(ev)
   };
+
+  window.press = function press(key, code) {
+    const event = new KeyboardEvent('', { key: key, code: code });
+    TIP.beginInputTransaction(win, console.log);
+    TIP.keydown(event);
+  };
+
+  window.release = function release(key, code) {
+    const event = new KeyboardEvent('', { key: key, code: code });
+    TIP.beginInputTransaction(win, console.log);
+    TIP.keyup(event);
+  }
 
   /*
   window.enter = function enter(el) {

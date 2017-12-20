@@ -2,10 +2,21 @@
 /* global describeModule */
 /* global require */
 
+const encoding = require('text-encoding');
+
+const TextDecoder = encoding.TextDecoder;
+const TextEncoder = encoding.TextEncoder;
+
 let getDetailsFromUrlReal;
 
 export default describeModule('offers-v2/event_handler',
   () => ({
+    'platform/text-decoder': {
+      default: TextDecoder,
+    },
+    'platform/text-encoder': {
+      default: TextEncoder,
+    },
     'offers-v2/common/offers_v2_logger': {
       default: {
         debug: (x) => {console.log(x);},

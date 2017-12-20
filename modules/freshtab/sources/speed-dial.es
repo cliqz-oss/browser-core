@@ -8,7 +8,7 @@ function getAlias(host, searchEngines) {
   return engine.alias;
 }
 
-export default class {
+export default class SpeedDial {
   static getValidUrl(url) {
     const ALLOWED_SCHEMES = ['http', 'https', 'ftp'];
     let uri = utils.makeUri(url);

@@ -18,15 +18,28 @@ export function unpackInt32(str) {
  * From: https://stackoverflow.com/a/41753979
  */
 export function fastHash(str) {
-  /* eslint-disable no-bitwise */
+  if (!str) { return 0; }
 
+  /* eslint-disable no-bitwise */
   let hash = 5381;
   for (let i = 0, len = str.length; i < len; i += 1) {
     hash = (hash * 33) ^ str.charCodeAt(i);
   }
 
   // For higher values, we cannot pack/unpack
-  return (hash >>> 0) % 2147483648;
+  return (hash >>> 0);
+  /* eslint-enable no-bitwise */
+}
+
+
+export function fastHashCombine(...args) {
+  /* eslint-disable no-bitwise */
+  let hash = 5381;
+  for (let i = 0; i < args.length; i += 1) {
+    hash = (hash * 33) ^ args[i];
+  }
+  return (hash >>> 0);
+  /* eslint-enable no-bitwise */
 }
 
 
@@ -97,7 +110,7 @@ function isAllowedCSS(ch) {
     ch === 95 || // '_' (underscore)
     ch === 45 || // '-' (dash)
     ch === 46 || // '.' (dot)
-    ch === 35    // '#' (sharp)
+    ch === 35 // '#' (sharp)
   );
 }
 
@@ -116,14 +129,14 @@ function fastTokenizer(pattern, isAllowedCode, allowRegexSurround = false) {
       inside = false;
       // Should not be followed by '*'
       if (allowRegexSurround || ch !== 42) {
-        tokens.push(packInt32((hash >>> 0) % 2147483648));
+        tokens.push(hash >>> 0);
       }
       hash = 5381;
     }
   }
 
   if (inside) {
-    tokens.push(packInt32((hash >>> 0) % 2147483648));
+    tokens.push(hash >>> 0);
   }
 
   return tokens;

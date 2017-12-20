@@ -4,7 +4,7 @@ import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import utils from '../core/utils';
 
 
-export default class {
+export default class Win {
 
   constructor(settings) {
     this.window = settings.window;

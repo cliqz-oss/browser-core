@@ -104,7 +104,11 @@ function destroyBackgroundWindowLegacy() {
   if (windowlessBrowser && windowlessBrowser.close) {
     windowlessBrowser.close();
   }
-  windowlessBrowser = iframe = promise = listener = timer = null;
+  windowlessBrowser = null;
+  iframe = null;
+  promise = null;
+  listener = null;
+  timer = null;
 }
 
 

@@ -221,7 +221,7 @@ export default class LocalResult extends BaseResult {
           return;
         }
 
-        timeInfos.push(`${el.open.time.replace('.', ':')}—${el.close.time.replace('.', ':')}`);
+        timeInfos.push(`${el.open.time.replace('.', ':')}-${el.close.time.replace('.', ':')}`);
 
         const openTime = this.parseTime(el.open.time);
         const closeTime = this.parseTime(el.close.time);

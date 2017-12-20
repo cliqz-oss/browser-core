@@ -66,9 +66,9 @@ export default describeModule('webrequest-pipeline/pipeline',
           chai.expect(p.pipeline).to.eql(['part1', 'part2', 'part3']);
         });
 
-        it('throws an Error if before dependencies do not exist', () => {
+        it('does not an Error if before dependencies do not exist', () => {
           p.addPipelineStep({ name: 'part1', spec: 'blocking', fn: () => true });
-          chai.expect(p.addPipelineStep.bind(p, { name: 'part2', spec: 'blocking', fn: () => true, before: ['part3'] })).to.throw(Error);
+          p.addPipelineStep({ name: 'part2', spec: 'blocking', fn: () => true, before: ['part3'] });
         });
       });
 
@@ -81,7 +81,7 @@ export default describeModule('webrequest-pipeline/pipeline',
           chai.expect(p.pipeline).to.eql(['part1', 'part2', 'part3']);
         });
 
-        it('throws an Error if before dependencies do not exist', () => {
+        it('throws an Error if after dependencies do not exist', () => {
           p.addPipelineStep({ name: 'part1', spec: 'blocking', fn: () => true });
           chai.expect(p.addPipelineStep.bind(p, { name: 'part2', spec: 'blocking', fn: () => true, after: ['part3'] })).to.throw(Error);
         });

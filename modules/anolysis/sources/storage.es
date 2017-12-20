@@ -1,6 +1,3 @@
-/* eslint no-underscore-dangle: off */
-/* global emit */
-
 import { utils } from '../core/cliqz';
 import md5 from '../core/helpers/md5';
 import logger from './logger';
@@ -8,11 +5,11 @@ import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
 import PouchDB from '../core/database';
 
 
-export default class {
+export default class Storage {
   constructor(name) {
     this.database = new PouchDB(name, {
-      revs_limit: 1,          // Don't keep track of all revisions of a document
-      auto_compaction: true,  // Get rid of deleted revisions
+      revs_limit: 1, // Don't keep track of all revisions of a document
+      auto_compaction: true, // Get rid of deleted revisions
     });
 
     this.buffer = [];

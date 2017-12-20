@@ -146,7 +146,7 @@ export const defaultConfig = {
   module: 'freshtab',
   action: 'getConfig',
   response: {
-    locale: 'en-US',
+    locale: 'en',
     newTabUrl: config.settings.NEW_TAB_URL,
     isBrowser: false,
     showNewBrandAlert: false,

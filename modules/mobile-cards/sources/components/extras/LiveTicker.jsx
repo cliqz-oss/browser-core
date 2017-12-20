@@ -23,8 +23,8 @@ export default class extends React.Component {
 
   get actionMessage() {
     return this.isSubscribed ?
-      getMessage('mobile_soccer_subscribe_league_done', this.props.data.leagueName) :
-      getMessage('mobile_soccer_subscribe_league', this.props.data.leagueName);
+      getMessage('mobile_soccer_subscribe_league_done', this.leagueName) :
+      getMessage('mobile_soccer_subscribe_league', this.leagueName);
   }
 
   componentDidMount() {
@@ -37,8 +37,9 @@ export default class extends React.Component {
   }
 
   getSubscriptionData(data) {
-    const leagueId = data.matches[0].matches[0].leagueId;
+    const { leagueId, leagueName } = data.matches[0].matches[0];
     this.id = leagueId;
+    this.leagueName = leagueName;
     this.isValid = Boolean(leagueId); // league subscription possible
     this.subtype = 'league';
     return isSubscribedToLeague(leagueId)
@@ -88,6 +89,8 @@ export default class extends React.Component {
   }
 
   displayMatches(matches) {
+    const gameContainerWidth = (cardWidth() - elementSideMargins.marginLeft - elementSideMargins.marginRight - 10) / 2;
+    const gameContainerHeight = (cardWidth() - elementSideMargins.marginLeft - elementSideMargins.marginRight - 10) / 2.5;
     return (
       matches.map((match, index) => {
           const isValid = match.id && (match.isLive || match.isScheduled) && match.notSubscribedToLeague;
@@ -98,12 +101,30 @@ export default class extends React.Component {
             actionMessage = getMessage('mobile_soccer_subscribed_to_one');
           }
           return <Link to={match.live_url} key={index}>
-            <View style={styles(index).gameContainer}>
-              <Text style={styles().gameText}>{ match.HOST }</Text>
-              <Text style={styles().gameText}>{ match.scored }<Text style={styles().gameHourText}>{ ` (${match.gameTime})` }</Text></Text>
-              <Text style={styles().gameText}>{ match.GUESS }</Text>
+            <View style={styles(index, gameContainerWidth, gameContainerHeight).gameContainer}>
+              <Text
+                style={styles(index, gameContainerWidth, gameContainerHeight).gameText}
+                numberOfLines={1}
+              >
+                { match.HOST }
+              </Text>
+              <Text
+                style={styles(index, gameContainerWidth, gameContainerHeight).gameText}
+                numberOfLines={1}
+              >
+                { match.scored }
+                <Text style={styles().gameHourText}>
+                  { ` (${match.gameTime})` }
+                </Text>
+              </Text>
+              <Text
+                style={styles(index, gameContainerWidth, gameContainerHeight).gameText}
+                numberOfLines={1}
+              >
+                { match.GUESS }
+              </Text>
               { Boolean(isValid) &&
-                <View style={{ marginTop: 4 }}>
+                <View style={{ marginTop: 4, width: gameContainerWidth - 10 }}>
                   <SubscribeButton
                     onPress={() => {
                       toggleSubscription('soccer', 'game', match.id, match.subscribedToGame)
@@ -145,7 +166,7 @@ export default class extends React.Component {
     return <View style={styles().elementMargins}>
         { this.content }
         { Boolean(this.isValid) &&
-          <View style={{ ...elementTopMargin }}>
+          <View style={{ ...elementTopMargin  }}>
             <SubscribeButton
               onPress={() => {
                 toggleSubscription(type, this.subtype, this.id, this.isSubscribed)
@@ -161,7 +182,7 @@ export default class extends React.Component {
   }
 }
 
-const styles = (gameContainerIndex) => StyleSheet.create({
+const styles = (containerIndex, containerWidth, containerHeight) => StyleSheet.create({
   elementMargins: {
     ...elementTopMargin,
     ...elementSideMargins,
@@ -179,19 +200,22 @@ const styles = (gameContainerIndex) => StyleSheet.create({
     alignItems: 'flex-start',
   },
   gameContainer: {
-    width: (cardWidth() - elementSideMargins.marginLeft - elementSideMargins.marginRight - 10) / 2,
-    height: (cardWidth() - elementSideMargins.marginLeft - elementSideMargins.marginRight - 10) / 2.5,
+    width: containerWidth,
+    height: containerHeight,
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: !(gameContainerIndex % 2 === 0) ? 10 : 0,
+    marginLeft: !(containerIndex % 2 === 0) ? 10 : 0,
     marginTop: 10,
     borderRadius: 5,
+    padding: 5,
   },
   gameText: {
     color: 'black',
     fontSize: 12,
     fontWeight: 'bold',
+    textAlign: 'center',
+    lineHeight: containerHeight / 5,
   },
   gameHourText: {
     color: '#999999',

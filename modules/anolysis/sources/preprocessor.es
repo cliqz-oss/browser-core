@@ -1,4 +1,4 @@
-import moment from '../platform/moment';
+import moment from '../platform/lib/moment';
 import UAParser from '../platform/ua-parser';
 import logger from './logger';
 import getSynchronizedDate from './synchronized-date';
@@ -68,7 +68,7 @@ export function parseABTests(abtests) {
 }
 
 
-export default class {
+export default class Preprocessor {
   constructor(settings = { channel: 99 }) {
     this.idComponents = ['type', 'action'];
     this.uaParser = new UAParser();

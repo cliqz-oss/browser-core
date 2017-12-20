@@ -247,9 +247,10 @@ export default class BaseResult {
         url: this.url,
         query: this.query,
         rawResult: this.rawResult,
-        isPrivateWindow: utils.isPrivate(window),
+        isPrivateWindow: utils.isPrivateMode(window),
         isPrivateResult: utils.isPrivateResultType(this.kind),
         isFromAutocompletedURL: this.isAutocompleted && ev.constructor.name === 'KeyboardEvent',
+        windowId: utils.getWindowID(window)
       });
     } else {
       this.findResultByUrl(href).click(window, href, ev);

@@ -3,7 +3,7 @@
  *
  */
 
-import mathLib from 'mathjs';
+import math from '../platform/lib/mathjs';
 import utils from '../core/utils';
 import console from '../core/console';
 import Result from './result';
@@ -241,7 +241,7 @@ const CliqzCalculator = {
       return null;
     }
     const expandedExpression = this.IS_UNIT_CONVERTER ? this.CLEANED_QUERY
-      : replaceAll(mathLib.parse(this.clean(q)).toString(), '.', this.decimalSeparator);
+      : replaceAll(math.parse(this.clean(q)).toString(), '.', this.decimalSeparator);
 
     this.CALCULATOR_RES = this.shortenNumber();
 
@@ -383,7 +383,7 @@ const CliqzCalculator = {
     }
 
     try {
-      this.CALCULATOR_RES = mathLib.eval(tmp);
+      this.CALCULATOR_RES = math.eval(tmp);
 
       if (typeof (this.CALCULATOR_RES) === 'number') {
         this.IS_UNIT_CONVERTER = false;

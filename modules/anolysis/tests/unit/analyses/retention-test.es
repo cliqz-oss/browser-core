@@ -98,7 +98,7 @@ function testMonthly(formattedDate, daysActive, result, generateMonthlyRetention
 
 export default describeModule('anolysis/analyses/retention',
   () => ({
-    'platform/moment': {
+    'platform/lib/moment': {
       default: moment,
     },
     'anolysis/synchronized-date': {

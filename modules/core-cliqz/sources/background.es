@@ -62,7 +62,7 @@ export default background({
         utils.rand(18),
         utils.rand(6, '0123456789'),
         '|',
-        utils.getDay(),
+        utils.getServerDay(),
         '|',
         config.settings.channel || 'NONE',
       ].join('');

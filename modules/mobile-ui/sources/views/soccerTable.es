@@ -5,7 +5,7 @@ import Soccer from './soccer';
 /**
 * @namespace ui.views
 */
-export default class extends Soccer {
+export default class SoccerTable extends Soccer {
 
   /**
   * @method enhanceResults

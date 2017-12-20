@@ -38,9 +38,9 @@ function cleanupDefaultBuild() {
 }
 
 function setConfigPath(configPath, buildIntoSubdir) {
-  configPath = configPath || process.env['CLIQZ_CONFIG_PATH'] || './configs/jenkins.json'
+  configPath = configPath || process.env['CLIQZ_CONFIG_PATH'] || './configs/jenkins.js'
   process.env['CLIQZ_CONFIG_PATH'] = configPath;
-  CONFIG = JSON.parse(fs.readFileSync(configPath));
+  CONFIG = require(path.resolve(configPath));
   CONFIG.subprojects = CONFIG.subprojects || [];
 
   const configName = path.basename(configPath);

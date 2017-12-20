@@ -12,22 +12,16 @@ import bigMachineWithRichDataTests from './tests/dropdown/big-machine-rich-data'
 import calculatorTests from './tests/dropdown/calculator';
 import currencyConverterTests from './tests/dropdown/currency_converter';
 import defaultSearchEngineTests from './tests/dropdown/default-search-engine';
-import flightArrivedAllEarlyTests from './tests/dropdown/flight-arrived-all-early';
-import flightArrivedAllLateTests from './tests/dropdown/flight-arrived-all-late';
-import flightArrivedDepEarlyArrLateTests from './tests/dropdown/flight-arrived-dep-early-arr-late';
-import flightArrivedOnTimeTests from './tests/dropdown/flight-arrived-on-time';
-import flightCancelledTests from './tests/dropdown/flight-cancelled';
-import flightDelayedEarlyDepTests from './tests/dropdown/flight-delayed-early-departure';
-import flightDelayedNoUpdatesTests from './tests/dropdown/flight-delayed-no-updates';
-import flightDivertedTests from './tests/dropdown/flight-diverted';
-import flightNoInfoTests from './tests/dropdown/flight-no-info';
-import flightOnTimeEarlyDepTests from './tests/dropdown/flight-on-time-early-departure';
-import flightOnTimeLateDepTests from './tests/dropdown/flight-on-time-late-departure';
-import flightScheduledTests from './tests/dropdown/flight-scheduled';
+import flightsTests from './tests/dropdown/flights-template';
 import geoWithLocalTests from './tests/dropdown/geo_yes';
 import geoWithoutLocalTests from './tests/dropdown/geo_without_consent';
 import historyAndNewsTests from './tests/dropdown/history_and_news';
 import historyClusterTests from './tests/dropdown/history-cluster';
+import keyboardNavigationCalculatorTests from './tests/dropdown/keyboard-navigation-calculator';
+import keyboardNavigationCurrencyConverterTests from './tests/dropdown/keyboard-navigation-currency-converter';
+import keyboardNavigationTwoSimpleTests from './tests/dropdown/keyboard-navigation-two-simple';
+import keyboardNavigationTwoSimpleWithoutAutocompleteTests from './tests/dropdown/keyboard-navigation-two-simple-without-autocomplete';
+import keyboardNavigationUnitConverterTests from './tests/dropdown/keyboard-navigation-unit-converter';
 import lotto6Aus49Tests from './tests/dropdown/lotto_6aus49';
 import lottoEurojackpotTests from './tests/dropdown/lotto_eurojackpot';
 import lottoGluecksspiraleTests from './tests/dropdown/lottogluecksspirale';
@@ -37,17 +31,18 @@ import movieCinema2Tests from './tests/dropdown/movie-cinema2';
 import newsTests from './tests/dropdown/news';
 import newsStoryTests from './tests/dropdown/news-story-of-the-day';
 import offersTests from './tests/dropdown/offers';
+import unitConverterTests from './tests/dropdown/unit-converter';
 import simpleTests from './tests/dropdown/simple';
 import soccerLigaGameTests from './tests/dropdown/soccer-liga-game';
 import soccerLigaGroupTests from './tests/dropdown/soccer-liga-group';
 import soccerLigaGroup2Tests from './tests/dropdown/soccer-liga-group2';
 import soccerLigaTableTests from './tests/dropdown/soccer-liga-table';
 import soccerLiveTickerTests from './tests/dropdown/soccer-live-ticker';
+import suggestionsIntegrationTests from './tests/dropdown/suggestions-integration';
 import timeTests from './tests/dropdown/time';
 import twoSimpleTests from './tests/dropdown/two_simple';
 import weatherTests from './tests/dropdown/weather';
 import youtubeTests from './tests/dropdown/youtube';
-import suggestionsIntegrationTests from './tests/dropdown/suggestions-integration';
 
 import newMixerNewsTests from './tests/dropdown/new-mixer/news';
 import newMixerHistoryAndNewsTests from './tests/dropdown/new-mixer/history_and_news';
@@ -61,9 +56,9 @@ import newMixerBigMachineWithRichDataTests from './tests/dropdown/new-mixer/big-
 chai.use(chaiDom);
 
 const oldMixerTests = [
-  newsTests,
   historyAndNewsTests,
   historyClusterTests,
+  newsTests,
   lotto6Aus49Tests,
   bigMachineWithButtonsTests,
   lottoEurojackpotTests,
@@ -71,6 +66,7 @@ const oldMixerTests = [
   bigMachineWithRichDataTests,
   adultQuestionIntegrationTests,
   suggestionsIntegrationTests,
+  unitConverterTests,
 ];
 const newMixerTests = [
   newMixerNewsTests,
@@ -92,24 +88,19 @@ TESTS.DropdownTests = function (utils) {
   const sectionName = `dropdown (${isOldMixer ? 'old' : 'new'} mixer)`;
   const mixerDependentTests = isOldMixer ? oldMixerTests : newMixerTests;
   describe(sectionName, function () {
+    mixerDependentTests.forEach(test => test({ hasHistoryUrl }));
     adultQuestionTests();
     calculatorTests();
     currencyConverterTests();
     defaultSearchEngineTests();
-    flightArrivedAllEarlyTests();
-    flightArrivedAllLateTests();
-    flightArrivedDepEarlyArrLateTests();
-    flightArrivedOnTimeTests();
-    flightCancelledTests();
-    flightDelayedEarlyDepTests();
-    flightDelayedNoUpdatesTests();
-    flightDivertedTests();
-    flightNoInfoTests();
-    flightOnTimeEarlyDepTests();
-    flightOnTimeLateDepTests();
-    flightScheduledTests();
+    flightsTests();
     geoWithLocalTests();
     geoWithoutLocalTests({ isAskingForGeoConsent });
+    keyboardNavigationCalculatorTests();
+    keyboardNavigationCurrencyConverterTests();
+    keyboardNavigationTwoSimpleTests();
+    keyboardNavigationTwoSimpleWithoutAutocompleteTests();
+    keyboardNavigationUnitConverterTests();
     lottoGluecksspiraleTests();
     movieCinema1Tests({ isAskingForGeoConsent });
     movieCinema2Tests();
@@ -125,7 +116,5 @@ TESTS.DropdownTests = function (utils) {
     twoSimpleTests();
     weatherTests();
     youtubeTests();
-
-    mixerDependentTests.forEach(test => test({ hasHistoryUrl }));
   });
 };

@@ -6,7 +6,8 @@ import Title from './partials/Title';
 import Description from './partials/Description';
 import MainImage from './partials/MainImage';
 import HistoryUrls from './partials/HistoryUrls';
-import deepResultsList, { headersMap, footersMap, extrasMap } from '../templates-map';
+import deepResultsList, { headersMap, footersMap, extrasMap } from '../helpers/templates-map';
+import { agoLine } from '../helpers/logic';
 import { elementSideMargins } from '../styles/CardStyle';
 
 class Generic extends React.Component {
@@ -33,7 +34,6 @@ class Generic extends React.Component {
 
   render() {
     const result = this.props.result;
-    // get friendly url
     const url = result.val || null;
     const title = result.data.title || null;
     const timestamp = result.data.extra && result.data.extra.rich_data
@@ -47,11 +47,11 @@ class Generic extends React.Component {
       <View>
         { url &&
           <View style={styles.header}>
-            <Icon width={40} height={40} borderRadius={8} url={url} />
+            <Icon width={40} height={40} url={url} />
             <Url url={url} isHistory={result.data.kind[0] === 'H'} />
           </View>
         }
-        { url && title && <Title title={title} /> }
+        { url && title && <Title title={title} meta={agoLine(timestamp)} /> }
         { result.data.extra && <MainImage extra={result.data.extra} /> }
         { headerDeepResults }
         { extraComponent }

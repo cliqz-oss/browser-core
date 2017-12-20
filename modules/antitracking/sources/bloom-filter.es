@@ -4,6 +4,9 @@ import pacemaker from '../core/pacemaker';
 import QSWhitelistBase from './qs-whitelist-base';
 import { utils } from '../core/cliqz';
 import { Resource } from '../core/resource-loader';
+import console from '../core/console';
+import extConfig from '../core/config';
+
 
 export function BloomFilter(a, k) {  // a the array, k the number of hash function
   var m = a.length * 32,  // 32 bits for each element in a
@@ -92,8 +95,8 @@ BloomFilter.prototype.update = function(a) {
 };
 
 
-var BLOOMFILTER_BASE_URL = 'https://cdn.cliqz.com/anti-tracking/bloom_filter/',
-    BLOOMFILTER_CONFIG = 'https://cdn.cliqz.com/anti-tracking/bloom_filter/config';
+const BLOOMFILTER_BASE_URL = `${extConfig.settings.CDN_BASEURL}/anti-tracking/bloom_filter/`;
+const BLOOMFILTER_CONFIG = `${extConfig.settings.CDN_BASEURL}/anti-tracking/bloom_filter/config`;
 
 const UPDATE_EXPIRY_HOURS = 48;
 
@@ -228,7 +231,7 @@ export class AttrackBloomFilter extends QSWhitelistBase {
   update() {
     return this._config.updateFromRemote().then(this.checkUpdate.bind(this)).then(() => {
       this.lastUpdate = datetime.getTime();
-    });
+    }, e => console.log('unable to check bloom filter config (no network?)', e));
   }
 
   updateFilter(bf, major, minor) {

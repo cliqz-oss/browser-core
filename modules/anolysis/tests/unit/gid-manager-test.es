@@ -53,7 +53,7 @@ export default describeModule('anolysis/gid-manager',
         return getCurrentMoment();
       },
     },
-    'platform/moment': {
+    'platform/lib/moment': {
       default(str, format) {
         if (str === undefined) {
           return getCurrentMoment();

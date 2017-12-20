@@ -1,6 +1,6 @@
 import utils from "../core/utils";
 
-export default class {
+export default class Win {
   constructor(config) {
   }
 

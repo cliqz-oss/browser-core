@@ -11,7 +11,7 @@ const safeKeyExpire = 7;
 /** Base QS Whitelist
  *  Contains only local safekeys, extra safekeys and safe tokens are left to sub-class.
  */
-export default class {
+export default class QsWhitelistBase {
 
   constructor(config) {
     this.config = config;
@@ -24,7 +24,7 @@ export default class {
     if (win && win.requestIdleCallback) {
       win.requestIdleCallback(() => this.safeKeys.load(), {timeout: 2000});
     } else {
-      utils.setTimeout(this.safeKeys.load.bind(this), 2000);
+      utils.setTimeout(this.safeKeys.load.bind(this.safeKeys), 2000);
     }
     pacemaker.register(this._hourlyPruneAndSend.bind(this), 60 * 60 * 1000);
     return Promise.resolve();

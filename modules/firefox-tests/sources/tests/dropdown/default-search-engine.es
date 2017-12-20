@@ -1,10 +1,10 @@
-/* global it, expect, respondWith, fillIn, waitForPopup, $cliqzResults, app, CliqzUtils */
+/* global it, expect, respondWith, fillIn, waitForPopup, $cliqzResults, app */
 /* eslint func-names: ["error", "never"] */
 /* eslint prefer-arrow-callback: "off" */
 /* eslint no-unused-expressions: "off" */
 
 export default function () {
-  const results = [{ type: 'supplementary-search' }];
+  const results = [];
 
   describe('default search engine tests', function () {
     const searchEnginesEn = ['Google', 'Yahoo', 'Bing', 'Wikipedia (en)',

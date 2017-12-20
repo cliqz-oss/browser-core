@@ -259,10 +259,10 @@ function compile(obj) {
   return Object.keys(obj.companies)
     .map((companyName) => {
       const domains = obj.companies[companyName];
-      const companySlug = obj.companyInfo[companyName].slug || companyName.replace(/\s/g, '_').toLowerCase();
+      const trackerSlug = obj.companyInfo[companyName].wtm || '../tracker-not-found';
       const company = {
         name: companyName,
-        watchDogUrl: `https://apps.ghostery.com/apps/${companySlug}`,
+        watchDogUrl: `https://whotracks.me/trackers/${trackerSlug}.html`,
         domains: domains.map((domain) => {
           const domainData = obj.trackers[domain];
           return {

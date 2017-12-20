@@ -19,6 +19,13 @@ let platformName;
  * less.
  */
 function allListsLoaded(listsToLoad, loadedLists) {
+  try {
+    chai.expect(listsToLoad).to.be.equal(loadedLists);
+    return true;
+  } catch (e) {
+    return false;
+  }
+  /*
   if (listsToLoad.length !== loadedLists.length) {
     return false;
   }
@@ -29,6 +36,7 @@ function allListsLoaded(listsToLoad, loadedLists) {
     }
   }
   return true;
+  */
 }
 
 
@@ -47,14 +55,8 @@ function platformSpecificLoadingTest(listsToLoad, FilterLoader) {
     // Load filters, then check that loaded filter are
     // the same as what we would expect.
     filtersLoader.load().then(() => {
-      if (allListsLoaded(listsToLoad, loadedLists)) {
-        resolve();
-      } else {
-        reject('Not all lists were loaded');
-      }
-    }).catch((ex) => {
-      reject(ex);
-    });
+      chai.expect(listsToLoad).to.be.deep.equal(loadedLists);
+    }).then(resolve, reject);
   });
 }
 
@@ -78,9 +80,15 @@ export default describeModule('adblocker/filters-loader',
         save() { return Promise.resolve(); }
       }
     },
+    'core/zlib': {
+      inflate: x => x,
+      deflate: x => x,
+    },
+    'core/platform': {
+      isChromium: false,
+    },
     'adblocker/adblocker': {
       ADB_USER_LANG: 'cliqz-adb-lang',
-      ADB_USER_LANG_OVERRIDE: 'cliqz-adb-lang-override',
     },
     'adblocker/logger': {
       default: {
@@ -88,6 +96,13 @@ export default describeModule('adblocker/filters-loader',
         log() {},
         error() {},
       },
+    },
+    'core/config': {
+      default: {
+        settings: {
+          CDN_BASEURL: 'https://cdn.cliqz.com'
+        }
+      }
     },
     'core/utils': {
       default: {

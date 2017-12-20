@@ -1,11 +1,24 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
+import utils from '../../../core/utils';
 
 
 class Url extends React.Component {
 
   render() {
-    return <Text numberOfLines={3} style={style(this.props.isHistory).url}>{this.props.url}</Text>
+    const url = this.props.url;
+    if (!url || url === 'n/a') {
+      return null;
+    }
+    const urlDetails = utils.getDetailsFromUrl(url);
+    return (
+      <Text
+        numberOfLines={3}
+        style={style(this.props.isHistory).url}
+      >
+        { urlDetails.friendly_url || url }
+      </Text>
+    )
   }
 }
 
@@ -17,6 +30,7 @@ const style = function (isHistory) {
       marginRight: 50, // width of icon ???
       marginLeft: 10,
       fontSize: 11,
+      lineHeight: 13,
       fontWeight: '100',
     }
   });

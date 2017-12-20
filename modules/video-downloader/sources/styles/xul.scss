@@ -3,33 +3,30 @@
 }
 
 @-moz-keyframes cliqz_animation {
-  0%   { opacity: 0; background-color: #0086A1; }
-  100% { opacity: 1; background-color: transparent; }
+  0%   { opacity: 0; background-color: #00AEF0; }
+  100% { opacity: 0.6; background-color: transparent; }
 }
 
 @keyframes cliqz_animation {
-  0%   { opacity: 0; background-color: #0086A1; }
-  100% { opacity: 1; background-color: transparent; }
+  0%   { opacity: 0; background-color: #00AEF0; }
+  100% { opacity: 0.6; background-color: transparent; }
 }
 
 #nav-bar #urlbar {
     #video-downloader-page-action {
         margin: 0;
-        padding: 0 9px;
-        margin-inline-start: 5px;
-        background-image: url('resource://cliqz/video-downloader/images/video-downloader.svg');
+        background-image: url-prefix('video-downloader/images/video-downloader.svg');
         background-position: center center;
         background-size: 16px auto;
         background-repeat: no-repeat;
-        width: 32px;
-        height: 22px;
+        opacity: 0.6;
 
         -moz-animation:    cliqz_animation 1s 1; /* Fx 2+ */
         animation:         cliqz_animation 1s 1; /* IE 10+, Fx 29+ */
         animation-timing-function: ease-out;
 
         &:hover, &[open="true"] {
-            background-color: #e7e7e7;
+            background-color: hsla(0, 0%, 80%, 0.6);
         }
     }
 }
@@ -39,7 +36,7 @@
  */
 $cliqz-blue-color: #00AEF0;
 
-#UITourTooltip[targetName='video-downloader'] {
+#UITourTooltip[targetName='video-downloader'], #UITourTooltip[targetName='downloads-uitour'] {
     .panel-arrow {
         position: relative;
         margin-top: 5px;
@@ -89,6 +86,37 @@ $cliqz-blue-color: #00AEF0;
         -moz-box-pack: start;
         padding: 7px 16px 18px 50px;
         margin-left: -16px;
+
+        button:not(.button-primary):not(.button-link) {
+            margin: 0 2px 0 0;
+            background-position: center center;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-color: transparent;
+            cursor: pointer;
+            outline: none;
+            line-height: 2.8rem;
+            width: 120px;
+            height: 55px;
+            border-color: transparent;
+            border-radius: 6px;
+
+            .button-text {
+                visibility: hidden;
+            }
+
+            &:hover {
+                border-color: #fff;
+            }
+        }
+
+        button[label="AppStore"] {
+            background-image: url-prefix('video-downloader/images/Download_on_the_App_Store.svg');
+        }
+
+        button[label="PlayStore"] {
+            background-image: url-prefix('video-downloader/images/Get_it_on_Google_play.svg');
+        }
 
         .button-primary {
             margin: 0;
@@ -159,5 +187,11 @@ $cliqz-blue-color: #00AEF0;
             margin-inline-end: -10px;
             margin-top: -10px;
         }
+    }
+}
+
+#UITourTooltip[targetName='downloads-uitour'] {
+    #UITourTooltipButtons {
+        padding-left: 16px;
     }
 }

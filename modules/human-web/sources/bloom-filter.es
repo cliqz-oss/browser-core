@@ -1,4 +1,6 @@
 import md5 from "../core/helpers/md5";
+import config from '../core/config';
+
 /*
  * The module for bloom filter
  */
@@ -101,7 +103,7 @@ BloomFilter.prototype.update = function(a) {
 var CliqzBloomFilter = {
   VERSION: '0.1',
   debug: 'true',
-  BLOOM_FILTER_CONFIG: 'https://cdn.cliqz.com/bloom_filter',
+  BLOOM_FILTER_CONFIG: `${config.settings.CDN_BASEURL}/bloom_filter`,
   hash: function(str, alg) {
     return md5(str);
   },

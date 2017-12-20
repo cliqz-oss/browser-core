@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Image, View, Text } from 'react-native';
 import Icon from '../partials/Icon';
 import Link from '../Link';
-import { elementSideMargins, elementTopMargin } from '../../styles/CardStyle';
+import { elementSideMargins, elementTopMargin, cardBorderRadius } from '../../styles/CardStyle';
 
 
 export default class extends React.Component {
@@ -59,6 +59,7 @@ const styles = StyleSheet.create({
   image: {
     height: 60,
     width: 65, //remember to change the right margin of text
+    ...cardBorderRadius,
   },
   text: {
     color: 'black',

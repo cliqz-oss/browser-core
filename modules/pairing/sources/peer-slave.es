@@ -233,7 +233,10 @@ export default class CliqzPairing {
     if (this.randomToken) {
       const token = toByteArray(this.randomToken, 'b64');
       return deriveAESKey(token)
-      .then(key => (this.pairingAESKey = key));
+      .then((key) => {
+        this.pairingAESKey = key;
+        return key;
+      });
     }
     return Promise.reject(new Error('randomToken is null'));
   }

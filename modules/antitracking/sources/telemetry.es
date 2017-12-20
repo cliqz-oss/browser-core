@@ -2,7 +2,7 @@ import { utils } from '../core/cliqz';
 import platformTelemetry from '../platform/telemetry';
 import inject from '../core/kord/inject';
 import random from '../core/crypto/random';
-import { hwTs } from './time';
+import { getConfigTs } from './time';
 
 function msgSanitize(msg, channel) {
   if (utils.getPref('ff-experiment', null)) {
@@ -11,7 +11,7 @@ function msgSanitize(msg, channel) {
     msg.channel = channel;
   }
   try {
-    msg.ts = hwTs;
+    msg.ts = getConfigTs();
   } catch(ee) {
     return;
   }

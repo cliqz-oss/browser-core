@@ -40,7 +40,7 @@ function get(url, headers, data, timeout) {
   });
 }
 
-export default class {
+export default class Gmail {
   constructor() {
     this.url = 'https://mail.google.com/mail/u/0/feed/atom' + '?rand=' + Math.round(Math.random() * 10000000);
   }

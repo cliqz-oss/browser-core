@@ -73,6 +73,18 @@ export default background({
       return;
     }
 
+    if (module.isDisabled) {
+      console.log('Process Script', `${moduleName}/${action}`, 'Module is disabled');
+      return this.mm.broadcast(`window-${windowId}`, {
+        origin,
+        response: { moduleDisabled: true },
+        action,
+        module: moduleName,
+        requestId,
+        windowId,
+      });
+    }
+
     // inject the required module, then call the requested action
     inject.module(moduleName).action(action, ...[...(args || []), sender])
     .then((response) => {

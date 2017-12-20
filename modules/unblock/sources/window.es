@@ -1,6 +1,6 @@
 import CliqzUnblock from './main';
 
-export default class {
+export default class Win {
   /**
   * @class Window
   * @namespace unblock

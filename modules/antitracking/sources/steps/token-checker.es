@@ -38,7 +38,7 @@ function b64Encode(token) {
  * @class TokenChecker
  * @namespace antitracking.steps
  */
-export default class {
+export default class TokenChecker {
 
   constructor(qsWhitelist, privateValues, hashProb, config, telemetry) {
     this.qsWhitelist = qsWhitelist;
@@ -113,15 +113,15 @@ export default class {
     }
 
     // if there are no query parameters, there is nothing to check
-    if (url_parts.query.length == 0 && url_parts.parameters.length == 0) {
+    if (url_parts.query.length === 0 && url_parts.parameters.length === 0) {
       return [];
     }
 
     const trackerDomain = url_parts.generalDomainHash;
-    const sourceDomain = source_url_parts.generalDomainHash
-    var badTokens = [];
+    const sourceDomain = source_url_parts.generalDomainHash;
+    const badTokens = [];
 
-    const longCookies = Object.keys(cookievalue).filter((c) => c.length >= this.config.shortTokenLength);
+    const longCookies = Object.keys(cookievalue).filter(c => c.length >= this.config.shortTokenLength);
     const privateValues = Object.keys(this.privateValues);
 
     // check for each kv in the url
@@ -141,7 +141,7 @@ export default class {
 
       // make different possible encodings of the token
       const decodedToken = decodeToken(tok);
-      const tokenVariants = [tok, decodedToken, b64Encode(tok), b64Encode(decodedToken)].filter(t => t && t.length > 0)
+      const tokenVariants = [tok, decodedToken, b64Encode(tok), b64Encode(decodedToken)].filter(t => t && t.length > 0);
 
       function tokenMatches(val) {
         // check if the value is in the cookie or the value is in the token
@@ -154,27 +154,33 @@ export default class {
       const privateMatch = privateValues.some(tokenMatches);
       const overrideGlobalLists = cookieMatch || privateMatch;
 
-      if (!overrideGlobalLists && this.qsWhitelist.isSafeKey(trackerDomain, md5(key))) {
-        return 'safekey';
-      }
+      // if we didn't already match a cookie or private value, do these steps
+      if (!overrideGlobalLists) {
+        if (this.qsWhitelist.isSafeKey(trackerDomain, md5(key))) {
+          return 'safekey';
+        }
 
-      if (!overrideGlobalLists && this.qsWhitelist.isSafeToken(trackerDomain, md5(tok))) {
-        return 'whitelisted'
-      }
+        if (this.qsWhitelist.isSafeToken(trackerDomain, md5(tok))) {
+          return 'whitelisted';
+        }
 
-      // check for short non-hashes
-      if (decodedToken.length < 12 && !isMostlyNumeric(decodedToken)
-        && !this.hashProb.isHash(decodedToken)) {
-        return 'short_no_hash';
+        // check for short non-hashes
+        if (decodedToken.length < 12 && !isMostlyNumeric(decodedToken)
+          && !this.hashProb.isHash(decodedToken)) {
+          return 'short_no_hash';
+        }
       }
 
       const tokenType = cookieMatch ? 'cookie' : (privateMatch ? 'private' : 'qs');
 
-      // increment that this token has been seen on this site
-      this.tokenDomain.addTokenOnFirstParty(md5(tok), sourceDomain);
-      // check if the threshold for cross-domain tokens has been reached
-      if (!this.tokenDomain.isTokenDomainThresholdReached(md5(tok))) {
-        return `${tokenType}_newToken`;
+      // count thresholds for token values
+      if (!overrideGlobalLists) {
+        // increment that this token has been seen on this site
+        this.tokenDomain.addTokenOnFirstParty(md5(tok), sourceDomain);
+        // check if the threshold for cross-domain tokens has been reached
+        if (!this.tokenDomain.isTokenDomainThresholdReached(md5(tok))) {
+          return `${tokenType}_newToken`;
+        }
       }
 
       // push to block log and bad tokens list
@@ -185,7 +191,7 @@ export default class {
 
     if (this.debug) {
       // debug message: labeled key values
-      const tokenReport = url_parts.getKeyValues().map((kv, i) => Object.assign(kv, {'class': tokenStatus[i]}));
+      const tokenReport = url_parts.getKeyValues().map((kv, i) => Object.assign(kv, { class: tokenStatus[i] }));
       console.log('tokens', url_parts.hostname, tokenReport);
     }
 

@@ -71,7 +71,8 @@ export default class DoublefetchHandler {
         noMatch: 0,
         perfectMatch: 0,
         relaxedMatch: 0,
-      }
+      },
+      strippedHeaders: 0
     };
   }
 
@@ -120,8 +121,36 @@ export default class DoublefetchHandler {
     });
   }
 
-  _findPendingDoublefetchRequest(url) {
-    const completeMatch = this._pendingRequests.filter(x => urlEquals(url, x.url));
+  _correlatePendingDoublefetchRequest(request) {
+    const match = this._findPendingDoublefetchRequest(request);
+
+    // Remember the requestId, so we can avoid all URL comparisons later.
+    if (match && !match.requestId) {
+      match.requestId = request.requestId;
+    }
+
+    return match;
+  }
+
+  _findPendingDoublefetchRequest(request) {
+    // First, check for the requestId because it is the only information
+    // that is 100% reliable. If we find a match, take it.
+    // Otherwise, we need to fallback to heuristics.
+    const pendingWithUnknownRequestId = [];
+    for (const pending of this._pendingRequests) {
+      if (!pending.requestId) {
+        pendingWithUnknownRequestId.push(pending);
+      } else if (pending.requestId === request.requestId) {
+        return pending;
+      }
+    }
+
+    if (!(request.tabId && request.tabId === -1)) {
+      // ignore requests to tabs
+      return null;
+    }
+
+    const completeMatch = pendingWithUnknownRequestId.filter(x => urlEquals(request.url, x.url));
     if (completeMatch.length > 0) {
       // should not be ambiguous, but when in doubt, let the oldest one win
       this._stats.matchDetails.perfectMatch += 1;
@@ -131,8 +160,8 @@ export default class DoublefetchHandler {
     // If there was no match, fallback to a version the where schema (http vs https) is ignored.
     // Requests like "http://goo.gl/..." may have been modified to "https://goo.gl/...".
     const normalizeSchema = x => x.replace(/^https:\/\//, 'http://');
-    const ignoringSchema = this._pendingRequests.filter(x => urlEquals(normalizeSchema(url),
-                                                                       normalizeSchema(x.url)));
+    const ignoringSchema = pendingWithUnknownRequestId.filter(
+      x => urlEquals(normalizeSchema(request.url), normalizeSchema(x.url)));
     if (ignoringSchema.length > 0) {
       // should not be ambiguous, but when in doubt, let the oldest one win
       this._stats.matchDetails.relaxedMatch += 1;
@@ -158,6 +187,39 @@ export default class DoublefetchHandler {
     }
   }
 
+  _createOnBeforeSendHeadersHandler() {
+    // List of headers that should be removed before sending out the request:
+    // (Fetch requests in Firefox web-extension have a flaw. They attach
+    //  origin: moz-extension//ID , which is specific to a user.*)
+    const sensitiveHeaders = ['cookie', 'origin'];
+
+    return {
+      name: 'human-web.stripSensitiveHeadersInDoublefetch',
+      spec: 'blocking',
+      fn: (request, response) => {
+        const matchingPendingEvent = this._correlatePendingDoublefetchRequest(request);
+        if (matchingPendingEvent) {
+          /* eslint-disable no-param-reassign */
+          response.requestHeaders = request.requestHeaders.filter(
+            header => !sensitiveHeaders.includes(header.name.toLowerCase()));
+          if (response.requestHeaders.length !== request.requestHeaders.length) {
+            this._stats.strippedHeaders += 1;
+          }
+
+          // webrequest-pipeline has the modifyHeader API, but it does not work
+          // as I expected: Effectively, the following code clears all headers.
+          /*
+          for (const header of sensitiveHeaders) {
+            if (request.getRequestHeader(header)) {
+              this._stats.strippedHeaders += 1;
+              response.modifyHeader(header, '');
+            }
+          }*/
+        }
+      }
+    };
+  }
+
   /**
    * This is the actual logic that we add to the WebRequest pipeline:
    *
@@ -167,21 +229,13 @@ export default class DoublefetchHandler {
    * To avoid cancelling non-doublefetch requests, skip
    * requests where the URL does not match any of the
    * double fetch requests.
-   *
-   * TODO: Detection is currently based on the URL of the request.
-   * Seems to work, but is there a more robust way to correlate pending requests?
    */
   _createOnHeadersReceivedHandler() {
     return {
       name: 'human-web.preventExpensiveDoublefetchRequests',
       spec: 'blocking',
       fn: (request, response) => {
-        if (!(request.tabId && request.tabId === -1)) {
-          // ignore requests to tabs
-          return true;
-        }
-
-        const matchingPendingEvent = this._findPendingDoublefetchRequest(request.url);
+        const matchingPendingEvent = this._correlatePendingDoublefetchRequest(request);
         if (!matchingPendingEvent) {
           // do not block request
           return true;
@@ -258,7 +312,9 @@ export default class DoublefetchHandler {
     // But to avoid any races, delay the next initialization.
     // Also wait for all pending requests to end.
     const pendingUnload = this._pendingInit
-          .then(() => Promise.all(this._pendingRequests.map(x => x.requestPromise.catch(() => {}))))
+          .then(() => Promise.all(this._pendingRequests
+                                  .filter(x => x.requestPromise)
+                                  .map(x => x.requestPromise.catch(() => {}))))
           .then(() => this._unloadPipeline())
           .then(() => this._setState(State.DISABLED));
     this._pendingInit = pendingUnload.catch(logger.error);
@@ -278,24 +334,43 @@ export default class DoublefetchHandler {
       return Promise.resolve();
     }
 
-    const handler = this._createOnHeadersReceivedHandler();
+    const beforeSendHeadersHandler = this._createOnBeforeSendHeadersHandler();
+    const headersReceivedHandler = this._createOnHeadersReceivedHandler();
     return this._webRequestPipeline.isReady()
       .then(() => this._webRequestPipeline.action('addPipelineStep',
+                                                  'onBeforeSendHeaders',
+                                                  beforeSendHeadersHandler))
+      .then(() => { this._onBeforeSendHeadersHandler = beforeSendHeadersHandler; })
+      .then(() => this._webRequestPipeline.action('addPipelineStep',
                                                   'onHeadersReceived',
-                                                  handler))
-      .then(() => { this._onHeadersReceivedHandler = handler; });
+                                                  headersReceivedHandler))
+      .then(() => { this._onHeadersReceivedHandler = headersReceivedHandler; });
   }
 
-  _unloadPipeline() {
-    if (!this._onHeadersReceivedHandler) {
+  _removePipelineStep(handler, stage) {
+    if (!handler) {
       return Promise.resolve();
     }
 
-    return this._webRequestPipeline.action('removePipelineStep',
-                                           'onHeadersReceived',
-                                           this._onHeadersReceivedHandler.name)
-      .catch(logger.error)
+    return this._webRequestPipeline.action('removePipelineStep', stage, handler.name)
+      .catch((e) => {
+        // If we get this message while toggling human-web (via the
+        // control center), seeing this message indicates that there
+        // is a problem. Otherwise, we can ignore it.
+        logger.debug('Failed to clean up the webrequest-pipeline. ' +
+                     'This error is expected if the extension gets unloaded. ' +
+                     'In that case, it can be safely ignored, as the ' +
+                     'webrequest-pipeline will cleanup all listeners in the end.', e);
+      });
+  }
+
+  _unloadPipeline() {
+    return this._removePipelineStep(this._onBeforeSendHeadersHandler,
+                                    'onBeforeSendHeaders')
+      .then(() => this._removePipelineStep(this._onHeadersReceivedHandler,
+                                           'onHeadersReceived'))
       .then(() => {
+        this._onBeforeSendHeadersHandler = null;
         this._onHeadersReceivedHandler = null;
       });
   }

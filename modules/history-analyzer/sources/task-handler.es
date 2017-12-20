@@ -1,5 +1,5 @@
 import logger from './logger';
-import { getDaysFromTimeRange, getTodayDayKey } from './time_utils';
+import { getDaysFromTimeRange, getTodayDayKey } from '../core/time';
 import { PersistentDataHandler, BasicDataHolder } from './persistent-helpers';
 import Interval from './interval';
 import random from '../core/crypto/random';

@@ -1,18 +1,26 @@
-"use strict";
-var fs = require('fs');
+/* eslint-disable strict, no-console */
 
-var configFilePath  = process.env['CLIQZ_CONFIG_PATH'];
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+
+const configFilePath = process.env.CLIQZ_CONFIG_PATH;
 console.log('Configuration file:', configFilePath);
 
-var cliqzConfig     = JSON.parse(fs.readFileSync(configFilePath));
+const cliqzConfig = require(path.resolve(configFilePath));
 
-// build environment
+if (!cliqzConfig.modules) {
+  cliqzConfig.modules = fs
+    .readdirSync(path.join('.', 'modules'))
+    .filter(dir => fs.lstatSync(path.join('.', 'modules', dir)).isDirectory());
+}
+// TODO remove outdated
 cliqzConfig.environment = process.env.CLIQZ_ENVIRONMENT || 'development';
-cliqzConfig.PRODUCTION = cliqzConfig.environment === 'production';
 
 // source maps
-cliqzConfig.sourceMaps = process.env.CLIQZ_SOURCE_MAPS == 'false' ? false : true;
-cliqzConfig.debugPages = process.env.CLIQZ_SOURCE_DEBUG == 'false' ? false : true;
+cliqzConfig.sourceMaps = !(process.env.CLIQZ_SOURCE_MAPS === 'false');
+cliqzConfig.debugPages = !(process.env.CLIQZ_SOURCE_DEBUG === 'false');
 
 cliqzConfig.EXTENSION_VERSION = process.env.EXTENSION_VERSION;
 

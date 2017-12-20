@@ -4,8 +4,8 @@ import getCoreVersion from './demographics';
 import getSynchronizedDate from '../anolysis/synchronized-date';
 import inject from '../core/kord/inject';
 import logger from './logger';
-import moment from '../platform/moment';
-import momentRange from '../platform/moment-range';
+import moment from '../platform/lib/moment';
+import momentRange from '../platform/lib/moment-range';
 import random from '../core/crypto/random';
 
 momentRange.extendMoment(moment);
@@ -28,7 +28,7 @@ const now = () => getSynchronizedDate().format(DATE_FORMAT);
  * Manages AB tests. Requires `anolysis` to be running (for
  * demographics check).
  */
-export default class {
+export default class Manager {
   constructor(client, moduleStorage, sharedStorage) {
     this.client = client;
     this.moduleStorage = moduleStorage;

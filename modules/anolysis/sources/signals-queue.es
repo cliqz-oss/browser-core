@@ -19,7 +19,7 @@ import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
  * Moreover, signals should have a maximum number of retries and should be
  * dropped after a few trials.
  */
-export default class {
+export default class SignalsQueue {
   constructor(storage) {
     this.storage = storage;
 

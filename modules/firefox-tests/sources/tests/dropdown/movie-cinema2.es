@@ -1,5 +1,5 @@
 /* global it, context, respondWith, fillIn, window,
-    waitForPopup, $cliqzResults, getComputedStyle, CliqzUtils */
+    waitForPopup, $cliqzResults, CliqzUtils */
 /* eslint func-names: ['error', 'never'] */
 /* eslint prefer-arrow-callback: 'off' */
 /* eslint no-unused-expressions: 'off' */

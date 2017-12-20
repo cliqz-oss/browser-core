@@ -1,13 +1,14 @@
 import {
   registerContentScript,
   CHROME_MSG_SOURCE,
-  isCliqzContentScriptMsg,
+  isCliqzContentScriptMsg
 } from '../core/content/helpers';
 
 import CosmeticsInjection from '../core/adblocker-base/cosmetics-injection';
 import platform from '../platform/platform';
 
 registerContentScript('http*', (window, chrome, windowId) => {
+  let active = true;
   const url = window.location.href;
   if (!url) { return; }
 
@@ -17,6 +18,10 @@ registerContentScript('http*', (window, chrome, windowId) => {
    * @param {array} args - arguments to forward to the action.
    */
   const backgroundAction = (action, ...args) => {
+    // if module is diabled, don't call background further
+    if (!active) {
+      return;
+    }
     chrome.runtime.sendMessage({
       source: CHROME_MSG_SOURCE,
       windowId,
@@ -51,6 +56,11 @@ registerContentScript('http*', (window, chrome, windowId) => {
     const sameSourceWindow = msg.windowId === windowId || platform.isChromium;
     if (isCliqzContentScriptMsg(msg) && sameSourceWindow &&
         msg.response && msg.module === 'adblocker') {
+      if (msg.response.moduleDisabled || msg.response.active === false) {
+        active = false;
+        cosmeticsInjection.unload();
+        return;
+      }
       cosmeticsInjection.handleResponseFromBackground(msg.response);
     }
   };

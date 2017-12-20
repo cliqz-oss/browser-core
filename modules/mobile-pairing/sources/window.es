@@ -1,6 +1,6 @@
 import MobilePairing from './background';
 
-export default class {
+export default class Win {
   constructor(settings) {
     this.window = settings.window;
   }

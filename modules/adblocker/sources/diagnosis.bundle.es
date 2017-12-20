@@ -1,28 +1,25 @@
-/* global document */
+/* global document, CLIQZ */
 import lang from '../core/language';
-
-function getWindow() {
-  var wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
-                      .getService(Components.interfaces.nsIWindowMediator);
-  return wm.getMostRecentWindow("navigator:browser");
-}
 
 function generateDiagnosis() {
   Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
 
   const utils = CLIQZ.CliqzUtils;
-  const w = getWindow();
-  const adb =  CLIQZ.app.modules.adblocker.background.adb;
+  const adb = CLIQZ.app.modules.adblocker.background.adb;
   const adblocker = adb.adBlocker;
   let content = [];
   let elt;
 
-  // Cliqz version
-  const firefoxVersion = Components.classes['@mozilla.org/xre/app-info;1'].getService(Components.interfaces.nsIXULAppInfo).version;
-  const extensionVersion = utils.extensionVersion;
+  const buttonReset = document.getElementById('adb-reset');
+  buttonReset.addEventListener('click', () => {
+    if (adblocker !== null) {
+      adblocker.reset();
+    }
+  });
 
+  // Cliqz version
+  const extensionVersion = utils.extensionVersion;
   content.push('<h2>Extension</h2>');
-  content.push(`<div>FF = ${firefoxVersion}</div>`);
   content.push(`<div>EXT = ${extensionVersion}</div>`);
 
   if (adblocker === null) {
@@ -92,9 +89,8 @@ function generateDiagnosis() {
   content.push('<h2>Resources</h2>');
   content.push(`<div>checksum = ${adblocker.engine.resourceChecksum}</div>`);
 
-    // Display loaded lists
-  Object.keys(adblocker.engine.lists).forEach((key) => {
-    const value = adblocker.engine.lists[key];
+  // Display loaded lists
+  adblocker.engine.lists.forEach((value, key) => {
     content.push(`<h2>${key}</h2>`);
     content.push(`<div>checksum = ${value.checksum}</div>`);
     Object.keys(value).forEach((k) => {

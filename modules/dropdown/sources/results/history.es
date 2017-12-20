@@ -61,6 +61,7 @@ export default class HistoryCluster extends GenericResult {
   get selectableResults() {
     return [
       ...(this.url ? [this] : []),
+      ...this.newsResults,
       ...this.results,
       ...this.internalResults.slice(0, this.internalResultsLimit),
     ];

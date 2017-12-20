@@ -22,7 +22,7 @@ const setupInitialPage = (window, url) => {
 /**
 * @namespace freshtab
 */
-export default class {
+export default class Win {
   /**
   * @class Window
   * @constructor

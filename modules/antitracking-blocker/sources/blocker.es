@@ -2,12 +2,13 @@ import console from '../core/console';
 import md5 from '../antitracking/md5';
 import ResourceLoader from '../core/resource-loader';
 import { getBugOwner } from '../core/domain-info';
+import config from '../core/config';
 
 export const BLOCK_MODE = ['BLOCK', 'ALLOW_SAFE', 'ALLOW_UNSAFE'].reduce(
   (hash, val) => Object.assign(hash, { [val]: val }),
   Object.create(null));
 
-export default class {
+export default class Blocker {
 
   constructor(blocklist, defaultAction, categoryPolicies, companyPolicies, firstPartyPolicies) {
     this.blocklist = blocklist || 'default';
@@ -23,7 +24,7 @@ export default class {
   init() {
     const fileName = `bugs_${this.blocklist}.json`;
     this._blockListLoader = new ResourceLoader(['antitracking-blocker', fileName], {
-      remoteURL: `https://cdn.cliqz.com/anti-tracking/${fileName}`,
+      remoteURL: `${config.settings.CDN_BASEURL}/anti-tracking/${fileName}`,
       cron: 1000 * 60 * 60 * 12,
     });
     const loadFn = this.loadBugs.bind(this);

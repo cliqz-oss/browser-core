@@ -21,7 +21,7 @@ const MESSAGES = {
   },
   'blue-theme': {
     id: 'blue-theme',
-    active: true,
+    active: false,
     type: 'notification',
     title: utils.getLocalizedString('freshtab.app.middle-box.blue-theme-hdr'),
     description: utils.getLocalizedString('freshtab.app.middle-box.blue-theme-desc'),
@@ -39,7 +39,7 @@ const MESSAGES = {
   },
   'french-news': {
     id: 'french-news',
-    active: true,
+    active: false,
     type: 'notification',
     title: utils.getLocalizedString('freshtab.app.middle-box.french-news-hdr'),
     description: utils.getLocalizedString('freshtab.app.middle-box.french-news-desc'),
@@ -57,6 +57,33 @@ const MESSAGES = {
         fn: 'currentNewsLanguageIsNot',
         value: 'fr'
       },
+    ]
+  },
+  'promote-mobile': {
+    id: 'promote-mobile',
+    active: true,
+    type: 'notification',
+    title: utils.getLocalizedString('freshtab.app.middle-box.promote-mobile-hdr'),
+    description: utils.getLocalizedString('freshtab.app.middle-box.promote-mobile-desc'),
+    handler: 'MESSAGE_HANDLER_FRESHTAB_MIDDLE',
+    position: 'middle',
+    buttons: [
+      {
+        src: 'apple-badge.svg',
+        class: 'apple-badge',
+        link: {
+          en: 'https://itunes.apple.com/us/app/cliqz-browser/id1065837334',
+          de: 'https://itunes.apple.com/de/app/cliqz-browser-suchmaschine/id1065837334?mt=8'
+        }
+      },
+      {
+        src: 'android-badge.svg',
+        class: 'android-badge',
+        link: {
+          en: 'https://play.google.com/store/apps/details?hl=en&id=com.cliqz.browser&referrer=utm_source%3Dcliqz%26utm_medium%3Dproduct%26utm_campaign%3Den%26cliqz_campaign%3Dmobile_en',
+          de: 'https://play.google.com/store/apps/details?hl=de&id=com.cliqz.browser&referrer=utm_source%3Dcliqz%26utm_medium%3Dproduct%26utm_campaign%3Dde%26cliqz_campaign%3Dmobile_de'
+        }
+      }
     ]
   }
 };
@@ -87,7 +114,7 @@ const messageFunctions = {
   }
 };
 
-export default class {
+export default class LocalTrigger {
   constructor() {
     this.messageCenter = inject.module('message-center');
   }

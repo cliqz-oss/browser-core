@@ -58,6 +58,23 @@ export default class MiddleMessages extends React.Component {
                 >
                   {message.cta_text}
                 </button>
+
+                {message.buttons && message.buttons.length > 0 &&
+                  <div className="buttons">
+                    {message.buttons.map((button, j) =>
+                      <a
+                        key={j}
+                        href={button.link[this.props.locale]}
+                        target="_blank"
+                      >
+                        <img
+                          className={button.class}
+                          src={`./images/${button.src}`}
+                        />
+                      </a>
+                    )}
+                  </div>
+                }
               </div>
             </div>
           )

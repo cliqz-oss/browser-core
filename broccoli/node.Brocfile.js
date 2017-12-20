@@ -42,6 +42,7 @@ var configTree = util.injectConfig(srcTree, config, 'cliqz.json', [
 
 var outputTree = new MergeTrees([
   srcTree,
+  modules.styleTests,
   configTree,
 ], { overwrite: true });
 

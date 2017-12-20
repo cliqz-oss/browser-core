@@ -1,48 +1,7 @@
-import networkFiltersOptimizer from '../../core/adblocker-base/optimizer';
-import { matchNetworkFilter } from '../../core/adblocker-base/filters-matching';
+import { SimplePatternIndex, MultiPatternIndex } from './pattern-utils';
 import { parseFilter } from '../../core/adblocker-base/filters-parsing';
-import ReverseIndex from '../../core/adblocker-base/reverse-index';
 import logger from '../common/offers_v2_logger';
 import PatternHistoryMatching from './history-pattern-matching';
-
-
-/**
- * Accelerating data structure for network filters matching. Makes use of the
- * reverse index structure defined above.
- */
-class PatternIndex {
-  constructor(filters) {
-    this.index = new ReverseIndex(
-      filters,
-      filter => filter.getTokens(),
-      { optimizer: networkFiltersOptimizer },
-    );
-  }
-
-  optimizeAheadOfTime() {
-    this.index.optimizeAheadOfTime();
-  }
-
-  /**
-   * we will check if the request matches the patterns associated.
-   * @param  {[type]} url         [description]
-   * @return {[type]}             the set of patterns id that matched this url
-   */
-  match(request) {
-    let matched = false;
-    const checkMatch = (pattern) => {
-      matched = matchNetworkFilter(pattern, request);
-
-      // returning true we will continue iterating but is not needed anymore
-      return !matched;
-    };
-
-    this.index.iterMatchingFilters(request.tokens, checkMatch);
-
-    return matched;
-  }
-}
-
 
 /**
  * This class will handle all the queries and everything that can be related to
@@ -119,27 +78,65 @@ export default class PatternMatchingHandler {
 
   // ///////////////////////////////////////////////////////////////////////////
 
+  /**
+   * will match a multi pattern object (check buildMultiPatternObject) against
+   * a particular tokenized url and return the list of pattern ids that matched
+   * the url
+   */
+  getMatchIDs(tokenizedURL, multiPatternObj) {
+    return multiPatternObj.match(tokenizedURL);
+  }
+
+  /**
+   * will build a pattern matching object with all the patterns and their
+   * associated ids.
+   * The patternsList should be as follow:
+   * [
+   *   {
+   *     pid: 'id of the patterns',
+   *     p_list: [ pattern1, pattern2,...]
+   *   }
+   * ]
+   */
+  buildMultiPatternObject(patternsList) {
+    let allFilters = [];
+    for (let i = 0; i < patternsList.length; i += 1) {
+      const patternData = patternsList[i];
+      allFilters = allFilters.concat(this._buildFilters(patternData, patternData.pid));
+    }
+    return new MultiPatternIndex(allFilters);
+  }
+
+  // ///////////////////////////////////////////////////////////////////////////
+
   _checkPatternObj(po) {
     return (po !== undefined && po !== null) && po.pid &&
       (po.p_list && po.p_list.length > 0);
   }
 
-  _buildPattern(po) {
+  _buildFilters(po, filterGroupID = null) {
     const plist = [];
     for (let i = 0; i < po.p_list.length; i += 1) {
       const filter = parseFilter(po.p_list[i], true, false);
       if (filter) {
+        if (filterGroupID !== null) {
+          filter.groupID = filterGroupID;
+        }
         plist.push(filter);
       } else {
         logger.error('Error parsing the filter: ', filter);
       }
     }
-    return new PatternIndex(plist);
+    return plist;
+  }
+
+  _buildSimplePattern(po) {
+    return new SimplePatternIndex(this._buildFilters(po));
   }
 
   _getOrCreateIndex(po) {
     if (!this.cache.has(po.pid)) {
-      const patternIndex = this._buildPattern(po);
+      const patternIndex = this._buildSimplePattern(po);
       if (!patternIndex) {
         return null;
       }

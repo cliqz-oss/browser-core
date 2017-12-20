@@ -1,4 +1,5 @@
-/* global PlacesUtils, StopIteration */
+/* global PlacesUtils */
+
 import events from '../../core/events';
 import { Components } from '../globals';
 

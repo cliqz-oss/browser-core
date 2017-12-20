@@ -20,6 +20,9 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
     'platform/xmlhttprequest': {
       default: {}
     },
+    'platform/lib/moment': {
+      default: {}
+    },
     'platform/fetch': {
       default: {}
     },

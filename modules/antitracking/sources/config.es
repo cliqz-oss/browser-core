@@ -3,9 +3,10 @@ import events from '../core/events';
 import ResourceLoader from '../core/resource-loader';
 import resourceManager from '../core/resource-manager';
 import utils from '../core/utils';
+import config from '../core/config';
 
-const VERSIONCHECK_URL = 'https://cdn.cliqz.com/anti-tracking/whitelist/versioncheck.json';
-const CONFIG_URL = 'https://cdn.cliqz.com/anti-tracking/config.json';
+const VERSIONCHECK_URL = `${config.settings.CDN_BASEURL}/anti-tracking/whitelist/versioncheck.json`;
+const CONFIG_URL = `${config.settings.CDN_BASEURL}/anti-tracking/config.json`;
 
 export const VERSION = '0.101';
 export const MIN_BROWSER_VERSION = 35;
@@ -26,6 +27,7 @@ export const DEFAULTS = {
   qsEnabled: true,
   bloomFilterEnabled: true,
   telemetryMode: TELEMETRY.ALL,
+  sendAntiTrackingHeader: true,
 };
 
 export const PREFS = {
@@ -40,6 +42,7 @@ export const PREFS = {
   overrideUserAgent: 'attrackOverrideUserAgent',
   cookieTrustReferers: 'attrackCookieTrustReferers',
   telemetryMode: 'attrackTelemetryMode',
+  sendAntiTrackingHeader: 'attrackSendHeader',
 };
 
 /**
@@ -48,7 +51,7 @@ export const PREFS = {
  */
 const REMOTELY_CONFIGURED = ['blockRules', 'reportList', 'cookieWhitelist', 'subdomainRewriteRules'];
 
-export default class {
+export default class Config {
 
   constructor({ defaults = DEFAULTS,
                 versionUrl = VERSIONCHECK_URL }) {
@@ -67,6 +70,8 @@ export default class {
                             this.shortTokenLength;
     this.placeHolder = persist.getValue('placeHolder') || this.placeHolder;
     this.cliqzHeader = persist.getValue('cliqzHeader') || this.cliqzHeader;
+
+    this.paused = false;
 
     this.loadPrefs();
   }
@@ -136,9 +141,9 @@ export default class {
     events.pub('attrack:updated_config', versioncheck);
   }
 
-  _updateConfig(config) {
+  _updateConfig(conf) {
     REMOTELY_CONFIGURED.forEach((key) => {
-      this[key] = config[key];
+      this[key] = conf[key];
     });
   }
 

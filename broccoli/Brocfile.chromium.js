@@ -3,6 +3,7 @@ var Funnel = require('broccoli-funnel');
 var MergeTrees = require('broccoli-merge-trees');
 var broccoliSource = require('broccoli-source');
 var writeFile = require('broccoli-file-creator');
+var env = require('./cliqz-env');
 
 var WatchedDir = broccoliSource.WatchedDir;
 var UnwatchedDir = broccoliSource.UnwatchedDir;
@@ -48,7 +49,7 @@ const html = funnel(appRoot, {
 const outputList = [html];
 
 // IMPORTANT: adding required keys to manifest for Chravira to work
-if (cliqzConfig.PRODUCTION) {
+if (env.PRODUCTION) {
   // path relative to ./fern folder
   const manifestPath = '../specific/chromium/manifest.json';
   const originalManifest = require(manifestPath);

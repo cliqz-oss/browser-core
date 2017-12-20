@@ -8,7 +8,7 @@ import { readFile, writeFile } from '../../core/fs';
 * are good forever); going stale has no immediate consequences
 * @namespace smart-cliqz-cache
 */
-export default class {
+export default class Cache {
   /**
   * @class Cache
   * @constructor

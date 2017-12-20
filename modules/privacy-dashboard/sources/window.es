@@ -4,7 +4,7 @@ import { utils } from '../core/cliqz';
 * @namespace privacy-dashboard
 * @class Window
 */
-export default class {
+export default class Win {
   /**
   * @method init
   */

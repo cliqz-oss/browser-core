@@ -229,8 +229,12 @@ export default class OfferProcessor {
           return;
         }
         if (filters.by_rs_dest && offerElement.offer.rs_dest) {
+          const realEstatesSet = typeof filters.by_rs_dest === 'string' ?
+                                 new Set([filters.by_rs_dest]) :
+                                 new Set(filters.by_rs_dest);
+
           // check the real estate destination of the offer
-          if (offerElement.offer.rs_dest.indexOf(filters.by_rs_dest) < 0) {
+          if (!offerElement.offer.rs_dest.some(dre => realEstatesSet.has(dre))) {
             // skip this one
             return;
           }

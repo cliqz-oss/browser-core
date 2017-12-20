@@ -320,7 +320,7 @@ class AvailablePeers {
 }
 
 
-export default class {
+export default class SocksToRtc {
   constructor(peer, socksProxy, peersUrl, exitsUrl) {
     // {connectionID => SocksConnection} Opened connections
     this.connections = new Map();

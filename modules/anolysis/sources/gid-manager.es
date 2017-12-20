@@ -1,4 +1,4 @@
-import moment from '../platform/moment';
+import moment from '../platform/lib/moment';
 import events from '../core/events';
 
 import Backend from './backend-communication';
@@ -49,7 +49,7 @@ const NEXT_DEMOGRAPHICS_PREF = 'anolysisLatestDemographics';
  * about non-active ones), while still preserving privacy (cf. paper for more
  * information on this mechanism).
  */
-export default class {
+export default class GidManager {
   constructor(storage) {
     this.isReadyPromise = null;
     this.storage = storage;

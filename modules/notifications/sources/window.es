@@ -1,6 +1,6 @@
 import inject from '../core/kord/inject';
 
-export default class {
+export default class Win {
   constructor() {
     this.notifications = inject.module('notifications');
     this.freshtab = inject.module('freshtab');

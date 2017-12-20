@@ -1,5 +1,5 @@
 
-import moment from '../platform/moment';
+import moment from '../platform/lib/moment';
 import prefs from '../core/prefs';
 
 

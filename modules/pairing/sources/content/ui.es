@@ -3,13 +3,9 @@ import $ from 'jquery';
 import QRCode from 'qrcode';
 
 const images = {
-  video_downloader_inactive: './images/video-downloader-inactive.png',
-  video_downloader_active: './images/video-downloader-active.png',
-  send_tab_inactive: './images/send-tab-inactive.png',
-  send_tab_active: './images/send-tab-active.png',
-  pairing_status_unpaired: './images/pairing-status-unpaired.png',
   pairing_status_disconnected: './images/pairing-status-disconnected.png',
   pairing_status_active: './images/pairing-status-active.png',
+  cliqz_icon: './images/cliqz-icon.png',
 };
 
 export default class PairingUI {
@@ -29,7 +25,7 @@ export default class PairingUI {
     this.onHashChange();
 
     this.connectionChecker = setInterval(() => {
-      PeerComm.checkMasterConnection();
+      PeerComm.checkMasterConnection().catch(() => {});
     }, PairingUI.checkInterval);
 
     // Pairing events
@@ -94,39 +90,15 @@ export default class PairingUI {
     });
   }
 
-  showExtraInfos() {
-    const extraInfos = this.document.getElementsByClassName('extra-info');
-    for (let i = 0; i < extraInfos.length; i += 1) {
-      extraInfos[i].style.display = 'none';
-    }
-
-    $('#support-info').attr('class', 'steps-shown');
-    $('#pairing-instructions').css('display', 'block');
-
-    $('#video-downloader-img').attr('src', images.video_downloader_inactive);
-    $('#send-tab-img').attr('src', images.send_tab_inactive);
-    $('#devices-info').css('display', 'none');
-
-    $('#connection-status-img').attr('src', images.pairing_status_unpaired);
+  updatePairingStatus(status) {
+    $('#page-container').attr('state', status);
   }
 
-  hideExtraInfos(masterName) {
-    const extraInfos = this.document.getElementsByClassName('extra-info');
-    for (let i = 0; i < extraInfos.length; i += 1) {
-      extraInfos[i].style.display = 'block';
-    }
-
-    $('#support-info').attr('class', 'steps-hidden');
-    $('#pairing-instructions').css('display', 'none');
-    $('#master-name').text(masterName);
-    $('#devices-info').css('display', 'block');
-
-    $('#video-downloader-img').attr('src', images.video_downloader_active);
-    $('#send-tab-img').attr('src', images.send_tab_active);
-  }
-
-  updateConnectionInfo(isMasterConnected, deviceName) {
+  updateConnectionInfo(isMasterConnected, deviceName, masterName) {
     $('#device-name').text(deviceName);
+    $('#master-name').text(masterName);
+    this.updatePairingStatus('paired');
+
     if (isMasterConnected) {
       $('#connection-status-img').attr('src', images.pairing_status_active);
       $('#connection-status-text').attr('class', 'connected');
@@ -152,7 +124,7 @@ export default class PairingUI {
           colorLight: '#ffffff',
           correctLevel: QRCode.CorrectLevel.Q,
         });
-        $('<div class="icon-logo"></div>').insertAfter('#qrcode > canvas');
+        $(`<img src="${images.cliqz_icon}" class="icon-logo" alt=""/>`).insertAfter('#qrcode > canvas');
       } else {
         this.qr.makeCode(token);
       }
@@ -161,12 +133,11 @@ export default class PairingUI {
 
   renderPaired({ isPaired, masterName, deviceName, isMasterConnected }) {
     if (!isPaired) return;
-    this.hideExtraInfos(masterName);
-    this.updateConnectionInfo(isMasterConnected, deviceName);
+    this.updateConnectionInfo(isMasterConnected, deviceName, masterName);
   }
 
   renderUnpaired() {
-    this.showExtraInfos();
+    this.updatePairingStatus('unpaired');
   }
 
   renderInitial() {
@@ -181,48 +152,30 @@ export default class PairingUI {
 
     data.i18n = {
       title: this.i18n('pairing-title'),
-      description: this.i18n('pairing-description'),
-
-      androidApp: this.i18n('pairing-android-app'),
-      cliqzForAndroid: this.i18n('pairing-cliqz-for-android'),
-
-      iOSApp: this.i18n('pairing-ios-app'),
-      cliqzForIOS: this.i18n('pairing-cliqz-for-ios'),
+      instructionsTitle: this.i18n('pairing-instructions-title'),
+      instructionsAndroid: this.i18n('pairing-instructions-playstore'),
+      instructionsIOs: this.i18n('pairing-instructions-appstore'),
 
       videoDownloaderTitle: this.i18n('pairing-video-title'),
-      videoDownloaderTip1: this.i18n('pairing-video-tip1'),
-      videoDownloaderTip2: this.i18n('pairing-video-tip2'),
-      videoDownloaderTip3: this.i18n('pairing-video-tip3'),
+      receiveTabTitle: this.i18n('pairing-receive-tab-title'),
+      sendTabTitle: this.i18n('pairing-send-tab-title'),
 
-      sendTabTitle: this.i18n('pairing-tab-title'),
-      sendTabTip1: this.i18n('pairing-tab-tip1'),
-      sendTabTip2: this.i18n('pairing-tab-tip2'),
-
+      connectedTitle: this.i18n('pairing-status-title'),
       pairingBrowserPairWith: this.i18n('pairing-browser-pair-with'),
       onDisconnectedTip: this.i18n('pairing-on-disconnected-tip'),
       contactSupport: this.i18n('pairing-contact-support'),
-
-      pairingStep1Title: this.i18n('pairing-step1-title'),
-
-      pairingStep2Title: this.i18n('pairing-step2-title'),
-      pairingStep2TitleAndroid: this.i18n('pairing-step2-title-android'),
-      pairingStep2TitleIOS: this.i18n('pairing-step2-title-ios'),
-
-      pairingStep3Title: this.i18n('pairing-step3-title'),
-      pairingStep3TitleAndroid: this.i18n('pairing-step3-title-android'),
-      pairingStep3TitleIOS: this.i18n('pairing-step3-title-ios'),
-
-      pairingStep4Title: this.i18n('pairing-step4-title'),
+      contactLearnMore: this.i18n('pairing-contact-learn-more'),
 
       pairingScanTitle: this.i18n('pairing-scan-title'),
       pairingErrorMessage: this.i18n('pairing-error-message'),
+
+      pairingAllFeatures: this.i18n('pairing-all-features-title'),
+      pairingEnabledFeatures: this.i18n('pairing-enabled-features-title'),
 
       unpair: this.i18n('pairing-unpair'),
     };
 
     $('#content').html(this.TEMPLATE_CACHE.template(data));
-
-    this.showExtraInfos();
 
     $('#unpair-button').click(() => {
       this.PeerComm.unpair();
@@ -236,26 +189,6 @@ export default class PairingUI {
       });
     });
 
-    $('#playstore-btn').click(() => {
-      this.telemetry({
-        type: 'settings',
-        version: 1,
-        view: 'connect',
-        action: 'click',
-        target: 'playstore',
-      });
-    });
-
-    $('#appstore-btn').click(() => {
-      this.telemetry({
-        type: 'settings',
-        version: 1,
-        view: 'connect',
-        action: 'click',
-        target: 'appstore',
-      });
-    });
-
     $('.support-link').click(() => {
       this.telemetry({
         type: 'settings',
@@ -265,6 +198,8 @@ export default class PairingUI {
         target: 'support',
       });
     });
+
+    this.updatePairingStatus('unpaired');
   }
 
   unload() {

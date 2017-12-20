@@ -6,6 +6,7 @@ const copyDereferenceSync = require('copy-dereference').sync
 const notifier = require('node-notifier');
 const webExt = require('web-ext');
 const path = require('path');
+const moment = require('moment');
 
 const common = require('./common');
 const setConfigPath = common.setConfigPath;
@@ -23,13 +24,14 @@ program.command('serve [file]')
        .option('--firefox [firefox]', 'firefox path (web-ext)', 'nightly')
        .option('--firefox-keep-changes', 'keep profile changes (web-ext)')
        .action((configPath, options) => {
-          const cfg = setConfigPath(configPath);
-          const CONFIG = cfg.CONFIG;
-          const OUTPUT_PATH = cfg.OUTPUT_PATH;
           process.env['CLIQZ_ENVIRONMENT'] = options.environment || 'development';
           process.env['CLIQZ_SOURCE_MAPS'] = options.maps;
           process.env['CLIQZ_SOURCE_DEBUG'] = options.debug;
           process.env['CLIQZ_INSTRUMENT_FUNCTIONS'] = options.instrumentFunctions || '';
+
+          const cfg = setConfigPath(configPath);
+          const CONFIG = cfg.CONFIG;
+          const OUTPUT_PATH = cfg.OUTPUT_PATH;
 
           let customPrefs = {};
 
@@ -57,11 +59,12 @@ program.command('serve [file]')
             }, customPrefs),
             startUrl: 'about:cliqz',
           };
-
-          console.log('Fern start');
+          const start = Date.now()
+          const date = new Date(start)
           if (CONFIG.platform === 'firefox') {
-            console.log('web-ext options:', webExtOptions);
+            //console.log('web-ext options:', webExtOptions);
           }
+
 
           getExtensionVersion(options.version).then(tag => {
             process.env.EXTENSION_VERSION = tag;
@@ -86,6 +89,10 @@ program.command('serve [file]')
               }
 
               donePromise.then(() => {
+                const end = Date.now();
+                console.log('Build completed at: ', new Date(end));
+                var ms = moment(end).diff(moment(start));
+                console.log("Duration: ", moment.utc(ms).format(":mm:ss:SSS"))
                 notifier.notify({
                   title: "Fern",
                   message: "Build complete",

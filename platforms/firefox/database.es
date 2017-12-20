@@ -71,7 +71,7 @@ export default function Database(...props) {
     pouchPromise = getWindowAPIAsync().then((wAPI) => {
       windowAPI = wAPI;
 
-      const pouchUrl = 'chrome://cliqz/content/bower_components/pouchdb/dist/pouchdb.js';
+      const pouchUrl = 'chrome://cliqz/content/vendor/pouchdb.js';
       Services.scriptloader.loadSubScriptWithOptions(pouchUrl, {
         target: global
       });

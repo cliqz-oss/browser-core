@@ -74,7 +74,7 @@ export default {
       throw Cr.NS_ERROR_NO_AGGREGATION;
     }
     return this
-    return this.QueryInterface(iid);
+    // return this.QueryInterface(iid);
   },
 
 ////////////////////////////// nsIProtocolHandler //////////////////////////////

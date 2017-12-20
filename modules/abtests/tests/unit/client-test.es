@@ -3,13 +3,15 @@ let fetch = () => {};
 const MOCK = {
   'core/http': {
     fetch(req) { return fetch(req); },
-    Headers: () => ({
-      append() {},
-    }),
-    Request: (url, options) => ({
-      url,
-      options,
-    }),
+    Headers: class {
+      append() {}
+    },
+    Request: class {
+      constructor(url, options) {
+        this.url = url;
+        this.options = options;
+      }
+    },
   },
 };
 

@@ -9,28 +9,40 @@
         <span data-i18n="video-downloader-unsupported-format"></span>
     </div>
     {{else}}
-        <ul id="download-links">
-            {{#each formats}}
-            <li class="{{this.class}}">
-                <p data-href="{{this.url}}" target="_blank" data-format="{{this.name}}" data-origin="{{../origin}}" download="{{this.title}}.{{this.format}}">{{this.name}} <span class="video-size">{{this.size}}</span></p>
-            </li>
-            {{/each}}
-        </ul>
-        <a id="more-formats-btn" href="#"><span data-i18n="video-downloader-more-formats"></span></a>
-
+    <ul class="vd-tabs">
+        <li class="vd-tab-button {{#unless isConnectPreferred}}active{{/unless}}" data-tab="desktop">
+            <span data-i18n="video-downloader-tab-desktop"></span>
+        </li>
         {{#if pairingAvailable}}
-        <div class="pairing-wrapper">
-        {{#if isPaired}}
-            <img id="sending-status" src="images/send-to-mobile.svg" />
-            <a href="#" data-href="{{videoForPairing.url}}" data-title="{{videoForPairing.title}}" data-format="{{videoForPairing.format}}" id="send-to-mobile-btn"><span data-i18n="video-downloader-send-to-mobile"></span></a>
-            <img id="pairing-status" src="images/pair-icon-light.svg" />
-        {{else}}
-            <img src="images/send-to-mobile-disabled.svg" />
-            <a class="disabled" href="#" data-href="{{videoForPairing.url}}" data-title="{{videoForPairing.title}}" data-format="{{videoForPairing.format}}" id="send-to-mobile-btn"><span data-i18n="video-downloader-send-to-mobile"></span></a>
-            <a id="pairing-dashboard" href="#"><img id="pairing-status" src="images/pair-icon.svg" /></a>
+        <li class="vd-tab-button {{#if isConnectPreferred}}active{{/if}}" data-tab="mobile">
+            <span data-i18n="video-downloader-tab-mobile"></span>
+        </li>
         {{/if}}
-            <span class="video-size">{{videoForPairing.size}}</span>
+    </ul>
+    <div id="vd-tab-content" class="{{#if isConnectPreferred}}mobile{{/if}}">
+        <iframe
+            id="connect-iframe"
+            {{#if isPaired}}class="hidden"{{/if}}
+            src="resource://cliqz/pairing/index.html"
+            width="270px" height="475px">
+        </iframe>
+
+        {{> downloads}}
+
+        <p id="wifi-warning">
+            <span data-i18n="video-downloader-wifi-warning"></span>
+        </p>
+        <span id="download-mobile" class="link-button" data-i18n="video-downloader-download-button-label"></span>
+        <span id="download-desktop" class="link-button" data-i18n="video-downloader-download-button-label"></span>
+        <span class="connect-page-link">
+            <span data-i18n="video-downloader-open-connect-page"></span>
+            <span data-i18n="video-downloader-connect-settings"></span>
+            <span class="connect-icon"></span>
+        </span>
+        <div id="sending-status">
+            <img src="images/sent-to-mobile.svg" alt="" />
+            <p><span data-i18n="video-downloader-sent-message"></span></p>
         </div>
-        {{/if}}
+    </div>
     {{/if}}
 {{/if}}

@@ -3,6 +3,7 @@ import prefs from '../core/prefs';
 import utils from '../core/utils';
 import ResourceLoader from '../core/resource-loader';
 import { auditInstalledAddons } from '../platform/addon-check';
+import config from '../core/config';
 
 const REPORTED_PREF = 'spywareLastSuspiciousReported';
 
@@ -16,7 +17,7 @@ function getDayString() {
  * @class  SuspiciousUrlCheck
  * @namespace antispy
  */
-export default class {
+export default class SuspiciousUrlCheck {
 
   /**
    * Create a SuspiciousUrlCheck instance with the provided telemetry provider
@@ -40,7 +41,7 @@ export default class {
   init() {
     this._pmsend = utils.setInterval(this.sendSuspiciousReports.bind(this), 10 * 60 * 1000);
     this._loader = new ResourceLoader(['antispy', 'suspicious_patterns.json'], {
-      remoteURL: 'https://cdn.cliqz.com/anti-tracking/suspicious_patterns.json',
+      remoteURL: `${config.settings.CDN_BASEURL}/anti-tracking/suspicious_patterns.json`,
       cron: 24 * 60 * 60 * 1000,
     });
     const loadPatterns = (patterns) => { this.suspiciousPatterns = patterns; };

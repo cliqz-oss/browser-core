@@ -21,8 +21,7 @@ function startup(aData, aReason) {
   Services.scriptloader.loadSubScript('chrome://cliqz/content/core/app.bundle.js', { global: global });
 
   global.app = new global.App({
-    version: aData.version,
-    extensionId: aData.id,
+    version: aData.version
   });
   global.app.start();
   CLIQZ.app = global.app;

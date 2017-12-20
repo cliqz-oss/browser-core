@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 
-import moment from '../../platform/moment';
+import moment from '../../platform/lib/moment';
 import getSynchronizedDate, {
   DATE_FORMAT,
   DAY_FORMAT,

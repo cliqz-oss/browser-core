@@ -52,14 +52,16 @@ export default background({
     if (this.historyInterface) {
       this.historyInterface = null;
     }
-    if (this.db) {
-      this.db.close();
-      this.db = null;
-    }
+
     if (this.historyHandler) {
       this.historyHandler.removeCallback(this._newDataCallbackBind);
       this.historyHandler.destroy();
       this.historyHandler = null;
+    }
+
+    if (this.db) {
+      this.db.close();
+      this.db = null;
     }
 
     // resolve all promises if we have

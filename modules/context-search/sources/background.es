@@ -69,6 +69,15 @@ export default background({
     }
   },
 
+  actions: {
+    expandQuery(query, ignoreCache = false) {
+      return this.contextSearch.getQExt(query, ignoreCache);
+    },
+    mergeResults(expanded, original) {
+      return ContextSearch.mergeResults(original, expanded);
+    },
+  },
+
   events: {
     /**
      * @event ui:click-on-url

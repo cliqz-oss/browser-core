@@ -21,7 +21,7 @@ function lwarn(msg) {
 //   console.log(MODULE_NAME, `[error] ${msg}`);
 // }
 
-export default class {
+export default class Win {
   constructor(settings) {
     // check if we have the feature  enabled
     if (!background.is_enabled) {
@@ -90,7 +90,6 @@ export default class {
     this.iframe.style.width = '0';
     this.iframe.style.height = '0';
     this.iframe.style.border = 'none';
-    this.iframe.style.margin = '2px 0 0 0';
 
     // for safety we remove the id of the offer
     this.setOfferID('');
@@ -456,7 +455,7 @@ export default class {
       const signal = {
         type: 'offrz',
         view: 'bar',
-        action: 'remove',
+        action: 'click',
         target: 'remove',
       };
       utils.telemetry(signal);

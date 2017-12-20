@@ -2,7 +2,7 @@ import { fetch, Request, Headers } from '../core/http';
 
 const ABTESTS_BACKEND_URL = 'https://abtests.cliqz.com/abtests';
 
-export default class {
+export default class Client {
   fetchJson(url, method, payload) {
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');

@@ -11,6 +11,7 @@ var WatchedDir = broccoliSource.WatchedDir;
 var UnwatchedDir = broccoliSource.UnwatchedDir;
 const writeFile = require('broccoli-file-creator');
 const concat = require('broccoli-concat');
+var env = require('./cliqz-env');
 
 var cliqzConfig = require('./config');
 const modulesList = require('./modules/modules-list');
@@ -29,20 +30,39 @@ var walk = helpers.walk;
 const bowerComponents = new UnwatchedDir('bower_components');
 const modulesTree = new WatchedDir('modules');
 
-const babelModulePlugin = cliqzConfig.format === 'common' ?
-  'transform-es2015-modules-commonjs' :
-  'transform-es2015-modules-systemjs';
+let babelModulePlugin;
 
-var babelOptions = {
+if (cliqzConfig.format === 'common') {
+  babelModulePlugin = 'transform-es2015-modules-commonjs';
+}
+
+if (cliqzConfig.format === 'system') {
+  babelModulePlugin = 'transform-es2015-modules-systemjs';
+}
+
+const babelOptions = {
   babelrc: false,
-  presets: ["airbnb"],
+  presets: [
+    ['env', {
+      targets: {
+        firefox: 52
+      },
+      modules: false,
+      exclude: [
+        'transform-async-to-generator',
+        'transform-es2015-template-literals',
+        'transform-regenerator'
+      ]
+    }],
+  ],
   compact: false,
-  sourceMaps: cliqzConfig.sourceMaps ? 'inline' : false,
+  sourceMaps: false,
   filterExtensions: ['es', 'jsx'],
   plugins: [
-    "transform-react-jsx",
-    babelModulePlugin,
-  ].concat(cliqzConfig.babelPlugins || []),
+    'transform-exponentiation-operator',
+    'transform-object-rest-spread',
+    'transform-react-jsx',
+  ].concat(cliqzConfig.babelPlugins || []).concat(babelModulePlugin || []),
 };
 
 if (cliqzConfig.instrumentFunctions) {
@@ -269,14 +289,14 @@ function getSourceTree() {
     getBrowserifyTree(),
     transpiledSources,
   ];
-  if ((!cliqzConfig.PRODUCTION) &&
+  if ((env.TESTING) &&
       (cliqzConfig.testem_launchers || []).length) {
     sourceTrees.push(transpiledModuleTestsTree);
   }
 
   const exclude = ["**/*.jshint.js"];
 
-  if (cliqzConfig.PRODUCTION) {
+  if (!env.TESTING) {
     exclude.push("**/content-tests.bundle*");
   }
 

@@ -337,7 +337,7 @@ export default class CliqzAttrack {
           name: 'checkExternalBlocking',
           spec: 'blocking',
           fn: (state, response) => {
-            if (response.cancel === true) {
+            if (response.cancel === true || response.redirectUrl) {
               state.incrementStat('blocked_external');
               response.shouldIncrementCounter = true;
               return false;
@@ -384,7 +384,8 @@ export default class CliqzAttrack {
         {
           name: 'checkShouldBlock',
           spec: 'break',
-          fn: state => state.badTokens.length > 0 && this.qs_whitelist.isUpToDate(),
+          fn: state => state.badTokens.length > 0 && this.qs_whitelist.isUpToDate() &&
+                       !this.config.paused,
         },
         {
           name: 'isQSEnabled',
@@ -508,7 +509,8 @@ export default class CliqzAttrack {
           name: 'shouldBlockCookie',
           spec: 'break',
           fn: (state) => {
-            const shouldBlock = this.isCookieEnabled(state.sourceUrlParts.hostname);
+            const shouldBlock = this.isCookieEnabled(state.sourceUrlParts.hostname) &&
+                                !this.config.paused;
             if (!shouldBlock) {
               state.incrementStat('bad_cookie_sent');
             }
@@ -522,7 +524,9 @@ export default class CliqzAttrack {
             state.incrementStat('cookie_blocked');
             state.incrementStat('cookie_block_tp1');
             response.modifyHeader('Cookie', '');
-            response.modifyHeader(this.config.cliqzHeader, ' ');
+            if (this.config.sendAntiTrackingHeader) {
+              response.modifyHeader(this.config.cliqzHeader, ' ');
+            }
           },
         }
       ]);
@@ -979,7 +983,9 @@ export default class CliqzAttrack {
         const id = domainInfo.domains[tld];
         const blocked = info.trackers[domain].tokens_removed > 0 ||
           info.trackers[domain].blocked_blocklist > 0;
-        const unsafe = info.trackers[domain].bad_qs > 0;
+        const unsafe = info.trackers[domain].bad_qs > 0 ||
+          info.trackers[domain].cookie_blocked > 0 ||
+          info.trackers[domain].set_cookie_blocked > 0;
         if (id) {
           apps.known[id] = actionName(blocked || apps.known[id] === true, unsafe);
         } else {

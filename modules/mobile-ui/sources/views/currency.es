@@ -8,7 +8,7 @@ function updateCurrencyTpl(data) {
     document.getElementById("currency-tpl").innerHTML = CLIQZ.templates.currency({data: data});
 }
 
-export default class {
+export default class Currency {
     enhanceResults(data) {
     }
 

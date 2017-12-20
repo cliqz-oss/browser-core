@@ -2,7 +2,7 @@ import { utils } from "../core/cliqz";
 import HumanWeb from "./human-web";
 import background from './background';
 
-export default class {
+export default class Win {
   constructor(settings) {
     this.window = settings.window;
     this.settings = settings.settings;

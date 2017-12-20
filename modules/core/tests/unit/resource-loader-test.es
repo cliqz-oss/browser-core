@@ -33,6 +33,13 @@ const MOCK = {
       load() { return load(); }
     }
   },
+  'core/zlib': {
+    inflate: x => x,
+    deflate: x => x,
+  },
+  'core/platform': {
+    isChromium: false,
+  },
   'platform/text-decoder': {
     default: class {
       decode(d) { return d }

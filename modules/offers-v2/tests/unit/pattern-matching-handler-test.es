@@ -2,6 +2,11 @@
 /* global describeModule */
 /* global require */
 
+const encoding = require('text-encoding');
+
+const TextDecoder = encoding.TextDecoder;
+const TextEncoder = encoding.TextEncoder;
+
 const SAMPLE_URLS = [
   'http://www.google.com',
   'http://www.yahoo.com',
@@ -15,11 +20,17 @@ const SAMPLE_URLS = [
 
 export default describeModule('offers-v2/pattern-matching/pattern-matching-handler',
   () => ({
+    'platform/text-decoder': {
+      default: TextDecoder,
+    },
+    'platform/text-encoder': {
+      default: TextEncoder,
+    },
     'offers-v2/common/offers_v2_logger': {
       default: {
         debug: () => {},
         error: (...args) => {console.error(...args)},
-        info: (...args) => {console.log(...args)},
+        info: (...args) => {/* console.log(...args) */},
         log: () => {},
         warn: () => {},
         logObject: () => {},
@@ -91,7 +102,6 @@ export default describeModule('offers-v2/pattern-matching/pattern-matching-handl
           this.callCount += 1;
           const p = Promise.resolve(this.data);
           this.promises.push(p);
-          console.log('#### called: ', this.callCount, q);
           return p;
         }
         clear() {

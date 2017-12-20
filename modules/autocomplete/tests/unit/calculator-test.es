@@ -155,6 +155,9 @@ export default describeModule('autocomplete/calculator',
           error(e) { throw e; }
         }
       },
+      'platform/lib/mathjs': {
+        default: require('mathjs'),
+      },
       'autocomplete/result': {
         default: {
           // useful for debugging

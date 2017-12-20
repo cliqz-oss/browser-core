@@ -1,7 +1,7 @@
 import Storage from '../core/storage';
 import equal from '../platform/lib/deep-equal';
 
-export default class {
+export default class NotificationsStorage {
   constructor() {
     this.storage = new Storage('chrome://cliqz-notifications/content/');
   }

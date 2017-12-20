@@ -17,9 +17,11 @@ program.command('test [file]')
   .option('--ci [output]', 'Starts Testem in CI mode')
   .option('--grep [pattern]', 'only run tests matching <pattern>')
   .option('--fgrep [pattern]', 'only run tests with file names matching <pattern>')
+  .option('--environment <environment>')
   .option('--firefox [firefox]', 'firefox path', 'nightly')
   .option('-l --launchers [launchers]', 'comma separted list of launchers')
   .action( (configPath, options) => {
+    process.env['CLIQZ_ENVIRONMENT'] = options.environment || 'testing';
     const cfg = setConfigPath(configPath);
     const CONFIG = cfg.CONFIG;
     const OUTPUT_PATH = cfg.OUTPUT_PATH;

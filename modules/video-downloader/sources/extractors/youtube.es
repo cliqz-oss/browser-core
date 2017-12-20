@@ -23,7 +23,7 @@ function handleFormats(formats) {
         'url',
       ];
       const output = {};
-      keys.forEach(x => (output[x] = data[x]));
+      keys.forEach((x) => { output[x] = data[x]; });
       output.size = parseInt(size, 10);
       return output;
     })

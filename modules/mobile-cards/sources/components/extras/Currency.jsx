@@ -58,7 +58,7 @@ export default class extends React.Component {
         </View>
         <MoreOn
           provider='XE.com'
-          url={ `"http://www.xe.com/${getMessage('lang_code')}` }
+          url={ `http://www.xe.com/${getMessage('lang_code')}` }
         />
       </View>
     );

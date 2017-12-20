@@ -1,7 +1,8 @@
 import ResourceLoader from '../core/resource-loader';
 import CliqzUtils from '../core/utils';
+import config from '../core/config';
 
-export default class {
+export default class ProxyManager {
   /**
   * @constructor
   * @class ProxyManager
@@ -14,7 +15,7 @@ export default class {
     this._region_counters = {};
     this._last = null;
     this._preferred_regions = ['IR', 'US', 'UK', 'DE'];
-    this.PROXY_UPDATE_URL = 'https://cdn.cliqz.com/unblock/proxies.json';
+    this.PROXY_UPDATE_URL = `${config.settings.CDN_BASEURL}/unblock/proxies.json`;
     this._loader = null;
   }
   /**

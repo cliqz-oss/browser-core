@@ -8,7 +8,7 @@ import VIEWS from './views';
 /**
 * @namespace mobile-ui
 */
-export default class {
+export default class Win {
   /**
   * @class Window
   * @constructor

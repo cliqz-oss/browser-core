@@ -31,7 +31,7 @@ export default {
         }
 
         events.pub('cliqz-config:update');
-      }).catch(console.error.bind(console));
+      }).catch(e => console.log('cliqz-config update failed', e));
 
     return update()
       .then(() => utils.setInterval(update, 1000 * 60 * 60));

@@ -1,5 +1,4 @@
 import LRUCache from '../core/helpers/fixed-size-cache';
-import console from '../core/console';
 import events from '../core/events';
 import inject from '../core/kord/inject';
 import prefs from '../core/prefs';
@@ -8,24 +7,22 @@ import UrlWhitelist from '../core/url-whitelist';
 
 // TODO - remove: only need setTimeout, setInterval
 import utils from '../core/utils';
+import { deflate, inflate } from '../core/zlib';
 
-import { Resource } from '../core/resource-loader';
+import PersistentMap from '../core/persistence/map';
 import { platformName } from '../core/platform';
 
 import FilterEngine from '../core/adblocker-base/filters-engine';
 import { fastStartsWith } from '../core/adblocker-base/utils';
+import { deserializeEngine } from '../core/adblocker-base/serialization';
 
 import AdbStats from './adb-stats';
 import FiltersLoader from './filters-loader';
 import logger from './logger';
 
 
-// Disk persisting
-const SERIALIZED_ENGINE_PATH = ['adblocker', 'engine.json'];
-
-
 // adb version
-export const ADB_VERSION = 9;
+export const ADB_VERSION = 11;
 
 // Preferences
 export const ADB_DISK_CACHE = 'cliqz-adb-disk-cache';
@@ -41,17 +38,7 @@ export const ADB_USER_LANG = 'cliqz-adb-lang';
 
 
 export function adbABTestEnabled() {
-  return prefs.get(ADB_ABTEST_PREF, false);
-}
-
-
-export function adbEnabled() {
-  // 0 = Disabled
-  // 1 = Enabled
-  return (
-    adbABTestEnabled() &&
-    prefs.get(ADB_PREF, ADB_PREF_VALUES.Disabled) !== ADB_PREF_VALUES.Disabled
-  );
+  return prefs.get(ADB_ABTEST_PREF, ADB_PREF_VALUES.Enabled);
 }
 
 
@@ -91,6 +78,7 @@ const CPT_TO_NAME = {
 
 const DEFAULT_OPTIONS = {
   onDiskCache: true,
+  compressDiskCache: false,
   useCountryList: true,
   loadNetworkFilters: true,
 
@@ -109,13 +97,17 @@ const DEFAULT_OPTIONS = {
 export class AdBlocker {
   constructor(options) {
     // Get options
-    const { onDiskCache
-          , loadNetworkFilters
-          , loadCosmeticFilters
-          , useCountryList } = Object.assign({}, DEFAULT_OPTIONS, options);
+    const {
+      onDiskCache,
+      compressDiskCache,
+      loadNetworkFilters,
+      loadCosmeticFilters,
+      useCountryList,
+    } = Object.assign({}, DEFAULT_OPTIONS, options);
 
     this.useCountryList = useCountryList;
     this.onDiskCache = onDiskCache;
+    this.compressDiskCache = compressDiskCache;
     this.loadNetworkFilters = loadNetworkFilters;
     this.loadCosmeticFilters = loadCosmeticFilters;
 
@@ -134,7 +126,7 @@ export class AdBlocker {
     const date = new Date();
     const message = `${date.getHours()}:${date.getMinutes()} ${msg}`;
     this.logs.push(message);
-    console.log(msg, 'adblocker');
+    logger.log(msg);
   }
 
   logBlocking(request, isAd, totalTime) {
@@ -173,6 +165,8 @@ export class AdBlocker {
   }
 
   resetLists() {
+    this.log('Reset lists');
+
     if (this.listsManager !== null) {
       this.listsManager.stop();
     }
@@ -184,6 +178,25 @@ export class AdBlocker {
       prefs.get(ADB_USER_LANG, null)
     );
     this.listsManager.onUpdate((updates) => {
+      // ---------------------- //
+      // Update resources lists //
+      // ---------------------- //
+      const resourcesLists = updates.filter((update) => {
+        const { isFiltersList, asset, checksum } = update;
+        if (!isFiltersList && this.engine.resourceChecksum !== checksum) {
+          this.log(`Resources list ${asset} (${checksum}) will be updated`);
+          return true;
+        }
+        return false;
+      });
+
+      if (resourcesLists.length > 0) {
+        const startResourcesUpdate = Date.now();
+        this.engine.onUpdateResource(resourcesLists);
+        this.log(`Engine updated with ${resourcesLists.length} resources` +
+                 ` (${Date.now() - startResourcesUpdate} ms)`);
+      }
+
       // -------------------- //
       // Update filters lists //
       // -------------------- //
@@ -216,39 +229,23 @@ export class AdBlocker {
         );
       }
 
-      // ---------------------- //
-      // Update resources lists //
-      // ---------------------- //
-      const resourcesLists = updates.filter((update) => {
-        const { isFiltersList, asset, checksum } = update;
-        if (!isFiltersList && this.engine.resourceChecksum !== checksum) {
-          this.log(`Resources list ${asset} (${checksum}) will be updated`);
-          return true;
-        }
-        return false;
-      });
-
-      if (resourcesLists.length > 0) {
-        const startResourcesUpdate = Date.now();
-        this.engine.onUpdateResource(resourcesLists);
-        this.log(`Engine updated with ${resourcesLists.length} resources` +
-                 ` (${Date.now() - startResourcesUpdate} ms)`);
-      }
-
       // Flush the cache since the engine is now different
       this.initCache();
 
       // Serialize new version of the engine on disk if needed
       if (serializedEngine !== null) {
         const t0 = Date.now();
-        new Resource(SERIALIZED_ENGINE_PATH, { dataType: 'plain' })
-          .persist(serializedEngine)
+        const db = new PersistentMap('cliqz-adb');
+        db.init()
+          .then(() => db.set('engine',
+            this.compressDiskCache ? deflate(serializedEngine) : serializedEngine
+          ))
           .then(() => {
             const totalTime = Date.now() - t0;
-            this.log(`Serialized filters engine on disk (${totalTime} ms)`);
+            this.log(`Serialized filters engine (${totalTime} ms)`);
           })
           .catch((e) => {
-            this.log(`Failed to serialize filters engine on disk ${e}`);
+            this.log(`Failed to serialize filters engine ${e}`);
           });
       } else {
         this.log('Engine has not been updated, do not serialize');
@@ -256,7 +253,16 @@ export class AdBlocker {
     });
   }
 
+  resetCache() {
+    this.log('Reset cache');
+    const db = new PersistentMap('cliqz-adb');
+    return db.init()
+      .then(() => db.delete('engine'))
+      .catch((ex) => { logger.error('Error while resetCache', ex); });
+  }
+
   resetEngine() {
+    this.log('Reset engine');
     this.engine = new FilterEngine({
       version: ADB_VERSION,
       loadNetworkFilters: this.loadNetworkFilters,
@@ -265,6 +271,7 @@ export class AdBlocker {
   }
 
   initCache() {
+    this.log('Init in-memory cache');
     // To make sure we don't break any filter behavior, each key in the LRU
     // cache is made up of { source general domain } + { url }.
     // This is because some filters will behave differently based on the
@@ -272,41 +279,44 @@ export class AdBlocker {
 
     // Cache queries to FilterEngine
     this.cache = new LRUCache(
-      this.engine.match.bind(this.engine),       // Compute result
-      1000,                                      // Maximum number of entries
+      this.engine.match.bind(this.engine), // Compute result
+      1000, // Maximum number of entries
       request => tlds.getGeneralDomain(request.sourceUrl) + request.url, // Select key
     );
   }
 
   loadEngineFromDisk() {
     if (this.onDiskCache) {
-      return new Resource(SERIALIZED_ENGINE_PATH, { dataType: 'plain' })
-        .load()
+      const db = new PersistentMap('cliqz-adb');
+      return db.init()
+        .then(() => db.get('engine'))
         .then((serializedEngine) => {
-          if (serializedEngine !== undefined) {
-            try {
-              const t0 = Date.now();
-              this.engine.load(serializedEngine);
-              const totalTime = Date.now() - t0;
-              this.log(`Loaded filters engine from disk (${totalTime} ms)`);
-            } catch (e) {
-              // In case there is a mismatch between the version of the code
-              // and the serialization format of the engine on disk, we might
-              // not be able to load the engine from disk. Then we just start
-              // fresh!
-              this.resetEngine();
-              this.log(`Exception while loading engine from disk ${e} ${e.stack}`);
-            }
-          } else {
-            this.log('No filter engine was serialized on disk');
-          }
+          const t0 = Date.now();
+          this.engine = deserializeEngine(
+            this.compressDiskCache ? inflate(serializedEngine) : serializedEngine,
+            ADB_VERSION,
+          );
+          const totalTime = Date.now() - t0;
+          this.log(`Loaded filters engine (${totalTime} ms)`);
         })
-        .catch(() => {
-          this.log('No engine on disk', 'adblocker');
+        .catch((ex) => {
+          this.log(`Exception while loading engine ${ex}`);
+          // In case there is a mismatch between the version of the code
+          // and the serialization format of the engine on disk, we might
+          // not be able to load the engine from disk. Then we just start
+          // fresh!
+          this.resetEngine();
         });
     }
 
     return Promise.resolve();
+  }
+
+  reset() {
+    return this.resetCache()
+      .then(() => this.resetEngine())
+      .then(() => this.resetLists())
+      .then(() => this.listsManager.load());
   }
 
   init() {
@@ -352,6 +362,17 @@ const CliqzADB = {
   webRequestPipeline: inject.module('webrequest-pipeline'),
   urlWhitelist: new UrlWhitelist('adb-blacklist'),
   humanWeb: null,
+  paused: false,
+
+  adbEnabled() {
+    // 0 = Disabled
+    // 1 = Enabled
+    return (
+      !CliqzADB.paused &&
+      adbABTestEnabled() &&
+      prefs.get(ADB_PREF, ADB_PREF_VALUES.Disabled) !== ADB_PREF_VALUES.Disabled
+    );
+  },
 
   logActionHW(url, action, type) {
     const checkProcessing = CliqzADB.humanWeb.action('isProcessingUrl', url);
@@ -401,16 +422,16 @@ const CliqzADB = {
 
     this.onPrefChangeEvent = events.subscribe('prefchange', (pref) => {
       if (pref === ADB_PREF) {
-        if (!CliqzADB.adblockInitialized && adbEnabled()) {
+        if (!CliqzADB.adblockInitialized && CliqzADB.adbEnabled()) {
           initAdBlocker();
-        } else if (CliqzADB.adblockInitialized && !adbEnabled()) {
+        } else if (CliqzADB.adblockInitialized && !CliqzADB.adbEnabled()) {
           // Shallow unload
           CliqzADB.unload(false);
         }
       }
     });
 
-    if (adbEnabled()) {
+    if (CliqzADB.adbEnabled()) {
       return CliqzADB.urlWhitelist.init()
         .then(() => initAdBlocker());
     }
@@ -449,7 +470,7 @@ const CliqzADB = {
   },
 
   adblockerPipelineStep(state, response) {
-    if (!(adbEnabled() && CliqzADB.adblockInitialized)) {
+    if (!(CliqzADB.adbEnabled() && CliqzADB.adblockInitialized)) {
       return true;
     }
 

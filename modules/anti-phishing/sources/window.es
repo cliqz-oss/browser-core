@@ -2,7 +2,7 @@ import utils from '../core/utils';
 import events from '../core/events';
 import CliqzAntiPhishing from './anti-phishing';
 
-export default class {
+export default class Win {
   constructor(settings) {
     this.window = settings.window;
   }

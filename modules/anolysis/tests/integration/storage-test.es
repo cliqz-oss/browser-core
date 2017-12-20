@@ -2,7 +2,7 @@
 /* global describeModule */
 
 
-const PouchDB = require('pouchdb');
+const PouchDB = require('@cliqz-oss/pouchdb');
 const moment = require('moment');
 
 const DATE_FORMAT = 'YYYY-MM-DD';

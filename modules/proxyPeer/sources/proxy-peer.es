@@ -62,7 +62,7 @@ function MultiplexedQueue(name, callback) {
 }
 
 
-export default class {
+export default class ProxyPeer {
   constructor(signalingUrl, peersUrl, exitsUrl, policy, p2p) {
     // External dependency
     this.p2p = p2p;

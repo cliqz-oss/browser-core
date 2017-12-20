@@ -7,7 +7,7 @@ function log(s) {
   utils.log(s, 'CliqzFreshTabNews - cache');
 }
 
-export default class {
+export default class NewsCache {
   constructor(cacheName, updateInterval, updateFunction, updateAsynchronously) {
     this.cacheName = cacheName;
     this.timerName = `${cacheName}_timer`;

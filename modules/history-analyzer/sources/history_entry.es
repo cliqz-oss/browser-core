@@ -1,5 +1,5 @@
 import logger from './logger';
-import { timestamp } from './time_utils';
+import { timestamp } from '../core/time';
 
 /**
  * This class / structure will contain the history-related information for a given

@@ -1,7 +1,7 @@
 import utils from '../core/utils';
 import { shouldShowOnboarding } from '../core/onboarding';
 
-export default class {
+export default class Win {
   constructor(settings) {
     this.window = settings.window;
 

@@ -1,4 +1,7 @@
-import { XMLHttpRequest } from './xmlhttprequest';
+/* global fetch */
+
+import { Components, Services } from './globals';
+import { XMLHttpRequestFactory } from './xmlhttprequest';
 
 try {
   Components.utils.importGlobalProperties(['fetch']);
@@ -7,7 +10,7 @@ try {
   // polyfill fetch on FF < 39
   const fetchUrl = "chrome://cliqz/content/bower_components/whatwg-fetch/fetch.js";
   Services.scriptloader.loadSubScriptWithOptions(fetchUrl, {
-    XMLHttpRequest,
+    XMLHttpRequest: XMLHttpRequestFactory(),
   });
 }
 
@@ -16,6 +19,7 @@ export function fetchFactory() {
 }
 
 export default fetch;
+
 export {
   fetch,
   Headers,

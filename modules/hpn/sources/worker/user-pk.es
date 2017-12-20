@@ -16,7 +16,7 @@ import _http from './http-worker';
 
 import crypto from '../../platform/crypto';
 
-export default class {
+export default class UserPk {
   constructor(msg) {
     this.privateKey = "";
     this.publicKey = "";

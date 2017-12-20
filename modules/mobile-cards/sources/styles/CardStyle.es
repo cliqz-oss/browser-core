@@ -5,7 +5,7 @@ export const { width: vpWidth, height: vpHeight } = Dimensions.get('window');
 
 
 export function widthPercentage(percentage) {
-  const value = (percentage * vpWidth) / 100;
+  const value = (percentage * getVPWidth()) / 100;
   return Math.round(value);
 }
 

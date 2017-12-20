@@ -16,7 +16,7 @@ const ONE_DAY = ONE_HOUR * 24;
 /*
  * @namespace smart-cliqz-cache
  */
-export default class {
+export default class SmartCliqzCache {
   /**
   * This module caches SmartCliqz results in the extension. It
   * also customizes news SmartCliqz by re-ordering categories and

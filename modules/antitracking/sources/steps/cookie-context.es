@@ -4,7 +4,7 @@ import { cleanTimestampCache } from '../utils';
 import pacemaker from '../../core/pacemaker';
 import md5 from '../md5';
 
-export default class {
+export default class CookieContext {
   constructor(config, pageMeta, qsWhitelist) {
     this.config = config;
     this.pageMeta = pageMeta;

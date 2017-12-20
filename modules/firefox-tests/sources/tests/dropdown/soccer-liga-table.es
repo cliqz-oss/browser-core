@@ -1,4 +1,4 @@
-/* global it, expect, chai, respondWith, fillIn, waitForPopup,
+/* global it, chai, respondWith, fillIn, waitForPopup,
   $cliqzResults, CliqzUtils, window, getComputedStyle */
 /* eslint func-names: ['error', 'never'] */
 /* eslint prefer-arrow-callback: 'off' */

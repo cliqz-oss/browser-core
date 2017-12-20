@@ -6,7 +6,7 @@ import { NetInfo } from 'react-native';
 import ua from './user-agent';
 
 const VERSION = '2.2';
-const QUEUE_MAX_SIZE= 100;
+const QUEUE_MAX_SIZE = 100;
 const MAX_BATCH_SIZE = 5;
 
 
@@ -19,8 +19,8 @@ class PushScheduler {
     this.pushAllowed = false;
 
     // get and listen on netinfo changes
-    NetInfo.fetch().then(this.onConnectivityChange.bind(this));
-    NetInfo.addEventListener('change', this.onConnectivityChange.bind(this));
+    NetInfo.getConnectionInfo().then(this.onConnectivityChange.bind(this));
+    NetInfo.addEventListener('connectionChange', this.onConnectivityChange.bind(this));
   }
 
   requestPush() {
@@ -69,15 +69,15 @@ class PushScheduler {
     });
   }
 
-  onConnectivityChange(status) {
-    if (status === 'wifi' || status === 'WIFI') {
+  onConnectivityChange({ type }) {
+    if (type === 'wifi') {
       console.log('push permitted (wifi)');
       this.pushAllowed = true;
       if (this.pushRequested) {
         this.requestPush();
       }
     } else {
-      console.log(`push prohibited (${status})`);
+      console.log(`push prohibited (${type})`);
       this.pushAllowed = false;
     }
   }

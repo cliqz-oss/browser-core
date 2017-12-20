@@ -9,6 +9,8 @@ export default function (input) {
       // `auditTime` does not; `debounceTime` will wait for a gap in the events
       .auditTime(10)
     )
-    .distinctUntilChanged()
+    // do not use `distinctUntilChanged()` as we need to re-query using the same
+    // query in case a user clicked on adult or location sharing buttons to update
+    // the results with the changed settings (but the same query)
     .share();
 }

@@ -1,6 +1,6 @@
 import CliqzUtils from "../../core/utils";
 
-export default class {
+export default class TriggerBase {
 
   constructor(id) {
     this.id = id;

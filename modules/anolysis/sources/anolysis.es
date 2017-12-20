@@ -1,6 +1,6 @@
 /* eslint { "no-param-reassign": "off" } */
 
-import moment from '../platform/moment';
+import moment from '../platform/lib/moment';
 
 import { utils } from '../core/cliqz';
 import events from '../core/events';
@@ -18,7 +18,7 @@ import logger from './logger';
 import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
 
 
-export default class {
+export default class Anolysis {
   constructor(settings) {
     // Store available schemas for telemetry signals.
     // New schemas can be added using 'registerSchemas', which is

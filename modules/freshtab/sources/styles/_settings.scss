@@ -139,12 +139,13 @@
 
                 li {
                     display: inline-block;
-                    padding: 0 5px;
+                    padding-right: 5px;
                     position: relative;
                     cursor: pointer;
 
-                    &:first-child {
-                        padding: 0;
+                    &:first-child,
+                    &:last-child {
+                        padding-left: 0;
 
                         .selected-img {
                             left: 23px !important;
@@ -160,7 +161,7 @@
                     .selected-img {
                         position: absolute;
                         top: 8px;
-                        left: 28px;
+                        left: 22px;
                         display: none;
                         img {
                             box-shadow: none !important;

@@ -1,6 +1,7 @@
 import ResourceLoader from '../core/resource-loader';
 import resourceManager from '../core/resource-manager';
 import psl from '../core/tlds';
+import config from '../core/config';
 
 const domainInfo = {
   domainOwners: {},
@@ -24,7 +25,7 @@ function parseDomainOwners(companyList) {
 }
 
 resourceManager.addResourceLoader(new ResourceLoader(['antitracking', 'tracker_db_v2.json'], {
-  remoteURL: 'https://cdn.cliqz.com/anti-tracking/tracker_db_v2.json',
+  remoteURL: `${config.settings.CDN_BASEURL}/anti-tracking/tracker_db_v2.json`,
   cron: 24 * 60 * 60 * 1000,
 }), parseDomainOwners);
 

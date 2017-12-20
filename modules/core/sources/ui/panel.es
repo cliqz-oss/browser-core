@@ -3,20 +3,20 @@ import maybe from '../helpers/maybe';
 import console from '../../core/console';
 import getContainer from '../../platform/ui/helpers';
 
-export default class {
+export default class Panel {
   constructor({
-      window,
-      url,
-      id,
-      type,
-      autohide = true,
-      actions = {},
-      version = 0,
-      onHidingCallback = null,
-      onShowingCallback = null,
-      defaultWidth = 0,
-      defaultHeight = 0,
-    } = {}) {
+    window,
+    url,
+    id,
+    type,
+    autohide = true,
+    actions = {},
+    version = 0,
+    onHidingCallback = null,
+    onShowingCallback = null,
+    defaultWidth = 0,
+    defaultHeight = 0,
+  } = {}) {
     this.window = window;
     this.document = this.window.document;
     this.url = url;

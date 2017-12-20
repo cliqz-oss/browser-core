@@ -21,7 +21,7 @@ function hashConnectionID(connectionID /* , peerID */) {
 }
 
 
-export default class {
+export default class RtcToNet {
   constructor(policy, peer) {
     this.peer = peer;
     this.policy = policy;

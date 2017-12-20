@@ -1,6 +1,7 @@
-/* global CLIQZ, window, document, SigWrapper,
+/* global CLIQZ, document, SigWrapper,
           DataStorageHandler, EnvConfigHandler, ErrorReporter, clearInnerElement,
           SignalsTestCase, TEST_DATA, $ */
+/* eslint-disable no-console */
 
 import OffersConfigs from '../offers-v2/offers_configs';
 import ActionID from '../offers-v2/actions_defs';

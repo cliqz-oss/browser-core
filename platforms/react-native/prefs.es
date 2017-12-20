@@ -7,7 +7,7 @@ const PREFIX = "@cliqzprefs:"
 const prefs = config.default_prefs || {};
 
 // load prefs from storage
-export function loadPrefs() {
+export function init() {
   console.log("load prefs from storage");
   return AsyncStorage.getAllKeys().then(keys => {
     const prefKeys = keys.filter((k) => k.startsWith(PREFIX));

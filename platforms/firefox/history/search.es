@@ -40,11 +40,11 @@ export default function getHistory(q, callback, isPrivate = false) {
           continue;
         }
 
-        if (style.indexOf('switchtab') !== -1 && isPrivate) {
-          style = style.replace('switchtab', '');
-        }
-
         if(style.indexOf('switchtab') !== -1) {
+          if (isPrivate) {
+            style = style.replace('switchtab', '');
+          }
+
           try {
             let [mozAction, cleanURL] = utils.cleanMozillaActions(result.getValueAt(i));
             let label;

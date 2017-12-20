@@ -936,7 +936,7 @@ export default describeModule('anolysis/preprocessor',
     'platform/ua-parser': {
       default: UAParser,
     },
-    'platform/moment': {
+    'platform/lib/moment': {
       default: moment,
     },
     'anolysis/synchronized-date': {

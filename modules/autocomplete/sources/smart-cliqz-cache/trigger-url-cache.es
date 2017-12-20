@@ -7,7 +7,7 @@ const DAY = 24 * HOUR;
 /**
 * @namespace smart-cliqz-cache
 */
-export default class extends Cache {
+export default class TriggerUrlCache extends Cache {
   /**
   * @class TriggerUrlCache
   * @constructor

@@ -9,13 +9,14 @@
 // TODO - Simplify the API of NetworkFilter to expose less information +
 // integrate the matching directly. We can then easily create different
 // sub-class of network filters depending on the kind of patterns we have.
-import { tokenize
-       , tokenizeCSS
-       , fastHash
-       , fastStartsWith
-       , fastStartsWithFrom
-       , packInt32
-       , unpackInt32 } from './utils';
+import {
+  tokenize,
+  tokenizeCSS,
+  fastHash,
+  fastHashCombine,
+  fastStartsWith,
+  fastStartsWithFrom
+} from './utils';
 
 
 // Notes regarding performance:
@@ -39,7 +40,7 @@ import { tokenize
 
 /* **************************************************************************
  *  Bitwise helpers
- * **************************************************************************/
+ * ************************************************************************* */
 
 
 function getBit(n, mask) {
@@ -109,7 +110,7 @@ const NETWORK_FILTER_MASK = {
  * Mask used when a network filter can be applied on any content type.
  */
 const FROM_ANY = (
-    NETWORK_FILTER_MASK.fromImage
+  NETWORK_FILTER_MASK.fromImage
   | NETWORK_FILTER_MASK.fromMedia
   | NETWORK_FILTER_MASK.fromObject
   | NETWORK_FILTER_MASK.fromObjectSubrequest
@@ -157,7 +158,7 @@ const CPT_TO_MASK = {
 
 /* **************************************************************************
  *  Cosmetic filters parsing
- * **************************************************************************/
+ * ************************************************************************ */
 
 
 const SEPARATOR = /[/^*]/;
@@ -179,45 +180,6 @@ export class CosmeticFilter {
 
   isCosmeticFilter() { return true; }
   isNetworkFilter() { return false; }
-
-  /**
-   * Given an object returned by the `serialize` method, re-create an instance
-   * of the CosmeticFilter class, using the same values.
-   *
-   * @static
-   * @method deserialize
-   * @param {String} serialized
-   * @return {CosmeticFilter}
-   */
-  static deserialize(serialized) {
-    const [selector, hostnames] = serialized.substr(4).split('|');
-    const mask = unpackInt32(serialized);
-    const id = serialized.substr(2, 2);
-
-    return new CosmeticFilter({
-      mask,
-      selector,
-      hostnames,
-      id,
-    });
-  }
-
-  /**
-   * Creates a more compact representation of this filter, as an object.
-   *
-   * @method serialize
-   * @return {String}
-   */
-  serialize() {
-    /* eslint-disable prefer-template */
-    return (
-      packInt32(this.mask)
-      + this.id
-      + this.selector
-      + '|' + this.hostnames
-    );
-    /* eslint-enable prefer-template */
-  }
 
   /**
    * Create a more human-readable version of this filter. It is mainly used for
@@ -312,8 +274,6 @@ export class CosmeticFilter {
  * used to parse tens of thousands of lines.
  */
 function parseCosmeticFilter(line, sharpIndex) {
-  const id = packInt32(fastHash(line));
-
   // Mask to store attributes
   // Each flag (unhide, scriptInject, etc.) takes only 1 bit
   // at a specific offset defined in COSMETICS_MASK.
@@ -394,6 +354,12 @@ function parseCosmeticFilter(line, sharpIndex) {
     return null;
   }
 
+  const id = fastHashCombine(
+    mask,
+    fastHash(selector),
+    fastHash(hostnames),
+  );
+
   return new CosmeticFilter({
     mask,
     selector,
@@ -405,7 +371,7 @@ function parseCosmeticFilter(line, sharpIndex) {
 
 /* **************************************************************************
  *  Network filters parsing
- * **************************************************************************/
+ * ************************************************************************ */
 
 
 /**
@@ -487,60 +453,6 @@ export class NetworkFilter {
   isNetworkFilter() { return true; }
 
   /**
-   * Create a NetworkFilter instance from the compact representation given by
-   * the serialize() method. It also takes care of giving a default value of the
-   * right type to each optional field.
-   *
-   * @static
-   * @method deserialize
-   * @param {String} serialized
-   * @return {NetworkFilter}
-   */
-  static deserialize(serialized) {
-    const [
-      filter,
-      hostname,
-      optDomains,
-      optNotDomains,
-      redirect
-    ] = serialized.substr(4).split('`');
-    const mask = unpackInt32(serialized);
-    const id = serialized.substr(2, 2);
-
-    return new NetworkFilter({
-      mask,
-      filter,
-      optDomains,
-      optNotDomains,
-      redirect,
-      hostname,
-      id,
-    });
-  }
-
-  /**
-   * Creates a more compact representation of the network filter. All attributes
-   * with no value (eg: redirect) are defaulted to undefined and will be omitted
-   * from the serialized version of the filter.
-   *
-   * @method serialize
-   * @return {String}
-   */
-  serialize() {
-    /* eslint-disable prefer-template */
-    return (
-      packInt32(this.mask)
-      + this.id
-      + this.filter
-      + '`' + this.hostname
-      + '`' + this.optDomains
-      + '`' + this.optNotDomains
-      + '`' + this.redirect
-    );
-    /* eslint-enable prefer-template */
-  }
-
-  /**
    * Tries to recreate the original representation of the filter (adblock
    * syntax) from the internal representation.
    */
@@ -603,6 +515,10 @@ export class NetworkFilter {
   }
 
   // Public API (Read-Only)
+
+  hasFilter() {
+    return !!this.filter;
+  }
 
   hasOptNotDomains() {
     return !!this.optNotDomains;
@@ -816,24 +732,7 @@ function checkIsRegex(filter, start, end) {
  * This must be *very* efficient.
  */
 function parseNetworkFilter(rawLine) {
-  let line = rawLine;
-  // Compute id of the filter
-  const id = packInt32(fastHash(line));
-
-  // Transform |http:// to |http:
-  // Transform |https:// to |https:
-  // Transform |ws:// to |http:
-  // Transform |wss:// to |https:
-  if (fastStartsWith(line, '|http://')) {
-    line = line.replace('|http://', '|http:');
-  } else if (fastStartsWith(line, '|https://')) {
-    line = line.replace('|https://', '|https:');
-  } else if (fastStartsWith(line, '|ws://')) {
-    line = line.replace('|ws://', '|http:');
-  } else if (fastStartsWith(line, '|wss://')) {
-    line = line.replace('|wss://', '|https:');
-  }
-
+  const line = rawLine;
 
   // Represent options as a bitmask
   let mask = NETWORK_FILTER_MASK.thirdParty | NETWORK_FILTER_MASK.firstParty;
@@ -1045,7 +944,7 @@ function parseNetworkFilter(rawLine) {
     mask = setBit(mask, NETWORK_FILTER_MASK.isHostnameAnchor);
   } else {
     // TODO - can we have an out-of-bound here? (source: V8 profiler)
-    if (line.charAt(filterIndexEnd - 1) === '|') {
+    if (line[filterIndexEnd - 1] === '|') {
       mask = setBit(mask, NETWORK_FILTER_MASK.isRightAnchor);
       filterIndexEnd -= 1;
     }
@@ -1053,7 +952,7 @@ function parseNetworkFilter(rawLine) {
     if (fastStartsWithFrom(line, '||', filterIndexStart)) {
       mask = setBit(mask, NETWORK_FILTER_MASK.isHostnameAnchor);
       filterIndexStart += 2;
-    } else if (line.charAt(filterIndexStart) === '|') {
+    } else if (line[filterIndexStart] === '|') {
       mask = setBit(mask, NETWORK_FILTER_MASK.isLeftAnchor);
       filterIndexStart += 1;
     }
@@ -1121,6 +1020,16 @@ function parseNetworkFilter(rawLine) {
     hostname = hostname.toLowerCase();
   }
 
+  // Compute id of the filter
+  const id = fastHashCombine(
+    mask,
+    fastHash(filter),
+    fastHash(optDomains),
+    fastHash(optNotDomains),
+    fastHash(redirect),
+    fastHash(hostname),
+  );
+
   return new NetworkFilter({
     mask,
     filter,
@@ -1136,6 +1045,7 @@ function parseNetworkFilter(rawLine) {
 const SPACE = /\s/;
 
 
+// TODO - unify cosmetic/network parsing into one function
 /**
  * Takes a string, and try to parse a filter out of it. This can be either:
  *  - NetworkFilter
@@ -1149,6 +1059,14 @@ export function parseFilter(line, loadNetworkFilters, loadCosmeticFilters) {
       || (line.charAt(0) === '#' && SPACE.test(line.charAt(1)))
       || fastStartsWith(line, '[Adblock')) {
     return null;
+  }
+
+  if (fastStartsWith(line, '|') || fastStartsWith(line, '@@|')) {
+    if (!loadNetworkFilters) {
+      return null;
+    }
+
+    return parseNetworkFilter(line);
   }
 
   // Ignore Adguard cosmetics
@@ -1198,6 +1116,7 @@ export function parseList(
   const networkFilters = [];
   const cosmeticFilters = [];
   const lines = data.split('\n');
+
 
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i].trim();

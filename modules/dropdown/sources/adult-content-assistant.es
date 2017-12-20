@@ -9,7 +9,7 @@ const STATE_DEFAULT = 'moderate';
 const getPref = prefs.get.bind(prefs, PREF, STATE_DEFAULT);
 const setPref = prefs.set.bind(prefs, PREF);
 
-export default class {
+export default class AdultContentAssistant {
   constructor() {
     this.actions = [
       {

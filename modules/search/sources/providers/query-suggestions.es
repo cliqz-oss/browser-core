@@ -11,7 +11,10 @@ export default class QuerySuggestionProvider extends BaseProvider {
 
   fetch(query) {
     const url = getDefaultEngineSuggestionUrl(query);
-    return f(url).then(res => res.json());
+    if (url) {
+      return f(url).then(res => res.json());
+    }
+    return Promise.resolve([query, []]);
   }
 
   search(query, config) {

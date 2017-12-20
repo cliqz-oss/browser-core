@@ -1,7 +1,7 @@
 /**
   Enables filtered events on http requests, with associated urls
  */
-export default class {
+export default class RequestListener {
   /**
   * @class RequestListener
   * @namespace unblock

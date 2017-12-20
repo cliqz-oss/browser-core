@@ -158,6 +158,12 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
         }
       }
     },
+    'core/time': {
+      getDaysFromTimeRange: function(startTS, endTS) { },
+      getDateFromDateKey: function(dateKey, hours = 0, min = 0, seconds = 0) { },
+      timestamp: function() { },
+      getTodayDayKey: function() { }
+    },
     'platform/console': {
       default: {},
     },

@@ -1,6 +1,6 @@
 
 
-export default class {
+export default class PageLogger {
 
   constructor(tpEvents) {
     this.tpEvents = tpEvents;

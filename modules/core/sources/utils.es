@@ -6,7 +6,6 @@ import Storage from "./storage";
 import CliqzEvents from './events';
 import tlds from "./tlds";
 import { httpHandler, promiseHttpHandler } from './http';
-import gzip from './gzip';
 import CliqzLanguage from './language';
 import * as url from './url';
 import random from './crypto/random';
@@ -28,7 +27,7 @@ var VERTICAL_ENCODINGS = {
 
 var COLOURS = ['#ffce6d','#ff6f69','#96e397','#5c7ba1','#bfbfbf','#3b5598','#fbb44c','#00b2e5','#b3b3b3','#99cccc','#ff0027','#999999'],
     LOGOS = ['wikipedia', 'google', 'facebook', 'youtube', 'duckduckgo', 'sternefresser', 'zalando', 'bild', 'web', 'ebay', 'gmx', 'amazon', 't-online', 'wiwo', 'wwe', 'weightwatchers', 'rp-online', 'wmagazine', 'chip', 'spiegel', 'yahoo', 'paypal', 'imdb', 'wikia', 'msn', 'autobild', 'dailymotion', 'hm', 'hotmail', 'zeit', 'bahn', 'softonic', 'handelsblatt', 'stern', 'cnn', 'mobile', 'aetv', 'postbank', 'dkb', 'bing', 'adobe', 'bbc', 'nike', 'starbucks', 'techcrunch', 'vevo', 'time', 'twitter', 'weatherunderground', 'xing', 'yelp', 'yandex', 'weather', 'flickr'],
-    BRANDS_DATABASE = { domains: {}, palette: ["999"] };
+    BRANDS_DATABASE = { domains: Object.create(null), palette: ["999"] };
 
 
 var CliqzUtils = {
@@ -77,8 +76,6 @@ var CliqzUtils = {
   ],
 
   init() {
-    CLIQZEnvironment.gzip = gzip;
-
     // cutting cyclic dependency
     CLIQZEnvironment.getLogoDetails = CliqzUtils.getLogoDetails.bind(CliqzUtils);
     CLIQZEnvironment.getDetailsFromUrl = CliqzUtils.getDetailsFromUrl.bind(CliqzUtils);
@@ -109,6 +106,8 @@ var CliqzUtils = {
   makeUri: CLIQZEnvironment.makeUri,
 
   setLogoDb: function (db) {
+    let domains = Object.create(null);
+    db.domains = Object.assign(domains, db.domains);
     BRANDS_DATABASE = CliqzUtils.BRANDS_DATABASE = db;
   },
   getLogoDetails: function(urlDetails){
@@ -212,6 +211,24 @@ var CliqzUtils = {
   getDay: function() {
     return Math.floor(new Date().getTime() / 86400000);
   },
+  getServerDay: function() {
+    const serverDateStr = CliqzUtils.getPref('config_ts', null);
+    if (serverDateStr) {
+      try {
+        const year = serverDateStr.substr(0, 4);
+        const month = serverDateStr.substr(4, 2);
+        const day = serverDateStr.substr(6, 2);
+        const realDate = new Date(`${year}/${month}/${day}`);
+
+        // we need to consider the timezone offset
+        return Math.floor((realDate.getTime() - realDate.getTimezoneOffset()*60*1000) / 86400000);
+      } catch(e) {
+        // fallback to getDay
+      }
+    }
+
+    return CliqzUtils.getDay();
+  },
   //creates a random 'len' long string from the input space
   rand: function(len, _space){
       var ret = '', i,
@@ -248,12 +265,6 @@ var CliqzUtils = {
   getDetailsFromUrl: url.getDetailsFromUrl,
   stripTrailingSlash: url.stripTrailingSlash,
   isUrl: url.isUrl,
-  stripTrailingSlash: function(str) {
-    if(str.substr(-1) === '/') {
-        return str.substr(0, str.length - 1);
-    }
-    return str;
-  },
   // Checks if the given string is a valid IPv4 addres
   isIPv4: url.isIpv4Address,
   isIPv6: url.isIpv6Address,
@@ -520,23 +531,33 @@ var CliqzUtils = {
     const searchDataType = 'application/x-suggestions+json';
     const defaultEngine = CliqzUtils.getDefaultSearchEngine();
     const fetch = CliqzUtils.fetchFactory();
-    return fetch(defaultEngine.getSubmissionForQuery(q, searchDataType))
-      .then(res => res.json())
-      .then(response => {
-        return {
-          response: {
-            results: response[1].filter(r => r !== q).map(q => {
-              return {
-                url: defaultEngine.getSubmissionForQuery(q),
-                template: 'suggestion',
-                type: 'suggestion',
-                snippet: { suggestion: q }
-              }
-            })
-          },
-          query: response[0]
-        }
-      })
+    const submissionUrl = defaultEngine.getSubmissionForQuery(q, searchDataType);
+
+    if (submissionUrl) {
+      return fetch(submissionUrl)
+        .then(res => res.json())
+        .then(response => {
+          return {
+            response: {
+              results: response[1].filter(r => r !== q).map(q => {
+                return {
+                  url: defaultEngine.getSubmissionForQuery(q),
+                  template: 'suggestion',
+                  type: 'suggestion',
+                  snippet: { suggestion: q }
+                }
+              })
+            },
+            query: response[0]
+          }
+        });
+    } else {
+      // there is no suggestion URL for the default search Engine
+      return Promise.resolve({
+        response: { results: [] },
+        query: q
+      });
+    }
   },
   setDefaultIndexCountry: function(country) {
     var supportedCountries = JSON.parse(CliqzUtils.getPref("config_backends", '["de"]'));

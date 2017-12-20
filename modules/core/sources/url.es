@@ -111,8 +111,11 @@ export function isCliqzAction(url) {
 }
 
 export function cleanMozillaActions(url = '') {
+  let action;
   if(url.indexOf("moz-action:") == 0) {
-    var [, action, url] = url.match(/^moz-action:([^,]+),(.*)$/);
+    const parts = url.match(/^moz-action:([^,]+),(.*)$/);
+    action = parts[1];
+    url = parts[2];
     try {
       // handle cases like: moz-action:visiturl,{"url": "..."}
       const mozActionUrl = JSON.parse(url).url;

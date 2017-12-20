@@ -38,7 +38,7 @@ class TokenSet {
 /**
  * Manages the local safekey list
  */
-export default class {
+export default class TokenExaminer {
 
   constructor(qsWhitelist, config) {
     this.qsWhitelist = qsWhitelist;

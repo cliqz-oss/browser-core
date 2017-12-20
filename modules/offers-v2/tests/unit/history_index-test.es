@@ -12,11 +12,11 @@ export default describeModule('offers-v2/history_index',
   () => ({
     'offers-v2/common/offers_v2_logger': {
       default: {
-        debug: (x) => {console.log(x);},
+        debug: (x) => {/* console.log(x); */},
         error: (x) => {console.error(x);},
-        info: (x) => {console.log(x);},
-        log: (x) => {console.log(x);},
-        warn: (x) => {console.error(x);},
+        info: (x) => {/* console.log(x); */},
+        log: (x) => {/* console.log(x); */},
+        warn: (x) => {/* console.error(x); */},
         logObject: () => {},
       }
     },
@@ -280,7 +280,6 @@ export default describeModule('offers-v2/history_index',
         });
 
         it('disjoint sets', function () {
-          console.log('TEST START HERE');
           const pattern = /1/;
           const id = 12345;
           chai.expect(historyIndex.countHistoryEntries(0, 6, [pattern], id)).eql(2);
@@ -452,7 +451,6 @@ export default describeModule('offers-v2/history_index',
             mockedTS += 1;
             historyIndex.addUrl(url, {});
           }
-          console.log(historyIndex);
           const numEntries = totalNewEntries + ENTRIES.length;
           const mid = numEntries / 2;
           for (let i = 0; i < numEntries; i += 1) {

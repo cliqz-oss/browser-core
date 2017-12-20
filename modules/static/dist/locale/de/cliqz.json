@@ -1188,7 +1188,7 @@
         "message": "Abonnieren"
     },
     "mobile_soccer_unsubscribe":{
-        "message": "Abo kündigen"
+        "message": "Abo beenden"
     },
     "mobile_soccer_subscribe_team":{
         "message": "Verpasse kein Tor und abonniere den kostenlosen Bundesliga Live-Ticker für $1!"
@@ -1478,14 +1478,35 @@
     "video-downloader-title": {
       "message": "Video herunterladen"
     },
-    "video-downloader-more-formats": {
-      "message": "Weitere Formate"
-    },
     "video-downloader-send-to-mobile": {
       "message": "An mobiles Gerät senden"
     },
     "video-downloader-unsupported-format": {
       "message": "Sorry! Wir können das Video leider nicht herunterladen."
+    },
+    "video-downloader-tab-desktop": {
+      "message": "COMPUTER"
+    },
+    "video-downloader-tab-mobile": {
+      "message": "MOBILGERÄT"
+    },
+    "video-downloader-download-button-label": {
+      "message": "Herunterladen"
+    },
+    "video-downloader-open-connect-page": {
+      "message": "Öffne die Connect Einstellungen"
+    },
+    "video-downloader-connect-settings": {
+      "message": "Einstellungen"
+    },
+    "video-downloader-wifi-warning": {
+      "message": "Prüfe, ob du eine WLAN-Verbindung hast, um zusätzliche Kosten zu vermeiden."
+    },
+    "video-downloader-sent-message": {
+      "message": "Video an mobiles Gerät gesendet"
+    },
+    "video-downloader-audio-label": {
+      "message": "Audio Datei"
     },
     "video-downloader-uitour-title": {
       "message": "Video Downloader"
@@ -1498,6 +1519,12 @@
     },
     "video-downloader-uitour-btn-skip": {
       "message": "Später"
+    },
+    "downloads-uitour-title": {
+      "message": "Download läuft..."
+    },
+    "downloads-uitour-description": {
+      "message": "Du kannst Videos auch auf dein Mobilgerät herunterladen. Probier’s!"
     },
     "transparency_html_title": {
       "message": "Cliqz | Transparenz Cockpit"
@@ -1544,77 +1571,47 @@
     "pairing-title": {
       "message": "Connect"
     },
-    "pairing-description": {
-      "message": "Verbinde Cliqz auf deinem Computer mit Cliqz auf deinem Android oder iOS Gerät. Damit kannst du Tabs von deinem Computer auf den mobilen Browser schicken. Du kannst außerdem Videos direkt auf dein mobiles Gerät herunterladen."
+    "pairing-instructions-title": {
+      "message": "1. Cliqz App herunterladen"
+    },
+    "pairing-instructions-playstore": {
+      "message": "Hol dir die Cliqz App vom Play Store › Öffne die Cliqz App › Menü › Connect"
+    },
+    "pairing-instructions-appstore": {
+      "message": "Hol dir die Cliqz App vom App Store › Öffne die Cliqz App › Einstellungen › Connect"
     },
     "pairing-android-app": {
       "message": "https://play.google.com/store/apps/details?hl=de&id=com.cliqz.browser"
     },
-    "pairing-cliqz-for-android": {
-      "message": "Cliqz für Android"
-    },
     "pairing-ios-app": {
       "message": "https://itunes.apple.com/de/app/cliqz-browser-suchmaschine/id1065837334?mt=8"
-    },
-    "pairing-cliqz-for-ios": {
-      "message": "Cliqz für iOS"
     },
     "pairing-video-title": {
       "message": "Videos herunterladen"
     },
-    "pairing-video-tip1": {
-      "message": "Öffne ein YouTube Video."
+    "pairing-receive-tab-title": {
+      "message": "Tabs empfangen"
     },
-    "pairing-video-tip2": {
-      "message": "Klicke auf das Video Download Icon."
-    },
-    "pairing-video-tip3": {
-      "message": "Wähle \"An mobiles Gerät senden\"."
-    },
-    "pairing-tab-title": {
+    "pairing-send-tab-title": {
       "message": "Tabs senden"
-    },
-    "pairing-tab-tip1": {
-      "message": "Klicke mit der rechten Maustaste auf einen Tab oder eine Website."
-    },
-    "pairing-tab-tip2": {
-      "message": "Wähle \"Tab an mobiles Gerät senden\"."
     },
     "pairing-browser-pair-with": {
       "message": "Dieser Browser ist jetzt verknüpft mit:"
     },
     "pairing-on-disconnected-tip": {
-      "message": "Handover funktioniert nur, wenn dein mobiles Gerät mit dem Internet verbunden und aktiv ist."
+      "message": "Connect funktioniert nur, wenn dein mobiles Gerät online und aktiv ist."
     },
     "pairing-contact-support": {
-      "message": "Bei Fragen oder Problemen kontaktiere bitte unser"
+      "message": "Möchtest du mehr über die Funktionen erfahren?"
+    },
+    "pairing-contact-learn-more": {
+      "message": "Weitere Informationen"
     },
     "pairing-scan-title": {
-      "message": "Mobiles Gerät verbinden"
+      "message": "2. Mit Cliqz App scannen"
     },
-    "pairing-step1-title": {
-      "message": "Lade dir Cliqz aus dem Play Store (Android) oder App Store (iOS) herunter."
-    },
-    "pairing-step2-title": {
-      "message": "Öffne die Cliqz App auf deinem mobilen Gerät."
-    },
-    "pairing-step2-title-android": {
-      "message": "Android: Gehe ins Menü und wähle \"Connect\" aus."
-    },
-    "pairing-step2-title-ios": {
-      "message": "iOS: Gehe zu den Einstellungen und wähle \"Connect\" aus."
-    },
-    "pairing-step3-title": {
-      "message": "Starte den QR Code Scanner."
-    },
-    "pairing-step3-title-android": {
-      "message": "Android: Drücke auf (+)."
-    },
-    "pairing-step3-title-ios": {
-      "message": "iOS: Wähle \"Verbindung hinzufügen\"."
-    },
-    "pairing-step4-title": {
-      "message": "Scanne den QR Code."
+    "pairing-status-title": {
+      "message": "Du bist verbunden"
     },
     "pairing-online": {
       "message": "ONLINE"
@@ -1625,11 +1622,14 @@
     "pairing-unpair": {
       "message": "Verbindung trennen"
     },
+    "pairing-all-features-title": {
+      "message": "Schalte diese Funktionen auf deinem mobilen Gerät frei"
+    },
+    "pairing-enabled-features-title": {
+      "message": "Diese Funktionen sind jetzt auf deinem mobilen Gerät freigeschaltet"
+    },
     "pairing-send-tab-to-mobile": {
       "message": "Tab an mobiles Gerät senden"
-    },
-    "pairing-send-video-to-mobile-retry": {
-      "message": "Erneut senden"
     },
     "ad-label": {
       "message": "Anzeige"
@@ -1825,6 +1825,12 @@
     },
     "freshtab.app.middle-box.french-news-cta": {
         "message": "Essayez dès maintenant !"
+    },
+    "freshtab.app.middle-box.promote-mobile-hdr": {
+        "message": "Cliqz für Android und iOS"
+    },
+    "freshtab.app.middle-box.promote-mobile-desc": {
+        "message": "Profitiere auch unterwegs von Schnellsuche, Datenschutz und Werbeblocker. Lade jetzt die kostenlose Cliqz-App herunter!"
     },
     "freshtab.app.news.breaking-news": {
         "message": "Eilmeldung:"

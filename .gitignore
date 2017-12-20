@@ -1,4 +1,5 @@
 *.xpi
+*.zip
 *.pyc
 *~
 *#
@@ -44,3 +45,4 @@ results.xml
 jsengine.bundle.js
 jsengine.bundle.js.meta
 .node-persist
+yarn.lock

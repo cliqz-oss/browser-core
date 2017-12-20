@@ -4,7 +4,7 @@ const moment = require('moment');
 export default describeModule("core/anacron",
   function () {
     return {
-      'platform/moment': {
+      'platform/lib/moment': {
         default: moment,
       },
       'core/cliqz': { utils: { } },

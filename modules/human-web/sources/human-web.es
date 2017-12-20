@@ -18,6 +18,7 @@ import fastUrl from '../core/fast-url-parser';
 import { normalizeAclkUrl } from './ad-detection';
 import { getActiveTab } from '../platform/browser';
 import DoublefetchHandler from './doublefetch-handler';
+import { getTabInfo } from '../platform/human-web/tabInfo';
 
 let refineFuncMappings;
 
@@ -27,7 +28,7 @@ Configuration for Bloomfilter
 
 const bloomFilterSize = 500001;// false-positive 0.01, hashes 7
 const bloomFilterNHashes = 7;
-const allowedCountryCodes = ['de', 'at', 'ch', 'es', 'us', 'fr', 'nl', 'gb', 'it', 'se'];
+const allowedCountryCodes = config.settings.ALLOWED_COUNTRY_CODES;
 
 function _log(msg) {
   if  (CliqzHumanWeb.debug) {
@@ -494,49 +495,71 @@ const CliqzHumanWeb = {
     },
     httpObserver: {
         // check the non 2xx page and report if this is one of the cliqz result
-        observeActivity: function({ url: aUrl, type, responseStatus, statusCode, responseHeaders }) {
-          /*
-          if(isPrivate) {
+        observeActivity: function({ url: aUrl, type, responseStatus, statusCode, responseHeaders, isPrivate, tabId }) {
+
+          // For bootstrap, we can rely on isPrivate.
+          // For web-extensions, we need to get the tab.incognito property,
+          // That is why we have an implementation in platforms.
+          // The platform/firefox, just mocks the needed properties.
+
+          // If isPrivate true, then drop it. Works for bootstrap.
+          // Once #4705 lands in master, isPrivate should work for web-extension.
+
+          if (isPrivate) {
             return;
           }
-          */
 
-          // console.log(` http observer : >>>> ${type} >>>>> URL: ${aUrl}`);
-          // Check only main document load.
+          // But we are only concerned, with main_frame tabs,
+          // hence we can return all the others, from this point.
 
           if (type !== 6 && type !== 'main_frame') {
             return;
           }
 
-          // Detect ad click
-          CliqzHumanWeb.detectAdClick(aUrl);
+          // If it's webextension and private mode, it will still reach this point,
+          // so we need to get the details from tab, which is async.
+          // The platform/firefox/human-web/tabInfo.es is just a mock of properties required.
+          // For bootstrap-privateMode it should never reach here, hence the mocked properties.
 
-          const url = decodeURIComponent(aUrl);
-          const status = responseStatus || statusCode;
-          const headers = responseHeaders;
+          getTabInfo(tabId, type)
+            .then( (tab) => {
 
-          if (status === 301 || status === 302) {
-            let location;
-            headers.forEach( eachHeader => {
-              if (eachHeader.name && eachHeader.name.toLowerCase() === 'location') {
-                location = eachHeader.value;
-              }
+                if (tab.isWebExtension && tab.isPrivate) {
+                    return;
+                } else {
+
+                  // Detect ad click
+                  CliqzHumanWeb.detectAdClick(aUrl);
+
+                  const url = decodeURIComponent(aUrl);
+                  const status = responseStatus || statusCode;
+                  const headers = responseHeaders;
+
+                  if (status === 301 || status === 302) {
+                    let location;
+                    headers.forEach( eachHeader => {
+                      if (eachHeader.name && eachHeader.name.toLowerCase() === 'location') {
+                        location = eachHeader.value;
+                      }
+                    });
+                    CliqzHumanWeb.httpCache[url] = {
+                      status: status,
+                      time: CliqzHumanWeb.counter,
+                      location,
+                    };
+                  } else if (status === 401) {
+                    CliqzHumanWeb.httpCache401[url] = {
+                      time: CliqzHumanWeb.counter
+                    };
+                  } else if(status) {
+                    CliqzHumanWeb.httpCache[url] = {
+                      status: status,
+                      time: CliqzHumanWeb.counter
+                    };
+                  }
+                }
             });
-            CliqzHumanWeb.httpCache[url] = {
-              status: status,
-              time: CliqzHumanWeb.counter,
-              location,
-            };
-          } else if (status === 401) {
-            CliqzHumanWeb.httpCache401[url] = {
-              time: CliqzHumanWeb.counter
-            };
-          } else if(status) {
-            CliqzHumanWeb.httpCache[url] = {
-              status: status,
-              time: CliqzHumanWeb.counter
-            };
-          }
+
         }
     },
     onVisitRemoved(removed) {
@@ -2122,8 +2145,9 @@ const CliqzHumanWeb = {
                   ["human-web","patterns"],
                   {
                       chromeURL: config.baseURL + "bower_components/patterns/index",
-                      remoteURL : CliqzHumanWeb.patternsURL,
+                      remoteURL: CliqzHumanWeb.patternsURL,
                       cron: 1 * 20 * 60 * 1000,
+                      remoteOnly: true,
                   }
               );
 
@@ -2139,8 +2163,9 @@ const CliqzHumanWeb = {
                   ["human-web","patterns-anon"],
                   {
                       chromeURL: config.baseURL + "bower_components/anonpatterns/index",
-                      remoteURL : CliqzHumanWeb.anonPatternsURL,
+                      remoteURL: CliqzHumanWeb.anonPatternsURL,
                       cron: 1 * 20 * 60 * 1000,
+                      remoteOnly: true,
                   }
               );
 
@@ -3559,37 +3584,43 @@ const CliqzHumanWeb = {
             // Check URL is suspicious
             if (CliqzHumanWeb.isSuspiciousURL(url)) {
                 _log("Url is suspicious");
-                return;
+                url = '(PROTECTED)';
             }
 
             // Check URL is dangerous, with strict DROPLONGURL.
             if (CliqzHumanWeb.dropLongURL(url, {strict: true})) {
-                _log("Url is dangerous");
-                return;
+                // If it's Google / Yahoo / Bing. Then mask and send them.
+                if (CliqzHumanWeb.checkSearchURL(url) > -1) {
+                  url = CliqzHumanWeb.maskURL(url);
+                } else {
+                  url = '(PROTECTED)';
+                }
+
             }
 
             // Check for DNS.
             CliqzHumanWeb.isHostNamePrivate(url).then( res => {
+              let maskedURL = null;
                 if (res) {
                     _log("Private Domain");
-                    return;
+                    maskedURL = '(PROTECTED)';
                 } else {
                     // Mask URL.
-                    let maskedURL = CliqzHumanWeb.maskURL(url);
-
-                    // Cases when query and URL are same.
-                    if (url === query){
-                        sanitisedQuery = "(PROTECTED)";
-                        maskedURL = sanitisedQuery;
-                    }
-                    // Check if query failed any checks, then replace it with
-                    // a placeholder.
-                    if (sanitisedQuery) {
-                        query = sanitisedQuery;
-                        maskedURL = sanitisedQuery;
-                    }
-                    CliqzHumanWeb.sendResultTelemetry(query, maskedURL, data);
+                    maskedURL = CliqzHumanWeb.maskURL(url);
                 }
+
+                // Cases when query and URL are same.
+                if (url === query){
+                    sanitisedQuery = "(PROTECTED)";
+                    maskedURL = sanitisedQuery;
+                }
+                // Check if query failed any checks, then replace it with
+                // a placeholder.
+                if (sanitisedQuery) {
+                    query = sanitisedQuery;
+                    maskedURL = sanitisedQuery;
+                }
+                CliqzHumanWeb.sendResultTelemetry(query, maskedURL, data);
             });
         } else {
             // The URL was not a URL hence drop it.

@@ -188,6 +188,10 @@ body {
         background-image: url(https://cdn.cliqz.com/extension/newtab/background/alps.jpg);
     }
 
+    &.theme-bg-winter {
+        background-image: url(https://cdn.cliqz.com/extension/newtab/background/winter.jpg);
+    }
+
     &.theme-bg-dark,
     &.theme-bg-blue {
         #app {
@@ -195,6 +199,37 @@ body {
 
             @include responsive($dark-theme);
             @include undo-notifications(map-get($dark-theme, base)...);
+        }
+    }
+
+    &.theme-bg-winter {
+        #app {
+            #main-content {
+                .fixed-container {
+                    .middle-notification-box {
+                        background-color: rgba(255, 255, 255, 0.7);
+                    }
+
+                    #section-news {
+                        .news-pagination {
+                            .dash span {
+                                background-color: rgba(255, 255, 255, 0.6);
+                            }
+
+                            .dash.active span {
+                                background-color: rgba(255, 255, 255, 0.9);
+                            }
+
+                            .dash.active:hover span,
+                            .dash:hover span {
+                                background-color: rgba(255, 255, 255, 1);
+                            }
+
+                        }
+                    }
+
+                }
+            }
         }
     }
 

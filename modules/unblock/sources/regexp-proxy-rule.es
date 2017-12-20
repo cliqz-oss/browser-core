@@ -1,4 +1,4 @@
-export default class {
+export default class RegexpProxyRule {
   /**
   * @class RegexProxyRule
   * @namespace unblock

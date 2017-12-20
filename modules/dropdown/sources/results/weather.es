@@ -1,6 +1,6 @@
 import BaseResult from './base';
 
-export default class extends BaseResult {
+export default class WeatherResult extends BaseResult {
 
   get template() {
     return 'weather';

@@ -21,7 +21,7 @@ export default class extends React.Component {
   displayLink(link) {
     return (
       <Link to={link.url} style={styles.row} key={link.url}>
-        <Text style={styles.text}>{link.title}</Text>
+        <Text style={styles.text}>{link.title_locale || link.title}</Text>
       </Link>
     );
   }

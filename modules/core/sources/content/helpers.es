@@ -50,6 +50,10 @@ export function getWindowTreeInformation(window) {
   };
 }
 
+export function throttle() {
+  // TODO: @remusao - green ads content script rely on this but it is missing
+}
+
 export const CHROME_MSG_SOURCE = 'cliqz-content-script';
 
 export function isCliqzContentScriptMsg(msg) {

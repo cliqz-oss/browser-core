@@ -9,6 +9,7 @@ import CachedMap from '../core/persistence/cached-map';
 import UrlbarButton from '../core/ui/urlbar-button';
 import { getMessage } from '../core/i18n';
 import inject from '../core/kord/inject';
+import events from '../core/events';
 
 export default background({
   core: inject.module('core'),
@@ -59,6 +60,7 @@ export default background({
           }
         );
       });
+      events.pub(`pairing.${action}`, this.peerSlave.pairingInfo);
     }
 
     const uiObs = new PairingObserver();
@@ -80,7 +82,9 @@ export default background({
           let oldData = {};
           return Promise.resolve()
             .then(() => oldStorage.open('data', ['cliqz', 'pairing'], true, true))
-            .then(() => (oldData = oldStorage.istorage.obj))
+            .then(() => {
+              oldData = oldStorage.istorage.obj;
+            })
             .catch(() => {})
             .then(() => oldStorage.destroy())
             .catch(() => {})

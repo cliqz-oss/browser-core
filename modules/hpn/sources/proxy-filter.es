@@ -1,13 +1,13 @@
 import CliqzUtils from '../core/utils';
 import console from '../core/console';
-import ProxyFilter from '../platform/proxy-filter';
+import ProxyFilterBase from '../platform/proxy-filter';
 import { getRandomIntInclusive } from './utils';
 import CliqzSecureMessage from './main';
 /*
 Picked up from unblock proxy.es
 */
 
-export default class extends ProxyFilter {
+export default class ProxyFilter extends ProxyFilterBase {
   /**
   * Wrapper for rule-based url proxying: implementation for Firefox
   * @class Proxy

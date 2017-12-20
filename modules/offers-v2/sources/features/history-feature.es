@@ -52,5 +52,9 @@ export default class HistoryFeature extends Feature {
     return promise;
   }
 
+  removeEntry(pid) {
+    return this.mod.action('removeEntry', pid);
+  }
+
 
 }

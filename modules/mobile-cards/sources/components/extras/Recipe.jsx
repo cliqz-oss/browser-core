@@ -4,9 +4,9 @@ import { StyleSheet, View, Text } from 'react-native';
 import { getMessage } from '../../../core/i18n';
 import ExpandView from '../ExpandView';
 import Rating from '../partials/Rating';
-import { elementSideMargins } from '../../styles/CardStyle';
+import { elementTopMargin, elementSideMargins } from '../../styles/CardStyle';
 
-// trigger with query: beef jerk
+// trigger with query: beef jerky chefkoch
 // make sure results are set to germany
 
 export default class extends React.Component {
@@ -20,11 +20,13 @@ export default class extends React.Component {
       .map(key => <ExpandView key={key} header={getMessage(key)} content={richData.mobi[key]} />);
 
     return <View style={{ marginTop: 5 }}>
-      <View style={{ ...elementSideMargins }}>
+      <View style={ elementSideMargins }>
         <Rating image={richData.url_ratingimg}/>
         <Text style={{color: 'black'}}>{getMessage('CookTime', richData.cook_time)}</Text>
       </View>
-      { details }
+      <View style={ elementTopMargin }>
+        { details }
+      </View>
     </View>
   }
 }

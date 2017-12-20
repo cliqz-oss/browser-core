@@ -2,7 +2,6 @@
 
 'use strict';
 
-const assert = require('assert');
 const childProcess = require('child_process');
 const os = require('os');
 
@@ -31,17 +30,17 @@ const fs = require('fs');
 const wrench = require('wrench');
 const glob = require('glob');
 const colors = require('colors');
-const broccoli = require('broccoli');
 const path = require('path')
 const rimraf = require('rimraf');
 const chalk = require('chalk');
 const notifier = require('node-notifier');
-const copyDereferenceSync = require('copy-dereference').sync
 
 const common = require('./fern/commands/common');
+require('./fern/commands/build');
 require('./fern/commands/serve');
 require('./fern/commands/test');
 require('./fern/commands/pack');
+require('./fern/commands/version');
 
 const setConfigPath = common.setConfigPath;
 const getExtensionVersion = common.getExtensionVersion;
@@ -79,61 +78,11 @@ program.command('install')
           console.log(chalk.green('DONE!'))
        });
 
-program.command('addon-version')
-       .action(() => {
-          getExtensionVersion('package').then(version => {
-            console.log(version)
-          });
-        });
-
 program.command('addon-id [file]')
        .action((configPath) => {
           setConfigPath(configPath);
           console.log(CONFIG.settings.id || 'cliqz@cliqz.com')
         });
-
-program.command('build [file]')
-       .option('--no-maps', 'disables source maps')
-       .option('--no-debug', 'disables debug pages')
-       .option('--version [version]', 'sets extension version', 'package')
-       .option('--environment <environment>')
-       .option('--to-subdir', 'build into a subdirectory named after the config')
-       .option('--instrument-functions', 'enable function instrumentation for profiling')
-       .action((configPath, options) => {
-          const buildStart = Date.now();
-          const cfg = setConfigPath(configPath, options.toSubdir);
-          const CONFIG = cfg.CONFIG;
-          const OUTPUT_PATH = cfg.OUTPUT_PATH;
-
-          process.env['CLIQZ_ENVIRONMENT'] = options.environment || 'development';
-          process.env['CLIQZ_SOURCE_MAPS'] = options.maps;
-          process.env['CLIQZ_SOURCE_DEBUG'] = options.debug;
-          process.env['CLIQZ_INSTRUMENT_FUNCTIONS'] = options.instrumentFunctions || '';
-
-          console.log("Starting build");
-          cleanupDefaultBuild();
-
-          getExtensionVersion(options.version).then(tag => {
-            process.env.EXTENSION_VERSION = tag;
-            assert(OUTPUT_PATH);
-
-            cleanupDefaultBuild();
-            const node = broccoli.loadBrocfile();
-            const builder = new broccoli.Builder(node, {
-              outputDir: OUTPUT_PATH
-            });
-            builder.build()
-              .then(() => {
-                copyDereferenceSync(builder.outputPath, OUTPUT_PATH);
-                console.log('Build successful');
-                process.exit(0);
-              })
-              .catch(err => {
-                console.error('Build error', err)
-                process.exit(1);
-              });
-          });
-       });
 
 program.command('test-webext')
        .action(() => {

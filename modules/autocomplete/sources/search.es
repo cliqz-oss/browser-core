@@ -310,7 +310,7 @@ export default class Search {
       this.historyTimer = utils.setTimeout(this.historyTimeoutCallback, this.HISTORY_TIMEOUT, this.searchString);
       this.historyTimeout = false;
       // trigger history search
-      utils.historySearch(searchString, this.onHistoryDone.bind(this), utils.isPrivate(window));
+      utils.historySearch(searchString, this.onHistoryDone.bind(this), utils.isPrivateMode(window));
 
       var hist_search_type = utils.getPref('hist_search_type', 0);
       if (hist_search_type != 0) {

@@ -5,6 +5,7 @@ const componentInterface = {
   name: 'NativeDrawable',
   propTypes: {
     source: PropTypes.string,
+    color: PropTypes.string,
     ...ViewPropTypes // include the default view properties
   },
 };

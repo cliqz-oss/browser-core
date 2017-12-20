@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import NativeDrawable, { normalizeUrl } from './custom/NativeDrawable';
 import Link from './Link';
-import { elementTopMargin, elementSideMargins } from '../styles/CardStyle';
+import { elementSideMargins } from '../styles/CardStyle';
 
 export default class extends React.Component {
 
@@ -13,35 +13,35 @@ export default class extends React.Component {
   }
 
   displayInstruction(text, index) {
-    const indexedText = `${index + 1}. ${text}`;
     return (
-      <Text key={index} style={styles().item}>{indexedText}</Text>
+      <Text key={index} style={styles().item}>{ text }</Text>
     );
   }
 
   render() {
     const isCollapsed = this.state.collapsed;
-    const ratingImageName = normalizeUrl('arrow-down.svg');
+    const arrowImage = normalizeUrl('arrow-down.svg');
     return (
-      <View style={styles().container}>
-        <View style={styles().content}>
-          <Link
-            onPress={() => this.setState({collapsed: !this.state.collapsed})}
-          >
-            <View style={styles().header}>
-              <View style={{ flex: 10, flexDirection: 'row', justifyContent: 'flex-start' }}>
-                {<Text style={styles().headerText}>{this.props.header}</Text>}
+      <View>
+        <Link
+          onPress={() => this.setState({collapsed: !this.state.collapsed})}
+        >
+          <View style={styles().container}>
+            <View style={styles().content}>
+              <View style={styles().header}>
+                <View style={{ flex: 10, flexDirection: 'row', justifyContent: 'flex-start' }}>
+                  {<Text style={styles().headerText}>{this.props.header}</Text>}
+                </View>
+                <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end' }}>
+                  {<NativeDrawable source={arrowImage} style={styles(this.state.collapsed).arrow} />}
+                </View>
               </View>
-              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end' }}>
-                {<NativeDrawable source={ratingImageName} style={styles(this.state.collapsed).arrow} />}
-              </View>
-
             </View>
-          </Link>
-          { isCollapsed ||
-            this.props.content.map(this.displayInstruction)
-          }
-        </View>
+          </View>
+        </Link>
+        { isCollapsed ||
+          this.props.content.map(this.displayInstruction)
+        }
       </View>
     );
   }
@@ -53,7 +53,6 @@ const styles = (collapsed = true) => StyleSheet.create({
     borderBottomWidth: 1,
     borderTopColor: '#EDECEC',
     borderBottomColor: '#EDECEC',
-    ...elementTopMargin,
   },
   headerText: {
     paddingTop: 3,
@@ -66,8 +65,8 @@ const styles = (collapsed = true) => StyleSheet.create({
     ...elementSideMargins,
   },
   arrow: {
-    height: 16,
-    width: 16,
+    height: 8,
+    width: 12,
     transform: [{ rotateX: collapsed ? '0deg' : '180deg' }],
   },
   header: {
@@ -77,5 +76,6 @@ const styles = (collapsed = true) => StyleSheet.create({
   item: {
     color: 'black',
     marginTop: 12,
+    ...elementSideMargins,
   },
 });

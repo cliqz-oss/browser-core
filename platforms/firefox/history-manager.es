@@ -229,8 +229,10 @@ var CliqzHistoryManager = {
   removeFromBookmarks: function(url) {
     try {
       const uri = CliqzHistoryManager.makeURI(url);
-      var itemId = PlacesUtils.getBookmarksForURI(uri);
-      bookmarkService.removeItem(itemId[0]);
+      const [itemId] = PlacesUtils.getBookmarksForURI(uri);
+      if (itemId) {
+        bookmarkService.removeItem(itemId);
+      }
     } catch(e) {
       utils.log(e.message, "Error removing entry from bookmarks");
     }

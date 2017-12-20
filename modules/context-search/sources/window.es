@@ -2,7 +2,7 @@
  * @namespace context-search
  * @class Window
  */
-export default class {
+export default class Win {
   constructor(settings) {
     this.window = settings.window;
     this.settings = settings.settings;

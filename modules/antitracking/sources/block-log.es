@@ -4,7 +4,7 @@ import { events } from '../core/cliqz';
 import * as datetime from './time';
 
 
-export default class {
+export default class BlockLog {
 
   constructor(telemetry, config) {
     this.telemetry = telemetry;

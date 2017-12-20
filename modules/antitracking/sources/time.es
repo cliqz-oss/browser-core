@@ -1,7 +1,15 @@
 import utils from '../core/utils';
 
 // this is the sanitised timestamp retrieved from humanweb.
-export let hwTs = utils.getPref('config_ts', null);
+let hwTs = null;
+
+export function getConfigTs() {
+  // lazy loading of pref
+  if (hwTs === null) {
+    hwTs = utils.getPref('config_ts', null);
+  }
+  return hwTs;
+}
 
 export function updateTimestamp(ts) {
   hwTs = ts;

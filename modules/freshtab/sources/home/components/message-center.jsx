@@ -40,6 +40,7 @@ export default class MessageCenter extends React.Component {
           messages={this.state.middle}
           settingsIcon={this.props.settingsElem}
           handleLinkClick={this.props.handleLinkClick}
+          locale={this.props.locale}
         />
       );
     }

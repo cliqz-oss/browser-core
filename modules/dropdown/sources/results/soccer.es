@@ -211,7 +211,7 @@ class TableGroup extends BaseResult {
 class SoccerSubResult extends BaseResult {
 }
 
-export default class extends GenericResult {
+export default class SoccerResult extends GenericResult {
   constructor(rawResult, allResultsFlat = []) {
     super(rawResult, allResultsFlat);
 

@@ -72,6 +72,11 @@ export default describeModule('offers-v2/offer_processor',
     'platform/console': {
       default: {},
     },
+    'core/prefs': {
+      default: {
+        get() {}
+      },
+    },
     'core/events': {
       default: {
         msgs: {},

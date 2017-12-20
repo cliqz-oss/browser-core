@@ -2,6 +2,11 @@
 /* global describeModule */
 /* global require */
 
+const encoding = require('text-encoding');
+
+const TextDecoder = encoding.TextDecoder;
+const TextEncoder = encoding.TextEncoder;
+
 let processRawReqFun = null;
 const mockedTS = Date.now();
 
@@ -33,9 +38,16 @@ const DAY_HISTORY_MOCK_MAP = {
   '20170905': [],
 };
 
+
 export default describeModule('history-analyzer/worker/history_proc',
   () => ({
     'platform/console': {
+    },
+    'platform/text-decoder': {
+      default: TextDecoder,
+    },
+    'platform/text-encoder': {
+      default: TextEncoder,
     },
     'core/cliqz': {
       utils: {

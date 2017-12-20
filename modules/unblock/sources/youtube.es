@@ -10,7 +10,7 @@ function queryHTML(...args) {
   return core.action('queryHTML', ...args);
 }
 
-export default class {
+export default class Youtube {
   /**
   * DNS Filter for unblocking YT videos
   * @class Youtube

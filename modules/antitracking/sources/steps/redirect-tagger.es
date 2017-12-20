@@ -5,7 +5,7 @@ import console from '../../core/console';
  * Caches 302 redirects so that we can ensure that the resulting request is properly
  * passed through the token logic.
  */
-export default class {
+export default class RedirectTagger {
 
   constructor() {
     this.redirectCache = new TempSet();

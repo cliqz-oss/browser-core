@@ -14,7 +14,9 @@
     "cliqz-adb-disk-cache": false,
     "cliqz-adb-abtest": true,
     "antitrackingBlocklist": "ghostery",
-    "clostery.categoryPolicies": "{\"essential\": \"ALLOW_SAFE\"}"
+    "clostery.categoryPolicies": "{\"essential\": \"ALLOW_SAFE\"}",
+    "CDN_BASEURL": "https://cdn2.ghostery.com",
+    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"]
   },
   "modules": [
     "core",

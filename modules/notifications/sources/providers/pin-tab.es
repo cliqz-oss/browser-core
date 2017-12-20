@@ -15,7 +15,7 @@ const activeTabsForDomain = domain => getWindows()
 const activeUrlsForDomain = domain => activeTabsForDomain(domain)
   .map(tab => tab.url);
 
-export default class {
+export default class PinTab {
 
   constructor({ domain, selector, attribute }) {
     this.domain = domain;

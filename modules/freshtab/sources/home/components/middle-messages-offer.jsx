@@ -1,6 +1,3 @@
-/* global $ */
-/* global window */
-/* global document */
 import React from 'react';
 import ReactTooltip from 'react-tooltip';
 import PropTypes from 'prop-types';

@@ -3,7 +3,7 @@ import events from "./events";
 import HistoryManager from "./history-manager";
 import CliqzABTests from "./ab-tests";
 
-export default class {
+export default class Win {
 
   constructor(settings) {
   	this.window = settings.window;

@@ -27,7 +27,7 @@ function onLocationChange({ url, windowId, tabId }) {
   }.bind(this), 2000);
 }
 
-export default class {
+export default class Win {
 
   constructor({ window, windowId }) {
     this.window = window;
@@ -39,14 +39,20 @@ export default class {
   }
 
   init() {
-    this.onLocationChangeSubscription = events.subscribe("content:location-change",
-      ({ windowId, url, windowTreeInformation: { tabId }}) => this.onLocationChange({ windowId, url, tabId }));
-    this.onTabSelect = events.subscribe('core:tab_select', this.onLocationChange);
+    if (this.controlCenter.isEnabled()) {
+      this.onLocationChangeSubscription = events.subscribe("content:location-change",
+        ({ windowId, url, windowTreeInformation: { tabId }}) => this.onLocationChange({ windowId, url, tabId }));
+      this.onTabSelect = events.subscribe('core:tab_select', this.onLocationChange);
+    }
   }
 
   unload() {
-    this.onLocationChangeSubscription.unsubscribe();
-    this.onTabSelect.unsubscribe();
+    if (this.onLocationChangeSubscription) {
+      this.onLocationChangeSubscription.unsubscribe();
+    }
+    if (this.onTabSelect) {
+      this.onTabSelect.unsubscribe();
+    }
     utils.clearInterval(this.interval);
   }
 

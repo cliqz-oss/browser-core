@@ -5,10 +5,17 @@ import Defer from './defer';
 import Service from './service';
 import inject from '../kord/inject';
 import { Window } from '../../platform/browser';
+import EventEmitter from '../event-emitter';
 
+export const lifecycleEvents = {
+  enabled: 'enabled',
+  disabled: 'disabled',
+};
+const eventNames = Object.keys(lifecycleEvents).map(k => lifecycleEvents[k]);
 
-export default class Module {
+export default class Module extends EventEmitter {
   constructor(name, settings) {
+    super(eventNames);
     this.name = name;
     this.loadingTime = null;
     this.settings = settings;
@@ -87,6 +94,7 @@ export default class Module {
         this.loadingTime = Date.now() - loadingStartedAt;
         console.log('Module: ', this.name, ' -- Background loaded');
         this._bgReadyDefer.resolve();
+        this.emit(lifecycleEvents.enabled);
       })
       .catch((e) => {
         this._state = 'disabled';
@@ -111,6 +119,7 @@ export default class Module {
       this._bgReadyDefer = new Defer();
     }
     console.log('Module', this.name, 'unloading finished');
+    this.emit(lifecycleEvents.disabled);
   }
 
   /**

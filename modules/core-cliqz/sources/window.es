@@ -4,7 +4,7 @@ import { isMobile } from '../core/platform';
 /**
 * @namespace theme
 */
-export default class {
+export default class Win {
   /**
   * @class Theme
   * @constructor

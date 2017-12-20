@@ -5,7 +5,8 @@ import Card from './Card';
 import SearchEngineCard from './SearchEngineCard';
 import { getVPWidth, getCardWidth } from '../styles/CardStyle';
 import { openLink } from '../../platform/browser-actions';
-import { handleAutoCompletion } from '../../platform/auto-completion';
+import handleAutoCompletion from '../../platform/auto-completion';
+import sendTelemetry from '../../platform/cards-telemetry';
 
 const INITIAL_PAGE_INDEX = 0;
 const MAX_ORGANIC_RESULTS = 3;
@@ -14,6 +15,7 @@ class CardList extends React.Component {
 
   constructor(props) {
     super(props);
+    this.resetTelemetryParams();
     this.state = {
       vp: {
         width: getVPWidth(),
@@ -21,21 +23,58 @@ class CardList extends React.Component {
     };
   }
 
-  componentDidUpdate() {
-    setTimeout(() => {
-      this.handleSwipe(INITIAL_PAGE_INDEX);
-    }, 0);
+  resetTelemetryParams() {
+    this.cardViews = { 0: 1 }
+    this.cardShowTs = Date.now();
+    this.lastCardIndex = INITIAL_PAGE_INDEX;
   }
 
   componentWillReceiveProps() {
-    this._carousel && this._carousel.snapToItem(INITIAL_PAGE_INDEX);
+    this.resetTelemetryParams();
+  }
+  
+  sendResultsRenderedTelemetry(nResults) {
+    sendTelemetry({
+      type: 'cards',
+      action: 'results_rendered',
+      nResults: nResults,
+    });
+  }
+
+  sendSwipeTelemetry(selectedResult, index, nCards) {
+    if (this.lastCardIndex === index) {
+      return; // automatic swipe to initial index
+    }
+    const direction = this.lastCardIndex > index ? 'left' : 'right';
+    const resultKind = (selectedResult.data.kind || []);
+    const msg = {
+      type: 'cards',
+      action: `swipe_${direction}`,
+      index,
+      show_count: this.cardViews[index],
+      show_duration: Date.now() - this.cardShowTs,
+      card_count: nCards,
+      position_type: resultKind,
+    }
+    sendTelemetry(msg);
+    this.lastCardIndex = index;
+  }
+
+  autocomplete({ val, query, searchString }) {
+    handleAutoCompletion(val, query || searchString);
   }
 
   handleSwipe(index) {
-    if (this._carousel) {
-      const selectedResult = this._carousel._getCustomData()[index];
-      handleAutoCompletion(selectedResult.val, selectedResult.query);
-    }
+    // handleswipe will be called before rendering
+    // when snapping back to the initial visible page
+    setTimeout(() => {
+      this.cardViews[index] = (this.cardViews[index] || 0) + 1;
+      if (this._carousel) {
+        const selectedResult = this._carousel._getCustomData()[index];
+        this.autocomplete(selectedResult);
+        this.sendSwipeTelemetry(selectedResult, index, this._carousel._getCustomDataLength());
+      }
+    }, 0);
   }
 
   filterResults(results = []) {
@@ -46,7 +85,43 @@ class CardList extends React.Component {
       }
       return count;
     }, 0);
-    return results.filter((result, index) => index < historyResultsCount + MAX_ORGANIC_RESULTS);
+    return (
+      results
+        .filter(result => !result.extra || !result.extra.is_ad) // filter offers
+        .filter((result, index) => index < historyResultsCount + MAX_ORGANIC_RESULTS)
+    );
+  }
+
+  componentWillUpdate(nextProps, nextState) {
+    const isRotation = nextState.vp.width !== this.state.vp.width;
+    const carousel = this._carousel;
+    if (!carousel) {
+      return;
+    }
+    if (!isRotation) {
+      carousel.snapToItem(INITIAL_PAGE_INDEX);
+    }
+  }
+
+  renderItem({ item: result, index }) {
+    if (result.isSearch) {
+      return (
+        <SearchEngineCard
+          index={index}
+          result={result}
+          noResults={!Boolean(index)}
+          width={getCardWidth()}
+        />
+      );
+    }
+    return (
+      <Card
+        index={index}
+        width={getCardWidth()}
+        result={result}
+        openLink={openLink}
+      />
+    );
   }
 
   render() {
@@ -58,46 +133,41 @@ class CardList extends React.Component {
 
     const searchResult = {
       searchString: result._searchString,
-    };
-
-    const renderItem = ({ item: result, index }) => {
-      if (result.searchString) {
-        return (
-          <SearchEngineCard
-            noResults={!Boolean(index)}
-            width={getCardWidth()}
-            query={result.searchString}
-          />
-        );
+      isSearch: true,
+      data: {
+        kind: ['default_search'],
       }
-      return (
-        <Card
-          index={index}
-          style={styles.card}
-          width={getCardWidth()}
-          result={result}
-          openLink={openLink}
-        />
-      );
-    }
+    };
 
     return (
       <Carousel
         onLayout={() => {
-          this.setState({
-            vp: {
-              width: getVPWidth(),
-            }
-          });
+          const width = getVPWidth();
+          if (width !== this.state.vp.width) {
+            this.setState({
+              vp: {
+                width: getVPWidth(),
+              }
+            });
+          }
         }}
         ref={(c) => { this._carousel = c; }}
         data={resultList.concat(searchResult)}
-        renderItem={renderItem}
+        renderItem={this.renderItem}
         sliderWidth={this.state.vp.width}
         itemWidth={getCardWidth()}
         onSnapToItem={this.handleSwipe.bind(this)}
       />
     )
+  }
+
+  componentDidUpdate() {
+    const carousel = this._carousel;
+    if (!carousel) {
+      return;
+    }
+    this.autocomplete(carousel._getCustomData()[INITIAL_PAGE_INDEX]);
+    this.sendResultsRenderedTelemetry(carousel._getCustomDataLength() - 1);
   }
 }
 

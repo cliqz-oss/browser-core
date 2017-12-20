@@ -89,6 +89,7 @@ class WebRequestContext {
     this.isRedirect = details.isRedirect;
     this.statusCode = details.statusCode;
     this.fromCache = details.fromCache;
+    this.isPrivate = details.isPrivate || false;
   }
 
   get urlParts() {

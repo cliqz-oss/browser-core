@@ -23,7 +23,7 @@ export default class extends React.Component {
                       .replace(/\$.*/, '$_192.png');
       return (
           <Image
-            style={{width, height}}
+            style={{width, height, backgroundColor: 'white'}}
             source={{uri: iconUrl}}
           />
       )

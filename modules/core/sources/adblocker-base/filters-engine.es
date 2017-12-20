@@ -1,10 +1,9 @@
 import tlds from '../tlds';
 import ReverseIndex from './reverse-index';
-import { tokenize, fastHash, packInt32, fastStartsWith } from './utils';
+import { tokenize, fastHash, fastStartsWith } from './utils';
 import {
   parseList,
   parseJSResource,
-  NetworkFilter,
   CosmeticFilter
 } from './filters-parsing';
 import {
@@ -12,6 +11,8 @@ import {
   matchCosmeticFilter
 } from './filters-matching';
 import networkFiltersOptimizer from './optimizer';
+
+import { serializeEngine } from './serialization';
 
 
 /**
@@ -26,6 +27,10 @@ class NetworkFilterBucket {
       filter => filter.getTokens(),
       { optimizer: networkFiltersOptimizer },
     );
+  }
+
+  get size() {
+    return this.index.size;
   }
 
   report() { return this.index.report(); }
@@ -61,7 +66,7 @@ class CosmeticFilterBucket {
       (filters || []).filter(f => f.hasHostnames()),
       (filter) => {
         const multiTokens = [];
-        filter.getHostnames().forEach((h) => {
+        filter.hostnames.split(',').forEach((h) => {
           multiTokens.push(tokenize(h));
         });
         return multiTokens;
@@ -77,6 +82,10 @@ class CosmeticFilterBucket {
       filter => filter.getTokensSelector(),
       {},
     );
+  }
+
+  get size() {
+    return this.hostnameIndex.size + this.selectorIndex.size;
   }
 
   optimizeAheadOfTime() { /* not implemented */ }
@@ -164,7 +173,7 @@ class CosmeticFilterBucket {
           if (scriptName.indexOf(',') !== -1) {
             const parts = scriptName.split(',');
             scriptName = parts[0];
-            scriptArguments = parts.slice(1).map(String.trim);
+            scriptArguments = parts.slice(1).map(s => s.trim());
           }
 
           let script = js.get(scriptName);
@@ -199,7 +208,7 @@ class CosmeticFilterBucket {
       const node = nodeInfo[i];
       // For each attribute of the node: [id, tagName, className] = node
       for (let j = 0; j < node.length; j += 1) {
-        tokens.add(packInt32(fastHash(node[j])));
+        tokens.add(fastHash(node[j]));
       }
     }
 
@@ -277,10 +286,7 @@ export default class FilterEngine {
     this.optimizeAOT = optimizeAOT;
     this.version = version;
 
-    this.lists = Object.create(null);
-    this.resourceChecksum = null;
-
-    this.size = 0;
+    this.lists = new Map();
 
     // @@filter
     this.exceptions = new NetworkFilterBucket('exceptions');
@@ -293,55 +299,50 @@ export default class FilterEngine {
     // Cosmetic filters
     this.cosmetics = new CosmeticFilterBucket();
 
-    // injections
+    // Injections
+    this.resourceChecksum = '';
     this.js = new Map();
     this.resources = new Map();
   }
 
+  get size() {
+    return (
+      this.exceptions.size +
+      this.importants.size +
+      this.redirects.size +
+      this.cosmetics.size +
+      this.filters.size
+    );
+  }
+
   hasList(asset, checksum) {
-    const list = this.lists[asset];
-    if (list !== undefined) {
-      return list.checksum === checksum;
+    if (this.lists.has(asset)) {
+      return this.lists.get(asset).checksum === checksum;
     }
     return false;
   }
 
   collectAllFilters() {
-    const allFilters = [];
-    const allExceptions = [];
-    const allRedirects = [];
-    const allImportants = [];
-    const allCosmetics = [];
+    const filters = [];
+    const exceptions = [];
+    const redirects = [];
+    const importants = [];
+    const cosmetics = [];
 
-    let j;
-    const allLists = Object.keys(this.lists);
-    for (let i = 0; i < allLists.length; i += 1) {
-      const { filters
-            , exceptions
-            , importants
-            , redirects
-            , cosmetics } = this.lists[allLists[i]];
-
-      for (j = 0; j < filters.length; j += 1) { allFilters.push(filters[j]); }
-      for (j = 0; j < exceptions.length; j += 1) { allExceptions.push(exceptions[j]); }
-      for (j = 0; j < importants.length; j += 1) { allImportants.push(importants[j]); }
-      for (j = 0; j < redirects.length; j += 1) { allRedirects.push(redirects[j]); }
-      for (j = 0; j < cosmetics.length; j += 1) { allCosmetics.push(cosmetics[j]); }
-    }
+    this.lists.forEach((list) => {
+      filters.push(list.filters);
+      exceptions.push(list.exceptions);
+      importants.push(list.importants);
+      redirects.push(list.redirects);
+      cosmetics.push(list.cosmetics);
+    });
 
     return {
-      filters: allFilters,
-      exceptions: allExceptions,
-      redirects: allRedirects,
-      importants: allImportants,
-      cosmetics: allCosmetics,
-      size: (
-        allFilters.length +
-        allExceptions.length +
-        allImportants.length +
-        allRedirects.length +
-        allCosmetics.length
-      ),
+      filters: [].concat(...filters),
+      exceptions: [].concat(...exceptions),
+      redirects: [].concat(...redirects),
+      importants: [].concat(...importants),
+      cosmetics: [].concat(...cosmetics),
     };
   }
 
@@ -375,9 +376,9 @@ export default class FilterEngine {
     let updated = false;
 
     // Remove assets if needed
-    Object.keys(this.lists).forEach((asset) => {
+    this.lists.forEach((_, asset) => {
       if (!loadedAssets.has(asset)) {
-        delete this.lists[asset];
+        this.lists.delete(asset);
         updated = true;
       }
     });
@@ -392,13 +393,11 @@ export default class FilterEngine {
       const { asset, filters, checksum } = lists[i];
 
       // Parse and dispatch filters depending on type
-      const parsed = parseList(filters, {
+      const { cosmeticFilters, networkFilters } = parseList(filters, {
         debug,
         loadCosmeticFilters: this.loadCosmeticFilters,
         loadNetworkFilters: this.loadNetworkFilters,
       });
-      const cosmetics = parsed.cosmeticFilters;
-      const networkFilters = parsed.networkFilters;
 
       // Network filters
       const miscFilters = [];
@@ -420,20 +419,19 @@ export default class FilterEngine {
         }
       }
 
-      this.lists[asset] = {
+      this.lists.set(asset, {
         checksum,
         filters: miscFilters,
         exceptions,
         importants,
         redirects,
-        cosmetics,
-      };
+        cosmetics: cosmeticFilters,
+      });
     }
 
     // Re-create all buckets
     const allFilters = this.collectAllFilters();
 
-    this.size = allFilters.size;
     this.filters = new NetworkFilterBucket('filters', allFilters.filters);
     this.exceptions = new NetworkFilterBucket('exceptions', allFilters.exceptions);
     this.importants = new NetworkFilterBucket('importants', allFilters.importants);
@@ -443,7 +441,7 @@ export default class FilterEngine {
     // Serialize engine
     let serialized = null;
     if (updated && onDiskCache) {
-      serialized = this.stringify();
+      serialized = serializeEngine(this);
     }
 
     // Optimize ahead of time if asked for
@@ -549,136 +547,5 @@ export default class FilterEngine {
       match: false,
       exception: exception !== null
     };
-  }
-
-  /**
-   * Creates a string representation of the full engine. It can be stored
-   * on-disk for faster loading of the adblocker. The `load` method of a
-   * `FiltersEngine` instance can be used to restore the engine *in-place*.
-   */
-  stringify() {
-    // 1. Dump all lists with their filters
-    const serializedLists = Object.create(null);
-
-    const assets = Object.keys(this.lists);
-    for (let i = 0; i < assets.length; i += 1) {
-      const asset = assets[i];
-      const {
-        checksum,
-        filters,
-        exceptions,
-        importants,
-        redirects,
-        cosmetics,
-      } = this.lists[asset];
-
-      serializedLists[asset] = {
-        checksum,
-        filters: filters.map(f => f.serialize()),
-        exceptions: exceptions.map(f => f.serialize()),
-        importants: importants.map(f => f.serialize()),
-        redirects: redirects.map(f => f.serialize()),
-        cosmetics: cosmetics.map(f => f.serialize()),
-      };
-    }
-
-    // 2. Dump all network filters buckets
-    const serializedBuckets = Object.create(null);
-    const buckets = [
-      this.filters,
-      this.exceptions,
-      this.importants,
-      this.redirects,
-    ];
-    for (let i = 0; i < buckets.length; i += 1) {
-      serializedBuckets[buckets[i].name] = buckets[i].index.jsonify();
-    }
-
-    // 3. Dump cosmetic filters buckets
-    serializedBuckets.cosmetics = {
-      hostname: this.cosmetics.hostnameIndex.jsonify(),
-      selector: this.cosmetics.selectorIndex.jsonify(),
-    };
-
-    return JSON.stringify({
-      version: this.version,
-      lists: serializedLists,
-      buckets: serializedBuckets,
-    });
-  }
-
-  /**
-   * Given a valid serialized version of a `FiltersEngine` (as returned by the
-   * `stringify` method), restores the engine *in-place* (override all attribute
-   * byt the content of the serialized version).
-   *
-   * This method is faster (approximately 4x faster) than creating the engine
-   * from scratch (using the raw content of the filters lists).
-   */
-  load(stringified) {
-    const { version, lists, buckets } = JSON.parse(stringified);
-
-    if (version !== this.version) {
-      // If the version does not match, then we invalidate the engine and start fresh
-      return;
-    }
-
-    // 1. deserialize lists + filters
-    const networkFilters = Object.create(null); // mapping between id and filter
-    const cosmeticFilters = Object.create(null); // mapping between id and filter
-    const deserializedLists = Object.create(null); // engine.lists
-
-    const assets = Object.keys(lists);
-    const filtersKeys = ['filters', 'exceptions', 'redirects', 'importants'];
-
-    // Deserialize all assets
-    for (let i = 0; i < assets.length; i += 1) {
-      const asset = assets[i];
-      const list = lists[asset];
-      const deserializedList = Object.create(null);
-      deserializedList.checksum = list.checksum;
-
-      // Network filters
-      for (let j = 0; j < filtersKeys.length; j += 1) {
-        const key = filtersKeys[j];
-        const bucket = list[key];
-        const deserializedBucket = [];
-        for (let k = 0; k < bucket.length; k += 1) {
-          const filter = NetworkFilter.deserialize(bucket[k]);
-          networkFilters[filter.id] = filter;
-          deserializedBucket.push(filter);
-        }
-        deserializedList[key] = deserializedBucket;
-      }
-
-      // Cosmetic filters
-      const bucket = list.cosmetics;
-      const deserializedBucket = [];
-      for (let k = 0; k < bucket.length; k += 1) {
-        const filter = CosmeticFilter.deserialize(bucket[k]);
-        cosmeticFilters[filter.id] = filter;
-        deserializedBucket.push(filter);
-      }
-      deserializedList.cosmetics = deserializedBucket;
-
-      deserializedLists[asset] = deserializedList;
-    }
-
-    this.lists = deserializedLists;
-
-    // 2. deserialize buckets
-    this.filters.index.load(buckets.filters, networkFilters);
-    this.exceptions.index.load(buckets.exceptions, networkFilters);
-    this.importants.index.load(buckets.importants, networkFilters);
-    this.redirects.index.load(buckets.redirects, networkFilters);
-
-    this.cosmetics.hostnameIndex.load(
-      buckets.cosmetics.hostname,
-      cosmeticFilters
-    );
-    this.cosmetics.selectorIndex.load(
-      buckets.cosmetics.selector,
-      cosmeticFilters
-    );
   }
 }

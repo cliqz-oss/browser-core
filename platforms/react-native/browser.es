@@ -1,4 +1,5 @@
 import { NativeModules } from 'react-native';
+import language from './language/language';
 const nativeWebRequest = NativeModules.WebRequest;
 
 export function currentURI() {};
@@ -45,12 +46,18 @@ export function addSessionRestoreObserver() {
 export function removeSessionRestoreObserver() {
 }
 
+export function addMigrationObserver() {
+}
+
+export function removeMigrationObserver() {
+}
+
 export function mapWindows(fn) {
   return [];
 }
 
 export function getLang() {
-  return 'en';
+  return language.lang;
 }
 
 export function isTabURL() {

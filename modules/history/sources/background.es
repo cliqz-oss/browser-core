@@ -5,7 +5,6 @@ import utils from '../core/utils';
 import { queryActiveTabs } from '../core/tabs';
 import createHistoryDTO from './history-dto';
 import { equals } from '../core/url';
-import MixerProxy from './mixer-proxy';
 import RichHeaderProxy from './rich-header-proxy';
 import LRU from '../core/LRU';
 import migrate from './history-migration';
@@ -22,7 +21,6 @@ export default background({
   * @method init
   */
   init() {
-    this.mixer = new MixerProxy();
     this.richHeader = new RichHeaderProxy();
     // const metaDB = new Database('cliqz-metas');
     // this.metaDatabase = new MetaDatabase(metaDB);
@@ -184,7 +182,6 @@ export default background({
         // const activeTabs = queryActiveTabs ? queryActiveTabs(utils.getWindow()) : undefined;
         const dtoP = createHistoryDTO({
           places,
-          // mixer: this.mixer,
           // activeTabs,
         });
 

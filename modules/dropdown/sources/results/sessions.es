@@ -7,7 +7,7 @@ const sessionsUrl = query => ([
   encodeURIComponent(query),
 ].join(''));
 
-export default class extends BaseResult {
+export default class SessionsResult extends BaseResult {
 
   constructor(rawResult) {
     super({

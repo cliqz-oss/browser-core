@@ -1,7 +1,7 @@
 import GenericResult from './generic';
 import NewsResult from './news';
 
-export default class extends GenericResult {
+export default class NewsStoryResult extends GenericResult {
   get template() {
     return 'news-story';
   }

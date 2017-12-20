@@ -1,7 +1,7 @@
 /* eslint-disable no-use-before-define */
 
 import logger from './logger';
-import moment from '../platform/moment';
+import moment from '../platform/lib/moment';
 import background from './background';
 import { sanitiseUrl, sanitiseParents } from './utils';
 

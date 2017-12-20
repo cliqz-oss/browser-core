@@ -31,10 +31,16 @@ export function enableChangeEvents() {
 };
 
 export function addWindowObserver() {
-};
+}
 
 export function removeWindowObserver() {
-};
+}
+
+export function addMigrationObserver() {
+}
+
+export function removeMigrationObserver() {
+}
 
 export function addSessionRestoreObserver() {
 }
@@ -53,3 +59,7 @@ export function isTabURL() {
 export function getBrowserMajorVersion() {
   return 100;
 }
+
+export function getCookies() {
+
+};

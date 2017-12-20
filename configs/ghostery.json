@@ -3,7 +3,7 @@
   "brocfile": "node.Brocfile.js",
   "baseURL": "/cliqz/",
   "pack": "npm pack",
-  "publish": "aws s3 cp browser-core-$VERSION.tgz s3://cdncliqz/update/edge/ghostery/$VERSION/$GIT_COMMIT.tgz --acl public-read && aws s3 cp s3://cdncliqz/update/edge/ghostery/$VERSION/$GIT_COMMIT.tgz s3://cdncliqz/update/edge/ghostery/$VERSION/latest.tgz --acl public-read",
+  "publish": "aws s3 cp browser-core-$PACKAGE_VERSION.tgz s3://cdncliqz/update/edge/ghostery/$BRANCH_NAME/$VERSION.tgz --acl public-read && aws s3 cp s3://cdncliqz/update/edge/ghostery/$BRANCH_NAME/$VERSION.tgz s3://cdncliqz/update/edge/ghostery/$BRANCH_NAME/latest.tgz --acl public-read",
   "sourceMaps": false,
   "format": "common",
   "settings": {
@@ -27,9 +27,16 @@
     "HPN_CHANNEL": "ghostery",
     "ATTRACK_TELEMETRY_PROVIDER": "hpn",
     "HW_CHANNEL": "ghostery",
-    "CONFIG_PROVIDER": "https://api.cliqz.com/api/v1/config"
+    "CDN_BASEURL": "https://cdn2.ghostery.com",
+    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se", "be", "se", "dk", "fi", "cz", "gr", "hu", "ro", "no", "ca", "au", "ru", "ua", "in"]
   },
   "default_prefs": {
+    "modules.human-web.enabled": true,
+    "modules.offers-v2.enabled": false,
+    "modules.message-center.enabled": false,
+    "modules.antitracking.enabled": true,
+    "modules.anti-phishing.enabled": false,
+    "modules.adblocker.enabled": true,
     "offers2FeatureEnabled": true,
     "offersLogsEnabled": true,
     "showConsoleLogs": false,
@@ -40,7 +47,11 @@
     "cliqz-anti-phishing": true,
     "cliqz-anti-phishing-enabled": true,
     "attrackRemoveQueryStringTracking": false,
-    "attrackTelemetryMode": 0
+    "attrackTelemetryMode": 0,
+    "attrack.placeHolder": "ghostery",
+    "attrack.cliqzHeader": "Ghostery-AntiTracking",
+    "attrackDefaultAction": "placeholder",
+    "sendAntiTrackingHeader": false
   },
   "bundles": [
     "core/content-script.bundle.js",
@@ -61,8 +72,7 @@
   "system": {
     "map": {
       "bigint": "bower_components/bigint/index.js",
-      "md5": "bower_components/md5/index.js",
-      "pouchdb": "bower_components/pouchdb/lib/index.js"
+      "md5": "bower_components/md5/index.js"
     }
   }
 }

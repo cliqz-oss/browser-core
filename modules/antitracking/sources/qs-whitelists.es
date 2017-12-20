@@ -3,10 +3,11 @@ import * as datetime from './time';
 import { utils, events } from '../core/cliqz';
 import md5 from './md5';
 import QSWhitelistBase from './qs-whitelist-base';
+import extConfig from '../core/config';
 
 const updateExpire = 48;
 
-export default class extends QSWhitelistBase {
+export default class QSWhitelist extends QSWhitelistBase {
 
   constructor(config) {
     super(config);
@@ -15,10 +16,10 @@ export default class extends QSWhitelistBase {
     this.unsafeKeys = new persist.LazyPersistentObject('unsafeKey');
     this.lastUpdate = ['0', '0', '0', '0'];
 
-    this.TOKEN_WHITELIST_URL = 'https://cdn.cliqz.com/anti-tracking/whitelist/whitelist_tokens.json';
-    this.TRACKER_DM_URL = 'https://cdn.cliqz.com/anti-tracking/whitelist/tracker_domains.json';
-    this.SAFE_KEY_URL = 'https://cdn.cliqz.com/anti-tracking/whitelist/domain_safe_key.json';
-    this.UNSAFE_KEY_URL = 'https://cdn.cliqz.com/anti-tracking/whitelist/domain_unsafe_key.json';
+    this.TOKEN_WHITELIST_URL = `${extConfig.settings.CDN_BASEURL}/anti-tracking/whitelist/whitelist_tokens.json`;
+    this.TRACKER_DM_URL = `${extConfig.settings.CDN_BASEURL}/anti-tracking/whitelist/tracker_domains.json`;
+    this.SAFE_KEY_URL = `${extConfig.settings.CDN_BASEURL}/anti-tracking/whitelist/domain_safe_key.json`;
+    this.UNSAFE_KEY_URL = `${extConfig.settings.CDN_BASEURL}/anti-tracking/whitelist/domain_unsafe_key.json`;
   }
 
   init() {

@@ -4,7 +4,7 @@ import events from '../../core/events';
 
 export default class extends React.Component {
 
-  _onPress() {
+  _onPress(e) {
     const url = this.props.to;
     const action = this.props.actionName;
     const params = this.props.actionParams || [];
@@ -18,7 +18,7 @@ export default class extends React.Component {
       events.pub(action, ...params);
     }
     // callback onPress
-    this.props.onPress && this.props.onPress();
+    this.props.onPress && this.props.onPress(e);
   }
   render() {
     return <TouchableOpacity activeOpacity={1} {...this.props} onPress={this._onPress.bind(this)} />

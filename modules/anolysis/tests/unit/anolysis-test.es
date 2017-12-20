@@ -34,7 +34,7 @@ function handleTelemetrySignalMock() {
 
 export default describeModule('anolysis/anolysis',
   () => ({
-    'platform/moment': {
+    'platform/lib/moment': {
       default: moment,
     },
     'core/helpers/md5': {

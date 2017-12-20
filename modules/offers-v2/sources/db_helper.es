@@ -31,7 +31,7 @@ export default class DBHelper {
     return this.db.get(docID)
       .then(doc => (doc.doc_data))
       .catch((err) => {
-        logger.error(`getDocData: error getting doc ${docID} with err: ${err}`);
+        logger.log(`getDocData: error getting doc ${docID} with err: ${err}`);
         return null;
       });
   }
@@ -40,14 +40,14 @@ export default class DBHelper {
     // https://pouchdb.com/api.html#delete_document
     const self = this;
     return self.db.get(docID).then((doc) => {
-      logger.info(`removeDocData: removing doc ${docID}`);
+      logger.log(`removeDocData: removing doc ${docID}`);
       return self.db.remove(doc);
     }).then(() => {
       // nothing to do
-      logger.info(`removeDocData: doc ${docID} removed properly`);
+      logger.log(`removeDocData: doc ${docID} removed properly`);
     }).catch((err) => {
       // nothing to do there
-      logger.error(`removeDocData: something happened removing the doc: ${docID} - err: ${err}`);
+      logger.log(`removeDocData: something happened removing the doc: ${docID} - err: ${err}`);
     });
   }
 }

@@ -55,7 +55,7 @@ def get_version(beta='True'):
 
 
 @task
-def package(beta='True', version=None, sign='False', channel='browser'):
+def package(beta='True', version=None, sign='False', channel='browser', cert_path=None, cert_pass_path=None):
     """Package the extension as a .xpi file."""
 
     if not (beta == 'True') and version is not None:
@@ -65,7 +65,7 @@ def package(beta='True', version=None, sign='False', channel='browser'):
               'git checkout <tag>\n'\
               'or for latest tag just omit the version argument.' % version
 
-    if version is None:
+    if not version:
         version = get_version(beta)
 
     folder = get_folder_name(beta=='True', channel)
@@ -88,7 +88,6 @@ def package(beta='True', version=None, sign='False', channel='browser'):
     with lcd(PATH_TO_EXTENSION_TEMP):  # We need to be inside the folder when using zip
         with hide('output'):
             exclude_files = "--exclude=*.DS_Store*"
-            comment_cleaner(PATH_TO_EXTENSION_TEMP)
 
             if channel == 'amo':
                 # remove files which migth cause problems on AMO
@@ -101,51 +100,34 @@ def package(beta='True', version=None, sign='False', channel='browser'):
         local("mv %s UNSIGNED_%s" % (output_file_name, output_file_name))
         # signs the XPI with the Cliqz certificate
 
+        if not cert_path:
+            cert_path = '../certs/CliqzFrontend/xpisign-cliqz\@cliqz.com'
+
+        if not cert_pass_path:
+            cert_pass_path = '../certs/pass'
+
         # look for xpi-sign report on the same level as navigation-extension
         local( ("python ../xpi-sign/xpisign.py "
-                "-k ../certs/CliqzFrontend/xpisign-cliqz\@cliqz.com "
+                "-k %s "
                 "--signer openssl "
-                "--passin file:../certs/pass "
-                "UNSIGNED_%s %s ") % (output_file_name, output_file_name))
+                "--passin file:%s "
+                "UNSIGNED_%s %s ") % (cert_path, cert_pass_path, output_file_name, output_file_name))
 
     # creates a copy to the current build in case we need to upload it to S3
     local("cp %s latest.xpi" % output_file_name)
 
     return output_file_name
 
-
 @task
-def install_in_browser(beta='True', version=None):
-    """Install the extension in firefox.
-
-    Firefox needs the Extension Auto-Installer add-on.
-    https://addons.mozilla.org/en-US/firefox/addon/autoinstaller/"""
-
-    output_file_name = package(beta, version)
-    data = open(output_file_name).read()
-    try:
-        response = urllib2.urlopen(AUTO_INSTALLER_URL, data)
-    except urllib2.HTTPError as exception:
-        if exception.code == 500:
-            pass  # Success (Extension Auto-Installer returns 500)
-    except urllib2.URLError as exception:
-        abort("Extension Auto-Installer not running :(")
-
-
-@task
-def publish(beta='True', version=None, channel='browser', pre='True'):
+def publish(beta='True', version=None, channel='browser', pre='True', cert_path=None, cert_pass_path=None):
     """Upload extension to s3 (credentials in ~/.s3cfg need to be set to primary)"""
-    if not (beta == 'True') and version is not None:
-        abort("You should never publish a non-beta package with a fixed version.\n"\
-              "Always use git tags (and push them to upstream) so we can keep "\
-              "track of all live versions.")
-
-
+    if not version:
+        version = get_version(beta)
 
     update_manifest_file_name = "latest.rdf"
     latest_html_file_name = "latest.html"
     icon_name = "icon.png"
-    output_file_name = package(beta, version, "True", channel) # !!!! we must publish only signed versions !!!!
+    output_file_name = package(beta, version, "True", channel, cert_path, cert_pass_path) # !!!! we must publish only signed versions !!!!
     icon_url = "http://cdn2.cliqz.com/update/%s" % icon_name
 
     folder = get_folder_name(beta=='True', channel)
@@ -170,9 +152,6 @@ def publish(beta='True', version=None, channel='browser', pre='True'):
 
     env = Environment(loader=FileSystemLoader('templates'))
     manifest_template = env.get_template(update_manifest_file_name)
-
-    if version is None:
-        version = get_version(beta)
 
     download_link = "https://s3.amazonaws.com/cdncliqz/update/%s/%s" % (folder, output_file_name)
     upload_folder_link = "https://s3.amazonaws.com/cdncliqz/update/%s/%s" % (upload_folder, output_file_name)
@@ -218,39 +197,3 @@ def publish(beta='True', version=None, channel='browser', pre='True'):
         addon_url=upload_folder_link
     )
     submitter.submit()
-
-
-@task
-def test():
-    """Run mozmill tests from tests folder."""
-    firefox_binary_path = "/Applications/Firefox.app/Contents/MacOS/firefox"
-    tests_folder = 'tests/mozmill/'
-    output_file_name = package()
-    local("mozmill --test=%s --addon=%s --binary=%s" % (tests_folder, output_file_name,
-                                                        firefox_binary_path))
-
-
-@task
-def unit_test():
-    """Run mozmill tests from unit test folder."""
-    firefox_binary_path = "/Applications/Firefox.app/Contents/MacOS/firefox"
-    tests_folder = 'tests/mozmill/unit/'
-    output_file_name = package()
-    local("mozmill --test=%s --addon=%s --binary=%s" % (tests_folder, output_file_name,
-                                                        firefox_binary_path))
-
-
-@task
-def clean():
-    """Clean directory from .xpi files"""
-    local("rm  *.xpi")
-
-
-@task
-def comment_cleaner(path=None):
-    print 'CommentCleaner - Skipped'
-    return
-
-
-def js_comment_removal(s):
-    return jsstrip.strip(s, False, False, True, True)

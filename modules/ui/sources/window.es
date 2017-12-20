@@ -1,6 +1,5 @@
 import { utils } from "../core/cliqz";
 import autocomplete from "../autocomplete/autocomplete";
-import CliqzHandlebars from "../core/templates";
 import CliqzEvents from "../core/events";
 import SearchHistory from "./search-history";
 import { addStylesheet, removeStylesheet } from "../core/helpers/stylesheet";
@@ -70,7 +69,7 @@ const STYLESHEET_URL = 'chrome://cliqz/content/static/styles/styles.css';
 /**
   @namespace ui
 */
-export default class {
+export default class Win {
 
   /**
   * @class Window
@@ -82,6 +81,7 @@ export default class {
     this.elems = [];
     this.settings = settings.settings;
     this.window = settings.window;
+    this.windowId = settings.windowId;
     this.urlbar = this.window.gURLBar;
     this.urlbarGoClick = this.urlbarGoClick.bind(this);
     this.hidePopup = this.hidePopup.bind(this);
@@ -425,6 +425,9 @@ export default class {
   }
 
   showLastQuery(event) {
+    if (event.windowId !== this.windowId || event.isPrivateWindow) {
+      return;
+    }
     SearchHistory.lastQuery(this.window);
   }
 

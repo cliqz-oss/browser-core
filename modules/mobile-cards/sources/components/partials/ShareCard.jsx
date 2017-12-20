@@ -1,9 +1,10 @@
 import React from 'react';
 import { StyleSheet, View, Text, Image, TouchableWithoutFeedback, Platform, NativeModules } from 'react-native';
-import { captureRef } from "react-native-view-shot";
+import ViewShot from "react-native-view-shot";
 
-import { elementTopMargin } from '../../styles/CardStyle';
+import { elementTopMargin, cardBorderRadius, cardMargins, getCardWidth } from '../../styles/CardStyle';
 import { getMessage } from '../../../core/i18n';
+import NativeDrawabale from '../custom/NativeDrawable';
 
 const PermissionManager = NativeModules.PermissionManagerModule;
 const Share = NativeModules.RNShare;
@@ -28,7 +29,7 @@ export default class extends React.Component {
 
   componentDidUpdate() {
     if (this.state.capturing) {
-      setTimeout(() => captureRef(this.refs.view, OPTIONS)
+      setTimeout(() => this.refs.view.capture()
         .then(res => {
           this.setState({ capturing: false});
           if (res) {
@@ -48,25 +49,22 @@ export default class extends React.Component {
   }
 
   displaySharedViaCliqz() {
+    // ios icon not implemented for now
     return Platform.select({
       ios: (
-        <View style={styles.shareSection}>
-          <Image
-            style={styles.shareImage}
-            source={require('../../img/cliqz-logo-ios.png')}
-          />
-          <Text style={styles.shareText}>
+        <View style={styles(getCardWidth()).shareSection}>
+          <Text style={styles().shareText}>
           { getMessage('mobile_card_shared_via', 'iOS') }
           </Text>
         </View>
       ),
       android: (
-        <View style={styles.shareSection}>
+        <View style={styles(getCardWidth()).shareSection}>
           <Image
-            style={styles.shareImage}
-            source={require('../../img/cliqz-logo-android.png')}
+            style={styles().shareImage}
+            source={{ uri: 'mipmap/ic_launcher' }}
           />
-          <Text style={styles.shareText}>
+          <Text style={styles().shareText}>
           { getMessage('mobile_card_shared_via', 'Android') }
           </Text>
         </View>
@@ -76,27 +74,35 @@ export default class extends React.Component {
 
   displayShareLink() {
     return <TouchableWithoutFeedback ref="link" onPress={this.shareCard.bind(this)}>
-      <View style={styles.shareSection}>
-        <Image
-          style={styles.shareImage}
-          source={require('../../img/share_card.png')}
+      <View style={styles(getCardWidth()).shareSection}>
+        <NativeDrawabale
+          style={styles().shareImage}
+          source={'ic_share'}
+          color={'#00AEF0'}
         />
-        <Text style={styles.shareText}>{getMessage('mobile_share_card')}</Text>
+        <Text style={styles().shareText}>{getMessage('mobile_share_card')}</Text>
       </View>
     </TouchableWithoutFeedback>
   }
 
   render() {
     return (
-      <View ref="view" style={this.props.style || {}}>
-        { ...this.props.children }
-        {
-          this.state.capturing
-          ?
-          this.displaySharedViaCliqz()
-          :
-          this.displayShareLink()
-        }
+      <View>
+        <ViewShot ref="view" options={OPTIONS}>
+          <View style={ this.props.style || {} }>
+            { this.props.children }
+            {
+              this.state.capturing
+              ?
+              this.displaySharedViaCliqz()
+              :
+              this.displayShareLink()
+            }
+          </View>
+        </ViewShot>
+        <View style={styles().shareOverlay} >
+          { this.displayShareLink() }
+        </View>
       </View>
     );
   }
@@ -108,18 +114,18 @@ const OPTIONS = {
   result: "data-uri",
 };
 
-const styles = StyleSheet.create({
+const styles = (width) => StyleSheet.create({
   shareSection: {
     ...elementTopMargin,
-    backgroundColor: 'white',
-    flex: 1,
+    width: width,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     borderTopWidth: 1,
     borderTopColor: '#EDECEC',
     paddingTop: 10,
-    paddingBottom: 10,
+    paddingBottom: 5,
+    marginBottom: 5,
   },
   shareText: {
     color: 'black',
@@ -131,5 +137,13 @@ const styles = StyleSheet.create({
     marginRight: 5,
     width: 15,
     height: 15,
+  },
+  shareOverlay: {
+    position: 'absolute',
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: 'white',
+    bottom: cardMargins.marginBottom,
+    ...cardBorderRadius,
   }
 });

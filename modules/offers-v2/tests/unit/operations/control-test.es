@@ -10,6 +10,19 @@ var currentDayHour = 0;
 var currentWeekDay = 0;
 let hookedResultOfLoggerInfo;
 
+
+const DAY_MS = 1000 * 60 * 60 * 24;
+
+const getDaysFromTimeRange = (start, end) => {
+  const result = [];
+  while (start <= end) {
+    result.push(`${Math.floor(start/DAY_MS)}`);
+    start += DAY_MS;
+  }
+  return result;
+};
+const getTodayDayKey = timeMs => `${Math.floor((timeMs / DAY_MS))}`;
+
 export default describeModule('offers-v2/trigger_machine/ops/control_expr',
   () => ({
     'core/platform': {
@@ -118,6 +131,20 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           return this.features[featureName];
         }
         dumpFeaturesData() {}
+      }
+    },
+    'core/time': {
+      getDaysFromTimeRange: function(startTS, endTS) {
+        return getDaysFromTimeRange(startTS, endTS);
+      },
+      getDateFromDateKey: function(dateKey, hours = 0, min = 0, seconds = 0) {
+        return `${Number(dateKey) * DAY_MS}`;
+      },
+      timestamp: function() {
+        return mockedTS;
+      },
+      getTodayDayKey: function() {
+        return getTodayDayKey(mockedTS);
       }
     },
     'offers-v2/pattern-matching/pattern-matching-handler': {

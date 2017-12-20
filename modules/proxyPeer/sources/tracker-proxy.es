@@ -5,6 +5,8 @@ import { CompositePolicy, TrackerWhitelistPolicy,
   PrivateIPBlacklistPolicy, PublicDomainOnlyPolicy,
   BloomFilterWhitelistPolicy } from './proxy-policy';
 import ResourceLoader from '../core/resource-loader';
+import config from '../core/config';
+
 
 const PROXY_INSECURE_CONNECTIONS_PREF = 'proxyInsecureConnections';
 const PROXY_PEER_PREF = 'proxyPeer';
@@ -75,7 +77,7 @@ function getExitsUrl() {
 }
 
 
-export default class {
+export default class TrackerProxy {
 
   constructor(antitracking, webRequestPipeline, p2p) {
     // Use a local socks proxy to be able to 'hack' the HTTP lifecycle
@@ -113,7 +115,7 @@ export default class {
     this.exitPolicy.addBlacklistPolicy(new PrivateIPBlacklistPolicy());
     this.proxyWhitelistLoader = new ResourceLoader(['proxyPeer', 'proxy_whitelist_bf.json'], {
       cron: 1000 * 60 * 60 * 12,
-      remoteURL: 'https://cdn.cliqz.com/anti-tracking/proxy_whitelist_bf.json',
+      remoteURL: `${config.settings.CDN_BASEURL}/anti-tracking/proxy_whitelist_bf.json`,
     });
   }
 

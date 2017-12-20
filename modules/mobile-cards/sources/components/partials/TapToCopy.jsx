@@ -10,6 +10,10 @@ export default class extends React.Component {
     this.state = { copied: false }
   }
 
+  componentWillReceiveProps() {
+    this.setState({ copied: false });
+  }
+
   render() {
     return (
       <Link

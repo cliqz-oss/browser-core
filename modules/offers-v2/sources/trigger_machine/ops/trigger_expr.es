@@ -2,7 +2,6 @@
 
 import Expression from '../expression';
 import logger from '../../common/offers_v2_logger';
-import OffersConfigs from '../../offers_configs';
 
 /**
  * will start checking for requests in a domain. This is will start the mechanisms
@@ -109,7 +108,7 @@ class ActivateSubtriggersExpr extends Expression {
       if (!subtriggers || subtriggers.length === 0) {
         // load from server
 
-        this._sendApiRequest(
+        this.data.be_connector.sendApiRequest(
             'loadsubtriggers',
             { parent_id: this.parentTriggerId }).then((payload) => {
               subtriggers = payload;
@@ -148,47 +147,6 @@ class ActivateSubtriggersExpr extends Expression {
           reject(err);
         });
       }
-    });
-  }
-
-  _sendApiRequest(endpoint, params) {
-    logger.info('ActivateSubtriggersExpr', 'sendApiRequest called');
-
-    return new Promise((resolve, reject) => {
-      const pairs = [];
-
-      // we will always set the engine version as argument
-      params.t_eng_ver = OffersConfigs.TRIGGER_ENGINE_VERSION;
-      Object.keys(params).forEach((prop) => {
-        pairs.push(`${prop}=${encodeURIComponent(params[prop])}`);
-      });
-
-      let query = '';
-      if (pairs.length > 0) {
-        query = `?${pairs.join('&')}`;
-      }
-
-      const url = `${OffersConfigs.BACKEND_URL}/api/v1/${endpoint}${query}`;
-      logger.info('ActivateSubtriggersExpr', `url called: ${url}`);
-
-      const req = new XMLHttpRequest();
-      req.overrideMimeType('application/json');
-      req.open('POST', url);
-      req.onload = () => {
-        if (req.status === 200) {
-          resolve(JSON.parse(req.response));
-        } else {
-          reject(`Status code ${req.status} for ${url}`);
-        }
-      };
-      req.onerror = () => {
-        reject(`Error loading ${url}`);
-      };
-      req.ontimeout = () => {
-        reject(`Timeout loading ${url}`);
-      };
-
-      req.send();
     });
   }
 }

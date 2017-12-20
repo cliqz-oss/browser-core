@@ -7,7 +7,7 @@ class TimeSource extends BaseResult {
   }
 }
 
-export default class extends GenericResult {
+export default class TimeResult extends GenericResult {
   get template() {
     return 'time';
   }

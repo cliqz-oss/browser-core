@@ -28,7 +28,7 @@ export default class extends React.Component {
       </View>
       <View style={[styles.row, styles.centerCenter, styles.size3, styles.topMargin15]}>
           {
-            opening && <View style={[styles.column, styles.centerCenter, styles.size1]}>
+            opening.stt_text && <View style={[styles.column, styles.centerCenter, styles.size1]}>
               <View style={[styles.column, styles.centerStart, styles.size1]}>
                 <Text style={{ color: opening.color }}>{opening.stt_text}</Text>
                 <Text style={{ color: 'black' }}>{opening.time_info_til}</Text>
@@ -81,6 +81,7 @@ export default class extends React.Component {
 const styles = StyleSheet.create({
   container: {
     ...elementTopMargin,
+    ...elementSideMargins,
   },
   row: {
     flexDirection: 'row'

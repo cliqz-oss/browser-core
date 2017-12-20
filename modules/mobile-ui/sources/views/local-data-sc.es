@@ -1,6 +1,6 @@
 import CliqzUtils from '../../core/utils';
 
-export default class {
+export default class LocalDataSC {
   enhanceResults(data) {
 
     function parseTime(timeStr) {  // e.g. timeStr: 10.30

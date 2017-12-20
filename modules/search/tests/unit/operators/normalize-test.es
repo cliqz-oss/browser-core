@@ -25,6 +25,7 @@ const prototype = {
     isIncomplete: undefined,
     triggerMethod: undefined,
     domain: undefined,
+    score: undefined,
     url: undefined,
   },
 };

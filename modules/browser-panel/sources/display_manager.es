@@ -18,7 +18,6 @@ function lerr(msg) {
 }
 
 export default class DisplayManager {
-
   constructor(uiConnectorCb) {
     // we will have 2 maps to control where to display what
     // elementID -> {urls: set(urls), data: eData}
@@ -75,7 +74,8 @@ export default class DisplayManager {
           }
         });
       }
-      elemCont = this.elemToUrlsMap[eID] = { urls: new Set(), data: eData };
+      elemCont = { urls: new Set(), data: eData };
+      this.elemToUrlsMap[eID] = elemCont;
     }
     elemCont.urls.add(eUrl);
     if (eData) {

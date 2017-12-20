@@ -1,3 +1,5 @@
+/* eslint-disable no-return-assign */
+
 import crypto from '../platform/crypto';
 import { importRSAKey, signRSA, generateRSAKeypair, sha256 } from '../core/crypto/utils';
 import { exportPublicKey } from '../core/crypto/pkcs-conversion';
@@ -593,3 +595,4 @@ export default class Manager {
     });
   }
 }
+/* eslint-enable no-return-assign */

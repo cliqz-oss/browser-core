@@ -12,9 +12,10 @@ import RegexpCache from './regexp_cache';
 import HistoryIndex from './history_index';
 import QueryHandler from './query_handler';
 import FeatureHandler from './features/feature-handler';
+import BEConnector from './backend-connector';
 import PatternMatchingHandler from './pattern-matching/pattern-matching-handler';
+import CategoryHandler from './categories/category-handler';
 import OfferStatusHandler from './offers-status-handler';
-
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
@@ -22,6 +23,8 @@ const USER_ENABLED = 'offers2UserEnabled';
 const OFFERS_CC_ENABLED = 'modules.offers-cc.enabled';
 
 export default background({
+  // to be able to read the config prefs
+  requiresServices: ['cliqz-config'],
 
   init() {
     this.softInit();
@@ -88,6 +91,9 @@ export default background({
     // create the DB to be used over all offers module
     this.db = new Database('cliqz-offers');
 
+    // the backend connector
+    this.backendConnector = new BEConnector();
+
     // the offersDB will be used by multiple modules and will be the new place
     // where we will centralize all the information related to offers
     this.offersDB = new OfferDB(this.db);
@@ -114,6 +120,16 @@ export default background({
     this.featureHandler = new FeatureHandler();
     this.patternMatchingHandler = new PatternMatchingHandler(this.featureHandler);
 
+    const historyFeature = this.featureHandler.getFeature('history');
+    this.categoryHandler = new CategoryHandler(historyFeature,
+                                               this.db,
+                                               this.patternMatchingHandler);
+
+    // load the data from the category handler, on debug we do not load anything
+    if (!utils.getPref('offersDevFlag', false)) {
+      this.categoryHandler.loadPersistentData();
+    }
+
     // create the trigger machine executor
     this.globObjects = {
       regex_cache: new RegexpCache(),
@@ -125,7 +141,9 @@ export default background({
       history_index: new HistoryIndex(this.db),
       query_handler: this.queryHandler,
       feature_handler: this.featureHandler,
+      be_connector: this.backendConnector,
       pattern_matching_handler: this.patternMatchingHandler,
+      category_handler: this.categoryHandler,
       offers_status_handler: oStatusHandler,
     };
     this.triggerMachineExecutor = new TriggerMachineExecutor(this.globObjects);
@@ -159,9 +177,11 @@ export default background({
 
     if (this.offerProc) {
       this.offerProc.destroy();
+      this.offerProc = null;
     }
     if (this.signalsHandler) {
       this.signalsHandler.destroy();
+      this.signalsHandler = null;
     }
     if (this.eventHandler) {
       this.eventHandler.destroy();
@@ -173,6 +193,11 @@ export default background({
     if (this.featureHandler) {
       this.featureHandler.unload();
       this.featureHandler = null;
+    }
+
+    if (this.categoryHandler) {
+      this.categoryHandler.destroy();
+      this.categoryHandler = null;
     }
 
     this.initialized = false;
@@ -229,6 +254,8 @@ export default background({
     this.triggerMachineExecutor.processUrlChange(data);
     // keep this url on memory
     this.patternMatchingHandler.trackTokenizedUrlOnMem(urlData.getPatternRequest());
+    // evaluate categories as well
+    this.categoryHandler.newUrlEvent(urlData.getPatternRequest());
   },
 
   // ///////////////////////////////////////////////////////////////////////////

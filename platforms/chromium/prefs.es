@@ -1,38 +1,54 @@
-import Storage from '../core/storage';
 import events from '../core/events';
+import config from '../core/config';
 
-const storage = new Storage();
+const PREFS_KEY = 'cliqzprefs';
+let initialised = false;
+const prefs = {};
 
-export function getPref(pref, notFound) {
-  const mypref = storage.getItem(pref);
-  console.log(`>>>>> getPref ${pref}`, mypref);
-  if (mypref) {
-    if (mypref === 'false') {
-      return false;
-    }
-    if (mypref === 'true') {
-      return true;
-    }
-    if (!isNaN(mypref)) {
-      return parseInt(mypref, 10);
-    }
-    return mypref;
-  }
-  return notFound;
+export function init() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(PREFS_KEY, (result) => {
+      Object.assign(prefs, result[PREFS_KEY] || {});
+      initialised = true;
+      resolve();
+    });
+  });
 }
 
-export function setPref(pref, val) {
-  console.log(`>>>>> setPref ${pref}`, val);
-  storage.setItem(pref, val);
-  events.pub('prefchange', pref);
+function syncToStorage() {
+  chrome.storage.local.set({ [PREFS_KEY]: prefs });
+}
+
+export function getPref(prefKey, notFound) {
+  if (!initialised) {
+    console.warn(`loading pref ${prefKey} before prefs were initialised, you will not get the correct result`);
+    return prefs[prefKey] || notFound;
+  }
+  if (prefs && prefs[prefKey] !== undefined) {
+    return prefs[prefKey];
+  } else {
+    return notFound
+  }
+}
+
+export function setPref(prefKey, value) {
+  const changed = prefs[prefKey] !== value;
+
+  if (changed) {
+    prefs[prefKey] = value;
+    syncToStorage();
+    // trigger prefchange event
+    events.pub('prefchange', prefKey);
+  }
 }
 
 export function hasPref(pref) {
-  return storage.getItem(pref) !== null;
+  return pref in prefs;
 }
 
 export function clearPref(pref) {
-  storage.removeItem(pref);
+  delete prefs[pref];
+  syncToStorage();
 }
 
 export function enableChangeEvents() {

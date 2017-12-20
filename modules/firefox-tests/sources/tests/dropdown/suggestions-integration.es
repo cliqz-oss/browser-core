@@ -22,7 +22,7 @@ export default function () {
       });
 
       after(function () {
-        CliqzUtils.setPref('suggestionChoice', 0);
+        CliqzUtils.clearPref('suggestionChoice');
       });
 
       it('renders result', function () {
@@ -87,7 +87,7 @@ export default function () {
       });
 
       after(function () {
-        CliqzUtils.setPref('suggestionChoice', 0);
+        CliqzUtils.clearPref('suggestionChoice');
       });
 
       context('main result', function () {
@@ -192,7 +192,7 @@ export default function () {
       });
 
       after(function () {
-        CliqzUtils.setPref('suggestionChoice', 0);
+        CliqzUtils.clearPref('suggestionChoice');
       });
 
       it('renders result', function () {
@@ -285,7 +285,7 @@ export default function () {
       });
 
       after(function () {
-        CliqzUtils.setPref('suggestionChoice', 0);
+        CliqzUtils.clearPref('suggestionChoice');
       });
 
       context('main result', function () {

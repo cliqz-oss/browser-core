@@ -13,6 +13,7 @@ import config from '../core/config';
 import { isCliqzBrowser, isCliqzAtLeastInVersion } from '../core/platform';
 import prefs from '../core/prefs';
 import { dismissMessage, countMessageClick } from './actions/message';
+import { getLanguageFromLocale } from '../core/i18n';
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
@@ -475,7 +476,7 @@ export default background({
       }
 
       return {
-        locale: utils.PREFERRED_LANGUAGE,
+        locale: getLanguageFromLocale(utils.PREFERRED_LANGUAGE),
         newTabUrl: config.settings.NEW_TAB_URL,
         isBrowser: isCliqzBrowser,
         blueTheme: this.blueTheme,

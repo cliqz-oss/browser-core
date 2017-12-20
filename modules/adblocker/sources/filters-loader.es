@@ -6,6 +6,8 @@ import ResourceLoader, { Resource, UpdateCallbackHandler } from '../core/resourc
 import Language from '../core/language';
 import { platformName } from '../core/platform';
 import logger from './logger';
+import utils from '../core/utils';
+import config from '../core/config';
 
 // Disk persisting
 const RESOURCES_PATH = ['adblocker'];
@@ -27,7 +29,7 @@ const LANG_FACTOR = 20;
 //   be renamed to 'browser' in the future, or 'firefox', 'chromium', etc.
 //   should simply be aliases for 'browser'.
 const PLATFORM = platformName === 'mobile' ? 'mobile-new' : (platformName || 'firefox');
-const CDN_URL = 'https://cdn.cliqz.com/adblocking';
+const CDN_URL = `${config.settings.CDN_BASEURL}/adblocking`;
 const BASE_URL = `${CDN_URL}/latest-filters/`;
 
 
@@ -49,10 +51,27 @@ class FiltersList {
     this.baseRemoteURL = remoteURL;
     this.assetName = stripProtocol(asset);
 
-    this.resource = new Resource(
-      RESOURCES_PATH.concat(this.assetName.split('/')),
-      { remoteURL: this.remoteURL(), dataType: 'plainText' },
-    );
+    const load = () => new Promise((resolve, reject) => {
+      utils.httpGet(
+        this.remoteURL(),
+        res => resolve(res.response),
+        reject,
+        300 * 1000
+      );
+    });
+
+    // We still need caching for mobile
+    if (platformName === 'mobile') {
+      this.resource = new Resource(
+        RESOURCES_PATH.concat(this.assetName.split('/')),
+        { remoteURL: this.remoteURL(), dataType: 'plainText' },
+      );
+    } else {
+      this.resource = {
+        load,
+        updateFromRemote: load,
+      };
+    }
   }
 
   remoteURL() {
@@ -103,7 +122,7 @@ class FiltersList {
 
 /* Class responsible for loading, persisting and updating filters lists.
  */
-export default class extends UpdateCallbackHandler {
+export default class FiltersLoader extends UpdateCallbackHandler {
   constructor(useCountryLists, adbLangOverride) {
     super();
 
@@ -119,6 +138,7 @@ export default class extends UpdateCallbackHandler {
         updateInterval: 15 * ONE_MINUTE,
         dataType: 'json',
         remoteURL: this.remoteURL(),
+        remoteOnly: true,
       },
     );
     this.allowedListsLoader.onUpdate(this.updateChecksums.bind(this));

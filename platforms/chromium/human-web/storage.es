@@ -93,13 +93,25 @@ export default class {
   clearHistory() {}
 
   // Need to improve this.
+  // This really needs a refactor. It should be taken on priority, after this release is stable.
+
   getListOfUnchecked(cap, sec_old, fixed_url, callback) {
     const tt = new Date().getTime();
     // const _this = this;
     if (fixed_url == null) {
       this.dbConn.get('usafe', function(o) {
-        let record = JSON.parse(o);
-          if (record.last_visit < (tt - sec_old * 1000)) return true;
+        // The type check is being done, to ensure, when users upgrade from 7.x to 8.0.x it does not break.
+        // The reason it might break is because the usafe was stored as JSON in 7.x and as string in 8.x.
+
+
+        let record = null;
+        if (typeof(o) === 'string') {
+          record = JSON.parse(o);
+        } else {
+          record = o;
+        }
+
+        if (record.last_visit < (tt - sec_old * 1000)) return true;
       }, function(items) {
           if (!items || items.length==0) callback([], null);
 
@@ -107,8 +119,14 @@ export default class {
           items = items.splice(0, cap);
 
           var res = [];
+
           items.forEach(function(item) {
-              let _item = JSON.parse(item);
+              let _item = null;
+              if (typeof(item) === 'string') {
+                _item = JSON.parse(item);
+              } else {
+                _item = item;
+              }
               res.push([_item.url, _item.payload]);
           });
 
@@ -117,14 +135,23 @@ export default class {
       });
     } else {
       this.dbConn.get('usafe', fixed_url, (obj) => {
-          let record = JSON.parse(obj);
+          // The type check is being done, to ensure, when users upgrade from 7.x to 8.0.x it does not break.
+          // The reason it might break is because the usafe was stored as JSON in 7.x and as string in 8.x.
+
+
+          let record = null;
+          if (typeof(obj) === 'string') {
+            record = JSON.parse(obj);
+          } else {
+            record = obj;
+          }
           if (!record) callback([], null);
           else if (record.last_visit < (tt - sec_old * 1000)) {
               var res = [];
               res.push([record.url, record.payload]);
               console.log("Got the result: " + record);
               callback(res.splice(0, cap), null);
-          } else { 
+          } else {
             callback([], null);
           }
       });
@@ -152,7 +179,16 @@ export default class {
       if (!obj || obj === 'undefined') {
         callback([]);
       } else {
-        const record = JSON.parse(obj);
+        // The type check is being done, to ensure, when users upgrade from 7.x to 8.0.x it does not break.
+        // The reason it might break is because the usafe was stored as JSON in 7.x and as string in 8.x.
+
+
+        let record = null;
+        if (typeof(obj) === 'string') {
+          record = JSON.parse(obj);
+        } else {
+          record = obj;
+        }
         callback(record);
       }
     });

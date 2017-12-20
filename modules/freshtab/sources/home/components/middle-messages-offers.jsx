@@ -5,7 +5,6 @@ import Offer from './middle-messages-offer';
 import { sendOffersMessage, sendOfferShownMessage } from '../services/offers';
 
 export default class MiddleMessagesOffer extends React.Component {
-
   constructor(...args) {
     super(...args);
 

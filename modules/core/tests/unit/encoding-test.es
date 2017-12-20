@@ -36,10 +36,10 @@ const h643 = 'AB25074DFA1F91766811576A78D1CFEFA951DC6D1702478E0F7464C7D8E20FA272
 export default describeModule('core/encoding',
   () => ({
     'platform/text-encoder': {
-      default: () => {},
+      default: class {},
     },
     'platform/text-decoder': {
-      default: () => {},
+      default: class {},
     },
   }),
   () => {

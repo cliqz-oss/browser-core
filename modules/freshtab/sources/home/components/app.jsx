@@ -461,6 +461,7 @@ class App extends React.Component {
               {(this.state.offers.length === 0) &&
                 <MessageCenter
                   position="middle"
+                  locale={this.state.config.locale}
                   messages={this.state.messages}
                   handleLinkClick={msg => this.onMessageClicked(msg)}
                 />

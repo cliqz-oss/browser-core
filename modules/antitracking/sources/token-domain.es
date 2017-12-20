@@ -8,7 +8,7 @@ import pacemaker from '../core/pacemaker';
 const DAYS_EXPIRE = 7;
 const DB_NAME = 'cliqz-attrack-token-domain';
 
-export default class {
+export default class TokenDomain {
 
   constructor(config) {
     this.config = config;

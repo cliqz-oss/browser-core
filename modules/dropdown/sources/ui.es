@@ -14,7 +14,7 @@ import { getTabsWithUrl, closeTab } from '../core/tabs';
 import { copyToClipboard } from '../core/clipboard';
 import { nextTick } from '../core/decorators';
 
-export default class {
+export default class Ui {
 
   constructor(window, id, { getSessionCount, searchMode }) {
     this.window = window;
@@ -70,6 +70,13 @@ export default class {
     // no popup, so no interactions, unless Enter is pressed.
     // report telemetry signal in this case.
     if (this.popupClosed !== false) {
+      // Trigger new search on ArrowDown as some FF versions
+      // just reopen last popup (EX-6310).
+      if (ev.code === 'ArrowDown') {
+        this.core.action('refreshPopup', this.popup.query);
+        return true;
+      }
+
       if (ev.code === 'Enter' || ev.code === 'NumpadEnter') {
         enterSignal({
           query: this.window.gURLBar.textValue,

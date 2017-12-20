@@ -1,5 +1,5 @@
 import logger from './logger';
-import { timestamp } from './time_utils';
+import { timestamp } from '../core/time';
 
 // Status states of the executor
 const STATUS = {

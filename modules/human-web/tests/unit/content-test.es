@@ -29,6 +29,7 @@ export default describeModule('human-web/content',
       let mockWindow;
 
       beforeEach(function () {
+        this.timeout(10000);
         parseDom = this.module().parseDom;
         mockWindow = require('mock-browser').mocks.MockBrowser.createWindow();
       });

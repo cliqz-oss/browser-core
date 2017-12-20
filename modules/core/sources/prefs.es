@@ -1,4 +1,4 @@
-import { getPref, setPref, hasPref, clearPref, enableChangeEvents, disableChangeEvents } from "../platform/prefs";
+import { getPref, setPref, hasPref, clearPref, enableChangeEvents, disableChangeEvents, init } from '../platform/prefs';
 
 export default {
   /**
@@ -55,5 +55,7 @@ export default {
       throw new TypeError();
     }
   },
+
+  init,
 
 };

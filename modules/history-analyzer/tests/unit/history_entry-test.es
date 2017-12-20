@@ -14,7 +14,7 @@ export default describeModule('history-analyzer/history_entry',
         error: function(x) {console.error(x)},
       }
     },
-    'history-analyzer/time_utils': {
+    'core/time': {
       timestamp: function() {
         return mockedTS;
       }

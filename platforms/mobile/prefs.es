@@ -38,3 +38,7 @@ export function enableChangeEvents() {
 export function disableChangeEvents() {
   throw new Error('not implemented - prefs.disableChangeEvents');
 }
+
+export function init() {
+  return Promise.resolve();
+}

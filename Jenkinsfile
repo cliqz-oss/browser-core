@@ -16,57 +16,33 @@ properties([
 ])
 
 def matrix = [
-    'jenkins: unit': [
+    'unit tests': [
         'gpu': false,
-        'testParams': 'configs/jenkins.json -l unit-node',
-    ],
-    'browser: unit': [
-        'gpu': false,
-        'testParams': 'configs/browser.json -l unit-node',
-    ],
-    'mobile: unit': [
-        'gpu': false,
-        'testParams': 'configs/mobile.json -l unit-node',
-    ],
-    'react-native: unit': [
-        'gpu': false,
-        'testParams': 'configs/react-native.json -l unit-node',
-    ],
-    'webextension: unit': [
-        'gpu': false,
-        'testParams': 'configs/webextension.json -l unit-node',
-    ],
-    'amo: unit': [
-        'gpu': false,
-        'testParams': 'configs/amo.json -l unit-node',
+        'testParams': 'configs/unit-tests.json -l unit-node',
     ],
     'browser: content': [
         'gpu': true,
-        'testParams': 'configs/browser.json -l chromium',
+        'testParams': 'configs/browser.js -l chromium',
     ],
     'mobile: content': [
         'gpu': true,
         'testParams': 'configs/mobile.json -l chromium',
     ],
-    'firefox 42': [
-        'gpu': true,
-        'testParams': 'configs/jenkins.json -l firefox-selenium --firefox ~/firefox42/firefox/firefox',
-    ],
     'firefox 52': [
         'gpu': true,
-        'testParams': 'configs/jenkins.json -l firefox-web-ext --firefox ~/firefox52/firefox/firefox',
+        'testParams': 'configs/jenkins.js -l firefox-web-ext --firefox ~/firefox52/firefox/firefox',
     ],
     'firefox 56': [
         'gpu': true,
-        'testParams': 'configs/jenkins.json -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
+        'testParams': 'configs/jenkins.js -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
     ],
     'funnelcake 56': [
         'gpu': true,
-        'testParams': 'configs/jenkins-funnelcake.json -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
+        'testParams': 'configs/jenkins-funnelcake.js -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
     ],
     'firefox stresstest (52)': [
         'gpu': true,
-        'testParams': 'configs/jenkins.json -l firefox-web-ext-stresstest --firefox ~/firefox52/firefox/firefox',
+        'testParams': 'configs/jenkins.js -l firefox-web-ext-stresstest --firefox ~/firefox52/firefox/firefox',
     ],
     'chromium': [
         'gpu': true,
@@ -101,7 +77,7 @@ parallel helpers.entries(matrix).collectEntries {
     }]
 }
 
-node('docker && !gpu') {
+node('docker && !gpu && us-east-1') {
     stage('checkout') {
         def scmInfo = checkout scm
         currentCommitHash = scmInfo.GIT_COMMIT
@@ -159,7 +135,7 @@ def test(Map m) {
     def getCodeDockerImage = m.getCodeDockerImage
     def getTriggeringCommitHash = m.getTriggeringCommitHash
 
-    def nodeLabels = gpu ? 'docker && gpu' : 'docker && !gpu'
+    def nodeLabels = gpu ? 'us-east-1 && docker && gpu' : 'us-east-1 && docker && !gpu'
 
     return {
         node(nodeLabels) {
@@ -211,7 +187,7 @@ def test(Map m) {
                                     x11vnc -storepasswd vnc /tmp/vncpass
                                     x11vnc -rfbport 5900 -rfbauth /tmp/vncpass -forever > /dev/null 2>&1 &
 
-                                    ./fern.js test ${testParams} --ci report.xml > /dev/null; true
+                                    ./fern.js test ${testParams} --environment testing --ci report.xml > /dev/null; true
 
                                     cp report.xml ${env.WORKSPACE}
                                 """

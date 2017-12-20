@@ -3,6 +3,7 @@ var Funnel = require('broccoli-funnel');
 var MergeTrees = require('broccoli-merge-trees');
 var broccoliSource = require('broccoli-source');
 var writeFile = require('broccoli-file-creator');
+var env = require('./cliqz-env');
 
 var WatchedDir = broccoliSource.WatchedDir;
 var UnwatchedDir = broccoliSource.UnwatchedDir;
@@ -41,7 +42,7 @@ const trees = [
   new Funnel(modules.styleTests,  { destDir: 'chrome/content' })
 ];
 
-if (!cliqzConfig.PRODUCTION) {
+if (!env.PRODUCTION) {
   trees.push(new Funnel(modules.modules,      { destDir: 'chrome/content' }));
 }
 

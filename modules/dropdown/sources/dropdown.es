@@ -3,7 +3,7 @@ import templates from './templates';
 import { clickSignal } from './telemetry';
 import ContextMenu from './context-menu';
 
-export default class {
+export default class Dropdown {
   constructor(element, window, extensionID) {
     this.rootElement = element;
     this.window = window;

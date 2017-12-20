@@ -4,6 +4,10 @@
 
 const fs = require('fs');
 const tldjs = require('tldjs');
+const encoding = require('text-encoding');
+
+const TextDecoder = encoding.TextDecoder;
+const TextEncoder = encoding.TextEncoder;
 
 
 function readFile(path) {
@@ -66,67 +70,58 @@ function testFiltersEngine(optimizeAOT) {
         engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 1 }], loadedAssets, false, true);
         engine.onUpdateFilters([{ filters, asset: 'list2', checksum: 1 }], loadedAssets, false, true);
         engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 2 }], loadedAssets, false, true);
-        const serialized = engine.onUpdateFilters(
+        engine.onUpdateFilters(
           [{ filters: '', asset: 'list2', checksum: 2 }],
           loadedAssets,
-          true,
+          false,
           true
         );
-
-        // Serialize and deserialize engine
-        engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
-        engine.load(serialized);
-
-        // Try to update after deserialization
-        engine.onUpdateFilters([{ filters, asset: 'list3', checksum: 1 }], loadedAssets, false, true);
-        engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 3 }], loadedAssets, false, true);
-        engine.onUpdateFilters([{ filters: '', asset: 'list3', checksum: 2 }], loadedAssets, false, true);
       }
     });
 
     loadCosmeticsTestCases(cosmeticMatches).forEach((testCase) => {
       it(`matches nodes: ${testCase.hostname}`,
-          () => new Promise((resolve, reject) => {
-            const shouldMatch = new Set(testCase.matches);
-            const shouldNotMatch = new Set(testCase.misMatches);
-            const rules = engine.cosmetics.getMatchingRules(testCase.hostname, [testCase.node]);
-            chai.expect(rules.length).to.equal(shouldMatch.size);
-            rules.forEach((rule) => {
-              if (!shouldMatch.has(rule.rawLine)) {
-                reject(`Expected node ${testCase.hostname} + ` +
-                       `${JSON.stringify(testCase.node)}` +
-                       ` to match ${rule.rawLine} ${JSON.stringify(rule)}`);
-              }
-              if (shouldNotMatch.has(rule.rawLine)) {
-                reject(`Expected node ${testCase.hostname} + ` +
-                       `${JSON.stringify(testCase.node)}` +
-                       ` not to match ${rule.rawLine} ${JSON.stringify(rule)}`);
-              }
-            });
-            resolve();
-          })
+        () => new Promise((resolve, reject) => {
+          const shouldMatch = new Set(testCase.matches);
+          const shouldNotMatch = new Set(testCase.misMatches);
+          const rules = engine.cosmetics.getMatchingRules(testCase.hostname, [testCase.node]);
+          chai.expect(rules.length).to.equal(shouldMatch.size);
+          rules.forEach((rule) => {
+            if (!shouldMatch.has(rule.rawLine)) {
+              reject(`Expected node ${testCase.hostname} + ` +
+                     `${JSON.stringify(testCase.node)}` +
+                     ` to match ${rule.rawLine} ${JSON.stringify(rule)}`);
+            }
+            if (shouldNotMatch.has(rule.rawLine)) {
+              reject(`Expected node ${testCase.hostname} + ` +
+                     `${JSON.stringify(testCase.node)}` +
+                     ` not to match ${rule.rawLine} ${JSON.stringify(rule)}`);
+            }
+          });
+          resolve();
+        })
       );
     });
 
     loadCosmeticsTestCases(domainMatches).forEach((testCase) => {
       it(`matches url: ${testCase.hostname}`,
-          () => new Promise((resolve, reject) => {
-            const shouldMatch = new Set(testCase.matches);
-            const shouldNotMatch = new Set(testCase.misMatches);
-            const rules = engine.cosmetics.getDomainRules(testCase.hostname, engine.js);
-            chai.expect(rules.length).to.equal(shouldMatch.size);
-            rules.forEach((rule) => {
-              if (!shouldMatch.has(rule.rawLine)) {
-                reject(`Expected node ${testCase.hostname} ` +
-                       ` to match ${rule.rawLine}`);
-              }
-              if (shouldNotMatch.has(rule.rawLine)) {
-                reject(`Expected node ${testCase.hostname} ` +
-                       ` not to match ${rule.rawLine}`);
-              }
-            });
-            resolve();
-          })
+        () => new Promise((resolve, reject) => {
+          const shouldMatch = new Set(testCase.matches);
+          const shouldNotMatch = new Set(testCase.misMatches);
+          const rules = engine.cosmetics.getDomainRules(testCase.hostname, engine.js);
+          chai.expect(rules.length).to.equal(shouldMatch.size);
+          rules.forEach((rule) => {
+            if (!shouldMatch.has(rule.rawLine)) {
+              reject(`Expected node ${testCase.hostname} ` +
+                     ` to match ${rule.rawLine}`);
+            }
+            if (shouldNotMatch.has(rule.rawLine)) {
+              reject(`Expected node ${testCase.hostname} ` +
+                     ` not to match ${rule.rawLine}`);
+            }
+          });
+          resolve();
+        })
       );
     });
   });
@@ -142,29 +137,26 @@ function testFiltersEngine(optimizeAOT) {
 
     loadTestCases(matchingPath).forEach((testCase) => {
       it(`matches ${testCase.filter} correctly`,
-         () => new Promise((resolve, reject) => {
-           // Create filter engine with only one filter
-           engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
-           const serialized = engine.onUpdateFilters([{
-             asset: 'tests',
-             filters: testCase.filter,
-           }], new Set(['tests']), true, true);
+        () => new Promise((resolve, reject) => {
+          // Create filter engine with only one filter
+          engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
+          engine.onUpdateFilters([{
+            asset: 'tests',
+            filters: testCase.filter,
+            checksum: '',
+          }], new Set(['tests']), false, true);
 
-           // Serialize and deserialize engine
-           engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
-           engine.load(serialized);
-
-           // Check should match
-           try {
-             if (!engine.match(testCase).match) {
-               reject(`Expected ${testCase.filter} to match ${testCase.url}`);
-             }
-             resolve();
-           } catch (ex) {
-             reject(`Encountered exception ${ex} ${ex.stack} while matching ` +
-               `${testCase.filter} against ${testCase.url}`);
-           }
-         }),
+          // Check should match
+          try {
+            if (!engine.match(testCase).match) {
+              reject(`Expected ${testCase.filter} to match ${testCase.url}`);
+            }
+            resolve();
+          } catch (ex) {
+            reject(`Encountered exception ${ex} ${ex.stack} while matching ` +
+              `${testCase.filter} against ${testCase.url}`);
+          }
+        }),
       );
     });
   });
@@ -197,33 +189,23 @@ function testFiltersEngine(optimizeAOT) {
         engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 1 }], loadedAssets, false, true);
         engine.onUpdateFilters([{ filters, asset: 'list2', checksum: 1 }], loadedAssets, false, true);
         engine.onUpdateFilters([{ filters, asset: 'list1', checksum: 2 }], loadedAssets, false, true);
-        const serialized = engine.onUpdateFilters(
-          [{ filters: '', asset: 'list2', checksum: 2 }],
-          loadedAssets,
-          true,
-          true
-        );
-
-        // Serialize and deserialize engine
-        engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
-        engine.load(serialized);
       }
     });
 
     loadTestCases(matchingPath).forEach((testCase) => {
       it(`${testCase.filter} matches correctly against full engine`,
-         () => new Promise((resolve, reject) => {
-           // Check should match
-           try {
-             if (!engine.match(testCase).match) {
-               reject(`Expected ${testCase.filter} to match ${testCase.url}`);
-             }
-             resolve();
-           } catch (ex) {
-             reject(`Encountered exception ${ex} ${ex.stack} while matching ` +
-               `${testCase.filter} against ${testCase.url}`);
-           }
-         }),
+        () => new Promise((resolve, reject) => {
+          // Check should match
+          try {
+            if (!engine.match(testCase).match) {
+              reject(`Expected ${testCase.filter} to match ${testCase.url}`);
+            }
+            resolve();
+          } catch (ex) {
+            reject(`Encountered exception ${ex} ${ex.stack} while matching ` +
+              `${testCase.filter} against ${testCase.url}`);
+          }
+        }),
       );
     });
   });
@@ -240,35 +222,31 @@ function testFiltersEngine(optimizeAOT) {
         FilterEngine = this.module().default;
 
         engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
-        const serialized = engine.onUpdateFilters(
-          [{ asset: 'asset', filters: readFile(filterListPath).split('\t').join('\n') }],
+        engine.onUpdateFilters(
+          [{ checksum: '', asset: 'asset', filters: readFile(filterListPath).split('\t').join('\n') }],
           new Set(['asset']),
-          true,
+          false,
           true,
         );
-
-        // Serialize and deserialize engine
-        engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
-        engine.load(serialized);
       }
     });
 
     loadTestCases(notMatchingPath).forEach((testCase) => {
       it(`${testCase.url} does not match`,
-         () => new Promise((resolve, reject) => {
-           // Check should match
-           try {
-             const result = engine.match(testCase);
-             if (result !== null && result.match) {
-               reject(`Expected to *not* match ${JSON.stringify(result)} ${testCase.url}`);
-             }
-             resolve();
-           } catch (ex) {
-             reject(`Encountered exception ${ex} ${ex.stack} while matching ` +
-               `${testCase.filter} against ${testCase.url}`);
-           }
-         }),
-       );
+        () => new Promise((resolve, reject) => {
+          // Check should match
+          try {
+            const result = engine.match(testCase);
+            if (result !== null && result.match) {
+              reject(`Expected to *not* match ${JSON.stringify(result)} ${testCase.url}`);
+            }
+            resolve();
+          } catch (ex) {
+            reject(`Encountered exception ${ex} ${ex.stack} while matching ` +
+              `${testCase.filter} against ${testCase.url}`);
+          }
+        }),
+      );
     });
   });
 
@@ -286,38 +264,33 @@ function testFiltersEngine(optimizeAOT) {
         FilterEngine = this.module().default;
 
         engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
-        const serialized = engine.onUpdateFilters(
-          [{ asset: 'asset', filters: readFile(filterListPath).split('\t').join('\n') }],
+        engine.onUpdateResource([{ filters: readFile(resourcesPath) }]);
+        engine.onUpdateFilters(
+          [{ checksum: '', asset: 'asset', filters: readFile(filterListPath).split('\t').join('\n') }],
           new Set(['asset']),
-          true,
+          false,
           true,
         );
-        engine.onUpdateResource([{ filters: readFile(resourcesPath) }]);
-
-        // Serialize and deserialize engine
-        engine = new FilterEngine(FILTER_ENGINE_OPTIONS);
-        engine.load(serialized);
-        engine.onUpdateResource([{ filters: readFile(resourcesPath) }]);
       }
     });
 
     loadTestCases(notMatchingPath).forEach((testCase) => {
       it(`${testCase.url} redirected`,
-         () => new Promise((resolve, reject) => {
-           // Check should match
-           try {
-             const result = engine.match(testCase);
-             if (result.redirect !== testCase.redirect) {
-               reject(`Expected to redirect to ${testCase.redirect} instead` +
-                      ` of ${result.redirect} for ${testCase.url}`);
-             }
-             resolve();
-           } catch (ex) {
-             reject(`Encountered exception ${ex} ${ex.stack} while checking redirect ` +
-               `${testCase.redirect} against ${testCase.url}`);
-           }
-         }),
-       );
+        () => new Promise((resolve, reject) => {
+          // Check should match
+          try {
+            const result = engine.match(testCase);
+            if (result.redirect !== testCase.redirect) {
+              reject(`Expected to redirect to ${testCase.redirect} instead` +
+                     ` of ${result.redirect} for ${testCase.url}`);
+            }
+            resolve();
+          } catch (ex) {
+            reject(`Encountered exception ${ex} ${ex.stack} while checking redirect ` +
+              `${testCase.redirect} against ${testCase.url}`);
+          }
+        }),
+      );
     });
   });
 }
@@ -328,6 +301,12 @@ export default describeModule('core/adblocker-base/filters-engine',
     'platform/url': {},
     'platform/tldjs': {
       default: tldjs,
+    },
+    'platform/text-decoder': {
+      default: TextDecoder,
+    },
+    'platform/text-encoder': {
+      default: TextEncoder,
     },
     'core/utils': {
       default: {
@@ -346,6 +325,6 @@ export default describeModule('core/adblocker-base/filters-engine',
   }),
   () => {
     testFiltersEngine(false /* _Do not_, optimize index ahead of time */);
-    testFiltersEngine(true  /* _Optimize_ index ahead of time */);
+    testFiltersEngine(true /* _Optimize_ index ahead of time */);
   },
 );

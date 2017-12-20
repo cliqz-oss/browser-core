@@ -49,7 +49,8 @@ export default background({
     ]).then(([qsWhitelist, userCookies]) =>
       userCookies.filter((cki) => {
         const domain = cki.domain.startsWith('.') ? cki.domain.slice(1) : cki.domain;
-        return qsWhitelist.isTrackerDomain(md5(tlds.getGeneralDomain(domain)).substring(0, 16));
+        const gd = tlds.getGeneralDomain(domain);
+        return gd && qsWhitelist.isTrackerDomain(md5(gd).substring(0, 16));
       })
     );
   },

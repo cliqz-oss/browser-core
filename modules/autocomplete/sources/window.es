@@ -4,7 +4,7 @@ import Search from "./search";
 import {Window as AutocompleteWindow} from "../platform/auto-complete-component";
 
 
-export default class {
+export default class Win {
   constructor(settings) {
     this.window = settings.window;
     this.window.CliqzAutocomplete = autocomplete;

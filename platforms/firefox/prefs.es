@@ -56,3 +56,15 @@ export function clearPref(key, prefix) {
   const pref = prefixPref(key, prefix);
   prefs.clearUserPref(pref);
 }
+
+export function enableChangeEvents() {
+
+};
+
+export function disableChangeEvents() {
+
+};
+
+export function init() {
+  return Promise.resolve();
+}

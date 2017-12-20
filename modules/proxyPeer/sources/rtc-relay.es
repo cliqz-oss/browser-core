@@ -11,7 +11,7 @@ function hashConnectionID(connectionID /* , peerID */) {
 }
 
 
-export default class {
+export default class RtcRelay {
   constructor(peer) {
     this.peer = peer;
     this.previousPeer = new Map();

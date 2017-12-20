@@ -6,17 +6,16 @@ import prefs from '../core/prefs';
 
 import tlds from '../core/tlds';
 
-import CliqzADB,
-      { ADB_PREF_VALUES,
-        ADB_PREF,
-        ADB_PREF_OPTIMIZED,
-        ADB_USER_LANG,
-        ADB_USER_LANG_OVERRIDE,
-        adbEnabled } from './adblocker';
+import CliqzADB, {
+  ADB_PREF_VALUES,
+  ADB_PREF,
+  ADB_PREF_OPTIMIZED,
+  ADB_USER_LANG
+} from './adblocker';
 
 
 function isAdbActive(url) {
-  return adbEnabled() &&
+  return CliqzADB.adbEnabled() &&
     CliqzADB.adblockInitialized &&
     !CliqzADB.urlWhitelist.isWhitelisted(url);
 }
@@ -73,12 +72,9 @@ export default background({
     },
 
     prefchange: (pref) => {
-      if (pref === ADB_USER_LANG || pref === ADB_USER_LANG_OVERRIDE) {
+      if (pref === ADB_USER_LANG) {
         if (CliqzADB.adblockInitialized) {
-          // change in user lang pref, reload the filters
-          CliqzADB.adBlocker.resetEngine();
-          CliqzADB.adBlocker.resetLists();
-          CliqzADB.adBlocker.listsManager.load();
+          CliqzADB.adBlocker.reset();
         }
       }
     },
@@ -108,12 +104,12 @@ export default background({
       );
     },
 
-    getAdBlockInfo(url) {
-      return CliqzADB.adbStats.report(url);
+    getAdBlockInfo(tabId) {
+      return CliqzADB.adbStats.report(tabId);
     },
 
     getAdBlockInfoForTab(tabId) {
-      return CliqzADB.adbStats.reportTab(tabId);
+      return CliqzADB.adbStats.report(tabId);
     },
 
     isWhitelisted(url) {
@@ -139,6 +135,14 @@ export default background({
       } else {
         this.actions.changeWhitelistState(url, 'url', 'toggle');
       }
+    },
+
+    pause() {
+      this.adb.paused = true;
+    },
+
+    resume() {
+      this.adb.paused = false;
     }
   },
 });

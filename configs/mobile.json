@@ -4,7 +4,9 @@
   "testem_launchers": ["unit-node", "Chrome"],
   "baseURL": "./",
   "settings": {
-    "CONFIG_PROVIDER": "https://api.cliqz.com/api/v1/config"
+    "CONFIG_PROVIDER": "https://api.cliqz.com/api/v1/config",
+    "CDN_BASEURL": "https://cdn.cliqz.com",
+    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"]
   },
   "modules": [
     "core",

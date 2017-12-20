@@ -17,6 +17,8 @@ const TELEMETRY_TYPE = 'video_downloader';
 const UI_TOUR_ID = 'video-downloader';
 const BUTTON_ID = 'video-downloader-page-action';
 const PANEL_ID = 'video-downloader-panel';
+const DONWLOADS_UITOUR_ID = 'downloads-uitour';
+const DONWLOADS_BTN_ID = 'downloads-button';
 
 export default class UI {
   showOnboarding() {
@@ -72,7 +74,7 @@ export default class UI {
       onHidingCallback: () => {
         this.pageActionBtn.removeAttribute('open');
       },
-      defaultWidth: 300,
+      defaultWidth: 270,
       defaultHeight: 115,
     });
 
@@ -84,10 +86,13 @@ export default class UI {
 
     this.pageActionBtn = window.document.createElement('div');
     this.pageActionBtn.id = BUTTON_ID; // Use id to style this button
+    this.pageActionBtn.className = 'urlbar-icon';
     this.onButtonClicked = this.onButtonClicked.bind(this);
 
     this.pageActionBtn.addEventListener('click', this.onButtonClicked);
     this.pageActionButtons.appendChild(this.pageActionBtn);
+    this.onEvent = this.onEvent.bind(this);
+    this.onPaired = this.onPaired.bind(this);
   }
 
   init() {
@@ -97,8 +102,10 @@ export default class UI {
 
     CliqzEvents.sub('core.location_change', this.actions.checkForVideoLink);
     CliqzEvents.sub('core.tab_state_change', this.actions.checkForVideoLink);
+    CliqzEvents.sub('pairing.onPairingDone', this.onPaired);
     this.showOnboarding();
     UITour.targets.set(UI_TOUR_ID, { query: `#${BUTTON_ID}`, widgetName: BUTTON_ID, allowAdd: true });
+    UITour.targets.set(DONWLOADS_UITOUR_ID, { query: `#${DONWLOADS_BTN_ID}`, widgetName: DONWLOADS_BTN_ID, allowAdd: true });
     this.hideButton(); // Don't show the button when user opens a new window
   }
 
@@ -106,11 +113,49 @@ export default class UI {
     removeStylesheet(this.window.document, this.cssUrl);
     CliqzEvents.un_sub('core.tab_state_change', this.actions.checkForVideoLink);
     CliqzEvents.un_sub('core.location_change', this.actions.checkForVideoLink);
+    CliqzEvents.un_sub('pairing.onPairingDone', this.onPaired);
     UITour.targets.delete(UI_TOUR_ID);
+    UITour.targets.delete(DONWLOADS_UITOUR_ID);
+    this.removeTooltipEventListener();
 
     this.pageActionBtn.removeEventListener('click', this.onButtonClicked);
     this.pageActionButtons.removeChild(this.pageActionBtn);
     this.panel.detach();
+  }
+
+  onPaired() {
+    utils.telemetry({
+      type: TELEMETRY_TYPE,
+      version: TELEMETRY_VERSION,
+      action: 'connect',
+    });
+
+    this.sendMessageToPopup({
+      action: 'pushData',
+      data: {
+        hidePairingIframe: true,
+      },
+    });
+  }
+
+  onEvent(e) {
+    const tooltipSelector = `#UITourTooltip[targetName=${DONWLOADS_UITOUR_ID}]`;
+    const tooltip = this.window.document.querySelector(tooltipSelector);
+    // Hide the uitour when user clicks outside the tooltip
+    if (tooltip && tooltip.state === 'open' && !tooltip.contains(e.target)) {
+      this.background.actions.closeDownloadsUITour(true);
+      this.hideUITour();
+    }
+  }
+
+  addTooltipEventListener() {
+    this.window.addEventListener('blur', this.onEvent);
+    this.window.addEventListener('click', this.onEvent);
+  }
+
+  removeTooltipEventListener() {
+    this.window.removeEventListener('blur', this.onEvent);
+    this.window.removeEventListener('click', this.onEvent);
   }
 
   resizePopup({ width, height }) {
@@ -118,6 +163,13 @@ export default class UI {
   }
 
   openConnectPage() {
+    utils.telemetry({
+      type: TELEMETRY_TYPE,
+      version: TELEMETRY_VERSION,
+      action: 'click',
+      target: 'connect_settings',
+    });
+
     utils.openLink(this.window, 'about:preferences#connect', true, false, false, true);
   }
 
@@ -204,8 +256,80 @@ export default class UI {
     });
   }
 
+  maybeShowingDownloadsUITour() {
+    if (this.background.isDownloadsUITourDismissed) {
+      return;
+    }
+
+    const promise = UITour.getTarget(this.window, DONWLOADS_UITOUR_ID);
+    const icon = null;
+    const title = utils.getLocalizedString('downloads-uitour-title');
+    const text = utils.getLocalizedString('downloads-uitour-description');
+
+    const buttons = [
+      {
+        label: 'AppStore',
+        callback: () => {
+          utils.telemetry({
+            type: 'notification',
+            version: TELEMETRY_VERSION,
+            topic: 'video_downloader_mobile',
+            view: 'toolbar',
+            action: 'click',
+            target: 'apple',
+          });
+          this.background.actions.closeDownloadsUITour(false);
+          utils.openLink(this.window, utils.getLocalizedString('pairing-ios-app'), true, false, false, true);
+        }
+      },
+      {
+        label: 'PlayStore',
+        callback: () => {
+          utils.telemetry({
+            type: 'notification',
+            version: TELEMETRY_VERSION,
+            topic: 'video_downloader_mobile',
+            view: 'toolbar',
+            action: 'click',
+            target: 'google',
+          });
+          this.background.actions.closeDownloadsUITour(false);
+          utils.openLink(this.window, utils.getLocalizedString('pairing-android-app'), true, false, false, true);
+        }
+      }
+    ];
+    const options = {
+      closeButtonCallback: () => {
+        utils.telemetry({
+          type: 'notification',
+          version: TELEMETRY_VERSION,
+          topic: 'video_downloader_mobile',
+          view: 'toolbar',
+          action: 'click',
+          target: 'dismiss',
+        });
+        this.background.actions.closeDownloadsUITour(false);
+      }
+    };
+
+    promise.then((target) => {
+      utils.telemetry({
+        type: 'notification',
+        version: TELEMETRY_VERSION,
+        topic: 'video_downloader_mobile',
+        view: 'toolbar',
+        action: 'show',
+      });
+      UITour.showInfo(this.window, target, title, text, icon, buttons, options);
+      this.addTooltipEventListener();
+    }).catch((e) => {
+      console.log(e);
+    });
+  }
+
   hideUITour() {
     try {
+      this.removeTooltipEventListener();
       UITour.hideInfo(this.window);
       UITour.hideHighlight(this.window);
     } catch (e) {
@@ -252,33 +376,25 @@ export default class UI {
     this.panel.open(this.pageActionBtn);
   }
 
-  sendToMobile({ url, format, title, resend }) {
+  sendToMobile({ url, format, title, type }) {
     this.background.actions.closeUITour(false);
 
-    if (resend) {
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        version: TELEMETRY_VERSION,
-        action: 'click',
-        target: 'send_to_mobile',
-        state: 'error',
-      });
-    } else {
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        version: TELEMETRY_VERSION,
-        action: 'click',
-        target: 'send_to_mobile',
-        state: 'initial',
-      });
-    }
-    this.PeerComm.getObserver('YTDOWNLOADER').sendVideo({ url, format, title })
-      .then(() => {
-        this.sendMessageToPopup({
-          action: 'pushData',
-          data: { sendingStatus: 'success' },
-        });
+    utils.setPref('videoDownloaderOptions', JSON.stringify({
+      platform: 'mobile',
+      quality: format
+    }));
 
+    utils.telemetry({
+      type: TELEMETRY_TYPE,
+      version: TELEMETRY_VERSION,
+      view: 'mobile',
+      action: 'click',
+      target: 'download',
+      format: format.includes('audio') ? 'audio' : format,
+    });
+
+    this.PeerComm.getObserver('YTDOWNLOADER').sendVideo({ url, format: type, title })
+      .then(() => {
         utils.telemetry({
           type: 'connect',
           version: TELEMETRY_VERSION,
@@ -287,11 +403,6 @@ export default class UI {
         });
       })
       .catch(() => {
-        this.sendMessageToPopup({
-          action: 'pushData',
-          data: { sendingStatus: 'error' },
-        });
-
         utils.telemetry({
           type: 'connect',
           version: TELEMETRY_VERSION,
@@ -341,29 +452,33 @@ export default class UI {
   getVideoLinks() {
     const url = this.getCurrentFriendlyUrl();
     Promise.resolve()
-    .then(() => {
-      if (this.PeerComm) {
-        return this.PeerComm.waitInit();
-      }
-      return null;
-    })
-    .then(() => getVideoInfo(url))
-    .then((info) => {
-      const formats = getFormats(info);
-      const videos = formats.filter(x => x.isVideoAudio);
-      let videoForPairing = {};
-      if (videos.length > 0) {
-        videoForPairing = videos[videos.length - 1];
-      }
-      if (formats.length > 0) {
-        const result = {
-          pairingAvailable: !!this.PeerComm,
-          isPaired: this.PeerComm && this.PeerComm.isPaired,
-          videoForPairing,
-          formats,
-          origin: encodeURI(this.getCurrentUrl())
-        };
-        if (result.formats.length > 0) {
+      .then(() => {
+        if (this.PeerComm) {
+          return this.PeerComm.waitInit();
+        }
+        return null;
+      })
+      .then(() => getVideoInfo(url))
+      .then((info) => {
+        const formats = getFormats(info);
+
+        if (formats.length > 0) {
+          const options = JSON.parse(utils.getPref('videoDownloaderOptions', '{}'));
+          const audioFile = formats.find(format => format.class === 'audio');
+          if (audioFile) {
+            audioFile.name = utils.getLocalizedString('video-downloader-audio-label');
+          }
+          const desiredFormat = formats.find(format =>
+            format.name.toLowerCase().replace(' ', '_') === options.quality) || formats[0];
+          desiredFormat.selected = true;
+
+          const result = {
+            isConnectPreferred: options.platform === 'mobile',
+            pairingAvailable: !!this.PeerComm,
+            isPaired: this.PeerComm && this.PeerComm.isPaired,
+            formats,
+            origin: encodeURI(this.getCurrentUrl())
+          };
           this.sendMessageToPopup({
             action: 'pushData',
             data: result,
@@ -382,24 +497,23 @@ export default class UI {
             is_downloadable: false,
           });
         }
-      }
-    })
-    .catch((e) => {
-      console.error('Error getting video links', e);
-      this.sendMessageToPopup({
-        action: 'pushData',
-        data: {
-          unSupportedFormat: true,
-        },
+      })
+      .catch((e) => {
+        console.error('Error getting video links', e);
+        this.sendMessageToPopup({
+          action: 'pushData',
+          data: {
+            unSupportedFormat: true,
+          },
+        });
+        // Should we send a different telemetry message here?
+        utils.telemetry({
+          type: TELEMETRY_TYPE,
+          version: TELEMETRY_VERSION,
+          action: 'popup_open',
+          is_downloadable: false,
+        });
       });
-      // Should we send a different telemetry message here?
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        version: TELEMETRY_VERSION,
-        action: 'popup_open',
-        is_downloadable: false,
-      });
-    });
   }
 
   sendTelemetry(data) {
@@ -434,10 +548,16 @@ export default class UI {
     utils.telemetry({
       type: TELEMETRY_TYPE,
       version: TELEMETRY_VERSION,
+      view: 'desktop',
       target: 'download',
       action: 'click',
-      format,
+      format: format.includes('audio') ? 'audio' : format,
     });
+
+    utils.setPref('videoDownloaderOptions', JSON.stringify({
+      platform: 'desktop',
+      quality: format
+    }));
 
     const nsIFilePicker = Components.interfaces.nsIFilePicker;
     const fp = Components.classes['@mozilla.org/filepicker;1'].createInstance(nsIFilePicker);
@@ -467,6 +587,14 @@ export default class UI {
           download = d;
           download.start();
           list.add(download);
+          const hasDownloadsPanelShown = utils.getPref('download.panel.shown', false, 'browser.');
+          utils.setTimeout(() => {
+            // instead of detecting opening downloadsPanel, check the pref
+            if (!hasDownloadsPanelShown) {
+              return;
+            }
+            this.maybeShowingDownloadsUITour();
+          }, 1000);
           if (origin) {
             History.fillFromVisit(url, origin);
           }

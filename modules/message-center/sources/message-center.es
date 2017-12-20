@@ -63,6 +63,6 @@ CliqzMsgCenter.getInstance = function () {
     CliqzMsgCenter.getInstance.instance || new CliqzMsgCenter();
   return CliqzMsgCenter.getInstance.instance;
 };
-CliqzMsgCenter.getInstance();
+//CliqzMsgCenter.getInstance();
 
 export default CliqzMsgCenter;

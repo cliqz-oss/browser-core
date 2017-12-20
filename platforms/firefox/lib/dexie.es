@@ -3,6 +3,7 @@ import getWindowAPIAsync from '../window-api';
 
 let Dexie;
 let loadingPromise;
+
 export default function () {
   if (Dexie) {
     return Promise.resolve(Dexie);

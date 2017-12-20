@@ -1,7 +1,7 @@
 import Stats from './simple-statistics';
 
 
-export default class {
+export default class Aggregator {
   constructor(keyBlackList = ['id', 'ts', 'session', 'seq', '_id', '_rev']) {
     this.keyBlacklist = keyBlackList;
   }

@@ -5,11 +5,10 @@ import Module from './app/module';
 import { setGlobal } from './kord';
 import console from './console';
 import utils from './utils';
-import { debugModules } from '../platform/globals';
 import { Window, mapWindows, forEachWindow, addWindowObserver,
   removeWindowObserver, reportError, mustLoadWindow, setInstallDatePref,
   setOurOwnPrefs, resetOriginalPrefs, enableChangeEvents,
-  disableChangeEvents, waitWindowReady,
+  disableChangeEvents, waitWindowReady, addMigrationObserver, removeMigrationObserver,
   addSessionRestoreObserver, removeSessionRestoreObserver } from '../platform/browser';
 
 function shouldEnableModule(name) {
@@ -25,22 +24,18 @@ function shouldEnableModule(name) {
 /**
  * @class App
  */
-export default class {
+export default class App {
 
   /**
    * @constructor
    * @param {object} config
    */
-  constructor({ version, extensionId } = {}) {
+  constructor({ version } = {}) {
     /**
      * @property {string} version
      */
     this.version = version;
     utils.VERSION = this.version;
-    /**
-     * @property {string} extensionId
-     */
-    this.extensionId = extensionId;
     /**
      * @property {object} modules
      */
@@ -68,12 +63,16 @@ export default class {
       Object.assign(this.services, module.providedServices);
     });
 
-    this.debugModules = debugModules;
+    this.debugModules = App.debugModules;
 
     utils.extensionVersion = version;
     setGlobal(this);
-    this.prefchangeEventListener = subscribe('prefchange', this.onPrefChange, this);
     this.isRunning = false;
+    this.onMigrationEnded = (_, topic) => {
+      if (topic === 'Migration:Ended') {
+        this.extensionRestart();
+      }
+    };
   }
 
   /**
@@ -180,33 +179,36 @@ export default class {
    */
   start() {
     this.isRunning = true;
+    addMigrationObserver(this.onMigrationEnded);
 
-    return this.load().then(() => {
-      enableChangeEvents();
-      this.windowWatcher = (win, event) => {
-        if (event === 'opened') {
-          this.loadIntoWindow(win, 'windowWatcher');
-        } else if (event === 'closed') {
-          this.unloadFromWindow(win);
-        }
-      };
+    return this.setupPrefs().then(() =>
+      this.load().then(() => {
+        enableChangeEvents();
+        this.windowWatcher = (win, event) => {
+          if (event === 'opened') {
+            this.loadIntoWindow(win, 'windowWatcher');
+          } else if (event === 'closed') {
+            this.unloadFromWindow(win);
+          }
+        };
 
-      addWindowObserver(this.windowWatcher);
+        addWindowObserver(this.windowWatcher);
 
-      // Load into currently open windows
-      forEachWindow((win) => {
-        this.loadIntoWindow(win, 'existing window');
-      });
-
-      this.sessionRestoreObserver = () => {
-        // Load into all the open windows after session restore hits
+        // Load into currently open windows
         forEachWindow((win) => {
-          this.loadIntoWindow(win, 'session restore');
+          this.loadIntoWindow(win, 'existing window');
         });
-      };
 
-      addSessionRestoreObserver(this.sessionRestoreObserver);
-    });
+        this.sessionRestoreObserver = () => {
+          // Load into all the open windows after session restore hits
+          forEachWindow((win) => {
+            this.loadIntoWindow(win, 'session restore');
+          });
+        };
+
+        addSessionRestoreObserver(this.sessionRestoreObserver);
+      })
+    );
   }
 
   /**
@@ -219,6 +221,7 @@ export default class {
    */
   stop(isShutdown, disable, telemetrySignal) {
     this.isRunning = false;
+    removeMigrationObserver(this.onMigrationEnded);
     // NOTE: Disable this warning locally since the solution is hacky anyway.
     /* eslint-disable no-param-reassign */
 
@@ -286,24 +289,28 @@ export default class {
   }
 
   setupPrefs() {
-    setInstallDatePref(this.extensionId);
+    const initPrefs = prefs.init || Promise.resolve.bind(Promise);
+    return initPrefs().then(() => {
+      setInstallDatePref(utils.getServerDay());
 
-    if (config.environment === 'development') {
-      prefs.set('developer', true);
-    }
+      if (config.environment === 'development') {
+        prefs.set('developer', true);
+      }
 
-    // Ensure prefs are set to our custom values
-    /** Change some prefs for a better cliqzperience -- always do a backup! */
-    setOurOwnPrefs();
+      // Ensure prefs are set to our custom values
+      /** Change some prefs for a better cliqzperience -- always do a backup! */
+      setOurOwnPrefs();
 
-    if ('default_prefs' in config) {
-      Object.keys(config.default_prefs).forEach((pref) => {
-        if (!prefs.has(pref)) {
-          console.log('App', 'set up preference', `"${pref}"`);
-          prefs.set(pref, config.default_prefs[pref]);
-        }
-      });
-    }
+      if ('default_prefs' in config) {
+        Object.keys(config.default_prefs).forEach((pref) => {
+          if (!prefs.has(pref)) {
+            console.log('App', 'set up preference', `"${pref}"`);
+            prefs.set(pref, config.default_prefs[pref]);
+          }
+        });
+      }
+      this.prefchangeEventListener = subscribe('prefchange', this.onPrefChange, this);
+    });
   }
 
   restorePrefs() {
@@ -346,7 +353,6 @@ export default class {
    */
   load() {
     console.log('App', 'Loading modules started');
-    this.setupPrefs();
     const allModules = this.moduleList;
     const core = allModules.find(x => x.name === 'core');
     const modules = allModules.filter(x => x.name !== 'core' && shouldEnableModule(x.name));
@@ -377,7 +383,9 @@ export default class {
   }
 
   unload({ quick } = { quick: false }) {
-    this.prefchangeEventListener.unsubscribe();
+    if (this.prefchangeEventListener) {
+      this.prefchangeEventListener.unsubscribe();
+    }
 
     console.log('App', 'unload background modules');
     this.enabledModules().reverse().forEach((module) => {

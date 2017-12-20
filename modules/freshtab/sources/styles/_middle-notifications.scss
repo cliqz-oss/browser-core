@@ -89,6 +89,18 @@
                     color: $button-color-hover;
                 }
             }
+
+            .buttons {
+                a {
+                    margin-right: 10px;
+
+                    .apple-badge {
+                        height: 36.6px;
+                        position: relative;
+                        top: -1px;
+                    }
+                }
+            }
         }
     }
 }

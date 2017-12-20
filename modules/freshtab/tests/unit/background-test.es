@@ -48,6 +48,9 @@ export default describeModule("freshtab/background",
           set() {},
           has() {},
         }
+      },
+      "core/i18n": {
+        getLanguageFromLocale: function() {}  
       }
     }
   },

@@ -9,7 +9,7 @@ const BTN_ID = 'cliqz-cc-btn';
 const TELEMETRY_TYPE = 'control_center';
 const TRIQZ_URL = 'https://cliqz.com/tips';
 
-export default class {
+export default class Win {
   constructor({ window, background, settings }) {
     this.window = window;
     this.toolbarButton = background.toolbarButton;
@@ -70,7 +70,7 @@ export default class {
   }
 
   init() {
-    events.sub('core.location_change', this.actions.refreshState);
+    this.locChangeEvent = events.subscribe('core.location_change', this.actions.refreshState);
 
     if (utils.getPref('toolbarButtonPositionSet', false) === false && this.toolbarButton) {
       this.toolbarButton.setPositionBeforeElement('bookmarks-menu-button');
@@ -147,7 +147,7 @@ export default class {
     this.toolbarButton && this.toolbarButton.removeWindow(this.window);
     this.pageAction && this.pageAction.removeWindow(this.window);
 
-    events.un_sub('core.location_change', this.actions.refreshState);
+    this.locChangeEvent.unsubscribe();
 
     // remove custom items from the Help Menu
     const nodes = this.helpMenu.querySelectorAll('.cliqz-item');
@@ -336,7 +336,13 @@ export default class {
 
   setState(state) {
     if (this.toolbarButton) {
-      this.toolbarButton.setIcon(this.window, config.baseURL + this.ICONS[state]);
+      let selectedTheme = utils.getPref('lightweightThemes.selectedThemeID', '', '');
+      let icon = config.baseURL + this.ICONS[state].default;
+      if (selectedTheme === 'firefox-compact-dark@mozilla.org' && this.ICONS[state].dark) {
+        icon = config.baseURL + this.ICONS[state].dark;
+      }
+
+      this.toolbarButton.setIcon(this.window, icon);
       this.toolbarButton.setBadgeBackgroundColor(this.window, this.BACKGROUNDS[state]);
     }
   }

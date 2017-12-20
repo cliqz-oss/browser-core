@@ -1,5 +1,5 @@
 /* eslint { "no-unused-vars": "off" } */
-import { Services, XPCOMUtils } from './globals';
+import { Components, Services, XPCOMUtils } from './globals';
 
 const DEFAULT_STORE = 'firefox-default';
 const PRIVATE_STORE = 'firefox-private';
@@ -86,7 +86,7 @@ export default {
     // Currently only returns all cookies. Filtering is not yet implemented
     const cookies = [];
     for (const cookie of XPCOMUtils.IterSimpleEnumerator(Services.cookies.enumerator,
-                                                         Ci.nsICookie2)) {
+                                                         Components.interfaces.nsICookie2)) {
       cookies.push(new Cookie(cookie));
     }
     return Promise.resolve(cookies);

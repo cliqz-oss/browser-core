@@ -1,13 +1,9 @@
-import * as ftch from '../platform/fetch';
 import console from './console';
 import { compress } from './gzip';
 import { XMLHttpRequestFactory, setPrivateFlags, setBackgroundRequest } from '../platform/xmlhttprequest';
 import { chromeUrlHandler } from '../platform/chrome-url-handler';
 
-export let fetch = ftch.fetch;
-export let Headers = ftch.Headers;
-export let Request = ftch.Request;
-export let Response = ftch.Response;
+export { fetch, Headers, Request, Response } from '../platform/fetch';
 
 /** Legacy httpHandler implementation, based on XMLHttpRequest.
  *

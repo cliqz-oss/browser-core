@@ -22,6 +22,7 @@ const clean = result => ({
     triggerMethod: result.trigger_method,
     domain: getDetailsFromUrl(result.url || '').domain,
     url: urlStripProtocol(result.url || ''),
+    score: result.score,
   }
 });
 

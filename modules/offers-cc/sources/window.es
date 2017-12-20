@@ -12,7 +12,7 @@ const UI_TOUR_ID = 'cliqz-offers';
 let seenOffersObj = {};
 let autoTrigger = false;
 
-export default class {
+export default class Win {
   constructor(settings) {
     if (!background.is_enabled) {
       return;
@@ -75,14 +75,14 @@ export default class {
 
   addTooltipEventListener() {
     this.window.document.querySelector('#UITourTooltip')
-                                    .addEventListener('click', this.onTooltipClicked);
+      .addEventListener('click', this.onTooltipClicked);
     this.window.addEventListener('blur', this.onEvent);
     this.window.addEventListener('click', this.onEvent);
   }
 
   removeTooltipEventListener() {
     this.window.document.querySelector('#UITourTooltip')
-                        .removeEventListener('click', this.onTooltipClicked);
+      .removeEventListener('click', this.onTooltipClicked);
     this.window.removeEventListener('blur', this.onEvent);
     this.window.removeEventListener('click', this.onEvent);
   }
@@ -401,12 +401,16 @@ export default class {
     }
     // we also have event data: event.data;
     const eventID = event.type;
-    const offersHubTrigger = event.data.offer_data.ui_info.notif_type || 'tooltip';
-    const offerID = event.data.offer_data.offer_id;
 
-    this._getAllOffers().then(() => {
+    this._getAllOffers().then((results) => {
+      if (results.length <= 0 || !results.some(result => result.state === 'new')) {
+        return;
+      }
+
       switch (eventID) {
         case 'push-offer': {
+          const offersHubTrigger = event.data.offer_data.ui_info.notif_type || 'tooltip';
+          const offerID = event.data.offer_data.offer_id;
           // Auto open the panel
           autoTrigger = true;
           this.toolbarButtonElement.setAttribute('state', 'new-offers');
@@ -490,7 +494,6 @@ export default class {
           }
           break;
         }
-
         default: {
           utils.log('invalid event from core type', eventID);
           break;
@@ -577,5 +580,4 @@ export default class {
       // Expected exception when the UITour is not showing
     }
   }
-
 }

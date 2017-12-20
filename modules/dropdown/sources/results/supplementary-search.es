@@ -4,9 +4,6 @@ import utils from '../../core/utils';
 export default class SupplementarySearchResult extends BaseResult {
   constructor(rawResult, allResultsFlat = []) {
     super(rawResult, allResultsFlat);
-
-    this.engines = utils.getSearchEngines();
-    this.defaultSearchEngine = this.engines.find(se => se.default);
   }
 
   click(...args) {
@@ -19,6 +16,22 @@ export default class SupplementarySearchResult extends BaseResult {
 
   get template() {
     return 'search';
+  }
+
+  get engines() {
+    if (!this._engines) {
+      this._engines = utils.getSearchEngines();
+    }
+
+    return this._engines;
+  }
+
+  get defaultSearchEngine() {
+    if (!this._defaultSearchEngine) {
+      this._defaultSearchEngine = this.engines.find(se => se.default);
+    }
+
+    return this._defaultSearchEngine;
   }
 
   // it is not history but makes the background color to be light gray

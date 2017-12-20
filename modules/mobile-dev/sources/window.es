@@ -5,7 +5,7 @@ import MockOS from "./MockOS";
 /**
 * @namespace mobile-dev
 */
-export default class {
+export default class Win {
   /**
   * @class Window
   * @constructor

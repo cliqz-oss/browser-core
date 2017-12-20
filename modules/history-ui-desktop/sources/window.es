@@ -1,6 +1,6 @@
 import config from '../core/config';
 
-export default class {
+export default class Win {
   constructor(settings) {
     this.window = settings.window;
     this.historyUrl = settings.settings['history-ui-url'] ||

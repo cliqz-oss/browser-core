@@ -43,7 +43,7 @@ function getCookieValues(c, url) {
   return cookieVal;
 }
 
-export default class {
+export default class DomChecker {
 
   constructor() {
     this.loadedTabs = {};

@@ -1,6 +1,6 @@
 import prefs from '../core/prefs';
 
-export default class {
+export default class Popup {
   constructor(window) {
     this.window = window;
   }

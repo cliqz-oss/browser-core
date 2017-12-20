@@ -3,7 +3,7 @@ import utils from '../core/utils';
 import { forEachWindow } from '../platform/browser';
 
 
-export default class {
+export default class Win {
   constructor({ window, settings }) {
     this.settings = settings;
     this.window = window;

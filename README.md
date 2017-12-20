@@ -42,7 +42,7 @@ To start build system:
 
 Release channel configuration file can be specified via optional argument (default is ./config/jenkins.json`):
 
-`./fern.js serve ./configs/amo.json`
+`./fern.js serve ./configs/amo.js`
 
 To run ember freshtab:
 
@@ -52,7 +52,7 @@ To run ember freshtab:
 You can then access freshtab under http://localhost:3000. Every change you make in fresh-tab-frontend folder will be live reloaded. However if you change anything in freshtab folder (backend), restart browser to see your changes.
 
 To build ember freshtab:
-`./fern.js serve --freshtab ./configs/browser.json`
+`./fern.js serve --freshtab ./configs/browser.js`
 
 By running above command you end up with minified distributed files in fresh-tab-frontend/dist folder. If you want these files to be moved into build/firefox folder, you also have to be running fern.
 
@@ -63,13 +63,13 @@ All release channels configurations files are stored in `./configs` folder. Choo
 `./fern.js build ./configs/<CHANNEL_NAME>.json`
 
 Examples:
-* `./fern.js build ./configs/amo.json`
-* `./fern.js build ./configs/browser.json`
+* `./fern.js build ./configs/amo.js`
+* `./fern.js build ./configs/browser.js`
 * `./fern.js build ./configs/mobile.json`
 
 ##Custom prefs
 
-If you want to load your browser with predefined prefs all you have to do is create a .custom-prefs.json file in the root folder and add your custom prefs there. 
+If you want to load your browser with predefined prefs all you have to do is create a .custom-prefs.json file in the root folder and add your custom prefs there.
 
 Example:
 ```

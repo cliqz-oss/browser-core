@@ -32,7 +32,6 @@ export default class SearchUI extends React.Component {
     }
     this.state = {
       result: props.result,
-      isFetching: false,
     }
     this.appStart = props.appStart || Promise.resolve();
     this.autocomplete = inject.module('autocomplete');
@@ -93,7 +92,6 @@ export default class SearchUI extends React.Component {
       delete utils.USER_LNG;
     }
     lastSearch = query;
-    this.setState({ isFetching: true });
     this.autocomplete.action('search', query, (result) => {
       if (lastSearch !== query) {
         return;
@@ -101,20 +99,24 @@ export default class SearchUI extends React.Component {
       if (this.isDeveloper) {
         console.log('results', result);
       }
-      this.setState({ result, isFetching: false });
+      this.setState({ result });
     }).catch((err) => {
       console.error(err);
     });
   }
 
   render() {
+    const result = this.state.result;
+    if (!result || !result._searchString) {
+      return null;
+    }
     return (
       <View
         accessible={false}
         accessibilityLabel="search-results"
         style={styles(this.state.incognito).container}
       >
-        <CardList result={this.state.result} />
+        <CardList result={result} />
       </View>
     );
   }

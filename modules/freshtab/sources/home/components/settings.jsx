@@ -110,6 +110,14 @@ export default class Settings extends React.Component {
                   isActive={this.state.componentsState.background.image === 'bg-dark'}
                 />
               </li>
+              <li>
+                <BackgroundImage
+                  onBackgroundImageChanged={this.onBackgroundImageChanged}
+                  bg="bg-winter"
+                  src="./images/bg-winter-thumbnail.png"
+                  isActive={this.state.componentsState.background.image === 'bg-winter'}
+                />
+              </li>
             </ul>
           </div>
           }

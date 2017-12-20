@@ -86,7 +86,7 @@ export default class History extends BaseProvider {
         if (results.ready) {
           observer.complete();
         }
-      });
+      }, utils.isPrivateMode(config.window));
     });
   }
 }

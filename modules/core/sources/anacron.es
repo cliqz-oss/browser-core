@@ -1,5 +1,5 @@
 import utils from './utils';
-import moment from '../platform/moment';
+import moment from '../platform/lib/moment';
 import cronParser from './lib/cron-parser';
 
 
@@ -141,7 +141,7 @@ export class Cron {
 }
 
 // Anacron
-export default class extends Cron {
+export default class Anacron extends Cron {
   constructor(storage, { name = 'core.anacron' } = { }) {
     super();
     this.storage = storage;

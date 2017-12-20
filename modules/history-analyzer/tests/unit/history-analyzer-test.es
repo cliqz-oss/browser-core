@@ -2,6 +2,10 @@
 /* global describeModule */
 /* global require */
 
+const encoding = require('text-encoding');
+
+const TextDecoder = encoding.TextDecoder;
+const TextEncoder = encoding.TextEncoder;
 
 class HistoryInterfaceMock {
   constructor() {
@@ -64,6 +68,12 @@ export default describeModule('history-analyzer/history_handler',
   () => ({
     'core/platform': {
       isChromium: false
+    },
+    'platform/text-decoder': {
+      default: TextDecoder,
+    },
+    'platform/text-encoder': {
+      default: TextEncoder,
     },
     'platform/xmlhttprequest': {
       default: {}
@@ -165,7 +175,7 @@ export default describeModule('history-analyzer/history_handler',
         }
       }
     },
-    'history-analyzer/time_utils': {
+    'core/time': {
       getDaysFromTimeRange: function(startTS, endTS) {
         getDaysFromTimeRangeArg = [startTS, endTS];
         return getDaysFromTimeRangeResult;

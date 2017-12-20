@@ -10,7 +10,7 @@ export default function DB(name, ...rest) {
     createdAt: Date.now(),
     instances: 0,
   };
-  info.instances = info.instances += 1;
+  info.instances += 1;
   dbs.set(name, info);
   return Database(name, ...rest);
 }

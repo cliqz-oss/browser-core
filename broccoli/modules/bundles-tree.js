@@ -1,16 +1,29 @@
 'use strict';
 
 const path = require('path');
-const SystemBuilder = require('broccoli-systemjs');
+const SystemBuilder = require('./broccoli-systemjs');
 const MergeTrees = require('broccoli-merge-trees');
 const Funnel = require('broccoli-funnel');
 const SourceMaps = require('broccoli-source-map');
 const deepAssign = require('deep-assign');
+const env = require('../cliqz-env');
+const replace = require('broccoli-replace');
 
+const cliqzEnv = require('../cliqz-env');
 const cliqzConfig = require('../config');
 const helpers = require('./helpers');
 const walk = helpers.walk;
 const SourceMapExtractor = SourceMaps.SourceMapExtractor;
+
+const bundlesSourceMapPaths = {};
+
+function saveBundleSourceMapPath(bundleName, bundlePath, basePath) {
+  bundlesSourceMapPaths[bundleName] = bundlePath
+    .replace(/^(modules|platforms)\//, basePath)
+    .replace('/firefox/', '/')
+    .replace('/sources/', '/')
+    .replace(/bundle\.es$/, 'bundle.js.map');
+}
 
 function replaceFileExtension(filename) {
   const filenameParts = filename.split('.');
@@ -22,7 +35,6 @@ function replaceFileExtension(filename) {
 function getBundlesTree(modulesTree) {
   const prefix = 'modules';
   const bundleFiles = cliqzConfig.bundles;
-
   let allBundleFiles = [].concat(
     // modules
     cliqzConfig.modules.map((moduleName) => {
@@ -32,6 +44,7 @@ function getBundlesTree(modulesTree) {
         const bundlePathParts = bundlePath.split(path.sep)
         let bundleName = bundlePathParts[bundlePathParts.length-1];
         bundleName = replaceFileExtension(bundleName);
+        saveBundleSourceMapPath(bundleName, bundlePath, 'http://localhost:4300/cliqz@cliqz.com/chrome/content/');
 
         return moduleName+'/'+bundleName;
       });
@@ -42,14 +55,16 @@ function getBundlesTree(modulesTree) {
       const bundlePathParts = bundlePath.split(path.sep)
       let bundleName = bundlePathParts[bundlePathParts.length-1];
       bundleName = replaceFileExtension(bundleName);
+      saveBundleSourceMapPath(bundleName, bundlePath, 'http://localhost:4300/cliqz@cliqz.com/chrome/content/platform/');
 
       return 'platform/'+bundleName;
     })
   );
 
+
   let excludedBundleFiles;
 
-  if (!bundleFiles) {
+  if (typeof bundleFiles === "undefined") {
     excludedBundleFiles = [];
   } else if (bundleFiles.length === 0) {
     excludedBundleFiles = ['**/*'];
@@ -63,11 +78,13 @@ function getBundlesTree(modulesTree) {
   });
 
   const cliqzConfigSystem = cliqzConfig.system || {};
+  const cliqzConfigBundler = cliqzConfig.bundler || {};
 
   const systemConfig = {
     transpiler: false,
     packageConfigPaths: [
       path.join('node_modules', '*', 'package.json'),
+      path.join('node_modules', '@*', '*', 'package.json'),
     ],
     map: Object.assign({
       'plugin-json': 'node_modules/systemjs-plugin-json/json.js',
@@ -94,23 +111,59 @@ function getBundlesTree(modulesTree) {
     packages: deepAssign({
       [prefix]: {
         defaultJSExtensions: true,
+        //format: 'system',
+        meta: {
+          '*/templates.js': {
+            format: 'system',
+          },
+        }
       },
     }, cliqzConfigSystem.packages || {}),
   };
 
+  const builderConfig = {
+    externals: cliqzConfigBundler.externals || [],
+    globalDeps: cliqzConfigBundler.globalDeps || {},
+    sourceMaps: !cliqzEnv.PRODUCTION,
+    lowResSourceMaps: false,
+    sourceMapContents: true,
+    // required in case source module format is not esmb
+    globalName: 'CliqzGlobal',
+    // format: 'esm',
+    // sourceMaps: cliqzConfig.PRODUCTION ? false : 'inline'
+    rollup: !cliqzConfig.TESTING,
+  };
+
   const output = new Funnel(
     new SystemBuilder(input, {
-      systemConfig,
-      builderConfig: {
-        sourceMaps: cliqzConfig.PRODUCTION ? false : 'inline'
-      }
+      systemConfig: cliqzConfig.systemDefault || systemConfig,
+      builderConfig: cliqzConfig.builderDefault || builderConfig,
+      bundleConfigs: cliqzConfig.bundleConfigs || {}
     }),
     {
       srcDir: prefix,
     }
   );
 
-  return output;
+  // Replace source map references with served from localhost:4300,
+  // otherwise sourcemaps will not work in firefox devtools.
+  return replace(output, {
+    files: [
+      '**/*.bundle.js'
+    ],
+    usePrefix: false,
+    patterns: [
+      {
+        match: /(?:^|\n)\/\/# sourceMappingURL=([^\s]+)/,
+        replacement: function(_, bundleMapName) {
+          const bundleNameParts = bundleMapName.split('.');
+          bundleNameParts.pop();
+          const bundleName = bundleNameParts.join('.');
+          return `//# sourceMappingURL=${bundlesSourceMapPaths[bundleName]}`;
+        }
+      }
+    ]
+  });
 }
 
 module.exports = getBundlesTree;

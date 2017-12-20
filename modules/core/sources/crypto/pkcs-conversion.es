@@ -153,12 +153,12 @@ function padIfSigned(array) {
   exponent1         INTEGER,  -- d mod (p-1)
   exponent2         INTEGER,  -- d mod (q-1)
   coefficient       INTEGER,  -- (inverse of q) mod p
-}*/
+} */
 
 /* RSAPublicKey ::= SEQUENCE {
     modulus           INTEGER,  -- n
     publicExponent    INTEGER   -- e
-}*/
+} */
 function exportPrivateKey(key) {
   const origValues = ['AA==', key.n, key.e, key.d, key.p, key.q, key.dp, key.dq, key.qi];
   const values = origValues.map(x => padIfSigned(fromBase64(fromBase64url(x))));
@@ -194,7 +194,7 @@ function exportPublicKeySimple(key) {
 /* RSAPublicKey ::= SEQUENCE {
     modulus           INTEGER,  -- n
     publicExponent    INTEGER   -- e
-}*/
+} */
 
 
 // SEQUENCE(2 elem)

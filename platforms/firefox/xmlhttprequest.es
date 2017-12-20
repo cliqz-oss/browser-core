@@ -1,3 +1,5 @@
+import { Components } from './globals';
+
 const Ci = Components.interfaces;
 
 export let XMLHttpRequestFactory = () => Components.classes['@mozilla.org/xmlextras/xmlhttprequest;1'];

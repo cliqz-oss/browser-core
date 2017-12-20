@@ -58,7 +58,7 @@ function blockScript(filter, document) {
  * based on a domain or node selectors) and the `handleResponseFromBackground`
  * callback to apply new rules.
  */
-export default class {
+export default class CosmeticsInjection {
   constructor(url, window, backgroundAction) {
     this.url = url;
     this.window = window;

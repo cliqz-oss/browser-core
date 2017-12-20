@@ -23,10 +23,10 @@ const MOCK = {
   'core/crypto/random': {
     default: () => mockRandom,
   },
-  'platform/moment': {
+  'platform/lib/moment': {
     default: Moment,
   },
-  'platform/moment-range': {
+  'platform/lib/moment-range': {
     default: MomentRange,
   },
 };

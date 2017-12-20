@@ -77,7 +77,7 @@ function hexToBinary(s) {
     return { valid: true, result: ret };
 }
 
-export default class {
+export default class MessageContext {
   constructor(msg) {
     // FIXME: isJson is called 3 times on same object
     // TODO: don't use isJSON - try / catch should be sufficient

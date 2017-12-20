@@ -6,6 +6,7 @@ import displayExpr from './ops/display_expr';
 import historyExpr from './ops/history_expr';
 import signalExpr from './ops/signal_expr';
 import triggerExpr from './ops/trigger_expr';
+import categoryExpr from './ops/category_expr';
 import offerExpr from './ops/offer_expr';
 
 
@@ -44,7 +45,8 @@ export default class ExpressionBuilder {
       historyExpr,
       signalExpr,
       triggerExpr,
-      offerExpr
+      categoryExpr,
+      offerExpr,
     ].forEach((opsBuilders) => {
       Object.keys(opsBuilders).forEach((exprName) => {
         this.buildMap.ops[exprName] = opsBuilders[exprName];
@@ -157,7 +159,9 @@ export default class ExpressionBuilder {
       query_handler: this.globObjs.query_handler,
       expression_cache: this.globObjs.expression_cache,
       feature_handler: this.globObjs.feature_handler,
+      be_connector: this.globObjs.be_connector,
       pattern_matching_handler: this.globObjs.pattern_matching_handler,
+      category_handler: this.globObjs.category_handler,
       offers_status_handler: this.globObjs.offers_status_handler,
     };
     const Builder = this.buildMap.ops[opName];

@@ -6,12 +6,18 @@ import Pipeline from './pipeline';
 import WebRequestContext from './webrequest-context';
 import PageStore from './page-store';
 import logger from './logger';
+import { isChromium } from '../core/platform';
 
 
 /**
  *
  */
 function sanitizeResponse(response, event) {
+  // make sure when response.cancel is true, no other properties are set
+  if (response.cancel === true) {
+    return { cancel: true };
+  }
+
   const allowedProperties = VALID_RESPONSE_PROPERTIES[event];
 
   if (allowedProperties.length === 0) {
@@ -31,7 +37,7 @@ function sanitizeResponse(response, event) {
 }
 
 
-function createResponse() {
+function createResponse(details) {
   return {
     redirectTo(url) {
       this.redirectUrl = url;
@@ -41,9 +47,19 @@ function createResponse() {
     },
     modifyHeader(name, value) {
       if (!this.requestHeaders) {
-        this.requestHeaders = [];
+        this.requestHeaders = [...(details.requestHeaders || [])];
       }
-      this.requestHeaders.push({ name, value });
+      const headerIndex = this.requestHeaders.findIndex(h => h.name === name);
+      if (isChromium && !value) {
+        // empty value on chromium: remove header
+        if (headerIndex > -1) {
+          this.requestHeaders.splice(headerIndex, 1);
+        }
+      } else if (headerIndex > -1) {
+        this.requestHeaders[headerIndex] = { name, value };
+      } else {
+        this.requestHeaders.push({ name, value });
+      }
     }
   };
 }
@@ -154,7 +170,7 @@ export default background({
 
     // Register listener for this event
     const listener = (details) => {
-      const response = createResponse();
+      const response = createResponse(details);
 
       const webRequestContext = createWebRequestContext(details, this.pageStore);
 
@@ -169,8 +185,10 @@ export default background({
         response,
         !this.whitelist.isWhitelisted(webRequestContext.url),
       );
-
-      return sanitizeResponse(response, event);
+      if (isChromium) {
+        return sanitizeResponse(response, event);
+      }
+      return response;
     };
 
     this.pipelines.set(event, {

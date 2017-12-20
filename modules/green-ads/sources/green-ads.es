@@ -10,7 +10,7 @@ import { isDoubleclick, isOutbrain } from './advertisers';
 import { sanitiseUrl, extractDomain, extractGeneralDomain } from './utils';
 
 
-export default class {
+export default class GreenAds {
   constructor(greenMode, antitracking, webRequestPipeline, sendTelemetry) {
     this.webRequestPipeline = webRequestPipeline;
     this.antitracking = antitracking;

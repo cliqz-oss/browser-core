@@ -1,4 +1,5 @@
 import ResourceLoader from '../core/resource-loader';
+import config from '../core/config';
 
 export function HashProb() {
     this.probHashLogM = null;
@@ -9,7 +10,7 @@ export function HashProb() {
     }.bind(this));
 
     this.probLoader = new ResourceLoader(['antitracking', 'prob.json'], {
-        remoteURL: 'https://cdn.cliqz.com/anti-tracking/prob.json',
+        remoteURL: `${config.settings.CDN_BASEURL}/anti-tracking/prob.json`,
         cron: 24 * 60 * 60 * 1000  // daily
     });
 

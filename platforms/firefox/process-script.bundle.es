@@ -112,11 +112,13 @@ const DocumentManager = {
       },
     };
 
-    if (
-      window.location.href.indexOf('resource://cliqz') === 0 ||
-      window.location.href.indexOf('chrome://cliqz') === 0 ||
-      window.location.href.indexOf(config.settings.NEW_TAB_URL) === 0
-    ) {
+    const whitelistedPages = [
+      'resource://cliqz',
+      'chrome://cliqz',
+      config.settings.NEW_TAB_URL
+    ].concat(config.settings.frameScriptWhitelist || []);
+
+    if (whitelistedPages.some(url => window.location.href.indexOf(url) === 0)) {
       const safeChrome = {
         runtime: {
           sendMessage(message) {
@@ -218,12 +220,15 @@ addMessageListener(`cliqz:process-script-${processId}`, msg => dispatchMessage(m
  * make sure to unload propertly
  */
 addMessageListener('cliqz:process-script', function ps(msg) {
-  if (msg.data === 'unload') {
+  const data = typeof msg.data === 'string' ? {
+    action: msg.data
+  } : msg.data;
+  if (data.action === 'unload') {
     store.unload();
     DocumentManager.uninit();
     removeMessageListener('cliqz:process-script', ps);
     removeMessageListener(`cliqz:process-script-${processId}`, dispatchMessage);
   } else {
-    dispatchMessage(msg.data);
+    dispatchMessage(data);
   }
 });

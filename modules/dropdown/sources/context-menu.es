@@ -14,7 +14,8 @@ function reportClick(window, result) {
     rawResult: result.rawResult,
     isPrivateWindow: utils.isPrivate(window),
     isPrivateResult: utils.isPrivateResultType(result.kind),
-    isFromAutocompletedURL: false
+    isFromAutocompletedURL: false,
+    windowId: utils.getWindowID(window)
   });
 }
 

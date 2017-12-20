@@ -89,7 +89,7 @@ class ShowTimeDate extends GenericResult {
   }
 }
 
-export default class extends GenericResult {
+export default class MovieCinemaResult extends GenericResult {
   constructor(rawResult, allResultsFlat = []) {
     super(rawResult, allResultsFlat);
 

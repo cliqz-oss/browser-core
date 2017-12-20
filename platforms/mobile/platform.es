@@ -9,3 +9,16 @@ export default {
 
 const userAgent = window.navigator.userAgent.toLowerCase();
 export const mobilePlatformName = /iphone|ipod|ipad/.test(userAgent) ? 'ios' : 'android';
+
+export function isPlatformAtLeastInVersion(version) {
+  return true;
+}
+
+export const OS = {
+  // TODO
+};
+
+export function isCliqzAtLeastInVersion() {
+  // TODO
+  return true;
+};

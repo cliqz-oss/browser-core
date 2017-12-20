@@ -13,7 +13,7 @@ function trim(text) {
 /**
 * @namespace context-menu
 */
-export default class {
+export default class Win {
   /**
   * @class ContextMenu
   * @constructor

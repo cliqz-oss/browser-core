@@ -1,5 +1,5 @@
 
-export default class {
+export default class BlockRules {
 
   constructor(config) {
     this.config = config;

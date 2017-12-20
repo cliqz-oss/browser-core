@@ -1,4 +1,4 @@
-export default class {
+export default class ResultSelection {
   constructor() {
     this.name = 'result_selection';
   }

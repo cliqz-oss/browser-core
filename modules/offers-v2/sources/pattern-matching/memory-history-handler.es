@@ -1,3 +1,4 @@
+/* eslint-disable no-return-assign */
 import { timestampMS } from '../utils';
 import logger from '../common/offers_v2_logger';
 
@@ -250,5 +251,5 @@ export default class MemoryHistoryHandler {
     }
     return counter;
   }
-
 }
+/* eslint-enable no-return-assign */

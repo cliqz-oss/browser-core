@@ -2,7 +2,7 @@ import inject from '../core/kord/inject';
 import utils from '../core/utils';
 import prefs from '../core/prefs';
 
-export default class {
+export default class Win {
   constructor(settings) {
     this.geolocation = inject.module('geolocation');
   }

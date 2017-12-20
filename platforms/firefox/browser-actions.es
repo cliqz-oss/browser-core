@@ -21,3 +21,5 @@ export function openLink(url) {
 export function openTab() {}
 
 export function getOpenTabs() {}
+
+export function getReminders() {}

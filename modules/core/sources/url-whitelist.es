@@ -1,5 +1,5 @@
 import { utils } from './cliqz';
-import { getPref, clearPref } from './prefs';
+import prefs from './prefs';
 import tlds from './tlds';
 import { LazyPersistentObject } from '../core/persistent-state';
 import Logger from './logger';
@@ -57,11 +57,11 @@ export default class UrlWhitelist {
   }
 
   migrate(prefName) {
-    const existingList = getPref(prefName, null);
+    const existingList = prefs.get(prefName, null);
     if (existingList) {
       this.whitelist = new Set(existingList);
     }
-    clearPref(prefName);
+    prefs.clearPref(prefName);
     this.persistWhitelist();
   }
 

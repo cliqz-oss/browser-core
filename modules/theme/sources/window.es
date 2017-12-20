@@ -13,7 +13,7 @@ const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 /**
 * @namespace theme
 */
-export default class {
+export default class Win {
   /**
   * @class Theme
   * @constructor

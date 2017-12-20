@@ -1,4 +1,9 @@
 export default {
+  mixers: {
+    'context-search': {
+      isEnabled: true,
+    },
+  },
   providers: {
     'rich-header': {
       retry: {

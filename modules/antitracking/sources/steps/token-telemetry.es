@@ -54,7 +54,7 @@ function anonymizeTrackerTokens(trackerData) {
 }
 
 
-export default class {
+export default class TokenTelemetry {
 
   constructor(telemetry, qsWhitelist, config) {
     this.telemetry = telemetry;

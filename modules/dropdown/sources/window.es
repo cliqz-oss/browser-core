@@ -36,7 +36,7 @@ function getResults(ctrl) {
   };
 }
 
-export default class {
+export default class Win {
   constructor(config) {
     this.window = config.window;
     this.id = (new Window(this.window)).id;

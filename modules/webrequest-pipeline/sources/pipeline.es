@@ -10,7 +10,7 @@ import logger from './logger';
  * @class Pipeline
  * @namespace antitracking
  */
-export default class {
+export default class Pipeline {
 
   /**
    * Pipeline constructor. Creates an empty pipeline with the default
@@ -118,12 +118,8 @@ export default class {
 
       this.pipeline.splice(insertMin + 1, 0, name);
     } else if (hasBefore && !hasAfter) {
-      const beforeIndices = beforeArr.map(s => this.pipeline.indexOf(s));
+      const beforeIndices = beforeArr.map(s => this.pipeline.indexOf(s)).filter(i => i !== -1);
       const insertMax = Math.min(...beforeIndices);
-      if (insertMax < 0) {
-        throw new Error(`missing steps from 'before' list, before=${beforeArr}, pipeline=${this.pipeline}`);
-      }
-
       this.pipeline.splice(insertMax, 0, name);
     } else {
       throw new Error('cannot take both before and after constraints');

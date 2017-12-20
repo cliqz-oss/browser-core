@@ -2,6 +2,10 @@
 /* global describeModule */
 /* global require */
 
+const encoding = require('text-encoding');
+
+const TextDecoder = encoding.TextDecoder;
+const TextEncoder = encoding.TextEncoder;
 
 let mockedTS = Date.now();
 
@@ -11,10 +15,16 @@ function mockCurrentTS(ts) {
 
 export default describeModule('offers-v2/pattern-matching/memory-history-handler',
   () => ({
+    'platform/text-decoder': {
+      default: TextDecoder,
+    },
+    'platform/text-encoder': {
+      default: TextEncoder,
+    },
     'offers-v2/common/offers_v2_logger': {
       default: {
         debug: () => {},
-        error: (...args) => {console.error(...args)},
+        error: (...args) => {/* console.error(...args) */},
         info: (...args) => {console.log(...args)},
         log: () => {},
         warn: () => {},
@@ -173,7 +183,6 @@ export default describeModule('offers-v2/pattern-matching/memory-history-handler
         });
 
         it('disjoint sets', function () {
-          console.log('TEST START HERE');
           const pattern = /1/;
           const id = 12345;
           chai.expect(memHistoryIndex.countMatches(0, 6, [pattern], id)).eql(2);
@@ -345,7 +354,6 @@ export default describeModule('offers-v2/pattern-matching/memory-history-handler
             mockedTS += 1;
             memHistoryIndex.addTokenizedUrl(url);
           }
-          console.log(memHistoryIndex);
           const numEntries = totalNewEntries + ENTRIES.length;
           const mid = numEntries / 2;
           for (let i = 0; i < numEntries; i += 1) {

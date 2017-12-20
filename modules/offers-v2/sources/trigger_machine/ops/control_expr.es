@@ -181,7 +181,7 @@ class OrExpr extends Expression {
     // now we should build each operation
     const opList = [];
     this.data.raw_op.args.forEach((opArg) => {
-      opList.push(this.data.exp_builder.createExp(opArg));
+      opList.push(this.data.exp_builder.createExp(opArg, this.data.parent_trigger));
     });
     this.ops = opList;
   }
@@ -857,7 +857,7 @@ const ops = {
   $match_query: MatchQueryExpr,
   $geo_check: GeoCheckExpr,
   $is_feature_enabled: IsFeatureEnabledExpr,
-  $pattern_match: PatternMatchExpr
+  $pattern_match: PatternMatchExpr,
 };
 
 export default ops;

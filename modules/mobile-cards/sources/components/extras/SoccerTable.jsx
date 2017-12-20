@@ -53,30 +53,33 @@ export default class extends React.Component {
     });
   }
 
-  displayHeader(groupName) {
-    return <View style={styles.header}>
-      <Text style={[styles.narrow, styles.tableHeader]}></Text>
-      <Text style={[styles.wide, styles.tableHeader]}>Mannschaft</Text>
-      <Text style={[styles.narrow, styles.tableHeader]}>SP</Text>
-      <Text style={[styles.narrow, styles.tableHeader]}>TD</Text>
-      <Text style={[styles.narrow, styles.tableHeader]}>PKT</Text>
+  displayHeader(groupName = null) {
+    return <View>
+      { groupName && <Text style={styles.tableBody}>{ groupName }</Text>}
+      <View style={styles.header}>
+        <Text numberOfLines={1} style={[styles.narrow, styles.tableHeader]}></Text>
+        <Text numberOfLines={1} style={[styles.wide, styles.tableHeader]}>Mannschaft</Text>
+        <Text numberOfLines={1} style={[styles.narrow, styles.tableHeader]}>SP</Text>
+        <Text numberOfLines={1} style={[styles.narrow, styles.tableHeader]}>TD</Text>
+        <Text numberOfLines={1} style={[styles.narrow, styles.tableHeader]}>PKT</Text>
+      </View>
     </View>
   }
 
   displayRanking(ranking) {
     return ranking.map(row =>
       <View style={styles.header} key={row.club}>
-        <Text style={[styles.narrow, styles.tableBody]}>{`${row.rank}.`}</Text>
-        <Text style={[styles.wide, styles.tableBody]}>{row.club}</Text>
-        <Text style={[styles.narrow, styles.tableBody]}>{row.SP}</Text>
-        <Text style={[styles.narrow, styles.tableBody]}>{row.TD}</Text>
-        <Text style={[styles.narrow, styles.tableBody]}>{row.PKT}</Text>
+        <Text numberOfLines={1} style={[styles.narrow, styles.tableBody]}>{`${row.rank}.`}</Text>
+        <Text numberOfLines={1} style={[styles.wide, styles.tableBody]}>{row.club}</Text>
+        <Text numberOfLines={1} style={[styles.narrow, styles.tableBody]}>{row.SP}</Text>
+        <Text numberOfLines={1} style={[styles.narrow, styles.tableBody]}>{row.TD}</Text>
+        <Text numberOfLines={1} style={[styles.narrow, styles.tableBody]}>{row.PKT}</Text>
       </View>
     );
   }
 
   displayGroup(group) {
-    return <View key={group.group || 'key'}>
+    return <View style={styles.groupContainer} key={group.group || 'key'}>
       { this.displayHeader(group.group) }
       { this.displayRanking(group.ranking) }
     </View>
@@ -96,9 +99,7 @@ export default class extends React.Component {
 
     return data && <Link to={data.url}>
         <View style={[styles.outerContainer]}>
-          <View style={styles.innerContainer}>
-            { this.displayGroups(data) }
-          </View>
+          { this.displayGroups(data) }
         </View>
       </Link>
   }
@@ -133,11 +134,12 @@ const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
     flexDirection: 'column',
+  },
+  groupContainer: {
+    marginTop: 5,
     backgroundColor: '#F5F5F5',
     borderRadius: 4,
-  },
-  innerContainer: {
-    margin: 10,
+    padding: 10,
   },
   header: {
     marginTop: 2,
@@ -150,6 +152,7 @@ const styles = StyleSheet.create({
     flex: 1
   },
   wide: {
+    marginRight: 10,
     flex: 4,
   },
   tableHeader: {

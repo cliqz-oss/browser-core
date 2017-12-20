@@ -10,10 +10,13 @@ var trackerTxtActions = new Set(['placeholder', 'block', 'empty', 'replace']);
 
 export const DEFAULT_ACTION_PREF = 'attrackDefaultAction';
 
-var defaultTrackerTxtRule = utils.getPref(DEFAULT_ACTION_PREF, 'same');
+var defaultTrackerTxtRule = null;
 
 export function getDefaultTrackerTxtRule() {
-    return defaultTrackerTxtRule;
+  if (defaultTrackerTxtRule === null) {
+    defaultTrackerTxtRule = utils.getPref(DEFAULT_ACTION_PREF, 'same');
+  }
+  return defaultTrackerTxtRule;
 };
 
 export function setDefaultTrackerTxtRule(rule) {

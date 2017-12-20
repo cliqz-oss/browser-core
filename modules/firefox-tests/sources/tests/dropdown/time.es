@@ -1,5 +1,5 @@
-/* global it, expect, chai, respondWith, fillIn, waitForPopup,
-$cliqzResults, CliqzUtils, window */
+/* global it, chai, respondWith, fillIn, waitForPopup,
+$cliqzResults */
 /* eslint func-names: ['error', 'never'] */
 /* eslint prefer-arrow-callback: 'off' */
 /* eslint no-unused-expressions: 'off' */

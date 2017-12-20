@@ -914,7 +914,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
           beforeEach(function() {
             getAttrack().config.bloomFilterEnabled = true;
             // add emptry bloom filter whitelist
-            getAttrack().qs_whitelist = new AttrackBloomFilter();
+            getAttrack().qs_whitelist = new AttrackBloomFilter(getAttrack().config);
             getAttrack().qs_whitelist.bloomFilter = new BloomFilter('0000000000000000000', 5);
             getAttrack().qs_whitelist.lastUpdate = hour;
 

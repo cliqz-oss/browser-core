@@ -1,7 +1,7 @@
 /* global chai */
 /* global describeModule */
 
-const PouchDB = require('pouchdb');
+const PouchDB = require('@cliqz-oss/pouchdb');
 
 export default describeModule('core/persistence/ordered-queue',
   () => ({

@@ -7,6 +7,16 @@ import templates from './templates';
 Handlebars.partials = templates;
 let lastSeenElements = [];
 
+
+function sendMessageToWindow(message) {
+  postMessage(JSON.stringify({
+    target: 'cliqz-offers-cc',
+    origin: 'iframe',
+    message
+  }), '*');
+}
+
+
 function resize() {
   const $controlCenter = $('#cliqz-offers-cc');
   const theWidth = $controlCenter.width();
@@ -174,8 +184,7 @@ function bodyScroll() {
 }
 
 // ====== GENERIC SETTING ACCORDION FUNCTIONALITY =========//
-$(window).on("load",() => {
-
+$(window).on('load', () => {
   $('#cqz-vouchers-wrapper').scroll(() => {
     bodyScroll();
   });
@@ -263,19 +272,10 @@ $(window).on("load",() => {
   });
 });
 
-function sendMessageToWindow(message) {
-  postMessage(JSON.stringify({
-    target: 'cliqz-offers-cc',
-    origin: 'iframe',
-    message
-  }), '*');
-}
-
 function messageHandler(message) {
   switch (message.action) {
-    case 'pushData': {
+    case 'pushData':
       draw(message.data);
-    }
       break;
     default: {
       // nothing to do
@@ -291,5 +291,3 @@ window.addEventListener('message', (ev) => {
     messageHandler(data.message);
   }
 });
-
-

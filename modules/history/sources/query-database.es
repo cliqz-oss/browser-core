@@ -1,4 +1,4 @@
-export default class {
+export default class QueryDatabase {
 
   constructor(queryDB) {
     this.queryDB = queryDB;

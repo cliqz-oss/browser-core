@@ -11,7 +11,7 @@ import console from '../console';
  *
  * @class SerialExecutor
  */
-export default class {
+export default class SerialExecutor {
   constructor(autostart = true) {
     this._tasks = [];
     this._running = false;

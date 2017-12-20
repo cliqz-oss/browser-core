@@ -9,6 +9,10 @@ export function skipInvalidSource(state) {
 
 
 export function skipInternalProtocols(state) {
+  if (!state.urlParts) {
+    // url must be parseable
+    return false;
+  }
   if (state.sourceUrlParts && internalProtocols.has(state.sourceUrlParts.protocol)) {
     return false;
   }

@@ -26,6 +26,8 @@
         "import/no-unresolved": "off",
         "import/no-extraneous-dependencies": 0,
         "import/extensions": "off",
+        "no-multi-assign": "off",
+        "spaced-comment": "off",
         "class-methods-use-this": "off",
         "no-restricted-syntax": [
             'error',
@@ -39,5 +41,10 @@
             "objects": "only-multiline",
             "functions": "ignore",
         }],
+        "react/require-default-props": "off",
+        "react/prop-types": "off",
+        "jsx-a11y/alt-text": "off",
+        "react/no-array-index-key": "off",
+        "react/jsx-wrap-multilines": "off"
     }
 }

@@ -40,6 +40,12 @@ export default describeModule('offers-v2/trigger_machine/ops/display_expr',
     'platform/environment': {
       default: {}
     },
+    'core/time': {
+      getDaysFromTimeRange: function(startTS, endTS) { },
+      getDateFromDateKey: function(dateKey, hours = 0, min = 0, seconds = 0) { },
+      timestamp: function() { },
+      getTodayDayKey: function() { }
+    },
     'offers-v2/utils': {
       timestampMS: function() {
         return currentTS;

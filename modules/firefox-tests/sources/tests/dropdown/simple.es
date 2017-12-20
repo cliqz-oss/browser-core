@@ -3,7 +3,7 @@
 /* eslint prefer-arrow-callback: "off" */
 /* eslint no-unused-expressions: "off" */
 
-import results from './fixtures/resultsSimple';
+import { results, friendlyUrl } from './fixtures/resultsSimple';
 
 export default function () {
   context('for single generic result', function () {
@@ -33,7 +33,7 @@ export default function () {
     it('renders url', function () {
       const urlSelector = ".abstract span[class='url']";
       expect(resultElement).to.contain(urlSelector);
-      expect(resultElement.querySelector(urlSelector)).to.have.text(results[0].url);
+      expect(resultElement.querySelector(urlSelector)).to.have.text(friendlyUrl[results[0].url]);
     });
 
     it('renders logo', function () {

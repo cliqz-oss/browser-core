@@ -42,6 +42,12 @@ export function addSessionRestoreObserver() {
 export function removeSessionRestoreObserver() {
 }
 
+export function addMigrationObserver() {
+}
+
+export function removeMigrationObserver() {
+}
+
 export function mapWindows(fn) {
   return [];
 }

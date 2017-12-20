@@ -3,6 +3,9 @@ import console from './console';
 import utils from './utils';
 import Storage from '../platform/resource-loader-storage';
 import TextDecoder from '../platform/text-decoder';
+import { inflate, deflate } from './zlib';
+import { isChromium } from '../core/platform';
+
 
 // Common durations
 const ONE_SECOND = 1000;
@@ -49,6 +52,7 @@ export class Resource {
     this.chromeURL = options.chromeURL || `${config.baseURL}${this.name.join('/')}`;
     this.storage = new Storage(this.filePath);
     this.remoteOnly = options.remoteOnly || false;
+    this.compress = options.compress || isChromium ? true : false;
   }
 
   /**
@@ -62,6 +66,7 @@ export class Resource {
    */
   load() {
     return this.storage.load()
+      .then(data => this.decompressData(data))
       .then((data) => {
         try {
           // data might be a plain string in web extension case
@@ -108,12 +113,33 @@ export class Resource {
     return Promise.reject('updateFromURL: url is undefined');
   }
 
+  compressData(data) {
+    if (this.compress) {
+      return deflate(data, { to: 'string' });
+    } else {
+      return data;
+    }
+  }
+
+  decompressData(data) {
+    if (this.compress) {
+      try {
+        return inflate(data, { to: 'string' });
+      } catch (e) {
+        return data;
+      }
+    } else {
+      return data;
+    }
+  }
+
   persist(data) {
-    return this.parseData(data).then(parsed =>
-      this.storage.save(data)
+    return this.parseData(data).then(parsed => {
+      const saveData = this.compressData(data);
+      return this.storage.save(saveData)
       .catch(e => console.error('resource-loader error on persist: ', e))
       .then(() => parsed)
-    );
+    });
   }
 
   parseData(data) {
@@ -131,7 +157,7 @@ export class Resource {
 }
 
 
-export default class extends UpdateCallbackHandler {
+export default class ResourceLoader extends UpdateCallbackHandler {
 
   constructor(resourceName, options = {}) {
     super();

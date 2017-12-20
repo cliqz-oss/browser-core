@@ -6,7 +6,10 @@ export default background({
   init() {
     this.peers = [];
     return getBackgroundWindow()
-      .then(w => (this.window = w));
+      .then((w) => {
+        this.window = w;
+        return w;
+      });
   },
   unload() {
     this.peers.forEach((peer) => {

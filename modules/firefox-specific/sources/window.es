@@ -5,7 +5,7 @@ import { Window } from '../core/browser';
 
 const INFO_INTERVAL = 60 * 60 * 1e3; // 1 hour
 
-export default class {
+export default class Win {
   constructor({ window, background }) {
     this.window = window;
     this.background = background;

@@ -247,7 +247,7 @@ describe('Fresh tab settings panel UI', function () {
 
         it('with background choices shown', function () {
           chai.expect(subject
-            .queryAll('ul.background-selection-list li').length).to.equal(3);
+            .queryAll('ul.background-selection-list li').length).to.equal(4);
         });
       });
 
@@ -566,7 +566,7 @@ describe('Fresh tab settings panel UI', function () {
 
         it('with background choices not hidden', function () {
           chai.expect(subject
-            .queryAll('ul.background-selection-list li').length).to.equal(3);
+            .queryAll('ul.background-selection-list li').length).to.equal(4);
         });
       });
 

@@ -15,7 +15,7 @@ node('docker') {
 
   withCerts {
     docker.image(imgName).inside() {
-      withEnv(["CLIQZ_CONFIG_PATH=./configs/${CLIQZ_CHANNEL}.json"]) {
+      withEnv(["CLIQZ_CONFIG_PATH=./configs/${CLIQZ_CHANNEL}.js"]) {
         helpers.withCache {
           stage('fern install') {
             sh './fern.js install'
@@ -68,7 +68,7 @@ node('docker') {
             passwordVariable: 'BALROG_PASSWORD',
             usernameVariable: 'BALROG_ADMIN')
         ]) {
-          withEnv(["CLIQZ_CONFIG_PATH=./configs/${CLIQZ_CHANNEL}.json"]) {
+          withEnv(["CLIQZ_CONFIG_PATH=./configs/${CLIQZ_CHANNEL}.js"]) {
             helpers.withCache {
               sh './fern.js pack'
               sh './fern.js publish'

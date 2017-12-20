@@ -94,4 +94,10 @@ exports.settings = {
 
   // Enable Cliqz logs
   'extensions.cliqz.showConsoleLogs': true,
+
+  // Lower content sandbox to fix resource:// urls from exetnsion
+  'security.sandbox.content.level': 2,
+
+  // Allow legacy adddons
+  'extensions.legacy.enabled': true,
 };

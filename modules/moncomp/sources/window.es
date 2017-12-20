@@ -1,7 +1,7 @@
 import { utils } from '../core/cliqz';
 import CliqzMonComp from './moncomp';
 
-export default class {
+export default class Win {
   constructor(settings) {
     this.window = settings.window;
     this.settings = settings.settings;

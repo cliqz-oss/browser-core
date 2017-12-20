@@ -10,7 +10,7 @@ import CliqzADB, {
 } from './adblocker';
 
 
-export default class {
+export default class Win {
   constructor({ window }) {
     this.window = window;
   }

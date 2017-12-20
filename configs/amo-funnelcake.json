@@ -34,18 +34,16 @@
     "NEW_TAB_URL": "chrome://cliqz/content/freshtab/home.html",
     "DISABLE_ATTRACK_TELEMETRY": false,
     "ICONS": {
-      "active": "control-center/images/privacy-shield-active.svg",
-      "inactive": "control-center/images/privacy-shield-inactive.svg",
-      "critical": "control-center/images/privacy-shield-inactive.svg",
-      "off": "control-center/images/privacy-shield-inactive.svg"
+      "active": { "default" : "control-center/images/privacy-shield-active.svg" },
+      "critical": { "default": "control-center/images/privacy-shield-inactive.svg" }
     },
     "BACKGROUNDS": {
       "active": "#999999",
-      "inactive": "#999999",
-      "critical": "#999999",
-      "off": "#999999"
+      "critical": "#999999"
     },
-    "CONFIG_PROVIDER": "https://api.cliqz.com/api/v1/config"
+    "CONFIG_PROVIDER": "https://api.cliqz.com/api/v1/config",
+    "CDN_BASEURL": "https://cdn.cliqz.com",
+    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"]
   },
   "modules": [
     "core",
@@ -65,15 +63,41 @@
     "browser-panel",
     "message-center"
   ],
+  "subprojects": [
+    {
+      "src":"bower_components/jquery/dist",
+      "include": ["jquery.min.js"],
+      "dest": "vendor"
+    },
+    {
+      "src": "bower_components/handlebars",
+      "include": ["handlebars.min.js"],
+      "dest": "vendor"
+    },
+    {
+      "src": "bower_components/mathjs/dist",
+      "include": ["math.min.js"],
+      "dest": "vendor"
+    },
+    {
+      "src": "node_modules/@cliqz-oss/pouchdb/dist",
+      "include": ["pouchdb.js"],
+      "dest": "vendor"
+    }
+  ],
+  "bundler": {
+    "externals": ["jquery", "handlebars", "mathjs"],
+    "globalDeps": {
+      "jquery": "$",
+      "handlebars": "Handlebars",
+      "mathjs": "mathLib"
+    }
+  },
   "system": {
     "map": {
-      "handlebars": "bower_components/handlebars/handlebars.js",
-      "jquery": "bower_components/jquery/dist/jquery.js",
       "bigint": "bower_components/bigint/index.js",
-      "mathjs": "bower_components/mathjs/dist/math.min.js",
       "md5": "bower_components/md5/index.js",
-      "react": "node_modules/react/cjs/react.production.min.js",
-      "react-dom": "node_modules/react-dom/cjs/react-dom.production.min.js"
+      "jquery": "bower_components/jquery/dist/jquery.min.js"
     },
     "packages": {
       "object-assign": {
@@ -103,9 +127,6 @@
             "format": "system"
           },
           "./platform/lib/jsep.js": {
-            "format": "system"
-          },
-          "./platform/lib/node-forge.js": {
             "format": "system"
           }
         }

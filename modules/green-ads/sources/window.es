@@ -46,7 +46,7 @@ function reloadCurrentTab(window) {
 }
 
 
-export default class {
+export default class GreenAds {
   constructor({ window }) {
     this.window = window;
     this.label = null;

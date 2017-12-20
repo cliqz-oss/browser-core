@@ -16,7 +16,7 @@ export default class extends React.Component {
   }
 
   displayDirector(director) {
-    if (!director) {
+    if (!director || !director.info) {
       return null;
     }
     return (

@@ -191,7 +191,7 @@ class PageEventTracker {
   onRedirect(url, tab_id, isPrivate) {
       if(tab_id in this._active) {
           let prev = this._active[tab_id];
-          this._active[tab_id] = new PageLoadData(url, isPrivate, prev.ra || false);
+          this._active[tab_id] = new PageLoadData(url, isPrivate || false, prev.ra || false);
           this._active[tab_id].redirects = prev.redirects;
           this._active[tab_id].redirects.push(prev.hostname);
       } else {

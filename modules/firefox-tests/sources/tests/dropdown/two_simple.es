@@ -3,7 +3,7 @@
 /* eslint prefer-arrow-callback: "off" */
 /* eslint no-unused-expressions: "off" */
 
-import results from './fixtures/resultsTwoSimple';
+import { results, friendlyUrl } from './fixtures/resultsTwoSimple';
 
 export default function () {
   context('for two generic results', function () {
@@ -35,7 +35,7 @@ export default function () {
     it('renders first url', function () {
       const urlSelector = ".abstract span[class='url']";
       expect(resultElement1).to.contain(urlSelector);
-      expect(resultElement1.querySelector(urlSelector)).to.have.text(results[0].url);
+      expect(resultElement1.querySelector(urlSelector)).to.have.text(friendlyUrl[results[0].url]);
     });
 
     it('renders first logo', function () {
@@ -59,7 +59,7 @@ export default function () {
     it('renders second url', function () {
       const urlSelector = ".abstract span[class='url']";
       expect(resultElement2).to.contain(urlSelector);
-      expect(resultElement2.querySelector(urlSelector)).to.have.text(results[1].url);
+      expect(resultElement2.querySelector(urlSelector)).to.have.text(friendlyUrl[results[1].url]);
     });
 
     it('renders second logo', function () {

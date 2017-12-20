@@ -1,7 +1,7 @@
 /**
 * @namespace ui.views
 */
-export default class {
+export default class Soccer {
   isSubscribed({ id }, list) {
     return list.indexOf(id) !== -1;
   }

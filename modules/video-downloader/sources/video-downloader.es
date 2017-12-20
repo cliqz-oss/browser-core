@@ -33,7 +33,6 @@ function getFormats(info) {
   if (info.formats.length > 0) {
     const videos = [];
     let audio;
-    const videosOnly = [];
     info.formats.forEach((item) => {
       if (item.size === 0) {
         return;
@@ -46,19 +45,14 @@ function getFormats(info) {
           format: item.container,
         };
         if (item.container === 'm4a') {
-          media.name = `M4A ${item.audioBitrate}kbps Audio Only`;
-          media.isAudio = true;
+          media.name = 'Audio';
+          media.class = 'audio';
           audio = media;
         } else {
           media.name = `${item.container.toUpperCase()} ${item.resolution}`;
           if (item.audioBitrate !== null) {
-            media.isVideoAudio = true;
+            media.class = 'video';
             videos.push(media);
-          } else {
-            media.isVideoOnly = true;
-            media.name = `${media.name} Video Only`;
-            media.class = 'hidden';
-            videosOnly.push(media);
           }
         }
       }
@@ -66,7 +60,7 @@ function getFormats(info) {
     if (audio) {
       videos.push(audio);
     }
-    return videos.concat(videosOnly);
+    return videos;
   }
   return [];
 }

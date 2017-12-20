@@ -3,7 +3,7 @@
 /* global describeModule */
 
 
-const PouchDB = require('pouchdb');
+const PouchDB = require('@cliqz-oss/pouchdb');
 const UAParser = require('ua-parser-js');
 const moment = require('moment');
 const fs = require('fs');
@@ -101,7 +101,7 @@ function getCurrentDate() {
 
 export default describeModule('anolysis/anolysis',
   () => ({
-    'platform/moment': {
+    'platform/lib/moment': {
       default: moment,
     },
     'platform/ua-parser': {

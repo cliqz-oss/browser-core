@@ -14,7 +14,7 @@ const getPref = prefs.get.bind(prefs, PREF, STATE_DEFAULT);
 const setPref = prefs.set.bind(prefs, PREF);
 
 
-export default class {
+export default class LocationSharingAssistant {
   constructor({ updateGeoLocation, resetGeoLocation }) {
     this.actions = [
       {

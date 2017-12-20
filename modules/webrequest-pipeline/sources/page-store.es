@@ -5,7 +5,7 @@ import console from '../core/console';
 import { chrome } from '../platform/globals';
 
 
-export default class {
+export default class PageStore {
   constructor() {
     this.tabs = {};
     this.windows = {};
@@ -22,8 +22,11 @@ export default class {
     tabs.onUpdated.addListener(this.onTabUpdated);
     tabs.onRemoved.addListener(this.onTabRemoved);
 
-    windows.onCreated.addListener(this.onWindowCreated);
-    windows.onRemoved.addListener(this.onWindowRemoved);
+    // windows API may be undefined on Firefox for Android.
+    if (windows) {
+      windows.onCreated.addListener(this.onWindowCreated);
+      windows.onRemoved.addListener(this.onWindowRemoved);
+    }
   }
 
   unload() {
@@ -31,8 +34,10 @@ export default class {
     tabs.onUpdated.removeListener(this.onTabUpdated);
     tabs.onRemoved.removeListener(this.onTabRemoved);
 
-    windows.onCreated.removeListener(this.onWindowCreated);
-    windows.onRemoved.removeListener(this.onWindowRemoved);
+    if (windows) {
+      windows.onCreated.removeListener(this.onWindowCreated);
+      windows.onRemoved.removeListener(this.onWindowRemoved);
+    }
   }
 
   onFullPage({ tabId, url, isPrivate, requestId }) {

@@ -1,5 +1,5 @@
 /* eslint-disable func-names, prefer-arrow-callback, prefer-rest-params, strict */
-/* globals require, process, global, error */
+/* globals require, process, global */
 
 'use strict';
 
@@ -11,6 +11,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
 const chaiAsPromised = require('chai-as-promised');
+
 require('sinon-as-promised');
 
 chai.config.truncateThreshold = 0;
@@ -46,14 +47,17 @@ const baseURL = baseDir + (cliqzConfig.platform === 'mobile' ? '/dev' : '');
 
 const testFiles = [];
 
-glob.sync(baseDir + '/**/tests/**/unit/**/*-test.js').forEach(function (path) {
-  if (fgrep && path.indexOf(fgrep) === -1) {
-    return;
-  }
+[]
+  .concat(glob.sync(baseDir + '/**/tests/**/unit/**/*-test.js'))
+  .concat(glob.sync(baseDir + '/**/tests/**/*lint-test.js'))
+  .forEach(function (path) {
+    if (fgrep && path.indexOf(fgrep) === -1) {
+      return;
+    }
 
-  testFiles.push(path);
-  mocha.addFile(path);
-});
+    testFiles.push(path);
+    mocha.addFile(path);
+  });
 
 function describeModule(moduleName, loadDeps, testFn) {
   const localSystem = new systemjs.constructor();
