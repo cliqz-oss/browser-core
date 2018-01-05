@@ -1,5 +1,5 @@
 import console from '../core/console';
-import md5 from '../antitracking/md5';
+import md5 from '../core/helpers/md5';
 import ResourceLoader from '../core/resource-loader';
 import { getBugOwner } from '../core/domain-info';
 import config from '../core/config';

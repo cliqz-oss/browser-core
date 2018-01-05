@@ -38,6 +38,24 @@ module.exports = {
     "HPN_CHANNEL": "cliqz",
     "NEW_TAB_URL": "resource://cliqz/freshtab/home.html",
     "HISTORY_URL": "resource://cliqz/cliqz-history/index.html#/",
+    "ICONS": {
+      "active": {
+        "default": "control-center/images/cc-active.svg",
+        "dark": "control-center/images/cc-active-dark.svg"
+      },
+      "inactive": {
+        "default": "control-center/images/cc-critical.svg",
+        "dark": "control-center/images/cc-critical-dark.svg"
+      },
+      "critical": {
+        "default": "control-center/images/cc-critical.svg",
+        "dark": "control-center/images/cc-critical-dark.svg"
+      }
+    },
+    "BACKGROUNDS": {
+      "active": "#471647",
+      "critical": "#471647"
+    },
     "CONFIG_PROVIDER": "https://api.cliqz.com/api/v1/config",
     "CDN_BASEURL": "https://cdn.cliqz.com",
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"]

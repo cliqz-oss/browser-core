@@ -64,6 +64,8 @@ export default class Win {
   }
 
   unload() {
-    this.resultsSubscription.unsubscribe();
+    if (this.resultsSubscription) {
+      this.resultsSubscription.unsubscribe();
+    }
   }
 }

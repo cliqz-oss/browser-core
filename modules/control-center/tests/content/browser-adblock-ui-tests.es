@@ -148,7 +148,7 @@ describe("Control Center: Ad-Block UI browser", function () {
     adBlockerUiTests(dataOffPage);
 
     it('renders correct colour of switch', function () {
-      chai.expect(subject.getComputedStyle('#ad-blocking .cqz-switch-box').background).to.contain('rgb(246, 112, 87)');
+      chai.expect(subject.getComputedStyle('#ad-blocking .cqz-switch-box').background).to.contain('rgb(255, 126, 116)');
     });
 
     it('renders "OFF"', function () {
@@ -218,7 +218,7 @@ describe("Control Center: Ad-Block UI browser", function () {
     adBlockerUiTests(dataOffSite);
 
     it('renders correct colour of switch', function () {
-      chai.expect(subject.getComputedStyle('#ad-blocking .cqz-switch-box').background).to.contain('rgb(246, 112, 87)');
+      chai.expect(subject.getComputedStyle('#ad-blocking .cqz-switch-box').background).to.contain('rgb(255, 126, 116)');
     });
 
     it('renders "OFF"', function () {
@@ -288,7 +288,7 @@ describe("Control Center: Ad-Block UI browser", function () {
     adBlockerUiTests(dataOffAll);
 
     it('renders correct colour of switch', function () {
-      chai.expect(subject.getComputedStyle('#ad-blocking .cqz-switch-box').background).to.contain('rgb(246, 112, 87)');
+      chai.expect(subject.getComputedStyle('#ad-blocking .cqz-switch-box').background).to.contain('rgb(255, 126, 116)');
     });
 
     it('renders "OFF"', function () {

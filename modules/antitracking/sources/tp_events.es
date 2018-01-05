@@ -1,6 +1,6 @@
 import { utils } from '../core/cliqz';
-import md5 from './md5';
-import { sameGeneralDomain } from './domain';
+import { sameGeneralDomain } from '../core/tlds';
+import md5 from '../core/helpers/md5';
 import * as browser from '../platform/browser';
 import { TELEMETRY } from './config';
 

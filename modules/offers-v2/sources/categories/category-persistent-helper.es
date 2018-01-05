@@ -54,15 +54,19 @@ export default class CategoryPersistentDataHelper {
     const patternsProm = this.db.get(PATTERN_DOC_ID);
     const categoriesProm = this.db.get(CATEGORIES_DOC_ID);
     return Promise.all([patternsProm, categoriesProm]).then((data) => {
-      const patternsData = data[0].patternsMap;
-      const catData = data[1].catList;
+      const patternsData = data[0] && data[0].patternsMap ? data[0].patternsMap : {};
+      const catData = data[1] && data[1].catList ? data[1].catList : [];
       const result = [];
       for (let i = 0; i < catData.length; i += 1) {
         const category = new Category();
         const catDataObj = catData[i];
         catDataObj.patterns = patternsData[catDataObj.name];
         category.deserialize(catDataObj);
-        result.push(category);
+
+        // do not load anything on debug
+        if (!utils.getPref('offersDevFlag', false)) {
+          result.push(category);
+        }
       }
 
       return Promise.resolve(result);

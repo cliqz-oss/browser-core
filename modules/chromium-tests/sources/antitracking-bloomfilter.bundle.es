@@ -3,7 +3,7 @@
 /* global waitFor */
 
 import { AttrackBloomFilter, BloomFilter } from '../antitracking/bloom-filter';
-import md5 from '../antitracking/md5';
+import md5 from '../core/helpers/md5';
 
 
 describe('AttrackBloomFilter', function() {

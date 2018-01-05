@@ -1,5 +1,5 @@
-import { URLInfo } from '../antitracking/url';
-import { getGeneralDomain } from '../antitracking/domain';
+import { URLInfo } from '../core/url-info';
+import { getGeneralDomain } from '../core/tlds';
 
 
 export function extractDomain(url) {

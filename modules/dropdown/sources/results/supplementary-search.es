@@ -97,6 +97,10 @@ export default class SupplementarySearchResult extends BaseResult {
   }
 
   get url() {
+    return this.rawUrl;
+  }
+
+  get rawUrl() {
     return this.searchEngine.getSubmissionForQuery(this.displayText);
   }
 

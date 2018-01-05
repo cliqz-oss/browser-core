@@ -50,7 +50,7 @@ TESTS.AttrackUnitTest = function(CliqzUtils) {
     var attrackBG = getModule('antitracking/background').default,
         pipeline = getModule('webrequest-pipeline/background').default,
         QSWhitelist = getModule('antitracking/qs-whitelists').default,
-        md5 = getModule('antitracking/md5').default,
+        md5 = getModule('core/helpers/md5').default,
         datetime = getModule('antitracking/time');
 
     function getAttrack() {

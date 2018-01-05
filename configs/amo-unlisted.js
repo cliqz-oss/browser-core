@@ -1,4 +1,11 @@
-{
+/* eslint-disable */
+
+'use strict';
+
+const base = require('./common/system');
+const reactLibs = require('./common/subprojects/react');
+
+module.exports = {
   "platform": "firefox",
   "baseURL": "chrome://cliqz/content/",
   "testsBasePath": "./build/cliqz@cliqz.com/chrome/content", "testem_launchers": ["unit-node", "Chrome"],
@@ -32,8 +39,13 @@
     "HPN_CHANNEL": "cliqz",
     "NEW_TAB_URL": "chrome://cliqz/content/freshtab/home.html",
     "ICONS": {
-      "active": { "default" : "control-center/images/privacy-shield-active.svg" },
+      "active": { "default": "control-center/images/privacy-shield-active.svg" },
+      "inactive": { "default": "control-center/images/privacy-shield-inactive.svg" },
       "critical": { "default": "control-center/images/privacy-shield-inactive.svg" }
+    },
+    "PAGE_ACTION_ICONS": {
+      "default": "control-center/images/page-action-dark.svg",
+      "dark": "control-center/images/page-action-light.svg"
     },
     "BACKGROUNDS": {
       "active": "#999999",
@@ -85,51 +97,12 @@
       "src": "node_modules/@cliqz-oss/pouchdb/dist",
       "include": ["pouchdb.js"],
       "dest": "vendor"
-    }
-  ],
-  "bundler": {
-    "externals": ["jquery", "handlebars", "mathjs"],
-    "globalDeps": {
-      "jquery": "$",
-      "handlebars": "Handlebars",
-      "mathjs": "mathLib"
-    }
-  },
-  "system": {
-    "map": {
-      "bigint": "bower_components/bigint/index.js",
-      "md5": "bower_components/md5/index.js",
-      "jquery": "bower_components/jquery/dist/jquery.min.js"
     },
-    "packages": {
-      "object-assign": {
-        "main": "./index.js"
-      },
-      "modules": {
-        "map": {
-          "./platform/tldjs": "node_modules/tldjs/index.js"
-        },
-        "meta": {
-          "./platform/lib/zlib.js": {
-            "format": "system"
-          },
-          "./core/lib/cron-parser.js": {
-            "format": "system"
-          },
-          "./platform/lib/dexie.js": {
-            "format": "system"
-          },
-          "./platform/fast-url-parser.js": {
-            "format": "system"
-          },
-          "./platform/lib/deep-equal.js": {
-            "format": "system"
-          },
-          "./platform/lib/jsep.js": {
-            "format": "system"
-          }
-        }
-      }
-    }
-  }
+    reactLibs.react,
+    reactLibs.reactDom
+  ],
+  systemDefault: base.systemConfig,
+  builderDefault: base.builderConfig,
+  bundleConfigs: Object.assign({}, base.appBundleConfig),
+
 }

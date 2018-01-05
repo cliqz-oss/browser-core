@@ -1,10 +1,10 @@
 DEPS.AttrackQSWhitelistTest = ["core/utils", "core/events"];
 TESTS.AttrackQSWhitelistTest = function (CliqzUtils, CliqzEvents) {
   var QSWhitelist = getModule('antitracking/qs-whitelists').default,
-      md5 = getModule('antitracking/md5').default,
-      persist = getModule('core/persistent-state'),
-      datetime = getModule('antitracking/time'),
-      pacemaker = getModule('core/pacemaker').default;
+    md5 = getModule('core/helpers/md5').default,
+    persist = getModule('core/persistent-state'),
+    datetime = getModule('antitracking/time'),
+    pacemaker = getModule('core/pacemaker').default;
 
   before(function() {
     // stop the pacemaker to avoid possible race conditions on events.

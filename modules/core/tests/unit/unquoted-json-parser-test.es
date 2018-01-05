@@ -79,7 +79,7 @@ const complexCases = {
   }
 }
 
-export default describeModule('antitracking/parsers/unquoted-json-parser',
+export default describeModule('core/unquoted-json-parser',
   function () {
     return {};
   },

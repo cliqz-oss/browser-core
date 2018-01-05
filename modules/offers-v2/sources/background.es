@@ -125,10 +125,8 @@ export default background({
                                                this.db,
                                                this.patternMatchingHandler);
 
-    // load the data from the category handler, on debug we do not load anything
-    if (!utils.getPref('offersDevFlag', false)) {
-      this.categoryHandler.loadPersistentData();
-    }
+    // load the data from the category handler
+    this.categoryHandler.loadPersistentData();
 
     // create the trigger machine executor
     this.globObjects = {
@@ -299,7 +297,9 @@ export default background({
     },
 
     processRealEstateMessage(message) {
-      this.offerProc.processRealEstateMessage(message);
+      if (this.offerProc) {
+        this.offerProc.processRealEstateMessage(message);
+      }
     }
   },
 

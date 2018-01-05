@@ -1,4 +1,11 @@
-{
+/* eslint-disable */
+
+'use strict';
+
+const base = require('./common/system');
+const reactLibs = require('./common/subprojects/react');
+
+module.exports = {
   "platform": "firefox",
   "baseURL": "chrome://cliqz/content/",
   "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
@@ -31,6 +38,7 @@
     "KEY_SECURE_LOGGER_PUBKEY": "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAh5HhcRAn6+6woXQXl\/NtZ+fOooNglZct\/HSpYuqkcmrPauHW7EuOSq5bvpBZRTDROjR\/kUPomqVZIzqhdCFPA8BwXSCz7hAel2Q157vtBvh9sngMMLXb5Fgzef5N4EuKO8pL5KrS+I9tfZac41vFJSdpgAirZYhh+tdcQQ1z0Qv\/Rw0zOXjfvddCz3gEv2gB9KsLMVnTS1J4YOOgfza2adg9Ebz1z99DiF4vtCwn0IUwH\/3ToTBwJLbMnC3Ol43yBNk8rgK2mkgCi614vOSD3hnVmio+iW6+AUklM8VPl6l7hEK9cljJY+9UsMVmTrvaFbMPwS6AdZCXKTmNdaMJcy3zSOXu5zvzihoQLwAu9LM3l2eVk0Mw0K7JXOP20fc8BtzWCOLYVP32r4R0BNuhTtvGqjHNZHPJN5OwaxkLpn2dujL9uDWGjRiOItKMVq\/nOqmNGghrbf8IOaKT7VQhqOU4cXRkB\/uF1UjYETBavwUZAxx9Wd\/cMcAGmKiDxighxxQ29jDufl+2WG065tmJz+zCxmgrPh6Zb3KFUxPTe6yksAhWJhmGShA9v20t84M5c6NpZXoUsFcVja6XxzHeSB8dWq9Uu5QcZ83Gz\/ronwdEjT2OGTtBgOFeTDqLYUgphC1gcUEHOCnTNXRMQOXqGwBfZHp+Mq61QcMq2rNS7xECAwEAAQ==",
     "HW_CHANNEL": "ff-test-pilot",
     "HPN_CHANNEL": "cliqz",
+    "CONFIG_PROVIDER": "https://api.cliqz.com/api/v1/config",
     "CDN_BASEURL": "https://cdn.cliqz.com",
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"]
   },
@@ -42,6 +50,7 @@
     "dropdown",
     "autocomplete",
     "ui",
+    "webrequest-pipeline",
     "human-web",
     "context-menu",
     "performance",
@@ -51,50 +60,31 @@
     "freshtab",
     "offboarding"
   ],
-  "subprojects": [{
-    "src": "node_modules/cliqz-history/dist",
-    "dest": "cliqz-history"
-  }],
-  "system": {
-    "map": {
-      "handlebars": "bower_components/handlebars/handlebars.js",
-      "jquery": "bower_components/jquery/dist/jquery.js",
-      "bigint": "bower_components/bigint/index.js",
-      "mathjs": "bower_components/mathjs/dist/math.min.js",
-      "md5": "bower_components/md5/index.js"
+  "subprojects": [
+    {
+      "src":"bower_components/jquery/dist",
+      "include": ["jquery.min.js"],
+      "dest": "vendor"
     },
-    "packages": {
-      "object-assign": {
-        "main": "./index.js"
-      },
-      "modules": {
-        "map": {
-          "./platform/tldjs": "node_modules/tldjs/index.js"
-        },
-        "meta": {
-          "./platform/lib/zlib.js": {
-            "format": "system"
-          },
-          "./core/lib/cron-parser.js": {
-            "format": "system"
-          },
-          "./platform/lib/dexie.js": {
-            "format": "system"
-          },
-          "./platform/fast-url-parser.js": {
-            "format": "system"
-          },
-          "./platform/lib/deep-equal.js": {
-            "format": "system"
-          },
-          "./platform/lib/jsep.js": {
-            "format": "system"
-          },
-          "./platform/lib/node-forge.js": {
-            "format": "system"
-          }
-        }
-      }
-    }
-  }
+    {
+      "src": "bower_components/handlebars",
+      "include": ["handlebars.min.js"],
+      "dest": "vendor"
+    },
+    {
+      "src": "bower_components/mathjs/dist",
+      "include": ["math.min.js"],
+      "dest": "vendor"
+    },
+    {
+      "src": "node_modules/@cliqz-oss/pouchdb/dist",
+      "include": ["pouchdb.js"],
+      "dest": "vendor"
+    },
+    reactLibs.react,
+    reactLibs.reactDom
+  ],
+  systemDefault: base.systemConfig,
+  builderDefault: base.builderConfig,
+  bundleConfigs: Object.assign({}, base.appBundleConfig),
 }

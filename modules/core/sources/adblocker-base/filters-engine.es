@@ -1,4 +1,4 @@
-import tlds from '../tlds';
+import { parse } from '../tlds';
 import ReverseIndex from './reverse-index';
 import { tokenize, fastHash, fastStartsWith } from './utils';
 import {
@@ -236,7 +236,7 @@ class CosmeticFilterBucket {
 export function processRawRequest(request) {
   // Extract hostname
   const url = request.url.toLowerCase();
-  const { hostname, domain } = tlds.parse(url);
+  const { hostname, domain } = parse(url);
 
   // Process source url
   let sourceUrl = request.sourceUrl;
@@ -248,7 +248,7 @@ export function processRawRequest(request) {
     // leave `sourceHostname` and `sourceGD` as empty strings to allow
     // some filter matching on the request URL itself.
     sourceUrl = sourceUrl.toLowerCase();
-    const sourceUrlParts = tlds.parse(sourceUrl);
+    const sourceUrlParts = parse(sourceUrl);
     sourceHostname = sourceUrlParts.hostname || '';
     sourceGD = sourceUrlParts.domain || '';
   }

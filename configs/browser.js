@@ -53,6 +53,10 @@ module.exports = {
         "default": "control-center/images/cc-active.svg",
         "dark": "control-center/images/cc-active-dark.svg"
       },
+      "inactive": {
+        "default": "control-center/images/cc-critical.svg",
+        "dark": "control-center/images/cc-critical-dark.svg"
+      },
       "critical": {
         "default": "control-center/images/cc-critical.svg",
         "dark": "control-center/images/cc-critical-dark.svg"
@@ -119,7 +123,6 @@ module.exports = {
     "p2p",
     "pairing",
     "antitracking-blocker",
-    "green-ads",
     "search",
     "cookie-monster"
   ],
