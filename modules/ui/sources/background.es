@@ -9,13 +9,28 @@ const DISMISSED_ALERTS = 'dismissedAlerts';
 const SEARCH_BAR_ID = 'search-container';
 const URL_BAR_ID = 'urlbar-container';
 const showSearchBar = 'dontHideSearchBar';
+const handleSearchWidgetInPhoton = 'handleSearchWidgetInPhoton';
 
 let CustomizableUI;
 
 export default background({
   init() {
     if (isPlatformAtLeastInVersion('57.0')) {
-      return; //Firefox 57 and above has the search widget hidden by default so we do not need to do anything
+      // Firefox 57 and above has the search widget hidden by default so we
+      // do not need to do anything besides cleaning our old prefs
+
+      if (!prefs.get(handleSearchWidgetInPhoton, false)) {
+        // we try once to migrate the old setting
+        prefs.set(handleSearchWidgetInPhoton, true);
+        if (!prefs.get(showSearchBar, false)) {
+          prefs.set('browser.search.widget.inNavBar', false, '');
+        }
+        if (prefs.has(showSearchBar)) {
+          prefs.clear(showSearchBar);
+        }
+      }
+
+      return;
     }
 
     CustomizableUI = Components.utils.import('resource:///modules/CustomizableUI.jsm', null).CustomizableUI;
