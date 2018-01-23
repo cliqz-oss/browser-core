@@ -75,12 +75,7 @@ function getPublicSuffix(url) {
 }
 
 
-function sameGeneralDomain(domain1, domain2) {
-  return domain1 === domain2 || getGeneralDomain(domain1) === getGeneralDomain(domain2);
-}
-
-
-export {
+export default {
   // Legacy - should be removed at some point
   TLDs,
 
@@ -88,5 +83,4 @@ export {
   getGeneralDomain,
   getPublicSuffix,
   extractHostname,
-  sameGeneralDomain
 };

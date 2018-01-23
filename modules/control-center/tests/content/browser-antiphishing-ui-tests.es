@@ -110,7 +110,7 @@ function antiphishingUiTests(amo) {
     antiPhishingUiTests();
 
     it('renders correct colour of switch', function () {
-      chai.expect(subject.getComputedStyle('#anti-phising .switches .cqz-switch-box').background).to.contain('rgb(255, 126, 116)');
+      chai.expect(subject.getComputedStyle('#anti-phising .switches .cqz-switch-box').background).to.contain('rgb(246, 112, 87)');
     });
 
     it('renders "OFF"', function () {
@@ -141,7 +141,7 @@ function antiphishingUiTests(amo) {
     antiPhishingUiTests();
 
     it('renders correct colour of switch', function () {
-      chai.expect(subject.getComputedStyle('#anti-phising .switches .cqz-switch-box').background).to.contain('rgb(255, 126, 116)');
+      chai.expect(subject.getComputedStyle('#anti-phising .switches .cqz-switch-box').background).to.contain('rgb(246, 112, 87)');
     });
 
     it('renders "OFF"', function () {

@@ -227,8 +227,7 @@ export default class App {
 
     utils.telemetry({
       type: 'activity',
-      action: telemetrySignal,
-      lifecyle: 'stop'
+      action: telemetrySignal
     }, true /* force push */);
 
     /*

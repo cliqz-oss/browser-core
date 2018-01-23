@@ -878,6 +878,19 @@ $basic-line-height: (16 / 15) + 0em;
                     opacity: 0.6;
                 }
             }
+            @media (-moz-os-version: windows-win7), (-moz-os-version: windows-win8), (-moz-os-version: windows-win10) {
+                .toolbarbutton-icon {
+                    opacity: 0.6;
+                }
+                &#page-action-browser-action:hover {
+                    list-style-image: url-prefix("control-center/images/search-settings-blue.png") !important;
+                    --webextension-menupanel-image: url-prefix("control-center/images/search-settings-blue.png") !important;
+                    --webextension-menupanel-image-2x: url-prefix("control-center/images/search-settings-blue.png") !important;
+                    --webextension-toolbar-image: url-prefix("control-center/images/search-settings-blue.png") !important;
+                    --webextension-toolbar-image-2x: url-prefix("control-center/images/search-settings-blue.png") !important;
+                }
+
+            }
         }
     }
 

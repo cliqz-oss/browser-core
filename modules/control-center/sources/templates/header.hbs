@@ -1,9 +1,15 @@
-<div class="pause">
-  <img src="./images/cliqz.svg" alt="Cliqz" />
-</div>
+{{#unless funnelCake}}
+    <div class="pause">
+      <img src="./images/cliqz.svg" alt="Cliqz" />
+    </div>
+{{/unless}}
 <div class="title">
   <span data-i18n="control-center-txt-header" visible-on-state="active"></span>
-  <img src="./images/alert-privacy.svg" alt="" invisible-on-state="active"/>
+  {{#if funnelCake}}
+      <img src="./images/alert-privacy-yellow.svg" alt="" invisible-on-state="active"/>
+  {{else}}
+      <img src="./images/alert-privacy.svg" alt="" invisible-on-state="active"/>
+  {{/if}}
   <span data-i18n="control-center-txt-header-not" class="warning" visible-on-state="inactive"></span>
   <span data-i18n="control-center-txt-header-not" class="warning" visible-on-state="critical"></span>
 </div>

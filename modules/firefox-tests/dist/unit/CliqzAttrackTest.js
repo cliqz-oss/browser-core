@@ -102,7 +102,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
 
     describe('CliqzAttack.tp_events', function() {
 
-        var urlInfo = getModule('core/url-info').URLInfo;
+        var urlInfo = getModule('antitracking/url').URLInfo;
 
         describe('Integration', function() {
             var win = CliqzUtils.getWindow(),
@@ -538,7 +538,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
 
     describe('CliqzAttrack.getGeneralDomain', function() {
 
-        var getGeneralDomain = getModule('core/tlds').getGeneralDomain;
+        var getGeneralDomain = getModule('antitracking/domain').getGeneralDomain;
         var spec = {
           'cliqz.com': ['cliqz.com', 'www.cliqz.com', 'a.b.cliqz.com'],
           'example.co.uk': ['example.co.uk', 'test.example.co.uk'],
@@ -677,7 +677,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
         it ('apply correct rule to 3rd party', function() {
             var TT = getModule('antitracking/tracker-txt').default,
                 txt = '# comment\n! pass\nR aaa.site1.com empty\nR site1.com placeholder\nnot a rule',
-                parseURL = getModule("core/url-info").parseURL,
+                parseURL = getModule("antitracking/url").parseURL,
                 r = TT.TrackerTXT.get(parseURL('http://www.google.com/'));
             TT.trackerRuleParser(txt, r.rules);
             r.status = 'update';

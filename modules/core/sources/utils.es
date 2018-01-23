@@ -4,7 +4,7 @@ import console from "./console";
 import prefs from "./prefs";
 import Storage from "./storage";
 import CliqzEvents from './events';
-import { getPublicSuffix } from "./tlds";
+import tlds from "./tlds";
 import { httpHandler, promiseHttpHandler } from './http';
 import CliqzLanguage from './language';
 import * as url from './url';
@@ -261,7 +261,7 @@ var CliqzUtils = {
 
     return url;
   },
-  genericTldExtractor: getPublicSuffix,
+  genericTldExtractor: tlds.getPublicSuffix,
   getDetailsFromUrl: url.getDetailsFromUrl,
   stripTrailingSlash: url.stripTrailingSlash,
   isUrl: url.isUrl,

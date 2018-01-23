@@ -3,53 +3,22 @@
 /* global require */
 
 
-const tldjs = require('tldjs');
-
-
 export default describeModule('core/tlds',
   () => ({
-    tldjs: {
-      default: tldjs,
-    },
     'platform/url': {
       isURI() { return false; },
       default: {
       },
     },
+    'tldjs': {
+      default: require('tldjs'),
+    },
   }),
   () => {
-    let sameGeneralDomain;
-    let getGeneralDomain;
+    let tlds;
 
     beforeEach(function importDefault() {
-      sameGeneralDomain = this.module().sameGeneralDomain;
-      getGeneralDomain = this.module().getGeneralDomain;
-    });
-
-    describe('#sameGeneralDomain', () => {
-      [
-        ['a.cliqz.com', 'b.cliqz.com'],
-        ['x.y.cliqz.com', 'cliqz.com'],
-        ['domain.with.co.uk', 'other.subdomain.with.co.uk'],
-      ].forEach((pair) => {
-        const [a, b] = pair;
-        it(`'${a}' is same general domain as '${b}'`, () => {
-          chai.expect(sameGeneralDomain(a, b)).to.be.true;
-        });
-      });
-
-      [
-        ['', 'example.com'],
-        [undefined, 'example.com'],
-        ['localhost', '127.0.0.1'],
-        ['a.cliqz.com', 'b.kliqz.com'],
-        ['same.registered.co.uk', 'other.registered.com'],
-      ].forEach((pair) => {
-        const [a, b] = pair;
-        it(`'${a}' is not same general domain as '${b}'`, () => {
-          chai.expect(sameGeneralDomain(a, b)).to.be.false;
-        });
-      });
+      tlds = this.module().default;
     });
 
     describe('#getGeneralDomain', () => {
@@ -63,12 +32,10 @@ export default describeModule('core/tlds',
       Object.keys(spec).forEach((generalDomain) => {
         spec[generalDomain].forEach((subDomain) => {
           it(`${subDomain} has general domain ${generalDomain}`, () => {
-            chai.expect(getGeneralDomain(subDomain)).to.equal(generalDomain);
+            chai.expect(tlds.getGeneralDomain(subDomain)).to.equal(generalDomain);
           });
         });
       });
     });
   },
 );
-
-

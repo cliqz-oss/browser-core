@@ -1,7 +1,7 @@
 import inject from '../core/kord/inject';
 import background from '../core/base/background';
 import cookies from '../platform/cookies';
-import { getGeneralDomain } from '../core/tlds';
+import tlds from '../core/tlds';
 import md5 from '../core/helpers/md5';
 import History from '../platform/history/history';
 import console from '../core/console';
@@ -49,7 +49,7 @@ export default background({
     ]).then(([qsWhitelist, userCookies]) =>
       userCookies.filter((cki) => {
         const domain = cki.domain.startsWith('.') ? cki.domain.slice(1) : cki.domain;
-        const gd = getGeneralDomain(domain);
+        const gd = tlds.getGeneralDomain(domain);
         return gd && qsWhitelist.isTrackerDomain(md5(gd).substring(0, 16));
       })
     );

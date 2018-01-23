@@ -316,7 +316,7 @@ function compileAdblockInfo(data) {
 }
 
 function draw(data) {
-  const emptyFrame = Object.keys(data.module || {}).length === 0;
+  const emptyFrame = Object.keys(data.module || {}) === 0;
   const module = data.module;
 
   if (data.onboarding) {

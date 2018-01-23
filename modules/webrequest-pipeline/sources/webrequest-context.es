@@ -1,4 +1,4 @@
-import { URLInfo } from '../core/url-info';
+import { URLInfo } from '../antitracking/url';
 
 
 const TYPE_LOOKUP = {

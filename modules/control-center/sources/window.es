@@ -4,7 +4,6 @@ import utils from '../core/utils';
 import events from '../core/events';
 import console from '../core/console';
 import { getMessage } from '../core/i18n';
-import { getThemeStyle } from '../platform/browser';
 
 const BTN_ID = 'cliqz-cc-btn';
 const TELEMETRY_TYPE = 'control_center';
@@ -13,7 +12,8 @@ const TRIQZ_URL = 'https://cliqz.com/tips';
 export default class Win {
   constructor({ window, background, settings }) {
     this.window = window;
-    this.background = background;
+    this.toolbarButton = background.toolbarButton;
+    this.pageAction = background.pageAction;
 
     this.controlCenter = inject.module('control-center');
     this.settings = settings;
@@ -32,7 +32,6 @@ export default class Win {
       updatePref: this.updatePref.bind(this),
       updateState: this.updateState.bind(this),
       refreshState: this.refreshState.bind(this),
-      locationChange: this.locationChange.bind(this),
       resize: this.resizePopup.bind(this),
       'adb-optimized': this.adbOptimized.bind(this),
       'antitracking-activator': this.antitrackingActivator.bind(this),
@@ -50,15 +49,28 @@ export default class Win {
       'type-filter': this.typeFilter.bind(this),
     };
 
+    if (this.toolbarButton) {
+      this.toolbarButton.addWindow(window, this.actions);
+    }
+
+    if (this.pageAction) {
+      this.pageAction.addWindow(window, this.actions);
+
+      const pageActionBtn = window.document.getElementById(this.pageAction.id);
+      const pageActionButtons =
+        // Firefox 56 and bellow
+        window.document.getElementById('urlbar-icons') ||
+        // Firefox 57 and above
+        window.document.getElementById('page-action-buttons');
+
+      pageActionButtons.appendChild(pageActionBtn);
+    }
+
     this.hasAntitracking = (new Set(config.modules)).has('antitracking');
   }
 
   init() {
-    this.toolbarButton = this.background.toolbarButton;
-    this.pageAction = this.background.pageAction;
-
-    this.locChangeEvent = events.subscribe('core.location_change', this.actions.locationChange);
-    this.themeChangeEvent = events.subscribe('hostthemechange', this.actions.refreshState);
+    this.locChangeEvent = events.subscribe('core.location_change', this.actions.refreshState);
 
     if (utils.getPref('toolbarButtonPositionSet', false) === false && this.toolbarButton) {
       this.toolbarButton.setPositionBeforeElement('bookmarks-menu-button');
@@ -66,25 +78,6 @@ export default class Win {
     }
 
     this.updateFFHelpMenu();
-
-    if (this.toolbarButton) {
-      this.toolbarButton.addWindow(this.window, this.actions);
-    }
-    if (this.pageAction) {
-      this.pageAction.addWindow(this.window, this.actions);
-
-      const pageActionBtn = this.window.document.getElementById(this.pageAction.id);
-      const pageActionButtons =
-        // Firefox 56 and bellow
-        this.window.document.getElementById('urlbar-icons') ||
-        // Firefox 57 and above
-        this.window.document.getElementById('page-action-buttons');
-
-      pageActionButtons.appendChild(pageActionBtn);
-
-      // by default the pageActionBtn is hidden with display:none
-      pageActionBtn.style.removeProperty('display');
-    }
 
     setTimeout(this.setState.bind(this), 0, 'active');
   }
@@ -155,7 +148,6 @@ export default class Win {
     this.pageAction && this.pageAction.removeWindow(this.window);
 
     this.locChangeEvent.unsubscribe();
-    this.themeChangeEvent.unsubscribe();
 
     // remove custom items from the Help Menu
     const nodes = this.helpMenu.querySelectorAll('.cliqz-item');
@@ -166,18 +158,11 @@ export default class Win {
     this.helpMenu.removeEventListener('popupshowing', this.createFFhelpMenu);
   }
 
-  locationChange(url) {
+  refreshState(url) {
     // wait for tab content to load
-    if (!url ||
-         url === 'about:blank' ||
-         // do not try to prepare the date while loading control center
-         url.indexOf('chrome://cliqz/content/control-center') === 0) {
+    if (!url || url === 'about:blank') {
       return;
     }
-    this.refreshState();
-  }
-
-  refreshState() {
     this.prepareData().then((data) => {
       this.setState(data.generalState);
     });
@@ -351,7 +336,12 @@ export default class Win {
 
   setState(state) {
     if (this.toolbarButton) {
-      const icon = config.baseURL + (this.ICONS[state][getThemeStyle()] || this.ICONS[state].default);
+      let selectedTheme = utils.getPref('lightweightThemes.selectedThemeID', '', '');
+      let icon = config.baseURL + this.ICONS[state].default;
+      if (selectedTheme === 'firefox-compact-dark@mozilla.org' && this.ICONS[state].dark) {
+        icon = config.baseURL + this.ICONS[state].dark;
+      }
+
       this.toolbarButton.setIcon(this.window, icon);
       this.toolbarButton.setBadgeBackgroundColor(this.window, this.BACKGROUNDS[state]);
     }

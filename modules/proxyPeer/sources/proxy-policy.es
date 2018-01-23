@@ -1,5 +1,5 @@
-import { getGeneralDomain } from '../core/tlds';
-import md5 from '../core/helpers/md5';
+import { getGeneralDomain } from '../antitracking/domain';
+import md5 from '../antitracking/md5';
 import { asyncResolve, isPrivateIPAddress } from './dns-utils';
 import { BloomFilter } from '../platform/bloom-filter';
 

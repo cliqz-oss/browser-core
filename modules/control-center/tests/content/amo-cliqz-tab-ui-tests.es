@@ -75,7 +75,7 @@ describe("Control Center: AMO, Cliqz tab UI tests", function () {
     cliqzTabUiTests(dataOff);
 
     it('renders correct colour of switch', function () {
-      chai.expect(subject.getComputedStyle('.amo #cliqz-tab .cqz-switch-box').background).to.contain('rgb(255, 126, 116)');
+      chai.expect(subject.getComputedStyle('.amo #cliqz-tab .cqz-switch-box').background).to.contain('rgb(246, 112, 87)');
     });
 
     it('renders "OFF"', function () {

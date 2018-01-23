@@ -1,8 +1,9 @@
 import { checkIsWindowActive } from '../platform/browser';
 
 import domainInfo from '../core/domain-info';
-import { URLInfo } from '../core/url-info';
-import { getGeneralDomain } from '../core/tlds';
+
+import { getGeneralDomain } from '../antitracking/domain';
+import { URLInfo } from '../antitracking/url';
 
 
 class PageStats {

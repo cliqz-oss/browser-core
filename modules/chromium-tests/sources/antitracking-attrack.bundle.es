@@ -45,7 +45,7 @@ function expectNoModification(resp) {
 import { utils } from '../core/cliqz';
 import Attrack from '../antitracking/attrack';
 import QSWhitelist from '../antitracking/qs-whitelists';
-import md5 from '../core/helpers/md5';
+import md5 from '../antitracking/md5';
 import * as datetime from '../antitracking/time';
 import coreBG from '../core/background';
 import Config from '../antitracking/config';

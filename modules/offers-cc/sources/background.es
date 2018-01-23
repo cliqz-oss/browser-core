@@ -31,8 +31,8 @@ export default background({
       default_icon: `${config.baseURL}offers-cc/images/offers-cc-icon.svg`,
       badgeBackgroundColor: 'transparent',
       badgeText: '',
-      defaultHeight: () => 180,
-      defaultWidth: () => 550,
+      defaultHeight: 180,
+      defaultWidth: 550,
     });
     this.toolbarButton.build();
   },

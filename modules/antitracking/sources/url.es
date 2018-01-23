@@ -1,8 +1,8 @@
-import MapCache from './helpers/fixed-size-cache';
-import fastUrl from './fast-url-parser';
-import md5 from './helpers/md5';
-import unquotedJsonParse from './unquoted-json-parser';
-import { getGeneralDomain } from './tlds';
+import md5 from './md5';
+import MapCache from '../core/helpers/fixed-size-cache';
+import { getGeneralDomain } from './domain';
+import unquotedJsonParse from './parsers/unquoted-json-parser';
+import fastUrl from '../core/fast-url-parser';
 
 /*  Parse a URL string into a set of sub-components, namely:
  - protocol

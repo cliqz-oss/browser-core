@@ -1,5 +1,5 @@
 import * as datetime from '../time';
-import md5 from '../../core/helpers/md5';
+import md5 from '../md5';
 import Database from '../../core/database';
 import console from '../../core/console';
 import SerialExecutor from '../../core/helpers/serial-executor';

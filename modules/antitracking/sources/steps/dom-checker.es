@@ -1,8 +1,7 @@
-import { isTabURL } from '../../platform/browser';
-
 import pacemaker from '../../core/pacemaker';
 import core from '../../core/background';
-import { dURIC } from '../../core/url-info';
+import { dURIC } from '../url';
+import { isTabURL } from '../../platform/browser';
 
 const DOM_CHECK_PERIOD = 1000;
 

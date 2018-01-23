@@ -1,5 +1,6 @@
 /* global waitFor */
 /* global testServer */
+/* global sleep */
 /* global chai */
 
 import { utils } from '../core/cliqz';
@@ -9,8 +10,8 @@ import Config from '../antitracking/config';
 import { HashProb } from '../antitracking/hash';
 import { AttrackBloomFilter } from '../antitracking/bloom-filter';
 import pacemaker from '../core/pacemaker';
-import { URLInfo, parseURL } from '../core/url-info';
-import { getGeneralDomain } from '../core/tlds';
+import { URLInfo, parseURL } from '../antitracking/url';
+import { getGeneralDomain } from '../antitracking/domain';
 import { trackerRuleParser, TrackerTXT, getDefaultTrackerTxtRule } from '../antitracking/tracker-txt';
 
 // Mock webrequest listener

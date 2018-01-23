@@ -44,7 +44,9 @@ export default describeModule('core/adblocker-base/serialization',
       default: TextEncoder,
     },
     'platform/url': {},
-    'core/tlds': {},
+    'core/tlds': {
+      default: {},
+    },
     'core/utils': {
       default: {
       },

@@ -1,4 +1,4 @@
-import md5 from '../core/helpers/md5';
+import md5 from './md5';
 import * as datetime from './time';
 import pacemaker from '../core/pacemaker';
 import QSWhitelistBase from './qs-whitelist-base';

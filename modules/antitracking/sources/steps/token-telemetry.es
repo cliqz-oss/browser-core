@@ -1,4 +1,4 @@
-import md5 from '../../core/helpers/md5';
+import md5 from '../md5';
 import * as datetime from '../time';
 import * as persist from '../../core/persistent-state';
 import { splitTelemetryData } from '../utils';

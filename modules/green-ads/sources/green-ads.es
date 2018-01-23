@@ -1,4 +1,4 @@
-import md5 from '../core/helpers/md5';
+import md5 from '../antitracking/md5';
 
 import { AdBlocker } from '../adblocker/adblocker';
 

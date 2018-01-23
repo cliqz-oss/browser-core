@@ -654,13 +654,13 @@ function fillInSpec(spec) {
     return spec;
 }
 
-export default describeModule('core/url-info',
+export default describeModule('antitracking/url',
   () => ({
-    'core/helpers/md5': {},
-    'core/tlds': {
+    './md5': {},
+    './domain': {
       getGeneralDomain() {}
     },
-    'core/fast-url-parser': {
+    '../core/fast-url-parser': {
       default: fastUrlParser
     }
   }),

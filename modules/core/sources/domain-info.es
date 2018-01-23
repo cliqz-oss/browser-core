@@ -1,6 +1,6 @@
 import ResourceLoader from '../core/resource-loader';
 import resourceManager from '../core/resource-manager';
-import { getGeneralDomain } from '../core/tlds';
+import psl from '../core/tlds';
 import config from '../core/config';
 
 const domainInfo = {
@@ -50,7 +50,7 @@ function _getDomainOwner(dom) {
 
 export function getDomainOwner(dom) {
   return _getDomainOwner(dom) || {
-    name: getGeneralDomain(dom),
+    name: psl.getGeneralDomain(dom),
     cat: 'unknown',
   };
 }

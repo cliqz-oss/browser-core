@@ -1,16 +1,16 @@
 'use strict';
 
 const global = this;
-const TELEMETRY_SIGNAL = {};
-TELEMETRY_SIGNAL[APP_STARTUP] = 'browser_startup';
-TELEMETRY_SIGNAL[APP_SHUTDOWN] = 'browser_shutdown';
-TELEMETRY_SIGNAL[ADDON_ENABLE] = 'addon_enable';
-TELEMETRY_SIGNAL[ADDON_DISABLE] = 'addon_disable';
-TELEMETRY_SIGNAL[ADDON_INSTALL] = 'addon_install';
-TELEMETRY_SIGNAL[ADDON_UNINSTALL] = 'addon_uninstall';
-TELEMETRY_SIGNAL[ADDON_UPGRADE] = 'addon_upgrade';
-TELEMETRY_SIGNAL[ADDON_DOWNGRADE] = 'addon_downgrade';
-
+const TELEMETRY_SIGNAL = {
+  APP_STARTUP: 'browser_startup',
+  APP_SHUTDOWN: 'browser_shutdown',
+  ADDON_ENABLE: 'addon_enable',
+  ADDON_DISABLE: 'addon_disable',
+  ADDON_INSTALL: 'addon_install',
+  ADDON_UNINSTALL: 'addon_uninstall',
+  ADDON_UPGRADE: 'addon_upgrade',
+  ADDON_DOWNGRADE: 'addon_downgrade',
+};
 
 function startup(aData, aReason) {
   Components.utils.import('resource://gre/modules/Services.jsm');

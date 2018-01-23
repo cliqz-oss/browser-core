@@ -252,6 +252,5 @@ function md5(message) {
 var md5Cache = new MapCache(md5, 1600);
 
 export default function cachedMD5(s) {
-  if (!s) return '';
   return md5Cache.get(s);
 }

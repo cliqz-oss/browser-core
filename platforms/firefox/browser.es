@@ -212,25 +212,10 @@ export function resetOriginalPrefs() {
   }
 }
 
-export function getThemeStyle() {
-  const selectedThemeID = prefs.get('lightweightThemes.selectedThemeID', '', '');
-  return selectedThemeID === 'firefox-compact-dark@mozilla.org' ? 'dark' : 'light';
-}
-
-let branch; // cliqz specific prefs
-let branchLightweightThemes; // theme specific prefs
-
+let branch;
 const observer = {
   observe: (subject, topic, data) => {
     events.pub('prefchange', data);
-  },
-};
-
-const observerLightweightThemes = {
-  observe: (subject, topic, data) => {
-    if (data === 'selectedThemeID') {
-      events.pub('hostthemechange', getThemeStyle());
-    }
   },
 };
 
@@ -244,17 +229,6 @@ export function enableChangeEvents() {
     }
     branch.addObserver('', observer, false);
   }
-
-  if (!branchLightweightThemes) {
-    const prefService = Components.classes['@mozilla.org/preferences-service;1']
-      .getService(Components.interfaces.nsIPrefService);
-    branchLightweightThemes = prefService.getBranch('lightweightThemes.');
-    if (!('addObserver' in branchLightweightThemes)) {
-      branchLightweightThemes.QueryInterface(Components.interfaces.nsIPrefBranch2);
-    }
-    // using a very specific observer for performance reasons
-    branchLightweightThemes.addObserver('', observerLightweightThemes, false);
-  }
 }
 
 export function disableChangeEvents() {
@@ -262,26 +236,10 @@ export function disableChangeEvents() {
     branch.removeObserver('', observer);
     branch = null;
   }
-
-  if (branchLightweightThemes) {
-    branchLightweightThemes.removeObserver('', observerLightweightThemes);
-    branchLightweightThemes = null;
-  }
 }
 
 export function getLang() {
   return prefs.get('general.useragent.locale', 'en', '');
-}
-
-// resolve only on Idle Callback if available
-function resolveOnIdleCallback(win, resolve, to) {
-  if (win.requestIdleCallback) {
-    win.requestIdleCallback(() => {
-      resolve(win);
-    }, { timeout: to });
-  } else {
-    resolve(win);
-  }
 }
 
 export function waitWindowReady(win) {
@@ -290,11 +248,17 @@ export function waitWindowReady(win) {
       win.addEventListener('load', function loader() {
         win.removeEventListener('load', loader, false);
         if (mustLoadWindow(win)) {
-          resolveOnIdleCallback(win, resolve, 1000);
+          if (win.requestIdleCallback) {
+            win.requestIdleCallback(() => {
+              resolve(win);
+            }, { timeout: 1000 });
+          } else {
+            resolve(win);
+          }
         }
       }, false);
     } else {
-      resolveOnIdleCallback(win, resolve, 1000);
+      resolve(win);
     }
   });
 }

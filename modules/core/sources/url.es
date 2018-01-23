@@ -1,5 +1,5 @@
 import platformEquals, { isURI, URI } from '../platform/url';
-import { getPublicSuffix } from './tlds';
+import tlds from './tlds';
 import MapCache from './helpers/fixed-size-cache';
 
 const UrlRegExp = /^(([a-z\d]([a-z\d-]*[a-z\d])?)\.)+[a-z]{2,}(\:\d+)?$/i;
@@ -220,7 +220,7 @@ function _getDetailsFromUrl(originalUrl) {
   if (!isIPv4 && !isIPv6 && !localhost) {
     try {
       let hostWithoutTld = host;
-      tld = getPublicSuffix(host);
+      tld = tlds.getPublicSuffix(host);
 
       if (tld) {
         hostWithoutTld = host.slice(0, -(tld.length + 1)); // +1 for the '.'

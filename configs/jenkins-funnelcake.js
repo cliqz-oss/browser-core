@@ -13,13 +13,8 @@ module.exports = Object.assign({}, browserBase, {
     "HW_CHANNEL": "FF01",
     "NEW_TAB_URL": "chrome://cliqz/content/freshtab/home.html",
     "ICONS": {
-      "active": { "default" : "control-center/images/privacy-shield-active.svg" },
-      "inactive": { "default" : "control-center/images/privacy-shield-inactive.svg" },
-      "critical": { "default" : "control-center/images/privacy-shield-inactive.svg" }
-    },
-    "PAGE_ACTION_ICONS": {
-      "default": "control-center/images/page-action-dark.svg",
-      "dark": "control-center/images/page-action-light.svg"
+      "active": "control-center/images/privacy-shield-active.svg",
+      "critical": "control-center/images/privacy-shield-inactive.svg"
     },
     "BACKGROUNDS": {
       "active": "#999999",
@@ -39,7 +34,6 @@ module.exports = Object.assign({}, browserBase, {
     "autocomplete",
     "geolocation",
     "ui",
-    "webrequest-pipeline",
     "human-web",
     "context-menu",
     "performance",

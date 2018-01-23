@@ -4,7 +4,7 @@ import background from '../core/base/background';
 import inject from '../core/kord/inject';
 import prefs from '../core/prefs';
 
-import { extractHostname } from '../core/tlds';
+import tlds from '../core/tlds';
 
 import CliqzADB, {
   ADB_PREF_VALUES,
@@ -89,7 +89,7 @@ export default background({
       }
 
       return CliqzADB.adBlocker.engine.getCosmeticsFilters(
-        extractHostname(url),
+        tlds.extractHostname(url),
         nodes
       );
     },
@@ -100,7 +100,7 @@ export default background({
       }
 
       return CliqzADB.adBlocker.engine.getDomainFilters(
-        extractHostname(url),
+        tlds.extractHostname(url),
       );
     },
 

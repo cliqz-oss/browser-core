@@ -1,6 +1,6 @@
 import AttrackBG from './background';
 import { utils, events } from '../core/cliqz';
-import { URLInfo } from '../core/url-info';
+import { URLInfo } from './url';
 import inject from '../core/kord/inject';
 
 const CliqzUtils = utils;
@@ -66,7 +66,7 @@ export default class Win {
   }
 
   updateBadge({ tabId, url }) {
-    AttrackBG.attrack && AttrackBG.attrack.getTabBlockingInfo(tabId, url)
+    AttrackBG.attrack.getTabBlockingInfo(tabId, url)
       .then((info) => {
         this.controlCenter.windowAction(
           this.window,

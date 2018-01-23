@@ -24,9 +24,6 @@ export default describeModule("ui/background",
       },
       "core/browser": {
         forEachWindow() {}
-      },
-      "core/platform": {
-        isPlatformAtLeastInVersion() { return false; }
       }
     }
   },

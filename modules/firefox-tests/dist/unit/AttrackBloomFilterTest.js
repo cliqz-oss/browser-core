@@ -5,7 +5,7 @@ TESTS.AttrackBloomFilterTest = function (CliqzUtils) {
     return;
   }
   var { AttrackBloomFilter, BloomFilter } = getModule('antitracking/bloom-filter'),
-    md5 = getModule('core/helpers/md5').default;
+      md5 = getModule('antitracking/md5').default;
 
   describe('AttrackBloomFilter', function() {
     var whitelist;

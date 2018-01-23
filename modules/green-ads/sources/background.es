@@ -1,7 +1,7 @@
 import background from '../core/base/background';
 import events from '../core/events';
 import inject from '../core/kord/inject';
-import { extractHostname } from '../core/tlds';
+import tlds from '../core/tlds';
 import { promiseHttpHandler } from '../core/http';
 import { utils } from '../core/cliqz';
 
@@ -444,7 +444,7 @@ export default background({
       }
 
       const cosmetics = this.greenAds.adblocker.engine.getCosmeticsFilters(
-        extractHostname(url),
+        tlds.extractHostname(url),
         nodes
       );
       cosmetics.styles = [];
@@ -457,7 +457,7 @@ export default background({
       }
 
       const cosmetics = this.greenAds.adblocker.engine.getDomainFilters(
-        extractHostname(url)
+        tlds.extractHostname(url)
       );
       cosmetics.styles = [];
 
