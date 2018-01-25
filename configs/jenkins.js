@@ -66,7 +66,8 @@ module.exports = Object.assign({}, browserBase, {
     "perf",
     "search",
     "offers-debug",
-    "hpnv2"
+    "hpnv2",
+    "secvm"
   ],
   "subprojects": [
     {

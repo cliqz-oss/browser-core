@@ -121,7 +121,8 @@ module.exports = {
     "antitracking-blocker",
     "green-ads",
     "search",
-    "cookie-monster"
+    "cookie-monster",
+    "secvm"
   ],
   "subprojects": [
     {
