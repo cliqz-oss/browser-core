@@ -1,16 +1,16 @@
 /* global chai */
 /* global describeModule */
 
+const tldjs = require('tldjs');
+
 export default describeModule('core/url',
   function () {
     return {
+      'tldjs': {
+        default: tldjs,
+      },
       'platform/url': {
         default: '[dynamic]',
-      },
-      'core/tlds': {
-        default: {
-          getPublicSuffix() {}
-        },
       },
       'core/LRU': {
         default: class {
@@ -46,7 +46,6 @@ export default describeModule('core/url',
       describe('details', function () {
         let getDetailsFromUrl;
         beforeEach(function () {
-          this.deps('core/tlds').default.getPublicSuffix = () => 'com';
           getDetailsFromUrl = this.module().getDetailsFromUrl;
         });
 

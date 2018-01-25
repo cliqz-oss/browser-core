@@ -3,31 +3,31 @@
 /*
  * This module prevents user from 3rd party tracking
  */
-import { utils, events } from '../core/cliqz';
-import inject, { ModuleDisabledError } from '../core/kord/inject';
+import * as persist from '../core/persistent-state';
 import UrlWhitelist from '../core/url-whitelist';
+import console from '../core/console';
+import domainInfo, { getDomainOwner, getBugOwner } from '../core/domain-info';
+import inject, { ModuleDisabledError } from '../core/kord/inject';
+import pacemaker from '../core/pacemaker';
+import { getGeneralDomain } from '../core/tlds';
+import { utils, events } from '../core/cliqz';
 
 import * as browser from '../platform/browser';
 import * as datetime from './time';
-import * as persist from '../core/persistent-state';
 import PageEventTracker from './tp_events';
 import Pipeline from '../webrequest-pipeline/pipeline';
 import QSWhitelist from './qs-whitelists';
 import TempSet from './temp-set';
 import cleanLegacyDb from './legacy/database';
-import md5 from './md5';
-import pacemaker from '../core/pacemaker';
+import md5 from '../core/helpers/md5';
 import telemetry from './telemetry';
 import { AttrackBloomFilter } from './bloom-filter';
 import { HashProb } from './hash';
 import { TrackerTXT, getDefaultTrackerTxtRule } from './tracker-txt';
-import { URLInfo, shuffle } from './url';
+import { URLInfo, shuffle } from '../core/url-info';
 import { VERSION, MIN_BROWSER_VERSION } from './config';
-import console from '../core/console';
-import domainInfo, { getDomainOwner, getBugOwner } from '../core/domain-info';
 import { checkInstalledPrivacyAddons } from '../platform/addon-check';
 import { compressionAvailable, compressJSONToBase64, generateAttrackPayload } from './utils';
-import { getGeneralDomain } from './domain';
 
 import BlockRules from './steps/block-rules';
 import CookieContext from './steps/cookie-context';

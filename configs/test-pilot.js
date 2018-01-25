@@ -1,20 +1,28 @@
-{
+/* eslint-disable */
+
+'use strict';
+
+const base = require('./common/system');
+const reactLibs = require('./common/subprojects/react');
+
+module.exports = {
   "platform": "firefox",
   "baseURL": "chrome://cliqz/content/",
-  "testsBasePath": "./build/cliqz@cliqz.com/chrome/content", "testem_launchers": ["unit-node", "Chrome"],
+  "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
+  "testem_launchers": ["unit-node", "Chrome"],
   "testem_launchers_ci": ["unit-node"],
   "settings": {
-    "id": "description_test@cliqz.com",
-    "name": "Cliqz",
-    "channel": "FF01",
-    "homepageURL": "https://cliqz.com/",
-    "updateURL": "https://s3.amazonaws.com/cdncliqz/update/description_test@cliqz.com/latest.rdf",
-    "freshTabNews": true,
+    "id": "testpilot@cliqz.com",
+    "name": "Cliqz Test Pilot",
+    "channel": "TP02",
+    "updateURL": "https://testpilot.firefox.com/files/testpilot@cliqz.com/updates.json",
+    "homepageURL": "https://testpilot.firefox.com/experiments/cliqz",
+    "freshTabNews": false,
     "showDataCollectionMessage": true,
     "antitrackingButton": true,
     "showNewBrandAlert": false,
     "suggestions": false,
-    "geolocation": "yes",
+    "onBoardingVersion": "1.1",
     "ENDPOINT_BLIND_SIGNER": "https://hpn-sign.cliqz.com/sign",
     "ENDPOINT_USER_REG": "https://hpn-sign.cliqz.com/register",
     "ENDPOINT_SOURCE_MAP_PROVIDER": "https://hpn-collector.cliqz.com/sourcemapjson?q=1",
@@ -28,41 +36,29 @@
     "ENDPOINT_SAFE_QUORUM_PROVIDER": "https://safe-browsing-quorum.cliqz.com/config",
     "KEY_DS_PUBKEY": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwXo4hXvboKHCggNJ0UNFvZQfDWi0jNcF1kBHthxilMu6LB\/hFrSMQ+\/FgTqVE36cCezWE0K1UcwmYGVsuqxcvql82RfCmYUVBroJ3UFG8qnetYfU5FOk43C555p5l5HzlF8QilcCUBCO4SCj9lEZ3\/8FJboCupTqxEUq7nwUgaNZOiGKMdDUBZJO1tW4LSH4lj9IAZccEJ5HKVmJKopQ3hmzWgDqowxni4NQz+0DnsSfCGAupKaJDxjfajJosX5i674rgdHbZGtgHB3M9jhc6HFNPcmtUgLwgtUtRwMhSnya6q\/O06euouNi1h0m5eRrWeMRlJSdUnelLSU8QNy7LQIDAQAB",
     "KEY_SECURE_LOGGER_PUBKEY": "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAh5HhcRAn6+6woXQXl\/NtZ+fOooNglZct\/HSpYuqkcmrPauHW7EuOSq5bvpBZRTDROjR\/kUPomqVZIzqhdCFPA8BwXSCz7hAel2Q157vtBvh9sngMMLXb5Fgzef5N4EuKO8pL5KrS+I9tfZac41vFJSdpgAirZYhh+tdcQQ1z0Qv\/Rw0zOXjfvddCz3gEv2gB9KsLMVnTS1J4YOOgfza2adg9Ebz1z99DiF4vtCwn0IUwH\/3ToTBwJLbMnC3Ol43yBNk8rgK2mkgCi614vOSD3hnVmio+iW6+AUklM8VPl6l7hEK9cljJY+9UsMVmTrvaFbMPwS6AdZCXKTmNdaMJcy3zSOXu5zvzihoQLwAu9LM3l2eVk0Mw0K7JXOP20fc8BtzWCOLYVP32r4R0BNuhTtvGqjHNZHPJN5OwaxkLpn2dujL9uDWGjRiOItKMVq\/nOqmNGghrbf8IOaKT7VQhqOU4cXRkB\/uF1UjYETBavwUZAxx9Wd\/cMcAGmKiDxighxxQ29jDufl+2WG065tmJz+zCxmgrPh6Zb3KFUxPTe6yksAhWJhmGShA9v20t84M5c6NpZXoUsFcVja6XxzHeSB8dWq9Uu5QcZ83Gz\/ronwdEjT2OGTtBgOFeTDqLYUgphC1gcUEHOCnTNXRMQOXqGwBfZHp+Mq61QcMq2rNS7xECAwEAAQ==",
-    "HW_CHANNEL": "FF01",
+    "HW_CHANNEL": "ff-test-pilot",
     "HPN_CHANNEL": "cliqz",
-    "NEW_TAB_URL": "chrome://cliqz/content/freshtab/home.html",
-    "ICONS": {
-      "active": { "default" : "control-center/images/privacy-shield-active.svg" },
-      "critical": { "default": "control-center/images/privacy-shield-inactive.svg" }
-    },
-    "BACKGROUNDS": {
-      "active": "#999999",
-      "critical": "#999999"
-    },
     "CONFIG_PROVIDER": "https://api.cliqz.com/api/v1/config",
+    "NEW_TAB_URL": "chrome://cliqz/content/freshtab/home.html",
     "CDN_BASEURL": "https://cdn.cliqz.com",
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"]
   },
   "modules": [
+    "firefox-specific",
+    "static",
     "core",
     "core-cliqz",
     "dropdown",
-    "firefox-specific",
-    "static",
     "autocomplete",
-    "geolocation",
     "ui",
-    "human-web",
-    "anti-phishing",
-    "context-menu",
     "webrequest-pipeline",
-    "antitracking",
+    "human-web",
+    "context-menu",
     "performance",
     "hpn",
-    "control-center",
-    "offers-v2",
-    "browser-panel",
+    "geolocation",
     "message-center",
+    "freshtab",
     "offboarding"
   ],
   "subprojects": [
@@ -85,51 +81,11 @@
       "src": "node_modules/@cliqz-oss/pouchdb/dist",
       "include": ["pouchdb.js"],
       "dest": "vendor"
-    }
-  ],
-  "bundler": {
-    "externals": ["jquery", "handlebars", "mathjs"],
-    "globalDeps": {
-      "jquery": "$",
-      "handlebars": "Handlebars",
-      "mathjs": "mathLib"
-    }
-  },
-  "system": {
-    "map": {
-      "bigint": "bower_components/bigint/index.js",
-      "md5": "bower_components/md5/index.js",
-      "jquery": "bower_components/jquery/dist/jquery.min.js"
     },
-    "packages": {
-      "object-assign": {
-        "main": "./index.js"
-      },
-      "modules": {
-        "map": {
-          "./platform/tldjs": "node_modules/tldjs/index.js"
-        },
-        "meta": {
-          "./platform/lib/zlib.js": {
-            "format": "system"
-          },
-          "./core/lib/cron-parser.js": {
-            "format": "system"
-          },
-          "./platform/lib/dexie.js": {
-            "format": "system"
-          },
-          "./platform/fast-url-parser.js": {
-            "format": "system"
-          },
-          "./platform/lib/deep-equal.js": {
-            "format": "system"
-          },
-          "./platform/lib/jsep.js": {
-            "format": "system"
-          }
-        }
-      }
-    }
-  }
+    reactLibs.react,
+    reactLibs.reactDom
+  ],
+  systemDefault: base.systemConfig,
+  builderDefault: base.builderConfig,
+  bundleConfigs: Object.assign({}, base.appBundleConfig),
 }

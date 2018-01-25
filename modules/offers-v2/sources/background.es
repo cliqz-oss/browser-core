@@ -297,7 +297,9 @@ export default background({
     },
 
     processRealEstateMessage(message) {
-      this.offerProc.processRealEstateMessage(message);
+      if (this.offerProc) {
+        this.offerProc.processRealEstateMessage(message);
+      }
     }
   },
 

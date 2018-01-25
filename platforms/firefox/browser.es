@@ -1,4 +1,3 @@
-import console from '../core/console';
 import prefs from '../core/prefs';
 import events from '../core/events';
 import { Services, Components } from './globals';
@@ -154,31 +153,23 @@ export function setInstallDatePref(date) {
 }
 
 export function setOurOwnPrefs() {
-  const urlBarPref = Components.classes['@mozilla.org/preferences-service;1']
-    .getService(Components.interfaces.nsIPrefService).getBranch('browser.urlbar.');
-
-  if (prefs.has('maxRichResultsBackup')) {
-    // we reset Cliqz change to "browser.urlbar.maxRichResults"
-    prefs.clear('maxRichResultsBackup');
-    prefs.clear('browser.urlbar.maxRichResults', '');
-  }
-
-  const unifiedComplete = urlBarPref.getPrefType('unifiedcomplete');
-  if (unifiedComplete === 128 && urlBarPref.getBoolPref('unifiedcomplete')) {
-    prefs.set('unifiedcomplete', true);
-    urlBarPref.setBoolPref('unifiedcomplete', false);
+  if (prefs.has('unifiedcomplete', 'browser.urlbar.') && prefs.get('unifiedcomplete', false)) {
+    prefs.set('unifiedcomplete', true); //backup
+    prefs.set('unifiedcomplete', false, 'browser.urlbar.');
   }
 
   // disable FF search hints from FF55 (and maybe above)
-  urlBarPref.setBoolPref('suggest.enabled', false);
-  urlBarPref.setIntPref('timesBeforeHidingSuggestionsHint', 0);
-  urlBarPref.setBoolPref('userMadeSearchSuggestionsChoice', true);
-  urlBarPref.setBoolPref('suggest.searches', false);
+  prefs.set('timesBeforeHidingSuggestionsHint', 0, 'browser.urlbar.');
+  prefs.set('userMadeSearchSuggestionsChoice', true, 'browser.urlbar.');
 
-  // telemetry-categories was removed in version X.18.Y
-  if (prefs.has('cat')) {
-    prefs.clear('cat');
-    prefs.clear('catHistoryTime');
+  if (prefs.get('suggest.searches', false, 'browser.urlbar.')) {
+    prefs.set('backup.browser.urlbar.suggest.searches', true);
+    prefs.set('suggest.searches', false, 'browser.urlbar.');
+  }
+
+  if (prefs.get('suggest.enabled', false, 'browser.urlbar.')) {
+    prefs.set('backup.browser.urlbar.suggest.enabled', true);
+    prefs.set('suggest.enabled', false, 'browser.urlbar.');
   }
 
   // freshtab is optOut since 2.20.3 for new users
@@ -197,25 +188,41 @@ export function setOurOwnPrefs() {
 
 /** Reset changed prefs on uninstall */
 export function resetOriginalPrefs() {
-  const cliqzBackup = prefs.get('maxRichResultsBackup');
-  if (cliqzBackup) {
-    console.log('Loading maxRichResults backup...', 'utils.setOurOwnPrefs');
-    prefs.set('maxRichResults', prefs.get('maxRichResultsBackup'), 'browser.urlbar.');
-    prefs.clear('maxRichResultsBackup', 0);
-  } else {
-    console.log('maxRichResults backup does not exist; doing nothing.', 'utils.setOurOwnPrefs');
-  }
-
   if (prefs.get('unifiedcomplete', false)) {
     prefs.set('unifiedcomplete', true, 'browser.urlbar.');
     prefs.set('unifiedcomplete', false);
   }
+
+  if (prefs.has('backup.browser.urlbar.suggest.searches')) {
+    prefs.clear('backup.browser.urlbar.suggest.searches');
+    prefs.clear('suggest.searches', 'browser.urlbar.');
+  }
+
+  if (prefs.has('backup.browser.urlbar.suggest.searches')) {
+    prefs.clear('backup.browser.urlbar.suggest.searches');
+    prefs.clear('suggest.searches', 'browser.urlbar.');
+  }
 }
 
-let branch;
+export function getThemeStyle() {
+  const selectedThemeID = prefs.get('lightweightThemes.selectedThemeID', '', '');
+  return selectedThemeID === 'firefox-compact-dark@mozilla.org' ? 'dark' : 'light';
+}
+
+let branch; // cliqz specific prefs
+let branchLightweightThemes; // theme specific prefs
+
 const observer = {
   observe: (subject, topic, data) => {
     events.pub('prefchange', data);
+  },
+};
+
+const observerLightweightThemes = {
+  observe: (subject, topic, data) => {
+    if (data === 'selectedThemeID') {
+      events.pub('hostthemechange', getThemeStyle());
+    }
   },
 };
 
@@ -229,6 +236,17 @@ export function enableChangeEvents() {
     }
     branch.addObserver('', observer, false);
   }
+
+  if (!branchLightweightThemes) {
+    const prefService = Components.classes['@mozilla.org/preferences-service;1']
+      .getService(Components.interfaces.nsIPrefService);
+    branchLightweightThemes = prefService.getBranch('lightweightThemes.');
+    if (!('addObserver' in branchLightweightThemes)) {
+      branchLightweightThemes.QueryInterface(Components.interfaces.nsIPrefBranch2);
+    }
+    // using a very specific observer for performance reasons
+    branchLightweightThemes.addObserver('', observerLightweightThemes, false);
+  }
 }
 
 export function disableChangeEvents() {
@@ -236,10 +254,26 @@ export function disableChangeEvents() {
     branch.removeObserver('', observer);
     branch = null;
   }
+
+  if (branchLightweightThemes) {
+    branchLightweightThemes.removeObserver('', observerLightweightThemes);
+    branchLightweightThemes = null;
+  }
 }
 
 export function getLang() {
   return prefs.get('general.useragent.locale', 'en', '');
+}
+
+// resolve only on Idle Callback if available
+function resolveOnIdleCallback(win, resolve, to) {
+  if (win.requestIdleCallback) {
+    win.requestIdleCallback(() => {
+      resolve(win);
+    }, { timeout: to });
+  } else {
+    resolve(win);
+  }
 }
 
 export function waitWindowReady(win) {
@@ -247,18 +281,10 @@ export function waitWindowReady(win) {
     if (!win.document || win.document.readyState !== 'complete') {
       win.addEventListener('load', function loader() {
         win.removeEventListener('load', loader, false);
-        if (mustLoadWindow(win)) {
-          if (win.requestIdleCallback) {
-            win.requestIdleCallback(() => {
-              resolve(win);
-            }, { timeout: 1000 });
-          } else {
-            resolve(win);
-          }
-        }
+        resolveOnIdleCallback(win, resolve, 1000);
       }, false);
     } else {
-      resolve(win);
+      resolveOnIdleCallback(win, resolve, 1000);
     }
   });
 }

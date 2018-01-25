@@ -2,7 +2,7 @@
 // import { AsyncStorage } from 'react-native';
 /* global AsyncStorage */
 import events from '../core/events';
-import { URLInfo } from '../antitracking/url';
+import { URLInfo } from '../core/url-info';
 
 export default class Reminders {
   constructor(store, updateState) {

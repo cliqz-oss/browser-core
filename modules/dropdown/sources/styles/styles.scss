@@ -878,19 +878,6 @@ $basic-line-height: (16 / 15) + 0em;
                     opacity: 0.6;
                 }
             }
-            @media (-moz-os-version: windows-win7), (-moz-os-version: windows-win8), (-moz-os-version: windows-win10) {
-                .toolbarbutton-icon {
-                    opacity: 0.6;
-                }
-                &#page-action-browser-action:hover {
-                    list-style-image: url-prefix("control-center/images/search-settings-blue.png") !important;
-                    --webextension-menupanel-image: url-prefix("control-center/images/search-settings-blue.png") !important;
-                    --webextension-menupanel-image-2x: url-prefix("control-center/images/search-settings-blue.png") !important;
-                    --webextension-toolbar-image: url-prefix("control-center/images/search-settings-blue.png") !important;
-                    --webextension-toolbar-image-2x: url-prefix("control-center/images/search-settings-blue.png") !important;
-                }
-
-            }
         }
     }
 
@@ -904,6 +891,11 @@ $basic-line-height: (16 / 15) + 0em;
     /* dropdown width in FF42*/
     #customizationui-widget-panel .panel-mainview {
         max-width: 800px;
+    }
+
+    /* EX-6331: popup arrow was overlapping the gear icon in FF58 and above */
+    #customizationui-widget-panel[viewId='PanelUI-webext-page-action-browser-action-view'] {
+       margin-top: 0px;
     }
 }
 

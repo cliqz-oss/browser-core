@@ -1,6 +1,6 @@
 import { utils } from './cliqz';
 import prefs from './prefs';
-import tlds from './tlds';
+import { getGeneralDomain, extractHostname } from './tlds';
 import { LazyPersistentObject } from '../core/persistent-state';
 import Logger from './logger';
 
@@ -43,9 +43,9 @@ export default class UrlWhitelist {
     const w = new Set();
     this.whitelist.forEach((value) => {
       let newValue;
-      if (value === tlds.getGeneralDomain(value)) {
+      if (value === getGeneralDomain(value)) {
         newValue = `g:${value}`;
-      } else if (value === tlds.extractHostname(value)) {
+      } else if (value === extractHostname(value)) {
         newValue = `h:${value}`;
       } else {
         newValue = `u:${value}`;
@@ -67,15 +67,15 @@ export default class UrlWhitelist {
 
   isWhitelisted(url) {
     return this.whitelist.has(`u:${utils.cleanUrlProtocol(url, true)}`) ||
-      this.whitelist.has(`h:${tlds.extractHostname(url)}`) ||
-      this.whitelist.has(`g:${tlds.getGeneralDomain(url)}`);
+      this.whitelist.has(`h:${extractHostname(url)}`) ||
+      this.whitelist.has(`g:${getGeneralDomain(url)}`);
   }
 
   getState(url) {
     return {
       url: this.whitelist.has(`u:${utils.cleanUrlProtocol(url, true)}`),
-      hostname: this.whitelist.has(`h:${tlds.extractHostname(url)}`),
-      generalDomain: this.whitelist.has(`g:${tlds.getGeneralDomain(url)}`)
+      hostname: this.whitelist.has(`h:${extractHostname(url)}`),
+      generalDomain: this.whitelist.has(`g:${getGeneralDomain(url)}`)
     };
   }
 
@@ -94,10 +94,10 @@ export default class UrlWhitelist {
         processed = `u:${utils.cleanUrlProtocol(url, true)}`;
         break;
       case 'hostname':
-        processed = `h:${tlds.extractHostname(url)}`;
+        processed = `h:${extractHostname(url)}`;
         break;
       case 'generalDomain':
-        processed = `g:${tlds.getGeneralDomain(url)}`;
+        processed = `g:${getGeneralDomain(url)}`;
         break;
       default:
         throw new Error('Supported types: url, hostname, generalDomain', type);

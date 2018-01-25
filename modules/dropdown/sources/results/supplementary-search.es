@@ -6,12 +6,23 @@ export default class SupplementarySearchResult extends BaseResult {
     super(rawResult, allResultsFlat);
   }
 
-  click(...args) {
+  click(window, _, ev) {
     if (this.rawResult.data.source === 'Cliqz') {
       this.actions.query(this.suggestion);
     } else {
-      super.click(...args);
+      // we need to delegate the search queries to Firefox to ensure
+      // that their SAP probes are working as expected
+      // https://firefox-source-docs.mozilla.org/browser/browser/BrowserUsageTelemetry.html#browserusagetelemetry
+      // https://hg.mozilla.org/mozilla-central/file/tip/toolkit/components/telemetry/Histograms.json#l8032
+      super.click(window, this.suggestion, ev);
     }
+  }
+
+  isUrlMatch(href) {
+    // we need to override isUrlMatch as in some cases the value of
+    // 'href' is the bare query and not a full url. Please see the comment
+    // from click
+    return href === this.suggestion || href === this.url;
   }
 
   get template() {

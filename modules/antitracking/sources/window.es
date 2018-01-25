@@ -1,6 +1,6 @@
 import AttrackBG from './background';
 import { utils, events } from '../core/cliqz';
-import { URLInfo } from './url';
+import { URLInfo } from '../core/url-info';
 import inject from '../core/kord/inject';
 
 const CliqzUtils = utils;

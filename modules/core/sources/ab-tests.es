@@ -434,12 +434,6 @@ var CliqzABTests = {
             case "1111_B":
                 CliqzUtils.setPref("modules.history-analyzer.enabled", true);
                 break;
-            case "1112_A":
-                CliqzUtils.setPref("experiment_svm", false);
-                break;
-            case "1112_B":
-                CliqzUtils.setPref("experiment_svm", true);
-                break;
             default:
                 rule_executed = false;
         }
@@ -728,10 +722,6 @@ var CliqzABTests = {
             case "1111_A":
             case "1111_B":
                 CliqzUtils.setPref("modules.history-analyzer.enabled", false);
-                break;
-            case "1112_A":
-            case "1112_B":
-                CliqzUtils.clearPref("experiment_svm");
                 break;
             default:
                 rule_executed = false;

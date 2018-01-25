@@ -1,8 +1,9 @@
-import { URLInfo } from '../url';
-import { sameGeneralDomain, getGeneralDomain } from '../domain';
-import { cleanTimestampCache } from '../utils';
+import md5 from '../../core/helpers/md5';
 import pacemaker from '../../core/pacemaker';
-import md5 from '../md5';
+import { URLInfo } from '../../core/url-info';
+import { sameGeneralDomain, getGeneralDomain } from '../../core/tlds';
+
+import { cleanTimestampCache } from '../utils';
 
 export default class CookieContext {
   constructor(config, pageMeta, qsWhitelist) {

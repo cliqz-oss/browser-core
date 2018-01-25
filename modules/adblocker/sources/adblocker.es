@@ -2,7 +2,7 @@ import LRUCache from '../core/helpers/fixed-size-cache';
 import events from '../core/events';
 import inject from '../core/kord/inject';
 import prefs from '../core/prefs';
-import tlds from '../core/tlds';
+import { getGeneralDomain } from '../core/tlds';
 import UrlWhitelist from '../core/url-whitelist';
 
 // TODO - remove: only need setTimeout, setInterval
@@ -281,7 +281,7 @@ export class AdBlocker {
     this.cache = new LRUCache(
       this.engine.match.bind(this.engine), // Compute result
       1000, // Maximum number of entries
-      request => tlds.getGeneralDomain(request.sourceUrl) + request.url, // Select key
+      request => getGeneralDomain(request.sourceUrl) + request.url, // Select key
     );
   }
 

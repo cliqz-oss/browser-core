@@ -84,6 +84,12 @@ const MESSAGES = {
           de: 'https://play.google.com/store/apps/details?hl=de&id=com.cliqz.browser&referrer=utm_source%3Dcliqz%26utm_medium%3Dproduct%26utm_campaign%3Dde%26cliqz_campaign%3Dmobile_de'
         }
       }
+    ],
+    rules: [
+      {
+        fn: 'cliqzVersionCheck',
+        value: '1.16.0',
+      }
     ]
   }
 };

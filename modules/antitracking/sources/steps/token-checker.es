@@ -1,9 +1,7 @@
-import md5 from '../md5';
-import { getGeneralDomain } from '../domain';
-import * as datetime from '../time';
-import { HashProb, isMostlyNumeric } from '../hash';
-import { dURIC } from '../url';
-import CliqzUtils from '../../core/utils';
+import md5 from '../../core/helpers/md5';
+import { dURIC } from '../../core/url-info';
+
+import { isMostlyNumeric } from '../hash';
 import TokenDomain from '../token-domain';
 import BlockLog from '../block-log';
 

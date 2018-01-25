@@ -30,7 +30,6 @@ modules/antitracking/tests/unit/parse-url-test.es
 modules/antitracking/time.es
 modules/antitracking/tp_events.es
 modules/antitracking/tracker-txt.es
-modules/antitracking/url.es
 modules/antitracking/utils.es
 modules/antitracking/webrequest-context.es
 modules/antitracking/window.es
@@ -124,6 +123,7 @@ modules/core/tests/unit/resource-loader-test.es
 modules/core/tests/unit/templates-test.es
 modules/core/tlds-legacy.es
 modules/core/ui/panel.es
+modules/core/url-info.es
 modules/core/url.es
 modules/core/utils.es
 modules/core/webrequest.es
@@ -385,7 +385,6 @@ modules/privacy-dashboard/background.es
 modules/privacy-dashboard/main.es
 modules/privacy-dashboard/signals.es
 modules/privacy-dashboard/window.es
-modules/secvm/secvm.es
 modules/static/background.es
 modules/static/main.es
 modules/static/tests/unit/locales-validation-test.es

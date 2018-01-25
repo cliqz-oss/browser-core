@@ -123,28 +123,6 @@ export default background({
           queryProxyUrl: CliqzSecureMessage.queryProxyIP,
         });
       });
-    },
-
-    sendPostMessage(rp, payload, action, data, callback) {
-      const uid = Math.floor(Math.random() * 10000000);
-      CliqzSecureMessage.queriesID[uid] = callback;
-      CliqzSecureMessage.wCrypto.postMessage({
-        msg: { action: action,
-              type: 'cliqz',
-              ts: '',
-              ver: '1.5',
-              payload: payload,
-              rp: rp,
-              body: data,
-        },
-        uid: '',
-        type: 'instant',
-        sourcemap: CliqzSecureMessage.sourceMap,
-        upk: CliqzSecureMessage.uPK,
-        dspk: CliqzSecureMessage.dsPK,
-        sspk: CliqzSecureMessage.secureLogger,
-        queryProxyUrl: CliqzSecureMessage.queryProxyIP,
-      });
     }
   },
 });

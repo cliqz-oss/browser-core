@@ -106,7 +106,7 @@ describe("Control Center: HTTPS Everywhere UI browser", function () {
     httpsUiTests(dataOff);
 
     it('renders correct colour of switch', function () {
-      chai.expect(subject.getComputedStyle('#https .cqz-switch-box').background).to.contain('rgb(246, 112, 87)');
+      chai.expect(subject.getComputedStyle('#https .cqz-switch-box').background).to.contain('rgb(255, 126, 116)');
     });
 
     it('renders "OFF"', function () {

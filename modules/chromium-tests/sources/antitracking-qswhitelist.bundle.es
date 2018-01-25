@@ -6,7 +6,7 @@ import * as persist from '../core/persistent-state';
 import Attrack from '../antitracking/attrack';
 import Config from '../antitracking/config';
 import QSWhitelist from '../antitracking/qs-whitelists';
-import md5 from '../antitracking/md5';
+import md5 from '../core/helpers/md5';
 import pacemaker from '../core/pacemaker';
 
 import inject, { setGlobal } from '../core/kord/inject';

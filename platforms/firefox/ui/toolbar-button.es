@@ -23,8 +23,8 @@ export default class BrowserAction {
       icon: options.default_icon,
       popup: options.default_popup || '',
       area: CustomizableUI.AREA_NAVBAR,
-      width: options.defaultWidth || 390,
-      height: options.defaultHeight || 250,
+      width: options.defaultWidth || (() => 390),
+      height: options.defaultHeight || (() => 250),
     };
 
     this.windows = new WeakMap();
@@ -65,6 +65,13 @@ export default class BrowserAction {
         aNode.setAttribute('constrain-size', 'true');
 
         this.updateButton(aNode, this.defaults);
+
+        if (this.isPageAction) {
+          // we hide the page action by default
+          // and make it visible only after it gets
+          // moved inside the urlbar
+          aNode.style.setProperty('display', 'none');
+        }
       },
 
       onViewShowing: (event) => {
@@ -110,8 +117,8 @@ export default class BrowserAction {
 
         // start with a decent size which should be close to the final one
         this.resizePopup(win, {
-          width: this.defaults.width,
-          height: this.defaults.height
+          width: this.defaults.width(),
+          height: this.defaults.height()
         });
       },
 
@@ -227,7 +234,11 @@ export default class BrowserAction {
       const view = iframe.parentElement;
       if (widgetPlacement.area === 'PanelUI-contents') {
         newHeight += 17; // 17px for scrollbar;
-      } else if (widgetPlacement.area === 'widget-overflow-fixed-list' || !view.classList.contains('cui-widget-panelview')) {
+      } else if (widgetPlacement.area === 'widget-overflow-fixed-list') {
+        newHeight += 40; // 40px for the panel-header;
+      } else if (!view.hasAttribute('mainview')) {
+        // not placed explicitly in the widget overflow area but displayed here
+        // forced by the width of the window
         newHeight += 40; // 40px for the panel-header;
       }
 

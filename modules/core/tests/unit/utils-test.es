@@ -19,9 +19,7 @@ export default describeModule("core/utils",
         default: {}
       },
       './tlds': {
-        default: {
-          getPublicSuffix() {},
-        },
+        getPublicSuffix() {},
       },
       './http': {
         httpHandler: {},
