@@ -114,18 +114,26 @@ function cqzOfferBtnClicked(ev) {
   });
 }
 
+function setHTML(el, html) {
+  if (el.unsafeSetInnerHTML) {
+    el.unsafeSetInnerHTML(html);
+  } else {
+    el.innerHTML = html;
+  }
+}
+
 function draw(data) {
   const newVouchers = data.filter(voucher => voucher.state === 'new');
   const oldVouchers = data.filter(voucher => voucher.state === 'old');
 
   if (newVouchers.length > 0) {
     document.getElementById('cqz-vouchers-wrapper').classList.add('with-new-vouchers');
-    document.getElementById('cqz-new-vouchers-holder').innerHTML = templates.vouchers(newVouchers);
+    setHTML(document.getElementById('cqz-new-vouchers-holder'), templates.vouchers(newVouchers));
   }
 
   if (oldVouchers.length > 0) {
     document.getElementById('cqz-vouchers-wrapper').classList.add('with-old-vouchers');
-    document.getElementById('cqz-recent-vouchers-holder').innerHTML = templates.vouchers(oldVouchers);
+    setHTML(document.getElementById('cqz-recent-vouchers-holder'), templates.vouchers(oldVouchers));
   }
 
   if (oldVouchers.length === 0 && newVouchers.length === 0) {

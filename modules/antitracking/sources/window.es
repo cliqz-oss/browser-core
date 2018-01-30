@@ -66,7 +66,7 @@ export default class Win {
   }
 
   updateBadge({ tabId, url }) {
-    AttrackBG.attrack.getTabBlockingInfo(tabId, url)
+    AttrackBG.attrack && AttrackBG.attrack.getTabBlockingInfo(tabId, url)
       .then((info) => {
         this.controlCenter.windowAction(
           this.window,

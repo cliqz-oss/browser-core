@@ -112,7 +112,13 @@ function draw(data) {
   if (!templateName || !templateData) {
     return;
   }
-  document.getElementById('cqz-browser-panel-re').innerHTML = templates[templateName](templateData);
+  const panel = document.getElementById('cqz-browser-panel-re');
+  const html = templates[templateName](templateData);
+  if (panel.unsafeSetInnerHTML) {
+    panel.unsafeSetInnerHTML(html);
+  } else {
+    panel.innerHTML = html;
+  }
 }
 
 window.draw = draw;

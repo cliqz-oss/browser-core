@@ -232,13 +232,16 @@ export default class BaseResult {
   click(window, href, ev) {
     if (this.isUrlMatch(href)) {
       const newTab = ev.altKey || ev.metaKey || ev.ctrlKey || ev.button === 1;
-      // TODO: do not use global
-      /* eslint-disable */
-      window.CLIQZ.Core.urlbar.value = href;
-      /* eslint-enable */
-      // delegate to Firefox for full set of features like switch-to-tab
-      // and all related telemetry probes
-      window.CLIQZ.Core.urlbar.handleCommand(ev, newTab ? 'tab' : 'current');
+      if (!newTab) {
+        // TODO: do not use global
+        /* eslint-disable */
+        window.CLIQZ.Core.urlbar.value = href;
+        /* eslint-enable */
+        // delegate to Firefox for full set of features like switch-to-tab
+        window.CLIQZ.Core.urlbar.handleCommand(ev, 'current');
+      } else {
+        utils.openLink(window, this.rawUrl, true, false, false, false);
+      }
 
       events.pub('ui:click-on-url', {
         url: this.url,

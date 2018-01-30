@@ -369,7 +369,12 @@ function draw(data) {
   // tipps button is hidden for funnelcake page-action popup
   data.showTipps = data.funnelCake ? isAction : true;
 
-  document.getElementById('control-center').innerHTML = templates.template(data);
+  const cc = document.getElementById('control-center');
+  if (cc.unsafeSetInnerHTML) {
+    cc.unsafeSetInnerHTML(templates.template(data));
+  } else {
+    cc.innerHTML = templates.template(data);
+  }
 
   function closeSettingAccordionSection() {
     $('.setting-accordion .accordion-active-title').removeClass('active');

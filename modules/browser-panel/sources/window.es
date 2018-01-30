@@ -121,7 +121,7 @@ export default class Win {
     }
 
     // we inject the message container at browser window level
-    const panel = doc.getElementById('browser-panel');
+    const panel = doc.getElementById('browser-panel') || doc.getElementById('main-window');
     const contentDeck = doc.getElementById('content-deck');
     const iframe = doc.createElementNS('http://www.w3.org/1999/xhtml', 'iframe');
 

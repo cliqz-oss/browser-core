@@ -892,11 +892,6 @@ $basic-line-height: (16 / 15) + 0em;
     #customizationui-widget-panel .panel-mainview {
         max-width: 800px;
     }
-
-    /* EX-6331: popup arrow was overlapping the gear icon in FF58 and above */
-    #customizationui-widget-panel[viewId='PanelUI-webext-page-action-browser-action-view'] {
-       margin-top: 0px;
-    }
 }
 
 #PanelUI-mainView {
