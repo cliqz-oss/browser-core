@@ -98,6 +98,7 @@ export default class Offer extends React.Component {
               href={offerTpl.call_to_action.url}
               className={this.anchorClasses}
               target="_blank"
+              rel="noopener noreferrer"
               onClick={this.handleVoucherClick}
             >
               <span>
