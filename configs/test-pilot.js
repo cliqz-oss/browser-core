@@ -39,7 +39,6 @@ module.exports = {
     "HW_CHANNEL": "ff-test-pilot",
     "HPN_CHANNEL": "cliqz",
     "CONFIG_PROVIDER": "https://api.cliqz.com/api/v1/config",
-    "NEW_TAB_URL": "chrome://cliqz/content/freshtab/home.html",
     "CDN_BASEURL": "https://cdn.cliqz.com",
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"]
   },
