@@ -125,6 +125,10 @@ $basic-line-height: (16 / 15) + 0em;
         }
     }
 
+    .white-background {
+        background-color: rgba(255, 255, 255, 0.55);
+    }
+
     .suggestions {
         padding-top: 10px;
         padding-right: 0px;
@@ -394,6 +398,11 @@ $basic-line-height: (16 / 15) + 0em;
                 .description {
                     color: rgba(255, 255, 255, 0.8);
                 }
+
+                .url {
+                    /* expand url on hover */
+                    max-width: 100%;
+                }
             }
 
             .icons {
@@ -613,7 +622,7 @@ $basic-line-height: (16 / 15) + 0em;
         }
     }
 
-    .history .result,
+    .history > .result,
     .result.search,
     .result.history {
         @extend .clearfix;
@@ -798,31 +807,29 @@ $basic-line-height: (16 / 15) + 0em;
 //===== DYNAMIC PADDING =====
 //===========================
 
-#main-window {
-    #cliqz-dropdown {
-        & > div, & > div > .thumbnail-blocks {
-            & > .result {
-                & > .icons {
-                    width: calc(var(--url-padding-start) + 9px);
-                }
+#cliqz-dropdown {
+    & > div, & > div > .thumbnail-blocks {
+        & > .result {
+            & > .icons {
+                width: calc(var(--url-padding-start) + 9px);
+            }
 
-                & > .abstract {
-                    max-width: calc(90% - var(--url-padding-start));
-                }
+            & > .abstract {
+                max-width: calc(90% - var(--url-padding-start));
             }
         }
+    }
 
-        .history .buttons span.dot {
-            left: var(--url-padding-start);
-        }
+    .history .buttons span.dot {
+        left: var(--url-padding-start);
+    }
 
-        .history.cluster span.timeline {
-            left: calc(var(--url-padding-start) + 2px);
-        }
+    .history.cluster span.timeline {
+        left: calc(var(--url-padding-start) + 2px);
+    }
 
-        .padded {
-            padding-left: calc(var(--url-padding-start) + 19px);
-        }
+    .padded {
+        padding-left: calc(var(--url-padding-start) + 19px);
     }
 }
 

@@ -6,21 +6,25 @@ import { elementSideMargins, cardMargins, getVPHeight, cardBorderRadius } from '
 import utils from '../../core/utils';
 import events from '../../core/events';
 import { getMessage } from '../../core/i18n';
-import  sendTelemetry from '../../platform/cards-telemetry';
+import inject from '../../core/kord/inject';
+
+const anolysis = inject.module('anolysis');
 
 export default class extends React.Component {
 
   sendResultClickTelemetry(event) {
     const result = this.props.result;
-    const resultKind = (result.data.kind || []);
+    const resultKind = result.data.kind || [];
+    const tap_position = [
+      event.nativeEvent.pageX,
+      event.nativeEvent.pageY
+    ];
     const signal = {
-      type: 'activity',
-      action: 'result_click',
-      mouse: [event.nativeEvent.pageX, event.nativeEvent.pageY],
       position_type: resultKind,
       current_position: this.props.index,
+      tap_position: tap_position,
     };
-    sendTelemetry(signal);
+    anolysis.action('handleTelemetrySignal', signal, 'mobile_result_selection');
   }
 
   render() {

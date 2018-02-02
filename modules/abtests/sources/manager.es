@@ -1,12 +1,14 @@
 /* eslint { "no-return-assign": "off" } */
 
-import getCoreVersion from './demographics';
-import getSynchronizedDate from '../anolysis/synchronized-date';
-import inject from '../core/kord/inject';
-import logger from './logger';
 import moment from '../platform/lib/moment';
 import momentRange from '../platform/lib/moment-range';
+
+import getDemographics from '../core/demographics';
+import getSynchronizedDate from '../core/synchronized-time';
 import random from '../core/crypto/random';
+
+import getCoreVersion from './demographics';
+import logger from './logger';
 
 momentRange.extendMoment(moment);
 
@@ -25,8 +27,7 @@ const now = () => getSynchronizedDate().format(DATE_FORMAT);
 // * support unlimited treatment lengths (?)
 
 /*
- * Manages AB tests. Requires `anolysis` to be running (for
- * demographics check).
+ * Manages AB tests.
  */
 export default class Manager {
   constructor(client, moduleStorage, sharedStorage) {
@@ -35,8 +36,6 @@ export default class Manager {
     this.sharedStorage = sharedStorage;
     this.runningTests = { };
     this.completedTests = { };
-
-    this.anolysis = inject.module('anolysis');
   }
 
   /*
@@ -87,7 +86,7 @@ export default class Manager {
       // (5) start and stop selected tests; tell remote about stopped tests
       .then(([expiredTests, upcomingTests]) => Promise.all([
         ...expiredTests.map(test => this.stopTest(test)
-            .then(stoppedTest => this.client.leaveTest(stoppedTest))),
+          .then(stoppedTest => this.client.leaveTest(stoppedTest))),
         ...upcomingTests.map(test => this.startTest(test)),
       ]))
       // (6) persist state
@@ -110,11 +109,11 @@ export default class Manager {
     return Promise.all(
       Object.keys(prefs)
         .map(key => this.sharedStorage.set(key, prefs[key]))
-      ).then(() => {
-        this.runningTests[test.id] = { ...test, started: now() };
-        logger.log(`Started test ${test.id} (${test.name}) in group ${test.group}`);
-        return test;
-      });
+    ).then(() => {
+      this.runningTests[test.id] = { ...test, started: now() };
+      logger.log(`Started test ${test.id} (${test.name}) in group ${test.group}`);
+      return test;
+    });
   }
 
   /*
@@ -130,12 +129,12 @@ export default class Manager {
     return Promise.all(
       Object.keys(prefs)
         .map(key => this.sharedStorage.remove(key))
-      ).then(() => {
-        delete this.runningTests[test.id];
-        this.completedTests[test.id] = { ...test, completed: now() };
-        logger.log(`Stopped test ${test.id} (${test.name}) in group ${test.group}`);
-        return test;
-      });
+    ).then(() => {
+      delete this.runningTests[test.id];
+      this.completedTests[test.id] = { ...test, completed: now() };
+      logger.log(`Stopped test ${test.id} (${test.name}) in group ${test.group}`);
+      return test;
+    });
   }
 
   /*
@@ -192,8 +191,8 @@ export default class Manager {
       // (1) check (locally) which tests should start
       newTests.map(test =>
         this.shouldStartTest(test)
-        .then(shouldStart => ({ test, shouldStart })))
-      )
+          .then(shouldStart => ({ test, shouldStart })))
+    )
       .then((reports) => {
         const pendingTests = {};
         const upcomingTests =
@@ -220,8 +219,8 @@ export default class Manager {
         return Promise.all(
           upcomingTests.map(test =>
             this.client.enterTest(test.id, test.group)
-            .then(success => ({ test, success }))
-            .catch(() => ({ test, success: false }))
+              .then(success => ({ test, success }))
+              .catch(() => ({ test, success: false }))
           ));
       })
       // (6) remove tests that were not entered
@@ -312,14 +311,17 @@ export default class Manager {
   }
 
   /*
-   * Uses Anolysis' demographics to check for match.
+   * Uses demographics to check for match.
    *
    * @param {Object} test - The test.
    * @returns {Boolean} - True, if the test has matching demographics.
    */
   isDemographicsMatch(test) {
-    return this.anolysis.action('getCurrentDemographics')
-      .then(userDemographics => JSON.parse(userDemographics) || {})
+    return getDemographics()
+      .catch((ex) => {
+        logger.error('Error while retrieving demographics', ex);
+        return {};
+      })
       .then(userDemographics =>
         Object.keys(test.demographic).every((factor) => {
           const userValue = userDemographics[factor];
@@ -353,7 +355,7 @@ export default class Manager {
 
     // check if current test is listed as competing
     const isListed = Object.keys(otherTests).some(key =>
-        (otherTests[key].competitors || []).some(id => id === test.id));
+      (otherTests[key].competitors || []).some(id => id === test.id));
 
     return isListing || isListed;
   }

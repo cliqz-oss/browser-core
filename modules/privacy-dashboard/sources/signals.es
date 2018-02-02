@@ -65,12 +65,14 @@ const SignalListener = {
   },
 
   monkeyPatchHmw() {
-    SignalListener.hwOrigin.apply(this, arguments);
-    SignalListener.SigCache.hw = {
-      sig: lastElementArray(CliqzHumanWeb.trk),
-      timestamp: Date.now()
-    };
-    SignalListener.fireNewDataEvent('hw');
+    SignalListener.hwOrigin.apply(this, arguments)
+      .then(() => {
+        SignalListener.SigCache.hw = {
+          sig: lastElementArray(CliqzHumanWeb.trk),
+          timestamp: Date.now()
+        };
+        SignalListener.fireNewDataEvent('hw');
+      });
   },
 
   monkeyPatchTelemetry() {

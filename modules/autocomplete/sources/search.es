@@ -811,4 +811,8 @@ export default class Search {
   instantWrapup(obj) {
       obj.sendResultsSignal(obj, true);
   }
+
+  unload() {
+    this.spellCheck.unload();
+  }
 }

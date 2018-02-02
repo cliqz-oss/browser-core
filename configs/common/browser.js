@@ -13,7 +13,6 @@ module.exports = {
     "homepageURL": "https://cliqz.com/",
     "updateURL": "https://s3.amazonaws.com/cdncliqz/update/browser/latest.rdf",
     "freshTabNews": true,
-    "unblockUI": true,
     "showDataCollectionMessage": true,
     "antitrackingButton": true,
     "showNewBrandAlert": true,

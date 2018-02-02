@@ -38,7 +38,8 @@ function shutdown(aData, aReason) {
     );
   }
 
-  global.clearRunloop();
+  Components.utils.unload('chrome://cliqzmodules/content/CLIQZ.jsm');
+  global.stopTimers();
 }
 
 function install(aData, aReason) {

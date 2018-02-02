@@ -11,7 +11,7 @@ export default function(amo) {
       visible: false,
     },
     'offers-v2': {
-      showSettings: true,
+      visible: true,
       userEnabled: true,
       locationEnabled: true,
     }

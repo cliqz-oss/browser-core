@@ -102,10 +102,10 @@ function myOffrzTests(amo) {
               () => subject.messages.find(message => message.message.action === "updatePref")
             ).then(
               message => {
-                chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.offers2UserEnabled");
-                chai.expect(message).to.have.deep.property("message.data.value", `${currentValue}`);
-                chai.expect(message).to.have.deep.property("message.data.target", "offerz_main");
-                chai.expect(message).to.have.deep.property("message.data.prefType", 'boolean');
+                chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.offers2UserEnabled");
+                chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
+                chai.expect(message).to.have.nested.property("message.data.target", "offerz_main");
+                chai.expect(message).to.have.nested.property("message.data.prefType", 'boolean');
               }
             );
           });
@@ -155,10 +155,10 @@ function myOffrzTests(amo) {
               () => subject.messages.find(message => message.message.action === "updatePref")
             ).then(
               message => {
-                chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.offers_location");
-                chai.expect(message).to.have.deep.property("message.data.value", `${currentValue}`);
-                chai.expect(message).to.have.deep.property("message.data.target", "offerz_location");
-                chai.expect(message).to.have.deep.property("message.data.prefType", 'integer');
+                chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.offers_location");
+                chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
+                chai.expect(message).to.have.nested.property("message.data.target", "offerz_location");
+                chai.expect(message).to.have.nested.property("message.data.prefType", 'integer');
               }
             );
           });

@@ -13,26 +13,33 @@ function toByteArray(data) {
   return new Uint8Array(data);
 }
 
-/* Encodes a Uint8Array as a base64 string */
-function toBase64Fast(data) {
-  data = toByteArray(data);
+function _toString(data) {
   const CHUNK_SIZE = 32767;
   const c = [];
-  for (let i = 0; i < data.length; i += CHUNK_SIZE) {
+  const len = data.length;
+  for (let i = 0; i < len; i += CHUNK_SIZE) {
     c.push(String.fromCharCode.apply(null, data.subarray(i, i + CHUNK_SIZE)));
   }
-  return btoa(c.join(''));
+  return c.join('');
+}
+
+function _fromString(data) {
+  const res = new Uint8Array(data.length);
+  const len = data.length;
+  for (let i = 0; i < len; i += 1) {
+    res[i] = data.charCodeAt(i);
+  }
+  return res;
+}
+
+/* Encodes a Uint8Array as a base64 string */
+function toBase64Fast(data) {
+  return btoa(_toString(toByteArray(data)));
 }
 
 /* Decodes a base64 string as a Uint8Array */
 function fromBase64Fast(data) {
-  const dec = atob(data);
-  const len = dec.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = dec.charCodeAt(i);
-  }
-  return bytes;
+  return _fromString(atob(data));
 }
 
 /* toBase64 without using btoa */
@@ -139,14 +146,23 @@ function fromHex(data) {
   return decdata;
 }
 
+// http://ecmanaut.blogspot.de/2006/07/encoding-decoding-utf8-in-javascript.html
+function _toUTF8(s) {
+  return _fromString(unescape(encodeURIComponent(s)));
+}
+
+function _fromUTF8(s) {
+  return decodeURIComponent(escape(_toString(s)));
+}
+
 /* Returns a string given a Uint8Array UTF-8 encoding */
-const decoder = new TextDecoder();
+const decoder = TextDecoder ? new TextDecoder() : { decode: _fromUTF8 };
 function fromUTF8(bytes) {
   return decoder.decode(toByteArray(bytes));
 }
 
 /* Returns a Uint8Array UTF-8 encoding of the given string */
-const encoder = new TextEncoder();
+const encoder = TextEncoder ? new TextEncoder() : { encode: _toUTF8 };
 function toUTF8(str) {
   return encoder.encode(str);
 }

@@ -47,6 +47,8 @@ try {
     return;
   }
 
+  runContentScripts(window, chrome, windowId);
+
   const windowTreeInformation = getWindowTreeInformation(window);
   const currentURL = () => window.location.href;
   const url = currentURL();
@@ -152,16 +154,23 @@ try {
       return;
     }
 
+    var normalizedCurrentURL;
     if (msg.action === 'getHTML') {
+      // Human web decodes the URI for internal storage.
+      // Otherwise, searches containing special characters
+      // (e.g., Umlaute, '&') will not be matched.
       msg.url = decodeURIComponent(msg.url);
+      normalizedCurrentURL = decodeURIComponent(currentURL());
+    } else {
+      normalizedCurrentURL = currentURL();
     }
 
-    let matchesCurrentUrl = msg.url === currentURL();
+    let matchesCurrentUrl = msg.url === normalizedCurrentURL;
     // wild card for cliqz URLS
     if(msg.url &&
         (msg.url.indexOf('resource://cliqz') === 0 ||
          msg.url.indexOf('chrome://cliqz') === 0)) {
-      if(currentURL().indexOf(msg.url) === 0){
+      if(normalizedCurrentURL.indexOf(msg.url) === 0) {
         matchesCurrentUrl = true;
       }
     }
@@ -340,8 +349,6 @@ try {
   window.addEventListener('copy', onCopy);
   window.addEventListener('DOMContentLoaded', onReady);
   chrome.runtime.onMessage.addListener(onBackgroundMessage);
-
-  runContentScripts(window, chrome, windowId);
 
   function stop(ev) {
     if (ev && (ev.target !== window.document)) {

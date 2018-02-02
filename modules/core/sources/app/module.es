@@ -149,24 +149,24 @@ export default class Module extends EventEmitter {
       }),
       this.isReady()
     ])
-    .then(([windowModule]) => {
-      initStartedAt = Date.now();
-      windowModuleState.windowModule = windowModule;
-      return windowModule.init();
-    })
-    .then(() => {
-      windowModuleState.initTime = Date.now() - initStartedAt;
-      windowModuleState.loadingTime = Date.now() - loadingStartedAt;
-      this._stat.init += windowModuleState.initTime;
-      this._stat.load += windowModuleState.loadingTime;
-      console.log('Module window:', `"${this.name}"`, 'loading finished');
-      loadingDefer.resolve();
-      return loadingDefer.promise;
-    })
-    .catch((e) => {
-      loadingDefer.reject(e);
-      throw e;
-    });
+      .then(([windowModule]) => {
+        initStartedAt = Date.now();
+        windowModuleState.windowModule = windowModule;
+        return windowModule.init();
+      })
+      .then(() => {
+        windowModuleState.initTime = Date.now() - initStartedAt;
+        windowModuleState.loadingTime = Date.now() - loadingStartedAt;
+        this._stat.init += windowModuleState.initTime;
+        this._stat.load += windowModuleState.loadingTime;
+        console.log('Module window:', `"${this.name}"`, 'loading finished');
+        loadingDefer.resolve();
+        return loadingDefer.promise;
+      })
+      .catch((e) => {
+        loadingDefer.reject(e);
+        throw e;
+      });
   }
 
   getWindowModule(window) {

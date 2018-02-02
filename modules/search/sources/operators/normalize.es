@@ -23,6 +23,7 @@ const clean = result => ({
     domain: getDetailsFromUrl(result.url || '').domain,
     url: urlStripProtocol(result.url || ''),
     score: result.score,
+    subType: result.subType || {},
   }
 });
 
@@ -34,7 +35,7 @@ const clean = result => ({
  */
 // TODO: just collect all non 'deepResults' data keys instead of naming them explicitly
 const normalize = ({ data: { deepResults = [], extra = {}, kind, template, suggestion } = {},
-...result }) => ({
+  ...result }) => ({
   links: [
     {
       ...clean({ ...result, extra, kind, template, suggestion, meta: { level: 0, type: 'main' } }),

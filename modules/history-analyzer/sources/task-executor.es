@@ -130,7 +130,7 @@ export default class TaskExecutor {
     if (this.onTaskFinishedCb) {
       this.onTaskFinishedCb();
     }
-    logger.error(`The task with id ${this.task.task_id} timedout?`);
+    logger.error('The task timedout?');
   }
 
 
@@ -182,6 +182,4 @@ export default class TaskExecutor {
       this.onTaskFinishedCb();
     }
   }
-
 }
-

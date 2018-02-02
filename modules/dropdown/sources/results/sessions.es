@@ -8,7 +8,6 @@ const sessionsUrl = query => ([
 ].join(''));
 
 export default class SessionsResult extends BaseResult {
-
   constructor(rawResult) {
     super({
       ...rawResult,

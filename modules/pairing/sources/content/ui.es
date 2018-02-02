@@ -1,6 +1,6 @@
 import CliqzHandlebars from 'handlebars';
 import $ from 'jquery';
-import QRCode from 'qrcode';
+import QRCode from 'qrcodejs';
 
 const images = {
   pairing_status_disconnected: './images/pairing-status-disconnected.png',

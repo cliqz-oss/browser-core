@@ -1,5 +1,5 @@
 import moment from '../platform/lib/moment';
-import events from '../core/events';
+import getDemographics from '../core/demographics';
 
 import Backend from './backend-communication';
 import logger from './logger';
@@ -83,18 +83,20 @@ export default class GidManager {
    */
   init() {
     if (this.isReadyPromise === null) {
-      this.isReadyPromise = this.registerDemographicsFirstTime()
-        .then(demographics => this.updateClientState(demographics).then(() => demographics))
-        .then(demographics => this.handleActiveUserSignal(demographics))
-        .catch(() => {
-          // We currently don't have any demographics available, we need to
-          // wait until a call to `updateDemographics` before proceeding.
-          logger.log('No valid GID available found');
-        })
-        .then(() => {
-          // Delete reference as init is done.
-          this.isReadyPromise = null;
-        });
+      this.isReadyPromise =
+        getDemographics()
+          .then(demographics => this.setLatestDemographics(JSON.stringify(demographics)))
+          .then(() => this.registerDemographicsFirstTime())
+          .then(demographics =>
+            this.updateClientState(demographics)
+              .then(() => this.handleActiveUserSignal(demographics)))
+          .catch((ex) => {
+            logger.log('Exception while initializing gid manager', ex);
+          })
+          .then(() => {
+            // Delete reference as init is done.
+            this.isReadyPromise = null;
+          });
     }
 
     return this.isReadyPromise;
@@ -404,16 +406,6 @@ export default class GidManager {
 
     // The demographics have already been sent before
     return Promise.resolve(demographics);
-  }
-
-  /**
-   * Handle new demographics for the user. This should not happen very often.
-   */
-  updateDemographics(demographics) {
-    logger.debug('updateDemographics', demographics);
-    this.setLatestDemographics(JSON.stringify(demographics.demographics));
-    return this.init()
-      .then(() => events.pub('anolysis:demographics_registered'));
   }
 
   /**

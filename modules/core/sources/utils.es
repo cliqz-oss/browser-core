@@ -48,7 +48,7 @@ var CliqzUtils = {
   BRANDS_DATABASE: BRANDS_DATABASE,
 
   //will be updated from the mixer config endpoint every time new logos are generated
-  BRANDS_DATABASE_VERSION: 1509099586511,
+  BRANDS_DATABASE_VERSION: 1515404421880,
   GEOLOC_WATCH_ID:                null, // The ID of the geolocation watcher (function that updates cached geolocation on change)
   VERTICAL_TEMPLATES: {
         'n': 'news'    ,
@@ -132,7 +132,7 @@ var CliqzUtils = {
       for (var i=0,imax=domains[base].length;i<imax;i++) {
         var rule = domains[base][i] // r = rule, b = background-color, l = logo, t = text, c = color
 
-        if (i == imax - 1 || check(urlDetails.host,rule.r)) {
+        if (check(urlDetails.host,rule.r)) {
           result = {
             backgroundColor: rule.b?rule.b:null,
             backgroundImage: rule.l?"url(https://cdn.cliqz.com/brands-database/database/" + this.BRANDS_DATABASE_VERSION + "/logos/" + base + "/" + rule.r + ".svg)":"",
@@ -728,6 +728,10 @@ var CliqzUtils = {
     CliqzUtils.telemetryHandlers.forEach(handler => handler.apply(null, args));
   },
   resultTelemetry: function(query, queryAutocompleted, resultIndex, resultUrl, resultOrder, extra) {
+    if (CliqzUtils.isPrivateMode()) {
+      return;
+    }
+
     CliqzUtils.setResultOrder(resultOrder);
     CliqzEvents.pub("human-web:sanitize-result-telemetry",
       { type: 'extension-result-telemetry',
@@ -813,21 +817,10 @@ var CliqzUtils = {
       from[funcName] = func.bind(to);
     }
   },
-  tryDecodeURIComponent: function(s) {
-    // avoide error from decodeURIComponent('%2')
-    try {
-      return decodeURIComponent(s);
-    } catch(e) {
-      return s;
-    }
-  },
-  tryEncodeURIComponent: function(s) {
-    try {
-      return encodeURIComponent(s);
-    } catch(e) {
-      return s;
-    }
-  },
+  tryDecodeURIComponent: url.tryDecodeURIComponent,
+  tryDecodeURI: url.tryDecodeURI,
+  tryEncodeURIComponent: url.tryEncodeURIComponent,
+  tryEncodeURI: url.tryEncodeURI,
   parseQueryString: function(qstr) {
     var query = {};
     var a = (qstr || '').split('&');
@@ -998,6 +991,7 @@ var CliqzUtils = {
 
     CLIQZEnvironment.onRenderComplete(query, CliqzUtils.lastRenderedURLs);
   },
+  fetchAndStoreConfig() { return Promise.resolve(); },
   onSelectionChange: function onSelectionChange(element) {
     if (!element) return;
 

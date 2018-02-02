@@ -1,0 +1,61 @@
+<div class="overview">
+    {{#if template_data.benefit}}
+    <p class="benefit {{#if template_data.benefit_new}}updated{{/if}}">
+        <span>{{template_data.benefit}}</span>
+        <span>{{template_data.benefit_new}}</span>
+    </p>
+    {{/if}}
+    <p class="headline ellipsis">
+        {{either_or template_data.headline template_data.title}}
+    </p>
+</div>
+<div class="details">
+    <div class="left-labels">
+        {{#if isExclusive}}<p class="exclusive" data-i18n="offers-exclusive"></p>{{/if}}
+        {{#if isBestOffer}}<p class="best-offer" data-i18n="offers-best_offer"></p>{{/if}}
+    </div>
+    {{#if template_data.picture_url}}
+    <p class="picture" style="background-image: url({{template_data.picture_url}})"></p>
+    {{/if}}
+    {{#if template_data.benefit}}
+    <p class="benefit {{#if template_data.benefit_new}}updated{{/if}}">
+        <span>{{template_data.benefit}}</span>
+        <span>{{template_data.benefit_new}}</span>
+    </p>
+    {{/if}}
+    <p class="headline" style="color: {{backgroundColor}}">
+        {{either_or template_data.headline template_data.title}}
+    </p>
+    <p class="description">{{template_data.desc}}</p>
+    {{#if template_data.code}}
+    <div class="promocode-wrapper">
+        <input class="code ellipsis" type="text" name="code" value="{{template_data.code}}" readonly="readonly">
+        <button class="copy-code" data-i18n="offers-hub-copy-btn"></button>
+    </div>
+    {{/if}}
+    <div class="validity-wrapper">
+        <span class="validity {{#if validity.isExpiredSoon}}red{{/if}}">{{validity.text}}</span>
+        {{#if template_data.conditions}}
+        <span class="condition">{{local 'offers-conditions'}}
+            <button></button>
+        </span>
+        {{/if}}
+        <div class="condition-wrapper">
+            <div>
+                {{template_data.conditions}}
+            </div>
+        </div>
+    </div>
+    <button class="cta-btn" data-id="{{offer_id}}" data-url="{{template_data.call_to_action.url}}">
+        {{template_data.call_to_action.text}}
+    </button>
+</div>
+<div class="logo-wrapper">
+    <div class="logo {{logoClass}}" style="background-image: url({{template_data.logo_url}})"></div>
+    <button class="setting"></button>
+</div>
+<ul class="settings">
+    <li data-menu-type="delete" data-i18n="offers-hub-remove"></li>
+</ul>
+
+{{!-- TODO: Check default and madatory fields to add conditions --}}

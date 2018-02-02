@@ -6,7 +6,6 @@
 import console from '../console';
 
 export default class SimpleDB {
-
   //
   // @brief constructor
   // @param db  the database instance to use (pouchdb)

@@ -16,7 +16,6 @@ const STORAGE_DB_DOC_ID = 'offers-queries';
 
 
 export default class QueryHandler {
-
   constructor(offersDB) {
     if (offersDB) {
       this.db = new DBHelper(offersDB);
@@ -66,9 +65,9 @@ export default class QueryHandler {
     }
   }
 
-// //////////////////////////////////////////////////////////////////////////////////
-//                             Public Methods.
-// //////////////////////////////////////////////////////////////////////////////////
+  // //////////////////////////////////////////////////////////////////////////////////
+  //                             Public Methods.
+  // //////////////////////////////////////////////////////////////////////////////////
   /**
    * Method takes a raw url and a top level domain and returns an object that contains
    * the search engine extracted from the domain name and the normalized form of the query
@@ -187,9 +186,9 @@ export default class QueryHandler {
     return inTheRange.length > 0;
   }
 
-// //////////////////////////////////////////////////////////////////////////////////
-//                           Private Methods.
-// //////////////////////////////////////////////////////////////////////////////////
+  // //////////////////////////////////////////////////////////////////////////////////
+  //                           Private Methods.
+  // //////////////////////////////////////////////////////////////////////////////////
   _extractQuery(url, domainName) {
     let query = '';
     const pattern = this.enginePatternMap[domainName];
@@ -334,8 +333,9 @@ export default class QueryHandler {
       this.isDataDirty = false;
       resolve(true);
     }).catch(() => {
-      logger.error('unable to load the posting.');
+      // it may happen that is the first time we are trying to load them
+      logger.log('unable to load the posting.');
     })
-   );
+    );
   }
 }

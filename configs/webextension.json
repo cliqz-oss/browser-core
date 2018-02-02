@@ -13,7 +13,6 @@
     "updateURL": "https://s3.amazonaws.com/cdncliqz/update/browser/latest.rdf",
     "updateURLbeta": "https://s3.amazonaws.com/cdncliqz/update/browser_beta/latest.rdf",
     "freshTabNews": true,
-    "unblockUI": false,
     "showDataCollectionMessage": false,
     "antitrackingButton": true,
     "helpMenus": true,
@@ -36,7 +35,8 @@
     "HW_CHANNEL": "cliqz",
     "HPN_CHANNEL": "cliqz",
     "CDN_BASEURL": "https://cdn.cliqz.com",
-    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"]
+    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
+    "OFFERS_BE_BASE_URL": "https://offers-api.cliqz.com"
   },
   "default_prefs" : {
     "modules.context-search.enabled": false,
@@ -64,10 +64,12 @@
   ],
   "system": {
     "map": {
-      "bigint": "bower_components/bigint/index.js",
-      "md5": "bower_components/md5/index.js",
+      "BigInt": "node_modules/BigInt/src/BigInt.js",
       "@cliqz-oss/pouchdb": "node_modules/@cliqz-oss/pouchdb/dist/pouchdb.js",
       "pako": "node_modules/pako/dist/pako.js"
+    },
+    "meta": {
+      "BigInt": { "format": "cjs" }
     },
     "packages": {
       "object-assign": {

@@ -1,7 +1,9 @@
 import utils from '../core/utils';
+import events from '../core/events';
+import { nextTick } from '../core/decorators';
 import autocomplete from '../autocomplete/autocomplete';
-import SearchHistory from './search-history';
 import console from '../core/console';
+import { getCurrentTabId } from '../core/tabs';
 
 const ACproviderName = 'cliqz-results';
 
@@ -29,9 +31,12 @@ export default {
     utils.pingCliqzResults();
 
     autocomplete.lastFocusTime = Date.now();
-    SearchHistory.hideLastQuery(this.window);
     utils.setSearchSession(utils.rand(32));
     this.urlbarEvent('focus');
+    events.pub('urlbar:focus', {
+      windowId: this.windowId,
+      tabId: getCurrentTabId(this.window),
+    });
   },
   /**
   * Urlbar blur event
@@ -57,6 +62,10 @@ export default {
 
     autocomplete.lastFocusTime = null;
     this.window.CLIQZ.UI.sessionEnd();
+    events.pub('urlbar:blur', {
+      windowId: this.windowId,
+      tabId: getCurrentTabId(this.window),
+    });
   },
   /**
   * Urlbar keypress event
@@ -102,6 +111,26 @@ export default {
       });
     }
   },
+
+  input() {
+    nextTick(() => {
+      events.pub('urlbar:input', {
+        windowId: this.windowId,
+        tabId: getCurrentTabId(this.window),
+        query: this.urlbar.mInputField.value,
+        isTyped: this.urlbar.valueIsTyped,
+      });
+    });
+  },
+
+  keyup(ev) {
+    events.pub('urlbar:keyup', {
+      windowId: this.windowId,
+      tabId: getCurrentTabId(this.window),
+      code: ev.code,
+    });
+  },
+
   keydown(ev) {
     autocomplete._lastKey = ev.keyCode;
     let cancel;
@@ -115,6 +144,13 @@ export default {
       ev.preventDefault();
       ev.stopImmediatePropagation();
     }
+    events.pub('urlbar:keydown', {
+      windowId: this.windowId,
+      tabId: getCurrentTabId(this.window),
+      isHandledByCliqz: cancel,
+      query: this.urlbar.value,
+      code: ev.code,
+    });
   },
   /**
   * Urlbar paste event

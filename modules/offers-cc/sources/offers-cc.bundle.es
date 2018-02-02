@@ -2,11 +2,11 @@
 
 import $ from 'jquery';
 import Handlebars from 'handlebars';
+import helpers from './content/helpers';
 import templates from './templates';
 
 Handlebars.partials = templates;
 let lastSeenElements = [];
-
 
 function sendMessageToWindow(message) {
   postMessage(JSON.stringify({
@@ -16,11 +16,10 @@ function sendMessageToWindow(message) {
   }), '*');
 }
 
-
 function resize() {
-  const $controlCenter = $('#cliqz-offers-cc');
-  const theWidth = $controlCenter.width();
-  const theHeight = $controlCenter.height();
+  const $controlCenter = $('#cqz-offer-cc-content');
+  const theWidth = $controlCenter.outerWidth(); // Includes the scroll bar
+  const theHeight = $controlCenter.outerHeight();
   sendMessageToWindow({
     action: 'resize',
     data: {
@@ -40,6 +39,10 @@ function localizeDocument() {
   });
 }
 
+function getOfferId(element) {
+  return element.closest('.voucher-wrapper').data('offerId');
+}
+
 function copySelectionText() {
   let copysuccess = false; // var to check whether execCommand successfully executed
   try {
@@ -50,111 +53,21 @@ function copySelectionText() {
   return copysuccess;
 }
 
-function selectElementText(e) {
-  const range = document.createRange();
-  range.selectNodeContents(e);
-  const selection = window.getSelection();
-  selection.removeAllRanges();
-  selection.addRange(range);
-}
-
-function copy(e) {
-  selectElementText(e);
-  return copySelectionText();
-}
-
-// receive buttons callback
-function cqzOfferBtnClicked(ev) {
-  // filter if it is button or not
-
-  if (!ev.target || !ev.target.hasAttribute('data-cqz-of-btn-id')) {
-    // skip this
-    return;
-  }
-
-
-  if (ev.target.getAttribute('data-cqz-of-btn-id') === 'code_copied') {
-    const success = copy(ev.target);
-
-    if (success) {
-      $(ev.target).parents('.cqz-offer-code-holder').addClass('copied');
-    }
-  }
-
-  // we will get the data-action field here and will send this to the core
-  const data = ev.target.getAttribute('data-cqz-of-btn-id');
-  const offerID = ev.target.getAttribute('data-cqz-offer-id');
-  // check if the button has specified action type if no assign the default one
-  const sigType = ev.target.getAttribute('data-cqz-of-btn-action-type') || 'button_pressed';
-
-
-  if (data === 'offer_removed') {
-    const feedbackElm = $(ev.target).parents('.cqz-remove-feedback').find('input[name=remove_feedback]:checked');
-    const offersFeedback = feedbackElm.val() || 'feedback_no';
-    // If you don't close the hub we have to reset the choice
-    feedbackElm.prop('checked', false);
-
-    sendMessageToWindow({
-      action: 'sendTelemetry',
-      data: {
-        signal_type: 'offer-action-signal',
-        element_id: offersFeedback,
-        offer_id: offerID,
-      }
-    });
-  }
-
-  sendMessageToWindow({
-    action: 'sendTelemetry',
-    data: {
-      signal_type: sigType,
-      element_id: data,
-      offer_id: offerID,
-    }
-  });
-}
-
-function setHTML(el, html) {
-  if (el.unsafeSetInnerHTML) {
-    el.unsafeSetInnerHTML(html);
-  } else {
-    el.innerHTML = html;
-  }
-}
-
-function draw(data) {
-  const newVouchers = data.filter(voucher => voucher.state === 'new');
-  const oldVouchers = data.filter(voucher => voucher.state === 'old');
-
-  if (newVouchers.length > 0) {
-    document.getElementById('cqz-vouchers-wrapper').classList.add('with-new-vouchers');
-    setHTML(document.getElementById('cqz-new-vouchers-holder'), templates.vouchers(newVouchers));
-  }
-
-  if (oldVouchers.length > 0) {
-    document.getElementById('cqz-vouchers-wrapper').classList.add('with-old-vouchers');
-    setHTML(document.getElementById('cqz-recent-vouchers-holder'), templates.vouchers(oldVouchers));
-  }
-
-  if (oldVouchers.length === 0 && newVouchers.length === 0) {
-    document.getElementById('cqz-vouchers-wrapper').classList.add('no-vouchers');
-  }
-
-
-  localizeDocument();
-  resize();
-}
 let scrollTimer;
 const shownElements = {};
 
-
 function scrollFinished() {
-  const parent = $('#cqz-vouchers-wrapper');
+  const parent = $('#cqz-vouchers-holder');
+  // To not have exception in console where there is no offer left
+  if (!parent.length) {
+    return;
+  }
+
   const parentTop = parent.offset().top;
   const parentBottom = parent.offset().top + parent.height();
 
   const currentSeenElements = [];
-  $('#cqz-vouchers-wrapper li:visible').each((i, el) => {
+  $('#cqz-vouchers-holder > li:visible').each((i, el) => {
     const elmTop = $(el).offset().top;
     const elmBotttom = elmTop + $(el).height();
     const offerId = $(el).data('offer-id');
@@ -178,12 +91,12 @@ function scrollFinished() {
   lastSeenElements = currentSeenElements;
 
   sendMessageToWindow({
-    action: 'seenOffers',
+    action: 'seenOffers', // TODO: Do we need seenOffers ?
     data: shownElements
   });
 }
 
-function bodyScroll() {
+function bodyScroll() { // TODO: Still need this ?
   if (scrollTimer) {
     clearTimeout(scrollTimer);
   }
@@ -191,93 +104,252 @@ function bodyScroll() {
   scrollTimer = window.setTimeout(scrollFinished, 350);
 }
 
-// ====== GENERIC SETTING ACCORDION FUNCTIONALITY =========//
-$(window).on('load', () => {
-  $('#cqz-vouchers-wrapper').scroll(() => {
-    bodyScroll();
-  });
+function draw(data) {
+  $('#cliqz-offers-cc').html(templates.template(data));
 
-  bodyScroll();
+  if ($('#cqz-vouchers-holder').length) {
+    bodyScroll();
+    $('#cqz-vouchers-holder').scroll(() => {
+      bodyScroll();
+    });
+
+    // TODO: apply this fix only in case the first rendering fails
+    // localizeDocument();
+    // setTimeout(() => {
+    //   resize();
+    // }, 200); // TODO: fix this!.
+    // return;
+  }
+
+  localizeDocument();
+  resize();
+}
+
+// ====== ON LOAD ======//
+$(() => {
+  Object.keys(helpers).forEach((helperName) => {
+    Handlebars.registerHelper(helperName, helpers[helperName]);
+  });
 
   sendMessageToWindow({
     action: 'getEmptyFrameAndData',
     data: {}
   });
+});
 
-  // link the click function here to the buttons
-  document.getElementById('cliqz-offers-cc').addEventListener('click', cqzOfferBtnClicked);
+$(document).on('click', 'ul#cqz-vouchers-holder > li:not(.active)', function itemClick() {
+  $('ul#cqz-vouchers-holder > li.active').removeClass('active');
+  $('ul#cqz-vouchers-holder > li.deleted').remove();
+  $(this).addClass('active');
 
-  // open URL
-  $('#cliqz-offers-cc').on('click', '[openUrl]', (ev) => {
-    sendMessageToWindow({
-      action: 'openURL',
-      data: {
-        url: ev.currentTarget.getAttribute('openUrl'),
-        closePopup: ev.currentTarget.dataset.closepopup || true,
-        isCallToAction: ev.currentTarget.dataset.cqzOfBtnId === 'offer_ca_action',
-      }
-    });
+  sendMessageToWindow({
+    action: 'sendTelemetry',
+    data: {
+      signal_type: 'offer-action-signal',
+      element_id: 'offer_expanded',
+      offer_id: $(this).data('offerId'),
+    }
   });
 
-  // Close panel, use offer
-  $('#cliqz-offers-cc').on('click', '.cqz-call-to-action .cqz-close-hub', (e) => {
-    e.stopPropagation();
-  });
-
-  // Remove offer
-  $('#cliqz-offers-cc').on('click', '.cqz-ticket-offer .cqz-close', () => {
-    sendMessageToWindow({
-      action: 'removeOffer',
-    });
-  });
-
-  $('.cqz-show-all-offers').on('click', () => {
-    $('#cqz-vouchers-wrapper').addClass('show-all');
+  setTimeout(() => {
     resize();
+  }, 200); // TODO: fix this!.
+});
+
+$(document).on('click', '#about-link', function itemClick() {
+  sendMessageToWindow({
+    action: 'sendActionSignal',
+    data: {
+      actionId: 'more_about_cliqz',
+    }
   });
 
-  let offerID = '';
-  let offerElm = $();
-  $('body').on('click', (e) => {
-    const elm = $(e.target);
-
-    if (elm.hasClass('cqz-close-hub')) {
-      sendMessageToWindow({
-        action: 'closePanel',
-      });
+  sendMessageToWindow({
+    action: 'openURL',
+    data: {
+      url: $(this).data('url'),
+      closePopup: true,
+      isCallToAction: false,
     }
+  });
+});
 
-    if (elm.hasClass('cqz-close')) {
-      const offersPosition = $('.cqz-vouchers').scrollTop() || 0;
-      offerElm = elm.parents('li');
-      offerID = elm.data('cqz-offer-id');
-      $('#cliqz-offers-cc').addClass('feedback');
-      // Adjust the position of feedback form, when element is scrolled
-      $('.cqz-remove-feedback').css('top', offersPosition);
+$(document).on('click', '#feedback-button', function itemClick() {
+  $('#feedback-content').toggleClass('active');
+  $(this).toggleClass('expand');
 
-      $('.remove-offer, .cancel-feedback').attr('data-cqz-offer-id', offerID);
-      resize();
+  resize();
+});
+
+let vote;
+$(document).on('click', '.feedback-button', function itemClick() {
+  vote = $(this).data('vote');
+  sendMessageToWindow({
+    action: 'sendUserFeedback',
+    data: {
+      target: 'myoffrz',
+      vote,
+      comments: '',
     }
+  });
+  $('#feedback-vote-wrapper').hide();
+  $('#feedback-comment-wrapper').show();
+  resize();
+});
 
-    if (elm.hasClass('cancel-feedback')) {
-      $('#cliqz-offers-cc').removeClass('feedback');
-      resize();
-    }
-
-    if (elm.hasClass('remove-offer')) {
-      $('#cliqz-offers-cc').removeClass('feedback');
-      offerElm.css('display', 'none');
-      if (offerElm.parents('.cqz-vouchers-inner-holder').find('li:visible').length === 0) {
-        // Check do we have collapsed offer when we delete offer. If we then we expand
-        if ($('.cqz-show-all-offers:visible').length === 0) {
-          document.getElementById('cqz-vouchers-wrapper').classList.add('no-vouchers');
-        } else {
-          $('.cqz-show-all-offers').click();
-        }
+$(document).on('click', '#submit-feedback', () => {
+  const comments = $('#feedback-textarea').val();
+  if (comments.trim().length) {
+    sendMessageToWindow({
+      action: 'sendUserFeedback',
+      data: {
+        target: 'myoffrz',
+        vote,
+        comments,
       }
-      resize();
+    });
+  }
+
+  $('#feedback-comment-wrapper').html(chrome.i18n.getMessage('offers-hub-feedback-thank-you'));
+
+  resize();
+});
+
+$(document).on('click', '#expand-button', function itemClick() {
+  $('.voucher-wrapper.preferred').removeClass('preferred');
+  $(this).css('visibility', 'hidden');
+  sendMessageToWindow({
+    action: 'sendActionSignal',
+    data: {
+      actionId: 'show_more_offers',
     }
   });
+  bodyScroll();
+
+  resize();
+});
+
+$(document).on('click', '.promocode-wrapper', function itemClick() {
+  const offerId = getOfferId($(this));
+  $(this).find('.code').focus().select();
+  const success = copySelectionText();
+
+  if (success) {
+    $(this).find('.copy-code').text(chrome.i18n.getMessage('offers-hub-code-copy'));
+    // $(this).find('.code').blur(); // Should we blur it ?
+    sendMessageToWindow({
+      action: 'sendTelemetry',
+      data: {
+        signal_type: 'offer-action-signal',
+        element_id: 'code_copied',
+        offer_id: offerId,
+      }
+    });
+  }
+});
+
+$(document).on('click', '.condition', function itemClick(e) {
+  e.stopPropagation();
+  $(this).next().toggleClass('active');
+});
+
+$(document).on('click', '.condition-wrapper', (e) => {
+  e.stopPropagation();
+});
+
+$(document).on('click', '.setting', function itemClick(e) {
+  e.stopPropagation();
+  $(this).closest('.logo-wrapper').toggleClass('menu-opened');
+});
+
+$(document).on('click', '.cta-btn', function itemClick() {
+  sendMessageToWindow({
+    action: 'openURL',
+    data: {
+      url: $(this).data('url'),
+      closePopup: true,
+      isCallToAction: true,
+      offerId: getOfferId($(this)),
+    }
+  });
+});
+
+$(document).on('click', '#voucher-feedback input:radio', function itemClick() {
+  if ($(this).attr('id') === 'feedback_option4') {
+    $('#feedback_option4_textarea').removeAttr('disabled');
+  } else {
+    $('#feedback_option4_textarea').attr('disabled', 'disabled');
+  }
+
+  $('#close-feedback').text(chrome.i18n.getMessage('offers-hub-feedback-send-and-close'));
+});
+
+$(document).on('click', '#close-feedback', function itemClick() {
+  $('#expand-button').css('visibility', 'hidden');
+  const feedbackValue = $('input[name="remove_feedback"]:checked').val() || 'none';
+  const comments = feedbackValue === 'other' ? $('#feedback_option4_textarea').val() : '';
+  sendMessageToWindow({
+    action: 'sendUserFeedback',
+    data: {
+      target: 'remove_offer',
+      vote: feedbackValue,
+      comments,
+      offer_id: getOfferId($(this)),
+    }
+  });
+
+  const currentVoucher = $(this).closest('.voucher-wrapper');
+  currentVoucher.remove();
+  // Redraw the popup if there is no voucher left
+  if (!$('ul#cqz-vouchers-holder > li').length) {
+    sendMessageToWindow({
+      action: 'getEmptyFrameAndData',
+      data: {}
+    });
+  }
+  bodyScroll();
+
+  setTimeout(() => {
+    resize();
+  }, 200); // TODO: fix this!.
+});
+
+$(document).on('click', 'ul.settings > li', function itemClick() {
+  if ($(this).data('menuType') === 'delete') {
+    $(this).closest('.settings')
+      .prev().children('.setting')
+      .hide();
+    const currentVoucher = $(this).closest('.voucher-wrapper');
+
+    currentVoucher.addClass('deleted');
+    currentVoucher.children('.details').html(templates['feedback-voucher']({})); // empty data
+    localizeDocument();
+    resize();
+
+    sendMessageToWindow({
+      action: 'sendTelemetry',
+      data: {
+        signal_type: 'remove-offer',
+        element_id: 'offer_removed',
+        offer_id: getOfferId($(this)),
+      }
+    });
+  }
+});
+
+// Hide the tooltip if it is being clicked
+$(document).on('click', '.tooltip', () => {
+  sendMessageToWindow({
+    action: 'getEmptyFrameAndData',
+    data: {
+      hideTooltip: true,
+    }
+  });
+});
+
+$(document).on('click', '#cliqz-offers-cc', () => {
+  $('.logo-wrapper.menu-opened').removeClass('menu-opened');
+  $('.condition-wrapper.active').removeClass('active');
 });
 
 function messageHandler(message) {
@@ -299,3 +371,6 @@ window.addEventListener('message', (ev) => {
     messageHandler(data.message);
   }
 });
+
+// TODO: Create a function named hideTooltipAndMenu() and put the code.
+// Triggering: when clicking on body or any element or pressing ESC button

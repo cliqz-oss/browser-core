@@ -1,7 +1,6 @@
 import utils from '../../core/utils';
 
 export default class Lotto {
-
   enhanceResults(data) {
     this.data = data;
     data.localeDate = this.localeDate;

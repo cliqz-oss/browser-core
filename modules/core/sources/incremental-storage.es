@@ -79,10 +79,10 @@ export default class IncrementalStorage {
       this.close();
 
       return removeFile(nsf)
-      .then(() => removeFile(njf))
-      .then(() => removeFile(jf))
-      .then(() => removeFile(sf))
-      .then(() => removeFile(ef));
+        .then(() => removeFile(njf))
+        .then(() => removeFile(jf))
+        .then(() => removeFile(sf))
+        .then(() => removeFile(ef));
     }
     return Promise.resolve();
   }
@@ -105,7 +105,10 @@ export default class IncrementalStorage {
     this.toFlush = [];
     this.isOpening = false;
     this.onShutdown = null;
-    this.flushResolver = this.flushTimer = this.processFunction = this.filePrefix = null;
+    this.flushResolver = null;
+    this.flushTimer = null;
+    this.processFunction = null;
+    this.filePrefix = null;
   }
   handleCorrupt() {
     return renameFile(this.getNewSnapshotFile(), this.getNewSnapshotFile(true))
@@ -177,24 +180,26 @@ export default class IncrementalStorage {
     if (!this.flushPromise) {
       const flusher = () => {
         this._flush()
-        .catch(e => this.error('Error in flush', e))
-        .then(() => {
-          if (
-            this.isOpen &&
-            (this.scheduledSnapshot ||
-            (this.dirty && (this.immediateSnap || this.acumTime >= 1000)))) {
-            return this.doRealSnapshot();
-          }
-          return null;
-        })
-        .then(() => {
-          const resolve = this.flushResolver;
-          this.flushTimer = this.flushPromise = this.flushResolver = null;
-          resolve();
-          if (this.isOpen && this.toFlush.length > 0) {
-            this.flush();
-          }
-        });
+          .catch(e => this.error('Error in flush', e))
+          .then(() => {
+            if (
+              this.isOpen &&
+              (this.scheduledSnapshot ||
+              (this.dirty && (this.immediateSnap || this.acumTime >= 1000)))) {
+              return this.doRealSnapshot();
+            }
+            return null;
+          })
+          .then(() => {
+            const resolve = this.flushResolver;
+            this.flushTimer = null;
+            this.flushPromise = null;
+            this.flushResolver = null;
+            resolve();
+            if (this.isOpen && this.toFlush.length > 0) {
+              this.flush();
+            }
+          });
       };
       this.flushTimer = utils.setTimeout(flusher, 0);
       this.flushPromise = new Promise((resolve) => {
@@ -282,11 +287,11 @@ export default class IncrementalStorage {
   }
   appendError(event, error) {
     openForAppend(this.getErrorFile())
-    .then((f) => {
-      const data = { ts: (new Date()).toISOString(), event, error };
-      return writeFD(f, `${JSON.stringify(data)}\n`, { isText: true })
-      .catch(() => {})
-      .then(() => closeFD(f));
-    });
+      .then((f) => {
+        const data = { ts: (new Date()).toISOString(), event, error };
+        return writeFD(f, `${JSON.stringify(data)}\n`, { isText: true })
+          .catch(() => {})
+          .then(() => closeFD(f));
+      });
   }
 }

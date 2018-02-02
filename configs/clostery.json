@@ -16,7 +16,8 @@
     "antitrackingBlocklist": "ghostery",
     "clostery.categoryPolicies": "{\"essential\": \"ALLOW_SAFE\"}",
     "CDN_BASEURL": "https://cdn2.ghostery.com",
-    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"]
+    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
+    "OFFERS_BE_BASE_URL": "https://offers.ghostery.com"
   },
   "modules": [
     "core",

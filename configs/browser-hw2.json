@@ -12,7 +12,6 @@
     "updateURL": "https://s3.amazonaws.com/cdncliqz/update/browser/latest.rdf",
     "updateURLbeta": "https://s3.amazonaws.com/cdncliqz/update/browser_beta/latest.rdf",
     "freshTabNews": true,
-    "unblockUI": false,
     "showDataCollectionMessage": false,
     "antitrackingButton": true,
     "helpMenus": true,
@@ -35,7 +34,8 @@
     "HW_CHANNEL": "cliqz",
     "HPN_CHANNEL": "cliqz",
     "CDN_BASEURL": "https://cdn.cliqz.com",
-    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"]
+    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
+    "OFFERS_BE_BASE_URL": "https://offers-api.cliqz.com"
   },
   "default_prefs" : {
     "modules.context-search.enabled": false,
@@ -54,7 +54,6 @@
     "anti-phishing",
     "context-menu",
     "freshtab",
-    "unblock",
     "theme",
     "webrequest-pipeline",
     "antitracking",

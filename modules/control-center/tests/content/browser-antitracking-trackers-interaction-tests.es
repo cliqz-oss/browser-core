@@ -58,7 +58,7 @@ function trackersTests(amo) {
           () => subject.messages.find(message => message.message.action === "antitracking-strict")
         ).then(
           message => {
-            chai.expect(message).to.have.deep.property("message.data.status", true);
+            chai.expect(message).to.have.nested.property("message.data.status", true);
             chai.expect(subject.query('.active-window-tracking #bottom-part .squaredFour #squaredFour').checked).to.equal(true);
           }
         );
@@ -110,7 +110,7 @@ function trackersTests(amo) {
           () => subject.messages.find(message => message.message.action === "antitracking-strict")
         ).then(
           message => {
-            chai.expect(message).to.have.deep.property("message.data.status", false);
+            chai.expect(message).to.have.nested.property("message.data.status", false);
             chai.expect(subject.query('.active-window-tracking #bottom-part .squaredFour #squaredFour').checked).to.equal(false);
           }
         );

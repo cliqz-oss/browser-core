@@ -2,6 +2,7 @@
 import events from '../../core/events';
 import utils from '../../core/utils';
 import { equals } from '../../core/url';
+import { getCurrentTabId } from '../../core/tabs';
 
 export function getDeepResults(rawResult, type) {
   const deepResults = (rawResult.data && rawResult.data.deepResults) || [];
@@ -12,7 +13,6 @@ export function getDeepResults(rawResult, type) {
 }
 
 export default class BaseResult {
-
   constructor(rawResult, allResultsFlat = []) {
     this.rawResult = {
       ...{ data: {} },
@@ -232,6 +232,24 @@ export default class BaseResult {
   click(window, href, ev) {
     if (this.isUrlMatch(href)) {
       const newTab = ev.altKey || ev.metaKey || ev.ctrlKey || ev.button === 1;
+      const action = ev.code === 'Enter' ? 'enter' : 'click';
+      // TODO: need to handle 'go-to' button (right arrow in URL bar)
+      const target = action === 'enter' ? 'urlbar' : 'results';
+
+      events.pub('ui:click-on-url', {
+        url: this.url,
+        query: this.query,
+        rawResult: this.rawResult,
+        isNewTab: Boolean(newTab),
+        isPrivateWindow: utils.isPrivateMode(window),
+        isPrivateResult: utils.isPrivateResultType(this.kind),
+        isFromAutocompletedURL: this.isAutocompleted && ev.constructor.name === 'KeyboardEvent',
+        windowId: utils.getWindowID(window),
+        tabId: getCurrentTabId(window),
+        action,
+        target,
+      });
+
       // TODO: do not use global
       /* eslint-disable */
       window.CLIQZ.Core.urlbar.value = href;
@@ -239,16 +257,6 @@ export default class BaseResult {
       // delegate to Firefox for full set of features like switch-to-tab
       // and all related telemetry probes
       window.CLIQZ.Core.urlbar.handleCommand(ev, newTab ? 'tab' : 'current');
-
-      events.pub('ui:click-on-url', {
-        url: this.url,
-        query: this.query,
-        rawResult: this.rawResult,
-        isPrivateWindow: utils.isPrivateMode(window),
-        isPrivateResult: utils.isPrivateResultType(this.kind),
-        isFromAutocompletedURL: this.isAutocompleted && ev.constructor.name === 'KeyboardEvent',
-        windowId: utils.getWindowID(window)
-      });
     } else {
       this.findResultByUrl(href).click(window, href, ev);
     }

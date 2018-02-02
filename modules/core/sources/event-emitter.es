@@ -12,7 +12,6 @@ import utils from './utils';
  * @class EventEmitter
  */
 export default class EventEmitter {
-
   /**
    * @constructor
    * @param {Array<String>} eventNames - Array of events which can be registered with the emitter

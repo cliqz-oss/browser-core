@@ -128,7 +128,7 @@ function getBackgroundWindowNew() {
   const system = Services.scriptSecurityManager.getSystemPrincipal();
 
   const chromeShell = chromeWebNav.QueryInterface(Ci.nsIInterfaceRequestor)
-                                .getInterface(Ci.nsIDocShell);
+    .getInterface(Ci.nsIDocShell);
   chromeShell.createAboutBlankContentViewer(system);
 
   const chromeDoc = chromeWebNav.document;

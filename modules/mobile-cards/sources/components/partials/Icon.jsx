@@ -20,7 +20,7 @@ export default class extends React.Component {
       const iconUrl = logoDetails.backgroundImage
                       .replace('url(', '')
                       .replace('logos', 'pngs')
-                      .replace(/\$.*/, '$_192.png');
+                      .replace('.svg)', '_192.png');
       return (
           <Image
             style={{width, height, backgroundColor: 'white'}}

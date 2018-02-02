@@ -8,13 +8,8 @@ export default class TabSharing extends PairingObserver {
 
   onmessage(msg, source) {
     if (this.tabReceivedCallback) {
-      const version = this.comm.getDeviceVersion(this.comm.deviceID);
       const data = Array.isArray(msg) ? msg : [{ url: msg }];
-      if (version >= 1) {
-        this.tabReceivedCallback(data, source);
-      } else {
-        data.forEach(({ url }) => this.tabReceivedCallback(url, source));
-      }
+      this.tabReceivedCallback(data, source);
     }
   }
 

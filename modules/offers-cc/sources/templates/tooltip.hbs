@@ -1,0 +1,15 @@
+{{#if isGeneric}}
+<div>
+    <img src="{{icon}}" alt="" />
+    <span>{{headline}}</span>
+</div>
+{{else}}
+<div class="light" style="border-left-color: {{backgroundColor}}">
+    <div class="logo {{logoClass}}" style="background-image: url({{backgroundImage}})"></div>
+    <p>{{benefit}} {{headline}}</p>
+    <div class="labels">
+        {{#if isExclusive}}<p class="exclusive" data-i18n="offers-exclusive"></p>{{/if}}
+        {{#if isBestOffer}}<p class="best-offer" data-i18n="offers-best_offer"></p>{{/if}}
+    </div>
+</div>
+{{/if}}

@@ -3,11 +3,10 @@ import CliqzEvents from '../core/events';
 import CliqzBloomFilter from './bloom-filter';
 import utils from '../core/utils';
 import md5 from '../core/helpers/md5';
-import ResourceLoader from '../core/resource-loader';
 import random from '../core/crypto/random';
 // import getIP from '../core/dns';
 import { fetch } from '../core/http';
-import { equals as urlEquals } from '../core/url';
+import { equals as urlEquals, getDetailsFromUrl } from '../core/url';
 import Storage from '../platform/human-web/storage';
 import dns from '../platform/human-web/dns';
 // import console from '../core/console';
@@ -18,6 +17,7 @@ import fastUrl from '../core/fast-url-parser';
 import { normalizeAclkUrl } from './ad-detection';
 import { getActiveTab } from '../platform/browser';
 import DoublefetchHandler from './doublefetch-handler';
+import ContentExtractionPatternsLoader from './content-extraction-patterns-loader';
 import { getTabInfo } from '../platform/human-web/tabInfo';
 
 let refineFuncMappings;
@@ -29,6 +29,8 @@ Configuration for Bloomfilter
 const bloomFilterSize = 500001;// false-positive 0.01, hashes 7
 const bloomFilterNHashes = 7;
 const allowedCountryCodes = config.settings.ALLOWED_COUNTRY_CODES;
+const tryDecodeURI = utils.tryDecodeURI;
+const tryDecodeURIComponent = utils.tryDecodeURIComponent;
 
 function _log(msg) {
   if  (CliqzHumanWeb.debug) {
@@ -105,18 +107,29 @@ const CliqzHumanWeb = {
     userTransitions: {
         search: {}
     },
-    searchEngines: [], //Variable for content extraction fw.
-    rArray: [], //Variable for content extraction fw.
-    extractRules: {}, //Variable for content extraction fw.
-    payloads: {}, //Variable for content extraction fw.
-    anonSearchEngines: [], //Variable for content extraction fw.
-    anonRArray: [], //Variable for content extraction fw.
-    anonExtractRules: {}, //Variable for content extraction fw.
-    anonPayloads: {}, //Variable for content extraction fw.
+
+    // Patterns for content extraction.
+    // Will be initialized by the ContentExtractionPatternsLoader,
+    // which polls for configuration changes from the backend.
+    patterns: {
+      normal: {
+        searchEngines: [],
+        rArray: [],
+        extractRules: {},
+        payloads: {},
+      },
+      strict: {
+        searchEngines: [],
+        rArray: [],
+        extractRules: {},
+        payloads: {},
+      }
+    },
+    patternsLoader: new ContentExtractionPatternsLoader((patternsConfig, ruleset) => {
+      CliqzHumanWeb.updateContentExtraction(patternsConfig, ruleset);
+    }),
+
     messageTemplate: {},
-    anonIdMappings: {},
-    patternsURL: config.settings.ENDPOINT_PATTERNSURL,
-    anonPatternsURL: config.settings.ENDPOINT_ANONPATTERNSURL,
     configURL: config.settings.ENDPOINT_CONFIGURL,
     // searchCache: {},
     ts : "",
@@ -558,17 +571,19 @@ const CliqzHumanWeb = {
                     };
                   }
                 }
+            }).catch((e) => {
+              _log(e);
             });
 
         }
     },
-    onVisitRemoved(removed) {
-      if (removed === true) {
+    onVisitRemoved({ urls, allHistory }) {
+      if (allHistory) {
         CliqzHumanWeb.db.clearHistory();
-      } else if ((typeof removed === 'object') && removed.length === 1) {
-          CliqzHumanWeb.db.deleteVisit(removed[0]);
-      } else if ((typeof removed === 'object') && removed.length > 1) {
-          CliqzHumanWeb.db.deleteTimeFrame();
+      } else if (urls.length === 1) {
+        CliqzHumanWeb.db.deleteVisit(urls[0]);
+      } else if (urls.length > 1) {
+        CliqzHumanWeb.db.deleteTimeFrame();
       }
     },
     linkCache: {},
@@ -1275,6 +1290,8 @@ const CliqzHumanWeb = {
         var url_host = null;
         var frame_host = null;
 
+        let ourl = CliqzHumanWeb.parseURL(url);
+
         try {
             url_host = CliqzHumanWeb.parseURL(url).hostname;
         } catch(ee) {
@@ -1388,21 +1405,23 @@ const CliqzHumanWeb = {
         }
 
         if (canonical_url != null && canonical_url.length > 0) {
-            // check that is not relative
-            if (canonical_url[0] == '/') {
-                try {
-                    var ourl = CliqzHumanWeb.parseURL(url);
-                    // ignore if httpauth or if non standard port
-                    canonical_url = ourl['protocol'] + '://' + ourl['hostname'] + canonical_url;
-                } catch(ee) {}
+            // check that canonical url is not relative.
+            // Possible variations
+            // ourl:
+            // http://www.liceubarcelona.cat/ca/properament_2017/opera
+            // curl:
+            // ca/properament_2017/opera,
+            // /liceubarcelona.cat/ca/properament_2017/opera
+            // chrome://www.liceubarcelona.cat/ca/properament_2017/opera
+            // //www.ghacks.net/
+
+            if (canonical_url.startsWith('//')) {
+                canonical_url = canonical_url.replace('//', '');
             }
 
-            // In cases where canonical url is as chrome or chrome-extension. example: https://ghacks.net.
-            if (canonical_url.startsWith('chrome')) {
-              var ourl = CliqzHumanWeb.parseURL(url);
-              var curl = CliqzHumanWeb.parseURL(canonical_url);
-              // ignore if httpauth or if non standard port
-              canonical_url = canonical_url.replace(curl['protocol'], ourl['protocol']);
+            let _urlDetails = getDetailsFromUrl(canonical_url);
+            if (_urlDetails.scheme.startsWith('chrome') || _urlDetails.scheme === '' || (_urlDetails.name && !_urlDetails.tld)) {
+                canonical_url =  `${ourl.protocol}:\/\/${ourl.hostname}${_urlDetails.path}`;
             }
         }
 
@@ -1424,8 +1443,8 @@ const CliqzHumanWeb = {
       }];
       */
       var possibleUrls = [];
-      possibleUrls.push(decodeURI(decodeURI(url)));
-      possibleUrls.push(decodeURIComponent(url));
+      possibleUrls.push(tryDecodeURI(tryDecodeURI(url)));
+      possibleUrls.push(tryDecodeURIComponent(url));
 
       function getDoc(url) {
         return getHTML(url).then( docs => {
@@ -1876,15 +1895,7 @@ const CliqzHumanWeb = {
         CliqzHumanWeb.trkTimer = undefined;
       }
 
-      if (CliqzHumanWeb.rsNormal) {
-        CliqzHumanWeb.rsNormal.stop();
-        CliqzHumanWeb.rsNormal = undefined;
-      }
-      if (CliqzHumanWeb.rsStrict) {
-        CliqzHumanWeb.rsStrict.stop();
-        CliqzHumanWeb.rsStrict = undefined;
-      }
-
+      CliqzHumanWeb.patternsLoader.unload();
       CliqzHumanWeb.doublefetchHandler.unload();
     },
     currentURL: function() {
@@ -2141,39 +2152,11 @@ const CliqzHumanWeb = {
 
               // Load strict queries
               CliqzHumanWeb.loadStrictQueries();
-              CliqzHumanWeb.rsNormal = new ResourceLoader(
-                  ["human-web","patterns"],
-                  {
-                      chromeURL: config.baseURL + "bower_components/patterns/index",
-                      remoteURL: CliqzHumanWeb.patternsURL,
-                      cron: 1 * 20 * 60 * 1000,
-                      remoteOnly: true,
-                  }
-              );
 
               const promises = [];
+
+              promises.push(CliqzHumanWeb.patternsLoader.init());
               promises.push(CliqzHumanWeb.doublefetchHandler.init());
-
-              promises.push(CliqzHumanWeb.rsNormal.load().then(e => {
-                CliqzHumanWeb.loadContentExtraction(e, "normal")
-              }));
-              CliqzHumanWeb.rsNormal.onUpdate(e => CliqzHumanWeb.loadContentExtraction(e, "normal"));
-
-              CliqzHumanWeb.rsStrict = new ResourceLoader(
-                  ["human-web","patterns-anon"],
-                  {
-                      chromeURL: config.baseURL + "bower_components/anonpatterns/index",
-                      remoteURL: CliqzHumanWeb.anonPatternsURL,
-                      cron: 1 * 20 * 60 * 1000,
-                      remoteOnly: true,
-                  }
-              );
-
-              promises.push(CliqzHumanWeb.rsStrict.load().then(e => {
-                CliqzHumanWeb.loadContentExtraction(e, "strict")
-              }));
-
-              CliqzHumanWeb.rsStrict.onUpdate( e => CliqzHumanWeb.loadContentExtraction(e, "strict"));
 
               // Load config from the backend
               promises.push(CliqzHumanWeb.fetchSafeQuorumConfig());
@@ -2438,9 +2421,9 @@ const CliqzHumanWeb = {
     telemetry: function(msg, instantPush) {
         if (!CliqzHumanWeb || //might be called after the module gets unloaded
             utils.getPref('humanWebOptOut', false) ||
-            utils.isPrivate(utils.getWindow())) return;
-
-
+            utils.isPrivate(utils.getWindow())) {
+          return Promise.resolve();
+        }
 
         // Sanitize message before doing the quorum check.
         msg.ver = CliqzHumanWeb.VERSION;
@@ -2449,14 +2432,14 @@ const CliqzHumanWeb = {
 
         if (msg) {
             // Check if host is private or not.
-            CliqzHumanWeb.isPublicDomain(msg)
+            return CliqzHumanWeb.isPublicDomain(msg)
                 .then( success => CliqzHumanWeb.safeQuorumCheck(msg), fail => Promise.reject("localcheck") )
                 .then( isSafe => {
                     _log("Quorum consent ?" + isSafe);
                     if (isSafe) {
 
                         // Check and sanitize all other urls.
-                        CliqzHumanWeb.quorumCheckOtherUrls(msg)
+                        return CliqzHumanWeb.quorumCheckOtherUrls(msg)
                             .then( msg => {
                                 CliqzHumanWeb.incrActionStats(msg.action);
                                 CliqzHumanWeb.trk.push(msg);
@@ -2483,6 +2466,7 @@ const CliqzHumanWeb = {
         } else {
             _log("Message failed sanitization step");
         }
+        return Promise.resolve();
     },
     _telemetry_req: null,
     _telemetry_sending: [],
@@ -2623,31 +2607,20 @@ const CliqzHumanWeb = {
     forceDoubleFetch: function(url) {
         CliqzHumanWeb.listOfUnchecked(1000000000000, 0, url, CliqzHumanWeb.processUnchecks);
     },
-    loadContentExtraction: function(resp, mode){
-        //Load content extraction.
-        if (mode === "normal"){
-            var patternConfig = resp;
-            CliqzHumanWeb.searchEngines = patternConfig["searchEngines"];
-            CliqzHumanWeb.extractRules = patternConfig["scrape"];
-            CliqzHumanWeb.payloads = patternConfig["payloads"];
-            CliqzHumanWeb.idMappings = patternConfig["idMapping"];
-            CliqzHumanWeb.rArray = [];
-            patternConfig["urlPatterns"].forEach(function(e){
-              CliqzHumanWeb.rArray.push(new RegExp(e));
-            })
-        }
-        else if(mode === "strict"){
-            var patternConfig = resp;
-            CliqzHumanWeb.anonSearchEngines = patternConfig["searchEngines"];
-            CliqzHumanWeb.anonExtractRules = patternConfig["scrape"];
-            CliqzHumanWeb.anonPayloads = patternConfig["payloads"];
-            CliqzHumanWeb.anonIdMappings = patternConfig["idMapping"];
-            CliqzHumanWeb.anonRArray = [];
-            patternConfig["urlPatterns"].forEach(function (e) {
-                CliqzHumanWeb.anonRArray.push(new RegExp(e));
-            });
-        }
+
+    /**
+     * Update content extraction patterns with the latest one from the backend.
+     */
+    updateContentExtraction: function(patternConfig, ruleset) {
+      CliqzHumanWeb.patterns[ruleset] = {
+        searchEngines: patternConfig.searchEngines,
+        extractRules: patternConfig.scrape,
+        payloads: patternConfig.payloads,
+        idMappings: patternConfig.idMapping,
+        rArray: patternConfig.urlPatterns.map(x => new RegExp(x)),
+      };
     },
+
     checkForEmail: function(str) {
         if (str.match(/[a-z0-9\-_@]+(@|%40|%(25)+40)[a-z0-9\-_]+\.[a-z0-9\-_]/i) != null) return true;
         else return false;
@@ -2683,86 +2656,65 @@ const CliqzHumanWeb = {
         else return null;
 
     },
-    checkURL: function(cd, url, ruleset){
-        var pageContent = cd;
-        //var rArray = new Array(new RegExp(/\.google\..*?[#?&;]q=[^$&]+/), new RegExp(/.search.yahoo\..*?[#?&;]p=[^$&]+/), new RegExp(/.linkedin.*?\/pub\/dir+/),new RegExp(/\.bing\..*?[#?&;]q=[^$&]+/),new RegExp(/.*/))
-        //scrap(4, pageContent)
-        let rArray = [];
-        let searchEngines = [];
-        if (ruleset === "normal"){
-            rArray = CliqzHumanWeb.rArray;
-            searchEngines = CliqzHumanWeb.searchEngines;
-        }
-        else if (ruleset === "strict"){
-            rArray = CliqzHumanWeb.anonRArray;
-            searchEngines = CliqzHumanWeb.anonSearchEngines
-        }
+    checkURL: function(pageContent, url, ruleset){
+        const patterns = CliqzHumanWeb.patterns[ruleset];
+        const rArray = patterns.rArray;
+        const searchEngines = patterns.searchEngines;
 
         for(var i=0;i<rArray.length;i++){
             if (rArray[i].test(url)){
                 CliqzHumanWeb.extractContent(i, pageContent, url, ruleset);
 
                 //Do not want to continue after search engines...
-                if(searchEngines.indexOf(''+i) != -1 ){return;}
+                if (searchEngines.indexOf(''+i) != -1) {
+                  return;
+                }
                 if (CliqzHumanWeb.debug) {
                     _log('Continue further after search engines ');
                 }
             }
       }
     },
-    checkSearchURL: function(url){
-        var idx = null;
-        var reref = /\.google\..*?\/(?:url|aclk)\?/;
-        for(var i=0;i<CliqzHumanWeb.rArray.length;i++){
-            if(CliqzHumanWeb.rArray[i].test(url)){
-                //Do not want to continue after search engines... && !reref.test(url)
-                if(CliqzHumanWeb.searchEngines.indexOf(''+i) != -1 ){
-                    idx = i;
-                    return idx;
-                }
-                else{
-                    if (CliqzHumanWeb.debug) {
-                        _log('Not search engine >>> ' + " " + url + i + CliqzHumanWeb.searchEngines);
-                    }
-                    return -1;
-                }
-            }
+
+    _checkSearchURL: function(url, ruleset) {
+      const patterns = CliqzHumanWeb.patterns[ruleset];
+      const searchEngines = patterns.searchEngines;
+      const rArray = patterns.rArray;
+
+      for (let i = 0; i < rArray.length; i++) {
+        if (rArray[i].test(url)) {
+          if (searchEngines.indexOf(''+i) != -1) {
+            return i;
+          }
+
+          if (CliqzHumanWeb.debug) {
+            _log(`Not search engine >>> url=${url}, i=${i}, searchEngines=${searchEngines}, ruleset=${ruleset}`);
+          }
+          return -1;
         }
+      }
+
+      return -1;
     },
-    checkAnonSearchURL: function (url) {
-        var idx = null;
-        for (var i = 0; i < CliqzHumanWeb.anonRArray.length; i++) {
-            if (CliqzHumanWeb.anonRArray[i].test(url)) {
-                //Do not want to continue after search engines... && !reref.test(url)
-                if (CliqzHumanWeb.anonSearchEngines.indexOf('' + i) != -1) {
-                    ;
-                    idx = i;
-                    return idx;
-                } else {
-                    if (CliqzHumanWeb.debug) {
-                        _log('Not search engine >>> ' + " " + url + i + CliqzHumanWeb.searchEngines);
-                    }
-                    return -1;
-                }
-            }
-        }
+
+    checkSearchURL: function(url) {
+      return CliqzHumanWeb._checkSearchURL(url, 'normal');
     },
-    extractContent: function(ind, cd, url, ruleset){
+
+    checkAnonSearchURL: function(url) {
+      return CliqzHumanWeb._checkSearchURL(url, 'strict');
+    },
+
+    extractContent: function(ind, cd, url, ruleset) {
         var scrapeResults = {};
         var eventMsg = {};
-        var rules = {};
         var key = "";
         var rule = "";
-        var payloadRules = [];
 
-        if(ruleset === "normal"){
-            rules = CliqzHumanWeb.extractRules[ind];
-            payloadRules = CliqzHumanWeb.payloads[ind];
-        }
-        else if(ruleset === "strict"){
-            rules = CliqzHumanWeb.anonExtractRules[ind];
-            payloadRules = CliqzHumanWeb.anonPayloads[ind];
-        }
+        const patterns = CliqzHumanWeb.patterns[ruleset];
+        const rules = patterns.extractRules[ind];
+        const payloadRules = patterns.payloads[ind];
+        const idMappings = patterns.idMappings[ind];
 
         if (CliqzHumanWeb.debug) {
             _log('rules' + rules + ind);
@@ -2793,8 +2745,6 @@ const CliqzHumanWeb = {
                                     }
                                 },qurl)
                             }
-
-
                             innerDict[each_key] = [qurl];
                         }
 
@@ -2802,14 +2752,11 @@ const CliqzHumanWeb = {
                             try {var location = CliqzHumanWeb.getCountryCode();} catch(ee){};
                             innerDict[each_key] = [location];
                         }
-
-
                     }
                     else if(rules[key][each_key]['type'] == 'searchQuery'){
                         urlArray = CliqzHumanWeb._getAttribute(cd,key,rules[key][each_key]['item'], rules[key][each_key]['etype'], rules[key][each_key]['keyName'],(rules[key][each_key]['functionsApplied'] || null))
                         innerDict[each_key] = urlArray;
                         if (ruleset === 'normal') {
-                            // CliqzHumanWeb.searchCache[ind] = { 'q': urlArray[0], 't': CliqzHumanWeb.idMappings[ind] };
                             _log("Populating query Cache <<<<  " + url + " >>>> " + urlArray[0]);
 
                             // Pass it to save strict queries.
@@ -2818,13 +2765,12 @@ const CliqzHumanWeb = {
                             CliqzHumanWeb.queryCache[url] = {
                               d: 0,
                               q: urlArray[0],
-                              t: CliqzHumanWeb.idMappings[ind]
+                              t: idMappings
                             };
                         }  else {
                                 urlArray = CliqzHumanWeb._getAttribute(cd, key, rules[key][each_key]['item'], rules[key][each_key]['etype'], rules[key][each_key]['keyName'], rules[key][each_key]['functionsApplied'] || null);
                                 innerDict[each_key] = urlArray;
                         }
-                        // CliqzHumanWeb.searchCache[ind] = {'q' : urlArray[0], 't' : CliqzHumanWeb.idMappings[ind]};
                     }
                     else{
                         urlArray = CliqzHumanWeb._getAttribute(cd,key,rules[key][each_key]['item'], rules[key][each_key]['etype'], rules[key][each_key]['keyName'],(rules[key][each_key]['functionsApplied'] || null))
@@ -2890,13 +2836,10 @@ const CliqzHumanWeb = {
         }
         return arr;
     },
-    createPayload: function(scrapeResults, idx, key, payloadRule){
-        try{
-            if(payloadRule === "normal"){
-                var payloadRules = CliqzHumanWeb.payloads[idx][key];
-            }else if(payloadRule === "strict"){
-                var payloadRules = CliqzHumanWeb.anonPayloads[idx][key];
-            }
+    createPayload: function(scrapeResults, idx, key, ruleset){
+        try {
+            const patterns = CliqzHumanWeb.patterns[ruleset];
+            const payloadRules = patterns.payloads[idx][key];
 
             if (payloadRules['type'] == 'single' && payloadRules['results'] == 'single' ){
                 scrapeResults[key].forEach(function(e){
@@ -2952,8 +2895,11 @@ const CliqzHumanWeb = {
                 })
                 CliqzHumanWeb.sendMessage(payloadRules, payload)
             }
-    }
-    catch(ee){}
+        } catch(ee) {
+          if (CliqzHumanWeb.debug) {
+            _log(`createPayload failed: ${ee}`);
+          }
+        }
     },
     sendMessage: function(payloadRules, payload){
         if (CliqzHumanWeb.debug) {
@@ -3523,10 +3469,12 @@ const CliqzHumanWeb = {
     },
     sanitizeResultTelemetry: function(data) {
         /*
-        Sanitize result telemetry before sending to the backend.
+        Sanitize result telemetry. Does NOT send it, but returns sanitized telemetry.
         */
         // If there is a problem in initializing human-web, we should return.
-        if(CliqzHumanWeb && CliqzHumanWeb.counter === 0) return;
+        if(CliqzHumanWeb && CliqzHumanWeb.counter === 0) {
+          return Promise.reject("HumanWeb not initialized");
+        }
 
         const msg = data.msg;
         const msgType = data.type;
@@ -3535,18 +3483,13 @@ const CliqzHumanWeb = {
         let sanitisedQuery = null;
         let url = msg.u;
 
-        const hostNameDetails = utils.getDetailsFromUrl(url);
-        if(!hostNameDetails) {
-            _log("Invalid URL, should be dropped");
-            return;
-        }
-
+        const hostNameDetails = getDetailsFromUrl(url);
         const hostName = hostNameDetails.host;
 
         // Check if there is a query.
         if (!query || query.length == 0) {
-            _log("No Query");
-            return;
+          _log("No Query");
+          return Promise.reject("No Query");
         }
 
         // If suspicious query.
@@ -3574,11 +3517,13 @@ const CliqzHumanWeb = {
             // Check if the URL is marked as already private.
 
             // If there is a problem in initializing human-web bloom-filter, we should return.
-            if(!CliqzHumanWeb.bloomFilter) return;
+            if(!CliqzHumanWeb.bloomFilter) {
+              return Promise.reject("Bloom filter not initialized");
+            }
             const urlPrivate = CliqzHumanWeb.bloomFilter.testSingle(md5(url));
             if (urlPrivate) {
-                _log("Url is already marked private");
-                return;
+              _log("Url is already marked private");
+              return Promise.reject("Url is already marked private");
             }
 
             // Check URL is suspicious
@@ -3599,7 +3544,7 @@ const CliqzHumanWeb = {
             }
 
             // Check for DNS.
-            CliqzHumanWeb.isHostNamePrivate(url).then( res => {
+            return CliqzHumanWeb.isHostNamePrivate(url).then( res => {
               let maskedURL = null;
                 if (res) {
                     _log("Private Domain");
@@ -3620,7 +3565,11 @@ const CliqzHumanWeb = {
                     query = sanitisedQuery;
                     maskedURL = sanitisedQuery;
                 }
-                CliqzHumanWeb.sendResultTelemetry(query, maskedURL, data);
+                return {
+                  query,
+                  url: maskedURL,
+                  data,
+                };
             });
         } else {
             // The URL was not a URL hence drop it.
@@ -3630,7 +3579,7 @@ const CliqzHumanWeb = {
             // As a final check, if query is a single token, and can be a private domain.
             // Like my.adminportal.com
             if(query.indexOf(' ') === -1 && query.indexOf('.') > -1) {
-                CliqzHumanWeb.isHostNamePrivate(query).then( res => {
+                return CliqzHumanWeb.isHostNamePrivate(query).then( res => {
                     if (res) {
                     _log("Private Domain");
                         sanitisedQuery = "(PROTECTED)";
@@ -3638,13 +3587,21 @@ const CliqzHumanWeb = {
                     if (sanitisedQuery) {
                         query = sanitisedQuery;
                     }
-                    CliqzHumanWeb.sendResultTelemetry(query, null, data);
+                    return {
+                      query,
+                      url: null,
+                      data,
+                    };
                 })
             } else {
                 if (sanitisedQuery) {
                     query = sanitisedQuery;
                 }
-                CliqzHumanWeb.sendResultTelemetry(query, null, data);
+                return Promise.resolve({
+                  query,
+                  url: null,
+                  data,
+                });
             }
         }
     },

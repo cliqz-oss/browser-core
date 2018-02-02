@@ -1,10 +1,9 @@
-FROM node:5.11.1
+FROM node:7.10.1-stretch
 
 RUN npm install -g \
-  bower \
   broccoli-cli \
   ember-cli \
-  phantomjs \
+  phantomjs-prebuilt \
   yuidocjs \
   selleck
 
@@ -38,13 +37,8 @@ ARG GID
 RUN groupadd jenkins -g $GID \
  && useradd -ms /bin/bash jenkins -u $UID -g $GID
 
-# TODO
-# Cache bower packages
-# RUN su - jenkins -c 'echo "{\"storage\": {\"packages\": \"~/.bower/packages\", \"registry\": \"~/.bower/registry\", \"links\": \"~/.bower/links\"}}" > /home/jenkins/.bowerrc'
-
 # TODO: Also make use of a caching directory
 USER jenkins
-# Cache npm install and bower in docker
+# Cache npm install in docker
 COPY package.json /home/jenkins/
-COPY bower.json /home/jenkins/
-RUN cd /home/jenkins/ && npm install && bower install
+RUN cd /home/jenkins/ && npm install

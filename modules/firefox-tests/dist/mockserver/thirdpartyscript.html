@@ -7,9 +7,9 @@
     <body>
         <script>
             var httpReq = new XMLHttpRequest();
-            httpReq.open('GET', '/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134');
+            httpReq.open('GET', '/test?context=xmlhttpreq&callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134');
             httpReq.send(null);
         </script>
-        <script src="http://127.0.0.1:60508/test?callback=func&amp;uid=04C2EAD03BAB7F5E-2E85855CF4C75134"></script>
+        <script src="http://127.0.0.1:60508/test?context=thirdpartyscript&amp;callback=func&amp;uid=04C2EAD03BAB7F5E-2E85855CF4C75134"></script>
     </body>
 </html>

@@ -2,11 +2,10 @@ import { getDateFromDateKey, getTodayDayKey, timestamp } from '../core/time';
 import logger from './logger';
 
 export default class HistoryInterface {
-
   constructor() {
     // TODO: this will work on all platforms?
     this.historyService = Components.classes['@mozilla.org/browser/nav-history-service;1']
-        .getService(Components.interfaces.nsINavHistoryService);
+      .getService(Components.interfaces.nsINavHistoryService);
   }
 
   /**
@@ -24,9 +23,9 @@ export default class HistoryInterface {
     for (let i = 0; i < keyDaysList.length; i += 1) {
       const currKeyDate = Number(keyDaysList[i]);
       const startMicro = getDateFromDateKey(currKeyDate) * 1000;
-      const endMicro = todayKey === currKeyDate ?
-                       timestamp() * 1000 :
-                       getDateFromDateKey(currKeyDate, 23, 59, 59) * 1000;
+      const endMicro = todayKey === currKeyDate
+        ? timestamp() * 1000
+        : getDateFromDateKey(currKeyDate, 23, 59, 59) * 1000;
       // we need to perform a history query for this day and store the resulting
       // history entries on the map
       queriesResult.push(this._performHistoryQuery(startMicro, endMicro, currKeyDate));

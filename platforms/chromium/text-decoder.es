@@ -1,1 +1,1 @@
-export default TextDecoder;
+export default (typeof TextDecoder !== 'undefined' ? TextDecoder : undefined);

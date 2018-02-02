@@ -45,16 +45,14 @@ export default class HistoryFeature extends Feature {
     this.ongoingQueries.set(q.pid, promise);
 
     promise.then(data => Promise.resolve(data))
-    .catch()
-    .then(() => {
-      this.ongoingQueries.delete(q.pid);
-    });
+      .catch()
+      .then(() => {
+        this.ongoingQueries.delete(q.pid);
+      });
     return promise;
   }
 
   removeEntry(pid) {
     return this.mod.action('removeEntry', pid);
   }
-
-
 }

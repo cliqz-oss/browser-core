@@ -108,9 +108,10 @@ describe('Fresh tab news UI', function () {
   });
 
   describe('area', function () {
-    const newsDeLanguageSelector = '#news-radio-selector-2';
-    const newsFrLanguageSelector = '#news-radio-selector-3';
-    const newsIntlLanguageSelector = '#news-radio-selector-4';
+    const getNewsDeLanguage = () => subject.query('#news-radio-selector-2');
+    const getNewsDeTrEnLanguage = () => subject.query('#news-radio-selector-5');
+    const getNewsFrLanguage = () => subject.query('#news-radio-selector-3');
+    const getNewsIntlLanguage = () => subject.query('#news-radio-selector-4');
 
     before(function () {
       subject.respondsWith({
@@ -138,6 +139,17 @@ describe('Fresh tab news UI', function () {
 
       it('has visible area with news', function () {
         chai.expect(subject.query(newsAreaSelector)).to.exist;
+      });
+
+      it('has all the expected selectors', function () {
+        chai.expect(getNewsDeLanguage()).to.exist;
+        chai.expect(getNewsDeTrEnLanguage()).to.exist;
+        chai.expect(getNewsFrLanguage()).to.exist;
+        chai.expect(getNewsIntlLanguage()).to.exist;
+      });
+
+      it('has no extra elements (selectors)', function () {
+        chai.expect(subject.queryAll('.radio')).to.have.lengthOf(4);
       });
     });
 
@@ -178,12 +190,31 @@ describe('Fresh tab news UI', function () {
       });
 
       it('has the German option selected', function () {
-        const newsDeLanguage = subject.query(newsDeLanguageSelector);
-        const newsFrLanguage = subject.query(newsFrLanguageSelector);
-        const newsIntlLanguage = subject.query(newsIntlLanguageSelector);
-        chai.expect(newsDeLanguage).to.have.property('checked', true);
-        chai.expect(newsFrLanguage).to.have.property('checked', false);
-        chai.expect(newsIntlLanguage).to.have.property('checked', false);
+        chai.expect(getNewsDeLanguage()).to.have.property('checked', true);
+        chai.expect(getNewsDeTrEnLanguage()).to.have.property('checked', false);
+        chai.expect(getNewsFrLanguage()).to.have.property('checked', false);
+        chai.expect(getNewsIntlLanguage()).to.have.property('checked', false);
+      });
+    });
+
+   describe('when set to use German sources translated into English', function () {
+      before(function () {
+        const configNewsDe = clone(defaultConfig);
+        configNewsDe.response.componentsState.news.visible = true;
+        configNewsDe.response.componentsState.news.preferedCountry = 'de-tr-en';
+        subject.respondsWith(configNewsDe);
+        return subject.load({ iframeWidth: 1025 });
+      });
+
+      after(function () {
+        subject.unload();
+      });
+
+      it('has the German option selected', function () {
+        chai.expect(getNewsDeLanguage()).to.have.property('checked', false);
+        chai.expect(getNewsDeTrEnLanguage()).to.have.property('checked', true);
+        chai.expect(getNewsFrLanguage()).to.have.property('checked', false);
+        chai.expect(getNewsIntlLanguage()).to.have.property('checked', false);
       });
     });
 
@@ -201,12 +232,10 @@ describe('Fresh tab news UI', function () {
       });
 
       it('has the French option selected', function () {
-        const newsDeLanguage = subject.query(newsDeLanguageSelector);
-        const newsFrLanguage = subject.query(newsFrLanguageSelector);
-        const newsIntlLanguage = subject.query(newsIntlLanguageSelector);
-        chai.expect(newsDeLanguage).to.have.property('checked', false);
-        chai.expect(newsFrLanguage).to.have.property('checked', true);
-        chai.expect(newsIntlLanguage).to.have.property('checked', false);
+        chai.expect(getNewsDeLanguage()).to.have.property('checked', false);
+        chai.expect(getNewsDeTrEnLanguage()).to.have.property('checked', false);
+        chai.expect(getNewsFrLanguage()).to.have.property('checked', true);
+        chai.expect(getNewsIntlLanguage()).to.have.property('checked', false);
       });
     });
 
@@ -224,12 +253,10 @@ describe('Fresh tab news UI', function () {
       });
 
       it('has the international option selected', function () {
-        const newsDeLanguage = subject.query(newsDeLanguageSelector);
-        const newsFrLanguage = subject.query(newsFrLanguageSelector);
-        const newsIntlLanguage = subject.query(newsIntlLanguageSelector);
-        chai.expect(newsDeLanguage).to.have.property('checked', false);
-        chai.expect(newsFrLanguage).to.have.property('checked', false);
-        chai.expect(newsIntlLanguage).to.have.property('checked', true);
+        chai.expect(getNewsDeLanguage()).to.have.property('checked', false);
+        chai.expect(getNewsDeTrEnLanguage()).to.have.property('checked', false);
+        chai.expect(getNewsFrLanguage()).to.have.property('checked', false);
+        chai.expect(getNewsIntlLanguage()).to.have.property('checked', true);
       });
     });
   });

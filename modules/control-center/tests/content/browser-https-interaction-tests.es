@@ -28,7 +28,7 @@ describe('Control Center: HTTPS Everywhere interaction browser', function () {
       return waitFor(
         () => subject.messages.find(message => message.message.action === 'updateState')
       ).then(
-        message => chai.expect(message).to.have.deep.property('message.data', 'active')
+        message => chai.expect(message).to.have.nested.property('message.data', 'active')
       );
     });
   };
@@ -56,9 +56,9 @@ describe('Control Center: HTTPS Everywhere interaction browser', function () {
           () => subject.messages.find(message => message.message.action === 'updatePref')
         ).then(
           message => {
-            chai.expect(message).to.have.deep.property('message.data.pref', 'extensions.https_everywhere.globalEnabled');
-            chai.expect(message).to.have.deep.property('message.data.value', false);
-            chai.expect(message).to.have.deep.property('message.data.target', 'https_switch');
+            chai.expect(message).to.have.nested.property('message.data.pref', 'extensions.https_everywhere.globalEnabled');
+            chai.expect(message).to.have.nested.property('message.data.value', false);
+            chai.expect(message).to.have.nested.property('message.data.target', 'https_switch');
           }
         );
       });
@@ -84,9 +84,9 @@ describe('Control Center: HTTPS Everywhere interaction browser', function () {
           () => subject.messages.find(message => message.message.action === 'updatePref')
         ).then(
           message => {
-            chai.expect(message).to.have.deep.property('message.data.pref', 'extensions.https_everywhere.globalEnabled');
-            chai.expect(message).to.have.deep.property('message.data.value', true);
-            chai.expect(message).to.have.deep.property('message.data.target', 'https_switch');
+            chai.expect(message).to.have.nested.property('message.data.pref', 'extensions.https_everywhere.globalEnabled');
+            chai.expect(message).to.have.nested.property('message.data.value', true);
+            chai.expect(message).to.have.nested.property('message.data.target', 'https_switch');
           }
         );
       });

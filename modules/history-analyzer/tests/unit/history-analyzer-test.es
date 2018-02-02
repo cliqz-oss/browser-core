@@ -121,13 +121,6 @@ export default describeModule('history-analyzer/history_handler',
         return Math.floor(Math.random());
       },
     },
-    // 'core/adblocker-base/filters-engine': {
-    //   processRawRequest: function(r) {
-    //     return r;
-    //   }
-    // },
-    // /////////////////////////////////////////////////////////////////////////
-    //
     'history-analyzer/logger': {
       default: {
         log: function(x) {console.log(x)},

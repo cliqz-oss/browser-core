@@ -99,7 +99,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
     function setupAttrackTestServer() {
       // Add static resources from cliqz@cliqz.com/firefox-tests/mockserver directory
       testServer.registerDirectory('/', ['firefox-tests', 'mockserver']);
-      testServer.registerDirectory('/bower_components/', ['bower_components']);
+      testServer.registerDirectory('/vendor/', ['vendor']);
       // add specific handler for /test which will collect request parameters for testing.
       testServer.registerPathHandler('/test', collect_request_parameters);
       testServer.registerPathHandler('/test.gif', collect_request_parameters);
@@ -383,7 +383,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                 'window_depth_1': 1,
                 'set_cookie_set': 1,
               },
-              '/bower_components/jquery/dist/jquery.js': {
+              '/vendor/jquery.min.js': {
                 'c': 1,
                 'type_2': 1,
                 'cookie_set': 1,
@@ -439,7 +439,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
                 'window_depth_2': 1,
                 'set_cookie_set': 1,
               },
-              '/bower_components/jquery/dist/jquery.js': {
+              '/vendor/jquery.min.js': {
                 'c': 1,
                 'type_2': 1,
                 'cookie_set': 1,
@@ -954,7 +954,7 @@ TESTS.CliqzAttrackIntegrationTest = function(CliqzUtils) {
         chai.expect(getAttrack().qs_whitelist.isSafeKey(url_hash, callback_hash)).to.be.false;
         chai.expect(getAttrack().qs_whitelist.isSafeKey(url_hash, uid_hash)).to.be.false;
 
-        return openTestPage(testpage).then(function () {
+        openTestPage(testpage).then(function () {
           expectNRequests(3).then(function(m) {
             // the condition should pass within 1s
             var ctr = 0;

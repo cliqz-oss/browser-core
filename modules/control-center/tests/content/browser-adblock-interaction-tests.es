@@ -28,7 +28,7 @@ describe("Control Center: Ad-Block interaction browser", function () {
       return waitFor(
         () => subject.messages.find(message => message.message.action === 'updateState')
       ).then(
-        message => chai.expect(message).to.have.deep.property('message.data', 'active')
+        message => chai.expect(message).to.have.nested.property('message.data', 'active')
       );
     });
   };
@@ -73,10 +73,10 @@ describe("Control Center: Ad-Block interaction browser", function () {
           () => subject.messages.find(message => message.message.action === 'adb-activator')
         ).then(
           message => {
-            chai.expect(message).to.have.deep.property('message.data.type', 'switch');
-            chai.expect(message).to.have.deep.property('message.data.state', 'off');
-            chai.expect(message).to.have.deep.property('message.data.status', 'off');
-            chai.expect(message).to.have.deep.property('message.data.url', dataOn.activeURL);
+            chai.expect(message).to.have.nested.property('message.data.type', 'switch');
+            chai.expect(message).to.have.nested.property('message.data.state', 'off');
+            chai.expect(message).to.have.nested.property('message.data.status', 'off');
+            chai.expect(message).to.have.nested.property('message.data.url', dataOn.activeURL);
           }
         );
       });
@@ -102,10 +102,10 @@ describe("Control Center: Ad-Block interaction browser", function () {
           () => subject.messages.find(message => message.message.action === "adb-activator")
         ).then(
           message => {
-            chai.expect(message).to.have.deep.property("message.data.type", "switch");
-            chai.expect(message).to.have.deep.property("message.data.state", "active");
-            chai.expect(message).to.have.deep.property("message.data.status", "active");
-            chai.expect(message).to.have.deep.property("message.data.url", dataOffPage.activeURL);
+            chai.expect(message).to.have.nested.property("message.data.type", "switch");
+            chai.expect(message).to.have.nested.property("message.data.state", "active");
+            chai.expect(message).to.have.nested.property("message.data.status", "active");
+            chai.expect(message).to.have.nested.property("message.data.url", dataOffPage.activeURL);
           }
         );
       });
@@ -129,10 +129,10 @@ describe("Control Center: Ad-Block interaction browser", function () {
             () => subject.messages.find(message => message.message.action === 'adb-activator')
           ).then(
             message => {
-             chai.expect(message).to.have.deep.property('message.data.type', 'off_select');
-             chai.expect(message).to.have.deep.property('message.data.state', 'off_domain');
-             chai.expect(message).to.have.deep.property('message.data.status', 'off');
-             chai.expect(message).to.have.deep.property('message.data.url', dataOffPage.activeURL);
+             chai.expect(message).to.have.nested.property('message.data.type', 'off_select');
+             chai.expect(message).to.have.nested.property('message.data.state', 'off_domain');
+             chai.expect(message).to.have.nested.property('message.data.status', 'off');
+             chai.expect(message).to.have.nested.property('message.data.url', dataOffPage.activeURL);
             }
           );
         });
@@ -148,10 +148,10 @@ describe("Control Center: Ad-Block interaction browser", function () {
             () => subject.messages.find(message => message.message.action === 'adb-activator')
           ).then(
             message => {
-             chai.expect(message).to.have.deep.property('message.data.type', 'off_select');
-             chai.expect(message).to.have.deep.property('message.data.state', 'off_all');
-             chai.expect(message).to.have.deep.property('message.data.status', 'off');
-             chai.expect(message).to.have.deep.property('message.data.url', dataOffPage.activeURL);
+             chai.expect(message).to.have.nested.property('message.data.type', 'off_select');
+             chai.expect(message).to.have.nested.property('message.data.state', 'off_all');
+             chai.expect(message).to.have.nested.property('message.data.status', 'off');
+             chai.expect(message).to.have.nested.property('message.data.url', dataOffPage.activeURL);
             }
           );
         });
@@ -178,10 +178,10 @@ describe("Control Center: Ad-Block interaction browser", function () {
           () => subject.messages.find(message => message.message.action === "adb-activator")
         ).then(
           message => {
-            chai.expect(message).to.have.deep.property("message.data.type", "switch");
-            chai.expect(message).to.have.deep.property("message.data.state", "active");
-            chai.expect(message).to.have.deep.property("message.data.status", "active");
-            chai.expect(message).to.have.deep.property("message.data.url", dataOffSite.activeURL);
+            chai.expect(message).to.have.nested.property("message.data.type", "switch");
+            chai.expect(message).to.have.nested.property("message.data.state", "active");
+            chai.expect(message).to.have.nested.property("message.data.status", "active");
+            chai.expect(message).to.have.nested.property("message.data.url", dataOffSite.activeURL);
           }
         );
       });
@@ -205,10 +205,10 @@ describe("Control Center: Ad-Block interaction browser", function () {
             () => subject.messages.find(message => message.message.action === 'adb-activator')
           ).then(
             message => {
-             chai.expect(message).to.have.deep.property('message.data.type', 'off_select');
-             chai.expect(message).to.have.deep.property('message.data.state', 'off_website');
-             chai.expect(message).to.have.deep.property('message.data.status', 'off');
-             chai.expect(message).to.have.deep.property('message.data.url', dataOffSite.activeURL);
+             chai.expect(message).to.have.nested.property('message.data.type', 'off_select');
+             chai.expect(message).to.have.nested.property('message.data.state', 'off_website');
+             chai.expect(message).to.have.nested.property('message.data.status', 'off');
+             chai.expect(message).to.have.nested.property('message.data.url', dataOffSite.activeURL);
             }
           );
         });
@@ -224,10 +224,10 @@ describe("Control Center: Ad-Block interaction browser", function () {
             () => subject.messages.find(message => message.message.action === 'adb-activator')
           ).then(
             message => {
-             chai.expect(message).to.have.deep.property('message.data.type', 'off_select');
-             chai.expect(message).to.have.deep.property('message.data.state', 'off_all');
-             chai.expect(message).to.have.deep.property('message.data.status', 'off');
-             chai.expect(message).to.have.deep.property('message.data.url', dataOffSite.activeURL);
+             chai.expect(message).to.have.nested.property('message.data.type', 'off_select');
+             chai.expect(message).to.have.nested.property('message.data.state', 'off_all');
+             chai.expect(message).to.have.nested.property('message.data.status', 'off');
+             chai.expect(message).to.have.nested.property('message.data.url', dataOffSite.activeURL);
             }
           );
         });
@@ -254,10 +254,10 @@ describe("Control Center: Ad-Block interaction browser", function () {
           () => subject.messages.find(message => message.message.action === "adb-activator")
         ).then(
           message => {
-            chai.expect(message).to.have.deep.property("message.data.type", "switch");
-            chai.expect(message).to.have.deep.property("message.data.state", "active");
-            chai.expect(message).to.have.deep.property("message.data.status", "active");
-            chai.expect(message).to.have.deep.property("message.data.url", dataOffAll.activeURL);
+            chai.expect(message).to.have.nested.property("message.data.type", "switch");
+            chai.expect(message).to.have.nested.property("message.data.state", "active");
+            chai.expect(message).to.have.nested.property("message.data.status", "active");
+            chai.expect(message).to.have.nested.property("message.data.url", dataOffAll.activeURL);
           }
         );
       });
@@ -281,10 +281,10 @@ describe("Control Center: Ad-Block interaction browser", function () {
             () => subject.messages.find(message => message.message.action === 'adb-activator')
           ).then(
             message => {
-             chai.expect(message).to.have.deep.property('message.data.type', 'off_select');
-             chai.expect(message).to.have.deep.property('message.data.state', 'off_website');
-             chai.expect(message).to.have.deep.property('message.data.status', 'off');
-             chai.expect(message).to.have.deep.property('message.data.url', dataOffAll.activeURL);
+             chai.expect(message).to.have.nested.property('message.data.type', 'off_select');
+             chai.expect(message).to.have.nested.property('message.data.state', 'off_website');
+             chai.expect(message).to.have.nested.property('message.data.status', 'off');
+             chai.expect(message).to.have.nested.property('message.data.url', dataOffAll.activeURL);
             }
           );
         });
@@ -300,10 +300,10 @@ describe("Control Center: Ad-Block interaction browser", function () {
             () => subject.messages.find(message => message.message.action === 'adb-activator')
           ).then(
             message => {
-             chai.expect(message).to.have.deep.property('message.data.type', 'off_select');
-             chai.expect(message).to.have.deep.property('message.data.state', 'off_domain');
-             chai.expect(message).to.have.deep.property('message.data.status', 'off');
-             chai.expect(message).to.have.deep.property('message.data.url', dataOffAll.activeURL);
+             chai.expect(message).to.have.nested.property('message.data.type', 'off_select');
+             chai.expect(message).to.have.nested.property('message.data.state', 'off_domain');
+             chai.expect(message).to.have.nested.property('message.data.status', 'off');
+             chai.expect(message).to.have.nested.property('message.data.url', dataOffAll.activeURL);
             }
           );
         });

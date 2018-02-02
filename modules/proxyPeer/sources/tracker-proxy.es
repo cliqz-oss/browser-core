@@ -6,6 +6,7 @@ import { CompositePolicy, TrackerWhitelistPolicy,
   BloomFilterWhitelistPolicy } from './proxy-policy';
 import ResourceLoader from '../core/resource-loader';
 import config from '../core/config';
+import { ifModuleEnabled } from '../core/kord/inject';
 
 
 const PROXY_INSECURE_CONNECTIONS_PREF = 'proxyInsecureConnections';
@@ -78,7 +79,6 @@ function getExitsUrl() {
 
 
 export default class TrackerProxy {
-
   constructor(antitracking, webRequestPipeline, p2p) {
     // Use a local socks proxy to be able to 'hack' the HTTP lifecycle
     // inside Firefox. This allows us to proxy some requests in a peer
@@ -164,17 +164,14 @@ export default class TrackerProxy {
     if (this.isProxyEnabled() && this.firefoxProxy === null) {
       // Inform Firefox to use our local proxy
       this.firefoxProxy = this.pps.newProxyInfo(
-        'socks',                            // aType = socks5
+        'socks', // aType = socks5
         this.proxyPeer.getSocksProxyHost(), // aHost
         this.proxyPeer.getSocksProxyPort(), // aPort
         Components.interfaces.nsIProxyInfo.TRANSPARENT_PROXY_RESOLVES_HOST,
-        5000,                               // aFailoverTimeout
-        null);                              // aFailoverProxy
+        5000, // aFailoverTimeout
+        null); // aFailoverProxy
 
-      // Filter used to determine which requests are to be proxied.
-      // Position 2 since 'unblock/sources/proxy.es' is in position 1
-      // and 'unblock/sources/request-listener.es' is in position 0.
-      this.pps.registerFilter(this, 2);
+      this.pps.registerFilter(this, 0);
     }
 
     // Depending on if we want to proxyAll or proxyTrackers, the step should be
@@ -233,17 +230,17 @@ export default class TrackerProxy {
 
     this.proxyWhitelistLoader.onUpdate(loadCallback);
     return this.proxyWhitelistLoader.load().then(loadCallback)
-    .then(() => (
-      this.antitracking.action('getWhitelist').then((qsWhitelist) => {
-        const trackerWhitelist = new TrackerWhitelistPolicy(qsWhitelist);
-        // trackers are always proxied; public others must be in the first party whitelist
-        this.proxyPolicy.setOverridePolicy(trackerWhitelist);
-        this.proxyPolicy.setRequiredPolicy(firstPartyWhitelist);
-        // the exit policy is trackers or popular domains
-        this.exitPolicy.addWhitelistPolicy(trackerWhitelist);
-        this.exitPolicy.addWhitelistPolicy(firstPartyWhitelist);
-      })
-    ));
+      .then(() => (
+        this.antitracking.action('getWhitelist').then((qsWhitelist) => {
+          const trackerWhitelist = new TrackerWhitelistPolicy(qsWhitelist);
+          // trackers are always proxied; public others must be in the first party whitelist
+          this.proxyPolicy.setOverridePolicy(trackerWhitelist);
+          this.proxyPolicy.setRequiredPolicy(firstPartyWhitelist);
+          // the exit policy is trackers or popular domains
+          this.exitPolicy.addWhitelistPolicy(trackerWhitelist);
+          this.exitPolicy.addWhitelistPolicy(firstPartyWhitelist);
+        })
+      ));
   }
 
   unloadProxy() {
@@ -254,8 +251,8 @@ export default class TrackerProxy {
 
     // If steps were not present in the pipeline, this will just be ignored
     return Promise.all([
-      this.webRequestPipeline.action('removePipelineStep', 'onBeforeRequest', 'checkShouldProxyTrackers'),
-      this.webRequestPipeline.action('removePipelineStep', 'onBeforeRequest', 'checkShouldProxyAll'),
+      ifModuleEnabled(this.webRequestPipeline.action('removePipelineStep', 'onBeforeRequest', 'checkShouldProxyTrackers')),
+      ifModuleEnabled(this.webRequestPipeline.action('removePipelineStep', 'onBeforeRequest', 'checkShouldProxyAll')),
     ]).catch(() => {}); // This should not fail
   }
 

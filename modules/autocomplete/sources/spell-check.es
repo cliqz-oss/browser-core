@@ -100,4 +100,8 @@ export default class SpellCheck {
 
       this.state.userConfirmed = true;
     }
+
+    unload() {
+      this.spellCorrectionDict = {};
+    }
 }

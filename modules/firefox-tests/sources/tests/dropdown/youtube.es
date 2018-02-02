@@ -1,29 +1,34 @@
-/* global it, respondWith, fillIn, waitForPopup,
-  $cliqzResults */
 /* eslint func-names: ['error', 'never'] */
 /* eslint prefer-arrow-callback: 'off' */
 /* eslint no-unused-expressions: 'off' */
-/* eslint no-undef: 'off'*/
 
+import {
+  $cliqzResults,
+  expect,
+  fillIn,
+  respondWith,
+  waitForPopup,
+  withHistory } from './helpers';
 import results from './fixtures/resultsYoutube';
 
 export default function () {
   context('for a Youtube rich header', function () {
     const youtubeChildrenSelector = 'div.videos a.result';
-    let resultElement;
+    let $resultElement;
     let youtubeChildrenItems;
 
     before(function () {
       respondWith({ results });
+      withHistory([]);
       fillIn('youtube');
       return waitForPopup().then(function () {
-        resultElement = $cliqzResults().find(`a.result[href='${results[0].url}']`)[0].parentNode;
-        youtubeChildrenItems = resultElement.querySelectorAll(youtubeChildrenSelector);
+        $resultElement = $cliqzResults().find(`a.result[href='${results[0].url}']`)[0].parentNode;
+        youtubeChildrenItems = $resultElement.querySelectorAll(youtubeChildrenSelector);
       });
     });
 
     it('renders rich header result successfully', function () {
-      chai.expect(resultElement).to.exist;
+      expect($resultElement).to.exist;
     });
 
     describe('renders parent element', function () {
@@ -31,46 +36,46 @@ export default function () {
       let youtubeParentItem;
 
       before(function () {
-        youtubeParentItem = resultElement.querySelector(youtubeParentSelector);
+        youtubeParentItem = $resultElement.querySelector(youtubeParentSelector);
       });
 
       it('successfully', function () {
-        chai.expect(youtubeParentItem).to.exist;
+        expect(youtubeParentItem).to.exist;
       });
 
       it('with existing and correct title', function () {
         const youtubeParentTitleSelector = 'div.abstract span.title';
         const youtubeParentTitleItem = youtubeParentItem.querySelector(youtubeParentTitleSelector);
-        chai.expect(youtubeParentTitleItem).to.exist;
-        chai.expect(youtubeParentTitleItem).to.have.text(results[0].snippet.title);
+        expect(youtubeParentTitleItem).to.exist;
+        expect(youtubeParentTitleItem).to.have.text(results[0].snippet.title);
       });
 
       it('with existing and correct domain', function () {
         const youtubeParentTitleSelector = 'div.abstract span.url';
         const youtubeParentTitleItem = youtubeParentItem.querySelector(youtubeParentTitleSelector);
-        chai.expect(youtubeParentTitleItem).to.exist;
-        chai.expect(youtubeParentTitleItem).to.contain.text(results[0].snippet.friendlyUrl);
+        expect(youtubeParentTitleItem).to.exist;
+        expect(youtubeParentTitleItem).to.contain.text(results[0].snippet.friendlyUrl);
       });
 
       it('with existing logo', function () {
         const youtubeParentLogoSelector = 'div.icons span.logo';
         const youtubeParentLogoItem = youtubeParentItem.querySelector(youtubeParentLogoSelector);
-        chai.expect(youtubeParentLogoItem).to.exist;
+        expect(youtubeParentLogoItem).to.exist;
       });
 
       it('with a correct link', function () {
-        chai.expect(youtubeParentItem.href).to.equal(results[0].url);
+        expect(youtubeParentItem.href).to.equal(results[0].url);
       });
 
       it('with existing and correct description', function () {
         const youtubeParentDescSelector = 'div.abstract span.description';
         const youtubeParentDescItem = youtubeParentItem.querySelector(youtubeParentDescSelector);
-        chai.expect(youtubeParentDescItem).to.exist;
-        chai.expect(youtubeParentDescItem).to.have.text(results[0].snippet.description);
+        expect(youtubeParentDescItem).to.exist;
+        expect(youtubeParentDescItem).to.have.text(results[0].snippet.description);
       });
 
       it('with 3 children', function () {
-        chai.expect(youtubeChildrenItems.length).to.equal(3);
+        expect(youtubeChildrenItems.length).to.equal(3);
       });
     });
 
@@ -81,8 +86,8 @@ export default function () {
         if (youtubeChildrenItems.length > 0) {
           [...youtubeChildrenItems].forEach(function (child, i) {
             const youtubeChildImageItems = child.querySelector(youtubeChildImageSelector);
-            chai.expect(youtubeChildImageItems).to.exist;
-            chai.expect(youtubeChildImageItems.src)
+            expect(youtubeChildImageItems).to.exist;
+            expect(youtubeChildImageItems.src)
               .to.equal(results[0].snippet.deepResults[0].links[i].extra.thumbnail);
           });
         } else {
@@ -96,7 +101,7 @@ export default function () {
         if (youtubeChildrenItems.length > 0) {
           [...youtubeChildrenItems].forEach(function (child) {
             const youtubeChildDurationItems = child.querySelector(youtubeChildDurationSelector);
-            chai.expect(youtubeChildDurationItems).to.exist;
+            expect(youtubeChildDurationItems).to.exist;
           });
         } else {
           throw new Error('Youtube results have been generated without children elements.');
@@ -109,8 +114,8 @@ export default function () {
         if (youtubeChildrenItems.length > 0) {
           [...youtubeChildrenItems].forEach(function (child, i) {
             const youtubeChildTitleItems = child.querySelector(youtubeChildTitleSelector);
-            chai.expect(youtubeChildTitleItems).to.exist;
-            chai.expect(youtubeChildTitleItems)
+            expect(youtubeChildTitleItems).to.exist;
+            expect(youtubeChildTitleItems)
               .to.have.text(results[0].snippet.deepResults[0].links[i].title);
           });
         } else {
@@ -124,8 +129,8 @@ export default function () {
         if (youtubeChildrenItems.length > 0) {
           [...youtubeChildrenItems].forEach(function (child, i) {
             const youtubeChildCountItems = child.querySelector(youtubeChildCountSelector);
-            chai.expect(youtubeChildCountItems).to.exist;
-            chai.expect(youtubeChildCountItems)
+            expect(youtubeChildCountItems).to.exist;
+            expect(youtubeChildCountItems)
               .to.contain.text(results[0].snippet.deepResults[0].links[i].extra.views);
           });
         } else {
@@ -136,8 +141,8 @@ export default function () {
       it('with existing and correct links', function () {
         if (youtubeChildrenItems.length > 0) {
           [...youtubeChildrenItems].forEach(function (child, i) {
-            chai.expect(child.href).to.exist;
-            chai.expect(child.href)
+            expect(child.href).to.exist;
+            expect(child.href)
               .to.contain(results[0].snippet.deepResults[0].links[i].url);
           });
         } else {
@@ -152,19 +157,19 @@ export default function () {
       let amountOfButtonsInResults;
 
       before(function () {
-        buttonsItems = resultElement.querySelectorAll(buttonSelector);
+        buttonsItems = $resultElement.querySelectorAll(buttonSelector);
         amountOfButtonsInResults = buttonsItems.length;
       });
 
       it('in correct amount', function () {
         const amountOfButtonsFromData = results[0].snippet.deepResults[1].links.length;
-        chai.expect(amountOfButtonsInResults).to.equal(amountOfButtonsFromData);
+        expect(amountOfButtonsInResults).to.equal(amountOfButtonsFromData);
       });
 
       it('with correct text', function () {
         if (amountOfButtonsInResults > 0) {
           [...buttonsItems].forEach(function (button, i) {
-            chai.expect(button).to.contain.text(results[0].snippet.deepResults[1].links[i].title);
+            expect(button).to.contain.text(results[0].snippet.deepResults[1].links[i].title);
           });
         } else {
           throw new Error('Youtube results have been generated without buttons.');
@@ -174,7 +179,7 @@ export default function () {
       it('with correct links', function () {
         if (amountOfButtonsInResults > 0) {
           [...buttonsItems].forEach(function (button, i) {
-            chai.expect(button.href)
+            expect(button.href)
               .to.contain(results[0].snippet.deepResults[1].links[i].url);
           });
         } else {

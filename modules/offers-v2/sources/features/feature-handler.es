@@ -42,5 +42,4 @@ export default class FeatureHandler {
   dumpFeaturesData() {
     logger.info('Features data: ', this.features);
   }
-
 }

@@ -3,7 +3,6 @@ import utils from '../core/utils';
 const defaultTPace = 10 * 1000;
 
 class Pacemaker {
-
   constructor(tpace, twait) {
     this.tpace = tpace || defaultTPace;
     this.twait = (new Date()).getTime() + (twait || 0);

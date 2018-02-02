@@ -1,6 +1,0 @@
-{
-  "transpile": true,
-  "bower_components": [
-    "mathjs/dist/math.min.js"
-  ]
-}

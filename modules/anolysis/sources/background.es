@@ -4,7 +4,6 @@ import background from '../core/base/background';
 import { utils } from '../core/cliqz';
 import events from '../core/events';
 
-
 import telemetrySchemas from './telemetry-schemas';
 import Anolysis from './anolysis';
 import getSynchronizedDate from './synchronized-date';
@@ -26,7 +25,7 @@ const LATEST_VERSION_USED_PREF = 'anolysisVersion';
  * only signal when the state of the client should be reset, which is a
  * temporary thing.
  */
-const VERSION = 2;
+const VERSION = 4;
 
 
 function versionWasUpdated() {
@@ -54,7 +53,9 @@ function instantiateAnolysis(settings) {
   // Check if we should reset
   if (versionWasUpdated()) {
     logger.log('reset anolysis state because of update');
-    return anolysis.reset()
+    return anolysis.storage.init()
+      .then(() => anolysis.reset())
+      .then(() => anolysis.storage.unload())
       .then(() => anolysis.unload())
       .then(() => storeNewVersionInPrefs())
       .then(() => new Anolysis(settings));
@@ -122,6 +123,7 @@ export default background({
           // TODO - send ping_anolysis signal with legacy telemetry system
           // This is only meant for testing purposes and will be remove in
           // the future.
+          logger.error('Exception while init anolysis', ex);
           utils.telemetry({
             type: 'anolysis.start_exception',
             exception: `${ex}`,
@@ -152,9 +154,20 @@ export default background({
 
       return this.actions.registerSchemas(telemetrySchemas)
         .then(() => this.anolysis.init())
+        .then(() => { this.isRunning = true; })
         .then(() => {
-          this.isRunning = true;
-          events.pub('anolysis:initialized');
+          // 1. Trigger sending of retention signals if needed
+          // This can be done as soon as possible, the first time
+          // the user starts the browser, at most once a day.
+          //
+          // 2. Then we check previous days (30 days max) to aggregate and send
+          // telemetry if the user was not active. This task is async and will try to
+          // not overload the browser.
+          this.anolysis.sendRetentionSignals()
+            .then(() => {
+              logger.log('Generate aggregated signals');
+              return this.anolysis.generateAnalysesSignalsFromAggregation();
+            });
         });
     });
   },
@@ -207,7 +220,9 @@ export default background({
       if (!this.isRunning) return;
 
       // No telemetry in private windows
-      if (data.type !== 'environment' && utils.isPrivate()) return;
+      if (data.type !== 'environment' && utils.isPrivateMode()) {
+        return;
+      }
 
       this.actions.handleTelemetrySignal(data);
     },
@@ -233,18 +248,11 @@ export default background({
         .then(() => this.anolysis.registerSchemas(schemas));
     },
 
-    handleTelemetrySignal(signal, schemaName) {
+    handleTelemetrySignal(...args) {
       if (!this.anolysis) {
         return Promise.resolve();
       }
-      return this.anolysis.handleTelemetrySignal(signal, schemaName);
-    },
-
-    getCurrentDemographics() {
-      if (!this.anolysis) {
-        return null;
-      }
-      return this.anolysis.gidManager.getCurrentDemographics();
+      return this.anolysis.handleTelemetrySignal(...args);
     },
   },
 });

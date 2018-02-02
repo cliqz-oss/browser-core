@@ -5,6 +5,7 @@ import events from '../core/events';
 import getGeo from "../core/geolocation";
 import inject from "../core/kord/inject";
 import config from '../core/config';
+import Defer from '../core/app/defer';
 
 // If the computer wakes up from a sleep that was longer than this many milliseconds, we update geolocation.
 const GEOLOCATION_UPDATE_MIN_WAIT = 3600 * 1000;
@@ -29,6 +30,8 @@ export default background({
   */
   init(settings) {
     utils.updateGeoLocation = this.actions.updateGeoLocation;
+
+    this.cancelUpdate = new Defer();
 
     this.sleepObserver = new TopicForwarder(
       events,
@@ -132,7 +135,10 @@ export default background({
         target: 'geolocation',
         is_success: undefined,
       };
-      return getGeo()
+      return Promise.race([
+          getGeo(),
+          this.cancelUpdate.promise
+        ])
         .then((position) => {
           telemetryEvent.is_success = true;
           utils.telemetry(telemetryEvent);
@@ -142,6 +148,9 @@ export default background({
           };
         })
         .catch((error) => {
+          if (error.canceled) {
+            telemetryEvent.is_canceled = true;
+          }
           telemetryEvent.is_success = false;
           utils.telemetry(telemetryEvent);
           return Promise.reject(error);
@@ -172,6 +181,10 @@ export default background({
     },
 
     resetGeoLocation() {
+      this.cancelUpdate.reject({
+        canceled: true,
+      });
+      this.cancelUpdate = new Defer();
       utils.USER_LAT = null;
       utils.USER_LNG = null;
     },

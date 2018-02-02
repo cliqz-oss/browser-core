@@ -112,10 +112,10 @@ describe('Control Center: History options browser', function () {
           () => subject.messages.find(message => message.message.action === "updatePref")
         ).then(
           message => {
-            chai.expect(message).to.have.deep.property("message.data.pref", "browser.privatebrowsing.apt");
-            chai.expect(message).to.have.deep.property("message.data.value", "true");
-            chai.expect(message).to.have.deep.property("message.data.target", "history_autoforget");
-            chai.expect(message).to.have.deep.property("message.data.prefType", "boolean");
+            chai.expect(message).to.have.nested.property("message.data.pref", "browser.privatebrowsing.apt");
+            chai.expect(message).to.have.nested.property("message.data.value", "true");
+            chai.expect(message).to.have.nested.property("message.data.target", "history_autoforget");
+            chai.expect(message).to.have.nested.property("message.data.prefType", "boolean");
           }
         );
       });
@@ -159,10 +159,10 @@ describe('Control Center: History options browser', function () {
           () => subject.messages.find(message => message.message.action === "updatePref")
         ).then(
           message => {
-            chai.expect(message).to.have.deep.property("message.data.pref", "browser.privatebrowsing.apt");
-            chai.expect(message).to.have.deep.property("message.data.value", "false");
-            chai.expect(message).to.have.deep.property("message.data.target", "history_autoforget");
-            chai.expect(message).to.have.deep.property("message.data.prefType", "boolean");
+            chai.expect(message).to.have.nested.property("message.data.pref", "browser.privatebrowsing.apt");
+            chai.expect(message).to.have.nested.property("message.data.value", "false");
+            chai.expect(message).to.have.nested.property("message.data.target", "history_autoforget");
+            chai.expect(message).to.have.nested.property("message.data.prefType", "boolean");
           }
         );
       });

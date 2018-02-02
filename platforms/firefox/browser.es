@@ -35,7 +35,11 @@ export class Window {
 
   static findByTabId(tabId) {
     const windows = mapWindows(w => new Window(w));
-    return windows.find(w => w.window.gBrowser.selectedBrowser.outerWindowID === tabId);
+    return windows.find(w =>
+      // In some cases `w.window.gBrowser.selectedBrowser` is undefined.
+      w.window.gBrowser.selectedBrowser !== undefined &&
+      w.window.gBrowser.selectedBrowser.outerWindowID === tabId
+    );
   }
 }
 
@@ -70,7 +74,7 @@ export function isTabURL(url) {
 
 export function getBrowserMajorVersion() {
   const appInfo = Components.classes['@mozilla.org/xre/app-info;1']
-                  .getService(Components.interfaces.nsIXULAppInfo);
+    .getService(Components.interfaces.nsIXULAppInfo);
   return parseInt(appInfo.version.split('.')[0], 10);
 }
 
@@ -79,7 +83,7 @@ export function getBrowserMajorVersion() {
  */
 export function isWindowActive(windowID) {
   const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
-      .getService(Components.interfaces.nsIWindowMediator);
+    .getService(Components.interfaces.nsIWindowMediator);
   const browserEnumerator = wm.getEnumerator('navigator:browser');
 
   // the windowID should be an integer
@@ -154,7 +158,7 @@ export function setInstallDatePref(date) {
 
 export function setOurOwnPrefs() {
   if (prefs.has('unifiedcomplete', 'browser.urlbar.') && prefs.get('unifiedcomplete', false)) {
-    prefs.set('unifiedcomplete', true); //backup
+    prefs.set('unifiedcomplete', true); // backup
     prefs.set('unifiedcomplete', false, 'browser.urlbar.');
   }
 
@@ -184,6 +188,16 @@ export function setOurOwnPrefs() {
     prefs.set('humanWebOptOut', prefs.get('dnt'));
     prefs.clear('dnt');
   }
+
+  // Firefox merges search resuls with results from previous search by default
+  // (INSERTMETHOD.MERGE_RELATED at UnifiedComplete.js).
+  // It break Cliq's search in different ways, so we change it to INSERTMETHOD.APPEND
+  const insertMethod = prefs.get('insertMethod', -1, 'browser.urlbar.');
+  if (insertMethod === -1 || insertMethod > 0) {
+    // change it to INSERTMETHOD.APPEND
+    prefs.set('insertMethod', 0, 'browser.urlbar.');
+    prefs.set('backup.browser.urlbar.insertMethod', insertMethod);
+  }
 }
 
 /** Reset changed prefs on uninstall */
@@ -201,6 +215,16 @@ export function resetOriginalPrefs() {
   if (prefs.has('backup.browser.urlbar.suggest.searches')) {
     prefs.clear('backup.browser.urlbar.suggest.searches');
     prefs.clear('suggest.searches', 'browser.urlbar.');
+  }
+
+  if (prefs.has('backup.browser.urlbar.insertMethod')) {
+    const insertMethod = prefs.get('backup.browser.urlbar.insertMethod', -1);
+    if (insertMethod === -1) {
+      prefs.clear('insertMethod', 'browser.urlbar.');
+    } else {
+      prefs.set('insertMethod', insertMethod, 'browser.urlbar.');
+    }
+    prefs.clear('backup.browser.urlbar.insertMethod');
   }
 }
 
@@ -294,7 +318,7 @@ export function getActiveTab(w) {
   let window = w;
   if (!w) {
     const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
-        .getService(Components.interfaces.nsIWindowMediator);
+      .getService(Components.interfaces.nsIWindowMediator);
     window = wm.getMostRecentWindow('navigator:browser');
     if (!window) {
       return Promise.reject('No open window available');

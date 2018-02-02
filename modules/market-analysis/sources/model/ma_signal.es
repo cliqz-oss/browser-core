@@ -17,28 +17,28 @@ const MAMetrics = {
   //------------------------------------------------------------
   // per user metrics
   //------------------------------------------------------------
-  U_VISITOR:    'uVisitor',    // unique visitor
+  U_VISITOR:    'uVisitor', // unique visitor
   U_REGISTRANT: 'uRegistrant', // unique registrant
-  U_SHOPPER:    'uShopper',    // unique shopper
-  U_POT_BUYER:  'uPotBuyer',   // unique potential buyer
-  U_BUYER:      'uBuyer',      // unique buyer
+  U_SHOPPER:    'uShopper', // unique shopper
+  U_POT_BUYER:  'uPotBuyer', // unique potential buyer
+  U_BUYER:      'uBuyer', // unique buyer
 
-  U_IMP:        'uImp',        // (unique visitor) deprecated, use U_VISITOR
-  CR1_IMP:      'cr1Imp',      // deprecated, to be removed
-  CR1_U_IMP:    'cr1UImp',     // (unique shopper) deprecated, use U_SHOPPER
-  CR2_IMP:      'cr2Imp',      // deprecated, to be removed
-  CR2_U_IMP:    'cr2UImp',     // (unique potential buyer) deprecated, use U_POT_BUYER
+  U_IMP:        'uImp', // (unique visitor) deprecated, use U_VISITOR
+  CR1_IMP:      'cr1Imp', // deprecated, to be removed
+  CR1_U_IMP:    'cr1UImp', // (unique shopper) deprecated, use U_SHOPPER
+  CR2_IMP:      'cr2Imp', // deprecated, to be removed
+  CR2_U_IMP:    'cr2UImp', // (unique potential buyer) deprecated, use U_POT_BUYER
 
   //------------------------------------------------------------
   // per activity metrics
   // based on session: x-seconds inactivity on a particular domain, or browser is closed
   //------------------------------------------------------------
-  IMP:          'imp',         // an impression (5-second-session)
-  VISIT:        'v',           // a visit is at least an impression in 30-minute-session
-  REGISTRATION: 'reg',         // a registration (30-minute-session)
-  SHOPPING:     'sho',         // a shopping action (add item to basket, visit "my basket" page, ...) (5-minute-session)
-  CHECKOUT:     'chk',         // a checkout action (payment, coupons, shipping, ... pages) (30-minute-session)
-  TRANSACTION:  'tra',         // a successful transaction (30-minute-session)
+  IMP:          'imp', // an impression (5-second-session)
+  VISIT:        'v', // a visit is at least an impression in 30-minute-session
+  REGISTRATION: 'reg', // a registration (30-minute-session)
+  SHOPPING:     'sho', // a shopping action (add item to basket, visit "my basket" page, ...) (5-minute-session)
+  CHECKOUT:     'chk', // a checkout action (payment, coupons, shipping, ... pages) (30-minute-session)
+  TRANSACTION:  'tra', // a successful transaction (30-minute-session)
 };
 
 /**

@@ -1,30 +1,13 @@
-@function url-prefix($url){
+@function url-prefix($url) {
   @return url("chrome://cliqz/content/" + $url)
 }
 
-#customizationui-widget-multiview panelview#PanelUI-webext-offers-cc-browser-action-view {
-    max-width: 100% !important;
+panelview#PanelUI-webext-offers-cc-browser-action-view {
+    max-width: 550px !important; // TODO: change this to 250px in the new reward box
+    min-width: 10px !important; // To make sure that we can make our tooltip small enough
 }
 
-#nav-bar .cliqz-control-center {
-    min-width: 55px;
-    color: black;
-    background-position: 4px 5px;
-}
-
-#PanelUI-popup #PanelUI-multiView #PanelUI-webext-offers-cc-browser-action-view, // TODO @mai do we need this?
-panel[viewId="PanelUI-webext-offers-cc-browser-action-view"] .panel-mainview {
-    max-width: 50em !important;
-}
-
-#pageActionPanel panelview#PanelUI-webext-offers-cc-browser-action-view,
-#widget-overflow panelview#PanelUI-webext-offers-cc-browser-action-view {
-    max-width: 550px;
-}
-
-#cliqz-offers-cc-btn {
-    padding: 0px;
-}
+// Force the badge to be a red dot
 #offers-cc-browser-action {
     &[state="new-offers"] {
         .toolbarbutton-badge {
@@ -38,13 +21,4 @@ panel[viewId="PanelUI-webext-offers-cc-browser-action-view"] .panel-mainview {
             margin-inline-end: -4px !important;
         }
     }
-}
-
-#customizationui-widget-panel[viewId="cliqz-offers-cc-btn-panel"] .panel-arrowcontent {
-    padding: 0;
-}
-
-/* FORCE THE POPUP'S TOP ARROW TO BE BLUE */
-panel[viewId="PanelUI-webext-offers-cc-browser-action-view"] .panel-arrowcontainer .panel-arrow {
-    list-style-image: var(--panel-arrow-image-vertical, url-prefix("offers-cc/images/panelarrow-vertical.png"));
 }

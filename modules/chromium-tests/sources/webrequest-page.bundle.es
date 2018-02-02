@@ -72,7 +72,7 @@ describe('WebRequest example pages', function() {
   function setupAttrackTestServer() {
     // Add static resources from cliqz@cliqz.com/firefox-tests/mockserver directory
     testServer.registerDirectory('/static', ['modules/firefox-tests/dist/mockserver']);
-    testServer.registerDirectory('/bower_components/', ['bower_components']);
+    testServer.registerDirectory('/node_modules/', ['node_modules']);
     // add specific handler for /test which will collect request parameters for testing.
     testServer.registerPathHandler('/test', collect_request_parameters);
     testServer.registerPathHandler('/test.gif', collect_request_parameters);
@@ -238,7 +238,7 @@ describe('WebRequest example pages', function() {
         testInMainFrame(r, topic, md, 11);
         testResponseCode(r, topic);
       },
-      'http://localhost:60508/bower_components/jquery/dist/jquery.js': function(r, topic, md) {
+      'http://localhost:60508/node_modules/jquery/dist/jquery.js': function(r, topic, md) {
         testInMainFrame(r, topic, md, 2);
         testResponseCode(r, topic);
       }
@@ -261,11 +261,11 @@ describe('WebRequest example pages', function() {
         testInIFrame(r, topic, md, 11);
         testResponseCode(r, topic);
       },
-      'http://localhost:60508/bower_components/jquery/dist/jquery.js': function(r, topic, md) {
+      'http://localhost:60508/node_modules/jquery/dist/jquery.js': function(r, topic, md) {
         testInMainFrame(r, topic, md, 2);
         testResponseCode(r, topic);
       },
-      'http://127.0.0.1:60508/bower_components/jquery/dist/jquery.js': function(r, topic, md) {
+      'http://127.0.0.1:60508/node_modules/jquery/dist/jquery.js': function(r, topic, md) {
         testInIFrame(r, topic, md, 2);
         testResponseCode(r, topic);
       }
@@ -295,7 +295,7 @@ describe('WebRequest example pages', function() {
         testMainDocument(r, topic, md);
         testResponseCode(r, topic);
       },
-      'http://localhost:60508/bower_components/jquery/dist/jquery.js': function(r, topic, md) {
+      'http://localhost:60508/node_modules/jquery/dist/jquery.js': function(r, topic, md) {
         testInMainFrame(r, topic, md, 2);
         testResponseCode(r, topic);
       },
@@ -307,7 +307,7 @@ describe('WebRequest example pages', function() {
         testIFrameDocument(r, topic, md);
         testResponseCode(r, topic);
       },
-      'http://cliqztest.de:60508/bower_components/jquery/dist/jquery.js': function(r, topic, md) {
+      'http://cliqztest.de:60508/node_modules/jquery/dist/jquery.js': function(r, topic, md) {
         testInIFrame(r, topic, md, 2);
         testResponseCode(r, topic);
       },
@@ -328,7 +328,7 @@ describe('WebRequest example pages', function() {
         chai.expect(r.source).to.equal(md.url);
         testResponseCode(r, topic);
       },
-      'http://127.0.0.1:60508/bower_components/jquery/dist/jquery.js': function(r, topic, md) {
+      'http://127.0.0.1:60508/node_modules/jquery/dist/jquery.js': function(r, topic, md) {
         // tabId == top level tab; parentFrameId == outer iframe; frameId == this iframe
         chai.expect(r.tabId).to.equal(md.tabId);
         chai.expect(r.parentFrameId).to.equal(md.iframeid);

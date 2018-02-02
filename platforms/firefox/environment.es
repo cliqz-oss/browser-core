@@ -140,7 +140,11 @@ var CLIQZEnvironment = {
      * @return whether |win|'s current tab is in private mode.
      */
     isOnPrivateTab: function(win) {
-      return win.gBrowser.selectedBrowser.loadContext.usePrivateBrowsing;
+      return (
+        win &&
+        win.gBrowser.selectedBrowser !== undefined &&
+        win.gBrowser.selectedBrowser.loadContext.usePrivateBrowsing
+      );
     },
 
     getWindow: function(){
@@ -220,7 +224,10 @@ var CLIQZEnvironment = {
       }
 
       return function(msg, instantPush) {
-        if(msg.type != 'environment' && CLIQZEnvironment.isPrivate()) return; // no telemetry in private windows
+        // no telemetry in private windows & tabs
+        if (msg.type !== 'environment' && utils.isPrivateMode()) {
+          return;
+        }
 
         console.log(msg, 'Utils.telemetry');
         if(!prefs.get('telemetry', true))return;

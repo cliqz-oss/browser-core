@@ -55,6 +55,6 @@ export default function update(query, richHeader, cliqz$, config) {
       .withLatestFrom(cliqz$)
       .map(merge),
   )
-  .map(removeEmptyResults)
-  .share();
+    .map(removeEmptyResults)
+    .share();
 }

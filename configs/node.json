@@ -2,12 +2,37 @@
   "platform": "node",
   "brocfile": "node.Brocfile.js",
   "format": "common",
+  "baseURL": "chrome://",
+  "testsBasePath": "./build",
+  "testem_launchers": ["unit-node"],
+  "testem_launchers_ci": ["unit-node"],
   "settings": {
+    "antitrackingButton": false,
+    "ATTRACK_TELEMETRY_PROVIDER": "platform",
+    "channel": "node",
+    "RESULTS_PROVIDER": "https://api.cliqz.com/api/v2/results?q=",
+    "RICH_HEADER": "https://api.cliqz.com/api/v2/rich-header?path=/v2/map",
+    "RESULTS_LIMIT": 3,
+    "RESULTS_TIMEOUT": 3000,
+    "CONFIG_PROVIDER": "https://api.cliqz.com/api/v1/config",
+    "CDN_BASEURL": "https://cdn.cliqz.com"
   },
   "default_prefs" : {
+    "attrackBloomFilter": true,
+    "cliqz-adb-disk-cache": false,
+    "cliqz-adb-abtest": true,
+    "showConsoleLogs": true,
+    "cliqz-adb": 1,
+    "modules.antitracking.enabled": true,
+    "modules.antitracking-blocker.enabled": false,
+    "modules.adblocker.enabled": true
   },
   "modules": [
     "core",
-    "search"
-  ]
+    "webrequest-pipeline",
+    "antitracking",
+    "antitracking-blocker",
+    "adblocker"
+  ],
+  "bundles": []
 }

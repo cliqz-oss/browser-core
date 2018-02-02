@@ -1,26 +1,34 @@
-/* global it, chai, respondWith, fillIn, waitForPopup,
-          $cliqzResults, withHistory, CliqzUtils, window */
+/* global window */
 /* eslint func-names: ['error', 'never'] */
 /* eslint prefer-arrow-callback: 'off' */
 /* eslint no-unused-expressions: 'off' */
 
+import {
+  $cliqzResults,
+  CliqzUtils,
+  expect,
+  fillIn,
+  respondWith,
+  waitForPopup,
+  withHistory } from './helpers';
 import results from './fixtures/resultsBigMachineWithButtons';
 import historyResults from './fixtures/historyResultsHistoryAndNews';
 
 export default function ({ hasHistoryUrl }) {
   context('for a history and news rich header', function () {
     const historyResultsSelector = '.history a.result:not(.sessions)';
-    let resultElement;
+    let $resultElement;
     let historyItems;
     let historyIndex;
 
     before(function () {
+      window.preventRestarts = true;
       respondWith({ results });
       withHistory(historyResults);
       fillIn('cliqz');
       return waitForPopup().then(function () {
-        resultElement = $cliqzResults()[0];
-        historyItems = resultElement.querySelectorAll(historyResultsSelector);
+        $resultElement = $cliqzResults()[0];
+        historyItems = $resultElement.querySelectorAll(historyResultsSelector);
       });
     });
 
@@ -28,19 +36,23 @@ export default function ({ hasHistoryUrl }) {
       historyIndex = historyItems.length;
     });
 
+    after(function () {
+      window.preventRestarts = false;
+    });
+
     describe('renders history results', function () {
       it('successfully', function () {
-        chai.expect(historyItems).to.not.be.empty;
+        expect(historyItems).to.not.be.empty;
       });
 
       it('in correct amount', function () {
-        chai.expect(historyItems.length).to.equal(historyResults.length);
+        expect(historyItems.length).to.equal(historyResults.length);
       });
 
       it('with an option to search in all history results', function () {
         const historySearchSelector = '.history.last';
-        const historySearchItem = resultElement.querySelectorAll(historySearchSelector);
-        chai.expect(historySearchItem).to.exist;
+        const historySearchItem = $resultElement.querySelectorAll(historySearchSelector);
+        expect(historySearchItem).to.exist;
       });
     });
 
@@ -49,7 +61,7 @@ export default function ({ hasHistoryUrl }) {
         const historyLogoSelector = 'span.logo';
 
         [...historyItems].forEach(function (history) {
-          chai.expect(history.querySelector(historyLogoSelector)).to.exist;
+          expect(history.querySelector(historyLogoSelector)).to.exist;
         });
       });
 
@@ -59,7 +71,7 @@ export default function ({ hasHistoryUrl }) {
         [...historyItems].forEach(function (history) {
           /* The order of history in dropdown is reverted */
           historyIndex -= 1;
-          chai.expect(history.querySelector(historyDescriptionSelector))
+          expect(history.querySelector(historyDescriptionSelector))
             .to.contain.text(historyResults[historyIndex].comment);
         });
       });
@@ -68,7 +80,7 @@ export default function ({ hasHistoryUrl }) {
         const historyUrlSelector = 'div.abstract span.url';
 
         [...historyItems].forEach(function (history) {
-          chai.expect(history.querySelector(historyUrlSelector)).to.exist;
+          expect(history.querySelector(historyUrlSelector)).to.exist;
         });
       });
 
@@ -76,7 +88,7 @@ export default function ({ hasHistoryUrl }) {
         [...historyItems].forEach(function (history) {
           /* The order of history in dropdown is reverted */
           historyIndex -= 1;
-          chai.expect(history.href)
+          expect(history.href)
             .to.equal(historyResults[historyIndex].value);
         });
       });
@@ -86,21 +98,21 @@ export default function ({ hasHistoryUrl }) {
       context('the option to search in all history results', function () {
         it('has an existing and correct icon', function () {
           const historySearchIconSelector = '.history.last span.history-tool';
-          const historySearchIcon = resultElement.querySelector(historySearchIconSelector);
-          chai.expect(historySearchIcon).to.exist;
+          const historySearchIcon = $resultElement.querySelector(historySearchIconSelector);
+          expect(historySearchIcon).to.exist;
 
           const win = CliqzUtils.getWindow();
-          chai.expect(win.getComputedStyle(
-            resultElement.querySelector(historySearchIconSelector)).backgroundImage)
+          expect(win.getComputedStyle(
+            $resultElement.querySelector(historySearchIconSelector)).backgroundImage)
             .to.contain('history_tool_grey');
         });
 
         it('has existing and correct text', function () {
           const historySearchTextSelector = '.history.last div.abstract span';
-          const historySearchText = resultElement.querySelector(historySearchTextSelector);
-          const locale = CliqzUtils.locale.default || CliqzUtils.locale[window.navigator.language];
+          const historySearchText = $resultElement.querySelector(historySearchTextSelector);
+          const locale = CliqzUtils.locale.default;
           const foundInHistory = locale.results_found_in_history.message;
-          chai.expect(historySearchText).to.contain.text(foundInHistory);
+          expect(historySearchText).to.contain.text(foundInHistory);
         });
       });
     }

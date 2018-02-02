@@ -86,7 +86,7 @@ LocationObserver.prototype.onLocationChange = function onLocationChange(aWebProg
   if (!aWebProgress.isTopLevel ||
       aWebProgress.sandboxFlags !== 0) {
     // Ignore "location change" events from non-toplevel frames or sandboxed documents.
-    // For example "about:newtab" creates sandboxed browsers to capture page 
+    // For example "about:newtab" creates sandboxed browsers to capture page
     // screenshots, which is falsely detected as "location change", see EX-5218.
     return;
   }
@@ -110,13 +110,14 @@ LocationObserver.prototype.onLocationChange = function onLocationChange(aWebProg
   var document = aWebProgress.document;
   var isSameDocument = false;
 
-  var referrer, triggeringURL, originalURL;
+  var referrer, triggeringURL, originalURL, status;
 
   try {
 
     if (aRequest) {
       var httpChannel = aRequest.QueryInterface(Ci.nsIHttpChannel);
 
+      status = aRequest.responseStatus;
       referrer = (document && document.referrer)
         || (httpChannel.referrer && httpChannel.referrer.asciiSpec);
 
@@ -144,6 +145,7 @@ LocationObserver.prototype.onLocationChange = function onLocationChange(aWebProg
     windowTreeInformation: windowTreeInformation,
     originalUrl: originalURL,
     referrer: referrer,
+    status: status,
     triggeringUrl: triggeringURL,
     isPrivate: aWebProgress.usePrivateBrowsing,
     flags: aFlags,
@@ -230,7 +232,7 @@ locationObserver.start();
 
 // Handler unload
 addMessageListener("cliqz:process-script", function ps(msg) {
-  if (msg.data === "unload") {
+  if (msg.data.action === "unload") {
     locationObserver.stop();
     removeMessageListener("cliqz:process-script", ps);
   }

@@ -24,9 +24,7 @@ const reconstruct = ({ links }) => {
       deepResults: groupAsArray(rest)
         .map(([type, sublinks]) => ({ type, links: sublinks })),
       extra: main.extra,
-      // TODO: `kind` is currently not set correctly
-      // ensure that kind is an array for `utils.isPrivateResultType` check
-      kind: [main.kind || ''],
+      kind: main.kind || [],
       template: main.template,
       suggestion: main.suggestion,
     },

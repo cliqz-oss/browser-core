@@ -1,13 +1,20 @@
-/* global it, expect, respondWith, fillIn, waitForPopup, $cliqzResults, withHistory, CliqzUtils */
-/* eslint func-names: ["error", "never"] */
-/* eslint prefer-arrow-callback: "off" */
-/* eslint no-unused-expressions: "off" */
+/* eslint func-names: ['error', 'never'] */
+/* eslint prefer-arrow-callback: 'off' */
+/* eslint no-unused-expressions: 'off' */
 
+import {
+  $cliqzResults,
+  CliqzUtils,
+  expect,
+  fillIn,
+  respondWith,
+  waitForPopup,
+  withHistory } from './helpers';
 import results from './fixtures/resultsOffers';
 
 export default function () {
   context('offers', function () {
-    let resultElement;
+    let $resultElement;
     let offerElement;
 
     before(function () {
@@ -16,8 +23,8 @@ export default function () {
       withHistory([]);
       fillIn('mietwagen');
       return waitForPopup().then(function () {
-        resultElement = $cliqzResults()[0];
-        offerElement = resultElement.querySelector('a.result:not(.search)');
+        $resultElement = $cliqzResults()[0];
+        offerElement = $resultElement.querySelector('a.result:not(.search)');
       });
     });
 
@@ -56,7 +63,7 @@ export default function () {
 
     it('renders logo', function () {
       const logoSelector = ".icons span[class='logo']";
-      expect(resultElement).to.contain(logoSelector);
+      expect($resultElement).to.contain(logoSelector);
     });
 
     it('url is correct', function () {

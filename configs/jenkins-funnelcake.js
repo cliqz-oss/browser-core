@@ -2,6 +2,7 @@
 
 const base = require('./common/system');
 const browserBase = require('./common/browser');
+const subprojects = require('./common/subprojects/bundles');
 
 module.exports = Object.assign({}, browserBase, {
   settings: Object.assign({}, browserBase.settings, {
@@ -25,7 +26,8 @@ module.exports = Object.assign({}, browserBase, {
       "active": "#999999",
       "critical": "#999999"
     },
-    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"]
+    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
+    "OFFERS_BE_BASE_URL": "https://offers-api.cliqz.com"
   }),
   "default_prefs" : {
     "humanWeb": true
@@ -39,6 +41,7 @@ module.exports = Object.assign({}, browserBase, {
     "autocomplete",
     "geolocation",
     "ui",
+    "last-query",
     "webrequest-pipeline",
     "human-web",
     "context-menu",
@@ -51,23 +54,21 @@ module.exports = Object.assign({}, browserBase, {
     "message-center",
     "search"
   ],
-  "subprojects": [
-    {
-      "src":"bower_components/jquery/dist",
-      "include": ["jquery.min.js"],
-      "dest": "vendor"
-    },
-    {
-      "src": "bower_components/handlebars",
-      "include": ["handlebars.min.js"],
-      "dest": "vendor"
-    },
-    {
-      "src": "bower_components/mathjs/dist",
-      "include": ["math.min.js"],
-      "dest": "vendor"
-    }
-  ],
+  "subprojects": subprojects([
+    // Tests
+    'chai',
+    'chai-dom',
+    'mocha',
+    'core-js',
+
+    '@cliqz-oss/pouchdb',
+    'handlebars',
+    'jquery',
+    'mathjs',
+    'moment',
+    'pako',
+    'rxjs',
+  ]),
   systemDefault: base.systemConfig,
   builderDefault: base.builderConfig,
   bundleConfigs: Object.assign({}, base.appBundleConfig),

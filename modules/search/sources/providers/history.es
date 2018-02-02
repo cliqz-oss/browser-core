@@ -24,10 +24,10 @@ const mapResults = (results, query) =>
     provider: 'history',
     data: {
       ...r,
-      kind: 'H',
+      kind: ['H'],
     },
   })
-);
+  );
 
 export default class History extends BaseProvider {
   constructor() {

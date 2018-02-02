@@ -92,34 +92,7 @@ export default background({
     CustomizableUI.removeListener(this.customizableUIListener);
   },
 
-
-  actions: {
-    checkShareLocationTrigger(result) {
-      const dismissedAlerts = JSON.parse(utils.getPref(DISMISSED_ALERTS, '{}'));
-      const messageType = 'share-location';
-      const isDismissed = (dismissedAlerts[messageType] &&
-                           dismissedAlerts[messageType].count >= 2) || false;
-
-      const shouldTrigger = utils.getPref('extOnboardShareLocation', false)
-             && result && result.isLocal
-             && result.hasAskedForLocation
-            && !isDismissed;
-      if (shouldTrigger) {
-        events.pub('ui:missing_location_shown');
-      }
-    }
-  },
-
   events: {
-    result_click: function onClick(result) {
-      this.actions.checkShareLocationTrigger(result);
-    },
-    result_enter: function onEnter(result) {
-      this.actions.checkShareLocationTrigger(result);
-    },
-    autocomplete: function onAutoComplete(result) {
-      this.actions.checkShareLocationTrigger(result);
-    },
     // The next two events came to be as a result for EX-3819 & EX-3905
     // For an unkown reason (@chrmod convinced it is FF bug), the browser (gecko?) is
     // reporting false status of the dropdown (popup) menu (closed when it's open). This in turn

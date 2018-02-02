@@ -90,6 +90,9 @@ export default describeModule('offers-v2/categories/category-handler',
       utils: {
         setInterval: function() {},
         clearInterval: function() {},
+        getPref: function(k, v) {
+          return v;
+        }
       },
     },
     'platform/globals': {

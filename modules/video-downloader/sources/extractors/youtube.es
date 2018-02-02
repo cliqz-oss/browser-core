@@ -27,7 +27,7 @@ function handleFormats(formats) {
       output.size = parseInt(size, 10);
       return output;
     })
-    .filter(x => x.container === 'm4a' || (x.resolution && x.container)),
+      .filter(x => x.container === 'm4a' || (x.resolution && x.container)),
   );
 }
 
@@ -59,16 +59,16 @@ export default class YoutubeExtractor {
               reject(new Error('cannot download livestreams'));
             } else {
               handleFormats(info.formats)
-              .then((formats) => {
-                const data = {
-                  title: info.title,
-                  length_seconds: parseInt(info.length_seconds, 10),
-                  thumbnail_url: info.thumbnail_url,
-                  formats,
-                };
-                resolve(data);
-              })
-              .catch(e => reject(e));
+                .then((formats) => {
+                  const data = {
+                    title: info.title,
+                    length_seconds: parseInt(info.length_seconds, 10),
+                    thumbnail_url: info.thumbnail_url,
+                    formats,
+                  };
+                  resolve(data);
+                })
+                .catch(e => reject(e));
             }
           }
         });

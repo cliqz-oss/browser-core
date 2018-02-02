@@ -1,42 +1,75 @@
 import Rx from '../platform/lib/rxjs';
 
+import AppWindow from '../core/base/window';
 import utils from '../core/utils';
 import events from '../core/events';
 import prefs from '../core/prefs';
-import { Window } from '../core/browser';
 import createUrlbarObservable from './observables/urlbar';
+import logger from './logger';
 import search from './search';
+import telemetry from './telemetry';
 import DEFAULT_CONFIG from './config';
+import ObservableProxy from '../core/helpers/observable-proxy';
 
-export default class Win {
-  constructor({ window, background }) {
-    this.background = background;
-    this.window = window;
-    this.id = (new Window(window)).id;
+export default class SearchWindow extends AppWindow {
+  events = {
+    'urlbar:focus': () => {
+      if (!this.isEnabled) {
+        return;
+      }
+      this.focusEventProxy.next();
+    },
+
+    'urlbar:blur': () => {
+      if (!this.isEnabled) {
+        return;
+      }
+      this.blurEventProxy.next();
+    },
+
+    'urlbar:input': ({ query, isTyped }) => {
+      if (!isTyped || !this.isEnabled) {
+        return;
+      }
+
+      this.inputEventProxy.next(query);
+    },
+
+    'ui:click-on-url': (ev) => {
+      if (!this.isEnabled) {
+        return;
+      }
+
+      this.selectionEventProxy.next(ev);
+    },
+  };
+
+  constructor(settings) {
+    super(settings);
+    this.background = settings.background;
+  }
+
+  get isEnabled() {
+    return prefs.get('searchMode') === 'search';
   }
 
   init() {
-    if (prefs.get('searchMode', 'autocomplete') !== 'search') {
-      return;
-    }
+    super.init();
 
-    const focus = Rx.Observable.merge(
-      Rx.Observable
-        .fromEvent(this.window.gURLBar, 'focus')
-        .mapTo('focus'),
-      Rx.Observable
-        .fromEvent(this.window.gURLBar, 'blur')
-        .mapTo('blur'));
+    // use 'input' instead of 'keyup' to also get input set via
+    // `setUserInput`, for example from `queryCliqz`; we take
+    // the parent of urlbar as urlbar gets replaced during `ui/window#init`
+    this.inputEventProxy = new ObservableProxy();
+    this.focusEventProxy = new ObservableProxy();
+    this.blurEventProxy = new ObservableProxy();
+    this.selectionEventProxy = new ObservableProxy();
 
-    const query = createUrlbarObservable(
-      Rx.Observable
-        // use 'input' instead of 'keyup' to also get input set via
-        // `setUserInput`, for example from `queryCliqz`; we take
-        // the parent of urlbar as urlbar gets replaced during `ui/window#init`
-        .fromEvent(this.window.gURLBar.parentElement, 'input')
-        .map(e => e.target.mController.searchString)
-        .filter(() => this.window.gURLBar.valueIsTyped)
-    );
+    const focus$ = Rx.Observable.merge(
+      this.focusEventProxy.observable.mapTo('focus'),
+      this.blurEventProxy.observable.mapTo('blur'),
+    ).share();
+
+    const query$ = createUrlbarObservable(this.inputEventProxy.observable);
 
     const config = {
       ...DEFAULT_CONFIG,
@@ -53,17 +86,23 @@ export default class Win {
       },
     };
 
-    const results = search(query, focus, this.background.providers, config);
+    const results$ = search(query$, focus$, this.background.providers, config).share();
+    const selection$ = this.selectionEventProxy.observable;
 
-    this.resultsSubscription = results.subscribe((r) => {
+    const telemetry$ = telemetry(focus$, results$, selection$);
+    telemetry$.subscribe(data => utils.telemetry(data),
+      error => logger.error('Failed preparing telemetry', error));
+
+    this.resultsSubscription = results$.subscribe((r) => {
       events.pub('search:results', {
-        windowId: this.id,
+        windowId: this.windowId,
         results: r,
       });
     });
   }
 
   unload() {
+    super.unload();
     if (this.resultsSubscription) {
       this.resultsSubscription.unsubscribe();
     }

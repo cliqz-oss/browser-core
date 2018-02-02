@@ -76,47 +76,47 @@ export default describeModule('market-analysis/market_analyzer_main',
           MAMetrics = mod.MAMetrics;
           MATimeFrames = mod.MATimeFrames;
         })
-        .then(() => this.system.import('market-analysis/common/utils'))
-        .then((mod) => {
-          joinKeyVal = mod.joinKeyVal;
-        })
-        .then(() => {
-          todayTimeFrames = { doy: 153, m: 6, woy: 22 };
-          todayDOYStr = joinKeyVal(MATimeFrames.DAY_OF_YEAR, todayTimeFrames.doy);
-          todayWOYStr = joinKeyVal(MATimeFrames.WEEK_OF_YEAR, todayTimeFrames.woy);
-          todayMStr = joinKeyVal(MATimeFrames.MONTH, todayTimeFrames.m);
+          .then(() => this.system.import('market-analysis/common/utils'))
+          .then((mod) => {
+            joinKeyVal = mod.joinKeyVal;
+          })
+          .then(() => {
+            todayTimeFrames = { doy: 153, m: 6, woy: 22 };
+            todayDOYStr = joinKeyVal(MATimeFrames.DAY_OF_YEAR, todayTimeFrames.doy);
+            todayWOYStr = joinKeyVal(MATimeFrames.WEEK_OF_YEAR, todayTimeFrames.woy);
+            todayMStr = joinKeyVal(MATimeFrames.MONTH, todayTimeFrames.m);
 
-          CliqzMarketAnalyzer = this.module().default;
-          CliqzMarketAnalyzer.maTable = {};
-          CliqzMarketAnalyzer.regexMappings = {
-            'amazon.de': {
-              regexes: {
-                v: ['.'],
-                reg: ['amazon\\.de/register'],
-                sho: ['amazon\\.de/basket', 'amazon\\.de/buy'],
-                chk: ['amazon\\.de/checkout'],
-                tra: ['amazon\\.de/thankyou']
+            CliqzMarketAnalyzer = this.module().default;
+            CliqzMarketAnalyzer.maTable = {};
+            CliqzMarketAnalyzer.regexMappings = {
+              'amazon.de': {
+                regexes: {
+                  v: ['.'],
+                  reg: ['amazon\\.de/register'],
+                  sho: ['amazon\\.de/basket', 'amazon\\.de/buy'],
+                  chk: ['amazon\\.de/checkout'],
+                  tra: ['amazon\\.de/thankyou']
+                },
+                cat: 'eCommerce.Misc'
               },
-              cat: 'eCommerce.Misc'
-            },
-            'saturn.de': {
-              regexes: {
-                v: ['.'],
-                sho: ['saturn\\.de/basket', 'saturn\\.de/buy'],
-                tra: ['saturn\\.de/thankyou']
+              'saturn.de': {
+                regexes: {
+                  v: ['.'],
+                  sho: ['saturn\\.de/basket', 'saturn\\.de/buy'],
+                  tra: ['saturn\\.de/thankyou']
+                },
+                cat: 'eCommerce.Electronics'
               },
-              cat: 'eCommerce.Electronics'
-            },
-            'booking.com': {
-              regexes: {
-                v: ['.'],
-                sho: ['booking\\.com/book'],
-                tra: ['booking\\.com/confirmation']
-              },
-              cat: 'Travel.Hotel'
-            }
-          };
-        });
+              'booking.com': {
+                regexes: {
+                  v: ['.'],
+                  sho: ['booking\\.com/book'],
+                  tra: ['booking\\.com/confirmation']
+                },
+                cat: 'Travel.Hotel'
+              }
+            };
+          });
       });
 
       it('check _addTelemetryStats function', () => {

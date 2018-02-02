@@ -2,7 +2,6 @@
 import LRU from '../core/LRU';
 
 export default class ResultCache {
-
   constructor() {
     this.clear();
   }
@@ -29,4 +28,3 @@ export default class ResultCache {
     this.cache = new LRU(20);
   }
 }
-

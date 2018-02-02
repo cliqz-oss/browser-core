@@ -3,7 +3,8 @@ import utils from '../core/utils';
 import HistoryEntry from './history_entry';
 import HistoryWorker from './history_worker';
 import SimpleDB from '../core/persistence/simple-db';
-import { processRawRequest } from '../core/adblocker-base/filters-engine';
+import { mkRequest } from '../core/pattern-matching';
+import { parse } from '../core/tlds';
 import { PersistentDataHandler, BasicDataHolder } from './persistent-helpers';
 import TaskHandler from './task-handler';
 import TaskExecutor from './task-executor';
@@ -101,7 +102,6 @@ class CacheHandler {
  * - Update the data on the cache and notify callbacks.
  */
 export default class HistoryHandler {
-
   /**
    *
    * @param  {[type]} historyInterface is a wrapper to the real history providing
@@ -353,8 +353,14 @@ export default class HistoryHandler {
       requestHistoryMap[cday] = { last_ts: historyDataMap[cday].last_ts, requests: [] };
       const rresult = requestHistoryMap[cday].requests;
       for (let j = 0; j < urls.length; j += 1) {
-        const request = processRawRequest({ url: urls[j], sourceUrl: '', cpt: 2 });
-        rresult.push(request);
+        const url = urls[j];
+        const { hostname, domain } = parse(url);
+        rresult.push(mkRequest({
+          url: urls[j],
+          domain,
+          hostname,
+          cpt: 2,
+        }));
       }
     }
     return {
@@ -405,6 +411,4 @@ export default class HistoryHandler {
 
     return true;
   }
-
-
 }

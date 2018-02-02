@@ -1,6 +1,4 @@
-import networkFiltersOptimizer from '../../core/adblocker-base/optimizer';
-import { matchNetworkFilter } from '../../core/adblocker-base/filters-matching';
-import ReverseIndex from '../../core/adblocker-base/reverse-index';
+import { ReverseIndex, matchNetworkFilter } from '../../core/pattern-matching';
 
 /**
  * Accelerating data structure for network filters matching. Makes use of the
@@ -11,7 +9,6 @@ export default class PatternIndex {
     this.index = new ReverseIndex(
       filters,
       filter => filter.getTokens(),
-      { optimizer: networkFiltersOptimizer },
     );
   }
 
@@ -27,8 +24,6 @@ export default class PatternIndex {
    * @return {[type]}             the set of patterns id that matched this url
    */
   match(request, patternsSet) {
-    // we need to simulate a request object to use directly the same method than
-    // adblocker
     const bucketMatchedSet = new Set();
     const checkMatch = (pattern) => {
       /* eslint no-param-reassign: off */

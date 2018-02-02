@@ -1,7 +1,7 @@
+import AppWindow from '../core/base/window';
 import { utils } from "../core/cliqz";
 import autocomplete from "../autocomplete/autocomplete";
 import CliqzEvents from "../core/events";
-import SearchHistory from "./search-history";
 import { addStylesheet, removeStylesheet } from "../core/helpers/stylesheet";
 import placesUtils from '../platform/places-utils';
 import console from '../core/console';
@@ -69,62 +69,61 @@ const STYLESHEET_URL = 'chrome://cliqz/content/static/styles/styles.css';
 /**
   @namespace ui
 */
-export default class Win {
+export default class UIWindow extends AppWindow {
+  events = {
+
+  };
+
+  actions = {
+    setUrlbarValue: (value, options = {}) => {
+      const opts = typeof options === 'object' ?
+        options :
+        { visibleValue: options };
+
+      let ifMatches = opts.match || (() => true);
+
+      if (ifMatches instanceof RegExp) {
+        const re = ifMatches;
+        ifMatches = s => re.test(s);
+      } else if (typeof ifMatches !== 'function') {
+        const m = ifMatches.toString();
+        ifMatches = s => m === s;
+      }
+
+      if (ifMatches(this.urlbar.value)) {
+        this.urlbar.value = value;
+      }
+
+      if (ifMatches(this.urlbar.mInputField.value)) {
+        this.urlbar.mInputField.value = opts.visibleValue || value;
+      }
+
+      if (opts.focus) {
+        this.urlbar.mInputField.focus();
+      }
+    },
+
+    syncUrlbarValue: () => {
+      this.urlbar.value = this.urlbar.mInputField.value;
+    },
+  };
 
   /**
   * @class Window
   * @constructor
   */
   constructor(settings) {
+    super(settings);
+
     this.dropdown = inject.module('dropdown');
     this.autocompleteModule = inject.module('autocomplete');
     this.elems = [];
     this.settings = settings.settings;
-    this.window = settings.window;
-    this.windowId = settings.windowId;
     this.urlbar = this.window.gURLBar;
     this.urlbarGoClick = this.urlbarGoClick.bind(this);
     this.hidePopup = this.hidePopup.bind(this);
     this.initialized = false;
     this.window.CLIQZ.UI = {};
-    this.actions = {
-      setUrlbarValue: (value, options = {}) => {
-        let opts = typeof options === 'object' ?
-          options :
-          { visibleValue: options };
-
-        let ifMatches = opts.match || (() => true);
-
-        if (ifMatches instanceof RegExp) {
-          const re = ifMatches;
-          ifMatches = s => !!s.match(re);
-        } else if (typeof ifMatches !== 'function') {
-          const m = ifMatches.toString();
-          ifMatches = s => m === s;
-        }
-
-        if (ifMatches(this.urlbar.value)) {
-          this.urlbar.value = value;
-        }
-
-        if (ifMatches(this.urlbar.mInputField.value)) {
-          this.urlbar.mInputField.value = opts.visibleValue || value;
-        }
-
-        if (opts.focus) {
-          this.urlbar.mInputField.focus();
-        }
-      },
-      syncUrlbarValue: () => {
-        this.urlbar.value = this.urlbar.mInputField.value;
-      },
-      updatePopupStyle: () => {
-        if (!this.popup) {
-          return;
-        }
-      },
-      updateUrlBar: () => { this.reloadUrlbar(); }
-    },
     this.urlbarEventHandlers = {}
     Object.keys(urlbarEventHandlers).forEach( ev => {
       this.urlbarEventHandlers[ev] = urlbarEventHandlers[ev].bind(this)
@@ -140,6 +139,8 @@ export default class Win {
   * @method init
   */
   init() {
+    super.init();
+
     // do not initialize the UI if locationbar is invisible in this window
     if(!this.window.locationbar.visible) return;
 
@@ -166,7 +167,6 @@ export default class Win {
       this.window.CLIQZ.settings = this.settings;
 
       this.popupHideEvent = CliqzEvents.subscribe('ui:popup_hide', this.hidePopup);
-      this.clickOnUrlEvent = CliqzEvents.subscribe('ui:click-on-url', this.showLastQuery.bind(this));
 
       this.window.CLIQZ.UI.autocompleteQuery = this.autocompleteQuery.bind(this);
 
@@ -205,17 +205,10 @@ export default class Win {
         item.setAttribute('command', 'Browser:OpenLocation')
       });
 
-      this.tabChange = SearchHistory.tabChanged.bind(SearchHistory);
-      this.window.gBrowser.tabContainer.addEventListener("TabSelect", this.tabChange, false);
-
-      this.tabRemoved = SearchHistory.tabRemoved.bind(SearchHistory);
-      this.window.gBrowser.tabContainer.addEventListener("TabClose", this.tabRemoved, false);
-      this.actions.updatePopupStyle();
       // Add search history dropdown
       }).then(() => {
         this.reloadUrlbar();
         this.initialized = true;
-        this.elems.push(SearchHistory.insertBeforeElement(this.window));
 
         var urlBarGo = document.getElementById('urlbar-go-button') ||
         // FF56+
@@ -424,13 +417,6 @@ export default class Win {
     this.window.CLIQZ.Core.popup.hidePopup();
   }
 
-  showLastQuery(event) {
-    if (event.windowId !== this.windowId || event.isPrivateWindow) {
-      return;
-    }
-    SearchHistory.lastQuery(this.window);
-  }
-
   urlbarEvent(ev) {
     var action = {
       type: 'activity',
@@ -442,6 +428,8 @@ export default class Win {
   }
 
   unload() {
+    super.unload();
+
     if (!this.initialized) return;
 
     removeStylesheet(this.window.document, STYLESHEET_URL);
@@ -469,10 +457,6 @@ export default class Win {
     [].forEach.call(this.searchShortcutElements, function (item) {
       item.setAttribute('command', item.getAttribute('original_command'))
     });
-    this.window.gBrowser.tabContainer.removeEventListener("TabSelect",
-      this.tabChange, false);
-    this.window.gBrowser.tabContainer.removeEventListener("TabClose",
-      this.tabRemoved, false);
 
     if (this._urlBarGo) {
       this._urlBarGo.removeEventListener('click', this.urlbarGoClick);

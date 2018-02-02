@@ -1,0 +1,22 @@
+<head>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+}
+body {
+    padding: 20px;
+}
+#cliqz-dropdown {
+    border: 3px solid black;
+}
+</style>
+<script type="text/javascript" src="../vendor/handlebars.min.js"></script>
+</head>
+<body>
+    <script>
+        var script = document.createElement('script');
+        script.setAttribute('src', './debug.bundle.js?t='+Date.now());
+        document.body.appendChild(script);
+    </script>
+</body>

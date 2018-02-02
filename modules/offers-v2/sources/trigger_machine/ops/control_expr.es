@@ -89,7 +89,6 @@ class IfPrefExpr extends Expression {
  * @version 1.0
  */
 class LogExpr extends Expression {
-
   isBuilt() {
     return true;
   }
@@ -214,8 +213,10 @@ class NotExpr extends Expression {
     if (!this.data.raw_op.args || this.data.raw_op.args.length === 0) {
       throw new Error('NotExpr invalid args');
     }
-    this.exprToNegate = this.data.exp_builder.createExp(this.data.raw_op.args[0],
-                                                        this.data.parent_trigger);
+    this.exprToNegate = this.data.exp_builder.createExp(
+      this.data.raw_op.args[0],
+      this.data.parent_trigger
+    );
   }
 
   destroy() {
@@ -249,10 +250,14 @@ class EqExpr extends Expression {
     if (!this.data.raw_op.args || this.data.raw_op.args.length < 2) {
       throw new Error('EqExpr invalid args');
     }
-    this.lExpr = this.data.exp_builder.createExp(this.data.raw_op.args[0],
-                                                 this.data.parent_trigger);
-    this.rExpr = this.data.exp_builder.createExp(this.data.raw_op.args[1],
-                                                 this.data.parent_trigger);
+    this.lExpr = this.data.exp_builder.createExp(
+      this.data.raw_op.args[0],
+      this.data.parent_trigger
+    );
+    this.rExpr = this.data.exp_builder.createExp(
+      this.data.raw_op.args[1],
+      this.data.parent_trigger
+    );
   }
 
   destroy() {
@@ -287,10 +292,14 @@ class GtExpr extends Expression {
     if (!this.data.raw_op.args || this.data.raw_op.args.length < 2) {
       throw new Error('GtExpr invalid args');
     }
-    this.lExpr = this.data.exp_builder.createExp(this.data.raw_op.args[0],
-                                                 this.data.parent_trigger);
-    this.rExpr = this.data.exp_builder.createExp(this.data.raw_op.args[1],
-                                                 this.data.parent_trigger);
+    this.lExpr = this.data.exp_builder.createExp(
+      this.data.raw_op.args[0],
+      this.data.parent_trigger
+    );
+    this.rExpr = this.data.exp_builder.createExp(
+      this.data.raw_op.args[1],
+      this.data.parent_trigger
+    );
   }
 
   destroy() {
@@ -325,10 +334,14 @@ class LtExpr extends Expression {
     if (!this.data.raw_op.args || this.data.raw_op.args.length < 2) {
       throw new Error('LtExpr invalid args');
     }
-    this.lExpr = this.data.exp_builder.createExp(this.data.raw_op.args[0],
-                                                 this.data.parent_trigger);
-    this.rExpr = this.data.exp_builder.createExp(this.data.raw_op.args[1],
-                                                 this.data.parent_trigger);
+    this.lExpr = this.data.exp_builder.createExp(
+      this.data.raw_op.args[0],
+      this.data.parent_trigger
+    );
+    this.rExpr = this.data.exp_builder.createExp(
+      this.data.raw_op.args[1],
+      this.data.parent_trigger
+    );
   }
 
   destroy() {
@@ -395,7 +408,6 @@ class MatchExpr extends Expression {
  * @version 1.0
  */
 class TimestampExpr extends Expression {
-
   isBuilt() {
     return true;
   }
@@ -417,7 +429,6 @@ class TimestampExpr extends Expression {
  * @version 1.0
  */
 class DayHourExpr extends Expression {
-
   isBuilt() {
     return true;
   }
@@ -440,7 +451,6 @@ class DayHourExpr extends Expression {
  * @version 1.0
  */
 class WeekDayExpr extends Expression {
-
   isBuilt() {
     return true;
   }
@@ -838,7 +848,6 @@ class PatternMatchExpr extends Expression {
     }
     return result;
   }
-
 }
 
 const ops = {

@@ -16,7 +16,8 @@ const getLocaleFile = (locale) => {
   // Warning - sync request
   const localeObject = getLocaleObject(url, locale);
   i18n.currLocale = locale;
-  i18n.locale.default = i18n.locale[locale] = localeObject;
+  i18n.locale.default = localeObject;
+  i18n.locale[locale] = localeObject;
 };
 
 const setLang = (locale) => {

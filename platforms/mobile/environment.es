@@ -17,7 +17,7 @@ const TEMPLATES = Object.freeze(Object.assign(Object.create(null), {
   "currency": true,
   "emphasis": true,
   "empty": true,
-  "flightStatusEZ-2": true,
+  "flight": true,
   "generic": true,
   "history": true,
   "main": true,

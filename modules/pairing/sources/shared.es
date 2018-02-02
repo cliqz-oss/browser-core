@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import { encryptRSA, decryptRSA } from '../core/crypto/utils';
 import { inflate, deflate } from '../core/zlib';
 import { toBase64, fromBase64, toHex, fromHex, toUTF8, fromUTF8 } from '../core/encoding';
@@ -37,26 +36,26 @@ function encryptPairedMessage({ msg, type, source }, targets, onlyCompress = fal
     return Promise.resolve(finalData);
   }
   return encryptRSA(compressed, pks)
-  .then(([[iv, encrypted], wrappedKeys]) => {
-    const ivRaw = fromBase64(iv); // 12 bytes
-    const encryptedRaw = fromBase64(encrypted); // Rest
-    // Assuming targets ids are 32 bytes hex encoded strings, and wrapped keys
-    // 256 bytes each (2048 bit, depends on RSA key size)
-    const finalData = new Uint8Array(
-      2 + (wrappedKeys.length * (32 + 256)) + 12 + encryptedRaw.length,
-    );
-    finalData[0] = MsgTypes.ENCRYPTED;
-    // This limits the number of targets (and paired devices) to 255
-    finalData[1] = wrappedKeys.length;
-    for (let i = 0; i < wrappedKeys.length; i += 1) {
-      const start = 2 + (i * (32 + 256));
-      finalData.set(fromHex(targets[i].id), start);
-      finalData.set(fromBase64(wrappedKeys[i]), start + 32);
-    }
-    finalData.set(ivRaw, 2 + (wrappedKeys.length * (32 + 256)));
-    finalData.set(encryptedRaw, 2 + (wrappedKeys.length * (32 + 256)) + 12);
-    return finalData;
-  });
+    .then(([[iv, encrypted], wrappedKeys]) => {
+      const ivRaw = fromBase64(iv); // 12 bytes
+      const encryptedRaw = fromBase64(encrypted); // Rest
+      // Assuming targets ids are 32 bytes hex encoded strings, and wrapped keys
+      // 256 bytes each (2048 bit, depends on RSA key size)
+      const finalData = new Uint8Array(
+        2 + (wrappedKeys.length * (32 + 256)) + 12 + encryptedRaw.length,
+      );
+      finalData[0] = MsgTypes.ENCRYPTED;
+      // This limits the number of targets (and paired devices) to 255
+      finalData[1] = wrappedKeys.length;
+      for (let i = 0; i < wrappedKeys.length; i += 1) {
+        const start = 2 + (i * (32 + 256));
+        finalData.set(fromHex(targets[i].id), start);
+        finalData.set(fromBase64(wrappedKeys[i]), start + 32);
+      }
+      finalData.set(ivRaw, 2 + (wrappedKeys.length * (32 + 256)));
+      finalData.set(encryptedRaw, 2 + (wrappedKeys.length * (32 + 256)) + 12);
+      return finalData;
+    });
 }
 function getMessageTargets(data) {
   if (data[0] === MsgTypes.COMPRESSED) {
@@ -97,8 +96,8 @@ function decryptPairedMessage(data, deviceID, privateKey) {
   }
   const wrappedKey = device[1];
   return decryptRSA([encrypted, wrappedKey], privateKey)
-  .then(compressed => JSON.parse(fromUTF8(inflate(new Uint8Array(compressed)))))
-  .then(({ msg, type, source }) => ({ msg, type, source }));
+    .then(compressed => JSON.parse(fromUTF8(inflate(new Uint8Array(compressed)))))
+    .then(({ msg, type, source }) => ({ msg, type, source }));
 }
 
 const ERRORS = {

@@ -15,7 +15,6 @@ const STORAGE_DB_DOC_ID = 'offers-db';
  *
  */
 class OfferDB {
-
   constructor(offersDB) {
     this.db = new DBHelper(offersDB);
 
@@ -260,7 +259,8 @@ class OfferDB {
     let actionCont = container.offer_actions[actionID];
     if (!actionCont) {
       // create a new one
-      actionCont = container.offer_actions[actionID] = this._createElementContainer();
+      actionCont = this._createElementContainer();
+      container.offer_actions[actionID] = actionCont;
       actionCont.count = 0;
     }
     actionCont.count += count;
@@ -270,11 +270,13 @@ class OfferDB {
       const displayMap = this.dataIndex.display_id_index;
       let displayActionMap = displayMap[offerObj.display_id];
       if (!displayActionMap) {
-        displayActionMap = displayMap[offerObj.display_id] = {};
+        displayActionMap = {};
+        displayMap[offerObj.display_id] = displayActionMap;
       }
       let displayCont = displayActionMap[actionID];
       if (!displayCont) {
-        displayCont = displayActionMap[actionID] = this._createElementContainer();
+        displayCont = this._createElementContainer();
+        displayActionMap[actionID] = displayCont;
         displayCont.count = 0;
       }
       displayCont.count += count;
@@ -329,7 +331,8 @@ class OfferDB {
     const offerAttr = container.offer_attrs;
     let attrCont = offerAttr[attrID];
     if (!attrCont) {
-      attrCont = offerAttr[attrID] = this._createElementContainer();
+      attrCont = this._createElementContainer();
+      offerAttr[attrID] = attrCont;
     }
 
     const now = timestampMS();
@@ -721,7 +724,8 @@ class OfferDB {
     }
     let cset = this.campaignToOffersMap[offer.campaign_id];
     if (!cset) {
-      cset = this.campaignToOffersMap[offer.campaign_id] = new Set();
+      cset = new Set();
+      this.campaignToOffersMap[offer.campaign_id] = cset;
     }
     cset.add(offer.offer_id);
   }
@@ -746,7 +750,6 @@ class OfferDB {
       }
     );
   }
-
 }
 
 export default OfferDB;
