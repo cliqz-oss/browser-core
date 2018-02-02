@@ -45,7 +45,6 @@ export default background({
     if (!this.is_enabled) {
       return;
     }
-    
     this.toolbarButton.shutdown();
   },
 

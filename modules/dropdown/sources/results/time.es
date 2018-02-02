@@ -1,11 +1,4 @@
-import BaseResult from './base';
 import GenericResult from './generic';
-
-class TimeSource extends BaseResult {
-  get source() {
-    return this.rawResult.title;
-  }
-}
 
 export default class TimeResult extends GenericResult {
   get template() {
@@ -32,21 +25,7 @@ export default class TimeResult extends GenericResult {
     return this.extra.line3;
   }
 
-  get timeSource() {
-    return new TimeSource({
-      url: this.rawResult.url,
-      title: this.rawResult.title,
-      text: this.query,
-    });
-  }
-
   get selectableResults() {
     return [];
-  }
-
-  get allResults() {
-    return [
-      this.timeSource,
-    ];
   }
 }

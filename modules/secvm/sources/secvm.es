@@ -60,6 +60,7 @@ const SecVm = {
         const svms = SecVm.createSvms(configDataWithoutPromises);
 
         SecVm.sendExperimentData(configDataWithoutPromises, svms);
+        SecVm.workingOnUpdates = false;
       }, () => {
         if (SecVm.debug) {
           SecVm.log('at least one promise was rejected');
@@ -67,10 +68,10 @@ const SecVm = {
         SecVm.workingOnUpdates = false;
       });
     }, () => {
-      SecVm.workingOnUpdates = false;
       if (SecVm.debug) {
         SecVm.log('error retrieving data');
       }
+      SecVm.workingOnUpdates = false;
     });
   },
 
@@ -85,148 +86,158 @@ const SecVm = {
    * experiments. For details see the beginning of the function.
    */
   handleConfiguration(configuration) {
-    // int the number of experiments being currently run
-    const numExperiments = configuration.timeLeft.length;
-    // Array<{svmId: int, iteration: int}> the experiments' ids
-    const experimentIds = Array(numExperiments).fill(0);
-    // Array<int> the deadlines for the experiments w.r.t. the local clock
-    const deadlines = Array(numExperiments).fill(0);
-    // Array<Float32Array> the weight vectors for the experiments
-    const weightVectors = Array(numExperiments).fill(0);
-    // Array{hosts: Uint32Array, titleWords: Uint32Array}
-    // the feature vectors for the current experiments
-    const featureVectors = Array(numExperiments).fill(0);
-    // Array<boolean> whether the user is part of the train set for the i-th
-    // experiment
-    const partOfTrainSet = Array(numExperiments).fill(0);
-    // Array<boolean> whether the user is part of the test set for the i-th
-    // experiment
-    const partOfTestSet = Array(numExperiments).fill(0);
-    const dataPromises = [];
+    try {
+      // int the number of experiments being currently run
+      const numExperiments = configuration.timeLeft.length;
+      // Array<{svmId: int, iteration: int}> the experiments' ids
+      const experimentIds = Array(numExperiments).fill(0);
+      // Array<int> the deadlines for the experiments w.r.t. the local clock
+      const deadlines = Array(numExperiments).fill(0);
+      // Array<Float32Array> the weight vectors for the experiments
+      const weightVectors = Array(numExperiments).fill(0);
+      // Array{hosts: Uint32Array, titleWords: Uint32Array}
+      // the feature vectors for the current experiments
+      const featureVectors = Array(numExperiments).fill(0);
+      // Array<boolean> whether the user is part of the train set for the i-th
+      // experiment
+      const partOfTrainSet = Array(numExperiments).fill(0);
+      // Array<boolean> whether the user is part of the test set for the i-th
+      // experiment
+      const partOfTestSet = Array(numExperiments).fill(0);
+      const dataPromises = [];
 
-    for (let i = 0; i < numExperiments; i += 1) {
-      const currExperimentId = configuration.experimentId[i];
-      // make sure we haven't already conducted this experiment
-      if (!SecVm.experimentIdsAlreadyConducted.has(currExperimentId)) {
-        SecVm.experimentIdsAlreadyConducted.add(currExperimentId);
-        SecVm.storage.addExperimentId(currExperimentId);
-        experimentIds[i] = currExperimentId;
-
-        deadlines[i] = Date.now() + configuration.timeLeft[i];
-
-        featureVectors[i] = {};
-
-        const idHosts = configuration.features[i].idHosts;
-        if (idHosts) {
-          dataPromises.push(
-            SecVm.featureHandler.getHashedFeatures(idHosts).then((featureVector) => {
-              // the feature vector has already been computed before
-              featureVectors[i].hosts = featureVector;
-            }, function () {
-              // the feature vector needs to be newly created
-              return SecVm.featureHandler.createAndSaveFeaturesFromHosts(
-                idHosts,
-                configuration.features[i].numHosts,
-                configuration.features[i].numHashesHosts).then(() => {
-                  return SecVm.featureHandler.getHashedFeatures(idHosts).then((featureVector) => {
-                    SecVm.featureVectors[i].hosts = featureVector;
-                  });
-                });
-            }));
-        }
-
-        const idTitleWords = configuration.features[i].idTitleWords;
-        if (idTitleWords) {
-          dataPromises.push(SecVm.featureHandler.getHashedFeatures(idTitleWords)
-            .then((featureVector) => {
-              // the feature vector has already been computed before
-              featureVectors[i].titleWords = featureVector;
-            }, () => {
-              return SecVm.featureHandler.createAndSaveFeaturesFromTitleWords(
-                idTitleWords,
-                configuration.features[i].numTitleWords,
-                configuration.features[i].numHashesTitleWords,
-                SecVm.MAX_TITLE_WORDS_PER_WEBSITE).then(() => {
-                  // the feature vector needs to be newly created
-                  return SecVm.featureHandler.getHashedFeatures(idTitleWords)
-                    .then((featureVector) => {
-                      featureVectors[i].titleWords = featureVector;
-                    });
-                });
-            }));
-        }
-
-        const idDiceRoll = configuration.diceRolls[i].id;
-        let trainOutcomes = configuration.diceRolls[i].train;
-        if (!trainOutcomes) {
-          trainOutcomes = [];
-        }
-        let testOutcomes = configuration.diceRolls[i].test;
-        if (!testOutcomes) {
-          testOutcomes = [];
-        }
-        dataPromises.push(SecVm.diceRollsHandler.getDiceRoll(idDiceRoll)
-          .then((outcomeString) => {
-            const outcome = parseInt(outcomeString, 10);
-            if (trainOutcomes.indexOf(outcome) !== -1) {
-              partOfTrainSet[i] = true;
-            } else {
-              partOfTrainSet[i] = false;
-            }
-            if (testOutcomes.indexOf(outcome) !== -1) {
-              partOfTestSet[i] = true;
-            } else {
-              partOfTestSet[i] = false;
-            }
-          }, () => (
-            SecVm.diceRollsHandler
-              .rollDiceAndSaveOutcome(idDiceRoll, configuration.diceRolls[i].probs).then(() => {
-                return SecVm.diceRollsHandler.getDiceRoll(idDiceRoll).then((outcomeString) => {
-                  const outcome = parseInt(outcomeString, 10);
-                  if (trainOutcomes.indexOf(outcome) !== -1) {
-                    partOfTrainSet[i] = true;
-                  } else {
-                    partOfTrainSet[i] = false;
-                  }
-                  if (testOutcomes.indexOf(outcome) !== -1) {
-                    partOfTestSet[i] = true;
-                  } else {
-                    partOfTestSet[i] = false;
-                  }
-                });
-              })
-          )));
-      }
-    }
-
-    const configDataPromise = Promise.all(dataPromises).then(() => {
-      const weightPromises = [{
-        numExperiments,
-        experimentIds,
-        deadlines,
-        weightVectors,
-        featureVectors,
-        partOfTrainSet,
-        partOfTestSet
-      }];
       for (let i = 0; i < numExperiments; i += 1) {
-        if (partOfTrainSet[i] || partOfTestSet[i]) {
-          weightPromises.push(Network.getWeightVector(configuration.weightVectorUrl[i])
-            .then((weightVector) => {
-              weightVectors[i] = weightVector;
-            }));
+        const currExperimentId = configuration.experimentId[i];
+        // make sure we haven't already conducted this experiment
+        if ([...SecVm.experimentIdsAlreadyConducted].filter((e) =>
+            e.svmId === currExperimentId.svmId &&
+            e.iteration === currExperimentId.iteration)
+              .length === 0) {
+          SecVm.experimentIdsAlreadyConducted.add(currExperimentId);
+          SecVm.storage.addExperimentId(currExperimentId);
+          experimentIds[i] = currExperimentId;
+
+          deadlines[i] = Date.now() + configuration.timeLeft[i];
+
+          featureVectors[i] = {};
+
+          const idHosts = configuration.features[i].idHosts;
+          if (idHosts) {
+            dataPromises.push(
+              SecVm.featureHandler.getHashedFeatures(idHosts).then((featureVector) => {
+                // the feature vector has already been computed before
+                featureVectors[i].hosts = featureVector;
+              }, function () {
+                // the feature vector needs to be newly created
+                return SecVm.featureHandler.createAndSaveFeaturesFromHosts(
+                  idHosts,
+                  configuration.features[i].numHosts,
+                  configuration.features[i].numHashesHosts).then(() => {
+                    return SecVm.featureHandler.getHashedFeatures(idHosts).then((featureVector) => {
+                      featureVectors[i].hosts = featureVector;
+                    });
+                  });
+              }));
+          }
+
+          const idTitleWords = configuration.features[i].idTitleWords;
+          if (idTitleWords) {
+            dataPromises.push(SecVm.featureHandler.getHashedFeatures(idTitleWords)
+              .then((featureVector) => {
+                // the feature vector has already been computed before
+                featureVectors[i].titleWords = featureVector;
+              }, () => {
+                return SecVm.featureHandler.createAndSaveFeaturesFromTitleWords(
+                  idTitleWords,
+                  configuration.features[i].numTitleWords,
+                  configuration.features[i].numHashesTitleWords,
+                  SecVm.MAX_TITLE_WORDS_PER_WEBSITE).then(() => {
+                    // the feature vector needs to be newly created
+                    return SecVm.featureHandler.getHashedFeatures(idTitleWords)
+                      .then((featureVector) => {
+                        featureVectors[i].titleWords = featureVector;
+                      });
+                  });
+              }));
+          }
+
+          const idDiceRoll = configuration.diceRolls[i].id;
+          let trainOutcomes = configuration.diceRolls[i].train;
+          if (!trainOutcomes) {
+            trainOutcomes = [];
+          }
+          let testOutcomes = configuration.diceRolls[i].test;
+          if (!testOutcomes) {
+            testOutcomes = [];
+          }
+          dataPromises.push(SecVm.diceRollsHandler.getDiceRoll(idDiceRoll)
+            .then((outcomeString) => {
+              const outcome = parseInt(outcomeString, 10);
+              if (trainOutcomes.indexOf(outcome) !== -1) {
+                partOfTrainSet[i] = true;
+              } else {
+                partOfTrainSet[i] = false;
+              }
+              if (testOutcomes.indexOf(outcome) !== -1) {
+                partOfTestSet[i] = true;
+              } else {
+                partOfTestSet[i] = false;
+              }
+            }, () => (
+              SecVm.diceRollsHandler
+                .rollDiceAndSaveOutcome(idDiceRoll, configuration.diceRolls[i].probs).then(() => {
+                  return SecVm.diceRollsHandler.getDiceRoll(idDiceRoll).then((outcomeString) => {
+                    const outcome = parseInt(outcomeString, 10);
+                    if (trainOutcomes.indexOf(outcome) !== -1) {
+                      partOfTrainSet[i] = true;
+                    } else {
+                      partOfTrainSet[i] = false;
+                    }
+                    if (testOutcomes.indexOf(outcome) !== -1) {
+                      partOfTestSet[i] = true;
+                    } else {
+                      partOfTestSet[i] = false;
+                    }
+                  });
+                })
+            )));
         }
       }
-      return Promise.all(weightPromises);
-    });
 
-    if (configuration.featuresToDelete) {
-      for (let i = 0; i < configuration.featuresToDelete.length; i += 1) {
-        SecVm.featureHandler.removeHashedFeatures(configuration.featuresToDelete[i]);
+      const configDataPromise = Promise.all(dataPromises).then(() => {
+        const weightPromises = [{
+          numExperiments,
+          experimentIds,
+          deadlines,
+          weightVectors,
+          featureVectors,
+          partOfTrainSet,
+          partOfTestSet
+        }];
+        for (let i = 0; i < numExperiments; i += 1) {
+          if (partOfTrainSet[i] || partOfTestSet[i]) {
+            weightPromises.push(Network.getWeightVector(configuration.weightVectorUrl[i])
+              .then((weightVector) => {
+                weightVectors[i] = weightVector;
+              }));
+          }
+        }
+        return Promise.all(weightPromises);
+      });
+
+      if (configuration.featuresToDelete) {
+        for (let i = 0; i < configuration.featuresToDelete.length; i += 1) {
+          SecVm.featureHandler.removeHashedFeatures(configuration.featuresToDelete[i]);
+        }
       }
-    }
 
-    return configDataPromise;
+      return configDataPromise;
+    } catch(ee) {
+      if (SecVm.debug) {
+        SecVm.log(`Error in handle configuration ${ee}`);
+      }
+      return Promise.reject();
+    }
   },
 
   /**
@@ -354,8 +365,6 @@ const SecVm = {
       SecVm.storage.init();
       SecVm.storage.loadExperimentIds().then((ids) => {
         SecVm.experimentIdsAlreadyConducted = ids;
-        // TODO: remove this line for production
-        SecVm.experimentIdsAlreadyConducted = new Set();
 
         if (SecVm.fetchConfigurationId == null) {
           SecVm.fetchConfigurationId =

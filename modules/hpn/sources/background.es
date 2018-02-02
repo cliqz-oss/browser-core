@@ -68,9 +68,14 @@ export default background({
         const wCrypto = new CryptoWorker();
 
         wCrypto.onmessage = function(e){
-          const result = JSON.parse(e.data.res).result;
-          wCrypto.terminate();
-          resolve(result);
+          try {
+            const result = JSON.parse(e.data.res).result;
+            wCrypto.terminate();
+            resolve(result);
+          } catch (ee) {
+            wCrypto.terminate();
+            reject();
+          }
         };
         wCrypto.postMessage({
           msg: {
