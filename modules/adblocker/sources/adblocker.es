@@ -1,6 +1,6 @@
 import LRUCache from '../core/helpers/fixed-size-cache';
 import events from '../core/events';
-import inject, { ifModuleEnabled } from '../core/kord/inject';
+import inject from '../core/kord/inject';
 import prefs from '../core/prefs';
 import { getGeneralDomain } from '../core/tlds';
 import UrlWhitelist from '../core/url-whitelist';
@@ -12,7 +12,9 @@ import { deflate, inflate } from '../core/zlib';
 import PersistentMap from '../core/persistence/map';
 import { platformName } from '../core/platform';
 
-import Adblocker from '../platform/lib/adblocker';
+import FilterEngine from '../core/adblocker-base/filters-engine';
+import { fastStartsWith } from '../core/adblocker-base/utils';
+import { deserializeEngine } from '../core/adblocker-base/serialization';
 
 import AdbStats from './adb-stats';
 import FiltersLoader from './filters-loader';
@@ -40,13 +42,14 @@ export function adbABTestEnabled() {
 }
 
 
-export function isSupportedProtocol(url) {
+function isSupportedProtocol(url) {
   return (
-    url.startsWith('http://') ||
-    url.startsWith('https://') ||
-    url.startsWith('ws://') ||
-    url.startsWith('wss://'));
+    fastStartsWith(url, 'http://') ||
+    fastStartsWith(url, 'https://') ||
+    fastStartsWith(url, 'ws://') ||
+    fastStartsWith(url, 'wss://'));
 }
+
 
 const CPT_TO_NAME = {
   1: 'other',
@@ -89,7 +92,7 @@ const DEFAULT_OPTIONS = {
 
 /* Wraps filter-based adblocking in a class. It has to handle both
  * the management of lists (fetching, updating) using a FiltersLoader
- * and the matching using a FiltersEngine.
+ * and the matching using a FilterEngine.
  */
 export class AdBlocker {
   constructor(options) {
@@ -260,7 +263,7 @@ export class AdBlocker {
 
   resetEngine() {
     this.log('Reset engine');
-    this.engine = new Adblocker.FiltersEngine({
+    this.engine = new FilterEngine({
       version: ADB_VERSION,
       loadNetworkFilters: this.loadNetworkFilters,
       loadCosmeticFilters: this.loadCosmeticFilters,
@@ -274,7 +277,7 @@ export class AdBlocker {
     // This is because some filters will behave differently based on the
     // domain of the source.
 
-    // Cache queries to FiltersEngine
+    // Cache queries to FilterEngine
     this.cache = new LRUCache(
       this.engine.match.bind(this.engine), // Compute result
       1000, // Maximum number of entries
@@ -289,7 +292,7 @@ export class AdBlocker {
         .then(() => db.get('engine'))
         .then((serializedEngine) => {
           const t0 = Date.now();
-          this.engine = Adblocker.deserializeEngine(
+          this.engine = deserializeEngine(
             this.compressDiskCache ? inflate(serializedEngine) : serializedEngine,
             ADB_VERSION,
           );
@@ -371,12 +374,6 @@ const CliqzADB = {
     );
   },
 
-  isAdbActive(url) {
-    return CliqzADB.adbEnabled() &&
-      CliqzADB.adblockInitialized &&
-      !CliqzADB.urlWhitelist.isWhitelisted(url);
-  },
-
   logActionHW(url, action, type) {
     const checkProcessing = CliqzADB.humanWeb.action('isProcessingUrl', url);
     checkProcessing.catch(() => {
@@ -450,7 +447,7 @@ const CliqzADB = {
 
       CliqzADB.unloadPacemaker();
 
-      ifModuleEnabled(CliqzADB.webRequestPipeline.action('removePipelineStep', 'onBeforeRequest', 'adblocker'));
+      CliqzADB.webRequestPipeline.action('removePipelineStep', 'onBeforeRequest', 'adblocker');
     }
 
     // If this is full unload, we also remove the pref listener
@@ -475,12 +472,6 @@ const CliqzADB = {
   adblockerPipelineStep(state, response) {
     if (!(CliqzADB.adbEnabled() && CliqzADB.adblockInitialized)) {
       return true;
-    }
-
-    // Due to unbreakable pipelines, blocked requests might still come to
-    // adblocker, we can simply ignore them
-    if (response.cancel === true || response.redirectUrl) {
-      return false;
     }
 
     const url = state.url;

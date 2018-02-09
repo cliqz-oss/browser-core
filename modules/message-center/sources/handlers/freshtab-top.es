@@ -4,6 +4,7 @@ import inject from '../../core/kord/inject';
 
 
 export default class CliqzMsgHandlerFreshTabTop extends CliqzMsgHandler {
+
   _renderMessage(message) {
     inject.module('freshtab').isReady().then(() => {
       events.pub('message-center:handlers-freshtab:new-message', message);

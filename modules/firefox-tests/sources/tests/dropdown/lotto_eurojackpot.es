@@ -1,69 +1,62 @@
+/* global it, chai, respondWith, fillIn, waitForPopup, $cliqzResults */
 /* eslint func-names: ['error', 'never'] */
 /* eslint prefer-arrow-callback: 'off' */
 /* eslint no-unused-expressions: 'off' */
 
-import {
-  $cliqzResults,
-  expect,
-  fillIn,
-  respondWith,
-  waitForPopup,
-  withHistory } from './helpers';
 import results from './fixtures/resultsLottoEurojackpot';
 
 export default function () {
   context('for a Lotto Eurojackpot rich header', function () {
-    let $resultElement;
+    let resultElement;
 
     before(function () {
       respondWith({ results });
-      withHistory([]);
       fillIn('eurojackpot');
       return waitForPopup().then(function () {
-        $resultElement = $cliqzResults().find(`a.result[href='${results[0].url}']`)[0].parentNode;
+        resultElement = $cliqzResults().find(`a.result[href='${results[0].url}']`)[0].parentNode;
       });
     });
 
     it('renders rich header result successfully', function () {
-      expect($resultElement).to.exist;
+      chai.expect(resultElement).to.exist;
     });
 
     describe('renders top element', function () {
       it('successfully', function () {
         const lottoTopSelector = 'a.result';
-        expect($resultElement.querySelector(lottoTopSelector)).to.exist;
+        chai.expect(resultElement.querySelector(lottoTopSelector)).to.exist;
       });
 
       it('with existing and correct title', function () {
         const lottoTopTitleSelector = 'a.result div.abstract span.title';
-        expect($resultElement.querySelector(lottoTopTitleSelector)).to.exist;
-        expect($resultElement.querySelector(lottoTopTitleSelector))
-          .to.have.text(results[0].snippet.title);
+        chai.expect(resultElement.querySelector(lottoTopTitleSelector)).to.exist;
+        chai.expect(resultElement.querySelector(lottoTopTitleSelector))
+        .to.have.text(results[0].snippet.title);
       });
 
       it('with existing and correct domain', function () {
         const lottoTopTitleSelector = 'a.result div.abstract span.url';
-        expect($resultElement.querySelector(lottoTopTitleSelector)).to.exist;
-        expect($resultElement.querySelector(lottoTopTitleSelector))
-          .to.contain.text(results[0].snippet.friendlyUrl);
+        chai.expect(resultElement.querySelector(lottoTopTitleSelector)).to.exist;
+        chai.expect(resultElement.querySelector(lottoTopTitleSelector))
+        .to.contain.text(results[0].snippet.friendlyUrl);
       });
 
       it('with existing logo', function () {
         const lottoTopLogoSelector = 'a.result div.icons span.logo';
-        expect($resultElement.querySelector(lottoTopLogoSelector)).to.exist;
+        chai.expect(resultElement.querySelector(lottoTopLogoSelector)).to.exist;
       });
 
       it('with a correct link', function () {
         const lottoTopLinkSelector = 'a.result';
-        expect($resultElement.querySelector(lottoTopLinkSelector).href)
-          .to.equal(results[0].url);
+        chai.expect(resultElement.querySelector(lottoTopLinkSelector).href)
+        .to.equal(results[0].url);
       });
 
       it('with existing and correct description', function () {
         const lottoTopDescSelector = 'a.result div.abstract span.description';
-        expect($resultElement.querySelector(lottoTopDescSelector)).to.exist;
-        expect($resultElement.querySelector(lottoTopDescSelector))
-          .to.have.text(results[0].snippet.description);
+        chai.expect(resultElement.querySelector(lottoTopDescSelector)).to.exist;
+        chai.expect(resultElement.querySelector(lottoTopDescSelector))
+        .to.have.text(results[0].snippet.description);
       });
     });
 
@@ -74,30 +67,30 @@ export default function () {
       let buttonsItems;
 
       beforeEach(function () {
-        buttonsArea = $resultElement.querySelector(buttonsAreaSelector);
-        buttonsItems = $resultElement.querySelectorAll(buttonSelector);
+        buttonsArea = resultElement.querySelector(buttonsAreaSelector);
+        buttonsItems = resultElement.querySelectorAll(buttonSelector);
       });
 
       it('successfully', function () {
-        expect(buttonsArea).to.exist;
+        chai.expect(buttonsArea).to.exist;
         [...buttonsItems].forEach(function (button) {
-          expect(button).to.exist;
+          chai.expect(button).to.exist;
         });
       });
 
       it('correct amount', function () {
-        expect(buttonsItems.length).to.equal(results[0].snippet.deepResults[0].links.length);
+        chai.expect(buttonsItems.length).to.equal(results[0].snippet.deepResults[0].links.length);
       });
 
       it('with correct text', function () {
         [...buttonsItems].forEach(function (button, i) {
-          expect(button).to.contain.text(results[0].snippet.deepResults[0].links[i].title);
+          chai.expect(button).to.contain.text(results[0].snippet.deepResults[0].links[i].title);
         });
       });
 
       it('with correct links', function () {
         [...buttonsItems].forEach(function (button, i) {
-          expect(button.href).to.equal(results[0].snippet.deepResults[0].links[i].url);
+          chai.expect(button.href).to.equal(results[0].snippet.deepResults[0].links[i].url);
         });
       });
     });
@@ -108,38 +101,38 @@ export default function () {
       let lottoItemsRows;
 
       beforeEach(function () {
-        lottoItemsRows = $resultElement.querySelectorAll(lottoRowSelector);
+        lottoItemsRows = resultElement.querySelectorAll(lottoRowSelector);
       });
 
       it('successfully', function () {
         const lottoResultSelector = 'div.lotto';
-        expect($resultElement.querySelector(lottoResultSelector)).to.exist;
+        chai.expect(resultElement.querySelector(lottoResultSelector)).to.exist;
       });
 
       it('with existing and correct heading', function () {
         const lottoResultHeadingSelector = 'div.lotto p.lotto-date';
-        expect($resultElement.querySelector(lottoResultHeadingSelector)).to.exist;
+        chai.expect(resultElement.querySelector(lottoResultHeadingSelector)).to.exist;
 
-        expect($resultElement.querySelector(lottoResultHeadingSelector))
+        chai.expect(resultElement.querySelector(lottoResultHeadingSelector))
           .to.contain.text('Gewinnzahlen');
-        expect($resultElement.querySelector(lottoResultHeadingSelector))
-          .to.contain.text('Freitag');
-        expect($resultElement.querySelector(lottoResultHeadingSelector))
-          .to.contain.text('14.7.2017');
+        chai.expect(resultElement.querySelector(lottoResultHeadingSelector))
+            .to.contain.text('Freitag');
+        chai.expect(resultElement.querySelector(lottoResultHeadingSelector))
+              .to.contain.text('14.7.2017');
       });
 
       it('with existing and correct disclaimer', function () {
         const lottoDisclaimerSelector = 'div.lotto p.no-guarantee';
-        expect($resultElement.querySelector(lottoDisclaimerSelector)).to.exist;
-        expect($resultElement.querySelector(lottoDisclaimerSelector))
-          .to.have.text('Alle Angaben ohne Gewähr');
+        chai.expect(resultElement.querySelector(lottoDisclaimerSelector)).to.exist;
+        chai.expect(resultElement.querySelector(lottoDisclaimerSelector))
+            .to.have.text('Alle Angaben ohne Gewähr');
       });
 
       it('with existing winning results blocks and in correct amount', function () {
         [...lottoItemsRows].forEach(function (row) {
-          expect(row).to.exist;
+          chai.expect(row).to.exist;
         });
-        expect($resultElement.querySelectorAll(lottoRowSelector).length)
+        chai.expect(resultElement.querySelectorAll(lottoRowSelector).length)
           .to.equal(2);
       });
 
@@ -154,26 +147,26 @@ export default function () {
 
         it('with existing elements', function () {
           [...lottoElementSelector].forEach(function (element) {
-            expect(element).to.exist;
+            chai.expect(element).to.exist;
           });
         });
 
         it('with correct amount of elements', function () {
-          expect(lotto5Aus50Elements.length)
+          chai.expect(lotto5Aus50Elements.length)
             .to.equal(results[0].snippet.extra.lotto_list.cur_date.ej.gewinnzahlen.length);
         });
 
         it('with correct value of numerical elements', function () {
           [...lotto5Aus50Elements].forEach(function (element, i) {
-            expect(element).to.contain.text(
+            chai.expect(element).to.contain.text(
               results[0].snippet.extra.lotto_list.cur_date.ej.gewinnzahlen[i]);
           });
         });
 
         it('with existing and correct label', function () {
           const aus50LabelSelector = 'span.description';
-          expect(aus50.querySelector(aus50LabelSelector)).to.exist;
-          expect(aus50.querySelector(aus50LabelSelector))
+          chai.expect(aus50.querySelector(aus50LabelSelector)).to.exist;
+          chai.expect(aus50.querySelector(aus50LabelSelector))
             .to.have.text('5 aus 50');
         });
       });
@@ -189,26 +182,26 @@ export default function () {
 
         it('with existing elements', function () {
           [...lottoElementSelector].forEach(function (element) {
-            expect(element).to.exist;
+            chai.expect(element).to.exist;
           });
         });
 
         it('with correct amount of elements', function () {
-          expect(lotto2Aus10Elements.length)
+          chai.expect(lotto2Aus10Elements.length)
             .to.equal(results[0].snippet.extra.lotto_list.cur_date.ej.zwei_aus_acht.length);
         });
 
         it('with correct value of numerical elements', function () {
           [...lotto2Aus10Elements].forEach(function (element, i) {
-            expect(element).to.contain.text(
+            chai.expect(element).to.contain.text(
               results[0].snippet.extra.lotto_list.cur_date.ej.zwei_aus_acht[i]);
           });
         });
 
         it('with existing and correct label', function () {
           const aus10LabelSelector = 'span.description';
-          expect(aus10.querySelector(aus10LabelSelector)).to.exist;
-          expect(aus10.querySelector(aus10LabelSelector))
+          chai.expect(aus10.querySelector(aus10LabelSelector)).to.exist;
+          chai.expect(aus10.querySelector(aus10LabelSelector))
             .to.have.text('2 aus 10');
         });
       });

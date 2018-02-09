@@ -3,8 +3,9 @@ FROM node:7.10.1-stretch
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN npm install -g \
+  bower \
   broccoli-cli \
-  phantomjs-prebuilt \
+  phantomjs \
   yuidocjs \
   selleck
 
@@ -115,7 +116,9 @@ RUN wget --no-verbose -O /tmp/chromedriver_linux64.zip https://chromedriver.stor
   && chmod 755 /app/chromedriver
 
 COPY package.json /app/
+COPY bower.json /app/
 
 WORKDIR /app/
 
 RUN npm install
+RUN bower install

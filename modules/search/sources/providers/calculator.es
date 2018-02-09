@@ -18,7 +18,7 @@ export default class Calculator extends BaseProvider {
       CliqzCalculator.calculate(query);
 
     if (!result) {
-      return this.getEmptySearch(config, query);
+      return this.getEmptySearch(config);
     }
     result.provider = 'calculator';
     result.template = 'calculator';

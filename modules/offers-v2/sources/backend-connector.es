@@ -9,6 +9,7 @@ import OffersConfigs from './offers_configs';
  * locally with a given TTL. This will also perform better.
  */
 export default class BEConnector {
+
   /**
    * performs the query for the given endpoint and params.
    * If the query performs correctly we will return the parsed json result as

@@ -6,6 +6,7 @@
 import logger from './common/offers_v2_logger';
 
 export default class DBHelper {
+
   //
   // @brief constructor
   // @param db  the database instance to use (pouchdb)
@@ -30,11 +31,7 @@ export default class DBHelper {
     return this.db.get(docID)
       .then(doc => (doc.doc_data))
       .catch((err) => {
-        if (err && err.status && err.status !== 404) {
-          logger.error(`getDocData: error getting doc ${docID} with err: `, err);
-        } else {
-          logger.log(`missing DB entry for docID ${docID}`);
-        }
+        logger.log(`getDocData: error getting doc ${docID} with err: ${err}`);
         return null;
       });
   }
@@ -50,11 +47,7 @@ export default class DBHelper {
       logger.log(`removeDocData: doc ${docID} removed properly`);
     }).catch((err) => {
       // nothing to do there
-      if (err && err.status && err.status !== 404) {
-        logger.error(`removeDocData: something happened removing the doc: ${docID} - err:`, err);
-      } else {
-        logger.log(`missing DB entry for docID ${docID}`);
-      }
+      logger.log(`removeDocData: something happened removing the doc: ${docID} - err: ${err}`);
     });
   }
 }

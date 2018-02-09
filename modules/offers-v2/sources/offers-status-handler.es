@@ -48,4 +48,5 @@ export default class OfferStatusHandler {
     }
     return this.statusMap.has(offerID) ? this.statusMap.get(offerID) : 'unknown';
   }
+
 }

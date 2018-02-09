@@ -85,10 +85,8 @@ export default {
   getAll({ url, name, domain, path, secure, session, storeId }) {
     // Currently only returns all cookies. Filtering is not yet implemented
     const cookies = [];
-    for (const cookie of XPCOMUtils.IterSimpleEnumerator(
-      Services.cookies.enumerator,
-      Components.interfaces.nsICookie2
-    )) {
+    for (const cookie of XPCOMUtils.IterSimpleEnumerator(Services.cookies.enumerator,
+                                                         Components.interfaces.nsICookie2)) {
       cookies.push(new Cookie(cookie));
     }
     return Promise.resolve(cookies);

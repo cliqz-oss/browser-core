@@ -140,8 +140,8 @@ describe('Search options UI browser', function () {
         chai.expect(subject.queryAll('.accordion #accordion-2 .bullet').length).to.equal(7);
       });
 
-      context('"Alternative Search Engine" block', function () {
-        it('renders "Alternative Search Engine"', function () {
+      context('"Supplementary Search Engine" block', function () {
+        it('renders "Supplementary Search Engine"', function () {
           const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-search-engine"]';
           chai.expect(subject.query(titleSelector)).to.exist;
           chai.expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-search-engine');
@@ -166,7 +166,7 @@ describe('Search options UI browser', function () {
               () => subject.messages.find(message => message.message.action === "complementary-search")
             ).then(
               message => {
-                chai.expect(message).to.have.nested.property("message.data.defaultSearch", currentValue);
+                chai.expect(message).to.have.deep.property("message.data.defaultSearch", currentValue);
               }
             );
           });
@@ -210,9 +210,9 @@ describe('Search options UI browser', function () {
               () => subject.messages.find(message => message.message.action === "updatePref")
             ).then(
               message => {
-                chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.adultContentFilter");
-                chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
-                chai.expect(message).to.have.nested.property("message.data.target", "search_adult");
+                chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.adultContentFilter");
+                chai.expect(message).to.have.deep.property("message.data.value", `${currentValue}`);
+                chai.expect(message).to.have.deep.property("message.data.target", "search_adult");
               }
             );
           });
@@ -252,7 +252,7 @@ describe('Search options UI browser', function () {
 
         it('url is correct', function () {
           const locationObject = subject.queryAll('#accordion-2 .bullet')[2];
-          chai.expect(locationObject.querySelector('.location-more').getAttribute('openurl')).to.equal('https://cliqz.com/support/local-results');
+          chai.expect(locationObject.querySelector('.location-more').getAttribute('data-open-url')).to.equal('https://cliqz.com/support/local-results');
         });
 
         function shareLocation(currentValue) {
@@ -269,9 +269,9 @@ describe('Search options UI browser', function () {
               () => subject.messages.find(message => message.message.action === "updatePref")
             ).then(
               message => {
-                chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.share_location");
-                chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
-                chai.expect(message).to.have.nested.property("message.data.target", "search_location");
+                chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.share_location");
+                chai.expect(message).to.have.deep.property("message.data.value", `${currentValue}`);
+                chai.expect(message).to.have.deep.property("message.data.target", "search_location");
               }
             );
           });
@@ -317,7 +317,7 @@ describe('Search options UI browser', function () {
               () => subject.messages.find(message => message.message.action === "search-index-country")
             ).then(
               message => {
-                chai.expect(message).to.have.nested.property("message.data.defaultCountry", currentValue);
+                chai.expect(message).to.have.deep.property("message.data.defaultCountry", currentValue);
               }
             );
           });
@@ -364,9 +364,9 @@ describe('Search options UI browser', function () {
               () => subject.messages.find(message => message.message.action === "updatePref")
             ).then(
               message => {
-                chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.hpn-query");
-                chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
-                chai.expect(message).to.have.nested.property("message.data.target", "search_proxy");
+                chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.hpn-query");
+                chai.expect(message).to.have.deep.property("message.data.value", `${currentValue}`);
+                chai.expect(message).to.have.deep.property("message.data.target", "search_proxy");
               }
             );
           });
@@ -415,9 +415,9 @@ describe('Search options UI browser', function () {
               () => subject.messages.find(message => message.message.action === "updatePref")
             ).then(
               message => {
-                chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.humanWebOptOut");
-                chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
-                chai.expect(message).to.have.nested.property("message.data.target", "search_humanweb");
+                chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.humanWebOptOut");
+                chai.expect(message).to.have.deep.property("message.data.value", `${currentValue}`);
+                chai.expect(message).to.have.deep.property("message.data.target", "search_humanweb");
               }
             );
           });
@@ -449,7 +449,7 @@ describe('Search options UI browser', function () {
 
         it('url is correct', function () {
           const buttonSelector = '#accordion-2 .bullet button[data-target="search_transparency"]';
-          chai.expect(subject.query(buttonSelector).getAttribute('openurl')).to.equal('about:transparency');
+          chai.expect(subject.query(buttonSelector).getAttribute('data-open-url')).to.equal('about:transparency');
         });
 
         it('does not render info button', function () {
@@ -510,8 +510,8 @@ describe('AMO Search options tests', function () {
         chai.expect(subject.queryAll('.accordion #accordion-2 .bullet').length).to.equal(6);
       });
 
-      context('"Alternative Search Engine" block', function () {
-        it('renders "Alternative Search Engine"', function () {
+      context('"Supplementary Search Engine" block', function () {
+        it('renders "Supplementary Search Engine"', function () {
           const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-search-engine"]';
           chai.expect(subject.query(titleSelector)).to.exist;
           chai.expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-search-engine');
@@ -536,7 +536,7 @@ describe('AMO Search options tests', function () {
               () => subject.messages.find(message => message.message.action === "complementary-search")
             ).then(
               message => {
-                chai.expect(message).to.have.nested.property("message.data.defaultSearch", currentValue);
+                chai.expect(message).to.have.deep.property("message.data.defaultSearch", currentValue);
               }
             );
           });
@@ -580,9 +580,9 @@ describe('AMO Search options tests', function () {
               () => subject.messages.find(message => message.message.action === "updatePref")
             ).then(
               message => {
-                chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.adultContentFilter");
-                chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
-                chai.expect(message).to.have.nested.property("message.data.target", "search_adult");
+                chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.adultContentFilter");
+                chai.expect(message).to.have.deep.property("message.data.value", `${currentValue}`);
+                chai.expect(message).to.have.deep.property("message.data.target", "search_adult");
               }
             );
           });
@@ -622,7 +622,7 @@ describe('AMO Search options tests', function () {
 
         it('url is correct', function () {
           const locationObject = subject.queryAll('#accordion-2 .bullet')[2];
-          chai.expect(locationObject.querySelector('.location-more').getAttribute('openurl')).to.equal('https://cliqz.com/support/local-results');
+          chai.expect(locationObject.querySelector('.location-more').getAttribute('data-open-url')).to.equal('https://cliqz.com/support/local-results');
         });
 
         function shareLocation(currentValue) {
@@ -639,9 +639,9 @@ describe('AMO Search options tests', function () {
               () => subject.messages.find(message => message.message.action === "updatePref")
             ).then(
               message => {
-                chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.share_location");
-                chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
-                chai.expect(message).to.have.nested.property("message.data.target", "search_location");
+                chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.share_location");
+                chai.expect(message).to.have.deep.property("message.data.value", `${currentValue}`);
+                chai.expect(message).to.have.deep.property("message.data.target", "search_location");
               }
             );
           });
@@ -687,7 +687,7 @@ describe('AMO Search options tests', function () {
               () => subject.messages.find(message => message.message.action === "search-index-country")
             ).then(
               message => {
-                chai.expect(message).to.have.nested.property("message.data.defaultCountry", currentValue);
+                chai.expect(message).to.have.deep.property("message.data.defaultCountry", currentValue);
               }
             );
           });
@@ -734,9 +734,9 @@ describe('AMO Search options tests', function () {
               () => subject.messages.find(message => message.message.action === "updatePref")
             ).then(
               message => {
-                chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.hpn-query");
-                chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
-                chai.expect(message).to.have.nested.property("message.data.target", "search_proxy");
+                chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.hpn-query");
+                chai.expect(message).to.have.deep.property("message.data.value", `${currentValue}`);
+                chai.expect(message).to.have.deep.property("message.data.target", "search_proxy");
               }
             );
           });
@@ -785,9 +785,9 @@ describe('AMO Search options tests', function () {
               () => subject.messages.find(message => message.message.action === "updatePref")
             ).then(
               message => {
-                chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.humanWebOptOut");
-                chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
-                chai.expect(message).to.have.nested.property("message.data.target", "search_humanweb");
+                chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.humanWebOptOut");
+                chai.expect(message).to.have.deep.property("message.data.value", `${currentValue}`);
+                chai.expect(message).to.have.deep.property("message.data.target", "search_humanweb");
               }
             );
           });
@@ -850,8 +850,8 @@ describe('FunnelCake tests', function () {
       chai.expect(subject.queryAll('.accordion #accordion-2 .bullet').length).to.equal(6);
     });
 
-    context('"Alternative Search Engine" block', function () {
-      it('renders "Alternative Search Engine"', function () {
+    context('"Supplementary Search Engine" block', function () {
+      it('renders "Supplementary Search Engine"', function () {
         const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-search-engine"]';
         chai.expect(subject.query(titleSelector)).to.exist;
         chai.expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-search-engine');
@@ -881,7 +881,7 @@ describe('FunnelCake tests', function () {
             () => subject.messages.find(message => message.message.action === "complementary-search")
           ).then(
             message => {
-              chai.expect(message).to.have.nested.property("message.data.defaultSearch", currentValue);
+              chai.expect(message).to.have.deep.property("message.data.defaultSearch", currentValue);
             }
           );
         });
@@ -925,9 +925,9 @@ describe('FunnelCake tests', function () {
             () => subject.messages.find(message => message.message.action === "updatePref")
           ).then(
             message => {
-              chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.adultContentFilter");
-              chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
-              chai.expect(message).to.have.nested.property("message.data.target", "search_adult");
+              chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.adultContentFilter");
+              chai.expect(message).to.have.deep.property("message.data.value", `${currentValue}`);
+              chai.expect(message).to.have.deep.property("message.data.target", "search_adult");
             }
           );
         });
@@ -974,9 +974,9 @@ describe('FunnelCake tests', function () {
             () => subject.messages.find(message => message.message.action === "updatePref")
           ).then(
             message => {
-              chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.share_location");
-              chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
-              chai.expect(message).to.have.nested.property("message.data.target", "search_location");
+              chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.share_location");
+              chai.expect(message).to.have.deep.property("message.data.value", `${currentValue}`);
+              chai.expect(message).to.have.deep.property("message.data.target", "search_location");
             }
           );
         });
@@ -1022,7 +1022,7 @@ describe('FunnelCake tests', function () {
             () => subject.messages.find(message => message.message.action === "search-index-country")
           ).then(
             message => {
-              chai.expect(message).to.have.nested.property("message.data.defaultCountry", currentValue);
+              chai.expect(message).to.have.deep.property("message.data.defaultCountry", currentValue);
             }
           );
         });
@@ -1069,9 +1069,9 @@ describe('FunnelCake tests', function () {
             () => subject.messages.find(message => message.message.action === "updatePref")
           ).then(
             message => {
-              chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.hpn-query");
-              chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
-              chai.expect(message).to.have.nested.property("message.data.target", "search_proxy");
+              chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.hpn-query");
+              chai.expect(message).to.have.deep.property("message.data.value", `${currentValue}`);
+              chai.expect(message).to.have.deep.property("message.data.target", "search_proxy");
             }
           );
         });
@@ -1120,9 +1120,9 @@ describe('FunnelCake tests', function () {
             () => subject.messages.find(message => message.message.action === "updatePref")
           ).then(
             message => {
-              chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.humanWebOptOut");
-              chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
-              chai.expect(message).to.have.nested.property("message.data.target", "search_humanweb");
+              chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.humanWebOptOut");
+              chai.expect(message).to.have.deep.property("message.data.value", `${currentValue}`);
+              chai.expect(message).to.have.deep.property("message.data.target", "search_humanweb");
             }
           );
         });
@@ -1159,8 +1159,8 @@ describe('FunnelCake tests', function () {
 
       it('url for Support is correct', function () {
         const supportSelector = '#control-center .footer #support [data-i18n="control-center-support"]';
-        chai.expect(subject.query(supportSelector).hasAttribute('openurl')).to.be.true;
-        chai.expect(subject.query(supportSelector).getAttribute('openurl')).to.equal('https://cliqz.com/feedback/1.19.0.dev-40');
+        chai.expect(subject.query(supportSelector).hasAttribute('data-open-url')).to.be.true;
+        chai.expect(subject.query(supportSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/feedback/1.19.0.dev-40');
       });
 
       it('renders "Tips"', function () {
@@ -1171,8 +1171,8 @@ describe('FunnelCake tests', function () {
 
       it('url for Tips is correct', function () {
         const tipsSelector = '#control-center .footer #support [data-i18n="control-center-tips"]';
-        chai.expect(subject.query(tipsSelector).hasAttribute('openurl')).to.be.true;
-        chai.expect(subject.query(tipsSelector).getAttribute('openurl')).to.equal('https://cliqz.com/tips');
+        chai.expect(subject.query(tipsSelector).hasAttribute('data-open-url')).to.be.true;
+        chai.expect(subject.query(tipsSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/tips');
       });
     });
   });

@@ -7,6 +7,7 @@ import { newsClickSignal, newsHoverSignal } from '../services/telemetry/news';
 let startEnter = 0;
 
 class Article extends React.Component {
+
   constructor(props) {
     super(props);
     this.state = {
@@ -87,7 +88,7 @@ class Article extends React.Component {
         <div className="news-description">
           {
             this.truncate(this.props.article.description,
-              this.props.maxChars)
+            this.props.maxChars)
           }
         </div>
         <div className="read-more-button">{ t('app.news.read-more') }</div>

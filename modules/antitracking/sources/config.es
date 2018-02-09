@@ -52,10 +52,9 @@ export const PREFS = {
 const REMOTELY_CONFIGURED = ['blockRules', 'reportList', 'cookieWhitelist', 'subdomainRewriteRules'];
 
 export default class Config {
-  constructor({
-    defaults = DEFAULTS,
-    versionUrl = VERSIONCHECK_URL
-  }) {
+
+  constructor({ defaults = DEFAULTS,
+                versionUrl = VERSIONCHECK_URL }) {
     this.debugMode = false;
     this.versionCheckUrl = versionUrl;
 
@@ -147,4 +146,5 @@ export default class Config {
       this[key] = conf[key];
     });
   }
+
 }

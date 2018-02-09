@@ -7,8 +7,8 @@ const getResponse = (provider, config, query, results, state) =>
     state,
   });
 
-const getEmptyResponse = (provider, config, query) =>
-  getResponse(provider, config, query, [], 'done');
+const getEmptyResponse = (provider, config) =>
+  getResponse(provider, config, null, [], 'done');
 
 const getPendingResponse = (provider, config, query) =>
   getResponse(provider, config, query, [], 'pending');

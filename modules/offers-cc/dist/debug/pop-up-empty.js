@@ -1,3 +1,0 @@
-DATA.push({
-  noVoucher: true,
-});

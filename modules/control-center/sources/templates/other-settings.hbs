@@ -29,7 +29,7 @@
       {{#if module.autocomplete.visible}}
       <span class="bullet">
         <span data-i18n="control-center-search-engine"></span>
-        <select complementarySearchChanger
+        <select role="complementarySearchChanger"
                 class="custom-dropdown"
                 data-target="complementary_search">
           {{#each module.autocomplete.state}}
@@ -58,7 +58,7 @@
         <span data-i18n="control-center-explicit"></span>
 
         <select class="custom-dropdown"
-                updatePref="extensions.cliqz.adultContentFilter"
+                data-update-pref="extensions.cliqz.adultContentFilter"
                 data-target="search_adult">
           {{#each module.adult.state}}
             <option {{#if selected }}selected{{/if}} value="{{ @key }}" >{{ name }}</option>
@@ -86,7 +86,7 @@
 
 
         <select class="custom-dropdown"
-                updatePref="extensions.cliqz.share_location"
+                data-update-pref="extensions.cliqz.share_location"
                 data-target="search_location">
           {{#each module.geolocation.state}}
             <option {{#if selected }}selected{{/if}} value="{{ @key }}" >{{ name }}</option>
@@ -94,7 +94,7 @@
         </select>
 
         {{#unless funnelCake}}
-          <span class="location-more" openUrl="https://cliqz.com/support/local-results" data-i18n="control-center-info-share-location-link"></span>
+          <span class="location-more" data-open-url="https://cliqz.com/support/local-results" data-i18n="control-center-info-share-location-link"></span>
         {{/unless}}
       </span>
       {{/if}}
@@ -102,7 +102,7 @@
       {{#if module.autocomplete.visible}}
       <span class="bullet">
         <span data-i18n="control-center-backend-country"></span>
-        <select searchIndexCountryChanger
+        <select role="searchIndexCountryChanger"
                 class="custom-dropdown"
                 data-target="search-index-country">
           {{#each module.autocomplete.supportedIndexCountries}}
@@ -116,8 +116,8 @@
 
       {{#if module.hpn.visible }}
       <span class="bullet"
-            state="{{#if module.hpn.state}}active{{ else }}inactive{{/if}}"
-            inactiveState="inactive">
+            data-status="{{#if module.hpn.state}}active{{ else }}inactive{{/if}}"
+            data-inactiveState="inactive">
         <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
           <defs></defs>
           <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
@@ -136,8 +136,8 @@
                 data-i18n="control-center-proxy">
           </span>
           <select class="custom-dropdown"
-                  updatePref="extensions.cliqz.hpn-query"
-                  updatePrefType="boolean"
+                  data-update-pref="extensions.cliqz.hpn-query"
+                  data-update-pref-type="boolean"
                   data-target="search_proxy">
                 <option {{#if module.searchProxy.enabled}}selected{{/if}} value="true" data-i18n="control-center-enabled"></option>
                 <option {{#unless module.searchProxy.enabled}}selected{{/unless}} value="false" data-i18n="control-center-disabled"></option>
@@ -193,8 +193,8 @@
       {{/if}}
       {{#if module.human-web.visible }}
         <span class="bullet human-web"
-              state="{{#if module.human-web.state}}active{{ else }}inactive{{/if}}"
-              inactiveState="inactive">
+              data-status="{{#if module.human-web.state}}active{{ else }}inactive{{/if}}"
+              data-inactiveState="inactive">
           <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
             <defs></defs>
             <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
@@ -212,7 +212,7 @@
                 data-i18n="control-center-humanweb">
           </span>
           <select class="custom-dropdown"
-                  updatePref="extensions.cliqz.humanWebOptOut"
+                  data-update-pref="extensions.cliqz.humanWebOptOut"
                   data-target="search_humanweb">
                 <option {{#unless module.humanWebOptOut}}selected{{/unless}} value="enabled" data-i18n="control-center-enabled"></option>
                 <option {{#if module.humanWebOptOut}}selected{{/if}} value="disabled" data-i18n="control-center-disabled"></option>
@@ -224,7 +224,7 @@
         <span class="bullet">
           <span data-i18n="control-center-transparency"></span>
           <button
-            openUrl="about:transparency"
+            data-open-url="about:transparency"
             data-target="search_transparency"
             data-i18n="control-center-open">
           </button>
@@ -251,7 +251,7 @@
       <span class="bullet">
         <span data-i18n="control-center-show-history"></span>
         <button
-            openUrl="history"
+            data-open-url="history"
             data-target="history_showall"
             data-i18n="control-center-open">
         </button>
@@ -263,7 +263,7 @@
       <span class="bullet">
         <span data-i18n="control-center-forget-history"></span>
         <button
-            openUrl="forget_history"
+            data-open-url="forget_history"
             data-target="history_forget"
             data-i18n="control-center-open">
         </button>
@@ -274,8 +274,8 @@
       </span>
       {{#if module.apt.visible}}
         <span class="bullet"
-              state="{{#if module.apt.state}}active{{ else }}inactive{{/if}}"
-              inactiveState="inactive">
+              data-status="{{#if module.apt.state}}active{{ else }}inactive{{/if}}"
+              data-inactiveState="inactive">
           <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
             <defs></defs>
             <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
@@ -293,8 +293,8 @@
                 data-i18n="control-center-forget-mode">
           </span>
           <select class="custom-dropdown"
-                  updatePref='browser.privatebrowsing.apt'
-                  updatePrefType="boolean"
+                  data-update-pref='browser.privatebrowsing.apt'
+                  data-update-pref-type="boolean"
                   data-target="history_autoforget">
                 <option {{#if module.apt.state}}selected{{/if}} value="true" data-i18n="control-center-enabled"></option>
                 <option {{#unless module.apt.state}}selected{{/unless}} value="false" data-i18n="control-center-disabled"></option>
@@ -304,7 +304,7 @@
     </div>
   </div>
   {{/if}}
-    {{#if module.offers-v2.visible}}
+    {{#if module.offers-v2.showSettings}}
     <!-- offrz menu -->
     <div class="accordion-section">
       <a class="accordion-section-title"
@@ -333,13 +333,13 @@
           </div>
           <span data-i18n="control-center-offers-show"></span>
           <span class="location-more"
-                openUrl="https://cliqz.com/myoffrz"
+                data-open-url="https://cliqz.com/myoffrz"
                 data-target="offerz_main_learn_more"
                 data-i18n="control-center-info-share-location-link">
           </span>
           <select class="custom-dropdown"
-                  updatePref="extensions.cliqz.offers2UserEnabled"
-                  updatePrefType="boolean"
+                  data-update-pref="extensions.cliqz.offers2UserEnabled"
+                  data-update-pref-type="boolean"
                   data-target="offerz_main">
                 <option {{#if module.offers-v2.userEnabled}}selected{{/if}} value="true" data-i18n="control-center-enabled"></option>
                 <option {{#unless module.offers-v2.userEnabled}}selected{{/unless}} value="false" data-i18n="control-center-disabled"></option>
@@ -361,8 +361,8 @@
           </div>
           <span data-i18n="control-center-offers-location"></span>
           <select class="custom-dropdown"
-                  updatePref="extensions.cliqz.offers_location"
-                  updatePrefType="integer"
+                  data-update-pref="extensions.cliqz.offers_location"
+                  data-update-pref-type="integer"
                   data-target="offerz_location">
                 <option {{#if module.offers-v2.locationEnabled}}selected{{/if}} value="1" data-i18n="control-center-enabled"></option>
                 <option {{#unless module.offers-v2.locationEnabled}}selected{{/unless}} value="0" data-i18n="control-center-disabled"></option>

@@ -140,11 +140,7 @@ var CLIQZEnvironment = {
      * @return whether |win|'s current tab is in private mode.
      */
     isOnPrivateTab: function(win) {
-      return (
-        win &&
-        win.gBrowser.selectedBrowser !== undefined &&
-        win.gBrowser.selectedBrowser.loadContext.usePrivateBrowsing
-      );
+      return win.gBrowser.selectedBrowser.loadContext.usePrivateBrowsing;
     },
 
     getWindow: function(){
@@ -224,10 +220,7 @@ var CLIQZEnvironment = {
       }
 
       return function(msg, instantPush) {
-        // no telemetry in private windows & tabs
-        if (msg.type !== 'environment' && utils.isPrivateMode()) {
-          return;
-        }
+        if(msg.type != 'environment' && CLIQZEnvironment.isPrivate()) return; // no telemetry in private windows
 
         console.log(msg, 'Utils.telemetry');
         if(!prefs.get('telemetry', true))return;
@@ -278,11 +271,7 @@ var CLIQZEnvironment = {
             base_url: e.searchForm,
             urlDetails: utils.getDetailsFromUrl(e.searchForm),
             getSubmissionForQuery: function(q, type){
-              // 'keyword' is used by one of the Mozilla probes
-              // to measure source for search actions
-              // https://dxr.mozilla.org/mozilla-central/rev/e4107773cffb1baefd5446666fce22c4d6eb0517/browser/locales/searchplugins/google.xml#15
-              const submission = e.getSubmission(q, type, 'keyword');
-
+              const submission = e.getSubmission(q, type);
               // some engines cannot create submissions for all types
               // eg 'application/x-suggestions+json'
               if (submission) {

@@ -1,3 +1,4 @@
+import md5 from '../core/helpers/md5';
 import { utils } from '../core/cliqz';
 
 import Backend from './backend-communication';
@@ -6,11 +7,11 @@ import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
 
 
 /**
- * Messages to be sent are persisted in Dexie to make sure we don't lose
+ * Messages to be sent are persisted in pouchDB to make sure we don't lose
  * anything. When popped from the queue, they are sent one by one to the backend.
- * Only when the response is 'ok' we remove the message from Dexie.
+ * Only when the response is 'ok' we remove the message from pouchDB.
  *
- * [Dexie] -> backend -> deleted from [Dexie]
+ * [pouchDB] -> backend -> deleted from [pouchDB]
  *
  * The messages are sent by batch.
  *
@@ -19,8 +20,8 @@ import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
  * dropped after a few trials.
  */
 export default class SignalsQueue {
-  constructor() {
-    this.db = null;
+  constructor(storage) {
+    this.storage = storage;
 
     // Send signals by chunks, at regular intervals
     // Make throughput customizable
@@ -34,16 +35,33 @@ export default class SignalsQueue {
     this.failureTimeout = 1000 * 60;
   }
 
-  init(db) {
-    this.db = db;
-    return this.db.deleteOlderThan(getSynchronizedDate().subtract(1, 'months').format(DATE_FORMAT))
-      .then(() => this.startListening());
+  flush() {
+    return this.storage.flush();
+  }
+
+  init() {
+    return this.storage.init()
+      .then(() => this.storage.deleteByTimespan({
+        to: getSynchronizedDate().subtract(1, 'months').format(DATE_FORMAT)
+      }))
+      .catch(err => logger.error('error deleting old messages from queue:', err))
+      .then(() => {
+        // Trigger sending of next batch
+        this.startListening();
+      });
   }
 
   unload() {
     this.initialized = false;
     utils.clearInterval(this.interval);
     utils.clearTimeout(this.sleepTimeout);
+  }
+
+  /**
+   * Destroy the storage used to persist the signal queue.
+   */
+  destroy() {
+    return this.storage.destroy();
   }
 
   sleep(time) {
@@ -69,25 +87,25 @@ export default class SignalsQueue {
         if (!ongoingBatch && this.initialized) {
           ongoingBatch = true;
           this.processNextBatch(this.batchSize)
-            .then(() => {
-              // Reset failure timeout after we could send a batch successfuly
-              this.failureTimeout = 1000 * 60;
-              // Wait a bit before next batch
-              return this.sleep(this.sendInterval);
-            })
-            .catch((err) => {
-              if (this.initialized) {
-                logger.error('error while sending batch', err);
-                // In case of error, sleep for longer and increase the timeout
-                const timeout = this.failureTimeout;
-                this.failureTimeout *= 5;
-                return this.sleep(timeout);
-              }
+          .then(() => {
+            // Reset failure timeout after we could send a batch successfuly
+            this.failureTimeout = 1000 * 60;
+            // Wait a bit before next batch
+            return this.sleep(this.sendInterval);
+          })
+          .catch((err) => {
+            if (this.initialized) {
+              logger.error('error while sending batch', err);
+              // In case of error, sleep for longer and increase the timeout
+              const timeout = this.failureTimeout;
+              this.failureTimeout *= 5;
+              return this.sleep(timeout);
+            }
 
-              return Promise.resolve();
-            })
-            .catch(() => {})
-            .then(() => { ongoingBatch = false; });
+            return Promise.resolve();
+          })
+          .catch(() => {})
+          .then(() => { ongoingBatch = false; });
         }
       },
       this.sendInterval,
@@ -100,36 +118,49 @@ export default class SignalsQueue {
    *  - If it *fails*, then increment the `attempts` counter. If the attempts is
    *  greater than the maximum allowed, we drop the message completely.
    */
-  sendSignal({ signal, attempts, id }) {
+  sendSignal(doc) {
     // Check if the message queue is currently initialized before sending anything
     if (!this.initialized) {
       return Promise.reject('signal-queue has been unloaded, cancel message sending');
     }
 
-    logger.debug('send signal', signal);
-    return Backend.sendSignal(signal)
-      .then(() => this.db.remove(id))
-      .catch((ex) => {
-        // We don't remove the document from the db since it will be retried
-        // later. This way we avoid loosing signals because of server's
-        // errors.
-        const reason = `failed to send signal with exception ${ex} [${attempts}]`;
-        let resultPromise;
+    const signal = doc.signal;
 
-        // Check number of attempts and remove if > this.maxAttempts
-        if (attempts < this.maxAttempts) {
-          resultPromise = this.db.remove(id)
-            .then(() => this.db.push(signal, attempts + 1))
-            .then(() => logger.error('update number of attemps of signal', signal));
-        } else {
-          // Otherwise, remove the document from the queue
-          resultPromise = this.db.remove(id)
-            .then(() => logger.error('removed failed signal', signal));
-        }
+    if (signal) {
+      logger.debug('send signal', signal);
+      return Backend.sendSignal(signal)
+        .then(() =>
+          this.storage.remove(doc)
+            .catch((err) => { logger.error('signal-queue could not delete message', doc, err); })
+        )
+        .catch((ex) => {
+          // We don't remove the document from the db since it will be retried
+          // later. This way we avoid loosing signals because of server's
+          // errors.
+          const reason = `failed to send signal with exception ${ex} [${doc.attempts}]`;
+          let resultPromise;
 
-        // Returns a failed promise to notify a failure
-        return resultPromise.then(() => Promise.reject(reason));
-      });
+          // Check number of attempts and remove if > this.maxAttempts
+          if (doc.attempts !== undefined && Number(doc.attempts) < this.maxAttempts) {
+            /* eslint-disable no-param-reassign */
+            doc.attempts += 1;
+            resultPromise = this.storage.put(doc);
+          } else {
+            // Otherwise, remove the document from the queue
+            resultPromise = this.storage.remove(doc)
+              .catch(err => logger.error('could not remove failed signal', doc, err))
+              .then(() => logger.error('removed failed signal', doc));
+          }
+
+          // Returns a failed promise to notify a failure
+          return resultPromise.then(() => Promise.reject(reason));
+        });
+    }
+
+    // If signal was undefined, remove the document from the queue
+    return this.storage.remove(doc)
+      .catch(err => logger.error('signal-queue could not remove undefined signal', doc, err))
+      .then(() => Promise.reject('doc.signal is undefined', doc));
   }
 
   /**
@@ -150,8 +181,8 @@ export default class SignalsQueue {
   /**
    * Get the next batch of documents to be sent to the backend.
    */
-  getNextBatch(n) {
-    return this.db.getN(n)
+  getNextBatch(size) {
+    return this.storage.getN(size)
       .catch((ex) => {
         logger.error('signal-queue could not get next batch', ex);
         return []; // Returns empty batch
@@ -174,15 +205,11 @@ export default class SignalsQueue {
    * backend as soon as possible.
    */
   push(signal) {
-    return this.db.push(signal).catch((ex) => {
-      logger.log('Could not persist signal in queue, sending directly', ex, signal);
-      // Indicate that this signal was pushed directly, without going through
-      // the persistent signal queue.
-
-      /* eslint-disable no-param-reassign */
-      signal.meta.forcePushed = true;
-      /* eslint-enable no-param-reassign */
-      return this.sendSignal({ signal });
-    });
+    return this.storage.put({
+      signal,
+      attempts: 0,
+      type: 'anolysisSignal',
+      _id: md5(JSON.stringify(signal))
+    }, true /* buffered */);
   }
 }

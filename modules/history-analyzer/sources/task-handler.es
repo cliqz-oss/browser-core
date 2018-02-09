@@ -73,8 +73,7 @@ const buildDayQueriesMap = (intervalsMap, entriesCache) => {
         if (!haveCachedData(pid, currDayKey) || currDayKey === todayKeyDay) {
           let pidList = daysQueriesMap[currDayKey];
           if (!pidList) {
-            pidList = [];
-            daysQueriesMap[currDayKey] = pidList;
+            pidList = daysQueriesMap[currDayKey] = [];
           }
           pidList.push(pid);
         }
@@ -145,11 +144,12 @@ const splitAndCreateTasks = (daysQueriesMap, patternsMap) => {
  * of building them if new queries arrives.
  */
 export default class TaskHandler {
+
   constructor(db, entriesCache) {
     this.entriesCache = entriesCache;
-    this.dh = (db)
-      ? new PersistentDataHandler(STATE_DOC_ID, defaultState, db)
-      : new BasicDataHolder(STATE_DOC_ID, defaultState, db);
+    this.dh = (db) ?
+          new PersistentDataHandler(STATE_DOC_ID, defaultState, db) :
+          new BasicDataHolder(STATE_DOC_ID, defaultState, db);
     this.d = this.dh.data;
   }
 
@@ -233,7 +233,7 @@ export default class TaskHandler {
             q.patterns.length > 0);
   }
 
-  // build a list of tasks given the current list of queries we want to perform
+    // build a list of tasks given the current list of queries we want to perform
   // and enqueue them on the list
   _buildTasksFromQueries() {
     // A task will be an object with the following information
@@ -280,4 +280,6 @@ export default class TaskHandler {
     tasks.forEach(t => this.d.taskQueue.push(t));
     this.dh.save(true);
   }
+
 }
+

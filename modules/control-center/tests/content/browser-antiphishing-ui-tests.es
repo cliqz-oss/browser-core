@@ -39,8 +39,8 @@ function antiphishingUiTests(amo) {
       it('renders "Your data is protected"', function () {
         chai.expect(subject.query('#header .title [data-i18n="control-center-txt-header"]')).to.exist;
         chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header"]').display).to.not.equal('none');
-        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][visible-on-state="inactive"]').display).to.equal('none');
-        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][visible-on-state="critical"]').display).to.equal('none');
+        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][data-visible-on-state="inactive"]').display).to.equal('none');
+        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][data-visible-on-state="critical"]').display).to.equal('none');
         chai.expect(subject.query('#header .title [data-i18n="control-center-txt-header"]').textContent.trim()).to.equal('control-center-txt-header');
       });
 
@@ -92,11 +92,11 @@ function antiphishingUiTests(amo) {
     });
 
     it('renders "ON"', function () {
-      chai.expect(subject.query('#anti-phising .switches [visible-on-state="active"][data-i18n="control-center-switch-on"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-phising .switches [visible-on-state="active"][data-i18n="control-center-switch-on"]').display).to.not.equal('none');
-      chai.expect(subject.query('#anti-phising .switches [invisible-on-state="active"][data-i18n="control-center-switch-off"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-phising .switches [invisible-on-state="active"][data-i18n="control-center-switch-off"]').display).to.equal('none');
-      chai.expect(subject.query('#anti-phising .switches [visible-on-state="active"][data-i18n="control-center-switch-on"]').textContent.trim()).to.equal('control-center-switch-on')
+      chai.expect(subject.query('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]').display).to.not.equal('none');
+      chai.expect(subject.query('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control-center-switch-off"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control-center-switch-off"]').display).to.equal('none');
+      chai.expect(subject.query('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]').textContent.trim()).to.equal('control-center-switch-on')
     });
 
   });
@@ -114,19 +114,19 @@ function antiphishingUiTests(amo) {
     });
 
     it('renders "OFF"', function () {
-      chai.expect(subject.query('#anti-phising .switches [visible-on-state="active"][data-i18n="control-center-switch-on"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-phising .switches [visible-on-state="active"][data-i18n="control-center-switch-on"]').display).to.equal('none');
-      chai.expect(subject.query('#anti-phising .switches [invisible-on-state="active"][data-i18n="control-center-switch-off"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-phising .switches [invisible-on-state="active"][data-i18n="control-center-switch-off"]').display).to.not.equal('none');
-      chai.expect(subject.query('#anti-phising .switches [invisible-on-state="active"][data-i18n="control-center-switch-off"]').textContent.trim()).to.equal('control-center-switch-off')
+      chai.expect(subject.query('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]').display).to.equal('none');
+      chai.expect(subject.query('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control-center-switch-off"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control-center-switch-off"]').display).to.not.equal('none');
+      chai.expect(subject.query('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control-center-switch-off"]').textContent.trim()).to.equal('control-center-switch-off')
     });
 
     it('renders dropdown with "This domain"', function () {
-      chai.expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [visible-on-state="inactive"][data-i18n="control-center-this-domain"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-phising .new-dropdown .dropdown-btn [visible-on-state="inactive"][data-i18n="control-center-this-domain"]').display).to.not.equal('none');
-      chai.expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [visible-on-state="critical"][data-i18n="control-center-all-sites"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-phising .new-dropdown .dropdown-btn [visible-on-state="critical"][data-i18n="control-center-all-sites"]').display).to.equal('none');
-      chai.expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [visible-on-state="inactive"][data-i18n="control-center-this-domain"]').textContent.trim()).to.equal('control-center-this-domain');
+      chai.expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control-center-this-domain"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control-center-this-domain"]').display).to.not.equal('none');
+      chai.expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control-center-all-sites"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control-center-all-sites"]').display).to.equal('none');
+      chai.expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control-center-this-domain"]').textContent.trim()).to.equal('control-center-this-domain');
     });
   });
 
@@ -145,19 +145,19 @@ function antiphishingUiTests(amo) {
     });
 
     it('renders "OFF"', function () {
-      chai.expect(subject.query('#anti-phising .switches [visible-on-state="active"][data-i18n="control-center-switch-on"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-phising .switches [visible-on-state="active"][data-i18n="control-center-switch-on"]').display).to.equal('none');
-      chai.expect(subject.query('#anti-phising .switches [invisible-on-state="active"][data-i18n="control-center-switch-off"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-phising .switches [invisible-on-state="active"][data-i18n="control-center-switch-off"]').display).to.not.equal('none');
-      chai.expect(subject.query('#anti-phising .switches [invisible-on-state="active"][data-i18n="control-center-switch-off"]').textContent.trim()).to.equal('control-center-switch-off')
+      chai.expect(subject.query('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]').display).to.equal('none');
+      chai.expect(subject.query('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control-center-switch-off"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control-center-switch-off"]').display).to.not.equal('none');
+      chai.expect(subject.query('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control-center-switch-off"]').textContent.trim()).to.equal('control-center-switch-off')
     });
 
     it('renders dropdown with "All websites"', function () {
-      chai.expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [visible-on-state="inactive"][data-i18n="control-center-this-domain"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-phising .new-dropdown .dropdown-btn [visible-on-state="inactive"][data-i18n="control-center-this-domain"]').display).to.equal('none');
-      chai.expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [visible-on-state="critical"][data-i18n="control-center-all-sites"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-phising .new-dropdown .dropdown-btn [visible-on-state="critical"][data-i18n="control-center-all-sites"]').display).to.not.equal('none');
-      chai.expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [visible-on-state="critical"][data-i18n="control-center-all-sites"]').textContent.trim()).to.equal('control-center-all-sites');
+      chai.expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control-center-this-domain"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control-center-this-domain"]').display).to.equal('none');
+      chai.expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control-center-all-sites"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control-center-all-sites"]').display).to.not.equal('none');
+      chai.expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control-center-all-sites"]').textContent.trim()).to.equal('control-center-all-sites');
     });
   });
 };

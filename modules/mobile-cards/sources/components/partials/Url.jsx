@@ -7,14 +7,13 @@ class Url extends React.Component {
 
   render() {
     const url = this.props.url;
-    const oneLine = this.props.oneLine;
     if (!url || url === 'n/a') {
       return null;
     }
     const urlDetails = utils.getDetailsFromUrl(url);
     return (
       <Text
-        numberOfLines={oneLine ? 1 : 3}
+        numberOfLines={3}
         style={style(this.props.isHistory).url}
       >
         { urlDetails.friendly_url || url }

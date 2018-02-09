@@ -1,6 +1,7 @@
-import Handlebars from 'handlebars';
-import UI from './UI';
-import templates from './templates';
+import Handlebars from 'handlebars'
+import utils from '../core/utils';
+import UI from "./UI";
+import templates from "./templates";
 import helpers from './content/helpers';
 import VIEWS from './views';
 

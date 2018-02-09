@@ -3,16 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <title>Cross-domain request using a client-side proxy script and some iframe hacking</title>
+    <script src="/bower_components/jquery/dist/jquery.js"></script>
 </head>
 <body>
     <!--Load the client-side proxy script from a different origin-->
-    <iframe id="tp" src="http://cliqztest.com:60508/iframetest.html" style="width:0px; height: 0px;" frameborder="0"></iframe>
+    <iframe id="tp" src="http://cliqztest2.de:60508/proxyiframe.html" style="width:0px; height: 0px;" frameborder="0"></iframe>
     <script>
         // local get
-        fetch('/test?context=fetch&callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134').then(resp => resp.json())
-        .then((data) => {
+        $.getJSON('/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134', function(data) {
             console.log(data);
         });
+        //Listen to proxy responses
+        window.addEventListener(
+            "message",
+            onReceiveResponse,
+            false
+        );
+
+        function onReceiveResponse(event) {
+            var data = event.data;
+            $('#results').text(data.response);
+        }
+
+        //Wait for proxy iframe to load
+        $('#tp').load(function(){
+            sendRequestToProxy();
+        });
+
+        function sendRequestToProxy(){
+                var proxyParameters = {
+                    callback : 'func',
+                    uid : '04C2EAD03BAB7F5E-2E85855CF4C75134'
+                };
+                var originOfProxy = 'http://cliqztest2.de:60508';
+
+                var proxyWindow = $("#tp")[0].contentWindow;
+                proxyWindow.postMessage(proxyParameters, originOfProxy);
+            }
     </script>
 </body>
 </html>

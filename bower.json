@@ -1,0 +1,35 @@
+{
+  "name": "navigation-extension",
+  "description": "",
+  "authors": [],
+  "homepage": "https://github.com/cliqz/navigation-extension",
+  "moduleType": [],
+  "private": true,
+  "dependencies": {
+    "handlebars": "4.0.11",
+    "loader.js": "ember-cli/loader.js#3.2.1",
+    "cron-parser": "1.1.0",
+    "bigint": "https://cdn.cliqz.com/cliqz-crypto/bigint.js",
+    "patterns": "https://cdn.cliqz.com/human-web/patterns",
+    "anonpatterns": "https://cdn.cliqz.com/human-web/patterns-anon",
+    "md5": "https://cdn.cliqz.com/cliqz-crypto/md5.js",
+    "mathjs": "3.17.0",
+    "system.js": "0.19.39",
+    "hammerjs": "2.0.8",
+    "simple-statistics": "1.0.1",
+    "ua-parser-js": "0.7.12",
+    "moment": "2.15.1",
+    "moment-range": "https://cdnjs.cloudflare.com/ajax/libs/moment-range/3.0.3/moment-range.js",
+    "whatwg-fetch": "1.0.0",
+    "tablesorter": "jquery.tablesorter#^2.28.9",
+    "chai-dom": "1.5.0",
+    "Rx.min": "https://unpkg.com/rxjs@5.4.3/bundles/Rx.min.js"
+  },
+  "devDependencies": {
+    "mocha": "cliqz-oss/mocha#2.5.0",
+    "chai": "3.0.0",
+    "jquery": "2.2.4",
+    "core.js": "2.4.1",
+    "sinonjs": "1.17.1"
+  }
+}

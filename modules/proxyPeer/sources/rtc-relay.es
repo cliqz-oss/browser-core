@@ -21,7 +21,7 @@ export default class RtcRelay {
     this.droppedMessages = 0;
 
     // Stats about data received
-    this.dataIn = 0; // Updated in proxy-peer.es
+    this.dataIn = 0;  // Updated in proxy-peer.es
     this.dataOut = 0;
 
     // Display health check

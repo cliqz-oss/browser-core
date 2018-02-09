@@ -30,10 +30,8 @@ export default class DayCounterHelper {
       const dayName = dayNames[i];
       // we get the max always
       if (this.urlCountsPerDayMap[dayName] !== undefined) {
-        this.urlCountsPerDayMap[dayName] = Math.max(
-          this.urlCountsPerDayMap[dayName],
-          urlCountsPerDayEntriesMap[dayName].c
-        );
+        this.urlCountsPerDayMap[dayName] = Math.max(this.urlCountsPerDayMap[dayName],
+                                                    urlCountsPerDayEntriesMap[dayName].c);
       } else {
         this.urlCountsPerDayMap[dayName] = urlCountsPerDayEntriesMap[dayName].c;
       }
@@ -55,7 +53,7 @@ export default class DayCounterHelper {
   _removeOldData() {
     // we can truncate till MAX_NUM_DAYS_TO_STORE days?
     const dayNames = Object.keys(this.urlCountsPerDayMap);
-    if (dayNames.length > MAX_NUM_DAYS_TO_STORE) {
+    if (dayNames.lenght > MAX_NUM_DAYS_TO_STORE) {
       // cut the oldest (meaning the sorted ones )
       dayNames.sort();
       const toCut = dayNames.length - MAX_NUM_DAYS_TO_STORE;
@@ -65,3 +63,4 @@ export default class DayCounterHelper {
     }
   }
 }
+

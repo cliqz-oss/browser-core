@@ -1,3 +1,5 @@
+/* eslint-disable camelcase */
+
 import crypto from '../../platform/crypto';
 import { toBase64, fromBase64, toHex, fromHex, toUTF8, fromUTF8 } from '../encoding';
 
@@ -27,7 +29,7 @@ function toArrayBuffer(data, format) {
 }
 function hash(algo, str, format = 'hex') {
   return crypto.subtle.digest(algo, typeof str === 'string' ? toUTF8(str) : str)
-    .then(h => fromArrayBuffer(h, format));
+  .then(h => fromArrayBuffer(h, format));
 }
 function sha256(str, format = 'hex') {
   return hash('SHA-256', str, format);
@@ -41,12 +43,12 @@ function encryptAES(data, key, iv) {
     iv || crypto.getRandomValues(new Uint8Array(12)),
     typeof key === 'string' ? importAESKey(key) : key,
   ])
-    .then(([_iv, _key]) =>
-      crypto.subtle.encrypt({ name: 'AES-GCM', iv: _iv }, _key, data)
-        .then(encrypted =>
-          [fromArrayBuffer(_iv, 'b64'), fromArrayBuffer(encrypted, 'b64')],
-        ),
-    );
+  .then(([_iv, _key]) =>
+    crypto.subtle.encrypt({ name: 'AES-GCM', iv: _iv }, _key, data)
+    .then(encrypted =>
+      [fromArrayBuffer(_iv, 'b64'), fromArrayBuffer(encrypted, 'b64')],
+    ),
+  );
 }
 // Returns [IV, encryptedData]
 function encryptStringAES(txt, key, iv) {
@@ -58,12 +60,12 @@ function decryptAES(encrypted, key) {
   iv = new Uint8Array(toArrayBuffer(iv, 'b64'));
   encryptedMsg = toArrayBuffer(encryptedMsg, 'b64');
   return Promise.resolve()
-    .then(() => (typeof key === 'string' ? importAESKey(key) : key))
-    .then(importedKey => crypto.subtle.decrypt({ name: 'AES-GCM', iv }, importedKey, encryptedMsg));
+  .then(() => (typeof key === 'string' ? importAESKey(key) : key))
+  .then(importedKey => crypto.subtle.decrypt({ name: 'AES-GCM', iv }, importedKey, encryptedMsg));
 }
 function decryptStringAES(encrypted, key) {
   return decryptAES(encrypted, key)
-    .then(decrypted => fromUTF8(new Uint8Array(decrypted)));
+  .then(decrypted => fromUTF8(new Uint8Array(decrypted)));
 }
 function generateAESKey() {
   return crypto.subtle.generateKey(
@@ -72,7 +74,7 @@ function generateAESKey() {
 }
 function exportAESKey(key) {
   return crypto.subtle.exportKey('raw', key)
-    .then(_key => fromArrayBuffer(_key, 'hex'));
+  .then(_key => fromArrayBuffer(_key, 'hex'));
 }
 function importRSAKey(pk, pub = true, h = 'SHA-256', algorithm = 'RSA-OAEP') {
   let uses;
@@ -102,54 +104,54 @@ function wrapAESKey(aesKey, publicKey) {
   return Promise.resolve(
     typeof publicKey === 'string' ? importRSAKey(publicKey, true) : publicKey,
   )
-    .then(pk =>
-      crypto.subtle.wrapKey('raw', aesKey, pk, { name: 'RSA-OAEP', hash: { name: 'SHA-256' } }),
-    )
-    .then(wrapped => toBase64(wrapped));
+  .then(pk =>
+    crypto.subtle.wrapKey('raw', aesKey, pk, { name: 'RSA-OAEP', hash: { name: 'SHA-256' } }),
+  )
+  .then(wrapped => toBase64(wrapped));
 }
 function unwrapAESKey(aesKey, privateKey) {
   return Promise.resolve(
     typeof privateKey === 'string' ? importRSAKey(privateKey, false) : privateKey,
   )
-    .then(pk =>
-      crypto.subtle.unwrapKey(
-        'raw',
-        fromBase64(aesKey),
-        pk,
-        {
-          name: 'RSA-OAEP',
-          modulusLength: 2048,
-          publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
-          hash: { name: 'SHA-256' },
-        },
-        {
-          name: 'AES-GCM',
-          length: 256,
-        },
-        true,
-        ['encrypt', 'decrypt'],
-      ),
-    );
+  .then(pk =>
+    crypto.subtle.unwrapKey(
+      'raw',
+      fromBase64(aesKey),
+      pk,
+      {
+        name: 'RSA-OAEP',
+        modulusLength: 2048,
+        publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
+        hash: { name: 'SHA-256' },
+      },
+      {
+        name: 'AES-GCM',
+        length: 256,
+      },
+      true,
+      ['encrypt', 'decrypt'],
+    ),
+  );
 }
 function encryptStringRSA(txt, publicKey) {
   return generateAESKey()
-    .then((aesKey) => {
-      let promise;
-      if (Array.isArray(publicKey)) {
-        promise = Promise.all(publicKey.map(x => wrapAESKey(aesKey, x)));
-      } else {
-        promise = wrapAESKey(aesKey, publicKey);
-      }
-      return Promise.all([
-        encryptStringAES(txt, aesKey),
-        promise,
-      ]);
-    });
+  .then((aesKey) => {
+    let promise;
+    if (Array.isArray(publicKey)) {
+      promise = Promise.all(publicKey.map(x => wrapAESKey(aesKey, x)));
+    } else {
+      promise = wrapAESKey(aesKey, publicKey);
+    }
+    return Promise.all([
+      encryptStringAES(txt, aesKey),
+      promise,
+    ]);
+  });
 }
 function rawEncryptRSA(data, publicKey) {
   return importRSAKey(publicKey, true, 'SHA-1')
-    .then(key => crypto.subtle.encrypt({ name: 'RSA-OAEP' }, key, data))
-    .then(d => new Uint8Array(d));
+  .then(key => crypto.subtle.encrypt({ name: 'RSA-OAEP' }, key, data))
+  .then(d => new Uint8Array(d));
 }
 function _encryptRSA(data, pubKey, aesKey) {
   const wrapPromise = Array.isArray(pubKey) ?
@@ -165,7 +167,7 @@ function encryptRSA(data, publicKey, aesKey) {
     return _encryptRSA(data, publicKey, aesKey);
   }
   return generateAESKey()
-    .then(k => _encryptRSA(data, publicKey, k));
+  .then(k => _encryptRSA(data, publicKey, k));
 }
 function decryptRSA(data, privateKey) {
   const [encrypted, wrappedKey] = data;
@@ -184,9 +186,9 @@ function randomBytes(numBytes) {
 
 function deriveAESKey(bytes) {
   return sha256(bytes, 'raw')
-    .then(h =>
-      crypto.subtle.importKey('raw', h, { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']),
-    );
+  .then(h =>
+    crypto.subtle.importKey('raw', h, { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']),
+  );
 }
 
 function sha1(s) {
@@ -201,20 +203,20 @@ function generateRSAKeypair(bits = 2048) {
       publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
       hash: { name: 'SHA-256' },
     },
-    true,
-    ['sign', 'verify'],
-  )
+        true,
+        ['sign', 'verify'],
+    )
     .then(key => Promise.all([
       crypto.subtle.exportKey(
-        'spki',
-        key.publicKey,
+          'spki',
+          key.publicKey,
       )
-        .then(toBase64),
+      .then(toBase64),
       crypto.subtle.exportKey(
-        'pkcs8',
-        key.privateKey,
+          'pkcs8',
+          key.privateKey,
       )
-        .then(toBase64),
+      .then(toBase64),
     ]));
 }
 

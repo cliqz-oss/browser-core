@@ -1,0 +1,9 @@
+{
+  "transpile": true,
+  "bower_components": [
+    "pouchdb/dist/pouchdb.js",
+    "moment/min/moment.min.js",
+    "simple-statistics/dist/simple_statistics.js",
+    "ua-parser-js/dist/ua-parser.min.js"
+  ]
+}

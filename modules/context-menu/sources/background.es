@@ -1,7 +1,5 @@
-import background from '../core/base/background';
-
-export default background({
+export default {
   init() { },
 
   unload() { }
-});
+}

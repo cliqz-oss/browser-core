@@ -518,10 +518,6 @@ describe('attrack.isHash', function() {
         '1440x900'
     ]
 
-    before(function() {
-      return hp.init();
-    });
-
     not_hash.forEach(function(str) {
       it("'" + str + "' is not a hash", function() {
         chai.expect(hp.isHash(str)).to.be.false;
@@ -557,8 +553,7 @@ describe('attrack.getGeneralDomain', function() {
 describe('attrack list update', function() {
   const mock_bloom_filter_major = '{"bkt": [1, 2, 3, 4, 5], "k": 5}';
   const mock_bloom_filter_minor = '{"bkt": [1, 0, 0, 0, 0], "k": 5}';
-  const mock_bloom_filter_config = (day) => `{"major": "${day}", "minor": "1"}`;
-  const day = (new Date()).toISOString().substring(0, 10);
+  const mock_bloom_filter_config = '{"major": "0", "minor": "1"}';
   let mock_bloom_filter_config_url = null;
   let mock_bloom_filter_base_url = null;
 
@@ -567,9 +562,9 @@ describe('attrack list update', function() {
     mock_bloom_filter_config_url = testServer.getBaseUrl('bloom_filter/config');
     mock_bloom_filter_base_url = testServer.getBaseUrl('bloom_filter/');
     return Promise.all([
-      testServer.registerPathHandler(`/bloom_filter/${day}/0.gz`, mock_bloom_filter_major),
-      testServer.registerPathHandler(`/bloom_filter/${day}/1.gz`, mock_bloom_filter_minor),
-      testServer.registerPathHandler('/bloom_filter/config', mock_bloom_filter_config(day)),
+      testServer.registerPathHandler('/bloom_filter/0/0.gz', mock_bloom_filter_major),
+      testServer.registerPathHandler('/bloom_filter/0/1.gz', mock_bloom_filter_minor),
+      testServer.registerPathHandler('/bloom_filter/config', mock_bloom_filter_config),
     ]);
   });
 
@@ -585,7 +580,7 @@ describe('attrack list update', function() {
       return waitFor(function() {
         return bloomFilter.bloomFilter != null && bloomFilter.version != null;
       }).then(function() {
-        chai.expect(bloomFilter.version.major).to.equal(day);
+        chai.expect(bloomFilter.version.major).to.equal('0');
         chai.expect(bloomFilter.bloomFilter.k).to.equal(5);
       });
     });
@@ -593,7 +588,7 @@ describe('attrack list update', function() {
     it ('bloom filter update', function() {
       return bloomFilter.update()
         .then(() => {
-          chai.expect(bloomFilter.version.major).to.equal(day);
+          chai.expect(bloomFilter.version.major).to.equal('0');
           chai.expect(bloomFilter.bloomFilter.k).to.equal(5);
         });
     });

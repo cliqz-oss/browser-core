@@ -33,14 +33,3 @@ export function agoLine(ts) {
 
   return '';
 }
-
-export function agoDuration(duration, options) {
-  if(!duration) return '';
-  var seconds = parseInt(duration),
-      i=0, slot;
-
-  while (slot = AGO_CEILINGS[i++])
-      if (seconds < slot[0])
-          return getMessage(slot[1], parseInt(seconds / slot[2]))
-  return '';
-}

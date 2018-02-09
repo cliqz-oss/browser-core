@@ -3,6 +3,7 @@ import LRU from '../LRU';
  * the cache limit is exceeded, least recently used values are removed.
  */
 export default class FixedSizeCache {
+
   /* @param {function} buildValue - used to build a new value from key in case of cache miss.
    * @param {number} size - maximum elements stored in cache.
    * @param {function} buildKey - [Optional] used to extract key from argument.

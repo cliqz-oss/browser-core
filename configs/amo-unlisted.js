@@ -3,7 +3,7 @@
 'use strict';
 
 const base = require('./common/system');
-const subprojects = require('./common/subprojects/bundles');
+const reactLibs = require('./common/subprojects/react');
 
 module.exports = {
   "platform": "firefox",
@@ -53,8 +53,7 @@ module.exports = {
     },
     "CONFIG_PROVIDER": "https://api.cliqz.com/api/v1/config",
     "CDN_BASEURL": "https://cdn.cliqz.com",
-    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
-    "OFFERS_BE_BASE_URL": "https://offers-api.cliqz.com"
+    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"]
   },
   "modules": [
     "core",
@@ -65,7 +64,6 @@ module.exports = {
     "autocomplete",
     "geolocation",
     "ui",
-    "last-query",
     "human-web",
     "anti-phishing",
     "context-menu",
@@ -79,22 +77,32 @@ module.exports = {
     "message-center",
     "offboarding"
   ],
-  "subprojects": subprojects([
-    '@cliqz-oss/pouchdb',
-    'handlebars',
-    'jquery',
-    'mathjs',
-    'moment',
-    'moment-range',
-    'pako',
-    'simple-statistics',
-    'ua-parser-js',
-    'rxjs',
-    'tooltipster-sideTip-theme',
-    'tooltipster-js',
-    'tooltipster-css',
-  ]),
+  "subprojects": [
+    {
+      "src":"bower_components/jquery/dist",
+      "include": ["jquery.min.js"],
+      "dest": "vendor"
+    },
+    {
+      "src": "bower_components/handlebars",
+      "include": ["handlebars.min.js"],
+      "dest": "vendor"
+    },
+    {
+      "src": "bower_components/mathjs/dist",
+      "include": ["math.min.js"],
+      "dest": "vendor"
+    },
+    {
+      "src": "node_modules/@cliqz-oss/pouchdb/dist",
+      "include": ["pouchdb.js"],
+      "dest": "vendor"
+    },
+    reactLibs.react,
+    reactLibs.reactDom
+  ],
   systemDefault: base.systemConfig,
   builderDefault: base.builderConfig,
   bundleConfigs: Object.assign({}, base.appBundleConfig),
+
 }

@@ -1,22 +1,13 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
-import {
-  $cliqzResults,
-  expect,
-  fastFillIn,
-  fillIn,
-  getLocaliseString,
-  respondWith,
-  waitFor,
-  waitForPopup,
-  withHistory } from './helpers';
+/* global it, expect, respondWith, fillIn, waitForPopup, $cliqzResults, getLocaliseString,
+fastFillIn, getLocaliseString, withHistory, waitFor */
+/* eslint func-names: ["error", "never"] */
+/* eslint prefer-arrow-callback: "off" */
+/* eslint no-unused-expressions: "off" */
 import testArray from './fixtures/unitConverter';
 
 export default function () {
   describe('unit converter', function () {
-    let $resultElement;
+    let resultElement;
     let renderedResult;
     let expectedResult;
 
@@ -25,7 +16,7 @@ export default function () {
       respondWith({ results: [] });
       fillIn('1 km im m');
       return waitForPopup().then(function () {
-        $resultElement = $cliqzResults()[0];
+        resultElement = $cliqzResults()[0];
       });
     });
 
@@ -40,8 +31,8 @@ export default function () {
           respondWith({ results: [] });
           fastFillIn(testCase.query);
           return waitFor(function () {
-            $resultElement = $cliqzResults()[0];
-            renderedResult = $resultElement.querySelector(resultSelector).textContent.trim().split('\n')[0];
+            resultElement = $cliqzResults()[0];
+            renderedResult = resultElement.querySelector(resultSelector).textContent.trim().split('\n')[0];
             expectedResult = `= ${getLocaliseString({ de: testCase.answerDe, default: testCase.answerEn })} ${testCase.unitAnswer}`;
             return renderedResult === expectedResult;
           }, 1100).catch(() => {
@@ -49,7 +40,7 @@ export default function () {
           });
         }).then(function () {
           expect(renderedResult).to.equal(expectedResult);
-          expect($resultElement.querySelector(resultSelector).textContent.trim().split('\n')[2].trim())
+          expect(resultElement.querySelector(resultSelector).textContent.trim().split('\n')[2].trim())
             .to.equal(`${getLocaliseString({
               de: 'Klicken zum Kopieren',
               default: 'Click to copy'

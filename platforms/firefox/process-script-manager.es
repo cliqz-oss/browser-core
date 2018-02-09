@@ -14,7 +14,7 @@ export default class ProcessScriptManager {
 
   get ppmm() {
     return Components.classes['@mozilla.org/parentprocessmessagemanager;1']
-      .getService(Components.interfaces.nsIProcessScriptLoader);
+        .getService(Components.interfaces.nsIProcessScriptLoader);
   }
 
   get gmm() {

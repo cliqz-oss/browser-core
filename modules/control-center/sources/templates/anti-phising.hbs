@@ -1,9 +1,9 @@
 {{#if module.anti-phishing.visible}}
 <div class="antiphishing frame-container"
-  stop-navigation
-  state="{{ module.anti-phishing.state }}"
-  inactiveState="inactive"
-  url="{{ activeURL }}">
+  role="stop-navigation"
+  data-status="{{ module.anti-phishing.state }}"
+  data-inactiveState="inactive"
+  data-url="{{ activeURL }}">
   <div class="title">
     <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
       <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
@@ -23,14 +23,14 @@
       <polyline id="Path-164-Copy-153" stroke="#4D4D4D" stroke-width="2.5999999" fill="none" points="1133.19742 410.787186 1139.09434 416.693941 1133.42806 422.369666"></polyline>
     </svg>
     <div class="switches">
-      <span invisible-on-state="active" class="new-dropdown">
+      <span data-invisible-on-state="active" class="new-dropdown">
         <button class="dropdown-btn">
            <span class="dropdown-content-option-text"
-                 visible-on-state="inactive"
+                 data-visible-on-state="inactive"
                  data-i18n="control-center-this-domain"></span>
 
            <span class="dropdown-content-option-text"
-                 visible-on-state="critical"
+                 data-visible-on-state="critical"
                  data-i18n="control-center-all-sites"></span>
 
           <svg class="arr" width="12px" height="7px" viewBox="96 10 12 7" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -45,25 +45,25 @@
              value="this"
              data-type="off_select"
              data-state="off_website"
-             antiPhishingStatusChanger>
+             role="antiPhishingStatusChanger">
           </a>
 
           <a class="dropdown-content-option  {{#unless module.anti-phishing.isWhitelisted }} selected {{/unless}}"
              data-i18n="control-center-all-sites"
              value="all"
-             data-type = "off_select"
+             data-type="off_select"
              data-state="off_all"
-             antiPhishingStatusChanger>
+             role="antiPhishingStatusChanger">
            </a>
         </div>
       </span>
       <span>
-        <span visible-on-state="active" data-i18n="control-center-switch-on"></span>
-        <span invisible-on-state="active" data-i18n="control-center-switch-off"></span>
+        <span data-visible-on-state="active" data-i18n="control-center-switch-on"></span>
+        <span data-invisible-on-state="active" data-i18n="control-center-switch-off"></span>
         <span
           class="cqz-switch"
           data-type="switch"
-          antiPhishingStatusChanger>
+          role="antiPhishingStatusChanger">
           <span class="cqz-switch-box"></span>
         </span>
       </span>

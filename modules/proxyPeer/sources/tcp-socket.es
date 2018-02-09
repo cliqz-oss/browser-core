@@ -37,6 +37,7 @@ function readBytes(binaryStream) {
 
 
 export class TcpConnection {
+
   /* @param {nsISocketTransport} transport
    */
   constructor(transport) {
@@ -50,12 +51,12 @@ export class TcpConnection {
 
     // Create binary writer
     this._binaryWriter = Components.classes['@mozilla.org/binaryoutputstream;1']
-      .createInstance(Components.interfaces.nsIBinaryOutputStream);
+        .createInstance(Components.interfaces.nsIBinaryOutputStream);
     this._binaryWriter.setOutputStream(this.output);
 
     // Create binary reader
     this._binaryReader = Components.classes['@mozilla.org/binaryinputstream;1']
-      .createInstance(Components.interfaces.nsIBinaryInputStream);
+        .createInstance(Components.interfaces.nsIBinaryInputStream);
     this._binaryReader.setInputStream(this.input);
 
     // Callbacks
@@ -152,10 +153,10 @@ export class TcpConnection {
 export function openSocket(host, port) {
   logger.debug(`TCP openSocket ${host}:${port}`);
   const transport = TRANSPORT_SERVICE.createTransport(
-    null, // aSocketTypes
-    0, // aTypeCount
-    host, // aHost
-    port, // aPort
+    null,  // aSocketTypes
+    0,     // aTypeCount
+    host,  // aHost
+    port,  // aPort
     null); // aProxyInfo
 
   return new TcpConnection(transport);

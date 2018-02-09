@@ -121,9 +121,7 @@ export default background({
 
   events: {
     'human-web:sanitize-result-telemetry': function () {
-      HumanWeb.sanitizeResultTelemetry(...arguments)
-        .then(({ query, url, data }) => HumanWeb.sendResultTelemetry(query, url, data))
-        .catch(error => console.log(HumanWeb.LOG_KEY, error));
+      return HumanWeb.sanitizeResultTelemetry.apply(HumanWeb, arguments);
     },
     /**
     * @event ui:click-on-url

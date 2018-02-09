@@ -1,9 +1,8 @@
 {{#if module.antitracking.visible}}
 <div class="frame-container anti-tracking"
-     state="{{module.antitracking.state}}"
-     inactiveState="inactive"
-     hostname="{{hostname}}">
-
+     data-status="{{module.antitracking.state}}"
+     data-inactiveState="inactive"
+     data-hostname="{{hostname}}">
   <div class="antitracking">
     <div class="title">
       <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -19,8 +18,8 @@
         <span data-i18n="control-center-info-trackers"></span>
       </div>
 
-      <span class="hover-highlighted" start-navigation>Anti-Tracking</span>
-      <svg start-navigation id="smallarrow" width="10px" height="16px" viewBox="0 0 10 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+      <span class="hover-highlighted" data-start-navigation>Anti-Tracking</span>
+      <svg data-start-navigation id="smallarrow" width="10px" height="16px" viewBox="0 0 10 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
             <defs></defs>
             <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round">
                 <g id="Cliqz-Privacy-Center-3" transform="translate(-674.000000, -290.000000)" stroke-width="2.5999999" stroke="#4D4D4D">
@@ -29,14 +28,14 @@
             </g>
         </svg>
       <div class="switches">
-        <span invisible-on-state="active" class="new-dropdown">
+        <span data-invisible-on-state="active" class="new-dropdown">
           <button class="dropdown-btn">
              <span class="dropdown-content-option-text"
-                   visible-on-state="inactive"
+                   data-visible-on-state="inactive"
                    data-i18n="control-center-this-domain"></span>
 
              <span class="dropdown-content-option-text"
-                   visible-on-state="critical"
+                   data-visible-on-state="critical"
                    data-i18n="control-center-all-sites"></span>
 
             <svg class="arr" width="12px" height="7px" viewBox="96 10 12 7" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -51,7 +50,7 @@
                value="this"
                data-type="off_select"
                data-state="off_website"
-               antiTrackingStatusChanger>
+               role="antiTrackingStatusChanger">
             </a>
 
 
@@ -61,18 +60,18 @@
                value="all"
                data-type = "off_select"
                data-state="off_all"
-               antiTrackingStatusChanger>
+               role="antiTrackingStatusChanger">
              </a>
           </div>
         </span>
         <span>
-          <span visible-on-state="active" data-i18n="control-center-switch-on"></span>
-          <span visible-on-state="inactive" data-i18n="control-center-switch-off"></span>
-          <span visible-on-state="critical" data-i18n="control-center-switch-off"></span>
+          <span data-visible-on-state="active" data-i18n="control-center-switch-on"></span>
+          <span data-visible-on-state="inactive" data-i18n="control-center-switch-off"></span>
+          <span data-visible-on-state="critical" data-i18n="control-center-switch-off"></span>
           <span
               class="cqz-switch"
               data-type = 'switch'
-              antiTrackingStatusChanger>
+              role="antiTrackingStatusChanger">
             <span class="cqz-switch-box"></span>
           </span>
         </span>
@@ -80,7 +79,7 @@
     </div>
     </div>
     <div class="settings-section-row">
-      <div start-navigation class="counter" id="antitracker-counter">
+      <div data-start-navigation class="counter" id="antitracker-counter">
         <svg id="shield" width="32px" height="39px" viewBox="0 0 32 39" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
             <defs>
                 <polygon id="path-1" points="0 35.2 0 0.3 28.8094585 0.3 28.8094585 35.2 14.4047293 35.2"></polygon>
@@ -101,16 +100,16 @@
             </g>
         </svg>
         <span id="count">
-          <span visible-on-state="active">{{ module.antitracking.totalCount }}</span>
-          <span visible-on-state="inactive">0</span>
-          <span visible-on-state="critical">0</span>
+          <span data-visible-on-state="active">{{ module.antitracking.totalCount }}</span>
+          <span data-visible-on-state="inactive">0</span>
+          <span data-visible-on-state="critical">0</span>
         </span>
 
       </div>
       <div class="row-text">
-        <p class="description" start-navigation visible-on-state="active" data-i18n="control-center-datapoints"></p>
-        <p class="description" start-navigation visible-on-state="inactive" data-i18n="control-center-datapoints-inactive"></p>
-        <p class="description" start-navigation visible-on-state="critical" data-i18n="control-center-datapoints-off"></p>
+        <p class="description" data-start-navigation data-visible-on-state="active" data-i18n="control-center-datapoints"></p>
+        <p class="description" data-start-navigation data-visible-on-state="inactive" data-i18n="control-center-datapoints-inactive"></p>
+        <p class="description" data-start-navigation data-visible-on-state="critical" data-i18n="control-center-datapoints-off"></p>
       </div>
   </div>
   <div class="active-window-tracking">

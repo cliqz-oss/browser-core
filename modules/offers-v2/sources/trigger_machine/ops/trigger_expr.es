@@ -109,32 +109,32 @@ class ActivateSubtriggersExpr extends Expression {
         // load from server
 
         this.data.be_connector.sendApiRequest(
-          'loadsubtriggers',
-          { parent_id: this.parentTriggerId }).then((payload) => {
-          subtriggers = payload;
+            'loadsubtriggers',
+            { parent_id: this.parentTriggerId }).then((payload) => {
+              subtriggers = payload;
 
-          logger.info('ActivateSubtriggersExpr', `Loaded ${subtriggers.length} subtriggers`);
-          if (logger.LOG_LEVEL === 'debug') {
-            logger.logObject(subtriggers.map(trigger => trigger.trigger_id));
-          }
+              logger.info('ActivateSubtriggersExpr', `Loaded ${subtriggers.length} subtriggers`);
+              if (logger.LOG_LEVEL === 'debug') {
+                logger.logObject(subtriggers.map(trigger => trigger.trigger_id));
+              }
 
-          // first cache
-          this.data.trigger_cache.setSubtriggers(this.parentTriggerId, subtriggers);
+              // first cache
+              this.data.trigger_cache.setSubtriggers(this.parentTriggerId, subtriggers);
 
-          const p = [];
-          subtriggers.forEach((trigger) => {
-            this.data.trigger_cache.addTrigger(trigger);
-            p.push(this.data.trigger_machine.run(trigger, ctx));
-          });
+              const p = [];
+              subtriggers.forEach((trigger) => {
+                this.data.trigger_cache.addTrigger(trigger);
+                p.push(this.data.trigger_machine.run(trigger, ctx));
+              });
 
-          Promise.all(p).then(() => {
-            resolve();
-          }).catch((err) => {
-            reject(err);
-          });
-        }).catch((err) => {
-          reject(err);
-        });
+              Promise.all(p).then(() => {
+                resolve();
+              }).catch((err) => {
+                reject(err);
+              });
+            }).catch((err) => {
+              reject(err);
+            });
       } else {
         const p = [];
 

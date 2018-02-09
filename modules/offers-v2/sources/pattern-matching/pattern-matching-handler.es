@@ -1,12 +1,12 @@
 import { SimplePatternIndex, MultiPatternIndex } from './pattern-utils';
-import { parseNetworkFilter } from '../../core/pattern-matching';
+import { parseFilter } from '../../core/adblocker-base/filters-parsing';
 import logger from '../common/offers_v2_logger';
 import PatternHistoryMatching from './history-pattern-matching';
 
 /**
  * This class will handle all the queries and everything that can be related to
  * pattern matching algorithms.
- * On the bottom will use the pattern-matching ReverseIndex and utils for doing the match.
+ * On the bottom will use the adblocker ReverseIndex and utils for doing the match.
  */
 export default class PatternMatchingHandler {
   constructor(featureHandler) {
@@ -17,9 +17,9 @@ export default class PatternMatchingHandler {
     this.cache = new Map();
 
     // check if we have history feature
-    const historyFeature = featureHandler.isFeatureAvailable('history')
-      ? featureHandler.getFeature('history')
-      : null;
+    const historyFeature = featureHandler.isFeatureAvailable('history') ?
+                           featureHandler.getFeature('history') :
+                           null;
     this.historyMatch = new PatternHistoryMatching(historyFeature, this.itMatches.bind(this));
   }
 
@@ -117,7 +117,7 @@ export default class PatternMatchingHandler {
   _buildFilters(po, filterGroupID = null) {
     const plist = [];
     for (let i = 0; i < po.p_list.length; i += 1) {
-      const filter = parseNetworkFilter(po.p_list[i], true, false);
+      const filter = parseFilter(po.p_list[i], true, false);
       if (filter) {
         if (filterGroupID !== null) {
           filter.groupID = filterGroupID;

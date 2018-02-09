@@ -11,6 +11,20 @@ class HistoryResult extends BaseResult {
 export default class HistoryCluster extends GenericResult {
   constructor(rawResult, allResultsFlat = []) {
     super(rawResult, allResultsFlat);
+
+    // handle duplicates in data.urls
+    // TODO: move to autocomplete module
+    this.rawResult.data.urls = (this.rawResult.data.urls || []).reduce((filtered, result) => {
+      const isDuplicate = allResultsFlat.some(url => equals(url, result.href));
+      if (isDuplicate) {
+        return filtered;
+      }
+      allResultsFlat.push(result.href);
+      return [
+        ...filtered,
+        result,
+      ];
+    }, []);
   }
 
   get isHistory() {

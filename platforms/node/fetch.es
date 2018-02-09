@@ -10,5 +10,5 @@ export {
   fetch,
   Headers,
   Request,
-  Response
+  Response,
 };

@@ -142,7 +142,7 @@ export default class TokenExaminer {
         if (!reachedThreshold.has(key) && hash.get(key).size() > this.config.safekeyValuesThreshold) {
           reachedThreshold.add(key);
           if (this.config.debugMode) {
-            console.log('Add safekey', state.urlParts.generalDomain, key, hash.get(key));
+            console.log('Add safekey', state.urlParts.generalDomain, key, kvs.get(key));
           }
           this.qsWhitelist.addSafeKey(tracker, this.hashTokens ? key : md5(key),
                                       this.config.safekeyValuesThreshold);

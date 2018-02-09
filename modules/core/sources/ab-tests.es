@@ -159,11 +159,20 @@ var CliqzABTests = {
             case "1053_B":
                 CliqzUtils.setPref("attrackRemoveQueryStringTracking", true);
                 break;
+            case "1055_B":
+                CliqzUtils.setPref("unblockMode", "always");
+                break;
             case "1057_A":
                 CliqzUtils.setPref("trackerTxt", false);
                 break;
             case "1057_B":
                 CliqzUtils.setPref("trackerTxt", true);
+                break;
+            case "1058_A":
+                CliqzUtils.setPref("unblockMode", "never");
+                break;
+            case "1058_B":
+                CliqzUtils.setPref("unblockMode", "always");
                 break;
             case "1059_A":
                 CliqzUtils.setPref("attrack.local_tracking", false);
@@ -424,12 +433,6 @@ var CliqzABTests = {
                 break;
             case "1111_B":
                 CliqzUtils.setPref("modules.history-analyzer.enabled", true);
-                break;
-            case "1112_A":
-                CliqzUtils.setPref("experiment_svm", false);
-                break;
-            case "1112_B":
-                CliqzUtils.setPref("experiment_svm", true);
                 break;
             default:
                 rule_executed = false;
@@ -719,10 +722,6 @@ var CliqzABTests = {
             case "1111_A":
             case "1111_B":
                 CliqzUtils.setPref("modules.history-analyzer.enabled", false);
-                break;
-            case "1112_A":
-            case "1112_B":
-                CliqzUtils.clearPref("experiment_svm");
                 break;
             default:
                 rule_executed = false;

@@ -148,7 +148,7 @@ TESTS.CliqzUtilsTest = function (CliqzUtils) {
         var timestamp = CliqzUtils.httpHandler("GET", "http://localhost").timestamp
         //this obvious check wont work, as timestamp was created in different context
         //expect(timestamp).to.be.instanceof(Date);
-        // expect(new Date()).to.be.above(0);
+        expect(new Date()).to.be.above(0);
       });
     });
 

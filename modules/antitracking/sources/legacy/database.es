@@ -34,8 +34,8 @@ export function migrateTokenDomain(tokenDomain) {
     // insert all the tuples into the new token db
     return Promise.all(
       tokenTuples.map(tup => tokenDomain.addTokenOnFirstParty(...tup))).then(() => {
-      deletePersistantObject(dbName);
-    }
+        deletePersistantObject(dbName);
+      }
     );
   });
 }

@@ -31,7 +31,7 @@ function forEachTab(fn) {
       try {
         fn(window.document);
       } catch (e) {
-        // failed to load into existing window
+          // failed to load into existing window
       }
     }
   }

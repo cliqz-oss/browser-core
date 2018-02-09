@@ -279,8 +279,8 @@ export default class SoccerResult extends GenericResult {
         break;
       case 'liveTicker':
         results = this.liveTicker
-          .map(round => round.allResults)
-          .reduce((arr, el) => [...arr, ...el], []);
+                    .map(round => round.allResults)
+                    .reduce((arr, el) => [...arr, ...el], []);
         break;
       case 'ligaEZTable':
       case 'ligaEZGroup':

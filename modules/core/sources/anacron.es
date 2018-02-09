@@ -1,6 +1,6 @@
 import utils from './utils';
 import moment from '../platform/lib/moment';
-import cronParser from '../platform/lib/cron-parser';
+import cronParser from './lib/cron-parser';
 
 
 export class Task {

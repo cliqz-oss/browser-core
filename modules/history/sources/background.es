@@ -32,10 +32,6 @@ export default background({
   },
 
   unload() {
-    if (this.sessionCountSubscribtion) {
-      this.sessionCountSubscribtion.dispose();
-    }
-
     this.dbMigration.dispose();
   },
 
@@ -118,7 +114,7 @@ export default background({
       }
 
       const asyncHistory = Components.classes['@mozilla.org/browser/history;1']
-        .getService(Components.interfaces.mozIAsyncHistory);
+                         .getService(Components.interfaces.mozIAsyncHistory);
       const queryUrl = `https://cliqz.com/search?q=${encodeURIComponent(query)}`;
       const uri = Services.io.newURI(queryUrl, null, null);
 

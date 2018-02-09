@@ -429,13 +429,13 @@ export default class CliqzPeerConnection {
         }, this.healthCheckTimeout);
       });
       this.healthCheckPromise
-        .catch(() => {
-          this.close('healthCheck');
-        })
-        .then(() => {
-          this.healthCheckPromise = null;
-          this.healthCheckResolver = null;
-        });
+      .catch(() => {
+        this.close('healthCheck');
+      })
+      .then(() => {
+        this.healthCheckPromise = null;
+        this.healthCheckResolver = null;
+      });
     }
     return this.healthCheckPromise;
   }

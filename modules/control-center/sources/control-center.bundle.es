@@ -1,9 +1,6 @@
-/* global window, document */
+/* global window, document, $, Handlebars */
 /* eslint-disable func-names, no-param-reassign */
 /* eslint import/no-extraneous-dependencies: 'off' */
-
-import $ from 'jquery';
-import Handlebars from 'handlebars';
 import { sendMessageToWindow } from './content/data';
 import helpers from './content/helpers';
 import templates from './templates';
@@ -68,11 +65,11 @@ $(document).ready(() => {
 });
 
 // open URL
-$('#control-center').on('click', '[openUrl]', (ev) => {
+$('#control-center').on('click', '[data-open-url]', (ev) => {
   sendMessageToWindow({
     action: 'openURL',
     data: {
-      url: ev.currentTarget.getAttribute('openUrl'),
+      url: ev.currentTarget.getAttribute('data-open-url'),
       target: ev.currentTarget.getAttribute('data-target'),
       closePopup: ev.currentTarget.dataset.closepopup || true
     }
@@ -96,7 +93,7 @@ $('#control-center').on('click', () => {
   $('.new-dropdown-content').removeClass('visible');
 });
 
-$('#control-center').on('change', '[complementarySearchChanger]', function () {
+$('#control-center').on('change', '[role="complementarySearchChanger"]', function () {
   sendMessageToWindow({
     action: 'complementary-search',
     data: {
@@ -105,7 +102,7 @@ $('#control-center').on('change', '[complementarySearchChanger]', function () {
   });
 });
 
-$('#control-center').on('change', '[searchIndexCountryChanger]', function () {
+$('#control-center').on('change', '[role="searchIndexCountryChanger"]', function () {
   sendMessageToWindow({
     action: 'search-index-country',
     data: {
@@ -114,21 +111,21 @@ $('#control-center').on('change', '[searchIndexCountryChanger]', function () {
   });
 });
 
-$('#control-center').on('click', '[cliqzTabStatusChanger]', function () {
+$('#control-center').on('click', '[role="cliqzTabStatusChanger"]', function () {
   sendMessageToWindow({
     action: 'cliqz-tab',
     data: {
-      status: $(this).closest('.frame-container').attr('state') === 'active'
+      status: $(this).closest('.frame-container').attr('data-status') === 'active'
     }
   });
 });
 
 
-$('#control-center').on('click', '[antiTrackingStatusChanger]', function () {
+$('#control-center').on('click', '[role="antiTrackingStatusChanger"]', function () {
   let state;
   const type = $(this).attr('data-type');
   if (type === 'switch') {
-    state = $(this).closest('.frame-container').attr('state');
+    state = $(this).closest('.frame-container').attr('data-status');
     // make this website default
     const $switches = $(this).closest('.switches');
     const options = $switches.find('.dropdown-content-option');
@@ -148,17 +145,17 @@ $('#control-center').on('click', '[antiTrackingStatusChanger]', function () {
     data: {
       type,
       state,
-      status: $(this).closest('.frame-container').attr('state'),
-      hostname: $(this).closest('.frame-container').attr('hostname'),
+      status: $(this).closest('.frame-container').attr('data-status'),
+      hostname: $(this).closest('.frame-container').attr('data-hostname'),
     }
   });
 });
 
-$('#control-center').on('click', '[antiPhishingStatusChanger]', function () {
+$('#control-center').on('click', '[role="antiPhishingStatusChanger"]', function () {
   let state;
   const type = $(this).attr('data-type');
   if (type === 'switch') {
-    state = $(this).closest('.frame-container').attr('state');
+    state = $(this).closest('.frame-container').attr('data-status');
     // make this website default
     const $switches = $(this).closest('.switches');
     const options = $switches.find('.dropdown-content-option');
@@ -178,20 +175,20 @@ $('#control-center').on('click', '[antiPhishingStatusChanger]', function () {
     data: {
       type,
       state,
-      status: $(this).closest('.frame-container').attr('state'),
-      url: $(this).closest('.frame-container').attr('url'),
+      status: $(this).closest('.frame-container').attr('data-status'),
+      url: $(this).closest('.frame-container').attr('data-url'),
     }
   });
 });
 
-$('#control-center').on('click', '[adBlockerStatusChanger]', function () {
+$('#control-center').on('click', '[role="adBlockerStatusChanger"]', function () {
   let state;
   const type = $(this).attr('data-type');
   const frame = $(this).closest('.frame-container');
   let option;
 
   if (type === 'switch') {
-    state = frame.attr('state');
+    state = frame.attr('data-status');
     option = 'domain';
     // select first option "This domain" by default
     frame.attr('data-visible', 'off_domain');
@@ -215,8 +212,8 @@ $('#control-center').on('click', '[adBlockerStatusChanger]', function () {
     data: {
       type,
       state,
-      status: frame.attr('state'),
-      url: frame.attr('url'),
+      status: frame.attr('data-status'),
+      url: frame.attr('data-url'),
       // TODO instead of dropdown-scope selece the active button
       option
     }
@@ -224,21 +221,21 @@ $('#control-center').on('click', '[adBlockerStatusChanger]', function () {
 });
 
 // select box change
-$('#control-center').on('change', 'select[updatePref]', (ev) => {
+$('#control-center').on('change', 'select[data-update-pref]', (ev) => {
   sendMessageToWindow({
     action: 'updatePref',
     data: {
-      pref: ev.currentTarget.getAttribute('updatePref'),
+      pref: ev.currentTarget.getAttribute('data-update-pref'),
       value: ev.currentTarget.value,
       target: ev.currentTarget.getAttribute('data-target'),
-      prefType: ev.currentTarget.getAttribute('updatePrefType'),
+      prefType: ev.currentTarget.getAttribute('data-update-pref-type'),
     }
   });
 });
 
 function updateGeneralState() {
   const states = Array.from(document.querySelectorAll('.frame-container.anti-tracking'))
-    .map(el => el.getAttribute('state'));
+    .map(el => el.getAttribute('data-status'));
   let state = 'active';
 
   if (states.indexOf('critical') !== -1) {
@@ -247,7 +244,7 @@ function updateGeneralState() {
     state = 'inactive';
   }
 
-  $('#header').attr('state', state);
+  $('#header').attr('data-status', state);
   if (isOnboarding()) {
     return;
   }
@@ -372,11 +369,7 @@ function draw(data) {
   data.showTipps = data.funnelCake ? isAction : true;
 
   const cc = document.getElementById('control-center');
-  if (cc.unsafeSetInnerHTML) {
-    cc.unsafeSetInnerHTML(templates.template(data));
-  } else {
-    cc.innerHTML = templates.template(data);
-  }
+  cc.innerHTML = templates.template(data);
 
   function closeSettingAccordionSection() {
     $('.setting-accordion .accordion-active-title').removeClass('active');
@@ -386,11 +379,11 @@ function draw(data) {
   $('.setting-accordion-section-title').on('click', function (e) {
     e.stopPropagation();
     const index = $(this).attr('data-index');
-    const url = e.currentTarget.getAttribute('openUrl');
+    const url = e.currentTarget.getAttribute('data-open-url');
     const target = $(this).attr('data-target');
     const closePopup = e.currentTarget.dataset.closepopup || true;
     // openURL already sends telemetry data
-    if ($(this).attr('openUrl')) {
+    if ($(this).attr('data-open-url')) {
       sendMessageToWindow({
         action: 'openURL',
         data: {
@@ -455,7 +448,7 @@ function draw(data) {
     });
   });
 
-  $('[start-navigation]').on('click', function () {
+  $('[data-start-navigation]').on('click', function () {
     const $main = $(this).closest('#control-center');
     const $settings = $('#settings');
     const $othersettings = $main.find('#othersettings');
@@ -463,7 +456,7 @@ function draw(data) {
     const $target = $setting.attr('data-target');
     const $container = $(this).closest('.frame-container');
 
-    if ($container.attr('state') !== 'active') {
+    if ($container.attr('data-status') !== 'active') {
       return; // Disable clicking on inactive module
     }
 
@@ -498,16 +491,16 @@ function draw(data) {
 
   $('.cqz-switch-label, .cqz-switch-grey').click(function () {
     const target = $(this).closest('.bullet');
-    target.attr('state',
-      (idx, attr) => (attr !== 'active' ? 'active' : target.attr('inactiveState'))
+    target.attr('data-status',
+      (idx, attr) => (attr !== 'active' ? 'active' : target.attr('data-inactiveState'))
     );
 
-    if (this.hasAttribute('updatePref')) {
+    if (this.hasAttribute('data-update-pref')) {
       sendMessageToWindow({
         action: 'updatePref',
         data: {
-          pref: this.getAttribute('updatePref'),
-          value: target.attr('state') === 'active',
+          pref: this.getAttribute('data-update-pref'),
+          value: target.attr('data-status') === 'active',
           target: this.getAttribute('data-target')
         }
       });
@@ -522,11 +515,11 @@ function draw(data) {
     if (dropdownContent.hasClass('visible')) {
       dropdownContent.toggleClass('visible');
     }
-    target.attr('state',
-      (idx, attr) => (attr !== 'active' ? 'active' : target.attr('inactiveState'))
+    target.attr('data-status',
+      (idx, attr) => (attr !== 'active' ? 'active' : target.attr('data-inactiveState'))
     );
 
-    if (this.hasAttribute('updatePref')) {
+    if (this.hasAttribute('data-update-pref')) {
       if (isOnboarding()) {
         return;
       }
@@ -536,8 +529,8 @@ function draw(data) {
         data: {
           type,
           target: `${target.parent().attr('data-target')}_${type}`,
-          pref: this.getAttribute('updatePref'),
-          value: target.attr('state') === 'active'
+          pref: this.getAttribute('data-update-pref'),
+          value: target.attr('data-status') === 'active'
         }
       });
     }
@@ -558,8 +551,8 @@ function draw(data) {
     const content = '.new-dropdown-content';
     const $this = $(this);
 
-    target.attr('state', state === 'all' ?
-      'critical' : target.attr('inactiveState'));
+    target.attr('data-status', state === 'all' ?
+      'critical' : target.attr('data-inactiveState'));
 
     $this.siblings(option).each((index, elem) => {
       $(elem).removeClass('selected');

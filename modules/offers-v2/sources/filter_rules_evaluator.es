@@ -6,6 +6,7 @@ import logger from './common/offers_v2_logger';
 import jsep from '../platform/lib/jsep';
 
 export default class FilterRulesEvaluator {
+
   //
   constructor(offersDB) {
     this.offersDB = offersDB;
@@ -141,10 +142,8 @@ export default class FilterRulesEvaluator {
       logger.warn(`_genericComparator: This operation wasn't found ${args.operator}`);
       return false;
     }
-    const offerAction = this.offersDB.getOfferDisplayActionMeta(
-      offerDisplayID,
-      args.action_id
-    );
+    const offerAction = this.offersDB.getOfferDisplayActionMeta(offerDisplayID,
+                                                                args.action_id);
     if (!offerAction) {
       return true;
     }

@@ -1,5 +1,7 @@
-import { mkRequest, ReverseIndex, matchNetworkFilter } from '../../core/pattern-matching';
-import { parse } from '../../core/tlds';
+import networkFiltersOptimizer from '../../core/adblocker-base/optimizer';
+import { processRawRequest } from '../../core/adblocker-base/filters-engine';
+import { matchNetworkFilter } from '../../core/adblocker-base/filters-matching';
+import ReverseIndex from '../../core/adblocker-base/reverse-index';
 
 
 /**
@@ -9,18 +11,7 @@ import { parse } from '../../core/tlds';
  * @return {Object}     will be the object needed to parse later
  */
 export default function tokenizeUrl(url) {
-  if (url) {
-    const { hostname, domain } = parse(url);
-    return mkRequest({
-      url,
-      domain,
-      hostname,
-      cpt: 2,
-      sourceHostname: hostname,
-      sourceDomain: domain,
-    });
-  }
-  return null;
+  return url ? processRawRequest({ url, sourceUrl: '', cpt: 2 }) : null;
 }
 
 
@@ -33,6 +24,7 @@ class PatternIndex {
     this.index = new ReverseIndex(
       filters,
       filter => filter.getTokens(),
+      { optimizer: networkFiltersOptimizer },
     );
   }
 

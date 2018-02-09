@@ -9,6 +9,7 @@ class LocalInfoResult extends BaseResult {
 }
 
 class TextResult extends BaseResult {
+
   get textType() {
     return this.rawResult.textType;
   }
@@ -28,6 +29,7 @@ class TextResult extends BaseResult {
 }
 
 export class ShareLocationButton extends BaseResult {
+
   get elementId() {
     if (!this._elementId) {
       const id = Math.floor(Math.random() * 1000);
@@ -189,7 +191,7 @@ export default class LocalResult extends BaseResult {
     return `https://cdn.cliqz.com/extension/EZ/richresult/stars${ratingStars}.svg`;
   }
 
-  parseTime(timeStr) { // e.g. timeStr: 10.30
+  parseTime(timeStr) {  // e.g. timeStr: 10.30
     const time = timeStr.split('.');
     return {
       hours: parseInt(time[0], 10) || 0,

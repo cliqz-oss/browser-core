@@ -1,6 +1,6 @@
 import { utils } from '../core/cliqz';
 import platformTelemetry from '../platform/telemetry';
-import inject, { ifModuleEnabled } from '../core/kord/inject';
+import inject from '../core/kord/inject';
 import random from '../core/crypto/random';
 import { getConfigTs } from './time';
 
@@ -38,10 +38,10 @@ export default {
       // and we need to do add meta data that humanweb added
       payl = msgSanitize(payl, this.channel);
       if (payl) {
-        ifModuleEnabled(this.provider.action('sendTelemetry', payl));
+        return this.provider.action('sendTelemetry', payl);
       }
     } else {
-      ifModuleEnabled(this.provider.action('telemetry', payl));
+      return this.provider.action('telemetry', payl);
     }
   },
 

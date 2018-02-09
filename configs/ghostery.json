@@ -16,8 +16,8 @@
     "ENDPOINT_LOOKUP_TABLE_PROVIDER": "https://ghostery-collector.ghostery.com/v2/lookuptable",
     "ENDPOINT_KEYS_PROVIDER": "https://ghostery-collector.ghostery.com/signerKey",
     "ENDPOINT_PROXY_LIST_PROVIDER": "https://ghostery-collector.ghostery.com/v2/proxyList",
-    "ENDPOINT_PATTERNSURL": "https://cdn2.ghostery.com/human-web-chromium/patterns.gz",
-    "ENDPOINT_ANONPATTERNSURL": "https://cdn2.ghostery.com/human-web-chromium/patterns-anon.gz",
+    "ENDPOINT_PATTERNSURL": "https://safe-browsing.ghostery.com/patterns",
+    "ENDPOINT_ANONPATTERNSURL": "https://safe-browsing.ghostery.com/patterns-anon",
     "ENDPOINT_CONFIGURL": "https://safe-browsing.ghostery.com/ts-config",
     "ENDPOINT_SAFE_QUORUM_ENDPOINT": "https://safe-browsing-quorum.ghostery.com/",
     "ENDPOINT_SAFE_QUORUM_PROVIDER": "https://safe-browsing-quorum.ghostery.com/config",
@@ -28,8 +28,7 @@
     "ATTRACK_TELEMETRY_PROVIDER": "hpn",
     "HW_CHANNEL": "ghostery",
     "CDN_BASEURL": "https://cdn2.ghostery.com",
-    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se", "be", "se", "dk", "fi", "cz", "gr", "hu", "ro", "no", "ca", "au", "ru", "ua", "in"],
-    "OFFERS_BE_BASE_URL": "https://offers.ghostery.com"
+    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se", "be", "se", "dk", "fi", "cz", "gr", "hu", "ro", "no", "ca", "au", "ru", "ua", "in"]
   },
   "default_prefs": {
     "modules.human-web.enabled": true,
@@ -72,10 +71,8 @@
   ],
   "system": {
     "map": {
-      "BigInt": "node_modules/BigInt/src/BigInt.js"
-    },
-    "meta": {
-      "BigInt": { "format": "cjs" }
+      "bigint": "bower_components/bigint/index.js",
+      "md5": "bower_components/md5/index.js"
     }
   }
 }

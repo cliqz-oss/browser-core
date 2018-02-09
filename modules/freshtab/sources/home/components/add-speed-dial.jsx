@@ -13,6 +13,7 @@ const DEFAULT_STATE = Object.freeze({
 });
 
 export default class AddSpeedDial extends React.Component {
+
   static get propTypes() {
     return {
       addSpeedDial: PropTypes.func,

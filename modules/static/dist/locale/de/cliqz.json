@@ -1208,20 +1208,23 @@
     "mobile_soccer_subscribed_to_both":{
         "message": "Du hast diese Teams abonniert."
     },
-    "mobile_flight_no_updates":{
-        "message": "Keine weiteren Updates für diesen Flug"
+    "unblock_menu_option": {
+      "message": "Unblock content"
     },
-    "mobile_flight_scheduled_departure":{
-        "message": "Abflugszeit"
+    "unblock_prompt": {
+      "message": "Soll Cliqz versuchen, blockierte Youtube-Videos zu öffnen?"
     },
-    "mobile_flight_scheduled_landing":{
-        "message": "Ankunftszeit"
+    "unblock_always": {
+      "message": "Ja, immer"
     },
-    "mobile_flight_gate":{
-        "message": "Gate"
+    "unblock_once": {
+      "message": "Nur dieses Mal"
     },
-    "mobile_flight_hotline":{
-        "message": "Lufthansa Hotline ($1) anrufen"
+    "unblock_never": {
+      "message": "Nein, niemals"
+    },
+    "unblock_youtube_fail": {
+      "message": "OK, wir haben es versucht. Leider können wir das Video im Moment nicht zugänglich machen"
     },
     "context-menu-search-item": {
       "message": "Cliqz-Suche nach \"$1\""
@@ -1634,104 +1637,47 @@
     "offers-hub-title": {
       "message": "MyOffrz"
     },
+    "offers-hub-show-all-offers-btn": {
+      "message": "Frühere Angebote"
+    },
     "offers-hub-welcome-title": {
       "message": "Willkommen!"
     },
     "offers-hub-welcome-text": {
-      "message": "Hier findest du regelmäßig ein neues Angebot der Woche und andere für dich ausgewählte Angebote."
+      "message": "Hier findest du regelmäßig ein neues Angebot der Woche und<br /> andere für dich ausgewählte Angebote."
     },
     "offers-hub-feedback-title": {
-      "message": "Feedback"
+      "message": "Dein Feedback ist uns wichtig"
     },
-    "offers-hub-feedback-text": {
-      "message": "Was hälst du von MyOffrz?"
+    "offers-hub-feedaback-sub-title": {
+      "message": "Warum hast du das Angebot entfernt?"
     },
-    "offers-hub-feedback-comments": {
-      "message": "Kommentar hinzufügen?"
+    "offers-hub-feedaback-option1": {
+      "message": "Ich habe kein Interesse an diesem Angebot"
     },
-    "offers-hub-feedback-send": {
-      "message": "Senden"
+    "offers-hub-feedaback-option2": {
+      "message": "Ich habe kein Interesse an MyOffrz"
     },
-    "offers-hub-feedback-close": {
-      "message": "Schließen"
+    "offers-hub-feedaback-option3": {
+      "message": "Ich bin an keinem Angebot interessiert"
     },
-    "offers-hub-feedback-send-and-close": {
-      "message": "Senden und schließen"
-    },
-    "offers-hub-feedback-thank-you": {
-      "message": "Danke!"
-    },
-    "offers-hub-feedback-option1": {
-      "message": "Angebot schon benutzt"
-    },
-    "offers-hub-feedback-option2": {
-      "message": "Kein gutes Angebot"
-    },
-    "offers-hub-feedback-option3": {
-      "message": "Angebot ist nicht relevant"
-    },
-    "offers-hub-feedback-option4": {
-      "message": "Anderer Grund"
+    "offers-hub-cancel": {
+      "message": "Abbrechen"
     },
     "offers-hub-remove": {
-      "message": "Dieses Angebot löschen"
+      "message": "Angebot entfernen"
     },
     "offers-hub-about-cliqz-offers": {
-      "message": "Informationen"
+      "message": "Mehr Informationen"
     },
     "offers-hub-powered-by": {
       "message": "Bereitgestellt von Cliqz"
     },
-    "offers-hub-copy-btn": {
-      "message": "Code kopieren"
-    },
     "offers-hub-code-copy": {
-      "message": "Kopiert"
+      "message": "Code kopiert"
     },
     "offers_hub_tooltip_new_offer": {
       "message": "Du hast ein neues Angebot"
-    },
-    "offers-exclusive": {
-      "message": "Exklusiv"
-    },
-    "offers-best_offer": {
-      "message": "Top Angebot"
-    },
-    "offers-offer_of_the_week": {
-      "message": "Angebot der Woche"
-    },
-    "offers-conditions": {
-      "message": "Konditionen"
-    },
-    "offers-expires-in": {
-      "message": "Läuft in"
-    },
-    "offers-expires-day": {
-      "message": "Tag ab"
-    },
-    "offers-expires-days": {
-      "message": "Tagen ab"
-    },
-    "offers-expires-hour": {
-      "message": "Stunde ab"
-    },
-    "offers-expires-hours": {
-      "message": "Stunden ab"
-    },
-    "offers-expires-minute": {
-      "message": "Minute ab"
-    },
-    "offers-expires-minutes": {
-      "message": "Minuten ab"
-    },
-    "offers-ad": {
-        "message": "Anzeige"
-    },
-    "offers-copy-code": {
-        "message": "Code kopieren"
-    },
-    "offers-code-copied": {
-        "message": "Kopiert"
     },
     "signals-humanweb-inactive-message": {
       "message": "Human Web ist nicht aktiviert"
@@ -1924,9 +1870,6 @@
     },
     "freshtab.app.settings.news.language.fr": {
         "message": "Französische Medien"
-    },
-    "freshtab.app.settings.news.language.de-tr-en": {
-        "message": "Deutsche Medien auf Englisch"
     },
     "control-center-enabled": {
         "message": "Aktiviert"

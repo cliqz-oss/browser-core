@@ -11,8 +11,8 @@ export default class BaseProvider {
     this.id = id;
   }
 
-  getEmptySearch(config, query) {
-    return Rx.Observable.from([getEmptyResponse(this.id, config, query)]);
+  getEmptySearch(config) {
+    return Rx.Observable.from([getEmptyResponse(this.id, config)]);
   }
 
   // default operators used for most providers

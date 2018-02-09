@@ -1,6 +1,6 @@
 export function pinTab(window, tab) {
   let t;
-  if (typeof tab.index === 'number') {
+  if (typeof tab.index === "number") {
     t = window.gBrowser.tabs[tab.index];
   } else {
     t = tab;
@@ -31,8 +31,4 @@ export function getTabsWithUrl(window, url) {
 
 export function closeTab(window, tab) {
   window.gBrowser.removeTab(tab);
-}
-
-export function getCurrentTabId(window) {
-  return window.gBrowser.selectedBrowser.outerWindowID;
 }

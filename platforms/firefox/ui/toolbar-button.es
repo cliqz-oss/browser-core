@@ -8,6 +8,7 @@ const XUL_NS = 'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul';
 
 
 export default class BrowserAction {
+
   constructor(options = {}, isPageAction = false) {
     this.id = `${options.widgetId}-browser-action`;
     this.viewId = `PanelUI-webext-${options.widgetId}-browser-action-view`;
@@ -297,11 +298,8 @@ export default class BrowserAction {
       node.setAttribute('disabled', 'true');
     }
 
-    const badgeNode = node.ownerDocument.getAnonymousElementByAttribute(
-      node,
-      'class',
-      'toolbarbutton-badge'
-    );
+    const badgeNode = node.ownerDocument.getAnonymousElementByAttribute(node,
+                                        'class', 'toolbarbutton-badge');
     if (badgeNode) {
       const color = tabData.badgeBackgroundColor ||
                     badgeNode.style.backgroundColor ||

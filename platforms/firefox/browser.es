@@ -1,3 +1,4 @@
+import console from '../core/console';
 import prefs from '../core/prefs';
 import events from '../core/events';
 import { Services, Components } from './globals';
@@ -35,11 +36,7 @@ export class Window {
 
   static findByTabId(tabId) {
     const windows = mapWindows(w => new Window(w));
-    return windows.find(w =>
-      // In some cases `w.window.gBrowser.selectedBrowser` is undefined.
-      w.window.gBrowser.selectedBrowser !== undefined &&
-      w.window.gBrowser.selectedBrowser.outerWindowID === tabId
-    );
+    return windows.find(w => w.window.gBrowser.selectedBrowser.outerWindowID === tabId);
   }
 }
 
@@ -74,7 +71,7 @@ export function isTabURL(url) {
 
 export function getBrowserMajorVersion() {
   const appInfo = Components.classes['@mozilla.org/xre/app-info;1']
-    .getService(Components.interfaces.nsIXULAppInfo);
+                  .getService(Components.interfaces.nsIXULAppInfo);
   return parseInt(appInfo.version.split('.')[0], 10);
 }
 
@@ -83,7 +80,7 @@ export function getBrowserMajorVersion() {
  */
 export function isWindowActive(windowID) {
   const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
-    .getService(Components.interfaces.nsIWindowMediator);
+      .getService(Components.interfaces.nsIWindowMediator);
   const browserEnumerator = wm.getEnumerator('navigator:browser');
 
   // the windowID should be an integer
@@ -157,23 +154,31 @@ export function setInstallDatePref(date) {
 }
 
 export function setOurOwnPrefs() {
-  if (prefs.has('unifiedcomplete', 'browser.urlbar.') && prefs.get('unifiedcomplete', false)) {
-    prefs.set('unifiedcomplete', true); // backup
-    prefs.set('unifiedcomplete', false, 'browser.urlbar.');
+  const urlBarPref = Components.classes['@mozilla.org/preferences-service;1']
+    .getService(Components.interfaces.nsIPrefService).getBranch('browser.urlbar.');
+
+  if (prefs.has('maxRichResultsBackup')) {
+    // we reset Cliqz change to "browser.urlbar.maxRichResults"
+    prefs.clear('maxRichResultsBackup');
+    prefs.clear('browser.urlbar.maxRichResults', '');
+  }
+
+  const unifiedComplete = urlBarPref.getPrefType('unifiedcomplete');
+  if (unifiedComplete === 128 && urlBarPref.getBoolPref('unifiedcomplete')) {
+    prefs.set('unifiedcomplete', true);
+    urlBarPref.setBoolPref('unifiedcomplete', false);
   }
 
   // disable FF search hints from FF55 (and maybe above)
-  prefs.set('timesBeforeHidingSuggestionsHint', 0, 'browser.urlbar.');
-  prefs.set('userMadeSearchSuggestionsChoice', true, 'browser.urlbar.');
+  urlBarPref.setBoolPref('suggest.enabled', false);
+  urlBarPref.setIntPref('timesBeforeHidingSuggestionsHint', 0);
+  urlBarPref.setBoolPref('userMadeSearchSuggestionsChoice', true);
+  urlBarPref.setBoolPref('suggest.searches', false);
 
-  if (prefs.get('suggest.searches', false, 'browser.urlbar.')) {
-    prefs.set('backup.browser.urlbar.suggest.searches', true);
-    prefs.set('suggest.searches', false, 'browser.urlbar.');
-  }
-
-  if (prefs.get('suggest.enabled', false, 'browser.urlbar.')) {
-    prefs.set('backup.browser.urlbar.suggest.enabled', true);
-    prefs.set('suggest.enabled', false, 'browser.urlbar.');
+  // telemetry-categories was removed in version X.18.Y
+  if (prefs.has('cat')) {
+    prefs.clear('cat');
+    prefs.clear('catHistoryTime');
   }
 
   // freshtab is optOut since 2.20.3 for new users
@@ -188,43 +193,22 @@ export function setOurOwnPrefs() {
     prefs.set('humanWebOptOut', prefs.get('dnt'));
     prefs.clear('dnt');
   }
-
-  // Firefox merges search resuls with results from previous search by default
-  // (INSERTMETHOD.MERGE_RELATED at UnifiedComplete.js).
-  // It break Cliq's search in different ways, so we change it to INSERTMETHOD.APPEND
-  const insertMethod = prefs.get('insertMethod', -1, 'browser.urlbar.');
-  if (insertMethod === -1 || insertMethod > 0) {
-    // change it to INSERTMETHOD.APPEND
-    prefs.set('insertMethod', 0, 'browser.urlbar.');
-    prefs.set('backup.browser.urlbar.insertMethod', insertMethod);
-  }
 }
 
 /** Reset changed prefs on uninstall */
 export function resetOriginalPrefs() {
+  const cliqzBackup = prefs.get('maxRichResultsBackup');
+  if (cliqzBackup) {
+    console.log('Loading maxRichResults backup...', 'utils.setOurOwnPrefs');
+    prefs.set('maxRichResults', prefs.get('maxRichResultsBackup'), 'browser.urlbar.');
+    prefs.clear('maxRichResultsBackup', 0);
+  } else {
+    console.log('maxRichResults backup does not exist; doing nothing.', 'utils.setOurOwnPrefs');
+  }
+
   if (prefs.get('unifiedcomplete', false)) {
     prefs.set('unifiedcomplete', true, 'browser.urlbar.');
     prefs.set('unifiedcomplete', false);
-  }
-
-  if (prefs.has('backup.browser.urlbar.suggest.searches')) {
-    prefs.clear('backup.browser.urlbar.suggest.searches');
-    prefs.clear('suggest.searches', 'browser.urlbar.');
-  }
-
-  if (prefs.has('backup.browser.urlbar.suggest.searches')) {
-    prefs.clear('backup.browser.urlbar.suggest.searches');
-    prefs.clear('suggest.searches', 'browser.urlbar.');
-  }
-
-  if (prefs.has('backup.browser.urlbar.insertMethod')) {
-    const insertMethod = prefs.get('backup.browser.urlbar.insertMethod', -1);
-    if (insertMethod === -1) {
-      prefs.clear('insertMethod', 'browser.urlbar.');
-    } else {
-      prefs.set('insertMethod', insertMethod, 'browser.urlbar.');
-    }
-    prefs.clear('backup.browser.urlbar.insertMethod');
   }
 }
 
@@ -305,7 +289,9 @@ export function waitWindowReady(win) {
     if (!win.document || win.document.readyState !== 'complete') {
       win.addEventListener('load', function loader() {
         win.removeEventListener('load', loader, false);
-        resolveOnIdleCallback(win, resolve, 1000);
+        if (mustLoadWindow(win)) {
+          resolveOnIdleCallback(win, resolve, 1000);
+        }
       }, false);
     } else {
       resolveOnIdleCallback(win, resolve, 1000);
@@ -318,7 +304,7 @@ export function getActiveTab(w) {
   let window = w;
   if (!w) {
     const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
-      .getService(Components.interfaces.nsIWindowMediator);
+        .getService(Components.interfaces.nsIWindowMediator);
     window = wm.getMostRecentWindow('navigator:browser');
     if (!window) {
       return Promise.reject('No open window available');

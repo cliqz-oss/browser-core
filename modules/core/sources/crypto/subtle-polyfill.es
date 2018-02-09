@@ -227,13 +227,13 @@ function generateKey({
   return Promise.reject(new Error('subtle.generateKey: unknown algo name'));
 }
 
-function sign(_, key, data) {
+function sign({ name }, key, data) {
   const md = forge.md.sha256.create();
   md.update(toString(data));
   return Promise.resolve(fromString(key.data.sign(md)).buffer);
 }
 
-function verify(_, key, sig, data) {
+function verify({ name }, key, sig, data) {
   return digest('SHA-256', data)
     .then(h => key.data.verify(toString(h), toString(sig)));
 }

@@ -1,2 +1,3 @@
+import { historySearch } from '../browser-actions';
 
-export default {};
+export default historySearch;

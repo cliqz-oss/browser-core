@@ -9,6 +9,7 @@ export const BLOCK_MODE = ['BLOCK', 'ALLOW_SAFE', 'ALLOW_UNSAFE'].reduce(
   Object.create(null));
 
 export default class Blocker {
+
   constructor(blocklist, defaultAction, categoryPolicies, companyPolicies, firstPartyPolicies) {
     this.blocklist = blocklist || 'default';
     this.defaultAction = BLOCK_MODE[defaultAction] || BLOCK_MODE.BLOCK;
@@ -162,4 +163,5 @@ export default class Blocker {
     return fpPolicy || this.companyPolicies[trackerName] ||
       this.categoryPolicies[trackerCategory] || undefined;
   }
+
 }

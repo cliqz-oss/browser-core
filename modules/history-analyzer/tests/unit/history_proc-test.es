@@ -2,14 +2,12 @@
 /* global describeModule */
 /* global require */
 
-const tldjs = require('tldjs');
 const encoding = require('text-encoding');
 
 const TextDecoder = encoding.TextDecoder;
 const TextEncoder = encoding.TextEncoder;
 
-let processRawReqFun;
-
+let processRawReqFun = null;
 const mockedTS = Date.now();
 
 const DAY_HISTORY_MOCK_MAP = {
@@ -43,9 +41,6 @@ const DAY_HISTORY_MOCK_MAP = {
 
 export default describeModule('history-analyzer/worker/history_proc',
   () => ({
-    tldjs: {
-      default: tldjs,
-    },
     'platform/console': {
     },
     'platform/text-decoder': {
@@ -72,8 +67,10 @@ export default describeModule('history-analyzer/worker/history_proc',
       let processData;
       beforeEach(function () {
         processData = this.module().default;
-        return this.system.import('offers-v2/pattern-matching/pattern-utils').then((mod) => {
-          processRawReqFun = mod.default;
+        const filterEngine = this.system.import('core/adblocker-base/filters-engine');
+        const pList = [filterEngine];
+        return Promise.all(pList).then((mods) => {
+          processRawReqFun = mods[0].processRawRequest;
         });
       });
 
@@ -88,7 +85,7 @@ export default describeModule('history-analyzer/worker/history_proc',
           };
           const urls = hd[d];
           for (let j = 0; j < urls.length; j += 1) {
-            r[d].requests.push(processRawReqFun(urls[j]));
+            r[d].requests.push(processRawReqFun({ url: urls[j], sourceUrl: '', cpt: 2 }));
           }
         }
         return r;

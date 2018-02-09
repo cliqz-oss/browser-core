@@ -8,6 +8,7 @@ if [ -z $CLIQZ_CONFIG_PATH ]; then
 fi
 
 # CLIQZ - check for global dependencies
+bower              > /dev/null 2>&1 || npm install -g bower
 ember              > /dev/null 2>&1 || npm install -g ember-cli
 broccoli --version > /dev/null 2>&1 || npm install -g broccoli-cli
 

@@ -23,19 +23,9 @@ const BACKEND_MOCK = {
   updateGID(demographics) { return updateGID(demographics); },
 };
 
-let mockDemographics;
 
 export default describeModule('anolysis/gid-manager',
   () => ({
-    'platform/lib/moment': {
-      default(str, format) {
-        if (str === undefined) {
-          return getCurrentMoment();
-        }
-
-        return moment(str, format);
-      },
-    },
     'core/events': {
       default: {
         pub() {},
@@ -47,6 +37,9 @@ export default describeModule('anolysis/gid-manager',
         setTimeout(cb) { cb(); },
       },
     },
+    'anolysis/backend-communication': {
+      default: BACKEND_MOCK,
+    },
     'core/console': {
       default: {
         debug() {},
@@ -54,16 +47,19 @@ export default describeModule('anolysis/gid-manager',
         error() {},
       },
     },
-    'core/demographics': {
-      default: () => mockDemographics(),
-    },
-    'anolysis/backend-communication': {
-      default: BACKEND_MOCK,
-    },
     'anolysis/synchronized-date': {
       DATE_FORMAT,
       default() {
         return getCurrentMoment();
+      },
+    },
+    'platform/lib/moment': {
+      default(str, format) {
+        if (str === undefined) {
+          return getCurrentMoment();
+        }
+
+        return moment(str, format);
       },
     },
   }),
@@ -74,7 +70,6 @@ export default describeModule('anolysis/gid-manager',
 
       beforeEach(function importNewInstall() {
         const GIDManager = new this.module().default;
-        mockDemographics = () => Promise.resolve({});
 
         storage = {};
         gidManager = new GIDManager({
@@ -110,7 +105,6 @@ export default describeModule('anolysis/gid-manager',
 
       beforeEach(function importReappearingUser() {
         const GIDManager = new this.module().default;
-        mockDemographics = () => Promise.resolve({});
 
         storage = {};
         gidManager = new GIDManager({
@@ -147,7 +141,6 @@ export default describeModule('anolysis/gid-manager',
 
       beforeEach(function importUpdate() {
         const GIDManager = new this.module().default;
-        mockDemographics = () => Promise.resolve({});
 
         storage = {};
         gidManager = new GIDManager({
@@ -185,7 +178,6 @@ export default describeModule('anolysis/gid-manager',
 
       beforeEach(function importNewInstall() {
         const GIDManager = new this.module().default;
-        mockDemographics = () => Promise.resolve({});
 
         storage = {};
         gidManager = new GIDManager({
@@ -230,7 +222,6 @@ export default describeModule('anolysis/gid-manager',
 
       beforeEach(function importNewInstall() {
         const GIDManager = new this.module().default;
-        mockDemographics = () => Promise.resolve({});
 
         storage = {};
         gidManager = new GIDManager({
@@ -261,7 +252,6 @@ export default describeModule('anolysis/gid-manager',
       });
 
       it('fails if no demographics available on first call', () => {
-        mockDemographics = () => Promise.reject();
         newInstall = () => Promise.resolve();
 
         return gidManager.getGID()
@@ -291,7 +281,6 @@ export default describeModule('anolysis/gid-manager',
             anolysisInstalled: CURRENT_DATE,
             anolysisLastAliveSignal: CURRENT_DATE,
             anolysisDemographics: 'demographics1',
-            anolysisLatestDemographics: '{}',
           }));
       });
 
@@ -317,7 +306,6 @@ export default describeModule('anolysis/gid-manager',
             anolysisLastAliveSignal: CURRENT_DATE,
             anolysisDemographics: 'demographics0',
             anolysisSentNewInstall: CURRENT_DATE,
-            anolysisLatestDemographics: '{}',
           }));
       });
 
@@ -337,7 +325,6 @@ export default describeModule('anolysis/gid-manager',
           anolysisLastAliveSignal: CURRENT_DATE,
           anolysisSentNewInstall: CURRENT_DATE,
           anolysisDemographics: demographics,
-          anolysisLatestDemographics: '{}',
         };
 
         return gidManager.getGID()
@@ -351,7 +338,6 @@ export default describeModule('anolysis/gid-manager',
             anolysisLastAliveSignal: CURRENT_DATE,
             anolysisDemographics: demographics,
             anolysisSentNewInstall: CURRENT_DATE,
-            anolysisLatestDemographics: '{}',
           }));
       });
 
@@ -368,7 +354,6 @@ export default describeModule('anolysis/gid-manager',
           anolysisLastAliveSignal: installDate,
           anolysisDemographics: 'demographics',
           anolysisSentNewInstall: installDate,
-          anolysisLatestDemographics: '{}',
         };
 
         return gidManager.getGID()
@@ -384,7 +369,6 @@ export default describeModule('anolysis/gid-manager',
             anolysisLastGIDUpdate: CURRENT_DATE,
             anolysisGID: 'gid',
             anolysisSentNewInstall: installDate,
-            anolysisLatestDemographics: '{}',
           }));
       });
 
@@ -401,7 +385,6 @@ export default describeModule('anolysis/gid-manager',
           anolysisLastAliveSignal: installDate,
           anolysisDemographics: 'demographics',
           anolysisSentNewInstall: installDate,
-          anolysisLatestDemographics: '{}',
         };
 
         return gidManager.getGID()
@@ -428,7 +411,6 @@ export default describeModule('anolysis/gid-manager',
           anolysisLastGIDUpdate: installDate,
           anolysisGID: 'gid',
           anolysisSentNewInstall: installDate,
-          anolysisLatestDemographics: '{}',
         };
 
         return gidManager.getGID()
@@ -455,7 +437,6 @@ export default describeModule('anolysis/gid-manager',
           anolysisLastGIDUpdate: installDate,
           anolysisGID: 'gid',
           anolysisSentNewInstall: installDate,
-          anolysisLatestDemographics: '{}',
         };
 
         return gidManager.getGID()
@@ -471,7 +452,6 @@ export default describeModule('anolysis/gid-manager',
             anolysisLastGIDUpdate: installDate,
             anolysisGID: 'gid',
             anolysisSentNewInstall: installDate,
-            anolysisLatestDemographics: '{}',
           }));
       });
 
@@ -490,7 +470,6 @@ export default describeModule('anolysis/gid-manager',
           anolysisLastGIDUpdate: installDate,
           anolysisSentNewInstall: installDate,
           anolysisGID: 'gid',
-          anolysisLatestDemographics: '{}',
         };
 
         return gidManager.getGID()
@@ -506,7 +485,6 @@ export default describeModule('anolysis/gid-manager',
             anolysisLastGIDUpdate: CURRENT_DATE,
             anolysisGID: 'updatedGID',
             anolysisSentNewInstall: installDate,
-            anolysisLatestDemographics: '{}',
           }));
       });
     });

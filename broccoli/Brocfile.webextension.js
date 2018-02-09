@@ -21,6 +21,7 @@ const modulesTree = new Funnel(
   new MergeTrees([
     modules.static,
     sourceTree,
+    new Funnel(modules.bower, { destDir: 'bower_components' }),
     modules.styleTests,
   ]), {
     destDir: 'modules'

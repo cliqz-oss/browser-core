@@ -1,5 +1,3 @@
-import console from '../console';
-
 let app;
 
 export class ModuleMissingError extends Error {
@@ -16,34 +14,13 @@ export class ModuleDisabledError extends Error {
   }
 }
 
-/**
- * Given the promise resulting from a call to `action`, ignore errors resulting
- * from a disabled module. This can be especially useful during extension
- * restart when modules are stopped in arbitrary order and some actions might
- * fail.
- */
-export function ifModuleEnabled(promise) {
-  return promise.catch((err) => {
-    if (err.name === ModuleDisabledError.name) {
-      console.debug(
-        'Ignoring disabled module exception while calling action,' +
-        ' the following exception can be safely ignored. This log' +
-        ' is only printed in "debug" mode.', err);
-      return Promise.resolve();
-    }
-
-    // Re-emit the same error if the cause is not `ModuleDisabledError`
-    return Promise.reject(err);
-  });
-}
-
 class ModuleWrapper {
   constructor(moduleName) {
     this.moduleName = moduleName;
   }
 
   get module() {
-    return app && app.modules[this.moduleName];
+    return app.modules[this.moduleName];
   }
 
   isWindowReady(window) {

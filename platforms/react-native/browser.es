@@ -1,23 +1,22 @@
 import { NativeModules } from 'react-native';
 import language from './language/language';
-
 const nativeWebRequest = NativeModules.WebRequest;
 
-export function currentURI() {}
+export function currentURI() {};
 
 export function contextFromEvent() {
-  return null;
+  return null
 }
 
-export function isWindowActive() {
+export function isWindowActive(windowID) {
   return true;
 }
 
 export function checkIsWindowActive(windowID) {
-  return nativeWebRequest.isWindowActive(parseInt(windowID, 10));
+  return nativeWebRequest.isWindowActive(parseInt(windowID));
 }
 
-export function forEachWindow() {
+export function forEachWindow(fn) {
 }
 
 export function setInstallDatePref() {
@@ -53,7 +52,7 @@ export function addMigrationObserver() {
 export function removeMigrationObserver() {
 }
 
-export function mapWindows() {
+export function mapWindows(fn) {
   return [];
 }
 

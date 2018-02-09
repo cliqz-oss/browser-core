@@ -24,7 +24,6 @@
   ],
   "background": {
     "scripts": [
-      "modules/vendor/Rx.min.js",
       "modules/hpn/index.bundle.js",
       "human-web/md5.min.js",
       "human-web/cl-chrome-db.js",

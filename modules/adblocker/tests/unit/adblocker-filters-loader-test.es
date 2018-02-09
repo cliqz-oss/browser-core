@@ -86,9 +86,6 @@ export default describeModule('adblocker/filters-loader',
     },
     'core/platform': {
       isChromium: false,
-      default: {
-        platformName,
-      },
     },
     'adblocker/adblocker': {
       ADB_USER_LANG: 'cliqz-adb-lang',
@@ -114,11 +111,7 @@ export default describeModule('adblocker/filters-loader',
           return defaultValue;
         },
         setPref() {},
-      },
-    },
-    'core/http': {
-      fetch(url) {
-        return new Promise((resolve) => {
+        httpGet(url, callback) {
           let content = 'filter';
           if (url.startsWith('https://cdn.cliqz.com/adblocking/') && url.indexOf('/allowed-lists.json') !== -1) {
             if (isMobile) {
@@ -127,18 +120,19 @@ export default describeModule('adblocker/filters-loader',
               content = readFile('modules/adblocker/tests/unit/data/allowed-lists.json');
             }
           }
-          resolve({
-            text() {
-              return Promise.resolve(content);
-            }
-          });
-        });
+          callback({ response: content });
+        },
       },
     },
-    'core/encoding': {
-      fromUTF8: function(d) {
-        return d;
+    'core/platform': {
+      default: {
+        platformName,
       },
+    },
+    'platform/text-decoder': {
+      default: class {
+        decode(d) { return d }
+      }
     },
   }),
   () => {

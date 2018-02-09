@@ -130,6 +130,7 @@ export default class {
               res.push([_item.url, _item.payload]);
           });
 
+          console.log("Got the result: " + res[0]);
           callback(res.splice(0, cap), null);
       });
     } else {
@@ -148,6 +149,7 @@ export default class {
           else if (record.last_visit < (tt - sec_old * 1000)) {
               var res = [];
               res.push([record.url, record.payload]);
+              console.log("Got the result: " + record);
               callback(res.splice(0, cap), null);
           } else {
             callback([], null);

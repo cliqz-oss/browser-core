@@ -8,6 +8,7 @@ import OffersConfigs from '../offers_configs';
 import PersistentCacheDB from '../persistent_cache_db';
 
 export default class TriggerMachineExecutor {
+
   constructor(globObjs) {
     this.globObjs = globObjs;
     this.globObjs.trigger_machine_executor = this;
@@ -140,4 +141,6 @@ export default class TriggerMachineExecutor {
     }
     return Promise.resolve(false);
   }
+
+
 }

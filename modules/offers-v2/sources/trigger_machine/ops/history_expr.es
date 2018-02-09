@@ -73,12 +73,10 @@ class MatchHistoryExpr extends Expression {
     // now we ask for the cached versions
     const opID = this.getHashID();
     const ts = timestamp();
-    const numMatches = this.data.history_index.countHistoryEntries(
-      ts - this.start,
-      ts - this.end,
-      this.regexesListCache,
-      opID
-    );
+    const numMatches = this.data.history_index.countHistoryEntries(ts - this.start,
+                                                                   ts - this.end,
+                                                                   this.regexesListCache,
+                                                                   opID);
     return Promise.resolve(numMatches);
   }
 }

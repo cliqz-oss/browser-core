@@ -4,9 +4,9 @@ import MessageQueue from '../core/message-queue';
 
 import logger from './logger';
 import { openSocket } from './tcp-socket';
-import { SERVER_REPLY,
-  ADDRESS_TYPE,
-  parseRequest } from './socks-protocol';
+import { SERVER_REPLY
+       , ADDRESS_TYPE
+       , parseRequest } from './socks-protocol';
 import { unwrapAESKey } from '../core/crypto/utils';
 import { ERROR_CODE, createResponseFromExitNode } from './rtc-onion';
 import { asyncResolve, isPrivateIPAddress } from './dns-utils';
@@ -149,9 +149,9 @@ export default class RtcToNet {
           sender,
           key,
           ERROR_CODE.EXIT_INCORRECT_SOCKS_REQUEST)
-          .then(() => Promise.reject(
-            `EXIT ${connectionID} ${message.messageNumber} proxy request is not valid ${data}`
-          ));
+        .then(() => Promise.reject(
+          `EXIT ${connectionID} ${message.messageNumber} proxy request is not valid ${data}`
+        ));
       }
 
       // Check the policy to make sure the destination host is allowed
@@ -162,9 +162,9 @@ export default class RtcToNet {
           sender,
           key,
           ERROR_CODE.EXIT_HOST_NOT_ALLOWED_BY_POLICY)
-          .then(() => Promise.reject(
-            `EXIT ${connectionID} ${req['DST.ADDR']} exit not permitted`
-          ));
+        .then(() => Promise.reject(
+          `EXIT ${connectionID} ${req['DST.ADDR']} exit not permitted`
+        ));
       }
 
       // If the address is a domain name, do a DNS lookup
@@ -184,9 +184,9 @@ export default class RtcToNet {
             sender,
             key,
             ERROR_CODE.EXIT_PRIVATE_ADDRESS)
-            .then(() => Promise.reject(
-              `refuse to proxy private address ${req['DST.ADDR']} -> ${ip}`
-            ));
+          .then(() => Promise.reject(
+            `refuse to proxy private address ${req['DST.ADDR']} -> ${ip}`
+          ));
         }
 
         logger.debug(`EXIT ${connectionID} ${message.messageNumber} connect to ${JSON.stringify(req)}`);

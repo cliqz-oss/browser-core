@@ -20,6 +20,7 @@ var v8 = new MergeTrees([
   new Funnel(modules.static, { destDir: 'modules' }),
   new Funnel(modules.modules, { destDir: 'modules' }),
   new Funnel(modules.bundles, { destDir: 'modules' }),
+  new Funnel(modules.bower, { destDir: 'modules/bower_components'}),
   new Funnel(config,  { destDir: 'config'}),
   new Funnel('specific/react-native'),
   new Funnel(components),

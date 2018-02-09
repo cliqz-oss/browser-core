@@ -4,7 +4,6 @@ import Client from './client';
 import Manager from './manager';
 import { ModuleStorage, SharedStorage } from './storage';
 import { utils } from '../core/cliqz';
-import getDemographics from '../core/demographics';
 
 // half an hour
 const UPDATE_INTERVAL = 30 * 60 * 1000;
@@ -77,7 +76,7 @@ export default background({
       return this.manager.runningTests;
     },
     getDemographics() {
-      return getDemographics();
+      return this.manager.anolysis.action('getCurrentDemographics');
     },
     getCoreVersion() {
       return getCoreVersion();

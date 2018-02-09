@@ -109,13 +109,13 @@ modules/core/language.es
 modules/core/lint.es
 modules/core/mixins/evented.es
 modules/core/onboarding.es
-modules/core/pattern-matching.es
 modules/core/platform.es
 modules/core/prefs.es
 modules/core/resource-loader.es
 modules/core/search-engines.es
 modules/core/startup.es
 modules/core/storage.es
+modules/core/tabs.es
 modules/core/templates.es
 modules/core/tests/unit/anacron-test.es
 modules/core/tests/unit/fixed-size-cache-test.es
@@ -188,6 +188,14 @@ modules/hpn/main.es
 modules/hpn/proxy-filter.es
 modules/hpn/utils.es
 modules/hpn/window.es
+modules/hpn/worker/blind-signature.es
+modules/hpn/worker/crypto-utils.es
+modules/hpn/worker/http-worker.es
+modules/hpn/worker/index.es
+modules/hpn/worker/message-context.es
+modules/hpn/worker/pkcs-conversion.es
+modules/hpn/worker/user-pk.es
+modules/hpn/worker/utils.es
 modules/human-web/background.es
 modules/human-web/bloom-filter.es
 modules/human-web/content.es
@@ -203,6 +211,8 @@ modules/message-center/message-center.es
 modules/message-center/window.es
 modules/mobile-cards/SearchUI.jsx
 modules/mobile-cards/background.es
+modules/mobile-cards/components/Card.jsx
+modules/mobile-cards/components/CardList.jsx
 modules/mobile-cards/components/ExpandView.jsx
 modules/mobile-cards/components/Generic.jsx
 modules/mobile-cards/components/ImageQueue.jsx
@@ -212,9 +222,11 @@ modules/mobile-cards/components/SubscribeButton.jsx
 modules/mobile-cards/components/custom/NativeDrawable.es
 modules/mobile-cards/components/deep-results/Download.jsx
 modules/mobile-cards/components/deep-results/Images.jsx
+modules/mobile-cards/components/deep-results/News.jsx
 modules/mobile-cards/components/deep-results/SimpleLinks.jsx
 modules/mobile-cards/components/deep-results/Social.jsx
 modules/mobile-cards/components/deep-results/Streaming.jsx
+modules/mobile-cards/components/deep-results/Videos.jsx
 modules/mobile-cards/components/extras/Calculator.jsx
 modules/mobile-cards/components/extras/Currency.jsx
 modules/mobile-cards/components/extras/LiveTicker.jsx
@@ -232,6 +244,7 @@ modules/mobile-cards/components/partials/MainImage.jsx
 modules/mobile-cards/components/partials/MoreOn.jsx
 modules/mobile-cards/components/partials/PoweredByKicker.jsx
 modules/mobile-cards/components/partials/Rating.jsx
+modules/mobile-cards/components/partials/ShareCard.jsx
 modules/mobile-cards/components/partials/TapToCopy.jsx
 modules/mobile-cards/components/partials/Title.jsx
 modules/mobile-cards/components/partials/Url.jsx
@@ -244,6 +257,7 @@ modules/mobile-cards/debug/fixtures/index.es
 modules/mobile-cards/debug/fixtures/news.es
 modules/mobile-cards/fixtures.bundle.es
 modules/mobile-cards/helpers/logic.es
+modules/mobile-cards/helpers/templates-map.es
 modules/mobile-cards/index.es
 modules/mobile-cards/styles
 modules/mobile-cards/styles/CardStyle.es
@@ -371,7 +385,6 @@ modules/privacy-dashboard/background.es
 modules/privacy-dashboard/main.es
 modules/privacy-dashboard/signals.es
 modules/privacy-dashboard/window.es
-modules/secvm/secvm.es
 modules/static/background.es
 modules/static/main.es
 modules/static/tests/unit/locales-validation-test.es
@@ -384,6 +397,14 @@ modules/ui/background.es
 modules/ui/search-history.es
 modules/ui/tests/unit/background-test.es
 modules/ui/window.es
+modules/unblock/background.es
+modules/unblock/main.es
+modules/unblock/proxy-manager.es
+modules/unblock/proxy.es
+modules/unblock/regexp-proxy-rule.es
+modules/unblock/request-listener.es
+modules/unblock/window.es
+modules/unblock/youtube.es
 modules/video-downloader/ToolbarButtonManager.es
 modules/video-downloader/content/app.es
 modules/video-downloader/content/data.es
@@ -437,7 +458,11 @@ platforms/chromium/ui-tour.es
 platforms/chromium/url.es
 platforms/chromium/xmlhttprequest.es
 platforms/firefox/addon-check.es
+platforms/firefox/antitracking/channel-listener.es
+platforms/firefox/antitracking/header-info-visitor.es
+platforms/firefox/antitracking/http-request-context.es
 platforms/firefox/antitracking/storage.es
+platforms/firefox/antitracking/tab-listener.es
 platforms/firefox/auto-complete-component.es
 platforms/firefox/bloom-filter-utils.es
 platforms/firefox/bloom-filter.es
@@ -446,6 +471,7 @@ platforms/firefox/console.es
 platforms/firefox/database.es
 platforms/firefox/dom-parser.es
 platforms/firefox/environment.es
+platforms/firefox/fetch.es
 platforms/firefox/freshtab/history.es
 platforms/firefox/fs.es
 platforms/firefox/geolocation.es
@@ -465,6 +491,7 @@ platforms/firefox/sqlite.es
 platforms/firefox/storage.es
 platforms/firefox/ua-parser.es
 platforms/firefox/ui-tour.es
+platforms/firefox/webrequest.es
 platforms/firefox/xmlhttprequest.es
 platforms/mobile/auto-complete-component.es
 platforms/mobile/bloom-filter.es

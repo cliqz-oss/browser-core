@@ -3,15 +3,8 @@
 /* eslint prefer-arrow-callback: 'off' */
 /* eslint no-unused-expressions: 'off' */
 
-import {
-  $cliqzResults,
-  CliqzUtils,
-  expect,
-  fillIn,
-  getComputedStyle,
-  respondWith,
-  waitForPopup,
-  withHistory } from './helpers';
+import { expect, withHistory, respondWith, getComputedStyle,
+  fillIn, waitForPopup, $cliqzResults, CliqzUtils } from './helpers';
 import { colors, flightMatrix } from './flight-helpers';
 import resultsFlights from './fixtures/resultsFlights';
 
@@ -21,7 +14,7 @@ export default function () {
       const locale = CliqzUtils.locale.default || CliqzUtils.locale[window.navigator.language];
       const flightDetailsAreaSelector = 'div.flight-details';
       let results;
-      let $resultElement;
+      let resultElement;
       let $flightResult;
 
       beforeEach(function () {
@@ -31,8 +24,8 @@ export default function () {
         fillIn('flug lx3029');
         window.preventRestarts = true;
         return waitForPopup().then(function () {
-          $resultElement = $cliqzResults()[0];
-          $flightResult = $resultElement.querySelector(flightDetailsAreaSelector)
+          resultElement = $cliqzResults()[0];
+          $flightResult = resultElement.querySelector(flightDetailsAreaSelector)
             .closest('div.result');
         });
       });

@@ -1,15 +1,7 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
-import {
-  $cliqzResults,
-  expect,
-  fillIn,
-  getLocaliseString,
-  respondWith,
-  waitForPopup,
-  withHistory } from './helpers';
+/* global it, expect, respondWith, fillIn, waitForPopup, $cliqzResults, getLocaliseString */
+/* eslint func-names: ["error", "never"] */
+/* eslint prefer-arrow-callback: "off" */
+/* eslint no-unused-expressions: "off" */
 
 export default function () {
   function getResultString() {
@@ -20,7 +12,6 @@ export default function () {
     context(query, function () {
       beforeEach(function () {
         respondWith({ results: [] });
-        withHistory([]);
         fillIn(query);
         return waitForPopup();
       });

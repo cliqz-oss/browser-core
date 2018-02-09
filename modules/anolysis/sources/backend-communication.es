@@ -1,6 +1,5 @@
 import md5 from '../core/helpers/md5';
 import { utils } from '../core/cliqz';
-import network from '../platform/network';
 
 import logger from './logger';
 
@@ -152,10 +151,7 @@ function updateGID(demographics) {
  */
 function sendSignal(signal) {
   logger.log('sendSignal', signal);
-  if (network.type === 'wifi') {
-    return post(TELEMETRY_BACKEND_URL, signal);
-  }
-  return Promise.reject('Device is not connected to WiFi');
+  return post(TELEMETRY_BACKEND_URL, signal);
 }
 
 

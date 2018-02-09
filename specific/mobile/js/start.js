@@ -1,6 +1,6 @@
 System.config({
   map: {
-    'mathjs': "node_modules/mathjs/dist/math.min.js",
+    'mathjs': "bower_components/mathjs/dist/math.min.js",
     'viewpager': "js/libs/viewpager.js"
   }
 })

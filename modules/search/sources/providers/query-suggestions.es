@@ -32,7 +32,6 @@ export default class QuerySuggestionProvider extends BaseProvider {
           query: q,
           data: {
             suggestion,
-            kind: ['Z'],
           },
           type: 'supplementary-search',
         })),

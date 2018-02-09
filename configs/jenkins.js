@@ -4,7 +4,7 @@
 
 const base = require('./common/system');
 const browserBase = require('./common/browser');
-const subprojects = require('./common/subprojects/bundles');
+const reactLibs = require('./common/subprojects/react');
 
 module.exports = Object.assign({}, browserBase, {
   "default_prefs" : {
@@ -25,7 +25,6 @@ module.exports = Object.assign({}, browserBase, {
     "autocomplete",
     "geolocation",
     "ui",
-    "last-query",
     "human-web",
     "anti-phishing",
     "context-menu",
@@ -42,6 +41,7 @@ module.exports = Object.assign({}, browserBase, {
     "offboarding",
     "anolysis",
     "abtests",
+    "unblock",
     "theme",
     "context-search",
     "hm",
@@ -66,36 +66,36 @@ module.exports = Object.assign({}, browserBase, {
     "perf",
     "search",
     "offers-debug",
-    "hpnv2",
-    "secvm"
+    "hpnv2"
   ],
-  "subprojects": subprojects([
-    // Tests
-    'chai',
-    'chai-dom',
-    'mocha',
-    'core-js',
-
-    '@cliqz-oss/dexie',
-    '@cliqz-oss/pouchdb',
-    '@cliqz/adblocker',
-    'cliqz-history',
-    'handlebars',
-    'jquery',
-    'mathjs',
-    'moment',
-    'moment-range',
-    'pako',
-    'qrcodejs',
-    'react',
-    'rxjs',
-    'reactDom',
-    'simple-statistics',
-    'ua-parser-js',
-    'tooltipster-sideTip-theme',
-    'tooltipster-js',
-    'tooltipster-css',
-  ]),
+  "subprojects": [
+    {
+      "src": "node_modules/cliqz-history/dist",
+      "dest": "cliqz-history"
+    },
+    {
+      "src": "node_modules/dexie/dist",
+      "include": ["dexie.min.js"],
+      "dest": "vendor"
+    },
+    {
+      "src":"bower_components/jquery/dist",
+      "include": ["jquery.min.js"],
+      "dest": "vendor"
+    },
+    {
+      "src": "bower_components/handlebars",
+      "include": ["handlebars.min.js"],
+      "dest": "vendor"
+    },
+    {
+      "src": "bower_components/mathjs/dist",
+      "include": ["math.min.js"],
+      "dest": "vendor"
+    },
+    reactLibs.react,
+    reactLibs.reactDom
+  ],
   systemDefault: base.systemConfig,
   builderDefault: base.builderConfig,
   bundleConfigs: Object.assign({}, base.appBundleConfig),

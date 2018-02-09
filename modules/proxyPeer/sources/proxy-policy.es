@@ -4,6 +4,7 @@ import { asyncResolve, isPrivateIPAddress } from './dns-utils';
 import { BloomFilter } from '../platform/bloom-filter';
 
 export class WhitelistPolicy {
+
   isInWhitelist() {
     throw new Error('not implemented');
   }
@@ -14,6 +15,7 @@ export class WhitelistPolicy {
 }
 
 export class TrackerWhitelistPolicy extends WhitelistPolicy {
+
   constructor(qsWhitelist) {
     super();
     this.qsWhitelist = qsWhitelist;
@@ -22,6 +24,7 @@ export class TrackerWhitelistPolicy extends WhitelistPolicy {
   isInWhitelist(generalDomain) {
     return this.qsWhitelist.isTrackerDomain(md5(generalDomain).substring(0, 16));
   }
+
 }
 
 /**
@@ -50,12 +53,14 @@ export class BloomFilterWhitelistPolicy extends WhitelistPolicy {
  * Policy to blacklist any private IP addresses from the proxy
  */
 export class PrivateIPBlacklistPolicy {
+
   shouldNotProxyAddress(addr) {
     return isPrivateIPAddress(addr);
   }
 }
 
 export class CompositePolicy {
+
   constructor() {
     this.whitelists = [];
     this.blacklists = [];
@@ -73,6 +78,7 @@ export class CompositePolicy {
     return !this.blacklists.some(bl => bl.shouldNotProxyAddress(addr)) &&
             this.whitelists.some(wl => wl.shouldProxyAddress(addr));
   }
+
 }
 
 /**
@@ -80,6 +86,7 @@ export class CompositePolicy {
  * IP addresses. Future proxying decisions are made based on this status.
  */
 export class PublicDomainOnlyPolicy {
+
   constructor() {
     this.overrideWhitelist = null;
     this.requiredWhitelist = null;
@@ -123,4 +130,5 @@ export class PublicDomainOnlyPolicy {
     }
     return false;
   }
+
 }

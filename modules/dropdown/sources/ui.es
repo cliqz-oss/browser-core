@@ -10,23 +10,24 @@ import { isUrl, equals } from '../core/url';
 import { enterSignal, removeFromHistorySignal } from './telemetry';
 import AdultAssistant from './adult-content-assistant';
 import LocationAssistant from './location-sharing-assistant';
-import { getTabsWithUrl, closeTab, getCurrentTabId } from '../core/tabs';
+import { getTabsWithUrl, closeTab } from '../core/tabs';
 import { copyToClipboard } from '../core/clipboard';
 import { nextTick } from '../core/decorators';
 
 export default class Ui {
-  deps = {
-    'last-query': inject.module('last-query'),
-  };
 
-  constructor(window, id, { getSessionCount }) {
+  constructor(window, id, { getSessionCount, searchMode }) {
     this.window = window;
     this.extensionID = id;
     this.getSessionCount = getSessionCount;
+    this.updateFirstResult = this.updateFirstResult.bind(this);
+    this.searchMode = searchMode;
+
     this.ui = inject.module('ui');
     this.core = inject.module('core');
     this.geolocation = inject.module('geolocation');
     this.autocomplete = inject.module('autocomplete');
+
     this.adultAssistant = new AdultAssistant();
     this.locationAssistant = new LocationAssistant({
       updateGeoLocation: this.geolocation.action.bind(this.geolocation, 'updateGeoLocation'),
@@ -35,9 +36,17 @@ export default class Ui {
   }
 
   init() {
+    if (this.searchMode !== 'autocomplete') {
+      return;
+    }
+    this.window.gURLBar.addEventListener('keyup', this.updateFirstResult);
   }
 
   unload() {
+    if (this.searchMode !== 'autocomplete') {
+      return;
+    }
+    this.window.gURLBar.removeEventListener('keyup', this.updateFirstResult);
   }
 
   selectAutocomplete() {
@@ -209,7 +218,6 @@ export default class Ui {
     const query = this.popup.query;
 
     if (
-      query &&
       (oldResults.query !== query) &&
       (
         (oldResults.firstResult instanceof NavigateToResult) ||
@@ -219,7 +227,6 @@ export default class Ui {
       oldResults.firstResult.rawResult.text = query;
 
       this.dropdown.renderResults(oldResults);
-
       this.popup.open();
     }
   }
@@ -241,11 +248,7 @@ export default class Ui {
       rerender: () => this.dropdown.renderResults(results),
       getSnippet: this.autocomplete.action.bind(this.autocomplete, 'getSnippet'),
       copyToClipboard,
-      isNewSearchMode: this.popup.isNewSearchMode,
-      updateTabQuery: (q) => {
-        const tabId = getCurrentTabId(this.window);
-        this.deps['last-query'].windowAction(this.window, 'updateTabQuery', tabId, q);
-      },
+      isNewSearchMode: this.popup.isNewSearchMode
     });
     const queryIsUrl = isUrl(results.query);
     const queryIsNotEmpty = query.trim() !== '';
@@ -289,9 +292,6 @@ export default class Ui {
       }
     }
     this.dropdown.renderResults(results);
-
-    if (results.results.length) {
-      this.popup.open();
-    }
+    this.popup.open();
   }
 }

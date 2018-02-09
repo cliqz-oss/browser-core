@@ -217,11 +217,6 @@ export default describeModule('human-web/doublefetch-handler',
       equals: (url1, url__) => url1 === url__
     },
     'core/kord/inject': {
-      ifModuleEnabled(promise) {
-        return promise.catch((ex) => {
-          // Ignore
-        });
-      },
       default: {
         module: (name) => {
           if (name === 'webrequest-pipeline') {

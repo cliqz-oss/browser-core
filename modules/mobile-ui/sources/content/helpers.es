@@ -1,4 +1,4 @@
-import Handlebars from 'handlebars';
+/* global Handlebars */
 import utils from '../../core/utils';
 import { mobilePlatformName } from '../../platform/platform';
 

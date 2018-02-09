@@ -61,7 +61,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
                     // clear active tabs
                     getAttrack().tp_events._active = {};
                     // get tab id from tp_events (assumption that this is correct)
-                    waitUntilServerUp('http://cliqztest.com:60508/', 5, function() {
+                    wait_until_server_up('http://cliqztest.com:60508/', 5, function() {
                       browser.newTab("http://cliqztest.com:60508/").then((tabId) => {
                         tabs.push(tabId);
                         tab_id = tabId;
@@ -141,7 +141,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
                     });
 
 
-                    waitUntilServerUp('http://localhost:60508/', 5, function() {
+                    wait_until_server_up('http://localhost:60508/', 5, function() {
                       return browser
                         .newTab("http://localhost:60508/")
                         .then((tabId) => { tabs.push(tabId); })
@@ -268,7 +268,7 @@ TESTS.AttrackTest = function (CliqzUtils) {
                       response.write("<html><body></body></html>");
                       hit_target = true;
                     });
-                    waitUntilServerUp("http://localhost:"+ server_port +"/js", 5, () => {
+                    wait_until_server_up("http://localhost:"+ server_port +"/js", 5, () => {
                       return getAttrack().tp_events.commit(true)
                         .then(() => browser.newTab("http://localhost:"+ server_port +"/"+ kind))
                         .then((tabId) => { tabs.push(tabId); })
@@ -522,10 +522,6 @@ TESTS.AttrackTest = function (CliqzUtils) {
             '1440x900'
         ]
 
-        before(function() {
-          return hp.init();
-        });
-
         not_hash.forEach(function(str) {
           it("'" + str + "' is not a hash", function() {
             chai.expect(hp.isHash(str)).to.be.false;
@@ -558,6 +554,58 @@ TESTS.AttrackTest = function (CliqzUtils) {
                 });
             });
         }
+    });
+
+    describe('CliqzAttrack list update', function() {
+
+      var mock_bloom_filter_major = '{"bkt": [1, 2, 3, 4, 5], "k": 5}',
+        mock_bloom_filter_minor = '{"bkt": [1, 0, 0, 0, 0], "k": 5}',
+        mock_bloom_filter_config = '{"major": "0", "minor": "1"}',
+        mock_bloom_filter_config_url = null,
+        mock_bloom_filter_base_url = null;
+
+      beforeEach(function() {
+        // serve fake whitelists
+        testServer.registerPathHandler('/bloom_filter/0/0.gz', function(request, response) {
+          response.write(mock_bloom_filter_major);
+        });
+        testServer.registerPathHandler('/bloom_filter/0/1.gz', function(request, response) {
+          response.write(mock_bloom_filter_minor);
+        });
+        testServer.registerPathHandler('/bloom_filter/config', function(request, response) {
+          response.write(mock_bloom_filter_config);
+        });
+        mock_bloom_filter_config_url = 'http://localhost:' + testServer.port + '/bloom_filter/config',
+        mock_bloom_filter_base_url = 'http://localhost:' + testServer.port + '/bloom_filter/';
+      });
+
+      describe('loadBloomFilter', function() {
+        var bloomFilter;
+
+        beforeEach(function() {
+          bloomFilter = new AttrackBloomFilter(mock_bloom_filter_config_url, mock_bloom_filter_base_url);
+        });
+
+        it ('bloom filter init', function() {
+          bloomFilter.update();
+          return waitFor(function() {
+            return bloomFilter.bloomFilter != null && bloomFilter.version != null;
+          }).then(function() {
+            chai.expect(bloomFilter.version.major).to.equal('0');
+            chai.expect(bloomFilter.bloomFilter.k).to.equal(5);
+          });
+        });
+
+        it ('bloom filter update', function() {
+          bloomFilter.update();
+          return waitFor(function() {
+            return bloomFilter.bloomFilter != null && bloomFilter.version != null;
+          }).then(function() {
+            chai.expect(bloomFilter.version.major).to.equal('0');
+            chai.expect(bloomFilter.bloomFilter.k).to.equal(5);
+          });
+        });
+      });
     });
 
     describe('isSourceWhitelisted', function() {

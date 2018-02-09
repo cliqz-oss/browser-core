@@ -16,7 +16,6 @@ export default class Win {
 
   unload() {
     AutocompleteWindow.unload(this.window)
-    delete this.window.CliqzAutocomplete;
   }
 
   status() {

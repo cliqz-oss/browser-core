@@ -1,9 +1,8 @@
 import config from './config';
 import console from './console';
 import utils from './utils';
-import { fetch } from './http';
 import Storage from '../platform/resource-loader-storage';
-import { fromUTF8 } from '../core/encoding';
+import TextDecoder from '../platform/text-decoder';
 import { inflate, deflate } from './zlib';
 import { isChromium } from '../core/platform';
 
@@ -14,7 +13,11 @@ const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
 
 function get(url) {
-  return fetch(url).then(response => response.text());
+  return new Promise((resolve, reject) => {
+    utils.httpGet(url, (res) => {
+      resolve(res.response);
+    }, reject, 300 * ONE_SECOND);
+  });
 }
 
 /* Abstract away the pattern `onUpdate` trigger list of
@@ -68,7 +71,7 @@ export class Resource {
         try {
           // data might be a plain string in web extension case
           // for react native the TextDecoder.decode returns an empty string
-          return fromUTF8(data) || data;
+          return (new TextDecoder()).decode(data) || data;
         } catch (e) {
           return data;
         }
@@ -185,12 +188,12 @@ export default class ResourceLoader extends UpdateCallbackHandler {
    * triggered by `setInterval` and thus you cannot catch. If the update
    * fails, then the callback won't be called.
    */
-  updateFromRemote({ force = false } = {}) {
+  updateFromRemote() {
     const pref = `resource-loader.lastUpdates.${this.resource.name.join('/')}`;
     const lastUpdate = Number(utils.getPref(pref, 0));
     const currentTime = Date.now();
 
-    if (force || currentTime > this.cron + lastUpdate) {
+    if (currentTime > this.cron + lastUpdate) {
       return this.resource.updateFromRemote()
         .then((data) => {
           utils.setPref(pref, String(Date.now()));

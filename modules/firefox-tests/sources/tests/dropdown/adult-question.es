@@ -1,36 +1,28 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
+/* global it, expect, respondWith, fillIn, waitForPopup,
+$cliqzResults, getLocaliseString, CliqzUtils */
+/* eslint func-names: ["error", "never"] */
+/* eslint prefer-arrow-callback: "off" */
+/* eslint no-unused-expressions: "off" */
 
-import {
-  $cliqzResults,
-  CliqzUtils,
-  expect,
-  fillIn,
-  getLocaliseString,
-  respondWith,
-  waitForPopup,
-  withHistory } from './helpers';
 import results from './fixtures/resultsAdultQuestion';
 
 export default function () {
   context('adult question', function () {
-    let $resultElement;
+    let resultElement;
 
     before(function () {
       CliqzUtils.setPref('adultContentFilter', 'moderate');
       respondWith({ results });
-      withHistory([]);
       fillIn('xvideos');
       return waitForPopup().then(function () {
-        $resultElement = $cliqzResults()[0];
+        resultElement = $cliqzResults()[0];
       });
     });
 
     it('renders question', function () {
       const questionSelector = '.result.adult-question';
-      expect($resultElement).to.contain(questionSelector);
-      const question = $resultElement.querySelector('.result.adult-question > .padded');
+      expect(resultElement).to.contain(questionSelector);
+      const question = resultElement.querySelector('.result.adult-question > .padded');
       const questionText = getLocaliseString({
         de: 'Websites mit nicht-jugendfreien Inhalten wurden automatisch geblockt. Weiterhin blockieren?',
         default: 'Websites with explicit content have been blocked automatically. Continue blocking?'
@@ -39,7 +31,7 @@ export default function () {
     });
 
     it('renders buttons', function () {
-      const buttonsArea = $resultElement.querySelector('.buttons');
+      const buttonsArea = resultElement.querySelector('.buttons');
       expect(buttonsArea).to.exist;
       const showOnceText = getLocaliseString({
         de: 'Diesmal anzeigen',

@@ -7,7 +7,7 @@ import * as persist from '../core/persistent-state';
 import UrlWhitelist from '../core/url-whitelist';
 import console from '../core/console';
 import domainInfo, { getDomainOwner, getBugOwner } from '../core/domain-info';
-import inject, { ifModuleEnabled } from '../core/kord/inject';
+import inject, { ModuleDisabledError } from '../core/kord/inject';
 import pacemaker from '../core/pacemaker';
 import { getGeneralDomain } from '../core/tlds';
 import { utils, events } from '../core/cliqz';
@@ -182,7 +182,6 @@ export default class CliqzAttrack {
   /** Global module initialisation.
   */
   init(config) {
-    const initPromises = [];
     this.config = config;
     // disable for older browsers
     if (browser.getBrowserMajorVersion() < this.MIN_BROWSER_VERSION) {
@@ -194,7 +193,6 @@ export default class CliqzAttrack {
 
     if (!this.hashProb) {
       this.hashProb = new HashProb();
-      initPromises.push(this.hashProb.init());
     }
 
     // load all caches:
@@ -206,6 +204,7 @@ export default class CliqzAttrack {
     this.qs_whitelist = this.isBloomFilterEnabled() ? new AttrackBloomFilter(this.config) :
       new QSWhitelist(this.config);
 
+    const initPromises = [];
     initPromises.push(this.qs_whitelist.init());
     initPromises.push(this.urlWhitelist.init());
 
@@ -479,11 +478,11 @@ export default class CliqzAttrack {
           spec: 'break',
           fn: (state) => {
             state.cookieData = state.getCookieData();
-            const hasCookie = state.cookieData && state.cookieData.length > 5;
-            if (hasCookie) {
+            if (state.cookieData && state.cookieData.length > 5) {
               state.incrementStat('cookie_set');
+              return true;
             }
-            return hasCookie === true;
+            return false;
           },
         },
         {
@@ -686,9 +685,16 @@ export default class CliqzAttrack {
     // But if we reload only the antitracking module, we need to be sure we
     // removed the steps before we try to add them again.
     return Promise.all(Object.keys(this.pipelines).map(stage =>
-      ifModuleEnabled(this.webRequestPipeline.action('removePipelineStep',
+      this.webRequestPipeline.action('removePipelineStep',
         stage,
-        `antitracking.${stage}`))
+        `antitracking.${stage}`)
+        .catch((err) => {
+          if (err.name === ModuleDisabledError.name) {
+            console.log('antitracking', 'cannot unload: webrequest-pipeline was already unloaded');
+            return Promise.resolve();
+          }
+          return err;
+        })
     )).then(() => {
       this.pipelines = {};
     });
@@ -707,14 +713,13 @@ export default class CliqzAttrack {
     // don't need to unload if disabled
     if (browser.getBrowserMajorVersion() >= this.MIN_BROWSER_VERSION) {
       // Check is active usage, was sent
-      this.hashProb.unload();
-      this.qs_whitelist.destroy();
 
       // force send tab telemetry data
       // NOTE - this is an async operation
       this.tp_events.commit(true, true);
       this.tp_events.push(true);
 
+      this.qs_whitelist.destroy();
 
       pacemaker.stop();
 
@@ -871,7 +876,7 @@ export default class CliqzAttrack {
 
     const tabData = this.tp_events._active[tabId];
     const plainData = tabData.asPlainObject();
-    const trackers = Object.keys(plainData.tps).filter(domain => Promise.resolve(
+    const trackers = Object.keys(tabData.tps).filter(domain => Promise.resolve(
       this.qs_whitelist.isTrackerDomain(md5(getGeneralDomain(domain)).substring(0, 16)) ||
       plainData.tps[domain].blocked_blocklist > 0
     ));

@@ -268,4 +268,5 @@ export default class HistoryEntry {
   _checkDayData(data) {
     return data && (data.m !== undefined) && (data.c !== undefined);
   }
+
 }

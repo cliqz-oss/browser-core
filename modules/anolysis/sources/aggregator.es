@@ -1,20 +1,23 @@
-import Stats from '../platform/lib/simple-statistics';
-import logger from './logger';
+import Stats from './simple-statistics';
 
 
 export default class Aggregator {
   constructor(keyBlackList = ['id', 'ts', 'session', 'seq', '_id', '_rev']) {
-    this.keyBlacklist = new Set(keyBlackList);
+    this.keyBlacklist = keyBlackList;
   }
 
   aggregate(data) {
     const aggregation = {
-      empty: data.size === 0 || ![...data.values()].some(v => v.length !== 0),
+      // TODO: keep DRY (same logic as in retention)
+      empty: Object.keys(data).length === 0 ||
+           !Object.keys(data).some(key => data[key].length),
       types: { },
     };
 
-    data.forEach((records, type) => {
-      const keys = this.getAllKeys(records, this.keyBlacklist);
+    Object.keys(data).forEach((type) => {
+      // TODO: combine getting keys and series (for efficiency)
+      const records = data[type].map(record => record.behavior || {});
+      const keys = this.getAllKeys(records, { blacklist: this.keyBlacklist });
 
       aggregation.types[type] = { count: records.length, keys: { } };
       keys.forEach((key) => {
@@ -34,17 +37,13 @@ export default class Aggregator {
   // Private API - Kept in the class for unit tests
   // ----------------------------------------------------------------------- //
 
-  getAllKeys(objects, blacklist) {
+  getAllKeys(objects, { blacklist = [] } = { }) {
     const keys = new Set();
-    for (let i = 0; i < objects.length; i += 1) {
-      Object.keys(objects[i]).forEach((key) => {
-        if (!blacklist.has(key)) {
-          keys.add(key);
-        }
-      });
-    }
+    objects.forEach(o => Object.keys(o).forEach(key => keys.add(key)));
+    blacklist.forEach(key => keys.delete(key));
     return keys;
   }
+
 
   getValuesForKey(objects, key) {
     return objects
@@ -52,24 +51,28 @@ export default class Aggregator {
       .map(o => o[key]);
   }
 
+
   isIntervalSeries(series) {
     return series.every(e => e === null || typeof e === 'number');
   }
+
 
   countOccurences(array) {
     /* eslint no-param-reassign: off */
     return array.reduce((counts, value) => {
       counts[value] = (counts[value] || 0) + 1;
       return counts;
-    }, {});
+    }, Object.create(null));
   }
 
+
   describeCategoricalSeries(series) {
-    return {
+    return Object.assign(Object.create(null), {
       count: series.length,
       categories: this.countOccurences(series),
-    };
+    });
   }
+
 
   // TODO: add histogram
   describeIntervalSeries(series) {
@@ -84,28 +87,18 @@ export default class Aggregator {
       }
     });
 
-    const safeAggregation = (fn) => {
-      try {
-        // simple-statistics can throw exceptions if the input is not valid.
-        return fn(numbers);
-      } catch (ex) {
-        logger.debug('Exception while trying to aggregate', fn, numbers, ex);
-        return null;
-      }
-    };
-
-    return {
+    return Object.assign(Object.create(null), {
       numbers: {
         count: numbers.length,
-        mean: safeAggregation(ns => Stats.mean(ns)),
-        median: safeAggregation(ns => Stats.median(ns)),
-        stdev: safeAggregation(ns => Stats.standardDeviation(ns)),
-        min: safeAggregation(ns => Stats.min(ns)),
-        max: safeAggregation(ns => Stats.max(ns)),
+        mean: Stats.mean(numbers),
+        median: Stats.median(numbers),
+        stdev: Stats.standardDeviation(numbers),
+        min: Stats.min(numbers),
+        max: Stats.max(numbers),
       },
       nulls: {
         count: nullCount,
       },
-    };
+    });
   }
 }

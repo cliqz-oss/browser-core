@@ -1,8 +1,9 @@
 import BaseResult from './base';
 import utils from '../../core/utils';
-import { isUrl, fixURL } from '../../core/url';
+import { isUrl } from '../../core/url';
 
 export default class NavigateToResult extends BaseResult {
+
   get template() {
     return 'navigate-to';
   }
@@ -38,7 +39,7 @@ export default class NavigateToResult extends BaseResult {
 
   get url() {
     const query = this.rawResult.text;
-    return `moz-action:visiturl,${JSON.stringify({ url: fixURL(query) })}`;
+    return `moz-action:visiturl,${JSON.stringify({ url: query })}`;
   }
 
   get rawUrl() {

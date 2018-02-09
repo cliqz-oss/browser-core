@@ -6,6 +6,7 @@ var broccoliSource = require('broccoli-source');
 var writeFile = require('broccoli-file-creator');
 
 var WatchedDir = broccoliSource.WatchedDir;
+var UnwatchedDir = broccoliSource.UnwatchedDir;
 
 var util = require('./util');
 var cliqzConfig = require('./config');
@@ -14,7 +15,7 @@ var modules = require('./modules-tree');
 var specific = new WatchedDir('specific/node');
 
 // cliqz.json should be saved after not transpiled modules are removed from configration
-var config = writeFile('cliqz.json', JSON.stringify(cliqzConfig));
+var config          = writeFile('cliqz.json', JSON.stringify(cliqzConfig));
 console.log('Source maps:', cliqzConfig.sourceMaps);
 console.log(cliqzConfig);
 // cliqz.json is finalized
@@ -28,6 +29,7 @@ var assets = new MergeTrees([
 var srcTree = new MergeTrees([
   specific,
   config,
+  new Funnel(modules.bower,   { destDir: 'bower_components' }),
   modules.modules,
   modules.static,
   modules.bundles,

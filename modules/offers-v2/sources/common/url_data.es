@@ -58,4 +58,5 @@ export default class UrlData {
     }
     return this.patternsRequest;
   }
+
 }

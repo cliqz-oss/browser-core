@@ -1,4 +1,4 @@
-<a class="result" href="{{ url }}">
+<a class="result" data-url="{{ url }}" href="#">
     {{> partials/logo}}
     {{> partials/abstract}}
 </a>
@@ -6,7 +6,7 @@
 {{> partials/buttons}}
 
 {{#if subResult}}
-    <a class="result soccer-title" href="{{subResult.url}}">
+    <a class="result soccer-title" data-url="{{subResult.url}}" href="#">
         <span class="padded">{{subResult.title}}</span>
         <span class="soccer-domain divider">&#8212;</span>
         <span class="soccer-domain">{{ local 'soccer-api-provider' }}</span>
@@ -20,12 +20,12 @@
 
         <div>
             {{#if expandButton.show}}
-                <a class="result expand-btn" href="{{expandButton.url}}">
+                <a class="result expand-btn" data-url="{{expandButton.url}}" href="#">
                     {{local expandButton.title}}
                 </a>
             {{/if}}
 
-            <a class="result powered-by" href="{{poweredByResult.url}}">
+            <a class="result powered-by" data-url="{{poweredByResult.url}}" href="#">
                 {{local poweredByResult.title}}
             </a>
         </div>

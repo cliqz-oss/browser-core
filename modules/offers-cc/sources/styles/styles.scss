@@ -1,207 +1,264 @@
+@import "__vars";
+@import "__reset";
+@import "_voucher";
+
 body, html {
-    margin: 0;
-    padding: 0;
     overflow-y: hidden;
     overflow-x: auto;
     height: 100%;
 }
 
+body {
+    font-family: Helvetica, Arial, sans-serif;
+    background: #eee;
+}
+
 #cliqz-offers-cc {
-    @import "__vars";
-    @import "_logo";
-
-    font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    font-weight: normal;
-    overflow: auto;
+    overflow: hidden;
     position: relative;
+    width: 550px;
+}
 
-    * {
-        box-sizing: border-box;
-    }
+header {
+    overflow: hidden;
+    width: 100%;
+    height: 35px;
+    background: $call-to-action;
 
-    p {
+    .main-nav {
         margin: 0;
         padding: 0;
+        list-style: none;
+
+        li {
+            float: left;
+            height: 100%;
+            color: #fff;
+            font-size: 14px;
+            line-height: 40px;
+            font-width: 100;
+            padding: 0 10px;
+
+            &:hover,
+            &.active {
+                color: #fff;
+                //background: $secondary-color-hover;
+            }
+            //&.active {
+            //    background: $secondary-color;
+            //}
+        }
     }
 
-    em {
-        font-style: normal;
-        font-weight: 600;
+    .cqz-close-hub {
+        display: block;
+        cursor: pointer;
+        float: right;
+        width: 35px;
+        height: 100%;
+        line-height: 35px;
+        text-align: center;
+        font-size: 20px;
+        color: #fff;
+
+        &:after {
+            content: "×";
+        }
+
+        &:hover {
+            background: $call-to-action-hover;
+        }
+    }
+}
+
+footer {
+    overflow: hidden;
+    height: 30px;
+    line-height: 30px;
+    font-size: 12px;
+    padding: 0 10px;
+    border-top: 1px solid #ccc;
+    background: #eee;
+
+    ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+
+        li {
+            float: left;
+
+            &.powered-by {
+                float: right;
+
+                a {
+                    color: #999;
+                }
+
+                i {
+                    position: relative;
+                    top: 3px;
+                    margin-right: 3px;
+
+                    svg {
+                        width: 16px;
+                        height: 16px;
+                        fill: #999;
+                    }
+                }
+            }
+
+            a {
+                color: $call-to-action-hover;
+                text-decoration: none;
+                vertical-align: middle;
+
+                &[data-open-url] {
+                    cursor: pointer;
+                }
+
+                &[href]:hover {
+                    text-decoration: underline;
+                }
+            }
+        }
+    }
+}
+
+.cqz-vouchers {
+    position: relative;
+    overflow: auto;
+    padding: 10px 15px 0 10px;
+    max-height: 300px;
+
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        li {
+            margin-bottom: 10px;
+        }
     }
 
-    a {
-        color: $color-cliqz;
+    &.no-vouchers {
+        background: #fff;
+
+        .cqz-no-vouchers-msg {
+            display: block;
+        }
+    }
+
+    &.with-new-vouchers {
+        &.with-old-vouchers a.cqz-show-all-offers { display: block; }
+        ul#cqz-recent-vouchers-holder { display: none; }
+
+        &.show-all {
+            &.with-old-vouchers a.cqz-show-all-offers { display: none; }
+            ul#cqz-recent-vouchers-holder { display: block; }
+        }
+    }
+
+    a.cqz-show-all-offers {
+        display: none;
+        padding: 6px 10px 4px;
+        margin: 5px 0;
+        color: #222;
+        text-align: center;
+        font-size: 11px;
+        cursor: pointer;
+        border: 1px solid #dadada;
+        background: #ddd;
+        transition: all 0.3s;
+
+        &:hover {
+            color: #333;
+            background: #fff;
+        }
+    }
+
+
+    .cqz-no-vouchers-msg {
+        display: none;
+        padding: 10px 10px 10px 10px;
+        margin-bottom: 10px;
+        text-align: center;
+        font-size: 14px;
+        color: #333;
+        background: #fff;
+
+        p { margin: 0; }
+    }
+
+    h1 {
+        margin: 10px 0;
+        font-size: 24px;
+        font-weight: normal;
+    }
+}
+
+#cliqz-offers-cc.feedback {
+    .cqz-vouchers {
+        position: relative;
+        height: 300px;
+        overflow: hidden;
+    }
+
+    .cqz-remove-feedback {
+        display: block;
+    }
+}
+
+.cqz-remove-feedback {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 20px 0;
+    background: #fff;
+
+    .holder {
+        width: 70%;
+        margin: 0 auto;
     }
 
     ul {
-        padding: 0;
-        margin: 0;
-        list-style: none;
+        margin-bottom: 20px;
+
+        li {
+            margin-bottom: 15px;
+        }
     }
 
-    button {
-        background-color: transparent;
+    a.button {
         cursor: pointer;
-        outline: none;
-        border-color: transparent;
-    }
+        display: inline-block;
+        padding: 10px 20px 9px;
+        margin: 0 5px 0 0;
+        color: #fff;
+        font-size: 13px;
+        line-height: 1.2em;
+        text-decoration: none;
+        border-radius: 7px;
+        text-align: center;
+        background: $call-to-action;
+        border: 1px solid $call-to-action;
 
-    .ellipsis {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-
-        & > * {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        &:hover {
+            background: $call-to-action-hover;
+            border-color: $call-to-action-hover;
         }
-    }
 
-    .clearfix {
-        &:after {
-            clear: both;
-            content: " ";
-            display: block;
-            font-size: 0;
-            height: 0;
-            visibility: hidden;
-        }
-    }
+        &.cancel-feedback {
+            color: #333;
+            background: transparent;
 
-    #cqz-offer-cc-content {
-        width: 264px;
-        background-color: $color-bg-light-grey;
-
-        @import "_tooltip";
-
-        %flex-container {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-
-            & > * {
-                flex: 1;
+            &:hover {
+                color: #fff;
+                background: $call-to-action-hover;
             }
         }
-
-        header {
-
-            padding: 5px 7px 3px;
-
-            & > p {
-                @extend %flex-container;
-
-                & > span {
-
-                    &:first-child {
-                        color: $color-text-black;
-                        font-size: 15px;
-                    }
-
-                    &:nth-child(2) {
-                        text-align: center;
-                        font-size: 8px;
-                        text-transform: uppercase;
-                        color: $color-text-grey;
-                        letter-spacing: 1px;
-                        align-self: flex-end;
-                    }
-
-                    &:last-child {
-                        text-align: right;
-
-                        & > a {
-                            text-decoration: none;
-                            color: $color-link-grey-blue;
-                            font-size: 11px;
-                            vertical-align: 1px;
-                            cursor: pointer;
-
-                            &:hover {
-                                color: $color-cliqz;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        footer {
-
-            padding: 3px 7px 5px;
-
-            & > p {
-                @extend %flex-container;
-
-                & > span {
-
-                    &:nth-child(2) {
-                        text-align: center;
-
-                        #expand-button {
-                            width: 26px;
-                            height: 18px;
-                            vertical-align: middle;
-                            background: url('../images/expand-offer-list.svg') no-repeat center;
-
-                            &:hover {
-                                background-image: url('../images/expand-offer-list-hover.svg');
-                            }
-                        }
-                    }
-
-                    &:last-child {
-                        text-align: right;
-                        width: 19px;
-                        height: 19px;
-                        background: url('../images/cliqz-logo.svg') no-repeat right center;
-                        align-self: flex-end;
-                    }
-                }
-            }
-        }
-
-        #cqz-vouchers-wrapper {
-
-            #cqz-vouchers-holder {
-                padding: 2px 7px;
-                margin-bottom: 0;
-                max-height: 550px; // TODO: 500
-                overflow: auto;
-
-                @import "_voucher";
-            }
-
-            .cqz-no-vouchers-msg {
-                margin: 0 7px;
-                text-align: center;
-                background-color: #fff;
-                box-shadow: 0px 0px 2px 0px rgba(0,0,0,0.25);
-                border-radius: 4px;
-                color: $color-text-black;
-
-                & > img {
-                    margin-top: 24px;
-                    width: 24px;
-                    height: 24px;
-                }
-
-                & > h1 {
-                    margin-top: 5px;
-                    margin-bottom: 5px;
-                    color: $color-cliqz;
-                    font-weight: 500;
-                    letter-spacing: 1px;
-                }
-
-                & > p {
-                    padding: 5px 20px 20px;
-                    font-size: 14px;
-                }
-            }
-        }
-
-        @import "_feedback-offer";
     }
 }

@@ -19,7 +19,6 @@ const ActionID = {
   // Notification type when an offer is pushed to the Reward box (Hub or offers-cc)
   // it can be a small tooltip, or full pop-up of the window
   AID_OFFER_NOTIF_T: 'offer_notif_tooltip',
-  AID_OFFER_NOTIF_T_E: 'offer_notif_tooltip_extra',
   AID_OFFER_NOTIF_P: 'offer_notif_popup',
   // whenever the offer is filtered out by a filter rule info
   AID_OFFER_FILTERED: 'offer_filtered',
@@ -54,8 +53,6 @@ const ActionID = {
   AID_OFFER_CALL_TO_ACTION: 'offer_ca_action',
   // whenever the user clicks on the real estate "copy code" part.
   AID_OFFER_CODE_COPIED: 'code_copied',
-  // when the user click on a collapsed offer to expand it
-  AID_OFFER_EXPANDED: 'offer_expanded',
 
   // extras
   //

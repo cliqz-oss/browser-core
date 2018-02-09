@@ -23,10 +23,8 @@ export default class Win {
   }
 
   unload() {
-    delete this.window.CLIQZEnvironment;
     delete this.window.CliqzUtils;
     delete this.window.CliqzEvents;
-    delete this.window.CliqzABTests;
     delete this.window.CliqzHistoryManager;
   }
 

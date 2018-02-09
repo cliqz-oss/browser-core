@@ -51,7 +51,6 @@ export default class SuggestionsResult extends GenericResult {
       text: this.rawResult.text,
       displayText: s,
       onClick: () => {
-        this.actions.updateTabQuery(s);
         this.actions.query(s);
       }
     }));

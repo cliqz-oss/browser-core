@@ -1,70 +1,18 @@
-/* global describeModule, chai */
-
-let meanSeries;
-let medianSeries;
-let stdevSeries;
-let minSeries;
-let maxSeries;
-
-class DefaultMap {
-  constructor(obj) {
-    this.obj = obj;
-  }
-
-  values() {
-    const res = [];
-    Object.keys(this.obj).forEach((k) => {
-      res.push(this.obj[k]);
-    });
-    return res;
-  }
-
-  forEach(fn) {
-    Object.keys(this.obj).forEach((k) => {
-      fn(this.obj[k], k);
-    });
-  }
-}
-
 export default describeModule('anolysis/aggregator',
-  () => ({
-    'platform/lib/simple-statistics': {
-      default: {
-        mean: (series) => {
-          if (series.length === 0) throw new Error('Need at least one number');
-          meanSeries = series;
-          return 'mean';
-        },
-        median: (series) => {
-          if (series.length === 0) throw new Error('Need at least one number');
-          medianSeries = series;
-          return 'median';
-        },
-        standardDeviation: (series) => {
-          if (series.length === 0) throw new Error('Need at least one number');
-          stdevSeries = series;
-          return 'stdev';
-        },
-        min: (series) => {
-          if (series.length === 0) throw new Error('Need at least one number');
-          minSeries = series;
-          return 'min';
-        },
-        max: (series) => {
-          if (series.length === 0) throw new Error('Need at least one number');
-          maxSeries = series;
-          return 'max';
+  function () {
+    return {
+      'anolysis/simple-statistics': {
+        default: { mean: () => 'mean' },
+      },
+      'anolysis/logger': {
+        default: {
+          debug() {},
+          log() {},
+          error() {},
         },
       },
-    },
-    'anolysis/logger': {
-      default: {
-        debug() {},
-        log() {},
-        error() {},
-      },
-    },
-  }),
+    };
+  },
   function () {
     describe('#getValuesForKey', function () {
       it('empty list', function () {
@@ -99,26 +47,18 @@ export default describeModule('anolysis/aggregator',
       });
     });
     describe('#describeIntervalSeries', function () {
-      it('no number', function () {
-        const Aggregator = this.module().default;
-        const aggregator = new Aggregator();
-        const values = aggregator.describeIntervalSeries([]);
-
-        chai.expect(values).to.be.eql({
-          numbers: {
-            count: 0,
-            mean: null,
-            median: null,
-            stdev: null,
-            min: null,
-            max: null,
-          },
-          nulls: {
-            count: 0,
-          }
-        });
+      var meanSeries;
+      var medianSeries;
+      var stdevSeries;
+      var minSeries;
+      var maxSeries;
+      beforeEach(function() {
+        this.deps('anolysis/simple-statistics').default.mean = (series) => { meanSeries = series; return 'mean'; };
+        this.deps('anolysis/simple-statistics').default.median = (series) => { medianSeries = series; return 'median'; };
+        this.deps('anolysis/simple-statistics').default.standardDeviation = (series) => { stdevSeries = series; return 'stdev'; };
+        this.deps('anolysis/simple-statistics').default.min = (series) => { minSeries = series; return 'min'; };
+        this.deps('anolysis/simple-statistics').default.max = (series) => { maxSeries = series; return 'max'; };
       });
-
       it('single number', function () {
         const Aggregator = this.module().default;
         const aggregator = new Aggregator();
@@ -289,19 +229,25 @@ export default describeModule('anolysis/aggregator',
       let records;
 
       beforeEach(function initAggregator() {
+        this.deps('anolysis/simple-statistics').default.mean = () => 'mean';
+        this.deps('anolysis/simple-statistics').default.median = () => 'median';
+        this.deps('anolysis/simple-statistics').default.standardDeviation = () => 'stdev';
+        this.deps('anolysis/simple-statistics').default.min = () => 'min';
+        this.deps('anolysis/simple-statistics').default.max = () => 'max';
+
         const Aggregator = this.module().default;
         aggregator = new Aggregator();
         records = {
           type_test_1: [
-            { id: 'type_test_1', ts: 0, session: 's', seq: 0, _id: 'x', _rev: 'rev', key_1: 1, key_2: 'cat_1' },
-            { id: 'type_test_1', ts: 0, session: 's', seq: 1, _id: 'x', _rev: 'rev', key_1: 2, key_2: 'cat_2' },
+            { behavior: { id: 'type_test_1', ts: 0, session: 's', seq: 0, _id: 'x', _rev: 'rev', key_1: 1, key_2: 'cat_1' } },
+            { behavior: { id: 'type_test_1', ts: 0, session: 's', seq: 1, _id: 'x', _rev: 'rev', key_1: 2, key_2: 'cat_2' } },
           ],
           type_test_2: [],
         };
       });
       it('should return interval description for key_1 and categorical description for key_2', () => {
-        const aggregation = aggregator.aggregate(new DefaultMap(records));
-        const expected = {
+        const aggregation = aggregator.aggregate(records);
+        chai.expect(aggregation).to.eql({
           empty: false,
           types: {
             type_test_1: {
@@ -331,15 +277,14 @@ export default describeModule('anolysis/aggregator',
               keys: { }
             }
           },
-        };
-        chai.expect(aggregation).to.eql(expected);
+        });
       });
       it('should return total count if signal has no keys', () => {
-        const aggregations = aggregator.aggregate(new DefaultMap({ type_test_1: [{}, {}] }));
+        const aggregations = aggregator.aggregate({ type_test_1: [{}, {}] });
         chai.expect(aggregations.types.type_test_1).to.eql({ count: 2, keys: {} });
       });
       it('should set empty to true', () => {
-        const aggregations = aggregator.aggregate(new DefaultMap({ type_test_1: [] }));
+        const aggregations = aggregator.aggregate({ type_test_1: [] });
         chai.expect(aggregations.empty).to.be.true;
       });
     });

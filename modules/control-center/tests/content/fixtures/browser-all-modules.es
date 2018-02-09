@@ -1047,7 +1047,7 @@ export default {
       },
       "control-center": null,
       "offers-v2": {
-        visible: true,
+        showSettings: true,
         userEnabled: true,
         locationEnabled: true,
       },
@@ -1056,6 +1056,7 @@ export default {
       "offboarding": null,
       "anolysis": null,
       "abtests": null,
+      "unblock": null,
       "theme": null,
       "context-search": null,
       "hm": null,

@@ -1,261 +1,202 @@
-/* global window */
+/* global it, chai, respondWith, fillIn, waitForPopup,
+$cliqzResults, CliqzUtils, window, getComputedStyle */
 /* eslint func-names: ['error', 'never'] */
 /* eslint prefer-arrow-callback: 'off' */
 /* eslint no-unused-expressions: 'off' */
 
-import {
-  $cliqzResults,
-  CliqzUtils,
-  expect,
-  fillIn,
-  getComputedStyle,
-  respondWith,
-  waitForPopup,
-  withHistory } from './helpers';
 import results from './fixtures/resultsSoccerLiveTicker';
 
 export default function () {
   context('for soccer live ticker results', function () {
     const locale = CliqzUtils.locale.default || CliqzUtils.locale[window.navigator.language];
-    let $resultElement;
+    let resultElement;
 
     before(function () {
-      withHistory([]);
       respondWith({ results });
       fillIn('liveticker bundesliga');
       return waitForPopup().then(function () {
-        $resultElement = $cliqzResults().find(`a.result[href='${results[0].url}']`)[0].parentNode;
+        resultElement = $cliqzResults()[0];
       });
     });
 
-    describe('renders parent element', function () {
-      const soccerParentSelector = 'a.result';
-      let $soccerParent;
-
-      before(function () {
-        $soccerParent = $resultElement.querySelector(soccerParentSelector);
-      });
+    describe('renders a parent soccer result', function () {
+      const parentSoccerSelector = 'a.result:not(.search)';
 
       it('successfully', function () {
-        expect($soccerParent).to.exist;
+        chai.expect(resultElement.querySelector(parentSoccerSelector)).to.exist;
       });
 
       it('with an existing and correct title', function () {
-        const soccerParentTitleSelector = '.abstract .title';
-        const $soccerParentTitle = $soccerParent.querySelector(soccerParentTitleSelector);
-        expect($soccerParentTitle).to.exist;
-        expect($soccerParentTitle).to.have.text(results[0].snippet.title);
+        const parentSoccerTitleSelector = 'a.result:not(.search) div.abstract p span.title';
+        const parentSoccerTitleItem = resultElement.querySelector(parentSoccerTitleSelector);
+        chai.expect(parentSoccerTitleItem).to.exist;
+        chai.expect(parentSoccerTitleItem).to.have.text(results[0].snippet.title);
       });
 
       it('with an existing and correct domain', function () {
-        const soccerParentUrlSelector = '.abstract .url';
-        const $soccerParentUrl = $soccerParent.querySelector(soccerParentUrlSelector);
-        expect($soccerParentUrl).to.exist;
-        expect($soccerParentUrl).to.contain.text(results[0].snippet.friendlyUrl);
+        const parentSoccerDomainSelector = 'a.result:not(.search) div.abstract p span.url';
+        const parentSoccerDomainItem = resultElement.querySelector(parentSoccerDomainSelector);
+        chai.expect(parentSoccerDomainItem).to.exist;
+        chai.expect(parentSoccerDomainItem).to.have.text(results[0].snippet.friendlyUrl);
       });
 
-      it('with an existing logo', function () {
-        const soccerParentLogoSelector = '.icons .logo';
-        const $soccerParentLogo = $soccerParent.querySelector(soccerParentLogoSelector);
-        expect($soccerParentLogo).to.exist;
-      });
-
-      it('with correct link', function () {
-        expect($soccerParent.href).to.equal(results[0].url);
+      it('with an existing and correct link', function () {
+        const parentSoccerLinkItem = resultElement.querySelector(parentSoccerSelector).href;
+        chai.expect(parentSoccerLinkItem).to.exist;
+        chai.expect(parentSoccerLinkItem).to.equal(results[0].url);
       });
 
       it('with an existing and correct description', function () {
-        const soccerParentDescSelector = '.abstract .description';
-        const $soccerParentDesc = $soccerParent.querySelector(soccerParentDescSelector);
-        expect($soccerParentDesc).to.exist;
-        expect($soccerParentDesc).to.have.text(results[0].snippet.description);
-      });
-    });
-
-    describe('renders a table header', function () {
-      const soccerTableHeaderSelector = 'a.soccer-title';
-      let $soccerTableHeader;
-
-      before(function () {
-        $soccerTableHeader = $resultElement.querySelector(soccerTableHeaderSelector);
-      });
-
-      it('successfully', function () {
-        expect($soccerTableHeader).to.exist;
-      });
-
-
-      it('with correct text', function () {
-        const soccerTitleSelector = '.padded';
-        const $soccerTitle = $soccerTableHeader.querySelector(soccerTitleSelector);
-        expect($soccerTitle).to.exist;
-        expect($soccerTitle).to.have.text(results[0].snippet.extra.title);
-      });
-
-      it('with correct URL', function () {
-        expect($soccerTableHeader.href).to.exist;
-        expect($soccerTableHeader.href).to.equal(results[0].snippet.extra.url);
-      });
-
-      it('with correct domain', function () {
-        const soccerTitleDomainSelector = '.soccer-domain:not(.divider)';
-        const $soccerTitleDomain = $soccerTableHeader
-          .querySelector(soccerTitleDomainSelector);
-        expect($soccerTitleDomain).to.have.text('kicker.de');
+        const parentSoccerDescSelector = 'a.result:not(.search) div.abstract p span.description';
+        const parentSoccerDescItem = resultElement.querySelector(parentSoccerDescSelector);
+        chai.expect(parentSoccerDescItem).to.exist;
+        chai.expect(parentSoccerDescItem).to.have.text(results[0].snippet.description);
       });
     });
 
     describe('renders a results table', function () {
-      const soccerTableArea = '.soccer';
-      const soccerRowSelector = 'a.table-row';
-      let $soccerTable;
-      let $soccerRow;
+      const soccerTableRowSelector = 'div.soccer a.table-row.result';
+      let soccerTableRowItem;
 
-      before(function () {
-        $soccerTable = $resultElement.querySelector(soccerTableArea);
-        $soccerRow = $soccerTable.querySelectorAll(soccerRowSelector);
+      beforeEach(function () {
+        soccerTableRowItem = resultElement.querySelectorAll(soccerTableRowSelector);
+      });
+
+      context('with a title', function () {
+        it('existing and correct', function () {
+          const soccerTitleSelector = 'a.soccer-title span.padded';
+          const soccerTitleItem = resultElement.querySelector(soccerTitleSelector);
+          chai.expect(soccerTitleItem).to.exist;
+          chai.expect(soccerTitleItem).to.have.text(results[0].snippet.extra.title);
+        });
+
+        it('with a correct URL', function () {
+          const soccerTitleLinkSelector = 'a.soccer-title';
+          const soccerTitleLinkItem = resultElement.querySelector(soccerTitleLinkSelector);
+          chai.expect(soccerTitleLinkItem.href).to.equal(results[0].snippet.extra.url);
+        });
+
+        it('with a correct domain', function () {
+          const soccerTitleDomainSelector = 'a.soccer-title span.soccer-domain:not(.divider)';
+          const soccerTitleDomainItem = resultElement.querySelector(soccerTitleDomainSelector);
+          chai.expect(soccerTitleDomainItem).to.have.text('kicker.de');
+        });
       });
 
       it('successfully', function () {
-        expect($soccerTable).to.exist;
+        const soccerTableSelector = 'div.soccer';
+        const soccerTableItem = resultElement.querySelector(soccerTableSelector);
+        chai.expect(soccerTableItem).to.exist;
       });
 
       it('with details of two matches', function () {
-        expect($soccerRow.length).to.equal(2);
+        chai.expect(soccerTableRowItem.length).to.equal(2);
       });
 
       describe('with tabs area', function () {
-        const soccerTabsSelector = '.dropdown-tab-label';
-        let $soccerTabs;
+        const soccerTabsSelector = 'div.soccer label.dropdown-tab-label';
+        let soccerTabsItems;
 
-        before(function () {
-          $soccerTabs = $soccerTable.querySelectorAll(soccerTabsSelector);
+        beforeEach(function () {
+          soccerTabsItems = resultElement.querySelectorAll(soccerTabsSelector);
         });
 
         it('with correct amount of tabs', function () {
-          expect($soccerTabs.length).to.equal(5);
+          chai.expect(soccerTabsItems.length).to.equal(5);
         });
 
         it('with correct text in each tab', function () {
-          if ($soccerTabs.length > 0) {
-            [...$soccerTabs].forEach(function (tab, i) {
-              expect(tab).to.have.text(results[0].snippet.extra.weeks[i].round);
-            });
-          } else {
-            throw new Error('Soccer results have not been generated.');
-          }
+          [...soccerTabsItems].forEach(function (tab, i) {
+            chai.expect(tab).to.have.text(results[0].snippet.extra.weeks[i].round);
+          });
         });
       });
 
-      it('with an existing and correct "Show more" being link', function () {
-        const soccerShowMoreSelector = 'a.expand-btn';
-        const $soccerShowMore = $soccerTable.querySelector(soccerShowMoreSelector);
+      it('with an existing and correct "Show more" being a link', function () {
+        const soccerShowMoreSelector = 'div.soccer a.expand-btn';
+        const soccerShowMoreItem = resultElement.querySelector(soccerShowMoreSelector);
         const showMore = locale['soccer-expand-button'].message;
-        expect($soccerShowMore).to.exist;
-        expect($soccerShowMore.href).to.exist;
-        expect($soccerShowMore).to.contain.text(showMore);
+        chai.expect(soccerShowMoreItem).to.exist;
+        chai.expect(soccerShowMoreItem.href).to.exist;
+        chai.expect(soccerShowMoreItem).to.contain.text(showMore);
       });
 
       it('with an existing and correct "Powered by" caption', function () {
-        const soccerCaptionSelector = 'a.powered-by';
-        const $soccerCaption = $soccerTable.querySelector(soccerCaptionSelector);
+        const soccerCaptionSelector = 'div.soccer a.powered-by';
+        const soccerCaptionItem = resultElement.querySelector(soccerCaptionSelector);
         const poweredBy = locale['soccer-powered-by'].message;
-        expect($soccerCaption).to.exist;
-        expect($soccerCaption).to.contain.text(poweredBy);
+        chai.expect(soccerCaptionItem).to.exist;
+        chai.expect(soccerCaptionItem).to.contain.text(poweredBy);
       });
 
       context('each match row', function () {
         it('has an existing and correct URL', function () {
-          if ($soccerRow.length > 0) {
-            [...$soccerRow].forEach(function (row, i) {
-              expect(row.href).to.exist;
-              expect(row.href)
-                .to.equal(results[0].snippet.extra.weeks[2].matches[i].live_url);
-            });
-          } else {
-            throw new Error('Soccer results have not been generated.');
-          }
+          [...soccerTableRowItem].forEach(function (row, i) {
+            chai.expect(row.href).to.exist;
+            chai.expect(row.href)
+            .to.equal(results[0].snippet.extra.weeks[2].matches[i].live_url);
+          });
         });
 
         it('has existing and correct names of two teams', function () {
-          const soccerTeamSelector = '.fixed-width';
+          const soccerTeamSelector = 'div.fixed-width';
 
-          if ($soccerRow.length > 0) {
-            [...$soccerRow].forEach(function (row, i) {
-              const $soccerTeam = row.querySelectorAll(soccerTeamSelector);
-              expect($soccerTeam.length).to.equal(2);
-              expect($soccerTeam[0])
-                .to.have.text(results[0].snippet.extra.weeks[2].matches[i].HOST);
-              expect($soccerTeam[1])
-                .to.have.text(results[0].snippet.extra.weeks[2].matches[i].GUESS);
-            });
-          } else {
-            throw new Error('Soccer results have not been generated.');
-          }
+          [...soccerTableRowItem].forEach(function (row, i) {
+            const soccerTeamItem = row.querySelectorAll(soccerTeamSelector);
+            chai.expect(soccerTeamItem.length).to.equal(2);
+            chai.expect(soccerTeamItem[0])
+              .to.have.text(results[0].snippet.extra.weeks[2].matches[i].HOST);
+            chai.expect(soccerTeamItem[1])
+              .to.have.text(results[0].snippet.extra.weeks[2].matches[i].GUESS);
+          });
         });
 
         it('has logos of two teams', function () {
-          const soccerTeamLogoSelector = '.club-logo div';
+          const soccerTeamLogoSelector = 'div.club-logo div';
 
-          if ($soccerRow.length > 0) {
-            [...$soccerRow].forEach(function (row, i) {
-              const $soccerTeamLogo = row.querySelectorAll(soccerTeamLogoSelector);
-              expect($soccerTeamLogo.length).to.equal(2);
+          [...soccerTableRowItem].forEach(function (row, i) {
+            const soccerTeamLogoItem = row.querySelectorAll(soccerTeamLogoSelector);
+            chai.expect(soccerTeamLogoItem.length).to.equal(2);
 
-              expect(getComputedStyle(row
-                .querySelectorAll(soccerTeamLogoSelector)[0]).backgroundImage)
-                .to.contain(results[0].snippet.extra.weeks[2].matches[i].hostLogo);
+            chai.expect(getComputedStyle(row
+              .querySelectorAll(soccerTeamLogoSelector)[0]).backgroundImage)
+              .to.contain(results[0].snippet.extra.weeks[2].matches[i].hostLogo);
 
-              expect(getComputedStyle(row
-                .querySelectorAll(soccerTeamLogoSelector)[1]).backgroundImage)
-                .to.contain(results[0].snippet.extra.weeks[2].matches[i].guestLogo);
-            });
-          } else {
-            throw new Error('Soccer results have not been generated.');
-          }
+            chai.expect(getComputedStyle(row
+              .querySelectorAll(soccerTeamLogoSelector)[1]).backgroundImage)
+              .to.contain(results[0].snippet.extra.weeks[2].matches[i].guestLogo);
+          });
         });
 
-        it('has result with an existing and correct two numbers', function () {
-          const soccerResultSelector = '.scored';
+        it('has a result with existing and correct two numbers', function () {
+          const soccerResultSelector = 'div.scored';
 
-
-          if ($soccerRow.length > 0) {
-            [...$soccerRow].forEach(function (row, i) {
-              const $soccerResult = row.querySelector(soccerResultSelector);
-              expect($soccerResult)
-                .to.contain.text(results[0].snippet.extra.weeks[2].matches[i].scored);
-            });
-          } else {
-            throw new Error('Soccer results have not been generated.');
-          }
+          [...soccerTableRowItem].forEach(function (row, i) {
+            const soccerResultItem = row.querySelector(soccerResultSelector);
+            chai.expect(soccerResultItem)
+            .to.contain.text(results[0].snippet.extra.weeks[2].matches[i].scored);
+          });
         });
 
         it('has an existing date and time', function () {
-          const soccerDateSelector = '.time';
+          const soccerDateSelector = 'div.time';
 
-          if ($soccerRow.length > 0) {
-            [...$soccerRow].forEach(function (row) {
-              const $soccerDate = row.querySelector(soccerDateSelector);
-              expect($soccerDate).to.exist;
-            });
-          } else {
-            throw new Error('Soccer results have not been generated.');
-          }
+          [...soccerTableRowItem].forEach(function (row) {
+            const soccerDateItem = row.querySelector(soccerDateSelector);
+            chai.expect(soccerDateItem).to.exist;
+          });
         });
 
         it('has an existing and correct league logo', function () {
-          const soccerLeagueLogoSelector = '.league-logo';
-          if ($soccerRow.length > 0) {
-            [...$soccerRow].forEach(function (row, i) {
-              const $soccerLeagueLogo = row.querySelector(soccerLeagueLogoSelector);
-              expect($soccerLeagueLogo).to.exist;
-              expect(getComputedStyle(row
-                .querySelector(soccerLeagueLogoSelector)).backgroundImage)
-                .to.contain(results[0].snippet.extra.weeks[2].matches[i].leagueLogo);
-            });
-          } else {
-            throw new Error('Soccer results have not been generated.');
-          }
+          const soccerLeagueLogoSelector = 'div.league-logo';
+
+          [...soccerTableRowItem].forEach(function (row, i) {
+            const soccerLeagueLogoItem = row.querySelector(soccerLeagueLogoSelector);
+            chai.expect(soccerLeagueLogoItem).to.exist;
+            chai.expect(getComputedStyle(row
+              .querySelector(soccerLeagueLogoSelector)).backgroundImage)
+              .to.contain(results[0].snippet.extra.weeks[2].matches[i].leagueLogo);
+          });
         });
       });
     });

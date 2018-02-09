@@ -7,7 +7,6 @@ import CliqzEvents from '../core/events';
 import console from '../core/console';
 import UITour from '../platform/ui-tour';
 import History from '../platform/history/history';
-import history from '../platform/history-service';
 import { Components } from '../platform/globals';
 
 const events = CliqzEvents;
@@ -91,7 +90,7 @@ export default class UI {
     this.onButtonClicked = this.onButtonClicked.bind(this);
 
     this.pageActionBtn.addEventListener('click', this.onButtonClicked);
-    this.pageActionButtons.prepend(this.pageActionBtn);
+    this.pageActionButtons.appendChild(this.pageActionBtn);
     this.onEvent = this.onEvent.bind(this);
     this.onPaired = this.onPaired.bind(this);
   }
@@ -576,7 +575,6 @@ export default class UI {
     fp.open((rv) => {
       if ((rv === nsIFilePicker.returnOK) || (rv === nsIFilePicker.returnReplace)) {
         let download;
-        let onVisited;
         const downloadPromise = this.Downloads.createDownload({
           source: url,
           target: fp.file
@@ -598,12 +596,7 @@ export default class UI {
             this.maybeShowingDownloadsUITour();
           }, 1000);
           if (origin) {
-            onVisited = (visit) => {
-              if (visit.url === url) {
-                History.fillFromVisit(url, origin);
-              }
-            };
-            history.onVisited.addListener(onVisited);
+            History.fillFromVisit(url, origin);
           }
           return download.whenSucceeded();
         }).then(() => {
@@ -614,9 +607,6 @@ export default class UI {
             size,
             is_success: true
           });
-          if (onVisited) {
-            history.onVisited.removeListener(onVisited);
-          }
         }, () => {
           utils.telemetry({
             type: TELEMETRY_TYPE,
@@ -625,9 +615,6 @@ export default class UI {
             size,
             is_success: false
           });
-          if (onVisited) {
-            history.onVisited.removeListener(onVisited);
-          }
         }).then(() => {
           download.finalize(true);
         });

@@ -249,4 +249,5 @@ export default class CategoryHandler {
   _getCatHistoryPIDID(category) {
     return `${category.getName()}|${category.getVersion()}`;
   }
+
 }

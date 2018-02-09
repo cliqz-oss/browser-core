@@ -10,14 +10,19 @@ import CliqzADB, {
   ADB_PREF_VALUES,
   ADB_PREF,
   ADB_PREF_OPTIMIZED,
-  ADB_USER_LANG,
-  isSupportedProtocol
+  ADB_USER_LANG
 } from './adblocker';
+
+
+function isAdbActive(url) {
+  return CliqzADB.adbEnabled() &&
+    CliqzADB.adblockInitialized &&
+    !CliqzADB.urlWhitelist.isWhitelisted(url);
+}
 
 
 export default background({
   humanWeb: inject.module('human-web'),
-  core: inject.module('core'),
 
   enabled() { return true; },
 
@@ -37,19 +42,6 @@ export default background({
   },
 
   events: {
-    'content:location-change': function onLocationChange({ windowId, url }) {
-      if (!CliqzADB.isAdbActive(url)) {
-        return;
-      }
-
-      if (isSupportedProtocol(url)) {
-        const response = CliqzADB.adBlocker.engine.getDomainFilters(
-          extractHostname(url),
-        );
-        this.core.action('broadcastMessageToWindow', response, windowId, 'adblocker');
-      }
-    },
-
     'control-center:adb-optimized': () => {
       prefs.set(ADB_PREF_OPTIMIZED, !prefs.get(ADB_PREF_OPTIMIZED, false));
     },
@@ -92,7 +84,7 @@ export default background({
     // handles messages coming from process script
     getCosmeticsForNodes(nodes, sender) {
       const url = sender.tab.url;
-      if (!CliqzADB.isAdbActive(url)) {
+      if (!isAdbActive(url)) {
         return { active: false };
       }
 
@@ -102,9 +94,8 @@ export default background({
       );
     },
 
-    getCosmeticsForDomain(sender) {
-      const url = sender.tab.url;
-      if (!CliqzADB.isAdbActive(url)) {
+    getCosmeticsForDomain(url) {
+      if (!isAdbActive(url)) {
         return { active: false };
       }
 

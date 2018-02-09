@@ -1,4 +1,3 @@
+//import './content/app-test';
 import './content/offers-hub-ui-tests';
-
-//interaction needs to be rewritten
-//import './content/offers-hub-interaction-tests';
+import './content/offers-hub-interaction-tests';

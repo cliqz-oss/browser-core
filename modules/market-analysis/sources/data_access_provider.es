@@ -77,6 +77,7 @@ class DataAccessProvider {
       logger.error(`Something happened removing the doc: ${docID} - err: ${err}`);
     });
   }
+
 }
 
 export default DataAccessProvider;

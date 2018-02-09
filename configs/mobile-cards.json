@@ -7,8 +7,7 @@
   "settings": {
     "CONFIG_PROVIDER": "https://api.cliqz.com/api/v1/config",
     "CDN_BASEURL": "https://cdn.cliqz.com",
-    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
-    "OFFERS_BE_BASE_URL": "https://offers-api.cliqz.com"
+    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"]
   },
   "modules": [
     "core",
@@ -21,7 +20,7 @@
   ],
   "system": {
     "map": {
-      "mathjs": "node_modules/mathjs/dist/math.min.js"
+      "mathjs": "bower_components/mathjs/dist/math.min.js"
     },
     "packages": {
       "is-obj": {

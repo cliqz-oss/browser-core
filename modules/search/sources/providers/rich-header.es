@@ -1,11 +1,31 @@
 import Rx from '../../platform/lib/rxjs';
 import { fetch as f } from '../../core/http';
 import utils from '../../core/utils';
-import BackendProvider from './backend';
+import BaseProvider from './base';
 import { getResponse } from '../responses';
 
 
-export default class RichHeader extends BackendProvider {
+// TODO: make DRY (this is the same as in `cliqz`)
+const mapResults = (query, results) =>
+  results.map((result) => {
+    const snippet = result.snippet || {};
+    return {
+      ...result,
+      url: result.url,
+      originalUrl: result.url,
+      title: snippet.title,
+      type: result.type,
+      text: query,
+      description: snippet.description,
+      provider: 'rich-header',
+      data: {
+        ...snippet,
+        template: result.template,
+      },
+    };
+  });
+
+export default class RichHeader extends BaseProvider {
   constructor() {
     super('rich-header');
   }
@@ -51,11 +71,11 @@ export default class RichHeader extends BackendProvider {
         .delay(retry.delay)
         .take(retry.count)
       )
-      .map(results => getResponse(
+      .map(rs => getResponse(
         this.id,
         config,
         query,
-        this.mapResults({ results, q: query }),
+        mapResults(query, rs),
         'done',
       ))
       // TODO: do not emit empty result

@@ -206,8 +206,7 @@ export default class Category {
     const todayKey = getTodayDayKey();
     let todayMatchData = this.matchData.perDay[todayKey];
     if (!todayMatchData) {
-      todayMatchData = { matches: 0 };
-      this.matchData.perDay[todayKey] = todayMatchData;
+      todayMatchData = this.matchData.perDay[todayKey] = { matches: 0 };
     }
     todayMatchData.matches += 1;
 
@@ -337,9 +336,8 @@ export default class Category {
     for (let i = 0; i < activationDays.length; i += 1) {
       const ad = activationDays[i];
       const totCount = this.totalDayHandler.getCount(ad);
-      const matchValue = this.matchData.perDay[ad]
-        ? this.matchData.perDay[ad].matches
-        : undefined;
+      const matchValue = this.matchData.perDay[ad] ? this.matchData.perDay[ad].matches
+                                                    : undefined;
       if (totCount === undefined || matchValue === undefined) {
         logger.info(`Warning: we do not have information yet for the day ${ad}`);
         // we need to avoid calculating it now and we should calculate it later

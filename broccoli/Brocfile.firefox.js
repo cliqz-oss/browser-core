@@ -37,6 +37,7 @@ const trees = [
   firefoxSpecific,
   new Funnel(config,              { destDir: 'chrome/content'}),
   new Funnel(firefoxLibs,         { destDir: 'modules/extern' }),
+  new Funnel(modules.bower,       { destDir: 'chrome/content/bower_components' }),
   new Funnel(modules.static,      { destDir: 'chrome/content' }),
   new Funnel(modules.styleTests,  { destDir: 'chrome/content' })
 ];

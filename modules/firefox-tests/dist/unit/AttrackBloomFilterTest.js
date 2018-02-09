@@ -76,77 +76,38 @@ TESTS.AttrackBloomFilterTest = function (CliqzUtils) {
 
     describe('isUpToDate', function() {
 
-      const mock_bloom_filter_major = '{"bkt": [1, 2, 3, 4, 5], "k": 5}';
-      const mock_bloom_filter_minor = '{"bkt": [1, 0, 0, 0, 0], "k": 5}';
-      const mock_bloom_filter_config = (day) => `{"major": "${day}", "minor": "1"}`;
-
-      function mockFilterUpdate(day) {
-        return Promise.all([
-          testServer.registerPathHandler(`/bloom_filter/${day}/0.gz`, function(request, response) {
-            response.write(mock_bloom_filter_major);
-          }),
-          testServer.registerPathHandler(`/bloom_filter/${day}/1.gz`, function(request, response) {
-            response.write(mock_bloom_filter_minor);
-          }),
-          testServer.registerPathHandler('/bloom_filter/config', function(request, response) {
-            response.write(mock_bloom_filter_config(day));
-          }),
-        ]).then(() => {
-          whitelist = new AttrackBloomFilter(
-            null,
-            `http://localhost:${testServer.port}/bloom_filter/config`,
-            `http://localhost:${testServer.port}/bloom_filter/`
-          );
-
-          return whitelist.update();
-        });
-      }
-
       it('returns false if lists have not been updated', function() {
         chai.expect(whitelist.isUpToDate()).to.be.false;
       });
 
-      describe('list updating', function() {
-        const today = (new Date()).toISOString().substring(0, 10);
+      describe('list update', function() {
+        var mock_bloom_filter_major = "{\"bkt\": [1, 2, 3, 4, 5], \"k\": 5}",
+            mock_bloom_filter_minor = "{\"bkt\": [1, 0, 0, 0, 0], \"k\": 5}",
+            mock_bloom_filter_config = '{"major": "0", "minor": "1"}';
 
         beforeEach(function() {
-          return mockFilterUpdate(today);
+          testServer.registerPathHandler('/bloom_filter/0/0.gz', function(request, response) {
+            response.write(mock_bloom_filter_major);
+          });
+          testServer.registerPathHandler('/bloom_filter/0/1.gz', function(request, response) {
+            response.write(mock_bloom_filter_minor);
+          });
+          testServer.registerPathHandler('/bloom_filter/config', function(request, response) {
+            response.write(mock_bloom_filter_config);
+          });
+
+          whitelist = new AttrackBloomFilter(null, 'http://localhost:' + testServer.port + '/bloom_filter/config', 'http://localhost:' + testServer.port + '/bloom_filter/');
+
+          whitelist.update();
         });
 
         it('returns true', function() {
-          chai.expect(whitelist.isUpToDate()).to.be.true;
-          chai.expect(whitelist.version.major).to.equal(today);
-          chai.expect(whitelist.bloomFilter.k).to.equal(5);
-        });
-      });
-
-      describe('update to an older list', () => {
-        const day = new Date();
-        day.setDate(day.getDate() - 1);
-        const yesterday = day.toISOString().substring(0, 10);
-
-        beforeEach(function() {
-          return mockFilterUpdate(yesterday);
-        });
-
-        it('returns true', function() {
-          chai.expect(whitelist.isUpToDate()).to.be.true;
-          chai.expect(whitelist.version.major).to.equal(yesterday);
-        });
-      });
-
-      describe('update to an out of date list', () => {
-        const day = new Date();
-        day.setDate(day.getDate() - 3);
-        const yester3day = day.toISOString().substring(0, 10);
-
-        beforeEach(function() {
-          return mockFilterUpdate(yester3day);
-        });
-
-        it('returns false', function() {
-          chai.expect(whitelist.isUpToDate()).to.be.false;
-          chai.expect(whitelist.version.major).to.equal(yester3day);
+          return waitFor(function() {
+            return whitelist.isUpToDate();
+          }).then(function() {
+            chai.expect(whitelist.version.major).to.equal('0');
+            chai.expect(whitelist.bloomFilter.k).to.equal(5);
+          });
         });
       });
     });

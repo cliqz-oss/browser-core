@@ -8,15 +8,17 @@ import prefs from '../core/prefs';
 import console from '../core/console';
 import Search from '../autocomplete/search';
 import CardList from './components/CardList';
-import { addConnectionChangeListener, removeConnectionChangeListener } from '../platform/network';
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: 'transparent',
-    flex: 1,
-    flexDirection: 'column',
-  }
-});
+const styles = function (isIncognito) {
+  const backgroundColor = isIncognito ? '#4a4a4a' : '#E7ECEE';
+  return StyleSheet.create({
+    container: {
+      backgroundColor,
+      flex: 1,
+      flexDirection: 'column',
+    }
+  });
+};
 
 let lastSearch = '';
 
@@ -37,7 +39,6 @@ export default class SearchUI extends React.Component {
     events.sub('search', this.searchResults.bind(this));
     events.sub('mobile-browser:notify-preferences', this.updatePreferences.bind(this));
     events.sub('mobile-browser:set-search-engine', this.setSearchEngine.bind(this));
-    addConnectionChangeListener();
   }
 
   updatePreferences(prefs) {
@@ -49,6 +50,7 @@ export default class SearchUI extends React.Component {
           utils.setPref(key, prefs[key]);
         }
       }
+      this.setState({'incognito': Boolean(prefs.incognito)});
     });
   }
 
@@ -112,7 +114,7 @@ export default class SearchUI extends React.Component {
       <View
         accessible={false}
         accessibilityLabel="search-results"
-        style={styles.container}
+        style={styles(this.state.incognito).container}
       >
         <CardList result={result} />
       </View>
@@ -123,6 +125,5 @@ export default class SearchUI extends React.Component {
     events.un_sub('search', this.searchResults);
     events.un_sub('mobile-browser:notify-preferences', this.updatePreferences);
     events.un_sub('mobile-browser:set-search-engine', this.setSearchEngine);
-    removeConnectionChangeListener();
   }
 }

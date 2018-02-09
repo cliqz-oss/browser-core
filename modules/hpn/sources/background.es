@@ -58,6 +58,39 @@ export default background({
       });
       return promise;
     },
+    md5(s) {
+      let promise = new Promise( (resolve, reject) => {
+        let wCrypto = new CryptoWorker();
+
+        wCrypto.onmessage = function(e){
+          let result = e.data.result;
+          wCrypto.terminate();
+          resolve(result);
+        };
+
+        wCrypto.postMessage({
+          "msg": s,
+          "type":"hw-md5"
+        });
+      });
+      return promise;
+    },
+    randBigInt() {
+      let promise = new Promise( (resolve, reject) => {
+        let wCrypto = new CryptoWorker();
+
+        wCrypto.onmessage = function(e){
+          let result = e.data.result;
+          wCrypto.terminate();
+          resolve(result);
+        };
+
+        wCrypto.postMessage({
+          "type":"hw-bigint"
+        });
+      });
+      return promise;
+    },
     sendTelemetry(msg) {
       return CliqzSecureMessage.telemetry(msg);
     },
@@ -68,14 +101,9 @@ export default background({
         const wCrypto = new CryptoWorker();
 
         wCrypto.onmessage = function(e){
-          try {
-            const result = JSON.parse(e.data.res).result;
-            wCrypto.terminate();
-            resolve(result);
-          } catch (ee) {
-            wCrypto.terminate();
-            reject();
-          }
+          const result = JSON.parse(e.data.res).result;
+          wCrypto.terminate();
+          resolve(result);
         };
         wCrypto.postMessage({
           msg: {
@@ -94,28 +122,6 @@ export default background({
           sspk: CliqzSecureMessage.secureLogger,
           queryProxyUrl: CliqzSecureMessage.queryProxyIP,
         });
-      });
-    },
-
-    sendPostMessage(rp, payload, action, data, callback) {
-      const uid = Math.floor(Math.random() * 10000000);
-      CliqzSecureMessage.queriesID[uid] = callback;
-      CliqzSecureMessage.wCrypto.postMessage({
-        msg: { action: action,
-              type: 'cliqz',
-              ts: '',
-              ver: '1.5',
-              payload: payload,
-              rp: rp,
-              body: data,
-        },
-        uid: '',
-        type: 'instant',
-        sourcemap: CliqzSecureMessage.sourceMap,
-        upk: CliqzSecureMessage.uPK,
-        dspk: CliqzSecureMessage.dsPK,
-        sspk: CliqzSecureMessage.secureLogger,
-        queryProxyUrl: CliqzSecureMessage.queryProxyIP,
       });
     }
   },

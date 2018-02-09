@@ -1,6 +1,7 @@
 /* global window */
 
-import "node_modules/core-js/client/core.min.js"
+import "bower_components/core.js/client/core.min.js"
+import "bower_components/whatwg-fetch/fetch.js"
 
 import "specific/js/libs/ios-orientationchange-fix.js"
 import "specific/js/jsAPI.js"

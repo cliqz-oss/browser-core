@@ -24,7 +24,7 @@ export default describeModule('market-analysis/common/session_checker',
         return this.system.import('market-analysis/model/ma_signal').then((mod) => {
           MAMetrics = mod.MAMetrics;
         })
-          .then(() => { SessionChecker = this.module().default; });
+        .then(() => { SessionChecker = this.module().default; });
       });
 
       it('check isNewSession function - metrics for 30 min session', () => {

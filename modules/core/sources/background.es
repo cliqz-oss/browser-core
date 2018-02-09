@@ -136,7 +136,6 @@ export default background({
       const locationChangeMesssage = {
         ...msg,
         windowId: windowWrapper ? windowWrapper.id : null,
-        tabId: msg.windowTreeInformation.tabId,
       };
 
       events.pub('content:location-change', locationChangeMesssage);

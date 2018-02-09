@@ -29,8 +29,10 @@ export default class Win {
       this._dataCollectionTimer = undefined;
     }
 
-    this.removeNotification();
-    delete this.window.CliqzHumanWeb;
+    if(this.notification){
+      this.notification.close();
+      this.notification = undefined;
+    }
   }
 
   status() {
@@ -39,14 +41,6 @@ export default class Win {
         visible: true,
         state: !utils.getPref('humanWebOptOut', false)
       }
-    }
-  }
-
-  removeNotification() {
-    if (this.notification) {
-      this.notification.close();
-      this.window.document.getElementById("global-notificationbox").removeNotification(this.notification);
-      this.notification = null;
     }
   }
 
@@ -82,7 +76,6 @@ export default class Win {
         let learnMoreUrl = 'chrome://cliqz/content/human-web/humanweb.html';
         this.window.gBrowser.selectedTab = this.window.gBrowser.addTab(learnMoreUrl);
         updateDataCollectionState(3);
-        this.removeNotification();
       }
     });
 
@@ -92,11 +85,10 @@ export default class Win {
       null,
       box.PRIORITY_INFO_HIGH,
       buttons,
-      () => {
+      function () {
         // notification hides if the user closes it or presses learn more
         if(utils.getPref('dataCollectionMessageState', 0) < 2){
           updateDataCollectionState(2);
-          this.removeNotification();
         }
       }
     );

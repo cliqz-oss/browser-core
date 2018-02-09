@@ -1,19 +1,8 @@
 import platformEquals, { isURI, URI } from '../platform/url';
 import { getPublicSuffix } from './tlds';
 import MapCache from './helpers/fixed-size-cache';
-export { fixURL } from '../platform/url';
 
 const UrlRegExp = /^(([a-z\d]([a-z\d-]*[a-z\d])?)\.)+[a-z]{2,}(\:\d+)?$/i;
-
-function tryFn(fn) {
-  return function(...args) {
-    try {
-      return fn(...args);
-    } catch (e) {
-      return args[0];
-    }
-  }
-}
 
 export function isUrl(input) {
   if (!input) {
@@ -97,11 +86,6 @@ export function extractSimpleURI(url) {
   return new URI(url);
 }
 
-export const tryDecodeURI = tryFn(decodeURI);
-export const tryDecodeURIComponent = tryFn(decodeURIComponent);
-export const tryEncodeURI = tryFn(encodeURI);
-export const tryEncodeURIComponent = tryFn(encodeURIComponent);
-
 export function equals(url1, url2) {
   if (!url1 || !url2) {
     return false;
@@ -111,12 +95,8 @@ export function equals(url1, url2) {
     return true;
   }
 
-  try {
-    if (decodeURI(url1) === decodeURI(url2)) {
-      return true;
-    }
-  } catch (e) {
-    return false;
+  if (decodeURI(url1) === decodeURI(url2)) {
+    return true;
   }
 
   if (platformEquals(url1, url2)) {
@@ -283,22 +263,20 @@ function _getDetailsFromUrl(originalUrl) {
   }
 
   var urlDetails = {
-    action,
-    originalUrl,
     scheme: scheme ? scheme + ':' : '',
-    name,
+    name: name,
     domain: tld ? name + '.' + tld : '',
-    tld,
-    subdomains,
-    path,
-    query,
-    fragment,
-    extra,
-    host,
-    cleanHost,
-    ssl,
-    port,
-    friendly_url
+    tld: tld,
+    subdomains: subdomains,
+    path: path,
+    query: query,
+    fragment: fragment,
+    extra: extra,
+    host: host,
+    cleanHost: cleanHost,
+    ssl: ssl,
+    port: port,
+    friendly_url: friendly_url
   };
 
   return urlDetails;

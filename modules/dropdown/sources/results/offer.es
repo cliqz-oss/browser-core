@@ -2,6 +2,7 @@ import BaseResult from './base';
 import utils from '../../core/utils';
 
 class TextResult extends BaseResult {
+
   click(window, href, ev) {
     this.actions.copyToClipboard(this.rawResult.title);
     const el = ev.target;
@@ -63,6 +64,7 @@ export class OfferResult extends BaseResult {
 }
 
 export default class OffersResult extends BaseResult {
+
   constructor(rawResult, allResultsFlat, { offers } = {}) {
     if (!offers.isEnabled) {
       throw new Error('ignore');

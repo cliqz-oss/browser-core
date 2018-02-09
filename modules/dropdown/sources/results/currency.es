@@ -3,6 +3,7 @@ import utils from '../../core/utils';
 import { copyToClipboard } from '../../core/clipboard';
 
 export default class CurrencyResult extends BaseResult {
+
   get template() {
     return 'currency';
   }

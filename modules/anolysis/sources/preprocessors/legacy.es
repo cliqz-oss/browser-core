@@ -15,23 +15,19 @@ function getSelectionType(signal) {
 const preprocessors = {
   activity_result_click: signal => ({
     type: 'result_selection_click',
-    behavior: {
-      current_position: signal.current_position,
-      query_length: signal.query_length,
-      reaction_time: signal.reaction_time,
-      display_time: signal.display_time,
-      urlbar_time: signal.urlbar_time,
-    },
+    current_position: signal.current_position,
+    query_length: signal.query_length,
+    reaction_time: signal.reaction_time,
+    display_time: signal.display_time,
+    urlbar_time: signal.urlbar_time,
   }),
   activity_result_enter: signal => ({
     type: `result_selection_${getSelectionType(signal)}`,
-    behavior: {
-      current_position: signal.current_position,
-      query_length: signal.query_length,
-      reaction_time: signal.reaction_time,
-      display_time: signal.display_time,
-      urlbar_time: signal.urlbar_time,
-    },
+    current_position: signal.current_position,
+    query_length: signal.query_length,
+    reaction_time: signal.reaction_time,
+    display_time: signal.display_time,
+    urlbar_time: signal.urlbar_time,
   }),
 };
 

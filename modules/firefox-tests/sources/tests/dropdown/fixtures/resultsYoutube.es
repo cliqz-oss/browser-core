@@ -1,6 +1,6 @@
 export default [
   {
-    url: 'https://www.youtube.com/',
+    url: 'https://www.youtube.com/?hl=de\u0026gl=DE',
     score: 21242.994,
     snippet: {
       deepResults: [

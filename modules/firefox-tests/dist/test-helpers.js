@@ -1,18 +1,14 @@
-/* eslint func-names: "off" */
-/* eslint no-unused-vars: "off" */
-/* eslint prefer-arrow-callback: "off" */
 /* global window */
 
 function injectTestHelpers(CliqzUtils, loadModule) {
-  const win = CliqzUtils.getWindow();
-  const urlBar = win.CLIQZ.Core.urlbar;
-  const lang = CliqzUtils.getLocalizedString('locale_lang_code');
-  const TIP = Components.classes['@mozilla.org/text-input-processor;1']
-    .createInstance(Components.interfaces.nsITextInputProcessor);
-  let popup = win.CLIQZ.Core.popup;
+  var win = CliqzUtils.getWindow();
+  var urlBar = win.CLIQZ.Core.urlbar;
+  var popup = win.CLIQZ.Core.popup;
+  var lang = CliqzUtils.getLocalizedString('locale_lang_code');
+  var TIP = Components.classes['@mozilla.org/text-input-processor;1'].
+    createInstance(Components.interfaces.nsITextInputProcessor);
 
   window.setUserInput = function setUserInput(text) {
-    urlBar.valueIsTyped = true;
     popup.mPopupOpen = false;
     urlBar.focus();
     urlBar.mInputField.focus();
@@ -32,10 +28,9 @@ function injectTestHelpers(CliqzUtils, loadModule) {
   };
 
   window.waitFor = function waitFor(fn, until) {
-    let resolver;
-    let rejecter;
-    let interval;
-    const promise = new Promise(function (res, rej) {
+  	var resolver;
+    var rejecter;
+    var promise = new Promise(function (res, rej) {
       resolver = res;
       rejecter = rej;
     });
@@ -43,10 +38,10 @@ function injectTestHelpers(CliqzUtils, loadModule) {
     function check() {
       if (fn()) {
         clearInterval(interval);
-        resolver();
+        resolver()
       }
     }
-    interval = setInterval(check, 100);
+    var interval = setInterval(check, 100);
     check();
     registerInterval(interval);
 
@@ -75,20 +70,20 @@ function injectTestHelpers(CliqzUtils, loadModule) {
       }));
   };
 
-  window.waitUntilServerUp = function waitUntilServerUp(testUrl, count, callback) {
+  window.wait_until_server_up = function wait_until_server_up(testUrl, count, callback) {
     if (count <= 0) {
-      callback('Failed to start server');
+      callback("Failed to start server");
       return;
     }
     CliqzUtils.httpGet(testUrl, callback, function () {
       setTimeout(function () {
-        waitUntilServerUp(testUrl, count - 1, callback);
+        wait_until_server_up(testUrl, count - 1, callback);
       }, 100);
-    });
+    })
   };
 
   window.registerInterval = function registerInterval(interval) {
-    if (!window.TestIntervals) { window.TestIntervals = []; }
+    if(!window.TestIntervals) { window.TestIntervals = []; }
     TestIntervals.push(interval);
   };
 
@@ -96,79 +91,27 @@ function injectTestHelpers(CliqzUtils, loadModule) {
     window.TestIntervals && window.TestIntervals.forEach(window.clearInterval);
   };
 
-  window.click = function click(el, opt) {
-    const _opt = opt || {};
-    const ev = new MouseEvent('mouseup', {
+  window.click = function click(el) {
+    var ev = new MouseEvent("mouseup", {
       bubbles: true,
       cancelable: false,
-      ctrlKey: _opt.ctrlKey || true,
-      metaKey: _opt.metaKey || true
+      ctrlKey: true,
+      metaKey: true
     });
-    el.dispatchEvent(ev);
+    el.dispatchEvent(ev)
   };
 
-  window.press = function press(opt) {
-    let modKey;
-    let modCode;
-    let modifierEvent;
-
-    const event = new KeyboardEvent('', {
-      key: opt.key,
-      code: opt.code || opt.key
-    });
-
-    if (
-      (
-        opt.ctrlKey !== undefined ||
-        opt.altKey !== undefined ||
-        opt.metaKey !== undefined ||
-        opt.shiftKey !== undefined
-      )
-    ) {
-      if (opt.ctrlKey === true) {
-        modKey = 'Control';
-        modCode = 'ControlLeft';
-      } else if (opt.metaKey === true) {
-        modKey = 'Meta';
-        modCode = 'MetaLeft';
-      } else if (opt.shiftKey === true) {
-        modKey = 'Shift';
-        modCode = 'ShiftLeft';
-      }
-
-      modifierEvent = new KeyboardEvent('', {
-        key: modKey,
-        code: modCode
-      });
-    }
-
+  window.press = function press(key, code) {
+    const event = new KeyboardEvent('', { key: key, code: code });
     TIP.beginInputTransaction(win, console.log);
-    if (modifierEvent !== undefined) {
-      TIP.keydown(modifierEvent);
-    }
-
     TIP.keydown(event);
   };
 
-  window.pressAndWaitFor = function pressAndWaitFor(opt, condition) {
-    press(opt);
-    return waitFor(function () {
-      return condition();
-    });
-  };
-
-  window.release = function release(opt) {
-    const event = new KeyboardEvent('', {
-      key: opt.key,
-      code: opt.code || opt.key,
-      ctrlKey: opt.ctrlKey || false,
-      shiftKey: opt.shiftKey || false,
-      altKey: opt.altKey || false,
-      metaKey: opt.metaKey || false
-    });
+  window.release = function release(key, code) {
+    const event = new KeyboardEvent('', { key: key, code: code });
     TIP.beginInputTransaction(win, console.log);
     TIP.keyup(event);
-  };
+  }
 
   /*
   window.enter = function enter(el) {
@@ -182,7 +125,7 @@ function injectTestHelpers(CliqzUtils, loadModule) {
   };
   */
 
-  window.respondWithSuggestions = function respondWithSuggestions(options) {
+  window.respondWithSuggestions = function respondWithSuggestions (options) {
     options = options || {};
     CliqzUtils.getSuggestions = function () {
       return Promise.resolve({
@@ -194,18 +137,17 @@ function injectTestHelpers(CliqzUtils, loadModule) {
     };
   };
 
-  // patches getBackendResults
   window.respondWith = function respondWith(res) {
     function getQuery(url) {
-      const a = document.createElement('a');
+      var a = document.createElement('a');
       a.setAttribute('href', url);
 
-      const params = new URLSearchParams(a.search);
-      const queries = params.getAll('q');
+      var params = new URLSearchParams(a.search);
+      var queries = params.getAll('q');
       return queries[queries.length - 1];
     }
 
-    const response = {
+    var response = {
       results: res.results,
       suggestions: res.suggestions,
     };
@@ -221,20 +163,7 @@ function injectTestHelpers(CliqzUtils, loadModule) {
             );
           },
         });
-      };
-    };
-  };
-
-  // patches getSnippet which calls RichHeader directly
-  window.respondWithSnippet = function respondWith(snippet) {
-    CliqzUtils.fetchFactory = function () {
-      return function fetch(url) {
-        return Promise.resolve({
-          json() {
-            return Promise.resolve(snippet);
-          },
-        });
-      };
+      }
     };
   };
 
@@ -249,16 +178,16 @@ function injectTestHelpers(CliqzUtils, loadModule) {
   };
 
   window.$cliqzResults = function $cliqzResults() {
-    return $(win.document.getElementById('cliqz-dropdown'));
+    return $(win.document.getElementById("cliqz-dropdown"));
   };
 
   window.$cliqzMessageContainer = function $cliqzResults() {
-    return $(win.document.getElementById('cliqz-message-container'));
-  };
+    return $(win.document.getElementById("cliqz-message-container"));
+  }
 
   window.waitForPopup = function () {
     return waitFor(function () {
-      popup = win.document.getElementById('PopupAutoCompleteRichResultCliqz');
+      var popup = win.document.getElementById("PopupAutoCompleteRichResultCliqz");
       return popup && popup.mPopupOpen === true;
     }).then(function () {
       return new Promise(function (resolve) {
@@ -267,25 +196,14 @@ function injectTestHelpers(CliqzUtils, loadModule) {
     });
   };
 
-  window.waitForPopupClosed = function () {
-    return waitFor(function () {
-      popup = win.document.getElementById('PopupAutoCompleteRichResultCliqz');
-      return popup && popup.mPopupOpen === false;
-    }).then(function () {
-      return new Promise(function (resolve) {
-        CliqzUtils.setTimeout(resolve, 200);
-      });
-    });
-  };
-
   window.waitForResult = function () {
-    return waitFor(function () {
-      return $cliqzResults().find('.cqz-result-box').length > 0;
-    }).then(function () {
-      return new Promise(function (resolve) {
-        CliqzUtils.setTimeout(resolve, 250);
+      return waitFor(function () {
+        return $cliqzResults().find(".cqz-result-box").length > 0;
+      }).then(function () {
+        return new Promise(function (resolve) {
+          CliqzUtils.setTimeout(resolve, 250);
+        });
       });
-    });
   };
 
   window.sleep = function (ms) {
@@ -294,19 +212,18 @@ function injectTestHelpers(CliqzUtils, loadModule) {
     });
   };
 
-  window.getLocaliseString = function (targets) {
-    return lang === 'de-DE' ? targets.de : targets.default;
+  window.getLocaliseString = function(targets) {
+    return lang === "de-DE" ? targets.de : targets.default;
   };
 
-  window.closeAllTabs = function (gBrowser) {
-    const nonChromeTabs = Array.prototype.filter
-      .call(gBrowser.tabContainer.childNodes, function (tab) {
-        const currentBrowser = gBrowser.getBrowserForTab(tab);
-        return currentBrowser && currentBrowser.currentURI && !currentBrowser.currentURI.spec.startsWith('chrome://');
-      });
-    nonChromeTabs.forEach(function (tab) {
+  window.closeAllTabs = function(gBrowser) {
+    var nonChromeTabs = Array.prototype.filter.call(gBrowser.tabContainer.childNodes, function(tab) {
+      var currentBrowser = gBrowser.getBrowserForTab(tab);
+      return currentBrowser && currentBrowser.currentURI && ! currentBrowser.currentURI.spec.startsWith('chrome://')
+    });
+    nonChromeTabs.forEach( function(tab) {
       gBrowser.removeTab(tab);
     });
-    return nonChromeTabs.length;
-  };
+    return nonChromeTabs.length
+  }
 }

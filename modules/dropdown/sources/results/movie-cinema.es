@@ -270,9 +270,9 @@ export default class MovieCinemaResult extends GenericResult {
 
   get showTimeResults() {
     const results = this.showTimesInfo
-      .map(date => date.rows.map(row => row.showTimes))
-      .reduce((arr, el) => [...arr, ...el], [])
-      .reduce((arr, el) => [...arr, ...el], []);
+                    .map(date => date.rows.map(row => row.showTimes))
+                    .reduce((arr, el) => [...arr, ...el], [])
+                    .reduce((arr, el) => [...arr, ...el], []);
 
     return results;
   }

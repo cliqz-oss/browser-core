@@ -62,6 +62,7 @@ export default class CategoryPersistentDataHelper {
         const catDataObj = catData[i];
         catDataObj.patterns = patternsData[catDataObj.name];
         category.deserialize(catDataObj);
+
         // do not load anything on debug
         if (!utils.getPref('offersDevFlag', false)) {
           result.push(category);

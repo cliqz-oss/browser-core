@@ -14,7 +14,6 @@ import { isCliqzBrowser, isCliqzAtLeastInVersion } from '../core/platform';
 import prefs from '../core/prefs';
 import { dismissMessage, countMessageClick } from './actions/message';
 import { getLanguageFromLocale } from '../core/i18n';
-import HistoryService from '../platform/history-service';
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
@@ -68,9 +67,6 @@ export default background({
     this.adultDomainChecker = new AdultDomain();
     this.settings = settings;
     this.messages = {};
-    this.onVisitRemoved = this._onVisitRemoved.bind(this);
-
-    HistoryService.onVisitRemoved.addListener(this.onVisitRemoved);
   },
   /**
   * @method unload
@@ -82,33 +78,6 @@ export default background({
       this.newTabPage.shutdown();
     } else {
       this.newTabPage.rollback();
-    }
-
-    HistoryService.onVisitRemoved.removeListener(this.onVisitRemoved);
-  },
-
-  _onVisitRemoved(removed) {
-    if (removed.allHistory) {
-      this.actions.refreshHistoryDependentPages();
-    } else {
-      const historyUrls = [...mapWindows(w => w).map(queryActiveTabs).reduce((aUrls, aTabs) => {
-        return new Set([
-          ...removed.urls,
-          ...aTabs.map(t => t.url),
-        ]);
-      }, new Set())]
-      .filter(isHistoryDependentPage);
-
-      historyUrls.forEach((url) => {
-        this.core.action(
-          'broadcastMessage',
-           url,
-          {
-            action: 'updateHistoryUrls',
-            message: { urls: removed.urls },
-          }
-        );
-      });
     }
   },
 
@@ -154,7 +123,10 @@ export default background({
 
   getComponentsState() {
     const config = JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}'));
-    const defaultBg = 'bg-winter';
+    let defaultBg = 'bg-default';
+    if (this.isBlueBackgroundSupported) {
+      defaultBg = 'bg-blue';
+    }
     return {
       historyDials: Object.assign({}, DEFAULT_COMPONENT_STATE, config.historyDials),
       customDials:  Object.assign({}, DEFAULT_COMPONENT_STATE, config.customDials),
@@ -634,6 +606,29 @@ export default background({
     "geolocation:wake-notification": function onWake(timestamp) {
       this.actions.getNews().then(() => {
         this.actions.refreshFrontend();
+      });
+    },
+    "history:cleared": function onHistoryCleared() {
+      this.actions.refreshHistoryDependentPages();
+    },
+    "history:removed": function onHistoryRemoved(urls) {
+      const historyUrls = [...mapWindows(w => w).map(queryActiveTabs).reduce((aUrls, aTabs) => {
+        return new Set([
+          ...urls,
+          ...aTabs.map(t => t.url),
+        ]);
+      }, new Set())]
+      .filter(isHistoryDependentPage);
+
+      historyUrls.forEach((url) => {
+        this.core.action(
+          'broadcastMessage',
+           url,
+          {
+            action: 'updateHistoryUrls',
+            message: { urls },
+          }
+        );
       });
     },
   },

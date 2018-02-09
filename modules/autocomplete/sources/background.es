@@ -20,12 +20,10 @@ function onReady() {
   });
 }
 
-const _getSnippet = (url, data) => utils.fetchFactory()(url, { method: 'PUT', body: data })
+const _getSnippet = (url, data) => fetch(url, { method: 'PUT', body: data })
   .then(r => r.json())
   .then((response) => {
-    const oldResult = JSON.parse(data).results[0];
-    const result = response.results.find(r => oldResult.url === r.url);
-    const snippet = result.snippet;
+    const snippet = response.results[0].snippet;
     if (!snippet) {
       throw new Error('unknown');
     }

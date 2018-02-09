@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import cliqz from '../cliqz';
 
 export default class TopMessages extends React.Component {
+
   handleClose(id, handler) {
     cliqz.freshtab.dismissMessage(id, handler);
     cliqz.storage.setState((prevState) => {
@@ -18,15 +19,15 @@ export default class TopMessages extends React.Component {
     return (
       <div id="notificationsBox">
         {
-          this.props.messages.map(message =>
-            <div className="notificationsCon clearfix" key={message.id}>
+          this.props.messages.map((message, i) =>
+            <div className="notificationsCon clearfix" key={i}>
               <div className="close">
                 <button
                   href="#"
                   onClick={this.handleClose(message.id, message.handler)}
                 >
                   <img
-                    alt=""
+                    role="presentation"
                     src="./close_icon.svg"
                   />
                 </button>
@@ -34,7 +35,7 @@ export default class TopMessages extends React.Component {
               <img
                 className="logo"
                 width="40px"
-                alt=""
+                role="presentation"
                 src="./new-cliqz.png"
               />
               <div className="text">

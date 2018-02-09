@@ -4,11 +4,13 @@ var path = require('path');
 var Funnel = require('broccoli-funnel');
 var MergeTrees = require('broccoli-merge-trees');
 var Babel = require('broccoli-babel-transpiler');
-var ESLint = require('broccoli-lint-eslint');
+var eslint = require('broccoli-lint-eslint');
 var broccoliSource = require('broccoli-source');
 var watchify = require('broccoli-watchify');
 var WatchedDir = broccoliSource.WatchedDir;
+var UnwatchedDir = broccoliSource.UnwatchedDir;
 const writeFile = require('broccoli-file-creator');
+const concat = require('broccoli-concat');
 var env = require('./cliqz-env');
 
 var cliqzConfig = require('./config');
@@ -25,6 +27,7 @@ var getDistTree = require('./modules/dist-tree');
 
 var walk = helpers.walk;
 
+const bowerComponents = new UnwatchedDir('bower_components');
 const modulesTree = new WatchedDir('modules');
 
 let babelModulePlugin;
@@ -56,7 +59,6 @@ const babelOptions = {
   sourceMaps: false,
   filterExtensions: ['es', 'jsx'],
   plugins: [
-    'transform-class-properties',
     'transform-exponentiation-operator',
     'transform-object-rest-spread',
     'transform-react-jsx',
@@ -90,6 +92,30 @@ function getPlatformTree() {
     destDir: 'platform',
   });
 }
+
+var requiredBowerComponents = new Set();
+
+const moduleConfigs = cliqzConfig.modules.map(name => {
+  let configJson;
+
+  try {
+    configJson = fs.readFileSync('modules/'+name+'/config.json');
+  } catch(e) {
+    // Existance of config.json is not required
+    configJson = "{}";
+  }
+
+  let config = JSON.parse(configJson);
+  config.name = name;
+  config.transpile = typeof config.transpile === "boolean" ? config.transpile : true;
+
+  return config;
+});
+
+moduleConfigs.forEach( config => {
+  (config.bower_components || []).forEach(Set.prototype.add.bind(requiredBowerComponents));
+});
+
 
 function getSourceFunnel() {
   return new Funnel(modulesTree, {
@@ -157,7 +183,7 @@ function getLintTestsTree() {
       srcDir,
       exclude: [filePath => shouldNotLint(filePath, srcDir)],
     });
-    const esLinterTree = ESLint.create(treeToLint, {
+    const esLinterTree = eslint(treeToLint, {
       options: eslintOptions,
       testGenerator,
     });
@@ -293,6 +319,10 @@ const staticTree = new MergeTrees([
   getSassTree(),
 ]);
 
+const bowerTree = new MergeTrees([
+  new Funnel(bowerComponents, { include: Array.from(requiredBowerComponents) }),
+]);
+
 const styleCheckTestsTree = cliqzConfig.PRODUCTION ?
   new MergeTrees([]) : getLintTestsTree();
 
@@ -306,6 +336,7 @@ const bundlesTree = getBundlesTree(
 module.exports = {
   static: staticTree,
   modules: sourceTree,
+  bower: bowerTree,
   bundles: bundlesTree,
   styleTests: styleCheckTestsTree,
 };

@@ -147,4 +147,5 @@ export default class TriggerMachine {
       t.built_actions = null;
     }
   }
+
 }

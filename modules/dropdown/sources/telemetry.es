@@ -22,7 +22,7 @@ function common({ results, result, clickedResult, url }) {
     signal.sub_result_type = clickedResult.constructor.name;
     signal.sub_result_index = result.allResults.filter(
       r => r instanceof clickedResult.constructor).findIndex(
-      r => equals(r.url, url)
+        r => equals(r.url, url)
     );
   }
 
@@ -39,8 +39,6 @@ function common({ results, result, clickedResult, url }) {
 
 function generateCommonStub({ query }) {
   return {
-    type: 'activity',
-    v: 3.0,
     current_position: 0,
     display_time: null,
     local_source: '',

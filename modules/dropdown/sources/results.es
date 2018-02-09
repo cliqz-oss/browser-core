@@ -148,8 +148,7 @@ export default class Results {
     rerender,
     getSnippet,
     copyToClipboard,
-    isNewSearchMode,
-    updateTabQuery,
+    isNewSearchMode
   } = {}) {
     this.rerender = rerender;
     this.query = query;
@@ -163,7 +162,6 @@ export default class Results {
       getSnippet,
       copyToClipboard,
       query: queryCliqz,
-      updateTabQuery,
     };
     this.results = ResultFactory.createAll(rawResults, actions);
 
@@ -269,7 +267,7 @@ export default class Results {
     );
   }
 
-  addAdultQuestionResult({ onButtonClick }, actions = {}) {
+  addAdultQuestionResult({ onButtonClick, adultAssistant }, actions = {}) {
     const result = new AdultQuestionResult({
       text: this.query,
       onButtonClick,

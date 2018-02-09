@@ -50,16 +50,8 @@ export default describeModule("freshtab/background",
         }
       },
       "core/i18n": {
-        getLanguageFromLocale: function() {}
-      },
-      "platform/history-service": {
-        default: {
-          onVisitRemoved: {
-            addListener() {},
-            removeListener() {}
-          },
-        }
-      },
+        getLanguageFromLocale: function() {}  
+      }
     }
   },
   function () {

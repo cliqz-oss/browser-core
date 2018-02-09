@@ -115,6 +115,13 @@ export default describeModule('history-analyzer/history_handler',
         return Math.floor(Math.random());
       },
     },
+    'core/adblocker-base/filters-engine': {
+      default: {
+        processRawRequest: function(r) {
+          return r;
+        }
+      }
+    },
     // /////////////////////////////////////////////////////////////////////////
     //
     'history-analyzer/logger': {

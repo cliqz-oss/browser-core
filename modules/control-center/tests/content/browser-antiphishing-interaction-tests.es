@@ -31,7 +31,7 @@ function antiphishingInteractionTests(amo) {
       return waitFor(
         () => subject.messages.find(message => message.message.action === 'updateState')
       ).then(
-        message => chai.expect(message).to.have.nested.property('message.data', 'active')
+        message => chai.expect(message).to.have.deep.property('message.data', 'active')
       );
     });
   };
@@ -59,10 +59,10 @@ function antiphishingInteractionTests(amo) {
           () => subject.messages.find(message => message.message.action === "anti-phishing-activator")
         ).then(
           message => {
-            chai.expect(message).to.have.nested.property("message.data.type", "switch");
-            chai.expect(message).to.have.nested.property("message.data.state", "inactive");
-            chai.expect(message).to.have.nested.property("message.data.status", "inactive");
-            chai.expect(message).to.have.nested.property("message.data.url", dataOn.activeURL);
+            chai.expect(message).to.have.deep.property("message.data.type", "switch");
+            chai.expect(message).to.have.deep.property("message.data.state", "inactive");
+            chai.expect(message).to.have.deep.property("message.data.status", "inactive");
+            chai.expect(message).to.have.deep.property("message.data.url", dataOn.activeURL);
           }
         );
       });
@@ -88,10 +88,10 @@ function antiphishingInteractionTests(amo) {
           () => subject.messages.find(message => message.message.action === 'anti-phishing-activator')
         ).then(
           message => {
-            chai.expect(message).to.have.nested.property('message.data.type', 'switch');
-            chai.expect(message).to.have.nested.property('message.data.state', 'active');
-            chai.expect(message).to.have.nested.property('message.data.status', 'active');
-            chai.expect(message).to.have.nested.property('message.data.url', dataOffSite.activeURL);
+            chai.expect(message).to.have.deep.property('message.data.type', 'switch');
+            chai.expect(message).to.have.deep.property('message.data.state', 'active');
+            chai.expect(message).to.have.deep.property('message.data.status', 'active');
+            chai.expect(message).to.have.deep.property('message.data.url', dataOffSite.activeURL);
           }
         );
       });
@@ -123,10 +123,10 @@ function antiphishingInteractionTests(amo) {
             () => subject.messages.find(message => message.message.action === 'anti-phishing-activator')
           ).then(
             message => {
-              chai.expect(message).to.have.nested.property('message.data.type', 'off_select');
-              chai.expect(message).to.have.nested.property('message.data.state', 'off_all');
-              chai.expect(message).to.have.nested.property('message.data.status', 'critical');
-              chai.expect(message).to.have.nested.property('message.data.url', dataOffSite.activeURL);
+              chai.expect(message).to.have.deep.property('message.data.type', 'off_select');
+              chai.expect(message).to.have.deep.property('message.data.state', 'off_all');
+              chai.expect(message).to.have.deep.property('message.data.status', 'critical');
+              chai.expect(message).to.have.deep.property('message.data.url', dataOffSite.activeURL);
             }
           );
         });
@@ -153,10 +153,10 @@ function antiphishingInteractionTests(amo) {
           () => subject.messages.find(message => message.message.action === 'anti-phishing-activator')
         ).then(
           message => {
-            chai.expect(message).to.have.nested.property('message.data.type', 'switch');
-            chai.expect(message).to.have.nested.property('message.data.state', 'active');
-            chai.expect(message).to.have.nested.property('message.data.status', 'active');
-            chai.expect(message).to.have.nested.property('message.data.url', dataOffAll.activeURL);
+            chai.expect(message).to.have.deep.property('message.data.type', 'switch');
+            chai.expect(message).to.have.deep.property('message.data.state', 'active');
+            chai.expect(message).to.have.deep.property('message.data.status', 'active');
+            chai.expect(message).to.have.deep.property('message.data.url', dataOffAll.activeURL);
           }
         );
       });
@@ -188,10 +188,10 @@ function antiphishingInteractionTests(amo) {
             () => subject.messages.find(message => message.message.action === 'anti-phishing-activator')
           ).then(
             message => {
-              chai.expect(message).to.have.nested.property('message.data.type', 'off_select');
-              chai.expect(message).to.have.nested.property('message.data.state', 'off_website');
-              chai.expect(message).to.have.nested.property('message.data.status', 'inactive');
-              chai.expect(message).to.have.nested.property('message.data.url', dataOffAll.activeURL);
+              chai.expect(message).to.have.deep.property('message.data.type', 'off_select');
+              chai.expect(message).to.have.deep.property('message.data.state', 'off_website');
+              chai.expect(message).to.have.deep.property('message.data.status', 'inactive');
+              chai.expect(message).to.have.deep.property('message.data.url', dataOffAll.activeURL);
             }
           );
         });

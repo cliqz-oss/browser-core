@@ -17,10 +17,7 @@ const MOCK = {
       module() { return { action() {} }; }
     }
   },
-  'core/demographics': {
-    default: () => Promise.resolve(mockUserDemographics),
-  },
-  'core/synchronized-time': {
+  'anolysis/synchronized-date': {
     default: () => mockSynchronizedDate,
   },
   'core/crypto/random': {
@@ -56,7 +53,7 @@ class MockStorage {
 
 const MODULE_STORAGE_RUNNING_KEY = 'abtests.running';
 const MODULE_STORAGE_COMPLETED_KEY = 'abtests.completed';
-const SHARED_STORAGE_KEY = 'abtests_running';
+const SHARED_STORAGE_KEY = 'abtests.active';
 
 const mockTest1 = {
   id: '1',
@@ -93,15 +90,7 @@ export default describeModule('abtests/manager',
         mockModuleStorage = new MockStorage();
         mockSharedStorage = new MockStorage();
         manager = new Manager({ }, mockModuleStorage, mockSharedStorage);
-        availableTests = [
-          { id: '1', groups: {} },
-          { id: '2', groups: {
-            'A': {
-              a_pref: 10,
-            },
-          } }
-        ];
-        manager.chooseTestGroup = () => 'A';
+        availableTests = [ { id: '1', groups: [] }, { id: '2', groups: [] }]
         manager.client.getAvailableTests = () => Promise.resolve(availableTests);
         manager.client.leaveTest = () => Promise.resolve();
         manager.updateRunningTests = sinon.spy(() => []);
@@ -126,20 +115,6 @@ export default describeModule('abtests/manager',
 
           chai.expect(stoppedTests.length).to.equal(1);
           chai.expect(stoppedTests[0].id).to.equal('3');
-        });
-      });
-      it('takes prefs of upcoming tests if expired and upcoming tests modify the same prefs', () => {
-        manager.runningTests = { '3': {
-          id: '3',
-          groups: { 'A': { a_pref: 5 } },
-          group: 'A',
-        }};
-        manager.shouldStartTest = ({ id }) => Promise.resolve(id === '2');
-        manager.shouldStopTest = ({ id }) => id === '3';
-        manager.client.enterTest = () => Promise.resolve(true);
-        return manager.updateTests().then(() => {
-          chai.expect(mockSharedStorage.database[SHARED_STORAGE_KEY]).to.equal('["2_A"]');
-          chai.expect(mockSharedStorage.database['a_pref']).to.equal(10);
         });
       });
     });
@@ -643,6 +618,11 @@ export default describeModule('abtests/manager',
 
       it('does not match non-existent factor', () => {
         mockUserDemographics = { platform: 'Desktop/Mac OS/10.12' };
+        return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ' } })).to.eventually.be.false;
+      });
+
+      it('does not fails if anolyis returns `null`', () => {
+        mockUserDemographics = null;
         return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ' } })).to.eventually.be.false;
       });
 

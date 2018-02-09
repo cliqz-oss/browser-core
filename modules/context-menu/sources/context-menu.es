@@ -44,9 +44,9 @@ export default class ContextMenu {
   */
   init() {
     this.contextMenu.addEventListener(
-      'popupshowing', this.onPopupShowing, false);
+        'popupshowing', this.onPopupShowing, false);
     this.contextMenu.addEventListener(
-      'popuphiding', this.onPopupHiding, false);
+        'popuphiding', this.onPopupHiding, false);
   }
 
   /**
@@ -58,7 +58,7 @@ export default class ContextMenu {
       this.unloaded = true;
       this.removeMenuItems();
       this.contextMenu.removeEventListener('popupshowing', this.onPopupShowing);
-      this.contextMenu.removeEventListener('popuphiding', this.onPopupHiding);
+      this.contextMenu.removeEventListener('popupHiding', this.onPopupHiding);
     }
   }
 

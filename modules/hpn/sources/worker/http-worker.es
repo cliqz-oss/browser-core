@@ -1,33 +1,38 @@
 export default function (url) {
-  const core = {
+
+	var core = {
+
     // Method that performs request
-    req(method, uri, data, type) {
-      // Creating a promise
-      const promise = new Promise((resolve, reject) => {
+    req : function (method, url, data, type) {
+	      // Creating a promise
+	   var promise = new Promise( function (resolve, reject) {
+
         // Instantiates the XMLHttpRequest
-        const client = new XMLHttpRequest();
+        var client = new XMLHttpRequest();
+        var uri = url;
+        var ts = new Date().getTime();
 
         client.open(method, uri, true);
-        client.setRequestHeader('x-type', type || 'delayed');
+        client.setRequestHeader("x-type", type ? type : "delayed");
         client.overrideMimeType('application/json');
-        // client.setRequestHeader("Content-Type", "application/json;charset=utf-8");
+        //client.setRequestHeader("Content-Type", "application/json;charset=utf-8");
 
-        client.onload = () => {
-          const statusClass = parseInt(client.status / 100, 10);
-          if (statusClass === 2 || statusClass === 3 || statusClass === 0 /* local files */) {
-            // Performs the function "resolve" when client.status is equal to 2xx
-            resolve(client.response);
+        client.onload = function () {
+        	var statusClass = parseInt(client.status / 100);
+          if(statusClass == 2 || statusClass == 3 || statusClass == 0 /* local files */){
+            // Performs the function "resolve" when this.status is equal to 2xx
+            resolve(this.response);
           } else {
-            // Performs the function "reject" when client.status is different than 2xx
-            const errorMessage = client.statusText || `Request failed with status ${client.status}`;
+            // Performs the function "reject" when this.status is different than 2xx
+            let errorMessage = this.statusText || `Request failed with status ${client.status}`;
             reject(errorMessage);
           }
         };
-        client.onerror = () => {
-          reject(client.statusText);
+        client.onerror = function () {
+        	reject(this.statusText);
         };
-        client.ontimeout = () => {
-          reject(client.statusText);
+        client.ontimeout = function(){
+        	reject(this.statusText);
         };
 
         client.send(data);
@@ -40,11 +45,11 @@ export default function (url) {
 
 
   return {
-    get(args) {
-      return core.req('GET', url, args);
-    },
-    post(args, type) {
-      return core.req('POST', url, args, type);
-    }
+  	'get' : function(args) {
+  		return core.req('GET', url, args);
+  	},
+  	'post' : function(args, type) {
+  		return core.req('POST', url, args, type);
+  	}
   };
 }

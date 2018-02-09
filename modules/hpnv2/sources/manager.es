@@ -224,36 +224,36 @@ export default class Manager {
     // TODO: protect against attacks like different sourceMaps, different publicKeys
     // attempting to distinguish users.
     return nextTick(() => this.sendStats())
-      .then(() => this.initUserPK().catch(e => wrapFailure(e, InitUserPKError)))
-      .then(() => {
-        const today = this.today();
-        const diffHours = this.hours() - this.db.getLastConfigTime();
-        const skipFetch = !this.debug && diffHours < 24 && this.getPublicKey(today) &&
-          this.getNextPublicKeys(today).length > 1;
-        if (skipFetch) {
-          this.logDebug('No need to fetch config');
-          return null;
+    .then(() => this.initUserPK().catch(e => wrapFailure(e, InitUserPKError)))
+    .then(() => {
+      const today = this.today();
+      const diffHours = this.hours() - this.db.getLastConfigTime();
+      const skipFetch = !this.debug && diffHours < 24 && this.getPublicKey(today) &&
+        this.getNextPublicKeys(today).length > 1;
+      if (skipFetch) {
+        this.logDebug('No need to fetch config');
+        return null;
+      }
+      return this.fetchConfig().catch(e => wrapFailure(e, FetchConfigError));
+    })
+    .then(() => this.joinGroups().catch(e => wrapFailure(e, JoinGroupsError)))
+    .then(() => this.loadCredentials().catch(e => wrapFailure(e, LoadCredentialsError)))
+    .then(() => {
+      if (!this.unloaded) {
+        this.logDebug('Config (re)loaded successfully!');
+        this.configLoader = setTimeout(this.loadConfig.bind(this, false), LOAD_CONFIG_INTERVAL);
+      }
+    })
+    .catch((e) => {
+      if (!this.unloaded) {
+        if (firstTime) {
+          throw e;
         }
-        return this.fetchConfig().catch(e => wrapFailure(e, FetchConfigError));
-      })
-      .then(() => this.joinGroups().catch(e => wrapFailure(e, JoinGroupsError)))
-      .then(() => this.loadCredentials().catch(e => wrapFailure(e, LoadCredentialsError)))
-      .then(() => {
-        if (!this.unloaded) {
-          this.logDebug('Config (re)loaded successfully!');
-          this.configLoader = setTimeout(this.loadConfig.bind(this, false), LOAD_CONFIG_INTERVAL);
-        }
-      })
-      .catch((e) => {
-        if (!this.unloaded) {
-          if (firstTime) {
-            throw e;
-          }
-          this.logError('Error loading config', e);
-          this.configError(e);
-          this.configLoader = setTimeout(this.loadConfig.bind(this, false), 60 * 1000);
-        }
-      });
+        this.logError('Error loading config', e);
+        this.configError(e);
+        this.configLoader = setTimeout(this.loadConfig.bind(this, false), 60 * 1000);
+      }
+    });
   }
 
   loadCredentials() {
@@ -354,16 +354,16 @@ export default class Manager {
 
   initUserPK() {
     return nextTick(() => {
-      if (this.publicKeyB64) {
+      if (this.userPK) {
         return nextTick(() => {});
       }
       const keyPromise = (this.userPK64 ? nextTick(() => this.userPK64) :
         generateRSAKeypair().then(([pub, priv]) =>
           this.registerKey(pub, priv)
-            .then(() => {
-              this.userPK64 = priv;
-              return priv;
-            })
+          .then(() => {
+            this.userPK64 = priv;
+            return priv;
+          })
         ));
 
       return keyPromise
@@ -528,24 +528,24 @@ export default class Manager {
             hours + period,
             limit
           )
+          .catch((e) => {
+            if (skipQuotaCheck) {
+              return 0;
+            }
+            throw (new MsgQuotaError(e));
+          })
+          .then(cnt =>
+            Promise.all([
+              sha256(mb, 'b64'),
+              sha256(JSON.stringify([...pretag, cnt]), 'b64'),
+            ])
+            .then(([hashm, bsn]) => this.signer.sign(fromBase64(hashm), fromBase64(bsn)))
             .catch((e) => {
-              if (skipQuotaCheck) {
-                return 0;
-              }
-              throw (new MsgQuotaError(e));
+              this.logError('Error signing msg', e);
+              throw (new SignMsgError());
             })
-            .then(cnt =>
-              Promise.all([
-                sha256(mb, 'b64'),
-                sha256(JSON.stringify([...pretag, cnt]), 'b64'),
-              ])
-                .then(([hashm, bsn]) => this.signer.sign(fromBase64(hashm), fromBase64(bsn)))
-                .catch((e) => {
-                  this.logError('Error signing msg', e);
-                  throw (new SignMsgError());
-                })
-                .then(sig => ({ sig, cnt }))
-            )
+            .then(sig => ({ sig, cnt }))
+          )
         );
       }
 
@@ -569,29 +569,29 @@ export default class Manager {
           data.set(sig, 1 + 2 + mb.length + 8);
           return data;
         })
-          .then(encoded =>
-            this.endpoints.send(encoded)
-              .catch(() => {
-                throw (new TransportError());
-              })
-          )
-          .then(() => {
-            this.actionIncrement(action, 'ok');
-          })
-          .then(resolve)
-          .catch(reject);
+        .then(encoded =>
+          this.endpoints.send(encoded)
+            .catch(() => {
+              throw (new TransportError());
+            })
+        )
+        .then(() => {
+          this.actionIncrement(action, 'ok');
+        })
+        .then(resolve)
+        .catch(reject);
       }))
-        .catch((e) => {
-          const nonRetriableErrors = [MsgQuotaError, TooBigMsgError];
-          if (!this.unloaded) {
-            if (nonRetriableErrors.every(x => !(e instanceof x)) && retries < MAX_RETRIES) {
-              msg.__retries = retries + 1;
-              this.msgQueue.push(msg);
-            } else {
-              this.actionError(msg && msg.action, e);
-            }
+      .catch((e) => {
+        const nonRetriableErrors = [MsgQuotaError, TooBigMsgError];
+        if (!this.unloaded) {
+          if (nonRetriableErrors.every(x => !(e instanceof x)) && retries < MAX_RETRIES) {
+            msg.__retries = retries + 1;
+            this.msgQueue.push(msg);
+          } else {
+            this.actionError(msg && msg.action, e);
           }
-        });
+        }
+      });
     });
   }
 }

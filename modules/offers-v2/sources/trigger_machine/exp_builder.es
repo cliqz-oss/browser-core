@@ -114,7 +114,7 @@ export default class ExpressionBuilder {
   }
 
   _buildOpExpr(e, parentTrigger) {
-    // check if e is valid (format)
+       // check if e is valid (format)
     if (!e || e.length === 0) {
       return null;
     }

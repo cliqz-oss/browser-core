@@ -3,12 +3,9 @@ import { clean, getMainLink } from './normalize';
 const group = (a, b) =>
   a.set(b.domain, [...(a.get(b.domain) || []), b]);
 
-const makeHeader = (domain, query, scheme = 'http', provider) => clean({
+const makeHeader = (domain, scheme = 'http') => clean({
   title: domain,
   url: `${scheme}://${domain}`,
-  text: query,
-  provider,
-  kind: ['C'],
   meta: {
     level: 0,
     type: 'main',
@@ -42,9 +39,8 @@ const cluster = (({ results, ...response }) => {
       const scheme = isHttps ? 'https' : 'http';
       // TODO: there is a chance that the domain on its own does not exist
       //       (in particular without 'www')
-      const query = response.query;
-      const header = (main && getMainLink(main)) ||
-        makeHeader(domain, query, scheme, response.provider);
+      const header = (main && getMainLink(main)) || makeHeader(domain, scheme);
+      // TODO: set `kind`
       const rest = grouped
         .filter(result => getMainLink(result).meta.url !== domain);
 
@@ -59,7 +55,6 @@ const cluster = (({ results, ...response }) => {
             .map(getMainLink)
             .map(link => ({
               ...link,
-              kind: ['C'],
               meta: {
                 level: 1,
                 type: 'history',

@@ -210,4 +210,5 @@ export default class LottoResult extends GenericResult {
       ...super.internalResults,
     ];
   }
+
 }

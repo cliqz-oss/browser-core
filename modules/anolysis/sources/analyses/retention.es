@@ -14,12 +14,12 @@ import logger from '../logger';
  *
  */
 function generateRetention({
-  state,
-  date,
-  timeframe,
-  schema,
-  getPreviousUnit,
-  initialOffset }) {
+    state,
+    date,
+    timeframe,
+    schema,
+    getPreviousUnit,
+    initialOffset }) {
   const getLength = offset => (state[getPreviousUnit(date, offset)] || []).length;
 
   const signals = [{

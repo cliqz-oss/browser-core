@@ -1,0 +1,6 @@
+{
+  "bower_components": [
+    "bigint/index.js",
+    "md5/index.js"
+  ]
+}

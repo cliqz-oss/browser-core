@@ -16,7 +16,6 @@ const merge = (responses) => {
     provider: last.provider,
     // config is set on new search (focus), thus is the same for all providers
     config: last.config,
-    query: last.query,
   };
 };
 

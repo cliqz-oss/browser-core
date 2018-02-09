@@ -77,12 +77,14 @@ def hasWipLabel(){
 def withCache(Closure body=null) {
   def cleanCache = {
     sh 'rm -fr node_modules'
+    sh 'rm -fr bower_components'
   }
 
   try {
     cleanCache()
     // Main dependencies
     sh 'cp -fr /home/jenkins/node_modules .'
+    sh 'cp -fr /home/jenkins/bower_components .'
 
     body()
   } finally {
