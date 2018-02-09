@@ -123,11 +123,19 @@ $(document).on('click', '.connect-page-link', () => {
   hidePopup();
 });
 
+function setHTML(el, html) {
+  if (el.unsafeSetInnerHTML) {
+    el.unsafeSetInnerHTML(html);
+  } else {
+    el.innerHTML = html;
+  }
+}
+
 function draw(data) {
   if (data.hidePairingIframe) {
     $('#connect-iframe').addClass('hidden');
   } else {
-    $('#video-downloader').html(templates.template(data));
+    setHTML($('#video-downloader').get(0), templates.template(data));
   }
   localizeDocument();
   resize();

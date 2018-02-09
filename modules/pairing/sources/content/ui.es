@@ -8,6 +8,16 @@ const images = {
   cliqz_icon: './images/cliqz-icon.png',
 };
 
+function setHTML(el, html) {
+  /* eslint-disable no-param-reassign */
+  if (el.unsafeSetInnerHTML) {
+    el.unsafeSetInnerHTML(html);
+  } else {
+    el.innerHTML = html;
+  }
+  /* eslint-enable no-param-reassign */
+}
+
 export default class PairingUI {
   constructor(window, PeerComm, telemetry) {
     this.i18n = window.chrome.i18n.getMessage.bind(window.chrome.i18n);
@@ -175,7 +185,8 @@ export default class PairingUI {
       unpair: this.i18n('pairing-unpair'),
     };
 
-    $('#content').html(this.TEMPLATE_CACHE.template(data));
+    const contentEl = $('#content').get(0);
+    setHTML(contentEl, this.TEMPLATE_CACHE.template(data));
 
     $('#unpair-button').click(() => {
       this.PeerComm.unpair();

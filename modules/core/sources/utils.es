@@ -119,7 +119,8 @@ var CliqzUtils = {
           return parseddomain.indexOf(rule) != -1
         },
         result = {},
-        domains = BRANDS_DATABASE.domains;
+        domains = BRANDS_DATABASE.domains,
+        blackTxtColor = '2d2d2d';
 
 
 
@@ -137,7 +138,8 @@ var CliqzUtils = {
             backgroundColor: rule.b?rule.b:null,
             backgroundImage: rule.l?"url(https://cdn.cliqz.com/brands-database/database/" + this.BRANDS_DATABASE_VERSION + "/logos/" + base + "/" + rule.r + ".svg)":"",
             text: rule.t,
-            color: rule.c?"":"#fff"
+            color: rule.c?"":"#fff",
+            brandTxtColor: rule.b?rule.b:blackTxtColor,
           }
 
           break
@@ -146,6 +148,7 @@ var CliqzUtils = {
     }
     result.text = result.text || `${baseCore[0] || ''}${baseCore[1] || ''}`.toLowerCase();
     result.backgroundColor = result.backgroundColor || BRANDS_DATABASE.palette[base.split("").reduce(function(a,b){ return a + b.charCodeAt(0) },0) % BRANDS_DATABASE.palette.length]
+    result.brandTxtColor = result.brandTxtColor || blackTxtColor;
     var colorID = BRANDS_DATABASE.palette.indexOf(result.backgroundColor),
         buttonClass = BRANDS_DATABASE.buttons && colorID != -1 && BRANDS_DATABASE.buttons[colorID]?BRANDS_DATABASE.buttons[colorID]:10
 

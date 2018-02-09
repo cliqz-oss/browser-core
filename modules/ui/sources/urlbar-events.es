@@ -114,11 +114,20 @@ export default {
 
   input() {
     nextTick(() => {
+      const input = this.urlbar.mInputField;
+      const hasSelection = input.selectionStart !== input.selectionEnd;
+      let query = input.value;
+
+      if (hasSelection) {
+        query = query.slice(0, input.selectionStart);
+      }
+
       events.pub('urlbar:input', {
-        windowId: this.windowId,
-        tabId: getCurrentTabId(this.window),
-        query: this.urlbar.mInputField.value,
+        isPrivate: utils.isPrivateMode(this.window),
         isTyped: this.urlbar.valueIsTyped,
+        query,
+        tabId: getCurrentTabId(this.window),
+        windowId: this.windowId,
       });
     });
   },

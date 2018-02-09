@@ -29,8 +29,19 @@
     <p class="description">{{template_data.desc}}</p>
     {{#if template_data.code}}
     <div class="promocode-wrapper">
-        <input class="code ellipsis" type="text" name="code" value="{{template_data.code}}" readonly="readonly">
-        <button class="copy-code" data-i18n="offers-hub-copy-btn"></button>
+        <input 
+            class="code ellipsis"
+            type="text"
+            name="code"
+            value="{{template_data.code}}"
+            readonly="readonly"
+            data-telemetry-id="copy_code"
+        >
+        <button
+            class="copy-code" 
+            data-i18n="offers-hub-copy-btn"
+            data-telemetry-id="copy_code">        
+        </button>
     </div>
     {{/if}}
     <div class="validity-wrapper">
@@ -46,16 +57,27 @@
             </div>
         </div>
     </div>
-    <button class="cta-btn" data-id="{{offer_id}}" data-url="{{template_data.call_to_action.url}}">
+    <button 
+        class="cta-btn" 
+        data-id="{{offer_id}}" 
+        data-url="{{template_data.call_to_action.url}}"
+        data-telemetry-id="use"
+    >
         {{template_data.call_to_action.text}}
     </button>
 </div>
 <div class="logo-wrapper">
     <div class="logo {{logoClass}}" style="background-image: url({{template_data.logo_url}})"></div>
-    <button class="setting"></button>
+    <button class="setting"
+            data-telemetry-id="menu">
+    </button>
 </div>
 <ul class="settings">
-    <li data-menu-type="delete" data-i18n="offers-hub-remove"></li>
+    <li 
+        data-menu-type="delete" 
+        data-i18n="offers-hub-remove"
+        data-telemetry-id="remove">
+    </li>
 </ul>
 
 {{!-- TODO: Check default and madatory fields to add conditions --}}

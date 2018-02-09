@@ -1,7 +1,7 @@
 body {
   width: 100%;
   overflow: hidden;
-  padding: 0 37px;
+  padding: 0 10px;
   margin: 0;
 }
 #cqz-browser-panel-re {
@@ -10,12 +10,12 @@ body {
 
   &:before {
     content: " ";
-    display: block;
+    display: none;
     width: 20px;
-    height: 20px;
+    height: 19px;
     background: url("../images/ticket-tmpl/cliqz-logo-offrz.svg");
     position: absolute;
-    bottom: 5px;
+    bottom: 10px;
     left: -30px;
   }
 
@@ -34,8 +34,8 @@ body {
 
   .close {
     position: absolute;
-    top: -2px;
-    right: -30px;
+    top: -4px;
+    right: 0px;
     cursor: pointer;
 
     img {
@@ -56,30 +56,33 @@ body {
     .code-box {
       position: relative;
       cursor: pointer;
-      background: #fff;
       font-size: 11px;
-      padding: 3px 25px 0 25px;
       font-weight: 500;
       letter-spacing: 1px;
 
-     &::before {
-        content:"";
-        position:absolute;
-        top:0;
-        left:0;
-        border-width: 17px 17px 0px 0px;
-        border-style:solid;
-        border-color: rgba(0, 0, 0, 0.125) transparent transparent rgba(0, 0, 0, 0.125);
-      }
+      .bevel {
+        border-color: #fff;
+        border-style: solid;
+        border-width: 17px;
 
-      &::after {
-        content:"";
-        position:absolute;
-        top:0;
-        right:0;
-        border-width: 17px 0px 0px 17px;
-        border-style:solid;
-        border-color: rgba(0, 0, 0, 0.125) transparent;
+        &.tr, &.tl {
+          border-top: 0px;
+          height: 0px;
+          width: 100%;
+        }
+
+        &.tl {
+          border-left-color: transparent;
+        }
+
+        &.tr {
+          border-right-color: transparent;
+          border-top:0;
+        }
+
+        .content {
+          padding: 0 5px;
+        }
       }
 
       .divider {
@@ -99,6 +102,13 @@ body {
         color: #00AEF0;
         position: relative;
         top: 2px;
+        display: inline-block;
+        max-width: 50px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+        position: relative;
+        top: 5px;
 
 
         &:hover {
@@ -132,7 +142,7 @@ body {
     align-items: center;
     font-family: "-mac-system", "-apple-system", "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     background: #fff;
-    min-width: 300px;
+    min-width: 275px;
 
     .flex-item {
       flex: 1;
@@ -224,6 +234,13 @@ body {
       flex-basis: 137px;
       margin-right: 20px;
       cursor: pointer;
+
+      img {
+        height: 76px;
+        position: relative;
+        top: -1px;
+        max-width: none;
+      }
     }
 
     .benefit {
@@ -237,6 +254,15 @@ body {
         flex: 1;
         font-size: 24px;
       }
+    }
+
+    .headline-container {
+      display: flex;
+      align-items: center;
+      flex-basis: 70px;
+      overflow: hidden;
+      min-height: 50px;
+      max-width: 220px;
     }
 
     .headline {
@@ -253,13 +279,10 @@ body {
 
     .common {
       color: #2d2d2d;
-      flex-basis: 70px;
       font-weight: 500;
       line-height: 16px;
       padding-right: 20px;
-      min-height: 33px;
-      max-height: 49px;
-      overflow: hidden;
+      max-height: 50px;
     }
 
     .description {
@@ -267,6 +290,7 @@ body {
       font-size: 11.5px;
       display: none;
       padding-right: 20px;
+      cursor: pointer;
 
       .desc-content {
         max-width: 355px;
@@ -322,6 +346,10 @@ body {
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
+
+        &:hover {
+          background-color: #0078CA;
+        }
       }
     }
 
@@ -343,10 +371,41 @@ body {
 }
 
 .tooltipster-sidetip.tooltipster-shadow.tooltipster-shadow-customized .tooltipster-box {
-  max-width: 550px;
-  height: 80px;
+  font-family: "-mac-system", "-apple-system", "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  max-width: 400px;
+  height: 62px;
   overflow-y: scroll;
-  font-size: 13.5px;
+  font-size: 11.5px;
+}
+
+@media only screen and (min-width: 475px) {
+
+  body {
+    padding-left: 37px;
+    padding-right: 37px;
+  }
+  #cqz-browser-panel-re {
+    &:before {
+      display: block;
+    }
+
+    .close {
+      top: -2px;
+      right: -30px;
+    }
+
+    .promo-container {
+      min-width: 300px;
+    }
+
+    .code-container {
+      .code-box {
+        .code-copy {
+          max-width: 100%;
+        }
+      }
+    }
+  }
 }
 
 @media only screen and (min-width: 550px) {
@@ -357,6 +416,7 @@ body {
       .headline {
         display: block;
         font-size: 13.5px;
+
       }
 
       .benefit {
@@ -377,8 +437,7 @@ body {
 
   #cqz-browser-panel-re {
     .promo-container {
-      .special-flags,
-      .headline {
+      .special-flags {
         display: block;
       }
 
@@ -398,7 +457,6 @@ body {
 @media only screen and (min-width: 768px) {
   #cqz-browser-panel-re {
     .promo-container {
-      .headline,
       .description {
         display: block;
       }

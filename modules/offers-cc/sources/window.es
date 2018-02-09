@@ -5,7 +5,6 @@ import background from './background';
 import config from '../core/config';
 
 const ORIGIN_NAME = 'offers-cc';
-
 let seenOffersObj = {};
 let autoTrigger = false;
 
@@ -25,6 +24,7 @@ export default class Win {
       getEmptyFrameAndData: this.getEmptyFrameAndData.bind(this),
       resize: this.resizePopup.bind(this),
       sendTelemetry: this.sendTelemetry.bind(this),
+      sendOfferActionSignal: this.sendOfferActionSignal.bind(this),
       sendActionSignal: this.sendActionSignal.bind(this),
       closePanel: this.closePanel.bind(this),
       openURL: this.openURL.bind(this),
@@ -151,6 +151,14 @@ export default class Win {
       this.sendMessageToOffersCore(msgShown);
     });
 
+    const signal = {
+      type: 'offrz',
+      view: 'box',
+      action: 'hide',
+      show_duration: this.toolbarButton.shownDurationTime,
+    };
+    utils.telemetry(signal);
+
     const msgState = {
       type: 'change-offer-state',
       // no data for now
@@ -219,16 +227,37 @@ export default class Win {
     };
   }
 
+  _mapTelemetryStyle(notifType) {
+    let style = 'generic';
+    if (notifType === 'tooltip_extra') {
+      style = 'on_site';
+    }
+
+    return style;
+  }
+
+  _mapTelemetryLocation(buttonArea) {
+    let location;
+
+    switch (buttonArea) {
+      case 'toolbar':
+        location = 'toolbar';
+        break;
+      case 'menu-panel':
+        location = 'burger_menu';
+        break;
+      default:
+        location = 'hidden';
+        break;
+    }
+
+    return location;
+  }
+
   // used for a first faster rendering
   getEmptyFrameAndData(data = {}) {
     if (data.hideTooltip) {
       this.showTooltip = false;
-      const signal = {
-        type: 'offrz',
-        view: 'box_tooltip',
-        action: 'click',
-      };
-      utils.telemetry(signal);
 
       const msg = {
         type: 'action-signal',
@@ -259,6 +288,7 @@ export default class Win {
       if (!autoTrigger) {
         this.preferredOfferId = null;
       }
+
       this._getAllOffers(this.preferredOfferId).then((aData) => {
         if (aData.length === 0) {
           this.sendMessageToPopup({
@@ -269,6 +299,17 @@ export default class Win {
           });
 
           return;
+        }
+
+        if (data.hideTooltip) {
+          const signal = {
+            type: 'offrz',
+            view: 'box_tooltip',
+            action: 'click',
+            style: this._mapTelemetryStyle(aData[0].notif_type),
+          };
+
+          utils.telemetry(signal);
         }
 
         this.sendMessageToPopup({
@@ -334,7 +375,7 @@ export default class Win {
             const CTAUrl = uiInfo.template_data.call_to_action.url;
             const urlDetails = utils.getDetailsFromUrl(CTAUrl);
             const logoDetails = utils.getLogoDetails(urlDetails);
-            backgroundColor = `#${logoDetails.backgroundColor}`;
+            backgroundColor = `#${logoDetails.brandTxtColor}`;
           }
 
           // Expect this to be always greater than Date.now();
@@ -378,6 +419,7 @@ export default class Win {
             isBestOffer,
             logoClass,
             validity,
+            notif_type: uiInfo.notif_type || 'tooltip'
           };
 
           if (data.offer_id !== preferredOfferId) {
@@ -424,6 +466,26 @@ export default class Win {
     events.pub('offers-recv-ch', message);
   }
 
+  sendTelemetry(data) {
+    const vote = data.vote;
+    const comments = data.comments;
+    const signal = {
+      type: 'offrz',
+      view: 'box',
+      action: 'click',
+      target: data.target,
+    };
+
+    if (vote) {
+      signal.vote = vote;
+    }
+    if (comments) {
+      signal.comments = comments;
+    }
+
+    utils.telemetry(signal);
+  }
+
   sendActionSignal(data) {
     const msg = {
       type: 'action-signal',
@@ -435,7 +497,7 @@ export default class Win {
     this.sendMessageToOffersCore(msg);
   }
 
-  sendTelemetry(data) {
+  sendOfferActionSignal(data) {
     // utils.telemetry(data);
     // check the data
     if (!data.signal_type) {
@@ -466,22 +528,13 @@ export default class Win {
           offer_id: data.offer_id,
         },
       };
-
-      const signal = {
-        type: 'offrz',
-        view: 'box',
-        action: 'click',
-        target: 'remove',
-      };
-
-      utils.telemetry(signal);
     }
 
 
     if (msg) {
       this.sendMessageToOffersCore(msg);
     } else {
-      utils.log(`sendTelemetry: error: the message is null? invalid signal type? ${data.signal_type}`);
+      utils.log(`sendOfferActionSignal: error: the message is null? invalid signal type? ${data.signal_type}`);
     }
   }
 
@@ -536,28 +589,22 @@ export default class Win {
               offer_id: offerID
             };
 
+            const buttonArea = this.window.CustomizableUI.getWidget(this.toolbarButton.id).areaType;
             const signal = {
               type: 'offrz',
               view: 'box_tooltip',
               action: 'show',
+              style: this._mapTelemetryStyle(offersHubTrigger),
+              location: this._mapTelemetryLocation(buttonArea),
             };
 
-            this.sendMessageToOffersCore(notifMsg);
-
-            const buttonArea = this.window.CustomizableUI.getWidget(this.toolbarButton.id).areaType;
-
-            if (buttonArea === 'toolbar') {
-              signal.location = 'toolbar';
-            } else if (buttonArea === 'menu-panel') {
-              signal.location = 'burger_menu';
-            } else {
-              signal.location = 'hidden';
-            }
             utils.telemetry(signal);
 
-            if (signal.location === 'hidden') {
+            if (location === 'hidden') {
               return; // Don't show the tooltip if the button is on the palette
             }
+
+            this.sendMessageToOffersCore(notifMsg);
 
             this.showTooltip = true;
             this.uiInfo = event.data.offer_data.ui_info;
@@ -624,14 +671,6 @@ export default class Win {
         },
       };
       this.sendMessageToOffersCore(msg);
-
-      const signal = {
-        type: 'offrz',
-        view: 'box',
-        action: 'click',
-        target: 'use',
-      };
-      utils.telemetry(signal);
     }
     const tab = utils.openLink(this.window, data.url, true);
     if (data.closePopup === true) {

@@ -8,10 +8,14 @@
       class="code-box"
       data-cqz-of-btn-id="code_copied"
     >
-      <span class="code" data-cqz-of-btn-id="code_copied">{{code}}</span>
-      <span class="divider">&middot;</span>
-      <span class="code-copy" data-cqz-of-btn-id="code_copied" data-i18n="offers-copy-code">{{local offers-copy-code}}</span>
-      <span class="code-copied" data-i18n="offers-code-copied">{{local offers-code-copied}}</span>
+      <div class="bevel tl tr">
+        <div class="content">
+          <span class="code" data-cqz-of-btn-id="code_copied">{{code}}</span>
+          <span class="divider">&middot;</span>
+          <span class="code-copy" data-cqz-of-btn-id="code_copied" data-i18n="offers-copy-code">{{local offers-copy-code}}</span>
+          <span class="code-copied" data-i18n="offers-code-copied">{{local offers-code-copied}}</span>
+        </div>
+      </div>
     </div>
   </div>
 {{/if}}
@@ -57,12 +61,14 @@
       </div>
     {{/if}}
     {{#if headline}}
+    <div class="headline-container flex-item">
       <div 
         class="headline common flex-item"
         data-cqz-of-btn-id="offer_headline"
         openUrl="{{ call_to_action.url }}"
         style="color: {{titleColor}}"
-      >{{ headline }}</div>
+      >{{ truncate headline 68 }}</div>
+    </div>
     {{/if}}
   {{else}}
     {{#if title}}

@@ -50,18 +50,5 @@ export default function () {
     it('renders the caption line with correct time zone', function () {
       expect(timeItems[1]).to.contain.text(results[0].snippet.extra.line3);
     });
-
-    it('renders the caption line with "Source" label', function () {
-      expect(timeItems[1]).to.contain.text('Source:');
-    });
-
-    it('renders the caption line with correct "Source" link', function () {
-      expect(timeItems[1]).to.contain.text('worldtime.io');
-    });
-
-    it('renders the caption line with correct URL', function () {
-      expect(timeItems[1].querySelector('a.source-link').href.toLowerCase())
-        .to.contain(results[0].snippet.friendlyUrl);
-    });
   });
 }

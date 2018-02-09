@@ -131,7 +131,13 @@ function draw(data) {
   if (Object.keys(templates).indexOf(templateName) === -1) {
     templateName = 'default_template';
   }
-  document.getElementById('cqz-browser-panel-re').innerHTML = templates[templateName](templateData);
+  const panel = document.getElementById('cqz-browser-panel-re');
+  const html = templates[templateName](templateData);
+  if (panel.unsafeSetInnerHTML) {
+    panel.unsafeSetInnerHTML(html);
+  } else {
+    panel.innerHTML = html;
+  }
   $('.tooltip').tooltipster({
     theme: ['tooltipster-shadow', 'tooltipster-shadow-customized'],
     interactive: true,

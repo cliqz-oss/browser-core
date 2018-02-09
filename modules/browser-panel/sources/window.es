@@ -286,7 +286,7 @@ export default class Win {
       const url = templateData.call_to_action.url;
       const urlDetails = utils.getDetailsFromUrl(url);
       const logoDetails = utils.getLogoDetails(urlDetails);
-      titleColor = `#${logoDetails.backgroundColor}`;
+      titleColor = `#${logoDetails.brandTxtColor}`;
     }
     data.template_data.titleColor = titleColor;
     this.sendDataToIframe('render_template', data);

@@ -104,8 +104,19 @@ function bodyScroll() { // TODO: Still need this ?
   scrollTimer = window.setTimeout(scrollFinished, 350);
 }
 
+function setHTML(el, html) {
+  /* eslint-disable no-param-reassign */
+  if (el.unsafeSetInnerHTML) {
+    el.unsafeSetInnerHTML(html);
+  } else {
+    el.innerHTML = html;
+  }
+  /* eslint-enable no-param-reassign */
+}
+
 function draw(data) {
-  $('#cliqz-offers-cc').html(templates.template(data));
+  const cc = $('#cliqz-offers-cc').get(0);
+  setHTML(cc, templates.template(data));
 
   if ($('#cqz-vouchers-holder').length) {
     bodyScroll();
@@ -143,7 +154,7 @@ $(document).on('click', 'ul#cqz-vouchers-holder > li:not(.active)', function ite
   $(this).addClass('active');
 
   sendMessageToWindow({
-    action: 'sendTelemetry',
+    action: 'sendOfferActionSignal',
     data: {
       signal_type: 'offer-action-signal',
       element_id: 'offer_expanded',
@@ -156,11 +167,28 @@ $(document).on('click', 'ul#cqz-vouchers-holder > li:not(.active)', function ite
   }, 200); // TODO: fix this!.
 });
 
+$(document).on('click', '[data-telemetry-id]', function itemClick() {
+  const target = $(this).data('telemetryId');
+  sendMessageToWindow({
+    action: 'sendTelemetry',
+    data: {
+      target,
+    }
+  });
+});
+
 $(document).on('click', '#about-link', function itemClick() {
   sendMessageToWindow({
     action: 'sendActionSignal',
     data: {
       actionId: 'more_about_cliqz',
+    }
+  });
+
+  sendMessageToWindow({
+    action: 'sendTelemetry',
+    data: {
+      target: 'learn_more'
     }
   });
 
@@ -192,6 +220,14 @@ $(document).on('click', '.feedback-button', function itemClick() {
       comments: '',
     }
   });
+  sendMessageToWindow({
+    action: 'sendTelemetry',
+    data: {
+      target: 'myoffrz',
+      vote,
+      comments: '',
+    }
+  });
   $('#feedback-vote-wrapper').hide();
   $('#feedback-comment-wrapper').show();
   resize();
@@ -202,6 +238,15 @@ $(document).on('click', '#submit-feedback', () => {
   if (comments.trim().length) {
     sendMessageToWindow({
       action: 'sendUserFeedback',
+      data: {
+        target: 'myoffrz',
+        vote,
+        comments,
+      }
+    });
+
+    sendMessageToWindow({
+      action: 'sendTelemetry',
       data: {
         target: 'myoffrz',
         vote,
@@ -238,7 +283,7 @@ $(document).on('click', '.promocode-wrapper', function itemClick() {
     $(this).find('.copy-code').text(chrome.i18n.getMessage('offers-hub-code-copy'));
     // $(this).find('.code').blur(); // Should we blur it ?
     sendMessageToWindow({
-      action: 'sendTelemetry',
+      action: 'sendOfferActionSignal',
       data: {
         signal_type: 'offer-action-signal',
         element_id: 'code_copied',
@@ -298,6 +343,15 @@ $(document).on('click', '#close-feedback', function itemClick() {
     }
   });
 
+  sendMessageToWindow({
+    action: 'sendTelemetry',
+    data: {
+      target: 'remove_offer',
+      vote: feedbackValue,
+      comments,
+    }
+  });
+
   const currentVoucher = $(this).closest('.voucher-wrapper');
   currentVoucher.remove();
   // Redraw the popup if there is no voucher left
@@ -322,12 +376,13 @@ $(document).on('click', 'ul.settings > li', function itemClick() {
     const currentVoucher = $(this).closest('.voucher-wrapper');
 
     currentVoucher.addClass('deleted');
-    currentVoucher.children('.details').html(templates['feedback-voucher']({})); // empty data
+    const feedbackEl = currentVoucher.children('.details').get(0);
+    setHTML(feedbackEl, templates['feedback-voucher']({})); // empty data
     localizeDocument();
     resize();
 
     sendMessageToWindow({
-      action: 'sendTelemetry',
+      action: 'sendOfferActionSignal',
       data: {
         signal_type: 'remove-offer',
         element_id: 'offer_removed',

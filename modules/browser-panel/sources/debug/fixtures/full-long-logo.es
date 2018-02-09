@@ -10,7 +10,7 @@ export default {
     template_data: {
       voucher_classes: '',
       logo_class: 'long',
-      headline: 'Gutschein für Online Supermarket Lieferservice',
+      headline: 'Rabatt',
       benefit: '11%',
       desc: 'Genießen Sie die besten Weine aus Spanien, Italien und aus aller Welt. Jetzt Angebot sichern!',
       logo_url: './images/ticket-tmpl/long.png',

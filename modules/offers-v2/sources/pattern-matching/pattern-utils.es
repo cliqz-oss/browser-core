@@ -16,6 +16,8 @@ export default function tokenizeUrl(url) {
       domain,
       hostname,
       cpt: 2,
+      sourceHostname: hostname,
+      sourceDomain: domain,
     });
   }
   return null;
