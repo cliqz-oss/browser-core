@@ -49,6 +49,10 @@ module.exports = {
       "default": "control-center/images/page-action-dark.svg",
       "dark": "control-center/images/page-action-light.svg"
     },
+    "PAGE_ACTION_ICONS": {
+      "default": "control-center/images/page-action-dark.svg",
+      "dark": "control-center/images/page-action-light.svg"
+    },
     "BACKGROUNDS": {
       "active": "#999999",
       "critical": "#999999"

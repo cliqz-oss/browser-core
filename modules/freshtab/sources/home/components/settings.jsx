@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import CONFIG from '../../../core/config';
 import Switch from './switch';
 import BackgroundImage from './background-image';
 import t from '../i18n';
@@ -153,7 +154,7 @@ export default class Settings extends React.Component {
               toggleComponent={() => this.props.toggleComponent('search')}
             />
           </div>
-
+          {CONFIG.settings.freshTabNews &&
           <div className="settings-row">
             <div>
               <span className="label">{t('app.settings.news.label')}</span>
@@ -211,6 +212,7 @@ export default class Settings extends React.Component {
             </div>
             }
           </div>
+          }
         </div>
       </div>
     );
