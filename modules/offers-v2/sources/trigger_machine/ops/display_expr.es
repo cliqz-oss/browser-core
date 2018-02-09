@@ -29,8 +29,10 @@ class ShowOfferExpr extends Expression {
     if (this.data.raw_op.args.length < 2) {
       throw new Error('ShowOfferExpr invalid args');
     }
-    this.urlData = this.data.exp_builder.createExp(this.data.raw_op.args[0],
-                                                   this.data.parent_trigger);
+    this.urlData = this.data.exp_builder.createExp(
+      this.data.raw_op.args[0],
+      this.data.parent_trigger
+    );
     this.offerInfo = this.data.raw_op.args[1];
   }
 
@@ -132,8 +134,10 @@ class ShowABOfferExpr extends Expression {
     if (this.data.raw_op.args.length < 2) {
       throw new Error('ShowABOfferExpr invalid args');
     }
-    this.urlData = this.data.exp_builder.createExp(this.data.raw_op.args[0],
-                                                   this.data.parent_trigger);
+    this.urlData = this.data.exp_builder.createExp(
+      this.data.raw_op.args[0],
+      this.data.parent_trigger
+    );
     this.offersList = this.data.raw_op.args[1];
   }
 

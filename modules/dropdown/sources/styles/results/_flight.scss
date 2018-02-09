@@ -87,9 +87,9 @@ $red-color: #d95559;
     }
 
     /* GREEN STATUS */
-    &[data-status="scheduled"],
-    &[data-status="on_time"],
-    &[data-status="arrived"] {
+    &[status="scheduled"],
+    &[status="on_time"],
+    &[status="arrived"] {
         .flight-status > span:first-child {
             color: $green-color;
         }
@@ -98,7 +98,7 @@ $red-color: #d95559;
         }
     }
 
-    &[data-status="on_time"] {
+    &[status="on_time"] {
         .flight-progress-bar {
             background: url('../images/plane-green.svg') no-repeat 0 0px !important;
         }
@@ -108,20 +108,20 @@ $red-color: #d95559;
         }
     }
 
-    &[data-status="arrived"],
-    &[data-status="scheduled"] {
+    &[status="arrived"],
+    &[status="scheduled"] {
         .flight-progress-bar {
             background: url('../images/plane-green-outline.svg') no-repeat -1px -1px !important;
         }
     }
 
-    &[data-status="arrived"] {
+    &[status="arrived"] {
         .arrival-time {
             color: $green-color !important;
         }
     }
 
-    &[data-status="arrived"] {
+    &[status="arrived"] {
         .actual-time {
             color: $green-color;
         }
@@ -133,7 +133,7 @@ $red-color: #d95559;
     }
 
     /* GREY STATUS */
-    &[data-status="no_info"] {
+    &[status="no_info"] {
         .flight-progress {
             max-width: 455px;
         }
@@ -154,9 +154,9 @@ $red-color: #d95559;
     }
 
     /* RED STATUS */
-    &[data-status="delayed"],
-    &[data-status="diverted"],
-    &[data-status="cancelled"] {
+    &[status="delayed"],
+    &[status="diverted"],
+    &[status="cancelled"] {
         .flight-status > span:first-child {
             color: $red-color;
         }
@@ -169,20 +169,20 @@ $red-color: #d95559;
         }
     }
 
-    &[data-status="delayed"],
-    &[data-status="diverted"] {
+    &[status="delayed"],
+    &[status="diverted"] {
         .flight-progress-bar {
             background: url('../images/plane-red.svg') no-repeat 0 0px !important;
         }
     }
 
-    &[data-status="delayed"] {
+    &[status="delayed"] {
         .flight-progress-bar[style="left:0%"] {
             background: url('../images/plane-red-outline.svg') no-repeat 0 0px !important;
         }
     }
 
-    &[data-status="cancelled"] {
+    &[status="cancelled"] {
         .flight-progress-bar {
             background: url('../images/plane-red-outline.svg') no-repeat -1px -1px !important;
         }

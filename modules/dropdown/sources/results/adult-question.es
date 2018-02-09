@@ -23,7 +23,6 @@ class AdultAnswerResult extends BaseResult {
 }
 
 export default class AdultQuestionResult extends BaseResult {
-
   get template() {
     return 'adult-question';
   }
@@ -51,5 +50,4 @@ export default class AdultQuestionResult extends BaseResult {
   get selectableResults() {
     return this.internalResults;
   }
-
 }

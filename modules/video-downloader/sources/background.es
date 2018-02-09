@@ -1,6 +1,6 @@
 import prefs from '../core/prefs';
 import background from '../core/base/background';
-import { isVideoURL, getVideoInfo, getFormats } from './video-downloader';
+import { isVideoURL, getVideoInfo } from './video-downloader';
 
 const UI_TOUR_PREF = 'videoDownloaderUITourDismissed';
 const DOWNLOADS_UI_TOUR_PREF = 'downloadsUITourDismissed';
@@ -50,7 +50,6 @@ export default background({
         return Promise.resolve([]);
       }
       return getVideoInfo(url)
-        .then(info => getFormats(info))
         .catch(() => []);
     },
     closeUITour(isSkipping) {

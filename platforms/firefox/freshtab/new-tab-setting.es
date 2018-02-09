@@ -51,7 +51,6 @@ export function migrate() {
 }
 
 export class AboutCliqz {
-
   get QueryInterface() {
     return XPCOMUtils.generateQI([Components.interfaces.nsIAboutModule]);
   }

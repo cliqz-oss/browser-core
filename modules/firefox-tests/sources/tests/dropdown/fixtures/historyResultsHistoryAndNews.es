@@ -8,7 +8,7 @@ export default [
   },
   {
     style: 'favicon',
-    value: 'https://cliqz.com/aboutus',
+    value: 'https://cliqz.de/aboutus',
     image: '',
     comment: 'About us',
     label: '',

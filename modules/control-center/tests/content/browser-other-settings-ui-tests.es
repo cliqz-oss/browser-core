@@ -57,8 +57,8 @@ function otherSettingsTests(amo, tipsUrl) {
 
     it('url for Support is correct', function () {
       const supportSelector = '#othersettings .title #support [data-i18n="control-center-support"]';
-      chai.expect(subject.query(supportSelector).hasAttribute('data-open-url')).to.be.true;
-      chai.expect(subject.query(supportSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/feedback/1.19.0.dev-40');
+      chai.expect(subject.query(supportSelector).hasAttribute('openurl')).to.be.true;
+      chai.expect(subject.query(supportSelector).getAttribute('openurl')).to.equal('https://cliqz.com/feedback/1.19.0.dev-40');
     });
 
     it('renders "Tips"', function () {
@@ -69,8 +69,8 @@ function otherSettingsTests(amo, tipsUrl) {
 
     it('url for Tips is correct', function () {
       const tipsSelector = '#othersettings .title #support [data-i18n="control-center-tips"]';
-      chai.expect(subject.query(tipsSelector).hasAttribute('data-open-url')).to.be.true;
-      chai.expect(subject.query(tipsSelector).getAttribute('data-open-url')).to.equal(tipsUrl);
+      chai.expect(subject.query(tipsSelector).hasAttribute('openurl')).to.be.true;
+      chai.expect(subject.query(tipsSelector).getAttribute('openurl')).to.equal(tipsUrl);
     });
 
     it('renders "Search options"', function () {

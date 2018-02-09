@@ -2,7 +2,10 @@
 /* global sinon */
 /* global describeModule */
 
-
+const Dexie = require('dexie');
+const IDBKeyRange = require('fake-indexeddb/lib/FDBKeyRange');
+const ajv = require('ajv');
+const indexedDB = require('fake-indexeddb');
 const moment = require('moment');
 
 const CURRENT_DATE = '2017-01-01';
@@ -12,36 +15,37 @@ const DAY_FORMAT = 'YYYY-DDD';
 const WEEK_FORMAT = 'YYYY-WW';
 const MONTH_FORMAT = 'YYYY-M';
 
-
 function getCurrentDate() {
   return moment(CURRENT_DATE, DATE_FORMAT);
 }
-
-
-let putDBMock = () => Promise.resolve();
-let getDBMock = () => Promise.resolve();
-
-function mockDB({ get, put }) {
-  putDBMock = put;
-  getDBMock = get;
-}
-
 
 function handleTelemetrySignalMock() {
   return Promise.resolve();
 }
 
+function initDexie(name) {
+  return new Dexie(name, {
+    indexedDB,
+    IDBKeyRange,
+  });
+}
 
 export default describeModule('anolysis/anolysis',
   () => ({
     'platform/lib/moment': {
       default: moment,
     },
-    'core/helpers/md5': {
-      default: arg => arg,
+    'platform/lib/ajv': {
+      default: ajv,
+    },
+    'platform/lib/dexie': {
+      default: () => Promise.resolve(initDexie),
     },
     'core/crypto/random': {
       randomInt() { return 0; },
+    },
+    'core/database': {
+      default: class Database { destroy() { return Promise.resolve(); } },
     },
     'core/events': {
       default: {
@@ -70,33 +74,23 @@ export default describeModule('anolysis/anolysis',
         clearTimeout() { },
       },
     },
-    'core/database': {
-      default: class Database {
-        put(...args) {
-          return putDBMock(...args);
-        }
-        get(...args) {
-          return getDBMock(...args);
-        }
-        info() { return Promise.resolve(); }
-        bulkDocs() { return Promise.resolve(); }
-        query() {
-          return Promise.resolve({
-            rows: [],
-          });
-        }
-        close() { return Promise.resolve(); }
-      },
+    'core/prefs': {
+      default: {
+        get(k, d) { return d; },
+      }
     },
     'anolysis/aggregator': {
       default: class BehaviorAggregator {},
     },
     'anolysis/gid-manager': {
-      default: class GIDManager {},
+      default: class GIDManager {
+        init() { return Promise.resolve(); }
+        getNewInstallDate() { return '2000-01-01'; }
+        getGID() { return Promise.resolve(''); }
+      },
     },
     'anolysis/preprocessor': {
       default: class Preprocessor {},
-      parseABTests() { return []; },
     },
     'anolysis/signals-queue': {
       default: class SignalQueue {
@@ -126,19 +120,21 @@ export default describeModule('anolysis/anolysis',
       return anolysis.init();
     });
 
+    afterEach(() => anolysis.storage.destroy());
+
     describe('#registerSchemas', () => {
       it('correctly adds schemas', () => {
         chai.expect(anolysis.availableSchemas.size).to.equal(0);
         return Promise.resolve()
           .then(() => anolysis.registerSchemas({
-            signal1: {},
-            signal2: {},
+            signal1: { schema: {} },
+            signal2: { schema: {} },
           }))
           .then(() => chai.expect(anolysis.availableSchemas.size).to.equal(2))
-          .then(() => chai.expect([...anolysis.availableSchemas.entries()]).to.eql([
-            ['signal1', {}],
-            ['signal2', {}],
-          ]));
+          .then(() => {
+            const schemas = [...anolysis.availableSchemas.keys()];
+            chai.expect(schemas).to.eql(['signal1', 'signal2']);
+          });
       });
 
       it('fails on duplicates', () =>
@@ -152,137 +148,127 @@ export default describeModule('anolysis/anolysis',
 
     describe('#sendRetentionSignals', () => {
       it('generates retention from empty state', () => {
-        mockDB({
-          get() { return Promise.reject({ name: 'not_found' }); },
-          put(doc) {
-            if (doc._id !== '_design/index') {
-              chai.expect(doc).to.be.eql({
-                _id: 'retention',
-                daily: { '2017-1': [CURRENT_DATE] },
-                weekly: { '2017-52': [CURRENT_DATE] },
-                monthly: { '2017-1': ['2017-52'] }
-              });
-            }
-            return Promise.resolve();
-          },
-        });
-
         anolysis.handleTelemetrySignal = sinon.spy(handleTelemetrySignalMock);
-
         return anolysis.sendRetentionSignals()
-          .then(() => chai.expect(anolysis.handleTelemetrySignal.callCount).to.equal(32));
+          .then(() => chai.expect(anolysis.handleTelemetrySignal.callCount).to.equal(32))
+          .then(() => anolysis.storage.retention.getState())
+          .then(state => chai.expect(state).to.be.eql({
+            daily: { '2017-1': [CURRENT_DATE] },
+            weekly: { '2017-52': [CURRENT_DATE] },
+            monthly: { '2017-1': ['2017-52'] }
+          }));
       });
 
       it('does not generate retention signals two times', () => {
-        const state = {
-          _id: 'retention',
+        const initialState = {
           daily: { '2017-1': [CURRENT_DATE] },
           weekly: { '2017-52': [CURRENT_DATE] },
           monthly: { '2017-1': ['2017-52'] }
         };
-
-        mockDB({
-          get() {
-            return Promise.resolve(state);
-          },
-          put(doc) {
-            if (doc._id !== '_design/index') {
-              chai.expect(doc).to.be.eql(state);
-            }
-            return Promise.resolve();
-          },
-        });
-
         anolysis.handleTelemetrySignal = sinon.spy(handleTelemetrySignalMock);
-
-        return anolysis.sendRetentionSignals()
-          .then(() => chai.expect(anolysis.handleTelemetrySignal).to.not.have.been.called);
+        return anolysis.storage.retention.setState(initialState)
+          .then(() => anolysis.sendRetentionSignals())
+          .then(() => chai.expect(anolysis.handleTelemetrySignal).to.not.have.been.called)
+          .then(() => anolysis.storage.retention.getState())
+          .then(state => chai.expect(state).to.be.eql(initialState));
       });
     });
 
     describe('#generateAnalysesSignalsFromAggregation', () => {
       it('generates signals from empty state', () => {
-        const db = [];
-        mockDB({
-          get() { return Promise.reject({ name: 'not_found' }); },
-          put(doc) {
-            db.push(doc);
-            return Promise.resolve();
-          },
-        });
-
         anolysis.handleTelemetrySignal = sinon.spy(handleTelemetrySignalMock);
 
         return anolysis.generateAnalysesSignalsFromAggregation()
           .then(() => chai.expect(anolysis.handleTelemetrySignal).to.not.have.been.called)
-          .then(() => chai.expect(db).to.be.eql([
-            { _id: '2016-12-31', ts: '2016-12-31', aggregation: {}},
-            { _id: '2016-12-30', ts: '2016-12-30', aggregation: {}},
-            { _id: '2016-12-29', ts: '2016-12-29', aggregation: {}},
-            { _id: '2016-12-28', ts: '2016-12-28', aggregation: {}},
-            { _id: '2016-12-27', ts: '2016-12-27', aggregation: {}},
-            { _id: '2016-12-26', ts: '2016-12-26', aggregation: {}},
-            { _id: '2016-12-25', ts: '2016-12-25', aggregation: {}},
-            { _id: '2016-12-24', ts: '2016-12-24', aggregation: {}},
-            { _id: '2016-12-23', ts: '2016-12-23', aggregation: {}},
-            { _id: '2016-12-22', ts: '2016-12-22', aggregation: {}},
-            { _id: '2016-12-21', ts: '2016-12-21', aggregation: {}},
-            { _id: '2016-12-20', ts: '2016-12-20', aggregation: {}},
-            { _id: '2016-12-19', ts: '2016-12-19', aggregation: {}},
-            { _id: '2016-12-18', ts: '2016-12-18', aggregation: {}},
-            { _id: '2016-12-17', ts: '2016-12-17', aggregation: {}},
-            { _id: '2016-12-16', ts: '2016-12-16', aggregation: {}},
-            { _id: '2016-12-15', ts: '2016-12-15', aggregation: {}},
-            { _id: '2016-12-14', ts: '2016-12-14', aggregation: {}},
-            { _id: '2016-12-13', ts: '2016-12-13', aggregation: {}},
-            { _id: '2016-12-12', ts: '2016-12-12', aggregation: {}},
-            { _id: '2016-12-11', ts: '2016-12-11', aggregation: {}},
-            { _id: '2016-12-10', ts: '2016-12-10', aggregation: {}},
-            { _id: '2016-12-09', ts: '2016-12-09', aggregation: {}},
-            { _id: '2016-12-08', ts: '2016-12-08', aggregation: {}},
-            { _id: '2016-12-07', ts: '2016-12-07', aggregation: {}},
-            { _id: '2016-12-06', ts: '2016-12-06', aggregation: {}},
-            { _id: '2016-12-05', ts: '2016-12-05', aggregation: {}},
-            { _id: '2016-12-04', ts: '2016-12-04', aggregation: {}},
-            { _id: '2016-12-03', ts: '2016-12-03', aggregation: {}},
-            { _id: '2016-12-02', ts: '2016-12-02', aggregation: {}},
-            { _id: '2016-12-01', ts: '2016-12-01', aggregation: {}},
+          .then(() => anolysis.storage.aggregated.getAggregatedDates())
+          .then(dates => chai.expect(dates.sort()).to.be.eql([
+            '2016-12-01',
+            '2016-12-02',
+            '2016-12-03',
+            '2016-12-04',
+            '2016-12-05',
+            '2016-12-06',
+            '2016-12-07',
+            '2016-12-08',
+            '2016-12-09',
+            '2016-12-10',
+            '2016-12-11',
+            '2016-12-12',
+            '2016-12-13',
+            '2016-12-14',
+            '2016-12-15',
+            '2016-12-16',
+            '2016-12-17',
+            '2016-12-18',
+            '2016-12-19',
+            '2016-12-20',
+            '2016-12-21',
+            '2016-12-22',
+            '2016-12-23',
+            '2016-12-24',
+            '2016-12-25',
+            '2016-12-26',
+            '2016-12-27',
+            '2016-12-28',
+            '2016-12-29',
+            '2016-12-30',
+            '2016-12-31',
           ]));
       });
 
       it('does not generate signals when day is already present', () => {
-        anolysis.handleTelemetrySignal = sinon.spy(handleTelemetrySignalMock);
-        const dbPut = sinon.spy(() => Promise.resolve());
-        mockDB({
-          get() { return Promise.resolve(); },
-          put: dbPut,
-        });
+        const existingState = { foo: 42 };
 
-        return anolysis.generateAnalysesSignalsFromAggregation()
+        anolysis.handleTelemetrySignal = sinon.spy(handleTelemetrySignalMock);
+        return anolysis.storage.aggregated.storeAggregation(CURRENT_DATE, existingState)
+          .then(() => anolysis.generateAnalysesSignalsFromAggregation())
           .then(() => chai.expect(anolysis.handleTelemetrySignal).to.not.have.been.called)
-          .then(() => chai.expect(dbPut).to.not.have.been.called);
+          .then(() => anolysis.storage.aggregated.getAggregation(CURRENT_DATE))
+          .then(state => chai.expect(state).to.be.eql(existingState));
       });
     });
 
     describe('#generateAndSendAnalysesSignalsForDay', () => {
+      let schemas;
+      beforeEach(function () {
+        return this.system.import('anolysis/telemetry-schemas')
+          .then((module) => {
+            schemas = module.default;
+            anolysis.registerSchemas(schemas);
+          });
+      });
+
       it('generates no signals if there is nothing to aggregate', () => {
-        anolysis.behaviorStorage.getTypesByTimespan = sinon.spy(() => Promise.resolve({}));
+        anolysis.storage.behavior.getTypesForDate = sinon.spy(() => Promise.resolve({}));
         anolysis.handleTelemetrySignal = sinon.spy(handleTelemetrySignalMock);
 
-        return anolysis.generateAndSendAnalysesSignalsForDay()
-          .then(() => chai.expect(anolysis.behaviorStorage.getTypesByTimespan).to.have.been.calledOnce)
-          .then(() => chai.expect(anolysis.handleTelemetrySignal).to.not.have.been.called);
+        // Get number of schemas which do not expect any aggregation as argument
+        let count = 0;
+        Object.keys(schemas).forEach((name) => {
+          const schema = schemas[name];
+          if (schema.generate !== undefined && schema.generate.length === 0) {
+            count += 1;
+          }
+        });
+
+        return anolysis.generateAndSendAnalysesSignalsForDay(CURRENT_DATE)
+          .then(() => chai.expect(anolysis.storage.behavior.getTypesForDate).to.have.been.calledOnce)
+          .then(() => chai.expect(anolysis.handleTelemetrySignal).to.have.callCount(count));
       });
 
       it('generates signals if there are signals for a day', () => {
-        anolysis.behaviorStorage.getTypesByTimespan = sinon.spy(() => Promise.resolve({ type: [{}] }));
-        anolysis.behaviorAggregator.aggregate = sinon.spy(() => {});
-        anolysis.handleTelemetrySignal = sinon.spy(handleTelemetrySignalMock);
+        anolysis.storage.behavior.getTypesForDate = sinon.spy(
+          () => Promise.resolve({ size: 1 })
+        );
+        anolysis.behaviorAggregator.aggregate = sinon.spy(() => ({
+          types: {},
+        }));
+        anolysis.handleTelemetrySignal = sinon.spy(() => Promise.resolve());
 
-        return anolysis.generateAndSendAnalysesSignalsForDay()
-          .then(() => chai.expect(anolysis.behaviorStorage.getTypesByTimespan).to.have.been.calledOnce)
+        return anolysis.generateAndSendAnalysesSignalsForDay(CURRENT_DATE)
+          .then(() => chai.expect(anolysis.storage.behavior.getTypesForDate).to.have.been.calledOnce)
           .then(() => chai.expect(anolysis.behaviorAggregator.aggregate).to.have.been.calledOnce)
-          .then(() => chai.expect(anolysis.handleTelemetrySignal).to.have.been.calledOnce);
+          .then(() => chai.expect(anolysis.handleTelemetrySignal).to.have.been.called);
       });
     });
 

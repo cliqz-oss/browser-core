@@ -1,0 +1,56 @@
+<div>
+  <h2>Provider: {{provider}}</h2>
+</div>
+<table>
+    <tr>
+        <th>
+            Index
+        </th>
+        <th>
+            Main
+        </th>
+        <th>
+            Title
+        </th>
+        <th>
+            # Sub-Results
+        </th>
+        <th>
+            Type
+        </th>
+        <th>
+            Template
+        </th>
+    </tr>
+{{#each results}}
+    <tr>
+        <td>
+            {{@index}}
+        </td>
+        <td>
+            {{#if links.[0].url}}
+                <a href="{{links.[0].url}}">{{links.[0].url}}</a>
+            {{/if}}
+            {{#if links.[0].suggestion}}
+                {{links.[0].suggestion}}
+            {{/if}}
+            {{#if links.[0].extra.expression}}
+                {{links.[0].extra.expression}} = {{links.[0].extra.answer}}
+            {{/if}}
+        </td>
+        <td>
+            {{links.[0].title}}
+        </td>
+        <td>
+            {{links.length}}
+        </td>
+        <td>
+            {{links.[0].type}}
+        </td>
+        <td>
+            {{links.[0].template}}
+        </td>
+    </tr>
+{{/each}}
+</table>
+<br/>

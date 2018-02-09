@@ -28,7 +28,8 @@ export default class {
           url,
           frameId,
           transitionType,
-          isPrivate
+          isPrivate,
+          windowId: tabId,
         });
       });
     });
@@ -70,20 +71,13 @@ export default class {
     };
 
     if (channel === 'cliqz:core') {
-      if (chrome.windows) {
-        chrome.windows.getAll({populate:true}, function(windows){
-          windows.forEach(function(window){
-            window.tabs.forEach(function(tab){
-              chrome.tabs.sendMessage(tab.id, msg);
-            });
-          });
-        });
-      } else {
-        // on firefox for android there is no chrome.windows
-        chrome.tabs.query({ currentWindow: true }, (tabs) => {
-          tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, msg));
-        });
+      const tabQuery = {};
+      if (msg.url) {
+        tabQuery.url = encodeURI(msg.url);
       }
+      chrome.tabs.query(tabQuery, (tabs) => {
+        tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, msg));
+      });
     } else {
       let [_, windowId] = channel.split('-');
       chrome.tabs.sendMessage(Number(windowId), {

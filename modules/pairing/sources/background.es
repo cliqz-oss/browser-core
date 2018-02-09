@@ -16,7 +16,8 @@ export default background({
   init() {
     this.CustomizableUI = Components.utils.import('resource:///modules/CustomizableUI.jsm', null).CustomizableUI;
 
-    const PeerComm = this.peerSlave = new PeerSlave();
+    const PeerComm = new PeerSlave();
+    this.peerSlave = PeerComm;
 
     const youtube = new YoutubeApp(() => {});
     PeerComm.addObserver('YTDOWNLOADER', youtube);
@@ -192,22 +193,22 @@ export default background({
 
   sendTab(data) {
     this.peerSlave.getObserver('TABSHARING').sendTab([data], this.peerSlave.masterID)
-    .then(() => {
-      CliqzUtils.telemetry({
-        type: 'connect',
-        version: 1,
-        action: 'send_tab',
-        is_success: true,
+      .then(() => {
+        CliqzUtils.telemetry({
+          type: 'connect',
+          version: 1,
+          action: 'send_tab',
+          is_success: true,
+        });
+      })
+      .catch(() => {
+        CliqzUtils.telemetry({
+          type: 'connect',
+          version: 1,
+          action: 'send_tab',
+          is_success: false,
+        });
       });
-    })
-    .catch(() => {
-      CliqzUtils.telemetry({
-        type: 'connect',
-        version: 1,
-        action: 'send_tab',
-        is_success: false,
-      });
-    });
   },
 
   actions: {

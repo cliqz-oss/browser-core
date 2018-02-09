@@ -12,7 +12,6 @@ function removeEmptyValues(obj) {
 /* eslint-enable */
 
 export default class MetaDatabase {
-
   constructor(metaDB) {
     this.metaDB = metaDB;
   }
@@ -34,5 +33,4 @@ export default class MetaDatabase {
       .then(doc => doc.meta)
       .catch(() => ({}));
   }
-
 }

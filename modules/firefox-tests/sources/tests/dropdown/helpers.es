@@ -8,17 +8,31 @@ const wrap = getObj => new Proxy({}, {
   get(target, name) {
     const obj = getObj();
     return obj[name];
-  }
+  },
+  set(target, name, value) {
+    const obj = getObj();
+    obj[name] = value;
+    return true;
+  },
 });
 
-export const expect = chai.expect;
-export const withHistory = (...args) => window.withHistory(...args);
+export const app = wrap(() => window.app);
+export const clearIntervals = (...args) => window.clearIntervals(...args);
+export const click = (...args) => window.click(...args);
+export const $cliqzResults = (...args) => window.$cliqzResults(...args);
 export const CliqzUtils = wrap(() => window.CliqzUtils);
+export const expect = chai.expect;
+export const fastFillIn = (...args) => window.fastFillIn(...args);
+export const fillIn = (...args) => window.fillIn(...args);
+export const getComputedStyle = (...args) => window.getComputedStyle(...args);
+export const getLocaliseString = (...args) => window.getLocaliseString(...args);
+export const press = (...args) => window.press(...args);
+export const pressAndWaitFor = (...args) => window.pressAndWaitFor(...args);
+export const release = (...args) => window.release(...args);
 export const respondWith = (...args) => window.respondWith(...args);
 export const respondWithSuggestions = (...args) => window.respondWithSuggestions(...args);
-export const fillIn = (...args) => window.fillIn(...args);
+export const setUserInput = (...args) => window.setUserInput(...args);
+export const waitFor = (...args) => window.waitFor(...args);
 export const waitForPopup = (...args) => window.waitForPopup(...args);
-export const $cliqzResults = (...args) => window.$cliqzResults(...args);
-export const getLocaliseString = (...args) => window.getLocaliseString(...args);
-export const app = wrap(() => window.app);
-export const getComputedStyle = (...args) => window.getComputedStyle(...args);
+export const waitForPopupClosed = (...args) => window.waitForPopupClosed(...args);
+export const withHistory = (...args) => window.withHistory(...args);

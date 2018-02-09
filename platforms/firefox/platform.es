@@ -10,7 +10,7 @@ export default {
 
 const appInfo = Components.classes['@mozilla.org/xre/app-info;1'];
 const versionChecker = Components.classes['@mozilla.org/xpcom/version-comparator;1']
-    .getService(Components.interfaces.nsIVersionComparator);
+  .getService(Components.interfaces.nsIVersionComparator);
 
 export function isPlatformAtLeastInVersion(minVersion) {
   const hostVersion = appInfo.getService(Components.interfaces.nsIXULAppInfo).version;

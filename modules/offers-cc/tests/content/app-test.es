@@ -249,8 +249,8 @@ describe('Offers Hub App', function() {
     });
 
     it('url for button is correct', function () {
-      chai.expect(subject.query(`${selector} .cqz-btn`).hasAttribute('data-open-url')).to.be.true;
-      chai.expect(subject.query(`${selector} .cqz-btn`).getAttribute('data-open-url')).to.equal(element.template_data.call_to_action.url);
+      chai.expect(subject.query(`${selector} .cqz-btn`).hasAttribute('openurl')).to.be.true;
+      chai.expect(subject.query(`${selector} .cqz-btn`).getAttribute('openurl')).to.equal(element.template_data.call_to_action.url);
     });
 
     it('code copied is hidden', function () {

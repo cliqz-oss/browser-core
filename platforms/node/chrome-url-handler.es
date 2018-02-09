@@ -1,16 +1,15 @@
-// manually require files we want to bundle with the release
-let bundledFiles = {
-};
-
+/* eslint-disable import/prefer-default-export, import/no-dynamic-require, global-require */
 export function chromeUrlHandler(url, callback, onerror) {
-  const path = url.replace('chrome://cliqz/content/', '');
-  if (bundledFiles[path]) {
+  const path = url.replace('chrome://', '');
+  try {
+    const response = JSON.stringify(require(`../${path}`));
     callback({
       status: 200,
-      response: JSON.stringify(bundledFiles[path]),
+      response,
     });
-  } else {
-    console.log('chromeUrlHandler: not bundled', path);
-    onerror()
+  } catch (e) {
+    console.log('chromeUrlHandler: not bundled', path, e);
+    onerror();
   }
 }
+/* eslint-enable import/prefer-default-export, import/no-dynamic-require, global-require */

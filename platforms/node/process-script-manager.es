@@ -1,20 +1,17 @@
+
 export default class {
-
-  constructor(dispatcher) {
-  }
-
   init() {
   }
 
   unload() {
   }
 
-  broadcast(channel, msg) {
+  broadcast() {
   }
 
-  addMessageListener(channel, cb) {
+  addMessageListener() {
   }
 
-  removeMessageListener(channel, cb) {
+  removeMessageListener() {
   }
 }

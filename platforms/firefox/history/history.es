@@ -1,12 +1,9 @@
 /* global PlacesUtils */
 
-import events from '../../core/events';
 import { Components } from '../globals';
+import * as urlUtils from '../../core/url';
 
 Components.utils.import('resource://gre/modules/PlacesUtils.jsm');
-
-const history = Components.classes['@mozilla.org/browser/nav-history-service;1']
-  .getService(Components.interfaces.nsINavHistoryService);
 
 function observableFromSql(sql, columns) {
   // change row into object with columns as property names
@@ -158,39 +155,7 @@ const searchQuery = ({ limit, frameStartsAt, frameEndsAt, domain, query },
   `;
 };
 
-
-const observer = {
-  isProcessBatch: false,
-  onBeginUpdateBatch() {
-    this.batch = [];
-  },
-  onEndUpdateBatch() {
-    events.pub('history:removed', this.batch);
-    this.batch = null;
-  },
-  onDeleteURI(aURI) {
-    const url = aURI.spec;
-    if (!this.batch) {
-      events.pub('history:removed', [url]);
-    } else {
-      this.batch.push(url);
-    }
-  },
-  onClearHistory() {
-    events.pub('history:cleared');
-  },
-  QueryInterface(iid) {
-    if (iid.equals(Components.interfaces.nsINavHistoryObserver) ||
-        iid.equals(Components.interfaces.nsISupports)) {
-      return this;
-    }
-    throw Components.results.NS_ERROR_NO_INTERFACE;
-  }
-};
-
-history.addObserver(observer, false);
-
-function findLastVisitId(url, since) {
+function findLastVisitId(url, since = 0) {
   return HistoryProvider.query(
     `
       SELECT moz_historyvisits.id AS id
@@ -209,7 +174,6 @@ function findLastVisitId(url, since) {
 const YEAR_IN_MS = 1000 * 60 * 60 * 24 * 365;
 
 export default class {
-
   static sessionCountObservable(query) {
     const sql = searchQuery({
       query,
@@ -305,8 +269,22 @@ export default class {
 
   static fillFromVisit(url, triggeringUrl) {
     const oneSecondAgo = (Date.now() - (60 * 1000)) * 1000;
+    const { action, scheme, path, originalUrl } = urlUtils.getDetailsFromUrl(url);
+    let cleanUrl = originalUrl;
+    if (action && action !== 'visiturl') {
+      return Promise.resolve();
+    }
+
+    // normalize url
+    if (!scheme) {
+      cleanUrl = `http://${originalUrl}`;
+    }
+    if (!path) {
+      cleanUrl += '/';
+    }
+
     return Promise.all([
-      findLastVisitId(url, oneSecondAgo),
+      findLastVisitId(cleanUrl, oneSecondAgo),
       findLastVisitId(triggeringUrl),
     ]).then(([visitId, triggeringVisitId]) => {
       if (!visitId || !triggeringVisitId) {

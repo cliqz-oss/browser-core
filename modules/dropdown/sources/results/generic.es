@@ -33,7 +33,7 @@ export default class GenericResult extends BaseResult {
     }
   }
 
-   // cannot limit here - inheriting results may like to have filtering
+  // cannot limit here - inheriting results may like to have filtering
   get internalResults() {
     if (this.isAskingForLocation) { // Hide these buttons when asking for location sharing
       return [];

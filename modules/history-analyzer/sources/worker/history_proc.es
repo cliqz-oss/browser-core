@@ -1,4 +1,4 @@
-import { parseFilter } from '../../core/adblocker-base/filters-parsing';
+import { parseNetworkFilter } from '../../core/pattern-matching';
 import PatternIndex from './pattern-index';
 
 
@@ -57,7 +57,7 @@ const buildPatternsMap = (patternsObj) => {
 const buildFilterList = (patternsMap) => {
   const filterList = [];
   patternsMap.forEach((pset, pattern) => {
-    const filter = parseFilter(pattern, true, false);
+    const filter = parseNetworkFilter(pattern, true, false);
     if (filter) {
       filter.id_set = pset;
       filterList.push(filter);

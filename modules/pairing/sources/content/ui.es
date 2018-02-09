@@ -1,12 +1,22 @@
 import CliqzHandlebars from 'handlebars';
 import $ from 'jquery';
-import QRCode from 'qrcode';
+import QRCode from 'qrcodejs';
 
 const images = {
   pairing_status_disconnected: './images/pairing-status-disconnected.png',
   pairing_status_active: './images/pairing-status-active.png',
   cliqz_icon: './images/cliqz-icon.png',
 };
+
+function setHTML(el, html) {
+  /* eslint-disable no-param-reassign */
+  if (el.unsafeSetInnerHTML) {
+    el.unsafeSetInnerHTML(html);
+  } else {
+    el.innerHTML = html;
+  }
+  /* eslint-enable no-param-reassign */
+}
 
 export default class PairingUI {
   constructor(window, PeerComm, telemetry) {
@@ -175,7 +185,8 @@ export default class PairingUI {
       unpair: this.i18n('pairing-unpair'),
     };
 
-    $('#content').html(this.TEMPLATE_CACHE.template(data));
+    const contentEl = $('#content').get(0);
+    setHTML(contentEl, this.TEMPLATE_CACHE.template(data));
 
     $('#unpair-button').click(() => {
       this.PeerComm.unpair();

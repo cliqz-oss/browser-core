@@ -1,6 +1,5 @@
 
 export default class SubdomainCheck {
-
   constructor(config) {
     this.config = config;
   }

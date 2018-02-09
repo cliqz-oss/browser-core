@@ -17,7 +17,7 @@ export default class PersistentMap {
   }
 
   get(key) {
-    return this.db.kv.get(key);
+    return this.db.kv.get(key).then(v => v && v.value);
   }
 
   set(key, value) {

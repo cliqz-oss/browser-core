@@ -1,115 +1,121 @@
-<div
-    class="cqz-ticket-offer
-            {{#unless call_to_action }}
-               cqz-no-call-to-action
-            {{/unless }}
-            {{#if code }}
-                with-code
-            {{/if }}
-            {{ voucher_classes }}
-            cqz-clear"
->
-    <div
-        class="cqz-offer-holder"
-        style="background-color: {{ styles.background }}; background-image: url({{ logo_url }});"
-    >
-        <div class="cqz-logo-holder">
-            {{#if logo_url }}
-                    <!--<img src="{{ logo_url }}" alt=""/>-->
-            {{else if captions }}
-                <table class="cqz-offer-captions">
-                    <tr>
-                        <td>
-                            <span>{{ captions.cap1}}</span>
-                            <span>{{ captions.cap2}}</span>
-                        </td>
-                    </tr>
-                </table>
-            {{/if }}
-        </div>
-
-        {{#if call_to_action }}
-            <span
-                class="logo-click"
-                data-open-url="{{ call_to_action.url }}"
-                data-cqz-of-btn-id="offer_logo"
-            >
-            </span>
-            <div class="cqz-call-to-action">
-                <a data-open-url="{{ call_to_action.url }}"
-                   class="cqz-btn"
-                   data-cqz-of-btn-id="offer_ca_action"
-                    style="color: {{ styles.call-to-action-color }}; background: {{ styles.call-to-action-bg-color }}">
-                    {{ call_to_action.text }}
-                </a>
-                <a class="cqz-power-by"
-                   style="color: {{ styles.description-color }}">
-                    <i style="margin-top: 0;">
-                        <svg id="Layer_1" width="16" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 99.8 99.72"><title>Cliqz logo 2016_2</title><polygon points="80.36 74.39 99.8 67.89 46.08 46 67.97 99.72 74.47 80.28 92.65 98.46 98.54 92.57 80.36 74.39"/><path d="M76.25,106.34a29.4,29.4,0,1,1,29.4-29.4c0,0.18,0,.36,0,0.54l19.27,7.85A49.42,49.42,0,1,0,84.53,125.6l-7.85-19.28Z" transform="translate(-26.88 -27.58)"/></svg>
-                    </i>
-                    Bereitgestellt von Cliqz <br>
-                </a>
-            </div>
-        {{/if }}
-
-        <div class="cqz-content-holder">
-            <h1
-                data-open-url="{{ call_to_action.url }}"
-                data-cqz-of-btn-id="offer_title"
-                class="cqz-title"
-                style="color: {{ styles.title-color }}"
-            >
-                {{ title }}
-            </h1>
-
-            {{#if code }}
-                <div class="cqz-offer-code-holder tooltip" data-title="Hello, World">
-                    <span class="cqz-offer-code-info">Code kopiert</span>
-                    <span class="cqz-offer-code" data-cqz-of-btn-id="code_copied">{{ code }}</span>
-                </div>
-            {{/if }}
-
-            <div
-                data-open-url="{{ call_to_action.url }}"
-                data-cqz-of-btn-id="offer_description"
-                class="cqz-descr"
-                style="color: {{ styles.description-color }}"
-            >
-                {{ desc }}
-            </div>
-        </div>
-        <div class="info-line">
-                {{#if conditions }}
-                    <span class="descr-read-more">
-                         <i>
-                            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-                                 width="512px" height="512px" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve">
-                            <path id="info-5-icon" d="M256,50.002C142.229,50.002,50,142.228,50,256c0,113.769,92.229,205.998,206,205.998
-                                c113.77,0,206-92.229,206-205.998C462,142.228,369.77,50.002,256,50.002z M251.989,376.93
-                                c-29.694,10.436-54.175-1.531-49.264-30.049c4.913-28.523,33.09-89.589,37.11-101.135c4.017-11.547-3.687-14.712-11.943-10.015
-                                c-4.763,2.749-11.84,8.254-17.916,13.606c-1.685-3.393-4.055-7.27-5.833-10.983c9.915-9.936,26.488-23.256,46.108-28.083
-                                c23.441-5.787,62.624,3.463,45.783,48.271c-12.024,31.937-20.529,53.976-25.888,70.388c-5.356,16.418,1.006,19.861,10.382,13.464
-                                c7.325-5.001,15.129-11.804,20.849-17.079c2.646,4.301,3.494,5.672,6.11,10.614C297.559,346.105,271.584,369.924,251.989,376.93z
-                                 M313.516,179.372c-13.469,11.463-33.433,11.216-44.601-0.561c-11.166-11.77-9.302-30.606,4.163-42.072
-                                c13.468-11.463,33.435-11.215,44.6,0.553C328.843,149.066,326.98,167.902,313.516,179.372z"/>
-                            </svg>
-                        </i>
-                        Konditionen
-                        <span class="hover-wrapper">
-                            <span class="text-holder">
-                                {{ conditions }}
-                            </span>
-                        </span>
-                    </span>
-                {{/if }}
-
-                  <a data-open-url="https://cliqz.com/desktop/cliqz-angebote"
-                     class="cqz-power-by"
-                     data-cqz-of-btn-id="more_about_cliqz"
-                     style="color: {{ styles.description-color }}">
-                      Über MyOffrz
-                  </a>
-            </div>
-    </div>
+<div class="close" data-cqz-of-btn-id="offer_closed">
+  <img data-cqz-of-btn-id="offer_closed" src="./images/ticket-tmpl/close-offer-hover.svg" />
 </div>
-<span class="cqz-close" data-cqz-of-btn-id="offer_closed"></span>
+
+{{#if code}}
+  <div class="code-container">
+    <div 
+      class="code-box"
+      data-cqz-of-btn-id="code_copied"
+    >
+      <div class="bevel tl tr">
+        <div class="content">
+          <span class="code" data-cqz-of-btn-id="code_copied">{{code}}</span>
+          <span class="divider">&middot;</span>
+          <span class="code-copy" data-cqz-of-btn-id="code_copied" data-i18n="offers-copy-code">{{local offers-copy-code}}</span>
+          <span class="code-copied" data-i18n="offers-code-copied">{{local offers-code-copied}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+{{/if}}
+
+<div class="promo-container {{ logo_class }}">
+
+  {{#if labels}}
+  <div class="special-flags">
+    {{#each labels}}
+        <span class="vertical-txt {{this}}" data-i18n="offers-{{this}}"></span>
+    {{/each}}
+  </div>
+  {{/if}}
+  
+  <div class="flex-item logo">
+    <img 
+      src="{{logo_url}}"
+      data-cqz-of-btn-id="offer_logo"
+      openUrl="{{ call_to_action.url }}"
+     />
+  </div>
+
+  {{#if picture_url}}
+  <div class="flex-item picture">
+    <img 
+      src="{{picture_url}}"
+      onerror="this.style.display='none'"
+      data-cqz-of-btn-id="offer_picture"
+      openUrl="{{ call_to_action.url }}"
+    />
+  </div>
+  {{/if}}
+
+  {{#if (or benefit headline) }}
+
+    {{#if benefit}}
+      <div 
+        class="benefit flex-item {{#if (not headline) }} only-benefit{{/if}}"
+        data-cqz-of-btn-id="offer_benefit"
+        openUrl="{{ call_to_action.url }}"
+      >
+        {{ benefit }}
+      </div>
+    {{/if}}
+    {{#if headline}}
+    <div class="headline-container flex-item">
+      <div 
+        class="headline common flex-item"
+        data-cqz-of-btn-id="offer_headline"
+        openUrl="{{ call_to_action.url }}"
+        style="color: {{titleColor}}"
+      >{{ truncate headline 68 }}</div>
+    </div>
+    {{/if}}
+  {{else}}
+    {{#if title}}
+      <div 
+        class="title common flex-item"
+        data-cqz-of-btn-id="offer_title"
+        openUrl="{{ call_to_action.url }}"
+        style="color: {{titleColor}}"
+      >{{title}}</div>
+    {{/if}}
+  {{/if}}
+
+  {{#if desc}}
+    <div class="flex-item description">
+      <div 
+        class="desc-content"
+        data-cqz-of-btn-id="offer_description"
+        openUrl="{{ call_to_action.url }}"
+      >
+        {{ desc }}
+      </div>
+    </div>
+  {{/if}}
+
+  <div class="flex-item call-to-action">
+    {{#if conditions }}
+      <span class="conditions tooltip flex-item" data-i18n="offers-conditions">
+        
+      </span>
+      <img class="info-icon tooltip" 
+           src="./images/ticket-tmpl/info-icon-hover.svg"
+           title="{{conditions}}" />
+
+    {{/if}}
+
+    {{#if call_to_action}}
+      <a href="#"
+         openUrl="{{ call_to_action.url }}"
+         class="btn"
+         data-cqz-of-btn-id="offer_ca_action"
+      >
+        {{ call_to_action.text }}
+      </a>
+    {{/if}}
+  </div>
+
+  <div class="anzeige">
+    <span class="vertical-txt" data-i18n="offers-ad"></span>
+  </div>
+</div>

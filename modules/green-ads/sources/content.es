@@ -5,7 +5,7 @@ import { registerContentScript
        , CHROME_MSG_SOURCE
        , isCliqzContentScriptMsg } from '../core/content/helpers';
 import store from '../core/content/store';
-import CosmeticsInjection from '../core/adblocker-base/cosmetics-injection';
+import Adblocker from '../platform/lib/adblocker-cosmetics';
 import logger from './logger';
 
 // import { getGeneralDomain } from '../core/tlds';
@@ -873,7 +873,7 @@ registerContentScript('http://*.chip.de/*', (window, chrome, windowId) => {
   };
 
   // Inject and block scripts in the page
-  const cosmeticsInjection = new CosmeticsInjection(url, window, backgroundAction);
+  const cosmeticsInjection = new Adblocker.CosmeticsInjection(url, window, backgroundAction);
 
   const onReady = () => {
     cosmeticsInjection.onDOMContentLoaded();

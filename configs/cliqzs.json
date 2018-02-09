@@ -11,7 +11,8 @@
     "RESULTS_TIMEOUT": 3000,
     "freshTabNews": true,
     "CDN_BASEURL": "https://cdn.cliqz.com",
-    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"]
+    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
+    "OFFERS_BE_BASE_URL": "https://offers-api.cliqz.com"
   },
   "default_prefs" : {
     "modules.antitracking.enabled": false

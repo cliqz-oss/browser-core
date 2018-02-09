@@ -15,7 +15,9 @@ function reportClick(window, result) {
     isPrivateWindow: utils.isPrivate(window),
     isPrivateResult: utils.isPrivateResultType(result.kind),
     isFromAutocompletedURL: false,
-    windowId: utils.getWindowID(window)
+    windowId: utils.getWindowID(window),
+    action: 'click',
+    target: 'context-menu',
   });
 }
 

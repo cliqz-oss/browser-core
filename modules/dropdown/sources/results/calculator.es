@@ -3,7 +3,6 @@ import utils from '../../core/utils';
 import { copyToClipboard } from '../../core/clipboard';
 
 export default class CalculatorResult extends BaseResult {
-
   get template() {
     return 'calculator';
   }

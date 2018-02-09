@@ -42,5 +42,4 @@ export default class ValueExpression extends Expression {
   getExprValue(/* ctx */) {
     return Promise.resolve(this.val);
   }
-
 }

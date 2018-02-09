@@ -1,6 +1,6 @@
 {{#if isMovieEZ}}
     <div class="padded">
-        <div class="movie">
+        <div class="movie white-background">
             {{#if imageUrl}}
                 <div class="image" style="background-image: url({{imageUrl}})"></div>
             {{/if}}
@@ -14,13 +14,13 @@
                         </span>
                     {{/if}}
                     {{#if reviewsInfo}}
-                        <a class="result reviews" data-url="{{reviewsInfo.url}}" href="#">{{reviewsInfo.nVote}} {{local reviewsInfo.title}}</a>
+                        <a class="result reviews" href="{{reviewsInfo.url}}">{{reviewsInfo.nVote}} {{local reviewsInfo.title}}</a>
                     {{/if}}
                 </p>
                 <p class="director">
                     {{#if directorInfo}}
                         <span>{{directorInfo.title}}:</span>
-                        <a class="result" data-url="{{directorInfo.url}}" href="#">{{directorInfo.name}}</a>
+                        <a class="result" href="{{directorInfo.url}}">{{directorInfo.name}}</a>
                     {{/if}}
                 </p>
                 <p class="stars">
@@ -35,12 +35,12 @@
                         </span>
                     {{/if}}
                     <span>
-                        <a class="result" data-url="{{fullCastInfo.url}}" href="#">{{local fullCastInfo.title}}</a>
+                        <a class="result" href="{{fullCastInfo.url}}">{{local fullCastInfo.title}}</a>
                     </span>
                 </p>
                 {{#if trailerInfo}}
                     <div class="trailer">
-                        <a class="result" data-url="{{trailerInfo.url}}" href="#">
+                        <a class="result" href="{{trailerInfo.url}}">
                             <div class="trailer-icon"></div>
                             <span>{{local trailerInfo.title}}</span>
                         </a>

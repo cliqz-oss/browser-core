@@ -79,8 +79,8 @@ function myOffrzTests(amo) {
 
         it('url for "Learn more" is correct', function () {
           const offersObject = subject.queryAll('#accordion-4 .bullet')[0];
-          chai.expect(offersObject.querySelector('.location-more').hasAttribute('data-open-url')).to.be.true;
-          chai.expect(offersObject.querySelector('.location-more').getAttribute('data-open-url')).to.equal('https://cliqz.com/myoffrz');
+          chai.expect(offersObject.querySelector('.location-more').hasAttribute('openurl')).to.be.true;
+          chai.expect(offersObject.querySelector('.location-more').getAttribute('openurl')).to.equal('https://cliqz.com/myoffrz');
         });
 
         it('renders dropdown', function () {
@@ -102,10 +102,10 @@ function myOffrzTests(amo) {
               () => subject.messages.find(message => message.message.action === "updatePref")
             ).then(
               message => {
-                chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.offers2UserEnabled");
-                chai.expect(message).to.have.deep.property("message.data.value", `${currentValue}`);
-                chai.expect(message).to.have.deep.property("message.data.target", "offerz_main");
-                chai.expect(message).to.have.deep.property("message.data.prefType", 'boolean');
+                chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.offers2UserEnabled");
+                chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
+                chai.expect(message).to.have.nested.property("message.data.target", "offerz_main");
+                chai.expect(message).to.have.nested.property("message.data.prefType", 'boolean');
               }
             );
           });
@@ -155,10 +155,10 @@ function myOffrzTests(amo) {
               () => subject.messages.find(message => message.message.action === "updatePref")
             ).then(
               message => {
-                chai.expect(message).to.have.deep.property("message.data.pref", "extensions.cliqz.offers_location");
-                chai.expect(message).to.have.deep.property("message.data.value", `${currentValue}`);
-                chai.expect(message).to.have.deep.property("message.data.target", "offerz_location");
-                chai.expect(message).to.have.deep.property("message.data.prefType", 'integer');
+                chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.offers_location");
+                chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
+                chai.expect(message).to.have.nested.property("message.data.target", "offerz_location");
+                chai.expect(message).to.have.nested.property("message.data.prefType", 'integer');
               }
             );
           });

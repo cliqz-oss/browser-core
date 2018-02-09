@@ -39,8 +39,8 @@ function antitrackingUiTests(amo) {
       it('renders "Your data is protected"', function () {
         chai.expect(subject.query('#header .title [data-i18n="control-center-txt-header"]')).to.exist;
         chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header"]').display).to.not.equal('none');
-        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][data-visible-on-state="inactive"]').display).to.equal('none');
-        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][data-visible-on-state="critical"]').display).to.equal('none');
+        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][visible-on-state="inactive"]').display).to.equal('none');
+        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][visible-on-state="critical"]').display).to.equal('none');
         chai.expect(subject.query('#header .title [data-i18n="control-center-txt-header"]').textContent.trim()).to.equal('control-center-txt-header');
       });
 
@@ -61,8 +61,8 @@ function antitrackingUiTests(amo) {
     });
 
     it('renders title', function () {
-      chai.expect(subject.query('#anti-tracking .title span[data-start-navigation=""]')).to.exist;
-      chai.expect(subject.query('#anti-tracking .title span[data-start-navigation=""]').textContent.trim()).to.equal('Anti-Tracking');
+      chai.expect(subject.query('#anti-tracking .title span[start-navigation=""]')).to.exist;
+      chai.expect(subject.query('#anti-tracking .title span[start-navigation=""]').textContent.trim()).to.equal('Anti-Tracking');
     });
 
     it('renders arrow', function () {
@@ -97,21 +97,21 @@ function antitrackingUiTests(amo) {
     it('renders "ON"', function () {
       chai.expect(subject.query('#anti-tracking .switches [data-i18n="control-center-switch-on"]')).to.exist;
       chai.expect(subject.getComputedStyle('#anti-tracking .switches [data-i18n="control-center-switch-on"]').display).to.not.equal('none');
-      chai.expect(subject.query('#anti-tracking .switches [data-visible-on-state="inactive"][data-i18n="control-center-switch-off"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-tracking .switches [data-visible-on-state="inactive"][data-i18n="control-center-switch-off"]').display).to.equal('none');
-      chai.expect(subject.query('#anti-tracking .switches [data-visible-on-state="critical"][data-i18n="control-center-switch-off"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-tracking .switches [data-visible-on-state="critical"][data-i18n="control-center-switch-off"]').display).to.equal('none');
+      chai.expect(subject.query('#anti-tracking .switches [visible-on-state="inactive"][data-i18n="control-center-switch-off"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-tracking .switches [visible-on-state="inactive"][data-i18n="control-center-switch-off"]').display).to.equal('none');
+      chai.expect(subject.query('#anti-tracking .switches [visible-on-state="critical"][data-i18n="control-center-switch-off"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-tracking .switches [visible-on-state="critical"][data-i18n="control-center-switch-off"]').display).to.equal('none');
       chai.expect(subject.query('#anti-tracking .switches [data-i18n="control-center-switch-on"]').textContent.trim()).to.equal('control-center-switch-on')
     });
 
     it('renders text about private points', function () {
-      chai.expect(subject.query('#anti-tracking .row-text [data-visible-on-state="active"][data-i18n="control-center-datapoints"]')).to.exist;
-      chai.expect(subject.query('#anti-tracking .row-text [data-visible-on-state="inactive"][data-i18n="control-center-datapoints-inactive"]')).to.exist;
-      chai.expect(subject.query('#anti-tracking .row-text [data-visible-on-state="critical"][data-i18n="control-center-datapoints-off"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [data-visible-on-state="active"][data-i18n="control-center-datapoints"]').display).to.not.equal('none');
-      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [data-visible-on-state="inactive"][data-i18n="control-center-datapoints-inactive"]').display).to.equal('none');
-      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [data-visible-on-state="critical"][data-i18n="control-center-datapoints-off"]').display).to.equal('none');
-      chai.expect(subject.query('#anti-tracking .row-text [data-visible-on-state="active"][data-i18n="control-center-datapoints"]').textContent.trim()).to.equal('control-center-datapoints');
+      chai.expect(subject.query('#anti-tracking .row-text [visible-on-state="active"][data-i18n="control-center-datapoints"]')).to.exist;
+      chai.expect(subject.query('#anti-tracking .row-text [visible-on-state="inactive"][data-i18n="control-center-datapoints-inactive"]')).to.exist;
+      chai.expect(subject.query('#anti-tracking .row-text [visible-on-state="critical"][data-i18n="control-center-datapoints-off"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [visible-on-state="active"][data-i18n="control-center-datapoints"]').display).to.not.equal('none');
+      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [visible-on-state="inactive"][data-i18n="control-center-datapoints-inactive"]').display).to.equal('none');
+      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [visible-on-state="critical"][data-i18n="control-center-datapoints-off"]').display).to.equal('none');
+      chai.expect(subject.query('#anti-tracking .row-text [visible-on-state="active"][data-i18n="control-center-datapoints"]').textContent.trim()).to.equal('control-center-datapoints');
     });
 
     it('dropdown is invisible', function () {
@@ -120,13 +120,13 @@ function antitrackingUiTests(amo) {
     });
 
     it('renders correct amount of data points', function () {
-      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="active"]')).to.exist;
-      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="inactive"]')).to.exist;
-      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="critical"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [data-visible-on-state="active"]').display).to.not.equal('none');
-      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [data-visible-on-state="inactive"]').display).to.equal('none');
-      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [data-visible-on-state="critical"]').display).to.equal('none');
-      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="active"]').textContent.trim()).to.equal(dataOn.module.antitracking.totalCount.toString());
+      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [visible-on-state="active"]')).to.exist;
+      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [visible-on-state="inactive"]')).to.exist;
+      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [visible-on-state="critical"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [visible-on-state="active"]').display).to.not.equal('none');
+      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [visible-on-state="inactive"]').display).to.equal('none');
+      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [visible-on-state="critical"]').display).to.equal('none');
+      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [visible-on-state="active"]').textContent.trim()).to.equal(dataOn.module.antitracking.totalCount.toString());
     });
   });
 
@@ -148,9 +148,9 @@ function antitrackingUiTests(amo) {
       it('renders header with the correct text', function () {
         chai.expect(subject.query('#header .title')).to.exist;
         chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header"]').display).to.equal('none');
-        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][data-visible-on-state="critical"]').display).to.equal('none');
-        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][data-visible-on-state="inactive"]').display).to.not.equal('none');
-        chai.expect(subject.query('#header .title [data-i18n="control-center-txt-header-not"][data-visible-on-state="inactive"]').textContent.trim()).to.equal('control-center-txt-header-not');
+        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][visible-on-state="critical"]').display).to.equal('none');
+        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][visible-on-state="inactive"]').display).to.not.equal('none');
+        chai.expect(subject.query('#header .title [data-i18n="control-center-txt-header-not"][visible-on-state="inactive"]').textContent.trim()).to.equal('control-center-txt-header-not');
       });
 
       it('renders warning icon', function () {
@@ -169,39 +169,39 @@ function antitrackingUiTests(amo) {
     it('renders "OFF"', function () {
       chai.expect(subject.query('#anti-tracking .switches [data-i18n="control-center-switch-on"]')).to.exist;
       chai.expect(subject.getComputedStyle('#anti-tracking .switches [data-i18n="control-center-switch-on"]').display).to.equal('none');
-      chai.expect(subject.query('#anti-tracking .switches [data-visible-on-state="inactive"][data-i18n="control-center-switch-off"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-tracking .switches [data-visible-on-state="inactive"][data-i18n="control-center-switch-off"]').display).to.not.equal('none');
-      chai.expect(subject.query('#anti-tracking .switches [data-visible-on-state="critical"][data-i18n="control-center-switch-off"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-tracking .switches [data-visible-on-state="critical"][data-i18n="control-center-switch-off"]').display).to.equal('none');
-      chai.expect(subject.query('#anti-tracking .switches [data-visible-on-state="inactive"][data-i18n="control-center-switch-off"]').textContent.trim()).to.equal('control-center-switch-off');
+      chai.expect(subject.query('#anti-tracking .switches [visible-on-state="inactive"][data-i18n="control-center-switch-off"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-tracking .switches [visible-on-state="inactive"][data-i18n="control-center-switch-off"]').display).to.not.equal('none');
+      chai.expect(subject.query('#anti-tracking .switches [visible-on-state="critical"][data-i18n="control-center-switch-off"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-tracking .switches [visible-on-state="critical"][data-i18n="control-center-switch-off"]').display).to.equal('none');
+      chai.expect(subject.query('#anti-tracking .switches [visible-on-state="inactive"][data-i18n="control-center-switch-off"]').textContent.trim()).to.equal('control-center-switch-off');
     });
 
     it('renders "Turned off for this domain"', function () {
-      chai.expect(subject.query('#anti-tracking .row-text [data-visible-on-state="active"][data-i18n="control-center-datapoints"]')).to.exist;
-      chai.expect(subject.query('#anti-tracking .row-text [data-visible-on-state="inactive"][data-i18n="control-center-datapoints-inactive"]')).to.exist;
-      chai.expect(subject.query('#anti-tracking .row-text [data-visible-on-state="critical"][data-i18n="control-center-datapoints-off"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [data-visible-on-state="active"][data-i18n="control-center-datapoints"]').display).to.equal('none');
-      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [data-visible-on-state="inactive"][data-i18n="control-center-datapoints-inactive"]').display).to.not.equal('none');
-      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [data-visible-on-state="critical"][data-i18n="control-center-datapoints-off"]').display).to.equal('none');
-      chai.expect(subject.query('#anti-tracking .row-text [data-visible-on-state="inactive"][data-i18n="control-center-datapoints-inactive"]').textContent.trim()).to.equal('control-center-datapoints-inactive');
+      chai.expect(subject.query('#anti-tracking .row-text [visible-on-state="active"][data-i18n="control-center-datapoints"]')).to.exist;
+      chai.expect(subject.query('#anti-tracking .row-text [visible-on-state="inactive"][data-i18n="control-center-datapoints-inactive"]')).to.exist;
+      chai.expect(subject.query('#anti-tracking .row-text [visible-on-state="critical"][data-i18n="control-center-datapoints-off"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [visible-on-state="active"][data-i18n="control-center-datapoints"]').display).to.equal('none');
+      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [visible-on-state="inactive"][data-i18n="control-center-datapoints-inactive"]').display).to.not.equal('none');
+      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [visible-on-state="critical"][data-i18n="control-center-datapoints-off"]').display).to.equal('none');
+      chai.expect(subject.query('#anti-tracking .row-text [visible-on-state="inactive"][data-i18n="control-center-datapoints-inactive"]').textContent.trim()).to.equal('control-center-datapoints-inactive');
     });
 
     it('renders dropdown with "This domain"', function () {
-      chai.expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control-center-this-domain"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control-center-this-domain"]').display).to.not.equal('none');
-      chai.expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control-center-all-sites"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control-center-all-sites"]').display).to.equal('none');
-      chai.expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control-center-this-domain"]').textContent.trim()).to.equal('control-center-this-domain');
+      chai.expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [visible-on-state="inactive"][data-i18n="control-center-this-domain"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-tracking .new-dropdown .dropdown-btn [visible-on-state="inactive"][data-i18n="control-center-this-domain"]').display).to.not.equal('none');
+      chai.expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [visible-on-state="critical"][data-i18n="control-center-all-sites"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-tracking .new-dropdown .dropdown-btn [visible-on-state="critical"][data-i18n="control-center-all-sites"]').display).to.equal('none');
+      chai.expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [visible-on-state="inactive"][data-i18n="control-center-this-domain"]').textContent.trim()).to.equal('control-center-this-domain');
     });
 
     it('renders correct amount of data points', function () {
-      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="active"]')).to.exist;
-      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="inactive"]')).to.exist;
-      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="critical"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [data-visible-on-state="active"]').display).to.equal('none');
-      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [data-visible-on-state="inactive"]').display).to.not.equal('none');
-      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [data-visible-on-state="critical"]').display).to.equal('none');
-      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="inactive"]').textContent.trim()).to.equal('0');
+      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [visible-on-state="active"]')).to.exist;
+      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [visible-on-state="inactive"]')).to.exist;
+      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [visible-on-state="critical"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [visible-on-state="active"]').display).to.equal('none');
+      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [visible-on-state="inactive"]').display).to.not.equal('none');
+      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [visible-on-state="critical"]').display).to.equal('none');
+      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [visible-on-state="inactive"]').textContent.trim()).to.equal('0');
     });
   });
 
@@ -223,8 +223,8 @@ function antitrackingUiTests(amo) {
       it("renders header with the correct text", function () {
         chai.expect(subject.query('#header .title')).to.exist;
         chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header"]').display).to.equal('none');
-        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][data-visible-on-state="inactive"]').display).to.equal('none');
-        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][data-visible-on-state="critical"]').display).to.not.equal('none');
+        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][visible-on-state="inactive"]').display).to.equal('none');
+        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][visible-on-state="critical"]').display).to.not.equal('none');
         chai.expect(subject.query('#header .title [data-i18n="control-center-txt-header-not"]').textContent.trim()).to.equal('control-center-txt-header-not');
       });
 
@@ -244,39 +244,39 @@ function antitrackingUiTests(amo) {
     it('renders "OFF"', function () {
       chai.expect(subject.query('#anti-tracking .switches [data-i18n="control-center-switch-on"]')).to.exist;
       chai.expect(subject.getComputedStyle('#anti-tracking .switches [data-i18n="control-center-switch-on"]').display).to.equal('none');
-      chai.expect(subject.query('#anti-tracking .switches [data-visible-on-state="critical"][data-i18n="control-center-switch-off"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-tracking .switches [data-visible-on-state="critical"][data-i18n="control-center-switch-off"]').display).to.not.equal('none');
-      chai.expect(subject.query('#anti-tracking .switches [data-visible-on-state="inactive"][data-i18n="control-center-switch-off"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-tracking .switches [data-visible-on-state="inactive"][data-i18n="control-center-switch-off"]').display).to.equal('none');
-      chai.expect(subject.query('#anti-tracking .switches [data-visible-on-state="critical"][data-i18n="control-center-switch-off"]').textContent.trim()).to.equal('control-center-switch-off');
+      chai.expect(subject.query('#anti-tracking .switches [visible-on-state="critical"][data-i18n="control-center-switch-off"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-tracking .switches [visible-on-state="critical"][data-i18n="control-center-switch-off"]').display).to.not.equal('none');
+      chai.expect(subject.query('#anti-tracking .switches [visible-on-state="inactive"][data-i18n="control-center-switch-off"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-tracking .switches [visible-on-state="inactive"][data-i18n="control-center-switch-off"]').display).to.equal('none');
+      chai.expect(subject.query('#anti-tracking .switches [visible-on-state="critical"][data-i18n="control-center-switch-off"]').textContent.trim()).to.equal('control-center-switch-off');
     });
 
     it('renders "Turned off for all websites"', function () {
-      chai.expect(subject.query('#anti-tracking .row-text [data-visible-on-state="active"][data-i18n="control-center-datapoints"]')).to.exist;
-      chai.expect(subject.query('#anti-tracking .row-text [data-visible-on-state="inactive"][data-i18n="control-center-datapoints-inactive"]')).to.exist;
-      chai.expect(subject.query('#anti-tracking .row-text [data-visible-on-state="critical"][data-i18n="control-center-datapoints-off"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [data-visible-on-state="active"][data-i18n="control-center-datapoints"]').display).to.equal('none');
-      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [data-visible-on-state="inactive"][data-i18n="control-center-datapoints-inactive"]').display).to.equal('none');
-      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [data-visible-on-state="critical"][data-i18n="control-center-datapoints-off"]').display).to.not.equal('none');
-      chai.expect(subject.query('#anti-tracking .row-text [data-visible-on-state="inactive"][data-i18n="control-center-datapoints-inactive"]').textContent.trim()).to.equal('control-center-datapoints-inactive');
+      chai.expect(subject.query('#anti-tracking .row-text [visible-on-state="active"][data-i18n="control-center-datapoints"]')).to.exist;
+      chai.expect(subject.query('#anti-tracking .row-text [visible-on-state="inactive"][data-i18n="control-center-datapoints-inactive"]')).to.exist;
+      chai.expect(subject.query('#anti-tracking .row-text [visible-on-state="critical"][data-i18n="control-center-datapoints-off"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [visible-on-state="active"][data-i18n="control-center-datapoints"]').display).to.equal('none');
+      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [visible-on-state="inactive"][data-i18n="control-center-datapoints-inactive"]').display).to.equal('none');
+      chai.expect(subject.getComputedStyle('#anti-tracking .row-text [visible-on-state="critical"][data-i18n="control-center-datapoints-off"]').display).to.not.equal('none');
+      chai.expect(subject.query('#anti-tracking .row-text [visible-on-state="inactive"][data-i18n="control-center-datapoints-inactive"]').textContent.trim()).to.equal('control-center-datapoints-inactive');
     });
 
     it('renders dropdown with "All websites"', function () {
-      chai.expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control-center-this-domain"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control-center-this-domain"]').display).to.equal('none');
-      chai.expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control-center-all-sites"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control-center-all-sites"]').display).to.not.equal('none');
-      chai.expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control-center-all-sites"]').textContent.trim()).to.equal('control-center-all-sites');
+      chai.expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [visible-on-state="inactive"][data-i18n="control-center-this-domain"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-tracking .new-dropdown .dropdown-btn [visible-on-state="inactive"][data-i18n="control-center-this-domain"]').display).to.equal('none');
+      chai.expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [visible-on-state="critical"][data-i18n="control-center-all-sites"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-tracking .new-dropdown .dropdown-btn [visible-on-state="critical"][data-i18n="control-center-all-sites"]').display).to.not.equal('none');
+      chai.expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [visible-on-state="critical"][data-i18n="control-center-all-sites"]').textContent.trim()).to.equal('control-center-all-sites');
     });
 
     it('renders correct amount of data points', function () {
-      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="active"]')).to.exist;
-      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="inactive"]')).to.exist;
-      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="critical"]')).to.exist;
-      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [data-visible-on-state="active"]').display).to.equal('none');
-      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [data-visible-on-state="inactive"]').display).to.equal('none');
-      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [data-visible-on-state="critical"]').display).to.not.equal('none');
-      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="critical"]').textContent.trim()).to.equal('0');
+      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [visible-on-state="active"]')).to.exist;
+      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [visible-on-state="inactive"]')).to.exist;
+      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [visible-on-state="critical"]')).to.exist;
+      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [visible-on-state="active"]').display).to.equal('none');
+      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [visible-on-state="inactive"]').display).to.equal('none');
+      chai.expect(subject.getComputedStyle('#anti-tracking #antitracker-counter #count [visible-on-state="critical"]').display).to.not.equal('none');
+      chai.expect(subject.query('#anti-tracking #antitracker-counter #count [visible-on-state="critical"]').textContent.trim()).to.equal('0');
     });
   });
 }

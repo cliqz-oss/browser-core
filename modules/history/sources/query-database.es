@@ -1,5 +1,4 @@
 export default class QueryDatabase {
-
   constructor(queryDB) {
     this.queryDB = queryDB;
 
@@ -76,5 +75,4 @@ export default class QueryDatabase {
       },
     ).then(result => (result.rows[0] || {}).id);
   }
-
 }

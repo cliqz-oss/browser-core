@@ -33,6 +33,7 @@ export function waitFor(fn) {
   return promise;
 }
 
+/* not sure we need this
 export function offersHubFrameTests(subject) {
   context('renders offers hub header and footer elements', function () {
     it('renders hub title', function () {
@@ -54,8 +55,8 @@ export function offersHubFrameTests(subject) {
 
     it('link is correct', function () {
       const moreInfoSelector = 'footer .cqz-power-by';
-      chai.expect(subject.query(moreInfoSelector).hasAttribute('data-open-url')).to.be.true;
-      chai.expect(subject.query(moreInfoSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/myoffrz');
+      chai.expect(subject.query(moreInfoSelector).hasAttribute('openurl')).to.be.true;
+      chai.expect(subject.query(moreInfoSelector).getAttribute('openurl')).to.equal('https://cliqz.com/myoffrz');
     });
 
     it('renders "powered by Cliqz"', function () {
@@ -64,7 +65,7 @@ export function offersHubFrameTests(subject) {
       chai.expect(subject.query(poweredBySelector).textContent.trim()).to.equal('offers-hub-powered-by');
     });
   });
-};
+};*/
 
 export class Subject {
   constructor() {
@@ -74,8 +75,8 @@ export class Subject {
   load() {
     this.iframe = document.createElement('iframe');
     this.iframe.src = '/build/cliqz@cliqz.com/chrome/content/offers-cc/index.html';
-    this.iframe.width = 455;
-    this.iframe.height = 500;
+    this.iframe.width = 270;
+    this.iframe.height = 700;
     document.body.appendChild(this.iframe)
 
     return new Promise(resolve => {

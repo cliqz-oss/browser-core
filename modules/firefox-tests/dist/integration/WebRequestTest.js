@@ -38,7 +38,7 @@ TESTS.WebRequestTest = function(CliqzUtils) {
       webrequest.onHeadersReceived.removeListener( onHeadersReceiveCtr );
     });
 
-    context('http GET request', function() {
+    context.skip('http GET request (Not visible from WebExtension)', function() {
 
       var url = 'http://localhost:' + testServer.port + '/';
 
@@ -84,7 +84,7 @@ TESTS.WebRequestTest = function(CliqzUtils) {
             done();
           }
         }
-        webrequest.onHeadersReceived.addListener(tabLoaded);
+        webrequest.onHeadersReceived.addListener(tabLoaded, { urls: ['http://*'] });
         browser.newTab(url);
       });
 
@@ -97,7 +97,7 @@ TESTS.WebRequestTest = function(CliqzUtils) {
           var req = reqs[0];
           console.log(req);
           chai.expect(req.method).to.equal('GET');
-          chai.expect(req.type).to.equal(6);
+          chai.expect(req.type).to.equal('main_frame');
         }
       });
 
@@ -140,7 +140,7 @@ TESTS.WebRequestTest = function(CliqzUtils) {
           serverHit = true;
           helloWorld(req, resp);
         });
-        webrequest.onBeforeRequest.addListener(block, undefined, ['blocking']);
+        webrequest.onBeforeRequest.addListener(block, { urls: ['http://*'] }, ['blocking']);
         requestSeen = false;
         serverHit = false;
       });
@@ -165,27 +165,19 @@ TESTS.WebRequestTest = function(CliqzUtils) {
 
     context('listener returns redirectUrl', function() {
 
-      var requestSeen = false,
-        baseUrl = 'http://localhost:' + testServer.port
+      var requestSeen = false;
+      var baseUrl = 'http://localhost:' + testServer.port
+      var hitBase = false;
+      var hitRedirect = false;
       var redirect = function(req) {
-        if (req.url.indexOf(baseUrl) !== -1) {
+        if (req.url.indexOf(baseUrl) !== -1 && req.url.indexOf('redirected') === -1) {
           requestSeen = true;
           return {redirectUrl: baseUrl + '/redirected'};
         }
       };
 
       beforeEach( function() {
-        webrequest.onBeforeRequest.addListener(redirect, undefined, ['blocking']);
-      });
-
-      afterEach( function() {
-        webrequest.onBeforeRequest.removeListener(redirect);
-      });
-
-      it('redirects to specified url', function() {
-        var hitBase = false;
-        var hitRedirect = false;
-
+        webrequest.onBeforeRequest.addListener(redirect, { urls: ['http://*/*'] }, ['blocking']);
         testServer.registerPathHandler('/', function(req, resp) {
           hitBase = true;
           helloWorld(req, resp);
@@ -194,8 +186,14 @@ TESTS.WebRequestTest = function(CliqzUtils) {
           hitRedirect = true;
           helloWorld(req, resp);
         });
-        requestSeen = false;
+      });
 
+      afterEach( function() {
+        webrequest.onBeforeRequest.removeListener(redirect);
+      });
+
+      it('redirects to specified url', function() {
+        requestSeen = false;
         return browser.newTab(baseUrl + '/').then(function () {
           return waitFor(function() {
             return requestSeen && hitRedirect;
@@ -213,16 +211,15 @@ TESTS.WebRequestTest = function(CliqzUtils) {
       var requestSeen = false;
       var url = 'http://localhost:' + testServer.port + '/';
       var changeHeaders = function(req) {
-        console.log('xxx', req);
-        if (req.url === url) {
+        if (req.url === url && !requestSeen) {
           requestSeen = true;
-          return {requestHeaders: [{
+          const newHeaders = req.requestHeaders;
+          newHeaders.push({
             name: 'newheader',
             value: 'test'
-          },{
-            name: 'accept-encoding',
-            value: 'gzip'
-          }]}
+          });
+          newHeaders.find(h => h.name.toLowerCase() === 'user-agent').value = 'Cliqz';
+          return {requestHeaders: newHeaders}
         }
       };
 
@@ -240,11 +237,11 @@ TESTS.WebRequestTest = function(CliqzUtils) {
 
       beforeEach( function() {
         requestSeen = false;
-        webrequest.onBeforeRequest.addListener(changeHeaders, undefined, ['requestHeaders']);
+        webrequest.onBeforeSendHeaders.addListener(changeHeaders, { urls: ['http://*/*'] }, ['blocking', 'requestHeaders']);
       });
 
       afterEach( function() {
-        webrequest.onBeforeRequest.removeListener(changeHeaders);
+        webrequest.onBeforeSendHeaders.removeListener(changeHeaders);
       });
 
       it('modifies headers of the request', function() {
@@ -255,11 +252,12 @@ TESTS.WebRequestTest = function(CliqzUtils) {
             return requestSeen && headers !== null;
           }).then(function() {
             // newly added header
+            console.log(headers);
             chai.expect(headers).to.have.property('newheader');
             chai.expect(headers['newheader']).to.equal('test');
             // modified header
-            chai.expect(headers).to.have.property('accept-encoding');
-            chai.expect(headers['accept-encoding']).to.equal('gzip');
+            chai.expect(headers).to.have.property('user-agent');
+            chai.expect(headers['user-agent']).to.equal('Cliqz');
           });
         });
       });

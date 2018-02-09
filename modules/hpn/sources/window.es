@@ -16,6 +16,7 @@ export default class {
   }
 
   unload() {
+    delete this.window.CliqzSecureMessage;
   }
 
   status() {

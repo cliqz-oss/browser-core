@@ -18,7 +18,6 @@ function getDayString() {
  * @namespace antispy
  */
 export default class SuspiciousUrlCheck {
-
   /**
    * Create a SuspiciousUrlCheck instance with the provided telemetry provider
    * @param  {function} telemetry function through which telemetry will be sent

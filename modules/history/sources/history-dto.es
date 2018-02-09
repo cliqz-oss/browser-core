@@ -30,10 +30,6 @@ function mergePlaces(history, places) {
   const domainList = places.reduce((d, entry) => {
     const domains = d;
 
-    if (!entry.title) {
-      return domains;
-    }
-
     urlCount += 1;
 
     const isCliqz = entry.url.indexOf('cliqz://') === 0;
@@ -67,7 +63,7 @@ function mergePlaces(history, places) {
 
     domains[host].visits.push({
       url: entry.url,
-      title: entry.title,
+      title: entry.title || '',
       lastVisitedAt: entry.visit_date,
       sessionId: entry.session_id,
       visitId: entry.id,

@@ -128,18 +128,22 @@ export default class OfferProcessor {
     // this is the entry point for every place where we will create an offer.
     // Everyone who creates an offer should call this method.
     //
-    this.sigHandler.setCampaignSignal(offerInfo.campaign_id,
-                                      offerInfo.offer_id,
-                                      originID,
-                                      ActionID.AID_OFFER_TRIGGERED);
+    this.sigHandler.setCampaignSignal(
+      offerInfo.campaign_id,
+      offerInfo.offer_id,
+      originID,
+      ActionID.AID_OFFER_TRIGGERED
+    );
 
     // check if we should or should not show this offer
     if (!this._shouldShowOffer(offerInfo)) {
       logger.info(`pushOffer: We should not show this offer with ID: ${offerInfo.offer_id}`);
-      this.sigHandler.setCampaignSignal(offerInfo.campaign_id,
-                                        offerInfo.offer_id,
-                                        originID,
-                                        ActionID.AID_OFFER_FILTERED);
+      this.sigHandler.setCampaignSignal(
+        offerInfo.campaign_id,
+        offerInfo.offer_id,
+        originID,
+        ActionID.AID_OFFER_FILTERED
+      );
       return false;
     }
 
@@ -168,10 +172,12 @@ export default class OfferProcessor {
 
     // track some signals
     this.offersDB.incOfferAction(offerObject.offer_id, ActionID.AID_OFFER_PUSHED);
-    this.sigHandler.setCampaignSignal(offerObject.campaign_id,
-                                      offerObject.offer_id,
-                                      originID,
-                                      ActionID.AID_OFFER_PUSHED);
+    this.sigHandler.setCampaignSignal(
+      offerObject.campaign_id,
+      offerObject.offer_id,
+      originID,
+      ActionID.AID_OFFER_PUSHED
+    );
 
     // broadcast the message
     let displayRule = newDisplayRule;
@@ -194,7 +200,7 @@ export default class OfferProcessor {
    *
    * check https://cliqztix.atlassian.net/wiki/pages/viewpage.action?pageId=88618158
    * for more information which are the functions and description
-   ******************************************************************************/
+   ***************************************************************************** */
 
   /**
    * will return a list of offers filtered and sorted as specified in args
@@ -229,9 +235,10 @@ export default class OfferProcessor {
           return;
         }
         if (filters.by_rs_dest && offerElement.offer.rs_dest) {
-          const realEstatesSet = typeof filters.by_rs_dest === 'string' ?
-                                 new Set([filters.by_rs_dest]) :
-                                 new Set(filters.by_rs_dest);
+          const realEstatesSet =
+            typeof filters.by_rs_dest === 'string'
+              ? new Set([filters.by_rs_dest])
+              : new Set(filters.by_rs_dest);
 
           // check the real estate destination of the offer
           if (!offerElement.offer.rs_dest.some(dre => realEstatesSet.has(dre))) {
@@ -407,10 +414,12 @@ export default class OfferProcessor {
 
     // track signal
     const campaignID = this.offersDB.getCampaignID(offerID);
-    this.sigHandler.setCampaignSignal(campaignID,
-                                      offerID,
-                                      ORIGIN_ID,
-                                      ActionID.AID_OFFER_DB_REMOVED);
+    this.sigHandler.setCampaignSignal(
+      campaignID,
+      offerID,
+      ORIGIN_ID,
+      ActionID.AID_OFFER_DB_REMOVED
+    );
 
     // we emit the event for the real states now
     const realStatesDest = this._getDestRealStatesForOffer(offerID);
@@ -608,6 +617,4 @@ export default class OfferProcessor {
 
     return true;
   }
-
-
 }

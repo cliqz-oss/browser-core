@@ -100,7 +100,6 @@ export function setValue(key, value) {
 export { loadRecord, saveRecord };
 
 export class LazyPersistentObject {
-
   constructor(name) {
     this.name = name;
     this.value = {};

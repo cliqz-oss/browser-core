@@ -8,20 +8,20 @@ import { sanitiseUrl } from './utils';
 export function getHistory({ from, to, domain, includeSubdomains = false }) {
   const domainPattern = includeSubdomains ? `[a-zA-Z0-9]*.${domain}` : domain;
   return History.query({ frameStartsAt: from, frameEndsAt: to, domain: domainPattern })
-  .then(({ places }) => {
-    // remove false positives from query results
-    if (domain) {
-      return places.filter((place) => {
-        try {
-          const host = place.url.split('://')[1].split('/')[0];
-          return host.endsWith(domain);
-        } catch (e) {
-          return false;
-        }
-      });
-    }
-    return places;
-  });
+    .then(({ places }) => {
+      // remove false positives from query results
+      if (domain) {
+        return places.filter((place) => {
+          try {
+            const host = place.url.split('://')[1].split('/')[0];
+            return host.endsWith(domain);
+          } catch (e) {
+            return false;
+          }
+        });
+      }
+      return places;
+    });
 }
 
 
@@ -68,12 +68,11 @@ export function getRetention({ from, to, domain, includeSubdomains = false }) {
 const MODE_SINCE_PREF = 'greenadsModeSince';
 
 export default class SiteRetention {
-
   constructor(domainList, greenMode, sendTelemetry) {
     this.domains = new Set(domainList);
     this.anacron = new Anacron(
       { get: utils.getPref, set: utils.setPref }, // storage
-      { name: 'greenads.anacron' },               // options
+      { name: 'greenads.anacron' }, // options
     );
     this.greenMode = greenMode;
     this.sendTelemetry = sendTelemetry;
@@ -125,7 +124,7 @@ export default class SiteRetention {
         return d;
       }, new Set());
       const lastActive = activeDays.size > 0 ?
-          Math.max(...[...activeDays].map(Number)).toString() : null;
+        Math.max(...[...activeDays].map(Number)).toString() : null;
       return {
         daysActive: activeDays.size,
         lastActive,
@@ -133,35 +132,35 @@ export default class SiteRetention {
     });
 
     const generateDailySummary = Promise.all([getHistorySummaries, getRetentionSummary])
-    .then((results) => {
-      const [summaries, retentionSummary] = results;
-      const activeSites = summaries.filter(sum => sum.visits > 0);
-      const siteActive = activeSites.length > 0;
-      const heavyUser = retentionSummary.daysActive > 7;
+      .then((results) => {
+        const [summaries, retentionSummary] = results;
+        const activeSites = summaries.filter(sum => sum.visits > 0);
+        const siteActive = activeSites.length > 0;
+        const heavyUser = retentionSummary.daysActive > 7;
 
-      const summary = {
-        day: moment(dayToMeasure).format('YYYYMMDD'),
-        greenMode: this.greenMode,
-        sites: [...this.domains],
-        siteActive,
-        lastActive: retentionSummary.lastActive,
-        heavyUser,
-      };
+        const summary = {
+          day: moment(dayToMeasure).format('YYYYMMDD'),
+          greenMode: this.greenMode,
+          sites: [...this.domains],
+          siteActive,
+          lastActive: retentionSummary.lastActive,
+          heavyUser,
+        };
 
-      if (!siteActive) {
-        // check for any activity
-        return getHistory({ from, to }).then((places) => {
-          const dailyActive = places.length > 0;
-          return Object.assign(summary, { dailyActive });
+        if (!siteActive) {
+          // check for any activity
+          return getHistory({ from, to }).then((places) => {
+            const dailyActive = places.length > 0;
+            return Object.assign(summary, { dailyActive });
+          });
+        }
+        return Object.assign(summary, {
+          dailyActive: true,
+          activity: activeSites
+            .reduce((hash, item) => Object.assign(hash, { [item.domain]: item }),
+              Object.create(null)),
         });
-      }
-      return Object.assign(summary, {
-        dailyActive: true,
-        activity: activeSites
-          .reduce((hash, item) => Object.assign(hash, { [item.domain]: item }),
-            Object.create(null)),
       });
-    });
 
     return generateDailySummary.then((summary) => {
       logger.log('sending daily user summary', summary);

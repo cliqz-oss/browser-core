@@ -52,7 +52,7 @@ class WebRequestContext {
     this.method = details.method;
     this.ip = details.ip;
     this.error = details.error;
-    this.proxyInfo = details.proxyInfo;  // FF web-ext only
+    this.proxyInfo = details.proxyInfo; // FF web-ext only
 
     // Frame ids: tabId -> parentFrameId -> frameId
     this.frameId = details.frameId;

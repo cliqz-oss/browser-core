@@ -27,6 +27,7 @@ const prototype = {
     domain: undefined,
     score: undefined,
     url: undefined,
+    subType: {},
   },
 };
 

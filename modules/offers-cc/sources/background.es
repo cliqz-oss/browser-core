@@ -5,8 +5,8 @@ import { utils } from '../core/cliqz';
 import ToolbarButton from '../core/ui/toolbar-button';
 import { getMessage } from '../core/i18n';
 
-
 const UI_TOUR_PREF = 'offerCCUITourDismissed';
+
 /**
   @namespace offers-cc
   @module offers-cc
@@ -18,6 +18,10 @@ export default background({
     @param settings
   */
   init() {
+    if (prefs.has(UI_TOUR_PREF)) {
+      prefs.clear(UI_TOUR_PREF);
+    }
+
     this.is_enabled = utils.getPref('modules.offers-cc.enabled', true);
 
     if (!this.is_enabled) {
@@ -31,8 +35,8 @@ export default background({
       default_icon: `${config.baseURL}offers-cc/images/offers-cc-icon.svg`,
       badgeBackgroundColor: 'transparent',
       badgeText: '',
-      defaultHeight: () => 180,
-      defaultWidth: () => 550,
+      defaultWidth: () => 264,
+      defaultHeight: () => 70,
     });
     this.toolbarButton.build();
   },
@@ -41,7 +45,6 @@ export default background({
     if (!this.is_enabled) {
       return;
     }
-
     this.toolbarButton.shutdown();
   },
 
@@ -49,17 +52,11 @@ export default background({
 
   },
 
-  get hasUITourClicked() {
-    return prefs.get(UI_TOUR_PREF, false);
-  },
-
   events: {
 
   },
 
   actions: {
-    closeUITour() {
-      prefs.set(UI_TOUR_PREF, true);
-    },
+
   }
 });

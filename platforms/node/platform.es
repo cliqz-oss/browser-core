@@ -1,6 +1,6 @@
 export default {
-  isMobile: true,
+  isMobile: false,
   isFirefox: false,
   isChromium: false,
-  platformName: "mobile",
+  platformName: 'node',
 };

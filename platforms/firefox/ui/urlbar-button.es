@@ -7,7 +7,6 @@ try {
   const { PageActions } = Components.utils.import('resource:///modules/PageActions.jsm', null);
 
   PageActionClass = class {
-
     constructor({
       id,
       title,

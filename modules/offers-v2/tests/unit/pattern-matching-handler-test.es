@@ -18,6 +18,96 @@ const SAMPLE_URLS = [
   'http://www.test.com',
 ];
 
+
+const randRange = (a,b) => Math.floor(Math.random() * (b-a)) + a;
+
+
+function generateDomains(N = 20) {
+  const ret = [];
+  for (let i = 0; i < N; i += 1) {
+    ret.push(`domain${String.fromCharCode(97+i)}.de`);
+  }
+  return ret;
+}
+
+function getWorldList(N = 10) {
+  const ret = [];
+  for (let i = 0; i < N; i += 1) {
+    let word = '';
+    for (let j = 0; j < 7; j += 1) {
+      word += String.fromCharCode(randRange(97, 97+20))
+    }
+    ret.push(word);
+  }
+  return ret;
+}
+
+function generateQueriesFromKeywords(wordList, maxTotalWordsPerQuery = 7, N = 400) {
+  const totWords = wordList.length;
+  const getRandom = () => randRange(0, totWords);
+  const unique = (l) => {
+    const already = new Set();
+    const result = [];
+    l.forEach((w) => {
+      if (!already.has(w)) {
+        already.add(w);
+        result.push(w);
+      }
+    })
+    return result;
+  };
+  const ret = [];
+  for (let i = 0; i < N; i += 1) {
+    const wordsToUse = Math.min(getRandom() + 1, maxTotalWordsPerQuery);
+    const currentQuery = [];
+    for (let j = 0; j < wordsToUse; j += 1) {
+      currentQuery.push(wordList[getRandom()])
+    }
+    ret.push(unique(currentQuery).join(' '));
+  }
+  return ret.filter(x => x !== '');
+}
+
+function buildOldFilters(domains, queries) {
+  const result = [];
+  domains.forEach((dom) => {
+    queries.forEach((q) => {
+      const sq = q.split(' ');
+      let wp = '';
+      sq.forEach(w => (wp += w + '^'));
+      wp.slice(0, wp.length - 1);
+      const pattern = `||${dom}^*${wp}`;
+      result.push(pattern);
+    });
+  });
+  return result;
+}
+
+function buildNewFilters(domains, queries) {
+  const result = [];
+  const domOpts = domains.join('|');
+  queries.forEach(q => result.push(`${q}$fuzzy,domain=${domOpts}`));
+  return result;
+}
+
+function buildUrlToTest(domains, queries, toMatchCount, notMatchCount) {
+  const toMatchUrls = [];
+  for (let i = 0; i < toMatchCount; i += 1) {
+    const dom = domains[i % domains.length];
+    const q = queries[i % queries.length];
+    const resultUrl = `http://${dom}/${q.split(' ').join('+')}`;
+    toMatchUrls.push(resultUrl);
+  }
+  const toNotMatchUrls = [];
+  for (let i = 0; i < notMatchCount; i += 1) {
+    const dom = domains[i % domains.length];
+    const q = queries[i % queries.length];
+    const resultUrl = `http://not${dom}extra/${q.split(' ').join('a_b')}`;
+    toNotMatchUrls.push(resultUrl);
+  }
+  return { toMatchUrls, toNotMatchUrls };
+}
+
 export default describeModule('offers-v2/pattern-matching/pattern-matching-handler',
   () => ({
     'platform/text-decoder': {
@@ -219,6 +309,60 @@ export default describeModule('offers-v2/pattern-matching/pattern-matching-handl
             const turl = tokenizeUrl(u);
             chai.expect(turl).to.exist;
             chai.expect(pmh.itMatches(turl, pobj)).eql(true);
+          });
+        });
+
+        it('/ensure patterns from trigger engine 6 still works', function () {
+          const domains = generateDomains(20);
+          const words = getWorldList(60);
+          const queries = generateQueriesFromKeywords(words, 5, 20);
+          const oldFilters = buildOldFilters(domains, queries);
+          const pobj = {
+            pid: 'test',
+            p_list: oldFilters,
+          };
+
+          const EXPECTED_MATCHES = 100;
+          const EXPECTED_NOT_MATCHES = 100;
+
+          const { toMatchUrls, toNotMatchUrls } = buildUrlToTest(domains, queries, EXPECTED_MATCHES, EXPECTED_NOT_MATCHES);
+
+          toMatchUrls.forEach((u) => {
+            const turl = tokenizeUrl(u);
+            chai.expect(turl).to.exist;
+            chai.expect(pmh.itMatches(turl, pobj), `url: ${u}`).eql(true);
+          });
+          toNotMatchUrls.forEach((u) => {
+            const turl = tokenizeUrl(u);
+            chai.expect(turl).to.exist;
+            chai.expect(pmh.itMatches(turl, pobj)).eql(false);
+          });
+        });
+
+        it('/ensure patterns from trigger engine 7 still works', function () {
+          const domains = generateDomains(20);
+          const words = getWorldList(60);
+          const queries = generateQueriesFromKeywords(words, 5, 20);
+          const oldFilters = buildNewFilters(domains, queries);
+          const pobj = {
+            pid: 'test',
+            p_list: oldFilters,
+          };
+
+          const EXPECTED_MATCHES = 100;
+          const EXPECTED_NOT_MATCHES = 100;
+
+          const { toMatchUrls, toNotMatchUrls } = buildUrlToTest(domains, queries, EXPECTED_MATCHES, EXPECTED_NOT_MATCHES);
+
+          toMatchUrls.forEach((u) => {
+            const turl = tokenizeUrl(u);
+            chai.expect(turl).to.exist;
+            chai.expect(pmh.itMatches(turl, pobj)).eql(true);
+          });
+          toNotMatchUrls.forEach((u) => {
+            const turl = tokenizeUrl(u);
+            chai.expect(turl).to.exist;
+            chai.expect(pmh.itMatches(turl, pobj)).eql(false);
           });
         });
 

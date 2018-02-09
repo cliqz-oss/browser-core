@@ -49,7 +49,7 @@ System.baseURL = "modules/";
 System.config({
   defaultJSExtensions: true,
   map: {
-    'mathjs': "../bower_components/mathjs/dist/math.min.js"
+    'mathjs': "../node_modules/mathjs/dist/math.min.js"
   }
 })
 

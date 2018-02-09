@@ -1,10 +1,10 @@
-<a class="result" data-url="{{ url }}" href="#">
+<a class="result" href="{{ url }}">
     {{> partials/logo}}
     {{> partials/abstract}}
 </a>
 
 <div class="padded">
-  <div class="lotto">
+  <div class="lotto white-background">
     <p class="lotto-date">{{ local 'lotto-gewinnzahlen' }} &#8226; {{ localeDate }}</p>
     {{#each lottoResults}}
       <div class="row">

@@ -11,7 +11,6 @@ const RE_QUERY_THRESHOLD_SECS = 60 * 30;
  * This class assumes that the feature is enabled
  */
 export default class PatternHistoryMatching {
-
   /**
    * will get the history feature if enabled or null otherwise
    * also the matchOperation: (tokenizedURL, patternObj) -> true / false
@@ -69,9 +68,9 @@ export default class PatternHistoryMatching {
   _countMemoryHistoryMatches(startQueryMS, endQueryMS, patternObj) {
     const cacheEntry = this._getOrCreateCacheEntry(patternObj);
     // we need to transform the query into memory query:
-    const lastHistoryCache = cacheEntry.lastHistoryResultTS ?
-                             cacheEntry.lastHistoryResultTS :
-                             0;
+    const lastHistoryCache = cacheEntry.lastHistoryResultTS
+      ? cacheEntry.lastHistoryResultTS
+      : 0;
     const memStartMS = Math.max(lastHistoryCache, startQueryMS);
     return this.memoryHistory.countMatches(memStartMS, endQueryMS, patternObj, patternObj.pid);
   }
@@ -166,5 +165,4 @@ export default class PatternHistoryMatching {
   _checkQuery(q) {
     return q && (q.since_secs >= 0) && (q.till_secs >= 0) && (q.since_secs >= q.till_secs);
   }
-
 }

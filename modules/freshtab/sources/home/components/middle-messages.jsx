@@ -36,9 +36,9 @@ export default class MiddleMessages extends React.Component {
     return (
       <div>
         {
-          this.props.messages.map((message, i) =>
+          this.props.messages.map(message =>
             <div
-              key={i}
+              key={message.id}
               className={`middle-notification-box ${message.type}`}
             >
               <div
@@ -47,7 +47,7 @@ export default class MiddleMessages extends React.Component {
               />
               <div
                 className="icon"
-                style={{ backgroundImage: `url(./images/${message.icon})` }}
+                style={{ backgroundImage: `url(${message.icon})` }}
               />
               <div className="content">
                 <h1>{message.title}</h1>
@@ -61,13 +61,14 @@ export default class MiddleMessages extends React.Component {
 
                 {message.buttons && message.buttons.length > 0 &&
                   <div className="buttons">
-                    {message.buttons.map((button, j) =>
+                    {message.buttons.map(button =>
                       <a
-                        key={j}
+                        key={button.id}
                         href={button.link[this.props.locale]}
                         target="_blank"
                       >
                         <img
+                          alt={button.id}
                           className={button.class}
                           src={`./images/${button.src}`}
                         />

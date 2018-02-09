@@ -82,12 +82,16 @@ export default class SupplementarySearchResult extends BaseResult {
     return this.rawResult.data.suggestion;
   }
 
+  get query() {
+    return this.suggestion;
+  }
+
   get engine() {
     return this.rawResult.data.source || this.searchEngine.name;
   }
 
   get defaultSearchResult() {
-    return this.rawResult.defaultSearchResult || false;
+    return !this.rawResult.url;
   }
 
   get searchEngine() {

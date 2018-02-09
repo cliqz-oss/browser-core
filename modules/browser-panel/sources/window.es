@@ -7,7 +7,7 @@ import config from '../core/config';
 const MODULE_NAME = 'browser-panel-window';
 const ORIGIN_NAME = 'browser-panel';
 const UI_IFRAME_WIDTH_DEF = '100%';
-const UI_IFRAME_HEIGHT_DEF = '200px';
+const UI_IFRAME_HEIGHT_DEF = '101';
 const UI_IFRAME_ELEM_ID = 'cqz-b-p-iframe';
 const UI_IFRAME_SRC_DEF = `${config.baseURL}browser-panel/index.html`;
 
@@ -62,13 +62,15 @@ export default class Win {
 
   init() {
     if (!background.is_enabled) {
-      return;
+      return Promise.resolve();
     }
 
     this.isPrivateWindow = utils.isPrivate(this.window) || utils.isOnPrivateTab(this.window);
     if (this.isPrivateWindow) {
       linfo('we are in private mode, avoid any logic here');
+      return Promise.resolve();
     }
+    return this.injectNotificationFrameIfNeeded(this.window.document);
   }
 
   unload() {
@@ -99,8 +101,9 @@ export default class Win {
     if (!this.iframe) {
       return;
     }
-    this.iframe.style.height = UI_IFRAME_HEIGHT_DEF;
+    this.iframe.style.height = `${UI_IFRAME_HEIGHT_DEF}px`;
     this.iframe.style.width = UI_IFRAME_WIDTH_DEF;
+    this.resizePanel();
 
     const signal = {
       type: 'offrz',
@@ -114,12 +117,13 @@ export default class Win {
   // @brief Inject the notification iframe wherever we should put it
   //
   injectNotificationFrameIfNeeded(doc) {
+    let resolver;
+    const promise = new Promise((resolve) => { resolver = resolve; });
     // check if we have it already
     if (this.iframe) {
       // nothing to do
-      return;
+      return Promise.resolve();
     }
-
     // we inject the message container at browser window level
     const panel = doc.getElementById('browser-panel') || doc.getElementById('main-window');
     const contentDeck = doc.getElementById('content-deck');
@@ -134,14 +138,14 @@ export default class Win {
     } catch (e) { /* bummer */ }
 
     function onIframeReady() {
-      iframe.style.height = UI_IFRAME_HEIGHT_DEF;
+      iframe.style.height = 0;
       iframe.style.width = UI_IFRAME_WIDTH_DEF;
       iframe.style.overflow = 'visible';
       iframe.style.position = 'relative';
       iframe.style.minHeight = '0';
       iframe.style.zIndex = '99999';
-      iframe.style.background = '#fff';
       iframe.contentWindow.addEventListener('message', this.onIframeMessage);
+      resolver();
     }
     // set the cliqz offers iframe
     // TODO: avoid some hardcoded values here
@@ -157,6 +161,7 @@ export default class Win {
 
     // we start with the frame hidden
     this.hideIframe();
+    return promise;
   }
 
 
@@ -273,6 +278,17 @@ export default class Win {
       template_name: templateName,
       template_data: templateData
     };
+
+    let titleColor;
+    if (templateData.styles && templateData.styles.background) {
+      titleColor = templateData.styles.background;
+    } else {
+      const url = templateData.call_to_action.url;
+      const urlDetails = utils.getDetailsFromUrl(url);
+      const logoDetails = utils.getLogoDetails(urlDetails);
+      titleColor = `#${logoDetails.brandTxtColor}`;
+    }
+    data.template_data.titleColor = titleColor;
     this.sendDataToIframe('render_template', data);
   }
 
@@ -287,7 +303,8 @@ export default class Win {
     if (!this.rootDocElem) {
       return false;
     }
-    this.rootDocElem.setAttribute('data-cliqzofferid', offerID);
+
+    this.rootDocElem.setAttribute('cliqzofferid', offerID);
     return true;
   }
 
@@ -304,7 +321,7 @@ export default class Win {
     if (!this.rootDocElem) {
       return null;
     }
-    const attrValue = this.rootDocElem.getAttribute('data-cliqzofferid');
+    const attrValue = this.rootDocElem.getAttribute('cliqzofferid');
     return (attrValue === '') ? null : attrValue;
   }
 
@@ -326,7 +343,6 @@ export default class Win {
       return;
     }
     const offerData = aOfferData.offer_data;
-    this.injectNotificationFrameIfNeeded(this.window.document);
 
     // store it for later usage
     this.lastDataToShow = aOfferData;
@@ -342,9 +358,10 @@ export default class Win {
 
     // set the current offer id
     this.setOfferID(offerID);
-
-    this.sendOffersTemplateDataToIframe(offerData.ui_info.template_name,
-                                        offerData.ui_info.template_data);
+    this.sendOffersTemplateDataToIframe(
+      offerData.ui_info.template_name,
+      offerData.ui_info.template_data
+    );
     this.showIframe();
 
 
@@ -412,10 +429,22 @@ export default class Win {
         msgData.data.action_id = data.element_id;
         break;
     }
+
     this.sendToCoreUIHandler({
       handler: 'offers',
       data: msgData
     });
+  }
+
+  resizePanel() {
+    if (this.lastDataToShow) {
+      const offerData = this.lastDataToShow.offer_data;
+      const templateData = offerData.ui_info.template_data;
+      if (!templateData.code) {
+        const newHeight = parseInt(UI_IFRAME_HEIGHT_DEF, 10) - 17;
+        this.iframe.style.height = `${newHeight}px`;
+      }
+    }
   }
 
   getLastDataToShow(/* data */) {
@@ -426,8 +455,10 @@ export default class Win {
       this.injectNotificationFrameIfNeeded(this.window.document);
       // #EX-3655 check if the id is properly set
       this.setOfferID(offerIDToSet);
-      this.sendOffersTemplateDataToIframe(offerData.ui_info.template_name,
-                                          offerData.ui_info.template_data);
+      this.sendOffersTemplateDataToIframe(
+        offerData.ui_info.template_name,
+        offerData.ui_info.template_data
+      );
     }
   }
 
@@ -450,16 +481,24 @@ export default class Win {
 
     // now process the action with the given arguments
     this.offersActions[data.action](data.data);
-
-    if (data.data.element_id === 'offer_closed') {
-      const signal = {
-        type: 'offrz',
-        view: 'bar',
-        action: 'click',
-        target: 'remove',
-      };
-      utils.telemetry(signal);
+    let target = data.data.element_id;
+    switch (target) {
+      case 'code_copied':
+        target = 'copy_code';
+        break;
+      case 'offer_closed':
+        target = 'remove';
+        break;
+      default:
+        return;
     }
+    const signal = {
+      type: 'offrz',
+      view: 'bar',
+      action: 'click',
+      target,
+    };
+    utils.telemetry(signal);
   }
 
 
@@ -484,5 +523,4 @@ export default class Win {
       }
     }
   }
-
 }

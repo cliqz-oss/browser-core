@@ -21,7 +21,10 @@ function getExtensionDirectory() {
         AddonManager.AddonManager.getAddonByID(
           extensionId,
           function (addon) {
-            resolve(addon.getResourceURI('').path);
+            resolve(
+              addon.getResourceURI('').path ||
+              addon.getResourceURI('').filePath
+            );
           }
         );
       }

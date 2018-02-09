@@ -2,7 +2,7 @@ import config from './config';
 import events, { subscribe } from './events';
 import prefs from './prefs';
 import Module from './app/module';
-import { setGlobal } from './kord';
+import { setApp } from './kord';
 import console from './console';
 import utils from './utils';
 import { Window, mapWindows, forEachWindow, addWindowObserver,
@@ -10,6 +10,7 @@ import { Window, mapWindows, forEachWindow, addWindowObserver,
   setOurOwnPrefs, resetOriginalPrefs, enableChangeEvents,
   disableChangeEvents, waitWindowReady, addMigrationObserver, removeMigrationObserver,
   addSessionRestoreObserver, removeSessionRestoreObserver } from '../platform/browser';
+import Defer from './app/defer';
 
 function shouldEnableModule(name) {
   const pref = `modules.${name}.enabled`;
@@ -25,7 +26,6 @@ function shouldEnableModule(name) {
  * @class App
  */
 export default class App {
-
   /**
    * @constructor
    * @param {object} config
@@ -51,6 +51,8 @@ export default class App {
      */
     this.loadedWindows = new WeakSet();
 
+    this._startedDefer = new Defer();
+
     config.modules.forEach((moduleName) => {
       const module = new Module(
         moduleName,
@@ -66,7 +68,7 @@ export default class App {
     this.debugModules = App.debugModules;
 
     utils.extensionVersion = version;
-    setGlobal(this);
+    setApp(this);
     this.isRunning = false;
     this.onMigrationEnded = (_, topic) => {
       if (topic === 'Migration:Ended') {
@@ -285,8 +287,8 @@ export default class App {
 
   enabledModules() {
     return config.modules
-    .map(name => this.modules[name])
-    .filter(module => module.isEnabled);
+      .map(name => this.modules[name])
+      .filter(module => module.isEnabled);
   }
 
   setupPrefs() {
@@ -357,18 +359,9 @@ export default class App {
     const allModules = this.moduleList;
     const core = allModules.find(x => x.name === 'core');
     const modules = allModules.filter(x => x.name !== 'core' && shouldEnableModule(x.name));
-    const requiredServices = [...new Set(
-      modules
-        .map(m => m.requiredServices)
-        .reduce((all, s) => [...all, ...s], [])
-    )];
 
-    return this.prepareServices(requiredServices)
-      // do not break App startup on failing services, modules will have to
-      // deal with the problem as they like
-      .catch(e => console.log('App', 'error on loading services', e))
-      // we load core first before any other module
-      .then(() => this.loadModule(core))
+    // we load core first before any other module
+    return this.loadModule(core)
       // loading of modules should be paralellized as much as possible
       .then(() => {
         // do not return - we trigger module loading and let window loading to
@@ -376,9 +369,11 @@ export default class App {
         Promise.all(modules.map(x => this.loadModule(x)))
           .then(() => {
             console.log('App', 'Loading modules -- all loaded');
+            this._startedDefer.resolve();
           })
           .catch((e) => {
             console.error('App', 'Loading modules failed', e);
+            this._startedDefer.reject(e);
           });
       });
   }
@@ -533,5 +528,9 @@ export default class App {
 
     forEachWindow(module.unloadWindow.bind(module));
     module.disable();
+  }
+
+  ready() {
+    return this._startedDefer.promise;
   }
 }

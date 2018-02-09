@@ -2,10 +2,6 @@
 
 @Library('cliqz-shared-library@v1.2') _
 
-if (job.hasNewerQueuedJobs()) {
-    error('Has Jobs in queue, aborting')
-}
-
 properties([
     [$class: 'JobRestrictionProperty'],
     disableConcurrentBuilds(),
@@ -35,6 +31,10 @@ def matrix = [
     'firefox 56': [
         'gpu': true,
         'testParams': 'configs/jenkins.js -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
+    ],
+    'new mixer': [
+        'gpu': true,
+        'testParams': 'configs/jenkins-new-mixer.js -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
     ],
     'funnelcake 56': [
         'gpu': true,
@@ -86,8 +86,7 @@ node('docker && !gpu && us-east-1') {
 
     def dockerfileChecksum = sh(returnStdout: true, script: 'md5sum Dockerfile.ci | cut -d" " -f1').trim()
     def packageJsonChecksum = sh(returnStdout: true, script: 'md5sum package.json | cut -d" " -f1').trim()
-    def bowerJsonChecksum = sh(returnStdout: true, script: 'md5sum bower.json | cut -d" " -f1').trim()
-    def dockerTag = "${dockerfileChecksum}-${packageJsonChecksum}-${bowerJsonChecksum}"
+    def dockerTag = "${dockerfileChecksum}-${packageJsonChecksum}"
 
     // authorize docker deamon to access registry
     sh "`aws ecr get-login --no-include-email --region=${params.AWS_REGION}`"
@@ -122,6 +121,7 @@ node('docker && !gpu && us-east-1') {
                 codeDockerImage,
                 '-f Dockerfile.code .'
             )
+
             codeImage.push currentCommitHash
         }
 
@@ -168,12 +168,13 @@ def test(Map m) {
                         "VNC ${HOST}:${VNC_PORT}"
                     )
 
-                    timeout(35) {
+                    timeout(60) {
                         stage('tests: run') {
                             def report
                             def hasErrors
 
                             try {
+
                                 sh """#!/bin/bash
                                     set -x
 

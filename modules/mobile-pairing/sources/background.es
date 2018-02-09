@@ -2,11 +2,11 @@ import PeerMaster from '../pairing/peer-master';
 import YoutubeApp from '../pairing/apps/youtube';
 import TabsharingApp from '../pairing/apps/tabsharing';
 import PairingObserver from '../pairing/apps/pairing-observer';
-import CliqzUtils from '../core/utils';
 import LocalStorage from '../platform/storage';
 import osAPI from '../platform/os-api';
 import background from '../core/base/background';
 import { getDeviceName } from '../platform/device-info';
+import { openTab } from '../platform/browser-actions';
 
 export default background({
   init() {
@@ -24,9 +24,8 @@ export default background({
 
     const tabsharing = new TabsharingApp(
       () => {},
-      (tabs, source) => {
-        CliqzUtils.log(`Received tabs ${tabs} from ${source}`);
-        osAPI.openTab(tabs);
+      (tabs) => {
+        tabs.forEach(x => openTab(x));
       }
     );
     CliqzMasterComm.addObserver('TABSHARING', tabsharing);
@@ -48,7 +47,7 @@ export default background({
     const storagePromise = typeof storage.load === 'function' ? storage.load() : Promise.resolve();
 
     return storagePromise
-    .then(() => CliqzMasterComm.init(storage));
+      .then(() => CliqzMasterComm.init(storage));
   },
   unload() {
     this.peerMaster.unload();

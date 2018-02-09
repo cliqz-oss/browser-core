@@ -91,7 +91,6 @@ function getBundlesTree(modulesTree) {
     }, cliqzConfigSystem.map || {}),
     paths: {
       'specific/*': './specific/'+cliqzConfig.platform+'/*',
-      'bower_components/*': './bower_components/*',
       'modules/*': 'modules/*',
       'modules': 'modules',
       'node_modules/*': './node_modules/*',
@@ -99,9 +98,6 @@ function getBundlesTree(modulesTree) {
     },
     meta: Object.assign({
       'specific/*': {
-        format: 'global',
-      },
-      'bower_components/*': {
         format: 'global',
       },
       '*.json': {

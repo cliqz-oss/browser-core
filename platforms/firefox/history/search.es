@@ -23,8 +23,13 @@ function getProvider() {
 export default function getHistory(q, callback, isPrivate = false) {
   const provider = getProvider();
   let lastMatchCount = 0;
+  let searchParams = ['enable-actions', 'prohibit-autofill'];
+  if (isPrivate) {
+    searchParams.push('disable-private-actions');
+    searchParams.push('private-window');
+  }
 
-  provider.startSearch(q, 'enable-actions', null, {
+  provider.startSearch(q, searchParams.join(' '), null, {
     onSearchResult: function(ctx, result) {
       const res = [];
       // TODO: remove this check when we switch to a new mixer completely
@@ -35,16 +40,12 @@ export default function getHistory(q, callback, isPrivate = false) {
           continue;
         }
 
-        if(style.indexOf('heuristic') !== -1) {
-          // filter out "heuristic" results
+        if(style.includes('heuristic') || style.includes('searchengine')) {
+          // filter out "heuristic" and "searchengine" results
           continue;
         }
 
         if(style.indexOf('switchtab') !== -1) {
-          if (isPrivate) {
-            style = style.replace('switchtab', '');
-          }
-
           try {
             let [mozAction, cleanURL] = utils.cleanMozillaActions(result.getValueAt(i));
             let label;

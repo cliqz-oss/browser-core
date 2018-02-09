@@ -3,9 +3,22 @@ import $ from 'jquery';
 import Handlebars from 'handlebars';
 import { sendMessageToWindow } from './content/data';
 import templates from './templates';
+import helpers from './helpers';
 
 Handlebars.partials = templates;
+Object.keys(helpers).forEach((helperName) => {
+  Handlebars.registerHelper(helperName, helpers[helperName]);
+});
 
+function localizeDocument() {
+  Array.prototype.forEach.call(document.querySelectorAll('[data-i18n]'), (el) => {
+    const elArgs = el.dataset.i18n.split(',');
+    const key = elArgs.shift();
+    /* eslint-disable */
+    el.innerHTML = chrome.i18n.getMessage(key, elArgs);
+    /* eslint-enable */
+  });
+}
 
 function copySelectionText() {
   let copysuccess; // var to check whether execCommand successfully executed
@@ -26,8 +39,9 @@ function selectElementText(e) {
 }
 
 
-function copy(e) {
-  selectElementText(e);
+function copy() {
+  const codeElem = $('.code')[0];
+  selectElementText(codeElem);
   const copysuccess = copySelectionText();
   return copysuccess;
 }
@@ -36,17 +50,16 @@ function copy(e) {
 function cqzOfferGetCurrentOfferID() {
   const offerIDElem = document.getElementById('cqz-browser-panel-re');
   if (!offerIDElem ||
-      !offerIDElem.hasAttribute('data-cliqzofferid') ||
-      offerIDElem.getAttribute('data-cliqzofferid') === '') {
+      !offerIDElem.hasAttribute('cliqzofferid') ||
+      offerIDElem.getAttribute('cliqzofferid') === '') {
     return 'unknown';
   }
-  return offerIDElem.getAttribute('data-cliqzofferid');
+  return offerIDElem.getAttribute('cliqzofferid');
 }
 
 // receive buttons callback
 function cqzOfferBtnClicked(ev) {
   // filter if it is button or not
-
   if (!ev.target || !ev.target.hasAttribute('data-cqz-of-btn-id')) {
     // skip this
     return;
@@ -56,7 +69,7 @@ function cqzOfferBtnClicked(ev) {
     const success = copy(ev.target);
 
     if (success) {
-      document.querySelector('.cqz-offer-code-info').className += ' copied';
+      document.querySelector('.code-box').className += ' copied';
     }
   }
 
@@ -86,13 +99,13 @@ $(document).ready(() => {
   // link the click function here to the buttons
   document.getElementById('cqz-browser-panel-re').addEventListener('click', cqzOfferBtnClicked);
 
-   // open URL
-  $('#cqz-browser-panel-re').on('click', '[data-open-url]', (ev) => {
+  // open URL
+  $('#cqz-browser-panel-re').on('click', '[openUrl]', (ev) => {
     sendMessageToWindow({
       handler: 'openUrlHandler',
       data: {
         el_id: ev.target.getAttribute('data-cqz-of-btn-id'),
-        url: ev.currentTarget.getAttribute('data-open-url'),
+        url: ev.currentTarget.getAttribute('openUrl'),
       }
     });
   });
@@ -107,15 +120,31 @@ $(document).ready(() => {
 
 function draw(data) {
   // get the template name to be used and the data of them
-  const templateName = data.template_name;
+  let templateName = data.template_name;
   const templateData = data.template_data;
   if (!templateName || !templateData) {
     return;
   }
+  // TODO offers should send labels inside template_data
+  const labels = data.labels || {};
+  templateData.labels = labels;
+  if (Object.keys(templates).indexOf(templateName) === -1) {
+    templateName = 'default_template';
+  }
   const panel = document.getElementById('cqz-browser-panel-re');
   const html = templates[templateName](templateData);
-  panel.innerHTML = html;
+  if (panel.unsafeSetInnerHTML) {
+    panel.unsafeSetInnerHTML(html);
+  } else {
+    panel.innerHTML = html;
+  }
+  $('.tooltip').tooltipster({
+    theme: ['tooltipster-shadow', 'tooltipster-shadow-customized'],
+    interactive: true,
+    position: ['left']
+  });
+
+  localizeDocument();
 }
 
 window.draw = draw;
-

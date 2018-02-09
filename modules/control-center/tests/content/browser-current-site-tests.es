@@ -46,7 +46,7 @@ function currentSiteTests(amo) {
     it('link for "Report URL" is correct', function () {
       const objectSelector = '#control-center #currentsite .reportsite';
       chai.expect(subject.query(objectSelector)).to.exist;
-      chai.expect(subject.query(objectSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/report-url');
+      chai.expect(subject.query(objectSelector).getAttribute('openurl')).to.equal('https://cliqz.com/report-url');
     });
 
     it('renders "Report URL"', function () {
@@ -75,7 +75,7 @@ function currentSiteTests(amo) {
     it('link for "Report URL" is correct', function () {
       const objectSelector = '#control-center #currentsite .reportsite';
       chai.expect(subject.query(objectSelector)).to.exist;
-      chai.expect(subject.query(objectSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/report-url');
+      chai.expect(subject.query(objectSelector).getAttribute('openurl')).to.equal('https://cliqz.com/report-url');
     });
 
     it('renders "Report URL"', function () {

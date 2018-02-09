@@ -1,179 +1,209 @@
-import { utils } from '../core/cliqz';
-import md5 from '../core/helpers/md5';
+import getDexie from '../platform/lib/dexie';
+
+import PouchDB from '../core/database';
+import DefaultMap from '../core/helpers/default-map';
+
 import logger from './logger';
 import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
-import PouchDB from '../core/database';
 
 
-export default class Storage {
-  constructor(name) {
-    this.database = new PouchDB(name, {
-      revs_limit: 1, // Don't keep track of all revisions of a document
-      auto_compaction: true, // Get rid of deleted revisions
-    });
+/**
+ * Clean-up all past storage of anolysis.
+ */
+function migrate() {
+  return Promise.all([
+    'cliqz-anolysis-aggregated-behavior',
+    'cliqz-anolysis-aggregation-log',
+    'cliqz-anolysis-behavior',
+    'cliqz-anolysis-demographics',
+    'cliqz-anolysis-retention-log',
+    'cliqz-anolysis-signals',
+    'cliqz-telemetry-behavior',
+    'cliqz-telemetry-demographics',
+  ].map(name => new PouchDB(name).destroy().catch(() => {})));
+}
 
-    this.buffer = [];
 
-    // Flush database every 2 seconds
-    this.flushInterval = utils.setInterval(
-      () => this.flush(),
-      2 * 1000,
-    );
+class AggregatedView {
+  constructor(db) {
+    this.db = db;
   }
 
-  /**
-   * Init the storage by adding the index if not already present.
-   */
-  init() {
-    const designDoc = {
-      _id: '_design/index',
-      views: {
-        by_ts: {
-          map: `function map(doc) {
-            emit(doc.ts);
-          }`,
-        },
-      },
+  ifNotAlreadyAggregated(date, fn) {
+    return this.db.get({ date }).then((aggregation) => {
+      if (aggregation === undefined) {
+        return fn();
+      }
+
+      return Promise.resolve();
+    });
+  }
+
+  getAggregatedDates() {
+    return this.db.toCollection().primaryKeys();
+  }
+
+  storeAggregation(date, aggregation) {
+    return this.db.add({ date, aggregation });
+  }
+
+  getAggregation(date) {
+    return this.db.get(date).then(v => v && v.aggregation);
+  }
+
+  deleteOlderThan(date) {
+    return this.db.where('date').below(date).delete();
+  }
+}
+
+class BehaviorView {
+  constructor(db) {
+    this.db = db;
+  }
+
+  getTypesForDate(date) {
+    return this.db.where('date').equals(date).toArray().then((signals) => {
+      const types = new DefaultMap(() => []);
+      for (let i = 0; i < signals.length; i += 1) {
+        const { type, behavior } = signals[i];
+        types.update(type, (values) => { values.push(behavior); });
+      }
+      return types;
+    });
+  }
+
+  add({ type, behavior }) {
+    const date = getSynchronizedDate().format(DATE_FORMAT);
+
+    const doc = {
+      behavior,
+      date,
+      type,
     };
 
-    return this.info() // Call info to make sure the DB is initialized
-      .then(() => this.database.put(designDoc))
-      .then(() =>
-        // Pre-build the index
-        this.database.query('index/by_ts', {
-          limit: 0,
-        })
-      )
-      .catch(() => { /* Ignore if document already exists */ });
+    logger.debug('add', doc);
+
+    return this.db.add(doc);
   }
 
-  unload() {
-    this.flush();
-    utils.clearInterval(this.flushInterval);
+  deleteByDate(date) {
+    return this.db.where('date').equals(date).delete();
+  }
+}
+
+class RetentionView {
+  constructor(db) {
+    this.db = db;
+    this.key = 'state';
   }
 
-  flush() {
-    if (this.buffer.length > 0) {
-      return this.database.bulkDocs(this.buffer.splice(0));
+  getState() {
+    return this.db.get(this.key)
+      .then((state) => {
+        if (!state) {
+          return {
+            daily: {},
+            weekly: {},
+            monthly: {},
+          };
+        }
+
+        return state.value;
+      });
+  }
+
+  setState(state) {
+    return this.db.put({
+      key: this.key,
+      value: state,
+    });
+  }
+}
+
+class SignalQueueView {
+  constructor(db) {
+    this.db = db;
+  }
+
+  push(signal, attempts = 0) {
+    return this.db.add({
+      signal,
+      attempts,
+      date: getSynchronizedDate().format(DATE_FORMAT),
+    });
+  }
+
+  remove(id) {
+    if (typeof id !== 'number') {
+      return Promise.resolve();
+    }
+
+    return this.db.delete(id);
+  }
+
+  getN(n) {
+    return this.db.limit(n).toArray();
+  }
+
+  getAll() {
+    return this.db.toArray();
+  }
+
+  deleteOlderThan(date) {
+    return this.db.where('date').below(date).delete();
+  }
+}
+
+export default class AnolysisStorage {
+  constructor() {
+    this.db = null;
+
+    this.aggregated = null;
+    this.behavior = null;
+    this.retention = null;
+    this.signals = null;
+  }
+
+  init() {
+    if (this.db !== null) return Promise.resolve();
+
+    return getDexie().then((Dexie) => {
+      this.db = new Dexie('anolysis');
+      this.db.version(1).stores({
+        aggregated: 'date',
+        behavior: '++id,date',
+        retention: 'key',
+        signals: '++id,date',
+      });
+
+      this.db.on('populate', () => {
+        // populate is only called the first time the database is created, which
+        // is the only time we would want to call `migrate()` to delete previous
+        // storage.
+        migrate();
+      });
+
+      return this.db.open();
+    }).then(() => {
+      this.aggregated = new AggregatedView(this.db.aggregated);
+      this.behavior = new BehaviorView(this.db.behavior);
+      this.retention = new RetentionView(this.db.retention);
+      this.signals = new SignalQueueView(this.db.signals);
+    });
+  }
+
+  destroy() {
+    if (this.db !== null) {
+      return this.db.delete();
     }
 
     return Promise.resolve();
   }
 
-  bufferedPut(doc) {
-    // Buffer put using a bulk operation
-    this.buffer.push(doc);
-    return Promise.resolve(doc);
-  }
-
-  getDocType(doc) {
-    // Infer type from `doc`
-    if (doc.demographics) {
-      return 'demographics';
-    } else if (doc.behavior && doc.behavior.type) {
-      return doc.behavior.type;
-    } else if (doc.type) {
-      return doc.type;
+  unload() {
+    if (this.db !== null) {
+      this.db.close();
+      this.db = null;
     }
-
-    return 'behavior';
-  }
-
-  close() {
-    return this.database.close()
-      .catch(() => { /* can happen after DB is destroyed */ });
-  }
-
-  destroy() {
-    return this.database.destroy();
-  }
-
-  info() {
-    return this.database.info();
-  }
-
-  remove(doc) {
-    return this.database.remove(doc);
-  }
-
-  get(...args) {
-    return this.database.get(...args);
-  }
-
-  put(doc, buffered = false) {
-    const decoratedDoc = doc;
-
-    // Add an _id
-    if (decoratedDoc._id === undefined) {
-      const type = this.getDocType(doc);
-      const docHash = md5(JSON.stringify(doc));
-      decoratedDoc._id = `${doc.ts || Date.now()}/${type}/${docHash}`;
-    }
-
-    // Add a timestamp
-    if (decoratedDoc.ts === undefined) {
-      decoratedDoc.ts = getSynchronizedDate().format(DATE_FORMAT);
-    }
-
-    logger.debug('put', buffered, decoratedDoc);
-
-    // Insert/Update document
-    if (buffered) {
-      return this.bufferedPut(decoratedDoc);
-    }
-    return this.database.put(decoratedDoc).then(() => decoratedDoc);
-  }
-
-  getN(n) {
-    return this.database.allDocs({
-      include_docs: true,
-      limit: n,
-    })
-    .then(result => result.rows.map(row => row.doc))
-    .then(result => result.filter(doc => doc._id !== '_design/index'));
-  }
-
-  getByTimespan({ from, to } = { }) {
-    logger.debug('getByTimespan', from, '->', to);
-    return this.database.query('index/by_ts', {
-      startkey: from,
-      endkey: to,
-      include_docs: true,
-    }).then((result) => {
-      logger.debug('getByTimespan from', from, 'to', to, 'found', result.rows.length, 'documents');
-      return result.rows.map(row => row.doc);
-    });
-  }
-
-  getTypesByTimespan(timespan) {
-    /* eslint no-param-reassign: off */
-    return this.getByTimespan(timespan)
-      .then((documents) => {
-        const types = Object.create(null);
-        for (let i = 0; i < documents.length; i += 1) {
-          const doc = documents[i];
-          const type = this.getDocType(doc);
-
-          types[type] = types[type] || [];
-          types[type].push(doc);
-        }
-        return types;
-      });
-  }
-
-  deleteByTimespan(timespan) {
-    logger.debug('delete by timespan', timespan);
-    return this.getByTimespan(timespan)
-      .then((documents) => {
-        logger.debug('remove', documents.length, 'with timespan', timespan);
-
-        // Add _deleted: true to each document to make sure they are deleted
-        for (let i = 0; i < documents.length; i += 1) {
-          documents[i]._deleted = true;
-        }
-
-        // Delete documents in bulk
-        return this.database.bulkDocs(documents);
-      });
   }
 }

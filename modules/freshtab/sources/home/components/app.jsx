@@ -108,6 +108,8 @@ class App extends React.Component {
         this.toggleSettings();
         this.focusNews();
       }
+    } else {
+      window.location = url;
     }
   }
 

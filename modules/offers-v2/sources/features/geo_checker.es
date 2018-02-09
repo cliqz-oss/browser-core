@@ -112,5 +112,4 @@ export default class GeoChecker extends Feature {
     };
     this.updateLocation(locData);
   }
-
 }

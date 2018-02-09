@@ -1,4 +1,3 @@
-import Redirect from './redirect';
 import utils from '../core/utils';
 import events from '../core/events';
 import { Window } from '../core/browser';
@@ -16,8 +15,8 @@ export default class Win {
       'core:tab_select',
       this.window.gBrowser.tabContainer,
       'TabSelect',
-      undefined,
-      function (event) {
+      false,
+      (event) => {
         const tab = event.target;
         const browser = tab.linkedBrowser;
         const win = new Window(tab.ownerGlobal);
@@ -31,8 +30,41 @@ export default class Win {
       }
     );
 
-    Redirect.addHttpObserver();
+    this.tabCloseEventProxy = events.proxyEvent(
+      'core:tab_close',
+      this.window.gBrowser.tabContainer,
+      'TabClose',
+      false,
+      (event) => {
+        const tab = event.target;
+        const browser = tab.linkedBrowser;
+        const win = new Window(tab.ownerGlobal);
+        const msg = {
+          windowId: win.id,
+          tabId: browser.outerWindowID,
+          isPrivate: browser.loadContext.usePrivateBrowsing,
+        };
+        return [msg];
+      }
+    );
 
+    this.tabOpenEventProxy = events.proxyEvent(
+      'core:tab_open',
+      this.window.gBrowser.tabContainer,
+      'TabOpen',
+      false,
+      (event) => {
+        const tab = event.target;
+        const browser = tab.linkedBrowser;
+        const win = new Window(tab.ownerGlobal);
+        const msg = {
+          windowId: win.id,
+          tabId: browser.outerWindowID,
+          isPrivate: browser.loadContext.usePrivateBrowsing,
+        };
+        return [msg];
+      }
+    );
 
     this.whoAmItimer = utils.setInterval(
       this.whoAmI.bind(this, { startup: false }),
@@ -53,7 +85,8 @@ export default class Win {
   unload() {
     // Unsubsribe event proxies
     this.tabSelectEventProxy.unsubscribe();
-    Redirect.unload();
+    this.tabCloseEventProxy.unsubscribe();
+    this.tabOpenEventProxy.unsubscribe();
 
     utils.clearInterval(this.whoAmItimer);
   }

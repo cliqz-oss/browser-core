@@ -33,10 +33,12 @@ class CommunicationProvider {
     };
 
     const hpnStrSignal = JSON.stringify(hpnSignal);
-    utils.httpPost(this.endPointAddress,
-                  (succ) => { successCallback(signalObject, succ); },
-                   hpnStrSignal,
-                   (err) => { errCallback(signalObject, err); });
+    utils.httpPost(
+      this.endPointAddress,
+      (succ) => { successCallback(signalObject, succ); },
+      hpnStrSignal,
+      (err) => { errCallback(signalObject, err); }
+    );
     logger.log(`Sending signal to BE: ${hpnStrSignal}`);
   }
 }

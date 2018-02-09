@@ -13,7 +13,11 @@ export default class Dropdown {
   }
 
   init() {
-    this.rootElement.innerHTML = templates.main(this.extensionID);
+    if (this.rootElement.unsafeSetInnerHTML) {
+      this.rootElement.unsafeSetInnerHTML(templates.main(this.extensionID));
+    } else {
+      this.rootElement.innerHTML = templates.main(this.extensionID);
+    }
     this.dropdownElement.addEventListener('mouseup', this.onMouseUp);
     this.dropdownElement.addEventListener('mousemove', this.onMouseMove);
     this.contextMenu = new ContextMenu(this.window, this.dropdownElement);
@@ -55,7 +59,7 @@ export default class Dropdown {
   }
 
   selectResult(result) {
-    const el = [...this.rootElement.querySelectorAll('a')].find(a => equals(a.dataset.url, result.url));
+    const el = [...this.rootElement.querySelectorAll('a')].find(a => equals(a.href, result.url));
     if (!el) {
       return;
     }
@@ -74,7 +78,11 @@ export default class Dropdown {
 
     // Render and insert templates
     const html = templates.results({ results: results.results });
-    this.dropdownElement.innerHTML = html;
+    if (this.dropdownElement.unsafeSetInnerHTML) {
+      this.dropdownElement.unsafeSetInnerHTML(html);
+    } else {
+      this.dropdownElement.innerHTML = html;
+    }
     this.dropdownElement.style.maxHeight = `${this.window.innerHeight - 140}px`;
 
     // Nofify results that have been rendered
@@ -114,7 +122,7 @@ export default class Dropdown {
 
     const extraElement = targetElement.closest('[data-extra]');
     const extra = extraElement ? extraElement.dataset.extra : null;
-    const href = resultElement.dataset.url;
+    const href = resultElement.href;
     const coordinates = [
       ev.offsetX,
       ev.offsetY,
@@ -174,7 +182,7 @@ export default class Dropdown {
       return;
     }
 
-    const href = resultElement.dataset.url;
+    const href = resultElement.href;
     const resultIndex = this.results.selectableResults.findIndex(r => equals(r.url, href));
 
     if (resultIndex !== -1) {

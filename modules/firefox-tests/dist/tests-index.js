@@ -84,6 +84,8 @@ var win = getWindow(),
     browserMajorVersion = parseInt(getBrowserVersion().split('.')[0]),
     app = null;
 
+win.allTelemetry = [];
+
 function start() {
 // Try to get app
 app = win.CLIQZ ? win.CLIQZ.app : null;
@@ -119,7 +121,10 @@ function changes() {
 
   /* Turn off telemetry during tests */
   telemetry = CliqzUtils.telemetry;
-  CliqzUtils.telemetry = function () {};
+  win.allTelemetry = [];
+  CliqzUtils.telemetry = function (signal) {
+    win.allTelemetry.push(signal);
+  };
   // we only need the tests for the regular cliqz dropdown
   CliqzUtils.setPref('dropDownABCGroup', 'cliqz');
   CliqzUtils.clearPref('dropDownStyle');
@@ -156,9 +161,8 @@ var beforeEachAction = function (changes) { changes(); return Promise.resolve();
 if (reloadExtensionCounterInc) {
   beforeEachAction = function (changes) {
     if (window.preventRestarts) {
-      return;
-    }
-    if (reloadExtensionCounter >= 1) {
+      return Promise.resolve().then(() => changes());
+    } else if (reloadExtensionCounter >= 1) {
       reloadExtensionCounter = 0;
       return app.extensionRestart(changes);
     } else {

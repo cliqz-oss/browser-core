@@ -17,11 +17,20 @@ import geoWithLocalTests from './tests/dropdown/geo_yes';
 import geoWithoutLocalTests from './tests/dropdown/geo_without_consent';
 import historyAndNewsTests from './tests/dropdown/history_and_news';
 import historyClusterTests from './tests/dropdown/history-cluster';
-import keyboardNavigationCalculatorTests from './tests/dropdown/keyboard-navigation-calculator';
-import keyboardNavigationCurrencyConverterTests from './tests/dropdown/keyboard-navigation-currency-converter';
-import keyboardNavigationTwoSimpleTests from './tests/dropdown/keyboard-navigation-two-simple';
-import keyboardNavigationTwoSimpleWithoutAutocompleteTests from './tests/dropdown/keyboard-navigation-two-simple-without-autocomplete';
-import keyboardNavigationUnitConverterTests from './tests/dropdown/keyboard-navigation-unit-converter';
+import keyboardNavigationAdultTests from './tests/dropdown/keyboard-navigation/adult-question';
+import keyboardNavigationBmRichDataTests from './tests/dropdown/keyboard-navigation/bm-rich-data';
+import keyboardNavigationBmWithButtonsTests from './tests/dropdown/keyboard-navigation/bm-with-buttons';
+import keyboardNavigationCalculatorTypeTests from './tests/dropdown/keyboard-navigation/calculator-type';
+import keyboardNavigationCurrencyConverterTests from './tests/dropdown/keyboard-navigation/currency-converter';
+import keyboardNavigationLottoTypeTests from './tests/dropdown/keyboard-navigation/lotto-type';
+import keyboardNavigationNewsTests from './tests/dropdown/keyboard-navigation/news';
+import keyboardNavigationNewsStoryTests from './tests/dropdown/keyboard-navigation/news-story';
+import keyboardNavigationSoccerLivetickerTests from './tests/dropdown/keyboard-navigation/soccer-liveticker';
+import keyboardNavigationSoccerTableTests from './tests/dropdown/keyboard-navigation-soccer-table';
+import keyboardNavigationSimpleWithAutocompleteTests from './tests/dropdown/keyboard-navigation/simple-with-autocomplete';
+import keyboardNavigationSimpleWithoutAutocompleteTests from './tests/dropdown/keyboard-navigation/simple-without-autocomplete';
+import keyboardNavigationYoutubeTests from './tests/dropdown/keyboard-navigation/youtube';
+import keyboardNavigationWeatherTests from './tests/dropdown/keyboard-navigation/weather';
 import lotto6Aus49Tests from './tests/dropdown/lotto_6aus49';
 import lottoEurojackpotTests from './tests/dropdown/lotto_eurojackpot';
 import lottoGluecksspiraleTests from './tests/dropdown/lottogluecksspirale';
@@ -39,44 +48,42 @@ import soccerLigaGroup2Tests from './tests/dropdown/soccer-liga-group2';
 import soccerLigaTableTests from './tests/dropdown/soccer-liga-table';
 import soccerLiveTickerTests from './tests/dropdown/soccer-live-ticker';
 import suggestionsIntegrationTests from './tests/dropdown/suggestions-integration';
+import telemetryDropdownTests from './tests/dropdown/telemetry/dropdown';
+import telemetryEmptyQueryTests from './tests/dropdown/telemetry/empty-query';
+import telemetryFullUrlTests from './tests/dropdown/telemetry/full-url';
+import telemetryKeystrokeTests from './tests/dropdown/telemetry/keystroke';
+import telemetryNoDropdownTests from './tests/dropdown/telemetry/no-dropdown';
+import telemetrySearchEngineTests from './tests/dropdown/telemetry/search-engine';
+import telemetrySearchWithTests from './tests/dropdown/telemetry/search-with';
+import telemetryTwoSimpleWithAutocompleteTests from './tests/dropdown/telemetry/two-simple-with-autocomplete';
+import telemetryTwoSimpleWithoutAutocompleteTests from './tests/dropdown/telemetry/two-simple-without-autocomplete';
+import telemetryUrlbarTests from './tests/dropdown/telemetry/urlbar';
 import timeTests from './tests/dropdown/time';
 import twoSimpleTests from './tests/dropdown/two_simple';
 import weatherTests from './tests/dropdown/weather';
 import youtubeTests from './tests/dropdown/youtube';
 
-import newMixerNewsTests from './tests/dropdown/new-mixer/news';
 import newMixerHistoryAndNewsTests from './tests/dropdown/new-mixer/history_and_news';
 import newMixerHistoryClusterTests from './tests/dropdown/new-mixer/history-cluster';
-import newMixerLotto6Aus49Tests from './tests/dropdown/new-mixer/lotto_6aus49';
-import newMixerBigMachineWithButtonsTests from './tests/dropdown/new-mixer/big-machine-with-buttons';
-import newMixerLottoEurojackpotTests from './tests/dropdown/new-mixer/lotto_eurojackpot';
-import newMixerLottoKenoTests from './tests/dropdown/new-mixer/lotto_keno';
-import newMixerBigMachineWithRichDataTests from './tests/dropdown/new-mixer/big-machine-rich-data';
+import newMixerKNSimpleWithAutocompleteTests from './tests/dropdown/keyboard-navigation/simple-with-autocomplete-new-mixer';
 
 chai.use(chaiDom);
 
 const oldMixerTests = [
   historyAndNewsTests,
   historyClusterTests,
-  newsTests,
-  lotto6Aus49Tests,
-  bigMachineWithButtonsTests,
-  lottoEurojackpotTests,
-  lottoKenoTests,
-  bigMachineWithRichDataTests,
   adultQuestionIntegrationTests,
+  defaultSearchEngineTests,
+  keyboardNavigationAdultTests,
+  keyboardNavigationSimpleWithAutocompleteTests,
   suggestionsIntegrationTests,
   unitConverterTests,
+  telemetryKeystrokeTests,
 ];
 const newMixerTests = [
-  newMixerNewsTests,
   newMixerHistoryAndNewsTests,
   newMixerHistoryClusterTests,
-  newMixerLotto6Aus49Tests,
-  newMixerBigMachineWithButtonsTests,
-  newMixerLottoEurojackpotTests,
-  newMixerLottoKenoTests,
-  newMixerBigMachineWithRichDataTests,
+  newMixerKNSimpleWithAutocompleteTests,
 ];
 
 DEPS.DropdownTests = ['core/utils'];
@@ -84,26 +91,37 @@ TESTS.DropdownTests = function (utils) {
   const config = getModule('core/config').default;
   const isOldMixer = utils.getPref('searchMode', 'autocomplete') === 'autocomplete';
   const hasHistoryUrl = Boolean(config.settings.HISTORY_URL);
-  const isAskingForGeoConsent = config.settings.geolocation !== 'yes';
   const sectionName = `dropdown (${isOldMixer ? 'old' : 'new'} mixer)`;
   const mixerDependentTests = isOldMixer ? oldMixerTests : newMixerTests;
   describe(sectionName, function () {
     mixerDependentTests.forEach(test => test({ hasHistoryUrl }));
     adultQuestionTests();
     calculatorTests();
+    bigMachineWithButtonsTests();
+    bigMachineWithRichDataTests();
     currencyConverterTests();
-    defaultSearchEngineTests();
     flightsTests();
     geoWithLocalTests();
-    geoWithoutLocalTests({ isAskingForGeoConsent });
-    keyboardNavigationCalculatorTests();
+    geoWithoutLocalTests();
+    keyboardNavigationBmRichDataTests();
+    keyboardNavigationBmWithButtonsTests();
+    keyboardNavigationCalculatorTypeTests();
     keyboardNavigationCurrencyConverterTests();
-    keyboardNavigationTwoSimpleTests();
-    keyboardNavigationTwoSimpleWithoutAutocompleteTests();
-    keyboardNavigationUnitConverterTests();
+    keyboardNavigationLottoTypeTests();
+    keyboardNavigationNewsTests();
+    keyboardNavigationNewsStoryTests();
+    keyboardNavigationSoccerLivetickerTests();
+    keyboardNavigationSoccerTableTests();
+    keyboardNavigationSimpleWithoutAutocompleteTests();
+    keyboardNavigationYoutubeTests();
+    keyboardNavigationWeatherTests();
+    lotto6Aus49Tests();
+    lottoEurojackpotTests();
     lottoGluecksspiraleTests();
-    movieCinema1Tests({ isAskingForGeoConsent });
+    lottoKenoTests();
+    movieCinema1Tests();
     movieCinema2Tests();
+    newsTests();
     newsStoryTests();
     offersTests();
     simpleTests();
@@ -112,6 +130,15 @@ TESTS.DropdownTests = function (utils) {
     soccerLigaGroup2Tests();
     soccerLigaTableTests();
     soccerLiveTickerTests();
+    telemetryDropdownTests();
+    telemetryEmptyQueryTests();
+    telemetryFullUrlTests();
+    telemetryNoDropdownTests();
+    telemetrySearchEngineTests();
+    telemetrySearchWithTests();
+    telemetryTwoSimpleWithAutocompleteTests();
+    telemetryTwoSimpleWithoutAutocompleteTests();
+    telemetryUrlbarTests();
     timeTests();
     twoSimpleTests();
     weatherTests();

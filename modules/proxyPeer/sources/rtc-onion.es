@@ -1,10 +1,10 @@
 import logger from './logger';
 import { toBase64 } from '../core/encoding';
-import { generateAESKey
-       , encryptRSA
-       , decryptRSA
-       , encryptAES
-       , decryptAES } from '../core/crypto/utils';
+import { generateAESKey,
+  encryptRSA,
+  decryptRSA,
+  encryptAES,
+  decryptAES } from '../core/crypto/utils';
 
 
 export const ERROR_CODE = {

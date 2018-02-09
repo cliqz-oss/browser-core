@@ -146,7 +146,7 @@ class OutMessage {
     // TODO: not very nice, might be a good idea to rethink it...
     cliqzPeer.outMessages[this.msgId] = this;
 
-      // Build msg
+    // Build msg
     const finalBuffer = encodeMessage(data, label);
     const finalData = new Uint8Array(finalBuffer);
     this.numChunks = Math.ceil(finalData.byteLength / this.chunkSize);
@@ -183,18 +183,18 @@ class OutMessage {
     this.cancelKiller();
     if (!success) {
       this.cliqzPeer.checkPeerConnection(this.peer)
-          .then(() => {
-            if (this.retries >= this.maxRetries) {
-              throw new Error('Max retries exceeded');
-            }
-            ++this.retries;
-            this.send();
-          })
-          .catch((ex) => {
-            this.logError('Killing outcoming message', this.msgId, 'to peer', this.peer);
-            delete this.cliqzPeer.outMessages[this.msgId];
-            this.reject(`killing outcoming message: ${ex}`);
-          });
+        .then(() => {
+          if (this.retries >= this.maxRetries) {
+            throw new Error('Max retries exceeded');
+          }
+          ++this.retries;
+          this.send();
+        })
+        .catch((ex) => {
+          this.logError('Killing outcoming message', this.msgId, 'to peer', this.peer);
+          delete this.cliqzPeer.outMessages[this.msgId];
+          this.reject(`killing outcoming message: ${ex}`);
+        });
     } else {
       delete this.cliqzPeer.outMessages[this.msgId];
     }
@@ -338,7 +338,7 @@ class InMessage {
     delete this.cliqzPeer.inMessages[this.msgId];
     if (!success) {
       this.logError('Killing incoming message', this.msgId, 'from peer', this.peer);
-          // this.reject();
+      // this.reject();
     }
   }
 }

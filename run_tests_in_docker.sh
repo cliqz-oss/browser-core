@@ -26,6 +26,8 @@ cp Dockerfile.ci "${DOCKER_FILE}"
 cat << EOF >> ${DOCKER_FILE}
 # Copy extension directory inside of Docker
 ADD . /app/
+WORKDIR /app/
+RUN ./fern.js install
 EOF
 
 # Build docker

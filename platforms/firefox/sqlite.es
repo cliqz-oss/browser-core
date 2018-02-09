@@ -26,5 +26,10 @@ export function close(databaseName) {
   connection.asyncClose();
 }
 
+export function remove(databaseName) {
+  if (FileUtils.getFile("ProfD", [databaseName]).exists()) {
+    FileUtils.getFile("ProfD", [databaseName]).remove(false);
+  }
+}
 // TODO: remove default export
 export default open;

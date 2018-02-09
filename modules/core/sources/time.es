@@ -51,8 +51,8 @@ function timestamp() {
 }
 
 export {
+  getDateFromDateKey,
   getDaysFromTimeRange,
   getTodayDayKey,
-  timestamp,
-  getDateFromDateKey
+  timestamp
 };

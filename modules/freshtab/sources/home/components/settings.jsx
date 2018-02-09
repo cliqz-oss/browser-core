@@ -79,10 +79,12 @@ export default class Settings extends React.Component {
               toggleComponent={() => this.props.toggleBackground()}
             />
           </div>
-          {this.state.componentsState.background.image === NO_BG ? '' :
-          <div className="settings-row">
-            <ul className="background-selection-list">
-              {this.props.isBlueBackgroundSupported &&
+          {this.state.componentsState.background.image === NO_BG ? (
+            ''
+          ) : (
+            <div className="settings-row">
+              <ul className="background-selection-list">
+                {this.props.isBlueBackgroundSupported &&
                 <li>
                   <BackgroundImage
                     onBackgroundImageChanged={this.onBackgroundImageChanged}
@@ -93,33 +95,34 @@ export default class Settings extends React.Component {
                     }
                   />
                 </li>
-              }
-              <li>
-                <BackgroundImage
-                  onBackgroundImageChanged={this.onBackgroundImageChanged}
-                  bg="bg-light"
-                  src="./images/bg-light-thumbnail.png"
-                  isActive={this.state.componentsState.background.image === 'bg-light'}
-                />
-              </li>
-              <li>
-                <BackgroundImage
-                  onBackgroundImageChanged={this.onBackgroundImageChanged}
-                  bg="bg-dark"
-                  src="./images/bg-dark-thumbnail.png"
-                  isActive={this.state.componentsState.background.image === 'bg-dark'}
-                />
-              </li>
-              <li>
-                <BackgroundImage
-                  onBackgroundImageChanged={this.onBackgroundImageChanged}
-                  bg="bg-winter"
-                  src="./images/bg-winter-thumbnail.png"
-                  isActive={this.state.componentsState.background.image === 'bg-winter'}
-                />
-              </li>
-            </ul>
-          </div>
+                }
+                <li>
+                  <BackgroundImage
+                    onBackgroundImageChanged={this.onBackgroundImageChanged}
+                    bg="bg-light"
+                    src="./images/bg-light-thumbnail.png"
+                    isActive={this.state.componentsState.background.image === 'bg-light'}
+                  />
+                </li>
+                <li>
+                  <BackgroundImage
+                    onBackgroundImageChanged={this.onBackgroundImageChanged}
+                    bg="bg-dark"
+                    src="./images/bg-dark-thumbnail.png"
+                    isActive={this.state.componentsState.background.image === 'bg-dark'}
+                  />
+                </li>
+                <li>
+                  <BackgroundImage
+                    onBackgroundImageChanged={this.onBackgroundImageChanged}
+                    bg="bg-winter"
+                    src="./images/bg-winter-thumbnail.png"
+                    isActive={this.state.componentsState.background.image === 'bg-winter'}
+                  />
+                </li>
+              </ul>
+            </div>
+          )
           }
 
           <div className="settings-row">
@@ -162,53 +165,70 @@ export default class Settings extends React.Component {
                 toggleComponent={() => this.props.toggleComponent('news')}
               />
             </div>
-            {!this.state.componentsState.news.visible ? '' :
-            <div>
-              <form>
-                <div className="radio">
-                  <label htmlFor="news-radio-selector-2">
-                    <input
-                      type="radio"
-                      tabIndex="-1"
-                      name="news"
-                      id="news-radio-selector-2"
-                      value="de"
-                      checked={this.state.componentsState.news.preferedCountry === 'de'}
-                      onChange={this.onNewsSelectionChanged}
-                    />
-                    {t('app.settings.news.language.de')}
-                  </label>
-                </div>
-                <div className={this.props.focusNews ? 'focused radio' : 'radio'}>
-                  <label htmlFor="news-radio-selector-3">
-                    <input
-                      type="radio"
-                      tabIndex="-1"
-                      name="news"
-                      id="news-radio-selector-3"
-                      value="fr"
-                      checked={this.state.componentsState.news.preferedCountry === 'fr'}
-                      onChange={this.onNewsSelectionChanged}
-                    />
-                    {t('app.settings.news.language.fr')}
-                  </label>
-                </div>
-                <div className="radio">
-                  <label htmlFor="news-radio-selector-4">
-                    <input
-                      type="radio"
-                      tabIndex="-1"
-                      name="news"
-                      id="news-radio-selector-4"
-                      value="intl"
-                      checked={this.state.componentsState.news.preferedCountry === 'intl'}
-                      onChange={this.onNewsSelectionChanged}
-                    />
-                    {t('app.settings.news.language.en')}
-                  </label>
-                </div>
-              </form>
-            </div>
+            {!this.state.componentsState.news.visible ? (
+              ''
+            ) : (
+              <div>
+                <form>
+                  <div className="radio">
+                    <label htmlFor="news-radio-selector-2">
+                      <input
+                        type="radio"
+                        tabIndex="-1"
+                        name="news"
+                        id="news-radio-selector-2"
+                        value="de"
+                        checked={this.state.componentsState.news.preferedCountry === 'de'}
+                        onChange={this.onNewsSelectionChanged}
+                      />
+                      {t('app.settings.news.language.de')}
+                    </label>
+                  </div>
+                  <div className="radio">
+                    <label htmlFor="news-radio-selector-5">
+                      <input
+                        type="radio"
+                        tabIndex="-1"
+                        name="news"
+                        id="news-radio-selector-5"
+                        value="de-tr-en"
+                        checked={this.state.componentsState.news.preferedCountry === 'de-tr-en'}
+                        onChange={this.onNewsSelectionChanged}
+                      />
+                      {t('app.settings.news.language.de-tr-en')}
+                    </label>
+                  </div>
+                  <div className={this.props.focusNews ? 'focused radio' : 'radio'}>
+                    <label htmlFor="news-radio-selector-3">
+                      <input
+                        type="radio"
+                        tabIndex="-1"
+                        name="news"
+                        id="news-radio-selector-3"
+                        value="fr"
+                        checked={this.state.componentsState.news.preferedCountry === 'fr'}
+                        onChange={this.onNewsSelectionChanged}
+                      />
+                      {t('app.settings.news.language.fr')}
+                    </label>
+                  </div>
+                  <div className="radio">
+                    <label htmlFor="news-radio-selector-4">
+                      <input
+                        type="radio"
+                        tabIndex="-1"
+                        name="news"
+                        id="news-radio-selector-4"
+                        value="intl"
+                        checked={this.state.componentsState.news.preferedCountry === 'intl'}
+                        onChange={this.onNewsSelectionChanged}
+                      />
+                      {t('app.settings.news.language.en')}
+                    </label>
+                  </div>
+                </form>
+              </div>
+            )
             }
           </div>
         </div>

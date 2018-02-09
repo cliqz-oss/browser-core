@@ -27,6 +27,11 @@ export default background({
   */
   init() {
     this.is_enabled = utils.getPref('offersBrowserPanelEnableSwitch', false);
+
+    if (!this.is_enabled) {
+      return;
+    }
+
     this.actions = {
       windowUIConnector: this.windowUIConnector.bind(this)
     };

@@ -116,7 +116,6 @@ class Interval {
     }
     return result;
   }
-
 }
 
 /**
@@ -159,8 +158,10 @@ export default class MemoryHistoryHandler {
    * Returns the number of matches on memory history.
    */
   countMatches(startMS, endMS, pObj, pid) {
-    const queryInterval = new Interval(leftMostIndex(this.entries, startMS),
-                                      rightMostIndex(this.entries, endMS));
+    const queryInterval = new Interval(
+      leftMostIndex(this.entries, startMS),
+      rightMostIndex(this.entries, endMS)
+    );
 
     if (queryInterval.start < 0 || queryInterval.end < 0) {
       logger.error('Something went wrong here', queryInterval);
@@ -171,8 +172,10 @@ export default class MemoryHistoryHandler {
     const cache = this.cache.get(pid);
     let cacheInterval = null;
     if (cache) {
-      cacheInterval = new Interval(leftMostIndex(this.entries, cache.startMS),
-                                   rightMostIndex(this.entries, cache.endMS));
+      cacheInterval = new Interval(
+        leftMostIndex(this.entries, cache.startMS),
+        rightMostIndex(this.entries, cache.endMS)
+      );
     }
     if (queryInterval.eql(cacheInterval)) {
       return cache.count;
@@ -192,20 +195,26 @@ export default class MemoryHistoryHandler {
       let substractCache = [];
       let addCache = [];
       if (cacheInterval.isInside(queryInterval)) {
-        const intervals = this._getNormalizedSplitIntervals(queryInterval,
-                                                          cacheInterval,
-                                                          cacheInterval);
+        const intervals = this._getNormalizedSplitIntervals(
+          queryInterval,
+          cacheInterval,
+          cacheInterval
+        );
         addCache = intervals.filter(interval => !interval.eql(cacheInterval));
       } else if (queryInterval.isInside(cacheInterval)) {
-        const intervals = this._getNormalizedSplitIntervals(queryInterval,
-                                                            cacheInterval,
-                                                            queryInterval);
+        const intervals = this._getNormalizedSplitIntervals(
+          queryInterval,
+          cacheInterval,
+          queryInterval
+        );
         substractCache = intervals.filter(interval => !interval.eql(queryInterval));
       } else {
         // overlaps
-        const intervals = this._getNormalizedSplitIntervals(queryInterval,
-                                                           cacheInterval,
-                                                           cacheInterval);
+        const intervals = this._getNormalizedSplitIntervals(
+          queryInterval,
+          cacheInterval,
+          cacheInterval
+        );
         addCache = intervals.filter(interval => !interval.eql(cacheInterval));
         substractCache = intervals.filter(interval => !interval.eql(queryInterval));
       }

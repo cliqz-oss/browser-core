@@ -8,7 +8,7 @@ export default function(amo) {
     hostname: 'www.spiegel.de',
     module: {
       'offers-v2': {
-        showSettings: true,
+        visible: true,
         userEnabled: true,
         locationEnabled: true,
       }

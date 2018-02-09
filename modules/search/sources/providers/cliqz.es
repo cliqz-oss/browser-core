@@ -1,28 +1,9 @@
 import Rx from '../../platform/lib/rxjs';
 import utils from '../../core/utils';
-import BaseProvider from './base';
+import BackendProvider from './backend';
 import { getResponse } from '../responses';
 
-const mapResults = ({ results, q }) =>
-  results.map((result) => {
-    const snippet = result.snippet || {};
-    return {
-      ...result,
-      url: result.url,
-      originalUrl: result.url,
-      title: snippet.title,
-      type: result.type,
-      text: q,
-      description: snippet.description,
-      provider: 'cliqz',
-      data: {
-        ...snippet,
-        template: result.template,
-      },
-    };
-  });
-
-export default class Cliqz extends BaseProvider {
+export default class Cliqz extends BackendProvider {
   constructor() {
     super('cliqz');
     this.cache = new Map();
@@ -52,13 +33,13 @@ export default class Cliqz extends BaseProvider {
         this.id,
         config,
         query,
-        mapResults(response),
+        this.mapResults(response),
         'done',
       ))
       // .do(results => this.cache.set(query, results))
       .delay(0)
       .let(this.getOperators(config, query));
-      // .flatMap(results =>
-      //   Rx.Observable.from(results));
+    // .flatMap(results =>
+    //   Rx.Observable.from(results));
   }
 }

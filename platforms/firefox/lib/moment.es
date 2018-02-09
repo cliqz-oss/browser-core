@@ -1,9 +1,3 @@
-const global = { };
+import lazyLoader from './helpers';
 
-const momentUrl = 'chrome://cliqz/content/bower_components/moment/min/moment.min.js';
-
-Services.scriptloader.loadSubScriptWithOptions(momentUrl, {
-  target: global,
-});
-
-export default global.moment;
+export default lazyLoader('moment.min.js', 'moment');

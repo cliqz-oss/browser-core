@@ -412,7 +412,7 @@ export default {
     },
     "control-center": null,
     "offers-v2": {
-      showSettings: true,
+      visible: true,
       userEnabled: true,
       locationEnabled: true,
     },

@@ -28,7 +28,7 @@ describe("Control Center: AMO, Cliqz tab interaction tests", function () {
       return waitFor(
         () => subject.messages.find(message => message.message.action === 'updateState')
       ).then(
-        message => chai.expect(message).to.have.deep.property('message.data', 'active')
+        message => chai.expect(message).to.have.nested.property('message.data', 'active')
       );
     });
   };
@@ -56,7 +56,7 @@ describe("Control Center: AMO, Cliqz tab interaction tests", function () {
           () => subject.messages.find(message => message.message.action === 'cliqz-tab')
         ).then(
           message => {
-            chai.expect(message).to.have.deep.property('message.data.status', false);
+            chai.expect(message).to.have.nested.property('message.data.status', false);
           }
         );
       });
@@ -82,7 +82,7 @@ describe("Control Center: AMO, Cliqz tab interaction tests", function () {
           () => subject.messages.find(message => message.message.action === 'cliqz-tab')
         ).then(
           message => {
-            chai.expect(message).to.have.deep.property('message.data.status', true);
+            chai.expect(message).to.have.nested.property('message.data.status', true);
           }
         );
       });

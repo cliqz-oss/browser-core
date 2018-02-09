@@ -5,15 +5,9 @@ import { getMessage } from '../core/i18n';
 import background from '../core/base/background';
 import { forEachWindow, getThemeStyle } from '../platform/browser';
 
-// remove this dynamic part after offersSettings goes 100% to production (dec 2017 - AB test)
-function addOffersSettingsHeight() {
-  return prefs.get('offers2ShowSettings', false) === true ? 40 : 0;
-}
-
 const DD_HEIGHT = {
-  'FC01': () => 246,                             // funnelcake
-  '04':   () => 379 + addOffersSettingsHeight(), // amo
-  '40':   () => 419 + addOffersSettingsHeight(), // Q browser
+  '04':   () => 413, // amo
+  '40':   () => 496, // Q browser
 };
 
 function getBrowserActionIcon(){

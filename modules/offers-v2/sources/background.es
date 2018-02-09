@@ -1,5 +1,6 @@
 import logger from './common/offers_v2_logger';
 import { utils } from '../core/cliqz';
+import config from '../core/config';
 import background from '../core/base/background';
 import OffersConfigs from './offers_configs';
 import EventHandler from './event_handler';
@@ -21,12 +22,18 @@ import OfferStatusHandler from './offers-status-handler';
 // consts
 const USER_ENABLED = 'offers2UserEnabled';
 const OFFERS_CC_ENABLED = 'modules.offers-cc.enabled';
+const PROMO_BAR_ENABLED = 'modules.browser-panel.enabled';
 
 export default background({
   // to be able to read the config prefs
   requiresServices: ['cliqz-config'],
 
   init() {
+    // we setup the endpoint coming from the config here
+    // BACKEND_URL: 'https://offers-api.cliqz.com',
+    if (config.settings.OFFERS_BE_BASE_URL) {
+      OffersConfigs.BACKEND_URL = config.settings.OFFERS_BE_BASE_URL;
+    }
     this.softInit();
   },
 
@@ -86,7 +93,7 @@ export default background({
       triggersBE: ${OffersConfigs.BACKEND_URL}
       offersTelemetryFreq: ${OffersConfigs.SIGNALS_OFFERS_FREQ_SECS}
       '------------------------------------------------------------------------\n`
-      );
+    );
 
     // create the DB to be used over all offers module
     this.db = new Database('cliqz-offers');
@@ -110,10 +117,12 @@ export default background({
 
     const oStatusHandler = new OfferStatusHandler();
 
-    this.offerProc = new OfferProcessor(this.signalsHandler,
-                                        this.db,
-                                        this.offersDB,
-                                        oStatusHandler);
+    this.offerProc = new OfferProcessor(
+      this.signalsHandler,
+      this.db,
+      this.offersDB,
+      oStatusHandler
+    );
     oStatusHandler.setStatusChangedCallback(this.offerProc.updateOffersStatus.bind(this.offerProc));
 
     // init the features here
@@ -121,9 +130,11 @@ export default background({
     this.patternMatchingHandler = new PatternMatchingHandler(this.featureHandler);
 
     const historyFeature = this.featureHandler.getFeature('history');
-    this.categoryHandler = new CategoryHandler(historyFeature,
-                                               this.db,
-                                               this.patternMatchingHandler);
+    this.categoryHandler = new CategoryHandler(
+      historyFeature,
+      this.db,
+      this.patternMatchingHandler
+    );
 
     // load the data from the category handler
     this.categoryHandler.loadPersistentData();
@@ -274,9 +285,11 @@ export default background({
       if (pref === USER_ENABLED) {
         if (utils.getPref(USER_ENABLED, true) === true) {
           utils.setPref(OFFERS_CC_ENABLED, true);
+          utils.setPref(PROMO_BAR_ENABLED, true);
           this.softInit();
         } else {
           utils.setPref(OFFERS_CC_ENABLED, false);
+          utils.setPref(PROMO_BAR_ENABLED, false);
           this.softUnload();
         }
       }

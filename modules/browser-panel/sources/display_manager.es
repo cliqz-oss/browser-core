@@ -269,6 +269,4 @@ export default class DisplayManager {
       self._showElement(tabInfo.win, 'offerElement', elemData.data);
     });
   }
-
-
 }

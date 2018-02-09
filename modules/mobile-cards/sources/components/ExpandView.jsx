@@ -12,66 +12,78 @@ export default class extends React.Component {
     this.state = {collapsed: true};
   }
 
-  displayInstruction(text, index) {
-    return (
-      <Text key={index} style={styles().item}>{ text }</Text>
-    );
-  }
-
   render() {
     const isCollapsed = this.state.collapsed;
+    const index = this.props.index;
     const arrowImage = normalizeUrl('arrow-down.svg');
+    const style = styles(isCollapsed, index);
     return (
-      <View>
+      <View style={style.container}>
         <Link
-          onPress={() => this.setState({collapsed: !this.state.collapsed})}
+          onPress={() => this.setState({collapsed: !isCollapsed})}
         >
-          <View style={styles().container}>
-            <View style={styles().content}>
-              <View style={styles().header}>
-                <View style={{ flex: 10, flexDirection: 'row', justifyContent: 'flex-start' }}>
-                  {<Text style={styles().headerText}>{this.props.header}</Text>}
-                </View>
-                <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end' }}>
-                  {<NativeDrawable source={arrowImage} style={styles(this.state.collapsed).arrow} />}
-                </View>
-              </View>
+          <View style={style.header}>
+            <View style={style.headerDetails}>
+              { this.props.header }
+            </View>
+            <View style={style.headerExpand}>
+              <NativeDrawable
+                source={arrowImage}
+                style={style.arrow}
+              />
             </View>
           </View>
         </Link>
         { isCollapsed ||
-          this.props.content.map(this.displayInstruction)
+          (
+            <Link>
+              <View style={style.content}>
+                { this.props.content }
+              </View>
+            </Link>
+          )
         }
       </View>
     );
   }
 }
 
-const styles = (collapsed = true) => StyleSheet.create({
+const styles = (collapsed = true, index) => StyleSheet.create({
   container: {
-    borderTopWidth: 1,
+    borderTopWidth: index === 0 ? 1 : 0,
     borderBottomWidth: 1,
     borderTopColor: '#EDECEC',
     borderBottomColor: '#EDECEC',
+    flex: 1,
   },
   headerText: {
-    paddingTop: 3,
-    paddingBottom: 3,
+    marginTop: 3,
+    marginBottom: 3,
     color: 'black',
-  },
-  content: {
-    paddingTop: 8,
-    paddingBottom: 8,
-    ...elementSideMargins,
   },
   arrow: {
     height: 8,
     width: 12,
     transform: [{ rotateX: collapsed ? '0deg' : '180deg' }],
   },
+  headerExpand: {
+    alignItems: 'flex-end',
+    flex: 1,
+  },
+  headerDetails: {
+    flex: 10,
+  },
   header: {
+    flex: 1,
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 8,
+    ...elementSideMargins,
+  },
+  content: {
+    ...elementSideMargins,
   },
   item: {
     color: 'black',

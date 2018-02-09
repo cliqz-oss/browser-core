@@ -31,7 +31,6 @@ import { timestampMS } from './utils';
  * }
  */
 export default class PersistentCacheDB {
-
   /**
    * @param {object} [db] The database to be wrapped into the DBHelper
    * @param {string} [docName] The docname to be used for storing the doc on the db
@@ -146,7 +145,8 @@ export default class PersistentCacheDB {
     }
     let cont = this.entries[eid];
     if (!cont) {
-      cont = this.entries[eid] = this._createContainer();
+      cont = this._createContainer();
+      this.entries[eid] = cont;
     }
     cont.data = data;
 

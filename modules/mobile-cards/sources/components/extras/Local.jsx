@@ -12,8 +12,8 @@ import { elementTopMargin, elementSideMargins } from '../../styles/CardStyle';
 export default class extends React.Component {
 
   renderLocation(data) {
-    const distance = Helpers.calculateDistance(data.lon, data.lat);
-    const opening = Helpers.calculateOpeningStatus(data.opening_hours);
+    const distance = Helpers.calculateDistance(data.lon, data.lat, data.distance);
+    const opening = Helpers.calculateOpeningStatus(data.opening_hours) || {};
     const mapIcon = normalizeUrl('maps-logo.svg');
     const callIcon = normalizeUrl('call-icon.svg');
     return <View style={styles.container}>
@@ -200,8 +200,13 @@ const Helpers = {
     return null;
   },
 
-  calculateDistance(lon, lat) {
-    const meters = utils.distance(lon, lat) * 1000;
+  calculateDistance(lon, lat, distance = []) {
+    let meters = -1;
+    if (distance[0]) {
+      meters = distance[0];
+    } if (lon && lat) {
+      meters = utils.distance(lon, lat) * 1000;
+    }
     if (meters > -1) {
       let distance;
       let unit;

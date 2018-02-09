@@ -4,7 +4,6 @@ import inject from '../core/kord/inject';
 import console from '../core/console';
 
 export default class MessageSender {
-
   constructor(args = {}) {
     this.hpnv2 = inject.module('hpnv2');
     // by default, use CryptoWorker and the global CliqzSecureMessage
