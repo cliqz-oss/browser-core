@@ -373,11 +373,20 @@ export default class TrackerProxy {
     this.urlsToProxy.add(url);
   }
 
-  applyFilter(pps, url, defaultProxy) {
+  applyFilter(pps, url, defaultProxy, cb) {
+    let proxy;
     if (this.urlsToProxy.has(url.asciiSpec)) {
       this.urlsToProxy.delete(url.asciiSpec);
-      return this.firefoxProxy;
+      proxy = this.firefoxProxy;
+    } else {
+      proxy = defaultProxy;
     }
-    return defaultProxy;
+    // On Firefox 60+ we need to use the callback
+    if (cb && cb.onProxyFilterResult) {
+      cb.onProxyFilterResult(proxy);
+    } else {
+      return proxy;
+    }
+    return undefined;
   }
 }
