@@ -24,7 +24,12 @@
     </div>
     <div>
         {{#if expandButton.show}}
-            <a class="result expand-btn" href="{{expandButton.url}}">{{local expandButton.title}}</a>
+            <a
+                class="result expand-btn"
+                data-url="{{expandButton.url}}"
+            >
+                {{local expandButton.title}}
+            </a>
         {{/if}}
     </div>
 </div>

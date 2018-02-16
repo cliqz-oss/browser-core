@@ -190,7 +190,7 @@ html {
             }
         }
 
-        .title[stop-navigation]:hover {
+        .title[role="stop-navigation"]:hover {
             cursor: default;
         }
 
@@ -280,18 +280,18 @@ html {
             }
         }
 
-        .frame-container[state="active"] .switches {
+        .frame-container[data-status="active"] .switches {
             color: $cliqz-blue;
             .cqz-switch-box {
                 background-color: $cliqz-blue;
             }
         }
 
-        .frame-container[stop-navigation] #smallarrow {
+        .frame-container[role="stop-navigation"] #smallarrow {
             display: none;
         }
 
-        .frame-container[stop-navigation] .title {
+        .frame-container[role="stop-navigation"] .title {
             cursor: default;
         }
 
@@ -727,14 +727,14 @@ html {
 
         .settings-section {
 
-            .frame-container[state="active"] .switches {
+            .frame-container[data-status="active"] .switches {
                 color: $firefox-green;
                 .cqz-switch-box {
                     background-color: $firefox-green;
                 }
             }
 
-            .frame-container:not([state="active"]) .switches {
+            .frame-container:not([data-status="active"]) .switches {
                 color: $firefox-grey !important;
                 .cqz-switch-box {
                     background-color: $firefox-grey;
@@ -1054,32 +1054,32 @@ html {
 }
 
 /* by default we hide everything which has this attribute and show it only for relevant states */
-[visible-on-state], [visible-on-off-state] {
+[data-visible-on-state] {
     display: none;
 }
 
-[state="active"] {
-    [visible-on-state="active"] {
+[data-status="active"] {
+    [data-visible-on-state="active"] {
         display: inline-block;
     }
-    [invisible-on-state="active"] {
+    [data-invisible-on-state="active"] {
         display: none;
     }
 }
 
-[state="inactive"] {
-    [visible-on-state="inactive"] {
+[data-status="inactive"] {
+    [data-visible-on-state="inactive"] {
         display: inline-block;
     }
 }
 
-[state="off"] {
-    [visible-on-state="off"] {
+[data-status="off"] {
+    [data-visible-on-state="off"] {
         display: inline-block;
     }
 }
 
-.adblock [state="off"] {
+.adblock [data-status="off"] {
     .description {
         display: none;
     }
@@ -1110,24 +1110,24 @@ html {
     }
 }
 
-[state="critical"] {
-    [visible-on-state="critical"] {
+[data-status="critical"] {
+    [data-visible-on-state="critical"] {
         display: inline-block;
     }
 }
 
 .frame-container {
-    [start-navigation], .infobutton, .title > span {
+    [data-start-navigation], .infobutton, .title > span {
         opacity: 0.41;
     }
 
-    [start-navigation] {
+    [data-start-navigation] {
         cursor: pointer;
         -moz-user-select: none;
     }
 }
 
-.frame-container[state="active"] {
+.frame-container[data-status="active"] {
     .cqz-switch-box {
         &:before {
             left: auto;
@@ -1139,7 +1139,7 @@ html {
         display: none;
     }
 
-    [start-navigation], .infobutton, .title > span {
+    [data-start-navigation], .infobutton, .title > span {
         opacity: 1;
     }
 
@@ -1164,9 +1164,9 @@ html {
     }
 }
 
-.frame-container[state="inactive"],
-.frame-container[state="off"],
-.frame-container[state="critical"] {
+.frame-container[data-status="inactive"],
+.frame-container[data-status="off"],
+.frame-container[data-status="critical"] {
     .description, #count {
         color: #8A8A8A;
     }
@@ -1219,7 +1219,7 @@ html {
     }
 }
 
-.bullet[state="active"] .cqz-switch-box-grey::before {
+.bullet[data-status="active"] .cqz-switch-box-grey::before {
     left: auto;
     right: 1px;
     background-color: #565656;

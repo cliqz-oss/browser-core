@@ -1,11 +1,22 @@
 {{#with localResult}}
     <div class="padded">
         <div class="local-result-wrapper white-background clearfix">
-            <a href="{{ mapResult.url }}" class="result local-map" data-extra="map"></a>
+            <a
+                data-url="{{mapResult.url}}"
+                href="{{mapResult.url}}"
+                class="result local-map"
+                data-extra="map"
+                >
+            </a>
             <div class="local-info">
                 {{#if address}}
                     <div class="local-address">
-                        <a class="result" href="{{ address.url }}">{{ address.displayText }}</a>
+                        <a
+                            class="result"
+                            data-url="{{address.url}}"
+                        >
+                            {{ address.displayText }}
+                        </a>
                         {{#if distance}}
                             &#183;
                             <span>
@@ -16,7 +27,12 @@
                 {{/if}}
                 {{#if phoneNumber}}
                     <div class="local-phone">
-                        <a class="result" href="{{ phoneNumber.url }}">{{ phoneNumber.displayText }}</a>
+                        <a
+                            class="result"
+                            data-url="{{phoneNumber.url}}"
+                        >
+                            {{ phoneNumber.displayText }}
+                        </a>
                     </div>
                 {{/if}}
                 <div class="other-info">

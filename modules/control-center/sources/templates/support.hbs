@@ -1,6 +1,6 @@
 <span id="support">
   {{#if module.moncomp.visible }}
-      <span data-target="moncomp" openUrl="moncomp">Moncomp</span>
+      <span data-target="moncomp" data-open-url="moncomp">Moncomp</span>
   {{/if}}
   <span class="support-icon">
       <svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -18,7 +18,7 @@
         </svg>
     </span>
     <span data-i18n="control-center-support"
-          openUrl="{{ feedbackURL }}"
+          data-open-url="{{ feedbackURL }}"
           data-target="info_help">
     </span>
     {{#if showTipps}}
@@ -26,9 +26,9 @@
       <span id="tips"
         data-i18n="control-center-tips"
         {{#if amo}}
-          openUrl="https://cliqz.com/tips-firefox"
+          data-open-url="https://cliqz.com/tips-firefox"
         {{else}}
-          openUrl="https://cliqz.com/tips"
+          data-open-url="https://cliqz.com/tips"
         {{/if}}>
       </span>
     {{/if}}

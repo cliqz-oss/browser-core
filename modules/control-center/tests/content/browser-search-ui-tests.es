@@ -252,7 +252,7 @@ describe('Search options UI browser', function () {
 
         it('url is correct', function () {
           const locationObject = subject.queryAll('#accordion-2 .bullet')[2];
-          chai.expect(locationObject.querySelector('.location-more').getAttribute('openurl')).to.equal('https://cliqz.com/support/local-results');
+          chai.expect(locationObject.querySelector('.location-more').getAttribute('data-open-url')).to.equal('https://cliqz.com/support/local-results');
         });
 
         function shareLocation(currentValue) {
@@ -449,7 +449,7 @@ describe('Search options UI browser', function () {
 
         it('url is correct', function () {
           const buttonSelector = '#accordion-2 .bullet button[data-target="search_transparency"]';
-          chai.expect(subject.query(buttonSelector).getAttribute('openurl')).to.equal('about:transparency');
+          chai.expect(subject.query(buttonSelector).getAttribute('data-open-url')).to.equal('about:transparency');
         });
 
         it('does not render info button', function () {
@@ -622,7 +622,7 @@ describe('AMO Search options tests', function () {
 
         it('url is correct', function () {
           const locationObject = subject.queryAll('#accordion-2 .bullet')[2];
-          chai.expect(locationObject.querySelector('.location-more').getAttribute('openurl')).to.equal('https://cliqz.com/support/local-results');
+          chai.expect(locationObject.querySelector('.location-more').getAttribute('data-open-url')).to.equal('https://cliqz.com/support/local-results');
         });
 
         function shareLocation(currentValue) {
@@ -1159,8 +1159,8 @@ describe('FunnelCake tests', function () {
 
       it('url for Support is correct', function () {
         const supportSelector = '#control-center .footer #support [data-i18n="control-center-support"]';
-        chai.expect(subject.query(supportSelector).hasAttribute('openurl')).to.be.true;
-        chai.expect(subject.query(supportSelector).getAttribute('openurl')).to.equal('https://cliqz.com/feedback/1.19.0.dev-40');
+        chai.expect(subject.query(supportSelector).hasAttribute('data-open-url')).to.be.true;
+        chai.expect(subject.query(supportSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/feedback/1.19.0.dev-40');
       });
 
       it('renders "Tips"', function () {
@@ -1171,8 +1171,8 @@ describe('FunnelCake tests', function () {
 
       it('url for Tips is correct', function () {
         const tipsSelector = '#control-center .footer #support [data-i18n="control-center-tips"]';
-        chai.expect(subject.query(tipsSelector).hasAttribute('openurl')).to.be.true;
-        chai.expect(subject.query(tipsSelector).getAttribute('openurl')).to.equal('https://cliqz.com/tips');
+        chai.expect(subject.query(tipsSelector).hasAttribute('data-open-url')).to.be.true;
+        chai.expect(subject.query(tipsSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/tips');
       });
     });
   });

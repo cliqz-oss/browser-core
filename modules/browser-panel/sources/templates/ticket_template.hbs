@@ -4,7 +4,7 @@
 
 {{#if code}}
   <div class="code-container">
-    <div 
+    <div
       class="code-box"
       data-cqz-of-btn-id="code_copied"
     >
@@ -29,22 +29,21 @@
     {{/each}}
   </div>
   {{/if}}
-  
+
   <div class="flex-item logo">
-    <img 
+    <img
       src="{{logo_url}}"
       data-cqz-of-btn-id="offer_logo"
-      openUrl="{{ call_to_action.url }}"
+      data-open-url="{{ call_to_action.url }}"
      />
   </div>
 
   {{#if picture_url}}
   <div class="flex-item picture">
-    <img 
+    <img
       src="{{picture_url}}"
-      onerror="this.style.display='none'"
       data-cqz-of-btn-id="offer_picture"
-      openUrl="{{ call_to_action.url }}"
+      data-open-url="{{ call_to_action.url }}"
     />
   </div>
   {{/if}}
@@ -52,30 +51,30 @@
   {{#if (or benefit headline) }}
 
     {{#if benefit}}
-      <div 
+      <div
         class="benefit flex-item {{#if (not headline) }} only-benefit{{/if}}"
         data-cqz-of-btn-id="offer_benefit"
-        openUrl="{{ call_to_action.url }}"
+        data-open-url="{{ call_to_action.url }}"
       >
         {{ benefit }}
       </div>
     {{/if}}
     {{#if headline}}
     <div class="headline-container flex-item">
-      <div 
+      <div
         class="headline common flex-item"
         data-cqz-of-btn-id="offer_headline"
-        openUrl="{{ call_to_action.url }}"
+        data-open-url="{{ call_to_action.url }}"
         style="color: {{titleColor}}"
       >{{ truncate headline 68 }}</div>
     </div>
     {{/if}}
   {{else}}
     {{#if title}}
-      <div 
+      <div
         class="title common flex-item"
         data-cqz-of-btn-id="offer_title"
-        openUrl="{{ call_to_action.url }}"
+        data-open-url="{{ call_to_action.url }}"
         style="color: {{titleColor}}"
       >{{title}}</div>
     {{/if}}
@@ -83,10 +82,10 @@
 
   {{#if desc}}
     <div class="flex-item description">
-      <div 
+      <div
         class="desc-content"
         data-cqz-of-btn-id="offer_description"
-        openUrl="{{ call_to_action.url }}"
+        data-open-url="{{ call_to_action.url }}"
       >
         {{ desc }}
       </div>
@@ -96,9 +95,9 @@
   <div class="flex-item call-to-action">
     {{#if conditions }}
       <span class="conditions tooltip flex-item" data-i18n="offers-conditions">
-        
+
       </span>
-      <img class="info-icon tooltip" 
+      <img class="info-icon tooltip"
            src="./images/ticket-tmpl/info-icon-hover.svg"
            title="{{conditions}}" />
 
@@ -106,7 +105,7 @@
 
     {{#if call_to_action}}
       <a href="#"
-         openUrl="{{ call_to_action.url }}"
+         data-open-url="{{ call_to_action.url }}"
          class="btn"
          data-cqz-of-btn-id="offer_ca_action"
       >

@@ -1,11 +1,15 @@
 {{#with offerResult}}
-<a class="result promo-code" href="{{ promoCode.url }}">
-    PROMOTION CODE: {{ promoCode.title }}
-    <span class="tooltip-copied">
-        Kopiert
-    </span>
-    <span class="tooltip">
-        Klicken zum Kopieren
-    </span>
-</a>
+    <a
+        class="result promo-code"
+        data-url="{{promoCode.url}}"
+        href="{{promoCode.url}}"
+    >
+        PROMOTION CODE: {{ promoCode.title }}
+        <span class="tooltip-copied">
+            Kopiert
+        </span>
+        <span class="tooltip">
+            Klicken zum Kopieren
+        </span>
+    </a>
 {{/with}}

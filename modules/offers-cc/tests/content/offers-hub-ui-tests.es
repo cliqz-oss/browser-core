@@ -81,9 +81,16 @@ describe('Offers Hub UI tests', function () {
           .to.contain('/images/offers-cc-icon.svg');
       });
 
+
       it('renders title', function () {
         const titleSelector = '.cqz-no-vouchers-msg [data-i18n="offers-hub-welcome-title"]';
         chai.expect(subject.query(titleSelector)).to.exist;
+      });
+
+      it('link is correct', function () {
+        const moreInfoSelector = 'footer .cqz-power-by';
+        chai.expect(subject.query(moreInfoSelector).hasAttribute('data-open-url')).to.be.true;
+        chai.expect(subject.query(moreInfoSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/myoffrz');
       });
 
       it('renders text', function () {
@@ -154,6 +161,11 @@ describe('Offers Hub UI tests', function () {
       expect(subject.query(offerContentSelector)).to.exist;
       expect(subject.query(offerContentSelector).classList.contains('tooltip')).to.be.true;
       expect(subject.query('#cqz-offer-cc-content .light')).to.exist;
+    });
+
+    it('url for button is correct', function () {
+      chai.expect(subject.query(`${selector} .cqz-btn`).hasAttribute('data-open-url')).to.be.true;
+      chai.expect(subject.query(`${selector} .cqz-btn`).getAttribute('data-open-url')).to.equal(element.template_data.call_to_action.url);
     });
 
     it('left border\'s color is correct', function () {

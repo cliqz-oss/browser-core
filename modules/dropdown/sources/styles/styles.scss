@@ -220,7 +220,7 @@ $basic-line-height: (16 / 15) + 0em;
             color: #660099;
         }
         &:visited .abstract .url,
-        &[href^="moz-action:switchtab"] .abstract .url {
+        &[data-url^="moz-action:switchtab"] .abstract .url {
             color: #660099;
         }
 

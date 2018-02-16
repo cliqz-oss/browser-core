@@ -79,8 +79,8 @@ function myOffrzTests(amo) {
 
         it('url for "Learn more" is correct', function () {
           const offersObject = subject.queryAll('#accordion-4 .bullet')[0];
-          chai.expect(offersObject.querySelector('.location-more').hasAttribute('openurl')).to.be.true;
-          chai.expect(offersObject.querySelector('.location-more').getAttribute('openurl')).to.equal('https://cliqz.com/myoffrz');
+          chai.expect(offersObject.querySelector('.location-more').hasAttribute('data-open-url')).to.be.true;
+          chai.expect(offersObject.querySelector('.location-more').getAttribute('data-open-url')).to.equal('https://cliqz.com/myoffrz');
         });
 
         it('renders dropdown', function () {

@@ -65,8 +65,8 @@ export default class Win {
       return Promise.resolve();
     }
 
-    this.isPrivateWindow = utils.isPrivate(this.window) || utils.isOnPrivateTab(this.window);
-    if (this.isPrivateWindow) {
+    this.isPrivateMode = utils.isPrivateMode(this.window);
+    if (this.isPrivateMode) {
       linfo('we are in private mode, avoid any logic here');
       return Promise.resolve();
     }
@@ -304,7 +304,7 @@ export default class Win {
       return false;
     }
 
-    this.rootDocElem.setAttribute('cliqzofferid', offerID);
+    this.rootDocElem.setAttribute('data-cliqzofferid', offerID);
     return true;
   }
 
@@ -321,7 +321,7 @@ export default class Win {
     if (!this.rootDocElem) {
       return null;
     }
-    const attrValue = this.rootDocElem.getAttribute('cliqzofferid');
+    const attrValue = this.rootDocElem.getAttribute('data-cliqzofferid');
     return (attrValue === '') ? null : attrValue;
   }
 
@@ -330,7 +330,7 @@ export default class Win {
 
   showOfferElementHandler(aOfferData) {
     // if it is private do nothing
-    if (this.isPrivateWindow) {
+    if (this.isPrivateMode) {
       return;
     }
 
@@ -381,7 +381,7 @@ export default class Win {
   }
 
   hideOfferElementHandler() {
-    if (this.isPrivateWindow) {
+    if (this.isPrivateMode) {
       return;
     }
 

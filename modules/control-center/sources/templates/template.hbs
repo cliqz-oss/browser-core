@@ -1,7 +1,7 @@
 <div class="lock"></div>
 <div class="{{#if funnelCake}}funnel-cake{{/if}} {{#if amo}}amo{{/if}}">
 {{#if showSecuritySettings}}
-  <header id="header" state="{{ generalState }}">
+  <header id="header" data-status="{{ generalState }}">
    {{> header }}
   </header>
   <div id="currentsite">
@@ -13,7 +13,7 @@
           {{/if}}
       </h3>
       <div class="reportsite"
-          openUrl="https://cliqz.com/report-url"
+          data-open-url="https://cliqz.com/report-url"
           data-target="report_url"
           data-i18n="control-center-report-url">
       </div>

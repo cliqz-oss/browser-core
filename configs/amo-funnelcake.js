@@ -73,8 +73,7 @@ module.exports = {
     "context-menu",
     "performance",
     "hpn",
-    "control-center",
-    "offers-v2"
+    "control-center"
   ],
   "subprojects": subprojects([
     '@cliqz-oss/pouchdb',

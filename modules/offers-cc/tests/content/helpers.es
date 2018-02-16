@@ -55,8 +55,8 @@ export function offersHubFrameTests(subject) {
 
     it('link is correct', function () {
       const moreInfoSelector = 'footer .cqz-power-by';
-      chai.expect(subject.query(moreInfoSelector).hasAttribute('openurl')).to.be.true;
-      chai.expect(subject.query(moreInfoSelector).getAttribute('openurl')).to.equal('https://cliqz.com/myoffrz');
+      chai.expect(subject.query(moreInfoSelector).hasAttribute('data-open-url')).to.be.true;
+      chai.expect(subject.query(moreInfoSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/myoffrz');
     });
 
     it('renders "powered by Cliqz"', function () {

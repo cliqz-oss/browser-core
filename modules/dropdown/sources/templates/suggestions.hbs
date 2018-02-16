@@ -1,7 +1,7 @@
 {{#if suggestionAvailable}}
     <div class="padded suggestions">
         {{#each (take suggestionResults suggestionsLimit) }}
-            <a class='result' href='{{url}}'>
+            <a class="result" data-url="{{url}}" href="{{url}}">
                 <div class="icons">
                     <span class="icon search"></span>
                 </div>

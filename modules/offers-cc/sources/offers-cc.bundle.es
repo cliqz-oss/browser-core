@@ -1,7 +1,5 @@
-/* global window, document */
+/* global window, document, $, Handlebars */
 
-import $ from 'jquery';
-import Handlebars from 'handlebars';
 import helpers from './content/helpers';
 import templates from './templates';
 
@@ -104,19 +102,8 @@ function bodyScroll() { // TODO: Still need this ?
   scrollTimer = window.setTimeout(scrollFinished, 350);
 }
 
-function setHTML(el, html) {
-  /* eslint-disable no-param-reassign */
-  if (el.unsafeSetInnerHTML) {
-    el.unsafeSetInnerHTML(html);
-  } else {
-    el.innerHTML = html;
-  }
-  /* eslint-enable no-param-reassign */
-}
-
 function draw(data) {
-  const cc = $('#cliqz-offers-cc').get(0);
-  setHTML(cc, templates.template(data));
+  $('#cliqz-offers-cc').html(templates.template(data));
 
   if ($('#cqz-vouchers-holder').length) {
     bodyScroll();
@@ -376,8 +363,7 @@ $(document).on('click', 'ul.settings > li', function itemClick() {
     const currentVoucher = $(this).closest('.voucher-wrapper');
 
     currentVoucher.addClass('deleted');
-    const feedbackEl = currentVoucher.children('.details').get(0);
-    setHTML(feedbackEl, templates['feedback-voucher']({})); // empty data
+    currentVoucher.children('.details').html(templates['feedback-voucher']({})); // empty data
     localizeDocument();
     resize();
 

@@ -96,7 +96,8 @@ export default function ({ hasHistoryUrl }) {
         });
 
         it('renders with an existing and correct URL', function () {
-          const clusterParentUrlItem = $resultElement.querySelector(clusterParentSelector).href;
+          const clusterParentUrlItem = $resultElement
+            .querySelector(clusterParentSelector).dataset.url;
           expect(clusterParentUrlItem).to.exist;
 
           /* Order of rendered history is reverted */

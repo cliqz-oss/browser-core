@@ -1,7 +1,7 @@
 {{#if url}}
     <span class="timeline" style="background-color: #{{logo.backgroundColor}}"></span>
 
-    <a class="result" href="{{url}}">
+    <a class="result" data-url="{{url}}" href="{{displayUrl}}">
         {{> partials/logo }}
         {{> partials/abstract }}
         {{> partials/images }}

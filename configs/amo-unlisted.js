@@ -74,8 +74,6 @@ module.exports = {
     "performance",
     "hpn",
     "control-center",
-    "offers-v2",
-    "browser-panel",
     "message-center",
     "offboarding"
   ],

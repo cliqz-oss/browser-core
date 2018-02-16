@@ -46,10 +46,14 @@ export default class {
    * @param defaultProxy
    * @returns aProxy
    */
-  applyFilter(pps, url, defaultProxy) {
-    if (this.shouldProxy(url)) {
-      return this.proxy();
+  applyFilter(pps, url, defaultProxy, cb) {
+    const proxy = this.shouldProxy(url) ? this.proxy() : defaultProxy;
+    // On Firefox 60+ we need to use the callback
+    if (cb && cb.onProxyFilterResult) {
+      cb.onProxyFilterResult(proxy);
+    } else {
+      return proxy;
     }
-    return defaultProxy;
+    return undefined;
   }
 }

@@ -48,7 +48,7 @@ describe('Control Center: History options browser', function () {
     });
 
     it('renders button "Open" for "Show all history"', function () {
-      const buttonSelector = '.accordion #accordion-3 .bullet [openurl="history"]';
+      const buttonSelector = '.accordion #accordion-3 .bullet [data-open-url="history"]';
       chai.expect(subject.query(buttonSelector)).to.exist;
       chai.expect(subject.query(buttonSelector).textContent.trim()).to.equal('control-center-open');
     });
@@ -60,7 +60,7 @@ describe('Control Center: History options browser', function () {
     });
 
     it('renders button "Open" for "Forget history"', function () {
-      const buttonSelector = '.accordion #accordion-3 .bullet [openurl="forget_history"]';
+      const buttonSelector = '.accordion #accordion-3 .bullet [data-open-url="forget_history"]';
       chai.expect(subject.query(buttonSelector)).to.exist;
       chai.expect(subject.query(buttonSelector).textContent.trim()).to.equal('control-center-open');
     });
@@ -210,7 +210,7 @@ describe('Control Center: AMO, History options tests', function () {
     });
 
     it('renders button "Open" for "Show all history"', function () {
-      const buttonSelector = '.accordion #accordion-3 .bullet [openurl="history"]';
+      const buttonSelector = '.accordion #accordion-3 .bullet [data-open-url="history"]';
       chai.expect(subject.query(buttonSelector)).to.exist;
       chai.expect(subject.query(buttonSelector).textContent.trim()).to.equal('control-center-open');
     });
@@ -222,7 +222,7 @@ describe('Control Center: AMO, History options tests', function () {
     });
 
     it('renders button "Open" for "Forget history"', function () {
-      const buttonSelector = '.accordion #accordion-3 .bullet [openurl="forget_history"]';
+      const buttonSelector = '.accordion #accordion-3 .bullet [data-open-url="forget_history"]';
       chai.expect(subject.query(buttonSelector)).to.exist;
       chai.expect(subject.query(buttonSelector).textContent.trim()).to.equal('control-center-open');
     });

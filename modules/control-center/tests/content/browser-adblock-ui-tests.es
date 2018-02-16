@@ -36,8 +36,8 @@ describe("Control Center: Ad-Block UI browser", function () {
       it('renders "Your data is protected"', function () {
         chai.expect(subject.query('#header .title [data-i18n="control-center-txt-header"]')).to.exist;
         chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header"]').display).to.not.equal('none');
-        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][visible-on-state="inactive"]').display).to.equal('none');
-        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][visible-on-state="critical"]').display).to.equal('none');
+        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][data-visible-on-state="inactive"]').display).to.equal('none');
+        chai.expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][data-visible-on-state="critical"]').display).to.equal('none');
         chai.expect(subject.query('#header .title [data-i18n="control-center-txt-header"]').textContent.trim()).to.equal('control-center-txt-header');
       });
 
@@ -94,8 +94,8 @@ describe("Control Center: Ad-Block UI browser", function () {
     });
 
     it('renders "ON"', function () {
-      const onSelector = '#ad-blocking .switches [visible-on-state="active"][data-i18n="control-center-switch-on"]';
-      const offSelector = '#ad-blocking .switches [visible-on-state="off"][data-i18n="control-center-switch-off"]';
+      const onSelector = '#ad-blocking .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]';
+      const offSelector = '#ad-blocking .switches [data-visible-on-state="off"][data-i18n="control-center-switch-off"]';
       chai.expect(subject.query(onSelector)).to.exist;
       chai.expect(subject.query(offSelector)).to.exist;
       chai.expect(subject.getComputedStyle(onSelector).display).to.not.equal('none');
@@ -104,10 +104,10 @@ describe("Control Center: Ad-Block UI browser", function () {
     });
 
     it('renders text about ads', function () {
-      const onSelector = '#ad-blocking .row-text [visible-on-state="active"][data-i18n="control-center-adblock-description"]';
-      const pageSelector = '#ad-blocking .row-text [visible-on-state="off"][data-i18n="control-center-adblock-description-off-website"]';
-      const domainSelector = '#ad-blocking .row-text [visible-on-state="off"][data-i18n="control-center-adblock-description-off-domain"]';
-      const allSelector = '#ad-blocking .row-text [visible-on-state="off"][data-i18n="control-center-adblock-description-off-all"]';
+      const onSelector = '#ad-blocking .row-text [data-visible-on-state="active"][data-i18n="control-center-adblock-description"]';
+      const pageSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-website"]';
+      const domainSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-domain"]';
+      const allSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-all"]';
       chai.expect(subject.query(onSelector)).to.exist;
       chai.expect(subject.query(pageSelector)).to.exist;
       chai.expect(subject.query(domainSelector)).to.exist;
@@ -127,8 +127,8 @@ describe("Control Center: Ad-Block UI browser", function () {
 
     it('renders correct amount of blocked ads', function () {
       const adsNumberSelector = '#ad-blocking .counter #count';
-      const adsNumberActiveSelector = adsNumberSelector + ' [visible-on-state="active"]';
-      const adsNumberOffSelector = adsNumberSelector + ' [visible-on-state="off"]';
+      const adsNumberActiveSelector = adsNumberSelector + ' [data-visible-on-state="active"]';
+      const adsNumberOffSelector = adsNumberSelector + ' [data-visible-on-state="off"]';
       chai.expect(subject.query(adsNumberSelector)).to.exist;
       chai.expect(subject.query(adsNumberActiveSelector)).to.exist;
       chai.expect(subject.query(adsNumberOffSelector)).to.exist;
@@ -152,8 +152,8 @@ describe("Control Center: Ad-Block UI browser", function () {
     });
 
     it('renders "OFF"', function () {
-      const onSelector = '#ad-blocking .switches [visible-on-state="active"][data-i18n="control-center-switch-on"]';
-      const offSelector = '#ad-blocking .switches [visible-on-state="off"][data-i18n="control-center-switch-off"]';
+      const onSelector = '#ad-blocking .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]';
+      const offSelector = '#ad-blocking .switches [data-visible-on-state="off"][data-i18n="control-center-switch-off"]';
       chai.expect(subject.query(onSelector)).to.exist;
       chai.expect(subject.query(offSelector)).to.exist;
       chai.expect(subject.getComputedStyle(onSelector).display).to.equal('none');
@@ -162,10 +162,10 @@ describe("Control Center: Ad-Block UI browser", function () {
     });
 
     it('renders text about ads', function () {
-      const onSelector = '#ad-blocking .row-text [visible-on-state="active"][data-i18n="control-center-adblock-description"]';
-      const pageSelector = '#ad-blocking .row-text [visible-on-state="off"][data-i18n="control-center-adblock-description-off-website"]';
-      const domainSelector = '#ad-blocking .row-text [visible-on-state="off"][data-i18n="control-center-adblock-description-off-domain"]';
-      const allSelector = '#ad-blocking .row-text [visible-on-state="off"][data-i18n="control-center-adblock-description-off-all"]';
+      const onSelector = '#ad-blocking .row-text [data-visible-on-state="active"][data-i18n="control-center-adblock-description"]';
+      const pageSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-website"]';
+      const domainSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-domain"]';
+      const allSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-all"]';
       chai.expect(subject.query(onSelector)).to.exist;
       chai.expect(subject.query(pageSelector)).to.exist;
       chai.expect(subject.query(domainSelector)).to.exist;
@@ -198,8 +198,8 @@ describe("Control Center: Ad-Block UI browser", function () {
 
     it('renders correct amount of blocked ads', function () {
       const adsNumberSelector = '#ad-blocking .counter #count';
-      const adsNumberActiveSelector = adsNumberSelector + ' [visible-on-state="active"]';
-      const adsNumberOffSelector = adsNumberSelector + ' [visible-on-state="off"]';
+      const adsNumberActiveSelector = adsNumberSelector + ' [data-visible-on-state="active"]';
+      const adsNumberOffSelector = adsNumberSelector + ' [data-visible-on-state="off"]';
       chai.expect(subject.query(adsNumberSelector)).to.exist;
       chai.expect(subject.query(adsNumberActiveSelector)).to.exist;
       chai.expect(subject.query(adsNumberOffSelector)).to.exist;
@@ -222,8 +222,8 @@ describe("Control Center: Ad-Block UI browser", function () {
     });
 
     it('renders "OFF"', function () {
-      const onSelector = '#ad-blocking .switches [visible-on-state="active"][data-i18n="control-center-switch-on"]';
-      const offSelector = '#ad-blocking .switches [visible-on-state="off"][data-i18n="control-center-switch-off"]';
+      const onSelector = '#ad-blocking .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]';
+      const offSelector = '#ad-blocking .switches [data-visible-on-state="off"][data-i18n="control-center-switch-off"]';
       chai.expect(subject.query(onSelector)).to.exist;
       chai.expect(subject.query(offSelector)).to.exist;
       chai.expect(subject.getComputedStyle(onSelector).display).to.equal('none');
@@ -232,10 +232,10 @@ describe("Control Center: Ad-Block UI browser", function () {
     });
 
     it('renders text about ads', function () {
-      const onSelector = '#ad-blocking .row-text [visible-on-state="active"][data-i18n="control-center-adblock-description"]';
-      const pageSelector = '#ad-blocking .row-text [visible-on-state="off"][data-i18n="control-center-adblock-description-off-website"]';
-      const domainSelector = '#ad-blocking .row-text [visible-on-state="off"][data-i18n="control-center-adblock-description-off-domain"]';
-      const allSelector = '#ad-blocking .row-text [visible-on-state="off"][data-i18n="control-center-adblock-description-off-all"]';
+      const onSelector = '#ad-blocking .row-text [data-visible-on-state="active"][data-i18n="control-center-adblock-description"]';
+      const pageSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-website"]';
+      const domainSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-domain"]';
+      const allSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-all"]';
       chai.expect(subject.query(onSelector)).to.exist;
       chai.expect(subject.query(pageSelector)).to.exist;
       chai.expect(subject.query(domainSelector)).to.exist;
@@ -268,8 +268,8 @@ describe("Control Center: Ad-Block UI browser", function () {
 
     it('renders correct amount of blocked ads', function () {
       const adsNumberSelector = '#ad-blocking .counter #count';
-      const adsNumberActiveSelector = adsNumberSelector + ' [visible-on-state="active"]';
-      const adsNumberOffSelector = adsNumberSelector + ' [visible-on-state="off"]';
+      const adsNumberActiveSelector = adsNumberSelector + ' [data-visible-on-state="active"]';
+      const adsNumberOffSelector = adsNumberSelector + ' [data-visible-on-state="off"]';
       chai.expect(subject.query(adsNumberSelector)).to.exist;
       chai.expect(subject.query(adsNumberActiveSelector)).to.exist;
       chai.expect(subject.query(adsNumberOffSelector)).to.exist;
@@ -292,8 +292,8 @@ describe("Control Center: Ad-Block UI browser", function () {
     });
 
     it('renders "OFF"', function () {
-      const onSelector = '#ad-blocking .switches [visible-on-state="active"][data-i18n="control-center-switch-on"]';
-      const offSelector = '#ad-blocking .switches [visible-on-state="off"][data-i18n="control-center-switch-off"]';
+      const onSelector = '#ad-blocking .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]';
+      const offSelector = '#ad-blocking .switches [data-visible-on-state="off"][data-i18n="control-center-switch-off"]';
       chai.expect(subject.query(onSelector)).to.exist;
       chai.expect(subject.query(offSelector)).to.exist;
       chai.expect(subject.getComputedStyle(onSelector).display).to.equal('none');
@@ -302,10 +302,10 @@ describe("Control Center: Ad-Block UI browser", function () {
     });
 
     it('renders text about ads', function () {
-      const onSelector = '#ad-blocking .row-text [visible-on-state="active"][data-i18n="control-center-adblock-description"]';
-      const pageSelector = '#ad-blocking .row-text [visible-on-state="off"][data-i18n="control-center-adblock-description-off-website"]';
-      const domainSelector = '#ad-blocking .row-text [visible-on-state="off"][data-i18n="control-center-adblock-description-off-domain"]';
-      const allSelector = '#ad-blocking .row-text [visible-on-state="off"][data-i18n="control-center-adblock-description-off-all"]';
+      const onSelector = '#ad-blocking .row-text [data-visible-on-state="active"][data-i18n="control-center-adblock-description"]';
+      const pageSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-website"]';
+      const domainSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-domain"]';
+      const allSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-all"]';
       chai.expect(subject.query(onSelector)).to.exist;
       chai.expect(subject.query(pageSelector)).to.exist;
       chai.expect(subject.query(domainSelector)).to.exist;
@@ -338,8 +338,8 @@ describe("Control Center: Ad-Block UI browser", function () {
 
     it('renders correct amount of blocked ads', function () {
       const adsNumberSelector = '#ad-blocking .counter #count';
-      const adsNumberActiveSelector = adsNumberSelector + ' [visible-on-state="active"]';
-      const adsNumberOffSelector = adsNumberSelector + ' [visible-on-state="off"]';
+      const adsNumberActiveSelector = adsNumberSelector + ' [data-visible-on-state="active"]';
+      const adsNumberOffSelector = adsNumberSelector + ' [data-visible-on-state="off"]';
       chai.expect(subject.query(adsNumberSelector)).to.exist;
       chai.expect(subject.query(adsNumberActiveSelector)).to.exist;
       chai.expect(subject.query(adsNumberOffSelector)).to.exist;

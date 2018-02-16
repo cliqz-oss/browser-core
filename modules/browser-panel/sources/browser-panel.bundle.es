@@ -50,11 +50,11 @@ function copy() {
 function cqzOfferGetCurrentOfferID() {
   const offerIDElem = document.getElementById('cqz-browser-panel-re');
   if (!offerIDElem ||
-      !offerIDElem.hasAttribute('cliqzofferid') ||
-      offerIDElem.getAttribute('cliqzofferid') === '') {
+      !offerIDElem.hasAttribute('data-cliqzofferid') ||
+      offerIDElem.getAttribute('data-cliqzofferid') === '') {
     return 'unknown';
   }
-  return offerIDElem.getAttribute('cliqzofferid');
+  return offerIDElem.getAttribute('data-cliqzofferid');
 }
 
 // receive buttons callback
@@ -100,12 +100,12 @@ $(document).ready(() => {
   document.getElementById('cqz-browser-panel-re').addEventListener('click', cqzOfferBtnClicked);
 
   // open URL
-  $('#cqz-browser-panel-re').on('click', '[openUrl]', (ev) => {
+  $('#cqz-browser-panel-re').on('click', '[data-open-url]', (ev) => {
     sendMessageToWindow({
       handler: 'openUrlHandler',
       data: {
         el_id: ev.target.getAttribute('data-cqz-of-btn-id'),
-        url: ev.currentTarget.getAttribute('openUrl'),
+        url: ev.currentTarget.getAttribute('data-open-url'),
       }
     });
   });
@@ -133,11 +133,10 @@ function draw(data) {
   }
   const panel = document.getElementById('cqz-browser-panel-re');
   const html = templates[templateName](templateData);
-  if (panel.unsafeSetInnerHTML) {
-    panel.unsafeSetInnerHTML(html);
-  } else {
-    panel.innerHTML = html;
-  }
+  panel.innerHTML = html;
+  $('img').on('error', function onError() {
+    $(this).hide();
+  });
   $('.tooltip').tooltipster({
     theme: ['tooltipster-shadow', 'tooltipster-shadow-customized'],
     interactive: true,
