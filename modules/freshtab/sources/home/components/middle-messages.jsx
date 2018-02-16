@@ -47,9 +47,17 @@ export default class MiddleMessages extends React.Component {
               />
               <div
                 className="icon"
-                style={{ backgroundImage: `url(${message.icon})` }}
+                style={{
+                  backgroundImage: `url(${message.icon})`,
+                  backgroundSize: message.icon_dimensions ? message.icon_dimensions.width : null,
+                  width: message.icon_dimensions ? message.icon_dimensions.width : null,
+                  height: message.icon_dimensions ? message.icon_dimensions.height : null
+                }}
               />
-              <div className="content">
+              <div
+                className="content"
+                style={{ width: `calc(100% - ${message.icon_dimensions ? message.icon_dimensions.width : null}px)` }}
+              >
                 <h1>{message.title}</h1>
                 <p>{message.description}</p>
                 <button

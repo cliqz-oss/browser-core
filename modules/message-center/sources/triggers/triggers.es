@@ -33,6 +33,10 @@ const messageFunctions = {
     }
 
     return true;
+  },
+  isCurrentDate(aDate) {
+    const today = utils.getPref('config_ts', null);
+    return aDate.indexOf(today) !== -1;
   }
 };
 
