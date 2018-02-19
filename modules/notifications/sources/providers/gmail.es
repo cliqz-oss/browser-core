@@ -4,8 +4,7 @@ function get(url, headers, data, timeout) {
   return new Promise(function(resolve, reject) {
     headers = headers || {};
 
-    let req = Cc['@mozilla.org/xmlextras/xmlhttprequest;1']
-      .createInstance(Ci.nsIXMLHttpRequest);
+    let req = new XMLHttpRequest();
     req.mozBackgroundRequest = true;  //No authentication
     req.timeout = timeout;
     req.open('GET', url, true);
