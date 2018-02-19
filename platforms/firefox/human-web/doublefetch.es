@@ -4,7 +4,7 @@ export function getRequest(url) {
   const promise = new Promise((resolve, reject) => {
     let errorMessage = null;
 
-    const req = Components.classes['@mozilla.org/xmlextras/xmlhttprequest;1'].createInstance();
+    const req = new XMLHttpRequest();
 
     /*
     We need a try catch block here, because there are some URLs which throw malformed URI error,
