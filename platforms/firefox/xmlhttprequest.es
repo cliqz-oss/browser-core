@@ -2,7 +2,14 @@ import { Components } from './globals';
 
 const Ci = Components.interfaces;
 
-export let XMLHttpRequestFactory = () => Components.classes['@mozilla.org/xmlextras/xmlhttprequest;1'];
+export let XMLHttpRequestFactory = () => {
+  if (typeof XMLHttpRequest === 'undefined') {
+    // imported by default in bootstrap scope but not present in
+    // process scripts by default
+    Components.utils.importGlobalProperties(['XMLHttpRequest']);
+  }
+  return XMLHttpRequest;
+}
 
 export function setPrivateFlags(request) {
   if (request.channel) {
