@@ -1,6 +1,6 @@
 import config from '../core/config';
 import utils from '../core/utils';
-import { Components } from './globals';
+import { Services } from './globals';
 import { CHROME_MSG_SOURCE } from '../core/content/helpers';
 
 const PROCESS_SCRIPT_URL = `${config.baseURL}platform/process-script.bundle.js`;
@@ -13,13 +13,11 @@ export default class ProcessScriptManager {
   }
 
   get ppmm() {
-    return Components.classes['@mozilla.org/parentprocessmessagemanager;1']
-        .getService(Components.interfaces.nsIProcessScriptLoader);
+    return Services.ppmm;
   }
 
   get gmm() {
-    return Components.classes['@mozilla.org/globalmessagemanager;1']
-      .getService(Components.interfaces.nsIMessageListenerManager);
+    return Services.mm;
   }
 
   get processScriptUrl() {
