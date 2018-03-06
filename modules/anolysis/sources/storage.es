@@ -189,6 +189,12 @@ export default class AnolysisStorage {
       this.behavior = new BehaviorView(this.db.behavior);
       this.retention = new RetentionView(this.db.retention);
       this.signals = new SignalQueueView(this.db.signals);
+    }).then(() => {
+      const oneMonthAgo = getSynchronizedDate().subtract(30, 'days').format(DATE_FORMAT);
+      return Promise.all([
+        this.aggregated.deleteOlderThan(oneMonthAgo),
+        this.signals.deleteOlderThan(oneMonthAgo),
+      ]);
     });
   }
 

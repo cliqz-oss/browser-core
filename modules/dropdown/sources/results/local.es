@@ -1,6 +1,7 @@
 import BaseResult from './base';
 import console from '../../core/console';
 import utils from '../../core/utils';
+import config from '../../core/config';
 
 class LocalInfoResult extends BaseResult {
   get mapImg() {
@@ -186,7 +187,7 @@ export default class LocalResult extends BaseResult {
     }
 
     const ratingStars = Math.max(0, Math.min(Math.round(rating), 5));
-    return `https://cdn.cliqz.com/extension/EZ/richresult/stars${ratingStars}.svg`;
+    return `${config.settings.CDN_BASEURL}/extension/EZ/richresult/stars${ratingStars}.svg`;
   }
 
   parseTime(timeStr) { // e.g. timeStr: 10.30

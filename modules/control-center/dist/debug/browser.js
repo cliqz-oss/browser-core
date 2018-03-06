@@ -1046,7 +1046,9 @@ DATA.push({
       "state": false
     },
     "control-center": null,
-    "offers-v2": null,
+    "offers-v2": {
+      "visible": true
+    },
     "browser-panel": null,
     "message-center": null,
     "offboarding": null,
@@ -1077,10 +1079,6 @@ DATA.push({
       "active": true
     },
     "onboarding-v3": null,
-    "moncomp": {
-      "visible": false,
-      "state": false
-    },
     "type-filter": {
       "visible": true,
       "type1": true,

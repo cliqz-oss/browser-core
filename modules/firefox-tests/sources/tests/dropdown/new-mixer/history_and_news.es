@@ -1,7 +1,4 @@
 /* global window */
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
 
 import {
   $cliqzResults,
@@ -76,7 +73,7 @@ export default function ({ hasHistoryUrl }) {
 
       it('links to a correct URL', function () {
         [...$history].forEach(function (history, historyIndex) {
-          expect(history.href)
+          expect(history.dataset.url)
             .to.equal(historyResults[historyIndex].value);
         });
       });

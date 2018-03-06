@@ -1,4 +1,10 @@
 <span>
+    Tests: 
+    <button id="refresh">Refresh All</button>
+    <button id="update-tests">Update Tests</button>
+</span>
+<br>
+<span>
     Automatic hourly updates:
     {{#if isRunning}}
         on
@@ -7,7 +13,7 @@
     {{/if}}
 </span>
 {{#if isRunning}}
-    <div id="stop" class="button">Stop</div>
+    <button id="stop">Stop</button>
 {{else}}
-    <div id="start" class="button">Start</div>
+    <button id="start">Start</button>
 {{/if}}

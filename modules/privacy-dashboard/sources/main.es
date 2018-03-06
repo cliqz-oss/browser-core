@@ -1,14 +1,15 @@
-import { utils } from '../core/cliqz';
+/* global XPCOMUtils */
+
 import Signals from './signals';
 import { Components } from '../platform/globals';
 
 function AboutURLPrivacy() {}
-var AboutURLFactoryPrivacy;
+let AboutURLFactoryPrivacy;
 
-var PrivacyRep = {
+const PrivacyRep = {
   openingStreamCount: 0,
 
-  onExtensionStart: function () {
+  onExtensionStart() {
     Signals.init();
     Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
 
@@ -18,26 +19,27 @@ var PrivacyRep = {
       classID: Components.ID('{abab0a50-7988-11e5-a837-0800200c9a66}'),
       contractID: '@mozilla.org/network/protocol/about;1?what=transparency',
 
-      newChannel: function (uri) {
-        var ioService = Components.classes['@mozilla.org/network/io-service;1'].getService(Components.interfaces.nsIIOService);
-        var html = ['data:text/html,<!DOCTYPE html><html><head><meta charset=\'UTF-8\'>',
+      newChannel(uri) {
+        const ioService = Components.classes['@mozilla.org/network/io-service;1'].getService(Components.interfaces.nsIIOService);
+        const html = ['data:text/html,<!DOCTYPE html><html><head><meta charset=\'UTF-8\'>',
           '<style>* {margin:0;padding:0;width:100%;height:100%;overflow:hidden;border: 0}</style>',
           '</head><body><iframe src=\'chrome://cliqz/content/privacy-dashboard/index.html\'></iframe></body></html>'].join('');
 
-        var securityManager = Components.classes['@mozilla.org/scriptsecuritymanager;1'].getService(Components.interfaces.nsIScriptSecurityManager);
-        var channel = ioService.newChannel(html, null, null);
+        const securityManager = Components.classes['@mozilla.org/scriptsecuritymanager;1'].getService(Components.interfaces.nsIScriptSecurityManager);
+        const channel = ioService.newChannel(html, null, null);
         channel.originalURI = uri;
         channel.owner = securityManager.getSystemPrincipal();
 
         return channel;
       },
 
-      getURIFlags: function (uri) {
+      getURIFlags() {
         return Components.interfaces.nsIAboutModule.ALLOW_SCRIPT;
       }
     };
 
-    AboutURLFactoryPrivacy = XPCOMUtils.generateNSGetFactory([AboutURLPrivacy])(AboutURLPrivacy.prototype.classID);
+    AboutURLFactoryPrivacy = XPCOMUtils
+      .generateNSGetFactory([AboutURLPrivacy])(AboutURLPrivacy.prototype.classID);
 
     Components.manager.registerFactory(
       AboutURLPrivacy.prototype.classID,
@@ -47,11 +49,11 @@ var PrivacyRep = {
     );
   },
 
-  unload: function(){
+  unload() {
     Components.manager.unregisterFactory(AboutURLPrivacy.prototype.classID, AboutURLFactoryPrivacy);
   },
 
-  registerStream: function () {
+  registerStream() {
     if (PrivacyRep.openingStreamCount === 0) {
       Signals.startListening();
     }
@@ -60,7 +62,7 @@ var PrivacyRep = {
     Signals.setStreaming(true);
   },
 
-  unregisterStream: function () {
+  unregisterStream() {
     PrivacyRep.openingStreamCount -= 1;
     if (PrivacyRep.openingStreamCount <= 0) {
       PrivacyRep.openingStreamCount = 0;
@@ -69,7 +71,7 @@ var PrivacyRep = {
     }
   },
 
-  getCurrentData: function () {
+  getCurrentData() {
     return Signals.getSignalsToDashboard();
   }
 };

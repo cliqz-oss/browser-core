@@ -7,7 +7,17 @@ import { getCurrentTabId } from '../core/tabs';
 
 const ACproviderName = 'cliqz-results';
 
+const lastKeys = new WeakMap();
+
 export default {
+  mouseup(event) {
+    if (event.originalTarget.getAttribute('anonid') === 'historydropmarker') {
+      events.pub('urlbar:dropmarker-click', {
+        windowId: this.windowId,
+        tabId: getCurrentTabId(this.window),
+      });
+    }
+  },
   /**
   * Urlbar focus event
   * @event focus
@@ -128,6 +138,7 @@ export default {
         query,
         tabId: getCurrentTabId(this.window),
         windowId: this.windowId,
+        keyCode: lastKeys.get(this.window),
       });
     });
   },
@@ -141,6 +152,7 @@ export default {
   },
 
   keydown(ev) {
+    lastKeys.set(this.window, ev.code);
     autocomplete._lastKey = ev.keyCode;
     let cancel;
     try {

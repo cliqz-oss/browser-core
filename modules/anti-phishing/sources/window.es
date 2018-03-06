@@ -1,5 +1,4 @@
 import utils from '../core/utils';
-import events from '../core/events';
 import CliqzAntiPhishing from './anti-phishing';
 
 export default class Win {
@@ -15,7 +14,6 @@ export default class Win {
 
   status() {
     const currentURL = this.window.gBrowser.currentURI.spec;
-    const [md5Prefix, md5Surfix] = CliqzAntiPhishing.getSplitMd5(currentURL);
     const isWhitelisted = CliqzAntiPhishing.isInWhitelist(currentURL);
     const whitelistStatus = CliqzAntiPhishing.getUrlWhitelistStatus(currentURL);
     const active = utils.getPref('cliqz-anti-phishing-enabled', true);

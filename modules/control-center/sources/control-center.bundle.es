@@ -1,6 +1,7 @@
 /* global window, document, $, Handlebars */
 /* eslint-disable func-names, no-param-reassign */
 /* eslint import/no-extraneous-dependencies: 'off' */
+
 import { sendMessageToWindow } from './content/data';
 import helpers from './content/helpers';
 import templates from './templates';

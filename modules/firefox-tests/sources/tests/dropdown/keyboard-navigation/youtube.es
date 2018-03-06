@@ -1,7 +1,3 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
   $cliqzResults,
   CliqzUtils,
@@ -26,14 +22,14 @@ export default function () {
     const query = 'youtube';
     const win = CliqzUtils.getWindow();
     const urlBar = win.CLIQZ.Core.urlbar;
-    const parentSelector = `a.result[href="${results[0].url}"]`;
-    const video1Selector = `.videos .result[href="${results[0].snippet.deepResults[0].links[0].url}"]`;
-    const video2Selector = `.videos .result[href="${results[0].snippet.deepResults[0].links[1].url}"]`;
-    const video3Selector = `.videos .result[href="${results[0].snippet.deepResults[0].links[2].url}"]`;
-    const button1Selector = `a.result[href="${results[0].snippet.deepResults[1].links[0].url}"]`;
-    const button2Selector = `a.result[href="${results[0].snippet.deepResults[1].links[1].url}"]`;
-    const button3Selector = `a.result[href="${results[0].snippet.deepResults[1].links[2].url}"]`;
-    const button4Selector = `a.result[href="${results[0].snippet.deepResults[1].links[3].url}"]`;
+    const parentSelector = `a.result[data-url="${results[0].url}"]`;
+    const video1Selector = `.videos .result[data-url="${results[0].snippet.deepResults[0].links[0].url}"]`;
+    const video2Selector = `.videos .result[data-url="${results[0].snippet.deepResults[0].links[1].url}"]`;
+    const video3Selector = `.videos .result[data-url="${results[0].snippet.deepResults[0].links[2].url}"]`;
+    const button1Selector = `a.result[data-url="${results[0].snippet.deepResults[1].links[0].url}"]`;
+    const button2Selector = `a.result[data-url="${results[0].snippet.deepResults[1].links[1].url}"]`;
+    const button3Selector = `a.result[data-url="${results[0].snippet.deepResults[1].links[2].url}"]`;
+    const button4Selector = `a.result[data-url="${results[0].snippet.deepResults[1].links[3].url}"]`;
 
     beforeEach(function () {
       withHistory([]);

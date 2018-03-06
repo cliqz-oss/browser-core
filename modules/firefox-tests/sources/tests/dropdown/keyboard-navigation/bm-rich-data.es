@@ -1,7 +1,3 @@
-/* eslint func-names: ["error", "never"] */
-/* eslint prefer-arrow-callback: "off" */
-/* eslint no-unused-expressions: "off" */
-
 import { expect, respondWith, fillIn, waitForPopup, $cliqzResults, CliqzUtils,
   withHistory, press, waitFor, release } from '../helpers';
 import expectSelection from './common';
@@ -18,9 +14,9 @@ export default function () {
     const query = 'github';
     const win = CliqzUtils.getWindow();
     const urlBar = win.CLIQZ.Core.urlbar;
-    const result1Selector = `a.result[href="${results[0].url}"]`;
-    const result2Selector = `a.result[href="${results[1].url}"]`;
-    const result3Selector = `a.result[href="${results[2].url}"]`;
+    const result1Selector = `a.result[data-url="${results[0].url}"]`;
+    const result2Selector = `a.result[data-url="${results[1].url}"]`;
+    const result3Selector = `a.result[data-url="${results[2].url}"]`;
 
     beforeEach(function () {
       withHistory([]);

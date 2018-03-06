@@ -1,7 +1,3 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
   $cliqzResults,
   expect,
@@ -98,7 +94,7 @@ export default function () {
         const buttonSelector = 'div.buttons a.btn';
         const buttonsItems = $resultElement.querySelectorAll(buttonSelector);
         [].forEach.call(buttonsItems, function (button, i) {
-          expect(button.href).to.contain(results[0].snippet.deepResults[0].links[i].url);
+          expect(button.dataset.url).to.contain(results[0].snippet.deepResults[0].links[i].url);
         });
       });
     });

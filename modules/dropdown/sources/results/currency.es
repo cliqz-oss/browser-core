@@ -55,7 +55,8 @@ export default class CurrencyResult extends BaseResult {
 
   get allResults() {
     return [
-      this
+      this.sourceWrapper,
+      this,
     ];
   }
 
@@ -76,7 +77,12 @@ export default class CurrencyResult extends BaseResult {
     this.$tooltip.style.display = 'none';
   }
 
-  click() {
+  click(window, href, ev) {
+    if (href === this.rawUrl) {
+      this.sourceWrapper.click(window, href, ev);
+      return;
+    }
+
     copyToClipboard(this.toAmount);
     this.$tooltip.innerText = utils.getLocalizedString('Copied');
     setTimeout(() => {
@@ -85,9 +91,10 @@ export default class CurrencyResult extends BaseResult {
   }
 
   get sourceWrapper() {
-    return {
+    return new BaseResult({
       url: this.rawUrl,
-      source: this.source,
-    };
+      title: 'source',
+      text: this.query,
+    });
   }
 }

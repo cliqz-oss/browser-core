@@ -25,6 +25,9 @@ export default describeModule('offers-v2/query_handler',
         },
       }
     },
+    'core/helpers/timeout': {
+      default: function() { const stop = () => {}; return { stop }; }
+    },
     './db_helper': {
       default: class {
         constructor(db) {

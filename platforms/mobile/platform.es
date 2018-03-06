@@ -4,13 +4,14 @@ export default {
   isMobile: true,
   isFirefox: false,
   isChromium: false,
-  platformName: "mobile",
+  isEdge: false,
+  platformName: 'mobile',
 };
 
 const userAgent = window.navigator.userAgent.toLowerCase();
 export const mobilePlatformName = /iphone|ipod|ipad/.test(userAgent) ? 'ios' : 'android';
 
-export function isPlatformAtLeastInVersion(version) {
+export function isPlatformAtLeastInVersion() {
   return true;
 }
 
@@ -21,4 +22,4 @@ export const OS = {
 export function isCliqzAtLeastInVersion() {
   // TODO
   return true;
-};
+}

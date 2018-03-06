@@ -195,7 +195,7 @@ function injectTestHelpers(CliqzUtils, loadModule) {
   };
 
   // patches getBackendResults
-  window.respondWith = function respondWith(res) {
+  window.respondWith = function respondWith(res, ms = 0) {
     function getQuery(url) {
       const a = document.createElement('a');
       a.setAttribute('href', url);
@@ -204,26 +204,28 @@ function injectTestHelpers(CliqzUtils, loadModule) {
       const queries = params.getAll('q');
       return queries[queries.length - 1];
     }
-
     const response = {
-      results: res.results,
+      results: res.results || [],
+      offers: res.offers || [],
       suggestions: res.suggestions,
     };
 
     CliqzUtils.fetchFactory = function () {
       return function fetch(url) {
-        return Promise.resolve({
-          json() {
-            return Promise.resolve(
-              Object.assign(response, {
-                q: getQuery(url),
-              })
-            );
-          },
+        return new Promise(function (resolve) {
+          setTimeout(resolve, ms, {
+            json() {
+              return Promise.resolve(
+                Object.assign(response, {
+                  q: getQuery(url),
+                })
+              );
+            },
+          });
         });
       };
     };
-  };
+  }
 
   // patches getSnippet which calls RichHeader directly
   window.respondWithSnippet = function respondWith(snippet) {
@@ -238,9 +240,9 @@ function injectTestHelpers(CliqzUtils, loadModule) {
     };
   };
 
-  window.withHistory = function withHistory(res) {
+  window.withHistory = function withHistory(res, ms = 0) {
     CliqzUtils.historySearch = function (q, cb) {
-      cb({
+      setTimeout(cb, ms, {
         query: q,
         results: res,
         ready: true // SUCCESS https://dxr.mozilla.org/mozilla-central/source/toolkit/components/autocomplete/nsIAutoCompleteResult.idl#17

@@ -1,7 +1,3 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
   $cliqzResults,
   CliqzUtils,
@@ -27,7 +23,7 @@ export default function () {
     const urlBar = win.CLIQZ.Core.urlbar;
     const searchWithSelector = '.result.search';
     const currencySelector = '.currency';
-    const result1Selector = `a.result[href="${results[1].url}"]`;
+    const result1Selector = `a.result[data-url="${results[1].url}"]`;
 
     beforeEach(function () {
       withHistory([]);

@@ -1,7 +1,3 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
   $cliqzResults,
   CliqzUtils,
@@ -23,14 +19,14 @@ export default function () {
     const query = 'bild';
     const win = CliqzUtils.getWindow();
     const urlBar = win.CLIQZ.Core.urlbar;
-    const parentSelector = `a.result[href="${results[0].url}"]`;
-    const news1Selector = `.news a.result[href="${results[0].snippet.deepResults[0].links[0].url}"]`;
-    const news2Selector = `.news a.result[href="${results[0].snippet.deepResults[0].links[1].url}"]`;
-    const news3Selector = `.news a.result[href="${results[0].snippet.deepResults[0].links[2].url}"]`;
-    const button1Selector = `a.result[href="${results[0].snippet.deepResults[1].links[0].url}"]`;
-    const button2Selector = `a.result[href="${results[0].snippet.deepResults[1].links[1].url}"]`;
-    const button3Selector = `a.result[href="${results[0].snippet.deepResults[1].links[2].url}"]`;
-    const button4Selector = `a.result[href="${results[0].snippet.deepResults[1].links[3].url}"]`;
+    const parentSelector = `a.result[data-url="${results[0].url}"]`;
+    const news1Selector = `.news a.result[data-url="${results[0].snippet.deepResults[0].links[0].url}"]`;
+    const news2Selector = `.news a.result[data-url="${results[0].snippet.deepResults[0].links[1].url}"]`;
+    const news3Selector = `.news a.result[data-url="${results[0].snippet.deepResults[0].links[2].url}"]`;
+    const button1Selector = `a.result[data-url="${results[0].snippet.deepResults[1].links[0].url}"]`;
+    const button2Selector = `a.result[data-url="${results[0].snippet.deepResults[1].links[1].url}"]`;
+    const button3Selector = `a.result[data-url="${results[0].snippet.deepResults[1].links[2].url}"]`;
+    const button4Selector = `a.result[data-url="${results[0].snippet.deepResults[1].links[3].url}"]`;
     let firstElementArray = [];
     let otherElementsArray = [];
     let navigationArray = [];

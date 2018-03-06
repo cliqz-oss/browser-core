@@ -1081,10 +1081,6 @@ export default {
         "active": true
       },
       "onboarding-v3": null,
-      "moncomp": {
-        "visible": false,
-        "state": false
-      },
       "type-filter": {
         "visible": true,
         "type1": true,

@@ -185,8 +185,8 @@ export default class Win {
     // TODO: @mai make sure that all the fields in this uiInfo are existed
     if (uiInfo.notif_type === 'tooltip_extra') {
       let backgroundColor;
-      if (uiInfo.template_data.styles && uiInfo.template_data.styles.background) {
-        backgroundColor = uiInfo.template_data.styles.background;
+      if (uiInfo.template_data.styles && uiInfo.template_data.styles.headline_color) {
+        backgroundColor = uiInfo.template_data.styles.headline_color;
       } else {
         const CTAUrl = uiInfo.template_data.call_to_action.url;
         const urlDetails = utils.getDetailsFromUrl(CTAUrl);
@@ -280,6 +280,7 @@ export default class Win {
     }
 
     if (this.showTooltip) {
+      this.preferredOfferId = null;
       this.sendMessageToPopup({
         action: 'pushData',
         data: this.getTooltipData(this.uiInfo),
@@ -369,8 +370,8 @@ export default class Win {
           let isBestOffer = false;
           const logoClass = uiInfo.template_data.logo_class || 'normal';
 
-          if (uiInfo.template_data.styles && uiInfo.template_data.styles.background) {
-            backgroundColor = uiInfo.template_data.styles.background;
+          if (uiInfo.template_data.styles && uiInfo.template_data.styles.headline_color) {
+            backgroundColor = uiInfo.template_data.styles.headline_color;
           } else {
             const CTAUrl = uiInfo.template_data.call_to_action.url;
             const urlDetails = utils.getDetailsFromUrl(CTAUrl);
@@ -635,7 +636,9 @@ export default class Win {
   }
 
   openPanel() {
-    if (utils.getWindow() !== this.window) {
+    const containerId = this.toolbarButtonElement.parentElement.id;
+    // No need to show pop-up when Offrz hub icon is in Overflow list
+    if (utils.getWindow() !== this.window || containerId.indexOf('widget-overflow') !== -1) {
       return;
     }
 

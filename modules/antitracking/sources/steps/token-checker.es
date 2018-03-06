@@ -67,7 +67,7 @@ export default class TokenChecker {
     const stats = {};
     state.isTracker = this.qsWhitelist.isTrackerDomain(state.urlParts.generalDomainHash);
     state.badTokens = this.checkTokens(state.urlParts, state.sourceUrl, state.cookieValues,
-      stats, state.sourceUrlParts, state.isTracker);
+      stats, state.sourceUrlParts, state.isTracker, state.isPrivate);
     // set stats
     if (state.incrementStat) {
       Object.keys(stats).forEach(function(key) {
@@ -104,7 +104,7 @@ export default class TokenChecker {
    * @param  {Boolean} tracker         True if the request host is a tracker
    * @return {Array}                   Array of values which we think are uids and should be removed.
    */
-  checkTokens(url_parts, source_url, cookievalue, stats, source_url_parts, tracker) {
+  checkTokens(url_parts, source_url, cookievalue, stats, source_url_parts, tracker, isPrivate) {
     // This check is only done for trackers
     if (!tracker) {
       return [];
@@ -150,7 +150,7 @@ export default class TokenChecker {
       // safe key and token lists
       const cookieMatch = longCookies.some(tokenMatches);
       const privateMatch = privateValues.some(tokenMatches);
-      const overrideGlobalLists = cookieMatch || privateMatch;
+      const overrideGlobalLists = privateMatch || isPrivate;
 
       // if we didn't already match a cookie or private value, do these steps
       if (!overrideGlobalLists) {
@@ -177,6 +177,11 @@ export default class TokenChecker {
         this.tokenDomain.addTokenOnFirstParty(md5(tok), sourceDomain);
         // check if the threshold for cross-domain tokens has been reached
         if (!this.tokenDomain.isTokenDomainThresholdReached(md5(tok))) {
+          // special case: cookieMatch is blocked on first seen if config enables it
+          if (cookieMatch && this.config.blockCookieNewToken) {
+            this.blockLog.add(source_url_parts.generalDomain, url_parts.hostname, key, tok, tokenType);
+            badTokens.push(tok);
+          }
           return `${tokenType}_newToken`;
         }
       }

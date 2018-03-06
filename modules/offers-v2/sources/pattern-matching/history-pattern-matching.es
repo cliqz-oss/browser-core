@@ -94,7 +94,7 @@ export default class PatternHistoryMatching {
       cacheEntry.lastQuery = { since_secs: query.since_secs, till_secs: query.till_secs };
       cacheEntry.lastQueryToHistoryTs = timestampMS();
       // perform the query
-      this._performQueryOnHistory(query, cacheEntry.patterns, patternObj.pid);
+      this._performQueryOnHistory(query, cacheEntry.patterns, patternObj);
     } else {
       result = cacheEntry.matchesCount;
     }
@@ -121,12 +121,13 @@ export default class PatternHistoryMatching {
     cacheEntry.last_checked_url_ts = 0;
   }
 
-  _performQueryOnHistory(q, pList, pid) {
+  _performQueryOnHistory(q, pList, pObject) {
     // check history-analyzer for more info
     const now = timestampMS();
     const historyQuery = {
       patterns: pList,
-      pid,
+      index: pObject.index,
+      pid: pObject.pid,
       start_ms: now - (q.since_secs * 1000),
       end_ms: now - (q.till_secs * 1000)
     };
@@ -135,10 +136,10 @@ export default class PatternHistoryMatching {
         logger.error('invalid data received? ', data);
         return;
       }
-      const cacheEntry = this.cache.get(pid);
+      const cacheEntry = this.cache.get(pObject.pid);
       cacheEntry.matchesCount = data.d.match_data.total.m;
       cacheEntry.lastHistoryResultTS = data.d.match_data.total.last_checked_url_ts;
-      logger.info(`updated entry for ${pid} = ${cacheEntry.matchesCount}`);
+      logger.info(`updated entry for ${pObject.pid} = ${cacheEntry.matchesCount}`);
     });
   }
 

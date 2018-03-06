@@ -1,9 +1,7 @@
-import utils from '../core/utils';
-
-export function queryCliqz(query) {
+export function queryCliqz() {
 }
 
-export function openLink(url) {
+export function openLink() {
 }
 
 export function openTab() {}
@@ -11,3 +9,5 @@ export function openTab() {}
 export function getOpenTabs() {}
 
 export function getReminders() {}
+
+export function importBookmarks() {}

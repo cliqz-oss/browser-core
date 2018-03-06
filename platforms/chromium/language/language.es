@@ -1,6 +1,6 @@
-var CliqzLanguage = {
+const CliqzLanguage = {
   init() {},
-  stateToQueryString: function () { return '&lang=de,en'; },
+  stateToQueryString() { return '&lang=de,en'; },
   addLocale() {}
 };
 

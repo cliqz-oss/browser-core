@@ -6,7 +6,7 @@ import Pipeline from './pipeline';
 import WebRequestContext from './webrequest-context';
 import PageStore from './page-store';
 import logger from './logger';
-import { isChromium } from '../core/platform';
+import { isChromium, isEdge } from '../core/platform';
 
 
 /**
@@ -200,11 +200,32 @@ export default background({
     // can call it: `webRequestPipeline.background.onBeforeRequest(details)`.
     this[event] = listener;
 
-    WebRequest[event].addListener(
-      listener,
-      { urls: ['<all_urls>'] },
-      extraInfoSpec,
-    );
+    const urls = [
+      'http://*/*',
+      'https://*/*',
+    ];
+
+    // For unknown reason is we listen to ws:// or wss:// on Edge, the
+    // webRequest does not work
+    if (!isEdge) {
+      urls.push(
+        'ws://*/*',
+        'wss://*/*',
+      );
+    }
+
+    if (extraInfoSpec === undefined) {
+      WebRequest[event].addListener(
+        listener,
+        { urls },
+      );
+    } else {
+      WebRequest[event].addListener(
+        listener,
+        { urls },
+        extraInfoSpec,
+      );
+    }
 
     return pipeline;
   },

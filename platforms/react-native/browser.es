@@ -57,7 +57,7 @@ export function mapWindows() {
   return [];
 }
 
-export function getLang() {
+export function getLocale() {
   return language.lang;
 }
 

@@ -1,3 +1,6 @@
+/* global describeModule */
+/* global chai */
+
 export default describeModule('firefox-specific/background',
   function () {
     return {
@@ -5,7 +8,7 @@ export default describeModule('firefox-specific/background',
         default: x => x,
       },
       '../core/browser': {
-        Window: function () {},
+        Window() {},
       },
       '../core/prefs': {
         default: {
@@ -17,7 +20,7 @@ export default describeModule('firefox-specific/background',
           setTimeout() {},
           getCliqzPrefs() {},
           isDefaultBrowser() {},
-          isPrivate() {},
+          isPrivateMode() {},
         },
       },
       '../platform/globals': {
@@ -35,20 +38,21 @@ export default describeModule('firefox-specific/background',
     const searchEngineName = 'test-engine';
     let backgroundModule;
 
-    beforeEach(function() {
+    beforeEach(function () {
       backgroundModule = this.module().default;
     });
 
-    describe('#whoAmI', function (){
-
+    describe('#whoAmI', function () {
       it('calls #sendEnvironmentalSignal', function (done) {
         this.deps('../platform/globals').Services.search = {
           currentEngine: {
             name: searchEngineName
           }
         };
-        this.deps('../core/utils').default.fetchAndStoreConfig = cb => Promise.resolve();
-        backgroundModule.sendEnvironmentalSignal = ({ startup: _startup, defaultSearchEngine: engineName }) => {
+        this.deps('../core/utils').default.fetchAndStoreConfig = () => Promise.resolve();
+        backgroundModule.sendEnvironmentalSignal = (
+          { startup: _startup, defaultSearchEngine: engineName }
+        ) => {
           try {
             chai.expect(_startup).to.equal(startup);
             chai.expect(engineName).to.equal(searchEngineName);
@@ -77,9 +81,9 @@ export default describeModule('firefox-specific/background',
         this.deps('../core/utils').default.getCliqzPrefs = () => ({
           session: '111',
           config_location: '111'
-        })
+        });
         this.deps('../core/utils').default.extensionVersion = '1';
-        this.deps('../core/utils').default.telemetry = signal => {
+        this.deps('../core/utils').default.telemetry = (signal) => {
           const prefs = signal.prefs;
           chai.expect(signal).to.have.property('type').that.equal('environment');
           chai.expect(signal).to.have.property('agent').that.contain('Mozilla');
@@ -87,11 +91,13 @@ export default describeModule('firefox-specific/background',
           chai.expect(prefs).to.exist;
           chai.expect(prefs).to.have.property('session').that.exist;
           chai.expect(prefs).to.have.property('config_location').that.exist;
-        }
+        };
         this.deps('../core/history-manager').default.getStats = cb => cb({
 
         });
-        backgroundModule.sendEnvironmentalSignal({ startup, defaultSearchEngine: searchEngineName });
+        backgroundModule.sendEnvironmentalSignal(
+          { startup, defaultSearchEngine: searchEngineName }
+        );
       });
     });
   }

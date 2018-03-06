@@ -1,9 +1,12 @@
+/* global document */
+
 import {
-  clone,
   clearIntervals,
-  waitFor,
-  Subject,
+  clone,
   defaultConfig,
+  expect,
+  Subject,
+  waitFor
 } from './helpers';
 
 describe('Fresh tab interactions with notifications', function () {
@@ -112,12 +115,12 @@ describe('Fresh tab interactions with notifications', function () {
       });
 
       it('keeps settings panel closed', function () {
-        chai.expect(subject.query(settingsPanelSelector)).to.exist;
-        chai.expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
+        expect(subject.query(settingsPanelSelector)).to.exist;
+        expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
       });
 
       it('keeps notification area open', function () {
-        chai.expect(subject.query(notificationAreaSelector)).to.exist;
+        expect(subject.query(notificationAreaSelector)).to.exist;
       });
     });
 
@@ -130,12 +133,12 @@ describe('Fresh tab interactions with notifications', function () {
       });
 
       it('keeps settings panel closed', function () {
-        chai.expect(subject.query(settingsPanelSelector)).to.exist;
-        chai.expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
+        expect(subject.query(settingsPanelSelector)).to.exist;
+        expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
       });
 
       it('keeps notification area open', function () {
-        chai.expect(subject.query(notificationAreaSelector)).to.exist;
+        expect(subject.query(notificationAreaSelector)).to.exist;
       });
     });
 
@@ -148,12 +151,12 @@ describe('Fresh tab interactions with notifications', function () {
       });
 
       it('keeps settings panel closed', function () {
-        chai.expect(subject.query(settingsPanelSelector)).to.exist;
-        chai.expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
+        expect(subject.query(settingsPanelSelector)).to.exist;
+        expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
       });
 
       it('keeps notification area open', function () {
-        chai.expect(subject.query(notificationAreaSelector)).to.exist;
+        expect(subject.query(notificationAreaSelector)).to.exist;
       });
     });
 
@@ -166,26 +169,27 @@ describe('Fresh tab interactions with notifications', function () {
       });
 
       it('keeps settings panel closed', function () {
-        chai.expect(subject.query(settingsPanelSelector)).to.exist;
-        chai.expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
+        expect(subject.query(settingsPanelSelector)).to.exist;
+        expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
       });
 
       it('closes notification area', function () {
-        chai.expect(subject.query(notificationAreaSelector)).to.not.exist;
+        expect(subject.query(notificationAreaSelector)).to.not.exist;
       });
 
       it('sends a "dismissMessage" message', function () {
-        chai.expect(messages.has('dismissMessage')).to.equal(true);
-        chai.expect(messages.get('dismissMessage').length).to.equal(1);
+        expect(messages.has('dismissMessage')).to.equal(true);
+        expect(messages.get('dismissMessage').length).to.equal(1);
       });
 
       it('sends a "message > close > click" telemetry signal', function () {
-        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+        expect(messages.has('sendTelemetry')).to.equal(true);
 
         const telemetrySignals = messages.get('sendTelemetry');
         let signalExist = false;
         let count = 0;
 
+        expect(telemetrySignals.length).to.be.above(0);
         telemetrySignals.forEach(function (item) {
           if ((item.args[0].type === 'home') &&
               (item.args[0].view === 'message') &&
@@ -196,8 +200,8 @@ describe('Fresh tab interactions with notifications', function () {
           }
         });
 
-        chai.expect(signalExist).to.be.true;
-        chai.expect(count).to.equal(1);
+        expect(signalExist).to.be.true;
+        expect(count).to.equal(1);
       });
     });
 
@@ -210,47 +214,49 @@ describe('Fresh tab interactions with notifications', function () {
       });
 
       it('opens settings panel', function () {
-        chai.expect(subject.query(settingsPanelSelector)).to.exist;
-        chai.expect(subject.query(settingsPanelSelector).className).to.contain('visible');
+        expect(subject.query(settingsPanelSelector)).to.exist;
+        expect(subject.query(settingsPanelSelector).className).to.contain('visible');
       });
 
       it('keeps notification area open', function () {
-        chai.expect(subject.query(notificationAreaSelector)).to.exist;
+        expect(subject.query(notificationAreaSelector)).to.exist;
       });
 
       it('sends a "countMessageClick" message', function () {
-        chai.expect(messages.has('countMessageClick')).to.equal(true);
-        chai.expect(messages.get('countMessageClick').length).to.equal(1);
+        expect(messages.has('countMessageClick')).to.equal(true);
+        expect(messages.get('countMessageClick').length).to.equal(1);
       });
 
-      it('sends a "message > try > click" telemetry signal', function () {
-        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+      it('sends a "message > ok > click" telemetry signal', function () {
+        expect(messages.has('sendTelemetry')).to.equal(true);
 
         const telemetrySignals = messages.get('sendTelemetry');
         let signalExist = false;
         let count = 0;
 
+        expect(telemetrySignals.length).to.be.above(0);
         telemetrySignals.forEach(function (item) {
           if ((item.args[0].type === 'home') &&
               (item.args[0].view === 'message') &&
-              (item.args[0].target === 'try') &&
+              (item.args[0].target === 'ok') &&
               (item.args[0].action === 'click')) {
                 signalExist = true;
                 count += 1;
           }
         });
 
-        chai.expect(signalExist).to.be.true;
-        chai.expect(count).to.equal(1);
+        expect(signalExist).to.be.true;
+        expect(count).to.equal(1);
       });
 
       it('sends a "settings > click" telemetry signal', function () {
-        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+        expect(messages.has('sendTelemetry')).to.equal(true);
 
         const telemetrySignals = messages.get('sendTelemetry');
         let signalExist = false;
         let count = 0;
 
+        expect(telemetrySignals.length).to.be.above(0);
         telemetrySignals.forEach(function (item) {
           if ((item.args[0].type === 'home') &&
               (item.args[0].target === 'settings') &&
@@ -260,8 +266,8 @@ describe('Fresh tab interactions with notifications', function () {
           }
         });
 
-        chai.expect(signalExist).to.be.true;
-        chai.expect(count).to.equal(1);
+        expect(signalExist).to.be.true;
+        expect(count).to.equal(1);
       });
     });
 
@@ -277,47 +283,49 @@ describe('Fresh tab interactions with notifications', function () {
       });
 
       it('results in settings panel being closed', function () {
-        chai.expect(subject.query(settingsPanelSelector)).to.exist;
-        chai.expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
+        expect(subject.query(settingsPanelSelector)).to.exist;
+        expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
       });
 
       it('keeps notification area open', function () {
-        chai.expect(subject.query(notificationAreaSelector)).to.exist;
+        expect(subject.query(notificationAreaSelector)).to.exist;
       });
 
       it('sends two "countMessageClick" messages', function () {
-        chai.expect(messages.has('countMessageClick')).to.equal(true);
-        chai.expect(messages.get('countMessageClick').length).to.equal(2);
+        expect(messages.has('countMessageClick')).to.equal(true);
+        expect(messages.get('countMessageClick').length).to.equal(2);
       });
 
-      it('sends two "message > try > click" telemetry signals', function () {
-        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+      it('sends two "message > ok > click" telemetry signals', function () {
+        expect(messages.has('sendTelemetry')).to.equal(true);
 
         const telemetrySignals = messages.get('sendTelemetry');
         let signalExist = false;
         let count = 0;
 
-        telemetrySignals.forEach(function (item, i) {
+        expect(telemetrySignals.length).to.be.above(0);
+        telemetrySignals.forEach(function (item) {
           if ((item.args[0].type === 'home') &&
               (item.args[0].view === 'message') &&
-              (item.args[0].target === 'try') &&
+              (item.args[0].target === 'ok') &&
               (item.args[0].action === 'click')) {
                 signalExist = true;
                 count += 1;
           }
         });
 
-        chai.expect(signalExist).to.be.true;
-        chai.expect(count).to.equal(2);
+        expect(signalExist).to.be.true;
+        expect(count).to.equal(2);
       });
 
       it('sends a "settings > click" telemetry signal', function () {
-        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+        expect(messages.has('sendTelemetry')).to.equal(true);
 
         const telemetrySignals = messages.get('sendTelemetry');
         let signalExist = false;
         let count = 0;
 
+        expect(telemetrySignals.length).to.be.above(0);
         telemetrySignals.forEach(function (item) {
           if ((item.args[0].type === 'home') &&
               (item.args[0].target === 'settings') &&
@@ -327,8 +335,8 @@ describe('Fresh tab interactions with notifications', function () {
           }
         });
 
-        chai.expect(signalExist).to.be.true;
-        chai.expect(count).to.equal(1);
+        expect(signalExist).to.be.true;
+        expect(count).to.equal(1);
       });
     });
 
@@ -344,7 +352,7 @@ describe('Fresh tab interactions with notifications', function () {
       });
 
       it('hides the notification area', function () {
-        chai.expect(subject.query(notificationAreaSelector)).to.not.exist;
+        expect(subject.query(notificationAreaSelector)).to.not.exist;
       });
     });
   });
@@ -374,11 +382,11 @@ describe('Fresh tab interactions with notifications', function () {
       });
 
       it('shows the notification area', function () {
-        chai.expect(subject.query(notificationAreaSelector)).to.exist;
+        expect(subject.query(notificationAreaSelector)).to.exist;
       });
 
       it('shows only one notification', function () {
-        chai.expect(subject.queryAll(notificationAreaSelector).length).to.equal(1);
+        expect(subject.queryAll(notificationAreaSelector).length).to.equal(1);
       });
     });
   });

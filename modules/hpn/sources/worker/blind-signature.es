@@ -129,7 +129,7 @@ export class blindSignContext {
     this.blindingNonce = null;
     this.blinder = null;
     this.unblinder = null;
-    this.keySize = 4096;
+    this.keySize = 2048;
     this.hashedMessage = '';
     this.bm = '';
     this.signedMessage = '';
@@ -161,7 +161,8 @@ export class blindSignContext {
 
   getBlindingNonce() {
     // Create a random value.
-    const randomNumber = BigInt.randBigInt(this.keySize, 1);
+    const randomHex = toHex(crypto.getRandomValues(new Uint8Array(this.keySize / 8)));
+    const randomNumber = BigInt.str2bigInt(randomHex, 16);
     this.blindingNonce = randomNumber;
     return randomNumber;
   }

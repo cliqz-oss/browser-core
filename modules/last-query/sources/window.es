@@ -98,8 +98,8 @@ export default class LastQueryWindow extends AppWindow {
       this.searchHistoryUI.clearTabQuery(tabId);
     },
 
-    'ui:click-on-url': ({ isNewTab, tabId, url, query, isFromAutocompletedURL, isPrivateWindow }) => {
-      if (isNewTab || isPrivateWindow || !url || isFromAutocompletedURL) {
+    'ui:click-on-url': ({ isNewTab, tabId, url, query, isFromAutocompletedURL, isPrivateMode }) => {
+      if (isNewTab || isPrivateMode || !url || isFromAutocompletedURL) {
         this.searchHistoryUI.hide();
         return;
       }

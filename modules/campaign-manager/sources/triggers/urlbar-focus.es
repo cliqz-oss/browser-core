@@ -1,5 +1,5 @@
-import TriggerBase from "./base";
-import CliqzEvents from "../../core/events";
+import TriggerBase from './base';
+import CliqzEvents from '../../core/events';
 
 export default class UrlbarFocusTrigger extends TriggerBase {
   constructor() {

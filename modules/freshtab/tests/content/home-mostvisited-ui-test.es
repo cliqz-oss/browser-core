@@ -1,11 +1,10 @@
-/* global chai */
-
 import {
-  clone,
   clearIntervals,
-  waitFor,
-  Subject,
+  clone,
   defaultConfig,
+  expect,
+  Subject,
+  waitFor
 } from './helpers';
 
 const historyDial = i => ({
@@ -112,11 +111,11 @@ describe('Fresh tab most visited UI', function () {
       it('with the visibility switch turned on', function () {
         const mostVisitedSwitch = subject.queryByI18n('freshtab.app.settings.most-visited.label')
           .querySelector('input.switch');
-        chai.expect(mostVisitedSwitch).to.have.property('checked', true);
+        expect(mostVisitedSwitch).to.have.property('checked', true);
       });
 
       it('with visible dials', function () {
-        chai.expect(subject.query(mostVisitedAreaSelector)).to.exist;
+        expect(subject.query(mostVisitedAreaSelector)).to.exist;
       });
     });
 
@@ -133,11 +132,11 @@ describe('Fresh tab most visited UI', function () {
       it('with the visibility switch turned off', function () {
         const mostVisitedSwitch = subject.queryByI18n('freshtab.app.settings.most-visited.label')
           .querySelector('input.switch');
-        chai.expect(mostVisitedSwitch).to.have.property('checked', false);
+        expect(mostVisitedSwitch).to.have.property('checked', false);
       });
 
       it('with no visible dials', function () {
-        chai.expect(subject.query(mostVisitedAreaSelector)).to.not.exist;
+        expect(subject.query(mostVisitedAreaSelector)).to.not.exist;
       });
     });
   });
@@ -168,7 +167,7 @@ describe('Fresh tab most visited UI', function () {
 
     it('restore option is not active', function () {
       const restoreButton = subject.query(restoreOptionSelector);
-      chai.expect(restoreButton.disabled).to.be.true;
+      expect(restoreButton.disabled).to.be.true;
     });
   });
 
@@ -198,7 +197,7 @@ describe('Fresh tab most visited UI', function () {
 
     it('restore option is active', function () {
       const restoreButton = subject.query(restoreOptionSelector);
-      chai.expect(restoreButton.disabled).to.be.false;
+      expect(restoreButton.disabled).to.be.false;
     });
   });
 
@@ -226,30 +225,31 @@ describe('Fresh tab most visited UI', function () {
 
     describe('renders undo popup message', function () {
       it('successfully', function () {
-        chai.expect(subject.query(undoBoxSelector)).to.exist;
+        expect(subject.query(undoBoxSelector)).to.exist;
       });
 
       it('with a delete button', function () {
         const undoBoxDeleteBtnSelector = 'div.undo-notification-box button.close';
-        chai.expect(subject.query(undoBoxDeleteBtnSelector)).to.exist;
+        expect(subject.query(undoBoxDeleteBtnSelector)).to.exist;
       });
 
       it('with an undo button', function () {
         const undoBoxUndoBtnSelector = 'div.undo-notification-box button.undo';
-        chai.expect(subject.query(undoBoxUndoBtnSelector)).to.exist;
+        expect(subject.query(undoBoxUndoBtnSelector)).to.exist;
       });
 
       it('with existing and correct message text', function () {
-        chai.expect(subject.query(undoBoxSelector))
+        expect(subject.query(undoBoxSelector))
           .to.contain.text(historyResponse[0].history[0].displayTitle);
-        chai.expect(subject.query(undoBoxSelector))
+        expect(subject.query(undoBoxSelector))
           .to.contain.text('freshtab.app.speed-dial.removed');
       });
     });
   });
 
+  /* eslint no-loop-func: 'off' */
   describe('generated results', function () {
-    for (let i = 0; i < historyResponse.length; i++) {
+    for (let i = 0; i < historyResponse.length; i += 1) {
       context(`with ${i + 1} elements`, function () {
         beforeEach(function () {
           subject.respondsWith({
@@ -267,12 +267,12 @@ describe('Fresh tab most visited UI', function () {
 
         describe('renders area', function () {
           it('with an existing label', function () {
-            chai.expect(subject.query(mostVisitedHeaderSelector)).to.exist;
+            expect(subject.query(mostVisitedHeaderSelector)).to.exist;
           });
 
           it('with a correct amount of elements', function () {
             const amountOfTiles = Math.min(6, historyResponse[i].history.length);
-            chai.expect(subject.queryAll(mostVisitedItemSelector).length)
+            expect(subject.queryAll(mostVisitedItemSelector).length)
               .to.equal(amountOfTiles);
           });
         });
@@ -286,26 +286,27 @@ describe('Fresh tab most visited UI', function () {
           });
 
           it('with existing square logos with correct background color', function () {
+            expect(mostVisitedItemsLogos.length).to.be.above(0);
             [...mostVisitedItemsLogos].forEach(function (item) {
-              chai.expect(item).to.exist;
-              chai.expect(getComputedStyle(item).background).to.contain('rgb(195, 4, 62)');
+              expect(subject.getComputedStyle(item).background)
+              .to.contain('rgb(195, 4, 62)');
             });
           });
 
           it('with existing and correct two chars on logos', function () {
+            expect(mostVisitedItemsLogos.length).to.be.above(0);
             [...mostVisitedItemsLogos].forEach(function (item, j) {
-              chai.expect(item.textContent).to.exist;
-              chai.expect(item.textContent.length).to.equal(2);
-              chai.expect(item).to.have.text(historyResponse[i].history[j].logo.text);
+              expect(item.textContent.length).to.equal(2);
+              expect(item).to.have.text(historyResponse[i].history[j].logo.text);
             });
           });
 
           it('with existing and correct link titles', function () {
             const mostVisitedItemsDials = subject.queryAll(mostVisitedItemSelector);
 
+            expect(mostVisitedItemsDials.length).to.be.above(0);
             [...mostVisitedItemsDials].forEach(function (item, j) {
-              chai.expect(item.title).to.exist;
-              chai.expect(item.title).to.equal(historyResponse[i].history[j].url);
+              expect(item.title).to.equal(historyResponse[i].history[j].url);
             });
           });
 
@@ -313,9 +314,9 @@ describe('Fresh tab most visited UI', function () {
             const mostVisitedLinkSelector = '#section-most-visited div.dial a';
             const mostVisitedItemsLinks = subject.queryAll(mostVisitedLinkSelector);
 
+            expect(mostVisitedItemsLinks.length).to.be.above(0);
             [...mostVisitedItemsLinks].forEach(function (item, j) {
-              chai.expect(item.href).to.exist;
-              chai.expect(item.href).to.contain(historyResponse[i].history[j].url);
+              expect(item.href).to.contain(historyResponse[i].history[j].url);
             });
           });
 
@@ -323,8 +324,9 @@ describe('Fresh tab most visited UI', function () {
             const mostVisitedDescriptionSelector = '#section-most-visited div.dial div.title';
             const mostVisitedItemsDesc = subject.queryAll(mostVisitedDescriptionSelector);
 
+            expect(mostVisitedItemsDesc.length).to.be.above(0);
             [...mostVisitedItemsDesc].forEach(function (item, j) {
-              chai.expect(item).to.have.text(historyResponse[i].history[j].displayTitle);
+              expect(item).to.have.text(historyResponse[i].history[j].displayTitle);
             });
           });
 
@@ -332,8 +334,9 @@ describe('Fresh tab most visited UI', function () {
             const mostVisitedSelector = '#section-most-visited div.dial';
             const mostVisitedItems = subject.queryAll(mostVisitedSelector);
 
+            expect(mostVisitedItems.length).to.be.above(0);
             [...mostVisitedItems].forEach(function (item) {
-              chai.expect(item.querySelector('button.delete')).to.exist;
+              expect(item.querySelector('button.delete')).to.exist;
             });
           });
         });

@@ -1,3 +1,5 @@
+/* eslint no-console: 'off' */
+
 import utils from './utils';
 import moment from '../platform/lib/moment';
 import cronParser from '../platform/lib/cron-parser';
@@ -13,7 +15,6 @@ export class Task {
   iterator(from = new Date()) {
     return cronParser.parseExpression(this.pattern, { currentDate: from, utc: true });
   }
-
 }
 
 
@@ -128,7 +129,7 @@ export class Cron {
   run(date, { force } = { force: false }) {
     if (force) {
       Object.keys(this.tasks)
-      .forEach((id) => utils.setTimeout(this.runTask.bind(this, id, date)));
+        .forEach(id => utils.setTimeout(this.runTask.bind(this, id, date)));
     } else {
       this._scheduleNext();
     }
@@ -137,7 +138,6 @@ export class Cron {
   runTask(id, date) {
     this.tasks[id].run(date);
   }
-
 }
 
 // Anacron
@@ -161,5 +161,4 @@ export default class Anacron extends Cron {
     this.last = date.getTime();
     this.storage.set(this.setting, String(this.last));
   }
-
 }

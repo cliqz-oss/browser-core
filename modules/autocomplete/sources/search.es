@@ -2,8 +2,6 @@ import events from "../core/events";
 import utils from "../core/utils";
 import { isValidUrl } from "../core/search-engines";
 import { isFirefox } from "../core/platform";
-import SmartCliqzCache from './smart-cliqz-cache/smart-cliqz-cache';
-import TriggerUrlCache from './smart-cliqz-cache/trigger-url-cache';
 import CliqzAutocomplete from "./autocomplete";
 import historyCluster from "./history-cluster";
 import Result from "./result";
@@ -131,13 +129,8 @@ export default class Search {
     this.HISTORY_TIMEOUT = 500;
     this.REFETCH_MAX_ATTEMPTS = 10; // How many times should we try fetching incomplete (promised) results before giving up?
     this.REFETCH_DELAY = 100; // delay before refetch
-
-    var mixerArgs = isFirefox ? {
-      smartCliqzCache: new SmartCliqzCache(),
-      triggerUrlCache: new TriggerUrlCache()
-    } : {};
     this.successCode = successCode;
-    this.mixer = new Mixer(mixerArgs);
+    this.mixer = new Mixer();
     this.spellCheck = new SpellCheck();
     this.resultsTimer = null;
     this.historyTimer = null;
@@ -195,7 +188,7 @@ export default class Search {
       this.userRerankers = {};
       this.historyCacheHit = false;
 
-      console.log('search: ' + searchString, CliqzAutocomplete.LOG_KEY);
+      // console.log('start search: ' + searchString, CliqzAutocomplete.LOG_KEY);
 
       var invalidQ = isQinvalid(searchString.trim()),
           action = {
@@ -311,87 +304,10 @@ export default class Search {
       this.historyTimeout = false;
       // trigger history search
       utils.historySearch(searchString, this.onHistoryDone.bind(this), utils.isPrivateMode(window));
-
-      var hist_search_type = utils.getPref('hist_search_type', 0);
-      if (hist_search_type != 0) {
-        console.log('Calling CliqzHM.cliqz_hm_search for: ' + searchString, 'CliqzHM');
-        this.cliqz_hm_search(this, {'query': searchString}, hist_search_type);
-      }
-
   }
 
   static fetchAndCacheResult(query, fun) {
     return fun(query);
-  }
-
-  cliqz_hm_search(_this, res, hist_search_type) {
-      var data = null;
-      var query = res.query || res.q; // query will be called q if RH is down
-      if (hist_search_type === 1) {
-        data = utils.hm.do_search(query, false);
-        data['cont'] = null;
-      }
-      else {
-        data = utils.hm.do_search(query, true);
-      }
-
-      var urlAuto = utils.hm.urlForAutoLoad(data);
-      if (false && urlAuto) {
-        var win = utils.getWindow().gBrowser.contentWindow;
-        //if (CliqzAutocomplete.currentAutoLoadURL==null || win.location.href=='about:cliqz') {
-          if (win.location.href!=urlAuto) {
-              console.log(">> AUTOLOAD LAUNCH: " + urlAuto, 'CliqzHM');
-              win.location.href = urlAuto;
-              CliqzAutocomplete.currentAutoLoadURL = urlAuto;
-          }
-        //}
-      }
-
-      // Extract results
-      var patterns = [];
-      for (var i = 0; i < data.result.length; i++) {
-        var url = utils.cleanMozillaActions(data.result[i][0])[1],
-            title = data.result[i][1];
-
-        if (!title || title == 'N/A') {
-          title = utils.generalizeUrl(url);
-        }
-        if (title.length > 0 && url.length > 0 && isValidUrl(url)) {
-          var item = {
-            url: url,
-            title: title,
-            favicon: null, //history.results[i].image,
-            _genUrl: utils.generalizeUrl(url, true),
-          };
-          if (data.result[i][3]) {
-            if (data.result[i][3].hasOwnProperty('c')) {
-              item['xtra_c'] = data.result[i][3]['c'];
-            }
-            if (data.result[i][3].hasOwnProperty('q')) {
-              item['xtra_q'] = data.result[i][3]['q'];
-            }
-          }
-          patterns.push(item);
-        }
-        var cont = null;
-        if (data.hasOwnProperty('cont')) {
-          cont = data['cont'];
-        }
-      }
-
-      if(patterns.length >0){
-        var res3 = historyCluster._simplePreparePatterns(patterns, query);
-        // This is also causing undefined issue. Specifically when the res.length == 0;
-        if(res3.results.length == 0){
-          res3.results.push({"url": query,"title": "Found no result in local history for query: ","favicon": "","_genUrl": "","base": true,"debug": ""})
-        }
-        historyCluster.simpleCreateInstantResult(res3, cont,  _this.searchString, function(kk2) {
-          var vjoin = [];
-          vjoin.push(kk2[0]);
-          _this.createInstantResultCallback(vjoin, 'hm');
-        });
-      }
-
   }
 
   getSearchResults(searchString) {

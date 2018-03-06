@@ -41,7 +41,7 @@ function stripProtocol(url) {
 }
 
 
-class FiltersList {
+export class FiltersList {
   constructor(checksum, asset, remoteURL) {
     this.checksum = checksum;
     this.baseRemoteURL = remoteURL;
@@ -298,10 +298,12 @@ export default class FiltersLoader extends UpdateCallbackHandler {
         );
       } else {
         // Retrieve existing list
-        const list = this.lists.get(asset);
+        let list = this.lists.get(asset);
 
         // Update the list only if needed (checksum is different)
         if (list.needsToUpdate(checksum)) {
+          // Make sure the filters list has a proper update url
+          list = new FiltersList(checksum, asset, remoteURL);
           updatedLists.push(
             list
               .updateFromChecksum(checksum)

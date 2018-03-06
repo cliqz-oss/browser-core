@@ -38,14 +38,8 @@ var configTree = util.injectConfig(chromiumTree, config, 'cliqz.json', [
 const funnel = require('broccoli-funnel');
 const replace = require('broccoli-string-replace');
 
-const appRoot = 'subprojects/chrome-test-hw-hpn/hw/';
 
-const html = funnel(appRoot, {
-  include   : ['**/*'],
-  destDir : 'human-web/'
-});
-
-const outputList = [html];
+const outputList = [];
 
 // IMPORTANT: adding required keys to manifest for Chravira to work
 if (env.PRODUCTION) {
@@ -65,17 +59,6 @@ var _outputTree = new MergeTrees(outputList, { overwrite: true });
 var config          = writeFile('cliqz.json', JSON.stringify(cliqzConfig));
 console.log('Source maps:', cliqzConfig.sourceMaps);
 console.log(cliqzConfig);
-
-var _configTree = util.injectConfig(_outputTree, config, 'cliqz.json', [
-	'human-web/human-web.js',
-  'human-web/cl-utils.js',
-]);
-
-_outputTree = new MergeTrees([
-	_outputTree,
-	_configTree
-	], { overwrite: true }
-)
 
 var outputTree = new MergeTrees([
   specific,

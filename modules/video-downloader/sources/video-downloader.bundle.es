@@ -1,7 +1,5 @@
-/* global window, document */
+/* global document, window, $, Handlebars */
 /* eslint-disable no-param-reassign */
-import $ from 'jquery';
-import Handlebars from 'handlebars';
 import helpers from './content/helpers';
 import { sendMessageToWindow } from './content/data';
 import templates from './templates';

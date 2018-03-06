@@ -79,7 +79,7 @@ class IfPrefExpr extends Expression {
 
   getExprValue(/* ctx */) {
     const prefVal = utils.getPref(this.prefName, undefined);
-    return Promise.resolve(prefVal === this.expectedVal);
+    return Promise.resolve(String(prefVal) === this.expectedVal);
   }
 }
 
@@ -466,6 +466,39 @@ class WeekDayExpr extends Expression {
   }
 }
 
+/**
+ * Handle matching of green-ads conditions.
+ * @version 6.0
+ */
+class MatchGAExpr extends Expression {
+  constructor(data) {
+    super(data);
+    this.raw = null;
+    this.ga_handler = null;
+  }
+
+  isBuilt() {
+    return this.raw !== null;
+  }
+
+  build() {
+    this.raw = this.data.raw_op.args[0];
+    this.ga_handler = this.data.ga_handler;
+  }
+
+  destroy() {
+  }
+
+  getExprValue() {
+    // TODO - pre-hash `this.raw` to not have to do it every time we eval
+    return this.ga_handler.getCondition(this.raw)
+      .then(condition =>
+        this.ga_handler.getNewMatches(condition.lastEventTs || 0)
+          .then(events => condition.match(events))
+          .catch(ex => logger.error('exception in MatchGAExpr', ex))
+      );
+  }
+}
 /**
  * this method is will check if queried keywords matche a given condition
  * @param  {Array} args is an array of objects
@@ -864,6 +897,7 @@ const ops = {
   $day_hour: DayHourExpr,
   $week_day: WeekDayExpr,
   $match_query: MatchQueryExpr,
+  $match_ga: MatchGAExpr,
   $geo_check: GeoCheckExpr,
   $is_feature_enabled: IsFeatureEnabledExpr,
   $pattern_match: PatternMatchExpr,

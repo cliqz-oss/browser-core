@@ -5,15 +5,16 @@ import { elementSideMargins, elementTopMargin, descriptionTextColor } from '../.
 class Description extends React.Component {
 
   render() {
-    return <Text numberOfLines={10} style={style.description}>{this.props.description}</Text>;
+    const color = this.props.isHistory ? '#551A8B' : descriptionTextColor;
+    return <Text numberOfLines={10} style={style(color).description}>{this.props.description}</Text>;
   }
 }
 
-const style = StyleSheet.create({
+const style = color => StyleSheet.create({
   description: {
     ...elementSideMargins,
     ...elementTopMargin,
-    color: descriptionTextColor,
+    color,
     textAlign: 'left',
     fontSize: 14,
     lineHeight: 19,

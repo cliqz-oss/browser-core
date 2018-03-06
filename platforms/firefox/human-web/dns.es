@@ -1,12 +1,8 @@
 import { Components } from '../globals';
 
-
-export default class {
-  constructor(CliqzHumanWeb) {
-    this.CliqzHumanWeb = CliqzHumanWeb;
-  }
-
-  getDNS(hostname) {
+/* eslint-disable import/prefer-default-export */
+export class Dns {
+  resolveHost(hostname) {
     const dnsService = Components.classes['@mozilla.org/network/dns-service;1']
       .createInstance(Components.interfaces.nsIDNSService);
 
@@ -25,4 +21,9 @@ export default class {
       }, null);
     });
   }
+
+  // no need to explicitely cache, as we can
+  // always resolve domains using the Firefox API
+  cacheDnsResolution() {}
+  flushExpiredCacheEntries() {}
 }

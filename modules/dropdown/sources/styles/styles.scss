@@ -623,6 +623,7 @@ $basic-line-height: (16 / 15) + 0em;
     }
 
     .history > .result,
+    .history > .news-story > .result,
     .result.search,
     .result.history {
         @extend .clearfix;

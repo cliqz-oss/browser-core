@@ -69,7 +69,11 @@ export default class PatternMatchingHandler {
    * @return number of matches for that given period of time
    */
   countHistoryMatches(query, patternObj) {
-    return this.historyMatch.countMatches(query, patternObj);
+    try {
+      // eslint-disable-next-line no-param-reassign
+      patternObj.index = this._getOrCreateIndex(patternObj).pi;
+      return this.historyMatch.countMatches(query, patternObj);
+    } catch (ex) { return 0; }
   }
 
   trackTokenizedUrlOnMem(tokenizedURL) {
@@ -117,7 +121,7 @@ export default class PatternMatchingHandler {
   _buildFilters(po, filterGroupID = null) {
     const plist = [];
     for (let i = 0; i < po.p_list.length; i += 1) {
-      const filter = parseNetworkFilter(po.p_list[i], true, false);
+      const filter = parseNetworkFilter(po.p_list[i]);
       if (filter) {
         if (filterGroupID !== null) {
           filter.groupID = filterGroupID;

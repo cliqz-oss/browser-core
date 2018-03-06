@@ -1,4 +1,4 @@
-export function isURI(text) {
+export function isURI() {
   return false;
 }
 
@@ -12,4 +12,4 @@ export default function equal(url1, url2) {
 
 export class URI {
   // TODO
-};
+}

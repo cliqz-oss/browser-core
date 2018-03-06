@@ -17,7 +17,10 @@ def matrix = [
         'config': 'react-native.json',
     ],
     'ghostery': [
-        'config': 'ghostery.json',
+        'config': 'ghostery.js',
+    ],
+    'cliqzs': [
+        'config': 'experiments/cliqzs.json',
     ],
 ]
 
@@ -236,8 +239,7 @@ stage('upload docs') {
                 ]]) {
                     def s3DocPath = 's3://internal.clyqz.com/docs/browser-core'
 
-                    sh "aws s3 rm $s3DocPath --recursive"
-                    sh "aws s3 cp docs $s3DocPath --recursive"
+                    sh "cd /app/docs && aws s3 sync . $s3DocPath --delete"
                 }
             }
         }

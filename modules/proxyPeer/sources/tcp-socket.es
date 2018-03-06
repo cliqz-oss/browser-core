@@ -1,4 +1,5 @@
 import logger from './logger';
+import { randomInt } from '../core/crypto/random';
 
 let MAIN_THREAD = null;
 let TRANSPORT_SERVICE = null;
@@ -16,9 +17,7 @@ try {
 
 // Uniq IDs generator
 function getRandomID() {
-  const min = 1;
-  const max = Number.MAX_SAFE_INTEGER;
-  return Math.floor(Math.random() * ((max - min) + 1)) + min;
+  return randomInt();
 }
 
 

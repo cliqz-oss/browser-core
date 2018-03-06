@@ -438,7 +438,7 @@ function checkSession() {
   if (CliqzUtils.hasPref('session'))
     return false;  // Session is already present.
 
-  const newSession = CLIQZEnvironment.isPrivate() ?
+  const newSession = CliqzUtils.isPrivateMode() ?
       ["PRIVATE", "15000", CLIQZ.config.settings.channel].join("|") :
       generateSession(CLIQZ.config.settings.channel);
   CliqzUtils.setPref('session', newSession)

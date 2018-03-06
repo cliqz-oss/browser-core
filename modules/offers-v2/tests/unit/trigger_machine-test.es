@@ -2,6 +2,7 @@
 /* global describeModule */
 /* global require */
 
+const tldjs = require('tldjs');
 
 var prefRetVal = {};
 var currentTS = Date.now();
@@ -25,6 +26,9 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
     },
     'core/platform': {
       isChromium: false
+    },
+    'platform/lib/tldjs': {
+      default: tldjs,
     },
     'platform/xmlhttprequest': {
       default: {}
@@ -157,6 +161,9 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
           return v;
         }
       }
+    },
+    'core/helpers/timeout': {
+      default: function() { const stop = () => {}; return { stop }; }
     },
     'core/time': {
       getDaysFromTimeRange: function(startTS, endTS) { },

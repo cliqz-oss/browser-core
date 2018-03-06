@@ -154,23 +154,14 @@ try {
       return;
     }
 
-    var normalizedCurrentURL;
-    if (msg.action === 'getHTML') {
-      // Human web decodes the URI for internal storage.
-      // Otherwise, searches containing special characters
-      // (e.g., Umlaute, '&') will not be matched.
-      msg.url = decodeURIComponent(msg.url);
-      normalizedCurrentURL = decodeURIComponent(currentURL());
-    } else {
-      normalizedCurrentURL = currentURL();
-    }
+    const url = currentURL();
 
-    let matchesCurrentUrl = msg.url === normalizedCurrentURL;
+    let matchesCurrentUrl = msg.url === url;
     // wild card for cliqz URLS
     if(msg.url &&
         (msg.url.indexOf('resource://cliqz') === 0 ||
          msg.url.indexOf('chrome://cliqz') === 0)) {
-      if(normalizedCurrentURL.indexOf(msg.url) === 0) {
+      if(url.indexOf(msg.url) === 0) {
         matchesCurrentUrl = true;
       }
     }

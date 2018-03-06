@@ -3,6 +3,7 @@
 /* global require */
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style */
 
+const tldjs = require('tldjs');
 
 var prefRetVal = {};
 var currentTS = Date.now();
@@ -16,6 +17,9 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
   () => ({
     'core/platform': {
       isChromium: false
+    },
+    'platform/lib/tldjs': {
+      default: tldjs,
     },
     'platform/xmlhttprequest': {
       default: {}
@@ -82,6 +86,9 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
       utils: {
         setInterval: function() {},
       }
+    },
+    'core/helpers/timeout': {
+      default: function() { const stop = () => {}; return { stop }; }
     },
     'platform/console': {
       default: {},

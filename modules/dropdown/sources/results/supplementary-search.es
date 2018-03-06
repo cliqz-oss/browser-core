@@ -2,6 +2,8 @@ import BaseResult from './base';
 import utils from '../../core/utils';
 
 export default class SupplementarySearchResult extends BaseResult {
+  isNotAutocompleteable = true;
+
   constructor(rawResult, allResultsFlat = []) {
     super(rawResult, allResultsFlat);
   }

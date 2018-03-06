@@ -1,8 +1,9 @@
 import {
-  clone,
   clearIntervals,
-  Subject,
+  clone,
   defaultConfig,
+  expect,
+  Subject
 } from './helpers';
 
 describe('Fresh tab search UI', function () {
@@ -68,13 +69,13 @@ describe('Fresh tab search UI', function () {
 
     it('with an input field', function () {
       const inputSelector = '#section-url-bar div.search input';
-      chai.expect(subject.query(inputSelector)).to.exist;
-      chai.expect(subject.query(inputSelector).type).to.equal('text');
+      expect(subject.query(inputSelector)).to.exist;
+      expect(subject.query(inputSelector).type).to.equal('text');
     });
 
     it('with a background with Q icon', function () {
       const inputSelector = '#section-url-bar div.search input';
-      chai.expect(subject.getComputedStyle(inputSelector).backgroundImage)
+      expect(subject.getComputedStyle(subject.query(inputSelector)).backgroundImage)
         .to.contain('cliqz_icon2_1024.svg');
     });
   });
@@ -92,11 +93,11 @@ describe('Fresh tab search UI', function () {
     it('has the visibility switch turned on', function () {
       const newsSwitch = subject.queryByI18n('freshtab.app.settings.search.label')
         .querySelector('input.switch');
-      chai.expect(newsSwitch).to.have.property('checked', true);
+      expect(newsSwitch).to.have.property('checked', true);
     });
 
     it('has visible area with search input', function () {
-      chai.expect(subject.query(searchAreaSelector)).to.exist;
+      expect(subject.query(searchAreaSelector)).to.exist;
     });
   });
 
@@ -115,13 +116,13 @@ describe('Fresh tab search UI', function () {
     it('has the visibility switch turned off', function () {
       const newsSwitch = subject.queryByI18n('freshtab.app.settings.search.label')
         .querySelector('input.switch');
-      chai.expect(newsSwitch).to.have.property('checked', false);
+      expect(newsSwitch).to.have.property('checked', false);
     });
 
     /* In contrast to other sections' behavior, #section-url-bar does
     not disappear when switched off, but gets empty */
     it('has no visible area search input', function () {
-      chai.expect(subject.query(searchAreaSelector).innerHTML).to.be.empty;
+      expect(subject.query(searchAreaSelector).innerHTML).to.be.empty;
     });
   });
 });

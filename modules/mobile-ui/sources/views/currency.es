@@ -40,7 +40,7 @@ export default class Currency {
         var toInput = document.getElementById("toInput");
         var toAmount = document.getElementById("calc-answer");
         var toValue = getNumValue(fromInput.value / data.extra.multiplyer * data.extra.mConversionRate).toFixed(2) - 0;
-        toAmount.innerText = toValue.toLocaleString(CliqzUtils.PREFERRED_LANGUAGE);
+        toAmount.innerText = toValue.toLocaleString(CliqzUtils.PLATFORM_LOCALE);
         toInput.value = toValue;
     }
 
@@ -50,7 +50,7 @@ export default class Currency {
         var toAmount = document.getElementById("calc-answer");
         var toValue = getNumValue(toInput.value);
         var fromValue = getNumValue(toValue * data.extra.multiplyer / data.extra.mConversionRate).toFixed(2);
-        toAmount.innerText = toValue.toLocaleString(CliqzUtils.PREFERRED_LANGUAGE);
+        toAmount.innerText = toValue.toLocaleString(CliqzUtils.PLATFORM_LOCALE);
         fromInput.value = fromValue;
     }
 };

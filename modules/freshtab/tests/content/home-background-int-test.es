@@ -1,14 +1,16 @@
 import {
   clearIntervals,
-  waitFor,
-  Subject,
   defaultConfig,
+  expect,
+  Subject,
+  waitFor
 } from './helpers';
 
 describe('Fresh tab interactions with background', function () {
   const blueBgSelector = 'img[data-bg="bg-blue"]';
   const darkBgSelector = 'img[data-bg="bg-dark"]';
   const lightBgSelector = 'img[data-bg="bg-light"]';
+  const alpsBgSelector = 'img[data-bg="bg-matterhorn"]';
   let subject;
   let messages;
   let listener;
@@ -65,27 +67,28 @@ describe('Fresh tab interactions with background', function () {
     });
 
     it('changes bg to dark', function () {
-      chai.expect(subject.query('body').className).to.contain('theme-bg-dark');
+      expect(subject.query('body').className).to.contain('theme-bg-dark');
     });
 
     it('changes settings selection to dark bg', function () {
-      chai.expect(subject.query(darkBgSelector).className).to.contain('active');
-      chai.expect(subject.query(lightBgSelector).className).to.not.contain('active');
-      chai.expect(subject.query(blueBgSelector).className).to.not.contain('active');
+      expect(subject.query(darkBgSelector).className).to.contain('active');
+      expect(subject.query(lightBgSelector).className).to.not.contain('active');
+      expect(subject.query(blueBgSelector).className).to.not.contain('active');
     });
 
     it('sends a "saveBackgroundImage" message once', function () {
-      chai.expect(messages.has('saveBackgroundImage')).to.equal(true);
-      chai.expect(messages.get('saveBackgroundImage').length).to.equal(1);
+      expect(messages.has('saveBackgroundImage')).to.equal(true);
+      expect(messages.get('saveBackgroundImage').length).to.equal(1);
     });
 
     it('sends a "home > settings > background_image > click" telemetry signal', function () {
-      chai.expect(messages.has('sendTelemetry')).to.equal(true);
+      expect(messages.has('sendTelemetry')).to.equal(true);
 
       const telemetrySignals = messages.get('sendTelemetry');
       let signalExist = false;
       let count = 0;
 
+      expect(telemetrySignals.length).to.be.above(0);
       telemetrySignals.forEach(function (item) {
         if ((item.args[0].type === 'home') &&
             (item.args[0].view === 'settings') &&
@@ -96,8 +99,8 @@ describe('Fresh tab interactions with background', function () {
         }
       });
 
-      chai.expect(signalExist).to.be.true;
-      chai.expect(count).to.equal(1);
+      expect(signalExist).to.be.true;
+      expect(count).to.equal(1);
     });
   });
 
@@ -112,27 +115,28 @@ describe('Fresh tab interactions with background', function () {
     });
 
     it('changes bg to light', function () {
-      chai.expect(subject.query('body').className).to.contain('theme-bg-light');
+      expect(subject.query('body').className).to.contain('theme-bg-light');
     });
 
     it('changes settings selection to light bg', function () {
-      chai.expect(subject.query(darkBgSelector).className).to.not.contain('active');
-      chai.expect(subject.query(lightBgSelector).className).to.contain('active');
-      chai.expect(subject.query(blueBgSelector).className).to.not.contain('active');
+      expect(subject.query(darkBgSelector).className).to.not.contain('active');
+      expect(subject.query(lightBgSelector).className).to.contain('active');
+      expect(subject.query(blueBgSelector).className).to.not.contain('active');
     });
 
     it('sends a "saveBackgroundImage" message once', function () {
-      chai.expect(messages.has('saveBackgroundImage')).to.equal(true);
-      chai.expect(messages.get('saveBackgroundImage').length).to.equal(1);
+      expect(messages.has('saveBackgroundImage')).to.equal(true);
+      expect(messages.get('saveBackgroundImage').length).to.equal(1);
     });
 
     it('sends a "home > settings > background_image > click" telemetry signal', function () {
-      chai.expect(messages.has('sendTelemetry')).to.equal(true);
+      expect(messages.has('sendTelemetry')).to.equal(true);
 
       const telemetrySignals = messages.get('sendTelemetry');
       let signalExist = false;
       let count = 0;
 
+      expect(telemetrySignals.length).to.be.above(0);
       telemetrySignals.forEach(function (item) {
         if ((item.args[0].type === 'home') &&
             (item.args[0].view === 'settings') &&
@@ -143,8 +147,8 @@ describe('Fresh tab interactions with background', function () {
         }
       });
 
-      chai.expect(signalExist).to.be.true;
-      chai.expect(count).to.equal(1);
+      expect(signalExist).to.be.true;
+      expect(count).to.equal(1);
     });
   });
 
@@ -160,27 +164,28 @@ describe('Fresh tab interactions with background', function () {
     });
 
     it('changes bg to blue', function () {
-      chai.expect(subject.query('body').className).to.contain('theme-bg-blue');
+      expect(subject.query('body').className).to.contain('theme-bg-blue');
     });
 
     it('changes settings selection to blue bg', function () {
-      chai.expect(subject.query(darkBgSelector).className).to.not.contain('active');
-      chai.expect(subject.query(lightBgSelector).className).to.not.contain('active');
-      chai.expect(subject.query(blueBgSelector).className).to.contain('active');
+      expect(subject.query(darkBgSelector).className).to.not.contain('active');
+      expect(subject.query(lightBgSelector).className).to.not.contain('active');
+      expect(subject.query(blueBgSelector).className).to.contain('active');
     });
 
     it('sends a "saveBackgroundImage" message once', function () {
-      chai.expect(messages.has('saveBackgroundImage')).to.equal(true);
-      chai.expect(messages.get('saveBackgroundImage').length).to.equal(1);
+      expect(messages.has('saveBackgroundImage')).to.equal(true);
+      expect(messages.get('saveBackgroundImage').length).to.equal(1);
     });
 
     it('sends a "home > settings > background_image > click" telemetry signal', function () {
-      chai.expect(messages.has('sendTelemetry')).to.equal(true);
+      expect(messages.has('sendTelemetry')).to.equal(true);
 
       const telemetrySignals = messages.get('sendTelemetry');
       let signalExist = false;
       let count = 0;
 
+      expect(telemetrySignals.length).to.be.above(0);
       telemetrySignals.forEach(function (item) {
         if ((item.args[0].type === 'home') &&
             (item.args[0].view === 'settings') &&
@@ -191,8 +196,57 @@ describe('Fresh tab interactions with background', function () {
         }
       });
 
-      chai.expect(signalExist).to.be.true;
-      chai.expect(count).to.equal(1);
+      expect(signalExist).to.be.true;
+      expect(count).to.equal(1);
+    });
+  });
+
+  describe('clicking on a matterhorn icon', function () {
+    beforeEach(function () {
+      subject.query(alpsBgSelector).click();
+      return waitFor(() => subject.query('body.theme-bg-matterhorn'));
+    });
+
+    afterEach(function () {
+      subject.chrome.runtime.onMessage.removeListener(listener);
+    });
+
+    it('changes bg to matthorn', function () {
+      expect(subject.query('body').className).to.contain('theme-bg-matterhorn');
+    });
+
+    it('changes settings selection to matthorn bg', function () {
+      expect(subject.query(darkBgSelector).className).to.not.contain('active');
+      expect(subject.query(lightBgSelector).className).to.not.contain('active');
+      expect(subject.query(blueBgSelector).className).to.not.contain('active');
+      expect(subject.query(alpsBgSelector).className).to.contain('active');
+    });
+
+    it('sends a "saveBackgroundImage" message once', function () {
+      expect(messages.has('saveBackgroundImage')).to.equal(true);
+      expect(messages.get('saveBackgroundImage').length).to.equal(1);
+    });
+
+    it('sends a "home > settings > background_image > click" telemetry signal', function () {
+      expect(messages.has('sendTelemetry')).to.equal(true);
+
+      const telemetrySignals = messages.get('sendTelemetry');
+      let signalExist = false;
+      let count = 0;
+
+      expect(telemetrySignals.length).to.be.above(0);
+      telemetrySignals.forEach(function (item) {
+        if ((item.args[0].type === 'home') &&
+            (item.args[0].view === 'settings') &&
+            (item.args[0].target === 'background_image') &&
+            (item.args[0].action === 'click')) {
+              signalExist = true;
+              count += 1;
+        }
+      });
+
+      expect(signalExist).to.be.true;
+      expect(count).to.equal(1);
     });
   });
 });

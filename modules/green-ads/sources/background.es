@@ -8,7 +8,7 @@ import { utils } from '../core/cliqz';
 import GreenAds from './green-ads';
 import logger from './logger';
 import Inventory from './inventory';
-
+import config from '../core/config';
 
 // The green ad module can be in different states:
 export const GREENADS_PREF = 'greenads';
@@ -18,7 +18,7 @@ export const GREENADS_STATE = {
   GREEN: 'green', // We record green mode (blocking of ads + injection of cached)
 };
 
-const TELEMETRY_ENDPOINT = 'https://safebrowsing-experiment.cliqz.com';
+const TELEMETRY_ENDPOINT = config.settings.TELEMETRY_ENDPOINT;
 
 
 export function getGreenadsState() {

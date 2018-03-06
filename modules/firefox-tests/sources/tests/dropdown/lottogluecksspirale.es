@@ -1,7 +1,3 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
   $cliqzResults,
   expect,
@@ -20,7 +16,7 @@ export default function () {
       withHistory([]);
       fillIn('gluecksspirale');
       return waitForPopup().then(function () {
-        $resultElement = $cliqzResults().find(`a.result[href='${results[0].url}']`)[0].parentNode;
+        $resultElement = $cliqzResults().find(`a.result[data-url='${results[0].url}']`)[0].parentNode;
       });
     });
 
@@ -55,7 +51,7 @@ export default function () {
 
       it('with a correct link', function () {
         const lottoTopLinkSelector = 'a.result';
-        expect($resultElement.querySelector(lottoTopLinkSelector).href)
+        expect($resultElement.querySelector(lottoTopLinkSelector).dataset.url)
           .to.equal(results[0].url);
       });
 
@@ -168,7 +164,7 @@ export default function () {
         const lottoButtonsSelector = 'div.buttons a.btn';
         const lottoItemsButtons = $resultElement.querySelectorAll(lottoButtonsSelector);
         [].forEach.call(lottoItemsButtons, function (link, i) {
-          expect(link.href).to.equal(results[0].snippet.deepResults[0].links[i].url);
+          expect(link.dataset.url).to.equal(results[0].snippet.deepResults[0].links[i].url);
         });
       });
     });

@@ -3,14 +3,21 @@ import { sameGeneralDomain } from '../core/tlds';
 import md5 from '../core/helpers/md5';
 import * as browser from '../platform/browser';
 import { TELEMETRY } from './config';
+import { truncateDomain } from './utils';
+
+function truncatePath(path) {
+  // extract the first part of the page path
+  const [prefix] = path.substring(1).split('/');
+  return `/${prefix}`;
+}
 
 // Class to hold a page load and third party urls loaded by this page.
 class PageLoadData {
 
-  constructor(url, isPrivate, reloaded) {
+  constructor(url, isPrivate, reloaded, hasPlaceHolder) {
     this.url = url.toString();
     this.hostname = url.hostname;
-    this.path = this._shortHash(url.path);
+    this.path = this._shortHash(truncatePath(url.path));
     this.scheme = url.protocol;
     this.private = isPrivate;
     this.c = 1;
@@ -18,6 +25,8 @@ class PageLoadData {
     this.e = this.s;
     this.tps = {};
     this.redirects = [];
+    this.redirectsPlaceHolder = [];
+    this.placeHolder = hasPlaceHolder || false;
     this.ra = reloaded;
     this.annotations = {};
 
@@ -103,9 +112,13 @@ class PageLoadData {
             t: this.e - this.s,
             ra: this.ra || 0,
             tps: {},
+            placeHolder: this.placeHolder,
             redirects: this.redirects.filter(function(hostname) {
                 return !sameGeneralDomain(hostname, self.hostname);
             }),
+            redirectsPlaceHolder: this.redirectsPlaceHolder.filter(
+              (hasPlaceHolder, i) => !sameGeneralDomain(this.redirects[i], self.hostname)
+            ),
             triggeringTree: {},
         };
     if(!obj.hostname) return obj;
@@ -129,11 +142,6 @@ class PageLoadData {
         });
       }
     }
-
-    Object.keys(this.triggeringTree).forEach((trigger) => {
-      // convert set to list
-      obj.triggeringTree[trigger] = [...this.triggeringTree[trigger]]
-    });
 
     // This was added to collect data for experiment, safe to stop collecting it now.
     // checkBlackList(this.url, obj);
@@ -181,19 +189,30 @@ class PageEventTracker {
       // check if it is a reload of the same page
       const reloaded = (prevPage && url.toString() === prevPage.url && Date.now() - prevPage.s < 30000) || false;
 
-      this._active[tab_id] = new PageLoadData(url, isPrivate || false, reloaded || false);
+      this._active[tab_id] = new PageLoadData(
+        url, isPrivate || false,
+        reloaded || false,
+        this.containsPlaceHolder(url),
+      );
       return this._active[tab_id];
     } else {
-        return null;
+      return null;
     }
   }
 
   onRedirect(url, tab_id, isPrivate) {
       if(tab_id in this._active) {
           let prev = this._active[tab_id];
-          this._active[tab_id] = new PageLoadData(url, isPrivate || false, prev.ra || false);
+
+          this._active[tab_id] = new PageLoadData(
+            url, isPrivate || false,
+            prev.ra || false,
+            this.containsPlaceHolder(url),
+          );
           this._active[tab_id].redirects = prev.redirects;
           this._active[tab_id].redirects.push(prev.hostname);
+          this._active[tab_id].redirectsPlaceHolder = prev.redirectsPlaceHolder;
+          this._active[tab_id].redirectsPlaceHolder.push(prev.placeHolder);
       } else {
           this.onFullPage(url, tab_id, isPrivate);
       }
@@ -217,6 +236,8 @@ class PageEventTracker {
           if (this.debug) utils.log("No fullpage request for referrer: "+ ref +" -> "+ url , "tp_events");
           return null;
       }
+      // truncate the third-party domain before adding
+      const truncDomain = truncateDomain(url_parts.host, this.config.tpDomainDepth);
 
       var page_graph = this._active[source];
       if(!page_graph.isReferredFrom(ref_parts)) {
@@ -224,15 +245,15 @@ class PageEventTracker {
           if(source in this._old_tab_idx) {
               var prev_graph = this._staged[this._old_tab_idx[source]];
               if(prev_graph && prev_graph.isReferredFrom(ref_parts)) {
-                  if (this.debug) utils.log("Request for expired tab "+ ref_parts.hostname +" -> "+ url_parts.hostname +" ("+ prev_graph['hostname'] +")", 'tp_events');
-                  return prev_graph.getTpUrl(url_parts.hostname, url_parts.path);
+                  if (this.debug) utils.log("Request for expired tab "+ ref_parts.hostname +" -> "+ truncDomain +" ("+ prev_graph['hostname'] +")", 'tp_events');
+                  return prev_graph.getTpUrl(truncDomain, url_parts.path);
               }
           }
-          if (this.debug) utils.log("tab/referrer mismatch "+ ref_parts.hostname +" -> "+ url_parts.hostname +" ("+ page_graph['hostname'] +")", 'tp_events');
+          if (this.debug) utils.log("tab/referrer mismatch "+ ref_parts.hostname +" -> "+ truncDomain +" ("+ page_graph['hostname'] +")", 'tp_events');
           return null;
       }
 
-      return page_graph.getTpUrl(url_parts.hostname, url_parts.path);
+      return page_graph.getTpUrl(truncDomain, url_parts.path);
   }
 
   // Move the PageLoadData object for windowID to the staging area.
@@ -332,6 +353,11 @@ class PageEventTracker {
       return this._active[tab].annotations;
     }
     return {};
+  }
+
+  containsPlaceHolder(url) {
+    return url.toString().indexOf(this.config.placeHolder > -1) &&
+      url.hostname !== this.config.placeHolder.split('/')[0]
   }
 }
 

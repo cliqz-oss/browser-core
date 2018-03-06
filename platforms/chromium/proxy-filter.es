@@ -1,8 +1,5 @@
 
 export default class {
-  constructor({ position } = { position: 0 }) {
-  }
-
   init() {
   }
 
@@ -14,7 +11,7 @@ export default class {
   }
 
   // TODO: add documentation
-  newProxy(args) {
+  newProxy() {
   }
 
   /**
@@ -25,6 +22,6 @@ export default class {
    * @param defaultProxy
    * @returns aProxy
    */
-  applyFilter(pps, url, defaultProxy) {
+  applyFilter() {
   }
 }

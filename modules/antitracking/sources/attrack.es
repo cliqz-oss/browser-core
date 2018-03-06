@@ -40,6 +40,7 @@ import TokenExaminer from './steps/token-examiner';
 import TokenTelemetry from './steps/token-telemetry';
 import { skipInternalProtocols, skipInvalidSource, checkSameGeneralDomain } from './steps/check-context';
 
+import GeoIp from './geoip';
 
 export default class CliqzAttrack {
   constructor() {
@@ -58,6 +59,8 @@ export default class CliqzAttrack {
     this.webRequestPipeline = inject.module('webrequest-pipeline');
     this.pipelineSteps = {};
     this.pipelines = {};
+
+    this.geoip = new GeoIp();
   }
 
   obfuscate(s, method) {
@@ -245,6 +248,7 @@ export default class CliqzAttrack {
     }, this.config);
 
     initPromises.push(this.initPipeline());
+    initPromises.push(this.geoip.load());
 
     // cleanup legacy database
     cleanLegacyDb();
@@ -600,7 +604,16 @@ export default class CliqzAttrack {
               state.incrementStat('resp_ob');
               state.incrementStat('content_length', parseInt(state.getResponseHeader('Content-Length'), 10) || 0);
               state.incrementStat(`status_${state.responseStatus}`);
-              state.incrementStat(state.isCached ? 'cached' : 'not_cached');
+            }
+            if (this.qs_whitelist.isTrackerDomain(state.urlParts.generalDomainHash) && state.ip) {
+              try {
+                const ipLoc = this.geoip.lookup(state.ip);
+                if (ipLoc) {
+                  state.incrementStat(`iploc_${ipLoc}`);
+                }
+              } catch (e) {
+                // invalid or IPv6 IP address, skip
+              }
             }
           },
         },
@@ -652,6 +665,36 @@ export default class CliqzAttrack {
         },
       ]);
 
+      this.pipelines.onCompleted = new Pipeline('antitracking.onCompleted', [
+        {
+          name: 'pageLogger.reattachStatCounter',
+          spec: 'annotate',
+          fn: state => steps.pageLogger.reattachStatCounter(state),
+        },
+        {
+          name: 'logIsCached',
+          spec: 'collect',
+          fn: (state) => {
+            state.incrementStat(state.fromCache ? 'cached' : 'not_cached');
+          }
+        }
+      ]);
+
+      this.pipelines.onErrorOccurred = new Pipeline('antitracking.onError', [
+        {
+          name: 'pageLogger.reattachStatCounter',
+          spec: 'annotate',
+          fn: state => steps.pageLogger.reattachStatCounter(state),
+        }, {
+          name: 'logError',
+          spec: 'collect',
+          fn: (state) => {
+            if (state.error && state.error.indexOf('ABORT')) {
+              state.incrementStat('error_abort');
+            }
+          }
+        }
+      ]);
 
       // Add steps to the global web request pipeline
       return Promise.all(Object.keys(this.pipelines).map(stage =>

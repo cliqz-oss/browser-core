@@ -266,11 +266,13 @@ body {
     }
 
     .headline {
+      @include hyphenate;
       display: none;
       cursor: pointer;
     }
 
     .title {
+      @include hyphenate;
       display: block;
       flex: 3;
       font-size: 13.5px;
@@ -286,6 +288,7 @@ body {
     }
 
     .description {
+      @include hyphenate;
       flex: 3;
       font-size: 11.5px;
       display: none;

@@ -1,3 +1,5 @@
+/* eslint no-param-reassign: 'off' */
+
 /*
  * Functions to handle collecting to selecting / preparing signals for the dashboard
  */
@@ -25,7 +27,7 @@ function reformatSignalsFlat(sig, ignoreKeys = [], send = 'allowed') {
         name,
         val: (sig[name] && typeof (sig[name]) === 'object' ? JSON.stringify(sig[name]) : sig[name] || '').toString(),
         send,
-        des: ''  // todo: fill in descriptions
+        des: '' // todo: fill in descriptions
       });
     }
   });
@@ -47,7 +49,7 @@ const QUERY_LOG_PARAM = {
 const SignalListener = {
   telemetryOrigin: utils.telemetry,
   httpGetOrigin: utils.httpGet, // used for fetching result and query log telemetry
-  hwOrigin: CliqzHumanWeb.telemetry,  // todo: handle the case hw is inited AFTER this module
+  hwOrigin: CliqzHumanWeb.telemetry, // todo: handle the case hw is inited AFTER this module
 
   SigCache: {
     hw: { sig: null, timestamp: 0 },
@@ -64,8 +66,8 @@ const SignalListener = {
     }
   },
 
-  monkeyPatchHmw() {
-    SignalListener.hwOrigin.apply(this, arguments)
+  monkeyPatchHmw(...args) {
+    SignalListener.hwOrigin.apply(this, args)
       .then(() => {
         SignalListener.SigCache.hw = {
           sig: lastElementArray(CliqzHumanWeb.trk),
@@ -75,8 +77,8 @@ const SignalListener = {
       });
   },
 
-  monkeyPatchTelemetry() {
-    SignalListener.telemetryOrigin.apply(this, arguments);
+  monkeyPatchTelemetry(...args) {
+    SignalListener.telemetryOrigin.apply(this, args);
 
     // aggregate data within the predefined aggregation window
     // To use ONLY the LAST SIGNAL, use this line below instead of the if block,
@@ -99,7 +101,7 @@ const SignalListener = {
     SignalListener.fireNewDataEvent('tel');
   },
 
-  monkeyPatchHttpGet() {
+  monkeyPatchHttpGet(...args) {
     setTimeout((url) => {
       const queryLog = {};
       if (url.startsWith(utils.RESULTS_PROVIDER) || url.startsWith(utils.RESULTS_PROVIDER_LOG)) {
@@ -114,9 +116,9 @@ const SignalListener = {
         SignalListener.SigCache.ql = { sig: queryLog, timestamp: Date.now() };
         SignalListener.fireNewDataEvent('ql');
       }
-    }, 0, arguments[0]);
+    }, 0, args[0]);
 
-    return SignalListener.httpGetOrigin.apply(this, arguments);
+    return SignalListener.httpGetOrigin.apply(this, args);
   },
 
   init() {
@@ -183,13 +185,13 @@ const HumanwebSignal = {
     let subKeyInfo = [];
 
     HumanwebSignal.dataSubKey.forEach((subKey) => {
-      if (data.hasOwnProperty(subKey)) {
+      if (Object.prototype.hasOwnProperty.call(data, subKey)) {
         subKeyInfo = reformatSignalsFlat(data[subKey]);
 
         // add generic description
-        if (HumanwebSignal.dataSubKeyDes.hasOwnProperty(subKey)) {
+        if (Object.prototype.hasOwnProperty.call(HumanwebSignal.dataSubKeyDes, subKey)) {
           subKeyInfo.forEach((item) => {
-            item['des'] = HumanwebSignal.dataSubKeyDes[subKey] || '';
+            item.des = HumanwebSignal.dataSubKeyDes[subKey] || '';
           });
         }
         info = info.concat(subKeyInfo);
@@ -200,7 +202,7 @@ const HumanwebSignal = {
   },
 
   reformatSignals(sig) {
-    return (sig !== null && sig.hasOwnProperty(HumanwebSignal.dataKey)) ?
+    return (sig !== null && Object.prototype.hasOwnProperty.call(sig, HumanwebSignal.dataKey)) ?
       reformatSignalsFlat(sig, [HumanwebSignal.dataKey])
         .concat(HumanwebSignal.reformatDataKey(sig[HumanwebSignal.dataKey])) :
       reformatSignalsFlat(sig);
@@ -297,8 +299,9 @@ const Signals = {
           des: ''
         }];
       } else {
-        info[sigType] = Date.now() - SignalListener.SigCache[sigType].timestamp < Signals.sigExpireTime ?
-          Signals.reformatSignals(SignalListener.SigCache[sigType].sig, sigType) : [];
+        info[sigType] =
+          Date.now() - SignalListener.SigCache[sigType].timestamp < Signals.sigExpireTime ?
+            Signals.reformatSignals(SignalListener.SigCache[sigType].sig, sigType) : [];
       }
     });
     return info;

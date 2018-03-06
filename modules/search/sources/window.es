@@ -27,12 +27,11 @@ export default class SearchWindow extends AppWindow {
       this.blurEventProxy.next();
     },
 
-    'urlbar:input': ({ query, isTyped }) => {
+    'urlbar:input': ({ query, isTyped, keyCode }) => {
       if (!isTyped || !this.isEnabled) {
         return;
       }
-
-      this.inputEventProxy.next(query);
+      this.inputEventProxy.next({ query, keyCode });
     },
 
     'ui:click-on-url': (ev) => {
@@ -41,6 +40,18 @@ export default class SearchWindow extends AppWindow {
       }
 
       this.selectionEventProxy.next(ev);
+    },
+
+    'dropdown:result-selected': () => {
+      if (!this.isEnabled) {
+        return;
+      }
+
+      this.resultHighlightEventProxy.next();
+    },
+
+    'urlbar:dropmarker-click': () => {
+      this.inputEventProxy.next({ query: '', allowEmptyQuery: true });
     },
   };
 
@@ -63,6 +74,7 @@ export default class SearchWindow extends AppWindow {
     this.focusEventProxy = new ObservableProxy();
     this.blurEventProxy = new ObservableProxy();
     this.selectionEventProxy = new ObservableProxy();
+    this.resultHighlightEventProxy = new ObservableProxy();
 
     const focus$ = Rx.Observable.merge(
       this.focusEventProxy.observable.mapTo('focus'),
@@ -84,9 +96,29 @@ export default class SearchWindow extends AppWindow {
           },
         },
       },
+      operators: {
+        ...DEFAULT_CONFIG.operators,
+        offers: {
+          get nonOrganicPosition() {
+            return prefs.get('myoffrz.experiments.001.position', 'first');
+          },
+
+          get isEnabled() {
+            return prefs.get('offers2FeatureEnabled', true)
+              && prefs.get('offers2UserEnabled', true)
+              && prefs.get('offersDropdownSwitch', false);
+          },
+
+          get locationEnabled() {
+            return prefs.get('offers_location', 1) === 1;
+          }
+        }
+      }
     };
 
-    const results$ = search(query$, focus$, this.background.providers, config).share();
+    const highlight$ = this.resultHighlightEventProxy.observable.share();
+    const results$ = search({ query$, focus$, highlight$ },
+      this.background.providers, config).share();
     const selection$ = this.selectionEventProxy.observable;
 
     const telemetry$ = telemetry(focus$, results$, selection$);

@@ -3,6 +3,8 @@
 /* global require */
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style */
 
+const tldjs = require('tldjs');
+
 var prefRetVal = {};
 var currentTS = Date.now();
 var mockedTimestamp = Date.now() / 1000;
@@ -40,6 +42,9 @@ export default describeModule('offers-v2/trigger_machine/ops/history_expr',
     },
     'platform/environment': {
       default: {}
+    },
+    'platform/lib/tldjs': {
+      default: tldjs,
     },
     'core/time': {
       getDaysFromTimeRange: function(startTS, endTS) { },
@@ -172,6 +177,9 @@ export default describeModule('offers-v2/trigger_machine/ops/history_expr',
       utils: {
         setInterval: function() {},
       }
+    },
+    'core/helpers/timeout': {
+      default: function() { const stop = () => {}; return { stop }; }
     },
     'platform/console': {
       default: {},

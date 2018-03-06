@@ -72,6 +72,7 @@ class ShowTimeRow extends GenericResult {
     return this.rawResult.row.showtimes.map(showTime => new ShowTimeInfo({
       showTime,
       url: showTime.booking_link,
+      text: this.rawResult.text,
     }));
   }
 }
@@ -85,6 +86,7 @@ class ShowTimeDate extends GenericResult {
     return this.rawResult.rows.map(row => new ShowTimeRow({
       row,
       type: this.rawResult.type,
+      text: this.rawResult.text,
     }));
   }
 }
@@ -220,6 +222,7 @@ export default class MovieCinemaResult extends GenericResult {
       date: date.date,
       rows: this.isMovieEZ ? date.cinema_list : date.movie_list,
       type: this.isMovieEZ ? 'movie' : 'cinema',
+      text: this.query,
     }));
 
     return results;

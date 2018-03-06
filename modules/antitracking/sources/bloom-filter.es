@@ -281,9 +281,11 @@ export class AttrackBloomFilter extends QSWhitelistBase {
   }
 
   getVersion() {
-    return {
-      bloomFilterversion: this.bloomFilter ? this.bloomFilter.version : null
-    };
+    let bloomFilterversion = null;
+    if (this.bloomFilter && this.bloomFilter.version !== null &&
+        this.bloomFilter.version !== undefined) {
+      bloomFilterversion = this.bloomFilter.version;
+    }
+    return { bloomFilterversion };
   }
-
 }

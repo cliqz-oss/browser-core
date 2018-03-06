@@ -55,7 +55,7 @@ export default class RichHeader extends BackendProvider {
         this.id,
         config,
         query,
-        this.mapResults({ results, q: query }),
+        this.mapResults(results, query),
         'done',
       ))
       // TODO: do not emit empty result

@@ -60,7 +60,6 @@ document.addEventListener("DOMContentLoaded", function () {
         "autocomplete",
         "mobile-ui",
         "static",
-        "yt-downloader"
       ].map(loadModule)
     );
   }).then(function () {

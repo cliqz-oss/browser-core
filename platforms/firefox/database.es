@@ -1,8 +1,7 @@
-/* global PouchDB */
 import environment from './environment';
 import console from './console';
 import getWindowAPIAsync from './window-api';
-import { Components, Services } from '../platform/globals';
+import { Services } from '../platform/globals';
 
 let windowAPI = {
   IDBKeyRange: null
@@ -14,16 +13,15 @@ const global = {
   get IDBKeyRange() {
     if (typeof IDBKeyRange !== 'undefined') {
       return IDBKeyRange;
-    } else {
-      // in FF 57 IDBKeyRange is undefined in the bootstrapped context
-      // we should use a getter as the window() might not be initialized
-      // early in the browser startup process
-      return windowAPI.IDBKeyRange;
     }
+    // in FF 57 IDBKeyRange is undefined in the bootstrapped context
+    // we should use a getter as the window() might not be initialized
+    // early in the browser startup process
+    return windowAPI.IDBKeyRange;
   },
-  btoa,        //global anyway, exporting to be sure
-  atob,        //global anyway, exporting to be sure
-  escape,      //global anyway, exporting to be sure
+  btoa, // global anyway, exporting to be sure
+  atob, // global anyway, exporting to be sure
+  escape, // global anyway, exporting to be sure
   XMLHttpRequest,
   clearTimeout: environment.clearTimeout,
   setTimeout: environment.setTimeout,
@@ -66,7 +64,6 @@ const PROXY_WHITELIST = [
 ];
 
 export default function Database(...props) {
-
   if (!pouchPromise) {
     pouchPromise = getWindowAPIAsync().then((wAPI) => {
       windowAPI = wAPI;
@@ -88,9 +85,7 @@ export default function Database(...props) {
   const pouchProxy = new Proxy({}, {
     get(target, name) {
       if (PROXY_WHITELIST.indexOf(name) !== -1) {
-        return function(...args) {
-          return pouchInstance.then(() => pouch[name](...args));
-        }
+        return (...args) => pouchInstance.then(() => pouch[name](...args));
       }
       return (pouch || target)[name];
     }

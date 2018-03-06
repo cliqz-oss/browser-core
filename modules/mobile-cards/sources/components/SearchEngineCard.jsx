@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import Link from './Link';
 import Icon from './partials/Icon';
-import { elementSideMargins, cardMargins, getVPHeight, cardBorderRadius } from '../styles/CardStyle';
+import { elementSideMargins, cardMargins, getVPHeight, cardBorderTopRadius, cardBorderBottomRadius } from '../styles/CardStyle';
 import utils from '../../core/utils';
 import events from '../../core/events';
 import { getMessage } from '../../core/i18n';
@@ -68,7 +68,8 @@ const styles = function (backgroundColor, width) {
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: `#${backgroundColor}`,
-      ...cardBorderRadius,
+      ...cardBorderTopRadius,
+      ...cardBorderBottomRadius,
       ...cardMargins,
     },
     text: {

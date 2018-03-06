@@ -4,7 +4,7 @@
 :root {
     --tab-min-height: $tab-min-height;
     --tabs-border: rgba(0, 0, 0, 0.08); // Active tab border color and line below
-    // --tabs-border-color: rgba(0, 0, 0, 0.08); // Same as above (FF58)
+    --tabs-border-color: rgba(0, 0, 0, 0.08); // Same as above (FF58)
     --tab-toolbar-navbar-overlap: 0px;
 
     /* Override light theme variables */
@@ -41,7 +41,7 @@
         .titlebar-placeholder {
 
             &[type="pre-tabs"] {
-                width: 36px;
+                width: 43px;
             }
         }
 

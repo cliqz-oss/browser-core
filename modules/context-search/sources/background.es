@@ -1,3 +1,5 @@
+/* eslint func-names: 'off' */
+
 import { utils } from '../core/cliqz';
 import background from '../core/base/background';
 import ContextSearch from './context-search';

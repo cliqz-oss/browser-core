@@ -1,8 +1,9 @@
 import {utils} from '../core/cliqz';
 import MapCache from '../core/helpers/fixed-size-cache';
 import * as datetime from './time';
+import config from '../core/config';
 
-var privacyScoreURL = 'https://anti-tracking.cliqz.com/api/v1/score?';
+var privacyScoreURL = config.settings.PRIVACY_SCORE_URL;
 
 var PrivacyScore = function(tldHashRole) {
   this.tldHash = tldHashRole.substring(0, 16);

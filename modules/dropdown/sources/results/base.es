@@ -1,8 +1,12 @@
 /* eslint no-use-before-define: ["error", { "classes": false }] */
 import events from '../../core/events';
 import utils from '../../core/utils';
-import { equals } from '../../core/url';
+import { equals, cleanMozillaActions } from '../../core/url';
 import { getCurrentTabId } from '../../core/tabs';
+
+function mozEquals(url1, url2) {
+  return equals(cleanMozillaActions(url1)[1], cleanMozillaActions(url2)[1]);
+}
 
 export function getDeepResults(rawResult, type) {
   const deepResults = (rawResult.data && rawResult.data.deepResults) || [];
@@ -23,7 +27,7 @@ export default class BaseResult {
     // throw if main result is duplicate
     // TODO: move deduplication to autocomplete module
     if (this.rawResult.url) {
-      if (allResultsFlat.some(url => equals(url, this.url))) {
+      if (allResultsFlat.some(url => mozEquals(url, this.url))) {
         throw new Error('duplicate');
       } else {
         allResultsFlat.push(this.url);
@@ -43,7 +47,7 @@ export default class BaseResult {
             resultUrl = result.url;
           }
 
-          const isDuplicate = allResultsFlat.some(url => equals(url, resultUrl));
+          const isDuplicate = allResultsFlat.some(url => mozEquals(url, resultUrl));
           if (isDuplicate) {
             return filtered;
           }
@@ -66,6 +70,10 @@ export default class BaseResult {
 
   get query() {
     return this.rawResult.text;
+  }
+
+  get urlbarValue() {
+    return this.displayUrl || this.url;
   }
 
   get cssClasses() {
@@ -229,25 +237,28 @@ export default class BaseResult {
     return this.isHistory;
   }
 
-  click(window, href, ev) {
+  click(window, href, ev, resultChain = []) {
     if (this.isUrlMatch(href)) {
       const newTab = ev.altKey || ev.metaKey || ev.ctrlKey || ev.button === 1;
       const action = ev.code === 'Enter' ? 'enter' : 'click';
       // TODO: need to handle 'go-to' button (right arrow in URL bar)
-      const target = action === 'enter' ? 'urlbar' : 'results';
+      const parentResult = resultChain[0];
 
       events.pub('ui:click-on-url', {
         url: this.url,
         query: this.query,
-        rawResult: this.rawResult,
+        rawResult: Object.assign({}, parentResult && {
+          kind: parentResult.rawResult.kind,
+          type: parentResult.rawResult.type,
+          provider: parentResult.rawResult.provider,
+        }, this.rawResult),
         isNewTab: Boolean(newTab),
-        isPrivateWindow: utils.isPrivateMode(window),
+        isPrivateMode: utils.isPrivateMode(window),
         isPrivateResult: utils.isPrivateResultType(this.kind),
         isFromAutocompletedURL: this.isAutocompleted && ev.constructor.name === 'KeyboardEvent',
         windowId: utils.getWindowID(window),
         tabId: getCurrentTabId(window),
         action,
-        target,
       });
 
       // TODO: do not use global
@@ -256,9 +267,19 @@ export default class BaseResult {
       /* eslint-enable */
       // delegate to Firefox for full set of features like switch-to-tab
       // and all related telemetry probes
-      window.CLIQZ.Core.urlbar.handleCommand(ev, newTab ? 'tab' : 'current');
+      if (!newTab) {
+        window.CLIQZ.Core.urlbar.handleCommand(ev, 'current');
+      } else {
+        // for new tab we do not want to lose the focus and/or close the dropdown
+        utils.openLink(window, this.rawUrl || this.url, true, false, false, false);
+        // but we still want to report the correct search telemetry signal to FF
+        // for the search results
+        if (this.template === 'search') {
+          window.BrowserSearch.recordSearchInTelemetry(Services.search.defaultEngine, 'urlbar');
+        }
+      }
     } else {
-      this.findResultByUrl(href).click(window, href, ev);
+      this.findResultByUrl(href).click(window, href, ev, [...resultChain, this]);
     }
   }
 

@@ -5,45 +5,47 @@ import MapCache from './fixed-size-cache';
  * by Chen, Yi-Cyuan [emn178@gmail.com]
  */
 /* eslint-disable no-mixed-operators, no-bitwise, no-plusplus */
-'use strict';
 
-var state = new Int32Array(4);
-var buffer = new ArrayBuffer(68);
-var buffer8 = new Uint8Array(buffer);
-var blocks = new Uint32Array(buffer);
-var extra = new Int32Array([128, 32768, 8388608, -2147483648]);
-var hexChars = '0123456789abcdef'.split('');
+const state = new Int32Array(4);
+const buffer = new ArrayBuffer(68);
+const buffer8 = new Uint8Array(buffer);
+const blocks = new Uint32Array(buffer);
+const extra = new Int32Array([128, 32768, 8388608, -2147483648]);
+const hexChars = '0123456789abcdef'.split('');
 
-var finalized = false;
-var first = true;
-var hashed = false;
-var bytes = 0;
-var start = 0;
-var lastByteIndex;
+let finalized = false;
+let first = true;
+let hashed = false;
+let bytes = 0;
+let start = 0;
+let lastByteIndex;
 
 function add32(a, b) {
   return (a + b) & 0xFFFFFFFF;
 }
 
 function ff(a, b, c, d, x, s, t) {
-  var n = (a + (b & c | ~b & d) + (x >>> 0) + t)|0;
-  return (((n << s) | (n >>> (32 - s))) + b)|0;
+  const n = (a + (b & c | ~b & d) + (x >>> 0) + t) | 0;
+  return (((n << s) | (n >>> (32 - s))) + b) | 0;
 }
 function gg(a, b, c, d, x, s, t) {
-  var n = (a + (b & d | c & ~d) + (x >>> 0) + t)|0;
-  return (((n << s) | (n >>> (32 - s))) + b)|0;
+  const n = (a + (b & d | c & ~d) + (x >>> 0) + t) | 0;
+  return (((n << s) | (n >>> (32 - s))) + b) | 0;
 }
 function hh(a, b, c, d, x, s, t) {
-  var n = (a + (b ^ c ^ d) + (x >>> 0) + t)|0;
-  return (((n << s) | (n >>> (32 - s))) + b)|0;
+  const n = (a + (b ^ c ^ d) + (x >>> 0) + t) | 0;
+  return (((n << s) | (n >>> (32 - s))) + b) | 0;
 }
 function ii(a, b, c, d, x, s, t) {
-  var n = (a + (c ^ (b | ~d)) + (x >>> 0) + t)|0;
-  return (((n << s) | (n >>> (32 - s))) + b)|0;
+  const n = (a + (c ^ (b | ~d)) + (x >>> 0) + t) | 0;
+  return (((n << s) | (n >>> (32 - s))) + b) | 0;
 }
 
 function hash() {
-  var a, b, c, d, bc, da;
+  let a;
+  let b;
+  let c;
+  let d;
 
   if (first) {
     a = blocks[0] - 680876937;
@@ -141,7 +143,7 @@ function hash() {
     state[2] = add32(state[2], c);
     state[3] = add32(state[3], d);
   }
-};
+}
 
 function init() {
   blocks.fill(0);
@@ -157,17 +159,31 @@ function update(message) {
   if (finalized) {
     return;
   }
-  var length = message.length;
-  var code, index = 0, i;
+  const length = message.length;
+  let code;
+  let index = 0;
+  let i;
 
   while (index < length) {
     if (hashed) {
       hashed = false;
       blocks[0] = blocks[16];
-      blocks[16] = blocks[1] = blocks[2] = blocks[3] =
-      blocks[4] = blocks[5] = blocks[6] = blocks[7] =
-      blocks[8] = blocks[9] = blocks[10] = blocks[11] =
-      blocks[12] = blocks[13] = blocks[14] = blocks[15] = 0;
+      blocks[1] = 0;
+      blocks[2] = 0;
+      blocks[3] = 0;
+      blocks[4] = 0;
+      blocks[5] = 0;
+      blocks[6] = 0;
+      blocks[7] = 0;
+      blocks[8] = 0;
+      blocks[9] = 0;
+      blocks[10] = 0;
+      blocks[11] = 0;
+      blocks[12] = 0;
+      blocks[13] = 0;
+      blocks[14] = 0;
+      blocks[15] = 0;
+      blocks[16] = 0;
     }
 
     for (i = start; index < length && i < 64; ++index) {
@@ -199,31 +215,46 @@ function update(message) {
       start = i;
     }
   }
-};
+}
 
 function finalize() {
   if (finalized) {
     return;
   }
   finalized = true;
-  var i = lastByteIndex;
+  const i = lastByteIndex;
   blocks[i >> 2] |= extra[i & 3];
   if (i >= 56) {
     if (!hashed) {
       hash();
     }
     blocks[0] = blocks[16];
-    blocks[16] = blocks[1] = blocks[2] = blocks[3] =
-    blocks[4] = blocks[5] = blocks[6] = blocks[7] =
-    blocks[8] = blocks[9] = blocks[10] = blocks[11] =
-    blocks[12] = blocks[13] = blocks[14] = blocks[15] = 0;
+    blocks[1] = 0;
+    blocks[2] = 0;
+    blocks[3] = 0;
+    blocks[4] = 0;
+    blocks[5] = 0;
+    blocks[6] = 0;
+    blocks[7] = 0;
+    blocks[8] = 0;
+    blocks[9] = 0;
+    blocks[10] = 0;
+    blocks[11] = 0;
+    blocks[12] = 0;
+    blocks[13] = 0;
+    blocks[14] = 0;
+    blocks[15] = 0;
+    blocks[16] = 0;
   }
   blocks[14] = bytes << 3;
   hash();
 }
 
 function hex(x) {
-  var h0 = x[0], h1 = x[1], h2 = x[2], h3 = x[3];
+  const h0 = x[0];
+  const h1 = x[1];
+  const h2 = x[2];
+  const h3 = x[3];
   return hexChars[(h0 >> 4) & 0x0F] + hexChars[h0 & 0x0F] +
     hexChars[(h0 >> 12) & 0x0F] + hexChars[(h0 >> 8) & 0x0F] +
     hexChars[(h0 >> 20) & 0x0F] + hexChars[(h0 >> 16) & 0x0F] +
@@ -240,7 +271,7 @@ function hex(x) {
     hexChars[(h3 >> 12) & 0x0F] + hexChars[(h3 >> 8) & 0x0F] +
     hexChars[(h3 >> 20) & 0x0F] + hexChars[(h3 >> 16) & 0x0F] +
     hexChars[(h3 >> 28) & 0x0F] + hexChars[(h3 >> 24) & 0x0F];
-};
+}
 
 function md5(message) {
   init();
@@ -249,7 +280,7 @@ function md5(message) {
   return hex(state);
 }
 
-var md5Cache = new MapCache(md5, 1600);
+const md5Cache = new MapCache(md5, 1600);
 
 export default function cachedMD5(s) {
   if (!s) return '';

@@ -1,9 +1,10 @@
 import {
-  clone,
   clearIntervals,
-  waitFor,
-  Subject,
+  clone,
   defaultConfig,
+  expect,
+  Subject,
+  waitFor
 } from './helpers';
 
 const favoritesDial = i => ({
@@ -130,12 +131,13 @@ describe('Fresh tab interactions with favorites', function () {
       });
 
       it('sends a "favorite > click" telemetry signal', function () {
-        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+        expect(messages.has('sendTelemetry')).to.equal(true);
 
         const telemetrySignals = messages.get('sendTelemetry');
         let signalExist = false;
         let count = 0;
 
+        expect(telemetrySignals.length).to.be.above(0);
         telemetrySignals.forEach(function (item) {
           if ((item.args[0].type === 'home') &&
               (item.args[0].target === 'favorite') &&
@@ -146,8 +148,8 @@ describe('Fresh tab interactions with favorites', function () {
           }
         });
 
-        chai.expect(signalExist).to.be.true;
-        chai.expect(count).to.equal(1);
+        expect(signalExist).to.be.true;
+        expect(count).to.equal(1);
       });
     });
 
@@ -158,27 +160,28 @@ describe('Fresh tab interactions with favorites', function () {
       });
 
       it('renders an "Add a favorite" form', function () {
-        chai.expect(getComputedStyle(subject.query(addFormSelector).parentNode).display)
+        expect(subject.getComputedStyle(subject.query(addFormSelector).parentNode).display)
           .to.not.contain('none');
       });
 
       it('renders an "Add a favorite" form in a correct position', function () {
-        chai.expect(subject.queryAll('#section-favorites div.dial')[1]
+        expect(subject.queryAll('#section-favorites div.dial')[1]
           .contains(subject.query(addFormSelector))).to.be.true;
       });
 
       it('does not render the "+" button anymore', function () {
-        chai.expect(getComputedStyle(subject.query(favoritesPlusBtnSelector).parentNode).display)
+        expect(subject.getComputedStyle(subject.query(favoritesPlusBtnSelector).parentNode).display)
           .to.contain('none');
       });
 
       it('sends a "add_favorite > click" telemetry signal', function () {
-        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+        expect(messages.has('sendTelemetry')).to.equal(true);
 
         const telemetrySignals = messages.get('sendTelemetry');
         let signalExist = false;
         let count = 0;
 
+        expect(telemetrySignals.length).to.be.above(0);
         telemetrySignals.forEach(function (item) {
           if ((item.args[0].type === 'home') &&
               (item.args[0].target === 'add_favorite') &&
@@ -188,8 +191,8 @@ describe('Fresh tab interactions with favorites', function () {
           }
         });
 
-        chai.expect(signalExist).to.be.true;
-        chai.expect(count).to.equal(1);
+        expect(signalExist).to.be.true;
+        expect(count).to.equal(1);
       });
 
       describe("then clicking on the form's close button", function () {
@@ -199,22 +202,24 @@ describe('Fresh tab interactions with favorites', function () {
         });
 
         it('renders a "+" button', function () {
-          chai.expect(getComputedStyle(subject.query(favoritesPlusBtnSelector).parentNode).display)
+          expect(subject.getComputedStyle(subject
+            .query(favoritesPlusBtnSelector).parentNode).display)
             .to.not.contain('none');
         });
 
         it('does not render the "Add a favorite" form anymore', function () {
-          chai.expect(getComputedStyle(subject.query(addFormSelector).parentNode).display)
+          expect(subject.getComputedStyle(subject.query(addFormSelector).parentNode).display)
             .to.contain('none');
         });
 
         it('sends a "add_favorite > close > click" telemetry signal', function () {
-          chai.expect(messages.has('sendTelemetry')).to.equal(true);
+          expect(messages.has('sendTelemetry')).to.equal(true);
 
           const telemetrySignals = messages.get('sendTelemetry');
           let signalExist = false;
           let count = 0;
 
+          expect(telemetrySignals.length).to.be.above(0);
           telemetrySignals.forEach(function (item) {
             if ((item.args[0].type === 'home') &&
                 (item.args[0].view === 'add_favorite') &&
@@ -225,8 +230,8 @@ describe('Fresh tab interactions with favorites', function () {
             }
           });
 
-          chai.expect(signalExist).to.be.true;
-          chai.expect(count).to.equal(1);
+          expect(signalExist).to.be.true;
+          expect(count).to.equal(1);
         });
       });
     });
@@ -255,26 +260,27 @@ describe('Fresh tab interactions with favorites', function () {
       });
 
       it('renders a new favorite in the list', function () {
-        chai.expect(subject.queryAll('#section-favorites div.dial:not(.dial-plus)').length)
+        expect(subject.queryAll('#section-favorites div.dial:not(.dial-plus)').length)
           .to.equal(2);
-        chai.expect(subject.queryAll('#section-favorites div.dial')[1]
+        expect(subject.queryAll('#section-favorites div.dial')[1]
           .querySelector('div.title')).to.contain.text(amazonDial.displayTitle);
       });
 
       it('renders the "+" button as the last element', function () {
         const allDialsSelector = '#section-favorites div.dial';
         const allDialsItems = subject.queryAll(allDialsSelector);
-        chai.expect(allDialsItems.length).to.equal(3);
-        chai.expect(allDialsItems[2].className).to.contain('dial-plus');
+        expect(allDialsItems.length).to.equal(3);
+        expect(allDialsItems[2].className).to.contain('dial-plus');
       });
 
       it('sends a "add_favorite > click" telemetry signal', function () {
-        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+        expect(messages.has('sendTelemetry')).to.equal(true);
 
         const telemetrySignals = messages.get('sendTelemetry');
         let signalExist = false;
         let count = 0;
 
+        expect(telemetrySignals.length).to.be.above(0);
         telemetrySignals.forEach(function (item) {
           if ((item.args[0].type === 'home') &&
               (item.args[0].target === 'add_favorite') &&
@@ -284,17 +290,18 @@ describe('Fresh tab interactions with favorites', function () {
           }
         });
 
-        chai.expect(signalExist).to.be.true;
-        chai.expect(count).to.equal(1);
+        expect(signalExist).to.be.true;
+        expect(count).to.equal(1);
       });
 
       it('sends a "add_favorite > add > click" telemetry signal', function () {
-        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+        expect(messages.has('sendTelemetry')).to.equal(true);
 
         const telemetrySignals = messages.get('sendTelemetry');
         let signalExist = false;
         let count = 0;
 
+        expect(telemetrySignals.length).to.be.above(0);
         telemetrySignals.forEach(function (item) {
           if ((item.args[0].type === 'home') &&
               (item.args[0].view === 'add_favorite') &&
@@ -305,8 +312,8 @@ describe('Fresh tab interactions with favorites', function () {
           }
         });
 
-        chai.expect(signalExist).to.be.true;
-        chai.expect(count).to.equal(1);
+        expect(signalExist).to.be.true;
+        expect(count).to.equal(1);
       });
     });
 
@@ -325,37 +332,38 @@ describe('Fresh tab interactions with favorites', function () {
 
       describe('of the first element', function () {
         it('removes the element', function () {
-          chai.expect(favoritesDeletedTitle).to.equal(favoritesResponse[0].custom[0].displayTitle);
+          expect(favoritesDeletedTitle).to.equal(favoritesResponse[0].custom[0].displayTitle);
         });
 
         it('does not render any favorites elements', function () {
-          chai.expect(subject.queryAll(favoritesDialSelector).length).to.equal(0);
+          expect(subject.queryAll(favoritesDialSelector).length).to.equal(0);
         });
 
         it('renders only the "+" element', function () {
-          chai.expect(subject.queryAll(favoritesPlusSelector).length).to.equal(1);
+          expect(subject.queryAll(favoritesPlusSelector).length).to.equal(1);
         });
 
         it('renders a popup with undo message', function () {
-          chai.expect(subject.query(undoBoxSelector)).to.exist;
+          expect(subject.query(undoBoxSelector)).to.exist;
         });
 
         it('still renders the most visited area', function () {
-          chai.expect(subject.query(favoritesAreaSelector)).to.exist;
+          expect(subject.query(favoritesAreaSelector)).to.exist;
         });
 
         it('sends a "removeSpeedDial" message', function () {
-          chai.expect(messages.has('removeSpeedDial')).to.equal(true);
-          chai.expect(messages.get('removeSpeedDial').length).to.equal(1);
+          expect(messages.has('removeSpeedDial')).to.equal(true);
+          expect(messages.get('removeSpeedDial').length).to.equal(1);
         });
 
         it('sends a "delete_favorite > click" telemetry signal', function () {
-          chai.expect(messages.has('sendTelemetry')).to.equal(true);
+          expect(messages.has('sendTelemetry')).to.equal(true);
 
           const telemetrySignals = messages.get('sendTelemetry');
           let signalExist = false;
           let count = 0;
 
+          expect(telemetrySignals.length).to.be.above(0);
           telemetrySignals.forEach(function (item) {
             if ((item.args[0].type === 'home') &&
                 (item.args[0].target === 'delete_favorite') &&
@@ -366,8 +374,8 @@ describe('Fresh tab interactions with favorites', function () {
             }
           });
 
-          chai.expect(signalExist).to.be.true;
-          chai.expect(count).to.equal(1);
+          expect(signalExist).to.be.true;
+          expect(count).to.equal(1);
         });
 
         describe('then clicking on a close button of the undo popup', function () {
@@ -381,24 +389,25 @@ describe('Fresh tab interactions with favorites', function () {
           });
 
           it('removes the popup', function () {
-            chai.expect(subject.query(undoBoxSelector)).to.not.exist;
+            expect(subject.query(undoBoxSelector)).to.not.exist;
           });
 
           it('still does not render any favorites elements', function () {
-            chai.expect(favoritesAfterClickDialItems.length).to.equal(0);
+            expect(favoritesAfterClickDialItems.length).to.equal(0);
           });
 
           it('still renders the "+" element', function () {
-            chai.expect(subject.queryAll(favoritesPlusSelector).length).to.equal(1);
+            expect(subject.queryAll(favoritesPlusSelector).length).to.equal(1);
           });
 
           it('sends a "notification > close > click" telemetry signal', function () {
-            chai.expect(messages.has('sendTelemetry')).to.equal(true);
+            expect(messages.has('sendTelemetry')).to.equal(true);
 
             const telemetrySignals = messages.get('sendTelemetry');
             let signalExist = false;
             let count = 0;
 
+            expect(telemetrySignals.length).to.be.above(0);
             telemetrySignals.forEach(function (item) {
               if ((item.args[0].type === 'home') &&
                   (item.args[0].view === 'notification') &&
@@ -409,8 +418,8 @@ describe('Fresh tab interactions with favorites', function () {
               }
             });
 
-            chai.expect(signalExist).to.be.true;
-            chai.expect(count).to.equal(1);
+            expect(signalExist).to.be.true;
+            expect(count).to.equal(1);
           });
         });
 
@@ -425,43 +434,45 @@ describe('Fresh tab interactions with favorites', function () {
           });
 
           it('removes the popup', function () {
-            chai.expect(subject.query(undoBoxSelector)).to.not.exist;
+            expect(subject.query(undoBoxSelector)).to.not.exist;
           });
 
           it('renders the previously deleted element', function () {
             let deletedDialExists = false;
 
+            expect(favoritesAfterClickDialItems.length).to.be.above(0);
             [...favoritesAfterClickDialItems].forEach(function (dial) {
               if (dial.querySelector(favoritesDialTitleSelector).textContent
                       === favoritesDeletedTitle) {
                 deletedDialExists = true;
               }
             });
-            chai.expect(deletedDialExists).to.equal(true);
+            expect(deletedDialExists).to.equal(true);
           });
 
           it('still renders the "+" element', function () {
-            chai.expect(subject.queryAll(favoritesPlusSelector).length).to.equal(1);
+            expect(subject.queryAll(favoritesPlusSelector).length).to.equal(1);
           });
 
           it('renders the previously deleted element on correct position', function () {
-            chai.expect([...favoritesAfterClickDialItems][0]
+            expect([...favoritesAfterClickDialItems][0]
               .querySelector(favoritesDialTitleSelector).textContent)
               .to.equal(favoritesDeletedTitle);
           });
 
           it('sends a "addSpeedDial" message', function () {
-            chai.expect(messages.has('addSpeedDial')).to.equal(true);
-            chai.expect(messages.get('addSpeedDial').length).to.equal(1);
+            expect(messages.has('addSpeedDial')).to.equal(true);
+            expect(messages.get('addSpeedDial').length).to.equal(1);
           });
 
           it('sends a "notification > undo_delete_favorite > click" telemetry signal', function () {
-            chai.expect(messages.has('sendTelemetry')).to.equal(true);
+            expect(messages.has('sendTelemetry')).to.equal(true);
 
             const telemetrySignals = messages.get('sendTelemetry');
             let signalExist = false;
             let count = 0;
 
+            expect(telemetrySignals.length).to.be.above(0);
             telemetrySignals.forEach(function (item) {
               if ((item.args[0].type === 'home') &&
                   (item.args[0].view === 'notification') &&
@@ -471,8 +482,8 @@ describe('Fresh tab interactions with favorites', function () {
                     count += 1;
               }
             });
-            chai.expect(signalExist).to.be.true;
-            chai.expect(count).to.equal(1);
+            expect(signalExist).to.be.true;
+            expect(count).to.equal(1);
           });
         });
       });

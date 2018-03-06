@@ -2,6 +2,8 @@ import { equals, isCliqzAction } from '../core/url';
 import templates from './templates';
 import { clickSignal } from './telemetry';
 import ContextMenu from './context-menu';
+import events from '../core/events';
+import { Window } from '../platform/browser';
 
 export default class Dropdown {
   constructor(element, window, extensionID) {
@@ -65,6 +67,11 @@ export default class Dropdown {
   updateSelection() {
     this.clearSelection();
     this.selectResult(this.selectedResult);
+
+    events.pub('dropdown:result-selected', {
+      windowId: (new Window(this.window)).id,
+      selectedIndex: this.selectedIndex,
+    });
     return this.selectedResult;
   }
 

@@ -1,7 +1,3 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
   CliqzUtils,
   expect,
@@ -41,6 +37,7 @@ export default function () {
       // so we stay on the test page
       // because we hit Enter before dropdown is open,
       // this is not the openLink() function like in other tests
+      win.CLIQZ.Core.urlbar._handleCommand = win.CLIQZ.Core.urlbar.handleCommand;
       win.CLIQZ.Core.urlbar.handleCommand = function () {
         urlClicked = true;
       };
@@ -48,6 +45,11 @@ export default function () {
       withHistory([]);
       respondWith({ results });
       fillIn('qws');
+    });
+
+    afterEach(function () {
+      win.CLIQZ.Core.urlbar.handleCommand = win.CLIQZ.Core.urlbar._handleCommand;
+      delete win.CLIQZ.Core.urlbar._handleCommand;
     });
 
     context('after pressing Enter and Ctrl keys', function () {

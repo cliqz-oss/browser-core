@@ -1,11 +1,10 @@
 // Need to load views by hand so they will be ready once UI.js need them
 // This should be moved to UI as soon as it will be moved from dist to sources
 import background from '../core/base/background';
-import { utils, events } from '../core/cliqz';
+import { events } from '../core/cliqz';
 import prefs from '../core/prefs';
 import { isPlatformAtLeastInVersion } from '../core/platform';
 
-const DISMISSED_ALERTS = 'dismissedAlerts';
 const SEARCH_BAR_ID = 'search-container';
 const URL_BAR_ID = 'urlbar-container';
 const showSearchBar = 'dontHideSearchBar';
@@ -70,7 +69,9 @@ export default background({
 
   restoreSearchBar() {
     if (isPlatformAtLeastInVersion('57.0')) {
-      return; //Firefox 57 and above has the search widget hidden by default so we do not need to do anything
+      // Firefox 57 and above has the search widget hidden by default
+      // so we do not need to do anything
+      return;
     }
 
     if (CustomizableUI.getPlacementOfWidget(SEARCH_BAR_ID) !== null) {

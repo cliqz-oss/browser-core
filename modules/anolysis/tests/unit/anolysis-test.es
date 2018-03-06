@@ -182,7 +182,6 @@ export default describeModule('anolysis/anolysis',
           .then(() => chai.expect(anolysis.handleTelemetrySignal).to.not.have.been.called)
           .then(() => anolysis.storage.aggregated.getAggregatedDates())
           .then(dates => chai.expect(dates.sort()).to.be.eql([
-            '2016-12-01',
             '2016-12-02',
             '2016-12-03',
             '2016-12-04',

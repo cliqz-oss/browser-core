@@ -1,7 +1,3 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
   $cliqzResults,
   CliqzUtils,
@@ -16,21 +12,20 @@ import {
 import expectSelection from './common';
 import results from '../fixtures/resultsSoccerLiveTicker';
 
-
 export default function () {
   context('keyboard navigation for soccer liveticker', function () {
     let $resultElement;
     let $searchWithElement;
+    let firstElementArray;
+    let otherElementsArray;
+    let navigationArray;
     const query = 'liveticker bundesliga';
     const win = CliqzUtils.getWindow();
     const urlBar = win.CLIQZ.Core.urlbar;
     const searchWithSelector = '.result.search';
-    const parentSelector = `a.result[href="${results[0].url}"]`;
+    const parentSelector = `a.result[data-url="${results[0].url}"]`;
     const soccerTitleSelector = '.result.soccer-title';
     const soccerSelector = '.padded .soccer';
-    let firstElementArray = [];
-    let otherElementsArray = [];
-    let navigationArray = [];
 
     beforeEach(function () {
       withHistory([]);

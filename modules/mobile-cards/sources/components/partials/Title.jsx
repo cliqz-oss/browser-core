@@ -6,12 +6,13 @@ class Title extends React.Component {
 
   render() {
     const meta = this.props.meta;
-    return <View style={style(false).container}>
-        <Text numberOfLines={2} style={style(false).title}>
+    const color = this.props.isHistory ? '#551A8B' : 'black';
+    return <View style={style(color).container}>
+        <Text numberOfLines={2} style={style(color).title}>
           {this.props.title}
         </Text>
         { !!meta &&
-          <Text numberOfLines={1} style={style().meta}>
+          <Text numberOfLines={1} style={style(color).meta}>
             {meta}
           </Text>
         }
@@ -19,14 +20,14 @@ class Title extends React.Component {
   }
 }
 
-const style = function (isHistory) {
+const style = function (color) {
   return StyleSheet.create({
     container: {
       ...elementSideMargins,
       ...elementTopMargin,
     },
     title: {
-      color: 'black',
+      color,
       fontWeight: 'bold',
       fontSize: 15,
     },

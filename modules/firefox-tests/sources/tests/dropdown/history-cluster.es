@@ -1,7 +1,4 @@
 /* global window */
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
 
 import {
   $cliqzResults,
@@ -22,7 +19,7 @@ export default function ({ hasHistoryUrl }) {
       window.preventRestarts = true;
       respondWith({ results });
       withHistory(historyResults);
-      fillIn('amazon');
+      fillIn('partnernet.amazon');
       return waitForPopup().then(function () {
         $resultElement = $cliqzResults()[0];
       });
@@ -92,7 +89,7 @@ export default function ({ hasHistoryUrl }) {
           const clusterParentDomainSelector = 'div.history.cluster a.result:not(.history-cluster) span.url';
           const clusterParentDomainItem = $resultElement.querySelector(clusterParentDomainSelector);
           expect(clusterParentDomainItem).to.exist;
-          expect(clusterParentDomainItem).to.have.text('amazon.de');
+          expect(clusterParentDomainItem).to.have.text('partnernet.amazon.de');
         });
 
         it('renders with an existing and correct URL', function () {
@@ -155,10 +152,10 @@ export default function ({ hasHistoryUrl }) {
           const clusterUrlItem = $resultElement.querySelectorAll(clusterIconSelector);
 
           [...clusterUrlItem].forEach(function (element, i) {
-            expect(element.href).to.exist;
+            expect(element.dataset.url).to.exist;
 
             /* Order of rendered history is reverted, we also want to to skip the parent element */
-            expect(element.href)
+            expect(element.dataset.url)
               .to.equal(historyResults[historyResults.length - 2 - i].value);
           });
         });

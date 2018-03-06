@@ -1,0 +1,26 @@
+<head>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+}
+body {
+    padding: 20px;
+}
+#Container {
+    text-align: center;
+}
+</style>
+</head>
+<body>
+    <div id="Container">
+        <input type="text" id="input"></input>
+        <button onclick="javascript: doCalculator()">Calculate</button>
+        <p id="result"></p>
+    </div>
+    <script>
+        var script = document.createElement('script');
+        script.setAttribute('src', './debug.bundle.js?t='+Date.now());
+        document.body.appendChild(script);
+    </script>
+</body>

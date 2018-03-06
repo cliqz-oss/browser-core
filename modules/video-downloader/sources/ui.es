@@ -503,6 +503,7 @@ export default class UI {
           action: 'pushData',
           data: {
             unSupportedFormat: true,
+            isLiveVideo: e.message === 'live_video',
           },
         });
         // Should we send a different telemetry message here?

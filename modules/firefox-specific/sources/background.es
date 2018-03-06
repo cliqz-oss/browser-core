@@ -103,7 +103,7 @@ export default background({
     }
     /* eslint-enable */
 
-    HistoryManager.getStats(history => {
+    HistoryManager.getStats((history) => {
       const document = window.document;
       const navigator = window.navigator;
       const browserContainer = document.getElementById('browser');
@@ -124,7 +124,7 @@ export default background({
         prefs: utils.getCliqzPrefs(),
         defaultSearchEngine,
         isDefaultBrowser: utils.isDefaultBrowser(),
-        private_window: utils.isPrivate(window),
+        private_window: utils.isPrivateMode(window),
         distribution: prefs.get('distribution', ''),
         version_host: prefs.get('gecko.mstone', '', ''),
         version_dist: prefs.get('distribution.version', '', ''),

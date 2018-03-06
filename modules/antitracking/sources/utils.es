@@ -1,6 +1,6 @@
 import { toBase64 } from '../core/encoding';
 import { compress } from '../core/gzip';
-import { VERSION, DEFAULTS} from './config';
+import { VERSION, DEFAULTS } from './config';
 import { getHourTimestamp } from './time';
 import utils from '../core/utils';
 
@@ -71,4 +71,17 @@ export function generateAttrackPayload(data, ts, qsVersion) {
   extraAttrs.ctry = getCountryCode();
   ts = ts || getHourTimestamp();
   return generatePayload(data, ts, false, extraAttrs);
+}
+
+export function truncateDomain(host, depth) {
+  const generalDomain = host.domain;
+
+  if (host.isIp || host.hostname === generalDomain || generalDomain.length === 0) {
+    return host.hostname;
+  }
+
+  const subdomains = host.subdomain
+    .split('.')
+    .filter(p => p.length > 0);
+  return subdomains.slice(Math.max(subdomains.length - depth, 0)).join('.') + `.${generalDomain}`;
 }

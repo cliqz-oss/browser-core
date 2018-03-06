@@ -153,14 +153,14 @@ class Pagination extends React.Component {
     }
 
     const newsItems = pager.pages.map(page =>
-      <button
+      (<button
         href="#"
         key={page}
         className={`dash ${((page === pager.currentPage) ? 'active' : '')}`}
         onClick={() => this.onPageSelected(page)}
       >
         <span className="overflow-hidden">{page}</span>
-      </button>
+      </button>)
     );
     return (
       <div className="news-pagination">{newsItems}</div>

@@ -93,9 +93,9 @@ export default class PeerMaster {
   }
 
   get pairingData() {
-    const slaves = (this.slaves || []).map(({ name, peerID }) => {
+    const slaves = (this.slaves || []).map(({ name, peerID, version }) => {
       const isConnected = this.masterPeer && this.masterPeer.isPeerConnected(peerID);
-      return { name, id: peerID, status: isConnected ? 'connected' : 'disconnected' };
+      return { name, id: peerID, status: isConnected ? 'connected' : 'disconnected', version };
     });
     const pairing = Object.keys(this.pairingDevices).map(peerID => ({ id: peerID, status: 'pairing' }));
     return {

@@ -36,7 +36,7 @@ export default class TriggerMachine {
       ttl: 3600,
       condition: null,
       actions: [
-        ['$activate_subtriggers', [this.triggersRoot]]
+        ['$activate_subtriggers', [this.triggersRoot]],
       ]
     };
   }

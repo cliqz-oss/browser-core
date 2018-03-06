@@ -2,11 +2,8 @@ export default {
   'ticket-template-v0-no-image': {
     offer_id: '2',
     display_id: '2',
+    lang: 'de',
     template_name: 'ticket_template',
-    labels: [
-      'best_offer',
-      'exclusive'
-    ],
     template_data: {
       voucher_classes: '',
       title: 'Perfect Holidays? Only with the right ride!',

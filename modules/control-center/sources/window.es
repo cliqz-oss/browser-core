@@ -8,7 +8,7 @@ import { getThemeStyle } from '../platform/browser';
 
 const BTN_ID = 'cliqz-cc-btn';
 const TELEMETRY_TYPE = 'control_center';
-const TRIQZ_URL = 'https://cliqz.com/tips';
+const TRIQZ_URL = config.settings.TRIQZ_URL;
 
 export default class Win {
   constructor({ window, background, settings }) {
@@ -231,7 +231,7 @@ export default class Win {
         break;
       case 'inactive':
         this.core.action('enableModule', 'antitracking').then(() => {
-          events.pub('antitracking:whitelist:add', data.hostname);
+          events.pub('antitracking:whitelist:add', data.hostname, utils.isPrivateMode(this.window));
         });
         break;
       case 'critical':
@@ -410,13 +410,6 @@ export default class Win {
         this.window.document.getElementById('Tools:Sanitize').click();
         break;
       }
-      case 'moncomp': {
-        try {
-          const murl = utils.getPref('moncomp_endpoint', '') + this.window.gBrowser.selectedBrowser.currentURI.spec;
-          utils.openTabInWindow(this.window, murl);
-        } catch (err) { console.log(err); }
-        break;
-      }
       default: {
         const tab = utils.openLink(this.window, data.url, true);
         this.window.gBrowser.selectedTab = tab;
@@ -564,6 +557,7 @@ export default class Win {
   }
 
   sendMessageToPopup(message) {
+    message.isPrivate = utils.isPrivateMode(this.window);
     const msg = {
       target: 'cliqz-control-center',
       origin: 'window',

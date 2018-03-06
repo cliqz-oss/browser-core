@@ -10,7 +10,7 @@ $cliqz-blue: #0078CA;
 
    &:-moz-lwtheme {
         --tabs-border: rgba(0, 0, 0, 0.08); // Active tab border color and line below
-        // --tabs-border-color: rgba(0, 0, 0, 0.08); // Same as above (FF58)
+        --tabs-border-color: rgba(0, 0, 0, 0.08); // Same as above (FF58)
         --tab-line-color: $cliqz-blue; // Override the line effect on top of tabs
     }
 

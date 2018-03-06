@@ -5,17 +5,6 @@
 
 export default describeModule('offers-v2/features/geo_checker',
   () => ({
-    // 'core/platform': {
-    //   isChromium: false
-    // },
-    // 'core/cliqz': {
-    //   default: {
-    //     setInterval: function () {}
-    //   },
-    //   utils: {
-    //     setInterval: function () {}
-    //   }
-    // },
     'platform/console': {
       default: {}
     },
@@ -30,6 +19,9 @@ export default describeModule('offers-v2/features/geo_checker',
       utils: {
         setInterval: function() {},
       }
+    },
+    'core/helpers/timeout': {
+      default: function() { const stop = () => {}; return { stop }; }
     },
     'core/prefs': {
       default: {

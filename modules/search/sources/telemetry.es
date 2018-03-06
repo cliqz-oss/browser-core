@@ -20,8 +20,7 @@ const telemetry = (focus$, results$, selection$) => {
   const sessions$ = focus$
     // new session starts on URL bar focus
     .filter(ev => ev === 'focus')
-    // note: results are not used yet, but will be used in later stages
-    .switchMap(() => results$.startWith({})
+    .switchMap(() => results$.startWith([])
       .combineLatest(selection$.startWith({})))
     .share();
 
@@ -31,24 +30,25 @@ const telemetry = (focus$, results$, selection$) => {
     .withLatestFrom(sessions$)
     // remove 'blur'
     .map(([, session]) => session)
-    .map(([, selection]) => {
-      const result = selection.rawResult || {};
+    .map(([finalResults, selection]) => {
+      const selectedResult = selection.rawResult || {};
       const search = {
+        // TODO: split 'kind' into 'sources' and 'classes'
+        finalResults: finalResults.map(({ kind }) => ({ kind })),
         // TODO: add session duration
+        // TODO: rename into 'selectedResult'?
         selection: {
-          origin: getOrigin(result),
+          origin: getOrigin(selectedResult),
           action: selection.action,
-          target: selection.target,
-          isAutocomplete: selection.isFromAutocompletedURL,
+          isAutocomplete: !!selection.isFromAutocompletedURL,
           queryLength: selection.query && selection.query.length,
           // TODO: split 'kind' into 'sources' and 'classes'
           // TODO: verify that 'kind' contains the correct information for deep results
-          kind: result.kind,
+          kind: selectedResult.kind,
           // TODO: add 'isSearchEngine'
           // TODO: add 'element' (aka 'extra')
           // TODO: add 'index'
         },
-        // TODO: add (final) results stats
       };
       return {
         type: 'activity',

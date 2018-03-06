@@ -113,6 +113,7 @@ class ResultFactory {
         const result = ResultFactory.create(rawResult, allResultsFlat, {
           offers: {
             isEnabled: offersConfig.isUserEnabled(),
+            locationEnabled: offersConfig.isLocationEnabled(),
             nonOrganicStyle: offersConfig.getNonOrganicOfferStyle(),
             organicStyle: offersConfig.getOrganicOfferStyle(),
           }
@@ -146,6 +147,7 @@ export default class Results {
     adultAssistant,
     locationAssistant,
     rerender,
+    rawRerender,
     getSnippet,
     copyToClipboard,
     isNewSearchMode,
@@ -174,7 +176,7 @@ export default class Results {
 
       if (adultAssistant.isAskingForAdult) {
         this.addAdultQuestionResult({
-          onButtonClick: queryCliqz.bind(null, this.query),
+          onButtonClick: rawRerender,
           adultAssistant,
         }, actions);
       }
@@ -292,5 +294,13 @@ export default class Results {
 
   get hasCurrencyResults() {
     return this.results.some(r => r.isCurrency);
+  }
+
+  get isAutocompleteable() {
+    // isNotAutocompleteable is a little awkward name, but it is
+    // set like that so we have not regression for results that lack
+    // that property - thus instead of checking is results isAutocompleteable
+    // we check if it is not isNotAutocompleteable
+    return this.firstResult && !this.firstResult.isNotAutocompleteable;
   }
 }

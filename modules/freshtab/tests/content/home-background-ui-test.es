@@ -1,8 +1,9 @@
 import {
-  clone,
   clearIntervals,
-  Subject,
+  clone,
   defaultConfig,
+  expect,
+  Subject
 } from './helpers';
 
 describe('Fresh tab background UI', function () {
@@ -73,21 +74,21 @@ describe('Fresh tab background UI', function () {
     });
 
     it('with existing and correct class', function () {
-      chai.expect(subject.getComputedStyle('body.theme-bg-default')).to.exist;
+      expect(subject.getComputedStyle(subject.query('body.theme-bg-default'))).to.exist;
     });
 
     it('with correct background color', function () {
-      chai.expect(subject.getComputedStyle('body.theme-bg-default').background)
+      expect(subject.getComputedStyle(subject.query('body.theme-bg-default')).background)
         .to.contain('rgb(247, 247, 247)');
     });
 
     it('without any bg settings being selected', function () {
       const bsSettingsSelector = 'ul.background-selection-list';
-      chai.expect(subject.query(bsSettingsSelector)).to.not.exist;
+      expect(subject.query(bsSettingsSelector)).to.not.exist;
     });
 
     it('with background settings switch turned off', function () {
-      chai.expect(backgroundSwitch).to.have.property('checked', false);
+      expect(backgroundSwitch).to.have.property('checked', false);
     });
   });
 
@@ -107,21 +108,21 @@ describe('Fresh tab background UI', function () {
     });
 
     it('with existing and correct class', function () {
-      chai.expect(subject.getComputedStyle('body.theme-bg-blue')).to.exist;
+      expect(subject.getComputedStyle(subject.query('body.theme-bg-blue'))).to.exist;
     });
 
     it('with correct image source', function () {
-      chai.expect(subject.getComputedStyle('body.theme-bg-blue').backgroundImage)
+      expect(subject.getComputedStyle(subject.query('body.theme-bg-blue')).backgroundImage)
         .to.contain('https://cdn.cliqz.com/extension/newtab/background/alps.jpg');
     });
 
     it('with correct settings being selected', function () {
       const activeBgImage = 'img[data-bg="bg-blue"]';
-      chai.expect(subject.query(activeBgImage).className).to.contain('active');
+      expect(subject.query(activeBgImage).className).to.contain('active');
     });
 
     it('with background settings switch turned on', function () {
-      chai.expect(backgroundSwitch).to.have.property('checked', true);
+      expect(backgroundSwitch).to.have.property('checked', true);
     });
   });
 
@@ -141,21 +142,21 @@ describe('Fresh tab background UI', function () {
     });
 
     it('with existing and correct class', function () {
-      chai.expect(subject.getComputedStyle('body.theme-bg-dark')).to.exist;
+      expect(subject.getComputedStyle(subject.query('body.theme-bg-dark'))).to.exist;
     });
 
     it('with correct image source', function () {
-      chai.expect(subject.getComputedStyle('body.theme-bg-dark').backgroundImage)
+      expect(subject.getComputedStyle(subject.query('body.theme-bg-dark')).backgroundImage)
         .to.contain('https://cdn.cliqz.com/extension/newtab/background/dark.jpg');
     });
 
     it('with correct settings being selected', function () {
       const activeBgImage = 'img[data-bg="bg-dark"]';
-      chai.expect(subject.query(activeBgImage).className).to.contain('active');
+      expect(subject.query(activeBgImage).className).to.contain('active');
     });
 
     it('with background settings switch turned on', function () {
-      chai.expect(backgroundSwitch).to.have.property('checked', true);
+      expect(backgroundSwitch).to.have.property('checked', true);
     });
   });
 
@@ -175,21 +176,55 @@ describe('Fresh tab background UI', function () {
     });
 
     it('with existing and correct class', function () {
-      chai.expect(subject.getComputedStyle('body.theme-bg-light')).to.exist;
+      expect(subject.getComputedStyle(subject.query('body.theme-bg-light'))).to.exist;
     });
 
     it('with correct image source', function () {
-      chai.expect(subject.getComputedStyle('body.theme-bg-light').backgroundImage)
+      expect(subject.getComputedStyle(subject.query('body.theme-bg-light')).backgroundImage)
         .to.contain('https://cdn.cliqz.com/extension/newtab/background/light.jpg');
     });
 
     it('with correct settings being selected', function () {
       const activeBgImage = 'img[data-bg="bg-light"]';
-      chai.expect(subject.query(activeBgImage).className).to.contain('active');
+      expect(subject.query(activeBgImage).className).to.contain('active');
     });
 
     it('with background settings switch turned on', function () {
-      chai.expect(backgroundSwitch).to.have.property('checked', true);
+      expect(backgroundSwitch).to.have.property('checked', true);
+    });
+  });
+
+  context('rendered with matterhorn background', function () {
+    before(function () {
+      const config = clone(defaultConfig);
+      config.response.componentsState.background.image = 'bg-matterhorn';
+      subject.respondsWith(config);
+      return subject.load().then(function () {
+        backgroundSwitch = subject.queryByI18n('freshtab.app.settings.background.label')
+          .querySelector('input.switch');
+      });
+    });
+
+    after(function () {
+      subject.unload();
+    });
+
+    it('with existing and correct class', function () {
+      expect(subject.getComputedStyle(subject.query('body.theme-bg-matterhorn'))).to.exist;
+    });
+
+    it('with correct image source', function () {
+      expect(subject.getComputedStyle(subject.query('body.theme-bg-matterhorn')).backgroundImage)
+        .to.contain('https://cdn.cliqz.com/extension/newtab/background/matterhorn.jpg');
+    });
+
+    it('with correct settings being selected', function () {
+      const activeBgImage = 'img[data-bg="bg-matterhorn"]';
+      expect(subject.query(activeBgImage).className).to.contain('active');
+    });
+
+    it('with background settings switch turned on', function () {
+      expect(backgroundSwitch).to.have.property('checked', true);
     });
   });
 });

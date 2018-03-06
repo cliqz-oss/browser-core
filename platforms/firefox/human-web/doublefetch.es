@@ -1,10 +1,12 @@
+/* eslint no-bitwise: 'off' */
+
 import { equals as urlEquals } from '../../core/url';
 
 export function getRequest(url) {
   const promise = new Promise((resolve, reject) => {
     let errorMessage = null;
 
-    const req = Components.classes['@mozilla.org/xmlextras/xmlhttprequest;1'].createInstance();
+    const req = new XMLHttpRequest();
 
     /*
     We need a try catch block here, because there are some URLs which throw malformed URI error,
@@ -23,7 +25,7 @@ export function getRequest(url) {
     //  req.withCredentials = false;
     //  req.setRequestHeader("Authorization", "true");
 
-    req.onload = function () {
+    req.onload = () => {
       if (req.status !== 200 && req.status !== 0 /* local files */) {
         errorMessage = `status not valid: ${req.status}`;
         req.onerror();
@@ -40,10 +42,10 @@ export function getRequest(url) {
       }
     };
 
-    req.onerror = function () {
+    req.onerror = () => {
       reject(errorMessage);
     };
-    req.ontimeout = function () {
+    req.ontimeout = () => {
       errorMessage = 'timeout';
       req.onerror();
       reject(errorMessage);

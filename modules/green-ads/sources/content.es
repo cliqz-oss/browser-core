@@ -1,9 +1,12 @@
-import { registerContentScript
-       , throttle
-       , getWindowTreeInformation
-       , getWindowId
-       , CHROME_MSG_SOURCE
-       , isCliqzContentScriptMsg } from '../core/content/helpers';
+/* eslint no-param-reassign: 'off' */
+/* eslint no-restricted-syntax: 'off' */
+
+import { registerContentScript,
+  throttle,
+  getWindowTreeInformation,
+  getWindowId,
+  CHROME_MSG_SOURCE,
+  isCliqzContentScriptMsg } from '../core/content/helpers';
 import store from '../core/content/store';
 import Adblocker from '../platform/lib/adblocker-cosmetics';
 import logger from './logger';
@@ -21,9 +24,9 @@ function isChipDomain(url, window) {
 let selectedAds;
 
 
-/** *************************************************************************\
+/* **************************************************************************\
  *                              WINDOW UTILS
- ****************************************************************************/
+ *************************************************************************** */
 
 /**
  * Iterate on elements of the DOM dedicated to ads.
@@ -39,12 +42,12 @@ function forEachAdPlacement(window, cb) {
   // Iterate async
   return new Promise((resolve) => {
     // Find ads placements
-    for (var selector of selectors) {
-      var adsElements = window.document.querySelectorAll(selector);
+    for (const selector of selectors) {
+      const adsElements = window.document.querySelectorAll(selector);
       logger.debug(`[content] found ads emplacements: ${adsElements.length} for ${selector}`);
-      for (var ad of adsElements) {
+      for (const ad of adsElements) {
         try {
-          var result = cb(ad);
+          const result = cb(ad);
           // If the callback returns `false`, we stop iterating on placements.
           if (result === false) {
             logger.debug('[content] terminate early');
@@ -89,9 +92,9 @@ function getWindowParents(window) {
 
 
 function getUrlsToTop(url, window) {
-  var parents = [url];
-  var currentUrl = url;
-  var currentWindow = window;
+  const parents = [url];
+  let currentUrl = url;
+  let currentWindow = window;
 
   while (currentUrl !== currentWindow.parent.document.documentURI) {
     // Go up one level
@@ -148,26 +151,24 @@ function forEachVisibleFrame(element, cb, rec = false) {
     const frame = queue.pop();
     if (isElementVisible(frame)) {
       cb(frame);
-
-      if (!rec) continue;
     }
-
-    // Collect rec
-    frame.contentDocument.querySelectorAll('iframe').forEach((f) => {
-      queue.push(f);
-    });
+    if (rec) {
+      // Collect rec
+      frame.contentDocument.querySelectorAll('iframe').forEach((f) => {
+        queue.push(f);
+      });
+    }
   }
 }
 
 
 function greenAdsListenerOnAdDivs(args) {
   const {
-    documentUrl
-  , window
-  , send
-  , windowId
-  , windowTreeInformation
-  , throttle } = args;
+    documentUrl,
+    window,
+    send,
+    windowId,
+    windowTreeInformation } = args;
 
   // Attach listener to all native ads
   forEachAdPlacement(window, (element) => {
@@ -203,12 +204,12 @@ function greenAdsListenerOnAdDivs(args) {
 
 function greenAdsCollectIframesRec(args) {
   const {
-      url
-    , window
-    , send
-    , windowId
-    , windowTreeInformation
-    , documentUrl } = args;
+    url,
+    window,
+    send,
+    windowId,
+    windowTreeInformation,
+    documentUrl } = args;
 
   const parents = getWindowParents(window);
 
@@ -220,8 +221,8 @@ function greenAdsCollectIframesRec(args) {
       windowTreeInformation,
       hasCanvas: window.document.querySelector('canvas'),
       hrefs: [...window.document.querySelectorAll('a')]
-          .map(a => a.href)       // Select only href
-          .filter(href => href),  // Keep only non-empty ones
+        .map(a => a.href) // Select only href
+        .filter(href => href), // Keep only non-empty ones
       src: url,
       id: '',
       parents,
@@ -235,8 +236,8 @@ function greenAdsCollectIframesRec(args) {
         windowTreeInformation: getWindowTreeInformation(iframe.contentWindow),
         hasCanvas: iframe.contentDocument.querySelector('canvas') !== null,
         hrefs: [...iframe.contentDocument.querySelectorAll('a')]
-          .map(a => a.href)       // Select only href
-          .filter(href => href),  // Keep only non-empty ones
+          .map(a => a.href) // Select only href
+          .filter(href => href), // Keep only non-empty ones
         src: iframe.src,
         id: iframe.id || '',
         parents: getWindowParents(iframe.contentWindow),
@@ -253,7 +254,7 @@ function greenAdsCollectIframesRec(args) {
       action: 'onNewFrame',
       args: [
         windowTreeInformation,
-        documentUrl,  /* originUrl */
+        documentUrl, /* originUrl */
         Date.now(),
         {
           url,
@@ -266,16 +267,16 @@ function greenAdsCollectIframesRec(args) {
 }
 
 
-/** *************************************************************************\
+/* **************************************************************************\
  *                           INVENTORY MANAGEMENT
- ****************************************************************************/
+ *************************************************************************** */
 
-var SPECIAL_SYMBOL_RE = /[.\/,:!()[\];\"\'@?<>_#{}+&%$=-]/g;
-var NUMBER_RE = /[0-9]{4}/g;
+const SPECIAL_SYMBOL_RE = /[./,:!()[\];"'@?<>_#{}+&%$=-]/g;
+const NUMBER_RE = /[0-9]{4}/g;
 
 function processStr(str, replaceChar) {
   // Need to strip of any character like :,-; from the token with a space.
-  var cleanStr = str;
+  let cleanStr = str;
   try {
     cleanStr = decodeURIComponent(str);
   } catch (e) { /* ignore */ }
@@ -285,188 +286,42 @@ function processStr(str, replaceChar) {
   return cleanStr;
 }
 
-
-// This will parse the page body to get the tokens to match relevant ads.
-function getTokens(document, url, documentUrl, inventory) {
-  var adsToShow = {};
-
-  logger.debug('[content] Starting parsing');
-  var text = [];
-  // var tokenFrequency = {};
-
-  try {
-    var descriptionTag = document.querySelector('meta[name="description"]').content;
-    var cleanTag = processStr(descriptionTag, ' ');
-    cleanTag.split(' ').forEach( eachToken => {
-      // Check length of each token and it's not already present in text.
-      var cleanToken = processStr(eachToken, '');
-      // if (!tokenFrequency.hasOwnProperty(cleanToken)) tokenFrequency[cleanToken] = 0;
-      // tokenFrequency[cleanToken] += 1;
-      if(cleanToken.length >= 4 && inventory.tokens[cleanToken]) {
-        // text += ' ' + cleanToken;
-        text.push(cleanToken);
-      }
-    });
-  } catch(ee) {}
-
-  try {
-    var newsKeywords  = document.querySelector('meta[name="news_keywords"]').content;
-    var cleanNewsKeywords = processStr(newsKeywords,' ');
-    cleanNewsKeywords.split(',').forEach( eachToken => {
-      // Check length of each token and it's not already present in text.
-      var cleanToken = processStr(eachToken, '');
-      // if (!tokenFrequency.hasOwnProperty(eachToken)) tokenFrequency[eachToken] = 0;
-      // tokenFrequency[cleanToken] += 1;
-      if(cleanToken.length >= 4 && inventory.tokens[cleanToken]) {
-        // text += ' ' + cleanToken;
-        text.push(cleanToken);
-      }
-    });
-  } catch(ee) {}
-
-  // Let's get the headings.
-
-  try {
-    var paras  = Array.prototype.slice.call(document.querySelectorAll('p'));
-    paras.forEach( eachPara => {
-      var paraContent = eachPara.textContent;
-      if (paraContent) {
-        var cleanParaContent = processStr(paraContent, ' ');
-        cleanParaContent.split(' ').forEach( para => {
-          // Check length of each token and it's not already present in text.
-          var paraToken = processStr(para, '');
-          // if (!tokenFrequency.hasOwnProperty(paraToken)) tokenFrequency[paraToken] = 0;
-          // tokenFrequency[paraToken] += 1;
-          if( (paraToken.length >= 4 && inventory.tokens[paraToken])) {
-            // text += ' ' + altToken;
-            text.push(paraToken);
-            // logger.debug(`alt text 2 ${text}`);
-          }
-        });
-      }
-
-    });
-  } catch(ee) {}
-
-  // Let's get all the alt tags from images.
-  ['h1','h2','h3'].forEach( e => {
-    var headings = Array.prototype.slice.call(document.querySelectorAll(e));
-    if (headings) {
-      headings.forEach( y => {
-        var cleanContent = processStr(y.textContent, ' ');
-        cleanContent.split(' ').forEach( token => {
-          var cleanToken = processStr(token, '');
-          if( (cleanToken.length >= 4 && inventory.tokens[cleanToken])) {
-            text.push(cleanToken);
-          }
-        });
-      });
-    }
-  });
-
-  try {
-    var imgTags  = Array.prototype.slice.call(document.querySelectorAll('img'));
-    imgTags.forEach( imgTag => {
-      var altContent = imgTag.getAttribute('alt');
-      if (altContent) {
-        var cleanAltContent = processStr(altContent, ' ');
-        cleanAltContent.split(' ').forEach( alt => {
-          // Check length of each token and it's not already present in text.
-          var altToken = processStr(alt, '');
-          // if (!tokenFrequency.hasOwnProperty(altToken)) tokenFrequency[altToken] = 0;
-          // tokenFrequency[altToken] += 1;
-          if( (altToken.length >= 4 && inventory.tokens[altToken])) {
-            // text += ' ' + altToken;
-            text.push(altToken);
-            // logger.debug(`alt text 2 ${text}`);
-          }
-        });
-      }
-
-    });
-  } catch(ee) {}
-
-  // Let's go through all the <span> tags and get the titles.
-  try {
-    if(text.length < 1000) {
-      var spanTags = Array.prototype.slice.call(document.querySelectorAll('span'));
-      spanTags.forEach( eachSpan => {
-        var spanContent  = eachSpan.textContent;
-        if (spanContent) {
-          var cleanSpanContent = processStr(spanContent, ' ');
-          cleanSpanContent.split(' ').forEach( eachToken => {
-            var cleanToken = processStr(eachToken, '');
-            // if (!tokenFrequency.hasOwnProperty(cleanToken)) tokenFrequency[cleanToken] = 0;
-            // tokenFrequency[cleanToken] += 1;
-            if ( cleanToken.length > 4 && inventory.tokens[cleanToken] ) { // tokenFrequency[cleanToken] >=2 )) {
-              text.push(cleanToken);
-            }
-          });
-        }
-      });
-    }
-  } catch(ee) {}
-
-  if (url === documentUrl) {
-    selectedAds = {top_banner: [], normal: [], skyscraper: []};
-
-    var filteredAds = [];
-    var filteredTokens = [];
-    inventory.index['top_banner'] = 0;
-    inventory.index['normal'] = 0;
-    inventory.index['skyscraper'] = 0;
-
-    adsToShow['top_banner'] = [];
-    adsToShow['normal'] = [];
-    adsToShow['skyscraper'] = [];
-
-    matchAds(text, inventory.ads, adsToShow);
-  };
-
-
-  return adsToShow;
-}
-
-
-
-/** *************************************************************************\
- *                              TARGETING
- ****************************************************************************/
-
 function calMagnitude(map) {
-  var total = 0;
-  for (var token in map) {
-    total += map[token] * map[token];
+  let total = 0;
+  for (const token in map) {
+    if (Object.prototype.hasOwnProperty.call(map, token)) {
+      total += map[token] * map[token];
+    }
   }
 
   return Math.sqrt(total);
 }
 
-function similarityMatching(a, b){
-
+function similarityMatching(a, b) {
   // We preprocess the inventory selectors.
-  var tokenFrequencySelectors = {};
-  var tokenFrequencyPage = {};
-  var productAB = 0;
-  var allTokens = {};
-  var intersection = new Set();
-  var simScore = 0;
+  const tokenFrequencySelectors = {};
+  const tokenFrequencyPage = {};
+  let productAB = 0;
+  const allTokens = {};
+  const intersection = new Set();
+  let simScore = 0;
 
   // a => Selectors from the ad.
   // b => processed string from the page.
 
-  a.forEach( e => {
-    tokenFrequencySelectors[e] =  (tokenFrequencySelectors[e] || 0) + 1;
+  a.forEach((e) => {
+    tokenFrequencySelectors[e] = (tokenFrequencySelectors[e] || 0) + 1;
     allTokens[e] = 1;
   });
 
-  b.forEach( e => {
-    tokenFrequencyPage[e] =  (tokenFrequencyPage[e] || 0) + 1;
+  b.forEach((e) => {
+    tokenFrequencyPage[e] = (tokenFrequencyPage[e] || 0) + 1;
     allTokens[e] = 1;
   });
 
-  for (var token in allTokens) {
-    if (tokenFrequencySelectors.hasOwnProperty(token) && tokenFrequencyPage.hasOwnProperty(token)) {
+  for (const token in allTokens) {
+    if (Object.prototype.hasOwnProperty.call(tokenFrequencySelectors, token)
+      && Object.prototype.hasOwnProperty.call(tokenFrequencyPage, token)) {
       productAB += tokenFrequencySelectors[token] * tokenFrequencyPage[token];
       intersection.add(token);
     }
@@ -475,60 +330,206 @@ function similarityMatching(a, b){
   simScore = productAB / (calMagnitude(tokenFrequencySelectors) * calMagnitude(tokenFrequencyPage));
 
   if (isNaN(simScore)) simScore = 0;
-  return {s: simScore, i: [...intersection]};
+  return { s: simScore, i: [...intersection] };
 }
 
 function similarity(a, b) {
-  var a1 = a.slice();
-  var b1 = b.slice();
+  const a1 = a.slice();
+  const b1 = b.slice();
   return similarityMatching(a1, b1);
 }
 
-
 function matchAds(text, ads, adsToShow) {
   logger.debug(`[content] AD MATCHING STARTED ${text}`);
-  var tmpAds = {top_banner: [] , normal: [], skyscraper: []};
   ads.forEach((e) => {
-    var result = similarity(e.processedSelectors, text);
-    if (true) {
-      e['reason'] = JSON.stringify(result.i);
-      e['score'] = [];
+    const result = similarity(e.processedSelectors, text);
 
-      var keyname = `${result.s}:${e.id}`;
-      selectedAds[e.format][keyname] = e;
-    }
+    e.reason = JSON.stringify(result.i);
+    e.score = [];
+
+    const keyname = `${result.s}:${e.id}`;
+    selectedAds[e.format][keyname] = e;
   });
   logger.debug('[content] AD MATCHING finished');
 
-  var _topBannerKeys = Object.keys(selectedAds['top_banner']).sort((a,b) => {return b.split(':')[0] - a.split(':')[0]});
-  var topBannerKeys = _topBannerKeys.slice(0,4); // shuffle(_topBannerKeys.slice(0,5));
+  const _topBannerKeys = Object.keys(selectedAds.top_banner).sort((a, b) => b.split(':')[0] - a.split(':')[0]);
+  const topBannerKeys = _topBannerKeys.slice(0, 4); // shuffle(_topBannerKeys.slice(0,5));
 
-  topBannerKeys.forEach( e => {
-    adsToShow['top_banner'].push(selectedAds['top_banner'][e]);
+  topBannerKeys.forEach((e) => {
+    adsToShow.top_banner.push(selectedAds.top_banner[e]);
   });
 
-  var _normal = Object.keys(selectedAds['normal']).sort((a,b) => {return b.split(':')[0] - a.split(':')[0]});
-  var normal = _normal.slice(0,4); // shuffle(_normal.slice(0,5));
+  const _normal = Object.keys(selectedAds.normal).sort((a, b) => b.split(':')[0] - a.split(':')[0]);
+  const normal = _normal.slice(0, 4); // shuffle(_normal.slice(0,5));
 
 
-  normal.forEach( e => {
-    adsToShow['normal'].push(selectedAds['normal'][e]);
+  normal.forEach((e) => {
+    adsToShow.normal.push(selectedAds.normal[e]);
   });
 
-  var _skyScraperKeys = Object.keys(selectedAds['skyscraper']).sort((a,b) => {return b.split(':')[0] - a.split(':')[0]});
-  var skyScraperKeys = _skyScraperKeys.slice(0,4); // shuffle(_skyScraperKeys.slice(0,8));
+  const _skyScraperKeys = Object.keys(selectedAds.skyscraper).sort((a, b) => b.split(':')[0] - a.split(':')[0]);
+  const skyScraperKeys = _skyScraperKeys.slice(0, 4); // shuffle(_skyScraperKeys.slice(0,8));
 
-  skyScraperKeys.forEach( e => {
-    adsToShow['skyscraper'].push(selectedAds['skyscraper'][e]);
+  skyScraperKeys.forEach((e) => {
+    adsToShow.skyscraper.push(selectedAds.skyscraper[e]);
   });
 }
 
+// This will parse the page body to get the tokens to match relevant ads.
+function getTokens(document, url, documentUrl, inventory) {
+  const adsToShow = {};
+
+  logger.debug('[content] Starting parsing');
+  const text = [];
+  // const tokenFrequency = {};
+
+  try {
+    const descriptionTag = document.querySelector('meta[name="description"]').content;
+    const cleanTag = processStr(descriptionTag, ' ');
+    cleanTag.split(' ').forEach((eachToken) => {
+      // Check length of each token and it's not already present in text.
+      const cleanToken = processStr(eachToken, '');
+      // if (!tokenFrequency.hasOwnProperty(cleanToken)) tokenFrequency[cleanToken] = 0;
+      // tokenFrequency[cleanToken] += 1;
+      if (cleanToken.length >= 4 && inventory.tokens[cleanToken]) {
+        // text += ' ' + cleanToken;
+        text.push(cleanToken);
+      }
+    });
+  } catch (ee) {
+    // empty
+  }
+
+  try {
+    const newsKeywords = document.querySelector('meta[name="news_keywords"]').content;
+    const cleanNewsKeywords = processStr(newsKeywords, ' ');
+    cleanNewsKeywords.split(',').forEach((eachToken) => {
+      // Check length of each token and it's not already present in text.
+      const cleanToken = processStr(eachToken, '');
+      // if (!tokenFrequency.hasOwnProperty(eachToken)) tokenFrequency[eachToken] = 0;
+      // tokenFrequency[cleanToken] += 1;
+      if (cleanToken.length >= 4 && inventory.tokens[cleanToken]) {
+        // text += ' ' + cleanToken;
+        text.push(cleanToken);
+      }
+    });
+  } catch (ee) {
+    // empty
+  }
+
+  // Let's get the headings.
+
+  try {
+    const paras = Array.prototype.slice.call(document.querySelectorAll('p'));
+    paras.forEach((eachPara) => {
+      const paraContent = eachPara.textContent;
+      if (paraContent) {
+        const cleanParaContent = processStr(paraContent, ' ');
+        cleanParaContent.split(' ').forEach((para) => {
+          // Check length of each token and it's not already present in text.
+          const paraToken = processStr(para, '');
+          // if (!tokenFrequency.hasOwnProperty(paraToken)) tokenFrequency[paraToken] = 0;
+          // tokenFrequency[paraToken] += 1;
+          if ((paraToken.length >= 4 && inventory.tokens[paraToken])) {
+            // text += ' ' + altToken;
+            text.push(paraToken);
+            // logger.debug(`alt text 2 ${text}`);
+          }
+        });
+      }
+    });
+  } catch (ee) {
+    // empty
+  }
+
+  // Let's get all the alt tags from images.
+  ['h1', 'h2', 'h3'].forEach((e) => {
+    const headings = Array.prototype.slice.call(document.querySelectorAll(e));
+    if (headings) {
+      headings.forEach((y) => {
+        const cleanContent = processStr(y.textContent, ' ');
+        cleanContent.split(' ').forEach((token) => {
+          const cleanToken = processStr(token, '');
+          if ((cleanToken.length >= 4 && inventory.tokens[cleanToken])) {
+            text.push(cleanToken);
+          }
+        });
+      });
+    }
+  });
+
+  try {
+    const imgTags = Array.prototype.slice.call(document.querySelectorAll('img'));
+    imgTags.forEach((imgTag) => {
+      const altContent = imgTag.getAttribute('alt');
+      if (altContent) {
+        const cleanAltContent = processStr((altContent), ' ');
+        cleanAltContent.split(' ').forEach((alt) => {
+          // Check length of each token and it's not already present in text.
+          const altToken = processStr(alt, '');
+          // if (!tokenFrequency.hasOwnProperty(altToken)) tokenFrequency[altToken] = 0;
+          // tokenFrequency[altToken] += 1;
+          if ((altToken.length >= 4 && inventory.tokens[altToken])) {
+            // text += ' ' + altToken;
+            text.push(altToken);
+            // logger.debug(`alt text 2 ${text}`);
+          }
+        });
+      }
+    });
+  } catch (ee) {
+    // empty
+  }
+
+  // Let's go through all the <span> tags and get the titles.
+  try {
+    if (text.length < 1000) {
+      const spanTags = Array.prototype.slice.call(document.querySelectorAll('span'));
+      spanTags.forEach((eachSpan) => {
+        const spanContent = eachSpan.textContent;
+        if (spanContent) {
+          const cleanSpanContent = processStr((spanContent), ' ');
+          cleanSpanContent.split(' ').forEach((eachToken) => {
+            const cleanToken = processStr(eachToken, '');
+            // if (!tokenFrequency.hasOwnProperty(cleanToken)) tokenFrequency[cleanToken] = 0;
+            // tokenFrequency[cleanToken] += 1;
+            if (cleanToken.length > 4 && inventory.tokens[cleanToken]) {
+              text.push(cleanToken);
+            }
+          });
+        }
+      });
+    }
+  } catch (ee) {
+    // empty
+  }
+
+  if (url === documentUrl) {
+    selectedAds = { top_banner: [], normal: [], skyscraper: [] };
+
+    inventory.index.top_banner = 0;
+    inventory.index.normal = 0;
+    inventory.index.skyscraper = 0;
+
+    adsToShow.top_banner = [];
+    adsToShow.normal = [];
+    adsToShow.skyscraper = [];
+
+    matchAds(text, inventory.ads, adsToShow);
+  }
+
+  return adsToShow;
+}
+
+/* **************************************************************************\
+ *                              TARGETING
+ *************************************************************************** */
 
 function getNextAd(id, adsToShow) {
   // Needs to be fixed, if any of the ad types is missing goes into an infinte loop.
   // If ADS is not available it stalls the page.
 
-  var format;
+  let format;
   logger.debug(`[content] LOOK FOR ADS ${id}`);
 
   if (id.indexOf('native-slot') !== -1) {
@@ -556,22 +557,24 @@ function getNextAd(id, adsToShow) {
     };
   }
 
-  var inspected = 0;
-  // var key = Object.keys(selectedAds[format]).sort(function(a, b){return b-a})[inventory.index[format]];
-  // var ad = adsToShow[format][inventory.index[format]];
-  var ad = adsToShow[format][Math.floor(Math.random(0, 1) * adsToShow[format].length)];
+  let inspected = 0;
+  // const key = Object.keys(selectedAds[format])
+  //   .sort(function(a, b){return b-a})[inventory.index[format]];
+  // const ad = adsToShow[format][inventory.index[format]];
+  let ad = adsToShow[format][Math.floor(Math.random(0, 1) * adsToShow[format].length)];
 
   // inventory.index[ad.format] = (inventory.index[ad.format] + 1) % adsToShow[format].length;
 
-  var reason = [`${ad.reason} >>> ${ad.score}`];
+  let reason = [`${ad.reason} >>> ${ad.score}`];
   while (!(ad.format === format && reason.length > 0)) {
     // If we inspected all ads but none was found, we break the loop
     if (inspected >= adsToShow.length) {
       break;
     }
 
-    // var key = Object.keys(selectedAds[format]).sort(function(a, b){return b-a})[inventory.index[format]];
-    // var ad = adsToShow[format][inventory.index[format]];
+    // const key = Object.keys(selectedAds[format])
+    //   .sort(function(a, b){return b-a})[inventory.index[format]];
+    // const ad = adsToShow[format][inventory.index[format]];
     ad = adsToShow[format][Math.floor(Math.random(0, 1) * adsToShow[format].length)];
     // Konark hack: not to be pushed to prod.
     // reason = selectorMatch(text, ad.selectors, ad.brand);
@@ -595,7 +598,15 @@ function getNextAd(id, adsToShow) {
 }
 
 
-function greenAdsInsertChipAds({ url, window, send, windowId, windowTreeInformation, documentUrl, inventory, throttle }) {
+function greenAdsInsertChipAds({
+  url,
+  window,
+  send,
+  windowId,
+  windowTreeInformation,
+  documentUrl,
+  inventory
+}) {
   // Keep track of how many ads we displayed
   let displayed = 0;
 
@@ -678,18 +689,18 @@ function greenAdsInsertChipAds({ url, window, send, windowId, windowTreeInformat
 }
 
 
-/** *************************************************************************\
+/* **************************************************************************\
  *                             EVENT LISTENERS
- ****************************************************************************/
+ *************************************************************************** */
 
 
 function greenAdsOnDOMCreated(args) {
-  const { window
-        , send
-        , windowId
-        , windowTreeInformation
-        , mode
-        , documentUrl } = args;
+  const { window,
+    send,
+    windowId,
+    windowTreeInformation,
+    mode,
+    documentUrl } = args;
   const {
     tabId,
     frameId,
@@ -723,7 +734,7 @@ function greenAdsOnDOMCreated(args) {
 
 
 function greenAdsOnDOMLoaded(args) {
-  var {
+  const {
     url,
     window,
     send,
@@ -731,10 +742,9 @@ function greenAdsOnDOMLoaded(args) {
     windowTreeInformation,
     mode,
     inventory,
-    documentUrl,
-    throttle } = args;
+    documentUrl } = args;
 
-  var {
+  const {
     tabId,
     frameId,
   } = windowTreeInformation;
@@ -761,7 +771,15 @@ function greenAdsOnDOMLoaded(args) {
       // injectCSS(window, 'banner', _css);
 
       // Async
-      return greenAdsInsertChipAds({ url, window, send, windowId, windowTreeInformation, documentUrl, inventory, throttle })
+      return greenAdsInsertChipAds({
+        url,
+        window,
+        send,
+        windowId,
+        windowTreeInformation,
+        documentUrl,
+        inventory,
+        throttle })
         .then(() => unhideDocument(window))
         .then(() => {
           // In green mode, full load is after ads have been loaded.
@@ -782,6 +800,7 @@ function greenAdsOnDOMLoaded(args) {
         });
     }
   }
+  return undefined;
 }
 
 
@@ -792,8 +811,7 @@ function greenAdsOnFullLoad(args) {
     send,
     windowId,
     windowTreeInformation,
-    documentUrl,
-    throttle } = args;
+    documentUrl } = args;
 
   const {
     tabId,

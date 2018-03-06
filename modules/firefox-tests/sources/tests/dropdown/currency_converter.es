@@ -1,7 +1,3 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
   $cliqzResults,
   expect,
@@ -65,7 +61,7 @@ export default function () {
       it('source link is correct', function () {
         const sourceSelector = '.source-link';
         expect($resultElement).to.contain(sourceSelector);
-        expect($resultElement.querySelector('.source-link').href).to.equal(results[0].url);
+        expect($resultElement.querySelector('.source-link').dataset.url).to.equal(results[0].url);
       });
     });
   });

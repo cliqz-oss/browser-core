@@ -3,7 +3,11 @@ Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import("resource://gre/modules/FileUtils.jsm");
 Cu.import("resource://gre/modules/NetUtil.jsm");
 Cu.import("resource://gre/modules/FileUtils.jsm");
+Cu.import("resource://gre/modules/Services.jsm");
 Cu.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+
+var EventUtils = {};
+Services.scriptloader.loadSubScript('chrome://cliqz/content/firefox-tests/EventUtils.js', EventUtils);
 
 function loadModule(moduleName) {
   const mod = getWindow().CLIQZ.app.debugModules[moduleName];
@@ -186,12 +190,6 @@ afterEach(function () {
   CliqzUtils.fetchAndStoreConfig = fetchAndStoreConfig;
   CliqzHumanWeb.fetchAndStoreConfig = fetchAndStoreHM;
   CliqzABTests.check = abCheck;
-
-  // clear urlbar
-  setUserInput("");
-  // if we don't blur, there can be problems with old results appearing...
-  win.gURLBar.blur();
-  win.gURLBar.mInputField.blur();
 
   // clean waitFor side effects
   clearIntervals();

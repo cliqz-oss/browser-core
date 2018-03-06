@@ -81,18 +81,11 @@ export default background({
   },
 
   browserDetection() {
-    var pref = 'detection',
-        sites = ["https://www.ghostery.com", "https://ghostery.com"];
-
-    // make sure we only do it once
-    if(utils.getPref(pref, false) !== true){
-      utils.setPref(pref, true);
-
-      sites.forEach(function(url){
-          var ls = new Storage(url)
-          if (ls) ls.setItem("cliqz", true)
-      });
-    }
+    const sites = ["https://www.ghostery.com", "https://ghostery.com"];
+    sites.forEach(function(url){
+      var ls = new Storage(url)
+      if (ls) ls.setItem("cliqz", true)
+    });
   },
 
   actions: {

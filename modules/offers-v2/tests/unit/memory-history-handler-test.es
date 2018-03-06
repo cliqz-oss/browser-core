@@ -42,6 +42,9 @@ export default describeModule('offers-v2/pattern-matching/memory-history-handler
         setInterval: function () {}
       }
     },
+    'core/helpers/timeout': {
+      default: function() { const stop = () => {}; return { stop }; }
+    },
     'core/crypto/random': {
     },
     'platform/console': {

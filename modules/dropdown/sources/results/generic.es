@@ -30,6 +30,7 @@ export default class GenericResult extends BaseResult {
     if (offers) {
       this.offerStyle = offers.organicStyle;
       this.offerEnabled = offers.isEnabled;
+      this.offerLocationEnabled = offers.locationEnabled;
     }
   }
 

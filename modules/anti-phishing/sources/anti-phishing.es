@@ -1,9 +1,14 @@
+/* eslint no-restricted-syntax: 'off' */
+/* eslint no-param-reassign: 'off' */
+/* eslint no-console: 'off' */
+
 import utils from '../core/utils';
 import md5 from '../core/helpers/md5';
 import inject from '../core/kord/inject';
 import fetch from '../platform/fetch';
 import { LazyPersistentObject } from '../core/persistent-state';
 import * as datetime from '../antitracking/time';
+import config from '../core/config';
 
 function queryHTML(...args) {
   const core = inject.module('core');
@@ -65,11 +70,11 @@ function checkHTML(url, callback) {
       return;
     }
 
-    if (html.indexOf('progress-bar-warning') > -1
+    if ((html.indexOf('progress-bar-warning') > -1
         && html.indexOf('progress-bar-success') > -1
+        && html.indexOf('buffer-progress') > -1)
         || html.indexOf('play-progress') > -1
-        && html.indexOf('buffer-progress') > -1) {
-
+    ) {
       callback(url, 'cheat');
       return;
     }
@@ -96,10 +101,8 @@ function checkScript(url, callback) {
       }
 
       return fetch(src)
-      .then(response => response.text())
-      .then(text => {
-        return checkSingleScript(text);
-      });
+        .then(response => response.text())
+        .then(text => checkSingleScript(text));
     });
 
     if (suspicious) {
@@ -136,7 +139,7 @@ const CliqzAntiPhishing = {
   WHITELISTED_SAFE: 1,
   WHITELISTED_TEMPORARY: 2,
   WHITELISTED_PERMANENTLY: 3,
-  BW_URL: 'https://antiphishing.cliqz.com/api/bwlist?md5=',
+  BW_URL: config.settings.BW_URL,
   DELAY: 24,
   forceWhiteList: new LazyPersistentObject('anti-phishing-fw'),
   blackWhiteList: new LazyPersistentObject('anti-phishing-bw'),
@@ -246,7 +249,7 @@ const CliqzAntiPhishing = {
   },
 
   isInABTest() {
-    return utils.getPref('cliqz-anti-phishing', false)
+    return utils.getPref('cliqz-anti-phishing', false);
   },
 
   isAntiPhishingActive() {

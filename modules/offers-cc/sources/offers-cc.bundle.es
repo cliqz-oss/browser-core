@@ -119,6 +119,15 @@ function draw(data) {
     // return;
   }
 
+  $('.tooltip').tooltipster({
+    theme: ['tooltipster-shadow', 'tooltipster-shadow-customized'],
+    interactive: true,
+    delay: 150,
+    animationDuration: 150,
+    position: ['left']
+  });
+
+
   localizeDocument();
   resize();
 }
@@ -280,15 +289,6 @@ $(document).on('click', '.promocode-wrapper', function itemClick() {
   }
 });
 
-$(document).on('click', '.condition', function itemClick(e) {
-  e.stopPropagation();
-  $(this).next().toggleClass('active');
-});
-
-$(document).on('click', '.condition-wrapper', (e) => {
-  e.stopPropagation();
-});
-
 $(document).on('click', '.setting', function itemClick(e) {
   e.stopPropagation();
   $(this).closest('.logo-wrapper').toggleClass('menu-opened');
@@ -302,6 +302,18 @@ $(document).on('click', '.cta-btn', function itemClick() {
       closePopup: true,
       isCallToAction: true,
       offerId: getOfferId($(this)),
+    }
+  });
+});
+
+$(document).on('click', '.cta-element', function itemClick() {
+  sendMessageToWindow({
+    action: 'openURL',
+    data: {
+      url: $(this).data('url'),
+      closePopup: true,
+      isCallToAction: true,
+      offerId: getOfferId($(this))
     }
   });
 });
@@ -390,7 +402,6 @@ $(document).on('click', '.tooltip', () => {
 
 $(document).on('click', '#cliqz-offers-cc', () => {
   $('.logo-wrapper.menu-opened').removeClass('menu-opened');
-  $('.condition-wrapper.active').removeClass('active');
 });
 
 function messageHandler(message) {
