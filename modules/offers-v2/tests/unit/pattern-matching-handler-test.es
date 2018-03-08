@@ -3,7 +3,6 @@
 /* global require */
 
 const encoding = require('text-encoding');
-const tldjs = require('tldjs');
 
 const TextDecoder = encoding.TextDecoder;
 const TextEncoder = encoding.TextEncoder;
@@ -111,9 +110,6 @@ function buildUrlToTest(domains, queries, toMatchCount, notMatchCount) {
 
 export default describeModule('offers-v2/pattern-matching/pattern-matching-handler',
   () => ({
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
     'platform/text-decoder': {
       default: TextDecoder,
     },
@@ -140,9 +136,6 @@ export default describeModule('offers-v2/pattern-matching/pattern-matching-handl
       utils: {
         setInterval: function () {}
       }
-    },
-    'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
     },
     'core/crypto/random': {
     },
@@ -337,12 +330,12 @@ export default describeModule('offers-v2/pattern-matching/pattern-matching-handl
           toMatchUrls.forEach((u) => {
             const turl = tokenizeUrl(u);
             chai.expect(turl).to.exist;
-            chai.expect(pmh.itMatches(turl, pobj), `to match ${u} failed`).eql(true);
+            chai.expect(pmh.itMatches(turl, pobj), `url: ${u}`).eql(true);
           });
           toNotMatchUrls.forEach((u) => {
             const turl = tokenizeUrl(u);
             chai.expect(turl).to.exist;
-            chai.expect(pmh.itMatches(turl, pobj), `to not match ${u} failed`).eql(false);
+            chai.expect(pmh.itMatches(turl, pobj)).eql(false);
           });
         });
 
@@ -364,12 +357,12 @@ export default describeModule('offers-v2/pattern-matching/pattern-matching-handl
           toMatchUrls.forEach((u) => {
             const turl = tokenizeUrl(u);
             chai.expect(turl).to.exist;
-            chai.expect(pmh.itMatches(turl, pobj), `to match ${u} failed`).eql(true);
+            chai.expect(pmh.itMatches(turl, pobj)).eql(true);
           });
           toNotMatchUrls.forEach((u) => {
             const turl = tokenizeUrl(u);
             chai.expect(turl).to.exist;
-            chai.expect(pmh.itMatches(turl, pobj), `to not match ${u} failed`).eql(false);
+            chai.expect(pmh.itMatches(turl, pobj)).eql(false);
           });
         });
 

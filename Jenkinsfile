@@ -1,5 +1,4 @@
 #!/bin/env groovy
-import groovy.time.*
 
 @Library('cliqz-shared-library@v1.2') _
 
@@ -15,47 +14,39 @@ properties([
 def matrix = [
     'unit tests': [
         'gpu': false,
-        'testParams': 'configs/ci/unit-tests.js -l unit-node',
+        'testParams': 'configs/unit-tests.json -l unit-node',
     ],
     'browser: content': [
         'gpu': true,
-        'testParams': 'configs/ci/browser.js -l chromium',
+        'testParams': 'configs/browser.js -l chromium',
+    ],
+    'mobile: content': [
+        'gpu': true,
+        'testParams': 'configs/mobile.json -l chromium',
     ],
     'firefox 52': [
         'gpu': true,
-        'testParams': 'configs/ci/browser.js -l firefox-web-ext --firefox ~/firefox52/firefox/firefox',
+        'testParams': 'configs/jenkins.js -l firefox-web-ext --firefox ~/firefox52/firefox/firefox',
     ],
     'firefox 56': [
         'gpu': true,
-        'testParams': 'configs/ci/browser.js -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
-    ],
-    'firefox 58': [
-        'gpu': true,
-        'testParams': 'configs/ci/browser.js -l firefox-web-ext --firefox ~/firefox58/firefox/firefox',
-    ],
-    'firefox beta': [
-        'gpu': true,
-        'testParams': 'configs/ci/browser.js -l firefox-web-ext --firefox ~/firefoxBeta/firefox/firefox',
-    ],
-    'firefox nightly': [
-        'gpu': true,
-        'testParams': 'configs/ci/browser.js -l firefox-web-ext --firefox ~/firefoxNightly/firefox/firefox',
+        'testParams': 'configs/jenkins.js -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
     ],
     'new mixer': [
         'gpu': true,
-        'testParams': 'configs/ci/browser-new-mixer.js -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
+        'testParams': 'configs/jenkins-new-mixer.js -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
     ],
     'funnelcake 56': [
         'gpu': true,
-        'testParams': 'configs/ci/funnelcake.js -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
+        'testParams': 'configs/jenkins-funnelcake.js -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
     ],
     'firefox stresstest (52)': [
         'gpu': true,
-        'testParams': 'configs/ci/browser.js -l firefox-web-ext-stresstest --firefox ~/firefox52/firefox/firefox',
+        'testParams': 'configs/jenkins.js -l firefox-web-ext-stresstest --firefox ~/firefox52/firefox/firefox',
     ],
     'chromium': [
         'gpu': true,
-        'testParams': 'configs/ci/cliqzium.js -l chromium-selenium',
+        'testParams': 'configs/cliqzium.json -l chromium-selenium',
     ],
 ]
 
@@ -95,9 +86,7 @@ node('docker && !gpu && us-east-1') {
 
     def dockerfileChecksum = sh(returnStdout: true, script: 'md5sum Dockerfile.ci | cut -d" " -f1').trim()
     def packageJsonChecksum = sh(returnStdout: true, script: 'md5sum package.json | cut -d" " -f1').trim()
-    // add date to the tag in order to download FF beta and nightly at least once per day and stay up-to-date
-    def today = new Date().format('yyyyMMdd')
-    def dockerTag = "${dockerfileChecksum}-${packageJsonChecksum}-${today}"
+    def dockerTag = "${dockerfileChecksum}-${packageJsonChecksum}"
 
     // authorize docker deamon to access registry
     sh "`aws ecr get-login --no-include-email --region=${params.AWS_REGION}`"
@@ -154,7 +143,7 @@ def test(Map m) {
             def triggeringCommitHash = getTriggeringCommitHash()
             def HOST = helpers.getIp()
             def VNC_PORT = helpers.getFreePort(lower: 20000, upper: 20999)
-            def dockerParams = "-p ${VNC_PORT}:5900 --add-host cliqztest.com:127.0.0.1"
+            def dockerParams = "-p ${VNC_PORT}:5900"
 
             if (gpu) {
                 dockerParams += ' --device /dev/nvidia0 --device /dev/nvidiactl --cpus=2'
@@ -185,7 +174,6 @@ def test(Map m) {
                             def hasErrors
 
                             try {
-                                def timeBefore = new Date()
 
                                 sh """#!/bin/bash
                                     set -x
@@ -204,19 +192,13 @@ def test(Map m) {
 
                                     cp report.xml ${env.WORKSPACE}
                                 """
-                                def timeAfter = new Date()
-                                def duration = TimeCategory.minus(timeAfter, timeBefore).toString()
 
                                 Map r = xunit.parse('/app/report.xml')
                                 if (!r.containsKey('errors')) {
                                   r.errors = '0'
                                 }
-                                report = "tests: ${r.tests}, f/e: ${r.failures}/${r.errors}, time: ${duration}"
+                                report = "tests: ${r.tests}, failures: ${r.failures}, errors: ${r.errors}"
                                 hasErrors = (r.failures != '0') || (r.errors != '0')
-
-                                if (r.tests == '0') {
-                                    throw new Exception('No tests have been run!')
-                                }
 
                                 junit(
                                     allowEmptyResults: true,

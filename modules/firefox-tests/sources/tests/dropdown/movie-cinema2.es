@@ -1,4 +1,7 @@
 /* global window */
+/* eslint func-names: ['error', 'never'] */
+/* eslint prefer-arrow-callback: 'off' */
+/* eslint no-unused-expressions: 'off' */
 
 import {
   $cliqzResults,
@@ -59,7 +62,7 @@ export default function () {
       });
 
       it('with an existing and correct link', function () {
-        const parentMovieLinkItem = parentMovieItem.dataset.url;
+        const parentMovieLinkItem = parentMovieItem.href;
         expect(parentMovieLinkItem).to.exist;
         expect(parentMovieLinkItem).to.equal(results[0].url);
       });
@@ -97,7 +100,7 @@ export default function () {
         const cinemaMapSelector = 'a.local-map';
         const cinemaMapItem = cinemaLocalItem.querySelector(cinemaMapSelector);
         expect(cinemaMapItem).to.exist;
-        expect(decodeURIComponent(cinemaMapItem.dataset.url))
+        expect(decodeURIComponent(cinemaMapItem.href))
           .to.equal(results[0].snippet.extra.data.cinema.mu);
       });
 
@@ -195,7 +198,7 @@ export default function () {
         [...moviesRowItems].forEach(function (movie, i) {
           movieTimes = movie.querySelectorAll(movieTimeSelector);
           [...movieTimes].forEach(function (time, j) {
-            expect(time.querySelector('a').dataset.url)
+            expect(time.querySelector('a').href)
               .to.equal(results[0].snippet.extra.data.showdates[0]
                 .movie_list[i].showtimes[j].booking_link);
           });
@@ -206,8 +209,8 @@ export default function () {
         const showMoreSelector = 'a.expand-btn';
         const showMoreItem = cinemaMoviesItem.querySelector(showMoreSelector);
         expect(showMoreItem).to.exist;
-        expect(showMoreItem).to.have.trimmed.text(locale['cinema-expand-button'].message);
-        expect(showMoreItem.dataset.url).to.exist;
+        expect(showMoreItem).to.have.text(locale['cinema-expand-button'].message);
+        expect(showMoreItem.href).to.exist;
       });
     });
   });

@@ -59,9 +59,3 @@
         }
     }
 }
-/* Use grey background when it's displayed in history */
-.history .news-story .result {
-    &.selected, &.selected:visited {
-        background-color: unset;
-    }
-}

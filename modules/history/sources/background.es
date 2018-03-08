@@ -112,8 +112,8 @@ export default background({
     * @event ui:click-on-url
     * @param data
     */
-    'ui:click-on-url': function onResult({ query, url, isPrivateMode, isFromAutocompletedURL }) {
-      if (isPrivateMode || !url || isFromAutocompletedURL || !query) {
+    'ui:click-on-url': function onResult({ query, url, isPrivateWindow, isFromAutocompletedURL }) {
+      if (isPrivateWindow || !url || isFromAutocompletedURL) {
         return;
       }
 

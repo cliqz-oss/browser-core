@@ -44,6 +44,20 @@ TESTS.HumanWebTest = function (CliqzUtils, CliqzHumanWeb) {
 		});
 	});
 
+	describe('human-web.vaildPrivateIP', function() {
+        var privateIPs = [
+        	'127.0.0.1',
+        	'192.168.1.41',
+        	'10.0.5.250'
+        ]
+
+		privateIPs.forEach( e => {
+			it("'" + e + "' is a private IP", function () {
+				expect(CliqzHumanWeb.isIPInternal(e)).to.equal(true);
+			});
+		});
+	});
+
 	describe('human-web.isSuspiciousTitle', function() {
         var not_suspicious = ['',
             'Firefox',

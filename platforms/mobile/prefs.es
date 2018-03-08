@@ -1,5 +1,4 @@
 import Storage from '../core/storage';
-
 const storage = new Storage();
 
 export function getPref(pref, fallback) {
@@ -24,7 +23,7 @@ export function setPref(pref, val) {
   storage.setItem(pref, val);
 }
 
-export function hasPref(pref) {
+export function hasPref(pref, val) {
   return Boolean(storage.getItem(pref));
 }
 

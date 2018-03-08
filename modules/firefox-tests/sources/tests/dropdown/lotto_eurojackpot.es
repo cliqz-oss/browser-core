@@ -1,3 +1,7 @@
+/* eslint func-names: ['error', 'never'] */
+/* eslint prefer-arrow-callback: 'off' */
+/* eslint no-unused-expressions: 'off' */
+
 import {
   $cliqzResults,
   expect,
@@ -16,7 +20,7 @@ export default function () {
       withHistory([]);
       fillIn('eurojackpot');
       return waitForPopup().then(function () {
-        $resultElement = $cliqzResults().find(`a.result[data-url='${results[0].url}']`)[0].parentNode;
+        $resultElement = $cliqzResults().find(`a.result[href='${results[0].url}']`)[0].parentNode;
       });
     });
 
@@ -51,7 +55,7 @@ export default function () {
 
       it('with a correct link', function () {
         const lottoTopLinkSelector = 'a.result';
-        expect($resultElement.querySelector(lottoTopLinkSelector).dataset.url)
+        expect($resultElement.querySelector(lottoTopLinkSelector).href)
           .to.equal(results[0].url);
       });
 
@@ -93,7 +97,7 @@ export default function () {
 
       it('with correct links', function () {
         [...buttonsItems].forEach(function (button, i) {
-          expect(button.dataset.url).to.equal(results[0].snippet.deepResults[0].links[i].url);
+          expect(button.href).to.equal(results[0].snippet.deepResults[0].links[i].url);
         });
       });
     });

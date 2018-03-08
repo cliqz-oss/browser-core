@@ -5,8 +5,15 @@ import store from '../core/content/store';
 import config from '../core/config';
 import { getWindowId, CHROME_MSG_SOURCE } from '../core/content/helpers';
 import { getMessage } from '../core/i18n';
+import prefs from '../core/prefs';
 
 const send = sendAsyncMessage.bind(null, 'cliqz');
+const CACHE_INVALIDATE_PREF = 'startupcache-invalidate';
+
+if (!prefs.has(CACHE_INVALIDATE_PREF)) {
+  Services.obs.notifyObservers(null, 'startupcache-invalidate');
+  prefs.set(CACHE_INVALIDATE_PREF, true);
+}
 
 /**
  * Run function for all existing documents.
@@ -169,10 +176,13 @@ const DocumentManager = {
         },
       },
     };
-    Services.scriptloader.loadSubScript('chrome://cliqz/content/core/content-script.bundle.js', {
-      window,
-      chrome,
-      windowId,
+    Services.scriptloader.loadSubScriptWithOptions('chrome://cliqz/content/core/content-script.bundle.js', {
+      target: {
+        window,
+        chrome,
+        windowId,
+      },
+      ignoreCache: true
     });
 
     this._windowsInfo.set(window, {

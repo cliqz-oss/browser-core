@@ -8,6 +8,7 @@ window.XPCOMUtils = {
 
 window.Services = {
   scriptloader: {
+    loadSubScriptWithOptions: function(){},
     loadSubScript: function(){}
   }
 };
@@ -438,7 +439,7 @@ function checkSession() {
   if (CliqzUtils.hasPref('session'))
     return false;  // Session is already present.
 
-  const newSession = CliqzUtils.isPrivateMode() ?
+  const newSession = CLIQZEnvironment.isPrivate() ?
       ["PRIVATE", "15000", CLIQZ.config.settings.channel].join("|") :
       generateSession(CLIQZ.config.settings.channel);
   CliqzUtils.setPref('session', newSession)

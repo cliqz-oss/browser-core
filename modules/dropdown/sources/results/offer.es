@@ -32,12 +32,6 @@ export class OfferResult extends BaseResult {
       url: this._offerData.url_ad,
       title: this._offerData.title,
       text: this.rawResult.text,
-      data: {
-        extra: {
-          offers_data: this._offerData,
-          is_injected_ad: true,
-        },
-      },
     });
   }
 
@@ -77,7 +71,6 @@ export default class OffersResult extends BaseResult {
     super(rawResult, allResultsFlat);
 
     this.style = offers.nonOrganicStyle;
-    this.locationEnabled = offers.locationEnabled;
   }
 
   get template() {
@@ -93,7 +86,8 @@ export default class OffersResult extends BaseResult {
   }
 
   get friendlyUrl() {
-    return this.rawResult.friendlyUrl || this.url;
+    const urlDetails = utils.getDetailsFromUrl(this.url);
+    return urlDetails.friendly_url;
   }
 
   get _offerData() {

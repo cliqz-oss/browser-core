@@ -43,7 +43,7 @@ export default class YoutubeExtractor {
             const isLiveStream = typeof info.livestream === 'string' ?
               JSON.parse(info.livestream) : info.livestream;
             if (isLiveStream) {
-              reject(new Error('live_video'));
+              reject(new Error('cannot download livestreams'));
             } else {
               const data = {
                 title: info.title,

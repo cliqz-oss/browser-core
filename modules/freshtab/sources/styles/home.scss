@@ -192,14 +192,8 @@ body {
         background-image: url(https://cdn.cliqz.com/extension/newtab/background/winter.jpg);
     }
 
-    &.theme-bg-matterhorn {
-        background-color: #00adf3;
-        background-image: url(https://cdn.cliqz.com/extension/newtab/background/matterhorn.jpg);
-    }
-
     &.theme-bg-dark,
-    &.theme-bg-blue,
-    &.theme-bg-matterhorn {
+    &.theme-bg-blue {
         #app {
             $dark-theme: map-get($themes, dark);
 
@@ -239,8 +233,7 @@ body {
         }
     }
 
-    &.theme-bg-blue,
-    &.theme-bg-matterhorn {
+    &.theme-bg-blue {
         #app {
 
             .aside {
@@ -316,22 +309,6 @@ body {
                         }
                         .news-container .news-content .box {
                             background-color: rgba(0, 0, 0, 0.5)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    &.theme-bg-matterhorn {
-        #app {
-            #main-content {
-                .fixed-container {
-                    .offer-middle-notification {
-                        .middle-notification-box {
-                            .offer-domain {
-                                color: rgba(255, 255, 255, 0.75);
-                            }
                         }
                     }
                 }

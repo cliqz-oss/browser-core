@@ -19,7 +19,10 @@ export default (bundle, exportedSymbol) => {
         window: safeGlobal,
       };
 
-      Services.scriptloader.loadSubScriptWithOptions(url, { target });
+      Services.scriptloader.loadSubScriptWithOptions(url, {
+        target,
+        ignoreCache: true
+      });
 
       if (target[exportedSymbol] !== undefined) {
         lib = target[exportedSymbol];

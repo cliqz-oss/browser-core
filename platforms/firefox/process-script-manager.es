@@ -1,45 +1,25 @@
 import config from '../core/config';
 import utils from '../core/utils';
-import { Components, Services } from './globals';
+import { Components } from './globals';
 import { CHROME_MSG_SOURCE } from '../core/content/helpers';
 
 const PROCESS_SCRIPT_URL = `${config.baseURL}platform/process-script.bundle.js`;
 const FRAME_SCRIPT_URL = `${config.baseURL}core/frameScript.js`;
 
 export default class ProcessScriptManager {
-  dispatcher = (msg) => {
-    const { origin, payload, windowId } = msg.data;
-    const { action, module, requestId } = payload;
-
-    this.dispatchMessage({
-      ...msg,
-      data: {
-        ...msg.data,
-        sendResponse: (response) => {
-          this.broadcast(`window-${msg.data.windowId}`, {
-            origin,
-            response,
-            action,
-            module,
-            requestId,
-            windowId,
-          });
-        },
-      }
-    });
-  }
-
   constructor(dispatcher) {
     this.dispatchMessage = dispatcher;
     this.timestamp = Date.now();
   }
 
   get ppmm() {
-    return Services.ppmm;
+    return Components.classes['@mozilla.org/parentprocessmessagemanager;1']
+      .getService(Components.interfaces.nsIProcessScriptLoader);
   }
 
   get gmm() {
-    return Services.mm;
+    return Components.classes['@mozilla.org/globalmessagemanager;1']
+      .getService(Components.interfaces.nsIMessageListenerManager);
   }
 
   get processScriptUrl() {
@@ -56,11 +36,11 @@ export default class ProcessScriptManager {
     utils.setTimeout(this.ppmm.loadProcessScript.bind(this.ppmm, this.processScriptUrl, true), 0);
     utils.setTimeout(this.gmm.loadFrameScript.bind(this.gmm, this.frameScriptUrl, true), 0);
 
-    this.addMessageListener('cliqz', this.dispatcher);
+    this.addMessageListener('cliqz', this.dispatchMessage);
   }
 
   unload() {
-    this.removeMessageListener('cliqz', this.dispatcher);
+    this.removeMessageListener('cliqz', this.dispatchMessage);
     this.broadcast('cliqz:core', {
       action: 'unload'
     });

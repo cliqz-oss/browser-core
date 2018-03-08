@@ -72,6 +72,7 @@ export default class Anolysis {
           }
         });
       })
+      .then(() => this.removeOldDataFromDB())
       .then(() => {
         // This can be run async since calling two times the same method will
         // resolve to the same Promise object. It's not returned here to not
@@ -117,6 +118,14 @@ export default class Anolysis {
     });
   }
 
+  /**
+   * Get rid of data older than 30 days.
+   */
+  removeOldDataFromDB() {
+    const today = getSynchronizedDate().format(DATE_FORMAT);
+    return this.storage.aggregated.deleteOlderThan(today);
+  }
+
   sendRetentionSignals() {
     return this.storage.retention.getState().then((state) => {
       logger.log('generate retention signals', state);
@@ -136,15 +145,8 @@ export default class Anolysis {
     const startDay = getSynchronizedDate().subtract(1, 'days');
     const stopDay = moment.max(
       moment(this.gidManager.getNewInstallDate(), DATE_FORMAT),
-      getSynchronizedDate().subtract(30, 'days'),
+      getSynchronizedDate().subtract(1, 'months'),
     );
-
-    // If we are on the day of install, we should not even try to aggregate the
-    // past. For subsequent days, the recursion of `checkPast` will stop either
-    // 30 days ago, or at the date of install.
-    if (startDay.isBefore(stopDay, 'days')) {
-      return Promise.resolve();
-    }
 
     const checkPast = (formattedDate) => {
       const date = moment(formattedDate, DATE_FORMAT);
@@ -319,7 +321,8 @@ export default class Anolysis {
         // if (!isInstantPush || isLegacy) {
         // This signal is stored and will be aggregated with other signals from
         // the same day to generate 'analyses' signals.
-        return this.storage.behavior.add(processedSignal);
+        return this.storage.behavior.add(processedSignal)
+          .catch((ex) => { logger.error('behavior exception', ex, processedSignal); });
         // }
       });
   }

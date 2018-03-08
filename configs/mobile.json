@@ -1,0 +1,39 @@
+{
+  "platform": "mobile",
+  "testsBasePath": "./build",
+  "testem_launchers": ["unit-node", "Chrome"],
+  "baseURL": "./",
+  "settings": {
+    "CONFIG_PROVIDER": "https://api.cliqz.com/api/v1/config",
+    "CDN_BASEURL": "https://cdn.cliqz.com",
+    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
+    "OFFERS_BE_BASE_URL": "https://offers-api.cliqz.com"
+  },
+  "modules": [
+    "core",
+    "core-cliqz",
+    "autocomplete",
+    "mobile-ui",
+    "mobile-dev",
+    "mobile-history",
+    "yt-downloader",
+    "p2p",
+    "pairing",
+    "mobile-pairing",
+    "static"
+  ],
+  "bundles": [
+    "core/content-tests.bundle.js",
+    "mobile-ui/app.bundle.js",
+    "mobile-history/app.bundle.js"
+  ],
+  "system": {
+    "map": {
+      "pako": "node_modules/pako/dist/pako.min.js",
+      "mathjs": "node_modules/mathjs/dist/math.min.js",
+      "hammer": "node_modules/hammerjs/hammer.js",
+      "jquery": "node_modules/jquery/dist/jquery.min.js",
+      "handlebars": "node_modules/handlebars/dist/handlebars.min.js"
+    }
+  }
+}

@@ -41,9 +41,6 @@ export default describeModule('offers-v2/persistent_cache_db',
         clearInterval: function() {}
       }
     },
-    'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
-    },
     'offers-v2/db_helper': {
       default: class {
         constructor(db) {

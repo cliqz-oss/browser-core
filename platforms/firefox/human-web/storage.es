@@ -1,40 +1,35 @@
-/* global FileUtils */
-/* global Cu */
-/* global PlacesUtils */
-/* global _log */
-/* eslint no-restricted-syntax: 'off' */
-/* eslint func-names: 'off' */
-
+import md5 from "../../core/helpers/md5";
 import { Components } from '../globals';
 
 Components.utils.import('resource://gre/modules/FileUtils.jsm');
 
 export default class {
+
   constructor(humanWeb) {
     this.humanWeb = humanWeb;
     this.dbConn = null;
   }
 
   init() {
-    if (FileUtils.getFile('ProfD', ['cliqz.dbusafe']).exists()) {
-      if (this.olddbConn === null) {
-        this.olddbConn = Services.storage.openDatabase(FileUtils.getFile('ProfD', ['cliqz.dbusafe']));
+    if ( FileUtils.getFile("ProfD", ["cliqz.dbusafe"]).exists() ) {
+      if (this.olddbConn==null) {
+        this.olddbConn = Services.storage.openDatabase(FileUtils.getFile("ProfD", ["cliqz.dbusafe"]));
       }
 
-      try {
+      try{
         (this.olddbConn.executeSimpleSQLAsync || this.olddbConn.executeSimpleSQL)('DROP TABLE usafe;');
-      } catch (ee) {
-        // empty
-      }
+      } catch(ee){
+
+      };
     }
 
-    if (FileUtils.getFile('ProfD', ['cliqz.dbhumanweb']).exists()) {
-      if (this.dbConn === null) {
-        this.dbConn = Services.storage.openDatabase(FileUtils.getFile('ProfD', ['cliqz.dbhumanweb']));
+    if ( FileUtils.getFile("ProfD", ["cliqz.dbhumanweb"]).exists() ) {
+      if (this.dbConn==null) {
+        this.dbConn = Services.storage.openDatabase(FileUtils.getFile("ProfD", ["cliqz.dbhumanweb"]));
       }
       this.createTable();
     } else {
-      this.dbConn = Services.storage.openDatabase(FileUtils.getFile('ProfD', ['cliqz.dbhumanweb']));
+      this.dbConn = Services.storage.openDatabase(FileUtils.getFile("ProfD", ["cliqz.dbhumanweb"]));
       this.createTable();
     }
 
@@ -53,116 +48,122 @@ export default class {
           reject(e);
         }
       });
+    } else {
+      return Promise.resolve();
     }
-    return Promise.resolve();
   }
 
-  getDBConn() {
+  getDBConn(){
     return this.dbConn;
   }
 
   removeUnsafe(url, callback) {
-    const st = this.dbConn.createStatement('DELETE from usafe WHERE url = :url');
+    var st = this.dbConn.createStatement("DELETE from usafe WHERE url = :url");
     st.params.url = url;
-    // while (st.executeStep()) {};
+    //while (st.executeStep()) {};
     st.executeAsync({
       handleError: (aError) => {
-        this.humanWeb.log(`SQL error: ${aError.message}`);
+        this.humanWeb.log("SQL error: " + aError.message);
         callback(false);
       },
-      handleCompletion: () => {
-        if (this.humanWeb.debug) {
-          this.humanWeb.log('Delete success');
+      handleCompletion: (aReason) => {
+        if(this.humanWeb.debug){
+          this.humanWeb.log("Delete success");
           callback(true);
         }
       }
     });
   }
 
-  getListOfUnchecked(cap, secOld, fixedUrl, callback) {
-    const tt = new Date().getTime();
-    let stmt = null;
-    if (fixedUrl == null) {
+  getListOfUnchecked(cap, sec_old, fixed_url, callback) {
+    var tt = new Date().getTime();
+    var stmt = null;
+    if (fixed_url == null) {
       // all urls
-      stmt = this.dbConn.createAsyncStatement('SELECT url, payload FROM usafe WHERE last_visit < :last_visit LIMIT :cap;');
-    } else {
-      stmt = this.dbConn.createAsyncStatement('SELECT url, payload FROM usafe WHERE last_visit < :last_visit and url = :url LIMIT :cap;');
-      stmt.params.url = fixedUrl;
+      stmt = this.dbConn.createAsyncStatement("SELECT url, payload FROM usafe WHERE last_visit < :last_visit LIMIT :cap;");
     }
-    stmt.params.last_visit = (tt - (secOld * 1000));
+    else {
+      stmt = this.dbConn.createAsyncStatement("SELECT url, payload FROM usafe WHERE last_visit < :last_visit and url = :url LIMIT :cap;");
+      stmt.params.url = fixed_url;
+    }
+    stmt.params.last_visit = (tt - sec_old*1000);
     stmt.params.cap = cap;
 
-    const res = [];
+    var res = [];
     stmt.executeAsync({
       handleResult: (aResultSet) => {
         for (let row = aResultSet.getNextRow(); row; row = aResultSet.getNextRow()) {
-          res.push([row.getResultByName('url'), JSON.parse(row.getResultByName('payload'))]);
+          res.push([row.getResultByName("url"), JSON.parse(row.getResultByName("payload")) ]);
         }
       },
       handleError: (aError) => {
-        this.humanWeb.log(`SQL error: ${aError.message}`);
+        this.humanWeb.log("SQL error: " + aError.message);
       },
       handleCompletion: (aReason) => {
-        if (aReason !== Components.interfaces.mozIStorageStatementCallback.REASON_FINISHED) {
-          this.humanWeb.log('SQL canceled or aborted');
-        } else {
-          if (res.length > 0) {
-            this.humanWeb.log(`Got the result: ${res[0]}`);
+        if (aReason != Components.interfaces.mozIStorageStatementCallback.REASON_FINISHED) {
+          this.humanWeb.log("SQL canceled or aborted");
+        }
+        else {
+          if(res.length > 0){
+            this.humanWeb.log("Got the result: " + res[0]);
           }
-          callback(res.splice(0, cap), null);
+          callback(res.splice(0,cap), null);
         }
       }
     });
   }
 
   saveRecordTelemetry(id, data, callback) {
-    if (!(this.dbConn)) return;
-    const st = this.dbConn.createStatement('INSERT OR REPLACE INTO telemetry (id,data) VALUES (:id, :data)');
+    if(!(this.dbConn)) return;
+    var st = this.dbConn.createStatement("INSERT OR REPLACE INTO telemetry (id,data) VALUES (:id, :data)");
     st.params.id = id;
     st.params.data = data;
 
     st.executeAsync({
       handleError: (aError) => {
-        if (this.humanWeb && this.humanWeb.debug) {
-          this.humanWeb.log(`SQL error: ${aError.message}`);
+        if(this.humanWeb && this.humanWeb.debug){
+          this.humanWeb.log("SQL error: " + aError.message);
         }
         callback(false);
       },
-      handleCompletion: () => {
-        if (this.humanWeb && this.humanWeb.debug) {
-          this.humanWeb.log('Insertion success save record');
+      handleCompletion: (aReason) => {
+        if(this.humanWeb && this.humanWeb.debug){
+          this.humanWeb.log("Insertion success save record");
         }
         callback(true);
       }
     });
+
   }
 
   loadRecordTelemetry(id, callback) {
-    const stmt = this.dbConn.createAsyncStatement('SELECT id, data FROM telemetry WHERE id = :id;');
+    var stmt = this.dbConn.createAsyncStatement("SELECT id, data FROM telemetry WHERE id = :id;");
     stmt.params.id = id;
 
-    const res = [];
+    var fres = null;
+    var res = [];
     stmt.executeAsync({
       handleResult: (aResultSet) => {
-        if (!(this.humanWeb)) return;
+        if(!(this.humanWeb)) return;
         for (let row = aResultSet.getNextRow(); row; row = aResultSet.getNextRow()) {
-          if (row.getResultByName('id') === id) {
-            res.push(row.getResultByName('data'));
-          } else {
-            this.humanWeb.log('There are more than one record');
+          if (row.getResultByName("id")==id) {
+            res.push(row.getResultByName("data"));
+          }
+          else {
+            this.humanWeb.log("There are more than one record");
             callback(null);
           }
           break;
         }
       },
       handleError: (aError) => {
-        if (!(this.humanWeb)) return;
-        this.humanWeb.log(`SQL error: ${aError.message}`);
+        if(!(this.humanWeb)) return;
+        this.humanWeb.log("SQL error: " + aError.message);
         callback(null);
       },
-      handleCompletion: () => {
-        if (!(this.humanWeb)) return;
-        if (res.length === 1) callback(res[0]);
+      handleCompletion: (aReason) => {
+        if(!(this.humanWeb)) return;
+        if (res.length == 1) callback(res[0]);
         else callback(null);
       }
     });
@@ -171,14 +172,12 @@ export default class {
   SQL(sql, onRow, callback, parameters) {
     // temporary fix to avoid console logs if human web is disabled
     // the history listner should be handled better if HW module is disabled
-    if (!this.dbConn) return;
+    if(!this.dbConn) return;
 
-    const st = this.dbConn.createAsyncStatement(sql);
+    var st = this.dbConn.createAsyncStatement(sql);
 
-    for (const key in parameters) {
-      if (Object.prototype.hasOwnProperty.call(parameters, key)) {
-        st.params[key] = parameters[key];
-      }
+    for(var key in parameters) {
+      st.params[key] = parameters[key];
     }
 
     this._SQL(this.dbConn, st, onRow, callback);
@@ -186,12 +185,12 @@ export default class {
 
   _SQL(dbConn, statement, onRow, callback) {
     statement.executeAsync({
-      onRow,
-      callback,
+      onRow: onRow,
+      callback: callback,
       handleResult: (aResultSet) => {
-        let resultCount = 0;
+        var resultCount = 0;
         for (let row = aResultSet.getNextRow(); row; row = aResultSet.getNextRow()) {
-          resultCount += 1;
+          resultCount++;
           if (this.onRow) {
             this.onRow(statement.row);
           }
@@ -201,13 +200,13 @@ export default class {
         }
       },
 
-      handleError: (aError) => {
-        this.humanWeb.log(`Error (${aError.result}):${aError.message}`);
+      handleError: (aError) =>  {
+        this.humanWeb.log("Error (" + aError.result + "):" + aError.message);
         if (this.callback) {
           this.callback(0);
         }
       },
-      handleCompletion: () => {
+      handleCompletion: (aReason) => {
         // Always called when done
       }
     });
@@ -217,36 +216,36 @@ export default class {
   historyTimeFrame(callback) {
     // TODO:
     Cu.import('resource://gre/modules/PlacesUtils.jsm');
-    let min;
-    let max;
-    const res = [];
-    const st = PlacesUtils.history.QueryInterface(Ci.nsPIPlacesDatabase)
-      .DBConnection.createStatement('SELECT min(last_visit_date) as min_date, max(last_visit_date) as max_date FROM moz_places');
+    var history = [];
+    var min, max;
 
+    var res = [];
+    var st = PlacesUtils.history.QueryInterface(Ci.nsPIPlacesDatabase)
+      .DBConnection.createStatement("SELECT min(last_visit_date) as min_date, max(last_visit_date) as max_date FROM moz_places");
+
+    var res = [];
     st.executeAsync({
-      handleResult(aResultSet) {
+      handleResult: function(aResultSet) {
         for (let row = aResultSet.getNextRow(); row; row = aResultSet.getNextRow()) {
           res.push({
-            minDate: row.getResultByName('min_date'),
-            maxDate: row.getResultByName('max_date')
+            "minDate": row.getResultByName("min_date"),
+            "maxDate": row.getResultByName("max_date")
           });
         }
       },
-      handleError(aError) {
-        _log(`SQL error: ${aError.message}`);
+      handleError: function(aError) {
+        _log("SQL error: " + aError.message);
         callback(true);
       },
-      handleCompletion(aReason) {
-        if (aReason !== Components.interfaces.mozIStorageStatementCallback.REASON_FINISHED) {
-          _log('SQL canceled or aborted');
+      handleCompletion: function(aReason) {
+        if (aReason != Components.interfaces.mozIStorageStatementCallback.REASON_FINISHED) {
+          _log("SQL canceled or aborted");
           callback(null);
         } else {
           try {
-            min = parseInt(res[0].minDate / 1000, 10);
-            max = parseInt(res[0].maxDate / 1000, 10);
-          } catch (ex) {
-            // empty
-          }
+            min = parseInt(res[0]['minDate'] / 1000);
+            max = parseInt(res[0]['maxDate'] / 1000);
+          } catch (ex) {}
           callback(min, max);
         }
       }
@@ -254,52 +253,53 @@ export default class {
   }
 
   deleteVisit(url) {
-    this.SQL('delete from usafe where url = :url', null, null, {
+    this.SQL("delete from usafe where url = :url", null, null, {
       url: this.escapeSQL(url)
     });
   }
 
   deleteTimeFrame() {
-    this.humanWeb.historyTimeFrame(function (min, max) {
-      this.SQL('delete from usafe where last_visit < :min', null, null, {
+    this.humanWeb.historyTimeFrame(function(min, max) {
+      this.SQL("delete from usafe where last_visit < :min", null, null, {
         min
       });
-      this.SQL('delete from usafe where last_visit > :max', null, null, {
+      this.SQL("delete from usafe where last_visit > :max", null, null, {
         max
       });
     });
   }
 
   clearHistory() {
-    this.SQL('delete from usafe');
+    this.SQL("delete from usafe");
   }
 
   isPrivate(url, depth, callback) {
+
     // This needs to be rewritten.
     callback(false);
+    return;
     /*
     // returns 1 is private (because of checked, of because the referrer is private)
     // returns 0 if public
     // returns -1 if not checked yet, handled as public in this cases,
     var res = [];
-    var st = this.dbConn.createStatement('SELECT * FROM usafe WHERE url = :url');
+    var st = this.dbConn.createStatement("SELECT * FROM usafe WHERE url = :url");
     st.params.url = url;
 
     var res = [];
     st.executeAsync({
       handleResult: (aResultSet) => {
         for (let row = aResultSet.getNextRow(); row; row = aResultSet.getNextRow()) {
-          res.push({'url': row.getResultByName('url'), 'ref': row.getResultByName('ref'),
-            'private': row.getResultByName('private'), 'checked': row.getResultByName('checked')});
+          res.push({"url": row.getResultByName("url"), "ref": row.getResultByName("ref"), "private": row.getResultByName("private"), "checked": row.getResultByName("checked")});
         }
       },
       handleError: (aError) => {
-        this.humanWeb.log('SQL error: ' + aError.message);
+        this.humanWeb.log("SQL error: " + aError.message);
         callback(true);
       },
       handleCompletion: (aReason) => {
         if (aReason != Components.interfaces.mozIStorageStatementCallback.REASON_FINISHED) {
-          this.humanWeb.log('SQL canceled or aborted');
+          this.humanWeb.log("SQL canceled or aborted");
           callback(true);
         } else {
           if (res.length == 1) {
@@ -334,32 +334,32 @@ export default class {
     */
   }
 
-  createTable() {
-    const usafe = 'create table if not exists usafe(\n' +
-                'url VARCHAR(255) PRIMARY KEY NOT NULL,\n' +
-                'ref VARCHAR(255),\n' +
-                'last_visit INTEGER,\n' +
-                'first_visit INTEGER,\n' +
-                'reason VARCHAR(256), \n' +
-                'private BOOLEAN DEFAULT 0,\n' +
-                'checked BOOLEAN DEFAULT 0, \n' +
-                'payload VARCHAR(4096), \n' +
-                'ft BOOLEAN DEFAULT 1 \n' +
-            ')';
+  createTable(){
+    var usafe = "create table if not exists usafe(\
+                url VARCHAR(255) PRIMARY KEY NOT NULL,\
+                ref VARCHAR(255),\
+                last_visit INTEGER,\
+                first_visit INTEGER,\
+                reason VARCHAR(256), \
+                private BOOLEAN DEFAULT 0,\
+                checked BOOLEAN DEFAULT 0, \
+                payload VARCHAR(4096), \
+                ft BOOLEAN DEFAULT 1 \
+            )";
 
-    const hashUnsafe = 'create table if not exists hashusafe(\n' +
-                'hash VARCHAR(32) PRIMARY KEY NOT NULL,\n' +
-                'private BOOLEAN DEFAULT 0 \n' +
-            ')';
+    var hash_usafe = "create table if not exists hashusafe(\
+                hash VARCHAR(32) PRIMARY KEY NOT NULL,\
+                private BOOLEAN DEFAULT 0 \
+            )";
 
-    const hashCans = 'create table if not exists hashcans(\n' +
-                'hash VARCHAR(32) PRIMARY KEY NOT NULL \n' +
-            ')';
+    var hash_cans = "create table if not exists hashcans(\
+                hash VARCHAR(32) PRIMARY KEY NOT NULL \
+            )";
 
-    const telemetry = 'create table if not exists telemetry(\n' +
-                'id VARCHAR(24) PRIMARY KEY NOT NULL,\n' +
-                'data VARCHAR(1000000) \n' +
-            ')';
+    var telemetry = "create table if not exists telemetry(\
+                id VARCHAR(24) PRIMARY KEY NOT NULL,\
+                data VARCHAR(1000000) \
+            )";
 
     // TODO: Used to be asynchronous. In principle, there is no need
     // to use synchronous APIs here, but when using asynchronous APIs,
@@ -368,13 +368,13 @@ export default class {
     // Once the profile exists, this operation is quite cheap (~1ms).
     //
     this.dbConn.executeSimpleSQL(usafe);
-    this.dbConn.executeSimpleSQL(hashUnsafe);
-    this.dbConn.executeSimpleSQL(hashCans);
+    this.dbConn.executeSimpleSQL(hash_usafe);
+    this.dbConn.executeSimpleSQL(hash_cans);
     this.dbConn.executeSimpleSQL(telemetry);
   }
 
   escapeSQL(str) {
-    return str.replace(/[\0\x08\x09\x1a\n\r''\\%]/g, (char) => {
+    return str.replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, function(char) {
       switch (char) {
         case "'":
           return "''";
@@ -385,7 +385,7 @@ export default class {
   }
 
   saveURL(url, newObj, callback) {
-    const st = this.dbConn.createStatement('INSERT INTO usafe (url,ref,last_visit,first_visit, payload, ft) VALUES (:url, :ref, :last_visit, :first_visit, :payload, :ft)');
+    let st = this.dbConn.createStatement("INSERT INTO usafe (url,ref,last_visit,first_visit, payload, ft) VALUES (:url, :ref, :last_visit, :first_visit, :payload, :ft)");
     st.params.url = newObj.url;
     st.params.ref = newObj.ref;
     st.params.last_visit = newObj.last_visit;
@@ -395,11 +395,11 @@ export default class {
 
     st.executeAsync({
       handleError: (aError) => {
-        this.humanWeb.log(`SQL error: ${aError.message}`);
+        this.humanWeb.log("SQL error: " + aError.message);
       },
-      handleCompletion: () => {
-        if (this.humanWeb.debug) {
-          this.humanWeb.log('Insertion success add urltoDB');
+      handleCompletion: (aReason) => {
+        if(this.humanWeb.debug){
+          this.humanWeb.log("Insertion success add urltoDB");
         }
         callback();
       }
@@ -407,18 +407,18 @@ export default class {
   }
 
   updateURL(url, newObj, callback) {
-    const st = this.dbConn.createStatement('UPDATE usafe SET last_visit = :last_visit, payload = :payload WHERE url = :url');
+    let st = this.dbConn.createStatement("UPDATE usafe SET last_visit = :last_visit, payload = :payload WHERE url = :url");
     st.params.url = newObj.url;
     st.params.last_visit = newObj.last_visit;
     st.params.payload = JSON.stringify(newObj.payload);
-    // while (st.executeStep()) {};
+    //while (st.executeStep()) {};
     st.executeAsync({
       handleError: (aError) => {
-        this.humanWeb.log(`SQL error: ${aError.message}`);
+        this.humanWeb.log("SQL error: " + aError.message);
       },
-      handleCompletion: () => {
-        if (this.humanWeb.debug) {
-          this.humanWeb.log('updated success');
+      handleCompletion: (aReason) => {
+        if(this.humanWeb.debug){
+          this.humanWeb.log("updated success");
         }
         callback();
       }
@@ -426,27 +426,23 @@ export default class {
   }
 
   getURL(url, callback) {
-    const stmt = this.dbConn.createStatement('SELECT url, ft,  payload FROM usafe WHERE url = :url');
+    let stmt = this.dbConn.createStatement("SELECT url, ft,  payload FROM usafe WHERE url = :url");
     stmt.params.url = url;
 
-    const res = [];
+    let res = [];
     stmt.executeAsync({
       handleResult: (aResultSet) => {
         for (let row = aResultSet.getNextRow(); row; row = aResultSet.getNextRow()) {
-          res.push({
-            url: row.getResultByName('url'),
-            ft: row.getResultByName('ft'),
-            payload: row.getResultByName('payload')
-          });
+          res.push({'url': row.getResultByName("url"), 'ft' :row.getResultByName('ft'), 'payload' :row.getResultByName('payload') });
         }
       },
       handleError: (aError) => {
-        this.humanWeb.log(`SQL error: ${aError.message}`);
+        this.humanWeb.log("SQL error: " + aError.message);
       },
-      handleCompletion: () => {
-        this.humanWeb.log('>> Completed >>> ');
+      handleCompletion: (aReason) => {
+        this.humanWeb.log(">> Completed >>> ");
         callback(res);
       }
-    });
+    })
   }
 }

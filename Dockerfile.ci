@@ -92,6 +92,11 @@ EXPOSE 5900
 
 USER node
 
+RUN wget https://ftp.mozilla.org/pub/firefox/releases/42.0/linux-x86_64/en-US/firefox-42.0.tar.bz2 -O /home/node/firefox.tar.bz2 \
+ && mkdir /home/node/firefox42 \
+ && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox42 \
+ && rm -f /home/node/firefox.tar.bz2
+
 RUN wget https://ftp.mozilla.org/pub/firefox/releases/52.0.2/linux-x86_64/en-US/firefox-52.0.2.tar.bz2 -O /home/node/firefox.tar.bz2 \
  && mkdir /home/node/firefox52 \
  && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox52 \
@@ -102,21 +107,6 @@ RUN wget https://ftp.mozilla.org/pub/firefox/releases/56.0/linux-x86_64/en-US/fi
  && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox56 \
  && rm -f /home/node/firefox.tar.bz2
 
-RUN wget https://ftp.mozilla.org/pub/devedition/releases/58.0b16/linux-x86_64/en-US/firefox-58.0b16.tar.bz2 -O /home/node/firefox.tar.bz2 \
-  && mkdir /home/node/firefox58 \
-  && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox58 \
-  && rm -f /home/node/firefox.tar.bz2
-
-RUN wget 'https://download.mozilla.org/?product=firefox-devedition-latest&os=linux64&lang=en-US' -O /home/node/firefox.tar.bz2 \
-  && mkdir /home/node/firefoxBeta \
-  && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefoxBeta \
-  && rm -f /home/node/firefox.tar.bz2
-
-RUN wget 'https://download.mozilla.org/?product=firefox-nightly-latest&os=linux64&lang=en-US' -O /home/node/firefox.tar.bz2 \
-  && mkdir /home/node/firefoxNightly \
-  && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefoxNightly \
-  && rm -f /home/node/firefox.tar.bz2
-
 # Get chrome driver
 RUN wget --no-verbose -O /tmp/chromedriver_linux64.zip https://chromedriver.storage.googleapis.com/2.31/chromedriver_linux64.zip \
   && rm -rf /app/chromedriver \
@@ -125,7 +115,6 @@ RUN wget --no-verbose -O /tmp/chromedriver_linux64.zip https://chromedriver.stor
   && chmod 755 /app/chromedriver
 
 COPY package.json /app/
-COPY bin /app/bin
 
 WORKDIR /app/
 

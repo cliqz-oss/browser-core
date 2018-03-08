@@ -14,7 +14,7 @@ export function getRequest(url) {
       utils.setTimeout(_reject, 10000, 'timeout'));
 
     return Promise.race([timeout, request]).then((response) => {
-      if (response.status !== 200 && response.status !== 0 /* local files */) {
+      if (response.status !== 200 && response.status !== 0 /* local files */){
         reject(`status not valid: ${response.status}`);
       }
 

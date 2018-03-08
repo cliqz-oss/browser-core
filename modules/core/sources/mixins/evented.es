@@ -2,6 +2,7 @@ import utils from '../utils';
 
 // TODO: use in TabObserver and others
 export default base => class extends base {
+
   constructor() {
     super();
     this.eventListeners = {};
@@ -25,7 +26,7 @@ export default base => class extends base {
 
   publishEvent(eventName, ...args) {
     const eventListeners = this.eventListeners[eventName] || [];
-    eventListeners.forEach((handler) => {
+    eventListeners.forEach(handler => {
       utils.setTimeout(handler, 0, ...args);
     });
   }

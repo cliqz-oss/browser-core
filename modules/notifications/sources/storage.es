@@ -55,10 +55,11 @@ export default class NotificationsStorage {
   getDomainData(domain) {
     const key = `watchedDomains.${domain}`;
     const data = this.storage.getObject(key, {});
-    if (Object.keys(data).length === 0 && data.constructor === Object) {
-      return false;
+    if(Object.keys(data).length === 0 && data.constructor === Object) {
+      return false
+    } else {
+      return data;
     }
-    return data;
   }
 
   saveDomain(domain, data) {
@@ -85,7 +86,7 @@ export default class NotificationsStorage {
   }
 
   hasUnread() {
-    return this.watchedDomainNames().some((domain) => {
+    return this.watchedDomainNames().some(domain => {
       const key = `watchedDomains.${domain}`;
       const { unread } = this.storage.getObject(key, { unread: false });
       return unread;

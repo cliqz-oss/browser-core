@@ -1,12 +1,14 @@
-import CliqzUtils from '../core/utils';
-import CliqzMsgHandlerAlert from './handlers/alert';
-import CliqzMsgHandlerDropdown from './handlers/dropdown';
-import CliqzMsgHandlerFreshtabTop from './handlers/freshtab-top';
-import CliqzMsgHandlerFreshtabMiddle from './handlers/freshtab-middle';
+import CliqzUtils from "../core/utils";
+import CliqzEvents from "../core/events";
+import CliqzMsgHandlerAlert from "./handlers/alert";
+import CliqzMsgHandlerDropdown from "./handlers/dropdown";
+import CliqzMsgHandlerFreshtabTop from "./handlers/freshtab-top";
+import CliqzMsgHandlerFreshtabMiddle from "./handlers/freshtab-middle";
+import CliqzMsgHandlerCallout from "./handlers/callout";
 
 /* ************************************************************************* */
 function _log(msg) {
-  CliqzUtils.log(msg, 'CliqzMsgCenter');
+	CliqzUtils.log(msg, 'CliqzMsgCenter');
 }
 /* ************************************************************************* */
 
@@ -29,38 +31,38 @@ function CliqzMsgCenter() {
 
 CliqzMsgCenter.prototype = {
 
-  registerMessageHandler(id, handler) {
-    this._messageHandlers[id] = handler;
-  },
+	registerMessageHandler: function (id, handler) {
+		this._messageHandlers[id] = handler;
+	},
 
-  getHandlers() {
+  getHandlers: function() {
     return Object.keys(this._messageHandlers);
   },
 
-  showMessage(message, handlerId, callback) {
-    const handler = this._messageHandlers[handlerId];
+  showMessage: function (message, handlerId, callback) {
+    var handler = this._messageHandlers[handlerId];
     if (handler) {
       handler.enqueueMessage(message, callback);
     } else {
-      _log(`message handler not found: ${handlerId}`);
+      _log('message handler not found: ' + handlerId);
     }
   },
 
-  hideMessage(message, handlerId) {
-    const handler = this._messageHandlers[handlerId];
+  hideMessage: function (message, handlerId) {
+    var handler = this._messageHandlers[handlerId];
     if (handler) {
       handler.dequeueMessage(message);
     } else {
-      _log(`message handler not found: ${handlerId}`);
+      _log('message handler not found: ' + handlerId);
     }
   }
 };
 
-CliqzMsgCenter.getInstance = () => {
+CliqzMsgCenter.getInstance = function () {
   CliqzMsgCenter.getInstance.instance =
     CliqzMsgCenter.getInstance.instance || new CliqzMsgCenter();
   return CliqzMsgCenter.getInstance.instance;
 };
-// CliqzMsgCenter.getInstance();
+//CliqzMsgCenter.getInstance();
 
 export default CliqzMsgCenter;

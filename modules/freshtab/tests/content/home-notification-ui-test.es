@@ -1,9 +1,8 @@
 import {
-  clearIntervals,
   clone,
+  clearIntervals,
+  Subject,
   defaultConfig,
-  expect,
-  Subject
 } from './helpers';
 
 describe('Fresh tab notification UI', function () {
@@ -77,42 +76,42 @@ describe('Fresh tab notification UI', function () {
 
     it('the area with notification is visible', function () {
       const notificationAreaSelector = 'div.notification';
-      expect(subject.query(notificationAreaSelector)).to.exist;
+      chai.expect(subject.query(notificationAreaSelector)).to.exist;
     });
 
     describe('renders a notification', function () {
       it('with an existing and correct icon', function () {
         const notificationIconSelector = 'div.notification div.icon';
-        expect(subject.query(notificationIconSelector)).to.exist;
-        expect(subject.getComputedStyle(subject.query(notificationIconSelector)).backgroundImage)
+        chai.expect(subject.query(notificationIconSelector)).to.exist;
+        chai.expect(subject.getComputedStyle(notificationIconSelector).backgroundImage)
           .to.contain('settings-icon_blue.svg');
       });
 
       it('with an existing and correct title', function () {
         const notificationTitleSelector = 'div.notification div.content h1';
         const notificationTitleItem = subject.query(notificationTitleSelector);
-        expect(notificationTitleItem).to.exist;
-        expect(notificationTitleItem).to.have.text(mockMessage['new-cliqz-tab'].title);
+        chai.expect(notificationTitleItem).to.exist;
+        chai.expect(notificationTitleItem).to.have.text(mockMessage['new-cliqz-tab'].title);
       });
 
       it('with an existing and correct text', function () {
         const notificationTextSelector = 'div.notification div.content p';
         const notificationTextItem = subject.query(notificationTextSelector);
-        expect(notificationTextItem).to.exist;
-        expect(notificationTextItem).to.have.text(mockMessage['new-cliqz-tab'].description);
+        chai.expect(notificationTextItem).to.exist;
+        chai.expect(notificationTextItem).to.have.text(mockMessage['new-cliqz-tab'].description);
       });
 
       it('with an existing call to action button', function () {
         const notificationCtaSelector = 'div.notification div.content button.cta-btn';
         const notificationCtaItem = subject.query(notificationCtaSelector);
-        expect(notificationCtaItem).to.exist;
-        expect(notificationCtaItem).to.have.text(mockMessage['new-cliqz-tab'].cta_text);
+        chai.expect(notificationCtaItem).to.exist;
+        chai.expect(notificationCtaItem).to.have.text(mockMessage['new-cliqz-tab'].cta_text);
       });
 
       it('with an existing close button', function () {
         const notificationCloseSelector = 'div.notification div.close';
         const notificationCloseItem = subject.query(notificationCloseSelector);
-        expect(notificationCloseItem).to.exist;
+        chai.expect(notificationCloseItem).to.exist;
       });
     });
   });
@@ -129,7 +128,7 @@ describe('Fresh tab notification UI', function () {
 
     it('the area with notification is not visible', function () {
       const notificationAreaSelector = 'div.notification';
-      expect(subject.query(notificationAreaSelector)).to.not.exist;
+      chai.expect(subject.query(notificationAreaSelector)).to.not.exist;
     });
   });
 });

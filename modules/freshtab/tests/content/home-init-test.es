@@ -1,10 +1,7 @@
-/* global document */
-
 import {
   clearIntervals,
+  Subject,
   defaultConfig,
-  expect,
-  Subject
 } from './helpers';
 
 describe('Initializing Fresh tab', function () {
@@ -58,19 +55,19 @@ describe('Initializing Fresh tab', function () {
 
   it('loads Fresh tab', function () {
     const iframes = document.getElementsByTagName('iframe');
-    expect(iframes[iframes.length - 1].contentWindow.location.href)
+    chai.expect(iframes[iframes.length - 1].contentWindow.location.href)
       .to.contain('freshtab/home.html');
   });
 
   it('renders the settings panel closed', function () {
     const settingsPanelSelector = '#settings-panel';
-    expect(subject.query(settingsPanelSelector)).to.exist;
-    expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
+    chai.expect(subject.query(settingsPanelSelector)).to.exist;
+    chai.expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
   });
 
   /* TODO */
   xit('sends a "home > show" telemetry signal', function () {
-    expect(messages.has('sendTelemetry')).to.equal(true);
+    chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
     const telemetrySignals = messages.get('sendTelemetry');
     let signalExist = false;
@@ -91,7 +88,7 @@ describe('Initializing Fresh tab', function () {
       }
     });
 
-    expect(signalExist).to.be.true;
-    expect(count).to.equal(1);
+    chai.expect(signalExist).to.be.true;
+    chai.expect(count).to.equal(1);
   });
 });

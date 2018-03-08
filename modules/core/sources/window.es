@@ -1,15 +1,16 @@
-import utils from './utils';
-import events from './events';
-import HistoryManager from './history-manager';
-import CliqzABTests from './ab-tests';
+import utils from "./utils";
+import events from "./events";
+import HistoryManager from "./history-manager";
+import CliqzABTests from "./ab-tests";
 
 export default class Win {
+
   constructor(settings) {
-    this.window = settings.window;
+  	this.window = settings.window;
     this.actions = {
       addClassToWindow: this.addClassToWindow.bind(this),
       removeClassFromWindow: this.removeClassFromWindow.bind(this)
-    };
+    }
   }
 
   init() {
@@ -29,17 +30,19 @@ export default class Win {
     delete this.window.CliqzHistoryManager;
   }
 
-  addClassToWindow(...args) {
-    const mainWindow = this.window.document.getElementById('main-window');
-    args.forEach((aClass) => {
+  addClassToWindow() {
+    var args = [].slice.call(arguments);
+    var mainWindow = this.window.document.getElementById('main-window');
+    args.forEach(function(aClass) {
       mainWindow.classList.add(aClass);
     });
   }
 
-  removeClassFromWindow(...args) {
-    const mainWindow = this.window.document.getElementById('main-window');
-    args.forEach((aClass) => {
-      mainWindow.classList.remove(aClass);
-    });
+  removeClassFromWindow() {
+    var args = [].slice.call(arguments);
+    var mainWindow = this.window.document.getElementById('main-window');
+      args.forEach(function(aClass) {
+        mainWindow.classList.remove(aClass);
+      });
   }
 }

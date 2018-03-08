@@ -14,6 +14,7 @@ import cliqz from '../core-cliqz/index';
 import dev from '../mobile-dev/index';
 import autocomplete from '../autocomplete/index';
 import ui from '../mobile-ui/index';
+import downloader from '../yt-downloader/index';
 import window from '../platform/window';
 
 window.CLIQZ = {};
@@ -42,5 +43,7 @@ window.document.addEventListener('DOMContentLoaded', function () {
     () => osAPI.init()
   ).then(
     () => utils.fetchAndStoreConfig()
+  ).then(
+    () => loadModule(downloader)
   ).catch(e => console.error(e));
 });

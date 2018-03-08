@@ -15,13 +15,11 @@ function getResults(ctrl) {
   const query = autocomplete.lastSearch.trim();
   const rawResults = Array(ctrl.matchCount).fill().map((_, i) => {
     const data = ctrl.getDataAt(i) || {};
-    const url = ctrl.getValueAt(i);
     const rawResult = {
       title: ctrl.getCommentAt(i),
-      url,
-      friendlyUrl: data.friendlyUrl || url,
+      url: ctrl.getValueAt(i),
       description: data.description || '',
-      originalUrl: url,
+      originalUrl: ctrl.getValueAt(i),
       type: ctrl.getStyleAt(i),
       text: query,
       data,
@@ -44,10 +42,6 @@ export default class DropdownWindow extends AppWindow {
         return;
       }
       this.ui.updateFirstResult();
-    },
-
-    'content:location-change': () => {
-      this.ui.sessionEnd();
     },
 
     'search:results': ({ windowId, results }) => {

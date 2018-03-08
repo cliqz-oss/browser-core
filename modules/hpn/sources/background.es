@@ -1,3 +1,4 @@
+import CliqzUtils from '../core/utils';
 import background from '../core/base/background';
 import { isPlatformAtLeastInVersion } from '../core/platform';
 import CliqzSecureMessage from './main';
@@ -20,13 +21,11 @@ export default background({
       this.CliqzSecureMessage = CliqzSecureMessage;
       CliqzSecureMessage.init();
       CliqzSecureMessage.wCrypto = new CryptoWorker('httpHandler');
-      CliqzSecureMessage.wCrypto.onmessage = (e) => {
+      CliqzSecureMessage.wCrypto.onmessage = function (e) {
         if (e.data.type === 'instant') {
           const callback = CliqzSecureMessage.queriesID[e.data.uid];
           delete CliqzSecureMessage.queriesID[e.data.uid];
-          if (callback) {
-            callback({ response: e.data.res });
-          }
+          callback && callback({ response: e.data.res });
         }
       };
     }
@@ -43,18 +42,18 @@ export default background({
 
   actions: {
     sha1(s) {
-      const promise = new Promise((resolve) => {
-        const wCrypto = new CryptoWorker();
+      let promise = new Promise( (resolve, reject) => {
+        let wCrypto = new CryptoWorker();
 
-        wCrypto.onmessage = (e) => {
-          const result = e.data.result;
+        wCrypto.onmessage = function(e){
+          let result = e.data.result;
           wCrypto.terminate();
           resolve(result);
         };
 
         wCrypto.postMessage({
-          msg: s,
-          type: 'hw-sha1'
+          "msg": s,
+          "type":"hw-sha1"
         });
       });
       return promise;
@@ -68,7 +67,7 @@ export default background({
       return new Promise((resolve, reject) => {
         const wCrypto = new CryptoWorker();
 
-        wCrypto.onmessage = (e) => {
+        wCrypto.onmessage = function(e){
           try {
             const result = JSON.parse(e.data.res).result;
             wCrypto.terminate();
@@ -84,8 +83,8 @@ export default background({
             type: 'cliqz',
             ts: '',
             ver: '1.5',
-            payload,
-            rp,
+            payload: payload,
+            rp: rp,
           },
           uid: '',
           type: 'instant',
@@ -102,14 +101,13 @@ export default background({
       const uid = Math.floor(Math.random() * 10000000);
       CliqzSecureMessage.queriesID[uid] = callback;
       CliqzSecureMessage.wCrypto.postMessage({
-        msg: {
-          action,
-          type: 'cliqz',
-          ts: '',
-          ver: '1.5',
-          payload,
-          rp,
-          body: data,
+        msg: { action: action,
+              type: 'cliqz',
+              ts: '',
+              ver: '1.5',
+              payload: payload,
+              rp: rp,
+              body: data,
         },
         uid: '',
         type: 'instant',

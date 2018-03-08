@@ -1,6 +1,3 @@
-/* eslint no-console: 'off'  */
-/* eslint import/no-mutable-exports: 'off' */
-
 import Dexie from '@cliqz-oss/dexie';
 import { chrome } from './globals';
 
@@ -21,7 +18,7 @@ try {
     remove(key) {
       return db.kv.delete(key);
     }
-  };
+  }
 } catch (e) {
   // unalble to load indexeddb
   storage = {
@@ -65,7 +62,7 @@ try {
         });
       });
     },
-  };
+  }
 }
 
 export default storage;

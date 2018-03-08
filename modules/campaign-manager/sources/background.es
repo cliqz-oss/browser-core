@@ -1,4 +1,6 @@
-import background from '../core/base/background';
+import Campaign from "./campaign";
+import CampaignManager from "./campaign-manager";
+import background from "../core/base/background";
 
 /**
   @namespace campaign-manager
@@ -15,7 +17,7 @@ export default background({
     @method init
     @param settings
   */
-  init() {
+  init(settings) {
 
   },
 

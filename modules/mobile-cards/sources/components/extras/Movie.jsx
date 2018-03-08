@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 
 import { getMessage } from '../../../core/i18n';
-import { elementSideMargins, elementTopMargin } from '../../styles/CardStyle';
+import { cardBorderRadius, elementSideMargins, elementTopMargin } from '../../styles/CardStyle';
 import Link from '../Link';
 import Icon from '../partials/Icon';
 import Url from '../partials/Url';
@@ -92,6 +92,6 @@ const styles = StyleSheet.create({
     marginRight: 10,
     marginBottom: 8,
     backgroundColor: '#F5F5F5',
-    borderRadius: 5,
+    ...cardBorderRadius,
   },
 });

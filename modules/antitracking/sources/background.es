@@ -279,15 +279,13 @@ export default background({
       domChecker.recordLinksForURL(url);
       domChecker.clearDomLinks();
     },
-    "antitracking:whitelist:add": function (hostname, isPrivate) {
+    "antitracking:whitelist:add": function (hostname) {
       this.attrack.urlWhitelist.changeState(hostname, 'hostname', 'add');
       this.attrack.logWhitelist(hostname);
-      if (!isPrivate) {
-        this.popupActions.telemetry({
-          action: 'click',
-          target: 'whitelist_domain'
-        });
-      }
+      this.popupActions.telemetry({
+        action: 'click',
+        target: 'whitelist_domain'
+      });
     },
     "antitracking:whitelist:remove": function (hostname) {
       this.attrack.urlWhitelist.changeState(hostname, 'hostname', 'remove');

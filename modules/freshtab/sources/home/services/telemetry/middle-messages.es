@@ -8,13 +8,12 @@ export function messageShowSignal() {
   });
 }
 
-export function messageClickSignal(messageId = '') {
+export function messageClickSignal() {
   telemetry({
     type: 'home',
     view: 'message',
     action: 'click',
-    target: 'ok',
-    topic: messageId
+    target: 'try',
   });
 }
 

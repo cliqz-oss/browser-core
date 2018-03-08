@@ -118,11 +118,6 @@ const subprojects = {
     src: 'node_modules/tooltipster/dist/css/plugins/tooltipster/sideTip/themes',
     include: ['tooltipster-sideTip-shadow.min.css'],
     dest: 'vendor'
-  },
-  tldjs: {
-    src: 'node_modules/tldjs',
-    include: ['tld.min.js'],
-    dest: 'vendor',
   }
 };
 

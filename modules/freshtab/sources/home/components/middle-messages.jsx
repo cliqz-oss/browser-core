@@ -9,7 +9,7 @@ export default class MiddleMessages extends React.Component {
   }
 
   handleCTAClick(message) {
-    messageClickSignal(message.id);
+    messageClickSignal();
     cliqz.freshtab.countMessageClick(message);
     this.props.handleLinkClick(message);
   }
@@ -37,7 +37,7 @@ export default class MiddleMessages extends React.Component {
       <div>
         {
           this.props.messages.map(message =>
-            (<div
+            <div
               key={message.id}
               className={`middle-notification-box ${message.type}`}
             >
@@ -70,7 +70,7 @@ export default class MiddleMessages extends React.Component {
                 {message.buttons && message.buttons.length > 0 &&
                   <div className="buttons">
                     {message.buttons.map(button =>
-                      (<a
+                      <a
                         key={button.id}
                         href={button.link[this.props.locale]}
                         target="_blank"
@@ -80,12 +80,12 @@ export default class MiddleMessages extends React.Component {
                           className={button.class}
                           src={`./images/${button.src}`}
                         />
-                      </a>)
+                      </a>
                     )}
                   </div>
                 }
               </div>
-            </div>)
+            </div>
           )
         }
       </div>

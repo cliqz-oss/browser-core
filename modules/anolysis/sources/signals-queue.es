@@ -2,6 +2,7 @@ import { utils } from '../core/cliqz';
 
 import Backend from './backend-communication';
 import logger from './logger';
+import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
 
 
 /**
@@ -35,7 +36,8 @@ export default class SignalsQueue {
 
   init(db) {
     this.db = db;
-    return this.startListening();
+    return this.db.deleteOlderThan(getSynchronizedDate().subtract(1, 'months').format(DATE_FORMAT))
+      .then(() => this.startListening());
   }
 
   unload() {

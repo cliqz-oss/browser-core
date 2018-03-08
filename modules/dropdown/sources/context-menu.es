@@ -12,7 +12,7 @@ function reportClick(window, result) {
     url: result.url,
     query: result.query,
     rawResult: result.rawResult,
-    isPrivateMode: utils.isPrivateMode(window),
+    isPrivateWindow: utils.isPrivate(window),
     isPrivateResult: utils.isPrivateResultType(result.kind),
     isFromAutocompletedURL: false,
     windowId: utils.getWindowID(window),
@@ -26,7 +26,7 @@ export default class ContextMenu {
     this.core = inject.module('core');
     this.window = window;
     this.rootElement = rootElement;
-    this.inPrivateMode = utils.isPrivateMode(window);
+    this.inPrivateWindow = utils.isPrivate(window);
     this.labels = this.getLocalizedStrings();
   }
 
@@ -79,10 +79,10 @@ export default class ContextMenu {
 
     const menuItems = [
       {
-        label: this.inPrivateMode ? labels[`NEW_${PRIVATE_NAME}_TAB`] : labels.NEW_TAB,
+        label: this.inPrivateWindow ? labels[`NEW_${PRIVATE_NAME}_TAB`] : labels.NEW_TAB,
         command: this.openNewTab.bind(this, url, result),
       },
-      ...(this.inPrivateMode ? [] : [{
+      ...(this.inPrivateWindow ? [] : [{
         label: labels.NEW_WINDOW,
         command: this.openNewWindow.bind(this, url, result),
       }]),

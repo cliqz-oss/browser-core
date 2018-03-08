@@ -57,7 +57,7 @@ function resultKindEnricher(newKindParams, result) {
 }
 
 export default class Mixer {
-  constructor() {
+  constructor({ smartCliqzCache, triggerUrlCache } = {}) {
     this.EZ_COMBINE = [
       'generic'
     ];
@@ -65,6 +65,8 @@ export default class Mixer {
       'www', 'www.', 'http://www', 'https://www',
       'http://www.', 'https://www.',
     ];
+    this.smartCliqzCache = smartCliqzCache;
+    this.triggerUrlCache = triggerUrlCache;
   }
 
   // Collect all sublinks and return a single list.
@@ -219,6 +221,81 @@ export default class Mixer {
   _getSmartCliqzId(smartCliqz) {
     return smartCliqz.data.subType.id;
   }
+  // Find any entity zone in the results and cache them for later use.
+  // Go backwards to prioritize the newest, which will be first in the list.
+  _cacheEZs(extraResults) {
+    if (!this.smartCliqzCache || !this.triggerUrlCache) {
+      return;
+    }
+    var mixer = this;
+    // slice creates a shallow copy, so we don't reverse existing array.
+    extraResults.slice().reverse().forEach(function(r) {
+      var trigger_urls = r.data.trigger_urls || [];
+      var wasCacheUpdated = false;
+
+      trigger_urls.forEach(function(url) {
+        if (!mixer.triggerUrlCache.isCached(url)) {
+          mixer.triggerUrlCache.store(url, true);
+          wasCacheUpdated = true;
+        }
+      });
+
+      if (wasCacheUpdated) {
+        mixer.triggerUrlCache.save();
+      }
+
+      mixer.smartCliqzCache.store(r);
+    });
+  }
+
+  // Take the first entry (if history cluster) and see if we can trigger an EZ
+  // with it, this will override an EZ sent by backend.
+  _historyTriggerEZ(result) {
+    if (!result || !result.data ||
+       !result.data.cluster || // if not history cluster
+       result.data.autoAdd) { // if the base domain was auto added (guessed)
+      return undefined;
+    }
+
+    if (!this.smartCliqzCache || !this.triggerUrlCache) {
+      return undefined;
+    }
+
+    var url = utils.generalizeUrl(result.val, true),
+      ez;
+
+    if (this.triggerUrlCache.isCached(url)) {
+      var ezId = this.triggerUrlCache.retrieve(url);
+      // clear dirty data that got into the data base
+      if (ezId === 'deprecated') {
+        this.triggerUrlCache.delete(url);
+        return undefined;
+      }
+      ez = this.smartCliqzCache.retrieveAndUpdate(url);
+      if (ez) {
+        // Cached EZ is available
+        ez = Result.clone(ez);
+
+        // copy over title and description from history entry
+        if (!result.data.generic) {
+          ez.data.title = result.data.title;
+          if (!ez.data.description)
+              ez.data.description = result.data.description;
+        }
+
+        resultKindEnricher({trigger_method: 'history_url'}, ez);
+      } else {
+        // Not available: start fetching now so it is available soon
+        this.smartCliqzCache.fetchAndStore(url);
+      }
+
+      if (this.triggerUrlCache.isStale(url)) {
+        this.triggerUrlCache.delete(url);
+      }
+    }
+
+    return ez;
+  }
 
   // Filter out any EZs that conflict with the firstresult
   _filterConflictingEZ(cliqzExtra, firstresult) {
@@ -254,8 +331,15 @@ export default class Mixer {
         results = [],
         r = {first: [], second: []}; // format returned by this._deduplicateResults()
 
-    if (cliqz && cliqz.length > 0 && cliqz[0].style == 'cliqz-extra') {
+    // Pick EZ if any is available. Give priority to customResults then history-triggered
+    // EZ, then backend EZ.
+    var historyEZ = this._historyTriggerEZ(history[0]);
+
+    if (historyEZ) {
+      cliqzExtra = [historyEZ];
+    } else if (cliqz && cliqz.length > 0 && cliqz[0].style == 'cliqz-extra') {
       cliqzExtra = [cliqz[0]];
+      this._cacheEZs(cliqzExtra);
     }
     var ez = cliqzExtra[0];
     // Add EZ to result list

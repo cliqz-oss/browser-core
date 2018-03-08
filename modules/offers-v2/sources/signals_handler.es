@@ -10,7 +10,6 @@ import  OffersConfigs  from './offers_configs';
 import config from '../core/config';
 import DBHelper from './db_helper';
 import { generateUUID } from './utils';
-import setTimeoutInterval from '../core/helpers/timeout';
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -88,7 +87,7 @@ export class SignalHandler {
     // save signals in a frequent way
     const self = this;
     if (OffersConfigs.SIGNALS_LOAD_FROM_DB) {
-      this.saveInterval = setTimeoutInterval(() => {
+      this.saveInterval = utils.setInterval(() => {
         if (self.dbDirty) {
           self._savePersistenceData();
         }
@@ -134,12 +133,12 @@ export class SignalHandler {
 
     // stop interval
     if (this.sendIntervalTimer) {
-      this.sendIntervalTimer.stop();
+      utils.clearInterval(this.sendIntervalTimer);
       this.sendIntervalTimer = null;
     }
 
     if (this.saveInterval) {
-      this.saveInterval.stop();
+      utils.clearInterval(this.saveInterval);
       this.saveInterval = null;
     }
   }
@@ -572,10 +571,12 @@ export class SignalHandler {
 
   // this method will configure the interval call to
   _startSendSignalsLoop(timeToSendSecs) {
-    this.sendIntervalTimer = setTimeoutInterval(function () {
+    this.sendIntervalTimer = utils.setInterval(function () {
       // here we need to process this particular bucket
       if (Object.keys(this.sigsToSend).length > 0) {
         this._sendSignalsToBE();
+      } else {
+        logger.info('_startSendSignalsLoop: nothing to send');
       }
     }.bind(this), timeToSendSecs * 1000);
   }

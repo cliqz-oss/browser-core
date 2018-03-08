@@ -83,76 +83,8 @@ export default [
           },
           {
             group: 'B',
-            info_list: {
-              N: 'Verloren',
-              PKT: 'Punkte',
-              S: 'Siege',
-              SP: 'Spiele',
-              TD: 'Tordiff',
-              U: 'Remis',
-              club: 'Mannschaft',
-              goals: 'Tore +:-',
-              qualified: 'Qualifiziert',
-              rank: 'Platz'
-            },
-            ranking: [
-              {
-                GT: 1,
-                N: 2,
-                PKT: 0,
-                S: 4,
-                SP: 0,
-                T: 5,
-                TD: 6,
-                U: 7,
-                club: 'Paris St. Germain',
-                goals: '5:0',
-                logo: 'https://cdn.cliqz.com/extension/bundesliga/teams/60x60/Manchester-United.png',
-                rank: 1
-              },
-              {
-                GT: 3,
-                N: 1,
-                PKT: 2,
-                S: 1,
-                SP: 5,
-                T: 5,
-                TD: 2,
-                U: 0,
-                club: 'Bayern München',
-                goals: '5:4',
-                logo: 'https://cdn.cliqz.com/extension/bundesliga/teams/60x60/FC-Basel.png',
-                rank: 2
-              },
-              {
-                GT: 3,
-                N: 2,
-                PKT: 3,
-                S: 3,
-                SP: 3,
-                T: 3,
-                TD: 0,
-                U: 0,
-                club: 'RSC Anderlecht',
-                goals: '3:8',
-                logo: 'https://cdn.cliqz.com/extension/bundesliga/teams/60x60/ZSKA-Moskau.png',
-                rank: 3
-              },
-              {
-                GT: 6,
-                N: 6,
-                PKT: 0,
-                S: 0,
-                SP: 2,
-                T: 1,
-                TD: -2,
-                U: 0,
-                club: 'Celtic Glasgow',
-                goals: '1:1',
-                logo: 'https://cdn.cliqz.com/extension/bundesliga/teams/60x60/Benfica-Lissabon.png',
-                rank: 4
-              }
-            ]
+            info_list: {},
+            ranking: []
           },
           {
             group: 'C',

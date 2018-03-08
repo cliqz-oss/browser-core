@@ -8,6 +8,7 @@ const makeHeader = (domain, query, scheme = 'http', provider) => clean({
   url: `${scheme}://${domain}`,
   text: query,
   provider,
+  kind: ['C'],
   meta: {
     level: 0,
     type: 'main',
@@ -24,7 +25,7 @@ const makeHeader = (domain, query, scheme = 'http', provider) => clean({
 const cluster = (({ results, ...response }) => {
   const clustered = Array
     .from(results
-      .map(result => ({ ...result, domain: getMainLink(result).meta.hostAndPort }))
+      .map(result => ({ ...result, domain: getMainLink(result).meta.domain }))
       .reduce(group, new Map())
       .entries()
     )
@@ -44,7 +45,6 @@ const cluster = (({ results, ...response }) => {
       const query = response.query;
       const header = (main && getMainLink(main)) ||
         makeHeader(domain, query, scheme, response.provider);
-      header.kind = ['C', ...header.kind];
       const rest = grouped
         .filter(result => getMainLink(result).meta.url !== domain);
 
@@ -59,7 +59,7 @@ const cluster = (({ results, ...response }) => {
             .map(getMainLink)
             .map(link => ({
               ...link,
-              kind: ['C', ...link.kind],
+              kind: ['C'],
               meta: {
                 level: 1,
                 type: 'history',

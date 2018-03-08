@@ -163,7 +163,6 @@ export default class ExpressionBuilder {
       pattern_matching_handler: this.globObjs.pattern_matching_handler,
       category_handler: this.globObjs.category_handler,
       offers_status_handler: this.globObjs.offers_status_handler,
-      ga_handler: this.globObjs.ga_handler,
     };
     const Builder = this.buildMap.ops[opName];
     return new Builder(buildData);

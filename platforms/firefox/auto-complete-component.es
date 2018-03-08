@@ -1,22 +1,20 @@
-/* eslint-disable func-names */
-import utils from '../core/utils';
-import Search from '../autocomplete/search';
+import utils from "../core/utils";
+import Search from "../autocomplete/search";
 import { Components, XPCOMUtils } from './globals';
 
 function generateAutocompleteProvider(searchHolder) {
-  const ProviderAutoCompleteSearch = function () {
+  const ProviderAutoCompleteSearch = function() {
     this.search = searchHolder.search;
   };
 
-  ProviderAutoCompleteSearch.prototype
-    .startSearch = function (searchString, searchParam, previousResult, listener) {
-      this.search.search(searchString, listener.onSearchResult.bind(listener, this));
-    };
+  ProviderAutoCompleteSearch.prototype.startSearch = function(searchString, searchParam, previousResult, listener) {
+    this.search.search(searchString, listener.onSearchResult.bind(listener, this));
+  }
 
-  ProviderAutoCompleteSearch.prototype.stopSearch = function () {
+  ProviderAutoCompleteSearch.prototype.stopSearch = function() {
     utils.clearTimeout(this.search.resultsTimer);
     utils.clearTimeout(this.search.historyTimer);
-  };
+  }
   return ProviderAutoCompleteSearch;
 }
 
@@ -40,9 +38,9 @@ class AutocompleteComponent {
     this.reg = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
     this.FFcontract = {
       classID: Components.ID('{59a99d57-b4ad-fa7e-aead-da9d4f4e77c8}'),
-      classDescription: 'Cliqz',
+      classDescription : 'Cliqz',
       contractID: '@mozilla.org/autocomplete/search;1?name=cliqz-results',
-      QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIAutoCompleteSearch])
+      QueryInterface: XPCOMUtils.generateQI([ Components.interfaces.nsIAutoCompleteSearch ])
     };
   }
 
@@ -56,8 +54,8 @@ class AutocompleteComponent {
           Components.interfaces.nsISupports
         )
       );
-    } catch (e) {
-      // empty
+    } catch(e) {
+
     }
   }
 
@@ -70,7 +68,7 @@ class AutocompleteComponent {
   }
 }
 
-export const background = {
+export let background = {
   init() {
     this.autocomplete = new AutocompleteComponent();
     this.autocomplete.unregister();
@@ -82,7 +80,7 @@ export const background = {
   }
 };
 
-export const Window = {
+export let Window = {
   init() {},
   unload() {}
-};
+}

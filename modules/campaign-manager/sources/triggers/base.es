@@ -1,6 +1,7 @@
-import CliqzUtils from '../../core/utils';
+import CliqzUtils from "../../core/utils";
 
 export default class TriggerBase {
+
   constructor(id) {
     this.id = id;
     this._listeners = [];
@@ -11,10 +12,10 @@ export default class TriggerBase {
   }
 
   notifyListeners() {
-    this._listeners.forEach((listener) => {
-      CliqzUtils.setTimeout(() => {
+    this._listeners.forEach(function (listener) {
+      CliqzUtils.setTimeout(function () {
         listener(this.id);
-      }, 0);
-    });
+      }.bind(this), 0);
+    }.bind(this));
   }
 }

@@ -1,8 +1,8 @@
 import logger from './common/offers_v2_logger';
 import OffersConfigs from './offers_configs';
 import DBHelper from './db_helper';
+import { utils } from '../core/cliqz';
 import { timestampMS } from './utils';
-import setTimeoutInterval from '../core/helpers/timeout';
 
 const STORAGE_DB_DOC_ID = 'offers-db';
 
@@ -46,7 +46,7 @@ class OfferDB {
     // save offers in a frequent way
     const self = this;
     if (OffersConfigs.LOAD_OFFERS_STORAGE_DATA) {
-      this.saveInterval = setTimeoutInterval(() => {
+      this.saveInterval = utils.setInterval(() => {
         if (self.dbDirty) {
           self._savePersistentData();
         }
@@ -57,7 +57,7 @@ class OfferDB {
   destroy() {
     this.savePersistentData();
     if (this.saveInterval) {
-      this.saveInterval.stop();
+      utils.clearInterval(this.saveInterval);
       this.saveInterval = null;
     }
   }

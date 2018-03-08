@@ -333,7 +333,7 @@ export default describeModule("freshtab/background",
             }
 
             return this.module().default.actions.addSpeedDial(url).then((result) => {
-              chai.expect(result).to.deep.equal({ error: true, reason: 'Error: duplicate'});
+              chai.expect(result).to.deep.equal({ error: true, reason: 'duplicate'});
             });
           });
 

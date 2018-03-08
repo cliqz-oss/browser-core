@@ -205,6 +205,7 @@ XPCOMUtils = {
 }
 Services = {
 	scriptloader: {
+		loadSubScriptWithOptions: function(){},
 		loadSubScript: function(){}
 	}
 }

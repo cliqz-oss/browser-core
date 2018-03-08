@@ -17,8 +17,6 @@ import BEConnector from './backend-connector';
 import PatternMatchingHandler from './pattern-matching/pattern-matching-handler';
 import CategoryHandler from './categories/category-handler';
 import OfferStatusHandler from './offers-status-handler';
-import GreenAdsHandler from './green-ads/manager';
-
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
@@ -36,15 +34,14 @@ export default background({
     if (config.settings.OFFERS_BE_BASE_URL) {
       OffersConfigs.BACKEND_URL = config.settings.OFFERS_BE_BASE_URL;
     }
-
-    return this.softInit();
+    this.softInit();
   },
 
   softInit(/* settings */) {
     // check if we need to do something or not
     if (!utils.getPref('offers2FeatureEnabled', false) || !utils.getPref(USER_ENABLED, true)) {
       this.initialized = false;
-      return Promise.resolve();
+      return;
     }
 
     // check for some other flags here:
@@ -142,8 +139,6 @@ export default background({
     // load the data from the category handler
     this.categoryHandler.loadPersistentData();
 
-    this.gaHandler = new GreenAdsHandler();
-
     // create the trigger machine executor
     this.globObjects = {
       regex_cache: new RegexpCache(),
@@ -159,14 +154,11 @@ export default background({
       pattern_matching_handler: this.patternMatchingHandler,
       category_handler: this.categoryHandler,
       offers_status_handler: oStatusHandler,
-      ga_handler: this.gaHandler,
     };
     this.triggerMachineExecutor = new TriggerMachineExecutor(this.globObjects);
 
     // to be checked on unload
     this.initialized = true;
-
-    return this.gaHandler.init();
   },
 
   // ///////////////////////////////////////////////////////////////////////////
@@ -212,7 +204,10 @@ export default background({
       this.featureHandler = null;
     }
 
-    this.categoryHandler = null;
+    if (this.categoryHandler) {
+      this.categoryHandler.destroy();
+      this.categoryHandler = null;
+    }
 
     this.initialized = false;
   },
@@ -284,9 +279,7 @@ export default background({
       }
     },
     'offers-recv-ch': function onRealEstateMessage(message) {
-      if (this.offerProc) {
-        this.offerProc.processRealEstateMessage(message);
-      }
+      this.offerProc.processRealEstateMessage(message);
     },
     prefchange: function onPrefChange(pref) {
       if (pref === USER_ENABLED) {

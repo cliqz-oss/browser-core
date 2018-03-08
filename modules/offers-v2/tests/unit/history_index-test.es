@@ -61,9 +61,6 @@ export default describeModule('offers-v2/history_index',
         setInterval: function () {},
       }
     },
-    'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
-    },
     'platform/console': {
       default: {}
     },

@@ -10,7 +10,6 @@ class Enricher {
   // TODO: enrich before collecting (i.e., only for new results);
   //       note: history might come after backend
   connect(target, source) {
-    // FIXME: this is never unsubscribed from!
     return target
       .combineLatest(source)
       .map(this.enrich.bind(this));
@@ -70,7 +69,6 @@ class Enricher {
             },
             ...others,
             // TODO: assumes 'main' link is first
-            // TODO: has also kind 'H', why?
             ...match.links.slice(1),
           ]
         };

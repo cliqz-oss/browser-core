@@ -103,9 +103,8 @@ export default background({
     },
 
     getCosmeticsForDomain(sender) {
-      const url = sender.url;
-      const tabUrl = sender.tab.url;
-      if (!CliqzADB.isAdbActive(tabUrl)) {
+      const url = sender.tab.url;
+      if (!CliqzADB.isAdbActive(url)) {
         return { active: false };
       }
 

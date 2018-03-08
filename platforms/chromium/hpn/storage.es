@@ -1,60 +1,66 @@
-/* eslint no-console: 'off' */
-
 // TODO: this entire file requires a rewrite from ground up
 const CliqzChromeDB = {
   VERSION: '0.1',
-  set(db, key, obj, callback) {
-    const dbKey = `${db}:${key}`;
-    const o = {};
+  set: function(db, key, obj, callback) {
+    var dbKey = db+':'+key;
+    var o = {};
     o[dbKey] = obj;
     chrome.storage.local.set(o, callback);
   },
-  get(db, keyValueOrFunction, callback) {
+  get: function(db, keyValueOrFunction, callback) {
+
     if (typeof keyValueOrFunction === 'function') {
-      chrome.storage.local.get(null, (items) => {
-        const results = [];
-        Object.keys(items).forEach((lab) => {
+
+      chrome.storage.local.get(null, function(items) {
+        var results = [];
+        Object.keys(items).forEach( function(lab) {
           if (lab.startsWith(db)) {
             if (keyValueOrFunction(items[lab])) results.push(items[lab]);
           }
         });
         callback(results);
       });
-    } else {
-      const dbKey = `${db}:${keyValueOrFunction}`;
-      chrome.storage.local.get(dbKey, (items) => {
+
+    }
+    else {
+      var dbKey = db+':'+keyValueOrFunction;
+      chrome.storage.local.get(dbKey, function(items) {
         callback(items[dbKey]);
       });
     }
   },
-  remove(db, keyValueOrFunction, callback) {
+  remove: function(db, keyValueOrFunction, callback) {
+
     if (typeof keyValueOrFunction === 'function') {
-      chrome.storage.local.get(null, (items) => {
-        const resultsToBeRemoved = [];
-        Object.keys(items).forEach((lab) => {
+
+      chrome.storage.local.get(null, function(items) {
+        var resultsToBeRemoved = [];
+        Object.keys(items).forEach( function(lab) {
           if (lab.startsWith(db)) {
             if (keyValueOrFunction(items[lab])) {
-              const dbKey = `${db}:${lab}`;
+              var dbKey = db+':'+lab;
               resultsToBeRemoved.push(dbKey);
             }
           }
         });
 
-        chrome.storage.local.remove(resultsToBeRemoved, callback);
+        chrome.storage.local.remove(resultsToBeRemoved, callback)
       });
-    } else {
-      const dbKey = `${db}:${keyValueOrFunction}`;
+
+    }
+    else {
+      var dbKey = db+':'+keyValueOrFunction;
       chrome.storage.local.remove(dbKey, callback);
     }
   },
-  size(callback) {
-    chrome.storage.local.getBytesInUse(null, (a) => {
-      const res = [a, a / chrome.storage.local.QUOTA_BYTES];
+  size: function(callback) {
+    chrome.storage.local.getBytesInUse(null, function(a) {
+      var res = [a, a/chrome.storage.local.QUOTA_BYTES];
       console.log('Current size: ', res[0], res[1]);
       if (callback) callback(res);
     });
   },
-  removeEverything() {
+  removeEverything: function() {
     chrome.storage.local.clear();
     CliqzChromeDB.size();
   },
@@ -73,9 +79,9 @@ export default class {
   }
 
   loadRecord(id) {
-    const promise = new Promise((resolve) => {
-      CliqzChromeDB.get('hpn', id, (obj) => {
-        const res = [];
+    var promise = new Promise(function(resolve, reject){
+      CliqzChromeDB.get('hpn', id, function(obj) {
+        var res = [];
         if (obj) res.push(obj);
         resolve(res);
       });
@@ -84,22 +90,23 @@ export default class {
   }
 
   saveKeys(_data) {
-    return new Promise((resolve) => {
+    return new Promise(function(resolve, reject) {
       CliqzChromeDB.set('hpn', 'userKey', JSON.stringify(_data));
       resolve({ status: true, data: _data });
     });
   }
 
   loadKeys() {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       this.loadRecord('userKey')
-        .then((data) => {
+        .then(data => {
           if (data.length === 0) {
             resolve(null);
-          } else {
+          }
+          else {
             try {
               resolve(JSON.parse(data));
-            } catch (ee) {
+            } catch(ee) {
               resolve(null);
             }
           }
@@ -115,12 +122,12 @@ export default class {
 
   loadLocalCheckTable() {
     this.loadRecord('localTemporalUniq')
-      .then((res) => {
-        if (res.length > 0) {
+      .then( res => {
+        if(res.length > 0){
           this.CliqzSecureMessage.localTemporalUniq = JSON.parse(res[0]);
         } else {
           this.CliqzSecureMessage.localTemporalUniq = {};
         }
-      });
+      })
   }
 }

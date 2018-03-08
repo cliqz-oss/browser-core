@@ -1,3 +1,7 @@
+/* eslint func-names: ['error', 'never'] */
+/* eslint prefer-arrow-callback: 'off' */
+/* eslint no-unused-expressions: 'off' */
+
 import {
   $cliqzResults,
   expect,
@@ -18,7 +22,7 @@ export default function () {
       withHistory([]);
       fillIn('youtube');
       return waitForPopup().then(function () {
-        $resultElement = $cliqzResults().find(`a.result[data-url='${results[0].url}']`)[0].parentNode;
+        $resultElement = $cliqzResults().find(`a.result[href='${results[0].url}']`)[0].parentNode;
         youtubeChildrenItems = $resultElement.querySelectorAll(youtubeChildrenSelector);
       });
     });
@@ -60,7 +64,7 @@ export default function () {
       });
 
       it('with a correct link', function () {
-        expect(youtubeParentItem.dataset.url).to.equal(results[0].url);
+        expect(youtubeParentItem.href).to.equal(results[0].url);
       });
 
       it('with existing and correct description', function () {
@@ -137,8 +141,8 @@ export default function () {
       it('with existing and correct links', function () {
         if (youtubeChildrenItems.length > 0) {
           [...youtubeChildrenItems].forEach(function (child, i) {
-            expect(child.dataset.url).to.exist;
-            expect(child.dataset.url)
+            expect(child.href).to.exist;
+            expect(child.href)
               .to.contain(results[0].snippet.deepResults[0].links[i].url);
           });
         } else {
@@ -175,7 +179,7 @@ export default function () {
       it('with correct links', function () {
         if (amountOfButtonsInResults > 0) {
           [...buttonsItems].forEach(function (button, i) {
-            expect(button.dataset.url)
+            expect(button.href)
               .to.contain(results[0].snippet.deepResults[1].links[i].url);
           });
         } else {

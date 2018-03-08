@@ -6,9 +6,7 @@ export default describeModule('dropdown/dropdown',
       './templates': {},
       './telemetry': {},
       '../core/url': {},
-      '../core/events': {},
       './context-menu': {},
-      '../platform/browser': {},
     };
   },
   function () {
@@ -85,9 +83,6 @@ export default describeModule('dropdown/dropdown',
                     contains() {
                       return false;
                     }
-                  },
-                  dataset: {
-                    url: '',
                   }
                 };
               },

@@ -85,9 +85,6 @@ export default class CliqzPairing {
 
   startPairing(slaveName = getDeviceName()) {
     if (this.status !== CliqzPairing.STATUS_UNPAIRED) {
-      if (this.status === CliqzPairing.STATUS_PAIRING) {
-        this.pairingRemaining = this.pairingTimeout;
-      }
       return;
     }
     this.setPairing(slaveName);

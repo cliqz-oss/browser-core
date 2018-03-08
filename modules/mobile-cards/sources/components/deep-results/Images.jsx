@@ -1,40 +1,45 @@
 import React from 'react';
-import { View, StyleSheet, Image } from 'react-native';
-import { getCardWidth, elementTopMargin } from '../../styles/CardStyle';
-
-const MAX_IMAGE_COUNT = 3;
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    ...elementTopMargin,
-    justifyContent: 'center',
-  },
-});
+import { StyleSheet, ListView } from 'react-native';
+import ImageQueue from '../../components/ImageQueue';
+import { elementTopMargin } from '../../styles/CardStyle';
 
 export default class extends React.Component {
-  displayImage(data, index, { length }) {
-    const width = getCardWidth() / MAX_IMAGE_COUNT;
-    const resizeMode = length > 1 ? 'cover' : 'contain';
-    return (
-      <Image
-        key={index}
-        source={{ uri: data.image }}
-        style={{ height: 100, width }}
-        resizeMode={resizeMode}
-      />
-    );
+
+  constructor(props) {
+    super(props);
+    this.ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+    // set limit for number of images
+    this.state = {
+      ds: this.ds.cloneWithRows(this.props.data || [])
+    }
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.setState({
+      ds: this.state.ds.cloneWithRows(nextProps.data || [])
+    });
+  }
+
+  shouldComponentUpdate() {
+    return Boolean(this.state.ds);
   }
 
   render() {
-    const imageList = (this.props.data || [])
-      .filter(data => !data.image.endsWith('.svg'))
-      .slice(0, MAX_IMAGE_COUNT)
-      .map(this.displayImage);
-    return (
-      <View style={styles.container}>
-        { imageList }
-      </View>
-    );
+    return <ListView
+      dataSource={this.state.ds}
+      renderRow={this.renderRow}
+      style={{ ...elementTopMargin }}
+      horizontal={true}
+      enableEmptySections={true}
+      pageSize={4}
+    >
+    </ListView>
+  }
+
+  renderRow(data) {
+    return <ImageQueue
+      source={{uri: data.image}}
+      style={{height: 100, width: 90}}
+    />;
   }
 }

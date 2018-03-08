@@ -17,8 +17,8 @@ function startup(aData, aReason) {
   Components.utils.importGlobalProperties(['TextEncoder', 'TextDecoder', 'btoa', 'atob', 'XMLHttpRequest', 'indexedDB', 'crypto']);
 
   Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
-  Services.scriptloader.loadSubScript('chrome://cliqz/content/runloop.js', global);
-  Services.scriptloader.loadSubScript('chrome://cliqz/content/core/app.bundle.js', { global: global });
+  Services.scriptloader.loadSubScriptWithOptions('chrome://cliqz/content/runloop.js', { target: global, ignoreCache: true });
+  Services.scriptloader.loadSubScriptWithOptions('chrome://cliqz/content/core/app.bundle.js', { target: { global: global }, ignoreCache: true });
 
   global.app = new global.App({
     version: aData.version

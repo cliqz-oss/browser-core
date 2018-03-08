@@ -1,3 +1,7 @@
+/* eslint func-names: ["error", "never"] */
+/* eslint prefer-arrow-callback: "off" */
+/* eslint no-unused-expressions: "off" */
+
 import {
   $cliqzResults,
   CliqzUtils,
@@ -23,7 +27,7 @@ export default function () {
     const results = weatherResults;
     const searchWithSelector = 'a.result.search';
     const weatherSelector = '.result.weather';
-    const normalSelector = `a.result[data-url="${results[1].url}"]`;
+    const normalSelector = `a.result[href="${results[1].url}"]`;
 
     beforeEach(function () {
       withHistory([]);

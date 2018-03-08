@@ -16,15 +16,15 @@ const PROXY_ALL_PREF = 'proxyAll';
 
 // Signaling server for WebRTC
 const PROXY_SIGNALING_URL_PREF = 'proxySignalingUrl';
-const PROXY_SIGNALING_DEFAULT = config.settings.TRACKER_PROXY_PROXY_SIGNALING_DEFAULT;
+const PROXY_SIGNALING_DEFAULT = 'wss://p2p-signaling-proxypeer.cliqz.com';
 
 // Endpoint used to get the relay peers
 const PROXY_PEERS_URL_PREF = 'proxyPeersUrl';
-const PROXY_PEERS_DEFAULT = config.settings.TRACKER_PROXY_PROXY_PEERS_DEFAULT;
+const PROXY_PEERS_DEFAULT = 'https://p2p-signaling-proxypeer.cliqz.com/peers';
 
 // Endpoint used to get the relay peers
 const PROXY_PEERS_EXIT_URL_PREF = 'proxyPeersExitUrl';
-const PROXY_PEERS_EXIT_DEFAULT = config.settings.TRACKER_PROXY_PROXY_PEERS_EXIT_DEFAULT;
+const PROXY_PEERS_EXIT_DEFAULT = 'https://p2p-signaling-proxypeer.cliqz.com/exitNodes';
 
 
 function shouldProxyTrackers() {

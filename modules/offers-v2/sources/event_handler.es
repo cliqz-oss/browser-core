@@ -26,9 +26,6 @@ export default class EventHandler {
 
     this.beforeRequestListener = this.beforeRequestListener.bind(this)
     this.requestListenerAdded = false;
-
-    // Don't execute triggers on localhost, IPs and "internal" urls
-    this.notAllowedUrls = RegExp('(admin|login|logout|^https?://localhost|^https?://(\\d+\\.){3}\\d+|\\.(dev|foo)\\b)');
   }
 
   //
@@ -176,10 +173,8 @@ export default class EventHandler {
     // resource://
     // about:
     // file://
-
     if (!url ||
-        !(url.startsWith('http://') || url.startsWith('https://')) ||
-        this.notAllowedUrls.test(url)) {
+        !(url.startsWith('http://') || url.startsWith('https://'))) {
       return;
     }
 

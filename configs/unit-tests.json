@@ -1,0 +1,18 @@
+{
+  "platform": "firefox",
+  "format": "system",
+  "brocfile": "node.Brocfile.js",
+  "baseURL": "/",
+  "testsBasePath": "./build/",
+  "testem_launchers": ["unit-node"],
+  "testem_launchers_ci": ["unit-node"],
+  "settings": {
+    "id": "cliqz@cliqz.com",
+    "name": "Cliqz",
+    "channel": "99"
+  },
+  "default_prefs" : {
+  },
+  "bundles": [
+  ]
+}

@@ -69,9 +69,6 @@ export default describeModule('offers-v2/offer_processor',
         setInterval: function() {},
       }
     },
-    'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
-    },
     'platform/console': {
       default: {},
     },

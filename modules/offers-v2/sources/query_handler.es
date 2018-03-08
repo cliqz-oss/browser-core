@@ -8,9 +8,9 @@
 // //////////////////////////////////////////////////////////////////////////////////
 import DBHelper from './db_helper';
 import OffersConfigs from './offers_configs';
+import { utils } from '../core/cliqz';
 import { timestampMS } from './utils';
 import logger from './common/offers_v2_logger';
-import setTimeoutInterval from '../core/helpers/timeout';
 
 const STORAGE_DB_DOC_ID = 'offers-queries';
 
@@ -47,7 +47,7 @@ export default class QueryHandler {
     // save signals in a frequent way
     const self = this;
     if (OffersConfigs.QUERY_POSTINGS_LOAD_FROM_DB) {
-      this.saveInterval = setTimeoutInterval(() => {
+      this.saveInterval = utils.setInterval(() => {
         if (self.isDataDirty) {
           self._savePersistenceData();
         }
@@ -60,7 +60,7 @@ export default class QueryHandler {
     this._savePersistenceData();
 
     if (this.saveInterval) {
-      this.saveInterval.stop();
+      utils.clearInterval(this.saveInterval);
       this.saveInterval = null;
     }
   }

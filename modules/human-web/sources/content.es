@@ -1,8 +1,6 @@
-/* eslint import/prefer-default-export: 'off' */
-
 import {
   registerContentScript,
-  CHROME_MSG_SOURCE
+  CHROME_MSG_SOURCE,
 } from '../core/content/helpers';
 
 import { normalizeAclkUrl } from './ad-detection';
@@ -113,11 +111,10 @@ export function parseDom(url, window, windowId) {
       try {
         query = decodeURIComponent(query);
       } catch (ee) {
-        // empty
       }
     }
 
-    // Let's iterate over each possible section of the ads.
+      // Let's iterate over each possible section of the ads.
     detectAdRules.adSections.forEach((eachAdSection, idx) => {
       const adNodes = Array.prototype.slice.call(doc.querySelectorAll(eachAdSection));
 

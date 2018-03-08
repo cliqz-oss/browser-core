@@ -1,7 +1,4 @@
-/* eslint no-console: 'off' */
-
 import { Services } from './globals';
-
 const prefs = Services.prefs.getBranch('');
 const complexRegEx = /^chrome:\/\/.+\/locale\/.+\.properties/;
 
@@ -46,7 +43,7 @@ export function setPref(key, value, prefix) {
     case 'boolean': prefs.setBoolPref(pref, value); break;
     case 'number': prefs.setIntPref(pref, value); break;
     case 'string': prefs.setCharPref(pref, value); break;
-    default: Services.console.logStringMessage(`WARNING: Unable to save "${pref}`); break;
+    default: Services.console.logStringMessage('WARNING: Unable to save "' + pref);break;
   }
 }
 
@@ -62,11 +59,11 @@ export function clearPref(key, prefix) {
 
 export function enableChangeEvents() {
 
-}
+};
 
 export function disableChangeEvents() {
 
-}
+};
 
 export function init() {
   return Promise.resolve();

@@ -5,12 +5,6 @@ export default {
     },
   },
   providers: {
-    cliqz: {
-      includeOffers: true,
-    },
-    history: {
-      maxQueryLengthToWait: 4,
-    },
     'rich-header': {
       retry: {
         count: 10,
@@ -22,13 +16,6 @@ export default {
     },
   },
   operators: {
-    offers: {
-      isEnabled: true,
-      locationEnabled: true,
-      nonOrganicStyle: 'plain',
-      nonOrganicPosition: 'first',
-      organicStyle: 'plain',
-    },
     limit: {
       limits: {
         cliqz: 3,

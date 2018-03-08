@@ -1,78 +1,81 @@
+<tr>
+    <th colspan="3">Test</th>
+    <th colspan="2">Client Setting</th>
+    <th colspan="9">Static Properties</th>
+    <th>Actions</th>
+</tr>
+<tr>
+    <th>Id</th>
+    <th>Name</th>
+    <th>Description</th>
+
+    <th>Started On</th>
+    <th>Assigned Group</th>
+
+    <th>Available Groups</th>
+    <th>Required Core Version</th>
+    <th>Required Demographics</th>
+    <th>Start Date</th>
+    <th>End Date</th>
+    <th>Treatment Length</th>
+    <th>Enter Probability</th>
+    <th>Status (Server-Side)</th>
+    <th>Competitors</th>
+
+    <th></th>
+
+</tr>
 {{#each tests}}
+<tr>
+    <td>{{id}}</td>
+    <td>{{name}}</td>
+    <td>{{description}}</td>
 
-<div class="test-snippet">
-  <div class="test-body">
+    <td>{{started}}</td>
+    <td>{{group}}</td>
 
-      {{!-- Static State --}}
-      <div class="static-state">
-        <p class="test-headline"> <code class="test-id">{{id}}</code> <span class="test-name">{{name}}</span></p>
-        <p class="test-description">{{description}}</p>
-        <div class="test-explanation">
-            <div class="test-meta">
-                <ul>
-                    {{#if demographics}}
-                        {{#if version}}
-                            <li>Available for {{> demographics demographics}}, 
-                            {{> version version}}</li>
-                         {{else}}
-                            <li>Available for {{> demographics demographics}}</li>
-                        {{/if}}
-                    {{else}}
-                        {{#if version}}
-                            <li>Available for {{> version version}}</li>
-                        {{else}}
-                            <li>Available for all users</li>
-                        {{/if}}
-                    {{/if}}
-   
-                    <li>Duration: {{start_date}} - {{end_date}}</li>
-                    <li>Runs for: {{treatment_length}} days</li>
-                    <li>Probability to join: {{probability}}</li>
-                </ul>
+    <td>
+        {{#each groups}}
+            <div>
+                {{@key}}:
+                {{#each this}}
+                    {{@key}}: {{this}}
+                {{/each}}
             </div>
-            <div class="test-groups">
-                <ul>
-                    <li>Groups: 
-                        {{#each groups}}
-                            <li>
-                                {{@key}}:
-                                    {{#each this}}
-                                        {{@key}}: {{this}}
-                                    {{/each}}
-                            </li>
-                        {{/each}}
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
+        {{/each}}
+    </td>
+    <td>
+        {{> version core_version}}
+    </td>
+    <td>
+        {{> demographics demographic}}
+    </td>
+    <td>{{start_date}}</td>
+    <td>{{end_date}}</td>
+    <td>{{treatment_length}}</td>
+    <td>{{probability}}</td>
+    <td>{{status}}</td>
+    <td>{{competitors}}</td>
 
-    {{!-- Client State --}}
-    <div class="client-state">
+    <td>
         {{#if ../options.showStart}}
-        <span>You are not part of this test
-            <span class="test-action-button">
-                <select class="start-test-group">
-                    {{#each groups}}
-                        <option value="{{@key}}">Group {{@key}}</option>
-                    {{/each}}
-                </select>
-                <button class="start-test" data-test-id="{{id}}">Start</button>
-            </span>
+            <select class="start-test-group">
+                {{#each groups}}
+                    <option value="{{@key}}">{{@key}}</option>
+                {{/each}}
+            </select>
+            <div class="button start-test" data-test-id="{{id}}">Start</div>
         {{/if}}
         {{#if ../options.showStop}}
-        <span>On {{started}} you joined group {{group}}
-            <button class="test-action-button stop-test" data-test-id="{{id}}">Stop</button>
+            <div class="button stop-test" data-test-id="{{id}}">Stop</div>
         {{/if}}
         {{#if ../options.showRemove}}
-        <span>On {{started}} you joined group {{group}}
-            <button class="test-action-button remove-test" data-test-id="{{id}}">Remove</button>
+            <div class="button remove-test" data-test-id="{{id}}">Remove</div>
         {{/if}}
-        </span>
-    </div>
-  </div>
-</div>
-
+    </td>
+</tr>
 {{else}}
-<p>No Tests</p>
+<tr>
+    <td colspan="13">No tests</td>
+</tr>
 {{/each}}

@@ -25,7 +25,7 @@ const LATEST_VERSION_USED_PREF = 'anolysisVersion';
  * only signal when the state of the client should be reset, which is a
  * temporary thing.
  */
-const VERSION = 5;
+const VERSION = 4;
 
 
 function versionWasUpdated() {
@@ -194,7 +194,17 @@ export default background({
     this.anolysis.unload();
   },
 
-  unload() {
+  unload(quick) {
+    if (quick === undefined) {
+      // Generate uninstall signal
+      // TODO: Find a way to do this, as it's hard to do it fast.
+      // We need to get the GID or demographics to send with the
+      // new signal + by-pass the message queue/preprocessing.
+      //
+      // Also, how to make sure that the message is actually sent
+      // to the backend, as this is done in an async way.
+    }
+
     this.stop();
   },
 
@@ -234,29 +244,15 @@ export default background({
 
   actions: {
     registerSchemas(schemas) {
-      if (!this.anolysis || !this.isRunning) {
-        return Promise.resolve();
-      }
-
       return Promise.resolve()
         .then(() => this.anolysis.registerSchemas(schemas));
     },
 
     handleTelemetrySignal(...args) {
-      if (!this.anolysis || !this.isRunning) {
+      if (!this.anolysis) {
         return Promise.resolve();
       }
-
-      return this.anolysis.handleTelemetrySignal(...args).catch((ex) => {
-        // We only count it as exception if Anolysis is running. It can happen
-        // that signals are sent slightly before Anolysis is stopped, but they
-        // are processed async and they are persisted just after Storage is
-        // unloaded. So we ignore exception happening when Anolysis is not
-        // running.
-        if (this.anolysis && this.isRunning) {
-          logger.error('handleTelemetrySignal', ex, args);
-        }
-      });
+      return this.anolysis.handleTelemetrySignal(...args);
     },
   },
 });

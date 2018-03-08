@@ -1,9 +1,8 @@
 import {
-  clearIntervals,
   clone,
+  clearIntervals,
+  Subject,
   defaultConfig,
-  expect,
-  Subject
 } from './helpers';
 
 describe('Fresh tab settings panel UI', function () {
@@ -71,39 +70,39 @@ describe('Fresh tab settings panel UI', function () {
 
       it('has an existing and correct header text', function () {
         const settingsHeaderItem = subject.query(settingsHeaderSelector);
-        expect(settingsHeaderItem).to.exist;
-        expect(settingsHeaderItem).to.have.text('freshtab.app.settings.header');
+        chai.expect(settingsHeaderItem).to.exist;
+        chai.expect(settingsHeaderItem).to.have.text('freshtab.app.settings.header');
       });
 
       it('has 5 areas', function () {
         allSettingsRows = subject.queryAll(settingsRowSelector);
-        expect(allSettingsRows.length).to.equal(5);
+        chai.expect(allSettingsRows.length).to.equal(5);
       });
 
       it('does not render "Cliqz theme" options', function () {
         const cliqzThemeSwitch = subject.queryByI18n(cliqzThemeTxt);
-        expect(cliqzThemeSwitch).to.not.exist;
+        chai.expect(cliqzThemeSwitch).to.not.exist;
       });
 
       describe('renders background options', function () {
         it('successfully', function () {
           const backgroundOptions = subject.queryByI18n(bgLabelTxt);
-          expect(backgroundOptions).to.exist;
+          chai.expect(backgroundOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const backgroundLabel = subject.queryByI18n(bgLabelTxt).querySelector('span.label');
-          expect(backgroundLabel).to.exist;
-          expect(backgroundLabel).to.have.text(bgLabelTxt);
+          chai.expect(backgroundLabel).to.exist;
+          chai.expect(backgroundLabel).to.have.text(bgLabelTxt);
         });
 
         it('with an existing switch turned off', function () {
           const backgroundSwitch = subject.queryByI18n(bgLabelTxt).querySelector('input.switch');
-          expect(backgroundSwitch).to.have.property('checked', false);
+          chai.expect(backgroundSwitch).to.have.property('checked', false);
         });
 
         it('with background choices hidden', function () {
-          expect(subject
+          chai.expect(subject
             .queryAll('ul.background-selection-list li').length).to.equal(0);
         });
       });
@@ -116,82 +115,82 @@ describe('Fresh tab settings panel UI', function () {
         });
 
         it('successfully', function () {
-          expect(mostVisitedOptions).to.exist;
+          chai.expect(mostVisitedOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const mostVisitedLabel = subject.queryByI18n(mostVisitedLabelTxt).querySelector('span.label');
-          expect(mostVisitedLabel).to.exist;
-          expect(mostVisitedLabel).to.have.text(mostVisitedLabelTxt);
+          chai.expect(mostVisitedLabel).to.exist;
+          chai.expect(mostVisitedLabel).to.have.text(mostVisitedLabelTxt);
         });
 
         it('with an existing switch turned off', function () {
           const mostVisitedSwitch = subject.queryByI18n(mostVisitedLabelTxt).querySelector('input.switch');
-          expect(mostVisitedSwitch).to.have.property('checked', false);
+          chai.expect(mostVisitedSwitch).to.have.property('checked', false);
         });
 
         it('with an existing restore button', function () {
-          expect(mostVisitedOptions.querySelector('button.link')).to.exist;
+          chai.expect(mostVisitedOptions.querySelector('button.link')).to.exist;
         });
       });
 
       describe('renders favorites options', function () {
         it('successfully', function () {
           const favoritesOptions = subject.queryByI18n(favoritesLabelTxt);
-          expect(favoritesOptions).to.exist;
+          chai.expect(favoritesOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const favoritesLabel = subject.queryByI18n(favoritesLabelTxt).querySelector('span.label');
-          expect(favoritesLabel).to.exist;
-          expect(favoritesLabel).to.have.text(favoritesLabelTxt);
+          chai.expect(favoritesLabel).to.exist;
+          chai.expect(favoritesLabel).to.have.text(favoritesLabelTxt);
         });
 
         it('with an existing switch turned off', function () {
           const favoritesSwitch = subject.queryByI18n(favoritesLabelTxt).querySelector('input.switch');
-          expect(favoritesSwitch).to.have.property('checked', false);
+          chai.expect(favoritesSwitch).to.have.property('checked', false);
         });
       });
 
       describe('renders search options', function () {
         it('successfully', function () {
           const searchOptions = subject.queryByI18n(searchOptionsTxt);
-          expect(searchOptions).to.exist;
+          chai.expect(searchOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const searchLabel = subject.queryByI18n(searchOptionsTxt).querySelector('span.label');
-          expect(searchLabel).to.exist;
-          expect(searchLabel).to.have.text(searchOptionsTxt);
+          chai.expect(searchLabel).to.exist;
+          chai.expect(searchLabel).to.have.text(searchOptionsTxt);
         });
 
         it('with an existing switch turned off', function () {
           const searchSwitch = subject.queryByI18n(searchOptionsTxt).querySelector('input.switch');
-          expect(searchSwitch).to.have.property('checked', false);
+          chai.expect(searchSwitch).to.have.property('checked', false);
         });
       });
 
       describe('renders news options', function () {
         it('successfully', function () {
           const newsOptions = subject.queryByI18n(newsOptionsTxt);
-          expect(newsOptions).to.exist;
+          chai.expect(newsOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const newsLabel = subject.queryByI18n(newsOptionsTxt).querySelector('span.label');
-          expect(newsLabel).to.exist;
-          expect(newsLabel).to.have.text(newsOptionsTxt);
+          chai.expect(newsLabel).to.exist;
+          chai.expect(newsLabel).to.have.text(newsOptionsTxt);
         });
 
         it('with an existing switch turned off', function () {
           const newsSwitch = subject.queryByI18n(newsOptionsTxt).querySelector('input.switch');
-          expect(newsSwitch).to.have.property('checked', false);
+          chai.expect(newsSwitch).to.have.property('checked', false);
         });
 
         it('without source options', function () {
           const newsSourceItems = subject.queryByI18n(newsOptionsTxt)
             .querySelectorAll(newsSourceSelector);
-          expect(newsSourceItems.length).to.equal(0);
+          chai.expect(newsSourceItems.length).to.equal(0);
         });
       });
     });
@@ -201,7 +200,7 @@ describe('Fresh tab settings panel UI', function () {
         const blueBgConfig = clone(defaultConfig);
         blueBgConfig.response.isBlueThemeSupported = false;
         blueBgConfig.response.isBlueBackgroundSupported = true;
-        blueBgConfig.response.componentsState.background.image = 'bg-blue';
+        blueBgConfig.response.componentsState.background.image = 'bg-blue'
         subject.respondsWith(blueBgConfig);
         return subject.load().then(() => {
           subject.query(settingsButtonSelector).click();
@@ -214,40 +213,41 @@ describe('Fresh tab settings panel UI', function () {
 
       it('has an existing and correct header text', function () {
         const settingsHeaderItem = subject.query(settingsHeaderSelector);
-        expect(settingsHeaderItem).to.exist;
-        expect(settingsHeaderItem).to.have.text('freshtab.app.settings.header');
+        chai.expect(settingsHeaderItem).to.exist;
+        chai.expect(settingsHeaderItem).to.have.text('freshtab.app.settings.header');
       });
 
       it('has 5 areas', function () {
         allSettingsRows = subject.queryAll(settingsRowSelector);
-        expect(allSettingsRows.length - 1).to.equal(5);
+        chai.expect(allSettingsRows.length - 1).to.equal(5);
       });
 
       it('does not render "Cliqz theme" options', function () {
         const cliqzThemeSwitch = subject.queryByI18n(cliqzThemeTxt);
-        expect(cliqzThemeSwitch).to.not.exist;
+        chai.expect(cliqzThemeSwitch).to.not.exist;
       });
 
       describe('renders background options', function () {
+
         it('successfully', function () {
           const backgroundOptions = subject.queryByI18n(bgLabelTxt);
-          expect(backgroundOptions).to.exist;
+          chai.expect(backgroundOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const backgroundLabel = subject.queryByI18n(bgLabelTxt).querySelector('span.label');
-          expect(backgroundLabel).to.exist;
-          expect(backgroundLabel).to.have.text(bgLabelTxt);
+          chai.expect(backgroundLabel).to.exist;
+          chai.expect(backgroundLabel).to.have.text(bgLabelTxt);
         });
 
         it('with an existing switch turned on', function () {
           const backgroundSwitch = subject.queryByI18n(bgLabelTxt).querySelector('input.switch');
-          expect(backgroundSwitch).to.have.property('checked', true);
+          chai.expect(backgroundSwitch).to.have.property('checked', true);
         });
 
         it('with background choices shown', function () {
-          expect(subject
-            .queryAll('ul.background-selection-list li').length).to.equal(5);
+          chai.expect(subject
+            .queryAll('ul.background-selection-list li').length).to.equal(4);
         });
       });
 
@@ -259,82 +259,82 @@ describe('Fresh tab settings panel UI', function () {
         });
 
         it('successfully', function () {
-          expect(mostVisitedOptions).to.exist;
+          chai.expect(mostVisitedOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const mostVisitedLabel = subject.queryByI18n(mostVisitedLabelTxt).querySelector('span.label');
-          expect(mostVisitedLabel).to.exist;
-          expect(mostVisitedLabel).to.have.text(mostVisitedLabelTxt);
+          chai.expect(mostVisitedLabel).to.exist;
+          chai.expect(mostVisitedLabel).to.have.text(mostVisitedLabelTxt);
         });
 
         it('with an existing switch turned off', function () {
           const mostVisitedSwitch = subject.queryByI18n(mostVisitedLabelTxt).querySelector('input.switch');
-          expect(mostVisitedSwitch).to.have.property('checked', false);
+          chai.expect(mostVisitedSwitch).to.have.property('checked', false);
         });
 
         it('with an existing restore button', function () {
-          expect(mostVisitedOptions.querySelector('button.link')).to.exist;
+          chai.expect(mostVisitedOptions.querySelector('button.link')).to.exist;
         });
       });
 
       describe('renders favorites options', function () {
         it('successfully', function () {
           const favoritesOptions = subject.queryByI18n(favoritesLabelTxt);
-          expect(favoritesOptions).to.exist;
+          chai.expect(favoritesOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const favoritesLabel = subject.queryByI18n(favoritesLabelTxt).querySelector('span.label');
-          expect(favoritesLabel).to.exist;
-          expect(favoritesLabel).to.have.text(favoritesLabelTxt);
+          chai.expect(favoritesLabel).to.exist;
+          chai.expect(favoritesLabel).to.have.text(favoritesLabelTxt);
         });
 
         it('with an existing switch turned off', function () {
           const favoritesSwitch = subject.queryByI18n(favoritesLabelTxt).querySelector('input.switch');
-          expect(favoritesSwitch).to.have.property('checked', false);
+          chai.expect(favoritesSwitch).to.have.property('checked', false);
         });
       });
 
       describe('renders search options', function () {
         it('successfully', function () {
           const searchOptions = subject.queryByI18n(searchOptionsTxt);
-          expect(searchOptions).to.exist;
+          chai.expect(searchOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const searchLabel = subject.queryByI18n(searchOptionsTxt).querySelector('span.label');
-          expect(searchLabel).to.exist;
-          expect(searchLabel).to.have.text(searchOptionsTxt);
+          chai.expect(searchLabel).to.exist;
+          chai.expect(searchLabel).to.have.text(searchOptionsTxt);
         });
 
         it('with an existing switch turned off', function () {
           const searchSwitch = subject.queryByI18n(searchOptionsTxt).querySelector('input.switch');
-          expect(searchSwitch).to.have.property('checked', false);
+          chai.expect(searchSwitch).to.have.property('checked', false);
         });
       });
 
       describe('renders news options', function () {
         it('successfully', function () {
           const newsOptions = subject.queryByI18n(newsOptionsTxt);
-          expect(newsOptions).to.exist;
+          chai.expect(newsOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const newsLabel = subject.queryByI18n(newsOptionsTxt).querySelector('span.label');
-          expect(newsLabel).to.exist;
-          expect(newsLabel).to.have.text(newsOptionsTxt);
+          chai.expect(newsLabel).to.exist;
+          chai.expect(newsLabel).to.have.text(newsOptionsTxt);
         });
 
         it('with an existing switch turned off', function () {
           const newsSwitch = subject.queryByI18n(newsOptionsTxt).querySelector('input.switch');
-          expect(newsSwitch).to.have.property('checked', false);
+          chai.expect(newsSwitch).to.have.property('checked', false);
         });
 
         it('without source options', function () {
           const newsSourceItems = subject.queryByI18n(newsOptionsTxt)
             .querySelectorAll(newsSourceSelector);
-          expect(newsSourceItems.length).to.equal(0);
+          chai.expect(newsSourceItems.length).to.equal(0);
         });
       });
     });
@@ -359,52 +359,53 @@ describe('Fresh tab settings panel UI', function () {
 
       it('has an existing and correct header text', function () {
         const settingsHeaderItem = subject.query(settingsHeaderSelector);
-        expect(settingsHeaderItem).to.exist;
-        expect(settingsHeaderItem).to.have.text('freshtab.app.settings.header');
+        chai.expect(settingsHeaderItem).to.exist;
+        chai.expect(settingsHeaderItem).to.have.text('freshtab.app.settings.header');
       });
 
       it('has 6 areas', function () {
         allSettingsRows = subject.queryAll(settingsRowSelector);
-        expect(allSettingsRows.length).to.equal(6);
+        chai.expect(allSettingsRows.length).to.equal(6);
       });
 
       describe('renders Cliqz theme area', function () {
+
         it('successfully', function () {
           const cliqzThemeOptions = subject.queryByI18n(cliqzThemeTxt);
-          expect(cliqzThemeOptions).to.exist;
+          chai.expect(cliqzThemeOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const cliqzThemeLabel = subject.queryByI18n(cliqzThemeTxt).querySelector('span.label');
-          expect(cliqzThemeLabel).to.exist;
-          expect(cliqzThemeLabel).to.have.text(cliqzThemeTxt);
+          chai.expect(cliqzThemeLabel).to.exist;
+          chai.expect(cliqzThemeLabel).to.have.text(cliqzThemeTxt);
         });
 
         it('with an existing switch turned on', function () {
           const cliqzThemeSwitch = subject.queryByI18n(cliqzThemeTxt).querySelector('input.switch');
-          expect(cliqzThemeSwitch).to.have.property('checked', true);
+          chai.expect(cliqzThemeSwitch).to.have.property('checked', true);
         });
       });
 
       describe('renders background options', function () {
         it('successfully', function () {
           const backgroundOptions = subject.queryByI18n(bgLabelTxt);
-          expect(backgroundOptions).to.exist;
+          chai.expect(backgroundOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const backgroundLabel = subject.queryByI18n(bgLabelTxt).querySelector('span.label');
-          expect(backgroundLabel).to.exist;
-          expect(backgroundLabel).to.have.text(bgLabelTxt);
+          chai.expect(backgroundLabel).to.exist;
+          chai.expect(backgroundLabel).to.have.text(bgLabelTxt);
         });
 
         it('with an existing switch turned off', function () {
           const backgroundSwitch = subject.queryByI18n(bgLabelTxt).querySelector('input.switch');
-          expect(backgroundSwitch).to.have.property('checked', false);
+          chai.expect(backgroundSwitch).to.have.property('checked', false);
         });
 
         it('with background choices hidden', function () {
-          expect(subject
+          chai.expect(subject
             .queryAll('ul.background-selection-list li').length).to.equal(0);
         });
       });
@@ -417,82 +418,84 @@ describe('Fresh tab settings panel UI', function () {
         });
 
         it('successfully', function () {
-          expect(mostVisitedOptions).to.exist;
+          chai.expect(mostVisitedOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const mostVisitedLabel = subject.queryByI18n(mostVisitedLabelTxt).querySelector('span.label');
-          expect(mostVisitedLabel).to.exist;
-          expect(mostVisitedLabel).to.have.text(mostVisitedLabelTxt);
+          chai.expect(mostVisitedLabel).to.exist;
+          chai.expect(mostVisitedLabel).to.have.text(mostVisitedLabelTxt);
         });
 
         it('with an existing switch turned off', function () {
           const mostVisitedSwitch = subject.queryByI18n(mostVisitedLabelTxt).querySelector('input.switch');
-          expect(mostVisitedSwitch).to.have.property('checked', false);
+          chai.expect(mostVisitedSwitch).to.have.property('checked', false);
         });
 
         it('with an existing restore button', function () {
-          expect(mostVisitedOptions.querySelector('button.link')).to.exist;
+          chai.expect(mostVisitedOptions.querySelector('button.link')).to.exist;
         });
       });
 
       describe('renders favorites options', function () {
+
+
         it('successfully', function () {
           const favoritesOptions = subject.queryByI18n(favoritesLabelTxt);
-          expect(favoritesOptions).to.exist;
+          chai.expect(favoritesOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const favoritesLabel = subject.queryByI18n(favoritesLabelTxt).querySelector('span.label');
-          expect(favoritesLabel).to.exist;
-          expect(favoritesLabel).to.have.text(favoritesLabelTxt);
+          chai.expect(favoritesLabel).to.exist;
+          chai.expect(favoritesLabel).to.have.text(favoritesLabelTxt);
         });
 
         it('with an existing switch turned off', function () {
           const favoritesSwitch = subject.queryByI18n(favoritesLabelTxt).querySelector('input.switch');
-          expect(favoritesSwitch).to.have.property('checked', false);
+          chai.expect(favoritesSwitch).to.have.property('checked', false);
         });
       });
 
       describe('renders search options', function () {
         it('successfully', function () {
           const searchOptions = subject.queryByI18n(searchOptionsTxt);
-          expect(searchOptions).to.exist;
+          chai.expect(searchOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const searchLabel = subject.queryByI18n(searchOptionsTxt).querySelector('span.label');
-          expect(searchLabel).to.exist;
-          expect(searchLabel).to.have.text(searchOptionsTxt);
+          chai.expect(searchLabel).to.exist;
+          chai.expect(searchLabel).to.have.text(searchOptionsTxt);
         });
 
         it('with an existing switch turned off', function () {
           const searchSwitch = subject.queryByI18n(searchOptionsTxt).querySelector('input.switch');
-          expect(searchSwitch).to.have.property('checked', false);
+          chai.expect(searchSwitch).to.have.property('checked', false);
         });
       });
 
       describe('renders news options', function () {
         it('successfully', function () {
           const newsOptions = subject.queryByI18n(newsOptionsTxt);
-          expect(newsOptions).to.exist;
+          chai.expect(newsOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const newsLabel = subject.queryByI18n(newsOptionsTxt).querySelector('span.label');
-          expect(newsLabel).to.exist;
-          expect(newsLabel).to.have.text(newsOptionsTxt);
+          chai.expect(newsLabel).to.exist;
+          chai.expect(newsLabel).to.have.text(newsOptionsTxt);
         });
 
         it('with an existing switch turned off', function () {
           const newsSwitch = subject.queryByI18n(newsOptionsTxt).querySelector('input.switch');
-          expect(newsSwitch).to.have.property('checked', false);
+          chai.expect(newsSwitch).to.have.property('checked', false);
         });
 
         it('without source options', function () {
           const newsSourceItems = subject.queryByI18n(newsOptionsTxt)
             .querySelectorAll(newsSourceSelector);
-          expect(newsSourceItems.length).to.equal(0);
+          chai.expect(newsSourceItems.length).to.equal(0);
         });
       });
     });
@@ -516,53 +519,54 @@ describe('Fresh tab settings panel UI', function () {
 
       it('has an existing and correct header text', function () {
         const settingsHeaderItem = subject.query(settingsHeaderSelector);
-        expect(settingsHeaderItem).to.exist;
-        expect(settingsHeaderItem).to.have.text('freshtab.app.settings.header');
+        chai.expect(settingsHeaderItem).to.exist;
+        chai.expect(settingsHeaderItem).to.have.text('freshtab.app.settings.header');
       });
 
       it('has 7 areas', function () {
         allSettingsRows = subject.queryAll(settingsRowSelector);
-        expect(allSettingsRows.length).to.equal(7);
+        chai.expect(allSettingsRows.length).to.equal(7);
       });
 
       describe('renders Cliqz theme area', function () {
+
         it('successfully', function () {
           const cliqzThemeOptions = subject.queryByI18n(cliqzThemeTxt);
-          expect(cliqzThemeOptions).to.exist;
+          chai.expect(cliqzThemeOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const cliqzThemeLabel = subject.queryByI18n(cliqzThemeTxt).querySelector('span.label');
-          expect(cliqzThemeLabel).to.exist;
-          expect(cliqzThemeLabel).to.have.text(cliqzThemeTxt);
+          chai.expect(cliqzThemeLabel).to.exist;
+          chai.expect(cliqzThemeLabel).to.have.text(cliqzThemeTxt);
         });
 
         it('with an existing switch turned on', function () {
           const cliqzThemeSwitch = subject.queryByI18n(cliqzThemeTxt).querySelector('input.switch');
-          expect(cliqzThemeSwitch).to.have.property('checked', true);
+          chai.expect(cliqzThemeSwitch).to.have.property('checked', true);
         });
       });
 
       describe('renders background options', function () {
         it('successfully', function () {
           const backgroundOptions = subject.queryByI18n(bgLabelTxt);
-          expect(backgroundOptions).to.exist;
+          chai.expect(backgroundOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const backgroundLabel = subject.queryByI18n(bgLabelTxt).querySelector('span.label');
-          expect(backgroundLabel).to.exist;
-          expect(backgroundLabel).to.have.text(bgLabelTxt);
+          chai.expect(backgroundLabel).to.exist;
+          chai.expect(backgroundLabel).to.have.text(bgLabelTxt);
         });
 
         it('with an existing switch turned on', function () {
           const backgroundSwitch = subject.queryByI18n(bgLabelTxt).querySelector('input.switch');
-          expect(backgroundSwitch).to.have.property('checked', true);
+          chai.expect(backgroundSwitch).to.have.property('checked', true);
         });
 
         it('with background choices not hidden', function () {
-          expect(subject
-            .queryAll('ul.background-selection-list li').length).to.equal(5);
+          chai.expect(subject
+            .queryAll('ul.background-selection-list li').length).to.equal(4);
         });
       });
 
@@ -574,82 +578,82 @@ describe('Fresh tab settings panel UI', function () {
         });
 
         it('successfully', function () {
-          expect(mostVisitedOptions).to.exist;
+          chai.expect(mostVisitedOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const mostVisitedLabel = subject.queryByI18n(mostVisitedLabelTxt).querySelector('span.label');
-          expect(mostVisitedLabel).to.exist;
-          expect(mostVisitedLabel).to.have.text(mostVisitedLabelTxt);
+          chai.expect(mostVisitedLabel).to.exist;
+          chai.expect(mostVisitedLabel).to.have.text(mostVisitedLabelTxt);
         });
 
         it('with an existing switch turned off', function () {
           const mostVisitedSwitch = subject.queryByI18n(mostVisitedLabelTxt).querySelector('input.switch');
-          expect(mostVisitedSwitch).to.have.property('checked', false);
+          chai.expect(mostVisitedSwitch).to.have.property('checked', false);
         });
 
         it('with an existing restore button', function () {
-          expect(mostVisitedOptions.querySelector('button.link')).to.exist;
+          chai.expect(mostVisitedOptions.querySelector('button.link')).to.exist;
         });
       });
 
       describe('renders favorites options', function () {
         it('successfully', function () {
           const favoritesOptions = subject.queryByI18n(favoritesLabelTxt);
-          expect(favoritesOptions).to.exist;
+          chai.expect(favoritesOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const favoritesLabel = subject.queryByI18n(favoritesLabelTxt).querySelector('span.label');
-          expect(favoritesLabel).to.exist;
-          expect(favoritesLabel).to.have.text(favoritesLabelTxt);
+          chai.expect(favoritesLabel).to.exist;
+          chai.expect(favoritesLabel).to.have.text(favoritesLabelTxt);
         });
 
         it('with an existing switch turned off', function () {
           const favoritesSwitch = subject.queryByI18n(favoritesLabelTxt).querySelector('input.switch');
-          expect(favoritesSwitch).to.have.property('checked', false);
+          chai.expect(favoritesSwitch).to.have.property('checked', false);
         });
       });
 
       describe('renders search options', function () {
         it('successfully', function () {
           const searchOptions = subject.queryByI18n(searchOptionsTxt);
-          expect(searchOptions).to.exist;
+          chai.expect(searchOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const searchLabel = subject.queryByI18n(searchOptionsTxt).querySelector('span.label');
-          expect(searchLabel).to.exist;
-          expect(searchLabel).to.have.text(searchOptionsTxt);
+          chai.expect(searchLabel).to.exist;
+          chai.expect(searchLabel).to.have.text(searchOptionsTxt);
         });
 
         it('with an existing switch turned off', function () {
           const searchSwitch = subject.queryByI18n(searchOptionsTxt).querySelector('input.switch');
-          expect(searchSwitch).to.have.property('checked', false);
+          chai.expect(searchSwitch).to.have.property('checked', false);
         });
       });
 
       describe('renders news options', function () {
         it('successfully', function () {
           const newsOptions = subject.queryByI18n(newsOptionsTxt);
-          expect(newsOptions).to.exist;
+          chai.expect(newsOptions).to.exist;
         });
 
         it('with an existing and correct label', function () {
           const newsLabel = subject.queryByI18n(newsOptionsTxt).querySelector('span.label');
-          expect(newsLabel).to.exist;
-          expect(newsLabel).to.have.text(newsOptionsTxt);
+          chai.expect(newsLabel).to.exist;
+          chai.expect(newsLabel).to.have.text(newsOptionsTxt);
         });
 
         it('with an existing switch turned off', function () {
           const newsSwitch = subject.queryByI18n(newsOptionsTxt).querySelector('input.switch');
-          expect(newsSwitch).to.have.property('checked', false);
+          chai.expect(newsSwitch).to.have.property('checked', false);
         });
 
         it('without source options', function () {
           const newsSourceItems = subject.queryByI18n(newsOptionsTxt)
             .querySelectorAll(newsSourceSelector);
-          expect(newsSourceItems.length).to.equal(0);
+          chai.expect(newsSourceItems.length).to.equal(0);
         });
       });
     });

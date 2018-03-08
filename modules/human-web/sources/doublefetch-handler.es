@@ -2,7 +2,6 @@ import { getRequest } from '../platform/human-web/doublefetch';
 import { equals as urlEquals } from '../core/url';
 import inject, { ifModuleEnabled } from '../core/kord/inject';
 import logger from './logger';
-import { parseURL } from './network';
 
 const State = {
   DISABLED: 'DISABLED',
@@ -22,15 +21,9 @@ const State = {
  * Also processing the results of the requests (i.e., whether the
  * content of the page from anonymous GET is similar to the
  * content that the authenticated user got before).
- *
- * onHostnameResolved(hostname, ip):
- *   Hook that is triggered when a host name from doublefetch
- *   request was resolved. (Default: do nothing)
  */
 export default class DoublefetchHandler {
-  constructor({ onHostnameResolved = () => {} } = {}) {
-    this._onHostnameResolved = onHostnameResolved;
-
+  constructor() {
     // requests exceeding this size in bytes will be cancelled
     this.maxDoubleFetchSize = 2097152; // default: 2MB
 
@@ -78,8 +71,7 @@ export default class DoublefetchHandler {
         perfectMatch: 0,
         relaxedMatch: 0,
       },
-      strippedHeaders: 0,
-      populatedDnsMappings: 0,
+      strippedHeaders: 0
     };
   }
 
@@ -212,6 +204,16 @@ export default class DoublefetchHandler {
           if (response.requestHeaders.length !== request.requestHeaders.length) {
             this._stats.strippedHeaders += 1;
           }
+
+          // webrequest-pipeline has the modifyHeader API, but it does not work
+          // as I expected: Effectively, the following code clears all headers.
+          /*
+          for (const header of sensitiveHeaders) {
+            if (request.getRequestHeader(header)) {
+              this._stats.strippedHeaders += 1;
+              response.modifyHeader(header, '');
+            }
+          } */
         }
       }
     };
@@ -259,35 +261,6 @@ export default class DoublefetchHandler {
         // do not block request
         this._stats.allowDoublefetch += 1;
         return true;
-      }
-    };
-  }
-
-  _createOnCompletedHandler() {
-    return {
-      name: 'human-web.cacheDnsResolution',
-      spec: 'blocking',
-      fn: (request) => {
-        if (!request.ip) {
-          return;
-        }
-
-        const matchingPendingEvent = this._correlatePendingDoublefetchRequest(request);
-        if (!matchingPendingEvent) {
-          return;
-        }
-
-        const parsedURL = parseURL(request.url);
-        if (!parsedURL) {
-          logger.error('Failed to parse url:', request);
-          return;
-        }
-
-        this._onHostnameResolved(parsedURL.hostname, request.ip);
-        this._stats.populatedDnsMappings += 1;
-        logger.debug(
-          'Learned new DNS resolution from doublefetch:',
-          parsedURL.hostname, ' -> ', request.ip);
       }
     };
   }
@@ -362,17 +335,13 @@ export default class DoublefetchHandler {
 
     const beforeSendHeadersHandler = this._createOnBeforeSendHeadersHandler();
     const headersReceivedHandler = this._createOnHeadersReceivedHandler();
-    const completedHandler = this._createOnCompletedHandler();
     return this._webRequestPipeline.isReady()
       .then(() => this._webRequestPipeline
         .action('addPipelineStep', 'onBeforeSendHeaders', beforeSendHeadersHandler))
       .then(() => { this._onBeforeSendHeadersHandler = beforeSendHeadersHandler; })
       .then(() => this._webRequestPipeline
         .action('addPipelineStep', 'onHeadersReceived', headersReceivedHandler))
-      .then(() => { this._onHeadersReceivedHandler = headersReceivedHandler; })
-      .then(() => this._webRequestPipeline
-        .action('addPipelineStep', 'onCompleted', completedHandler))
-      .then(() => { this._onCompletedHandler = completedHandler; });
+      .then(() => { this._onHeadersReceivedHandler = headersReceivedHandler; });
   }
 
   _removePipelineStep(handler, stage) {
@@ -386,21 +355,19 @@ export default class DoublefetchHandler {
   }
 
   _unloadPipeline() {
-    const remove = (handler, step) => {
-      if (!this[handler]) {
-        return Promise.resolve();
-      }
-      return this._removePipelineStep(this[handler], step);
-    };
-
-    return Promise.resolve()
-      .then(() => remove('_onBeforeSendHeadersHandler', 'onBeforeSendHeaders'))
-      .then(() => remove('_onHeadersReceivedHandler', 'onHeadersReceived'))
-      .then(() => remove('_onCompletedHandler', 'onCompleted'))
+    return this._removePipelineStep(
+      this._onBeforeSendHeadersHandler,
+      'onBeforeSendHeaders'
+    )
+      .then(() =>
+        this._removePipelineStep(
+          this._onHeadersReceivedHandler,
+          'onHeadersReceived'
+        )
+      )
       .then(() => {
         this._onBeforeSendHeadersHandler = null;
         this._onHeadersReceivedHandler = null;
-        this._onCompletedHandler = null;
       });
   }
 }

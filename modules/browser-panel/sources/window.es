@@ -280,8 +280,8 @@ export default class Win {
     };
 
     let titleColor;
-    if (templateData.styles && templateData.styles.headline_color) {
-      titleColor = templateData.styles.headline_color;
+    if (templateData.styles && templateData.styles.background) {
+      titleColor = templateData.styles.background;
     } else {
       const url = templateData.call_to_action.url;
       const urlDetails = utils.getDetailsFromUrl(url);

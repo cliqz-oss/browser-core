@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text, Image, TouchableWithoutFeedback, Platform, NativeModules } from 'react-native';
 import ViewShot from 'react-native-view-shot';
 
-import { elementTopMargin, cardBorderBottomRadius, cardMargins, getCardWidth, elementSidePaddings } from '../../styles/CardStyle';
+import { elementTopMargin, cardBorderRadius, cardMargins, getCardWidth } from '../../styles/CardStyle';
 import { getMessage } from '../../../core/i18n';
 import NativeDrawabale from '../custom/NativeDrawable';
 
@@ -17,16 +17,16 @@ const OPTIONS = {
 
 const styles = width => StyleSheet.create({
   shareSection: {
-    borderTopWidth: 1,
-    borderTopColor: '#EDECEC',
     ...elementTopMargin,
-    paddingTop: 10,
-    paddingBottom: 5,
-    marginBottom: 5,
-    ...elementSidePaddings,
     width,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#EDECEC',
+    paddingTop: 10,
+    paddingBottom: 5,
+    marginBottom: 5,
   },
   shareText: {
     color: 'black',
@@ -45,7 +45,7 @@ const styles = width => StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'white',
     bottom: cardMargins.marginBottom,
-    ...cardBorderBottomRadius,
+    ...cardBorderRadius,
   }
 });
 
@@ -127,7 +127,7 @@ export default class extends React.Component {
           <NativeDrawabale
             style={styles().shareImage}
             source={'ic_share'}
-            color={'black'}
+            color={'#00AEF0'}
           />
           <Text style={styles().shareText}>{getMessage('mobile_share_card')}</Text>
         </View>

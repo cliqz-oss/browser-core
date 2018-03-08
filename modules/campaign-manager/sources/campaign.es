@@ -1,6 +1,5 @@
-/* eslint no-restricted-syntax: 'off' */
-
-import CliqzUtils from '../core/utils';
+import CliqzUtils from "../core/utils";
+import CliqzEvents from "../core/events";
 
 function CliqzCampaign(id, data) {
   this.PREF_PREFIX = 'msgs.';
@@ -11,7 +10,7 @@ function CliqzCampaign(id, data) {
 }
 
 CliqzCampaign.prototype = {
-  reset() {
+  reset: function () {
     this.state = 'idle';
     this.isEnabled = true;
     this.counts = {
@@ -24,36 +23,36 @@ CliqzCampaign.prototype = {
     };
   },
 
-  update(data) {
-    for (const key in data) {
-      if (Object.prototype.hasOwnProperty.call(data, key) && !key.startsWith('DEBUG')) {
+  update: function (data) {
+    for (var key in data) {
+      if (data.hasOwnProperty(key) && !key.startsWith('DEBUG')) {
         this[key] = data[key];
       }
     }
   },
 
-  setState(newState) {
-    this.log(`${this.id}: ${this.state} -> ${newState}`);
+  setState: function (newState) {
+    this.log(this.id + ': ' + this.state + ' -> ' + newState);
     this.state = newState;
   },
 
-  save() {
+  save: function () {
     CliqzUtils.setPref(
-      `${this.PREF_PREFIX}campaigns.data.${this.id}`, JSON.stringify(this));
-    this.log(`saved campaign ${this.id}`);
+      this.PREF_PREFIX + 'campaigns.data.' + this.id, JSON.stringify(this));
+    this.log('saved campaign ' + this.id);
   },
 
-  load() {
+  load: function () {
     this.update(JSON.parse(
-      CliqzUtils.getPref(`${this.PREF_PREFIX}campaigns.data.${this.id}`, '{}')));
-    this.log(`loaded campaign ${this.id}`);
+      CliqzUtils.getPref(this.PREF_PREFIX + 'campaigns.data.' + this.id, '{}')));
+    this.log('loaded campaign ' + this.id);
   },
 
-  delete() {
+  delete: function () {
     CliqzUtils.clearPref(this.PREF_PREFIX + this.id);
   },
 
-  log(msg) {
+  log: function (msg) {
     CliqzUtils.log(msg, 'CliqzCampaign');
   }
 };

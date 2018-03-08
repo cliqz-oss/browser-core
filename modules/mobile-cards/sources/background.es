@@ -6,7 +6,7 @@ import background from '../core/base/background';
  */
 export default background({
 
-  requiresServices: ['logos', 'cliqz-config'],
+  requiresServices: ['logos'],
 
   /**
     @method init

@@ -1481,9 +1481,6 @@
     "video-downloader-unsupported-format": {
       "message": "Désolé ! Nous n'arrivons pas à télécharger cette video."
     },
-    "video-downloader-live-video": {
-      "message": "Désolé ! Il n'est malheureusement pas possible de télécharger de vidéos live."
-    },
     "video-downloader-tab-desktop": {
       "message": "COMPUTER"
     },
@@ -1492,9 +1489,6 @@
     },
     "video-downloader-download-button-label": {
       "message": "Download"
-    },
-    "video-downloader-send-button-label": {
-      "message": "Send"
     },
     "video-downloader-open-connect-page": {
       "message": "Open Connect Settings"
@@ -1933,12 +1927,6 @@
     },
     "freshtab.app.settings.news.language.de-tr-en": {
         "message": "Médias Allemands en Anglais"
-    },
-    "freshtab.app.settings.news.language.gb": {
-      "message": "Édition Royaume-Uni"
-    },
-    "freshtab.app.settings.news.language.us": {
-      "message": "Édition États-Unis"
     },
     "control-center-enabled": {
         "message": "Activé"

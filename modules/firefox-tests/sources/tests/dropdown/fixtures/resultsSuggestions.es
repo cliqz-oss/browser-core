@@ -1,14 +1,13 @@
 export const responseCliqz = {
   results: [
     {
-      url: 'https://de-de.facebook.com/',
+      url: 'de-de.facebook.com',
       snippet: {
         description: 'Facebook ist ein soziales Netzwerk, das Menschen mit ihren Freunden, Arbeitskollegen, Kommilitonen und anderen Mitmenschen verbindet.',
         title: 'Facebook'
       },
       c_url: 'https://de-de.facebook.com/',
-      type: 'bm',
-      friendlyUrl: 'de-de.facebook.com',
+      type: 'bm'
     },
   ],
   suggestions: [
@@ -24,7 +23,7 @@ export const responseGoogle = {
   query: 'facebook',
   results: [
     {
-      url: 'https://de-de.facebook.com/',
+      url: 'de-de.facebook.com',
       snippet: {
         description: 'Facebook ist ein soziales Netzwerk, das Menschen mit ihren Freunden, Arbeitskollegen, Kommilitonen und anderen Mitmenschen verbindet.',
         title: 'Facebook'
@@ -62,14 +61,13 @@ export const responseGoogle = {
 export const response1Google = {
   results: [
     {
-      url: 'https://de-de.facebook.com/',
+      url: 'de-de.facebook.com',
       snippet: {
         description: 'Facebook ist ein soziales Netzwerk, das Menschen mit ihren Freunden, Arbeitskollegen, Kommilitonen und anderen Mitmenschen verbindet.',
         title: 'Facebook'
       },
       c_url: 'https://de-de.facebook.com/',
-      type: 'bm',
-      friendlyUrl: 'de-de.facebook.com',
+      type: 'bm'
     }
   ]
 };

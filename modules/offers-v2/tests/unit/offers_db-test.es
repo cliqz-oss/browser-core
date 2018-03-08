@@ -69,9 +69,6 @@ export default describeModule('offers-v2/offers_db',
         setInterval: function() {},
       }
     },
-    'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
-    },
     'offers-v2/db_helper': {
       default: class {
         constructor(db) {

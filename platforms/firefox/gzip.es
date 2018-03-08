@@ -21,17 +21,19 @@ const StringInputStream = CC(
  */
 function Accumulator() {
   this.buffer = [];
-}
+};
 Accumulator.prototype = {
   buffer: null,
-  onStartRequest() {},
-  onStopRequest() {},
-  onDataAvailable(aRequest, aContext, aInputStream, aOffset, aCount) {
-    const stream = Cc['@mozilla.org/binaryinputstream;1']
-      .createInstance(Ci.nsIBinaryInputStream);
+  onStartRequest: function(aRequest, aContext) {},
+  onStopRequest: function(aRequest, aContext, aStatusCode) {},
+  onDataAvailable: function(aRequest, aContext, aInputStream, aOffset, aCount) {
+    var stream, input;
+
+    stream = Cc["@mozilla.org/binaryinputstream;1"].
+      createInstance(Ci.nsIBinaryInputStream);
     stream.setInputStream(aInputStream);
 
-    const input = stream.readByteArray(aCount);
+    input = stream.readByteArray(aCount);
 
     this.buffer = this.buffer.concat(input);
   }
@@ -44,12 +46,17 @@ function simulateRequest(aConverter, aStream, aContentLength) {
 }
 
 function compressString(aString) {
+  var accumulator,
+      converter,
+      stream,
+      utf8String;
+
   // Converts a Javascript string into UTF-8 encoding
   // (see http://ecmanaut.blogspot.de/2006/07/encoding-decoding-utf8-in-javascript.html)
-  const utf8String = unescape(encodeURIComponent(aString));
-  const accumulator = new Accumulator();
-  const converter = new CompressConverter('uncompresssed', 'gzip', accumulator, null);
-  const stream = new StringInputStream();
+  utf8String = unescape(encodeURIComponent(aString));
+  accumulator = new Accumulator();
+  converter = new CompressConverter('uncompresssed', 'gzip', accumulator, null);
+  stream = new StringInputStream();
   stream.data = utf8String;
   simulateRequest(converter, stream, utf8String.length);
 
@@ -57,9 +64,13 @@ function compressString(aString) {
 }
 
 function uncompressString(aString) {
-  const accumulator = new Accumulator();
-  const converter = new UncompressConverter('gzip', 'uncompressed', accumulator, null);
-  const stream = new StringInputStream();
+  var accumulator,
+      converter,
+      stream;
+
+  accumulator = new Accumulator();
+  converter = new UncompressConverter('gzip', 'uncompressed', accumulator, null);
+  stream = new StringInputStream();
   stream.data = String.fromCharCode.apply(null, aString);
   simulateRequest(converter, stream, aString.length);
 
@@ -70,13 +81,12 @@ function compatabilityCheck() {
   return Uint8Array.from !== undefined;
 }
 
-/* eslint import/no-mutable-exports: 'off' */
-let compress = false;
-let decompress = false;
+var compress = false,
+    decompress = false;
 
 if (compatabilityCheck()) {
   compress = compressString;
   decompress = uncompressString;
 }
 
-export { compress, decompress };
+export {compress, decompress};

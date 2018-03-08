@@ -13,12 +13,7 @@ function createSpananForModule(moduleName) {
       requestId: uuid,
       args
     };
-    chrome.runtime.sendMessage(message,
-      response => Spanan.dispatch({
-        uuid,
-        returnedValue: response.response
-      })
-    );
+    chrome.runtime.sendMessage(message);
   });
 }
 

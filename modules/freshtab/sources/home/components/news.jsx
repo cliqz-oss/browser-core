@@ -117,7 +117,7 @@ export default class News extends React.Component {
           <div className="news-content">
             {
               this.state.pageOfItems.map((article, index) =>
-                (<div
+                <div
                   className="box"
                   onMouseEnter={this.onMouseEnter}
                   onMouseLeave={this.onMouseLeave}
@@ -130,7 +130,7 @@ export default class News extends React.Component {
                     pageSize={this._pagination.state.pager.pageSize}
                     maxChars={this.state.articleCharsLimit}
                   />
-                </div>)
+                </div>
               )
             }
           </div>

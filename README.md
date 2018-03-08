@@ -34,7 +34,7 @@ Node version required: is >= 4.x
 
 To install dependencies run:
 
-`yarn` or `npm install`
+`npm install`
 
 ## Development
 

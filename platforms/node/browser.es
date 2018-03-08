@@ -52,7 +52,7 @@ export function mapWindows() {
   return [];
 }
 
-export function getLocale() {
+export function getLang() {
   return 'en';
 }
 

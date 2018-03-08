@@ -1,10 +1,9 @@
 import {
-  clearIntervals,
   clone,
-  defaultConfig,
-  expect,
+  clearIntervals,
+  waitFor,
   Subject,
-  waitFor
+  defaultConfig,
 } from './helpers';
 
 describe('Fresh tab interactions with search', function () {
@@ -75,12 +74,11 @@ describe('Fresh tab interactions with search', function () {
     describe('focusing on the input field', function () {
       /* TODO: fix me */
       xit('sends a "search_bar > focus" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
         const telemetrySignals = messages.get('sendTelemetry');
         let signalExist = false;
         let count = 0;
 
-        expect(telemetrySignals.length).to.be.above(0);
         telemetrySignals.forEach(function (item) {
           if ((item.args[0].type === 'home') &&
               (item.args[0].target === 'search_bar') &&
@@ -90,8 +88,8 @@ describe('Fresh tab interactions with search', function () {
           }
         });
 
-        expect(signalExist).to.be.true;
-        expect(count).to.equal(1);
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
       });
 
       describe('and then moving the focus outside the input field', function () {
@@ -102,13 +100,12 @@ describe('Fresh tab interactions with search', function () {
 
         /* TODO: fix me */
         xit('sends a "search_bar > blur" telemetry signal', function () {
-          expect(messages.has('sendTelemetry')).to.equal(true);
+          chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
           const telemetrySignals = messages.get('sendTelemetry');
           let signalExist = false;
           let count = 0;
 
-          expect(telemetrySignals.length).to.be.above(0);
           telemetrySignals.forEach(function (item) {
             if ((item.args[0].type === 'home') &&
                 (item.args[0].target === 'search_bar') &&
@@ -118,8 +115,8 @@ describe('Fresh tab interactions with search', function () {
             }
           });
 
-          expect(signalExist).to.be.true;
-          expect(count).to.equal(1);
+          chai.expect(signalExist).to.be.true;
+          chai.expect(count).to.equal(1);
         });
       });
     });

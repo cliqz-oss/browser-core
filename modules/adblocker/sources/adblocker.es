@@ -15,12 +15,12 @@ import { platformName } from '../core/platform';
 import Adblocker from '../platform/lib/adblocker';
 
 import AdbStats from './adb-stats';
-import FiltersLoader, { FiltersList } from './filters-loader';
+import FiltersLoader from './filters-loader';
 import logger from './logger';
 
 
 // adb version
-export const ADB_VERSION = 12;
+export const ADB_VERSION = 11;
 
 // Preferences
 export const ADB_DISK_CACHE = 'cliqz-adb-disk-cache';
@@ -293,15 +293,6 @@ export class AdBlocker {
             this.compressDiskCache ? inflate(serializedEngine) : serializedEngine,
             ADB_VERSION,
           );
-          this.listsManager.lists = new Map();
-          this.engine.lists.forEach((list, asset) => {
-            const filterslist = new FiltersList(
-              list.checksum,
-              asset,
-              '' // If checksum does not match, the list will be update with a proper url
-            );
-            this.listsManager.lists.set(asset, filterslist);
-          });
           const totalTime = Date.now() - t0;
           this.log(`Loaded filters engine (${totalTime} ms)`);
         })

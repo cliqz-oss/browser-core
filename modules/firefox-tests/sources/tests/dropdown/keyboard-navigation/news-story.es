@@ -1,3 +1,7 @@
+/* eslint func-names: ['error', 'never'] */
+/* eslint prefer-arrow-callback: 'off' */
+/* eslint no-unused-expressions: 'off' */
+
 import {
   $cliqzResults,
   CliqzUtils,
@@ -20,7 +24,7 @@ export default function () {
     const win = CliqzUtils.getWindow();
     const urlBar = win.CLIQZ.Core.urlbar;
     const searchWithSelector = '.result.search';
-    const newsSelector = `.news-story .result[data-url="${results[0].url}"]`;
+    const newsSelector = `.news-story .result[href="${results[0].url}"]`;
     let navigationArray = [];
 
     beforeEach(function () {

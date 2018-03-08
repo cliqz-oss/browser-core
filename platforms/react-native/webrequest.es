@@ -58,16 +58,6 @@ const webRequest = {
   onHeadersReceived: {
     addListener(listener, filter, extraInfo) {},
     removeListener(listener) {}
-  },
-
-  onCompleted: {
-    addListener(listener, filter, extraInfo) {},
-    removeListener(listener) {}
-  },
-
-  onErrorOccurred: {
-    addListener(listener, filter, extraInfo) {},
-    removeListener(listener) {}
   }
 }
 

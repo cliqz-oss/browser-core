@@ -90,4 +90,5 @@ export default class Win {
 
     utils.clearInterval(this.whoAmItimer);
   }
+
 }

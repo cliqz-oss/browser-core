@@ -1,5 +1,4 @@
 import utils from '../core/utils';
-import config from '../core/config';
 
 // https://github.com/substack/deep-freeze
 /* eslint-disable */
@@ -37,7 +36,7 @@ function mergePlaces(history, places) {
     let host;
 
     if (isCliqz) {
-      const details = utils.getDetailsFromUrl(config.settings.HOMPAGE_URL);
+      const details = utils.getDetailsFromUrl('https://cliqz.com');
       host = 'CLIQZ';
 
       domains[host] = domains[host] || {

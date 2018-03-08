@@ -1,11 +1,11 @@
-export function readFile() {
+export function readFile(filePath) {
   return Promise.reject('not implemented');
 }
 
-export function writeFile() {
+export function writeFile(filePath, data) {
   return Promise.reject('not implemented');
 }
 
-export function mkdir() {
+export function mkdir(dirPath) {
   return Promise.reject('not implemented');
 }

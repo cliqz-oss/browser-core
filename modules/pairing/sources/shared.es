@@ -108,7 +108,7 @@ const ERRORS = {
   PAIRING_DEVICE_NAME_EMPTY: 'PAIRING_DEVICE_NAME_EMPTY',
 };
 
-const VERSION = 3;
+const VERSION = 2;
 
 // Wait! I can explain!
 // Wanted to get rid of RSA crypto, but this is still needed for legacy devices,

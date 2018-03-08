@@ -1481,9 +1481,6 @@
     "video-downloader-unsupported-format": {
       "message": "Sorry! We are not able to download this video."
     },
-    "video-downloader-live-video": {
-      "message": "Sorry! We are not able to download live stream videos."
-    },
     "video-downloader-tab-desktop": {
       "message": "COMPUTER"
     },
@@ -1492,9 +1489,6 @@
     },
     "video-downloader-download-button-label": {
       "message": "Download"
-    },
-    "video-downloader-send-button-label": {
-      "message": "Send"
     },
     "video-downloader-open-connect-page": {
       "message": "Open Connect Settings"
@@ -1933,12 +1927,6 @@
     },
     "freshtab.app.settings.news.language.de-tr-en": {
         "message": "German media in English"
-    },
-    "freshtab.app.settings.news.language.gb": {
-      "message": "UK media"
-    },
-    "freshtab.app.settings.news.language.us": {
-      "message": "U.S. media"
     },
     "control-center-enabled": {
         "message": "Enabled"

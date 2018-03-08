@@ -1,6 +1,5 @@
-/* eslint no-console: 'off' */
-
 import events from '../core/events';
+import config from '../core/config';
 
 const PREFS_KEY = 'cliqzprefs';
 let initialised = false;
@@ -27,8 +26,9 @@ export function getPref(prefKey, notFound) {
   }
   if (prefs && prefs[prefKey] !== undefined) {
     return prefs[prefKey];
+  } else {
+    return notFound
   }
-  return notFound;
 }
 
 export function setPref(prefKey, value) {

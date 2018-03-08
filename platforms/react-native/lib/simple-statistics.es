@@ -1,1 +1,3 @@
-export { default } from 'simple-statistics';
+import * as ss from 'simple-statistics';
+
+export default ss;

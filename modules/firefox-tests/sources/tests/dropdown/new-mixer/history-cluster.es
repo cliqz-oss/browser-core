@@ -1,3 +1,7 @@
+/* eslint func-names: ['error', 'never'] */
+/* eslint prefer-arrow-callback: 'off' */
+/* eslint no-unused-expressions: 'off' */
+
 import {
   $cliqzResults,
   CliqzUtils,
@@ -16,7 +20,7 @@ export default function () {
     before(function () {
       respondWith({ results });
       withHistory(historyResults);
-      fillIn('partnernet.amazon');
+      fillIn('amazon');
       return waitForPopup().then(function () {
         $resultElement = $cliqzResults()[0];
       });
@@ -73,11 +77,11 @@ export default function () {
           const $clusterParentDomainSelector = 'div.history.cluster:not(.last) a.result:not(.history-cluster) span.url';
           const $clusterParentDomain = $resultElement.querySelector($clusterParentDomainSelector);
           expect($clusterParentDomain).to.exist;
-          expect($clusterParentDomain).to.have.text('partnernet.amazon.de');
+          expect($clusterParentDomain).to.have.text('amazon.de');
         });
 
         it('renders with an existing and correct URL', function () {
-          const $clusterParentUrl = $resultElement.querySelector(clusterParentSelector).dataset.url;
+          const $clusterParentUrl = $resultElement.querySelector(clusterParentSelector).href;
           expect($clusterParentUrl).to.exist;
 
           expect($clusterParentUrl)
@@ -126,9 +130,9 @@ export default function () {
           const $clusterUrl = $resultElement.querySelectorAll(clusterIconSelector);
 
           [...$clusterUrl].forEach(function (element, i) {
-            expect(element.dataset.url).to.exist;
+            expect(element.href).to.exist;
 
-            expect(element.dataset.url)
+            expect(element.href)
               .to.equal(historyResults[i + 1].value);
           });
         });

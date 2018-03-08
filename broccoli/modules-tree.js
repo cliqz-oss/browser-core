@@ -133,7 +133,7 @@ function getLintTestsTree() {
   let eslintIgnore;
   try {
     const lines = fs.readFileSync(process.cwd() + '/.eslintignore', 'utf8').split('\n');
-    eslintIgnore = new Set(lines.map(l => l.replace('sources/', '')));
+    eslintIgnore = new Set(lines);
   } catch (e) {
     eslintIgnore = new Set();
   }
@@ -293,7 +293,7 @@ const staticTree = new MergeTrees([
   getSassTree(),
 ]);
 
-const styleCheckTestsTree = process.env.CLIQZ_ENVIRONMENT === 'production' ?
+const styleCheckTestsTree = cliqzConfig.PRODUCTION ?
   new MergeTrees([]) : getLintTestsTree();
 
 const bundlesTree = getBundlesTree(

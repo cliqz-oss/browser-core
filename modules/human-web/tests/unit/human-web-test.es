@@ -1,29 +1,15 @@
-const expect = chai.expect;
-const tldjs = require('tldjs');
-
 const MOCK = {
-  'core/events': {
-    default: {},
+  'core/console': {
+    default: {
+      debug() {},
+      log() {},
+      error() {},
+    },
   },
-  'human-web/bloom-filter': {
-    default: {},
-  },
-  'core/utils': {
+  'core/cliqz': {
     utils: {
       extensionVersion: null,
     },
-  },
-  'core/crypto/random': {
-    default: Math.random.bind(Math),
-  },
-  'core/http': {
-    fetch: {},
-  },
-  'core/inject': {
-    default: {},
-  },
-  'platform/human-web/storage': {
-    default: {},
   },
   'core/config': {
     default: {
@@ -32,14 +18,37 @@ const MOCK = {
       },
     },
   },
-  'platform/human-web/opentabs': {
-    getAllOpenPages: {},
+  'core/crypto/random': {
+    default: {},
+  },
+  'core/events': {
+    default: {},
   },
   'core/fast-url-parser': {
     default: {},
   },
-  'platform/browser': {
-    getActiveTab: {},
+  'core/helpers/md5': {
+    default: () => null,
+  },
+  'core/http': {
+    fetch: {},
+  },
+  'core/inject': {
+    default: {},
+  },
+  'core/utils': {
+    default: {
+      getDetailsFromUrl: () => { notUndefined: true },
+    },
+  },
+  'core/window-api': {
+    default: {},
+  },
+  'human-web/ad-detection': {
+    normalizeAclkUrl: {},
+  },
+  'human-web/bloom-filter': {
+    default: {},
   },
   'human-web/doublefetch-handler': {
     default: class {},
@@ -47,61 +56,48 @@ const MOCK = {
   'human-web/content-extraction-patterns-loader': {
     default: class {},
   },
+  'platform/browser': {
+    getActiveTab: {},
+  },
+  'platform/human-web/dns': {
+    default: {},
+  },
+  'platform/human-web/opentabs': {
+    getAllOpenPages: {},
+  },
+  'platform/human-web/storage': {
+    default: {},
+  },
   'platform/human-web/tabInfo': {
     getTabInfo: {},
   },
-  'human-web/logger': {
-    default: {
-      debug() {},
-      log() {},
-      error() {},
-    }
-  },
-  'human-web/html-helpers': {
-    default: {}
-  },
-
-  // transitive dependencies: core/url
   'platform/url': {
-    default: {}
-  },
-
-  'platform/globals': {
-    default: {}
-  },
-
-  // transitive dependencies: human-web/network
-  'platform/human-web/dns': {
-    Dns: class {
-      resolveHost(hostname) {
-        // non-resolvable address, which will appear
-        // as a public address to human-web
-        return Promise.resolve('203.0.113.0');
-      }
-
-      cacheDnsResolution() {}
-      flushExpiredCacheEntries() {}
-    }
-  },
-  'platform/lib/tldjs': {
-    default: tldjs,
+    default: {},
+    isURI: {},
+    URI: {},
   },
 };
 
 export default describeModule('human-web/human-web',
   () => MOCK,
   () => {
-    describe('#sanitizeResultTelemetry', function() {
+    describe('#sanitizeResultTelemetry', () => {
       let HumanWeb;
       let sanitizeResultTelemetry;
       let data;
+      let isSuspiciousQuerySpy;
+
 
       beforeEach(function () {
         HumanWeb = this.module().default;
 
+        // TODO: how to properly mock this?
         HumanWeb.counter = 1;
         HumanWeb.bloomFilter = {
           testSingle: () => false,
+        };
+        HumanWeb.dns = {
+          getDNS: () => Promise.resolve(''),
         };
 
         sanitizeResultTelemetry = HumanWeb.sanitizeResultTelemetry;
@@ -113,45 +109,30 @@ export default describeModule('human-web/human-web',
         };
       });
 
-      // This is not a real test. It merely verifies that the mocking
-      // works as expected. For now, I leave it in.
-      //
-      // If it creates problems, feel free to delete it.
-      //
-      it('assume that "getDetailsFromUrl" in the tests works as expected', function() {
-        return this.system.import('core/url').then((mod) => {
-          const result = mod.getDetailsFromUrl('http://www.abc.test?0123456789');
-          expect(result).to.include({
-            host: 'www.abc.test',
-            query: '0123456789',
-          });
-        });
-      });
-
-      it('rejects if HumanWeb is not initialized', function() {
+      it('rejects if HumanWeb is not initialized', () => {
         HumanWeb.counter = 0;
         return chai.expect(sanitizeResultTelemetry(data)).to.be.rejected;
       });
 
-      it('rejects `null` query', function() {
+      it('rejects `null` query', () => {
         data.q = null;
         return chai.expect(sanitizeResultTelemetry(data)).to.be.rejected;
       });
 
-      it('rejects empty query', function() {
+      it('rejects empty query', () => {
         data.q = '';
         return chai.expect(sanitizeResultTelemetry(data)).to.be.rejected;
       });
 
       // TODO: test `isSuspiciousQuery` separately
-      it('overwrites suspicious query', function() {
+      it('overwrites suspicious query', () => {
         data.q = 'hw@cliqz.com';
         return sanitizeResultTelemetry(data)
           .then(({ query }) => chai.expect(query).to.equal('(PROTECTED)'));
       });
 
       // TODO: test `isSuspiciousURL` and `dropLongURL` separately
-      it('overwrites dangerous query', function() {
+      it('overwrites dangerous query', () => {
         data.q = 'http://www.abc.de?0123456789';
         return sanitizeResultTelemetry(data)
           .then(({ query }) => chai.expect(query).to.equal('(PROTECTED)'));
@@ -160,24 +141,24 @@ export default describeModule('human-web/human-web',
       // TODO: test if `bloomFilter` was used
 
       // TODO: test `isSuspiciousURL` separately
-      it('overwrites suspicious URL', function() {
+      it('overwrites suspicious URL', () => {
         data.msg.u = 'http://www.abc.de?0123456789';
         return sanitizeResultTelemetry(data)
           .then(({ url }) => chai.expect(url).to.equal('(PROTECTED)'));
       });
 
       // TODO: test `dropLongURL` separately
-      it('overwrites dangerous URL', function() {
+      it('overwrites dangerous URL', () => {
         data.msg.u = 'hw@cliqz.com';
         return sanitizeResultTelemetry(data)
           .then(({ url }) => chai.expect(url).to.equal('(PROTECTED)'));
       });
 
-      it('does not change unsuspicous query and URL', function() {
+      it('does not change unsuspicous query and URL', () => {
         data.q = 'cliqz'
         data.msg.u = 'https://www.cliqz.com';
         return sanitizeResultTelemetry(data)
-          .then(({ query, url }) => chai.expect({ query, url }).to.eql({
+          .then(({ query, url }) => chai.expect({ query, url }).to.deep.equal({
             query: 'cliqz',
             url: 'https://www.cliqz.com',
           }));

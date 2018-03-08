@@ -1,7 +1,6 @@
 import BaseResult from './base';
 import GenericResult from './generic';
 import { equals } from '../../core/url';
-import config from '../../core/config';
 
 class Suggestion extends BaseResult {
   get displayText() {
@@ -22,7 +21,7 @@ export default class SuggestionsResult extends GenericResult {
     super(rawResult, allResultsFlat);
 
     this.rawResult.data.suggestions = this.rawResult.data.suggestions.filter((s) => {
-      const url = `${config.settings.SUGGESTIONS_URL}${s}`;
+      const url = `https://cliqz.com/search?q=${s}`;
       if (allResultsFlat.some(u => equals(u, url))) {
         return false;
       }
@@ -48,7 +47,7 @@ export default class SuggestionsResult extends GenericResult {
 
   get suggestionResults() {
     return this.rawResult.data.suggestions.map(s => new Suggestion({
-      url: `${config.settings.SUGGESTIONS_URL}${s}`,
+      url: `https://cliqz.com/search?q=${s}`,
       text: this.rawResult.text,
       displayText: s,
       onClick: () => {

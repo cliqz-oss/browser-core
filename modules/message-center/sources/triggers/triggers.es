@@ -15,7 +15,7 @@ const messageFunctions = {
     return (isCliqzBrowser && isCliqzAtLeastInVersion(value)) || prefs.get('developer', false);
   },
   locale(value) {
-    return value === utils.PLATFORM_LOCALE || value === utils.PLATFORM_LANGUAGE;
+    return value === utils.PREFERRED_LANGUAGE;
   },
   currentNewsLanguageIsNot(value, message) {
     const ftConfig = JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}'));

@@ -1,9 +1,9 @@
 
+
 export default class PageLogger {
 
   constructor(tpEvents) {
     this.tpEvents = tpEvents;
-    this._requestCounters = new Map();
   }
 
   logMainDocument(state) {
@@ -33,30 +33,12 @@ export default class PageLogger {
       pageLoad.addTrigger(urlParts.hostname, state.trigger);
     }
 
-    if (state.requestId) {
-      this._requestCounters.set(state.requestId, incrementStat);
-    }
-
     return true;
-  }
-
-  reattachStatCounter(state) {
-    const { requestId } = state;
-    if (requestId && this._requestCounters.has(requestId)) {
-      state.incrementStat = this._requestCounters.get(requestId);
-      this._requestCounters.delete(requestId);
-      return true;
-    }
-    return false;
   }
 
   logRequestMetadata(state) {
     const urlParts = state.urlParts;
     const incrementStat = state.incrementStat;
-
-    if (state.url.indexOf(this.tpEvents.config.placeHolder) > -1) {
-      incrementStat('hasPlaceHolder');
-    }
 
     // add metadata for this request
     incrementStat('c');

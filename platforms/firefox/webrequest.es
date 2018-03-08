@@ -94,8 +94,7 @@ function webRequestListenerWrapper(listener, topic) {
     } else if (!data.frameAncestors && data2.frameId !== data2.parentFrameId && data2.type === 'beacon') {
       // guess when not to use the tab source as sourceUrl
       data2.sourceUrl = data.originUrl;
-    } else if (!data.frameAncestors &&
-        (data.windowId === data.parentWindowId || data.parentWindowId === -1) &&
+    } else if (!data.frameAncestors && data.windowId === data.parentWindowId &&
         data.originUrl !== browserData.source) {
       data2.sourceUrl = data.originUrl;
     } else {
@@ -167,7 +166,7 @@ export default {
   onBeforeRedirect: new WebRequestWrapper('onBeforeRedirect'),
   onResponseStarted: new WebRequestWrapper('onResponseStarted'),
   onErrorOccurred: new WebRequestWrapper('onErrorOccurred'),
-  onCompleted: new WebRequestWrapper('onCompleted'),
+  onCompleted: new WebRequestWrapper('onErrorOccurred'),
 };
 
 export const VALID_RESPONSE_PROPERTIES = {

@@ -2,7 +2,7 @@
     "extends": "airbnb",
     "parser": "babel-eslint",
     "env": {
-        "browser": true,
+        "browser": false,
         "commonjs": false,
         "es6": true,
         "mocha": true,
@@ -24,11 +24,9 @@
         "clearTimeout": {}
     },
     "plugins": [
-        "compat",
         "class-property"
     ],
     "rules": {
-        "compat/compat": "error",
         "import/extensions": "off",
         "class-methods-use-this": "off",
         "no-restricted-syntax": [
@@ -44,6 +42,7 @@
         }],
         "react/require-default-props": "off",
         "react/prop-types": "off",
+        "react/jsx-wrap-multilines": "off",
 
         // Rules to keep
         "no-underscore-dangle": "off",
@@ -52,16 +51,11 @@
     "overrides": [
     {
         "files": [
-            "modules/**/tests/**/*.*",
-            "modules/**/*tests.bundle.*",
-            "modules/**/*helpers.*"
+            "modules/*/tests/**/*.*",
+            "modules/**/*tests.bundle.*"
         ],
         "rules": {
-          "import/no-extraneous-dependencies": "off",
-          "func-names": ["error", "never"],
-          "prefer-arrow-callback": "off",
-          "no-unused-expressions": "off",
-          "object-shorthand": "off",
+          "import/no-extraneous-dependencies": "off"
           }
     }
     ]

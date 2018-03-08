@@ -290,6 +290,217 @@ export default describeModule("autocomplete/mixer",
       });
     });
 
+    describe('cacheEZs', function() {
+      let mixer;
+      function getUrlfunction(smartCliqz) {
+        //return CliqzUtils.generalizeUrl(smartCliqz.val, true);
+      }
+
+      var saved = false,
+          results = {},
+          urls = {},
+          ezs = {},
+          smartCliqzCache = {},
+          triggerUrlCache = {},
+          ezstore,
+          test;
+
+      // Mock CliqzSmartCliqzCache
+      beforeEach(function() {
+        results = [{
+          style: 'cliqz-extra',
+          val: 'https://cliqz.com/',
+          comment: 'Cliqz',
+          label: 'https://cliqz.com/',
+          query: 'cliqz.c',
+          data: {
+            friendly_url: 'cliqz.com',
+            template: 'Cliqz',
+            trigger_urls: ['cliqz.com'],
+            ts: 1447772162,
+            kind: ['X|{"ez":"-7290289273393613729","trigger_method":"rh_query"}'],
+            subType: {
+              class: "CliqzEZ",
+              id: "2700150093133398460",
+              name: "Cliqz 1",
+            },
+          },
+        }];
+
+        saved = false;
+        urls = {};
+        ezs = {};
+
+        triggerUrlCache.retrieve = function (url) {
+          if (!(url in urls)) {
+            return urls[url];
+          } else {
+            return false;
+          }
+        };
+        triggerUrlCache.store = function (url, eztype) {
+          urls[url] = eztype;
+          saved = false;
+        };
+        triggerUrlCache.save = function () {
+          saved = true;
+        };
+
+        smartCliqzCache.store = function(ezData) {
+          ezs[getUrlfunction(ezData)] = ezData;
+        };
+        triggerUrlCache.isCached = () => false;
+
+        mixer = new (this.module().default)({
+          smartCliqzCache,
+          triggerUrlCache,
+        });
+      });
+
+      it('should cache 1 entry given 1', function() {
+        mixer._cacheEZs([results[0]]);
+
+        expect(saved).to.be.true;
+        expect(Object.keys(urls)).to.have.lengthOf(1);
+        expect(urls[results[0].data.trigger_urls[0]]).to.be.true;
+        expect(ezs[getUrlfunction(results[0])]).to.equal(results[0]);
+      });
+
+      it('should cache 1 entry given 2 with same URL', function() {
+        results.push(JSON.parse(JSON.stringify(results[0])));
+        results[1].comment = 'Second entry';
+        mixer._cacheEZs(results);
+
+        expect(saved).to.be.true;
+        expect(Object.keys(urls)).to.have.lengthOf(1);
+        expect(urls[results[0].data.trigger_urls[0]]).to.be.true;
+
+        // require first entry to have priority over the second
+        expect(ezs[getUrlfunction(results[0])]).to.equal(results[0]);
+      });
+
+      it('should cache 2 entries given 2', function() {
+        results.push(JSON.parse(JSON.stringify(results[0])));
+        results[1].val = 'http://test.com';
+        results[1].data.trigger_urls[0] = 'test.com';
+        results[1].data.subType = { id: "1111111111" };
+
+        mixer._cacheEZs(results);
+
+        expect(saved).to.be.true;
+        expect(Object.keys(urls)).to.have.lengthOf(2);
+        results.forEach(function(result) {
+          expect(urls[result.data.trigger_urls[0]]).to.be.true;
+          // expect(ezs[getUrlfunction(result)]).to.equal(result);
+        });
+      });
+    });
+
+    describe('historyTriggerEZ', function() {
+      var fetching,
+          result = {},
+          urls = {},
+          ezs = {},
+          smartCliqzCache = {},
+          triggerUrlCache = {};
+      let mixer;
+
+      // Mock CliqzSmartCliqzCache
+      beforeEach(function() {
+        result = {
+          style: 'cliqz-pattern',
+          val: 'https://cliqz.com/',
+          comment: 'Cliqz',
+          label: 'https://cliqz.com/',
+          query: 'cliqz.c',
+          data: {
+            cluster: true,
+            urls: [],
+          },
+        };
+
+        ezs = {
+          '-7290289273393613729': {
+            style: 'cliqz-extra',
+            val: 'https://cliqz.com/',
+            comment: 'Cliqz',
+            label: 'https://cliqz.com/',
+            query: 'cliqz.c',
+            data: {
+              friendly_url: 'cliqz.com',
+              template: 'Cliqz',
+              trigger_urls: ['cliqz.com'],
+              ts: 1447772162,
+              kind: ['X|{"ez":"-7290289273393613729","trigger_method":"rh_query"}'],
+              subType: {
+                class: "CliqzEZ",
+                id: "2700150093133398460",
+                name: "Cliqz 1",
+              },
+            },
+          },
+        };
+
+        urls = {
+          'cliqz.com': true,
+        };
+
+        fetching = undefined;
+
+        triggerUrlCache.isCached = function (url) {
+          return urls[url] ? true : false;
+        };
+
+        triggerUrlCache.retrieve = function (url) {
+          return urls[url];
+        };
+
+        triggerUrlCache.isStale = function() {
+          return false;
+        };
+
+        smartCliqzCache.fetchAndStore = function(url) {
+          fetching = url;
+        };
+
+        smartCliqzCache.retrieve = function(url) {
+          return ezs[url];
+        };
+
+        smartCliqzCache.retrieveAndUpdate = smartCliqzCache.retrieve;
+
+        this.deps("core/utils").default.generalizeUrl = () => "cliqz.com";
+        mixer = new (this.module().default)({
+          smartCliqzCache,
+          triggerUrlCache,
+        });
+      });
+
+      it('should trigger ez', function() {
+        var ez = mixer._historyTriggerEZ(result);
+        expect(ez).to.equal(ezs[urls['cliqz.com']]);
+      });
+
+      it('should not trigger ez but fetch', function() {
+        ezs = {};
+        var ez = mixer._historyTriggerEZ(result);
+        expect(ez).to.be.undefined;
+        expect(fetching).to.equal('cliqz.com');
+      });
+
+      it('should trigger ez because no cluster', function() {
+        result.data.cluster = false;
+        var ez = mixer._historyTriggerEZ(result);
+        expect(ez).to.be.undefined;
+      });
+
+      it('should trigger ez because cluster base domain inferred', function() {
+        result.data.autoAdd = true;
+        var ez = mixer._historyTriggerEZ(result);
+        expect(ez).to.be.undefined;
+      });
+    });
+
     describe('filterConflictingEZ', function() {
 
       var firstResult, ezs;

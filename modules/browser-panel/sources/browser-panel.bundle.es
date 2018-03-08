@@ -1,5 +1,6 @@
-/* global document, window, $, Handlebars */
-
+/* global document, window */
+import $ from 'jquery';
+import Handlebars from 'handlebars';
 import { sendMessageToWindow } from './content/data';
 import templates from './templates';
 import helpers from './helpers';
@@ -99,12 +100,12 @@ $(document).ready(() => {
   document.getElementById('cqz-browser-panel-re').addEventListener('click', cqzOfferBtnClicked);
 
   // open URL
-  $('#cqz-browser-panel-re').on('click', '[data-openUrl]', (ev) => {
+  $('#cqz-browser-panel-re').on('click', '[data-open-url]', (ev) => {
     sendMessageToWindow({
       handler: 'openUrlHandler',
       data: {
         el_id: ev.target.getAttribute('data-cqz-of-btn-id'),
-        url: ev.currentTarget.getAttribute('data-openUrl'),
+        url: ev.currentTarget.getAttribute('data-open-url'),
       }
     });
   });
@@ -130,25 +131,15 @@ function draw(data) {
   if (Object.keys(templates).indexOf(templateName) === -1) {
     templateName = 'default_template';
   }
-
-  // EX-6655: Specify lang for sake of hyphenation - only German offers for now
-  // TODO: Get offer language from portal once they start supporting languages
-  // const docElem = document.documentElement;
-  // docElem.setAttribute('lang', data.lang);
-
   const panel = document.getElementById('cqz-browser-panel-re');
   const html = templates[templateName](templateData);
   panel.innerHTML = html;
-
   $('img').on('error', function onError() {
     $(this).hide();
   });
-
   $('.tooltip').tooltipster({
     theme: ['tooltipster-shadow', 'tooltipster-shadow-customized'],
     interactive: true,
-    delay: 150,
-    animationDuration: 150,
     position: ['left']
   });
 

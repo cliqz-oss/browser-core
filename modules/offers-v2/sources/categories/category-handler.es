@@ -4,8 +4,6 @@ import CategoryMatch from './category-match';
 import CategoryPersistentDataHelper from './category-persistent-helper';
 import logger from '../common/offers_v2_logger';
 import DayCounterHelper from './day-counter-helper';
-import { parseNetworkFilter } from '../../core/pattern-matching';
-import { SimplePatternIndex } from '../pattern-matching/pattern-utils';
 
 
 export default class CategoryHandler {
@@ -13,7 +11,7 @@ export default class CategoryHandler {
     this.catTree = new CategoryTree();
     this.catMatch = new CategoryMatch(patternMatchingHandler);
     this.historyFeature = historyFeature;
-    this.persistentHelper = new CategoryPersistentDataHelper(db);
+    this.persistentHelper = new CategoryPersistentDataHelper(this.catTree, db);
     this.metadata = {
       version: 1
     };
@@ -26,19 +24,16 @@ export default class CategoryHandler {
     });
   }
 
+  destroy() {
+    this.persistentHelper.save();
+    this.persistentHelper.destroy();
+  }
+
   /**
    * Check if a category exists or not
    */
   hasCategory(catName) {
     return this.catTree.hasCategory(catName);
-  }
-
-  /**
-   * returns a category if exists otherwise null will be returned
-   */
-  getCategory(catName) {
-    const catNode = this.catTree.getCategoryNode(catName);
-    return catNode ? catNode.getCategory() : null;
   }
 
   /**
@@ -70,10 +65,12 @@ export default class CategoryHandler {
   removeCategory(category) {
     const catName = category.getName();
     if (this.catTree.hasCategory(catName)) {
-      logger.debug(`Category ${catName} is being removed`, category);
       this.catTree.removeCategory(catName);
       this.persistentHelper.categoryRemoved(category);
       this.catMatch.removeCategoryPatterns(catName);
+      if (this.historyFeature) {
+        this.historyFeature.removeEntry(this._getCatHistoryPIDID(category));
+      }
     }
   }
 
@@ -120,7 +117,6 @@ export default class CategoryHandler {
       }
       // hit the category
       catNode.getCategory().hit();
-      logger.debug(`Hitting category ${catNode.getCategory().getName()}`);
       this._catModified(catNode.getCategory());
     });
     // increment the number of urls we have for this particular day
@@ -133,31 +129,18 @@ export default class CategoryHandler {
     return this.persistentHelper.loadCategories().then((catList) => {
       this.catTree.clear();
       this.catMatch.clear();
-
-      const obsoleteCategories = [];
       for (let i = 0; i < catList.length; i += 1) {
         const category = catList[i];
-        if (category.isObsolete()) {
-          obsoleteCategories.push(category);
-        } else {
-          this.catTree.addCategory(category);
-          this.catMatch.addCategoryPatterns(category.getName(), category.getPatterns());
-          // check if the category has history data setted up
-          if (!category.isHistoryDataSettedUp()) {
-            this._getHistoricalData(category);
-          }
-        }
+        this.catTree.addCategory(category);
+        this.catMatch.addCategoryPatterns(category.getName(), category.getPatterns());
       }
-
-      // remove obsolete from the DB
-      obsoleteCategories.forEach((cat) => {
-        logger.debug(`Removing obsolete category: ${cat.getName()}`);
-        this.persistentHelper.categoryRemoved(cat);
-      });
-
       // build the pattern index here
       this.build();
     });
+  }
+
+  savePersistentData() {
+    return this.persistentHelper.save();
   }
 
 
@@ -220,18 +203,8 @@ export default class CategoryHandler {
     // to avoid possible issues we will generate a new id using the category name
     // and the current version
     const catPID = this._getCatHistoryPIDID(category);
-    const patterns = category.getPatterns();
-    const filters = [];
-    for (let i = 0; i < patterns.length; i += 1) {
-      const parsed = parseNetworkFilter(patterns[i]);
-      if (parsed !== null) {
-        filters.push(parsed);
-      }
-    }
-    const index = new SimplePatternIndex(filters);
     const historyQuery = {
-      patterns,
-      index,
+      patterns: category.getPatterns(),
       pid: catPID,
       start_ms: now - (category.getTimeRangeSecs() * 1000),
       end_ms: now

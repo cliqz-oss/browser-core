@@ -1,10 +1,9 @@
 import {
-  clearIntervals,
   clone,
-  defaultConfig,
-  expect,
+  clearIntervals,
+  waitFor,
   Subject,
-  waitFor
+  defaultConfig,
 } from './helpers';
 
 const favoritesDial = i => ({
@@ -110,12 +109,12 @@ describe('Fresh tab favorites UI', function () {
 
       it('with the visibility switch turned on', function () {
         const allSettingsRows = subject.queryAll(settingsRowSelector);
-        expect(allSettingsRows[4].querySelector(settingsSwitchSelector))
+        chai.expect(allSettingsRows[4].querySelector(settingsSwitchSelector))
           .to.have.property('checked', true);
       });
 
       it('with visible dials', function () {
-        expect(subject.query(favoritesAreaSelector)).to.exist;
+        chai.expect(subject.query(favoritesAreaSelector)).to.exist;
       });
     });
 
@@ -136,12 +135,12 @@ describe('Fresh tab favorites UI', function () {
 
       it('with the visibility switch turned off', function () {
         const allSettingsRows = subject.queryAll(settingsRowSelector);
-        expect(allSettingsRows[4].querySelector(settingsSwitchSelector))
+        chai.expect(allSettingsRows[4].querySelector(settingsSwitchSelector))
           .to.have.property('checked', false);
       });
 
       it('with no visible dials', function () {
-        expect(subject.query(favoritesAreaSelector)).to.not.exist;
+        chai.expect(subject.query(favoritesAreaSelector)).to.not.exist;
       });
     });
   });
@@ -169,28 +168,28 @@ describe('Fresh tab favorites UI', function () {
 
     describe('renders add form', function () {
       it('successfully', function () {
-        expect(subject.query('#section-favorites form.addDialForm')).to.exist;
+        chai.expect(subject.query('#section-favorites form.addDialForm')).to.exist;
       });
 
       it('with an existing close button', function () {
-        expect(subject.query('#section-favorites button.hideAddForm')).to.exist;
+        chai.expect(subject.query('#section-favorites button.hideAddForm')).to.exist;
       });
 
       it('with an existing URL field', function () {
-        expect(subject.query('#section-favorites input.addUrl')).to.exist;
+        chai.expect(subject.query('#section-favorites input.addUrl')).to.exist;
       });
 
       it('with an URL field with correct placeholder', function () {
-        expect(subject.query('#section-favorites input.addUrl').placeholder)
+        chai.expect(subject.query('#section-favorites input.addUrl').placeholder)
           .to.equal('freshtab.app.speed-dial.input.placeholder');
       });
 
       it('with an existing CTA button', function () {
-        expect(subject.query('#section-favorites button.submit')).to.exist;
+        chai.expect(subject.query('#section-favorites button.submit')).to.exist;
       });
 
       it('with a CTA button with correct label', function () {
-        expect(subject.query('#section-favorites button.submit'))
+        chai.expect(subject.query('#section-favorites button.submit'))
           .to.have.text('freshtab.app.speed-dial.add');
       });
     });
@@ -219,23 +218,23 @@ describe('Fresh tab favorites UI', function () {
 
     describe('renders undo popup message', function () {
       it('successfully', function () {
-        expect(subject.query(undoBoxSelector)).to.exist;
+        chai.expect(subject.query(undoBoxSelector)).to.exist;
       });
 
       it('with a delete button', function () {
         const undoBoxDeleteBtnSelector = 'div.undo-notification-box button.close';
-        expect(subject.query(undoBoxDeleteBtnSelector)).to.exist;
+        chai.expect(subject.query(undoBoxDeleteBtnSelector)).to.exist;
       });
 
       it('with an undo button', function () {
         const undoBoxUndoBtnSelector = 'div.undo-notification-box button.undo';
-        expect(subject.query(undoBoxUndoBtnSelector)).to.exist;
+        chai.expect(subject.query(undoBoxUndoBtnSelector)).to.exist;
       });
 
       it('with existing and correct message text', function () {
-        expect(subject.query(undoBoxSelector))
+        chai.expect(subject.query(undoBoxSelector))
           .to.contain.text(favoritesResponse[0].custom[0].displayTitle);
-        expect(subject.query(undoBoxSelector))
+        chai.expect(subject.query(undoBoxSelector))
           .to.contain.text('freshtab.app.speed-dial.removed');
       });
     });
@@ -266,16 +265,16 @@ describe('Fresh tab favorites UI', function () {
 
         describe('renders area', function () {
           it('with an existing label', function () {
-            expect(subject.query(favoritesHeaderSelector)).to.exist;
+            chai.expect(subject.query(favoritesHeaderSelector)).to.exist;
           });
 
           it('with a correct amount of favorites', function () {
             if (i <= 5) {
-              expect(favoritesTiles.length)
+              chai.expect(favoritesTiles.length)
                 .to.equal(amountFavoritesFromData)
                 .and.to.be.below(7);
             } else {
-              expect(favoritesTiles.length)
+              chai.expect(favoritesTiles.length)
                 .to.equal(amountFavoritesFromData - 1)
                 .and.to.be.below(7);
             }
@@ -285,13 +284,13 @@ describe('Fresh tab favorites UI', function () {
         describe('add icon', function () {
           if (i <= 4) {
             it('is rendered when the row is not full', function () {
-              expect(subject.query(favoritesPlusSelector)).to.exist;
-              expect(subject.getComputedStyle(subject.query(favoritesPlusSelector)).display)
+              chai.expect(subject.query(favoritesPlusSelector)).to.exist;
+              chai.expect(subject.getComputedStyle(favoritesPlusSelector).display)
                 .to.not.equal('none');
             });
           } else {
             it('is not rendered when the row is full', function () {
-              expect(subject.query(favoritesPlusSelector)).to.not.exist;
+              chai.expect(subject.query(favoritesPlusSelector)).to.not.exist;
             });
           }
         });
@@ -305,29 +304,27 @@ describe('Fresh tab favorites UI', function () {
           });
 
           it('with existing square logos with correct background color', function () {
-            expect(favoritesItemsLogos.length).to.be.above(0);
             [...favoritesItemsLogos].forEach(function (item) {
-              expect(subject.getComputedStyle(item).background)
+              chai.expect(item).to.exist;
+              chai.expect(getComputedStyle(item).background)
                 .to.contain('rgb(195, 4, 62)');
             });
           });
 
           it('with existing and correct two chars on logos', function () {
-            expect(favoritesItemsLogos.length).to.be.above(0);
             [...favoritesItemsLogos].forEach(function (item, j) {
-              expect(item.textContent).to.exist;
-              expect(item.textContent.length).to.equal(2);
-              expect(item).to.have.text(favoritesResponse[i].custom[j].logo.text);
+              chai.expect(item.textContent).to.exist;
+              chai.expect(item.textContent.length).to.equal(2);
+              chai.expect(item).to.have.text(favoritesResponse[i].custom[j].logo.text);
             });
           });
 
           it('with existing and correct link titles', function () {
             const favoritesItemsDials = subject.queryAll(favoritesItemSelector);
 
-            expect(favoritesItemsDials.length).to.be.above(0);
             [...favoritesItemsDials].forEach(function (item, j) {
-              expect(item.title).to.exist;
-              expect(item.title).to.equal(favoritesResponse[i].custom[j].url);
+              chai.expect(item.title).to.exist;
+              chai.expect(item.title).to.equal(favoritesResponse[i].custom[j].url);
             });
           });
 
@@ -335,10 +332,9 @@ describe('Fresh tab favorites UI', function () {
             const favoritesLinkSelector = '#section-favorites div.dial a';
             const favoritesItemsLinks = subject.queryAll(favoritesLinkSelector);
 
-            expect(favoritesItemsLinks.length).to.be.above(0);
             [...favoritesItemsLinks].forEach(function (item, j) {
-              expect(item.href).to.exist;
-              expect(item.href).to.contain(favoritesResponse[i].custom[j].url);
+              chai.expect(item.href).to.exist;
+              chai.expect(item.href).to.contain(favoritesResponse[i].custom[j].url);
             });
           });
 
@@ -346,16 +342,19 @@ describe('Fresh tab favorites UI', function () {
             const favoritesDescriptionSelector = '#section-favorites div.dial div.title';
             const favoritesItemsDesc = subject.queryAll(favoritesDescriptionSelector);
 
-            expect(favoritesItemsDesc.length).to.be.above(0);
             [...favoritesItemsDesc].forEach(function (item, j) {
-              expect(item).to.have.text(favoritesResponse[i].custom[j].displayTitle);
+              chai.expect(item).to.exist;
+              chai.expect(item).to.have.text(favoritesResponse[i].custom[j].displayTitle);
             });
           });
 
           it('with existing delete buttons', function () {
             const favoritesDeleteSeletor = '#section-favorites div.dial button.delete';
             const favoritesItemsButton = subject.queryAll(favoritesDeleteSeletor);
-            expect(favoritesItemsButton.length).to.be.above(0);
+
+            [...favoritesItemsButton].forEach(function (item) {
+              chai.expect(item).to.exist;
+            });
           });
         });
       });

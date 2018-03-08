@@ -4,9 +4,6 @@ import { Components } from '../globals';
 import * as urlUtils from '../../core/url';
 
 Components.utils.import('resource://gre/modules/PlacesUtils.jsm');
-const history = Components.classes['@mozilla.org/browser/nav-history-service;1']
-  .getService(Components.interfaces.nsINavHistoryService);
-
 
 function observableFromSql(sql, columns) {
   // change row into object with columns as property names
@@ -322,36 +319,5 @@ export default class {
       `);
     }
     return Promise.resolve();
-  }
-
-  /**
-   * Minimal query interface to get the visits between two timestamps.
-   */
-  static queryVisitsForTimespan({ frameStartsAt, frameEndsAt }) {
-    const options = history.getNewQueryOptions();
-    const query = history.getNewQuery();
-
-    query.beginTimeReference = query.TIME_RELATIVE_EPOCH;
-    query.beginTime = frameStartsAt;
-
-    query.endTimeReference = query.TIME_RELATIVE_EPOCH;
-    query.endTime = frameEndsAt;
-
-    const result = history.executeQuery(query, options);
-    const places = [];
-
-    const cont = result.root;
-
-    cont.containerOpen = true;
-    for (let i = 0; i < cont.childCount; i += 1) {
-      const node = cont.getChild(i);
-      places.push({
-        url: node.uri,
-        ts: Math.floor(node.time / 1000),
-      });
-    }
-    cont.containerOpen = false;
-
-    return Promise.resolve(places);
   }
 }

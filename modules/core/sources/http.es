@@ -1,5 +1,3 @@
-/* eslint no-param-reassign: 'off' */
-
 import console from './console';
 import { compress } from './gzip';
 import { XMLHttpRequestFactory, setPrivateFlags, setBackgroundRequest } from '../platform/xmlhttprequest';
@@ -11,81 +9,61 @@ export { fetch, Headers, Request, Response } from '../platform/fetch';
  *
  *  If you want to make HTTP requests, please check out the fetch API (platform/fetch)
  */
-export function defaultHttpHandler(
-  method,
-  url,
-  callback,
-  onerror,
-  timeout,
-  data,
-  sync,
-  encoding,
-  background
-) {
+export function defaultHttpHandler(method, url, callback, onerror, timeout, data, sync, encoding, background) {
   if (method === 'GET' && url.startsWith('chrome://') && chromeUrlHandler) {
     chromeUrlHandler(url, callback, onerror);
-    return undefined;
+    return;
   }
   const XMLHttpRequest = XMLHttpRequestFactory();
-  const req = new XMLHttpRequest();
-  req.timestamp = Date.now();
+  var req = new XMLHttpRequest();
+  req.timestamp = + new Date();
   if (background) {
     setBackgroundRequest(req);
   }
   req.open(method, url, !sync);
   setPrivateFlags(req);
-  if (req.overrideMimeType) {
-    req.overrideMimeType('application/json');
-  }
+  req.overrideMimeType && req.overrideMimeType('application/json');
   req.setRequestHeader('Content-Type', 'application/json');
 
   // headers for compressed data
   if (encoding) {
-    req.setRequestHeader('Content-Encoding', encoding);
+      req.setRequestHeader('Content-Encoding', encoding);
   }
 
-  req.onload = () => {
-    if (!parseInt) return; // parseInt is not a function after extension disable/uninstall
+  req.onload = function () {
+      if(!parseInt) return; //parseInt is not a function after extension disable/uninstall
 
-    const statusClass = parseInt(req.status / 100, 10);
-    if (statusClass === 2 || statusClass === 3 || statusClass === 0 /* local files */) {
-      if (callback) {
-        callback(req);
+      var statusClass = parseInt(req.status / 100);
+      if(statusClass == 2 || statusClass == 3 || statusClass == 0 /* local files */){
+          callback && callback(req);
+      } else {
+          const error = `loaded with non-200 ${url} (status=${req.status} ${req.statusText}) CLIQZEnvironment.httpHandler`;
+          console.log(error);
+          onerror && onerror(error);
       }
-    } else {
-      const error = `loaded with non-200 ${url} (status=${req.status} ${req.statusText}) CLIQZEnvironment.httpHandler`;
-      console.log(error);
-      if (onerror) {
-        onerror(error);
-      }
-    }
-  };
-  req.onerror = () => {
+  }
+  req.onerror = function () {
     const error = `error loading ${url} (status=${req.status} ${req.statusText}) CLIQZEnvironment.httpHandler`;
     console.log(error);
-    if (onerror) {
-      onerror(error);
-    }
-  };
-  req.ontimeout = () => {
+    onerror && onerror(error);
+  }
+  req.ontimeout = function () {
     const error = `timeout for ${url} CLIQZEnvironment.httpHandler`;
     console.log(error);
-    if (onerror) {
-      onerror(error);
-    }
-  };
+    onerror && onerror(error);
+  }
 
   if (callback) {
-    if (timeout) {
-      req.timeout = parseInt(timeout, 10);
-    } else {
-      req.timeout = (['POST', 'PUT'].indexOf(method) >= 0 ? 10000 : 1000);
-    }
+      if (timeout) {
+          req.timeout = parseInt(timeout)
+      } else {
+          req.timeout = (['POST', 'PUT'].indexOf(method) >= 0 ? 10000 : 1000);
+      }
   }
 
   req.send(data);
   return req;
-}
+};
 
 let activeHandler = defaultHttpHandler;
 
@@ -101,7 +79,7 @@ export function overrideHttpHandler(fn) {
 }
 
 const compressionAvailable = Boolean(compress);
-const compressionExclusions = new Set();
+let compressionExclusions = new Set();
 
 function compressionEnabled(url) {
   return compressionAvailable && !compressionExclusions.has(url);
@@ -115,16 +93,16 @@ export function addCompressionExclusion(url) {
 }
 
 export function promiseHttpHandler(method, url, data, timeout, compressedPost) {
-  return new Promise((resolve, reject) => {
-    // gzip.compress may be false if there is no implementation for this platform
-    // or maybe it is not loaded yet
-    if (method === 'POST' && compressedPost && compressionEnabled(url)) {
-      const dataLength = data.length;
-      data = compress(data);
-      console.log(`Compressed request to ${url}, bytes saved = ${(dataLength - data.length)} (${((100 * (dataLength - data.length)) / dataLength).toFixed(1)}%)`, 'CLIQZEnvironment.httpHandler');
-      httpHandler(method, url, resolve, reject, timeout, data, undefined, 'gzip');
-    } else {
-      httpHandler(method, url, resolve, reject, timeout, data);
-    }
-  });
-}
+  return new Promise( function(resolve, reject) {
+   // gzip.compress may be false if there is no implementation for this platform
+   // or maybe it is not loaded yet
+   if (method === 'POST' && compressedPost && compressionEnabled(url)) {
+     const dataLength = data.length;
+     data = compress(data);
+     console.log("Compressed request to "+ url +", bytes saved = "+ (dataLength - data.length) + " (" + (100*(dataLength - data.length)/ dataLength).toFixed(1) +"%)", "CLIQZEnvironment.httpHandler");
+     httpHandler(method, url, resolve, reject, timeout, data, undefined, 'gzip');
+   } else {
+     httpHandler(method, url, resolve, reject, timeout, data);
+   }
+ });
+};

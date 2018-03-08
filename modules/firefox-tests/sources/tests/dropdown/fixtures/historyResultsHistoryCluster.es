@@ -1,7 +1,7 @@
 export default [
   {
     style: 'favicon',
-    value: 'https://partnernet.amazon.de/',
+    value: 'https://www.amazon.de/',
     image: '',
     comment: 'Amazon.de: Günstige Preise für Elektronik & Foto, Filme, Musik, Bücher, Games, Spielzeug & mehr',
     label: '',
@@ -29,7 +29,7 @@ export default [
   },
   {
     style: 'favicon',
-    value: 'https://www.partnernet.amazon.de/gp/site-directory',
+    value: 'https://www.amazon.de/gp/site-directory',
     image: '',
     comment: 'Prime testen',
     label: '',

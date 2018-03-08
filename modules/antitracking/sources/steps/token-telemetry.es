@@ -4,7 +4,6 @@ import * as persist from '../../core/persistent-state';
 import { splitTelemetryData } from '../utils';
 import pacemaker from '../../core/pacemaker';
 import { TELEMETRY } from '../config';
-import { truncateDomain } from '../utils';
 
 /**
  * Add padding characters to the left of the given string.
@@ -80,8 +79,7 @@ export default class TokenTelemetry {
 
     const keyTokens = state.urlParts.getKeyValuesMD5();
     if (keyTokens.length > 0) {
-      const truncatedDomain = truncateDomain(state.urlParts.host, this.config.tpDomainDepth);
-      const domain = md5(truncatedDomain).substr(0, 16);
+      const domain = md5(state.urlParts.hostname).substr(0, 16);
       const firstParty = md5(state.sourceUrlParts.hostname).substr(0, 16);
       const generalDomain = md5(state.urlParts.generalDomain).substr(0, 16);
       this._saveKeyTokens(domain, keyTokens, firstParty, generalDomain);

@@ -7,12 +7,7 @@ import chai from 'chai';
 const wrap = getObj => new Proxy({}, {
   get(target, name) {
     const obj = getObj();
-    let prop = obj[name];
-
-    if (typeof prop === 'function') {
-      prop = prop.bind(obj);
-    }
-    return prop;
+    return obj[name];
   },
   set(target, name, value) {
     const obj = getObj();
@@ -37,7 +32,6 @@ export const release = (...args) => window.release(...args);
 export const respondWith = (...args) => window.respondWith(...args);
 export const respondWithSuggestions = (...args) => window.respondWithSuggestions(...args);
 export const setUserInput = (...args) => window.setUserInput(...args);
-export const urlbar = wrap(() => CliqzUtils.getWindow().gURLBar);
 export const waitFor = (...args) => window.waitFor(...args);
 export const waitForPopup = (...args) => window.waitForPopup(...args);
 export const waitForPopupClosed = (...args) => window.waitForPopupClosed(...args);

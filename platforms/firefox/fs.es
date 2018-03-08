@@ -1,5 +1,5 @@
 // not available in older FF versions
-/* eslint no-bitwise: 'off' */
+
 /* global OS */
 
 try {

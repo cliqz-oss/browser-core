@@ -54,10 +54,6 @@ export default class Ui {
     }
   }
 
-  syncUrlbarValue(result) {
-    this.ui.windowAction(this.window, 'setUrlbarValue', result.url, { visibleValue: result.urlbarValue });
-  }
-
   keyDown(ev) {
     let preventDefault = false;
     const isModifierPressed = ev.altKey || ev.metaKey || ev.ctrlKey;
@@ -90,14 +86,14 @@ export default class Ui {
       case 'ArrowUp': {
         this.dropdown.results.firstResult.isAutocompleted = false;
         const result = this.dropdown.previousResult();
-        this.syncUrlbarValue(result);
+        this.ui.windowAction(this.window, 'setUrlbarValue', result.url, result.displayUrl);
         preventDefault = true;
         break;
       }
       case 'ArrowDown': {
         this.dropdown.results.firstResult.isAutocompleted = false;
         const result = this.dropdown.nextResult();
-        this.syncUrlbarValue(result);
+        this.ui.windowAction(this.window, 'setUrlbarValue', result.url, result.displayUrl);
         preventDefault = true;
         break;
       }
@@ -109,7 +105,7 @@ export default class Ui {
         } else {
           result = this.dropdown.nextResult();
         }
-        this.syncUrlbarValue(result);
+        this.ui.windowAction(this.window, 'setUrlbarValue', result.url, result.displayUrl);
         preventDefault = true;
         break;
       }
@@ -165,9 +161,7 @@ export default class Ui {
               if (urlbarValue === '') {
                 return;
               }
-              if (!this.popup.isNewSearchMode) {
-                this.core.action('refreshPopup', urlbarValue);
-              }
+              this.core.action('refreshPopup', urlbarValue);
             });
           }
           break;
@@ -236,7 +230,6 @@ export default class Ui {
     rawResults,
   }) {
     events.pub('ui:results', rawResults);
-    const rawResultsClone = JSON.parse(JSON.stringify(rawResults));
 
     const results = new Results({
       query,
@@ -246,11 +239,6 @@ export default class Ui {
       adultAssistant: this.adultAssistant,
       locationAssistant: this.locationAssistant,
       rerender: () => this.dropdown.renderResults(results),
-      rawRerender: () => this.render({
-        query,
-        queriedAt: Date.now(),
-        rawResults: rawResultsClone,
-      }),
       getSnippet: this.autocomplete.action.bind(this.autocomplete, 'getSnippet'),
       copyToClipboard,
       isNewSearchMode: this.popup.isNewSearchMode,
@@ -265,7 +253,7 @@ export default class Ui {
     let didAutocomplete;
     let hasInstantResults;
 
-    if (results.isAutocompleteable) {
+    if (results.firstResult) {
       didAutocomplete = this.autocompleteQuery(
         firstResult.url,
         firstResult.title,

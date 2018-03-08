@@ -1,3 +1,7 @@
+/* eslint func-names: ['error', 'never'] */
+/* eslint prefer-arrow-callback: 'off' */
+/* eslint no-unused-expressions: 'off' */
+
 import {
   $cliqzResults,
   expect,
@@ -17,8 +21,8 @@ export default function () {
       withHistory([]);
       fillIn('ro');
       return waitForPopup().then(function () {
-        $resultElement1 = $cliqzResults().find(`a.result[data-url='${results[0].url}']`)[0];
-        $resultElement2 = $cliqzResults().find(`a.result[data-url='${results[1].url}']`)[0];
+        $resultElement1 = $cliqzResults().find(`a.result[href='${results[0].url}']`)[0];
+        $resultElement2 = $cliqzResults().find(`a.result[href='${results[1].url}']`)[0];
       });
     });
 

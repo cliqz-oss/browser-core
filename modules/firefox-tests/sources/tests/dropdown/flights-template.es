@@ -1,4 +1,7 @@
 /* global window */
+/* eslint func-names: ['error', 'never'] */
+/* eslint prefer-arrow-callback: 'off' */
+/* eslint no-unused-expressions: 'off' */
 
 import {
   $cliqzResults,
@@ -81,7 +84,7 @@ export default function () {
         expect($flightSource).to.exist;
         expect($flightSource).to.contain.text(locale.source.message);
         expect($flightSourceUrl).to.contain.text('flightstats.com');
-        expect($flightSourceUrl.dataset.url).to.contain(results[0].url);
+        expect($flightSourceUrl.href).to.contain(results[0].url);
         expect($flightSource).to.contain.text(locale.updated.message);
       });
 

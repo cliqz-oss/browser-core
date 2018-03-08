@@ -1,4 +1,4 @@
-import { mkRequest, ReverseIndex, matchNetworkFilter, compactTokens } from '../../core/pattern-matching';
+import { mkRequest, ReverseIndex, matchNetworkFilter } from '../../core/pattern-matching';
 import { parse } from '../../core/tlds';
 
 
@@ -34,8 +34,10 @@ class PatternIndex {
       filters,
       filter => filter.getTokens(),
     );
+  }
 
-    this.tokens = compactTokens(new Uint32Array([...this.index.index.keys()]));
+  optimizeAheadOfTime() {
+    this.index.optimizeAheadOfTime();
   }
 
   /**

@@ -1,7 +1,7 @@
 import window from './window';
 
-export const XMLHttpRequestFactory = () => window.XMLHttpRequest;
+export let XMLHttpRequestFactory = () => window.XMLHttpRequest;
 
-export function setPrivateFlags() {}
+export function setPrivateFlags(request) {}
 
-export function setBackgroundRequest() {}
+export function setBackgroundRequest(request) {}

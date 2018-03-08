@@ -3,8 +3,25 @@
 'use strict';
 
 const childProcess = require('child_process');
+const os = require('os');
 
-fern();
+if (process.argv[2] === 'install') {
+  let command = 'npm';
+  if (os.platform().indexOf('win') === 0) {
+    command += '.cmd';
+  }
+
+  // Install npm packages
+  const npmInstall = childProcess.spawn(command, ['install'], { stdio: [0, 1, 2] });
+  npmInstall.on('exit', function () {
+    const publicSuffixListUpdate = childProcess.spawn(command, ['run', 'tldjs-update-rules'], { stdio: [0,1,2] });
+    publicSuffixListUpdate.on('exit', function () {
+      fern();
+    });
+  });
+} else {
+  fern();
+}
 
 function fern() {
 const program = require('commander');
@@ -24,7 +41,6 @@ require('./fern/commands/serve');
 require('./fern/commands/test');
 require('./fern/commands/pack');
 require('./fern/commands/version');
-require('./fern/commands/lint');
 
 const setConfigPath = common.setConfigPath;
 const getExtensionVersion = common.getExtensionVersion;

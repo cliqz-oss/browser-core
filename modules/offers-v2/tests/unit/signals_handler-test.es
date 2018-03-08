@@ -78,9 +78,6 @@ export default describeModule('offers-v2/signals_handler',
     'core/platform': {
       isChromium: false
     },
-    'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
-    },
     'core/cliqz': {
       default: {
         setInterval: function () {}

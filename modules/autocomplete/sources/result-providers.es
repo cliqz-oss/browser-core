@@ -9,7 +9,6 @@ import console from "../core/console";
 import Result from "./result";
 import CliqzCalculator from "./calculator";
 import { setSearchEngine } from "../core/search-engines";
-import config from '../core/config';
 
 // INIT_KEY ('newProvidersAdded') was used only as a boolean but now we have multiple states
 // state 1 -> Google images & Google maps
@@ -24,16 +23,16 @@ var INIT_KEY = 'newProvidersAdded',
      KEY ='#',
      CUSTOM = {
       '#fee': {
-        url: config.settings.SUPPORT_URL
+        url: 'https://cliqz.com/support/'
       },
       '#team': {
-        url: config.settings.TEAM_URL
+        url: 'https://cliqz.com/team/'
       },
       '#cliqz': {
-        url: config.settings.HOMPAGE_URL
+        url: 'https://cliqz.com/'
       },
       '#join': {
-        url: config.settings.JOBS_URL
+        url: 'https://cliqz.com/jobs/'
       }
      },
      ENGINE_CODES = [
@@ -89,8 +88,10 @@ class CliqzResultProviders {
       providersAddedState = utils.getPref(INIT_KEY, 0);
     }
 
+    const lang = utils.getLanguageFromLocale(utils.getPref('general.useragent.locale', 'en', ''));
+
     // we only add non default search providers for the languages we support
-    (NonDefaultProviders[utils.PLATFORM_LANGUAGE] || []).forEach(function (extern) {
+    (NonDefaultProviders[lang] || []).forEach(function (extern) {
       try {
         if (providersAddedState < extern.state) {
           maxState = extern.state > maxState ? extern.state : maxState;

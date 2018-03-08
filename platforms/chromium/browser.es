@@ -1,12 +1,8 @@
 import { window, chrome } from './globals';
 
 export class Window {
-  constructor(win) {
-    this.window = win;
-  }
-
-  static findByTabId() {
-
+  constructor(window) {
+    this.window = window;
   }
 }
 
@@ -19,7 +15,7 @@ export function isTabURL() {
   return false;
 }
 
-export function getLocale() {
+export function getLang() {
   return window.navigator.language || window.navigator.userLanguage;
 }
 
@@ -55,7 +51,7 @@ export function mustLoadWindow() {
   return true;
 }
 
-export function waitWindowReady() {
+export function waitWindowReady(win) {
   return Promise.resolve();
 }
 
@@ -136,9 +132,3 @@ export function getCookies(url) {
     );
   });
 }
-
-export function reportError() {}
-
-export function disableChangeEvents() {}
-
-export function resetOriginalPrefs() {}

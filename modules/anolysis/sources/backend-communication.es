@@ -1,7 +1,7 @@
 import md5 from '../core/helpers/md5';
 import { utils } from '../core/cliqz';
 import network from '../platform/network';
-import config from '../core/config';
+
 import logger from './logger';
 
 
@@ -29,8 +29,8 @@ function post(url, payload) {
  *
  */
 
-const GID_BACKEND_URL = config.settings.GID_BACKEND_URL;
-const TELEMETRY_BACKEND_URL = config.settings.TELEMETRY_BACKEND_URL;
+const GID_BACKEND_URL = 'https://anolysis-gid.cliqz.com';
+const TELEMETRY_BACKEND_URL = 'https://anolysis-telemetry.cliqz.com/collect';
 
 
 function sendDemographics(demographics, endpoint) {

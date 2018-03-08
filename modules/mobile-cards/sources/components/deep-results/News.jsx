@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Image, View, Text } from 'react-native';
 import Link from '../Link';
-import { elementSideMargins, elementTopMargin } from '../../styles/CardStyle';
+import { elementSideMargins, elementTopMargin, cardBorderRadius } from '../../styles/CardStyle';
 import utils from '../../../core/utils';
 import { agoLine } from '../../helpers/logic';
 
@@ -25,8 +25,8 @@ const styles = isInjected => StyleSheet.create({
   },
   image: {
     height: 60,
-    width: 65,
-    borderRadius: 5,
+    width: 65, // remember to change the right margin of text
+    ...cardBorderRadius,
   },
   text: {
     color: 'black',

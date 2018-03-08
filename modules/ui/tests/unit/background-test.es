@@ -1,10 +1,8 @@
-/* eslint no-undef: 'off' */
-
-export default describeModule('ui/background',
-  function () {
+export default describeModule("ui/background",
+  function() {
     return {
-    };
+    }
   },
-  function () {
+  function() {
   }
 );

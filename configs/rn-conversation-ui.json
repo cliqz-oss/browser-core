@@ -1,0 +1,40 @@
+{
+  "platform": "react-native",
+  "format": "common",
+  "baseURL": "chrome://cliqz/content/",
+  "settings": {
+    "antitrackingButton": false,
+    "freshTabNews": true,
+    "ATTRACK_TELEMETRY_PROVIDER": "platform",
+    "RICH_HEADER": "https://api.cliqz.com/api/v2/rich-header?path=/v2/map"
+  },
+  "default_prefs" : {
+    "attrackBloomFilter": true,
+    "attrackForceBlock": true,
+    "cliqz-adb-disk-cache": false
+  },
+  "modules": [
+    "core",
+    "core-cliqz",
+    "webrequest-pipeline",
+    "antitracking",
+    "adblocker",
+    "history",
+    "freshtab",
+    "antitracking-blocker",
+    "static"
+  ],
+  "react_components": {
+    "ConversationUI": "./ci-components/conversation-ui"
+  },
+  "resources": {
+    "bundling": "assets",
+    "include": [
+      "core/logo-database.json",
+      "antitracking/prob.json",
+      "antitracking/config.json",
+      "antitracking/tracker_db_v2.json",
+      "antitracking-blocker/bugs_default.json"
+    ]
+  }
+}

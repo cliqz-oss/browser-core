@@ -1,9 +1,8 @@
 import {
   clearIntervals,
-  defaultConfig,
-  expect,
+  waitFor,
   Subject,
-  waitFor
+  defaultConfig,
 } from './helpers';
 
 describe('Fresh tab interactions with buttons', function () {
@@ -65,18 +64,17 @@ describe('Fresh tab interactions with buttons', function () {
     });
 
     it('show settings panel', function () {
-      expect(subject.query('#settings-panel')).to.exist;
-      expect(subject.query('#settings-panel').className).to.contain('visible');
+      chai.expect(subject.query('#settings-panel')).to.exist;
+      chai.expect(subject.query('#settings-panel').className).to.contain('visible');
     });
 
     it('sends a "settings > click" telemetry signal', function () {
-      expect(messages.has('sendTelemetry')).to.equal(true);
+      chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
       const telemetrySignals = messages.get('sendTelemetry');
       let signalExist = false;
       let count = 0;
 
-      expect(telemetrySignals.length).to.be.above(0);
       telemetrySignals.forEach(function (item) {
         if ((item.args[0].type === 'home') &&
             (item.args[0].target === 'settings') &&
@@ -86,8 +84,8 @@ describe('Fresh tab interactions with buttons', function () {
         }
       });
 
-      expect(signalExist).to.be.true;
-      expect(count).to.equal(1);
+      chai.expect(signalExist).to.be.true;
+      chai.expect(count).to.equal(1);
     });
 
     describe('and then clicking on a close button', function () {
@@ -98,18 +96,17 @@ describe('Fresh tab interactions with buttons', function () {
       });
 
       it('hides settings panel', function () {
-        expect(subject.query('#settings-panel')).to.exist;
-        expect(subject.query('#settings-panel').className).to.not.contain('visible');
+        chai.expect(subject.query('#settings-panel')).to.exist;
+        chai.expect(subject.query('#settings-panel').className).to.not.contain('visible');
       });
 
       it('sends a "settings > close > click" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
         const telemetrySignals = messages.get('sendTelemetry');
         let signalExist = false;
         let count = 0;
 
-        expect(telemetrySignals.length).to.be.above(0);
         telemetrySignals.forEach(function (item) {
           if ((item.args[0].type === 'home') &&
               (item.args[0].view === 'settings') &&
@@ -120,8 +117,8 @@ describe('Fresh tab interactions with buttons', function () {
           }
         });
 
-        expect(signalExist).to.be.true;
-        expect(count).to.equal(1);
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
       });
     });
   });
@@ -133,13 +130,12 @@ describe('Fresh tab interactions with buttons', function () {
     });
 
     it('sends a "home > history > click" telemetry signal', function () {
-      expect(messages.has('sendTelemetry')).to.equal(true);
+      chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
       const telemetrySignals = messages.get('sendTelemetry');
       let signalExist = false;
       let count = 0;
 
-      expect(telemetrySignals.length).to.be.above(0);
       telemetrySignals.forEach(function (item) {
         if ((item.args[0].type === 'home') &&
             (item.args[0].target === 'history') &&
@@ -149,8 +145,8 @@ describe('Fresh tab interactions with buttons', function () {
         }
       });
 
-      expect(signalExist).to.be.true;
-      expect(count).to.equal(1);
+      chai.expect(signalExist).to.be.true;
+      chai.expect(count).to.equal(1);
     });
   });
 });

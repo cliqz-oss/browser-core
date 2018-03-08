@@ -18,16 +18,12 @@ class OfferResult {
   }
 
   get isInjected() {
-    return this._extra.is_injected_ad;
+    const offerData = this._extra.offers_data || {};
+    return offerData.is_injected;
   }
 
   get isOffer() {
     return this.isAd || this.isInjected;
-  }
-
-  get hasOffer() {
-    const offerData = this._extra.offers_data || {};
-    return offerData.is_injected;
   }
 
   get isHistory() {
@@ -37,10 +33,6 @@ class OfferResult {
 
   get shouldCountStats() {
     return this.isOffer && !this.isHistory;
-  }
-
-  get shouldCountShowStats() {
-    return (this.isOffer || this.hasOffer) && !this.isHistory;
   }
 
   get offerId() {
@@ -146,7 +138,7 @@ export default background({
       if (this.currentResults && (rawResult.text === this.currentResults[0].text)) {
         const offersCreationPromises = this.currentResults
           .map(r => new OfferResult(r))
-          .filter(r => r.shouldCountShowStats)
+          .filter(r => r.shouldCountStats)
           .map(this.sendOfferShownSignals.bind(this));
         showsPromise = Promise.all(offersCreationPromises);
       } else {

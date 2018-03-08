@@ -1,6 +1,3 @@
-/* eslint func-names: 'off' */
-/* eslint no-param-reassign: 'off' */
-
 const humanWebChromeDB = {
   VERSION: '0.1',
   set: (db, key, obj, callback) => {
@@ -10,6 +7,7 @@ const humanWebChromeDB = {
     chrome.storage.local.set(o, callback);
   },
   get: (db, keyValueOrFunction, callback) => {
+
     if (typeof keyValueOrFunction === 'function') {
       chrome.storage.local.get(null, (items) => {
         const results = [];
@@ -97,67 +95,63 @@ export default class {
   // Need to improve this.
   // This really needs a refactor. It should be taken on priority, after this release is stable.
 
-  getListOfUnchecked(cap, secOld, fixedUrl, callback) {
+  getListOfUnchecked(cap, sec_old, fixed_url, callback) {
     const tt = new Date().getTime();
     // const _this = this;
-    if (fixedUrl == null) {
-      this.dbConn.get('usafe', (o) => {
-        // The type check is being done, to ensure,
-        // when users upgrade from 7.x to 8.0.x it does not break.
-        // The reason it might break is because the usafe
-        // was stored as JSON in 7.x and as string in 8.x.
+    if (fixed_url == null) {
+      this.dbConn.get('usafe', function(o) {
+        // The type check is being done, to ensure, when users upgrade from 7.x to 8.0.x it does not break.
+        // The reason it might break is because the usafe was stored as JSON in 7.x and as string in 8.x.
 
 
         let record = null;
-        if (typeof (o) === 'string') {
+        if (typeof(o) === 'string') {
           record = JSON.parse(o);
         } else {
           record = o;
         }
 
-        if (record.last_visit < (tt - (secOld * 1000))) return true;
-        return undefined;
-      }, (items) => {
-        if (!items || items.length === 0) callback([], null);
+        if (record.last_visit < (tt - sec_old * 1000)) return true;
+      }, function(items) {
+          if (!items || items.length==0) callback([], null);
 
-        // better do it here so we avoid JSON.parse on all elements
-        items = items.splice(0, cap);
+          // better do it here so we avoid JSON.parse on all elements
+          items = items.splice(0, cap);
 
-        const res = [];
+          var res = [];
 
-        items.forEach((item) => {
-          let _item = null;
-          if (typeof (item) === 'string') {
-            _item = JSON.parse(item);
-          } else {
-            _item = item;
-          }
-          res.push([_item.url, _item.payload]);
-        });
+          items.forEach(function(item) {
+              let _item = null;
+              if (typeof(item) === 'string') {
+                _item = JSON.parse(item);
+              } else {
+                _item = item;
+              }
+              res.push([_item.url, _item.payload]);
+          });
 
-        callback(res.splice(0, cap), null);
+          callback(res.splice(0, cap), null);
       });
     } else {
-      this.dbConn.get('usafe', fixedUrl, (obj) => {
-      // The type check is being done, to ensure,
-      // when users upgrade from 7.x to 8.0.x it does not break.
-      // The reason it might break is because the usafe
-      // was stored as JSON in 7.x and as string in 8.x.
+      this.dbConn.get('usafe', fixed_url, (obj) => {
+          // The type check is being done, to ensure, when users upgrade from 7.x to 8.0.x it does not break.
+          // The reason it might break is because the usafe was stored as JSON in 7.x and as string in 8.x.
 
-        let record = null;
-        if (typeof (obj) === 'string') {
-          record = JSON.parse(obj);
-        } else {
-          record = obj;
-        }
-        if (!record) callback([], null);
-        else if (record.last_visit < (tt - (secOld * 1000))) {
-          const res = [];
-          res.push([record.url, record.payload]);
-          callback(res.splice(0, cap), null);
-        } else {
-          callback([], null);
-        }
+
+          let record = null;
+          if (typeof(obj) === 'string') {
+            record = JSON.parse(obj);
+          } else {
+            record = obj;
+          }
+          if (!record) callback([], null);
+          else if (record.last_visit < (tt - sec_old * 1000)) {
+              var res = [];
+              res.push([record.url, record.payload]);
+              callback(res.splice(0, cap), null);
+          } else {
+            callback([], null);
+          }
       });
     }
   }
@@ -183,14 +177,12 @@ export default class {
       if (!obj || obj === 'undefined') {
         callback([]);
       } else {
-        // The type check is being done, to ensure,
-        // when users upgrade from 7.x to 8.0.x it does not break.
-        // The reason it might break is because the usafe
-        // was stored as JSON in 7.x and as string in 8.x.
+        // The type check is being done, to ensure, when users upgrade from 7.x to 8.0.x it does not break.
+        // The reason it might break is because the usafe was stored as JSON in 7.x and as string in 8.x.
 
 
         let record = null;
-        if (typeof (obj) === 'string') {
+        if (typeof(obj) === 'string') {
           record = JSON.parse(obj);
         } else {
           record = obj;

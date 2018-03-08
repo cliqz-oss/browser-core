@@ -6,7 +6,7 @@ const tldjs = require('tldjs');
 export default describeModule('core/url',
   function () {
     return {
-      'platform/lib/tldjs': {
+      'tldjs': {
         default: tldjs,
       },
       'platform/url': {

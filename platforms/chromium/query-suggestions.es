@@ -1,5 +1,3 @@
-/* eslint import/prefer-default-export: 'off' */
-
-export function handleQuerySuggestions() {
+export function handleQuerySuggestions(query, suggestions) {
   // TBD
 }

@@ -1,7 +1,3 @@
-/* eslint no-param-reassign: 'off' */
-/* eslint no-console: 'off' */
-/* eslint func-names: 'off' */
-
 import inject from '../core/kord/inject';
 import NewTabPage from './main';
 import News from './news';
@@ -22,7 +18,7 @@ import HistoryService from '../platform/history-service';
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
-const BLUE_THEME_PREF = 'freshtab.blueTheme.enabled';
+const BLUE_THEME_PREF  = 'freshtab.blueTheme.enabled';
 const DEVELOPER_FLAG_PREF = 'developer';
 
 const blackListedEngines = [
@@ -95,17 +91,18 @@ export default background({
     if (removed.allHistory) {
       this.actions.refreshHistoryDependentPages();
     } else {
-      const historyUrls = [...mapWindows(w => w).map(queryActiveTabs).reduce((aUrls, aTabs) =>
-        new Set([
+      const historyUrls = [...mapWindows(w => w).map(queryActiveTabs).reduce((aUrls, aTabs) => {
+        return new Set([
           ...removed.urls,
           ...aTabs.map(t => t.url),
-        ]), new Set())]
-        .filter(isHistoryDependentPage);
+        ]);
+      }, new Set())]
+      .filter(isHistoryDependentPage);
 
       historyUrls.forEach((url) => {
         this.core.action(
           'broadcastMessage',
-          url,
+           url,
           {
             action: 'updateHistoryUrls',
             message: { urls: removed.urls },
@@ -135,50 +132,46 @@ export default background({
     return prefs.get(BLUE_THEME_PREF, false);
   },
 
-  /*
+  /**
   * Blue theme is supported only for CLIQZ users above 1.16.0
-  */
+  **/
   get isBlueThemeSupported() {
-    const CLIQZ_1_16_OR_ABOVE = isCliqzAtLeastInVersion('1.16.0');
-    return (isCliqzBrowser && CLIQZ_1_16_OR_ABOVE) || prefs.get(DEVELOPER_FLAG_PREF, false);
+    const CLIQZ_1_16_OR_ABOVE  = isCliqzAtLeastInVersion('1.16.0');
+    return isCliqzBrowser && CLIQZ_1_16_OR_ABOVE || prefs.get(DEVELOPER_FLAG_PREF, false);
   },
 
   /*
   * Blue background is supported for all AMO users
   * and CLIQZ users above 1.16.0
-  */
+  **/
   get isBlueBackgroundSupported() {
     let isSupported = true;
-    if (isCliqzBrowser && !isCliqzAtLeastInVersion('1.16.0')) {
+    if (isCliqzBrowser && !isCliqzAtLeastInVersion("1.16.0")) {
       isSupported = false;
     }
     return isSupported || prefs.get(DEVELOPER_FLAG_PREF, false);
   },
 
   getComponentsState() {
-    const _config = JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}'));
-    let defaultBg = 'bg-winter';
-    if (prefs.get('new_session', true)) {
-      defaultBg = 'bg-matterhorn';
-      this.actions.saveBackgroundImage(defaultBg);
-    }
+    const config = JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}'));
+    const defaultBg = 'bg-winter';
     return {
-      historyDials: Object.assign({}, DEFAULT_COMPONENT_STATE, _config.historyDials),
-      customDials: Object.assign({}, DEFAULT_COMPONENT_STATE, _config.customDials),
-      search: Object.assign({}, DEFAULT_COMPONENT_STATE, _config.search),
-      news: Object.assign({}, DEFAULT_COMPONENT_STATE, _config.news),
-      background: Object.assign({}, { image: defaultBg }, _config.background),
+      historyDials: Object.assign({}, DEFAULT_COMPONENT_STATE, config.historyDials),
+      customDials:  Object.assign({}, DEFAULT_COMPONENT_STATE, config.customDials),
+      search:       Object.assign({}, DEFAULT_COMPONENT_STATE, config.search),
+      news:         Object.assign({}, DEFAULT_COMPONENT_STATE, config.news),
+      background:   Object.assign({}, { image: defaultBg }, config.background),
     };
   },
 
   actions: {
 
     toggleComponent(component) {
-      const _config = JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}'));
+      const config = JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}'));
       // component might be uninitialized
-      _config[component] = Object.assign({}, DEFAULT_COMPONENT_STATE, _config[component]);
-      _config[component].visible = !_config[component].visible;
-      prefs.set(FRESHTAB_CONFIG_PREF, JSON.stringify(_config));
+      config[component] = Object.assign({}, DEFAULT_COMPONENT_STATE, config[component]);
+      config[component].visible = !config[component].visible;
+      prefs.set(FRESHTAB_CONFIG_PREF, JSON.stringify(config));
     },
 
     saveBackgroundImage(name) {
@@ -215,73 +208,78 @@ export default background({
     * @method getSpeedDials
     */
     getSpeedDials() {
-      const dialUps = prefs.has(DIALUPS, '') ? JSON.parse(prefs.get(DIALUPS, '', '')) : [];
-      let historyDialups = [];
-      let customDialups = dialUps.custom ? dialUps.custom : [];
+      var dialUps = prefs.has(DIALUPS, '') ? JSON.parse(prefs.get(DIALUPS, '', '')) : [],
+          historyDialups = [],
+          customDialups = dialUps.custom ? dialUps.custom : [];
       const searchEngines = utils.getSearchEngines(blackListedEngines);
 
 
-      historyDialups = History.getTopUrls().then((results) => {
-        utils.log('History', JSON.stringify(results));
-        // hash history urls
-        results = results.map(r =>
-          ({
+      historyDialups = History.getTopUrls().then(results => {
+        utils.log("History", JSON.stringify(results));
+        //hash history urls
+        results = results.map(function(r) {
+          return {
             title: r.title,
             url: r.url,
             hashedUrl: utils.hash(r.url),
             total_count: r.total_count,
             custom: false
-          })
-        );
+          }
+        });
 
         function isDeleted(url) {
-          return dialUps.history
-            && (url in dialUps.history)
-            && dialUps.history[url].hidden === true;
+          return dialUps.history && (url in dialUps.history) && dialUps.history[url].hidden === true;
         }
 
         function isCustom(url) {
           url = utils.stripTrailingSlash(url);
 
-          let _isCustom = false;
+          var isCustom = false;
 
-          if (dialUps && dialUps.custom) {
-            dialUps.custom.some((dialup) => {
-              if (utils.stripTrailingSlash(utils.tryDecodeURIComponent(dialup.url)) === url) {
-                _isCustom = true;
+          if(dialUps && dialUps.custom) {
+
+            dialUps.custom.some(function(dialup) {
+
+              if(utils.stripTrailingSlash(utils.tryDecodeURIComponent(dialup.url)) === url) {
+                isCustom = true;
                 return true;
               }
-              return false;
             });
           }
-          return _isCustom;
+          return isCustom;
         }
 
         function isCliqz(url) {
-          return url.indexOf(config.settings.SUGGESTIONS_URL) === 0;
+          return url.indexOf('https://cliqz.com/search?q=') === 0;
         }
 
         function isMozUrl(url) {
-          return url.startsWith('moz-extension://');
+          return url.startsWith("moz-extension://");
         }
 
-        results = results.filter(history =>
-          !isDeleted(history.hashedUrl) && !isCustom(history.url)
+        results = results.filter(history => {
+          return !isDeleted(history.hashedUrl) && !isCustom(history.url)
                   && !this.isAdult(history.url) && !isCliqz(history.url)
-                  && !isMozUrl(history.url));
+                  && !isMozUrl(history.url);
+        });
 
-        return results.map(r => new SpeedDial(r.url, searchEngines, false));
+        return results.map(function(r){
+          return new SpeedDial(r.url, searchEngines, false);
+        });
       });
 
-      if (customDialups.length > 0) {
-        utils.log(customDialups, 'custom dialups');
-        customDialups = customDialups.map(dialup =>
-          new SpeedDial(utils.tryDecodeURIComponent(dialup.url), searchEngines, true));
+
+
+      if(customDialups.length > 0) {
+        utils.log(customDialups, "custom dialups");
+        customDialups = customDialups.map(function(dialup) {
+          return new SpeedDial(utils.tryDecodeURIComponent(dialup.url), searchEngines, true);
+        });
       }
 
 
-      // Promise all concatenate results and return
-      return Promise.all([historyDialups, customDialups]).then(results =>
+      //Promise all concatenate results and return
+      return Promise.all([historyDialups, customDialups]).then(function(results){
         // TODO EX-4276: uncomment when moving Freshtab to WebExtensions
         // const urls = new Set();
 
@@ -294,11 +292,11 @@ export default background({
         //   }
         // });
 
-        ({
+        return {
           history: results[0],
           custom: results[1]
-        })
-      );
+        };
+      });
     },
 
     /**
@@ -311,12 +309,12 @@ export default background({
       const url = isCustom ? item.url : utils.hash(item.url);
       const dialUps = JSON.parse(prefs.get(DIALUPS, '{}', ''));
 
-      if (isCustom) {
-        dialUps.custom = dialUps.custom.filter(dialup =>
-          utils.tryDecodeURIComponent(dialup.url) !== url
-        );
+      if(isCustom) {
+        dialUps.custom = dialUps.custom.filter(dialup => {
+          return utils.tryDecodeURIComponent(dialup.url) !== url
+        });
       } else {
-        if (!dialUps.history) {
+        if(!dialUps.history) {
           dialUps.history = {};
         }
         dialUps.history[url] = { hidden: true };
@@ -329,9 +327,9 @@ export default background({
     * @return all visible speedDials
     */
     getVisibleDials(historyLimit) {
-      return this.actions.getSpeedDials().then(results =>
-        results.history.slice(0, historyLimit)
-      );
+      return this.actions.getSpeedDials().then((results) => {
+        return results.history.slice(0, historyLimit);
+      })
     },
     /**
     * Add a new speedDial to be appeared in the 2nd row
@@ -354,20 +352,21 @@ export default background({
         return Promise.resolve(makeErrorObject('invalid'));
       }
 
-      // history returns most frequest 15 results, but we display up to 5
-      // so we need to validate only against visible results
+      //history returns most frequest 15 results, but we display up to 5
+      //so we need to validate only against visible results
       return this.actions.getVisibleDials(5).then((result) => {
-        const isDuplicate = result.some(dialup =>
-          validUrl === utils.stripTrailingSlash(dialup.url)
-        );
+        const isDuplicate = result.some(function(dialup) {
+          return validUrl === utils.stripTrailingSlash(dialup.url);
+        });
 
-        if (isDuplicate) {
-          throw new Error('duplicate');
+        if(isDuplicate) {
+          throw "duplicate";
         }
-      }).then(() => {
-        const dialUps = JSON.parse(prefs.get(DIALUPS, '{}', ''));
+      }).then(function(obj) {
+        var dialUps = JSON.parse(prefs.get(DIALUPS, '{}', '')),
+            details = utils.getDetailsFromUrl(url);
 
-        if (!dialUps.custom) {
+        if(!dialUps.custom) {
           dialUps.custom = [];
         }
 
@@ -376,18 +375,18 @@ export default background({
         */
 
 
-        const isPresent = dialUps.custom.some(dialup =>
-          utils.tryEncodeURIComponent(validUrl) === utils.stripTrailingSlash(dialup.url)
-        );
+        const isPresent = dialUps.custom.some(function(dialup) {
+          return utils.tryEncodeURIComponent(validUrl) === utils.stripTrailingSlash(dialup.url);
+        });
 
-        if (isPresent) {
-          throw new Error('duplicate');
+        if(isPresent) {
+          throw "duplicate";
         } else {
           console.log(`valid url: ${validUrl}, original url: ${urlToAdd}`);
-          const dialup = {
+          var dialup = {
             url: utils.tryEncodeURIComponent(validUrl)
           };
-          if (index !== null) {
+          if(index !== null) {
             dialUps.custom.splice(index, 0, dialup);
           } else {
             dialUps.custom.push(dialup);
@@ -441,19 +440,19 @@ export default background({
     * @method getNews
     */
     getNews() {
-      // disables the whole news block if required by the config
-      if (!this.settings.freshTabNews) {
+      //disables the whole news block if required by the config
+      if(!this.settings.freshTabNews) {
         return {
           version: -1,
           news: []
         };
       }
 
-      return News.getNews().then((news) => {
+      return News.getNews().then(function(news) {
         News.init();
 
-        const newsList = news.newsList || [];
-        const topNewsVersion = news.topNewsVersion || 0;
+        var newsList = news.newsList || [];
+        var topNewsVersion = news.topNewsVersion || 0;
 
         return {
           version: topNewsVersion,
@@ -475,8 +474,8 @@ export default background({
     * @method getOffers
     */
     getOffers() {
-      if (!this.showOffers) {
-        return undefined;
+      if(!this.showOffers) {
+        return;
       }
       const args = {
         filters: {
@@ -505,7 +504,7 @@ export default background({
       }
 
       return {
-        locale: getLanguageFromLocale(utils.PLATFORM_LOCALE),
+        locale: getLanguageFromLocale(utils.PREFERRED_LANGUAGE),
         newTabUrl: config.settings.NEW_TAB_URL,
         isBrowser: isCliqzBrowser,
         blueTheme: this.blueTheme,
@@ -528,7 +527,7 @@ export default background({
         this.actions.toggleBlueClassForFFTesting();
       }
 
-      if (this.blueTheme) {
+      if(this.blueTheme) {
         prefs.set(BLUE_THEME_PREF, false);
       } else {
         prefs.set(BLUE_THEME_PREF, true);
@@ -539,7 +538,7 @@ export default background({
       if (this.blueTheme) {
         this.theme.action('removeBlueClass');
       } else {
-        this.theme.action('addBlueClass');
+        this.theme.action('addBlueClass')
       }
     },
 
@@ -556,7 +555,7 @@ export default background({
     },
 
     shareLocation(decision) {
-      events.pub('msg_center:hide_message', { id: 'share-location' }, 'MESSAGE_HANDLER_FRESHTAB');
+      events.pub('msg_center:hide_message', {'id': 'share-location' }, 'MESSAGE_HANDLER_FRESHTAB');
       this.geolocation.action('setLocationPermission', decision);
 
       const target = (decision === 'yes') ?
@@ -567,14 +566,14 @@ export default background({
         action: 'click',
         topic: 'share-location',
         context: 'home',
-        target
+        target: target
       });
     },
 
     refreshFrontend() {
-      forEachWindow((window) => {
+      forEachWindow(window => {
         const tabs = [...window.gBrowser.tabs];
-        tabs.forEach((tab) => {
+        tabs.forEach(tab => {
           const browser = tab.linkedBrowser;
           if (browser.currentURI.spec === config.settings.NEW_TAB_URL) {
             browser.reload();
@@ -584,9 +583,9 @@ export default background({
     },
 
     refreshHistoryDependentPages() {
-      forEachWindow((window) => {
+      forEachWindow(window => {
         const tabs = [...window.gBrowser.tabs];
-        tabs.forEach((tab) => {
+        tabs.forEach(tab => {
           const browser = tab.linkedBrowser;
           if (isHistoryDependentPage(browser.currentURI.spec)) {
             browser.reload();
@@ -598,8 +597,8 @@ export default background({
   },
 
   events: {
-    'control-center:cliqz-tab': function () {
-      if (this.newTabPage.isActive) {
+    "control-center:cliqz-tab": function () {
+      if(this.newTabPage.isActive) {
         this.newTabPage.rollback();
       } else {
         this.newTabPage.enableNewTabPage();
@@ -608,20 +607,20 @@ export default background({
 
       this.newTabPage.setPersistentState(!this.newTabPage.isActive);
     },
-    'message-center:handlers-freshtab:new-message': function onNewMessage(message) {
-      if (!(message.id in this.messages)) {
+    "message-center:handlers-freshtab:new-message": function onNewMessage(message) {
+      if( !(message.id in this.messages )) {
         this.messages[message.id] = message;
         this.core.action(
           'broadcastMessage',
           config.settings.NEW_TAB_URL,
           {
             action: 'addMessage',
-            message,
+            message: message,
           }
         );
       }
     },
-    'message-center:handlers-freshtab:clear-message': function onMessageClear(message) {
+    "message-center:handlers-freshtab:clear-message": function onMessageClear(message) {
       delete this.messages[message.id];
       this.core.action(
         'broadcastMessage',
@@ -632,7 +631,7 @@ export default background({
         }
       );
     },
-    'geolocation:wake-notification': function onWake() {
+    "geolocation:wake-notification": function onWake(timestamp) {
       this.actions.getNews().then(() => {
         this.actions.refreshFrontend();
       });

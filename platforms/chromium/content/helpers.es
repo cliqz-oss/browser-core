@@ -1,5 +1,3 @@
-/* eslint import/prefer-default-export: 'off' */
-
-export function getWindowId() {
+export function getWindowId(window) {
   return 1;
 }

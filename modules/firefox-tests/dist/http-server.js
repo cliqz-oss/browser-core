@@ -107,6 +107,16 @@ function initHttpServer() {
       proxyType = null;
 
   before(function() {
+    // install PAC file (to proxy fake domains back to localhost)
+    if(prefs.prefHasUserValue('network.proxy.autoconfig_url')) {
+      proxyAutoconfigUrl = prefs.getCharPref('network.proxy.autoconfig_url');
+    }
+    prefs.setCharPref('network.proxy.autoconfig_url', 'chrome://cliqz/content/firefox-tests/proxy.pac');
+    if(prefs.prefHasUserValue('network.proxy.type')) {
+      proxyType = prefs.getIntPref('network.proxy.type');
+    }
+    prefs.setIntPref('network.proxy.type', 2);
+
     // create and start http server, and register shutdown on window unload.
     return getExtensionDirectory()
       .then(function (extensionDirectory) {
@@ -117,6 +127,20 @@ function initHttpServer() {
       .catch(function (ex) {
         console.error('ERROR', ex);
       })
+  });
+
+  after(function() {
+    // reset proxy settings
+    if(proxyAutoconfigUrl === null) {
+      prefs.clearUserPref('network.proxy.autoconfig_url');
+    } else {
+      prefs.setCharPref('network.proxy.autoconfig_url', proxyAutoconfigUrl);
+    }
+    if(proxyType === null) {
+      prefs.clearUserPref('network.proxy.type');
+    } else {
+      prefs.setIntPref('network.proxy.type', proxyType);
+    }
   });
 
   testServer = new WrappedHttpServer();

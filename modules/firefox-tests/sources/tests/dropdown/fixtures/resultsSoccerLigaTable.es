@@ -108,7 +108,7 @@ export default [
             goals: '7:6',
             logo: 'https://cdn.cliqz.com/extension/bundesliga/teams/60x60/FC-Schalke-04.png',
             qualified: 'Champions League',
-            rank: 5
+            rank: 6
           },
           {
             GT: 5,

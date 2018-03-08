@@ -8,8 +8,7 @@ import MainImage from './partials/MainImage';
 import HistoryUrls from './partials/HistoryUrls';
 import deepResultsList, { headersMap, footersMap, extrasMap } from '../helpers/templates-map';
 import { agoLine } from '../helpers/logic';
-import { elementSidePaddings, cardBorderTopRadius } from '../styles/CardStyle';
-import utils from '../../core/utils';
+import { elementSideMargins } from '../styles/CardStyle';
 
 class Generic extends React.Component {
 
@@ -43,24 +42,20 @@ class Generic extends React.Component {
     const headerDeepResults = this.getDeepResultsList(headersMap, result.data.deepResults);
     const footerDeepResults = this.getDeepResultsList(footersMap, result.data.deepResults);
     const extraComponent = this.getExtraComponent(result.data);
-    const urlDetails = utils.getDetailsFromUrl(url || '');
-    const logoDetails = utils.getLogoDetails(urlDetails);
-    const headerBackround = logoDetails.backgroundColor || '000';
-    const isHistory = result.data.kind[0] === 'H';
 
     return (
-      <View style={{ backgroundColor: 'white', ...cardBorderTopRadius }}>
+      <View>
         { url &&
-          <View style={styles(`#${headerBackround}`).header}>
-            <Icon width={40} height={40} logoDetails={logoDetails} />
-            <Url url={url} color="white" isHistory={isHistory} />
+          <View style={styles.header}>
+            <Icon width={40} height={40} url={url} />
+            <Url url={url} isHistory={result.data.kind[0] === 'H'} />
           </View>
         }
-        { url && title && <Title title={title} isHistory={isHistory} meta={agoLine(timestamp)} /> }
+        { url && title && <Title title={title} meta={agoLine(timestamp)} /> }
         { result.data.extra && <MainImage extra={result.data.extra} /> }
         { headerDeepResults }
         { extraComponent }
-        { description && <Description isHistory={isHistory} description={description} /> }
+        { description && <Description description={description} /> }
         { result.data.urls && <HistoryUrls urls={result.data.urls} /> }
         { footerDeepResults }
       </View>
@@ -68,16 +63,11 @@ class Generic extends React.Component {
   }
 }
 
-const styles = backgroundColor => StyleSheet.create({
+const styles = StyleSheet.create({
   header: {
-    backgroundColor,
-    borderTopLeftRadius: 5,
-    borderTopRightRadius: 5,
+    ...elementSideMargins,
     flexDirection: 'row',
     alignItems: 'center',
-    ...elementSidePaddings,
-    paddingTop: 5,
-    paddingBottom: 5,
   },
 });
 

@@ -12,8 +12,8 @@ export function addStylesheet(document, url) {
 export function removeStylesheet(document, url) {
   const styles = [].slice.call(document.getElementsByClassName('cliqz-theme'));
   styles.filter(style => style.href === url)
-    .forEach((stylesheet) => {
-      if (!stylesheet.parentNode) {
+    .forEach(stylesheet => {
+      if(!stylesheet.parentNode) {
         return;
       }
 

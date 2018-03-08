@@ -4,8 +4,8 @@
  */
 import logger from './common/offers_v2_logger';
 import DBHelper from './db_helper';
+import { utils } from '../core/cliqz';
 import { timestampMS } from './utils';
-import setTimeoutInterval from '../core/helpers/timeout';
 
 /**
  * This class will be used to store different entries on a common DB doc name
@@ -54,7 +54,7 @@ export default class PersistentCacheDB {
     this.dbDirty = false;
     this.entries = {};
     if (configs && configs.autosave_freq_secs > 0) {
-      this.autosaveTimer = setTimeoutInterval(() => {
+      this.autosaveTimer = utils.setInterval(() => {
         if (this.dbDirty) {
           this.saveEntries();
         }
@@ -64,7 +64,7 @@ export default class PersistentCacheDB {
 
   destroy() {
     if (this.autosaveTimer) {
-      this.autosaveTimer.stop();
+      utils.clearInterval(this.autosaveTimer);
       this.autosaveTimer = null;
     }
   }

@@ -1,6 +1,6 @@
 export default {
   asyncHistory: {
-    isURIVisited(aURI, callback) {
+    isURIVisited: function(aURI, callback) {
       callback(aURI, false);
     }
   }

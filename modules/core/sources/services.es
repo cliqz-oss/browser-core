@@ -7,7 +7,7 @@ import utils from './utils';
 import events from './events';
 
 export default {
-  logos: () => loadLogoDb(),
+  logos: () => loadLogoDb().then(utils.setLogoDb),
 
   // IP driven configuration
   'cliqz-config': () => {

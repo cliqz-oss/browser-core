@@ -3,7 +3,6 @@
 /* global require */
 
 const encoding = require('text-encoding');
-const tldjs = require('tldjs');
 
 const TextDecoder = encoding.TextDecoder;
 const TextEncoder = encoding.TextEncoder;
@@ -30,9 +29,6 @@ export default describeModule('offers-v2/event_handler',
     },
     'core/platform': {
       isChromium: false
-    },
-    'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
     },
     'core/cliqz': {
       utils: {
@@ -94,9 +90,6 @@ export default describeModule('offers-v2/event_handler',
     // },
     'platform/console': {
       default: {}
-    },
-    'platform/lib/tldjs': {
-      default: tldjs,
     },
     'core/prefs': {
       default: {

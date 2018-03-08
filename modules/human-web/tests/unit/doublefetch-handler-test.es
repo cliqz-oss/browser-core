@@ -12,13 +12,6 @@ const State = {
 const mocks = {};
 const expect = chai.expect;
 
-// Use a reserved IP address (TEST-NET-2) to be
-// sure it never gets resolved by accident
-// (https://stackoverflow.com/a/10456065/783510)
-const SAFE_TEST_IP1 = '198.51.100.1';
-const SAFE_TEST_IP2 = '198.51.100.2';
-const SAFE_FALLBACK_TEST_IP = '198.51.100.255';
-
 function resetMocks() {
   mocks.getRequest = sinon.stub().resolves('');
 
@@ -27,7 +20,6 @@ function resetMocks() {
   mocks._handlers = {
     onBeforeSendHeaders: [],
     onHeadersReceived: [],
-    onCompleted: [],
   }
   mocks.WebrequestPipelineStub = {
     isReady: () => {
@@ -69,7 +61,7 @@ function scriptedRequests(scriptRequests, opts={}) {
   };
 
   let uniqueId = 1;
-  const mkFakeRequestContext = (url, requestInfo, { includeResponse, requestCompleted }) => {
+  const mkFakeRequestContext = (url, requestInfo, { includeResponse }) => {
     if (!requestInfo.requestId) {
       requestInfo.requestId = uniqueId++;
     }
@@ -95,10 +87,6 @@ function scriptedRequests(scriptRequests, opts={}) {
           return lookupHeader(this.responseHeaders, name);
         }
       });
-
-      if (requestCompleted) {
-        context.ip = requestInfo.ip || SAFE_FALLBACK_TEST_IP;
-      }
     }
 
     return context;
@@ -119,8 +107,6 @@ function scriptedRequests(scriptRequests, opts={}) {
 
   mocks.getRequest = (url) => {
     const requestInfo = scriptRequests[url];
-
-    // Step 1: Simulate call to "onBeforeSendHeaders" listener
     if (requestInfo && mocks._handlers.onBeforeSendHeaders.length > 0) {
       // If more than one handler was registered, something went wrong.
       // So, ignore that case and assume that there is at most one handler.
@@ -163,7 +149,6 @@ function scriptedRequests(scriptRequests, opts={}) {
       }
     }
 
-    // Step 2: Simulate call to "onHeadersReceived" listener
     if (requestInfo && mocks._handlers.onHeadersReceived.length > 0) {
       // If more than one handler was registered, something went wrong.
       // So, ignore that case and assume that there is at most one handler.
@@ -172,19 +157,15 @@ function scriptedRequests(scriptRequests, opts={}) {
 
       const response = mkFakeResponse();
       const fakeRequestContext = mkFakeRequestContext(url, requestInfo,
-                                                     { includeResponse: true,
-                                                       requestCompleted: false,
-                                                     });
+                                                     { includeResponse: true });
 
       // Simulate some other requests that have nothing to do with the current
-      // doublefetch request. These requests should not be cancelled.
+      // doublefetch request. This requests should not be cancelled.
       const otherRequests = opts.simulateNonDoublefetchRequests || [];
       for (const otherUrl of otherRequests) {
         const otherResponse = mkFakeResponse();
         const proceed = handler(mkFakeRequestContext(otherUrl, scriptRequests[otherUrl],
-                                                    { includeResponse: true,
-                                                      requestCompleted: false,
-                                                    }),
+                                                    { includeResponse: true }),
                                otherResponse);
 
         const wasAborted = proceed === false || !!otherResponse.cancel;
@@ -215,33 +196,6 @@ function scriptedRequests(scriptRequests, opts={}) {
           return mocks.getRequest(redirectTo);
         }
       }
-    }
-
-    // Step 3: Simulate call to "onCompleted" listener
-    if (requestInfo && mocks._handlers.onCompleted.length > 0) {
-      // If more than one handler was registered, something went wrong.
-      // So, ignore that case and assume that there is at most one handler.
-      expect(mocks._handlers.onCompleted).to.have.lengthOf(1);
-      const handler = mocks._handlers.onCompleted[0].fn;
-
-      const response = mkFakeResponse();
-      const fakeRequestContext = mkFakeRequestContext(
-        url, requestInfo, { includeResponse: true, requestCompleted: true });
-
-      // Simulate some other requests that have nothing to do with the current
-      // doublefetch request. These requests should not be cancelled.
-      const otherRequests = opts.simulateNonDoublefetchRequests || [];
-      for (const otherUrl of otherRequests) {
-        const otherResponse = mkFakeResponse();
-        const otherFakeContext = mkFakeRequestContext(
-          otherUrl, scriptRequests[otherUrl], {
-            includeResponse: true, requestCompleted: true
-          });
-        handler(otherFakeContext, otherResponse);
-      }
-
-      // now back to the actual doublefetch request
-      handler(fakeRequestContext, response);
     }
 
     return Promise.resolve(`dummy content of ${url}`);
@@ -277,9 +231,6 @@ export default describeModule('human-web/doublefetch-handler',
         }
       }
     },
-    'platform/human-web/dns': {
-      default: {}
-    },
     'human-web/logger': {
       default: {
         debug() {},
@@ -292,25 +243,13 @@ export default describeModule('human-web/doublefetch-handler',
 
     describe('DoublefetchHandler', function () {
       let DoublefetchHandler;
-      let onHostnameResolvedHook;
       let uut;
 
       beforeEach(function () {
         DoublefetchHandler = this.module().default;
         resetMocks();
 
-        // default callback handler; can be overwritten
-        // by test if they want to add their own checks
-        onHostnameResolvedHook = (domain, ip) => {
-          expect(domain).to.be.a('string').that.is.not.empty;
-          expect(ip).to.be.a('string').that.is.not.empty;
-        };
-
-        uut = new DoublefetchHandler({
-          onHostnameResolved: (...args) => {
-            onHostnameResolvedHook(...args)
-          }
-        });
+        uut = new DoublefetchHandler();
       });
 
       afterEach(function () {
@@ -320,7 +259,6 @@ export default describeModule('human-web/doublefetch-handler',
             expect(mocks._handlers).to.deep.equal({
               onBeforeSendHeaders: [],
               onHeadersReceived: [],
-              onCompleted: [],
             });
           });
       });
@@ -688,33 +626,6 @@ export default describeModule('human-web/doublefetch-handler',
           });
       });
 
-      it('should call "onHostnameResolved" after successful doublefetch requests', function() {
-        let onHostnameResolvedCalls = [];
-        onHostnameResolvedHook = (hostname, ip) => {
-          onHostnameResolvedCalls.push([hostname, ip]);
-        };
-
-        const resolvedIP = SAFE_TEST_IP1;
-        scriptedRequests(
-          {
-            'http://doublefetch.test': {
-              ip: resolvedIP
-            },
-            'https://api.cliqz.test/foo': {
-            },
-            'https://api.cliqz.test/bar': {
-            },
-          },
-          {
-            simulateNonDoublefetchRequests: ['https://api.cliqz.test/foo', 'https://api.cliqz.test/bar']
-          });
-
-        return uut.init()
-          .then(() => uut.anonymousHttpGet('http://doublefetch.test'))
-          .then(() => {
-            expect(onHostnameResolvedCalls).to.eql([['doublefetch.test', resolvedIP]]);
-          });
-      });
     });
   }
 );

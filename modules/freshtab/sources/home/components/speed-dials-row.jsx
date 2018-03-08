@@ -63,11 +63,11 @@ export default class SpeedDialsRow extends React.Component {
         <div className="dials-row">
           {
             this.props.dials.slice(0, 6).map((dial, i) =>
-              (<SpeedDial
+              <SpeedDial
                 dial={dial}
                 removeSpeedDial={() => this.removeSpeedDial(dial, i)}
                 visitSpeedDial={() => this.visitSpeedDial(i)}
-              />)
+              />
             )
           }
 

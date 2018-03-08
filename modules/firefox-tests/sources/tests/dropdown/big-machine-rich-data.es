@@ -1,3 +1,7 @@
+/* eslint func-names: ['error', 'never'] */
+/* eslint prefer-arrow-callback: 'off' */
+/* eslint no-unused-expressions: 'off' */
+
 import {
   $cliqzResults,
   expect,
@@ -74,7 +78,7 @@ export default function () {
         const imagesSelector = '.images.padded a.result';
         const imagesItems = $resultElement.querySelectorAll(imagesSelector);
         [].forEach.call(imagesItems, function (image, i) {
-          expect(image.dataset.url).to.be.equal(results[0].snippet.deepResults[0].links[i].url);
+          expect(image.href).to.be.equal(results[0].snippet.deepResults[0].links[i].url);
         });
       });
     });
@@ -108,7 +112,7 @@ export default function () {
         const simpleLinksSelector = '.anchors.padded a.result';
         const simpleLinksItems = $resultElement.querySelectorAll(simpleLinksSelector);
         [].forEach.call(simpleLinksItems, function (link, i) {
-          expect(link.dataset.url).to.be.equal(results[0].snippet.deepResults[1].links[i].url);
+          expect(link.href).to.be.equal(results[0].snippet.deepResults[1].links[i].url);
         });
       });
     });

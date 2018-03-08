@@ -1,27 +1,18 @@
-/* global navigator */
-
 export default {
   isMobile: false,
   isFirefox: false,
-  isChromium: true,
-  get isEdge() {
-    try {
-      // source: https://stackoverflow.com/a/33152824/783510
-      return /Edge/.test(navigator.userAgent);
-    } catch (e) {
-      return false;
-    }
-  },
+  isChromium: true
 };
 
-export function isPlatformAtLeastInVersion() {
+export function isPlatformAtLeastInVersion(version) {
   return true;
 }
 
-// TODO
-export const OS = "";
+export const OS = {
+  // TODO
+};
 
 export function isCliqzAtLeastInVersion() {
   // TODO
   return true;
-}
+};

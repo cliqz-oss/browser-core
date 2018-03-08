@@ -1,4 +1,7 @@
 /* global window */
+/* eslint func-names: ['error', 'never'] */
+/* eslint prefer-arrow-callback: 'off' */
+/* eslint no-unused-expressions: 'off' */
 
 import {
   $cliqzResults,
@@ -85,7 +88,7 @@ export default function ({ hasHistoryUrl }) {
         [...historyItems].forEach(function (history) {
           /* The order of history in dropdown is reverted */
           historyIndex -= 1;
-          expect(history.dataset.url)
+          expect(history.href)
             .to.equal(historyResults[historyIndex].value);
         });
       });

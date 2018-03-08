@@ -1,3 +1,4 @@
+import config from '../core/config';
 import utils from '../core/utils';
 import ContextMenu from './context-menu';
 

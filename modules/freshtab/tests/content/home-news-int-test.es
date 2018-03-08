@@ -1,10 +1,9 @@
 import {
-  clearIntervals,
   clone,
-  defaultConfig,
-  expect,
+  clearIntervals,
+  waitFor,
   Subject,
-  waitFor
+  defaultConfig,
 } from './helpers';
 
 const newsItem = i => ({
@@ -102,13 +101,12 @@ describe('Fresh tab interactions with news', function () {
             });
 
             it(`sends a "${type} > click > title" telemetry signal`, function () {
-              expect(messages.has('sendTelemetry')).to.equal(true);
+              chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
               const telemetrySignals = messages.get('sendTelemetry');
               let signalExist = false;
               let count = 0;
 
-              expect(telemetrySignals.length).to.be.above(0);
               telemetrySignals.forEach(function (item) {
                 if ((item.args[0].type === 'home') &&
                     (item.args[0].target === type) &&
@@ -120,8 +118,8 @@ describe('Fresh tab interactions with news', function () {
                 }
               });
 
-              expect(signalExist).to.be.true;
-              expect(count).to.equal(1);
+              chai.expect(signalExist).to.be.true;
+              chai.expect(count).to.equal(1);
             });
           });
 
@@ -132,13 +130,12 @@ describe('Fresh tab interactions with news', function () {
             });
 
             it(`sends a "${type} > click > logo" telemetry signal`, function () {
-              expect(messages.has('sendTelemetry')).to.equal(true);
+              chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
               const telemetrySignals = messages.get('sendTelemetry');
               let signalExist = false;
               let count = 0;
 
-              expect(telemetrySignals.length).to.be.above(0);
               telemetrySignals.forEach(function (item) {
                 if ((item.args[0].type === 'home') &&
                     (item.args[0].target === type) &&
@@ -150,8 +147,8 @@ describe('Fresh tab interactions with news', function () {
                 }
               });
 
-              expect(signalExist).to.be.true;
-              expect(count).to.equal(1);
+              chai.expect(signalExist).to.be.true;
+              chai.expect(count).to.equal(1);
             });
           });
 
@@ -162,13 +159,12 @@ describe('Fresh tab interactions with news', function () {
             });
 
             it(`sends a "${type} > click > url" telemetry signal`, function () {
-              expect(messages.has('sendTelemetry')).to.equal(true);
+              chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
               const telemetrySignals = messages.get('sendTelemetry');
               let signalExist = false;
               let count = 0;
 
-              expect(telemetrySignals.length).to.be.above(0);
               telemetrySignals.forEach(function (item) {
                 if ((item.args[0].type === 'home') &&
                     (item.args[0].target === type) &&
@@ -180,8 +176,8 @@ describe('Fresh tab interactions with news', function () {
                 }
               });
 
-              expect(signalExist).to.be.true;
-              expect(count).to.equal(1);
+              chai.expect(signalExist).to.be.true;
+              chai.expect(count).to.equal(1);
             });
           });
 
@@ -192,13 +188,12 @@ describe('Fresh tab interactions with news', function () {
             });
 
             it(`sends a "${type} > click > description" telemetry signal`, function () {
-              expect(messages.has('sendTelemetry')).to.equal(true);
+              chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
               const telemetrySignals = messages.get('sendTelemetry');
               let signalExist = false;
               let count = 0;
 
-              expect(telemetrySignals.length).to.be.above(0);
               telemetrySignals.forEach(function (item) {
                 if ((item.args[0].type === 'home') &&
                     (item.args[0].target === type) &&
@@ -210,8 +205,8 @@ describe('Fresh tab interactions with news', function () {
                 }
               });
 
-              expect(signalExist).to.be.true;
-              expect(count).to.equal(1);
+              chai.expect(signalExist).to.be.true;
+              chai.expect(count).to.equal(1);
             });
           });
 
@@ -222,13 +217,12 @@ describe('Fresh tab interactions with news', function () {
             });
 
             it(`sends a "${type} > click > read_more" telemetry signal`, function () {
-              expect(messages.has('sendTelemetry')).to.equal(true);
+              chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
               const telemetrySignals = messages.get('sendTelemetry');
               let signalExist = false;
               let count = 0;
 
-              expect(telemetrySignals.length).to.be.above(0);
               telemetrySignals.forEach(function (item) {
                 if ((item.args[0].type === 'home') &&
                     (item.args[0].target === type) &&
@@ -240,8 +234,8 @@ describe('Fresh tab interactions with news', function () {
                 }
               });
 
-              expect(signalExist).to.be.true;
-              expect(count).to.equal(1);
+              chai.expect(signalExist).to.be.true;
+              chai.expect(count).to.equal(1);
             });
           });
         });
@@ -256,30 +250,28 @@ describe('Fresh tab interactions with news', function () {
         });
 
         it('shows news items from the first page', function () {
-          expect(newsItems.length).to.be.above(0);
           [...newsItems].forEach(function (news, i) {
-            expect(news.querySelector(`a[data-index='${i}']`).querySelector(newsTitleSelector))
+            chai.expect(news.querySelector(`a[data-index='${i}']`).querySelector(newsTitleSelector))
               .to.contain.text(newsResponse.news[i].title);
           });
         });
 
         it('changes the clicked button to active', function () {
-          expect([...pageButtonItems][0].className).to.contain('active');
+          chai.expect([...pageButtonItems][0].className).to.contain('active');
         });
 
         it('keeps other buttons inactive', function () {
-          expect([...pageButtonItems][1].className).to.not.contain('active');
-          expect([...pageButtonItems][2].className).to.not.contain('active');
+          chai.expect([...pageButtonItems][1].className).to.not.contain('active');
+          chai.expect([...pageButtonItems][2].className).to.not.contain('active');
         });
 
         it('sends a "news_pagination > click" telemetry signal', function () {
-          expect(messages.has('sendTelemetry')).to.equal(true);
+          chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
           const telemetrySignals = messages.get('sendTelemetry');
           let signalExist = false;
           let count = 0;
 
-          expect(telemetrySignals.length).to.be.above(0);
           telemetrySignals.forEach(function (item) {
             if ((item.args[0].type === 'home') &&
                 (item.args[0].target === 'news_pagination') &&
@@ -290,8 +282,8 @@ describe('Fresh tab interactions with news', function () {
             }
           });
 
-          expect(signalExist).to.be.true;
-          expect(count).to.equal(1);
+          chai.expect(signalExist).to.be.true;
+          chai.expect(count).to.equal(1);
         });
       });
 
@@ -304,30 +296,28 @@ describe('Fresh tab interactions with news', function () {
         });
 
         it('shows news items from the second page', function () {
-          expect(newsItems.length).to.be.above(0);
           [...newsItems].forEach(function (news, i) {
-            expect(news.querySelector(`a[data-index='${i + 3}']`).querySelector(newsTitleSelector))
-              .to.have.text(newsResponse.news[i + 3].title);
+            chai.expect(news.querySelector(`a[data-index='${i+3}']`).querySelector(newsTitleSelector))
+              .to.have.text(newsResponse.news[i+3].title);
           });
         });
 
         it('changes the clicked button to active', function () {
-          expect([...pageButtonItems][1].className).to.contain('active');
+          chai.expect([...pageButtonItems][1].className).to.contain('active');
         });
 
         it('keeps other buttons inactive', function () {
-          expect([...pageButtonItems][0].className).to.not.contain('active');
-          expect([...pageButtonItems][2].className).to.not.contain('active');
+          chai.expect([...pageButtonItems][0].className).to.not.contain('active');
+          chai.expect([...pageButtonItems][2].className).to.not.contain('active');
         });
 
         it('sends a "news_pagination > click" telemetry signal', function () {
-          expect(messages.has('sendTelemetry')).to.equal(true);
+          chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
           const telemetrySignals = messages.get('sendTelemetry');
           let signalExist = false;
           let count = 0;
 
-          expect(telemetrySignals.length).to.be.above(0);
           telemetrySignals.forEach(function (item) {
             if ((item.args[0].type === 'home') &&
                 (item.args[0].target === 'news_pagination') &&
@@ -338,8 +328,8 @@ describe('Fresh tab interactions with news', function () {
             }
           });
 
-          expect(signalExist).to.be.true;
-          expect(count).to.equal(1);
+          chai.expect(signalExist).to.be.true;
+          chai.expect(count).to.equal(1);
         });
       });
 
@@ -352,27 +342,26 @@ describe('Fresh tab interactions with news', function () {
         });
 
         it('shows one news item from the third page', function () {
-          expect(newsItems[0].querySelector("a[data-index='6']").querySelector(newsTitleSelector))
+          chai.expect(newsItems[0].querySelector("a[data-index='6']").querySelector(newsTitleSelector))
             .to.have.text(newsResponse.news[6].title);
         });
 
         it('changes the clicked button to active', function () {
-          expect([...pageButtonItems][2].className).to.contain('active');
+          chai.expect([...pageButtonItems][2].className).to.contain('active');
         });
 
       it('keeps other buttons inactive', function () {
-        expect([...pageButtonItems][0].className).to.not.contain('active');
-        expect([...pageButtonItems][1].className).to.not.contain('active');
+        chai.expect([...pageButtonItems][0].className).to.not.contain('active');
+        chai.expect([...pageButtonItems][1].className).to.not.contain('active');
       });
 
         it('sends a "news_pagination > click" telemetry signal', function () {
-          expect(messages.has('sendTelemetry')).to.equal(true);
+          chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
           const telemetrySignals = messages.get('sendTelemetry');
           let signalExist = false;
           let count = 0;
 
-          expect(telemetrySignals.length).to.be.above(0);
           telemetrySignals.forEach(function (item) {
             if ((item.args[0].type === 'home') &&
                 (item.args[0].target === 'news_pagination') &&
@@ -383,8 +372,8 @@ describe('Fresh tab interactions with news', function () {
             }
           });
 
-          expect(signalExist).to.be.true;
-          expect(count).to.equal(1);
+          chai.expect(signalExist).to.be.true;
+          chai.expect(count).to.equal(1);
         });
       });
     });
@@ -404,30 +393,28 @@ describe('Fresh tab interactions with news', function () {
         });
 
         it('shows news items from the first page', function () {
-          expect(newsItems.length).to.be.above(0);
           [...newsItems].forEach(function (news, i) {
-            expect(news.querySelector(`a[data-index='${i}']`).querySelector(newsTitleSelector))
+            chai.expect(news.querySelector(`a[data-index='${i}']`).querySelector(newsTitleSelector))
               .to.contain.text(newsResponse.news[i].title);
           });
         });
 
         it('changes the clicked button to active', function () {
-          expect([...pageButtonItems][0].className).to.contain('active');
+          chai.expect([...pageButtonItems][0].className).to.contain('active');
         });
 
         it('keeps other buttons inactive', function () {
-          expect([...pageButtonItems][1].className).to.not.contain('active');
-          expect([...pageButtonItems][2].className).to.not.contain('active');
+          chai.expect([...pageButtonItems][1].className).to.not.contain('active');
+          chai.expect([...pageButtonItems][2].className).to.not.contain('active');
         });
 
         it('sends a "news_pagination>click" telemetry signal', function () {
-          expect(messages.has('sendTelemetry')).to.equal(true);
+          chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
           const telemetrySignals = messages.get('sendTelemetry');
           let signalExist = false;
           let count = 0;
 
-          expect(telemetrySignals.length).to.be.above(0);
           telemetrySignals.forEach(function (item) {
             if ((item.args[0].type === 'home') &&
                 (item.args[0].target === 'news_pagination') &&
@@ -438,8 +425,8 @@ describe('Fresh tab interactions with news', function () {
             }
           });
 
-          expect(signalExist).to.be.true;
-          expect(count).to.equal(1);
+          chai.expect(signalExist).to.be.true;
+          chai.expect(count).to.equal(1);
         });
       });
 
@@ -452,30 +439,28 @@ describe('Fresh tab interactions with news', function () {
         });
 
         it('shows news items from the second page', function () {
-          expect(newsItems.length).to.be.above(0);
           [...newsItems].forEach(function (news, i) {
-            expect(news.querySelector(`a[data-index='${i + 3}']`).querySelector(newsTitleSelector))
-              .to.have.text(newsResponse.news[i + 3].title);
+            chai.expect(news.querySelector(`a[data-index='${i+3}']`).querySelector(newsTitleSelector))
+              .to.have.text(newsResponse.news[i+3].title);
           });
         });
 
         it('changes the clicked button to active', function () {
-          expect([...pageButtonItems][1].className).to.contain('active');
+          chai.expect([...pageButtonItems][1].className).to.contain('active');
         });
 
         it('keeps other buttons inactive', function () {
-          expect([...pageButtonItems][0].className).to.not.contain('active');
-          expect([...pageButtonItems][2].className).to.not.contain('active');
+          chai.expect([...pageButtonItems][0].className).to.not.contain('active');
+          chai.expect([...pageButtonItems][2].className).to.not.contain('active');
         });
 
         it('sends a "news_pagination > click" telemetry signal', function () {
-          expect(messages.has('sendTelemetry')).to.equal(true);
+          chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
           const telemetrySignals = messages.get('sendTelemetry');
           let signalExist = false;
           let count = 0;
 
-          expect(telemetrySignals.length).to.be.above(0);
           telemetrySignals.forEach(function (item) {
             if ((item.args[0].type === 'home') &&
                 (item.args[0].target === 'news_pagination') &&
@@ -486,8 +471,8 @@ describe('Fresh tab interactions with news', function () {
             }
           });
 
-          expect(signalExist).to.be.true;
-          expect(count).to.equal(1);
+          chai.expect(signalExist).to.be.true;
+          chai.expect(count).to.equal(1);
         });
       });
 
@@ -500,27 +485,26 @@ describe('Fresh tab interactions with news', function () {
         });
 
         it('shows one news item from the third page', function () {
-          expect(newsItems[0].querySelector("a[data-index='6']").querySelector(newsTitleSelector))
+          chai.expect(newsItems[0].querySelector("a[data-index='6']").querySelector(newsTitleSelector))
             .to.have.text(newsResponse.news[6].title);
         });
 
         it('changes the clicked button to active', function () {
-          expect([...pageButtonItems][2].className).to.contain('active');
+          chai.expect([...pageButtonItems][2].className).to.contain('active');
         });
 
         it('keeps other buttons inactive', function () {
-          expect([...pageButtonItems][0].className).to.not.contain('active');
-          expect([...pageButtonItems][1].className).to.not.contain('active');
+          chai.expect([...pageButtonItems][0].className).to.not.contain('active');
+          chai.expect([...pageButtonItems][1].className).to.not.contain('active');
         });
 
         it('sends a "news_pagination > click" telemetry signal', function () {
-          expect(messages.has('sendTelemetry')).to.equal(true);
+          chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
           const telemetrySignals = messages.get('sendTelemetry');
           let signalExist = false;
           let count = 0;
 
-          expect(telemetrySignals.length).to.be.above(0);
           telemetrySignals.forEach(function (item) {
             if ((item.args[0].type === 'home') &&
                 (item.args[0].target === 'news_pagination') &&
@@ -531,8 +515,8 @@ describe('Fresh tab interactions with news', function () {
             }
           });
 
-          expect(signalExist).to.be.true;
-          expect(count).to.equal(2);
+          chai.expect(signalExist).to.be.true;
+          chai.expect(count).to.equal(2);
         });
       });
     });

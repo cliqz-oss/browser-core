@@ -1,5 +1,6 @@
-/* global window, document, Handlebars */
+/* global window, document */
 
+import Handlebars from 'handlebars';
 import Rx from '../../platform/lib/rxjs';
 import search from '../search';
 import background from '../background';
@@ -47,8 +48,7 @@ window.addEventListener('load', () => {
       .mapTo('blur'));
 
   background.init();
-  const results$ = search({ query$, focus$ },
-    background.providers, DEFAULT_CONFIG);
+  const results$ = search(query$, focus$, background.providers, DEFAULT_CONFIG);
 
   const dropdown = new Dropdown($results, window);
 

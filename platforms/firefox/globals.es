@@ -1,4 +1,4 @@
-/* global global, Services, Components, XPCOMUtils, window */
+/* global global, Services, Components, XPCOMUtils, debugModules */
 
 import win from './globals-window';
 
@@ -9,7 +9,7 @@ export {
   Services,
   Components,
   XPCOMUtils,
-  win as window
+  win as window,
 };
 
 export const debugModules = {};
@@ -29,14 +29,12 @@ export const safeGlobal = new Proxy(fakeGlobal, {
       return fakeGlobal[key];
     }
 
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       return window[key];
     }
 
-    if (typeof global !== 'undefined') {
+    if (typeof global !== "undefined") {
       return global[key];
     }
-
-    return undefined;
   },
 });

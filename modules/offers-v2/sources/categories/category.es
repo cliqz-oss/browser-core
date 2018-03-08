@@ -66,7 +66,7 @@ export default class Category {
     this.isHistoryDataSet = false;
 
     // temporary cache data (not persistent)
-    this.todayKey = getTodayDayKey();
+    this.todayKey = null;
     this.tmpActivationValue = null;
 
     this.activationFunctionMap = {
@@ -143,15 +143,6 @@ export default class Category {
       }
       this.lastActivationTS = null;
     }
-
-    // do a clean up if today key changed (since for now we check at a day level
-    // we should modify this when we change to more granular ts)
-    const todayKey = getTodayDayKey();
-    if (todayKey !== this.todayKey) {
-      this.todayKey = todayKey;
-      this.cleanUp();
-    }
-
     // we need to check
     const activationFun = this.activationFunctionMap[this.activationData.func];
     if (!activationFun) {
@@ -178,8 +169,8 @@ export default class Category {
     const days = Object.keys(this.matchData.perDay);
     let modified = false;
     const catLifeTimeMs = this.timeRangeSecs * 1000;
-    for (let i = 0; i < days.length; i += 1) {
-      const dayTs = getDateFromDateKey(days[i], 12);
+    for (let i = 0; i < days; i += 1) {
+      const dayTs = getDateFromDateKey(days[i]);
       const timeDiff = now - dayTs;
       if (timeDiff > catLifeTimeMs) {
         // we need to remove this day
@@ -237,7 +228,7 @@ export default class Category {
     for (let i = 0; i < dayList.length; i += 1) {
       const day = dayList[i];
       const dataDay = validDays[day];
-      const dayTS = getDateFromDateKey(day, 12);
+      const dayTS = getDateFromDateKey(day);
 
       this.matchData.perDay[day] = { matches: dataDay.m };
       this.matchData.total.matches += dataDay.m;
