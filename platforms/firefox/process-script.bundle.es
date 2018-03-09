@@ -11,7 +11,7 @@ const send = sendAsyncMessage.bind(null, 'cliqz');
 const CACHE_INVALIDATE_PREF = 'startupcache-invalidate';
 
 if (!prefs.has(CACHE_INVALIDATE_PREF)) {
-  Services.obs.notifyObservers(null, 'startupcache-invalidate');
+  Services.obs.notifyObservers(null, 'startupcache-invalidate', null);
   prefs.set(CACHE_INVALIDATE_PREF, true);
 }
 
