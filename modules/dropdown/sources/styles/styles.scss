@@ -792,6 +792,70 @@ $basic-line-height: (16 / 15) + 0em;
             }
         }
     }
+    /* retirement */
+    .retirement {
+        max-width: 750px;
+        background-color: rgba(254,166,35,0.1);
+        border-color: rgba(254,166,35,1);
+        border-style: dashed;
+        border-width: 1.5px;
+        background-image: url-prefix("dropdown/images/TestPilot-Fox.png");
+        background-size: 100px;
+        background-repeat: no-repeat;
+        background-position: 3px center;
+        padding-left: 108px;
+        padding-bottom: 12px !important;
+        padding-top: 10px;
+        margin-left: calc(var(--url-padding-start) - 20px);
+        margin-top: 15px;
+        margin-bottom: 15px;
+        position: relative;
+
+        div {
+            display: inline-block;
+        }
+
+        .close {
+            background-image: url-prefix("dropdown/images/Close - Small 16.svg");
+            background-size: 10px;
+            background-repeat: no-repeat;
+            position: absolute;
+            right: 11px;
+            width: 10px;
+            height: 10px;
+            top: 11px;
+            cursor: pointer;
+        }
+
+        .headline {
+            color: #4A4A4A;
+            font-weight: 500;
+            line-height: 25px;
+        }
+        .content {
+            font-size: 0.833em;
+            .text {
+                width: 55%;
+            }
+            .action {
+                height: 31px;
+                vertical-align: top;
+                background-color: rgba(254, 166, 35, 1);
+                padding: 8px 10px;
+                color: white;
+                font-weight: 500;
+                border-radius: 3px;
+                cursor: pointer;
+                display: inline-block;
+                position: absolute;
+                right: 10px;
+
+                &.selected {
+                    background-color: #2385E7;
+                }
+            }
+        }
+    }
 }
 
 //===========================
