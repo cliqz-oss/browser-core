@@ -11,6 +11,23 @@ TELEMETRY_SIGNAL[ADDON_UNINSTALL] = 'addon_uninstall';
 TELEMETRY_SIGNAL[ADDON_UPGRADE] = 'addon_upgrade';
 TELEMETRY_SIGNAL[ADDON_DOWNGRADE] = 'addon_downgrade';
 
+function listenForCliqz() {
+  Components.utils.import('resource://gre/modules/AddonManager.jsm');
+  let listener = {
+    onDownloadEnded(data) {
+      if (data.addon.id === 'cliqz@cliqz.com') {
+        AddonManager.removeInstallListener(listener);
+        AddonManager
+          .getAddonByID('testpilot@cliqz.com')
+          .then(function(addon) {
+            addon.uninstall();
+          });
+        }
+    }
+  };
+
+  AddonManager.addInstallListener(listener);
+}
 
 function startup(aData, aReason) {
   Components.utils.import('resource://gre/modules/Services.jsm');
@@ -27,6 +44,8 @@ function startup(aData, aReason) {
   CLIQZ.app = global.app;
   CLIQZ.config = global.config;
   CLIQZ.CliqzUtils = global.CliqzUtils;
+
+  listenForCliqz();
 }
 
 function shutdown(aData, aReason) {

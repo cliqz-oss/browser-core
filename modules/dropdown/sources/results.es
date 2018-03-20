@@ -17,8 +17,10 @@ import { equals } from '../core/url';
 import console from '../core/console';
 import NavigateToResult from './results/navigate-to';
 import NewsStory from './results/news-story';
+import RetirementResult from './results/retirement';
 import config from '../core/config';
 import * as offersConfig from './offer-assistant';
+import prefs from '../core/prefs';
 
 class ResultFactory {
   static create(rawResult, allResultsFlat, configs) {
@@ -133,6 +135,13 @@ class ResultFactory {
       };
     }, { resultList: [], allResultsFlat: [] });
 
+
+    if (prefs.get('retirementIgnoredOn', '') !== prefs.get('config_ts', '-')) {
+      var retirement = new RetirementResult({}, all.allResultsFlat, {});
+      retirement.actions = actions
+      all.resultList.push(retirement);
+    }
+
     return all.resultList;
   }
 }
@@ -159,6 +168,7 @@ export default class Results {
       locationAssistant,
       adultAssistant,
       replaceResult: this.replaceResult.bind(this),
+      removeResult: this.removeResult.bind(this),
       getSnippet,
       copyToClipboard,
       query: queryCliqz,
@@ -242,6 +252,12 @@ export default class Results {
   replaceResult(oldResult, newResult) {
     const index = this.indexOf(oldResult);
     this.results.splice(index, 1, newResult);
+    this.rerender();
+  }
+
+  removeResult(result,) {
+    const index = this.indexOf(result);
+    this.results.splice(index, 1);
     this.rerender();
   }
 

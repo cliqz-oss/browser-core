@@ -1922,6 +1922,15 @@
     "freshtab.app.offer.info": {
         "message": "More Info"
     },
+    "retirement.testpilot.headline": {
+        "message": "The Firefox Test Pilot experiment “Cliqz” ends on April 10."
+    },
+    "retirement.testpilot.content": {
+        "message" : "Would you like to continue seeing instant search results? Just get the Cliqz add-on for free."
+    },
+    "retirement.testpilot.action": {
+        "message" : "Install now"
+    },
     "TEST": {
         "message": "OK"
     }
