@@ -57,8 +57,7 @@ module.exports = {
     "hpn",
     "geolocation",
     "message-center",
-    "freshtab",
-    "offboarding"
+    "freshtab"
   ],
   "subprojects": [
     {
