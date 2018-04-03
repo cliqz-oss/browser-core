@@ -4,7 +4,7 @@ import prefs from '../../core/prefs';
 
 
 class CloseButton extends BaseResult {
-  click(window, href, ev) {
+  click(window, href) {
     const action = JSON.parse(href.split('cliqz-actions,')[1]);
     if (action.actionName === 'close') {
       prefs.set('retirementIgnoredOn', prefs.get('config_ts', '-'));
@@ -38,7 +38,7 @@ export default class RetirementResult extends GenericResult {
       title: 'close-button',
       url: `cliqz-actions,${JSON.stringify({ type: 'retirement', actionName: 'close' })}`,
     });
-    btn.actions = this.actions
+    btn.actions = this.actions;
     return btn;
   }
 }
