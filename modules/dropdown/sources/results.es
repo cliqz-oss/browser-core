@@ -137,8 +137,8 @@ class ResultFactory {
 
 
     if (prefs.get('retirementIgnoredOn', '') !== prefs.get('config_ts', '-')) {
-      var retirement = new RetirementResult({}, all.allResultsFlat, {});
-      retirement.actions = actions
+      const retirement = new RetirementResult({}, all.allResultsFlat, {});
+      retirement.actions = actions;
       all.resultList.push(retirement);
     }
 
@@ -255,7 +255,7 @@ export default class Results {
     this.rerender();
   }
 
-  removeResult(result,) {
+  removeResult(result) {
     const index = this.indexOf(result);
     this.results.splice(index, 1);
     this.rerender();
