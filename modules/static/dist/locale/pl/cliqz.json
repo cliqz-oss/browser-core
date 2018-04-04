@@ -1923,13 +1923,22 @@
         "message": "More Info"
     },
     "retirement.testpilot.headline": {
-        "message": "Achtung! Das Firefox Test Pilot Experiment “Cliqz” endet am 10 April"
+        "message": "The Firefox Test Pilot experiment “Cliqz” ends $1."
+    },
+    "retirement.testpilot.headline.date": {
+        "message": "on April 16"
+    },
+    "retirement.testpilot.headline.tomorrow": {
+        "message": "tomorrow"
+    },
+    "retirement.testpilot.headline.today": {
+        "message": "today"
     },
     "retirement.testpilot.content": {
-        "message" : "Möchten Sie diese direkten Suchvorschläge weiter nutzen? Dann holen Sie sich jetzt kostenlos das Cliqz Add-on."
+        "message" : "Would you like to continue seeing instant search results? Just get the Cliqz add-on for free."
     },
     "retirement.testpilot.action": {
-        "message" : "Jetzt Installieren"
+        "message" : "Install now"
     },
     "TEST": {
         "message": "OK"

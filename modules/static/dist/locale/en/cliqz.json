@@ -1923,7 +1923,16 @@
         "message": "More Info"
     },
     "retirement.testpilot.headline": {
-        "message": "The Firefox Test Pilot experiment “Cliqz” ends on April 10."
+        "message": "The Firefox Test Pilot experiment “Cliqz” ends $1."
+    },
+    "retirement.testpilot.headline.date": {
+        "message": "on April 16"
+    },
+    "retirement.testpilot.headline.tomorrow": {
+        "message": "tomorrow"
+    },
+    "retirement.testpilot.headline.today": {
+        "message": "today"
     },
     "retirement.testpilot.content": {
         "message" : "Would you like to continue seeing instant search results? Just get the Cliqz add-on for free."
