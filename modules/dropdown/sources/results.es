@@ -139,7 +139,13 @@ class ResultFactory {
     if (prefs.get('retirementIgnoredOn', '') !== prefs.get('config_ts', '-')) {
       const retirement = new RetirementResult({}, all.allResultsFlat, {});
       retirement.actions = actions;
-      all.resultList.push(retirement);
+      if (prefs.get('retirement.position', 'bottom') === 'top') {
+        // retirement message at the top of the result set
+        all.resultList.unshift(retirement);
+      } else {
+        // returement message at the bottom of the result set
+        all.resultList.push(retirement);
+      }
     }
 
     return all.resultList;
