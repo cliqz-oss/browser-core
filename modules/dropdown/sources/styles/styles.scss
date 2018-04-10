@@ -850,7 +850,7 @@ $basic-line-height: (16 / 15) + 0em;
                 position: absolute;
                 right: 10px;
 
-                &.selected {
+                &.selected, &:hover {
                     background-color: #2385E7;
                 }
             }

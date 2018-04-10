@@ -9,7 +9,7 @@ class CloseButton extends BaseResult {
     const action = JSON.parse(href.split('cliqz-actions,')[1]);
     if (action.actionName === 'close') {
       prefs.set('retirementIgnoredOn', prefs.get('config_ts', '-'));
-      this.actions.removeResult(this);
+      this.parent.actions.removeResult(this.parent);
 
       utils.telemetry({
         type: 'retirement',
@@ -45,6 +45,11 @@ export default class RetirementResult extends GenericResult {
     return 'https://addons.mozilla.org/firefox/addon/cliqz';
   }
 
+  get selectableResults() {
+    // we only allow it to be selectable when it's at the bottom of the result set
+    return prefs.get('retirement.position', 'bottom') === 'top' ? [] : [this];
+  }
+
   get headline() {
     let date;
     switch (prefs.get('config_ts', '-')) {
@@ -63,7 +68,7 @@ export default class RetirementResult extends GenericResult {
 
   get allResults() {
     return [
-      ...this.selectableResults,
+      this,
       this.closeButton
     ];
   }
@@ -73,7 +78,7 @@ export default class RetirementResult extends GenericResult {
       title: 'close-button',
       url: `cliqz-actions,${JSON.stringify({ type: 'retirement', actionName: 'close' })}`,
     });
-    btn.actions = this.actions;
+    btn.parent = this;
     return btn;
   }
 }
