@@ -1,9 +1,6 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
   app,
+  blurUrlBar,
   $cliqzResults,
   CliqzUtils,
   expect,
@@ -21,6 +18,7 @@ export default function () {
       let $resultElement;
 
       before(function () {
+        blurUrlBar();
         CliqzUtils.setPref('adultContentFilter', 'moderate');
         withHistory([]);
         respondWith({ results });
@@ -69,6 +67,7 @@ export default function () {
       let $resultElementNew;
 
       before(function () {
+        blurUrlBar();
         CliqzUtils.setPref('adultContentFilter', 'moderate');
         respondWith({ results });
         fillIn('xvideos');
@@ -128,8 +127,8 @@ export default function () {
       let $resultElementNew;
 
       before(function () {
-        app.modules.autocomplete.background
-          .autocomplete.CliqzResultProviders.setCurrentSearchEngine('Google');
+        blurUrlBar();
+        app.modules.search.action('setDefaultSearchEngine', 'Google');
         CliqzUtils.setPref('adultContentFilter', 'moderate');
         respondWith({ results });
         fillIn('xvideos');
@@ -181,6 +180,7 @@ export default function () {
       let $resultElementNew;
 
       before(function () {
+        blurUrlBar();
         CliqzUtils.setPref('adultContentFilter', 'moderate');
         respondWith({ results });
         fillIn('xvideos');
@@ -239,6 +239,7 @@ export default function () {
       let $resultElement;
 
       before(function () {
+        blurUrlBar();
         CliqzUtils.setPref('adultContentFilter', 'liberal');
         respondWith({ results });
         fillIn('xvideos');
@@ -289,8 +290,8 @@ export default function () {
       let $resultElement;
 
       before(function () {
-        app.modules.autocomplete.background
-          .autocomplete.CliqzResultProviders.setCurrentSearchEngine('Google');
+        blurUrlBar();
+        app.modules.search.action('setDefaultSearchEngine', 'Google');
         CliqzUtils.setPref('adultContentFilter', 'conservative');
         respondWith({ results });
         fillIn('xvideos');

@@ -1,13 +1,12 @@
 export default function () {
-  const geoService = Components.classes["@mozilla.org/geolocation;1"]
+  const geoService = Components.classes['@mozilla.org/geolocation;1']
     .getService(Components.interfaces.nsISupports);
 
   return new Promise((resolve, reject) => {
-    geoService.getCurrentPosition(position => {
+    geoService.getCurrentPosition(position =>
       resolve({
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
-      });
-    }, reject);
+      }), reject);
   });
 }

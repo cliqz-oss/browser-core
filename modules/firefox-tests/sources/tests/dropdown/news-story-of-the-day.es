@@ -1,8 +1,5 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
+  blurUrlBar,
   $cliqzResults,
   expect,
   fillIn,
@@ -24,6 +21,7 @@ export default function () {
     let newsAreaItem;
 
     before(function () {
+      blurUrlBar();
       respondWith({ results });
       withHistory([]);
       fillIn('donald trump');
@@ -42,7 +40,7 @@ export default function () {
       });
 
       it('with existing and correct URL', function () {
-        expect(resultItem.href).to.equal(results[0].url);
+        expect(resultItem.dataset.url).to.equal(results[0].url);
       });
 
       it('with existing and correct logo', function () {

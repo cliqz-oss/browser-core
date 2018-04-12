@@ -10,7 +10,6 @@ import inject from '../../core/kord/inject';
 const anolysis = inject.module('anolysis');
 
 const INITIAL_PAGE_INDEX = 0;
-const MAX_ORGANIC_RESULTS = 3;
 
 export default class extends React.Component {
   constructor(props) {
@@ -31,7 +30,7 @@ export default class extends React.Component {
       return;
     }
     if (carousel.currentIndex !== INITIAL_PAGE_INDEX
-      && nextProps.result._results.length) {
+      && nextProps.results.length) {
       // only snap to first item when we need to
       carousel.snapToItem(INITIAL_PAGE_INDEX);
       this.setState({ isForceSnapping: true });
@@ -73,8 +72,8 @@ export default class extends React.Component {
     anolysis.action('handleTelemetrySignal', msg, 'mobile_swipe');
   }
 
-  autocomplete({ val, query, searchString }) {
-    handleAutoCompletion(val, query || searchString);
+  autocomplete({ url, text }) {
+    handleAutoCompletion(url, text);
   }
 
   handleSwipe(index) {
@@ -93,21 +92,6 @@ export default class extends React.Component {
     }
   }
 
-  filterResults(results = []) {
-    // filter history results
-    const historyResultsCount = results.reduce((count, result) => {
-      if (result.data.kind.includes('H') || result.data.kind.includes('C')) {
-        return count + 1;
-      }
-      return count;
-    }, 0);
-    return (
-      results
-        .filter(result => !result.extra || !result.extra.is_ad) // filter offers
-        .filter((result, index) => index < historyResultsCount + MAX_ORGANIC_RESULTS)
-    );
-  }
-
   sendResultsRenderedTelemetry(nResults) {
     const msg = {
       result_count: nResults,
@@ -121,13 +105,13 @@ export default class extends React.Component {
     this.lastCardIndex = INITIAL_PAGE_INDEX;
   }
 
-  renderItem({ item: result, index }) {
-    if (result.isSearch) {
+  renderItem(result, index, { length }) {
+    if (result.type === 'supplementary-search') {
       return (
         <SearchEngineCard
           index={index}
           result={result}
-          noResults={!index}
+          noResults={length < 2}
           width={getCardWidth()}
         />
       );
@@ -143,19 +127,7 @@ export default class extends React.Component {
   }
 
   render() {
-    const result = this.props.result;
-    if (!result) return null;
-
-    const resultList = this.filterResults(result._results);
-
-    const searchResult = {
-      searchString: result._searchString,
-      isSearch: true,
-      data: {
-        kind: ['default_search'],
-      }
-    };
-
+    const results = this.props.results;
     return (
       <Carousel
         onLayout={() => {
@@ -169,8 +141,8 @@ export default class extends React.Component {
           }
         }}
         ref={(c) => { this._carousel = c; }}
-        data={resultList.concat(searchResult)}
-        renderItem={this.renderItem}
+        data={results}
+        renderItem={({ item: result, index }) => this.renderItem(result, index, results)}
         sliderWidth={this.state.vp.width}
         itemWidth={getCardWidth()}
         onSnapToItem={index => this.handleSwipe(index)}

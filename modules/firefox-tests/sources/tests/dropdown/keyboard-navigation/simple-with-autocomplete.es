@@ -1,8 +1,5 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
+  blurUrlBar,
   $cliqzResults,
   CliqzUtils,
   expect,
@@ -26,10 +23,11 @@ export default function () {
     const win = CliqzUtils.getWindow();
     const urlBar = win.CLIQZ.Core.urlbar;
     const popup = win.CLIQZ.Core.popup;
-    const result1Selector = `a.result[href="${results[0].url}"]`;
-    const result2Selector = `a.result[href="${results[1].url}"]`;
+    const result1Selector = `a.result[data-url="${results[0].url}"]`;
+    const result2Selector = `a.result[data-url="${results[1].url}"]`;
 
     beforeEach(function () {
+      blurUrlBar();
       withHistory([]);
       respondWith({ results });
       fillIn(query);
@@ -145,7 +143,7 @@ export default function () {
         let visitSelector;
 
         beforeEach(function () {
-          visitSelector = '.result[href=\'moz-action:visiturl,{"url":"http://www.royalgames.com/"}\']';
+          visitSelector = '.result[data-url=\'moz-action:visiturl,{"url":"http://royalgames.com/"}\']';
           withHistory([]);
           respondWith({ results: resultsNew });
           press({ key: 'ArrowDown' });
@@ -162,7 +160,7 @@ export default function () {
         it('two new results were rendered: search with and normal result', function () {
           expect($resultElement.querySelectorAll('.result').length).to.equal(2);
           expect($resultElement).to.contain(visitSelector);
-          expect($resultElement).to.contain(`a.result[href="${resultsNew[0].url}"]`);
+          expect($resultElement).to.contain(`a.result[data-url="${resultsNew[0].url}"]`);
         });
 
         it('only \'visit\' result is selected', function () {
@@ -194,7 +192,7 @@ export default function () {
         let visitSelector;
 
         beforeEach(function () {
-          visitSelector = '.result[href=\'moz-action:visiturl,{"url":"http://www.royalgames.com/"}\']';
+          visitSelector = '.result[data-url=\'moz-action:visiturl,{"url":"http://royalgames.com/"}\']';
           withHistory([]);
           respondWith({ results: resultsNew });
           press({ key: 'ArrowDown' });
@@ -206,7 +204,7 @@ export default function () {
         it('two new results were rendered: search with and normal result', function () {
           expect($resultElement.querySelectorAll('.result').length).to.equal(2);
           expect($resultElement).to.contain(visitSelector);
-          expect($resultElement).to.contain(`a.result[href="${resultsNew[0].url}"]`);
+          expect($resultElement).to.contain(`a.result[data-url="${resultsNew[0].url}"]`);
         });
 
         it('only \'visit\' result is selected', function () {

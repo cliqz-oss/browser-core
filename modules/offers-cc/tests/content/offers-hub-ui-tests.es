@@ -1,18 +1,20 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-import chai from 'chai';
 import {
   clearIntervals,
-  Subject
-} from './helpers';
-
-import { dataGenericTooltip, dataExtraTooltip, dataNewOffer } from './fixtures/offers';
+  expect
+} from '../../core/test-helpers';
+import Subject from './local-helpers';
+import {
+  dataGenericTooltip,
+  dataExtraTooltip,
+  dataExtraTooltip1,
+  dataNewOffer,
+  dataNewOffer1
+} from './fixtures/offers';
 
 describe('Offers Hub UI tests', function () {
   let data;
-  const expect = chai.expect;
   let subject;
+  const target = 'cliqz-offers-cc';
 
   afterEach(function () {
     clearIntervals();
@@ -28,7 +30,7 @@ describe('Offers Hub UI tests', function () {
   }
 
   function offersHubFrameTests() {
-    context('renders reward box\'s header and footer elements', function () {
+    context('renders header and footer', function () {
       context('header part: ', function () {
         it('renders \'MyOffrz\'', function () {
           const offersHubTitleSelector = 'header [data-i18n="offers-hub-title"]';
@@ -55,8 +57,8 @@ describe('Offers Hub UI tests', function () {
       context('footer part: ', function () {
         it('renders feedback button', function () {
           const buttonSelector = 'footer #feedback-button';
-          chai.expect(subject.query(buttonSelector)).to.exist;
-          chai.expect(subject.query(buttonSelector)
+          expect(subject.query(buttonSelector)).to.exist;
+          expect(subject.query(buttonSelector)
             .textContent.trim()).to.equal('offers-hub-feedback-title');
         });
 
@@ -76,43 +78,33 @@ describe('Offers Hub UI tests', function () {
   function noOffersMessageTests() {
     context('renders welcome message', function () {
       it('renders gift icon', function () {
-        chai.expect(subject.query('.cqz-no-vouchers-msg img')).to.exist;
-        chai.expect(subject.query('.cqz-no-vouchers-msg img').src)
+        expect(subject.query('.cqz-no-vouchers-msg img')).to.exist;
+        expect(subject.query('.cqz-no-vouchers-msg img').src)
           .to.contain('/images/offers-cc-icon.svg');
       });
 
-
       it('renders title', function () {
         const titleSelector = '.cqz-no-vouchers-msg [data-i18n="offers-hub-welcome-title"]';
-        chai.expect(subject.query(titleSelector)).to.exist;
-      });
-
-      it('link is correct', function () {
-        const moreInfoSelector = 'footer .cqz-power-by';
-        chai.expect(subject.query(moreInfoSelector).hasAttribute('data-open-url')).to.be.true;
-        chai.expect(subject.query(moreInfoSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/myoffrz');
+        expect(subject.query(titleSelector)).to.exist;
       });
 
       it('renders text', function () {
         const textSelector = '.cqz-no-vouchers-msg [data-i18n="offers-hub-welcome-text"]';
-        chai.expect(subject.query(textSelector)).to.exist;
-        chai.expect(subject.query(textSelector).textContent.trim())
+        expect(subject.query(textSelector)).to.exist;
+        expect(subject.query(textSelector).textContent.trim())
           .to.equal('offers-hub-welcome-text');
       });
     });
   }
 
-  it('loads', function () {
-    expect(true).to.eql(true);
-  });
-
-  context('with generic tooltip', function () {
-    before(() => {
+  context('generic tooltip', function () {
+    before(function () {
       data = dataGenericTooltip;
       subject = new Subject();
-      return subject.load().then(function () {
-        return subject.pushData(data);
-      });
+      return subject.load()
+        .then(function () {
+          return subject.pushData(target, data);
+        });
     });
 
     after(function () {
@@ -143,13 +135,14 @@ describe('Offers Hub UI tests', function () {
     });
   });
 
-  context('with extra tooltip', function () {
-    before(() => {
+  context('extra tooltip with optional data', function () {
+    before(function () {
       data = dataExtraTooltip;
       subject = new Subject();
-      return subject.load().then(function () {
-        return subject.pushData(data);
-      });
+      return subject.load()
+        .then(function () {
+          return subject.pushData(target, data);
+        });
     });
 
     after(function () {
@@ -159,13 +152,8 @@ describe('Offers Hub UI tests', function () {
     it('renders tooltip', function () {
       const offerContentSelector = '#cliqz-offers-cc #cqz-offer-cc-content';
       expect(subject.query(offerContentSelector)).to.exist;
-      expect(subject.query(offerContentSelector).classList.contains('tooltip')).to.be.true;
+      expect(subject.query(offerContentSelector)).to.have.class('tooltip');
       expect(subject.query('#cqz-offer-cc-content .light')).to.exist;
-    });
-
-    it('url for button is correct', function () {
-      chai.expect(subject.query(`${selector} .cqz-btn`).hasAttribute('data-open-url')).to.be.true;
-      chai.expect(subject.query(`${selector} .cqz-btn`).getAttribute('data-open-url')).to.equal(element.template_data.call_to_action.url);
     });
 
     it('left border\'s color is correct', function () {
@@ -176,8 +164,6 @@ describe('Offers Hub UI tests', function () {
     it('renders short logo', function () {
       const logoSelector = '#cqz-offer-cc-content .light .logo.short';
       expect(subject.query(logoSelector)).to.exist;
-      expect(subject.getComputedStyle(logoSelector)['background-image'])
-        .to.equal(`url("${data.backgroundImage}")`);
     });
 
     it('renders benefit and headline ', function () {
@@ -202,14 +188,66 @@ describe('Offers Hub UI tests', function () {
     });
   });
 
-  context('with \'Welcome!\' message', function () {
-    before(() => {
+  context('extra tooltip without optional data', function () {
+    before(function () {
+      data = dataExtraTooltip1;
       subject = new Subject();
-      return subject.load().then(function () {
-        return subject.pushData({
-          noVoucher: true,
+      return subject.load()
+        .then(function () {
+          return subject.pushData(target, data);
         });
-      });
+    });
+
+    after(function () {
+      subject.unload();
+    });
+
+    it('renders tooltip', function () {
+      const offerContentSelector = '#cliqz-offers-cc #cqz-offer-cc-content';
+      expect(subject.query(offerContentSelector)).to.exist;
+      expect(subject.query(offerContentSelector)).to.have.class('tooltip');
+      expect(subject.query('#cqz-offer-cc-content .light')).to.exist;
+    });
+
+    it('left border\'s color is correct', function () {
+      expect(hex(subject.getComputedStyle('#cqz-offer-cc-content .light')['border-left-color']))
+        .to.equal(data.backgroundColor);
+    });
+
+    it('renders short logo', function () {
+      const logoSelector = '#cqz-offer-cc-content .light .logo.short';
+      expect(subject.query(logoSelector)).to.exist;
+      expect(subject.getComputedStyle(logoSelector)['background-image'])
+        .to.equal(`url("${data.backgroundImage}")`);
+    });
+
+    it('renders benefit and headline ', function () {
+      expect(subject.query('#cqz-offer-cc-content .light>p')
+        .textContent.trim()).to.equal(`${data.benefit} ${data.headline}`);
+    });
+
+    it('doesn\'t render labels', function () {
+      const exclusiveSelector = '#cqz-offer-cc-content .light .labels .exclusive';
+      const bestSelector = '#cqz-offer-cc-content .light .labels .best-offer';
+      expect(subject.query(exclusiveSelector)).to.not.exist;
+      expect(subject.query(bestSelector)).to.not.exist;
+    });
+
+    it('doesn\'t render header and footer', function () {
+      expect(subject.query('header')).to.not.exist;
+      expect(subject.query('footer')).to.not.exist;
+    });
+  });
+
+  context('with \'Welcome!\' message', function () {
+    before(function () {
+      subject = new Subject();
+      return subject.load()
+        .then(function () {
+          return subject.pushData(target, {
+            noVoucher: true,
+          });
+        });
     });
 
     after(function () {
@@ -220,14 +258,15 @@ describe('Offers Hub UI tests', function () {
     noOffersMessageTests();
   });
 
-  context('with four offers', function () {
+  context('offer with optional data', function () {
     const offerDetailsSelector = '#cqz-vouchers-holder li.voucher-wrapper.active .details';
-    before(() => {
+    before(function () {
       data = dataNewOffer;
       subject = new Subject();
-      return subject.load().then(function () {
-        return subject.pushData(data);
-      });
+      return subject.load()
+        .then(function () {
+          return subject.pushData(target, data);
+        });
     });
 
     after(function () {
@@ -235,6 +274,17 @@ describe('Offers Hub UI tests', function () {
     });
 
     offersHubFrameTests();
+
+    it('header: renders ad-label', function () {
+      const adLabelSelector = 'header p span';
+      expect(subject.queryAll(adLabelSelector)[1]).to.exist;
+      expect(subject.queryAll(adLabelSelector)[1].textContent.trim()).to.equal('ad-label');
+    });
+
+    it('footer: renders arrow to see more offers', function () {
+      const buttonSelector = 'footer button#expand-button';
+      expect(subject.query(buttonSelector)).to.exist;
+    });
 
     context('preferred offer', function () {
       it('rendered', function () {
@@ -309,7 +359,7 @@ describe('Offers Hub UI tests', function () {
 
       it('expires time text has correct color', function () {
         const validitySelector = `${offerDetailsSelector} .validity-wrapper .validity`;
-        expect(subject.query(validitySelector).classList.contains('red')).to.be.true;
+        expect(subject.query(validitySelector)).to.have.class('red');
         expect(hex(subject.getComputedStyle(`${validitySelector}.red`).color)).to.equal('#ff0000');
       });
 
@@ -325,12 +375,124 @@ describe('Offers Hub UI tests', function () {
         expect(subject.query(buttonSelector)).to.exist;
       });
 
-      it('conditions\' text exist but not visible', function () {
-        const conditionTextSelector = `${offerDetailsSelector} .validity-wrapper .condition-wrapper`;
-        expect(subject.query(conditionTextSelector)).to.exist;
-        expect(subject.getComputedStyle(conditionTextSelector).display).to.equal('none');
-        expect(subject.query(conditionTextSelector).textContent.trim())
-          .to.equal(data.vouchers[0].template_data.conditions);
+      it('with action button', function () {
+        const buttonSelector = `${offerDetailsSelector} .cta-btn`;
+        expect(subject.query(buttonSelector)).to.exist;
+        expect(subject.query(buttonSelector).textContent.trim())
+          .to.equal(data.vouchers[0].template_data.call_to_action.text);
+      });
+
+      it('url for button is correct', function () {
+        expect(subject.query(`${offerDetailsSelector} .cta-btn`).hasAttribute('data-url'))
+          .to.be.true;
+        expect(subject.query(`${offerDetailsSelector} .cta-btn`).getAttribute('data-url'))
+          .to.equal(data.vouchers[0].template_data.call_to_action.url);
+      });
+    });
+  });
+
+  context('offer without optional data', function () {
+    const offerDetailsSelector = '#cqz-vouchers-holder li.voucher-wrapper.active .details';
+    before(function () {
+      data = dataNewOffer1;
+      subject = new Subject();
+      return subject.load()
+        .then(function () {
+          return subject.pushData(target, data);
+        });
+    });
+
+    after(function () {
+      subject.unload();
+    });
+
+    offersHubFrameTests();
+
+    it('header: renders ad-label', function () {
+      const adLabelSelector = 'header p span';
+      expect(subject.queryAll(adLabelSelector)[1]).to.exist;
+      expect(subject.queryAll(adLabelSelector)[1].textContent.trim()).to.equal('ad-label');
+    });
+
+    it('footer: doesn\'t render arrow to see more offers', function () {
+      const buttonSelector = 'footer button#expand-button';
+      expect(subject.query(buttonSelector)).to.not.exist;
+    });
+
+    context('preferred offer', function () {
+      it('rendered', function () {
+        expect(subject.query(offerDetailsSelector)).to.exist;
+      });
+
+      it('doesn\'t render labels', function () {
+        const exclusiveSelector = `${offerDetailsSelector} .left-labels .exclusive`;
+        const bestSelector = `${offerDetailsSelector} .left-labels .best-offer`;
+        expect(subject.query(exclusiveSelector)).to.not.exist;
+        expect(subject.query(bestSelector)).to.not.exist;
+      });
+
+      it('doesn\t render picture', function () {
+        const pictureSelector = '.picture';
+        expect(subject.query(pictureSelector)).to.not.exist;
+      });
+
+      it('with benefit', function () {
+        const benefitSelector = `${offerDetailsSelector} .benefit`;
+        expect(subject.query(benefitSelector)).to.exist;
+        expect(subject.query(benefitSelector).textContent.trim())
+          .to.equal(data.vouchers[0].template_data.benefit);
+      });
+
+      it('with headline', function () {
+        const headlineSelector = `${offerDetailsSelector} .headline`;
+        expect(subject.query(headlineSelector)).to.exist;
+        expect(subject.query(headlineSelector).textContent.trim())
+          .to.equal(data.vouchers[0].template_data.title);
+      });
+
+      it('headline has correct color', function () {
+        const headlineSelector = `${offerDetailsSelector} .headline`;
+        expect(hex(subject.query(headlineSelector).style.color))
+          .to.equal(data.vouchers[0].backgroundColor);
+      });
+
+      it('with description', function () {
+        const descriptionSelector = `${offerDetailsSelector} .description`;
+        expect(subject.query(descriptionSelector)).to.exist;
+        expect(subject.query(descriptionSelector).textContent.trim())
+          .to.equal(data.vouchers[0].template_data.desc);
+      });
+
+      it('with promocode', function () {
+        const promocodeSelector = `${offerDetailsSelector} .promocode-wrapper .code`;
+        expect(subject.query(promocodeSelector)).to.exist;
+        expect(subject.query(promocodeSelector).value)
+          .to.equal(data.vouchers[0].template_data.code);
+      });
+
+      it('with \'copy code\' button', function () {
+        const buttonSelector = `${offerDetailsSelector} .promocode-wrapper .copy-code`;
+        expect(subject.query(buttonSelector)).to.exist;
+        expect(subject.query(buttonSelector).textContent.trim())
+          .to.equal('offers-hub-copy-btn');
+      });
+
+      it('with expires time', function () {
+        const validitySelector = `${offerDetailsSelector} .validity-wrapper .validity`;
+        expect(subject.query(validitySelector)).to.exist;
+        expect(subject.query(validitySelector).textContent.trim())
+          .to.equal(data.vouchers[0].validity.text);
+      });
+
+      it('expires time text has correct color', function () {
+        const validitySelector = `${offerDetailsSelector} .validity-wrapper .validity`;
+        expect(subject.query(validitySelector)).to.not.have.class('red');
+        expect(hex(subject.getComputedStyle(`${validitySelector}`).color)).to.equal('#b2b2b2');
+      });
+
+      it('doesn\'t render \'conditions\'', function () {
+        const conditionsSelector = `${offerDetailsSelector} .validity-wrapper .condition`;
+        expect(subject.query(conditionsSelector)).to.not.exist;
       });
 
       it('with action button', function () {

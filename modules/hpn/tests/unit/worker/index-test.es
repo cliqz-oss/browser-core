@@ -87,7 +87,8 @@ export default describeModule('hpn/worker/index',
       return {
         data: {
           type,
-          msg: 'some-message-content'
+          msg: 'some-message-content',
+          queryProxyUrl: 'some-query-proxy-url',
         }
       };
     }
@@ -100,7 +101,8 @@ export default describeModule('hpn/worker/index',
         data: {
           type: 'instant',
           msg: 'some-instant-message-content',
-          uid
+          uid,
+          queryProxyUrl: 'some-query-proxy-url',
         }
       };
     }
@@ -109,7 +111,8 @@ export default describeModule('hpn/worker/index',
       return mergeMsgTemplate({
         data: {
           type: 'telemetry',
-          msg: 'some-instant-message-content'
+          msg: 'some-instant-message-content',
+          queryProxyUrl: 'some-query-proxy-url',
         }
       });
     }

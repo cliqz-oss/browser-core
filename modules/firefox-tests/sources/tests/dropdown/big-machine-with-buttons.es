@@ -1,8 +1,5 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
+  blurUrlBar,
   $cliqzResults,
   expect,
   fillIn,
@@ -16,6 +13,7 @@ export default function () {
     let $resultElement;
 
     before(function () {
+      blurUrlBar();
       withHistory([]);
       respondWith({ results });
       fillIn('google');
@@ -98,7 +96,7 @@ export default function () {
         const buttonSelector = 'div.buttons a.btn';
         const buttonsItems = $resultElement.querySelectorAll(buttonSelector);
         [].forEach.call(buttonsItems, function (button, i) {
-          expect(button.href).to.contain(results[0].snippet.deepResults[0].links[i].url);
+          expect(button.dataset.url).to.contain(results[0].snippet.deepResults[0].links[i].url);
         });
       });
     });

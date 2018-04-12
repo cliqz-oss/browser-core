@@ -46,7 +46,22 @@ $configs: (
             offer-mn-code-font-size: 10px,
             offer-mn-code-wrapper-size: 120px,
             offer-mn-action-section-padding-left: 15px,
+            offer-mn-benefit-font-size: 33px,
+            offer-mn-headline-font-size: 13px,
+            offer-mn-desc-font-size: 10px,
+            offer-mn-desc-max-height: 49px,
+            offer-mn-left-container: 43%,
+            offer-mn-expires-display: none,
+            offer-mn-desc-line-height: 15.5px,
+            offer-mn-headline-margin-top: 12px
         ),
+        offer-middle-feedback: (
+            offer-mn-feedback-textarea-width: 50%,
+            offer-mn-feedback-textarea-display: none,
+            offer-mn-feedback-font-size: 11px,
+            offer-mn-feedback-height: 123px,
+            offer-mn-feedback-cta-margin-right: 10px
+        )
     ),
 
     small: (
@@ -96,7 +111,22 @@ $configs: (
             offer-mn-code-font-size: 14px,
             offer-mn-code-wrapper-size: 140px,
             offer-mn-action-section-padding-left: 15px,
+            offer-mn-benefit-font-size: 33px,
+            offer-mn-headline-font-size: 13px,
+            offer-mn-desc-font-size: 12px,
+            offer-mn-desc-max-height: 49px,
+            offer-mn-left-container: 33%,
+            offer-mn-expires-display: none,
+            offer-mn-desc-line-height: 15.5px,
+            offer-mn-headline-margin-top: 12px
         ),
+        offer-middle-feedback: (
+            offer-mn-feedback-textarea-width: 75%,
+            offer-mn-feedback-textarea-display: block,
+            offer-mn-feedback-font-size: 11px,
+            offer-mn-feedback-height: 123px,
+            offer-mn-feedback-cta-margin-right: 10px
+        )
     ),
 
     xmedium: (
@@ -146,7 +176,22 @@ $configs: (
             offer-mn-code-font-size: 16px,
             offer-mn-code-wrapper-size: 155px,
             offer-mn-action-section-padding-left: 25px,
+            offer-mn-benefit-font-size: 33px,
+            offer-mn-headline-font-size: 13px,
+            offer-mn-desc-font-size: 12px,
+            offer-mn-desc-max-height: 33px,
+            offer-mn-left-container: 33%,
+            offer-mn-expires-display: inline-block,
+            offer-mn-desc-line-height: 15.5px,
+            offer-mn-headline-margin-top: 9px
         ),
+        offer-middle-feedback: (
+            offer-mn-feedback-textarea-width: 70%,
+            offer-mn-feedback-textarea-display: block,
+            offer-mn-feedback-font-size: 12.5px,
+            offer-mn-feedback-height: 123px,
+            offer-mn-feedback-cta-margin-right: 20px
+        )
     ),
 
     medium: (
@@ -196,7 +241,22 @@ $configs: (
             offer-mn-code-font-size: 14px,
             offer-mn-code-wrapper-size: 140px,
             offer-mn-action-section-padding-left: 15px,
+            offer-mn-benefit-font-size: 34px,
+            offer-mn-headline-font-size: 13px,
+            offer-mn-desc-font-size: 12px,
+            offer-mn-desc-max-height: 49px,
+            offer-mn-left-container: 33%,
+            offer-mn-expires-display: none,
+            offer-mn-desc-line-height: 15.5px,
+            offer-mn-headline-margin-top: 7.5px
         ),
+        offer-middle-feedback: (
+            offer-mn-feedback-textarea-width: 80%,
+            offer-mn-feedback-textarea-display: block,
+            offer-mn-feedback-font-size: 12.5px,
+            offer-mn-feedback-height: 123px,
+            offer-mn-feedback-cta-margin-right: 10px
+        )
     ),
 
     large: (
@@ -246,6 +306,21 @@ $configs: (
             offer-mn-code-font-size: 14px,
             offer-mn-code-wrapper-size: 140px,
             offer-mn-action-section-padding-left: 15px,
+            offer-mn-benefit-font-size: 41px,
+            offer-mn-headline-font-size: 16.5px,
+            offer-mn-desc-font-size: 14.5px,
+            offer-mn-desc-max-height: 60px,
+            offer-mn-left-container: 33%,
+            offer-mn-expires-display: inline-block,
+            offer-mn-desc-line-height: 20px,
+            offer-mn-headline-margin-top: 9px
         ),
+        offer-middle-feedback: (
+            offer-mn-feedback-textarea-width: 70%,
+            offer-mn-feedback-textarea-display: block,
+            offer-mn-feedback-font-size: 12.5px,
+            offer-mn-feedback-height: 131px,
+            offer-mn-feedback-cta-margin-right: 20px
+        )
     ),
 );

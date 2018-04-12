@@ -4,7 +4,7 @@
 /* eslint-disable no-console */
 
 import OffersConfigs from '../offers-v2/offers_configs';
-import ActionID from '../offers-v2/actions_defs';
+import ActionID from '../offers-v2/offers/actions-defs';
 
 Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
 

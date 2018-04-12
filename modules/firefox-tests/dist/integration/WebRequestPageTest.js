@@ -374,6 +374,7 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
           expectedUrls = pageTests[testPage];
 
         it('determines correct request metadata', function() {
+          this.timeout(30000);
           return browser.newTab(url)
             .then(() => waitFor(() => {
               var testReqs = wrCollector.onHeadersReceived.filter(
@@ -459,12 +460,13 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
 
 
         context('onBeforeRequest', function () {
-          beforeEach(function () {
+          beforeEach(function (done) {
             webrequest.onBeforeRequest.addListener(
               urlRewriter,
               { urls: ['http://*'] },
               ['blocking']
             );
+            setTimeout(done, 100);
           });
 
           afterEach(function () {
@@ -473,6 +475,7 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
 
           // when redirecting scripts specfied in the DOM in onBeforeRequest we get a duplicate request
           it('can rewrite urls', function() {
+            this.timeout(30000);
             return testRewrite(testPage === 'thirdpartyscript.html')
           });
 
@@ -483,12 +486,13 @@ TESTS.WebRequestPageTest = function(CliqzUtils) {
         });
 
         context('onBeforeSendHeaders', function() {
-          beforeEach(function() {
+          beforeEach(function(done) {
             webrequest.onBeforeSendHeaders.addListener(
               urlRewriter,
               { urls: ['http://*'] },
               ['blocking']
             );
+            setTimeout(done, 100);
           });
 
           afterEach(function() {

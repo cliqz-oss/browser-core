@@ -1,8 +1,5 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
+  blurUrlBar,
   $cliqzResults,
   expect,
   fillIn,
@@ -16,6 +13,7 @@ export default function () {
     let $resultElement;
 
     before(function () {
+      blurUrlBar();
       respondWith({ results });
       withHistory([]);
       fillIn('bild');
@@ -46,8 +44,8 @@ export default function () {
 
       it('with existing and correct link', function () {
         const parentNewsLinkSelector = 'a.result';
-        expect($resultElement.querySelector(parentNewsLinkSelector).href).to.exist;
-        expect($resultElement.querySelector(parentNewsLinkSelector).href)
+        expect($resultElement.querySelector(parentNewsLinkSelector).dataset.url).to.exist;
+        expect($resultElement.querySelector(parentNewsLinkSelector).dataset.url)
           .to.equal(results[0].url);
       });
 
@@ -104,8 +102,8 @@ export default function () {
         const childLinkSelector = 'div.news a.result';
         const childrenLinkItems = $resultElement.querySelectorAll(childLinkSelector);
         [].forEach.call(childrenLinkItems, function (link, i) {
-          expect(link.href).to.exist;
-          expect(link.href).to.equal(results[0].snippet.deepResults[0].links[i].url);
+          expect(link.dataset.url).to.exist;
+          expect(link.dataset.url).to.equal(results[0].snippet.deepResults[0].links[i].url);
         });
       });
 
@@ -153,7 +151,7 @@ export default function () {
         const buttonSelector = 'div.buttons a.btn';
         const buttonsItems = $resultElement.querySelectorAll(buttonSelector);
         [].forEach.call(buttonsItems, function (button, i) {
-          expect(button.href).to.contain(results[0].snippet.deepResults[1].links[i].url);
+          expect(button.dataset.url).to.contain(results[0].snippet.deepResults[1].links[i].url);
         });
       });
     });

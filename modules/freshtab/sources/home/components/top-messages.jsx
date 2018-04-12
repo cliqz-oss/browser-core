@@ -19,7 +19,7 @@ export default class TopMessages extends React.Component {
       <div id="notificationsBox">
         {
           this.props.messages.map(message =>
-            <div className="notificationsCon clearfix" key={message.id}>
+            (<div className="notificationsCon clearfix" key={message.id}>
               <div className="close">
                 <button
                   href="#"
@@ -41,7 +41,7 @@ export default class TopMessages extends React.Component {
                 <h1>{message.title}</h1>
                 <p>{message.description}</p>
               </div>
-            </div>
+            </div>)
           )
         }
       </div>

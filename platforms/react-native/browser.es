@@ -17,7 +17,8 @@ export function checkIsWindowActive(windowID) {
   return nativeWebRequest.isWindowActive(parseInt(windowID, 10));
 }
 
-export function forEachWindow() {
+export function forEachWindow(cb) {
+  cb({});
 }
 
 export function setInstallDatePref() {
@@ -30,6 +31,11 @@ export function disableChangeEvents() {
 }
 
 export function waitWindowReady() {
+  return Promise.resolve();
+}
+
+export function mustLoadWindow() {
+  return true;
 }
 
 export function setOurOwnPrefs() {
@@ -57,7 +63,7 @@ export function mapWindows() {
   return [];
 }
 
-export function getLang() {
+export function getLocale() {
   return language.lang;
 }
 
@@ -71,4 +77,7 @@ export function getBrowserMajorVersion() {
 
 export function getCookies() {
   return Promise.reject('Not implemented');
+}
+
+export class Window {
 }

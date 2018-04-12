@@ -1,11 +1,12 @@
+/* eslint no-param-reassign: 'off' */
+
 import config from '../core/config';
 import NEWS_DOMAINS_LIST from './news-domains';
 import {
-  historyManager as coreHistoryManager,
+  historyManager as coreHistoryManager
 } from '../core/cliqz';
 import coreUtils from '../core/utils';
-import {extractSimpleURI} from '../core/url';
-import coreLanguage from '../core/language';
+import { extractSimpleURI } from '../core/url';
 import PlacesUtils from '../platform/places-utils';
 
 import NewsCache from './news-cache';
@@ -24,25 +25,14 @@ const hbasedNewsTypeKey = 'yournews';
 const prClBurdaNewsTypeKey = 'pr-cl-burda-news';
 const breakingNewsTypeKey = 'breaking-news';
 
-const NEWS_BACKENDS = ['de', 'fr'];
+const NEWS_BACKENDS = ['de', 'fr', 'us', 'gb'];
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 
 function log(s) {
   coreUtils.log(s, 'CliqzFreshTabNews');
 }
 
-const hbasedRecommendCacheObject = new NewsCache('freshTab-recommend-cache',
-                                              HBASED_RECOM_CACHE_UPDATE_INTERVAL,
-                                              getHistoryBasedRecommendations,
-                                              true);
-const topNewsCacheObject = new NewsCache('freshTab-topnews-cache',
-                                        TOP_NEWS_CACHE_UPDATE_INTERVAL,
-                                        getTopNewsList,
-                                        false);
-const hbasedNewsCacheObject = new NewsCache('freshTab-hbased-cache',
-                                          HABASED_NEWS_CACHE_UPDATE_INTERVAL,
-                                          getHbasedNewsObject,
-                                          true);
+let hbasedRecommendCacheObject;
 
 function requestBackend(url, data) {
   log(`Request url: ${url}`);
@@ -50,7 +40,7 @@ function requestBackend(url, data) {
     .then((response) => {
       const resData = JSON.parse(response.response);
       if (!resData.results || resData.results.length === 0) {
-        throw(`Backend response from ${url} is not valid "${JSON.stringify(resData)}."`);
+        throw new Error(`Backend response from ${url} is not valid "${JSON.stringify(resData)}."`);
       }
       return {
         results: [resData.results[0].snippet.extra]
@@ -58,15 +48,15 @@ function requestBackend(url, data) {
     });
 }
 
-function checkNewsTypeForHbasedRequest(newsPlacingRecord){
+function checkNewsTypeForHbasedRequest(newsPlacingRecord) {
   return (newsPlacingRecord.type === hbasedNewsTypeKey)
-        ||(newsPlacingRecord.type === prClBurdaNewsTypeKey);
+    || (newsPlacingRecord.type === prClBurdaNewsTypeKey);
 }
 
 function getNewsLanguage() {
-  const locale = coreUtils.PREFERRED_LANGUAGE;
+  const locale = coreUtils.PLATFORM_LOCALE;
 
-  for (var i = 0; i < NEWS_BACKENDS.length; i += 1) {
+  for (let i = 0; i < NEWS_BACKENDS.length; i += 1) {
     if (locale.indexOf(NEWS_BACKENDS[i]) !== -1) {
       return NEWS_BACKENDS[i];
     }
@@ -76,9 +66,9 @@ function getNewsLanguage() {
   return 'intl';
 }
 
-function getNewsPreferedCountryParam(){
-  var ftConfig = JSON.parse(coreUtils.getPref(FRESHTAB_CONFIG_PREF, '{}'));
-  if(!ftConfig.news || !ftConfig.news.preferedCountry){
+function getNewsPreferedCountryParam() {
+  const ftConfig = JSON.parse(coreUtils.getPref(FRESHTAB_CONFIG_PREF, '{}'));
+  if (!ftConfig.news || !ftConfig.news.preferedCountry) {
     ftConfig.news = Object.assign({}, ftConfig.news, {
       preferedCountry: getNewsLanguage()
     });
@@ -86,25 +76,31 @@ function getNewsPreferedCountryParam(){
     coreUtils.setPref(FRESHTAB_CONFIG_PREF, JSON.stringify(ftConfig));
   }
 
-  return '&news_edition=' + ftConfig.news.preferedCountry;
+  return `&news_edition=${ftConfig.news.preferedCountry}`;
 }
 
 function getTopNewsList() {
-  var url = coreUtils.RICH_HEADER + coreUtils.getRichHeaderQueryString('') + getNewsPreferedCountryParam(),
-      data = {
-        q: '',
-        results: [
-          {
-            url: 'rotated-top-news.cliqz.com',
-            snippet: {}
-          }
-        ]
-      };
+  const url = coreUtils.RICH_HEADER + coreUtils.getRichHeaderQueryString('') + getNewsPreferedCountryParam();
+  const data = {
+    q: '',
+    results: [
+      {
+        url: config.settings.ROTATED_TOP_NEWS,
+        snippet: {}
+      }
+    ]
+  };
   return requestBackend(url, JSON.stringify(data));
 }
 
-function getHbasedNewsObject() {
+const topNewsCacheObject = new NewsCache(
+  'freshTab-topnews-cache',
+  TOP_NEWS_CACHE_UPDATE_INTERVAL,
+  getTopNewsList,
+  false
+);
 
+function getHbasedNewsObject() {
   function filterNotRequiredDomains(reqData, hbasedRecom) {
     function getHbasedNewsDict(hbasedResults) {
       return (hbasedResults
@@ -115,16 +111,16 @@ function getHbasedNewsObject() {
     }
 
     return new Promise((resolve) => {
-      let hbNewsDict = getHbasedNewsDict(reqData);
-      let newsPlacing = hbasedRecom.newsPlacing || [];
+      const hbNewsDict = getHbasedNewsDict(reqData);
+      const newsPlacing = hbasedRecom.newsPlacing || [];
 
       const reqDomains = newsPlacing.filter(checkNewsTypeForHbasedRequest)
-        .map((r) => r.domain.split('/')[0]);
+        .map(r => r.domain.split('/')[0]);
 
-      let cleanhbNewsDict = {};
+      const cleanhbNewsDict = {};
 
-      reqDomains.forEach(domain => {
-        if (hbNewsDict.hasOwnProperty(domain)) {
+      reqDomains.forEach((domain) => {
+        if (Object.prototype.hasOwnProperty.call(hbNewsDict, domain)) {
           cleanhbNewsDict[domain] = hbNewsDict[domain];
         }
       });
@@ -138,26 +134,301 @@ function getHbasedNewsObject() {
     if (hbasedRecom.hashList.length === 0) {
       requestPromise = Promise.resolve({});
     } else {
-      var query = JSON.stringify(hbasedRecom.hashList),
-          url = coreUtils.RICH_HEADER + coreUtils.getRichHeaderQueryString(query),
-          data = {
-            q: query,
-            results: [
-              {
-                url: 'hb-news.cliqz.com',
-                snippet: {}
-              }
-            ]
-          };
+      const query = JSON.stringify(hbasedRecom.hashList);
+      const url = coreUtils.RICH_HEADER + coreUtils.getRichHeaderQueryString(query);
+      const data = {
+        q: query,
+        results: [
+          {
+            url: config.settings.HB_NEWS,
+            snippet: {}
+          }
+        ]
+      };
 
       requestPromise = requestBackend(url, JSON.stringify(data))
-        .then((reqData) => filterNotRequiredDomains(reqData, hbasedRecom));
+        .then(reqData => filterNotRequiredDomains(reqData, hbasedRecom));
     }
 
     return requestPromise;
   }
 
   return hbasedRecommendCacheObject.getData().then(requestHbasedNewsList);
+}
+
+const hbasedNewsCacheObject = new NewsCache(
+  'freshTab-hbased-cache',
+  HABASED_NEWS_CACHE_UPDATE_INTERVAL,
+  getHbasedNewsObject,
+  true
+);
+
+export function mergeToGlobalVisitCount(urlDesc, visitCount, globalVisitCount) {
+  function subUrlCheck(subUrl) {
+    return subUrl
+      && subUrl.indexOf('index') !== 0
+      && subUrl.length > 2
+      && subUrl.length < 15;
+  }
+
+  function ifCountSubLevel(urlPathList, recursionLevel) {
+    return recursionLevel < 4
+      && recursionLevel < urlPathList.length
+      && !((urlPathList.length !== 1) && (recursionLevel >= (urlPathList.length - 1)))
+      && subUrlCheck(urlPathList[recursionLevel]);
+  }
+
+  function countSubCategories(subVisitCount, urlPathList, vCount, recursionLevel) {
+    if (ifCountSubLevel(urlPathList, recursionLevel)) {
+      const subDomain = urlPathList[recursionLevel];
+
+      if (!(subVisitCount[subDomain] && 'count' in subVisitCount[subDomain])) {
+        subVisitCount[subDomain] = { count: 0, sub: {} };
+      }
+
+      subVisitCount[subDomain].count += vCount;
+
+      recursionLevel += 1;
+      subVisitCount[subDomain].sub = countSubCategories(
+        subVisitCount[subDomain].sub,
+        urlPathList,
+        vCount,
+        recursionLevel
+      );
+    }
+    return subVisitCount;
+  }
+
+  let urlPathList = urlDesc.path.split('/');
+  const domain = urlDesc.cleanHost;
+
+  if (!(globalVisitCount[domain] && 'count' in globalVisitCount[domain])) {
+    globalVisitCount[domain] = { count: 0, sub: {} };
+  }
+
+  globalVisitCount[domain].count += visitCount;
+
+
+  // cut the first empty part
+  if (!(urlPathList[0])) { urlPathList = urlPathList.slice(1); }
+
+  globalVisitCount[domain].sub = countSubCategories(
+    globalVisitCount[domain].sub,
+    urlPathList,
+    visitCount,
+    0
+  );
+}
+
+function composeDomainHasheList(newsPlacing, historyBasedRecommendationsCache) {
+  function randomValueOf(obj) {
+    const keys = Object.keys(obj);
+    const rnd = Math.floor(Math.random() * keys.length);
+    return parseInt(keys[rnd], 10);
+  }
+
+  function sortFunct(i, j) {
+    return i < j;
+  }
+
+  function getDomainHash(record) {
+    return parseInt(coreUtils.hash(record.domain.split('/')[0]), 10);
+  }
+
+  function subsRandomElement(cachedHashList, domainHashList, elementToAdd) {
+    // filter out elements which should be in the hash list
+    const randomHashes = cachedHashList.filter(i => domainHashList.indexOf(i) === -1);
+    const randomeHashToReplace = randomHashes[randomValueOf(randomHashes)];
+
+    cachedHashList[cachedHashList.indexOf(randomeHashToReplace)] = elementToAdd;
+  }
+
+
+  // extract domains' hashes for history based news
+  const domainHashList = newsPlacing.filter(checkNewsTypeForHbasedRequest).map(getDomainHash);
+  const cachedHashList = (historyBasedRecommendationsCache
+    && historyBasedRecommendationsCache.hashList)
+    || [];
+
+  if (domainHashList.length !== 0) {
+    const randomisedArraySize = 10;
+    let numberOfAdditionalElementsToChange = 0;
+
+    // fill array up to necessary number of hashes
+    while (cachedHashList.length < randomisedArraySize) {
+      cachedHashList.push(randomValueOf(NEWS_DOMAINS_LIST));
+    }
+
+    // fill array with necessary domain hashes
+    domainHashList.forEach((domainHash) => {
+      if (cachedHashList.indexOf(domainHash) === -1) {
+        // substitute the necessary element
+        subsRandomElement(cachedHashList, domainHashList, domainHash);
+        numberOfAdditionalElementsToChange += 1;
+      }
+    });
+
+    // substitute additional rand. elements
+    while (numberOfAdditionalElementsToChange > 0) {
+      subsRandomElement(cachedHashList, domainHashList, randomValueOf(NEWS_DOMAINS_LIST));
+      numberOfAdditionalElementsToChange -= 1;
+    }
+
+    cachedHashList.sort(sortFunct);
+  }
+
+  return cachedHashList;
+}
+
+function normalizeGlobalVisitCount(globalVisitCount) {
+  function normalizeRecursion(subUrlCount, sum) {
+    Object.keys(subUrlCount).forEach((k) => {
+      subUrlCount[k].ratio = subUrlCount[k].count / sum;
+      subUrlCount[k].sub = normalizeRecursion(subUrlCount[k].sub, subUrlCount[k].count);
+    });
+    return subUrlCount;
+  }
+
+  const glVisit = globalVisitCount;
+  let domainsSum = 0;
+
+  Object.keys(glVisit).forEach((k) => {
+    domainsSum += glVisit[k].count;
+  });
+
+  Object.keys(glVisit).forEach((k) => {
+    glVisit[k].ratio = glVisit[k].count / domainsSum;
+    glVisit[k].sub = normalizeRecursion(glVisit[k].sub, glVisit[k].count);
+  });
+  return glVisit;
+}
+
+function composeHistoryBasedRecommendations(globalVisitCount) {
+  function sortFunct(i, j) {
+    return i.count < j.count;
+  }
+
+  function getPressClipping(glVisitCount) {
+    function getPressClipMapping(domain) {
+      return PRESS_CLIPPING_MAPPING[parseInt(coreUtils.hash(domain), 10)] || false;
+    }
+    const glVisit = glVisitCount;
+    const pressClipList = [];
+    const prClipThreshold = 5;
+
+    let pressClipMapping;
+    Object.keys(glVisit).forEach((domain) => {
+      pressClipMapping = getPressClipMapping(domain);
+      if ((typeof pressClipMapping === 'string') && (glVisit[domain].count > prClipThreshold)) {
+        glVisit[domain].key = pressClipMapping;
+        pressClipList.push(glVisit[domain]);
+      }
+    });
+    return pressClipList;
+  }
+
+  function getThreeTopNewsDomains(glVisitCount) {
+    function checkIfNewsDomain(domain) {
+      return NEWS_DOMAINS_LIST[parseInt(coreUtils.hash(domain), 10)] || false;
+    }
+
+    const domainCountThreshold = 20;
+    const glVisit = glVisitCount;
+    const topDomainsList = [];
+
+    Object.keys(glVisit).forEach((domain) => {
+      if ((Object.prototype.hasOwnProperty.call(glVisit, domain)) &&
+          (glVisit[domain].count > domainCountThreshold) &&
+          (checkIfNewsDomain(domain))) {
+        glVisit[domain].key = domain;
+        topDomainsList.push(glVisit[domain]);
+      }
+    });
+
+    topDomainsList.sort(sortFunct);
+    return topDomainsList.slice(0, 3);
+  }
+
+  function addDomainBasedNews(domainCount, articlesToAdd) {
+    const subDomainRatioThreshold = 0.6;
+    const newsPlacing = [];
+    let addedOnSubdomainLevel = 0;
+
+    let numArtToAdd = articlesToAdd;
+
+    // add news placement on sub domain level
+    Object.keys(domainCount.sub).forEach((subDomain) => {
+      if (domainCount.sub[subDomain].ratio > subDomainRatioThreshold) {
+        addedOnSubdomainLevel = Math.max(
+          Math.floor(numArtToAdd * domainCount.sub[subDomain].ratio),
+          1
+        );
+        newsPlacing.push({
+          type: hbasedNewsTypeKey,
+          domain: [domainCount.key, subDomain].join('/'),
+          number: addedOnSubdomainLevel
+        });
+        numArtToAdd -= addedOnSubdomainLevel;
+      }
+    });
+
+    // add placement for domain level
+    if (numArtToAdd > 0) {
+      newsPlacing.push({
+        type: hbasedNewsTypeKey,
+        domain: domainCount.key,
+        number: numArtToAdd
+      });
+    }
+
+    return newsPlacing;
+  }
+
+  let newsPlacing = [];
+
+  const pressCliping = getPressClipping(globalVisitCount);
+  const topDomainsList = getThreeTopNewsDomains(globalVisitCount);
+
+  // always add 3 general top news
+  newsPlacing.push({ type: topNewsTypeKey, domain: topNewsTypeKey, number: 3 });
+
+  // in case of press clipping add one article instead of one of top news articles
+  if (pressCliping.length > 0) {
+    newsPlacing[0].number = 2;
+    newsPlacing.push({ type: prClBurdaNewsTypeKey, domain: pressCliping[0].key, number: 1 });
+  }
+
+  // add history based news depend from number of history based domains
+  switch (topDomainsList.length) {
+    // only top news
+    case 0:
+      newsPlacing.push({ type: topNewsTypeKey, domain: topNewsTypeKey, number: 9 });
+      break;
+
+    // 6 top news, 6 from history based domain
+    case 1:
+      newsPlacing.push({ type: topNewsTypeKey, domain: topNewsTypeKey, number: 3 });
+      newsPlacing = newsPlacing.concat(addDomainBasedNews(topDomainsList[0], 6));
+      break;
+
+    // 3 top news, 5 for first history based domain, 4 for second
+    case 2:
+      newsPlacing = newsPlacing.concat(addDomainBasedNews(topDomainsList[0], 5));
+      newsPlacing = newsPlacing.concat(addDomainBasedNews(topDomainsList[1], 4));
+      break;
+
+    // 3 top news, 3 from each of 3 history based domains
+    case 3:
+      topDomainsList.forEach((domainCount) => {
+        newsPlacing = newsPlacing.concat(addDomainBasedNews(domainCount, 3));
+      });
+      break;
+    default:
+      log(`Wrong number top domains:${topDomainsList.length}.`);
+  }
+
+  log(newsPlacing);
+  return newsPlacing;
 }
 
 /**
@@ -238,263 +509,12 @@ export function getHistoryBasedRecommendations(oldCacheData) {
   });
 }
 
-export function mergeToGlobalVisitCount(urlDesc, visitCount, globalVisitCount) {
-  function subUrlCheck(subUrl) {
-    return subUrl
-      && subUrl.indexOf('index') !== 0
-      && subUrl.length > 2
-      && subUrl.length < 15;
-  }
-
-  function ifCountSubLevel(urlPathList, recursionLevel) {
-    return recursionLevel < 4
-      && recursionLevel < urlPathList.length
-      && !((urlPathList.length !== 1) && (recursionLevel >= (urlPathList.length - 1)))
-      && subUrlCheck(urlPathList[recursionLevel]);
-  }
-
-  function countSubCategories(subVisitCount, urlPathList, vCount, recursionLevel) {
-    if (ifCountSubLevel(urlPathList, recursionLevel)) {
-      const subDomain = urlPathList[recursionLevel];
-
-      if(!(subVisitCount[subDomain] && 'count' in subVisitCount[subDomain])){
-        subVisitCount[subDomain] = { count: 0, sub: {} };
-      }
-
-      subVisitCount[subDomain].count += vCount;
-
-      recursionLevel += 1;
-      subVisitCount[subDomain].sub = countSubCategories(subVisitCount[subDomain].sub,
-                                                        urlPathList,
-                                                        vCount,
-                                                        recursionLevel);
-    }
-    return subVisitCount;
-  }
-
-  let urlPathList = urlDesc.path.split('/');
-  const domain = urlDesc.cleanHost;
-
-  if(!(globalVisitCount[domain] && 'count' in globalVisitCount[domain])){
-    globalVisitCount[domain] = { count: 0, sub: {} };
-  }
-
-  globalVisitCount[domain].count += visitCount;
-
-
-  // cut the first empty part
-  if (!(urlPathList[0])) { urlPathList = urlPathList.slice(1); }
-
-  globalVisitCount[domain].sub = countSubCategories(globalVisitCount[domain].sub,
-                                                    urlPathList,
-                                                    visitCount,
-                                                    0);
-}
-
-function composeDomainHasheList(newsPlacing, historyBasedRecommendationsCache) {
-  function randomValueOf(obj) {
-    const keys = Object.keys(obj);
-    const rnd = Math.floor(Math.random() * keys.length);
-    return parseInt(keys[rnd], 10);
-  }
-
-  function sortFunct(i, j) {
-    return i < j;
-  }
-
-  function getDomainHash(record) {
-    return parseInt(coreUtils.hash(record.domain.split('/')[0]), 10);
-  }
-
-  function subsRandomElement(cachedHashList, domainHashList, elementToAdd) {
-    // filter out elements which should be in the hash list
-    const randomHashes = cachedHashList.filter(i => domainHashList.indexOf(i) === -1);
-    const randomeHashToReplace = randomHashes[randomValueOf(randomHashes)];
-
-    cachedHashList[cachedHashList.indexOf(randomeHashToReplace)] = elementToAdd;
-  }
-
-
-  // extract domains' hashes for history based news
-  const domainHashList = newsPlacing.filter(checkNewsTypeForHbasedRequest).map(getDomainHash);
-  const cachedHashList = (historyBasedRecommendationsCache && historyBasedRecommendationsCache.hashList) || [];
-
-  if (domainHashList.length !== 0) {
-    const randomisedArraySize = 10;
-    let numberOfAdditionalElementsToChange = 0;
-
-    // fill array up to necessary number of hashes
-    while (cachedHashList.length < randomisedArraySize) {
-      cachedHashList.push(randomValueOf(NEWS_DOMAINS_LIST));
-    }
-
-    // fill array with necessary domain hashes
-    domainHashList.forEach((domainHash) => {
-      if (cachedHashList.indexOf(domainHash) === -1) {
-        // substitute the necessary element
-        subsRandomElement(cachedHashList, domainHashList, domainHash);
-        numberOfAdditionalElementsToChange += 1;
-      }
-    });
-
-    // substitute additional rand. elements
-    while (numberOfAdditionalElementsToChange > 0) {
-      subsRandomElement(cachedHashList, domainHashList, randomValueOf(NEWS_DOMAINS_LIST));
-      numberOfAdditionalElementsToChange -= 1;
-    }
-
-    cachedHashList.sort(sortFunct);
-  }
-
-  return cachedHashList;
-}
-
-
-function normalizeGlobalVisitCount(globalVisitCount) {
-  function normalizeRecursion(subUrlCount, sum) {
-    Object.keys(subUrlCount).forEach((k) => {
-      subUrlCount[k].ratio = subUrlCount[k].count / sum;
-      subUrlCount[k].sub = normalizeRecursion(subUrlCount[k].sub, subUrlCount[k].count);
-    });
-    return subUrlCount;
-  }
-
-  const glVisit = globalVisitCount;
-  let domainsSum = 0;
-
-  Object.keys(glVisit).forEach((k) => {
-    domainsSum += glVisit[k].count;
-  });
-
-  Object.keys(glVisit).forEach((k) => {
-    glVisit[k].ratio = glVisit[k].count / domainsSum;
-    glVisit[k].sub = normalizeRecursion(glVisit[k].sub, glVisit[k].count);
-  });
-  return glVisit;
-}
-
-function composeHistoryBasedRecommendations(globalVisitCount) {
-  function sortFunct(i, j) {
-    return i.count < j.count;
-  }
-
-  function getPressClipping(glVisitCount) {
-    function getPressClipMapping(domain) {
-      return PRESS_CLIPPING_MAPPING[parseInt(coreUtils.hash(domain), 10)] || false;
-    }
-    const glVisit = glVisitCount;
-    const pressClipList = [];
-    const prClipThreshold = 5 ;
-
-    let pressClipMapping;
-    Object.keys(glVisit).forEach((domain) => {
-      pressClipMapping = getPressClipMapping(domain);
-      if ((typeof pressClipMapping === 'string') && (glVisit[domain].count > prClipThreshold)) {
-        glVisit[domain].key = pressClipMapping;
-        pressClipList.push(glVisit[domain]);
-      }
-    });
-    return pressClipList;
-  }
-
-  function getThreeTopNewsDomains(glVisitCount) {
-    function checkIfNewsDomain(domain) {
-      return NEWS_DOMAINS_LIST[parseInt(coreUtils.hash(domain), 10)] || false;
-    }
-
-    const domainCountThreshold = 20;
-    const glVisit = glVisitCount;
-    const topDomainsList = [];
-
-    Object.keys(glVisit).forEach((domain) => {
-      if ((glVisit.hasOwnProperty(domain)) &&
-          (glVisit[domain].count > domainCountThreshold) &&
-          (checkIfNewsDomain(domain))) {
-        glVisit[domain].key = domain;
-        topDomainsList.push(glVisit[domain]);
-      }
-    });
-
-    topDomainsList.sort(sortFunct);
-    return topDomainsList.slice(0, 3);
-  }
-
-  function addDomainBasedNews(domainCount, articlesToAdd) {
-    const subDomainRatioThreshold = 0.6;
-    const newsPlacing = [];
-    let addedOnSubdomainLevel = 0;
-
-    let numArtToAdd = articlesToAdd;
-
-    // add news placement on sub domain level
-    Object.keys(domainCount.sub).forEach((subDomain) => {
-      if (domainCount.sub[subDomain].ratio > subDomainRatioThreshold) {
-        addedOnSubdomainLevel = Math.max(
-                                  Math.floor(numArtToAdd * domainCount.sub[subDomain].ratio),
-                                  1);
-        newsPlacing.push({ type: hbasedNewsTypeKey,
-                           domain: [domainCount.key, subDomain].join('/'),
-                           number: addedOnSubdomainLevel });
-        numArtToAdd -= addedOnSubdomainLevel;
-      }
-    });
-
-    // add placement for domain level
-    if (numArtToAdd > 0) {
-      newsPlacing.push({ type: hbasedNewsTypeKey,
-                        domain: domainCount.key,
-                        number: numArtToAdd });
-    }
-
-    return newsPlacing;
-  }
-
-  let newsPlacing = [];
-
-  const pressCliping = getPressClipping(globalVisitCount);
-  const topDomainsList = getThreeTopNewsDomains(globalVisitCount);
-
-  // always add 3 general top news
-  newsPlacing.push({ type: topNewsTypeKey, domain: topNewsTypeKey, number: 3 });
-
-  // in case of press clipping add one article instead of one of top news articles
-  if (pressCliping.length > 0) {
-    newsPlacing[0].number = 2;
-    newsPlacing.push({ type: prClBurdaNewsTypeKey, domain: pressCliping[0].key, number: 1 });
-  }
-
-  // add history based news depend from number of history based domains
-  switch (topDomainsList.length) {
-    // only top news
-    case 0:
-      newsPlacing.push({ type: topNewsTypeKey, domain: topNewsTypeKey, number: 9 });
-      break;
-
-    // 6 top news, 6 from history based domain
-    case 1:
-      newsPlacing.push({ type: topNewsTypeKey, domain: topNewsTypeKey, number: 3 });
-      newsPlacing = newsPlacing.concat(addDomainBasedNews(topDomainsList[0], 6));
-      break;
-
-    // 3 top news, 5 for first history based domain, 4 for second
-    case 2:
-      newsPlacing = newsPlacing.concat(addDomainBasedNews(topDomainsList[0], 5));
-      newsPlacing = newsPlacing.concat(addDomainBasedNews(topDomainsList[1], 4));
-      break;
-
-    // 3 top news, 3 from each of 3 history based domains
-    case 3:
-      topDomainsList.forEach((domainCount) => {
-        newsPlacing = newsPlacing.concat(addDomainBasedNews(domainCount, 3));
-      });
-      break;
-    default:
-      log('Wrong number top domains:${topDomainsList.length}.');
-  }
-
-  log(newsPlacing);
-  return newsPlacing;
-}
+hbasedRecommendCacheObject = new NewsCache(
+  'freshTab-recommend-cache',
+  HBASED_RECOM_CACHE_UPDATE_INTERVAL,
+  getHistoryBasedRecommendations,
+  true
+);
 
 function getTopNewsArticles(topNCache) {
   return (topNCache
@@ -519,7 +539,14 @@ export function composeNewsList(historyObject, topNewsCache, hbasedResults) {
     return freshtabArticlesList.every(urlCheck);
   }
 
-  function mergeToList(articlesToMerge, freshtabArticlesList, numberOfNewsToMerge, sourceArticleType, checkIfAlreadyInHistory, urlPatern) {
+  function mergeToList(
+    articlesToMerge,
+    freshtabArticlesList,
+    numberOfNewsToMerge,
+    sourceArticleType,
+    checkIfAlreadyInHistory,
+    urlPatern
+  ) {
     function mergeCheck(article, checkHist, urlDomainPatern) {
       return (!(!(article.breaking === true) && checkHist && article.isVisited) &&
             (notAlreadyInList(article.url, freshtabArticlesList)) &&
@@ -557,24 +584,33 @@ export function composeNewsList(historyObject, topNewsCache, hbasedResults) {
   function mergeTopNews(topNewList, freshtabArticlesList, numberOfNewsToMerge) {
     let checkIfInHistory = true;
 
-    const notMergedNewsNumber = mergeToList(topNewList,
-                                            freshtabArticlesList,
-                                            numberOfNewsToMerge,
-                                            topNewsTypeKey,
-                                            checkIfInHistory);
+    const notMergedNewsNumber = mergeToList(
+      topNewList,
+      freshtabArticlesList,
+      numberOfNewsToMerge,
+      topNewsTypeKey,
+      checkIfInHistory
+    );
 
     // fill empty slots with articles without check with history
     checkIfInHistory = false;
-    mergeToList(topNewList,
-                freshtabArticlesList,
-                notMergedNewsNumber,
-                topNewsTypeKey,
-                checkIfInHistory);
+    mergeToList(
+      topNewList,
+      freshtabArticlesList,
+      notMergedNewsNumber,
+      topNewsTypeKey,
+      checkIfInHistory
+    );
 
     return freshtabArticlesList;
   }
 
-  function mergePressClippingNews(hbasedNewsDict, topNewList, freshtabArticlesList, newsPlacementRecord) {
+  function mergePressClippingNews(
+    hbasedNewsDict,
+    topNewList,
+    freshtabArticlesList,
+    newsPlacementRecord
+  ) {
     const pressClippingName = newsPlacementRecord.domain || '';
     const numberOfNewsToMerge = newsPlacementRecord.number || 0;
     const sourceArticleType = prClBurdaNewsTypeKey;
@@ -584,11 +620,13 @@ export function composeNewsList(historyObject, topNewsCache, hbasedResults) {
 
     let returnNewsList = freshtabArticlesList;
 
-    const notMergedNewsNumber = mergeToList(hbasedNewsList,
-                                            returnNewsList,
-                                            numberOfNewsToMerge,
-                                            sourceArticleType,
-                                            checkIfInHistory);
+    const notMergedNewsNumber = mergeToList(
+      hbasedNewsList,
+      returnNewsList,
+      numberOfNewsToMerge,
+      sourceArticleType,
+      checkIfInHistory
+    );
 
     // if no press cliping can be merged, merge top news instead
     returnNewsList = mergeTopNews(topNewList, returnNewsList, notMergedNewsNumber);
@@ -606,19 +644,23 @@ export function composeNewsList(historyObject, topNewsCache, hbasedResults) {
 
     let returnNewsList = freshtabArticlesList;
     // merge news according to url path
-    let notMergedNewsNumber = mergeToList(hbasedNewsList,
-                                          returnNewsList,
-                                          numberOfNewsToMerge,
-                                          hbasedNewsTypeKey,
-                                          checkIfInHistory,
-                                          domainUrlPath);
+    let notMergedNewsNumber = mergeToList(
+      hbasedNewsList,
+      returnNewsList,
+      numberOfNewsToMerge,
+      hbasedNewsTypeKey,
+      checkIfInHistory,
+      domainUrlPath
+    );
 
     // if not all news were mergen according to url path, merge news only from domain
-    notMergedNewsNumber = mergeToList(hbasedNewsList,
-                                      returnNewsList,
-                                      notMergedNewsNumber,
-                                      hbasedNewsTypeKey,
-                                      checkIfInHistory);
+    notMergedNewsNumber = mergeToList(
+      hbasedNewsList,
+      returnNewsList,
+      notMergedNewsNumber,
+      hbasedNewsTypeKey,
+      checkIfInHistory
+    );
 
     // if no hbased news can be merged, merge top news
     returnNewsList = mergeTopNews(topNewList, returnNewsList, notMergedNewsNumber);
@@ -647,7 +689,7 @@ export function composeNewsList(historyObject, topNewsCache, hbasedResults) {
   function sortByScore(list) {
     function sortFunct(i, j) {
       // if score is not presented put record on top
-      return (i.score || Math.pow(10, 6)) < (j.score || Math.pow(10, 6));
+      return (i.score || (10 ** 6)) < (j.score || (10 ** 6));
     }
     // sort all news apart from first 3
     return list.slice(0, 3).concat(list.slice(3, 15).sort(sortFunct));
@@ -668,16 +710,20 @@ export function composeNewsList(historyObject, topNewsCache, hbasedResults) {
           freshtabArticlesList = mergeTopNews(topNewsList, freshtabArticlesList, record.number);
           break;
         case hbasedNewsTypeKey:
-          freshtabArticlesList = mergeHbasedNews(hbasedNewsDict,
-                                                topNewsList,
-                                                freshtabArticlesList,
-                                                record);
+          freshtabArticlesList = mergeHbasedNews(
+            hbasedNewsDict,
+            topNewsList,
+            freshtabArticlesList,
+            record
+          );
           break;
         case prClBurdaNewsTypeKey:
-          freshtabArticlesList = mergePressClippingNews(hbasedNewsDict,
-                                                        topNewsList,
-                                                        freshtabArticlesList,
-                                                        record);
+          freshtabArticlesList = mergePressClippingNews(
+            hbasedNewsDict,
+            topNewsList,
+            freshtabArticlesList,
+            record
+          );
           break;
         default:
           log(`Not handled news type in news placing ${record.type}`);
@@ -697,21 +743,21 @@ export function composeNewsList(historyObject, topNewsCache, hbasedResults) {
 }
 
 function addVisitedFlagToArticles(articlesList) {
-  const promiseList = articlesList.map((article) => {
-    return new Promise((resolve) => {
+  const promiseList = articlesList.map(article =>
+    new Promise((resolve) => {
       const URI = coreUtils.makeUri(article.url, '', null);
       PlacesUtils.asyncHistory.isURIVisited(URI, (aURI, isVisited) => {
         article.isVisited = isVisited;
-        if (article.isVisited){
+        if (article.isVisited) {
           log(`Url is already in the histoy ${aURI.spec}.`);
         }
         resolve(article);
       });
-    }).catch(err => {
+    }).catch((err) => {
       log(`Error checking url in history ${article.url} ${err}.`);
       return article;
-    });
-  });
+    })
+  );
 
   return Promise.all(promiseList);
 }
@@ -721,17 +767,17 @@ function checkTopNewsIfInHistory(topNewsCache) {
 }
 
 function checkHbasedNewsIfInHistory(hbNewsDict) {
-  const promiseList = Object.keys(hbNewsDict).map(domain => {
-    return new Promise(resolve => {
-      addVisitedFlagToArticles(hbNewsDict[domain]).then(articlesList => {
+  const promiseList = Object.keys(hbNewsDict).map(domain =>
+    new Promise((resolve) => {
+      addVisitedFlagToArticles(hbNewsDict[domain]).then((articlesList) => {
         resolve([domain, articlesList]);
       });
-    });
-  });
+    })
+  );
 
   return Promise.all(promiseList).then((hbNewsChecked) => {
     const hbDictResult = {};
-    hbNewsChecked.forEach(r => {
+    hbNewsChecked.forEach((r) => {
       hbDictResult[r[0]] = r[1];
     });
     return hbDictResult;
@@ -762,7 +808,7 @@ const CliqzFreshTabNews = {
       topNewsL = topNewsList;
       hbObject = hbasedObject;
       return hbasedRecommendCacheObject.getData();
-    }).then((historyObject) => composeNewsList(historyObject, topNewsL, hbObject));
+    }).then(historyObject => composeNewsList(historyObject, topNewsL, hbObject));
   },
   resetTopNews: () => {
     topNewsCacheObject.reset();

@@ -1,12 +1,36 @@
-/* globals sendAsyncMessage, removeMessageListener, addMessageListener */
+/* globals ChromeUtils, sendAsyncMessage, removeMessageListener, addMessageListener */
 
-import { Services } from '../platform/globals';
+import { Components, Services } from '../platform/globals';
 import store from '../core/content/store';
 import config from '../core/config';
-import { getWindowId, CHROME_MSG_SOURCE } from '../core/content/helpers';
+import { CHROME_MSG_SOURCE } from '../core/content/helpers';
 import { getMessage } from '../core/i18n';
 
 const send = sendAsyncMessage.bind(null, 'cliqz');
+const CONTENT_SCRIPT_URL = 'chrome://cliqz/content/core/content-script.bundle.js';
+
+const getContentScript = () => {
+  try {
+    Components.utils.importGlobalProperties(['ChromeUtils']);
+  } catch (e) {
+    // ChromeUtils are available only in Firefox 60 +
+    return Promise.resolve({ hasReturnValue: false });
+  }
+
+  if (getContentScript.compiledContentScript) {
+    return Promise.resolve(getContentScript.compiledContentScript);
+  }
+
+  return ChromeUtils.compileScript(CONTENT_SCRIPT_URL).then((script) => {
+    getContentScript.compiledContentScript = script;
+    return script;
+  });
+};
+
+const getWindowId = window => window
+  .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+  .getInterface(Components.interfaces.nsIDOMWindowUtils)
+  .outerWindowID;
 
 /**
  * Run function for all existing documents.
@@ -68,11 +92,13 @@ const DocumentManager = {
     info.onUnload();
   },
 
-  observe(document) {
+  async observe(document) {
     const window = document && document.defaultView;
     if (!document || !document.location || !window) {
       return;
     }
+
+    const contentScript = await getContentScript();
 
     const windowId = getWindowId(window);
     const listeners = new Set();
@@ -85,6 +111,10 @@ const DocumentManager = {
             ...incomingMessage.data,
             type: 'response',
           }, window);
+
+          if (incomingMessage.windowId && (incomingMessage.windowId !== windowId)) {
+            return;
+          }
 
           l(unsafeMessage);
         } catch (e) {
@@ -155,6 +185,7 @@ const DocumentManager = {
         sendMessage(message) {
           send({
             ...message,
+            windowId,
             sender,
             source: CHROME_MSG_SOURCE
           });
@@ -169,14 +200,50 @@ const DocumentManager = {
         },
       },
     };
-    Services.scriptloader.loadSubScriptWithOptions('chrome://cliqz/content/core/content-script.bundle.js', {
-      target: {
+
+    const isWhitelisted = whitelistedPages.some(url => window.location.href.indexOf(url) === 0);
+
+    if (isWhitelisted || !contentScript.hasReturnValue) {
+      Services.scriptloader.loadSubScript('chrome://cliqz/content/core/content-script.bundle.js', {
         window,
         chrome,
         windowId,
-      },
-      ignoreCache: true
-    });
+      });
+    } else {
+      // For Firefox 60+ we precompile content scripts in same way Firefox
+      // webextensions does
+      const contentPrincipal = window.document.nodePrincipal;
+      const attrs = contentPrincipal.originAttributes;
+      const ssm = Services.scriptSecurityManager;
+      const uri = Services.io.newURI(CONTENT_SCRIPT_URL);
+      const extensionPrincipal = ssm.createCodebasePrincipal(uri, attrs);
+      // source: https://github.com/mozilla/gecko-dev/blob/4d5798c0a5103636aef38f3b668b5463797b4dfc/toolkit/components/extensions/ExtensionContent.jsm#L529
+      let principal;
+      if (ssm.isSystemPrincipal(contentPrincipal)) {
+        // Make sure we don't hand out the system principal by accident.
+        // also make sure that the null principal has the right origin attributes
+        principal = ssm.createNullPrincipal(attrs);
+      } else {
+        principal = [contentPrincipal, extensionPrincipal];
+      }
+
+      const sandbox = Components.utils.Sandbox(principal, {
+        sandboxName: 'Content Script Cliqz',
+        sandboxPrototype: window,
+        sameZoneAs: window,
+        wantXrays: true,
+        isWebExtensionContentScript: true,
+        wantExportHelpers: true,
+        wantGlobalProperties: [],
+        originAttributes: attrs,
+      });
+
+      sandbox.chrome = Components.utils.cloneInto(chrome, sandbox, {
+        cloneFunctions: true
+      });
+
+      contentScript.executeInGlobal(sandbox);
+    }
 
     this._windowsInfo.set(window, {
       windowId,

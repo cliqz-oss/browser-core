@@ -74,7 +74,7 @@ TESTS.WebRequestTest = function(CliqzUtils) {
 
     context('page loaded in tab', function() {
 
-      var url = 'http://localhost:' + testServer.port + '/';
+      var url = 'http://cliqztest.com:' + testServer.port + '/';
 
       beforeEach(function(done) {
         testServer.registerPathHandler('/', helloWorld);
@@ -89,6 +89,7 @@ TESTS.WebRequestTest = function(CliqzUtils) {
       });
 
       it('calls each topic once', function() {
+        this.timeout(30000);
         for (var topic of [onBeforeRequest, onBeforeSendHeaders, onHeadersReceived]) {
           var reqs = topic.filter( function(req) { return req.url === url });
           console.log(reqs);
@@ -213,13 +214,24 @@ TESTS.WebRequestTest = function(CliqzUtils) {
       var changeHeaders = function(req) {
         if (req.url === url && !requestSeen) {
           requestSeen = true;
-          const newHeaders = req.requestHeaders;
+          const newHeaders = [...req.requestHeaders];
+          // add a header
           newHeaders.push({
             name: 'newheader',
             value: 'test'
           });
-          newHeaders.find(h => h.name.toLowerCase() === 'user-agent').value = 'Cliqz';
-          return {requestHeaders: newHeaders}
+          // modify a header
+          const changeHeader = 'user-agent';
+          const index = newHeaders.findIndex(h => h.name.toLowerCase() === changeHeader);
+          newHeaders[index] = {
+            name: changeHeader,
+            value: 'Cliqz',
+          };
+          // remove a header
+          newHeaders.splice(newHeaders.findIndex((h => h.name.toLowerCase() === 'accept-language')), 1);
+          return {
+            requestHeaders: newHeaders
+          };
         }
       };
 
@@ -255,8 +267,9 @@ TESTS.WebRequestTest = function(CliqzUtils) {
             console.log(headers);
             chai.expect(headers).to.have.property('newheader');
             chai.expect(headers['newheader']).to.equal('test');
+            // removed header
+            chai.expect(headers).to.not.have.property('accept-language');
             // modified header
-            chai.expect(headers).to.have.property('user-agent');
             chai.expect(headers['user-agent']).to.equal('Cliqz');
           });
         });

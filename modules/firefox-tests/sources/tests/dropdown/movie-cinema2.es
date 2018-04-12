@@ -1,14 +1,14 @@
 /* global window */
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
 
 import {
+  blurUrlBar,
   $cliqzResults,
+  click,
   CliqzUtils,
   expect,
   fillIn,
   respondWith,
+  waitFor,
   waitForPopup,
   withHistory } from './helpers';
 import results from './fixtures/resultsMovieCinema2';
@@ -21,6 +21,7 @@ export default function () {
     let cinemaAreaItem;
 
     before(function () {
+      blurUrlBar();
       respondWith({ results });
       withHistory([]);
       fillIn('yorck.de');
@@ -62,7 +63,7 @@ export default function () {
       });
 
       it('with an existing and correct link', function () {
-        const parentMovieLinkItem = parentMovieItem.href;
+        const parentMovieLinkItem = parentMovieItem.dataset.url;
         expect(parentMovieLinkItem).to.exist;
         expect(parentMovieLinkItem).to.equal(results[0].url);
       });
@@ -100,7 +101,7 @@ export default function () {
         const cinemaMapSelector = 'a.local-map';
         const cinemaMapItem = cinemaLocalItem.querySelector(cinemaMapSelector);
         expect(cinemaMapItem).to.exist;
-        expect(decodeURIComponent(cinemaMapItem.href))
+        expect(decodeURIComponent(cinemaMapItem.dataset.url))
           .to.equal(results[0].snippet.extra.data.cinema.mu);
       });
 
@@ -125,8 +126,8 @@ export default function () {
 
     describe('renders cinema and movies table', function () {
       const cinemaMoviesSelector = 'div.show-time';
-      const moviesRowSelector = 'div.show-time-row';
-      const movieTimeSelector = 'div.show-time-info span.show-time-span';
+      const moviesRowSelector = '#tab-block-0 .show-time-row';
+      const movieTimeSelector = '#tab-block-0 .show-time-span';
       let cinemaMoviesItem;
       let moviesRowItems;
       let movieTimes;
@@ -151,7 +152,7 @@ export default function () {
         const moviesTabsAreaItem = cinemaMoviesItem.querySelector(moviesTabsAreaSelector);
         expect(moviesTabsAreaItem).to.exist;
 
-        const moviesTabsSelector = 'label.dropdown-tab-label';
+        const moviesTabsSelector = 'label.dropdown-tab';
         const moviesTabsItems = moviesTabsAreaItem.querySelectorAll(moviesTabsSelector);
         expect(moviesTabsItems.length)
           .to.equal(results[0].snippet.extra.data.showdates.length);
@@ -161,20 +162,138 @@ export default function () {
       });
 
       it('with the first tab being selected as default', function () {
-        const inputTabSelector = 'input.tab-radio-input';
+        const inputTabSelector = '.dropdown-tab';
         const inputTabItems = cinemaMoviesItem.querySelectorAll(inputTabSelector);
         const [
           firstTabItem,
           ...remainingTabItems
         ] = inputTabItems;
-        expect(firstTabItem.checked).to.be.true;
+        expect(firstTabItem.classList.contains('checked')).to.be.true;
         [...remainingTabItems].forEach(function (tab) {
-          expect(tab.checked).to.be.false;
+          expect(tab.classList.contains('checked')).to.be.false;
         });
       });
 
       it('with correct amount of movies', function () {
         expect(moviesRowItems.length).to.equal(2);
+      });
+
+      it('with correct movies names', function () {
+        const movieNameSelector = '#tab-block-0 .cinema-info span';
+        [...moviesRowItems].forEach(function (movie, i) {
+          const movieInfo = movie.querySelector(movieNameSelector);
+          expect(movieInfo)
+            .to.have.text(results[0].snippet.extra.data.showdates[0].movie_list[i].title);
+        });
+      });
+
+      it('with correct amount of movie hours', function () {
+        [...moviesRowItems].forEach(function (movie, i) {
+          movieTimes = movie.querySelectorAll(movieTimeSelector);
+          expect(movieTimes.length)
+            .to.equal(results[0].snippet.extra.data.showdates[0].movie_list[i].showtimes.length);
+        });
+      });
+
+      it('with correct movies booking URLs', function () {
+        [...moviesRowItems].forEach(function (movie, i) {
+          movieTimes = movie.querySelectorAll(movieTimeSelector);
+          [...movieTimes].forEach(function (time, j) {
+            expect(time.querySelector('a').dataset.url)
+              .to.equal(results[0].snippet.extra.data.showdates[0]
+                .movie_list[i].showtimes[j].booking_link);
+          });
+        });
+      });
+
+      it('with existing and correct "Show more" item', function () {
+        const showMoreSelector = 'a.expand-btn';
+        const showMoreItem = cinemaMoviesItem.querySelector(showMoreSelector);
+        expect(showMoreItem).to.exist;
+        expect(showMoreItem).to.have.trimmed.text(locale['cinema-expand-button'].message);
+        expect(showMoreItem.dataset.url).to.exist;
+      });
+    });
+  });
+
+  context('for a movie cinema 2 rich header expand table', function () {
+    const locale = CliqzUtils.locale.default || CliqzUtils.locale[window.navigator.language];
+    const cinemaAreaSelector = 'div.movie-cinema';
+    let $resultElement;
+    let cinemaAreaItem;
+
+    before(function () {
+      blurUrlBar();
+      respondWith({ results });
+      withHistory([]);
+      fillIn('yorck.de');
+      window.preventRestarts = true;
+      return waitForPopup().then(function () {
+        $resultElement = $cliqzResults()[0];
+      }).then(function () {
+        click($resultElement.querySelector('.result.expand-btn'));
+
+        return waitFor(function () {
+          return $resultElement.querySelectorAll('div.show-time-row').length > 2;
+        }).then(function () {
+          cinemaAreaItem = $resultElement.querySelector(cinemaAreaSelector);
+        });
+      });
+    });
+
+    describe('renders cinema and movies table', function () {
+      const cinemaMoviesSelector = 'div.show-time';
+      const moviesRowSelector = '#tab-block-0 .show-time-row';
+      const movieTimeSelector = '#tab-block-0 .show-time-span';
+      let cinemaMoviesItem;
+      let moviesRowItems;
+      let movieTimes;
+
+      before(function () {
+        cinemaMoviesItem = cinemaAreaItem.querySelector(cinemaMoviesSelector);
+        moviesRowItems = cinemaMoviesItem.querySelectorAll(moviesRowSelector);
+      });
+
+      it('with existing and correct location info', function () {
+        const locationInfoSelector = 'div.title span';
+        const locationInfoItem = cinemaMoviesItem.querySelectorAll(locationInfoSelector);
+        expect(locationInfoItem[0]).to.contain.text(locale['cinema-movie-showtimes'].message);
+        expect(locationInfoItem[0])
+          .to.contain.text(results[0].snippet.extra.data.cinema.name);
+        expect(locationInfoItem[1].querySelector('span.location-icon')).to.exist;
+        expect(locationInfoItem[1]).to.contain.text(results[0].snippet.extra.data.city);
+      });
+
+      it('with existing and correct table tabs', function () {
+        const moviesTabsAreaSelector = 'div.dropdown-tabs';
+        const moviesTabsAreaItem = cinemaMoviesItem.querySelector(moviesTabsAreaSelector);
+        expect(moviesTabsAreaItem).to.exist;
+
+        const moviesTabsSelector = 'label.dropdown-tab';
+        const moviesTabsItems = moviesTabsAreaItem.querySelectorAll(moviesTabsSelector);
+        expect(moviesTabsItems.length)
+          .to.equal(results[0].snippet.extra.data.showdates.length);
+        [...moviesTabsItems].forEach(function (tab, i) {
+          expect(tab).to.have.text(results[0].snippet.extra.data.showdates[i].date);
+        });
+      });
+
+      it('with the first tab being selected as default', function () {
+        const inputTabSelector = '#tab-0.dropdown-tab';
+        const inputTabItems = cinemaMoviesItem.querySelectorAll(inputTabSelector);
+        const [
+          firstTabItem,
+          ...remainingTabItems
+        ] = inputTabItems;
+        expect(firstTabItem.classList.contains('checked')).to.be.true;
+        [...remainingTabItems].forEach(function (tab) {
+          expect(tab.classList.contains('checked')).to.be.false;
+        });
+      });
+
+      it('with correct expanded amount of movies', function () {
+        expect(moviesRowItems.length)
+          .to.equal(results[0].snippet.extra.data.showdates[0].movie_list.length);
       });
 
       it('with correct movies names', function () {
@@ -198,19 +317,129 @@ export default function () {
         [...moviesRowItems].forEach(function (movie, i) {
           movieTimes = movie.querySelectorAll(movieTimeSelector);
           [...movieTimes].forEach(function (time, j) {
-            expect(time.querySelector('a').href)
+            expect(time.querySelector('a').dataset.url)
               .to.equal(results[0].snippet.extra.data.showdates[0]
                 .movie_list[i].showtimes[j].booking_link);
           });
         });
       });
 
-      it('with existing and correct "Show more" item', function () {
-        const showMoreSelector = 'a.expand-btn';
-        const showMoreItem = cinemaMoviesItem.querySelector(showMoreSelector);
-        expect(showMoreItem).to.exist;
-        expect(showMoreItem).to.have.text(locale['cinema-expand-button'].message);
-        expect(showMoreItem.href).to.exist;
+      it('doesn\'t render "Show more" link', function () {
+        const showMoreSelector = '.result.expand-btn';
+        expect($resultElement.querySelector(showMoreSelector)).to.not.exist;
+      });
+    });
+  });
+
+  context('for a movie cinema 2 rich header changing day', function () {
+    const locale = CliqzUtils.locale.default || CliqzUtils.locale[window.navigator.language];
+    const cinemaAreaSelector = 'div.movie-cinema';
+    let $resultElement;
+    let cinemaAreaItem;
+
+    before(function () {
+      blurUrlBar();
+      respondWith({ results });
+      withHistory([]);
+      fillIn('yorck.de');
+      window.preventRestarts = true;
+      return waitForPopup().then(function () {
+        $resultElement = $cliqzResults()[0];
+      }).then(function () {
+        $resultElement.querySelector('#tab-1.dropdown-tab').click();
+        return waitFor(function () {
+          return $resultElement.querySelector('#tab-0.dropdown-tab').classList.contains('checked') === false;
+        }).then(function () {
+          cinemaAreaItem = $resultElement.querySelector(cinemaAreaSelector);
+        });
+      });
+    });
+
+    describe('renders cinema and movies table', function () {
+      const cinemaMoviesSelector = 'div.show-time';
+      const moviesRowSelector = '#tab-block-1 .show-time-row';
+      const movieTimeSelector = '#tab-block-1 .show-time-span';
+      let cinemaMoviesItem;
+      let moviesRowItems;
+      let movieTimes;
+
+      before(function () {
+        cinemaMoviesItem = cinemaAreaItem.querySelector(cinemaMoviesSelector);
+        moviesRowItems = cinemaMoviesItem.querySelectorAll(moviesRowSelector);
+      });
+
+      it('with existing and correct location info', function () {
+        const locationInfoSelector = 'div.title span';
+        const locationInfoItem = cinemaMoviesItem.querySelectorAll(locationInfoSelector);
+        expect(locationInfoItem[0]).to.contain.text(locale['cinema-movie-showtimes'].message);
+        expect(locationInfoItem[0])
+          .to.contain.text(results[0].snippet.extra.data.cinema.name);
+        expect(locationInfoItem[1].querySelector('span.location-icon')).to.exist;
+        expect(locationInfoItem[1]).to.contain.text(results[0].snippet.extra.data.city);
+      });
+
+      it('with existing and correct table tabs', function () {
+        const moviesTabsAreaSelector = 'div.dropdown-tabs';
+        const moviesTabsAreaItem = cinemaMoviesItem.querySelector(moviesTabsAreaSelector);
+        expect(moviesTabsAreaItem).to.exist;
+
+        const moviesTabsSelector = 'label.dropdown-tab';
+        const moviesTabsItems = moviesTabsAreaItem.querySelectorAll(moviesTabsSelector);
+        expect(moviesTabsItems.length)
+          .to.equal(results[0].snippet.extra.data.showdates.length);
+        [...moviesTabsItems].forEach(function (tab, i) {
+          expect(tab).to.have.text(results[0].snippet.extra.data.showdates[i].date);
+        });
+      });
+
+      it('with the second tab being selected', function () {
+        const inputTabSelector = '#tab-1.dropdown-tab';
+        const inputTabItems = cinemaMoviesItem.querySelectorAll(inputTabSelector);
+        const [
+          secondTabItem,
+          ...remainingTabItems
+        ] = inputTabItems;
+        expect(secondTabItem.classList.contains('checked')).to.be.true;
+        [...remainingTabItems].forEach(function (tab) {
+          expect(tab.classList.contains('checked')).to.be.false;
+        });
+      });
+
+      it('with correct expanded amount of movies', function () {
+        expect(moviesRowItems.length).to.equal(2);
+      });
+
+      it('with correct movies names', function () {
+        const movieNameSelector = 'div.cinema-info span';
+        [...moviesRowItems].forEach(function (movie, i) {
+          const movieInfo = movie.querySelector(movieNameSelector);
+          expect(movieInfo)
+            .to.have.text(results[0].snippet.extra.data.showdates[1].movie_list[i].title);
+        });
+      });
+
+      it('with correct amount of movie hours', function () {
+        [...moviesRowItems].forEach(function (movie, i) {
+          movieTimes = movie.querySelectorAll(movieTimeSelector);
+          expect(movieTimes.length)
+            .to.equal(results[0].snippet.extra.data.showdates[1].movie_list[i].showtimes.length);
+        });
+      });
+
+      it('with correct movies booking URLs', function () {
+        [...moviesRowItems].forEach(function (movie, i) {
+          movieTimes = movie.querySelectorAll(movieTimeSelector);
+          [...movieTimes].forEach(function (time, j) {
+            expect(time.querySelector('a').dataset.url)
+              .to.equal(results[0].snippet.extra.data.showdates[0]
+                .movie_list[i].showtimes[j].booking_link);
+          });
+        });
+      });
+
+      it('render "Show more" link', function () {
+        const showMoreSelector = '.result.expand-btn';
+        expect($resultElement.querySelector(showMoreSelector)).to.exist;
       });
     });
   });

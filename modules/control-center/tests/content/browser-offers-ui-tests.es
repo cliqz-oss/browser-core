@@ -1,21 +1,22 @@
-import {
-  wait,
-  registerInterval,
-  clearIntervals,
-  waitFor,
-  Subject
-} from './helpers';
+/* global document */
 
+import {
+  clearIntervals,
+  expect,
+  waitFor
+} from '../../core/test-helpers';
+import Subject from './local-helpers';
 import generateData from './fixtures/myoffrz';
 
 function myOffrzTests(amo) {
   const data = generateData(amo);
+  const target = 'cliqz-control-center';
   let subject;
 
   beforeEach(function () {
     subject = new Subject();
     return subject.load();
-  })
+  });
 
   afterEach(function () {
     subject.unload();
@@ -23,17 +24,17 @@ function myOffrzTests(amo) {
   });
 
   it('loads', function () {
-    chai.expect(true).to.eql(true);
-  })
+    expect(true).to.eql(true);
+  });
 
   describe('MyOffrz options section', function () {
-    beforeEach(() => {
-      return subject.pushData(data);
+    beforeEach(function () {
+      return subject.pushData(target, data);
     });
 
     it('MyOffrz section exists', function () {
       const sectionSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-4"]';
-      chai.expect(subject.query(sectionSelector)).to.exist;
+      expect(subject.query(sectionSelector)).to.exist;
     });
 
     describe('click on MyOffrz section', function () {
@@ -44,48 +45,48 @@ function myOffrzTests(amo) {
 
       it('renders "MyOffrz options"', function () {
         const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-4"] [data-i18n="control-center-offers-options"]';
-        chai.expect(subject.query(titleSelector)).to.exist;
-        chai.expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-offers-options');
+        expect(subject.query(titleSelector)).to.exist;
+        expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-offers-options');
       });
 
       it('renders arrow for MyOffrz options', function () {
         const arrowSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-4"] #arrow';
-        chai.expect(subject.query(arrowSelector)).to.exist;
+        expect(subject.query(arrowSelector)).to.exist;
       });
 
       it('renders 2 options', function () {
-        chai.expect(subject.queryAll('.accordion #accordion-4 .bullet')).to.not.be.null;
-        chai.expect(subject.queryAll('.accordion #accordion-4 .bullet').length).to.equal(2);
+        expect(subject.queryAll('.accordion #accordion-4 .bullet')).to.not.be.null;
+        expect(subject.queryAll('.accordion #accordion-4 .bullet').length).to.equal(2);
       });
 
       context('"Show MyOffrz" block', function () {
         it('renders "Show MyOffrz"', function () {
           const titleSelector = '#accordion-4 .bullet [data-i18n="control-center-offers-show"]';
-          chai.expect(subject.query(titleSelector)).to.exist;
-          chai.expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-offers-show');
+          expect(subject.query(titleSelector)).to.exist;
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-offers-show');
         });
 
         it('renders info button', function () {
           const offersObject = subject.queryAll('#accordion-4 .bullet')[0];
-          chai.expect(offersObject.querySelector('.infobutton')).to.exist;
+          expect(offersObject.querySelector('.infobutton')).to.exist;
         });
 
         it('renders "Learn more"', function () {
           const offersObject = subject.queryAll('#accordion-4 .bullet')[0];
-          chai.expect(offersObject.querySelector('.location-more')).to.exist;
-          chai.expect(offersObject.querySelector('.location-more').hasAttribute('data-i18n')).to.be.true;
-          chai.expect(offersObject.querySelector('.location-more').getAttribute('data-i18n')).to.equal('control-center-info-share-location-link');
+          expect(offersObject.querySelector('.location-more')).to.exist;
+          expect(offersObject.querySelector('.location-more').hasAttribute('data-i18n')).to.be.true;
+          expect(offersObject.querySelector('.location-more').getAttribute('data-i18n')).to.equal('control-center-info-share-location-link');
         });
 
         it('url for "Learn more" is correct', function () {
           const offersObject = subject.queryAll('#accordion-4 .bullet')[0];
-          chai.expect(offersObject.querySelector('.location-more').hasAttribute('data-open-url')).to.be.true;
-          chai.expect(offersObject.querySelector('.location-more').getAttribute('data-open-url')).to.equal('https://cliqz.com/myoffrz');
+          expect(offersObject.querySelector('.location-more').hasAttribute('data-open-url')).to.be.true;
+          expect(offersObject.querySelector('.location-more').getAttribute('data-open-url')).to.equal('https://cliqz.com/myoffrz');
         });
 
         it('renders dropdown', function () {
           const dropdownSelector = '#accordion-4 .bullet .custom-dropdown[data-target="offerz_main"]';
-          chai.expect(subject.query(dropdownSelector)).to.exist;
+          expect(subject.query(dropdownSelector)).to.exist;
         });
 
         function myOffrz(currentValue) {
@@ -94,22 +95,22 @@ function myOffrzTests(amo) {
             const select = subject.query(dropdownSelector);
             select.querySelector('[value="false"]').removeAttribute('selected');
             select.querySelector(`[value="${currentValue}"]`).setAttribute('selected', '');
-            const evt = document.createEvent("HTMLEvents");
+            const evt = document.createEvent('HTMLEvents');
             select.addEventListener('change', console.log);
             evt.initEvent('change', true, true);
             select.dispatchEvent(evt);
             return waitFor(
-              () => subject.messages.find(message => message.message.action === "updatePref")
+              () => subject.messages.find(message => message.message.action === 'updatePref')
             ).then(
-              message => {
-                chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.offers2UserEnabled");
-                chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
-                chai.expect(message).to.have.nested.property("message.data.target", "offerz_main");
-                chai.expect(message).to.have.nested.property("message.data.prefType", 'boolean');
+              (message) => {
+                expect(message).to.have.nested.property('message.data.pref', 'extensions.cliqz.offers2UserEnabled');
+                expect(message).to.have.nested.property('message.data.value', `${currentValue}`);
+                expect(message).to.have.nested.property('message.data.target', 'offerz_main');
+                expect(message).to.have.nested.property('message.data.prefType', 'boolean');
               }
             );
           });
-        };
+        }
 
         myOffrz('false');
         myOffrz('true');
@@ -117,28 +118,28 @@ function myOffrzTests(amo) {
         it('text for options is correct', function () {
           const enabledSelector = '.accordion #accordion-4 .bullet .custom-dropdown[data-target="offerz_main"] [data-i18n="control-center-enabled"]';
           const disabledSelector = '.accordion #accordion-4 .bullet .custom-dropdown[data-target="offerz_main"] [data-i18n="control-center-disabled"]';
-          chai.expect(subject.query(enabledSelector)).to.exist;
-          chai.expect(subject.query(enabledSelector).textContent.trim()).to.equal('control-center-enabled');
-          chai.expect(subject.query(disabledSelector)).to.exist;
-          chai.expect(subject.query(disabledSelector).textContent.trim()).to.equal('control-center-disabled');
+          expect(subject.query(enabledSelector)).to.exist;
+          expect(subject.query(enabledSelector).textContent.trim()).to.equal('control-center-enabled');
+          expect(subject.query(disabledSelector)).to.exist;
+          expect(subject.query(disabledSelector).textContent.trim()).to.equal('control-center-disabled');
         });
       });
 
       context('"Show local MyOffrz" block', function () {
         it('renders "Show local MyOffrz"', function () {
           const titleSelector = '#accordion-4 .bullet [data-i18n="control-center-offers-location"]';
-          chai.expect(subject.query(titleSelector)).to.exist;
-          chai.expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-offers-location');
+          expect(subject.query(titleSelector)).to.exist;
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-offers-location');
         });
 
         it('renders info button', function () {
           const offersObject = subject.queryAll('#accordion-4 .bullet')[1];
-          chai.expect(offersObject.querySelector('.infobutton')).to.exist;
+          expect(offersObject.querySelector('.infobutton')).to.exist;
         });
 
         it('renders dropdown', function () {
           const dropdownSelector = '#accordion-4 .bullet .custom-dropdown[data-target="offerz_location"]';
-          chai.expect(subject.query(dropdownSelector)).to.exist;
+          expect(subject.query(dropdownSelector)).to.exist;
         });
 
         function myLocalOffrz(currentValue) {
@@ -147,22 +148,22 @@ function myOffrzTests(amo) {
             const select = subject.query(dropdownSelector);
             select.querySelector('[value="0"]').removeAttribute('selected');
             select.querySelector(`[value="${currentValue}"]`).setAttribute('selected', '');
-            const evt = document.createEvent("HTMLEvents");
+            const evt = document.createEvent('HTMLEvents');
             select.addEventListener('change', console.log);
             evt.initEvent('change', true, true);
             select.dispatchEvent(evt);
             return waitFor(
-              () => subject.messages.find(message => message.message.action === "updatePref")
+              () => subject.messages.find(message => message.message.action === 'updatePref')
             ).then(
-              message => {
-                chai.expect(message).to.have.nested.property("message.data.pref", "extensions.cliqz.offers_location");
-                chai.expect(message).to.have.nested.property("message.data.value", `${currentValue}`);
-                chai.expect(message).to.have.nested.property("message.data.target", "offerz_location");
-                chai.expect(message).to.have.nested.property("message.data.prefType", 'integer');
+              (message) => {
+                expect(message).to.have.nested.property('message.data.pref', 'extensions.cliqz.offers_location');
+                expect(message).to.have.nested.property('message.data.value', `${currentValue}`);
+                expect(message).to.have.nested.property('message.data.target', 'offerz_location');
+                expect(message).to.have.nested.property('message.data.prefType', 'integer');
               }
             );
           });
-        };
+        }
 
         myLocalOffrz('0');
         myLocalOffrz('1');
@@ -170,21 +171,20 @@ function myOffrzTests(amo) {
         it('text for options is correct', function () {
           const enabledSelector = '.accordion #accordion-4 .bullet .custom-dropdown[data-target="offerz_location"] [data-i18n="control-center-enabled"]';
           const disabledSelector = '.accordion #accordion-4 .bullet .custom-dropdown[data-target="offerz_location"] [data-i18n="control-center-disabled"]';
-          chai.expect(subject.query(enabledSelector)).to.exist;
-          chai.expect(subject.query(enabledSelector).textContent.trim()).to.equal('control-center-enabled');
-          chai.expect(subject.query(disabledSelector)).to.exist;
-          chai.expect(subject.query(disabledSelector).textContent.trim()).to.equal('control-center-disabled');
+          expect(subject.query(enabledSelector)).to.exist;
+          expect(subject.query(enabledSelector).textContent.trim()).to.equal('control-center-enabled');
+          expect(subject.query(disabledSelector)).to.exist;
+          expect(subject.query(disabledSelector).textContent.trim()).to.equal('control-center-disabled');
         });
       });
     });
   });
-};
+}
 
 describe('Control Center: MyOffrz options browser', function () {
   myOffrzTests(false);
-
 });
 
 describe('Control Center: AMO, MyOffrz options tests', function () {
   myOffrzTests(true);
-})
+});

@@ -11,7 +11,7 @@ export default {
     "dropdown": null,
     "firefox-specific": null,
     "static": null,
-    "autocomplete": {
+    "search": {
       "visible": true,
       "state": [
         {

@@ -1,3 +1,5 @@
+import console from './console';
+
 /* eslint-disable import/prefer-default-export, import/no-dynamic-require, global-require */
 export function chromeUrlHandler(url, callback, onerror) {
   const path = url.replace('chrome://', '');

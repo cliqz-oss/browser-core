@@ -2,22 +2,22 @@ import React from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { elementSideMargins, elementTopMargin, descriptionTextColor } from '../../styles/CardStyle';
 
-class Description extends React.Component {
-
-  render() {
-    return <Text numberOfLines={10} style={style.description}>{this.props.description}</Text>;
-  }
-}
-
-const style = StyleSheet.create({
+const style = color => StyleSheet.create({
   description: {
     ...elementSideMargins,
     ...elementTopMargin,
-    color: descriptionTextColor,
+    color,
     textAlign: 'left',
-    fontSize: 14,
+    fontSize: 16,
     lineHeight: 19,
   }
 });
 
-export default Description;
+export default function (props) {
+  const color = props.isHistory ? '#551A8B' : descriptionTextColor;
+  return (
+    <Text numberOfLines={10} style={style(color).description}>
+      {props.description}
+    </Text>
+  );
+}

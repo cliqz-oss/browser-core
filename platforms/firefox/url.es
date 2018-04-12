@@ -34,7 +34,6 @@ export function fixURL(url) {
   /* eslint-disable no-bitwise */
   const fixupFlags =
     Services.uriFixup.FIXUP_FLAG_NONE |
-    Services.uriFixup.FIXUP_FLAGS_MAKE_ALTERNATE_URI |
     Services.uriFixup.FIXUP_FLAG_FIX_SCHEME_TYPOS;
   /* eslint-enable no-bitwise */
 

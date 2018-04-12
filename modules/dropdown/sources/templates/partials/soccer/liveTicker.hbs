@@ -2,8 +2,10 @@
     <div class="wrapper dropdown-tabs">
         <div class="background-placeholder"></div>
         {{#each liveTicker}}
-            <input class="tab-radio-input" type="radio" name="tabs" id="tab-{{@index}}" {{#if isCurrent}}checked="checked"{{/if}}/>
-            <label class="dropdown-tab-label" for="tab-{{@index}}">{{round}}</label>
+            <label
+                id="tab-{{@index}}"
+                class="dropdown-tab {{#if isCurrent}}checked{{/if}}"
+            >{{round}}</label>
         {{/each}}
         {{#each liveTicker}}
             <div id="tab-block-{{@index}}"

@@ -1481,6 +1481,9 @@
     "video-downloader-unsupported-format": {
       "message": "Sorry! Wir können das Video leider nicht herunterladen."
     },
+    "video-downloader-live-video": {
+      "message": "Sorry! Wir können Live Stream Videos leider nicht herunterladen."
+    },
     "video-downloader-tab-desktop": {
       "message": "COMPUTER"
     },
@@ -1489,6 +1492,9 @@
     },
     "video-downloader-download-button-label": {
       "message": "Herunterladen"
+    },
+    "video-downloader-send-button-label": {
+      "message": "Senden"
     },
     "video-downloader-open-connect-page": {
       "message": "Öffne die Connect Einstellungen"
@@ -1733,6 +1739,15 @@
     "offers-code-copied": {
         "message": "Kopiert"
     },
+    "offers-send-feedback": {
+      "message": "Senden"
+    },
+    "offers-offer-removed": {
+      "message": "Dieses Angebot wurde entfernt."
+    },
+    "offers-feedback-thank-you": {
+      "message": "Dein Feedback ist uns sehr wichtig"
+    },
     "signals-humanweb-inactive-message": {
       "message": "Human Web ist nicht aktiviert"
     },
@@ -1927,6 +1942,21 @@
     },
     "freshtab.app.settings.news.language.de-tr-en": {
         "message": "Deutsche Medien auf Englisch"
+    },
+    "freshtab.app.settings.news.language.gb": {
+      "message": "Britische Medien"
+    },
+    "freshtab.app.settings.news.language.us": {
+      "message": "U.S. Medien"
+    },
+    "freshtab.app.offers.exclusive": {
+      "message": "Exklusiv"
+    },
+    "freshtab.app.offers.best_offer": {
+      "message": "Top Angebot"
+    },
+    "freshtab.app.conditions": {
+      "message": "Konditionen"
     },
     "control-center-enabled": {
         "message": "Aktiviert"

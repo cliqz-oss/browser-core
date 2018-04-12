@@ -1,7 +1,6 @@
 import utils from '../../core/utils';
 import console from '../../core/console';
 import { Components } from '../globals';
-import prefs from '../../core/prefs';
 
 let _provider = null;
 
@@ -33,7 +32,6 @@ export default function getHistory(q, callback, isPrivate = false) {
     onSearchResult: function(ctx, result) {
       const res = [];
       // TODO: remove this check when we switch to a new mixer completely
-      const isNewSearchMode = prefs.get('searchMode', 'autocomplete') !== 'autocomplete';
       for (let i = lastMatchCount; result && i < result.matchCount; i++) {
         let style = result.getStyleAt(i);
         if (result.getValueAt(i).indexOf('https://cliqz.com/search?q=') === 0) {
@@ -85,9 +83,7 @@ export default function getHistory(q, callback, isPrivate = false) {
                 result.searchResult != result.RESULT_SUCCESS_ONGOING
       });
 
-      if (isNewSearchMode) {
-        lastMatchCount = result.matchCount;
-      }
+      lastMatchCount = result.matchCount;
     }
   });
 }

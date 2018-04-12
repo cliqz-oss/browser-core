@@ -1,8 +1,5 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
+  blurUrlBar,
   $cliqzResults,
   expect,
   fillIn,
@@ -18,6 +15,7 @@ export default function () {
       let $resultElement;
 
       before(function () {
+        blurUrlBar();
         respondWith({ results });
         withHistory([]);
         fillIn('1 euro to usd');
@@ -65,7 +63,7 @@ export default function () {
       it('source link is correct', function () {
         const sourceSelector = '.source-link';
         expect($resultElement).to.contain(sourceSelector);
-        expect($resultElement.querySelector('.source-link').href).to.equal(results[0].url);
+        expect($resultElement.querySelector('.source-link').dataset.url).to.equal(results[0].url);
       });
     });
   });

@@ -1,9 +1,6 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
   app,
+  blurUrlBar,
   $cliqzResults,
   expect,
   fillIn,
@@ -15,15 +12,15 @@ export default function () {
   const results = [];
 
   describe('default search engine tests', function () {
-    const searchEnginesEn = ['Google', 'Yahoo', 'Bing', 'Wikipedia (en)',
+    const searchEnginesEn = ['Google', 'Bing', 'Wikipedia (en)',
       'Amazon.com', 'DuckDuckGo', 'Twitter', 'Google Maps', 'Google Images', 'YouTube', 'Start Page', 'Ecosia'];
     searchEnginesEn.forEach(function (engine) {
       context(`Search with ${engine}`, function () {
         let $resultElement;
 
         before(function () {
-          app.modules.autocomplete.background
-            .autocomplete.CliqzResultProviders.setCurrentSearchEngine(engine);
+          blurUrlBar();
+          app.modules.search.action('setDefaultSearchEngine', engine);
           respondWith({ results });
           withHistory([]);
           fillIn('test');
@@ -33,8 +30,7 @@ export default function () {
         });
 
         after(function () {
-          app.modules.autocomplete.background
-            .autocomplete.CliqzResultProviders.setCurrentSearchEngine('Google');
+          app.modules.search.action('setDefaultSearchEngine', 'Google');
         });
 
         it('renders result', function () {

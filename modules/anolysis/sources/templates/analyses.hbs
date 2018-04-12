@@ -1,0 +1,37 @@
+<div class="card">
+  <div class="card-header">
+    <div class="card-title h5">Available Analyses</div>
+    <div class="card-subtitle text-gray">
+      An <code>analysis</code> is the way we define client side aggregation 
+      "tasks" or functions. Each analysis exists to learn something or verify a
+      hypothesis. Concretely, an analysis is a function that accesses
+      metrics collected in the browser during a specified period of time,
+      and creates an aggregation or summary which will be sent to the
+      backend. Each analysis will be triggered automatically by Anolysis
+      once a day, using the metrics collected from the previous day.
+      <div class="divider"></div>
+      Here's a list of all current analyses:
+    </div>
+  </div>
+  <div class="card-body">
+    {{#each this}}
+    <li class="dem-factor-item">
+
+      <details class="accordion">
+        <summary class="accordion-header">
+          <i class="icon icon-arrow-right mr-1 text-gray"></i>
+          <span>{{this.name}}</span>
+        </summary>
+        <div class="accordion-body">
+          <!-- Accordions content -->
+          <pre class="code" data-lang="analysis schema">{{this.schema}}</pre>
+        </div>
+      </details>
+    </li>
+    {{/each}}
+  </div>
+  <div class="card-footer">
+    Note: Each analysis is sent separately, and they cannot be linked
+    on the backend.
+  </div>
+</div>

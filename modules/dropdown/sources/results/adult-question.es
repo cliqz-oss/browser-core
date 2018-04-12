@@ -2,7 +2,11 @@ import BaseResult from './base';
 
 class AdultAnswerResult extends BaseResult {
   get displayUrl() {
-    return this.rawResult.text;
+    return null;
+  }
+
+  get urlbarValue() {
+    return this.query;
   }
 
   get className() {

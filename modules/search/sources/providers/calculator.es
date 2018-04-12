@@ -1,4 +1,4 @@
-import CliqzCalculator from '../../autocomplete/calculator';
+import CliqzCalculator from './calculator/internal';
 import Rx from '../../platform/lib/rxjs';
 import BaseProvider from './base';
 import { getResponse } from '../responses';
@@ -21,7 +21,6 @@ export default class Calculator extends BaseProvider {
       return this.getEmptySearch(config, query);
     }
     result.provider = 'calculator';
-    result.template = 'calculator';
 
     return Rx.Observable
       .from([getResponse(this.id, config, query, [result], 'done')])

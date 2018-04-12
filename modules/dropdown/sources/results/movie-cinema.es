@@ -72,6 +72,7 @@ class ShowTimeRow extends GenericResult {
     return this.rawResult.row.showtimes.map(showTime => new ShowTimeInfo({
       showTime,
       url: showTime.booking_link,
+      text: this.rawResult.text,
     }));
   }
 }
@@ -85,6 +86,7 @@ class ShowTimeDate extends GenericResult {
     return this.rawResult.rows.map(row => new ShowTimeRow({
       row,
       type: this.rawResult.type,
+      text: this.rawResult.text,
     }));
   }
 }
@@ -220,6 +222,7 @@ export default class MovieCinemaResult extends GenericResult {
       date: date.date,
       rows: this.isMovieEZ ? date.cinema_list : date.movie_list,
       type: this.isMovieEZ ? 'movie' : 'cinema',
+      text: this.query,
     }));
 
     return results;
@@ -249,7 +252,7 @@ export default class MovieCinemaResult extends GenericResult {
   get localResult() {
     const cinemaInfo = this._cinemaData;
     if (cinemaInfo.mu && cinemaInfo.address) {
-      const result = new LocalResult({
+      const result = new LocalResult(this, {
         extra: cinemaInfo,
         text: this.query,
       });
@@ -323,25 +326,21 @@ export default class MovieCinemaResult extends GenericResult {
 
   didRender($dropdown) {
     super.didRender($dropdown);
-
-    $dropdown.querySelectorAll('.movie-cinema .dropdown-tab-label').forEach((label) => {
+    const $allLabels = $dropdown.querySelectorAll('.movie-cinema .dropdown-tab');
+    $allLabels.forEach((label) => {
       label.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const input = $dropdown.querySelector(`#${e.target.getAttribute('for')}`);
 
-        if (!input) {
-          return;
-        }
-
-        input.checked = 'checked';
+        [...$allLabels].forEach(l => l.classList.remove('checked'));
+        e.target.classList.add('checked');
 
         const signal = {
           type: 'results',
           action: 'click',
           view: 'EntityMovie',
           target: 'tab',
-          index: e.target.getAttribute('for').substr(4),
+          index: [...$allLabels].indexOf(e.target),
         };
         utils.telemetry(signal);
       });

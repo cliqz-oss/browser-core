@@ -6,9 +6,28 @@ body, html {
     height: 100%;
 }
 
+.tooltipster-sidetip.tooltipster-shadow.tooltipster-shadow-customized {
+  pointer-events: auto;
+}
+
+.tooltipster-sidetip.tooltipster-shadow.tooltipster-shadow-customized .tooltipster-box {
+  font-family: "-mac-system", "-apple-system", "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  max-width: 240px;
+  min-width: 70px;
+  min-height: 50px;
+  max-height: 100px;
+  overflow-y: scroll;
+  font-size: 11.5px;
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+
 #cliqz-offers-cc {
     @import "__vars";
     @import "_logo";
+    @import "__mixins";
 
     font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     font-weight: normal;
@@ -79,6 +98,7 @@ body, html {
             display: flex;
             flex-direction: row;
             justify-content: space-between;
+
             & > * {
                 flex: 1;
             }

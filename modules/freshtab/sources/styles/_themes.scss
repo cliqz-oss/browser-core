@@ -58,9 +58,12 @@ $themes: (
             middle-box-content-color: #333,
         ),
         offer-middle-notifications: (
-            offer-mn-color: #333,
+            offer-mn-color: #494949,
             offer-mn-code-border-color: #c1c1c1,
         ),
+        offer-middle-feedback: (
+            offer-mn-color: #494949,
+        )
     ),
 
     dark: (
@@ -120,8 +123,11 @@ $themes: (
             middle-box-content-color: #fff,
         ),
         offer-middle-notifications: (
-            offer-mn-color: #fff,
+            offer-mn-color: #494949,
             offer-mn-code-border-color: #c1c1c1,
         ),
+        offer-middle-feedback: (
+            offer-mn-color: #494949,
+        )
     )
 );

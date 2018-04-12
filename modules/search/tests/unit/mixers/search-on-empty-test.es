@@ -16,22 +16,25 @@ export default describeModule('search/mixers/search-on-empty',
       let searchOnEmpty;
 
       beforeEach(function () {
-        searchOnEmpty = this.module().default;
+        searchOnEmpty = this.module().searchOnEmpty;
       });
 
       it('searches using provider if base stream concludes without results', function() {
         const { hot, cold, flush, getMessages, e, s } = rxSandbox.create();
 
         const query = '';
-        const hasNoResults = r => r === 'n';
         const provider = {
           search: () => hot('s-ss|'),
         };
-
-        const base$ =    hot('----n|');
+        const base$ =    hot('----n|', {
+          n: {
+            results: [],
+            state: 'done'
+          }
+        });
         const expected = e('  e---s-ss|');
 
-        const messages = getMessages(searchOnEmpty(query, provider, base$, {}, hasNoResults));
+        const messages = getMessages(searchOnEmpty(provider, base$, query, {}, {}));
         flush();
 
         return chai.expect(messages).to.deep.equal(expected);

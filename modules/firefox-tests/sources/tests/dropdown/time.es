@@ -1,8 +1,5 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
+  blurUrlBar,
   $cliqzResults,
   expect,
   fillIn,
@@ -18,6 +15,7 @@ export default function () {
     let $resultElement;
 
     before(function () {
+      blurUrlBar();
       respondWith({ results });
       withHistory([]);
       fillIn('time berlin');

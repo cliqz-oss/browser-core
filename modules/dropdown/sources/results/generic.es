@@ -1,25 +1,25 @@
 import utils from '../../core/utils';
 import console from '../../core/console';
 
-import BaseResult, { getDeepResults } from './base';
+import BaseResult, { getDeepResults, Subresult } from './base';
 import LocalResult, { ShareLocationButton } from './local';
 import { OfferResult } from './offer';
 import NewsResult from './news';
 import VideoResult from './video';
 
-class ImageResult extends BaseResult {
+class ImageResult extends Subresult {
   get thumbnail() {
     return this.rawResult.thumbnail;
   }
 }
 
-class InternalResult extends BaseResult {
+class InternalResult extends Subresult {
 }
 
-class SocialResult extends BaseResult {
+class SocialResult extends Subresult {
 }
 
-class AnchorResult extends BaseResult {
+class AnchorResult extends Subresult {
 }
 
 export default class GenericResult extends BaseResult {
@@ -27,9 +27,16 @@ export default class GenericResult extends BaseResult {
     super(rawResult, allResultsFlat);
     this.internalResultsLimit = 4;
 
+    this.topResultProps = {
+      kind: rawResult.kind,
+      type: rawResult.type,
+      provider: rawResult.provider
+    };
+
     if (offers) {
       this.offerStyle = offers.organicStyle;
       this.offerEnabled = offers.isEnabled;
+      this.offerLocationEnabled = offers.locationEnabled;
     }
   }
 
@@ -40,7 +47,8 @@ export default class GenericResult extends BaseResult {
     }
     const deepLinks = getDeepResults(this.rawResult, 'buttons');
 
-    return deepLinks.map(({ url, title }) => new InternalResult({
+    return deepLinks.map(({ url, title }) => new InternalResult(this, {
+      ...this.topResultProps,
       url,
       title,
       text: this.query,
@@ -50,7 +58,8 @@ export default class GenericResult extends BaseResult {
   get socialResults() {
     const deepLinks = getDeepResults(this.rawResult, 'social');
 
-    return deepLinks.map(({ url, image }) => new SocialResult({
+    return deepLinks.map(({ url, image }) => new SocialResult(this, {
+      ...this.topResultProps,
       url,
       image,
       text: this.query,
@@ -59,7 +68,8 @@ export default class GenericResult extends BaseResult {
 
   get imageResults() {
     const deepLinks = getDeepResults(this.rawResult, 'images');
-    return deepLinks.map(({ image, extra }) => new ImageResult({
+    return deepLinks.map(({ image, extra }) => new ImageResult(this, {
+      ...this.topResultProps,
       url: (extra && extra.original_image) || image,
       thumbnail: image,
       text: this.query,
@@ -68,7 +78,8 @@ export default class GenericResult extends BaseResult {
 
   get anchorResults() {
     const deepLinks = getDeepResults(this.rawResult, 'simple_links');
-    return deepLinks.map(({ url, title }) => new AnchorResult({
+    return deepLinks.map(({ url, title }) => new AnchorResult(this, {
+      ...this.topResultProps,
       url,
       title,
       text: this.query,
@@ -77,7 +88,8 @@ export default class GenericResult extends BaseResult {
 
   get newsResults() {
     const deepLinks = getDeepResults(this.rawResult, 'news');
-    return deepLinks.map(({ url, title, extra = {} } = {}) => new NewsResult({
+    return deepLinks.map(({ url, title, extra = {} } = {}) => new NewsResult(this, {
+      ...this.topResultProps,
       url,
       domain: extra.domain,
       title,
@@ -95,7 +107,8 @@ export default class GenericResult extends BaseResult {
 
   get videoResults() {
     const deepLinks = getDeepResults(this.rawResult, 'videos');
-    return deepLinks.map(({ url, title, extra }) => new VideoResult({
+    return deepLinks.map(({ url, title, extra }) => new VideoResult(this, {
+      ...this.topResultProps,
       url,
       title,
       thumbnail: extra.thumbnail,
@@ -195,7 +208,7 @@ export default class GenericResult extends BaseResult {
       return null;
     }
 
-    const result = new LocalResult({
+    const result = new LocalResult(this, {
       extra,
       text: this.query,
     });
@@ -205,19 +218,27 @@ export default class GenericResult extends BaseResult {
   }
 
   get offerResult() {
+    if (this._offerResult) {
+      return this._offerResult;
+    }
+
     const extra = this.rawResult.data.extra || {};
     const offerData = extra.offers_data || {};
-    if (this.isAd || !offerData.is_injected || !this.offerEnabled) {
+
+    if (this.isAd || !offerData.is_injected) {
       return null;
     }
 
-    const result = new OfferResult({
+    const result = new OfferResult(this, {
       offerData,
       showThumbnail: this.offerStyle === 'rich',
       text: this.query,
     });
 
     result.actions = this.actions;
+
+    this._offerResult = result;
+
     return result;
   }
 }

@@ -4,7 +4,7 @@ const program = require('commander');
 const rimraf = require('rimraf');
 const copyDereferenceSync = require('copy-dereference').sync
 const notifier = require('node-notifier');
-const webExt = require('web-ext');
+const webExt = require('@cliqz-oss/web-ext');
 const path = require('path');
 const moment = require('moment');
 
@@ -50,14 +50,13 @@ program.command('serve [file]')
             firefox: options.firefox,
             keepProfileChanges: options.firefoxKeepChanges || false,
             customPrefs: Object.assign({
-              'browser.startup.page': 3,
+              'javascript.options.strict': false,
               'extensions.cliqz.showConsoleLogs': true,
               'extensions.cliqz.developer': true,
               'security.sandbox.content.level': 2,
               'extensions.legacy.enabled': true,
               'lightweightThemes.selectedThemeID': 'firefox-compact-light@mozilla.org',
             }, customPrefs),
-            startUrl: 'about:cliqz',
           };
           const start = Date.now()
           const date = new Date(start)

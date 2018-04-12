@@ -1,13 +1,21 @@
 import utils from '../core/utils';
 import events from '../core/events';
 import { nextTick } from '../core/decorators';
-import autocomplete from '../autocomplete/autocomplete';
 import console from '../core/console';
 import { getCurrentTabId } from '../core/tabs';
 
 const ACproviderName = 'cliqz-results';
+const lastEvent = new WeakMap();
 
 export default {
+  mouseup(event) {
+    if (event.originalTarget.getAttribute('anonid') === 'historydropmarker') {
+      events.pub('urlbar:dropmarker-click', {
+        windowId: this.windowId,
+        tabId: getCurrentTabId(this.window),
+      });
+    }
+  },
   /**
   * Urlbar focus event
   * @event focus
@@ -30,7 +38,6 @@ export default {
     // try to 'heat up' the connection
     utils.pingCliqzResults();
 
-    autocomplete.lastFocusTime = Date.now();
     utils.setSearchSession(utils.rand(32));
     this.urlbarEvent('focus');
     events.pub('urlbar:focus', {
@@ -44,12 +51,6 @@ export default {
   * @param ev
   */
   blur() {
-    if (autocomplete.spellCheck) {
-      autocomplete.spellCheck.resetState();
-    }
-    // reset this flag as it can block the dropdown from opening
-    autocomplete.isPopupOpen = false;
-
     // force a dropdown close on urlbar blur
     this.window.CLIQZ.Core.popup.hidePopup();
 
@@ -60,7 +61,6 @@ export default {
       this.urlbar.value = this.urlbar.mInputField.value;
     }
 
-    autocomplete.lastFocusTime = null;
     this.window.CLIQZ.UI.sessionEnd();
     events.pub('urlbar:blur', {
       windowId: this.windowId,
@@ -117,6 +117,7 @@ export default {
       const input = this.urlbar.mInputField;
       const hasSelection = input.selectionStart !== input.selectionEnd;
       let query = input.value;
+      const ev = lastEvent.get(this.window);
 
       if (hasSelection) {
         query = query.slice(0, input.selectionStart);
@@ -128,6 +129,8 @@ export default {
         query,
         tabId: getCurrentTabId(this.window),
         windowId: this.windowId,
+        keyCode: ev.code || null,
+        isPasted: ev.type === 'paste',
       });
     });
   },
@@ -141,7 +144,7 @@ export default {
   },
 
   keydown(ev) {
-    autocomplete._lastKey = ev.keyCode;
+    lastEvent.set(this.window, ev);
     let cancel;
     try {
       cancel = this.window.CLIQZ.UI.keyDown(ev);
@@ -167,11 +170,11 @@ export default {
   * @param ev
   */
   paste(ev) {
+    lastEvent.set(this.window, ev);
     // wait for the value to change
     this.window.setTimeout(() => {
       // ensure the lastSearch value is always correct
       // although paste event has 1 second throttle time.
-      autocomplete.lastSearch = ev.target.value;
       utils.telemetry({
         type: 'activity',
         action: 'paste',

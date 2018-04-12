@@ -8,6 +8,8 @@
 @import 'switch.scss';
 @import 'middle-notifications.scss';
 @import 'offers-middle-notifications.scss';
+@import 'offer-middle-feedback.scss';
+@import "mixins";
 
 @mixin container($config, $theme)
 {
@@ -17,6 +19,7 @@
     $news-configs: map-get($config, news);
     $middle-notifications-configs: map-get($config, middle-notifications);
     $offer-middle-notifications-configs: map-get($config, offer-middle-notifications);
+    $offer-middle-feedback-configs: map-get($config, offer-middle-feedback);
 
     $base-theme: map-get($theme, base);
     $speed-dials-theme: map-get($theme, speed-dials);
@@ -24,6 +27,7 @@
     $news-theme: map-get($theme, news);
     $middle-notifications-theme: map-merge(map-get($theme, middle-notifications), $base-theme);
     $offer-middle-notifications-theme: map-get($theme, offer-middle-notifications);
+    $offer-middle-feedback-theme: map-get($theme, offer-middle-feedback);
 
     display: flex;
     min-height: 100vh;
@@ -109,6 +113,7 @@
             @include middle-notifications(map-merge($middle-notifications-configs, $middle-notifications-theme)...);
 
             @include offer-middle-notifications(map-merge($offer-middle-notifications-configs, $offer-middle-notifications-theme)...);
+            @include offer-middle-feedback(map-merge($offer-middle-feedback-configs, $offer-middle-feedback-theme)...);
         }
     }
 }
@@ -118,7 +123,7 @@
         $config: map-get($configs, xsmall);
         @include container($config, $theme);
 
-        #main-content .fixed-container .offer-middle-notification.middle-notification-box {
+        #main-content .fixed-container .offer-middle-notification.offer-notification-box {
             .content {
                 h1 {
                     font-size: 13px;
@@ -192,8 +197,14 @@ body {
         background-image: url(https://cdn.cliqz.com/extension/newtab/background/winter.jpg);
     }
 
+    &.theme-bg-matterhorn {
+        background-color: #00adf3;
+        background-image: url(https://cdn.cliqz.com/extension/newtab/background/matterhorn.jpg);
+    }
+
     &.theme-bg-dark,
-    &.theme-bg-blue {
+    &.theme-bg-blue,
+    &.theme-bg-matterhorn {
         #app {
             $dark-theme: map-get($themes, dark);
 
@@ -233,7 +244,8 @@ body {
         }
     }
 
-    &.theme-bg-blue {
+    &.theme-bg-blue,
+    &.theme-bg-matterhorn {
         #app {
 
             .aside {
@@ -315,4 +327,20 @@ body {
             }
         }
     }
+
+    &.theme-bg-dark,
+    &.theme-bg-blue {
+        #app {
+            #main-content {
+                .fixed-container {
+                    #section-middle {
+                        .anzeige {
+                            color: rgba(255, 255, 255, 0.5);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
+

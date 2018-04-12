@@ -1,14 +1,15 @@
-import BaseResult from './base';
+import BaseResult, { Subresult } from './base';
 import console from '../../core/console';
 import utils from '../../core/utils';
+import config from '../../core/config';
 
-class LocalInfoResult extends BaseResult {
+class LocalInfoResult extends Subresult {
   get mapImg() {
     return this.rawResult.mapImg;
   }
 }
 
-class TextResult extends BaseResult {
+class TextResult extends Subresult {
   get textType() {
     return this.rawResult.textType;
   }
@@ -86,7 +87,7 @@ export class ShareLocationButton extends BaseResult {
 }
 
 
-export default class LocalResult extends BaseResult {
+export default class LocalResult extends Subresult {
   get extra() {
     return this.rawResult.extra || {};
   }
@@ -98,7 +99,7 @@ export default class LocalResult extends BaseResult {
       return null;
     }
 
-    const addressResult = new TextResult({
+    const addressResult = new TextResult(this, {
       url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: 'copyAddress' })}`,
       text: address,
       textType: 'local-address',
@@ -115,7 +116,7 @@ export default class LocalResult extends BaseResult {
       return null;
     }
 
-    const phoneResult = new TextResult({
+    const phoneResult = new TextResult(this, {
       url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: 'copyPhoneNumber' })}`,
       text: phone,
       textType: 'local-phone',
@@ -141,7 +142,7 @@ export default class LocalResult extends BaseResult {
   }
 
   get mapResult() {
-    return new LocalInfoResult({
+    return new LocalInfoResult(this, {
       url: this.mapUrl,
       title: 'show-map',
       text: this.rawResult.text,
@@ -186,7 +187,7 @@ export default class LocalResult extends BaseResult {
     }
 
     const ratingStars = Math.max(0, Math.min(Math.round(rating), 5));
-    return `https://cdn.cliqz.com/extension/EZ/richresult/stars${ratingStars}.svg`;
+    return `${config.settings.CDN_BASEURL}/extension/EZ/richresult/stars${ratingStars}.svg`;
   }
 
   parseTime(timeStr) { // e.g. timeStr: 10.30

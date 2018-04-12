@@ -164,7 +164,7 @@ export default class App {
         return null;
       })
       .catch((e) => {
-        console.error(e, 'Extension filed loaded window modules');
+        console.error(e, 'Extension failed loaded window modules');
       });
   }
 
@@ -302,7 +302,7 @@ export default class App {
 
       // Ensure prefs are set to our custom values
       /** Change some prefs for a better cliqzperience -- always do a backup! */
-      setOurOwnPrefs();
+      setOurOwnPrefs(this.version);
 
       if ('default_prefs' in config) {
         Object.keys(config.default_prefs).forEach((pref) => {
@@ -510,7 +510,8 @@ export default class App {
    * It sets the `modules.<moduleName>.enabled` pref to false. So if called
    * before startup, it will prevent module start.
    *
-   * @todo check this is working fine with new module loading
+   * It ruturns a Promsie but sideeffects synchronously.
+   * If module did not finish initilizaton it waits and then disable it.
    *
    * @method disableModule
    * @param {string} moduleName - name of a module
@@ -521,13 +522,21 @@ export default class App {
     prefs.set(`modules.${moduleName}.enabled`, false);
 
     if (module.isDisabled || !this.isRunning) {
-      return;
+      return Promise.resolve();
     }
 
-    // TODO: what if it was loading? Can we stop it?
+    const disable = () => {
+      forEachWindow(module.unloadWindow);
+      module.disable();
+    };
 
-    forEachWindow(module.unloadWindow.bind(module));
-    module.disable();
+    if (module.isEnabling) {
+      return module.isReady().then(disable);
+    }
+
+    disable();
+
+    return Promise.resolve();
   }
 
   ready() {

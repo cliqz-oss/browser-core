@@ -2,39 +2,35 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { elementSideMargins, elementTopMargin } from '../../styles/CardStyle';
 
-class Title extends React.Component {
-
-  render() {
-    const meta = this.props.meta;
-    return <View style={style(false).container}>
-        <Text numberOfLines={2} style={style(false).title}>
-          {this.props.title}
-        </Text>
-        { !!meta &&
-          <Text numberOfLines={1} style={style().meta}>
-            {meta}
-          </Text>
-        }
-      </View>;
+const style = color => StyleSheet.create({
+  container: {
+    ...elementSideMargins,
+    ...elementTopMargin,
+  },
+  title: {
+    color,
+    fontWeight: 'bold',
+    fontSize: 17,
+  },
+  meta: {
+    color: '#448100',
+    fontSize: 10,
   }
-}
+});
 
-const style = function (isHistory) {
-  return StyleSheet.create({
-    container: {
-      ...elementSideMargins,
-      ...elementTopMargin,
-    },
-    title: {
-      color: 'black',
-      fontWeight: 'bold',
-      fontSize: 15,
-    },
-    meta: {
-      color: '#448100',
-      fontSize: 10,
-    }
-  });
+export default function (props) {
+  const meta = props.meta;
+  const color = props.isHistory ? '#551A8B' : 'black';
+  return (
+    <View style={style(color).container}>
+      <Text numberOfLines={2} style={style(color).title}>
+        {props.title}
+      </Text>
+      { !!meta &&
+        <Text numberOfLines={1} style={style(color).meta}>
+          {meta}
+        </Text>
+      }
+    </View>
+  );
 }
-
-export default Title;

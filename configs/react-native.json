@@ -1,7 +1,7 @@
 {
   "platform": "react-native",
   "format": "common",
-  "baseURL": "chrome://cliqz/content/",
+  "baseURL": "/",
   "testsBasePath": "./build/modules",
   "testem_launchers": ["unit-node"],
   "testem_launchers_ci": ["unit-node"],
@@ -13,12 +13,42 @@
     "channel": "MR00",
     "RESULTS_PROVIDER": "https://api.cliqz.com/api/v2/results?q=",
     "RICH_HEADER": "https://api.cliqz.com/api/v2/rich-header?path=/v2/map",
-    "RESULTS_LIMIT": 3,
     "RESULTS_TIMEOUT": 3000,
     "CONFIG_PROVIDER": "https://api.cliqz.com/api/v1/config",
     "CDN_BASEURL": "https://cdn.cliqz.com",
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
-    "OFFERS_BE_BASE_URL": "https://offers-api.cliqz.com"
+    "OFFERS_BE_BASE_URL": "https://offers-api.cliqz.com",
+    "RICH_HEADER_PROXY_URL" : "hb-news.cliqz.com",
+    "TRACKER_PROXY_PROXY_SIGNALING_DEFAULT": "wss://p2p-signaling-proxypeer.cliqz.com",
+    "TRACKER_PROXY_PROXY_PEERS_DEFAULT": "https://p2p-signaling-proxypeer.cliqz.com/peers",
+    "TRACKER_PROXY_PROXY_PEERS_EXIT_DEFAULT": "https://p2p-signaling-proxypeer.cliqz.com/exitNodes",
+    "GID_BACKEND_URL" : "https://anolysis-gid.cliqz.com",
+    "TELEMETRY_BACKEND_URL" : "https://anolysis-telemetry.cliqz.com/collect",
+    "BW_URL": "https://antiphishing.cliqz.com/api/bwlist?md5=",
+    "PRIVACY_SCORE_URL": "https://anti-tracking.cliqz.com/api/v1/score?",
+    "SUPPORT_URL": "https://cliqz.com/support/",
+    "TEAM_URL": "https://cliqz.com/team/",
+    "HOMPAGE_URL": "https://cliqz.com/",
+    "JOBS_URL": "https://cliqz.com/jobs/",
+    "ENDPOINT_URL": "https://api.cliqz.com/api/v1/rich-header?path=/map&bmresult=",
+    "CAMPAIGN_SERVER": "https://fec.cliqz.com/message/",
+    "TRIQZ_URL": "https://cliqz.com/tips",
+    "RESULTS_PROVIDER_LOG" : "https://api.cliqz.com/api/v1/logging?q=",
+    "RESULTS_PROVIDER_PING": "https://api.cliqz.com/ping",
+    "RESULTS_PROVIDER_ORDER": ["calculator", "history", "cliqz", "suggestions", "instant"],
+    "SAFE_BROWSING": "https://safe-browsing.cliqz.com",
+    "TUTORIAL_URL": "https://cliqz.com/home/onboarding",
+    "UNINSTALL": "https://cliqz.com/home/offboarding",
+    "FEEDBACK": "https://cliqz.com/feedback/",
+    "BACKGROUND_IMAGE_URL": "https://cdn.cliqz.com/brands-database/database/",
+    "CLIQZ_SAVE_URL": "https://cliqz.com/q=",
+    "SUGGESTIONS_URL": "https://cliqz.com/search?q=",
+    "ROTATED_TOP_NEWS": "rotated-top-news.cliqz.com",
+    "HB_NEWS": "hb-news.cliqz.com",
+    "TELEMETRY_ENDPOINT": "https://safebrowsing-experiment.cliqz.com",
+    "INVENTORY_URL": "https://cdn.cliqz.com/browser-f/fun-demo/inventoryv2.txt.gz",
+    "OFFER_TELEMETRY": "https://offers-api.cliqz.com/api/v1/savesignal",
+    "OFFER_TELEMETRY_PREFIX": "https://offers-api.cliqz.com"
   },
   "default_prefs" : {
     "attrackBloomFilter": true,
@@ -30,10 +60,9 @@
   "modules": [
     "core",
     "core-cliqz",
-    "autocomplete",
+    "search",
     "webrequest-pipeline",
     "antitracking",
-    "freshtab",
     "antitracking-blocker",
     "adblocker",
     "static",
@@ -41,10 +70,10 @@
     "pairing",
     "mobile-pairing",
     "mobile-cards",
-    "video-downloader"
+    "video-downloader",
+    "anolysis"
   ],
   "bundles": [
-    "core/content-tests.bundle.js"
   ],
   "react_components": {
     "ExtensionApp": "./modules/mobile-cards/SearchUI"

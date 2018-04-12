@@ -8,6 +8,7 @@ import { utils } from '../core/cliqz';
 // consts
 
 const MODULE_NAME = 'bp-display-mngr';
+const REAL_ESTATE_ID = 'browser-panel';
 
 
 function lwarn(msg) {
@@ -65,7 +66,7 @@ export default class DisplayManager {
         this.uiConnectorCb({
           handler: 'offers',
           data: {
-            origin: 'browser-panel',
+            origin: REAL_ESTATE_ID,
             type: 'offer-action-signal',
             data: {
               action_id: 'offer_dsp_session',
@@ -124,7 +125,7 @@ export default class DisplayManager {
       this.uiConnectorCb({
         handler: 'offers',
         data: {
-          origin: 'browser-panel',
+          origin: REAL_ESTATE_ID,
           type: 'offer-action-signal',
           data: {
             action_id: 'offer_timeout',

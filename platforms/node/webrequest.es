@@ -1,3 +1,4 @@
+import console from './console';
 
 const webRequest = {
   onBeforeRequest: {

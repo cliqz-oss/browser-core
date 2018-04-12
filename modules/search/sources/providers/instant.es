@@ -36,6 +36,7 @@ export default class InstantProvider extends BaseProvider {
       [{
         type,
         text: query,
+        url: this.getRawUrl(query),
         data: {
           suggestion: query,
           kind,
@@ -45,5 +46,9 @@ export default class InstantProvider extends BaseProvider {
       'done'
     )])
       .let(this.getOperators(config, query));
+  }
+
+  getRawUrl(query) {
+    return utils.getDefaultSearchEngine().getSubmissionForQuery(query);
   }
 }

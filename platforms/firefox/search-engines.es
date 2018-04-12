@@ -1,4 +1,5 @@
 import utils from '../core/utils';
+
 Components.utils.import('resource://gre/modules/Services.jsm');
 
 export function setSearchEngine(engine) {

@@ -1,3 +1,5 @@
+/* eslint no-param-reassign: 'off' */
+
 import ResourceLoader from '../core/resource-loader';
 import config from '../core/config';
 
@@ -36,10 +38,10 @@ export class HashProb {
     }
     let logProb = 0.0;
     let transC = 0;
-    str = str.toLowerCase().replace(/[^a-z0-9\.\- ]/g,'');
-    for(var i=0;i<str.length-1;i++) {
+    str = str.toLowerCase().replace(/[^a-z0-9.\- ]/g, '');
+    for (let i = 0; i < str.length - 1; i += 1) {
       const pos1 = this.probHashChars[str[i]];
-      const pos2 = this.probHashChars[str[i+1]];
+      const pos2 = this.probHashChars[str[i + 1]];
 
       logProb += this.probHashLogM[pos1][pos2];
       transC += 1;
@@ -61,7 +63,7 @@ const numberThreshold = 0.8;
 export function isMostlyNumeric(str) {
   let numbers = 0;
   const length = str.length;
-  for (let i = 0; i < str.length; i++) {
+  for (let i = 0; i < str.length; i += 1) {
     const code = str.charCodeAt(i);
     if (code >= 48 && code < 58) {
       numbers += 1;

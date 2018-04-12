@@ -1,8 +1,5 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
+  blurUrlBar,
   $cliqzResults,
   expect,
   fillIn,
@@ -19,6 +16,7 @@ export default function () {
   function calculatorTest(query, result) {
     context(query, function () {
       beforeEach(function () {
+        blurUrlBar();
         respondWith({ results: [] });
         withHistory([]);
         fillIn(query);
@@ -75,6 +73,7 @@ export default function () {
 
     describe('ui tests', function () {
       beforeEach(function () {
+        blurUrlBar();
         respondWith({ results: [] });
         fillIn('2222 * 2');
         return waitForPopup();

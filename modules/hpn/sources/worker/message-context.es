@@ -530,7 +530,7 @@ export default class MessageContext {
         this.aesDecrypt(JSON.parse(res).data)
       )
       .catch((err) => {
-        this.log(err);
+        this.log('query failed:', queryProxyUrl, ', reason:', err);
         return Promise.reject(err);
       });
   }

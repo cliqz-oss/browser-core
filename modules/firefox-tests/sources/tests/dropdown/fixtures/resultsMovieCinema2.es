@@ -71,7 +71,54 @@ export default [
             },
             {
               date: 'Morgen',
-              movie_list: []
+              movie_list: [
+                {
+                  showtimes: [
+                    {
+                      booking_link: 'https://www.yorck.de/checkout/step01?showid=1551478\u0026siteid=100008',
+                      is_3d: false,
+                      language: 'en',
+                      start_at: '2017-10-25T19:20:00+02:00',
+                      subtitle_language: 'de'
+                    },
+                    {
+                      booking_link: 'https://www.yorck.de/checkout/step01?showid=1551479\u0026siteid=100008',
+                      is_3d: false,
+                      language: 'en',
+                      start_at: '2017-10-25T22:40:00+02:00',
+                      subtitle_language: 'de'
+                    }
+                  ],
+                  title: 'Titanic',
+                  website: 'http://bladerunnermovie.com/'
+                },
+                {
+                  showtimes: [
+                    {
+                      booking_link: 'https://www.yorck.de/checkout/step01?showid=1551639\u0026siteid=100008',
+                      is_3d: false,
+                      language: 'en',
+                      start_at: '2017-10-25T21:40:00+02:00',
+                      subtitle_language: 'de'
+                    }
+                  ],
+                  title: 'Logan Lucky',
+                  website: null
+                },
+                {
+                  showtimes: [
+                    {
+                      booking_link: 'https://www.yorck.de/checkout/step01?showid=1551625\u0026siteid=100008',
+                      is_3d: false,
+                      language: 'en',
+                      start_at: '2017-10-25T19:00:00+02:00',
+                      subtitle_language: 'de'
+                    }
+                  ],
+                  title: 'The Glass Castle',
+                  website: null
+                }
+              ]
             },
             {
               date: 'Fr., 27. Okt.',

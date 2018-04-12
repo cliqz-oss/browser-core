@@ -11,7 +11,7 @@ export default {
       "dropdown": null,
       "firefox-specific": null,
       "static": null,
-      "autocomplete": {
+      "search": {
         "visible": true,
         "state": [
           {
@@ -1081,10 +1081,6 @@ export default {
         "active": true
       },
       "onboarding-v3": null,
-      "moncomp": {
-        "visible": false,
-        "state": false
-      },
       "type-filter": {
         "visible": true,
         "type1": true,

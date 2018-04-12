@@ -3,6 +3,7 @@
 /* global require */
 
 const encoding = require('text-encoding');
+const tldjs = require('tldjs');
 
 const TextDecoder = encoding.TextDecoder;
 const TextEncoder = encoding.TextEncoder;
@@ -29,6 +30,9 @@ export default describeModule('offers-v2/event_handler',
     },
     'core/platform': {
       isChromium: false
+    },
+    'core/helpers/timeout': {
+      default: function() { const stop = () => {}; return { stop }; }
     },
     'core/cliqz': {
       utils: {
@@ -64,7 +68,7 @@ export default describeModule('offers-v2/event_handler',
     },
     'core/webrequest': {
       default: {
-        onBeforeRequest: {
+        onCompleted: {
           d: [],
           removeListener: function(cb) {
             const idx = this.d.indexOf(cb);
@@ -91,6 +95,9 @@ export default describeModule('offers-v2/event_handler',
     'platform/console': {
       default: {}
     },
+    'platform/lib/tldjs': {
+      default: tldjs,
+    },
     'core/prefs': {
       default: {
         get: function(x,y) { return y; }
@@ -116,7 +123,7 @@ export default describeModule('offers-v2/event_handler',
 
         beforeEach(function () {
           events.clear();
-          WebRequest.onBeforeRequest.clear();
+          WebRequest.onCompleted.clear();
           eh = new EventHandler();
         });
 
@@ -134,7 +141,7 @@ export default describeModule('offers-v2/event_handler',
             rul: url,
             url,
           }
-          WebRequest.onBeforeRequest.mock_pub(evt);
+          WebRequest.onCompleted.mock_pub(evt);
         }
 
         // /////////////////////////////////////////////////////////////////////

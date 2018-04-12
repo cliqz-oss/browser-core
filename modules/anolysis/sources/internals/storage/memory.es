@@ -1,0 +1,190 @@
+import DefaultMap from '../../../core/helpers/default-map';
+import logger from '../logger';
+import getSynchronizedDate, { DATE_FORMAT } from '../synchronized-date';
+
+
+class AggregatedView {
+  constructor() {
+    this.db = new Set();
+  }
+
+  ifNotAlreadyAggregated(date, fn) {
+    if (this.db.has(date)) {
+      return Promise.resolve();
+    }
+    return Promise.resolve().then(fn);
+  }
+
+  getAggregatedDates() {
+    return Promise.resolve([...this.db]);
+  }
+
+  storeAggregation(date) {
+    if (this.db.has(date)) {
+      return Promise.reject();
+    }
+
+    this.db.add(date);
+    return Promise.resolve();
+  }
+
+  deleteOlderThan(date) {
+    this.db = new Set([...this.db].filter(d => d >= date));
+    return Promise.resolve();
+  }
+}
+
+class BehaviorView {
+  constructor() {
+    this.db = new DefaultMap(() => []);
+  }
+
+  getTypesForDate(date) {
+    const signals = this.db.get(date);
+    const types = new DefaultMap(() => []);
+    for (let i = 0; i < signals.length; i += 1) {
+      const { type, behavior } = signals[i];
+      types.update(type, (values) => { values.push(behavior); });
+    }
+    return Promise.resolve(types);
+  }
+
+  add({ type, behavior }) {
+    const date = getSynchronizedDate().format(DATE_FORMAT);
+
+    const doc = {
+      behavior,
+      date,
+      type,
+    };
+
+    logger.debug('add', doc);
+
+    return Promise.resolve(this.db.update(date, (array) => { array.push(doc); }));
+  }
+
+  deleteByDate(date) {
+    this.db.delete(date);
+    return Promise.resolve();
+  }
+}
+
+class RetentionView {
+  constructor() {
+    this.state = {
+      daily: {},
+      weekly: {},
+      monthly: {},
+    };
+  }
+
+  getState() {
+    return Promise.resolve(this.state);
+  }
+
+  setState(state) {
+    this.state = state;
+    return Promise.resolve();
+  }
+}
+
+class SignalQueueView {
+  constructor() {
+    this.id = 1;
+    this.db = new Map();
+  }
+
+  push(signal, attempts = 0) {
+    const id = this.id;
+    this.id += 1;
+
+    this.db.set(id, {
+      id,
+      signal,
+      attempts,
+      date: getSynchronizedDate().format(DATE_FORMAT),
+    });
+    return Promise.resolve();
+  }
+
+  remove(id) {
+    if (this.db.has(id)) {
+      this.db.delete(id);
+    }
+
+    return Promise.resolve();
+  }
+
+  getN(n) {
+    return Promise.resolve([...this.db.values()].slice(0, n));
+  }
+
+  getAll() {
+    return Promise.resolve([...this.db.values()]);
+  }
+
+  getSize() {
+    return Promise.resolve(this.db.size);
+  }
+
+  deleteOlderThan(date) {
+    [...this.db.entries()].forEach(([key, entry]) => {
+      if (entry.date < date) {
+        this.db.delete(key);
+      }
+    });
+    return Promise.resolve();
+  }
+}
+
+class GidManagerView {
+  constructor() {
+    this.db = new Map();
+  }
+
+  get(key) {
+    return this.db.get(key);
+  }
+
+  set(key, value) {
+    this.db.set(key, value);
+    return Promise.resolve();
+  }
+
+  entries() {
+    const entries = [];
+    this.db.forEach((value, key) => {
+      entries.push({
+        key,
+        value,
+      });
+    });
+    return entries;
+  }
+}
+
+export default class AnolysisStorage {
+  constructor() {
+    this.aggregated = null;
+    this.behavior = null;
+    this.retention = null;
+    this.signals = null;
+    this.gid = null;
+  }
+
+  init() {
+    this.aggregated = new AggregatedView();
+    this.behavior = new BehaviorView();
+    this.gid = new GidManagerView();
+    this.retention = new RetentionView();
+    this.signals = new SignalQueueView();
+    return Promise.resolve();
+  }
+
+  destroy() {
+    return Promise.resolve();
+  }
+
+  unload() {
+  }
+}

@@ -64,6 +64,7 @@ class App extends React.Component {
     this.toggleComponent = this.toggleComponent.bind(this);
     this.toggleBlueTheme = this.toggleBlueTheme.bind(this);
     this.toggleBackground = this.toggleBackground.bind(this);
+    this.submitFeedbackForm = this.submitFeedbackForm.bind(this);
   }
 
   componentDidMount() {
@@ -390,6 +391,16 @@ class App extends React.Component {
     this.onBackgroundImageChanged(newBg);
   }
 
+  submitFeedbackForm(vote, comments) {
+    cliqz.freshtab.sendUserFeedback({
+      data: {
+        target: 'myoffrz',
+        vote,
+        comments
+      }
+    });
+  }
+
   render() {
     return (
       <div
@@ -470,7 +481,10 @@ class App extends React.Component {
               }
 
               {(this.state.offers.length > 0) &&
-                <OfferMiddleMessages offers={this.state.offers} />
+                <OfferMiddleMessages
+                  offers={this.state.offers}
+                  submitFeedbackForm={this.submitFeedbackForm}
+                />
               }
 
             </section>

@@ -1,4 +1,13 @@
+/* global document */
+/* global XPathResult */
+
+import chai from 'chai';
+import chaiDom from 'chai-dom';
 import config from '../../../core/config';
+
+chai.use(chaiDom);
+
+export const expect = chai.expect;
 
 export const CONFIG = config;
 
@@ -19,9 +28,10 @@ export function clearIntervals() {
 }
 
 export function waitFor(fn) {
-  var resolver, rejecter, promise = new Promise(function (res, rej) {
+  let interval;
+  let resolver;
+  const promise = new Promise(function (res) {
     resolver = res;
-    rejecter = rej;
   });
 
   function check() {
@@ -32,7 +42,7 @@ export function waitFor(fn) {
     }
   }
 
-  var interval = setInterval(check, 50);
+  interval = setInterval(check, 50);
   check();
   registerInterval(interval);
 
@@ -43,6 +53,7 @@ export class Subject {
   constructor() {
     this.modules = {};
     const listeners = new Set();
+    this.errors = [];
     this.chrome = {
       runtime: {
         onMessage: {
@@ -54,9 +65,15 @@ export class Subject {
           }
         },
         sendMessage: ({ module, action, requestId, args }) => {
+          if (!this.modules[module]) {
+            this.errors.push(
+              new Error(`Calling action on module "${module}", but no responses for this module`)
+            );
+            return;
+          }
           const response = this.modules[module].actions[action];
 
-          listeners.forEach(l => {
+          listeners.forEach((l) => {
             l({
               action,
               response,
@@ -65,26 +82,32 @@ export class Subject {
               source: 'cliqz-content-script',
               args
             });
-          })
+          });
         }
       },
       i18n: {
         getMessage: k => k,
       }
+    };
+  }
+
+  shouldHaveNoErrors() {
+    if (this.errors.length > 0) {
+      throw this.errors[0];
     }
   }
 
-  load({iframeWidth = 900} = {}) {
+  load({ iframeWidth = 900 } = {}) {
     this.iframe = document.createElement('iframe');
-    this.iframe.src = '/build/cliqz@cliqz.com/chrome/content/freshtab/home.html';
+    this.iframe.src = `/build/${config.settings.id}/chrome/content/freshtab/home.html`;
     this.iframe.width = iframeWidth;
     this.iframe.height = 500;
-    document.body.appendChild(this.iframe)
+    document.body.appendChild(this.iframe);
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.iframe.contentWindow.chrome = this.chrome;
       this.iframe.contentWindow.addEventListener('load', () => {
-        resolve()
+        resolve();
       });
     });
   }
@@ -120,7 +143,7 @@ export class Subject {
     this.iframe.contentWindow.postMessage(JSON.stringify({
       target: 'cliqz-freshtab',
       origin: 'window',
-      message:  {
+      message: {
         action: 'pushData',
         data,
       }
@@ -129,10 +152,10 @@ export class Subject {
   }
 
   getComputedStyle(selector) {
-    return this.iframe.contentWindow.getComputedStyle(this.query(selector));
+    return this.iframe.contentWindow.getComputedStyle(selector);
   }
 
-  respondsWith({ module, action, response, requestId }) {
+  respondsWith({ module, action, response }) {
     this.modules[module] = this.modules[module] || { actions: {} };
     this.modules[module].actions[action] = response;
   }

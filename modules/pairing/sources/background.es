@@ -2,6 +2,7 @@ import CliqzUtils from '../core/utils';
 import PeerSlave from './peer-slave';
 import YoutubeApp from './apps/youtube';
 import TabsharingApp from './apps/tabsharing';
+import BookmarksImportApp from './apps/bookmarks-import';
 import SimpleStorage from '../core/simple-storage';
 import PairingObserver from './apps/pairing-observer';
 import background from '../core/base/background';
@@ -73,6 +74,8 @@ export default background({
     uiObs.onmasterconnected = sendUI.bind(this, 'onPairingMasterConnected');
     uiObs.onmasterdisconnected = sendUI.bind(this, 'onPairingMasterDisconnected');
     PeerComm.addObserver('__UI__', uiObs);
+
+    PeerComm.addObserver('BOOKMARKS', new BookmarksImportApp(() => {}));
 
     this.storage = new CachedMap('pairing');
     return this.storage.init()
@@ -184,9 +187,7 @@ export default background({
     const selectedBrowser = window.gBrowser.getBrowserAtIndex(tabPos);
     const url = selectedBrowser.currentURI.spec;
     const title = window.gBrowser.tabs[tabPos].label;
-    const isPrivateWindow = CliqzUtils.isPrivate(window);
-    const isPrivateTab = selectedBrowser.loadContext.usePrivateBrowsing;
-    const isPrivate = isPrivateWindow || isPrivateTab;
+    const isPrivate = CliqzUtils.isPrivateMode(window);
 
     return { url, title, isPrivate };
   },

@@ -12,9 +12,9 @@ export default class CookieContext {
     this.qsWhitelist = qsWhitelist;
     this.visitCache = {};
     this.contextFromEvent = null;
-    this.timeAfterLink = 5*1000;
-    this.timeCleaningCache = 180*1000;
-    this.timeActive = 20*1000;
+    this.timeAfterLink = 5 * 1000;
+    this.timeCleaningCache = 180 * 1000;
+    this.timeActive = 20 * 1000;
     this.trustedThirdParties = new Map();
     // how long to keep trust entries which have not been triggered
     this.UNUSED_TRUST_TIMEOUT = 120000; // 2 minutes
@@ -36,8 +36,8 @@ export default class CookieContext {
     // trusted domain pairs
     const now = Date.now();
     this.trustedThirdParties.forEach((counter, key) => {
-      const timeoutAt = counter.ts + (counter.c > 0 ? this.USED_TRUST_TIMEOUT :
-                                                      this.UNUSED_TRUST_TIMEOUT);
+      const timeoutAt = counter.ts +
+        (counter.c > 0 ? this.USED_TRUST_TIMEOUT : this.UNUSED_TRUST_TIMEOUT);
       if (now > timeoutAt) {
         this.trustedThirdParties.delete(key);
       }
@@ -116,47 +116,47 @@ export default class CookieContext {
       const sourceGD = state.sourceUrlParts.generalDomain;
       const hostGD = state.urlParts.generalDomain;
 
-      var diff = time - (this.contextFromEvent.ts || 0);
+      const diff = time - (this.contextFromEvent.ts || 0);
       if (diff < this.timeAfterLink) {
-
-          if (hostGD === this.contextFromEvent.cGD && sourceGD === this.contextFromEvent.pageGD) {
-              this.visitCache[`${tabId}:${hostGD}`] = time;
-              state.incrementStat(`${stage}_allow_userinit_same_context_gd`);
-              return false;
-          }
-          var pu = url.split(/[?&;]/)[0];
-          if (this.contextFromEvent.html.indexOf(pu)!=-1) {
-              // the url is in pu
-              if (urlParts && urlParts.hostname && urlParts.hostname!='') {
-                  this.visitCache[`${tabId}:${hostGD}`] = time;
-                  state.incrementStat(`${stage}_allow_userinit_same_gd_link`);
-                  return false;
-              }
-          }
-          // last try, guess the possible domain from script src;
-          if (!this.contextFromEvent.cGD && this.contextFromEvent.possibleCGD.has(hostGD)) {
+        if (hostGD === this.contextFromEvent.cGD && sourceGD === this.contextFromEvent.pageGD) {
+          this.visitCache[`${tabId}:${hostGD}`] = time;
+          state.incrementStat(`${stage}_allow_userinit_same_context_gd`);
+          return false;
+        }
+        const pu = url.split(/[?&;]/)[0];
+        if (this.contextFromEvent.html.indexOf(pu) !== -1) {
+          // the url is in pu
+          if (urlParts && urlParts.hostname && urlParts.hostname !== '') {
             this.visitCache[`${tabId}:${hostGD}`] = time;
-            state.incrementStat(`${stage}_allow_userinit_same_script_gd`);
+            state.incrementStat(`${stage}_allow_userinit_same_gd_link`);
             return false;
           }
+        }
+        // last try, guess the possible domain from script src;
+        if (!this.contextFromEvent.cGD && this.contextFromEvent.possibleCGD.has(hostGD)) {
+          this.visitCache[`${tabId}:${hostGD}`] = time;
+          state.incrementStat(`${stage}_allow_userinit_same_script_gd`);
+          return false;
+        }
       }
     }
     return true;
   }
 
-  extractPossilbeContextGD (links) {
+  extractPossilbeContextGD(links) {
     return new Set(links.map(link => URLInfo.get(link).generalDomain));
   }
 
   setContextFromEvent(ev, contextHTML, herf, sender) {
     let cGD = null;
     let pageGD = null;
-    let html = contextHTML || '';
+    const html = contextHTML || '';
 
     try {
       pageGD = URLInfo.get(sender.tab.url).generalDomain;
       cGD = URLInfo.get(ev.target.baseURI).generalDomain;
     } catch (ee) {
+      // empty
     }
     if (!pageGD || cGD === pageGD) {
       return;

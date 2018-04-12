@@ -1,9 +1,12 @@
 import {
   clearIntervals,
-  Subject,
-  defaultConfig,
+  expect
+} from '../../core/test-helpers';
+import {
   CONFIG,
-} from './helpers';
+  defaultConfig,
+  Subject
+} from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab buttons UI', function () {
   const homeButtonSelector = '#cliqz-home';
@@ -13,12 +16,8 @@ describe('Fresh tab buttons UI', function () {
 
   before(function () {
     subject = new Subject();
-    subject.respondsWith({
-      module: 'core',
-      action: 'sendTelemetry',
-      response: ''
-    });
-
+    subject.respondsWithEmptyTelemetry();
+    subject.respondsWithEmptyNews();
     subject.respondsWith(defaultConfig);
 
     subject.respondsWith({
@@ -43,15 +42,6 @@ describe('Fresh tab buttons UI', function () {
         custom: []
       },
     });
-
-    subject.respondsWith({
-      module: 'freshtab',
-      action: 'getNews',
-      response: {
-        version: 0,
-        news: []
-      }
-    });
   });
 
   after(function () {
@@ -69,54 +59,56 @@ describe('Fresh tab buttons UI', function () {
 
     describe('renders home icon', function () {
       it('successfully', function () {
-        chai.expect(subject.query(homeButtonSelector)).to.exist;
+        expect(subject.query(homeButtonSelector)).to.exist;
       });
 
       it('not hidden', function () {
-        chai.expect(subject.getComputedStyle(homeButtonSelector).display).to.not.equal('none');
+        expect(subject.getComputedStyle(subject.query(homeButtonSelector)).display).to.not.equal('none');
       });
 
 
       it('with correct text', function () {
-        chai.expect(subject.query(homeButtonSelector)).to.have.text('Home');
+        expect(subject.query(homeButtonSelector)).to.have.text('Home');
       });
 
       it('with correct link', function () {
-        chai.expect(subject.query(homeButtonSelector).href)
+        expect(subject.query(homeButtonSelector).href)
           .to.equal(CONFIG.settings.NEW_TAB_URL);
       });
     });
 
     describe('renders history icon', function () {
       it('successfully', function () {
-        chai.expect(subject.query(historyButtonSelector)).to.exist;
+        expect(subject.query(historyButtonSelector)).to.exist;
       });
 
       it('not hidden', function () {
-        chai.expect(subject.getComputedStyle(historyButtonSelector).display).to.not.equal('none');
+        expect(subject.getComputedStyle(subject.query(historyButtonSelector)).display)
+          .to.not.equal('none');
       });
 
       it('with correct text', function () {
-        chai.expect(subject.query(historyButtonSelector)).to.have.text('History');
+        expect(subject.query(historyButtonSelector)).to.have.text('History');
       });
 
       it('with correct link', function () {
-        chai.expect(subject.query(historyButtonSelector).href)
+        expect(subject.query(historyButtonSelector).href)
           .to.contain(CONFIG.settings.HISTORY_URL);
       });
     });
 
     describe('renders settings icon', function () {
       it('successfully', function () {
-        chai.expect(subject.query(settingsButtonSelector)).to.exist;
+        expect(subject.query(settingsButtonSelector)).to.exist;
       });
 
       it('not hidden', function () {
-        chai.expect(subject.getComputedStyle(settingsButtonSelector).display).to.not.equal('none');
+        expect(subject.getComputedStyle(subject.query(settingsButtonSelector)).display)
+          .to.not.equal('none');
       });
 
       it('with correct text', function () {
-        chai.expect(subject.query(settingsButtonSelector)).to.have.text('Settings');
+        expect(subject.query(settingsButtonSelector)).to.have.text('Settings');
       });
     });
   });
@@ -132,31 +124,31 @@ describe('Fresh tab buttons UI', function () {
 
     describe('renders home icon', function () {
       it('successfully', function () {
-        chai.expect(subject.query(homeButtonSelector)).to.exist;
+        expect(subject.query(homeButtonSelector)).to.exist;
       });
 
       it('hidden', function () {
-        chai.expect(subject.getComputedStyle(homeButtonSelector).display).to.equal('none');
+        expect(subject.getComputedStyle(subject.query(homeButtonSelector)).display).to.equal('none');
       });
     });
 
     describe('renders history icon', function () {
       it('successfully', function () {
-        chai.expect(subject.query(historyButtonSelector)).to.exist;
+        expect(subject.query(historyButtonSelector)).to.exist;
       });
 
       it('hidden', function () {
-        chai.expect(subject.getComputedStyle(historyButtonSelector).display).to.equal('none');
+        expect(subject.getComputedStyle(subject.query(historyButtonSelector)).display).to.equal('none');
       });
     });
 
     describe('renders settings icon', function () {
       it('successfully', function () {
-        chai.expect(subject.query(settingsButtonSelector)).to.exist;
+        expect(subject.query(settingsButtonSelector)).to.exist;
       });
 
       it('hidden', function () {
-        chai.expect(subject.getComputedStyle(settingsButtonSelector).display).to.equal('none');
+        expect(subject.getComputedStyle(subject.query(settingsButtonSelector)).display).to.equal('none');
       });
     });
   });

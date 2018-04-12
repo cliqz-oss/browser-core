@@ -6,7 +6,11 @@
 {{else}}
     {{#if unSupportedFormat}}
     <div id="unsupported-format">
+        {{#if isLiveVideo}}
+        <span data-i18n="video-downloader-live-video"></span>
+        {{else}}
         <span data-i18n="video-downloader-unsupported-format"></span>
+        {{/if}}
     </div>
     {{else}}
     <ul class="vd-tabs">
@@ -32,7 +36,7 @@
         <p id="wifi-warning">
             <span data-i18n="video-downloader-wifi-warning"></span>
         </p>
-        <span id="download-mobile" class="link-button" data-i18n="video-downloader-download-button-label"></span>
+        <span id="download-mobile" class="link-button" data-i18n="video-downloader-send-button-label"></span>
         <span id="download-desktop" class="link-button" data-i18n="video-downloader-download-button-label"></span>
         <span class="connect-page-link">
             <span data-i18n="video-downloader-open-connect-page"></span>

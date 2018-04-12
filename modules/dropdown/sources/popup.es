@@ -1,5 +1,3 @@
-import prefs from '../core/prefs';
-
 export default class Popup {
   constructor(window) {
     this.window = window;
@@ -34,10 +32,6 @@ export default class Popup {
     };
   }
 
-  get isNewSearchMode() {
-    return prefs.get('searchMode', 'autocomplete') !== 'autocomplete';
-  }
-
   setDropdownPadding() {
     const urlbarRect = this.urlbar.getBoundingClientRect();
     const extraPadding = 10;
@@ -55,9 +49,6 @@ export default class Popup {
   open() {
     this.setDropdownPadding();
 
-    if (!this.isNewSearchMode) {
-      return;
-    }
     const navBar = this.window.document.querySelector('#nav-bar');
 
     // without this ESC does not revert to the page url
@@ -69,9 +60,6 @@ export default class Popup {
   }
 
   close() {
-    if (!this.isNewSearchMode) {
-      return;
-    }
     this.element.closePopup();
   }
 
@@ -79,5 +67,9 @@ export default class Popup {
     const urlbar = this.element.mInput;
     urlbar.value = urlbar.mInputField.value;
     this.element.mInput.handleCommand(...args);
+  }
+
+  get isOpen() {
+    return this.element.mPopupOpen;
   }
 }

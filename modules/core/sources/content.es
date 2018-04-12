@@ -2,13 +2,13 @@
 import config from '../core/config';
 // Load content scripts from modules
 import '../module-content-script';
-import { getWindowId, getWindowTreeInformation, runContentScripts,
-  CHROME_MSG_SOURCE, isCliqzContentScriptMsg, getDocumentUrl } from '../core/content/helpers';
+import {
+  runContentScripts,
+  CHROME_MSG_SOURCE,
+  isCliqzContentScriptMsg,
+  getDocumentUrl
+} from '../core/content/helpers';
 import { throttle } from '../core/decorators';
-
-if (typeof windowId === 'undefined') {
-  window.windowId = getWindowId();
-}
 
 function getContextHTML(ev) {
   var target = ev.target,
@@ -47,9 +47,8 @@ try {
     return;
   }
 
-  runContentScripts(window, chrome, windowId);
+  runContentScripts(window, chrome);
 
-  const windowTreeInformation = getWindowTreeInformation(window);
   const currentURL = () => window.location.href;
   const url = currentURL();
 
@@ -79,7 +78,6 @@ try {
     chrome.runtime.sendMessage({
       source: CHROME_MSG_SOURCE,
       origin: 'content',
-      windowId: windowId,
       payload: message
     });
   };
@@ -154,23 +152,14 @@ try {
       return;
     }
 
-    var normalizedCurrentURL;
-    if (msg.action === 'getHTML') {
-      // Human web decodes the URI for internal storage.
-      // Otherwise, searches containing special characters
-      // (e.g., Umlaute, '&') will not be matched.
-      msg.url = decodeURIComponent(msg.url);
-      normalizedCurrentURL = decodeURIComponent(currentURL());
-    } else {
-      normalizedCurrentURL = currentURL();
-    }
+    const url = currentURL();
 
-    let matchesCurrentUrl = msg.url === normalizedCurrentURL;
+    let matchesCurrentUrl = msg.url === url;
     // wild card for cliqz URLS
     if(msg.url &&
         (msg.url.indexOf('resource://cliqz') === 0 ||
          msg.url.indexOf('chrome://cliqz') === 0)) {
-      if(normalizedCurrentURL.indexOf(msg.url) === 0) {
+      if(url.indexOf(msg.url) === 0) {
         matchesCurrentUrl = true;
       }
     }
@@ -204,7 +193,6 @@ try {
     return function (ev) {
       chrome.runtime.sendMessage({
         source: CHROME_MSG_SOURCE,
-        windowId: windowId,
         payload: {
           module: 'core',
           action: action,
@@ -212,7 +200,6 @@ try {
             {
               target: {
                 baseURI: ev.target.baseURI,
-                windowTreeInformation: windowTreeInformation,
               }
             }
           ]
@@ -248,14 +235,12 @@ try {
 
     chrome.runtime.sendMessage({
       source: CHROME_MSG_SOURCE,
-      windowId: windowId,
       payload: {
         module: 'core',
         action: 'recordMouseDown',
         args: [
           {
             target: {
-              windowTreeInformation: windowTreeInformation,
               baseURI: ev.target.baseURI,
               value: ev.target.value,
               href: ev.target.href,
@@ -282,7 +267,6 @@ try {
     if (isTopWindow && lang) {
       chrome.runtime.sendMessage({
         source: CHROME_MSG_SOURCE,
-        windowId: windowId,
         payload: {
           module: 'core',
           action: 'recordLang',
@@ -304,7 +288,6 @@ try {
     if (isTopWindow) {
       chrome.runtime.sendMessage({
         source: CHROME_MSG_SOURCE,
-        windowId: windowId,
         payload: {
           module: 'core',
           action: 'recordMeta',
@@ -327,7 +310,10 @@ try {
     if (!isCliqzContentScriptMsg(message)) {
       return;
     }
-    if (message.windowId === windowId) {
+
+    // messages with windowId are responses to actions being called by content scripts
+    // TODO: use chrome.runtime.sendMessage callbacks instead
+    if (message.windowId) {
       onCallback(message);
     } else {
       onCore(message);

@@ -1,4 +1,3 @@
-import CliqzUtils from '../core/utils';
 import background from '../core/base/background';
 import { isPlatformAtLeastInVersion } from '../core/platform';
 import CliqzSecureMessage from './main';
@@ -21,11 +20,13 @@ export default background({
       this.CliqzSecureMessage = CliqzSecureMessage;
       CliqzSecureMessage.init();
       CliqzSecureMessage.wCrypto = new CryptoWorker('httpHandler');
-      CliqzSecureMessage.wCrypto.onmessage = function (e) {
+      CliqzSecureMessage.wCrypto.onmessage = (e) => {
         if (e.data.type === 'instant') {
           const callback = CliqzSecureMessage.queriesID[e.data.uid];
           delete CliqzSecureMessage.queriesID[e.data.uid];
-          callback && callback({ response: e.data.res });
+          if (callback) {
+            callback({ response: e.data.res });
+          }
         }
       };
     }
@@ -42,18 +43,18 @@ export default background({
 
   actions: {
     sha1(s) {
-      let promise = new Promise( (resolve, reject) => {
-        let wCrypto = new CryptoWorker();
+      const promise = new Promise((resolve) => {
+        const wCrypto = new CryptoWorker();
 
-        wCrypto.onmessage = function(e){
-          let result = e.data.result;
+        wCrypto.onmessage = (e) => {
+          const result = e.data.result;
           wCrypto.terminate();
           resolve(result);
         };
 
         wCrypto.postMessage({
-          "msg": s,
-          "type":"hw-sha1"
+          msg: s,
+          type: 'hw-sha1'
         });
       });
       return promise;
@@ -63,11 +64,15 @@ export default background({
     },
 
     sendInstantMessage(rp, payload) {
-      CliqzSecureMessage.proxyIP();
+      const queryProxyUrl = CliqzSecureMessage.proxyIP();
+      if (!queryProxyUrl) {
+        throw new Error('Cannot send message (list of proxies is empty)');
+      }
+
       return new Promise((resolve, reject) => {
         const wCrypto = new CryptoWorker();
 
-        wCrypto.onmessage = function(e){
+        wCrypto.onmessage = (e) => {
           try {
             const result = JSON.parse(e.data.res).result;
             wCrypto.terminate();
@@ -83,8 +88,8 @@ export default background({
             type: 'cliqz',
             ts: '',
             ver: '1.5',
-            payload: payload,
-            rp: rp,
+            payload,
+            rp,
           },
           uid: '',
           type: 'instant',
@@ -92,22 +97,28 @@ export default background({
           upk: CliqzSecureMessage.uPK,
           dspk: CliqzSecureMessage.dsPK,
           sspk: CliqzSecureMessage.secureLogger,
-          queryProxyUrl: CliqzSecureMessage.queryProxyIP,
+          queryProxyUrl,
         });
       });
     },
 
     sendPostMessage(rp, payload, action, data, callback) {
+      const queryProxyUrl = CliqzSecureMessage.proxyIP();
+      if (!queryProxyUrl) {
+        throw new Error('Cannot send message (list of proxies is empty)');
+      }
+
       const uid = Math.floor(Math.random() * 10000000);
       CliqzSecureMessage.queriesID[uid] = callback;
       CliqzSecureMessage.wCrypto.postMessage({
-        msg: { action: action,
-              type: 'cliqz',
-              ts: '',
-              ver: '1.5',
-              payload: payload,
-              rp: rp,
-              body: data,
+        msg: {
+          action,
+          type: 'cliqz',
+          ts: '',
+          ver: '1.5',
+          payload,
+          rp,
+          body: data,
         },
         uid: '',
         type: 'instant',
@@ -115,7 +126,7 @@ export default background({
         upk: CliqzSecureMessage.uPK,
         dspk: CliqzSecureMessage.dsPK,
         sspk: CliqzSecureMessage.secureLogger,
-        queryProxyUrl: CliqzSecureMessage.queryProxyIP,
+        queryProxyUrl,
       });
     }
   },

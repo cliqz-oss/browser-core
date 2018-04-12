@@ -14,6 +14,7 @@ export function notImplemented() {
 export const isFirefox = platform.isFirefox;
 export const isMobile = platform.isMobile;
 export const isChromium = platform.isChromium;
+export const isEdge = platform.isEdge;
 export const platformName = platform.platformName;
 export const isCliqzBrowser = config.settings.channel === '40';
 

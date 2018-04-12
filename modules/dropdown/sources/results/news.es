@@ -1,6 +1,6 @@
-import BaseResult from './base';
+import { Subresult } from './base';
 
-export default class NewsResult extends BaseResult {
+export default class NewsResult extends Subresult {
   get logo() {
     if (this.rawResult.showLogo) {
       return super.logo;

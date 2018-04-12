@@ -1,3 +1,5 @@
+/* eslint no-param-reassign: 'off' */
+
 import config from '../core/config';
 import inject from '../core/kord/inject';
 import utils from '../core/utils';
@@ -57,16 +59,16 @@ export default background({
       'broadcastMessage',
       config.settings.NEW_TAB_URL,
       {
-        action: action,
+        action,
         message
       }
     );
   },
 
   actions: {
-    /**
+    /*
     * get configuration with notification sources
-    **/
+    */
     getConfig() {
       return {
         sources: this.notificationCenter.domainList(),
@@ -82,7 +84,7 @@ export default background({
     },
 
     hasActiveNotifications() {
-      let gmailNotifications = this.actions.getNotifications(['mail.google.com']);
+      const gmailNotifications = this.actions.getNotifications(['mail.google.com']);
       return (gmailNotifications['mail.google.com'].status === 'enabled') || (gmailNotifications['mail.google.com'].status === 'inaccessible');
     },
 
@@ -106,17 +108,17 @@ export default background({
       }, Object.create(null));
     },
 
-    /**
+    /*
     * Add a new source to configuration
-    **/
+    */
     watch(url) {
       const domainDetails = utils.getDetailsFromUrl(url);
       return this.notificationCenter.addDomain(domainDetails.host);
     },
 
-    /**
+    /*
     * Remove a url from notification sources
-    **/
+    */
     unwatch(url) {
       const domainDetails = utils.getDetailsFromUrl(url);
       return this.notificationCenter.removeDomain(domainDetails.host);

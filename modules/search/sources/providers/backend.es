@@ -32,7 +32,7 @@ export default class BackendProvider extends BaseProvider {
     return '';
   }
 
-  mapResults({ results, q }) {
+  mapResults(results, query) {
     return results.map((result) => {
       const snippet = result.snippet || {};
       return {
@@ -41,7 +41,7 @@ export default class BackendProvider extends BaseProvider {
         originalUrl: result.url,
         title: snippet.title,
         type: result.type,
-        text: q,
+        text: query,
         description: snippet.description,
         provider: this.id,
         data: {

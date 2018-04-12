@@ -1,10 +1,10 @@
 #!/bin/env groovy
+import groovy.time.*
 
 @Library('cliqz-shared-library@v1.2') _
 
 properties([
     [$class: 'JobRestrictionProperty'],
-    disableConcurrentBuilds(),
     parameters([
         string(name: 'DOCKER_REGISTRY_URL', defaultValue: '141047255820.dkr.ecr.us-east-1.amazonaws.com'),
         string(name: 'AWS_REGION', defaultValue: 'us-east-1'),
@@ -14,39 +14,53 @@ properties([
 def matrix = [
     'unit tests': [
         'gpu': false,
-        'testParams': 'configs/unit-tests.json -l unit-node',
+        'config': 'configs/ci/unit-tests.js',
+        'testParams': '-l unit-node',
     ],
     'browser: content': [
         'gpu': true,
-        'testParams': 'configs/browser.js -l chromium',
-    ],
-    'mobile: content': [
-        'gpu': true,
-        'testParams': 'configs/mobile.json -l chromium',
+        'config': 'configs/ci/browser.js',
+        'testParams': '-l chromium',
     ],
     'firefox 52': [
         'gpu': true,
-        'testParams': 'configs/jenkins.js -l firefox-web-ext --firefox ~/firefox52/firefox/firefox',
+        'config': 'configs/ci/browser.js',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox52/firefox/firefox',
     ],
-    'firefox 56': [
+    'firefox 58': [
         'gpu': true,
-        'testParams': 'configs/jenkins.js -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
+        'config': 'configs/ci/browser.js',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox58/firefox/firefox',
     ],
-    'new mixer': [
+    'firefox 59': [
         'gpu': true,
-        'testParams': 'configs/jenkins-new-mixer.js -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
+        'config': 'configs/ci/browser.js',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox59/firefox/firefox',
     ],
-    'funnelcake 56': [
+    'firefox beta': [
         'gpu': true,
-        'testParams': 'configs/jenkins-funnelcake.js -l firefox-web-ext --firefox ~/firefox56/firefox/firefox',
+        'config': 'configs/ci/browser.js',
+        'testParams': '-l firefox-web-ext --firefox ~/firefoxBeta/firefox/firefox',
+    ],
+    'firefox nightly': [
+        'gpu': true,
+        'config': 'configs/ci/browser.js',
+        'testParams': '-l firefox-web-ext --firefox ~/firefoxNightly/firefox/firefox',
+    ],
+    'funnelcake 58': [
+        'gpu': true,
+        'config': 'configs/ci/funnelcake.js',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox58/firefox/firefox',
     ],
     'firefox stresstest (52)': [
         'gpu': true,
-        'testParams': 'configs/jenkins.js -l firefox-web-ext-stresstest --firefox ~/firefox52/firefox/firefox',
+        'config': 'configs/ci/browser.js',
+        'testParams': '-l firefox-web-ext-stresstest --firefox ~/firefox52/firefox/firefox',
     ],
     'chromium': [
         'gpu': true,
-        'testParams': 'configs/cliqzium.json -l chromium-selenium',
+        'config': 'configs/ci/cliqzium.js',
+        'testParams': '-l chromium-selenium',
     ],
 ]
 
@@ -72,7 +86,7 @@ def setGithubCommitStatus(commit, context, status, message) {
 }
 
 parallel helpers.entries(matrix).collectEntries {
-    [(it[0]): {
+    [("Github Status ${it[0]}"): {
         setGithubCommitStatus(triggeringCommitHash, it[0], 'pending', 'pending')
     }]
 }
@@ -86,10 +100,12 @@ node('docker && !gpu && us-east-1') {
 
     def dockerfileChecksum = sh(returnStdout: true, script: 'md5sum Dockerfile.ci | cut -d" " -f1').trim()
     def packageJsonChecksum = sh(returnStdout: true, script: 'md5sum package.json | cut -d" " -f1').trim()
-    def dockerTag = "${dockerfileChecksum}-${packageJsonChecksum}"
+    // add date to the tag in order to download FF beta and nightly at least once per day and stay up-to-date
+    def today = new Date().format('yyyyMMdd')
+    def dockerTag = "${dockerfileChecksum}-${packageJsonChecksum}-${today}"
 
-    // authorize docker deamon to access registry
-    sh "`aws ecr get-login --no-include-email --region=${params.AWS_REGION}`"
+    // authorize docker deamon to access registry - no longer needed for GP nodes
+    // sh "`aws ecr get-login --no-include-email --region=${params.AWS_REGION}`"
 
     docker.withRegistry("https://${params.DOCKER_REGISTRY_URL}") {
 
@@ -124,14 +140,49 @@ node('docker && !gpu && us-east-1') {
 
             codeImage.push currentCommitHash
         }
-
     }
 }
 
+def build(Map m) {
+    def context = m.context
+    def getCodeDockerImage = m.getCodeDockerImage
+    def config = m.config
+    def stashName = "${env.JOB_BASE_NAME}_${env.BUILD_NUMBER}_${config.bytes.encodeBase64().toString()}"
+    echo "Saving to stash ${stashName} #1"
+    return {
+        node('docker && !gpu && us-east-1') {
+            def codeDockerImage = getCodeDockerImage()
+
+            stage('Build an image') {
+                docker.withRegistry("https://${params.DOCKER_REGISTRY_URL}") {
+                    def image = docker.image(codeDockerImage)
+
+                    image.pull()
+                    withEnv(["CLIQZ_CONFIG_PATH=${config}",
+                             "CLIQZ_OUTPUT_PATH=${env.WORKSPACE}/${stashName}"
+                        ]) {
+                        docker.image(image.imageName()).inside() {
+                            sh """#!/bin/bash
+                                set -x
+                                cd /app
+                                ./fern.js build --environment testing
+                            """
+                        }
+                        stash includes: "${stashName}/**/*", name: "${stashName}"
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 def test(Map m) {
     def context = m.context
+    def config = m.config
     def testParams = m.testParams
     def gpu = m.gpu
+    def stashName = "${env.JOB_BASE_NAME}_${env.BUILD_NUMBER}_${config.bytes.encodeBase64().toString()}"
     def getCodeDockerImage = m.getCodeDockerImage
     def getTriggeringCommitHash = m.getTriggeringCommitHash
 
@@ -143,14 +194,14 @@ def test(Map m) {
             def triggeringCommitHash = getTriggeringCommitHash()
             def HOST = helpers.getIp()
             def VNC_PORT = helpers.getFreePort(lower: 20000, upper: 20999)
-            def dockerParams = "-p ${VNC_PORT}:5900"
+            def dockerParams = "-p ${VNC_PORT}:5900 --add-host cliqztest.com:127.0.0.1"
 
             if (gpu) {
                 dockerParams += ' --device /dev/nvidia0 --device /dev/nvidiactl --cpus=2'
             }
 
-            // authorize docker deamon to access registry
-            sh "`aws ecr get-login --no-include-email --region=${params.AWS_REGION}`"
+            // authorize docker deamon to access registry - no longer needed for GP nodes
+            // sh "`aws ecr get-login --no-include-email --region=${params.AWS_REGION}`"
 
             docker.withRegistry("https://${params.DOCKER_REGISTRY_URL}") {
                 def image = docker.image(codeDockerImage)
@@ -158,75 +209,100 @@ def test(Map m) {
                 stage('tests: get image') {
                     image.pull()
                 }
+                withEnv(["CLIQZ_CONFIG_PATH=${config}"]) {
+                    dir("${stashName}") {
+                        unstash name: "${stashName}"
+                    }
 
-                docker.image(image.imageName()).inside(dockerParams) {
+                    docker.image(image.imageName()).inside(dockerParams) {
 
-                    setGithubCommitStatus(
-                        triggeringCommitHash,
-                        context,
-                        'pending',
-                        "VNC ${HOST}:${VNC_PORT}"
-                    )
+                        setGithubCommitStatus(
+                            triggeringCommitHash,
+                            context,
+                            'pending',
+                            "VNC ${HOST}:${VNC_PORT}"
+                        )
 
-                    timeout(60) {
-                        stage('tests: run') {
-                            def report
-                            def hasErrors
+                        timeout(25) {
+                            stage('tests: run') {
+                                def report
+                                def hasErrors
 
-                            try {
+                                try {
+                                    def timeBefore = new Date()
 
-                                sh """#!/bin/bash
-                                    set -x
+                                    sh """#!/bin/bash
+                                        set -x
 
-                                    cd /app
-                                    rm -f report.xml
+                                        cd /app
 
-                                    export DISPLAY=:0
-                                    Xvfb \$DISPLAY -screen 0 1024x768x24 -ac &
-                                    openbox&
+                                        cp -r ${env.WORKSPACE}/${stashName}/${stashName} build
+                                        rm -f report.xml
 
-                                    x11vnc -storepasswd vnc /tmp/vncpass
-                                    x11vnc -rfbport 5900 -rfbauth /tmp/vncpass -forever > /dev/null 2>&1 &
+                                        export DISPLAY=:0
+                                        Xvfb \$DISPLAY -screen 0 1024x768x24 -ac &
+                                        openbox&
 
-                                    ./fern.js test ${testParams} --environment testing --ci report.xml > /dev/null; true
+                                        x11vnc -storepasswd vnc /tmp/vncpass
+                                        x11vnc -rfbport 5900 -rfbauth /tmp/vncpass -forever > /dev/null 2>&1 &
 
-                                    cp report.xml ${env.WORKSPACE}
-                                """
+                                        ./fern.js test ${testParams} --no-build --environment testing --ci report.xml > /dev/null; true
 
-                                Map r = xunit.parse('/app/report.xml')
-                                if (!r.containsKey('errors')) {
-                                  r.errors = '0'
+                                        cp report.xml ${env.WORKSPACE}
+                                    """
+                                    def timeAfter = new Date()
+                                    def duration = "${TimeCategory.minus(timeAfter, timeBefore).getHours()}h, ${TimeCategory.minus(timeAfter, timeBefore).getMinutes()}m"
+
+                                    Map r = xunit.parse('/app/report.xml')
+                                    if (!r.containsKey('errors')) {
+                                      r.errors = '0'
+                                    }
+                                    report = "tests: ${r.tests}, f/e: ${r.failures}/${r.errors}, time: ${duration}"
+                                    hasErrors = (r.failures != '0') || (r.errors != '0')
+
+                                    if (r.tests == '0') {
+                                        throw new Exception('No tests have been run!')
+                                    }
+
+                                    junit(
+                                        allowEmptyResults: true,
+                                        healthScaleFactor: 0.0,
+                                        testResults: 'report.xml'
+                                    )
+                                } catch (e) {
+                                    report = e
+                                    hasErrors = true
                                 }
-                                report = "tests: ${r.tests}, failures: ${r.failures}, errors: ${r.errors}"
-                                hasErrors = (r.failures != '0') || (r.errors != '0')
 
-                                junit(
-                                    allowEmptyResults: true,
-                                    healthScaleFactor: 0.0,
-                                    testResults: 'report.xml'
+                                setGithubCommitStatus(
+                                    triggeringCommitHash,
+                                    context,
+                                    hasErrors ? 'failure' : 'success',
+                                    report
                                 )
-                            } catch (e) {
-                                report = e
-                                hasErrors = true
-                            }
-
-                            setGithubCommitStatus(
-                                triggeringCommitHash,
-                                context,
-                                hasErrors ? 'failure' : 'success',
-                                report
-                            )
-                        } // end stage
-                    } // end timeout
-                } // end docker
+                            } // end stage
+                        } // end timeout
+                    } // end docker
+                }
             }
         }
     }
 }
 
-def stepsForParallel = helpers.entries(matrix).collectEntries {
+def getStepsForParallel(matrix) {
+    def buildSteps = [:]
+
+    matrix.each { name, params ->
+        buildSteps[params.get('config')] = 1
+    }
+
+    return buildSteps
+}
+
+def stepsForParallelTests = helpers.entries(matrix).collectEntries {
     [(it[0]): test(
         context: it[0],
+        config: it[1]['config'],
         testParams: it[1]['testParams'],
         gpu: it[1]['gpu'],
         getCodeDockerImage: { codeDockerImage },
@@ -234,4 +310,14 @@ def stepsForParallel = helpers.entries(matrix).collectEntries {
     )]
 }
 
-parallel stepsForParallel
+def stepsForParallelBuilds = helpers.entries(getStepsForParallel(matrix)).collectEntries {
+    [("Build ${it[0]}"): build(
+        config: it[0],
+        getCodeDockerImage: { codeDockerImage }
+    )]
+}
+
+parallel stepsForParallelBuilds
+
+
+parallel stepsForParallelTests

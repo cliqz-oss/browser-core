@@ -59,7 +59,7 @@ const mergeResults = ([expanded, original]) => {
  * @param {Object} config - The configuration.
  * @return {Observable}
  */
-export default function contextSearch(query, provider, results$, config) {
+export default function contextSearch(provider, results$, query, config, params) {
   const { isEnabled } = config.mixers['context-search'];
 
   if (!isEnabled) {
@@ -73,7 +73,7 @@ export default function contextSearch(query, provider, results$, config) {
       if (!expansion) {
         return results$;
       }
-      return provider.search(expansion, config)
+      return provider.search(expansion, config, params)
         .do(() => logger.debug('Context-Search', { expansion }))
         .combineLatest(results$)
         .flatMap(mergeResults);

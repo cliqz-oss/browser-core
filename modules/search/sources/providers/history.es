@@ -7,8 +7,9 @@ import BaseProvider from './base';
 import apply from '../operators/apply';
 import collect from '../operators/collect';
 import clean from '../operators/clean';
-import deduplicate from '../operators/deduplicate';
+import deduplicate from '../operators/results/deduplicate';
 import normalize from '../operators/normalize';
+import { addCompletion } from '../operators/results/utils';
 
 // responses
 import { getResponse, getPendingResponse } from '../responses';
@@ -34,46 +35,54 @@ export default class History extends BaseProvider {
     super('history');
   }
 
-  search(query, config) {
-    if (!query) {
+  search(query, config, { allowEmptyQuery = false }) {
+    if (!query && !allowEmptyQuery) {
       return this.getEmptySearch(config);
     }
 
-    return this.historySearch(query, config)
-      .delay(0)
-      // TODO: add alternative condition (e.g., > 3 results returned)
-      .bufferTime(1)
+    const { providers: { history: { maxQueryLengthToWait } = {} } = {} } = config;
+
+    const results$ = this.historySearch(query, config)
+      // do not emit empty, pending results to reduce flickering
+      .filter(response =>
+        !(response.state === 'pending' && response.results.length === 0))
+      // stabilize history clustering to reduce flickering
+      .bufferTime(5)
       .filter(r => r.length > 0)
       .scan(collect, getPendingResponse(this.id, config, query))
-      // to make `combineLatest` emit immediately
-      .startWith(getPendingResponse(this.id, config, query))
-      // `cliqzStreamDeduplicated` won't get the first history result otherwise,
-      // supposingly because it subscribes too late (i.e., after `historyStream`
-      // emmitted its first result); is there another way to synchonise?
-      // `publish` did not seem to work
-      .delay(1)
       .map(response => apply(response, normalize))
       .map(response => apply(response, clean))
-      .map(deduplicate)
+      .map(({ results, ...response }) => ({
+        ...response,
+        results: addCompletion(
+          deduplicate(results),
+          query,
+        ),
+      }))
       .share();
+
+    // do not wait for (actual) history results if query
+    // is longer than N to increase responsiveness for "seach on
+    // Google" query preview; if query is long, it's likely that
+    // history has responded already (for a previous partial query),
+    // therefore flickering is not a big issue anymore
+    // TODO: make this independent of specific query length and dependend
+    //       on if the history provider has returned results for a previous
+    //       (partial) query in the current search session
+    if (query.length >= maxQueryLengthToWait) {
+      return results$
+        .startWith(getPendingResponse(this.id, config, query))
+        // FIXME: there is some race condition which requires having a delay
+        .delay(1);
+    }
+
+    return results$;
   }
 
   historySearch(query = '', config) {
-    let hasResults = false;
     return Rx.Observable.create((observer) => {
       utils.historySearch(query, (results) => {
         const r = mapResults(results.results, query);
-        hasResults = hasResults || !!results.results.length;
-
-        if (results.ready && hasResults) {
-          r.push({
-            text: query,
-            query,
-            data: {
-              template: 'sessions',
-            },
-          });
-        }
 
         observer.next(getResponse(
           this.id,

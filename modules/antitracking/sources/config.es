@@ -8,7 +8,7 @@ import config from '../core/config';
 const VERSIONCHECK_URL = `${config.settings.CDN_BASEURL}/anti-tracking/whitelist/versioncheck.json`;
 const CONFIG_URL = `${config.settings.CDN_BASEURL}/anti-tracking/config.json`;
 
-export const VERSION = '0.101';
+export const VERSION = '0.102';
 export const MIN_BROWSER_VERSION = 35;
 
 export const TELEMETRY = {
@@ -28,6 +28,8 @@ export const DEFAULTS = {
   bloomFilterEnabled: true,
   telemetryMode: TELEMETRY.ALL,
   sendAntiTrackingHeader: true,
+  blockCookieNewToken: false,
+  tpDomainDepth: 2,
 };
 
 export const PREFS = {

@@ -1,9 +1,12 @@
 import {
   clearIntervals,
-  waitFor,
-  Subject,
+  expect,
+  waitFor
+} from '../../core/test-helpers';
+import {
   defaultConfig,
-} from './helpers';
+  Subject
+} from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab interactions with buttons', function () {
   const settingsPanelSelector = '#settings-panel';
@@ -11,43 +14,25 @@ describe('Fresh tab interactions with buttons', function () {
   let listener;
   let messages;
 
-  beforeEach(function () {
+  beforeEach(async function () {
     subject = new Subject();
-    subject.respondsWith({
-      module: 'core',
-      action: 'sendTelemetry',
-      response: ''
-    });
+    subject.respondsWithEmptyTelemetry();
     subject.respondsWith(defaultConfig);
-    subject.respondsWith({
-      module: 'freshtab',
-      action: 'getSpeedDials',
-      response: {
-        history: [],
-        custom: []
-      },
-    });
-    subject.respondsWith({
-      module: 'freshtab',
-      action: 'getNews',
-      response: {
-        version: 0,
-        news: []
+    subject.respondsWithEmptySpeedDials();
+    subject.respondsWithEmptyNews();
+
+    await subject.load();
+
+    // Keep track of received messages
+    messages = new Map();
+    listener = function (msg) {
+      if (!messages.has(msg.action)) {
+        messages.set(msg.action, []);
       }
-    });
 
-    return subject.load().then(() => {
-      // Keep track of received messages
-      messages = new Map();
-      listener = function (msg) {
-        if (!messages.has(msg.action)) {
-          messages.set(msg.action, []);
-        }
-
-        messages.get(msg.action).push(msg);
-      };
-      subject.chrome.runtime.onMessage.addListener(listener);
-    });
+      messages.get(msg.action).push(msg);
+    };
+    subject.chrome.runtime.onMessage.addListener(listener);
   });
 
   afterEach(function () {
@@ -64,28 +49,27 @@ describe('Fresh tab interactions with buttons', function () {
     });
 
     it('show settings panel', function () {
-      chai.expect(subject.query('#settings-panel')).to.exist;
-      chai.expect(subject.query('#settings-panel').className).to.contain('visible');
+      expect(subject.query('#settings-panel')).to.exist;
+      expect(subject.query('#settings-panel').className).to.contain('visible');
     });
 
     it('sends a "settings > click" telemetry signal', function () {
-      chai.expect(messages.has('sendTelemetry')).to.equal(true);
+      expect(messages.has('sendTelemetry')).to.equal(true);
 
       const telemetrySignals = messages.get('sendTelemetry');
-      let signalExist = false;
       let count = 0;
 
-      telemetrySignals.forEach(function (item) {
-        if ((item.args[0].type === 'home') &&
-            (item.args[0].target === 'settings') &&
-            (item.args[0].action === 'click')) {
-              signalExist = true;
-              count += 1;
-        }
-      });
+      expect(telemetrySignals.length).to.be.above(0);
 
-      chai.expect(signalExist).to.be.true;
-      chai.expect(count).to.equal(1);
+      count = telemetrySignals.filter(function (s) {
+        return (
+          s.args[0].type === 'home' &&
+          s.args[0].target === 'settings' &&
+          s.args[0].action === 'click'
+        );
+      }).length;
+
+      expect(count).to.equal(1);
     });
 
     describe('and then clicking on a close button', function () {
@@ -96,29 +80,28 @@ describe('Fresh tab interactions with buttons', function () {
       });
 
       it('hides settings panel', function () {
-        chai.expect(subject.query('#settings-panel')).to.exist;
-        chai.expect(subject.query('#settings-panel').className).to.not.contain('visible');
+        expect(subject.query('#settings-panel')).to.exist;
+        expect(subject.query('#settings-panel').className).to.not.contain('visible');
       });
 
       it('sends a "settings > close > click" telemetry signal', function () {
-        chai.expect(messages.has('sendTelemetry')).to.equal(true);
+        expect(messages.has('sendTelemetry')).to.equal(true);
 
         const telemetrySignals = messages.get('sendTelemetry');
-        let signalExist = false;
         let count = 0;
 
-        telemetrySignals.forEach(function (item) {
-          if ((item.args[0].type === 'home') &&
-              (item.args[0].view === 'settings') &&
-              (item.args[0].target === 'close') &&
-              (item.args[0].action === 'click')) {
-                signalExist = true;
-                count += 1;
-          }
-        });
+        expect(telemetrySignals.length).to.be.above(0);
 
-        chai.expect(signalExist).to.be.true;
-        chai.expect(count).to.equal(1);
+        count = telemetrySignals.filter(function (s) {
+          return (
+            s.args[0].type === 'home' &&
+            s.args[0].view === 'settings' &&
+            s.args[0].target === 'close' &&
+            s.args[0].action === 'click'
+          );
+        }).length;
+
+        expect(count).to.equal(1);
       });
     });
   });
@@ -130,23 +113,22 @@ describe('Fresh tab interactions with buttons', function () {
     });
 
     it('sends a "home > history > click" telemetry signal', function () {
-      chai.expect(messages.has('sendTelemetry')).to.equal(true);
+      expect(messages.has('sendTelemetry')).to.equal(true);
 
       const telemetrySignals = messages.get('sendTelemetry');
-      let signalExist = false;
       let count = 0;
 
-      telemetrySignals.forEach(function (item) {
-        if ((item.args[0].type === 'home') &&
-            (item.args[0].target === 'history') &&
-            (item.args[0].action === 'click')) {
-              signalExist = true;
-              count += 1;
-        }
-      });
+      expect(telemetrySignals.length).to.be.above(0);
 
-      chai.expect(signalExist).to.be.true;
-      chai.expect(count).to.equal(1);
+      count = telemetrySignals.filter(function (s) {
+        return (
+          s.args[0].type === 'home' &&
+          s.args[0].target === 'history' &&
+          s.args[0].action === 'click'
+        );
+      }).length;
+
+      expect(count).to.equal(1);
     });
   });
 });

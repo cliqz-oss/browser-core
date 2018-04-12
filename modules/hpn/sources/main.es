@@ -47,15 +47,15 @@ const CliqzSecureMessage = {
   localTemporalUniq: null,
   wCrypto: null,
   queriesID: {},
-  servicesToProxy : ["api.cliqz.com", "antiphishing.cliqz.com"],
+  servicesToProxy: ['api.cliqz.com', 'antiphishing.cliqz.com'],
   proxyInfoObj: {},
   queryProxyFilter: null,
-  pacemaker: function () {
+  pacemaker() {
     CliqzSecureMessage.counter += 1;
 
     if ((CliqzSecureMessage.counter / CliqzSecureMessage.tmult) % 10 === 0) {
       if (CliqzSecureMessage.debug) {
-        CliqzUtils.log('Pacemaker: ' + CliqzSecureMessage.counter / CliqzSecureMessage.tmult, CliqzSecureMessage.LOG_KEY);
+        CliqzUtils.log(`Pacemaker: ${CliqzSecureMessage.counter / CliqzSecureMessage.tmult}`, CliqzSecureMessage.LOG_KEY);
       }
     }
 
@@ -63,7 +63,11 @@ const CliqzSecureMessage = {
       const currentTime = Date.now();
 
 
-      if (!CliqzUtils.getWindow() || !CliqzUtils.getWindow().CLIQZ || !CliqzUtils.getWindow().CLIQZ.UI) return;
+      if (!CliqzUtils.getWindow()
+        || !CliqzUtils.getWindow().CLIQZ
+        || !CliqzUtils.getWindow().CLIQZ.UI) {
+        return;
+      }
       const tDiff = currentTime - CliqzUtils.getWindow().CLIQZ.UI.lastInputTime;
 
       if (tDiff > 0 && tDiff > (1000 * 2 * 1)) {
@@ -87,7 +91,7 @@ const CliqzSecureMessage = {
   // ****************************
   trk: [],
   trkTimer: null,
-  telemetry: function(msg, instantPush) {
+  telemetry(msg, instantPush) {
     if (!CliqzSecureMessage || // might be called after the module gets unloaded
         CliqzUtils.getPref('humanWebOptOut', false)) return;
 
@@ -103,13 +107,13 @@ const CliqzSecureMessage = {
 
   telemetry_MAX_SIZE: 500,
   previousDataPost: null,
-  pushMessage : [],
+  pushMessage: [],
   routeHashTable: null,
   queryProxyIP: null,
   performance: null,
 
-  pushTelemetry: function() {
-    // Take all available messages from the "trk" queue and send them.
+  pushTelemetry() {
+    // Take all available messages from the 'trk' queue and send them.
     //
     // It is crucial that messages are sent sequentially, otherwise, we
     // will have race conditions due to the use of global variables
@@ -117,14 +121,18 @@ const CliqzSecureMessage = {
     const unprocessedMessages = CliqzSecureMessage.trk.splice(0);
     return CliqzSecureMessage.messageSender.send(unprocessedMessages);
   },
-  initAtWindow: function(window) {
+  initAtWindow() {
   },
-  init: function() {
+  init() {
     // Doing it here, because this lib. uses navigator and window objects.
     // Better method appriciated.
 
     if (CliqzSecureMessage.pacemakerId == null) {
-      CliqzSecureMessage.pacemakerId = CliqzUtils.setInterval(CliqzSecureMessage.pacemaker.bind(this), CliqzSecureMessage.tpace, null);
+      CliqzSecureMessage.pacemakerId = CliqzUtils.setInterval(
+        CliqzSecureMessage.pacemaker.bind(this),
+        CliqzSecureMessage.tpace,
+        null
+      );
     }
 
     // TODO: do not pass this to storage
@@ -134,38 +142,40 @@ const CliqzSecureMessage = {
 
     // Load source map. Update it once an hour.
     this.sourceMapLoader = new ResourceLoader(
-        ["hpn","sourcemap.json"],
-        {
-          remoteURL: CliqzSecureMessage.SOURCE_MAP_PROVIDER
-        }
+      ['hpn', 'sourcemap.json'],
+      {
+        remoteURL: CliqzSecureMessage.SOURCE_MAP_PROVIDER
+      }
     );
 
-    this.sourceMapLoader.load().then( e => {
+    this.sourceMapLoader.load().then((e) => {
       CliqzSecureMessage.sourceMap = e;
-    })
+    });
 
-    this.sourceMapLoader.onUpdate(e => CliqzSecureMessage.sourceMap = e);
+    this.sourceMapLoader.onUpdate((e) => {
+      CliqzSecureMessage.sourceMap = e;
+    });
 
     // Load lookuptable, which also contains the list of proxy list.
     // Update every 5 minutes.
     this.routeTableLoader = new ResourceLoader(
-        ["hpn","routeTableV2.json"],
-        {
-          remoteURL: CliqzSecureMessage.LOOKUP_TABLE_PROVIDER,
-          cron: 1 * 5 * 60 * 1000,
-          updateInterval: 1 * 5 * 60 * 1000,
-        }
+      ['hpn', 'routeTableV2.json'],
+      {
+        remoteURL: CliqzSecureMessage.LOOKUP_TABLE_PROVIDER,
+        cron: 1 * 5 * 60 * 1000,
+        updateInterval: 1 * 5 * 60 * 1000,
+      }
     );
 
-    this.routeTableLoader.load().then(fullRouteTable => {
+    this.routeTableLoader.load().then((fullRouteTable) => {
       CliqzSecureMessage._updateRoutingInfo(fullRouteTable);
-    }).catch(e => {
+    }).catch((e) => {
       if (CliqzSecureMessage.debug) {
         console.error('Failed to update initial routeTable', e);
       }
     });
 
-    this.routeTableLoader.onUpdate(fullRouteTable => {
+    this.routeTableLoader.onUpdate((fullRouteTable) => {
       CliqzSecureMessage._updateRoutingInfo(fullRouteTable);
     });
 
@@ -185,7 +195,7 @@ const CliqzSecureMessage = {
 
     this.messageSender = new MessageSender();
   },
-  unload: function() {
+  unload() {
     CliqzSecureMessage.queryProxyFilter.unload();
     this.storage.saveLocalCheckTable();
 
@@ -211,8 +221,8 @@ const CliqzSecureMessage = {
     CliqzUtils.clearTimeout(CliqzSecureMessage.pacemakerId);
     this.storage.close();
   },
-  proxyIP: function () {
-    if (!CliqzSecureMessage.proxyList) return;
+  proxyIP() {
+    if (!CliqzSecureMessage.proxyList) return undefined;
 
     if (proxyCounter >= CliqzSecureMessage.proxyList.length) {
       proxyCounter = 0;
@@ -227,26 +237,26 @@ const CliqzSecureMessage = {
     proxyCounter += 1;
     return proxyUrl;
   },
-  registerUser: function() {
-    this.storage.loadKeys().then(userKey => {
+  registerUser() {
+    this.storage.loadKeys().then((userKey) => {
       if (!userKey) {
         const userCrypto = new CryptoWorker();
 
         userCrypto.onmessage = (e) => {
-            if (e.data.status) {
-              const uK = {};
-              uK.privateKey = e.data.privateKey;
-              uK.publicKey = e.data.publicKey;
-              uK.ts = Date.now();
-              this.storage.saveKeys(uK).then( response => {
-                if (response.status) {
-                  CliqzSecureMessage.uPK.publicKeyB64 = response.data.publicKey;
-                  CliqzSecureMessage.uPK.privateKey = response.data.privateKey;
-                }
-              });
-            }
-            userCrypto.terminate();
-        }
+          if (e.data.status) {
+            const uK = {};
+            uK.privateKey = e.data.privateKey;
+            uK.publicKey = e.data.publicKey;
+            uK.ts = Date.now();
+            this.storage.saveKeys(uK).then((response) => {
+              if (response.status) {
+                CliqzSecureMessage.uPK.publicKeyB64 = response.data.publicKey;
+                CliqzSecureMessage.uPK.privateKey = response.data.privateKey;
+              }
+            });
+          }
+          userCrypto.terminate();
+        };
 
         userCrypto.postMessage({
           type: 'user-key'
@@ -258,11 +268,13 @@ const CliqzSecureMessage = {
     });
   },
 
-  _updateRoutingInfo: function(fullRouteTable) {
+  _updateRoutingInfo(fullRouteTable) {
     CliqzSecureMessage.routeTable = fullRouteTable[CliqzSecureMessage.CHANNEL];
     CliqzSecureMessage.proxyList = createProxyList(CliqzSecureMessage.routeTable);
-
     CliqzUtils.log('Updated proxy list and routing table', CliqzSecureMessage.LOG_KEY);
+
+    // make sure "CliqzSecureMessage.queryProxyIP" is initialized
+    CliqzSecureMessage.proxyIP();
   }
 };
 export default CliqzSecureMessage;

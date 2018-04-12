@@ -58,7 +58,7 @@ const LOCAL_DATA = [
   },
   {
     id: 'promote-mobile',
-    active: true,
+    active: false,
     version: 1,
     type: 'notification',
     title: utils.getLocalizedString('freshtab.app.middle-box.promote-mobile-hdr'),

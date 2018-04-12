@@ -1,3 +1,7 @@
+/* eslint no-bitwise: 'off' */
+/* eslint no-param-reassign: 'off' */
+/* eslint func-names: 'off' */
+
 import md5 from '../core/helpers/md5';
 import * as datetime from './time';
 import pacemaker from '../core/pacemaker';
@@ -8,46 +12,59 @@ import console from '../core/console';
 import extConfig from '../core/config';
 
 
-export function BloomFilter(a, k) {  // a the array, k the number of hash function
-  var m = a.length * 32,  // 32 bits for each element in a
-      n = a.length,
-      i = -1;
-  this.m = m = n * 32;
+export function BloomFilter(a, k) { // a the array, k the number of hash function
+  let m = a.length * 32; // 32 bits for each element in a
+  const n = a.length;
+  let i = -1;
+  m = n * 32;
+  this.m = m;
   this.k = k;
   // choose data type
-  var kbytes = 1 << Math.ceil(Math.log(Math.ceil(Math.log(m) / Math.LN2 / 8)) / Math.LN2),
-      array = kbytes === 1 ? Uint8Array : kbytes === 2 ? Uint16Array : Uint32Array,
-      kbuffer = new ArrayBuffer(kbytes * k),
-      buckets = this.buckets = new Int32Array(n);
-  while (++i < n) {
-    buckets[i] = a[i];  // put the elements into their bucket
+  const kbytes = 1 << Math.ceil(Math.log(Math.ceil(Math.log(m) / Math.LN2 / 8)) / Math.LN2);
+
+  let Array;
+  if (kbytes === 1) {
+    Array = Uint8Array;
+  } else if (kbytes === 2) {
+    Array = Uint16Array;
+  } else {
+    Array = Uint32Array;
   }
-  this._locations = new array(kbuffer);  // stores location for each hash function
+
+  const kbuffer = new ArrayBuffer(kbytes * k);
+  this.buckets = new Int32Array(n);
+  const buckets = this.buckets;
+  while (i < n - 1) {
+    i += 1;
+    buckets[i] = a[i]; // put the elements into their bucket
+  }
+  this._locations = new Array(kbuffer); // stores location for each hash function
 }
 
-BloomFilter.prototype.locations = function(a, b) {  // we use 2 hash values to generate k hash values
-  var k = this.k,
-      m = this.m,
-      r = this._locations;
+// we use 2 hash values to generate k hash values
+BloomFilter.prototype.locations = function (a, b) {
+  const k = this.k;
+  const m = this.m;
+  const r = this._locations;
   a = parseInt(a, 16);
   b = parseInt(b, 16);
-  var x = a % m;
+  let x = a % m;
 
-  for (var i = 0; i < k; ++i) {
+  for (let i = 0; i < k; i += 1) {
     r[i] = x < 0 ? (x + m) : x;
     x = (x + b) % m;
   }
   return r;
 };
 
-BloomFilter.prototype.test = function(a, b) {
+BloomFilter.prototype.test = function (a, b) {
   // since MD5 will be calculated before hand,
   // we allow using hash value as input to
-  var l = this.locations(a, b),
-      k = this.k,
-      buckets = this.buckets;
-  for (var i = 0; i < k; ++i) {
-    var bk = l[i];
+  const l = this.locations(a, b);
+  const k = this.k;
+  const buckets = this.buckets;
+  for (let i = 0; i < k; i += 1) {
+    const bk = l[i];
     if ((buckets[Math.floor(bk / 32)] & (1 << (bk % 32))) === 0) {
       return false;
     }
@@ -55,40 +72,41 @@ BloomFilter.prototype.test = function(a, b) {
   return true;
 };
 
-BloomFilter.prototype.testSingle = function(x) {
-  var md5Hex = md5(x);
-  var a = md5Hex.substring(0, 8),
-      b = md5Hex.substring(8, 16);
+BloomFilter.prototype.testSingle = function (x) {
+  const md5Hex = md5(x);
+  const a = md5Hex.substring(0, 8);
+  const b = md5Hex.substring(8, 16);
   return this.test(a, b);
 };
 
-BloomFilter.prototype.add = function(a, b) {
+BloomFilter.prototype.add = function (a, b) {
   // Maybe used to add local safeKey to bloom filter
-  var l = this.locations(a, b),
-      k = this.k,
-      buckets = this.buckets;
-  for (var i = 0; i < k; ++i) {
+  const l = this.locations(a, b);
+  const k = this.k;
+  const buckets = this.buckets;
+  for (let i = 0; i < k; i += 1) {
     buckets[Math.floor(l[i] / 32)] |= 1 << (l[i] % 32);
   }
 };
 
-BloomFilter.prototype.addSingle = function(x) {
-  var md5Hex = md5(x);
-  var a = md5Hex.substring(0, 8),
-      b = md5Hex.substring(8, 16);
+BloomFilter.prototype.addSingle = function (x) {
+  const md5Hex = md5(x);
+  const a = md5Hex.substring(0, 8);
+  const b = md5Hex.substring(8, 16);
   return this.add(a, b);
 };
 
-BloomFilter.prototype.update = function(a) {
+BloomFilter.prototype.update = function (a) {
   // update the bloom filter, used in minor revison for every 10 min
-  var m = a.length * 32,  // 32 bit for each element
-      n = a.length,
-      i = -1;
+  let m = a.length * 32; // 32 bit for each element
+  const n = a.length;
+  let i = -1;
   m = n * 32;
   if (this.m !== m) {
-    throw 'Bloom filter can only be updated with same length';
+    throw new Error('Bloom filter can only be updated with same length');
   }
-  while (++i < n) {
+  while (i < n - 1) {
+    i += 1;
     this.buckets[i] |= a[i];
   }
 };
@@ -105,7 +123,6 @@ function getDayHypenated(day) {
 }
 
 export class AttrackBloomFilter extends QSWhitelistBase {
-
   constructor(config, configURL = BLOOMFILTER_CONFIG, baseURL = BLOOMFILTER_BASE_URL) {
     super(config);
     this.bloomFilter = null;
@@ -220,35 +237,35 @@ export class AttrackBloomFilter extends QSWhitelistBase {
     if (!this.isReady()) {
       return false;
     }
-    return this.bloomFilter.testSingle('d' + domain);
+    return this.bloomFilter.testSingle(`d${domain}`);
   }
 
   isSafeKey(domain, key) {
     if (!this.isReady()) {
       return true;
     }
-    return (!this.isUnsafeKey(domain, key)) && (this.bloomFilter.testSingle('k' + domain + key) || super.isSafeKey(domain, key));
+    return (!this.isUnsafeKey(domain, key)) && (this.bloomFilter.testSingle(`k${domain}${key}`) || super.isSafeKey(domain, key));
   }
 
   isSafeToken(domain, token) {
     if (!this.isReady()) {
       return true;
     }
-    return this.bloomFilter.testSingle('t' + domain + token);
+    return this.bloomFilter.testSingle(`t${domain}${token}`);
   }
 
   isUnsafeKey(domain, token) {
     if (!this.isReady()) {
       return false;
     }
-    return this.bloomFilter.testSingle('u' + domain + token);
+    return this.bloomFilter.testSingle(`u${domain}${token}`);
   }
 
   addDomain(domain) {
     if (!this.isReady()) {
       return;
     }
-    this.bloomFilter.addSingle('d' + domain);
+    this.bloomFilter.addSingle(`d${domain}`);
   }
 
   addSafeKey(domain, key, valueCount) {
@@ -258,7 +275,7 @@ export class AttrackBloomFilter extends QSWhitelistBase {
     if (this.isUnsafeKey(domain, key)) {
       return;
     }
-    this.bloomFilter.addSingle('k' + domain + key);
+    this.bloomFilter.addSingle(`k${domain}${key}`);
     super.addSafeKey(domain, key, valueCount);
   }
 
@@ -266,7 +283,7 @@ export class AttrackBloomFilter extends QSWhitelistBase {
     if (!this.isReady()) {
       return;
     }
-    this.bloomFilter.addSingle('u' + domain + token);
+    this.bloomFilter.addSingle(`u${domain}${token}`);
   }
 
   addSafeToken(domain, token) {
@@ -276,14 +293,16 @@ export class AttrackBloomFilter extends QSWhitelistBase {
     if (token === '') {
       this.addDomain(domain);
     } else {
-      this.bloomFilter.addSingle('t' + domain + token);
+      this.bloomFilter.addSingle(`t${domain}${token}`);
     }
   }
 
   getVersion() {
-    return {
-      bloomFilterversion: this.bloomFilter ? this.bloomFilter.version : null
-    };
+    let bloomFilterversion = null;
+    if (this.bloomFilter && this.bloomFilter.version !== null &&
+        this.bloomFilter.version !== undefined) {
+      bloomFilterversion = this.bloomFilter.version;
+    }
+    return { bloomFilterversion };
   }
-
 }

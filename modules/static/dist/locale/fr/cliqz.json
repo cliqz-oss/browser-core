@@ -1481,6 +1481,9 @@
     "video-downloader-unsupported-format": {
       "message": "Désolé ! Nous n'arrivons pas à télécharger cette video."
     },
+    "video-downloader-live-video": {
+      "message": "Désolé ! Il n'est malheureusement pas possible de télécharger de vidéos live."
+    },
     "video-downloader-tab-desktop": {
       "message": "COMPUTER"
     },
@@ -1489,6 +1492,9 @@
     },
     "video-downloader-download-button-label": {
       "message": "Download"
+    },
+    "video-downloader-send-button-label": {
+      "message": "Send"
     },
     "video-downloader-open-connect-page": {
       "message": "Open Connect Settings"
@@ -1733,6 +1739,15 @@
     "offers-code-copied": {
         "message": "Copié"
     },
+    "offers-send-feedback": {
+      "message": "Envoyer"
+    },
+    "offers-offer-removed": {
+      "message": "Cette offre a été supprimée."
+    },
+    "offers-feedback-thank-you": {
+      "message": "Votre avis nous intéresse"
+    },
     "signals-humanweb-inactive-message": {
       "message": "Human Web n'est pas activé"
     },
@@ -1927,6 +1942,21 @@
     },
     "freshtab.app.settings.news.language.de-tr-en": {
         "message": "Médias Allemands en Anglais"
+    },
+    "freshtab.app.settings.news.language.gb": {
+      "message": "Édition Royaume-Uni"
+    },
+    "freshtab.app.settings.news.language.us": {
+      "message": "Édition États-Unis"
+    },
+    "freshtab.app.offers.exclusive": {
+      "message": "Exclusif"
+    },
+    "freshtab.app.offers.best_offer": {
+      "message": "Meilleure Offre"
+    },
+    "freshtab.app.conditions": {
+      "message": "Conditions"
     },
     "control-center-enabled": {
         "message": "Activé"

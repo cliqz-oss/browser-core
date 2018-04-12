@@ -185,7 +185,7 @@ export default class Module extends EventEmitter {
     return this._windows.get(window).initTime;
   }
 
-  unloadWindow(window, { disable } = {}) {
+  unloadWindow = (window, { disable } = {}) => {
     const windowModule = this.getWindowModule(window);
     if (!windowModule) {
       return;
@@ -200,7 +200,7 @@ export default class Module extends EventEmitter {
     windowModule.unload();
     this._windows.delete(window);
     console.log('Module window', `"${this.name}"`, 'unloading finished');
-  }
+  };
 
   status() {
     return {

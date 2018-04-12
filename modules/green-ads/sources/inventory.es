@@ -1,7 +1,7 @@
 import { utils } from '../core/cliqz';
 import logger from './logger';
 import ResourceLoader from '../core/resource-loader';
-
+import config from '../core/config';
 
 const DEFAULT_INVENTORY = [{
   id: 'aefgh',
@@ -121,7 +121,7 @@ export default class Inventory {
     this.resource = new ResourceLoader(
       ['greenads', 'inventory'],
       {
-        remoteURL: 'https://cdn.cliqz.com/browser-f/fun-demo/inventoryv2.txt.gz',
+        remoteURL: config.settings.INVENTORY_URL,
         cron: 56 * 60 * 60 * 1000, // Update once in three days.
       }
     );

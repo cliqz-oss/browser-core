@@ -1,8 +1,5 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
+  blurUrlBar,
   click,
   $cliqzResults,
   CliqzUtils,
@@ -18,7 +15,7 @@ import { results } from '../fixtures/resultsTwoSimpleWithoutAutocomplete';
 
 export default function () {
   describe('generates correct telemetry signals for a result without autocomplete', function () {
-    const resultSelector = `div:not(.history) a.result[href='${results[0].url}']`;
+    const resultSelector = `div:not(.history) a.result[data-url='${results[0].url}']`;
     const win = CliqzUtils.getWindow();
     const enterSignalFields = [
       { name: 'current_position', type: 'number', expValue: 1 },
@@ -57,13 +54,25 @@ export default function () {
       urlClicked = false;
       handleCommandWhere = '';
 
+      blurUrlBar();
+
       // clear telemetry
       win.allTelemetry = [];
 
-      // mock function to open links
+      // mock firefox function to open links (used for same tab)
+      win.CLIQZ.Core.urlbar._handleCommand = win.CLIQZ.Core.urlbar.handleCommand;
       win.CLIQZ.Core.urlbar.handleCommand = function (_, where) {
         urlClicked = true;
-        handleCommandWhere = where;
+        // we expect handleCommand to be called only for current tabs
+        handleCommandWhere = where === 'current' ? 'current' : 'err';
+      };
+
+      // mock cliqz function to open links (used for new tab)
+      win.CliqzUtils._openLink = win.CliqzUtils.openLink;
+      win.CliqzUtils.openLink = function (_win, _url, newTab) {
+        urlClicked = true;
+        // we expect openLink to be called only for new tabs
+        handleCommandWhere = newTab === true ? 'tab' : 'err';
       };
 
       withHistory([]);
@@ -76,6 +85,10 @@ export default function () {
     });
 
     afterEach(function () {
+      win.CLIQZ.Core.urlbar.handleCommand = win.CLIQZ.Core.urlbar._handleCommand;
+      delete win.CLIQZ.Core.urlbar._handleCommand;
+      win.CliqzUtils.openLink = win.CliqzUtils._openLink;
+      delete win.CliqzUtils._openLink;
       release({ key: 'Control', code: 'ControlLeft' });
       release({ key: 'Shift', code: 'ShiftLeft' });
     });

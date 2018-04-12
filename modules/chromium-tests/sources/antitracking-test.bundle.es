@@ -1,6 +1,14 @@
+/* eslint prefer-arrow-callback: 'off' */
+/* eslint func-names: 'off' */
+/* eslint no-unused-expressions: 'off' */
+/* eslint no-param-reassign: 'off' */
+/* eslint no-restricted-syntax: 'off' */
+/* eslint no-console: 'off' */
+
 /* global waitFor */
 /* global testServer */
 /* global chai */
+/* global waitForAsync */
 
 import { utils } from '../core/cliqz';
 import * as browser from '../platform/browser';
@@ -32,10 +40,10 @@ before((done) => {
     pacScript: {
       data: `
         // Default connection
-        var direct = "DIRECT";
+        let direct = "DIRECT";
 
         // Alternate Proxy Server
-        var proxy = "PROXY localhost:3000";
+        let proxy = "PROXY localhost:3000";
 
         function FindProxyForURL(url, host)
         {
@@ -92,21 +100,19 @@ after(() => {
   pacemaker.start();
 });
 
-afterEach(() => {
-  return attrack.tp_events.commit(true, true)
+afterEach(() =>
+  attrack.tp_events.commit(true, true)
     .then(() => attrack.tp_events.push(true))
     .then(() => attrack.unload())
-    .then(() => WebRequestPipeline.unload());
-})
+    .then(() => WebRequestPipeline.unload()));
 
 
 describe('platform/browser', function () {
   describe('#checkIsWindowActive', function () {
-    it('returns false for none existant tab ids', () => {
-      return browser.checkIsWindowActive(-1).then(res => chai.expect(res).to.be.false)
+    it('returns false for none existant tab ids', () =>
+      browser.checkIsWindowActive(-1).then(res => chai.expect(res).to.be.false)
         .then(() => browser.checkIsWindowActive(0).then(res => chai.expect(res).to.be.false))
-        .then(() => browser.checkIsWindowActive(532).then(res => chai.expect(res).to.be.false));
-    });
+        .then(() => browser.checkIsWindowActive(532).then(res => chai.expect(res).to.be.false)));
 
     describe('when tab is opened', function () {
       let tabId;
@@ -124,473 +130,461 @@ describe('platform/browser', function () {
       });
 
       describe('when tab is closed', function () {
-        it('returns false for closed tab id', () => {
-          return browser.closeTab(tabId)
+        it('returns false for closed tab id', () =>
+          browser.closeTab(tabId)
             .then(() => browser.checkIsWindowActive(tabId))
-            .then(res => chai.expect(res).to.be.false);
-        });
+            .then(res => chai.expect(res).to.be.false));
       });
     });
   });
 });
 
 
-describe('attrack.tp_events', function() {
-    describe('Integration', function() {
-        let tabs = [];
+describe('attrack.tp_events', function () {
+  describe('Integration', function () {
+    let tabs = [];
 
-        beforeEach(function() {
-            return attrack.tp_events.commit(true).then(() => {
-              attrack.tp_events._staged = [];
-              // prevent data push during the test
-              attrack._last_push = (new Date()).getTime();
-            });
-        });
-
-        afterEach(function() {
-          return Promise.all(tabs.map(tabId => browser.closeTab(tabId)))
-            .then(() => { tabs = []; });
-        });
-
-        it('should initially have no active tabs', function() {
-            chai.expect(attrack.tp_events._active).to.be.empty;
-        });
-
-        describe('when tabs are opened', function() {
-            let tab_id = 0;
-            let tabs = [];
-            let page_load;
-
-            beforeEach(function () {
-              return Promise.all([
-                testServer.registerPathHandler('/', '<html><body><p>Hello world</p></body></html'),
-                testServer.registerPathHandler('/privacy', '<html><body><p>Hello private world</p></body></html'),
-              ])
-              .then(() => browser.newTab(testServer.getBaseUrl(), false).then(id => tabs.push(id)))
-              .then(() => browser.newTab(testServer.getBaseUrl('privacy#saferWeb'), false).then(id => tabs.push(id)));
-            });
-
-          it('should add tabs to _active', function() {
-            return waitFor(function() {
-              return Object.keys(attrack.tp_events._active).length === 2;
-            })
-            .then(function() {
-              chai.expect(Object.keys(attrack.tp_events._active)).to.have.length(2);
-              tab_id = Object.keys(attrack.tp_events._active)[0];
-              page_load = attrack.tp_events._active[tab_id];
-              chai.expect(page_load).to.include.keys('hostname', 'url', 'path');
-              chai.expect(page_load.url).to.equal(testServer.getBaseUrl());
-              chai.expect(page_load.hostname).to.equal('localhost');
-              // md5('/')
-              chai.expect(page_load.path).to.equal('6666cd76f96956469e7be39d750cc7d9'.substring(0, 16));
-              chai.expect(page_load.tps).to.be.empty;
-            });
-          });
-
-            describe('when a tab is closed', function () {
-                beforeEach(function () {
-                  return waitFor(() => Object.keys(attrack.tp_events._active).length === 2)
-                    .then(() => browser.closeTab(tabs.shift()))
-                    .then(() => attrack.tp_events.commit(true));
-                });
-
-                xdescribe('attrack.tp_events.commit', function() {
-                    it('should stage closed tabs only', function() {
-                      chai.expect(Object.keys(attrack.tp_events._active)).to.have.length(1);
-                      // check staged tab
-                      if (attrack.tp_events._staged.length > 1) {
-                        throw attrack.tp_events._staged.map(s => s.url);
-                      }
-                      chai.expect(attrack.tp_events._staged).to.have.length(1);
-                      chai.expect(attrack.tp_events._staged[0].url).to.equal(testServer.getBaseUrl());
-
-                      // check active tab
-                      tab_id = Object.keys(attrack.tp_events._active)[0];
-                      chai.expect(attrack.tp_events._active[tab_id].url).to.equal(testServer.getBaseUrl('privacy#saferWeb'));
-                    });
-                });
-
-            });
-
-            xdescribe('when new page is loaded in existing tab', function() {
-                const newUrl = `http://cliqztest.de:${testServer.port}/`;
-                beforeEach(function() {
-                  return browser.updateTab(tabs[0], newUrl);
-                });
-
-                describe('attrack.tp_events.commit', function() {
-                    it('should stage previous page load', function() {
-                      return waitForAsync(() =>
-                        attrack.tp_events.commit(true)
-                          .then(() => attrack.tp_events._staged.length > 0)
-                      )
-                      .then(function() {
-                        // still have 2 active tabs
-                        chai.expect(Object.keys(attrack.tp_events._active)).to.have.length(2);
-                        // check staged tab
-                        if (attrack.tp_events._staged.length > 1) {
-                            var urls = attrack.tp_events._staged.map(function(s) { return s.url });
-                            throw urls;
-                        }
-                        chai.expect(attrack.tp_events._staged).to.have.length(1);
-                        chai.expect(attrack.tp_events._staged[0].url).to.equal(testServer.getBaseUrl());
-
-                        // check active tabs
-                        var tabUrls = Object.keys(attrack.tp_events._active).map(function(tab_id) {
-                          return attrack.tp_events._active[tab_id].url;
-                        });
-                        chai.expect(tabUrls).to.not.contain(testServer.getBaseUrl());
-                        chai.expect(tabUrls).to.contain(testServer.getBaseUrl('privacy#saferWeb'));
-                      });
-                    });
-                });
-            });
-        });
-
-        describe('redirects', function() {
-
-          var server_port, proxy_type = null;
-          // hit_target TODO
-
-          beforeEach(function () {
-            const body = '<html><body></body></html>';
-            const jsBody = '<html><body><script>window.location="http://cliqztest.com/target"</script></body></html>';
-            // 302 redirect case
-            return Promise.all([
-              testServer.registerPathHandler('/302', body, [{ name: 'Location', value: 'http://cliqztest.com/target' }], '302'),
-              testServer.registerPathHandler('/303', body, [{ name: 'Location', value: 'http://cliqztest.com/target' }], '303'),
-              testServer.registerPathHandler('/js', jsBody),
-              testServer.registerPathHandler('/target', body),
-            ]);
-          });
-
-          ['302', '303', 'js'].forEach(function (kind) {
-            describe(kind, function () {
-              beforeEach(function () {
-                return browser.newTab(testServer.getBaseUrl(kind))
-                  .then(id => tabs.push(id));
-              });
-
-              it('gets host at end of redirect chain', function() {
-                return waitForAsync(() => testServer.hasHit('/target'))
-                .then(() => attrack.tp_events.commit(true))
-                .then(() => testServer.getHits())
-                .then((hits) => {
-                  chai.expect(hits[`/${kind}`]).to.have.length(1);
-                  chai.expect(Object.keys(attrack.tp_events._active)).to.have.length(1);
-                  const tabid = Object.keys(attrack.tp_events._active)[0];
-                  chai.expect(attrack.tp_events._active[tabid].hostname).to.equal('cliqztest.com');
-                  if (kind !== 'js') {
-                    // check original is in redirect chain
-                    chai.expect(attrack.tp_events._active[tabid].redirects).to.have.length(1);
-                    chai.expect(attrack.tp_events._active[tabid].redirects[0]).to.equal('localhost');
-                  }
-                });
-              });
-            });
-          });
-        });
+    beforeEach(function () {
+      return attrack.tp_events.commit(true).then(() => {
+        attrack.tp_events._staged = [];
+        // prevent data push during the test
+        attrack._last_push = (new Date()).getTime();
+      });
     });
 
-    describe('onFullPage', function() {
+    afterEach(function () {
+      return Promise.all(tabs.map(tabId => browser.closeTab(tabId)))
+        .then(() => { tabs = []; });
+    });
 
-        var url_parts = URLInfo.get("https://cliqz.com"),
-            mock_tab_id = 43;
+    it('should initially have no active tabs', function () {
+      chai.expect(attrack.tp_events._active).to.be.empty;
+    });
 
-        beforeEach(function() {
-            return attrack.tp_events.commit(true).then(() => {
-              attrack.tp_events._staged = [];
-              // prevent data push during the test
-              attrack._last_push = (new Date()).getTime();
-            });
+    describe('when tabs are opened', function () {
+      let tabId = 0;
+      tabs = [];
+      let pageLoad;
+
+      beforeEach(function () {
+        return Promise.all([
+          testServer.registerPathHandler('/', '<html><body><p>Hello world</p></body></html'),
+          testServer.registerPathHandler('/privacy', '<html><body><p>Hello private world</p></body></html'),
+        ])
+          .then(() => browser.newTab(testServer.getBaseUrl(), false).then(id => tabs.push(id)))
+          .then(() => browser.newTab(testServer.getBaseUrl('privacy#saferWeb'), false).then(id => tabs.push(id)));
+      });
+
+      it('should add tabs to _active', function () {
+        return waitFor(function () {
+          return Object.keys(attrack.tp_events._active).length === 2;
+        })
+          .then(function () {
+            chai.expect(Object.keys(attrack.tp_events._active)).to.have.length(2);
+            tabId = Object.keys(attrack.tp_events._active)[0];
+            pageLoad = attrack.tp_events._active[tabId];
+            chai.expect(pageLoad).to.include.keys('hostname', 'url', 'path');
+            chai.expect(pageLoad.url).to.equal(testServer.getBaseUrl());
+            chai.expect(pageLoad.hostname).to.equal('localhost');
+            // md5('/')
+            chai.expect(pageLoad.path).to.equal('6666cd76f96956469e7be39d750cc7d9'.substring(0, 16));
+            chai.expect(pageLoad.tps).to.be.empty;
+          });
+      });
+
+      describe('when a tab is closed', function () {
+        beforeEach(function () {
+          return waitFor(() => Object.keys(attrack.tp_events._active).length === 2)
+            .then(() => browser.closeTab(tabs.shift()))
+            .then(() => attrack.tp_events.commit(true));
         });
 
-        it("adds a tab to _active with request context's tab ID", function() {
-            var page_load = attrack.tp_events.onFullPage(url_parts, mock_tab_id);
-
-            chai.expect(page_load).is.not.null;
+        xdescribe('attrack.tp_events.commit', function () {
+          it('should stage closed tabs only', function () {
             chai.expect(Object.keys(attrack.tp_events._active)).to.have.length(1);
-            chai.expect(attrack.tp_events._active).to.have.property(mock_tab_id);
-            chai.expect(attrack.tp_events._active[mock_tab_id].url).to.equal(url_parts.toString());
+            // check staged tab
+            if (attrack.tp_events._staged.length > 1) {
+              throw attrack.tp_events._staged.map(s => s.url);
+            }
+            chai.expect(attrack.tp_events._staged).to.have.length(1);
+            chai.expect(attrack.tp_events._staged[0].url).to.equal(testServer.getBaseUrl());
+
+            // check active tab
+            tabId = Object.keys(attrack.tp_events._active)[0];
+            chai.expect(attrack.tp_events._active[tabId].url).to.equal(testServer.getBaseUrl('privacy#saferWeb'));
+          });
+        });
+      });
+
+      xdescribe('when new page is loaded in existing tab', function () {
+        const newUrl = `http://cliqztest.de:${testServer.port}/`;
+        beforeEach(function () {
+          return browser.updateTab(tabs[0], newUrl);
         });
 
-        it("does not add a tab to _active if the url is malformed", function() {
-            [null, undefined, 'http://cliqz.com', URLInfo.get("/home/cliqz"), URLInfo.get("about:config")].forEach(function(url) {
-                var page_load = attrack.tp_events.onFullPage(url, mock_tab_id);
+        describe('attrack.tp_events.commit', function () {
+          it('should stage previous page load', function () {
+            return waitForAsync(() =>
+              attrack.tp_events.commit(true)
+                .then(() => attrack.tp_events._staged.length > 0)
+            )
+              .then(function () {
+                // still have 2 active tabs
+                chai.expect(Object.keys(attrack.tp_events._active)).to.have.length(2);
+                // check staged tab
+                if (attrack.tp_events._staged.length > 1) {
+                  const urls = attrack.tp_events._staged.map(function (s) { return s.url; });
+                  throw urls;
+                }
+                chai.expect(attrack.tp_events._staged).to.have.length(1);
+                chai.expect(attrack.tp_events._staged[0].url).to.equal(testServer.getBaseUrl());
 
-                chai.expect(page_load).is.null;
-                chai.expect(Object.keys(attrack.tp_events._active)).to.have.length(0);
-            });
-        });
-
-        it("does not add a tab to _active if the tab ID <= 0", function() {
-            [null, undefined, 0, -1].forEach(function(id) {
-                var page_load = attrack.tp_events.onFullPage(url_parts, id);
-
-                chai.expect(page_load).is.null;
-                chai.expect(Object.keys(attrack.tp_events._active)).to.have.length(0);
-            });
-        });
-
-    });
-
-    describe('get', function() {
-
-        var src_url = "https://cliqz.com",
-            src_url_parts = URLInfo.get(src_url),
-            url = "https://example.com/beacon",
-            url_parts = URLInfo.get(url),
-            mock_tab_id = 34;
-
-        var testInvalidTabIds = function() {
-            [undefined, null, 0, -1, 552].forEach(function(tab_id) {
-                var req = attrack.tp_events.get(url, url_parts, src_url, src_url_parts, tab_id);
-                chai.expect(req).to.be.null;
-            });
-        };
-
-        beforeEach(function() {
-            return attrack.tp_events.commit(true).then(() => {
-              attrack.tp_events._staged = [];
-              // prevent data push during the test
-              attrack._last_push = (new Date()).getTime();
-            });
-        });
-
-        describe('after page load', function() {
-            var page_load;
-
-            beforeEach(function() {
-                page_load = attrack.tp_events.onFullPage(src_url_parts, mock_tab_id);
-            });
-
-            it('returns a stats object for the specified page load and third party', function() {
-                var req = attrack.tp_events.get(url, url_parts, src_url, src_url_parts, mock_tab_id);
-
-                chai.expect(req).to.not.be.null;
-                chai.expect(req['c']).to.equal(0);
-                chai.expect(page_load.tps).to.have.property(url_parts.hostname);
-                chai.expect(page_load.tps[url_parts.hostname]).to.have.property(url_parts.path);
-                chai.expect(page_load.tps[url_parts.hostname][url_parts.path]).to.equal(req);
-            });
-
-            it('returns null if source tab is invalid', testInvalidTabIds);
-
-            it('returns null if third party referrer is not related to the page load', function() {
-                var alt_url = "https://www.w3.org/",
-                    alt_url_parts = URLInfo.get(alt_url);
-
-                var req = attrack.tp_events.get(url, url_parts, alt_url, alt_url_parts, mock_tab_id);
-
-                chai.expect(req).to.be.null;
-            });
-
-            it('third party referrer relation is transative', function() {
-                var alt_url = "https://www.w3.org/",
-                    alt_url_parts = URLInfo.get(alt_url);
-
-                attrack.tp_events.get(url, url_parts, src_url, src_url_parts, mock_tab_id);
-                var req = attrack.tp_events.get(alt_url, alt_url_parts, url, url_parts, mock_tab_id);
-
-                chai.expect(req).to.not.be.null;
-                chai.expect(req['c']).to.equal(0);
-                chai.expect(page_load.tps).to.have.property(url_parts.hostname);
-                chai.expect(page_load.tps).to.have.property(alt_url_parts.hostname);
-                chai.expect(page_load.tps[alt_url_parts.hostname]).to.have.property(alt_url_parts.path);
-                chai.expect(page_load.tps[alt_url_parts.hostname][alt_url_parts.path]).to.equal(req);
-            });
-        });
-
-        it('returns null if onFullPage has not been called for the referrer', function() {
-            var req = attrack.tp_events.get(url, url_parts, src_url, src_url_parts, mock_tab_id);
-
-            chai.expect(req).to.be.null;
-            chai.expect(attrack.tp_events._active).to.be.empty;
-        });
-
-        it('returns null if source tab is invalid', testInvalidTabIds);
-    });
-
-    describe('PageLoadData', function() {
-
-        var page_load,
-            url = 'https://cliqz.com/privacy#saferWeb',
-            url_parts = URLInfo.get(url);
-
-        beforeEach(function() {
-            page_load = attrack.tp_events.onFullPage(url_parts, 1);
-        });
-
-        it('should have initial attributes from source url', function() {
-            console.log(page_load);
-            chai.expect(page_load.url).to.equal(url);
-            chai.expect(page_load.hostname).to.equal(url_parts.hostname);
-            chai.expect(page_load.tps).to.be.empty;
-            chai.expect(page_load.path).to.equal(page_load._shortHash(url_parts.path));
-        });
-
-        describe('getTpUrl', function() {
-            var tp_url;
-
-            beforeEach(function() {
-                tp_url = page_load.getTpUrl('hostname', '/');
-            });
-
-            it('should create a stat entry for the given page load', function() {
-                chai.expect(page_load.tps).to.have.property('hostname');
-                chai.expect(page_load.tps['hostname']).to.have.property('/');
-                chai.expect(page_load.tps['hostname']['/']).to.equal(tp_url);
-            });
-
-            it('should return the same object on repeated calls', function() {
-                tp_url['c'] += 1;
-
-                chai.expect(page_load.getTpUrl('hostname', '/')).to.equal(tp_url);
-            });
-        });
-
-        describe('asPlainObject', function() {
-
-            it('should contain page load metadata', function() {
-                var plain = page_load.asPlainObject();
-                chai.expect(plain).to.include.keys('hostname', 'path', 'c', 't', 'ra', 'tps');
-            });
-
-            it('should hash page load host', function() {
-                var plain = page_load.asPlainObject();
-                // md5('cliqz.com')
-                chai.expect(plain.hostname).to.equal("716378bd1d4c36198e252476ef80c66e".substring(0, 16));
-            });
-
-            it('should sum third party stats', function() {
-                var paths = ['script.js', 'beacon'],
-                    tps = paths.map(function(p) {
-                        return page_load.getTpUrl('example.com', p);
-                    });
-                tps.forEach(function(tp) {
-                    tp['c'] += 1;
+                // check active tabs
+                const tabUrls = Object.keys(attrack.tp_events._active).map(function (_tabId) {
+                  return attrack.tp_events._active[_tabId].url;
                 });
-
-                var plain = page_load.asPlainObject();
-                chai.expect(Object.keys(plain.tps)).to.have.length(1);
-                chai.expect(plain.tps).to.have.property('example.com');
-                chai.expect(plain.tps['example.com']['c']).to.equal(2);
-            });
-
-            it('should prune all zero stats', function() {
-                var paths = ['script.js', 'beacon'],
-                    tps = paths.map(function(p) {
-                        return page_load.getTpUrl('example.com', p);
-                    }),
-                    paths_hash = paths.map(page_load._shortHash);
-                tps.forEach(function(tp) {
-                    tp['c'] += 1;
-                });
-                tps[1]['has_qs'] = 1;
-
-                var plain = page_load.asPlainObject();
-                chai.expect(plain.tps['example.com']).to.eql({'c': 2, 'has_qs': 1});
-            });
+                chai.expect(tabUrls).to.not.contain(testServer.getBaseUrl());
+                chai.expect(tabUrls).to.contain(testServer.getBaseUrl('privacy#saferWeb'));
+              });
+          });
         });
-
-    });
-});
-
-describe('attrack.isHash', function() {
-
-    // we test between 7 to 12 characters
-    var not_hash = ['',
-        'Firefox',
-        'cliqz.com', // a url
-        'anti-tracking',
-        'front/ng',
-        'javascript',
-        'callback'
-        ];
-
-    var hashes = ['04C2EAD03B',
-        '54f5095c96e',
-        'B62a15974a93',
-        '22163a4ff903',
-        '468x742',
-        '1021x952',
-        '1024x768',
-        '1440x900'
-    ]
-
-    before(function() {
-      return hp.init();
+      });
     });
 
-    not_hash.forEach(function(str) {
-      it("'" + str + "' is not a hash", function() {
-        chai.expect(hp.isHash(str)).to.be.false;
-      })
+    describe('redirects', function () {
+      // hit_target TODO
+
+      beforeEach(function () {
+        const body = '<html><body></body></html>';
+        const jsBody = '<html><body><script>window.location="http://cliqztest.com/target"</script></body></html>';
+        // 302 redirect case
+        return Promise.all([
+          testServer.registerPathHandler('/302', body, [{ name: 'Location', value: 'http://cliqztest.com/target' }], '302'),
+          testServer.registerPathHandler('/303', body, [{ name: 'Location', value: 'http://cliqztest.com/target' }], '303'),
+          testServer.registerPathHandler('/js', jsBody),
+          testServer.registerPathHandler('/target', body),
+        ]);
+      });
+
+      ['302', '303', 'js'].forEach(function (kind) {
+        describe(kind, function () {
+          beforeEach(function () {
+            return browser.newTab(testServer.getBaseUrl(kind))
+              .then(id => tabs.push(id));
+          });
+
+          it('gets host at end of redirect chain', function () {
+            return waitForAsync(() => testServer.hasHit('/target'))
+              .then(() => attrack.tp_events.commit(true))
+              .then(() => testServer.getHits())
+              .then((hits) => {
+                chai.expect(hits[`/${kind}`]).to.have.length(1);
+                chai.expect(Object.keys(attrack.tp_events._active)).to.have.length(1);
+                const tabid = Object.keys(attrack.tp_events._active)[0];
+                chai.expect(attrack.tp_events._active[tabid].hostname).to.equal('cliqztest.com');
+                if (kind !== 'js') {
+                  // check original is in redirect chain
+                  chai.expect(attrack.tp_events._active[tabid].redirects).to.have.length(1);
+                  chai.expect(attrack.tp_events._active[tabid].redirects[0]).to.equal('localhost');
+                }
+              });
+          });
+        });
+      });
+    });
+  });
+
+  describe('onFullPage', function () {
+    const urlParts = URLInfo.get('https://cliqz.com');
+    const mockTabId = 43;
+
+    beforeEach(function () {
+      return attrack.tp_events.commit(true).then(() => {
+        attrack.tp_events._staged = [];
+        // prevent data push during the test
+        attrack._last_push = (new Date()).getTime();
+      });
     });
 
-    hashes.forEach(function(str) {
-      it("'" + str + "' is a hash", function() {
-        chai.expect(hp.isHash(str)).to.be.true;
-      })
+    it("adds a tab to _active with request context's tab ID", function () {
+      const pageLoad = attrack.tp_events.onFullPage(urlParts, mockTabId);
+
+      chai.expect(pageLoad).is.not.null;
+      chai.expect(Object.keys(attrack.tp_events._active)).to.have.length(1);
+      chai.expect(attrack.tp_events._active).to.have.property(mockTabId);
+      chai.expect(attrack.tp_events._active[mockTabId].url).to.equal(urlParts.toString());
     });
 
-});
+    it('does not add a tab to _active if the url is malformed', function () {
+      [null, undefined, 'http://cliqz.com', URLInfo.get('/home/cliqz'), URLInfo.get('about:config')].forEach(function (url) {
+        const pageLoad = attrack.tp_events.onFullPage(url, mockTabId);
 
-describe('attrack.getGeneralDomain', function() {
-    var spec = {
-      'cliqz.com': ['cliqz.com', 'www.cliqz.com', 'a.b.cliqz.com'],
-      'example.co.uk': ['example.co.uk', 'test.example.co.uk'],
-      '127.0.0.1': ['127.0.0.1'],
-      '1.2.3.4': ['1.2.3.4']
+        chai.expect(pageLoad).is.null;
+        chai.expect(Object.keys(attrack.tp_events._active)).to.have.length(0);
+      });
+    });
+
+    it('does not add a tab to _active if the tab ID <= 0', function () {
+      [null, undefined, 0, -1].forEach(function (id) {
+        const pageLoad = attrack.tp_events.onFullPage(urlParts, id);
+
+        chai.expect(pageLoad).is.null;
+        chai.expect(Object.keys(attrack.tp_events._active)).to.have.length(0);
+      });
+    });
+  });
+
+  describe('get', function () {
+    const srcUrl = 'https://cliqz.com';
+    const srcUrlParts = URLInfo.get(srcUrl);
+    const url = 'https://example.com/beacon';
+    const urlParts = URLInfo.get(url);
+    const mockTabId = 34;
+
+    const testInvalidTabIds = function () {
+      [undefined, null, 0, -1, 552].forEach(function (tabId) {
+        const req = attrack.tp_events.get(url, urlParts, srcUrl, srcUrlParts, tabId);
+        chai.expect(req).to.be.null;
+      });
     };
 
-    for (var general_domain in spec) {
-        spec[general_domain].forEach(function(sub_domain) {
-            var gen = general_domain;
-            it(sub_domain +' has general domain '+ gen, function() {
-                chai.expect(getGeneralDomain(sub_domain)).to.eql(gen);
-            });
+    beforeEach(function () {
+      return attrack.tp_events.commit(true).then(() => {
+        attrack.tp_events._staged = [];
+        // prevent data push during the test
+        attrack._last_push = (new Date()).getTime();
+      });
+    });
+
+    describe('after page load', function () {
+      let pageLoad;
+
+      beforeEach(function () {
+        pageLoad = attrack.tp_events.onFullPage(srcUrlParts, mockTabId);
+      });
+
+      it('returns a stats object for the specified page load and third party', function () {
+        const req = attrack.tp_events.get(url, urlParts, srcUrl, srcUrlParts, mockTabId);
+
+        chai.expect(req).to.not.be.null;
+        chai.expect(req.c).to.equal(0);
+        chai.expect(pageLoad.tps).to.have.property(urlParts.hostname);
+        chai.expect(pageLoad.tps[urlParts.hostname]).to.have.property(urlParts.path);
+        chai.expect(pageLoad.tps[urlParts.hostname][urlParts.path]).to.equal(req);
+      });
+
+      it('returns null if source tab is invalid', testInvalidTabIds);
+      it('returns null if third party referrer is not related to the page load', function () {
+        const altUrl = 'https://www.w3.org/';
+        const altUrlParts = URLInfo.get(altUrl);
+
+        const req = attrack.tp_events.get(url, urlParts, altUrl, altUrlParts, mockTabId);
+
+        chai.expect(req).to.be.null;
+      });
+
+      it('third party referrer relation is transative', function () {
+        const altUrl = 'https://www.w3.org/';
+        const altUrlParts = URLInfo.get(altUrl);
+
+        attrack.tp_events.get(url, urlParts, srcUrl, srcUrlParts, mockTabId);
+        const req = attrack.tp_events.get(altUrl, altUrlParts, url, urlParts, mockTabId);
+
+        chai.expect(req).to.not.be.null;
+        chai.expect(req.c).to.equal(0);
+        chai.expect(pageLoad.tps).to.have.property(urlParts.hostname);
+        chai.expect(pageLoad.tps).to.have.property(altUrlParts.hostname);
+        chai.expect(pageLoad.tps[altUrlParts.hostname]).to.have.property(altUrlParts.path);
+        chai.expect(pageLoad.tps[altUrlParts.hostname][altUrlParts.path]).to.equal(req);
+      });
+    });
+
+    it('returns null if onFullPage has not been called for the referrer', function () {
+      const req = attrack.tp_events.get(url, urlParts, srcUrl, srcUrlParts, mockTabId);
+
+      chai.expect(req).to.be.null;
+      chai.expect(attrack.tp_events._active).to.be.empty;
+    });
+
+    it('returns null if source tab is invalid', testInvalidTabIds);
+  });
+
+  describe('PageLoadData', function () {
+    let pageLoad;
+    const url = 'https://cliqz.com/privacy#saferWeb';
+    const urlParts = URLInfo.get(url);
+
+    beforeEach(function () {
+      pageLoad = attrack.tp_events.onFullPage(urlParts, 1);
+    });
+
+    it('should have initial attributes from source url', function () {
+      console.log(pageLoad);
+      chai.expect(pageLoad.url).to.equal(url);
+      chai.expect(pageLoad.hostname).to.equal(urlParts.hostname);
+      chai.expect(pageLoad.tps).to.be.empty;
+      chai.expect(pageLoad.path).to.equal(pageLoad._shortHash(urlParts.path));
+    });
+
+    describe('getTpUrl', function () {
+      let tpUrl;
+
+      beforeEach(function () {
+        tpUrl = pageLoad.getTpUrl('hostname', '/');
+      });
+
+      it('should create a stat entry for the given page load', function () {
+        chai.expect(pageLoad.tps).to.have.property('hostname');
+        chai.expect(pageLoad.tps.hostname).to.have.property('/');
+        chai.expect(pageLoad.tps.hostname['/']).to.equal(tpUrl);
+      });
+
+      it('should return the same object on repeated calls', function () {
+        tpUrl.c += 1;
+
+        chai.expect(pageLoad.getTpUrl('hostname', '/')).to.equal(tpUrl);
+      });
+    });
+
+    describe('asPlainObject', function () {
+      it('should contain page load metadata', function () {
+        const plain = pageLoad.asPlainObject();
+        chai.expect(plain).to.include.keys('hostname', 'path', 'c', 't', 'ra', 'tps');
+      });
+
+      it('should hash page load host', function () {
+        const plain = pageLoad.asPlainObject();
+        // md5('cliqz.com')
+        chai.expect(plain.hostname).to.equal('716378bd1d4c36198e252476ef80c66e'.substring(0, 16));
+      });
+
+      it('should sum third party stats', function () {
+        const paths = ['script.js', 'beacon'];
+        const tps = paths.map(function (p) {
+          return pageLoad.getTpUrl('example.com', p);
         });
-    }
+        tps.forEach(function (tp) {
+          tp.c += 1;
+        });
+
+        const plain = pageLoad.asPlainObject();
+        chai.expect(Object.keys(plain.tps)).to.have.length(1);
+        chai.expect(plain.tps).to.have.property('example.com');
+        chai.expect(plain.tps['example.com'].c).to.equal(2);
+      });
+
+      it('should prune all zero stats', function () {
+        const paths = ['script.js', 'beacon'];
+        const tps = paths.map(function (p) {
+          return pageLoad.getTpUrl('example.com', p);
+        });
+        tps.forEach(function (tp) {
+          tp.c += 1;
+        });
+        tps[1].has_qs = 1;
+
+        const plain = pageLoad.asPlainObject();
+        chai.expect(plain.tps['example.com']).to.eql({ c: 2, has_qs: 1 });
+      });
+    });
+  });
 });
 
-describe('attrack list update', function() {
-  const mock_bloom_filter_major = '{"bkt": [1, 2, 3, 4, 5], "k": 5}';
-  const mock_bloom_filter_minor = '{"bkt": [1, 0, 0, 0, 0], "k": 5}';
-  const mock_bloom_filter_config = (day) => `{"major": "${day}", "minor": "1"}`;
-  const day = (new Date()).toISOString().substring(0, 10);
-  let mock_bloom_filter_config_url = null;
-  let mock_bloom_filter_base_url = null;
+describe('attrack.isHash', function () {
+  // we test between 7 to 12 characters
+  const notHash = ['',
+    'Firefox',
+    'cliqz.com', // a url
+    'anti-tracking',
+    'front/ng',
+    'javascript',
+    'callback'
+  ];
 
-  beforeEach(function() {
+  const hashes = ['04C2EAD03B',
+    '54f5095c96e',
+    'B62a15974a93',
+    '22163a4ff903',
+    '468x742',
+    '1021x952',
+    '1024x768',
+    '1440x900'
+  ];
+
+  before(function () {
+    return hp.init();
+  });
+
+  notHash.forEach(function (str) {
+    it(`'${str}' is not a hash`, function () {
+      chai.expect(hp.isHash(str)).to.be.false;
+    });
+  });
+
+  hashes.forEach(function (str) {
+    it(`'${str}' is a hash`, function () {
+      chai.expect(hp.isHash(str)).to.be.true;
+    });
+  });
+});
+
+describe('attrack.getGeneralDomain', function () {
+  const spec = {
+    'cliqz.com': ['cliqz.com', 'www.cliqz.com', 'a.b.cliqz.com'],
+    'example.co.uk': ['example.co.uk', 'test.example.co.uk'],
+    '127.0.0.1': ['127.0.0.1'],
+    '1.2.3.4': ['1.2.3.4']
+  };
+
+  for (const generalDomain in spec) {
+    if (Object.prototype.hasOwnProperty.call(spec, generalDomain)) {
+      spec[generalDomain].forEach(function (subDomain) {
+        const gen = generalDomain;
+        it(`${subDomain} has general domain ${gen}`, function () {
+          chai.expect(getGeneralDomain(subDomain)).to.eql(gen);
+        });
+      });
+    }
+  }
+});
+
+describe('attrack list update', function () {
+  const mockBloomFilterMajor = '{"bkt": [1, 2, 3, 4, 5], "k": 5}';
+  const mockBloomFilterMinor = '{"bkt": [1, 0, 0, 0, 0], "k": 5}';
+  const mockBloomFilterConfig = day => `{"major": "${day}", "minor": "1"}`;
+  const day = (new Date()).toISOString().substring(0, 10);
+  let mockBloomFilterConfigUrl = null;
+  let mockBloomFilterBaseUrl = null;
+
+  beforeEach(function () {
     // serve fake whitelists
-    mock_bloom_filter_config_url = testServer.getBaseUrl('bloom_filter/config');
-    mock_bloom_filter_base_url = testServer.getBaseUrl('bloom_filter/');
+    mockBloomFilterConfigUrl = testServer.getBaseUrl('bloom_filter/config');
+    mockBloomFilterBaseUrl = testServer.getBaseUrl('bloom_filter/');
     return Promise.all([
-      testServer.registerPathHandler(`/bloom_filter/${day}/0.gz`, mock_bloom_filter_major),
-      testServer.registerPathHandler(`/bloom_filter/${day}/1.gz`, mock_bloom_filter_minor),
-      testServer.registerPathHandler('/bloom_filter/config', mock_bloom_filter_config(day)),
+      testServer.registerPathHandler(`/bloom_filter/${day}/0.gz`, mockBloomFilterMajor),
+      testServer.registerPathHandler(`/bloom_filter/${day}/1.gz`, mockBloomFilterMinor),
+      testServer.registerPathHandler('/bloom_filter/config', mockBloomFilterConfig(day)),
     ]);
   });
 
-  describe('loadBloomFilter', function() {
-    var bloomFilter;
+  describe('loadBloomFilter', function () {
+    let bloomFilter;
 
-    beforeEach(function() {
-      bloomFilter = new AttrackBloomFilter(null, mock_bloom_filter_config_url, mock_bloom_filter_base_url);
+    beforeEach(function () {
+      bloomFilter = new AttrackBloomFilter(null, mockBloomFilterConfigUrl, mockBloomFilterBaseUrl);
     });
 
-    it ('bloom filter init', function() {
+    it('bloom filter init', function () {
       bloomFilter.update();
-      return waitFor(function() {
+      return waitFor(function () {
         return bloomFilter.bloomFilter != null && bloomFilter.version != null;
-      }).then(function() {
+      }).then(function () {
         chai.expect(bloomFilter.version.major).to.equal(day);
         chai.expect(bloomFilter.bloomFilter.k).to.equal(5);
       });
     });
 
-    it ('bloom filter update', function() {
+    it('bloom filter update', function () {
       return bloomFilter.update()
         .then(() => {
           chai.expect(bloomFilter.version.major).to.equal(day);
@@ -600,44 +594,40 @@ describe('attrack list update', function() {
   });
 });
 
-describe('isSourceWhitelisted', function() {
-
-  it('returns false for non whitelisted domain', function() {
+describe('isSourceWhitelisted', function () {
+  it('returns false for non whitelisted domain', function () {
     chai.expect(attrack.urlWhitelist.isWhitelisted('example.com')).to.be.false;
   });
 
-  describe('add domain to url whitelist', function() {
-
-    afterEach(function() {
+  describe('add domain to url whitelist', function () {
+    afterEach(function () {
       attrack.urlWhitelist.changeState('example.com', 'hostname', 'remove');
     });
 
-    it('adds a source domain to the whitelist', function() {
+    it('adds a source domain to the whitelist', function () {
       attrack.urlWhitelist.changeState('example.com', 'hostname', 'add');
       chai.expect(attrack.urlWhitelist.isWhitelisted('example.com')).to.be.true;
     });
 
-    it('does not add any other domains to the whitelist', function() {
+    it('does not add any other domains to the whitelist', function () {
       attrack.urlWhitelist.changeState('example.com', 'hostname', 'add');
       chai.expect(attrack.urlWhitelist.isWhitelisted('another.example.com')).to.be.false;
     });
-
   });
 
-  describe('remove domain from url whitelist', function() {
-
-    afterEach(function() {
+  describe('remove domain from url whitelist', function () {
+    afterEach(function () {
       attrack.urlWhitelist.changeState('example.com', 'hostname', 'remove');
       attrack.urlWhitelist.changeState('another.example.com', 'hostname', 'remove');
     });
 
-    it('removes a domain from the whitelist', function() {
+    it('removes a domain from the whitelist', function () {
       attrack.urlWhitelist.changeState('example.com', 'hostname', 'add');
       attrack.urlWhitelist.changeState('example.com', 'hostname', 'remove');
       chai.expect(attrack.urlWhitelist.isWhitelisted('example.com')).to.be.false;
     });
 
-    it('does not remove other domains', function() {
+    it('does not remove other domains', function () {
       attrack.urlWhitelist.changeState('example.com', 'hostname', 'add');
       attrack.urlWhitelist.changeState('another.example.com', 'hostname', 'add');
       attrack.urlWhitelist.changeState('example.com', 'hostname', 'remove');
@@ -648,29 +638,28 @@ describe('isSourceWhitelisted', function() {
   });
 });
 
-describe('Tracking.txt', function() {
+describe('Tracking.txt', function () {
+  it('parse rules correctly', function () {
+    const txt = 'R site1.com empty\nR   site2.com\tplaceholder\nnot a rule';
+    const rules = [];
+    trackerRuleParser(txt, rules);
+    chai.expect(rules).to.deep.equal([{ site: 'site1.com', rule: 'empty' }, { site: 'site2.com', rule: 'placeholder' }]);
+  });
 
-    it ('parse rules correctly', function() {
-        const txt = 'R site1.com empty\nR   site2.com\tplaceholder\nnot a rule';
-        const rules = [];
-        trackerRuleParser(txt, rules);
-        chai.expect(rules).to.deep.equal([{site: 'site1.com', rule: 'empty'}, {site: 'site2.com', rule: 'placeholder'}])
-    });
+  it('ignore comments', function () {
+    const txt = '# comment\n! pass\nR site1.com empty\nR site2.com placeholder\nnot a rule';
+    const rules = [];
+    trackerRuleParser(txt, rules);
+    chai.expect(rules).to.deep.equal([{ site: 'site1.com', rule: 'empty' }, { site: 'site2.com', rule: 'placeholder' }]);
+  });
 
-    it ('ignore comments', function() {
-        const txt = '# comment\n! pass\nR site1.com empty\nR site2.com placeholder\nnot a rule';
-        const rules = [];
-        trackerRuleParser(txt, rules);
-        chai.expect(rules).to.deep.equal([{site: 'site1.com', rule: 'empty'}, {site: 'site2.com', rule: 'placeholder'}])
-    });
-
-    it ('apply correct rule to 3rd party', function() {
-        const txt = '# comment\n! pass\nR aaa.site1.com empty\nR site1.com placeholder\nnot a rule';
-        const r = TrackerTXT.get(parseURL('http://www.google.com/'));
-        trackerRuleParser(txt, r.rules);
-        r.status = 'update';
-        chai.expect(r.getRule('bbbaaa.site1.com')).to.equal('empty');
-        chai.expect(r.getRule('aa.site1.com')).to.equal('placeholder');
-        chai.expect(r.getRule('aa.site2.com')).to.equal(getDefaultTrackerTxtRule());
-    });
+  it('apply correct rule to 3rd party', function () {
+    const txt = '# comment\n! pass\nR aaa.site1.com empty\nR site1.com placeholder\nnot a rule';
+    const r = TrackerTXT.get(parseURL('http://www.google.com/'));
+    trackerRuleParser(txt, r.rules);
+    r.status = 'update';
+    chai.expect(r.getRule('bbbaaa.site1.com')).to.equal('empty');
+    chai.expect(r.getRule('aa.site1.com')).to.equal('placeholder');
+    chai.expect(r.getRule('aa.site2.com')).to.equal(getDefaultTrackerTxtRule());
+  });
 });

@@ -8,7 +8,7 @@ const tldjs = require('tldjs');
 
 export default describeModule('core/tlds',
   () => ({
-    tldjs: {
+    'platform/lib/tldjs': {
       default: tldjs,
     },
     'platform/url': {
@@ -21,7 +21,7 @@ export default describeModule('core/tlds',
     let sameGeneralDomain;
     let getGeneralDomain;
 
-    beforeEach(function importDefault() {
+    beforeEach(function () {
       sameGeneralDomain = this.module().sameGeneralDomain;
       getGeneralDomain = this.module().getGeneralDomain;
     });

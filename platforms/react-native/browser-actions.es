@@ -20,6 +20,7 @@ const BrowserActions = NativeModules.BrowserActions || {
   queryCliqz: unsupportedError,
   getReminders: unsupportedError,
   getOpenTabs: () => [],
+  importBookmarks: unsupportedError,
 };
 
 export const openLink = BrowserActions.openLink;
@@ -41,3 +42,4 @@ export const queryCliqz = BrowserActions.queryCliqz;
 export const openTab = BrowserActions.openTab || osAPI.openTab;
 export const getOpenTabs = BrowserActions.getOpenTabs;
 export const getReminders = BrowserActions.getReminders;
+export const importBookmarks = BrowserActions.importBookmarks;

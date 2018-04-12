@@ -7,6 +7,13 @@ import {
 } from '../../core/time';
 
 
+// This constant will be used to define for how long we want to keep the category
+// on the client while we see there is any activity. Once we do not see any
+// activity for more than CATEGORY_LIFE_TIME_SECS on the category we will remove
+// it from the DB.
+const CATEGORY_LIFE_TIME_SECS = 60 * 60 * 24 * 15; // for at least 15 days
+
+
 const getValidDaysFromHistory = (timeRangeSecs, historyData) => {
   const now = timestampMS();
   const startMS = now - (timeRangeSecs * 1000);
@@ -117,6 +124,7 @@ export default class Category {
     return this.name;
   }
 
+  // revision hash
   getVersion() {
     return this.version;
   }
@@ -143,6 +151,15 @@ export default class Category {
       }
       this.lastActivationTS = null;
     }
+
+    // do a clean up if today key changed (since for now we check at a day level
+    // we should modify this when we change to more granular ts)
+    const todayKey = getTodayDayKey();
+    if (todayKey !== this.todayKey) {
+      this.todayKey = todayKey;
+      this.cleanUp();
+    }
+
     // we need to check
     const activationFun = this.activationFunctionMap[this.activationData.func];
     if (!activationFun) {
@@ -166,16 +183,22 @@ export default class Category {
   // we will check if need to remove old data
   cleanUp() {
     const now = timestampMS();
+    const todayKey = getTodayDayKey();
     const days = Object.keys(this.matchData.perDay);
     let modified = false;
     const catLifeTimeMs = this.timeRangeSecs * 1000;
-    for (let i = 0; i < days; i += 1) {
-      const dayTs = getDateFromDateKey(days[i]);
-      const timeDiff = now - dayTs;
-      if (timeDiff > catLifeTimeMs) {
-        // we need to remove this day
-        this._removeDay(days[i]);
-        modified = true;
+    for (let i = 0; i < days.length; i += 1) {
+      // since we do not have more detailed precision for now (hour level), and
+      // "today" case is an special case because we cannot know the hits per
+      // hour, so we will skip the checking of today
+      if (days[i] !== todayKey) {
+        const dayTs = getDateFromDateKey(days[i], 12);
+        const timeDiff = now - dayTs;
+        if (timeDiff > catLifeTimeMs) {
+          // we need to remove this day
+          this._removeDay(days[i]);
+          modified = true;
+        }
       }
     }
     if (modified) {
@@ -185,7 +208,7 @@ export default class Category {
 
   isObsolete() {
     const now = timestampMS();
-    const expireMsCount = this.timeRangeSecs * 1000;
+    const expireMsCount = Math.max(CATEGORY_LIFE_TIME_SECS * 1000, this.timeRangeSecs * 1000);
     let isObsolete = false;
     if (this.matchData.lastMatchTs === null) {
       isObsolete = (now - this.createdTs) > expireMsCount;
@@ -228,7 +251,7 @@ export default class Category {
     for (let i = 0; i < dayList.length; i += 1) {
       const day = dayList[i];
       const dataDay = validDays[day];
-      const dayTS = getDateFromDateKey(day);
+      const dayTS = getDateFromDateKey(day, 12);
 
       this.matchData.perDay[day] = { matches: dataDay.m };
       this.matchData.total.matches += dataDay.m;
@@ -364,3 +387,8 @@ export default class Category {
     return { t: totToday, m: totMathes };
   }
 }
+
+
+export {
+  CATEGORY_LIFE_TIME_SECS
+};

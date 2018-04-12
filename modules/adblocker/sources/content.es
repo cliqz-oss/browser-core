@@ -4,10 +4,9 @@ import {
   isCliqzContentScriptMsg
 } from '../core/content/helpers';
 
-import platform from '../platform/platform';
 import Adblocker from '../platform/lib/adblocker-cosmetics';
 
-registerContentScript('http*', (window, chrome, windowId) => {
+registerContentScript('http*', (window, chrome) => {
   let active = true;
   const url = window.location.href;
   if (!url) { return; }
@@ -24,7 +23,6 @@ registerContentScript('http*', (window, chrome, windowId) => {
     }
     chrome.runtime.sendMessage({
       source: CHROME_MSG_SOURCE,
-      windowId,
       payload: {
         module: 'adblocker',
         action,
@@ -52,8 +50,7 @@ registerContentScript('http*', (window, chrome, windowId) => {
   const onMessage = (msg) => {
     // On chromium platform the windowid is a fake on (always === 1),
     // instead the message is sent to the tab through `tabs.sendMessage`
-    const sameSourceWindow = msg.windowId === windowId || platform.isChromium;
-    if (msg.module === 'adblocker' && sameSourceWindow) {
+    if (msg.module === 'adblocker') {
       if (msg.payload) {
         // handle push message
         cosmeticsInjection.handleResponseFromBackground(msg.payload);

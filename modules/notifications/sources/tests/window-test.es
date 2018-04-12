@@ -1,5 +1,8 @@
-export default describeModule("notifications/window",
-  function() {
+/* global chai, sinon */
+/* eslint no-undef: 'off' */
+
+export default describeModule('notifications/window',
+  function () {
     return {
       'core/kord/inject': {
         default: {
@@ -8,22 +11,21 @@ export default describeModule("notifications/window",
       },
     };
   },
-  function() {
+  function () {
     let subject;
 
-    beforeEach(function() {
+    beforeEach(function () {
       const Notifications = this.module().default;
       subject = new Notifications();
     });
 
-    describe('#init', function() {
-
+    describe('#init', function () {
       context('with Freshtab active', function () {
         beforeEach(function () {
           subject.freshtab.isReady = () => Promise.resolve();
         });
 
-        it('calls action: notifications/updateUnreadStatus', function() {
+        it('calls action: notifications/updateUnreadStatus', function () {
           const actionStub = sinon.stub(subject.notifications, 'action',
             () => Promise.resolve(true));
 
@@ -33,7 +35,6 @@ export default describeModule("notifications/window",
           });
         });
       });
-
     });
   }
 );

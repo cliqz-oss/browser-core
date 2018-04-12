@@ -3,7 +3,9 @@ export default describeModule('dropdown/results/generic',
     return {
       '../../core/events': {},
       '../../core/utils': {},
-      '../../core/url': {},
+      '../../core/url': {
+        urlStripProtocol() { return 'STRIPPED_URL' }
+      },
       '../../core/console': {},
     };
   },
@@ -12,6 +14,20 @@ export default describeModule('dropdown/results/generic',
 
     beforeEach(function () {
       GenericResult = this.module().default;
+    });
+
+    context('with no title', function () {
+      let result;
+
+      beforeEach(function () {
+        result = new GenericResult({
+          url: 'https://www.test.test',
+        });
+      });
+
+      it('should fill title with stripped url', function () {
+        chai.expect(result).to.have.property('title').that.equals('STRIPPED_URL');
+      });
     });
 
     context('with deep results', function () {

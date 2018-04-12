@@ -1,6 +1,8 @@
 import background from '../core/base/background';
 import { utils, events } from '../core/cliqz';
 import DisplayManager from './display_manager';
+import REAL_ESTATE_ID from './consts';
+import inject from '../core/kord/inject';
 
 const MODULE_NAME = 'browser-panel-bg';
 
@@ -21,6 +23,8 @@ function lwarn(msg) {
   @class Background
  */
 export default background({
+  offersV2: inject.module('offers-v2'),
+
   /**
     @method init
     @param settings
@@ -38,6 +42,8 @@ export default background({
     if (this.is_enabled) {
       this.displayMngr = new DisplayManager(this.actions.windowUIConnector);
     }
+    // register real estate
+    this._registerToOffersCore();
   },
 
   unload() {
@@ -47,6 +53,7 @@ export default background({
     if (this.displayMngr) {
       delete this.displayMngr;
     }
+    this._unregisterFromOffersCore();
   },
 
   beforeBrowserShutdown() {
@@ -178,14 +185,39 @@ export default background({
         // skip this message since it is not enabled
         return;
       }
-      if (!msg || (msg.dest && msg.dest.length && (msg.dest.indexOf('browser-panel') < 0))) {
+      if (!msg || (msg.dest && msg.dest.length && (msg.dest.indexOf(REAL_ESTATE_ID) < 0))) {
         return;
       }
       // else we have the proper format we process it
       this.processOfferMessage(msg);
-    }
+    },
+
+    'offers-re-registration': function onOffersRegMessage(event) {
+      if (event && event.type === 'broadcast') {
+        this._registerToOffersCore();
+      }
+    },
   },
 
   actions: {
   },
+
+  // ///////////////////////////////////////////////////////////////////////////
+  // Private
+  //
+
+  _unregisterFromOffersCore() {
+    if (!this.is_enabled) {
+      return;
+    }
+    this.offersV2.action('unregisterRealEstate', { realEstateID: REAL_ESTATE_ID }).catch(() => {});
+  },
+
+  _registerToOffersCore() {
+    if (!this.is_enabled) {
+      return;
+    }
+    this.offersV2.action('registerRealEstate', { realEstateID: REAL_ESTATE_ID }).catch(() => {});
+  },
+
 });

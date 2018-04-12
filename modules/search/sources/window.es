@@ -10,47 +10,54 @@ import search from './search';
 import telemetry from './telemetry';
 import DEFAULT_CONFIG from './config';
 import ObservableProxy from '../core/helpers/observable-proxy';
+import { getSearchEngines } from '../core/search-engines';
+
+function getProviders() {
+  const available = JSON.parse(utils.getPref('config_backends', '["de"]'));
+
+  return available.reduce((acc, cur) => {
+    acc[cur] = {
+      selected: cur === utils.getPref('backend_country', 'de'),
+      name: utils.getLocalizedString(`country_code_${cur.toUpperCase()}`),
+    };
+
+    return acc;
+  }, {});
+}
 
 export default class SearchWindow extends AppWindow {
   events = {
     'urlbar:focus': () => {
-      if (!this.isEnabled) {
-        return;
-      }
       this.focusEventProxy.next();
     },
 
     'urlbar:blur': () => {
-      if (!this.isEnabled) {
-        return;
-      }
       this.blurEventProxy.next();
     },
 
-    'urlbar:input': ({ query, isTyped }) => {
-      if (!isTyped || !this.isEnabled) {
+    'urlbar:input': (ev) => {
+      if (!ev.isTyped) {
         return;
       }
-
-      this.inputEventProxy.next(query);
+      this.inputEventProxy.next(ev);
     },
 
     'ui:click-on-url': (ev) => {
-      if (!this.isEnabled) {
-        return;
-      }
-
       this.selectionEventProxy.next(ev);
+    },
+
+    'dropdown:result-selected': () => {
+      this.resultHighlightEventProxy.next();
+    },
+
+    'urlbar:dropmarker-click': () => {
+      this.inputEventProxy.next({ query: '', allowEmptyQuery: true });
     },
   };
 
   constructor(settings) {
     super(settings);
     this.background = settings.background;
-  }
-
-  get isEnabled() {
-    return prefs.get('searchMode') === 'search';
   }
 
   init() {
@@ -63,6 +70,7 @@ export default class SearchWindow extends AppWindow {
     this.focusEventProxy = new ObservableProxy();
     this.blurEventProxy = new ObservableProxy();
     this.selectionEventProxy = new ObservableProxy();
+    this.resultHighlightEventProxy = new ObservableProxy();
 
     const focus$ = Rx.Observable.merge(
       this.focusEventProxy.observable.mapTo('focus'),
@@ -76,6 +84,12 @@ export default class SearchWindow extends AppWindow {
       window: this.window,
       providers: {
         ...DEFAULT_CONFIG.providers,
+        historyView: {
+          order: DEFAULT_CONFIG.providers.historyView.order,
+          get isEnabled() {
+            return prefs.get('modules.history.enabled', DEFAULT_CONFIG.providers.history.isEnabled);
+          },
+        },
         'query-suggestions': {
           get isEnabled() {
             return !utils.isPrivateMode(this.window)
@@ -84,9 +98,26 @@ export default class SearchWindow extends AppWindow {
           },
         },
       },
+      operators: {
+        ...DEFAULT_CONFIG.operators,
+        offers: {
+          position: DEFAULT_CONFIG.operators.offers.position,
+          get isEnabled() {
+            return prefs.get('offers2FeatureEnabled', true)
+              && prefs.get('offers2UserEnabled', true)
+              && prefs.get('offersDropdownSwitch', false);
+          },
+
+          get locationEnabled() {
+            return prefs.get('offers_location', 1) === 1;
+          }
+        }
+      }
     };
 
-    const results$ = search(query$, focus$, this.background.providers, config).share();
+    const highlight$ = this.resultHighlightEventProxy.observable.share();
+    const results$ = search({ query$, focus$, highlight$ },
+      this.background.providers, config).share();
     const selection$ = this.selectionEventProxy.observable;
 
     const telemetry$ = telemetry(focus$, results$, selection$);
@@ -106,5 +137,21 @@ export default class SearchWindow extends AppWindow {
     if (this.resultsSubscription) {
       this.resultsSubscription.unsubscribe();
     }
+  }
+
+  status() {
+    let engines = [];
+
+    try {
+      engines = getSearchEngines();
+    } catch (e) {
+      // may be not initailized yet
+    }
+
+    return {
+      visible: true,
+      state: engines,
+      supportedIndexCountries: getProviders(),
+    };
   }
 }

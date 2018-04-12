@@ -1,9 +1,7 @@
 /* global window */
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
 
 import {
+  blurUrlBar,
   $cliqzResults,
   CliqzUtils,
   expect,
@@ -34,6 +32,7 @@ export default function () {
       const query = 'imdb the circle';
 
       before(function () {
+        blurUrlBar();
         CliqzUtils.setPref('share_location', 'ask');
         respondWith({ results });
         withHistory([]);
@@ -74,7 +73,7 @@ export default function () {
         });
 
         it('with an existing and correct link', function () {
-          const parentMovieLinkItem = parentMovieItem.href;
+          const parentMovieLinkItem = parentMovieItem.dataset.url;
           expect(parentMovieLinkItem).to.exist;
           expect(parentMovieLinkItem).to.equal(results[0].url);
         });
@@ -150,7 +149,7 @@ export default function () {
         });
 
         it('with amount of reviews having correct URL', function () {
-          expect(movieReviewsItem.href).to.contain(results[0].url);
+          expect(movieReviewsItem.dataset.url).to.contain(results[0].url);
         });
 
         it('with existing and correct director info', function () {
@@ -161,7 +160,7 @@ export default function () {
         });
 
         it('with director info having correct URL', function () {
-          expect(movieDirectorItem.querySelector('.result').href)
+          expect(movieDirectorItem.querySelector('.result').dataset.url)
             .to.contain(results[0].snippet.extra.rich_data.director.info.url);
         });
 
@@ -179,7 +178,7 @@ export default function () {
         it('with existing and correct extended cast URL', function () {
           const castUrl = movieStarsItems[2].querySelector('a.result');
           expect(castUrl).to.contain.text(locale['cinema-movie-full-cast'].message);
-          expect(castUrl.href).to.contain(results[0].url);
+          expect(castUrl.dataset.url).to.contain(results[0].url);
         });
 
         it('with existing and correct trailer icon', function () {
@@ -190,7 +189,7 @@ export default function () {
         });
 
         it('with existing and correct trailer URL', function () {
-          const movieTrailerUrl = movieTrailerItem.querySelector('a.result').href;
+          const movieTrailerUrl = movieTrailerItem.querySelector('a.result').dataset.url;
           expect(movieTrailerUrl).to.exist;
           expect(movieTrailerUrl)
             .to.equal(results[0].snippet.extra.rich_data.categories[0].url);
@@ -231,7 +230,7 @@ export default function () {
           const cinemaTabsAreaItem = movieShowingsItem.querySelector(cinemaTabsAreaSelector);
           expect(cinemaTabsAreaItem).to.exist;
 
-          const cinemaTabsSelector = 'label.dropdown-tab-label';
+          const cinemaTabsSelector = 'label.dropdown-tab';
           const cinemaTabsItems = cinemaTabsAreaItem.querySelectorAll(cinemaTabsSelector);
           expect(cinemaTabsItems.length)
             .to.equal(results[0].snippet.extra.data.showdates.length);
@@ -241,15 +240,15 @@ export default function () {
         });
 
         it('with the first tab being selected as default', function () {
-          const inputTabSelector = '.tab-radio-input';
+          const inputTabSelector = '.dropdown-tab';
           const inputTabItems = movieShowingsItem.querySelectorAll(inputTabSelector);
           const [
             firstTabItem,
             ...remainingTabItems
           ] = inputTabItems;
-          expect(firstTabItem.checked).to.be.true;
+          expect(firstTabItem.classList.contains('checked')).to.be.true;
           [...remainingTabItems].forEach(function (tab) {
-            expect(tab.checked).to.be.false;
+            expect(tab.classList.contains('checked')).to.be.false;
           });
         });
 
@@ -283,7 +282,7 @@ export default function () {
           [...cinemaRowItems].forEach(function (cinema, i) {
             showingTimes = cinema.querySelectorAll(showingTimeSelector);
             [...showingTimes].forEach(function (showing, j) {
-              expect(showing.querySelector('a').href)
+              expect(showing.querySelector('a').dataset.url)
                 .to.equal(results[0].snippet.extra.data.showdates[0]
                   .cinema_list[i].showtimes[j].booking_link);
             });
@@ -294,8 +293,8 @@ export default function () {
           const showMoreSelector = '.expand-btn';
           const showMoreItem = movieShowingsItem.querySelector(showMoreSelector);
           expect(showMoreItem).to.exist;
-          expect(showMoreItem).to.have.text(locale['cinema-expand-button'].message);
-          expect(showMoreItem.href).to.exist;
+          expect(showMoreItem).to.have.trimmed.text(locale['cinema-expand-button'].message);
+          expect(showMoreItem.dataset.url).to.exist;
         });
       });
 
@@ -335,6 +334,7 @@ export default function () {
       const query = 'imdb the circle';
 
       before(function () {
+        blurUrlBar();
         CliqzUtils.setPref('share_location', 'no');
         respondWith({ results });
         withHistory([]);
@@ -379,7 +379,7 @@ export default function () {
         });
 
         it('with an existing and correct link', function () {
-          const parentMovieLinkItem = parentMovieItem.href;
+          const parentMovieLinkItem = parentMovieItem.dataset.url;
           expect(parentMovieLinkItem).to.exist;
           expect(parentMovieLinkItem).to.equal(results[0].url);
         });
@@ -455,7 +455,7 @@ export default function () {
         });
 
         it('with amount of reviews having correct URL', function () {
-          expect(movieReviewsItem.href).to.contain(results[0].url);
+          expect(movieReviewsItem.dataset.url).to.contain(results[0].url);
         });
 
         it('with existing and correct director info', function () {
@@ -466,7 +466,7 @@ export default function () {
         });
 
         it('with director info having correct URL', function () {
-          expect(movieDirectorItem.querySelector('.result').href)
+          expect(movieDirectorItem.querySelector('.result').dataset.url)
             .to.contain(results[0].snippet.extra.rich_data.director.info.url);
         });
 
@@ -484,7 +484,7 @@ export default function () {
         it('with existing and correct extended cast URL', function () {
           const castUrl = movieStarsItems[2].querySelector('a.result');
           expect(castUrl).to.contain.text(locale['cinema-movie-full-cast'].message);
-          expect(castUrl.href).to.contain(results[0].url);
+          expect(castUrl.dataset.url).to.contain(results[0].url);
         });
 
         it('with existing and correct trailer icon', function () {
@@ -495,7 +495,7 @@ export default function () {
         });
 
         it('with existing and correct trailer URL', function () {
-          const movieTrailerUrl = movieTrailerItem.querySelector('a.result').href;
+          const movieTrailerUrl = movieTrailerItem.querySelector('a.result').dataset.url;
           expect(movieTrailerUrl).to.exist;
           expect(movieTrailerUrl)
             .to.equal(results[0].snippet.extra.rich_data.categories[0].url);
@@ -536,7 +536,7 @@ export default function () {
           const cinemaTabsAreaItem = movieShowingsItem.querySelector(cinemaTabsAreaSelector);
           expect(cinemaTabsAreaItem).to.exist;
 
-          const cinemaTabsSelector = 'label.dropdown-tab-label';
+          const cinemaTabsSelector = 'label.dropdown-tab';
           const cinemaTabsItems = cinemaTabsAreaItem.querySelectorAll(cinemaTabsSelector);
           expect(cinemaTabsItems.length)
             .to.equal(results[0].snippet.extra.data.showdates.length);
@@ -546,15 +546,15 @@ export default function () {
         });
 
         it('with the first tab being selected as default', function () {
-          const inputTabSelector = '.tab-radio-input';
+          const inputTabSelector = '.dropdown-tab';
           const inputTabItems = movieShowingsItem.querySelectorAll(inputTabSelector);
           const [
             firstTabItem,
             ...remainingTabItems
           ] = inputTabItems;
-          expect(firstTabItem.checked).to.be.true;
+          expect(firstTabItem.classList.contains('checked')).to.be.true;
           [...remainingTabItems].forEach(function (tab) {
-            expect(tab.checked).to.be.false;
+            expect(tab.classList.contains('checked')).to.be.false;
           });
         });
 
@@ -588,7 +588,7 @@ export default function () {
           [...cinemaRowItems].forEach(function (cinema, i) {
             showingTimes = cinema.querySelectorAll(showingTimeSelector);
             [...showingTimes].forEach(function (showing, j) {
-              expect(showing.querySelector('a').href)
+              expect(showing.querySelector('a').dataset.url)
                 .to.equal(results[0].snippet.extra.data.showdates[0]
                   .cinema_list[i].showtimes[j].booking_link);
             });
@@ -599,8 +599,8 @@ export default function () {
           const showMoreSelector = '.expand-btn';
           const showMoreItem = movieShowingsItem.querySelector(showMoreSelector);
           expect(showMoreItem).to.exist;
-          expect(showMoreItem).to.have.text(locale['cinema-expand-button'].message);
-          expect(showMoreItem.href).to.exist;
+          expect(showMoreItem).to.have.trimmed.text(locale['cinema-expand-button'].message);
+          expect(showMoreItem.dataset.url).to.exist;
         });
       });
     });
@@ -612,6 +612,7 @@ export default function () {
       const query = 'imdb the circle';
 
       before(function () {
+        blurUrlBar();
         CliqzUtils.setPref('share_location', 'yes');
         respondWith({ results });
         withHistory([]);
@@ -656,7 +657,7 @@ export default function () {
         });
 
         it('with an existing and correct link', function () {
-          const parentMovieLinkItem = parentMovieItem.href;
+          const parentMovieLinkItem = parentMovieItem.dataset.url;
           expect(parentMovieLinkItem).to.exist;
           expect(parentMovieLinkItem).to.equal(results[0].url);
         });
@@ -732,7 +733,7 @@ export default function () {
         });
 
         it('with amount of reviews having correct URL', function () {
-          expect(movieReviewsItem.href).to.contain(results[0].url);
+          expect(movieReviewsItem.dataset.url).to.contain(results[0].url);
         });
 
         it('with existing and correct director info', function () {
@@ -743,7 +744,7 @@ export default function () {
         });
 
         it('with director info having correct URL', function () {
-          expect(movieDirectorItem.querySelector('.result').href)
+          expect(movieDirectorItem.querySelector('.result').dataset.url)
             .to.contain(results[0].snippet.extra.rich_data.director.info.url);
         });
 
@@ -761,7 +762,7 @@ export default function () {
         it('with existing and correct extended cast URL', function () {
           const castUrl = movieStarsItems[2].querySelector('a.result');
           expect(castUrl).to.contain.text(locale['cinema-movie-full-cast'].message);
-          expect(castUrl.href).to.contain(results[0].url);
+          expect(castUrl.dataset.url).to.contain(results[0].url);
         });
 
         it('with existing and correct trailer icon', function () {
@@ -772,7 +773,7 @@ export default function () {
         });
 
         it('with existing and correct trailer URL', function () {
-          const movieTrailerUrl = movieTrailerItem.querySelector('a.result').href;
+          const movieTrailerUrl = movieTrailerItem.querySelector('a.result').dataset.url;
           expect(movieTrailerUrl).to.exist;
           expect(movieTrailerUrl)
             .to.equal(results[0].snippet.extra.rich_data.categories[0].url);
@@ -813,7 +814,7 @@ export default function () {
           const cinemaTabsAreaItem = movieShowingsItem.querySelector(cinemaTabsAreaSelector);
           expect(cinemaTabsAreaItem).to.exist;
 
-          const cinemaTabsSelector = 'label.dropdown-tab-label';
+          const cinemaTabsSelector = 'label.dropdown-tab';
           const cinemaTabsItems = cinemaTabsAreaItem.querySelectorAll(cinemaTabsSelector);
           expect(cinemaTabsItems.length)
             .to.equal(results[0].snippet.extra.data.showdates.length);
@@ -823,15 +824,15 @@ export default function () {
         });
 
         it('with the first tab being selected as default', function () {
-          const inputTabSelector = '.tab-radio-input';
+          const inputTabSelector = '.dropdown-tab';
           const inputTabItems = movieShowingsItem.querySelectorAll(inputTabSelector);
           const [
             firstTabItem,
             ...remainingTabItems
           ] = inputTabItems;
-          expect(firstTabItem.checked).to.be.true;
+          expect(firstTabItem.classList.contains('checked')).to.be.true;
           [...remainingTabItems].forEach(function (tab) {
-            expect(tab.checked).to.be.false;
+            expect(tab.classList.contains('checked')).to.be.false;
           });
         });
 
@@ -865,7 +866,7 @@ export default function () {
           [...cinemaRowItems].forEach(function (cinema, i) {
             showingTimes = cinema.querySelectorAll(showingTimeSelector);
             [...showingTimes].forEach(function (showing, j) {
-              expect(showing.querySelector('a').href)
+              expect(showing.querySelector('a').dataset.url)
                 .to.equal(results[0].snippet.extra.data.showdates[0]
                   .cinema_list[i].showtimes[j].booking_link);
             });
@@ -876,8 +877,8 @@ export default function () {
           const showMoreSelector = '.expand-btn';
           const showMoreItem = movieShowingsItem.querySelector(showMoreSelector);
           expect(showMoreItem).to.exist;
-          expect(showMoreItem).to.have.text(locale['cinema-expand-button'].message);
-          expect(showMoreItem.href).to.exist;
+          expect(showMoreItem).to.have.trimmed.text(locale['cinema-expand-button'].message);
+          expect(showMoreItem.dataset.url).to.exist;
         });
       });
     });

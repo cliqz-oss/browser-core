@@ -27,7 +27,6 @@ cat << EOF >> ${DOCKER_FILE}
 # Copy extension directory inside of Docker
 ADD . /app/
 WORKDIR /app/
-RUN ./fern.js install
 EOF
 
 # Build docker
@@ -40,7 +39,7 @@ echo "Running tests, you can connect using a vnc client to 'localhost:15900 with
 echo "Fern config: ${FERN_ARGS}"
 # To slow things down, use the --cpus=N options
 # DOCKER_RUN="docker run --rm -t --cpus=0.4 --user node -p 15900:5900 -w /app docker-navigation-extension-tests ./tests/run_tests.sh $FERN_ARGS"
-DOCKER_RUN="docker run --rm -t --user node -p 15900:5900 -w /app docker-navigation-extension-tests ./tests/run_tests.sh $FERN_ARGS"
+DOCKER_RUN="docker run --rm -t --user node -p 15900:5900 --add-host cliqztest.com:127.0.0.1 -w /app docker-navigation-extension-tests ./tests/run_tests.sh $FERN_ARGS"
 
 if type xtightvncviewer >/dev/null 2>&1 ; then
    ${DOCKER_RUN} &

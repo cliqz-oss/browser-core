@@ -1,6 +1,4 @@
-import { isIpAddress } from './url';
-import tldjs from '../platform/tldjs';
-import TLDs from './tlds-legacy';
+import tldjs from '../platform/lib/tldjs';
 
 
 /**
@@ -25,10 +23,6 @@ function extractHostname(url) {
     domain = domain.substr(0, indexOfSlash);
   }
 
-  if (domain.startsWith('www.')) {
-    domain = domain.substr(4);
-  }
-
   if (domain.endsWith('.')) {
     domain = domain.substr(0, domain.length - 1);
   }
@@ -39,9 +33,7 @@ function extractHostname(url) {
 
 // Use our faster `extractHostname` implementation in tldjs
 const tlds = tldjs.fromUserSettings({
-  // Note: in the next version, tld.js should not require `validHost` as a
-  // first argument.
-  extractHostname: (validHosts, url) => extractHostname(url),
+  extractHostname,
   validHosts: [
     'localhost',
   ],
@@ -51,14 +43,14 @@ const tlds = tldjs.fromUserSettings({
 function parse(url) {
   const parsed = tlds.parse(url);
 
-  // TODO - ip addr handling could be integrated in tld.js library
-  // Specific handling of IP addresses
-  if (isIpAddress(parsed.hostname)) {
+  if (parsed.isIp) {
     parsed.domain = parsed.hostname;
-  } else if (parsed.domain === null) {
+  }
+
+  if (!parsed.domain && parsed.publicSuffix) {
     // Some hostname will not play well with the `getDomain` function if they
     // also constitute a valid public suffix (eg: googleapis.com)
-    parsed.domain = parsed.suffix;
+    parsed.domain = parsed.publicSuffix;
   }
 
   return parsed;
@@ -71,7 +63,7 @@ function getGeneralDomain(url) {
 
 
 function getPublicSuffix(url) {
-  return parse(url).suffix;
+  return tlds.getPublicSuffix(url);
 }
 
 
@@ -81,9 +73,6 @@ function sameGeneralDomain(domain1, domain2) {
 
 
 export {
-  // Legacy - should be removed at some point
-  TLDs,
-
   parse,
   getGeneralDomain,
   getPublicSuffix,

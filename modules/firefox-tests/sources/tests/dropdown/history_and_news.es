@@ -1,9 +1,7 @@
 /* global window */
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
 
 import {
+  blurUrlBar,
   $cliqzResults,
   CliqzUtils,
   expect,
@@ -22,6 +20,7 @@ export default function ({ hasHistoryUrl }) {
     let historyIndex;
 
     before(function () {
+      blurUrlBar();
       window.preventRestarts = true;
       respondWith({ results });
       withHistory(historyResults);
@@ -88,7 +87,7 @@ export default function ({ hasHistoryUrl }) {
         [...historyItems].forEach(function (history) {
           /* The order of history in dropdown is reverted */
           historyIndex -= 1;
-          expect(history.href)
+          expect(history.dataset.url)
             .to.equal(historyResults[historyIndex].value);
         });
       });

@@ -23,27 +23,9 @@ export default class Expression {
    *   // the expression builder that we will use to build them
    *   exp_builder: expBuilder,
    *
-   *   // the regex cache handler
-   *   regex_cache: regexpCache,
-   *
    *   // the trigger cache
    *   trigger_cache: triggerCache,
    *   trigger_machine: triggerMachine
-   *
-   *   // the offer processor object
-   *   offer_processor: offerProcessor,
-   *   signals_handler: sigHandler,
-   *   event_handler: evtHandlerMock,
-   *
-   *   // offers db
-   *   offers_db: offersDB,
-   *
-   *   // history index
-   *   history_index: historyIndex,
-   *
-   *   // extra databases needed.
-   *   url_signal_db: urlSignalsDB,
-   *   last_campaign_signal_db: lastCampaignSignalDB
    *
    * }
    * </pre>

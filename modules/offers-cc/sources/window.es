@@ -33,6 +33,7 @@ export default class Win {
     };
 
     this.onOffersCoreEvent = this.onOffersCoreEvent.bind(this);
+    this.onOffersCoreRegistrationEvent = this.onOffersCoreRegistrationEvent.bind(this);
 
     this.toolbarButton = background.toolbarButton;
     this.toolbarButton.addWindow(this.window, this.actions, {
@@ -52,6 +53,8 @@ export default class Win {
     // stylesheet for offers-cc button
     addStylesheet(this.window.document, this.cssUrl);
     events.sub('offers-send-ch', this.onOffersCoreEvent);
+    events.sub('offers-re-registration', this.onOffersCoreRegistrationEvent);
+    this._registerToOffersCore();
   }
 
   unload() {
@@ -59,6 +62,8 @@ export default class Win {
       return;
     }
     events.un_sub('offers-send-ch', this.onOffersCoreEvent);
+    events.un_sub('offers-re-registration', this.onOffersCoreRegistrationEvent);
+    this._unregisterFromOffersCore();
     removeStylesheet(this.window.document, this.cssUrl);
   }
 
@@ -185,8 +190,8 @@ export default class Win {
     // TODO: @mai make sure that all the fields in this uiInfo are existed
     if (uiInfo.notif_type === 'tooltip_extra') {
       let backgroundColor;
-      if (uiInfo.template_data.styles && uiInfo.template_data.styles.background) {
-        backgroundColor = uiInfo.template_data.styles.background;
+      if (uiInfo.template_data.styles && uiInfo.template_data.styles.headline_color) {
+        backgroundColor = uiInfo.template_data.styles.headline_color;
       } else {
         const CTAUrl = uiInfo.template_data.call_to_action.url;
         const urlDetails = utils.getDetailsFromUrl(CTAUrl);
@@ -280,6 +285,7 @@ export default class Win {
     }
 
     if (this.showTooltip) {
+      this.preferredOfferId = null;
       this.sendMessageToPopup({
         action: 'pushData',
         data: this.getTooltipData(this.uiInfo),
@@ -369,8 +375,8 @@ export default class Win {
           let isBestOffer = false;
           const logoClass = uiInfo.template_data.logo_class || 'normal';
 
-          if (uiInfo.template_data.styles && uiInfo.template_data.styles.background) {
-            backgroundColor = uiInfo.template_data.styles.background;
+          if (uiInfo.template_data.styles && uiInfo.template_data.styles.headline_color) {
+            backgroundColor = uiInfo.template_data.styles.headline_color;
           } else {
             const CTAUrl = uiInfo.template_data.call_to_action.url;
             const urlDetails = utils.getDetailsFromUrl(CTAUrl);
@@ -469,10 +475,12 @@ export default class Win {
   sendTelemetry(data) {
     const vote = data.vote;
     const comments = data.comments;
+    const action = data.action || 'click';
+
     const signal = {
       type: 'offrz',
       view: 'box',
-      action: 'click',
+      action,
       target: data.target,
     };
 
@@ -538,6 +546,12 @@ export default class Win {
     }
   }
 
+  onOffersCoreRegistrationEvent(event) {
+    if (event && event.type === 'broadcast') {
+      this._registerToOffersCore();
+    }
+  }
+
   //
   // subscribe to the storage events
   //
@@ -578,10 +592,20 @@ export default class Win {
               action_id: 'offer_notif_popup',
               offer_id: offerID
             };
+
             this.sendMessageToOffersCore(notifMsg);
             this.showTooltip = false;
             this.preferredOfferId = offerID;
+
             this.openPanel();
+          } else if (offersHubTrigger === 'dot') {
+            notifMsg.data = {
+              action_id: 'offer_notif_dot',
+              offer_id: offerID
+            };
+
+            this.sendMessageToOffersCore(notifMsg);
+            this.showTooltip = false;
           } else { // Open tooltip by default
             // TODO: change this when there is a new notif_type
             notifMsg.data = {
@@ -600,7 +624,7 @@ export default class Win {
 
             utils.telemetry(signal);
 
-            if (location === 'hidden') {
+            if (signal.location === 'hidden') {
               return; // Don't show the tooltip if the button is on the palette
             }
 
@@ -635,7 +659,9 @@ export default class Win {
   }
 
   openPanel() {
-    if (utils.getWindow() !== this.window) {
+    const containerId = this.toolbarButtonElement.parentElement.id;
+    // No need to show pop-up when Offrz hub icon is in Overflow list
+    if (utils.getWindow() !== this.window || containerId.indexOf('widget-overflow') !== -1) {
       return;
     }
 
@@ -686,5 +712,13 @@ export default class Win {
     };
 
     utils.sendUserFeedback(feedback);
+  }
+
+  _unregisterFromOffersCore() {
+    this.offersV2.action('unregisterRealEstate', { realEstateID: ORIGIN_NAME }).catch(() => {});
+  }
+
+  _registerToOffersCore() {
+    this.offersV2.action('registerRealEstate', { realEstateID: ORIGIN_NAME }).catch(() => {});
   }
 }

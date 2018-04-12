@@ -1,4 +1,4 @@
-import { getLang } from '../platform/browser';
+import { getLocale } from '../platform/browser';
 import config from './config';
 import getLocaleObject from '../platform/locale-strings';
 import getSupportedLanguage from '../platform/language/supported-langs';
@@ -21,14 +21,14 @@ const getLocaleFile = (locale) => {
 };
 
 const setLang = (locale) => {
-  const lang = getLanguageFromLocale(locale);
-  const supportedLang = getSupportedLanguage(lang);
+  i18n.PLATFORM_LOCALE = locale;
+  i18n.PLATFORM_LANGUAGE = getLanguageFromLocale(locale);
 
-  i18n.PREFERRED_LANGUAGE = locale;
-  getLocaleFile(supportedLang);
+  // we only translate based on the language and not on the locale
+  getLocaleFile(getSupportedLanguage(i18n.PLATFORM_LANGUAGE));
 };
 
-const loadTranslation = () => setLang(getLang());
+const loadTranslation = () => setLang(getLocale());
 
 export function getMessage(key, substitutions = []) {
   if (!key) {

@@ -79,12 +79,12 @@ export default class extends React.Component {
           ...data,
           matches,
         }
-      }).catch(() => {
-        // subscriptions are not implemented natively
-        // return unmodified data
-        this.isValid = false;
-        return data;
       });
+    }).catch(() => {
+      // subscriptions are not implemented natively
+      // return unmodified data
+      this.isValid = false;
+      return data;
     });
   }
 

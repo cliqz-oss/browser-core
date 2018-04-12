@@ -34,5 +34,5 @@ export function closeTab(window, tab) {
 }
 
 export function getCurrentTabId(window) {
-  return window.gBrowser.selectedBrowser.outerWindowID;
+  return window.gBrowser.selectedBrowser && window.gBrowser.selectedBrowser.outerWindowID;
 }

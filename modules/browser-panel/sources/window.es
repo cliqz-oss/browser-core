@@ -3,13 +3,25 @@ import console from '../core/console';
 import inject from '../core/kord/inject';
 import background from './background';
 import config from '../core/config';
+import REAL_ESTATE_ID from './consts';
 
 const MODULE_NAME = 'browser-panel-window';
-const ORIGIN_NAME = 'browser-panel';
 const UI_IFRAME_WIDTH_DEF = '100%';
 const UI_IFRAME_HEIGHT_DEF = '101';
 const UI_IFRAME_ELEM_ID = 'cqz-b-p-iframe';
 const UI_IFRAME_SRC_DEF = `${config.baseURL}browser-panel/index.html`;
+
+// We define the list of signals that are associated to the call to action function
+// so we can send both
+const callToActionSignalsSet = new Set([
+  'offer_logo',
+  'offer_picture',
+  'offer_benefit',
+  'offer_headline',
+  'offer_title',
+  'offer_description',
+]);
+
 
 function linfo(msg) {
   console.log(`[info] ${msg}`, MODULE_NAME);
@@ -62,14 +74,15 @@ export default class Win {
 
   init() {
     if (!background.is_enabled) {
-      return Promise.resolve();
+      return Promise.resolve('Module disabled');
     }
 
     this.isPrivateMode = utils.isPrivateMode(this.window);
     if (this.isPrivateMode) {
       linfo('we are in private mode, avoid any logic here');
-      return Promise.resolve();
+      return Promise.resolve('Private mode active');
     }
+
     return this.injectNotificationFrameIfNeeded(this.window.document);
   }
 
@@ -280,8 +293,8 @@ export default class Win {
     };
 
     let titleColor;
-    if (templateData.styles && templateData.styles.background) {
-      titleColor = templateData.styles.background;
+    if (templateData.styles && templateData.styles.headline_color) {
+      titleColor = templateData.styles.headline_color;
     } else {
       const url = templateData.call_to_action.url;
       const urlDetails = utils.getDetailsFromUrl(url);
@@ -370,7 +383,7 @@ export default class Win {
     this.sendToCoreUIHandler({
       handler: 'offers',
       data: {
-        origin: ORIGIN_NAME,
+        origin: REAL_ESTATE_ID,
         type: 'offer-action-signal',
         data: {
           action_id: 'offer_shown',
@@ -406,34 +419,53 @@ export default class Win {
 
   iframeButtonPressedAction(data) {
     // we will build the proper data here depending on the signal we receive
-    const msgData = {
-      origin: ORIGIN_NAME,
-      type: 'offer-action-signal',
-      data: {
-        // action_id: data.element_id,
-        offer_id: data.offer_id,
-      }
-    };
-    // only for some cases we need to change the layout
+    const msgs = [];
     switch (data.element_id) {
       case 'remove-offer':
-        msgData.type = data.element_id;
+        msgs.push({
+          origin: REAL_ESTATE_ID,
+          type: data.element_id,
+          data: {
+            // action_id: data.element_id,
+            offer_id: data.offer_id,
+          }
+        });
         break;
       case 'more_about_cliqz':
-        msgData.type = 'action-signal';
-        msgData.data.action_id = data.element_id;
-        delete msgData.data.offer_id;
+        msgs.push({
+          origin: REAL_ESTATE_ID,
+          type: 'action-signal',
+          data: {
+            action_id: data.element_id,
+          }
+        });
         break;
       default:
         // we add the action id
-        msgData.data.action_id = data.element_id;
+        msgs.push({
+          origin: REAL_ESTATE_ID,
+          type: 'offer-action-signal',
+          data: {
+            action_id: data.element_id,
+            offer_id: data.offer_id,
+          }
+        });
+        // check the special case if it is a call to action
+        if (callToActionSignalsSet.has(data.element_id)) {
+          // it is we need to send this signal as well
+          msgs.push({
+            origin: REAL_ESTATE_ID,
+            type: 'offer-action-signal',
+            data: {
+              action_id: 'offer_ca_action',
+              offer_id: data.offer_id,
+            }
+          });
+        }
         break;
     }
 
-    this.sendToCoreUIHandler({
-      handler: 'offers',
-      data: msgData
-    });
+    msgs.forEach(msg => this.sendToCoreUIHandler({ handler: 'offers', data: msg }));
   }
 
   resizePanel() {

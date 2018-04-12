@@ -28,17 +28,28 @@ export const elementSideMargins = {
   marginRight: 12,
 };
 
+export const elementSidePaddings = {
+  paddingLeft: 12,
+  paddingRight: 12,
+};
+
 export const elementTopMargin = {
   marginTop: 14,
 };
 
-export const cardBorderRadius = {
-  borderRadius: 5,
+export const cardBorderTopRadius = {
+  borderTopLeftRadius: 5,
+  borderTopRightRadius: 5,
+};
+
+export const cardBorderBottomRadius = {
+  borderBottomLeftRadius: 5,
+  borderBottomRightRadius: 5,
 };
 
 export const cardMargins = {
   marginBottom: 5,
   marginTop: 5,
-}
+};
 
 export const descriptionTextColor = '#0C2B4A';

@@ -25,11 +25,11 @@ body {
     display: block;
     position: absolute;
     bottom: 5px;
-    right: -41px;  
+    right: -41px;
     width: 20px;
     height: 20px;
     background: url("../images/ticket-tmpl/3-dots-ver.svg") no-repeat;
-    cursor: pointer;  
+    cursor: pointer;
   }*/
 
   .close {
@@ -51,7 +51,6 @@ body {
     font-family: "-mac-system", "-apple-system", "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     display: flex;
     justify-content: center;
-    text-transform: uppercase;
 
     .code-box {
       position: relative;
@@ -109,7 +108,7 @@ body {
         white-space: nowrap;
         position: relative;
         top: 5px;
-
+        text-transform: uppercase;
 
         &:hover {
           color: #0078CA;
@@ -120,6 +119,7 @@ body {
         display: none;
         position: relative;
         top: 2px;
+        text-transform: uppercase;
       }
 
       &.copied {
@@ -266,11 +266,13 @@ body {
     }
 
     .headline {
+      @include hyphenate;
       display: none;
       cursor: pointer;
     }
 
     .title {
+      @include hyphenate;
       display: block;
       flex: 3;
       font-size: 13.5px;
@@ -286,6 +288,7 @@ body {
     }
 
     .description {
+      @include hyphenate;
       flex: 3;
       font-size: 11.5px;
       display: none;
@@ -303,7 +306,7 @@ body {
         line-height: 16px;
       }
     }
-    
+
     .call-to-action {
       text-align: right;
       display: flex;
@@ -362,7 +365,7 @@ body {
       color: #ccc;
       letter-spacing: 1px;
     }
-    
+
   }
 }
 
@@ -425,7 +428,7 @@ body {
 
       .call-to-action {
         .btn {
-          
+
           max-width: 191px;
         }
       }
@@ -498,7 +501,7 @@ body {
    #cqz-browser-panel-re  {
     .promo-container {
 
-     
+
 
       .description {
         font-size: 13.5px;

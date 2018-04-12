@@ -78,6 +78,9 @@ export default describeModule('offers-v2/signals_handler',
     'core/platform': {
       isChromium: false
     },
+    'core/helpers/timeout': {
+      default: function() { const stop = () => {}; return { stop }; }
+    },
     'core/cliqz': {
       default: {
         setInterval: function () {}
@@ -105,13 +108,13 @@ export default describeModule('offers-v2/signals_handler',
         return Math.random();
       }
     },
-    'offers-v2/db_helper': {
+    'core/persistence/simple-db': {
       default: class {
         constructor(db) {
           this.db = db;
         }
 
-        saveDocData(docID, docData) {
+        upsert(docID, docData) {
           const self = this;
           return new Promise((resolve, reject) => {
             self.db[docID] = JSON.parse(JSON.stringify(docData));
@@ -119,14 +122,14 @@ export default describeModule('offers-v2/signals_handler',
           });
         }
 
-        getDocData(docID) {
+        get(docID) {
           const self = this;
           return new Promise((resolve, reject) => {
             resolve(JSON.parse(JSON.stringify(self.db[docID])));
           });
         }
 
-        removeDocData(docID) {
+        remove(docID) {
           const self = this;
           return new Promise((resolve, reject) => {
             if (self.db[docID]) {
@@ -144,9 +147,9 @@ export default describeModule('offers-v2/signals_handler',
       let ActionID;
       let OffersConfigs;
       beforeEach(function () {
-        SignalHandler = this.module().SignalHandler;
+        SignalHandler = this.module().default;
         const p1 = this.system.import('offers-v2/offers_configs');
-        const p2 = this.system.import('offers-v2/actions_defs');
+        const p2 = this.system.import('offers-v2/offers/actions-defs');
         return Promise.all([p1, p2]).then((mods) => {
           OffersConfigs = mods[0].default;
           OffersConfigs.MAX_RETRIES = 3;

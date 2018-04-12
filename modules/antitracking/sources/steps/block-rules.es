@@ -1,6 +1,5 @@
 
 export default class BlockRules {
-
   constructor(config) {
     this.config = config;
   }
@@ -10,12 +9,12 @@ export default class BlockRules {
   }
 
   shouldBlock(host, sourceHost) {
-    for (var i = 0; i < this.qsBlockRule.length; i++) {
-      var sRule = this.qsBlockRule[i][0],
-          uRule = this.qsBlockRule[i][1];
+    for (let i = 0; i < this.qsBlockRule.length; i += 1) {
+      const sRule = this.qsBlockRule[i][0];
+      const uRule = this.qsBlockRule[i][1];
       if (sourceHost.endsWith(sRule) &&
         host.endsWith(uRule)) {
-        return true
+        return true;
       }
     }
     return false;
@@ -23,7 +22,7 @@ export default class BlockRules {
 
   applyBlockRules(state, response) {
     if (this.shouldBlock(state.urlParts.hostname, state.sourceUrlParts.hostname)) {
-      state.incrementStat('req_rule_aborted')
+      state.incrementStat('req_rule_aborted');
       response.cancel = true;
       return false;
     }

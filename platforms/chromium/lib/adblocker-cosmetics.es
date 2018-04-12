@@ -1,3 +1,3 @@
-import * as adblocker from '@cliqz/adblocker';
+import * as adblockerCosmetics from '@cliqz/adblocker/adblocker-cosmetics.umd';
 
-export default adblocker;
+export default adblockerCosmetics;

@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, ScrollView, View } from 'react-native';
 import events from '../../core/events';
 import { getMessage } from '../../core/i18n';
-import { cardMargins, cardBorderRadius } from '../styles/CardStyle';
+import { cardMargins, cardBorderTopRadius, cardBorderBottomRadius } from '../styles/CardStyle';
 import Generic from './Generic';
 import Link from './Link';
 import ShareCard from './partials/ShareCard';
@@ -19,7 +19,8 @@ const styles = width => StyleSheet.create({
     elevation: 2, // android
     backgroundColor: '#FFFFFF',
     width,
-    ...cardBorderRadius,
+    ...cardBorderTopRadius,
+    ...cardBorderBottomRadius,
     ...cardMargins,
   },
 });
@@ -79,7 +80,7 @@ export default class extends React.Component {
         >
           <ShareCard style={styles(width).card} title={shareTitle}>
             <Link
-              to={result.val}
+              to={result.url}
               onPress={(...args) => this.sendResultClickTelemetry(...args)}
               openLink={this.props.openLink}
             >

@@ -8,7 +8,9 @@
                 id="{{elementId}}"
                 class="result btn {{className}}"
                 data-url="{{ url }}"
-                href="{{displayUrl}}"
+                {{#if displayUrl}}
+                    href="{{displayUrl}}"
+                {{/if}}
             >
                 {{local (concatLocale ../localePrefix title)}}
             </a>

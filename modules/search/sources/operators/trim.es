@@ -1,15 +1,4 @@
 import { getMainLink } from './normalize';
-import { urlStripProtocol } from '../../core/url';
-
-const isAutocompletable = (query, url) => {
-  if (!query || !url) {
-    return false;
-  }
-
-  // TODO: use meta.url?
-  return url.startsWith(query) ||
-    urlStripProtocol(url).startsWith(query);
-};
 
 /*
  * Trims list of results by removing the instant results if the first result
@@ -23,22 +12,28 @@ const trim = (results) => {
     return results;
   }
 
-  // TODO: get query explictly, `text` might be outdated
-  //       (i.e., if it was carried over from a previous query)
-  const query = getMainLink(first).text;
-
   if (!second) {
     return results;
   }
 
-  if (isAutocompletable(query, getMainLink(second).url)) {
+  if (getMainLink(second).meta.isAutocompletable) {
     return [second, ...rest];
   }
 
   return results;
 };
 
-export default ({ results, ...response }) => ({
-  results: trim(results),
-  ...response,
-});
+const PREVENT_AUTOCOMPLETE_KEYS = ['Backspace', 'Delete'];
+
+export default (response) => {
+  const shouldKeepInstantResult = PREVENT_AUTOCOMPLETE_KEYS.includes(response.params.keyCode);
+
+  if (shouldKeepInstantResult) {
+    return response;
+  }
+
+  return {
+    ...response,
+    results: trim(response.results),
+  };
+};

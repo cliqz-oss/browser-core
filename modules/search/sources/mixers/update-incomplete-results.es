@@ -44,7 +44,7 @@ const merge = ([{ results: completed }, { results: original, ...rest }]) => {
   };
 };
 
-export default function update(query, richHeader, cliqz$, config) {
+export default function update(richHeader, cliqz$, query, config) {
   return Rx.Observable.merge(
     cliqz$,
     cliqz$

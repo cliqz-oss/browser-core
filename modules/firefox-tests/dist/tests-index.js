@@ -1,37 +1,41 @@
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
-Cu.import("resource://gre/modules/FileUtils.jsm");
-Cu.import("resource://gre/modules/NetUtil.jsm");
-Cu.import("resource://gre/modules/FileUtils.jsm");
+Cu.import('resource://gre/modules/FileUtils.jsm');
+Cu.import('resource://gre/modules/NetUtil.jsm');
+Cu.import('resource://gre/modules/FileUtils.jsm');
+Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+
+const EventUtils = {};
+Services.scriptloader.loadSubScriptWithOptions('chrome://cliqz/content/firefox-tests/EventUtils.js', { target: EventUtils, ignoreCache: true });
+
+function getWindow() {
+  const wm = Cc['@mozilla.org/appshell/window-mediator;1']
+    .getService(Ci.nsIWindowMediator);
+  return wm.getMostRecentWindow('navigator:browser');
+}
 
 function loadModule(moduleName) {
   const mod = getWindow().CLIQZ.app.debugModules[moduleName];
   if (!mod) {
-    throw new Error (`${moduleName} is not found`);
+    throw new Error(`${moduleName} is not found`);
   }
   return mod;
 }
 
-function getWindow() {
-  const wm = Cc['@mozilla.org/appshell/window-mediator;1']
-              .getService(Ci.nsIWindowMediator);
-  return wm.getMostRecentWindow("navigator:browser");
-}
-
 function getBrowserVersion() {
-  var userAgent = navigator.userAgent,
-      userAgentParts = userAgent.split('/'),
-      version = userAgentParts[userAgentParts.length - 1];
+  const userAgent = navigator.userAgent;
+  const userAgentParts = userAgent.split('/');
+  const version = userAgentParts[userAgentParts.length - 1];
 
   return version;
 }
 
 function getParameterByName(name) {
-    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-        results = regex.exec(location.search);
-    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+  name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+  const regex = new RegExp(`[\\?&]${name}=([^&#]*)`);
+  const results = regex.exec(location.search);
+  return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
 }
 
 function closeBrowser() {
@@ -41,14 +45,14 @@ function closeBrowser() {
 }
 
 function writeToFile(content, filename) {
-  var file = FileUtils.getFile('ProfD', [filename]);
-  var ostream = FileUtils.openSafeFileOutputStream(file);
-  var converter = Cc['@mozilla.org/intl/scriptableunicodeconverter']
-                    .createInstance(Ci.nsIScriptableUnicodeConverter);
-  var istream;
+  const file = FileUtils.getFile('ProfD', [filename]);
+  const ostream = FileUtils.openSafeFileOutputStream(file);
+  const converter = Cc['@mozilla.org/intl/scriptableunicodeconverter']
+    .createInstance(Ci.nsIScriptableUnicodeConverter);
+  // var istream;
 
   converter.charset = 'UTF-8';
-  istream = converter.convertToInputStream(content);
+  const istream = converter.convertToInputStream(content);
 
   NetUtil.asyncCopy(istream, ostream);
 }
@@ -60,117 +64,117 @@ function writeTestResultsToFile(testData) {
   writeToFile(testData, filename);
 }
 
-
 var runner;
 
 mocha.setup({
   ui: 'bdd',
-  timeout: 30000,
-  reporter: TAP
+  reporter: TAP,
+  timeout: 5000,
 });
 
-var win = getWindow(),
-    CliqzUtils = loadModule("core/utils").default,
-    CliqzABTests = loadModule("core/ab-tests").default,
-    CliqzHumanWeb = loadModule("human-web/human-web").default,
-    CliqzAutocomplete = loadModule("autocomplete/autocomplete").default,
-    telemetry,
-    fetchFactory,
-    getSuggestions,
-    historySearch,
-    fetchAndStoreConfig,
-    fetchAndStoreHM,
-    abCheck,
-    browserMajorVersion = parseInt(getBrowserVersion().split('.')[0]),
-    app = null;
+const win = getWindow();
+window.CliqzUtils = loadModule('core/utils').default;
+window.CliqzABTests = loadModule('core/ab-tests').default;
+window.CliqzHumanWeb = loadModule('human-web/human-web').default;
+window.browserMajorVersion = parseInt(getBrowserVersion().split('.')[0], 10);
+let telemetry;
+let fetchFactory;
+let getSuggestions;
+let historySearch;
+let fetchAndStoreConfig;
+let fetchAndStoreHM;
+let abCheck;
+let app = null;
 
 win.allTelemetry = [];
 
 function start() {
 // Try to get app
-app = win.CLIQZ ? win.CLIQZ.app : null;
+  app = win.CLIQZ ? win.CLIQZ.app : null;
 
-if (app === null || !app.isFullyLoaded) {
-  setTimeout(start, 1000);
-  return;
-}
+  if (app === null || !app.isFullyLoaded) {
+    setTimeout(start, 1000);
+    return;
+  }
 
-injectTestHelpers(CliqzUtils, loadModule);
-initHttpServer();
-
-
-function changes() {
-  fetchFactory = CliqzUtils.fetchFactory;
-  getSuggestions = CliqzUtils.getSuggestions;
-  historySearch = CliqzUtils.historySearch;
-
-  fetchAndStoreHM = CliqzHumanWeb.fetchAndStoreConfig;
-  CliqzHumanWeb.fetchAndStoreConfig = function () {};
-
-  fetchAndStoreConfig = CliqzUtils.fetchAndStoreConfig;
-  CliqzUtils.fetchAndStoreConfig = function () {
-    CliqzUtils.setPref("config_location", "de");
-    CliqzUtils.setPref("backend_country", "de");
-    CliqzUtils.setPref("config_logoVersion", "1473867650984");
-    CliqzUtils.setPref("config_backends", ["de"]);
-    return CliqzUtils.Promise.resolve();
-  };
-
-  abCheck = CliqzABTests.check;
-  CliqzABTests.check = function () {};
-
-  /* Turn off telemetry during tests */
-  telemetry = CliqzUtils.telemetry;
-  win.allTelemetry = [];
-  CliqzUtils.telemetry = function (signal) {
-    win.allTelemetry.push(signal);
-  };
-  // we only need the tests for the regular cliqz dropdown
-  CliqzUtils.setPref('dropDownABCGroup', 'cliqz');
-  CliqzUtils.clearPref('dropDownStyle');
-}
+  injectTestHelpers(CliqzUtils, loadModule);
+  initHttpServer();
 
 
-// Load Tests and inject their dependencies
-Object.keys(window.TESTS).forEach(function (testName) {
-  var testFunction = window.TESTS[testName],
-      moduleNames = window.DEPS[testName],
-      modules;
+  function changes() {
+    CliqzHumanWeb.fetchAndStoreConfig = function () {};
+    CliqzUtils.fetchAndStoreConfig = function () {
+      CliqzUtils.setPref('config_location', 'de');
+      CliqzUtils.setPref('backend_country', 'de');
+      CliqzUtils.setPref('config_logoVersion', '1473867650984');
+      CliqzUtils.setPref('config_backends', ['de']);
+      return CliqzUtils.Promise.resolve();
+    };
 
-  if (moduleNames !== undefined) {
-    try {
-      modules = moduleNames.map(loadModule).map(module => module.default);
-    } catch(e) {
-      console.error("module loading error - skiping tests");
-      return;
+    CliqzABTests.check = function () {};
+
+    /* Turn off telemetry during tests */
+
+    win.allTelemetry = [];
+    CliqzUtils.telemetry = function (signal) {
+      win.allTelemetry.push(signal);
+    };
+    // we only need the tests for the regular cliqz dropdown
+    CliqzUtils.setPref('dropDownABCGroup', 'cliqz');
+    CliqzUtils.clearPref('dropDownStyle');
+  }
+
+
+  // Load Tests and inject their dependencies
+  Object.keys(window.TESTS).forEach(function (testName) {
+    var testFunction = window.TESTS[testName],
+        moduleNames = window.DEPS[testName],
+        modules;
+
+    if (moduleNames !== undefined) {
+      try {
+        modules = moduleNames.map(loadModule).map(module => module.default);
+      } catch(e) {
+        console.error("module loading error - skiping tests");
+        return;
+      }
+    }
+
+    if ('MIN_BROWSER_VERSION' in testFunction && browserMajorVersion < testFunction.MIN_BROWSER_VERSION) {
+      return; // skip tests
+    }
+
+    testFunction.apply(null, modules);
+  });
+
+
+  var reloadExtensionCounterInc = Number(getParameterByName('forceExtensionReload'));
+  var reloadExtensionCounter = 0;
+  var beforeEachAction = function (changes) { changes(); return Promise.resolve(); };
+
+  if (reloadExtensionCounterInc) {
+    beforeEachAction = function (changes) {
+      if (window.preventRestarts) {
+        return Promise.resolve().then(() => changes());
+      } else if (reloadExtensionCounter >= 1) {
+        reloadExtensionCounter = 0;
+        return app.extensionRestart(changes);
+      } else {
+        reloadExtensionCounter += reloadExtensionCounterInc;
+        return Promise.resolve().then(() => changes());
+      }
     }
   }
 
-  if ('MIN_BROWSER_VERSION' in testFunction && browserMajorVersion < testFunction.MIN_BROWSER_VERSION) {
-    return; // skip tests
-  }
-
-  testFunction.apply(null, modules);
-});
-
-
-var reloadExtensionCounterInc = Number(getParameterByName('forceExtensionReload'));
-var reloadExtensionCounter = 0;
-var beforeEachAction = function (changes) { changes(); return Promise.resolve(); };
-
-if (reloadExtensionCounterInc) {
-  beforeEachAction = function (changes) {
-    if (window.preventRestarts) {
-      return Promise.resolve().then(() => changes());
-    } else if (reloadExtensionCounter >= 1) {
-      reloadExtensionCounter = 0;
-      return app.extensionRestart(changes);
-    } else {
-      reloadExtensionCounter += reloadExtensionCounterInc;
-      return Promise.resolve().then(() => changes());
-    }
-  }
-}
+  before(function () {
+    fetchFactory = CliqzUtils.fetchFactory;
+    getSuggestions = CliqzUtils.getSuggestions;
+    historySearch = CliqzUtils.historySearch;
+    fetchAndStoreHM = CliqzHumanWeb.fetchAndStoreConfig;
+    fetchAndStoreConfig = CliqzUtils.fetchAndStoreConfig;
+    abCheck = CliqzABTests.check;
+    telemetry = CliqzUtils.telemetry;
+  });
 
 
 beforeEach(function () {
@@ -186,12 +190,6 @@ afterEach(function () {
   CliqzUtils.fetchAndStoreConfig = fetchAndStoreConfig;
   CliqzHumanWeb.fetchAndStoreConfig = fetchAndStoreHM;
   CliqzABTests.check = abCheck;
-
-  // clear urlbar
-  setUserInput("");
-  // if we don't blur, there can be problems with old results appearing...
-  win.gURLBar.blur();
-  win.gURLBar.mInputField.blur();
 
   // clean waitFor side effects
   clearIntervals();

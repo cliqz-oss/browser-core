@@ -1,6 +1,6 @@
-import BaseResult from './base';
+import { Subresult } from './base';
 
-export default class VideoResult extends BaseResult {
+export default class VideoResult extends Subresult {
   get videoViews() {
     return this.rawResult.views;
   }

@@ -1481,6 +1481,9 @@
     "video-downloader-unsupported-format": {
       "message": "Sorry! We are not able to download this video."
     },
+    "video-downloader-live-video": {
+      "message": "Sorry! We are not able to download live stream videos."
+    },
     "video-downloader-tab-desktop": {
       "message": "COMPUTER"
     },
@@ -1489,6 +1492,9 @@
     },
     "video-downloader-download-button-label": {
       "message": "Download"
+    },
+    "video-downloader-send-button-label": {
+      "message": "Send"
     },
     "video-downloader-open-connect-page": {
       "message": "Open Connect Settings"
@@ -1733,6 +1739,15 @@
     "offers-code-copied": {
         "message": "Copied"
     },
+    "offers-send-feedback": {
+      "message": "Send"
+    },
+    "offers-offer-removed": {
+      "message": "This offer was removed."
+    },
+    "offers-feedback-thank-you": {
+      "message": "Your feedback is important to us"
+    },
     "signals-humanweb-inactive-message": {
       "message": "Human Web is not activated"
     },
@@ -1927,6 +1942,21 @@
     },
     "freshtab.app.settings.news.language.de-tr-en": {
         "message": "German media in English"
+    },
+    "freshtab.app.settings.news.language.gb": {
+      "message": "UK media"
+    },
+    "freshtab.app.settings.news.language.us": {
+      "message": "U.S. media"
+    },
+    "freshtab.app.offers.exclusive": {
+      "message": "Exclusive"
+    },
+    "freshtab.app.offers.best_offer": {
+      "message": "Best offer"
+    },
+    "freshtab.app.conditions": {
+      "message": "Conditions"
     },
     "control-center-enabled": {
         "message": "Enabled"

@@ -25,9 +25,10 @@ class Article extends React.Component {
     const elapsed = Date.now() - startEnter;
     const type = this.props.article.type;
     const index = this.props.index;
+    const edition = this.props.article.edition;
     startEnter = 0;
     if (elapsed > 2000) {
-      newsHoverSignal(ev, type, index, elapsed);
+      newsHoverSignal(ev, type, index, elapsed, edition);
     }
   }
 
@@ -58,7 +59,11 @@ class Article extends React.Component {
     return (
       <a
         href={this.props.article.url}
-        onClick={ev => newsClickSignal(ev, this.props.article.type, this.absoluteIndex)}
+        onClick={ev => newsClickSignal(
+          ev,
+          this.props.article.type,
+          this.absoluteIndex,
+          this.props.article.edition)}
         onMouseEnter={this.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
         data-index={this.props.index}
@@ -105,6 +110,7 @@ Article.propTypes = {
     description: PropTypes.string,
     breaking_label: PropTypes.bool,
     logo: PropTypes.shape({}),
+    edition: PropTypes.string,
   }),
   index: PropTypes.number,
   maxChars: PropTypes.number,

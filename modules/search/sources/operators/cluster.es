@@ -3,12 +3,32 @@ import { clean, getMainLink } from './normalize';
 const group = (a, b) =>
   a.set(b.domain, [...(a.get(b.domain) || []), b]);
 
+// based https://stackoverflow.com/a/1917041
+const sharedStart = (array) => {
+  const A = array.concat().sort();
+  const a1 = A[0];
+  const a2 = A[A.length - 1];
+  const L = a1.length;
+  let i = 0;
+  while (i < L && a1.charAt(i) === a2.charAt(i)) {
+    i += 1;
+  }
+  return a1.substring(0, i);
+};
+
+const extractCommonPrefix = (links) => {
+  const paths = links
+    .map(getMainLink)
+    .filter(Boolean)
+    .map(r => r.href);
+  return sharedStart(paths);
+};
+
 const makeHeader = (domain, query, scheme = 'http', provider) => clean({
   title: domain,
-  url: `${scheme}://${domain}`,
+  url: `${scheme}://${domain}/`,
   text: query,
   provider,
-  kind: ['C'],
   meta: {
     level: 0,
     type: 'main',
@@ -25,7 +45,7 @@ const makeHeader = (domain, query, scheme = 'http', provider) => clean({
 const cluster = (({ results, ...response }) => {
   const clustered = Array
     .from(results
-      .map(result => ({ ...result, domain: getMainLink(result).meta.domain }))
+      .map(result => ({ ...result, domain: getMainLink(result).meta.hostAndPort }))
       .reduce(group, new Map())
       .entries()
     )
@@ -34,8 +54,15 @@ const cluster = (({ results, ...response }) => {
         return grouped[0];
       }
 
-      const main = grouped
-        .find(result => getMainLink(result).meta.url === domain);
+      const prefix = extractCommonPrefix(grouped);
+      let main = grouped
+        .find(result => getMainLink(result).url === prefix);
+
+      if (!main) {
+        main = grouped
+          .find(result => getMainLink(result).meta.url === domain);
+      }
+
       const isHttps = grouped
         .every(result => getMainLink(result).url.startsWith('https'));
       // TODO: can we use HTTPs everywhere to determine if a domain supports https?
@@ -43,10 +70,20 @@ const cluster = (({ results, ...response }) => {
       // TODO: there is a chance that the domain on its own does not exist
       //       (in particular without 'www')
       const query = response.query;
-      const header = (main && getMainLink(main)) ||
-        makeHeader(domain, query, scheme, response.provider);
-      const rest = grouped
-        .filter(result => getMainLink(result).meta.url !== domain);
+
+      let header;
+
+      if (main) {
+        header = getMainLink(main);
+      }
+
+      if (!header) {
+        header = makeHeader(domain, query, scheme, response.provider);
+      }
+
+      header.kind = ['C', ...header.kind];
+
+      const rest = grouped.filter(result => result !== main);
 
       return {
         links: [
@@ -59,7 +96,7 @@ const cluster = (({ results, ...response }) => {
             .map(getMainLink)
             .map(link => ({
               ...link,
-              kind: ['C'],
+              kind: ['C', ...link.kind],
               meta: {
                 level: 1,
                 type: 'history',

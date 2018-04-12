@@ -23,6 +23,7 @@ config.modules.forEach((module) => {
   const pathToModules = path.join(process.cwd(), 'modules', module, 'sources');
   const modulesFiles = glob.sync(pathToModules + '/**/*.es', {
     ignore: [
+      '/**/internals/simulation.entrypoint.es',
       '/**/*.bundle.es',  // no bundles
       '/**/tests/**/*',   // no tests
       '/**/index.es',     // modules are already included

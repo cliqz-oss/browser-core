@@ -89,7 +89,11 @@ export default class MiddleMessagesOffer extends React.Component {
     return (
       <div ref={(el) => { this.offersWrapper = el; }} >
         {this.props.offers.map(offer =>
-          <Offer offer={offer} key={offer.offer_id} />
+          (<Offer
+            offer={offer}
+            key={offer.offer_id}
+            submitFeedbackForm={this.props.submitFeedbackForm}
+          />)
         )}
       </div>
     );

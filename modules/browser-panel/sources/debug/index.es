@@ -1,12 +1,13 @@
-/* global document */
+/* global document, Handlebars */
 
-import Handlebars from 'handlebars';
 import Basic from './fixtures/basic';
 import NoImage from './fixtures/no-image';
 import FullNormalLogo from './fixtures/full-normal-logo';
 import FullLongLogo from './fixtures/full-long-logo';
 import FullShortLogo from './fixtures/full-short-logo';
 import FullSquareLogo from './fixtures/full-square-logo';
+import HyphenateHeadline from './fixtures/hyphenate-headline';
+import HyphenateTitle from './fixtures/hyphenate-title';
 import NoDesc from './fixtures/no-desc';
 import NoBenefit from './fixtures/no-benefit';
 import NoHeadline from './fixtures/no-headline';
@@ -27,6 +28,8 @@ const tests = {
   ...FullShortLogo,
   ...FullSquareLogo,
   ...Basic,
+  ...HyphenateHeadline,
+  ...HyphenateTitle,
   ...NoImage,
   ...NoDesc,
   ...NoBenefit,

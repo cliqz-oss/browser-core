@@ -1,5 +1,4 @@
 import { equals } from '../../core/url';
-import prefs from '../../core/prefs';
 import BaseResult from './base';
 import GenericResult from './generic';
 import LottoResult from './lotto';
@@ -60,18 +59,11 @@ export default class HistoryCluster extends GenericResult {
 
   // only include news in history cluster for new mixer
   get newsResults() {
-    if (prefs.get('searchMode', 'autocomplete') !== 'search') {
-      return [];
-    }
     return super.newsResults;
   }
 
   // only include lotto in history cluster for new mixer
   get lottoResults() {
-    if (prefs.get('searchMode', 'autocomplete') !== 'search') {
-      return [];
-    }
-
     const lottoResult = new LottoResult(this.rawResult);
     return lottoResult.lottoResults;
   }

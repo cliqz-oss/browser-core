@@ -1,20 +1,20 @@
+/* eslint no-param-reassign: 'off' */
+
 import events from './events';
 import utils from './utils';
 import console from './console';
 import language from './language';
 import config from './config';
 import ProcessScriptManager from '../platform/process-script-manager';
-import prefs from './prefs';
 import background from './base/background';
-import { Window, mapWindows } from '../platform/browser';
+import { getCookies, Window, mapWindows } from '../platform/browser';
 import resourceManager from './resource-manager';
 import inject from './kord/inject';
-import { getCookies } from '../platform/browser';
 import { queryCliqz, openLink, openTab, getOpenTabs, getReminders } from '../platform/browser-actions';
 import providesServices from './services';
 
-var lastRequestId = 0;
-var callbacks = {};
+let lastRequestId = 0;
+const callbacks = {};
 
 /**
  * @module core
@@ -57,47 +57,23 @@ export default background({
   },
 
   handleRequest(msg) {
-    const payload = msg.data.payload;
-    const sender = msg.data.sender;
-    // TODO: remove this check. messages without a payload should never be sent
-    if (!payload) {
-      return;
-    }
-    const { action, module: moduleName, args, requestId } = payload,
-      windowId = msg.data.windowId;
-    const origin = msg.data.origin;
-
-    const module = this.app.modules[moduleName];
-    if (!module) {
-      console.error('Process Script', `${moduleName}/${action}`, 'Module not available');
-      return;
-    }
-
-    if (module.isDisabled) {
-      console.log('Process Script', `${moduleName}/${action}`, 'Module is disabled');
-      return this.mm.broadcast(`window-${windowId}`, {
-        origin,
-        response: { moduleDisabled: true },
-        action,
-        module: moduleName,
-        requestId,
-        windowId,
-      });
-    }
+    const { payload, sender, sendResponse } = msg.data;
+    const { action, module, args } = payload;
 
     // inject the required module, then call the requested action
-    inject.module(moduleName).action(action, ...[...(args || []), sender])
-    .then((response) => {
-      this.mm.broadcast(`window-${windowId}`, {
-        origin,
-        response,
-        action,
-        module: moduleName,
-        requestId,
-        windowId,
-      });
-    })
-    .catch(console.error.bind(null, 'Process Script', `${moduleName}/${action}`));
+    inject
+      .module(module)
+      .action(action, ...[...(args || []), sender])
+      .catch((e) => {
+        if (e.constructor.name === 'ModuleDisabledError') {
+          return {
+            moduleDisabled: true,
+          };
+        }
+        console.error(`Process Script ${module}/${action}`, e);
+        throw e;
+      })
+      .then(sendResponse);
   },
 
   handleResponse(msg) {
@@ -161,26 +137,26 @@ export default background({
     /**
     * @method actions.recordKeyPress
     */
-    recordKeyPress() {
-      events.pub('core:key-press', ...arguments);
+    recordKeyPress(...args) {
+      events.pub('core:key-press', ...args);
     },
     /**
     * @method actions.recordMouseMove
     */
-    recordMouseMove() {
-      events.pub('core:mouse-move', ...arguments);
+    recordMouseMove(...args) {
+      events.pub('core:mouse-move', ...args);
     },
     /**
     * @method actions.recordScroll
     */
-    recordScroll() {
-      events.pub('core:scroll', ...arguments);
+    recordScroll(...args) {
+      events.pub('core:scroll', ...args);
     },
     /**
     * @method actions.recordCopy
     */
-    recordCopy() {
-      events.pub('core:copy', ...arguments);
+    recordCopy(...args) {
+      events.pub('core:copy', ...args);
     },
     /**
      * publish an event using events.pub
@@ -198,11 +174,11 @@ export default background({
       const modules = config.modules.reduce((hash, moduleName) => {
         const module = appModules[moduleName];
         const windowWrappers = mapWindows(window => new Window(window));
-        const windows = windowWrappers.reduce((hash, win) => {
-          hash[win.id] = {
+        const windows = windowWrappers.reduce((_hash, win) => {
+          _hash[win.id] = {
             loadingTime: module.getLoadingTime(win.window),
           };
-          return hash;
+          return _hash;
         }, Object.create(null));
 
         hash[moduleName] = {
@@ -239,18 +215,19 @@ export default background({
       return Promise
         .all(this.getWindowStatusFromModules(win))
         .then((allStatus) => {
-          var result = {}
+          const result = {};
 
           allStatus.forEach((status, moduleIdx) => {
             result[config.modules[moduleIdx]] = status || null;
-          })
+          });
 
           return result;
-        })
+        });
     },
-    sendTelemetry(msg) {
-      utils.telemetry(msg);
-      return Promise.resolve();
+    sendTelemetry(...args) {
+      // Get rid of latest argument, which is the information about sender
+      args.pop();
+      return Promise.resolve(utils.telemetry(...args));
     },
 
     refreshPopup(query = '') {
@@ -263,6 +240,7 @@ export default background({
       setTimeout(() => {
         dropmarker.click();
       }, 0);
+      return undefined;
     },
 
     queryCliqz(query) {
@@ -286,13 +264,13 @@ export default background({
     },
 
     closePopup() {
-      var popup = utils.getWindow().CLIQZ.Core.popup;
+      const popup = utils.getWindow().CLIQZ.Core.popup;
 
       popup.hidePopup();
     },
 
     setUrlbar(value) {
-      let urlBar = utils.getWindow().document.getElementById('urlbar')
+      const urlBar = utils.getWindow().document.getElementById('urlbar');
       urlBar.mInputField.value = value;
     },
     recordLang(url, lang) {
@@ -324,8 +302,8 @@ export default background({
       utils.getWindow().resizeTo(width, height);
     },
     queryHTML(url, selector, attribute) {
-      const requestId = lastRequestId++,
-        documents = [];
+      const requestId = lastRequestId;
+      lastRequestId += 1;
 
       this.mm.broadcast('cliqz:core', {
         action: 'queryHTML',
@@ -334,13 +312,13 @@ export default background({
         requestId
       });
 
-      return new Promise( (resolve, reject) => {
-        callbacks[requestId] = function (attributeValues) {
+      return new Promise((resolve, reject) => {
+        callbacks[requestId] = (attributeValues) => {
           delete callbacks[requestId];
           resolve(attributeValues);
         };
 
-        utils.setTimeout(function () {
+        utils.setTimeout(() => {
           delete callbacks[requestId];
           reject(new Error('queryHTML timeout'));
         }, 1000);
@@ -348,8 +326,9 @@ export default background({
     },
 
     getHTML(url, timeout = 1000) {
-      const requestId = lastRequestId++,
-        documents = [];
+      const requestId = lastRequestId;
+      lastRequestId += 1;
+      const documents = [];
 
       this.mm.broadcast('cliqz:core', {
         action: 'getHTML',
@@ -358,12 +337,12 @@ export default background({
         requestId
       });
 
-      callbacks[requestId] = function (doc) {
+      callbacks[requestId] = (doc) => {
         documents.push(doc);
       };
 
-      return new Promise( resolve => {
-        utils.setTimeout(function () {
+      return new Promise((resolve) => {
+        utils.setTimeout(() => {
           delete callbacks[requestId];
           resolve(documents);
         }, timeout);
@@ -373,7 +352,8 @@ export default background({
     getCookie(url) {
       return getCookies(url)
         .catch(() => {
-          const requestId = lastRequestId++;
+          const requestId = lastRequestId;
+          lastRequestId += 1;
 
           this.mm.broadcast('cliqz:core', {
             action: 'getCookie',
@@ -383,12 +363,12 @@ export default background({
           });
 
           return new Promise((resolve, reject) => {
-            callbacks[requestId] = function (attributeValues) {
+            callbacks[requestId] = (attributeValues) => {
               delete callbacks[requestId];
               resolve(attributeValues);
             };
 
-            utils.setTimeout(function () {
+            utils.setTimeout(() => {
               delete callbacks[requestId];
               reject(new Error('getCookie timeout'));
             }, 1000);

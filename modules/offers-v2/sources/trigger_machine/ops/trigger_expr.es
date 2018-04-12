@@ -3,64 +3,6 @@
 import Expression from '../expression';
 import logger from '../../common/offers_v2_logger';
 
-/**
- * will start checking for requests in a domain. This is will start the mechanisms
- * to catch all requests that are performed on that domain so we can check for
- * conversions and more
- * @param  {string} domain the domain we want to start watching
- * @version 1.0
- */
-class WatchRequestsExpr extends Expression {
-  constructor(data) {
-    super(data);
-    this.domain = null;
-  }
-
-  isBuilt() {
-    return this.domain;
-  }
-
-  build() {
-    if (!this.data || !this.data.raw_op.args) {
-      // nothing to do
-      return;
-    }
-    if (this.data.raw_op.args.length < 1) {
-      throw new Error('WatchRequestsExpr invalid args');
-    }
-    this.domain = this.data.raw_op.args[0];
-  }
-
-  destroy() {
-    if (!this.domain) {
-      return;
-    }
-    const cb = this.data.trigger_machine_executor.processWatchReqCallback;
-    if (!this.data.event_handler.isHttpReqDomainSubscribed(cb, this.domain)) {
-      return;
-    }
-    this.data.event_handler.unsubscribeHttpReq(cb, this.domain);
-  }
-
-  getExprValue(/* ctx */) {
-    try {
-      const cb = this.data.trigger_machine_executor.processWatchReqCallback;
-      if (this.data.event_handler.isHttpReqDomainSubscribed(cb, this.domain)) {
-        // finish here
-        return Promise.resolve(true);
-      }
-
-      // we add it and set the CB info
-      const cbArgs = {
-        trigger_id: this.data.parent_trigger.trigger_id
-      };
-      this.data.event_handler.subscribeHttpReq(cb, this.domain, cbArgs);
-    } catch (e) {
-      logger.error('Something happened when trying to subscribe the watch request', e);
-    }
-    return Promise.resolve(true);
-  }
-}
 
 /**
  * this method will fetch from the BE the new subtriggers given the parent trigger ID
@@ -152,7 +94,6 @@ class ActivateSubtriggersExpr extends Expression {
 }
 
 const ops = {
-  $watch_requests: WatchRequestsExpr,
   $activate_subtriggers: ActivateSubtriggersExpr
 };
 

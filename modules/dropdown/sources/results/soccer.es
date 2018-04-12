@@ -1,4 +1,4 @@
-import BaseResult from './base';
+import BaseResult, { Subresult } from './base';
 import GenericResult from './generic';
 import utils from '../../core/utils';
 import config from '../../core/config';
@@ -36,7 +36,7 @@ class ExpandButton extends BaseResult {
   }
 }
 
-class LiveTickerResult extends BaseResult {
+class LiveTickerResult extends Subresult {
   get locale() {
     return utils.getLocalizedString('locale_lang_code');
   }
@@ -110,7 +110,7 @@ class LiveTickerRound extends GenericResult {
   }
 
   get allResults() {
-    return this.rawResult.week.matches.map(match => new LiveTickerResult({
+    return this.rawResult.week.matches.map(match => new LiveTickerResult(this, {
       match,
       text: this.rawResult.text,
       url: match.live_url,
@@ -208,7 +208,7 @@ class TableGroup extends BaseResult {
   }
 }
 
-class SoccerSubResult extends BaseResult {
+class SoccerSubResult extends Subresult {
 }
 
 export default class SoccerResult extends GenericResult {
@@ -294,7 +294,7 @@ export default class SoccerResult extends GenericResult {
   }
 
   get ligaEZ1Game() {
-    const results = this.extra.matches.map(match => new LiveTickerResult({
+    const results = this.extra.matches.map(match => new LiveTickerResult(this, {
       match,
       text: this.query,
       url: match.live_url,
@@ -343,7 +343,7 @@ export default class SoccerResult extends GenericResult {
       return null;
     }
 
-    return new SoccerSubResult({
+    return new SoccerSubResult(this, {
       url: this.extra.url,
       title: this.extra.title,
       text: this.query,
@@ -384,7 +384,7 @@ export default class SoccerResult extends GenericResult {
   }
 
   get poweredByResult() {
-    return new BaseResult({
+    return new Subresult(this, {
       url: 'http://www.kicker.de/',
       title: 'soccer-powered-by',
       text: this.query,
@@ -397,26 +397,21 @@ export default class SoccerResult extends GenericResult {
 
   didRender($dropdown) {
     super.didRender($dropdown);
-
-    $dropdown.querySelectorAll('.soccer .dropdown-tab-label').forEach((label) => {
+    const $allLabels = $dropdown.querySelectorAll('.soccer .dropdown-tab');
+    $allLabels.forEach((label) => {
       label.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
 
-        const input = $dropdown.querySelector(`#${e.target.getAttribute('for')}`);
-
-        if (!input) {
-          return;
-        }
-
-        input.checked = 'checked';
+        [...$allLabels].forEach(l => l.classList.remove('checked'));
+        e.target.classList.add('checked');
 
         const signal = {
           type: 'results',
           action: 'click',
           view: 'SoccerEZ',
           target: 'tab',
-          index: e.target.getAttribute('for').substr(4),
+          index: [...$allLabels].indexOf(e.target),
         };
         utils.telemetry(signal);
       });

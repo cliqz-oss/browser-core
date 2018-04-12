@@ -16,5 +16,4 @@ export default class Win {
 
   unload() {
   }
-
 }

@@ -1,14 +1,13 @@
 import inject from '../core/kord/inject';
 import utils from '../core/utils';
-import prefs from '../core/prefs';
 
 export default class Win {
-  constructor(settings) {
+  constructor() {
     this.geolocation = inject.module('geolocation');
   }
 
   init() {
-    this.geolocation.action("updateGeoLocation");
+    this.geolocation.action('updateGeoLocation');
   }
 
   unload() {
@@ -19,6 +18,6 @@ export default class Win {
     return {
       visible: true,
       state: utils.getLocationPermState()
-    }
+    };
   }
 }

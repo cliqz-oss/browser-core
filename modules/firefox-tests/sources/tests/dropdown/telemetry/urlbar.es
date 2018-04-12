@@ -1,8 +1,5 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
+  blurUrlBar,
   CliqzUtils,
   expect,
   fillIn,
@@ -19,6 +16,8 @@ export default function () {
     let resultSignalCount;
 
     beforeEach(function () {
+      blurUrlBar();
+
       // clear telemetry
       win.allTelemetry = [];
 

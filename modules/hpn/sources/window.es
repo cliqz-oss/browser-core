@@ -1,7 +1,6 @@
 import utils from '../core/utils';
 
 export default class {
-
   constructor({ window, background }) {
     this.background = background;
     this.window = window;
@@ -26,5 +25,6 @@ export default class {
         state: utils.getPref('hpn-query'),
       };
     }
+    return undefined;
   }
 }

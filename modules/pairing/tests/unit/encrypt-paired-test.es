@@ -1,4 +1,8 @@
+/* eslint no-undef: 'off' */
+/* global chai */
+
 const WebCrypto = require('node-webcrypto-ossl');
+
 const crypto = new WebCrypto();
 const zlib = require('zlib');
 
@@ -13,9 +17,9 @@ export default describeModule('pairing/shared',
         default: crypto
       },
       'platform/text-encoder': {
-        default: function() {
+        default: function () {
           return {
-            encode: function(s) {
+            encode(s) {
               const buf = Buffer.from(s, 'utf8');
               return buf;
             }
@@ -23,29 +27,29 @@ export default describeModule('pairing/shared',
         },
       },
       'platform/text-decoder': {
-        default: function() {
+        default: function () {
           return {
-            decode: function(s) {
+            decode(s) {
               return Buffer.from(s).toString();
             }
           };
         },
       },
       'platform/lib/zlib': {
-        deflate: (x) => zlib.deflateSync(Buffer.from(x)),
-        inflate: (x) => zlib.inflateSync(Buffer.from(x)),
+        deflate: x => zlib.deflateSync(Buffer.from(x)),
+        inflate: x => zlib.inflateSync(Buffer.from(x)),
       },
     };
   },
   () => {
-    describe('encrypt/decrypt', function() {
+    describe('encrypt/decrypt', function () {
       let shared;
 
-      beforeEach(function() {
+      beforeEach(function () {
         shared = this.module();
       });
 
-      it('encrypted', function() {
+      it('encrypted', function () {
         const a = makeDeviceID();
         const b = makeDeviceID();
         const publicKey = shared.dummyKeypair[0];
@@ -58,10 +62,10 @@ export default describeModule('pairing/shared',
           .then(() => shared.encryptPairedMessage({ msg: 'hello', type: 'test', source: a }, targets))
           .then(data => shared.decryptPairedMessage(data, b, 'abcd'))
           .catch(() => 'expected')
-          .then((x) => chai.expect(x).to.equal('expected'));
+          .then(x => chai.expect(x).to.equal('expected'));
       });
 
-      it('compressed', function() {
+      it('compressed', function () {
         const a = makeDeviceID();
         const b = makeDeviceID();
 
@@ -69,7 +73,7 @@ export default describeModule('pairing/shared',
         return shared.encryptPairedMessage({ msg: 'hello', type: 'test', source: a }, targets, true)
           .then(data => shared.decryptPairedMessage(data, b))
           .then(data => chai.expect(data.msg).to.equal('hello'));
-      })
+      });
     });
   }
 );

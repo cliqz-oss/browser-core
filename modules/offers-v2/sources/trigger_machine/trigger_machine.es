@@ -36,7 +36,7 @@ export default class TriggerMachine {
       ttl: 3600,
       condition: null,
       actions: [
-        ['$activate_subtriggers', [this.triggersRoot]]
+        ['$activate_subtriggers', [this.triggersRoot]],
       ]
     };
   }
@@ -66,6 +66,17 @@ export default class TriggerMachine {
       logger.warn('run: Invalid trigger or context');
       return Promise.reject(false);
     }
+
+    // check if the current pass already happened for the given trigger
+    if (trigger.lastRunPass === undefined) {
+      trigger.lastRunPass = -1;
+    }
+    const currentRunPass = context['#currentPass'];
+    const shouldExecuteTrigger = trigger.lastRunPass !== currentRunPass;
+    if (!shouldExecuteTrigger) {
+      return Promise.resolve(true);
+    }
+    trigger.lastRunPass = currentRunPass;
 
     // we need to check if already build the conditions / actions of the trigger
     // if not we do it now

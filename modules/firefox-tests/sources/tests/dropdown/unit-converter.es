@@ -1,8 +1,5 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
+  blurUrlBar,
   $cliqzResults,
   expect,
   fastFillIn,
@@ -21,6 +18,7 @@ export default function () {
     let expectedResult;
 
     before(function () {
+      blurUrlBar();
       withHistory([]);
       respondWith({ results: [] });
       fillIn('1 km im m');
@@ -33,6 +31,7 @@ export default function () {
       const errors = [];
       const resultSelector = '#calc-answer';
       let runTestCount = 0;
+      this.timeout(30000);
 
       return testArray.reduce(function (chain, testCase) {
         return chain.then(function () {

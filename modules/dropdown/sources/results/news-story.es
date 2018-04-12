@@ -21,7 +21,7 @@ export default class NewsStoryResult extends GenericResult {
   }
 
   get newsStoryResult() {
-    return new NewsResult({
+    return new NewsResult(this, {
       url: this.url,
       domain: this._richData.source_name,
       title: this.title,

@@ -26,7 +26,7 @@ export default class RichHeader extends BackendProvider {
     const url = utils.RICH_HEADER + utils.getRichHeaderQueryString(query);
     const body = this.createMessageBody(query, links);
 
-    return f(url, { method: 'PUT', body })
+    return f(url, { method: 'PUT', body, credentials: 'omit', cache: 'no-store' })
       .then(response => response.json())
       .then(({ results }) => {
         const isIncomplete = results.some(result => result._incomplete);
@@ -55,7 +55,7 @@ export default class RichHeader extends BackendProvider {
         this.id,
         config,
         query,
-        this.mapResults({ results, q: query }),
+        this.mapResults(results, query),
         'done',
       ))
       // TODO: do not emit empty result

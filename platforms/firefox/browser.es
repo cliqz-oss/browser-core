@@ -1,7 +1,7 @@
 import prefs from '../core/prefs';
 import events from '../core/events';
+import { removeFile } from '../core/fs';
 import { Services, Components } from './globals';
-
 
 export function mapWindows(callback) {
   const enumerator = Services.wm.getEnumerator('navigator:browser');
@@ -22,6 +22,15 @@ export class Window {
     this.window = window;
   }
 
+
+  get zoomLevel() {
+    const nav = this.window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+      .getInterface(Components.interfaces.nsIWebNavigation);
+    const docShell = nav.QueryInterface(Components.interfaces.nsIDocShell);
+    const docViewer = docShell.contentViewer;
+    return docViewer.fullZoom;
+  }
+
   get id() {
     const util = this.window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
       .getInterface(Components.interfaces.nsIDOMWindowUtils);
@@ -37,7 +46,7 @@ export class Window {
     const windows = mapWindows(w => new Window(w));
     return windows.find(w =>
       // In some cases `w.window.gBrowser.selectedBrowser` is undefined.
-      w.window.gBrowser.selectedBrowser !== undefined &&
+      w.window.gBrowser.selectedBrowser &&
       w.window.gBrowser.selectedBrowser.outerWindowID === tabId
     );
   }
@@ -156,6 +165,27 @@ export function setInstallDatePref(date) {
   }
 }
 
+const OBSOLETE_FILES = [
+  // SmartCliqz Cache was removed in X.25.X
+  'cliqz/smartcliqz-trigger-urls-cache.json',
+  'cliqz/smartcliqz-custom-data-cache.json'
+];
+
+const OBSOLETE_PREFS = [
+  // browser detection happens every extension start from X.25.X
+  'detection',
+  // SmartCliqz Cache was removed in X.25.X
+  'smart-cliqz-last-clean-ts',
+  // startupcache-invalidate was temporary used in 2.24.7 and 1.25.1
+  'startupcache-invalidate'
+];
+
+// do various cleanups from retired features or modules
+function cleanup() {
+  OBSOLETE_FILES.forEach(fn => removeFile(fn));
+  OBSOLETE_PREFS.forEach(pref => prefs.clear(pref));
+}
+
 export function setOurOwnPrefs() {
   if (prefs.has('unifiedcomplete', 'browser.urlbar.') && prefs.get('unifiedcomplete', false)) {
     prefs.set('unifiedcomplete', true); // backup
@@ -169,11 +199,6 @@ export function setOurOwnPrefs() {
   if (prefs.get('suggest.searches', false, 'browser.urlbar.')) {
     prefs.set('backup.browser.urlbar.suggest.searches', true);
     prefs.set('suggest.searches', false, 'browser.urlbar.');
-  }
-
-  if (prefs.get('suggest.enabled', false, 'browser.urlbar.')) {
-    prefs.set('backup.browser.urlbar.suggest.enabled', true);
-    prefs.set('suggest.enabled', false, 'browser.urlbar.');
   }
 
   // freshtab is optOut since 2.20.3 for new users
@@ -198,6 +223,9 @@ export function setOurOwnPrefs() {
     prefs.set('insertMethod', 0, 'browser.urlbar.');
     prefs.set('backup.browser.urlbar.insertMethod', insertMethod);
   }
+
+  // schedule a cleanup 1 minute after the browser start
+  setTimeout(cleanup, 60000);
 }
 
 /** Reset changed prefs on uninstall */
@@ -205,11 +233,6 @@ export function resetOriginalPrefs() {
   if (prefs.get('unifiedcomplete', false)) {
     prefs.set('unifiedcomplete', true, 'browser.urlbar.');
     prefs.set('unifiedcomplete', false);
-  }
-
-  if (prefs.has('backup.browser.urlbar.suggest.searches')) {
-    prefs.clear('backup.browser.urlbar.suggest.searches');
-    prefs.clear('suggest.searches', 'browser.urlbar.');
   }
 
   if (prefs.has('backup.browser.urlbar.suggest.searches')) {
@@ -285,8 +308,15 @@ export function disableChangeEvents() {
   }
 }
 
-export function getLang() {
-  return prefs.get('general.useragent.locale', 'en', '');
+export function getLocale() {
+  try {
+    // we need to use Services.locale.defaultLocale starting with
+    // Firefox 59 as the other pref was removed
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1414390
+    return prefs.get('general.useragent.locale', Services.locale.defaultLocale, '');
+  } catch (e) {
+    return 'en-US';
+  }
 }
 
 // resolve only on Idle Callback if available

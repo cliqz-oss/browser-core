@@ -1,8 +1,5 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
+  blurUrlBar,
   $cliqzResults,
   expect,
   fillIn,
@@ -16,6 +13,7 @@ export default function () {
     let $resultElement;
 
     before(function () {
+      blurUrlBar();
       respondWith({ results });
       withHistory([]);
       fillIn('wetter Mun');
@@ -119,7 +117,7 @@ export default function () {
     it('renders result with a link with correct link to source', function () {
       const sourceLinkSelector = '.source-link';
       const sourceLink = $resultElement.querySelector(sourceLinkSelector);
-      expect(sourceLink.href).to.equal(results[0].url);
+      expect(sourceLink.dataset.url).to.equal(results[0].url);
     });
   });
 }

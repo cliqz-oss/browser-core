@@ -1,5 +1,4 @@
-import CliqzHandlebars from 'handlebars';
-import $ from 'jquery';
+/* global $, Handlebars */
 import QRCode from 'qrcodejs';
 
 const images = {
@@ -9,6 +8,17 @@ const images = {
 };
 
 export default class PairingUI {
+  isPreferencesPage() {
+    return this.window.parent.location.href.indexOf('about:preferences') === 0;
+  }
+  isConnectSection() {
+    return this.window.parent.location.hash === '#connect';
+  }
+  mustStartPairing() {
+    // If we are in about:preferences, start pairing only for Connect section.
+    // Otherwise (in video downloader), always start pairing.
+    return !this.isPreferencesPage() || this.isConnectSection();
+  }
   constructor(window, PeerComm, telemetry) {
     this.i18n = window.chrome.i18n.getMessage.bind(window.chrome.i18n);
     this.document = window.document;
@@ -25,7 +35,10 @@ export default class PairingUI {
     this.onHashChange();
 
     this.connectionChecker = setInterval(() => {
-      PeerComm.checkMasterConnection().catch(() => {});
+      if (this.mustStartPairing()) {
+        this.startPairing();
+        PeerComm.checkMasterConnection().catch(() => {});
+      }
     }, PairingUI.checkInterval);
 
     // Pairing events
@@ -44,7 +57,7 @@ export default class PairingUI {
     this.onpaired = this.renderPaired.bind(this);
     this.onunpaired = ({ isUnpaired }) => {
       this.renderUnpaired();
-      if (isUnpaired) {
+      if (isUnpaired && this.mustStartPairing()) {
         this.startPairing();
       }
     };
@@ -84,7 +97,7 @@ export default class PairingUI {
   compileTemplate() {
     return Promise.all(this.TEMPLATE_NAMES.map(this.fetchTemplate.bind(this))).then((templates) => {
       templates.forEach((tpl) => {
-        this.TEMPLATE_CACHE[tpl.name] = CliqzHandlebars.compile(tpl.html);
+        this.TEMPLATE_CACHE[tpl.name] = Handlebars.compile(tpl.html);
       });
       return Promise.resolve();
     });
@@ -137,6 +150,11 @@ export default class PairingUI {
   }
 
   renderUnpaired() {
+    if (this.qr) {
+      this.qr.clear();
+      delete this.qr;
+      $('#qrcode').empty();
+    }
     this.updatePairingStatus('unpaired');
   }
 
@@ -208,7 +226,8 @@ export default class PairingUI {
   }
 
   onHashChange() {
-    if (this.window.parent.location.hash === '#connect') {
+    if (this.mustStartPairing()) {
+      this.startPairing();
       this.telemetry({
         type: 'settings',
         version: 1,

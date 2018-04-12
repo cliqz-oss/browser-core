@@ -66,6 +66,11 @@ function isString(value) {
 }
 
 
+function normalizeString(value) {
+  return value.trim().toLowerCase().replace(/\s+/g, '-');
+}
+
+
 // TODO: define 'campaign'
 function parseDemographics(signal) {
   const uaParser = new UAParser();
@@ -293,10 +298,10 @@ function parseDemographics(signal) {
     // are most of the time unique (or with low cardinality), and will
     // be discarded by the safe reporting algorithm.
     // abtests,
-    distribution,
-    install_date: installDate,
-    platform,
-    product,
+    distribution: normalizeString(distribution),
+    install_date: normalizeString(installDate),
+    platform: normalizeString(platform),
+    product: normalizeString(product),
   };
 }
 

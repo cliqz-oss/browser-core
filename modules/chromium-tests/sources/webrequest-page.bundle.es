@@ -1,56 +1,63 @@
+/* eslint prefer-arrow-callback: 'off' */
+/* eslint func-names: 'off' */
+/* eslint no-console: 'off' */
+/* eslint no-unused-expressions: 'off' */
+/* eslint no-param-reassign: 'off' */
+
 /* global testServer */
 /* global waitFor */
+/* global chai */
 
 import WebRequest from '../platform/webrequest';
-import { newTab, updateTab } from '../platform/browser';
+import { newTab } from '../platform/browser';
 
 
-describe('WebRequest example pages', function() {
-  var wrCollector = {
+describe('WebRequest example pages', function () {
+  const wrCollector = {
     topics: ['onBeforeRequest', 'onBeforeSendHeaders', 'onHeadersReceived'],
     setUp() {
       const collector = this;
       this.topics.forEach((t) => {
         collector[t] = [];
-        collector[t + 'Ctr'] = function(req) {
+        collector[`${t}Ctr`] = function (req) {
           collector[t].push(req);
         };
-        WebRequest[t].addListener(collector[t + 'Ctr'], { urls: ['*://*/*'] });
+        WebRequest[t].addListener(collector[`${t}Ctr`], { urls: ['*://*/*'] });
       });
     },
     tearDown() {
       for (const t of this.topics) {
-        WebRequest[t].removeListener(this[t + 'Ctr']);
+        WebRequest[t].removeListener(this[`${t}Ctr`]);
       }
     }
   };
   let reqsReceived = [];
 
-  var collect_request_parameters = function(request, response) {
-    var r_obj = {
-        method: request.method,
-        host: request.host,
-        path: request.path,
-        qs: request.queryString
-      },
-      header_iter = request.headers,
-      headers = {};
+  const collectRequestParameters = function (request, response) {
+    const rObj = {
+      method: request.method,
+      host: request.host,
+      path: request.path,
+      qs: request.queryString
+    };
+    const headerIter = request.headers;
+    const headers = {};
 
-    while(header_iter.hasMoreElements()) {
-      var header_name = header_iter.getNext().toString();
-      headers[header_name] = request.getHeader(header_name);
+    while (headerIter.hasMoreElements()) {
+      const headerName = headerIter.getNext().toString();
+      headers[headerName] = request.getHeader(headerName);
     }
-    r_obj['headers'] = headers;
+    rObj.headers = headers;
 
-    response.setHeader('Set-Cookie', 'uid=abcdefghijklmnop; Domain='+r_obj.host+'; Path=/');
-    if(r_obj.host != "localhost") {
+    response.setHeader('Set-Cookie', `uid=abcdefghijklmnop; Domain=${rObj.host}; Path=/`);
+    if (rObj.host !== 'localhost') {
       response.setHeader('Access-Control-Allow-Origin', '*');
       response.setHeader('Access-Control-Allow-Credentials', 'true');
     }
 
     // log request
-    console.log(r_obj);
-    reqsReceived.push(r_obj);
+    console.log(rObj);
+    reqsReceived.push(rObj);
 
     // prevent caching
     response.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -59,7 +66,7 @@ describe('WebRequest example pages', function() {
 
     // send an appropriate response
     if (request.path.indexOf('.gif') > 0) {
-      var imgFile = ['firefox-tests', 'mockserver', 'Transparent.gif'];
+      const imgFile = ['firefox-tests', 'mockserver', 'Transparent.gif'];
       console.log('send image');
       // send actual gif file
       testServer.writeFileResponse(request, imgFile, response);
@@ -74,44 +81,36 @@ describe('WebRequest example pages', function() {
     testServer.registerDirectory('/static', ['modules/firefox-tests/dist/mockserver']);
     testServer.registerDirectory('/node_modules/', ['node_modules']);
     // add specific handler for /test which will collect request parameters for testing.
-    testServer.registerPathHandler('/test', collect_request_parameters);
-    testServer.registerPathHandler('/test.gif', collect_request_parameters);
+    testServer.registerPathHandler('/test', collectRequestParameters);
+    testServer.registerPathHandler('/test.gif', collectRequestParameters);
 
-    var redirect302 = function(request, response) {
+    const redirect302 = function (request, response) {
       console.log(request.path);
       response.setStatusLine('1.1', 302);
       response.setHeader('Access-Control-Allow-Origin', '*');
       response.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       response.setHeader('Pragma', 'no-cache');
       response.setHeader('Expires', '0');
-      var path = request.path.indexOf('.gif') > 0 ? 'test.gif' : 'test';
-      response.setHeader('Location', 'http://cliqztest.de:'+ testServer.port +'/' + path + '?'+ request.queryString);
+      const path = request.path.indexOf('.gif') > 0 ? 'test.gif' : 'test';
+      response.setHeader('Location', `http://cliqztest.de:${testServer.port}/${path}?${request.queryString}`);
     };
     testServer.registerPathHandler('/tracker302', redirect302);
     testServer.registerPathHandler('/tracker302.gif', redirect302);
   }
 
   function isTestServerAddress(u) {
-    return u.indexOf('favicon.ico') === -1 && ['localhost', '127.0.0.1', 'cliqztest.de'].some( function(d) {
-      return u.startsWith('http://' + d + ':' + testServer.port);
+    return u.indexOf('favicon.ico') === -1 && ['localhost', '127.0.0.1', 'cliqztest.de'].some(function (d) {
+      return u.startsWith(`http://${d}:${testServer.port}`);
     });
   }
 
-  function metadataListToObject(reqs) {
-    var o = {};
-    reqs.forEach(function(r) {
-      o[r.url] = r;
-    });
-    return o;
-  }
-
-  beforeEach( function() {
+  beforeEach(function () {
     wrCollector.setUp();
     setupAttrackTestServer();
     reqsReceived = [];
   });
 
-  afterEach( function() {
+  afterEach(function () {
     wrCollector.tearDown();
   });
 
@@ -122,7 +121,7 @@ describe('WebRequest example pages', function() {
       chai.expect(md.tabId).to.be.undefined;
       md.tabId = r.tabId;
     }
-    chai.expect(r.tabId).to.equal(md.tabId)
+    chai.expect(r.tabId).to.equal(md.tabId);
     chai.expect(r.parentFrameId).to.equal(r.tabId);
     chai.expect(r.frameId).to.equal(r.tabId);
     chai.expect(r.type).to.equal(6);
@@ -132,7 +131,7 @@ describe('WebRequest example pages', function() {
   }
 
   function testInMainFrame(r, topic, md, type) {
-    chai.expect(r.tabId).to.equal(md.tabId)
+    chai.expect(r.tabId).to.equal(md.tabId);
     chai.expect(r.parentFrameId).to.equal(r.tabId);
     chai.expect(r.frameId).to.equal(r.tabId);
     chai.expect(r.type).to.equal(type);
@@ -148,7 +147,7 @@ describe('WebRequest example pages', function() {
       chai.expect(md.iframeid).to.be.undefined;
       md.iframeid = r.frameId;
     }
-    chai.expect(r.tabId).to.equal(md.tabId)
+    chai.expect(r.tabId).to.equal(md.tabId);
     chai.expect(r.parentFrameId).to.equal(r.tabId);
     chai.expect(r.frameId).to.equal(md.iframeid);
     chai.expect(r.type).to.equal(7);
@@ -159,7 +158,7 @@ describe('WebRequest example pages', function() {
   }
 
   function testInIFrame(r, topic, md, type) {
-    chai.expect(r.tabId).to.equal(md.tabId)
+    chai.expect(r.tabId).to.equal(md.tabId);
     chai.expect(r.parentFrameId).to.equal(r.tabId);
     chai.expect(r.frameId).to.equal(md.iframeid);
     chai.expect(r.type).to.equal(type);
@@ -179,139 +178,139 @@ describe('WebRequest example pages', function() {
     }
   }
 
-  var pageTests = {
+  const pageTests = {
     'thirdpartyscript.html': {
-      'http://localhost:60508/thirdpartyscript.html': function(r, topic, md) {
+      'http://localhost:60508/thirdpartyscript.html': function (r, topic, md) {
         testMainDocument(r, topic, md);
         testResponseCode(r, topic);
       },
-      'http://localhost:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+      'http://localhost:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
         testInMainFrame(r, topic, md, 11);
         testResponseCode(r, topic);
       },
-      'http://127.0.0.1:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+      'http://127.0.0.1:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
         testInMainFrame(r, topic, md, 2);
         testResponseCode(r, topic);
       }
     },
 
     'injectedscript.html': {
-      'http://localhost:60508/injectedscript.html': function(r, topic, md) {
+      'http://localhost:60508/injectedscript.html': function (r, topic, md) {
         testMainDocument(r, topic, md);
         testResponseCode(r, topic);
       },
-      'http://localhost:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+      'http://localhost:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
         testInMainFrame(r, topic, md, 11);
         testResponseCode(r, topic);
       },
-      'http://127.0.0.1:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+      'http://127.0.0.1:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
         testInMainFrame(r, topic, md, 2);
         testResponseCode(r, topic);
       }
     },
 
     'imgtest.html': {
-      'http://localhost:60508/imgtest.html': function(r, topic, md) {
+      'http://localhost:60508/imgtest.html': function (r, topic, md) {
         testMainDocument(r, topic, md);
         testResponseCode(r, topic);
       },
-      'http://localhost:60508/test.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+      'http://localhost:60508/test.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
         testInMainFrame(r, topic, md, 3);
         testResponseCode(r, topic);
       },
-      'http://127.0.0.1:60508/test.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+      'http://127.0.0.1:60508/test.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
         testInMainFrame(r, topic, md, 3);
         testResponseCode(r, topic);
       }
     },
 
     'crossdomainxhr.html': {
-      'http://localhost:60508/crossdomainxhr.html': function(r, topic, md) {
+      'http://localhost:60508/crossdomainxhr.html': function (r, topic, md) {
         testMainDocument(r, topic, md);
         testResponseCode(r, topic);
       },
-      'http://localhost:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+      'http://localhost:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
         testInMainFrame(r, topic, md, 11);
         testResponseCode(r, topic);
       },
-      'http://127.0.0.1:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+      'http://127.0.0.1:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
         testInMainFrame(r, topic, md, 11);
         testResponseCode(r, topic);
       },
-      'http://localhost:60508/node_modules/jquery/dist/jquery.js': function(r, topic, md) {
+      'http://localhost:60508/node_modules/jquery/dist/jquery.js': function (r, topic, md) {
         testInMainFrame(r, topic, md, 2);
         testResponseCode(r, topic);
       }
     },
 
     'iframetest.html': {
-      'http://localhost:60508/iframetest.html': function(r, topic, md) {
+      'http://localhost:60508/iframetest.html': function (r, topic, md) {
         testMainDocument(r, topic, md);
         testResponseCode(r, topic);
       },
-      'http://localhost:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+      'http://localhost:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
         testInMainFrame(r, topic, md, 11);
         testResponseCode(r, topic);
       },
-      'http://127.0.0.1:60508/iframe.html': function(r, topic, md) {
+      'http://127.0.0.1:60508/iframe.html': function (r, topic, md) {
         testIFrameDocument(r, topic, md);
         testResponseCode(r, topic);
       },
-      'http://127.0.0.1:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+      'http://127.0.0.1:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
         testInIFrame(r, topic, md, 11);
         testResponseCode(r, topic);
       },
-      'http://localhost:60508/node_modules/jquery/dist/jquery.js': function(r, topic, md) {
+      'http://localhost:60508/node_modules/jquery/dist/jquery.js': function (r, topic, md) {
         testInMainFrame(r, topic, md, 2);
         testResponseCode(r, topic);
       },
-      'http://127.0.0.1:60508/node_modules/jquery/dist/jquery.js': function(r, topic, md) {
+      'http://127.0.0.1:60508/node_modules/jquery/dist/jquery.js': function (r, topic, md) {
         testInIFrame(r, topic, md, 2);
         testResponseCode(r, topic);
       }
     },
 
     // 'image302test.html': {
-    //   'http://localhost:60508/image302test.html': function(r, topic, md) {
+    //   'http://localhost:60508/image302test.html': function (r, topic, md) {
     //     testMainDocument(r, topic, md);
     //     testResponseCode(r, topic);
     //   },
-    //   'http://localhost:60508/test.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+    //   'http://localhost:60508/test.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
     //     testInMainFrame(r, topic, md, 3);
     //     testResponseCode(r, topic);
     //   },
-    //   'http://localhost:60508/tracker302.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+    //   'http://localhost:60508/tracker302.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
     //     testInMainFrame(r, topic, md, 3);
     //     testResponseCode(r, topic, 302);
     //   },
-    //   'http://cliqztest.de:60508/test.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+    //   'http://cliqztest.de:60508/test.gif?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
     //     testInMainFrame(r, topic, md, 3);
     //     testResponseCode(r, topic);
     //   }
     // },
 
     'nestediframetest.html': {
-      'http://localhost:60508/nestediframetest.html': function(r, topic, md) {
+      'http://localhost:60508/nestediframetest.html': function (r, topic, md) {
         testMainDocument(r, topic, md);
         testResponseCode(r, topic);
       },
-      'http://localhost:60508/node_modules/jquery/dist/jquery.js': function(r, topic, md) {
+      'http://localhost:60508/node_modules/jquery/dist/jquery.js': function (r, topic, md) {
         testInMainFrame(r, topic, md, 2);
         testResponseCode(r, topic);
       },
-      'http://localhost:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+      'http://localhost:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
         testInMainFrame(r, topic, md, 11);
         testResponseCode(r, topic);
       },
-      'http://cliqztest.de:60508/proxyiframe.html': function(r, topic, md) {
+      'http://cliqztest.de:60508/proxyiframe.html': function (r, topic, md) {
         testIFrameDocument(r, topic, md);
         testResponseCode(r, topic);
       },
-      'http://cliqztest.de:60508/node_modules/jquery/dist/jquery.js': function(r, topic, md) {
+      'http://cliqztest.de:60508/node_modules/jquery/dist/jquery.js': function (r, topic, md) {
         testInIFrame(r, topic, md, 2);
         testResponseCode(r, topic);
       },
-      'http://127.0.0.1:60508/iframe2.html': function(r, topic, md) {
+      'http://127.0.0.1:60508/iframe2.html': function (r, topic, md) {
         chai.expect(r.tabId > 0);
         if (topic === 'onBeforeRequest') {
           // expect this to be the first request
@@ -324,11 +323,11 @@ describe('WebRequest example pages', function() {
         chai.expect(r.type).to.equal(7);
         chai.expect(r.method).to.equal('GET');
         chai.expect(r.isPrivate).to.be.false;
-        chai.expect(r.originUrl).to.equal("http://cliqztest.de:60508/proxyiframe.html");
+        chai.expect(r.originUrl).to.equal('http://cliqztest.de:60508/proxyiframe.html');
         chai.expect(r.source).to.equal(md.url);
         testResponseCode(r, topic);
       },
-      'http://127.0.0.1:60508/node_modules/jquery/dist/jquery.js': function(r, topic, md) {
+      'http://127.0.0.1:60508/node_modules/jquery/dist/jquery.js': function (r, topic, md) {
         // tabId == top level tab; parentFrameId == outer iframe; frameId == this iframe
         chai.expect(r.tabId).to.equal(md.tabId);
         chai.expect(r.parentFrameId).to.equal(md.iframeid);
@@ -336,83 +335,81 @@ describe('WebRequest example pages', function() {
         chai.expect(r.type).to.equal(2);
         chai.expect(r.method).to.equal('GET');
         chai.expect(r.isPrivate).to.be.false;
-        chai.expect(r.originUrl).to.equal("http://127.0.0.1:60508/iframe2.html");
+        chai.expect(r.originUrl).to.equal('http://127.0.0.1:60508/iframe2.html');
         chai.expect(r.source).to.equal(md.url);
         testResponseCode(r, topic);
       },
-      'http://127.0.0.1:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function(r, topic, md) {
+      'http://127.0.0.1:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
         chai.expect(r.tabId).to.equal(md.tabId);
         chai.expect(r.parentFrameId).to.equal(md.iframeid);
         chai.expect(r.frameId).to.equal(md.iframeid2);
         chai.expect(r.type).to.equal(11);
         chai.expect(r.method).to.equal('GET');
         chai.expect(r.isPrivate).to.be.false;
-        chai.expect(r.originUrl).to.equal("http://127.0.0.1:60508/iframe2.html");
+        chai.expect(r.originUrl).to.equal('http://127.0.0.1:60508/iframe2.html');
         chai.expect(r.source).to.equal(md.url);
         testResponseCode(r, topic);
       }
     }
   };
 
-  var uid = '04C2EAD03BAB7F5E-2E85855CF4C75134',
-      block = false;
+  const uid = '04C2EAD03BAB7F5E-2E85855CF4C75134';
+  let block = false;
   function urlRewriter(req) {
     if (req.url.indexOf('localhost') === -1 && req.url.indexOf(uid) > -1) {
       if (block) {
         return { cancel: true };
-      } else {
-        return {
-          redirectUrl: req.url.replace(uid, '')
-        }
       }
-    } else {
-      return {};
+      return {
+        redirectUrl: req.url.replace(uid, '')
+      };
     }
+    return {};
   }
 
-  Object.keys(pageTests).forEach( function(testPage) {
+  Object.keys(pageTests).forEach(function (testPage) {
+    context(testPage, function () {
+      const url = testServer.getBaseUrl(testPage);
+      const expectedUrls = pageTests[testPage];
 
-    context(testPage, function() {
-      var url = testServer.getBaseUrl(testPage);
-      var expectedUrls = pageTests[testPage];
-
-      it('determines correct request metadata', function() {
-        return newTab(url).then((tabId) => {
-          return waitFor(function() {
-            var testReqs = wrCollector.onHeadersReceived.filter( (req) => { return isTestServerAddress(req.url) });
+      it('determines correct request metadata', function () {
+        return newTab(url).then(() =>
+          waitFor(function () {
+            const testReqs = wrCollector.onHeadersReceived
+              .filter(req => isTestServerAddress(req.url));
             return testReqs.length >= Object.keys(expectedUrls).length;
-          }).then(function() {
-            var testState = {
+          }).then(function () {
+            const testState = {
               testPage,
               url
             };
-            for (var topic of wrCollector.topics) {
-              var reqs = wrCollector[topic].filter( function(req) { return isTestServerAddress(req.url) }).reduce(function(hash, r) {
-                hash[r.url] = r;
-                return hash;
-              }, Object.create(null));
-              for (var seenUrl of Object.keys(expectedUrls)) {
+            for (const topic of wrCollector.topics) {
+              const reqs = wrCollector[topic]
+                .filter(function (req) { return isTestServerAddress(req.url); })
+                .reduce(function (hash, r) {
+                  hash[r.url] = r;
+                  return hash;
+                }, Object.create(null));
+              for (const seenUrl of Object.keys(expectedUrls)) {
                 chai.expect(reqs).to.have.property(seenUrl);
                 expectedUrls[seenUrl](reqs[seenUrl], topic, testState);
-              };
+              }
             }
-          });
-        });
+          })
+        );
       });
 
       function testRewrite(skipLengthTest) {
         block = false;
-        const reqsReceived = [];
-        return newTab(url).then((tabId) => {
-          var nExpected = Object.keys(expectedUrls).filter((url) => url.indexOf('/test') > 0).length;
-          return waitFor(function() {
-            var testReqs = wrCollector.onHeadersReceived.filter( (req) => { return isTestServerAddress(req.url) });
+        reqsReceived = [];
+        return newTab(url).then(() =>
+          waitFor(function () {
             return reqsReceived.length >= 2;
-          }).then(function() {
+          }).then(function () {
             if (!skipLengthTest) {
               chai.expect(reqsReceived).to.have.length(2);
             }
-            for (var req of reqsReceived) {
+            for (const req of reqsReceived) {
               // EXCEPTION: onBeforeRequest missed for image redirect
               if (req.host === 'localhost') {
                 chai.expect(req.qs).to.contain(uid);
@@ -420,21 +417,19 @@ describe('WebRequest example pages', function() {
                 chai.expect(req.qs).to.not.contain(uid);
               }
             }
-          });
-        });
+          })
+        );
       }
 
       function testBlock() {
         block = true;
-        const reqsReceived = [];
-        newTab(url).then((tabId) => {
-          var nExpected = Object.keys(expectedUrls).filter((url) => url.indexOf('/test') > 0).length;
-          return waitFor(function() {
-            var testReqs = wrCollector.onHeadersReceived.filter( (req) => { return isTestServerAddress(req.url) });
+        reqsReceived = [];
+        newTab(url).then(() =>
+          waitFor(function () {
             return reqsReceived.length >= 1;
-          }).then(function() {
+          }).then(function () {
             chai.expect(reqsReceived).to.have.length(1);
-            for (var req of reqsReceived) {
+            for (const req of reqsReceived) {
               // EXCEPTION: onBeforeRequest missed for image redirect
               if (req.host === 'localhost') {
                 chai.expect(req.qs).to.contain(uid);
@@ -442,49 +437,49 @@ describe('WebRequest example pages', function() {
                 chai.assert(false);
               }
             }
-          });
-        });
+          })
+        );
       }
 
 
-      context('onBeforeRequest', function() {
-        beforeEach(function() {
+      context('onBeforeRequest', function () {
+        beforeEach(function () {
           WebRequest.onBeforeRequest.addListener(urlRewriter, { urls: ['*://*/*'] }, ['blocking']);
         });
 
-        afterEach(function() {
+        afterEach(function () {
           WebRequest.onBeforeRequest.removeListener(urlRewriter);
         });
 
         // special case: a 302 redirect does not trigger onBeforeRequest for the redirect target
         if (testPage !== 'image302test.html') {
-          // when redirecting scripts specfied in the DOM in onBeforeRequest we get a duplicate request
-          it('can rewrite urls', function() {
-            return testRewrite(testPage === 'thirdpartyscript.html')
+          // when redirecting scripts specfied in the DOM in onBeforeRequest
+          // we get a duplicate request
+          it('can rewrite urls', function () {
+            return testRewrite(testPage === 'thirdpartyscript.html');
           });
 
-          it('can block urls', function() {
-            return testBlock()
+          it('can block urls', function () {
+            return testBlock();
           });
         }
-
       });
 
-      context('onBeforeSendHeaders', function() {
-        beforeEach(function() {
+      context('onBeforeSendHeaders', function () {
+        beforeEach(function () {
           WebRequest.onBeforeSendHeaders.addListener(urlRewriter, { urls: ['*://*/*'] }, ['blocking']);
         });
 
-        afterEach(function() {
+        afterEach(function () {
           WebRequest.onBeforeSendHeaders.removeListener(urlRewriter);
         });
 
-        it('can rewrite urls', function() {
+        it('can rewrite urls', function () {
           return testRewrite(testPage === 'thirdpartyscript.html');
         });
 
-        it('can block urls', function() {
-          return testBlock()
+        it('can block urls', function () {
+          return testBlock();
         });
       });
     });

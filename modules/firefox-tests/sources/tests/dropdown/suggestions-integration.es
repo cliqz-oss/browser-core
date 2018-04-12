@@ -1,9 +1,6 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
   app,
+  blurUrlBar,
   $cliqzResults,
   CliqzUtils,
   expect,
@@ -21,6 +18,7 @@ export default function () {
       let $resultElement;
 
       before(function () {
+        blurUrlBar();
         CliqzUtils.setPref('suggestionChoice', 0);
         respondWith(response);
         withHistory([]);
@@ -35,18 +33,18 @@ export default function () {
       });
 
       it('renders result', function () {
-        const resultSelector = `.result[href="${response.results[0].url}"]`;
+        const resultSelector = `.result[data-url="${response.results[0].url}"]`;
         expect($resultElement).to.contain(resultSelector);
       });
 
       it('renders logo', function () {
-        const mainResult = $resultElement.querySelector(`.result[href="${response.results[0].url}"]`);
+        const mainResult = $resultElement.querySelector(`.result[data-url="${response.results[0].url}"]`);
         const logoSelector = '.icons .logo';
         expect(mainResult).to.contain(logoSelector);
       });
 
       it('renders title', function () {
-        const mainResult = $resultElement.querySelector(`.result[href="${response.results[0].url}"]`);
+        const mainResult = $resultElement.querySelector(`.result[data-url="${response.results[0].url}"]`);
         const titleSelector = '.abstract .title';
         expect(mainResult).to.contain(titleSelector);
         expect(mainResult.querySelector(titleSelector).textContent.trim())
@@ -54,22 +52,22 @@ export default function () {
       });
 
       it('renders divider', function () {
-        const mainResult = $resultElement.querySelector(`.result[href="${response.results[0].url}"]`);
+        const mainResult = $resultElement.querySelector(`.result[data-url="${response.results[0].url}"]`);
         const dividerSelector = '.abstract .divider';
         expect(mainResult).to.contain(dividerSelector);
         expect(mainResult.querySelector(dividerSelector).textContent.trim()).to.equal('—');
       });
 
       it('renders url', function () {
-        const mainResult = $resultElement.querySelector(`.result[href="${response.results[0].url}"]`);
+        const mainResult = $resultElement.querySelector(`.result[data-url="${response.results[0].url}"]`);
         const urlSelector = '.abstract .url';
         expect(mainResult).to.contain(urlSelector);
         expect(mainResult.querySelector(urlSelector).textContent.trim())
-          .to.equal(response.results[0].url);
+          .to.equal(response.results[0].friendlyUrl);
       });
 
       it('renders description', function () {
-        const mainResult = $resultElement.querySelector(`.result[href="${response.results[0].url}"]`);
+        const mainResult = $resultElement.querySelector(`.result[data-url="${response.results[0].url}"]`);
         const descriptionSelector = '.abstract .description';
         expect(mainResult).to.contain(descriptionSelector);
         expect(mainResult.querySelector(descriptionSelector).textContent.trim())
@@ -87,6 +85,7 @@ export default function () {
       let $resultElement;
 
       before(function () {
+        blurUrlBar();
         CliqzUtils.setPref('suggestionChoice', 1);
         respondWith(response);
         withHistory([]);
@@ -102,18 +101,18 @@ export default function () {
 
       context('main result', function () {
         it('renders result', function () {
-          const resultSelector = `.result[href="${response.results[0].url}"]`;
+          const resultSelector = `.result[data-url="${response.results[0].url}"]`;
           expect($resultElement).to.contain(resultSelector);
         });
 
         it('renders logo', function () {
-          const mainResult = $resultElement.querySelector(`.result[href="${response.results[0].url}"]`);
+          const mainResult = $resultElement.querySelector(`.result[data-url="${response.results[0].url}"]`);
           const logoSelector = '.icons .logo';
           expect(mainResult).to.contain(logoSelector);
         });
 
         it('renders title', function () {
-          const mainResult = $resultElement.querySelector(`.result[href="${response.results[0].url}"]`);
+          const mainResult = $resultElement.querySelector(`.result[data-url="${response.results[0].url}"]`);
           const titleSelector = '.abstract .title';
           expect(mainResult).to.contain(titleSelector);
           expect(mainResult.querySelector(titleSelector).textContent.trim())
@@ -121,22 +120,22 @@ export default function () {
         });
 
         it('renders divider', function () {
-          const mainResult = $resultElement.querySelector(`.result[href="${response.results[0].url}"]`);
+          const mainResult = $resultElement.querySelector(`.result[data-url="${response.results[0].url}"]`);
           const dividerSelector = '.abstract .divider';
           expect(mainResult).to.contain(dividerSelector);
           expect(mainResult.querySelector(dividerSelector).textContent.trim()).to.equal('—');
         });
 
         it('renders url', function () {
-          const mainResult = $resultElement.querySelector(`.result[href="${response.results[0].url}"]`);
+          const mainResult = $resultElement.querySelector(`.result[data-url="${response.results[0].url}"]`);
           const urlSelector = '.abstract .url';
           expect(mainResult).to.contain(urlSelector);
           expect(mainResult.querySelector(urlSelector).textContent.trim())
-            .to.equal(response.results[0].url);
+            .to.equal(response.results[0].friendlyUrl);
         });
 
         it('renders description', function () {
-          const mainResult = $resultElement.querySelector(`.result[href="${response.results[0].url}"]`);
+          const mainResult = $resultElement.querySelector(`.result[data-url="${response.results[0].url}"]`);
           const descriptionSelector = '.abstract .description';
           expect(mainResult).to.contain(descriptionSelector);
           expect(mainResult.querySelector(descriptionSelector).textContent.trim())
@@ -166,9 +165,9 @@ export default function () {
           const querySuggestionsSelector = '.suggestions .result';
           let i;
           for (i = 0; i < 3; i += 1) {
-            expect($resultElement.querySelectorAll(querySuggestionsSelector)[i].hasAttribute('href'))
+            expect($resultElement.querySelectorAll(querySuggestionsSelector)[i].hasAttribute('data-url'))
               .to.be.true;
-            expect($resultElement.querySelectorAll(querySuggestionsSelector)[i].getAttribute('href'))
+            expect($resultElement.querySelectorAll(querySuggestionsSelector)[i].getAttribute('data-url'))
               .to.equal(`https://cliqz.com/search?q=${response.suggestions[i]}`);
           }
         });
@@ -190,9 +189,10 @@ export default function () {
       let $resultElement;
 
       before(function () {
+        blurUrlBar();
         CliqzUtils.setPref('suggestionChoice', 0);
-        app.modules.autocomplete.background
-          .autocomplete.CliqzResultProviders.setCurrentSearchEngine('Google');
+
+        app.modules.search.action('setDefaultSearchEngine', 'Google');
         respondWithSuggestions(response);
         respondWith(response1);
         withHistory([]);
@@ -207,18 +207,18 @@ export default function () {
       });
 
       it('renders result', function () {
-        const resultSelector = `.result[href="${response1.results[0].url}"]`;
+        const resultSelector = `.result[data-url="${response1.results[0].url}"]`;
         expect($resultElement).to.contain(resultSelector);
       });
 
       it('renders logo', function () {
-        const mainResult = $resultElement.querySelector(`.result[href="${response1.results[0].url}"]`);
+        const mainResult = $resultElement.querySelector(`.result[data-url="${response1.results[0].url}"]`);
         const logoSelector = '.icons .logo';
         expect(mainResult).to.contain(logoSelector);
       });
 
       it('renders title', function () {
-        const mainResult = $resultElement.querySelector(`.result[href="${response1.results[0].url}"]`);
+        const mainResult = $resultElement.querySelector(`.result[data-url="${response1.results[0].url}"]`);
         const titleSelector = '.abstract .title';
         expect(mainResult).to.contain(titleSelector);
         expect(mainResult.querySelector(titleSelector).textContent.trim())
@@ -226,22 +226,22 @@ export default function () {
       });
 
       it('renders divider', function () {
-        const mainResult = $resultElement.querySelector(`.result[href="${response1.results[0].url}"]`);
+        const mainResult = $resultElement.querySelector(`.result[data-url="${response1.results[0].url}"]`);
         const dividerSelector = '.abstract .divider';
         expect(mainResult).to.contain(dividerSelector);
         expect(mainResult.querySelector(dividerSelector).textContent.trim()).to.equal('—');
       });
 
       it('renders url', function () {
-        const mainResult = $resultElement.querySelector(`.result[href="${response1.results[0].url}"]`);
+        const mainResult = $resultElement.querySelector(`.result[data-url="${response1.results[0].url}"]`);
         const urlSelector = '.abstract .url';
         expect(mainResult).to.contain(urlSelector);
         expect(mainResult.querySelector(urlSelector).textContent.trim())
-          .to.equal(response1.results[0].url);
+          .to.equal(response1.results[0].friendlyUrl);
       });
 
       it('renders description', function () {
-        const mainResult = $resultElement.querySelector(`.result[href="${response1.results[0].url}"]`);
+        const mainResult = $resultElement.querySelector(`.result[data-url="${response1.results[0].url}"]`);
         const descriptionSelector = '.abstract .description';
         expect(mainResult).to.contain(descriptionSelector);
         expect(mainResult.querySelector(descriptionSelector).textContent.trim())
@@ -280,10 +280,9 @@ export default function () {
           };
         };
 
+        blurUrlBar();
         CliqzUtils.setPref('suggestionChoice', 2);
-        app.modules.autocomplete.background
-          .autocomplete.CliqzResultProviders.setCurrentSearchEngine('Google');
-
+        app.modules.search.action('setDefaultSearchEngine', 'Google');
         response = addSearchEngineUrls(responseGoogle);
         response1 = addSearchEngineUrls(response1Google);
 
@@ -302,45 +301,45 @@ export default function () {
 
       context('main result', function () {
         it('renders result', function () {
-          const resultSelector = `.result[href="${response.results[0].url}"]`;
+          const resultSelector = `.result[data-url="${response1.results[0].url}"]`;
           expect($resultElement).to.contain(resultSelector);
         });
 
         it('renders logo', function () {
-          const mainResult = $resultElement.querySelector(`.result[href="${response.results[0].url}"]`);
+          const mainResult = $resultElement.querySelector(`.result[data-url="${response1.results[0].url}"]`);
           const logoSelector = '.icons .logo';
           expect(mainResult).to.contain(logoSelector);
         });
 
         it('renders title', function () {
-          const mainResult = $resultElement.querySelector(`.result[href="${response.results[0].url}"]`);
+          const mainResult = $resultElement.querySelector(`.result[data-url="${response1.results[0].url}"]`);
           const titleSelector = '.abstract .title';
           expect(mainResult).to.contain(titleSelector);
           expect(mainResult.querySelector(titleSelector).textContent.trim())
-            .to.equal(response.results[0].snippet.title);
+            .to.equal(response1.results[0].snippet.title);
         });
 
         it('renders divider', function () {
-          const mainResult = $resultElement.querySelector(`.result[href="${response.results[0].url}"]`);
+          const mainResult = $resultElement.querySelector(`.result[data-url="${response1.results[0].url}"]`);
           const dividerSelector = '.abstract .divider';
           expect(mainResult).to.contain(dividerSelector);
           expect(mainResult.querySelector(dividerSelector).textContent.trim()).to.equal('—');
         });
 
         it('renders url', function () {
-          const mainResult = $resultElement.querySelector(`.result[href="${response.results[0].url}"]`);
+          const mainResult = $resultElement.querySelector(`.result[data-url="${response1.results[0].url}"]`);
           const urlSelector = '.abstract .url';
           expect(mainResult).to.contain(urlSelector);
           expect(mainResult.querySelector(urlSelector).textContent.trim())
-            .to.equal(response.results[0].url);
+            .to.equal(response1.results[0].friendlyUrl);
         });
 
         it('renders description', function () {
-          const mainResult = $resultElement.querySelector(`.result[href="${response.results[0].url}"]`);
+          const mainResult = $resultElement.querySelector(`.result[data-url="${response1.results[0].url}"]`);
           const descriptionSelector = '.abstract .description';
           expect(mainResult).to.contain(descriptionSelector);
           expect(mainResult.querySelector(descriptionSelector).textContent.trim())
-            .to.equal(response.results[0].snippet.description);
+            .to.equal(response1.results[0].snippet.description);
         });
       });
 
@@ -348,20 +347,20 @@ export default function () {
         it('exist', function () {
           let i;
           for (i = 0; i < 3; i += 1) {
-            const querySuggestionsSelector = `.result.search[href="${response.results[i + 1].url}"]`;
+            const querySuggestionsSelector = `.result.search[data-url="${response.results[i + 1].url}"]`;
             expect($resultElement).to.contain(querySuggestionsSelector);
           }
         });
 
         it('number of suggestions is three', function () {
-          const querySuggestionsSelector = `.result.search[href="${response.results[4].url}"]`;
+          const querySuggestionsSelector = `.result.search[data-url="${response.results[4].url}"]`;
           expect($resultElement).to.not.contain(querySuggestionsSelector);
         });
 
         it('renders search icon for all suggestions', function () {
           let i;
           for (i = 0; i < 3; i += 1) {
-            const querySuggestionsSelector = `.result.search[href="${response.results[i + 1].url}"]`;
+            const querySuggestionsSelector = `.result.search[data-url="${response.results[i + 1].url}"]`;
             const iconSelector = '.icon.search';
             expect($resultElement.querySelector(querySuggestionsSelector)).to.contain(iconSelector);
           }
@@ -370,7 +369,7 @@ export default function () {
         it('renders correct queries for all suggestions', function () {
           let i;
           for (i = 0; i < 3; i += 1) {
-            const querySuggestionsSelector = `.result.search[href="${response.results[i + 1].url}"]`;
+            const querySuggestionsSelector = `.result.search[data-url="${response.results[i + 1].url}"]`;
             const querySelector = '.abstract .strong';
             const result = $resultElement.querySelector(querySuggestionsSelector);
             expect(result).to.contain(querySelector);
@@ -382,7 +381,7 @@ export default function () {
         it('renders divider for all suggestions', function () {
           let i;
           for (i = 0; i < 3; i += 1) {
-            const querySuggestionsSelector = `.result.search[href="${response.results[i + 1].url}"]`;
+            const querySuggestionsSelector = `.result.search[data-url="${response.results[i + 1].url}"]`;
             const dividerSelector = '.abstract .divider';
             const result = $resultElement.querySelector(querySuggestionsSelector);
             expect(result).to.contain(dividerSelector);
@@ -393,7 +392,7 @@ export default function () {
         it('renders "Search with Google" for all suggestions', function () {
           let i;
           for (i = 0; i < 3; i += 1) {
-            const querySuggestionsSelector = `.result.search[href="${response.results[i + 1].url}"]`;
+            const querySuggestionsSelector = `.result.search[data-url="${response.results[i + 1].url}"]`;
             const searchWithSelector = '.abstract .url';
             const result = $resultElement.querySelector(querySuggestionsSelector);
             expect(result).to.contain(searchWithSelector);

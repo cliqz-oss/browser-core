@@ -35,6 +35,10 @@ self.onmessage = (e) => {
       CliqzSecureMessage.sourceMap = e.data.sourcemap;
       CliqzSecureMessage.uPK = e.data.upk;
       const queryProxyUrl = e.data.queryProxyUrl;
+      if (!queryProxyUrl) {
+        throw new Error(`Could not send instant message (action=${msg.action}), as the queryProxyUrl is missing`);
+      }
+
       CliqzSecureMessage.dsPK = e.data.dspk;
       CliqzSecureMessage.secureLogger = e.data.sspk;
 

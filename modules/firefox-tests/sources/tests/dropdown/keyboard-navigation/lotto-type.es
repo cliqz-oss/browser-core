@@ -1,8 +1,5 @@
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 import {
+  blurUrlBar,
   $cliqzResults,
   CliqzUtils,
   expect,
@@ -27,12 +24,13 @@ export default function () {
     const win = CliqzUtils.getWindow();
     const urlBar = win.CLIQZ.Core.urlbar;
     const searchWithSelector = 'a.result.search';
-    const result1Selector = `a.result[href="${results[0].url}"]`;
-    const button1Selector = `a.result[href="${results[0].snippet.deepResults[0].links[0].url}"]`;
-    const button2Selector = `a.result[href="${results[0].snippet.deepResults[0].links[1].url}"]`;
-    const button3Selector = `a.result[href="${results[0].snippet.deepResults[0].links[2].url}"]`;
+    const result1Selector = `a.result[data-url="${results[0].url}"]`;
+    const button1Selector = `a.result[data-url="${results[0].snippet.deepResults[0].links[0].url}"]`;
+    const button2Selector = `a.result[data-url="${results[0].snippet.deepResults[0].links[1].url}"]`;
+    const button3Selector = `a.result[data-url="${results[0].snippet.deepResults[0].links[2].url}"]`;
 
     beforeEach(function () {
+      blurUrlBar();
       withHistory([]);
       respondWith({ results });
       fillIn(query);

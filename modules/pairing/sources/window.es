@@ -154,7 +154,7 @@ export default class Win {
   }
 
   showOnboarding() {
-    const locale = utils.getPref('general.useragent.locale', 'en', '');
+    const locale = utils.PLATFORM_LANGUAGE;
     const isInABTest = utils.getPref('extOnboardCliqzConnect', false);
     const dismissed = JSON.parse(utils.getPref(DISMISSED_ALERTS, '{}'));
     const messageType = 'cliqz-connect';

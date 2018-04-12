@@ -11,24 +11,22 @@ function injectTestHelpers(CliqzUtils, loadModule) {
     .createInstance(Components.interfaces.nsITextInputProcessor);
   let popup = win.CLIQZ.Core.popup;
 
-  window.setUserInput = function setUserInput(text) {
+  window.getModule = loadModule;
+
+  window.fillIn = function fillIn(text) {
     urlBar.valueIsTyped = true;
     popup.mPopupOpen = false;
     urlBar.focus();
     urlBar.mInputField.focus();
-    urlBar.mInputField.setUserInput(text);
-  };
-
-  window.getModule = loadModule;
-
-  window.fillIn = function fillIn(text) {
-    setUserInput(text);
+    urlBar.mInputField.value = '';
+    EventUtils.sendString(text);
   };
 
   window.fastFillIn = function fastFillIn(text) {
     urlBar.focus();
     urlBar.mInputField.focus();
-    urlBar.mInputField.setUserInput(text);
+    urlBar.mInputField.value = '';
+    EventUtils.sendString(text);
   };
 
   window.waitFor = function waitFor(fn, until) {
@@ -185,17 +183,12 @@ function injectTestHelpers(CliqzUtils, loadModule) {
   window.respondWithSuggestions = function respondWithSuggestions(options) {
     options = options || {};
     CliqzUtils.getSuggestions = function () {
-      return Promise.resolve({
-        query: options.query,
-        response: {
-          results: options.results,
-        }
-      });
+      return Promise.resolve([options.query, options.results]);
     };
   };
 
   // patches getBackendResults
-  window.respondWith = function respondWith(res) {
+  window.respondWith = function respondWith(res, ms = 0) {
     function getQuery(url) {
       const a = document.createElement('a');
       a.setAttribute('href', url);
@@ -204,26 +197,28 @@ function injectTestHelpers(CliqzUtils, loadModule) {
       const queries = params.getAll('q');
       return queries[queries.length - 1];
     }
-
     const response = {
-      results: res.results,
+      results: res.results || [],
+      offers: res.offers || [],
       suggestions: res.suggestions,
     };
 
     CliqzUtils.fetchFactory = function () {
       return function fetch(url) {
-        return Promise.resolve({
-          json() {
-            return Promise.resolve(
-              Object.assign(response, {
-                q: getQuery(url),
-              })
-            );
-          },
+        return new Promise(function (resolve) {
+          setTimeout(resolve, ms, {
+            json() {
+              return Promise.resolve(
+                Object.assign(response, {
+                  q: getQuery(url),
+                })
+              );
+            },
+          });
         });
       };
     };
-  };
+  }
 
   // patches getSnippet which calls RichHeader directly
   window.respondWithSnippet = function respondWith(snippet) {
@@ -238,9 +233,9 @@ function injectTestHelpers(CliqzUtils, loadModule) {
     };
   };
 
-  window.withHistory = function withHistory(res) {
+  window.withHistory = function withHistory(res, ms = 0) {
     CliqzUtils.historySearch = function (q, cb) {
-      cb({
+      setTimeout(cb, ms, {
         query: q,
         results: res,
         ready: true // SUCCESS https://dxr.mozilla.org/mozilla-central/source/toolkit/components/autocomplete/nsIAutoCompleteResult.idl#17

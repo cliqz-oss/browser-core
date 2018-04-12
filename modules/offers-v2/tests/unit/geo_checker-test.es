@@ -5,17 +5,6 @@
 
 export default describeModule('offers-v2/features/geo_checker',
   () => ({
-    // 'core/platform': {
-    //   isChromium: false
-    // },
-    // 'core/cliqz': {
-    //   default: {
-    //     setInterval: function () {}
-    //   },
-    //   utils: {
-    //     setInterval: function () {}
-    //   }
-    // },
     'platform/console': {
       default: {}
     },
@@ -30,6 +19,9 @@ export default describeModule('offers-v2/features/geo_checker',
       utils: {
         setInterval: function() {},
       }
+    },
+    'core/helpers/timeout': {
+      default: function() { const stop = () => {}; return { stop }; }
     },
     'core/prefs': {
       default: {
@@ -49,6 +41,20 @@ export default describeModule('offers-v2/features/geo_checker',
       beforeEach(function () {
         GeoChecker = this.module().default;
       });
+
+      function buildMapFormObj(obj) {
+        if (!obj) { return null; }
+        const m = new Map();
+        Object.keys(obj).forEach((k1) => {
+          m.set(k1, new Map());
+          Object.keys(obj[k1]).forEach((k2) => {
+            const topObj = obj[k1];
+            m.get(k1).set(k2, new Set(topObj[k2]));
+          })
+        });
+
+        return m;
+      }
 
       describe('#loc tests', function () {
         context('validity checks', function () {
@@ -172,6 +178,64 @@ export default describeModule('offers-v2/features/geo_checker',
               chai.expect(gc.isSameLocation(d)).eql(true);
             });
           });
+
+          it('checks matches works for country city and postal', function () {
+            const d = {
+              loc: {
+                country: 'fr',
+                city: 'paris',
+                zip: '1234'
+              }
+            };
+            gc.updateLocation(d);
+            chai.expect(gc.isAvailable()).eql(true);
+            chai.expect(gc.isLocAvailable()).eql(true);
+
+            // we want to check:
+            const toCheck = [
+              {de: {} },
+              {de: { munich: [] } },
+              {de: { munich: ['1234'] } },
+            ];
+            toCheck.forEach((obj) => {
+              chai.expect(gc.matches(buildMapFormObj(obj))).eql(false);
+            });
+
+            // update loc
+            d.loc.country = 'de';
+            d.loc.city = 'munich';
+            gc.updateLocation(d);
+            chai.expect(gc.isAvailable()).eql(true);
+            chai.expect(gc.isLocAvailable()).eql(true);
+            toCheck.forEach((obj) => {
+              chai.expect(gc.matches(buildMapFormObj(obj)), `failed: ${JSON.stringify(obj)}`).eql(true);
+            });
+
+          });
+
+          it('checks matches doesnt match if missing data', function () {
+            const d = {
+              loc: {
+                country: 'de',
+                city: 'munich',
+              }
+            };
+            gc.updateLocation(d);
+            chai.expect(gc.matches(buildMapFormObj({de: {} }))).eql(true);
+            chai.expect(gc.matches(buildMapFormObj({de: { munich: [] } }))).eql(true);
+            chai.expect(gc.matches(buildMapFormObj({de: { munich: ['1234'] } }))).eql(false);
+
+            // remove city and check
+            delete d.loc.city;
+            gc.updateLocation(d);
+            chai.expect(gc.matches(buildMapFormObj({de: {} }))).eql(true);
+            chai.expect(gc.matches(buildMapFormObj({de: { munich: [] } }))).eql(false);
+            chai.expect(gc.matches(buildMapFormObj({de: { munich: ['1234'] } }))).eql(false);
+          });
+
+
+
+
         });
 
       });

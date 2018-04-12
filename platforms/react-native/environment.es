@@ -1,23 +1,26 @@
-import CliqzEvents from '../core/events';
 import config from '../core/config';
-import prefs from '../core/prefs';
+
+const defaultSearchEngine = {
+  name: 'google',
+  url: 'https://www.google.com/search?q=',
+  default: true,
+  getSubmissionForQuery: query => defaultSearchEngine.url + query,
+};
 
 var CLIQZEnvironment = {
-  RESULTS_PROVIDER: config.settings.RESULTS_PROVIDER,
-  RICH_HEADER: config.settings.RICH_HEADER,
-  RESULTS_LIMIT: config.settings.RESULTS_LIMIT,
   RESULTS_TIMEOUT: config.settings.RESULTS_TIMEOUT,
   getDefaultSearchEngine() {
-    return prefs.get('engine', { name: 'google', url: 'https://www.google.com/search?q=' });
+    return defaultSearchEngine;
   },
-  setDefaultSearchEngine(engine) {
-    prefs.set('engine', engine);
+  setDefaultSearchEngine({ name, url }) {
+    defaultSearchEngine.name = name;
+    defaultSearchEngine.url = url;
   },
   historySearch() {},
   RERANKERS: [],
   //TODO: remove this dependency
   getSearchEngines: function(){
-    return []
+    return [defaultSearchEngine];
   },
   // mocked functions
   getEngineByName: function () {

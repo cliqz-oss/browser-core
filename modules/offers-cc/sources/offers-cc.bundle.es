@@ -110,14 +110,32 @@ function draw(data) {
     $('#cqz-vouchers-holder').scroll(() => {
       bodyScroll();
     });
-
-    // TODO: apply this fix only in case the first rendering fails
-    // localizeDocument();
-    // setTimeout(() => {
-    //   resize();
-    // }, 200); // TODO: fix this!.
-    // return;
   }
+
+  $('.condition').tooltipster({
+    theme: ['tooltipster-shadow', 'tooltipster-shadow-customized'],
+    interactive: true,
+    delay: 150,
+    animationDuration: 150,
+    side: 'top',
+    functionPosition: (instance, helper, position) => {
+      const newPos = position;
+      newPos.coord.top += 4; // Add some pixels on the top
+      newPos.coord.left += 14; // Add some pixels on the left
+      newPos.size.width -= 26; // Reduce the tooltip's width
+      return newPos;
+    },
+    functionBefore: () => {
+      sendMessageToWindow({
+        action: 'sendTelemetry',
+        data: {
+          action: 'hover',
+          target: 'conditions'
+        }
+      });
+    }
+  });
+
 
   localizeDocument();
   resize();
@@ -146,6 +164,13 @@ $(document).on('click', 'ul#cqz-vouchers-holder > li:not(.active)', function ite
       signal_type: 'offer-action-signal',
       element_id: 'offer_expanded',
       offer_id: $(this).data('offerId'),
+    }
+  });
+
+  sendMessageToWindow({
+    action: 'sendTelemetry',
+    data: {
+      target: 'expand',
     }
   });
 
@@ -280,15 +305,6 @@ $(document).on('click', '.promocode-wrapper', function itemClick() {
   }
 });
 
-$(document).on('click', '.condition', function itemClick(e) {
-  e.stopPropagation();
-  $(this).next().toggleClass('active');
-});
-
-$(document).on('click', '.condition-wrapper', (e) => {
-  e.stopPropagation();
-});
-
 $(document).on('click', '.setting', function itemClick(e) {
   e.stopPropagation();
   $(this).closest('.logo-wrapper').toggleClass('menu-opened');
@@ -302,6 +318,18 @@ $(document).on('click', '.cta-btn', function itemClick() {
       closePopup: true,
       isCallToAction: true,
       offerId: getOfferId($(this)),
+    }
+  });
+});
+
+$(document).on('click', '.cta-element', function itemClick() {
+  sendMessageToWindow({
+    action: 'openURL',
+    data: {
+      url: $(this).data('url'),
+      closePopup: true,
+      isCallToAction: true,
+      offerId: getOfferId($(this))
     }
   });
 });
@@ -390,7 +418,6 @@ $(document).on('click', '.tooltip', () => {
 
 $(document).on('click', '#cliqz-offers-cc', () => {
   $('.logo-wrapper.menu-opened').removeClass('menu-opened');
-  $('.condition-wrapper.active').removeClass('active');
 });
 
 function messageHandler(message) {

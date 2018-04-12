@@ -1,11 +1,9 @@
 /* global chrome, window */
 
 // For ghostery compatibility
-if (!chrome) {
-  const chrome = browser;
-}
+const chrome = window.chrome || browser;
 
 export {
   chrome,
-  window,
-}
+  window
+};

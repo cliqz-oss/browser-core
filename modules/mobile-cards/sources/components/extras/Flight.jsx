@@ -339,7 +339,7 @@ export default class extends React.Component {
           <View style={styles.hotlineView}>
             <NativeDrawable
               source={callIcon}
-              color="#00AEF0"
+              color="black"
               style={styles.callIcon}
             />
             <Text style={styles.hotlineText}>

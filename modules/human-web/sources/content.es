@@ -1,16 +1,17 @@
+/* eslint import/prefer-default-export: 'off' */
+
 import {
   registerContentScript,
-  CHROME_MSG_SOURCE,
+  CHROME_MSG_SOURCE
 } from '../core/content/helpers';
 
 import { normalizeAclkUrl } from './ad-detection';
-import logger from './logger';
 
 function logException(e) {
-  logger.error('Exception caught:', e, e.stack);
+  window.console.error('[human-web] Exception caught:', e);
 }
 
-export function parseDom(url, window, windowId) {
+export function parseDom(url, window) {
   const document = window.document;
 
   // Let's try and get META refresh to detect javascript redirects.
@@ -21,7 +22,6 @@ export function parseDom(url, window, windowId) {
       const location = document.querySelector('title').textContent;
       chrome.runtime.sendMessage({
         source: CHROME_MSG_SOURCE,
-        windowId,
         payload: {
           module: 'human-web',
           action: 'jsRedirect',
@@ -58,7 +58,6 @@ export function parseDom(url, window, windowId) {
 
     chrome.runtime.sendMessage({
       source: CHROME_MSG_SOURCE,
-      windowId,
       payload: {
         module: 'human-web',
         action: 'contentScriptTopAds',
@@ -111,10 +110,11 @@ export function parseDom(url, window, windowId) {
       try {
         query = decodeURIComponent(query);
       } catch (ee) {
+        // empty
       }
     }
 
-      // Let's iterate over each possible section of the ads.
+    // Let's iterate over each possible section of the ads.
     detectAdRules.adSections.forEach((eachAdSection, idx) => {
       const adNodes = Array.prototype.slice.call(doc.querySelectorAll(eachAdSection));
 
@@ -142,7 +142,6 @@ export function parseDom(url, window, windowId) {
     if (noAdsOnThisPage > 0) {
       chrome.runtime.sendMessage({
         source: CHROME_MSG_SOURCE,
-        windowId,
         payload: {
           module: 'human-web',
           action: 'adClick',
@@ -157,13 +156,13 @@ export function parseDom(url, window, windowId) {
   }
 }
 
-registerContentScript('http*', (window, chrome, windowId) => {
+registerContentScript('http*', (window) => {
   const url = window.location.href;
 
   // Only add for main pages.
   if (window.top === window) {
     window.addEventListener('DOMContentLoaded', () => {
-      parseDom(url, window, windowId);
+      parseDom(url, window);
     });
   }
 });

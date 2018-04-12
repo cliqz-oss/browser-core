@@ -1,0 +1,40 @@
+[
+  {
+    "id": "remote1",
+    "active": true,
+    "version": 1,
+    "type": "notification",
+    "title": "Did you know that ...",
+    "description": "Giraffes were created when Chuck Norris uppercutted a horse?",
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDIxLjAuMCwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHZpZXdCb3g9IjAgMCA1MCA1MCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNTAgNTA7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KCS5zdDB7ZmlsbDojMDBBRUYwO30KCS5zdDF7ZmlsbDojRkZGRkZGO30KPC9zdHlsZT4KPHRpdGxlPkdyb3VwPC90aXRsZT4KPGRlc2M+Q3JlYXRlZCB3aXRoIFNrZXRjaC48L2Rlc2M+CjxnIGlkPSJQYWdlLTEiPgoJPGcgaWQ9Ikdyb3VwIj4KCQk8cmVjdCBpZD0iUmVjdGFuZ2xlLTIiIHk9IjAiIGNsYXNzPSJzdDAiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIvPgoJCTxwb2x5Z29uIGlkPSJGaWxsLTQiIGNsYXNzPSJzdDEiIHBvaW50cz0iMzMuMSwzMS43IDM3LjcsMzAuMiAyNSwyNSAzMC4yLDM3LjcgMzEuNywzMy4xIDM2LDM3LjQgMzcuNCwzNiAJCSIvPgoJCTxwYXRoIGlkPSJGaWxsLTYiIGNsYXNzPSJzdDEiIGQ9Ik0yNSwzMi44Yy00LjMsMC03LjgtMy41LTcuOC03LjhjMC00LjMsMy41LTcuOCw3LjgtNy44czcuOCwzLjUsNy44LDcuOGMwLDAsMCwwLjEsMCwwLjFsNS4xLDIuMQoJCQljMC4xLTAuNywwLjItMS41LDAuMi0yLjJjMC03LjItNS45LTEzLjEtMTMuMS0xMy4xYy03LjIsMC0xMy4xLDUuOS0xMy4xLDEzLjFTMTcuOCwzOC4xLDI1LDM4LjFjMC44LDAsMS41LTAuMSwyLjItMC4ybC0yLjEtNS4xCgkJCUMyNS4xLDMyLjgsMjUuMSwzMi44LDI1LDMyLjgiLz4KCTwvZz4KPC9nPgo8L3N2Zz4K",
+    "cta_text": "More details",
+    "cta_url": "http://www.chucknorrisfacts.net/index",
+    "handler": "MESSAGE_HANDLER_FRESHTAB_MIDDLE",
+    "position": "middle",
+    "rules": [
+      {
+        "fn": "locale",
+        "value": "en-US"
+      }
+    ]
+  },
+  {
+    "id": "remote2",
+    "active": true,
+    "version": 1,
+    "type": "notification",
+    "title": "Did you know that ...",
+    "description": "Giraffes were created when Chuck Norris uppercutted a horse?",
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDIxLjAuMCwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHZpZXdCb3g9IjAgMCA1MCA1MCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNTAgNTA7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KCS5zdDB7ZmlsbDojMDBBRUYwO30KCS5zdDF7ZmlsbDojRkZGRkZGO30KPC9zdHlsZT4KPHRpdGxlPkdyb3VwPC90aXRsZT4KPGRlc2M+Q3JlYXRlZCB3aXRoIFNrZXRjaC48L2Rlc2M+CjxnIGlkPSJQYWdlLTEiPgoJPGcgaWQ9Ikdyb3VwIj4KCQk8cmVjdCBpZD0iUmVjdGFuZ2xlLTIiIHk9IjAiIGNsYXNzPSJzdDAiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIvPgoJCTxwb2x5Z29uIGlkPSJGaWxsLTQiIGNsYXNzPSJzdDEiIHBvaW50cz0iMzMuMSwzMS43IDM3LjcsMzAuMiAyNSwyNSAzMC4yLDM3LjcgMzEuNywzMy4xIDM2LDM3LjQgMzcuNCwzNiAJCSIvPgoJCTxwYXRoIGlkPSJGaWxsLTYiIGNsYXNzPSJzdDEiIGQ9Ik0yNSwzMi44Yy00LjMsMC03LjgtMy41LTcuOC03LjhjMC00LjMsMy41LTcuOCw3LjgtNy44czcuOCwzLjUsNy44LDcuOGMwLDAsMCwwLjEsMCwwLjFsNS4xLDIuMQoJCQljMC4xLTAuNywwLjItMS41LDAuMi0yLjJjMC03LjItNS45LTEzLjEtMTMuMS0xMy4xYy03LjIsMC0xMy4xLDUuOS0xMy4xLDEzLjFTMTcuOCwzOC4xLDI1LDM4LjFjMC44LDAsMS41LTAuMSwyLjItMC4ybC0yLjEtNS4xCgkJCUMyNS4xLDMyLjgsMjUuMSwzMi44LDI1LDMyLjgiLz4KCTwvZz4KPC9nPgo8L3N2Zz4K",
+    "cta_text": "More details",
+    "cta_url": "http://www.chucknorrisfacts.net/index",
+    "handler": "MESSAGE_HANDLER_FRESHTAB_MIDDLE",
+    "position": "middle",
+    "rules": [
+      {
+        "fn": "locale",
+        "value": "de"
+      }
+    ]
+  }
+]

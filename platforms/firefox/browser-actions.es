@@ -23,3 +23,5 @@ export function openTab() {}
 export function getOpenTabs() {}
 
 export function getReminders() {}
+
+export function importBookmarks() {}

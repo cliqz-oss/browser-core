@@ -120,6 +120,14 @@ export default class Settings extends React.Component {
                     isActive={this.state.componentsState.background.image === 'bg-winter'}
                   />
                 </li>
+                <li>
+                  <BackgroundImage
+                    onBackgroundImageChanged={this.onBackgroundImageChanged}
+                    bg="bg-matterhorn"
+                    src="./images/bg-matterhorn-thumbnail.png"
+                    isActive={this.state.componentsState.background.image === 'bg-matterhorn'}
+                  />
+                </li>
               </ul>
             </div>
           )
@@ -224,6 +232,34 @@ export default class Settings extends React.Component {
                         onChange={this.onNewsSelectionChanged}
                       />
                       {t('app.settings.news.language.en')}
+                    </label>
+                  </div>
+                  <div className="radio">
+                    <label htmlFor="news-radio-selector-6">
+                      <input
+                        type="radio"
+                        tabIndex="-1"
+                        name="news"
+                        id="news-radio-selector-6"
+                        value="us"
+                        checked={this.state.componentsState.news.preferedCountry === 'us'}
+                        onChange={this.onNewsSelectionChanged}
+                      />
+                      {t('app.settings.news.language.us')}
+                    </label>
+                  </div>
+                  <div className="radio">
+                    <label htmlFor="news-radio-selector-7">
+                      <input
+                        type="radio"
+                        tabIndex="-1"
+                        name="news"
+                        id="news-radio-selector-7"
+                        value="gb"
+                        checked={this.state.componentsState.news.preferedCountry === 'gb'}
+                        onChange={this.onNewsSelectionChanged}
+                      />
+                      {t('app.settings.news.language.gb')}
                     </label>
                   </div>
                 </form>

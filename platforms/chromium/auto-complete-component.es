@@ -1,15 +1,11 @@
-import Search from "../autocomplete/search";
-import { utils } from "../core/cliqz";
-import autocomplete from "../autocomplete/autocomplete"
+/* eslint no-param-reassign: 'off' */
 
-export let background = {
+export const background = {
   init() { },
   unload() {}
 };
-export let Window = {
-    init(window) {
-      window.CliqzAutocomplete = autocomplete;
-      window.Search = Search;
-    },
-    unload(window) {}
-}
+export const Window = {
+  init() {
+  },
+  unload() {}
+};

@@ -1,7 +1,7 @@
-import BaseResult from './base';
+import BaseResult, { Subresult } from './base';
 import utils from '../../core/utils';
 
-class TextResult extends BaseResult {
+class TextResult extends Subresult {
   click(window, href, ev) {
     this.actions.copyToClipboard(this.rawResult.title);
     const el = ev.target;
@@ -18,7 +18,7 @@ class TextResult extends BaseResult {
   }
 }
 
-export class OfferResult extends BaseResult {
+export class OfferResult extends Subresult {
   get _offerData() {
     return this.rawResult.offerData;
   }
@@ -32,6 +32,12 @@ export class OfferResult extends BaseResult {
       url: this._offerData.url_ad,
       title: this._offerData.title,
       text: this.rawResult.text,
+      data: {
+        extra: {
+          offers_data: this._offerData,
+          is_injected_ad: true,
+        },
+      },
     });
   }
 
@@ -44,7 +50,7 @@ export class OfferResult extends BaseResult {
   }
 
   get promoCode() {
-    const result = new TextResult({
+    const result = new TextResult(this, {
       url: `cliqz-actions,${JSON.stringify({ type: 'offer', actionName: 'copy' })}`,
       text: this.rawResult.text,
       title: this._offerData.promo_code,
@@ -71,6 +77,7 @@ export default class OffersResult extends BaseResult {
     super(rawResult, allResultsFlat);
 
     this.style = offers.nonOrganicStyle;
+    this.locationEnabled = offers.locationEnabled;
   }
 
   get template() {
@@ -86,8 +93,7 @@ export default class OffersResult extends BaseResult {
   }
 
   get friendlyUrl() {
-    const urlDetails = utils.getDetailsFromUrl(this.url);
-    return urlDetails.friendly_url;
+    return this.rawResult.friendlyUrl || this.url;
   }
 
   get _offerData() {
