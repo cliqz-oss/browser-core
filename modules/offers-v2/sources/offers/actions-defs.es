@@ -10,6 +10,8 @@ all the signals keys
 const ActionID = {
   // New version names:
   //
+  // when the offer is added to the database for the first time
+  AID_OFFER_DB_ADDED: 'offer_added',
   // this signal will be sent whenever the trigger that has an offer to show on its
   // actions is executed / evaluated.
   AID_OFFER_TRIGGERED: 'offer_triggered',

@@ -709,12 +709,14 @@ export default describeModule('offers-v2/offers/offers-handler',
             });
           });
 
-          it('/check showing 3 times 3 will not show any other offer', function () {
+          it('/check adding 4 offers will still show another offer', function () {
             const offersList = [
               buildOffer('o1', 'cid1', 'client1', 0.9),
               buildOffer('o2', 'cid1', 'client1', 0.8),
               buildOffer('o3', 'cid2', 'client2', 0.7),
               buildOffer('o4', 'cid3', 'client3', 0.6),
+              buildOffer('o5', 'cid4', 'client', 0.6),
+              buildOffer('o6', 'cid5', 'client4', 0.6),
             ];
 
             const mockData = {
@@ -734,7 +736,41 @@ export default describeModule('offers-v2/offers/offers-handler',
                 'http://www.google.com',
               ];
               setActiveCategoriesFromOffers(offersList);
-              incOfferActions([offersList[0], offersList[1], offersList[2]], 'offer_dsp_session', 3);
+              incOfferActions([offersList[0], offersList[1], offersList[2], offersList[3]], 'offer_dsp_session', 1);
+              return simulateUrlEventsAndWait(urls).then(() => {
+                checkOfferPushed('o1');
+              });
+            });
+          });
+
+          it('/check adding 5 offers will not show any other offer after', function () {
+            const offersList = [
+              buildOffer('o1', 'cid1', 'client1', 0.9),
+              buildOffer('o2', 'cid1', 'client1', 0.8),
+              buildOffer('o3', 'cid2', 'client2', 0.7),
+              buildOffer('o4', 'cid3', 'client3', 0.6),
+              buildOffer('o5', 'cid4', 'client', 0.6),
+              buildOffer('o6', 'cid5', 'client4', 0.6),
+            ];
+
+            const mockData = {
+              backendResult: { 'intent-1': offersList },
+            };
+            configureMockData(mockData);
+
+            // activate intents
+            const intents = [
+              { name: 'intent-1', active: true },
+            ];
+            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
+
+            // wait for the fetch
+            return waitForBEPromise().then(() => {
+              const urls = [
+                'http://www.google.com',
+              ];
+              setActiveCategoriesFromOffers(offersList);
+              incOfferActions([offersList[0], offersList[1], offersList[2], offersList[3], offersList[4]], 'offer_dsp_session', 1);
               return simulateUrlEventsAndWait(urls).then(() => {
                 // check that we could push the
                 checkZeroOfferPushed();
