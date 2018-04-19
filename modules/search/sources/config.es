@@ -20,7 +20,7 @@ const searchConfig = {
       order: 2,
     },
     historyView: {
-      isEnabled: config.modules.includes('history'),
+      isEnabled: true,
       order: 3,
     },
     cliqz: {

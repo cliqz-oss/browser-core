@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Control Center Debug</title>
+  </head>
+  <body>
+    <iframe class="control-center" width="390px" height="440px" src="./index.html"></iframe>
+    <iframe class="control-center" width="390px" height="440px" src="./index.html"></iframe>
+    <iframe class="control-center" width="390px" height="440px" src="./index.html"></iframe>
+    <iframe class="control-center" width="390px" height="440px" src="./index.html?pageAction=true"></iframe>
+    <script>
+        var DATA = [];
+    </script>
+    <script src="debug/browser.js"></script>
+    <script src="debug/amo.js"></script>
+    <script src="debug/funnelcake.js"></script>
+    <script src="debug/funnelcake-action.js"></script>
+    <script>
+      function resize(iframe, obj) {
+        iframe.style.width = obj.width + "px";
+        iframe.style.height = obj.height + "px";
+      }
+
+      var all = document.getElementsByClassName('control-center');
+
+      Array.prototype.forEach.call(all, function(node, idx) {
+        node.contentWindow.addEventListener("message", function (ev) {
+        var data = JSON.parse(ev.data);
+        if(data.target == 'cliqz-control-center' &&
+           data.origin == 'iframe'){
+          if (data.message.action === "resize") {
+            resize(node, data.message.data);
+          }
+          if (data.message.action === "getEmptyFrameAndData") {
+            node.contentWindow.postMessage(JSON.stringify({
+              target: "cliqz-control-center",
+              origin: "window",
+              message: {
+                action: "pushData",
+                data: DATA[idx]
+              },
+            }), "*");
+          }
+        }
+      });
+      });
+    </script>
+  </body>
+</html>

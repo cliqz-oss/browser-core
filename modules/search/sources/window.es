@@ -84,12 +84,6 @@ export default class SearchWindow extends AppWindow {
       window: this.window,
       providers: {
         ...DEFAULT_CONFIG.providers,
-        historyView: {
-          order: DEFAULT_CONFIG.providers.historyView.order,
-          get isEnabled() {
-            return prefs.get('modules.history.enabled', DEFAULT_CONFIG.providers.history.isEnabled);
-          },
-        },
         'query-suggestions': {
           get isEnabled() {
             return !utils.isPrivateMode(this.window)

@@ -1,4 +1,4 @@
-import BaseResult, { Subresult } from './base';
+import BaseResult from './base';
 import GenericResult from './generic';
 import utils from '../../core/utils';
 import config from '../../core/config';
@@ -36,7 +36,7 @@ class ExpandButton extends BaseResult {
   }
 }
 
-class LiveTickerResult extends Subresult {
+class LiveTickerResult extends BaseResult {
   get locale() {
     return utils.getLocalizedString('locale_lang_code');
   }
@@ -110,7 +110,7 @@ class LiveTickerRound extends GenericResult {
   }
 
   get allResults() {
-    return this.rawResult.week.matches.map(match => new LiveTickerResult(this, {
+    return this.rawResult.week.matches.map(match => new LiveTickerResult({
       match,
       text: this.rawResult.text,
       url: match.live_url,
@@ -208,7 +208,7 @@ class TableGroup extends BaseResult {
   }
 }
 
-class SoccerSubResult extends Subresult {
+class SoccerSubResult extends BaseResult {
 }
 
 export default class SoccerResult extends GenericResult {
@@ -294,7 +294,7 @@ export default class SoccerResult extends GenericResult {
   }
 
   get ligaEZ1Game() {
-    const results = this.extra.matches.map(match => new LiveTickerResult(this, {
+    const results = this.extra.matches.map(match => new LiveTickerResult({
       match,
       text: this.query,
       url: match.live_url,
@@ -343,7 +343,7 @@ export default class SoccerResult extends GenericResult {
       return null;
     }
 
-    return new SoccerSubResult(this, {
+    return new SoccerSubResult({
       url: this.extra.url,
       title: this.extra.title,
       text: this.query,
@@ -384,7 +384,7 @@ export default class SoccerResult extends GenericResult {
   }
 
   get poweredByResult() {
-    return new Subresult(this, {
+    return new BaseResult({
       url: 'http://www.kicker.de/',
       title: 'soccer-powered-by',
       text: this.query,

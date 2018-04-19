@@ -17,7 +17,6 @@ import { fetchFactory } from '../platform/fetch';
 import { isWindows, isLinux, isMac, isMobile } from './platform';
 import i18n, { getMessage, getLanguageFromLocale } from './i18n';
 import historySearch from '../platform/history/search';
-import { getDefaultEngineSuggestionUrl } from './search-engines';
 
 
 const VERTICAL_ENCODINGS = {
@@ -477,6 +476,8 @@ const CliqzUtils = {
   getBackendResults(q, params = {}) {
     const url = CliqzUtils.RESULTS_PROVIDER + CliqzUtils.getResultsProviderQueryString(q, params);
     const fetch = CliqzUtils.fetchFactory();
+    const suggestionChoice = CliqzUtils.getPref('suggestionChoice', 0);
+    const isPrivateMode = CliqzUtils.isPrivateMode();
 
     CliqzUtils._sessionSeq += 1;
 
@@ -494,6 +495,7 @@ const CliqzUtils = {
     const backendPromise = fetch(url, privacyOptions)
       .then(res => res.json())
       .then((response) => {
+        // Logic for offer experiment
         if (prefs.get('myoffrz.experiments.001.position', 'first') === 'last') {
           const offerResults = response.results.filter(r => r.template === 'offer');
           const nonOfferResults = response.results.filter(r => r.template !== 'offer');
@@ -505,12 +507,26 @@ const CliqzUtils = {
         }
         if ((response.results && (response.results.length > 0 || !config.settings.suggestions))
           || (response.offers && response.offers.length > 0)) {
+          if (suggestionChoice === 1 && !isPrivateMode) {
+            if (response.suggestions && response.suggestions.length > 0) {
+              response.results = response.results.concat([{
+                url: config.settings.CLIQZ_SAVE_URL + q,
+                template: 'inline-suggestion',
+                type: 'suggestion',
+                snippet: {
+                  suggestions: response.suggestions.filter(r => r !== q),
+                  source: 'Cliqz'
+                }
+              }]);
+            }
+          }
           return {
             response,
             query: q
           };
+        } else if (config.settings.suggestions && (suggestionChoice === 2)) {
+          return CliqzUtils.getSuggestions(q);
         }
-
         return {
           response: {
             results: [],
@@ -526,15 +542,37 @@ const CliqzUtils = {
 
   historySearch,
 
-  getSuggestions(query) {
-    const url = getDefaultEngineSuggestionUrl(query);
+  getSuggestions(q) {
+    const searchDataType = 'application/x-suggestions+json';
+    const defaultEngine = CliqzUtils.getDefaultSearchEngine();
     const fetch = CliqzUtils.fetchFactory();
-    if (url) {
-      return fetch(url, { credentials: 'omit', cache: 'no-store' }).then(res => res.json());
-    }
-    return Promise.resolve([query, []]);
-  },
+    const submissionUrl = defaultEngine.getSubmissionForQuery(q, searchDataType);
 
+    if (submissionUrl) {
+      return fetch(submissionUrl)
+        .then(res => res.json())
+        .then(response =>
+          ({
+            response: {
+              results: response[1].filter(r => r !== q).map(_q =>
+                ({
+                  url: defaultEngine.getSubmissionForQuery(q),
+                  template: 'suggestion',
+                  type: 'suggestion',
+                  snippet: { suggestion: _q }
+                })
+              )
+            },
+            query: response[0]
+          })
+        );
+    }
+    // there is no suggestion URL for the default search Engine
+    return Promise.resolve({
+      response: { results: [] },
+      query: q
+    });
+  },
   setDefaultIndexCountry(country) {
     const supportedCountries = JSON.parse(CliqzUtils.getPref('config_backends', '["de"]'));
     if (supportedCountries.indexOf(country) !== -1) {

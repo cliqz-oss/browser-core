@@ -28,7 +28,7 @@ export const DEFAULTS = {
   bloomFilterEnabled: true,
   telemetryMode: TELEMETRY.ALL,
   sendAntiTrackingHeader: true,
-  blockCookieNewToken: false,
+  blockCookieNewToken: true,
   tpDomainDepth: 2,
 };
 

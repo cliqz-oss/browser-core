@@ -168,7 +168,9 @@ const CLIQZEnvironment = {
     return util.outerWindowID;
   },
   openTabInWindow(win, url, relatedToCurrent = false) {
-    win.gBrowser.selectedTab = win.gBrowser.addTab(url, { relatedToCurrent });
+    const tBrowser = win.document.getElementById('content');
+    const tab = tBrowser.addTab(url, { relatedToCurrent });
+    tBrowser.selectedTab = tab;
   },
   // TODO: move this
   trk: [],
@@ -308,15 +310,9 @@ const CLIQZEnvironment = {
       })
       );
   },
-  _waitForSearchService() {
-    return Services.search.init ?
-      new Promise(resolve => Services.search.init(resolve)) :
-      Promise.resolve();
-  },
+
   updateAlias(name, newAlias) {
-    CLIQZEnvironment._waitForSearchService().then(() => {
-      Services.search.getEngineByName(name).alias = newAlias;
-    });
+    Services.search.getEngineByName(name).alias = newAlias;
   },
   getEngineByAlias(alias) {
     return CLIQZEnvironment.getSearchEngines().find(engine => engine.alias === alias);
@@ -325,30 +321,27 @@ const CLIQZEnvironment = {
     return CLIQZEnvironment.getSearchEngines().find(engine => engine.name === name);
   },
   addEngineWithDetails(engine) {
-    CLIQZEnvironment._waitForSearchService().then(() => {
-      const existedEngine = Services.search.getEngineByName(engine.name);
-      if (existedEngine) {
-        // Update the engine alias in case it has been removed
-        if (!existedEngine.alias) {
-          existedEngine.alias = engine.key;
-        }
-
-        return;
+    const existedEngine = Services.search.getEngineByName(engine.name);
+    if (existedEngine) {
+      // Update the engine alias in case it has been removed
+      if (!existedEngine.alias) {
+        existedEngine.alias = engine.key;
       }
 
-      Services.search.addEngineWithDetails(
-        engine.name,
-        engine.iconURL,
-        engine.key,
-        engine.name,
-        engine.method,
-        engine.url
-      );
-      if (engine.encoding) {
-        Services.search.getEngineByName(engine.name)
-          .wrappedJSObject._queryCharset = engine.encoding;
-      }
-    });
+      return;
+    }
+
+    Services.search.addEngineWithDetails(
+      engine.name,
+      engine.iconURL,
+      engine.key,
+      engine.name,
+      engine.method,
+      engine.url
+    );
+    if (engine.encoding) {
+      Services.search.getEngineByName(engine.name).wrappedJSObject._queryCharset = engine.encoding;
+    }
   },
 
   restoreHiddenSearchEngines() {
@@ -357,20 +350,19 @@ const CLIQZEnvironment = {
       youtube: '#yt',
       'youtube-de': '#yt',
     };
-    CLIQZEnvironment._waitForSearchService().then(() => {
-      Services.search.getEngines().forEach((e) => {
-        if (e.hidden === true) {
-          e.hidden = false;
-          // Restore the alias as well
-          if (!e.alias && e.identifier) {
-            if (SEARCH_ENGINE_ALIAS[e.identifier]) {
-              e.alias = SEARCH_ENGINE_ALIAS[e.identifier];
-            } else {
-              e.alias = `#${e.identifier.toLowerCase().substring(0, 2)}`;
-            }
+
+    Services.search.getEngines().forEach((e) => {
+      if (e.hidden === true) {
+        e.hidden = false;
+        // Restore the alias as well
+        if (!e.alias && e.identifier) {
+          if (SEARCH_ENGINE_ALIAS[e.identifier]) {
+            e.alias = SEARCH_ENGINE_ALIAS[e.identifier];
+          } else {
+            e.alias = `#${e.identifier.toLowerCase().substring(0, 2)}`;
           }
         }
-      });
+      }
     });
   },
   /*
