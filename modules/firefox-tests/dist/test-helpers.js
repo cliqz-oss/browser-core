@@ -183,12 +183,7 @@ function injectTestHelpers(CliqzUtils, loadModule) {
   window.respondWithSuggestions = function respondWithSuggestions(options) {
     options = options || {};
     CliqzUtils.getSuggestions = function () {
-      return Promise.resolve({
-        query: options.query,
-        response: {
-          results: options.results,
-        }
-      });
+      return Promise.resolve([options.query, options.results]);
     };
   };
 

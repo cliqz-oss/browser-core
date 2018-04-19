@@ -1,20 +1,11 @@
 import Rx from '../../platform/lib/rxjs';
-import { fetch as f } from '../../core/http';
-import { getDefaultEngineSuggestionUrl } from '../../core/search-engines';
 import BaseProvider from './base';
 import { getResponse } from '../responses';
+import utils from '../../core/utils';
 
 export default class QuerySuggestionProvider extends BaseProvider {
   constructor() {
     super('query-suggestions');
-  }
-
-  fetch(query) {
-    const url = getDefaultEngineSuggestionUrl(query);
-    if (url) {
-      return f(url).then(res => res.json());
-    }
-    return Promise.resolve([query, []]);
   }
 
   suggestionsNotAllowed(query, params) {
@@ -34,7 +25,7 @@ export default class QuerySuggestionProvider extends BaseProvider {
     }
 
     return Rx.Observable
-      .fromPromise(this.fetch(query))
+      .fromPromise(utils.getSuggestions(query))
       .map(([q, suggestions]) => (getResponse(
         this.id,
         config,

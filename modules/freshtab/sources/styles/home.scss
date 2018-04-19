@@ -327,5 +327,20 @@ body {
             }
         }
     }
+
+    &.theme-bg-dark,
+    &.theme-bg-blue {
+        #app {
+            #main-content {
+                .fixed-container {
+                    #section-middle {
+                        .anzeige {
+                            color: rgba(255, 255, 255, 0.5);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 

@@ -42,6 +42,7 @@ export default class Footer extends React.Component {
             data-tip={this.props.data.conditions}
             src="./images/info-icon-hover.svg"
             alt={t('app.conditions')}
+            onMouseOver={this.handleHover}
           />
           <a
             href={this.props.data.call_to_action.url}

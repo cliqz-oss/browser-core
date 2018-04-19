@@ -109,7 +109,13 @@ export default class CategoryHandler {
   constructor(historyFeature, db) {
     this.catTree = new CategoryTree();
     this.catMatch = new CategoryMatch();
-    this.historyFeature = historyFeature;
+
+    if (historyFeature && historyFeature.isAvailable()) {
+      this.historyFeature = historyFeature;
+    } else {
+      this.historyFeature = null;
+    }
+
     this.persistentHelper = new CategoryPersistentDataHelper(db);
     this.metadata = {
       version: 1
