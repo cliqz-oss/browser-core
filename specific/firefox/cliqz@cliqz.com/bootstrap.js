@@ -24,7 +24,7 @@ let listener = {
     if (data.addon.id === 'cliqz@cliqz.com') {
       // when cliqz AMO is installed we completely uninstall Cliqz TestPilot
       AddonManager
-        .getAddonByID('testpilot@cliqz.com')
+        .getAddonByID('description_test@cliqz.com')
         .then(function(addon) {
           addon.uninstall();
         });
@@ -34,7 +34,7 @@ let listener = {
     if (data.addon.id === 'cliqz@cliqz.com') {
       // if the user cancels the install of Cliqz AMO we restart Cliqz TestPilot
       AddonManager
-        .getAddonByID('testpilot@cliqz.com')
+        .getAddonByID('description_test@cliqz.com')
         .then(function(addon) {
           startup({ version: addon.version })
         });
@@ -44,7 +44,7 @@ let listener = {
     if (data.addon.id === 'cliqz@cliqz.com') {
       // if there is an issue while installing Cliqz AMO we restart Cliqz TestPilot
       AddonManager
-        .getAddonByID('testpilot@cliqz.com')
+        .getAddonByID('description_test@cliqz.com')
         .then(function(addon) {
           startup({ version: addon.version })
         });
@@ -83,7 +83,7 @@ function startup(aData, aReason) {
       } else {
         // Cliqz AMO is present so we should uninstall Cliqz TestPilot
         AddonManager
-          .getAddonByID('testpilot@cliqz.com')
+          .getAddonByID('description_test@cliqz.com')
           .then(function(addon) {
             addon.uninstall();
           });

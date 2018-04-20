@@ -434,12 +434,6 @@ var CliqzABTests = {
             case "1111_B":
                 CliqzUtils.setPref("modules.history-analyzer.enabled", true);
                 break;
-            case "1113_A":
-                CliqzUtils.setPref("retirement.position", "top");
-                break;
-            case "1113_B":
-                CliqzUtils.setPref("retirement.position", "bottom");
-                break;
             default:
                 rule_executed = false;
         }
@@ -728,10 +722,6 @@ var CliqzABTests = {
             case "1111_A":
             case "1111_B":
                 CliqzUtils.setPref("modules.history-analyzer.enabled", false);
-                break;
-            case "1113_A":
-            case "1113_B":
-                CliqzUtils.clearPref("retirement.position");
                 break;
             default:
                 rule_executed = false;

@@ -20,13 +20,25 @@ class CloseButton extends BaseResult {
   }
 }
 
+class MoreButton extends BaseResult {
+  click(window, href, ev) {
+    utils.telemetry({
+      type: 'retirement',
+      target: 'tp',
+      action: 'more'
+    });
+
+    super.click(window, href, ev);
+  }
+}
+
 export default class RetirementResult extends GenericResult {
   constructor(rawResult, allResultsFlat = []) {
     super(rawResult, allResultsFlat);
   }
 
   click(window, href, ev) {
-    if (href.indexOf('cliqz-actions,{"type":"retirement"') !== 0) {
+    if (href === this.url) {
       // if this is not a click on close it must be on install
       utils.telemetry({
         type: 'retirement',
@@ -47,29 +59,30 @@ export default class RetirementResult extends GenericResult {
 
   get selectableResults() {
     // we only allow it to be selectable when it's at the bottom of the result set
-    return prefs.get('retirement.position', 'bottom') === 'top' ? [] : [this];
+    return [];
   }
 
   get headline() {
     let date;
     switch (prefs.get('config_ts', '-')) {
-      case '20180415':
-        date = utils.getLocalizedString('retirement.testpilot.headline.tomorrow');
+      case '20180507':
+        date = utils.getLocalizedString('retirement.chip.headline.tomorrow');
         break;
-      case '20180416':
-        date = utils.getLocalizedString('retirement.testpilot.headline.today');
+      case '20180508':
+        date = utils.getLocalizedString('retirement.chip.headline.today');
         break;
       default:
-        date = utils.getLocalizedString('retirement.testpilot.headline.date');
+        date = utils.getLocalizedString('retirement.chip.headline.date');
     }
 
-    return utils.getLocalizedString('retirement.testpilot.headline', date);
+    return utils.getLocalizedString('retirement.chip.headline', date);
   }
 
   get allResults() {
     return [
       this,
-      this.closeButton
+      this.closeButton,
+      this.moreButton
     ];
   }
 
@@ -79,6 +92,14 @@ export default class RetirementResult extends GenericResult {
       url: `cliqz-actions,${JSON.stringify({ type: 'retirement', actionName: 'close' })}`,
     });
     btn.parent = this;
+    return btn;
+  }
+
+  get moreButton() {
+    const btn = new MoreButton({
+      title: 'more-button',
+      url: utils.getLocalizedString('retirement.chip.more.url')
+    });
     return btn;
   }
 }

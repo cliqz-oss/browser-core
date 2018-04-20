@@ -1922,22 +1922,28 @@
     "freshtab.app.offer.info": {
         "message": "Mehr Info"
     },
-    "retirement.testpilot.headline": {
-        "message": "Achtung! Das Firefox Test Pilot Experiment “Cliqz” endet $1."
+    "retirement.chip.headline": {
+        "message": "Diese integrierte Suchfunktion wird $1 eingestellt."
     },
-    "retirement.testpilot.headline.date": {
-        "message": "am 16. April"
+    "retirement.chip.headline.date": {
+        "message": "am 8. Mai"
     },
-    "retirement.testpilot.headline.tomorrow": {
+    "retirement.chip.headline.tomorrow": {
         "message": "morgen"
     },
-    "retirement.testpilot.headline.today": {
+    "retirement.chip.headline.today": {
         "message": "heute"
     },
-    "retirement.testpilot.content": {
-        "message" : "Möchten Sie diese direkten Suchvorschläge weiter nutzen? Dann holen Sie sich jetzt kostenlos das Cliqz Add-on."
+    "retirement.chip.content": {
+        "message" : "Möchten Sie die integrierte Suche und Anti-Tracking Funktion, bereitgestellt von Cliqz, weiter nutzen? Dann holen Sie sich jetzt kostenlos das Cliqz Add-on."
     },
-    "retirement.testpilot.action": {
+    "retirement.chip.more": {
+        "message" : "Mehr ernfahren"
+    },
+    "retirement.chip.more.url": {
+        "message" : "https://support.mozilla.org/de/kb/cliqz-vorschlage-firefox"
+    },
+    "retirement.chip.action": {
         "message" : "Jetzt Installieren"
     },
     "TEST": {
