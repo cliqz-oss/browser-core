@@ -499,34 +499,6 @@ export default describeModule('offers-v2/offers/offers-monitoring',
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
           });
 
-          it('/ensure special characters with upper and lower case are matched always', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
-            const monitors = [{
-              signalID: 's1',
-              type: 'urlchange',
-              params: null,
-              patterns: [
-                'hällö$fuzzy,domain=google.de',
-                'àgüstï3n përęz$fuzzy,domain=google.de',
-                '||google.de/search?*ägustín*',
-              ]
-            }];
-            const evts = [
-              { u: "https://google.de/H%C3%84ll%C3%B6" },
-              { u: "https://google.de/H%C3%84ll%C3%96" },
-              { u: "https://google.de/H%C3%A4ll%C3%B6" },
-              { u: 'https://www.google.de/search?source=hp&ei=Vy-pWu_jL8LQkwWQyZDwBg&q=%C3%80g%C3%BCst%C3%AFn+p%C3%8Br%C4%99z&oq=%C3%80g%C3%BCst%C3%AFn+p%C3%8Br%C4%99z&gs_l=psy-ab.3...2196.40574.0.48408.41.31.10.0.0.0.242.4666.1j25j4.30.0....0...1c.1.64.psy-ab..1.27.3440...0j38j0i131k1j0i19k1j0i30i19k1j0i5i30i19k1j0i10i30i19k1j33i160k1.0.m0crLgRYbRA'},
-              { u: 'https://www.google.de/search?client=firefox-b-ab&dcr=0&ei=jDaqWvqEB4PsUsLgvcgH&q=%C3%A4gust%C3%ADn&oq=%C3%A4gust%C3%ADn&gs_l=psy-ab.3..38l4.1020.1784.0.2102.3.3.0.0.0.0.144.418.0j3.3.0....0...1c.1.64.psy-ab..0.2.272....0.8wNlF5OJ1n4'},
-              // { u: 'https://google.de/HÄllö' },
-              // { u: 'https://google.de/HÄllÖ' },
-              // { u: 'https://google.de/Hällö' },
-            ];
-
-            const mo = buildAndAddOffer(offer, monitors);
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 5);
-          });
-
           // /one offer N simple monitors works
           it('/one offer N simple monitors works', function () {
             const offer = { offer_id: 'HC1', cid: 'cid' };

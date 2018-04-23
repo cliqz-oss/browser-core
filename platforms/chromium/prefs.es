@@ -22,7 +22,6 @@ function syncToStorage() {
 
 export function getPref(prefKey, notFound) {
   if (!initialised) {
-    console.warn(`loading pref ${prefKey} before prefs were initialised, you will not get the correct result`);
     return prefs[prefKey] || notFound;
   }
   if (prefs && prefs[prefKey] !== undefined) {

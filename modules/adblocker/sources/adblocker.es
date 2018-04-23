@@ -18,6 +18,7 @@ import AdbStats from './adb-stats';
 import FiltersLoader, { FiltersList } from './filters-loader';
 import logger from './logger';
 
+import Pipeline from '../webrequest-pipeline/pipeline';
 
 // adb version
 export const ADB_VERSION = 12;
@@ -369,6 +370,7 @@ const CliqzADB = {
   urlWhitelist: new UrlWhitelist('adb-blacklist'),
   humanWeb: null,
   paused: false,
+  pipeline: null,
 
   adbEnabled() {
     // 0 = Disabled
@@ -418,6 +420,24 @@ const CliqzADB = {
         useCountryList: prefs.get(ADB_USER_LANG, DEFAULT_OPTIONS.useCountryList),
       });
 
+      CliqzADB.pipeline = new Pipeline('adblocker', [
+        {
+          name: 'checkContext',
+          spec: 'blocking',
+          fn: CliqzADB.stepCheckContext,
+        },
+        {
+          name: 'checkWhitelist',
+          spec: 'break',
+          fn: CliqzADB.stepCheckWhitelist,
+        },
+        {
+          name: 'checkBlocklist',
+          spec: 'blocking',
+          fn: CliqzADB.stepCheckBlockList,
+        },
+      ]);
+
       return CliqzADB.adBlocker.init().then(() => {
         CliqzADB.initPacemaker();
         return CliqzADB.webRequestPipeline.action('addPipelineStep',
@@ -425,7 +445,7 @@ const CliqzADB = {
           {
             name: 'adblocker',
             spec: 'blocking',
-            fn: CliqzADB.adblockerPipelineStep,
+            fn: (...args) => CliqzADB.pipeline.execute(...args),
             before: ['antitracking.onBeforeRequest'],
           },
         );
@@ -481,9 +501,9 @@ const CliqzADB = {
     CliqzADB.timers.forEach(utils.clearTimeout);
   },
 
-  adblockerPipelineStep(state, response) {
+  stepCheckContext(state, response) {
     if (!(CliqzADB.adbEnabled() && CliqzADB.adblockInitialized)) {
-      return true;
+      return false;
     }
 
     // Due to unbreakable pipelines, blocked requests might still come to
@@ -496,27 +516,36 @@ const CliqzADB = {
 
 
     if (!url || !isSupportedProtocol(url)) {
-      return true;
+      return false;
     }
 
     // This is the Url
     const sourceUrl = state.sourceUrl || '';
     if (!isSupportedProtocol(sourceUrl)) {
-      return true;
+      return false;
     }
 
     if (state.cpt === 6) {
       // Loading document
       CliqzADB.adbStats.addNewPage(sourceUrl, state.tabId);
-      return true;
+      return false;
     }
 
+    return true;
+  },
+
+  stepCheckWhitelist(state) {
+    const sourceUrl = state.sourceUrl || '';
     // We do it here because the Adblocker might be used by other modules
     // (like green-ads), and they should not be subjected to whitelists.
     if (CliqzADB.urlWhitelist.isWhitelisted(sourceUrl)) {
-      return true;
+      return false;
     }
+    return true;
+  },
 
+  stepCheckBlockList(state, response) {
+    const { sourceUrl, url } = state;
     const result = CliqzADB.adBlocker.match({
       sourceUrl,
       url,

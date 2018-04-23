@@ -38,13 +38,12 @@ import DBReplacer from './jobs/db-replacer';
 import HardFilters from './jobs/hard-filters';
 import Prioritizer from './jobs/prioritizer';
 import ContextFilter from './jobs/context-filters';
-import ActionID from './actions-defs';
 
 
 // /////////////////////////////////////////////////////////////////////////////
 //                              Constants
 // /////////////////////////////////////////////////////////////////////////////
-const MAX_NUM_OFFERS_PER_DAY = 5;
+const MAX_NUM_OFFERS_PER_DAY = 3;
 
 // /////////////////////////////////////////////////////////////////////////////
 //                              Helper methods
@@ -76,7 +75,7 @@ const executeJobList = (jobList, offersList, ctx, idx = 0) => {
  */
 const shouldWeShowAnyOffer = offersGeneralStats =>
   // check that we didnt reached the max num of offers per day
-  offersGeneralStats.offersAddedToday() < MAX_NUM_OFFERS_PER_DAY;
+  offersGeneralStats.offersDisplayedToday() < MAX_NUM_OFFERS_PER_DAY;
 
 
 /**
@@ -273,10 +272,6 @@ export default class OffersHandler {
     } else if (message.evt === 'offers-db-loaded') {
       const allOffersMeta = this.offersDB.getOffers({ includeRemoved: true });
       this.offersGeneralStats.buildFromOffers(allOffersMeta);
-    } else if (message.evt === 'offer-added') {
-      // we will add the action to the offer to keep track of it
-      const offerID = message.offer.offer_id;
-      this.offersDB.incOfferAction(offerID, ActionID.AID_OFFER_DB_ADDED);
     }
   }
 

@@ -56,7 +56,7 @@ export default class UrlData {
 
   getPatternRequest() {
     if (this.patternsRequest === null) {
-      this.patternsRequest = tokenizeUrl(this.getLowercaseUrl());
+      this.patternsRequest = tokenizeUrl(this.rawUrl);
     }
     return this.patternsRequest;
   }

@@ -23,21 +23,11 @@ const addOfferOnSetDayMap = (map, day, offerID) => {
 };
 
 /**
- * check if the offer come from dropdown or not
- */
-const isDropdownOffer = offerObj =>
-  offerObj &&
-  offerObj.rs_dest &&
-  offerObj.rs_dest.length === 1 &&
-  offerObj.rs_dest[0] === 'dropdown';
-
-
-/**
  * OffersGeneralStats class
  */
 export default class OffersGeneralStats {
   constructor(offersDB) {
-    this.addedPerDayMap = new Map();
+    this.displayPerDayMap = new Map();
     this.offersDB = offersDB;
   }
 
@@ -45,7 +35,7 @@ export default class OffersGeneralStats {
    * whenever we get a new action for an offer
    */
   newOfferAction({ offer }) {
-    this._checkOfferAdded(offer.offer_id, offer);
+    this._checkOfferDisplayed(offer.offer_id);
   }
 
   /**
@@ -71,12 +61,12 @@ export default class OffersGeneralStats {
   // ///////////////////////////////////////////////////////////////////////////
 
   /**
-   * will return the number of offers added today
+   * will return the number of offers shown today
    */
-  offersAddedToday() {
+  offersDisplayedToday() {
     const today = todayTs();
-    return this.addedPerDayMap.has(today) ?
-      this.addedPerDayMap.get(today).size :
+    return this.displayPerDayMap.has(today) ?
+      this.displayPerDayMap.get(today).size :
       0;
   }
 
@@ -84,17 +74,17 @@ export default class OffersGeneralStats {
   //                            Private methods
   //
 
-  _checkOfferAdded(offerID, offerObj) {
-    // we will check if the offer was added today
-    const addedActionCont = this.offersDB.getOfferActionMeta(offerID,
-      ActionID.AID_OFFER_DB_ADDED);
-    if (addedActionCont && !isDropdownOffer(offerObj)) {
-      const dayAddedTs = dayTs(addedActionCont.l_u_ts);
-      addOfferOnSetDayMap(this.addedPerDayMap, dayAddedTs, offerID);
+  _checkOfferDisplayed(offerID) {
+    // we will check if the offer was shown today
+    const displayedActionCont = this.offersDB.getOfferActionMeta(offerID,
+      ActionID.AID_OFFER_DISPLAY_SESSION);
+    if (displayedActionCont) {
+      const dayDisplayedTs = dayTs(displayedActionCont.l_u_ts);
+      addOfferOnSetDayMap(this.displayPerDayMap, dayDisplayedTs, offerID);
     }
   }
 
   _clear() {
-    this.addedPerDayMap.clear();
+    this.displayPerDayMap.clear();
   }
 }
