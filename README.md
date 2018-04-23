@@ -69,7 +69,7 @@ Examples:
 * `./fern.js build ./configs/browser.js`
 * `./fern.js build ./configs/mobile.json`
 
-##Custom prefs
+## Custom prefs
 
 If you want to load your browser with predefined prefs all you have to do is create a .custom-prefs.json file in the root folder and add your custom prefs there.
 
