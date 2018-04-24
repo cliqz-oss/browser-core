@@ -262,7 +262,14 @@ export function disableChangeEvents() {
 }
 
 export function getLang() {
-  return prefs.get('general.useragent.locale', 'en', '');
+  try {
+    // we need to use Services.locale.defaultLocale starting with
+    // Firefox 60 as the other pref was removed
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1414390
+    return prefs.get('general.useragent.locale', Services.locale.defaultLocale, '');
+  } catch (e) {
+    return 'en';
+  }
 }
 
 // resolve only on Idle Callback if available
