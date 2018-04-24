@@ -16,13 +16,13 @@ TELEMETRY_SIGNAL[ADDON_DOWNGRADE] = 'addon_downgrade';
 let listener = {
   onDownloadEnded(data) {
     if (data.addon.id === 'cliqz@cliqz.com') {
-      // when Cliqz AMO is downloaded we turn off Cliqz TestPilot
+      // when Cliqz AMO is downloaded we turn off the Chip experiment
       _shutdown(null, ADDON_DISABLE);
     }
   },
-  onInstallEnded(data) {
+  onInstallStarted(data) {
     if (data.addon.id === 'cliqz@cliqz.com') {
-      // when cliqz AMO is installed we completely uninstall Cliqz TestPilot
+      // when cliqz AMO is installed we completely uninstall the Chip experiment
       AddonManager
         .getAddonByID('description_test@cliqz.com')
         .then(function(addon) {
@@ -32,7 +32,7 @@ let listener = {
   },
   onInstallCancelled(data) {
     if (data.addon.id === 'cliqz@cliqz.com') {
-      // if the user cancels the install of Cliqz AMO we restart Cliqz TestPilot
+      // if the user cancels the install of Cliqz AMO we restart the Chip experiment
       AddonManager
         .getAddonByID('description_test@cliqz.com')
         .then(function(addon) {
@@ -42,7 +42,7 @@ let listener = {
   },
   onInstallFailed(data) {
     if (data.addon.id === 'cliqz@cliqz.com') {
-      // if there is an issue while installing Cliqz AMO we restart Cliqz TestPilot
+      // if there is an issue while installing Cliqz AMO we restart the Chip experiment
       AddonManager
         .getAddonByID('description_test@cliqz.com')
         .then(function(addon) {
@@ -81,7 +81,7 @@ function startup(aData, aReason) {
         // no Cliqz AMO present so we can start
         _startup(aData, aReason);
       } else {
-        // Cliqz AMO is present so we should uninstall Cliqz TestPilot
+        // Cliqz AMO is present so we should uninstall the Chip experiment
         AddonManager
           .getAddonByID('description_test@cliqz.com')
           .then(function(addon) {
