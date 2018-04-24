@@ -7,7 +7,7 @@ const reactLibs = require('./common/subprojects/react');
 
 module.exports = {
   "platform": "firefox",
-  "baseURL": "chrome://cliqz/content/",
+  "baseURL": "resource://cliqz/",
   "testsBasePath": "./build/cliqz@cliqz.com/chrome/content",
   "testem_launchers": ["unit-node", "Chrome"],
   "testem_launchers_ci": ["unit-node"],
