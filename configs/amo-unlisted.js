@@ -74,8 +74,7 @@ module.exports = {
     "control-center",
     "offers-v2",
     "browser-panel",
-    "message-center",
-    "offboarding"
+    "message-center"
   ],
   "subprojects": [
     {
