@@ -27,7 +27,6 @@ export default {
                 },
                 {
                   'extra': {
-                    'duration': 36,
                     'thumbnail': 'https://i.ytimg.com/vi/5xMXQLoEGCg/hqdefault.jpg',
                     'views': '1365327'
                   },
@@ -95,6 +94,47 @@ export default {
         'type': 'cliqz-extra',
         'text': 'yout',
         'maxNumberOfSlots': 3
+      },
+      {
+         "url":"https://www.youtube.com/watch?v=f0UB06v7yLY",
+         'friendlyUrl': 'youtube.com/watch',
+         "href":"https://www.youtube.com/watch?v=f0UB06v7yLY",
+         "title":"Donald Trump's best lines during his 2016 speech",
+         "description":"Donald Trump announced he is running for president; here are some of the best lines from his speech.",
+         "kind":[
+            "v"
+         ],
+         "provider":"cliqz",
+         "template":"single-video",
+         "text":"youtb donald trump",
+         "type":"bm",
+         "meta":{  },
+         "data":{
+            "deepResults":[
+
+            ],
+            "extra":{
+               "rich_data":{
+                  "duration":132,
+                  "views":"1212054",
+                  "thumbnail": "https://i.ytimg.com/vi/f0UB06v7yLY/mqdefault.jpg"
+               },
+               "image":{
+                  "src":"https://i.ytimg.com/vi/f0UB06v7yLY/default.jpg"
+               },
+               "alternatives":[
+
+               ],
+               "m_url":"https://m.youtube.com/watch?v=f0UB06v7yLY",
+               "language":{
+
+               }
+            },
+            "kind":[
+               "v"
+            ],
+            "template":"single-video"
+         }
       }
     ]
   }

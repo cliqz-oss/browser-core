@@ -1,6 +1,5 @@
-import BaseResult from './base';
-import utils from '../../core/utils';
-import { copyToClipboard } from '../../core/clipboard';
+import BaseResult, { Subresult } from './base';
+import i18n from '../../core/content/i18n';
 
 export default class CurrencyResult extends BaseResult {
   get template() {
@@ -77,24 +76,25 @@ export default class CurrencyResult extends BaseResult {
     this.$tooltip.style.display = 'none';
   }
 
-  click(window, href, ev) {
-    if (href === this.rawUrl) {
-      this.sourceWrapper.click(window, href, ev);
+  click(href, ev) {
+    if (href === this.rawResult.url) {
+      this.sourceWrapper.click(href, ev);
       return;
     }
 
-    copyToClipboard(this.toAmount);
-    this.$tooltip.innerText = utils.getLocalizedString('Copied');
+    this.resultTools.actions.copyToClipboard(this.toAmount);
+    this.$tooltip.innerText = i18n.getMesasge('Copied');
     setTimeout(() => {
       this.$tooltip.style.display = 'none';
     }, 1000);
   }
 
   get sourceWrapper() {
-    return new BaseResult({
-      url: this.rawUrl,
+    return new Subresult(this, {
+      url: this.rawResult.url,
       title: 'source',
       text: this.query,
+      meta: this.rawResult.meta,
     });
   }
 }

@@ -2,7 +2,8 @@
 /* eslint prefer-arrow-callback: 'off' */
 
 import AttrackBG from './background';
-import { utils, events } from '../core/cliqz';
+import utils from '../core/utils';
+import events from '../core/events';
 import { URLInfo } from '../core/url-info';
 import inject from '../core/kord/inject';
 

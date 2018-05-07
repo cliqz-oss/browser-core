@@ -34,9 +34,9 @@ function otherSettingsTests(amo, tipsUrl) {
     });
 
     it('renders title', function () {
-      const titleSelector = '#othersettings .header .title [data-i18n="control-center-othersettings"]';
+      const titleSelector = '#othersettings .header .title [data-i18n="control_center_othersettings"]';
       expect(subject.query(titleSelector)).to.exist;
-      expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-othersettings');
+      expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_othersettings');
     });
 
     it('support section exists', function () {
@@ -44,33 +44,33 @@ function otherSettingsTests(amo, tipsUrl) {
     });
 
     it('renders "Support"', function () {
-      const supportSelector = '#othersettings .title #support [data-i18n="control-center-support"]';
+      const supportSelector = '#othersettings .title #support [data-i18n="control_center_support"]';
       expect(subject.query(supportSelector)).to.exist;
-      expect(subject.query(supportSelector).textContent.trim()).to.equal('control-center-support');
+      expect(subject.query(supportSelector).textContent.trim()).to.equal('control_center_support');
     });
 
     it('url for Support is correct', function () {
-      const supportSelector = '#othersettings .title #support [data-i18n="control-center-support"]';
+      const supportSelector = '#othersettings .title #support [data-i18n="control_center_support"]';
       expect(subject.query(supportSelector).hasAttribute('data-open-url')).to.be.true;
       expect(subject.query(supportSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/feedback/1.19.0.dev-40');
     });
 
     it('renders "Tips"', function () {
-      const tipsSelector = '#othersettings .title #support [data-i18n="control-center-tips"]';
+      const tipsSelector = '#othersettings .title #support [data-i18n="control_center_tips"]';
       expect(subject.query(tipsSelector)).to.exist;
-      expect(subject.query(tipsSelector).textContent.trim()).to.equal('control-center-tips');
+      expect(subject.query(tipsSelector).textContent.trim()).to.equal('control_center_tips');
     });
 
     it('url for Tips is correct', function () {
-      const tipsSelector = '#othersettings .title #support [data-i18n="control-center-tips"]';
+      const tipsSelector = '#othersettings .title #support [data-i18n="control_center_tips"]';
       expect(subject.query(tipsSelector).hasAttribute('data-open-url')).to.be.true;
       expect(subject.query(tipsSelector).getAttribute('data-open-url')).to.equal(tipsUrl);
     });
 
     it('renders "Search options"', function () {
-      const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-2"] [data-i18n="control-center-searchoptions"]';
+      const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-2"] [data-i18n="control_center_searchoptions"]';
       expect(subject.query(titleSelector)).to.exist;
-      expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-searchoptions');
+      expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_searchoptions');
     });
 
     it('renders arrow for search options', function () {
@@ -79,9 +79,9 @@ function otherSettingsTests(amo, tipsUrl) {
     });
 
     it('renders "History options"', function () {
-      const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-3"] [data-i18n="control-center-history-options"]';
+      const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-3"] [data-i18n="control_center_history_options"]';
       expect(subject.query(titleSelector)).to.exist;
-      expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-history-options');
+      expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_history_options');
     });
 
     it('renders arrow for history options', function () {
@@ -90,9 +90,9 @@ function otherSettingsTests(amo, tipsUrl) {
     });
 
     it('renders "MyOffrz options"', function () {
-      const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-4"] [data-i18n="control-center-offers-options"]';
+      const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-4"] [data-i18n="control_center_offers_options"]';
       expect(subject.query(titleSelector)).to.exist;
-      expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-offers-options');
+      expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_offers_options');
     });
 
     it('renders arrow for myoffrz options', function () {

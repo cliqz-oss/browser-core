@@ -135,7 +135,7 @@ export default background({
 
     this.pageAction = new UrlbarButton({
       id: 'connect-sendtab',
-      title: getMessage('pairing-send-tab-to-mobile'),
+      title: getMessage('pairing_send_tab_to_mobile'),
       iconURL: 'chrome://cliqz/content/pairing/images/tab-icon.svg',
       _insertBeforeActionID: 'screenshots',
 

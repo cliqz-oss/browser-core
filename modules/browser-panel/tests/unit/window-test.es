@@ -19,8 +19,8 @@ export default describeModule('browser-panel/window',
         log() {}
       }
     },
-    'core/cliqz': {
-      utils: {
+    'core/utils': {
+      default: {
         isPrivateMode() {},
         telemetry() {},
         getDetailsFromUrl() {},
@@ -55,7 +55,7 @@ export default describeModule('browser-panel/window',
       });
 
       it('in private mode', function () {
-        const privateMode = this.deps('core/cliqz').utils;
+        const privateMode = this.deps('core/utils').default;
         privateMode.isPrivateMode = function () { return true; };
         return chai.expect(subject.init()).to.eventually.equal('Private mode active');
       });
@@ -66,7 +66,7 @@ export default describeModule('browser-panel/window',
 
       beforeEach(function () {
         telemetrySpy = sinon.spy(() => {});
-        this.deps('core/cliqz').utils.telemetry = telemetrySpy;
+        this.deps('core/utils').default.telemetry = telemetrySpy;
 
         // subject.iframe is created in the init(), but we don't call it
         subject.iframe = {
@@ -82,7 +82,7 @@ export default describeModule('browser-panel/window',
       });
 
       afterEach(function () {
-        this.deps('core/cliqz').utils.telemetry = () => {};
+        this.deps('core/utils').default.telemetry = () => {};
       });
 
       describe('showing the promo bar', function () {

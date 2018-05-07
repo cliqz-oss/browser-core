@@ -14,7 +14,7 @@ module.exports = {
   "testem_launchers_ci": ["unit-node"],
   "pack": "cd build && fab package:version=$VERSION,cert_path=$CLIQZ_CERT_PATH,cert_pass_path=$CLIQZ_CERT_PASS_PATH",
   "publish": "cd build && fab publish:beta=$CLIQZ_BETA,channel=$CLIQZ_CHANNEL,pre=$CLIQZ_PRE_RELEASE,version=$VERSION,cert_path=$CLIQZ_CERT_PATH,cert_pass_path=$CLIQZ_CERT_PASS_PATH",
-  "settings": Object.assign({
+  "settings": Object.assign({}, urls, {
     "id": "cliqz@cliqz.com",
     "name": "Cliqz",
     "channel": "40",
@@ -55,7 +55,9 @@ module.exports = {
     },
     "ATTRACK_TELEMETRY_PROVIDER": "hpn",
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
-  }, urls),
+    "antitrackingPlaceholder": "cliqz.com/tracking",
+    "antitrackingHeader": "CLIQZ-AntiTracking",
+  }),
   "default_prefs" : {
     "modules.context-search.enabled": false,
     "modules.history.enabled": false,
@@ -85,6 +87,7 @@ module.exports = {
     "hpn",
     "control-center",
     "offers-v2",
+    "history-analyzer",
     "offers-debug",
     "browser-panel",
     "message-center",

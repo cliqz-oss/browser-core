@@ -26,7 +26,7 @@ var v8 = new MergeTrees([
   new Funnel(resources),
 ], { overwrite: true });
 
-const mobileImages = new Funnel('specific/mobile/skin/img', { destDir: 'modules/mobile-cards/img'});
+const mobileImages = new Funnel('specific/web/mobile/skin/img', { destDir: 'modules/mobile-cards/img'});
 
 var configTree = util.injectConfig(v8, config, 'cliqz.json', ['modules/core/config.js']);
 

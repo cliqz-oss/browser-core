@@ -44,9 +44,9 @@ function myOffrzTests(amo) {
       });
 
       it('renders "MyOffrz options"', function () {
-        const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-4"] [data-i18n="control-center-offers-options"]';
+        const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-4"] [data-i18n="control_center_offers_options"]';
         expect(subject.query(titleSelector)).to.exist;
-        expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-offers-options');
+        expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_offers_options');
       });
 
       it('renders arrow for MyOffrz options', function () {
@@ -61,9 +61,9 @@ function myOffrzTests(amo) {
 
       context('"Show MyOffrz" block', function () {
         it('renders "Show MyOffrz"', function () {
-          const titleSelector = '#accordion-4 .bullet [data-i18n="control-center-offers-show"]';
+          const titleSelector = '#accordion-4 .bullet [data-i18n="control_center_offers_show"]';
           expect(subject.query(titleSelector)).to.exist;
-          expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-offers-show');
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_offers_show');
         });
 
         it('renders info button', function () {
@@ -75,7 +75,7 @@ function myOffrzTests(amo) {
           const offersObject = subject.queryAll('#accordion-4 .bullet')[0];
           expect(offersObject.querySelector('.location-more')).to.exist;
           expect(offersObject.querySelector('.location-more').hasAttribute('data-i18n')).to.be.true;
-          expect(offersObject.querySelector('.location-more').getAttribute('data-i18n')).to.equal('control-center-info-share-location-link');
+          expect(offersObject.querySelector('.location-more').getAttribute('data-i18n')).to.equal('control_center_info_share_location_link');
         });
 
         it('url for "Learn more" is correct', function () {
@@ -116,20 +116,20 @@ function myOffrzTests(amo) {
         myOffrz('true');
 
         it('text for options is correct', function () {
-          const enabledSelector = '.accordion #accordion-4 .bullet .custom-dropdown[data-target="offerz_main"] [data-i18n="control-center-enabled"]';
-          const disabledSelector = '.accordion #accordion-4 .bullet .custom-dropdown[data-target="offerz_main"] [data-i18n="control-center-disabled"]';
+          const enabledSelector = '.accordion #accordion-4 .bullet .custom-dropdown[data-target="offerz_main"] [data-i18n="control_center_enabled"]';
+          const disabledSelector = '.accordion #accordion-4 .bullet .custom-dropdown[data-target="offerz_main"] [data-i18n="control_center_disabled"]';
           expect(subject.query(enabledSelector)).to.exist;
-          expect(subject.query(enabledSelector).textContent.trim()).to.equal('control-center-enabled');
+          expect(subject.query(enabledSelector).textContent.trim()).to.equal('control_center_enabled');
           expect(subject.query(disabledSelector)).to.exist;
-          expect(subject.query(disabledSelector).textContent.trim()).to.equal('control-center-disabled');
+          expect(subject.query(disabledSelector).textContent.trim()).to.equal('control_center_disabled');
         });
       });
 
       context('"Show local MyOffrz" block', function () {
         it('renders "Show local MyOffrz"', function () {
-          const titleSelector = '#accordion-4 .bullet [data-i18n="control-center-offers-location"]';
+          const titleSelector = '#accordion-4 .bullet [data-i18n="control_center_offers_location"]';
           expect(subject.query(titleSelector)).to.exist;
-          expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-offers-location');
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_offers_location');
         });
 
         it('renders info button', function () {
@@ -169,12 +169,12 @@ function myOffrzTests(amo) {
         myLocalOffrz('1');
 
         it('text for options is correct', function () {
-          const enabledSelector = '.accordion #accordion-4 .bullet .custom-dropdown[data-target="offerz_location"] [data-i18n="control-center-enabled"]';
-          const disabledSelector = '.accordion #accordion-4 .bullet .custom-dropdown[data-target="offerz_location"] [data-i18n="control-center-disabled"]';
+          const enabledSelector = '.accordion #accordion-4 .bullet .custom-dropdown[data-target="offerz_location"] [data-i18n="control_center_enabled"]';
+          const disabledSelector = '.accordion #accordion-4 .bullet .custom-dropdown[data-target="offerz_location"] [data-i18n="control_center_disabled"]';
           expect(subject.query(enabledSelector)).to.exist;
-          expect(subject.query(enabledSelector).textContent.trim()).to.equal('control-center-enabled');
+          expect(subject.query(enabledSelector).textContent.trim()).to.equal('control_center_enabled');
           expect(subject.query(disabledSelector)).to.exist;
-          expect(subject.query(disabledSelector).textContent.trim()).to.equal('control-center-disabled');
+          expect(subject.query(disabledSelector).textContent.trim()).to.equal('control_center_disabled');
         });
       });
     });

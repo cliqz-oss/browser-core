@@ -66,7 +66,7 @@ describe('Fresh tab settings panel UI', function () {
       it('has an existing header', function () {
         $settingsHeader = subject.query('.settings-header h1');
         expect($settingsHeader).to.exist;
-        expect($settingsHeader).to.have.text('freshtab.app.settings.header');
+        expect($settingsHeader).to.have.text('freshtab_app_settings_header');
       });
 
       it('has 5 areas', function () {
@@ -197,7 +197,7 @@ describe('Fresh tab settings panel UI', function () {
       it('has an existing header', function () {
         $settingsHeader = subject.query('.settings-header h1');
         expect($settingsHeader).to.exist;
-        expect($settingsHeader).to.have.text('freshtab.app.settings.header');
+        expect($settingsHeader).to.have.text('freshtab_app_settings_header');
       });
 
       it('has 5 areas', function () {
@@ -228,7 +228,7 @@ describe('Fresh tab settings panel UI', function () {
 
         it('with background choices shown', function () {
           expect(subject
-            .queryAll('ul.background-selection-list li').length).to.equal(5);
+            .queryAll('ul.background-selection-list li').length).to.equal(6);
         });
       });
 
@@ -329,7 +329,7 @@ describe('Fresh tab settings panel UI', function () {
       it('has an existing header', function () {
         $settingsHeader = subject.query('.settings-header h1');
         expect($settingsHeader).to.exist;
-        expect($settingsHeader).to.have.text('freshtab.app.settings.header');
+        expect($settingsHeader).to.have.text('freshtab_app_settings_header');
       });
 
       it('has 6 areas', function () {
@@ -473,7 +473,7 @@ describe('Fresh tab settings panel UI', function () {
       it('has an existing header', function () {
         $settingsHeader = subject.query('.settings-header h1');
         expect($settingsHeader).to.exist;
-        expect($settingsHeader).to.have.text('freshtab.app.settings.header');
+        expect($settingsHeader).to.have.text('freshtab_app_settings_header');
       });
 
       it('has 7 areas', function () {
@@ -516,7 +516,7 @@ describe('Fresh tab settings panel UI', function () {
 
         it('with background choices shown', function () {
           expect(subject
-            .queryAll('ul.background-selection-list li').length).to.equal(5);
+            .queryAll('ul.background-selection-list li').length).to.equal(6);
         });
       });
 

@@ -14,6 +14,8 @@ describe('Fresh tab interactions with background', function () {
   const lightBgSelector = 'img[data-bg="bg-light"]';
   const alpsBgSelector = 'img[data-bg="bg-matterhorn"]';
   const winterBgSelector = 'img[data-bg="bg-winter"]';
+  const springBgSelector = 'img[data-bg="bg-spring"]';
+
   let subject;
   let messages;
   let listener;
@@ -65,6 +67,7 @@ describe('Fresh tab interactions with background', function () {
       expect(subject.query(blueBgSelector).className).to.not.contain('active');
       expect(subject.query(alpsBgSelector).className).to.not.contain('active');
       expect(subject.query(winterBgSelector).className).to.not.contain('active');
+      expect(subject.query(springBgSelector).className).to.not.contain('active');
     });
 
     it('sends a "saveBackgroundImage" message once', function () {
@@ -113,6 +116,7 @@ describe('Fresh tab interactions with background', function () {
       expect(subject.query(blueBgSelector).className).to.not.contain('active');
       expect(subject.query(alpsBgSelector).className).to.not.contain('active');
       expect(subject.query(winterBgSelector).className).to.not.contain('active');
+      expect(subject.query(springBgSelector).className).to.not.contain('active');
     });
 
     it('sends a "saveBackgroundImage" message once', function () {
@@ -161,6 +165,7 @@ describe('Fresh tab interactions with background', function () {
       expect(subject.query(blueBgSelector).className).to.contain('active');
       expect(subject.query(alpsBgSelector).className).to.not.contain('active');
       expect(subject.query(winterBgSelector).className).to.not.contain('active');
+      expect(subject.query(springBgSelector).className).to.not.contain('active');
     });
 
     it('sends a "saveBackgroundImage" message once', function () {
@@ -209,6 +214,7 @@ describe('Fresh tab interactions with background', function () {
       expect(subject.query(blueBgSelector).className).to.not.contain('active');
       expect(subject.query(alpsBgSelector).className).to.contain('active');
       expect(subject.query(winterBgSelector).className).to.not.contain('active');
+      expect(subject.query(springBgSelector).className).to.not.contain('active');
     });
 
     it('sends a "saveBackgroundImage" message once', function () {
@@ -257,6 +263,56 @@ describe('Fresh tab interactions with background', function () {
       expect(subject.query(blueBgSelector).className).to.not.contain('active');
       expect(subject.query(alpsBgSelector).className).to.not.contain('active');
       expect(subject.query(winterBgSelector).className).to.contain('active');
+      expect(subject.query(springBgSelector).className).to.not.contain('active');
+    });
+
+    it('sends a "saveBackgroundImage" message once', function () {
+      expect(messages.has('saveBackgroundImage')).to.equal(true);
+      expect(messages.get('saveBackgroundImage').length).to.equal(1);
+    });
+
+    it('sends a "home > settings > background_image > click" telemetry signal', function () {
+      expect(messages.has('sendTelemetry')).to.equal(true);
+
+      const telemetrySignals = messages.get('sendTelemetry');
+      let count = 0;
+
+      expect(telemetrySignals.length).to.be.above(0);
+
+      count = telemetrySignals.filter(function (s) {
+        return (
+          s.args[0].type === 'home' &&
+          s.args[0].view === 'settings' &&
+          s.args[0].target === 'background_image' &&
+          s.args[0].action === 'click'
+        );
+      }).length;
+
+      expect(count).to.equal(1);
+    });
+  });
+
+  describe('clicking on a spring icon', function () {
+    beforeEach(function () {
+      subject.query(springBgSelector).click();
+      return waitFor(() => subject.query('body.theme-bg-spring'));
+    });
+
+    afterEach(function () {
+      subject.chrome.runtime.onMessage.removeListener(listener);
+    });
+
+    it('changes bg to spring', function () {
+      expect(subject.query('body').className).to.contain('theme-bg-spring');
+    });
+
+    it('changes settings selection to spring bg', function () {
+      expect(subject.query(darkBgSelector).className).to.not.contain('active');
+      expect(subject.query(lightBgSelector).className).to.not.contain('active');
+      expect(subject.query(blueBgSelector).className).to.not.contain('active');
+      expect(subject.query(alpsBgSelector).className).to.not.contain('active');
+      expect(subject.query(winterBgSelector).className).to.not.contain('active');
+      expect(subject.query(springBgSelector).className).to.contain('active');
     });
 
     it('sends a "saveBackgroundImage" message once', function () {

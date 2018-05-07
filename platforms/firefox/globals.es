@@ -12,8 +12,6 @@ export {
   win as window
 };
 
-export const debugModules = {};
-
 // TODO: @remusao webrequest-pipeline/page-store require chrome
 export const chrome = {};
 

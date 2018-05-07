@@ -3,6 +3,13 @@ import BaseProvider from './base';
 
 // responses
 import { getResponse } from '../responses';
+import CONFIG from '../../core/config';
+
+const sessionsUrl = query => ([
+  CONFIG.settings.HISTORY_URL,
+  CONFIG.settings['modules.history.search-path'],
+  encodeURIComponent(query),
+].join(''));
 
 export default class HistoryView extends BaseProvider {
   constructor() {
@@ -10,7 +17,7 @@ export default class HistoryView extends BaseProvider {
   }
 
   search(query, config) {
-    if (!query || !config.providers[this.id].isEnabled) {
+    if (!query.trim() || !config.providers[this.id].isEnabled) {
       return this.getEmptySearch(config);
     }
 
@@ -19,6 +26,7 @@ export default class HistoryView extends BaseProvider {
       config,
       query,
       [{
+        url: sessionsUrl(query),
         text: query,
         query,
         data: {
@@ -28,6 +36,6 @@ export default class HistoryView extends BaseProvider {
       }],
       'done'
     )])
-      .let(this.getOperators(config, query));
+      .let(this.getOperators());
   }
 }

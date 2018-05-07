@@ -1,5 +1,8 @@
 import logger from './logger';
 import { randomInt } from '../core/crypto/random';
+import { Components } from '../platform/globals';
+
+const { interfaces: Ci } = Components;
 
 let MAIN_THREAD = null;
 let TRANSPORT_SERVICE = null;

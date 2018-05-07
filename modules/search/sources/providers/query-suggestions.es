@@ -2,6 +2,7 @@ import Rx from '../../platform/lib/rxjs';
 import BaseProvider from './base';
 import { getResponse } from '../responses';
 import utils from '../../core/utils';
+import { getSearchEngineUrl } from './instant';
 
 export default class QuerySuggestionProvider extends BaseProvider {
   constructor() {
@@ -24,6 +25,8 @@ export default class QuerySuggestionProvider extends BaseProvider {
       return this.getEmptySearch(config);
     }
 
+    const engine = utils.getDefaultSearchEngine();
+
     return Rx.Observable
       .fromPromise(utils.getSuggestions(query))
       .map(([q, suggestions]) => (getResponse(
@@ -32,14 +35,20 @@ export default class QuerySuggestionProvider extends BaseProvider {
         query,
         suggestions.map(suggestion => ({
           query: q,
+          url: engine.getSubmissionForQuery(suggestion),
+          text: suggestion,
           data: {
             suggestion,
             kind: ['Z'],
+            extra: {
+              searchEngineName: engine.name,
+              mozActionUrl: getSearchEngineUrl(engine, suggestion, suggestion),
+            },
           },
           type: 'supplementary-search',
         })),
         'done'
       )))
-      .let(this.getOperators(config, query));
+      .let(this.getOperators());
   }
 }

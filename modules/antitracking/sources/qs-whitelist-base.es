@@ -5,7 +5,7 @@ import * as datetime from './time';
 import { generateAttrackPayload } from './utils';
 import pacemaker from '../core/pacemaker';
 import telemetry from './telemetry';
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import { TELEMETRY } from './config';
 
 const safeKeyExpire = 7;

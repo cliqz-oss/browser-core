@@ -1,5 +1,9 @@
 import {
   blurUrlBar,
+  checkButtons,
+  checkLotto,
+  checkMainResult,
+  checkParent,
   $cliqzResults,
   expect,
   fillIn,
@@ -9,164 +13,76 @@ import {
 import results from './fixtures/resultsLottoGluecksspirale';
 
 export default function () {
-  context('for a Lotto Gluecksspirale rich header', function () {
-    let $resultElement;
+  const mainResultSelector = '.cliqz-result:not(.history)';
+  const lottoResultSelector = '.lotto';
+  const rowSelector = '.row';
+  const elementSelector = '.item';
+  const classSelector = '.description';
 
+  context('for lotto Gluecksspirale rich header', function () {
     before(function () {
+      window.preventRestarts = true;
       blurUrlBar();
       respondWith({ results });
       withHistory([]);
       fillIn('gluecksspirale');
-      return waitForPopup().then(function () {
-        $resultElement = $cliqzResults().find(`a.result[data-url='${results[0].url}']`)[0].parentNode;
-      });
+      return waitForPopup(2);
     });
 
-    it('renders rich header result successfully', function () {
-      expect($resultElement).to.exist;
+    after(function () {
+      window.preventRestarts = false;
     });
 
-    describe('renders top element', function () {
-      it('successfully', function () {
-        const lottoTopSelector = 'a.result';
-        expect($resultElement.querySelector(lottoTopSelector)).to.exist;
-      });
-
-      it('with existing and correct title', function () {
-        const lottoTopTitleSelector = 'a.result div.abstract span.title';
-        expect($resultElement.querySelector(lottoTopTitleSelector)).to.exist;
-        expect($resultElement.querySelector(lottoTopTitleSelector))
-          .to.have.text(results[0].snippet.title);
-      });
-
-      it('with existing and correct domain', function () {
-        const lottoTopTitleSelector = 'a.result div.abstract span.url';
-        expect($resultElement.querySelector(lottoTopTitleSelector)).to.exist;
-        expect($resultElement.querySelector(lottoTopTitleSelector))
-          .to.contain.text(results[0].snippet.friendlyUrl);
-      });
-
-      it('with existing logo', function () {
-        const lottoTopLogoSelector = 'a.result div.icons span.logo';
-        expect($resultElement.querySelector(lottoTopLogoSelector)).to.exist;
-      });
-
-      it('with a correct link', function () {
-        const lottoTopLinkSelector = 'a.result';
-        expect($resultElement.querySelector(lottoTopLinkSelector).dataset.url)
-          .to.equal(results[0].url);
-      });
-
-      it('with existing and correct description', function () {
-        const lottoTopDescSelector = 'a.result div.abstract span.description';
-        expect($resultElement.querySelector(lottoTopDescSelector)).to.exist;
-        expect($resultElement.querySelector(lottoTopDescSelector))
-          .to.have.text(results[0].snippet.description);
-      });
+    checkMainResult({ $result: $cliqzResults, isPresent: true });
+    checkParent({ $result: $cliqzResults, results });
+    checkButtons({ $result: $cliqzResults, results });
+    checkLotto({
+      $result: $cliqzResults,
+      amountOfRows: results[0].snippet.extra.lotto_list.cur_date.gs.gewinnzahlen[6].length
     });
 
-    describe('renders Lotto winning results', function () {
-      it('successfully', function () {
-        const lottoResultSelector = 'div.lotto';
-        expect($resultElement.querySelector(lottoResultSelector)).to.exist;
+    describe('each Lotto row result', function () {
+      it('renders with a correct amount of number squares', function () {
+        const $allLottoRows = $cliqzResults
+          .querySelectorAll(`${mainResultSelector} ${lottoResultSelector} ${rowSelector}`);
+
+        expect($allLottoRows.length).to.be.above(0);
+        [...$allLottoRows].forEach(function ($row, i) {
+          const $allRowElements = $row.querySelectorAll(elementSelector);
+
+          expect($allRowElements.length)
+            .to.equal(results[0].snippet.extra.lotto_list.cur_date.gs.gewinnzahlen[6][i].length);
+        });
       });
 
-      it('with existing and correct heading', function () {
-        const lottoResultHeadingSelector = 'div.lotto p.lotto-date';
-        expect($resultElement.querySelector(lottoResultHeadingSelector)).to.exist;
+      it('renders with correct results', function () {
+        const $allLottoRows = $cliqzResults
+          .querySelectorAll(`${mainResultSelector} ${lottoResultSelector} ${rowSelector}`);
 
-        /* Using hardcoded values here to check if mocked data is
-           displayed correctly */
-        expect($resultElement.querySelector(lottoResultHeadingSelector))
-          .to.contain.text('Gewinnzahlen');
-        expect($resultElement.querySelector(lottoResultHeadingSelector))
-          .to.contain.text('Samstag');
-        expect($resultElement.querySelector(lottoResultHeadingSelector))
-          .to.contain.text('15.7.2017');
-      });
+        expect($allLottoRows.length).to.be.above(0);
+        [...$allLottoRows].forEach(function ($row, i) {
+          const $allRowElements = $row.querySelectorAll(elementSelector);
 
-      it('with existing and correct disclaimer', function () {
-        const lottoDisclaimerSelector = 'div.lotto p.no-guarantee';
-        expect($resultElement.querySelector(lottoDisclaimerSelector)).to.exist;
-        expect($resultElement.querySelector(lottoDisclaimerSelector))
-          .to.have.text('Alle Angaben ohne Gewähr');
-      });
-
-      describe('in rows', function () {
-        it('existing and in correct amount', function () {
-          const lottoRowSelector = 'div.lotto div.row';
-          const lottoItemsRows = $resultElement.querySelectorAll(lottoRowSelector);
-          [].forEach.call(lottoItemsRows, function (row) {
-            expect(row).to.exist;
-          });
-          expect($resultElement.querySelectorAll(lottoRowSelector).length)
-            .to.equal(results[0].snippet.extra.lotto_list.cur_date.gs.gewinnzahlen[6].length);
-        });
-
-        it('with existing and correct amount of number squares', function () {
-          const lottoRowSelector = 'div.lotto div.row';
-          const lottoItemsRows = $resultElement.querySelectorAll(lottoRowSelector);
-          const lottoSquareSelector = 'div.lotto-item-wrapper div.item';
-          [].forEach.call(lottoItemsRows, function (row, i) {
-            const lottoSquaresItems = row.querySelectorAll(lottoSquareSelector);
-            [].forEach.call(lottoSquaresItems, function (square) {
-              expect(square).to.exist;
-            });
-            expect(lottoSquaresItems.length)
-              .to.equal(results[0].snippet.extra.lotto_list.cur_date.gs.gewinnzahlen[6][i].length);
-          });
-        });
-
-        it('with correct results', function () {
-          const lottoRowSelector = 'div.lotto div.row';
-          const lottoItemsRows = $resultElement.querySelectorAll(lottoRowSelector);
-          const lottoSquareSelector = 'div.lotto-item-wrapper div.item';
-          [].forEach.call(lottoItemsRows, function (row, i) {
-            const lottoSquaresItems = row.querySelectorAll(lottoSquareSelector);
-            [].forEach.call(lottoSquaresItems, function (square, j) {
-              expect(square)
-                .to.contain.text(results[0].snippet.extra
-                  .lotto_list.cur_date.gs.gewinnzahlen[6][i][j]);
-            });
-          });
-        });
-
-        it('with existing and correct winning class', function () {
-          const lottoKlasseSelector = 'div.lotto div.row span.description';
-          const lottoItemsKlassen = $resultElement.querySelectorAll(lottoKlasseSelector);
-          [].forEach.call(lottoItemsKlassen, function (klasse) {
-            expect(klasse).to.exist;
-            expect(klasse).to.have.text('Gewinnklasse 7');
+          expect($allRowElements.length).to.be.above(0);
+          [...$allRowElements].forEach(function ($element, j) {
+            expect($element)
+              .to.contain.text(results[0].snippet.extra
+                .lotto_list.cur_date.gs.gewinnzahlen[6][i][j]);
           });
         });
       });
-    });
 
-    describe('renders buttons', function () {
-      it('successfully', function () {
-        const lottoButtonsSelector = 'div.buttons';
-        expect(lottoButtonsSelector).to.exist;
-      });
+      it('with correct winning classes', function () {
+        const $allLottoRows = $cliqzResults
+          .querySelectorAll(`${mainResultSelector} ${lottoResultSelector} ${rowSelector}`);
+        const $classes = $cliqzResults
+          .querySelectorAll(`${mainResultSelector} ${lottoResultSelector} ${classSelector}`);
 
-      it('correct amount', function () {
-        const lottoButtonsSelector = 'div.buttons a.btn';
-        expect($resultElement.querySelectorAll(lottoButtonsSelector).length)
-          .to.equal(results[0].snippet.deepResults[0].links.length);
-      });
+        expect($classes.length).to.be.above(0);
+        expect($classes.length).to.equal($allLottoRows.length);
 
-      it('with correct text', function () {
-        const lottoButtonsSelector = 'div.buttons a.btn';
-        const lottoItemsButtons = $resultElement.querySelectorAll(lottoButtonsSelector);
-        [].forEach.call(lottoItemsButtons, function (button, i) {
-          expect(button).to.contain.text(results[0].snippet.deepResults[0].links[i].title);
-        });
-      });
-
-      it('with correct links', function () {
-        const lottoButtonsSelector = 'div.buttons a.btn';
-        const lottoItemsButtons = $resultElement.querySelectorAll(lottoButtonsSelector);
-        [].forEach.call(lottoItemsButtons, function (link, i) {
-          expect(link.dataset.url).to.equal(results[0].snippet.deepResults[0].links[i].url);
+        [...$classes].forEach(function ($cl) {
+          expect($cl).to.have.text('Gewinnklasse 7');
         });
       });
     });

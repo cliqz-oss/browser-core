@@ -106,6 +106,7 @@ try {
   let fns = {
     postMessage: function (message) {
       window.postMessage(message, '*');
+      return null;
     },
     getHTML: function () {
       return window.document.documentElement.outerHTML;

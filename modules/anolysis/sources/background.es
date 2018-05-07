@@ -5,7 +5,7 @@ import events from '../core/events';
 import getDemographics from '../core/demographics';
 import getSynchronizedDate from '../core/synchronized-time';
 import prefs from '../core/prefs';
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 
 import Anolysis from './internals/anolysis';
 import Config from './internals/config';

@@ -23,6 +23,9 @@ export default describeModule("freshtab/background",
       "platform/freshtab/history": {
         default: { getTopUrls(limit) { } }
       },
+      "platform/freshtab/browser-import-dialog": {
+        default: { openImportDialog() { } }
+      },
       "core/utils": {
         default: {
           telemetry() {},
@@ -51,6 +54,7 @@ export default describeModule("freshtab/background",
           get(pref, def) { return def; },
           set() {},
           has() {},
+          getObject() { return {}; },
         }
       },
       "core/i18n": {

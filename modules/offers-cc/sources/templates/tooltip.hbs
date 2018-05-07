@@ -8,8 +8,9 @@
     <div class="logo {{logoClass}}" style="background-image: url({{backgroundImage}})"></div>
     <p>{{benefit}} {{headline}}</p>
     <div class="labels">
-        {{#if isExclusive}}<p class="exclusive" data-i18n="offers-exclusive"></p>{{/if}}
-        {{#if isBestOffer}}<p class="best-offer" data-i18n="offers-best_offer"></p>{{/if}}
+        {{#each (limit labels 2)}}
+            <p class={{this}} data-i18n="offers_{{this}}"></p>
+        {{/each}}
     </div>
 </div>
 {{/if}}

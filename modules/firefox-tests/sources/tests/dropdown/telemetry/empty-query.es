@@ -37,7 +37,7 @@ export default function () {
       fillIn('');
     });
 
-    context('after pressing Enter and Ctrl keys', function () {
+    xcontext('after pressing Enter and Ctrl keys', function () {
       beforeEach(function () {
         press({ key: 'Enter', ctrlKey: true });
         return waitFor(function () {

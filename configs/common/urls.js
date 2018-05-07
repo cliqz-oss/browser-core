@@ -23,7 +23,6 @@ module.exports = {
   ENDPOINT_URL: 'https://api.cliqz.com/api/v1/rich-header?path=/map&bmresult=', // autocomplete/sources/smart-cliqz-cache/rich-header.es
   ENDPOINT_USER_REG: 'https://hpn-sign.cliqz.com/register',
   FEEDBACK: 'https://cliqz.com/feedback/', // core/sources/utils.es
-  GID_BACKEND_URL: 'https://anolysis-gid.cliqz.com', // anolysis/sources/backend-communication.es
   HB_NEWS: 'hb-news.cliqz.com', // freshtab/sources/news.es, history/sources/rich-header-proxy.es
   HOMPAGE_URL: 'https://cliqz.com/', // autocomplete/sources/result-providers.es, history/sources/history-dto.es (Need to check for trailing slash)
   INVENTORY_URL: 'https://cdn.cliqz.com/browser-f/fun-demo/inventoryv2.txt.gz', // green-ads/sources/inventory.es
@@ -43,7 +42,6 @@ module.exports = {
   SUGGESTIONS_URL: 'https://cliqz.com/search?q=', // dropdown/sources/results/suggestions.es, freshtab/sources/background.es, history/sources/background.es, history/sources/content.es
   SUPPORT_URL: 'https://cliqz.com/support/', // autocomplete/sources/result-providers.es
   TEAM_URL: 'https://cliqz.com/team/', // autocomplete/sources/result-providers.es
-  TELEMETRY_BACKEND_URL: 'https://anolysis-telemetry.cliqz.com/collect', // anolysis/sources/backend-communication.es
   TELEMETRY_ENDPOINT: 'https://safebrowsing-experiment.cliqz.com', // green-ads/sources/background.es
   TRACKER_PROXY_PROXY_PEERS_DEFAULT: 'https://p2p-signaling-proxypeer.cliqz.com/peers', // tracker-proxy.es
   TRACKER_PROXY_PROXY_PEERS_EXIT_DEFAULT: 'https://p2p-signaling-proxypeer.cliqz.com/exitNodes', // tracker-proxy.es

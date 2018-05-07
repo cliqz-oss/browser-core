@@ -1,5 +1,10 @@
-{{#each results}}
-    <div class="{{#if isHistory}}history {{#if url}}cluster{{/if}}{{/if}}">
+{{#each historyResults}}
+    <div class="cliqz-result history {{#if url}}cluster{{/if}}">
+        {{> (lookup this 'template')}}
+    </div>
+{{/each}}
+{{#each genericResults}}
+    <div class="cliqz-result">
         {{> (lookup this 'template')}}
     </div>
 {{/each}}

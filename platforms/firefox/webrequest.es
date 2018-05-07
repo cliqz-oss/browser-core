@@ -1,4 +1,6 @@
 /* global Components WebRequest PrivateBrowsingUtils MatchPattern */
+import { isCliqzBrowser } from '../core/platform';
+
 Components.utils.import('resource://gre/modules/XPCOMUtils.jsm');
 Components.utils.import('resource://gre/modules/WebRequest.jsm');
 Components.utils.import('resource://gre/modules/Services.jsm');
@@ -49,6 +51,7 @@ function webRequestListenerWrapper(listener, topic) {
   const optional = ['requestHeaders', 'responseHeaders', 'statusCode', 'statusLine', 'error', 'redirectUrl',
     'requestBody', 'scheme', 'realm', 'isProxy', 'challenger', 'ip', 'frameAncestors'];
   return (data) => {
+    let isPrivate = true;
     // ignore system principal: OCSP, addon and other background requests
     if (data.isSystemPrincipal) {
       return {};
@@ -65,7 +68,13 @@ function webRequestListenerWrapper(listener, topic) {
       if (data.browser.currentURI) {
         browserData.source = data.browser.currentURI.spec;
       }
-      browserData.isPrivate = PrivateBrowsingUtils.isBrowserPrivate(data.browser);
+      // Because of Forget Tab feature in Cliqz we need access to
+      // browser's `loadContext` in order to determine its privacy status.
+      // But when tabs gets closed and current requests dropped
+      // we may not have `browser.loadContext` anymore.
+      if (!isCliqzBrowser || data.browser.loadContext) {
+        isPrivate = PrivateBrowsingUtils.isBrowserPrivate(data.browser);
+      }
     }
     let parentFrame = data.parentWindowId;
     if (data.type === 'main_frame' || data.windowId === data.parentWindowId) {
@@ -86,7 +95,7 @@ function webRequestListenerWrapper(listener, topic) {
       frameId: data.type === 'main_frame' ? 0 : data.windowId,
       parentFrameId: parentFrame,
       // API additions
-      isPrivate: browserData.isPrivate || false,
+      isPrivate,
     };
     // For Firefox 58+ we can use frameAncestors to find the source
     if (data.frameAncestors && data.frameAncestors.length > 0) {

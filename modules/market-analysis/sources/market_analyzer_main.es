@@ -1,4 +1,4 @@
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 
 // import utilities
 import { getTopLevelCategory, joinKeyVal, splitKeyVal, generateItems } from './common/utils';

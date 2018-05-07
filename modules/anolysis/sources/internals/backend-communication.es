@@ -1,7 +1,7 @@
 import network from '../../platform/network';
 
 import md5 from '../../core/helpers/md5';
-import { utils } from '../../core/cliqz';
+import utils from '../../core/utils';
 
 import logger from './logger';
 

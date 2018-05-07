@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import ExternalImage from '../custom/ExternalImage';
 import { getCardWidth, elementTopMargin } from '../../styles/CardStyle';
 
 const MAX_IMAGE_COUNT = 3;
@@ -17,7 +18,7 @@ export default class extends React.Component {
     const width = getCardWidth() / MAX_IMAGE_COUNT;
     const resizeMode = length > 1 ? 'cover' : 'contain';
     return (
-      <Image
+      <ExternalImage
         key={index}
         source={{ uri: data.image }}
         style={{ height: 100, width }}

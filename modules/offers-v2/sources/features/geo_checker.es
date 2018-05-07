@@ -1,4 +1,4 @@
-import { events } from '../../core/cliqz';
+import events from '../../core/events';
 import prefs from '../../core/prefs';
 import Feature from './feature';
 

@@ -6,7 +6,9 @@ DATA.push(
     headline: 'reduction',
     benefit: '11%',
     backgroundColor: '#d7011d',
-    isExclusive: true,
-    isBestOffer: true,
+    labels: [
+      'exclusive',
+      'best_offer',
+    ],
   }
 );

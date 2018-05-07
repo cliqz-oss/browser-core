@@ -1,11 +1,10 @@
 "use strict";
-/* globals waitFor, chai, DEPS, TESTS, CliqzUtils */
+/* globals waitFor, chai, TESTS */
 
 
-DEPS.WebRequestLeakTest = ["core/utils"];
 TESTS.WebRequestLeakTest = function(CliqzUtils) {
-  var webrequest = getModule('core/webrequest').default;
-  var browser = getModule('core/browser');
+  var webrequest = getWindow().CLIQZ.TestHelpers.webrequest;
+  var browser = getWindow().CLIQZ.TestHelpers.browser;
   var baseUrl = 'http://localhost:' + testServer.port;
 
 

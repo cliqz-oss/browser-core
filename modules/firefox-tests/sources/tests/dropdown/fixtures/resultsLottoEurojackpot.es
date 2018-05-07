@@ -26,7 +26,7 @@ export default [
       extra: {
         lotto_list: {
           cur_date: {
-            date: '2017-07-14',
+            date: '2017-07-19',
             ej: {
               gewinnzahlen: [
                 '3',

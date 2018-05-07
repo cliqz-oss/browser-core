@@ -52,13 +52,13 @@ describe('Control Center: AMO, Cliqz tab UI tests', function () {
     });
 
     it('renders "ON"', function () {
-      const onSelector = '.amo #cliqz-tab .switches [data-i18n="control-center-switch-on"]';
-      const offSelector = '.amo #cliqz-tab .switches [data-i18n="control-center-switch-off"]';
+      const onSelector = '.amo #cliqz-tab .switches [data-i18n="control_center_switch_on"]';
+      const offSelector = '.amo #cliqz-tab .switches [data-i18n="control_center_switch_off"]';
       expect(subject.query(onSelector)).to.exist;
       expect(subject.query(offSelector)).to.exist;
       expect(subject.getComputedStyle(onSelector).display).to.not.equal('none');
       expect(subject.getComputedStyle(offSelector).display).to.equal('none');
-      expect(subject.query(onSelector).textContent.trim()).to.equal('control-center-switch-on');
+      expect(subject.query(onSelector).textContent.trim()).to.equal('control_center_switch_on');
     });
   });
 
@@ -75,13 +75,13 @@ describe('Control Center: AMO, Cliqz tab UI tests', function () {
     });
 
     it('renders "OFF"', function () {
-      const onSelector = '.amo #cliqz-tab .switches [data-i18n="control-center-switch-on"]';
-      const offSelector = '.amo #cliqz-tab .switches [data-i18n="control-center-switch-off"]';
+      const onSelector = '.amo #cliqz-tab .switches [data-i18n="control_center_switch_on"]';
+      const offSelector = '.amo #cliqz-tab .switches [data-i18n="control_center_switch_off"]';
       expect(subject.query(onSelector)).to.exist;
       expect(subject.query(offSelector)).to.exist;
       expect(subject.getComputedStyle(onSelector).display).to.equal('none');
       expect(subject.getComputedStyle(offSelector).display).to.not.equal('none');
-      expect(subject.query(offSelector).textContent.trim()).to.equal('control-center-switch-off');
+      expect(subject.query(offSelector).textContent.trim()).to.equal('control_center_switch_off');
     });
   });
 });

@@ -18,7 +18,7 @@ class Generic extends React.Component {
       .sort((res1, res2) => deepResultsList.indexOf(res1.type) > deepResultsList.indexOf(res2.type))
       .map(res => {
         const Component = map[res.type];
-        return <Component url={this.props.result.val} key={res.type} data={res.links} />;
+        return <Component url={this.props.result.url} key={res.type} data={res.links} />;
       });
   }
 
@@ -30,7 +30,7 @@ class Generic extends React.Component {
     if (!Component) {
       return null;
     }
-    return <Component key='extra' data={data.extra} />;
+    return <Component key='extra' data={data.extra} result={this.props.result} />;
   }
 
   render() {

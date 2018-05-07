@@ -1,4 +1,4 @@
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import { fromUTF8 } from '../core/encoding';
 import MessageQueue from '../core/message-queue';
 

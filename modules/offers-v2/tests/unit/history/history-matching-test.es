@@ -134,13 +134,10 @@ export default describeModule('offers-v2/history/history-matching',
     'core/platform': {
       isChromium: false
     },
-    'core/cliqz': {
+    'core/utils': {
       default: {
         setInterval: function () {}
       },
-      utils: {
-        setInterval: function () {}
-      }
     },
     'core/helpers/timeout': {
       default: function() { const stop = () => {}; return { stop }; }

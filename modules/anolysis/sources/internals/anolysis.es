@@ -4,7 +4,7 @@ import moment from '../../platform/lib/moment';
 
 import prefs from '../../core/prefs';
 import { randomInt } from '../../core/crypto/random';
-import { utils } from '../../core/cliqz';
+import utils from '../../core/utils';
 
 import GIDManager from './gid-manager';
 import Preprocessor /* , { parseABTests } */ from './preprocessor';

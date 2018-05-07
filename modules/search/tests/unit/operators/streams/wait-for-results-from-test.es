@@ -27,11 +27,11 @@ export default describeModule('search/operators/streams/wait-for-results-from',
         waitForResultsFrom = this.module().default;
       });
 
-      it('starts with pending response', function() {
+      it('does not emit if other providers do not emit', function() {
         const source$ = sandbox.hot('--');
         const other1$ = sandbox.hot('--');
         const other2$ = sandbox.hot('--');
-        const expected = sandbox.e(' p-');
+        const expected = sandbox.e(' --');
 
         const messages = sandbox.getMessages(source$.let(
           waitForResultsFrom([other1$, other2$])));
@@ -44,7 +44,7 @@ export default describeModule('search/operators/streams/wait-for-results-from',
         const source$ = sandbox.hot('-1---');
         const other1$ = sandbox.hot('--d--');
         const other2$ = sandbox.hot('---d-');
-        const expected = sandbox.e(' p--1-');
+        const expected = sandbox.e(' ---1-');
 
         const messages = sandbox.getMessages(source$.let(
           waitForResultsFrom([other1$, other2$])));
@@ -57,7 +57,7 @@ export default describeModule('search/operators/streams/wait-for-results-from',
         const source$ = sandbox.hot('-1---');
         const other1$ = sandbox.hot('-----');
         const other2$ = sandbox.hot('---d-');
-        const expected = sandbox.e(' p----');
+        const expected = sandbox.e(' -----');
 
         const messages = sandbox.getMessages(source$.let(
           waitForResultsFrom([other1$, other2$])));
@@ -70,7 +70,7 @@ export default describeModule('search/operators/streams/wait-for-results-from',
         const source$ = sandbox.hot('-1--2');
         const other1$ = sandbox.hot('--r--');
         const other2$ = sandbox.hot('-----');
-        const expected = sandbox.e(' p-1-2');
+        const expected = sandbox.e(' --1-2');
 
         const messages = sandbox.getMessages(source$.let(
           waitForResultsFrom([other1$, other2$])));

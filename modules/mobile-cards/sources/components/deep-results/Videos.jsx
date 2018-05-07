@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, Image, View, Text } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import Link from '../Link';
+import ExternalImage from '../custom/ExternalImage';
 import { elementSideMargins, elementTopMargin } from '../../styles/CardStyle';
 
 const styles = StyleSheet.create({
@@ -42,7 +43,7 @@ export default class extends React.Component {
     return (
       <Link to={link.url} key={link.url}>
         <View style={styles.item}>
-          <Image
+          <ExternalImage
             source={{ uri: thumbnail }}
             style={styles.image}
             resizeMode={'cover'}

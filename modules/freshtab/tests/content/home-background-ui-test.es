@@ -51,7 +51,7 @@ describe('Fresh tab background UI', function () {
   context('rendered with background turned off', function () {
     before(async function () {
       await subject.load();
-      backgroundSwitch = subject.queryByI18n('freshtab.app.settings.background.label')
+      backgroundSwitch = subject.queryByI18n('freshtab_app_settings_background_label')
         .querySelector('input.switch');
     });
 
@@ -84,7 +84,7 @@ describe('Fresh tab background UI', function () {
       blueConfig.response.componentsState.background.image = 'bg-blue';
       subject.respondsWith(blueConfig);
       await subject.load();
-      backgroundSwitch = subject.queryByI18n('freshtab.app.settings.background.label')
+      backgroundSwitch = subject.queryByI18n('freshtab_app_settings_background_label')
         .querySelector('input.switch');
     });
 
@@ -117,7 +117,7 @@ describe('Fresh tab background UI', function () {
       config.response.componentsState.background.image = 'bg-dark';
       subject.respondsWith(config);
       await subject.load();
-      backgroundSwitch = subject.queryByI18n('freshtab.app.settings.background.label')
+      backgroundSwitch = subject.queryByI18n('freshtab_app_settings_background_label')
         .querySelector('input.switch');
     });
 
@@ -150,7 +150,7 @@ describe('Fresh tab background UI', function () {
       config.response.componentsState.background.image = 'bg-light';
       subject.respondsWith(config);
       await subject.load();
-      backgroundSwitch = subject.queryByI18n('freshtab.app.settings.background.label')
+      backgroundSwitch = subject.queryByI18n('freshtab_app_settings_background_label')
         .querySelector('input.switch');
     });
 
@@ -183,7 +183,7 @@ describe('Fresh tab background UI', function () {
       config.response.componentsState.background.image = 'bg-matterhorn';
       subject.respondsWith(config);
       await subject.load();
-      backgroundSwitch = subject.queryByI18n('freshtab.app.settings.background.label')
+      backgroundSwitch = subject.queryByI18n('freshtab_app_settings_background_label')
         .querySelector('input.switch');
     });
 

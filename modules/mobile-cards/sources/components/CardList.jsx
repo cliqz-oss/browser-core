@@ -30,7 +30,7 @@ export default class extends React.Component {
       return;
     }
     if (carousel.currentIndex !== INITIAL_PAGE_INDEX
-      && nextProps.results.length) {
+      && nextProps.results[0].text !== this.props.results[0].text) {
       // only snap to first item when we need to
       carousel.snapToItem(INITIAL_PAGE_INDEX);
       this.setState({ isForceSnapping: true });

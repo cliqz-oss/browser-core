@@ -34,14 +34,14 @@ export default class Footer extends React.Component {
             data-tip={this.props.data.conditions}
             onMouseOver={this.handleHover}
           >
-            {t('app.conditions')}
+            {t('app_conditions')}
           </span>
           <img
             className="info-icon tooltip tooltipstered"
             ref={(el) => { this.tooltip = el; }}
             data-tip={this.props.data.conditions}
             src="./images/info-icon-hover.svg"
-            alt={t('app.conditions')}
+            alt={t('app_conditions')}
             onMouseOver={this.handleHover}
           />
           <a

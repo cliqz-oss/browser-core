@@ -13,3 +13,4 @@ build
 misc
 mocha.log
 node_modules
+**/node_modules

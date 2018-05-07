@@ -23,7 +23,7 @@ export default background({
     if (this.settings.id !== 'funnelcake@cliqz.com') {
       this.toolbarButton = new ToolbarButton({
         widgetId: 'control-center',
-        default_title: getMessage('control-center-icon-tooltip'),
+        default_title: getMessage('control_center_icon_tooltip'),
         default_popup: `${config.baseURL}control-center/index.html`,
         default_icon: `${config.baseURL}${settings.ICONS.active.default}`,
         badgeBackgroundColor: '#471647',
@@ -36,7 +36,7 @@ export default background({
     if (this.settings.id === 'funnelcake@cliqz.com' || this.settings.id === 'description_test@cliqz.com') {
       this.pageAction = new ToolbarButton({
         widgetId: 'page-action',
-        default_title: getMessage('control-center-icon-tooltip'),
+        default_title: getMessage('control_center_icon_tooltip'),
         default_popup: `${config.baseURL}control-center/index.html`,
         default_icon: getBrowserActionIcon(),
         defaultHeight: () => 251

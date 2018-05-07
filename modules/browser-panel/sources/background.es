@@ -1,5 +1,6 @@
 import background from '../core/base/background';
-import { utils, events } from '../core/cliqz';
+import events from '../core/events';
+import utils from '../core/utils';
 import DisplayManager from './display_manager';
 import REAL_ESTATE_ID from './consts';
 import inject from '../core/kord/inject';

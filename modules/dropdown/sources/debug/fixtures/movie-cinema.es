@@ -1,464 +1,860 @@
 export default {
-  'movie-cinema-1': {
-    query: 'the circle imdb',
+  'movie-showtimes': {
+    query: 'tomb raider',
     results: [
       {
-         "title":"The Circle (2017) - IMDb",
-         "url":"http://www.imdb.com/title/tt4287320",
-         "description":"Directed by James Ponsoldt. With Emma Watson, Tom Hanks, John Boyega, Ellar Coltrane. A woman lands a dream job at a powerful tech company called the Circle, only to uncover an agenda that will affect the lives of all of humanity.",
-         "originalUrl":"http://www.imdb.com/title/tt4287320",
-         "type":"cliqz-extra",
-         "text":"the circle imdb",
+         "url":"http://www.imdb.com/title/tt1365519?random=true",
+         "href":"http://www.imdb.com/title/tt1365519?random=true",
+         "friendlyUrl":"imdb.com/title/tt1365519",
+         "type":"rh",
+         "text":"tomb raider",
+         "provider":"cliqz",
          "data":{
-            "description":"Directed by James Ponsoldt. With Emma Watson, Tom Hanks, John Boyega, Ellar Coltrane. A woman lands a dream job at a powerful tech company called the Circle, only to uncover an agenda that will affect the lives of all of humanity.",
-            "extra":{
-               "alternatives":[
-
-               ],
-               "data":{
-                  "city":"Berlin",
-                  "movie":{
-                     "cast":[
-                        {
-                           "job":null,
-                           "name":"Emma Watson"
-                        },
-                        {
-                           "job":null,
-                           "name":"Tom Hanks"
-                        },
-                        {
-                           "job":null,
-                           "name":"John Boyega"
-                        }
-                     ],
-                     "director":{
-                        "name":"James Ponsoldt"
-                     },
-                     "imdb_id":"tt4287320",
-                     "original_language":"en",
-                     "poster_image_thumbnail":"http://image.tmdb.org/t/p/w154/bQVqd5rWrx5GbXhJNuvKy4Viz6j.jpg",
-                     "ratings":{
-                        "imdb":{
-                           "value":"0",
-                           "vote_count":0
-                        },
-                        "tmdb":{
-                           "value":5.4,
-                           "vote_count":979
-                        }
-                     },
-                     "runtime":110,
-                     "synopsis":"A young tech worker takes a job at a powerful Internet corporation, quickly rises up the company's ranks, and soon finds herself in a perilous situation concerning privacy, surveillance and freedom. She comes to learn that her decisions and actions will determine the future of humanity.",
-                     "title":"The Circle",
-                     "trailer":"https://www.youtube.com/watch?v=QUlr8Am4zQ0",
-                     "website":"http://wearethecircle.com/",
-                     "writer":"Dave Eggers"
-                  },
-                  "showdates":[
-                     {
-                        "cinema_list":[
-                           {
-                              "address":" Rathausstrasse 1, 10178 Berlin",
-                              "name":"CineStar - CUBIX am Alexanderplatz",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"https://webticketing2.cinestar.de/visinternetticketing/visSelectTickets.aspx?cinemacode=46776&txtSessionId=115598&iframe&height=600&width=870",
-                                    "is_3d":true,
-                                    "language":"de",
-                                    "start_at":"2017-10-05T17:00:00+02:00",
-                                    "subtitle_language":null
-                                 },
-                                 {
-                                    "booking_link":"https://webticketing2.cinestar.de/visinternetticketing/visSelectTickets.aspx?cinemacode=46776&txtSessionId=115579&iframe&height=600&width=870",
-                                    "is_3d":false,
-                                    "language":"de",
-                                    "start_at":"2017-10-05T20:10:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"030/257610",
-                              "website":"http://www.cinestar.de"
-                           },
-                           {
-                              "address":"Landsberger Allee 52, 10249 Berlin",
-                              "name":"UCI KINOWELT Friedrichshain",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"http://www.uci-kinowelt.de/kino-buchung/performanceId/75EC1000023IMUEMAF/siteId/42/757306113",
-                                    "is_3d":false,
-                                    "language":"de",
-                                    "start_at":"2017-10-05T19:30:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"030/42 20 4-2 20",
-                              "website":"http://www.uci-kinowelt.de"
-                           },
-                           {
-                              "address":"Gärtnerstr. 19, 10245 Berlin",
-                              "name":"B-Ware Ladenkino",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"https://www.kinoheld.de/kino-berlin/b-ware-ladenkino?rb=0&mode=widget&appView=1&ref=cinepass&showId=1757632240",
-                                    "is_3d":false,
-                                    "language":"en",
-                                    "start_at":"2017-10-05T20:00:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"030/63413115",
-                              "website":"http://ladenkino.de/"
-                           },
-                           {
-                              "address":"Hasenheide 54, 10967 Berlin",
-                              "name":"Sputnik Südstern",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"https://www.kinoheld.de/kino-berlin/sputnik-kino?rb=0&mode=widget&appView=1&ref=cinepass&showId=1756181248",
-                                    "is_3d":false,
-                                    "language":"en",
-                                    "start_at":"2017-10-05T22:20:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"0 30/6 94 11 47",
-                              "website":"http://www.sputnik-kino.com"
-                           },
-                           {
-                              "address":" Elsenstrasse 115 - 116, 12435 Berlin",
-                              "name":"CineStar - Treptower Park",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"https://webticketing2.cinestar.de/visinternetticketing/visSelectTickets.aspx?cinemacode=32381&txtSessionId=86645&iframe&height=600&width=870",
-                                    "is_3d":false,
-                                    "language":"de",
-                                    "start_at":"2017-10-05T19:40:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"030/538940",
-                              "website":"http://www.cinestar.de"
-                           }
-                        ],
-                        "date":"Heute"
-                     },
-                     {
-                        "cinema_list":[
-                           {
-                              "address":" Rathausstrasse 1, 10178 Berlin",
-                              "name":"CineStar - CUBIX am Alexanderplatz",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"https://webticketing2.cinestar.de/visinternetticketing/visSelectTickets.aspx?cinemacode=46776&txtSessionId=115613&iframe&height=600&width=870",
-                                    "is_3d":false,
-                                    "language":"de",
-                                    "start_at":"2017-10-06T16:40:00+02:00",
-                                    "subtitle_language":null
-                                 },
-                                 {
-                                    "booking_link":"https://webticketing2.cinestar.de/visinternetticketing/visSelectTickets.aspx?cinemacode=46776&txtSessionId=115374&iframe&height=600&width=870",
-                                    "is_3d":false,
-                                    "language":"de",
-                                    "start_at":"2017-10-06T20:10:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"030/257610",
-                              "website":"http://www.cinestar.de"
-                           },
-                           {
-                              "address":"Landsberger Allee 52, 10249 Berlin",
-                              "name":"UCI KINOWELT Friedrichshain",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"http://www.uci-kinowelt.de/kino-buchung/performanceId/85EC1000023IMUEMAF/siteId/42/1056407367",
-                                    "is_3d":false,
-                                    "language":"de",
-                                    "start_at":"2017-10-06T19:30:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"030/42 20 4-2 20",
-                              "website":"http://www.uci-kinowelt.de"
-                           },
-                           {
-                              "address":"Gärtnerstr. 19, 10245 Berlin",
-                              "name":"B-Ware Ladenkino",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"https://www.kinoheld.de/kino-berlin/b-ware-ladenkino?rb=0&mode=widget&appView=1&ref=cinepass&showId=1757632259",
-                                    "is_3d":false,
-                                    "language":"de",
-                                    "start_at":"2017-10-06T20:00:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"030/63413115",
-                              "website":"http://ladenkino.de/"
-                           },
-                           {
-                              "address":"Hasenheide 54, 10967 Berlin",
-                              "name":"Sputnik Südstern",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"https://www.kinoheld.de/kino-berlin/sputnik-kino?rb=0&mode=widget&appView=1&ref=cinepass&showId=1756181259",
-                                    "is_3d":false,
-                                    "language":"en",
-                                    "start_at":"2017-10-06T22:20:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"0 30/6 94 11 47",
-                              "website":"http://www.sputnik-kino.com"
-                           },
-                           {
-                              "address":" Elsenstrasse 115 - 116, 12435 Berlin",
-                              "name":"CineStar - Treptower Park",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"https://webticketing2.cinestar.de/visinternetticketing/visSelectTickets.aspx?cinemacode=32381&txtSessionId=86398&iframe&height=600&width=870",
-                                    "is_3d":false,
-                                    "language":"de",
-                                    "start_at":"2017-10-06T19:40:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"030/538940",
-                              "website":"http://www.cinestar.de"
-                           }
-                        ],
-                        "date":"Morgen"
-                     },
-                     {
-                        "cinema_list":[
-                           {
-                              "address":" Rathausstrasse 1, 10178 Berlin",
-                              "name":"CineStar - CUBIX am Alexanderplatz",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"https://webticketing2.cinestar.de/visinternetticketing/visSelectTickets.aspx?cinemacode=46776&txtSessionId=115346&iframe&height=600&width=870",
-                                    "is_3d":false,
-                                    "language":"de",
-                                    "start_at":"2017-10-07T20:10:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"030/257610",
-                              "website":"http://www.cinestar.de"
-                           },
-                           {
-                              "address":"Landsberger Allee 52, 10249 Berlin",
-                              "name":"UCI KINOWELT Friedrichshain",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"http://www.uci-kinowelt.de/kino-buchung/performanceId/95EC1000023IMUEMAF/siteId/42/1543887112",
-                                    "is_3d":false,
-                                    "language":"de",
-                                    "start_at":"2017-10-07T19:30:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"030/42 20 4-2 20",
-                              "website":"http://www.uci-kinowelt.de"
-                           },
-                           {
-                              "address":"Gärtnerstr. 19, 10245 Berlin",
-                              "name":"B-Ware Ladenkino",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"https://www.kinoheld.de/kino-berlin/b-ware-ladenkino?rb=0&mode=widget&appView=1&ref=cinepass&showId=1757632294",
-                                    "is_3d":false,
-                                    "language":"en",
-                                    "start_at":"2017-10-07T22:00:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"030/63413115",
-                              "website":"http://ladenkino.de/"
-                           },
-                           {
-                              "address":"Hasenheide 54, 10967 Berlin",
-                              "name":"Sputnik Südstern",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"https://www.kinoheld.de/kino-berlin/sputnik-kino?rb=0&mode=widget&appView=1&ref=cinepass&showId=1756181270",
-                                    "is_3d":false,
-                                    "language":"en",
-                                    "start_at":"2017-10-07T22:00:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"0 30/6 94 11 47",
-                              "website":"http://www.sputnik-kino.com"
-                           },
-                           {
-                              "address":" Elsenstrasse 115 - 116, 12435 Berlin",
-                              "name":"CineStar - Treptower Park",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"https://webticketing2.cinestar.de/visinternetticketing/visSelectTickets.aspx?cinemacode=32381&txtSessionId=86727&iframe&height=600&width=870",
-                                    "is_3d":false,
-                                    "language":"de",
-                                    "start_at":"2017-10-07T19:40:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"030/538940",
-                              "website":"http://www.cinestar.de"
-                           }
-                        ],
-                        "date":"Sa., 7. Okt."
-                     },
-                     {
-                        "cinema_list":[
-                           {
-                              "address":" Rathausstrasse 1, 10178 Berlin",
-                              "name":"CineStar - CUBIX am Alexanderplatz",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"https://webticketing2.cinestar.de/visinternetticketing/visSelectTickets.aspx?cinemacode=46776&txtSessionId=115615&iframe&height=600&width=870",
-                                    "is_3d":false,
-                                    "language":"de",
-                                    "start_at":"2017-10-08T17:00:00+02:00",
-                                    "subtitle_language":null
-                                 },
-                                 {
-                                    "booking_link":"https://webticketing2.cinestar.de/visinternetticketing/visSelectTickets.aspx?cinemacode=46776&txtSessionId=115428&iframe&height=600&width=870",
-                                    "is_3d":false,
-                                    "language":"de",
-                                    "start_at":"2017-10-08T20:10:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"030/257610",
-                              "website":"http://www.cinestar.de"
-                           },
-                           {
-                              "address":"Landsberger Allee 52, 10249 Berlin",
-                              "name":"UCI KINOWELT Friedrichshain",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"http://www.uci-kinowelt.de/kino-buchung/performanceId/A5EC1000023IMUEMAF/siteId/42/1860608972",
-                                    "is_3d":false,
-                                    "language":"de",
-                                    "start_at":"2017-10-08T19:30:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"030/42 20 4-2 20",
-                              "website":"http://www.uci-kinowelt.de"
-                           },
-                           {
-                              "address":"Gärtnerstr. 19, 10245 Berlin",
-                              "name":"B-Ware Ladenkino",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"https://www.kinoheld.de/kino-berlin/b-ware-ladenkino?rb=0&mode=widget&appView=1&ref=cinepass&showId=1757632337",
-                                    "is_3d":false,
-                                    "language":"en",
-                                    "start_at":"2017-10-08T22:00:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"030/63413115",
-                              "website":"http://ladenkino.de/"
-                           },
-                           {
-                              "address":"Hasenheide 54, 10967 Berlin",
-                              "name":"Sputnik Südstern",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"https://www.kinoheld.de/kino-berlin/sputnik-kino?rb=0&mode=widget&appView=1&ref=cinepass&showId=1756251142",
-                                    "is_3d":false,
-                                    "language":"de",
-                                    "start_at":"2017-10-08T21:30:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"0 30/6 94 11 47",
-                              "website":"http://www.sputnik-kino.com"
-                           },
-                           {
-                              "address":" Elsenstrasse 115 - 116, 12435 Berlin",
-                              "name":"CineStar - Treptower Park",
-                              "showtimes":[
-                                 {
-                                    "booking_link":"https://webticketing2.cinestar.de/visinternetticketing/visSelectTickets.aspx?cinemacode=32381&txtSessionId=86763&iframe&height=600&width=870",
-                                    "is_3d":false,
-                                    "language":"de",
-                                    "start_at":"2017-10-08T19:40:00+02:00",
-                                    "subtitle_language":null
-                                 }
-                              ],
-                              "telephone":"030/538940",
-                              "website":"http://www.cinestar.de"
-                           }
-                        ],
-                        "date":"So., 8. Okt."
-                     }
-                  ]
-               },
-               "language":{
-                  "en":1
-               },
-               "m_url":"http://m.imdb.com/title/tt4287320",
-               "no_location":true,
-               "og":{
-                  "description":"Directed by James Ponsoldt.  With Emma Watson, Tom Hanks, John Boyega, Ellar Coltrane. A woman lands a dream job at a powerful tech company called the Circle, only to uncover an agenda that will affect the lives of all of humanity.",
-                  "image":"https://images-na.ssl-images-amazon.com/images/M/MV5BMjY2OTM2Njc3Ml5BMl5BanBnXkFtZTgwNDgzODU3MTI@._V1_UY1200_CR90,0,630,1200_AL_.jpg",
-                  "title":"The Circle (2017)",
-                  "type":"video.movie"
-               },
-               "rich_data":{
-                  "categories":[
-                     {
-                        "title":"Trailer",
-                        "url":"http://www.imdb.com/video/imdb/vi3222058521?playlistId=tt4287320&ref_=tt_ov_vi"
-                     }
-                  ],
-                  "des":"Directed by James Ponsoldt. With Emma Watson, Tom Hanks, John Boyega, Ellar Coltrane. A woman lands a dream job at a powerful tech company called the Circle, only to uncover an agenda that will affect the lives of all of humanity.",
-                  "director":{
-                     "info":{
-                        "name":"James Ponsoldt",
-                        "url":"http://www.imdb.com/name/nm1242054?ref_=tt_ov_dr"
-                     },
-                     "title":"Director"
-                  },
-                  "image":"https://images-na.ssl-images-amazon.com/images/M/MV5BMjY2OTM2Njc3Ml5BMl5BanBnXkFtZTgwNDgzODU3MTI@._V1_UX182_CR0,0,182,268_AL_.jpg",
-                  "length":"110",
-                  "name":"The Circle (2017) - IMDb",
-                  "rating":{
-                     "img":"http://cdn.cliqz.com/extension/EZ/richresult/stars3.svg",
-                     "nVote":14623,
-                     "scale":10,
-                     "val":5.300000190734863
-                  },
-                  "type":"bm"
-               }
-            },
-            "friendlyUrl":"imdb.com/title/tt4287320",
-            "title":"The Circle (2017) - IMDb",
-            "subType":{
-               "class":"EntityMovie",
-               "trigger_method":"rh_query",
-               "ez":"deprecated",
-               "i":0,
-               "cs":0
-            },
-            "template":"movieEZ",
-            "kind":[
-               "X|{\"class\":\"EntityMovie\",\"trigger_method\":\"rh_query\",\"ez\":\"deprecated\",\"i\":0,\"cs\":0}"
-            ],
             "deepResults":[
 
-            ]
+            ],
+            "extra":{
+               "data":{
+                  "city":"Berlin",
+                  "title":"Tomb Raider",
+                  "showdates":[
+                    {
+                       "date":"Heute",
+                       "cinema_list":[
+                          {
+                             "website":"http://www.cinestar.de",
+                             "name":"CineStar Berlin - CUBIX am Alexanderplatz",
+                             "telephone":"030/257610",
+                             "address":"Rathausstrasse 1, 10178 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/46776/125158",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-28T11:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/46776/125159",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-28T14:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/46776/125160",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-28T17:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/46776/125161",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-28T20:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/46776/125162",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-28T23:00:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          },
+                          {
+                             "website":"http://www.uci-kinowelt.de",
+                             "name":"UCI KINOWELT Friedrichshain",
+                             "telephone":"030/42 20 4-2 20",
+                             "address":"Landsberger Allee 52, 10249 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"http://www.uci-kinowelt.de/kino-buchung/performanceId/BF1E1000023IMUEMAF/siteId/42/145195097",
+                                   "subtitle_language":null,
+                                   "is_3d":false,
+                                   "start_at":"2018-03-28T14:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"http://www.uci-kinowelt.de/kino-buchung/performanceId/4D1E1000023IMUEMAF/siteId/42/229044589",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-28T17:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"http://www.uci-kinowelt.de/kino-buchung/performanceId/DD1E1000023IMUEMAF/siteId/42/1419017453",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-28T20:00:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          },
+                          {
+                             "website":"http://www.cinestar.de",
+                             "name":"CineStar Berlin - Treptower Park",
+                             "telephone":"030/538940",
+                             "address":"Elsenstrasse 115 - 116, 12435 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/32381/95663",
+                                   "subtitle_language":null,
+                                   "is_3d":false,
+                                   "start_at":"2018-03-28T17:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/32381/95664",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-28T19:55:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          },
+                          {
+                             "website":"http://www.cineplex.de",
+                             "name":"Cineplex Neukölln",
+                             "telephone":"01805/050644",
+                             "address":"Karl-Marx-Str. 66, 12043 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"https://booking.cineplex.de/#/site/24/performance/F2B92000023BAQTIKB/mode/sale/",
+                                   "subtitle_language":null,
+                                   "is_3d":false,
+                                   "start_at":"2018-03-28T16:50:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://booking.cineplex.de/#/site/24/performance/77B92000023BAQTIKB/mode/sale/",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-28T19:45:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          },
+                          {
+                             "website":"https://www.cinemaxx.de/berlin/",
+                             "name":"CinemaxX Berlin",
+                             "telephone":"040 80 80 69 69",
+                             "address":"Potsdamer Straße 5 (Eingang Voxstraße 2), 10785 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"https://www.cinemaxx.de/ticketshop/24149/12/1001/16E57000023JJMSGMG/sitz-auswahlen",
+                                   "subtitle_language":null,
+                                   "is_3d":false,
+                                   "start_at":"2018-03-28T14:15:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://www.cinemaxx.de/ticketshop/24149/12/1001/23E57000023JJMSGMG/sitz-auswahlen",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-28T17:10:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://www.cinemaxx.de/ticketshop/24149/12/1001/09E57000023JJMSGMG/sitz-auswahlen",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-28T20:15:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://www.cinemaxx.de/ticketshop/24149/12/1001/69E57000023JJMSGMG/sitz-auswahlen",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-28T23:15:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          }
+                       ]
+                    },
+                    {
+                       "date":"Morgen",
+                       "cinema_list":[
+                          {
+                             "website":"http://www.cinestar.de",
+                             "name":"CineStar Berlin - CUBIX am Alexanderplatz",
+                             "telephone":"030/257610",
+                             "address":"Rathausstrasse 1, 10178 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/46776/125469",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-29T12:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/46776/125463",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-29T17:10:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/46776/125462",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-29T20:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/46776/125461",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-29T23:00:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          },
+                          {
+                             "website":"http://www.uci-kinowelt.de",
+                             "name":"UCI KINOWELT Friedrichshain",
+                             "telephone":"030/42 20 4-2 20",
+                             "address":"Landsberger Allee 52, 10249 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"http://www.uci-kinowelt.de/kino-buchung/performanceId/9D2E1000023IMUEMAF/siteId/42/507920014",
+                                   "subtitle_language":null,
+                                   "is_3d":false,
+                                   "start_at":"2018-03-29T17:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"http://www.uci-kinowelt.de/kino-buchung/performanceId/7B2E1000023IMUEMAF/siteId/42/1814762385",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-29T19:50:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"http://www.uci-kinowelt.de/kino-buchung/performanceId/3B2E1000023IMUEMAF/siteId/42/481332401",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-29T22:50:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          },
+                          {
+                             "website":"http://www.cinestar.de",
+                             "name":"CineStar Berlin - Treptower Park",
+                             "telephone":"030/538940",
+                             "address":"Elsenstrasse 115 - 116, 12435 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/32381/95889",
+                                   "subtitle_language":null,
+                                   "is_3d":false,
+                                   "start_at":"2018-03-29T17:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/32381/95890",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-29T19:55:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/32381/96131",
+                                   "subtitle_language":null,
+                                   "is_3d":false,
+                                   "start_at":"2018-03-29T23:00:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          },
+                          {
+                             "website":"http://www.cineplex.de",
+                             "name":"Cineplex Neukölln",
+                             "telephone":"01805/050644",
+                             "address":"Karl-Marx-Str. 66, 12043 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"https://booking.cineplex.de/#/site/24/performance/70C92000023BAQTIKB/mode/sale/",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-29T19:40:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          },
+                          {
+                             "website":"https://www.cinemaxx.de/berlin/",
+                             "name":"CinemaxX Berlin",
+                             "telephone":"040 80 80 69 69",
+                             "address":"Potsdamer Straße 5 (Eingang Voxstraße 2), 10785 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"https://www.cinemaxx.de/ticketshop/24149/12/1001/15A7A700023FVUVQLG/sitz-auswahlen",
+                                   "subtitle_language":null,
+                                   "is_3d":false,
+                                   "start_at":"2018-03-29T14:10:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://www.cinemaxx.de/ticketshop/24149/12/1001/25A7A700023FVUVQLG/sitz-auswahlen",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-29T17:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://www.cinemaxx.de/ticketshop/24149/12/1001/83A7A700023FVUVQLG/sitz-auswahlen",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-29T19:50:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://www.cinemaxx.de/ticketshop/24149/12/1001/93A7A700023FVUVQLG/sitz-auswahlen",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-29T23:00:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          }
+                       ]
+                    },
+                    {
+                       "date":"Fr., 30. März",
+                       "cinema_list":[
+                          {
+                             "website":"http://www.cinestar.de",
+                             "name":"CineStar Berlin - CUBIX am Alexanderplatz",
+                             "telephone":"030/257610",
+                             "address":"Rathausstrasse 1, 10178 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/46776/125792",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-30T12:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/46776/125775",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-30T17:10:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/46776/125776",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-30T20:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/46776/125777",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-30T23:00:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          },
+                          {
+                             "website":"http://www.uci-kinowelt.de",
+                             "name":"UCI KINOWELT Friedrichshain",
+                             "telephone":"030/42 20 4-2 20",
+                             "address":"Landsberger Allee 52, 10249 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"http://www.uci-kinowelt.de/kino-buchung/performanceId/AD2E1000023IMUEMAF/siteId/42/494252041",
+                                   "subtitle_language":null,
+                                   "is_3d":false,
+                                   "start_at":"2018-03-30T17:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"http://www.uci-kinowelt.de/kino-buchung/performanceId/8B2E1000023IMUEMAF/siteId/42/1095709359",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-30T19:50:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"http://www.uci-kinowelt.de/kino-buchung/performanceId/4B2E1000023IMUEMAF/siteId/42/936867907",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-30T22:50:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          },
+                          {
+                             "website":"http://www.cinestar.de",
+                             "name":"CineStar Berlin - Treptower Park",
+                             "telephone":"030/538940",
+                             "address":"Elsenstrasse 115 - 116, 12435 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/32381/95934",
+                                   "subtitle_language":null,
+                                   "is_3d":false,
+                                   "start_at":"2018-03-30T17:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/32381/95935",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-30T19:55:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/32381/96132",
+                                   "subtitle_language":null,
+                                   "is_3d":false,
+                                   "start_at":"2018-03-30T23:00:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          },
+                          {
+                             "website":"http://www.cineplex.de",
+                             "name":"Cineplex Neukölln",
+                             "telephone":"01805/050644",
+                             "address":"Karl-Marx-Str. 66, 12043 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"https://booking.cineplex.de/#/site/24/performance/DDC92000023BAQTIKB/mode/sale/",
+                                   "subtitle_language":null,
+                                   "is_3d":false,
+                                   "start_at":"2018-03-30T19:40:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          },
+                          {
+                             "website":"https://www.cinemaxx.de/berlin/",
+                             "name":"CinemaxX Berlin",
+                             "telephone":"040 80 80 69 69",
+                             "address":"Potsdamer Straße 5 (Eingang Voxstraße 2), 10785 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"https://www.cinemaxx.de/ticketshop/24149/12/1001/E9A7A700023FVUVQLG/sitz-auswahlen",
+                                   "subtitle_language":null,
+                                   "is_3d":false,
+                                   "start_at":"2018-03-30T14:10:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://www.cinemaxx.de/ticketshop/24149/12/1001/F9A7A700023FVUVQLG/sitz-auswahlen",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-30T17:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://www.cinemaxx.de/ticketshop/24149/12/1001/88A7A700023FVUVQLG/sitz-auswahlen",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-30T19:50:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://www.cinemaxx.de/ticketshop/24149/12/1001/98A7A700023FVUVQLG/sitz-auswahlen",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-30T23:00:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          }
+                       ]
+                    },
+                    {
+                       "date":"Sa., 31. März",
+                       "cinema_list":[
+                          {
+                             "website":"http://www.cinestar.de",
+                             "name":"CineStar Berlin - CUBIX am Alexanderplatz",
+                             "telephone":"030/257610",
+                             "address":"Rathausstrasse 1, 10178 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/46776/125830",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-31T12:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/46776/125843",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-31T17:10:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/46776/125844",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-31T20:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/46776/125845",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-31T23:00:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          },
+                          {
+                             "website":"http://www.uci-kinowelt.de",
+                             "name":"UCI KINOWELT Friedrichshain",
+                             "telephone":"030/42 20 4-2 20",
+                             "address":"Landsberger Allee 52, 10249 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"http://www.uci-kinowelt.de/kino-buchung/performanceId/BD2E1000023IMUEMAF/siteId/42/150444711",
+                                   "subtitle_language":null,
+                                   "is_3d":false,
+                                   "start_at":"2018-03-31T17:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"http://www.uci-kinowelt.de/kino-buchung/performanceId/9B2E1000023IMUEMAF/siteId/42/2129030411",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-31T19:50:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"http://www.uci-kinowelt.de/kino-buchung/performanceId/5B2E1000023IMUEMAF/siteId/42/579178550",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-31T22:50:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          },
+                          {
+                             "website":"http://www.cinestar.de",
+                             "name":"CineStar Berlin - Treptower Park",
+                             "telephone":"030/538940",
+                             "address":"Elsenstrasse 115 - 116, 12435 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/32381/96090",
+                                   "subtitle_language":null,
+                                   "is_3d":false,
+                                   "start_at":"2018-03-31T17:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/32381/96091",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-31T19:55:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://webticketing2.cinestar.de/#/init/32381/96133",
+                                   "subtitle_language":null,
+                                   "is_3d":false,
+                                   "start_at":"2018-03-31T23:00:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          },
+                          {
+                             "website":"http://www.cineplex.de",
+                             "name":"Cineplex Neukölln",
+                             "telephone":"01805/050644",
+                             "address":"Karl-Marx-Str. 66, 12043 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"https://booking.cineplex.de/#/site/24/performance/EDC92000023BAQTIKB/mode/sale/",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-31T19:40:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          },
+                          {
+                             "website":"https://www.cinemaxx.de/berlin/",
+                             "name":"CinemaxX Berlin",
+                             "telephone":"040 80 80 69 69",
+                             "address":"Potsdamer Straße 5 (Eingang Voxstraße 2), 10785 Berlin",
+                             "showtimes":[
+                                {
+                                   "booking_link":"https://www.cinemaxx.de/ticketshop/24149/12/1001/EEA7A700023FVUVQLG/sitz-auswahlen",
+                                   "subtitle_language":null,
+                                   "is_3d":false,
+                                   "start_at":"2018-03-31T14:10:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://www.cinemaxx.de/ticketshop/24149/12/1001/FEA7A700023FVUVQLG/sitz-auswahlen",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-31T17:00:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://www.cinemaxx.de/ticketshop/24149/12/1001/5DA7A700023FVUVQLG/sitz-auswahlen",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-31T19:50:00+02:00",
+                                   "language":"de"
+                                },
+                                {
+                                   "booking_link":"https://www.cinemaxx.de/ticketshop/24149/12/1001/6DA7A700023FVUVQLG/sitz-auswahlen",
+                                   "subtitle_language":null,
+                                   "is_3d":true,
+                                   "start_at":"2018-03-31T23:00:00+02:00",
+                                   "language":"de"
+                                }
+                             ]
+                          }
+                       ]
+                    }
+                 ]
+               },
+               "no_location":true
+            },
+            "kind":[
+               "X|{\"class\":\"EntityMovie\"}"
+            ],
+            "template":"movie-showtimes",
          },
          "maxNumberOfSlots":3
       }
     ]
   },
-  'movie-cinema-2': {
+  'movie': {
+    query: 'black panther',
+    results: [
+      {
+         "url":"https://www.moviepilot.de/movies/black-panther",
+         "href":"https://www.moviepilot.de/movies/black-panther",
+         "title":"Black Panther",
+         "description":"Alle Infos zum Film Black Panther (2018): Chadwick Boseman erhält die Ehre, mit Black Panther den ersten schwarzen Marvel-Helden zu verkörpern...",
+         "data":{
+            "deepResults":[
+               {
+                  "type":"buttons",
+                  "links":[
+                     {
+                        "url":"http://www.moviepilot.de/movies/black-panther/images",
+                        "href":"http://www.moviepilot.de/movies/black-panther/images",
+                        "title":"Photos",
+                        "kind":[
+
+                        ],
+                        "meta":{
+                           "level":1,
+                           "type":"buttons",
+                           "domain":"moviepilot.de",
+                           "host":"moviepilot.de",
+                           "hostAndPort":"moviepilot.de",
+                           "port":"",
+                           "url":"moviepilot.de/movies/black-panther/images",
+                           "subType":{
+
+                           },
+                           "isAutocompletable":false
+                        }
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/movies/black-panther/casts",
+                        "href":"http://www.moviepilot.de/movies/black-panther/casts",
+                        "title":"Cast",
+                        "kind":[
+
+                        ],
+                        "meta":{
+                           "level":1,
+                           "type":"buttons",
+                           "domain":"moviepilot.de",
+                           "host":"moviepilot.de",
+                           "hostAndPort":"moviepilot.de",
+                           "port":"",
+                           "url":"moviepilot.de/movies/black-panther/casts",
+                           "subType":{
+
+                           },
+                           "isAutocompletable":false
+                        }
+                     }
+                  ]
+               }
+            ],
+            "extra":{
+               "language":{
+                  "de":0.7599999904632568
+               },
+               "m_url":"https://m.moviepilot.de/movies/black-panther",
+               "og":{
+                  "image":"https://assets.cdn.moviepilot.de/files/28749813b631d1cfdb00231590c4fa6bec5e0879802384e57518fa370ccc/fill/200/200/blackpantherposter.jpg",
+                  "type":"moviepilotde:movie",
+                  "description":"Black Panther, 2018, Abenteuerfilm, von Ryan Coogler",
+                  "title":"Black Panther"
+               },
+               "alternatives":[
+                  "https://www.moviepilot.de/movies/black-panther"
+               ],
+               "mobile_links":{
+                  "android":[
+                     "android-app://de.moviepilot.home/mphome/open/movie?code_movie=9011"
+                  ]
+               },
+               "rich_data":{
+                  "rating":{
+                      "scale":10,
+                      "img":"http://cdn.cliqz.com/extension/EZ/richresult/stars4.svg",
+                      "val":7.199999809265137,
+                      "nVote":5237
+                   },
+                  "name":"Black Panther",
+                  "image":"https://assets.cdn.moviepilot.de/files/28749813b631d1cfdb00231590c4fa6bec5e0879802384e57518fa370ccc/fill/200/200/blackpantherposter.jpg",
+                  "des":"Alle Infos zum Film Black Panther (2018): Chadwick Boseman erhält die Ehre, mit Black Panther den ersten schwarzen Marvel-Helden zu verkörpern...",
+                  "director":{
+                     "info":{
+                        "url":"http://www.moviepilot.de/people/ryan-coogler",
+                        "name":"Ryan Coogler"
+                     },
+                     "title":"Director"
+                  },
+                  "cast":[
+                     {
+                        "url":"http://www.moviepilot.de/people/chadwick-boseman",
+                        "name":"Chadwick Boseman"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/lupita-nyongo",
+                        "name":"Lupita"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/michael-b-jordan",
+                        "name":"Michael Jordan"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/danai-jekesai-gurira",
+                        "name":"Danai Gurira"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/winston-duke",
+                        "name":"Winston Duke"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/martin-freeman",
+                        "name":"Martin Freeman"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/daniel-kaluuya",
+                        "name":"Daniel Kaluuya"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/angela-bassett",
+                        "name":"Angela Bassett"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/forest-whitaker",
+                        "name":"Forest Whitaker"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/andy-serkis",
+                        "name":"Andy Serkis"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/florence-kasumba",
+                        "name":"Florence Kasumba"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/sterling-k-brown",
+                        "name":"Sterling K. Brown"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/letitia-wright",
+                        "name":"Letitia Wright"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/phylicia-rashad",
+                        "name":"Phylicia Rashad"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/stan-lee",
+                        "name":"Stan Lee"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/david-lee",
+                        "name":"David S. Lee"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/isaach-de-bankol",
+                        "name":"Isaach de Bankolé"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/shaunette-renee-wilson",
+                        "name":"Shaunette Renée Wilson"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/shad-gaspard",
+                        "name":"Shad Gaspard"
+                     },
+                     {
+                        "url":"http://www.moviepilot.de/people/bambadjan-bamba",
+                        "name":"Bambadjan Bamba"
+                     }
+                  ],
+                  "length":"_",
+                  "type":"bm",
+                  "categories":[
+                     {
+                        "url":"http://www.moviepilot.de/movies/black-panther/trailer",
+                        "title":"Trailer"
+                     }
+                  ]
+               }
+            },
+            "kind":[
+               "o"
+            ],
+            "template":"movie",
+         },
+         "kind":[
+            "o"
+         ],
+        "provider":"cliqz",
+         "template":"movie",
+         "text":"black panther",
+         "type":"bm",
+         "meta":{
+            "level":0,
+            "type":"main",
+            "domain":"moviepilot.de",
+            "host":"moviepilot.de",
+            "hostAndPort":"moviepilot.de",
+            "port":"",
+            "url":"moviepilot.de/movies/black-panther",
+            "score":133.00000620657593,
+            "subType":{
+
+            },
+            "isAutocompletable":false
+         },
+         "maxNumberOfSlots":3
+      }
+    ]
+  },
+  'cinema': {
     query: 'yorck.de',
     results: [
       {

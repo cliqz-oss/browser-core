@@ -46,10 +46,10 @@ context('Offers Hub UI tests for feedback for one offer', function () {
   });
 
   it('renders title', function () {
-    const titleSelector = `${feedbackSelector} [data-i18n="offers-hub-feedback-title"]`;
+    const titleSelector = `${feedbackSelector} [data-i18n="offers_hub_feedback_title"]`;
     expect(subject.query(titleSelector)).to.exist;
     expect(subject.query(titleSelector).textContent.trim())
-      .to.equal('offers-hub-feedback-title');
+      .to.equal('offers_hub_feedback_title');
   });
 
   it('renders four radio buttons', function () {
@@ -61,7 +61,7 @@ context('Offers Hub UI tests for feedback for one offer', function () {
   it('first three options have correct text', function () {
     const optionSelector = `${feedbackSelector} ul li label`;
     [...subject.queryAll(optionSelector)].forEach(function (option, i) {
-      expect(option.textContent.trim()).to.equal(`offers-hub-feedback-option${i + 1}`);
+      expect(option.textContent.trim()).to.equal(`offers_hub_feedback_option${i + 1}`);
     });
   });
 
@@ -69,13 +69,13 @@ context('Offers Hub UI tests for feedback for one offer', function () {
     const optionSelector = `${feedbackSelector} #feedback_option4 + textarea`;
     expect(subject.query(optionSelector)).to.exist;
     expect(subject.query(optionSelector).hasAttribute('placeholder')).to.be.true;
-    expect(subject.query(optionSelector).getAttribute('placeholder')).to.equal('offers-hub-feedback-option4');
+    expect(subject.query(optionSelector).getAttribute('placeholder')).to.equal('offers_hub_feedback_option4');
   });
 
   it('renders \'close\' button', function () {
     const buttonSelector = `${feedbackSelector} #close-feedback`;
     expect(subject.query(buttonSelector)).to.exist;
     expect(subject.query(buttonSelector).textContent.trim())
-      .to.equal('offers-hub-feedback-close');
+      .to.equal('offers_hub_feedback_close');
   });
 });

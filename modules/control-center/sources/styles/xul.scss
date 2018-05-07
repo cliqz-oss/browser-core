@@ -1,0 +1,94 @@
+/*** STYLES FOR PAGE ACTION BUTTON ***/
+
+#nav-bar {
+    #urlbar {
+        /* we need this for FF56 and bellow only*/
+        #urlbar-icons {
+            toolbarbutton#page-action-browser-action {
+                .toolbarbutton-icon {
+                    max-width: 12px;
+                }
+            }
+        }
+        toolbarbutton {
+            &#page-action-browser-action {
+                margin: 0;
+                padding: 0;
+                margin-right: -4px;
+                height: auto;
+
+                &.toolbarbutton-1 {
+
+                    > .toolbarbutton-badge-stack {
+                        padding: 0 8px;
+                    }
+
+                    &:hover, &[open] {
+                        border-color: transparent;
+                        box-shadow: none;
+                        background: none;
+                    }
+                }
+            }
+
+            &.toolbarbutton-1 {
+                > .toolbarbutton-badge-stack {
+                    border-color: transparent;
+                    box-shadow: none;
+                    background: none;
+                }
+
+                :hover {
+                    border-color: transparent;
+                    box-shadow: none;
+                    background: none;
+                }
+            }
+
+            &:hover {
+                .toolbarbutton-icon {
+                    opacity: 0.6;
+                }
+            }
+        }
+    }
+
+    #customizationui-widget-multiview {
+        panelview#PanelUI-webext-page-action-browser-action-view:not([extension]),
+        panelview#PanelUI-webext-control-center-browser-action-view:not([extension]) {
+            max-width: 400px;
+        }
+    }
+
+    /* dropdown width in FF42*/
+    #customizationui-widget-panel .panel-mainview {
+        max-width: 800px;
+    }
+
+    /* EX-6331: popup arrow was overlapping the gear icon in FF58 and above */
+    #customizationui-widget-panel[viewId='PanelUI-webext-page-action-browser-action-view'] {
+       margin-top: 0px;
+    }
+}
+
+#PanelUI-mainView {
+    toolbarbutton#control-center-browser-action {
+        &.toolbarbutton-1 {
+            > .toolbarbutton-badge-stack {
+                .toolbarbutton-icon {
+                    list-style-image: var(--webextension-menupanel-image, inherit);
+                }
+            }
+        }
+    }
+}
+
+.toolbarbutton-badge {
+    background-color: #471647;
+}
+
+
+#pageActionPanel panelview#PanelUI-webext-control-center-browser-action-view,
+#widget-overflow panelview#PanelUI-webext-control-center-browser-action-view {
+    max-width: 400px;
+}

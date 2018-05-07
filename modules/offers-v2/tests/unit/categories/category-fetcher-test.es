@@ -2,6 +2,8 @@
 /* global describeModule */
 /* global require */
 
+var shouldKeepResourceRet = false;
+
 
 class BEConnectorMock {
   constructor() {
@@ -30,6 +32,7 @@ class CategoryHandlerMock {
 
 const DEFAULT_CAT_RESP = {
     "categories": [{
+        "user_group": 100,
         "name": "tempcat_Flaconi12_TG1",
         "timeRangeSecs": 900,
         "patterns": ["||google.de^*abdeckstift^", "||google.de^*abschminktuecher^"],
@@ -42,6 +45,7 @@ const DEFAULT_CAT_RESP = {
             "func": "simpleCount"
         }
     }, {
+        "user_group": 50,
         "name": "tempcat_Flaconi18_TG1",
         "timeRangeSecs": 900,
         "patterns": ["||douglas.de", "||parfumdreams.de"],
@@ -54,6 +58,7 @@ const DEFAULT_CAT_RESP = {
             "func": "simpleCount"
         }
     }, {
+        "user_group": 30,
         "name": "tempcat_NissanQQSustain_TG1",
         "timeRangeSecs": 900,
         "patterns": ["||google.de^*nissan^", "||google.de^*nissan^neu^"],
@@ -107,6 +112,14 @@ export default describeModule('offers-v2/categories/category-fetcher',
     },
     'core/platform': {
       isChromium: false
+    },
+    'offers-v2/utils': {
+      shouldKeepResource: function(userGroup) {
+        return shouldKeepResourceRet;
+      },
+      timestampMS: function() {
+        return Date.now();
+      },
     },
     'core/utils': {
       default: {
@@ -195,6 +208,7 @@ export default describeModule('offers-v2/categories/category-fetcher',
         let fetcher;
 
         beforeEach(function () {
+          shouldKeepResourceRet = true;
           db = {};
           beMock = new BEConnectorMock();
           handlerMock = new CategoryHandlerMock();
@@ -223,6 +237,34 @@ export default describeModule('offers-v2/categories/category-fetcher',
 
         function waitForCategoriesAdded(count) {
           return waitForCondition(() => handlerMock.categoriesAdded.length >= count);
+        }
+
+        function checkCategoriesAdded(idList) {
+          const catIds = new Set();
+          handlerMock.categoriesAdded.forEach(c => catIds.add(c.name));
+          chai.expect(catIds.size, 'there are more or less elements than expected').eql(idList.length);
+          idList.forEach(id =>
+            chai.expect(catIds.has(id), `missing category id: ${id}`).eql(true)
+          );
+        }
+
+        function getCatNamesWithUndefinedUserGroup(catList) {
+          const r = [];
+          catList.forEach(c => {
+            if (c.user_group === undefined) {
+              r.push(c.name);
+            }
+          });
+          return r;
+        }
+        function getCatNamesWithDefinedUserGroup(catList) {
+          const r = [];
+          catList.forEach(c => {
+            if (c.user_group !== undefined) {
+              r.push(c.name);
+            }
+          });
+          return r;
         }
 
         // /////////////////////////////////////////////////////////////////////
@@ -274,6 +316,38 @@ export default describeModule('offers-v2/categories/category-fetcher',
             chai.expect(beMock.lastCallParams).to.exist;
             chai.expect(beMock.lastCallParams.last_rev).eql(null);
             chai.expect(handlerMock.categoriesAdded.length).eql(0);
+          });
+        });
+
+        it('/check user_group filtering works for undefined', function () {
+          beMock.result = DEFAULT_CAT_RESP;
+          fetcher.init();
+          const catWithUndefinedUserGroup = getCatNamesWithUndefinedUserGroup(DEFAULT_CAT_RESP.categories);
+          chai.expect(catWithUndefinedUserGroup.length).not.eql(0);
+          shouldKeepResourceRet = false;
+          return waitForBECalled().then(() => {
+            beMock.called = false;
+            return Promise.all([fetcher._performFetch(), waitForBECalled()]).then(() => {
+              checkCategoriesAdded(catWithUndefinedUserGroup);
+            });
+          });
+        });
+
+
+        it('/check user_group filtering works for not undefined', function () {
+          beMock.result = DEFAULT_CAT_RESP;
+          fetcher.init();
+          const catWithUndefinedUserGroup = getCatNamesWithUndefinedUserGroup(DEFAULT_CAT_RESP.categories);
+          const catWithDefinedUserGroup = getCatNamesWithDefinedUserGroup(DEFAULT_CAT_RESP.categories);
+          chai.expect(catWithUndefinedUserGroup.length).not.eql(0);
+          chai.expect(catWithDefinedUserGroup.length).not.eql(0);
+          const all = catWithUndefinedUserGroup.concat(catWithDefinedUserGroup);
+          shouldKeepResourceRet = true;
+          return waitForBECalled().then(() => {
+            beMock.called = false;
+            return Promise.all([fetcher._performFetch(), waitForBECalled()]).then(() => {
+              checkCategoriesAdded(all);
+            });
           });
         });
 

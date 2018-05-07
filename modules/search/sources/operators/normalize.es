@@ -12,7 +12,7 @@ const clean = (result) => {
   return {
     url: result.url,
     href: result.url,
-    friendlyUrl: result.friendlyUrl,
+    friendlyUrl: result.friendlyUrl || details.friendly_url,
     title: result.title,
     description: result.description,
     // TODO: clean `extra`

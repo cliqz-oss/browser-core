@@ -3,26 +3,34 @@ import Rx from '../platform/lib/rxjs';
 import AppWindow from '../core/base/window';
 import utils from '../core/utils';
 import events from '../core/events';
-import prefs from '../core/prefs';
 import createUrlbarObservable from './observables/urlbar';
 import logger from './logger';
 import search from './search';
 import telemetry from './telemetry';
-import DEFAULT_CONFIG from './config';
+import getConfig from './config';
 import ObservableProxy from '../core/helpers/observable-proxy';
 import { getSearchEngines } from '../core/search-engines';
 
 function getProviders() {
-  const available = JSON.parse(utils.getPref('config_backends', '["de"]'));
+  const all = JSON.parse(utils.getPref('config_backends', '["de"]'))
+    .reduce((acc, cur) => {
+      acc[cur] = {
+        selected: cur === utils.getPref('backend_country', 'de'),
+        name: utils.getLocalizedString(`country_code_${cur.toUpperCase()}`),
+      };
 
-  return available.reduce((acc, cur) => {
-    acc[cur] = {
-      selected: cur === utils.getPref('backend_country', 'de'),
-      name: utils.getLocalizedString(`country_code_${cur.toUpperCase()}`),
+      return acc;
+    }, {});
+
+  if (utils.hasPref('backend_country.override')) {
+    const customCountry = utils.getPref('backend_country.override');
+    all[customCountry] = {
+      selected: true,
+      name: `Custom - [${customCountry}]`
     };
+  }
 
-    return acc;
-  }, {});
+  return all;
 }
 
 export default class SearchWindow extends AppWindow {
@@ -51,6 +59,7 @@ export default class SearchWindow extends AppWindow {
     },
 
     'urlbar:dropmarker-click': () => {
+      this.focusEventProxy.next();
       this.inputEventProxy.next({ query: '', allowEmptyQuery: true });
     },
   };
@@ -79,35 +88,9 @@ export default class SearchWindow extends AppWindow {
 
     const query$ = createUrlbarObservable(this.inputEventProxy.observable);
 
-    const config = {
-      ...DEFAULT_CONFIG,
-      window: this.window,
-      providers: {
-        ...DEFAULT_CONFIG.providers,
-        'query-suggestions': {
-          get isEnabled() {
-            return !utils.isPrivateMode(this.window)
-              && DEFAULT_CONFIG.providers['query-suggestions'].isEnabled
-              && (prefs.get('suggestionChoice', 0) === 2);
-          },
-        },
-      },
-      operators: {
-        ...DEFAULT_CONFIG.operators,
-        offers: {
-          position: DEFAULT_CONFIG.operators.offers.position,
-          get isEnabled() {
-            return prefs.get('offers2FeatureEnabled', true)
-              && prefs.get('offers2UserEnabled', true)
-              && prefs.get('offersDropdownSwitch', false);
-          },
-
-          get locationEnabled() {
-            return prefs.get('offers_location', 1) === 1;
-          }
-        }
-      }
-    };
+    const config = getConfig({
+      isPrivateMode: utils.isPrivateMode(this.window),
+    });
 
     const highlight$ = this.resultHighlightEventProxy.observable.share();
     const results$ = search({ query$, focus$, highlight$ },

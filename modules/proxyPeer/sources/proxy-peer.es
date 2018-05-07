@@ -1,4 +1,4 @@
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import MessageQueue from '../core/message-queue';
 
 import CliqzPeer from '../p2p/cliqz-peer';

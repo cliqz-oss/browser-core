@@ -11,11 +11,20 @@ export default class ProcessScriptManager {
     const { origin, payload, windowId } = msg.data;
     const { action, module, requestId } = payload;
 
+    let sent = false;
+
     this.dispatchMessage({
       ...msg,
       data: {
         ...msg.data,
         sendResponse: (response) => {
+          // To implement chrome.runtime.sendMesssage specification
+          // we make sure that `sendResponse` is called at most once
+          if (sent) {
+            return;
+          }
+
+          sent = true;
           this.broadcast(`window-${msg.data.windowId}`, {
             origin,
             response,

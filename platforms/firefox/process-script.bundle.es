@@ -8,6 +8,11 @@ import { getMessage } from '../core/i18n';
 
 const send = sendAsyncMessage.bind(null, 'cliqz');
 const CONTENT_SCRIPT_URL = 'chrome://cliqz/content/core/content-script.bundle.js';
+const whitelistedPages = [
+  'resource://cliqz',
+  'chrome://cliqz',
+  config.settings.NEW_TAB_URL
+].concat(config.settings.frameScriptWhitelist || []);
 
 const getContentScript = () => {
   try {
@@ -98,6 +103,8 @@ const DocumentManager = {
       return;
     }
 
+    const isChromePage = whitelistedPages.some(url => window.location.href.indexOf(url) === 0);
+
     const contentScript = await getContentScript();
 
     const windowId = getWindowId(window);
@@ -105,18 +112,31 @@ const DocumentManager = {
     let unsafeWindow = null;
 
     const onMessage = (incomingMessage) => {
+      if (incomingMessage.windowId && (incomingMessage.windowId !== windowId)) {
+        return;
+      }
+
+      let message = incomingMessage.data;
+
+      if (isChromePage) {
+        // TODO: we should have uniform message shape
+        const payload = incomingMessage.data.payload;
+        if (payload && payload.response) {
+          message = payload.response;
+        } else if (payload) {
+          message = payload;
+        } else {
+          message = incomingMessage.data;
+        }
+      } else {
+        message.type = 'response';
+      }
+
+      message = Components.utils.cloneInto(message, window);
+
       listeners.forEach((l) => {
         try {
-          const unsafeMessage = Components.utils.cloneInto({
-            ...incomingMessage.data,
-            type: 'response',
-          }, window);
-
-          if (incomingMessage.windowId && (incomingMessage.windowId !== windowId)) {
-            return;
-          }
-
-          l(unsafeMessage);
+          l(message);
         } catch (e) {
           // don't throw if any of the listeners thrown
         }
@@ -142,13 +162,7 @@ const DocumentManager = {
       },
     };
 
-    const whitelistedPages = [
-      'resource://cliqz',
-      'chrome://cliqz',
-      config.settings.NEW_TAB_URL
-    ].concat(config.settings.frameScriptWhitelist || []);
-
-    if (whitelistedPages.some(url => window.location.href.indexOf(url) === 0)) {
+    if (isChromePage) {
       const safeChrome = {
         runtime: {
           sendMessage(message) {
@@ -201,9 +215,7 @@ const DocumentManager = {
       },
     };
 
-    const isWhitelisted = whitelistedPages.some(url => window.location.href.indexOf(url) === 0);
-
-    if (isWhitelisted || !contentScript.hasReturnValue) {
+    if (isChromePage || !contentScript.hasReturnValue) {
       Services.scriptloader.loadSubScript('chrome://cliqz/content/core/content-script.bundle.js', {
         window,
         chrome,

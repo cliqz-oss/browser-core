@@ -10,6 +10,7 @@ import logger from '../common/offers_v2_logger';
 import SimpleDB from '../../core/persistence/simple-db';
 import setTimeoutInterval from '../../core/helpers/timeout';
 import utils from '../../core/utils';
+import { shouldKeepResource } from '../utils';
 
 
 // Constant defining how frequently we want to fetch categories from BE
@@ -93,7 +94,7 @@ export default class CategoryFetcher {
       'categories',
       { last_rev: this.lastRevision },
       'GET').then((payload) => {
-      const categories = payload.categories;
+      let categories = payload.categories;
       const revision = payload.revision;
 
       if (!categories || !revision) {
@@ -101,12 +102,18 @@ export default class CategoryFetcher {
         return Promise.resolve(false);
       }
 
+      // #EX-7061 - filter all the categories that dont belong to us
+      const keepCategory = c =>
+        c && ((c.user_group === undefined) || shouldKeepResource(c.user_group));
+
+      categories = categories.filter(keepCategory);
+
       // store the last revision for future usage
       this._setLatestRevision(revision);
 
       logger.info(`Fetched ${categories.length} categories from backend`);
       if (logger.LOG_LEVEL === 'debug') {
-        logger.logObject(payload);
+        logger.logObject(categories);
       }
 
       // for each category now we do the update, for now the backend will return

@@ -13,6 +13,10 @@ export default {
   generate: ({ records }) => {
     const paginationSignals = records.get('freshtab.home.click.news_pagination');
 
+    if (paginationSignals.length === 0) {
+      return [];
+    }
+
     // Compute histogram of indices clicked
     const histogram = new Counter(paginationSignals.map(({ index }) => index));
 

@@ -31,7 +31,7 @@ context('Offers Hub Interaction tests for feedback for one offer', function () {
       it('button changes text to "send and close"', function () {
         const buttonSelector = '#close-feedback';
         expect(subject.query(buttonSelector)).to.exist;
-        expect(subject.query(buttonSelector)).to.have.text('offers-hub-feedback-send-and-close');
+        expect(subject.query(buttonSelector)).to.have.text('offers_hub_feedback_send_and_close');
       });
     });
   }

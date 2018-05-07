@@ -22,9 +22,8 @@
     "TRACKER_PROXY_PROXY_SIGNALING_DEFAULT": "wss://p2p-signaling-proxypeer.cliqz.com",
     "TRACKER_PROXY_PROXY_PEERS_DEFAULT": "https://p2p-signaling-proxypeer.cliqz.com/peers",
     "TRACKER_PROXY_PROXY_PEERS_EXIT_DEFAULT": "https://p2p-signaling-proxypeer.cliqz.com/exitNodes",
-    "GID_BACKEND_URL" : "https://anolysis-gid.cliqz.com",
-    "TELEMETRY_BACKEND_URL" : "https://anolysis-telemetry.cliqz.com/collect",
     "BW_URL": "https://antiphishing.cliqz.com/api/bwlist?md5=",
+    "ANOLYSIS_BACKEND_URL": "https://anolysis.privacy.cliqz.com",
     "PRIVACY_SCORE_URL": "https://anti-tracking.cliqz.com/api/v1/score?",
     "SUPPORT_URL": "https://cliqz.com/support/",
     "TEAM_URL": "https://cliqz.com/team/",
@@ -36,6 +35,7 @@
     "RESULTS_PROVIDER_LOG" : "https://api.cliqz.com/api/v1/logging?q=",
     "RESULTS_PROVIDER_PING": "https://api.cliqz.com/ping",
     "RESULTS_PROVIDER_ORDER": ["calculator", "history", "cliqz", "suggestions", "instant"],
+    "CLEAR_RESULTS_AT_SESSION_START": false,
     "SAFE_BROWSING": "https://safe-browsing.cliqz.com",
     "TUTORIAL_URL": "https://cliqz.com/home/onboarding",
     "UNINSTALL": "https://cliqz.com/home/offboarding",
@@ -48,7 +48,9 @@
     "TELEMETRY_ENDPOINT": "https://safebrowsing-experiment.cliqz.com",
     "INVENTORY_URL": "https://cdn.cliqz.com/browser-f/fun-demo/inventoryv2.txt.gz",
     "OFFER_TELEMETRY": "https://offers-api.cliqz.com/api/v1/savesignal",
-    "OFFER_TELEMETRY_PREFIX": "https://offers-api.cliqz.com"
+    "OFFER_TELEMETRY_PREFIX": "https://offers-api.cliqz.com",
+    "antitrackingPlaceholder": "cliqz.com/tracking",
+    "antitrackingHeader": "CLIQZ-AntiTracking"
   },
   "default_prefs" : {
     "attrackBloomFilter": true,
@@ -71,7 +73,8 @@
     "mobile-pairing",
     "mobile-cards",
     "video-downloader",
-    "anolysis"
+    "anolysis",
+    "geolocation"
   ],
   "bundles": [
   ],

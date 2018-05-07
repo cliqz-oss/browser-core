@@ -1,4 +1,5 @@
-import { utils, events } from '../core/cliqz';
+import events from '../core/events';
+import utils from '../core/utils';
 import logger from './logger';
 import ProxyPeer from './proxy-peer';
 import { CompositePolicy, TrackerWhitelistPolicy,

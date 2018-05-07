@@ -35,6 +35,9 @@ const reconstruct = ({ links }) => {
     result.data.urls = history;
   }
 
+  // Remove extra from result since we have it already in result.data.
+  delete result.extra;
+
   return result;
 };
 

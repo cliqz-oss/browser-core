@@ -74,7 +74,6 @@ export default describeModule('search/operators/streams/wait-for',
 
         return chai.expect(messages).to.deep.equal(expected);
       });
-
     });
   },
 );

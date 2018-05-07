@@ -1,18 +1,25 @@
-import Handlebars from 'handlebars';
-import templates from './templates';
 import UI from './ui';
-import helpers from './helpers';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import AppWindow from '../core/base/window';
 
-const STYLESHEET_URL = 'chrome://cliqz/content/dropdown/styles/styles.css';
+const STYLESHEET_URL = 'chrome://cliqz/content/dropdown/styles/xul.css';
 
 export default class DropdownWindow extends AppWindow {
   events = {
-    'content:location-change': () => {
+    'urlbar:blur': () => {
+      if (!this.ui.renderer) {
+        return;
+      }
       this.ui.sessionEnd();
+      this.ui.renderer.close();
     },
-
+    'core:tab_select': () => {
+      if (!this.ui.renderer) {
+        return;
+      }
+      this.ui.sessionEnd();
+      this.ui.renderer.close();
+    },
     'search:results': ({ windowId, results }) => {
       if (this.windowId !== windowId) {
         return;
@@ -56,12 +63,7 @@ export default class DropdownWindow extends AppWindow {
 
   init() {
     super.init();
-    Handlebars.partials = Object.assign({}, Handlebars.partials, templates);
     addStylesheet(this.window.document, STYLESHEET_URL);
-
-    Object.keys(helpers).forEach(
-      helperName => Handlebars.registerHelper(helperName, helpers[helperName])
-    );
   }
 
   unload() {

@@ -7,7 +7,7 @@ import Link from '../Link';
 import Icon from '../partials/Icon';
 import Url from '../partials/Url';
 import ExpandView from '../ExpandView';
-import MovieData from './MovieData'; 
+import MovieData from './MovieData';
 
 // trigger with query: cadillac kino
 // make sure results are set to germany
@@ -54,7 +54,7 @@ export default class extends React.Component {
     return (
       <View>
         <Text style={styles.header}>
-          { getMessage('cinema-movie-showtimes') }
+          { getMessage('cinema_movie_showtimes') }
           <Text style={styles.text}>: { (showsToday.date || '').toUpperCase() }</Text>
         </Text>
         { cinemaList.map(this.displayCinema.bind(this)) }

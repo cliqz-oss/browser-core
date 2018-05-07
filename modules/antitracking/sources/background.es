@@ -5,7 +5,7 @@ import background from '../core/base/background';
 import * as browser from '../platform/browser';
 import Attrack from './attrack';
 import { DEFAULT_ACTION_PREF, updateDefaultTrackerTxtRule } from './tracker-txt';
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import telemetry from './telemetry';
 import Config, { MIN_BROWSER_VERSION } from './config';
 import { updateTimestamp } from './time';

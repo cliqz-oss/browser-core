@@ -13,8 +13,9 @@
 </div>
 <div class="details">
     <div class="left-labels">
-        {{#if isExclusive}}<p class="exclusive" data-i18n="offers-exclusive"></p>{{/if}}
-        {{#if isBestOffer}}<p class="best-offer" data-i18n="offers-best_offer"></p>{{/if}}
+        {{#each (limit template_data.labels 2)}}
+            <p class={{this}} data-i18n="offers_{{this}}"></p>
+        {{/each}}
     </div>
     {{#if template_data.picture_url}}
     <p class="picture cta-element" style="background-image: url({{template_data.picture_url}})"
@@ -48,7 +49,7 @@
         >
         <button
             class="copy-code"
-            data-i18n="offers-hub-copy-btn"
+            data-i18n="offers_hub_copy_btn"
             data-telemetry-id="copy_code">
         </button>
     </div>
@@ -56,7 +57,7 @@
     <div class="validity-wrapper">
         <span class="validity {{#if validity.isExpiredSoon}}red{{/if}}">{{validity.text}}</span>
         {{#if template_data.conditions}}
-        <span class="condition" title="{{template_data.conditions}}">{{local 'offers-conditions'}}
+        <span class="condition" title="{{template_data.conditions}}">{{local 'offers_conditions'}}
             <button></button>
         </span>
         {{/if}}
@@ -80,7 +81,7 @@
 <ul class="settings">
     <li
         data-menu-type="delete"
-        data-i18n="offers-hub-remove"
+        data-i18n="offers_hub_remove"
         data-telemetry-id="remove">
     </li>
 </ul>

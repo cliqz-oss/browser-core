@@ -58,9 +58,13 @@
                         background-size: 13px 12px;
                     }
 
-                    &.best-offer {
+                    &.best_offer {
                         background: url("../images/best-offer.svg") no-repeat right center;
                         background-size: 13px 12px;
+                    }
+
+                    &.offer_of_the_week {
+                        background: url('../images/offer-of-the-week.svg') no-repeat left center;
                     }
                 }
             }

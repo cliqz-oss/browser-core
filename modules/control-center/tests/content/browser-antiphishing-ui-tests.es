@@ -35,11 +35,11 @@ function antiphishingUiTests(amo) {
       });
 
       it('renders "Your data is protected"', function () {
-        expect(subject.query('#header .title [data-i18n="control-center-txt-header"]')).to.exist;
-        expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header"]').display).to.not.equal('none');
-        expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][data-visible-on-state="inactive"]').display).to.equal('none');
-        expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][data-visible-on-state="critical"]').display).to.equal('none');
-        expect(subject.query('#header .title [data-i18n="control-center-txt-header"]').textContent.trim()).to.equal('control-center-txt-header');
+        expect(subject.query('#header .title [data-i18n="control_center_txt_header"]')).to.exist;
+        expect(subject.getComputedStyle('#header .title [data-i18n="control_center_txt_header"]').display).to.not.equal('none');
+        expect(subject.getComputedStyle('#header .title [data-i18n="control_center_txt_header_not"][data-visible-on-state="inactive"]').display).to.equal('none');
+        expect(subject.getComputedStyle('#header .title [data-i18n="control_center_txt_header_not"][data-visible-on-state="critical"]').display).to.equal('none');
+        expect(subject.query('#header .title [data-i18n="control_center_txt_header"]').textContent.trim()).to.equal('control_center_txt_header');
       });
 
       it('doesn\'t render warning icon', function () {
@@ -86,11 +86,11 @@ function antiphishingUiTests(amo) {
     });
 
     it('renders "ON"', function () {
-      expect(subject.query('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]')).to.exist;
-      expect(subject.getComputedStyle('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]').display).to.not.equal('none');
-      expect(subject.query('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control-center-switch-off"]')).to.exist;
-      expect(subject.getComputedStyle('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control-center-switch-off"]').display).to.equal('none');
-      expect(subject.query('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]').textContent.trim()).to.equal('control-center-switch-on');
+      expect(subject.query('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control_center_switch_on"]')).to.exist;
+      expect(subject.getComputedStyle('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control_center_switch_on"]').display).to.not.equal('none');
+      expect(subject.query('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control_center_switch_off"]')).to.exist;
+      expect(subject.getComputedStyle('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control_center_switch_off"]').display).to.equal('none');
+      expect(subject.query('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control_center_switch_on"]').textContent.trim()).to.equal('control_center_switch_on');
     });
   });
 
@@ -107,19 +107,19 @@ function antiphishingUiTests(amo) {
     });
 
     it('renders "OFF"', function () {
-      expect(subject.query('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]')).to.exist;
-      expect(subject.getComputedStyle('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]').display).to.equal('none');
-      expect(subject.query('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control-center-switch-off"]')).to.exist;
-      expect(subject.getComputedStyle('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control-center-switch-off"]').display).to.not.equal('none');
-      expect(subject.query('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control-center-switch-off"]').textContent.trim()).to.equal('control-center-switch-off');
+      expect(subject.query('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control_center_switch_on"]')).to.exist;
+      expect(subject.getComputedStyle('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control_center_switch_on"]').display).to.equal('none');
+      expect(subject.query('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control_center_switch_off"]')).to.exist;
+      expect(subject.getComputedStyle('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control_center_switch_off"]').display).to.not.equal('none');
+      expect(subject.query('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control_center_switch_off"]').textContent.trim()).to.equal('control_center_switch_off');
     });
 
     it('renders dropdown with "This domain"', function () {
-      expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control-center-this-domain"]')).to.exist;
-      expect(subject.getComputedStyle('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control-center-this-domain"]').display).to.not.equal('none');
-      expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control-center-all-sites"]')).to.exist;
-      expect(subject.getComputedStyle('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control-center-all-sites"]').display).to.equal('none');
-      expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control-center-this-domain"]').textContent.trim()).to.equal('control-center-this-domain');
+      expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control_center_this_domain"]')).to.exist;
+      expect(subject.getComputedStyle('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control_center_this_domain"]').display).to.not.equal('none');
+      expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control_center_all_sites"]')).to.exist;
+      expect(subject.getComputedStyle('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control_center_all_sites"]').display).to.equal('none');
+      expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control_center_this_domain"]').textContent.trim()).to.equal('control_center_this_domain');
     });
   });
 
@@ -136,19 +136,19 @@ function antiphishingUiTests(amo) {
     });
 
     it('renders "OFF"', function () {
-      expect(subject.query('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]')).to.exist;
-      expect(subject.getComputedStyle('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]').display).to.equal('none');
-      expect(subject.query('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control-center-switch-off"]')).to.exist;
-      expect(subject.getComputedStyle('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control-center-switch-off"]').display).to.not.equal('none');
-      expect(subject.query('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control-center-switch-off"]').textContent.trim()).to.equal('control-center-switch-off');
+      expect(subject.query('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control_center_switch_on"]')).to.exist;
+      expect(subject.getComputedStyle('#anti-phising .switches [data-visible-on-state="active"][data-i18n="control_center_switch_on"]').display).to.equal('none');
+      expect(subject.query('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control_center_switch_off"]')).to.exist;
+      expect(subject.getComputedStyle('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control_center_switch_off"]').display).to.not.equal('none');
+      expect(subject.query('#anti-phising .switches [data-invisible-on-state="active"][data-i18n="control_center_switch_off"]').textContent.trim()).to.equal('control_center_switch_off');
     });
 
     it('renders dropdown with "All websites"', function () {
-      expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control-center-this-domain"]')).to.exist;
-      expect(subject.getComputedStyle('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control-center-this-domain"]').display).to.equal('none');
-      expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control-center-all-sites"]')).to.exist;
-      expect(subject.getComputedStyle('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control-center-all-sites"]').display).to.not.equal('none');
-      expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control-center-all-sites"]').textContent.trim()).to.equal('control-center-all-sites');
+      expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control_center_this_domain"]')).to.exist;
+      expect(subject.getComputedStyle('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control_center_this_domain"]').display).to.equal('none');
+      expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control_center_all_sites"]')).to.exist;
+      expect(subject.getComputedStyle('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control_center_all_sites"]').display).to.not.equal('none');
+      expect(subject.query('#anti-phising .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control_center_all_sites"]').textContent.trim()).to.equal('control_center_all_sites');
     });
   });
 }

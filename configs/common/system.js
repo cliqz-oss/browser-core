@@ -21,6 +21,8 @@ const systemConfig = {
     'react-dom': 'node_modules/react-dom/cjs/react-dom.production.min.js',
     'qrcodejs': 'node_modules/qrcodejs/qrcode.min.js',
     'plugin-json': 'node_modules/systemjs-plugin-json/json.js',
+    'pako': 'node_modules/pako/dist/pako.js',
+    'fast-url-parser': 'modules/platform/lib/fast-url-parser',
   },
   paths: {
     'specific/*': './specific/firefox/*',
@@ -61,7 +63,7 @@ const systemConfig = {
         './platform/video-downloader/lib/ytdl-core.js': {
           'format': 'system'
         },
-        './platform/fast-url-parser.js': {
+        './platform/lib/fast-url-parser.js': {
           'format': 'system'
         },
         './platform/lib/deep-equal.js': {

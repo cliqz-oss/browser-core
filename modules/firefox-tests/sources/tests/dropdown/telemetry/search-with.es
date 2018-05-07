@@ -42,7 +42,6 @@ export default function () {
       { name: 'search', type: 'boolean', expValue: false },
       { name: 'v', type: 'number' },
     ];
-    let $resultElement;
     let resultSignals;
     let resultSignalCount;
     let urlClicked;
@@ -76,9 +75,7 @@ export default function () {
       withHistory([]);
       respondWith({ results });
       fillIn('qws');
-      return waitForPopup().then(function () {
-        $resultElement = $cliqzResults()[0];
-      });
+      return waitForPopup();
     });
 
     afterEach(function () {
@@ -94,7 +91,7 @@ export default function () {
       { name: 'Enter and Ctrl keys', press: { key: 'Enter', ctrlKey: true } },
       { name: 'Enter key', press: { key: 'Enter' } }
     ].forEach(function (pressedKeys) {
-      context(`after pressing ${pressedKeys.name}`, function () {
+      xcontext(`after pressing ${pressedKeys.name}`, function () {
         beforeEach(function () {
           press(pressedKeys.press);
           // check the boolean to make sure the function opening new links
@@ -145,10 +142,10 @@ export default function () {
       });
     });
 
-    context('after pressing Ctrl key and clicking on the left mouse button', function () {
+    xcontext('after pressing Ctrl key and clicking on the left mouse button', function () {
       beforeEach(function () {
         const resultSelector = 'a.result';
-        const $selectedResult = $resultElement.querySelector(resultSelector);
+        const $selectedResult = $cliqzResults.querySelector(resultSelector);
         click($selectedResult, { ctrlKey: true });
         // check the boolean to make sure the function opening new links
         // has executed and finished

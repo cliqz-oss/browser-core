@@ -1,9 +1,8 @@
 import BaseResult, { Subresult } from './base';
-import utils from '../../core/utils';
 
 class TextResult extends Subresult {
-  click(window, href, ev) {
-    this.actions.copyToClipboard(this.rawResult.title);
+  click(href, ev) {
+    this.resultTools.actions.copyToClipboard(this.rawResult.title);
     const el = ev.target;
     el.classList.add('copied');
 
@@ -14,7 +13,7 @@ class TextResult extends Subresult {
       target: 'copy',
     };
 
-    utils.telemetry(signal);
+    this.resultTools.actions.telemetry(signal);
   }
 }
 
@@ -28,9 +27,10 @@ export class OfferResult extends Subresult {
       return null;
     }
 
-    return new BaseResult({
+    return new Subresult(this, {
       url: this._offerData.url_ad,
       title: this._offerData.title,
+      description: this._offerData.description,
       text: this.rawResult.text,
       data: {
         extra: {
@@ -55,7 +55,6 @@ export class OfferResult extends Subresult {
       text: this.rawResult.text,
       title: this._offerData.promo_code,
     });
-    result.actions = this.actions;
 
     return result;
   }
@@ -69,12 +68,14 @@ export class OfferResult extends Subresult {
 }
 
 export default class OffersResult extends BaseResult {
-  constructor(rawResult, allResultsFlat, { offers } = {}) {
+  constructor(rawResult, resultTools) {
+    const offers = resultTools.assistants.offers;
+
     if (!offers.isEnabled) {
       throw new Error('ignore');
     }
 
-    super(rawResult, allResultsFlat);
+    super(rawResult, resultTools);
 
     this.style = offers.nonOrganicStyle;
     this.locationEnabled = offers.locationEnabled;
@@ -105,12 +106,10 @@ export default class OffersResult extends BaseResult {
       return null;
     }
 
-    const result = new OfferResult({
+    const result = new OfferResult(this, {
       offerData: this._offerData,
       text: this.query,
     });
-
-    result.actions = this.actions;
 
     return result;
   }

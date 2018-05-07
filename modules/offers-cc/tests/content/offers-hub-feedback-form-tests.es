@@ -41,7 +41,7 @@ context('Offers Hub feedback form tests', function () {
       const textSelector = `${feedbackVoteSelector} .feedback-text`;
       expect(subject.query(textSelector)).to.exist;
       expect(subject.query(textSelector).textContent.trim())
-        .to.equal('offers-hub-feedback-text');
+        .to.equal('offers_hub_feedback_text');
     });
 
     it('renders "up" and "down" buttons', function () {
@@ -70,7 +70,7 @@ context('Offers Hub feedback form tests', function () {
           const textSelector = `${feedbackCommentSelector} .feedback-text`;
           expect(subject.query(textSelector)).to.exist;
           expect(subject.query(textSelector).textContent.trim())
-            .to.equal('offers-hub-feedback-comments');
+            .to.equal('offers_hub_feedback_comments');
         });
 
         it('renders feedback text area', function () {
@@ -82,7 +82,7 @@ context('Offers Hub feedback form tests', function () {
           const buttonSelector = `${feedbackCommentSelector} #submit-feedback`;
           expect(subject.query(buttonSelector)).to.exist;
           expect(subject.query(buttonSelector).textContent.trim())
-            .to.equal('offers-hub-feedback-send');
+            .to.equal('offers_hub_feedback_send');
         });
 
         context('click on "submit feedback"', function () {
@@ -97,7 +97,7 @@ context('Offers Hub feedback form tests', function () {
           it('"thank you" was rendered', function () {
             expect(subject.query(feedbackCommentSelector)).to.exist;
             expect(subject.query(feedbackCommentSelector).textContent.trim())
-              .to.equal('offers-hub-feedback-thank-you');
+              .to.equal('offers_hub_feedback_thank_you');
           });
         });
       });

@@ -15,7 +15,7 @@ export const getDuplicateLinksByUrl = (target, reference) => new Map(
 
 export const getResultOrder = results => results.map(result => result.kind);
 
-const isAutocompletable = (query, url) => {
+export const isAutocompletable = (query, url) => {
   if (!query || !url) {
     return false;
   }

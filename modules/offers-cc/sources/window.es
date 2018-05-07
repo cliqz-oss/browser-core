@@ -1,11 +1,11 @@
 import inject from '../core/kord/inject';
-import { utils, events } from '../core/cliqz';
+import events from '../core/events';
+import utils from '../core/utils';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import background from './background';
 import config from '../core/config';
 
 const ORIGIN_NAME = 'offers-cc';
-let seenOffersObj = {};
 let autoTrigger = false;
 
 export default class Win {
@@ -28,7 +28,7 @@ export default class Win {
       sendActionSignal: this.sendActionSignal.bind(this),
       closePanel: this.closePanel.bind(this),
       openURL: this.openURL.bind(this),
-      seenOffers: this.seenOffers.bind(this), // TODO still need this ?
+      seenOffer: this.seenOffer.bind(this), // TODO still need this ?
       sendUserFeedback: this.sendUserFeedback.bind(this),
     };
 
@@ -43,6 +43,7 @@ export default class Win {
     });
 
     this.toolbarButtonElement = this.window.document.getElementById(this.toolbarButton.id);
+    this.handleMouseEvent = this.handleMouseEvent.bind(this);
   }
 
   init() {
@@ -55,6 +56,8 @@ export default class Win {
     events.sub('offers-send-ch', this.onOffersCoreEvent);
     events.sub('offers-re-registration', this.onOffersCoreRegistrationEvent);
     this._registerToOffersCore();
+    this.toolbarButtonElement.addEventListener('mouseenter', this.handleMouseEvent);
+    this.toolbarButtonElement.addEventListener('mouseleave', this.handleMouseEvent);
   }
 
   unload() {
@@ -65,6 +68,12 @@ export default class Win {
     events.un_sub('offers-re-registration', this.onOffersCoreRegistrationEvent);
     this._unregisterFromOffersCore();
     removeStylesheet(this.window.document, this.cssUrl);
+    this.toolbarButtonElement.removeEventListener('mouseenter', this.handleMouseEvent);
+    this.toolbarButtonElement.removeEventListener('mouseleave', this.handleMouseEvent);
+  }
+
+  handleMouseEvent(event) {
+    this.reshowPopup = event.type === 'mouseenter' && this.showTooltip;
   }
 
   onButtonClicked() {
@@ -117,44 +126,18 @@ export default class Win {
   onPopupHiding() {
     // Don't clear the red dot when the tooltip has shown
     if (this.showTooltip || this.toolbarButton.shownDurationTime <= 1000) {
-      // nothing to do
+      if (this.reshowPopup) {
+        this.reshowPopup = false;
+        utils.setTimeout(() => {
+          this.toolbarButtonElement.click();
+        }, 0);
+      }
+
       return;
     }
 
     this.toolbarButtonElement.setAttribute('state', '');
     // else we will change the state of all offers
-
-    Object.keys(seenOffersObj).forEach((offer) => {
-      const msgSession = {
-        type: 'offer-action-signal',
-        data: {
-          action_id: 'offer_dsp_session',
-          offer_id: offer,
-        },
-      };
-      this.sendMessageToOffersCore(msgSession);
-
-      if (!autoTrigger) {
-        const msgPulled = {
-          type: 'offer-action-signal',
-          data: {
-            action_id: 'offer_pulled',
-            offer_id: offer,
-          },
-        };
-        this.sendMessageToOffersCore(msgPulled);
-      }
-
-      const msgShown = {
-        type: 'offer-action-signal',
-        data: {
-          action_id: 'offer_shown',
-          offer_id: offer,
-          counter: seenOffersObj[offer]
-        },
-      };
-      this.sendMessageToOffersCore(msgShown);
-    });
 
     const signal = {
       type: 'offrz',
@@ -164,16 +147,6 @@ export default class Win {
     };
     utils.telemetry(signal);
 
-    const msgState = {
-      type: 'change-offer-state',
-      // no data for now
-      data: {
-        offers_ids: Object.keys(seenOffersObj),
-        new_state: 'old'
-      }
-    };
-    this.sendMessageToOffersCore(msgState);
-
     const msg = {
       type: 'action-signal',
       data: {
@@ -182,7 +155,6 @@ export default class Win {
     };
     this.sendMessageToOffersCore(msg);
 
-    seenOffersObj = {};
     autoTrigger = false;
   }
 
@@ -199,14 +171,6 @@ export default class Win {
         backgroundColor = `#${logoDetails.backgroundColor}`;
       }
 
-      let isExclusive = false;
-      let isBestOffer = false;
-
-      if (uiInfo.template_data.labels && uiInfo.template_data.labels.length) {
-        isExclusive = uiInfo.template_data.labels.indexOf('exclusive') > -1;
-        isBestOffer = uiInfo.template_data.labels.indexOf('best_offer') > -1;
-      }
-
       const logoClass = uiInfo.template_data.logo_class || 'normal';
       const backgroundImage = uiInfo.template_data.logo_url;
 
@@ -215,9 +179,8 @@ export default class Win {
         logo: uiInfo.template_data.logo_url,
         headline: uiInfo.template_data.headline || uiInfo.template_data.title,
         benefit: uiInfo.template_data.benefit,
+        labels: uiInfo.template_data.labels,
         backgroundColor,
-        isExclusive,
-        isBestOffer,
         logoClass,
         backgroundImage,
       };
@@ -259,6 +222,34 @@ export default class Win {
     return location;
   }
 
+  debugging() {
+    const maxOffersNum = 200;
+    const fetch = utils.fetchFactory();
+    fetch('http://offers-api-stage.clyqz.com:81/portal/api/v1/debug/offers',
+      { credentials: 'include', cache: 'no-store' }
+    ).then(res => res.json())
+      .then((allOffers) => {
+        const desiredOffers = allOffers
+          .filter(offer => offer.rs_dest.includes('offers-cc'))
+          .slice(0, maxOffersNum)
+          .map(offer => ({
+            offer_id: offer.offer_id,
+            offer_info: {
+              ui_info: offer.ui_info,
+            },
+          }));
+
+        this.sanitizeData(desiredOffers).then((offersData) => {
+          this.sendMessageToPopup({
+            action: 'pushData',
+            data: {
+              vouchers: offersData,
+            }
+          });
+        });
+      });
+  }
+
   // used for a first faster rendering
   getEmptyFrameAndData(data = {}) {
     if (data.hideTooltip) {
@@ -282,6 +273,19 @@ export default class Win {
       this.sendMessageToOffersCore(msg2);
 
       this.toolbarButtonElement.setAttribute('state', '');
+    }
+
+    /*
+      Turn on/off debugging mode.
+      To turn it on:
+      - eu-central vpn is required.
+      - Visit http://offers-api-stage.clyqz.com:81/portal/api/v1/debug/offers
+      and save the credential
+      - Set the pref.
+    */
+    if (utils.getPref('offersCCDebuggingMode', false)) {
+      this.debugging();
+      return;
     }
 
     if (this.showTooltip) {
@@ -344,110 +348,148 @@ export default class Win {
     this.toolbarButton.resizePopup(this.window, { width, height });
   }
 
+  seenOffer(data) {
+    const offerId = data.offer_id;
+
+    const msgSession = {
+      type: 'offer-action-signal',
+      data: {
+        action_id: 'offer_dsp_session',
+        offer_id: offerId,
+      },
+    };
+    this.sendMessageToOffersCore(msgSession);
+
+    if (!autoTrigger) {
+      const msgPulled = {
+        type: 'offer-action-signal',
+        data: {
+          action_id: 'offer_pulled',
+          offer_id: offerId,
+        },
+      };
+      this.sendMessageToOffersCore(msgPulled);
+    }
+
+    const msgShown = {
+      type: 'offer-action-signal',
+      data: {
+        action_id: 'offer_shown',
+        offer_id: offerId,
+      },
+    };
+    this.sendMessageToOffersCore(msgShown);
+
+    const msgState = {
+      type: 'change-offer-state',
+      // no data for now
+      data: {
+        offers_ids: [offerId],
+        new_state: 'old'
+      }
+    };
+    this.sendMessageToOffersCore(msgState);
+  }
+
+  sanitizeData(recentData, preferredOfferId = null) {
+    const parsedResult = [];
+    let desiredOffer;
+
+    recentData.forEach((elem) => {
+      if (elem &&
+          elem.offer_id &&
+          elem.offer_info &&
+          elem.offer_info.ui_info) {
+        // we need to send the template name and template data here from the
+        // ui info
+        const uiInfo = elem.offer_info.ui_info;
+
+        let offerState = 'new';
+        if (elem.attrs && elem.attrs.state) {
+          offerState = elem.attrs.state;
+        }
+
+        // Default values for new data fields (for backward compability)
+        let backgroundColor;
+        let validity = {};
+        const logoClass = uiInfo.template_data.logo_class || 'normal';
+
+        if (uiInfo.template_data.styles && uiInfo.template_data.styles.headline_color) {
+          backgroundColor = uiInfo.template_data.styles.headline_color;
+        } else {
+          const CTAUrl = uiInfo.template_data.call_to_action.url;
+          const urlDetails = utils.getDetailsFromUrl(CTAUrl);
+          const logoDetails = utils.getLogoDetails(urlDetails);
+          backgroundColor = `#${logoDetails.brandTxtColor}`;
+        }
+
+        // Expect this to be always greater than Date.now();
+        const expirationTime = elem.offer_info.expirationMs ?
+          (elem.created_ts + elem.offer_info.expirationMs) / 1000 :
+          uiInfo.template_data.validity;
+        if (expirationTime) {
+          // Expect the expirationTime from backend to be always greater than Date.now()
+          const timeDiff = Math.abs((expirationTime * 1000) - Date.now());
+
+          let difference = Math.floor(timeDiff / 86400000);
+          const isExpiredSoon = difference <= 2;
+          let diffUnit = difference === 1 ? 'offers_expires_day' : 'offers_expires_days';
+
+          if (difference < 1) {
+            difference = Math.floor((timeDiff % 86400000) / 3600000);
+            diffUnit = difference === 1 ? 'offers_expires_hour' : 'offers_expires_hours';
+
+            if (difference < 1) {
+              difference = Math.floor(((timeDiff % 86400000) % 3600000) / 60000);
+              diffUnit = difference === 1 ? 'offers_expires_minute' : 'offers_expires_minutes';
+            }
+          }
+          validity = {
+            text: `${utils.getLocalizedString('offers_expires_in')} ${difference} ${utils.getLocalizedString(diffUnit)}`,
+            isExpiredSoon,
+          };
+        }
+
+        const data = {
+          created: elem.created_ts,
+          state: offerState,
+          template_name: uiInfo.template_name,
+          template_data: uiInfo.template_data,
+          offer_id: elem.offer_id,
+          backgroundColor,
+          logoClass,
+          validity,
+          notif_type: uiInfo.notif_type || 'tooltip'
+        };
+
+        if (data.offer_id !== preferredOfferId) {
+          parsedResult.push(data);
+        } else {
+          data.preferred = true;
+          desiredOffer = data;
+        }
+      }
+    });
+
+    // Sort the results by the most recent one
+    parsedResult.sort((a, b) => (b.created - a.created));
+
+    if (desiredOffer) {
+      parsedResult.unshift(desiredOffer);
+    }
+
+    return Promise.resolve(parsedResult);
+  }
+
   _getAllOffers(preferredOfferId = null) {
-    const self = this;
     const args = {
       filters: {
         by_rs_dest: ORIGIN_NAME
       }
     };
-    return this.offersV2.action('getStoredOffers', args).then((recentData) => {
-      const parsedResult = [];
-      let desiredOffer;
-      recentData.forEach((elem) => {
-        if (elem &&
-            elem.offer_id &&
-            elem.offer_info &&
-            elem.offer_info.ui_info) {
-          // we need to send the template name and template data here from the
-          // ui info
-          const uiInfo = elem.offer_info.ui_info;
 
-          let offerState = 'new';
-          if (elem.attrs && elem.attrs.state) {
-            offerState = elem.attrs.state;
-          }
-
-          // Default values for new data fields (for backward compability)
-          let backgroundColor;
-          let validity = {};
-          let isExclusive = false;
-          let isBestOffer = false;
-          const logoClass = uiInfo.template_data.logo_class || 'normal';
-
-          if (uiInfo.template_data.styles && uiInfo.template_data.styles.headline_color) {
-            backgroundColor = uiInfo.template_data.styles.headline_color;
-          } else {
-            const CTAUrl = uiInfo.template_data.call_to_action.url;
-            const urlDetails = utils.getDetailsFromUrl(CTAUrl);
-            const logoDetails = utils.getLogoDetails(urlDetails);
-            backgroundColor = `#${logoDetails.brandTxtColor}`;
-          }
-
-          // Expect this to be always greater than Date.now();
-          if (uiInfo.template_data.validity) {
-            const expirationTime = uiInfo.template_data.validity;
-            // Expect the expirationTime from backend to be always greater than Date.now()
-            const timeDiff = Math.abs((expirationTime * 1000) - Date.now());
-
-            let difference = Math.floor(timeDiff / 86400000);
-            const isExpiredSoon = difference <= 2;
-            let diffUnit = difference === 1 ? 'offers-expires-day' : 'offers-expires-days';
-
-            if (difference < 1) {
-              difference = Math.floor((timeDiff % 86400000) / 3600000);
-              diffUnit = difference === 1 ? 'offers-expires-hour' : 'offers-expires-hours';
-
-              if (difference < 1) {
-                difference = Math.floor(((timeDiff % 86400000) % 3600000) / 60000);
-                diffUnit = difference === 1 ? 'offers-expires-minute' : 'offers-expires-minutes';
-              }
-            }
-            validity = {
-              text: `${utils.getLocalizedString('offers-expires-in')} ${difference} ${utils.getLocalizedString(diffUnit)}`,
-              isExpiredSoon,
-            };
-          }
-
-          if (uiInfo.template_data.labels && uiInfo.template_data.labels.length) {
-            isExclusive = uiInfo.template_data.labels.indexOf('exclusive') > -1;
-            isBestOffer = uiInfo.template_data.labels.indexOf('best_offer') > -1;
-          }
-
-          const data = {
-            created: elem.created_ts,
-            state: offerState,
-            template_name: uiInfo.template_name,
-            template_data: uiInfo.template_data,
-            offer_id: elem.offer_id,
-            backgroundColor,
-            isExclusive,
-            isBestOffer,
-            logoClass,
-            validity,
-            notif_type: uiInfo.notif_type || 'tooltip'
-          };
-
-          if (data.offer_id !== preferredOfferId) {
-            parsedResult.push(data);
-          } else {
-            data.preferred = true;
-            desiredOffer = data;
-          }
-        }
-      });
-
-      // Sort the results by the most recent one
-      parsedResult.sort((a, b) => (b.created - a.created));
-
-      if (desiredOffer) {
-        parsedResult.unshift(desiredOffer);
-      }
-
-      self.allOffers = parsedResult;
-
-      return Promise.resolve(parsedResult);
-    });
+    return this.offersV2.action('getStoredOffers', args)
+      .then(recentData => this.sanitizeData(recentData, preferredOfferId));
   }
 
   /**
@@ -579,8 +621,6 @@ export default class Win {
         case 'push-offer': {
           const offersHubTrigger = event.data.offer_data.ui_info.notif_type || 'tooltip';
           const offerID = event.data.offer_data.offer_id;
-          // Auto open the panel
-          autoTrigger = true;
           this.toolbarButtonElement.setAttribute('state', 'new-offers');
 
           const notifMsg = {
@@ -597,6 +637,8 @@ export default class Win {
             this.showTooltip = false;
             this.preferredOfferId = offerID;
 
+            // Auto open the panel
+            autoTrigger = true;
             this.openPanel();
           } else if (offersHubTrigger === 'dot') {
             notifMsg.data = {
@@ -652,10 +694,6 @@ export default class Win {
     }).catch((err) => {
       utils.log('======= event: error: ', err);
     });
-  }
-
-  seenOffers(data) {
-    seenOffersObj = data;
   }
 
   openPanel() {

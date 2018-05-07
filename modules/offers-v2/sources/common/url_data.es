@@ -1,5 +1,7 @@
-import { utils } from '../../core/cliqz';
+import utils from '../../core/utils';
 import tokenizeUrl from './pattern-utils';
+import { getGeneralDomain } from '../../core/tlds';
+
 /**
  * This class will be a wrapper containing the url information that will calculate
  * the data needed on demand. This way we can use one unique object containing
@@ -16,6 +18,7 @@ export default class UrlData {
     // all the fields we will handle and share
     this.lowercaseUrl = null;
     this.urlDetails = null;
+    this.domain = null;
     this.patternsRequest = null;
     // active categories to be shared on this url data
     this.activatedCategoriesIDs = new Set();
@@ -48,10 +51,10 @@ export default class UrlData {
   }
 
   getDomain() {
-    if (this.urlDetails === null) {
-      this.urlDetails = utils.getDetailsFromUrl(this.rawUrl);
+    if (this.domain === null) {
+      this.domain = getGeneralDomain(this.rawUrl);
     }
-    return this.urlDetails.domain;
+    return this.domain;
   }
 
   getPatternRequest() {

@@ -22,6 +22,9 @@ def matrix = [
     'cliqzs': [
         'config': 'experiments/cliqzs.json',
     ],
+    'webextension': [
+        'config': 'webextension.js',
+    ],
     /*
     'anolysis': [
         'config': 'experiments/anolysis.js',

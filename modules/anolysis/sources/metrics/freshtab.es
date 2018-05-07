@@ -29,6 +29,18 @@ function mkFreshtabSchema(members, hasIndex, extra = {}) {
   };
 }
 
+export const NEWS_EDITIONS = [
+  'de',
+  'de-tr-en',
+  'es',
+  'fr',
+  'gb',
+  'intl',
+  'it',
+  'pl',
+  'us',
+];
+
 export default [
   {
     name: 'freshtab.prefs.state',
@@ -216,6 +228,30 @@ export default [
     { key: 'action', value: 'show' },
   ], false),
 
+  mkFreshtabSchema([
+    { key: 'type', value: 'offrz' },
+    { key: 'action', value: 'click' },
+    { key: 'target', value: 'use' }
+  ], false),
+
+  mkFreshtabSchema([
+    { key: 'type', value: 'offrz' },
+    { key: 'action', value: 'click' },
+    { key: 'target', value: 'copy_code' }
+  ], false),
+
+  mkFreshtabSchema([
+    { key: 'type', value: 'offrz' },
+    { key: 'action', value: 'click' },
+    { key: 'target', value: 'remove_offer' }
+  ], false),
+
+  mkFreshtabSchema([
+    { key: 'type', value: 'offrz' },
+    { key: 'action', value: 'click' },
+    { key: 'target', value: 'remove' }
+  ], false),
+
 
   // Generate all possible combinations of schemas for interactions with news:
   ...cartesian(
@@ -226,7 +262,9 @@ export default [
     { key: 'action', value: action },
     { key: 'target', value: target },
   ], true, {
-    // TODO: store the list of all news edition somewhere and share it
-    edition: { type: 'string', enum: ['fr', 'de', 'en'] }
+    edition: {
+      type: 'string',
+      enum: NEWS_EDITIONS,
+    },
   })),
 ];

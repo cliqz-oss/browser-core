@@ -18,19 +18,12 @@
  */
 
 import logger from '../common/offers_v2_logger';
-import OffersConfigs from '../offers_configs';
-import PersistentCacheDB from '../persistent_cache_db';
-import { timestampMS } from '../utils';
-import { buildMultiPatternIndex } from '../common/pattern-utils';
-
-const REFERRER_CATEGORY_MAP = {
-  // search cat
-  google: 'search',
-  yahoo: 'search',
-  bing: 'search',
-  duckduckgo: 'search'
-  // meta-searchers?
-};
+import MonitorDBHandler from './monitor/monitor-db';
+import {
+  UrlChangeMonitorHandler,
+  WebRequestMonitorHandler,
+  CouponMonitorHandler
+} from './monitor/handlers';
 
 /**
  * this will build the list of monitors data from a given offer. It will return
@@ -42,432 +35,30 @@ const buildMonitorsFromOffer = (offerData) => {
   }
   const result = [];
   offerData.monitorData.forEach((md) => {
-    result.push({
+    const monitorInfo = {
       offerID: offerData.offer_id,
       signalID: md.signalID,
       type: md.type,
       params: md.params,
       patterns: md.patterns,
-    });
+    };
+    if (md.type === 'webrequest') {
+      monitorInfo.domain = md.domain;
+    } else if (md.type === 'coupon') {
+      monitorInfo.couponInfo = md.couponInfo;
+      // take the code from the offer itself, which is located in
+      // ui_info -> template_data -> code
+      const code = (offerData.ui_info &&
+        offerData.ui_info.template_data &&
+        offerData.ui_info.template_data.code) ?
+        offerData.ui_info.template_data.code : '';
+      monitorInfo.couponInfo.code = code;
+    }
+
+    result.push(monitorInfo);
   });
   return result;
 };
-
-// /////////////////////////////////////////////////////////////////////////////
-
-/**
- * This method will check all the offers associated to the campaign and will
- * return the latest offer (id) updated and the campaign id of th one or null if none
- * { oid: offer_id, cid: campaignID }
- */
-const getLatestUpdatedOfferFromCampaign = (offerID, offersDB) => {
-  const campaignID = offersDB.getCampaignID(offerID);
-  const campaignOffers = offersDB.getCampaignOffers(campaignID);
-  if (!campaignOffers) {
-    return null;
-  }
-
-  const latestUpdatedOffers = offersDB.getLatestUpdatedOffer(campaignOffers);
-  if (!latestUpdatedOffers ||
-      latestUpdatedOffers.length <= 0 ||
-      !latestUpdatedOffers[0].offer_id) {
-    return null;
-  }
-  return { oid: latestUpdatedOffers[0].offer_id, cid: campaignID };
-};
-
-/**
- * Get the referrer category
- */
-const getReferrerCat = (referrerName) => {
-  if (!referrerName || referrerName === '') {
-    // it is none
-    return 'none';
-  }
-  const refCat = REFERRER_CATEGORY_MAP[referrerName];
-  if (!refCat) {
-    // is other
-    return 'other';
-  }
-  return refCat;
-};
-
-const sendSignal = (offersDB, sigHandler, offerId, key, referrer = null) => {
-  if (!offerId || !key || !offersDB) {
-    return false;
-  }
-
-  // get the campaign id for this offer if we have one.
-  const campaignId = offersDB.getCampaignID(offerId);
-  if (!campaignId) {
-    return false;
-  }
-
-  // send the signal associated to the campaign using the origin trigger
-  const originID = 'trigger';
-  let result = sigHandler.setCampaignSignal(campaignId, offerId, originID, key);
-  // we also add the referrer category here
-  if (referrer !== null) {
-    result = sigHandler.setCampaignSignal(campaignId, offerId, originID, referrer) &&
-             result;
-  }
-  return result;
-};
-
-
-/**
- * This method will send the associated signal given the
- * @param monitor The Offer monitor containing all the information we need
- * @param handlers An object containing the:
- *        - sigHandler to send the signals
- *        - offersDB to access the offers
- *        - lastCampaignSignalDB for persistent data
- *        - urlSignalDB
- * @param offersDB Get the associated
- */
-const sendMonitorSignal = (monitor, handlers, urlData) => {
-  const currentOfferID = monitor.offerID;
-  const latestUpdatedOfferResult = getLatestUpdatedOfferFromCampaign(
-    currentOfferID,
-    handlers.offersDB
-  );
-  if (!latestUpdatedOfferResult) {
-    // nothing to do here
-    return false;
-  }
-  const offerIDToUse = latestUpdatedOfferResult.oid;
-  const campaignID = latestUpdatedOfferResult.cid;
-
-  // check if we have monitor.params as arguments
-  let sigToSend = monitor.signalID;
-  let shouldFilterSignal = false;
-  let referrerCat = null;
-  if (monitor.params) {
-    const currUrl = urlData.getLowercaseUrl();
-    if (monitor.params.store && currUrl) {
-      // we need to check on the DB the current url
-      const sendSignalDb = handlers.urlSignalDB;
-      const urlEntryCont = sendSignalDb.getEntryContainer(currUrl);
-      if (urlEntryCont) {
-        // we need to increment the counter
-        urlEntryCont.data.counter += 1;
-        // update the key
-        sigToSend = `repeated_${monitor.signalID}`;
-      } else {
-        sendSignalDb.setEntryData(currUrl, { counter: 1 });
-      }
-    }
-
-    if (monitor.params.filter_last_secs && monitor.params.filter_last_secs > 0) {
-      const lastCmpSignalDB = handlers.lastCampaignSignalDB;
-      let campaignMap = lastCmpSignalDB.getEntryData(campaignID);
-      let lastUpdateTS = null;
-      const now = timestampMS();
-      if (!campaignMap) {
-        // we need to create one
-        campaignMap = {
-          [monitor.signalID]: {
-            counter: 1,
-            l_u_ts: now
-          }
-        };
-      } else {
-        const keyMap = campaignMap[monitor.signalID];
-        if (!keyMap) {
-          campaignMap[monitor.signalID] = { counter: 1, l_u_ts: now };
-        } else {
-          campaignMap[monitor.signalID].counter += 1;
-          lastUpdateTS = keyMap.l_u_ts;
-          keyMap.l_u_ts = now;
-        }
-      }
-      lastCmpSignalDB.setEntryData(campaignID, campaignMap);
-
-      // check last update if we have it
-      const deltaTime = (now - lastUpdateTS) / 1000;
-      if (lastUpdateTS && (deltaTime <= monitor.params.filter_last_secs)) {
-        shouldFilterSignal = true;
-      }
-    }
-
-    if (monitor.params.referrer_cat) {
-      // we get the referrer cat
-      referrerCat = getReferrerCat(urlData.getReferrerName());
-      if (referrerCat) {
-        referrerCat = `ref_${referrerCat}`;
-      }
-    }
-  }
-
-  // check if we need to filter the signal or not
-  let result = true;
-  if (!shouldFilterSignal) {
-    result = sendSignal(
-      handlers.offersDB,
-      handlers.sigHandler,
-      offerIDToUse,
-      sigToSend,
-      referrerCat
-    );
-  }
-
-  return result;
-};
-
-// /////////////////////////////////////////////////////////////////////////////
-
-/**
- * This class will handle the databases needed for the monitors
- */
-class MonitorDBHandler {
-  constructor() {
-    // here we need to create 2 new databases for the send_signal operation,
-    // this is very nasty and we should move it away after the refactorization
-    // for performance (put them on the send_signal operation object itself)
-    const urlDBconfigs = {
-      should_persist: OffersConfigs.SEND_SIG_OP_SHOULD_LOAD,
-      old_entries_dt_secs: OffersConfigs.SEND_SIG_OP_EXPIRATION_SECS
-    };
-    // we will store here:
-    // {
-    //  url: {
-    //    counter: N
-    //  }
-    // }
-    // since we can get the last_update value from the container
-    this.urlSignalsDB = new PersistentCacheDB('offers-signals-url', urlDBconfigs);
-    this.urlSignalsDB.loadEntries();
-
-    // we will store here the latest conversion that happened for a campaign id:
-    // {
-    //  cid: {
-    //    sig_name: {
-    //      counter: N,on
-    //      l_u_ts: last timestamp happened.
-    //    }
-    //  }
-    // }
-    this.lastCampaignSignalDB = new PersistentCacheDB('offers-last-cmp-signals', urlDBconfigs);
-    this.lastCampaignSignalDB.loadEntries();
-  }
-}
-
-// /////////////////////////////////////////////////////////////////////////////
-// Offer Monitor types
-//
-
-/**
- * Internal helper holder class
- */
-class OfferMonitor {
-  constructor({ offerID, signalID, params, patterns }) {
-    this.offerID = offerID;
-    this.signalID = signalID;
-    this.params = params;
-    this.patterns = patterns;
-  }
-  get type() {
-    throw new Error('this should be implemented on the interface');
-  }
-}
-
-class UrlChangeOfferMonitor extends OfferMonitor {
-  get type() {
-    return 'urlchange';
-  }
-}
-
-class WebRequestOfferMonitor extends OfferMonitor {
-  get type() {
-    return 'webrequest';
-  }
-}
-
-// /////////////////////////////////////////////////////////////////////////////
-// Monitor handlers
-//
-
-class GenericMonitorHandler {
-  /**
-   * constructor
-   * @param handlers = {
-   *    sigHandler: this.sigHandler,
-   *    offersDB: this.offersDB,
-   *    lastCampaignSignalDB: this.monitorDBHandler.lastCampaignSignalDB;
-   *    urlSignalDB: this.monitorDBHandler.urlSignalsDB,
-   *  };
-   */
-  constructor(handlers) {
-    this.handlers = handlers;
-  }
-
-  destroy() {
-  }
-
-  addMonitor(/* monitorData, id */) {
-    throw new Error('inherited class should implement this');
-  }
-
-  removeMonitor(/* monitorID */) {
-    throw new Error('inherited class should implement this');
-  }
-
-  build() {
-    throw new Error('inherited class should implement this');
-  }
-
-  /**
-   * Common function that will basically activate the monitor
-   */
-  activateMonitor(monitor, urlData) {
-    // we now perform the activation
-    try {
-      logger.debug('Activating monitor', monitor);
-      sendMonitorSignal(monitor, this.handlers, urlData);
-    } catch (e) {
-      logger.error('Something happened trying to send the signal for monitor', monitor);
-    }
-  }
-}
-
-class UrlChangeMonitorHandler extends GenericMonitorHandler {
-  constructor(handlers, eventHandler) {
-    super(handlers);
-    this.eventHandler = eventHandler;
-    this.monitorsMap = new Map();
-    this.isDirty = false;
-    this.patternsIndex = null;
-
-    // subscribe here
-    this.onUrlChange = this.onUrlChange.bind(this);
-    this.eventHandler.subscribeUrlChange(this.onUrlChange);
-  }
-
-  destroy() {
-    this.eventHandler.unsubscribeUrlChange(this.onUrlChange);
-  }
-
-  addMonitor(monitorData, id) {
-    if (this.monitorsMap.has(id)) {
-      return null;
-    }
-    this.isDirty = true;
-    const monitor = new UrlChangeOfferMonitor(monitorData);
-    this.monitorsMap.set(id, monitor);
-
-    return monitor;
-  }
-
-  removeMonitor(monitorID) {
-    if (!this.monitorsMap.has(monitorID)) {
-      return;
-    }
-    this.isDirty = true;
-    this.monitorsMap.delete(monitorID);
-  }
-
-  build() {
-    if (!this.isDirty) {
-      return;
-    }
-    const patternsData = [];
-    this.monitorsMap.forEach((monitor, mid) => {
-      // TODO: put the patterns in the proper format here
-      patternsData.push({
-        groupID: mid,
-        patterns: monitor.patterns
-      });
-    });
-    this.patternsIndex = buildMultiPatternIndex(patternsData);
-    this.isDirty = false;
-  }
-
-  onUrlChange(urlData) {
-    if (this.patternsIndex) {
-      const monitorIDs = this.patternsIndex.match(urlData.getPatternRequest());
-      monitorIDs.forEach(mid => this.activateMonitor(this.monitorsMap.get(mid), urlData));
-    }
-  }
-}
-
-class WebRequestMonitorHandler extends WebRequestOfferMonitor {
-  constructor(handlers, eventHandler) {
-    super(handlers);
-    this.eventHandler = eventHandler;
-    this.monitorsMap = new Map();
-    this.isDirty = false;
-    this.patternsIndex = null;
-    this.domainsCountMap = new Map();
-    this.webRequestCallback = this.webRequestCallback.bind(this);
-  }
-
-  addMonitor(monitorData, id) {
-    if (this.monitorsMap.has(id)) {
-      return null;
-    }
-    this.isDirty = true;
-    const monitor = new WebRequestOfferMonitor(monitorData);
-    this.monitorsMap.set(id, monitor);
-
-    // check if we have to register the callback
-
-    return monitor;
-  }
-
-  removeMonitor(monitorID) {
-    if (!this.monitorsMap.has(monitorID)) {
-      return;
-    }
-    this.isDirty = true;
-    const monitor = this.monitorsMap.get(monitorID);
-    const domain = monitor.domain;
-
-    // check if we need to remove the subscription here
-    this.domainsCountMap.set(domain, this.domainsCountMap.get(domain) - 1);
-    if (this.domainsCountMap.get(domain) <= 0) {
-      this.domainsCountMap.delete(domain);
-      this.eventHandler.unsubscribeHttpReq(this.webRequestCallback, domain);
-    }
-
-    this.monitorsMap.delete(monitorID);
-  }
-
-  build() {
-    if (!this.isDirty) {
-      return;
-    }
-    this.domainsCountMap.clear();
-
-    // build here using all the patterns we have
-    const patternsData = [];
-    this.monitorsMap.forEach((monitor, mid) => {
-      // TODO: put the patterns in the proper format here
-      patternsData.push({
-        groupID: mid,
-        patterns: monitor.patterns
-      });
-      // check if we need to subscribe for the current domain
-      if (!this.domainsCountMap.has(monitor.domain) ||
-          this.domainsCountMap.get(monitor.domain) === 0) {
-        this.domainsCountMap.set(monitor.domain, 1);
-      } else {
-        this.domainsCountMap.set(monitor.domain, this.domainsCountMap.get(monitor.domain) + 1);
-        this.eventHandler.subscribeHttpReq(this.webRequestCallback, monitor.domain);
-      }
-    });
-
-    this.patternsIndex = buildMultiPatternIndex(patternsData);
-    this.isDirty = false;
-  }
-
-  webRequestCallback(data) {
-    if (this.patternsIndex) {
-      const urlData = data.url_data;
-      const monitorIDs = this.patternsIndex.match(urlData.getPatternRequest());
-      monitorIDs.forEach(mid => this.activateMonitor(this.monitorsMap.get(mid), urlData));
-    }
-  }
-}
 
 
 /**
@@ -503,6 +94,7 @@ export default class OffersMonitorHandler {
     this.monitorHandlers = {
       urlchange: new UrlChangeMonitorHandler(handlers, eventHandler),
       webrequest: new WebRequestMonitorHandler(handlers, eventHandler),
+      coupon: new CouponMonitorHandler(handlers),
     };
 
     this._offersDBCallback = this._offersDBCallback.bind(this);
@@ -554,6 +146,32 @@ export default class OffersMonitorHandler {
     Object.keys(this.monitorHandlers).forEach(hn => this.monitorHandlers[hn].build());
   }
 
+  // ///////////////////////////////////////////////////////////////////////////
+
+  /**
+   * This method will check if a given url should activate or not a particular monitor
+   * If so will return the following information:
+   * {
+   *   activate: true, // or false depending,
+   *   // if activate == true:
+   *   offerInfo: {
+   *     monitorID: the offer id associated to that url,
+   *     code: the coupon code if any associated to that offer,
+   *     autoFillField: true | false // saying if we should autofill or not the field
+   *   }
+   * }
+   */
+  shouldActivateOfferForUrl(urlData) {
+    return this.monitorHandlers.coupon.shouldActivateOfferForUrl(urlData);
+  }
+
+  /**
+   * whenever we detect a coupon used, check handlers.es:couponFormUsed
+   */
+  couponFormUsed(args) {
+    this.monitorHandlers.coupon.couponFormUsed(args);
+  }
+
 
   // ///////////////////////////////////////////////////////////////////////////
   //                             PRIVATE METHODS
@@ -564,7 +182,8 @@ export default class OffersMonitorHandler {
       monitorData.offerID &&
       monitorData.signalID &&
       ((monitorData.type === 'webrequest' && monitorData.domain) ||
-       (monitorData.type === 'urlchange')) &&
+       (monitorData.type === 'urlchange') ||
+       (monitorData.type === 'coupon' && monitorData.couponInfo)) &&
       (monitorData.patterns && monitorData.patterns.length > 0) &&
       (!monitorData.patterns.some(p => p.length === 0));
   }
@@ -575,10 +194,10 @@ export default class OffersMonitorHandler {
    * {
    *   offerID: the unique offer id identifying the offer,
    *   signalID: the signal we want to send when activating the monitor,
-   *   type: can be either 'webrequest' or 'urlchange' type,
+   *   type: can be either 'webrequest' or 'urlchange' or 'coupon' type,
    *
    *   // this is required if type === 'webrequest'
-   *   domain: XYZ, // where we will watch the requests
+   *   domain: XYZ, // where we will watch the requests for the webrequest
    *
    *   // params are optional
    *   params: {
@@ -606,11 +225,17 @@ export default class OffersMonitorHandler {
    *     referrer_cat: true / false,
    *   },
    *   patterns: ["adblocker pattern"]
+   *
+   *   // if the type == 'coupon' we will have this additional information:
+   *   couponInfo: {
+   *     code: (THIS WILL BE AUTOMATICALLY SET ON THE EXTENSION, taking it from the offer)
+   *     autoFillField: true | false // saying if we should autofill or not the field
+   *   }
    * }
    */
   _addOfferMonitor(monitorData) {
     if (!this._isMonitorDataValid(monitorData)) {
-      logger.error('Invalid monitor data being set: ', monitorData);
+      logger.info('Invalid monitor data being set, discarding it: ', monitorData);
       return;
     }
     // check if we already have the monitor

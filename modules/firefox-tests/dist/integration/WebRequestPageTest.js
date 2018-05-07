@@ -1,9 +1,8 @@
 "use strict";
 
-DEPS.WebRequestPageTest = ["core/utils"];
 TESTS.WebRequestPageTest = function(CliqzUtils) {
-  var webrequest = getModule('core/webrequest').default;
-  var browser = getModule('core/browser');
+  var webrequest = getWindow().CLIQZ.TestHelpers.webrequest;
+  var browser = getWindow().CLIQZ.TestHelpers.browser;
 
   describe('WebRequest example pages', function() {
     var wrCollector = {

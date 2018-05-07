@@ -89,9 +89,8 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
         }
       }
     },
-    'core/cliqz': {
-      default: {},
-      utils: {
+    'core/utils': {
+      default: {
         setInterval: function() {},
         getPref: function(p, v) {
           return v;

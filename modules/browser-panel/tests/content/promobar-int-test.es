@@ -45,7 +45,7 @@ describe('Promo bar interactions', function () {
     { name: 'headline', selector: '.headline-container .headline', isClickable: true },
     { name: 'description', selector: '.description .desc-content', isClickable: true },
     { name: 'CTA button', selector: '.call-to-action a.btn', isClickable: true },
-    { name: 'tooltip icon', selector: '.call-to-action img.info-icon', isClickable: false },
+    { name: 'tooltip icon', selector: '.call-to-action .info-icon', isClickable: false },
     { name: 'conditions header', selector: '.call-to-action .conditions', isClickable: false },
     { name: 'ad text', selector: '.anzeige .vertical-txt', isClickable: false }
   ];

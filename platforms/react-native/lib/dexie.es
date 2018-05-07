@@ -1,5 +1,5 @@
 import SQLite from 'react-native-sqlite-2';
-import Dexie from 'dexie';
+import Dexie from '@cliqz-oss/dexie';
 import setGlobalVars from '@cliqz/indexeddbshim/src/setGlobalVars';
 
 export default function () {

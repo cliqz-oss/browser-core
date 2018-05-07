@@ -32,11 +32,11 @@ describe('Control Center: Ad-Block UI browser', function () {
       });
 
       it('renders "Your data is protected"', function () {
-        expect(subject.query('#header .title [data-i18n="control-center-txt-header"]')).to.exist;
-        expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header"]').display).to.not.equal('none');
-        expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][data-visible-on-state="inactive"]').display).to.equal('none');
-        expect(subject.getComputedStyle('#header .title [data-i18n="control-center-txt-header-not"][data-visible-on-state="critical"]').display).to.equal('none');
-        expect(subject.query('#header .title [data-i18n="control-center-txt-header"]').textContent.trim()).to.equal('control-center-txt-header');
+        expect(subject.query('#header .title [data-i18n="control_center_txt_header"]')).to.exist;
+        expect(subject.getComputedStyle('#header .title [data-i18n="control_center_txt_header"]').display).to.not.equal('none');
+        expect(subject.getComputedStyle('#header .title [data-i18n="control_center_txt_header_not"][data-visible-on-state="inactive"]').display).to.equal('none');
+        expect(subject.getComputedStyle('#header .title [data-i18n="control_center_txt_header_not"][data-visible-on-state="critical"]').display).to.equal('none');
+        expect(subject.query('#header .title [data-i18n="control_center_txt_header"]').textContent.trim()).to.equal('control_center_txt_header');
       });
 
       it('doesn\'t render warning icon', function () {
@@ -56,9 +56,9 @@ describe('Control Center: Ad-Block UI browser', function () {
     });
 
     it('renders title', function () {
-      const titleSelector = '#ad-blocking .title [data-i18n="control-center-adblock-title"]';
+      const titleSelector = '#ad-blocking .title [data-i18n="control_center_adblock_title"]';
       expect(subject.query(titleSelector)).to.exist;
-      expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-adblock-title');
+      expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_adblock_title');
     });
 
     it('renders arrow', function () {
@@ -91,20 +91,20 @@ describe('Control Center: Ad-Block UI browser', function () {
     });
 
     it('renders "ON"', function () {
-      const onSelector = '#ad-blocking .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]';
-      const offSelector = '#ad-blocking .switches [data-visible-on-state="off"][data-i18n="control-center-switch-off"]';
+      const onSelector = '#ad-blocking .switches [data-visible-on-state="active"][data-i18n="control_center_switch_on"]';
+      const offSelector = '#ad-blocking .switches [data-visible-on-state="off"][data-i18n="control_center_switch_off"]';
       expect(subject.query(onSelector)).to.exist;
       expect(subject.query(offSelector)).to.exist;
       expect(subject.getComputedStyle(onSelector).display).to.not.equal('none');
       expect(subject.getComputedStyle(offSelector).display).to.equal('none');
-      expect(subject.query(onSelector).textContent.trim()).to.equal('control-center-switch-on');
+      expect(subject.query(onSelector).textContent.trim()).to.equal('control_center_switch_on');
     });
 
     it('renders text about ads', function () {
-      const onSelector = '#ad-blocking .row-text [data-visible-on-state="active"][data-i18n="control-center-adblock-description"]';
-      const pageSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-website"]';
-      const domainSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-domain"]';
-      const allSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-all"]';
+      const onSelector = '#ad-blocking .row-text [data-visible-on-state="active"][data-i18n="control_center_adblock_description"]';
+      const pageSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control_center_adblock_description_off_website"]';
+      const domainSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control_center_adblock_description_off_domain"]';
+      const allSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control_center_adblock_description_off_all"]';
       expect(subject.query(onSelector)).to.exist;
       expect(subject.query(pageSelector)).to.exist;
       expect(subject.query(domainSelector)).to.exist;
@@ -113,7 +113,7 @@ describe('Control Center: Ad-Block UI browser', function () {
       expect(subject.getComputedStyle(pageSelector).display).to.equal('none');
       expect(subject.getComputedStyle(domainSelector).display).to.equal('none');
       expect(subject.getComputedStyle(allSelector).display).to.equal('none');
-      expect(subject.query(onSelector).textContent.trim()).to.equal('control-center-adblock-description');
+      expect(subject.query(onSelector).textContent.trim()).to.equal('control_center_adblock_description');
     });
 
     it('dropdown is invisible', function () {
@@ -149,20 +149,20 @@ describe('Control Center: Ad-Block UI browser', function () {
     });
 
     it('renders "OFF"', function () {
-      const onSelector = '#ad-blocking .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]';
-      const offSelector = '#ad-blocking .switches [data-visible-on-state="off"][data-i18n="control-center-switch-off"]';
+      const onSelector = '#ad-blocking .switches [data-visible-on-state="active"][data-i18n="control_center_switch_on"]';
+      const offSelector = '#ad-blocking .switches [data-visible-on-state="off"][data-i18n="control_center_switch_off"]';
       expect(subject.query(onSelector)).to.exist;
       expect(subject.query(offSelector)).to.exist;
       expect(subject.getComputedStyle(onSelector).display).to.equal('none');
       expect(subject.getComputedStyle(offSelector).display).to.not.equal('none');
-      expect(subject.query(offSelector).textContent.trim()).to.equal('control-center-switch-off');
+      expect(subject.query(offSelector).textContent.trim()).to.equal('control_center_switch_off');
     });
 
     it('renders text about ads', function () {
-      const onSelector = '#ad-blocking .row-text [data-visible-on-state="active"][data-i18n="control-center-adblock-description"]';
-      const pageSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-website"]';
-      const domainSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-domain"]';
-      const allSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-all"]';
+      const onSelector = '#ad-blocking .row-text [data-visible-on-state="active"][data-i18n="control_center_adblock_description"]';
+      const pageSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control_center_adblock_description_off_website"]';
+      const domainSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control_center_adblock_description_off_domain"]';
+      const allSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control_center_adblock_description_off_all"]';
       expect(subject.query(onSelector)).to.exist;
       expect(subject.query(pageSelector)).to.exist;
       expect(subject.query(domainSelector)).to.exist;
@@ -171,7 +171,7 @@ describe('Control Center: Ad-Block UI browser', function () {
       expect(subject.getComputedStyle(pageSelector).display).to.not.equal('none');
       expect(subject.getComputedStyle(domainSelector).display).to.equal('none');
       expect(subject.getComputedStyle(allSelector).display).to.equal('none');
-      expect(subject.query(pageSelector).textContent.trim()).to.equal('control-center-adblock-description-off-website');
+      expect(subject.query(pageSelector).textContent.trim()).to.equal('control_center_adblock_description_off_website');
     });
 
     it('dropdown is visible', function () {
@@ -181,16 +181,16 @@ describe('Control Center: Ad-Block UI browser', function () {
     });
 
     it('renders correct text in dropdown', function () {
-      const pageSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control-center-this-site"]';
-      const domainSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control-center-this-domain"]';
-      const allSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control-center-all-sites"]';
+      const pageSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control_center_this_site"]';
+      const domainSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control_center_this_domain"]';
+      const allSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control_center_all_sites"]';
       expect(subject.query(pageSelector)).to.exist;
       expect(subject.query(domainSelector)).to.exist;
       expect(subject.query(allSelector)).to.exist;
       expect(subject.getComputedStyle(pageSelector).display).to.not.equal('none');
       expect(subject.getComputedStyle(domainSelector).display).to.equal('none');
       expect(subject.getComputedStyle(allSelector).display).to.equal('none');
-      expect(subject.query(pageSelector).textContent.trim()).to.equal('control-center-this-site');
+      expect(subject.query(pageSelector).textContent.trim()).to.equal('control_center_this_site');
     });
 
     it('renders correct amount of blocked ads', function () {
@@ -219,20 +219,20 @@ describe('Control Center: Ad-Block UI browser', function () {
     });
 
     it('renders "OFF"', function () {
-      const onSelector = '#ad-blocking .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]';
-      const offSelector = '#ad-blocking .switches [data-visible-on-state="off"][data-i18n="control-center-switch-off"]';
+      const onSelector = '#ad-blocking .switches [data-visible-on-state="active"][data-i18n="control_center_switch_on"]';
+      const offSelector = '#ad-blocking .switches [data-visible-on-state="off"][data-i18n="control_center_switch_off"]';
       expect(subject.query(onSelector)).to.exist;
       expect(subject.query(offSelector)).to.exist;
       expect(subject.getComputedStyle(onSelector).display).to.equal('none');
       expect(subject.getComputedStyle(offSelector).display).to.not.equal('none');
-      expect(subject.query(offSelector).textContent.trim()).to.equal('control-center-switch-off');
+      expect(subject.query(offSelector).textContent.trim()).to.equal('control_center_switch_off');
     });
 
     it('renders text about ads', function () {
-      const onSelector = '#ad-blocking .row-text [data-visible-on-state="active"][data-i18n="control-center-adblock-description"]';
-      const pageSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-website"]';
-      const domainSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-domain"]';
-      const allSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-all"]';
+      const onSelector = '#ad-blocking .row-text [data-visible-on-state="active"][data-i18n="control_center_adblock_description"]';
+      const pageSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control_center_adblock_description_off_website"]';
+      const domainSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control_center_adblock_description_off_domain"]';
+      const allSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control_center_adblock_description_off_all"]';
       expect(subject.query(onSelector)).to.exist;
       expect(subject.query(pageSelector)).to.exist;
       expect(subject.query(domainSelector)).to.exist;
@@ -241,7 +241,7 @@ describe('Control Center: Ad-Block UI browser', function () {
       expect(subject.getComputedStyle(pageSelector).display).to.equal('none');
       expect(subject.getComputedStyle(domainSelector).display).to.not.equal('none');
       expect(subject.getComputedStyle(allSelector).display).to.equal('none');
-      expect(subject.query(domainSelector).textContent.trim()).to.equal('control-center-adblock-description-off-domain');
+      expect(subject.query(domainSelector).textContent.trim()).to.equal('control_center_adblock_description_off_domain');
     });
 
     it('dropdown is visible', function () {
@@ -251,16 +251,16 @@ describe('Control Center: Ad-Block UI browser', function () {
     });
 
     it('renders correct text in dropdown', function () {
-      const pageSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control-center-this-site"]';
-      const domainSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control-center-this-domain"]';
-      const allSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control-center-all-sites"]';
+      const pageSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control_center_this_site"]';
+      const domainSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control_center_this_domain"]';
+      const allSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control_center_all_sites"]';
       expect(subject.query(pageSelector)).to.exist;
       expect(subject.query(domainSelector)).to.exist;
       expect(subject.query(allSelector)).to.exist;
       expect(subject.getComputedStyle(pageSelector).display).to.equal('none');
       expect(subject.getComputedStyle(domainSelector).display).to.not.equal('none');
       expect(subject.getComputedStyle(allSelector).display).to.equal('none');
-      expect(subject.query(domainSelector).textContent.trim()).to.equal('control-center-this-domain');
+      expect(subject.query(domainSelector).textContent.trim()).to.equal('control_center_this_domain');
     });
 
     it('renders correct amount of blocked ads', function () {
@@ -289,20 +289,20 @@ describe('Control Center: Ad-Block UI browser', function () {
     });
 
     it('renders "OFF"', function () {
-      const onSelector = '#ad-blocking .switches [data-visible-on-state="active"][data-i18n="control-center-switch-on"]';
-      const offSelector = '#ad-blocking .switches [data-visible-on-state="off"][data-i18n="control-center-switch-off"]';
+      const onSelector = '#ad-blocking .switches [data-visible-on-state="active"][data-i18n="control_center_switch_on"]';
+      const offSelector = '#ad-blocking .switches [data-visible-on-state="off"][data-i18n="control_center_switch_off"]';
       expect(subject.query(onSelector)).to.exist;
       expect(subject.query(offSelector)).to.exist;
       expect(subject.getComputedStyle(onSelector).display).to.equal('none');
       expect(subject.getComputedStyle(offSelector).display).to.not.equal('none');
-      expect(subject.query(offSelector).textContent.trim()).to.equal('control-center-switch-off');
+      expect(subject.query(offSelector).textContent.trim()).to.equal('control_center_switch_off');
     });
 
     it('renders text about ads', function () {
-      const onSelector = '#ad-blocking .row-text [data-visible-on-state="active"][data-i18n="control-center-adblock-description"]';
-      const pageSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-website"]';
-      const domainSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-domain"]';
-      const allSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control-center-adblock-description-off-all"]';
+      const onSelector = '#ad-blocking .row-text [data-visible-on-state="active"][data-i18n="control_center_adblock_description"]';
+      const pageSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control_center_adblock_description_off_website"]';
+      const domainSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control_center_adblock_description_off_domain"]';
+      const allSelector = '#ad-blocking .row-text [data-visible-on-state="off"][data-i18n="control_center_adblock_description_off_all"]';
       expect(subject.query(onSelector)).to.exist;
       expect(subject.query(pageSelector)).to.exist;
       expect(subject.query(domainSelector)).to.exist;
@@ -311,7 +311,7 @@ describe('Control Center: Ad-Block UI browser', function () {
       expect(subject.getComputedStyle(pageSelector).display).to.equal('none');
       expect(subject.getComputedStyle(domainSelector).display).to.equal('none');
       expect(subject.getComputedStyle(allSelector).display).to.not.equal('none');
-      expect(subject.query(allSelector).textContent.trim()).to.equal('control-center-adblock-description-off-all');
+      expect(subject.query(allSelector).textContent.trim()).to.equal('control_center_adblock_description_off_all');
     });
 
     it('dropdown is visible', function () {
@@ -321,16 +321,16 @@ describe('Control Center: Ad-Block UI browser', function () {
     });
 
     it('renders correct text in dropdown', function () {
-      const pageSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control-center-this-site"]';
-      const domainSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control-center-this-domain"]';
-      const allSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control-center-all-sites"]';
+      const pageSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control_center_this_site"]';
+      const domainSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control_center_this_domain"]';
+      const allSelector = '#ad-blocking .new-dropdown .dropdown-content-option-text[data-i18n="control_center_all_sites"]';
       expect(subject.query(pageSelector)).to.exist;
       expect(subject.query(domainSelector)).to.exist;
       expect(subject.query(allSelector)).to.exist;
       expect(subject.getComputedStyle(pageSelector).display).to.equal('none');
       expect(subject.getComputedStyle(domainSelector).display).to.equal('none');
       expect(subject.getComputedStyle(allSelector).display).to.not.equal('none');
-      expect(subject.query(allSelector).textContent.trim()).to.equal('control-center-all-sites');
+      expect(subject.query(allSelector).textContent.trim()).to.equal('control_center_all_sites');
     });
 
     it('renders correct amount of blocked ads', function () {

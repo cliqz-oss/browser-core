@@ -1,6 +1,7 @@
 /* eslint no-param-reassign: 'off' */
 
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
+import { parseURL } from '../core/url-info';
 
 function getAlias(host, searchEngines) {
   const engine = searchEngines.find(({ urlDetails }) =>
@@ -13,18 +14,18 @@ function getAlias(host, searchEngines) {
 export default class SpeedDial {
   static getValidUrl(url) {
     const ALLOWED_SCHEMES = ['http', 'https', 'ftp'];
-    let uri = utils.makeUri(url);
+    let uri = parseURL(url);
 
     if (!uri) {
       url = url.replace(/^:?\/*/, '');
       url = `http://${url}`;
-      uri = utils.makeUri(url);
+      uri = parseURL(url);
     }
 
     return (
       uri
-      && ALLOWED_SCHEMES.indexOf(uri.scheme) !== -1
-      && uri.spec
+      && ALLOWED_SCHEMES.indexOf(uri.protocol) !== -1
+      && url
     ) || null;
   }
 

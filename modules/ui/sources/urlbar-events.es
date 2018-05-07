@@ -3,6 +3,7 @@ import events from '../core/events';
 import { nextTick } from '../core/decorators';
 import console from '../core/console';
 import { getCurrentTabId } from '../core/tabs';
+import { isOnionMode } from '../core/platform';
 
 const ACproviderName = 'cliqz-results';
 const lastEvent = new WeakMap();
@@ -21,6 +22,10 @@ export default {
   * @event focus
   */
   focus() {
+    if (this.urlbar.cliqzFocused) {
+      return;
+    }
+
     if (this.urlbar.getAttribute('autocompletesearch').indexOf(ACproviderName) === -1) {
       // BUMMER!! Something happened and our AC provider was overriden!
       // trying to set it back while keeping the new value in case Cliqz
@@ -36,7 +41,9 @@ export default {
     }
 
     // try to 'heat up' the connection
-    utils.pingCliqzResults();
+    if (!isOnionMode) {
+      utils.pingCliqzResults();
+    }
 
     utils.setSearchSession(utils.rand(32));
     this.urlbarEvent('focus');
@@ -51,8 +58,9 @@ export default {
   * @param ev
   */
   blur() {
-    // force a dropdown close on urlbar blur
-    this.window.CLIQZ.Core.popup.hidePopup();
+    if (this.urlbar.cliqzFocused) {
+      return;
+    }
 
     this.urlbarEvent('blur');
 
@@ -61,7 +69,6 @@ export default {
       this.urlbar.value = this.urlbar.mInputField.value;
     }
 
-    this.window.CLIQZ.UI.sessionEnd();
     events.pub('urlbar:blur', {
       windowId: this.windowId,
       tabId: getCurrentTabId(this.window),
@@ -129,8 +136,8 @@ export default {
         query,
         tabId: getCurrentTabId(this.window),
         windowId: this.windowId,
-        keyCode: ev.code || null,
-        isPasted: ev.type === 'paste',
+        keyCode: (ev && ev.code) || null,
+        isPasted: ev && (ev.type === 'paste'),
       });
     });
   },

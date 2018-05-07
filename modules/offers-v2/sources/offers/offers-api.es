@@ -289,6 +289,28 @@ export default class OffersAPI {
     return this.offersDB.isOfferPresent(args.data.offer_id);
   }
 
+  /**
+   * This method should be called whenever an offer is removed from the DB
+   */
+  offerRemoved(offerID, campaignID, erased) {
+    // we will only remove the cache if any
+    this.offerUpdateCache.delete(offerID);
+
+    if (erased) {
+      // add the new signal to be sent and force to be sent right away
+      // we should remove the associated signals on the signal handler here
+      this.sigHandler.setCampaignSignal(
+        campaignID,
+        offerID,
+        ORIGIN_ID,
+        ActionID.AID_OFFER_EXPIRED
+      );
+      // we force the signal handler to send the signal now
+      this.sigHandler.sendCampaignSignalNow(campaignID);
+      this.sigHandler.removeCampaignSignals(campaignID);
+    }
+  }
+
   // /////////////////////////////////////////////////////////////////////////////
   // internal methods
 

@@ -1,5 +1,3 @@
-import prefs from '../../core/prefs';
-
 // TODO: this module public API has to be completely covered with unit tests
 
 class OfferResult {
@@ -50,24 +48,12 @@ class OfferResult {
   }
 
   get offerId() {
-    const offerData = (this._extra.offers_data || {}).data || {};
-    const campaignId = this.isAd ? '001' : '002';
-    const prefName = `myoffrz.experiments.${campaignId}`;
-    const style = prefs.get(`${prefName}.style`, 'plain');
-    const position = prefs.get(`${prefName}.position`, 'first');
-
-    if (this.isAd) {
-      return `${offerData.offer_id}_${campaignId}_${style}_${position}`;
-    }
-
-    return `${offerData.offer_id}_${campaignId}_${style}`;
+    return this.offerData.offer_id;
   }
 
   get offerData() {
-    return {
-      ...this.rawResult.data.extra.offers_data.data,
-      offer_id: this.offerId,
-    };
+    const offerData = this._extra.offers_data || {};
+    return offerData.data;
   }
 }
 
@@ -138,7 +124,11 @@ export default class OffersReporter {
   }
 
   reportClick(results, clickedResult) {
-    const { offerId, shouldCountStats, isAttached } = new OfferResult(clickedResult);
+    const offerResult = new OfferResult(clickedResult);
+    if (!offerResult.isOffer) {
+      return;
+    }
+    const { offerId, shouldCountStats, isAttached } = offerResult;
 
     if (!shouldCountStats) {
       return;

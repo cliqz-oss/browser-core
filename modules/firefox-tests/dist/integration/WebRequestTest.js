@@ -3,10 +3,9 @@ function helloWorld(request, response) {
   response.write('<html><body><p>Hello world</p></body></html');
 }
 
-DEPS.WebRequestTest = ["core/utils"];
 TESTS.WebRequestTest = function(CliqzUtils) {
-  var webrequest = getModule('core/webrequest').default;
-  var browser = getModule('core/browser');
+  var webrequest = getWindow().CLIQZ.TestHelpers.webrequest;
+  var browser = getWindow().CLIQZ.TestHelpers.browser;
 
   describe('WebRequest', function() {
     var onBeforeRequest = [],

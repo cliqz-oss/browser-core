@@ -21,13 +21,11 @@ export default class SearchUI extends React.Component {
   constructor(props) {
     super(props);
     this.isDeveloper = prefs.get('developer', false);
-    this._lastSearchParams = props.query ? [props.query] : [];
     this.state = {
       results: props.results || [],
     }
     this.appStart = props.appStart || Promise.resolve();
     // TODO: use constants from native instead of magic event names
-    events.sub('search', this.searchResults.bind(this));
     events.sub('mobile-browser:notify-preferences', this.updatePreferences.bind(this));
     events.sub('mobile-browser:set-search-engine', this.setSearchEngine.bind(this));
     events.sub('search:results', this.renderResults.bind(this));
@@ -51,39 +49,6 @@ export default class SearchUI extends React.Component {
     }
     utils.setDefaultSearchEngine(engine);
     this.setState({engine});
-  }
-
-  componentDidMount() {
-    this.appStart.then(() => {
-      this._isAppLoaded = true
-      if (this._lastSearchParams.length) {
-        this.searchResults(...this._lastSearchParams);
-      }
-    });
-  }
-
-  getLastKeyCode(current = '', previous = '') {
-    // TODO: get it from native
-    if (current.length < previous.length) {
-      return 'Backspace';
-    }
-    return `Key${current.slice(-1).toUpperCase()}`;
-  }
-
-  searchResults(query, locationEnabled, lat, lon) {
-    const keyCode = this.getLastKeyCode(query, this._lastSearchParams[0]);
-    this._lastSearchParams = arguments;
-    if (!this._isAppLoaded) {
-      return;
-    }
-    if (locationEnabled) {
-      utils.USER_LAT = lat;
-      utils.USER_LNG = lon;
-    } else {
-      delete utils.USER_LAT;
-      delete utils.USER_LNG;
-    }
-    events.pub('urlbar:input', { query, isTyped: true, keyCode });
   }
 
   filterResults(results = []) {
@@ -115,7 +80,6 @@ export default class SearchUI extends React.Component {
   }
 
   componentWillUnmount() {
-    events.un_sub('search', this.searchResults);
     events.un_sub('mobile-browser:notify-preferences', this.updatePreferences);
     events.un_sub('mobile-browser:set-search-engine', this.setSearchEngine);
     events.un_sub('search:results', this.renderResults);

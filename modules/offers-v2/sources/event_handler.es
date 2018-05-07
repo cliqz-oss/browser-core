@@ -4,11 +4,11 @@ This module will be used to handle different kind of events in a more efficient
 way for the offers module.
 
 */
-
 import logger from './common/offers_v2_logger';
-import { utils, events } from '../core/cliqz';
-import WebRequest from '../core/webrequest';
+import events from '../core/events';
+import utils from '../core/utils';
 import UrlData from './common/url_data';
+import inject from '../core/kord/inject';
 
 
 export default class EventHandler {
@@ -21,7 +21,8 @@ export default class EventHandler {
 
     events.sub('content:location-change', this.onTabLocChanged);
 
-    this.beforeRequestListener = this.beforeRequestListener.bind(this);
+    this.webRequestPipeline = inject.module('webrequest-pipeline');
+    this.webrequestPipelineCallback = this.webrequestPipelineCallback.bind(this);
     this.requestListenerAdded = false;
 
     // Don't execute triggers on localhost, IPs and "internal" urls
@@ -33,10 +34,7 @@ export default class EventHandler {
   //
   destroy() {
     events.un_sub('content:location-change', this.onTabLocChanged);
-    if (this.requestListenerAdded) {
-      WebRequest.onCompleted.removeListener(this.beforeRequestListener);
-      this.requestListenerAdded = false;
-    }
+    this._unsubscribeFromWebrequestPipeline();
   }
 
 
@@ -75,12 +73,7 @@ export default class EventHandler {
     }
 
     // add the listener if not added before
-    if (!this.requestListenerAdded) {
-      this.requestListenerAdded = true;
-      WebRequest.onCompleted.addListener(this.beforeRequestListener, {
-        urls: ['http://*/*', 'https://*/*'],
-      });
-    }
+    this._subscribeToWebrequestPipeline();
 
     if (this.httpReqCbs.get(domainName).has(cb)) {
       return false;
@@ -89,11 +82,17 @@ export default class EventHandler {
     this.httpReqCbs.get(domainName).set(cb, cargs);
     return true;
   }
+
   unsubscribeHttpReq(cb, domainName) {
     if (!this.httpReqCbs.has(domainName)) {
       return;
     }
     this.httpReqCbs.get(domainName).delete(cb);
+
+    // count if there is any callback here, otherwise we unsubscribe from pipeline
+    if (this._countWebrequestSubscribers() === 0) {
+      this._unsubscribeFromWebrequestPipeline();
+    }
   }
 
   isHttpReqDomainSubscribed(cb, domainName) {
@@ -106,6 +105,8 @@ export default class EventHandler {
 
   // ///////////////////////////////////////////////////////////////////////////
   onTabLocChanged(data) {
+    logger.info('onTabLocChanged:', data.url);
+
     // EX-2561: private mode then we don't do anything here
     if (data.isPrivate) {
       logger.info('window is private skipping: onTabLocChanged');
@@ -122,7 +123,9 @@ export default class EventHandler {
     // skip the event if is the same document here
     // https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIWebProgressListener
     //
-    if (data.isSameDocument) {
+
+    if (data.isSameDocument && data.url === data.triggeringUrl) {
+      logger.info('document reload skipping: onTabLocChanged', data.url);
       return;
     }
 
@@ -169,23 +172,25 @@ export default class EventHandler {
   }
 
   // ///////////////////////////////////////////////////////////////////////////
-  beforeRequestListener(requestObj) {
-    const url = requestObj.url;
+  webrequestPipelineCallback(ctx) {
+    const url = ctx.url;
 
     // do first filtering
-    if (!url) {
+    if (!url ||
+        ctx.isPrivate ||
+        !(url.startsWith('http://') || url.startsWith('https://'))) {
       return;
     }
 
     // check if we have a domain for this
-    const urlData = new UrlData(requestObj.url);
+    const urlData = new UrlData(url);
     const domainName = urlData.getDomain();
     // check if we have the associated domain
     if (!this.httpReqCbs.has(domainName)) {
       return;
     }
     // we have callbacks then we call them
-    this._publish(this.httpReqCbs.get(domainName), { reqObj: requestObj, url_data: urlData });
+    this._publish(this.httpReqCbs.get(domainName), { reqObj: ctx, url_data: urlData });
   }
 
   //
@@ -202,5 +207,35 @@ export default class EventHandler {
         }
       }, 0);
     });
+  }
+
+  // helper methods
+  _subscribeToWebrequestPipeline() {
+    if (!this.requestListenerAdded) {
+      this.requestListenerAdded = true;
+      this.webRequestPipeline.action('addPipelineStep',
+        'onCompleted',
+        {
+          name: 'offers-evt-handler',
+          spec: 'collect',
+          fn: this.webrequestPipelineCallback,
+        },
+      );
+    }
+  }
+
+  _unsubscribeFromWebrequestPipeline() {
+    if (this.requestListenerAdded) {
+      this.requestListenerAdded = false;
+      this.webRequestPipeline.action('removePipelineStep', 'onCompleted', 'offers-evt-handler');
+    }
+  }
+
+  _countWebrequestSubscribers() {
+    let count = 0;
+    this.httpReqCbs.forEach((domCallbacksSet) => {
+      count += domCallbacksSet.size;
+    });
+    return count;
   }
 }

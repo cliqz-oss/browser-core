@@ -25,16 +25,16 @@ function mockFetchFail() {
 
 
 const MOCK = {
-  'core/cliqz': {
-    utils: {
+  'core/utils': {
+    default: {
       setInterval() {},
       setTimeout(cb) { cb(); },
-      httpPost(url, resolve, payload, reject, timeout) {
+      httpPost(url, callback, data, onerror, timeout) {
         return httpPost(
           url,
-          resolve,
-          payload,
-          reject,
+          callback,
+          data,
+          onerror,
           timeout,
         );
       },

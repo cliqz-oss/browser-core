@@ -9,6 +9,7 @@ RUN npm install -g \
 RUN apt-get update && \
   apt-get install -y \
     build-essential \
+    jq \
     python-dev \
     python-pip \
     zip

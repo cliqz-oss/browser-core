@@ -6,7 +6,7 @@ import md5 from '../core/helpers/md5';
 import * as datetime from './time';
 import pacemaker from '../core/pacemaker';
 import QSWhitelistBase from './qs-whitelist-base';
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import { Resource } from '../core/resource-loader';
 import console from '../core/console';
 import extConfig from '../core/config';

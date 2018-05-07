@@ -3,7 +3,7 @@ import events from '../core/events';
 import inject from '../core/kord/inject';
 import { extractHostname } from '../core/tlds';
 import { promiseHttpHandler } from '../core/http';
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 
 import GreenAds from './green-ads';
 import logger from './logger';

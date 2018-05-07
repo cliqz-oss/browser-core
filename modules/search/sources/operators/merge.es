@@ -8,9 +8,11 @@ const merge = (responses) => {
     return [];
   }
 
-  const last = responses.slice(-1)[0];
+  const latest = responses.reduce((min, cur) =>
+    (cur.params && min.params && cur.params.ts > min.params.ts ? cur : min),
+  responses.slice(-1)[0]);
   return {
-    ...last,
+    ...latest,
     results: [].concat(...responses.map(response => response.results)),
   };
 };

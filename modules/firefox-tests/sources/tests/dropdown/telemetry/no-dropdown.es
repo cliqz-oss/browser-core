@@ -55,7 +55,7 @@ export default function () {
       delete win.CLIQZ.Core.urlbar._handleCommand;
     });
 
-    context('after pressing Enter and Ctrl keys', function () {
+    xcontext('after pressing Enter and Ctrl keys', function () {
       beforeEach(function () {
         press({ key: 'Enter', ctrlKey: true });
         // check the boolean to make sure the function opening new links

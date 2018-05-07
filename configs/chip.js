@@ -11,7 +11,7 @@ module.exports = {
   "baseURL": "resource://cliqz/",
   "testsBasePath": "./build/description_test@cliqz.com/chrome/content", "testem_launchers": ["unit-node", "Chrome"],
   "testem_launchers_ci": ["unit-node"],
-  "settings": Object.assign({
+  "settings": Object.assign({}, urls, {
     "id": "description_test@cliqz.com",
     "name": "Cliqz",
     "channel": "FF01",
@@ -42,7 +42,9 @@ module.exports = {
       "critical": "#999999"
     },
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
-  }, urls),
+    "antitrackingPlaceholder": "cliqz.com/tracking",
+    "antitrackingHeader": "CLIQZ-AntiTracking",
+  }),
   'default_prefs' : {
   },
   "modules": [

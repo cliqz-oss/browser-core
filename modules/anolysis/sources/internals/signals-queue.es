@@ -1,4 +1,4 @@
-import { utils } from '../../core/cliqz';
+import utils from '../../core/utils';
 
 import Backend from './backend-communication';
 import logger from './logger';

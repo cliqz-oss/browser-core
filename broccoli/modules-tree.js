@@ -15,6 +15,7 @@ var cliqzConfig = require('./config');
 const modulesList = require('./modules/modules-list');
 const contentScriptsImport = require('./modules/content-script-imports');
 const contentTestsImport = require('./modules/content-tests-imports');
+const integrationTestsImport = require('./modules/integration-tests-imports');
 
 var Instrument = require('./instrument');
 var helpers = require('./modules/helpers');
@@ -237,11 +238,14 @@ function getSourceTree() {
   let sources = getSourceFunnel();
   const config = writeFile('core/config.es', 'export default '+JSON.stringify(cliqzConfig, null, 2));
 
+  const generateBundledTests = process.env.CLIQZ_INCLUDE_TESTS || env.TESTING;
+
   sources = new MergeTrees([
     sources,
     config,
     contentScriptsImport,
-    contentTestsImport,
+    generateBundledTests ? contentTestsImport : new MergeTrees([]),
+    generateBundledTests ? integrationTestsImport : new MergeTrees([]),
     new Funnel(modulesList, { destDir: 'core/app' }),
   ]);
 
@@ -265,15 +269,19 @@ function getSourceTree() {
     getBrowserifyTree(),
     transpiledSources,
   ];
-  if ((env.TESTING) &&
-      (cliqzConfig.testem_launchers || []).length) {
+
+  const includeTests = process.env.CLIQZ_INCLUDE_TESTS;
+
+  if (includeTests || ((env.TESTING) &&
+      (cliqzConfig.testem_launchers || []).length)) {
     sourceTrees.push(transpiledModuleTestsTree);
   }
 
   const exclude = ["**/*.jshint.js"];
 
-  if (!env.TESTING) {
+  if (!env.TESTING && !includeTests) {
     exclude.push("**/content-tests.bundle*");
+    exclude.push("**/integration-tests.bundle*");
   }
 
   return new Funnel(

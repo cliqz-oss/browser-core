@@ -1,8 +1,6 @@
 import {
   blurUrlBar,
   $cliqzResults,
-  CliqzUtils,
-  expect,
   fillIn,
   press,
   release,
@@ -15,16 +13,15 @@ import expectSelection from './common';
 import { bmWithButtons } from '../fixtures/resultsBigMachineWithButtons';
 
 export default function () {
-  context('keyboard navigation for bm results with buttons', function () {
-    let $resultElement;
+  context('for bm results with buttons', function () {
     let $result1Element;
-    let firstElementArray = [];
-    let otherElementsArray = [];
-    let navigationArray = [];
+    let $result2Element;
+    let $button1Element;
+    let $button2Element;
+    let $button3Element;
+    let $button4Element;
     const results = bmWithButtons;
     const query = 'google';
-    const win = CliqzUtils.getWindow();
-    const urlBar = win.CLIQZ.Core.urlbar;
     const result1Selector = `a.result[data-url="${results[0].url}"]`;
     const result2Selector = `a.result[data-url="${results[1].url}"]`;
     const button1Selector = `a.result.btn[data-url="${results[0].snippet.deepResults[0].links[0].url}"]`;
@@ -32,138 +29,104 @@ export default function () {
     const button3Selector = `a.result.btn[data-url="${results[0].snippet.deepResults[0].links[2].url}"]`;
     const button4Selector = `a.result.btn[data-url="${results[0].snippet.deepResults[0].links[3].url}"]`;
 
-    beforeEach(function () {
+    beforeEach(async function () {
       blurUrlBar();
       withHistory([]);
       respondWith({ results });
       fillIn(query);
-      return waitForPopup().then(function () {
-        $resultElement = $cliqzResults()[0];
-        $result1Element = $resultElement.querySelector(result1Selector);
-        firstElementArray = [
-          {
-            el: $result1Element,
-            urlBarText: results[0].snippet.friendlyUrl
-          }
-        ];
-        otherElementsArray = [
-          {
-            el: $resultElement.querySelector(button1Selector),
-            urlBarText: results[0].snippet.deepResults[0].links[0].url
-          },
-          {
-            el: $resultElement.querySelector(button2Selector),
-            urlBarText: results[0].snippet.deepResults[0].links[1].url
-          },
-          {
-            el: $resultElement.querySelector(button3Selector),
-            urlBarText: results[0].snippet.deepResults[0].links[2].url
-          },
-          {
-            el: $resultElement.querySelector(button4Selector),
-            urlBarText: results[0].snippet.deepResults[0].links[3].url
-          },
-          {
-            el: $resultElement.querySelector(result2Selector),
-            urlBarText: results[1].url
-          }
-        ];
+      await waitForPopup();
+      await waitFor(() => $cliqzResults.querySelector(result1Selector) &&
+        $cliqzResults.querySelector(result2Selector) &&
+        $cliqzResults.querySelectorAll('.result.btn').length === 4);
+      $result1Element = $cliqzResults.querySelector(result1Selector);
+      $result2Element = $cliqzResults.querySelector(result2Selector);
+      $button1Element = $cliqzResults.querySelector(button1Selector);
+      $button2Element = $cliqzResults.querySelector(button2Selector);
+      $button3Element = $cliqzResults.querySelector(button3Selector);
+      $button4Element = $cliqzResults.querySelector(button4Selector);
+    });
+
+    context('navigate with arrowDown', function () {
+      it('selected element and urlbar value are correct', async function () {
+        press({ key: 'ArrowDown' });
+        await waitFor(() => expectSelection($button1Element,
+          results[0].snippet.deepResults[0].links[0].url), 600);
+        press({ key: 'ArrowDown' });
+        await waitFor(() => expectSelection($button2Element,
+          results[0].snippet.deepResults[0].links[1].url), 600);
+        press({ key: 'ArrowDown' });
+        await waitFor(() => expectSelection($button3Element,
+          results[0].snippet.deepResults[0].links[2].url), 600);
+        press({ key: 'ArrowDown' });
+        await waitFor(() => expectSelection($button4Element,
+          results[0].snippet.deepResults[0].links[3].url), 600);
+        press({ key: 'ArrowDown' });
+        await waitFor(() => expectSelection($result2Element, results[1].url), 600);
       });
     });
 
-    it('two results and four buttons were rendered', function () {
-      expect($resultElement).to.contain(result1Selector);
-      expect($resultElement).to.contain(result2Selector);
-      expect($resultElement.querySelectorAll('.btn').length).to.equal(4);
-    });
-
-    context('navigation with arrowDown', function () {
-      beforeEach(function () {
-        navigationArray = firstElementArray.concat(otherElementsArray);
-      });
-
-      it('correct element is selected and there is correct url in the url bar', function () {
-        return navigationArray
-          .reduce(function (chain, current) {
-            return chain.then(function () {
-              expectSelection($resultElement, current.el, current.urlBarText, urlBar);
-              press({ key: 'ArrowDown' });
-              return waitFor(function () {
-                return !current.el.classList.contains('selected') &&
-                  urlBar.textValue !== current.urlBarText;
-              }, 300);
-            });
-          }, Promise.resolve())
-          .then(() => expectSelection($resultElement, $result1Element, results[0].url, urlBar));
+    context('navigate with arrowUp', function () {
+      it('selected element and urlbar value are correct', async function () {
+        press({ key: 'ArrowUp' });
+        await waitFor(() => expectSelection($result2Element, results[1].url), 600);
+        press({ key: 'ArrowUp' });
+        await waitFor(() => expectSelection($button4Element,
+          results[0].snippet.deepResults[0].links[3].url), 600);
+        press({ key: 'ArrowUp' });
+        await waitFor(() => expectSelection($button3Element,
+          results[0].snippet.deepResults[0].links[2].url), 600);
+        press({ key: 'ArrowUp' });
+        await waitFor(() => expectSelection($button2Element,
+          results[0].snippet.deepResults[0].links[1].url), 600);
+        press({ key: 'ArrowUp' });
+        await waitFor(() => expectSelection($button1Element,
+          results[0].snippet.deepResults[0].links[0].url), 600);
+        press({ key: 'ArrowUp' });
+        await waitFor(() => expectSelection($result1Element, results[0].url), 600);
       });
     });
 
-    context('navigation with arrowUp', function () {
-      beforeEach(function () {
-        // slice().reverse() creates a new array with the elements in reverse order
-        navigationArray = firstElementArray.concat(otherElementsArray.slice().reverse());
-      });
-
-      it('correct element is selected and there is correct url in the url bar', function () {
-        return navigationArray
-          .reduce(function (chain, current) {
-            return chain.then(function () {
-              expectSelection($resultElement, current.el, current.urlBarText, urlBar);
-              press({ key: 'ArrowUp' });
-              return waitFor(function () {
-                return !current.el.classList.contains('selected') &&
-                  urlBar.textValue !== current.urlBarText;
-              }, 300);
-            });
-          }, Promise.resolve())
-          .then(() => expectSelection($resultElement, $result1Element, results[0].url, urlBar));
+    context('navigate with Tab', function () {
+      it('selected element and urlbar value are correct', async function () {
+        press({ key: 'Tab' });
+        await waitFor(() => expectSelection($button1Element,
+          results[0].snippet.deepResults[0].links[0].url), 600);
+        press({ key: 'Tab' });
+        await waitFor(() => expectSelection($button2Element,
+          results[0].snippet.deepResults[0].links[1].url), 600);
+        press({ key: 'Tab' });
+        await waitFor(() => expectSelection($button3Element,
+          results[0].snippet.deepResults[0].links[2].url), 600);
+        press({ key: 'Tab' });
+        await waitFor(() => expectSelection($button4Element,
+          results[0].snippet.deepResults[0].links[3].url), 600);
+        press({ key: 'Tab' });
+        await waitFor(() => expectSelection($result2Element, results[1].url), 600);
       });
     });
 
-    context('navigation with Tab', function () {
-      beforeEach(function () {
-        navigationArray = firstElementArray.concat(otherElementsArray);
-      });
-
-      it('correct element is selected and there is correct url in the url bar', function () {
-        return navigationArray
-          .reduce(function (chain, current) {
-            return chain.then(function () {
-              expectSelection($resultElement, current.el, current.urlBarText, urlBar);
-              press({ key: 'Tab' });
-              return waitFor(function () {
-                return !current.el.classList.contains('selected') &&
-                  urlBar.textValue !== current.urlBarText;
-              }, 300);
-            });
-          }, Promise.resolve())
-          .then(() => expectSelection($resultElement, $result1Element, results[0].url, urlBar));
-      });
-    });
-
-    context('navigation with Shift + Tab', function () {
-      beforeEach(function () {
-        // slice().reverse() creates a new array with the elements in reverse order
-        navigationArray = firstElementArray.concat(otherElementsArray.slice().reverse());
-      });
-
+    context('navigate with Shift+Tab', function () {
       afterEach(function () {
         release({ key: 'Shift', code: 'ShiftLeft' });
       });
 
-      it('correct element is selected and there is correct url in the url bar', function () {
-        return navigationArray
-          .reduce(function (chain, current) {
-            return chain.then(function () {
-              expectSelection($resultElement, current.el, current.urlBarText, urlBar);
-              press({ key: 'Tab', shiftKey: true });
-              return waitFor(function () {
-                return !current.el.classList.contains('selected') &&
-                  urlBar.textValue !== current.urlBarText;
-              }, 300);
-            });
-          }, Promise.resolve())
-          .then(() => expectSelection($resultElement, $result1Element, results[0].url, urlBar));
+      it('selected element and urlbar value are correct', async function () {
+        press({ key: 'Tab', shiftKey: true });
+        await waitFor(() => expectSelection($result2Element, results[1].url), 600);
+        press({ key: 'Tab', shiftKey: true });
+        await waitFor(() => expectSelection($button4Element,
+          results[0].snippet.deepResults[0].links[3].url), 600);
+        press({ key: 'Tab', shiftKey: true });
+        await waitFor(() => expectSelection($button3Element,
+          results[0].snippet.deepResults[0].links[2].url), 600);
+        press({ key: 'Tab', shiftKey: true });
+        await waitFor(() => expectSelection($button2Element,
+          results[0].snippet.deepResults[0].links[1].url), 600);
+        press({ key: 'Tab', shiftKey: true });
+        await waitFor(() => expectSelection($button1Element,
+          results[0].snippet.deepResults[0].links[0].url), 600);
+        press({ key: 'Tab', shiftKey: true });
+        await waitFor(() => expectSelection($result1Element, results[0].url), 600);
       });
     });
   });

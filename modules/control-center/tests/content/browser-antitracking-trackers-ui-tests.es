@@ -41,9 +41,9 @@ function trackersTests(amo) {
     });
 
     it('renders title with trackers', function () {
-      const titleSelector = '.active-window-tracking #companies-title [data-i18n="control-center-trackers"]';
+      const titleSelector = '.active-window-tracking #companies-title [data-i18n="control_center_trackers"]';
       expect(subject.query(titleSelector)).to.exist;
-      expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-trackers');
+      expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_trackers');
     });
 
     it('renders back arrow', function () {
@@ -55,9 +55,9 @@ function trackersTests(amo) {
     });
 
     it('renders text about private data', function () {
-      const descriptionSelector = '.active-window-tracking #bottom-part [data-i18n="control-center-datapoints"]';
+      const descriptionSelector = '.active-window-tracking #bottom-part [data-i18n="control_center_datapoints"]';
       expect(subject.query(descriptionSelector)).to.exist;
-      expect(subject.query(descriptionSelector).textContent.trim()).to.equal('control-center-datapoints');
+      expect(subject.query(descriptionSelector).textContent.trim()).to.equal('control_center_datapoints');
     });
 
     it('renders correct number of data points', function () {
@@ -80,17 +80,17 @@ function trackersTests(amo) {
     });
 
     it('renders "Strict"', function () {
-      const strictSelector = '.active-window-tracking #bottom-part .squaredFour [data-i18n="control-center-check-strict"]';
+      const strictSelector = '.active-window-tracking #bottom-part .squaredFour [data-i18n="control_center_check_strict"]';
       expect(subject.query(strictSelector)).to.exist;
-      expect(subject.query(strictSelector).textContent.trim()).to.equal('control-center-check-strict');
+      expect(subject.query(strictSelector).textContent.trim()).to.equal('control_center_check_strict');
     });
 
     it('renders button "Clear Tracking Cache"', function () {
       const buttonSelector = '.active-window-tracking #bottom-part .clear-Tracking-Cache-Button';
-      const textSelector = '.active-window-tracking #bottom-part .clear-Tracking-Cache-Button [data-i18n="control-center-clear-trCache"]';
+      const textSelector = '.active-window-tracking #bottom-part .clear-Tracking-Cache-Button [data-i18n="control_center_clear_trCache"]';
       expect(subject.query(buttonSelector)).to.exist;
       expect(subject.query(textSelector)).to.exist;
-      expect(subject.query(textSelector).textContent.trim()).to.equal('control-center-clear-trCache');
+      expect(subject.query(textSelector).textContent.trim()).to.equal('control_center_clear_trCache');
     });
 
     context('list of trackers is correct', function () {

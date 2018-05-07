@@ -6,17 +6,23 @@ import inject from '../core/kord/inject';
 import NewTabPage from './main';
 import News from './news';
 import History from '../platform/freshtab/history';
+import openImportDialog from '../platform/freshtab/browser-import-dialog';
 import utils from '../core/utils';
 import events from '../core/events';
 import SpeedDial from './speed-dial';
 import AdultDomain from './adult-domain';
 import background from '../core/base/background';
-import { forEachWindow, mapWindows, Window } from '../core/browser';
+import {
+  forEachWindow,
+  mapWindows,
+  Window,
+  getActiveTab
+} from '../core/browser';
 import { queryActiveTabs } from '../core/tabs';
 import config from '../core/config';
-import { isCliqzBrowser, isCliqzAtLeastInVersion } from '../core/platform';
+import { isCliqzBrowser, isCliqzAtLeastInVersion, isWebExtension } from '../core/platform';
 import prefs from '../core/prefs';
-import { dismissMessage, countMessageClick } from './actions/message';
+import { dismissMessage, countMessageClick, setMessageShownTime } from './actions/message';
 import { getLanguageFromLocale } from '../core/i18n';
 import HistoryService from '../platform/history-service';
 
@@ -60,7 +66,7 @@ export default background({
   theme: inject.module('theme'),
   ui: inject.module('ui'),
   offersV2: inject.module('offers-v2'),
-  requiresServices: ['logos'],
+  requiresServices: ['logos', 'utils', 'session'],
 
   /**
   * @method init
@@ -163,6 +169,10 @@ export default background({
   * Blue theme is supported only for CLIQZ users above 1.16.0
   */
   get isBlueThemeSupported() {
+    if (isWebExtension) {
+      return false;
+    }
+
     const CLIQZ_1_16_OR_ABOVE = isCliqzAtLeastInVersion('1.16.0');
     return (isCliqzBrowser && CLIQZ_1_16_OR_ABOVE) || prefs.get(DEVELOPER_FLAG_PREF, false);
   },
@@ -184,18 +194,25 @@ export default background({
   },
 
   getComponentsState() {
-    const _config = JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}'));
+    const freshtabConfig = prefs.getObject(FRESHTAB_CONFIG_PREF);
+
     let defaultBg = 'bg-winter';
+
     if (prefs.get('new_session', true)) {
       defaultBg = 'bg-matterhorn';
       this.actions.saveBackgroundImage(defaultBg);
     }
+
     return {
-      historyDials: Object.assign({}, DEFAULT_COMPONENT_STATE, _config.historyDials),
-      customDials: Object.assign({}, DEFAULT_COMPONENT_STATE, _config.customDials),
-      search: Object.assign({}, DEFAULT_COMPONENT_STATE, _config.search),
-      news: Object.assign({}, DEFAULT_COMPONENT_STATE, _config.news),
-      background: Object.assign({}, { image: defaultBg }, _config.background),
+      historyDials: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.historyDials),
+      customDials: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.customDials),
+      search: {
+        ...DEFAULT_COMPONENT_STATE,
+        ...freshtabConfig.search,
+        mode: prefs.get('freshtab.search.mode', 'urlbar'),
+      },
+      news: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.news),
+      background: Object.assign({}, { image: defaultBg }, freshtabConfig.background),
     };
   },
 
@@ -239,6 +256,7 @@ export default background({
 
     dismissMessage,
     countMessageClick,
+    setMessageShownTime,
 
     checkForHistorySpeedDialsToRestore() {
       const history = JSON.parse(prefs.get(DIALUPS, '{}', '')).history
@@ -526,25 +544,28 @@ export default background({
         results.forEach((offer) => {
           let validity = {};
           const templateData = offer.offer_info.ui_info.template_data;
-          if (templateData.validity) {
-            const expirationTime = templateData.validity;
+          // calculate the expiration time if we have the new field #EX-7028
+          const expirationTime = offer.offer_info.expirationMs ?
+            (offer.created_ts + offer.offer_info.expirationMs) / 1000 :
+            templateData.validity;
+          if (expirationTime) {
             const timeDiff = Math.abs((expirationTime * 1000) - Date.now());
             let difference = Math.floor(timeDiff / 86400000);
             const isExpiredSoon = difference <= 2;
-            let diffUnit = difference === 1 ? 'offers-expires-day' : 'offers-expires-days';
+            let diffUnit = difference === 1 ? 'offers_expires_day' : 'offers_expires_days';
 
             if (difference < 1) {
               difference = Math.floor((timeDiff % 86400000) / 3600000);
-              diffUnit = difference === 1 ? 'offers-expires-hour' : 'offers-expires-hours';
+              diffUnit = difference === 1 ? 'offers_expires_hour' : 'offers_expires_hours';
 
               if (difference < 1) {
                 difference = Math.floor(((timeDiff % 86400000) % 3600000) / 60000);
-                diffUnit = difference === 1 ? 'offers-expires-minute' : 'offers-expires-minutes';
+                diffUnit = difference === 1 ? 'offers_expires_minute' : 'offers_expires_minutes';
               }
             }
 
             validity = {
-              text: `${utils.getLocalizedString('offers-expires-in')} ${difference} ${utils.getLocalizedString(diffUnit)}`,
+              text: `${utils.getLocalizedString('offers_expires_in')} ${difference} ${utils.getLocalizedString(diffUnit)}`,
               isExpiredSoon,
             };
 
@@ -629,7 +650,7 @@ export default background({
     },
 
     getTabIndex() {
-      return Promise.resolve(utils.getWindow().gBrowser.tabContainer.selectedIndex);
+      return getActiveTab().then(tab => tab.id);
     },
 
     shareLocation(decision) {
@@ -670,8 +691,13 @@ export default background({
           }
         });
       });
-    }
+    },
 
+    skipMessage(message) {
+      events.pub('msg_center:hide_message', { id: message.id }, message.handler);
+    },
+
+    openImportDialog,
   },
 
   events: {

@@ -11,6 +11,7 @@ const tldjs = require('tldjs');
 
 var prefRetVal = {};
 var currentTS = Date.now();
+var latestOffersInstalledTs = 0;
 var currentDayHour = 0;
 var currentWeekDay = 0;
 let getDetailsFromUrlReal;
@@ -357,6 +358,9 @@ export default describeModule('offers-v2/offers/offers-handler',
       getABNumber: function() {
         return abNumber;
       },
+      getLatestOfferInstallTs: function() {
+        return latestOffersInstalledTs;
+      },
       orPromises: orPromisesReal
     },
     'core/crypto/random': {
@@ -377,9 +381,8 @@ export default describeModule('offers-v2/offers/offers-handler',
         }
       }
     },
-    'core/cliqz': {
-      default: {},
-      utils: {
+    'core/utils': {
+      default: {
         setInterval: function() {},
         getDetailsFromUrl: function(url) {
           // we should extract the name here
@@ -546,7 +549,7 @@ export default describeModule('offers-v2/offers/offers-handler',
             offersDB = ohandler.offersDB;
 
             eventMessages = [];
-
+            latestOffersInstalledTs = 0;
           });
 
           function configureMockData(md) {
@@ -648,6 +651,34 @@ export default describeModule('offers-v2/offers/offers-handler',
               return simulateUrlEventsAndWait(urls).then(() => {
                 // check that we could push the
                 checkOfferPushed('x');
+              });
+            });
+          });
+
+          it('/check if offer is fresh installed we do not show an offer', function () {
+            const mockData = {
+              backendResult: { 'intent-1': [VALID_OFFER_OBJ] },
+            };
+            configureMockData(mockData);
+
+            // activate intents
+            const intents = [
+              { name: 'intent-1', active: true },
+            ];
+            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
+
+            // set the latest installed time to the same than current one =>
+            // this should produce freshInstalled = true => do not show offers
+            latestOffersInstalledTs = currentTS;
+            return waitForBEPromise().then(() => {
+              // wait for the fetch
+              const urls = [
+                'http://www.google.com',
+              ];
+              setActiveCategoriesFromOffers([VALID_OFFER_OBJ]);
+              return simulateUrlEventsAndWait(urls).then(() => {
+                // check no offer were pushed
+                checkZeroOfferPushed();
               });
             });
           });

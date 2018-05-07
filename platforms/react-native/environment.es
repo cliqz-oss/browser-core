@@ -29,6 +29,7 @@ var CLIQZEnvironment = {
   getEngineByAlias: function () {
     return '';
   },
+  updateAlias() {},
   addEngineWithDetails: function() {
 
   },

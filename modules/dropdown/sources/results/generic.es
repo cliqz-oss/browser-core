@@ -1,11 +1,17 @@
-import utils from '../../core/utils';
-import console from '../../core/console';
-
-import BaseResult, { getDeepResults, Subresult } from './base';
+import fastUrlParser from '../../core/fast-url-parser';
+import BaseResult, { Subresult } from './base';
 import LocalResult, { ShareLocationButton } from './local';
 import { OfferResult } from './offer';
 import NewsResult from './news';
 import VideoResult from './video';
+
+function getDeepResults(rawResult, type) {
+  const deepResults = (rawResult.data && rawResult.data.deepResults) || [];
+  const deepResultsOfType = deepResults.find(dr => dr.type === type) || {
+    links: [],
+  };
+  return deepResultsOfType.links || [];
+}
 
 class ImageResult extends Subresult {
   get thumbnail() {
@@ -23,8 +29,8 @@ class AnchorResult extends Subresult {
 }
 
 export default class GenericResult extends BaseResult {
-  constructor(rawResult, allResultsFlat, { offers } = {}) {
-    super(rawResult, allResultsFlat);
+  constructor(rawResult, resultTools) {
+    super(rawResult, resultTools);
     this.internalResultsLimit = 4;
 
     this.topResultProps = {
@@ -33,6 +39,7 @@ export default class GenericResult extends BaseResult {
       provider: rawResult.provider
     };
 
+    const offers = this.resultTools.assistants.offers;
     if (offers) {
       this.offerStyle = offers.organicStyle;
       this.offerEnabled = offers.isEnabled;
@@ -98,8 +105,8 @@ export default class GenericResult extends BaseResult {
       creation_time: extra.creation_timestamp,
       tweet_count: extra.tweet_count,
       showLogo: this.url && (
-        utils.getDetailsFromUrl(this.url).domain !==
-        utils.getDetailsFromUrl(url).domain
+        fastUrlParser.parse(this.url).hostname.replace(/^(www\.)/, '') !==
+        fastUrlParser.parse(url).hostname.replace(/^(www\.)/, '')
       ),
       text: this.query,
     }));
@@ -131,7 +138,7 @@ export default class GenericResult extends BaseResult {
 
   get isAskingForLocation() {
     const extra = this.rawResult.data.extra || {};
-    return (extra.no_location || false) && this.actions.locationAssistant.isAskingForLocation;
+    return (extra.no_location || false) && this.resultTools.assistants.location.isAskingForLocation;
   }
 
   get selectableResults() {
@@ -156,7 +163,7 @@ export default class GenericResult extends BaseResult {
   }
 
   get shareLocationButtons() {
-    const locationAssistant = this.actions.locationAssistant;
+    const locationAssistant = this.resultTools.assistants.location;
 
     if (!this._shareLocationButtons) {
       this._shareLocationButtons = !this.isAskingForLocation ? [] :
@@ -164,17 +171,18 @@ export default class GenericResult extends BaseResult {
           let additionalClassName = '';
           if (action.actionName === 'allowOnce') {
             additionalClassName = 'location-allow-once';
+          } else if (action.actionName === 'allow') {
+            additionalClassName = 'location-always-show';
           }
 
-          const result = new ShareLocationButton({
+          const result = new ShareLocationButton(this, {
             title: action.title,
             url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: action.actionName })}`,
             text: this.rawResult.text,
             className: additionalClassName,
-            locationAssistant,
-            onButtonClick: () => {
-              this.actions.getSnippet(this.query, this.rawResult)
-                .then((snippet) => {
+            onButtonClick: (actionName) => {
+              locationAssistant[actionName](this.query, this.rawResult)
+                .then(({ snippet, locationState }) => {
                   const newRawResult = Object.assign({}, this.rawResult);
                   newRawResult.data.extra = Object.assign(
                     {},
@@ -182,19 +190,14 @@ export default class GenericResult extends BaseResult {
                     snippet.extra,
                   );
 
-                  const newResult = new this.constructor(newRawResult, [], {
-                    offers: {
-                      isEnabled: this.offerEnabled,
-                      organicStyle: this.offerStyle,
-                    }
-                  });
-                  newResult.actions = this.actions;
-                  this.actions.replaceResult(this, newResult);
-                })
-                .catch(console.error);
+                  // Update Location assistante state
+                  Object.assign(this.resultTools.assistants.location, locationState);
+
+                  const newResult = new this.constructor(newRawResult, this.resultTools);
+                  this.resultTools.actions.replaceResult(this, newResult);
+                });
             }
           });
-          result.actions = this.actions;
 
           return result;
         });
@@ -208,13 +211,10 @@ export default class GenericResult extends BaseResult {
       return null;
     }
 
-    const result = new LocalResult(this, {
+    return new LocalResult(this, {
       extra,
       text: this.query,
     });
-
-    result.actions = this.actions;
-    return result;
   }
 
   get offerResult() {
@@ -234,8 +234,6 @@ export default class GenericResult extends BaseResult {
       showThumbnail: this.offerStyle === 'rich',
       text: this.query,
     });
-
-    result.actions = this.actions;
 
     this._offerResult = result;
 

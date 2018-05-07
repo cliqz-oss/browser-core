@@ -218,8 +218,11 @@ function isAlpha(ch) {
     ch &= ~32;
     return ch >= 65 && ch <= 90;
 }
+function isAlphaExtended(ch) {
+    return ch >= 192 && ch <= 450;
+}
 function isAllowed(ch) {
-    return isDigit(ch) || isAlpha(ch);
+    return isDigit(ch) || isAlpha(ch) || isAlphaExtended(ch);
 }
 function fastTokenizer(pattern, isAllowedCode, allowRegexSurround = false) {
     const tokens = [];

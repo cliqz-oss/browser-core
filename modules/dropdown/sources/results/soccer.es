@@ -1,7 +1,6 @@
 import BaseResult, { Subresult } from './base';
 import GenericResult from './generic';
-import utils from '../../core/utils';
-import config from '../../core/config';
+import i18n from '../../core/content/i18n';
 
 const LIMIT = {
   ligaEZ1Game: {
@@ -38,7 +37,7 @@ class ExpandButton extends BaseResult {
 
 class LiveTickerResult extends Subresult {
   get locale() {
-    return utils.getLocalizedString('locale_lang_code');
+    return i18n.getMessage('locale_lang_code');
   }
 
   getTime(gameTime) {
@@ -160,7 +159,7 @@ class TableItemResult extends BaseResult {
   }
 
   get qualified() {
-    return `${config.baseURL}dropdown/images/champions-league.png`;
+    return `${this.resultTools.assitants.settings.baseURL}dropdown/images/champions-league.png`;
   }
 }
 
@@ -184,7 +183,7 @@ class TableResult extends BaseResult {
   get tableData() {
     const results = this.rawResult.ranking.map(item => new TableItemResult({
       item,
-    }));
+    }, this.resultTools));
 
     return results;
   }
@@ -212,19 +211,11 @@ class SoccerSubResult extends Subresult {
 }
 
 export default class SoccerResult extends GenericResult {
-  constructor(rawResult, allResultsFlat = []) {
-    super(rawResult, allResultsFlat);
+  internalResultsLimit = 4;
+  newsResultsLimit = 2;
 
-    // De-duplicate sub result from extra
-    if (allResultsFlat.indexOf(rawResult.data.extra.url) >= 0) {
-      delete this.rawResult.data.extra.url;
-      delete this.rawResult.data.extra.title;
-    } else {
-      allResultsFlat.push(rawResult.data.extra.url);
-    }
-
-    this.internalResultsLimit = 4;
-    this.newsResultsLimit = 2;
+  constructor(...args) {
+    super(...args);
     this.itemsLimit = this.rowsLimit;
   }
 
@@ -304,12 +295,14 @@ export default class SoccerResult extends GenericResult {
   }
 
   get liveTicker() {
-    const results = this.extra.weeks.map(week => new LiveTickerRound({
-      round: week.round,
-      isCurrent: week.isCurrent,
-      week,
-      text: this.query,
-    }));
+    const results = this.extra.weeks.map(
+      week => new LiveTickerRound({
+        round: week.round,
+        isCurrent: week.isCurrent,
+        week,
+        text: this.query,
+      }, this.resultTools)
+    );
 
     return results;
   }
@@ -319,21 +312,26 @@ export default class SoccerResult extends GenericResult {
       ranking: this.extra.ranking,
       infoList: this.extra.info_list,
       itemsLimit: this.itemsLimit,
-    });
+    }, this.resultTools);
 
     return result.table;
   }
 
   get ligaEZGroup() {
-    const results = this.extra.groups.map(item => new TableGroup({
-      groupName: item.group,
-      group: item,
-      ligaEZTable: new TableResult({
-        ranking: item.ranking,
-        infoList: item.info_list,
-        itemsLimit: this.itemsLimit,
-      }).table,
-    }));
+    const results = this.extra.groups.map(
+      item => new TableGroup({
+        groupName: item.group,
+        group: item,
+        ligaEZTable: new TableResult(
+          {
+            ranking: item.ranking,
+            infoList: item.info_list,
+            itemsLimit: this.itemsLimit,
+          },
+          this.resultTools
+        ).table,
+      }, this.resultTools)
+    );
 
     return results;
   }
@@ -364,7 +362,7 @@ export default class SoccerResult extends GenericResult {
 
   get expandButton() {
     return new ExpandButton({
-      title: 'soccer-expand-button',
+      title: 'soccer_expand_button',
       url: `cliqz-actions,${JSON.stringify({ type: 'soccer', actionName: 'expand' })}`,
       text: this.rawResult.text,
       show: this.itemsLimit < this.maxRowsLimit,
@@ -375,18 +373,18 @@ export default class SoccerResult extends GenericResult {
           view: 'SoccerEZ',
           target: 'show_more',
         };
-        utils.telemetry(signal);
+        this.resultTools.actions.telemetry(signal);
 
         this.itemsLimit = this.maxRowsLimit;
-        this.actions.replaceResult(this, this);
+        this.resultTools.actions.replaceResult(this, this);
       }
-    });
+    }, this.resultTools);
   }
 
   get poweredByResult() {
     return new Subresult(this, {
       url: 'http://www.kicker.de/',
-      title: 'soccer-powered-by',
+      title: 'soccer_powered_by',
       text: this.query,
     });
   }
@@ -413,7 +411,8 @@ export default class SoccerResult extends GenericResult {
           target: 'tab',
           index: [...$allLabels].indexOf(e.target),
         };
-        utils.telemetry(signal);
+        this.resultTools.actions.updateHeight();
+        this.resultTools.actions.telemetry(signal);
       });
     });
   }

@@ -12,14 +12,14 @@
                 {{#if address}}
                     <div class="local-address">
                         <a
-                            class="result"
+                            class="result address"
                             data-url="{{address.url}}"
                         >
                             {{ address.displayText }}
                         </a>
                         {{#if distance}}
                             &#183;
-                            <span>
+                            <span class="distance">
                                 {{distance distance}}
                             </span>
                         {{/if}}

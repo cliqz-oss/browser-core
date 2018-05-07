@@ -2,13 +2,38 @@ import React from 'react';
 import Title from './title';
 import Logo from './logo';
 import HeadlineBenefit from './headlineBenefit';
-import t from '../../i18n';
+import { tt } from '../../i18n';
 import { sendOffersMessage } from '../../services/offers';
 
 const largeBreakpoint = 1600;
 const mediumBreakpoint = 1024;
 const xMediumBreakpoint = 920;
 const smallBreakpoint = 650;
+
+function Label(props) {
+  return (
+    <span className={props.label}>{tt(`offers_${props.label}`)}</span>
+  );
+}
+
+function SpecialFlags(props) {
+  const labels = props.labels || [];
+  const weeklyOffer = labels.indexOf('offer_of_the_week') > -1;
+  const bestOffer = labels.indexOf('best_offer') > -1;
+  const exclusive = labels.indexOf('exclusive') > -1;
+  // Show only Weekly offer if is both weekly offer & best_offer and not exclusive
+  if (labels && weeklyOffer && bestOffer && !exclusive) {
+    return (
+      <Label label="offer_of_the_week" />
+    );
+  }
+  return labels && labels.slice(0, 2).map(label =>
+    (
+      <Label label={label} />
+    )
+  );
+}
+
 
 export default class Content extends React.Component {
   constructor(props) {
@@ -98,11 +123,7 @@ export default class Content extends React.Component {
           }}
         >
           <div className="special-flags">
-            {this.props.data.labels && this.props.data.labels.map(label =>
-              (
-                <span className={label}>{t(`app.offers.${label}`)}</span>
-              )
-            )}
+            <SpecialFlags labels={this.props.data.labels} />
           </div>
           {heading}
         </div>

@@ -70,9 +70,13 @@
                     background-size: 13px 12px;
                 }
 
-                &.best-offer {
+                &.best_offer {
                     background: url('../images/best-offer.svg') no-repeat left center;
                     background-size: 13px 12px;
+                }
+
+                &.offer_of_the_week {
+                    background: url('../images/offer-of-the-week.svg') no-repeat left center;
                 }
             }
         }
@@ -188,6 +192,7 @@
                     background: url('../images/info-icon.svg') no-repeat center;
                     vertical-align: 4px;
                     cursor: default;
+                    background-size: 14px;
                 }
 
                 &:hover {

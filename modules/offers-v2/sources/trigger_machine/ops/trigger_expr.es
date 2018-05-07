@@ -2,6 +2,7 @@
 
 import Expression from '../expression';
 import logger from '../../common/offers_v2_logger';
+import { shouldKeepResource } from '../../utils';
 
 
 /**
@@ -54,6 +55,13 @@ class ActivateSubtriggersExpr extends Expression {
           'loadsubtriggers',
           { parent_id: this.parentTriggerId }).then((payload) => {
           subtriggers = payload;
+
+          // we filter here the triggers that are not associated to the user group
+          // #EX-7061
+          const keepTrigger = t =>
+            t && ((t.user_group === undefined) || shouldKeepResource(t.user_group));
+
+          subtriggers = subtriggers.filter(keepTrigger);
 
           logger.info('ActivateSubtriggersExpr', `Loaded ${subtriggers.length} subtriggers`);
           if (logger.LOG_LEVEL === 'debug') {

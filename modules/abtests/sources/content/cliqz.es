@@ -4,12 +4,12 @@ import { CHROME_MSG_SOURCE, isCliqzContentScriptMsg } from '../../core/content/h
 import checkIfChromeReady from './ready-promise';
 
 function createSpananForModule(moduleName) {
-  return new Spanan(({ uuid, functionName, args }) => {
+  return new Spanan(({ uuid, action, args }) => {
     const message = {
       source: CHROME_MSG_SOURCE,
       target: 'cliqz',
       module: moduleName,
-      action: functionName,
+      action,
       requestId: uuid,
       args
     };
@@ -23,10 +23,11 @@ class Cliqz {
   constructor() {
     const core = createSpananForModule('core');
     const abtests = createSpananForModule('abtests');
+    const api = new Spanan();
     const cliqz = this;
-    this.export = Spanan.export;
+    this.export = api.export;
 
-    Spanan.export({
+    api.export({
       closeNotification(messageId) {
         cliqz.storage.setState((prevState) => {
           const messages = Object.assign({}, prevState.messages);
@@ -72,17 +73,23 @@ class Cliqz {
         return;
       }
 
-      Spanan.dispatch(message);
+      api.handleMessage(message);
+      core.handleMessage(message);
+      abtests.handleMessage(message);
     };
 
     const onMessage = (message) => {
       if (!isCliqzContentScriptMsg(message)) {
         return;
       }
-      Spanan.dispatch({
+
+      const msg = {
         uuid: message.requestId,
-        returnedValue: message.response
-      });
+        response: message.response
+      };
+      api.handleMessage(msg);
+      core.handleMessage(msg);
+      abtests.handleMessage(msg);
     };
 
     checkIfChromeReady().then(() => {

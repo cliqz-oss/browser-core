@@ -74,9 +74,8 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
         }
       }
     },
-    'core/cliqz': {
-      default: {},
-      utils: {
+    'core/utils': {
+      default: {
         setInterval: function() {},
       }
     },

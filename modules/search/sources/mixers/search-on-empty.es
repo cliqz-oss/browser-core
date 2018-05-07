@@ -1,3 +1,4 @@
+import Rx from '../../platform/lib/rxjs';
 import { getEmptyResponse } from '../responses';
 
 const _hasNoResults = response =>
@@ -21,15 +22,22 @@ const _alwaysTrue = () => true;
  * @return {Observable}
  */
 const searchIf = (provider, base$, query, config, params, condition = _alwaysTrue) =>
-  base$
-    // only start searching if we don't have results from base stream
-    .filter(condition)
-    .take(1)
-    .flatMap(() =>
-      provider
-        .search(query, config, params)
-    )
-    .startWith(getEmptyResponse(provider.id, config));
+  Rx.Observable.merge(
+    // only start searching if condition is met
+    base$
+      .filter(condition)
+      .take(1)
+      .flatMap(() =>
+        provider
+          .search(query, config, params)
+      ),
+    // emit empty response if nothing else was emitted
+    base$
+      .filter(condition)
+      .isEmpty()
+      .filter(Boolean)
+      .mapTo(getEmptyResponse(provider.id, config))
+  );
 
 export const searchOnEmpty = (provider, base$, query, config, params) =>
   searchIf(provider, base$, query, config, params, _hasNoResults);

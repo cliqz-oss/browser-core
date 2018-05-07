@@ -61,7 +61,7 @@ describe('Fresh tab search UI', function () {
     });
 
     it('has the visibility switch turned on', function () {
-      const newsSwitch = subject.queryByI18n('freshtab.app.settings.search.label')
+      const newsSwitch = subject.queryByI18n('freshtab_app_settings_search_label')
         .querySelector('input.switch');
       expect(newsSwitch).to.have.property('checked', true);
     });
@@ -84,7 +84,7 @@ describe('Fresh tab search UI', function () {
     });
 
     it('has the visibility switch turned off', function () {
-      const newsSwitch = subject.queryByI18n('freshtab.app.settings.search.label')
+      const newsSwitch = subject.queryByI18n('freshtab_app_settings_search_label')
         .querySelector('input.switch');
       expect(newsSwitch).to.have.property('checked', false);
     });
@@ -92,7 +92,7 @@ describe('Fresh tab search UI', function () {
     /* In contrast to other sections' behavior, #section-url-bar does
     not disappear when switched off, but gets empty */
     it('has no visible area search input', function () {
-      expect(subject.query(searchAreaSelector).innerHTML).to.be.empty;
+      expect(subject.query(searchAreaSelector)).to.not.exist;
     });
   });
 });

@@ -87,7 +87,7 @@ export default class Offer extends React.Component {
         </div>
 
         <div className="anzeige">
-          {tt('ad-label')}
+          {tt('ad_label')}
         </div>
       </div>
       /* eslint-enable jsx-a11y/no-static-element-interactions */

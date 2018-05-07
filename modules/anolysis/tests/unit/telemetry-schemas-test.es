@@ -211,8 +211,8 @@ export default describeModule('anolysis/telemetry-schemas',
         },
       },
     },
-    'core/cliqz': {
-      utils: {},
+    'core/utils': {
+      default: {},
     },
     'core/prefs': {
       default: {
@@ -336,10 +336,19 @@ export default describeModule('anolysis/telemetry-schemas',
       );
 
       // Generate tests for all targets/actions/editions
-      cartesian(
-        ['fr', 'de', 'en'], // edition
-        ['click', 'hover'], // action
-        ['topnews', 'breakingnews', 'yournews'], // target
+      cartesian([
+        'de',
+        'de-tr-en',
+        'es',
+        'fr',
+        'gb',
+        'intl',
+        'it',
+        'pl',
+        'us',
+      ],
+      ['click', 'hover'], // action
+      ['topnews', 'breakingnews', 'yournews'], // target
       ).forEach(([edition, action, target]) => {
         it(`handles ${action} on ${target} with edition ${edition}`, () =>
           test([

@@ -89,6 +89,8 @@ const updateEngineAliases = () => {
 
 export default function () {
   if (prefs.get('restoredDefaultSearchEnginesOnce', false) === false) {
+    // the actual changes might happen later if the search system needs time
+    // to initialize
     utils.restoreHiddenSearchEngines();
     prefs.set('restoredDefaultSearchEnginesOnce', true);
   }

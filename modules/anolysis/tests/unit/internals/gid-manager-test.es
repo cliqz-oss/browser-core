@@ -46,8 +46,8 @@ export default describeModule('anolysis/internals/gid-manager',
         pub() {},
       },
     },
-    'core/cliqz': {
-      utils: {
+    'core/utils': {
+      default: {
         setInterval() {},
         setTimeout(cb) { cb(); },
       },

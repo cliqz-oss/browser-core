@@ -60,6 +60,8 @@ export default background({
       Date.now
     );
 
+    this.getRawGeolocationData = getGeo;
+
     if (isFirefox) {
       this.observerService = Components.classes['@mozilla.org/observer-service;1']
         .getService(Components.interfaces.nsIObserverService);
@@ -140,8 +142,8 @@ export default background({
 
   actions: {
     getGeo() {
-      if (utils.getPref('share_location', config.settings.geolocation || 'ask') !== 'yes'
-        && utils.getPref('share_location', config.settings.geolocation || 'ask') !== 'showOnce') {
+      const locationPref = utils.getPref('share_location', config.settings.geolocation || 'ask');
+      if (!['yes', 'showOnce'].includes(locationPref)) {
         return Promise.reject("No permission to get user's location");
       }
       const telemetryEvent = {
@@ -151,7 +153,7 @@ export default background({
         is_success: undefined,
       };
       return Promise.race([
-        getGeo(),
+        this.getRawGeolocationData(),
         this.cancelUpdate.promise
       ])
         .then((position) => {

@@ -56,7 +56,7 @@ describe('Fresh tab most visited UI', function () {
       });
 
       it('with the visibility switch turned on', function () {
-        const mostVisitedSwitch = subject.queryByI18n('freshtab.app.settings.most-visited.label')
+        const mostVisitedSwitch = subject.queryByI18n('freshtab_app_settings_most_visited_label')
           .querySelector('input.switch');
         expect(mostVisitedSwitch).to.have.property('checked', true);
       });
@@ -77,7 +77,7 @@ describe('Fresh tab most visited UI', function () {
       });
 
       it('with the visibility switch turned off', function () {
-        const mostVisitedSwitch = subject.queryByI18n('freshtab.app.settings.most-visited.label')
+        const mostVisitedSwitch = subject.queryByI18n('freshtab_app_settings_most_visited_label')
           .querySelector('input.switch');
         expect(mostVisitedSwitch).to.have.property('checked', false);
       });
@@ -172,7 +172,7 @@ describe('Fresh tab most visited UI', function () {
         expect(subject.query(undoBoxSelector))
           .to.contain.text(historyResponse[0].history[0].displayTitle);
         expect(subject.query(undoBoxSelector))
-          .to.contain.text('freshtab.app.speed-dial.removed');
+          .to.contain.text('freshtab_app_speed_dial_removed');
       });
     });
   });

@@ -7,18 +7,15 @@ import CLIQZEnvironment from '../platform/environment';
 import console from './console';
 import prefs from './prefs';
 import Storage from './storage';
-import CliqzEvents from './events';
 import { getPublicSuffix } from './tlds';
 import { httpHandler, promiseHttpHandler } from './http';
 import CliqzLanguage from './language';
 import * as _url from './url';
 import random from './crypto/random';
 import { fetchFactory } from '../platform/fetch';
-import { isWindows, isLinux, isMac, isMobile } from './platform';
+import { isWindows, isLinux, isMac, isMobile, isOnionMode } from './platform';
 import i18n, { getMessage, getLanguageFromLocale } from './i18n';
 import historySearch from '../platform/history/search';
-import { getDefaultEngineSuggestionUrl } from './search-engines';
-
 
 const VERTICAL_ENCODINGS = {
   people: 'p',
@@ -52,7 +49,7 @@ const CliqzUtils = {
   BRANDS_DATABASE,
 
   // will be updated from the mixer config endpoint every time new logos are generated
-  BRANDS_DATABASE_VERSION: 1519307405390,
+  BRANDS_DATABASE_VERSION: 1521469421408,
   // The ID of the geolocation watcher
   // (function that updates cached geolocation on change)
   GEOLOC_WATCH_ID: null,
@@ -92,27 +89,6 @@ const CliqzUtils = {
 
     CliqzUtils.tldExtractor = CLIQZEnvironment.tldExtractor || CliqzUtils.genericTldExtractor;
   },
-  isNumber(n) {
-    /*
-    NOTE: this function can't recognize numbers in the form such as: "1.2B", but it can for "1e4".
-    See specification for isFinite()
-     */
-    return !isNaN(parseFloat(n)) && isFinite(n);
-  },
-
-  // returns the type only if it is known
-  getKnownType(type) {
-    return Object.prototype.hasOwnProperty.call(VERTICAL_ENCODINGS, type) && type;
-  },
-
-  /**
-   * Construct a uri from a url
-   * @param {string}  aUrl - url
-   * @param {string}  aOriginCharset - optional character set for the URI
-   * @param {nsIURI}  aBaseURI - base URI for the spec
-   */
-  makeUri: CLIQZEnvironment.makeUri,
-
   setLogoDb(db) {
     const domains = Object.create(null);
     db.domains = Object.assign(domains, db.domains);
@@ -196,9 +172,6 @@ const CliqzUtils = {
   },
   httpPost(url, callback, data, onerror, timeout) {
     return CliqzUtils.httpHandler('POST', url, callback, onerror, timeout, data);
-  },
-  httpPut(url, callback, data, onerror, timeout) {
-    return CliqzUtils.httpHandler('PUT', url, callback, onerror, timeout, data);
   },
   getLocalStorage(url) {
     return new Storage(url);
@@ -298,56 +271,6 @@ const CliqzUtils = {
   getDetailsFromUrl: _url.getDetailsFromUrl,
   stripTrailingSlash: _url.stripTrailingSlash,
   isUrl: _url.isUrl,
-  // Checks if the given string is a valid IPv4 addres
-  isIPv4: _url.isIpv4Address,
-  isIPv6: _url.isIpv6Address,
-
-  isLocalhost: _url.isLocalhost,
-  // checks if a value represents an url which is a seach engine
-  isSearch(value) {
-    if (CliqzUtils.isUrl(value)) {
-      const url = this.cleanMozillaActions(value)[1];
-      const { name, subdomains, path } = CliqzUtils.getDetailsFromUrl(url);
-      // allow only 'www' and 'de' (for Yahoo) subdomains to exclude 'maps.google.com' etc.
-      // and empty path only to exclude 'www.google.com/maps' etc.
-      const firstSubdomain = subdomains.length ? subdomains[0] : '';
-      return (!path || (path.length === 1 && path[0] === '/')) && (
-        (
-          name === 'google' ||
-          name === 'bing' ||
-          name === 'duckduckgo' ||
-          name === 'startpage'
-        ) && ((!firstSubdomain || firstSubdomain === 'www') || (name === 'yahoo'))
-        && (!firstSubdomain || firstSubdomain === 'de'));
-    }
-    return false;
-  },
-  // checks if a string is a complete url
-  isCompleteUrl(input) {
-    const pattern = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/;
-    if (!pattern.test(input)) {
-      return false;
-    }
-    return true;
-  },
-  // extract query term from search engine result page URLs
-  extractQueryFromUrl(url) {
-    // Google
-    if (url.search(/http(s?):\/\/www\.google\..*\/.*q=.*/i) === 0) {
-      url = url.substring(url.lastIndexOf('q=') + 2).split('&')[0];
-    // Bing
-    } else if (url.search(/http(s?):\/\/www\.bing\..*\/.*q=.*/i) === 0) {
-      url = url.substring(url.indexOf('q=') + 2).split('&')[0];
-    // Yahoo
-    } else if (url.search(/http(s?):\/\/.*search\.yahoo\.com\/search.*p=.*/i) === 0) {
-      url = url.substring(url.indexOf('p=') + 2).split('&')[0];
-    } else {
-      url = null;
-    }
-    const decoded = url ? decodeURIComponent(url.replace(/\+/g, ' ')) : null;
-    if (decoded) return decoded;
-    return url;
-  },
   // Remove clutter (http, www) from urls
   generalizeUrl(url, skipCorrection) {
     if (!url) {
@@ -448,13 +371,6 @@ const CliqzUtils = {
   },
 
   getRichHeaderQueryString(q, loc) {
-    let numberResults = 5;
-    if (CliqzUtils.getPref('languageDedup', false)) {
-      numberResults = 7;
-    }
-    if (CliqzUtils.getPref('modules.context-search.enabled', false)) {
-      numberResults = 10;
-    }
     // @TODO: should start with &q=
     // eslint-disable-next-line prefer-template
     return '&q=' + encodeURIComponent(q) +
@@ -466,7 +382,6 @@ const CliqzUtils = {
             CliqzUtils.encodeCountry() +
             CliqzUtils.encodeFilter() +
             CliqzUtils.encodeLocation(true, loc && loc.latitude, loc && loc.longitude) +
-            CliqzUtils.encodeResultCount(numberResults) +
             CliqzUtils.disableWikiDedup();
   },
   // used in testing only
@@ -475,6 +390,16 @@ const CliqzUtils = {
   },
 
   getBackendResults(q, params = {}) {
+    if (isOnionMode) {
+      return Promise.resolve({
+        response: {
+          results: [],
+          offers: [],
+        },
+        query: q
+      });
+    }
+
     const url = CliqzUtils.RESULTS_PROVIDER + CliqzUtils.getResultsProviderQueryString(q, params);
     const fetch = CliqzUtils.fetchFactory();
 
@@ -494,7 +419,6 @@ const CliqzUtils = {
     const backendPromise = fetch(url, privacyOptions)
       .then(res => res.json())
       .then((response) => {
-
         if (prefs.get('myoffrz.experiments.001.position', 'first') === 'last') {
           const offerResults = response.results.filter(r => r.template === 'offer');
           const nonOfferResults = response.results.filter(r => r.template !== 'offer');
@@ -528,27 +452,40 @@ const CliqzUtils = {
   historySearch,
 
   getSuggestions(query) {
-    const url = getDefaultEngineSuggestionUrl(query);
+    const defaultEngine = CliqzUtils.getDefaultSearchEngine();
+    const url = defaultEngine.getSubmissionForQuery(query, 'application/x-suggestions+json');
     const fetch = CliqzUtils.fetchFactory();
     if (url) {
       return fetch(url, { credentials: 'omit', cache: 'no-store' }).then(res => res.json());
     }
     return Promise.resolve([query, []]);
   },
+  setDefaultCountryIndex() {
+    const selectedCountry = prefs.get('backend_country', '');
+    const supportedCountries = JSON.parse(prefs.get('config_backends', '["de"]'));
+    const unsupportedCountrySelection = supportedCountries.indexOf(selectedCountry) === -1;
 
-  setDefaultIndexCountry(country) {
-    const supportedCountries = JSON.parse(CliqzUtils.getPref('config_backends', '["de"]'));
-    if (supportedCountries.indexOf(country) !== -1) {
-      // supported country
-      CliqzUtils.setPref('backend_country', country);
-    } else if (CliqzUtils.currLocale === 'de') {
-      // unsupported country - fallback to
-      //    'de' for german speaking users
-      //    'en' for everybody else
-      CliqzUtils.setPref('backend_country', 'de');
-    } else {
-      CliqzUtils.setPref('backend_country', 'us');
+    // we only set the prefered backend once at first start
+    // or we reset if it's unsupported
+    if (selectedCountry === '' || unsupportedCountrySelection) {
+      const location = prefs.get('config_location', 'de');
+      if (supportedCountries.indexOf(location) !== -1) {
+        // supported country
+        prefs.set('backend_country', location);
+      } else if (CliqzUtils.currLocale === 'de') {
+        // unsupported country - fallback to
+        //    'de' for german speaking users
+        prefs.set('backend_country', 'de');
+      } else {
+        //    'us' for everybody else
+        prefs.set('backend_country', 'us');
+      }
     }
+  },
+  // this is called from the UI. In that case we clear the override
+  setCountryIndex(country) {
+    prefs.clear('backend_country.override');
+    prefs.set('backend_country', country);
   },
   encodePlatform() {
     return `&platform=${(isMobile ? '1' : '0')}`;
@@ -557,7 +494,7 @@ const CliqzUtils = {
     return `&locale=${CliqzUtils.PLATFORM_LOCALE || ''}`;
   },
   encodeCountry() {
-    return `&country=${CliqzUtils.getPref('backend_country', 'de')}`;
+    return `&country=${prefs.get('backend_country.override', prefs.get('backend_country', 'de'))}`;
   },
   disableWikiDedup() {
     // disable wikipedia deduplication on the backend side
@@ -693,27 +630,6 @@ const CliqzUtils = {
   telemetry(...args) {
     return Promise.all(CliqzUtils.telemetryHandlers.map(handler => handler(...args)));
   },
-  resultTelemetry(query, queryAutocompleted, resultIndex, resultUrl, resultOrder, extra) {
-    if (CliqzUtils.isPrivateMode()) {
-      return;
-    }
-
-    CliqzEvents.pub('human-web:sanitize-result-telemetry',
-      { type: 'extension-result-telemetry',
-        q: query,
-        s: CliqzUtils.encodeSessionParams(),
-        msg: {
-          i: resultIndex,
-          o: CliqzUtils.encodeResultOrder(),
-          u: (resultUrl || ''),
-          a: queryAutocompleted,
-          e: extra
-        },
-        endpoint: CliqzUtils.RESULTS_PROVIDER_LOG,
-        method: 'GET',
-      }
-    );
-  },
   sendUserFeedback(data) {
     data._type = 'user_feedback';
     // Params: method, url, resolve, reject, timeout, data
@@ -848,40 +764,7 @@ const CliqzUtils = {
 
     return data;
   },
-
-  // Returns result elements selecatble and navigatable from keyboard.
-  // |container| search context, usually it's `CLIQZ.UI.gCliqzBox`.
-  extractSelectableElements(container) {
-    return Array.prototype.slice.call(
-      container.querySelectorAll('[arrow]')).filter(
-      (el) => {
-        // dont consider hidden elements
-        if (el.offsetParent === null) {
-          return false;
-        }
-
-        if (!el.getAttribute('arrow-if-visible')) {
-          return true;
-        }
-
-        // check if the element is visible
-        //
-        // for now this check is enough but we might be forced to switch to a
-        // more generic approach - maybe using document.elementFromPoint(x, y)
-        if (el.offsetLeft + el.offsetWidth > el.parentElement.offsetWidth) {
-          return false;
-        }
-        return true;
-      });
-  },
-
   getNoResults: CLIQZEnvironment.getNoResults,
-  getParameterByName(name, location) {
-    name = name.replace(/[[]/, '\\[').replace(/[\]]/, '\\]');
-    const regex = new RegExp(`[\\?&]${name}=([^&#]*)`);
-    const results = regex.exec(location.search);
-    return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
-  },
   search: CLIQZEnvironment.search,
   distance(lon1, lat1, lon2 = CliqzUtils.USER_LNG, lat2 = CliqzUtils.USER_LAT) {
     /** Converts numeric degrees to radians */
@@ -939,42 +822,7 @@ const CliqzUtils = {
     return cliqzPrefs;
   },
   promiseHttpHandler,
-  registerResultProvider(o) {
-    CLIQZEnvironment.CliqzResultProviders = o.ResultProviders;
-    CLIQZEnvironment.Result = o.Result;
-  },
-  lastRenderedResults: [],
-  lastRenderedURLs: [],
-  lastSelection: -1,
-  onRenderComplete(query, box) {
-    if (!CLIQZEnvironment.onRenderComplete) return;
-
-    CliqzUtils.lastRenderedResults = this.extractSelectableElements(box).filter(node =>
-      !!(node.getAttribute('url') || node.getAttribute('href'))
-    );
-    CliqzUtils.lastRenderedURLs = CliqzUtils.lastRenderedResults
-      .map(node => node.getAttribute('url') || node.getAttribute('href'));
-
-    CLIQZEnvironment.onRenderComplete(query, CliqzUtils.lastRenderedURLs);
-  },
   fetchAndStoreConfig() { return Promise.resolve(); },
-  onSelectionChange(element) {
-    if (!element) return;
-
-    let current = CliqzUtils.lastRenderedResults.indexOf(element);
-    if (current === -1) {
-      current = CliqzUtils.lastRenderedURLs.indexOf(
-        element.getAttribute('url'));
-    }
-
-    if (CliqzUtils.lastSelection === current) {
-      return;
-    }
-    CliqzUtils.lastSelection = current;
-
-    if (!CLIQZEnvironment.onResultSelectionChange) return;
-    CLIQZEnvironment.onResultSelectionChange(current);
-  }
 };
 
 export default CliqzUtils;

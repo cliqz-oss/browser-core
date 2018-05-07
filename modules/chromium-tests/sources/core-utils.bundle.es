@@ -5,7 +5,7 @@
 /* global chai */
 /* global testServer */
 
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import { getDetailsFromUrl } from '../core/url';
 import * as gzip from '../core/gzip';
 

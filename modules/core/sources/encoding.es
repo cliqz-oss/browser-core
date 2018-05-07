@@ -169,4 +169,4 @@ function toUTF8(str) {
 
 const toBase64 = typeof btoa !== 'undefined' ? toBase64Fast : toBase64Slow;
 const fromBase64 = typeof atob !== 'undefined' ? fromBase64Fast : fromBase64Slow;
-export { toBase64, fromBase64, toHex, fromHex, toUTF8, fromUTF8 };
+export { toBase64, fromBase64, toHex, fromHex, toUTF8, fromUTF8, toByteArray };

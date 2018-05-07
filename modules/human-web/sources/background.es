@@ -103,15 +103,14 @@ export default background({
   },
 
   events: {
-    'human-web:sanitize-result-telemetry': (...args) => {
-      HumanWeb.sanitizeResultTelemetry(...args)
-        .then(({ query, url, data }) => HumanWeb.sendResultTelemetry(query, url, data))
-        .catch(logger.error);
-    },
     /**
     * @event ui:click-on-url
     */
     'ui:click-on-url': function (data) {
+      if (data.isPrivateMode) {
+        return;
+      }
+
       if (this.collecting) {
         HumanWeb.queryCache[data.url] = {
           d: 1,
@@ -120,6 +119,24 @@ export default background({
           pt: data.positionType || '',
         };
       }
+
+      const signal = {
+        type: 'extension-result-telemetry',
+        q: data.query,
+        s: utils.encodeSessionParams(),
+        msg: {
+          i: data.rawResult.index,
+          o: utils.encodeResultOrder(data.resultOrder),
+          u: data.url,
+          a: data.isFromAutocompletedURL,
+        },
+        endpoint: utils.RESULTS_PROVIDER_LOG,
+        method: 'GET',
+      };
+
+      HumanWeb.sanitizeResultTelemetry(signal)
+        .then(({ query, url, data: _data }) => HumanWeb.sendResultTelemetry(query, url, _data))
+        .catch(logger.error);
     },
     /**
     * @event control-center:toggleHumanWeb

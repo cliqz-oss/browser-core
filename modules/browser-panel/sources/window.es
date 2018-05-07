@@ -1,4 +1,4 @@
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import console from '../core/console';
 import inject from '../core/kord/inject';
 import background from './background';

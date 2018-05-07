@@ -57,10 +57,15 @@ def matrix = [
         'config': 'configs/ci/browser.js',
         'testParams': '-l firefox-web-ext-stresstest --firefox ~/firefox52/firefox/firefox',
     ],
-    'chromium': [
+    'webextension': [
         'gpu': true,
-        'config': 'configs/ci/cliqzium.js',
+        'config': 'configs/ci/webextension.js',
         'testParams': '-l chromium-selenium',
+    ],
+    'react-native': [
+        'gpu': false,
+        'config':'configs/ci/react-native.js',
+        'testParams': '-l react-native',
     ],
 ]
 
@@ -130,7 +135,7 @@ node('docker && !gpu && us-east-1') {
         stage('prepare docker code image') {
             writeFile file: 'Dockerfile.code', text: """
                 FROM ${params.DOCKER_REGISTRY_URL}/navigation-extension/build:${dockerTag}
-                ADD . /app/
+                COPY  --chown=node:node . /app/
             """
 
             def codeImage = docker.build(

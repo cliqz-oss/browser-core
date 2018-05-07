@@ -21,11 +21,13 @@ export default function handleQueries(query$, highlight$, providers, config) {
         query,
         ...params,
         resultOrder: getResultOrder(lastResults),
+        // to allow 'merge' to pick the newest response (after smoothing)
+        ts: Date.now(),
       }, providers, enricher, config)
         // stop updating once user highlighted a result
         .takeUntil(highlight$.do(() => logger.log('Highlight')))
     )
-    .let(finalize)
+    .let(obs$ => finalize(obs$, config))
     .do((results) => { lastResults = results; });
 
   return results$;

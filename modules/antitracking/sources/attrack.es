@@ -10,7 +10,8 @@ import domainInfo, { getDomainOwner, getBugOwner } from '../core/domain-info';
 import inject, { ifModuleEnabled } from '../core/kord/inject';
 import pacemaker from '../core/pacemaker';
 import { getGeneralDomain } from '../core/tlds';
-import { utils, events } from '../core/cliqz';
+import utils from '../core/utils';
+import events from '../core/events';
 
 import * as browser from '../platform/browser';
 import * as datetime from './time';
@@ -28,6 +29,7 @@ import { URLInfo, shuffle } from '../core/url-info';
 import { VERSION, MIN_BROWSER_VERSION } from './config';
 import { checkInstalledPrivacyAddons } from '../platform/addon-check';
 import { compressionAvailable, compressJSONToBase64, generateAttrackPayload } from './utils';
+import AttrackDatabase from './database';
 
 import BlockRules from './steps/block-rules';
 import CookieContext from './steps/cookie-context';
@@ -62,6 +64,7 @@ export default class CliqzAttrack {
     this.pipelines = {};
 
     this.geoip = new GeoIp();
+    this.db = new AttrackDatabase();
   }
 
   obfuscate(s, method) {
@@ -212,9 +215,10 @@ export default class CliqzAttrack {
 
     initPromises.push(this.qs_whitelist.init());
     initPromises.push(this.urlWhitelist.init());
+    initPromises.push(this.db.init());
 
     // force clean requestKeyValue
-    events.sub('attrack:safekeys_updated', (version, forceClean) => {
+    this.onSafekeysUpdated = events.subscribe('attrack:safekeys_updated', (version, forceClean) => {
       if (forceClean && this.pipelineSteps.tokenExaminer) {
         this.pipelineSteps.tokenExaminer.clearCache();
       }
@@ -262,7 +266,7 @@ export default class CliqzAttrack {
       // Initialise classes which are used as steps in listeners
       const steps = {
         pageLogger: new PageLogger(this.tp_events),
-        tokenExaminer: new TokenExaminer(this.qs_whitelist, this.config),
+        tokenExaminer: new TokenExaminer(this.qs_whitelist, this.config, this.db),
         tokenTelemetry: new TokenTelemetry(
           this.telemetry.bind(this),
           this.qs_whitelist,
@@ -273,7 +277,8 @@ export default class CliqzAttrack {
           {},
           this.hashProb,
           this.config,
-          this.telemetry),
+          this.telemetry,
+          this.db),
         blockRules: new BlockRules(this.config),
         cookieContext: new CookieContext(this.config, this.tp_events, this.qs_whitelist),
         redirectTagger: new RedirectTagger(),
@@ -776,6 +781,10 @@ export default class CliqzAttrack {
       this.unloadPipeline();
 
       events.clean_channel('attrack:safekeys_updated');
+
+      this.db.unload();
+
+      this.onSafekeysUpdated.unsubscribe();
     }
   }
 

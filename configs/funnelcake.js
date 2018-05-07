@@ -10,7 +10,7 @@ module.exports = {
   'testsBasePath': './build/funnelcake@cliqz.com/chrome/content',
   'testem_launchers': ['unit-node', 'Chrome'],
   'testem_launchers_ci': ['unit-node'],
-  settings: Object.assign({
+  settings: Object.assign({}, urls, {
     'ALLOWED_COUNTRY_CODES': ['de', 'at', 'ch', 'es', 'us', 'fr', 'nl', 'gb', 'it', 'se'],
     'DISABLE_ATTRACK_TELEMETRY': false,
     'HPN_CHANNEL': 'cliqz',
@@ -42,7 +42,7 @@ module.exports = {
       'active': '#999999',
       'critical': '#999999'
     },
-  }, urls),
+  }),
   'default_prefs' : {
     'humanWeb': true,
   },

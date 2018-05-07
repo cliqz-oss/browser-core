@@ -1,14 +1,13 @@
-import Dropdown from './dropdown';
-import Results from './results';
+import Renderer from './renderer';
 import Popup from './popup';
 import events from '../core/events';
 import inject from '../core/kord/inject';
 import HistoryManager from '../core/history-manager';
-import { enterSignal, removeFromHistorySignal } from './telemetry';
-import AdultAssistant from './adult-content-assistant';
-import LocationAssistant from './location-sharing-assistant';
-import { getTabsWithUrl, closeTab, getCurrentTabId } from '../core/tabs';
-import { copyToClipboard } from '../core/clipboard';
+import { removeFromHistorySignal } from './telemetry';
+import AdultAssistant from './assistants/adult';
+import LocationAssistant from './assistants/location';
+import { getTabsWithUrl, closeTab } from '../core/tabs';
+import Defer from '../core/app/defer';
 
 export default class Ui {
   deps = {
@@ -29,12 +28,23 @@ export default class Ui {
       updateGeoLocation: this.geolocation.action.bind(this.geolocation, 'updateGeoLocation'),
       resetGeoLocation: this.geolocation.action.bind(this.geolocation, 'resetGeoLocation'),
     });
+    this._sessionId = 0;
+    this.loadingDefer = new Defer();
+  }
+
+  _generateSeesionId() {
+    this._sessionId = (this._sessionId + 1) % 1000;
+  }
+
+  sessionId() {
+    return this._sessionId;
   }
 
   init() {
   }
 
   unload() {
+    this.renderer.unload();
   }
 
   selectAutocomplete() {
@@ -44,15 +54,15 @@ export default class Ui {
   }
 
   sessionEnd() {
-    if (this.dropdown) { // this might be called before the initiaization
-      this.dropdown.selectedIndex = -1;
-      this.adultAssistant.resetAllowOnce();
-      this.locationAssistant.resetAllowOnce();
-    }
+    this.adultAssistant.resetAllowOnce();
+    this.locationAssistant.resetAllowOnce();
+    this._generateSeesionId();
   }
 
-  syncUrlbarValue(result) {
-    this.ui.windowAction(this.window, 'setUrlbarValue', result.url, { visibleValue: result.urlbarValue });
+  setUrlbarValue = (result) => {
+    const optionalArgs = result ? [result.url, { visibleValue: result.urlbarValue }] : [];
+    this.renderer.hasAutocompleted = false;
+    this.ui.windowAction(this.window, 'setUrlbarValue', ...optionalArgs);
   }
 
   keyDown(ev) {
@@ -61,20 +71,14 @@ export default class Ui {
 
     // no popup, so no interactions, unless Enter is pressed.
     // report telemetry signal in this case.
-    if (this.popupClosed !== false) {
+    if (!this.renderer.isOpen) {
       // Trigger new search on ArrowDown as some FF versions
-      // just reopen last popup (EX-6310).
-      if (ev.code === 'ArrowDown') {
+      // just reopen last popup (EX-6310, EX-7213).
+      if (ev.code === 'ArrowDown' || ev.code === 'ArrowUp') {
         this.core.action('refreshPopup', this.popup.query);
         return true;
       }
 
-      if (ev.code === 'Enter' || ev.code === 'NumpadEnter') {
-        enterSignal({
-          query: this.window.gURLBar.textValue,
-          newTab: isModifierPressed,
-        });
-      }
       return false;
     }
 
@@ -85,51 +89,33 @@ export default class Ui {
         break;
       }
       case 'ArrowUp': {
-        this.dropdown.results.firstResult.isAutocompleted = false;
-        const result = this.dropdown.previousResult();
-        this.syncUrlbarValue(result);
+        this.renderer.previousResult().then(this.setUrlbarValue);
         preventDefault = true;
         break;
       }
       case 'ArrowDown': {
-        this.dropdown.results.firstResult.isAutocompleted = false;
-        const result = this.dropdown.nextResult();
-        this.syncUrlbarValue(result);
+        this.renderer.nextResult().then(this.setUrlbarValue);
         preventDefault = true;
         break;
       }
       case 'Tab': {
-        this.dropdown.results.firstResult.isAutocompleted = false;
-        let result;
+        let resultPromise;
         if (ev.shiftKey) {
-          result = this.dropdown.previousResult();
+          resultPromise = this.renderer.previousResult();
         } else {
-          result = this.dropdown.nextResult();
+          resultPromise = this.renderer.nextResult();
         }
-        this.syncUrlbarValue(result);
+        resultPromise.then(this.setUrlbarValue);
         preventDefault = true;
         break;
       }
       case 'Enter':
       case 'NumpadEnter': {
-        const isNewTab = isModifierPressed;
-        const clickedResult = this.dropdown.selectedResult;
+        this.renderer.handleEnter({
+          newTab: isModifierPressed,
+        });
+
         preventDefault = true;
-
-        if (clickedResult) {
-          enterSignal({
-            query: this.popup.query,
-            result: this.dropdown.selectedResult,
-            clickedResult,
-            results: this.dropdown.results,
-            newTab: isNewTab,
-          });
-
-          clickedResult.click(this.window, clickedResult.url, ev);
-        } else {
-          this.popup.close();
-          this.popup.execBrowserCommandHandler(ev, isNewTab ? 'tab' : 'current');
-        }
         break;
       }
       case 'Delete':
@@ -137,89 +123,81 @@ export default class Ui {
         if (!ev.shiftKey || ev.metaKey || (ev.altKey && ev.ctrlKey)) {
           break;
         }
-        const selectedResult = this.dropdown.selectedResult;
+        // TODO: @chrmod
+        const selectedResult = this.renderer.selectedResult;
         if (!selectedResult.isDeletable) {
           break;
         }
-        const url = selectedResult.rawUrl;
-        HistoryManager.removeFromHistory(url);
-        if (selectedResult.isBookmark) {
-          HistoryManager.removeFromBookmarks(url);
-          removeFromHistorySignal({ withBookmarks: true });
-        } else {
-          removeFromHistorySignal({});
-        }
 
-        getTabsWithUrl(this.window, url).forEach(tab => closeTab(this.window, tab));
+        const historyUrl = selectedResult.historyUrl;
+        HistoryManager.removeFromHistory(historyUrl, { strict: false })
+          .then(() => {
+            removeFromHistorySignal({ withBookmarks: selectedResult.isBookmark });
+            if (selectedResult.isBookmark) {
+              return HistoryManager.removeFromBookmarks(historyUrl);
+            }
+            return Promise.resolve();
+          })
+          .then(() => {
+            getTabsWithUrl(this.window, historyUrl).forEach(tab => closeTab(this.window, tab));
+            this.core.action('refreshPopup', this.popup.query);
+          });
 
-        this.core.action('refreshPopup', this.dropdown.results.query);
         preventDefault = true;
+        break;
+      }
+      case 'Escape': {
+        this.renderer.close();
         break;
       }
       default: {
         preventDefault = false;
       }
     }
+
     return preventDefault;
   }
 
   main(element) {
-    this.dropdown = new Dropdown(element, this.window, this.extensionID);
-    this.dropdown.init();
     this.popup = new Popup(this.window);
+    this.renderer = new Renderer(element, {
+      window: this.window,
+      popup: this.popup,
+      adultAssistant: this.adultAssistant,
+      locationAssistant: this.locationAssistant,
+      search: this.deps.search,
+    });
+    this.renderer.init();
+    this.loadingDefer.resolve();
   }
 
-  render({
+  async render({
     query,
     queriedAt,
     rawResults,
   }) {
+    await this.loadingDefer.promise;
+
     events.pub('ui:results', {
       isPopupOpen: this.popup.isOpen,
       windowId: this.windowId,
       results: rawResults,
     });
-    const rawResultsClone = JSON.parse(JSON.stringify(rawResults));
 
-    const results = new Results({
+    const {
+      autocompletion,
+    } = await this.renderer.render({
       query,
       queriedAt,
       rawResults,
-      queryCliqz: this.core.action.bind(this.core, 'queryCliqz'),
-      adultAssistant: this.adultAssistant,
-      locationAssistant: this.locationAssistant,
-      rerender: () => this.dropdown.renderResults(results),
-      rawRerender: () => this.render({
-        query,
-        queriedAt: Date.now(),
-        rawResults: rawResultsClone,
-      }),
-      getSnippet: this.deps.search.action.bind(this.deps.search, 'getSnippet'),
-      copyToClipboard,
-      updateTabQuery: (q) => {
-        const tabId = getCurrentTabId(this.window);
-        this.deps['last-query'].windowAction(this.window, 'updateTabQuery', tabId, q);
-      },
+      getSessionId: () => this._sessionId
     });
-    const firstResult = results.firstResult;
-    let didAutocomplete;
 
-    if (results.isAutocompleteable) {
-      didAutocomplete = this.autocompleteQuery(
-        firstResult.url,
-        firstResult.title,
+    if (autocompletion !== null) {
+      this.renderer.hasAutocompleted = this.autocompleteQuery(
+        autocompletion.url,
+        autocompletion.title,
       );
-      firstResult.isAutocompleted = didAutocomplete;
-    } else {
-      // if no results found make sure we clear autocompleted
-      // query in urlbar (see EX-5648)
-      this.autocompleteQuery('', '');
-    }
-
-    this.dropdown.renderResults(results);
-
-    if (results.results.length) {
-      this.popup.open();
     }
   }
 }

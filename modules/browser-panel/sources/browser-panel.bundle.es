@@ -144,7 +144,7 @@ function draw(data) {
   $('.tooltip').tooltipster({
     theme: ['tooltipster-shadow', 'tooltipster-shadow-customized'],
     interactive: true,
-    delay: 150,
+    delay: 400,
     animationDuration: 150,
     position: ['left']
   });

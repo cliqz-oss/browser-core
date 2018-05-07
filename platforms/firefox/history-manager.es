@@ -5,12 +5,24 @@
  */
 
 import utils from '../core/utils';
+import Defer from '../core/app/defer';
 import { Components } from './globals';
 import PlacesUtils from './places-utils';
 
 const { classes: Cc, interfaces: Ci } = Components;
 
 const bookmarkService = Cc['@mozilla.org/browser/nav-bookmarks-service;1'].getService(Ci.nsINavBookmarksService);
+
+function getUrlVariations(url) {
+  const match = url.match(/^((?:http)|(?:https))(:\/\/.*)$/i);
+  if (!match || match.length <= 2) {
+    return [url];
+  }
+  return [
+    `http${match[2]}`,
+    `https${match[2]}`,
+  ];
+}
 
 const CliqzHistoryManager = {
   init() {
@@ -175,23 +187,19 @@ const CliqzHistoryManager = {
     _execute: function pisExecute(sql, columns, onRow, parameters) {
       const conn = PlacesUtils.history.QueryInterface(Ci.nsPIPlacesDatabase).DBConnection;
       const statement = conn.createAsyncStatement(sql);
-      let onThen; // called after the async operation is finalized
-      const promiseMock = {
-        then(func) {
-          onThen = func;
-        }
-      };
+      const deferredResult = new Defer();
       if (parameters) {
         Object.keys(parameters).forEach((key) => {
           statement.params[key] = parameters[key];
         });
       }
       statement.executeAsync({
-        handleCompletion() {
-          onThen();
+        handleCompletion(...args) {
+          deferredResult.resolve(...args);
         },
 
-        handleError() {
+        handleError(...args) {
+          deferredResult.reject(...args);
         },
 
         handleResult(resultSet) {
@@ -218,17 +226,28 @@ const CliqzHistoryManager = {
           }
         }
       });
-      return promiseMock;
+      return deferredResult.promise;
     }
   },
-  removeFromHistory(url) {
+  removeFromHistory(url, { strict } = { strict: true }) {
+    const urls = strict ? [url] : getUrlVariations(url);
     try {
-      PlacesUtils.history.remove(url);
+      return Promise.all(urls.map(u => PlacesUtils.history.remove(u)));
     } catch (e) {
       utils.log(e.message, 'Error removing entry from history');
     }
+    return Promise.resolve();
   },
   removeFromBookmarks(url) {
+    // PlacesUtils.getBookmarksForURI is obsolete since Firefox 60
+    if (!PlacesUtils.getBookmarksForURI) {
+      return PlacesUtils.bookmarks.search({ url })
+        .then(bookmark => PlacesUtils.bookmarks.remove(bookmark))
+        .catch(e => utils.log(e.message, 'Error removing entry from bookmarks'));
+    }
+
+    // but PlacesUtils.bookmarks are not available in FF52 yet,
+    // have to do this the old way.
     try {
       const uri = CliqzHistoryManager.makeURI(url);
       const [itemId] = PlacesUtils.getBookmarksForURI(uri);
@@ -238,6 +257,7 @@ const CliqzHistoryManager = {
     } catch (e) {
       utils.log(e.message, 'Error removing entry from bookmarks');
     }
+    return Promise.resolve();
   },
   isBookmarked(url) {
     const uri = CliqzHistoryManager.makeURI(url);

@@ -1,10 +1,10 @@
 <header>
     <p>
-        <span data-i18n="offers-hub-title"></span>
-        <span>{{#unless noVoucher}}{{local 'ad-label'}}{{/unless}}</span>
+        <span data-i18n="offers_hub_title"></span>
+        <span>{{#unless noVoucher}}{{local 'ad_label'}}{{/unless}}</span>
         <span>
-            <a id="about-link" 
-               data-i18n="offers-hub-about-cliqz-offers" 
+            <a id="about-link"
+               data-i18n="offers_hub_about_cliqz_offers"
                data-url="https://cliqz.com/myoffrz"
             >
             </a>
@@ -32,9 +32,9 @@
     <p>
         <span>
             {{#if true}} {{!-- showFeedbackButton --}}
-            <button 
-                id="feedback-button" 
-                data-i18n="offers-hub-feedback-title"
+            <button
+                id="feedback-button"
+                data-i18n="offers_hub_feedback_title"
                 data-telemetry-id="feedback">
             </button>
             {{/if}}
@@ -44,7 +44,7 @@
             <button id="expand-button"></button>
             {{/if}}
         </span>
-        <span title="{{local 'offers-hub-powered-by'}}"></span>
+        <span title="{{local 'offers_hub_powered_by'}}"></span>
     </p>
     <div id="feedback-content">
     {{> feedback-offer}}

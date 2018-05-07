@@ -28,9 +28,9 @@ describe('Control Center: History options browser', function () {
     });
 
     it('renders "History options"', function () {
-      const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-3"] [data-i18n="control-center-history-options"]';
+      const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-3"] [data-i18n="control_center_history_options"]';
       expect(subject.query(titleSelector)).to.exist;
-      expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-history-options');
+      expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_history_options');
     });
 
     it('renders arrow for history options', function () {
@@ -43,27 +43,27 @@ describe('Control Center: History options browser', function () {
     });
 
     it('renders "Show all history"', function () {
-      const historySelector = '.accordion #accordion-3 .bullet [data-i18n="control-center-show-history"]';
+      const historySelector = '.accordion #accordion-3 .bullet [data-i18n="control_center_show_history"]';
       expect(subject.query(historySelector)).to.exist;
-      expect(subject.query(historySelector).textContent.trim()).to.equal('control-center-show-history');
+      expect(subject.query(historySelector).textContent.trim()).to.equal('control_center_show_history');
     });
 
     it('renders button "Open" for "Show all history"', function () {
       const buttonSelector = '.accordion #accordion-3 .bullet [data-open-url="history"]';
       expect(subject.query(buttonSelector)).to.exist;
-      expect(subject.query(buttonSelector).textContent.trim()).to.equal('control-center-open');
+      expect(subject.query(buttonSelector).textContent.trim()).to.equal('control_center_open');
     });
 
     it('renders "Forget history"', function () {
-      const forgetSelector = '.accordion #accordion-3 .bullet [data-i18n="control-center-forget-history"]';
+      const forgetSelector = '.accordion #accordion-3 .bullet [data-i18n="control_center_forget_history"]';
       expect(subject.query(forgetSelector)).to.exist;
-      expect(subject.query(forgetSelector).textContent.trim()).to.equal('control-center-forget-history');
+      expect(subject.query(forgetSelector).textContent.trim()).to.equal('control_center_forget_history');
     });
 
     it('renders button "Open" for "Forget history"', function () {
       const buttonSelector = '.accordion #accordion-3 .bullet [data-open-url="forget_history"]';
       expect(subject.query(buttonSelector)).to.exist;
-      expect(subject.query(buttonSelector).textContent.trim()).to.equal('control-center-open');
+      expect(subject.query(buttonSelector).textContent.trim()).to.equal('control_center_open');
     });
 
     it('renders dropdown for autoforget mode', function () {
@@ -89,9 +89,9 @@ describe('Control Center: History options browser', function () {
       historySectionTests();
 
       it('renders "Automatic forget mode"', function () {
-        const modeSelector = '.accordion #accordion-3 .bullet [data-i18n="control-center-forget-mode"]';
+        const modeSelector = '.accordion #accordion-3 .bullet [data-i18n="control_center_forget_mode"]';
         expect(subject.query(modeSelector)).to.exist;
-        expect(subject.query(modeSelector).textContent.trim()).to.equal('control-center-forget-mode');
+        expect(subject.query(modeSelector).textContent.trim()).to.equal('control_center_forget_mode');
       });
 
       it('renders info button', function () {
@@ -137,9 +137,9 @@ describe('Control Center: History options browser', function () {
       historySectionTests();
 
       it('renders "Automatic forget mode"', function () {
-        const modeSelector = '.accordion #accordion-3 .bullet [data-i18n="control-center-forget-mode"]';
+        const modeSelector = '.accordion #accordion-3 .bullet [data-i18n="control_center_forget_mode"]';
         expect(subject.query(modeSelector)).to.exist;
-        expect(subject.query(modeSelector).textContent.trim()).to.equal('control-center-forget-mode');
+        expect(subject.query(modeSelector).textContent.trim()).to.equal('control_center_forget_mode');
       });
 
       it('renders info button', function () {
@@ -187,9 +187,9 @@ describe('Control Center: AMO, History options tests', function () {
     });
 
     it('renders "History options"', function () {
-      const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-3"] [data-i18n="control-center-history-options"]';
+      const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-3"] [data-i18n="control_center_history_options"]';
       expect(subject.query(titleSelector)).to.exist;
-      expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-history-options');
+      expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_history_options');
     });
 
     it('renders arrow for history options', function () {
@@ -202,27 +202,27 @@ describe('Control Center: AMO, History options tests', function () {
     });
 
     it('renders "Show all history"', function () {
-      const historySelector = '.accordion #accordion-3 .bullet [data-i18n="control-center-show-history"]';
+      const historySelector = '.accordion #accordion-3 .bullet [data-i18n="control_center_show_history"]';
       expect(subject.query(historySelector)).to.exist;
-      expect(subject.query(historySelector).textContent.trim()).to.equal('control-center-show-history');
+      expect(subject.query(historySelector).textContent.trim()).to.equal('control_center_show_history');
     });
 
     it('renders button "Open" for "Show all history"', function () {
       const buttonSelector = '.accordion #accordion-3 .bullet [data-open-url="history"]';
       expect(subject.query(buttonSelector)).to.exist;
-      expect(subject.query(buttonSelector).textContent.trim()).to.equal('control-center-open');
+      expect(subject.query(buttonSelector).textContent.trim()).to.equal('control_center_open');
     });
 
     it('renders "Forget history"', function () {
-      const forgetSelector = '.accordion #accordion-3 .bullet [data-i18n="control-center-forget-history"]';
+      const forgetSelector = '.accordion #accordion-3 .bullet [data-i18n="control_center_forget_history"]';
       expect(subject.query(forgetSelector)).to.exist;
-      expect(subject.query(forgetSelector).textContent.trim()).to.equal('control-center-forget-history');
+      expect(subject.query(forgetSelector).textContent.trim()).to.equal('control_center_forget_history');
     });
 
     it('renders button "Open" for "Forget history"', function () {
       const buttonSelector = '.accordion #accordion-3 .bullet [data-open-url="forget_history"]';
       expect(subject.query(buttonSelector)).to.exist;
-      expect(subject.query(buttonSelector).textContent.trim()).to.equal('control-center-open');
+      expect(subject.query(buttonSelector).textContent.trim()).to.equal('control_center_open');
     });
   }
 

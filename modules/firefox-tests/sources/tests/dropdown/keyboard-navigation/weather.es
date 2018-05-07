@@ -1,8 +1,6 @@
 import {
   blurUrlBar,
   $cliqzResults,
-  CliqzUtils,
-  expect,
   fillIn,
   press,
   release,
@@ -14,114 +12,64 @@ import expectSelection from './common';
 import { weatherResults } from '../fixtures/resultsWeather';
 
 export default function () {
-  context('keyboard navigation for weather', function () {
-    let resultElement;
-    let searchWithElement;
-    let navigationArray = [];
+  context('keyboard navigation weather', function () {
+    let $searchWithElement;
+    let $resultElement;
     const query = 'weather mun';
-    const win = CliqzUtils.getWindow();
-    const urlBar = win.CLIQZ.Core.urlbar;
-    const results = weatherResults;
     const searchWithSelector = 'a.result.search';
     const weatherSelector = '.result.weather';
-    const normalSelector = `a.result[data-url="${results[1].url}"]`;
+    const resultSelector = `a.result[data-url="${weatherResults[1].url}"]`;
 
-    beforeEach(function () {
+    beforeEach(async function () {
       blurUrlBar();
       withHistory([]);
-      respondWith({ results });
+      respondWith({ results: weatherResults });
       fillIn(query);
-      return waitForPopup().then(function () {
-        resultElement = $cliqzResults()[0];
-        searchWithElement = resultElement.querySelector(searchWithSelector);
-        navigationArray = [
-          {
-            el: searchWithElement,
-            urlBarText: query
-          },
-          {
-            el: resultElement.querySelector(normalSelector),
-            urlBarText: results[1].url
-          }
-        ];
+      await waitForPopup();
+      await waitFor(() => $cliqzResults.querySelector(searchWithSelector) &&
+        $cliqzResults.querySelector(resultSelector) &&
+        $cliqzResults.querySelector(weatherSelector));
+      $searchWithElement = $cliqzResults.querySelector(searchWithSelector);
+      $resultElement = $cliqzResults.querySelector(resultSelector);
+    });
+
+    context('navigate with arrowDown', function () {
+      it('selected element and urlbar value are correct', async function () {
+        press({ key: 'ArrowDown' });
+        await waitFor(() => expectSelection($resultElement, weatherResults[1].url), 600);
+        press({ key: 'ArrowDown' });
+        await waitFor(() => expectSelection($searchWithElement, query), 600);
       });
     });
 
-    it('"search with", weather result, and normal result were rendered', function () {
-      expect(resultElement).to.contain(searchWithSelector);
-      expect(resultElement).to.contain(weatherSelector);
-      expect(resultElement).to.contain(normalSelector);
-    });
-
-    context('navigation with arrowDown', function () {
-      it('correct element is selected and there is correct url in the url bar', function () {
-        return navigationArray
-          .reduce(function (chain, current) {
-            return chain.then(function () {
-              expectSelection(resultElement, current.el, current.urlBarText, urlBar);
-              press({ key: 'ArrowDown' });
-              return waitFor(function () {
-                return !current.el.classList.contains('selected') &&
-                  urlBar.textValue !== current.urlBarText;
-              }, 300);
-            });
-          }, Promise.resolve())
-          .then(() => expectSelection(resultElement, searchWithElement, query, urlBar));
+    context('navigate with arrowUp', function () {
+      it('selected element and urlbar value are correct', async function () {
+        press({ key: 'ArrowUp' });
+        await waitFor(() => expectSelection($resultElement, weatherResults[1].url), 600);
+        press({ key: 'ArrowUp' });
+        await waitFor(() => expectSelection($searchWithElement, query), 600);
       });
     });
 
-    context('navigation with arrowUp', function () {
-      it('correct element is selected and there is correct url in the url bar', function () {
-        return navigationArray
-          .reduce(function (chain, current) {
-            return chain.then(function () {
-              expectSelection(resultElement, current.el, current.urlBarText, urlBar);
-              press({ key: 'ArrowUp' });
-              return waitFor(function () {
-                return !current.el.classList.contains('selected') &&
-                  urlBar.textValue !== current.urlBarText;
-              }, 300);
-            });
-          }, Promise.resolve())
-          .then(() => expectSelection(resultElement, searchWithElement, query, urlBar));
+    context('navigate with Tab', function () {
+      it('selected element and urlbar value are correct', async function () {
+        press({ key: 'Tab' });
+        await waitFor(() => expectSelection($resultElement, weatherResults[1].url), 600);
+        press({ key: 'Tab' });
+        await waitFor(() => expectSelection($searchWithElement, query), 600);
       });
     });
 
-    context('navigation with Tab', function () {
-      it('correct element is selected and there is correct url in the url bar', function () {
-        return navigationArray
-          .reduce(function (chain, current) {
-            return chain.then(function () {
-              expectSelection(resultElement, current.el, current.urlBarText, urlBar);
-              press({ key: 'Tab' });
-              return waitFor(function () {
-                return !current.el.classList.contains('selected') &&
-                  urlBar.textValue !== current.urlBarText;
-              }, 300);
-            });
-          }, Promise.resolve())
-          .then(() => expectSelection(resultElement, searchWithElement, query, urlBar));
-      });
-    });
-
-    context('navigation with Shift + Tab', function () {
+    context('navigate with Shift+Tab', function () {
       afterEach(function () {
         release({ key: 'Shift', code: 'ShiftLeft' });
       });
 
-      it('correct element is selected and there is correct url in the url bar', function () {
-        return navigationArray
-          .reduce(function (chain, current) {
-            return chain.then(function () {
-              expectSelection(resultElement, current.el, current.urlBarText, urlBar);
-              press({ key: 'Tab', shiftKey: true });
-              return waitFor(function () {
-                return !current.el.classList.contains('selected') &&
-                  urlBar.textValue !== current.urlBarText;
-              }, 300);
-            });
-          }, Promise.resolve())
-          .then(() => expectSelection(resultElement, searchWithElement, query, urlBar));
+      it('selected element and urlbar value are correct', async function () {
+        press({ key: 'Tab', shiftKey: true });
+        await waitFor(() => expectSelection($resultElement, weatherResults[1].url), 600);
+        press({ key: 'Tab', shiftKey: true });
+        await waitFor(() => expectSelection($searchWithElement, query), 600);
       });
     });
   });

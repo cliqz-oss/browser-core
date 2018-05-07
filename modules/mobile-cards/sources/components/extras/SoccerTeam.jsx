@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, View, Text, Image } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 
 import Link from '../Link';
+import ExternalImage from '../custom/ExternalImage';
 import { getMessage } from '../../../core/i18n';
 import { toggleSubscription, isSubscribedToTeam } from '../../../platform/subscriptions';
 import SubscribeButton from '../SubscribeButton';
@@ -77,7 +78,7 @@ export default class extends React.Component {
           <View style={{ flex: 1, flexDirection: 'row' }}>
             <Text style={[styles.header, { flex: 3 }]}>{data.spielTag}</Text>
             <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end' }}>
-              <Image style={{ width: 20, height: 20 }} source={{ uri: data.leagueLogo }} resizeMode={'cover'} />
+              <ExternalImage style={{ width: 20, height: 20 }} source={{ uri: data.leagueLogo }} resizeMode={'cover'} />
             </View>
           </View>
           <View style={styles.detailsContainer}>

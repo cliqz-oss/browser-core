@@ -1,15 +1,27 @@
 import React from 'react';
-import { StyleSheet, View, Text, TextInput } from 'react-native';
+import { StyleSheet, View, Text, TextInput, NativeModules } from 'react-native';
 
+import inject from '../../../core/kord/inject';
 import i18n, { getMessage } from '../../../core/i18n';
 import utils from '../../../core/utils';
+import prefs from '../../../core/prefs';
 import Title from '../partials/Title';
 import Link from '../Link';
 import NativeDrawable, { normalizeUrl } from '../custom/NativeDrawable';
 import { elementTopMargin, elementSideMargins } from '../../styles/CardStyle';
 
+const PermissionManager = NativeModules.PermissionManagerModule;
+const geoLocation = inject.module('geolocation');
+const search = inject.module('search');
 
 export default class extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      data: this.props.data,
+    };
+  }
 
   renderLocation(data) {
     const distance = Helpers.calculateDistance(data.lon, data.lat, data.distance);
@@ -53,12 +65,32 @@ export default class extends React.Component {
     </View>
   }
 
+  async getLocationData() {
+    const type = PermissionManager.PERMISSIONS.ACCESS_FINE_LOCATION;
+    const granted = PermissionManager.RESULTS.GRANTED;
+    
+    const isLocationAccessGranted = (
+      await PermissionManager.check(type) === granted ||
+      await PermissionManager.request(type) === granted
+    );
+    if (!isLocationAccessGranted) {
+      return;
+    }
+    prefs.set('share_location', 'yes');
+    await geoLocation.action('updateGeoLocation');
+    // TODO: getSnippet action should receive location and get rid of utils.USER_LAT/USER_LNG
+    const snippet = await search.action('getSnippet', this.props.result.text, this.props.result);
+    if (snippet.extra) {
+      this.setState({ data: snippet.extra });
+    }
+  }
+
   renderNoLocation(data) {
     const locationPin = normalizeUrl('location_pin.svg');
 
     return <Link
         style={styles.size1}
-        actionName='mobile-search:share-location'
+        onPress={() => this.getLocationData()}
       >
       <View style={styles.button}>
         <NativeDrawable style={styles.pin} source={locationPin} />
@@ -68,7 +100,7 @@ export default class extends React.Component {
   }
 
   render() {
-    const data = this.props.data;
+    const data = this.state.data;
     if (data.no_location) {
       return this.renderNoLocation(data);
     } else if (data.address) {

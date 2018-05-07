@@ -1,7 +1,7 @@
 /* eslint func-names: 'off' */
 /* eslint no-param-reassign: 'off' */
 
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import { queryActiveTabs } from '../core/tabs';
 import * as urlHelpers from '../core/url';
 import { forEachWindow } from '../platform/browser';

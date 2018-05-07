@@ -1,6 +1,6 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 
-import { utils } from '../../core/cliqz';
+import utils from '../../core/utils';
 import config from '../../core/config';
 import ExpressionBuilder from './exp_builder';
 import logger from '../common/offers_v2_logger';

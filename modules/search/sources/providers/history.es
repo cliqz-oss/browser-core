@@ -10,6 +10,7 @@ import clean from '../operators/clean';
 import deduplicate from '../operators/results/deduplicate';
 import normalize from '../operators/normalize';
 import { addCompletion } from '../operators/results/utils';
+import { hasMainLink } from '../operators/links/utils';
 
 // responses
 import { getResponse, getPendingResponse } from '../responses';
@@ -40,8 +41,6 @@ export default class History extends BaseProvider {
       return this.getEmptySearch(config);
     }
 
-    const { providers: { history: { maxQueryLengthToWait } = {} } = {} } = config;
-
     const results$ = this.historySearch(query, config)
       // do not emit empty, pending results to reduce flickering
       .filter(response =>
@@ -55,26 +54,16 @@ export default class History extends BaseProvider {
       .map(({ results, ...response }) => ({
         ...response,
         results: addCompletion(
-          deduplicate(results),
+          // TODO: deduplicate is again called in enriched, try to simplify;
+          //       at the moment, both is needed: here because history returns
+          //       duplicates (like http://cliqz.com and https://cliqz.com) and
+          //       in enrich to remove rich data/history duplicates
+          // filter out results without main link (clean above removes links)
+          deduplicate(results.filter(hasMainLink)),
           query,
         ),
       }))
       .share();
-
-    // do not wait for (actual) history results if query
-    // is longer than N to increase responsiveness for "seach on
-    // Google" query preview; if query is long, it's likely that
-    // history has responded already (for a previous partial query),
-    // therefore flickering is not a big issue anymore
-    // TODO: make this independent of specific query length and dependend
-    //       on if the history provider has returned results for a previous
-    //       (partial) query in the current search session
-    if (query.length >= maxQueryLengthToWait) {
-      return results$
-        .startWith(getPendingResponse(this.id, config, query))
-        // FIXME: there is some race condition which requires having a delay
-        .delay(1);
-    }
 
     return results$;
   }

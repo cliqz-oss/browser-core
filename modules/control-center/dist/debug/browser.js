@@ -1069,7 +1069,6 @@ DATA.push({
       "disabledEverywhere": false,
       "totalCount": 5,
       "advertisersList": {
-        "companiesArray": []
       },
       "state": "off",
       "off_state": "off_domain"

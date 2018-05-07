@@ -1,4 +1,4 @@
-import { events } from '../../core/cliqz';
+import events from '../../core/events';
 import CliqzMsgHandler from './base';
 import inject from '../../core/kord/inject';
 

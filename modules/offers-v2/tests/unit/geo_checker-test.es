@@ -14,9 +14,8 @@ export default describeModule('offers-v2/features/geo_checker',
     'platform/globals': {
       default: {}
     },
-    'core/cliqz': {
-      default: {},
-      utils: {
+    'core/utils': {
+      default: {
         setInterval: function() {},
       }
     },

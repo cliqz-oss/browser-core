@@ -48,6 +48,8 @@ const ActionID = {
   // when the offer was properly removed from the DB (this is happening on the
   // processor mainly)
   AID_OFFER_DB_REMOVED: 'offer_db_removed',
+  // when the offer expires and is erased on the db
+  AID_OFFER_EXPIRED: 'offer_expired',
   // when the user press on "More about cliqz offers" button, this is not related
   // usually to an offer, but can be associated (depending the real state).
   AID_OFFER_MORE_ABT_CLIQZ: 'more_about_cliqz',
@@ -88,7 +90,20 @@ const ActionID = {
   AID_OFFER_HUB_POP_UP: 'hub_pop_up',
   AID_OFFER_HUB_OPEN: 'hub_open',
   AID_OFFER_HUB_CLOSED: 'hub_closed',
-  AID_OFFER_HUB_SHOW_MORE_OFFERS: 'show_more_offers'
+  AID_OFFER_HUB_SHOW_MORE_OFFERS: 'show_more_offers',
+
+  // only from dropdown
+  // positional extra signals (depending where is it shown, but not attached)
+  AID_OFFER_DD_OFFER_SHOWN_1: 'offer_shown_1',
+  AID_OFFER_DD_OFFER_SHOWN_2: 'offer_shown_2',
+  AID_OFFER_DD_OFFER_CA_ACTION_1: 'offer_ca_action_1',
+  AID_OFFER_DD_OFFER_CA_ACTION_2: 'offer_ca_action_2',
+  AID_OFFER_DD_OFFER_DSP_SESSION_1: 'offer_dsp_session_1',
+  AID_OFFER_DD_OFFER_DSP_SESSION_2: 'offer_dsp_session_2',
+  // when the offer is attached:
+  AID_OFFER_DD_OFFER_SHOWN_ATTACHED: 'offer_shown_attached',
+  AID_OFFER_DD_OFFER_CA_ACTION_ATTACHED: 'offer_ca_action_attached',
+  AID_OFFER_DD_OFFER_DSP_SESSION_ATTACHED: 'offer_dsp_session_attached'
 
 };
 

@@ -65,8 +65,8 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
         logObject: () => {},
       }
     },
-    'core/cliqz': {
-      utils: {
+    'core/utils': {
+      default: {
         setInterval: function() {},
         clearInterval: function() {},
       },

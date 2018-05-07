@@ -526,7 +526,7 @@ describe('Fresh tab interactions with settings switches', function () {
 
       describe('then closing and opening the panel', function () {
         beforeEach(async function () {
-          subject.query('button.close').click();
+          subject.query('#settings-panel button.close').click();
           await waitFor(() => !subject.query(settingsPanelSelector).classList.contains('visible'));
           subject.query(settingsButtonSelector).click();
           return waitFor(() => subject.query(settingsPanelSelector).classList.contains('visible'));
@@ -1049,7 +1049,7 @@ describe('Fresh tab interactions with settings switches', function () {
 
       describe('then closing and opening the panel', function () {
         beforeEach(async function () {
-          subject.query('button.close').click();
+          subject.query('#settings-panel button.close').click();
           await waitFor(() => !subject.query(settingsPanelSelector).classList.contains('visible'));
           subject.query(settingsButtonSelector).click();
           return waitFor(() => subject.query(settingsPanelSelector).classList.contains('visible'));

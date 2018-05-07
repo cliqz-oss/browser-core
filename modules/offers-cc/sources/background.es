@@ -1,7 +1,7 @@
 import prefs from '../core/prefs';
 import config from '../core/config';
 import background from '../core/base/background';
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import ToolbarButton from '../core/ui/toolbar-button';
 import { getMessage } from '../core/i18n';
 
@@ -30,7 +30,7 @@ export default background({
 
     this.toolbarButton = new ToolbarButton({
       widgetId: 'offers-cc',
-      default_title: getMessage('offers-hub-title'),
+      default_title: getMessage('offers_hub_title'),
       default_popup: `${config.baseURL}offers-cc/index.html`,
       default_icon: `${config.baseURL}offers-cc/images/offers-cc-icon.svg`,
       badgeBackgroundColor: 'transparent',

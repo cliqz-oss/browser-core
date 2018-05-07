@@ -18,6 +18,13 @@
                 padding: 15px;
             }
 
+            .vertical-align {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100%;
+            }
+
             h2 {
                 font-size: 14px;
                 font-weight: 500;

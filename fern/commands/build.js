@@ -21,11 +21,13 @@ program.command('build [file]')
   .option('--environment <environment>', 'the name of build environment', 'development')
   .option('--to-subdir', 'build into a subdirectory named after the config')
   .option('--instrument-functions', 'enable function instrumentation for profiling')
+  .option('--include-tests', 'include tests files in build')
   .action((configPath, options) => {
     process.env.CLIQZ_ENVIRONMENT = options.environment;
     process.env.CLIQZ_SOURCE_MAPS = options.maps;
     process.env.CLIQZ_SOURCE_DEBUG = options.debug;
     process.env.CLIQZ_INSTRUMENT_FUNCTIONS = options.instrumentFunctions || '';
+    process.env.CLIQZ_INCLUDE_TESTS = options.includeTests || '';
 
     const cfg = setConfigPath(configPath, options.toSubdir);
     const OUTPUT_PATH = cfg.OUTPUT_PATH;

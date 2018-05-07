@@ -47,7 +47,12 @@ const CliqzSecureMessage = {
   localTemporalUniq: null,
   wCrypto: null,
   queriesID: {},
-  servicesToProxy: ['api.cliqz.com', 'antiphishing.cliqz.com'],
+
+  // Note: 'collector-hpn.cliqz.com' is the hpnv2 endpoint.
+  // For first experiments, build on the existing hpnv1 infrastructure,
+  // as hpnv2 does not yet implement a mechanism for stripping IP addresses.
+  servicesToProxy: ['api.cliqz.com', 'antiphishing.cliqz.com', 'collector-hpn.cliqz.com'],
+
   proxyInfoObj: {},
   queryProxyFilter: null,
   pacemaker() {

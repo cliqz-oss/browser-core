@@ -44,9 +44,9 @@ function currentSiteTests(amo) {
     });
 
     it('renders "Report URL"', function () {
-      const linkSelector = '#control-center #currentsite .reportsite[data-i18n="control-center-report-url"]';
+      const linkSelector = '#control-center #currentsite .reportsite[data-i18n="control_center_report_url"]';
       expect(subject.query(linkSelector)).to.exist;
-      expect(subject.query(linkSelector).textContent.trim()).to.equal('control-center-report-url');
+      expect(subject.query(linkSelector).textContent.trim()).to.equal('control_center_report_url');
     });
   });
 
@@ -73,9 +73,9 @@ function currentSiteTests(amo) {
     });
 
     it('renders "Report URL"', function () {
-      const linkSelector = '#control-center #currentsite .reportsite[data-i18n="control-center-report-url"]';
+      const linkSelector = '#control-center #currentsite .reportsite[data-i18n="control_center_report_url"]';
       expect(subject.query(linkSelector)).to.exist;
-      expect(subject.query(linkSelector).textContent.trim()).to.equal('control-center-report-url');
+      expect(subject.query(linkSelector).textContent.trim()).to.equal('control_center_report_url');
     });
   });
 }

@@ -78,7 +78,7 @@ export default class extends React.Component {
     }
   }
 
-  shareCard() {
+  async shareCard() {
     if (Platform.OS === 'ios') {
       this.setState({ capturing: true });
       return;
@@ -88,9 +88,13 @@ export default class extends React.Component {
     const type = PermissionManager.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
     const granted = PermissionManager.RESULTS.GRANTED;
 
-    PermissionManager.check(type)
-      .then(isGranted => (isGranted ? granted : PermissionManager.request(type)))
-      .then(result => (result === granted ? this.setState({ capturing: true }) : false));
+    const isStorageAccessGranted = (
+      await PermissionManager.check(type) === granted ||
+      await PermissionManager.request(type) === granted
+    );
+    if (isStorageAccessGranted) {
+      this.setState({ capturing: true });
+    }
   }
 
   displaySharedViaCliqz() {

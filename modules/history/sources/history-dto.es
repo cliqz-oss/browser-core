@@ -1,23 +1,6 @@
 import utils from '../core/utils';
 import config from '../core/config';
-
-// https://github.com/substack/deep-freeze
-/* eslint-disable */
-function deepFreeze(o) {
-  Object.freeze(o);
-
-  Object.getOwnPropertyNames(o).forEach(function (prop) {
-    if (o.hasOwnProperty(prop)
-    && o[prop] !== null
-    && (typeof o[prop] === "object" || typeof o[prop] === "function")
-    && !Object.isFrozen(o[prop])) {
-      deepFreeze(o[prop]);
-    }
-  });
-
-  return o;
-}
-/* eslint-enable */
+import deepFreeze from '../core/helpers/deep-freeze';
 
 function createBaseStructure() {
   return {};

@@ -10,7 +10,12 @@ openbox &
 x11vnc -storepasswd vnc /tmp/vncpass
 x11vnc -rfbport 5900 -rfbauth /tmp/vncpass -forever > /dev/null 2>&1 &
 
-./fern.js test "$@" --ci report.xml
+# while running this script, you can add multiple paratemeters in quotes, e.g.:
+# './configs/ci/browser.js --firefox /home/node/firefox52/firefox/firefox'
+./fern.js serve "$@" --environment testing
+
+# to use test instead of serve comment previous line and uncomment the next one
+# ./fern.js test "$@" --ci report.xml
 # ./fern.js build configs/jenkins.json
 # OUTPUT_PATH=/app/build/ FIREFOX_PATH=/home/node/firefox55/firefox/firefox node tests/runners/firefox-web-ext-stresstest.js
 # node tests/runners/chromium-selenium.js

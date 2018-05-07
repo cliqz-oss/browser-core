@@ -11,31 +11,30 @@ function _log(msg) {
 /* ************************************************************************* */
 
 
-function CliqzMsgCenter() {
-  this._messageHandlers = {};
+export default class CliqzMsgCenter {
+  constructor() {
+    this._messageHandlers = {};
 
-  this.showMessage = this.showMessage.bind(this);
-  this.hideMessage = this.hideMessage.bind(this);
+    this.showMessage = this.showMessage.bind(this);
+    this.hideMessage = this.hideMessage.bind(this);
 
-  this.registerMessageHandler('MESSAGE_HANDLER_DROPDOWN',
-    new CliqzMsgHandlerDropdown());
-  this.registerMessageHandler('MESSAGE_HANDLER_ALERT',
-    new CliqzMsgHandlerAlert());
-  this.registerMessageHandler('MESSAGE_HANDLER_FRESHTAB_TOP',
-    new CliqzMsgHandlerFreshtabTop());
-  this.registerMessageHandler('MESSAGE_HANDLER_FRESHTAB_MIDDLE',
-    new CliqzMsgHandlerFreshtabMiddle());
-}
-
-CliqzMsgCenter.prototype = {
+    this.registerMessageHandler('MESSAGE_HANDLER_DROPDOWN',
+      new CliqzMsgHandlerDropdown());
+    this.registerMessageHandler('MESSAGE_HANDLER_ALERT',
+      new CliqzMsgHandlerAlert());
+    this.registerMessageHandler('MESSAGE_HANDLER_FRESHTAB_TOP',
+      new CliqzMsgHandlerFreshtabTop());
+    this.registerMessageHandler('MESSAGE_HANDLER_FRESHTAB_MIDDLE',
+      new CliqzMsgHandlerFreshtabMiddle());
+  }
 
   registerMessageHandler(id, handler) {
     this._messageHandlers[id] = handler;
-  },
+  }
 
   getHandlers() {
     return Object.keys(this._messageHandlers);
-  },
+  }
 
   showMessage(message, handlerId, callback) {
     const handler = this._messageHandlers[handlerId];
@@ -44,7 +43,7 @@ CliqzMsgCenter.prototype = {
     } else {
       _log(`message handler not found: ${handlerId}`);
     }
-  },
+  }
 
   hideMessage(message, handlerId) {
     const handler = this._messageHandlers[handlerId];
@@ -54,13 +53,10 @@ CliqzMsgCenter.prototype = {
       _log(`message handler not found: ${handlerId}`);
     }
   }
-};
 
-CliqzMsgCenter.getInstance = () => {
-  CliqzMsgCenter.getInstance.instance =
-    CliqzMsgCenter.getInstance.instance || new CliqzMsgCenter();
-  return CliqzMsgCenter.getInstance.instance;
-};
-// CliqzMsgCenter.getInstance();
-
-export default CliqzMsgCenter;
+  static getInstance() {
+    CliqzMsgCenter.getInstance.instance =
+      CliqzMsgCenter.getInstance.instance || new CliqzMsgCenter();
+    return CliqzMsgCenter.getInstance.instance;
+  }
+}

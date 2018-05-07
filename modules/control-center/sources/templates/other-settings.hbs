@@ -2,7 +2,7 @@
 {{#unless funnelCake }}
     <header class="header">
       <div class="title">
-        <span data-i18n="control-center-othersettings"></span>
+        <span data-i18n="control_center_othersettings"></span>
         {{> support }}
       </div>
     </header>
@@ -16,19 +16,19 @@
         <defs></defs>
         <polygon id="Rectangle" stroke="none" fill="#838383" fill-rule="evenodd" transform="translate(1023.344411, 663.208565) rotate(45.000000) translate(-1023.344411, -663.208565) " points="1018.95691 660.49484 1027.73191 658.821065 1026.05814 667.596065"></polygon>
       </svg>
-      <span data-i18n="control-center-searchoptions"></span>
+      <span data-i18n="control_center_searchoptions"></span>
     </a>
     {{#if funnelCake }}
         <header class="header no-border">
           <div class="search-settings-title">
-            <span data-i18n="control-center-searchoptions"></span>
+            <span data-i18n="control_center_searchoptions"></span>
           </div>
         </header>
     {{/if}}
     <div id="accordion-2" class="accordion-section-content {{#if funnelCake}}open{{/if}}">
       {{#if module.search.visible}}
       <span class="bullet">
-        <span data-i18n="control-center-search-engine"></span>
+        <span data-i18n="control_center_search_engine" class="no-tooltip-label"></span>
         <select role="complementarySearchChanger"
                 class="custom-dropdown"
                 data-target="complementary_search">
@@ -42,7 +42,7 @@
       {{/if}}
 
       <span class="bullet">
-        <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <svg class="infobutton" data-tooltip-content="#explicit-tooltip" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
           <defs></defs>
           <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
             <ellipse id="Oval-2" fill="#999" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
@@ -51,11 +51,11 @@
             </text>
           </g>
         </svg>
-        <div class="tooltip explicit right">
-          <span class="title" data-i18n="control-center-info-explicit-title"></span>
-          <span data-i18n="control-center-info-explicit"></span>
+        <div id="explicit-tooltip" class="tooltip-content">
+          <span class="title" data-i18n="control_center_info_explicit_title"></span>
+          <span data-i18n="control_center_info_explicit"></span>
         </div>
-        <span data-i18n="control-center-explicit"></span>
+        <span data-i18n="control_center_explicit"></span>
 
         <select class="custom-dropdown"
                 data-update-pref="extensions.cliqz.adultContentFilter"
@@ -69,7 +69,7 @@
 
       {{# if module.geolocation.visible }}
       <span class="bullet">
-        <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <svg class="infobutton" data-tooltip-content="#share-location-tooltip" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
           <defs></defs>
           <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
             <ellipse id="Oval-2" fill="#999" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
@@ -78,11 +78,11 @@
             </text>
           </g>
         </svg>
-        <div class="tooltip share-location right">
-          <span class="title" data-i18n="control-center-info-share-location-title"></span>
-          <span data-i18n="control-center-info-share-location"></span>
+        <div id="share-location-tooltip" class="tooltip-content">
+          <span class="title" data-i18n="control_center_info_share_location_title"></span>
+          <span data-i18n="control_center_info_share_location"></span>
         </div>
-        <span data-i18n="control-center-location"></span>
+        <span data-i18n="control_center_location"></span>
 
 
         <select class="custom-dropdown"
@@ -94,14 +94,14 @@
         </select>
 
         {{#unless funnelCake}}
-          <span class="location-more" data-open-url="https://cliqz.com/support/local-results" data-i18n="control-center-info-share-location-link"></span>
+          <span class="location-more" data-open-url="https://cliqz.com/support/local-results" data-i18n="control_center_info_share_location_link"></span>
         {{/unless}}
       </span>
       {{/if}}
 
       {{#if module.search.visible}}
       <span class="bullet">
-        <span data-i18n="control-center-backend-country"></span>
+        <span data-i18n="control_center_backend_country" class="no-tooltip-label"></span>
         <select role="searchIndexCountryChanger"
                 class="custom-dropdown"
                 data-target="search-index-country">
@@ -118,7 +118,7 @@
       <span class="bullet"
             data-status="{{#if module.hpn.state}}active{{ else }}inactive{{/if}}"
             data-inactiveState="inactive">
-        <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <svg class="infobutton" data-tooltip-content="#proxy-tooltip" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
           <defs></defs>
           <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
             <ellipse id="Oval-2" fill="#999" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
@@ -127,20 +127,20 @@
             </text>
           </g>
         </svg>
-        <div class="tooltip right proxy">
-          <span class="title" data-i18n="control-center-info-hpn-title"></span>
-          <span data-i18n="control-center-info-hpn"></span>
+        <div id="proxy-tooltip" class="tooltip-content">
+          <span class="title" data-i18n="control_center_info_hpn_title"></span>
+          <span data-i18n="control_center_info_hpn"></span>
         </div>
         <span>
           <span class="cqz-switch-label"
-                data-i18n="control-center-proxy">
+                data-i18n="control_center_proxy">
           </span>
           <select class="custom-dropdown"
                   data-update-pref="extensions.cliqz.hpn-query"
                   data-update-pref-type="boolean"
                   data-target="search_proxy">
-                <option {{#if module.searchProxy.enabled}}selected{{/if}} value="true" data-i18n="control-center-enabled"></option>
-                <option {{#unless module.searchProxy.enabled}}selected{{/unless}} value="false" data-i18n="control-center-disabled"></option>
+                <option {{#if module.searchProxy.enabled}}selected{{/if}} value="true" data-i18n="control_center_enabled"></option>
+                <option {{#unless module.searchProxy.enabled}}selected{{/unless}} value="false" data-i18n="control_center_disabled"></option>
           </select>
         </span>
       </span>
@@ -195,7 +195,7 @@
         <span class="bullet human-web"
               data-status="{{#if module.human-web.state}}active{{ else }}inactive{{/if}}"
               data-inactiveState="inactive">
-          <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <svg class="infobutton" data-tooltip-content="#human-web-tooltip" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
             <defs></defs>
             <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
               <ellipse id="Oval-2" fill="#999" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
@@ -204,29 +204,29 @@
               </text>
             </g>
           </svg>
-          <div class="tooltip right human-web">
-            <span class="title" data-i18n="control-center-info-hw-title"></span>
-            <span data-i18n="control-center-info-hw"></span>
+          <div id="human-web-tooltip" class="tooltip-content">
+            <span class="title" data-i18n="control_center_info_hw_title"></span>
+            <span data-i18n="control_center_info_hw"></span>
           </div>
           <span class="cqz-switch-label"
-                data-i18n="control-center-humanweb">
+                data-i18n="control_center_humanweb">
           </span>
           <select class="custom-dropdown"
                   data-update-pref="extensions.cliqz.humanWebOptOut"
                   data-target="search_humanweb">
-                <option {{#unless module.humanWebOptOut}}selected{{/unless}} value="enabled" data-i18n="control-center-enabled"></option>
-                <option {{#if module.humanWebOptOut}}selected{{/if}} value="disabled" data-i18n="control-center-disabled"></option>
+                <option {{#unless module.humanWebOptOut}}selected{{/unless}} value="enabled" data-i18n="control_center_enabled"></option>
+                <option {{#if module.humanWebOptOut}}selected{{/if}} value="disabled" data-i18n="control_center_disabled"></option>
           </select>
         </span>
       {{/if }}
 
       {{#if module.privacy-dashboard.visible }}
         <span class="bullet">
-          <span data-i18n="control-center-transparency"></span>
+          <span class="no-tooltip-label" data-i18n="control_center_transparency"></span>
           <button
             data-open-url="about:transparency"
             data-target="search_transparency"
-            data-i18n="control-center-open">
+            data-i18n="control_center_open">
           </button>
           <svg class="bulletarrow" width="9px" height="12px" viewBox="175 40 9 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
             <defs></defs>
@@ -245,15 +245,15 @@
         <defs></defs>
         <polygon id="Rectangle-546-Copy-11" stroke="none" fill="#838383" fill-rule="evenodd" transform="translate(1023.344411, 663.208565) rotate(45.000000) translate(-1023.344411, -663.208565) " points="1018.95691 660.49484 1027.73191 658.821065 1026.05814 667.596065"></polygon>
       </svg>
-      <span data-i18n="control-center-history-options"></span>
+      <span data-i18n="control_center_history_options"></span>
     </a>
     <div id="accordion-3" class="accordion-section-content">
       <span class="bullet">
-        <span data-i18n="control-center-show-history"></span>
+        <span class="no-tooltip-label" data-i18n="control_center_show_history"></span>
         <button
             data-open-url="history"
             data-target="history_showall"
-            data-i18n="control-center-open">
+            data-i18n="control_center_open">
         </button>
         <svg class="bulletarrow" width="9px" height="12px" viewBox="175 40 9 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
           <defs></defs>
@@ -261,11 +261,11 @@
         </svg>
       </span>
       <span class="bullet">
-        <span data-i18n="control-center-forget-history"></span>
+        <span class="no-tooltip-label" data-i18n="control_center_forget_history"></span>
         <button
             data-open-url="forget_history"
             data-target="history_forget"
-            data-i18n="control-center-open">
+            data-i18n="control_center_open">
         </button>
         <svg class="bulletarrow" width="9px" height="12px" viewBox="175 40 9 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
           <defs></defs>
@@ -276,7 +276,7 @@
         <span class="bullet"
               data-status="{{#if module.apt.state}}active{{ else }}inactive{{/if}}"
               data-inactiveState="inactive">
-          <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <svg class="infobutton" data-tooltip-content="#forget-mode-tooltip" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
             <defs></defs>
             <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
               <ellipse id="Oval-2" fill="#999" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
@@ -285,19 +285,19 @@
               </text>
             </g>
           </svg>
-          <div class="tooltip right forget-mode">
-            <span class="title" data-i18n="control-center-info-forget-mode-title"></span>
-            <span data-i18n="control-center-info-forget-mode"></span>
+          <div id="forget-mode-tooltip" class="tooltip-content">
+            <span class="title" data-i18n="control_center_info_forget_mode_title"></span>
+            <span data-i18n="control_center_info_forget_mode"></span>
           </div>
           <span class="cqz-switch-label"
-                data-i18n="control-center-forget-mode">
+                data-i18n="control_center_forget_mode">
           </span>
           <select class="custom-dropdown"
                   data-update-pref='browser.privatebrowsing.apt'
                   data-update-pref-type="boolean"
                   data-target="history_autoforget">
-                <option {{#if module.apt.state}}selected{{/if}} value="true" data-i18n="control-center-enabled"></option>
-                <option {{#unless module.apt.state}}selected{{/unless}} value="false" data-i18n="control-center-disabled"></option>
+                <option {{#if module.apt.state}}selected{{/if}} value="true" data-i18n="control_center_enabled"></option>
+                <option {{#unless module.apt.state}}selected{{/unless}} value="false" data-i18n="control_center_disabled"></option>
           </select>
         </span>
       {{/if}}
@@ -314,11 +314,11 @@
           <defs></defs>
           <polygon id="Rectangle-546-Copy-11" stroke="none" fill="#838383" fill-rule="evenodd" transform="translate(1023.344411, 663.208565) rotate(45.000000) translate(-1023.344411, -663.208565) " points="1018.95691 660.49484 1027.73191 658.821065 1026.05814 667.596065"></polygon>
         </svg>
-        <span data-i18n="control-center-offers-options"></span>
+        <span data-i18n="control_center_offers_options"></span>
       </a>
       <div id="accordion-4" class="accordion-section-content">
         <span class="bullet">
-          <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <svg class="infobutton" data-tooltip-content="#offers-main-tooltip" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
           <defs></defs>
           <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
             <ellipse id="Oval-2" fill="#999" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
@@ -327,26 +327,26 @@
             </text>
           </g>
           </svg>
-          <div class="tooltip offers-main right">
-            <span class="title" data-i18n="control-center-offers-show"></span>
-            <span data-i18n="control-center-offers-show-info"></span>
+          <div id="offers-main-tooltip" class="tooltip-content">
+            <span class="title" data-i18n="control_center_offers_show"></span>
+            <span data-i18n="control_center_offers_show_info"></span>
           </div>
-          <span data-i18n="control-center-offers-show"></span>
+          <span data-i18n="control_center_offers_show"></span>
           <span class="location-more"
                 data-open-url="https://cliqz.com/myoffrz"
                 data-target="offerz_main_learn_more"
-                data-i18n="control-center-info-share-location-link">
+                data-i18n="control_center_info_share_location_link">
           </span>
           <select class="custom-dropdown"
                   data-update-pref="extensions.cliqz.offers2UserEnabled"
                   data-update-pref-type="boolean"
                   data-target="offerz_main">
-                <option {{#if module.offers-v2.userEnabled}}selected{{/if}} value="true" data-i18n="control-center-enabled"></option>
-                <option {{#unless module.offers-v2.userEnabled}}selected{{/unless}} value="false" data-i18n="control-center-disabled"></option>
+                <option {{#if module.offers-v2.userEnabled}}selected{{/if}} value="true" data-i18n="control_center_enabled"></option>
+                <option {{#unless module.offers-v2.userEnabled}}selected{{/unless}} value="false" data-i18n="control_center_disabled"></option>
           </select>
         </span>
         <span class="bullet">
-          <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <svg class="infobutton" data-tooltip-content="#offers-location-tooltip" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
           <defs></defs>
           <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
             <ellipse id="Oval-2" fill="#999" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
@@ -355,17 +355,17 @@
             </text>
           </g>
           </svg>
-          <div class="tooltip offers-location right">
-            <span class="title" data-i18n="control-center-offers-location"></span>
-            <span data-i18n="control-center-offers-location-info"></span>
+          <div id="offers-location-tooltip" class="tooltip-content">
+            <span class="title" data-i18n="control_center_offers_location"></span>
+            <span data-i18n="control_center_offers_location_info"></span>
           </div>
-          <span data-i18n="control-center-offers-location"></span>
+          <span data-i18n="control_center_offers_location"></span>
           <select class="custom-dropdown"
                   data-update-pref="extensions.cliqz.offers_location"
                   data-update-pref-type="integer"
                   data-target="offerz_location">
-                <option {{#if module.offers-v2.locationEnabled}}selected{{/if}} value="1" data-i18n="control-center-enabled"></option>
-                <option {{#unless module.offers-v2.locationEnabled}}selected{{/unless}} value="0" data-i18n="control-center-disabled"></option>
+                <option {{#if module.offers-v2.locationEnabled}}selected{{/if}} value="1" data-i18n="control_center_enabled"></option>
+                <option {{#unless module.offers-v2.locationEnabled}}selected{{/unless}} value="0" data-i18n="control_center_disabled"></option>
           </select>
         </span>
       </div>

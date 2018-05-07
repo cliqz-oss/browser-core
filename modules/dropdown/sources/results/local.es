@@ -1,7 +1,4 @@
-import BaseResult, { Subresult } from './base';
-import console from '../../core/console';
-import utils from '../../core/utils';
-import config from '../../core/config';
+import { Subresult } from './base';
 
 class LocalInfoResult extends Subresult {
   get mapImg() {
@@ -18,8 +15,8 @@ class TextResult extends Subresult {
     return this.rawResult.text;
   }
 
-  click(window, href, ev) {
-    this.actions.copyToClipboard(this.rawResult.text);
+  click(href, ev) {
+    this.resultTools.actions.copyToClipboard(this.rawResult.text);
     const el = ev.target;
     el.classList.add('copied');
     setTimeout(() => {
@@ -28,7 +25,7 @@ class TextResult extends Subresult {
   }
 }
 
-export class ShareLocationButton extends BaseResult {
+export class ShareLocationButton extends Subresult {
   get elementId() {
     if (!this._elementId) {
       const id = Math.floor(Math.random() * 1000);
@@ -57,15 +54,11 @@ export class ShareLocationButton extends BaseResult {
     this.spinner.className = 'spinner';
   }
 
-  click(window, href) {
+  click(href) {
     this.element.appendChild(this.spinner);
 
     const action = JSON.parse(href.split('cliqz-actions,')[1]);
-    const locationAssistant = this.actions.locationAssistant;
     const actionName = action.actionName;
-    if (!locationAssistant.hasAction(actionName)) {
-      return;
-    }
 
     const signal = {
       type: 'results',
@@ -74,15 +67,13 @@ export class ShareLocationButton extends BaseResult {
     };
     if (actionName === 'allowOnce') {
       signal.target = 'share_location_once';
-      utils.telemetry(signal);
+      this.resultTools.actions.telemetry(signal);
     } else if (actionName === 'allow') {
       signal.target = 'share_location_always';
-      utils.telemetry(signal);
+      this.resultTools.actions.telemetry(signal);
     }
 
-    locationAssistant[actionName]().then(() => {
-      this.rawResult.onButtonClick();
-    }).catch(console.error);
+    this.rawResult.onButtonClick(actionName);
   }
 }
 
@@ -99,14 +90,11 @@ export default class LocalResult extends Subresult {
       return null;
     }
 
-    const addressResult = new TextResult(this, {
+    return new TextResult(this, {
       url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: 'copyAddress' })}`,
       text: address,
       textType: 'local-address',
     });
-    addressResult.actions = this.actions;
-
-    return addressResult;
   }
 
   get phoneNumber() {
@@ -116,14 +104,11 @@ export default class LocalResult extends Subresult {
       return null;
     }
 
-    const phoneResult = new TextResult(this, {
+    return new TextResult(this, {
       url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: 'copyPhoneNumber' })}`,
       text: phone,
       textType: 'local-phone',
     });
-    phoneResult.actions = this.actions;
-
-    return phoneResult;
   }
 
   get mapImg() {
@@ -166,18 +151,7 @@ export default class LocalResult extends Subresult {
   }
 
   get distance() {
-    if (this.extra.lat && this.extra.lon) {
-      const distance = utils.distance(this.extra.lon, this.extra.lat) * 1000;
-      if (distance > -1) {
-        return distance;
-      }
-    }
-
-    if (this.extra.distance) {
-      return this.extra.distance;
-    }
-
-    return null;
+    return this.extra.distance;
   }
 
   get ratingImg() {
@@ -187,7 +161,7 @@ export default class LocalResult extends Subresult {
     }
 
     const ratingStars = Math.max(0, Math.min(Math.round(rating), 5));
-    return `${config.settings.CDN_BASEURL}/extension/EZ/richresult/stars${ratingStars}.svg`;
+    return `${this.resultTools.assistants.settings.CDN_BASEURL}/extension/EZ/richresult/stars${ratingStars}.svg`;
   }
 
   parseTime(timeStr) { // e.g. timeStr: 10.30

@@ -1,4 +1,4 @@
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import { isVideoURL, getVideoInfo } from './video-downloader';
 import Panel from '../core/ui/panel';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
@@ -181,10 +181,10 @@ export default class UI {
 
     const promise = UITour.getTarget(this.window, UI_TOUR_ID);
     const icon = `${config.baseURL}video-downloader/images/video-downloader-uitour.svg`;
-    const title = utils.getLocalizedString('video-downloader-uitour-title');
-    const text = utils.getLocalizedString('video-downloader-uitour-description');
-    const btnTryLabel = utils.getLocalizedString('video-downloader-uitour-btn-try');
-    const btnSkipLabel = utils.getLocalizedString('video-downloader-uitour-btn-skip');
+    const title = utils.getLocalizedString('video_downloader_uitour_title');
+    const text = utils.getLocalizedString('video_downloader_uitour_description');
+    const btnTryLabel = utils.getLocalizedString('video_downloader_uitour_btn_try');
+    const btnSkipLabel = utils.getLocalizedString('video_downloader_uitour_btn_skip');
     const buttons = [
       {
         label: btnTryLabel,
@@ -264,8 +264,8 @@ export default class UI {
 
     const promise = UITour.getTarget(this.window, DONWLOADS_UITOUR_ID);
     const icon = null;
-    const title = utils.getLocalizedString('downloads-uitour-title');
-    const text = utils.getLocalizedString('downloads-uitour-description');
+    const title = utils.getLocalizedString('downloads_uitour_title');
+    const text = utils.getLocalizedString('downloads_uitour_description');
 
     const buttons = [
       {
@@ -280,7 +280,7 @@ export default class UI {
             target: 'apple',
           });
           this.background.actions.closeDownloadsUITour(false);
-          utils.openLink(this.window, utils.getLocalizedString('pairing-ios-app'), true, false, false, true);
+          utils.openLink(this.window, utils.getLocalizedString('pairing_ios_app'), true, false, false, true);
         }
       },
       {
@@ -295,7 +295,7 @@ export default class UI {
             target: 'google',
           });
           this.background.actions.closeDownloadsUITour(false);
-          utils.openLink(this.window, utils.getLocalizedString('pairing-android-app'), true, false, false, true);
+          utils.openLink(this.window, utils.getLocalizedString('pairing_android_app'), true, false, false, true);
         }
       }
     ];
@@ -465,7 +465,7 @@ export default class UI {
           const options = JSON.parse(utils.getPref('videoDownloaderOptions', '{}'));
           const audioFile = formats.find(format => format.class === 'audio');
           if (audioFile) {
-            audioFile.name = utils.getLocalizedString('video-downloader-audio-label');
+            audioFile.name = utils.getLocalizedString('video_downloader_audio_label');
           }
           const desiredFormat = formats.find(format =>
             format.name.toLowerCase().replace(' ', '_') === options.quality) || formats[0];

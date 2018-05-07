@@ -1,5 +1,6 @@
 import HistoryManager from '../../core/history-manager';
 import CliqzUtils from '../../core/utils';
+import PlacesUtils from '../places-utils';
 
 const CliqzFreshTabHistory = {
   /**
@@ -42,7 +43,38 @@ const CliqzFreshTabHistory = {
         resolve(result);
       });
     });
-  }
+  },
 };
 
 export default CliqzFreshTabHistory;
+
+export function isURLVisited(url) {
+  const URI = Services.io.newURI(url, '', null);
+
+  return new Promise((resolve, reject) => {
+    try {
+      PlacesUtils.asyncHistory.isURIVisited(URI, (aURI, isVisited) => {
+        resolve(isVisited);
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
+export function getDomains() {
+  const ONE_MINUTE = 60 * 1000;
+  const ONE_DAY = 24 * 60 * ONE_MINUTE;
+  const ONE_MONTH = 30 * ONE_DAY;
+  const sqlStatement = 'SELECT * FROM moz_places WHERE last_visit_date>:date';
+  const sqlOutputParameters = ['url', 'last_visit_date', 'visit_count'];
+  const sqlInputParameters = { date: (Date.now() - ONE_MONTH) * 1000 };
+  const records = [];
+
+  return HistoryManager.PlacesInterestsStorage._execute(
+    sqlStatement,
+    sqlOutputParameters,
+    records.push.bind(records),
+    sqlInputParameters
+  ).then(() => records);
+}

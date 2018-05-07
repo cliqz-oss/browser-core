@@ -16,8 +16,8 @@ function getCurrentDate() {
 export default describeModule('anolysis/internals/signals-queue',
   () => ({
     ...mockDexie,
-    'core/cliqz': {
-      utils: {
+    'core/utils': {
+      default: {
         setInterval() {},
         setTimeout(cb) { cb(); },
       },

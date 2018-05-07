@@ -2,7 +2,7 @@
 /* eslint func-names: 'off' */
 /* eslint prefer-arrow-callback: 'off' */
 
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import MapCache from '../core/helpers/fixed-size-cache';
 import * as datetime from './time';
 import config from '../core/config';

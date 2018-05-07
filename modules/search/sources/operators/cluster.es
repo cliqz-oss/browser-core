@@ -1,4 +1,5 @@
 import { clean, getMainLink } from './normalize';
+import { isAutocompletable } from './results/utils';
 
 const group = (a, b) =>
   a.set(b.domain, [...(a.get(b.domain) || []), b]);
@@ -24,16 +25,20 @@ const extractCommonPrefix = (links) => {
   return sharedStart(paths);
 };
 
-const makeHeader = (domain, query, scheme = 'http', provider) => clean({
-  title: domain,
-  url: `${scheme}://${domain}/`,
-  text: query,
-  provider,
-  meta: {
-    level: 0,
-    type: 'main',
-  },
-});
+const makeHeader = (domain, query, scheme = 'http', provider) => {
+  const url = `${scheme}://${domain}/`;
+  return clean({
+    title: domain,
+    url,
+    text: query,
+    provider,
+    meta: {
+      level: 0,
+      type: 'main',
+      isAutocompletable: isAutocompletable(query, url),
+    },
+  });
+};
 
 // TODO: cluster by subdomains (e.g., maps.google.com)
 // TODO: set max. domain count for clustering
@@ -74,7 +79,18 @@ const cluster = (({ results, ...response }) => {
       let header;
 
       if (main) {
-        header = getMainLink(main);
+        // do not mutate original result but deep clone
+        const mainLink = getMainLink(main);
+        header = {
+          ...mainLink,
+          extra: {
+            ...mainLink.extra,
+          },
+          meta: {
+            ...mainLink.meta,
+          },
+          kind: [...mainLink.kind],
+        };
       }
 
       if (!header) {
@@ -98,6 +114,7 @@ const cluster = (({ results, ...response }) => {
               ...link,
               kind: ['C', ...link.kind],
               meta: {
+                ...link.meta,
                 level: 1,
                 type: 'history',
               }

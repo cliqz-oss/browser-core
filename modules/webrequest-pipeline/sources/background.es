@@ -5,6 +5,7 @@ import WebRequest, { VALID_RESPONSE_PROPERTIES, EXTRA_INFO_SPEC } from '../core/
 import Pipeline from './pipeline';
 import WebRequestContext from './webrequest-context';
 import PageStore from './page-store';
+import { installFetchSanitizer } from './fetch-sanitizer';
 import logger from './logger';
 import { isChromium, isEdge } from '../core/platform';
 
@@ -49,7 +50,8 @@ function createResponse(details) {
       if (!this.requestHeaders) {
         this.requestHeaders = [...(details.requestHeaders || [])];
       }
-      const headerIndex = this.requestHeaders.findIndex(h => h.name === name);
+      const name_ = name.toLowerCase();
+      const headerIndex = this.requestHeaders.findIndex(h => h.name.toLowerCase() === name_);
       if (isChromium && !value) {
         // empty value on chromium: remove header
         if (headerIndex > -1) {
@@ -126,6 +128,8 @@ export default background({
     this.pageStore.init();
 
     this.initialized = true;
+
+    this.installGlobalHandlers();
   },
 
   unload() {
@@ -228,6 +232,13 @@ export default background({
     }
 
     return pipeline;
+  },
+
+  installGlobalHandlers() {
+    const addHandler = (stage, opts) => {
+      this.getPipeline(stage).addPipelineStep(opts);
+    };
+    installFetchSanitizer(addHandler);
   },
 
   events: {

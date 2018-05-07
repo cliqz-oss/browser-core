@@ -1,17 +1,20 @@
-/* eslint func-names: "off" */
-/* eslint no-unused-vars: "off" */
-/* eslint prefer-arrow-callback: "off" */
-/* global window */
+/* global $cliqzResults, EventUtils, press,
+  registerInterval, TestIntervals, waitFor, window */
 
-function injectTestHelpers(CliqzUtils, loadModule) {
+/* eslint func-names: "off" */
+/* eslint no-unused-vars: 'off' */
+/* eslint no-undef: 'off' */
+/* eslint prefer-arrow-callback: "off" */
+/* eslint no-console: 'off' */
+/* eslint no-param-reassign: 'off' */
+
+function injectTestHelpers(CliqzUtils) {
   const win = CliqzUtils.getWindow();
   const urlBar = win.CLIQZ.Core.urlbar;
   const lang = CliqzUtils.getLocalizedString('locale_lang_code');
   const TIP = Components.classes['@mozilla.org/text-input-processor;1']
     .createInstance(Components.interfaces.nsITextInputProcessor);
   let popup = win.CLIQZ.Core.popup;
-
-  window.getModule = loadModule;
 
   window.fillIn = function fillIn(text) {
     urlBar.valueIsTyped = true;
@@ -33,23 +36,34 @@ function injectTestHelpers(CliqzUtils, loadModule) {
     let resolver;
     let rejecter;
     let interval;
+    let error;
+
     const promise = new Promise(function (res, rej) {
       resolver = res;
       rejecter = rej;
     });
 
     function check() {
-      if (fn()) {
+      let result = false;
+
+      try {
+        result = fn();
+      } catch (e) {
+        error = e;
+      }
+
+      if (result) {
         clearInterval(interval);
-        resolver();
+        resolver(result);
       }
     }
+
     interval = setInterval(check, 100);
     check();
     registerInterval(interval);
 
     if (until) {
-      setTimeout(rejecter, until);
+      setTimeout(() => rejecter(error), until);
     }
 
     return promise;
@@ -106,8 +120,6 @@ function injectTestHelpers(CliqzUtils, loadModule) {
   };
 
   window.press = function press(opt) {
-    let modKey;
-    let modCode;
     let modifierEvent;
 
     const event = new KeyboardEvent('', {
@@ -115,33 +127,37 @@ function injectTestHelpers(CliqzUtils, loadModule) {
       code: opt.code || opt.key
     });
 
-    if (
-      (
-        opt.ctrlKey !== undefined ||
-        opt.altKey !== undefined ||
-        opt.metaKey !== undefined ||
-        opt.shiftKey !== undefined
-      )
-    ) {
-      if (opt.ctrlKey === true) {
-        modKey = 'Control';
-        modCode = 'ControlLeft';
-      } else if (opt.metaKey === true) {
-        modKey = 'Meta';
-        modCode = 'MetaLeft';
-      } else if (opt.shiftKey === true) {
-        modKey = 'Shift';
-        modCode = 'ShiftLeft';
-      }
+    TIP.beginInputTransaction(win, console.log);
 
+    if (opt.ctrlKey) {
       modifierEvent = new KeyboardEvent('', {
-        key: modKey,
-        code: modCode
+        key: 'Control',
+        code: 'ControlLeft'
       });
+      TIP.keydown(modifierEvent);
     }
 
-    TIP.beginInputTransaction(win, console.log);
-    if (modifierEvent !== undefined) {
+    if (opt.shiftKey) {
+      modifierEvent = new KeyboardEvent('', {
+        key: 'Shift',
+        code: 'ShiftLeft'
+      });
+      TIP.keydown(modifierEvent);
+    }
+
+    if (opt.altKey) {
+      modifierEvent = new KeyboardEvent('', {
+        key: 'Alt',
+        code: 'AltLeft'
+      });
+      TIP.keydown(modifierEvent);
+    }
+
+    if (opt.metaKey) {
+      modifierEvent = new KeyboardEvent('', {
+        key: 'Meta',
+        code: 'MetaLeft'
+      });
       TIP.keydown(modifierEvent);
     }
 
@@ -218,15 +234,15 @@ function injectTestHelpers(CliqzUtils, loadModule) {
         });
       };
     };
-  }
+  };
 
   // patches getSnippet which calls RichHeader directly
-  window.respondWithSnippet = function respondWith(snippet) {
+  window.respondWithSnippet = function respondWithSnippet(res) {
     CliqzUtils.fetchFactory = function () {
-      return function fetch(url) {
+      return function fetch() {
         return Promise.resolve({
           json() {
-            return Promise.resolve(snippet);
+            return Promise.resolve(res);
           },
         });
       };
@@ -243,22 +259,42 @@ function injectTestHelpers(CliqzUtils, loadModule) {
     };
   };
 
-  window.$cliqzResults = function $cliqzResults() {
-    return $(win.document.getElementById('cliqz-dropdown'));
+  window.patchGeolocation = function patchGeolocation(geo) {
+    // window.getModule('geolocation/background')
+    getWindow().CLIQZ.app.modules
+      .geolocation.background.getRawGeolocationData = function () {
+        return Promise.resolve(geo);
+      };
+  };
+
+  window.$cliqzResults = {
+    _getEl() {
+      return $(win.document.getElementById('cliqz-popup').contentWindow.document.getElementById('cliqz-dropdown'));
+    },
+    querySelector(...args) {
+      return this._getEl()[0].querySelector(...args);
+    },
+    querySelectorAll(...args) {
+      return this._getEl()[0].querySelectorAll(...args);
+    }
   };
 
   window.$cliqzMessageContainer = function $cliqzResults() {
     return $(win.document.getElementById('cliqz-message-container'));
   };
 
-  window.waitForPopup = function () {
+  window.waitForPopup = function (resultsCount) {
     return waitFor(function () {
-      popup = win.document.getElementById('PopupAutoCompleteRichResultCliqz');
-      return popup && popup.mPopupOpen === true;
-    }).then(function () {
-      return new Promise(function (resolve) {
-        CliqzUtils.setTimeout(resolve, 200);
-      });
+      popup = win.document.getElementById('cliqz-popup');
+      const dropdown = window.$cliqzResults;
+      return popup && (popup.style.height !== '0px') && dropdown;
+    }).then(function (dropdown) {
+      if (!resultsCount) {
+        return Promise.resolve(dropdown);
+      }
+      return waitFor(function () {
+        return chai.expect($cliqzResults.querySelectorAll('.cliqz-result')).to.have.length(resultsCount);
+      }, 700).then(() => dropdown);
     });
   };
 
@@ -291,6 +327,15 @@ function injectTestHelpers(CliqzUtils, loadModule) {
 
   window.getLocaliseString = function (targets) {
     return lang === 'de-DE' ? targets.de : targets.default;
+  };
+
+  window.getLocalisedString = function () {
+    if (lang === 'de-DE') {
+      return CliqzUtils.locale.de;
+    } else if (lang === 'en-US') {
+      return CliqzUtils.locale.en;
+    }
+    return CliqzUtils.locale.default;
   };
 
   window.closeAllTabs = function (gBrowser) {

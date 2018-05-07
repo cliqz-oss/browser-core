@@ -5,14 +5,14 @@
 const urls = require('./common/urls');
 
 module.exports = {
-  "platform": "chromium",
-  "brocfile": "node.Brocfile.js",
+  "platform": "webextension",
+  "brocfile": "Brocfile.node.js",
   "baseURL": "/cliqz/",
   "pack": "npm pack",
   "publish": "aws s3 cp browser-core-$PACKAGE_VERSION.tgz s3://cdncliqz/update/edge/ghostery/$BRANCH_NAME/$VERSION.tgz --acl public-read && aws s3 cp s3://cdncliqz/update/edge/ghostery/$BRANCH_NAME/$VERSION.tgz s3://cdncliqz/update/edge/ghostery/$BRANCH_NAME/latest.tgz --acl public-read",
   "sourceMaps": false,
   "format": "common",
-  "settings": Object.assign({
+  "settings": Object.assign({}, urls, {
     "channel": "CH80",
     "triggers-root": "ghostery-root",
     "CONFIG_PROVIDER": "https://safe-browsing.ghostery.com/config",
@@ -40,8 +40,6 @@ module.exports = {
     "TRACKER_PROXY_PROXY_SIGNALING_DEFAULT": "wss://p2p-signaling-proxypeer.cliqz.com",
     "TRACKER_PROXY_PROXY_PEERS_DEFAULT": "https://p2p-signaling-proxypeer.cliqz.com/peers",
     "TRACKER_PROXY_PROXY_PEERS_EXIT_DEFAULT": "https://p2p-signaling-proxypeer.cliqz.com/exitNodes",
-    "GID_BACKEND_URL" : "https://anolysis-gid.cliqz.com",
-    "TELEMETRY_BACKEND_URL" : "https://anolysis-telemetry.cliqz.com/collect",
     "BW_URL": "https://antiphishing.cliqz.com/api/bwlist?md5=",
     "PRIVACY_SCORE_URL": "https://anti-tracking.cliqz.com/api/v1/score?",
     "SUPPORT_URL": "https://cliqz.com/support/",
@@ -63,11 +61,13 @@ module.exports = {
     "TELEMETRY_ENDPOINT": "https://safebrowsing-experiment.cliqz.com",
     "INVENTORY_URL": "https://cdn.cliqz.com/browser-f/fun-demo/inventoryv2.txt.gz",
     "OFFER_TELEMETRY": "https://offers-api.cliqz.com/api/v1/savesignal",
-    "OFFER_TELEMETRY_PREFIX": "https://offers-api.cliqz.com"
-  }, urls),
+    "OFFER_TELEMETRY_PREFIX": "https://offers-api.cliqz.com",
+    "antitrackingPlaceholder": "ghostery",
+    "antitrackingHeader": "Ghostery-AntiTracking",
+  }),
   "default_prefs": {
     "modules.human-web.enabled": true,
-    "modules.offers-v2.enabled": false,
+    "modules.offers-v2.enabled": true,
     "modules.message-center.enabled": false,
     "modules.antitracking.enabled": true,
     "modules.anti-phishing.enabled": false,
@@ -83,8 +83,6 @@ module.exports = {
     "cliqz-anti-phishing-enabled": true,
     "attrackRemoveQueryStringTracking": false,
     "attrackTelemetryMode": 0,
-    "attrack.placeHolder": "ghostery",
-    "attrack.cliqzHeader": "Ghostery-AntiTracking",
     "attrackDefaultAction": "placeholder",
     "sendAntiTrackingHeader": false
   },

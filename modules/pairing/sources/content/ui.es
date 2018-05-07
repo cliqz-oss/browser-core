@@ -115,12 +115,12 @@ export default class PairingUI {
     if (isMasterConnected) {
       $('#connection-status-img').attr('src', images.pairing_status_active);
       $('#connection-status-text').attr('class', 'connected');
-      $('#connection-status-text').text(this.i18n('pairing-online'));
+      $('#connection-status-text').text(this.i18n('pairing_online'));
       $('#on-disconnected-tip').css('display', 'none');
     } else {
       $('#connection-status-img').attr('src', images.pairing_status_disconnected);
       $('#connection-status-text').attr('class', 'disconnected');
-      $('#connection-status-text').text(this.i18n('pairing-offline'));
+      $('#connection-status-text').text(this.i18n('pairing_offline'));
       $('#on-disconnected-tip').css('display', 'block');
     }
   }
@@ -169,28 +169,28 @@ export default class PairingUI {
     };
 
     data.i18n = {
-      title: this.i18n('pairing-title'),
-      instructionsTitle: this.i18n('pairing-instructions-title'),
-      instructionsAndroid: this.i18n('pairing-instructions-playstore'),
-      instructionsIOs: this.i18n('pairing-instructions-appstore'),
+      title: this.i18n('pairing_title'),
+      instructionsTitle: this.i18n('pairing_instructions_title'),
+      instructionsAndroid: this.i18n('pairing_instructions_playstore'),
+      instructionsIOs: this.i18n('pairing_instructions_appstore'),
 
-      videoDownloaderTitle: this.i18n('pairing-video-title'),
-      receiveTabTitle: this.i18n('pairing-receive-tab-title'),
-      sendTabTitle: this.i18n('pairing-send-tab-title'),
+      videoDownloaderTitle: this.i18n('pairing_video_title'),
+      receiveTabTitle: this.i18n('pairing_receive_tab_title'),
+      sendTabTitle: this.i18n('pairing_send_tab_title'),
 
-      connectedTitle: this.i18n('pairing-status-title'),
-      pairingBrowserPairWith: this.i18n('pairing-browser-pair-with'),
-      onDisconnectedTip: this.i18n('pairing-on-disconnected-tip'),
-      contactSupport: this.i18n('pairing-contact-support'),
-      contactLearnMore: this.i18n('pairing-contact-learn-more'),
+      connectedTitle: this.i18n('pairing_status_title'),
+      pairingBrowserPairWith: this.i18n('pairing_browser_pair_with'),
+      onDisconnectedTip: this.i18n('pairing_on_disconnected_tip'),
+      contactSupport: this.i18n('pairing_contact_support'),
+      contactLearnMore: this.i18n('pairing_contact_learn_more'),
 
-      pairingScanTitle: this.i18n('pairing-scan-title'),
-      pairingErrorMessage: this.i18n('pairing-error-message'),
+      pairingScanTitle: this.i18n('pairing_scan_title'),
+      pairingErrorMessage: this.i18n('pairing_error_message'),
 
-      pairingAllFeatures: this.i18n('pairing-all-features-title'),
-      pairingEnabledFeatures: this.i18n('pairing-enabled-features-title'),
+      pairingAllFeatures: this.i18n('pairing_all_features_title'),
+      pairingEnabledFeatures: this.i18n('pairing_enabled_features_title'),
 
-      unpair: this.i18n('pairing-unpair'),
+      unpair: this.i18n('pairing_unpair'),
     };
 
     $('#content').html(this.TEMPLATE_CACHE.template(data));

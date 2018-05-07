@@ -1,4 +1,4 @@
-import { timestampMS } from '../utils';
+import { timestampMS, shouldKeepResource } from '../utils';
 import logger from '../common/offers_v2_logger';
 import Offer from './offer';
 import prefs from '../../core/prefs';
@@ -85,11 +85,17 @@ export default class IntentOffersHandler {
     return this.backendConnector.sendApiRequest(
       'offers',
       { intent_name: intentName },
-      'GET').then((intentOffers) => {
-      if (!intentOffers) {
+      'GET').then((aIntentOffers) => {
+      if (!aIntentOffers) {
         logger.error('Invalid intent offers fetched for intent: ', intentName);
         return Promise.reject();
       }
+
+      // #EX-7061 - filter all the offers that dont belong to us
+      const keepOffer = o =>
+        o && ((o.user_group === undefined) || shouldKeepResource(o.user_group));
+
+      const intentOffers = aIntentOffers.filter(keepOffer);
 
       if (logger.LOG_LEVEL === 'debug') {
         logger.debug('Following offers were fetched');

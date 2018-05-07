@@ -4,22 +4,23 @@ import { CHROME_MSG_SOURCE, isCliqzContentScriptMsg } from '../../core/content/h
 import checkIfChromeReady from './ready-promise';
 
 function createSpananForModule(moduleName) {
-  return new Spanan(({ uuid, functionName, args }) => {
+  const spanan = new Spanan(({ uuid, action, args }) => {
     const message = {
       source: CHROME_MSG_SOURCE,
       target: 'cliqz',
       module: moduleName,
-      action: functionName,
+      action,
       requestId: uuid,
       args
     };
     chrome.runtime.sendMessage(message,
-      response => Spanan.dispatch({
+      response => spanan.handleMessage({
         uuid,
-        returnedValue: response.response
+        response: response.response
       })
     );
   });
+  return spanan;
 }
 
 let INSTANCE = null;
@@ -28,12 +29,19 @@ class Cliqz {
   constructor() {
     const freshtab = createSpananForModule('freshtab');
     const core = createSpananForModule('core');
+    const search = createSpananForModule('search');
     const offersV2 = createSpananForModule('offers-v2');
+    const api = new Spanan();
     const cliqz = this;
 
-    this.export = Spanan.export;
+    this.export = api.export;
 
-    Spanan.export({
+    api.export({
+      renderResults(results) {
+        cliqz.storage.setState(() => ({
+          results,
+        }));
+      },
       closeNotification(messageId) {
         cliqz.storage.setState((prevState) => {
           const messages = Object.assign({}, prevState.messages);
@@ -79,17 +87,28 @@ class Cliqz {
         return;
       }
 
-      Spanan.dispatch(message);
+      api.handleMessage(message);
+      core.handleMessage(message);
+      freshtab.handleMessage(message);
+      offersV2.handleMessage(message);
     };
 
     const onMessage = (message) => {
-      if (!isCliqzContentScriptMsg(message)) {
+      const msg = {
+        uuid: message.requestId,
+        response: message.response,
+        action: message.action,
+        args: message.args,
+      };
+
+      if (isCliqzContentScriptMsg(message)) {
+        core.handleMessage(msg);
+        freshtab.handleMessage(msg);
+        offersV2.handleMessage(msg);
         return;
       }
-      Spanan.dispatch({
-        uuid: message.requestId,
-        returnedValue: message.response
-      });
+
+      api.handleMessage(msg);
     };
 
     checkIfChromeReady().then(() => {
@@ -105,6 +124,7 @@ class Cliqz {
     this.freshtab = freshtab.createProxy();
     this.core = core.createProxy();
     this.offersV2 = offersV2.createProxy();
+    this.search = search.createProxy();
   }
 
   static getInstance() {

@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, Image } from 'react-native';
 import utils from '../../../core/utils';
 
 const defaultIconStyle =
-  (width, height, backgroundHex = '000', textColor = '#FFF') =>
+  (width, height, backgroundHex = '000') =>
     StyleSheet.create({
       containter: {
         width,
@@ -13,7 +13,7 @@ const defaultIconStyle =
         alignItems: 'center',
       },
       text: {
-        color: textColor,
+        color: 'white',
       }
     });
 
@@ -36,8 +36,8 @@ export default class extends React.Component {
     return Promise.resolve(<View style={style.containter} />);
   }
 
-  getDefaultIcon(width, height, backgroundColor, textColor, text) {
-    const style = defaultIconStyle(width, height, backgroundColor, textColor);
+  getDefaultIcon(width, height, backgroundColor, text) {
+    const style = defaultIconStyle(width, height, backgroundColor);
     return Promise.resolve(
       <View style={style.containter} >
         <Text style={style.text}>{text}</Text>
@@ -60,6 +60,13 @@ export default class extends React.Component {
       .replace('url(', '')
       .replace('logos', 'pngs')
       .replace('.svg)', '_192.png');
+  }
+
+  isLatestIcon(url, logoDetails) {
+    if (this.props.logoDetails) {
+      return this.props.logoDetails.style === logoDetails.style;
+    }
+    return this.props.url === url;
   }
 
   updateState(props) {
@@ -85,11 +92,10 @@ export default class extends React.Component {
         .then(icon => this.setState({ icon }));
 
       this.getLogo(width, height, iconUrl)
-        .then(icon => this.setState({ icon }));
+        .then(icon => this.isLatestIcon(url, logoDetails) && this.setState({ icon }));
     } else if (logoDetails.backgroundColor) {
       const text = logoDetails.text;
-      const textColor = logoDetails.color;
-      this.getDefaultIcon(width, height, backgroundColor, textColor, text)
+      this.getDefaultIcon(width, height, backgroundColor, text)
         .then(icon => this.setState({ icon }));
     }
   }

@@ -5,6 +5,9 @@ import events from '../core/events';
 import console from '../core/console';
 import { getMessage } from '../core/i18n';
 import { getThemeStyle } from '../platform/browser';
+import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
+
+const STYLESHEET_URL = `chrome://cliqz/content/control-center/styles/xul.css`;
 
 const BTN_ID = 'cliqz-cc-btn';
 const TELEMETRY_TYPE = 'control_center';
@@ -54,6 +57,7 @@ export default class Win {
   }
 
   init() {
+    addStylesheet(this.window.document, STYLESHEET_URL);
     this.toolbarButton = this.background.toolbarButton;
     this.pageAction = this.background.pageAction;
 
@@ -151,6 +155,7 @@ export default class Win {
   }
 
   unload() {
+    removeStylesheet(this.window.document, STYLESHEET_URL);
     this.toolbarButton && this.toolbarButton.removeWindow(this.window);
     this.pageAction && this.pageAction.removeWindow(this.window);
 

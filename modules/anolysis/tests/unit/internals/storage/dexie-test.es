@@ -16,8 +16,8 @@ export default describeModule('anolysis/internals/storage/dexie',
     'core/database': {
       default: class Database { destroy() { return Promise.resolve(); } },
     },
-    'core/cliqz': {
-      utils: {
+    'core/utils': {
+      default: {
         setTimeout(cb) { cb(); },
         setInterval() {},
       },

@@ -12,7 +12,7 @@ class Enricher {
   connect(target, source) {
     // FIXME: this is never unsubscribed from!
     return target
-      .combineLatest(source)
+      .combineLatest(source.startWith({ results: [] }))
       .map(this.enrich.bind(this));
   }
 
@@ -31,19 +31,16 @@ class Enricher {
         result,
       ])
       .forEach(([main, result]) => sources.set(main && main.meta.url, result));
-
     const enriched = {
       results: results.map((result) => {
         // TODO: assumes there is a 'main' link and that it's the first
         const [main, ...others] = result.links;
-
         const url = main.meta.url;
 
         const match = this.cache.get(url) || sources.get(url);
         if (!match) {
           return result;
         }
-
         logger.debug(`Enrich '${url}' (cached: ${this.cache.has(url)})`,
           result, match);
 
@@ -54,6 +51,7 @@ class Enricher {
           links: [
             {
               ...matchMainLink,
+              style: [main.style, matchMainLink.style].filter(Boolean).join(' '),
               provider: main.provider,
               kind: main.kind,
               text: main.text,
@@ -63,6 +61,7 @@ class Enricher {
               },
               meta: {
                 ...main.meta,
+                originalUrl: main.url,
                 isEnriched: true,
               },
             },

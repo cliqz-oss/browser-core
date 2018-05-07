@@ -38,7 +38,7 @@ context('Offers Hub Interaction tests for one offer', function () {
 
     it('with the text \'copy code\'', function () {
       expect(subject.query(codeButtonSelector).textContent.trim())
-        .to.equal('offers-hub-copy-btn');
+        .to.equal('offers_hub_copy_btn');
     });
 
     context('click on the code button', function () {
@@ -50,7 +50,7 @@ context('Offers Hub Interaction tests for one offer', function () {
         subject.query(codeButtonSelector).click();
 
         return waitFor(function () {
-          return subject.query(codeButtonSelector).textContent.trim() !== 'offers-hub-copy-btn';
+          return subject.query(codeButtonSelector).textContent.trim() !== 'offers_hub_copy_btn';
         });
       });
 
@@ -60,7 +60,7 @@ context('Offers Hub Interaction tests for one offer', function () {
 
       it('renders \'code copied\'', function () {
         expect(subject.query(codeButtonSelector).textContent.trim())
-          .to.equal('offers-hub-code-copy');
+          .to.equal('offers_hub_code_copy');
       });
     });
   });
@@ -99,9 +99,9 @@ context('Offers Hub Interaction tests for one offer', function () {
       it('renders popup for deleting offer', function () {
         expect(subject.query(deletePopupSelector)).to.exist;
         expect(subject.getComputedStyle(deletePopupSelector).display).to.equal('block');
-        expect(subject.query(`${deletePopupSelector} [data-i18n="offers-hub-remove"]`)).to.exist;
-        expect(subject.query(`${deletePopupSelector} [data-i18n="offers-hub-remove"]`)
-          .textContent.trim()).to.equal('offers-hub-remove');
+        expect(subject.query(`${deletePopupSelector} [data-i18n="offers_hub_remove"]`)).to.exist;
+        expect(subject.query(`${deletePopupSelector} [data-i18n="offers_hub_remove"]`)
+          .textContent.trim()).to.equal('offers_hub_remove');
       });
     });
   });

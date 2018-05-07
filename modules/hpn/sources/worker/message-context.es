@@ -39,7 +39,8 @@ function padMessage(msg) {
   const mxLen = 14000;
   const padLen = (mxLen - msg.length) + 1;
   if (padLen < 0) {
-    throw new Error('msgtoobig');
+    throw new Error(`msgtoobig (size=${msg.length} exceeds limit=${mxLen}, ` +
+                    `<message>${msg.substr(0, 100)}<...rest is skipped>)`);
   }
   return msg + new Array(padLen).join('\n');
 }
@@ -266,7 +267,7 @@ export default class MessageContext {
             try {
               msgEncrypt = padMessage(JSON.stringify(encryptionPaylod));
             } catch (e) {
-              reject(e);
+              reject(`padMessage failed (message type: ${type}): ${e}`);
               return;
             }
           }

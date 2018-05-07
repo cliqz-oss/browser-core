@@ -51,9 +51,11 @@ export default background({
       if (msg.data.requestId in callbacks) {
         this.handleResponse(msg);
       }
-    } else {
-      this.handleRequest(msg);
+      return false;
     }
+
+    this.handleRequest(msg);
+    return true;
   },
 
   handleRequest(msg) {
@@ -61,11 +63,11 @@ export default background({
     const { action, module, args } = payload;
 
     // inject the required module, then call the requested action
-    inject
+    return inject
       .module(module)
       .action(action, ...[...(args || []), sender])
       .catch((e) => {
-        if (e.constructor.name === 'ModuleDisabledError') {
+        if (e.name === 'ModuleDisabledError') {
           return {
             moduleDisabled: true,
           };
@@ -226,7 +228,9 @@ export default background({
     },
     sendTelemetry(...args) {
       // Get rid of latest argument, which is the information about sender
-      args.pop();
+      if (args.length > 1) {
+        args.pop();
+      }
       return Promise.resolve(utils.telemetry(...args));
     },
 
@@ -262,13 +266,6 @@ export default background({
     getReminders(domain) {
       return getReminders(domain);
     },
-
-    closePopup() {
-      const popup = utils.getWindow().CLIQZ.Core.popup;
-
-      popup.hidePopup();
-    },
-
     setUrlbar(value) {
       const urlBar = utils.getWindow().document.getElementById('urlbar');
       urlBar.mInputField.value = value;

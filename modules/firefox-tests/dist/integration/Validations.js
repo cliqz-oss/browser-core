@@ -1,5 +1,8 @@
+/* global chai, TESTS, waitFor */
 
-DEPS.Validations = ['core/utils'];
+/* eslint func-names: 'off' */
+/* eslint prefer-arrow-callback: 'off' */
+
 TESTS.Validations = function (CliqzUtils) {
   describe('Should load locales', function () {
     this.retries(1);
@@ -10,9 +13,9 @@ TESTS.Validations = function (CliqzUtils) {
       const locales = new Map();
       langs.forEach(function (lang) {
         CliqzUtils.loadResource(
-          `${CliqzUtils.LOCALE_PATH}/${lang}/cliqz.json`,
+          `${CliqzUtils.LOCALE_PATH}/${lang}/messages.json`,
           req => locales.set(lang, req.response)
-        )
+        );
       });
 
       return waitFor(function () {

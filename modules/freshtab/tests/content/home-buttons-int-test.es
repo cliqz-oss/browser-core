@@ -74,7 +74,7 @@ describe('Fresh tab interactions with buttons', function () {
 
     describe('and then clicking on a close button', function () {
       beforeEach(function () {
-        const settingsCloseButtonSelector = 'button.close';
+        const settingsCloseButtonSelector = '#settings-panel button.close';
         subject.query(settingsCloseButtonSelector).click();
         return waitFor(() => !subject.query(settingsPanelSelector).classList.contains('visible'));
       });

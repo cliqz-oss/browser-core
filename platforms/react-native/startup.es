@@ -1,14 +1,16 @@
 /* global System */
 import { NativeModules, InteractionManager } from 'react-native';
-import { loadPrefs, setPref, getPref } from './prefs';
+import { setPref, getPref } from './prefs';
 import console from '../core/console';
 import App from '../core/app';
-import bridge from './native-bridge';
+import Bridge from './native-bridge';
 import utils from '../core/utils';
 import crypto from './crypto';
 import { fromBase64, toBase64 } from '../core/encoding';
 import inject from '../core/kord/inject';
 import modules from '../core/app/modules';
+import window from './window';
+import webRequest from './webrequest';
 
 const Crypto = NativeModules.Crypto;
 
@@ -34,20 +36,22 @@ const seedPromise = Promise.resolve()
     }
   });
 
+const bridge = new Bridge();
+
 const startup = Promise.all([seedPromise]).then(() => {
   app = new App();
   // register background actions
   Object.keys(app.modules)
-  .filter(mod => modules[mod].Background &&
-                 modules[mod].Background.actions)
-  .forEach((mod) => {
-    const actions = modules[mod].Background.actions;
-    const injectedModule = inject.module(mod);
-    Object.keys(actions).forEach((action) => {
-      console.log('native bridge', `register function ${mod}:${action}`);
-      bridge.registerAction(`${mod}:${action}`, injectedModule.action.bind(injectedModule, action));
+    .filter(mod => modules[mod].Background &&
+                  modules[mod].Background.actions)
+    .forEach((mod) => {
+      const actions = modules[mod].Background.actions;
+      const injectedModule = inject.module(mod);
+      Object.keys(actions).forEach((action) => {
+        console.log('native bridge', `register function ${mod}:${action}`);
+        bridge.registerAction(`${mod}:${action}`, injectedModule.action.bind(injectedModule, action));
+      });
     });
-  });
   return app.start();
 }).then(() => {
   bridge.registerAction('core:getPref', (prefname, defaultValue) =>
@@ -56,8 +60,12 @@ const startup = Promise.all([seedPromise]).then(() => {
   bridge.registerAction('getLogoDetails',
     url => utils.getLogoDetails(utils.getDetailsFromUrl(url))
   );
+  bridge.registerAction('webRequest', webRequest.onBeforeRequest._trigger.bind(webRequest.onBeforeRequest));
 
   InteractionManager.runAfterInteractions(utils.fetchAndStoreConfig);
+  return app.modules.search.getWindowLoadingPromise(window);
+}).then(() => {
+  bridge.activate();
   return app;
 });
 

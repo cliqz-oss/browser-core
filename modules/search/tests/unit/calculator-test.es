@@ -173,10 +173,10 @@ export default describeModule('search/providers/calculator/internal',
               if (key === 'locale_lang_code') {
                 return lang;
               }
-              if (key === 'calculator-thousands-separator') {
+              if (key === 'calculator_thousands_separator') {
                 return LANG_OPTIONS[lang].thousandsSeparator;
               }
-              if (key === 'calculator-decimal-separator') {
+              if (key === 'calculator_decimal_separator') {
                 return LANG_OPTIONS[lang].decimalSeparator;
               }
               return null;

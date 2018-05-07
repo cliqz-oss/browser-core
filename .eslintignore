@@ -23,6 +23,7 @@ modules/dropdown/sources/debug/fixtures/suggestions.es
 modules/dropdown/sources/debug/fixtures/time.es
 modules/dropdown/sources/debug/fixtures/ui-cut-off.es
 modules/dropdown/sources/debug/fixtures/weather.es
+modules/dropdown/sources/debug/fixtures/dialing-code.es
 modules/dropdown/sources/debug/fixtures/youtube.es
 modules/dropdown/sources/debug/index.es
 modules/dropdown/sources/helpers.es
@@ -114,3 +115,4 @@ modules/mobile-ui/sources/views/stocks.es
 modules/mobile-ui/sources/webview.es
 modules/mobile-ui/sources/window.es
 modules/mobile-ui/sources/window.es
+modules/search/tests/unit/operators/decrease-test.es

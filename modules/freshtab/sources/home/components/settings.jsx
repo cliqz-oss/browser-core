@@ -57,7 +57,7 @@ export default class Settings extends React.Component {
             Close
           </button>
           <div className="settings-header">
-            <h1>{t('app.settings.header')}</h1>
+            <h1>{t('app_settings_header')}</h1>
           </div>
 
           {this.props.isBlueThemeSupported &&
@@ -72,7 +72,7 @@ export default class Settings extends React.Component {
           }
 
           <div className="settings-row">
-            <span className="label">{t('app.settings.background.label')}</span>
+            <span className="label">{t('app_settings_background_label')}</span>
             <Switch
               name="background"
               isChecked={this.state.componentsState.background.image !== NO_BG}
@@ -128,13 +128,21 @@ export default class Settings extends React.Component {
                     isActive={this.state.componentsState.background.image === 'bg-matterhorn'}
                   />
                 </li>
+                <li>
+                  <BackgroundImage
+                    onBackgroundImageChanged={this.onBackgroundImageChanged}
+                    bg="bg-spring"
+                    src="./images/bg-spring-thumbnail.png"
+                    isActive={this.state.componentsState.background.image === 'bg-spring'}
+                  />
+                </li>
               </ul>
             </div>
           )
           }
 
           <div className="settings-row">
-            <span className="label">{t('app.settings.most-visited.label')}</span>
+            <span className="label">{t('app_settings_most_visited_label')}</span>
             <Switch
               isChecked={this.state.componentsState.historyDials.visible}
               toggleComponent={() => this.props.toggleComponent('historyDials')}
@@ -145,12 +153,12 @@ export default class Settings extends React.Component {
               disabled={!this.props.hasHistorySpeedDialsToRestore}
               onClick={() => this.props.restoreHistorySpeedDials()}
             >
-              {t('app.settings.most-visited.restore')}
+              {t('app_settings_most_visited_restore')}
             </button>
           </div>
 
           <div className="settings-row">
-            <span className="label">{t('app.settings.favorites.label')}</span>
+            <span className="label">{t('app_settings_favorites_label')}</span>
             <Switch
               isChecked={this.state.componentsState.customDials.visible}
               toggleComponent={() => this.props.toggleComponent('customDials')}
@@ -158,7 +166,7 @@ export default class Settings extends React.Component {
           </div>
 
           <div className="settings-row">
-            <span className="label">{t('app.settings.search.label')}</span>
+            <span className="label">{t('app_settings_search_label')}</span>
             <Switch
               isChecked={this.state.componentsState.search.visible}
               toggleComponent={() => this.props.toggleComponent('search')}
@@ -167,7 +175,7 @@ export default class Settings extends React.Component {
 
           <div className="settings-row">
             <div>
-              <span className="label">{t('app.settings.news.label')}</span>
+              <span className="label">{t('app_settings_news_label')}</span>
               <Switch
                 isChecked={this.state.componentsState.news.visible}
                 toggleComponent={() => this.props.toggleComponent('news')}
@@ -189,7 +197,7 @@ export default class Settings extends React.Component {
                         checked={this.state.componentsState.news.preferedCountry === 'de'}
                         onChange={this.onNewsSelectionChanged}
                       />
-                      {t('app.settings.news.language.de')}
+                      {t('app_settings_news_language_de')}
                     </label>
                   </div>
                   <div className="radio">
@@ -203,7 +211,7 @@ export default class Settings extends React.Component {
                         checked={this.state.componentsState.news.preferedCountry === 'de-tr-en'}
                         onChange={this.onNewsSelectionChanged}
                       />
-                      {t('app.settings.news.language.de-tr-en')}
+                      {t('app_settings_news_language_de_tr_en')}
                     </label>
                   </div>
                   <div className={this.props.focusNews ? 'focused radio' : 'radio'}>
@@ -217,7 +225,7 @@ export default class Settings extends React.Component {
                         checked={this.state.componentsState.news.preferedCountry === 'fr'}
                         onChange={this.onNewsSelectionChanged}
                       />
-                      {t('app.settings.news.language.fr')}
+                      {t('app_settings_news_language_fr')}
                     </label>
                   </div>
                   <div className="radio">
@@ -231,7 +239,7 @@ export default class Settings extends React.Component {
                         checked={this.state.componentsState.news.preferedCountry === 'intl'}
                         onChange={this.onNewsSelectionChanged}
                       />
-                      {t('app.settings.news.language.en')}
+                      {t('app_settings_news_language_en')}
                     </label>
                   </div>
                   <div className="radio">
@@ -245,7 +253,7 @@ export default class Settings extends React.Component {
                         checked={this.state.componentsState.news.preferedCountry === 'us'}
                         onChange={this.onNewsSelectionChanged}
                       />
-                      {t('app.settings.news.language.us')}
+                      {t('app_settings_news_language_us')}
                     </label>
                   </div>
                   <div className="radio">
@@ -259,7 +267,7 @@ export default class Settings extends React.Component {
                         checked={this.state.componentsState.news.preferedCountry === 'gb'}
                         onChange={this.onNewsSelectionChanged}
                       />
-                      {t('app.settings.news.language.gb')}
+                      {t('app_settings_news_language_gb')}
                     </label>
                   </div>
                 </form>

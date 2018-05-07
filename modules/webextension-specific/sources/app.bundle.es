@@ -1,6 +1,8 @@
-/* global app, window */
+/* global window */
 
 import App from '../core/app';
 
-window.app = new App({});
-app.start();
+const CLIQZ = {};
+CLIQZ.app = new App({});
+CLIQZ.app.start();
+window.CLIQZ = CLIQZ;

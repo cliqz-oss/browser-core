@@ -4,7 +4,6 @@ import helpers from './content/helpers';
 import templates from './templates';
 
 Handlebars.partials = templates;
-let lastSeenElements = [];
 
 function sendMessageToWindow(message) {
   postMessage(JSON.stringify({
@@ -51,65 +50,21 @@ function copySelectionText() {
   return copysuccess;
 }
 
-let scrollTimer;
-const shownElements = {};
-
-function scrollFinished() {
-  const parent = $('#cqz-vouchers-holder');
-  // To not have exception in console where there is no offer left
-  if (!parent.length) {
-    return;
-  }
-
-  const parentTop = parent.offset().top;
-  const parentBottom = parent.offset().top + parent.height();
-
-  const currentSeenElements = [];
-  $('#cqz-vouchers-holder > li:visible').each((i, el) => {
-    const elmTop = $(el).offset().top;
-    const elmBotttom = elmTop + $(el).height();
-    const offerId = $(el).data('offer-id');
-
-    if ((elmBotttom <= parentBottom) && (elmTop >= parentTop)) {
-      currentSeenElements.push(offerId);
-    }
-  });
-
-  const difference = currentSeenElements.filter(x => lastSeenElements.indexOf(x) === -1);
-
-  for (let i = 0; i < difference.length; i += 1) {
-    const offerId = difference[i];
-
-    if (shownElements[offerId]) {
-      shownElements[offerId] += 1;
-    } else {
-      shownElements[offerId] = 1;
-    }
-  }
-  lastSeenElements = currentSeenElements;
-
-  sendMessageToWindow({
-    action: 'seenOffers', // TODO: Do we need seenOffers ?
-    data: shownElements
-  });
-}
-
-function bodyScroll() { // TODO: Still need this ?
-  if (scrollTimer) {
-    clearTimeout(scrollTimer);
-  }
-
-  scrollTimer = window.setTimeout(scrollFinished, 350);
-}
-
 function draw(data) {
   $('#cliqz-offers-cc').html(templates.template(data));
 
   if ($('#cqz-vouchers-holder').length) {
-    bodyScroll();
-    $('#cqz-vouchers-holder').scroll(() => {
-      bodyScroll();
-    });
+    // Check if there is an expanded offer and report
+    const activeOffer = $('ul#cqz-vouchers-holder > li.active');
+    if (activeOffer.length) {
+      const offerId = activeOffer.data('offerId');
+      sendMessageToWindow({
+        action: 'seenOffer',
+        data: {
+          offer_id: offerId,
+        }
+      });
+    }
   }
 
   $('.condition').tooltipster({
@@ -153,17 +108,27 @@ $(() => {
   });
 });
 
+// When user click on a collapsed offer to expand it
 $(document).on('click', 'ul#cqz-vouchers-holder > li:not(.active)', function itemClick() {
   $('ul#cqz-vouchers-holder > li.active').removeClass('active');
   $('ul#cqz-vouchers-holder > li.deleted').remove();
   $(this).addClass('active');
+
+  const offerId = $(this).data('offerId');
 
   sendMessageToWindow({
     action: 'sendOfferActionSignal',
     data: {
       signal_type: 'offer-action-signal',
       element_id: 'offer_expanded',
-      offer_id: $(this).data('offerId'),
+      offer_id: offerId,
+    }
+  });
+
+  sendMessageToWindow({
+    action: 'seenOffer',
+    data: {
+      offer_id: offerId,
     }
   });
 
@@ -179,6 +144,7 @@ $(document).on('click', 'ul#cqz-vouchers-holder > li:not(.active)', function ite
   }, 200); // TODO: fix this!.
 });
 
+// When user clicks on any element which has data-telemetry-id
 $(document).on('click', '[data-telemetry-id]', function itemClick() {
   const target = $(this).data('telemetryId');
   sendMessageToWindow({
@@ -189,6 +155,7 @@ $(document).on('click', '[data-telemetry-id]', function itemClick() {
   });
 });
 
+// When user clicks on the about link
 $(document).on('click', '#about-link', function itemClick() {
   sendMessageToWindow({
     action: 'sendActionSignal',
@@ -214,6 +181,7 @@ $(document).on('click', '#about-link', function itemClick() {
   });
 });
 
+// When user clicks to expand the feedback area for all offers
 $(document).on('click', '#feedback-button', function itemClick() {
   $('#feedback-content').toggleClass('active');
   $(this).toggleClass('expand');
@@ -222,6 +190,7 @@ $(document).on('click', '#feedback-button', function itemClick() {
 });
 
 let vote;
+// When user clicks on thumb up/down button
 $(document).on('click', '.feedback-button', function itemClick() {
   vote = $(this).data('vote');
   sendMessageToWindow({
@@ -245,6 +214,7 @@ $(document).on('click', '.feedback-button', function itemClick() {
   resize();
 });
 
+// When user sends a feedback for all offers
 $(document).on('click', '#submit-feedback', () => {
   const comments = $('#feedback-textarea').val();
   if (comments.trim().length) {
@@ -267,11 +237,12 @@ $(document).on('click', '#submit-feedback', () => {
     });
   }
 
-  $('#feedback-comment-wrapper').html(chrome.i18n.getMessage('offers-hub-feedback-thank-you'));
+  $('#feedback-comment-wrapper').html(chrome.i18n.getMessage('offers_hub_feedback_thank_you'));
 
   resize();
 });
 
+// When user clicks on the expand button to see all offers
 $(document).on('click', '#expand-button', function itemClick() {
   $('.voucher-wrapper.preferred').removeClass('preferred');
   $(this).css('visibility', 'hidden');
@@ -281,18 +252,18 @@ $(document).on('click', '#expand-button', function itemClick() {
       actionId: 'show_more_offers',
     }
   });
-  bodyScroll();
 
   resize();
 });
 
+// When user clicks to copy the promotion code
 $(document).on('click', '.promocode-wrapper', function itemClick() {
   const offerId = getOfferId($(this));
   $(this).find('.code').focus().select();
   const success = copySelectionText();
 
   if (success) {
-    $(this).find('.copy-code').text(chrome.i18n.getMessage('offers-hub-code-copy'));
+    $(this).find('.copy-code').text(chrome.i18n.getMessage('offers_hub_code_copy'));
     // $(this).find('.code').blur(); // Should we blur it ?
     sendMessageToWindow({
       action: 'sendOfferActionSignal',
@@ -305,11 +276,13 @@ $(document).on('click', '.promocode-wrapper', function itemClick() {
   }
 });
 
+// When user clicks on the offer's menu
 $(document).on('click', '.setting', function itemClick(e) {
   e.stopPropagation();
   $(this).closest('.logo-wrapper').toggleClass('menu-opened');
 });
 
+// When use clicks on "Call to action" button
 $(document).on('click', '.cta-btn', function itemClick() {
   sendMessageToWindow({
     action: 'openURL',
@@ -322,6 +295,7 @@ $(document).on('click', '.cta-btn', function itemClick() {
   });
 });
 
+// When use clicks on "Call to action" elements
 $(document).on('click', '.cta-element', function itemClick() {
   sendMessageToWindow({
     action: 'openURL',
@@ -334,16 +308,18 @@ $(document).on('click', '.cta-element', function itemClick() {
   });
 });
 
+// Enable/disable text area if user select the 4th option
 $(document).on('click', '#voucher-feedback input:radio', function itemClick() {
   if ($(this).attr('id') === 'feedback_option4') {
     $('#feedback_option4_textarea').removeAttr('disabled');
   } else {
     $('#feedback_option4_textarea').attr('disabled', 'disabled');
   }
-
-  $('#close-feedback').text(chrome.i18n.getMessage('offers-hub-feedback-send-and-close'));
+  // Change the button text to be "Send and close" when any option is selected
+  $('#close-feedback').text(chrome.i18n.getMessage('offers_hub_feedback_send_and_close'));
 });
 
+// When user send feedback for a specified offer
 $(document).on('click', '#close-feedback', function itemClick() {
   $('#expand-button').css('visibility', 'hidden');
   const feedbackValue = $('input[name="remove_feedback"]:checked').val() || 'none';
@@ -376,13 +352,13 @@ $(document).on('click', '#close-feedback', function itemClick() {
       data: {}
     });
   }
-  bodyScroll();
 
   setTimeout(() => {
     resize();
   }, 200); // TODO: fix this!.
 });
 
+// Handle user clicks on offer menu
 $(document).on('click', 'ul.settings > li', function itemClick() {
   if ($(this).data('menuType') === 'delete') {
     $(this).closest('.settings')
@@ -416,6 +392,7 @@ $(document).on('click', '.tooltip', () => {
   });
 });
 
+// Close offer menu when user clicks anywhere outside
 $(document).on('click', '#cliqz-offers-cc', () => {
   $('.logo-wrapper.menu-opened').removeClass('menu-opened');
 });
@@ -430,7 +407,6 @@ function messageHandler(message) {
     }
   }
 }
-
 
 window.addEventListener('message', (ev) => {
   const data = JSON.parse(ev.data);

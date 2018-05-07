@@ -130,7 +130,13 @@ const CliqzEvents = {
     nextId.id = nextId.id || 0;
     nextId.id += 1;
     return nextId.id;
-  }
+  },
+
+  purge() {
+    this.cache = {};
+    this.tickCallbacks = [];
+    this.queue = [];
+  },
 };
 
 export default CliqzEvents;

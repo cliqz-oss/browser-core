@@ -333,13 +333,14 @@ describe('Fresh tab interactions with favorites', function () {
           const undoPopupCloseBtnSelector = '.undo-notification-box button.close';
 
           beforeEach(async function () {
+            await waitFor(() => subject.query(undoPopupCloseBtnSelector));
             subject.query(undoPopupCloseBtnSelector).click();
-            await waitFor(() => !(subject.query(undoBoxSelector)));
+            await waitFor(() => expect(subject.query(undoBoxSelector)).to.not.have.class('visible'), 500);
             $afterClickDials = subject.queryAll(dialSelector);
           });
 
           it('removes the popup', function () {
-            expect(subject.query(undoBoxSelector)).to.not.exist;
+            expect(subject.query(undoBoxSelector)).to.not.have.class('visible');
           });
 
           it('still does not render any favorites elements', function () {
@@ -376,12 +377,12 @@ describe('Fresh tab interactions with favorites', function () {
 
           beforeEach(async function () {
             subject.query(undoPopupUndoBtnSelector).click();
-            await waitFor(() => !(subject.query(undoBoxSelector)));
+            await waitFor(() => expect(subject.query(undoBoxSelector)).to.not.have.class('visible'), 500);
             $afterClickDials = subject.queryAll(dialSelector);
           });
 
           it('removes the popup', function () {
-            expect(subject.query(undoBoxSelector)).to.not.exist;
+            expect(subject.query(undoBoxSelector)).to.not.have.class('visible');
           });
 
           it('renders the previously deleted element', function () {

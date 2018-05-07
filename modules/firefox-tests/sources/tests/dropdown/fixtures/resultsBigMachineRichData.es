@@ -1,6 +1,6 @@
 export default [
   {
-    url: 'de.wikipedia.org/wiki/GitHub',
+    url: 'http://de.wikipedia.org/wiki/GitHub',
     score: 385,
     source: 'bm',
     snippet: {
@@ -100,6 +100,7 @@ export default [
           top_infos: []
         }
       },
+      friendlyUrl: 'de.wikipedia.org/wiki/GitHub',
       title: 'GitHub'
     },
     c_url: 'https://de.wikipedia.org/wiki/GitHub',
@@ -111,27 +112,6 @@ export default [
 export const bmWithRichData = [
   {
     url: 'https://github.com/',
-    snippet: {
-      description: 'Build software better, together.',
-      extra: {
-        alternatives: [],
-        language: {
-          en: 1
-        },
-        og: {
-          description: 'GitHub is the best place to build software together. Over 4 million people use GitHub to share code.',
-          image: 'https://assets-cdn.github.com/images/modules/open_graph/github-logo.png',
-          title: 'Build software better, together'
-        }
-      },
-      title: 'GitHub · Build software better, together.'
-    },
-    friendlyUrl: 'github.com',
-    c_url: 'https://github.com/',
-    type: 'bm'
-  },
-  {
-    url: 'https://de.wikipedia.org/wiki/GitHub',
     snippet: {
       deepResults: [
         {
@@ -206,6 +186,27 @@ export const bmWithRichData = [
           type: 'simple_links'
         }
       ],
+      description: 'Build software better, together.',
+      extra: {
+        alternatives: [],
+        language: {
+          en: 1
+        },
+        og: {
+          description: 'GitHub is the best place to build software together. Over 4 million people use GitHub to share code.',
+          image: 'https://assets-cdn.github.com/images/modules/open_graph/github-logo.png',
+          title: 'Build software better, together'
+        }
+      },
+      title: 'GitHub · Build software better, together.'
+    },
+    friendlyUrl: 'github.com',
+    c_url: 'https://github.com/',
+    type: 'bm'
+  },
+  {
+    url: 'https://de.wikipedia.org/wiki/GitHub',
+    snippet: {
       description: 'GitHub ist ein webbasierter Online-Dienst, der Software-Entwicklungsprojekte auf seinen Servern bereitstellt. Namensgebend war das Versionsverwaltungssystem Git.',
       extra: {
         alternatives: [
@@ -236,25 +237,5 @@ export const bmWithRichData = [
     c_url: 'https://de.wikipedia.org/wiki/GitHub',
     type: 'bm',
     template: 'hq'
-  },
-  {
-    url: 'https://github.com/explore',
-    snippet: {
-      description: 'GitHub is where people build software. More than 10 million people use GitHub to discover, fork, and contribute to over 26 million projects.',
-      extra: {
-        alternatives: [],
-        language: {
-          en: 1
-        },
-        og: {
-          description: 'GitHub is where people build software. More than 10 million people use GitHub to discover, fork, and contribute to over 26 million projects.',
-          image: 'https://assets-cdn.github.com/images/modules/open_graph/github-octocat.png',
-          title: 'Build software better, together'
-        }
-      },
-      title: 'Explore · GitHub'
-    },
-    c_url: 'https://github.com/explore',
-    type: 'bm'
   },
 ];

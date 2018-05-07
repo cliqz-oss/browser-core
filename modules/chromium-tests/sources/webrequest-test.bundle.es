@@ -7,7 +7,7 @@
 /* global waitFor */
 
 import WebRequest from '../platform/webrequest';
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import { newTab, closeTab } from '../platform/browser';
 
 

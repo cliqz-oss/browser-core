@@ -44,6 +44,18 @@ export function getSearchEngines() {
   }));
 }
 
+function getParamValue(params, query) {
+  const pairs = query.split('&');
+  for (let i = 0; i < pairs.length; i += 1) {
+    const pair = pairs[i].split('=');
+    if (params.indexOf(pair[0]) !== -1) {
+      return pair[1];
+    }
+  }
+
+  return null;
+}
+
 // check if a result should be kept in final result list
 export function isValidUrl(url) {
   const urlparts = utils.getDetailsFromUrl(url);
@@ -86,6 +98,24 @@ export function isValidUrl(url) {
   if (url.search(/http(s?):\/\/t\.co\/.*/i) === 0) {
     log(`Discarding result page from history: ${url}`);
     return false;
+  }
+
+  // Ignore Ebay redirections
+  if (url.search(/http(s?):\/\/rover\.ebay\.com\/.*/i) === 0) {
+    log(`Discarding result page from history: ${url}`);
+    return false;
+  }
+
+  const searchQuery = getParamValue(['q', 'query', 'search_query', 'field-keywords', 'search'], urlparts.query);
+
+  if (searchQuery) {
+    const searchResultUrls = utils.getSearchEngines()
+      .filter(e => e.urlDetails.host === urlparts.host)
+      .map(engine => decodeURIComponent(engine.getSubmissionForQuery(searchQuery)));
+    if (searchResultUrls.some(u => url.indexOf(u) !== -1)) {
+      log(`Discarding result page from history: ${url}`);
+      return false;
+    }
   }
 
   return true;

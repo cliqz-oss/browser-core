@@ -2,6 +2,7 @@
 import SimpleResult from './fixtures/simple';
 import HistoryAndNews from './fixtures/history-and-news';
 import Weather from './fixtures/weather';
+import DialingCode from './fixtures/dialing-code';
 import Youtube from './fixtures/youtube';
 import Calculator from './fixtures/calculator';
 import AdultQuestion from './fixtures/adult-question';
@@ -21,10 +22,9 @@ import helpers from '../helpers';
 
 import Dropdown from '../dropdown';
 import Results from '../results';
-import AdultAssistant from '../adult-content-assistant';
-import LocationAssistant from '../location-sharing-assistant';
 import NavigateToResult from '../results/navigate-to';
 import SupplementarySearchResult from '../results/supplementary-search';
+import config from '../../core/config'
 
 Handlebars.partials = templates;
 Object.keys(helpers).forEach((helperName) => {
@@ -35,6 +35,7 @@ const tests = {
   ...SimpleResult,
   ...HistoryAndNews,
   ...Weather,
+  ...DialingCode,
   ...Youtube,
   ...Calculator,
   ...AdultQuestion,
@@ -69,39 +70,50 @@ function render(id, query, rawResults) {
   document.body.appendChild(box);
   document.body.appendChild(hr)
 
-  const dropdown = new Dropdown(box, window, 'cliqz@cliqz.com');
-  dropdown.init();
-  const sessionCountPromise = new Promise(resolve => {
-    setTimeout(() => {
-      const count = Math.floor(Math.random() * 10000) % 2000;
-      resolve(count);
-    }, 3000);
+  const actions = new Proxy({}, {
+    get(target, propName) {
+      return () => {};
+    },
   });
+  const dropdown = new Dropdown(box, window, actions);
+  dropdown.init();
   const queryCliqz = function () {};
-  const adultAssistant = new AdultAssistant();
-  const locationAssistant = new LocationAssistant({});
   const results = new Results({
     query,
     rawResults,
-    sessionCountPromise,
     queryCliqz,
-    adultAssistant,
-    locationAssistant,
+  }, {
+    assistants: {
+      adult: {},
+      offers: {},
+      location: {},
+      settings: config.settings,
+    },
+    actions: {
+    },
   });
 
   if(query == 'query'){
     results.prepend(
-      new SupplementarySearchResult({ text: query, data: { suggestion : query + " suggestion 1" }})
+      new SupplementarySearchResult({ text: query, meta: {}, data: { extra: {}, suggestion : query + " suggestion 1" }})
     );
   } else {
     results.prepend(
-      new NavigateToResult({ text: 'https://cliqz.com' })
+      new NavigateToResult({ text: 'https://cliqz.com', meta: {}, data: { extra: {}}  })
     );
   }
   dropdown.renderResults(results);
 }
 
+const query = window.location.search.substring(1);
+const grepValue = query.match(/grep\=([^&]*)/);
+const testsToRun = grepValue ? decodeURIComponent(grepValue[1]) : 'all';
+
 Object.keys(tests).forEach((testName) => {
+  if (testsToRun !== 'all' && !testName.includes(testsToRun)) {
+    return;
+  }
+
   const test = tests[testName];
   render(testName, test.query, test.results);
 });

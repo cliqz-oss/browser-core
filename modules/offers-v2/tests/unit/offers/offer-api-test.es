@@ -79,9 +79,8 @@ export default describeModule('offers-v2/offers/offers-api',
     'platform/lib/tldjs': {
       default: tldjs,
     },
-    'core/cliqz': {
-      default: {},
-      utils: {
+    'core/utils': {
+      default: {
         setInterval: function() {},
       }
     },
@@ -125,7 +124,7 @@ export default describeModule('offers-v2/offers/offers-api',
 
       }
     },
-    'offers-v2/signals_handler': {
+    'offers-v2/signals/signals_handler': {
       default: class {
         constructor(db) {
           this.db = {
@@ -252,7 +251,7 @@ export default describeModule('offers-v2/offers/offers-api',
 
       beforeEach(function () {
         OfferProcessor = this.module().default;
-        SignalHandler = this.deps('offers-v2/signals_handler').default;
+        SignalHandler = this.deps('offers-v2/signals/signals_handler').default;
         events = this.deps('core/events').default;
         return Promise.all([
           this.system.import('offers-v2/offers/offers-db'),

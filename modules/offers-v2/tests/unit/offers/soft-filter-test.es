@@ -83,11 +83,8 @@ export default describeModule('offers-v2/offers/soft-filter',
     'platform/lib/tldjs': {
       default: tldjs,
     },
-    'core/cliqz': {
+    'core/utils': {
       default: {
-        setInterval: function () {}
-      },
-      utils: {
         setInterval: function () {}
       }
     },

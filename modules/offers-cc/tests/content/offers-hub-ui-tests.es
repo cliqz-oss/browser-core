@@ -33,17 +33,17 @@ describe('Offers Hub UI tests', function () {
     context('renders header and footer', function () {
       context('header part: ', function () {
         it('renders \'MyOffrz\'', function () {
-          const offersHubTitleSelector = 'header [data-i18n="offers-hub-title"]';
+          const offersHubTitleSelector = 'header [data-i18n="offers_hub_title"]';
           expect(subject.query(offersHubTitleSelector)).to.exist;
           expect(subject.query(offersHubTitleSelector).textContent.trim())
-            .to.equal('offers-hub-title');
+            .to.equal('offers_hub_title');
         });
 
         it('renders \'About\'', function () {
           const aboutSelector = '#about-link';
           expect(subject.query(aboutSelector)).to.exist;
           expect(subject.query(aboutSelector).textContent.trim())
-            .to.equal('offers-hub-about-cliqz-offers');
+            .to.equal('offers_hub_about_cliqz_offers');
         });
 
         it('link for \'About\' is correct', function () {
@@ -59,7 +59,7 @@ describe('Offers Hub UI tests', function () {
           const buttonSelector = 'footer #feedback-button';
           expect(subject.query(buttonSelector)).to.exist;
           expect(subject.query(buttonSelector)
-            .textContent.trim()).to.equal('offers-hub-feedback-title');
+            .textContent.trim()).to.equal('offers_hub_feedback_title');
         });
 
         it('renders Cliqz icon', function () {
@@ -84,15 +84,15 @@ describe('Offers Hub UI tests', function () {
       });
 
       it('renders title', function () {
-        const titleSelector = '.cqz-no-vouchers-msg [data-i18n="offers-hub-welcome-title"]';
+        const titleSelector = '.cqz-no-vouchers-msg [data-i18n="offers_hub_welcome_title"]';
         expect(subject.query(titleSelector)).to.exist;
       });
 
       it('renders text', function () {
-        const textSelector = '.cqz-no-vouchers-msg [data-i18n="offers-hub-welcome-text"]';
+        const textSelector = '.cqz-no-vouchers-msg [data-i18n="offers_hub_welcome_text"]';
         expect(subject.query(textSelector)).to.exist;
         expect(subject.query(textSelector).textContent.trim())
-          .to.equal('offers-hub-welcome-text');
+          .to.equal('offers_hub_welcome_text');
       });
     });
   }
@@ -173,13 +173,13 @@ describe('Offers Hub UI tests', function () {
 
     it('renders labels', function () {
       const exclusiveSelector = '#cqz-offer-cc-content .light .labels .exclusive';
-      const bestSelector = '#cqz-offer-cc-content .light .labels .best-offer';
+      const bestSelector = '#cqz-offer-cc-content .light .labels .best_offer';
       expect(subject.query(exclusiveSelector)).to.exist;
       expect(subject.query(exclusiveSelector).textContent.trim())
-        .to.equal('offers-exclusive');
+        .to.equal('offers_exclusive');
       expect(subject.query(bestSelector)).to.exist;
       expect(subject.query(bestSelector).textContent.trim())
-        .to.equal('offers-best_offer');
+        .to.equal('offers_best_offer');
     });
 
     it('doesn\'t render header and footer', function () {
@@ -228,7 +228,7 @@ describe('Offers Hub UI tests', function () {
 
     it('doesn\'t render labels', function () {
       const exclusiveSelector = '#cqz-offer-cc-content .light .labels .exclusive';
-      const bestSelector = '#cqz-offer-cc-content .light .labels .best-offer';
+      const bestSelector = '#cqz-offer-cc-content .light .labels .best_offer';
       expect(subject.query(exclusiveSelector)).to.not.exist;
       expect(subject.query(bestSelector)).to.not.exist;
     });
@@ -275,10 +275,10 @@ describe('Offers Hub UI tests', function () {
 
     offersHubFrameTests();
 
-    it('header: renders ad-label', function () {
+    it('header: renders ad_label', function () {
       const adLabelSelector = 'header p span';
       expect(subject.queryAll(adLabelSelector)[1]).to.exist;
-      expect(subject.queryAll(adLabelSelector)[1].textContent.trim()).to.equal('ad-label');
+      expect(subject.queryAll(adLabelSelector)[1].textContent.trim()).to.equal('ad_label');
     });
 
     it('footer: renders arrow to see more offers', function () {
@@ -293,13 +293,13 @@ describe('Offers Hub UI tests', function () {
 
       it('with labels', function () {
         const exclusiveSelector = `${offerDetailsSelector} .left-labels .exclusive`;
-        const bestSelector = `${offerDetailsSelector} .left-labels .best-offer`;
+        const bestSelector = `${offerDetailsSelector} .left-labels .best_offer`;
         expect(subject.query(exclusiveSelector)).to.exist;
         expect(subject.query(bestSelector)).to.exist;
         expect(subject.query(exclusiveSelector).textContent.trim())
-          .to.equal('offers-exclusive');
+          .to.equal('offers_exclusive');
         expect(subject.query(bestSelector).textContent.trim())
-          .to.equal('offers-best_offer');
+          .to.equal('offers_best_offer');
       });
 
       it('with picture', function () {
@@ -347,7 +347,7 @@ describe('Offers Hub UI tests', function () {
         const buttonSelector = `${offerDetailsSelector} .promocode-wrapper .copy-code`;
         expect(subject.query(buttonSelector)).to.exist;
         expect(subject.query(buttonSelector).textContent.trim())
-          .to.equal('offers-hub-copy-btn');
+          .to.equal('offers_hub_copy_btn');
       });
 
       it('with expires time', function () {
@@ -367,7 +367,7 @@ describe('Offers Hub UI tests', function () {
         const conditionsSelector = `${offerDetailsSelector} .validity-wrapper .condition`;
         expect(subject.query(conditionsSelector)).to.exist;
         expect(subject.query(conditionsSelector).textContent.trim())
-          .to.equal('offers-conditions');
+          .to.equal('offers_conditions');
       });
 
       it('with button for \'conditions\'', function () {
@@ -408,10 +408,10 @@ describe('Offers Hub UI tests', function () {
 
     offersHubFrameTests();
 
-    it('header: renders ad-label', function () {
+    it('header: renders ad_label', function () {
       const adLabelSelector = 'header p span';
       expect(subject.queryAll(adLabelSelector)[1]).to.exist;
-      expect(subject.queryAll(adLabelSelector)[1].textContent.trim()).to.equal('ad-label');
+      expect(subject.queryAll(adLabelSelector)[1].textContent.trim()).to.equal('ad_label');
     });
 
     it('footer: doesn\'t render arrow to see more offers', function () {
@@ -426,7 +426,7 @@ describe('Offers Hub UI tests', function () {
 
       it('doesn\'t render labels', function () {
         const exclusiveSelector = `${offerDetailsSelector} .left-labels .exclusive`;
-        const bestSelector = `${offerDetailsSelector} .left-labels .best-offer`;
+        const bestSelector = `${offerDetailsSelector} .left-labels .best_offer`;
         expect(subject.query(exclusiveSelector)).to.not.exist;
         expect(subject.query(bestSelector)).to.not.exist;
       });
@@ -474,7 +474,7 @@ describe('Offers Hub UI tests', function () {
         const buttonSelector = `${offerDetailsSelector} .promocode-wrapper .copy-code`;
         expect(subject.query(buttonSelector)).to.exist;
         expect(subject.query(buttonSelector).textContent.trim())
-          .to.equal('offers-hub-copy-btn');
+          .to.equal('offers_hub_copy_btn');
       });
 
       it('with expires time', function () {

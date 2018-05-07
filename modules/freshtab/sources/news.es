@@ -2,18 +2,14 @@
 
 import config from '../core/config';
 import NEWS_DOMAINS_LIST from './news-domains';
-import {
-  historyManager as coreHistoryManager
-} from '../core/cliqz';
 import coreUtils from '../core/utils';
 import { extractSimpleURI } from '../core/url';
-import PlacesUtils from '../platform/places-utils';
+import { getDomains, isURLVisited } from '../platform/freshtab/history';
 
 import NewsCache from './news-cache';
 
 const ONE_MINUTE = 60 * 1000;
 const ONE_DAY = 24 * 60 * ONE_MINUTE;
-const ONE_MONTH = 30 * ONE_DAY;
 const PRESS_CLIPPING_MAPPING = { 218038589: 'xing-pressespiegel_burda' };
 
 const HBASED_RECOM_CACHE_UPDATE_INTERVAL = ONE_DAY;
@@ -476,36 +472,27 @@ export function getHistoryBasedRecommendations(oldCacheData) {
     }
   }
 
-  const sqlStatement = 'SELECT * FROM moz_places WHERE last_visit_date>:date';
-  const sqlOutputParameters = ['url', 'last_visit_date', 'visit_count'];
-  const sqlInputParameters = { date: (Date.now() - ONE_MONTH) * 1000 };
-
   let globalVisitCount = {};
 
-  return new Promise((resolve) => {
-    coreHistoryManager.PlacesInterestsStorage._execute(
-      sqlStatement,
-      sqlOutputParameters,
-      (record) => {
-        addHRecordToGlobalVisitCount(record, globalVisitCount);
-      },
-      sqlInputParameters
-    ).then(() => {
-      globalVisitCount = normalizeGlobalVisitCount(globalVisitCount);
-      log(globalVisitCount);
+  return getDomains().then((records) => {
+    records.forEach(
+      record => addHRecordToGlobalVisitCount(record, globalVisitCount)
+    );
+  }).then(() => {
+    globalVisitCount = normalizeGlobalVisitCount(globalVisitCount);
+    log(globalVisitCount);
 
-      globalVisitCount = getGlobalVisitCountFromPref() || globalVisitCount;
+    globalVisitCount = getGlobalVisitCountFromPref() || globalVisitCount;
 
-      const newsPlacing = composeHistoryBasedRecommendations(globalVisitCount);
-      const historyBasedRecommendations = {
-        newsPlacing,
-        hashList: composeDomainHasheList(newsPlacing, oldCacheData),
-      };
+    const newsPlacing = composeHistoryBasedRecommendations(globalVisitCount);
+    const historyBasedRecommendations = {
+      newsPlacing,
+      hashList: composeDomainHasheList(newsPlacing, oldCacheData),
+    };
 
-      log(historyBasedRecommendations);
+    log(historyBasedRecommendations);
 
-      resolve(historyBasedRecommendations);
-    });
+    return historyBasedRecommendations;
   });
 }
 
@@ -744,17 +731,8 @@ export function composeNewsList(historyObject, topNewsCache, hbasedResults) {
 
 function addVisitedFlagToArticles(articlesList) {
   const promiseList = articlesList.map(article =>
-    new Promise((resolve) => {
-      const URI = coreUtils.makeUri(article.url, '', null);
-      PlacesUtils.asyncHistory.isURIVisited(URI, (aURI, isVisited) => {
-        article.isVisited = isVisited;
-        if (article.isVisited) {
-          log(`Url is already in the histoy ${aURI.spec}.`);
-        }
-        resolve(article);
-      });
-    }).catch((err) => {
-      log(`Error checking url in history ${article.url} ${err}.`);
+    isURLVisited(article.url).then((isVisited) => {
+      article.isVisited = isVisited;
       return article;
     })
   );

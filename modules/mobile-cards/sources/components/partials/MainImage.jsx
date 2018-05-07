@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image } from 'react-native';
+import ExternalImage from '../custom/ExternalImage';
 import { elementTopMargin, getCardWidth } from '../../styles/CardStyle';
 
 
@@ -20,7 +20,7 @@ export default ({ extra = {} }) => {
   }
 
   return (
-    <Image
+    <ExternalImage
       source={{ uri: url }}
       style={{ width: getCardWidth(), height: 100, ...elementTopMargin }}
       resizeMode="contain"

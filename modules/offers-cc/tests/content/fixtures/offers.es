@@ -12,8 +12,10 @@ export const dataExtraTooltip = {
   headline: 'reduction',
   benefit: '11%',
   backgroundColor: '#d7011d',
-  isExclusive: true,
-  isBestOffer: true,
+  labels: [
+    'exclusive',
+    'best_offer',
+  ],
 };
 
 export const dataExtraTooltip1 = {
@@ -23,8 +25,6 @@ export const dataExtraTooltip1 = {
   headline: 'reduction',
   benefit: '11%',
   backgroundColor: '#d7011d',
-  isExclusive: false,
-  isBestOffer: false,
 };
 
 export const dataNewOffer = {
@@ -48,10 +48,12 @@ export const dataNewOffer = {
         logo_url: '/build/cliqz@cliqz.com/chrome/content/offers-cc/debug/images/rewe.png',
         picture_url: '/build/cliqz@cliqz.com/chrome/content/offers-cc/debug/images/picture.png',
         voucher_classes: '',
+        labels: [
+          'exclusive',
+          'best_offer',
+        ],
       },
       offer_id: 'SilkesWK_TG1_O1_V1',
-      isExclusive: true,
-      isBestOffer: true,
       logoClass: 'short',
       backgroundColor: '#d7011d',
       validity: {
@@ -76,11 +78,13 @@ export const dataNewOffer = {
         desc: 'Genießen Sie die besten Weine aus Spanien, Italien und aus aller Welt. Jetzt Angebot sichern!',
         headline: 'Kostenlose Horbucher',
         logo_url: '/build/cliqz@cliqz.com/chrome/content/offers-cc/debug/images/audible.png',
-        voucher_classes: ''
+        voucher_classes: '',
+        labels: [
+          'exclusive',
+          'best_offer',
+        ],
       },
       offer_id: 'SilkesWK_TG1_O1_V1',
-      isExclusive: true,
-      isBestOffer: true,
       logoClass: 'normal',
       backgroundColor: '#d7011d',
       validity: {
@@ -104,11 +108,13 @@ export const dataNewOffer = {
         desc: 'Genießen Sie die besten Weine aus Spanien, Italien und aus aller Welt. Jetzt Angebot sichern!',
         headline: 'BMW i8',
         logo_url: '/build/cliqz@cliqz.com/chrome/content/offers-cc/debug/images/bmw.png',
-        voucher_classes: ''
+        voucher_classes: '',
+        labels: [
+          'exclusive',
+          'best_offer',
+        ],
       },
       offer_id: 'SilkesWK_TG1_O1_V1',
-      isExclusive: true,
-      isBestOffer: true,
       logoClass: 'square',
       backgroundColor: '#d7011d',
       validity: {
@@ -133,11 +139,13 @@ export const dataNewOffer = {
         desc: 'Genießen Sie die besten Weine aus Spanien, Italien und aus aller Welt. Jetzt Angebot sichern!',
         headline: 'Superior Room',
         logo_url: '/build/cliqz@cliqz.com/chrome/content/offers-cc/debug/images/sofitel.png',
-        voucher_classes: ''
+        voucher_classes: '',
+        labels: [
+          'exclusive',
+          'best_offer',
+        ],
       },
       offer_id: 'SilkesWK_TG1_O1_V1',
-      isExclusive: true,
-      isBestOffer: true,
       logoClass: 'long',
       backgroundColor: '#d7011d',
       validity: {
@@ -170,8 +178,6 @@ export const dataNewOffer1 = {
         title: 'Extra-Rabatt title',
       },
       offer_id: 'SilkesWK_TG1_O1_V1',
-      isExclusive: false,
-      isBestOffer: false,
       logoClass: 'short',
       backgroundColor: '#d7011d',
       validity: {

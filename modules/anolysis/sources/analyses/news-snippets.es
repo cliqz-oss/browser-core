@@ -2,6 +2,7 @@ import DefaultMap from '../../core/helpers/default-map';
 import Counter from '../../core/helpers/counter';
 
 import { indicesHistogramToArray } from '../analyses-utils';
+import { NEWS_EDITIONS } from '../metrics/freshtab';
 
 /**
  * news-snippets allows us to learn about how users interact with our news
@@ -44,7 +45,7 @@ export default {
   },
   schema: {
     properties: {
-      edition: { type: 'string', enum: ['fr', 'en', 'de'] },
+      edition: { type: 'string', enum: NEWS_EDITIONS },
       target: { type: 'string', enum: ['topnews', 'yournews', 'breakingnews'] },
       action: { type: 'string', enum: ['hover', 'click'] },
       histogram: {

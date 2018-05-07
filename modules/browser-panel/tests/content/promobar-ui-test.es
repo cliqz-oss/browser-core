@@ -264,12 +264,12 @@ describe('Promo bar', function () {
         });
 
         it('has an existing and correct tooltip icon', function () {
-          const tooltipIconSelector = '.call-to-action img.info-icon';
+          const tooltipIconSelector = '.call-to-action .info-icon';
           const $tooltipIcon = $promoBody.querySelector(tooltipIconSelector);
 
           expect($tooltipIcon).to.exist;
           expect(subject.getComputedStyle($tooltipIcon).display).to.not.equal('none');
-          expect($tooltipIcon.src).to.contain('/images/ticket-tmpl/info-icon-hover.svg');
+          expect(subject.getComputedStyle($tooltipIcon).backgroundImage).to.contain('/images/ticket-tmpl/info-icon.svg');
         });
 
         it(sizes[frameWidth].hasConditionHeader
@@ -281,7 +281,7 @@ describe('Promo bar', function () {
           expect($conditionsHeader).to.exist;
           if (sizes[frameWidth].hasConditionHeader) {
             expect(subject.getComputedStyle($conditionsHeader).display).to.not.equal('none');
-            expect($conditionsHeader).to.contain.text('offers-conditions');
+            expect($conditionsHeader).to.contain.text('offers_conditions');
           } else {
             expect(subject.getComputedStyle($conditionsHeader).display).to.equal('none');
           }
@@ -293,7 +293,7 @@ describe('Promo bar', function () {
 
           expect($ad).to.exist;
           expect(subject.getComputedStyle($ad).display).to.not.equal('none');
-          expect($ad).to.contain.text('offers-ad');
+          expect($ad).to.contain.text('offers_ad');
         });
 
         it('does not have an existing conditions tooltip container', function () {

@@ -31,6 +31,7 @@ export function waitFor(fn) {
 
   function check() {
     const result = fn();
+
     if (result) {
       clearInterval(interval);
       resolver(result);

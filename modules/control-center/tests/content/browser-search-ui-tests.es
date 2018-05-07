@@ -120,9 +120,9 @@ describe('Search options UI browser', function () {
       });
 
       it('renders "Search options"', function () {
-        const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-2"] [data-i18n="control-center-searchoptions"]';
+        const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-2"] [data-i18n="control_center_searchoptions"]';
         expect(subject.query(titleSelector)).to.exist;
-        expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-searchoptions');
+        expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_searchoptions');
       });
 
       it('renders arrow for search options', function () {
@@ -137,9 +137,9 @@ describe('Search options UI browser', function () {
 
       context('"Alternative Search Engine" block', function () {
         it('renders "Alternative Search Engine"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-search-engine"]';
+          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_search_engine"]';
           expect(subject.query(titleSelector)).to.exist;
-          expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-search-engine');
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_search_engine');
         });
 
         it('renders dropdown', function () {
@@ -175,9 +175,9 @@ describe('Search options UI browser', function () {
 
       context('"Block adult websites" block', function () {
         it('renders "Block adult websites"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-explicit"]';
+          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_explicit"]';
           expect(subject.query(titleSelector)).to.exist;
-          expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-explicit');
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_explicit');
         });
 
         it('renders dropdown', function () {
@@ -225,9 +225,9 @@ describe('Search options UI browser', function () {
 
       context('"Share location" block', function () {
         it('renders "Share location"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-location"]';
+          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_location"]';
           expect(subject.query(titleSelector)).to.exist;
-          expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-location');
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_location');
         });
 
         it('renders dropdown', function () {
@@ -285,9 +285,9 @@ describe('Search options UI browser', function () {
 
       context('"Search Results for" block', function () {
         it('renders "Search Results for"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-backend-country"]';
+          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_backend_country"]';
           expect(subject.query(titleSelector)).to.exist;
-          expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-backend-country');
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_backend_country');
         });
 
         it('renders dropdown', function () {
@@ -332,9 +332,9 @@ describe('Search options UI browser', function () {
 
       context('"Search via proxy" block', function () {
         it('renders "Search via proxy"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-proxy"]';
+          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_proxy"]';
           expect(subject.query(titleSelector)).to.exist;
-          expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-proxy');
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_proxy');
         });
 
         it('renders dropdown', function () {
@@ -372,20 +372,20 @@ describe('Search options UI browser', function () {
         proxy('false');
 
         it('text for options is correct', function () {
-          const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"] [data-i18n="control-center-enabled"]';
-          const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"] [data-i18n="control-center-disabled"]';
+          const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"] [data-i18n="control_center_enabled"]';
+          const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"] [data-i18n="control_center_disabled"]';
           expect(subject.query(enabledSelector)).to.exist;
-          expect(subject.query(enabledSelector).textContent.trim()).to.equal('control-center-enabled');
+          expect(subject.query(enabledSelector).textContent.trim()).to.equal('control_center_enabled');
           expect(subject.query(disabledSelector)).to.exist;
-          expect(subject.query(disabledSelector).textContent.trim()).to.equal('control-center-disabled');
+          expect(subject.query(disabledSelector).textContent.trim()).to.equal('control_center_disabled');
         });
       });
 
       context('"Human Web" block', function () {
         it('renders "Human Web"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-humanweb"]';
+          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_humanweb"]';
           expect(subject.query(titleSelector)).to.exist;
-          expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-humanweb');
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_humanweb');
         });
 
         it('renders dropdown', function () {
@@ -423,20 +423,20 @@ describe('Search options UI browser', function () {
         humanWeb('disabled');
 
         it('text for options is correct', function () {
-          const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control-center-enabled"]';
-          const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control-center-disabled"]';
+          const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control_center_enabled"]';
+          const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control_center_disabled"]';
           expect(subject.query(enabledSelector)).to.exist;
-          expect(subject.query(enabledSelector).textContent.trim()).to.equal('control-center-enabled');
+          expect(subject.query(enabledSelector).textContent.trim()).to.equal('control_center_enabled');
           expect(subject.query(disabledSelector)).to.exist;
-          expect(subject.query(disabledSelector).textContent.trim()).to.equal('control-center-disabled');
+          expect(subject.query(disabledSelector).textContent.trim()).to.equal('control_center_disabled');
         });
       });
 
       context('"Transparency monitor" block', function () {
         it('renders "Transparency monitor"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-transparency"]';
+          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_transparency"]';
           expect(subject.query(titleSelector)).to.exist;
-          expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-transparency');
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_transparency');
         });
 
         it('renders button', function () {
@@ -488,9 +488,9 @@ describe('AMO Search options tests', function () {
       });
 
       it('renders "Search options"', function () {
-        const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-2"] [data-i18n="control-center-searchoptions"]';
+        const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-2"] [data-i18n="control_center_searchoptions"]';
         expect(subject.query(titleSelector)).to.exist;
-        expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-searchoptions');
+        expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_searchoptions');
       });
 
       it('renders arrow for search options', function () {
@@ -505,9 +505,9 @@ describe('AMO Search options tests', function () {
 
       context('"Alternative Search Engine" block', function () {
         it('renders "Alternative Search Engine"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-search-engine"]';
+          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_search_engine"]';
           expect(subject.query(titleSelector)).to.exist;
-          expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-search-engine');
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_search_engine');
         });
 
         it('renders dropdown', function () {
@@ -543,9 +543,9 @@ describe('AMO Search options tests', function () {
 
       context('"Block adult websites" block', function () {
         it('renders "Block adult websites"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-explicit"]';
+          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_explicit"]';
           expect(subject.query(titleSelector)).to.exist;
-          expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-explicit');
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_explicit');
         });
 
         it('renders dropdown', function () {
@@ -593,9 +593,9 @@ describe('AMO Search options tests', function () {
 
       context('"Share location" block', function () {
         it('renders "Share location"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-location"]';
+          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_location"]';
           expect(subject.query(titleSelector)).to.exist;
-          expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-location');
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_location');
         });
 
         it('renders dropdown', function () {
@@ -653,9 +653,9 @@ describe('AMO Search options tests', function () {
 
       context('"Search Results for" block', function () {
         it('renders "Search Results for"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-backend-country"]';
+          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_backend_country"]';
           expect(subject.query(titleSelector)).to.exist;
-          expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-backend-country');
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_backend_country');
         });
 
         it('renders dropdown', function () {
@@ -700,9 +700,9 @@ describe('AMO Search options tests', function () {
 
       context('"Search via proxy" block', function () {
         it('renders "Search via proxy"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-proxy"]';
+          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_proxy"]';
           expect(subject.query(titleSelector)).to.exist;
-          expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-proxy');
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_proxy');
         });
 
         it('renders dropdown', function () {
@@ -740,20 +740,20 @@ describe('AMO Search options tests', function () {
         proxy('false');
 
         it('text for options is correct', function () {
-          const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"] [data-i18n="control-center-enabled"]';
-          const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"] [data-i18n="control-center-disabled"]';
+          const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"] [data-i18n="control_center_enabled"]';
+          const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"] [data-i18n="control_center_disabled"]';
           expect(subject.query(enabledSelector)).to.exist;
-          expect(subject.query(enabledSelector).textContent.trim()).to.equal('control-center-enabled');
+          expect(subject.query(enabledSelector).textContent.trim()).to.equal('control_center_enabled');
           expect(subject.query(disabledSelector)).to.exist;
-          expect(subject.query(disabledSelector).textContent.trim()).to.equal('control-center-disabled');
+          expect(subject.query(disabledSelector).textContent.trim()).to.equal('control_center_disabled');
         });
       });
 
       context('"Human Web" block', function () {
         it('renders "Human Web"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-humanweb"]';
+          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_humanweb"]';
           expect(subject.query(titleSelector)).to.exist;
-          expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-humanweb');
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_humanweb');
         });
 
         it('renders dropdown', function () {
@@ -791,12 +791,12 @@ describe('AMO Search options tests', function () {
         humanWeb('disabled');
 
         it('text for options is correct', function () {
-          const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control-center-enabled"]';
-          const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control-center-disabled"]';
+          const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control_center_enabled"]';
+          const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control_center_disabled"]';
           expect(subject.query(enabledSelector)).to.exist;
-          expect(subject.query(enabledSelector).textContent.trim()).to.equal('control-center-enabled');
+          expect(subject.query(enabledSelector).textContent.trim()).to.equal('control_center_enabled');
           expect(subject.query(disabledSelector)).to.exist;
-          expect(subject.query(disabledSelector).textContent.trim()).to.equal('control-center-disabled');
+          expect(subject.query(disabledSelector).textContent.trim()).to.equal('control_center_disabled');
         });
       });
     });
@@ -826,9 +826,9 @@ describe('FunnelCake tests', function () {
     });
 
     it('renders "Search options"', function () {
-      const titleSelector = '#othersettings .accordion .accordion-section .header [data-i18n="control-center-searchoptions"]';
+      const titleSelector = '#othersettings .accordion .accordion-section .header [data-i18n="control_center_searchoptions"]';
       expect(subject.query(titleSelector)).to.exist;
-      expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-searchoptions');
+      expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_searchoptions');
     });
 
     it('renders arrow for search options', function () {
@@ -843,9 +843,9 @@ describe('FunnelCake tests', function () {
 
     context('"Alternative Search Engine" block', function () {
       it('renders "Alternative Search Engine"', function () {
-        const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-search-engine"]';
+        const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_search_engine"]';
         expect(subject.query(titleSelector)).to.exist;
-        expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-search-engine');
+        expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_search_engine');
       });
 
       it('renders dropdown', function () {
@@ -886,9 +886,9 @@ describe('FunnelCake tests', function () {
 
     context('"Block adult websites" block', function () {
       it('renders "Block adult websites"', function () {
-        const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-explicit"]';
+        const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_explicit"]';
         expect(subject.query(titleSelector)).to.exist;
-        expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-explicit');
+        expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_explicit');
       });
 
       it('renders dropdown', function () {
@@ -936,9 +936,9 @@ describe('FunnelCake tests', function () {
 
     context('"Share location" block', function () {
       it('renders "Share location"', function () {
-        const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-location"]';
+        const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_location"]';
         expect(subject.query(titleSelector)).to.exist;
-        expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-location');
+        expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_location');
       });
 
       it('renders dropdown', function () {
@@ -986,9 +986,9 @@ describe('FunnelCake tests', function () {
 
     context('"Search Results for" block', function () {
       it('renders "Search Results for"', function () {
-        const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-backend-country"]';
+        const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_backend_country"]';
         expect(subject.query(titleSelector)).to.exist;
-        expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-backend-country');
+        expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_backend_country');
       });
 
       it('renders dropdown', function () {
@@ -1033,9 +1033,9 @@ describe('FunnelCake tests', function () {
 
     context('"Search via proxy" block', function () {
       it('renders "Search via proxy"', function () {
-        const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-proxy"]';
+        const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_proxy"]';
         expect(subject.query(titleSelector)).to.exist;
-        expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-proxy');
+        expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_proxy');
       });
 
       it('renders dropdown', function () {
@@ -1073,20 +1073,20 @@ describe('FunnelCake tests', function () {
       proxy('false');
 
       it('text for options is correct', function () {
-        const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"] [data-i18n="control-center-enabled"]';
-        const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"] [data-i18n="control-center-disabled"]';
+        const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"] [data-i18n="control_center_enabled"]';
+        const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"] [data-i18n="control_center_disabled"]';
         expect(subject.query(enabledSelector)).to.exist;
-        expect(subject.query(enabledSelector).textContent.trim()).to.equal('control-center-enabled');
+        expect(subject.query(enabledSelector).textContent.trim()).to.equal('control_center_enabled');
         expect(subject.query(disabledSelector)).to.exist;
-        expect(subject.query(disabledSelector).textContent.trim()).to.equal('control-center-disabled');
+        expect(subject.query(disabledSelector).textContent.trim()).to.equal('control_center_disabled');
       });
     });
 
     context('"Human Web" block', function () {
       it('renders "Human Web"', function () {
-        const titleSelector = '#accordion-2 .bullet [data-i18n="control-center-humanweb"]';
+        const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_humanweb"]';
         expect(subject.query(titleSelector)).to.exist;
-        expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-humanweb');
+        expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_humanweb');
       });
 
       it('renders dropdown', function () {
@@ -1124,12 +1124,12 @@ describe('FunnelCake tests', function () {
       humanWeb('disabled');
 
       it('text for options is correct', function () {
-        const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control-center-enabled"]';
-        const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control-center-disabled"]';
+        const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control_center_enabled"]';
+        const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control_center_disabled"]';
         expect(subject.query(enabledSelector)).to.exist;
-        expect(subject.query(enabledSelector).textContent.trim()).to.equal('control-center-enabled');
+        expect(subject.query(enabledSelector).textContent.trim()).to.equal('control_center_enabled');
         expect(subject.query(disabledSelector)).to.exist;
-        expect(subject.query(disabledSelector).textContent.trim()).to.equal('control-center-disabled');
+        expect(subject.query(disabledSelector).textContent.trim()).to.equal('control_center_disabled');
       });
     });
 
@@ -1139,31 +1139,31 @@ describe('FunnelCake tests', function () {
       });
 
       it('renders "Powered by Cliqz"', function () {
-        const titleSelector = '#control-center .footer .title [data-i18n="control-center-footer"]';
+        const titleSelector = '#control-center .footer .title [data-i18n="control_center_footer"]';
         expect(subject.query(titleSelector)).to.exist;
-        expect(subject.query(titleSelector).textContent.trim()).to.equal('control-center-footer');
+        expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_footer');
       });
 
       it('renders "Support"', function () {
-        const supportSelector = '#control-center .footer #support [data-i18n="control-center-support"]';
+        const supportSelector = '#control-center .footer #support [data-i18n="control_center_support"]';
         expect(subject.query(supportSelector)).to.exist;
-        expect(subject.query(supportSelector).textContent.trim()).to.equal('control-center-support');
+        expect(subject.query(supportSelector).textContent.trim()).to.equal('control_center_support');
       });
 
       it('url for Support is correct', function () {
-        const supportSelector = '#control-center .footer #support [data-i18n="control-center-support"]';
+        const supportSelector = '#control-center .footer #support [data-i18n="control_center_support"]';
         expect(subject.query(supportSelector).hasAttribute('data-open-url')).to.be.true;
         expect(subject.query(supportSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/feedback/1.19.0.dev-40');
       });
 
       it('renders "Tips"', function () {
-        const tipsSelector = '#control-center .footer #support [data-i18n="control-center-tips"]';
+        const tipsSelector = '#control-center .footer #support [data-i18n="control_center_tips"]';
         expect(subject.query(tipsSelector)).to.exist;
-        expect(subject.query(tipsSelector).textContent.trim()).to.equal('control-center-tips');
+        expect(subject.query(tipsSelector).textContent.trim()).to.equal('control_center_tips');
       });
 
       it('url for Tips is correct', function () {
-        const tipsSelector = '#control-center .footer #support [data-i18n="control-center-tips"]';
+        const tipsSelector = '#control-center .footer #support [data-i18n="control_center_tips"]';
         expect(subject.query(tipsSelector).hasAttribute('data-open-url')).to.be.true;
         expect(subject.query(tipsSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/tips');
       });

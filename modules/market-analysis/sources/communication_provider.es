@@ -1,4 +1,4 @@
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import config from '../core/config';
 import MAConfigs from './conf/ma_configs';
 import { getHpnTimeStamp } from './common/utils';

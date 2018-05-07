@@ -8,11 +8,17 @@ export const getLanguageFromLocale = locale => locale.match(/([a-z]+)(?:[-_]([A-
 const i18n = {
   locale: {},
   currLocale: '',
+  get PLATFORM_LOCALE() {
+    return getLocale();
+  },
+  get PLATFORM_LANGUAGE() {
+    return getLanguageFromLocale(this.PLATFORM_LOCALE);
+  },
   LOCALE_PATH: `${config.baseURL}static/locale`,
 };
 
 const getLocaleFile = (locale) => {
-  const url = `${i18n.LOCALE_PATH}/${locale}/cliqz.json`;
+  const url = `${i18n.LOCALE_PATH}/${locale}/messages.json`;
   // Warning - sync request
   const localeObject = getLocaleObject(url, locale);
   i18n.currLocale = locale;
@@ -20,15 +26,7 @@ const getLocaleFile = (locale) => {
   i18n.locale[locale] = localeObject;
 };
 
-const setLang = (locale) => {
-  i18n.PLATFORM_LOCALE = locale;
-  i18n.PLATFORM_LANGUAGE = getLanguageFromLocale(locale);
-
-  // we only translate based on the language and not on the locale
-  getLocaleFile(getSupportedLanguage(i18n.PLATFORM_LANGUAGE));
-};
-
-const loadTranslation = () => setLang(getLocale());
+const loadTranslation = () => getLocaleFile(getSupportedLanguage(i18n.PLATFORM_LANGUAGE));
 
 export function getMessage(key, substitutions = []) {
   if (!key) {

@@ -3,65 +3,44 @@ import {
   $cliqzResults,
   expect,
   fastFillIn,
-  fillIn,
   getLocaliseString,
+  getLocalisedString,
   respondWith,
   waitFor,
-  waitForPopup,
   withHistory } from './helpers';
 import testArray from './fixtures/unitConverter';
 
 export default function () {
   describe('unit converter', function () {
-    let $resultElement;
     let renderedResult;
     let expectedResult;
+    let lastRenderedResult = '';
+    const converterSelector = '#calc-answer';
 
     before(function () {
       blurUrlBar();
-      withHistory([]);
-      respondWith({ results: [] });
-      fillIn('1 km im m');
-      return waitForPopup().then(function () {
-        $resultElement = $cliqzResults()[0];
-      });
     });
 
-    it('renders correct results', function () {
-      const errors = [];
-      const resultSelector = '#calc-answer';
-      let runTestCount = 0;
-      this.timeout(30000);
-
-      return testArray.reduce(function (chain, testCase) {
-        return chain.then(function () {
+    testArray.forEach(function (testCase) {
+      context(`for query '${testCase.query}'`, function () {
+        before(async function () {
           withHistory([]);
           respondWith({ results: [] });
           fastFillIn(testCase.query);
-          return waitFor(function () {
-            $resultElement = $cliqzResults()[0];
-            renderedResult = $resultElement.querySelector(resultSelector).textContent.trim().split('\n')[0];
-            expectedResult = `= ${getLocaliseString({ de: testCase.answerDe, default: testCase.answerEn })} ${testCase.unitAnswer}`;
-            return renderedResult === expectedResult;
-          }, 1100).catch(() => {
-            throw new Error(`query: ${testCase.query} didn't show expected result in 1100s`);
-          });
-        }).then(function () {
+          // wait for result to be changed
+          // split() is used to cut the part with 'click to copy'
+          await waitFor(() => $cliqzResults.querySelector(converterSelector)
+            .textContent.trim().split('\n')[0] !== lastRenderedResult);
+        });
+
+        it('expected result was rendered', function () {
+          renderedResult = $cliqzResults.querySelector(converterSelector).textContent.trim().split('\n')[0];
+          expectedResult = `= ${getLocaliseString({ de: testCase.answerDe, default: testCase.answerEn })} ${testCase.unitAnswer}`;
+          lastRenderedResult = renderedResult;
           expect(renderedResult).to.equal(expectedResult);
-          expect($resultElement.querySelector(resultSelector).textContent.trim().split('\n')[2].trim())
-            .to.equal(`${getLocaliseString({
-              de: 'Klicken zum Kopieren',
-              default: 'Click to copy'
-            })}`);
-          runTestCount += 1;
-        }).catch(function (error) {
-          errors.push(error);
+          expect($cliqzResults.querySelector(converterSelector).textContent.trim().split('\n')[2].trim())
+            .to.equal(getLocalisedString().Click_anywhere_to_copy.message);
         });
-      }, Promise.resolve()).then(function () {
-        errors.forEach(function (error) {
-          expect(error.message).to.be.empty;
-        });
-        expect(runTestCount).to.equal(testArray.length);
       });
     });
   });

@@ -35,13 +35,13 @@ function b64Encode(token) {
  * @namespace antitracking.steps
  */
 export default class TokenChecker {
-  constructor(qsWhitelist, privateValues, hashProb, config, telemetry) {
+  constructor(qsWhitelist, privateValues, hashProb, config, telemetry, db) {
     this.qsWhitelist = qsWhitelist;
     this.config = config;
     this.debug = false;
     this.privateValues = privateValues;
     this.hashProb = hashProb;
-    this.tokenDomain = new TokenDomain(config);
+    this.tokenDomain = new TokenDomain(config, db);
     this.blockLog = new BlockLog(telemetry, config);
   }
 
@@ -181,9 +181,11 @@ export default class TokenChecker {
       }
 
       // count thresholds for token values
-      if (!overrideGlobalLists && !isPrivate) {
-        // increment that this token has been seen on this site
-        this.tokenDomain.addTokenOnFirstParty(md5(tok), sourceDomain);
+      if (!overrideGlobalLists) {
+        if (!isPrivate) {
+          // increment that this token has been seen on this site
+          this.tokenDomain.addTokenOnFirstParty(md5(tok), sourceDomain);
+        }
         // check if the threshold for cross-domain tokens has been reached
         if (!this.tokenDomain.isTokenDomainThresholdReached(md5(tok))) {
           // special case: cookieMatch is blocked on first seen if config enables it

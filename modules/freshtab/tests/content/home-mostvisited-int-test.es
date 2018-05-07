@@ -254,12 +254,12 @@ describe('Fresh tab interactions with most visited', function () {
 
           beforeEach(async function () {
             subject.query(undoPopupCloseBtnSelector).click();
-            await waitFor(() => !(subject.query(undoBoxSelector)));
+            await waitFor(() => expect(subject.query(undoBoxSelector)).to.not.have.class('visible'), 500);
             $afterClickDials = subject.queryAll(dialSelector);
           });
 
           it('removes the popup', function () {
-            expect(subject.query(undoBoxSelector)).to.not.exist;
+            expect(subject.query(undoBoxSelector)).to.not.have.class('visible');
           });
 
           it('total amount of rendered elements equals to 0', function () {
@@ -292,12 +292,12 @@ describe('Fresh tab interactions with most visited', function () {
 
           beforeEach(async function () {
             subject.query(undoPopupUndoBtnSelector).click();
-            await waitFor(() => !(subject.query(undoBoxSelector)));
+            await waitFor(() => expect(subject.query(undoBoxSelector)).to.not.have.class('visible'), 500);
             $afterClickDials = subject.queryAll(dialSelector);
           });
 
           it('removes the popup', function () {
-            expect(subject.query(undoBoxSelector)).to.not.exist;
+            expect(subject.query(undoBoxSelector)).to.not.have.class('visible');
           });
 
           it('renders the previously deleted element', function () {

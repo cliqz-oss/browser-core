@@ -1,4 +1,4 @@
-import { utils } from './cliqz';
+import utils from './utils';
 import prefs from './prefs';
 import { getGeneralDomain, extractHostname } from './tlds';
 import { LazyPersistentObject } from '../core/persistent-state';

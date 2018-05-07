@@ -1,6 +1,4 @@
 import BaseResult from './base';
-import utils from '../../core/utils';
-import { isUrl, fixURL } from '../../core/url';
 
 export default class NavigateToResult extends BaseResult {
   get template() {
@@ -20,29 +18,12 @@ export default class NavigateToResult extends BaseResult {
     return false;
   }
 
-  get logo() {
-    const query = this.rawResult.text;
-    let url;
-    if (isUrl(query)) {
-      url = query;
-    } else {
-      url = `http://${query}`;
-    }
-    const urlDetails = utils.getDetailsFromUrl(url);
-    return utils.getLogoDetails(urlDetails);
-  }
-
   get kind() {
     return ['navigate-to'];
   }
 
   get url() {
-    const query = this.rawResult.text;
-    return `moz-action:visiturl,${JSON.stringify({ url: fixURL(query) })}`;
-  }
-
-  get rawUrl() {
-    return this.rawResult.text;
+    return this.rawResult.data.extra.mozActionUrl;
   }
 
   get displayUrl() {

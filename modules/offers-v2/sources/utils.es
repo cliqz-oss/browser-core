@@ -1,5 +1,7 @@
 import random from '../core/crypto/random';
-import { utils } from '../core/cliqz';
+import OffersConfigs from './offers_configs';
+import utils from '../core/utils';
+import config from '../core/config';
 
 // The backend timestamp stored as number (YYYYMMDD)
 let BACKEND_TIMESTAMP;
@@ -9,6 +11,9 @@ let BACKEND_TS_MS;
 // the starting local timestamp to be able to extract how many ms elapsed since last
 // timestamp
 let LOCAL_TS_MS_BASE;
+// cached timestamp of offers module installed
+let INSTALLED_OFFERS_MODULE_TS = null;
+
 
 // generate a new UUID
 function generateUUID() {
@@ -34,6 +39,49 @@ function weekDay() {
 
 function dayHour() {
   return new Date().getHours();
+}
+
+/**
+ * Will return the last time the offers module version was "installed"
+ * We will do this checking the current prefs with the current version number
+ * and a timestamp: extension_version|timestamp
+ * If this field doesnt exist we will create it
+ */
+function getLatestOfferInstallTs() {
+  if (INSTALLED_OFFERS_MODULE_TS !== null) {
+    return INSTALLED_OFFERS_MODULE_TS;
+  }
+  // check if we have it
+  const extensionVersion = String(config.EXTENSION_VERSION);
+  const PREF_NAME = 'offersInstallInfo';
+
+  const setInstallInfoPref = ts =>
+    utils.setPref(PREF_NAME, `${extensionVersion}|${ts}`);
+
+  const installInfo = utils.getPref(PREF_NAME, null);
+  if (installInfo === null) {
+    // create one and return
+    INSTALLED_OFFERS_MODULE_TS = timestampMS();
+    setInstallInfoPref(INSTALLED_OFFERS_MODULE_TS);
+  } else {
+    // we get the installed pref
+    const fields = installInfo.split('|');
+    const lastInstalledVer = fields[0];
+    if (lastInstalledVer !== extensionVersion) {
+      // its a different version we need to update the timestamp
+      INSTALLED_OFFERS_MODULE_TS = timestampMS();
+      setInstallInfoPref(INSTALLED_OFFERS_MODULE_TS);
+    } else {
+      // its the same version
+      INSTALLED_OFFERS_MODULE_TS = Number(fields[1]);
+      // check if is broken
+      if (isNaN(INSTALLED_OFFERS_MODULE_TS)) {
+        INSTALLED_OFFERS_MODULE_TS = timestampMS();
+        setInstallInfoPref(INSTALLED_OFFERS_MODULE_TS);
+      }
+    }
+  }
+  return INSTALLED_OFFERS_MODULE_TS;
 }
 
 /**
@@ -159,17 +207,65 @@ function orPromises(elemList, idx = 0) {
   });
 }
 
+/**
+ * generates a random number between [a, b)
+ */
+function randRange(a, b) {
+  return Math.floor(Math.random() * (b - a)) + a;
+}
+
+
+/**
+ * This method will check if we should keep or not the given resource.
+ * We will check here if the pref for getting all resources is set or not as well
+ */
+function shouldKeepResource(userGroup) {
+  // for now we will use offersDevFlag to accept all resources, we can change
+  // this if required in the future
+  if (OffersConfigs.IS_DEV_MODE) {
+    // we keep it
+    return true;
+  }
+
+  // now we should keep the resource if and only if
+  // is not zero and localUserGroupNum >= userGroup
+  // Since resources with userGroup == 0 => debug
+  //
+  const getLocalUserGroupNum = () => {
+    // now check the real id
+    const prefID = 'offersUserGroup';
+    let localUserGroupNum = null;
+    if (!utils.hasPref(prefID)) {
+      // generate one in [1, 100]
+      localUserGroupNum = randRange(1, 101);
+      utils.setPref(prefID, localUserGroupNum.toString());
+    } else {
+      // we get it and transform it to localUserGroupNum
+      localUserGroupNum = Number(utils.getPref(prefID, 0));
+    }
+    return localUserGroupNum;
+  };
+
+  // we should keep the resource if local userGroup > 0  and our num > resource num
+  const localUserGroupNum = getLocalUserGroupNum();
+  return (userGroup > 0) && (localUserGroupNum >= userGroup);
+}
+
+
 export {
   generateUUID,
   timestamp,
   timestampMS,
   weekDay,
   dayHour,
+  getLatestOfferInstallTs,
   getABNumber,
   hashString,
   updateBETime,
   backendDayTs,
   backendMsTs,
   backendMinTs,
-  orPromises
+  orPromises,
+  randRange,
+  shouldKeepResource
 };

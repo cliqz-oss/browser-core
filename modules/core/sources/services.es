@@ -5,12 +5,17 @@ import prefs from './prefs';
 import console from './console';
 import utils from './utils';
 import events from './events';
+import { isOnionMode } from './platform';
 
 export default {
+  utils: () => utils.init(),
   logos: () => loadLogoDb(),
 
   // IP driven configuration
   'cliqz-config': () => {
+    if (isOnionMode) {
+      return Promise.resolve();
+    }
     const update = () => fetch(CONFIG.settings.CONFIG_PROVIDER)
       .then(r => r.json())
       .then((config) => {
@@ -24,16 +29,35 @@ export default {
           prefs.set(`config_${k}`, val);
         });
 
-        // we only set the prefered backend once at first start
-        if (prefs.get('backend_country', '') === '') {
-          // we fallback to german results if we did not decode the location
-          utils.setDefaultIndexCountry(prefs.get('config_location', 'de'));
-        }
+        utils.setDefaultCountryIndex();
 
         events.pub('cliqz-config:update');
       }).catch(e => console.log('cliqz-config update failed', e));
 
     return update()
       .then(() => utils.setInterval(update, 1000 * 60 * 60));
+  },
+  session: () => {
+    if (!prefs.has('session')) {
+      const session = [
+        utils.rand(18),
+        utils.rand(6, '0123456789'),
+        '|',
+        utils.getServerDay(),
+        '|',
+        CONFIG.settings.channel || 'NONE',
+      ].join('');
+
+      prefs.set('session', session);
+      prefs.set('install_date', session.split('|')[1]);
+      prefs.set('new_session', true);
+
+      if (!prefs.has('freshtab.state')) {
+        // freshtab is opt-out since 2.20.3
+        prefs.set('freshtab.state', true);
+      }
+    } else {
+      prefs.set('new_session', false);
+    }
   },
 };

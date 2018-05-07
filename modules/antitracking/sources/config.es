@@ -20,8 +20,8 @@ export const TELEMETRY = {
 export const DEFAULTS = {
   safekeyValuesThreshold: 4,
   shortTokenLength: 6,
-  placeHolder: 'cliqz.com/tracking',
-  cliqzHeader: 'CLIQZ-AntiTracking',
+  placeHolder: config.settings.antitrackingPlaceholder,
+  cliqzHeader: config.settings.antitrackingHeader,
   enabled: true,
   cookieEnabled: true,
   qsEnabled: true,
@@ -71,8 +71,6 @@ export default class Config {
                                   this.safekeyValuesThreshold;
     this.shortTokenLength = parseInt(persist.getValue('shortTokenLength'), 10) ||
                             this.shortTokenLength;
-    this.placeHolder = persist.getValue('placeHolder') || this.placeHolder;
-    this.cliqzHeader = persist.getValue('cliqzHeader') || this.cliqzHeader;
 
     this.paused = false;
 
@@ -119,10 +117,6 @@ export default class Config {
 
   _updateVersionCheck(versioncheck) {
     // config in versioncheck
-    if (versioncheck.placeHolder) {
-      persist.setValue('placeHolder', versioncheck.placeHolder);
-      this.placeHolder = versioncheck.placeHolder;
-    }
 
     if (versioncheck.shortTokenLength) {
       persist.setValue('shortTokenLength', versioncheck.shortTokenLength);
@@ -133,11 +127,6 @@ export default class Config {
       persist.setValue('safekeyValuesThreshold', versioncheck.safekeyValuesThreshold);
       this.safekeyValuesThreshold = parseInt(versioncheck.safekeyValuesThreshold, 10) ||
                                     this.safekeyValuesThreshold;
-    }
-
-    if (versioncheck.cliqzHeader) {
-      persist.setValue('cliqzHeader', versioncheck.cliqzHeader);
-      this.cliqzHeader = versioncheck.cliqzHeader;
     }
 
     // fire events for list update

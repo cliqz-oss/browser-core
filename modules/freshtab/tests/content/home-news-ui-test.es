@@ -48,7 +48,7 @@ describe('Fresh tab news UI', function () {
       });
 
       it('has the visibility switch turned on', function () {
-        const $switch = subject.queryByI18n('freshtab.app.settings.news.label')
+        const $switch = subject.queryByI18n('freshtab_app_settings_news_label')
           .querySelector('input.switch');
         expect($switch).to.have.property('checked', true);
       });
@@ -84,7 +84,7 @@ describe('Fresh tab news UI', function () {
       });
 
       it('has the visibility switch turned off', function () {
-        const $switch = subject.queryByI18n('freshtab.app.settings.news.label')
+        const $switch = subject.queryByI18n('freshtab_app_settings_news_label')
           .querySelector('input.switch');
         expect($switch).to.have.property('checked', false);
       });
@@ -234,10 +234,12 @@ describe('Fresh tab news UI', function () {
   });
 
   const resolutionAndTextLimit = {
-    900: 160,
-    1000: 110,
-    1030: 100,
+    900: 190,
+    1000: 140,
+    1030: 130,
+    1700: 180
   };
+
   const resolutions = Object.keys(resolutionAndTextLimit);
 
   resolutions.forEach(function (screenSize) {
@@ -265,7 +267,7 @@ describe('Fresh tab news UI', function () {
               amountOfItemsPerPage = 1;
             } else if (intScreenSize === 1000) {
               amountOfItemsPerPage = 2;
-            } else if (intScreenSize === 1030) {
+            } else if ((intScreenSize === 1030) || (intScreenSize === 1700)) {
               amountOfItemsPerPage = 3;
             }
 
@@ -283,7 +285,8 @@ describe('Fresh tab news UI', function () {
 
             /* Corner case: 3 news items on a large screen do not
                render button.dash items */
-            if ((intScreenSize === 1030) && ($newsDashes.length === 0)) {
+            if (((intScreenSize === 1030) || (intScreenSize === 1700))
+              && ($newsDashes.length === 0)) {
               expect(1).to.equal(amountOfPages);
             } else {
               expect($newsDashes.length).to.equal(amountOfPages);

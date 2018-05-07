@@ -47,7 +47,10 @@ class OfferDB {
 
     // load and clean
     this._dbLoaded = false;
-    this._loadPersistentData();
+    this._loadPersistentData().then(() => {
+      this._dbLoaded = true;
+      this._pushCallbackEvent('offers-db-loaded', {});
+    });
 
     // temporary mapping counter to know when to remove a display or not
     this.displayIDCounter = {};
@@ -170,6 +173,31 @@ class OfferDB {
   }
 
   /**
+   * this method will completely remove the offer from the DB without leaving
+   * any entry nor data associated to it.
+   * @param  offerID to be removed
+   * @return true on success | false otherwise
+   */
+  eraseOfferObject(offerID) {
+    const container = this.offersIndexMap.get(offerID);
+    if (!container) {
+      logger.warn(`eraseOfferObject: The offer id: ${offerID} is not stored`);
+      return false;
+    }
+
+    // remove it from all tables
+    this._removeIndexTablesForOffer(offerID);
+
+    // remove it from DB
+    this.offersIndexMap.delete(offerID);
+
+    // propagate event
+    this._pushCallbackEvent('offer-removed', container, { erased: true });
+
+    return true;
+  }
+
+  /**
    * will return the offer object if we have it or null if not
    * Do not modify this object from outside.
    * @param  {[type]} offerID [description]
@@ -280,7 +308,7 @@ class OfferDB {
     }
     const container = this.offersIndexMap.get(offerID);
     if (!container) {
-      logger.warn(`incOfferAction: The offer id: ${offerID} is not stored`);
+      logger.warn(`incOfferAction: The offer id: ${offerID} is not stored - ${actionID}`);
       return false;
     }
 
@@ -836,8 +864,6 @@ class OfferDB {
         this._buildIndexTables();
 
         // emit the event
-        this._dbLoaded = true;
-        this._pushCallbackEvent('offers-db-loaded', {});
         return Promise.resolve(true);
       })
     );

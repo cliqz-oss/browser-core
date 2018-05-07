@@ -3,6 +3,8 @@ import events from '../../core/events';
 import console from '../../core/console';
 import utils from '../../core/utils';
 
+const ONE_DAY = 24 * 60 * 60 * 1000;
+
 const saveMessageDismission = (message) => {
   prefs.setObject('dismissedAlerts', (prevValue) => {
     const oldMessage = prevValue[message.id] || {
@@ -49,5 +51,18 @@ export function countMessageClick(message) {
   if (count >= 3) {
     events.pub('msg_center:hide_message', { id: message.id }, message.handler);
     saveMessageDismission(message);
+  }
+}
+
+export function setMessageShownTime(message) {
+  const messageShownTimePref = `modules.message-center.stats.${message.handler}.${message.id}.shown_time`;
+  const messageShownTime = prefs.get(messageShownTimePref, '');
+
+  if (!messageShownTime) {
+    prefs.set(messageShownTimePref, Date.now().toString());
+  } else if (parseInt(messageShownTime, 10) + (14 * ONE_DAY) < Date.now()) {
+    // More than 14 days ago => Dismiss message
+    saveMessageDismission(message);
+    prefs.clear(messageShownTimePref);
   }
 }

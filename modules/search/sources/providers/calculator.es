@@ -21,10 +21,11 @@ export default class Calculator extends BaseProvider {
       return this.getEmptySearch(config, query);
     }
     result.provider = 'calculator';
+    result.text = query;
 
     return Rx.Observable
       .from([getResponse(this.id, config, query, [result], 'done')])
       .delay(1)
-      .let(this.getOperators(config, query));
+      .let(this.getOperators());
   }
 }

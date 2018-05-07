@@ -6,7 +6,7 @@ import HistoryProcessor from './history-processor';
 import HistoryStream from './history-stream';
 import QueryStream from './query-stream';
 import logger from './logger';
-
+import Defer from '../core/app/defer';
 
 const VERSION_PREF = 'history-analyzer-version';
 const VERSION = 2;
@@ -26,6 +26,8 @@ export default background({
     this.historyProcessor = new HistoryProcessor();
     this.historyStream = new HistoryStream(this.historyProcessor);
     this.queryStream = new QueryStream(this.historyProcessor, this.historyStream);
+    this.historyStreamReady = new Defer();
+    this.queryStreamReady = new Defer();
 
     this.unloadAll = () => {
       this.historyProcessor.unload();
@@ -40,8 +42,8 @@ export default background({
     ]);
 
     this.initAll = () => Promise.all([
-      this.historyStream.init(),
-      this.queryStream.init(),
+      this.historyStream.init().then(this.historyStreamReady.resolve),
+      this.queryStream.init().then(this.queryStreamReady.resolve),
     ]).then(() => this.historyProcessor.init());
 
     // subscribe to the history listener module if have one
@@ -85,12 +87,16 @@ export default background({
   events: {
     'content:location-change': function handleLocationChange(...args) {
       if (this.historyStream !== null) {
-        this.historyStream.handleLocationChange(...args);
+        this.historyStreamReady.promise.then(() =>
+          this.historyStream.handleLocationChange(...args)
+        );
       }
     },
     'urlbar:input': function handleUrlBarInput(...args) {
       if (this.queryStream !== null) {
-        this.queryStream.handleUrlBarInput(...args);
+        this.queryStreamReady.promise.then(() =>
+          this.queryStream.handleUrlBarInput(...args)
+        );
       }
     },
   },

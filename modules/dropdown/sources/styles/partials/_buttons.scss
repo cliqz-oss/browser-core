@@ -32,4 +32,22 @@
             height: auto;
         }
     }
+
+    .result.expand-btn {
+        display: inline-block;
+        padding: 2px 10px 2px 12px;
+        color: #545454;
+        font-size: 12.5px;
+        line-height: 16px;
+        text-decoration: none;
+        background-image: url-prefix("dropdown/images/expand.svg");
+        background-repeat: no-repeat;
+        background-size: 6px 10px;
+        background-position: 0 center;
+        cursor: pointer;
+
+        &:hover {
+            color: #0078CA;
+        }
+    }
 }

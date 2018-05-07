@@ -1,3 +1,6 @@
+function isArray(arr) {
+  return (Array.isArray && Array.isArray(arr)) || (arr instanceof Array);
+}
 export default {
   json(context) {
     return JSON.stringify(context);
@@ -21,5 +24,12 @@ export default {
     }
 
     return b;
+  },
+
+  limit(arr, limit) {
+    if (!isArray(arr)) {
+      return [];
+    }
+    return arr.slice(0, limit);
   }
 };

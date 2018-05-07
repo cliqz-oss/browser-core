@@ -1,5 +1,3 @@
-
-
 $themes: (
     light: (
         base: (
@@ -56,6 +54,9 @@ $themes: (
             close-bg: url(../images/close-icon_black.svg) no-repeat center center,
             middle-box-bg-color: rgba(255, 255, 255, 0.2),
             middle-box-content-color: #333,
+        ),
+        top-notifications: (
+            close-bg: url(../images/top-message-close.svg) no-repeat center center,
         ),
         offer-middle-notifications: (
             offer-mn-color: #494949,
@@ -121,6 +122,9 @@ $themes: (
             close-bg: url(../images/close-icon.svg) no-repeat center center,
             middle-box-bg-color: rgba(255, 255, 255, 0.2),
             middle-box-content-color: #fff,
+        ),
+        top-notifications: (
+            close-bg: url(../images/top-message-close.svg) no-repeat center center,
         ),
         offer-middle-notifications: (
             offer-mn-color: #494949,

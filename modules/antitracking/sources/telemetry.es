@@ -1,6 +1,6 @@
 /* eslint no-param-reassign: 'off' */
 
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import platformTelemetry from '../platform/telemetry';
 import inject, { ifModuleEnabled } from '../core/kord/inject';
 import random from '../core/crypto/random';

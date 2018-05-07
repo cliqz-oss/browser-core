@@ -3,7 +3,7 @@ import getCoreVersion from './demographics';
 import Client from './client';
 import Manager from './manager';
 import { ModuleStorage, SharedStorage } from './storage';
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import getDemographics from '../core/demographics';
 
 // half an hour

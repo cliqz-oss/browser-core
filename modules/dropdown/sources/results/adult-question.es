@@ -1,6 +1,6 @@
-import BaseResult from './base';
+import BaseResult, { Subresult } from './base';
 
-class AdultAnswerResult extends BaseResult {
+class AdultAnswerResult extends Subresult {
   get displayUrl() {
     return null;
   }
@@ -13,16 +13,11 @@ class AdultAnswerResult extends BaseResult {
     return this.rawResult.className;
   }
 
-  click(window, href) {
+  click(href) {
     const action = JSON.parse(href.split('cliqz-actions,')[1]);
-    const adultAssistant = this.actions.adultAssistant;
+    const adultAssistant = this.resultTools.assistants.adult;
     const actionName = action.actionName;
-    if (!adultAssistant.hasAction(actionName)) {
-      return;
-    }
-    adultAssistant[actionName]().then(() => {
-      this.rawResult.onButtonClick();
-    });
+    adultAssistant[actionName]();
   }
 }
 
@@ -32,21 +27,19 @@ export default class AdultQuestionResult extends BaseResult {
   }
 
   get internalResults() {
-    return this.actions.adultAssistant.actions.map((action) => {
+    return this.resultTools.assistants.adult.actions.map((action) => {
       let additionalClassName = '';
 
       if (action.actionName === 'allowOnce') {
         additionalClassName = 'adult-allow-once';
       }
 
-      const result = new AdultAnswerResult({
+      const result = new AdultAnswerResult(this, {
         title: action.title,
         url: `cliqz-actions,${JSON.stringify({ type: 'adult', actionName: action.actionName })}`,
         text: this.rawResult.text,
         className: additionalClassName,
-        onButtonClick: this.rawResult.onButtonClick,
       });
-      result.actions = this.actions;
       return result;
     });
   }

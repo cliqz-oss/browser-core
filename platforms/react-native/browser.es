@@ -1,5 +1,6 @@
 import { NativeModules } from 'react-native';
 import language from './language/language';
+import window from './window';
 
 const nativeWebRequest = NativeModules.WebRequest;
 
@@ -18,7 +19,7 @@ export function checkIsWindowActive(windowID) {
 }
 
 export function forEachWindow(cb) {
-  cb({});
+  cb(window);
 }
 
 export function setInstallDatePref() {

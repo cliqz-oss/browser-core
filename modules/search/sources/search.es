@@ -49,9 +49,12 @@ const search = ({ query$, focus$, highlight$ = Rx.Observable.empty() }, provider
     .switchMap((event) => {
       if (event === 'focus') {
         logger.log('Search start (focus)');
-        return handleQueriesWrapper(query$, highlight$, providers, config)
-          // clear dropdown when new search starts
-          .startWith([]);
+        if (config.clearResultsOnSessionStart) {
+          return handleQueriesWrapper(query$, highlight$, providers, config)
+            // clear dropdown when new search starts
+            .startWith([]);
+        }
+        return handleQueriesWrapper(query$, highlight$, providers, config);
       }
       logger.log('Search end (blur)');
       return Rx.Observable.empty();

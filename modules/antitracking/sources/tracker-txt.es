@@ -7,7 +7,7 @@ TrackerTXT: caching rules for tracker.txt
 
 import MapCache from '../core/helpers/fixed-size-cache';
 import { getTime } from './time';
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 
 const trackerTxtActions = new Set(['placeholder', 'block', 'empty', 'replace']);
 

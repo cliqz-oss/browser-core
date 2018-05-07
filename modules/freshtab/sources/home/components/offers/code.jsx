@@ -52,12 +52,12 @@ export default class Code extends React.Component {
             className="copy-code"
             onClick={this.handleClick}
           >
-            {tt('offers-copy-code')}
+            {tt('offers_copy_code')}
           </span>
         </ToggleDisplay>
         <ToggleDisplay hide={this.state.show}>
           <span className="code-copied">
-            {tt('offers-code-copied')}
+            {tt('offers_code_copied')}
           </span>
         </ToggleDisplay>
       </div>

@@ -1,7 +1,7 @@
-import { expect } from '../helpers';
+import { expect, urlbar, $cliqzResults } from '../helpers';
 
-export default function (result, element, urlbartext, urlbar) {
+export default function (element, urlBarText) {
   expect(element).to.have.class('selected');
-  expect(result.querySelectorAll('.selected')).to.have.length(1);
-  expect(urlbar.textValue).to.equal(urlbartext);
+  expect($cliqzResults.querySelectorAll('.selected')).to.have.length(1);
+  return expect(urlbar.mInputField.value).to.equal(urlBarText);
 }

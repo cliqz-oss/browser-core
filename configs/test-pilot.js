@@ -12,7 +12,7 @@ module.exports = {
   "testsBasePath": "./build/testpilot@cliqz.com/chrome/content",
   "testem_launchers": ["unit-node", "Chrome"],
   "testem_launchers_ci": ["unit-node"],
-  'settings': Object.assign({
+  'settings': Object.assign({}, urls, {
     "id": "testpilot@cliqz.com",
     "name": "Cliqz Test Pilot",
     "channel": "TP02",
@@ -29,7 +29,7 @@ module.exports = {
     "HW_CHANNEL": "ff-test-pilot",
     "HPN_CHANNEL": "cliqz",
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
-  }, urls),
+  }),
   'default_prefs' : {
   },
   "modules": [

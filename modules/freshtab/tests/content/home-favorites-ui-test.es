@@ -52,7 +52,7 @@ describe('Fresh tab favorites UI', function () {
       });
 
       it('with the visibility switch turned on', function () {
-        const $favoritesSwitch = subject.queryByI18n('freshtab.app.settings.favorites.label')
+        const $favoritesSwitch = subject.queryByI18n('freshtab_app_settings_favorites_label')
           .querySelector('input.switch');
         expect($favoritesSwitch).to.have.property('checked', true);
       });
@@ -73,7 +73,7 @@ describe('Fresh tab favorites UI', function () {
       });
 
       it('with the visibility switch turned off', function () {
-        const $favoritesSwitch = subject.queryByI18n('freshtab.app.settings.favorites.label')
+        const $favoritesSwitch = subject.queryByI18n('freshtab_app_settings_favorites_label')
           .querySelector('input.switch');
         expect($favoritesSwitch).to.have.property('checked', false);
       });
@@ -119,7 +119,7 @@ describe('Fresh tab favorites UI', function () {
 
       it('with an URL field with correct placeholder', function () {
         expect(subject.query('#section-favorites input.addUrl').placeholder)
-          .to.equal('freshtab.app.speed-dial.input.placeholder');
+          .to.equal('freshtab_app_speed_dial_input_placeholder');
       });
 
       it('with an existing CTA button', function () {
@@ -128,7 +128,7 @@ describe('Fresh tab favorites UI', function () {
 
       it('with a CTA button with correct label', function () {
         expect(subject.query('#section-favorites button.submit'))
-          .to.have.text('freshtab.app.speed-dial.add');
+          .to.have.text('freshtab_app_speed_dial_add');
       });
     });
   });
@@ -172,7 +172,7 @@ describe('Fresh tab favorites UI', function () {
         expect(subject.query(undoBoxSelector))
           .to.contain.text(favoritesResponse[0].custom[0].displayTitle);
         expect(subject.query(undoBoxSelector))
-          .to.contain.text('freshtab.app.speed-dial.removed');
+          .to.contain.text('freshtab_app_speed_dial_removed');
       });
     });
   });

@@ -123,7 +123,17 @@ const subprojects = {
     src: 'node_modules/tldjs',
     include: ['tld.min.js'],
     dest: 'vendor',
-  }
+  },
+  sinon: {
+    src: 'node_modules/sinon/pkg',
+    include: ['sinon.js'],
+    dest: 'vendor'
+  },
+  'sinon-chai': {
+    src: 'node_modules/sinon-chai/lib',
+    include: ['sinon-chai.js'],
+    dest: 'vendor'
+  },
 };
 
 module.exports = (modules) => {

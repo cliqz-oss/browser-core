@@ -15,14 +15,6 @@ function getWindow() {
   return wm.getMostRecentWindow('navigator:browser');
 }
 
-function loadModule(moduleName) {
-  const mod = getWindow().CLIQZ.app.debugModules[moduleName];
-  if (!mod) {
-    throw new Error(`${moduleName} is not found`);
-  }
-  return mod;
-}
-
 function getBrowserVersion() {
   const userAgent = navigator.userAgent;
   const userAgentParts = userAgent.split('/');
@@ -73,9 +65,9 @@ mocha.setup({
 });
 
 const win = getWindow();
-window.CliqzUtils = loadModule('core/utils').default;
-window.CliqzABTests = loadModule('core/ab-tests').default;
-window.CliqzHumanWeb = loadModule('human-web/human-web').default;
+window.CliqzUtils = win.CliqzUtils;
+window.CliqzABTests = win.CliqzABTests;
+window.CliqzHumanWeb = win.CliqzHumanWeb;
 window.browserMajorVersion = parseInt(getBrowserVersion().split('.')[0], 10);
 let telemetry;
 let fetchFactory;
@@ -91,13 +83,14 @@ win.allTelemetry = [];
 function start() {
 // Try to get app
   app = win.CLIQZ ? win.CLIQZ.app : null;
+  window.app = app;
 
   if (app === null || !app.isFullyLoaded) {
     setTimeout(start, 1000);
     return;
   }
 
-  injectTestHelpers(CliqzUtils, loadModule);
+  injectTestHelpers(CliqzUtils);
   initHttpServer();
 
 
@@ -114,7 +107,6 @@ function start() {
     CliqzABTests.check = function () {};
 
     /* Turn off telemetry during tests */
-
     win.allTelemetry = [];
     CliqzUtils.telemetry = function (signal) {
       win.allTelemetry.push(signal);
@@ -127,24 +119,13 @@ function start() {
 
   // Load Tests and inject their dependencies
   Object.keys(window.TESTS).forEach(function (testName) {
-    var testFunction = window.TESTS[testName],
-        moduleNames = window.DEPS[testName],
-        modules;
-
-    if (moduleNames !== undefined) {
-      try {
-        modules = moduleNames.map(loadModule).map(module => module.default);
-      } catch(e) {
-        console.error("module loading error - skiping tests");
-        return;
-      }
-    }
+    var testFunction = window.TESTS[testName];
 
     if ('MIN_BROWSER_VERSION' in testFunction && browserMajorVersion < testFunction.MIN_BROWSER_VERSION) {
       return; // skip tests
     }
 
-    testFunction.apply(null, modules);
+    testFunction(CliqzUtils);
   });
 
 
@@ -221,13 +202,6 @@ var runner =  mocha.run();
 runner.on('end', function () {
   if (getParameterByName('closeOnFinish') === "1") { closeBrowser(); }
 });
-
 }
-
-TESTS.TestToDos = function() {
-  describe('TODO', function() {
-    xit('green ads should be enabled');
-  });
-};
 
 start();

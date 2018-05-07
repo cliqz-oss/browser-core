@@ -66,10 +66,10 @@ export default class OfferFeedback extends React.Component {
           className="close"
           onClick={this.handleCloseClick}
         />
-        <h2>
-          {tt('offers-hub-feedback-title')}
-        </h2>
         <ToggleDisplay show={this.state.showForm}>
+          <h2>
+            {tt('offers_hub_feedback_title')}
+          </h2>
           <div className="flex-container">
             <div className="col1">
               <ul>
@@ -81,7 +81,7 @@ export default class OfferFeedback extends React.Component {
                     value="already_used"
                     onChange={this.handleOptionChange}
                   />
-                  <label htmlFor="feedback_option1">{tt('offers-hub-feedback-option1')}</label>
+                  <label htmlFor="feedback_option1">{tt('offers_hub_feedback_option1')}</label>
                 </li>
                 <li>
                   <input
@@ -91,7 +91,7 @@ export default class OfferFeedback extends React.Component {
                     type="radio"
                     onChange={this.handleOptionChange}
                   />
-                  <label htmlFor="feedback_option2">{tt('offers-hub-feedback-option2')}</label>
+                  <label htmlFor="feedback_option2">{tt('offers_hub_feedback_option2')}</label>
                 </li>
                 <li>
                   <input
@@ -101,7 +101,7 @@ export default class OfferFeedback extends React.Component {
                     type="radio"
                     onChange={this.handleOptionChange}
                   />
-                  <label htmlFor="feedback_option3">{tt('offers-hub-feedback-option3')}</label>
+                  <label htmlFor="feedback_option3">{tt('offers_hub_feedback_option3')}</label>
                 </li>
               </ul>
             </div>
@@ -109,14 +109,14 @@ export default class OfferFeedback extends React.Component {
               <textarea
                 id="feedback_option4_textarea"
                 rows="2"
-                placeholder={tt('offers-hub-feedback-option4')}
+                placeholder={tt('offers_hub_feedback_option4')}
                 ref={(comment) => { this._comment = comment; }}
                 onChange={this.handleTextareaChange}
               />
             </div>
             <div className="col3">
               <div className="notification">
-                {tt('offers-offer-removed')}
+                {tt('offers_offer_removed')}
               </div>
               <button
                 className="cta-btn"
@@ -124,15 +124,17 @@ export default class OfferFeedback extends React.Component {
                 onClick={this.handleSubmit}
                 disabled={this.state.submitDisabled}
               >
-                <span>{tt('offers-send-feedback')}</span>
+                <span>{tt('offers_send_feedback')}</span>
               </button>
             </div>
           </div>
         </ToggleDisplay>
         <ToggleDisplay hide={this.state.showForm}>
-          <div className="thank-you">
-            <h3>{tt('offers-hub-feedback-thank-you')}</h3>
-            <p>{tt('offers-feedback-thank-you')}</p>
+          <div className="vertical-align">
+            <div className="thank-you">
+              <h3>{tt('offers_hub_feedback_thank_you')}</h3>
+              <p>{tt('offers_feedback_thank_you')}</p>
+            </div>
           </div>
         </ToggleDisplay>
       </div>

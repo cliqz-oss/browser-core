@@ -33,7 +33,12 @@ export default class MessageCenter extends React.Component {
   render() {
     const position = this.props.position;
     if (position === 'top' && this.state.top.length > 0) {
-      return <TopMessages messages={this.state.top} />;
+      return (
+        <TopMessages
+          messages={this.state.top}
+          handleLinkClick={this.props.handleLinkClick}
+        />
+      );
     } else if (position === 'middle' && this.state.middle.length > 0) {
       return (
         <MiddleMessages

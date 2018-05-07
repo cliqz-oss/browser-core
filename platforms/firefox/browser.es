@@ -45,9 +45,9 @@ export class Window {
   static findByTabId(tabId) {
     const windows = mapWindows(w => new Window(w));
     return windows.find(w =>
-      // In some cases `w.window.gBrowser.selectedBrowser` is undefined.
-      w.window.gBrowser.selectedBrowser &&
-      w.window.gBrowser.selectedBrowser.outerWindowID === tabId
+      [...w.window.gBrowser.tabs]
+        .filter(tab => tab.linkedBrowser) // TODO: check if that happens
+        .find(tab => tab.linkedBrowser.outerWindowID === tabId)
     );
   }
 }
@@ -400,6 +400,11 @@ function waitForAsync(fn, depth = 200) {
     }));
 }
 
+export function getCurrentWindow() {
+  return Components.classes['@mozilla.org/appshell/window-mediator;1']
+    .getService(Components.interfaces.nsIWindowMediator)
+    .getMostRecentWindow('navigator:browser');
+}
 
 function getCurrentgBrowser() {
   return Components.classes['@mozilla.org/appshell/window-mediator;1']

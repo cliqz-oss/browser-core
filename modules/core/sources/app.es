@@ -37,6 +37,10 @@ export default class App {
     this.version = version;
     utils.VERSION = this.version;
     /**
+     * @property {object} config
+     */
+    this.config = config;
+    /**
      * @property {object} modules
      */
     this.modules = Object.create(null);
@@ -64,8 +68,6 @@ export default class App {
       // Currently last one wins
       Object.assign(this.services, module.providedServices);
     });
-
-    this.debugModules = App.debugModules;
 
     utils.extensionVersion = version;
     setApp(this);
@@ -324,7 +326,14 @@ export default class App {
     return Promise.all(
       serviceNames.map(
         // service is initialized only once, so calling init multiple times is fine
-        serviceName => this.services[serviceName].init()
+        serviceName => this.services[serviceName].init().catch((e) => {
+          const error = new Error(`Service "${serviceName}" error`);
+          if (e) {
+            error.stack = e.stack;
+            error.message = e.message;
+          }
+          throw error;
+        })
       )
     );
   }
@@ -399,6 +408,7 @@ export default class App {
     // TODO: remove Cliqz from window
     if (!window.CLIQZ) {
       const CLIQZ = {
+        config,
         startedAt: Date.now(),
         app: this,
         Core: { }, // TODO: remove and all clients

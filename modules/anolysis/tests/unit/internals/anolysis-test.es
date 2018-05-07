@@ -45,11 +45,11 @@ export default describeModule('anolysis/internals/anolysis',
         },
       },
     },
-    'core/cliqz': {
-      utils: {
+    'core/utils': {
+      default: {
         getPref() {},
         setPref() {},
-        setTimeout(fun) { return fun(); },
+        setTimeout(cb) { cb(); },
         setInterval() { },
         clearTimeout() { },
       },
@@ -242,7 +242,7 @@ export default describeModule('anolysis/internals/anolysis',
 
       it('generates signals if there are signals for a day', () => {
         const typesForDate = new DefaultMap(() => []);
-        typesForDate.update('foo', v => v.push('bar'));
+        typesForDate.update('freshtab.home.click.news_pagination', (v) => { v.push({ index: 0 }); });
         anolysis.storage.behavior.getTypesForDate = sinon.spy(
           () => Promise.resolve(typesForDate)
         );

@@ -29,7 +29,9 @@ export default class extends React.Component {
 
   render() {
     const result = this.props.result;
-    const urlDetails = utils.getDetailsFromUrl(result.url);
+    const engine = utils.getDefaultSearchEngine();
+    const url = engine.getSubmissionForQuery(result.text);
+    const urlDetails = utils.getDetailsFromUrl(url);
     const logoDetails = utils.getLogoDetails(urlDetails);
     const width = this.props.width;
     const noResults = this.props.noResults;
@@ -42,7 +44,7 @@ export default class extends React.Component {
         onTouchStart={() => events.pub('mobile-search:hideKeyboard')}
       >
         <Link
-          to={result.url}
+          to={url}
           onPress={e => this.sendResultClickTelemetry(e)}
         >
           <View style={styles(logoDetails.backgroundColor, width).card}>

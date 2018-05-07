@@ -88,7 +88,7 @@ describe('Fresh tab offer notification UI', function () {
     });
 
     after(function () {
-      //subject.unload();
+      subject.unload();
     });
 
     it('the offer is visible', function () {

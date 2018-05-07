@@ -59,6 +59,6 @@ export default class RichHeader extends BackendProvider {
         'done',
       ))
       // TODO: do not emit empty result
-      .let(this.getOperators(config, query));
+      .let(this.getOperators());
   }
 }

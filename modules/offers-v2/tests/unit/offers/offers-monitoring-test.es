@@ -44,7 +44,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
     'platform/lib/adblocker': {
       default: adblocker,
     },
-    'offers-v2/signals_handler': {
+    'offers-v2/signals/signals_handler': {
       default: class {
         constructor() {
           this.signals = {};
@@ -200,6 +200,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           // need to get domain here
           const urlData = buildUrlData(url, ref);
           const domain = urlData.getDomain();
+          console.log('################ simWebRequest', url);
           if (this.httpMap.has(domain)) {
             this.httpMap.get(domain).forEach(cb => cb({ url_data: urlData }));
           }
@@ -224,9 +225,8 @@ export default describeModule('offers-v2/offers/offers-monitoring',
         }
       }
     },
-    'core/cliqz': {
-      default: {},
-      utils: {
+    'core/utils': {
+      default: {
         setInterval: function() {},
         getDetailsFromUrl: function(url) {
           // we should extract the name here
@@ -339,12 +339,8 @@ export default describeModule('offers-v2/offers/offers-monitoring',
       function buildMonitorOffer(od, mdList) {
         const monitorData = [];
         mdList.forEach((md) => {
-          monitorData.push({
-            signalID: md.signalID,
-            type: md.type || 'urlchange',
-            params: md.params,
-            patterns: md.patterns,
-          });
+          md.type = md.type || 'urlchange';
+          monitorData.push(md);
         });
         return {
           offer_id: od.offer_id,
@@ -372,16 +368,47 @@ export default describeModule('offers-v2/offers/offers-monitoring',
       function buildAndAddOffer(offer, monitorData) {
         odb.addOffer(offer);
         const mo = buildMonitorOffer(offer, monitorData);
+        mo.ui_info = offer.ui_info;
         omh.addOfferMonitors(mo);
         omh.build();
         return mo;
+      }
+
+      // expected: {
+      //  activate: true | false,
+      //  code: code,
+      // }
+      //
+      function testShouldActivateOfferForUrl(url, expected) {
+        const urlData = buildUrlData(url);
+        const r = omh.shouldActivateOfferForUrl(urlData);
+        chai.expect(r.activate).eql(expected.activate);
+        if (expected.activate) {
+          chai.expect(r.offerInfo.code).eql(expected.code);
+          if (expected.autoFillField){
+            chai.expect(r.offerInfo.autoFillField).eql(expected.autoFillField);
+          } else {
+            chai.expect(r.offerInfo.autoFillField).eql(false);
+          }
+        }
+        return r;
+      }
+
+      // { offerInfo, couponValue, urlData }
+      function callCouponFormUsed(offerInfo, couponValue, url) {
+        const args = {
+          offerInfo,
+          couponValue,
+          urlData: buildUrlData(url),
+        };
+        omh.couponFormUsed(args);
       }
 
       beforeEach(function () {
         OffersMonitorHandler = this.module().default;
         OfferDB = this.deps('offers-v2/offers/offers-db').default;
         EventHandler = this.deps('offers-v2/event_handler').default;
-        SignalHandler = this.deps('offers-v2/signals_handler').default;
+        SignalHandler = this.deps('offers-v2/signals/signals_handler').default;
 
         return Promise.all([
           this.system.import('offers-v2/common/url_data'),
@@ -1242,6 +1269,389 @@ export default describeModule('offers-v2/offers/offers-monitoring',
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
             checkCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', monitors2[0].signalID, 1);
           });
+
+          // ///////////////////////////////////////////////////////////////////
+          // Tests for webrequest
+          //
+          // - if no domain activation is hit no web request is measured
+          // - if activation domain is hit web request is measured
+          // - if domain activation is hit still webrequest will be triggered when match
+
+          it('/webrequest: if no domain activation is hit no web request is measured', function () {
+            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const monitors = [{
+              signalID: 's1',
+              type: 'webrequest',
+              domain: 'google.de',
+              params: {},
+              patterns: ['||google.de/conversion']
+            }];
+            const evts = [
+              { u: 'http://www.xyy.de' },
+              { u: 'http://www.google.de/conversion', t: 'webrequest' },
+            ];
+
+            const mo = buildAndAddOffer(offer, monitors);
+
+            simulateEvents(evts);
+            checkNoSignals();
+          });
+
+
+          it('/webrequest: if activation domain is hit web request is measured', function () {
+            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const monitors = [{
+              signalID: 's1',
+              type: 'webrequest',
+              domain: 'google.de',
+              params: {},
+              patterns: ['||google.de/conversion']
+            }];
+            const evts = [
+              { u: 'http://www.google.de' },
+              { u: 'http://www.google.de/conversion', t: 'webrequest' },
+            ];
+
+            const mo = buildAndAddOffer(offer, monitors);
+
+            simulateEvents(evts);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
+          });
+
+          it('/webrequest: if domain activation is hit still webrequest will be triggered when match', function () {
+            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const monitors = [{
+              signalID: 's1',
+              type: 'webrequest',
+              domain: 'google.de',
+              params: {},
+              patterns: ['||google.de/conversion']
+            }];
+            const evts = [
+              { u: 'http://www.google.de' },
+              { u: 'http://www.google.de/noconversion', t: 'webrequest' },
+            ];
+
+            const mo = buildAndAddOffer(offer, monitors);
+
+            simulateEvents(evts);
+            checkNoSignals();
+          });
+
+          it('/webrequest: if activation domain is hit web request is measured for multiple monitors', function () {
+            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const monitors = [{
+              signalID: 's1',
+              type: 'webrequest',
+              domain: 'google.de',
+              params: {},
+              patterns: ['||google.de/conversion']
+            },{
+              signalID: 's2',
+              type: 'webrequest',
+              domain: 'google.de',
+              params: {},
+              patterns: ['||google.de/secondconversion']
+            }
+            ];
+            const evts = [
+              { u: 'http://www.google.de' },
+              { u: 'http://www.google.de/conversion', t: 'webrequest' },
+              { u: 'http://www.google.de/secondconversion', t: 'webrequest' },
+            ];
+
+            const mo = buildAndAddOffer(offer, monitors);
+
+            simulateEvents(evts);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[1].signalID, 1);
+          });
+
+          it('/webrequest: multiple offers with multiple monitors works', function () {
+            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer2 = { offer_id: 'HC2', cid: 'cid2' };
+            const monitors = [{
+              signalID: 's1',
+              type: 'webrequest',
+              domain: 'google.de',
+              params: {},
+              patterns: ['||google.de/conversion']
+            },{
+              signalID: 's2',
+              type: 'webrequest',
+              domain: 'google.de',
+              params: {},
+              patterns: ['||google.de/secondconversion']
+            }
+            ];
+            const monitors2 = [{
+              signalID: 'amazons1',
+              type: 'webrequest',
+              domain: 'amazon.de',
+              params: {},
+              patterns: ['||amazon.de/conversion']
+            },{
+              signalID: 'amazons2',
+              type: 'webrequest',
+              domain: 'amazon.de',
+              params: {},
+              patterns: ['||amazon.de/secondconversion']
+            }
+            ];
+            let evts = [
+              { u: 'http://www.google.de' },
+              { u: 'http://www.google.de/conversion', t: 'webrequest' },
+              { u: 'http://www.google.de/secondconversion', t: 'webrequest' },
+            ];
+
+            const mo = buildAndAddOffer(offer, monitors);
+            const mo2 = buildAndAddOffer(offer2, monitors2);
+
+            simulateEvents(evts);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[1].signalID, 1);
+            checkNotExistCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', monitors2[0].signalID);
+            checkNotExistCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', monitors2[1].signalID);
+
+            // now trigger second offer
+            evts = [
+              { u: 'http://www.amazon.de' },
+              { u: 'http://www.amazon.de/conversion', t: 'webrequest' },
+              { u: 'http://www.amazon.de/secondconversion', t: 'webrequest' },
+            ];
+
+            sigHandlerMock.clear();
+            simulateEvents(evts);
+            checkNotExistCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID);
+            checkNotExistCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[1].signalID);
+            checkCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', monitors2[0].signalID, 1);
+            checkCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', monitors2[1].signalID, 1);
+          });
+
+          it('/webrequest: adding monitors once after other works', function () {
+            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer2 = { offer_id: 'HC2', cid: 'cid2' };
+            const monitors = [{
+              signalID: 's1',
+              type: 'webrequest',
+              domain: 'google.de',
+              params: {},
+              patterns: ['||google.de/conversion']
+            },{
+              signalID: 's2',
+              type: 'webrequest',
+              domain: 'google.de',
+              params: {},
+              patterns: ['||google.de/secondconversion']
+            }
+            ];
+            const monitors2 = [{
+              signalID: 's1',
+              type: 'webrequest',
+              domain: 'amazon.de',
+              params: {},
+              patterns: ['||amazon.de/conversion']
+            },{
+              signalID: 's2',
+              type: 'webrequest',
+              domain: 'amazon.de',
+              params: {},
+              patterns: ['||amazon.de/secondconversion']
+            }
+            ];
+            let evts = [
+              { u: 'http://www.google.de' },
+              { u: 'http://www.google.de/conversion', t: 'webrequest' },
+              { u: 'http://www.google.de/secondconversion', t: 'webrequest' },
+              { u: 'http://www.amazon.de' },
+              { u: 'http://www.amazon.de/conversion', t: 'webrequest' },
+              { u: 'http://www.amazon.de/secondconversion', t: 'webrequest' },
+            ];
+
+            const mo = buildAndAddOffer(offer, monitors);
+
+
+            simulateEvents(evts);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[1].signalID, 1);
+            checkNotExistCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', monitors2[0].signalID, 1);
+            checkNotExistCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', monitors2[1].signalID, 1);
+
+            // now trigger second offer
+            const mo2 = buildAndAddOffer(offer2, monitors2);
+
+            sigHandlerMock.clear();
+            simulateEvents(evts);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[1].signalID, 1);
+            checkCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', monitors2[0].signalID, 1);
+            checkCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', monitors2[1].signalID, 1);
+          });
+
+          // ////////////////////////////////////////////////////////////////////////////////
+          //                COUPONS USAGE TESTS
+          // ////////////////////////////////////////////////////////////////////////////////
+          //
+          // Since this is tricky to test because we do not have a way to inject the
+          // scripts here, we will only test if given a list of coupon monitors we
+          // are properly returning the values for:
+          //  - shouldActivateOfferForUrl
+          //  - couponFormUsed
+          // interfaces
+          //
+
+          it('/coupon: shouldActivateOfferForUrl on invalid urls works', function () {
+            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } } };
+            const monitors = [{
+              signalID: 's1',
+              type: 'coupon',
+              params: {},
+              patterns: [
+                '||google.de/activate1',
+                '||google.de/activate_second',
+                '||google.de/activate_third',
+              ],
+              couponInfo: {},
+            }
+            ];
+            let evts = [
+              { u: 'http://www.google.de' },
+              { u: 'http://www.amazon.de' },
+            ];
+
+            // for all urls we expect to not match
+            const mo = buildAndAddOffer(offer, monitors);
+            evts.forEach((e) => {
+              const url = e.u;
+              testShouldActivateOfferForUrl(url, { activate: false });
+            });
+          });
+
+          it('/coupon: shouldActivateOfferForUrl on valid urls works', function () {
+            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } } };
+            const monitors = [{
+              signalID: 's1',
+              type: 'coupon',
+              params: {},
+              patterns: [
+                '||google.de/activate1',
+                '||google.de/activate_second',
+                '||google.de/activate_third',
+              ],
+              couponInfo: {},
+            }
+            ];
+            let evts = [
+              { u: 'http://www.google.de/activate1' },
+              { u: 'http://www.google.de/activate_second' },
+              { u: 'http://www.google.de/activate_third' },
+            ];
+
+            // for all urls we expect to not match
+            const mo = buildAndAddOffer(offer, monitors);
+            evts.forEach((e) => {
+              const url = e.u;
+              testShouldActivateOfferForUrl(url, { activate: true, code: 'TEST_CODE' });
+            });
+          });
+
+          it('/coupon: shouldActivateOfferForUrl on valid urls works on multiple offers', function () {
+            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } } };
+            const offer2 = { offer_id: 'HC2', cid: 'cid2', ui_info: { template_data: { code: 'TEST_CODE2' } } };
+            const monitors = [{
+              signalID: 's1',
+              type: 'coupon',
+              params: {},
+              patterns: [
+                '||google.de/activate_second',
+              ],
+              couponInfo: {},
+            }
+            ];
+            const monitors2 = [{
+              signalID: 's2',
+              type: 'coupon',
+              params: {},
+              patterns: [
+                '||google.de/activate_third',
+              ],
+              couponInfo: {},
+            }
+            ];
+            buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer2, monitors2);
+            testShouldActivateOfferForUrl('http://www.google.de/activate_second',
+              { activate: true, code: 'TEST_CODE' }
+            );
+            testShouldActivateOfferForUrl('http://www.google.de/activate_third',
+              { activate: true, code: 'TEST_CODE2' }
+            );
+          });
+
+          it('/coupon: couponFormUsed works for proper coupon code', function () {
+            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } } };
+            const monitors = [{
+              signalID: 's1',
+              type: 'coupon',
+              params: {},
+              patterns: [
+                '||google.de/activate_second',
+              ],
+              couponInfo: {},
+            }
+            ];
+            buildAndAddOffer(offer, monitors);
+
+            const url = 'http://www.google.de/activate_second';
+            const r1 = testShouldActivateOfferForUrl(url,
+              { activate: true, code: 'TEST_CODE' }
+            );
+            callCouponFormUsed(r1.offerInfo, 'TEST_CODE', url);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'coupon_own_used', 1);
+          });
+
+          it('/coupon: couponFormUsed works for different coupon code', function () {
+            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } } };
+            const monitors = [{
+              signalID: '-',
+              type: 'coupon',
+              params: {},
+              patterns: [
+                '||google.de/activate_second',
+              ],
+              couponInfo: {},
+            }
+            ];
+            buildAndAddOffer(offer, monitors);
+            const url = 'http://www.google.de/activate_second';
+            const r1 = testShouldActivateOfferForUrl(url,
+              { activate: true, code: 'TEST_CODE' }
+            );
+            callCouponFormUsed(r1.offerInfo, 'TEasdaST_CODasdaE', url);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'coupon_other_used', 1);
+          });
+
+          it('/coupon: couponFormUsed works for no coupon code', function () {
+            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } } };
+            const monitors = [{
+              signalID: '-',
+              type: 'coupon',
+              params: {},
+              patterns: [
+                '||google.de/activate_second',
+              ],
+              couponInfo: {},
+            }
+            ];
+            buildAndAddOffer(offer, monitors);
+            const url = 'http://www.google.de/activate_second';
+            const r1 = testShouldActivateOfferForUrl(url,
+              { activate: true, code: 'TEST_CODE' }
+            );
+            callCouponFormUsed(r1.offerInfo, '', url);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'coupon_empty', 1);
+          });
+
 
         });
       });

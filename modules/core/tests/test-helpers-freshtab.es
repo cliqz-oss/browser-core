@@ -308,19 +308,19 @@ export class Subject {
     return this.queryByI18n('Cliqz Theme');
   }
   getBackgroundSettings() {
-    return this.queryByI18n('freshtab.app.settings.background.label');
+    return this.queryByI18n('freshtab_app_settings_background_label');
   }
   getMostVisitedSettings() {
-    return this.queryByI18n('freshtab.app.settings.most-visited.label');
+    return this.queryByI18n('freshtab_app_settings_most_visited_label');
   }
   getFavoritesSettings() {
-    return this.queryByI18n('freshtab.app.settings.favorites.label');
+    return this.queryByI18n('freshtab_app_settings_favorites_label');
   }
   getSearchSettings() {
-    return this.queryByI18n('freshtab.app.settings.search.label');
+    return this.queryByI18n('freshtab_app_settings_search_label');
   }
   getNewsSettings() {
-    return this.queryByI18n('freshtab.app.settings.news.label');
+    return this.queryByI18n('freshtab_app_settings_news_label');
   }
 
   getCliqzThemeSwitch() {

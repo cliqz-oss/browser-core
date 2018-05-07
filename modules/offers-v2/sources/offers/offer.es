@@ -88,7 +88,7 @@ const buildHistoryCheckEntry = (historyCheck) => {
  *   //   {
  *   //     offerID: the unique offer id identifying the offer, (automatically set on frontend)
  *   //     signalID: the signal we want to send when activating the monitor,
- *   //     type: can be either 'webrequest' or 'urlchange' type,
+ *   //     type: can be either 'webrequest' or 'urlchange' or coupon type,
  *   //
  *   //     // this is required if type === 'webrequest'
  *   //     domain: XYZ, // where we will watch the requests
@@ -119,6 +119,11 @@ const buildHistoryCheckEntry = (historyCheck) => {
  *   //       referrer_cat: true / false,
  *   //     },
  *   //     patterns: ["adblocker pattern"]
+ *   //     // if the type == 'coupon' we will have this additional information:
+ *   //     couponInfo: {
+ *   //       code: (THIS WILL BE AUTOMATICALLY SET ON THE EXTENSION, taking it from the offer)
+ *   //       autoFillField: true | false // saying if we should autofill or not the field
+ *   //     }
  *   //   }
  *   //
  *   monitorData: [{...}, {...}, ...]
@@ -189,10 +194,11 @@ const buildHistoryCheckEntry = (historyCheck) => {
  *   //  }
  *   historyChecks: [{..},],
  *
- *   // [optional] the expiration timestamp using the backend time (this one should
- *   //  be sync with the one we get over config_ts). This should be absolute
- *   //  timestamp.
- *   expirationMs: timestamp_ms,
+ *   // [optional] the expiration time in ms, is a delta value meaning from the time
+ *   // the user gets the offer when will be invalidated, basiically will be valid if
+ *   // now < offerCreatedTsMs + expirationMs
+ *   // This value comes from the backend and will be used to calculate the validUntilTs
+ *   expirationMs: deltaMs,
  *
  *   // [optional] the list of categories defined here will be used to filter the
  *   // offer if some of the categories is not active. We will check if any of

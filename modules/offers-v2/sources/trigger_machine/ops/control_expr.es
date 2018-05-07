@@ -771,6 +771,46 @@ class PatternMatchExpr extends Expression {
   }
 }
 
+/**
+ * This operation checks local language settings.
+ * @param {object} eventLoop
+ * @param {list} args is a list of strings containing allowed languages.
+ * @return {Promise(Boolean)} local language is in the list.
+ * @version 21.0
+ */
+class LangIsExpr extends Expression {
+  constructor(data) {
+    super(data);
+    this.allowedLangs = null;
+  }
+
+  isBuilt() {
+    return !!this.allowedLangs;
+  }
+
+  build() {
+    if (!this.data || !this.data.raw_op.args) {
+      // nothing to do
+      return;
+    }
+    if (this.data.raw_op.args.length < 1) {
+      throw new Error('LangExpr invalid args');
+    }
+    this.allowedLangs = this.data.raw_op.args.map(String);
+  }
+
+  destroy() {
+  }
+
+  getExprValue(/* ctx */) {
+    const preferredLanguage = utils.PLATFORM_LANGUAGE;
+    if (this.allowedLangs.indexOf(preferredLanguage) < 0) {
+      return Promise.resolve(false);
+    }
+    return Promise.resolve(true);
+  }
+}
+
 const ops = {
   $if_pref: IfPrefExpr,
   $log: LogExpr,
@@ -787,6 +827,7 @@ const ops = {
   $geo_check: GeoCheckExpr,
   $is_feature_enabled: IsFeatureEnabledExpr,
   $pattern_match: PatternMatchExpr,
+  $lang_is: LangIsExpr,
 };
 
 export default ops;

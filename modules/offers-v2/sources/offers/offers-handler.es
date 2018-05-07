@@ -30,6 +30,7 @@ import logger from '../common/offers_v2_logger';
 import OfferStatus from './offers-status';
 import OffersAPI from './offers-api';
 import OfferDB from './offers-db';
+import OfferDBObserver from './offers-db-observer';
 import IntentOffersHandler from './intent-offers-handler';
 import shouldFilterOffer from './soft-filter';
 import OffersMonitorHandler from './offers-monitoring';
@@ -38,6 +39,8 @@ import DBReplacer from './jobs/db-replacer';
 import HardFilters from './jobs/hard-filters';
 import Prioritizer from './jobs/prioritizer';
 import ContextFilter from './jobs/context-filters';
+import prefs from '../../core/prefs';
+import { getLatestOfferInstallTs, timestampMS } from '../utils';
 import ActionID from './actions-defs';
 
 
@@ -45,6 +48,8 @@ import ActionID from './actions-defs';
 //                              Constants
 // /////////////////////////////////////////////////////////////////////////////
 const MAX_NUM_OFFERS_PER_DAY = 5;
+// time in secs that we will use to consider offers fresh install
+const FRESH_INSTALL_THRESHOLD_SECS = 45 * 60; // 45 mins?
 
 // /////////////////////////////////////////////////////////////////////////////
 //                              Helper methods
@@ -69,12 +74,28 @@ const executeJobList = (jobList, offersList, ctx, idx = 0) => {
   );
 };
 
+/**
+ * Will check if the user just installed or not the extension, this will
+ * be used to avoid showing offers if thats the case, except it is development
+ */
+const isFreshInstalled = () => {
+  if (prefs.get('offersDevFlag', false)) {
+    return false;
+  }
+
+  // check the installed timestamp
+  const timeSinceInstallSecs = (timestampMS() - getLatestOfferInstallTs()) / 1000;
+  return timeSinceInstallSecs < FRESH_INSTALL_THRESHOLD_SECS;
+};
+
 
 /**
  * This method will check global things like total amount of offers per day,
  * number of offers per hour, etc.
  */
 const shouldWeShowAnyOffer = offersGeneralStats =>
+  // is not just fresh installed
+  !isFreshInstalled() &&
   // check that we didnt reached the max num of offers per day
   offersGeneralStats.offersAddedToday() < MAX_NUM_OFFERS_PER_DAY;
 
@@ -108,12 +129,15 @@ export default class OffersHandler {
   }) {
     this.intentHandler = intentHandler;
     this.offersDB = new OfferDB(db);
+    this.offersDBObserver = new OfferDBObserver(this.offersDB);
     this.offersGeneralStats = new OffersGeneralStats(this.offersDB);
     this.offersMonitorHandler = new OffersMonitorHandler(sigHandler, this.offersDB, eventHandler);
 
     this.intentOffersHandler = new IntentOffersHandler(backendConnector, intentHandler);
 
     this.offersAPI = new OffersAPI(sigHandler, this.offersDB);
+
+    this.sigHandler = sigHandler;
 
     // manage the status changes here
     this.offerStatus = new OfferStatus();
@@ -122,6 +146,7 @@ export default class OffersHandler {
     // we assume here that the offersDB is already loaded
     if (this.offersDB.dbLoaded) {
       this.offersGeneralStats.buildFromOffers(this.offersDB.getOffers({ includeRemoved: true }));
+      this.offersDBObserver.observeExpirations();
     }
 
     this._offersDBCallback = this._offersDBCallback.bind(this);
@@ -163,6 +188,7 @@ export default class OffersHandler {
 
   destroy() {
     this.offersDB.unregisterCallback(this._offersDBCallback);
+    this.offersDBObserver.unload();
     // TODO: unregister intent handler callback?
   }
 
@@ -170,6 +196,18 @@ export default class OffersHandler {
     // we add the event to be processed on the queue
     return this.evtQueue.push({ urlData });
   }
+
+  // ///////////////////////////////////////////////////////////////////////////
+  // Bridge methods
+
+  shouldActivateOfferForUrl(urlData) {
+    return this.offersMonitorHandler.shouldActivateOfferForUrl(urlData);
+  }
+
+  couponFormUsed(args) {
+    this.offersMonitorHandler.couponFormUsed(args);
+  }
+
 
   // ///////////////////////////////////////////////////////////////////////////
   // Private methods
@@ -184,6 +222,7 @@ export default class OffersHandler {
     const displayRuleInfo = {
       type: 'exact_match',
       url: [urlData.getRawUrl()],
+      display_time_secs: offer.ruleInfo.display_time_secs,
     };
     const result = this.offersAPI.pushOffer(offer, displayRuleInfo);
     return Promise.resolve(result);
@@ -273,10 +312,16 @@ export default class OffersHandler {
     } else if (message.evt === 'offers-db-loaded') {
       const allOffersMeta = this.offersDB.getOffers({ includeRemoved: true });
       this.offersGeneralStats.buildFromOffers(allOffersMeta);
+      this.offersDBObserver.observeExpirations();
     } else if (message.evt === 'offer-added') {
       // we will add the action to the offer to keep track of it
       const offerID = message.offer.offer_id;
       this.offersDB.incOfferAction(offerID, ActionID.AID_OFFER_DB_ADDED);
+    } else if (message.evt === 'offer-removed') {
+      const offerID = message.offer.offer_id;
+      const campaignID = message.offer.campaign_id;
+      const erased = message.extraData && message.extraData.erased === true;
+      this.offersAPI.offerRemoved(offerID, campaignID, erased);
     }
   }
 

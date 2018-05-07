@@ -1,63 +1,50 @@
 export default [
   {
-    url: 'https://google.de/',
+    url: 'https://www.bing.com/',
+    score: 299533,
     snippet: {
       deepResults: [
         {
           links: [
             {
-              title: 'Übersetzer',
-              url: 'https://translate.google.de/?hl=de\u0026tab=wT'
+              title: 'Prämien',
+              url: 'https://www.bing.com/rewards/dashboard'
             },
             {
-              title: 'Datenschutzerklärung',
-              url: 'https://www.google.de/intl/de/policies/privacy/'
-            },
-            {
-              title: 'Bilder',
-              url: 'https://www.google.de/imghp?hl=de\u0026tab=wi'
-            },
-            {
-              title: 'Suche',
-              url: 'https://www.google.de/webhp?tab=ww'
-            },
-            {
-              title: 'Maps',
-              url: 'https://maps.google.de/maps?hl=de\u0026tab=wl'
-            },
-            {
-              title: 'Sucheinstellungen',
-              url: 'https://www.google.de/preferences?hl=de\u0026fg=1'
+              title: 'Karten',
+              url: 'https://www.bing.com/maps?FORM=Z9LH3'
             },
             {
               title: 'News',
-              url: 'https://news.google.de/nwshp?hl=de\u0026tab=wn'
+              url: 'https://www.bing.com/news?FORM=Z9LH4'
             }
           ],
           type: 'buttons'
         }
       ],
-      description: 'Das Ziel von Google ist es, die Informationen der Welt zu organisieren und für alle zu jeder Zeit zugänglich und nutzbar zu machen.',
+      description: 'Bing unterstützt Sie dabei, Informationen in Aktionen umzusetzen, sodass der Übergang vom Suchen zum Handeln schneller und einfacher erfolgen kann.',
       extra: {
         alternatives: [],
-        language: {}
+        language: {
+          de: 0.9900000095367432
+        }
       },
-      friendlyUrl: 'google.de',
-      title: 'Google'
+      friendlyUrl: 'bing.com',
+      title: 'Bing'
     },
-    c_url: 'https://www.google.de/',
+    c_url: 'https://www.bing.com/',
     type: 'rh',
     subType: {
       class: 'EntityGeneric',
-      id: '-1236472982870230293',
-      name: 'google.de'
+      id: '-6091247217066629038',
+      name: 'bing.com'
     },
     template: 'generic',
     trigger: [
-      'google.de'
+      'bing.com'
     ],
     trigger_method: 'url'
-  }
+  },
 ];
 
 export const bmWithButtons = [

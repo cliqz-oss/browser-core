@@ -1,4 +1,6 @@
 import utils from '../core/utils';
+import setTimeoutInterval from '../core/helpers/timeout';
+
 
 const defaultTPace = 10 * 1000;
 
@@ -6,20 +8,22 @@ class Pacemaker {
   constructor(tpace, twait) {
     this.tpace = tpace || defaultTPace;
     this.twait = (new Date()).getTime() + (twait || 0);
-    this._id = null;
+    this._timer = null;
     this._tasks = new Set();
   }
 
   start() {
-    if (this._id) {
+    if (this._timer) {
       this.stop();
     }
-    this._id = utils.setInterval(this._tick.bind(this), this.tpace, null);
+    this._timer = setTimeoutInterval(this._tick.bind(this), this.tpace, null);
   }
 
   stop() {
-    utils.clearTimeout(this._id);
-    this._id = null;
+    if (this._timer) {
+      this._timer.stop();
+    }
+    this._timer = null;
     this._tasks = new Set();
   }
 

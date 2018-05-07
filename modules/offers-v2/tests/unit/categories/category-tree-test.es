@@ -18,8 +18,8 @@ export default describeModule('offers-v2/categories/category-tree',
     'core/platform': {
       isChromium: false
     },
-    'core/cliqz': {
-      utils: {
+    'core/utils': {
+      default: {
       },
     },
     'platform/globals': {

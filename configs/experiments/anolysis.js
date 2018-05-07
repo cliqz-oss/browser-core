@@ -5,7 +5,7 @@ const s3 = 's3://cdncliqz/update/edge/anolysis/$BRANCH_NAME';
 
 module.exports = {
   platform: 'node',
-  brocfile: 'node.Brocfile.js',
+  brocfile: 'Brocfile.node.js',
   baseURL: '/cliqz/',
   pack: `nexe -i ${entrypoint} -o ${artifact} -t ${target} && gzip --best ${artifact}`,
   publish: `aws s3 cp ${artifact}.gz ${s3}/$VERSION.gz && aws s3 cp ${s3}/$VERSION.gz ${s3}/latest.gz`,

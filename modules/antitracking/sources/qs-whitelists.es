@@ -4,7 +4,8 @@
 
 import * as persist from '../core/persistent-state';
 import * as datetime from './time';
-import { utils, events } from '../core/cliqz';
+import utils from '../core/utils';
+import events from '../core/events';
 import md5 from '../core/helpers/md5';
 import QSWhitelistBase from './qs-whitelist-base';
 import extConfig from '../core/config';

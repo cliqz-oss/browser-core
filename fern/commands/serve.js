@@ -23,11 +23,14 @@ program.command('serve [file]')
        .option('--firefox-profile [name|path]', 'firefox profile name or absolute path (web-ext)')
        .option('--firefox [firefox]', 'firefox path (web-ext)', 'nightly')
        .option('--firefox-keep-changes', 'keep profile changes (web-ext)')
+       .option('--no-launch', 'do not launch a browser')
+       .option('--include-tests', 'include tests files in build')
        .action((configPath, options) => {
           process.env['CLIQZ_ENVIRONMENT'] = options.environment || 'development';
           process.env['CLIQZ_SOURCE_MAPS'] = options.maps;
           process.env['CLIQZ_SOURCE_DEBUG'] = options.debug;
           process.env['CLIQZ_INSTRUMENT_FUNCTIONS'] = options.instrumentFunctions || '';
+          process.env['CLIQZ_INCLUDE_TESTS'] = options.includeTests || '';
 
           const cfg = setConfigPath(configPath);
           const CONFIG = cfg.CONFIG;
@@ -41,7 +44,11 @@ program.command('serve [file]')
             // .custom-prefs.json is optional so it is fine if it is missing
           }
 
-          const addonID = CONFIG.settings.id || 'cliqz@cliqz.com';
+          let addonID = '';
+          if (CONFIG.platform === 'firefox') {
+            addonID = CONFIG.settings.id || 'cliqz@cliqz.com';
+          }
+
           const webExtOptions = {
             noReload: true,
             sourceDir: path.join(OUTPUT_PATH, addonID ),
@@ -76,7 +83,7 @@ program.command('serve [file]')
               rimraf.sync(OUTPUT_PATH);
               copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
 
-              if (CONFIG.platform === 'firefox') {
+              if (['firefox', 'webextension'].indexOf(CONFIG.platform) >= 0 && options.launch !== false) {
                 if (extensionRunner) {
                   donePromise = extensionRunner.reloadAllExtensions()
                 } else {

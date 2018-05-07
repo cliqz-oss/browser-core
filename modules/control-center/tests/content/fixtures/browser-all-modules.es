@@ -1071,8 +1071,8 @@ export default {
         "disabledEverywhere": false,
         "totalCount": 0,
         "advertisersList": {
-          "companiesArray": []
         },
+
         "state": "active",
         "off_state": "off_website"
       },

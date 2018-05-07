@@ -10,7 +10,6 @@ import console from '../core/console';
 import inject from '../core/kord/inject';
 import urlbarEventHandlers from './urlbar-events';
 import attachGoButton from './go-button';
-import { Window } from '../core/browser';
 
 const ACproviderName = 'cliqz-results';
 
@@ -72,20 +71,6 @@ function autocompleteTerm(urlbar, pattern, loose) {
 };
 /* eslint-enable */
 
-function getPopupDimensions(urlbar, win) {
-  const zoomLevel = new Window(win).zoomLevel;
-  const navBar = win.document.querySelector('#nav-bar');
-  const navBarRect = navBar.getBoundingClientRect();
-  const urlbarRect = urlbar.getBoundingClientRect();
-  // x,y are the distance from the topleft of the popup to urlbar.
-  //
-  return {
-    width: (navBarRect.right - navBarRect.left) * zoomLevel,
-    x: -1 * (urlbarRect.left || urlbarRect.x || 0),
-    y: 0
-  };
-}
-
 function setPopupWidth(popup, urlBar) {
   const width = urlBar.getBoundingClientRect().width;
   popup.setAttribute('width', width > 500 ? width : 500);
@@ -93,29 +78,18 @@ function setPopupWidth(popup, urlBar) {
 
 function initPopup(popup, urlbar, win) {
   // patch this method to avoid any caching FF might do for components.xml
-  popup._appendCurrentResult = () => {
-    if (popup.mInput) {
-      // try to break the call stack which cause 'too much recursion' exception on linux systems
-      utils.setTimeout(win.CLIQZ.UI.handleResults.bind(win), 0);
-    }
-  };
+  popup._appendCurrentResult = () => { };
 
-  popup._openAutocompletePopup = function (aInput, aElement) {
+  popup._openAutocompletePopup = function (aInput) {
     this.mInput = aInput;
     this._invalidate();
-    let popupDimensions = getPopupDimensions(aElement, win);
-    let attachToElement = aElement;
 
-    attachToElement = win.document.querySelector('#nav-bar');
-    popupDimensions = Object.assign(popupDimensions, {
-      x: 0,
-      y: 0,
-    });
+    const attachToElement = win.document.querySelector('#nav-bar');
 
+    popup.setAttribute('height', 0);
+    popup.setAttribute('width', 0);
 
-    this.setAttribute('width', popupDimensions.width);
-    win.document.getElementById('cliqz-popup').style.width = `${popupDimensions.width}px`;
-    this.openPopup(attachToElement, 'after_start', popupDimensions.x, popupDimensions.y, false, true);
+    this.openPopup(attachToElement, 'after_start', 0, 0, false, true);
   }.bind(popup);
 
   // set initial width of the popup equal with the width of the urlbar
@@ -123,31 +97,6 @@ function initPopup(popup, urlbar, win) {
 }
 
 const STYLESHEET_URL = 'chrome://cliqz/content/static/styles/styles.css';
-
-const popupEventHandlers = {
-  /**
-  * @event popupOpen
-  */
-  popupOpen(e) {
-    if (e.composedTarget !== this.popup) {
-      return;
-    }
-    this.popupEvent(true);
-    this.window.CLIQZ.UI.popupClosed = false;
-  },
-
-  /**
-  * @event popupClose
-  * @param e
-  */
-  popupClose(e) {
-    if (e.composedTarget !== this.popup) {
-      return;
-    }
-    this.popupEvent(false);
-    this.window.CLIQZ.UI.popupClosed = true;
-  }
-};
 
 /**
   @namespace ui
@@ -210,17 +159,11 @@ export default class UIWindow extends AppWindow {
     this.elems = [];
     this.settings = settings.settings;
     this.urlbar = this.window.gURLBar;
-    this.hidePopup = this.hidePopup.bind(this);
     this.initialized = false;
     this.window.CLIQZ.UI = {};
     this.urlbarEventHandlers = {};
     Object.keys(urlbarEventHandlers).forEach((ev) => {
       this.urlbarEventHandlers[ev] = urlbarEventHandlers[ev].bind(this);
-    });
-
-    this.popupEventHandlers = {};
-    Object.keys(popupEventHandlers).forEach((ev) => {
-      this.popupEventHandlers[ev] = popupEventHandlers[ev].bind(this);
     });
   }
 
@@ -248,15 +191,15 @@ export default class UIWindow extends AppWindow {
         this.window.CLIQZ.Core.urlbar = this.urlbar;
         this.window.CLIQZ.settings = this.settings;
 
-        this.popupHideEvent = CliqzEvents.subscribe('ui:popup_hide', this.hidePopup);
-
         this.window.CLIQZ.UI.autocompleteQuery = this.autocompleteQuery.bind(this);
 
         this.urlbar.setAttribute('pastetimeout', 0);
 
         const popup = document.createElementNS('http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul', 'panel');
         this.popup = popup;
-        this.popup.oneOffSearchButtons = () => {};
+        this.popup.oneOffSearchButtons = {
+          maybeRecordTelemetry() { return false; }
+        };
         this.window.CLIQZ.Core.popup = this.popup;
         popup.setAttribute('type', 'autocomplete-richlistbox');
         popup.setAttribute('noautofocus', 'true');
@@ -269,9 +212,6 @@ export default class UIWindow extends AppWindow {
 
         this._autocompletepopup = this.urlbar.getAttribute('autocompletepopup');
         this.urlbar.setAttribute('autocompletepopup', 'PopupAutoCompleteRichResultCliqz');
-
-        this.popup.addEventListener('popuphiding', this.popupEventHandlers.popupClose);
-        this.popup.addEventListener('popupshowing', this.popupEventHandlers.popupOpen);
 
         Object.keys(this.urlbarEventHandlers).forEach(function (ev) {
           this.urlbar.addEventListener(ev, this.urlbarEventHandlers[ev]);
@@ -299,21 +239,25 @@ export default class UIWindow extends AppWindow {
   }
 
   autocompleteQuery(firstResult, firstTitle) {
-    const urlBar = this.urlbar;
+    const results = [];
+    const urlBar = this.window.gURLBar;
+    firstResult = utils.cleanMozillaActions(firstResult)[1];
+
     if (urlBar.selectionStart !== urlBar.selectionEnd) {
       // TODO: temp fix for flickering,
       // need to make it compatible with auto suggestion
-      urlBar.mInputField.value = urlBar.mInputField.value.slice(0, urlBar.selectionStart);
+      urlBar.mInputField.value =
+        urlBar.mInputField.value.slice(0, urlBar.selectionStart) +
+        urlBar.mInputField.value.slice(urlBar.selectionEnd);
     }
-
-    firstResult = utils.cleanMozillaActions(firstResult)[1];
-
-    const results = [];
 
     // try to update misspelings like ',' or '-'
-    if (this.cleanUrlBarValue(urlBar.value).toLowerCase() !== urlBar.value.toLowerCase()) {
-      urlBar.mInputField.value = this.cleanUrlBarValue(urlBar.value).toLowerCase();
+    if (urlBar.selectionStart === urlBar.value.length) {
+      if (this.cleanUrlBarValue(urlBar.value).toLowerCase() !== urlBar.value.toLowerCase()) {
+        urlBar.mInputField.value = this.cleanUrlBarValue(urlBar.value).toLowerCase();
+      }
     }
+
     // Use first entry if there are no patterns
     if (
       results.length === 0 ||
@@ -348,25 +292,28 @@ export default class UIWindow extends AppWindow {
     return true;
   }
 
-  cleanUrlBarValue(val) {
+  cleanUrlBarValue(value = '') {
+    const val = value || '';
     const cleanParts = utils.cleanUrlProtocol(val, false).split('/');
     const host = cleanParts[0];
     let pathLength = 0;
     const SYMBOLS = /,|\./g;
+    // any string, which starts with 'www' and then has any number of group:
+    // '.' or ',' and at least one symbol [a-zA-Z0-9_]
+    const hostTemplate = /^www((\.|,)\w[\w-]*)+$/;
 
     if (cleanParts.length > 1) {
       pathLength = (`/${cleanParts.slice(1).join('/')}`).length;
     }
-    if (host.indexOf('www') === 0 && host.length > 4) {
-      // only fix symbols in host
-      if (SYMBOLS.test(host[3]) && host[4] !== ' ') {
-        // replace only issues in the host name, not ever in the path
-        return val.substr(0, val.length - pathLength).replace(SYMBOLS, '.') +
-          (pathLength ? val.substr(-pathLength) : '');
-      }
+
+    if (hostTemplate.test(host)) {
+      // replace only issues in the host name, not ever in the path
+      return val.substr(0, val.length - pathLength).replace(SYMBOLS, '.') +
+        (pathLength ? val.substr(-pathLength) : '');
     }
     return val;
   }
+
   /**
   * triggers component reload at install/uninstall
   * @method reloadUrlbar
@@ -416,7 +363,7 @@ export default class UIWindow extends AppWindow {
     urlbar.style.margin = '0px 0px';
 
     if (this.settings.id !== 'funnelcake@cliqz.com' && this.settings.id !== 'description_test@cliqz.com') {
-      urlbar.mInputField.placeholder = utils.getLocalizedString('freshtab.urlbar.placeholder');
+      urlbar.mInputField.placeholder = utils.getLocalizedString('freshtab_urlbar_placeholder');
     }
   }
 
@@ -426,24 +373,6 @@ export default class UIWindow extends AppWindow {
     urlbar.style.maxWidth = '';
     urlbar.style.margin = '';
     urlbar.mInputField.placeholder = this.originalUrlbarPlaceholder;
-  }
-
-  popupEvent(open) {
-    const action = {
-      type: 'activity',
-      action: `dropdown_${(open ? 'open' : 'close')}`
-    };
-
-    if (open) {
-      action.width = this.popup ?
-        Math.round(this.popup.width) : 0;
-    }
-
-    utils.telemetry(action);
-  }
-
-  hidePopup() {
-    this.window.CLIQZ.Core.popup.hidePopup();
   }
 
   urlbarEvent(ev) {
@@ -477,8 +406,6 @@ export default class UIWindow extends AppWindow {
 
     this.urlbar.setAttribute('autocompletepopup', this._autocompletepopup);
 
-    this.popup.removeEventListener('popuphiding', this.popupEventHandlers.popupClose);
-    this.popup.removeEventListener('popupshowing', this.popupEventHandlers.popupOpen);
     Object.keys(this.urlbarEventHandlers).forEach(function (ev) {
       this.urlbar.removeEventListener(ev, this.urlbarEventHandlers[ev]);
     }.bind(this));

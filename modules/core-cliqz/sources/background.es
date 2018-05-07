@@ -10,6 +10,8 @@ import Storage from '../core/storage';
 import console from '../core/console';
 
 export default background({
+  requiresServices: ['utils', 'session'],
+
   init(settings = {}) {
     this.settings = settings;
     utils.bindObjectFunctions(this.actions, this);
@@ -17,9 +19,6 @@ export default background({
     // load translations
     utils.getLocalizedString('test');
 
-    utils.init();
-
-    this.checkSession();
     if (isFirefox) {
       language.init();
       HistoryManager.init();
@@ -55,30 +54,6 @@ export default background({
         modules: status.modules,
       });
     });
-  },
-
-  checkSession() {
-    if (!prefs.has('session')) {
-      const session = [
-        utils.rand(18),
-        utils.rand(6, '0123456789'),
-        '|',
-        utils.getServerDay(),
-        '|',
-        config.settings.channel || 'NONE',
-      ].join('');
-
-      prefs.set('session', session);
-      prefs.set('install_date', session.split('|')[1]);
-      prefs.set('new_session', true);
-
-      if (!prefs.has('freshtab.state')) {
-        // freshtab is opt-out since 2.20.3
-        prefs.set('freshtab.state', true);
-      }
-    } else {
-      prefs.set('new_session', false);
-    }
   },
 
   browserDetection() {

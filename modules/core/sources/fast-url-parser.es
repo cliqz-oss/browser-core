@@ -1,3 +1,3 @@
-import fastUrlParser from '../platform/fast-url-parser';
+import fastUrlParser from 'fast-url-parser';
 
 export default fastUrlParser;

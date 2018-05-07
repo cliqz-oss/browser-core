@@ -3,6 +3,7 @@
  * https://cliqztix.atlassian.net/wiki/spaces/SBI/pages/66191480/General+Architecture+offers-v2.1
  */
 import logger from './common/offers_v2_logger';
+import prefs from '../core/prefs';
 import utils from '../core/utils';
 import moment from '../platform/lib/moment';
 import events from '../core/events';
@@ -10,7 +11,7 @@ import config from '../core/config';
 import background from '../core/base/background';
 import OffersConfigs from './offers_configs';
 import EventHandler from './event_handler';
-import SignalHandler from './signals_handler';
+import SignalHandler from './signals/signals_handler';
 import Database from '../core/database';
 import TriggerMachineExecutor from './trigger_machine/trigger_machine_executor';
 import FeatureHandler from './features/feature-handler';
@@ -22,6 +23,7 @@ import HistoryMatcher from './history/history-matching';
 import CategoryHandler from './categories/category-handler';
 import CategoryFetcher from './categories/category-fetcher';
 import GreenAdsHandler from './green-ads/manager';
+import UrlData from './common/url_data';
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
@@ -70,7 +72,8 @@ export default background({
 
     // check if we need to set dev flags or not
     // extensions.cliqz.offersDevFlag
-    if (utils.getPref('offersDevFlag', false)) {
+    OffersConfigs.IS_DEV_MODE = utils.getPref('offersDevFlag', false);
+    if (OffersConfigs.IS_DEV_MODE) {
       // new ui system
       OffersConfigs.LOAD_OFFERS_STORAGE_DATA = false;
       // enable logs?
@@ -283,6 +286,55 @@ export default background({
       .then(() => this.offersHandler.urlChangedEvent(urlData));
   },
 
+
+  /**
+   * Method used to set some internal preferences / flags for easy debugging / testing
+   * and configuration
+   * In the future we will use this method to configure offers using the general
+   * configuration (in runtime) at module level
+   */
+  configureFlags(flags) {
+    // the list of acceptable normal preferences
+    const validPrefNames = new Set([
+      USER_ENABLED,
+      'offers2FeatureEnabled',
+      'offersLogsEnabled',
+      'offersDevFlag',
+      'offersLoadSignalsFromDB',
+      'offersSaveStorage',
+      'triggersBE',
+      'offersTelemetryFreq',
+      'offersOverrideTimeout',
+      'showConsoleLogs',
+      'offersInstallInfo',
+      'developer',
+      'config_location',
+    ]);
+
+    Object.keys(flags).forEach((prefName) => {
+      const prefValue = flags[prefName];
+      if (validPrefNames.has(prefName)) {
+        // we can set this one
+        logger.debug(`Setting offers pref ${prefName} with vaue: ${prefValue}`);
+
+        // check if it is a normal pref or a particular
+        switch (prefName) {
+          case 'offersInstallInfo':
+            prefs.set(prefName, `${config.EXTENSION_VERSION}|${prefValue}`);
+            break;
+          case 'triggersBE':
+            OffersConfigs.BACKEND_URL = prefValue;
+            prefs.set(prefName, prefValue);
+            break;
+          default:
+            prefs.set(prefName, prefValue);
+        }
+      } else {
+        logger.debug(`The offers pref with name ${prefName} is not valid in offers`);
+      }
+    });
+  },
+
   // ///////////////////////////////////////////////////////////////////////////
   events: {
     'offers-recv-ch': function onRealEstateMessage(message) {
@@ -340,6 +392,62 @@ export default background({
       if (this.registeredRealEstates) {
         this.registeredRealEstates.delete(realEstateID);
       }
+    },
+
+    /**
+     * Proxy method to know if we should inject the coupon detection script in
+     * this url or not.
+     * In case we should activate the script we will return an object as follow:
+     * {
+     *   // the url where should be activated, basically the same we passed as param
+     *   url,
+     *   // the offerInfo structure
+     *   offerInfo: {
+     *     monitorID: 'xyz', // the monitor ID
+     *     code: 'xyz', // the coupon code of the offer (to inject it)
+     *   },
+     *   // confirming we want to activate it
+     *   activate: true,
+     * }
+     */
+    activateCouponDetectionOnUrl(url) {
+      if (this.offersHandler) {
+        const urlData = new UrlData(url);
+        const result = this.offersHandler.shouldActivateOfferForUrl(urlData) ||
+          { activate: false };
+        result.url = url;
+        return result;
+      }
+      return { url, activate: false };
+    },
+
+    /**
+     * This action will be called from the coupon-content script whenever we detect
+     * a coupon has being used on the frontend.
+     * @param offerInfo is the object containing the following information:
+     *   offerInfo: {
+     *     offerID: 'xyz', // the offer id
+     *     code: 'xyz', // the coupon code of the offer (to inject it)
+     *   },
+     * @param couponValue the value of the code used, or empty if none
+     * @param url where it was used
+     *
+     * format of args: { offerInfo, couponValue, url }
+     */
+    couponFormUsed(args) {
+      /* eslint no-param-reassign: "off" */
+      if (this.offersHandler) {
+        args.urlData = new UrlData(args.url);
+        this.offersHandler.couponFormUsed(args);
+      }
+    },
+
+    /**
+     * will set the configurations for offers, to take effect all of them you will
+     * probably need to reload offers module
+     */
+    setConfiguration(flags) {
+      this.configureFlags(flags);
     },
   },
 

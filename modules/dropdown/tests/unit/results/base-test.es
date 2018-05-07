@@ -1,3 +1,5 @@
+const urlParser = require('fast-url-parser');
+
 export default describeModule('dropdown/results/generic',
   function () {
     return {
@@ -7,9 +9,17 @@ export default describeModule('dropdown/results/generic',
         urlStripProtocol() { return 'STRIPPED_URL' }
       },
       '../../core/console': {},
+      'fast-url-parser': {
+        default: urlParser
+      },
     };
   },
   function () {
+    const resultTools = {
+      assistants: {
+
+      },
+    };
     let GenericResult;
 
     beforeEach(function () {
@@ -22,11 +32,11 @@ export default describeModule('dropdown/results/generic',
       beforeEach(function () {
         result = new GenericResult({
           url: 'https://www.test.test',
-        });
+        }, resultTools);
       });
 
       it('should fill title with stripped url', function () {
-        chai.expect(result).to.have.property('title').that.equals('STRIPPED_URL');
+        chai.expect(result).to.have.property('title').that.equals('test.test');
       });
     });
 
@@ -66,7 +76,7 @@ export default describeModule('dropdown/results/generic',
                   }
                 ]
               }
-            });
+            }, resultTools);
             subResults = result[testCase.methodName];
           });
 

@@ -14,8 +14,8 @@ function mockNow() {
 
 export default describeModule('market-analysis/market_analyzer_main',
   () => ({
-    'core/cliqz': {
-      utils: {
+    'core/utils': {
+      default: {
         getDetailsFromUrl: (url) => {
           if (url.indexOf('amazon.de') !== -1) {
             return { domain: 'amazon.de' };

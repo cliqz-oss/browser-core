@@ -14,25 +14,27 @@ import noResultsNoOffers from '../fixtures/offers/non-organic/noResultsNoOffers'
 
 export default function () {
   context('non organic offers for different backend data', function () {
-    let $resultElement;
     let $offerElement;
     before(function () {
       CliqzUtils.setPref('offersDropdownSwitch', true);
       CliqzUtils.setPref('myoffrz.experiments.001.style', 'plain');
       CliqzUtils.setPref('myoffrz.experiments.001.position', 'first');
+      window.preventRestarts = true;
+    });
+
+    after(function () {
+      window.preventRestarts = false;
     });
 
     describe('when offers come from both: results and offers field', function () {
-      before(function () {
+      before(async function () {
         blurUrlBar();
         CliqzUtils.setPref('offersDropdownSwitch', true);
         respondWith(offersInResultsExtraOffers);
         withHistory([]);
         fillIn('mietwagen');
-        return waitForPopup().then(function () {
-          $resultElement = $cliqzResults()[0];
-          $offerElement = $resultElement.querySelector('a.result:not(.search)');
-        });
+        await waitForPopup(2);
+        $offerElement = $cliqzResults.querySelector('a.result:not(.search)');
       });
 
       it('offer is rendered', function () {
@@ -83,7 +85,7 @@ export default function () {
       });
 
       it('offer is shown only once', function () {
-        const offerSelector = $resultElement.querySelectorAll('.result[href="https://www.happycar.de/?utm_source=cliqz&utm_medium=referral&utm_campaign=Cliqz_Camp1&utm_content=drpdwn"');
+        const offerSelector = $cliqzResults.querySelectorAll('.result[href="https://www.happycar.de/?utm_source=cliqz&utm_medium=referral&utm_campaign=Cliqz_Camp1&utm_content=drpdwn"');
         expect(offerSelector.length).equal(1);
       });
     });
@@ -95,9 +97,8 @@ export default function () {
         respondWith(noOffersInResultsExtraOffers);
         withHistory([]);
         fillIn('mietwagen');
-        return waitForPopup().then(function () {
-          $resultElement = $cliqzResults()[0];
-          $offerElement = $resultElement.querySelector('a.result:not(.search)');
+        return waitForPopup(3).then(function () {
+          $offerElement = $cliqzResults.querySelector('a.result:not(.search)');
         });
       });
       it('offer is rendered', function () {
@@ -105,7 +106,7 @@ export default function () {
       });
 
       it('instant, offer and results are rendered', function () {
-        expect($resultElement.children.length).to.equal(3);
+        expect($cliqzResults.querySelectorAll('a.result').length).to.equal(3);
       });
 
       it('renders title', function () {
@@ -152,7 +153,7 @@ export default function () {
       });
 
       it('offer is shown only once', function () {
-        const offerSelector = $resultElement.querySelectorAll('.result[href="https://www.happycar.de/?utm_source=cliqz&utm_medium=referral&utm_campaign=Cliqz_Camp1&utm_content=drpdwn"');
+        const offerSelector = $cliqzResults.querySelectorAll('.result[href="https://www.happycar.de/?utm_source=cliqz&utm_medium=referral&utm_campaign=Cliqz_Camp1&utm_content=drpdwn"');
         expect(offerSelector.length).equal(1);
       });
     });
@@ -164,9 +165,8 @@ export default function () {
         respondWith(noResultsExtraOffers);
         withHistory([]);
         fillIn('mietwagen');
-        return waitForPopup().then(function () {
-          $resultElement = $cliqzResults()[0];
-          $offerElement = $resultElement.querySelector('a.result:not(.search)');
+        return waitForPopup(2).then(function () {
+          $offerElement = $cliqzResults.querySelector('a.result:not(.search)');
         });
       });
 
@@ -218,7 +218,7 @@ export default function () {
       });
 
       it('offer is shown only once', function () {
-        const offerSelector = $resultElement.querySelectorAll('.result[href="https://www.happycar.de/?utm_source=cliqz&utm_medium=referral&utm_campaign=Cliqz_Camp1&utm_content=drpdwn"');
+        const offerSelector = $cliqzResults.querySelectorAll('.result[href="https://www.happycar.de/?utm_source=cliqz&utm_medium=referral&utm_campaign=Cliqz_Camp1&utm_content=drpdwn"');
         expect(offerSelector.length).equal(1);
       });
     });
@@ -230,13 +230,11 @@ export default function () {
         respondWith(noResultsNoOffers);
         withHistory([]);
         fillIn('mietwagen');
-        return waitForPopup().then(function () {
-          $resultElement = $cliqzResults()[0];
-        });
+        return waitForPopup(1);
       });
 
       it('no results and no offers', function () {
-        const allElements = $resultElement.querySelectorAll('a.result:not(.search');
+        const allElements = $cliqzResults.querySelectorAll('a.result:not(.search');
         expect(allElements.length).to.equal(0);
       });
 

@@ -1,5 +1,9 @@
+import Rx from '../platform/lib/rxjs';
+
 import background from '../core/base/background';
 import utils from '../core/utils';
+import inject from '../core/kord/inject';
+import { setDefaultSearchEngine } from '../core/search-engines';
 
 // providers
 import Calculator from './providers/calculator';
@@ -9,8 +13,10 @@ import HistoryView from './providers/history-view';
 import Instant from './providers/instant';
 import QuerySuggestions from './providers/query-suggestions';
 import RichHeader from './providers/rich-header';
+
+import getConfig from './config';
+import search from './search';
 import getSnippet from './rich-header-snippet';
-import { setDefaultSearchEngine } from '../core/search-engines';
 import addCustomSearchEngines from './search-engines/add-custom-search-engines';
 
 /**
@@ -19,6 +25,8 @@ import addCustomSearchEngines from './search-engines/add-custom-search-engines';
   @class Background
  */
 export default background({
+  core: inject.module('core'),
+
   /**
     @method init
     @param settings
@@ -49,12 +57,52 @@ export default background({
     'control-center:setDefault-search': function onSetDefaultSearchEngine(engine) {
       setDefaultSearchEngine(engine);
     },
-    'control-center:setDefault-indexCountry': function setDefaultIndexCountry(country) {
-      utils.setDefaultIndexCountry(country);
+    'control-center:setDefault-indexCountry': function setCountryIndex(country) {
+      utils.setCountryIndex(country);
     },
   },
 
   actions: {
+    startSearch(query, { tab: { id: tabId } } = { tab: {} }) {
+      const config = getConfig({
+        isPrivateMode: false,
+      });
+
+      const query$ = Rx.Observable.from([{
+        isPrivate: false,
+        isTyped: true,
+        query,
+        tabId,
+        windowId: 1,
+        keyCode: null,
+        isPasted: false,
+      }]);
+
+      const focus$ = Rx.Observable.from([
+        'focus',
+      ]);
+
+      const highlight$ = Rx.Observable.from([
+      ]);
+
+      const results$ = search(
+        { query$, focus$, highlight$ },
+        this.providers,
+        config,
+      ).share();
+
+      results$.subscribe((results) => {
+        const payload = {
+          action: 'renderResults',
+          args: [results],
+        };
+        this.core.action(
+          'broadcastMessageToWindow',
+          payload,
+          tabId,
+        );
+      });
+    },
     /**
      * fetches extra info for result from rich header
      */

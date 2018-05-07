@@ -1,25 +1,28 @@
-import { equals, isCliqzAction } from '../core/url';
 import templates from './templates';
-import { clickSignal } from './telemetry';
-import ContextMenu from './context-menu';
-import events from '../core/events';
-import { Window } from '../platform/browser';
+import { equals, isCliqzAction } from '../core/content/url';
+
+const getEventTarget = (ev) => {
+  let targetElement = ev.originalTarget;
+
+  if (targetElement.nodeType !== 1) {
+    targetElement = targetElement.parentElement;
+  }
+
+  return targetElement;
+};
 
 export default class Dropdown {
-  constructor(element, window, extensionID) {
+  constructor(element, window, actions) {
     this.rootElement = element;
     this.window = window;
-    this.extensionID = extensionID;
-    this.onMouseUp = this.onMouseUp.bind(this);
-    this.onMouseMove = this.onMouseMove.bind(this);
+    this.actions = actions;
   }
 
   init() {
-    this.rootElement.innerHTML = templates.main(this.extensionID);
-    this.dropdownElement.addEventListener('mouseup', this.onMouseUp);
+    this.rootElement.innerHTML = templates.main();
+    this.dropdownElement.addEventListener('click', this.onMouseUp);
+    this.dropdownElement.addEventListener('contextmenu', this.onMouseUp);
     this.dropdownElement.addEventListener('mousemove', this.onMouseMove);
-    this.contextMenu = new ContextMenu(this.window, this.dropdownElement);
-    this.dropdownElement.style.setProperty('--url-padding-start', '50px');
   }
 
   get dropdownElement() {
@@ -57,6 +60,9 @@ export default class Dropdown {
   }
 
   selectResult(result) {
+    if (!result) {
+      return;
+    }
     const el = [...this.rootElement.querySelectorAll('a')].find(a => equals(a.dataset.url, result.url));
     if (!el) {
       return;
@@ -67,22 +73,39 @@ export default class Dropdown {
   updateSelection() {
     this.clearSelection();
     this.selectResult(this.selectedResult);
-
-    events.pub('dropdown:result-selected', {
-      windowId: (new Window(this.window)).id,
-      selectedIndex: this.selectedIndex,
-    });
+    this.actions.reportSelection(this.selectedResult.serialize());
     return this.selectedResult;
   }
 
-  renderResults(results) {
+  clear() {
+    this.dropdownElement.innerHTML = '';
+  }
+
+  renderResults(results, { urlbarAttributes, extensionId } = {}) {
     this.selectedIndex = 0;
     this.results = results;
 
+    if (extensionId) {
+      this.dropdownElement.dataset.extensionId = extensionId;
+    }
+
     // Render and insert templates
-    const html = templates.results({ results: results.results });
+    const html = templates.results({
+      historyResults: results.historyResults,
+      genericResults: results.genericResults,
+    });
     this.dropdownElement.innerHTML = html;
-    this.dropdownElement.style.maxHeight = `${this.window.innerHeight - 140}px`;
+
+    if (urlbarAttributes) {
+      this.dropdownElement.style.setProperty('--content-padding-start', `${urlbarAttributes.padding}px`);
+
+      const urlbarBottomLine = this.window.document.createElement('div');
+      urlbarBottomLine.setAttribute('class', 'urlbar-bottom-line');
+      urlbarBottomLine.style.left = `${urlbarAttributes.left}px`;
+      urlbarBottomLine.style.width = `${urlbarAttributes.width}px`;
+
+      this.dropdownElement.prepend(urlbarBottomLine);
+    }
 
     // Nofify results that have been rendered
     results.results.forEach((result) => {
@@ -106,56 +129,32 @@ export default class Dropdown {
     }
   }
 
-  onMouseUp(ev) {
-    let targetElement = ev.originalTarget;
-
-    if (targetElement.nodeType !== 1) {
-      targetElement = targetElement.parentElement;
-    }
-
+  onMouseUp = (ev) => {
+    const targetElement = getEventTarget(ev);
     const resultElement = targetElement.closest('.result');
 
     if (!resultElement) {
       return;
     }
 
-    const extraElement = targetElement.closest('[data-extra]');
-    const extra = extraElement ? extraElement.dataset.extra : null;
     const href = resultElement.dataset.url;
-    const coordinates = [
-      ev.offsetX,
-      ev.offsetY,
-      this.rootElement.clientWidth,
-      this.rootElement.clientHeight,
-    ];
     const result = this.results.find(href);
+
     if (!result) {
       return;
     }
 
     if (ev.button === 2) {
       const subresult = isCliqzAction(href) ? result : result.findResultByUrl(href);
-      this.contextMenu.show(subresult, { x: ev.screenX, y: ev.screenY });
+
+      this.actions.openContextMenu(subresult.serialize(), { x: ev.screenX, y: ev.screenY });
     } else {
-      result.click(this.window, href, ev);
-
-      clickSignal({
-        extra,
-        coordinates,
-        results: this.results,
-        result,
-        url: href,
-        newTab: ev.altKey || ev.metaKey || ev.ctrlKey,
-      });
+      result.click(href, ev);
     }
-  }
+  };
 
-  onMouseMove(ev) {
-    let targetElement = ev.originalTarget;
-
-    if (targetElement.nodeType !== 1) {
-      targetElement = targetElement.parentElement;
-    }
+  onMouseMove = (ev) => {
+    const targetElement = getEventTarget(ev);
 
     if (this.lastTarget === targetElement) {
       return;
@@ -184,12 +183,11 @@ export default class Dropdown {
     const href = resultElement.dataset.url;
     const resultIndex = this.results.selectableResults.findIndex(r => equals(r.url, href));
 
+    this.clearSelection();
+
     if (resultIndex !== -1) {
-      this.clearSelection();
       this.selectedIndex = resultIndex;
       this.updateSelection();
-    } else {
-      this.clearSelection();
     }
-  }
+  };
 }

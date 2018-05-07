@@ -4,7 +4,16 @@
 import platformEquals, { isURI, URI } from '../platform/url';
 import { getPublicSuffix } from './tlds';
 import MapCache from './helpers/fixed-size-cache';
+import {
+  equals as urlEqual,
+  cleanMozillaActions
+} from './content/url';
 
+export {
+  urlStripProtocol,
+  cleanMozillaActions,
+  isCliqzAction
+} from './content/url';
 export { fixURL } from '../platform/url';
 
 const UrlRegExp = /^(([a-z\d]([a-z\d-]*[a-z\d])?)\.)+[a-z]{2,}(:\d+)?$/i;
@@ -64,33 +73,6 @@ export function isLocalhost(host, isIPv4, isIPv6) {
   return false;
 }
 
-/*
-strip protocol from url
-*/
-export function urlStripProtocol(url) {
-  let resultUrl = url.toLowerCase();
-  const toRemove = [
-    'https://', 'http://',
-    'www2.', 'www.',
-    'mobile.', 'mobil.', 'm.'
-  ];
-
-  for (let i = 0; i < toRemove.length; i += 1) {
-    const part = toRemove[i];
-    if (resultUrl.startsWith(part)) {
-      resultUrl = resultUrl.substr(part.length);
-    }
-  }
-
-  // remove trailing slash as well to have all urls in the same format
-  if (resultUrl[resultUrl.length - 1] === '/') {
-    resultUrl = resultUrl.substr(0, resultUrl.length - 1);
-  }
-
-  return resultUrl;
-}
-
-
 // IP Validation
 
 export function extractSimpleURI(url) {
@@ -103,52 +85,14 @@ export const tryEncodeURI = tryFn(encodeURI);
 export const tryEncodeURIComponent = tryFn(encodeURIComponent);
 
 export function equals(url1, url2) {
-  if (!url1 || !url2) {
-    return false;
-  }
-
-  if (url1 === url2) {
-    return true;
-  }
-
-  try {
-    if (decodeURI(url1) === decodeURI(url2)) {
-      return true;
-    }
-  } catch (e) {
-    return false;
-  }
+  const equal = urlEqual(url1, url2);
 
   if (platformEquals(url1, url2)) {
     return true;
   }
 
-  return false;
+  return equal;
 }
-
-export function isCliqzAction(url) {
-  return url.match(/^cliqz-actions,/);
-}
-
-export function cleanMozillaActions(url = '') {
-  let action;
-  if (url.indexOf('moz-action:') === 0) {
-    const parts = url.match(/^moz-action:([^,]+),(.*)$/);
-    action = parts[1];
-    url = parts[2];
-    try {
-      // handle cases like: moz-action:visiturl,{"url": "..."}
-      const mozActionUrl = JSON.parse(url).url;
-      if (mozActionUrl) {
-        url = decodeURIComponent(mozActionUrl);
-      }
-    } catch (e) {
-      // empty
-    }
-  }
-  return [action, url];
-}
-
 
 export function stripTrailingSlash(str) {
   if (str.substr(-1) === '/') {

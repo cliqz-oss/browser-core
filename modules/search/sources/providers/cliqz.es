@@ -3,6 +3,7 @@ import utils from '../../core/utils';
 import BackendProvider from './backend';
 import { getResponse, getEmptyResponse } from '../responses';
 import { addCompletion } from '../operators/results/utils';
+import { handleQuerySuggestions } from '../../platform/query-suggestions';
 
 const OFFERS_PROVIDER_ID = 'cliqz::offers';
 
@@ -36,6 +37,9 @@ export default class Cliqz extends BackendProvider {
     const cliqz$ = Rx.Observable
       .fromPromise(this.fetch(query, params))
       .share();
+
+    cliqz$.subscribe(({ q, suggestions }) => handleQuerySuggestions(q, suggestions));
+
     const results$ = cliqz$
       .map(({ results = [] }) => getResponse(
         this.id,
@@ -44,7 +48,7 @@ export default class Cliqz extends BackendProvider {
         this.mapResults(results, query),
         'done',
       ))
-      .let(this.getOperators(config, query));
+      .let(this.getOperators());
 
     // offers are optionally included depending on config;
     // if included, any consumer of `search` needs to split
@@ -59,7 +63,7 @@ export default class Cliqz extends BackendProvider {
         this.mapResults(offers, query),
         'done',
       ))
-      .let(this.getOperators.call(offersProvider, config, query));
+      .let(this.getOperators.call(offersProvider, config));
 
     return Rx.Observable
       .merge(

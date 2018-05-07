@@ -102,13 +102,10 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
     'core/platform': {
       isChromium: false
     },
-    'core/cliqz': {
+    'core/utils': {
       default: {
         setInterval: function () {}
       },
-      utils: {
-        setInterval: function () {}
-      }
     },
     'platform/globals': {
       default: {}

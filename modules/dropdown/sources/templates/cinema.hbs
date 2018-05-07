@@ -1,0 +1,20 @@
+{{#unless isMovieEZ}}
+<a class="result" data-url="{{url}}" href="{{displayUrl}}">
+    {{> partials/logo}}
+    {{> partials/abstract}}
+</a>
+{{/unless}}
+
+<div class="movie-cinema">
+    {{> partials/local}}
+    {{#if isShowtimesAvailable}}
+    <div class="padded">
+        <div class="showtime-title">
+            <span class="showtime-cinema-header">{{local 'cinema_movie_showtimes'}} &#183; {{ emphasis headerTitle query 2 true }}</span>
+            <span class="showtime-city">&#183; <span class="location-icon"></span> {{cityName}}</span>
+        </div>
+    </div>
+    {{/if}}
+    {{> partials/share-location}}
+    {{> partials/movie-cinema/show-time}}
+</div>

@@ -79,8 +79,8 @@ export default describeModule('offers-v2/offers/offers-db',
     'core/prefs': {
       default: {}
     },
-    'core/cliqz': {
-      utils: {
+    'core/utils': {
+      default: {
         setInterval: function() {},
       }
     },
@@ -539,6 +539,26 @@ export default describeModule('offers-v2/offers/offers-db',
             });
           });
 
+          it('erased offers are removed completely', function () {
+            const addedTS = Date.now();
+            const laterTS = addedTS + (OffersConfigs.OFFERS_STORAGE_DEFAULT_TTS_SECS * 1000);
+            let odb = new OffersDB();
+            mockCurrentTS(addedTS);
+            chai.expect(odb.addOfferObject(o.offer_id, o)).to.equal(true);
+            chai.expect(odb.hasOfferObject(o.offer_id)).to.equal(true);
+            chai.expect(odb.isOfferPresent(o.offer_id)).to.equal(true);
+            chai.expect(odb.eraseOfferObject(o.offer_id)).to.equal(true);
+
+            mockCurrentTS(laterTS);
+
+            let odb3 = new OffersDB();
+            return waitForDBLoaded(odb3).then(() => {
+              chai.expect(odb.hasOfferObject(o.offer_id)).to.equal(false);
+              chai.expect(odb.isOfferPresent(o.offer_id)).to.equal(false);
+              return Promise.resolve(true);
+            });
+          });
+
           // once the this test fails because the transition logic is removed on
           // offers we should remove this tests
           it('offers db transition works (this test will fail once we remove fully the transition)', function () {
@@ -901,6 +921,17 @@ export default describeModule('offers-v2/offers/offers-db',
             chai.expect(resultEvent).to.eql({ evt: 'offer-removed', offer: o, lastUpdateTS: mockedTS });
           });
 
+          it('registered callbacks works for offer erased (which is offer-removed)', function () {
+            const o = getCopyValidOffer();
+            let resultEvent = {};
+            const cb = evt => resultEvent = evt;
+            db.registerCallback(cb);
+            chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true);
+            chai.expect(resultEvent).to.eql({ evt: 'offer-added', offer: o, lastUpdateTS: mockedTS });
+            chai.expect(db.eraseOfferObject(o.offer_id)).to.equal(true);
+            chai.expect(resultEvent).to.eql({ evt: 'offer-removed', offer: o, lastUpdateTS: mockedTS, extraData: { erased: true } });
+          });
+
           it('unregistered callbacks works', function () {
             const o = getCopyValidOffer();
             let resultEvent = {};
@@ -1040,6 +1071,88 @@ export default describeModule('offers-v2/offers/offers-db',
 
 
         });
+
+        context('/offer erase', function () {
+          let db;
+
+          beforeEach(function () {
+            db = new OffersDB({});
+          });
+
+          function genOffers(data) {
+            const result = [];
+            data.forEach((o) => {
+              const offer = getCopyValidOffer();
+              offer.offer_id = o.id;
+              if (o.client_id) {
+                offer.client_id = o.client_id;
+              }
+              if (o.types) {
+                offer.types = o.types;
+              }
+              result.push(offer);
+            });
+            return result;
+          }
+
+          it('erasing invalid offer doesnt blow works', function () {
+            chai.expect(db.eraseOfferObject('xyz')).eql(false);
+          });
+
+          it('erasing an offer works', function () {
+            const offersData = [
+              { client_id: 'client2', id: 'o4' }
+            ];
+            const o = genOffers(offersData)[0];
+            chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true);
+
+            chai.expect(db.hasOfferData(o.offer_id)).eql(true);
+            chai.expect(db.isOfferPresent(o.offer_id)).eql(true);
+            chai.expect(db.eraseOfferObject(o.offer_id)).eql(true);
+
+
+            chai.expect(db.hasOfferData(o.offer_id)).eql(false);
+            chai.expect(db.isOfferPresent(o.offer_id)).eql(false);
+            chai.expect(db.getOfferMeta(o.offer_id)).eql(null);
+          });
+
+          it('check client mapping works after erase', function () {
+            const offersData = [
+              { client_id: 'client1', id: 'o1' },
+              { client_id: 'client1', id: 'o2' },
+              { client_id: 'client2', id: 'o3' },
+              { client_id: 'client2', id: 'o4' }
+            ];
+            const offers = genOffers(offersData);
+            offers.forEach(o => chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true));
+
+            // check we do not get anything for invalid offers
+            chai.expect(db.getClientOffers('c1')).eql(null);
+
+            // check we get the proper offers for client 1 and 2
+            const c1Offers = db.getClientOffers('client1');
+            chai.expect(c1Offers.has('o1')).eql(true);
+            chai.expect(c1Offers.has('o2')).eql(true);
+            chai.expect(c1Offers.has('o3'), 'v1').eql(false);
+            chai.expect(c1Offers.has('o4'), 'v2').eql(false);
+
+            const c2Offers = db.getClientOffers('client2');
+            chai.expect(c2Offers.has('o1'), 'v3').eql(false);
+            chai.expect(c2Offers.has('o2'), 'v4').eql(false);
+            chai.expect(c2Offers.has('o3')).eql(true);
+            chai.expect(c2Offers.has('o4')).eql(true);
+
+            chai.expect(db.eraseOfferObject('o1')).eql(true);
+            // NOTE that we are completely removing the data here so should not appear anymore
+            chai.expect(db.getClientOffers('client1').has('o2')).eql(true);
+            chai.expect(db.getClientOffers('client1').has('o1')).eql(false);
+
+            chai.expect(db.eraseOfferObject('o3')).eql(true);
+            chai.expect(db.getClientOffers('client2').has('o4')).eql(true);
+            chai.expect(db.getClientOffers('client2').has('o3')).eql(false);
+          });
+        });
+
 
         // TODO: we need to add more tests
         // - check persistence on hard disk, and if they are stored properly

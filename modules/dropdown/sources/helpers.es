@@ -1,6 +1,6 @@
 import Handlebars from 'handlebars';
 import templates from './templates';
-import utils from '../core/utils';
+import i18n from '../core/content/i18n';
 
  const AGO_CEILINGS = [
         [0            , '',1],
@@ -124,7 +124,7 @@ export default {
   local(key) {
     var args = Array.prototype.slice.call(arguments);
     var name = args.shift();
-    return utils.getLocalizedString.apply(null, [name, args]);
+    return i18n.getMessage.apply(null, [name, args]);
   },
 
   agoline(ts, options) {
@@ -135,7 +135,7 @@ export default {
 
     while (slot = AGO_CEILINGS[i++])
         if (seconds < slot[0])
-            return utils.getLocalizedString(slot[1], parseInt(seconds / slot[2]))
+            return i18n.getMessage(slot[1], parseInt(seconds / slot[2]))
     return '';
   },
 
@@ -146,7 +146,7 @@ export default {
 
     while (slot = AGO_CEILINGS[i++])
         if (seconds < slot[0])
-            return utils.getLocalizedString(slot[1], parseInt(seconds / slot[2]))
+            return i18n.getMessage(slot[1], parseInt(seconds / slot[2]))
     return '';
   },
 
@@ -172,6 +172,6 @@ export default {
       return locale;
     }
 
-    return `${prefix}-${locale}`;
+    return `${prefix}_${locale}`;
   },
 };

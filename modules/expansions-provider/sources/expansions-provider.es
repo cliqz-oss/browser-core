@@ -5,7 +5,7 @@
  * It returns the suggestions formated as Cliqz results so that they can be display on the dropdown
  * with no code changes
  */
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import CLIQZEnvironment from '../platform/environment';
 
 class ExpansionsProviderReranker {

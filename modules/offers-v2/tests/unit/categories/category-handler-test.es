@@ -103,8 +103,8 @@ export default describeModule('offers-v2/categories/category-handler',
     'core/helpers/timeout': {
       default: function() { const stop = () => {}; return { stop }; }
     },
-    'core/cliqz': {
-      utils: {
+    'core/utils': {
+      default: {
         setInterval: function() {},
         clearInterval: function() {},
         getPref: function(k, v) {

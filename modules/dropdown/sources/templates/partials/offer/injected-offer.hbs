@@ -15,10 +15,12 @@
             >
                 {{ offerResult.offerSource.title }}
             </a>
-            <div class="offer-code">
+            <p>
                 <span class="ad-label">Anzeige</span>
-                {{> partials/offer/promo-code}}
-            </div>
+                <span class="offer-description" data-extra="description">
+                    {{emphasis offerResult.offerSource.description query 2 true}}
+                </span>
+            </p>
         </div>
     </div>
 </div>

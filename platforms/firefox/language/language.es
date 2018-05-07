@@ -219,8 +219,9 @@ const CliqzLanguage = {
     }
   },
   // returns query string with popular languages
+  // Limit the lang parameters to top 3
   stateToQueryString() {
-    return `&lang=${encodeURIComponent(CliqzLanguage.state().join(','))}`;
+    return `&lang=${encodeURIComponent(CliqzLanguage.state().slice(0, 3).join(','))}`;
   },
   // Save the current state to preferences,
   saveCurrentState() {

@@ -26,7 +26,7 @@ const BrowserActions = NativeModules.BrowserActions || {
 export const openLink = BrowserActions.openLink;
 
 export function historySearch(q, callback) {
-  BrowserActions.searchHistory(q, (data) => {
+  BrowserActions.searchHistory(q, (data = []) => {
     const results = data.map(item => ({
       style: 'favicon',
       value: item.url,

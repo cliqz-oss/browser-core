@@ -95,8 +95,8 @@ const CliqzCalculator = {
     }
   },
   init() {
-    this.thousandsSeparator = utils.getLocalizedString('calculator-thousands-separator');
-    this.decimalSeparator = utils.getLocalizedString('calculator-decimal-separator');
+    this.thousandsSeparator = utils.getLocalizedString('calculator_thousands_separator');
+    this.decimalSeparator = utils.getLocalizedString('calculator_decimal_separator');
   },
   shortenNumber() {
     // shorten numbers when needed

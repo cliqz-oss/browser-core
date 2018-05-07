@@ -1,4 +1,4 @@
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import HumanWeb from './human-web';
 import background from './background';
 

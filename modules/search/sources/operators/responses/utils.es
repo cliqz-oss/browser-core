@@ -5,7 +5,7 @@
  * @returns {boolean} True, if the response states that the provider is
  *   done providing results.
  */
-const isDone = ({ state }) => state === 'done';
+const isDone = ({ state } = {}) => state === 'done';
 
 /**
  * @function hasResults
@@ -13,7 +13,7 @@ const isDone = ({ state }) => state === 'done';
  * @param {Object[]} response.results - The results of the response.
  * @returns {boolean} True, if the response contains at least one result.
  */
-const hasResults = ({ results }) => results.length > 0;
+const hasResults = ({ results = [] } = {}) => results.length > 0;
 
 /**
  * @function hasResponded

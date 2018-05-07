@@ -7,7 +7,7 @@ const { combineLatest, pluck } = Rx.operators;
  * soon as the provided observable emits.
  *
  * @function waitFor
- * @param {Observable} observable$ - The observable to wait for.
+ * @param {Observable} signal$ - The observable to wait for.
  * @returns {operator} The `waitFor` operator.
  */
 export default signal$ => Rx.pipe(

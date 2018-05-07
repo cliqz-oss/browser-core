@@ -73,7 +73,7 @@ export default class extends React.Component {
       <View>
         <Local data={data.cinema} />
         <Text style={styles.header}>
-          { getMessage('cinema-movie-showtimes') }
+          { getMessage('cinema_movie_showtimes') }
           <Text style={styles.text}>: { (showsToday.date || '').toUpperCase() }</Text>
         </Text>
         { movieList.map((...args) => this.displayMovie(...args)) }

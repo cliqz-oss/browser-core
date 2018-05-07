@@ -11,6 +11,7 @@ const styles = {
 
 const threeNewsBreakpoint = 1023;
 const twoNewsBreakpoint = 919;
+const largeBreakpoint = 1600;
 
 export default class News extends React.Component {
   static get propTypes() {
@@ -85,7 +86,11 @@ export default class News extends React.Component {
       }
       this._pagination.setPageSize(3);
       this.setState({ currentPageSize: 3 });
-      this.setState({ articleCharsLimit: 100 });
+      if (width > largeBreakpoint) {
+        this.setState({ articleCharsLimit: 150 });
+      } else {
+        this.setState({ articleCharsLimit: 100 });
+      }
     } else if (width > twoNewsBreakpoint) {
       if (this.state.currentPageSize === 2) {
         return;
@@ -129,6 +134,7 @@ export default class News extends React.Component {
                     currentPage={this._pagination.state.pager.currentPage}
                     pageSize={this._pagination.state.pager.pageSize}
                     maxChars={this.state.articleCharsLimit}
+                    newsLanguage={this.props.newsLanguage}
                   />
                 </div>)
               )
