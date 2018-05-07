@@ -227,10 +227,16 @@ class OfferDB {
       // check if we have an old object here
       const localOffer = container.offer_obj;
       if (offerData.offer_id !== localOffer.offer_id ||
-          offerData.campaign_id !== localOffer.campaign_id ||
-          offerData.display_id !== localOffer.display_id) {
+          offerData.campaign_id !== localOffer.campaign_id) {
         logger.warn('updateOfferObject: the offer core data is not similar? not supported for now');
         return false;
+      }
+
+      // we need to check if it is nescesary to migrate the values of the
+      // old display id to the new if they have different ones
+      if (offerData.display_id !== localOffer.display_id) {
+        // migrate old to new
+        this._migrateDisplayID(localOffer.display_id, offerData.display_id);
       }
     }
     // it is ok, we update the data
@@ -640,6 +646,7 @@ class OfferDB {
   _removeOldEntries() {
     const now = timestampMS();
     const expTimeMs = OffersConfigs.OFFERS_STORAGE_DEFAULT_TTS_SECS * 1000;
+    const validDisplayIds = new Set();
     this.offersIndexMap.keys().forEach((offerID) => {
       const cont = this.offersIndexMap.get(offerID);
       // check delta
@@ -649,6 +656,17 @@ class OfferDB {
         logger.info(`_removeOldEntries: removing old offer ${offerID} with delta time: ${delta}`);
         this._removeIndexTablesForOffer(offerID);
         this.offersIndexMap.delete(offerID);
+      } else {
+        validDisplayIds.add(cont.offer_obj.display_id);
+      }
+    });
+
+    // EX-7208: check if there are displayID elements that should not be here
+    // which can happen if we port from old display-id to the new one
+    this.displayIdIndexMap.keys().forEach((displayID) => {
+      if (!validDisplayIds.has(displayID)) {
+        // we need to remove this one
+        this.displayIdIndexMap.delete(displayID);
       }
     });
   }
@@ -680,6 +698,20 @@ class OfferDB {
     this._addOfferInTypeMap(container.offer_obj);
 
     return true;
+  }
+
+  _migrateDisplayID(oldDisplayID, newDisplayID) {
+    logger.debug(`Migrating display id db information from ${oldDisplayID} to ${newDisplayID}`);
+    if (!this.displayIdIndexMap.has(oldDisplayID)) {
+      logger.debug('nothing to migrate');
+      return;
+    }
+    // here we just reassing the data from old to new, since no offers are sharing the
+    // same display id, otherwise we will need to decide what to merge
+    this.displayIdIndexMap.set(newDisplayID, this.displayIdIndexMap.get(oldDisplayID));
+    if (this.displayIDCounter[oldDisplayID]) {
+      this.displayIDCounter[newDisplayID] = this.displayIDCounter[oldDisplayID];
+    }
   }
 
   /**

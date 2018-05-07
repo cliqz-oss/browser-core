@@ -316,8 +316,6 @@ export default describeModule('adblocker/adblocker',
     'adblocker/adb-stats': { default: class AdbStats {} },
     'adblocker/filters-loader': {},
     'adblocker/logger': {},
-    'webrequest-pipeline/pipeline': {
-    },
   }),
   () => {
     testFiltersEngine(false /* _Do not_, optimize index ahead of time */);

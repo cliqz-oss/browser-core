@@ -12,7 +12,7 @@ module.exports = {
   "publish": "aws s3 cp browser-core-$PACKAGE_VERSION.tgz s3://cdncliqz/update/edge/ghostery/$BRANCH_NAME/$VERSION.tgz --acl public-read && aws s3 cp s3://cdncliqz/update/edge/ghostery/$BRANCH_NAME/$VERSION.tgz s3://cdncliqz/update/edge/ghostery/$BRANCH_NAME/latest.tgz --acl public-read",
   "sourceMaps": false,
   "format": "common",
-  "settings": Object.assign({}, urls, {
+  "settings": Object.assign({
     "channel": "CH80",
     "triggers-root": "ghostery-root",
     "CONFIG_PROVIDER": "https://safe-browsing.ghostery.com/config",
@@ -64,7 +64,7 @@ module.exports = {
     "INVENTORY_URL": "https://cdn.cliqz.com/browser-f/fun-demo/inventoryv2.txt.gz",
     "OFFER_TELEMETRY": "https://offers-api.cliqz.com/api/v1/savesignal",
     "OFFER_TELEMETRY_PREFIX": "https://offers-api.cliqz.com"
-  }),
+  }, urls),
   "default_prefs": {
     "modules.human-web.enabled": true,
     "modules.offers-v2.enabled": false,

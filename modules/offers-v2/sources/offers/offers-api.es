@@ -89,19 +89,6 @@ export default class OffersAPI {
       return false;
     }
 
-    // this is the entry point for every place where we will create an offer.
-    // Everyone who creates an offer should call this method.
-    // TODO: @salvador this is probably not needed anymore since pushed will
-    // always gonna happen if triggered (filtered is not happening here anymore)
-    //
-    this.sigHandler.setCampaignSignal(
-      offer.campaignID,
-      offer.uniqueID,
-      originID,
-      ActionID.AID_OFFER_TRIGGERED
-    );
-
-
     // check if it is cached so we add it or update it
     if (!this._isOfferCached(offer.uniqueID)) {
       // we then need to add the offer to the DB and mark it as active
@@ -109,7 +96,7 @@ export default class OffersAPI {
         // try to update if the version is different, otherwise do nothing
         const dbOffer = this.offersDB.getOfferObject(offer.uniqueID);
         if ((offer.version !== dbOffer.version) &&
-            !this.offersDB.updateOfferObject(offer.version, offer.offerObj)) {
+            !this.offersDB.updateOfferObject(offer.uniqueID, offer.offerObj)) {
           logger.error(`pushOffer: Error updating the offer to the DB: ${offer.uniqueID}`);
           return false;
         }
@@ -123,6 +110,21 @@ export default class OffersAPI {
       // cache the offer
       this._cacheOffer(offer.uniqueID);
     }
+
+    // EX-7208: moving this offer_triggered signal here to ensure that
+    // we could save the offer properly
+
+    // this is the entry point for every place where we will create an offer.
+    // Everyone who creates an offer should call this method.
+    // TODO: @salvador this is probably not needed anymore since pushed will
+    // always gonna happen if triggered (filtered is not happening here anymore)
+    //
+    this.sigHandler.setCampaignSignal(
+      offer.campaignID,
+      offer.uniqueID,
+      originID,
+      ActionID.AID_OFFER_TRIGGERED
+    );
 
     // process offer pushed
     this.offersDB.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_PUSHED);

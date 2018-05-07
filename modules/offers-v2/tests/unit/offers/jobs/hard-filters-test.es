@@ -277,16 +277,6 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
           ctx.presentRealEstates.set('offers-cc', true);
         });
 
-        function updateOfferOnDB(ob, rules) {
-          ob.filterRules = rules;
-          if (db.hasOfferData(ob.offer_id)) {
-            db.updateOfferObject(ob);
-          } else {
-            db.addOfferObject(ob);
-          }
-          return new Offer(ob);
-        }
-
         function checkForOffers(resultList, expectedOffersIds, msg = '') {
           const getIDSFromResult = () => resultList.map(o => o.uniqueID);
 

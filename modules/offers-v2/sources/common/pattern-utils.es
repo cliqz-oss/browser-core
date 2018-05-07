@@ -4,6 +4,9 @@ import { MultiPatternIndex, SimplePatternIndex } from './pattern-utils-imp';
 import { parse } from '../../core/tlds';
 
 
+const normalize = str => decodeURI(str).toLowerCase();
+
+
 /**
  * this method will generate the proper structure we need to use when matching
  * later against the patterns. This will build the "tokenizedURL object"
@@ -12,7 +15,7 @@ import { parse } from '../../core/tlds';
  */
 export default function tokenizeUrl(theUrl) {
   if (theUrl) {
-    const url = theUrl.toLowerCase();
+    const url = normalize(theUrl);
     const { hostname, domain } = parse(url);
     return mkRequest({
       url,

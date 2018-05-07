@@ -46,29 +46,22 @@ export default background({
     resourceManager.unload();
   },
 
-  async dispatchMessage(msg) {
+  dispatchMessage(msg) {
     if (typeof msg.data.requestId === 'number') {
       if (msg.data.requestId in callbacks) {
-        await this.handleResponse(msg);
+        this.handleResponse(msg);
       }
     } else {
-      await this.handleRequest(msg);
+      this.handleRequest(msg);
     }
-
-    // After all actions have been triggered, we call the callback. If it has
-    // already been called before, this will be a no-op. If not, it will avoid
-    // to have pending promises (which would result in 'listener went out of
-    // scope' errors.
-    const { sendResponse } = msg.data;
-    sendResponse();
   },
 
   handleRequest(msg) {
-    const { payload, sender } = msg.data;
+    const { payload, sender, sendResponse } = msg.data;
     const { action, module, args } = payload;
 
     // inject the required module, then call the requested action
-    return inject
+    inject
       .module(module)
       .action(action, ...[...(args || []), sender])
       .catch((e) => {
@@ -79,7 +72,8 @@ export default background({
         }
         console.error(`Process Script ${module}/${action}`, e);
         throw e;
-      });
+      })
+      .then(sendResponse);
   },
 
   handleResponse(msg) {

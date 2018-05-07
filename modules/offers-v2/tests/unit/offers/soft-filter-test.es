@@ -211,9 +211,9 @@ export default describeModule('offers-v2/offers/soft-filter',
         function updateOfferOnDB(ob, rules) {
           ob.filterRules.eval_expression = rules;
           if (db.hasOfferData(ob.offer_id)) {
-            db.updateOfferObject(ob);
+            db.updateOfferObject(ob.offer_id, ob);
           } else {
-            db.addOfferObject(ob);
+            db.addOfferObject(ob.offer_id, ob);
           }
           return new Offer(ob);
         }

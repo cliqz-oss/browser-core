@@ -153,19 +153,6 @@ export default background({
 
     resume() {
       this.adb.paused = false;
-    },
-
-    addPipelineStep(opts) {
-      if (!this.adb.pipeline) {
-        return Promise.reject(`Could not add pipeline step: ${opts.name}`);
-      }
-
-      return this.adb.pipeline.addPipelineStep(opts);
-    },
-    removePipelineStep(name) {
-      if (this.adb && this.adb.pipeline) {
-        this.adb.pipeline.removePipelineStep(name);
-      }
-    },
+    }
   },
 });

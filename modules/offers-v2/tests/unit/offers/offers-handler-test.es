@@ -93,7 +93,8 @@ const VALID_OFFER_OBJ = {
   "categories": ["cat1"],
 };
 
-const cloneOffer = () => JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+const cloneObject = (obj) => JSON.parse(JSON.stringify(obj));
+const cloneOffer = () => cloneObject(VALID_OFFER_OBJ);
 
 const buildOffer = (offerID, campaignID, clientID, displayPriority, filterRules) => {
   const offer = cloneOffer();
@@ -613,6 +614,14 @@ export default describeModule('offers-v2/offers/offers-handler',
             });
           }
 
+          function updateOfferOnDB(ob) {
+            if (offersDB.hasOfferData(ob.offer_id)) {
+              offersDB.updateOfferObject(ob.offer_id, ob);
+            } else {
+              offersDB.addOfferObject(ob.offer_id, ob);
+            }
+          }
+
           it('/check offers handler exists', function () {
             chai.expect(ohandler).to.exist;
             chai.expect(offersDB).to.exist;
@@ -709,12 +718,14 @@ export default describeModule('offers-v2/offers/offers-handler',
             });
           });
 
-          it('/check showing 3 times 3 will not show any other offer', function () {
+          it('/check adding 4 offers will still show another offer', function () {
             const offersList = [
               buildOffer('o1', 'cid1', 'client1', 0.9),
               buildOffer('o2', 'cid1', 'client1', 0.8),
               buildOffer('o3', 'cid2', 'client2', 0.7),
               buildOffer('o4', 'cid3', 'client3', 0.6),
+              buildOffer('o5', 'cid4', 'client', 0.6),
+              buildOffer('o6', 'cid5', 'client4', 0.6),
             ];
 
             const mockData = {
@@ -734,7 +745,41 @@ export default describeModule('offers-v2/offers/offers-handler',
                 'http://www.google.com',
               ];
               setActiveCategoriesFromOffers(offersList);
-              incOfferActions([offersList[0], offersList[1], offersList[2]], 'offer_dsp_session', 3);
+              incOfferActions([offersList[0], offersList[1], offersList[2], offersList[3]], 'offer_dsp_session', 1);
+              return simulateUrlEventsAndWait(urls).then(() => {
+                checkOfferPushed('o1');
+              });
+            });
+          });
+
+          it('/check adding 5 offers will not show any other offer after', function () {
+            const offersList = [
+              buildOffer('o1', 'cid1', 'client1', 0.9),
+              buildOffer('o2', 'cid1', 'client1', 0.8),
+              buildOffer('o3', 'cid2', 'client2', 0.7),
+              buildOffer('o4', 'cid3', 'client3', 0.6),
+              buildOffer('o5', 'cid4', 'client', 0.6),
+              buildOffer('o6', 'cid5', 'client4', 0.6),
+            ];
+
+            const mockData = {
+              backendResult: { 'intent-1': offersList },
+            };
+            configureMockData(mockData);
+
+            // activate intents
+            const intents = [
+              { name: 'intent-1', active: true },
+            ];
+            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
+
+            // wait for the fetch
+            return waitForBEPromise().then(() => {
+              const urls = [
+                'http://www.google.com',
+              ];
+              setActiveCategoriesFromOffers(offersList);
+              incOfferActions([offersList[0], offersList[1], offersList[2], offersList[3], offersList[4]], 'offer_dsp_session', 1);
               return simulateUrlEventsAndWait(urls).then(() => {
                 // check that we could push the
                 checkZeroOfferPushed();
@@ -879,6 +924,41 @@ export default describeModule('offers-v2/offers/offers-handler',
                   // check that we could push the
                   checkOfferPushed('o2');
                 });
+              });
+            });
+          });
+
+          it('/offers that fail when trying to update are discarded', function () {
+            const goodOffer = buildOffer('o1', 'cid1', 'client1', 0.9);
+            // clone the offer but update the version
+            const clonedOffer = cloneObject(goodOffer);
+            clonedOffer.version = 'other';
+            // NOTE THAT WE NOW SUPPORT MIGRATION OF display id
+            clonedOffer.campaign_id = 'wrong-cid-id';
+
+            // add the good offer to the DB
+            updateOfferOnDB(goodOffer);
+
+            const mockData = {
+              backendResult: { 'intent-1': [clonedOffer] },
+            };
+            configureMockData(mockData);
+
+            // activate intents
+            const intents = [
+              { name: 'intent-1', active: true },
+            ];
+            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
+
+            // wait for the fetch
+            return waitForBEPromise().then(() => {
+              const urls = [
+                'http://www.google.com',
+              ];
+              setActiveCategoriesFromOffers([clonedOffer]);
+              return simulateUrlEventsAndWait(urls).then(() => {
+                // we should check no offers were push since its invalid one
+                checkZeroOfferPushed();
               });
             });
           });

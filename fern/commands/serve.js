@@ -23,7 +23,6 @@ program.command('serve [file]')
        .option('--firefox-profile [name|path]', 'firefox profile name or absolute path (web-ext)')
        .option('--firefox [firefox]', 'firefox path (web-ext)', 'nightly')
        .option('--firefox-keep-changes', 'keep profile changes (web-ext)')
-       .option('--no-launch', 'do not launch a browser')
        .action((configPath, options) => {
           process.env['CLIQZ_ENVIRONMENT'] = options.environment || 'development';
           process.env['CLIQZ_SOURCE_MAPS'] = options.maps;
@@ -77,7 +76,7 @@ program.command('serve [file]')
               rimraf.sync(OUTPUT_PATH);
               copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
 
-              if (['firefox', 'webextension'].indexOf(CONFIG.platform) >= 0 && options.launch !== false) {
+              if (CONFIG.platform === 'firefox') {
                 if (extensionRunner) {
                   donePromise = extensionRunner.reloadAllExtensions()
                 } else {

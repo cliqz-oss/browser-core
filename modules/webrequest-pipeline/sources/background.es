@@ -206,8 +206,8 @@ export default background({
     ];
 
     // For unknown reason is we listen to ws:// or wss:// on Edge, the
-    // webRequest does not work; also apparently on Chrome versions below 58
-    if (!isEdge && !isChromium) {
+    // webRequest does not work
+    if (!isEdge) {
       urls.push(
         'ws://*/*',
         'wss://*/*',

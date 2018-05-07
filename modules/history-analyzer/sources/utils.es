@@ -19,8 +19,12 @@ Object.keys(TLDs).forEach((tld) => {
   blacklist(tld);
 });
 
+function normalize(str) {
+  return decodeURI(str).toLowerCase();
+}
+
 export default function (str) {
-  return new Uint32Array(tokenize(str).filter(t => BLACKLIST[t] === undefined));
+  return new Uint32Array(tokenize(normalize(str)).filter(t => BLACKLIST[t] === undefined));
 }
 
 
